@@ -7,6 +7,8 @@
 #include "hwio_pindef.h"
 #include <iterator>
 
+using buddy::hw::PinChecker;
+
 constexpr PinChecker pinsToCheck[] = {
     PIN_TABLE(PINS_TO_CHECK)
 };

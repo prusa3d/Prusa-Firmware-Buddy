@@ -5,6 +5,7 @@
  */
 
 #include "Pin.hpp"
+using namespace buddy::hw;
 
 void InputPin::configure(Pull pull) const {
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };

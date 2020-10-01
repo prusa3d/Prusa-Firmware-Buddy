@@ -23,10 +23,12 @@
  * @par Example usage:
  * @code
  * #define PIN_TABLE(F) \
- *      F(OutputPin, e0Dir, BUDDY_PIN(E0_DIR), InitState::reset COMMA OMode::pushPull COMMA OSpeed::low) \
- *      F(InputPin, fastBoot, IoPort::C COMMA IoPin::p7, IMode::input COMMA Pull::up)
+ *      F(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), InitState::reset COMMA OMode::pushPull COMMA OSpeed::low) \
+ *      F(buddy::hw::InputPin, fastBoot, IoPort::C COMMA IoPin::p7, IMode::input COMMA Pull::up)
  *
+ * namespace buddy::hw {
  * DECLARE_PINS(PIN_TABLE)
+ * }
  *
  * CONFIGURE_PINS(PIN_TABLE)
  *
@@ -57,7 +59,7 @@
  * CONFIGURE_PINS(PIN_TABLE)
  * @endcode
  */
-#define CONFIGURE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) NAME.configure();
+#define CONFIGURE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) buddy::hw::NAME.configure();
 /**
  * @brief Generate array of physical location of all pins supplied in PIN_TABLE parameter
  * @par Usage:
@@ -69,6 +71,9 @@
  */
 #define PINS_TO_CHECK(TYPE, NAME, PORTPIN, PARAMETERS) { PORTPIN },
 /**@}*/
+
+namespace buddy::hw {
+
 enum class IoPort : uint8_t {
     A = 0,
     B,
@@ -283,3 +288,4 @@ public:
 private:
     const OutputInputPin &m_outputInputPin;
 };
+} // namespace buddy::hw

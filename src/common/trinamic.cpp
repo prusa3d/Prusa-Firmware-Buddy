@@ -12,6 +12,8 @@
 
 #if ((MOTHERBOARD == 1823))
 
+using namespace buddy::hw;
+
 extern "C" {
 
 TMC2209Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };

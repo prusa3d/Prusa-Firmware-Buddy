@@ -6,6 +6,11 @@
 
 #ifdef GUI_JOGWHEEL_SUPPORT
 
+using buddy::hw::jogWheelEN1;
+using buddy::hw::jogWheelEN2;
+using buddy::hw::jogWheelENC;
+using buddy::hw::Pin;
+
 // time constants
 static const constexpr uint16_t JG_DOUBLECLICK_INTERVAL = 500; // [ms] jogwheel max double click delay - if second click is after 500ms it doesn't trigger doubleclick
 static const constexpr uint16_t JG_HOLD_INTERVAL = 1000;       // [ms] jogwheel min hold delay - if user holds for shorter time than this, it triggers normal click instead

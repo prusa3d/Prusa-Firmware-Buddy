@@ -9,6 +9,8 @@
 #include "gpio.h"
 #include "hwio_pindef.h"
 
+using buddy::hw::zMin;
+
 static uint32_t PRE_XYHOME = 0;
 static uint32_t POST_XYHOME = 0;
 

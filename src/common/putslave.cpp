@@ -26,6 +26,8 @@
     #error "HAS_GUI not defined."
 #endif
 
+using namespace buddy::hw;
+
 static int putslave_do_cmd_a_stop(uartslave_t *pslave);
 
 int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {

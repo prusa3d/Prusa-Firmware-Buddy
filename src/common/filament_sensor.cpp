@@ -22,6 +22,9 @@
 #include "cmsis_os.h"      //osDelay
 #include "marlin_client.h" //enable/disable fs in marlin
 
+using buddy::hw::fSensor;
+using buddy::hw::Pin;
+
 static volatile fsensor_t state = fsensor_t::FS_NOT_INITIALIZED;
 static volatile fsensor_t last_state = fsensor_t::FS_NOT_INITIALIZED;
 

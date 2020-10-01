@@ -7,6 +7,8 @@
 #include "config.h"
 #include "appmain.hpp"
 
+using namespace buddy::hw;
+
 //! @brief Put hardware into safe state
 //!
 //! Set fans to maximum, heaters to minimum and disable motors.

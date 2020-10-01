@@ -4,6 +4,8 @@
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 
+using namespace buddy::hw;
+
 // global variables for C wrapper
 static uint8_t CFanCtl_count = 0;                  // number of instances
 static CFanCtl *CFanCtl_instance[FANCTL_MAX_FANS]; // array of pointers to instances

@@ -82,35 +82,37 @@
 #define MARLIN_PORT_TEMP_0   MARLIN_PORT_C
 #define MARLIN_PIN_NR_TEMP_0 MARLIN_PIN_NR_0 //ADC
 
-#define PIN_TABLE(F)                                                                                            \
-    F(InputPin, zMin, BUDDY_PIN(Z_MIN), IMode::IT_faling COMMA Pull::up)                                        \
-    F(InputPin, xDiag, BUDDY_PIN(X_DIAG), IMode::input COMMA Pull::none)                                        \
-    F(InputPin, yDiag, BUDDY_PIN(Y_DIAG), IMode::input COMMA Pull::none)                                        \
-    F(InputPin, zDiag, BUDDY_PIN(Z_DIAG), IMode::input COMMA Pull::none)                                        \
-    F(InputPin, e0Diag, BUDDY_PIN(E0_DIAG), IMode::input COMMA Pull::none)                                      \
-    F(OutputPin, xEnable, BUDDY_PIN(X_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)           \
-    F(OutputPin, yEnable, BUDDY_PIN(Y_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)           \
-    F(OutputPin, zEnable, BUDDY_PIN(Z_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)           \
-    F(OutputPin, e0Enable, BUDDY_PIN(E0_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)         \
-    F(OutputPin, xStep, BUDDY_PIN(X_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)             \
-    F(OutputPin, yStep, BUDDY_PIN(Y_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)             \
-    F(OutputPin, zStep, BUDDY_PIN(Z_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)             \
-    F(OutputPin, e0Step, BUDDY_PIN(E0_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)           \
-    F(OutputPin, xDir, BUDDY_PIN(X_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)               \
-    F(OutputPin, yDir, BUDDY_PIN(Y_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)               \
-    F(OutputPin, zDir, BUDDY_PIN(Z_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)               \
-    F(OutputPin, e0Dir, BUDDY_PIN(E0_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)             \
-    F(InputPin, fastBoot, IoPort::C COMMA IoPin::p7, IMode::input COMMA Pull::up)                               \
-    F(InputPin, fSensor, IoPort::B COMMA IoPin::p4, IMode::input COMMA Pull::up)                                \
-    F(OutputPin, fan0pwm, IoPort::E COMMA IoPin::p11, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high) \
-    F(OutputPin, fan1pwm, IoPort::E COMMA IoPin::p9, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high)  \
-    F(InputPin, fan0tach, IoPort::E COMMA IoPin::p10, IMode::input COMMA Pull::up)                              \
-    F(InputPin, fan1tach, IoPort::E COMMA IoPin::p14, IMode::input COMMA Pull::up)                              \
-    F(InputPin, jogWheelEN1, IoPort::E COMMA IoPin::p15, IMode::input COMMA Pull::up)                           \
-    F(InputPin, jogWheelEN2, IoPort::E COMMA IoPin::p13, IMode::input COMMA Pull::up)                           \
-    F(InputPin, jogWheelENC, IoPort::E COMMA IoPin::p12, IMode::input COMMA Pull::up)                           \
-    F(OutputPin, cs, IoPort::C COMMA IoPin::p9, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high)      \
-    F(OutputPin, rs, IoPort::D COMMA IoPin::p11, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high)     \
-    F(OutputInputPin, rst, IoPort::C COMMA IoPin::p8, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)
+#define PIN_TABLE(F)                                                                                                                             \
+    F(buddy::hw::InputPin, zMin, BUDDY_PIN(Z_MIN), IMode::IT_faling COMMA Pull::up)                                                              \
+    F(buddy::hw::InputPin, xDiag, BUDDY_PIN(X_DIAG), IMode::input COMMA Pull::none)                                                              \
+    F(buddy::hw::InputPin, yDiag, BUDDY_PIN(Y_DIAG), IMode::input COMMA Pull::none)                                                              \
+    F(buddy::hw::InputPin, zDiag, BUDDY_PIN(Z_DIAG), IMode::input COMMA Pull::none)                                                              \
+    F(buddy::hw::InputPin, e0Diag, BUDDY_PIN(E0_DIAG), IMode::input COMMA Pull::none)                                                            \
+    F(buddy::hw::OutputPin, xEnable, BUDDY_PIN(X_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)                                 \
+    F(buddy::hw::OutputPin, yEnable, BUDDY_PIN(Y_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)                                 \
+    F(buddy::hw::OutputPin, zEnable, BUDDY_PIN(Z_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)                                 \
+    F(buddy::hw::OutputPin, e0Enable, BUDDY_PIN(E0_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)                               \
+    F(buddy::hw::OutputPin, xStep, BUDDY_PIN(X_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)                                   \
+    F(buddy::hw::OutputPin, yStep, BUDDY_PIN(Y_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)                                   \
+    F(buddy::hw::OutputPin, zStep, BUDDY_PIN(Z_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)                                   \
+    F(buddy::hw::OutputPin, e0Step, BUDDY_PIN(E0_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)                                 \
+    F(buddy::hw::OutputPin, xDir, BUDDY_PIN(X_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)                                     \
+    F(buddy::hw::OutputPin, yDir, BUDDY_PIN(Y_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)                                     \
+    F(buddy::hw::OutputPin, zDir, BUDDY_PIN(Z_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)                                     \
+    F(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)                                   \
+    F(buddy::hw::InputPin, fastBoot, buddy::hw::IoPort::C COMMA buddy::hw::IoPin::p7, IMode::input COMMA Pull::up)                               \
+    F(buddy::hw::InputPin, fSensor, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p4, IMode::input COMMA Pull::up)                                \
+    F(buddy::hw::OutputPin, fan0pwm, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p11, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high) \
+    F(buddy::hw::OutputPin, fan1pwm, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p9, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high)  \
+    F(buddy::hw::InputPin, fan0tach, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p10, IMode::input COMMA Pull::up)                              \
+    F(buddy::hw::InputPin, fan1tach, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p14, IMode::input COMMA Pull::up)                              \
+    F(buddy::hw::InputPin, jogWheelEN1, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p15, IMode::input COMMA Pull::up)                           \
+    F(buddy::hw::InputPin, jogWheelEN2, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p13, IMode::input COMMA Pull::up)                           \
+    F(buddy::hw::InputPin, jogWheelENC, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p12, IMode::input COMMA Pull::up)                           \
+    F(buddy::hw::OutputPin, cs, buddy::hw::IoPort::C COMMA buddy::hw::IoPin::p9, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high)      \
+    F(buddy::hw::OutputPin, rs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p11, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high)     \
+    F(buddy::hw::OutputInputPin, rst, buddy::hw::IoPort::C COMMA buddy::hw::IoPin::p8, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)
 
+namespace buddy::hw {
 PIN_TABLE(DECLARE_PINS)
+}

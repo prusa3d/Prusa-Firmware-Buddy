@@ -11,6 +11,8 @@
 #include "usb_host.h"
 #include "hwio_pindef.h"
 
+using namespace buddy::hw;
+
 int diag_fastboot = 0;
 
 int diag_error = 0;

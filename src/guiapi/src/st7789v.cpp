@@ -5,6 +5,13 @@
 #include <cmath>
 #include "hwio_pindef.h"
 
+using buddy::hw::cs;
+using buddy::hw::InputEnabler;
+using buddy::hw::Pin;
+using buddy::hw::Pull;
+using buddy::hw::rs;
+using buddy::hw::rst;
+
 void st7789v_set_cs(void) {
     cs.write(Pin::State::high);
     st7789v_flg |= FLG_CS;

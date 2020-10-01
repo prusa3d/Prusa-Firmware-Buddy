@@ -58,12 +58,12 @@
 /**
  * @brief Convert Marlin style defined pin to be used in constructor of Pin
  */
-#define BUDDY_PIN(name) static_cast<IoPort>(MARLIN_PORT_##name), static_cast<IoPin>(MARLIN_PIN_NR_##name)
+#define BUDDY_PIN(name) static_cast<buddy::hw::IoPort>(MARLIN_PORT_##name), static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_##name)
 /**@}*/
 
-static_assert(IoPort::A == static_cast<IoPort>(MARLIN_PORT_A), "Marlin port doesn't match Buddy IoPort.");
-static_assert(IoPort::B == static_cast<IoPort>(MARLIN_PORT_B), "Marlin port doesn't match Buddy IoPort.");
-static_assert(IoPort::F == static_cast<IoPort>(MARLIN_PORT_F), "Marlin port doesn't match Buddy IoPort.");
-static_assert(IoPin::p0 == static_cast<IoPin>(MARLIN_PIN_NR_0), "Marlin pin doesn't match Buddy IoPin.");
-static_assert(IoPin::p1 == static_cast<IoPin>(MARLIN_PIN_NR_1), "Marlin pin doesn't match Buddy IoPin.");
-static_assert(IoPin::p15 == static_cast<IoPin>(MARLIN_PIN_NR_15), "Marlin pin doesn't match Buddy IoPin.");
+static_assert(buddy::hw::IoPort::A == static_cast<buddy::hw::IoPort>(MARLIN_PORT_A), "Marlin port doesn't match Buddy IoPort.");
+static_assert(buddy::hw::IoPort::B == static_cast<buddy::hw::IoPort>(MARLIN_PORT_B), "Marlin port doesn't match Buddy IoPort.");
+static_assert(buddy::hw::IoPort::F == static_cast<buddy::hw::IoPort>(MARLIN_PORT_F), "Marlin port doesn't match Buddy IoPort.");
+static_assert(buddy::hw::IoPin::p0 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_0), "Marlin pin doesn't match Buddy IoPin.");
+static_assert(buddy::hw::IoPin::p1 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_1), "Marlin pin doesn't match Buddy IoPin.");
+static_assert(buddy::hw::IoPin::p15 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_15), "Marlin pin doesn't match Buddy IoPin.");
