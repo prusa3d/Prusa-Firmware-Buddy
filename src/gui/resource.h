@@ -87,4 +87,5 @@ enum {
     IDR_PNG_flag_fr,
     IDR_PNG_flag_it,
     IDR_PNG_flag_pl,
+    IDR_PNG_sheet_profile,
 };

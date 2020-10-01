@@ -10,15 +10,22 @@ static const constexpr uint8_t WINDOW_PROGRESS_MAX_TEXT = 16;
 window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress, color_t cl_back)
     : AddSuperWindow<window_t>(parent, rect)
     , color_progress(cl_progress) {
-    SetProgress(0);
+    SetProgressInPixels(0);
     color_back = cl_back;
 }
 
-void window_numberless_progress_t::SetProgress(uint16_t px) {
+void window_numberless_progress_t::SetProgressInPixels(uint16_t px) {
     if (px != mem_space_u16) {
         mem_space_u16 = px;
         Invalidate();
     }
+}
+
+void window_numberless_progress_t::SetProgressPercent(float val) {
+    const float min = 0;
+    const float max = 100;
+    const float value = std::max(min, std::min(val, max));
+    SetProgressInPixels((value * rect.Width()) / max);
 }
 
 uint16_t window_numberless_progress_t::GetProgressPixels() const {
@@ -50,7 +57,7 @@ void window_numberless_progress_t::unconditionalDraw() {
 void window_progress_t::SetValue(float val) {
     const float value = std::max(min, std::min(val, max));
     numb.SetValue(value);
-    progr.SetProgress((value * progr.rect.Width()) / max);
+    progr.SetProgressPercent(value);
 }
 
 window_progress_t::window_progress_t(window_t *parent, Rect16 rect, uint16_t h_progr, color_t cl_progress, color_t cl_back)

@@ -24,6 +24,7 @@ enum class GUI_event_t {
     LOOP,         //gui loop (every 50ms)
     TIMER,        //gui timer
     MESSAGE,      //onStatusChange() message notification
+    CHILD_CLICK,  //click at the child screen
 };
 
 constexpr bool GUI_event_IsKnob(GUI_event_t event) {
@@ -94,6 +95,8 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
         return ("gui timer");
     case GUI_event_t::MESSAGE:
         return ("message notification");
+    case GUI_event_t::CHILD_CLICK:
+        return ("child click");
     }
     return ("error bad index");
 }
