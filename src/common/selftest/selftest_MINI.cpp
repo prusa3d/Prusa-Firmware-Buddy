@@ -15,7 +15,6 @@
 #include "../../Marlin/src/module/temperature.h"
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at oposite side to home position
-#define _PF         2.40F // progres factor (because the value is in pixels! :) TODO fix this
 
 static const float XYfr_table[] = { 50, 60, 75, 100 };
 
@@ -148,7 +147,7 @@ bool CSelftest::phaseFans(const selftest_fan_config_t *pconfig_fan0, const selft
     if (m_pFan0->IsInProgress() || m_pFan1->IsInProgress()) {
         int p0 = m_pFan0->GetProgress();
         int p1 = m_pFan1->GetProgress();
-        int p = _PF * ((p1 > p0) ? p0 : p1);
+        int p = std::min(p0, p1);
         fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, p, uint8_t(SelftestSubtestState_t::running));
         if (m_pFan1->IsInProgress())
             fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, p, uint8_t(SelftestSubtestState_t::running));
@@ -156,8 +155,8 @@ bool CSelftest::phaseFans(const selftest_fan_config_t *pconfig_fan0, const selft
             fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, p, uint8_t(SelftestSubtestState_t::ok));
         return true;
     }
-    fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, _PF, uint8_t(SelftestSubtestState_t::ok));
-    fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, _PF, uint8_t(SelftestSubtestState_t::ok));
+    fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, 100, uint8_t(SelftestSubtestState_t::ok));
+    fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, 100, uint8_t(SelftestSubtestState_t::ok));
     delete m_pFan0;
     m_pFan0 = nullptr;
     delete m_pFan1;
@@ -188,11 +187,11 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestP
     m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestAxis, 0);
     *ppaxis = *ppaxis ? *ppaxis : new CSelftestPart_Axis(pconfig_axis);
     if ((*ppaxis)->Loop()) {
-        int p = _PF * ((*ppaxis)->GetProgress());
+        int p = (*ppaxis)->GetProgress();
         fsm_change(ClientFSM::SelftestAxis, (PhasesSelftestAxis)fsm_phase, p, uint8_t(SelftestSubtestState_t::running));
         return true;
     }
-    fsm_change(ClientFSM::SelftestAxis, (PhasesSelftestAxis)fsm_phase, _PF, uint8_t(SelftestSubtestState_t::ok));
+    fsm_change(ClientFSM::SelftestAxis, (PhasesSelftestAxis)fsm_phase, 100, uint8_t(SelftestSubtestState_t::ok));
     delete *ppaxis;
     *ppaxis = nullptr;
     if (((m_State == stsXAxis) && ((m_Mask & (stmYAxis | stmZAxis)) == 0)) || ((m_State == stsYAxis) && ((m_Mask & stmZAxis) == 0)) || (m_State == stsZAxis)) {
@@ -211,7 +210,7 @@ bool CSelftest::phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, con
     if (m_pHeater_Nozzle->IsInProgress() || m_pHeater_Bed->IsInProgress()) {
         int p0 = m_pHeater_Nozzle->GetProgress();
         int p1 = m_pHeater_Bed->GetProgress();
-        int p = _PF * ((p1 > p0) ? p0 : p1);
+        int p = std::min(p0, p1);
         fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_cool, p, uint8_t(SelftestSubtestState_t::running));
         fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_cool, p, uint8_t(SelftestSubtestState_t::running));
         return true;
