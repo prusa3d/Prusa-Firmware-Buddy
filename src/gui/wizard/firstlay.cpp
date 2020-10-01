@@ -164,7 +164,8 @@ StateFncData StateFnc_FIRSTLAY_PRINT(StateFncData last_run) {
     marlin_gcode_printf("M104 S%d", temp_nozzle);                          // set displayed temperature
     marlin_gcode_printf("M109 S%d", temp_nozzle);                          // wait for displayed temperature
     marlin_gcode("G26");                                                   //firstlay
-                                                                           //todo save to eeprom
+
+    //todo save to eeprom
     auto ret = last_run.PassToNext();
     ScreenWizard::ChangeStartState(ret.GetState()); //marlin_gcode("G26"); will close wizard screen, need to save reopen state
     return ret;
