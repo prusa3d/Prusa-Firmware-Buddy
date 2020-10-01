@@ -16,6 +16,9 @@
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at oposite side to home position
 
+#define X_AXIS_PERCENT 50
+#define Y_AXIS_PERCENT 50
+
 static const float XYfr_table[] = { 50, 60, 75, 100 };
 
 static const float Zfr_table[] = { 20 };
@@ -86,11 +89,11 @@ void CSelftest::Loop() {
             return;
         break;
     case stsXAxis:
-        if (phaseAxis(&Config_XAxis, &m_pXAxis, (uint16_t)PhasesSelftestAxis::Xaxis))
+        if (phaseAxis(&Config_XAxis, &m_pXAxis, (uint16_t)PhasesSelftestAxis::Xaxis, 0, X_AXIS_PERCENT))
             return;
         break;
     case stsYAxis:
-        if (phaseAxis(&Config_YAxis, &m_pYAxis, (uint16_t)PhasesSelftestAxis::Yaxis))
+        if (phaseAxis(&Config_YAxis, &m_pYAxis, (uint16_t)PhasesSelftestAxis::Yaxis, X_AXIS_PERCENT, Y_AXIS_PERCENT))
             return;
         break;
     case stsZAxis:
@@ -183,11 +186,11 @@ bool CSelftest::phaseHome() {
     return false;
 }
 
-bool CSelftest::phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase) {
+bool CSelftest::phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase, uint8_t progress_add, uint8_t progress_mul) {
     m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestAxis, 0);
     *ppaxis = *ppaxis ? *ppaxis : new CSelftestPart_Axis(pconfig_axis);
     if ((*ppaxis)->Loop()) {
-        int p = (*ppaxis)->GetProgress();
+        int p = progress_add + (*ppaxis)->GetProgress() * progress_mul / 100;
         fsm_change(ClientFSM::SelftestAxis, (PhasesSelftestAxis)fsm_phase, p, uint8_t(SelftestSubtestState_t::running));
         return true;
     }

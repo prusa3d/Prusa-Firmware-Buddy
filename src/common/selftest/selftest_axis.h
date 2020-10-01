@@ -46,6 +46,7 @@ protected:
 protected:
     bool next();
     static uint32_t estimate(const selftest_axis_config_t *pconfig);
+    static uint32_t estimate_move(float len_mm, float fr_mms);
 
 protected:
     TestState m_State;

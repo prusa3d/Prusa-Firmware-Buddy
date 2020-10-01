@@ -99,6 +99,14 @@ bool CSelftestPart_Axis::next() {
 }
 
 uint32_t CSelftestPart_Axis::estimate(const selftest_axis_config_t *pconfig) {
-    uint32_t total_time = 1000;
+    uint32_t total_time = 0;
+    for (int i = 0; i < pconfig->steps; i++) {
+        total_time += 2 * estimate_move(pconfig->length, pconfig->fr_table[i]);
+    }
     return total_time;
+}
+
+uint32_t CSelftestPart_Axis::estimate_move(float len_mm, float fr_mms) {
+    uint32_t move_time = 1000 * len_mm / fr_mms;
+    return move_time;
 }
