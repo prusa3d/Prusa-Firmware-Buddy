@@ -1,7 +1,7 @@
 #include "screen_sheet_rename.hpp"
 #include "ScreenHandler.hpp"
 #include "eeprom.h"
-#include "Marlin/src/core/serial.h"
+#include "dbg.h"
 
 static void onclick_ok();
 static void onclick_cancel();
@@ -23,13 +23,13 @@ screen_sheet_rename_t::screen_sheet_rename_t()
     sheet_name(screen_sheet_rename_t::index_, name, MAX_SHEET_NAME_LENGTH);
     text_name.SetText(string_view_utf8::MakeCPUFLASH((uint8_t *)name));
     text_name.SetFocus();
-    SERIAL_ECHOPAIR("Rename : ", name);
+    _dbg("Rename : %s\n", name);
 }
 
 void onclick_ok() {
     uint32_t cnt = sheet_rename(
-        screen_sheet_rename_t::index_, "muhehe", 6);
-    SERIAL_ECHOPAIR("Rename Cnt: ", cnt);
+        screen_sheet_rename_t::index_, "somethin", 6);
+    _dbg("Rename Cnt: %d\n", cnt);
     Screens::Access()->Close();
 }
 
