@@ -183,7 +183,7 @@ static const constexpr float snake2[] = {
 bool FirstLayer::isPrinting_ = false;
 
 void FirstLayer::finish_printing() {
-    current_line = 0;
+    current_line = 1;
     total_lines = 1; /// don't set 0 to avoid division by zero
 }
 
@@ -296,12 +296,13 @@ void FirstLayer::print_shape_1() {
 
 void FirstLayer::print_shape_2() {
     /// fixed lines - constant to show 100% at the end + calibration pattern
-    total_lines = 8 - 2 + ARRAY_SIZE(snake2);
+    total_lines = 8 - 3 + ARRAY_SIZE(snake2);
     current_line = 0;
 
     /// print purge line
     go_to_destination_and_wait(NAN, NAN, 4.f, NAN, 1000.f);
-    go_to_destination_and_wait(0.f, -2.f, 0.2f, NAN, 3000.f);
+    go_to_destination_and_wait(NAN, -2.f, 0.2f, NAN, 3000.f);
+    go_to_destination_and_wait(0.f, NAN, 0.2f, NAN, 3000.f);
     go_to_destination_and_wait(NAN, NAN, NAN, 6.f, 2000.f);
     go_to_destination_and_wait(60.f, NAN, NAN, 9.f, 1000.f);
     go_to_destination_and_wait(100.f, NAN, NAN, 12.5f, 1000.f);
