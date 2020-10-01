@@ -18,7 +18,10 @@ public:
     FirstLayer()
         : FSM_Holder(ClientFSM::FirstLayer, 0) { isPrinting_ = true; }
 
-    ~FirstLayer() { isPrinting_ = false; }
+    ~FirstLayer() {
+        isPrinting_ = false;
+        disable_all_steppers();
+    }
 
     static bool isPrinting() {
         return isPrinting_;

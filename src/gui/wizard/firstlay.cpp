@@ -164,8 +164,7 @@ StateFncData StateFnc_FIRSTLAY_PRINT(StateFncData last_run) {
     marlin_gcode_printf("M104 S%d", temp_nozzle);                          // set displayed temperature
     marlin_gcode_printf("M109 S%d", temp_nozzle);                          // wait for displayed temperature
     marlin_gcode("G26");                                                   //firstlay
-
-    //todo save to eeprom
+                                                                           //todo save to eeprom
     auto ret = last_run.PassToNext();
     ScreenWizard::ChangeStartState(ret.GetState()); //marlin_gcode("G26"); will close wizard screen, need to save reopen state
     return ret;
@@ -175,6 +174,9 @@ StateFncData StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT(StateFncData last_run) {
     static const char en_text[] = N_("Do you want to repeat the last step and readjust the distance between the nozzle and heatbed?");
     string_view_utf8 translatedText = _(en_text);
     if (MsgBox(translatedText, Responses_YesNo, 1) == Response::No) {
+        marlin_gcode("M104 S0"); // nozzle target
+        marlin_gcode("M140 S0"); // bed target
+
         //eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(p_firstlay_screen->Z_offset));
         //eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
         return StateFncData(WizardState_t::FIRSTLAY_PASS, WizardTestState_t::PASSED);
