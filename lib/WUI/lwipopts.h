@@ -144,7 +144,8 @@ extern "C" {
     /* USER CODE BEGIN 1 */
     #define HTTPD_USE_CUSTOM_FSDATA    1 // uses the web resources from fsdata_custom.c (buddy web pages)
     #define LWIP_NETIF_API             1 // enable LWIP_NETIF_API==1: Support netif api (in netifapi.c)
-    #define LWIP_NETIF_LINK_CALLBACK   1 //LWIP_NETIF_LINK_CALLBACK==1: Support a callback function from an interface
+    #define LWIP_NETIF_LINK_CALLBACK   1 // Support a callback function from an interface whenever the link changes (i.e., link down)
+    #define LWIP_NETIF_STATUS_CALLBACK 1 // Support a callback function whenever an interface changes its up/down status (i.e., due to DHCP IP acquisition)
     #define LWIP_HTTPD_DYNAMIC_HEADERS 1
     #define LWIP_NETIF_HOSTNAME        1
     #define LWIP_HTTPD_SUPPORT_POST    1
@@ -153,7 +154,7 @@ extern "C" {
     #else
         #define HTTPD_SERVER_AGENT "Prusa Buddy"
     #endif
-    #define LWIP_DNS 0
+    #define LWIP_DNS 1
 
 /* USER CODE END 1 */
 
