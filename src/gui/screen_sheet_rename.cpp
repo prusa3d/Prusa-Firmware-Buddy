@@ -27,9 +27,9 @@ screen_sheet_rename_t::screen_sheet_rename_t()
 }
 
 void onclick_ok() {
-    uint32_t cnt = sheet_rename(
-        screen_sheet_rename_t::index_, "somethin", 6);
-    _dbg("Rename Cnt: %d\n", cnt);
+    ///TODO: store count changed characters
+    ///uint32_t cnt = sheet_rename(
+    _dbg("Rename Cnt: %d\n", sheet_rename(screen_sheet_rename_t::index_, "anything", 8));
     Screens::Access()->Close();
 }
 
