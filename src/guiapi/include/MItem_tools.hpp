@@ -90,7 +90,15 @@ class MI_TEST_HEAT : public WI_LABEL_t {
 
 public:
     MI_TEST_HEAT();
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
 
+class MI_TEST_FANS_fine : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Test FANs fine");
+
+public:
+    MI_TEST_FANS_fine();
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };

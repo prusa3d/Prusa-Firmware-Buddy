@@ -105,7 +105,7 @@ void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_TEST_X
+//MI_TEST_XYZ
 MI_TEST_XYZ::MI_TEST_XYZ()
     : WI_LABEL_t(label, 0, true, false) {
 }
@@ -124,6 +124,17 @@ MI_TEST_HEAT::MI_TEST_HEAT()
 void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmHeaters);
     DialogHandler::WaitUntilClosed(ClientFSM::SelftestHeat, 0);
+}
+
+/*****************************************************************************/
+//MI_TEST_FANS_fine
+MI_TEST_FANS_fine::MI_TEST_FANS_fine()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_FANS_fine::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmFans_fine);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
 }
 
 /*****************************************************************************/

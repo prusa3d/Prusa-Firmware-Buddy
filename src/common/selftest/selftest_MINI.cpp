@@ -12,6 +12,7 @@
 #include "wizard_config.hpp"
 #include "ff.h"
 #include "../../Marlin/src/module/stepper.h"
+#include "../../Marlin/src/module/temperature.h"
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at oposite side to home position
 #define _PF         2.40F // progres factor (because the value is in pixels! :) TODO fix this
@@ -30,9 +31,9 @@ static const selftest_axis_config_t Config_YAxis = { .partname = "Y-Axis", .axis
 
 static const selftest_axis_config_t Config_ZAxis = { .partname = "Z-Axis", .axis = Z_AXIS, .steps = 1, .dir = 1, .length = 185, .fr_table = Zfr_table };
 
-static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzle", .heater = 0 };
+static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzle", .heater = 0, .start_temp = 40, .max_temp = 290 };
 
-static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heater = 0xff };
+static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heater = 0xff, .start_temp = 40, .max_temp = 110 };
 
 static const selftest_fan_config_t Config_Fan0_fine = { .partname = "Fan0", .pfanctl = &fanctl0, .steps = 24, .pwm_start = 4, .pwm_step = 2 };
 
@@ -59,6 +60,7 @@ bool CSelftest::IsInProgress() const {
 
 bool CSelftest::Start(SelftestMask_t mask) {
     m_Mask = mask;
+    m_Mask = (SelftestMask_t)(m_Mask & ~stmZAxis); // temporarily disable ZAxis test
     if (m_Mask & stmXYZAxis)
         m_Mask = (SelftestMask_t)(m_Mask | stmHome);
     m_State = stsStart;
@@ -130,6 +132,10 @@ void CSelftest::phaseStart() {
     marlin_server_set_exclusive_mode(1);
     hwio_fan_control_disable();
     m_HomeState = sthsNone;
+    if (m_Mask & stmHeaters) {
+        thermalManager.setTargetHotend(40, 0);
+        thermalManager.setTargetBed(40);
+    }
     log_open();
 }
 
@@ -197,19 +203,25 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestP
 }
 
 bool CSelftest::phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, const selftest_heater_config_t *pconfig_bed) {
+    m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestHeat, 0);
     m_pHeater_Nozzle = m_pHeater_Nozzle ? m_pHeater_Nozzle : new CSelftestPart_Heater(&Config_HeaterNozzle);
     m_pHeater_Bed = m_pHeater_Bed ? m_pHeater_Bed : new CSelftestPart_Heater(&Config_HeaterBed);
     m_pHeater_Nozzle->Loop();
     m_pHeater_Bed->Loop();
-    if (m_pHeater_Nozzle->IsInProgress() || m_pFan1->IsInProgress()) {
-        //int p0 = m_pHeater_Nozzle->GetProgress();
-        //int p1 = m_pHeater_Bed->GetProgress();
+    if (m_pHeater_Nozzle->IsInProgress() || m_pHeater_Bed->IsInProgress()) {
+        int p0 = m_pHeater_Nozzle->GetProgress();
+        int p1 = m_pHeater_Bed->GetProgress();
+        int p = _PF * ((p1 > p0) ? p0 : p1);
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_cool, p, uint8_t(SelftestSubtestState_t::running));
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_cool, p, uint8_t(SelftestSubtestState_t::running));
         return true;
     }
     delete m_pHeater_Nozzle;
     m_pHeater_Nozzle = nullptr;
     delete m_pHeater_Bed;
     m_pHeater_Bed = nullptr;
+    delete m_pFSM;
+    m_pFSM = nullptr;
     return false;
 }
 
@@ -217,6 +229,7 @@ void CSelftest::phaseFinish() {
     log_close();
     hwio_fan_control_enable();
     marlin_server_set_exclusive_mode(0);
+    thermalManager.disable_all_heaters();
 }
 
 void CSelftest::next() {
@@ -234,10 +247,30 @@ void CSelftest::log_open() {
         serial_otp = 0;
     }
     char serial[32] = "unknown";
-    char fname[32] = "test_unknown.txt";
+    const char *suffix = "";
+    switch (m_Mask) {
+    case stmFans:
+        suffix = "_fans";
+        break;
+    case stmXYAxis:
+    case stmHome_XYAxis:
+        suffix = "_xyz";
+        break;
+    case stmXYZAxis:
+    case stmHome_XYZAxis:
+        suffix = "_xyz";
+        break;
+    case stmHeaters:
+        suffix = "_heaters";
+        break;
+    default:
+        break;
+    }
+    char fname[64] = "test_unknown.txt";
+    sprintf(fname, "test_unknown%s.txt", suffix);
     if (serial_otp) {
         sprintf(serial, "CZPX%.15s", serial_otp);
-        sprintf(fname, "test_CZPX%.15s.txt", serial_otp);
+        sprintf(fname, "test_CZPX%.15s%s.txt", serial_otp, suffix);
     }
     if (f_open(&m_fil, fname, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
         m_filIsValid = true;
