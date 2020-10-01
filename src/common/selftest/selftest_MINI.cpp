@@ -232,6 +232,7 @@ void CSelftest::phaseFinish() {
     hwio_fan_control_enable();
     marlin_server_set_exclusive_mode(0);
     thermalManager.disable_all_heaters();
+    disable_all_steppers();
 }
 
 void CSelftest::next() {
