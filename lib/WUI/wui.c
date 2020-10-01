@@ -16,8 +16,8 @@
 #include "sntp_client.h"
 #include "dbg.h"
 
-#define WUI_NETIF_SETUP_DELAY        1000
-#define WUI_COMMAND_QUEUE_SIZE       WUI_WUI_MQ_CNT   // maximal number of messages at once in WUI command messageQ
+#define WUI_NETIF_SETUP_DELAY  1000
+#define WUI_COMMAND_QUEUE_SIZE WUI_WUI_MQ_CNT // maximal number of messages at once in WUI command messageQ
 
 // WUI thread mutex for updating marlin vars
 osMutexDef(wui_thread_mutex);

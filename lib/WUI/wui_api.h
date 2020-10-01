@@ -43,8 +43,8 @@ typedef enum {
     ETHVAR_LAN_MSK_IP4,  // ip4_addr_t, lan.msk_ip4
     ETHVAR_LAN_GW_IP4,   // ip4_addr_t, lan.gw_ip4
     ETHVAR_TIMEZONE,     // int8_t, timezone
-    ETHVAR_DNS1_IP4,      // ip_addr_t, dns1_ip4
-    ETHVAR_DNS2_IP4,      // ip_addr_t, dns2_ip4
+    ETHVAR_DNS1_IP4,     // ip_addr_t, dns1_ip4
+    ETHVAR_DNS2_IP4,     // ip_addr_t, dns2_ip4
 } ETHVAR_t;
 
 typedef char mac_address_t[MAC_ADDR_STR_LEN];
