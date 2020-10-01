@@ -2,7 +2,7 @@
 // pin names
 #pragma once
 
-#include "Pin.hpp"
+#include "MarlinPin.hpp"
 
 #define MARLIN_PORT_Z_MIN   MARLIN_PORT_A
 #define MARLIN_PIN_NR_Z_MIN MARLIN_PIN_NR_8
