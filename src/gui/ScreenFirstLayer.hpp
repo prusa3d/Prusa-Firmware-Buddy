@@ -9,7 +9,7 @@
 #include "liveadjust_z.hpp"
 
 class ScreenFirstLayer : public IScreenPrinting {
-    static constexpr const char *caption = N_("First Layer Calibration");
+    static constexpr const char *caption = N_("FIRST LAYER CAL.");
     static constexpr const char *text_str = N_("Once the printer   \n"
                                                "starts extruding   \n"
                                                "plastic, adjust    \n"
