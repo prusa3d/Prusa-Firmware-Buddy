@@ -211,11 +211,11 @@ bool CSelftest::phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, con
     m_pHeater_Nozzle->Loop();
     m_pHeater_Bed->Loop();
     if (m_pHeater_Nozzle->IsInProgress() || m_pHeater_Bed->IsInProgress()) {
-        int p0 = m_pHeater_Nozzle->GetProgress();
-        int p1 = m_pHeater_Bed->GetProgress();
-        int p = std::min(p0, p1);
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_cool, p, uint8_t(SelftestSubtestState_t::running));
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_cool, p, uint8_t(SelftestSubtestState_t::running));
+        int p = std::min(m_pHeater_Nozzle->GetProgress(), m_pHeater_Bed->GetProgress());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_cool, p, m_pHeater_Nozzle->getFSMState_cool());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_heat, p, m_pHeater_Nozzle->getFSMState_heat());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_cool, p, m_pHeater_Bed->getFSMState_cool());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_heat, p, m_pHeater_Bed->getFSMState_heat());
         return true;
     }
     delete m_pHeater_Nozzle;

@@ -2,6 +2,7 @@
 
 #include "selftest_heater.h"
 #include "hwio.h"
+#include "wizard_config.hpp"
 #include "../../Marlin/src/module/temperature.h"
 
 #define TEMP_DIFF_LIMIT          0.25F
@@ -98,6 +99,24 @@ bool CSelftestPart_Heater::Loop() {
 
 bool CSelftestPart_Heater::Abort() {
     return true;
+}
+
+uint8_t CSelftestPart_Heater::getFSMState_cool() {
+    if (m_State < spsWait)
+        return (uint8_t)(SelftestSubtestState_t::undef);
+    else if (m_State == spsWait)
+        return (uint8_t)(SelftestSubtestState_t::running);
+    else
+        return (uint8_t)(SelftestSubtestState_t::ok);
+}
+
+uint8_t CSelftestPart_Heater::getFSMState_heat() {
+    if (m_State < spsMeasure)
+        return (uint8_t)(SelftestSubtestState_t::undef);
+    else if (m_State == spsMeasure)
+        return (uint8_t)(SelftestSubtestState_t::running);
+    else
+        return (uint8_t)(SelftestSubtestState_t::ok);
 }
 
 bool CSelftestPart_Heater::next() {

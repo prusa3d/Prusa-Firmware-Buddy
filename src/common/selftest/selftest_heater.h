@@ -34,6 +34,10 @@ public:
     virtual bool Loop() override;
     virtual bool Abort() override;
 
+public:
+    uint8_t getFSMState_cool();
+    uint8_t getFSMState_heat();
+
 protected:
     bool next();
     static uint32_t estimate(const selftest_heater_config_t *pconfig);
