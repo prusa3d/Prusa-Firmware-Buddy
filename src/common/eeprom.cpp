@@ -81,7 +81,7 @@ typedef struct _eeprom_vars_t {
     uint8_t FILE_SORT;
     uint8_t MENU_TIMEOUT;
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t CURRENT_SHEET;
+    uint8_t ACTIVE_SHEET;
     Sheet SHEET_PROFILE0;
     Sheet SHEET_PROFILE1;
     Sheet SHEET_PROFILE2;
@@ -700,7 +700,8 @@ uint32_t sheet_name(uint32_t index, char *buffer, uint32_t length) {
         --l;
     return l;
 #else
-    memcpy(buffer, "DEFAULT", MAX_SHEET_NAME_LENGTH - 1);
+    static const char def[] = "DEFAULT";
+    memcpy(buffer, def, MAX_SHEET_NAME_LENGTH - 1);
     return MAX_SHEET_NAME_LENGTH - 1;
 #endif
 }
