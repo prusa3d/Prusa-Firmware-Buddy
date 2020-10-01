@@ -16,6 +16,9 @@
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at oposite side to home position
 
+#define X_AXIS_PERCENT 50
+#define Y_AXIS_PERCENT 50
+
 static const float XYfr_table[] = { 50, 60, 75, 100 };
 
 static const float Zfr_table[] = { 20 };
@@ -86,11 +89,11 @@ void CSelftest::Loop() {
             return;
         break;
     case stsXAxis:
-        if (phaseAxis(&Config_XAxis, &m_pXAxis, (uint16_t)PhasesSelftestAxis::Xaxis))
+        if (phaseAxis(&Config_XAxis, &m_pXAxis, (uint16_t)PhasesSelftestAxis::Xaxis, 0, X_AXIS_PERCENT))
             return;
         break;
     case stsYAxis:
-        if (phaseAxis(&Config_YAxis, &m_pYAxis, (uint16_t)PhasesSelftestAxis::Yaxis))
+        if (phaseAxis(&Config_YAxis, &m_pYAxis, (uint16_t)PhasesSelftestAxis::Yaxis, X_AXIS_PERCENT, Y_AXIS_PERCENT))
             return;
         break;
     case stsZAxis:
@@ -183,11 +186,11 @@ bool CSelftest::phaseHome() {
     return false;
 }
 
-bool CSelftest::phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase) {
+bool CSelftest::phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase, uint8_t progress_add, uint8_t progress_mul) {
     m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestAxis, 0);
     *ppaxis = *ppaxis ? *ppaxis : new CSelftestPart_Axis(pconfig_axis);
     if ((*ppaxis)->Loop()) {
-        int p = (*ppaxis)->GetProgress();
+        int p = progress_add + (*ppaxis)->GetProgress() * progress_mul / 100;
         fsm_change(ClientFSM::SelftestAxis, (PhasesSelftestAxis)fsm_phase, p, uint8_t(SelftestSubtestState_t::running));
         return true;
     }
@@ -208,11 +211,11 @@ bool CSelftest::phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, con
     m_pHeater_Nozzle->Loop();
     m_pHeater_Bed->Loop();
     if (m_pHeater_Nozzle->IsInProgress() || m_pHeater_Bed->IsInProgress()) {
-        int p0 = m_pHeater_Nozzle->GetProgress();
-        int p1 = m_pHeater_Bed->GetProgress();
-        int p = std::min(p0, p1);
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_cool, p, uint8_t(SelftestSubtestState_t::running));
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_cool, p, uint8_t(SelftestSubtestState_t::running));
+        int p = std::min(m_pHeater_Nozzle->GetProgress(), m_pHeater_Bed->GetProgress());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_cool, p, m_pHeater_Nozzle->getFSMState_cool());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_heat, p, m_pHeater_Nozzle->getFSMState_heat());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_cool, p, m_pHeater_Bed->getFSMState_cool());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_heat, p, m_pHeater_Bed->getFSMState_heat());
         return true;
     }
     delete m_pHeater_Nozzle;
@@ -229,6 +232,7 @@ void CSelftest::phaseFinish() {
     hwio_fan_control_enable();
     marlin_server_set_exclusive_mode(0);
     thermalManager.disable_all_heaters();
+    disable_all_steppers();
 }
 
 void CSelftest::next() {
