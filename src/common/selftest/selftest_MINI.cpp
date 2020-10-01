@@ -266,11 +266,11 @@ void CSelftest::log_open() {
     default:
         break;
     }
-    char fname[64] = "test_unknown.txt";
-    sprintf(fname, "test_unknown%s.txt", suffix);
+    char fname[64];
+    snprintf(fname, sizeof(fname), "test_unknown%s.txt", suffix);
     if (serial_otp) {
-        sprintf(serial, "CZPX%.15s", serial_otp);
-        sprintf(fname, "test_CZPX%.15s%s.txt", serial_otp, suffix);
+        snprintf(serial, sizeof(serial), "CZPX%.15s", serial_otp);
+        snprintf(fname, sizeof(fname), "test_CZPX%.15s%s.txt", serial_otp, suffix);
     }
     if (f_open(&m_fil, fname, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
         m_filIsValid = true;
