@@ -15,6 +15,8 @@
 #include "ScreenHandler.hpp"
 #include "bsod.h"
 #include "filament_sensor.h"
+#include "main_MINI.h"
+#include "gpio.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -435,3 +437,11 @@ bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
 
 MI_MINDA::MI_MINDA()
     : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {}
+
+bool MI_MINDA::StateChanged() {
+    /// TODO recheck/redo after new HWIO PR is merged
+    int new_state = gpio_get(TPA8); /// Z_MIN_Pin
+    bool changed = (value != new_state);
+    value = new_state;
+    return changed;
+}

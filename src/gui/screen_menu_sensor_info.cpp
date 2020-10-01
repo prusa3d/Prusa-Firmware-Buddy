@@ -25,8 +25,11 @@ ScreenFactory::UniquePtr GetScreenMenuSensorInfo() {
 
 void ScreenMenuSensorInfo::windowEvent(window_t *sender, uint8_t ev, void *param) {
     if (ev == WINDOW_EVENT_LOOP) {
-        if (Item<MI_FILAMENT_SENSOR_STATE>().StateChanged())
+        if (Item<MI_FILAMENT_SENSOR_STATE>().StateChanged()
+            || Item<MI_MINDA>().StateChanged()) {
+
             Invalidate();
+        }
     }
 
     Screen::windowEvent(sender, ev, param);

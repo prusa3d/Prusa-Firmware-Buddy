@@ -376,4 +376,5 @@ class MI_MINDA : public WI_SPIN_I08_t {
 
 public:
     MI_MINDA();
+    bool StateChanged();
 };
