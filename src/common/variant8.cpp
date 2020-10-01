@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <malloc.h>
+#include <type_traits>
 
 #define VARIANT8_DBG_MALLOC
 
@@ -44,6 +45,107 @@ struct _variant8_t {
 };
 
 static_assert(sizeof(_variant8_t) == sizeof(variant8_t), "Incompatible types");
+
+struct t_variant8_t {
+    enum class type_t : uint8_t {
+        error_t = 0,
+        int_t = 1,
+        float_t = 2,
+        pointer_t = 3,
+        user_t = 4,
+    };
+    template <class T>
+    t_variant8_t(T i, typename std::enable_if<std::is_integral<T>::value>::type = 0)
+        : storage_(
+            (static_cast<uint64_t>(type_t::int_t) << type_shift) | (i << integral_shift))
+        , packed_(false) {};
+
+    template <class T>
+    t_variant8_t(T f, typename std::enable_if<std::is_floating_point<T>::value>::type = 0)
+        : storage_(
+            (static_cast<uint64_t>(type_t::float_t) << type_shift)
+            | (static_cast<uint64_t>(
+                   *(reinterpret_cast<uint32_t *>(&f)))
+                << integral_shift))
+        , packed_(false) {};
+
+    template <class T>
+    t_variant8_t(T p, uint16_t count, typename std::enable_if<std::is_pointer<T>::value>::type = 0)
+        : storage_(
+            (static_cast<uint64_t>(type_t::pointer_t) << type_shift)
+            | static_cast<uint64_t>(count) << count_shift)
+        , packed_(false) {
+        void *mem = nullptr;
+        assert(p);
+        mem = malloc(count * sizeof(T));
+        if (mem) {
+            memcpy(mem, p, count * sizeof(T));
+            storage_ |= reinterpret_cast<uint64_t>(mem) << pointer_shift;
+        } else {
+            storage_ = static_cast<uint64_t>(type_t::error_t) << type_shift;
+        }
+    };
+
+    template <class T>
+    t_variant8_t(T o, typename std::enable_if<std::is_class<T>::value && std::is_trivially_default_constructible<T>::value>::type = 0)
+        : storage_(static_cast<uint64_t>(type_t::user_t) << type_shift)
+        , packed_(false) {
+        static_assert(sizeof(T) < 7, " Too large user type");
+    };
+
+    ~t_variant8_t() {
+        using void_ptr = void *;
+        void_ptr ptr = get<void_ptr>();
+        if (ptr && !packed_) {
+            free(ptr); //free pointer memory
+        }
+        storage_ = 0;
+    };
+
+    type_t type() const {
+        return static_cast<type_t>(storage_ >> type_shift);
+    };
+
+    template <class T>
+    typename std::enable_if<std::is_pointer<T>::value>::type *
+    get() const {
+        return type() == type_t::pointer_t
+            ? reinterpret_cast<T>(storage_ >> pointer_shift)
+            : nullptr;
+    };
+
+    template <class T>
+    typename std::enable_if<std::is_integral<T>::value>::type
+    get() const {
+        return T {};
+    };
+
+    template <class T>
+    typename std::enable_if<std::is_floating_point<T>::value>::type
+    get() const {
+        return T {};
+    };
+
+    uint64_t pack() const {
+        packed_ = true;
+        return 0ull;
+    };
+
+    static t_variant8_t unpack(uint64_t v) {
+        return t_variant8_t(v);
+    };
+
+private:
+    static const uint8_t type_shift = 58;
+    static const uint8_t integral_shift = type_shift - 32;
+    static const uint8_t count_shift = type_shift - 16;
+    static const uint8_t pointer_shift = count_shift - 32;
+
+    t_variant8_t(uint64_t v)
+        : storage_(v) {};
+    uint64_t storage_;
+    mutable bool packed_;
+};
 
 extern "C" {
 
