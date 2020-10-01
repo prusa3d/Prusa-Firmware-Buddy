@@ -12,7 +12,7 @@
 //max R is 50kOhm
 //Max Tau ~= 20*10^-12 * 50*10^3 = 1*10^-6 s ... about 1us
 
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "hwio_pindef.h"
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
@@ -24,9 +24,8 @@
 
 using buddy::hw::fSensor;
 using buddy::hw::Pin;
-
-static volatile fsensor_t state = fsensor_t::FS_NOT_INITIALIZED;
-static volatile fsensor_t last_state = fsensor_t::FS_NOT_INITIALIZED;
+static volatile fsensor_t state = fsensor_t::NotInitialized;
+static volatile fsensor_t last_state = fsensor_t::NotInitialized;
 
 typedef enum {
     M600_on_edge = 0,
@@ -94,14 +93,14 @@ static void _set_state(fsensor_t st) {
 
 static void _enable() {
     fSensor.pullUp();
-    state = fsensor_t::FS_NOT_INITIALIZED;
-    last_state = fsensor_t::FS_NOT_INITIALIZED;
+    state = fsensor_t::NotInitialized;
+    last_state = fsensor_t::NotInitialized;
     status.meas_cycle = 0;
 }
 
 static void _disable() {
-    state = fsensor_t::FS_DISABLED;
-    last_state = fsensor_t::FS_DISABLED;
+    state = fsensor_t::Disabled;
+    last_state = fsensor_t::Disabled;
     status.meas_cycle = 0;
 }
 
@@ -113,7 +112,7 @@ fsensor_t fs_get_state() {
 
 //value can change during read, but it is not a problem
 int fs_did_filament_runout() {
-    return state == fsensor_t::FS_NO_FILAMENT;
+    return state == fsensor_t::NoFilament;
 }
 
 void fs_send_M600_on_edge() {
@@ -166,7 +165,7 @@ void fs_restore__send_M600_on(uint8_t send_M600_on) {
 
 fsensor_t fs_wait_initialized() {
     fsensor_t ret = fs_get_state();
-    while (ret == fsensor_t::FS_NOT_INITIALIZED) {
+    while (ret == fsensor_t::NotInitialized) {
         osDelay(0); // switch to other threads
         ret = fs_get_state();
     }
@@ -219,12 +218,12 @@ static void _cycle0() {
         fSensor.pullDown();
         status.meas_cycle = 1; //next cycle shall be 1
     } else {
-        int had_filament = state == fsensor_t::FS_HAS_FILAMENT ? 1 : 0;
-        _set_state(fsensor_t::FS_NO_FILAMENT); //it is filtered, 2 requests are needed to change state
-        //M600_on_edge == inject after state was changed from FS_HAS_FILAMENT to FS_NO_FILAMENT
-        //M600_on_level == inject on FS_NO_FILAMENT
+        int had_filament = state == fsensor_t::HasFilament ? 1 : 0;
+        _set_state(fsensor_t::NoFilament); //it is filtered, 2 requests are needed to change state
+        //M600_on_edge == inject after state was changed from HasFilament to NoFilament
+        //M600_on_level == inject on NoFilament
         //M600_never == do not inject
-        if (state == fsensor_t::FS_NO_FILAMENT) {
+        if (state == fsensor_t::NoFilament) {
             switch (status.send_M600_on) {
             case M600_on_edge:
                 if (!had_filament)
@@ -246,7 +245,7 @@ static void _cycle0() {
 //called only in fs_cycle
 static void _cycle1() {
     //pulldown was set in cycle 0
-    _set_state(fSensor.read() == Pin::State::high ? fsensor_t::FS_HAS_FILAMENT : fsensor_t::FS_NOT_CONNECTED);
+    _set_state(fSensor.read() == Pin::State::high ? fsensor_t::HasFilament : fsensor_t::NotConnected);
     fSensor.pullUp();
     status.meas_cycle = 0; //next cycle shall be 0
 }
@@ -254,7 +253,7 @@ static void _cycle1() {
 //delay between calls must be 1us or longer
 void fs_cycle() {
     //sensor is disabled (only init can enable it)
-    if (state == fsensor_t::FS_DISABLED)
+    if (state == fsensor_t::Disabled)
         return;
 
     //sensor is enabled

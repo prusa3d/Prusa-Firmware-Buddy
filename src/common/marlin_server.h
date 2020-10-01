@@ -69,6 +69,18 @@ extern void marlin_server_manage_heater(void);
 extern void marlin_server_quick_stop(void);
 
 //
+extern uint32_t marlin_server_get_command(void);
+
+//
+extern void marlin_server_set_command(uint32_t command);
+
+//
+extern void marlin_server_test_start(uint32_t mask);
+
+//
+extern void marlin_server_test_abort(void);
+
+//
 extern void marlin_server_print_abort(void);
 
 //
@@ -97,6 +109,9 @@ extern int marlin_all_axes_known(void);
 
 // returns state of exclusive mode (1/0)
 extern int marlin_server_get_exclusive_mode(void);
+
+// set state of exclusive mode (1/0)
+extern void marlin_server_set_exclusive_mode(int exclusive);
 
 // display different value than target, used in preheat
 extern void marlin_server_set_temp_to_display(float value);

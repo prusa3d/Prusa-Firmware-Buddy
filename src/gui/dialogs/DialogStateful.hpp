@@ -12,8 +12,16 @@
 // function pointer for onEnter & onExit callbacks
 using change_state_cb_t = void (*)();
 
+class IDialogMarlin : public IDialog {
+protected:
+    virtual bool change(uint8_t phs, uint8_t progress_tot, uint8_t progress) = 0;
+
+public:
+    bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress) { return change(phs, progress_tot, progress); }
+};
+
 //abstract parent containing general code for any number of phases
-class IDialogStateful : public IDialog {
+class IDialogStateful : public IDialogMarlin {
 public:
     struct State {
         State(const char *lbl, const PhaseResponses &btn_resp, const PhaseTexts &btn_labels, change_state_cb_t enter_cb = NULL, change_state_cb_t exit_cb = NULL)
@@ -41,10 +49,10 @@ protected:
     // must be virtual because of `states` list is in template protected
     virtual void phaseEnter() = 0;
     virtual void phaseExit() = 0;
+    virtual bool change(uint8_t phs, uint8_t progress_tot, uint8_t progress) override;
 
 public:
     IDialogStateful(string_view_utf8 name);
-    bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
 };
 
 /*****************************************************************************/
@@ -79,8 +87,8 @@ protected:
         }
     }
 
-public:
-    virtual void windowEvent(window_t * /*sender*/, uint8_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param) override;
 };
 
 /*****************************************************************************/
@@ -88,20 +96,22 @@ public:
 
 //todo make radio button events behave like normal button
 template <class T>
-void DialogStateful<T>::windowEvent(window_t * /*sender*/, uint8_t event, void *param) {
+void DialogStateful<T>::windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_CLICK: {
+    case GUI_event_t::CLICK: {
         Response response = radio.Click();
         marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), response);
         break;
     }
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         ++radio;
         gui_invalidate();
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         --radio;
         gui_invalidate();
+        break;
+    default:
         break;
     }
 }

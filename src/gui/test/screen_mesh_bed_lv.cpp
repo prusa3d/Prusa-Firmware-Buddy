@@ -44,7 +44,7 @@ static constexpr uint16_t row_h = 25;
 mesh_state_t screen_mesh_bed_lv_data_t::mesh_state = mesh_state_t::idle;
 
 screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , footer(this)
     , textMenuName(this, Rect16(0, 0, display::GetW(), row_h), is_multiline::no)
     , btMesh(this, Rect16(2, 50, 200, row_h), []() { if (mesh_state == mesh_state_t::idle) mesh_state = mesh_state_t::start; })
@@ -62,8 +62,8 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     textExit.SetText(_("EXIT"));
 }
 
-void screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_LOOP) {
+void screen_mesh_bed_lv_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
         if (marlin_error(MARLIN_ERR_ProbingFailed)) {
             text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[1]));
         } else {
@@ -113,5 +113,5 @@ void screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, voi
             break;
         }
     }
-    window_frame_t::windowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }

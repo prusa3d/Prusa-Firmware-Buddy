@@ -7,9 +7,9 @@
 #include "support_utils.h"
 #include "display.h"
 #include "string.h"
-#include "../../gui/wizard/selftest.h"
+#include "../../gui/wizard/selftest.hpp"
 #include "version.h"
-#include "eeprom.h"
+#include "language_eeprom.hpp"
 #include "sha256.h"
 
 #include "tm_stm32f4_crc.h"
@@ -81,7 +81,7 @@ void printerCode(char *str) {
 /// Adds "/en" or other language abbreviation
 void addLanguage(char *str, const uint32_t str_size) {
     char lang[3];
-    const uint16_t langNum = variant_get_ui16(eeprom_get_var(EEVAR_LANGUAGE));
+    const uint16_t langNum = LangEEPROM::getInstance().getLanguage();
     uint16_t *langP = (uint16_t *)lang;
     *langP = langNum;
     //uint16_t *(lang) = langNum;
@@ -126,6 +126,7 @@ void error_url_short(char *str, const uint32_t str_size, const int error_code) {
 }
 
 void create_path_info_4service(char *str, const uint32_t str_size) {
+#if 0
 
     strlcpy(str, INFO_URL_LONG_PREFIX, str_size);
     // PrinterType
@@ -164,4 +165,5 @@ void create_path_info_4service(char *str, const uint32_t str_size) {
     // LockBlock
     block2hex(str, str_size, (uint8_t *)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
     append_crc(str, str_size);
+#endif //0
 }

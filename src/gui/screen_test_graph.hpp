@@ -13,6 +13,6 @@ struct screen_test_graph_t : public window_frame_t {
 public:
     screen_test_graph_t();
 
-private:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

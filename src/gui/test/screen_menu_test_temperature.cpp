@@ -71,7 +71,7 @@ int screen_test_temperature_event(screen_t *screen, window_t *window,
         return 1;
     }
 
-    if (event == WINDOW_EVENT_CHANGING) {
+    if (event == GUI_event_t::CHANGING) {
         switch ((int)param) {
         case MI_NOZZLE:
             thermalManager.setTargetHotend(psmd->items[MI_NOZZLE].item.data.wi_spin.value / 1000, 0);
@@ -89,7 +89,7 @@ int screen_test_temperature_event(screen_t *screen, window_t *window,
             hwio_pwm_set_prescaler_exp2(HWIO_PWM_FAN, psmd->items[MI_FAN_PWM_PERIOD].item.data.wi_select.index);
             break;
         }
-    } else if (event == WINDOW_EVENT_CLICK && (int)param == MI_COOLDOWN) {
+    } else if (event == GUI_event_t::CLICK && (int)param == MI_COOLDOWN) {
         thermalManager.setTargetHotend(0, 0);
         thermalManager.setTargetBed(0);
         thermalManager.set_fan_speed(0, 0);

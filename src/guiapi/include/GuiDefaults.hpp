@@ -7,6 +7,8 @@ struct GuiDefaults {
     static constexpr color_t ColorBack = COLOR_BLACK;
     static constexpr color_t ColorText = COLOR_WHITE;
     static constexpr color_t ColorDisabled = COLOR_SILVER;
+    static constexpr color_t COLOR_VALUE_VALID = COLOR_WHITE;
+    static constexpr color_t COLOR_VALUE_INVALID = COLOR_WHITE; //COLOR_YELLOW
     static constexpr padding_ui8_t Padding = { 2, 2, 2, 2 };
     static constexpr uint8_t Alignment = ALIGN_LEFT_TOP;                     //todo enum
     static constexpr Rect16 RectHeader = { 0, 0, 240, 32 - 0 };              // default header location & size

@@ -16,6 +16,7 @@
 #include "../Marlin/src/gcode/parser.h"
 #include "../Marlin/src/module/planner.h"
 #include "../Marlin/src/module/stepper.h"
+#include "../Marlin/src/module/endstops.h"
 #include "../Marlin/src/module/temperature.h"
 #include "../Marlin/src/module/probe.h"
 #include "../Marlin/src/module/configuration_store.h"
@@ -30,15 +31,20 @@
 #include "hwio.h"
 #include "eeprom.h"
 #include "media.h"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "wdt.h"
 #include "fanctl.h"
+#include "trinamic.h"
+#include "ff.h"
+#include "otp.h"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif
+
+#include "selftest_MINI.h"
 
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
@@ -179,7 +185,10 @@ int marlin_server_cycle(void) {
         return 0;
     processing = 1;
 
-    _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
+    if (Selftest.IsInProgress())
+        Selftest.Loop();
+    else
+        _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
 
     FSM_notifier::SendNotification();
 
@@ -379,7 +388,29 @@ void marlin_server_quick_stop(void) {
     planner.quick_stop();
 }
 
+uint32_t marlin_server_get_command(void) {
+    return marlin_server.command;
+}
+
+void marlin_server_set_command(uint32_t command) {
+    marlin_server.command = command;
+}
+
+void marlin_server_test_start(uint32_t mask) {
+    if (((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) && (!Selftest.IsInProgress())) {
+        Selftest.Start((SelftestMask_t)mask);
+    }
+}
+
+void marlin_server_test_abort(void) {
+    if (Selftest.IsInProgress()) {
+        Selftest.Abort();
+    }
+}
+
 void marlin_server_print_start(const char *filename) {
+    if (Selftest.IsInProgress())
+        return;
     if (filename == nullptr)
         return;
     if ((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) {
@@ -388,7 +419,7 @@ void marlin_server_print_start(const char *filename) {
         _set_notify_change(MARLIN_VAR_FILENAME);
         print_job_timer.start();
         marlin_server.print_state = mpsPrinting;
-        fsm_create(ClientFSM::Printing, 0);
+        fsm_create(ClientFSM::Printing);
     }
 }
 
@@ -592,6 +623,13 @@ int marlin_all_axes_known(void) {
 
 int marlin_server_get_exclusive_mode(void) {
     return (marlin_server.flags & MARLIN_SFLG_EXCMODE) ? 1 : 0;
+}
+
+void marlin_server_set_exclusive_mode(int exclusive) {
+    if (exclusive)
+        marlin_server.flags |= MARLIN_SFLG_EXCMODE; // enter exclusive mode
+    else
+        marlin_server.flags &= ~MARLIN_SFLG_EXCMODE; // exit exclusive mode
 }
 
 void marlin_server_set_temp_to_display(float value) {
@@ -1101,6 +1139,12 @@ static int _process_server_request(const char *request) {
         } else
             marlin_server.flags &= ~MARLIN_SFLG_EXCMODE;
         processed = 1;
+    } else if (sscanf(request, "!test %d", &ival) == 1) { //start selftest
+        marlin_server_test_start(ival);
+        processed = 1;
+    } else if (strcmp("!tabort", request) == 0) {
+        marlin_server_test_abort();
+        processed = 1;
     } else {
         bsod("Unknown request %s", request);
     }
@@ -1411,7 +1455,7 @@ FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, variant8_t min, varian
 
 //static method
 //notifies clients about progress rise
-//scales "binded" variable via following formula to calculate progress
+//scales "bound" variable via following formula to calculate progress
 //x = (actual - s_data.min) * s_data.scale + s_data.progress_min;
 //x = actual * s_data.scale - s_data.min * s_data.scale + s_data.progress_min;
 //s_data.offset == -s_data.min * s_data.scale + s_data.progress_min

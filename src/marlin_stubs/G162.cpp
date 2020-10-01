@@ -2,7 +2,7 @@
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 
-#include "G162.hpp"
+#include "PrusaGcodeSuite.hpp"
 #include <stdint.h>
 #include "z_calibration_fsm.hpp"
 

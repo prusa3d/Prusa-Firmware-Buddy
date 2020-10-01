@@ -136,6 +136,8 @@ public:
     constexpr static const char *label = N_("SELECT LANGUAGE");
     ScreenMenuLanguagesNoRet()
         : Screen_noReturn(_(label)) {
+        window_frame_t::ClrMenuTimeoutClose();
+        window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     }
 };
 
