@@ -74,13 +74,12 @@ static const Rect16::Width_t icons_width(icon_usb_width + icon_lan_width);
 
 window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     : window_frame_t(parent, GuiDefaults::RectHeader)
-    , icon_base(this, Rect16(0, rect.Top(), 40, rect.Height() - 5), 0)
-    , label(this, rect - Rect16::Width_t(icons_width + span), is_multiline::no, is_closed_on_click_t::no, txt)
+    , icon_base(this, Rect16(rect.Left(), rect.Top(), 40, rect.Height() - 5), 0)
+    , label(this, rect - Rect16::Width_t(icons_width + span) + Rect16::Left_t(40), is_multiline::no, is_closed_on_click_t::no, txt)
     , icon_usb(this, (rect + Rect16::Left_t(rect.Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_header_icon_usb)
     , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_header_icon_lan) {
     /// label and icon aligmnent and offset
     label.SetAlignment(ALIGN_LEFT_BOTTOM);
-    label.rect += Rect16::Left_t(40); /// fixed offset for icon if there is one or not
     icon_base.SetAlignment(ALIGN_CENTER_BOTTOM);
 
     marlin_vars()->media_inserted ? USB_Activate() : USB_On();
