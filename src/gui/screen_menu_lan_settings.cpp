@@ -32,15 +32,13 @@ public:
         LoadOK,
         LoadNOK };
     static Msg msg;
-    static bool new_data_flg;
-    static bool conn_flg; // wait for dhcp to supply addresses
-    static bool reinit_flg;
-    static uint8_t save();
+    static uint8_t lan_flag;
+    static uint8_t saveIni();
 
 public:
     static uint8_t GetFlag();
-    static void Save();
-    static void Load();
+    static void SaveMessage(); // to show message while saving ini file
+    static void LoadIni();
     static void On();
     static void Off();
     static bool IsStatic();
@@ -51,25 +49,17 @@ public:
     static bool SetStatic();
     static bool SetDHCP();
     static Msg ConsumeMsg();
-    static bool ConsumeReinit();
 };
 
-bool Eth::reinit_flg = false; //default state is "does not need reinit"
-bool Eth::conn_flg = false;
-bool Eth::new_data_flg = false;
 Eth::Msg Eth::msg = Eth::Msg::NoMsg;
 /*****************************************************************************/
 //Eth methods
 uint8_t Eth::GetFlag() {
-    ETH_config_t ethconfig;
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(&ethconfig);
-
-    return ethconfig.lan.flag;
+    return get_lan_flag();
 }
 
-uint8_t Eth::save() {
-    ETH_config_t ethconfig;
+uint8_t Eth::saveIni() {
+    ETH_config_t ethconfig = {};
     ini_file_str_t ini_str;
     ethconfig.var_mask = ETHVAR_EEPROM_CONFIG;
     load_eth_params(&ethconfig);
@@ -78,22 +68,19 @@ uint8_t Eth::save() {
 }
 
 void Eth::Off() {
-    ETH_config_t ethconfig;
+    ETH_config_t ethconfig = {};
+    TURN_LAN_OFF(ethconfig.lan.flag);
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(&ethconfig);
-    turn_off_LAN(&ethconfig);
-    new_data_flg = true;
+    save_eth_params(&ethconfig);
+    set_eth_update_mask(ethconfig.var_mask);
 }
 
 void Eth::On() {
-    ETH_config_t ethconfig;
+    ETH_config_t ethconfig = {};
+    TURN_LAN_ON(ethconfig.lan.flag);
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(&ethconfig);
-    turn_on_LAN(&ethconfig);
-    new_data_flg = true;
-    if (IS_LAN_DHCP(ethconfig.lan.flag)) {
-        conn_flg = true;
-    }
+    save_eth_params(&ethconfig);
+    set_eth_update_mask(ethconfig.var_mask);
 }
 
 bool Eth::IsStatic() {
@@ -108,46 +95,32 @@ bool Eth::IsOn() {
     return !IS_LAN_OFF(GetFlag());
 }
 
-void Eth::Init() {
-    uint8_t flg = GetFlag();
-    conn_flg = (IS_LAN_ON(flg) && IS_LAN_DHCP(flg) && get_dhcp_supplied());
-}
-
 bool Eth::IsUpdated() {
-    bool ret = false;
-    if (conn_flg) {
-        uint8_t eth_flag = GetFlag();
-        if ((IS_LAN_DHCP(eth_flag) && get_dhcp_supplied()) || IS_LAN_STATIC(eth_flag)) {
-            conn_flg = false;
-            ret = true;
-        }
-    }
-    ret |= new_data_flg;
-    new_data_flg = false;
-    return ret;
+    return false;
 }
 
 bool Eth::SetStatic() {
-    ETH_config_t ethconfig;
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_STATIC_LAN_ADDRS;
+    ETH_config_t ethconfig = {};
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_STATIC_LAN_ADDRS | ETHVAR_STATIC_DNS_ADDRS;
     load_eth_params(&ethconfig);
 
     if (ethconfig.lan.addr_ip4.addr == 0) {
         msg = Msg::StaicAddrErr;
         return false;
     }
-    set_LAN_to_static(&ethconfig);
-    new_data_flg = true;
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    CHANGE_LAN_TO_STATIC(ethconfig.lan.flag);
+    save_eth_params(&ethconfig);
+    set_eth_update_mask(ethconfig.var_mask);
     return true;
 }
 
 bool Eth::SetDHCP() {
-    ETH_config_t ethconfig;
+    ETH_config_t ethconfig = {};
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(&ethconfig);
-    set_LAN_to_dhcp(&ethconfig);
-    new_data_flg = true;
-    conn_flg = true;
+    CHANGE_LAN_TO_DHCP(ethconfig.lan.flag);
+    save_eth_params(&ethconfig);
+    set_eth_update_mask(ethconfig.var_mask);
     return true;
 }
 
@@ -157,11 +130,11 @@ Eth::Msg Eth::ConsumeMsg() {
     return ret;
 }
 
-void Eth::Save() {
+void Eth::SaveMessage() {
     if (!(marlin_vars()->media_inserted)) {
         msg = Msg::NoUSB;
     } else {
-        if (save()) { // !its possible to save empty configurations!
+        if (saveIni()) { // !its possible to save empty configurations!
             msg = Msg::SaveOK;
         } else {
             msg = Msg::SaveNOK;
@@ -169,18 +142,14 @@ void Eth::Save() {
     }
 }
 
-void Eth::Load() {
+void Eth::LoadIni() {
     if (!(marlin_vars()->media_inserted)) {
         msg = Msg::NoUSB;
     } else {
-        ETH_config_t ethconfig;
-        if (load_ini_params(&ethconfig)) {
-            ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-            load_eth_params(&ethconfig);
-
-            new_data_flg = true;
-            conn_flg = true;
-            reinit_flg = true;
+        ETH_config_t ethconfig = {};
+        if (load_ini_file(&ethconfig)) {
+            save_eth_params(&ethconfig);
+            set_eth_update_mask(ethconfig.var_mask);
             msg = Msg::LoadOK;
         } else {
             msg = Msg::LoadNOK;
@@ -188,11 +157,6 @@ void Eth::Load() {
     }
 }
 
-bool Eth::ConsumeReinit() {
-    bool ret = reinit_flg;
-    reinit_flg = false;
-    return ret;
-}
 /*****************************************************************************/
 //ITEMS
 class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
@@ -203,6 +167,9 @@ public:
         : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, label, 0, true, false) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::On() : Eth::Off();
+    }
+    void ReInit() {
+        index = Eth::IsOn() ? 1 : 0;
     }
 };
 
@@ -232,7 +199,7 @@ public:
     MI_LAN_SAVE()
         : WI_LABEL_t(label, 0, true, false) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
-        Eth::Save();
+        Eth::SaveMessage();
     }
 };
 
@@ -243,7 +210,7 @@ public:
     MI_LAN_LOAD()
         : WI_LABEL_t(label, 0, true, false) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
-        Eth::Load();
+        Eth::LoadIni();
     }
 };
 
@@ -286,8 +253,6 @@ ScreenMenuLanSettings::ScreenMenuLanSettings()
     menu.SetCapture();                // set capture to list
     menu.SetFocus();
 
-    Eth::Init();
-
     refresh_addresses();
     msg_shown = false;
 }
@@ -295,8 +260,8 @@ ScreenMenuLanSettings::ScreenMenuLanSettings()
 /*****************************************************************************/
 //non static member function definition
 void ScreenMenuLanSettings::refresh_addresses() {
-    ETH_config_t ethconfig;
-    update_eth_addrs(&ethconfig);
+    ETH_config_t ethconfig = {};
+    get_eth_address(&ethconfig);
     stringify_eth_for_screen(&plan_str, &ethconfig);
     // this MakeRAM is safe - plan_str is statically allocated
     help.text = string_view_utf8::MakeRAM((const uint8_t *)plan_str);
@@ -338,14 +303,14 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
 }
 
 void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (Eth::ConsumeReinit()) {
-        MI_LAN_IP_t *item = &std::get<MI_LAN_IP_t>(container.menu_items);
-        item->ReInit();
-    }
 
-    //window_header_events(&(ths->header)); //dodo check if needed
-    if (Eth::IsUpdated())
-        refresh_addresses();
+    MI_LAN_IP_t *item = &std::get<MI_LAN_IP_t>(container.menu_items);
+    item->ReInit();
+
+    MI_LAN_ONOFF *lan_switch = &std::get<MI_LAN_ONOFF>(container.menu_items);
+    lan_switch->ReInit();
+
+    refresh_addresses();
 
     show_msg(Eth::ConsumeMsg());
     SuperWindowEvent(sender, event, param);
