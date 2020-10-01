@@ -28,22 +28,23 @@ public:
         planner.synchronize();
     }
 
-    /// Moves head and extrudes
+    /// Puts the destination into the Marlin planner without waiting for the move to end
     /// Use NAN for axis you don't want to move with
     /// \param e is relative extrusion
     /// \param f is defined in millimeters per minute (like in G code)
-    void go_to_destination(const float x, const float y, const float z, const float e, const float f);
+    void plan_destination(const float x, const float y, const float z, const float e, const float f);
 
     /// increases progress by 1 line and sends it to Marlin
     void inc_progress();
 
     /// Puts the destination into the Marlin planner and waits for the end of the move
-    void go_to_destination_and_wait(const float x, const float y, const float z, const float e, const float f);
+    void go_to_destination(const float x, const float y, const float z, const float e, const float f);
 
-    /// Moves and extrudes
+    /// Puts the destination into the Marlin planner without waiting for the move to end
+    /// \param e is relative extrusion
     /// Keep Z and feedrate from the last time
-    void go_to_destination(const float x, const float y, const float e) {
-        go_to_destination(x, y, NAN, e, NAN);
+    void plan_destination(const float x, const float y, const float e) {
+        plan_destination(x, y, NAN, e, NAN);
     }
 
     /// @returns length of filament to extrude

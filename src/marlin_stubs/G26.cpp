@@ -187,7 +187,7 @@ void FirstLayer::finish_printing() {
     total_lines = 1; /// don't set 0 to avoid division by zero
 }
 
-void FirstLayer::go_to_destination(const float x, const float y, const float z, const float e, const float f) {
+void FirstLayer::plan_destination(const float x, const float y, const float z, const float e, const float f) {
     if (isfinite(x))
         destination[0] = x;
     else
@@ -226,8 +226,8 @@ void FirstLayer::inc_progress() {
     // marlin_set_var(MARLIN_VAR_SD_PDONE, var);
 }
 
-void FirstLayer::go_to_destination_and_wait(const float x, const float y, const float z, const float e, const float f) {
-    go_to_destination(x, y, z, e, f);
+void FirstLayer::go_to_destination(const float x, const float y, const float z, const float e, const float f) {
+    plan_destination(x, y, z, e, f);
     wait_for_move();
     inc_progress();
 }
@@ -252,19 +252,19 @@ constexpr float FirstLayer::extrusion_Manhattan(const float *path, const uint32_
 void FirstLayer::print_snake(const float *snake, const size_t snake_size, const float speed) {
 
     /// move to start
-    go_to_destination(snake[0], snake[1], 0); // Process X Y Z E F parameters
+    plan_destination(snake[0], snake[1], 0); // Process X Y Z E F parameters
     float last_x = snake[0];
     float last_y = snake[1];
     /// iterate positions
     size_t i;
     for (i = 2; i < snake_size - 1; i += 2) { /// snake_size-1 because we need 2 items
-        go_to_destination_and_wait(snake[i], NAN, NAN, extrusion_Manhattan(snake, i, last_x), speed);
+        go_to_destination(snake[i], NAN, NAN, extrusion_Manhattan(snake, i, last_x), speed);
         last_x = snake[i];
-        go_to_destination_and_wait(NAN, snake[i + 1], NAN, extrusion_Manhattan(snake, i + 1, last_y), speed);
+        go_to_destination(NAN, snake[i + 1], NAN, extrusion_Manhattan(snake, i + 1, last_y), speed);
         last_y = snake[i + 1];
     }
     if (i == snake_size - 1) { /// process last X movement
-        go_to_destination(snake[i], NAN, NAN, extrusion_Manhattan(snake, i, last_x), speed);
+        plan_destination(snake[i], NAN, NAN, extrusion_Manhattan(snake, i, last_x), speed);
     }
 }
 
@@ -273,23 +273,23 @@ void FirstLayer::print_shape_1() {
     current_line = 0;
 
     /// print purge line
-    go_to_destination_and_wait(NAN, NAN, 4.f, NAN, 1000.f);
-    go_to_destination_and_wait(0.f, -2.f, 0.2f, NAN, 3000.f);
-    go_to_destination_and_wait(NAN, NAN, NAN, 6.f, 2000.f);
-    go_to_destination_and_wait(60.f, NAN, NAN, 9.f, 1000.f);
-    go_to_destination_and_wait(100.f, NAN, NAN, 12.5f, 1000.f);
-    go_to_destination_and_wait(NAN, NAN, 2.f, -6.f, 2100.f);
+    go_to_destination(NAN, NAN, 4.f, NAN, 1000.f);
+    go_to_destination(0.f, -2.f, 0.2f, NAN, 3000.f);
+    go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
+    go_to_destination(60.f, NAN, NAN, 9.f, 1000.f);
+    go_to_destination(100.f, NAN, NAN, 12.5f, 1000.f);
+    go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
 
     /// go to starting point and de-retract
-    go_to_destination_and_wait(10.f, 150.f, 0.2f, NAN, 3000.f);
-    go_to_destination_and_wait(NAN, NAN, NAN, 6.f, 2000.f);
-    go_to_destination_and_wait(NAN, NAN, NAN, NAN, 1000.f);
+    go_to_destination(10.f, 150.f, 0.2f, NAN, 3000.f);
+    go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
+    go_to_destination(NAN, NAN, NAN, NAN, 1000.f);
 
     print_snake(snake1, ARRAY_SIZE(snake1), 1000.f);
 
     /// finish printing
-    go_to_destination_and_wait(NAN, NAN, 2.f, -6.f, 2100.f);
-    go_to_destination_and_wait(178.f, 0.f, 10.f, NAN, 3000.f);
+    go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
+    go_to_destination(178.f, 0.f, 10.f, NAN, 3000.f);
 
     finish_printing();
 }
@@ -300,19 +300,19 @@ void FirstLayer::print_shape_2() {
     current_line = 0;
 
     /// print purge line
-    go_to_destination_and_wait(NAN, NAN, 4.f, NAN, 1000.f);
-    go_to_destination_and_wait(NAN, -2.f, 0.2f, NAN, 3000.f);
-    go_to_destination_and_wait(0.f, NAN, 0.2f, NAN, 3000.f);
-    go_to_destination_and_wait(NAN, NAN, NAN, 6.f, 2000.f);
-    go_to_destination_and_wait(60.f, NAN, NAN, 9.f, 1000.f);
-    go_to_destination_and_wait(100.f, NAN, NAN, 12.5f, 1000.f);
-    go_to_destination_and_wait(10.f, 30.f, NAN, extrusion(100.0f, -2.f, 10.f, 30.f), 1000.f);
+    go_to_destination(NAN, NAN, 4.f, NAN, 1000.f);
+    go_to_destination(NAN, -2.f, 0.2f, NAN, 3000.f);
+    go_to_destination(0.f, NAN, 0.2f, NAN, 3000.f);
+    go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
+    go_to_destination(60.f, NAN, NAN, 9.f, 1000.f);
+    go_to_destination(100.f, NAN, NAN, 12.5f, 1000.f);
+    go_to_destination(10.f, 30.f, NAN, extrusion(100.0f, -2.f, 10.f, 30.f), 1000.f);
 
     print_snake(snake2, ARRAY_SIZE(snake2), 1000.f);
 
     /// finish printing
-    go_to_destination_and_wait(NAN, NAN, 2.f, -6.f, 2100.f);
-    go_to_destination_and_wait(178.f, 180.f, 10.f, NAN, 3000.f);
+    go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
+    go_to_destination(178.f, 180.f, 10.f, NAN, 3000.f);
 
     finish_printing();
 }
