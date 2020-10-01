@@ -169,27 +169,27 @@ void ScreenWizard::RunFirstLay() {
 
 string_view_utf8 WizardGetCaption(WizardState_t st) {
     if (IsStateInWizardMask(st, WizardMaskStart())) {
-        /// r=16, l=1
+        /// r=1, c=16
         return _("WIZARD");
     }
 
     if (IsStateInWizardMask(st, WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last))) {
-        /// r=16, l=1
+        /// r=1, c=16
         return _("SELFTEST");
     }
 
     if (IsStateInWizardMask(st, WizardMaskXYZCalib())) {
-        /// r=16, l=1
+        /// r=1, c=16
         return _("XYZ CALIBRATION");
     }
 
     if (IsStateInWizardMask(st, WizardMaskFirstLay())) {
-        /// r=16, l=1
+        /// r=1, c=16
         return _("FIRST LAYER CAL.");
     }
 
     if (st == WizardState_t::FINISH) {
-        /// r=16, l=1
+        /// r=1, c=16
         return _("WIZARD - OK");
     }
 
