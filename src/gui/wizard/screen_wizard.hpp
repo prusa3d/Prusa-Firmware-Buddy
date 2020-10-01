@@ -42,6 +42,7 @@ public:
     static void RunSelfTest();
     static void RunXYZCalib();
     static void RunFirstLay();
+    static void RunFirstLayerStandAlone();
 
     static uint64_t GetMask() { return run_mask; }
     static bool IsConfigInvalid() { return is_config_invalid; }

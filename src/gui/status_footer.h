@@ -15,13 +15,13 @@ class status_footer_t : public window_frame_t {
     window_icon_t wi_nozzle;
     window_icon_t wi_heatbed;
     window_icon_t wi_prnspeed;
-    window_icon_t wi_z_axis;
+    window_icon_t wi_z_profile;
     window_icon_t wi_filament;
 
     window_text_t wt_nozzle;
     window_text_t wt_heatbed;
     window_text_t wt_prnspeed;
-    window_text_t wt_z_axis;
+    window_text_t wt_z_profile;
     window_text_t wt_filament;
 
     float nozzle;                /// current temperature of nozzle
@@ -48,6 +48,7 @@ class status_footer_t : public window_frame_t {
     void update_filament();
     void repaint_nozzle();
     void repaint_heatbed();
+    void update_sheet_profile();
 
 public:
     status_footer_t(window_t *parent);

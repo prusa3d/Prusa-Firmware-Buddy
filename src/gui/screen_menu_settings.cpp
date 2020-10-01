@@ -17,6 +17,7 @@
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
 #include "i18n.h"
+#include "Marlin/src/core/serial.h"
 
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
@@ -65,8 +66,8 @@ protected:
 };
 
 #ifdef _DEBUG
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_HW_SETUP, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
@@ -78,8 +79,8 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML,
     MI_ES_12201, MI_ES_12202, MI_ES_12203, MI_ES_12204, MI_ES_12205, MI_ES_12206, MI_ES_12207, MI_ES_12208>;
 #else
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+    MI_FACTORY_DEFAULTS, MI_HW_SETUP, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
@@ -90,8 +91,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 class ScreenMenuSettings : public Screen {
 public:
     constexpr static const char *label = N_("SETTINGS");
-    ScreenMenuSettings()
-        : Screen(_(label)) {}
+    ScreenMenuSettings();
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
@@ -99,6 +99,14 @@ protected:
 
 ScreenFactory::UniquePtr GetScreenMenuSettings() {
     return ScreenFactory::Screen<ScreenMenuSettings>();
+}
+
+ScreenMenuSettings::ScreenMenuSettings()
+    : Screen(_(label)) {
+    if (sheet_number_of_calibrated() > 1) {
+        Item<MI_CURRENT_PROFILE>().UpdateLabel();
+        Item<MI_CURRENT_PROFILE>().Hide();
+    }
 }
 
 void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

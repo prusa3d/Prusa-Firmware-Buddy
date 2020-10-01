@@ -2,17 +2,23 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include "variant8.h"
 
 enum {
     EEPROM_ADDRESS = 0x0500, // uint16_t
-    EEPROM_VERSION = 8,      // uint16_t
+    EEPROM_VERSION = 9,      // uint16_t
 };
 
 #define EEPROM_FEATURE_PID_NOZ 0x0001
 #define EEPROM_FEATURE_PID_BED 0x0002
 #define EEPROM_FEATURE_LAN     0x0004
-#define EEPROM_FEATURES        (EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN)
+#define EEPROM_FEATURE_SHEETS  0x0008
+#define EEPROM_FEATURES        (EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN | EEPROM_FEATURE_SHEETS)
+
+enum {
+    MAX_SHEET_NAME_LENGTH = 8,
+};
 
 enum {
     // basic variables
@@ -61,9 +67,17 @@ enum {
     EEVAR_LANGUAGE = 0x1c,     // uint16_t
     EEVAR_FILE_SORT = 0x1d,    // uint8_t  filebrowser file sort options
     EEVAR_MENU_TIMEOUT = 0x1e, // uint8_t on / off menu timeout flag
-
-    EEVAR__PADDING = 0x1f, // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x20,    // uint32_t crc32 for
+    EEVAR_ACTIVE_SHEET = 0x1f,
+    EEVAR_SHEET_PROFILE0 = 0x20,
+    EEVAR_SHEET_PROFILE1 = 0x21,
+    EEVAR_SHEET_PROFILE2 = 0x22,
+    EEVAR_SHEET_PROFILE3 = 0x23,
+    EEVAR_SHEET_PROFILE4 = 0x24,
+    EEVAR_SHEET_PROFILE5 = 0x25,
+    EEVAR_SHEET_PROFILE6 = 0x26,
+    EEVAR_SHEET_PROFILE7 = 0x27,
+    EEVAR__PADDING = 0x28, // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_CRC32 = 0x29,    // uint32_t crc32 for
 };
 
 enum {
@@ -103,6 +117,88 @@ extern void eeprom_clear(void);
 
 // PUT test
 int8_t eeprom_test_PUT(const unsigned int);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Iterate across the profiles and switch to the next calibrated.
+///
+/// Printer use print sheet profile on the index 0 as a default so the method
+/// in the worst case iterate across entire profiles and return index 0 when
+/// not any other profile is calibrated yet.
+/// @return Index of the next calibrated profile.
+extern uint32_t sheet_next_calibrated();
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Determine if the given sheet profile is calibrated.
+///
+/// In case the index of the given print sheet profile is bigger than the
+/// MAX_SHEETS method return false.
+/// @param[in] index Index of the sheet profile
+/// @return True when the profile is calibrated, False othewise.
+extern bool sheet_is_calibrated(uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Select the given print sheet profile as an active for the printer.
+///
+/// In case the index of the given print sheet profile is bigger than the
+/// MAX_SHEETS or sheet is not calibrated method return false.
+/// @param[in] index Index of the sheet profile
+/// @return True when the profile can be selected, False othewise.
+extern bool sheet_select(uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Calibrate the given print sheet profile as an active for the printer.
+///
+/// In case the index of the given print sheet profile is bigger than the
+/// MAX_SHEETS method return false.
+/// @param[in] index Index of the sheet profile
+/// @return True when the profile can be selected, False othewise.
+extern bool sheet_calibrate(uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Reset the given print sheet profile to the uncalibrated state.
+///
+/// In case the index of the given print sheet profile is bigger than the
+/// MAX_SHEETS method return false.
+/// @param[in] index Index of the sheet profile
+/// @return True when the profile was reset, False othewise.
+extern bool sheet_reset(uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Reset the given print sheet profile to the uncalibrated state.
+///
+/// Printer use print sheet profile on the index 0 as a default so the method
+/// return always at least 1 calibrated profile.
+/// @return Return the count of the calibrated print sheet profiles.
+extern uint32_t sheet_number_of_calibrated();
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Determine the name of the current active print sheet profile.
+///
+/// @param[out] buffer Buffer to store the print sheet profile
+/// @param[in] length Size of the given buffer.
+/// @return Number of characters written to the buffer. Number will be
+///        always less than MAX_SHEET_NAME_LENGTH
+extern uint32_t sheet_active_name(char *, uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Determine the name of the given print sheet profile.
+///
+/// @param[in] index Index of the sheet profile
+/// @param[out] buffer Buffer to store the print sheet profile
+/// @param[in] length Size of the given buffer.
+/// @return Number of characters written to the buffer. Number will be
+///        always less than MAX_SHEET_NAME_LENGTH
+extern uint32_t sheet_name(uint32_t, char *, uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Rename the given print sheet profile.
+///
+/// @param[in] index Index of the sheet profile
+/// @param[in] buffer New name of the print sheet profile
+/// @param[in] length Size of the given name.
+/// @return Number of characters written to the buffer. Number will be
+///        always less than MAX_SHEET_NAME_LENGTH
+extern uint32_t sheet_rename(uint32_t, char const *, uint32_t);
 
 #ifdef __cplusplus
 }
