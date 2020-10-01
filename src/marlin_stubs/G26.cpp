@@ -7,7 +7,6 @@
 #include "../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
 #include "marlin_server.hpp"
-//#include "marlin_client.hpp"
 #include "client_fsm_types.h"
 #include "PrusaGcodeSuite.hpp"
 #include "G26.hpp"
@@ -134,7 +133,7 @@ void FirstLayer::print_shape_1() {
 }
 
 void FirstLayer::print_shape_2() {
-    total_lines = 11 + ARRAY_SIZE(snake2);
+    total_lines = 8 + ARRAY_SIZE(snake2);
     current_line = 0;
 
     /// print purge line
