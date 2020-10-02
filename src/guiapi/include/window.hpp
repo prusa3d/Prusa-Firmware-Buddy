@@ -43,12 +43,12 @@ protected:
             bool flag_hidden_behind_dialog : 1;            // 07 - there is an dialog over this window
             is_closed_on_timeout_t flag_timeout_close : 1; // 08 - menu timeout flag - it's meant to be used in window_frame_t
             is_closed_on_serial_t flag_serial_close : 1;   // 09 - serial printing screen open close
-            bool flag_custom0 : 1;                         // 0A - this flag can be defined in parent
-            bool flag_custom1 : 1;                         // 0B - this flag can be defined in parent
-            bool flag_custom2 : 1;                         // 0C - this flag can be defined in parent
-            bool flag_custom3 : 1;                         // 0D - this flag can be defined in parent
-            bool flag_custom4 : 1;                         // 0E - this flag can be defined in parent
-            bool flag_custom5 : 1;                         // 0F - this flag can be defined in parent
+            bool flag_shadow : 1;                          // 0A - this flag can be defined in parent
+            bool flag_custom0 : 1;                         // 0B - this flag can be defined in parent
+            bool flag_custom1 : 1;                         // 0C - this flag can be defined in parent
+            bool flag_custom2 : 1;                         // 0D - this flag can be defined in parent
+            bool flag_custom3 : 1;                         // 0E - this flag can be defined in parent
+            bool flag_custom4 : 1;                         // 0F - this flag can be defined in parent
 
             // here would be 2 unused Bytes (structure data alignment),
             // make them accessible to be used in child to save RAM
@@ -80,6 +80,7 @@ public:
     bool IsInvalid() const;
     bool IsFocused() const;
     bool IsCaptured() const;
+    bool IsShadowed() const;
     bool HasTimer() const;
     bool IsDialog() const;
     bool ClosedOnTimeout() const;
@@ -95,6 +96,8 @@ public:
     void Disable();
     void Show();
     void Hide();
+    void Shadow();
+    void Unshadow();
     void HideBehindDialog();
     void ShowAfterDialog();
     void SetBackColor(color_t clr);
