@@ -30,15 +30,6 @@ enum {
     _DO_Z_DIR,     // PD15
 };
 
-//a3ides analog inputs
-enum {
-    _ADC_HW_IDENTIFY = 0, // PA3 - chan 3
-    _ADC_TEMP_BED,        // PA4 - chan 4
-    _ADC_TEMP_2,          // PA5 - chan 5
-    _ADC_TEMP_HEATBREAK,  // PA6 - chan 6
-    _ADC_TEMP_0,          // PC0 - chan 10
-};
-
 //a3ides pwm outputs
 enum {
     _PWM_HEATER_BED = 0,

@@ -83,10 +83,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define X_DIAG_Pin            GPIO_PIN_2
-#define X_DIAG_GPIO_Port      GPIOE
-#define Z_DIAG_Pin            GPIO_PIN_3
-#define Z_DIAG_GPIO_Port      GPIOE
 #define USB_OVERC_Pin         GPIO_PIN_4
 #define USB_OVERC_GPIO_Port   GPIOE
 #define USB_EN_Pin            GPIO_PIN_5
@@ -133,22 +129,8 @@ void Error_Handler(void);
 #define USB_HS_N_GPIO_Port    GPIOB
 #define USB_HS_P_Pin          GPIO_PIN_15
 #define USB_HS_P_GPIO_Port    GPIOB
-#define E_DIR_Pin             GPIO_PIN_8
-#define E_DIR_GPIO_Port       GPIOD
-#define E_STEP_Pin            GPIO_PIN_9
-#define E_STEP_GPIO_Port      GPIOD
-#define E_ENA_Pin             GPIO_PIN_10
-#define E_ENA_GPIO_Port       GPIOD
 #define LCD_RS_Pin            GPIO_PIN_11
 #define LCD_RS_GPIO_Port      GPIOD
-#define Y_DIR_Pin             GPIO_PIN_12
-#define Y_DIR_GPIO_Port       GPIOD
-#define Y_STEP_Pin            GPIO_PIN_13
-#define Y_STEP_GPIO_Port      GPIOD
-#define Y_ENA_Pin             GPIO_PIN_14
-#define Y_ENA_GPIO_Port       GPIOD
-#define Z_DIR_Pin             GPIO_PIN_15
-#define Z_DIR_GPIO_Port       GPIOD
 #define ESP_TX_Pin            GPIO_PIN_6
 #define ESP_TX_GPIO_Port      GPIOC
 #define ESP_RX_Pin            GPIO_PIN_7
@@ -158,7 +140,6 @@ void Error_Handler(void);
 #define LCD_CS_Pin            GPIO_PIN_9
 #define LCD_CS_GPIO_Port      GPIOC
 #define Z_MIN_Pin             GPIO_PIN_8
-#define Z_MIN_GPIO_Port       GPIOA
 #define Z_MIN_EXTI_IRQn       EXTI9_5_IRQn
 #define USB_FS_N_Pin          GPIO_PIN_11
 #define USB_FS_N_GPIO_Port    GPIOA
@@ -168,24 +149,12 @@ void Error_Handler(void);
 #define SWDIO_GPIO_Port       GPIOA
 #define SWCLK_Pin             GPIO_PIN_14
 #define SWCLK_GPIO_Port       GPIOA
-#define E_DIAG_Pin            GPIO_PIN_15
-#define E_DIAG_GPIO_Port      GPIOA
 #define FLASH_SCK_Pin         GPIO_PIN_10
 #define FLASH_SCK_GPIO_Port   GPIOC
 #define FLASH_MISO_Pin        GPIO_PIN_11
 #define FLASH_MISO_GPIO_Port  GPIOC
 #define FLASH_MOSI_Pin        GPIO_PIN_12
 #define FLASH_MOSI_GPIO_Port  GPIOC
-#define X_DIR_Pin             GPIO_PIN_0
-#define X_DIR_GPIO_Port       GPIOD
-#define X_STEP_Pin            GPIO_PIN_1
-#define X_STEP_GPIO_Port      GPIOD
-#define Z_ENA_Pin             GPIO_PIN_2
-#define Z_ENA_GPIO_Port       GPIOD
-#define X_ENA_Pin             GPIO_PIN_3
-#define X_ENA_GPIO_Port       GPIOD
-#define Z_STEP_Pin            GPIO_PIN_4
-#define Z_STEP_GPIO_Port      GPIOD
 #define FLASH_CSN_Pin         GPIO_PIN_7
 #define FLASH_CSN_GPIO_Port   GPIOD
 #define FIL_SENSOR_Pin        GPIO_PIN_4
@@ -198,8 +167,6 @@ void Error_Handler(void);
 #define RX1_GPIO_Port         GPIOB
 #define WP1_Pin               GPIO_PIN_0
 #define WP1_GPIO_Port         GPIOE
-#define Z_DIAGE1_Pin          GPIO_PIN_1
-#define Z_DIAGE1_GPIO_Port    GPIOE
 /* USER CODE BEGIN Private defines */
 #define THERM_BOARD_Pin       THERM_2_Pin
 #define THERM_BOARD_GPIO_Port THERM_2_GPIO_Port

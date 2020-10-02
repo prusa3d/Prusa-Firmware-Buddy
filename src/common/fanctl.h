@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include "Pin.hpp"
 
 enum {
     FANCTL_MAX_FANS = 2,           // maximum number of fans for C wrapper functions
@@ -12,35 +13,11 @@ enum {
     FANCTL_MEASURE_EDGES = 3       //
 };
 
-// this structure contain variables for software pwm fan control with phase-shifting
-// used in class CFanCtlPWM
-typedef struct _fanctl_pwm_t {
-    uint8_t pin;       // output pwm pin
-    uint8_t min_value; // minimum pwm value
-    uint8_t max_value; // maximum pwm value
-    union {
-        struct {                   // flags:
-            bool initialized : 1;  //  hw initialized
-            bool output_state : 1; //  current pwm output state (0/1)
-        };
-    };
-    uint8_t pwm;      // requested pwm value
-    uint8_t cnt;      // pwm counter (value 0..max-1)
-    uint8_t val;      // pwm value (cached during pwm cycle)
-    uint8_t pha_mode; // pwm phase shift mode
-    uint8_t pha_thr;  // pwm phase shift threshold (shifting will be enabled for pwm <= pha_thr)
-    int8_t pha;       // pwm phase shift
-    int8_t pha_max;   // pwm phase shift maximum (calculated when pwm changed)
-    int8_t pha_stp;   // pwm phase shift step (calculated when pwm changed)
-} fanctl_pwm_t;
-
 // this structure contain variables for rpm measuement
 // used in class CFanCtlTach
 typedef struct _fanctl_tach_t {
-    uint8_t pin; // input tacho pin
     union {
         struct {                  // flags:
-            bool initialized : 1; //  hw initialized
             bool input_state : 1; //  last tacho input state (0/1)
         };
     };
@@ -54,7 +31,7 @@ typedef struct _fanctl_tach_t {
 #ifdef __cplusplus
 
 // class for software pwm control with phase-shifting
-class CFanCtlPWM : private fanctl_pwm_t {
+class CFanCtlPWM {
 public:
     enum PhaseShiftMode : uint8_t {
         none,     // phase shifting disabled
@@ -64,10 +41,9 @@ public:
 
 public:
     // constructor
-    CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max, uint8_t phase_shift_threshold);
+    CFanCtlPWM(const buddy::hw::OutputPin &pinOut, uint8_t pwm_min, uint8_t pwm_max, uint8_t phase_shift_threshold);
 
 public:
-    void init();   // init function - initialize hw
     int8_t tick(); // tick callback from timer interrupt
     // returns: positive number means pwm is on N ticks, negative number means pwm is off and will be switched on in -N ticks
 
@@ -80,21 +56,43 @@ public:
     // setters
     void set_PWM(uint8_t new_pwm);
     inline void set_PhaseShiftMode(PhaseShiftMode new_pha_mode) { pha_mode = new_pha_mode; }
+    void safeState();
+
+private:
+    const buddy::hw::OutputPin &m_pin;
+    const uint8_t min_value; // minimum pwm value
+    const uint8_t max_value; // maximum pwm value
+    union {
+        struct {              // flags:
+            bool pha_ena : 1; //  phase shift enabled
+        };
+        uint8_t flags; // flags as uint8
+    };
+    uint8_t pwm;      // requested pwm value
+    uint8_t cnt;      // pwm counter (value 0..max-1)
+    uint8_t val;      // pwm value (cached during pwm cycle)
+    int8_t pha;       // pwm phase shift
+    uint8_t pha_mode; // pwm phase shift mode
+    uint8_t pha_thr;  // pwm phase shift threshold (shifting will be enabled for pwm <= pha_thr)
+    int8_t pha_max;   // pwm phase shift maximum (calculated when pwm changed)
+    int8_t pha_stp;   // pwm phase shift step (calculated when pwm changed)
 };
 
 // class for rpm measurement
 class CFanCtlTach : private fanctl_tach_t {
 public:
     // constructor
-    CFanCtlTach(uint8_t pin_in);
+    CFanCtlTach(const buddy::hw::InputPin &inputPin);
 
 public:
-    void init();              // init function - initialize hw
     bool tick(int8_t pwm_on); // tick callback from timer interrupt (currently 1kHz), returns true when edge detected
     // returns: true = tach cycle complete (used for RPM calculation)
 
     // getters
     inline uint16_t getRPM() const { return rpm; }
+
+private:
+    const buddy::hw::InputPin &m_pin;
 };
 
 //
@@ -112,10 +110,9 @@ public:
 
 public:
     // constructor
-    CFanCtl(uint8_t pinOut, uint8_t pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM);
+    CFanCtl(const buddy::hw::OutputPin &pinOut, const buddy::hw::InputPin &pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM);
 
 public:
-    void init(); // init function - initialize hw
     void tick(); // tick callback from timer interrupt
 
     // getters (in-lined)
@@ -140,10 +137,12 @@ public:
     void setPWM(uint8_t pwm);            // set PWM value - switch to non closed-loop mode
     void setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
     uint32_t measure();                  // measure tacho delay [us], blocking
+    void safeState();
+
 private:
-    uint16_t m_MinRPM; // minimum rpm value (set in constructor)
-    uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
-    uint16_t m_Ticks;  // tick counter - used for starting and measurement
+    const uint16_t m_MinRPM; // minimum rpm value (set in constructor)
+    const uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
+    uint16_t m_Ticks;        // tick counter - used for starting and measurement
     uint16_t m_Result;
     FanState m_State;    // fan control state
     uint8_t m_PWMValue;  // current pwm value
@@ -157,7 +156,6 @@ extern "C" {
 #endif //__cplusplus
 
 // C wrapper functions
-extern void fanctl_init(void);                        // init for all fanctl instances is done using this function in appmain.cpp
 extern void fanctl_tick(void);                        // tick for all fanctl instances is done using this function in appmain.cpp
 extern void fanctl_set_pwm(uint8_t fan, uint8_t pwm); // set requested PWM value
 extern uint8_t fanctl_get_pwm(uint8_t fan);           // get requested PWM value

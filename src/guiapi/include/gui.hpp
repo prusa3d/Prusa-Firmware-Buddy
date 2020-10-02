@@ -12,6 +12,8 @@ typedef void(gui_loop_cb_t)(void);
 
 extern gui_loop_cb_t *gui_loop_cb;
 
+extern void gui_run(void);
+
 extern void gui_init(void);
 
 extern void gui_invalidate(void);

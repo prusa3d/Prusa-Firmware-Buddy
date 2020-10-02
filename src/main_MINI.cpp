@@ -59,6 +59,9 @@
 #include "timer_defaults.h"
 #include "thread_measurement.h"
 #include "Z_probe.h"
+#include "hwio_pindef_MINI.h"
+#include "gui.hpp"
+#include "config_a3ides2209_02.h"
 
 /* USER CODE END Includes */
 
@@ -135,10 +138,6 @@ void iwdg_warning_cb(void);
 
 /* USER CODE BEGIN PFP */
 
-extern void gui_run(void);
-
-extern void Error_Handler(void);
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -156,6 +155,7 @@ char uart6slave_line[32];
 
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
+
 /* USER CODE END 0 */
 
 /**
@@ -583,7 +583,9 @@ static void MX_TIM1_Init(void) {
     //HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
     //HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
     /* USER CODE END TIM1_Init 2 */
+#ifndef NEW_FANCTL
     HAL_TIM_MspPostInit(&htim1);
+#endif
 }
 
 /**
@@ -855,12 +857,12 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin | LCD_RST_Pin | LCD_CS_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOD, E_DIR_Pin | E_STEP_Pin | E_ENA_Pin | LCD_RS_Pin | Y_DIR_Pin | Y_STEP_Pin | Y_ENA_Pin | Z_DIR_Pin | X_DIR_Pin | X_STEP_Pin | Z_ENA_Pin | X_ENA_Pin | Z_STEP_Pin | FLASH_CSN_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, LCD_RS_Pin | FLASH_CSN_Pin, GPIO_PIN_RESET);
 
-    /*Configure GPIO pins : X_DIAG_Pin Z_DIAG_Pin USB_OVERC_Pin ESP_GPIO0_Pin
-                           BED_MON_Pin WP1_Pin Z_DIAGE1_Pin */
-    GPIO_InitStruct.Pin = X_DIAG_Pin | Z_DIAG_Pin | USB_OVERC_Pin | ESP_GPIO0_Pin
-        | BED_MON_Pin | WP1_Pin | Z_DIAGE1_Pin;
+    /*Configure GPIO pins : USB_OVERC_Pin ESP_GPIO0_Pin
+                           BED_MON_Pin WP1_Pin */
+    GPIO_InitStruct.Pin = USB_OVERC_Pin | ESP_GPIO0_Pin
+        | BED_MON_Pin | WP1_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -885,30 +887,15 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : E_DIR_Pin E_STEP_Pin E_ENA_Pin LCD_RS_Pin
-                           Y_DIR_Pin Y_STEP_Pin Y_ENA_Pin Z_DIR_Pin
-                           X_DIR_Pin X_STEP_Pin Z_ENA_Pin X_ENA_Pin
-                           Z_STEP_Pin FLASH_CSN_Pin */
-    GPIO_InitStruct.Pin = E_DIR_Pin | E_STEP_Pin | E_ENA_Pin | LCD_RS_Pin
-        | Y_DIR_Pin | Y_STEP_Pin | Y_ENA_Pin | Z_DIR_Pin
-        | X_DIR_Pin | X_STEP_Pin | Z_ENA_Pin | X_ENA_Pin
-        | Z_STEP_Pin | FLASH_CSN_Pin;
+    /*Configure GPIO pins : LCD_RS_Pin
+                           FLASH_CSN_Pin */
+    GPIO_InitStruct.Pin = LCD_RS_Pin | FLASH_CSN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-    /*Configure GPIO pin : Z_MIN_Pin */
-    GPIO_InitStruct.Pin = Z_MIN_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(Z_MIN_GPIO_Port, &GPIO_InitStruct);
-
-    /*Configure GPIO pin : E_DIAG_Pin */
-    GPIO_InitStruct.Pin = E_DIAG_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(E_DIAG_GPIO_Port, &GPIO_InitStruct);
+    PIN_TABLE(CONFIGURE_PINS)
 
     /*Configure GPIO pins : FIL_SENSOR_Pin WP2_Pin */
     GPIO_InitStruct.Pin = FIL_SENSOR_Pin | WP2_Pin;

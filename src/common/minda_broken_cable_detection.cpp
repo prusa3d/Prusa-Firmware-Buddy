@@ -9,6 +9,8 @@
 #include "gpio.h"
 #include "hwio_pindef.h"
 
+using buddy::hw::zMin;
+
 static uint32_t PRE_XYHOME = 0;
 static uint32_t POST_XYHOME = 0;
 
@@ -32,18 +34,18 @@ void MINDA_BROKEN_CABLE_DETECTION__BEGIN() {
     endstop_status.i = 0;
 }
 void MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME() {
-    endstop_status.PRE_XYHOME = gpio_get(PIN_Z_MIN);
+    endstop_status.PRE_XYHOME = static_cast<uint8_t>(zMin.read());
     PRE_XYHOME = get_Z_probe_endstop_hits();
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_XYHOME() {
-    endstop_status.POST_XYHOME = gpio_get(PIN_Z_MIN);
+    endstop_status.POST_XYHOME = static_cast<uint8_t>(zMin.read());
     POST_XYHOME = get_Z_probe_endstop_hits();
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0() {
-    endstop_status.POST_ZHOME_0 = gpio_get(PIN_Z_MIN);
+    endstop_status.POST_ZHOME_0 = static_cast<uint8_t>(zMin.read());
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1() {
-    endstop_status.POST_ZHOME_1 = gpio_get(PIN_Z_MIN);
+    endstop_status.POST_ZHOME_1 = static_cast<uint8_t>(zMin.read());
 }
 void MINDA_BROKEN_CABLE_DETECTION__END() {
 
@@ -73,11 +75,11 @@ void MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN() {
     actual_point = 0;
 }
 void MINDA_BROKEN_CABLE_DETECTION__PRE_XYMOVE() {
-    mbl_preposts[actual_point].pre_lvl = gpio_get(PIN_Z_MIN);
+    mbl_preposts[actual_point].pre_lvl = static_cast<int>(zMin.read());
     mbl_preposts[actual_point].pre = get_Z_probe_endstop_hits();
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE() {
-    mbl_preposts[actual_point].post_lvl = gpio_get(PIN_Z_MIN);
+    mbl_preposts[actual_point].post_lvl = static_cast<int>(zMin.read());
     mbl_preposts[actual_point].post = get_Z_probe_endstop_hits();
     actual_point = (actual_point + 1) % POINTS;
 }

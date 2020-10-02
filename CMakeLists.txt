@@ -285,6 +285,7 @@ endif()
 
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall -Wsign-compare)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-std=c++1z>)
 
 # support _DEBUG macro (some code uses to recognize debug builds)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -322,7 +323,7 @@ add_subdirectory(lib)
 
 add_executable(firmware)
 
-set_target_properties(firmware PROPERTIES CXX_STANDARD 11)
+set_target_properties(firmware PROPERTIES CXX_STANDARD 17)
 
 if(WUI)
   target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
@@ -433,7 +434,7 @@ target_sources(
           src/freertos.c
           src/freertos_openocd.c
           src/usbh_diskio.c
-          src/main_${PRINTER}.c
+          src/main_${PRINTER}.cpp
           src/usbd_desc.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>
@@ -446,17 +447,19 @@ target_sources(
           src/stm32f4xx_hal_timebase_tim.c
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
-          src/common/diag.c
+          src/common/diag.cpp
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
           src/common/marlin_vars.c
           src/common/media.cpp
+          src/common/Pin.cpp
+          src/common/PinsCheck.cpp
           src/common/sim_bed.c
           src/common/sys.cpp
           src/common/sim_nozzle.c
-          src/common/hwio_a3ides_2209_02.c
-          src/common/putslave.c
-          src/common/safe_state.c
+          src/common/hwio_a3ides_2209_02.cpp
+          src/common/putslave.cpp
+          src/common/safe_state.cpp
           src/common/variant8.cpp
           src/common/dbg.c
           src/common/wdt.cpp
@@ -496,7 +499,7 @@ target_sources(
           src/common/sha256.c
           src/common/wui_api.c
           src/common/z_calibration_fsm.cpp
-          $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
+          $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M50.cpp
           src/marlin_stubs/M876.cpp
@@ -608,6 +611,7 @@ if(GUI)
             src/guiapi/src/window_list.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
+            src/guiapi/src/st7789v.cpp
             src/guiapi/src/display_ex.cpp
             src/guiapi/src/window_icon.cpp
             src/guiapi/src/window_spin.cpp
@@ -641,13 +645,13 @@ set_property(
   )
 
 set_property(
-  SOURCE src/common/bsod.cpp src/common/appmain.cpp src/common/sys.cpp src/common/putslave.c
+  SOURCE src/common/bsod.cpp src/common/appmain.cpp src/common/sys.cpp src/common/putslave.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )
 
 set_property(
-  SOURCE src/common/appmain.cpp src/common/putslave.c src/common/marlin_test.cpp
+  SOURCE src/common/appmain.cpp src/common/marlin_test.cpp src/common/putslave.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>

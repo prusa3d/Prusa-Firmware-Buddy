@@ -1,5 +1,6 @@
 // st7789v.c
 #include "st7789v.h"
+#include "st7789v_impl.h"
 
 #include <guiconfig.h>
 #include <string.h>
@@ -67,11 +68,6 @@ enum {
     CLR565_BLUE = 0x001f,
 };
 
-//private flags (pin states)
-static const uint8_t FLG_CS = 0x01;  // current CS pin state
-static const uint8_t FLG_RS = 0x02;  // current RS pin state
-static const uint8_t FLG_RST = 0x04; // current RST pin state
-
 uint8_t st7789v_flg = 0; // flags
 
 uint16_t st7789v_x = 0;  // current x coordinate (CASET)
@@ -89,36 +85,6 @@ osThreadId st7789v_task_handle = 0;
 void st7789v_gamma_set_direct(uint8_t gamma_enu);
 uint8_t st7789v_read_ctrl(void);
 void st7789v_ctrl_set(uint8_t ctrl);
-
-static inline void st7789v_set_cs(void) {
-    gpio_set(st7789v_config.pinCS, 1);
-    st7789v_flg |= FLG_CS;
-}
-
-static inline void st7789v_clr_cs(void) {
-    gpio_set(st7789v_config.pinCS, 0);
-    st7789v_flg &= ~FLG_CS;
-}
-
-static inline void st7789v_set_rs(void) {
-    gpio_set(st7789v_config.pinRS, 1);
-    st7789v_flg |= FLG_RS;
-}
-
-static inline void st7789v_clr_rs(void) {
-    gpio_set(st7789v_config.pinRS, 0);
-    st7789v_flg &= ~FLG_RS;
-}
-
-static inline void st7789v_set_rst(void) {
-    gpio_set(st7789v_config.pinRST, 1);
-    st7789v_flg |= FLG_RST;
-}
-
-static inline void st7789v_clr_rst(void) {
-    gpio_set(st7789v_config.pinRST, 0);
-    st7789v_flg &= ~FLG_RST;
-}
 
 static inline void st7789v_fill_ui16(uint16_t *p, uint16_t v, uint16_t c) {
     while (c--)
@@ -282,32 +248,10 @@ void st7789v_cmd_ramrd(uint8_t *pdata, uint16_t size) {
 }*/
 
 void st7789v_init_ctl_pins(void) {
-    if (!(st7789v_flg & (uint8_t)ST7789V_FLG_SAFE)) {
-        gpio_init(st7789v_config.pinCS, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
-        gpio_init(st7789v_config.pinRS, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
-        gpio_init(st7789v_config.pinRST, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
-    }
     st7789v_flg &= ~(FLG_CS | FLG_RS | FLG_RST);
     st7789v_set_rst();
     st7789v_set_cs();
     st7789v_set_rs();
-}
-
-void st7789v_reset(void) {
-    st7789v_clr_rst();
-    st7789v_delay_ms(15);
-    gpio_init(st7789v_config.pinRST, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
-    volatile uint16_t delay = 0;
-    int irq = __get_PRIMASK() & 1;
-    if (irq)
-        __disable_irq();
-    while (!gpio_get(st7789v_config.pinRST))
-        delay++;
-    if (irq)
-        __enable_irq();
-    gpio_init(st7789v_config.pinRST, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
-    st7789v_set_rst();
-    st7789v_reset_delay = delay;
 }
 
 void st7789v_init(void) {
@@ -671,9 +615,6 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
 
 st7789v_config_t st7789v_config = {
     0,            // spi handle pointer
-    0,            // CS pin
-    0,            // RS pin
-    0,            // RST pin
     0,            // flags (DMA, MISO)
     0,            // interface pixel format (5-6-5, hi-color)
     0,            // memory data access control (no mirror XY)

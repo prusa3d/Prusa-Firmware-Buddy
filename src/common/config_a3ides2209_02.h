@@ -1,5 +1,6 @@
 //config_a3ides2209.h - configuration file for 2209 variant (rev02)
 #pragma once
+#include <stdint.h>
 
 #define PRUSA_MARLIN_API
 
@@ -64,25 +65,11 @@ enum {
 //414140414142414143
 
 //--------------------------------------
-//Graphical display ST7789v configuration
-#define ST7789V_PIN_CS  TPC9  // CS signal pin
-#define ST7789V_PIN_RS  TPD11 // RS signal pin
-#define ST7789V_PIN_RST TPC8  // RESET signal pin
-
-//--------------------------------------
-//Jogwheel configuration
-#define JOGWHEEL_PIN_EN1 TPE15 // encoder signal 1 pin
-#define JOGWHEEL_PIN_EN2 TPE13 // encoder signal 2 pin
-#define JOGWHEEL_PIN_ENC TPE12 // button pin
-
-//--------------------------------------
 //FANCTL - new software pwm fan control with rpm measurement and closed loop
 #define NEW_FANCTL
 #ifdef NEW_FANCTL
 
-    //FANCTL0 - printing fan
-    #define FANCTL0_PIN_OUTP TPE11
-    #define FANCTL0_PIN_TACH TPE10
+//FANCTL0 - printing fan
 //static const uint8_t FANCTL0_PWM_MIN = 15;
 static const uint8_t FANCTL0_PWM_MIN = 0;
 static const uint8_t FANCTL0_PWM_MAX = 50;
@@ -90,9 +77,7 @@ static const uint16_t FANCTL0_RPM_MIN = 500;
 static const uint16_t FANCTL0_RPM_MAX = 5000;
 static const uint8_t FANCTL0_PWM_THR = 20;
     #define FANCTL0_TRACE
-    //FANCTL1 - heatbreak fan
-    #define FANCTL1_PIN_OUTP TPE9
-    #define FANCTL1_PIN_TACH TPE14
+//FANCTL1 - heatbreak fan
 //static const uint8_t FANCTL1_PWM_MIN = 12;
 static const uint8_t FANCTL1_PWM_MIN = 0;
 static const uint8_t FANCTL1_PWM_MAX = 50;

@@ -13,6 +13,7 @@
 
 #if ((MOTHERBOARD == 1823))
 
+using namespace buddy::hw;
 static TMC2209Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
 
 static uint16_t tmc_sg[4];      // stallguard result for each axis
@@ -106,21 +107,22 @@ uint8_t tmc_get_diag() //0 = X, 2 = Y, 4 = Z, 8 = E
     for (tmp_step = 0; tmp_step < step; step--) {
         tmc_delay(1024 * 2);
         if (step_mask & 1)
-            gpio_set(PIN_X_STEP, 0);
+            xStep.write(Pin::State::low);
         if (step_mask & 2)
-            gpio_set(PIN_Y_STEP, 0);
+            yStep.write(Pin::State::low);
         if (step_mask & 4)
-            gpio_set(PIN_Z_STEP, 0);
+            zStep.write(Pin::State::low);
         if (step_mask & 8)
-            gpio_set(PIN_E_STEP, 0);
-        gpio_set(PIN_X_STEP, 1);
-        gpio_set(PIN_Y_STEP, 1);
-        gpio_set(PIN_Z_STEP, 1);
-        gpio_set(PIN_E_STEP, 1);
-        diag |= gpio_get(PIN_E_DIAG) << 3;
-        diag |= gpio_get(PIN_X_DIAG);
-        diag |= gpio_get(PIN_Y_DIAG) << 1;
-        diag |= gpio_get(PIN_Z_DIAG) << 2;
+            e0Step.write(Pin::State::low);
+        //fixme why there is no delay?
+        xStep.write(Pin::State::high);
+        yStep.write(Pin::State::high);
+        zStep.write(Pin::State::high);
+        e0Step.write(Pin::State::high);
+        diag |= static_cast<unsigned int>(e0Diag.read()) << 3;
+        diag |= static_cast<unsigned int>(xDiag.read());
+        diag |= static_cast<unsigned int>(yDiag.read()) << 1;
+        diag |= static_cast<unsigned int>(zDiag.read()) << 2;
 
         if (diag == 15)
             break;
@@ -132,26 +134,26 @@ void tmc_move(uint8_t step_mask, uint16_t step, uint8_t speed) {
     uint16_t tmp_step;
     for (tmp_step = 0; tmp_step < step; step--) {
         if (step_mask & 1)
-            gpio_set(PIN_X_STEP, 1);
+            xStep.write(Pin::State::high);
         if (step_mask & 2)
-            gpio_set(PIN_Y_STEP, 1);
+            yStep.write(Pin::State::high);
         if (step_mask & 4)
-            gpio_set(PIN_Z_STEP, 1);
+            zStep.write(Pin::State::high);
         if (step_mask & 8)
-            gpio_set(PIN_E_STEP, 1);
+            e0Step.write(Pin::State::high);
         tmc_delay(1024 * speed);
-        gpio_set(PIN_X_STEP, 0);
-        gpio_set(PIN_Y_STEP, 0);
-        gpio_set(PIN_Z_STEP, 0);
-        gpio_set(PIN_E_STEP, 0);
+        xStep.write(Pin::State::low);
+        yStep.write(Pin::State::low);
+        zStep.write(Pin::State::low);
+        e0Step.write(Pin::State::low);
     }
 }
 
 void tmc_set_move(uint8_t tmc, uint32_t step, uint8_t dir, uint8_t speed) {
-    gpio_set(PIN_X_DIR, dir);
-    gpio_set(PIN_Y_DIR, dir);
-    gpio_set(PIN_Z_DIR, dir);
-    gpio_set(PIN_E_DIR, dir);
+    xDir.write(static_cast<Pin::State>(dir));
+    yDir.write(static_cast<Pin::State>(dir));
+    zDir.write(static_cast<Pin::State>(dir));
+    e0Dir.write(static_cast<Pin::State>(dir));
     tmc_move(tmc, step, speed);
 }
 

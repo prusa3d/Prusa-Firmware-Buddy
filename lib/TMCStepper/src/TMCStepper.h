@@ -11,7 +11,6 @@
 #endif
 
 #include <Stream.h>
-#include <SPI.h>
 
 #if (__cplusplus == 201703L) && defined(__has_include)
 	#define SW_CAPABLE_PLATFORM __has_include(<SoftwareSerial.h>)

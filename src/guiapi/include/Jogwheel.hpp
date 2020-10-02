@@ -18,15 +18,10 @@ public:
     /**
      * Constructor
      *
-     * sets up default values to members and initialize input pins
+     * sets up default values to members
      *
-     * @param [in] encoder_pin1 - input pin for encoder phase0
-     *
-     * @param [in] encoder_pin2 - input pin for encoder phase1
-     *
-     * @param [in] btn_pin - input pin for button press action
      */
-    Jogwheel(uint8_t encoder_pin1, uint8_t encoder_pin2, uint8_t btn_pin);
+    Jogwheel();
     ~Jogwheel() {}
 
     /** Updates jogwheel states and variables every 1ms, this function is called from the interupt. */
@@ -108,18 +103,11 @@ private:
      */
     void Transmission();
 
-    typedef struct {
-        uint8_t pinEN1; // encoder phase1 pin
-        uint8_t pinEN2; // encoder phase2 pin
-        uint8_t pinENC; // button pin
-    } Config;
-
     int32_t encoder;              //!< jogwheel encoder
     int32_t last_encoder;         //!< helping variable - GUI encoder variable for diff counting (sets itself equal to encoder in gui_loop)
     uint16_t doubleclick_counter; //!< keep track of ms from last click
     uint16_t hold_counter;        //!< keep track of ms from button down
 
-    Config config;                //!< pin configurations
     uint8_t jogwheel_signals;     //!< input signals
     uint8_t jogwheel_changed;     //!< stores changed input states
     uint8_t jogwheel_signals_old; //!< stores pre-previous input signals

@@ -37,9 +37,6 @@ int guimain_spi_test = 0;
 
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
-    ST7789V_PIN_CS,     // CS pin
-    ST7789V_PIN_RS,     // RS pin
-    ST7789V_PIN_RST,    // RST pin
     ST7789V_FLG_DMA,    // flags (DMA, MISO)
     ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
     ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
@@ -57,7 +54,7 @@ char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
 char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
 
 #ifdef GUI_JOGWHEEL_SUPPORT
-Jogwheel jogwheel(JOGWHEEL_PIN_EN1, JOGWHEEL_PIN_EN2, JOGWHEEL_PIN_ENC);
+Jogwheel jogwheel;
 #endif // GUI_JOGWHEEL_SUPPORT
 
 MsgBuff_t &MsgCircleBuffer() {
@@ -73,7 +70,7 @@ void MsgCircleBuffer_cb(const char *txt) {
     }
 }
 
-extern "C" void gui_run(void) {
+void gui_run(void) {
     if (diag_fastboot)
         return;
 
