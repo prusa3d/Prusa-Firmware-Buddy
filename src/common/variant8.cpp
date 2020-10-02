@@ -54,23 +54,26 @@ struct t_variant8_t {
         pointer_t = 3,
         user_t = 4,
     };
-    template <class T>
-    t_variant8_t(T i, typename std::enable_if<std::is_integral<T>::value>::type = 0)
+    template <class T,
+        typename std::enable_if<std::is_integral<T>::value>::type * = nullptr>
+    t_variant8_t(T i)
         : storage_(
             (static_cast<uint64_t>(type_t::int_t) << type_shift) | (i << integral_shift))
         , packed_(false) {};
 
-    template <class T>
-    t_variant8_t(T f, typename std::enable_if<std::is_floating_point<T>::value>::type = 0)
-        : storage_(
-            (static_cast<uint64_t>(type_t::float_t) << type_shift)
-            | (static_cast<uint64_t>(
-                   *(reinterpret_cast<uint32_t *>(&f)))
-                << integral_shift))
-        , packed_(false) {};
+    template <class T,
+        typename std::enable_if<std::is_floating_point<T>::value>::type * = nullptr>
+    t_variant8_t(T f)
+        : storage_(static_cast<uint64_t>(type_t::float_t) << type_shift)
+        , packed_(false) {
+        float_int_representation_t var;
+        var.f = f;
+        storage_ |= static_cast<uint64_t>(var.i) << integral_shift;
+    };
 
-    template <class T>
-    t_variant8_t(T p, uint16_t count, typename std::enable_if<std::is_pointer<T>::value>::type = 0)
+    template <class T,
+        typename std::enable_if<std::is_pointer<T>::value>::type * = nullptr>
+    t_variant8_t(T const *p, uint16_t count)
         : storage_(
             (static_cast<uint64_t>(type_t::pointer_t) << type_shift)
             | static_cast<uint64_t>(count) << count_shift)
@@ -86,11 +89,12 @@ struct t_variant8_t {
         }
     };
 
-    template <class T>
-    t_variant8_t(T o, typename std::enable_if<std::is_class<T>::value && std::is_trivially_default_constructible<T>::value>::type = 0)
+    template <class T,
+        typename std::enable_if<std::is_class<T>::value>::type * = nullptr>
+    t_variant8_t(T const &o)
         : storage_(static_cast<uint64_t>(type_t::user_t) << type_shift)
         , packed_(false) {
-        static_assert(sizeof(T) < 7, " Too large user type");
+        storage_ |= o.pack() & ~(static_cast<uint64_t>(0xFF) << type_shift);
     };
 
     ~t_variant8_t() {
@@ -117,21 +121,29 @@ struct t_variant8_t {
     template <class T>
     typename std::enable_if<std::is_integral<T>::value>::type
     get() const {
-        return T {};
+        return storage_ >> integral_shift;
     };
 
     template <class T>
     typename std::enable_if<std::is_floating_point<T>::value>::type
     get() const {
-        return T {};
+        float_int_representation_t var;
+        var.i = storage_ >> integral_shift;
+        return var.f;
+    };
+
+    template <class T>
+    typename std::enable_if<std::is_class<T>::value>::type
+    get() const {
+        return T::extract(storage_ & ~(static_cast<uint64_t>(0xFF) << type_shift));
     };
 
     uint64_t pack() const {
         packed_ = true;
-        return 0ull;
+        return storage_;
     };
 
-    static t_variant8_t unpack(uint64_t v) {
+    static t_variant8_t extract(uint64_t v) {
         return t_variant8_t(v);
     };
 
@@ -140,6 +152,11 @@ private:
     static const uint8_t integral_shift = type_shift - 32;
     static const uint8_t count_shift = type_shift - 16;
     static const uint8_t pointer_shift = count_shift - 32;
+
+    union float_int_representation_t {
+        float f;
+        uint32_t i;
+    };
 
     t_variant8_t(uint64_t v)
         : storage_(v) {};
@@ -360,8 +377,8 @@ variant8_t variant8_i32(int32_t i32) {
     return *pack(&v);
 }
 variant8_t variant8_ui32(uint32_t ui32) {
-    _variant8_t v = _VARIANT8_TYPE(VARIANT8_UI32, 0, 0, .ui32 = ui32);
-    return *pack(&v);
+    t_variant8_t v(ui32);
+    return v.pack();
 }
 variant8_t variant8_flt(float flt) {
     _variant8_t v = _VARIANT8_TYPE(VARIANT8_FLT, 0, 0, .flt = flt);
