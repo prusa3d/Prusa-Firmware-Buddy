@@ -90,9 +90,7 @@ constexpr uint64_t WizardMaskFirstLay() {
 }
 
 //disabled XYZ calib
-constexpr uint64_t WizardMaskAll() {
-    return WizardMaskUpTo(WizardState_t::last) & ~WizardMaskRange(WizardState_t::XYZCALIB_first, WizardState_t::XYZCALIB_last) & ~WizardMask(WizardState_t::SELFTEST_AND_XYZCALIB);
-}
+constexpr uint64_t WizardMaskAll() { return WizardMaskStart() | WizardMaskSelfTest() | WizardMaskFirstLay(); }
 
 enum class WizardTestState_t : uint8_t {
     START,

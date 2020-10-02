@@ -1,4 +1,6 @@
-// diag.c
+/**
+ * @file
+ */
 
 #include "diag.h"
 #include "otp.h"
@@ -7,6 +9,9 @@
 #include "w25x.h"
 #include "st25dv64k.h"
 #include "usb_host.h"
+#include "hwio_pindef.h"
+
+using namespace buddy::hw;
 
 int diag_fastboot = 0;
 
@@ -24,15 +29,14 @@ void diag_check_fastboot(void) {
     if (otp_lock_sector0) //not locked
     {
         __HAL_RCC_GPIOC_CLK_ENABLE();
-        gpio_init(TPC7, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
         diag_delay(100000);
         int i;
         for (i = 0; i < 10; i++) {
-            if (gpio_get(TPC7))
+            if (fastBoot.read() == Pin::State::high)
                 break;
             diag_delay(10000);
         }
-        diag_fastboot = ((i == 10) && !gpio_get(TPC7)) ? 1 : 0;
+        diag_fastboot = ((i == 10) && (fastBoot.read() == Pin::State::low)) ? 1 : 0;
     }
 }
 

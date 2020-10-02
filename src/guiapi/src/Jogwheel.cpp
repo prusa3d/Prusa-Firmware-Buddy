@@ -1,7 +1,15 @@
 #include <limits.h>
 
 #include "Jogwheel.hpp"
-#include "gpio.h"
+#include "guiconfig.h"
+#include "hwio_pindef.h"
+
+#ifdef GUI_JOGWHEEL_SUPPORT
+
+using buddy::hw::jogWheelEN1;
+using buddy::hw::jogWheelEN2;
+using buddy::hw::jogWheelENC;
+using buddy::hw::Pin;
 
 // time constants
 static const constexpr uint16_t JG_DOUBLECLICK_INTERVAL = 500; // [ms] jogwheel max double click delay - if second click is after 500ms it doesn't trigger doubleclick
@@ -22,40 +30,32 @@ enum : uint8_t {
     JG_BUTTON_OR_ENCODER_CHANGED = 0x0C,
 };
 
-Jogwheel::Jogwheel(uint8_t encoder_pin1, uint8_t encoder_pin2, uint8_t btn_pin) {
+Jogwheel::Jogwheel() {
     jogwheel_signals_old = jogwheel_signals_new = jogwheel_signals = last_encoder = encoder = jogwheel_changed = doubleclick_counter = hold_counter = spin_speed_counter = 0;
     encoder_gear = 1;
-    config = {
-        encoder_pin1, // encoder phase1
-        encoder_pin2, // encoder phase2
-        btn_pin       // button
-    };
+
     speed_traps[0] = speed_traps[1] = speed_traps[2] = speed_traps[3] = 0;
     btn_pressed = doubleclicked = being_held = jogwheel_button_down = false;
     btn_action = ButtonAction::BTN_NO_ACTION;
     type1 = true;
     spin_accelerator = false;
-
-    gpio_init(config.pinEN1, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
-    gpio_init(config.pinEN2, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
-    gpio_init(config.pinENC, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
 }
 
 const int Jogwheel::GetJogwheelButtonPinState() const {
-    return gpio_get(config.pinENC);
+    return static_cast<int>(jogWheelENC.read());
 }
 
 void Jogwheel::ReadInput(uint8_t &signals) {
 
-    if (gpio_get(config.pinENC)) {
+    if (jogWheelENC.read() == Pin::State::high) {
         signals |= JG_BUTTON_PRESSED; //bit 2 - button press
     }
     signals ^= JG_BUTTON_PRESSED; // we are using inverted button pin
 
-    if (gpio_get(config.pinEN1)) {
+    if (jogWheelEN1.read() == Pin::State::high) {
         signals |= JG_PHASE_0; //bit 0 - phase0
     }
-    if (gpio_get(config.pinEN2)) {
+    if (jogWheelEN2.read() == Pin::State::high) {
         signals |= JG_PHASE_1; //bit 1 - phase1
     }
 }
@@ -208,3 +208,4 @@ void Jogwheel::Transmission() {
         encoder_gear = 5;
     }
 }
+#endif //GUI_JOGWHEEL_SUPPORT
