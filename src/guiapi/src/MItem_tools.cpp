@@ -17,7 +17,7 @@
 #include "liveadjust_z.hpp"
 #include "DialogHandler.hpp"
 #include "selftest_MINI.h"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "main_MINI.h"
 #include "gpio.h"
 
@@ -475,11 +475,11 @@ void I_MI_Filament::click_at(FILAMENT_t filament_index) {
 int get_fs_state() {
     fsensor_t fs = fs_wait_initialized();
     switch (fs) {
-    case FS_HAS_FILAMENT:
+    case fsensor_t::HasFilament:
         return 1;
         break;
 
-    case FS_NO_FILAMENT:
+    case fsensor_t::NoFilament:
         return 0;
         break;
 

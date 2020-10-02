@@ -11,20 +11,22 @@ class ScreenMenuSensorInfo : public Screen {
 private:
     uint8_t last_state = -1;
 
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
 public:
     constexpr static const char *label = N_("SENSOR INFO");
     ScreenMenuSensorInfo()
         : Screen(_(label)) {
     }
-    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSensorInfo() {
     return ScreenFactory::Screen<ScreenMenuSensorInfo>();
 }
 
-void ScreenMenuSensorInfo::windowEvent(window_t *sender, uint8_t ev, void *param) {
-    if (ev == WINDOW_EVENT_LOOP) {
+void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
         if (Item<MI_FILAMENT_SENSOR_STATE>().StateChanged()
             || Item<MI_MINDA>().StateChanged()) {
 
@@ -32,5 +34,5 @@ void ScreenMenuSensorInfo::windowEvent(window_t *sender, uint8_t ev, void *param
         }
     }
 
-    Screen::windowEvent(sender, ev, param);
+    Screen::SuperWindowEvent(sender, event, param);
 }
