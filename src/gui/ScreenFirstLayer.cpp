@@ -17,6 +17,8 @@ ScreenFirstLayer::ScreenFirstLayer()
     live_z.Idle();
 }
 
+void ScreenFirstLayer::notifyMarlinStart() { live_z.Activate(); };
+
 void ScreenFirstLayer::stopAction() {}
 void ScreenFirstLayer::pauseAction() {}
 void ScreenFirstLayer::tuneAction() {}

@@ -41,3 +41,8 @@ void IScreenPrinting::TuneAction() {
 bool IScreenPrinting::CanOpen() {
     return IScreenPrinting::ths == nullptr;
 }
+
+void IScreenPrinting::NotifyMarlinStart() {
+    if (ths)
+        ths->notifyMarlinStart();
+}

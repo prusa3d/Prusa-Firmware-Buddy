@@ -22,4 +22,7 @@ class ScreenFirstLayer : public IScreenPrinting {
 
 public:
     ScreenFirstLayer();
+
+private:
+    virtual void notifyMarlinStart() override;
 };

@@ -22,4 +22,8 @@ public:
     IScreenPrinting(string_view_utf8 caption);
     ~IScreenPrinting();
     static bool CanOpen();
+    static void NotifyMarlinStart();
+
+private:
+    virtual void notifyMarlinStart() {};
 };

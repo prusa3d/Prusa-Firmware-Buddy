@@ -44,6 +44,9 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
     case ClientFSM::FirstLayer:
         if (IScreenPrinting::CanOpen()) {
             OpenPrintScreen(dialog);
+        } else {
+            //openned, notify it
+            IScreenPrinting::NotifyMarlinStart();
         }
         break;
     default:
