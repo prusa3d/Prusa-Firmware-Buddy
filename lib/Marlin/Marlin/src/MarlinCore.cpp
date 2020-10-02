@@ -34,9 +34,6 @@
 #include "HAL/shared/esp_wifi.h"
 #include "HAL/shared/cpu_exception/exception_hook.h"
 
-#ifdef ARDUINO
-  #include <pins_arduino.h>
-#endif
 #include <math.h>
 
 #include "core/utility.h"
