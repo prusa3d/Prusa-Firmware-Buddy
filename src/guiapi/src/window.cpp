@@ -112,6 +112,23 @@ void window_t::HideBehindDialog() {
     }
 }
 
+bool window_t::IsShadowed() const {
+    return flag_shadow == true;
+}
+
+void window_t::Shadow() {
+    if (!flag_shadow) {
+        flag_shadow = true;
+        Invalidate();
+    }
+}
+void window_t::Unshadow() {
+    if (flag_shadow) {
+        flag_shadow = false;
+        Invalidate();
+    }
+}
+
 color_t window_t::GetBackColor() const { return color_back; }
 
 void window_t::SetBackColor(color_t clr) {

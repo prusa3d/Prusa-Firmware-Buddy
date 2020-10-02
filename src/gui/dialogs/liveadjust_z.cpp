@@ -92,6 +92,32 @@ WindowLiveAdjustZ_withText::WindowLiveAdjustZ_withText(window_t *parent, point_i
     rect = rect.Union(text.rect);
 }
 
+void WindowLiveAdjustZ_withText::Idle() {
+    number.Shadow();
+}
+
+void WindowLiveAdjustZ_withText::Activate() {
+    number.Unshadow();
+}
+
+bool WindowLiveAdjustZ_withText::IsActive() {
+    return number.IsShadowed();
+}
+
+void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    switch (event) {
+    case GUI_event_t::ENC_UP:
+    case GUI_event_t::ENC_DN:
+        if (IsActive()) {
+            return; //discard event
+        }
+        break;
+    default:
+        break;
+    }
+    SuperWindowEvent(sender, event, param);
+}
+
 /*****************************************************************************/
 //LiveAdjustZ
 

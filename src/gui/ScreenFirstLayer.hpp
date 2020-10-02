@@ -10,14 +10,8 @@
 
 class ScreenFirstLayer : public IScreenPrinting {
     static constexpr const char *caption = N_("First Layer Calibration");
-    static constexpr const char *text_str = N_("Once the printer   \n"
-                                               "starts extruding   \n"
-                                               "plastic, adjust    \n"
-                                               "the nozzle height  \n"
-                                               "by turning the knob\n"
-                                               "until the filament \n"
-                                               "sticks to the print\n"
-                                               "sheet.");
+    static constexpr const char *text_str = N_(
+        "Once the printer starts extruding plastic, adjust the nozzle height by turning the knob until the filament sticks to the print sheet.");
     window_text_t text;
     WindowPrintProgress progress;
     WindowLiveAdjustZ_withText live_z;
@@ -28,4 +22,7 @@ class ScreenFirstLayer : public IScreenPrinting {
 
 public:
     ScreenFirstLayer();
+
+private:
+    virtual void notifyMarlinStart() override;
 };
