@@ -62,5 +62,7 @@ protected:
     uint32_t m_StartPos_usteps;
     uint16_t m_SGCount;
     uint32_t m_SGSum;
+    uint8_t m_SGOrig_mask;
+    void *m_pSGOrig_cb;
     static CSelftestPart_Axis *m_pSGAxis;
 };
