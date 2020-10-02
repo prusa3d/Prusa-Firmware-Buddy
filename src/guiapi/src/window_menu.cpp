@@ -133,14 +133,22 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         if (item->IsSelected()) {
             invalid |= item->Decrement(value);
         } else {
-            Decrement(value);
+            uint8_t index = GetIndex();
+            bool is_hidden = false;
+            if (index > 1)
+                is_hidden = GetItem(index - 1)->IsHidden();
+            Decrement(is_hidden ? value * 2 : value);
         }
         break;
     case GUI_event_t::ENC_UP:
         if (item->IsSelected()) {
             invalid |= item->Increment(value);
         } else {
-            Increment(value);
+            uint8_t index = GetIndex();
+            bool is_hidden = false;
+            if (index < GetCount() - 1)
+                is_hidden = GetItem(index + 1)->IsHidden();
+            Increment(is_hidden ? value * 2 : value);
         }
         break;
     case GUI_event_t::CAPT_1:
