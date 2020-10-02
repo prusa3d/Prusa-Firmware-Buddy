@@ -47,6 +47,12 @@ protected:
     bool next();
     static uint32_t estimate(const selftest_axis_config_t *pconfig);
     static uint32_t estimate_move(float len_mm, float fr_mms);
+    static void sg_sample_cb(uint8_t axis, uint16_t sg);
+
+protected:
+    void sg_sample(uint16_t sg);
+    void sg_sampling_enable();
+    void sg_sampling_disable();
 
 protected:
     TestState m_State;
@@ -54,4 +60,7 @@ protected:
     uint32_t m_Time;
     uint8_t m_Step;
     uint32_t m_StartPos_usteps;
+    uint16_t m_SGCount;
+    uint32_t m_SGSum;
+    static CSelftestPart_Axis *m_pSGAxis;
 };
