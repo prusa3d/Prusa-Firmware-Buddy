@@ -36,12 +36,12 @@ Jogwheel::Jogwheel() {
 
     speed_traps[0] = speed_traps[1] = speed_traps[2] = speed_traps[3] = 0;
     btn_pressed = doubleclicked = being_held = jogwheel_button_down = false;
-    btn_action = ButtonAction::BTN_NO_ACTION;
+    btn_action = ButtonAction::NoAction;
     type1 = true;
     spin_accelerator = false;
 }
 
-const int Jogwheel::GetJogwheelButtonPinState() const {
+int Jogwheel::GetJogwheelButtonPinState() {
     return static_cast<int>(jogWheelENC.read());
 }
 
@@ -60,19 +60,19 @@ void Jogwheel::ReadInput(uint8_t &signals) {
     }
 }
 
-const Jogwheel::ButtonAction Jogwheel::GetButtonAction() {
+Jogwheel::ButtonAction Jogwheel::ConsumeButtonAction() volatile {
     ButtonAction ret = btn_action;
-    btn_action = ButtonAction::BTN_NO_ACTION;
+    btn_action = ButtonAction::NoAction;
     return ret;
 }
 
-void Jogwheel::SetJogwheelType(uint16_t delay) {
+void Jogwheel::SetJogwheelType(uint16_t delay) volatile {
     type1 = delay > 1000;
 }
 
-void Jogwheel::UpdateButtonAction() {
+void Jogwheel::UpdateButtonAction() volatile {
     if (!btn_pressed && jogwheel_button_down) {
-        btn_action = ButtonAction::BTN_PUSHED;
+        btn_action = ButtonAction::Pushed;
         btn_pressed = true;
         hold_counter = 1;
         if (doubleclick_counter > 0) { // double click detection interval goes <click release;second click push>
@@ -85,11 +85,11 @@ void Jogwheel::UpdateButtonAction() {
             being_held = false;
         } else {
             if (doubleclicked) {
-                btn_action = ButtonAction::BTN_DOUBLE_CLICKED;
+                btn_action = ButtonAction::DoubleClicked;
                 doubleclick_counter = 0;
                 doubleclicked = false;
             } else {
-                btn_action = ButtonAction::BTN_CLICKED;
+                btn_action = ButtonAction::Clicked;
                 doubleclick_counter = 1;
             }
         }
@@ -105,7 +105,7 @@ void Jogwheel::UpdateButtonAction() {
     if (hold_counter) {
         hold_counter++;
         if (hold_counter > JG_HOLD_INTERVAL) {
-            btn_action = ButtonAction::BTN_HELD;
+            btn_action = ButtonAction::Held;
             doubleclick_counter = 0;
             hold_counter = 0;
             being_held = true;
@@ -113,14 +113,14 @@ void Jogwheel::UpdateButtonAction() {
     }
 }
 
-int32_t Jogwheel::GetEncoderDiff() {
+int32_t Jogwheel::GetEncoderDiff() volatile {
     int32_t diff = encoder - last_encoder;
     last_encoder = encoder;
     // WARNING: jogwheel_button_down was here
     return diff * encoder_gear;
 }
 
-void Jogwheel::Update1ms() {
+void Jogwheel::Update1ms() volatile {
 
     uint8_t signals = 0;
 
@@ -131,7 +131,7 @@ void Jogwheel::Update1ms() {
     UpdateButtonAction();
 }
 
-int32_t Jogwheel::JogwheelTypeBehaviour(const uint8_t change, const uint8_t signals) const {
+int32_t Jogwheel::JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const volatile {
     int32_t new_encoder = encoder;
     if (type1) {
         if ((change & JG_PHASE_0) && (signals & JG_PHASE_0) && !(signals & JG_PHASE_1))
@@ -150,7 +150,7 @@ int32_t Jogwheel::JogwheelTypeBehaviour(const uint8_t change, const uint8_t sign
     return new_encoder;
 }
 
-void Jogwheel::UpdateVariables(const uint8_t signals) {
+void Jogwheel::UpdateVariables(uint8_t signals) volatile {
 
     spin_speed_counter++;
 
@@ -195,7 +195,7 @@ void Jogwheel::UpdateVariables(const uint8_t signals) {
     }
 }
 
-void Jogwheel::Transmission() {
+void Jogwheel::Transmission() volatile {
     uint32_t time_diff = speed_traps[0] - speed_traps[1];
     time_diff = time_diff > speed_traps[1] - speed_traps[2] ? time_diff : speed_traps[1] - speed_traps[2];
     time_diff = time_diff > speed_traps[2] - speed_traps[3] ? time_diff : speed_traps[2] - speed_traps[3];

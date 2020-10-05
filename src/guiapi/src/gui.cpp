@@ -67,13 +67,13 @@ void gui_loop(void) {
     uint32_t tick;
 
     #ifdef GUI_JOGWHEEL_SUPPORT
-    Jogwheel::ButtonAction btn = jogwheel.GetButtonAction();
-    bool encoder_changed = jogwheel.EncoderChanged();
-    if (btn == Jogwheel::ButtonAction::BTN_PUSHED) {
+    Jogwheel::ButtonAction btn = jogwheel.ConsumeButtonAction();
+    bool encoder_changed = jogwheel.ConsumeEncoderChanged();
+    if (btn == Jogwheel::ButtonAction::Pushed) {
         Sound_Play(eSOUND_TYPE::ButtonEcho);
     }
 
-    if (encoder_changed || btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
+    if (encoder_changed || btn != Jogwheel::ButtonAction::NoAction) {
         if (gui_loop_cb)
             gui_loop_cb();
         window_t *capturedWin = window_t::GetCapturedWindow();
@@ -86,16 +86,16 @@ void gui_loop(void) {
             }
             Screens::Access()->ResetTimeout();
         }
-        if (btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
-            if (btn == Jogwheel::ButtonAction::BTN_PUSHED) {
+        if (btn != Jogwheel::ButtonAction::NoAction) {
+            if (btn == Jogwheel::ButtonAction::Pushed) {
                 capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_DN, 0);
-            } else if (btn == Jogwheel::ButtonAction::BTN_CLICKED) {
+            } else if (btn == Jogwheel::ButtonAction::Clicked) {
                 capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
                 capturedWin->WindowEvent(capturedWin, GUI_event_t::CLICK, 0);
-            } else if (btn == Jogwheel::ButtonAction::BTN_DOUBLE_CLICKED) {
+            } else if (btn == Jogwheel::ButtonAction::DoubleClicked) {
                 capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
                 capturedWin->WindowEvent(capturedWin, GUI_event_t::DOUBLE_CLICK, 0); // first click is a normal click so event should not react to WINDOW_CLICK_EVENT
-            } else if (btn == Jogwheel::ButtonAction::BTN_HELD) {
+            } else if (btn == Jogwheel::ButtonAction::Held) {
                 capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
                 Sound_Play(eSOUND_TYPE::ButtonEcho);
             }
