@@ -19,7 +19,8 @@
 #include "selftest_MINI.h"
 #include "filament_sensor.hpp"
 #include "main_MINI.h"
-#include "gpio.h"
+#include "Pin.hpp"
+#include "hwio_pindef_MINI.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -505,10 +506,18 @@ bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
 MI_MINDA::MI_MINDA()
     : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {}
 
-bool MI_MINDA::StateChanged() {
-    /// TODO recheck/redo after new HWIO PR is merged
-    int new_state = gpio_get(TPA8); /// Z_MIN_Pin
-    bool changed = (value != new_state);
-    value = new_state;
+/// If \param new_state differs from \param old_state
+/// \param new_state will be saved to \param old_state
+/// \returns true if states differ
+template <class T>
+bool set_changed_state(const T current_state, T *old_state) {
+    const bool changed = (current_state != *old_state);
+    if (changed)
+        *old_state = current_state;
     return changed;
+}
+
+bool MI_MINDA::StateChanged() {
+    const int8_t new_state = buddy::hw::zMin.read() == buddy::hw::Pin::State::low ? 0 : 1;
+    return set_changed_state<int8_t>(new_state, &value);
 }
