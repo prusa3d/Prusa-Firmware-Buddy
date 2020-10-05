@@ -39,6 +39,7 @@ bool CSelftestPart_Axis::Loop() {
         if (planner.movesplanned() || queue.length)
             return true;
         endstops.enable(true);
+        endstops.enable_z_probe();
         m_Step = 0;
         m_Time = Selftest.m_Time;
         break;
