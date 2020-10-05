@@ -25,10 +25,16 @@ void diag_delay(int delay) {
     }
 }
 
+/**
+ * @brief Is fast boot requested?
+ *
+ * Even though it uses GPIO, it can be called before MX_GPIO_Init() as it configures sensitive pin itself.
+ */
 void diag_check_fastboot(void) {
     if (otp_lock_sector0) //not locked
     {
         __HAL_RCC_GPIOC_CLK_ENABLE();
+        fastBoot.configure();
         diag_delay(100000);
         int i;
         for (i = 0; i < 10; i++) {
