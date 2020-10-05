@@ -90,17 +90,24 @@ void window_menu_t::Increment(int dif) {
         int item_height = font->h + padding.top + padding.bottom;
         int visible_count = rect.Height() / item_height;
         int old_index = GetIndex();
-        int new_index = old_index + dif;
-        // play sound at first or last index of menu
-        if (new_index < 0) {
-            new_index = 0;
-            Sound_Play(eSOUND_TYPE::BlindAlert);
-        }
-        if (new_index >= GetCount()) {
-            new_index = GetCount() - 1;
-            Sound_Play(eSOUND_TYPE::BlindAlert);
-        }
+        auto next_visible = [this, dif](int index) -> int {
+            uint32_t last_visible = index;
+            if ((index + dif) < 0) {
+                Sound_Play(eSOUND_TYPE::BlindAlert); // play sound at first or last index of menu
+                return 0;
+            }
+            if ((index + dif) >= GetCount()) {
+                Sound_Play(eSOUND_TYPE::BlindAlert); // play sound at first or last index of menu
+                return GetCount() - 1;
+            }
+            for (index = index + dif;
+                 GetItem(index) && GetItem(index)->IsHidden();
+                 index += dif)
+                ;
+            return GetItem(index) ? index : last_visible;
+        };
 
+        int new_index = next_visible(old_index);
         if (new_index < top_index)
             top_index = new_index;
         if (new_index >= (top_index + visible_count))
