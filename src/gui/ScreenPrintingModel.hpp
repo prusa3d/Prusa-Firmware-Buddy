@@ -29,7 +29,7 @@ protected:
 
     void initBtnText(btn &ref_button); // could access just text, but accessing entire button is more general
     void setIconAndLabel(btn &ref_button, const btn_resource &res);
-    void initAndsetIconAndLabel(btn &ref_button, const btn_resource &res);
+    void initAndSetIconAndLabel(btn &ref_button, const btn_resource &res);
 
 public:
     ScreenPrintingModel(string_view_utf8 caption);
