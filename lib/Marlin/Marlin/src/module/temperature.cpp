@@ -787,10 +787,34 @@ void Temperature::_temp_error(const heater_ind_t heater, PGM_P const serial_msg,
 }
 
 void Temperature::max_temp_error(const heater_ind_t heater) {
+  #if HAS_HEATED_BED
+    if (H_BED == heater_ind_t) {
+      _temp_error(heater, PSTR(MSG_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP_BED));
+      return;
+    }
+  #endif
+  #if HAS_HEATED_CHAMBER
+    if (H_CHAMBER == heater_ind_t) {
+      _temp_error(heater, PSTR(MSG_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP_BED));
+      return;
+    }
+  #endif
   _temp_error(heater, PSTR(MSG_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP));
 }
 
 void Temperature::min_temp_error(const heater_ind_t heater) {
+  #if HAS_HEATED_BED
+    if (H_BED == heater_ind_t) {
+      _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP_BED));
+      return;
+    }
+  #endif
+  #if HAS_HEATED_CHAMBER
+    if (H_CHAMBER == heater_ind_t) {
+      _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP_BED));
+      return;
+    }
+  #endif
   _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP));
 }
 
