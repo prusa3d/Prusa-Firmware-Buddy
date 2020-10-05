@@ -14,7 +14,10 @@ ScreenFirstLayer::ScreenFirstLayer()
     , progress(this, { WIZARD_MARGIN_LEFT, 190 + 30 }, HasNumber_t::no)
     , live_z(this, { int16_t(WIZARD_MARGIN_LEFT), 190 }, rect.Width() - WIZARD_MARGIN_LEFT * 2) {
     live_z.SetCapture();
+    live_z.Idle();
 }
+
+void ScreenFirstLayer::notifyMarlinStart() { live_z.Activate(); };
 
 void ScreenFirstLayer::stopAction() {}
 void ScreenFirstLayer::pauseAction() {}

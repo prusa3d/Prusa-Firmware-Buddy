@@ -41,15 +41,6 @@ class string_view_utf8 {
     };
     Attrs attrs;
 
-    /// Extracts one byte from source media and advances internal read ptr, implementation defined in derived classes
-    /// The caller of this function makes sure it does not get called repeatedly after returning the end of input data.
-    /// @return 0 in case of end of input data or an error
-    uint8_t (*getbyte)(Attrs &);
-
-    /// Rewinds the input data stream to its beginning
-    /// Simple for memory-based sources, more complex for files
-    void (*rewind_impl)(Attrs &);
-
     /// cached length of string. Computed at various spots where not too costly.
     /// Deliberately typed as signed int, because -1 means "not computed yet"
     /// @@TODO implement into getUtf8Char somehow
@@ -65,10 +56,10 @@ class string_view_utf8 {
 
     mutable uint8_t s; ///< must remember the last read character
 
-    static uint8_t CPUFLASH_getbyte(Attrs &attrs) {
+    static inline uint8_t CPUFLASH_getbyte(Attrs &attrs) {
         return *attrs.cpuflash.readp++; // beware - expecting, that the input string is null-terminated! No other checks are done
     }
-    static void CPUFLASH_rewind(Attrs &attrs) {
+    static inline void CPUFLASH_rewind(Attrs &attrs) {
         attrs.cpuflash.readp = attrs.cpuflash.utf8raw;
     }
 
@@ -83,10 +74,25 @@ class string_view_utf8 {
         }
     }
 
-    static uint8_t NULLSTR_getbyte(Attrs & /*attrs*/) {
+    static inline uint8_t NULLSTR_getbyte(Attrs & /*attrs*/) {
         return 0;
     }
-    static void NULLSTR_rewind(Attrs & /*attrs*/) {
+    static inline void NULLSTR_rewind(Attrs & /*attrs*/) {
+    }
+
+    /// Extracts one byte from source media and advances internal read ptr depending on the type of string_view (type of source data)
+    /// The caller of this function makes sure it does not get called repeatedly after returning the end of input data.
+    /// @return 0 in case of end of input data or an error
+    uint8_t getbyte() {
+        switch (type) {
+        case EType::RAM:
+        case EType::CPUFLASH:
+            return CPUFLASH_getbyte(attrs);
+        case EType::FILE:
+            return FILE_getbyte(attrs);
+        default: // behave as nullstr
+            return NULLSTR_getbyte(attrs);
+        }
     }
 
 public:
@@ -100,7 +106,7 @@ public:
     /// and advances internal pointers (in derived classes) to the next one
     unichar getUtf8Char() {
         if (s == 0xff) { // in case we don't have any character from the last run, get a new one from the input stream
-            s = getbyte(attrs);
+            s = getbyte();
         }
         unichar ord = s;
         if (!UTF8_IS_NONASCII(ord)) {
@@ -111,10 +117,10 @@ public:
         for (unichar mask = 0x40; ord & mask; mask >>= 1) {
             ord &= ~mask;
         }
-        s = getbyte(attrs);
+        s = getbyte();
         while (UTF8_IS_CONT(s)) {
             ord = (ord << 6) | (s & 0x3F);
-            s = getbyte(attrs);
+            s = getbyte();
         }
         return ord;
     }
@@ -126,19 +132,28 @@ public:
     /// Therefore it is not a const method.
     uint16_t computeNumUtf8CharsAndRewind() {
         if (utf8Length < 0) {
-            rewind_impl(attrs);
+            rewind();
             do {
                 ++utf8Length;
             } while (getUtf8Char());
         }
-        rewind_impl(attrs); // always return stream back to the beginning @@TODO subject to change
+        rewind(); // always return stream back to the beginning @@TODO subject to change
         // now we have either 0 or some positive number in utf8Length, can be safely cast to unsigned int
         return uint32_t(utf8Length);
     }
 
-    /// rewind the stream to its beginning
+    /// Rewinds the input data stream to its beginning
+    /// Simple for memory-based sources, more complex for files
     void rewind() {
-        rewind_impl(attrs);
+        switch (type) {
+        case EType::RAM:
+        case EType::CPUFLASH:
+            return CPUFLASH_rewind(attrs);
+        case EType::FILE:
+            return FILE_rewind(attrs);
+        default: // behave as nullstr
+            return NULLSTR_rewind(attrs);
+        }
     }
 
     /// returns true if the string if of type NULLSTR - typically used as a replacement for nullptr or "" strings
@@ -156,7 +171,7 @@ public:
     size_t copyToRAM(char *dst, size_t max_size) {
         size_t bytesCopied = 0;
         for (size_t i = 0; i < max_size; ++i) {
-            *dst = getbyte(attrs);
+            *dst = getbyte();
             if (*dst == 0)
                 return bytesCopied;
             ++dst;
@@ -170,8 +185,6 @@ public:
     static string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
         string_view_utf8 s;
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
-        s.getbyte = &string_view_utf8::CPUFLASH_getbyte;
-        s.rewind_impl = &string_view_utf8::CPUFLASH_rewind;
         s.type = EType::CPUFLASH;
         return s;
     }
@@ -181,8 +194,6 @@ public:
     static string_view_utf8 MakeRAM(const uint8_t *utf8raw) {
         string_view_utf8 s;
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
-        s.getbyte = &string_view_utf8::CPUFLASH_getbyte;
-        s.rewind_impl = &string_view_utf8::CPUFLASH_rewind;
         s.type = EType::RAM;
         return s;
     }
@@ -195,8 +206,6 @@ public:
         if (f) {
             s.attrs.file.startOfs = ftell(f);
         }
-        s.getbyte = &string_view_utf8::FILE_getbyte;
-        s.rewind_impl = &string_view_utf8::FILE_rewind;
         s.type = EType::FILE;
         return s;
     }
@@ -204,8 +213,6 @@ public:
     /// Construct an empty string_view_utf8 - behaves like a "" but is a special type NULL
     static string_view_utf8 MakeNULLSTR() {
         string_view_utf8 s;
-        s.getbyte = &string_view_utf8::NULLSTR_getbyte;
-        s.rewind_impl = &string_view_utf8::NULLSTR_rewind;
         s.type = EType::NULLSTR;
         return s;
     }

@@ -43,20 +43,6 @@ void window_icon_t::unconditionalDraw() {
     render_icon_align(rect, id_res, color_back, RENDER_FLG(GetAlignment(), ropfn));
 }
 
-bool window_icon_t::IsShadowed() const { return flag_custom0 == true; }
-void window_icon_t::Shadow() {
-    if (!flag_custom0) {
-        flag_custom0 = true;
-        Invalidate();
-    }
-}
-void window_icon_t::Unshadow() {
-    if (flag_custom0) {
-        flag_custom0 = false;
-        Invalidate();
-    }
-}
-
 size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
     size_ui16_t ret = size_ui16(0, 0);
     if (!id_res)

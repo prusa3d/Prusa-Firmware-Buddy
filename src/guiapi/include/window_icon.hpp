@@ -11,9 +11,6 @@ struct window_icon_t : public AddSuperWindow<window_aligned_t> {
 
     window_icon_t(window_t *parent, Rect16 rect, uint16_t id_res, is_closed_on_click_t close = is_closed_on_click_t::no);
     window_icon_t(window_t *parent, uint16_t id_res, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
-    bool IsShadowed() const;
-    void Shadow();
-    void Unshadow();
 
     static size_ui16_t CalculateMinimalSize(uint16_t id_res); //works for center alignment
 protected:
