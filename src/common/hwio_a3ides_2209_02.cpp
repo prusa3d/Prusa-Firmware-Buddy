@@ -4,7 +4,6 @@
 #include <inttypes.h>
 
 #include "hwio.h"
-#include "hwio_a3ides.h"
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
