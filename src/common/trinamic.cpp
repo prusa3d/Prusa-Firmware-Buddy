@@ -2,7 +2,6 @@
 #include "trinamic.h"
 #include "dbg.h"
 #include "config.h"
-#include "hwio_a3ides.h"
 #include "TMCStepper.h"
 #include "gpio.h"
 #include "hwio_pindef.h"
