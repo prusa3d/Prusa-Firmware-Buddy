@@ -1345,7 +1345,7 @@ void Temperature::manage_heater() {
 
     #if ENABLED(THERMAL_PROTECTION_BED)
       if (degBed() > BED_MAXTEMP)
-        _temp_error(H_BED, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY));
+        _temp_error(H_BED, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY_BED));
     #endif
 
     #if WATCH_BED
@@ -1423,7 +1423,7 @@ void Temperature::manage_heater() {
 
     #if ENABLED(THERMAL_PROTECTION_CHAMBER)
       if (degChamber() > CHAMBER_MAXTEMP)
-        _temp_error(H_CHAMBER, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY));
+        _temp_error(H_CHAMBER, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY_CHAMBER));
     #endif
 
     #if WATCH_CHAMBER
