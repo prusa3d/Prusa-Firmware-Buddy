@@ -67,40 +67,42 @@ void gui_loop(void) {
     uint32_t tick;
 
     #ifdef GUI_JOGWHEEL_SUPPORT
-    Jogwheel::ButtonAction btn = jogwheel.ConsumeButtonAction();
-    bool encoder_changed = jogwheel.ConsumeEncoderChanged();
-    if (btn == Jogwheel::ButtonAction::Pushed) {
+    Jogwheel::BtnState_t btn_ev;
+    volatile bool is_btn = jogwheel.ConsumeButtonEvent(btn_ev);
+    volatile int32_t encoder_diff = jogwheel.GetEncoderDiff();
+
+    // I do not know why this is separate. To play sound asap?
+    if (is_btn && (btn_ev == Jogwheel::BtnState_t::Released)) {
         Sound_Play(eSOUND_TYPE::ButtonEcho);
     }
 
-    if (encoder_changed || btn != Jogwheel::ButtonAction::NoAction) {
+    if (encoder_diff != 0 || is_btn) {
         if (gui_loop_cb)
             gui_loop_cb();
         window_t *capturedWin = window_t::GetCapturedWindow();
-        int diff = jogwheel.GetEncoderDiff();
-        if (diff != 0) {
-            if (diff > 0) {
-                capturedWin->WindowEvent(capturedWin, GUI_event_t::ENC_UP, (void *)diff);
+        if (encoder_diff != 0) {
+            if (encoder_diff > 0) {
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::ENC_UP, (void *)encoder_diff);
             } else {
-                capturedWin->WindowEvent(capturedWin, GUI_event_t::ENC_DN, (void *)-diff);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::ENC_DN, (void *)-encoder_diff);
             }
-            Screens::Access()->ResetTimeout();
         }
-        if (btn != Jogwheel::ButtonAction::NoAction) {
-            if (btn == Jogwheel::ButtonAction::Pushed) {
-                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_DN, 0);
-            } else if (btn == Jogwheel::ButtonAction::Clicked) {
-                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
-                capturedWin->WindowEvent(capturedWin, GUI_event_t::CLICK, 0);
-            } else if (btn == Jogwheel::ButtonAction::DoubleClicked) {
-                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
-                capturedWin->WindowEvent(capturedWin, GUI_event_t::DOUBLE_CLICK, 0); // first click is a normal click so event should not react to WINDOW_CLICK_EVENT
-            } else if (btn == Jogwheel::ButtonAction::Held) {
-                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
-                Sound_Play(eSOUND_TYPE::ButtonEcho);
-            }
-            Screens::Access()->ResetTimeout();
+
+        switch (btn_ev) {
+        case Jogwheel::BtnState_t::Pressed:
+            capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_DN, 0);
+            break;
+        case Jogwheel::BtnState_t::Released:
+            capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
+            capturedWin->WindowEvent(capturedWin, GUI_event_t::CLICK, 0);
+            break;
+        case Jogwheel::BtnState_t::Held:
+            capturedWin->WindowEvent(capturedWin, GUI_event_t::HOLD, 0);
+            Sound_Play(eSOUND_TYPE::ButtonEcho);
+            break;
         }
+
+        Screens::Access()->ResetTimeout();
     }
     #endif //GUI_JOGWHEEL_SUPPORT
 

@@ -3,6 +3,7 @@
 #include "Jogwheel.hpp"
 #include "guiconfig.h"
 #include "hwio_pindef.h"
+#include "cmsis_os.h" //__disable_irq __enabe_irq
 
 #ifdef GUI_JOGWHEEL_SUPPORT
 
@@ -12,8 +13,7 @@ using buddy::hw::jogWheelENC;
 using buddy::hw::Pin;
 
 // time constants
-static const constexpr uint16_t JG_DOUBLECLICK_INTERVAL = 500; // [ms] jogwheel max double click delay - if second click is after 500ms it doesn't trigger doubleclick
-static const constexpr uint16_t JG_HOLD_INTERVAL = 1000;       // [ms] jogwheel min hold delay - if user holds for shorter time than this, it triggers normal click instead
+static const constexpr uint16_t JG_HOLD_INTERVAL = 1000; // [ms] jogwheel min hold delay - if user holds for shorter time than this, it triggers normal click instead
 
 // encoder limits
 static const constexpr int32_t JG_ENCODER_MAX = INT_MAX;
@@ -30,13 +30,12 @@ enum : uint8_t {
     JG_BUTTON_OR_ENCODER_CHANGED = 0x0C,
 };
 
-Jogwheel::Jogwheel() {
-    jogwheel_signals_old = jogwheel_signals_new = jogwheel_signals = last_encoder = encoder = jogwheel_changed = doubleclick_counter = hold_counter = spin_speed_counter = 0;
+Jogwheel::Jogwheel()
+    : btn_state(BtnState_t::Released) {
+    jogwheel_signals_old = jogwheel_noise_filter = jogwheel_signals = last_encoder = encoder = hold_counter = spin_speed_counter = 0;
     encoder_gear = 1;
 
     speed_traps[0] = speed_traps[1] = speed_traps[2] = speed_traps[3] = 0;
-    btn_pressed = doubleclicked = being_held = jogwheel_button_down = false;
-    btn_action = ButtonAction::NoAction;
     type1 = true;
     spin_accelerator = false;
 }
@@ -60,78 +59,79 @@ void Jogwheel::ReadInput(uint8_t &signals) {
     }
 }
 
-Jogwheel::ButtonAction Jogwheel::ConsumeButtonAction() volatile {
-    ButtonAction ret = btn_action;
-    btn_action = ButtonAction::NoAction;
+volatile bool Jogwheel::ConsumeButtonEvent(Jogwheel::BtnState_t &ev) {
+    __disable_irq();
+    volatile bool ret = btn_events.ConsumeFirst(ev);
+    __enable_irq();
     return ret;
 }
 
-void Jogwheel::SetJogwheelType(uint16_t delay) volatile {
+void Jogwheel::SetJogwheelType(uint16_t delay) {
     type1 = delay > 1000;
 }
 
-void Jogwheel::UpdateButtonAction() volatile {
-    if (!btn_pressed && jogwheel_button_down) {
-        btn_action = ButtonAction::Pushed;
-        btn_pressed = true;
-        hold_counter = 1;
-        if (doubleclick_counter > 0) { // double click detection interval goes <click release;second click push>
-            doubleclicked = true;
-            doubleclick_counter = 0;
+void Jogwheel::UpdateButtonAction() {
+    switch (btn_state) {
+    case BtnState_t::Released:
+        if (IsBtnPressed()) {
+            ChangeStateTo(BtnState_t::Pressed);
+            hold_counter = 0;
         }
-    } else if (btn_pressed && !jogwheel_button_down) {
-        btn_pressed = false;
-        if (being_held) {
-            being_held = false;
+        break;
+    case BtnState_t::Pressed:
+        if (!IsBtnPressed()) {
+            ChangeStateTo(BtnState_t::Released);
         } else {
-            if (doubleclicked) {
-                btn_action = ButtonAction::DoubleClicked;
-                doubleclick_counter = 0;
-                doubleclicked = false;
-            } else {
-                btn_action = ButtonAction::Clicked;
-                doubleclick_counter = 1;
+            if ((++hold_counter) > JG_HOLD_INTERVAL) {
+                ChangeStateTo(BtnState_t::Held);
             }
         }
-        hold_counter = 0;
-    }
-
-    if (doubleclick_counter) {
-        doubleclick_counter++;
-        if (doubleclick_counter > JG_DOUBLECLICK_INTERVAL) {
-            doubleclick_counter = 0;
+        break;
+    case BtnState_t::Held:
+        if (!IsBtnPressed()) {
+            ChangeStateTo(BtnState_t::Released);
         }
-    }
-    if (hold_counter) {
-        hold_counter++;
-        if (hold_counter > JG_HOLD_INTERVAL) {
-            btn_action = ButtonAction::Held;
-            doubleclick_counter = 0;
-            hold_counter = 0;
-            being_held = true;
-        }
+        break;
     }
 }
 
-int32_t Jogwheel::GetEncoderDiff() volatile {
-    int32_t diff = encoder - last_encoder;
+bool Jogwheel::IsBtnPressed() {
+    return (jogwheel_signals & JG_BUTTON_PRESSED) != 0;
+}
+
+void Jogwheel::ChangeStateTo(BtnState_t new_state) {
+    btn_state = new_state;
+    btn_events.push_back_DontRewrite(new_state);
+}
+
+volatile int32_t Jogwheel::GetEncoderDiff() {
+    __disable_irq();
+    volatile int32_t diff = encoder - last_encoder;
     last_encoder = encoder;
     // WARNING: jogwheel_button_down was here
-    return diff * encoder_gear;
+    diff *= encoder_gear;
+    __enable_irq();
+    return diff;
 }
 
-void Jogwheel::Update1ms() volatile {
+void Jogwheel::Update1ms() {
+    spin_speed_counter++;
 
     uint8_t signals = 0;
 
     ReadInput(signals);
+
+    if (jogwheel_noise_filter != signals) {
+        jogwheel_noise_filter = signals; // noise detection
+        return;
+    }
 
     UpdateVariables(signals);
 
     UpdateButtonAction();
 }
 
-int32_t Jogwheel::JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const volatile {
+int32_t Jogwheel::JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const {
     int32_t new_encoder = encoder;
     if (type1) {
         if ((change & JG_PHASE_0) && (signals & JG_PHASE_0) && !(signals & JG_PHASE_1))
@@ -150,15 +150,7 @@ int32_t Jogwheel::JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const v
     return new_encoder;
 }
 
-void Jogwheel::UpdateVariables(uint8_t signals) volatile {
-
-    spin_speed_counter++;
-
-    if (jogwheel_signals_new != signals) {
-        jogwheel_signals_new = signals; // noise detection
-        return;
-    }
-
+void Jogwheel::UpdateVariables(uint8_t signals) {
     uint8_t change = signals ^ jogwheel_signals;
 
     if (change & JG_PHASES_CHANGED) //encoder phase signals changed
@@ -180,22 +172,15 @@ void Jogwheel::UpdateVariables(uint8_t signals) volatile {
         }
     }
 
-    jogwheel_button_down = signals & JG_BUTTON_PRESSED;
-
-    if (change & JG_PHASES_OR_BUTTON_CHANGED) //encoder phase signals or button changed
+    if (change & (JG_PHASES_OR_BUTTON_CHANGED | JG_ENCODER_CHANGED)) //encoder phase signals, encoder or button changed
     {
         jogwheel_signals_old = jogwheel_signals; //save old signal state
         jogwheel_signals = signals;              //update signal state
-    }
-    if (change & JG_BUTTON_OR_ENCODER_CHANGED) //encoder changed or button changed
-    {
-        jogwheel_signals_old = jogwheel_signals; //save old signal state
-        jogwheel_signals = signals;              //update signal state
-        jogwheel_changed |= (change >> 2);       //synchronization is not necessary because we are inside interrupt
     }
 }
 
-void Jogwheel::Transmission() volatile {
+//if encoder is not moved 49 days, this will fail
+void Jogwheel::Transmission() {
     uint32_t time_diff = speed_traps[0] - speed_traps[1];
     time_diff = time_diff > speed_traps[1] - speed_traps[2] ? time_diff : speed_traps[1] - speed_traps[2];
     time_diff = time_diff > speed_traps[2] - speed_traps[3] ? time_diff : speed_traps[2] - speed_traps[3];
