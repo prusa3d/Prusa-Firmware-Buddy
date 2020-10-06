@@ -5,12 +5,12 @@
 #include <cstdint>
 #include <vector>
 
-#define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
+//#define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch2/catch.hpp"
 
 using Catch::Matchers::Equals;
 
-#include "str_utils.hpp"
+#include "common/str_utils.hpp"
 #include "lang/string_view_utf8.hpp"
 
 static const std::uint8_t n255 = 255;
@@ -435,11 +435,11 @@ TEST_CASE("multi-line", "[text_wrap]") {
             std::make_tuple<std::string, size_t, std::string>(
                 "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?", 5, "Welcome to the \nOriginal Prusa MINI \nsetup wizard. Would \nyou like to \ncontinue?"),
             std::make_tuple<std::string, size_t, std::string>(
-                "Check the print head heater & thermistor\nwiring for possible damage.", 4, "Check the print head\nheater & thermistor \nwiring for possible \ndamage."),
+                "Check the print head heater & thermistor\nwiring for possible damage.", 4, "Check the print head\nheater & thermistor\nwiring for possible \ndamage."),
             std::make_tuple<std::string, size_t, std::string>(
                 "Check the print head heater & thermistor wiring for\xA0possible damage.", 4, "Check the print head\nheater & thermistor \nwiring for possible \ndamage."),
             std::make_tuple<std::string, size_t, std::string>(
-                "Now, let's calibrat \nthe distance between\nthe tip of the \nnozzle and the print\nsheet.", 5, "Now, let's calibrat \nthe distance between\nthe tip of the  \nnozzle and the print\nsheet."));
+                "Now, let's calibrate\nthe distance between\nthe tip of the \nnozzle and the print\nsheet.", 5, "Now, let's calibrate\nthe distance between\nthe tip of the \nnozzle and the print\nsheet."));
 
         memory_source mem(origin);
         monospace font;
@@ -464,12 +464,12 @@ TEST_CASE("multi-line", "[text_wrap]") {
             "The status bar is at "
             "the bottom of the "
             "screen. It contains "
-            "information about: - "
-            "Nozzle temp. - "
-            "Heatbed temp. - "
-            "Printing speed - "
-            "Z-axis height - "
-            "Selected filament");
+            "information about:\n"
+            "- Nozzle temp.\n"
+            "- Heatbed temp.\n"
+            "- Printing speed\n"
+            "- Z-axis height\n"
+            "- Selected filament");
         monospace font;
         text_wrapper<stack_buffer, const monospace *> w(240, &font);
         char str[n255], c;
@@ -481,12 +481,12 @@ TEST_CASE("multi-line", "[text_wrap]") {
         CHECK_THAT(str, Equals("The status bar is at\n"
                                "the bottom of the \n"
                                "screen. It contains \n"
-                               "information about: -\n"
-                               "Nozzle temp. - \n"
-                               "Heatbed temp. - \n"
-                               "Printing speed - \n"
-                               "Z-axis height - \n"
-                               "Selected filament"));
+                               "information about:\n"
+                               "- Nozzle temp.\n"
+                               "- Heatbed temp.\n"
+                               "- Printing speed\n"
+                               "- Z-axis height\n"
+                               "- Selected filament"));
     }
 
     SECTION("BFW-1149.4") {

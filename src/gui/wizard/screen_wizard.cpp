@@ -301,15 +301,15 @@ StateFncData StateFnc_INIT(StateFncData last_run) {
 
 //todo both is_multiline::no and is_multiline::yes does not work with \n
 StateFncData StateFnc_INFO(StateFncData last_run) {
-    static const char en_text[] = N_("The status bar is at\n"
-                                     "the bottom of the   \n"
-                                     "screen. It contains \n"
-                                     "information about:  \n"
-                                     "- Nozzle temp.      \n"
-                                     "- Heatbed temp.     \n"
-                                     "- Printing speed    \n"
-                                     "- Z-axis height     \n"
-                                     " - Selected filament");
+    static const char en_text[] = N_("The status bar is at "
+                                     "the bottom of the "
+                                     "screen. It contains "
+                                     "information about:\n"
+                                     "- Nozzle temp.\n"
+                                     "- Heatbed temp.\n"
+                                     "- Printing speed\n"
+                                     "- Z-axis height\n"
+                                     "- Selected filament");
     string_view_utf8 translatedText = _(en_text);
     MsgBox(translatedText, Responses_Next);
     return last_run.PassToNext();
