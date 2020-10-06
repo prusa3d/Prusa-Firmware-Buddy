@@ -58,7 +58,7 @@ volatile Jogwheel jogwheel;
 #endif // GUI_JOGWHEEL_SUPPORT
 
 MsgBuff_t &MsgCircleBuffer() {
-    static CircleBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;
+    static CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;
     return ret;
 }
 
