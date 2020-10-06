@@ -77,7 +77,7 @@ bool CSelftestPart_Axis::Abort() {
 }
 
 void CSelftestPart_Axis::phaseMove(int8_t dir) {
-    Selftest.log_printf("%s fwd @%d mm/s\n", m_pConfig->partname, (int)m_pConfig->fr_table[m_Step]);
+    Selftest.log_printf("%s %s @%d mm/s\n", ((dir * m_pConfig->dir) > 0) ? "fwd" : "rew", m_pConfig->partname, (int)m_pConfig->fr_table[m_Step]);
     planner.synchronize();
     sg_sampling_enable();
     m_StartPos_usteps = stepper.position((AxisEnum)m_pConfig->axis);
@@ -91,7 +91,7 @@ bool CSelftestPart_Axis::phaseWait(int8_t dir) {
     sg_sampling_disable();
     int32_t endPos_usteps = stepper.position((AxisEnum)m_pConfig->axis);
     int32_t length_usteps = dir * (endPos_usteps - m_StartPos_usteps);
-    Selftest.log_printf(" length = %f\n", (double)length_usteps / 100);
+    Selftest.log_printf(" length = %f mm\n", (double)(length_usteps * planner.steps_to_mm[(AxisEnum)m_pConfig->axis]));
     return false;
 }
 
