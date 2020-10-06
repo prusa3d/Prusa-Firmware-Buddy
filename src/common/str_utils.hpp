@@ -147,74 +147,70 @@ struct text_wrapper {
             if ((w + current_width_) > width_) {
                 current_width_ = w;
                 return static_cast<value_type>(CHAR_NL);
-            } else if ((w + current_width_) == width_) {
-                current_width_ = 0;
-            } else {
-                current_width_ += w;
-            }
+            } else
+                current_width_ += (w + current_width_) == width_
+                    ? -current_width_;
+                    : w
         }
+    }
 
-        if (current_width_ == 0) {
-            if (index_ < static_cast<int32_t>(word_length_)) {
-                value_type c = buffer_[index_];
-                buffer_[index_++] = 0;
-                return c;
-            } else {
-                value_type c = buffer_[index_];
-                buffer_[index_] = 0;
-                index_ = -1;
-                return c == static_cast<value_type>(EOS)
-                    ? c
-                    : static_cast<value_type>(CHAR_NL);
-            }
+    value_type c = buffer_[index_];
+    buffer_[index_] = 0;
+    if (current_width_ == 0) {
+        if (index_ < static_cast<int32_t>(word_length_)) {
+            ++index_;
+            return c;
         } else {
-            if (index_ < static_cast<int32_t>(word_length_)) {
-                value_type c = buffer_[index_];
-                buffer_[index_++] = 0;
-                return c;
-            } else {
-                value_type c = buffer_[index_];
-                buffer_[index_] = 0;
-                index_ = -1;
-                current_width_ += c == static_cast<value_type>(CHAR_SPACE)
-                    ? width::value(font_)
-                    : 0;
-                current_width_ += c == static_cast<value_type>(CHAR_NL)
-                    ? -current_width_
-                    : 0;
-                return c;
-            }
+            index_ = -1;
+            return c == static_cast<value_type>(EOS)
+                ? static_cast<value_type>(EOS)
+                : static_cast<value_type>(CHAR_NL);
+        }
+    } else {
+        if (index_ < static_cast<int32_t>(word_length_)) {
+            ++index_;
+            return c;
+        } else {
+            index_ = -1;
+            current_width_ += c == static_cast<value_type>(CHAR_SPACE)
+                ? width::value(font_)
+                : 0;
+            current_width_ += c == static_cast<value_type>(CHAR_NL)
+                ? -current_width_
+                : 0;
+            return c;
         }
     }
+}
 
-private:
-    template <typename source>
-    uint32_t buffering(source &s) {
-        uint8_t i = 0;
-        uint32_t word_width = 0;
-        value_type c = 0;
-        while (i < buffer_.size()) {
-            c = s.getUtf8Char();
-            buffer_[i] = c;
-            word_width += width::value(font_);
-            if (c == static_cast<value_type>(CHAR_NBSP)) {
-                buffer_[i] = static_cast<value_type>(CHAR_SPACE);
-            } else if (c == static_cast<value_type>(CHAR_NL)
-                || c == static_cast<value_type>(CHAR_SPACE)
-                || c == static_cast<value_type>(EOS)) {
-                word_width -= width::value(font_);
-                break;
-            }
-            ++i;
+private : template <typename source>
+          uint32_t
+          buffering(source &s) {
+    uint8_t i = 0;
+    uint32_t word_width = 0;
+    value_type c = 0;
+    while (i < buffer_.size()) {
+        c = s.getUtf8Char();
+        buffer_[i++] = c;
+        word_width += width::value(font_);
+        if (c == static_cast<value_type>(CHAR_NBSP)) {
+            buffer_[i - 1] = static_cast<value_type>(CHAR_SPACE);
+        } else if (c == static_cast<value_type>(CHAR_NL)
+            || c == static_cast<value_type>(CHAR_SPACE)
+            || c == static_cast<value_type>(EOS)) {
+            word_width -= width::value(font_);
+            break;
         }
-        word_length_ = i;
-        return word_width;
     }
+    word_length_ = i;
+    return word_width;
+}
 
-    memory_buffer buffer_;
-    uint32_t width_;
-    int32_t index_;
-    uint32_t current_width_;
-    uint8_t word_length_;
-    font_type font_;
-};
+memory_buffer buffer_;
+uint32_t width_;
+int32_t index_;
+uint32_t current_width_;
+uint8_t word_length_;
+font_type font_;
+}
+;
