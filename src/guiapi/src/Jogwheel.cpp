@@ -16,6 +16,7 @@ using buddy::hw::Pin;
 static const constexpr uint16_t JG_HOLD_INTERVAL = 1000; // [ms] jogwheel min hold delay - if user holds for shorter time than this, it triggers normal click instead
 
 // encoder limits
+// used later to compare with int, warning does not do anything - no 32bit integer is bigger than INT_MAX or lower than INT_MIN
 static const constexpr int32_t JG_ENCODER_MAX = INT_MAX;
 static const constexpr int32_t JG_ENCODER_MIN = INT_MIN;
 
