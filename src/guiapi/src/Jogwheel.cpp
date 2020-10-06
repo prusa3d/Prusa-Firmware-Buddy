@@ -31,13 +31,18 @@ enum : uint8_t {
 };
 
 Jogwheel::Jogwheel()
-    : btn_state(BtnState_t::Released) {
-    jogwheel_signals_old = jogwheel_noise_filter = jogwheel_signals = last_encoder = encoder = hold_counter = spin_speed_counter = 0;
-    encoder_gear = 1;
-
-    speed_traps[0] = speed_traps[1] = speed_traps[2] = speed_traps[3] = 0;
-    type1 = true;
-    spin_accelerator = false;
+    : speed_traps { 0, 0, 0, 0 }
+    , spin_speed_counter(0)
+    , encoder(0)
+    , last_encoder(0)
+    , hold_counter(0)
+    , btn_state(BtnState_t::Released)
+    , jogwheel_signals(0)
+    , jogwheel_signals_old(0)
+    , jogwheel_noise_filter(0)
+    , encoder_gear(1)
+    , type1(true)
+    , spin_accelerator(false) {
 }
 
 int Jogwheel::GetJogwheelButtonPinState() {

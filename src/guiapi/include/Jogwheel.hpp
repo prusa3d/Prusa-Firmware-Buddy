@@ -31,6 +31,7 @@ public:
     /** Returns button input state, this function is for BSOD and situations where interupts are disabled. */
     static int GetJogwheelButtonPinState();
 
+    // actual state of button, event is stored into buffer on button change
     enum class BtnState_t : uint8_t {
         Released,
         Pressed,
@@ -89,9 +90,9 @@ private:
     int32_t JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const;
 
     /**
-     * Analyzes member variables and updates btn_action if any button action was triggered.
+     * Analyzes member variables and updates btn_event if any button event was triggered.
      *
-     * It stores button action until it gets returned in gui_loop, then it is flipped back to NoAction.
+     * It stores button event into buffer which shall be read in gui_loop.
      */
     void UpdateButtonAction();
 
@@ -102,27 +103,27 @@ private:
      */
     void Transmission();
 
+    /** Returns button state (HW pin) from last reading. */
     bool IsBtnPressed();
 
+    /** Changes button state and stores event into buffer */
     void ChangeStateTo(BtnState_t new_state);
 
-    volatile int32_t encoder;      //!< jogwheel encoder
-    volatile int32_t last_encoder; //!< helping variable - GUI encoder variable for diff counting (sets itself equal to encoder in gui_loop)
-    uint16_t hold_counter;         //!< keep track of ms from button down
-
-    uint8_t jogwheel_signals;      //!< input signals
-    uint8_t jogwheel_signals_old;  //!< stores pre-previous input signals
-    uint8_t jogwheel_noise_filter; //!< stores previous signals
-
-    BtnState_t btn_state;
-
-    CircleBuffer<BtnState_t, 32> btn_events;
-
-    bool type1;                    //!< jogwheel is type1 = true or type2 = false
-    bool spin_accelerator;         //!< turns up spin accelerator feature
-    uint32_t spin_speed_counter;   //!< counting variable for encoder_gear system
-    uint32_t speed_traps[4];       //!< stores previous encoder's change timestamp
-    volatile uint8_t encoder_gear; //!< multiple gears for jogwheel spinning
+    // variables are set in interrupt, volatile variables are read in GUI
+    // ordered by size, from biggest to smallest (most size-effective)
+    CircleBuffer<BtnState_t, 32> btn_events; //!< event buffer
+    uint32_t speed_traps[4];                 //!< stores previous encoder's change timestamp
+    uint32_t spin_speed_counter;             //!< counting variable for encoder_gear system
+    volatile int32_t encoder;                //!< jogwheel encoder
+    volatile int32_t last_encoder;           //!< helping variable - GUI encoder variable for diff counting (sets itself equal to encoder in gui_loop)
+    uint16_t hold_counter;                   //!< keep track of ms from button down
+    BtnState_t btn_state;                    //!< actual state of button, size uint8_t
+    uint8_t jogwheel_signals;                //!< input signals
+    uint8_t jogwheel_signals_old;            //!< stores pre-previous input signals
+    uint8_t jogwheel_noise_filter;           //!< stores previous signals
+    volatile uint8_t encoder_gear;           //!< multiple gears for jogwheel spinning
+    bool type1;                              //!< jogwheel is type1 = true or type2 = false
+    bool spin_accelerator;                   //!< turns up spin accelerator feature
 };
 
 extern Jogwheel jogwheel; // Jogwheel static instance
