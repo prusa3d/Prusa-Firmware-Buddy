@@ -29,7 +29,7 @@ int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width
 /// Emulate font with the constant character width
 ///
 struct monospace {
-    const std::uint16_t w = 12;
+    const uint32_t w = 12;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ private:
     mutable size_t index_;
 };
 
-using word_buffer = std::array<std::uint32_t, 32>;
+using word_buffer = std::array<uint32_t, 32>;
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -90,6 +90,10 @@ struct ram_buffer {
         return (*p_word_buffer_)[index];
     };
 
+    size_t size() const {
+        return p_word_buffer_->size();
+    };
+
 private:
     word_buffer *p_word_buffer_;
 };
@@ -99,7 +103,7 @@ private:
 /// Stream reader without breaking the lines
 ///
 struct no_wrap {
-    using value_type = std::uint32_t;
+    using value_type = uint32_t;
 
     template <typename source>
     value_type character(source &s) {
@@ -128,7 +132,7 @@ template <
 struct text_wrapper {
     using value_type = typename memory_buffer::value_type;
 
-    text_wrapper(std::uint16_t width, font_type font)
+    text_wrapper(uint32_t width, font_type font)
         : width_(width)
         , index_(-1)
         , current_width_(0)
@@ -138,60 +142,79 @@ struct text_wrapper {
     template <typename source>
     value_type character(source &s) {
         if (index_ < 0) {
-            std::uint16_t w = buffering(s);
+            uint32_t w = buffering(s);
+            index_ = 0;
             if ((w + current_width_) > width_) {
-                current_width_ = (w + width::value(font_));
+                current_width_ = w;
                 return static_cast<value_type>(CHAR_NL);
             } else if ((w + current_width_) == width_) {
                 current_width_ = 0;
             } else {
-                current_width_ += (w + width::value(font_));
+                current_width_ += w;
             }
         }
 
-        if (index_ < static_cast<std::int8_t>(word_length_)) {
-            value_type c = buffer_[index_];
-            buffer_[index_] ^= buffer_[index_];
-            ++index_;
-            return c;
+        if (current_width_ == 0) {
+            if (index_ < static_cast<int32_t>(word_length_)) {
+                value_type c = buffer_[index_];
+                buffer_[index_++] = 0;
+                return c;
+            } else {
+                value_type c = buffer_[index_];
+                buffer_[index_] = 0;
+                index_ = -1;
+                return c == static_cast<value_type>(EOS)
+                    ? c
+                    : static_cast<value_type>(CHAR_NL);
+            }
         } else {
-            index_ = -1;
-            return current_width_ == 0
-                ? static_cast<value_type>(CHAR_NL)
-                : static_cast<value_type>(CHAR_SPACE);
+            if (index_ < static_cast<int32_t>(word_length_)) {
+                value_type c = buffer_[index_];
+                buffer_[index_++] = 0;
+                return c;
+            } else {
+                value_type c = buffer_[index_];
+                buffer_[index_] = 0;
+                index_ = -1;
+                current_width_ += c == static_cast<value_type>(CHAR_SPACE)
+                    ? width::value(font_)
+                    : 0;
+                current_width_ += c == static_cast<value_type>(CHAR_NL)
+                    ? -current_width_
+                    : 0;
+                return c;
+            }
         }
     }
 
 private:
     template <typename source>
-    std::uint16_t buffering(source &s) {
-        std::uint8_t i = 0;
-        std::uint16_t word_width = 0;
+    uint32_t buffering(source &s) {
+        uint8_t i = 0;
+        uint32_t word_width = 0;
         value_type c = 0;
-        while ((c = s.getUtf8Char()) != static_cast<value_type>(CHAR_SPACE)) {
+        while (i < buffer_.size()) {
+            c = s.getUtf8Char();
+            buffer_[i] = c;
             word_width += width::value(font_);
             if (c == static_cast<value_type>(CHAR_NBSP)) {
-                buffer_[i++] = static_cast<value_type>(CHAR_SPACE);
-            } else if (c == static_cast<value_type>(CHAR_NL)) {
+                buffer_[i] = static_cast<value_type>(CHAR_SPACE);
+            } else if (c == static_cast<value_type>(CHAR_NL)
+                || c == static_cast<value_type>(CHAR_SPACE)
+                || c == static_cast<value_type>(EOS)) {
                 word_width -= width::value(font_);
                 break;
-            } else if (c == static_cast<value_type>(EOS)) {
-                buffer_[i++] = c;
-                word_width -= width::value(font_);
-                break;
-            } else {
-                buffer_[i++] = c;
             }
+            ++i;
         }
-        index_ = 0;
         word_length_ = i;
         return word_width;
     }
 
     memory_buffer buffer_;
-    std::uint16_t width_;
-    std::int8_t index_;
-    std::uint16_t current_width_;
-    std::uint8_t word_length_;
+    uint32_t width_;
+    int32_t index_;
+    uint32_t current_width_;
+    uint8_t word_length_;
     font_type font_;
 };
