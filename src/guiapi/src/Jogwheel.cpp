@@ -3,7 +3,7 @@
 #include "Jogwheel.hpp"
 #include "guiconfig.h"
 #include "hwio_pindef.h"
-#include "cmsis_os.h" //__disable_irq __enabe_irq
+#include "cmsis_os.h" //__disable_irq, __enabe_irq, HAL_GetTick
 
 #ifdef GUI_JOGWHEEL_SUPPORT
 
@@ -35,7 +35,6 @@ Jogwheel::Jogwheel()
     : speed_traps { 0, 0, 0, 0 }
     , spin_speed_counter(0)
     , encoder(0)
-    , last_encoder(0)
     , hold_counter(0)
     , btn_state(BtnState_t::Released)
     , jogwheel_signals(0)
@@ -66,6 +65,11 @@ void Jogwheel::ReadInput(uint8_t &signals) {
 }
 
 volatile bool Jogwheel::ConsumeButtonEvent(Jogwheel::BtnState_t &ev) {
+    static uint32_t last_read;          //cannot read it too often
+    const uint32_t min_read_dellay = 8; //ms
+    if ((last_read - HAL_GetTick()) < min_read_dellay) {
+        return false;
+    }
     __disable_irq();
     volatile bool ret = btn_events.ConsumeFirst(ev);
     __enable_irq();
@@ -111,10 +115,16 @@ void Jogwheel::ChangeStateTo(BtnState_t new_state) {
 }
 
 volatile int32_t Jogwheel::GetEncoderDiff() {
+    static uint32_t last_read;           //cannot read it too often
+    const uint32_t min_read_dellay = 32; //ms
+    if ((last_read - HAL_GetTick()) < min_read_dellay) {
+        return 0;
+    }
+
+    static int32_t last_encoder = 0;
     __disable_irq();
     volatile int32_t diff = encoder - last_encoder;
     last_encoder = encoder;
-    // WARNING: jogwheel_button_down was here
     diff *= encoder_gear;
     __enable_irq();
     return diff;
@@ -167,7 +177,7 @@ void Jogwheel::UpdateVariables(uint8_t signals) {
             encoder = JG_ENCODER_MIN;
         if (encoder > JG_ENCODER_MAX)
             encoder = JG_ENCODER_MAX;
-        if (encoder != new_encoder) { // last_encoder is not used because it stores GUI last encoder position
+        if (encoder != new_encoder) {
             encoder = new_encoder;
             change |= JG_ENCODER_CHANGED; //bit3 means encoder changed
             speed_traps[3] = speed_traps[2];

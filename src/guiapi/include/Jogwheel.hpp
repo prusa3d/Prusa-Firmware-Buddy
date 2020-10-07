@@ -40,11 +40,12 @@ public:
 
     /**
      * Fills up the parameter with an event from inner event buffer.
-     * Disables interrupt during process
+     *
+     * Disables interrupt, maximum read frequency is limited
      *
      * returns success (inner buffer was not empty)
      *
-     * @param [out] ev - stores an event if inner buffer is not empty
+     * @param [out] ev - stores an event if inner buffer is not empty else left unchanged
      */
     volatile bool ConsumeButtonEvent(BtnState_t &ev);
 
@@ -61,7 +62,11 @@ public:
      */
     void SetJogwheelType(uint16_t delay);
 
-    /** Returns difference between last_encoder and encoder and then resets last_encoder */
+    /**
+     * Returns difference between last_encoder and encoder and then resets last_encoder
+     *
+     * Disables interrupt, maximum read frequency is limited
+     */
     volatile int32_t GetEncoderDiff();
 
 private:
@@ -115,7 +120,6 @@ private:
     uint32_t speed_traps[4];                 //!< stores previous encoder's change timestamp
     uint32_t spin_speed_counter;             //!< counting variable for encoder_gear system
     volatile int32_t encoder;                //!< jogwheel encoder
-    volatile int32_t last_encoder;           //!< helping variable - GUI encoder variable for diff counting (sets itself equal to encoder in gui_loop)
     uint16_t hold_counter;                   //!< keep track of ms from button down
     BtnState_t btn_state;                    //!< actual state of button, size uint8_t
     uint8_t jogwheel_signals;                //!< input signals
