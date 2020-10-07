@@ -6,6 +6,7 @@
 #include "screen_test.hpp"
 #include "screen_messages.hpp"
 #include "eeprom.h"
+#include "marlin_client.h"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -154,6 +155,7 @@ MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
 void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
     sheet_next_calibrated();
     UpdateLabel();
+    marlin_settings_load();
 }
 
 void MI_CURRENT_PROFILE::UpdateLabel() {
