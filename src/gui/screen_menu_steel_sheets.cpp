@@ -9,6 +9,7 @@
 #include "screen_sheet_rename.hpp"
 #include "wizard/screen_wizard.hpp"
 #include "dbg.h"
+#include "marlin_client.h"
 
 class ScreenMenuSteelSheets;
 
@@ -118,6 +119,7 @@ protected:
         case profile_action::Select:
             _dbg("MI_SHEET_SELECT");
             sheet_select(Index::value);
+            marlin_settings_load();
             break;
         case profile_action::Calibrate:
             _dbg("MI_SHEET_CALIBRATE");
