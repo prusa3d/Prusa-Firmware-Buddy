@@ -17,6 +17,10 @@
 #include "liveadjust_z.hpp"
 #include "DialogHandler.hpp"
 #include "selftest_MINI.h"
+#include "filament_sensor.hpp"
+#include "main_MINI.h"
+#include "Pin.hpp"
+#include "hwio_pindef_MINI.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -467,4 +471,53 @@ void I_MI_Filament::click_at(FILAMENT_t filament_index) {
     marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
     set_last_preheated_filament(filament_index);
     Screens::Access()->Close(); // skip this screen everytime
+}
+
+int get_fs_state() {
+    fsensor_t fs = fs_wait_initialized();
+    switch (fs) {
+    case fsensor_t::HasFilament:
+        return 1;
+        break;
+
+    case fsensor_t::NoFilament:
+        return 0;
+        break;
+
+    default:
+        return -1;
+    }
+}
+
+const int8_t sensor_range[3] = { -1, 1, 1 };
+MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
+    : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {
+
+    value = get_fs_state();
+}
+
+bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
+    int new_state = get_fs_state();
+    bool changed = (value != new_state);
+    value = new_state;
+    return changed;
+}
+
+MI_MINDA::MI_MINDA()
+    : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {}
+
+/// If \param new_state differs from \param old_state
+/// \param new_state will be saved to \param old_state
+/// \returns true if states differ
+template <class T>
+bool set_changed_state(const T current_state, T *old_state) {
+    const bool changed = (current_state != *old_state);
+    if (changed)
+        *old_state = current_state;
+    return changed;
+}
+
+bool MI_MINDA::StateChanged() {
+    const int8_t new_state = buddy::hw::zMin.read() == buddy::hw::Pin::State::low ? 0 : 1;
+    return set_changed_state<int8_t>(new_state, &value);
 }

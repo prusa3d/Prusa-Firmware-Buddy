@@ -9,6 +9,7 @@ ScreenFactory::UniquePtr GetScreenMenuCalibration();
 ScreenFactory::UniquePtr GetScreenMenuFilament();
 ScreenFactory::UniquePtr GetScreenMenuTemperature();
 ScreenFactory::UniquePtr GetScreenMenuMove();
+ScreenFactory::UniquePtr GetScreenMenuSensorInfo();
 ScreenFactory::UniquePtr GetScreenMenuVersionInfo();
 ScreenFactory::UniquePtr GetScreenMenuTune();
 //ScreenFactory::UniquePtr GetScreenMenuService();
