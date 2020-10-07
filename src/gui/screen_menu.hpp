@@ -40,6 +40,7 @@ protected:
 public:
     IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
     ~IScreenMenu();
+    void unconditionalDrawItem(uint8_t index);
 };
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>

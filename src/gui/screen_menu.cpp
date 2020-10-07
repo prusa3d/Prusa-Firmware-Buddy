@@ -62,3 +62,7 @@ void IScreenMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         footer.Validate();
     }*/
 }
+
+void IScreenMenu::unconditionalDrawItem(uint8_t index) {
+    menu.unconditionalDrawItem(index);
+}

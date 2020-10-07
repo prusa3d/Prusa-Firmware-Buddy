@@ -21,6 +21,7 @@ public:
     uint8_t GetCount() const;
     IWindowMenuItem *GetItem(uint8_t index) const;
     IWindowMenuItem *GetActiveItem();
+    void unconditionalDrawItem(uint8_t index);
 
 protected:
     virtual void unconditionalDraw() override;
