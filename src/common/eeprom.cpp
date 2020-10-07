@@ -229,7 +229,7 @@ static int eeprom_convert_from_v2(void);
 static int eeprom_convert_from(uint16_t version, uint16_t features);
 
 static int eeprom_check_crc32(void);
-static void eeprom_update_crc32(uint16_t addr, uint16_t size);
+static void eeprom_update_crc32();
 
 static uint16_t eeprom_fwversion_ui16(void);
 
@@ -316,7 +316,7 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
                 addr = eeprom_var_addr(id);
                 data_ptr = variant8_data_ptr(&var);
                 st25dv64k_user_write_bytes(addr, data_ptr, data_size);
-                eeprom_update_crc32(addr, size);
+                eeprom_update_crc32();
             } else {
                 // TODO: error
             }
@@ -544,7 +544,7 @@ static int eeprom_check_crc32(void) {
 #endif
 }
 
-static void eeprom_update_crc32(uint16_t addr, uint16_t size) {
+static void eeprom_update_crc32() {
 #ifdef EEPROM_MEASURE_CRC_TIME
     uint32_t time = _microseconds();
 #endif
@@ -625,7 +625,14 @@ bool sheet_select(uint32_t index) {
     if (index >= MAX_SHEETS || !sheet_is_calibrated(index))
         return false;
     uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
-    st25dv64k_user_write(active_sheet_address, index);
+    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    uint16_t z_offset_address = eeprom_var_addr(EEVAR_ZOFFSET);
+    float z_offset = FLT_MAX;
+    st25dv64k_user_read_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
+        &z_offset, sizeof(float));
+    st25dv64k_user_write(active_sheet_address, static_cast<uint8_t>(index));
+    st25dv64k_user_write_bytes(z_offset_address, &z_offset, sizeof(float));
+    eeprom_update_crc32();
     return true;
 #else
     return index == 0;
@@ -637,7 +644,8 @@ bool sheet_calibrate(uint32_t index) {
     if (index >= MAX_SHEETS)
         return false;
     uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
-    st25dv64k_user_write(active_sheet_address, index);
+    st25dv64k_user_write(active_sheet_address, static_cast<uint8_t>(index));
+    eeprom_update_crc32();
     return true;
 #else
     return index == 0;
@@ -653,6 +661,7 @@ bool sheet_reset(uint32_t index) {
     float z_offset = FLT_MAX;
     st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
         &z_offset, sizeof(float));
+    eeprom_update_crc32();
     if (active == index)
         sheet_next_calibrated();
     return true;
@@ -718,6 +727,7 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
     memset(eeprom_name, 0, MAX_SHEET_NAME_LENGTH);
     memcpy(eeprom_name, name, l);
     st25dv64k_user_write_bytes(profile_address, eeprom_name, MAX_SHEET_NAME_LENGTH);
+    eeprom_update_crc32();
     return l;
 #else
     return 0;
