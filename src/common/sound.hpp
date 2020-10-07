@@ -49,37 +49,43 @@ private:
     void init();
     void saveMode();
     void saveVolume();
-    void _sound(int rep, float frq, uint32_t dur, float vol /* , bool forced */);
-    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], unsigned size);
+    void _sound(int rep, float frq, int16_t dur, int16_t del, float vol /* , bool forced */);
+    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], const int16_t delays[], unsigned size);
 
     void nextRepeat();
 
-    uint32_t _duration; ///< live variable used for meassure
-    uint32_t duration;  ///< added variable to set _duration for repeating
-    int repeat;         ///< how many times is sound played
-    float frequency;    ///< frequency of sound signal (0-1000)
-    float volume;       ///< volume of sound signal (0-1)
-    float varVolume;    ///< variable volume set from user (0-10)
-    uint32_t _delay;    ///< live variable used for delay measure
-    uint32_t delay;     ///< added variable for delay betwen beeps
+    int16_t _duration; ///< live variable used for meassure
+    int16_t duration;  ///< added variable to set _duration for repeating
+    int repeat;        ///< how many times is sound played
+    float frequency;   ///< frequency of sound signal (0-1000)
+    float volume;      ///< volume of sound signal (0-1)
+    float varVolume;   ///< variable volume set from user (0-10)
+    int16_t _delay;    ///< live variable used for delay measure
+    int16_t delay;     ///< added variable for delay betwen beeps
 
     static constexpr float volumeInit = 0.35F;
     /// values of sound signals - frequencies, volumes, durations
-    static const uint32_t durations[eSOUND_TYPE::count];
+    static const int16_t durations[eSOUND_TYPE::count];
     static const float frequencies[eSOUND_TYPE::count];
     static const float volumes[eSOUND_TYPE::count];
 
     /// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
     static const eSOUND_TYPE onceTypes[5];
-    static const eSOUND_TYPE loudTypes[6];
+    static const eSOUND_TYPE loudTypes[7];
     static const eSOUND_TYPE silentTypes[3];
-    static const eSOUND_TYPE assistTypes[8];
+    static const eSOUND_TYPE assistTypes[9];
 
     /// signals repeats - how many times will sound signals repeat (-1 is infinite)
     static const int onceRepeats[5];
-    static const int loudRepeats[6];
+    static const int loudRepeats[7];
     static const int silentRepeats[3];
-    static const int assistRepeats[8];
+    static const int assistRepeats[9];
+
+    /// delays for repeat sounds
+    static const int16_t onceDelays[5];
+    static const int16_t loudDelays[7];
+    static const int16_t silentDelays[3];
+    static const int16_t assistDelays[9];
 
     /// forced sound types TODO: posible forced sounds
     /* static const bool forced[8]; */

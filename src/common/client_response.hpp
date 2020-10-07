@@ -45,6 +45,7 @@ enum class PhasesLoadUnload : uint16_t {
     Ramming,
     Unloading,
     RemoveFilament,
+    IsFilamentUnloaded,
     UserPush,
     NozzleTimeout,
     MakeSureInserted,

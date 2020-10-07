@@ -19,5 +19,6 @@ enum eSOUND_TYPE : uint8_t {
     BlindAlert,
     Start,
     SingleBeep,
+    WaitingBeep,
     count
 };

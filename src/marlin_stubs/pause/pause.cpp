@@ -360,6 +360,18 @@ bool Pause::FilamentUnload() {
     thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
 #endif //ENABLED(PID_EXTRUSION_SCALING)
 
+    Response isUnloaded;
+    do {
+        fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsFilamentUnloaded, 100, 100);
+        do {
+            idle(true);
+            isUnloaded = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsFilamentUnloaded);
+        } while (isUnloaded != Response::Yes && isUnloaded != Response::No);
+        if (isUnloaded == Response::No) {
+            return false;
+        }
+    } while (isUnloaded != Response::Yes);
+
     return true;
 }
 

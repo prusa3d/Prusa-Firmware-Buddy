@@ -11,6 +11,7 @@
 #include "dbg.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "sound.hpp"
 
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
@@ -70,6 +71,7 @@ public:
     }
     virtual void Do() override {
         gui_dlg_unload();
+        Sound_Stop();
     }
 };
 
@@ -87,6 +89,7 @@ public:
     }
     virtual void Do() override {
         if (gui_dlg_unload() == DLG_OK) {
+            Sound_Stop();
             gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
         }
     }
