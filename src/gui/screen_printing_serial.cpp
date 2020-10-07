@@ -28,6 +28,10 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     initAndsetIconAndLabel(btn_stop, res_disconnect);
 }
 
+screen_printing_serial_data_t::~screen_printing_serial_data_t() {
+    marlin_gcode("M86 S1800");
+}
+
 void screen_printing_serial_data_t::DisableButton(btn &b) {
     if (!b.ico.IsShadowed()) {
         b.ico.Shadow();
@@ -40,6 +44,18 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
 
     /// end sequence waiting for empty marlin gcode queue
     /// parking -> cooldown hotend & bed -> turn off print fan
+
+    uint8_t printing = variant_get_ui8(marlin_get_var(MARLIN_VAR_SD_PRINT));
+    static bool timer_set = false;
+    if (printing == 0) {
+        if (!timer_set) {
+            timer_set = true;
+            marlin_gcode("M86 S1800");
+        }
+    } else {
+        timer_set = false;
+    }
+
     if (connection == connection_state_t::disconnect) {
         connection = connection_state_t::disconnect_ask;
         if (MsgBoxWarning(_("Really Disconnect?"), Responses_YesNo, 1) == Response::Yes) {

@@ -25,6 +25,7 @@ class screen_printing_serial_data_t : public AddSuperWindow<ScreenPrintingModel>
 
 public:
     screen_printing_serial_data_t();
+    ~screen_printing_serial_data_t();
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

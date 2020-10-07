@@ -8,6 +8,7 @@ MI_NOZZLE::MI_NOZZLE()
     : WI_SPIN_U16_t(uint16_t(marlin_vars()->target_nozzle),
         MenuVars::nozzle_range.data(), label, 0, true, false) {}
 void MI_NOZZLE::OnClick() {
+    marlin_gcode("M86 S1800");
     marlin_set_target_nozzle(value);
     marlin_set_display_nozzle(value);
 }
@@ -18,6 +19,7 @@ MI_HEATBED::MI_HEATBED()
     : WI_SPIN_U08_t(uint8_t(marlin_vars()->target_bed),
         MenuVars::bed_range.data(), label, 0, true, false) {}
 void MI_HEATBED::OnClick() {
+    marlin_gcode("M86 S1800");
     marlin_set_target_bed(value);
 }
 

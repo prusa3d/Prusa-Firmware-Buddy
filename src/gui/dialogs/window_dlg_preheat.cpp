@@ -60,6 +60,7 @@ FILAMENT_t gui_dlg_preheat_autoselect_if_able(string_view_utf8 caption) {
         //when filament is known, but heating is off, just turn it on and do not ask
         marlin_vars_t *p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
         if (p_vars->target_nozzle != filaments[fil].nozzle) {
+            marlin_gcode("M86 S1800");
             marlin_gcode_printf("M104 S%d", (int)filaments[fil].nozzle);
             marlin_gcode_printf("M140 S%d", (int)filaments[fil].heatbed);
         }
@@ -82,6 +83,7 @@ FILAMENT_t gui_dlg_preheat_autoselect_if_able_forced(string_view_utf8 caption) {
         //when filament is known, but heating is off, just turn it on and do not ask
         marlin_vars_t *p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
         if (p_vars->target_nozzle != filaments[fil].nozzle) {
+            marlin_gcode("M86 S1800");
             marlin_gcode_printf("M104 S%d", (int)filaments[fil].nozzle);
             marlin_gcode_printf("M140 S%d", (int)filaments[fil].heatbed);
         }
