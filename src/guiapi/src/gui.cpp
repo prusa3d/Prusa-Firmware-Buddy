@@ -80,6 +80,7 @@ void gui_loop(void) {
         if (gui_loop_cb)
             gui_loop_cb();
         window_t *capturedWin = window_t::GetCapturedWindow();
+
         if (encoder_diff != 0) {
             if (encoder_diff > 0) {
                 capturedWin->WindowEvent(capturedWin, GUI_event_t::ENC_UP, (void *)encoder_diff);
@@ -88,18 +89,20 @@ void gui_loop(void) {
             }
         }
 
-        switch (btn_ev) {
-        case Jogwheel::BtnState_t::Pressed:
-            capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_DN, 0);
-            break;
-        case Jogwheel::BtnState_t::Released:
-            capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
-            capturedWin->WindowEvent(capturedWin, GUI_event_t::CLICK, 0);
-            break;
-        case Jogwheel::BtnState_t::Held:
-            capturedWin->WindowEvent(capturedWin, GUI_event_t::HOLD, 0);
-            Sound_Play(eSOUND_TYPE::ButtonEcho);
-            break;
+        if (is_btn) {
+            switch (btn_ev) {
+            case Jogwheel::BtnState_t::Pressed:
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_DN, 0);
+                break;
+            case Jogwheel::BtnState_t::Released:
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::CLICK, 0);
+                break;
+            case Jogwheel::BtnState_t::Held:
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::HOLD, 0);
+                Sound_Play(eSOUND_TYPE::ButtonEcho);
+                break;
+            }
         }
 
         Screens::Access()->ResetTimeout();
