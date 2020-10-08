@@ -28,7 +28,7 @@ protected:
     }
     static constexpr point_i16_t getIconPoint(point_i16_t pt) {
         point_i16_t ret = getNumberRect(pt).TopEndPoint();
-        return { ret.x, int16_t(ret.y + 5) };
+        return { ret.x, int16_t(ret.y + 0) };
     }
 
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
