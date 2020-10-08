@@ -102,7 +102,7 @@ void window_menu_t::Increment(int dif) {
             }
             for (index = index + dif;
                  GetItem(index) && GetItem(index)->IsHidden();
-                 index += dif)
+                 index += dif < 0 ? -1 : 1)
                 ;
             return GetItem(index) ? index : last_visible;
         };
