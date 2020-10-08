@@ -8,17 +8,13 @@
 using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpLines_None, MI_RETURN, MI_MINDA, MI_FILAMENT_SENSOR_STATE>;
 
 class ScreenMenuSensorInfo : public Screen {
-private:
-    uint8_t last_state = -1;
-
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 public:
     constexpr static const char *label = N_("SENSOR INFO");
     ScreenMenuSensorInfo()
-        : Screen(_(label)) {
-    }
+        : Screen(_(label)) {}
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSensorInfo() {
@@ -29,7 +25,6 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
     if (event == GUI_event_t::LOOP) {
         if (Item<MI_FILAMENT_SENSOR_STATE>().StateChanged()
             || Item<MI_MINDA>().StateChanged()) {
-
             Invalidate();
         }
     }
