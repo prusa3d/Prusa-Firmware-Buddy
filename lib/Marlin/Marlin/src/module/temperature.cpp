@@ -1307,12 +1307,24 @@ void Temperature::max_temp_error(const heater_id_t heater_id) {
   #if HAS_DWIN_E3V2_BASIC && (HAS_HOTEND || HAS_HEATED_BED)
     DWIN_Popup_Temperature(1);
   #endif
+  #if HAS_HEATED_BED
+    if (H_BED == heater_id) {
+      _temp_error(heater_id, F(STR_T_MAXTEMP), GET_TEXT_F(MSG_ERR_MAXTEMP_BED));
+      return;
+    }
+  #endif
   _temp_error(heater_id, F(STR_T_MAXTEMP), GET_TEXT_F(MSG_ERR_MAXTEMP));
 }
 
 void Temperature::min_temp_error(const heater_id_t heater_id) {
   #if HAS_DWIN_E3V2_BASIC && (HAS_HOTEND || HAS_HEATED_BED)
     DWIN_Popup_Temperature(0);
+  #endif
+  #if HAS_HEATED_BED
+    if (H_BED == heater_id) {
+      _temp_error(heater_id, F(STR_T_MINTEMP), GET_TEXT_F(MSG_ERR_MINTEMP_BED));
+      return;
+    }
   #endif
   _temp_error(heater_id, F(STR_T_MINTEMP), GET_TEXT_F(MSG_ERR_MINTEMP));
 }
@@ -1568,7 +1580,7 @@ void Temperature::min_temp_error(const heater_id_t heater_id) {
   void Temperature::manage_heated_bed(const millis_t &ms) {
 
     #if ENABLED(THERMAL_PROTECTION_BED)
-      if (degBed() > BED_MAXTEMP) max_temp_error(H_BED);
+      if (degBed() > BED_MAXTEMP) max_temp_error(H_BED, F(MSG_T_THERMAL_RUNAWAY), GET_TEXT_F(MSG_THERMAL_RUNAWAY_BED));
     #endif
 
     #if WATCH_BED
@@ -1578,7 +1590,7 @@ void Temperature::min_temp_error(const heater_id_t heater_id) {
           start_watching_bed();                 // If temp reached, turn off elapsed check
         else {
           TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
-          _temp_error(H_BED, FPSTR(str_t_heating_failed), GET_TEXT_F(MSG_HEATING_FAILED_LCD));
+          _temp_error(H_BED, FPSTR(str_t_heating_failed), GET_TEXT_F(MSG_HEATING_FAILED_LCD_BED));
         }
       }
     #endif // WATCH_BED
