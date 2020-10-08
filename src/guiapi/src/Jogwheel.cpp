@@ -1,11 +1,8 @@
 #include <limits.h>
 
 #include "Jogwheel.hpp"
-#include "guiconfig.h"
 #include "hwio_pindef.h"
 #include "cmsis_os.h" //__disable_irq, __enabe_irq, HAL_GetTick
-
-#ifdef GUI_JOGWHEEL_SUPPORT
 
 using buddy::hw::jogWheelEN1;
 using buddy::hw::jogWheelEN2;
@@ -209,4 +206,3 @@ void Jogwheel::Transmission() {
         encoder_gear = 5;
     }
 }
-#endif //GUI_JOGWHEEL_SUPPORT

@@ -2,7 +2,7 @@
 #pragma once
 
 #include <stdint.h>
-
+#include <stddef.h>
 /*****************************************************************************/
 // general circular buffer
 // you can never use entire size
