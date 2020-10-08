@@ -30,7 +30,7 @@ void ScreenPrintingModel::setIconAndLabel(btn &ref_button, const btn_resource &r
     ref_button.txt.SetText(_(res.txt));
 }
 
-void ScreenPrintingModel::initAndsetIconAndLabel(btn &ref_button, const btn_resource &res) {
+void ScreenPrintingModel::initAndSetIconAndLabel(btn &ref_button, const btn_resource &res) {
     initBtnText(ref_button);
     setIconAndLabel(ref_button, res);
 }
