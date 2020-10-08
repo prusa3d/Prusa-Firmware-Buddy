@@ -159,6 +159,9 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
 }
 
 void window_menu_t::printItem(const Rect16 &rc_win, const size_t visible_count, IWindowMenuItem *item, const int item_height) {
+    if (item == nullptr)
+        return;
+
     Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + visible_count * item_height),
         rc_win.Width(), uint16_t(item_height) };
 
@@ -205,7 +208,7 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
     const int item_height = font->h + padding.top + padding.bottom;
     const size_t visible_available = rect.Height() / item_height;
     size_t visible_count = 0;
-    IWindowMenuItem *item;
+    IWindowMenuItem *item = nullptr;
     for (size_t i = 0; visible_count < visible_available && i < GetCount(); ++i) {
         item = GetItem(i + top_index);
         if (!item)
