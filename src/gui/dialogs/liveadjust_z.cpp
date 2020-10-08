@@ -125,14 +125,14 @@ LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
     , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
-    , bed(this, Rect16(70, 180, 100, 10))
-    , adjuster(this, { 75, 205 }) {
+    // , bed(this, Rect16(70, 190, 100, 10))
+    , adjuster(this, { 75, 215 }) {
 
     /// using window_t 1bit flag
     flag_close_on_click = is_closed_on_click_t::yes;
 
     /// simple rectangle as bed with defined background color
-    bed.SetBackColor(COLOR_ORANGE);
+    // bed.SetBackColor(COLOR_ORANGE);
 
     /// title text
     constexpr static const char *txt = N_("Adjust the nozzle height above the heatbed by turning the knob");
@@ -153,9 +153,9 @@ const Rect16 LiveAdjustZ::getNozzleRect() {
 
 void LiveAdjustZ::moveNozzle() {
     uint16_t old_top = nozzle_icon.rect.Top();
-    float percent = adjuster.GetValue() / z_offset_min;
-    Rect16 moved_rect = getNozzleRect();
-    moved_rect += Rect16::Top_t(int(10 * percent));
+    Rect16 moved_rect = getNozzleRect();                // starting position - 0%
+    float percent = adjuster.GetValue() / z_offset_min; // z_offset value in percent
+    moved_rect += Rect16::Top_t(int(40 * percent));     // how much will nozzle move
     nozzle_icon.rect = moved_rect;
     if (old_top != nozzle_icon.rect.Top()) {
         nozzle_icon.Invalidate();

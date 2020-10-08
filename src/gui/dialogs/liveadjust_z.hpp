@@ -51,7 +51,7 @@ protected:
 class LiveAdjustZ : public AddSuperWindow<IDialog> {
     window_text_t text;
     window_icon_t nozzle_icon;
-    window_frame_t bed;
+    // window_frame_t bed;
     WindowLiveAdjustZ adjuster;
 
     LiveAdjustZ(); // created by static Open method
