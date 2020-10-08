@@ -45,7 +45,7 @@ struct width {
 ///
 /// Memory storage
 ///
-/// @details For testing purpose
+/// @details For testing purpose only
 ///
 struct memory_source {
     using value_type = char;
@@ -73,6 +73,10 @@ private:
     mutable size_t index_;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+///
+/// caching word buffer
+///
 using word_buffer = std::array<uint32_t, 32>;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -190,9 +194,12 @@ struct text_wrapper {
 private:
     template <typename source>
     uint32_t buffering(source &s) {
-        uint8_t i = 0;
+        uint32_t i = 0;
         uint32_t word_width = 0;
         value_type c = 0;
+
+        //read max size() characters continuosly
+        //in our case word_buffer = std::array<uint32_t, 32>;
         while (i < buffer_.size()) {
             c = s.getUtf8Char();
             buffer_[i] = c;
@@ -215,6 +222,6 @@ private:
     uint32_t width_;
     int32_t index_;
     uint32_t current_width_;
-    uint8_t word_length_;
+    uint32_t word_length_;
     font_type font_;
 };
