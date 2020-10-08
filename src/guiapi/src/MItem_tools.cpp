@@ -480,6 +480,7 @@ int get_fs_state() {
         return 1;
     case fsensor_t::NoFilament:
         return 0;
+    default:;
     }
     return -1;
 }
