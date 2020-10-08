@@ -31,7 +31,7 @@ public:
     /** Returns button input state, this function is for BSOD and situations where interupts are disabled. */
     static int GetJogwheelButtonPinState();
 
-    // actual state of button, event is stored into buffer on button change
+    // current state of button, event is stored into buffer on button change
     enum class BtnState_t : uint8_t {
         Released,
         Pressed,
@@ -121,7 +121,7 @@ private:
     uint32_t spin_speed_counter;             //!< counting variable for encoder_gear system
     volatile int32_t encoder;                //!< jogwheel encoder
     uint16_t hold_counter;                   //!< keep track of ms from button down
-    BtnState_t btn_state;                    //!< actual state of button, size uint8_t
+    BtnState_t btn_state;                    //!< current state of button, size uint8_t
     uint8_t jogwheel_signals;                //!< input signals
     uint8_t jogwheel_signals_old;            //!< stores pre-previous input signals
     uint8_t jogwheel_noise_filter;           //!< stores previous signals

@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /*****************************************************************************/
-// general circle buffer
+// general circular buffer
 // you can never use entire size
 // because write position (end) cannot be equal to begin
 // because begin == end == empty
@@ -90,7 +90,7 @@ const T &CircleBuffer<T, SIZE>::GetLastIfAble() const {
 }
 
 /*****************************************************************************/
-// circle buffer for strings (T == std::array<char, MAX_LENGTH>)
+// circular buffer for strings (T == std::array<char, MAX_LENGTH>)
 static constexpr const char *CircleBufferEmpty = "";
 #include <array>
 
