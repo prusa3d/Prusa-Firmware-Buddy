@@ -12,17 +12,13 @@
 using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpLines_None, MI_RETURN, MI_FILAMENT_SENSOR_STATE, MI_MINDA>;
 
 class ScreenMenuSensorInfo : public Screen {
-private:
-    uint8_t last_state = -1;
-
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 public:
     constexpr static const char *label = N_("SENSOR INFO");
     ScreenMenuSensorInfo()
-        : Screen(_(label)) {
-    }
+        : Screen(_(label)) {}
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSensorInfo() {

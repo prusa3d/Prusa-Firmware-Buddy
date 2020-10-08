@@ -478,15 +478,11 @@ int get_fs_state() {
     switch (fs) {
     case fsensor_t::HasFilament:
         return 1;
-        break;
-
     case fsensor_t::NoFilament:
         return 0;
-        break;
-
-    default:
-        return -1;
+    default:;
     }
+    return -1;
 }
 
 const int8_t sensor_range[3] = { -1, 1, 1 };
