@@ -16,8 +16,9 @@
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at oposite side to home position
 
-#define X_AXIS_PERCENT 50
-#define Y_AXIS_PERCENT 50
+#define X_AXIS_PERCENT 33
+#define Y_AXIS_PERCENT 33
+#define Z_AXIS_PERCENT 34
 
 static const float XYfr_table[] = { 50, 60, 75, 100 };
 
@@ -62,7 +63,6 @@ bool CSelftest::IsInProgress() const {
 
 bool CSelftest::Start(SelftestMask_t mask) {
     m_Mask = mask;
-    m_Mask = (SelftestMask_t)(m_Mask & ~stmZAxis); // temporarily disable ZAxis test
     if (m_Mask & stmXYZAxis)
         m_Mask = (SelftestMask_t)(m_Mask | stmHome);
     m_State = stsStart;
@@ -97,8 +97,8 @@ void CSelftest::Loop() {
             return;
         break;
     case stsZAxis:
-        //    	if (phaseAxis(&Config_ZAxis, &m_pZAxis, (uint16_t)PhasesSelftestAxis::Zaxis))
-        //    		return;
+        if (phaseAxis(&Config_ZAxis, &m_pZAxis, (uint16_t)PhasesSelftestAxis::Zaxis, Y_AXIS_PERCENT, Z_AXIS_PERCENT))
+            return;
         break;
     case stsHeaters:
         if (phaseHeaters(&Config_HeaterNozzle, &Config_HeaterBed))

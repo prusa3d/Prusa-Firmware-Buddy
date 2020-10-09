@@ -39,6 +39,7 @@ bool CSelftestPart_Axis::Loop() {
         if (planner.movesplanned() || queue.length)
             return true;
         endstops.enable(true);
+        endstops.enable_z_probe();
         m_Step = 0;
         m_Time = Selftest.m_Time;
         break;
@@ -76,7 +77,7 @@ bool CSelftestPart_Axis::Abort() {
 }
 
 void CSelftestPart_Axis::phaseMove(int8_t dir) {
-    Selftest.log_printf("%s fwd @%d mm/s\n", m_pConfig->partname, (int)m_pConfig->fr_table[m_Step]);
+    Selftest.log_printf("%s %s @%d mm/s\n", ((dir * m_pConfig->dir) > 0) ? "fwd" : "rew", m_pConfig->partname, (int)m_pConfig->fr_table[m_Step]);
     planner.synchronize();
     sg_sampling_enable();
     m_StartPos_usteps = stepper.position((AxisEnum)m_pConfig->axis);
@@ -90,7 +91,7 @@ bool CSelftestPart_Axis::phaseWait(int8_t dir) {
     sg_sampling_disable();
     int32_t endPos_usteps = stepper.position((AxisEnum)m_pConfig->axis);
     int32_t length_usteps = dir * (endPos_usteps - m_StartPos_usteps);
-    Selftest.log_printf(" length = %f\n", (double)length_usteps / 100);
+    Selftest.log_printf(" length = %f mm\n", (double)(length_usteps * planner.steps_to_mm[(AxisEnum)m_pConfig->axis]));
     return false;
 }
 
@@ -127,8 +128,10 @@ void CSelftestPart_Axis::sg_sample(uint16_t sg) {
 }
 
 void CSelftestPart_Axis::sg_sampling_enable() {
+    m_SGOrig_mask = tmc_get_sg_mask();
     tmc_set_sg_mask(1 << m_pConfig->axis);
     tmc_set_sg_axis(m_pConfig->axis);
+    m_pSGOrig_cb = (void *)tmc_get_sg_sampe_cb();
     tmc_set_sg_sampe_cb(sg_sample_cb);
     m_pSGAxis = this;
     m_SGCount = 0;
@@ -136,9 +139,9 @@ void CSelftestPart_Axis::sg_sampling_enable() {
 }
 
 void CSelftestPart_Axis::sg_sampling_disable() {
-    tmc_set_sg_mask(0);
+    tmc_set_sg_mask(m_SGOrig_mask);
     tmc_set_sg_axis(0);
-    tmc_set_sg_sampe_cb(nullptr);
+    tmc_set_sg_sampe_cb((tmc_sg_sample_cb_t *)m_pSGOrig_cb);
     m_pSGAxis = nullptr;
 }
 
