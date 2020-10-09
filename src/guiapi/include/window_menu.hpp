@@ -13,6 +13,14 @@ class window_menu_t : public IWindowMenu {
     /// Prints single item in the menu
     /// \param rect is rectangle of the whole window menu
     void printItem(const Rect16 &rect, const size_t visible_count, IWindowMenuItem *item, const int item_height);
+    /// Searches for next visible item
+    /// Repeats search for \param steps times
+    /// Negative value searches in backward direction
+    /// \returns false if end of item list reached before all steps consumed
+    bool moveToNextVisibleItem(int steps = 1);
+    /// Moves menu so the cursor is on the screen
+    /// \returns true if menu was moved
+    bool window_menu_t::refreshTopIndex();
 
 public:
     window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index = 0);
@@ -25,6 +33,8 @@ public:
     uint8_t GetCount() const;
     IWindowMenuItem *GetItem(uint8_t index) const;
     IWindowMenuItem *GetActiveItem();
+    /// Redraws single item in menu
+    /// If the item is out of screen nothing happens
     void unconditionalDrawItem(uint8_t index);
 
 protected:

@@ -1,4 +1,6 @@
 // window_menu.cpp
+
+#include <algorithm>
 #include "window_menu.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
@@ -77,47 +79,44 @@ IWindowMenuItem *window_menu_t::GetActiveItem() {
     return GetItem(index);
 }
 
+bool window_menu_t::moveToNextVisibleItem(int steps = 1) {
+}
+
+bool window_menu_t::refreshTopIndex() {
+}
+
 void window_menu_t::Increment(int dif) {
+    if (dif == 0)
+        return;
     IWindowMenuItem *item = GetActiveItem();
     if (!item)
         return;
     if (item->IsSelected()) {
         if (item->Change(dif)) {
-            Invalidate();
+            unconditionalDrawItem(index);
         }
+        return;
+    }
+
+    //all items can be in label mode
+    const int item_height = font->h + padding.top + padding.bottom;
+    const int visible_count = rect.Height() / item_height;
+
+    const int old_index = index;
+
+    if (moveToNextVisibleItem(dif)) {
+        Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
     } else {
-        //all items can be in label mode
-        int item_height = font->h + padding.top + padding.bottom;
-        int visible_count = rect.Height() / item_height;
-        int old_index = GetIndex();
-        auto next_visible = [this, dif](int index) -> int {
-            uint32_t last_visible = index;
-            if ((index + dif) < 0) {
-                Sound_Play(eSOUND_TYPE::BlindAlert); // play sound at first or last index of menu
-                return 0;
-            }
-            if ((index + dif) >= GetCount()) {
-                Sound_Play(eSOUND_TYPE::BlindAlert); // play sound at first or last index of menu
-                return GetCount() - 1;
-            }
-            for (index = index + dif;
-                 GetItem(index) && GetItem(index)->IsHidden();
-                 index += dif < 0 ? -1 : 1)
-                ;
-            return GetItem(index) ? index : last_visible;
-        };
+        Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by cursor
+    }
 
-        int new_index = next_visible(old_index);
-        if (new_index < top_index)
-            top_index = new_index;
-        if (new_index >= (top_index + visible_count))
-            top_index = new_index - visible_count + 1;
-
-        if (new_index != old_index) { // optimization do not redraw when no change - still on end
-            SetIndex(new_index);
-            Invalidate();
-            Sound_Play(eSOUND_TYPE::EncoderMove);
-        }
+    if (refreshTopIndex()) {
+        /// whole menu moved, redraw everything
+        Invalidate();
+    } else {
+        /// just cursor moved, redraw cursor only
+        unconditionalDrawItem(old_index);
+        unconditionalDrawItem(index);
     }
 }
 
