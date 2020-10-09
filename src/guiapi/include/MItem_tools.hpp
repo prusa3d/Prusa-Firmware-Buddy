@@ -422,3 +422,19 @@ protected:
         click_at(T);
     }
 };
+
+class MI_FILAMENT_SENSOR_STATE : public WI_SPIN_I08_t {
+    static constexpr const char *const label = N_("Filament sensor");
+
+public:
+    MI_FILAMENT_SENSOR_STATE();
+    bool StateChanged();
+};
+
+class MI_MINDA : public WI_SPIN_I08_t {
+    static constexpr const char *const label = N_("M.I.N.D.A.");
+
+public:
+    MI_MINDA();
+    bool StateChanged();
+};
