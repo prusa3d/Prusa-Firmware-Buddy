@@ -6,6 +6,7 @@
 #include "sound.hpp"
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
+#include "cmath_ext.h"
 
 IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
     : window_aligned_t(parent, rect)
@@ -80,9 +81,28 @@ IWindowMenuItem *window_menu_t::GetActiveItem() {
 }
 
 bool window_menu_t::moveToNextVisibleItem(int steps = 1) {
+    if (steps == 0)
+        return true;
+    int dir = SIGN1(steps); /// direction fo movement
+
+    IWindowMenuItem *item;
+    for (int todo = std::abs(steps); todo > 0; --todo) {
+        do {
+            if (index + dir >= GetCount() || index + dir < 0) {
+                /// cursor would get out of menu
+                return false;
+            }
+            index += dir;
+            item = GetItem(index);
+            if (item == nullptr)
+                return false;
+        } while (item->IsHidden());
+    }
+    return true;
 }
 
 bool window_menu_t::refreshTopIndex() {
+    ...
 }
 
 void window_menu_t::Increment(int dif) {
