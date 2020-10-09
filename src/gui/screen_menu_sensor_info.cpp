@@ -29,8 +29,9 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
     if (event == GUI_event_t::LOOP) {
         if (Item<MI_FILAMENT_SENSOR_STATE>().StateChanged())
             unconditionalDrawItem(1);
-        if (Item<MI_MINDA>().StateChanged())
+        if (Item<MI_MINDA>().StateChanged()) {
             unconditionalDrawItem(2);
+        }
     }
 
     Screen::SuperWindowEvent(sender, event, param);

@@ -205,6 +205,10 @@ void window_menu_t::unconditionalDraw() {
 }
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {
+    if (index == -1) {
+        unconditionalDraw();
+        return;
+    }
     const int item_height = font->h + padding.top + padding.bottom;
     const size_t visible_available = rect.Height() / item_height;
     size_t visible_count = 0;
@@ -215,10 +219,10 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
             return;
         if (item->IsHidden())
             continue;
-        if (i != index) {
-            ++visible_count;
-            continue;
+        if (i + top_index == index) {
+            break;
         }
+        ++visible_count;
     }
 
     printItem(rect, visible_count, item, item_height);
