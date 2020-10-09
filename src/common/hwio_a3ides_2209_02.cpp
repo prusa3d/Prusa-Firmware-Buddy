@@ -672,7 +672,9 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
         case MARLIN_PIN(E0_ENA):
         case MARLIN_PIN(Y_DIR):
         case MARLIN_PIN(Y_STEP):
+    #if (MARLIN_PIN(X_ENA) != MARLIN_PIN(Y_ENA))
         case MARLIN_PIN(Y_ENA):
+    #endif
         case MARLIN_PIN(Z_DIR):
             gpio_set(ulPin, ulVal ? 1 : 0);
             return;
