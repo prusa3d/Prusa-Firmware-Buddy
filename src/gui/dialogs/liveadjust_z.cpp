@@ -8,6 +8,7 @@
 #include "marlin_client.h"
 #include "marlin_vars.h"
 #include "eeprom.h"
+#include "display_helper.h"
 
 #include "../Marlin/src/inc/MarlinConfig.h"
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
@@ -23,12 +24,70 @@ const float z_offset_min = Z_OFFSET_MIN;
 const float z_offset_max = Z_OFFSET_MAX;
 
 /*****************************************************************************/
+//WindowScale
+WindowScale::WindowScale(window_t *parent, point_i16_t pt)
+    : AddSuperWindow<window_frame_t>(parent, Rect16(45, 125, 40, 100))
+    , scaleNum0(parent, getNumRect(pt), 0)
+    , scaleNum1(parent, getNumRect(pt), -1)
+    , scaleNum2(parent, getNumRect(pt), -2) {
+
+    // scaleNum0.SetBackColor(COLOR_YELLOW);
+    // scaleNum1.SetBackColor(COLOR_YELLOW);
+    // scaleNum2.SetBackColor(COLOR_YELLOW);
+
+    scaleNum0.SetFont(GuiDefaults::Font);
+    scaleNum1.SetFont(GuiDefaults::Font);
+    scaleNum2.SetFont(GuiDefaults::Font);
+    scaleNum0.SetFormat("% .0f");
+
+    scaleNum0.rect -= Rect16::Top_t(8);
+    scaleNum1.rect += Rect16::Top_t((rect.Height() / 2) - 8);
+    scaleNum2.rect += Rect16::Top_t(rect.Height() - 8);
+
+    point = pt;
+}
+
+const Rect16 WindowScale::getNumRect(point_i16_t pt) {
+    return Rect16(pt.x - 35, pt.y, 30, 20);
+}
+
+void WindowScale::unconditionalDraw() {
+    /// vertical line of scale
+    display::DrawLine(
+        point_ui16(point.x, point.y),
+        point_ui16(point.x, point.y + rect.Height()),
+        COLOR_WHITE);
+    /// horizontal lines
+    display::DrawLine( // top (0)
+        point_ui16(point.x - 5, point.y),
+        point_ui16(point.x + 5, point.y),
+        COLOR_ORANGE);
+    display::DrawLine( // -
+        point_ui16(point.x - 3, point.y + (rect.Height() * .25F)),
+        point_ui16(point.x + 3, point.y + (rect.Height() * .25F)),
+        COLOR_WHITE);
+    display::DrawLine( // middle (-1)
+        point_ui16(point.x - 5, point.y + (rect.Height() / 2)),
+        point_ui16(point.x + 5, point.y + (rect.Height() / 2)),
+        COLOR_ORANGE);
+    display::DrawLine( // -
+        point_ui16(point.x - 3, point.y + (rect.Height() * .75F)),
+        point_ui16(point.x + 3, point.y + (rect.Height() * .75F)),
+        COLOR_WHITE);
+    display::DrawLine( // bottom (-2)
+        point_ui16(point.x - 5, point.y + rect.Height()),
+        point_ui16(point.x + 5, point.y + rect.Height()),
+        COLOR_ORANGE);
+}
+/*****************************************************************************/
 //WindowLiveAdjustZ
 
 WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreenBody) //calculate size later
+    //: AddSuperWindow<window_frame_t>(parent, Rect16(60, 32, 120, 320)) //calculate size later
     , number(this, getNumberRect(pt), marlin_vars()->z_offset)
     , arrows(this, getIconPoint(pt)) {
+    SetBackColor(COLOR_BLUE);
 
     rect = number.rect.Union(arrows.rect);
     /// using window_numb to store float value of z_offset
@@ -126,7 +185,8 @@ LiveAdjustZ::LiveAdjustZ()
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
     , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
     // , bed(this, Rect16(70, 190, 100, 10))
-    , adjuster(this, { 75, 215 }) {
+    , adjuster(this, { 75, 215 })
+    , scale(this, { 45, 125 }) {
 
     /// using window_t 1bit flag
     flag_close_on_click = is_closed_on_click_t::yes;
