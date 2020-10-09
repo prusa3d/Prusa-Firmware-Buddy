@@ -158,14 +158,14 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         Invalidate();
 }
 
-void window_menu_t::printItem(const Rect16 &rc_win, const size_t visible_count, IWindowMenuItem *item, const int item_height) {
+void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IWindowMenuItem *item, const int item_height) {
     if (item == nullptr)
         return;
 
-    Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + visible_count * item_height),
-        rc_win.Width(), uint16_t(item_height) };
+    Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * item_height),
+        rect.Width(), uint16_t(item_height) };
 
-    if (rc_win.Contain(rc)) {
+    if (rect.Contain(rc)) {
         if (item->RollNeedInit()) {
             gui_timer_restart_txtroll(this);
             gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
@@ -215,10 +215,10 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
             return;
         if (item->IsHidden())
             continue;
-        if (i + top_index == index)
+        if (i + top_index == index) {
+            printItem(rect, visible_count, item, item_height);
             break;
+        }
         ++visible_count;
     }
-
-    printItem(rect, visible_count, item, item_height);
 }
