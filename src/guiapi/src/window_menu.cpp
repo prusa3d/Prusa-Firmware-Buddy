@@ -165,41 +165,67 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         Invalidate();
 }
 
+void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IWindowMenuItem *item, const int item_height) {
+    if (item == nullptr)
+        return;
+
+    Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * item_height),
+        rect.Width(), uint16_t(item_height) };
+
+    if (rect.Contain(rc)) {
+        if (item->RollNeedInit()) {
+            gui_timer_restart_txtroll(this);
+            gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
+            item->RollInit(*this, rc);
+        }
+        item->Print(*this, rc);
+    }
+}
+
 void window_menu_t::unconditionalDraw() {
     // temporarily disabled erasing background to prevent menu blinking
     //    IWindowMenu::unconditionalDraw();
 
     const int item_height = font->h + padding.top + padding.bottom;
     Rect16 rc_win = rect;
-
     const size_t visible_available = rc_win.Height() / item_height;
     size_t visible_count = 0;
-    size_t i;
-    for (i = 0; visible_count < visible_available && i < GetCount(); ++i) {
+    IWindowMenuItem *item;
 
-        IWindowMenuItem *item = GetItem(i + top_index);
+    for (size_t i = 0; visible_count < visible_available && i < GetCount(); ++i) {
+
+        item = GetItem(i + top_index);
         if (!item)
             break;
         if (item->IsHidden())
             continue;
 
-        Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + visible_count * item_height),
-            rc_win.Width(), uint16_t(item_height) };
-
-        if (rc_win.Contain(rc)) {
-            if (item->RollNeedInit()) {
-                gui_timer_restart_txtroll(this);
-                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
-                item->RollInit(*this, rc);
-            }
-            item->Print(*this, rc);
-        }
+        printItem(rc_win, visible_count, item, item_height);
         ++visible_count;
     }
     rc_win -= Rect16::Height_t(visible_count * item_height);
-
+    /// fill the rest of the window by background
     if (rc_win.Height()) {
         rc_win += Rect16::Top_t(visible_count * item_height);
         display::FillRect(rc_win, color_back);
+    }
+}
+
+void window_menu_t::unconditionalDrawItem(uint8_t index) {
+    const int item_height = font->h + padding.top + padding.bottom;
+    const size_t visible_available = rect.Height() / item_height;
+    size_t visible_count = 0;
+    IWindowMenuItem *item = nullptr;
+    for (size_t i = 0; visible_count < visible_available && i < GetCount(); ++i) {
+        item = GetItem(i + top_index);
+        if (!item)
+            return;
+        if (item->IsHidden())
+            continue;
+        if (i + top_index == index) {
+            printItem(rect, visible_count, item, item_height);
+            break;
+        }
+        ++visible_count;
     }
 }

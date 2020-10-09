@@ -473,35 +473,6 @@ void I_MI_Filament::click_at(FILAMENT_t filament_index) {
     Screens::Access()->Close(); // skip this screen everytime
 }
 
-int get_fs_state() {
-    fsensor_t fs = fs_wait_initialized();
-    switch (fs) {
-    case fsensor_t::HasFilament:
-        return 1;
-    case fsensor_t::NoFilament:
-        return 0;
-    default:;
-    }
-    return -1;
-}
-
-const int8_t sensor_range[3] = { -1, 1, 1 };
-MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
-    : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {
-
-    value = get_fs_state();
-}
-
-bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
-    int new_state = get_fs_state();
-    bool changed = (value != new_state);
-    value = new_state;
-    return changed;
-}
-
-MI_MINDA::MI_MINDA()
-    : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {}
-
 /// If \param new_state differs from \param old_state
 /// \param new_state will be saved to \param old_state
 /// \returns true if states differ
@@ -513,7 +484,38 @@ bool set_changed_state(const T current_state, T *old_state) {
     return changed;
 }
 
+const int8_t sensor_range[3] = { (int8_t)SENSOR_STATE::unknown, (int8_t)SENSOR_STATE::high, 1 }; /// min value, max value, step
+
+MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
+    : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {
+    value = (int8_t)get_state();
+}
+
+SENSOR_STATE MI_FILAMENT_SENSOR_STATE::get_state() {
+    fsensor_t fs = fs_wait_initialized();
+    switch (fs) {
+    case fsensor_t::HasFilament:
+        return SENSOR_STATE::high;
+    case fsensor_t::NoFilament:
+        return SENSOR_STATE::low;
+    default:;
+    }
+    return SENSOR_STATE::unknown;
+}
+
+bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
+    return set_changed_state<int8_t>((int8_t)get_state(), &value);
+}
+
+MI_MINDA::MI_MINDA()
+    : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {
+    value = (int8_t)get_state();
+}
+
+SENSOR_STATE MI_MINDA::get_state() {
+    return (buddy::hw::zMin.read() == buddy::hw::Pin::State::low) ? SENSOR_STATE::low : SENSOR_STATE::high;
+}
+
 bool MI_MINDA::StateChanged() {
-    const int8_t new_state = buddy::hw::zMin.read() == buddy::hw::Pin::State::low ? 0 : 1;
-    return set_changed_state<int8_t>(new_state, &value);
+    return set_changed_state<int8_t>((int8_t)get_state(), &value);
 }
