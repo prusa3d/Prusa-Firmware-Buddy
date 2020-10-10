@@ -25,6 +25,7 @@ extern "C" {
 
 uint8_t tmc_get_sg_mask() { return tmc_sg_mask; }
 uint8_t tmc_get_sg_axis() { return tmc_sg_axis; }
+tmc_sg_sample_cb_t *tmc_get_sg_sampe_cb() { return tmc_sg_sampe_cb; }
 
 void tmc_set_sg_mask(uint8_t mask) { tmc_sg_mask = mask; }
 void tmc_set_sg_axis(uint8_t axis) { tmc_sg_axis = axis; }

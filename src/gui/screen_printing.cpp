@@ -161,6 +161,10 @@ screen_printing_data_t::screen_printing_data_t()
     w_time_value.SetPadding({ 0, 2, 0, 2 });
     // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
+
+    initAndSetIconAndLabel(btn_tune, res_tune);
+    initAndSetIconAndLabel(btn_pause, res_pause);
+    initAndSetIconAndLabel(btn_stop, res_stop);
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
