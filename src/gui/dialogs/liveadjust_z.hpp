@@ -13,10 +13,14 @@ class WindowScale : public AddSuperWindow<window_frame_t> {
     window_numb_t scaleNum0;
     window_numb_t scaleNum1;
     window_numb_t scaleNum2;
+    // because display draw func clear cannot clear rect
+    /* window_frame_t moveLine; */
     point_i16_t point;
+    /* float movePercent; */
 
 public:
     WindowScale(window_t *parent, point_i16_t pt);
+    void SetPercent(float p);
 
 protected:
     virtual void unconditionalDraw() override;
@@ -69,6 +73,7 @@ class LiveAdjustZ : public AddSuperWindow<IDialog> {
     // window_frame_t bed;
     WindowLiveAdjustZ adjuster;
     WindowScale scale;
+    window_frame_t moveLine;
 
     LiveAdjustZ(); // created by static Open method
 

@@ -26,14 +26,12 @@ const float z_offset_max = Z_OFFSET_MAX;
 /*****************************************************************************/
 //WindowScale
 WindowScale::WindowScale(window_t *parent, point_i16_t pt)
-    : AddSuperWindow<window_frame_t>(parent, Rect16(45, 125, 40, 100))
+    : AddSuperWindow<window_frame_t>(parent, Rect16(pt, 10, 100))
     , scaleNum0(parent, getNumRect(pt), 0)
     , scaleNum1(parent, getNumRect(pt), -1)
     , scaleNum2(parent, getNumRect(pt), -2) {
-
-    // scaleNum0.SetBackColor(COLOR_YELLOW);
-    // scaleNum1.SetBackColor(COLOR_YELLOW);
-    // scaleNum2.SetBackColor(COLOR_YELLOW);
+    // , moveLine(parent, Rect16(100, 20, 40, 100)) {
+    // , moveLine(parent, getNumRect(pt)) {
 
     scaleNum0.SetFont(GuiDefaults::Font);
     scaleNum1.SetFont(GuiDefaults::Font);
@@ -44,14 +42,26 @@ WindowScale::WindowScale(window_t *parent, point_i16_t pt)
     scaleNum1.rect += Rect16::Top_t((rect.Height() / 2) - 8);
     scaleNum2.rect += Rect16::Top_t(rect.Height() - 8);
 
+    // moveLine.SetBackColor(COLOR_GREEN);
     point = pt;
+    // movePercent = 0.0F;
 }
 
 const Rect16 WindowScale::getNumRect(point_i16_t pt) {
     return Rect16(pt.x - 35, pt.y, 30, 20);
 }
 
+void WindowScale::SetPercent(float p) {
+    // movePercent = p;
+		// moveLine.rect = Rect16(rect.Left(), rect.Top() + (rect.Height() * p), 10, 2);
+		// moveLine.rect = Rect16(100, 20, rect.Left(), rect.Top() + (rect.Height() * p));
+		// moveLine.rect = Rect16(100, 20, 0, 0);
+    // moveLine.Invalidate();
+		// unconditionalDraw();
+}
+
 void WindowScale::unconditionalDraw() {
+    // display::DrawRect(rect, COLOR_BLACK);
     /// vertical line of scale
     display::DrawLine(
         point_ui16(point.x, point.y),
@@ -61,7 +71,7 @@ void WindowScale::unconditionalDraw() {
     display::DrawLine( // top (0)
         point_ui16(point.x - 5, point.y),
         point_ui16(point.x + 5, point.y),
-        COLOR_ORANGE);
+        COLOR_WHITE);
     display::DrawLine( // -
         point_ui16(point.x - 3, point.y + (rect.Height() * .25F)),
         point_ui16(point.x + 3, point.y + (rect.Height() * .25F)),
@@ -69,7 +79,7 @@ void WindowScale::unconditionalDraw() {
     display::DrawLine( // middle (-1)
         point_ui16(point.x - 5, point.y + (rect.Height() / 2)),
         point_ui16(point.x + 5, point.y + (rect.Height() / 2)),
-        COLOR_ORANGE);
+        COLOR_WHITE);
     display::DrawLine( // -
         point_ui16(point.x - 3, point.y + (rect.Height() * .75F)),
         point_ui16(point.x + 3, point.y + (rect.Height() * .75F)),
@@ -77,7 +87,12 @@ void WindowScale::unconditionalDraw() {
     display::DrawLine( // bottom (-2)
         point_ui16(point.x - 5, point.y + rect.Height()),
         point_ui16(point.x + 5, point.y + rect.Height()),
-        COLOR_ORANGE);
+        COLOR_WHITE);
+    /// scale move line
+    // display::DrawLine(
+    //     point_ui16(point.x - 5, point.y + (rect.Height() * movePercent)),
+    //     point_ui16(point.x + 5, point.y + (rect.Height() * movePercent)),
+    //     COLOR_ORANGE);
 }
 /*****************************************************************************/
 //WindowLiveAdjustZ
@@ -186,7 +201,8 @@ LiveAdjustZ::LiveAdjustZ()
     , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
     // , bed(this, Rect16(70, 190, 100, 10))
     , adjuster(this, { 75, 215 })
-    , scale(this, { 45, 125 }) {
+    , scale(this, { 45, 125 })
+    , moveLine(this, { 45, 125, 10, 2 }) {
 
     /// using window_t 1bit flag
     flag_close_on_click = is_closed_on_click_t::yes;
@@ -215,6 +231,13 @@ void LiveAdjustZ::moveNozzle() {
     uint16_t old_top = nozzle_icon.rect.Top();
     Rect16 moved_rect = getNozzleRect();                // starting position - 0%
     float percent = adjuster.GetValue() / z_offset_min; // z_offset value in percent
+
+    // set move percent for a scale line indicator
+    // scale.SetPercent(percent);
+		moveLine.rect = Rect16(scale.rect.TopLeft().x, scale.rect.TopLeft().y + (scale.rect.Height() * percent), 10, 2);
+		scale.Invalidate();
+		moveLine.Invalidate();
+
     moved_rect += Rect16::Top_t(int(40 * percent));     // how much will nozzle move
     nozzle_icon.rect = moved_rect;
     if (old_top != nozzle_icon.rect.Top()) {
