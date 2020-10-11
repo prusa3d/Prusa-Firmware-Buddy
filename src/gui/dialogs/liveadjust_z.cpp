@@ -30,7 +30,6 @@ WindowScale::WindowScale(window_t *parent, point_i16_t pt)
     , scaleNum0(parent, getNumRect(pt), 0)
     , scaleNum1(parent, getNumRect(pt), -1)
     , scaleNum2(parent, getNumRect(pt), -2) {
-    // , moveLine(parent, Rect16(100, 20, 40, 100)) {
     // , moveLine(parent, getNumRect(pt)) {
 
     scaleNum0.SetFont(GuiDefaults::Font);
@@ -44,7 +43,7 @@ WindowScale::WindowScale(window_t *parent, point_i16_t pt)
 
     // moveLine.SetBackColor(COLOR_GREEN);
     point = pt;
-    // movePercent = 0.0F;
+    movePercent = 0.0F;
 }
 
 const Rect16 WindowScale::getNumRect(point_i16_t pt) {
@@ -52,12 +51,12 @@ const Rect16 WindowScale::getNumRect(point_i16_t pt) {
 }
 
 void WindowScale::SetPercent(float p) {
-    // movePercent = p;
-		// moveLine.rect = Rect16(rect.Left(), rect.Top() + (rect.Height() * p), 10, 2);
-		// moveLine.rect = Rect16(100, 20, rect.Left(), rect.Top() + (rect.Height() * p));
-		// moveLine.rect = Rect16(100, 20, 0, 0);
+    movePercent = p;
+    // moveLine.rect = Rect16(rect.Left(), rect.Top() + (rect.Height() * p), 10, 2);
+    // moveLine.rect = Rect16(100, 20, rect.Left(), rect.Top() + (rect.Height() * p));
+    // moveLine.rect = Rect16(100, 20, 0, 0);
     // moveLine.Invalidate();
-		// unconditionalDraw();
+    // unconditionalDraw();
 }
 
 void WindowScale::unconditionalDraw() {
@@ -201,8 +200,7 @@ LiveAdjustZ::LiveAdjustZ()
     , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
     // , bed(this, Rect16(70, 190, 100, 10))
     , adjuster(this, { 75, 215 })
-    , scale(this, { 45, 125 })
-    , moveLine(this, { 45, 125, 10, 2 }) {
+    , scale(this, { 45, 125 }) {
 
     /// using window_t 1bit flag
     flag_close_on_click = is_closed_on_click_t::yes;
@@ -214,6 +212,8 @@ LiveAdjustZ::LiveAdjustZ()
     constexpr static const char *txt = N_("Adjust the nozzle height above the heatbed by turning the knob");
     static const string_view_utf8 text_view = _(txt);
     text.SetText(text_view);
+    text.SetPadding({ 20, 5, 0, 0 });
+    // text.Invalidate();
 
     /// set right position of the nozzle for our value
     moveNozzle();
@@ -233,12 +233,9 @@ void LiveAdjustZ::moveNozzle() {
     float percent = adjuster.GetValue() / z_offset_min; // z_offset value in percent
 
     // set move percent for a scale line indicator
-    // scale.SetPercent(percent);
-		moveLine.rect = Rect16(scale.rect.TopLeft().x, scale.rect.TopLeft().y + (scale.rect.Height() * percent), 10, 2);
-		scale.Invalidate();
-		moveLine.Invalidate();
+    scale.SetPercent(percent);
 
-    moved_rect += Rect16::Top_t(int(40 * percent));     // how much will nozzle move
+    moved_rect += Rect16::Top_t(int(40 * percent)); // how much will nozzle move
     nozzle_icon.rect = moved_rect;
     if (old_top != nozzle_icon.rect.Top()) {
         nozzle_icon.Invalidate();
