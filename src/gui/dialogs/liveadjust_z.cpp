@@ -25,6 +25,7 @@ const float z_offset_max = Z_OFFSET_MAX;
 
 /*****************************************************************************/
 //WindowScale
+
 WindowScale::WindowScale(window_t *parent, point_i16_t pt)
     : AddSuperWindow<window_frame_t>(parent, Rect16(pt, 10, 100))
     , scaleNum0(parent, getNumRect(pt), 0)
@@ -53,14 +54,19 @@ void WindowScale::SetPercent(float p) {
     uint16_t new_y = point.y + (rect.Height() * p);
     movePercent = p;
     if (old_y != new_y) {
+        // instead of fill rectangle and draw scale again
+        // we just draw black line over orange one's old position
+        display::DrawLine(
+            point_ui16(point.x, old_y),
+            point_ui16(point.x + 10, old_y),
+            COLOR_BLACK);
+
+        // redraw scale and new move line position
         unconditionalDraw();
     }
 }
 
 void WindowScale::unconditionalDraw() {
-    Rect16 fill_rect = Rect16(rect.TopLeft(), rect.Width() + 1, rect.Height());
-    /// clear scale rectangle
-    display::FillRect(fill_rect, COLOR_BLACK);
     /// vertical line of scale
     display::DrawLine(
         point_ui16(point.x + 5, point.y),
@@ -100,7 +106,6 @@ WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreenBody)
     , number(this, getNumberRect(pt), marlin_vars()->z_offset)
     , arrows(this, getIconPoint(pt)) {
-    SetBackColor(COLOR_BLUE);
 
     rect = number.rect.Union(arrows.rect);
     /// using window_numb to store float value of z_offset
@@ -156,6 +161,7 @@ void WindowLiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *se
 
 /*****************************************************************************/
 //WindowLiveAdjustZ_withText
+
 WindowLiveAdjustZ_withText::WindowLiveAdjustZ_withText(window_t *parent, point_i16_t pt, size_t width)
     : AddSuperWindow<WindowLiveAdjustZ>(parent, pt)
     , text(parent, Rect16(), is_multiline::no, is_closed_on_click_t::no, _(text_str)) {
@@ -192,6 +198,7 @@ void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, win
 
 /*****************************************************************************/
 //LiveAdjustZ
+
 LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
