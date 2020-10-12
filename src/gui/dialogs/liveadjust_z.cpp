@@ -43,9 +43,10 @@ Rect16 WindowScale::getNumRect(point_i16_t pt) const {
 }
 
 void WindowScale::SetMark(float percent) {
-    if (percent >= 0 && percent <= 1) {
+    int tmp_val = rect.TopLeft().y + (rect.Height() * percent);
+    if (rect.Contain(point_ui16(rect.Left(), tmp_val))) {
         mark_old_y = mark_new_y;
-        mark_new_y = rect.TopLeft().y + (rect.Height() * percent);
+        mark_new_y = static_cast<uint16_t>(tmp_val);
         if (mark_old_y != mark_new_y) {
             Invalidate();
         }
