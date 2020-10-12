@@ -8,6 +8,23 @@
 #include "window_arrows.hpp"
 #include "../../lang/i18n.h"
 
+class WindowScale : public AddSuperWindow<window_frame_t> {
+    window_numb_t scaleNum0;
+    window_numb_t scaleNum1;
+    window_numb_t scaleNum2;
+
+    uint16_t mark_old_y;
+    uint16_t mark_new_y;
+
+public:
+    WindowScale(window_t *parent, point_i16_t pt);
+    void SetMark(float percent);
+
+protected:
+    virtual void unconditionalDraw() override;
+    Rect16 getNumRect(point_i16_t pt) const;
+};
+
 //regular window bound to Z calib
 class WindowLiveAdjustZ : public AddSuperWindow<window_frame_t> {
 protected:
@@ -28,7 +45,7 @@ protected:
     }
     static constexpr point_i16_t getIconPoint(point_i16_t pt) {
         point_i16_t ret = getNumberRect(pt).TopEndPoint();
-        return { ret.x, int16_t(ret.y + 5) };
+        return { ret.x, int16_t(ret.y + 0) };
     }
 
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
@@ -51,8 +68,9 @@ protected:
 class LiveAdjustZ : public AddSuperWindow<IDialog> {
     window_text_t text;
     window_icon_t nozzle_icon;
-    window_frame_t bed;
     WindowLiveAdjustZ adjuster;
+    WindowScale scale;
+    window_frame_t moveLine;
 
     LiveAdjustZ(); // created by static Open method
 
