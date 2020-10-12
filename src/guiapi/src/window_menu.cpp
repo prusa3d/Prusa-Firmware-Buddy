@@ -170,20 +170,58 @@ void window_menu_t::Increment(int dif) {
         return;
     }
 
-    const int old_index = index;
+    SetIndex(index + dif);
+    Invalidate();
+    Sound_Play(eSOUND_TYPE::EncoderMove);
+    return;
 
-    if (moveToNextVisibleItem(dif)) {
-        Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
-    } else {
-        Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by the cursor
+    //all items can be in label mode
+    int item_height = font->h + padding.top + padding.bottom;
+    int visible_count = rect.Height() / item_height;
+    int old_index = GetIndex();
+    auto next_visible = [this, dif](int index) -> int {
+        uint32_t last_visible = index;
+        if ((index + dif) < 0) {
+            Sound_Play(eSOUND_TYPE::BlindAlert); // play sound at first or last index of menu
+            return 0;
+        }
+        if ((index + dif) >= GetCount()) {
+            Sound_Play(eSOUND_TYPE::BlindAlert); // play sound at first or last index of menu
+            return GetCount() - 1;
+        }
+        for (index = index + dif;
+             GetItem(index) && GetItem(index)->IsHidden();
+             index += dif < 0 ? -1 : 1)
+            ;
+        return GetItem(index) ? index : last_visible;
+    };
+
+    int new_index = next_visible(old_index);
+    if (new_index < top_index)
+        top_index = new_index;
+    if (new_index >= (top_index + visible_count))
+        top_index = new_index - visible_count + 1;
+
+    if (new_index != old_index) { // optimization do not redraw when no change - still on end
+        SetIndex(new_index);
+        Invalidate();
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     }
 
-    if (refreshTopIndex()) {
-        Invalidate(); /// whole menu moved, redraw everything
-    } else {
-        unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
-        unconditionalDrawItem(index);
-    }
+    // const int old_index = index;
+    //
+    // if (moveToNextVisibleItem(dif)) {
+    //     Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
+    // } else {
+    //     Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by the cursor
+    // }
+    //
+    // if (refreshTopIndex()) {
+    //     Invalidate(); /// whole menu moved, redraw everything
+    // } else {
+    //     unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
+    //     unconditionalDrawItem(index);
+    // }
 }
 
 //I think I do not need
