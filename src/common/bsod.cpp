@@ -7,6 +7,7 @@
 #include "task.h"
 #include "sound.hpp"
 #include "wdt.h"
+#include "dump.h"
 
 #ifndef HAS_GUI
     #error "HAS_GUI not defined"
@@ -537,15 +538,17 @@ void ScreenHardFault(void) {
     static const constexpr uint8_t ROWS = 21;
     static const constexpr uint8_t COLS = 32;
 
-    __disable_irq(); //disable irq
-
     char tskName[configMAX_TASK_NAME_LEN];
     memset(tskName, '\0', sizeof(tskName) * sizeof(char)); // set to zeros to be on the safe side
-    strlcpy(tskName, pxCurrentTCB->pcTaskName, sizeof(tskName));
-    StackType_t *pTopOfStack = (StackType_t *)pxCurrentTCB->pxTopOfStack;
-    StackType_t *pBotOfStack = pxCurrentTCB->pxStack;
 
-    stop_common();
+    uint32_t __pxCurrentTCB;
+    dump_in_xflash_read_RAM(&__pxCurrentTCB, (unsigned int)&pxCurrentTCB, sizeof(uint32_t));
+    TCB_t CurrentTCB;
+    dump_in_xflash_read_RAM(&CurrentTCB, __pxCurrentTCB, sizeof(TCB_t));
+
+    strlcpy(tskName, CurrentTCB.pcTaskName, sizeof(tskName));
+    StackType_t *pTopOfStack = (StackType_t *)CurrentTCB.pxTopOfStack;
+    StackType_t *pBotOfStack = CurrentTCB.pxStack;
 
     display::Clear(COLOR_NAVY);               //clear with dark blue color
     term_t term;                              //terminal structure
@@ -554,7 +557,12 @@ void ScreenHardFault(void) {
 
     term_printf(&term, "TASK: %s. ", tskName);
 
-    switch ((SCB->CFSR) & (IACCVIOL_Msk | DACCVIOL_Msk | MSTKERR_Msk | MUNSTKERR_Msk | MLSPERR_Msk | STKERR_Msk | UNSTKERR_Msk | IBUSERR_Msk | LSPERR_Msk | PRECISERR_Msk | IMPRECISERR_Msk | UNDEFINSTR_Msk | INVSTATE_Msk | INVPC_Msk | NOCPC_Msk | UNALIGNED_Msk | DIVBYZERO_Msk)) {
+    uint32_t __SCB[35];
+    dump_in_xflash_read_regs_SCB(&__SCB, 35 * sizeof(uint32_t));
+
+    uint32_t __CFSR = __SCB[0x28 >> 2];
+
+    switch ((__CFSR) & (IACCVIOL_Msk | DACCVIOL_Msk | MSTKERR_Msk | MUNSTKERR_Msk | MLSPERR_Msk | STKERR_Msk | UNSTKERR_Msk | IBUSERR_Msk | LSPERR_Msk | PRECISERR_Msk | IMPRECISERR_Msk | UNDEFINSTR_Msk | INVSTATE_Msk | INVPC_Msk | NOCPC_Msk | UNALIGNED_Msk | DIVBYZERO_Msk)) {
     case IACCVIOL_Msk:
         term_printf(&term, IACCVIOL_Txt);
         break;
@@ -610,43 +618,59 @@ void ScreenHardFault(void) {
         break;
 
     default:
-        term_printf(&term, "Multiple Errors CFSR :%08x", SCB->CFSR);
+        term_printf(&term, "Multiple Errors CFSR :%08x", __CFSR);
         break;
     }
     term_printf(&term, "\n");
 
     term_printf(&term, "bot: 0x%08x top: 0x%08x\n", pBotOfStack, pTopOfStack);
 
+    uint32_t __CPUID = __SCB[0x00 >> 2];
+    uint32_t __ICSR = __SCB[0x04 >> 2];
+    uint32_t __VTOR = __SCB[0x08 >> 2];
+    uint32_t __AIRCR = __SCB[0x0c >> 2];
+    uint32_t __SCR = __SCB[0x10 >> 2];
+    uint32_t __CCR = __SCB[0x14 >> 2];
+    uint32_t __SHCSR = __SCB[0x24 >> 2];
+    uint32_t __HFSR = __SCB[0x2c >> 2];
+    uint32_t __DFSR = __SCB[0x30 >> 2];
+    uint32_t __MMFAR = __SCB[0x34 >> 2];
+    uint32_t __BFAR = __SCB[0x38 >> 2];
+    uint32_t __AFSR = __SCB[0x3c >> 2];
+    uint32_t __DFR = __SCB[0x48 >> 2];
+    uint32_t __ADR = __SCB[0x4c >> 2];
+    uint32_t __CPACR = __SCB[0x88 >> 2];
+
     //32 characters pre line
-    term_printf(&term, "CPUID:%08x  ", SCB->CPUID);
-    if (SCB->ICSR)
-        term_printf(&term, "ICSR :%08x  ", SCB->ICSR);
-    if (SCB->VTOR)
-        term_printf(&term, "VTOR :%08x  ", SCB->VTOR);
-    if (SCB->AIRCR)
-        term_printf(&term, "AIRCR:%08x  ", SCB->AIRCR);
-    if (SCB->SCR)
-        term_printf(&term, "SCR  :%08x  ", SCB->SCR);
-    if (SCB->CCR)
-        term_printf(&term, "CCR  :%08x  ", SCB->CCR);
-    if (SCB->SHCSR)
-        term_printf(&term, "SHCSR:%08x  ", SCB->SHCSR);
-    if (SCB->HFSR)
-        term_printf(&term, "HFSR :%08x  ", SCB->HFSR);
-    if (SCB->DFSR)
-        term_printf(&term, "DFSR :%08x  ", SCB->DFSR);
-    if ((SCB->CFSR) & MMARVALID_Msk)
-        term_printf(&term, "MMFAR:%08x  ", SCB->MMFAR); //print this only if value is valid
-    if ((SCB->CFSR) & BFARVALID_Msk)
-        term_printf(&term, "BFAR :%08x  ", SCB->BFAR); //print this only if value is valid
-    if (SCB->AFSR)
-        term_printf(&term, "AFSR :%08x  ", SCB->AFSR);
-    if (SCB->DFR)
-        term_printf(&term, "DFR  :%08x  ", SCB->DFR);
-    if (SCB->ADR)
-        term_printf(&term, "ADR  :%08x  ", SCB->ADR);
-    if (SCB->CPACR)
-        term_printf(&term, "CPACR:%08x\n", SCB->CPACR);
+    term_printf(&term, "CPUID:%08x  ", __CPUID);
+    if (__ICSR)
+        term_printf(&term, "ICSR :%08x  ", __ICSR);
+    if (__VTOR)
+        term_printf(&term, "VTOR :%08x  ", __VTOR);
+    if (__AIRCR)
+        term_printf(&term, "AIRCR:%08x  ", __AIRCR);
+    if (__SCR)
+        term_printf(&term, "SCR  :%08x  ", __SCR);
+    if (__CCR)
+        term_printf(&term, "CCR  :%08x  ", __CCR);
+    if (__SHCSR)
+        term_printf(&term, "SHCSR:%08x  ", __SHCSR);
+    if (__HFSR)
+        term_printf(&term, "HFSR :%08x  ", __HFSR);
+    if (__DFSR)
+        term_printf(&term, "DFSR :%08x  ", __DFSR);
+    if ((__CFSR)&MMARVALID_Msk)
+        term_printf(&term, "MMFAR:%08x  ", __MMFAR); //print this only if value is valid
+    if ((__CFSR)&BFARVALID_Msk)
+        term_printf(&term, "BFAR :%08x  ", __BFAR); //print this only if value is valid
+    if (__AFSR)
+        term_printf(&term, "AFSR :%08x  ", __AFSR);
+    if (__DFR)
+        term_printf(&term, "DFR  :%08x  ", __DFR);
+    if (__ADR)
+        term_printf(&term, "ADR  :%08x  ", __ADR);
+    if (__CPACR)
+        term_printf(&term, "CPACR:%08x\n", __CPACR);
 
     /*
     term_printf(&term, "r0 :%08x", r0);
@@ -675,20 +699,15 @@ void ScreenHardFault(void) {
     int space_counter = 0; //3rd string does not have a space behind it
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
         space_counter++;
-        term_printf(&term, "0x%08x", *i);
+        uint32_t sp = 0;
+        dump_in_xflash_read_RAM(&sp, (unsigned int)i, sizeof(uint32_t));
+        term_printf(&term, "0x%08x", sp);
         if (space_counter % 3)
             term_printf(&term, " ");
     }
 
     render_term(&term, 10, 10, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
-
-    while (1) //endless loop
-    {
-        wdt_iwdg_refresh();
-
-        //TODO: safe delay with sleep
-    }
 }
 
     #endif //PSOD_BSOD

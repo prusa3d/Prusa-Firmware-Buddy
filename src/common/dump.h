@@ -8,7 +8,9 @@
 static const uint8_t DUMP_UNDEFINED = 0xff; // undefined - memory erased/empty
 static const uint8_t DUMP_HARDFAULT = 0x01; // hardfault dump
 static const uint8_t DUMP_IWDGW = 0x02;     // IWDG warning dump
+static const uint8_t DUMP_GENERAL = 0x03;   // general error dump
 static const uint8_t DUMP_NOT_SAVED = 0x80; // dump not saved flag - (unsaved dump cannot be overwritten)
+static const uint8_t DUMP_NOT_DISPL = 0x40; // dump not displayed after startup
 
 enum {
     // dumped ram area (128kb)
@@ -113,7 +115,7 @@ static const uint32_t DUMP_INFO_SIZE = 0x00000010;
 
 // fill dumpinfo
 #define DUMP_INFO_TO_CCRAM(type) \
-    *((unsigned char *)DUMP_INFO_ADDR) = type | DUMP_NOT_SAVED;
+    *((unsigned char *)DUMP_INFO_ADDR) = type | DUMP_NOT_SAVED | DUMP_NOT_DISPL;
 
 // perform hardfault dump (directly from HardFault_Handler that must be "naked")
 #define DUMP_HARDFAULT_TO_CCRAM()           \
@@ -145,6 +147,18 @@ extern void dump_to_xflash(void);
 extern int dump_in_xflash_is_valid(void);
 
 extern int dump_in_xflash_is_saved(void);
+
+extern int dump_in_xflash_is_displayed(void);
+
+extern int dump_in_xflash_get_type(void);
+
+extern void dump_in_xflash_set_displayed(void);
+
+extern unsigned int dump_in_xflash_read_RAM(void *pRAM, unsigned int addr, unsigned int size);
+
+extern unsigned int dump_in_xflash_read_regs_SCB(void *pRegsSCB, unsigned int size);
+
+extern unsigned int dump_in_xflash_read_regs_GEN(void *pRegsGEN, unsigned int size);
 
 extern int dump_save_to_usb(const char *fn);
 
