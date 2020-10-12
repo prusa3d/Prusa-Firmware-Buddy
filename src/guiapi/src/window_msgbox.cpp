@@ -69,6 +69,7 @@ MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_b
     , title(this, getTitleRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
     title.font = getTitleFont();
+    title.SetPadding({ 0, 0, 0, 0 });
 }
 
 Rect16 MsgBoxTitled::getTitleRect() {
