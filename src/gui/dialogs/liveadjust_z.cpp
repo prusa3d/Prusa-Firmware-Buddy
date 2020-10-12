@@ -31,10 +31,6 @@ WindowScale::WindowScale(window_t *parent, point_i16_t pt)
     , scaleNum0(parent, getNumRect(pt), 0)
     , scaleNum1(parent, getNumRect(pt), -1)
     , scaleNum2(parent, getNumRect(pt), -2) {
-
-    scaleNum0.SetFont(GuiDefaults::Font);
-    scaleNum1.SetFont(GuiDefaults::Font);
-    scaleNum2.SetFont(GuiDefaults::Font);
     scaleNum0.SetFormat("% .0f");
 
     scaleNum0.rect -= Rect16::Top_t(8);
@@ -46,13 +42,22 @@ Rect16 WindowScale::getNumRect(point_i16_t pt) const {
     return Rect16(pt.x - 30, pt.y, 30, 20);
 }
 
-void WindowScale::SetPercent(float p) {
-    old_y = rect.TopLeft().y + (rect.Height() * movePercent);
-    movePercent = p;
-    Invalidate();
+void WindowScale::SetMark(float percent) {
+    if (percent >= 0 && percent <= 1) {
+        mark_old_y = mark_new_y;
+        mark_new_y = rect.TopLeft().y + (rect.Height() * percent);
+        if (mark_old_y != mark_new_y) {
+            Invalidate();
+        }
+    }
 }
 
 void WindowScale::unconditionalDraw() {
+    /// redraw old mark line
+    display::DrawLine(
+        point_ui16(rect.Left(), mark_old_y),
+        point_ui16(rect.Left() + 10, mark_old_y),
+        COLOR_BLACK);
     /// vertical line of scale
     display::DrawLine(
         point_ui16(rect.Left() + 5, rect.Top()),
@@ -79,17 +84,10 @@ void WindowScale::unconditionalDraw() {
         point_ui16(rect.Left() + 2, rect.Top() + rect.Height()),
         point_ui16(rect.Left() + 8, rect.Top() + rect.Height()),
         COLOR_WHITE);
-    /// scale move line
-    uint16_t new_y = rect.Top() + (rect.Height() * movePercent);
-    if (old_y != new_y) {
-        display::DrawLine(
-            point_ui16(rect.Left(), old_y),
-            point_ui16(rect.Left() + 10, old_y),
-            COLOR_BLACK);
-    }
+    /// scale mark line
     display::DrawLine(
-        point_ui16(rect.Left(), new_y),
-        point_ui16(rect.Left() + 10, new_y),
+        point_ui16(rect.Left(), mark_new_y),
+        point_ui16(rect.Left() + 10, mark_new_y),
         COLOR_ORANGE);
 }
 /*****************************************************************************/
@@ -226,7 +224,7 @@ void LiveAdjustZ::moveNozzle() {
     float percent = adjuster.GetValue() / z_offset_min; // z_offset value in percent
 
     // set move percent for a scale line indicator
-    scale.SetPercent(percent);
+    scale.SetMark(percent);
 
     moved_rect += Rect16::Top_t(int(40 * percent)); // how much will nozzle move
     nozzle_icon.rect = moved_rect;

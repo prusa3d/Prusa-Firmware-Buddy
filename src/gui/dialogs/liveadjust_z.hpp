@@ -12,12 +12,13 @@ class WindowScale : public AddSuperWindow<window_frame_t> {
     window_numb_t scaleNum0;
     window_numb_t scaleNum1;
     window_numb_t scaleNum2;
-    float movePercent;
-    uint16_t old_y;
+
+    uint16_t mark_old_y;
+    uint16_t mark_new_y;
 
 public:
     WindowScale(window_t *parent, point_i16_t pt);
-    void SetPercent(float p);
+    void SetMark(float percent);
 
 protected:
     virtual void unconditionalDraw() override;
