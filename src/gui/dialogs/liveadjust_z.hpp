@@ -8,13 +8,12 @@
 #include "window_arrows.hpp"
 #include "../../lang/i18n.h"
 
-/* class WindowScale : public window_aligned_t { */
 class WindowScale : public AddSuperWindow<window_frame_t> {
     window_numb_t scaleNum0;
     window_numb_t scaleNum1;
     window_numb_t scaleNum2;
-    point_i16_t point;
     float movePercent;
+    uint16_t old_y;
 
 public:
     WindowScale(window_t *parent, point_i16_t pt);
@@ -22,7 +21,7 @@ public:
 
 protected:
     virtual void unconditionalDraw() override;
-    const Rect16 getNumRect(point_i16_t pt);
+    Rect16 getNumRect(point_i16_t pt) const;
 };
 
 //regular window bound to Z calib
@@ -68,7 +67,6 @@ protected:
 class LiveAdjustZ : public AddSuperWindow<IDialog> {
     window_text_t text;
     window_icon_t nozzle_icon;
-    // window_frame_t bed;
     WindowLiveAdjustZ adjuster;
     WindowScale scale;
     window_frame_t moveLine;

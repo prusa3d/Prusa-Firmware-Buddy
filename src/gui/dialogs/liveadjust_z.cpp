@@ -40,63 +40,56 @@ WindowScale::WindowScale(window_t *parent, point_i16_t pt)
     scaleNum0.rect -= Rect16::Top_t(8);
     scaleNum1.rect += Rect16::Top_t((rect.Height() / 2) - 8);
     scaleNum2.rect += Rect16::Top_t(rect.Height() - 8);
-
-    point = pt;
-    movePercent = 0.0F;
 }
 
-const Rect16 WindowScale::getNumRect(point_i16_t pt) {
+Rect16 WindowScale::getNumRect(point_i16_t pt) const {
     return Rect16(pt.x - 30, pt.y, 30, 20);
 }
 
 void WindowScale::SetPercent(float p) {
-    uint16_t old_y = point.y + (rect.Height() * movePercent);
-    uint16_t new_y = point.y + (rect.Height() * p);
+    old_y = rect.TopLeft().y + (rect.Height() * movePercent);
     movePercent = p;
-    if (old_y != new_y) {
-        // instead of fill rectangle and draw scale again
-        // we just draw black line over orange one's old position
-        display::DrawLine(
-            point_ui16(point.x, old_y),
-            point_ui16(point.x + 10, old_y),
-            COLOR_BLACK);
-
-        // redraw scale and new move line position
-        unconditionalDraw();
-    }
+    Invalidate();
 }
 
 void WindowScale::unconditionalDraw() {
     /// vertical line of scale
     display::DrawLine(
-        point_ui16(point.x + 5, point.y),
-        point_ui16(point.x + 5, point.y + rect.Height()),
+        point_ui16(rect.Left() + 5, rect.Top()),
+        point_ui16(rect.Left() + 5, rect.Top() + rect.Height()),
         COLOR_WHITE);
     /// horizontal lines
     display::DrawLine( // top (0)
-        point_ui16(point.x, point.y),
-        point_ui16(point.x + 10, point.y),
+        point_ui16(rect.Left(), rect.Top()),
+        point_ui16(rect.Left() + 10, rect.Top()),
         COLOR_WHITE);
     display::DrawLine( // -
-        point_ui16(point.x + 2, point.y + (rect.Height() * .25F)),
-        point_ui16(point.x + 8, point.y + (rect.Height() * .25F)),
+        point_ui16(rect.Left() + 2, rect.Top() + (rect.Height() * .25F)),
+        point_ui16(rect.Left() + 8, rect.Top() + (rect.Height() * .25F)),
         COLOR_WHITE);
     display::DrawLine( // middle (-1)
-        point_ui16(point.x, point.y + (rect.Height() / 2)),
-        point_ui16(point.x + 10, point.y + (rect.Height() / 2)),
+        point_ui16(rect.Left(), rect.Top() + (rect.Height() / 2)),
+        point_ui16(rect.Left() + 10, rect.Top() + (rect.Height() / 2)),
         COLOR_WHITE);
     display::DrawLine( // -
-        point_ui16(point.x + 2, point.y + (rect.Height() * .75F)),
-        point_ui16(point.x + 8, point.y + (rect.Height() * .75F)),
+        point_ui16(rect.Left() + 2, rect.Top() + (rect.Height() * .75F)),
+        point_ui16(rect.Left() + 8, rect.Top() + (rect.Height() * .75F)),
         COLOR_WHITE);
     display::DrawLine( // bottom (-2)
-        point_ui16(point.x + 2, point.y + rect.Height()),
-        point_ui16(point.x + 8, point.y + rect.Height()),
+        point_ui16(rect.Left() + 2, rect.Top() + rect.Height()),
+        point_ui16(rect.Left() + 8, rect.Top() + rect.Height()),
         COLOR_WHITE);
     /// scale move line
+    uint16_t new_y = rect.Top() + (rect.Height() * movePercent);
+    if (old_y != new_y) {
+        display::DrawLine(
+            point_ui16(rect.Left(), old_y),
+            point_ui16(rect.Left() + 10, old_y),
+            COLOR_BLACK);
+    }
     display::DrawLine(
-        point_ui16(point.x, point.y + (rect.Height() * movePercent)),
-        point_ui16(point.x + 10, point.y + (rect.Height() * movePercent)),
+        point_ui16(rect.Left(), new_y),
+        point_ui16(rect.Left() + 10, new_y),
         COLOR_ORANGE);
 }
 /*****************************************************************************/
