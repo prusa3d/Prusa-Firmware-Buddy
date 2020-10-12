@@ -66,7 +66,10 @@ void MsgCircleBuffer_cb(const char *txt) {
     MsgCircleBuffer().push_back(txt);
     //cannot open == already openned
     if (!IScreenPrinting::CanOpen()) {
-        window_dlg_popup_t::Show(string_view_utf8::MakeRAM((const uint8_t *)txt));
+        // message for MakeRAM must exist at least as long as string_view_utf8 exists
+        static std::array<uint8_t, MSG_MAX_LENGTH> msg;
+        strlcpy((char *)msg.data(), txt, MSG_MAX_LENGTH);
+        window_dlg_popup_t::Show(string_view_utf8::MakeRAM(msg.data()));
     }
 }
 
