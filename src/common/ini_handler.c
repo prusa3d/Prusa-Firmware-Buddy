@@ -4,6 +4,7 @@
 #include "wui_api.h"
 #include "ff.h"
 #include "eeprom.h"
+#include "strings.h"
 
 #define MAX_UINT16 65535
 
@@ -18,10 +19,10 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
     ETH_config_t *tmp_config = (ETH_config_t *)user;
 
     if (ini_string_match(section, "lan_ip4", name, "type")) {
-        if (strncmp(value, "DHCP", 4) == 0 || strncmp(value, "dhcp", 4) == 0) {
+        if (strncasecmp(value, "DHCP", 4) == 0) {
             CHANGE_LAN_TO_DHCP(tmp_config->lan.flag);
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        } else if (strncmp(value, "STATIC", 6) == 0 || strncmp(value, "static", 6) == 0) {
+        } else if (strncasecmp(value, "STATIC", 6) == 0) {
             CHANGE_LAN_TO_STATIC(tmp_config->lan.flag);
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
         }

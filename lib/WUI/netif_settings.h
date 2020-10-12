@@ -1,5 +1,4 @@
-#ifndef NETIF_SETTINGS_H
-#define NETIF_SETTINGS_H
+#pragma once
 
 #include "lwip/ip_addr.h"
 
@@ -61,5 +60,3 @@ uint32_t get_eth_update_mask();
 #ifdef __cplusplus
 }
 #endif
-
-#endif //NETIF_SETTINGS_H

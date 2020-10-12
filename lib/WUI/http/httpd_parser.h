@@ -5,8 +5,8 @@
  *      Author: joshy
  */
 
-#ifndef LIB_WUI_HTTP_HTTPD_PARSER_H_
-#define LIB_WUI_HTTP_HTTPD_PARSER_H_
+#pragma once
+
 #include "stdint.h"
 
 /*!*************************************************************************************************
@@ -19,5 +19,3 @@
 * \retval 1 if successful, 0 if error occured
 ***************************************************************************************************/
 uint32_t httpd_json_parser(char *json, uint32_t len);
-
-#endif /* LIB_WUI_HTTP_HTTPD_PARSER_H_ */

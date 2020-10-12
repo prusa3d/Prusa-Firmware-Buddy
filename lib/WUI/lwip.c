@@ -107,11 +107,7 @@ void netif_link_callback(struct netif *eth) {
 }
 
 void netif_status_callback(struct netif *eth) {
-    if (netif_is_up(eth)) {
-        netif_status = WUI_ETH_NETIF_UP;
-    } else {
-        netif_status = WUI_ETH_NETIF_DOWN;
-    }
+    netif_status = netif_is_up(eth) ? WUI_ETH_NETIF_UP : WUI_ETH_NETIF_DOWN;
 }
 
 void wui_lwip_link_status() {
