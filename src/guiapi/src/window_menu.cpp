@@ -80,10 +80,10 @@ IWindowMenuItem *window_menu_t::GetActiveItem() {
     return GetItem(index);
 }
 
-bool window_menu_t::moveToNextVisibleItem(int steps = 1) {
+bool window_menu_t::moveToNextVisibleItem(int steps) {
     if (steps == 0)
         return true;
-    int dir = SIGN1(steps); /// direction fo movement
+    int dir = SIGN1(steps); /// direction of movement
 
     IWindowMenuItem *item;
     for (int todo = std::abs(steps); todo > 0; --todo) {
@@ -101,8 +101,60 @@ bool window_menu_t::moveToNextVisibleItem(int steps = 1) {
     return true;
 }
 
+int window_menu_t::visibleIndex(const int real_index) {
+    int visible = 0;
+    IWindowMenuItem *item;
+    for (int i = 0; i < GetCount(); ++i) {
+        item = GetItem(i);
+        if (!item)
+            return -1;
+        if (!item->IsHidden())
+            visible++;
+        if (i == real_index)
+            return visible;
+    }
+    return -1;
+}
+
+int window_menu_t::realIndex(const int visible_index) {
+    int visible = 0;
+    IWindowMenuItem *item;
+    int i;
+    for (i = 0; i < GetCount(); ++i) {
+        item = GetItem(i);
+        if (!item)
+            return -1;
+        if (!item->IsHidden())
+            visible++;
+        if (visible == visible_index)
+            break;
+    }
+
+    if (visible == visible_index)
+        return i;
+    return -1;
+}
+
 bool window_menu_t::refreshTopIndex() {
-    ...
+    if (index < top_index) {
+        top_index = index;
+        return true;
+    }
+
+    if (index == top_index)
+        return false;
+
+    const int item_height = font->h + padding.top + padding.bottom;
+    int visible_available = rect.Height() / item_height;
+
+    int visible_index = visibleIndex(index);
+    int visible_top_index = visibleIndex(top_index);
+
+    if (visible_top_index + visible_available >= visible_index)
+        return false;
+
+    top_index = std::max(0, realIndex(visible_index - visible_available));
+    return true;
 }
 
 void window_menu_t::Increment(int dif) {
@@ -118,24 +170,18 @@ void window_menu_t::Increment(int dif) {
         return;
     }
 
-    //all items can be in label mode
-    const int item_height = font->h + padding.top + padding.bottom;
-    const int visible_count = rect.Height() / item_height;
-
     const int old_index = index;
 
     if (moveToNextVisibleItem(dif)) {
         Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
     } else {
-        Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by cursor
+        Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by the cursor
     }
 
     if (refreshTopIndex()) {
-        /// whole menu moved, redraw everything
-        Invalidate();
+        Invalidate(); /// whole menu moved, redraw everything
     } else {
-        /// just cursor moved, redraw cursor only
-        unconditionalDrawItem(old_index);
+        unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
         unconditionalDrawItem(index);
     }
 }
@@ -211,9 +257,9 @@ void window_menu_t::unconditionalDraw() {
     size_t visible_count = 0;
     IWindowMenuItem *item;
 
-    for (size_t i = 0; visible_count < visible_available && i < GetCount(); ++i) {
+    for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
 
-        item = GetItem(i + top_index);
+        item = GetItem(i);
         if (!item)
             break;
         if (item->IsHidden())
@@ -235,13 +281,13 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
     const size_t visible_available = rect.Height() / item_height;
     size_t visible_count = 0;
     IWindowMenuItem *item = nullptr;
-    for (size_t i = 0; visible_count < visible_available && i < GetCount(); ++i) {
-        item = GetItem(i + top_index);
+    for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
+        item = GetItem(i);
         if (!item)
             return;
         if (item->IsHidden())
             continue;
-        if (i + top_index == index) {
+        if (i == index) {
             printItem(rect, visible_count, item, item_height);
             break;
         }

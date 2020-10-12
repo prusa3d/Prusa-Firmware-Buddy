@@ -20,7 +20,11 @@ class window_menu_t : public IWindowMenu {
     bool moveToNextVisibleItem(int steps = 1);
     /// Moves menu so the cursor is on the screen
     /// \returns true if menu was moved
-    bool window_menu_t::refreshTopIndex();
+    bool refreshTopIndex();
+    /// \returns index of visible items (excluding hidden) according to
+    /// index from the complete item list (including hidden)
+    int visibleIndex(const int real_index);
+    int realIndex(const int visible_index);
 
 public:
     window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index = 0);
