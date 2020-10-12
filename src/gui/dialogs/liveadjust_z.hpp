@@ -13,8 +13,6 @@ class WindowScale : public AddSuperWindow<window_frame_t> {
     window_numb_t scaleNum0;
     window_numb_t scaleNum1;
     window_numb_t scaleNum2;
-    // because display draw func clear cannot clear rect
-    /* window_frame_t moveLine; */
     point_i16_t point;
     float movePercent;
 
