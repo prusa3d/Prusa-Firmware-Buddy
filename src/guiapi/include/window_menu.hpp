@@ -21,9 +21,11 @@ class window_menu_t : public IWindowMenu {
     /// Moves menu so the cursor is on the screen
     /// \returns true if menu was moved
     bool refreshTopIndex();
-    /// \returns index of visible items (excluding hidden) according to
+    /// \returns index in visible item list (excluding hidden) according to
     /// index from the complete item list (including hidden)
     int visibleIndex(const int real_index);
+    /// \returns index of the item (including hidden) defined by
+    /// index in visible item list (excluding hidden)
     int realIndex(const int visible_index);
 
 public:
