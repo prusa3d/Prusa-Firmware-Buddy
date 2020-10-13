@@ -173,7 +173,7 @@ void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config) {
     ip4addr_ntoa_r(&(config->lan.gw_ip4), gw, IP4_ADDR_STR_SIZE);
     parse_MAC_address(&mac);
 
-    snprintf(*dest, LAN_DESCP_SIZE, "IPv4 Address:\n  %s      \nIPv4 Netmask:\n  %s      \nIPv4 Gateway:\n  %s      \nMAC Address:\n  %s",
+    snprintf(*dest, LAN_DESCP_SIZE, "IPv4 Address:\n%s\nIPv4 Netmask:\n%s\nIPv4 Gateway:\n%s\nMAC Address:\n%s",
         addr, msk, gw, mac);
 }
 
