@@ -8,7 +8,6 @@ add_executable(jogwheel_tests
 # define required search paths
 target_include_directories(jogwheel_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include
     ${CMAKE_SOURCE_DIR}/src/common
-    ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/include
 )
 
 # define custom macros

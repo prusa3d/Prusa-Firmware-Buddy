@@ -3,6 +3,8 @@
 #include "Jogwheel.hpp"
 #include "hwio_pindef.h"
 
+void _bsod(const char *fmt, const char *fine_name, int line_number, ...) {}
+
 namespace buddy::hw {
 jogPin jogWheelEN1;
 jogPin jogWheelEN2;
