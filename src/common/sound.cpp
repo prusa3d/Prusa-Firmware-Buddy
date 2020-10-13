@@ -4,6 +4,9 @@
 
 static bool SOUND_INIT = false;
 
+/// main constant of main volume which is maximal volume that we allow
+const float Sound::volumeInit = 0.35F;
+
 /// durations of signals in ms
 const int16_t Sound::durations[eSOUND_TYPE::count] = { 100, 500, 200, 500,
     10, 50, 100, 800, 100 };

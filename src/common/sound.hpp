@@ -63,8 +63,9 @@ private:
     int16_t delay_active;    ///< live variable used for delay measure
     int16_t delay_set;       ///< added variable for delay betwen beeps
 
-    /// main volume value
-    static constexpr float volumeInit = 0.35F;
+    /// main constant of main volume which is maximal volume that we allow
+    static const float volumeInit;
+
     /// values of sound signals - frequencies, volumes, durations
     static const int16_t durations[eSOUND_TYPE::count];
     static const float frequencies[eSOUND_TYPE::count];
