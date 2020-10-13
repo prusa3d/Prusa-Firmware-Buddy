@@ -33,16 +33,10 @@ void Jogwheel::InitSpinMessageQueueInstance_NotFromISR() {
 
 #else // (configSUPPORT_STATIC_ALLOCATION == 1 )
 
-// QueueHandle_t is a pointer
-// cannot be called in interrupt !!!
-// could set nullptr, handled in gui thread while reading (bsod)
 void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
     button_queue_handle = xQueueCreate(ButtonMessageQueueLength, sizeof(Jogwheel::BtnState_t));
 }
 
-// QueueHandle_t is a pointer
-// cannot be called in interrupt !!!
-// could set nullptr, handled in gui thread while reading (bsod)
 void Jogwheel::InitSpinMessageQueueInstance_NotFromISR() {
     spin_queue_handle = xQueueCreate(SpinMessageQueueLength, sizeof(SpinMessage_t));
 }
@@ -117,7 +111,7 @@ bool Jogwheel::ConsumeButtonEvent(Jogwheel::BtnState_t &ev) {
         __enable_irq();
 
         if (button_queue_handle == nullptr) {
-            bsod("ButtonMessageQueue heap malloc error ");
+            bsod("ButtonMessageQueue heap malloc error");
         }
     }
 
@@ -133,7 +127,7 @@ int32_t Jogwheel::ConsumeEncoderDiff() {
         __enable_irq();
 
         if (spin_queue_handle == nullptr) {
-            bsod("SpinMessageQueue heap malloc error ");
+            bsod("SpinMessageQueue heap malloc error");
         }
     }
 
