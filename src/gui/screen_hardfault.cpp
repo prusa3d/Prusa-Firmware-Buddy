@@ -26,4 +26,3 @@ void screen_hardfault_data_t::draw() {
     window_frame_t::draw();
     ScreenHardFault();
 }
-

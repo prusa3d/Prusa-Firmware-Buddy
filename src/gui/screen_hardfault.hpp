@@ -12,5 +12,4 @@ public:
 
 private:
     virtual void draw() override;
-
 };
