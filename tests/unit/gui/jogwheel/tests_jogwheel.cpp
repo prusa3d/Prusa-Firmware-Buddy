@@ -59,7 +59,7 @@ public:
             jogWheelEN2.state = Pin::State::high;
             break;
         }
-        Update1ms();
+        Update1msFromISR();
     }
 
     phase_t GetEncoderPhase() {
@@ -129,7 +129,7 @@ TEST_CASE("Jogwheel tests", "[jogwheel]") {
     SECTION("button test") {
         TestJogwheel j;
         jogWheelENC.state = Pin::State::high; //inverted
-        j.Update1ms();
+        j.Update1msFromISR();
         hal_tick += 1000;
 
         REQUIRE_FALSE(j.ConsumeButtonEvent(ev)); // not clicked
