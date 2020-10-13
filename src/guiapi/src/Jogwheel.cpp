@@ -65,6 +65,7 @@ volatile bool Jogwheel::ConsumeButtonEvent(Jogwheel::BtnState_t &ev) {
     static uint32_t last_read;          //cannot read it too often
     const uint32_t min_read_dellay = 8; //ms
     if ((last_read - HAL_GetTick()) < min_read_dellay) {
+        last_read = HAL_GetTick();
         return false;
     }
     __disable_irq();
@@ -115,6 +116,7 @@ volatile int32_t Jogwheel::GetEncoderDiff() {
     static uint32_t last_read;           //cannot read it too often
     const uint32_t min_read_dellay = 32; //ms
     if ((last_read - HAL_GetTick()) < min_read_dellay) {
+        last_read = HAL_GetTick();
         return 0;
     }
 

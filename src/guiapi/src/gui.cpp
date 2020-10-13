@@ -71,11 +71,6 @@ void gui_loop(void) {
     volatile bool is_btn = jogwheel.ConsumeButtonEvent(btn_ev);
     volatile int32_t encoder_diff = jogwheel.GetEncoderDiff();
 
-    // I do not know why this is separate. To play sound asap?
-    if (is_btn && (btn_ev == Jogwheel::BtnState_t::Released)) {
-        Sound_Play(eSOUND_TYPE::ButtonEcho);
-    }
-
     if (encoder_diff != 0 || is_btn) {
         if (gui_loop_cb)
             gui_loop_cb();
@@ -95,12 +90,13 @@ void gui_loop(void) {
                 capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_DN, 0);
                 break;
             case Jogwheel::BtnState_t::Released:
+                Sound_Play(eSOUND_TYPE::ButtonEcho);
                 capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
                 capturedWin->WindowEvent(capturedWin, GUI_event_t::CLICK, 0);
                 break;
             case Jogwheel::BtnState_t::Held:
-                capturedWin->WindowEvent(capturedWin, GUI_event_t::HOLD, 0);
                 Sound_Play(eSOUND_TYPE::ButtonEcho);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::HOLD, 0);
                 break;
             }
         }
