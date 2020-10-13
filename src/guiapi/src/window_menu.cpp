@@ -178,6 +178,7 @@ void window_menu_t::Increment(int dif) {
         Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
     } else {
         Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by the cursor
+        return;
     }
 
     if (refreshTopIndex()) {
