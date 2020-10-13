@@ -68,8 +68,8 @@ void gui_loop(void) {
 
     #ifdef GUI_JOGWHEEL_SUPPORT
     Jogwheel::BtnState_t btn_ev;
-    volatile bool is_btn = jogwheel.ConsumeButtonEvent(btn_ev);
-    volatile int32_t encoder_diff = jogwheel.GetEncoderDiff();
+    bool is_btn = jogwheel.ConsumeButtonEvent(btn_ev);
+    int32_t encoder_diff = jogwheel.ConsumeEncoderDiff();
 
     if (encoder_diff != 0 || is_btn) {
         if (gui_loop_cb)

@@ -3,6 +3,51 @@
 #include "Jogwheel.hpp"
 #include "hwio_pindef.h"
 #include "cmsis_os.h" //__disable_irq, __enabe_irq, HAL_GetTick
+#include "queue.h"    // freertos queue
+#include "bsod.h"
+
+using SpinMessage_t = int32_t;
+
+// rtos queues config
+static constexpr size_t ButtonMessageQueueLength = 32;
+static constexpr size_t SpinMessageQueueLength = 32;
+static constexpr size_t SpinSendPeriodMs = 32;
+
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+
+void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
+    constexpr size_t item_sz = sizeof(Jogwheel::BtnState_t);
+    constexpr size_t length = ButtonMessageQueueLength;
+    static StaticQueue_t queue;
+    static uint8_t storage_area[length * item_sz];
+    button_queue_handle = xQueueCreateStatic(length, item_sz, storage_area, &queue);
+}
+
+void Jogwheel::InitSpinMessageQueueInstance_NotFromISR() {
+    constexpr size_t item_sz = sizeof(SpinMessage_t);
+    constexpr size_t length = SpinMessageQueueLength;
+    static StaticQueue_t queue;
+    static uint8_t storage_area[length * item_sz];
+    spin_queue_handle = xQueueCreateStatic(length, item_sz, storage_area, &queue);
+}
+
+#else // (configSUPPORT_STATIC_ALLOCATION == 1 )
+
+// QueueHandle_t is a pointer
+// cannot be called in interrupt !!!
+// could set nullptr, handled in gui thread while reading (bsod)
+void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
+    button_queue_handle = xQueueCreate(ButtonMessageQueueLength, sizeof(Jogwheel::BtnState_t));
+}
+
+// QueueHandle_t is a pointer
+// cannot be called in interrupt !!!
+// could set nullptr, handled in gui thread while reading (bsod)
+void Jogwheel::InitSpinMessageQueueInstance_NotFromISR() {
+    spin_queue_handle = xQueueCreate(SpinMessageQueueLength, sizeof(SpinMessage_t));
+}
+
+#endif // (configSUPPORT_STATIC_ALLOCATION == 1 )
 
 using buddy::hw::jogWheelEN1;
 using buddy::hw::jogWheelEN2;
@@ -30,7 +75,9 @@ enum : uint8_t {
 
 Jogwheel::Jogwheel()
     : speed_traps { 0, 0, 0, 0 }
-    , spin_speed_counter(0)
+    , button_queue_handle(nullptr)
+    , spin_queue_handle(nullptr)
+    , tick_counter(0)
     , encoder(0)
     , hold_counter(0)
     , btn_state(BtnState_t::Released)
@@ -61,16 +108,41 @@ void Jogwheel::ReadInput(uint8_t &signals) {
     }
 }
 
-volatile bool Jogwheel::ConsumeButtonEvent(Jogwheel::BtnState_t &ev) {
-    static uint32_t last_read;          //cannot read it too often
-    const uint32_t min_read_dellay = 8; //ms
-    if ((last_read - HAL_GetTick()) < min_read_dellay) {
-        last_read = HAL_GetTick();
-        return false;
+bool Jogwheel::ConsumeButtonEvent(Jogwheel::BtnState_t &ev) {
+    // this can happen only once
+    // queue is initialized in GUI on first attempt to read
+    if (button_queue_handle == nullptr) {
+        __disable_irq();
+        InitButtonMessageQueueInstance_NotFromISR();
+        __enable_irq();
+
+        if (button_queue_handle == nullptr) {
+            bsod("ButtonMessageQueue heap malloc error ");
+        }
     }
-    __disable_irq();
-    volatile bool ret = btn_events.ConsumeFirst(ev);
-    __enable_irq();
+
+    return (xQueueReceive(button_queue_handle, &ev, 0 /*0 == do not wait*/) == pdPASS);
+}
+
+int32_t Jogwheel::ConsumeEncoderDiff() {
+    // this can happen only once
+    // queue is initialized in GUI on first attempt to read
+    if (spin_queue_handle == nullptr) {
+        __disable_irq();
+        InitSpinMessageQueueInstance_NotFromISR();
+        __enable_irq();
+
+        if (spin_queue_handle == nullptr) {
+            bsod("SpinMessageQueue heap malloc error ");
+        }
+    }
+
+    SpinMessage_t ret;
+
+    if (xQueueReceive(spin_queue_handle, &ret, 0 /*0 == do not wait*/) != pdPASS) {
+        ret = 0;
+    }
+
     return ret;
 }
 
@@ -78,26 +150,26 @@ void Jogwheel::SetJogwheelType(uint16_t delay) {
     type1 = delay > 1000;
 }
 
-void Jogwheel::UpdateButtonAction() {
+void Jogwheel::UpdateButtonActionFromISR() {
     switch (btn_state) {
     case BtnState_t::Released:
         if (IsBtnPressed()) {
-            ChangeStateTo(BtnState_t::Pressed);
+            ChangeStateFromISR(BtnState_t::Pressed);
             hold_counter = 0;
         }
         break;
     case BtnState_t::Pressed:
         if (!IsBtnPressed()) {
-            ChangeStateTo(BtnState_t::Released);
+            ChangeStateFromISR(BtnState_t::Released);
         } else {
             if ((++hold_counter) > JG_HOLD_INTERVAL) {
-                ChangeStateTo(BtnState_t::Held);
+                ChangeStateFromISR(BtnState_t::Held);
             }
         }
         break;
     case BtnState_t::Held:
         if (!IsBtnPressed()) {
-            ChangeStateTo(BtnState_t::Released);
+            ChangeStateFromISR(BtnState_t::Released);
         }
         break;
     }
@@ -107,30 +179,35 @@ bool Jogwheel::IsBtnPressed() {
     return (jogwheel_signals & JG_BUTTON_PRESSED) != 0;
 }
 
-void Jogwheel::ChangeStateTo(BtnState_t new_state) {
+void Jogwheel::ChangeStateFromISR(BtnState_t new_state) {
+    if (button_queue_handle == nullptr)
+        return;
     btn_state = new_state;
-    btn_events.push_back_DontRewrite(new_state);
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE; //xQueueSendFromISR require address of this
+    xQueueSendFromISR(button_queue_handle, &btn_state, &xHigherPriorityTaskWoken);
 }
 
-volatile int32_t Jogwheel::GetEncoderDiff() {
-    static uint32_t last_read;           //cannot read it too often
-    const uint32_t min_read_dellay = 32; //ms
-    if ((last_read - HAL_GetTick()) < min_read_dellay) {
-        last_read = HAL_GetTick();
-        return 0;
-    }
-
+void Jogwheel::SendEncoderDiffFromISR() {
+    if (spin_queue_handle == nullptr)
+        return;
     static int32_t last_encoder = 0;
-    __disable_irq();
-    volatile int32_t diff = encoder - last_encoder;
-    last_encoder = encoder;
-    diff *= encoder_gear;
-    __enable_irq();
-    return diff;
+    SpinMessage_t diff = encoder - last_encoder;
+
+    if (diff) {
+        last_encoder = encoder;
+        diff *= encoder_gear;
+        if (diff) {                                        //check again, diff *= encoder_gear could overflow to zero
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE; //xQueueSendFromISR require address of this
+            xQueueSendFromISR(spin_queue_handle, &diff, &xHigherPriorityTaskWoken);
+        }
+    }
 }
 
-void Jogwheel::Update1ms() {
-    spin_speed_counter++;
+void Jogwheel::Update1msFromISR() {
+    //do nothing while queues are not initialized
+    if ((button_queue_handle == nullptr) || (spin_queue_handle == nullptr))
+        return;
+    tick_counter++;
 
     uint8_t signals = 0;
 
@@ -141,9 +218,13 @@ void Jogwheel::Update1ms() {
         return;
     }
 
-    UpdateVariables(signals);
+    UpdateVariablesFromISR(signals);
 
-    UpdateButtonAction();
+    UpdateButtonActionFromISR();
+
+    if ((tick_counter % SpinSendPeriodMs) == 0) {
+        SendEncoderDiffFromISR();
+    }
 }
 
 int32_t Jogwheel::JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const {
@@ -165,7 +246,7 @@ int32_t Jogwheel::JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const {
     return new_encoder;
 }
 
-void Jogwheel::UpdateVariables(uint8_t signals) {
+void Jogwheel::UpdateVariablesFromISR(uint8_t signals) {
     uint8_t change = signals ^ jogwheel_signals;
 
     if (change & JG_PHASES_CHANGED) //encoder phase signals changed
@@ -182,7 +263,7 @@ void Jogwheel::UpdateVariables(uint8_t signals) {
             speed_traps[3] = speed_traps[2];
             speed_traps[2] = speed_traps[1];
             speed_traps[1] = speed_traps[0];
-            speed_traps[0] = spin_speed_counter;
+            speed_traps[0] = tick_counter;
             Transmission();
         }
     }

@@ -9,12 +9,12 @@
 #pragma once
 
 #include <inttypes.h>
-#include "circle_buffer.hpp"
 
 //old encoder (with new encoder 2 steps per 1 count) - Type2
 //new encoder (1 steps per 1 count) - Type1
 
 class Jogwheel {
+    using QueueHandle_t = void *; //do not want to include rtos files in this header
 public:
     /**
      * Constructor
@@ -26,7 +26,7 @@ public:
     ~Jogwheel() = default;
 
     /** Updates jogwheel states and variables every 1ms, this function is called from the interupt. */
-    void Update1ms();
+    void Update1msFromISR();
 
     /** Returns button input state, this function is for BSOD and situations where interupts are disabled. */
     static int GetJogwheelButtonPinState();
@@ -41,16 +41,16 @@ public:
     /**
      * Fills up the parameter with an event from inner event buffer.
      *
-     * Disables interrupt, maximum read frequency is limited
+     * throws bsod on buffer malloc failure
      *
      * returns success (inner buffer was not empty)
      *
      * @param [out] ev - stores an event if inner buffer is not empty else left unchanged
      */
-    volatile bool ConsumeButtonEvent(BtnState_t &ev);
+    bool ConsumeButtonEvent(BtnState_t &ev);
 
-    /** Returns current encoder value. */
-    volatile int32_t GetEncoder() const { return encoder; }
+    /** Returns current encoder value, reading int is atomic - can do it directly */
+    int32_t GetEncoder() const { return encoder; }
 
     /**
      * Sets type of the jogwheel.
@@ -65,11 +65,29 @@ public:
     /**
      * Returns difference between last_encoder and encoder and then resets last_encoder
      *
-     * Disables interrupt, maximum read frequency is limited
+     * throws bsod on buffer malloc failure
      */
-    volatile int32_t GetEncoderDiff();
+    int32_t ConsumeEncoderDiff();
 
 private:
+    /**
+     * Initialize queue for button messages (button_queue_handle)
+     *
+     * cannot use Mayers singleton - first call in IRQ can cause deadlock
+     *
+     * could set nullptr, handled in ConsumeButtonEvent (bsod)
+     */
+    void InitButtonMessageQueueInstance_NotFromISR();
+
+    /**
+     * Initialize queue for button messages (spin_queue_handle)
+     *
+     * cannot use Mayers singleton - first call in IRQ can cause deadlock
+     *
+     * could set nullptr, handled in ConsumeEncoderDiff (bsod)
+     */
+    void InitSpinMessageQueueInstance_NotFromISR();
+
     /**
      * Fills up the parameter with input pins signals.
      *
@@ -80,11 +98,22 @@ private:
     static void ReadInput(uint8_t &signals);
 
     /**
+     * It stores difference between last_encoder and encoder into rtos queue and then resets last_encoder
+     *
+     * rtos queue shall be read in gui_loop.
+     *
+     * To be used in interrupt
+     */
+    void SendEncoderDiffFromISR();
+
+    /**
      * Updates member variables according to input signals.
+     *
+     * To be used in interrupt
      *
      * @param [in] signals - input signals
      */
-    void UpdateVariables(uint8_t signals);
+    void UpdateVariablesFromISR(uint8_t signals);
 
     /**
      * Updates encoder, different types of jogwheel have different implementations.
@@ -97,9 +126,11 @@ private:
     /**
      * Analyzes member variables and updates btn_event if any button event was triggered.
      *
-     * It stores button event into buffer which shall be read in gui_loop.
+     * To be used in interrupt
+     *
+     * It stores button event into rtos queue which shall be read in gui_loop.
      */
-    void UpdateButtonAction();
+    void UpdateButtonActionFromISR();
 
     /**
      * Switches up encoders gears.
@@ -112,22 +143,23 @@ private:
     bool IsBtnPressed();
 
     /** Changes button state and stores event into buffer */
-    void ChangeStateTo(BtnState_t new_state);
+    void ChangeStateFromISR(BtnState_t new_state);
 
-    // variables are set in interrupt, volatile variables are read in GUI
+    // variables are set in interrupt
     // ordered by size, from biggest to smallest (most size-effective)
-    CircleBuffer<BtnState_t, 32> btn_events; //!< event buffer
-    uint32_t speed_traps[4];                 //!< stores previous encoder's change timestamp
-    uint32_t spin_speed_counter;             //!< counting variable for encoder_gear system
-    volatile int32_t encoder;                //!< jogwheel encoder
-    uint16_t hold_counter;                   //!< keep track of ms from button down
-    BtnState_t btn_state;                    //!< current state of button, size uint8_t
-    uint8_t jogwheel_signals;                //!< input signals
-    uint8_t jogwheel_signals_old;            //!< stores pre-previous input signals
-    uint8_t jogwheel_noise_filter;           //!< stores previous signals
-    volatile uint8_t encoder_gear;           //!< multiple gears for jogwheel spinning
-    bool type1;                              //!< jogwheel is type1 = true or type2 = false
-    bool spin_accelerator;                   //!< turns up spin accelerator feature
+    uint32_t speed_traps[4];           //!< stores previous encoder's change timestamp
+    QueueHandle_t button_queue_handle; //!< pointer to message button queue, cannot use Mayers singleton - first call in IRQ can cause deadlock
+    QueueHandle_t spin_queue_handle;   //!< pointer to message spin queue, cannot use Mayers singleton - first call in IRQ can cause deadlock
+    uint32_t tick_counter;             //!< counting variable for encoder_gear system
+    int32_t encoder;                   //!< jogwheel encoder
+    uint16_t hold_counter;             //!< keep track of ms from button down
+    BtnState_t btn_state;              //!< current state of button, size uint8_t
+    uint8_t jogwheel_signals;          //!< input signals
+    uint8_t jogwheel_signals_old;      //!< stores pre-previous input signals
+    uint8_t jogwheel_noise_filter;     //!< stores previous signals
+    uint8_t encoder_gear;              //!< multiple gears for jogwheel spinning
+    bool type1;                        //!< jogwheel is type1 = true or type2 = false
+    bool spin_accelerator;             //!< turns up spin accelerator feature
 };
 
 extern Jogwheel jogwheel; // Jogwheel static instance
