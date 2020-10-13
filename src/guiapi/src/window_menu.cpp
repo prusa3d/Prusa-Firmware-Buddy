@@ -90,17 +90,24 @@ void window_menu_t::Increment(int dif) {
         int item_height = font->h + padding.top + padding.bottom;
         int visible_count = rect.Height() / item_height;
         int old_index = GetIndex();
-        int new_index = old_index + dif;
-        // play sound at first or last index of menu
-        if (new_index < 0) {
-            new_index = 0;
-            Sound_Play(eSOUND_TYPE::BlindAlert);
-        }
-        if (new_index >= GetCount()) {
-            new_index = GetCount() - 1;
-            Sound_Play(eSOUND_TYPE::BlindAlert);
-        }
+        auto next_visible = [this, dif](int index) -> int {
+            uint32_t last_visible = index;
+            if ((index + dif) < 0) {
+                Sound_Play(eSOUND_TYPE::BlindAlert); // play sound at first or last index of menu
+                return 0;
+            }
+            if ((index + dif) >= GetCount()) {
+                Sound_Play(eSOUND_TYPE::BlindAlert); // play sound at first or last index of menu
+                return GetCount() - 1;
+            }
+            for (index = index + dif;
+                 GetItem(index) && GetItem(index)->IsHidden();
+                 index += dif < 0 ? -1 : 1)
+                ;
+            return GetItem(index) ? index : last_visible;
+        };
 
+        int new_index = next_visible(old_index);
         if (new_index < top_index)
             top_index = new_index;
         if (new_index >= (top_index + visible_count))
@@ -158,41 +165,67 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         Invalidate();
 }
 
+void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IWindowMenuItem *item, const int item_height) {
+    if (item == nullptr)
+        return;
+
+    Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * item_height),
+        rect.Width(), uint16_t(item_height) };
+
+    if (rect.Contain(rc)) {
+        if (item->RollNeedInit()) {
+            gui_timer_restart_txtroll(this);
+            gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
+            item->RollInit(*this, rc);
+        }
+        item->Print(*this, rc);
+    }
+}
+
 void window_menu_t::unconditionalDraw() {
     // temporarily disabled erasing background to prevent menu blinking
     //    IWindowMenu::unconditionalDraw();
 
     const int item_height = font->h + padding.top + padding.bottom;
     Rect16 rc_win = rect;
-
     const size_t visible_available = rc_win.Height() / item_height;
     size_t visible_count = 0;
-    size_t i;
-    for (i = 0; visible_count < visible_available && i < GetCount(); ++i) {
+    IWindowMenuItem *item;
 
-        IWindowMenuItem *item = GetItem(i + top_index);
+    for (size_t i = 0; visible_count < visible_available && i < GetCount(); ++i) {
+
+        item = GetItem(i + top_index);
         if (!item)
             break;
         if (item->IsHidden())
             continue;
 
-        Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + visible_count * item_height),
-            rc_win.Width(), uint16_t(item_height) };
-
-        if (rc_win.Contain(rc)) {
-            if (item->RollNeedInit()) {
-                gui_timer_restart_txtroll(this);
-                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
-                item->RollInit(*this, rc);
-            }
-            item->Print(*this, rc);
-        }
+        printItem(rc_win, visible_count, item, item_height);
         ++visible_count;
     }
     rc_win -= Rect16::Height_t(visible_count * item_height);
-
+    /// fill the rest of the window by background
     if (rc_win.Height()) {
         rc_win += Rect16::Top_t(visible_count * item_height);
         display::FillRect(rc_win, color_back);
+    }
+}
+
+void window_menu_t::unconditionalDrawItem(uint8_t index) {
+    const int item_height = font->h + padding.top + padding.bottom;
+    const size_t visible_available = rect.Height() / item_height;
+    size_t visible_count = 0;
+    IWindowMenuItem *item = nullptr;
+    for (size_t i = 0; visible_count < visible_available && i < GetCount(); ++i) {
+        item = GetItem(i + top_index);
+        if (!item)
+            return;
+        if (item->IsHidden())
+            continue;
+        if (i + top_index == index) {
+            printItem(rect, visible_count, item, item_height);
+            break;
+        }
+        ++visible_count;
     }
 }

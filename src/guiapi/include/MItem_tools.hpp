@@ -422,3 +422,27 @@ protected:
         click_at(T);
     }
 };
+
+enum class SENSOR_STATE : int8_t {
+    unknown = -1,
+    low = 0,
+    high = 1,
+};
+
+class MI_FILAMENT_SENSOR_STATE : public WI_SPIN_I08_t {
+    static constexpr const char *const label = N_("Filament sensor");
+    SENSOR_STATE get_state();
+
+public:
+    MI_FILAMENT_SENSOR_STATE();
+    bool StateChanged();
+};
+
+class MI_MINDA : public WI_SPIN_I08_t {
+    static constexpr const char *const label = N_("M.I.N.D.A.");
+    SENSOR_STATE get_state();
+
+public:
+    MI_MINDA();
+    bool StateChanged();
+};

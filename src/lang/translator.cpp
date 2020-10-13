@@ -34,6 +34,9 @@ bool Translations::RegisterProvider(uint16_t langCode, const ITranslationProvide
 }
 
 bool Translations::ChangeLanguage(uint16_t langCode) {
+    if (langCode == 0) {
+        return false; // requesting an invalid langCode to change to
+    }
     // set current provider pointer to the one specified by lang code
     auto i = std::find_if(translations.cbegin(), translations.cend(), [langCode](const TranRec &r) { return r.langCode == langCode; });
     if (i != translations.cend()) {

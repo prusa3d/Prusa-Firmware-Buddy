@@ -127,10 +127,11 @@ StateFncData StateFnc_FIRSTLAY_MSBX_USEVAL(StateFncData last_run) {
         {
             char fmt[20 * 7];
             // c=20 r=6
-            static const char fmt2Translate[] = N_("Do you want to use the current value? Current: %0.3f. Default: %0.3f. Click NO to use the default value (recommended)");
+            static const char fmt2Translate[] = N_("Do you want to use the current value? Current: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)");
             _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
             snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)marlin_vars()->z_offset, (double)z_offset_def);
         }
+        // this MakeRAM is safe - buff is allocated in RAM for the lifetime of MsgBox
         if (MsgBox(string_view_utf8::MakeRAM((const uint8_t *)buff), Responses_YesNo) == Response::No) {
             marlin_set_z_offset(z_offset_def);
             eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_offset_def));

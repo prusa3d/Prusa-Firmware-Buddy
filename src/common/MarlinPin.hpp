@@ -52,7 +52,7 @@
 #define MARLIN_PORT_E 4
 #define MARLIN_PORT_F 5
 
-#define MARLIN_PORT_PIN(port, pin) ((16 * (port)) + pin)
+#define MARLIN_PORT_PIN(port, pin) ((16 * (port)) + (pin))
 
 #define MARLIN_PIN(name) MARLIN_PORT_PIN(MARLIN_PORT_##name, MARLIN_PIN_NR_##name)
 /**

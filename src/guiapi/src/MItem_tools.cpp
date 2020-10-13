@@ -17,6 +17,10 @@
 #include "liveadjust_z.hpp"
 #include "DialogHandler.hpp"
 #include "selftest_MINI.h"
+#include "filament_sensor.hpp"
+#include "main_MINI.h"
+#include "Pin.hpp"
+#include "hwio_pindef_MINI.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -467,4 +471,51 @@ void I_MI_Filament::click_at(FILAMENT_t filament_index) {
     marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
     set_last_preheated_filament(filament_index);
     Screens::Access()->Close(); // skip this screen everytime
+}
+
+/// If \param new_state differs from \param old_state
+/// \param new_state will be saved to \param old_state
+/// \returns true if states differ
+template <class T>
+bool set_changed_state(const T current_state, T *old_state) {
+    const bool changed = (current_state != *old_state);
+    if (changed)
+        *old_state = current_state;
+    return changed;
+}
+
+const int8_t sensor_range[3] = { (int8_t)SENSOR_STATE::unknown, (int8_t)SENSOR_STATE::high, 1 }; /// min value, max value, step
+
+MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
+    : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {
+    value = (int8_t)get_state();
+}
+
+SENSOR_STATE MI_FILAMENT_SENSOR_STATE::get_state() {
+    fsensor_t fs = fs_wait_initialized();
+    switch (fs) {
+    case fsensor_t::HasFilament:
+        return SENSOR_STATE::high;
+    case fsensor_t::NoFilament:
+        return SENSOR_STATE::low;
+    default:;
+    }
+    return SENSOR_STATE::unknown;
+}
+
+bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
+    return set_changed_state<int8_t>((int8_t)get_state(), &value);
+}
+
+MI_MINDA::MI_MINDA()
+    : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {
+    value = (int8_t)get_state();
+}
+
+SENSOR_STATE MI_MINDA::get_state() {
+    return (buddy::hw::zMin.read() == buddy::hw::Pin::State::low) ? SENSOR_STATE::low : SENSOR_STATE::high;
+}
+
+bool MI_MINDA::StateChanged() {
+    return set_changed_state<int8_t>((int8_t)get_state(), &value);
 }

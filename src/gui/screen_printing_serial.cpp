@@ -25,7 +25,9 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     octo_icon.Disable();
     octo_icon.Unshadow();
 
-    initAndsetIconAndLabel(btn_stop, res_disconnect);
+    initAndSetIconAndLabel(btn_tune, res_tune);
+    initAndSetIconAndLabel(btn_pause, res_pause);
+    initAndSetIconAndLabel(btn_stop, res_disconnect);
 }
 
 void screen_printing_serial_data_t::DisableButton(btn &b) {

@@ -8,6 +8,7 @@
 #include "marlin_client.h"
 #include "marlin_vars.h"
 #include "eeprom.h"
+#include "display_helper.h"
 
 #include "../Marlin/src/inc/MarlinConfig.h"
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
@@ -23,10 +24,78 @@ const float z_offset_min = Z_OFFSET_MIN;
 const float z_offset_max = Z_OFFSET_MAX;
 
 /*****************************************************************************/
+//WindowScale
+
+WindowScale::WindowScale(window_t *parent, point_i16_t pt)
+    : AddSuperWindow<window_frame_t>(parent, Rect16(pt, 10, 100))
+    , scaleNum0(parent, getNumRect(pt), 0)
+    , scaleNum1(parent, getNumRect(pt), -1)
+    , scaleNum2(parent, getNumRect(pt), -2) {
+    scaleNum0.SetFormat("% .0f");
+
+    scaleNum0.rect -= Rect16::Top_t(8);
+    scaleNum1.rect += Rect16::Top_t((rect.Height() / 2) - 8);
+    scaleNum2.rect += Rect16::Top_t(rect.Height() - 8);
+}
+
+Rect16 WindowScale::getNumRect(point_i16_t pt) const {
+    return Rect16(pt.x - 30, pt.y, 30, 20);
+}
+
+void WindowScale::SetMark(float percent) {
+    int tmp_val = rect.TopLeft().y + (rect.Height() * percent);
+    if (rect.Contain(point_ui16(rect.Left(), tmp_val))) {
+        mark_old_y = mark_new_y;
+        mark_new_y = static_cast<uint16_t>(tmp_val);
+        if (mark_old_y != mark_new_y) {
+            Invalidate();
+        }
+    }
+}
+
+void WindowScale::unconditionalDraw() {
+    /// redraw old mark line
+    display::DrawLine(
+        point_ui16(rect.Left(), mark_old_y),
+        point_ui16(rect.Left() + 10, mark_old_y),
+        COLOR_BLACK);
+    /// vertical line of scale
+    display::DrawLine(
+        point_ui16(rect.Left() + 5, rect.Top()),
+        point_ui16(rect.Left() + 5, rect.Top() + rect.Height()),
+        COLOR_WHITE);
+    /// horizontal lines
+    display::DrawLine( // top (0)
+        point_ui16(rect.Left(), rect.Top()),
+        point_ui16(rect.Left() + 10, rect.Top()),
+        COLOR_WHITE);
+    display::DrawLine( // -
+        point_ui16(rect.Left() + 2, rect.Top() + (rect.Height() * .25F)),
+        point_ui16(rect.Left() + 8, rect.Top() + (rect.Height() * .25F)),
+        COLOR_WHITE);
+    display::DrawLine( // middle (-1)
+        point_ui16(rect.Left(), rect.Top() + (rect.Height() / 2)),
+        point_ui16(rect.Left() + 10, rect.Top() + (rect.Height() / 2)),
+        COLOR_WHITE);
+    display::DrawLine( // -
+        point_ui16(rect.Left() + 2, rect.Top() + (rect.Height() * .75F)),
+        point_ui16(rect.Left() + 8, rect.Top() + (rect.Height() * .75F)),
+        COLOR_WHITE);
+    display::DrawLine( // bottom (-2)
+        point_ui16(rect.Left() + 2, rect.Top() + rect.Height()),
+        point_ui16(rect.Left() + 8, rect.Top() + rect.Height()),
+        COLOR_WHITE);
+    /// scale mark line
+    display::DrawLine(
+        point_ui16(rect.Left(), mark_new_y),
+        point_ui16(rect.Left() + 10, mark_new_y),
+        COLOR_ORANGE);
+}
+/*****************************************************************************/
 //WindowLiveAdjustZ
 
 WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
-    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreenBody) //calculate size later
+    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreenBody)
     , number(this, getNumberRect(pt), marlin_vars()->z_offset)
     , arrows(this, getIconPoint(pt)) {
 
@@ -84,6 +153,7 @@ void WindowLiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *se
 
 /*****************************************************************************/
 //WindowLiveAdjustZ_withText
+
 WindowLiveAdjustZ_withText::WindowLiveAdjustZ_withText(window_t *parent, point_i16_t pt, size_t width)
     : AddSuperWindow<WindowLiveAdjustZ>(parent, pt)
     , text(parent, Rect16(), is_multiline::no, is_closed_on_click_t::no, _(text_str)) {
@@ -125,19 +195,17 @@ LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
     , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
-    , bed(this, Rect16(70, 180, 100, 10))
-    , adjuster(this, { 75, 205 }) {
+    , adjuster(this, { 75, 215 })
+    , scale(this, { 45, 125 }) {
 
     /// using window_t 1bit flag
     flag_close_on_click = is_closed_on_click_t::yes;
-
-    /// simple rectangle as bed with defined background color
-    bed.SetBackColor(COLOR_ORANGE);
 
     /// title text
     constexpr static const char *txt = N_("Adjust the nozzle height above the heatbed by turning the knob");
     static const string_view_utf8 text_view = _(txt);
     text.SetText(text_view);
+    text.SetPadding({ 20, 5, 0, 0 });
 
     /// set right position of the nozzle for our value
     moveNozzle();
@@ -153,9 +221,13 @@ const Rect16 LiveAdjustZ::getNozzleRect() {
 
 void LiveAdjustZ::moveNozzle() {
     uint16_t old_top = nozzle_icon.rect.Top();
-    float percent = adjuster.GetValue() / z_offset_min;
-    Rect16 moved_rect = getNozzleRect();
-    moved_rect += Rect16::Top_t(int(10 * percent));
+    Rect16 moved_rect = getNozzleRect();                // starting position - 0%
+    float percent = adjuster.GetValue() / z_offset_min; // z_offset value in percent
+
+    // set move percent for a scale line indicator
+    scale.SetMark(percent);
+
+    moved_rect += Rect16::Top_t(int(40 * percent)); // how much will nozzle move
     nozzle_icon.rect = moved_rect;
     if (old_top != nozzle_icon.rect.Top()) {
         nozzle_icon.Invalidate();

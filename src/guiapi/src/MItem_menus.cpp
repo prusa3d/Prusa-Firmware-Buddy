@@ -6,6 +6,7 @@
 #include "screen_test.hpp"
 #include "screen_messages.hpp"
 #include "eeprom.h"
+#include "marlin_client.h"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -15,6 +16,16 @@ MI_VERSION_INFO::MI_VERSION_INFO()
 
 void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenMenuVersionInfo);
+}
+
+/*****************************************************************************/
+//MI_SENSOR_INFO
+MI_SENSOR_INFO::MI_SENSOR_INFO()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_SENSOR_INFO::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuSensorInfo);
 }
 
 /*****************************************************************************/
@@ -154,6 +165,7 @@ MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
 void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
     sheet_next_calibrated();
     UpdateLabel();
+    marlin_settings_load();
 }
 
 void MI_CURRENT_PROFILE::UpdateLabel() {
