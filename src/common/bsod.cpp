@@ -287,10 +287,6 @@ void draw_error_screen(const uint16_t error_code_short) {
     error_url_short(qr_text, sizeof(qr_text), error_code);
     // this MakeRAM is safe - qr_text is a local buffer on stack
     render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
-
-    /// wait for restart - endless loop
-    while (1)
-        wdt_iwdg_refresh();
 }
 
 /// \returns nth character of the string
@@ -310,10 +306,6 @@ char nth_char(const char str[], uint16_t nth) {
 //! @n MSG_T_MINTEMP
 //! @n "Emergency stop (M112)"
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-
-    general_error_init();
-    display::Clear(COLOR_RED_ALERT);
-
     uint16_t error_code_short = 0;
 
     /// Decision tree to define error code
@@ -349,13 +341,15 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
         }
     }
 
-    draw_error_screen(error_code_short);
+    DUMP_TEMPERROR_TO_CCRAM(error_code_short);
+    dump_to_xflash();
+    sys_reset();
 }
 
 /// Draws error screen
 /// Use for Debug only
 void temp_error_code(const uint16_t error_code) {
-    general_error_init();
+    //    general_error_init();
     display::Clear(COLOR_RED_ALERT);
     draw_error_screen(error_code);
 }

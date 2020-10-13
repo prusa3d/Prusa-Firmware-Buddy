@@ -17,6 +17,7 @@
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_hardfault.hpp"
+#include "screen_temperror.hpp"
 #include "screen_watchdog.hpp"
 #include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
@@ -118,6 +119,9 @@ void gui_run(void) {
         switch (dump_in_xflash_get_type()) {
         case DUMP_HARDFAULT:
             error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
+            break;
+        case DUMP_TEMPERROR:
+            error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
             break;
 #ifndef _DEBUG
         case DUMP_IWDGW:
