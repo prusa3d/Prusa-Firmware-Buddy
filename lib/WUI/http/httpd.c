@@ -117,8 +117,7 @@
 /*******   Customization ***************************************/
 #include "wui_REST_api.h"
 #include "marlin_client.h"
-#include "wui_helper_funcs.h"
-#include "wui_request_parser.h"
+#include "httpd_parser.h"
 #include "wui.h"
 #include "dbg.h"
 #define WUI_API_ROOT_STR_LEN 5
