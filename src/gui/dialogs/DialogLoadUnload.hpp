@@ -8,4 +8,5 @@ public:
     DialogLoadUnload(string_view_utf8 name);
     static void phaseAlertSound();
     static void phaseWaitSound();
+    static void phaseStopSound();
 };
