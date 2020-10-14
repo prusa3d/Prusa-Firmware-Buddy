@@ -4,22 +4,45 @@
 
 static bool SOUND_INIT = false;
 
-/// durations of signals in ms
-const uint32_t Sound::durations[eSOUND_TYPE::count] = { 100, 500, 200, 500, 10, 50, 100, 800 };
-/// durations of signals in ms
-const float Sound::frequencies[eSOUND_TYPE::count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F, 950.F };
-/// durations of signals in ms
-const float Sound::volumes[eSOUND_TYPE::count] = { Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, 0.175F, 0.175F, Sound::volumeInit, Sound::volumeInit };
+/// main constant of main volume which is maximal volume that we allow
+const float Sound::volumeInit = 0.35F;
 
-const eSOUND_TYPE Sound::onceTypes[5] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho, eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep };
-const eSOUND_TYPE Sound::loudTypes[6] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho, eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep };
-const eSOUND_TYPE Sound::silentTypes[3] = { eSOUND_TYPE::Start, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::CriticalAlert };
-const eSOUND_TYPE Sound::assistTypes[8] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho, eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::EncoderMove, eSOUND_TYPE::BlindAlert, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep };
+/// durations of signals in ms
+const int16_t Sound::durations[eSOUND_TYPE::count] = { 100, 500, 200, 500,
+    10, 50, 100, 800, 100 };
+/// durations of signals in ms
+const float Sound::frequencies[eSOUND_TYPE::count] = { 900.F, 600.F, 950.F,
+    999.F, 800.F, 500.F, 999.F, 950.F, 800.F };
+/// durations of signals in ms
+const float Sound::volumes[eSOUND_TYPE::count] = {
+    Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit,
+    0.175F, 0.175F, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit
+};
 
-const int Sound::onceRepeats[5] = { 1, 1, 1, 1, 1 };
-const int Sound::loudRepeats[6] = { 1, 1, -1, 3, -1, 1 };
-const int Sound::silentRepeats[3] = { 1, 1, 1 };
-const int Sound::assistRepeats[8] = { 1, 1, -1, 3, 1, 1, -1, 1 };
+/// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
+const eSOUND_TYPE Sound::onceTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
+    eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep };
+const eSOUND_TYPE Sound::loudTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
+    eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::CriticalAlert,
+    eSOUND_TYPE::SingleBeep, eSOUND_TYPE::WaitingBeep };
+const eSOUND_TYPE Sound::silentTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::StandardAlert,
+    eSOUND_TYPE::CriticalAlert };
+const eSOUND_TYPE Sound::assistTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
+    eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::EncoderMove,
+    eSOUND_TYPE::BlindAlert, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep,
+    eSOUND_TYPE::WaitingBeep };
+
+/// signals repeats - how many times will sound signals repeat (-1 is infinite)
+const int Sound::onceRepeats[] = { 1, 1, 1, 1, 1 };
+const int Sound::loudRepeats[] = { 1, 1, -1, 3, -1, 1, -1 };
+const int Sound::silentRepeats[] = { 1, 1, 1 };
+const int Sound::assistRepeats[] = { 1, 1, -1, 3, 1, 1, -1, 1, -1 };
+
+/// delays for repeat sounds (ms)
+const int16_t Sound::onceDelays[] = { 1, 1, 1, 1, 1 };
+const int16_t Sound::loudDelays[] = { 1, 1, 1, 1, 1, 1, 2000 };
+const int16_t Sound::silentDelays[] = { 1, 1, 1 };
+const int16_t Sound::assistDelays[] = { 1, 1, 1, 1, 1, 1, 1, 1, 2000 };
 
 /* const bool Sound::forced[8] = { false, false, false, false, false, true, false, false }; */
 
@@ -42,13 +65,13 @@ void Sound_Update1ms() {
  * Beeper is controled over [hwio_a3ides_2209_02.c] functions for beeper.
  */
 Sound::Sound()
-    : _duration(0)
-    , duration(0)
+    : duration_active(0)
+    , duration_set(0)
     , repeat(0)
     , frequency(100.F)
     , volume(volumeInit)
-    , _delay(0)
-    , delay(100) {
+    , delay_active(0)
+    , delay_set(100) {
     init();
 }
 
@@ -99,17 +122,19 @@ void Sound::saveVolume() {
 /// [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
 void Sound::stop() {
     frequency = 100.F;
-    _duration = 0;
-    duration = 0;
+    duration_active = 0;
+    duration_set = 0;
     repeat = 0;
-    _delay = 0;
+    delay_active = 0;
 }
 
-void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], unsigned size) {
+void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
+    const int repeats[], const int16_t delays[], unsigned size) {
     for (unsigned i = 0; i < size; i++) {
         eSOUND_TYPE type = types[i];
         if (type == sound) {
-            _sound(repeats[i], frequencies[(size_t)type], durations[(size_t)type], volumes[(size_t)type] /* , Sound::forced[type] */);
+            _sound(repeats[i], frequencies[(size_t)type],
+                durations[(size_t)type], delays[i], volumes[(size_t)type] /* , Sound::forced[type] */);
             break;
         }
     }
@@ -124,26 +149,26 @@ void Sound::play(eSOUND_TYPE eSoundType) {
     switch (eSoundMode) {
     case eSOUND_MODE::ONCE:
         t_size = sizeof(onceTypes) / sizeof(onceTypes[0]);
-        _playSound(eSoundType, onceTypes, onceRepeats, t_size);
+        _playSound(eSoundType, onceTypes, onceRepeats, onceDelays, t_size);
         break;
     case eSOUND_MODE::SILENT:
         t_size = sizeof(silentTypes) / sizeof(silentTypes[0]);
-        _playSound(eSoundType, silentTypes, silentRepeats, t_size);
+        _playSound(eSoundType, silentTypes, silentRepeats, silentDelays, t_size);
         break;
     case eSOUND_MODE::ASSIST:
         t_size = sizeof(assistTypes) / sizeof(assistTypes[0]);
-        _playSound(eSoundType, assistTypes, assistRepeats, t_size);
+        _playSound(eSoundType, assistTypes, assistRepeats, assistDelays, t_size);
         break;
     case eSOUND_MODE::LOUD:
     default:
         t_size = sizeof(loudTypes) / sizeof(loudTypes[0]);
-        _playSound(eSoundType, loudTypes, loudRepeats, t_size);
+        _playSound(eSoundType, loudTypes, loudRepeats, loudDelays, t_size);
         break;
     }
 }
 
 /// Generic [_sound] method with setting values and repeating logic
-void Sound::_sound(int rep, float frq, uint32_t dur, float vol /*, bool forced*/) {
+void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol /*, bool forced*/) {
     /// if sound is already playing, then don't interrupt
     if ((repeat - 1 > 0 || repeat == -1) /*  && !forced */) {
         return;
@@ -152,7 +177,8 @@ void Sound::_sound(int rep, float frq, uint32_t dur, float vol /*, bool forced*/
     /// store variables for timing method
     repeat = rep;
     frequency = frq;
-    duration = dur;
+    duration_set = dur;
+    delay_set = del;
     volume = (vol * varVolume) * 0.3F;
 
     /// end previous beep
@@ -160,14 +186,15 @@ void Sound::_sound(int rep, float frq, uint32_t dur, float vol /*, bool forced*/
     nextRepeat();
 }
 
-/// Another repeat of sound signal. Just set live variable with duration of the beep and play it
+/// Another repeat of sound signal. Just set live variable with duration_set of the beep and play it
 void Sound::nextRepeat() {
-    _duration = duration;
-    _delay = 1;
-    if (repeat > 1 || repeat == -1) {
-        _delay = delay;
+    duration_active = duration_set;
+    delay_active = 1;
+    if (repeat > 0 || repeat == -1) {
+        repeat = repeat > 0 ? repeat - 1 : repeat;
+        delay_active = delay_set;
+        hwio_beeper_tone2(frequency, duration_set, volume);
     }
-    hwio_beeper_tone2(frequency, duration, volume);
 }
 
 /*!
@@ -176,11 +203,10 @@ void Sound::nextRepeat() {
  */
 void Sound::update1ms() {
     /// -- timing logic without osDelay for repeating Beep(s)
-    _duration = _duration <= 0 ? 0 : _duration - 1;
-    if (_duration <= 0) {
-        if (--_delay <= 0) {
-            repeat = repeat == -1 ? -1 : repeat - 1;
-            if ((repeat != 0) || (repeat == -1)) {
+    duration_active = duration_active <= 0 ? 0 : duration_active - 1;
+    if (duration_active <= 0) {
+        if (--delay_active <= 0) {
+            if (repeat > 0 || repeat == -1) {
                 nextRepeat();
             }
         }
