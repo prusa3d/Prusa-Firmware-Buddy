@@ -18,7 +18,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::CLICK, (void *)this);
+        Screens::Access()->WindowEvent(GUI_event_t::CLICK, (void *)this);
     }
 };
 
@@ -46,8 +46,9 @@ void ScreenMenuTemperature::windowEvent(EventLock /*has private ctor*/, window_t
         Item<MI_NOZZLE>().ClrVal();
         Item<MI_HEATBED>().ClrVal();
         Item<MI_PRINTFAN>().ClrVal();
+    } else {
+        SuperWindowEvent(sender, event, param);
     }
-    SuperWindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuTemperature() {
