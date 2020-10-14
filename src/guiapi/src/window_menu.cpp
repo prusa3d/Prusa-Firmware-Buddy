@@ -83,11 +83,11 @@ IWindowMenuItem *window_menu_t::GetActiveItem() {
 bool window_menu_t::moveToNextVisibleItem(int steps) {
     if (steps == 0)
         return true;
-    int dir = SIGN1(steps); /// direction of movement
+    int dir = SIGN1(steps); /// direction of movement (+/- 1)
 
     IWindowMenuItem *item;
     int moved; // number of positions moved
-    for (int todo = std::abs(steps); todo > 0; --todo) {
+    for (; steps > 0; --steps) {
         moved = 0;
         do { /// skip all hidden items
             if (index + dir >= GetCount() || index + dir < 0) {
