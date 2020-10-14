@@ -565,6 +565,8 @@ if(GUI)
             src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.cpp
+            src/gui/screen_hardfault.cpp
+            src/gui/screen_temperror.cpp
             src/gui/screen_menu_move.cpp
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_menu_languages.cpp
