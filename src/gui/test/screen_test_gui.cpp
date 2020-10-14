@@ -7,7 +7,7 @@
 
 screen_test_gui_data_t::screen_test_gui_data_t()
     : window_frame_t()
-    , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_splash_logo_prusa_prn, is_closed_on_click_t::yes)
+    , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_prusa_printer_splash, is_closed_on_click_t::yes)
     , text0(this, Rect16(10, 70, 60, 22), is_multiline::no)
     , text1(this, Rect16(80, 70, 60, 22), is_multiline::no)
     , text2(this, Rect16(150, 70, 60, 22), is_multiline::no)
@@ -15,9 +15,9 @@ screen_test_gui_data_t::screen_test_gui_data_t()
     , spin0(this, Rect16(80, 100, 60, 22))
     , spin1(this, Rect16(150, 100, 60, 22))
     , list(this, Rect16(10, 130, 220, 66))
-    , icon0(this, Rect16(10, 234, 64, 64), IDR_PNG_menu_icon_print)
-    , icon1(this, Rect16(80, 234, 64, 64), IDR_PNG_menu_icon_preheat)
-    , icon2(this, Rect16(150, 234, 64, 64), IDR_PNG_menu_icon_spool)
+    , icon0(this, Rect16(10, 234, 64, 64), IDR_PNG_print_58px)
+    , icon1(this, Rect16(80, 234, 64, 64), IDR_PNG_preheat_58px)
+    , icon2(this, Rect16(150, 234, 64, 64), IDR_PNG_spool_58px)
     , progress(this, Rect16(0, 200, 240, 30))
     , text_terminal(this, Rect16(0, 298, 240, 22), is_multiline::no) {
 

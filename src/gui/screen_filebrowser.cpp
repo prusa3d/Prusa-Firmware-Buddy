@@ -39,7 +39,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     // FIXME: this could crash with very fast insert and eject, status_header will fix this
     marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted
 
-    header.SetIcon(IDR_PNG_filescreen_icon_folder);
+    header.SetIcon(IDR_PNG_folder_full_16px);
     static const char sf[] = N_("SELECT FILE");
     header.SetText(_(sf));
 

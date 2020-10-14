@@ -194,7 +194,7 @@ void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, win
 LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
-    , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
+    , nozzle_icon(this, getNozzleRect(), IDR_PNG_nozzle_shape_48px)
     , adjuster(this, { 75, 215 })
     , scale(this, { 45, 125 }) {
 

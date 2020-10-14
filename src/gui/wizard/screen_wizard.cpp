@@ -135,7 +135,7 @@
                                   "XYZ calibration is ok. "
                                   "XY axes are "
                                   "perpendicular."),
-                    MSGBOX_BTN_NEXT, IDR_PNG_icon_pepa);
+                    MSGBOX_BTN_NEXT, IDR_PNG_pepa_64px);
                 pd->state = _STATE_FIRSTLAY_INIT;
                 break;
             case _STATE_XYZCALIB_FAIL:

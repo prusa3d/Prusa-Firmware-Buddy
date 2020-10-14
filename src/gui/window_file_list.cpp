@@ -114,7 +114,7 @@ void window_file_list_t::unconditionalDraw() {
             // this should normally not happen, visible_count shall limit indices to valid items only
             continue; // ... but getting ready for the unexpected
         }
-        uint16_t id_icon = isFile ? IDR_NULL : IDR_PNG_filescreen_icon_folder;
+        uint16_t id_icon = isFile ? IDR_NULL : IDR_PNG_folder_full_16px;
 
         // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
         // and will get a nice house-like icon
@@ -122,7 +122,7 @@ void window_file_list_t::unconditionalDraw() {
         string_view_utf8 itemText;
 
         if (i == 0 && strcmp(item.first, "..") == 0 && IsPathRoot(sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
-            id_icon = IDR_PNG_filescreen_icon_home;
+            id_icon = IDR_PNG_home_full_16px;
             itemText = string_view_utf8::MakeCPUFLASH((const uint8_t *)home);
         } else {
             // this MakeRAM is safe - render_text (below) finishes its work and the local string item.first is then no longer needed

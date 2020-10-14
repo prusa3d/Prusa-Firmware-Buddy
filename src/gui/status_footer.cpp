@@ -169,7 +169,7 @@ void status_footer_t::update_z_axis() {
     }
     // this MakeRAM is safe, text_z_axis is preallocated in RAM
     wt_z_profile.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_z_profile));
-    wi_z_profile.SetIdRes(IDR_PNG_status_icon_z_axis);
+    wi_z_profile.SetIdRes(IDR_PNG_z_axis_16px);
 }
 
 void status_footer_t::update_filament() {
@@ -233,11 +233,11 @@ void status_footer_t::update_sheet_profile() {
 
 status_footer_t::status_footer_t(window_t *parent)
     : window_frame_t(parent, GuiDefaults::RectFooter)
-    , wi_nozzle(this, Rect16(8, 270, 16, 16), IDR_PNG_status_icon_nozzle)
-    , wi_heatbed(this, Rect16(128, 270, 20, 16), IDR_PNG_status_icon_heatbed)
-    , wi_prnspeed(this, Rect16(10, 297, 16, 12), IDR_PNG_status_icon_prnspeed)
+    , wi_nozzle(this, Rect16(8, 270, 16, 16), IDR_PNG_nozzle_16px)
+    , wi_heatbed(this, Rect16(128, 270, 20, 16), IDR_PNG_heatbed_16px)
+    , wi_prnspeed(this, Rect16(10, 297, 16, 12), IDR_PNG_speed_16px)
     , wi_z_profile(this, Rect16(74, 297, 16, 16), IDR_NULL)
-    , wi_filament(this, Rect16(163, 297, 16, 16), IDR_PNG_status_icon_filament)
+    , wi_filament(this, Rect16(163, 297, 16, 16), IDR_PNG_spool_16px)
     , wt_nozzle(this, Rect16(24, 269, 85, 20), is_multiline::no)
     , wt_heatbed(this, Rect16(150, 269, 85, 22), is_multiline::no)
     , wt_prnspeed(this, Rect16(28, 296, 40, 22), is_multiline::no)
