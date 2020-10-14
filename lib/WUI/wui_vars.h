@@ -21,7 +21,7 @@ typedef struct {
     uint8_t fan_speed;
     uint8_t sd_precent_done;
     uint8_t sd_printing;
-    uint8_t device_state;
+    marlin_print_state_t print_state;
 } wui_vars_t;
 
 extern wui_vars_t wui_vars;

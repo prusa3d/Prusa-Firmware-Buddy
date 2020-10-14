@@ -228,7 +228,7 @@ void app_tim14_tick(void) {
 #ifndef HAS_GUI
     #error "HAS_GUI not defined."
 #elif HAS_GUI
-    jogwheel.Update1ms();
+    jogwheel.Update1msFromISR();
 #endif
     Sound_Update1ms();
     //hwio_update_1ms();

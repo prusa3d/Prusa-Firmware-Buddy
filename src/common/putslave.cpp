@@ -21,6 +21,10 @@
 #include "trinamic.h"
 #include "main.h"
 #include "fanctl.h"
+#include "dump.h"
+#include "adc.h"
+#include "../Marlin/src/module/temperature.h"
+#include "../Marlin/src/Marlin.h"
 
 #ifndef HAS_GUI
     #error "HAS_GUI not defined."
@@ -90,6 +94,8 @@ int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
             cmd_id = PUTSLAVE_CMD_ID_FMEA;
         else if (strncmp(pstr, "gpcf", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_GPCF;
+        else if (strncmp(pstr, "doer", 4) == 0)
+            cmd_id = PUTSLAVE_CMD_ID_DOER;
         else if (strncmp(pstr, "diag", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_DIAG;
         else if (strncmp(pstr, "uart", 4) == 0)
@@ -472,6 +478,84 @@ int putslave_do_cmd_a_gpcf(uartslave_t *pslave, char *pstr) {
     return UARTSLAVE_OK;
 }
 
+// externs from adc module used in putslave_do_thermal_error
+extern int _adc_val[];
+extern uint8_t adc_sta;
+
+void putslave_do_thermal_error(uint32_t adcval, uint8_t adcchn, uint8_t heater) {
+    adc_sta = 0xff;            // disable adc sampling
+    _adc_val[adcchn] = adcval; // set fake "sampled" adc value
+    uint32_t tick = HAL_GetTick();
+    while ((HAL_GetTick() - tick) < 500) // wait 500ms (update values inside thermal manager)
+        idle();
+    // if not currently heating, start heating
+    if ((heater == 0) && thermalManager.degTargetHotend(0) == 0)
+        thermalManager.setTargetHotend(300, 0);
+    if ((heater == 0xff) && thermalManager.degTargetBed() == 0)
+        thermalManager.setTargetBed(100);
+}
+
+// stackoverflow test (recursion)
+void putslave_do_stackoverflow(uint32_t wait, uint32_t cycles, uint32_t cnt) {
+    if (cnt > 0)
+        putslave_do_stackoverflow(wait, cycles, cnt - 1);
+    if (wait)
+        osDelay(wait);
+    putslave_do_stackoverflow(wait, cycles, cycles);
+}
+
+int putslave_do_cmd_a_doer(uartslave_t *pslave, char *pstr) {
+    int err = 0;
+    int err2 = 0;
+    int n = 0;
+    if (sscanf(pstr, "%d%n", &err, &n) != 1)
+        return UARTSLAVE_ERR_SYN;
+    pstr += n;
+    sscanf(pstr, "%d%n", &err2, &n);
+    switch (err) {
+    case 1: // watchdog reset
+        while (1)
+            ; // endless loop
+        break;
+    case 2:                      // hardfault
+        dump_hardfault_test_0(); //imprecise hardfault
+        // TODO: add some next hardfault tests
+        break;
+    case 3: // thermal error
+        switch (err2) {
+        case 0: // max-temp nozzle
+            putslave_do_thermal_error(0, 4, 0);
+            break;
+        case 1: // min-temp nozzle
+            putslave_do_thermal_error(1023, 4, 0);
+            break;
+        case 2: // thermal-runaway nozzle
+            putslave_do_thermal_error(977, 4, 0);
+            break;
+        case 10: // max-temp bed
+            putslave_do_thermal_error(0, 1, 0xff);
+            break;
+        case 11: // min-temp bed
+            putslave_do_thermal_error(1023, 1, 0xff);
+            break;
+        case 12: // thermal-runaway bed
+            putslave_do_thermal_error(966, 1, 0xff);
+            break;
+        }
+        break;
+    case 4: // stack overflow
+        switch (err2) {
+        case 0: // "soft" variant - slow recursion
+            putslave_do_stackoverflow(10, 100, 100);
+            break;
+        case 1: // "hard" variant - fast recursion (overwrite almost entire RAM)
+            putslave_do_stackoverflow(0, 0xffffffff, 0xffffffff);
+            break;
+        }
+    }
+    return UARTSLAVE_OK;
+}
+
 int putslave_do_cmd_a_gcode(uartslave_t *pslave, char *pstr) {
     char gcode[32];
     int n = 0;
@@ -733,6 +817,8 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_a_gpio(pslave, pstr);
             case PUTSLAVE_CMD_ID_GPCF:
                 return putslave_do_cmd_a_gpcf(pslave, pstr);
+            case PUTSLAVE_CMD_ID_DOER:
+                return putslave_do_cmd_a_doer(pslave, pstr);
             case PUTSLAVE_CMD_ID_GCODE:
                 return putslave_do_cmd_a_gcode(pslave, pstr);
             case PUTSLAVE_CMD_ID_PWM:

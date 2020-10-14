@@ -73,7 +73,7 @@ void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t 
 /*****************************************************************************/
 //window_icon_hourglass_t
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
-    : AddSuperWindow<window_icon_t>(parent, IDR_PNG_wizard_icon_hourglass, pt, padding, close)
+    : AddSuperWindow<window_icon_t>(parent, IDR_PNG_hourglass_39px, pt, padding, close)
     , start_time(HAL_GetTick())
     , animation_color(COLOR_ORANGE)
     , phase(0) {
@@ -170,11 +170,11 @@ void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, window
 //WindowIcon_OkNg
 
 //both must be same size
-const uint16_t WindowIcon_OkNg::id_res_na = IDR_PNG_wizard_icon_na;
-const uint16_t WindowIcon_OkNg::id_res_ok = IDR_PNG_wizard_icon_ok;
-const uint16_t WindowIcon_OkNg::id_res_ng = IDR_PNG_wizard_icon_ng;
-const uint16_t WindowIcon_OkNg::id_res_ip0 = IDR_PNG_wizard_icon_ip0;
-const uint16_t WindowIcon_OkNg::id_res_ip1 = IDR_PNG_wizard_icon_ip1;
+const uint16_t WindowIcon_OkNg::id_res_na = IDR_PNG_dash_18px;
+const uint16_t WindowIcon_OkNg::id_res_ok = IDR_PNG_ok_color_18px;
+const uint16_t WindowIcon_OkNg::id_res_ng = IDR_PNG_nok_color_18px;
+const uint16_t WindowIcon_OkNg::id_res_ip0 = IDR_PNG_loading1_18px;
+const uint16_t WindowIcon_OkNg::id_res_ip1 = IDR_PNG_loading2_18px;
 
 //Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t padding)

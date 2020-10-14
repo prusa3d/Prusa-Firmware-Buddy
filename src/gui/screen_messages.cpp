@@ -19,6 +19,8 @@ screen_messages_data_t::screen_messages_data_t()
     , footer(this)
     , term(this, GuiDefaults::RectScreenBody.TopLeft(), &term_buff) { // Rect16(10, 28, 11 * 20, 18 * 16))
     header.SetText(_("MESSAGES"));
+    ClrMenuTimeoutClose();
+    ClrOnSerialClose();
 }
 
 void screen_messages_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -28,8 +30,10 @@ void screen_messages_data_t::windowEvent(EventLock /*has private ctor*/, window_
         SuperWindowEvent(sender, event, param);
     }
 
+    CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH>::Elem elem;
+
     //must be last window_frame_t could validate term
-    while (!MsgCircleBuffer().IsEmpty()) {
-        term.Printf("%s\n", MsgCircleBuffer().ConsumeFirst());
+    while (MsgCircleBuffer().ConsumeFirst(elem)) {
+        term.Printf("%s\n", (const char *)elem);
     }
 }

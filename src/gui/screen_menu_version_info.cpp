@@ -35,7 +35,7 @@ public:
 ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     : Screen(_(label)) {
     //=============SCREEN INIT===============
-    header.SetIcon(IDR_PNG_header_icon_info);
+    header.SetIcon(IDR_PNG_info_16px);
 
     //=============VARIABLES=================
 

@@ -2,15 +2,19 @@
 #pragma once
 
 #include <stdint.h>
-
-static constexpr const char *CircleBufferEmpty = "";
-
+#include <stddef.h>
+/*****************************************************************************/
+// general circular buffer
 // you can never use entire size
 // because write position (end) cannot be equal to begin
 // because begin == end == empty
-template <size_t SIZE, size_t MAX_LENGTH>
+template <class T, size_t SIZE>
 class CircleBuffer {
-    char msg_data[SIZE][MAX_LENGTH];
+public:
+    using Elem = T;
+
+protected:
+    T data[SIZE];
     size_t begin; // position of first element
     size_t end;   // position behind last element == write position
     size_t pushed;
@@ -23,24 +27,23 @@ public:
         , end(0)
         , pushed(0) {}
 
-    void push_back(const char *const popup_msg);
-    void push_back_DontRewrite(const char *const popup_msg);
+    void push_back(T elem);
+    bool push_back_DontRewrite(T elem);
     size_t Count() const { return (end + SIZE - begin) % SIZE; }
     bool IsEmpty() const { return begin == end; }
     size_t PushedCount() const { return pushed; }
 
     constexpr size_t Size() const { return SIZE; }
-    constexpr size_t MaxStrLen() const { return MAX_LENGTH; }
 
-    const char *ConsumeFirst();   // data must be processed before next push_back
-    const char *ConsumeLast();    // data must be processed before next push_back
-    const char *GetFirst() const; // data must be processed before next push_back
-    const char *GetLast() const;  // data must be processed before next push_back
+    bool ConsumeFirst(T &elem);      // data must be processed before next push_back
+    bool ConsumeLast(T &elem);       // data must be processed before next push_back
+    const T &GetFirstIfAble() const; // data must be processed before next push_back, must not be empty
+    const T &GetLastIfAble() const;  // data must be processed before next push_back, must not be empty
 };
 
-template <size_t SIZE, size_t MAX_LENGTH>
-void CircleBuffer<SIZE, MAX_LENGTH>::push_back(const char *const popup_msg) {
-    strlcpy(msg_data[end], popup_msg, MAX_LENGTH);
+template <class T, size_t SIZE>
+void CircleBuffer<T, SIZE>::push_back(T elem) {
+    data[end] = elem;
     incrementIndex(end);
     if (begin == end) { //begin just was erased, set new begin
         incrementIndex(begin);
@@ -48,40 +51,65 @@ void CircleBuffer<SIZE, MAX_LENGTH>::push_back(const char *const popup_msg) {
     ++pushed;
 }
 
-template <size_t SIZE, size_t MAX_LENGTH>
-void CircleBuffer<SIZE, MAX_LENGTH>::push_back_DontRewrite(const char *const popup_msg) {
+template <class T, size_t SIZE>
+bool CircleBuffer<T, SIZE>::push_back_DontRewrite(T elem) {
     size_t index = begin;
     incrementIndex(index);
-    if (index != end)
-        push_back(popup_msg);
+    if (index != end) {
+        push_back(elem);
+        return true;
+    }
+    return false;
 }
 
-template <size_t SIZE, size_t MAX_LENGTH>
-const char *CircleBuffer<SIZE, MAX_LENGTH>::ConsumeFirst() {
+template <class T, size_t SIZE>
+bool CircleBuffer<T, SIZE>::ConsumeFirst(T &elem) {
     if (IsEmpty())
-        return CircleBufferEmpty;
-    const char *ret = GetFirst();
+        return false;
+    elem = GetFirstIfAble();
     incrementIndex(begin);
-    return ret;
+    return true;
 }
 
-template <size_t SIZE, size_t MAX_LENGTH>
-const char *CircleBuffer<SIZE, MAX_LENGTH>::ConsumeLast() {
+template <class T, size_t SIZE>
+bool CircleBuffer<T, SIZE>::ConsumeLast(T &elem) {
     if (IsEmpty())
-        return CircleBufferEmpty;
-    const char *ret = GetLast();
+        return false;
+    elem = GetLastIfAble();
     decrementIndex(end);
-    return ret;
+    return true;
 }
 
-template <size_t SIZE, size_t MAX_LENGTH>
-const char *CircleBuffer<SIZE, MAX_LENGTH>::GetFirst() const {
-    return IsEmpty() ? CircleBufferEmpty : msg_data[begin];
+template <class T, size_t SIZE>
+const T &CircleBuffer<T, SIZE>::GetFirstIfAble() const {
+    return data[begin];
 }
 
-template <size_t SIZE, size_t MAX_LENGTH>
-const char *CircleBuffer<SIZE, MAX_LENGTH>::GetLast() const {
+template <class T, size_t SIZE>
+const T &CircleBuffer<T, SIZE>::GetLastIfAble() const {
     size_t index = end;
     decrementIndex(index);
-    return IsEmpty() ? CircleBufferEmpty : msg_data[index];
+    return data[index];
 }
+
+/*****************************************************************************/
+// circular buffer for strings (T == std::array<char, MAX_LENGTH>)
+#include <array>
+
+template <size_t MAX_LENGTH>
+class Message {
+    std::array<char, MAX_LENGTH> arr;
+
+public:
+    Message() { arr.fill('\0'); }
+    Message(const char *msg) {
+        strlcpy(arr.data(), msg, MAX_LENGTH);
+    }
+
+    operator const char *() const {
+        return arr.data();
+    }
+};
+
+template <size_t SIZE, size_t MAX_LENGTH>
+using CircleStringBuffer = CircleBuffer<Message<MAX_LENGTH>, SIZE>;

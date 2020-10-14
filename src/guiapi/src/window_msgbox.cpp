@@ -69,6 +69,7 @@ MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_b
     , title(this, getTitleRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
     title.font = getTitleFont();
+    title.SetPadding({ 0, 0, 0, 0 });
 }
 
 Rect16 MsgBoxTitled::getTitleRect() {
@@ -148,19 +149,19 @@ Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn
 Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Error");
     const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_header_icon_error);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_error_16px);
 }
 
 Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Question");
     const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_header_icon_question);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_question_16px);
 }
 
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Warning");
     const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_header_icon_warning);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_warning_16px);
 }
 
 Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, uint16_t icon_id, is_multiline multiline) {
@@ -170,7 +171,7 @@ Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseRe
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Information");
     const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_header_icon_info);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_info_16px);
 }
 
 Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
@@ -178,5 +179,5 @@ Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses
 }
 
 Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    return MsgBoxIcon(txt, IDR_PNG_icon_pepa, resp, def_btn, rect, multiline);
+    return MsgBoxIcon(txt, IDR_PNG_pepa_64px, resp, def_btn, rect, multiline);
 }

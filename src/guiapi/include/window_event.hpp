@@ -8,23 +8,22 @@
 
 //window events
 enum class GUI_event_t {
-    BTN_DN = 1,   //button down
-    BTN_UP,       //button up
-    ENC_DN,       //encoder minus
-    ENC_UP,       //encoder plus
-    FOCUS0,       //focus lost
-    FOCUS1,       //focus set
-    CAPT_0,       //capture lost
-    CAPT_1,       //capture set
-    CLICK,        //clicked (tag > 0)
-    DOUBLE_CLICK, // double-clicked
-    HOLD,         // held button
-    CHANGE,       //value/index changed (tag > 0)
-    CHANGING,     //value/index changing (tag > 0)
-    LOOP,         //gui loop (every 50ms)
-    TIMER,        //gui timer
-    MESSAGE,      //onStatusChange() message notification
-    CHILD_CLICK,  //click at the child screen
+    BTN_DN = 1,  //button down
+    BTN_UP,      //button up
+    ENC_DN,      //encoder minus
+    ENC_UP,      //encoder plus
+    FOCUS0,      //focus lost
+    FOCUS1,      //focus set
+    CAPT_0,      //capture lost
+    CAPT_1,      //capture set
+    CLICK,       //clicked (tag > 0)
+    HOLD,        // held button
+    CHANGE,      //value/index changed (tag > 0)
+    CHANGING,    //value/index changing (tag > 0)
+    LOOP,        //gui loop (every 50ms)
+    TIMER,       //gui timer
+    MESSAGE,     //onStatusChange() message notification
+    CHILD_CLICK, //click at the child screen
 };
 
 constexpr bool GUI_event_IsKnob(GUI_event_t event) {
@@ -46,7 +45,6 @@ constexpr bool GUI_event_IsWindowKnobReaction(GUI_event_t event) {
     case GUI_event_t::CAPT_0:
     case GUI_event_t::CAPT_1:
     case GUI_event_t::CLICK:
-    case GUI_event_t::DOUBLE_CLICK:
     case GUI_event_t::HOLD:
     case GUI_event_t::CHANGE:
         return true;
@@ -81,8 +79,6 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
         return ("capture set");
     case GUI_event_t::CLICK:
         return ("clicked");
-    case GUI_event_t::DOUBLE_CLICK:
-        return ("double-clicked");
     case GUI_event_t::HOLD:
         return ("held button");
     case GUI_event_t::CHANGE:

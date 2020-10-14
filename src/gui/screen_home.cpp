@@ -17,12 +17,12 @@
 #include "i18n.h"
 
 const uint16_t icons[6] = {
-    IDR_PNG_menu_icon_print,
-    IDR_PNG_menu_icon_preheat,
-    IDR_PNG_menu_icon_spool,
-    IDR_PNG_menu_icon_calibration,
-    IDR_PNG_menu_icon_settings,
-    IDR_PNG_menu_icon_info
+    IDR_PNG_print_58px,
+    IDR_PNG_preheat_58px,
+    IDR_PNG_spool_58px,
+    IDR_PNG_calibrate_58px,
+    IDR_PNG_settings_58px,
+    IDR_PNG_info_58px
 };
 
 constexpr size_t labelPrintId = 0;
@@ -43,7 +43,7 @@ screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<window_frame_t>()
     , header(this)
     , footer(this)
-    , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_status_logo_prusa_prn)
+    , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_prusa_printer_logo)
     , w_buttons { { this, Rect16(), 0, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuPreheat); } },
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
@@ -65,7 +65,7 @@ screen_home_data_t::screen_home_data_t()
     time = HAL_GetTick();
     is_starting = (time < 5000) ? 1 : 0;
 
-    header.SetIcon(IDR_PNG_status_icon_home);
+    header.SetIcon(IDR_PNG_home_shape_16px);
     header.SetText(_("HOME"));
 
     for (uint8_t row = 0; row < 2; row++) {
