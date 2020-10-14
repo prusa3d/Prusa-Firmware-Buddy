@@ -20,7 +20,7 @@ class Screens {
     bool close_all;
     bool close_serial;
 
-    int8_t gui_timeout_id;
+    uint32_t timeout_tick;
 
     //void stack_push(int16_t screen_id) {}
     //int16_t stack_pop(void) {}

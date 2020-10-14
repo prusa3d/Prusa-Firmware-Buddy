@@ -84,6 +84,7 @@ bool window_menu_t::moveToNextVisibleItem(int steps) {
     if (steps == 0)
         return true;
     int dir = SIGN1(steps); /// direction of movement (+/- 1)
+    steps = ABS(steps);
 
     IWindowMenuItem *item;
     int moved; // number of positions moved
