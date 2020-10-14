@@ -8,7 +8,9 @@
 //use template instead IWinMenuContainer *pContainer;
 //I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
 class window_menu_t : public IWindowMenu {
-    uint8_t index;
+    uint8_t index; /// index of cursor
+    int moveIndex; /// accumulator for cursor changes
+
     void setIndex(uint8_t index); //for ctor (cannot fail)
     /// Prints single item in the menu
     /// \param rect is rectangle of the whole window menu
@@ -17,7 +19,7 @@ class window_menu_t : public IWindowMenu {
     /// Repeats search for \param steps times
     /// Negative value searches in backward direction
     /// \returns false if end of item list reached before all steps consumed
-    bool moveToNextVisibleItem(int steps = 1);
+    bool moveToNextVisibleItem();
     /// Moves menu so the cursor is on the screen
     /// \returns true if menu was moved
     bool refreshTopIndex();
@@ -27,6 +29,8 @@ class window_menu_t : public IWindowMenu {
     /// \returns index of the item (including hidden) defined by
     /// index in visible item list (excluding hidden)
     int realIndex(const int visible_index);
+    /// Redraws whole window
+    void redrawWholeMenu();
 
 public:
     window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index = 0);
