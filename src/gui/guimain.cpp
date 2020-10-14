@@ -58,7 +58,7 @@ Jogwheel jogwheel;
 #endif // GUI_JOGWHEEL_SUPPORT
 
 MsgBuff_t &MsgCircleBuffer() {
-    static CircleBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;
+    static CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;
     return ret;
 }
 
@@ -151,8 +151,9 @@ void update_firmware_screen(void) {
     display::DrawText(Rect16(10, 115, 240, 60), _("Hi, this is your\nOriginal Prusa MINI."), font, COLOR_BLACK, COLOR_WHITE);
     display::DrawText(Rect16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
     render_text_align(Rect16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, { 2, 6, 2, 2 }, ALIGN_CENTER);
+    Jogwheel::BtnState_t btn_ev;
     while (1) {
-        if (jogwheel.GetButtonAction() == Jogwheel::ButtonAction::BTN_HELD)
+        if (jogwheel.ConsumeButtonEvent(btn_ev) && btn_ev == Jogwheel::BtnState_t::Held)
             sys_reset();
         osDelay(1);
         wdt_iwdg_refresh();
