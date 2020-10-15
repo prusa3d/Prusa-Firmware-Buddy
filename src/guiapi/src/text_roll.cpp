@@ -48,7 +48,7 @@ void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll) {
 
 void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment) {
-    rect = roll_text_rect_meas(rc, text, font, padding, alignment);
+    rect = rect_meas(rc, text, font, padding, alignment);
     count = text_rolls_meas(rect, text, font);
     progress = px_cd = phase = 0;
     if (count == 0) {
@@ -95,4 +95,19 @@ void render_roll_text_align(Rect16 rc, string_view_utf8 text, const font_t *font
     } else {
         display::FillRect(rc, clr_back);
     }
+}
+
+Rect16 txtroll_t::rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags) {
+
+    Rect16 rc_pad = rc;
+    rc_pad.CutPadding(padding);
+    uint16_t numOfUTF8Chars;
+    point_ui16_t wh_txt = font_meas_text(font, &text, &numOfUTF8Chars);
+    Rect16 rc_txt = { 0, 0, 0, 0 };
+    if (wh_txt.x && wh_txt.y) {
+        rc_txt = Rect16(0, 0, wh_txt.x, wh_txt.y);
+        rc_txt.Align(rc_pad, flags & ALIGN_MASK);
+        rc_txt = rc_txt.Intersection(rc_pad);
+    }
+    return rc_txt;
 }

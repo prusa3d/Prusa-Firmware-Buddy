@@ -16,10 +16,13 @@ typedef enum {
     ROLL_RESTART,
 } TXTROLL_PHASE_t;
 
-struct txtroll_t {
+class txtroll_t {
 
     //static size_t instance_counter;
 
+    static Rect16 rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);
+
+public:
     Rect16 rect;
     uint16_t progress;
     uint16_t count;
@@ -41,4 +44,3 @@ extern void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll);
 
 extern void render_roll_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
 extern uint16_t text_rolls_meas(Rect16 rc, string_view_utf8 text, const font_t *pf);
-extern Rect16 roll_text_rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);

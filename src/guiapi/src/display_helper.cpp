@@ -242,18 +242,3 @@ uint16_t text_rolls_meas(Rect16 rc, string_view_utf8 text, const font_t *pf) {
         meas_x = len - rc.Width() / pf->w;
     return meas_x;
 }
-
-Rect16 roll_text_rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags) {
-
-    Rect16 rc_pad = rc;
-    rc_pad.CutPadding(padding);
-    uint16_t numOfUTF8Chars;
-    point_ui16_t wh_txt = font_meas_text(font, &text, &numOfUTF8Chars);
-    Rect16 rc_txt = { 0, 0, 0, 0 };
-    if (wh_txt.x && wh_txt.y) {
-        rc_txt = Rect16(0, 0, wh_txt.x, wh_txt.y);
-        rc_txt.Align(rc_pad, flags & ALIGN_MASK);
-        rc_txt = rc_txt.Intersection(rc_pad);
-    }
-    return rc_txt;
-}
