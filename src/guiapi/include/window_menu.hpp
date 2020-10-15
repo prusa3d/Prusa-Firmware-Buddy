@@ -31,6 +31,9 @@ class window_menu_t : public IWindowMenu {
     int realIndex(const int visible_index);
     /// Redraws whole window
     void redrawWholeMenu();
+    /// Plays proper sound according to item/value changed
+    /// \returns input
+    bool playEncoderSound(bool changed);
 
 public:
     window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index = 0);

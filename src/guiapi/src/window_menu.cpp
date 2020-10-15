@@ -170,6 +170,14 @@ void window_menu_t::Increment(int dif) {
     moveIndex += dif; /// is not but could be atomic but should not hurt in GUI
     Invalidate();
 }
+bool window_menu_t::playEncoderSound(bool changed) {
+    if (changed) {
+        Sound_Play(eSOUND_TYPE::EncoderMove); /// cursor moved normally
+        return true;
+    }
+    Sound_Play(eSOUND_TYPE::BlindAlert); /// start or end of menu was hit by the cursor
+    return false;
+}
 
 //I think I do not need
 //screen_dispatch_event
@@ -188,14 +196,14 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         break;
     case GUI_event_t::ENC_DN:
         if (item->IsSelected()) {
-            invalid |= item->Decrement(value);
+            invalid |= playEncoderSound(item->Decrement(value));
         } else {
             Decrement(value);
         }
         break;
     case GUI_event_t::ENC_UP:
         if (item->IsSelected()) {
-            invalid |= item->Increment(value);
+            invalid |= playEncoderSound(item->Increment(value));
         } else {
             Increment(value);
         }
@@ -253,11 +261,7 @@ void window_menu_t::unconditionalDraw() {
     }
 
     const int old_index = index;
-    if (moveToNextVisibleItem()) {            /// changes index internally
-        Sound_Play(eSOUND_TYPE::EncoderMove); /// cursor moved normally
-    } else {
-        Sound_Play(eSOUND_TYPE::BlindAlert); /// start or end of menu was hit by the cursor
-    }
+    playEncoderSound(moveToNextVisibleItem()); /// moves index and plays a sound
 
     if (updateTopIndex()) {
         redrawWholeMenu(); /// whole menu moved, redraw everything
