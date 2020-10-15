@@ -53,7 +53,7 @@ void IWindowMenuItem::printText(IWindowMenu &window_menu, Rect16 rect, color_t c
 
 void IWindowMenuItem::printLabel_into_rect(Rect16 rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const {
     if (focused && roll.setup == TXTROLL_SETUP_DONE) { //draw normally on TXTROLL_SETUP_INIT or TXTROLL_SETUP_IDLE
-        render_roll_text_align(rolling_rect, GetLocalizedLabel(), font, padding, alignment, color_back, color_text, &roll);
+        roll.RenderTextAlign(rolling_rect, GetLocalizedLabel(), font, padding, alignment, color_back, color_text);
     } else {
         render_text_align(rolling_rect, GetLocalizedLabel(), font, color_back, color_text, padding, alignment);
     }

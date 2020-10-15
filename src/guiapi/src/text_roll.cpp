@@ -58,9 +58,9 @@ void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
     }
 }
 
-void render_roll_text_align(Rect16 rc, string_view_utf8 text, const font_t *font,
-    padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll) {
-    if (roll->setup == TXTROLL_SETUP_INIT)
+void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
+    padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const {
+    if (setup == TXTROLL_SETUP_INIT)
         return;
 
     if (text.isNULLSTR()) {
@@ -68,25 +68,25 @@ void render_roll_text_align(Rect16 rc, string_view_utf8 text, const font_t *font
         return;
     }
 
-    uint8_t unused_pxls = roll->rect.Width() % font->w;
+    uint8_t unused_pxls = rect.Width() % font->w;
     if (unused_pxls) {
-        Rect16 rc_unused_pxls = { int16_t(roll->rect.Left() + roll->rect.Width() - unused_pxls), roll->rect.Top(), unused_pxls, roll->rect.Height() };
+        Rect16 rc_unused_pxls = { int16_t(rect.Left() + rect.Width() - unused_pxls), rect.Top(), unused_pxls, rect.Height() };
         display::FillRect(rc_unused_pxls, clr_back);
     }
 
     //@@TODO make rolling native ability of render text - solves also character clipping
     //    const char *str = text;
-    //    str += roll->progress;
+    //    str += progress;
     // for now - just move to the desired starting character
     text.rewind();
-    for (size_t i = 0; i < roll->progress; ++i) {
+    for (size_t i = 0; i < progress; ++i) {
         text.getUtf8Char();
     }
 
-    Rect16 set_txt_rc = roll->rect;
-    if (roll->px_cd != 0) {
-        set_txt_rc += Rect16::Left_t(roll->px_cd);
-        set_txt_rc -= Rect16::Width_t(roll->px_cd);
+    Rect16 set_txt_rc = rect;
+    if (px_cd != 0) {
+        set_txt_rc += Rect16::Left_t(px_cd);
+        set_txt_rc -= Rect16::Width_t(px_cd);
     }
 
     if (!set_txt_rc.IsEmpty()) {

@@ -12,11 +12,10 @@
 
 void window_roll_text_t::unconditionalDraw() {
 
-    render_roll_text_align(rect, text, font, padding,
+    roll.RenderTextAlign(rect, text, font, padding,
         GetAlignment(),
         (IsFocused()) ? color_text : color_back,
-        (IsFocused()) ? color_back : color_text,
-        &roll);
+        (IsFocused()) ? color_back : color_text);
 }
 
 void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

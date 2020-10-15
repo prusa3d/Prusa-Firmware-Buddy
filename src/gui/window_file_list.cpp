@@ -162,14 +162,9 @@ void window_file_list_t::unconditionalDraw() {
                     roll.Init(rc, itemText, font, padding, GetAlignment());
                 }
 
-                render_roll_text_align(rc,
-                    itemText,
-                    font,
-                    padding,
+                roll.RenderTextAlign(rc, itemText, font, padding,
                     GetAlignment(),
-                    color_back,
-                    color_text,
-                    &roll);
+                    color_back, color_text);
 
             } else {
                 render_text_align(rc,
