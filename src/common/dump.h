@@ -8,7 +8,10 @@
 static const uint8_t DUMP_UNDEFINED = 0xff; // undefined - memory erased/empty
 static const uint8_t DUMP_HARDFAULT = 0x01; // hardfault dump
 static const uint8_t DUMP_IWDGW = 0x02;     // IWDG warning dump
+static const uint8_t DUMP_GENERAL = 0x03;   // general error dump
+static const uint8_t DUMP_TEMPERROR = 0x04; // thermal error dump
 static const uint8_t DUMP_NOT_SAVED = 0x80; // dump not saved flag - (unsaved dump cannot be overwritten)
+static const uint8_t DUMP_NOT_DISPL = 0x40; // dump not displayed after startup
 
 enum {
     // dumped ram area (128kb)
@@ -104,16 +107,11 @@ static const uint32_t DUMP_INFO_SIZE = 0x00000010;
         "    str r2, [r1, #0x54]    \n"                                                 \
         "    mrs r2, PSP            \n" /* PSP  */                                      \
         "    str r2, [r1, #0x58]    \n"                                                 \
-        "    str r3, [r1, #0x5c]    \n" /* lrexc  */                                    \
-        "    ldr r0, =0xffffffff    \n" /* fill dumpinfo with 0xff */                   \
-        "    str r0, [r1, #0xf0]    \n"                                                 \
-        "    str r0, [r1, #0xf4]    \n"                                                 \
-        "    str r0, [r1, #0xf8]    \n"                                                 \
-        "    str r0, [r1, #0xfc]    \n")
+        "    str r3, [r1, #0x5c]    \n") /* lrexc  */
 
 // fill dumpinfo
 #define DUMP_INFO_TO_CCRAM(type) \
-    *((unsigned char *)DUMP_INFO_ADDR) = type | DUMP_NOT_SAVED;
+    *((unsigned char *)DUMP_INFO_ADDR) = type | DUMP_NOT_SAVED | DUMP_NOT_DISPL;
 
 // perform hardfault dump (directly from HardFault_Handler that must be "naked")
 #define DUMP_HARDFAULT_TO_CCRAM()           \
@@ -131,10 +129,23 @@ static const uint32_t DUMP_INFO_SIZE = 0x00000010;
         DUMP_INFO_TO_CCRAM(DUMP_IWDGW);   \
     }
 
+// perform thermal error dump
+#define DUMP_TEMPERROR_TO_CCRAM(code)                     \
+    {                                                     \
+        DUMP_REGS_GEN_FAULT_BEGIN();                      \
+        *((unsigned short *)(DUMP_INFO_ADDR + 1)) = code; \
+        DUMP_REGS_GEN_EXC_TO_CCRAM();                     \
+        DUMP_INFO_TO_CCRAM(DUMP_TEMPERROR);               \
+    }
+
+#pragma pack(push)
+#pragma pack(1)
 typedef struct _dumpinfo_t {
     unsigned char type_flags;   //
-    unsigned char reserved[15]; // TODO: RTC time
+    unsigned short code;        //
+    unsigned char reserved[13]; // TODO: RTC time
 } dumpinfo_t;
+#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {
@@ -145,6 +156,20 @@ extern void dump_to_xflash(void);
 extern int dump_in_xflash_is_valid(void);
 
 extern int dump_in_xflash_is_saved(void);
+
+extern int dump_in_xflash_is_displayed(void);
+
+extern int dump_in_xflash_get_type(void);
+
+extern unsigned short dump_in_xflash_get_code(void);
+
+extern void dump_in_xflash_set_displayed(void);
+
+extern unsigned int dump_in_xflash_read_RAM(void *pRAM, unsigned int addr, unsigned int size);
+
+extern unsigned int dump_in_xflash_read_regs_SCB(void *pRegsSCB, unsigned int size);
+
+extern unsigned int dump_in_xflash_read_regs_GEN(void *pRegsGEN, unsigned int size);
 
 extern int dump_save_to_usb(const char *fn);
 

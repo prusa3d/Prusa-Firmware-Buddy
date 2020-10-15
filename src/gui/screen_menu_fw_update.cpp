@@ -23,7 +23,7 @@ public:
         : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? 1 : 0, label, 0, true, false) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? sys_fw_update_enable() : sys_fw_update_disable();
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::CLICK, (void *)index);
+        Screens::Access()->WindowEvent(GUI_event_t::CLICK, (void *)index);
     }
 };
 
@@ -65,8 +65,9 @@ void ScreenMenuFwUpdate::windowEvent(EventLock /*has private ctor*/, window_t *s
             mi_restart->Disable();
             mi_restart->index = 0;
         }
+    } else {
+        SuperWindowEvent(sender, event, param);
     }
-    SuperWindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuFwUpdate() {

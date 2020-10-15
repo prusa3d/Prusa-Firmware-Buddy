@@ -41,6 +41,7 @@
 /* USER CODE BEGIN Includes */
 #include "bsod.h"
 #include "dump.h"
+#include "sys.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -112,7 +113,7 @@ void __attribute__((naked)) HardFault_Handler(void) {
     /* USER CODE BEGIN HardFault_IRQn 0 */
     DUMP_HARDFAULT_TO_CCRAM();
     dump_to_xflash();
-    ScreenHardFault();
+    sys_reset();
     /* USER CODE END HardFault_IRQn 0 */
     while (1) {
         /* USER CODE BEGIN W1_HardFault_IRQn 0 */

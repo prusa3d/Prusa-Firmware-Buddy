@@ -9,7 +9,9 @@ Screens::Screens(const ScreenFactory::Creator screen_creator)
     , current(nullptr)
     , creator(screen_creator)
     , close(false)
-    , close_all(false) {
+    , close_all(false)
+    , close_serial(false)
+    , timeout_tick(0) {
 }
 
 void Screens::Init(const ScreenFactory::Creator screen_creator) {
@@ -184,27 +186,21 @@ void Screens::PushBeforeCurrent(const ScreenFactory::Creator screen_creator) {
 }
 
 void Screens::ResetTimeout() {
-    if (menu_timeout_enabled) {
-        if (gui_get_menu_timeout_id() >= 0) {
-            gui_timer_reset(gui_get_menu_timeout_id());
-        } else {
-            gui_timer_create_timeout(Get(), (uint32_t)MENU_TIMEOUT_MS);
-        }
-    }
+    timeout_tick = HAL_GetTick();
 }
 
 void Screens::Loop() {
     /// menu timeout logic:
     /// when timeout is expired on current screen,
     /// we iterate through whole stack and close every screen that should be closed
-    if (Get() && Get()->ClosedOnTimeout()) {
-        gui_timeout_id = gui_get_menu_timeout_id();
-        if (gui_timer_expired(gui_timeout_id) == 1) {
-            gui_timer_delete(gui_timeout_id);
+    if (menu_timeout_enabled && Get() && Get()->ClosedOnTimeout()) {
+        if (HAL_GetTick() - timeout_tick > MENU_TIMEOUT_MS) {
             while (Get() && Get()->ClosedOnTimeout() && stack_iterator != stack.begin()) {
                 close = true;
                 InnerLoop();
             }
+            ResetTimeout();
+            return;
         }
     }
     /// continue inner loop

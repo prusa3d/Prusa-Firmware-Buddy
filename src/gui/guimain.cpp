@@ -16,6 +16,8 @@
 #include "window_dlg_popup.hpp"
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
+#include "screen_hardfault.hpp"
+#include "screen_temperror.hpp"
 #include "screen_watchdog.hpp"
 #include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
@@ -34,6 +36,7 @@ int guimain_spi_test = 0;
 #include "sys.h"
 #include "dbg.h"
 #include "wdt.h"
+#include "dump.h"
 
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
@@ -114,10 +117,30 @@ void gui_run(void) {
 
     Sound_Play(eSOUND_TYPE::Start);
 
-    ScreenFactory::Creator screen_initializer[] {
+    ScreenFactory::Creator error_screen = nullptr;
+    if (!dump_in_xflash_is_displayed()) {
+        switch (dump_in_xflash_get_type()) {
+        case DUMP_HARDFAULT:
+            error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
+            break;
+        case DUMP_TEMPERROR:
+            error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
+            break;
 #ifndef _DEBUG
-        HAL_IWDG_Reset ? ScreenFactory::Screen<screen_watchdog_data_t> : nullptr, // wdt
+        case DUMP_IWDGW:
+            error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
+            break;
 #endif
+        }
+        dump_in_xflash_set_displayed();
+    }
+
+#ifndef _DEBUG
+//        HAL_IWDG_Reset ? ScreenFactory::Screen<screen_watchdog_data_t> : nullptr, // wdt
+#endif
+
+    ScreenFactory::Creator screen_initializer[] {
+        error_screen,
         ScreenFactory::Screen<screen_splash_data_t>, // splash
         ScreenFactory::Screen<screen_home_data_t>    // home
     };
