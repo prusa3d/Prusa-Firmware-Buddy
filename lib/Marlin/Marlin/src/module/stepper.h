@@ -440,6 +440,7 @@ class Stepper {
 
     // Positions of stepper motors, in step units
     static xyze_long_t count_position;
+    static xyze_long_t count_position_from_startup;
 
     // Current stepper motor directions (+1 or -1)
     static xyze_int8_t count_direction;
@@ -493,7 +494,8 @@ class Stepper {
 
     // Get the position of a stepper, in steps
     static int32_t position(const AxisEnum axis);
-
+    static int32_t position_from_startup(const AxisEnum axis);
+    
     // Set the current position in steps
     static void set_position(const xyze_long_t &spos);
     static void set_axis_position(const AxisEnum a, const int32_t &v);

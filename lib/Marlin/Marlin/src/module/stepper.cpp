@@ -245,6 +245,7 @@ int32_t Stepper::ticks_nominal = -1;
 
 xyz_long_t Stepper::endstops_trigsteps;
 xyze_long_t Stepper::count_position{0};
+xyze_long_t Stepper::count_position_from_startup{0};
 xyze_int8_t Stepper::count_direction{0};
 
 #define MINDIR(A) (count_direction[_AXIS(A)] < 0)
@@ -1639,6 +1640,7 @@ void Stepper::pulse_phase_isr() {
       step_needed[_AXIS(AXIS)] = (delta_error[_AXIS(AXIS)] >= 0); \
       if (step_needed[_AXIS(AXIS)]) { \
         count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+        count_position_from_startup[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
         delta_error[_AXIS(AXIS)] -= advance_divisor; \
       } \
     }while(0)
@@ -2871,6 +2873,10 @@ int32_t Stepper::position(const AxisEnum axis) {
     if (was_enabled) wake_up();
   #endif
   return v;
+}
+
+int32_t Stepper::position_from_startup(const AxisEnum axis) {
+    return count_position_from_startup[axis];
 }
 
 // Set the current position in steps
