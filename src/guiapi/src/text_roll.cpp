@@ -11,36 +11,36 @@
 #include "../common/str_utils.hpp"
 #include "ScreenHandler.hpp"
 
-void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll) {
-    if (roll->setup == TXTROLL_SETUP_IDLE)
+void txtroll_t::Phasing(window_t *pWin, font_t *font) {
+    if (setup == TXTROLL_SETUP_IDLE)
         return;
-    switch (roll->phase) {
+    switch (phase) {
     case ROLL_SETUP:
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
-        if (roll->setup == TXTROLL_SETUP_DONE)
-            roll->phase = ROLL_GO;
+        if (setup == TXTROLL_SETUP_DONE)
+            phase = ROLL_GO;
         pWin->Invalidate();
         break;
     case ROLL_GO:
-        if (roll->count > 0 || roll->px_cd > 0) {
-            if (roll->px_cd == 0) {
-                roll->px_cd = font->w;
-                roll->count--;
-                roll->progress++;
+        if (count > 0 || px_cd > 0) {
+            if (px_cd == 0) {
+                px_cd = font->w;
+                count--;
+                progress++;
             }
-            roll->px_cd--;
+            px_cd--;
             pWin->Invalidate();
         } else {
-            roll->phase = ROLL_STOP;
+            phase = ROLL_STOP;
         }
         break;
     case ROLL_STOP:
-        roll->phase = ROLL_RESTART;
+        phase = ROLL_RESTART;
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, pWin);
         break;
     case ROLL_RESTART:
-        roll->setup = TXTROLL_SETUP_INIT;
-        roll->phase = ROLL_SETUP;
+        setup = TXTROLL_SETUP_INIT;
+        phase = ROLL_SETUP;
         pWin->Invalidate();
         break;
     }

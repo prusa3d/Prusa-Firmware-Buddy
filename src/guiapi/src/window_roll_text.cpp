@@ -23,7 +23,7 @@ void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     int timer_id = int(param);
     if (event == GUI_event_t::TIMER && timer_id == timer) {
         if (!rollNeedInit()) {
-            roll_text_phasing(this, font, &roll);
+            roll.Phasing(this, font);
         } else {
             rollInit();
         }

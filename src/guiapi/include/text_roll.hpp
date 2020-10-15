@@ -39,8 +39,7 @@ public:
         , px_cd(0) {}
 
     void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment);
+    void Phasing(window_t *pWin, font_t *font);
 };
-
-extern void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll);
 
 extern void render_roll_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
