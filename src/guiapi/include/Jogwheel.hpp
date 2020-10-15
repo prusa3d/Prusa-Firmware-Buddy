@@ -9,7 +9,6 @@
 #pragma once
 
 #include <inttypes.h>
-#include <atomic>
 
 //old encoder (with new encoder 2 steps per 1 count) - Type2
 //new encoder (1 steps per 1 count) - Type1
@@ -40,9 +39,16 @@ public:
     };
 
     //structure to be read in gui thread
+    //size must be 32 bit to be atomic
     struct encoder_t {
-        int32_t value;
-        uint8_t gear;
+        union {
+            struct {
+                int16_t value;
+                uint8_t gear;
+                uint8_t tick;
+            };
+            uint32_t data;
+        };
     };
 
     /**
@@ -147,19 +153,19 @@ private:
 
     // variables are set in interrupt
     // ordered by size, from biggest to smallest (most size-effective)
-    uint32_t speed_traps[4];                //!< stores previous encoder's change timestamp
-    QueueHandle_t button_queue_handle;      //!< pointer to message button queue, cannot use Mayers singleton - first call in IRQ can cause deadlock
-    std::atomic<encoder_t> encoder_for_GUI; //!<
-    uint32_t tick_counter;                  //!< counting variable for encoder_gear system
-    int32_t encoder;                        //!< jogwheel encoder
-    uint16_t hold_counter;                  //!< keep track of ms from button down
-    BtnState_t btn_state;                   //!< current state of button, size uint8_t
-    uint8_t jogwheel_signals;               //!< input signals
-    uint8_t jogwheel_signals_old;           //!< stores pre-previous input signals
-    uint8_t jogwheel_noise_filter;          //!< stores previous signals
-    uint8_t encoder_gear;                   //!< multiple gears for jogwheel spinning
-    bool type1;                             //!< jogwheel is type1 = true or type2 = false
-    bool spin_accelerator;                  //!< turns up spin accelerator feature
+    uint32_t speed_traps[4];            //!< stores previous encoder's change timestamp
+    QueueHandle_t button_queue_handle;  //!< pointer to message button queue, cannot use Mayers singleton - first call in IRQ can cause deadlock
+    volatile encoder_t encoder_for_GUI; //!< encoder data struct to be passed to GUI
+    uint32_t tick_counter;              //!< counting variable for encoder_gear system
+    int32_t encoder;                    //!< jogwheel encoder
+    uint16_t hold_counter;              //!< keep track of ms from button down
+    BtnState_t btn_state;               //!< current state of button, size uint8_t
+    uint8_t jogwheel_signals;           //!< input signals
+    uint8_t jogwheel_signals_old;       //!< stores pre-previous input signals
+    uint8_t jogwheel_noise_filter;      //!< stores previous signals
+    uint8_t encoder_gear;               //!< multiple gears for jogwheel spinning
+    bool type1;                         //!< jogwheel is type1 = true or type2 = false
+    bool spin_accelerator;              //!< turns up spin accelerator feature
 };
 
 extern Jogwheel jogwheel; // Jogwheel static instance

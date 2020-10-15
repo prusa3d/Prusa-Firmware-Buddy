@@ -24,9 +24,6 @@ endif()
 # cmake .. <other options> -DPRINTER=MINI
 # ~~~
 
-# set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -latomic") set(CMAKE_CXX_LINK_FLAGS "-latomic")
-set(DOPENCV_EXTRA_EXE_LINKER_FLAGS "-latomic")
-
 set(PRINTER_VALID_OPTS "MINI")
 set(MOTHERBOARD_VALID_OPTS "1823")
 set(BOOTLOADER_VALID_OPTS "NO" "EMPTY" "YES")

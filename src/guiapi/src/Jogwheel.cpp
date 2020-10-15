@@ -57,6 +57,7 @@ enum : uint8_t {
 Jogwheel::Jogwheel()
     : speed_traps { 0, 0, 0, 0 }
     , button_queue_handle(nullptr)
+    , encoder_for_GUI({ 0, 1, 0 })
     , tick_counter(0)
     , encoder(0)
     , hold_counter(0)
@@ -67,7 +68,6 @@ Jogwheel::Jogwheel()
     , encoder_gear(1)
     , type1(true)
     , spin_accelerator(false) {
-    encoder_for_GUI.store({ 0, 1 });
 }
 
 int Jogwheel::GetJogwheelButtonPinState() {
@@ -93,9 +93,7 @@ bool Jogwheel::ConsumeButtonEvent(Jogwheel::BtnState_t &ev) {
     // this can happen only once
     // queue is initialized in GUI on first attempt to read
     if (button_queue_handle == nullptr) {
-        __disable_irq();
         InitButtonMessageQueueInstance_NotFromISR();
-        __enable_irq();
 
         if (button_queue_handle == nullptr) {
             bsod("ButtonMessageQueue heap malloc error");
@@ -107,19 +105,26 @@ bool Jogwheel::ConsumeButtonEvent(Jogwheel::BtnState_t &ev) {
 
 int32_t Jogwheel::ConsumeEncoderDiff() {
     // thread safe design
-    // just read and reset atomic structure and pass it into static method
+    // just read atomic structure and pass it into static method
     // do not to anything else !!!
     // method CalculateEncoderDiff must remain static !!!
-    encoder_t temp_enc = encoder_for_GUI.exchange({ 0, 1 });
+
+    encoder_t temp_enc;
+    temp_enc.data = encoder_for_GUI.data;
+
     return CalculateEncoderDiff(temp_enc);
 }
 
-int32_t Jogwheel::CalculateEncoderDiff(Jogwheel::encoder_t enc) {
-    static int32_t last_encoder = 0;
-    int32_t diff = enc.value - last_encoder;
+int32_t Jogwheel::CalculateEncoderDiff(Jogwheel::encoder_t current_enc) {
+    static encoder_t last_enc = { 0, 1, 0 };
 
-    last_encoder = enc.value;
-    diff *= enc.gear;
+    if (last_enc.tick == current_enc.tick)
+        return 0; //this data were already used
+
+    int32_t diff = current_enc.value - last_enc.value;
+    diff *= current_enc.gear;
+
+    last_enc.data = current_enc.data;
 
     return diff; //could overflow to 0 .. does not matter
 }
@@ -232,7 +237,9 @@ void Jogwheel::UpdateVariablesFromISR(uint8_t signals) {
         jogwheel_signals = signals;              //update signal state
     }
 
-    encoder_for_GUI.store({ int16_t(encoder), encoder_gear });
+    encoder_for_GUI.value = int16_t(encoder);
+    encoder_for_GUI.gear = encoder_gear;
+    encoder_for_GUI.tick = uint8_t(tick_counter);
 }
 
 //if encoder is not moved 49 days, this will fail
