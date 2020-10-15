@@ -14,7 +14,7 @@ struct window_text_t : public AddSuperWindow<window_aligned_t> {
     padding_ui8_t padding;
 
     string_view_utf8 GetText() const { return text; }
-    void SetText(string_view_utf8 txt);
+    virtual void SetText(string_view_utf8 txt);
     void SetTextColor(color_t clr);
 
     color_t GetTextColor() const { return color_text; }

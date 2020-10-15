@@ -64,6 +64,6 @@ public:
     void Click(IWindowMenu &window_menu);
     void Roll(IWindowMenu &window_menu);
     void RollInit(IWindowMenu &window_menu, Rect16 rect);
-    bool RollNeedInit() { return roll.setup == TXTROLL_SETUP_INIT; }
+    bool RollNeedInit() const { return roll.setup == TXTROLL_SETUP_INIT; }
     virtual ~IWindowMenuItem() = default;
 };
