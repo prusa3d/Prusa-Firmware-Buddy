@@ -21,6 +21,7 @@ class txtroll_t {
     //static size_t instance_counter;
 
     static Rect16 rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);
+    static uint16_t meas(Rect16 rc, string_view_utf8 text, const font_t *pf);
 
 public:
     Rect16 rect;
@@ -43,4 +44,3 @@ public:
 extern void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll);
 
 extern void render_roll_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
-extern uint16_t text_rolls_meas(Rect16 rc, string_view_utf8 text, const font_t *pf);

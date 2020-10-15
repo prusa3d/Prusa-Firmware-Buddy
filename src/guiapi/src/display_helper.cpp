@@ -234,11 +234,3 @@ point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *n
     str->rewind();
     return point_ui16((uint16_t)std::max(x, w), (uint16_t)h);
 }
-
-uint16_t text_rolls_meas(Rect16 rc, string_view_utf8 text, const font_t *pf) {
-
-    uint16_t meas_x = 0, len = text.computeNumUtf8CharsAndRewind();
-    if (len * pf->w > rc.Width())
-        meas_x = len - rc.Width() / pf->w;
-    return meas_x;
-}

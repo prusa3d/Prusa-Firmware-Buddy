@@ -49,7 +49,7 @@ void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll) {
 void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment) {
     rect = rect_meas(rc, text, font, padding, alignment);
-    count = text_rolls_meas(rect, text, font);
+    count = meas(rect, text, font);
     progress = px_cd = phase = 0;
     if (count == 0) {
         setup = TXTROLL_SETUP_IDLE;
@@ -110,4 +110,12 @@ Rect16 txtroll_t::rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font
         rc_txt = rc_txt.Intersection(rc_pad);
     }
     return rc_txt;
+}
+
+uint16_t txtroll_t::meas(Rect16 rc, string_view_utf8 text, const font_t *pf) {
+
+    uint16_t meas_x = 0, len = text.computeNumUtf8CharsAndRewind();
+    if (len * pf->w > rc.Width())
+        meas_x = len - rc.Width() / pf->w;
+    return meas_x;
 }
