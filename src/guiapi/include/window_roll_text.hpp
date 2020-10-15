@@ -12,12 +12,13 @@
 
 class window_roll_text_t : public AddSuperWindow<window_text_t> {
     txtroll_t roll;
+    int8_t timer;
 
     bool rollNeedInit() { return roll.setup == TXTROLL_SETUP_INIT; }
     void rollInit() { roll_init(rect, text, font, padding, GetAlignment(), &roll); }
 
 public:
-    window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt);
+    window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
     virtual ~window_roll_text_t();
     virtual void SetText(string_view_utf8 txt) override;
 

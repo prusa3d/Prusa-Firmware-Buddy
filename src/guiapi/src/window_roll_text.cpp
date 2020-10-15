@@ -20,22 +20,30 @@ void window_roll_text_t::unconditionalDraw() {
 }
 
 void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::TIMER) {
-        if (!rollNeedInit())
+    int timer_id = int(param);
+    if (event == GUI_event_t::TIMER && timer_id == timer) {
+        if (!rollNeedInit()) {
             roll_text_phasing(this, font, &roll);
+        } else {
+            rollInit();
+        }
+    } else {
+        SuperWindowEvent(sender, event, param);
     }
 }
 
 window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt)
-    : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt) {
+    : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
+    , timer(gui_timer_create_txtroll(this, TEXT_ROLL_INITIAL_DELAY_MS)) {
     roll.count = roll.px_cd = roll.progress = 0;
     roll.phase = ROLL_SETUP;
     roll.setup = TXTROLL_SETUP_INIT;
-    gui_timer_create_txtroll(this, TEXT_ROLL_INITIAL_DELAY_MS);
     rollInit();
 }
 
-window_roll_text_t::~window_roll_text_t() { gui_timers_delete_by_window(this); }
+window_roll_text_t::~window_roll_text_t() {
+    gui_timers_delete_by_window(this);
+}
 
 void window_roll_text_t::SetText(string_view_utf8 txt) {
     super::SetText(txt);
