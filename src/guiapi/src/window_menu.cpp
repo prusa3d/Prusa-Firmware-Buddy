@@ -247,24 +247,16 @@ void window_menu_t::unconditionalDraw() {
         return;
     }
 
-    Sound_Play(eSOUND_TYPE::EncoderMove); // value changed
-
     if (item->IsSelected()) {
-        // if (item->Change(moveIndex)) {
-        //     // Sound_Play(eSOUND_TYPE::EncoderMove); // value changed
-        //     //unconditionalDrawItem(index);
-        // } else {
-        //     // Sound_Play(eSOUND_TYPE::BlindAlert); // value hitend of range
-        // }
         moveIndex = 0;
         return;
     }
 
     const int old_index = index;
-    if (moveToNextVisibleItem()) { /// changes index internally
-        // Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
+    if (moveToNextVisibleItem()) {            /// changes index internally
+        Sound_Play(eSOUND_TYPE::EncoderMove); /// cursor moved normally
     } else {
-        // Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by the cursor
+        Sound_Play(eSOUND_TYPE::BlindAlert); /// start or end of menu was hit by the cursor
     }
 
     if (updateTopIndex()) {
