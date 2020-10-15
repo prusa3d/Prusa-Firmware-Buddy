@@ -30,7 +30,7 @@ class window_menu_t : public IWindowMenu {
     /// index in visible item list (excluding hidden)
     int realIndex(const int visible_index);
     /// Redraws whole window
-    void redrawWholeMenu(color_t background);
+    void redrawWholeMenu();
     /// Plays proper sound according to item/value changed
     /// \returns input
     bool playEncoderSound(bool changed);
