@@ -36,6 +36,8 @@ window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *p
     /// Force to move cursor at the beginning to force complete redraw
     setIndex(index);
     moveIndex = 0;
+    top_index = 0;
+    updateTopIndex();
 }
 
 //private, for ctor (cannot fail)
@@ -242,7 +244,7 @@ void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IW
 
 void window_menu_t::unconditionalDraw() {
     if (moveIndex == 0) { /// forced redraw
-        redrawWholeMenu();
+        redrawWholeMenu(COLOR_BLUE);
         return;
     }
 
@@ -251,7 +253,7 @@ void window_menu_t::unconditionalDraw() {
         index = 0;
         top_index = 0;
         moveIndex = 0;
-        redrawWholeMenu();
+        redrawWholeMenu(COLOR_NAVY);
         return;
     }
 
@@ -264,14 +266,14 @@ void window_menu_t::unconditionalDraw() {
     playEncoderSound(moveToNextVisibleItem()); /// moves index and plays a sound
 
     if (updateTopIndex()) {
-        redrawWholeMenu(); /// whole menu moved, redraw everything
+        redrawWholeMenu(COLOR_GREEN); /// whole menu moved, redraw everything
     } else {
         unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
         unconditionalDrawItem(index);
     }
 }
 
-void window_menu_t::redrawWholeMenu() {
+void window_menu_t::redrawWholeMenu(color_t background) {
     const int item_height = font->h + padding.top + padding.bottom;
     const size_t visible_available = rect.Height() / item_height;
     size_t visible_count = 0;
@@ -295,7 +297,7 @@ void window_menu_t::redrawWholeMenu() {
     if (rc_win.Height() <= 0)
         return;
     rc_win += Rect16::Top_t(menu_h);
-    display::FillRect(rc_win, color_back);
+    display::FillRect(rc_win, background);
 }
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {
