@@ -94,7 +94,7 @@ bool window_menu_t::moveToNextVisibleItem() {
         do { /// skip all hidden items
             moved += dir;
 
-            if (IS_OUT_OF_RANGE(index + moved, 0, GetCount())) {
+            if (IS_OUT_OF_RANGE(index + moved, 0, GetCount() - 1)) {
                 /// cursor would get out of menu
                 moveIndex = 0;
                 return false;
@@ -270,7 +270,6 @@ void window_menu_t::unconditionalDraw() {
         Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
     } else {
         Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by the cursor
-        return;
     }
 
     if (updateTopIndex()) {
