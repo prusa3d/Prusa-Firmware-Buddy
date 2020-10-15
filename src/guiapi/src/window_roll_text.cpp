@@ -52,8 +52,8 @@ void window_roll_text_done(window_roll_text_t *window) {
     gui_timers_delete_by_window(window);
 }
 
-window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect)
-    : window_text_t(parent, rect, is_multiline::no) {
+window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt)
+    : window_text_t(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt) {
     roll.count = roll.px_cd = roll.progress = 0;
     roll.phase = ROLL_SETUP;
     roll.setup = TXTROLL_SETUP_INIT;

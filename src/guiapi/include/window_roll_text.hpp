@@ -12,5 +12,5 @@
 
 struct window_roll_text_t : window_text_t {
     txtroll_t roll;
-    window_roll_text_t(window_t *parent, Rect16 rect);
+    window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
 };
