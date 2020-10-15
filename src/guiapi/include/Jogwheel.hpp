@@ -38,6 +38,19 @@ public:
         Held
     };
 
+    //structure to be read in rtos thread (outside interrupt)
+    //size must be 32 bit to be atomic
+    struct encoder_t {
+        union {
+            struct {
+                int16_t value;
+                uint8_t gear;
+                uint8_t tick;
+            };
+            uint32_t data;
+        };
+    };
+
     /**
      * Fills up the parameter with an event from inner event buffer.
      *
@@ -70,6 +83,8 @@ public:
     int32_t ConsumeEncoderDiff();
 
 private:
+    static int32_t CalculateEncoderDiff(encoder_t enc);
+
     /**
      * Initialize queue for button messages (button_queue_handle)
      *
@@ -98,15 +113,6 @@ private:
     static void ReadInput(uint8_t &signals);
 
     /**
-     * It stores difference between last_encoder and encoder into rtos queue and then resets last_encoder
-     *
-     * rtos queue shall be read in gui_loop.
-     *
-     * To be used in interrupt
-     */
-    void SendEncoderDiffFromISR();
-
-    /**
      * Updates member variables according to input signals.
      *
      * To be used in interrupt
@@ -128,7 +134,7 @@ private:
      *
      * To be used in interrupt
      *
-     * It stores button event into rtos queue which shall be read in gui_loop.
+     * It stores button event into rtos queue which shall be read in rtos thread (outside interrupt).
      */
     void UpdateButtonActionFromISR();
 
@@ -149,7 +155,7 @@ private:
     // ordered by size, from biggest to smallest (most size-effective)
     uint32_t speed_traps[4];           //!< stores previous encoder's change timestamp
     QueueHandle_t button_queue_handle; //!< pointer to message button queue, cannot use Mayers singleton - first call in IRQ can cause deadlock
-    QueueHandle_t spin_queue_handle;   //!< pointer to message spin queue, cannot use Mayers singleton - first call in IRQ can cause deadlock
+    volatile encoder_t threadsafe_enc; //!< encoder data struct to be passed to rtos thread (outside interrupt)
     uint32_t tick_counter;             //!< counting variable for encoder_gear system
     int32_t encoder;                   //!< jogwheel encoder
     uint16_t hold_counter;             //!< keep track of ms from button down
