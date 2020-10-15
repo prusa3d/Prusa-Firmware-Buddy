@@ -110,6 +110,7 @@ void _add_status_msg(const char *const popup_msg) {
     //I could check client mask here
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         variant8_t *pvar = &(marlin_server.event_messages[i]);
+        variant8_set_type(pvar, VARIANT8_PCHAR);
         variant8_done(&pvar);                                                      //destroy unsent message - free dynamic memory
         marlin_server.event_messages[i] = variant8_pchar((char *)popup_msg, 0, 1); //variant malloc - detached on send
         variant8_set_type(&(marlin_server.event_messages[i]), VARIANT8_USER);      //set user type so client can recognize it as event
