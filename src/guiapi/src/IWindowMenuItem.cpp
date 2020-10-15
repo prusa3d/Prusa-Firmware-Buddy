@@ -67,7 +67,7 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
 }
 
 void IWindowMenuItem::RollInit(IWindowMenu &window_menu, Rect16 rect) {
-    roll_init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.GetAlignment(), &roll);
+    roll.Init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.GetAlignment());
 }
 void IWindowMenuItem::Roll(IWindowMenu &window_menu) {
     roll_text_phasing(&window_menu, window_menu.font, &roll); //warning it is accessing gui timer

@@ -157,9 +157,9 @@ void window_file_list_t::unconditionalDraw() {
                 if (roll.phase == ROLL_SETUP) { // initiation of rolling is done in functions
                     // which move cursor up or down. They can handle the situation, when the cursor
                     // stays at one place (top or bottom), but the whole window list moves up/down.
-                    // Calling roll_init must be done here because of the rect.
+                    // Calling roll.Init must be done here because of the rect.
                     // That also solves the reinit of rolling the same file name, when the cursor doesn't move.
-                    roll_init(rc, itemText, font, padding, GetAlignment(), &roll);
+                    roll.Init(rc, itemText, font, padding, GetAlignment());
                 }
 
                 render_roll_text_align(rc,

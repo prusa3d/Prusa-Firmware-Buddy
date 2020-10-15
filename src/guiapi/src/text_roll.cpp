@@ -46,15 +46,15 @@ void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll) {
     }
 }
 
-void roll_init(Rect16 rc, string_view_utf8 text, const font_t *font,
-    padding_ui8_t padding, uint8_t alignment, txtroll_t *roll) {
-    roll->rect = roll_text_rect_meas(rc, text, font, padding, alignment);
-    roll->count = text_rolls_meas(roll->rect, text, font);
-    roll->progress = roll->px_cd = roll->phase = 0;
-    if (roll->count == 0) {
-        roll->setup = TXTROLL_SETUP_IDLE;
+void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
+    padding_ui8_t padding, uint8_t alignment) {
+    rect = roll_text_rect_meas(rc, text, font, padding, alignment);
+    count = text_rolls_meas(rect, text, font);
+    progress = px_cd = phase = 0;
+    if (count == 0) {
+        setup = TXTROLL_SETUP_IDLE;
     } else {
-        roll->setup = TXTROLL_SETUP_DONE;
+        setup = TXTROLL_SETUP_DONE;
     }
 }
 

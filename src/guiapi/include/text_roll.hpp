@@ -33,11 +33,12 @@ struct txtroll_t {
         , phase(0)
         , setup(0)
         , px_cd(0) {}
+
+    void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment);
 };
 
 extern void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll);
 
-extern void roll_init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, txtroll_t *roll);
 extern void render_roll_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
 extern uint16_t text_rolls_meas(Rect16 rc, string_view_utf8 text, const font_t *pf);
 extern Rect16 roll_text_rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);
