@@ -1,6 +1,7 @@
 // window_menu.cpp
 
 #include <algorithm>
+#include <cstdlib>
 #include "window_menu.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
@@ -104,7 +105,7 @@ bool window_menu_t::moveToNextVisibleItem() {
                 return false;
             }
         } while (item->IsHidden());
-        SetIndex(index + moved); /// sets new cursor position (visible item)
+        SetIndex(uint8_t(index + moved)); /// sets new cursor position (visible item)
     }
     return true;
 }
@@ -238,19 +239,25 @@ void window_menu_t::unconditionalDraw() {
         return;
     if (item->IsSelected()) {
         if (item->Change(moveIndex)) {
-            unconditionalDrawItem(index);
+            redrawWholeMenu();
+            //unconditionalDrawItem(index);
         }
+        moveIndex = 0;
         return;
     }
 
     const int old_index = index;
 
-    if (moveToNextVisibleItem()) {
+    if (moveToNextVisibleItem()) {            /// changes index internally
         Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
     } else {
         Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by the cursor
         return;
     }
+
+    top_index = 0;
+    redrawWholeMenu(); /// whole menu moved, redraw everything
+    return;
 
     if (refreshTopIndex()) {
         redrawWholeMenu(); /// whole menu moved, redraw everything
@@ -279,13 +286,13 @@ void window_menu_t::redrawWholeMenu() {
     }
 
     /// fill the rest of the window by background
-    const int16_t menu_h = visible_count * item_height;
-    Rect16 rc_win = rect;
-    rc_win -= Rect16::Height_t(menu_h);
-    if (rc_win.Height() <= 0)
-        return;
-    rc_win += Rect16::Top_t(menu_h);
-    display::FillRect(rc_win, color_back);
+    // const int16_t menu_h = visible_count * item_height;
+    // Rect16 rc_win = rect;
+    // rc_win -= Rect16::Height_t(menu_h);
+    // if (rc_win.Height() <= 0)
+    //     return;
+    // rc_win += Rect16::Top_t(menu_h);
+    // display::FillRect(rc_win, color_back);
 }
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {
