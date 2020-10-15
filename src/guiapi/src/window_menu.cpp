@@ -34,9 +34,8 @@ window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *p
     : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
     /// Force to move cursor at the beginning to force complete redraw
-    setIndex(index + 1);
-    moveIndex = -1;
-    top_index = 1;
+    setIndex(index);
+    moveIndex = 0;
 }
 
 //private, for ctor (cannot fail)
@@ -144,7 +143,7 @@ int window_menu_t::realIndex(const int visible_index) {
     return -1;
 }
 
-bool window_menu_t::refreshTopIndex() {
+bool window_menu_t::updateTopIndex() {
     if (index < top_index) {
         top_index = index;
         return true; /// move the window up
@@ -167,6 +166,13 @@ bool window_menu_t::refreshTopIndex() {
 
 void window_menu_t::Increment(int dif) {
     moveIndex += dif; /// is not but could be atomic but should not hurt in GUI
+
+    if (dif < 0) {
+        moveIndex = -5;
+    } else {
+        moveIndex = 5;
+    }
+
     Invalidate();
 }
 
@@ -232,22 +238,32 @@ void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IW
 }
 
 void window_menu_t::unconditionalDraw() {
-    if (moveIndex == 0)
+    if (moveIndex == 0) { /// forced redraw
+        redrawWholeMenu();
         return;
+    }
+
     IWindowMenuItem *item = GetActiveItem();
-    if (!item)
+    if (!item) { /// weird state, fallback to first item
+        index = 0;
+        top_index = 0;
+        moveIndex = 0;
+        redrawWholeMenu();
         return;
+    }
+
     if (item->IsSelected()) {
         if (item->Change(moveIndex)) {
-            redrawWholeMenu();
-            //unconditionalDrawItem(index);
+            Sound_Play(eSOUND_TYPE::EncoderMove); // value changed
+            unconditionalDrawItem(index);
+        } else {
+            Sound_Play(eSOUND_TYPE::BlindAlert); // value hitend of range
         }
         moveIndex = 0;
         return;
     }
 
     const int old_index = index;
-
     if (moveToNextVisibleItem()) {            /// changes index internally
         Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
     } else {
@@ -255,11 +271,7 @@ void window_menu_t::unconditionalDraw() {
         return;
     }
 
-    top_index = 0;
-    redrawWholeMenu(); /// whole menu moved, redraw everything
-    return;
-
-    if (refreshTopIndex()) {
+    if (updateTopIndex()) {
         redrawWholeMenu(); /// whole menu moved, redraw everything
     } else {
         unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
@@ -272,7 +284,6 @@ void window_menu_t::redrawWholeMenu() {
     const size_t visible_available = rect.Height() / item_height;
     size_t visible_count = 0;
     IWindowMenuItem *item;
-
     for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
 
         item = GetItem(i);
@@ -286,13 +297,13 @@ void window_menu_t::redrawWholeMenu() {
     }
 
     /// fill the rest of the window by background
-    // const int16_t menu_h = visible_count * item_height;
-    // Rect16 rc_win = rect;
-    // rc_win -= Rect16::Height_t(menu_h);
-    // if (rc_win.Height() <= 0)
-    //     return;
-    // rc_win += Rect16::Top_t(menu_h);
-    // display::FillRect(rc_win, color_back);
+    const int16_t menu_h = visible_count * item_height;
+    Rect16 rc_win = rect;
+    rc_win -= Rect16::Height_t(menu_h);
+    if (rc_win.Height() <= 0)
+        return;
+    rc_win += Rect16::Top_t(menu_h);
+    display::FillRect(rc_win, color_back);
 }
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {
