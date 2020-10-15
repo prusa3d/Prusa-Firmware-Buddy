@@ -92,19 +92,21 @@ bool window_menu_t::moveToNextVisibleItem() {
     for (; moveIndex != 0; moveIndex -= dir) {
         moved = 0;
         do { /// skip all hidden items
-            if (index + dir >= GetCount() || index + dir < 0) {
+            moved += dir;
+
+            if (IS_OUT_OF_RANGE(index + moved, 0, GetCount())) {
                 /// cursor would get out of menu
                 moveIndex = 0;
                 return false;
             }
-            moved += dir;
+
             item = GetItem(index + moved);
             if (item == nullptr) {
                 moveIndex = 0;
                 return false;
             }
         } while (item->IsHidden());
-        SetIndex(uint8_t(index + moved)); /// sets new cursor position (visible item)
+        SetIndex(uint8_t(index + moved)); /// sets new cursor position to a visible item
     }
     return true;
 }
@@ -125,7 +127,7 @@ int window_menu_t::visibleIndex(const int real_index) {
 }
 
 int window_menu_t::realIndex(const int visible_index) {
-    int visible = 0;
+    int visible = -1; /// -1 => 0 items, 0 => 1 item, ...
     IWindowMenuItem *item;
     int i;
     for (i = 0; i < GetCount(); ++i) {
