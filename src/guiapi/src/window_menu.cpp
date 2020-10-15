@@ -168,13 +168,6 @@ bool window_menu_t::updateTopIndex() {
 
 void window_menu_t::Increment(int dif) {
     moveIndex += dif; /// is not but could be atomic but should not hurt in GUI
-
-    if (dif < 0) {
-        moveIndex = -5;
-    } else {
-        moveIndex = 5;
-    }
-
     Invalidate();
 }
 
@@ -254,22 +247,24 @@ void window_menu_t::unconditionalDraw() {
         return;
     }
 
+    Sound_Play(eSOUND_TYPE::EncoderMove); // value changed
+
     if (item->IsSelected()) {
-        if (item->Change(moveIndex)) {
-            Sound_Play(eSOUND_TYPE::EncoderMove); // value changed
-            unconditionalDrawItem(index);
-        } else {
-            Sound_Play(eSOUND_TYPE::BlindAlert); // value hitend of range
-        }
+        // if (item->Change(moveIndex)) {
+        //     // Sound_Play(eSOUND_TYPE::EncoderMove); // value changed
+        //     //unconditionalDrawItem(index);
+        // } else {
+        //     // Sound_Play(eSOUND_TYPE::BlindAlert); // value hitend of range
+        // }
         moveIndex = 0;
         return;
     }
 
     const int old_index = index;
-    if (moveToNextVisibleItem()) {            /// changes index internally
-        Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
+    if (moveToNextVisibleItem()) { /// changes index internally
+        // Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
     } else {
-        Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by the cursor
+        // Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by the cursor
     }
 
     if (updateTopIndex()) {
