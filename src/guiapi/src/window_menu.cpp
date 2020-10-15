@@ -112,7 +112,7 @@ bool window_menu_t::moveToNextVisibleItem() {
 }
 
 int window_menu_t::visibleIndex(const int real_index) {
-    int visible = 0;
+    int visible = -1; /// -1 => 0 items, 0 => 1 item, ...
     IWindowMenuItem *item;
     for (int i = 0; i < GetCount(); ++i) {
         item = GetItem(i);
@@ -121,7 +121,7 @@ int window_menu_t::visibleIndex(const int real_index) {
         if (!item->IsHidden())
             visible++;
         if (i == real_index)
-            return visible;
+            return std::max(0, visible);
     }
     return -1;
 }
