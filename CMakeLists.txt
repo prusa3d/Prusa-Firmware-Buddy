@@ -608,6 +608,7 @@ if(GUI)
             src/guiapi/src/window_frame.cpp
             src/guiapi/src/gui_timer.cpp
             src/guiapi/src/display_helper.cpp
+            src/guiapi/src/text_roll.cpp
             src/guiapi/src/window_menu.cpp
             src/guiapi/src/window_term.cpp
             src/guiapi/src/window_arrows.cpp

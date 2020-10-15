@@ -5,6 +5,7 @@
 #include "guitypes.hpp"
 #include "display_helper.h"
 #include "Iwindow_menu.hpp" //needed for window settings like rect, padding ...
+#include "text_roll.hpp"
 
 //todo make version with constant label
 class IWindowMenuItem {

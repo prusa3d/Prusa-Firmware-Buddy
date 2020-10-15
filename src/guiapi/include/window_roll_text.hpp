@@ -9,6 +9,7 @@
 
 #include "window_text.hpp"
 #include "display_helper.h" //txtroll_t
+#include "text_roll.hpp"
 
 class window_roll_text_t : public AddSuperWindow<window_text_t> {
     txtroll_t roll;
