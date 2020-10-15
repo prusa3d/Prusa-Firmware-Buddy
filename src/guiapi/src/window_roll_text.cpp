@@ -41,10 +41,6 @@ window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_vie
     rollInit();
 }
 
-window_roll_text_t::~window_roll_text_t() {
-    gui_timers_delete_by_window(this);
-}
-
 void window_roll_text_t::SetText(string_view_utf8 txt) {
     super::SetText(txt);
     rollInit();
