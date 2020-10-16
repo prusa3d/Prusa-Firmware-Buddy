@@ -4,6 +4,7 @@
 #include "config.h"
 #include "ScreenHandler.hpp"
 #include "bsod.h"
+#include "sound.hpp"
 
 screen_hardfault_data_t::screen_hardfault_data_t()
     : window_frame_t()
@@ -25,4 +26,5 @@ screen_hardfault_data_t::screen_hardfault_data_t()
 void screen_hardfault_data_t::draw() {
     window_frame_t::draw();
     ScreenHardFault();
+    Sound_Play(eSOUND_TYPE::CriticalAlert);
 }
