@@ -2,10 +2,11 @@
 #include <memory>
 #include <iterator>
 #include <algorithm>
-#include "fatfs.h"
 #include <string.h>
+#include <strings.h>
 #include <limits.h>
 #include <array>
+#include "fatfs.h"
 
 #ifndef LAZYFILELIST_UNITTEST
     #include "file_list_defs.h"
