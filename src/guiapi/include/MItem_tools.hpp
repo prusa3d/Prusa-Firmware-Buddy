@@ -36,7 +36,7 @@ protected:
 };
 
 class MI_MESH_BED : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Mesh Bed Level.");
+    static constexpr const char *const label = N_("Mesh Bed Leveling");
 
 public:
     MI_MESH_BED();
@@ -56,7 +56,7 @@ protected:
 };
 
 class MI_CALIB_FIRST : public WI_LABEL_t {
-    static constexpr const char *const label = N_("First Layer Cal.");
+    static constexpr const char *const label = N_("First Layer Calibration");
 
 public:
     MI_CALIB_FIRST();
