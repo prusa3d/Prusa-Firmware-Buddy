@@ -10,7 +10,7 @@
 #include "../Marlin/src/module/temperature.h"
 #include "cmath_ext.h"
 
-static const constexpr uint8_t EEPROM__PADDING = 4;
+static const constexpr uint8_t EEPROM__PADDING = 3;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
 static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;         // maximum datasize
 static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
@@ -80,7 +80,6 @@ typedef struct _eeprom_vars_t {
     uint16_t LANGUAGE;
     uint8_t FILE_SORT;
     uint8_t MENU_TIMEOUT;
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     uint8_t ACTIVE_SHEET;
     Sheet SHEET_PROFILE0;
     Sheet SHEET_PROFILE1;
@@ -90,16 +89,11 @@ typedef struct _eeprom_vars_t {
     Sheet SHEET_PROFILE5;
     Sheet SHEET_PROFILE6;
     Sheet SHEET_PROFILE7;
-#endif
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
 
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-static_assert(sizeof(eeprom_vars_t) % 3 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
-#else
-static_assert(sizeof(eeprom_vars_t) % 1 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
-#endif
+static_assert(sizeof(eeprom_vars_t) % 4 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
 #pragma pack(pop)
 
 // clang-format off
@@ -137,7 +131,6 @@ static const eeprom_entry_t eeprom_map[] = {
     { "LANGUAGE",        VARIANT8_UI16,  1, 0 }, // EEVAR_LANGUAGE
     { "FILE_SORT",       VARIANT8_UI8,   1, 0 }, // EEVAR_FILE_SORT
     { "MENU_TIMEOUT",    VARIANT8_UI8,   1, 0 }, // EEVAR_MENU_TIMEOUT
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     { "ACTIVE_SHEET",    VARIANT8_UI8,   1, 0 }, // EEVAR_ACTIVE_SHEET
     { "SHEET_PROFILE0",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SHEET_PROFILE1",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
@@ -147,7 +140,6 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SHEET_PROFILE5",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SHEET_PROFILE6",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SHEET_PROFILE7",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
-#endif
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -192,7 +184,6 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0xffff,          // EEVAR_LANGUAGE
     0,               // EEVAR_FILE_SORT
     1,               // EEVAR_MENU_TIMEOUT
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     0,               // EEVAR_ACTIVE_SHEET
     {"Smooth1", 0.0f },
     {"Smooth2", FLT_MAX },
@@ -202,7 +193,6 @@ static const eeprom_vars_t eeprom_var_defaults = {
     {"Custom2", FLT_MAX },
     {"Custom3", FLT_MAX },
     {"Custom4", FLT_MAX },
-#endif
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
