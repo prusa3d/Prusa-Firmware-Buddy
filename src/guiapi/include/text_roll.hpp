@@ -24,7 +24,7 @@ class txtroll_t {
     uint8_t setup;
     uint8_t px_cd;
 
-    //static size_t instance_counter;
+    static size_t instance_counter;
 
     static Rect16 rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);
     static uint16_t meas(Rect16 rc, string_view_utf8 text, const font_t *pf);
@@ -36,7 +36,9 @@ public:
         , count(0)
         , phase(0)
         , setup(0)
-        , px_cd(0) {}
+        , px_cd(0) { ++instance_counter; }
+
+    ~txtroll_t() { --instance_counter; }
 
     void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment);
     void Phasing(window_t *pWin, font_t *font);

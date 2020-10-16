@@ -11,6 +11,8 @@
 #include "../common/str_utils.hpp"
 #include "ScreenHandler.hpp"
 
+size_t txtroll_t::instance_counter = 0;
+
 void txtroll_t::Phasing(window_t *pWin, font_t *font) {
     if (setup == TXTROLL_SETUP_IDLE)
         return;
