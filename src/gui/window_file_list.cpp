@@ -193,7 +193,7 @@ void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         //TODO: change flag to checked
         break;
     case GUI_event_t::TIMER:
-        roll.Phasing(this, font);
+        roll.Tick(this);
         break;
     default:
         break;

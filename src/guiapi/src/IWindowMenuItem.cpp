@@ -70,7 +70,7 @@ void IWindowMenuItem::RollInit(IWindowMenu &window_menu, Rect16 rect) {
     roll.Init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.GetAlignment());
 }
 void IWindowMenuItem::Roll(IWindowMenu &window_menu) {
-    roll.Phasing(&window_menu, window_menu.font); //warning it is accessing gui timer
+    roll.Tick(&window_menu); //warning it is accessing gui timer
 }
 
 void IWindowMenuItem::SetFocus(IWindowMenu &window_menu) {

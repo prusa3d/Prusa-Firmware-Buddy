@@ -22,7 +22,7 @@ void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     int timer_id = int(param);
     if (event == GUI_event_t::TIMER && timer_id == timer) {
         if (!roll.NeedInit()) {
-            roll.Phasing(this, font);
+            roll.Tick(this);
         } else {
             rollInit();
         }

@@ -13,9 +13,9 @@
 
 size_t txtroll_t::instance_counter = 0;
 
-void txtroll_t::Phasing(window_t *pWin, font_t *font) {
+void txtroll_t::Tick(window_t *pWin) {
     switch (phase) {
-    case phase_t::setup_init:
+    case phase_t::init:
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
         pWin->Invalidate();
         break;
@@ -24,12 +24,11 @@ void txtroll_t::Phasing(window_t *pWin, font_t *font) {
         phase = phase_t::go;
         pWin->Invalidate();
         break;
-    case phase_t::setup_idle:
-        return;
+
     case phase_t::go:
         if (count > 0 || px_cd > 0) {
             if (px_cd == 0) {
-                px_cd = font->w;
+                px_cd = font_w;
                 count--;
                 progress++;
             }
@@ -44,8 +43,10 @@ void txtroll_t::Phasing(window_t *pWin, font_t *font) {
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, pWin);
         break;
     case phase_t::restart:
-        phase = phase_t::setup_init;
+        phase = phase_t::init;
         pWin->Invalidate();
+        break;
+    case phase_t::idle:
         break;
     }
 }
@@ -55,8 +56,9 @@ void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
     rect = rect_meas(rc, text, font, padding, alignment);
     count = meas(rect, text, font);
     progress = px_cd = 0;
+    font_w = font->w;
     if (count == 0) {
-        phase = phase_t::setup_idle;
+        phase = phase_t::idle;
     } else {
         phase = phase_t::setup_done;
     }
@@ -64,7 +66,7 @@ void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
 
 void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const {
-    if (phase == phase_t::setup_init)
+    if (phase == phase_t::init)
         return;
 
     if (text.isNULLSTR()) {
@@ -126,7 +128,7 @@ uint16_t txtroll_t::meas(Rect16 rc, string_view_utf8 text, const font_t *pf) {
 
 void txtroll_t::Reset(window_t *pWin) {
     count = px_cd = progress = 0;
-    phase = phase_t::setup_init;
+    phase = phase_t::init;
 
     gui_timer_create_txtroll(pWin, TEXT_ROLL_INITIAL_DELAY_MS);
     //    gui_timer_restart_txtroll(this);

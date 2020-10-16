@@ -10,12 +10,12 @@ class txtroll_t {
     enum { BASE_TICK_MS = 20 };
 
     enum class phase_t {
-        setup_init,
+        init,
         setup_done,
-        setup_idle,
         go,
         stop,
         restart,
+        idle,
     };
 
     Rect16 rect;
@@ -23,6 +23,7 @@ class txtroll_t {
     uint16_t count;
     phase_t phase;
     uint8_t px_cd;
+    uint8_t font_w;
 
     static size_t instance_counter;
 
@@ -34,16 +35,17 @@ public:
         //rect has default ctor
         : progress(0)
         , count(0)
-        , phase(phase_t::setup_init)
-        , px_cd(0) { ++instance_counter; }
+        , phase(phase_t::init)
+        , px_cd(0)
+        , font_w(0) { ++instance_counter; }
 
     ~txtroll_t() { --instance_counter; }
 
     void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment);
-    void Phasing(window_t *pWin, font_t *font);
+    void Tick(window_t *pWin);
     void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const;
-    bool NeedInit() const { return phase == phase_t::setup_init; }
-    bool IsSetupDone() const { return phase != phase_t::setup_init && phase != phase_t::setup_idle; }
+    bool NeedInit() const { return phase == phase_t::init; }
+    bool IsSetupDone() const { return phase != phase_t::init && phase != phase_t::idle; }
     void Reset(window_t *pWin);
 
     static bool HasInstance() { return instance_counter != 0; }
