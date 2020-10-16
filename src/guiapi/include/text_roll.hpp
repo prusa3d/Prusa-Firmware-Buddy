@@ -6,6 +6,9 @@
 static const uint8_t TEXT_ROLL_DELAY_MS = 20; //todo i think system cannot shoot events this fast
 static const uint16_t TEXT_ROLL_INITIAL_DELAY_MS = 1000;
 
+enum class invalidate_t { no,
+    yes };
+
 class txtroll_t {
     enum { BASE_TICK_MS = 20 };
 
@@ -42,7 +45,7 @@ public:
     ~txtroll_t() { --instance_counter; }
 
     void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment);
-    void Tick(window_t *pWin);
+    invalidate_t Tick();
     void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const;
     bool NeedInit() const { return phase == phase_t::init; }
     bool IsSetupDone() const { return phase != phase_t::init && phase != phase_t::idle; }

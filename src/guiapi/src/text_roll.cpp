@@ -13,16 +13,17 @@
 
 size_t txtroll_t::instance_counter = 0;
 
-void txtroll_t::Tick(window_t *pWin) {
+invalidate_t txtroll_t::Tick() {
+    invalidate_t ret = invalidate_t::no;
     switch (phase) {
     case phase_t::init:
-        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
-        pWin->Invalidate();
+        //gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
+        ret = invalidate_t::yes;
         break;
     case phase_t::setup_done:
-        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
+        //gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
         phase = phase_t::go;
-        pWin->Invalidate();
+        ret = invalidate_t::yes;
         break;
 
     case phase_t::go:
@@ -33,22 +34,24 @@ void txtroll_t::Tick(window_t *pWin) {
                 progress++;
             }
             px_cd--;
-            pWin->Invalidate();
+            ret = invalidate_t::yes;
         } else {
             phase = phase_t::stop;
         }
         break;
     case phase_t::stop:
         phase = phase_t::restart;
-        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, pWin);
+        //gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, pWin);
         break;
     case phase_t::restart:
         phase = phase_t::init;
-        pWin->Invalidate();
+        ret = invalidate_t::yes;
         break;
     case phase_t::idle:
         break;
     }
+
+    return ret;
 }
 
 void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,

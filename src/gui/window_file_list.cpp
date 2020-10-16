@@ -193,7 +193,8 @@ void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         //TODO: change flag to checked
         break;
     case GUI_event_t::TIMER:
-        roll.Tick(this);
+        if (roll.Tick() == invalidate_t::yes)
+            Invalidate();
         break;
     default:
         break;
