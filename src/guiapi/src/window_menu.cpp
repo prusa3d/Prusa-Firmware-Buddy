@@ -1,6 +1,7 @@
 // window_menu.cpp
 
 #include <algorithm>
+#include <cstdlib>
 #include "window_menu.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
@@ -33,7 +34,9 @@ window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *p
     : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
     setIndex(index);
+    moveIndex = 0;
     top_index = 0;
+    updateTopIndex();
 }
 
 //private, for ctor (cannot fail)
@@ -80,33 +83,37 @@ IWindowMenuItem *window_menu_t::GetActiveItem() {
     return GetItem(index);
 }
 
-bool window_menu_t::moveToNextVisibleItem(int steps) {
-    if (steps == 0)
+bool window_menu_t::moveToNextVisibleItem() {
+    if (moveIndex == 0)
         return true;
-    int dir = SIGN1(steps); /// direction of movement (+/- 1)
-    steps = ABS(steps);
+    int dir = SIGN1(moveIndex); /// direction of movement (+/- 1)
 
     IWindowMenuItem *item;
     int moved; // number of positions moved
-    for (; steps > 0; --steps) {
+    for (; moveIndex != 0; moveIndex -= dir) {
         moved = 0;
         do { /// skip all hidden items
-            if (index + dir >= GetCount() || index + dir < 0) {
+            moved += dir;
+
+            if (IS_OUT_OF_RANGE(index + moved, 0, GetCount() - 1)) {
                 /// cursor would get out of menu
+                moveIndex = 0;
                 return false;
             }
-            moved += dir;
+
             item = GetItem(index + moved);
-            if (item == nullptr)
+            if (item == nullptr) {
+                moveIndex = 0;
                 return false;
+            }
         } while (item->IsHidden());
-        SetIndex(index + moved); /// sets new cursor position (visible item)
+        SetIndex(uint8_t(index + moved)); /// sets new cursor position to a visible item
     }
     return true;
 }
 
 int window_menu_t::visibleIndex(const int real_index) {
-    int visible = 0;
+    int visible = -1; /// -1 => 0 items, 0 => 1 item, ...
     IWindowMenuItem *item;
     for (int i = 0; i < GetCount(); ++i) {
         item = GetItem(i);
@@ -115,13 +122,13 @@ int window_menu_t::visibleIndex(const int real_index) {
         if (!item->IsHidden())
             visible++;
         if (i == real_index)
-            return visible;
+            return std::max(0, visible);
     }
     return -1;
 }
 
 int window_menu_t::realIndex(const int visible_index) {
-    int visible = 0;
+    int visible = -1; /// -1 => 0 items, 0 => 1 item, ...
     IWindowMenuItem *item;
     int i;
     for (i = 0; i < GetCount(); ++i) {
@@ -139,7 +146,7 @@ int window_menu_t::realIndex(const int visible_index) {
     return -1;
 }
 
-bool window_menu_t::refreshTopIndex() {
+bool window_menu_t::updateTopIndex() {
     if (index < top_index) {
         top_index = index;
         return true; /// move the window up
@@ -161,33 +168,16 @@ bool window_menu_t::refreshTopIndex() {
 }
 
 void window_menu_t::Increment(int dif) {
-    if (dif == 0)
-        return;
-    IWindowMenuItem *item = GetActiveItem();
-    if (!item)
-        return;
-    if (item->IsSelected()) {
-        if (item->Change(dif)) {
-            unconditionalDrawItem(index);
-        }
-        return;
+    moveIndex += dif; /// is not but could be atomic but should not hurt in GUI
+    Invalidate();
+}
+bool window_menu_t::playEncoderSound(bool changed) {
+    if (changed) {
+        Sound_Play(eSOUND_TYPE::EncoderMove); /// cursor moved normally
+        return true;
     }
-
-    const int old_index = index;
-
-    if (moveToNextVisibleItem(dif)) {
-        Sound_Play(eSOUND_TYPE::EncoderMove); // cursor moved normally
-    } else {
-        Sound_Play(eSOUND_TYPE::BlindAlert); // start or end of menu was hit by the cursor
-        return;
-    }
-
-    if (refreshTopIndex()) {
-        Invalidate(); /// whole menu moved, redraw everything
-    } else {
-        unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
-        unconditionalDrawItem(index);
-    }
+    Sound_Play(eSOUND_TYPE::BlindAlert); /// start or end of menu was hit by the cursor
+    return false;
 }
 
 //I think I do not need
@@ -207,14 +197,14 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         break;
     case GUI_event_t::ENC_DN:
         if (item->IsSelected()) {
-            invalid |= item->Decrement(value);
+            invalid |= playEncoderSound(item->Decrement(value));
         } else {
             Decrement(value);
         }
         break;
     case GUI_event_t::ENC_UP:
         if (item->IsSelected()) {
-            invalid |= item->Increment(value);
+            invalid |= playEncoderSound(item->Increment(value));
         } else {
             Increment(value);
         }
@@ -252,11 +242,40 @@ void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IW
 }
 
 void window_menu_t::unconditionalDraw() {
+    IWindowMenuItem *item = GetActiveItem();
+    if (!item) { /// weird state, fallback to the first item
+        index = 0;
+        top_index = 0;
+        moveIndex = 0;
+        redrawWholeMenu();
+        return;
+    }
+
+    if (moveIndex == 0) { /// startup or single item change
+        if (item->IsSelected()) {
+            unconditionalDrawItem(index);
+        } else {
+            redrawWholeMenu();
+        }
+        return;
+    }
+
+    const int old_index = index;
+    playEncoderSound(moveToNextVisibleItem()); /// moves index and plays a sound
+
+    if (updateTopIndex()) {
+        redrawWholeMenu(); /// whole menu moved, redraw everything
+    } else {
+        unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
+        unconditionalDrawItem(index);
+    }
+}
+
+void window_menu_t::redrawWholeMenu() {
     const int item_height = font->h + padding.top + padding.bottom;
     const size_t visible_available = rect.Height() / item_height;
     size_t visible_count = 0;
     IWindowMenuItem *item;
-
     for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
 
         item = GetItem(i);
