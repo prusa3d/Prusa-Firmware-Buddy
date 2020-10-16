@@ -10,7 +10,7 @@ struct window_header_t : public window_frame_t {
         ACTIVE };
 
     window_icon_t icon_base;
-    window_text_t label;
+    window_roll_text_t label;
     window_icon_t icon_usb;
     window_icon_t icon_lan;
 

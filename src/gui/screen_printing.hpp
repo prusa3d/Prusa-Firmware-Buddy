@@ -3,7 +3,7 @@
 #include "gui.hpp"
 #include "status_footer.h"
 #include "window_header.hpp"
-#include "window_text.hpp"
+#include "window_roll_text.hpp"
 #include "window_icon.hpp"
 #include "window_spin.hpp"
 #include "window_list.hpp"
@@ -46,7 +46,7 @@ constexpr static const size_t MAX_TIMEDUR_STR_SIZE = 9;
 class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     static constexpr const char *caption = N_("PRINTING");
 
-    window_text_t w_filename;
+    window_roll_text_t w_filename;
     WindowPrintProgress w_progress;
     window_text_t w_time_label;
     window_text_t w_time_value;

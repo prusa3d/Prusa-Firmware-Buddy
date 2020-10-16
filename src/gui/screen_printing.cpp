@@ -115,7 +115,7 @@ void screen_printing_data_t::stopAction() {
 
 screen_printing_data_t::screen_printing_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
-    , w_filename(this, Rect16(10, 33, 220, 29), is_multiline::no)
+    , w_filename(this, Rect16(10, 33, 220, 29))
     , w_progress(this, { 10, 70 }, HasNumber_t::yes)
     , w_time_label(this, Rect16(10, 128, 101, 20), is_multiline::no)
     , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)

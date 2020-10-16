@@ -66,7 +66,11 @@ screen_home_data_t::screen_home_data_t()
     is_starting = (time < 5000) ? 1 : 0;
 
     header.SetIcon(IDR_PNG_home_shape_16px);
+#ifndef _DEBUG
     header.SetText(_("HOME"));
+#else
+    header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)(N_("HOME - DEBUG - what a beautifull rolling text"))));
+#endif
 
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {

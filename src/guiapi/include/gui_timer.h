@@ -8,7 +8,6 @@ extern int8_t gui_timer_create_periodical(window_t *pWin, uint32_t ms);
 
 extern int8_t gui_timer_create_oneshot(window_t *pWin, uint32_t ms);
 
-extern int8_t gui_timer_create_timeout(window_t *pWin, uint32_t ms);
 extern int8_t gui_timer_create_txtroll(window_t *pWin, uint32_t ms);
 
 extern void gui_timer_delete(int8_t id);

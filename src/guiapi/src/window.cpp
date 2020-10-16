@@ -152,6 +152,7 @@ window_t::window_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_
 }
 
 window_t::~window_t() {
+    gui_timers_delete_by_window(this);
     if (GetFocusedWindow() == this)
         focused_ptr = nullptr;
     if (GetCapturedWindow() == this)

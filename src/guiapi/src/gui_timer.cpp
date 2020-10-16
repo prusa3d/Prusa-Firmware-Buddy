@@ -7,11 +7,12 @@
 
 static const constexpr uint8_t GUI_MAX_TIMERS = 6;
 
-static const constexpr uint8_t GUI_TIMER_NONE = 0;
-static const constexpr uint8_t GUI_TIMER_1SHT = 1;
-static const constexpr uint8_t GUI_TIMER_PERI = 2;
-static const constexpr uint8_t GUI_MENU_TIMEOUT = 3;
-static const constexpr uint8_t GUI_TIMER_TXTROLL = 4;
+enum {
+    GUI_TIMER_NONE,
+    GUI_TIMER_1SHT,
+    GUI_TIMER_PERI,
+    GUI_TIMER_TXTROLL
+};
 
 struct gui_timer_t {
     uint32_t start;
@@ -67,11 +68,6 @@ int8_t gui_timer_create_periodical(window_t *pWin, uint32_t ms) {
     return gui_timer_new(pWin, GUI_TIMER_PERI, ms);
 }
 
-int8_t gui_timer_create_timeout(window_t *pWin, uint32_t ms) {
-    gui_menu_timeout_id = gui_timer_new(pWin, GUI_MENU_TIMEOUT, ms);
-    return gui_menu_timeout_id;
-}
-
 int8_t gui_timer_create_txtroll(window_t *pWin, uint32_t ms) {
     return gui_timer_new(pWin, GUI_TIMER_TXTROLL, ms);
 }
@@ -80,8 +76,6 @@ void gui_timer_delete(int8_t id) {
     if ((id >= 0) && (id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE)) {
         gui_timers[id].start = 0;
         gui_timers[id].delay = 0;
-        if (gui_timers[id].f_timer == GUI_MENU_TIMEOUT)
-            gui_menu_timeout_id = -1;
         gui_timers[id].f_timer = GUI_TIMER_NONE;
         gui_timers[id].pWin = nullptr;
         gui_timer_count--; //decrement count
@@ -116,9 +110,6 @@ uint32_t gui_timers_cycle(void) {
                     case GUI_TIMER_PERI:
                         Screens::Access()->ScreenEvent(gui_timers[id].pWin, GUI_event_t::TIMER, (void *)(int)id);
                         gui_timers[id].start += delay;
-                        break;
-                    case GUI_MENU_TIMEOUT:
-                        gui_timers[id].delay = 0;
                         break;
                     case GUI_TIMER_TXTROLL:
                         Screens::Access()->ScreenEvent(gui_timers[id].pWin, GUI_event_t::TIMER, (void *)(int)id);

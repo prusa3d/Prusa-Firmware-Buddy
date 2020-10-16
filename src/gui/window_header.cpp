@@ -71,11 +71,12 @@ static const uint16_t span = 2 + 2;
 static const Rect16::Width_t icon_usb_width(36);
 static const Rect16::Width_t icon_lan_width(20);
 static const Rect16::Width_t icons_width(icon_usb_width + icon_lan_width);
+static const Rect16::Width_t icon_base_width(40);
 
 window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     : window_frame_t(parent, GuiDefaults::RectHeader)
-    , icon_base(this, Rect16(rect.Left(), rect.Top(), 40, rect.Height() - 5), 0)
-    , label(this, rect - Rect16::Width_t(icons_width + span) + Rect16::Left_t(40), is_multiline::no, is_closed_on_click_t::no, txt)
+    , icon_base(this, Rect16(rect.TopLeft(), icon_base_width, rect.Height() - 5), 0)
+    , label(this, rect - Rect16::Width_t(icons_width + span + icon_base_width) + Rect16::Left_t(icon_base_width), txt)
     , icon_usb(this, (rect + Rect16::Left_t(rect.Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_usb_16px)
     , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_lan_16px) {
     /// label and icon aligmnent and offset
