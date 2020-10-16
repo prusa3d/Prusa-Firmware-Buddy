@@ -4,7 +4,8 @@
 #include <string.h>
 #include "stm32f4xx_hal.h"
 #include "ScreenHandler.hpp"
-
+#include "text_roll.hpp"
+#include <algorithm>
 static const constexpr uint8_t GUI_MAX_TIMERS = 6;
 
 enum {
@@ -89,6 +90,16 @@ void gui_timers_delete_by_window(window_t *pWin) {
             gui_timer_delete(id);
 }
 
+uint32_t fire_text_roll_event(uint32_t tick, uint32_t diff_min) {
+    static uint32_t last_tick = 0;
+    if (txtroll_t::HasInstance() && ((tick - last_tick) >= txtroll_t::GetBaseTick())) {
+        last_tick = tick;
+        diff_min = std::min(diff_min, txtroll_t::GetBaseTick());
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::TEXT_ROLL, nullptr);
+    }
+    return diff_min;
+}
+
 uint32_t gui_timers_cycle(void) {
     uint32_t tick = HAL_GetTick();
     uint32_t delay;
@@ -97,6 +108,9 @@ uint32_t gui_timers_cycle(void) {
     uint8_t f_timer;
     uint8_t count = 0;
     int8_t id;
+
+    diff_min = fire_text_roll_event(tick, diff_min);
+
     for (id = 0; (id < GUI_MAX_TIMERS); id++)
         if ((f_timer = gui_timers[id].f_timer) != GUI_TIMER_NONE) {
             if ((delay = gui_timers[id].delay) > 0) {

@@ -14,16 +14,16 @@
 size_t txtroll_t::instance_counter = 0;
 
 void txtroll_t::Phasing(window_t *pWin, font_t *font) {
-    if (setup == TXTROLL_SETUP_IDLE)
+    if (setup == setup_t::idle)
         return;
     switch (phase) {
-    case ROLL_SETUP:
+    case phase_t::setup:
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
-        if (setup == TXTROLL_SETUP_DONE)
-            phase = ROLL_GO;
+        if (setup == setup_t::done)
+            phase = phase_t::go;
         pWin->Invalidate();
         break;
-    case ROLL_GO:
+    case phase_t::go:
         if (count > 0 || px_cd > 0) {
             if (px_cd == 0) {
                 px_cd = font->w;
@@ -33,16 +33,16 @@ void txtroll_t::Phasing(window_t *pWin, font_t *font) {
             px_cd--;
             pWin->Invalidate();
         } else {
-            phase = ROLL_STOP;
+            phase = phase_t::stop;
         }
         break;
-    case ROLL_STOP:
-        phase = ROLL_RESTART;
+    case phase_t::stop:
+        phase = phase_t::restart;
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, pWin);
         break;
-    case ROLL_RESTART:
-        setup = TXTROLL_SETUP_INIT;
-        phase = ROLL_SETUP;
+    case phase_t::restart:
+        setup = setup_t::init;
+        phase = phase_t::setup;
         pWin->Invalidate();
         break;
     }
@@ -52,17 +52,18 @@ void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment) {
     rect = rect_meas(rc, text, font, padding, alignment);
     count = meas(rect, text, font);
-    progress = px_cd = phase = 0;
+    progress = px_cd = 0;
+    phase = phase_t::setup;
     if (count == 0) {
-        setup = TXTROLL_SETUP_IDLE;
+        setup = setup_t::idle;
     } else {
-        setup = TXTROLL_SETUP_DONE;
+        setup = setup_t::done;
     }
 }
 
 void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const {
-    if (setup == TXTROLL_SETUP_INIT)
+    if (setup == setup_t::init)
         return;
 
     if (text.isNULLSTR()) {
@@ -124,8 +125,8 @@ uint16_t txtroll_t::meas(Rect16 rc, string_view_utf8 text, const font_t *pf) {
 
 void txtroll_t::Reset(window_t *pWin) {
     count = px_cd = progress = 0;
-    phase = ROLL_SETUP;
-    setup = TXTROLL_SETUP_INIT;
+    phase = phase_t::setup;
+    setup = setup_t::init;
 
     gui_timer_create_txtroll(pWin, TEXT_ROLL_INITIAL_DELAY_MS);
     //    gui_timer_restart_txtroll(this);

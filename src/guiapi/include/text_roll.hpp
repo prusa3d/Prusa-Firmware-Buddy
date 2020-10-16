@@ -5,23 +5,25 @@
 
 static const uint8_t TEXT_ROLL_DELAY_MS = 20; //todo i think system cannot shoot events this fast
 static const uint16_t TEXT_ROLL_INITIAL_DELAY_MS = 1000;
-static const uint8_t TXTROLL_SETUP_INIT = 0;
-static const uint8_t TXTROLL_SETUP_DONE = 1;
-static const uint8_t TXTROLL_SETUP_IDLE = 2;
-
-typedef enum {
-    ROLL_SETUP = 0,
-    ROLL_GO,
-    ROLL_STOP,
-    ROLL_RESTART,
-} TXTROLL_PHASE_t;
 
 class txtroll_t {
+    enum class phase_t {
+        setup,
+        go,
+        stop,
+        restart,
+    };
+    enum { BASE_TICK_MS = 20 };
+    enum class setup_t {
+        init,
+        done,
+        idle
+    };
     Rect16 rect;
     uint16_t progress;
     uint16_t count;
-    uint8_t phase;
-    uint8_t setup;
+    phase_t phase;
+    setup_t setup;
     uint8_t px_cd;
 
     static size_t instance_counter;
@@ -34,8 +36,8 @@ public:
         //rect has default ctor
         : progress(0)
         , count(0)
-        , phase(0)
-        , setup(0)
+        , phase(phase_t::setup)
+        , setup(setup_t::init)
         , px_cd(0) { ++instance_counter; }
 
     ~txtroll_t() { --instance_counter; }
@@ -43,7 +45,10 @@ public:
     void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment);
     void Phasing(window_t *pWin, font_t *font);
     void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const;
-    bool NeedInit() const { return setup == TXTROLL_SETUP_INIT; }
-    bool IsSetupDone() const { return setup == TXTROLL_SETUP_DONE; }
+    bool NeedInit() const { return setup == setup_t::init; }
+    bool IsSetupDone() const { return setup == setup_t::done; }
     void Reset(window_t *pWin);
+
+    static bool HasInstance() { return instance_counter != 0; }
+    static uint32_t GetBaseTick() { return BASE_TICK_MS; }
 };

@@ -22,6 +22,7 @@ enum class GUI_event_t {
     CHANGING,    //value/index changing (tag > 0)
     LOOP,        //gui loop (every 50ms)
     TIMER,       //gui timer
+    TEXT_ROLL,   //tick for text rolling classes
     MESSAGE,     //onStatusChange() message notification
     CHILD_CLICK, //click at the child screen
 };
