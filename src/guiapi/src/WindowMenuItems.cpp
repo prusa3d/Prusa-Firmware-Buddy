@@ -184,7 +184,8 @@ MI_RETURN::MI_RETURN()
     : WI_LABEL_t(label, IDR_PNG_folder_up_16px, true, false) {
 }
 
-void MI_RETURN::click(IWindowMenu & /*window_menu*/) {
+void MI_RETURN::click(IWindowMenu &window_menu) {
+    window_menu.Validate(); /// don't redraw since we leave the menu
     Screens::Access()->Close();
 }
 

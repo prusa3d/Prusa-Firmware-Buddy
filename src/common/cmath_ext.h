@@ -57,3 +57,15 @@
 
 /// \returns number of items in the array
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
+/// \returns true if \param value is between
+/// \param min and \param max including limits
+#define IS_IN_RANGE(value, min, max) \
+    ({ __typeof__ (value) a_ = (value); \
+        (min <= a_ && a_ <= max); })
+
+/// \returns false if \param value is between
+/// \param min and \param max including limits
+#define IS_OUT_OF_RANGE(value, min, max) \
+    ({ __typeof__ (value) a_ = (value); \
+        ( a_ < min || max < a_); })
