@@ -33,7 +33,6 @@ void IWindowMenu::SetIconWidth(uint8_t width) {
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
-    /// Force to move cursor at the beginning to force complete redraw
     setIndex(index);
     moveIndex = 0;
     top_index = 0;
@@ -243,13 +242,8 @@ void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IW
 }
 
 void window_menu_t::unconditionalDraw() {
-    if (moveIndex == 0) { /// forced redraw
-        redrawWholeMenu();
-        return;
-    }
-
     IWindowMenuItem *item = GetActiveItem();
-    if (!item) { /// weird state, fallback to first item
+    if (!item) { /// weird state, fallback to the first item
         index = 0;
         top_index = 0;
         moveIndex = 0;
@@ -257,8 +251,12 @@ void window_menu_t::unconditionalDraw() {
         return;
     }
 
-    if (item->IsSelected()) {
-        moveIndex = 0;
+    if (moveIndex == 0) { /// startup or single item change
+        if (item->IsSelected()) {
+            unconditionalDrawItem(index);
+        } else {
+            redrawWholeMenu();
+        }
         return;
     }
 

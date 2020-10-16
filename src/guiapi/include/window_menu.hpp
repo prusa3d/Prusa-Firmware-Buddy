@@ -8,8 +8,8 @@
 //use template instead IWinMenuContainer *pContainer;
 //I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
 class window_menu_t : public IWindowMenu {
-    uint8_t index; /// index of cursor
-    int moveIndex; /// accumulator for cursor changes
+    uint8_t index;    /// index of cursor
+    int8_t moveIndex; /// accumulator for cursor changes
 
     void setIndex(uint8_t index); //for ctor (cannot fail)
     /// Prints single item in the menu
