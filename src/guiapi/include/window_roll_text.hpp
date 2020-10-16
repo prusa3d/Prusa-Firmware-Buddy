@@ -15,7 +15,6 @@ class window_roll_text_t : public AddSuperWindow<window_text_t> {
     txtroll_t roll;
     int8_t timer;
 
-    bool rollNeedInit() { return roll.setup == TXTROLL_SETUP_INIT; }
     void rollInit() { roll.Init(rect, text, font, padding, GetAlignment()); }
 
 public:

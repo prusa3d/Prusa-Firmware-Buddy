@@ -60,5 +60,4 @@ private:
     virtual void unconditionalDraw() override;
     void inc(int dif);
     void dec(int dif);
-    void init_text_roll();
 };

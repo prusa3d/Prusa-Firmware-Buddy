@@ -17,6 +17,12 @@ typedef enum {
 } TXTROLL_PHASE_t;
 
 class txtroll_t {
+    Rect16 rect;
+    uint16_t progress;
+    uint16_t count;
+    uint8_t phase;
+    uint8_t setup;
+    uint8_t px_cd;
 
     //static size_t instance_counter;
 
@@ -24,12 +30,6 @@ class txtroll_t {
     static uint16_t meas(Rect16 rc, string_view_utf8 text, const font_t *pf);
 
 public:
-    Rect16 rect;
-    uint16_t progress;
-    uint16_t count;
-    uint8_t phase;
-    uint8_t setup;
-    uint8_t px_cd;
     constexpr txtroll_t()
         //rect has default ctor
         : progress(0)
@@ -41,4 +41,7 @@ public:
     void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment);
     void Phasing(window_t *pWin, font_t *font);
     void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const;
+    bool NeedInit() const { return setup == TXTROLL_SETUP_INIT; }
+    bool IsSetupDone() const { return setup == TXTROLL_SETUP_DONE; }
+    void Reset(window_t *pWin);
 };

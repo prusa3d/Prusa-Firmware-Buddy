@@ -43,7 +43,7 @@ public:
     void Hide() { hidden = true; }
     void Show() { hidden = false; }
     bool IsHidden() const { return hidden; }
-    void SetFocus();
+    void SetFocus(IWindowMenu &window_menu);
     void ClrFocus() { focused = false; }
     bool IsFocused() const { return focused; }
     void SetIconId(uint16_t id) { id_icon = id; }
@@ -65,6 +65,6 @@ public:
     void Click(IWindowMenu &window_menu);
     void Roll(IWindowMenu &window_menu);
     void RollInit(IWindowMenu &window_menu, Rect16 rect);
-    bool RollNeedInit() const { return roll.setup == TXTROLL_SETUP_INIT; }
+    bool RollNeedInit() const { return roll.NeedInit(); }
     virtual ~IWindowMenuItem() = default;
 };

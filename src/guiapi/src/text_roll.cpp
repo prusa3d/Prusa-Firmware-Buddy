@@ -119,3 +119,13 @@ uint16_t txtroll_t::meas(Rect16 rc, string_view_utf8 text, const font_t *pf) {
         meas_x = len - rc.Width() / pf->w;
     return meas_x;
 }
+
+void txtroll_t::Reset(window_t *pWin) {
+    count = px_cd = progress = 0;
+    phase = ROLL_SETUP;
+    setup = TXTROLL_SETUP_INIT;
+
+    gui_timer_create_txtroll(pWin, TEXT_ROLL_INITIAL_DELAY_MS);
+    //    gui_timer_restart_txtroll(this);
+    //gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
+}

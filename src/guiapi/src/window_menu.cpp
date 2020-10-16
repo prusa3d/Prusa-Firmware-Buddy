@@ -42,7 +42,7 @@ void window_menu_t::setIndex(uint8_t new_index) {
         new_index = 0;
     if (new_index >= GetCount())
         new_index = 0;
-    GetItem(new_index)->SetFocus(); //set focus on new item
+    GetItem(new_index)->SetFocus(*this); //set focus on new item
     index = new_index;
 }
 
@@ -56,8 +56,8 @@ bool window_menu_t::SetIndex(uint8_t index) {
         return true;
     IWindowMenuItem *activeItem = GetActiveItem();
     if (activeItem)
-        activeItem->ClrFocus(); //remove focus from old item
-    GetItem(index)->SetFocus(); //set focus on new item
+        activeItem->ClrFocus();      //remove focus from old item
+    GetItem(index)->SetFocus(*this); //set focus on new item
     this->index = index;
     return true;
 }
