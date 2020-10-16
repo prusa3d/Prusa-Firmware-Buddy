@@ -7,23 +7,21 @@ static const uint8_t TEXT_ROLL_DELAY_MS = 20; //todo i think system cannot shoot
 static const uint16_t TEXT_ROLL_INITIAL_DELAY_MS = 1000;
 
 class txtroll_t {
+    enum { BASE_TICK_MS = 20 };
+
     enum class phase_t {
-        setup,
+        setup_init,
+        setup_done,
+        setup_idle,
         go,
         stop,
         restart,
     };
-    enum { BASE_TICK_MS = 20 };
-    enum class setup_t {
-        init,
-        done,
-        idle
-    };
+
     Rect16 rect;
     uint16_t progress;
     uint16_t count;
     phase_t phase;
-    setup_t setup;
     uint8_t px_cd;
 
     static size_t instance_counter;
@@ -36,8 +34,7 @@ public:
         //rect has default ctor
         : progress(0)
         , count(0)
-        , phase(phase_t::setup)
-        , setup(setup_t::init)
+        , phase(phase_t::setup_init)
         , px_cd(0) { ++instance_counter; }
 
     ~txtroll_t() { --instance_counter; }
@@ -45,8 +42,8 @@ public:
     void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment);
     void Phasing(window_t *pWin, font_t *font);
     void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const;
-    bool NeedInit() const { return setup == setup_t::init; }
-    bool IsSetupDone() const { return setup == setup_t::done; }
+    bool NeedInit() const { return phase == phase_t::setup_init; }
+    bool IsSetupDone() const { return phase != phase_t::setup_init && phase != phase_t::setup_idle; }
     void Reset(window_t *pWin);
 
     static bool HasInstance() { return instance_counter != 0; }
