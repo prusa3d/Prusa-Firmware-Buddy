@@ -5,6 +5,7 @@
 #include "ScreenHandler.hpp"
 #include "bsod.h"
 #include "dump.h"
+#include "sound.hpp"
 
 screen_temperror_data_t::screen_temperror_data_t()
     : window_frame_t()
@@ -26,4 +27,5 @@ screen_temperror_data_t::screen_temperror_data_t()
 void screen_temperror_data_t::draw() {
     window_frame_t::draw();
     temp_error_code(dump_in_xflash_get_code());
+    Sound_Play(eSOUND_TYPE::CriticalAlert);
 }
