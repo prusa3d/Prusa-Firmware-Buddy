@@ -5,6 +5,7 @@
 #include "guitypes.hpp"
 #include "../../lang/string_view_utf8.hpp"
 #include "dbg.h"
+#include "i18n.h" //N_()
 
 //window events
 enum class GUI_event_t {
@@ -63,39 +64,41 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
     // error: 'txt' declared 'static' in 'constexpr' function
     switch (event) {
     case GUI_event_t::BTN_DN:
-        return ("button down");
+        return N_("button down");
     case GUI_event_t::BTN_UP:
-        return ("button up");
+        return N_("button up");
     case GUI_event_t::ENC_DN:
-        return ("encoder minus");
+        return N_("encoder minus");
     case GUI_event_t::ENC_UP:
-        return ("encoder plus");
+        return N_("encoder plus");
     case GUI_event_t::FOCUS0:
-        return ("focus lost");
+        return N_("focus lost");
     case GUI_event_t::FOCUS1:
-        return ("focus set");
+        return N_("focus set");
     case GUI_event_t::CAPT_0:
-        return ("capture lost");
+        return N_("capture lost");
     case GUI_event_t::CAPT_1:
-        return ("capture set");
+        return N_("capture set");
     case GUI_event_t::CLICK:
-        return ("clicked");
+        return N_("clicked");
     case GUI_event_t::HOLD:
-        return ("held button");
+        return N_("held button");
     case GUI_event_t::CHANGE:
-        return ("value/index changed");
+        return N_("value/index changed");
     case GUI_event_t::CHANGING:
-        return ("value/index changing");
+        return N_("value/index changing");
     case GUI_event_t::LOOP:
-        return ("gui loop");
+        return N_("gui loop");
     case GUI_event_t::TIMER:
-        return ("gui timer");
+        return N_("gui timer");
+    case GUI_event_t::TEXT_ROLL:
+        return N_("text roll base tick");
     case GUI_event_t::MESSAGE:
-        return ("message notification");
+        return N_("message notification");
     case GUI_event_t::CHILD_CLICK:
-        return ("child click");
+        return N_("child click");
     }
-    return ("error bad index");
+    return N_("error bad index");
 }
 
 //forward declarations
