@@ -8,19 +8,23 @@ typedef struct _selftest_heater_config_t {
     const char *partname;
     uint8_t heater;
     int16_t start_temp;
-    int16_t max_temp;
+    int16_t target_temp;
+    uint32_t heat_time_ms;
+    int16_t heat_min_temp;
+    int16_t heat_max_temp;
 } selftest_heater_config_t;
 
 class CSelftestPart_Heater : public CSelftestPart {
 public:
     enum TestState : uint8_t {
-        spsIdle,
+        spsIdle = 0,
         spsStart,
         spsWait,
         spsMeasure,
         spsFinish,
         spsFinished,
         spsAborted,
+        spsFailed,
     };
 
 public:
@@ -39,7 +43,6 @@ public:
     uint8_t getFSMState_heat();
 
 protected:
-    bool next();
     static uint32_t estimate(const selftest_heater_config_t *pconfig);
 
 protected:
@@ -47,7 +50,6 @@ protected:
     void setTargetTemp(int target_temp);
 
 protected:
-    TestState m_State;
     const selftest_heater_config_t *m_pConfig;
     uint32_t m_Time;
     uint32_t m_MeasureStartTime;
