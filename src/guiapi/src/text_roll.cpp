@@ -23,7 +23,8 @@ invalidate_t txtroll_t::Tick() {
         break;
     case phase_t::init_roll:
         px_cd = 0;
-        phase = count == 0 ? phase_t::idle : phase_t::wait_before_roll;
+        count = count_from_init;
+        phase = count_from_init == 0 ? phase_t::idle : phase_t::wait_before_roll;
         ret = invalidate_t::yes;
         phase_progress = (wait_before_roll_ms + base_tick_ms - 1) / base_tick_ms;
         break;
@@ -31,6 +32,7 @@ invalidate_t txtroll_t::Tick() {
         if ((--phase_progress) == 0) {
             phase = phase_t::go;
             ret = invalidate_t::yes;
+            draw_progress = 0;
         }
         break;
     case phase_t::go:
@@ -38,7 +40,7 @@ invalidate_t txtroll_t::Tick() {
             if (px_cd == 0) {
                 px_cd = font_w;
                 count--;
-                phase_progress++;
+                draw_progress++;
             }
             px_cd--;
         } else {
@@ -61,7 +63,7 @@ invalidate_t txtroll_t::Tick() {
 void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment) {
     rect = rect_meas(rc, text, font, padding, alignment);
-    count = meas(rect, text, font);
+    count_from_init = meas(rect, text, font);
     font_w = font->w;
     phase = phase_t::init_roll;
 }
@@ -100,7 +102,7 @@ void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
     //    str += progress;
     // for now - just move to the desired starting character
     text.rewind();
-    for (size_t i = 0; i < phase_progress; ++i) {
+    for (size_t i = 0; i < draw_progress; ++i) {
         text.getUtf8Char();
     }
 

@@ -25,6 +25,8 @@ class txtroll_t {
 
     Rect16 rect;
     uint16_t phase_progress;
+    uint16_t draw_progress;
+    uint16_t count_from_init;
     uint16_t count;
     phase_t phase;
     uint8_t px_cd;
@@ -41,6 +43,8 @@ public:
     constexpr txtroll_t()
         //rect has default ctor
         : phase_progress(0)
+        , draw_progress(0)
+        , count_from_init(0)
         , count(0)
         , phase(phase_t::uninitialized)
         , px_cd(0)
