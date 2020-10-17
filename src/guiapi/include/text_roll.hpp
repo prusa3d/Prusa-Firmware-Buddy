@@ -23,6 +23,7 @@ class txtroll_t {
         go,
         wait_after_roll,
         idle,
+        paused,
     };
 
     Rect16 rect;
@@ -36,6 +37,8 @@ class txtroll_t {
 
     static Rect16 rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);
     static uint16_t meas(Rect16 rc, string_view_utf8 text, const font_t *pf);
+
+    void renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const;
 
 public:
     constexpr txtroll_t()
@@ -52,9 +55,19 @@ public:
     invalidate_t Tick();
     void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const;
     bool NeedInit() const { return phase == phase_t::uninitialized; }
-    bool IsSetupDone() const { return phase != phase_t::uninitialized && phase != phase_t::idle; }
-    void Reset(window_t *pWin);
-    void Stop() { phase = phase_t::idle; }
+    void Reset() {
+        if (phase != phase_t::uninitialized)
+            phase = phase_t::init_roll;
+    }
+    void Uninit() { phase = phase_t::uninitialized; }
+    void Stop() {
+        if (phase != phase_t::uninitialized)
+            phase = phase_t::idle;
+    }
+    void Pause() {
+        if (phase != phase_t::uninitialized)
+            phase = phase_t::paused;
+    }
     static bool HasInstance() { return instance_counter != 0; }
     static uint32_t GetBaseTick() { return base_tick_ms; }
 };

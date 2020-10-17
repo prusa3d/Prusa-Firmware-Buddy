@@ -18,6 +18,8 @@ invalidate_t txtroll_t::Tick() {
     invalidate_t ret = invalidate_t::no;
     switch (phase) {
     case phase_t::uninitialized:
+    case phase_t::idle:
+    case phase_t::paused:
         break;
     case phase_t::init_roll:
         px_cd = 0;
@@ -51,8 +53,6 @@ invalidate_t txtroll_t::Tick() {
             ret = invalidate_t::yes;
         }
         break;
-    case phase_t::idle:
-        break;
     }
 
     return ret;
@@ -68,8 +68,21 @@ void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
 
 void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const {
-    if (phase == phase_t::uninitialized)
-        return;
+    switch (phase) {
+    case phase_t::uninitialized:
+    case phase_t::idle:
+    case phase_t::init_roll:
+    case phase_t::wait_before_roll:
+        render_text_align(rc, text, font, clr_back, clr_text, padding, alignment); // normal render
+        break;
+    default:
+        renderTextAlign(rc, text, font, padding, alignment, clr_back, clr_text); // rolling render
+        break;
+    }
+}
+
+void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
+    padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const {
 
     if (text.isNULLSTR()) {
         display::FillRect(rc, clr_back);
@@ -126,9 +139,4 @@ uint16_t txtroll_t::meas(Rect16 rc, string_view_utf8 text, const font_t *pf) {
     if (len * pf->w > rc.Width())
         meas_x = len - rc.Width() / pf->w;
     return meas_x;
-}
-
-void txtroll_t::Reset(window_t *pWin) {
-    count = px_cd = phase_progress = 0;
-    phase = phase_t::uninitialized;
 }

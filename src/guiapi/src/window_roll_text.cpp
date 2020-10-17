@@ -35,7 +35,6 @@ void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *s
 window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt)
     : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
     , timer(gui_timer_create_txtroll(this, TEXT_ROLL_INITIAL_DELAY_MS)) {
-    roll.Reset(this);
     rollInit();
 }
 

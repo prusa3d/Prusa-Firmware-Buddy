@@ -48,7 +48,7 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
 }
 
 void window_file_list_t::SetItemIndex(int index) {
-    if (count > index) {
+    if (count > index && this->index != index) {
         this->index = index;
         Invalidate();
     }
@@ -80,7 +80,6 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
     // Will be removed when this file gets converted to c++ (and cleaned)
     SetAlignment(ALIGN_LEFT_CENTER);
     Enable();
-    roll.Reset(this);
     strlcpy(sfn_path, "/", FILE_PATH_MAX_LEN);
 }
 
@@ -141,7 +140,9 @@ void window_file_list_t::unconditionalDraw() {
             }
 
             if ((IsFocused()) && index == i) {
-                if (roll.NeedInit()) { // initiation of rolling is done in functions
+                if (roll.NeedInit()) {
+                    // there is single roll for all items, so it is reinitialized often
+                    // initiation of rolling is done in functions
                     // which move cursor up or down. They can handle the situation, when the cursor
                     // stays at one place (top or bottom), but the whole window list moves up/down.
                     // Calling roll.Init must be done here because of the rect.
@@ -220,7 +221,7 @@ void window_file_list_t::inc(int dif) {
 
     if (repaint) {
         // here we know exactly, that the selected item changed -> prepare text rolling
-        roll.Reset(this);
+        roll.Uninit();
         Invalidate();
         Sound_Play(eSOUND_TYPE::EncoderMove);
     }
@@ -240,7 +241,7 @@ void window_file_list_t::dec(int dif) {
     }
 
     if (repaint) {
-        roll.Reset(this);
+        roll.Uninit();
         Invalidate();
         Sound_Play(eSOUND_TYPE::EncoderMove);
     }
