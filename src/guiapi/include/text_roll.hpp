@@ -4,7 +4,6 @@
 #include "display_helper.h"
 
 static const uint8_t TEXT_ROLL_DELAY_MS = 20; //todo i think system cannot shoot events this fast
-static const uint16_t TEXT_ROLL_INITIAL_DELAY_MS = 1000;
 
 enum class invalidate_t { no,
     yes };

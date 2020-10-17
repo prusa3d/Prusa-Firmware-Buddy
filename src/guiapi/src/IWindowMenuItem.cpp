@@ -65,9 +65,8 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
 void IWindowMenuItem::RollInit(IWindowMenu &window_menu, Rect16 rect) {
     roll.Init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.GetAlignment());
 }
-void IWindowMenuItem::Roll(IWindowMenu &window_menu) {
-    if (roll.Tick() == invalidate_t::yes)
-        window_menu.Invalidate();
+invalidate_t IWindowMenuItem::Roll() {
+    return roll.Tick();
 }
 
 void IWindowMenuItem::SetFocus(IWindowMenu &window_menu) {

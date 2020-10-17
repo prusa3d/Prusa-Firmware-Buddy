@@ -63,8 +63,7 @@ public:
     bool Increment(uint8_t dif) { return Change(dif); }
     bool Decrement(uint8_t dif) { return Change(-int(dif)); }
     void Click(IWindowMenu &window_menu);
-    void Roll(IWindowMenu &window_menu);
+    invalidate_t Roll();
     void RollInit(IWindowMenu &window_menu, Rect16 rect);
-    bool RollNeedInit() const { return roll.NeedInit(); }
     virtual ~IWindowMenuItem() = default;
 };

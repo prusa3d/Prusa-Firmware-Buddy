@@ -212,10 +212,9 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
     case GUI_event_t::CAPT_1:
         //TODO: change flag to checked
         break;
-    case GUI_event_t::TIMER:
-        if (!item->RollNeedInit()) {
-            item->Roll(*this); //warning it is accessing gui timer
-        }
+    case GUI_event_t::TEXT_ROLL:
+        if (item->Roll() == invalidate_t::yes)
+            Invalidate();
         break;
     default:
         break;
@@ -232,11 +231,6 @@ void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IW
         rect.Width(), uint16_t(item_height) };
 
     if (rect.Contain(rc)) {
-        if (item->RollNeedInit()) {
-            gui_timer_restart_txtroll(this);
-            gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
-            item->RollInit(*this, rc);
-        }
         item->Print(*this, rc);
     }
 }
