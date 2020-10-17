@@ -43,7 +43,7 @@ public:
     void Hide() { hidden = true; }
     void Show() { hidden = false; }
     bool IsHidden() const { return hidden; }
-    void SetFocus(IWindowMenu &window_menu);
+    void SetFocus();
     void ClrFocus();
     bool IsFocused() const { return focused; }
     void SetIconId(uint16_t id) { id_icon = id; }

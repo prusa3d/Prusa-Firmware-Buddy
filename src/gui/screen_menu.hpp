@@ -68,5 +68,5 @@ template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class...
 ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(string_view_utf8 label, window_t *parent, Rect16 menu_item_rect)
     : AddSuperWindow<IScreenMenu>(parent, label, menu_item_rect, FOOTER, HELP_CNF.lines, HELP_CNF.font_id) {
     menu.pContainer = &container;
-    menu.GetActiveItem()->SetFocus(menu); //set focus on new item//containder was not valid during construction, have to set its index again
+    menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
 }

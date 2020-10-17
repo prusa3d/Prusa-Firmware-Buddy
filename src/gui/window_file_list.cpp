@@ -221,7 +221,7 @@ void window_file_list_t::inc(int dif) {
 
     if (repaint) {
         // here we know exactly, that the selected item changed -> prepare text rolling
-        roll.Uninit();
+        roll.Deinit();
         Invalidate();
         Sound_Play(eSOUND_TYPE::EncoderMove);
     }
@@ -241,7 +241,7 @@ void window_file_list_t::dec(int dif) {
     }
 
     if (repaint) {
-        roll.Uninit();
+        roll.Deinit();
         Invalidate();
         Sound_Play(eSOUND_TYPE::EncoderMove);
     }

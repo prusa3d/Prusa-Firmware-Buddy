@@ -69,7 +69,7 @@ invalidate_t IWindowMenuItem::Roll() {
     return roll.Tick();
 }
 
-void IWindowMenuItem::SetFocus(IWindowMenu &window_menu) {
+void IWindowMenuItem::SetFocus() {
     focused = true;
     roll.Reset();
 }

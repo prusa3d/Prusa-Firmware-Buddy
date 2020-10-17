@@ -56,7 +56,7 @@ public:
         if (phase != phase_t::uninitialized)
             phase = phase_t::init_roll;
     }
-    void Uninit() { phase = phase_t::uninitialized; }
+    void Deinit() { phase = phase_t::uninitialized; }
     void Stop() {
         if (phase != phase_t::uninitialized)
             phase = phase_t::idle;
