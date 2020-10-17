@@ -223,7 +223,7 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         Invalidate();
 }
 
-void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IWindowMenuItem *item, const int item_height) {
+void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item, const int item_height) {
     if (item == nullptr)
         return;
 
@@ -231,6 +231,10 @@ void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IW
         rect.Width(), uint16_t(item_height) };
 
     if (rect.Contain(rc)) {
+
+        //only place I know rectangle to be able to reinit roll, ugly to do it in print
+        item->InitRollIfNeeded(*this, rc);
+
         item->Print(*this, rc);
     }
 }
@@ -278,7 +282,7 @@ void window_menu_t::redrawWholeMenu() {
         if (item->IsHidden())
             continue;
 
-        printItem(rect, visible_count, item, item_height);
+        printItem(visible_count, item, item_height);
         ++visible_count;
     }
 
@@ -304,7 +308,7 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
         if (item->IsHidden())
             continue;
         if (i == index) {
-            printItem(rect, visible_count, item, item_height);
+            printItem(visible_count, item, item_height);
             break;
         }
         ++visible_count;

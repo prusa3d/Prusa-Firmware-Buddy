@@ -64,6 +64,6 @@ public:
     bool Decrement(uint8_t dif) { return Change(-int(dif)); }
     void Click(IWindowMenu &window_menu);
     invalidate_t Roll();
-    void RollInit(IWindowMenu &window_menu, Rect16 rect);
+    void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect);
     virtual ~IWindowMenuItem() = default;
 };

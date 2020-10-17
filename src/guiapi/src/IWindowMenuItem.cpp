@@ -62,8 +62,9 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
     }
 }
 
-void IWindowMenuItem::RollInit(IWindowMenu &window_menu, Rect16 rect) {
-    roll.Init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.GetAlignment());
+void IWindowMenuItem::InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) {
+    if (roll.NeedInit())
+        roll.Init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.GetAlignment());
 }
 invalidate_t IWindowMenuItem::Roll() {
     return roll.Tick();
@@ -71,7 +72,8 @@ invalidate_t IWindowMenuItem::Roll() {
 
 void IWindowMenuItem::SetFocus() {
     focused = true;
-    roll.Reset();
+    //cannot call InitRollIfNeeded(window_menu, rect), rect not known (cannot add it into param)
+    roll.Deinit();
 }
 
 void IWindowMenuItem::ClrFocus() {
