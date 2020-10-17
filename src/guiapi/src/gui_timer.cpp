@@ -12,7 +12,6 @@ enum {
     GUI_TIMER_NONE,
     GUI_TIMER_1SHT,
     GUI_TIMER_PERI,
-    GUI_TIMER_TXTROLL
 };
 
 struct gui_timer_t {
@@ -69,10 +68,6 @@ int8_t gui_timer_create_periodical(window_t *pWin, uint32_t ms) {
     return gui_timer_new(pWin, GUI_TIMER_PERI, ms);
 }
 
-int8_t gui_timer_create_txtroll(window_t *pWin, uint32_t ms) {
-    return gui_timer_new(pWin, GUI_TIMER_TXTROLL, ms);
-}
-
 void gui_timer_delete(int8_t id) {
     if ((id >= 0) && (id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE)) {
         gui_timers[id].start = 0;
@@ -125,10 +120,6 @@ uint32_t gui_timers_cycle(void) {
                         Screens::Access()->ScreenEvent(gui_timers[id].pWin, GUI_event_t::TIMER, (void *)(int)id);
                         gui_timers[id].start += delay;
                         break;
-                    case GUI_TIMER_TXTROLL:
-                        Screens::Access()->ScreenEvent(gui_timers[id].pWin, GUI_event_t::TIMER, (void *)(int)id);
-                        gui_timers[id].start = tick;
-                        break;
                     }
                 } else if (diff_min < diff)
                     diff_min = diff;
@@ -143,28 +134,6 @@ void gui_timer_reset(int8_t id) {
 
     if ((id >= 0) && (id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE))
         gui_timers[id].start = HAL_GetTick();
-}
-
-void gui_timer_change_txtroll_peri_delay(uint32_t ms, window_t *pWin) {
-    if (gui_timer_count != -1) {
-        for (uint8_t id = 0; id < GUI_MAX_TIMERS; id++) {
-            if (gui_timers[id].pWin == pWin) {
-                gui_timers[id].delay = ms;
-                break;
-            }
-        }
-    }
-}
-
-void gui_timer_restart_txtroll(window_t *pWin) {
-    if (gui_timer_count != -1) {
-        for (uint8_t id = 0; id < GUI_MAX_TIMERS; id++) {
-            if (gui_timers[id].pWin == pWin) {
-                gui_timers[id].start = HAL_GetTick();
-                break;
-            }
-        }
-    }
 }
 
 int8_t gui_timer_expired(int8_t id) {

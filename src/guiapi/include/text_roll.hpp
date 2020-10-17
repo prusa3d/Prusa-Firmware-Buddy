@@ -3,8 +3,6 @@
 
 #include "display_helper.h"
 
-static const uint8_t TEXT_ROLL_DELAY_MS = 20; //todo i think system cannot shoot events this fast
-
 enum class invalidate_t { no,
     yes };
 
