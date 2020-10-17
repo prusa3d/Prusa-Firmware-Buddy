@@ -13,39 +13,43 @@
 
 size_t txtroll_t::instance_counter = 0;
 
+//invalidate at phase change
 invalidate_t txtroll_t::Tick() {
     invalidate_t ret = invalidate_t::no;
     switch (phase) {
-    case phase_t::init:
-        //gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
-        ret = invalidate_t::yes;
+    case phase_t::uninitialized:
         break;
-    case phase_t::setup_done:
-        //gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
-        phase = phase_t::go;
+    case phase_t::init_roll:
+        px_cd = 0;
+        phase = count == 0 ? phase_t::idle : phase_t::wait_before_roll;
         ret = invalidate_t::yes;
+        phase_progress = (wait_before_roll_ms + base_tick_ms - 1) / base_tick_ms;
         break;
-
+    case phase_t::wait_before_roll:
+        if ((--phase_progress) == 0) {
+            phase = phase_t::go;
+            ret = invalidate_t::yes;
+        }
+        break;
     case phase_t::go:
         if (count > 0 || px_cd > 0) {
             if (px_cd == 0) {
                 px_cd = font_w;
                 count--;
-                progress++;
+                phase_progress++;
             }
             px_cd--;
-            ret = invalidate_t::yes;
         } else {
-            phase = phase_t::stop;
+            phase = phase_t::wait_after_roll;
+            phase_progress = (wait_after_roll_ms + base_tick_ms - 1) / base_tick_ms;
         }
-        break;
-    case phase_t::stop:
-        phase = phase_t::restart;
-        //gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, pWin);
-        break;
-    case phase_t::restart:
-        phase = phase_t::init;
         ret = invalidate_t::yes;
+        break;
+    case phase_t::wait_after_roll:
+        if ((--phase_progress) == 0) {
+            phase = phase_t::init_roll;
+            ret = invalidate_t::yes;
+        }
         break;
     case phase_t::idle:
         break;
@@ -58,18 +62,13 @@ void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment) {
     rect = rect_meas(rc, text, font, padding, alignment);
     count = meas(rect, text, font);
-    progress = px_cd = 0;
     font_w = font->w;
-    if (count == 0) {
-        phase = phase_t::idle;
-    } else {
-        phase = phase_t::setup_done;
-    }
+    phase = phase_t::init_roll;
 }
 
 void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const {
-    if (phase == phase_t::init)
+    if (phase == phase_t::uninitialized)
         return;
 
     if (text.isNULLSTR()) {
@@ -88,7 +87,7 @@ void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
     //    str += progress;
     // for now - just move to the desired starting character
     text.rewind();
-    for (size_t i = 0; i < progress; ++i) {
+    for (size_t i = 0; i < phase_progress; ++i) {
         text.getUtf8Char();
     }
 
@@ -130,10 +129,6 @@ uint16_t txtroll_t::meas(Rect16 rc, string_view_utf8 text, const font_t *pf) {
 }
 
 void txtroll_t::Reset(window_t *pWin) {
-    count = px_cd = progress = 0;
-    phase = phase_t::init;
-
-    gui_timer_create_txtroll(pWin, TEXT_ROLL_INITIAL_DELAY_MS);
-    //    gui_timer_restart_txtroll(this);
-    //gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
+    count = px_cd = phase_progress = 0;
+    phase = phase_t::uninitialized;
 }

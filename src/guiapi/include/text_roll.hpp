@@ -10,19 +10,23 @@ enum class invalidate_t { no,
     yes };
 
 class txtroll_t {
-    enum { BASE_TICK_MS = 20 };
+    enum {
+        base_tick_ms = 20,
+        wait_before_roll_ms = 2000,
+        wait_after_roll_ms = 1000
+    };
 
     enum class phase_t {
-        init,
-        setup_done,
+        uninitialized, // similar to idle, but init did not run
+        init_roll,
+        wait_before_roll,
         go,
-        stop,
-        restart,
+        wait_after_roll,
         idle,
     };
 
     Rect16 rect;
-    uint16_t progress;
+    uint16_t phase_progress;
     uint16_t count;
     phase_t phase;
     uint8_t px_cd;
@@ -36,9 +40,9 @@ class txtroll_t {
 public:
     constexpr txtroll_t()
         //rect has default ctor
-        : progress(0)
+        : phase_progress(0)
         , count(0)
-        , phase(phase_t::init)
+        , phase(phase_t::uninitialized)
         , px_cd(0)
         , font_w(0) { ++instance_counter; }
 
@@ -47,10 +51,10 @@ public:
     void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment);
     invalidate_t Tick();
     void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const;
-    bool NeedInit() const { return phase == phase_t::init; }
-    bool IsSetupDone() const { return phase != phase_t::init && phase != phase_t::idle; }
+    bool NeedInit() const { return phase == phase_t::uninitialized; }
+    bool IsSetupDone() const { return phase != phase_t::uninitialized && phase != phase_t::idle; }
     void Reset(window_t *pWin);
-
+    void Stop() { phase = phase_t::idle; }
     static bool HasInstance() { return instance_counter != 0; }
-    static uint32_t GetBaseTick() { return BASE_TICK_MS; }
+    static uint32_t GetBaseTick() { return base_tick_ms; }
 };
