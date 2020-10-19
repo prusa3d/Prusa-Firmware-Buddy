@@ -140,7 +140,7 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
     if (i == size || sound != types[i])
         return;
 
-    eSOUND_TYPE type = types[i];
+    const eSOUND_TYPE type = types[i];
     if (sound == CriticalAlert) {
         _sound(repeats[i], frequencies[(size_t)type],
             durations[(size_t)type], delays[i], volumes[(size_t)type] * (varVolume + 5) * 0.3F /* , Sound::forced[type] */);
