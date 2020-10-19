@@ -343,13 +343,19 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
+#ifdef _DEBUG
+class MI_SOUND_MODE : public WI_SWITCH_t<5> {
+#else
 class MI_SOUND_MODE : public WI_SWITCH_t<4> {
+#endif
     constexpr static const char *const label = N_("Sound Mode");
 
     constexpr static const char *str_Once = N_("Once");
     constexpr static const char *str_Loud = N_("Loud");
     constexpr static const char *str_Silent = N_("Silent");
     constexpr static const char *str_Assist = N_("Assist");
+    constexpr static const char *str_Debug = "Debug";
+
     size_t init_index() const;
 
 public:
