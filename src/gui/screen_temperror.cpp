@@ -22,3 +22,16 @@ void screen_temperror_data_t::draw() {
     /// Play after draw not to collide with beep at printer start
     Sound_Play(eSOUND_TYPE::CriticalAlert);
 }
+
+void screen_temperror_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    switch (event) {
+    case GUI_event_t::CLICK:
+    case GUI_event_t::ENC_DN:
+    case GUI_event_t::ENC_UP:
+    case GUI_event_t::CAPT_0:
+    case GUI_event_t::CAPT_1:
+        Sound_Stop();
+    default:
+        break;
+    }
+}
