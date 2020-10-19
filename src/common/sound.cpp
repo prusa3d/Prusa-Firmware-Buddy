@@ -141,11 +141,15 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
         return;
 
     const eSOUND_TYPE type = types[i];
+
+/// You can turn the sounds off in debug (in settings)
+#ifndef _DEBUG
     if (sound == CriticalAlert) {
         _sound(repeats[i], frequencies[(size_t)type],
             durations[(size_t)type], delays[i], volumes[(size_t)type] * (varVolume + 5) * 0.3F /* , Sound::forced[type] */);
         return;
     }
+#endif
 
     _sound(repeats[i], frequencies[(size_t)type],
         durations[(size_t)type], delays[i], volumes[(size_t)type] * varVolume * 0.3F /* , Sound::forced[type] */);
