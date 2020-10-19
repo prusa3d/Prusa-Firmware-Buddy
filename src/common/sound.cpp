@@ -132,14 +132,23 @@ void Sound::stop() {
 
 void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
     const int repeats[], const int16_t delays[], unsigned size) {
-    for (unsigned i = 0; i < size; i++) {
-        eSOUND_TYPE type = types[i];
-        if (type == sound) {
-            _sound(repeats[i], frequencies[(size_t)type],
-                durations[(size_t)type], delays[i], volumes[(size_t)type] /* , Sound::forced[type] */);
+    unsigned int i;
+    for (i = 0; i < size; i++) {
+        if (sound == types[i])
             break;
-        }
     }
+    if (i == size || sound != types[i])
+        return;
+
+    eSOUND_TYPE type = types[i];
+    if (sound == CriticalAlert) {
+        _sound(repeats[i], frequencies[(size_t)type],
+            durations[(size_t)type], delays[i], volumes[(size_t)type] * (varVolume + 5) * 0.3F /* , Sound::forced[type] */);
+        return;
+    }
+
+    _sound(repeats[i], frequencies[(size_t)type],
+        durations[(size_t)type], delays[i], volumes[(size_t)type] * varVolume * 0.3F /* , Sound::forced[type] */);
 }
 
 /*!
@@ -181,7 +190,7 @@ void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol /*, b
     frequency = frq;
     duration_set = dur;
     delay_set = del;
-    volume = (vol * varVolume) * 0.3F;
+    volume = vol;
 
     /// end previous beep
     hwio_beeper_set_pwm(0, 0);
