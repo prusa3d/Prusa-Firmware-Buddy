@@ -1,3 +1,5 @@
+// sound.cpp
+
 #include "sound.hpp"
 #include "hwio.h"
 #include "eeprom.h"
@@ -33,16 +35,16 @@ const eSOUND_TYPE Sound::assistTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::Butt
     eSOUND_TYPE::WaitingBeep };
 
 /// signals repeats - how many times will sound signals repeat (-1 is infinite)
-const int Sound::onceRepeats[] = { 1, 1, 1, 1, 1 };
+const int Sound::onceRepeats[] = { 1, 1, 1, -1, 1 };
 const int Sound::loudRepeats[] = { 1, 1, -1, 3, -1, 1, -1 };
-const int Sound::silentRepeats[] = { 1, 1, 1 };
+const int Sound::silentRepeats[] = { 1, 1, -1 };
 const int Sound::assistRepeats[] = { 1, 1, -1, 3, 1, 1, -1, 1, -1 };
 
 /// delays for repeat sounds (ms)
-const int16_t Sound::onceDelays[] = { 1, 1, 1, 1, 1 };
-const int16_t Sound::loudDelays[] = { 1, 1, 1, 1, 1, 1, 2000 };
-const int16_t Sound::silentDelays[] = { 1, 1, 1 };
-const int16_t Sound::assistDelays[] = { 1, 1, 1, 1, 1, 1, 1, 1, 2000 };
+const int16_t Sound::onceDelays[] = { 1, 1, 1, 250, 1 };
+const int16_t Sound::loudDelays[] = { 1, 1, 1, 1, 250, 1, 2000 };
+const int16_t Sound::silentDelays[] = { 1, 1, 250 };
+const int16_t Sound::assistDelays[] = { 1, 1, 1, 1, 1, 1, 250, 1, 2000 };
 
 /* const bool Sound::forced[8] = { false, false, false, false, false, true, false, false }; */
 
