@@ -6,13 +6,13 @@
 
 typedef struct _selftest_axis_config_t {
     const char *partname;
-    uint8_t axis;
-    uint8_t steps;
-    int8_t dir;
     float length;
     const float *fr_table;
     float length_min;
     float length_max;
+    uint8_t axis;
+    uint8_t steps;
+    int8_t dir;
 } selftest_axis_config_t;
 
 class CSelftestPart_Axis : public CSelftestPart {

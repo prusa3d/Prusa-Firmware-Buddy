@@ -32,23 +32,23 @@ static const uint16_t Fan1min_rpm_table[] = { 2500, 4900, 6100, 7000, 7800 };
 
 static const uint16_t Fan1max_rpm_table[] = { 3600, 5700, 6900, 7900, 8800 };
 
-static const selftest_fan_config_t Config_Fan0 = { .partname = "Fan0", .pfanctl = &fanctl0, .steps = 5, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan0min_rpm_table, .rpm_max_table = Fan0max_rpm_table };
+static const selftest_fan_config_t Config_Fan0 = { .partname = "Fan0", .pfanctl = &fanctl0, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan0min_rpm_table, .rpm_max_table = Fan0max_rpm_table, .steps = 5 };
 
-static const selftest_fan_config_t Config_Fan1 = { .partname = "Fan1", .pfanctl = &fanctl1, .steps = 5, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan1min_rpm_table, .rpm_max_table = Fan1max_rpm_table };
+static const selftest_fan_config_t Config_Fan1 = { .partname = "Fan1", .pfanctl = &fanctl1, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan1min_rpm_table, .rpm_max_table = Fan1max_rpm_table, .steps = 5 };
 
-static const selftest_axis_config_t Config_XAxis = { .partname = "X-Axis", .axis = X_AXIS, .steps = 4, .dir = -1, .length = 186, .fr_table = XYfr_table, .length_min = 178, .length_max = 188 };
+static const selftest_axis_config_t Config_XAxis = { .partname = "X-Axis", .length = 186, .fr_table = XYfr_table, .length_min = 178, .length_max = 188, .axis = X_AXIS, .steps = 4, .dir = -1 };
 
-static const selftest_axis_config_t Config_YAxis = { .partname = "Y-Axis", .axis = Y_AXIS, .steps = 4, .dir = 1, .length = 185, .fr_table = XYfr_table, .length_min = 179, .length_max = 189 };
+static const selftest_axis_config_t Config_YAxis = { .partname = "Y-Axis", .length = 185, .fr_table = XYfr_table, .length_min = 179, .length_max = 189, .axis = Y_AXIS, .steps = 4, .dir = 1 };
 
-static const selftest_axis_config_t Config_ZAxis = { .partname = "Z-Axis", .axis = Z_AXIS, .steps = 1, .dir = 1, .length = 185, .fr_table = Zfr_table, .length_min = 181, .length_max = 191 };
+static const selftest_axis_config_t Config_ZAxis = { .partname = "Z-Axis", .length = 185, .fr_table = Zfr_table, .length_min = 181, .length_max = 191, .axis = Z_AXIS, .steps = 1, .dir = 1 };
 
-static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzle", .heater = 0, .start_temp = 40, .target_temp = 290, .heat_time_ms = 42000, .heat_min_temp = 130, .heat_max_temp = 190 };
+static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzle", .heat_time_ms = 42000, .start_temp = 40, .target_temp = 290, .heat_min_temp = 130, .heat_max_temp = 190, .heater = 0 };
 
-static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heater = 0xff, .start_temp = 40, .target_temp = 110, .heat_time_ms = 60000, .heat_min_temp = 50, .heat_max_temp = 65 };
+static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heat_time_ms = 60000, .start_temp = 40, .target_temp = 110, .heat_min_temp = 50, .heat_max_temp = 65, .heater = 0xff };
 
-static const selftest_fan_config_t Config_Fan0_fine = { .partname = "Fan0", .pfanctl = &fanctl0, .steps = 24, .pwm_start = 4, .pwm_step = 2 };
+static const selftest_fan_config_t Config_Fan0_fine = { .partname = "Fan0", .pfanctl = &fanctl0, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
 
-static const selftest_fan_config_t Config_Fan1_fine = { .partname = "Fan1", .pfanctl = &fanctl1, .steps = 24, .pwm_start = 4, .pwm_step = 2 };
+static const selftest_fan_config_t Config_Fan1_fine = { .partname = "Fan1", .pfanctl = &fanctl1, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
 
 CSelftest::CSelftest()
     : m_State(stsIdle)
@@ -258,10 +258,8 @@ bool CSelftest::phaseWait() {
     } else if ((m_Time - tick) < 2000)
         return true;
     tick = 0;
-    if (m_pFSM) {
-        delete m_pFSM;
-        m_pFSM = nullptr;
-    }
+    delete m_pFSM;
+    m_pFSM = nullptr;
     return false;
 }
 

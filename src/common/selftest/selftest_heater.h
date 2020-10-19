@@ -6,12 +6,12 @@
 
 typedef struct _selftest_heater_config_t {
     const char *partname;
-    uint8_t heater;
+    uint32_t heat_time_ms;
     int16_t start_temp;
     int16_t target_temp;
-    uint32_t heat_time_ms;
     int16_t heat_min_temp;
     int16_t heat_max_temp;
+    uint8_t heater;
 } selftest_heater_config_t;
 
 class CSelftestPart_Heater : public CSelftestPart {

@@ -8,11 +8,11 @@
 typedef struct _selftest_fan_config_t {
     const char *partname;
     CFanCtl *pfanctl;
-    uint8_t steps;
     int pwm_start;
     int pwm_step;
     const uint16_t *rpm_min_table;
     const uint16_t *rpm_max_table;
+    uint8_t steps;
 } selftest_fan_config_t;
 
 class CSelftestPart_Fan : public CSelftestPart {
