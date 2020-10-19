@@ -152,8 +152,8 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
 }
 
 /*!
- * Generag [play] method with sound type parameter where dependetly on set mode is played.
- * Every mode handle just his own signal types.
+ * General [play] method with sound type parameter.
+ * Every mode handles just his own signal types.
  */
 void Sound::play(eSOUND_TYPE eSoundType) {
     int t_size = 0;
