@@ -37,11 +37,11 @@ void fill_till_end_of_line(const int16_t left, const int16_t top, const int16_t 
 /// Extracted from st7789v implementation, where it shouldn't be @@TODO cleanup
 /// Draws unused space of @rc with @clr_bg
 size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags) {
-    int16_t x = rc.Left();
-    int16_t y = rc.Top();
+    int x = rc.Left();
+    int y = rc.Top();
 
-    const uint16_t w = pf->w; //char width
-    const uint16_t h = pf->h; //char height
+    const int w = pf->w; //char width
+    const int h = pf->h; //char height
     // prepare for stream processing
     unichar c = 0;
     /// TODO define parent class for both below and use parent.character(str) instead (few lines below)
@@ -56,18 +56,19 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
             break;
 
         /// Break line char or drawable char won't fit into this line any more
-        if (c == '\n' || !rc.Contain(point_ui16(x + w - 1, y))) {
+        if (c == '\n' || x + w > rc.BottomRight().x) {
             if (!wrap_text)
-                break; /// enf of single line => no more text to print
+                break; /// end of single line => no more text to print
 
             /// draw background till the border of @rc
             fill_till_end_of_line(x, y, h, rc, COLOR_BLUE);
             y += h;
             x = rc.Left();
 
-            // if (!rc.Contain(point_ui16(x, y + h - 1))) /// char won't fit vertically
-            //     break;
-            continue;
+            if (y + h > rc.BottomRight().y) /// char won't fit vertically
+                break;
+            if (c == '\n')
+                continue;
         }
 
 #ifdef UNACCENT
@@ -89,7 +90,8 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
     }
     /// fill background to the end of the line and all below till the border of @rc
     fill_till_end_of_line(x, y, h, rc, COLOR_ORANGE);
-    fill_till_end_of_line(rc.Left(), y + h, rc.Height(), rc, COLOR_GREEN);
+    y += h;
+    display::FillRect(Rect16(rc.Left(), y, rc.Width(), std::max(0, rc.EndPoint().y - y)), COLOR_GREEN);
 
     return size_ui16_t { rc.Width(), x == rc.Left() ? static_cast<std::uint16_t>(y - rc.Top()) : static_cast<std::uint16_t>(y - rc.Top() + h) };
 }
