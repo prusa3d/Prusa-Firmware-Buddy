@@ -26,7 +26,7 @@ std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
 /// If @h is too high, it will be cropped so nothing is drawn outside of the @rc but
 /// @top and @left are not checked whether they are in @rc
 void fill_till_end_of_line(const int16_t left, const int16_t top, const int16_t h, Rect16 rc, color_t clr) {
-    display::DrawRect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), std::min(h, int16_t(rc.EndPoint().y - top))), clr);
+    display::FillRect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), std::min(h, int16_t(rc.EndPoint().y - top))), clr);
 }
 
 /// Draws a text into the specified rectangle @rc
@@ -60,39 +60,38 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
             if (!wrap_text)
                 break; /// enf of single line => no more text to print
 
-            /// draw background till the end of @rc
+            /// draw background till the border of @rc
             fill_till_end_of_line(x, y, h, rc, COLOR_BLUE);
             y += h;
             x = rc.Left();
 
-            if (!rc.Contain(point_ui16(x, y + h - 1))) /// char won't fit vertically
-                break;
+            // if (!rc.Contain(point_ui16(x, y + h - 1))) /// char won't fit vertically
+            //     break;
             continue;
         }
-    }
 
 #ifdef UNACCENT
-    // FIXME no check for enough space to draw char/chars
-    if (c < 128) {
+        // FIXME no check for enough space to draw char/chars
+        if (c < 128) {
+            display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+            x += w;
+        } else {
+            auto convertedChar = ConvertUnicharToFontCharIndex(c);
+            for (size_t i = 0; i < convertedChar.second; ++i) {
+                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
+                x += w; // this will screw up character counting for DE language @@TODO
+            }
+        }
+#else
         display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
         x += w;
-    } else {
-        auto convertedChar = ConvertUnicharToFontCharIndex(c);
-        for (size_t i = 0; i < convertedChar.second; ++i) {
-            display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
-            x += w; // this will screw up character counting for DE language @@TODO
-        }
-    }
-#else
-    display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
-    x += w;
 #endif
-}
-/// fill background to the end of the line and all below till the end of @rc
-fill_till_end_of_line(x, y, h, rc, clr_bg);
-fill_till_end_of_line(rc.Left(), y + h, rc.Height(), rc, clr_bg);
+    }
+    /// fill background to the end of the line and all below till the border of @rc
+    fill_till_end_of_line(x, y, h, rc, COLOR_ORANGE);
+    fill_till_end_of_line(rc.Left(), y + h, rc.Height(), rc, COLOR_GREEN);
 
-return size_ui16_t { rc.Width(), x == rc.Left() ? static_cast<std::uint16_t>(y - rc.Top()) : static_cast<std::uint16_t>(y - rc.Top() + h) };
+    return size_ui16_t { rc.Width(), x == rc.Left() ? static_cast<std::uint16_t>(y - rc.Top()) : static_cast<std::uint16_t>(y - rc.Top() + h) };
 }
 
 /// Fills space between two rectangles with a color
