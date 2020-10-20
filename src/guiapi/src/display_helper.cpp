@@ -25,8 +25,8 @@ std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
 /// Fill space from [@top, @left] corner to the end of @rc with height @h
 /// If @h is too high, it will be cropped so nothing is drawn outside of the @rc but
 /// @top and @left are not checked whether they are in @rc
-void fill_till_end_of_line(const int16_t left, const int16_t top, const int16_t h, Rect16 rc, color_t clr) {
-    display::FillRect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), std::min(h, int16_t(rc.EndPoint().y - top))), clr);
+void fill_till_end_of_line(const int left, const int top, const int h, Rect16 rc, color_t clr) {
+    display::FillRect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), std::min(h, rc.EndPoint().y - top)), clr);
 }
 
 /// Draws a text into the specified rectangle @rc
@@ -56,7 +56,7 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
             break;
 
         /// Break line char or drawable char won't fit into this line any more
-        if (c == '\n' || x + w > rc.BottomRight().x) {
+        if (c == '\n' || x + w > rc.EndPoint().x) {
             if (!wrap_text)
                 break; /// end of single line => no more text to print
 
@@ -65,7 +65,7 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
             y += h;
             x = rc.Left();
 
-            if (y + h > rc.BottomRight().y) /// char won't fit vertically
+            if (y + h > rc.EndPoint().y) /// char won't fit vertically
                 break;
             if (c == '\n')
                 continue;
