@@ -55,45 +55,44 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
         if (c == 0)
             break;
 
-        if (c == '\n') {
-            if (wrap_text) {
-                /// draw background till the end of @rc
-                fill_till_end_of_line(x, y, h, rc, clr_bg);
-                y += h;
-                x = rc.Left();
-                continue;
-            } else {
-                break;
-            }
-        }
-#ifdef UNACCENT
-        // FIXME no check for enough space to draw char/chars
-        if (c < 128) {
-            display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
-            x += w;
-        } else {
-            auto convertedChar = ConvertUnicharToFontCharIndex(c);
-            for (size_t i = 0; i < convertedChar.second; ++i) {
-                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
-                x += w; // this will screw up character counting for DE language @@TODO
-            }
-        }
-#else
-        if (!rc.Contain(point_ui16(x + w - 1, y))) {
-            if (wrap_text)
-                continue; /// character does not fit but we can use next line
-            break;        /// character does not fit in this single line
-        }
+        /// Break line char or drawable char won't fit into this line any more
+        if (c == '\n' || !rc.Contain(point_ui16(x + w - 1, y))) {
+            if (!wrap_text)
+                break; /// enf of single line => no more text to print
 
+            /// draw background till the end of @rc
+            fill_till_end_of_line(x, y, h, rc, COLOR_BLUE);
+            y += h;
+            x = rc.Left();
+
+            if (!rc.Contain(point_ui16(x, y + h - 1))) /// char won't fit vertically
+                break;
+            continue;
+        }
+    }
+
+#ifdef UNACCENT
+    // FIXME no check for enough space to draw char/chars
+    if (c < 128) {
         display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
         x += w;
-#endif
+    } else {
+        auto convertedChar = ConvertUnicharToFontCharIndex(c);
+        for (size_t i = 0; i < convertedChar.second; ++i) {
+            display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
+            x += w; // this will screw up character counting for DE language @@TODO
+        }
     }
-    /// fill background to the end of the line and all below till the end of @rc
-    fill_till_end_of_line(x, y, h, rc, clr_bg);
-    fill_till_end_of_line(rc.Left(), y + h, rc.Height(), rc, clr_bg);
+#else
+    display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+    x += w;
+#endif
+}
+/// fill background to the end of the line and all below till the end of @rc
+fill_till_end_of_line(x, y, h, rc, clr_bg);
+fill_till_end_of_line(rc.Left(), y + h, rc.Height(), rc, clr_bg);
 
-    return size_ui16_t { rc.Width(), x == rc.Left() ? static_cast<std::uint16_t>(y - rc.Top()) : static_cast<std::uint16_t>(y - rc.Top() + h) };
+return size_ui16_t { rc.Width(), x == rc.Left() ? static_cast<std::uint16_t>(y - rc.Top()) : static_cast<std::uint16_t>(y - rc.Top() + h) };
 }
 
 /// Fills space between two rectangles with a color
