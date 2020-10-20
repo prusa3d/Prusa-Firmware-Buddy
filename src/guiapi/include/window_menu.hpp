@@ -13,8 +13,7 @@ class window_menu_t : public IWindowMenu {
 
     void setIndex(uint8_t index); //for ctor (cannot fail)
     /// Prints single item in the menu
-    /// \param rect is rectangle of the whole window menu
-    void printItem(const Rect16 &rect, const size_t visible_count, IWindowMenuItem *item, const int item_height);
+    void printItem(const size_t visible_count, IWindowMenuItem *item, const int item_height);
     /// Searches for next visible item
     /// Repeats search for \param steps times
     /// Negative value searches in backward direction

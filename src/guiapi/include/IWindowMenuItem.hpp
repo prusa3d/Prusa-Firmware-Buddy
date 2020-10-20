@@ -5,6 +5,7 @@
 #include "guitypes.hpp"
 #include "display_helper.h"
 #include "Iwindow_menu.hpp" //needed for window settings like rect, padding ...
+#include "text_roll.hpp"
 
 //todo make version with constant label
 class IWindowMenuItem {
@@ -43,7 +44,7 @@ public:
     void Show() { hidden = false; }
     bool IsHidden() const { return hidden; }
     void SetFocus();
-    void ClrFocus() { focused = false; }
+    void ClrFocus();
     bool IsFocused() const { return focused; }
     void SetIconId(uint16_t id) { id_icon = id; }
     uint16_t GetIconId() const { return id_icon; }
@@ -62,8 +63,7 @@ public:
     bool Increment(uint8_t dif) { return Change(dif); }
     bool Decrement(uint8_t dif) { return Change(-int(dif)); }
     void Click(IWindowMenu &window_menu);
-    void Roll(IWindowMenu &window_menu);
-    void RollInit(IWindowMenu &window_menu, Rect16 rect);
-    bool RollNeedInit() const { return roll.setup == TXTROLL_SETUP_INIT; }
+    invalidate_t Roll();
+    void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect);
     virtual ~IWindowMenuItem() = default;
 };
