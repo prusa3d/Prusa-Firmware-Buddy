@@ -69,7 +69,7 @@ void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
 }
 
 void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
-    padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const {
+    color_t clr_back, color_t clr_text, padding_ui8_t padding, uint8_t alignment) const {
     switch (phase) {
     case phase_t::uninitialized:
     case phase_t::idle:
@@ -78,13 +78,13 @@ void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
         render_text_align(rc, text, font, clr_back, clr_text, padding, alignment); // normal render
         break;
     default:
-        renderTextAlign(rc, text, font, padding, alignment, clr_back, clr_text); // rolling render
+        renderTextAlign(rc, text, font, clr_back, clr_text, padding, alignment); // rolling render
         break;
     }
 }
 
 void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
-    padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const {
+    color_t clr_back, color_t clr_text, padding_ui8_t padding, uint8_t alignment) const {
 
     if (text.isNULLSTR()) {
         display::FillRect(rc, clr_back);

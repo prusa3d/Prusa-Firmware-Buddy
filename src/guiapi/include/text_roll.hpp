@@ -37,7 +37,7 @@ class txtroll_t {
     static Rect16 rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);
     static uint16_t meas(Rect16 rc, string_view_utf8 text, const font_t *pf);
 
-    void renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const;
+    void renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr_back, color_t clr_text, padding_ui8_t padding, uint8_t alignment) const;
 
 public:
     constexpr txtroll_t()
@@ -54,7 +54,7 @@ public:
 
     void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment);
     invalidate_t Tick();
-    void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text) const;
+    void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr_back, color_t clr_text, padding_ui8_t padding, uint8_t alignment) const;
     bool NeedInit() const { return phase == phase_t::uninitialized; }
     void Reset() {
         if (phase != phase_t::uninitialized)

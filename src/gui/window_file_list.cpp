@@ -150,16 +150,10 @@ void window_file_list_t::unconditionalDraw() {
                     roll.Init(rc, itemText, font, padding, GetAlignment());
                 }
 
-                roll.RenderTextAlign(rc, itemText, font, padding,
-                    GetAlignment(),
-                    color_back, color_text);
+                roll.RenderTextAlign(rc, itemText, font, color_back, color_text, padding, GetAlignment());
 
             } else {
-                render_text_align(rc,
-                    itemText,
-                    font,
-                    color_back, color_text,
-                    padding, GetAlignment());
+                render_text_align(rc, itemText, font, color_back, color_text, padding, GetAlignment());
             }
 
             /*	too slow
