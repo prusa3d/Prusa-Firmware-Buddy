@@ -1,5 +1,3 @@
-// sound.cpp
-
 #include "sound.hpp"
 #include "hwio.h"
 #include "eeprom.h"
@@ -20,6 +18,8 @@ const float Sound::volumes[eSOUND_TYPE::count] = {
     Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit,
     0.175F, 0.175F, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit
 };
+/// forced types of sounds - mainly for ERROR sounds. Ignores volume settings.
+const bool Sound::forced[eSOUND_TYPE::count] = { false, false, false, true, false, false, false, false, false };
 
 /// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
 const eSOUND_TYPE Sound::onceTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
@@ -132,32 +132,19 @@ void Sound::stop() {
 
 void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
     const int repeats[], const int16_t delays[], unsigned size) {
-    unsigned int i;
-    for (i = 0; i < size; i++) {
-        if (sound == types[i])
+    for (unsigned i = 0; i < size; i++) {
+        eSOUND_TYPE type = types[i];
+        if (type == sound) {
+            _sound(repeats[i], frequencies[(size_t)type],
+                durations[(size_t)type], delays[i], volumes[(size_t)type], forced[(size_t)type]);
             break;
+        }
     }
-    if (i == size || sound != types[i])
-        return;
-
-    const eSOUND_TYPE type = types[i];
-
-/// You can turn the sounds off in debug (in settings)
-#ifndef _DEBUG
-    if (sound == CriticalAlert) {
-        _sound(repeats[i], frequencies[(size_t)type],
-            durations[(size_t)type], delays[i], volumes[(size_t)type] * (varVolume + 5) * 0.3F /* , Sound::forced[type] */);
-        return;
-    }
-#endif
-
-    _sound(repeats[i], frequencies[(size_t)type],
-        durations[(size_t)type], delays[i], volumes[(size_t)type] * varVolume * 0.3F /* , Sound::forced[type] */);
 }
 
 /*!
- * General [play] method with sound type parameter.
- * Every mode handles just his own signal types.
+ * Generag [play] method with sound type parameter where dependetly on set mode is played.
+ * Every mode handle just his own signal types.
  */
 void Sound::play(eSOUND_TYPE eSoundType) {
     int t_size = 0;
@@ -183,18 +170,22 @@ void Sound::play(eSOUND_TYPE eSoundType) {
 }
 
 /// Generic [_sound] method with setting values and repeating logic
-void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol /*, bool forced*/) {
+void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f) {
     /// if sound is already playing, then don't interrupt
     if ((repeat - 1 > 0 || repeat == -1) /*  && !forced */) {
         return;
     }
 
-    /// store variables for timing method
+    /// store ACTIVE variables for timing method
     repeat = rep;
     frequency = frq;
     duration_set = dur;
     delay_set = del;
-    volume = vol;
+    volume = f ? 0.3F : (vol * varVolume) * 0.3F;
+    /// for BSOD debugging
+    if (eSoundMode == eSOUND_MODE::DEBUG) {
+        volume = 0;
+    }
 
     /// end previous beep
     hwio_beeper_set_pwm(0, 0);
