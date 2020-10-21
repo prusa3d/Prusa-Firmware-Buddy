@@ -8,7 +8,7 @@ enum class invalidate_t { no,
 
 class txtroll_t {
     enum {
-        base_tick_ms = 20,
+        base_tick_ms = 40,
         wait_before_roll_ms = 2000,
         wait_after_roll_ms = 1000
     };
