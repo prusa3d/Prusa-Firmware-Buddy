@@ -218,6 +218,23 @@ def cmd_generate_hash_tables(args):
         dump_hash_table(langcode, entries, hash_table, args.output_dir)
 
 
+def cmd_generate_nonascii_chars(args):
+    """Entrypoint of the generate-nonascii-chars subcommand."""
+    translations = load_translations(args.input_dir)
+    if not translations:
+        logger.error('no translations found')
+        return 1
+
+    nonascii_chars = set(ch for translation in translations.values()
+                         for entry in translation for ch in entry.msgstr
+                         if ord(ch) > 127)
+    nonascii_chars = sorted(nonascii_chars)
+    open(args.output_dir / 'non-ascii-chars.txt',
+         'w').write(' '.join(nonascii_chars))
+    open(args.output_dir / 'non-ascii-chars.raw',
+         'bw').write(''.join(nonascii_chars).encode('utf-32-le'))
+
+
 def cmd_dump_pofiles(args):
     """Entrypoint of the dump-pofiles subcommand."""
     # load all the po files
@@ -265,6 +282,16 @@ def main():
                                       metavar='output-dir',
                                       type=Path)
     generate_hash_tables.set_defaults(func=cmd_generate_hash_tables)
+
+    # generate non-ascii-chars
+    generate_nonascii_chars = subparsers.add_parser('generate-nonascii-chars')
+    generate_nonascii_chars.add_argument('input_dir',
+                                         metavar='input-dir',
+                                         type=Path)
+    generate_nonascii_chars.add_argument('output_dir',
+                                         metavar='output-dir',
+                                         type=Path)
+    generate_nonascii_chars.set_defaults(func=cmd_generate_nonascii_chars)
 
     # parse and run a subcommand
     args = parser.parse_args(sys.argv[1:])

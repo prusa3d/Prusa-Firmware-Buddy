@@ -14,7 +14,18 @@ add_custom_command(
 add_custom_target(
   translations-genfiles DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/hash_table_buckets.ipp"
   )
-add_dependencies(translations translations-genfiles)
+add_custom_command(
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/non-ascii-chars.txt"
+         "${CMAKE_CURRENT_BINARY_DIR}/non-ascii-chars.raw"
+  COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/lang.py" "generate-nonascii-chars"
+          "${CMAKE_CURRENT_SOURCE_DIR}/po" "${CMAKE_CURRENT_BINARY_DIR}"
+  COMMENT "Generating used non-ascii chars out of .po files."
+  VERBATIM
+  )
+add_custom_target(
+  translations-nonascii-chars DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/non-ascii-chars.txt"
+  )
+add_dependencies(translations translations-genfiles translations-nonascii-chars)
 
 #
 # And create a Buddy::Lang library itself
