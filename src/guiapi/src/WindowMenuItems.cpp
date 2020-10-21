@@ -190,6 +190,7 @@ void MI_RETURN::click(IWindowMenu &window_menu) {
 }
 
 MI_TEST_DISABLED_RETURN::MI_TEST_DISABLED_RETURN()
+    //just for test (in debug), do not translate
     : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), IDR_PNG_folder_up_16px, false, false) {
 }
 

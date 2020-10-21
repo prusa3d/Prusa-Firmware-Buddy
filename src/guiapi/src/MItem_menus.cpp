@@ -5,7 +5,6 @@
 #include "screen_qr_error.hpp"
 #include "screen_test.hpp"
 #include "screen_messages.hpp"
-#include "eeprom.h"
 #include "marlin_client.h"
 
 /*****************************************************************************/
@@ -169,10 +168,10 @@ void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
 }
 
 void MI_CURRENT_PROFILE::UpdateLabel() {
-    char name[MAX_SHEET_NAME_LENGTH + 3];
     name[0] = '[';
     uint32_t cnt = sheet_active_name(name + 1, MAX_SHEET_NAME_LENGTH);
     name[cnt + 1] = ']';
     name[cnt + 2] = 0;
+    // string_view_utf8::MakeRAM is safe name is member var, exists until MI_CURRENT_PROFILE is destroyed
     SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
 }
