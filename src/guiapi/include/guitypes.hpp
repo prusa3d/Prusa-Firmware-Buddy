@@ -36,6 +36,11 @@ struct bitmap_t {
     void *ppx;   //pixel data pointer
 };
 
+inline point_i16_t point_i16(int16_t x, int16_t y) {
+    point_i16_t point = { x, y };
+    return point;
+}
+
 inline point_ui16_t point_ui16(uint16_t x, uint16_t y) {
     point_ui16_t point = { x, y };
     return point;

@@ -11,6 +11,7 @@
 #include "../lang/unaccent.hpp"
 #include "../common/str_utils.hpp"
 #include "ScreenHandler.hpp"
+#include "guitypes.hpp"
 
 //#define UNACCENT
 
@@ -26,17 +27,19 @@ std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
 /// If @h is too high, it will be cropped so nothing is drawn outside of the @rc but
 /// @top and @left are not checked whether they are in @rc
 void fill_till_end_of_line(const int left, const int top, const int h, Rect16 rc, color_t clr) {
-    display::FillRect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), std::min(h, rc.EndPoint().y - top)), clr);
+    display::FillRect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), std::clamp(rc.EndPoint().y - top, 0, h)), clr);
 }
 
 /// Draws a text into the specified rectangle @rc
 /// If a character does not fit into the rectangle the drawing is stopped
 /// \param clr_bg background color
 /// \param clr_fg font/foreground color
-/// \returns true if whole text was written
-/// Extracted from st7789v implementation, where it shouldn't be @@TODO cleanup
+/// \returns size of drawn area
 /// Draws unused space of @rc with @clr_bg
 size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags) {
+
+    display::DrawRect(rc, COLOR_LIME);
+
     int x = rc.Left();
     int y = rc.Top();
 
@@ -65,8 +68,9 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
             y += h;
             x = rc.Left();
 
-            if (y + h > rc.EndPoint().y) /// char won't fit vertically
+            if (y + h > rc.EndPoint().y) { /// char won't fit vertically
                 break;
+            }
             if (c == '\n')
                 continue;
         }
@@ -91,9 +95,16 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
     /// fill background to the end of the line and all below till the border of @rc
     fill_till_end_of_line(x, y, h, rc, COLOR_ORANGE);
     y += h;
-    display::FillRect(Rect16(rc.Left(), y, rc.Width(), std::max(0, rc.EndPoint().y - y)), COLOR_GREEN);
 
-    return size_ui16_t { rc.Width(), x == rc.Left() ? static_cast<std::uint16_t>(y - rc.Top()) : static_cast<std::uint16_t>(y - rc.Top() + h) };
+    int y1 = std::min(y, int(rc.BottomRight().y));
+    // display::DrawLine(point_ui16(rc.Left(), y1), point_ui16(rc.BottomRight().x - 10, y1), COLOR_GREEN);
+    // display::DrawLine(point_ui16(rc.Left(), rc.BottomRight().y), point_ui16(rc.BottomRight().x - 10, rc.BottomRight().y), COLOR_GREEN);
+
+    display::FillRect(Rect16(point_i16(rc.Left(), y1), size_ui16(rc.Width() - 10, std::max(0, rc.EndPoint().y - y1))), COLOR_GREEN);
+
+    display::DrawRect(Rect16(rc.Left(), rc.Top(), rc.Width() - 20, rc.Height()), COLOR_MAGENTA);
+
+    return size_ui16_t { rc.Width(), rc.Height() };
 }
 
 /// Fills space between two rectangles with a color
