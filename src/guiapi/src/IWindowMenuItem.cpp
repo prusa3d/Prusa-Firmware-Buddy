@@ -2,25 +2,21 @@
 #include "display_helper.h" //render_icon_align
 #include "i18n.h"
 
-IWindowMenuItem::IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled, bool hidden)
-    : hidden(hidden)
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, bool enabled, bool hidden)
+    : label(label)
+    , hidden(hidden)
     , enabled(enabled)
     , focused(false)
     , selected(false)
     , id_icon(id_icon) {
-    SetLabel(label);
 }
 
-void IWindowMenuItem::SetLabel(const char *text) {
-    strncpy(label.data(), text, label.size());
-}
-
-const char *IWindowMenuItem::GetLabel() const {
-    return label.data();
+void IWindowMenuItem::SetLabel(string_view_utf8 text) {
+    label = text;
 }
 
 string_view_utf8 IWindowMenuItem::GetLocalizedLabel() const {
-    return _(GetLabel());
+    return label;
 }
 
 void IWindowMenuItem::Print(IWindowMenu &window_menu, Rect16 rect) const {
@@ -35,7 +31,6 @@ void IWindowMenuItem::Print(IWindowMenu &window_menu, Rect16 rect) const {
         swap |= ROPFN_SWAPBW;
     }
 
-    //printIcon(window_menu, rect, 0, color_back);
     printIcon(window_menu, rect, swap, window_menu.color_back);
     printText(window_menu, rect, color_text, color_back, swap);
 }

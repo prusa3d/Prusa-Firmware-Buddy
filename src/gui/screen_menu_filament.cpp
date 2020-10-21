@@ -33,7 +33,7 @@ protected:
     }
 
 public:
-    explicit MI_event_dispatcher(const char *label)
+    explicit MI_event_dispatcher(string_view_utf8 label)
         : WI_LABEL_t(label, 0, true, false) {}
 
     virtual string_view_utf8 GetHeaderAlterLabel() = 0;
@@ -48,7 +48,7 @@ class MI_LOAD : public MI_event_dispatcher {
 
 public:
     MI_LOAD()
-        : MI_event_dispatcher(label) {}
+        : MI_event_dispatcher(_(label)) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
         return _(header_label);
     }
@@ -65,7 +65,7 @@ class MI_UNLOAD : public MI_event_dispatcher {
 
 public:
     MI_UNLOAD()
-        : MI_event_dispatcher(label) {}
+        : MI_event_dispatcher(_(label)) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
         return _(header_label);
     }
@@ -83,7 +83,7 @@ class MI_CHANGE : public MI_event_dispatcher {
 
 public:
     MI_CHANGE()
-        : MI_event_dispatcher(label) {}
+        : MI_event_dispatcher(_(label)) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
         return _(header_label);
     }
@@ -103,7 +103,7 @@ class MI_PURGE : public MI_event_dispatcher {
 
 public:
     MI_PURGE()
-        : MI_event_dispatcher(label) {}
+        : MI_event_dispatcher(_(label)) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
         return _(header_label);
     }

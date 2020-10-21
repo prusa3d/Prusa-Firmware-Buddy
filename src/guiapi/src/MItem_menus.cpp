@@ -11,7 +11,7 @@
 /*****************************************************************************/
 //MI_VERSION_INFO
 MI_VERSION_INFO::MI_VERSION_INFO()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
@@ -21,7 +21,7 @@ void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_SENSOR_INFO
 MI_SENSOR_INFO::MI_SENSOR_INFO()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_SENSOR_INFO::click(IWindowMenu & /*window_menu*/) {
@@ -31,7 +31,7 @@ void MI_SENSOR_INFO::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_FILAMENT
 MI_FILAMENT::MI_FILAMENT()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_FILAMENT::click(IWindowMenu & /*window_menu*/) {
@@ -41,7 +41,7 @@ void MI_FILAMENT::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_SYS_INFO
 MI_SYS_INFO::MI_SYS_INFO()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_SYS_INFO::click(IWindowMenu & /*window_menu*/) {
@@ -51,25 +51,25 @@ void MI_SYS_INFO::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_STATISTIC_disabled
 MI_STATISTIC_disabled::MI_STATISTIC_disabled()
-    : WI_LABEL_t(label, 0, false, false) {
+    : WI_LABEL_t(_(label), 0, false, false) {
 }
 
 /*****************************************************************************/
 //MI_FAIL_STAT_disabled
 MI_FAIL_STAT_disabled::MI_FAIL_STAT_disabled()
-    : WI_LABEL_t(label, 0, false, false) {
+    : WI_LABEL_t(_(label), 0, false, false) {
 }
 
 /*****************************************************************************/
 //MI_SUPPORT_disabled
 MI_SUPPORT_disabled::MI_SUPPORT_disabled()
-    : WI_LABEL_t(label, 0, false, false) {
+    : WI_LABEL_t(_(label), 0, false, false) {
 }
 
 /*****************************************************************************/
 //MI_TEMPERATURE
 MI_TEMPERATURE::MI_TEMPERATURE()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_TEMPERATURE::click(IWindowMenu & /*window_menu*/) {
@@ -79,7 +79,7 @@ void MI_TEMPERATURE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_MOVE_AXIS
 MI_MOVE_AXIS::MI_MOVE_AXIS()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_MOVE_AXIS::click(IWindowMenu & /*window_menu*/) {
@@ -89,7 +89,7 @@ void MI_MOVE_AXIS::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_SERVICE
 MI_SERVICE::MI_SERVICE()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_SERVICE::click(IWindowMenu & /*window_menu*/) {
@@ -99,7 +99,7 @@ void MI_SERVICE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_TEST
 MI_TEST::MI_TEST()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_TEST::click(IWindowMenu & /*window_menu*/) {
@@ -109,7 +109,7 @@ void MI_TEST::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_FW_UPDATE
 MI_FW_UPDATE::MI_FW_UPDATE()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
@@ -119,7 +119,7 @@ void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_LAN_SETTINGS
 MI_LAN_SETTINGS::MI_LAN_SETTINGS()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_LAN_SETTINGS::click(IWindowMenu & /*window_menu*/) {
@@ -129,7 +129,7 @@ void MI_LAN_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_MESSAGES
 MI_MESSAGES::MI_MESSAGES()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_MESSAGES::click(IWindowMenu & /*window_menu*/) {
@@ -139,7 +139,7 @@ void MI_MESSAGES::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_LANGUAGE
 MI_LANGUAGE::MI_LANGUAGE()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
@@ -149,7 +149,7 @@ void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_HW_SETUP
 MI_HW_SETUP::MI_HW_SETUP()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
@@ -159,7 +159,7 @@ void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_CURRENT_PROFILE
 MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
-    : WI_LABEL_t(label, 0, true, true) {
+    : WI_LABEL_t(_(label), 0, true, true) {
 }
 
 void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
@@ -174,5 +174,5 @@ void MI_CURRENT_PROFILE::UpdateLabel() {
     uint32_t cnt = sheet_active_name(name + 1, MAX_SHEET_NAME_LENGTH);
     name[cnt + 1] = ']';
     name[cnt + 2] = 0;
-    SetLabel(name);
+    SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
 }

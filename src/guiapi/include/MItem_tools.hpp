@@ -404,7 +404,7 @@ public:
 
 class I_MI_Filament : public WI_LABEL_t {
 public:
-    I_MI_Filament(const char *long_name)
+    I_MI_Filament(string_view_utf8 long_name)
         : WI_LABEL_t(long_name, 0, true, false) {}
 
 protected:
@@ -415,7 +415,7 @@ template <FILAMENT_t T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(filaments[T].long_name) {}
+        : I_MI_Filament(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[T].long_name)) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
