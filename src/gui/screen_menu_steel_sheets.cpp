@@ -82,7 +82,10 @@ protected:
 };
 
 using SheetProfileMenuScreen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SHEET_SELECT, MI_SHEET_CALIBRATE,
-    MI_SHEET_RENAME, MI_SHEET_RESET>;
+#if _DEBUG //todo remove #if _DEBUG after rename is finished
+    MI_SHEET_RENAME,
+#endif // _DEBUG
+    MI_SHEET_RESET>;
 
 template <typename Index>
 class SheetProfileMenuScreenT : public SheetProfileMenuScreen {
@@ -128,10 +131,12 @@ protected:
             break;
         case profile_action::Rename:
             _dbg("MI_SHEET_RENAME");
+#if _DEBUG //todo remove #if _DEBUG after rename is finished
             Screens::Access()->Open([]() {
                 screen_sheet_rename_t::index(Index::value);
                 return ScreenFactory::Screen<screen_sheet_rename_t>();
             });
+#endif // _DEBUG
             break;
         default:
             _dbg("Click: %d\n", static_cast<uint32_t>(action));
