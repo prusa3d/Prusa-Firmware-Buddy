@@ -37,9 +37,6 @@ void fill_till_end_of_line(const int left, const int top, const int h, Rect16 rc
 /// \returns size of drawn area
 /// Draws unused space of @rc with @clr_bg
 size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags) {
-
-    display::DrawRect(rc, COLOR_LIME);
-
     int x = rc.Left();
     int y = rc.Top();
 
@@ -64,7 +61,7 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
                 break; /// end of single line => no more text to print
 
             /// draw background till the border of @rc
-            fill_till_end_of_line(x, y, h, rc, COLOR_BLUE);
+            fill_till_end_of_line(x, y, h, rc, clr_bg);
             y += h;
             x = rc.Left();
 
@@ -93,16 +90,11 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
 #endif
     }
     /// fill background to the end of the line and all below till the border of @rc
-    fill_till_end_of_line(x, y, h, rc, COLOR_ORANGE);
+    fill_till_end_of_line(x, y, h, rc, clr_bg);
     y += h;
-
-    int y1 = std::min(y, int(rc.BottomRight().y));
-    // display::DrawLine(point_ui16(rc.Left(), y1), point_ui16(rc.BottomRight().x - 10, y1), COLOR_GREEN);
-    // display::DrawLine(point_ui16(rc.Left(), rc.BottomRight().y), point_ui16(rc.BottomRight().x - 10, rc.BottomRight().y), COLOR_GREEN);
-
-    display::FillRect(Rect16(point_i16(rc.Left(), y1), size_ui16(rc.Width() - 10, std::max(0, rc.EndPoint().y - y1))), COLOR_GREEN);
-
-    display::DrawRect(Rect16(rc.Left(), rc.Top(), rc.Width() - 20, rc.Height()), COLOR_MAGENTA);
+    int h1 = std::max(0, rc.EndPoint().y - y);
+    if (h1 > 0) /// FIXME hotfix because FillRect draws nonempty rect. for height 0
+        display::FillRect(Rect16(rc.Left(), y, rc.Width() - 10, h1), clr_bg);
 
     return size_ui16_t { rc.Width(), rc.Height() };
 }
