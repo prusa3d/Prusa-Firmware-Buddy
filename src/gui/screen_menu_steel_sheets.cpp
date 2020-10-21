@@ -152,7 +152,7 @@ struct profile_record_t : public WI_LABEL_t {
         : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), 0, true, false) {
         memset(name, 0, MAX_SHEET_NAME_LENGTH);
         sheet_name(Index::value, name, MAX_SHEET_NAME_LENGTH);
-        // string_view_utf8::MakeRAM is safe name is member var, exists until MI_CURRENT_PROFILE is destroyed
+        // string_view_utf8::MakeRAM is safe. "name" is member var, exists until profile_record_t is destroyed
         SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
     };
 

@@ -172,6 +172,6 @@ void MI_CURRENT_PROFILE::UpdateLabel() {
     uint32_t cnt = sheet_active_name(name + 1, MAX_SHEET_NAME_LENGTH);
     name[cnt + 1] = ']';
     name[cnt + 2] = 0;
-    // string_view_utf8::MakeRAM is safe name is member var, exists until MI_CURRENT_PROFILE is destroyed
+    // string_view_utf8::MakeRAM is safe. "name" is member var, exists until MI_CURRENT_PROFILE is destroyed
     SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
 }
