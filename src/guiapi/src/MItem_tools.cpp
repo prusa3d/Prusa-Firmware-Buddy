@@ -395,7 +395,13 @@ size_t MI_SOUND_MODE::init_index() const {
     return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
-    : WI_SWITCH_t<4>(init_index(), _(label), 0, true, false, str_Once, str_Loud, str_Silent, str_Assist) {}
+#ifdef _DEBUG
+    : WI_SWITCH_t<5>(init_index(), _(label), 0, true, false, str_Once, str_Loud, str_Silent, str_Assist, str_Debug)
+#else
+    : WI_SWITCH_t<4>(init_index(), _(label), 0, true, false, str_Once, str_Loud, str_Silent, str_Assist)
+#endif
+{
+}
 void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
     Sound_SetMode(static_cast<eSOUND_MODE>(index));
 }

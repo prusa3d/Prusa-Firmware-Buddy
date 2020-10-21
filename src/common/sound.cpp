@@ -18,6 +18,8 @@ const float Sound::volumes[eSOUND_TYPE::count] = {
     Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit,
     0.175F, 0.175F, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit
 };
+/// forced types of sounds - mainly for ERROR sounds. Ignores volume settings.
+const bool Sound::forced[eSOUND_TYPE::count] = { false, false, false, true, false, false, false, false, false };
 
 /// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
 const eSOUND_TYPE Sound::onceTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
@@ -33,16 +35,16 @@ const eSOUND_TYPE Sound::assistTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::Butt
     eSOUND_TYPE::WaitingBeep };
 
 /// signals repeats - how many times will sound signals repeat (-1 is infinite)
-const int Sound::onceRepeats[] = { 1, 1, 1, 1, 1 };
+const int Sound::onceRepeats[] = { 1, 1, 1, -1, 1 };
 const int Sound::loudRepeats[] = { 1, 1, -1, 3, -1, 1, -1 };
-const int Sound::silentRepeats[] = { 1, 1, 1 };
+const int Sound::silentRepeats[] = { 1, 1, -1 };
 const int Sound::assistRepeats[] = { 1, 1, -1, 3, 1, 1, -1, 1, -1 };
 
 /// delays for repeat sounds (ms)
-const int16_t Sound::onceDelays[] = { 1, 1, 1, 1, 1 };
-const int16_t Sound::loudDelays[] = { 1, 1, 1, 1, 1, 1, 2000 };
-const int16_t Sound::silentDelays[] = { 1, 1, 1 };
-const int16_t Sound::assistDelays[] = { 1, 1, 1, 1, 1, 1, 1, 1, 2000 };
+const int16_t Sound::onceDelays[] = { 1, 1, 1, 250, 1 };
+const int16_t Sound::loudDelays[] = { 1, 1, 1, 1, 250, 1, 2000 };
+const int16_t Sound::silentDelays[] = { 1, 1, 250 };
+const int16_t Sound::assistDelays[] = { 1, 1, 1, 1, 1, 1, 250, 1, 2000 };
 
 /* const bool Sound::forced[8] = { false, false, false, false, false, true, false, false }; */
 
@@ -134,7 +136,7 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
         eSOUND_TYPE type = types[i];
         if (type == sound) {
             _sound(repeats[i], frequencies[(size_t)type],
-                durations[(size_t)type], delays[i], volumes[(size_t)type] /* , Sound::forced[type] */);
+                durations[(size_t)type], delays[i], volumes[(size_t)type], forced[(size_t)type]);
             break;
         }
     }
@@ -168,18 +170,22 @@ void Sound::play(eSOUND_TYPE eSoundType) {
 }
 
 /// Generic [_sound] method with setting values and repeating logic
-void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol /*, bool forced*/) {
+void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f) {
     /// if sound is already playing, then don't interrupt
     if ((repeat - 1 > 0 || repeat == -1) /*  && !forced */) {
         return;
     }
 
-    /// store variables for timing method
+    /// store ACTIVE variables for timing method
     repeat = rep;
     frequency = frq;
     duration_set = dur;
     delay_set = del;
-    volume = (vol * varVolume) * 0.3F;
+    volume = f ? 0.3F : (vol * varVolume) * 0.3F;
+    /// for BSOD debugging
+    if (eSoundMode == eSOUND_MODE::DEBUG) {
+        volume = 0;
+    }
 
     /// end previous beep
     hwio_beeper_set_pwm(0, 0);
