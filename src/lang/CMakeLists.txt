@@ -26,4 +26,6 @@ add_library(
   )
 target_link_libraries(lang translations)
 target_include_directories(lang PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+
 add_library(Buddy::Lang ALIAS lang)
+add_library(Buddy::Lang::Translations ALIAS translations)

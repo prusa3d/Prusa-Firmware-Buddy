@@ -19,12 +19,16 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/hash.cpp
   )
 
-target_link_libraries(translator_tests Buddy::Lang)
 add_dependencies(translator_tests translations_pofiles_dump)
+
+# target_link_libraries(translator_tests Buddy::Lang)
+
+target_link_libraries(translator_tests Buddy::Lang::Translations)
 
 # define required search paths
 target_include_directories(
   translator_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/lang
+                          ${CMAKE_CURRENT_BINARY_DIR}
   )
 
 # define custom macros

@@ -248,45 +248,9 @@ bool CheckAllTheStrings(const deque<string> &rawStringKeys, const deque<string> 
     return true;
 }
 
-void SaveArray(const char *strData, uint16_t strDataSize, const char *type, const char *langCode) {
-    ofstream f(string("strings.") + type + langCode);
-    f.write(strData, strDataSize);
-}
-
-template <typename T, typename Tfirst, typename Tsecond>
-void SaveHashIPP(const T *p, size_t size, const char *fname, Tfirst first, Tsecond second) {
-    ofstream f(fname);
-    f << "{\n"
-      << hex;
-    for_each(p, p + size, [&](const T &i) {
-        f << "{ 0x" << first(i) << "U, 0x" << second(i) << "U },\n";
-    });
-    f << "};\n";
-}
-
 template <typename T>
-void SaveArray4CPP(const T *p, size_t size, const char *fname, const char *decl) {
-    ofstream f(fname);
-    f << decl << " = {\n"
-      << hex;
-    for_each(p, p + size, [&](const T &i) {
-        f << "0x" << i << ", ";
-    });
-    f << "};\n";
-}
-
-template <typename T>
-void FillAndSaveStringTable(const deque<string> &strings, const char *langCode) {
-    auto ssize = FillStringTable(strings, T::stringBegins, T::utf8Raw);
-    T::stringCount = ssize.first;
-    T::stringBytes = ssize.second;
-    SaveArray((const char *)T::utf8Raw, T::stringBytes, "table.", langCode);
-    SaveArray((const char *)T::stringBegins, T::stringCount * sizeof(uint16_t), "index.", langCode);
-
-    string upcaseLangCode(langCode);
-    std::transform(upcaseLangCode.begin(), upcaseLangCode.end(), upcaseLangCode.begin(), ::toupper);
-    SaveArray4CPP(T::stringBegins, T::stringCount, (string("stringBegins.") + langCode + ".hpp").c_str(),
-        (string("const uint16_t StringTable") + upcaseLangCode + "::stringBegins[]").c_str());
+void FillStringTable(const deque<string> &strings) {
+    FillStringTable(strings, T::stringBegins, T::utf8Raw);
 }
 
 /// This is a complex test of the whole translation mechanism
@@ -309,20 +273,9 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     CPUFLASHTranslationProviderPLTest providerPL;
     deque<string> rawStringKeys;
     FillHashTableCPUFLASHProvider(CPUFLASHTranslationProviderBase::hash_table, "keys.txt", rawStringKeys);
-    const auto &ht = CPUFLASHTranslationProviderBase::hash_table;
-    SaveArray((const char *)ht.hash_table, sizeof(ht.hash_table), "hash_table", "");
-    SaveArray((const char *)ht.stringRecArray, sizeof(ht.stringRecArray), "hash_buckets", "");
-    SaveHashIPP(
-        ht.hash_table, ht.Buckets(), "hash_table_buckets.ipp",
-        [](const CPUFLASHTranslationProviderBase::SHashTable::BucketRange &b) { return b.begin; },
-        [](const CPUFLASHTranslationProviderBase::SHashTable::BucketRange &b) { return b.end; });
-    SaveHashIPP(
-        ht.stringRecArray, ht.MaxStrings(), "hash_table_string_indices.ipp",
-        [](const CPUFLASHTranslationProviderBase::SHashTable::BucketItem &b) { return b.firstLetters; },
-        [](const CPUFLASHTranslationProviderBase::SHashTable::BucketItem &b) { return b.stringIndex; });
 
     // now do a similar thing for the translated strings
-    deque<string> csStrings, deStrings, esStrings, frStrings, itStrings, plStrings; // don't have the Spanish translation yet
+    deque<string> csStrings, deStrings, esStrings, frStrings, itStrings, plStrings;
     REQUIRE(LoadTranslatedStringsFile("cs.txt", &csStrings));
     REQUIRE(LoadTranslatedStringsFile("de.txt", &deStrings));
     REQUIRE(LoadTranslatedStringsFile("es.txt", &esStrings));
@@ -339,12 +292,12 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     REQUIRE(rawStringKeys.size() <= plStrings.size());
 
     // now make the string table from cs.txt
-    FillAndSaveStringTable<StringTableCSTest>(csStrings, "cs");
-    FillAndSaveStringTable<StringTableDETest>(deStrings, "de");
-    FillAndSaveStringTable<StringTableESTest>(esStrings, "es");
-    FillAndSaveStringTable<StringTableFRTest>(frStrings, "fr");
-    FillAndSaveStringTable<StringTableITTest>(itStrings, "it");
-    FillAndSaveStringTable<StringTablePLTest>(plStrings, "pl");
+    FillStringTable<StringTableCSTest>(csStrings);
+    FillStringTable<StringTableDETest>(deStrings);
+    FillStringTable<StringTableESTest>(esStrings);
+    FillStringTable<StringTableFRTest>(frStrings);
+    FillStringTable<StringTableITTest>(itStrings);
+    FillStringTable<StringTablePLTest>(plStrings);
 
     // prepare a map for comparison
     set<unichar> nonASCIICharacters;
@@ -366,18 +319,19 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     REQUIRE(CheckAllTheStrings(rawStringKeys, plStrings, providerPL, nonASCIICharacters));
 
     {
+        // @@TODO add generation of non-ASCII chars into the build pipeline
         // cout << "Non-ASCII characters = " << nonASCIICharacters.size() << endl;
         // Dump detected non-ASCII characters to a file - note, I don't have the correct utf-8 represetation here
         // ... can be probably added later
         // In our case we have only 2-byte utf chars so far (cs, de, es, fr, it, pl)
-        ofstream fr("non-ascii-chars.raw");
-        ofstream f("non-ascii-chars.txt");
-        for_each(nonASCIICharacters.begin(), nonASCIICharacters.end(), [&f, &fr](unichar c) {
-            fr.write((const char *)&c, sizeof(unichar));
-            uint8_t uc[4] = "   ";
-            uc[0] = 0xc0 | (c >> 6);
-            uc[1] = 0x80 | (c & 0x3f);
-            f.write((const char *)uc, 3);
+        //        ofstream fr("non-ascii-chars.raw");
+        //        ofstream f("non-ascii-chars.txt");
+        for_each(nonASCIICharacters.begin(), nonASCIICharacters.end(), [/*&f, &fr*/](unichar c) {
+            //            fr.write((const char *)&c, sizeof(unichar));
+            //            uint8_t uc[4] = "   ";
+            //            uc[0] = 0xc0 | (c >> 6);
+            //            uc[1] = 0x80 | (c & 0x3f);
+            //            f.write((const char *)uc, 3);
 
             // with accents, we don't need the unaccent table anymore
             // but is important for character generation (newly added characters)
