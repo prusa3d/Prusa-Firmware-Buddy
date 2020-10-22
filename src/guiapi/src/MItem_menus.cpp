@@ -179,7 +179,7 @@ void MI_CURRENT_PROFILE::UpdateLabel() {
 /*****************************************************************************/
 //MI_EEPROM
 MI_EEPROM::MI_EEPROM()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
@@ -189,7 +189,7 @@ void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_ERROR_SCREENS
 MI_ERROR_SCREENS::MI_ERROR_SCREENS()
-    : WI_LABEL_t(label, 0, true, false) {
+    : WI_LABEL_t(_(label), 0, true, false) {
 }
 
 void MI_ERROR_SCREENS::click(IWindowMenu & /*window_menu*/) {
