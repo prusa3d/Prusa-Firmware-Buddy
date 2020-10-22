@@ -63,10 +63,21 @@ protected:
 
     /// @returns pointer to translated string (utf8 data) or nullptr if out of range
     virtual const uint8_t *StringTableAt(uint16_t stringIndex) const = 0;
+
+#ifdef TRANSLATIONS_UNITTEST
+    /// just accessors for raw data of derived classes for binary comparison inside unit tests
+    virtual const uint16_t *StringBegins() const = 0;
+    virtual const uint8_t *Utf8Raw() const = 0;
+#endif
 };
 
 template <typename RD>
 class CPUFLASHTranslationProvider : public CPUFLASHTranslationProviderBase {
+#ifndef TRANSLATIONS_UNITTEST
+private:
+#else
+public:
+#endif
     typedef RD RawData;
     static const RawData rawData;
 #ifndef TRANSLATIONS_UNITTEST
@@ -74,10 +85,15 @@ protected:
 #else
 public:
 #endif
-    virtual const uint8_t *StringTableAt(uint16_t stringIndex) const {
+    virtual const uint8_t *StringTableAt(uint16_t stringIndex) const override {
         return
             //           ( stringIndex < (sizeof(rawData.stringBegins) / sizeof(rawData.stringBegins[0])) ) ?
             rawData.utf8Raw + rawData.stringBegins[stringIndex];
         //                : nullptr ;
     }
+#ifdef TRANSLATIONS_UNITTEST
+    /// just accessors for raw data of derived classes for binary comparison inside unit tests
+    virtual const uint16_t *StringBegins() const override { return rawData.stringBegins; }
+    virtual const uint8_t *Utf8Raw() const override { return rawData.utf8Raw; }
+#endif
 };
