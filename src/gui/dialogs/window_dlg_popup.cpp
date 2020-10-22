@@ -10,8 +10,8 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
-    : AddSuperWindow<IDialog>(rect)
+window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt, SetCapture_t setCapture)
+    : AddSuperWindow<IDialog>(rect, setCapture)
     , text(this, rect, is_multiline::yes, is_closed_on_click_t::no, txt)
     , open_time(0)
     , ttl(0) {
@@ -19,8 +19,8 @@ window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
     text.SetPadding({ 0, 2, 0, 2 });
 }
 
-void window_dlg_popup_t::Show(string_view_utf8 txt, uint32_t time) {
-    static window_dlg_popup_t dlg(Rect16(0, 70, 240, 120), txt);
+void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) {
+    static window_dlg_popup_t dlg(rect, txt, SetCapture_t::no);
     dlg.open_time = HAL_GetTick();
     dlg.ttl = time;
     dlg.text.SetText(txt);
@@ -31,12 +31,12 @@ void window_dlg_popup_t::Show(string_view_utf8 txt, uint32_t time) {
             parent->RegisterSubWin(&dlg);
         }
     }
-    if (GetCapturedWindow() != &dlg) {
+
+    //DO NOT erase this commented code, might be still used
+    /*if (GetCapturedWindow() != &dlg) {
         dlg.StoreCapture();
         dlg.SetCapture();
-    }
-    //in 1st call text will be set twice, I could use static bool variable to prevent it
-    //but i prefer fewer code instead
+    }*/
 }
 
 //no need to care about focus/caption after unregistration
@@ -44,7 +44,8 @@ void window_dlg_popup_t::Show(string_view_utf8 txt, uint32_t time) {
 void window_dlg_popup_t::UnregisterFromParent() {
     if (!GetParent())
         return;
-    releaseCapture();
+    //DO NOT erase this commented code, might be still used
+    //releaseCapture();
     GetParent()->UnregisterSubWin(this);
     SetParent(nullptr);
 }
