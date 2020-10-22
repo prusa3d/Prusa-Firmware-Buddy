@@ -4,7 +4,7 @@
 
 /*****************************************************************************/
 //WI_LABEL_t
-WI_LABEL_t::WI_LABEL_t(const char *label, uint16_t id_icon, bool enabled, bool hidden)
+WI_LABEL_t::WI_LABEL_t(string_view_utf8 label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(label, id_icon, enabled, hidden) {}
 
 /**
@@ -65,7 +65,7 @@ void IWiSpin::printText(IWindowMenu &window_menu, Rect16 rect, color_t color_tex
 
 /*****************************************************************************/
 //IWiSwitch
-IWiSwitch::IWiSwitch(int32_t index, const char *label, uint16_t id_icon, bool enabled, bool hidden)
+IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, bool enabled, bool hidden)
     : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden)
     , index(index) {}
 
@@ -156,7 +156,7 @@ bool WI_SELECT_t::Change(int dif) {
 }
 
 WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, bool enabled, bool hidden)
-    : IWindowMenuItem(no_lbl, id_icon, enabled, hidden)
+    : IWindowMenuItem(string_view_utf8::MakeNULLSTR(), id_icon, enabled, hidden)
     , index(index)
     , strings(strings) {}
 
@@ -181,7 +181,7 @@ void WI_SELECT_t::printText(IWindowMenu &window_menu, Rect16 rect, color_t color
 /*****************************************************************************/
 //MI_RETURN
 MI_RETURN::MI_RETURN()
-    : WI_LABEL_t(label, IDR_PNG_folder_up_16px, true, false) {
+    : WI_LABEL_t(_(label), IDR_PNG_folder_up_16px, true, false) {
 }
 
 void MI_RETURN::click(IWindowMenu &window_menu) {
@@ -190,7 +190,8 @@ void MI_RETURN::click(IWindowMenu &window_menu) {
 }
 
 MI_TEST_DISABLED_RETURN::MI_TEST_DISABLED_RETURN()
-    : WI_LABEL_t(label, IDR_PNG_folder_up_16px, false, false) {
+    //just for test (in debug), do not translate
+    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), IDR_PNG_folder_up_16px, false, false) {
 }
 
 void MI_TEST_DISABLED_RETURN::click(IWindowMenu & /*window_menu*/) {
