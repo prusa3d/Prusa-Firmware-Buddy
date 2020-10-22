@@ -49,8 +49,8 @@ private:
     void init();
     void saveMode();
     void saveVolume();
-    void _sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f);
-    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], const int16_t delays[], unsigned size);
+    void _sound(int rep, float frq, uint16_t dur, int16_t del, float vol, bool f);
+    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], const uint16_t durations[], const int16_t delays[], unsigned size);
 
     void nextRepeat();
 
@@ -70,6 +70,7 @@ private:
     static const int16_t durations[eSOUND_TYPE::count];
     static const float frequencies[eSOUND_TYPE::count];
     static const float volumes[eSOUND_TYPE::count];
+
     /// forced sound types - ignores volume settings
     static const bool forced[eSOUND_TYPE::count];
 
@@ -90,6 +91,12 @@ private:
     static const int16_t loudDelays[];
     static const int16_t silentDelays[];
     static const int16_t assistDelays[];
+
+    /// durations for sounds modes
+    static const uint16_t onceDurations[];
+    static const uint16_t loudDurations[];
+    static const uint16_t silentDurations[];
+    static const uint16_t assistDurations[];
 
     eSOUND_MODE eSoundMode;
 };
