@@ -56,22 +56,27 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
             break;
 
         /// Break line char or drawable char won't fit into this line any more
-        if (c == '\n' || x + w > rc.EndPoint().x) {
+        if (c == '\n') {
             if (!wrap_text)
                 break; /// end of single line => no more text to print
 
             /// draw background till the border of @rc
             fill_till_end_of_line(x, y, h, rc, clr_bg);
+            /// new line
             y += h;
             x = rc.Left();
 
-            if (y + h > rc.EndPoint().y) { /// char won't fit vertically
+            if (y + h > rc.EndPoint().y) /// next char won't fit vertically
                 break;
-            }
-            if (c == '\n')
-                continue;
+
+            continue;
         }
 
+        if (x + w > rc.EndPoint().x) {
+            continue;
+        }
+
+        /// draw part
 #ifdef UNACCENT
         // FIXME no check for enough space to draw char/chars
         if (c < 128) {
