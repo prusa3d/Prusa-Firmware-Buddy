@@ -48,10 +48,10 @@ public:
     void SetIconId(uint16_t id) { id_icon = id; }
     uint16_t GetIconId() const { return id_icon; }
     void SetLabel(string_view_utf8 text);
-    /// @returns the label translated via gettext (in the future).
+    /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text
     /// to be displayed to the user based on his language settings.
-    string_view_utf8 GetLocalizedLabel() const;
+    string_view_utf8 GetLabel() const;
 
     void Print(IWindowMenu &window_menu, Rect16 rect) const;
 
