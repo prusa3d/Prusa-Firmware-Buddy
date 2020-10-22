@@ -42,7 +42,7 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
     case ClientFSM::Serial_printing:
     case ClientFSM::Printing:
     case ClientFSM::FirstLayer:
-        if (IScreenPrinting::CanOpen()) {
+        if (IScreenPrinting::GetInstance() == nullptr) {
             OpenPrintScreen(dialog);
         } else {
             //openned, notify it

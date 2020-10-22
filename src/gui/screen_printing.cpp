@@ -126,7 +126,8 @@ screen_printing_data_t::screen_printing_data_t()
     , message_timer(0)
     , stop_pressed(false)
     , waiting_for_abort(false)
-    , state__readonly__use_change_print_state(printing_state_t::COUNT) {
+    , state__readonly__use_change_print_state(printing_state_t::COUNT)
+    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.rect, w_time_value.rect, w_etime_label.rect, w_etime_value.rect }))) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
 
     marlin_vars_t *vars = marlin_vars();

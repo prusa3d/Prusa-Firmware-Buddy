@@ -19,8 +19,8 @@ window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt, SetCap
     text.SetPadding({ 0, 2, 0, 2 });
 }
 
-void window_dlg_popup_t::Show(string_view_utf8 txt, uint32_t time) {
-    static window_dlg_popup_t dlg(Rect16(0, 70, 240, 120), txt, SetCapture_t::no);
+void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) {
+    static window_dlg_popup_t dlg(rect, txt, SetCapture_t::no);
     dlg.open_time = HAL_GetTick();
     dlg.ttl = time;
     dlg.text.SetText(txt);

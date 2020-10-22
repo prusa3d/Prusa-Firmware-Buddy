@@ -21,8 +21,9 @@ protected:
 public:
     IScreenPrinting(string_view_utf8 caption);
     ~IScreenPrinting();
-    static bool CanOpen();
+    static IScreenPrinting *GetInstance();
     static void NotifyMarlinStart();
+    virtual Rect16 GetPopUpRect() { return Rect16(); }
 
 private:
     virtual void notifyMarlinStart() {};
