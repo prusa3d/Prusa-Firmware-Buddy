@@ -16,7 +16,7 @@ class window_dlg_popup_t : public AddSuperWindow<IDialog> {
     uint32_t open_time;
     uint32_t ttl; //time to live
 
-    window_dlg_popup_t(Rect16 rect, string_view_utf8 txt);
+    window_dlg_popup_t(Rect16 rect, string_view_utf8 txt, SetCapture_t setCapture);
     window_dlg_popup_t(const window_dlg_popup_t &) = delete;
 
     void UnregisterFromParent();
