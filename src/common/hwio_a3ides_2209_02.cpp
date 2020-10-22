@@ -661,7 +661,7 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
         case MARLIN_PIN(Z_DIR):
             sim_motion_set_dir(2, ulVal ? 1 : 0);
             return;
-#else  //SIM_MOTION
+#else //SIM_MOTION
         case MARLIN_PIN(X_DIR):
         case MARLIN_PIN(X_STEP):
         case MARLIN_PIN(Z_ENA):
