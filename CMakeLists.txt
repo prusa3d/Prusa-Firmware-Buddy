@@ -600,6 +600,8 @@ if(GUI)
             src/gui/screen_menu_fw_update.cpp
             src/gui/test/screen_menu_test_temperature.cpp
             src/gui/test/screen_mesh_bed_lv.cpp
+            src/gui/screen_menu_eeprom.cpp
+            src/gui/screen_menu_errors.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp
