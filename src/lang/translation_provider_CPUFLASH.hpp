@@ -29,6 +29,9 @@ struct hash_sdbm {
     }
 };
 
+// obtain number of buckets from the python generator
+#include "hash_table_buckets_count.ipp"
+
 /// Base class for all translation providers which have their data in CPUFLASH
 /// The idea here is, that all the derived providers share the same search (hash)
 /// structures, thus greatly reducing total FLASH footprint.
@@ -50,7 +53,7 @@ public:
     }
 
     // 2020-08-18 updated to 340 buckets with more texts coming in. With previous 256 buckets, collisions occured already (we have 240+ texts)
-    using SHashTable = string_hash_table<hash_djb2, 340, 256>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
+    using SHashTable = string_hash_table<hash_djb2, buckets_count, 256>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
 #ifndef TRANSLATIONS_UNITTEST
 protected:
 #endif

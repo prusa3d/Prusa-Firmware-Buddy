@@ -150,6 +150,13 @@ def dump_ipp_array(path: Path, items):
         f.write(format_c_array(items, indent=0))
 
 
+def dump_buckets_count(path: Path, buckets_count):
+    """Write down a file composed of constexpr size_t buckets_count = xxxx;"""
+    with open(path, 'w') as f:
+        f.write('constexpr size_t buckets_count = ' + str(buckets_count) +
+                ';\n')
+
+
 def dump_hash_table(langcode, entries, hash_table: HashTable,
                     output_dir: Path):
     """Generate all the required C++ files for given hash table."""
@@ -179,6 +186,8 @@ def dump_hash_table(langcode, entries, hash_table: HashTable,
         (int.from_bytes(item.leading_bytes, 'little'), item.table_index)
         for item in hash_table.string_rec
     ])
+    dump_buckets_count(output_dir / f'hash_table_buckets_count.ipp',
+                       len(hash_table.buckets))
 
 
 def cmd_generate_hash_tables(args):
