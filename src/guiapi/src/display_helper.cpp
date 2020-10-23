@@ -1,4 +1,4 @@
-//display_helper.c
+//display_helper.cpp
 
 #include <algorithm>
 
@@ -12,6 +12,7 @@
 #include "../common/str_utils.hpp"
 #include "ScreenHandler.hpp"
 #include "guitypes.hpp"
+#include "cmath_ext.h"
 
 //#define UNACCENT
 
@@ -27,7 +28,7 @@ std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
 /// If @h is too high, it will be cropped so nothing is drawn outside of the @rc but
 /// @top and @left are not checked whether they are in @rc
 void fill_till_end_of_line(const int left, const int top, const int h, Rect16 rc, color_t clr) {
-    display::FillRect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), std::clamp(rc.EndPoint().y - top, 0, h)), clr);
+    display::FillRect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), CLAMP(rc.EndPoint().y - top, 0, h)), clr);
 }
 
 /// Draws a text into the specified rectangle @rc
