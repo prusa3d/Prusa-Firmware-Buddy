@@ -76,4 +76,4 @@
 /// \returns value otherwise
 #define CLAMP(value, min, max) \
     ({ __typeof__ (value) a_ = (value); \
-        ( a_ < min ? min : (a_ <= max ? a : max)); })
+        ( a_ < min ? min : (a_ <= max ? a_ : max)); })
