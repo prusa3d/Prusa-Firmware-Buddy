@@ -3,7 +3,7 @@
 #include "ScreenHandler.hpp"
 
 IDialog::IDialog(Rect16 rc, SetCapture_t setCapture)
-    : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rc, is_dialog_t::yes) //use dialog ctor
+    : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rc, win_type_t::dialog) //use dialog ctor
     , prev_capture(setCapture == SetCapture_t::yes ? GetCapturedWindow() : nullptr) {
     Enable();
     if (setCapture == SetCapture_t::yes) {

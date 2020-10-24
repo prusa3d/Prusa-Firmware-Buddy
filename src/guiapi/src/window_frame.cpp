@@ -3,8 +3,8 @@
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 
-window_frame_t::window_frame_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
-    : AddSuperWindow<window_t>(parent, rect, dialog)
+window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
+    : AddSuperWindow<window_t>(parent, rect, type)
     , first(nullptr)
     , last(nullptr) {
 
@@ -12,7 +12,6 @@ window_frame_t::window_frame_t(window_t *parent, Rect16 rect, is_dialog_t dialog
     flag_serial_close = serial;
 
     Enable();
-    color_back = COLOR_BLACK;
 }
 
 void window_frame_t::SetMenuTimeoutClose() { flag_timeout_close = is_closed_on_timeout_t::yes; }

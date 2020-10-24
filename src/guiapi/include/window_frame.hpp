@@ -15,7 +15,7 @@ struct window_frame_t : public AddSuperWindow<window_t> {
     window_t *GetFirst() const;
     window_t *GetLast() const;
 
-    window_frame_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, is_dialog_t dialog = is_dialog_t::no, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_serial_t serial = is_closed_on_serial_t::yes);
+    window_frame_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_serial_t serial = is_closed_on_serial_t::yes);
 
     window_t *GetNextSubWin(window_t *win) const;
     window_t *GetPrevSubWin(window_t *win) const;
