@@ -196,7 +196,7 @@ def cmd_generate_hash_tables(args):
     if not translations:
         logger.error('no translations found')
         return 1
-    buckets_count = 256
+    buckets_count = 128
 
     for langcode, translation in translations.items():
         # entries we wanna store in the hash table
