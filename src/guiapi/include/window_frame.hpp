@@ -7,9 +7,51 @@
 #include "window.hpp"
 #include "display.h"
 
-struct window_frame_t : public AddSuperWindow<window_t> {
+//inherit, use ctor ti pass additional param
+class WinFilter {
+public:
+    virtual bool operator()(const window_t &) const = 0;
+};
+
+class WinFilterTrue : public WinFilter {
+public:
+    virtual bool operator()(const window_t &) const override { return true; };
+};
+
+class WinFilterContained : public WinFilter {
+    Rect16 rect;
+
+public:
+    constexpr WinFilterContained(Rect16 rc)
+        : rect(rc) {}
+    virtual bool operator()(const window_t &win) const override {
+        return rect.Contain(win.rect);
+    }
+};
+
+class window_frame_t : public AddSuperWindow<window_t> {
     window_t *first;
     window_t *last;
+
+    window_t *findFirst(window_t *begin, window_t *end, const WinFilter &filter) const;
+    window_t *findLast(window_t *begin, window_t *end, const WinFilter &filter) const;
+
+    // this methods does not check rect or window type of win
+    // public methods RegisterSubWin/UnregisterSubWin does
+    // reference is used so nullptr test can be skipped
+    void registerNormal(window_t &win);       // just register no need to check anything
+    void registerDialog(window_t &win);       // register on top of all windows except strong_dialogs
+    void registerStrongDialog(window_t &win); // just register no need to check anything
+    void registerPopUp(window_t &win);        // fails if there is an overlaping dialog
+    void unregisterNormal(window_t &win);     // does not do anything, unregistration is not needed for normal windows
+    void unregisterDialog(window_t &win);
+    void unregisterStrongDialog(window_t &win);
+    void unregisterPopUp(window_t &win);
+
+    window_t *getFirstOverlapingDialog(Rect16 intersection_rect) const;
+    window_t *getFirstOverlapingPopUp(Rect16 intersection_rect) const;
+
+public:
     virtual void RegisterSubWin(window_t *win) override;
     virtual void UnregisterSubWin(window_t *win) override;
     window_t *GetFirst() const;

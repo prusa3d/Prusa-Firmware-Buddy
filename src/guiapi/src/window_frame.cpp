@@ -20,37 +20,130 @@ void window_frame_t::ClrMenuTimeoutClose() { flag_timeout_close = is_closed_on_t
 void window_frame_t::SetOnSerialClose() { flag_serial_close = is_closed_on_serial_t::yes; }
 void window_frame_t::ClrOnSerialClose() { flag_serial_close = is_closed_on_serial_t::no; }
 
+window_t *window_frame_t::findFirst(window_t *begin, window_t *end, const WinFilter &filter) const {
+    while (begin && (begin->GetParent() != this) && (begin != end)) {
+        if (filter(*begin)) {
+            return begin;
+        }
+        begin = begin->GetNext();
+    }
+    return end;
+}
+
+window_t *window_frame_t::findLast(window_t *begin, window_t *end, const WinFilter &filter) const {
+    window_t *ret = end;
+    window_t *temp = begin;
+    do {
+        temp = findFirst(temp, end, filter);
+        if (temp != end)
+            ret = temp;
+    } while (temp != end);
+    return ret;
+}
+
 //register sub win
 void window_frame_t::RegisterSubWin(window_t *win) {
     //window must fit inside frame
     if (!rect.Contain(win->rect))
         return;
 
-    //adding first window
+    //adding first window is always fine
     if (!(first && last)) {
         first = last = win;
         return;
     }
 
+    switch (win->GetType()) {
+    case win_type_t::normal:
+        registerNormal(*win);
+        break;
+    case win_type_t::dialog:
+        registerDialog(*win);
+        break;
+    case win_type_t::popup:
+        registerStrongDialog(*win);
+        break;
+    case win_type_t::strong_dialog:
+        registerPopUp(*win);
+        break;
+    }
+}
+
+void window_frame_t::registerNormal(window_t &win) {
+
+//in debug windows with intersection are painted with red background
+#ifdef _DEBUG
+    // check of win_type_t::normal is needed, because other registration methods can recall this one
+    if (win.GetType() == win_type_t::normal) {
+
+        window_t *pWin = first;
+        while (pWin) {
+            if (win.rect.HasIntersection(pWin->rect)) {
+                win.SetBackColor(COLOR_RED_ALERT);
+            }
+            pWin = pWin->GetNext();
+        }
+    }
+#endif //_DEBUG
+
+    // situations with more than one popup will be very rare
+    // so simpler (but slower) code is better
+    window_t *pWin;
+    while ((pWin = getFirstOverlapingPopUp(win.rect)) != nullptr) {
+#warning notify popup about unreg
+        // be cerefull - do not cause loop
+        this->UnregisterSubWin(pWin);
+    }
+
+    last->SetNext(&win);
+    last = last->GetNext();
+}
+
+void window_frame_t::registerDialog(window_t &win) {
+
+#warning todo find strong dialogs ...
     window_t *pWin = first;
     while (pWin) {
-        if (win->rect.HasIntersection(pWin->rect)) {
-            if (win->IsDialog()) {
-                pWin->HideBehindDialog();
-            } else {
-// error 2 windows cannot have intersection
-// win is not dialog, it is guaranted there is no dialog inside this frame yet
-// so no need to check it
-#ifdef _DEBUG
-                win->SetBackColor(COLOR_RED_ALERT);
-#endif //_DEBUG
-            }
+        if (win.rect.HasIntersection(pWin->rect)) {
+            pWin->HideBehindDialog();
         }
         pWin = pWin->GetNext();
     }
 
-    last->SetNext(win);
-    last = last->GetNext();
+    registerNormal(win);
+}
+
+void window_frame_t::registerStrongDialog(window_t &win) {
+    registerNormal(win);
+}
+
+void window_frame_t::registerPopUp(window_t &win) {
+    // there can be no overlaping dialog
+    if (getFirstOverlapingDialog(win.rect) != nullptr) {
+        registerNormal(win);
+    }
+}
+
+window_t *window_frame_t::getFirstOverlapingDialog(Rect16 intersection_rect) const {
+    window_t *pWin = first;
+    while (pWin) {
+        if (pWin->IsDialog() && intersection_rect.HasIntersection(pWin->rect)) {
+            return pWin;
+        }
+        pWin = pWin->GetNext();
+    }
+    return nullptr;
+}
+
+window_t *window_frame_t::getFirstOverlapingPopUp(Rect16 intersection_rect) const {
+    window_t *pWin = first;
+    while (pWin) {
+        if ((pWin->GetType() == win_type_t::popup) && intersection_rect.HasIntersection(pWin->rect)) {
+            return pWin;
+        }
+        pWin = pWin->GetNext();
+    }
+    return nullptr;
 }
 
 //unregister sub win
@@ -92,6 +185,18 @@ void window_frame_t::UnregisterSubWin(window_t *win) {
         //needed for menu
         Invalidate();
     }
+}
+
+void window_frame_t::unregisterNormal(window_t &win) {
+}
+
+void window_frame_t::unregisterDialog(window_t &win) {
+}
+
+void window_frame_t::unregisterStrongDialog(window_t &win) {
+}
+
+void window_frame_t::unregisterPopUp(window_t &win) {
 }
 
 window_t *window_frame_t::GetFirst() const {
