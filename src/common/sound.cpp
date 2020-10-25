@@ -48,16 +48,16 @@ const int16_t Sound::silentDelays[] = { 1, 1, 250 };
 const int16_t Sound::assistDelays[] = { 1, 1, 1, 1, 1, 1, 250, 1, 2000 };
 
 /// durations for sound modes
-const uint16_t Sound::onceDurations[] = {
+const int16_t Sound::onceDurations[] = {
     100, 100, 500, 500, 800, 800
 };
-const uint16_t Sound::loudDurations[] = {
+const int16_t Sound::loudDurations[] = {
     100, 100, 500, 200, 500, 800, 100
 };
-const uint16_t Sound::silentDurations[] = {
+const int16_t Sound::silentDurations[] = {
     100, 200, 500
 };
-const uint16_t Sound::assistDurations[] = {
+const int16_t Sound::assistDurations[] = {
     100, 100, 500, 200, 10, 50, 500, 800, 100
 };
 
@@ -144,7 +144,7 @@ void Sound::stop() {
 }
 
 void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
-    const int repeats[], const uint16_t durations[], const int16_t delays[], unsigned size) {
+    const int repeats[], const int16_t durations[], const int16_t delays[], unsigned size) {
     for (unsigned i = 0; i < size; i++) {
         eSOUND_TYPE type = types[i];
         if (type == sound) {
@@ -183,26 +183,34 @@ void Sound::play(eSOUND_TYPE eSoundType) {
 }
 
 /// Generic [_sound] method with setting values and repeating logic
-void Sound::_sound(int rep, float frq, uint16_t dur, int16_t del, float vol, bool f) {
-    /// if sound is already playing, then don't interrupt
-    if ((repeat - 1 > 0 || repeat == -1) /*  && !forced */) {
-        return;
-    }
+void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f) {
+    /// forced non-repeat sounds - can be played when another
+    /// repeating sound is playing
 
-    /// store ACTIVE variables for timing method
-    repeat = rep;
-    frequency = frq;
-    duration_set = dur;
-    delay_set = del;
-    volume = f ? 0.3F : (vol * varVolume) * 0.3F;
-    /// for debugging BSOD
-    if (eSoundMode == eSOUND_MODE::DEBUG) {
-        volume = 0;
-    }
+    float tmpVol = f ? 0.3F : (vol * varVolume) * 0.3F;
+    if (rep == 1) {
+        _singleSound(frq, dur, tmpVol);
+    } else {
+        /// if sound is already playing, then don't interrupt
+        if (repeat == -1 || repeat > 1) {
+            return;
+        }
 
-    /// end previous beep
-    hwio_beeper_set_pwm(0, 0);
-    nextRepeat();
+        /// store ACTIVE variables for timing method
+        repeat = rep;
+        frequency = frq;
+        duration_set = dur;
+        delay_set = del;
+        volume = tmpVol;
+        /// for BSOD debugging
+        if (eSoundMode == eSOUND_MODE::DEBUG) {
+            volume = 0;
+        }
+
+        /// end previous beep
+        hwio_beeper_set_pwm(0, 0);
+        nextRepeat();
+    }
 }
 
 /// Another repeat of sound signal. Just set live variable with duration_set of the beep and play it
@@ -213,6 +221,15 @@ void Sound::nextRepeat() {
         repeat = repeat > 0 ? repeat - 1 : repeat;
         delay_active = delay_set;
         hwio_beeper_tone2(frequency, duration_set, volume);
+    }
+}
+
+/// starts single sound when it's not playing another
+/// this is usable when some infinitely repeating sound is playing.
+void Sound::_singleSound(float frq, int16_t dur, float vol) {
+    if (duration_active <= 0) {
+        hwio_beeper_set_pwm(0, 0);
+        hwio_beeper_tone2(frq, dur, vol);
     }
 }
 
