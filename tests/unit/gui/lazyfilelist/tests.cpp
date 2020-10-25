@@ -5,6 +5,22 @@
 
 #include "lazyfilelist.h"
 #include "fatfs.h"
+#include <string.h>
+
+// to be able to compile under Windows
+// In the POSIX locale, strcasecmp() and strncasecmp() shall behave as if the strings had been converted to
+// lowercase and then a byte comparison performed. The results are unspecified in other locales.
+// portable solution consider that round trips the letter (to upper then to lower) to cope with non 1-to-1 mappings:
+extern "C" __attribute__((weak)) int strcasecmp(const char *a, const char *b) {
+    int ca, cb;
+    do {
+        ca = (unsigned char)*a++;
+        cb = (unsigned char)*b++;
+        ca = tolower(toupper(ca));
+        cb = tolower(toupper(cb));
+    } while (ca == cb && ca != '\0');
+    return ca - cb;
+}
 
 using namespace std;
 
