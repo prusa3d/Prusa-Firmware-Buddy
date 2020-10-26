@@ -39,20 +39,13 @@ void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) 
     }*/
 }
 
-//no need to care about focus/caption after unregistration
-//Screens::Loop() auto sets focus and caption to new screen or its child window
-void window_dlg_popup_t::UnregisterFromParent() {
-    if (!GetParent())
-        return;
-    //DO NOT erase this commented code, might be still used
-    //releaseCapture();
-    GetParent()->UnregisterSubWin(this);
-    SetParent(nullptr);
-}
-
 void window_dlg_popup_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     const uint32_t openned = HAL_GetTick() - open_time;
-    if (event == GUI_event_t::LOOP && openned > ttl) //todo use timer
-        UnregisterFromParent();
-    SuperWindowEvent(sender, event, param);
+    if (event == GUI_event_t::LOOP && openned > ttl) { //todo use timer
+        if (GetParent()) {
+            GetParent()->UnregisterSubWin(this);
+            SetParent(nullptr);
+        }
+    } else
+        SuperWindowEvent(sender, event, param);
 }

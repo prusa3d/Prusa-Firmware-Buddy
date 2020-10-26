@@ -19,8 +19,6 @@ class window_dlg_popup_t : public AddSuperWindow<IDialog> {
     window_dlg_popup_t(Rect16 rect, string_view_utf8 txt, SetCapture_t setCapture);
     window_dlg_popup_t(const window_dlg_popup_t &) = delete;
 
-    void UnregisterFromParent();
-
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 

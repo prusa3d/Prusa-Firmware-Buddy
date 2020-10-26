@@ -14,6 +14,14 @@ window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, i
     Enable();
 }
 
+window_frame_t::~window_frame_t() {
+    WinFilterPopUp filter;
+    window_t *popup;
+    while ((popup = findFirst(first, nullptr, filter)) != nullptr) {
+        UnregisterSubWin(popup);
+    }
+}
+
 void window_frame_t::SetMenuTimeoutClose() { flag_timeout_close = is_closed_on_timeout_t::yes; }
 void window_frame_t::ClrMenuTimeoutClose() { flag_timeout_close = is_closed_on_timeout_t::no; }
 
@@ -31,6 +39,7 @@ window_t *window_frame_t::findFirst(window_t *begin, window_t *end, const WinFil
 }
 
 window_t *window_frame_t::findLast(window_t *begin, window_t *end, const WinFilter &filter) const {
+    //no need to check parrent or null, findFirst does that
     window_t *ret = end;
     window_t *temp = begin;
     do {
@@ -148,10 +157,36 @@ window_t *window_frame_t::getFirstOverlapingPopUp(Rect16 intersection_rect) cons
 
 //unregister sub win
 void window_frame_t::UnregisterSubWin(window_t *win) {
-    window_t *prev = GetPrevSubWin(win);
+    //is not subwin
+    if ((!win) || (win->GetParent() != this)) {
+        return;
+    }
+
+    switch (win->GetType()) {
+    case win_type_t::normal:
+        unregisterNormal(*win);
+        break;
+    case win_type_t::dialog:
+        unregisterDialog(*win);
+        break;
+    case win_type_t::popup:
+        unregisterStrongDialog(*win);
+        break;
+    case win_type_t::strong_dialog:
+        unregisterPopUp(*win);
+        break;
+    }
+}
+
+void window_frame_t::unregisterNormal(window_t &win) {
+    // do nothing .. for now
+}
+
+void window_frame_t::unregisterDialog(window_t &win) {
+    window_t *prev = GetPrevSubWin(&win);
     if (prev) {
-        prev->SetNext(win->GetNext());
-        if (win == last)
+        prev->SetNext(win.GetNext());
+        if (last == &win)
             last = prev;
     }
 
@@ -163,7 +198,7 @@ void window_frame_t::UnregisterSubWin(window_t *win) {
         pWin = pWin->GetNext();
     }
 
-    if (last->IsDialog()) {
+    if (last->GetType() != win_type_t::normal) {
         // there is one or more dialogs, have to find them all
         // and hide windows behind them
 
@@ -187,16 +222,13 @@ void window_frame_t::UnregisterSubWin(window_t *win) {
     }
 }
 
-void window_frame_t::unregisterNormal(window_t &win) {
-}
-
-void window_frame_t::unregisterDialog(window_t &win) {
-}
-
 void window_frame_t::unregisterStrongDialog(window_t &win) {
+    unregisterDialog(win);
 }
 
 void window_frame_t::unregisterPopUp(window_t &win) {
+    unregisterDialog(win);
+    win.SetParent(nullptr);
 }
 
 window_t *window_frame_t::GetFirst() const {

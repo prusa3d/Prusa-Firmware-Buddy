@@ -5,29 +5,8 @@
 #include "guitypes.hpp"
 #include "GuiDefaults.hpp"
 #include "window.hpp"
+#include "window_filter.hpp"
 #include "display.h"
-
-//inherit, use ctor ti pass additional param
-class WinFilter {
-public:
-    virtual bool operator()(const window_t &) const = 0;
-};
-
-class WinFilterTrue : public WinFilter {
-public:
-    virtual bool operator()(const window_t &) const override { return true; };
-};
-
-class WinFilterContained : public WinFilter {
-    Rect16 rect;
-
-public:
-    constexpr WinFilterContained(Rect16 rc)
-        : rect(rc) {}
-    virtual bool operator()(const window_t &win) const override {
-        return rect.Contain(win.rect);
-    }
-};
 
 class window_frame_t : public AddSuperWindow<window_t> {
     window_t *first;
@@ -39,14 +18,14 @@ class window_frame_t : public AddSuperWindow<window_t> {
     // this methods does not check rect or window type of win
     // public methods RegisterSubWin/UnregisterSubWin does
     // reference is used so nullptr test can be skipped
-    void registerNormal(window_t &win);       // just register no need to check anything
-    void registerDialog(window_t &win);       // register on top of all windows except strong_dialogs
-    void registerStrongDialog(window_t &win); // just register no need to check anything
-    void registerPopUp(window_t &win);        // fails if there is an overlaping dialog
-    void unregisterNormal(window_t &win);     // does not do anything, unregistration is not needed for normal windows
-    void unregisterDialog(window_t &win);
-    void unregisterStrongDialog(window_t &win);
-    void unregisterPopUp(window_t &win);
+    void registerNormal(window_t &win);         // just register no need to check anything
+    void registerDialog(window_t &win);         // register on top of all windows except strong_dialogs
+    void registerStrongDialog(window_t &win);   // just register no need to check anything
+    void registerPopUp(window_t &win);          // fails if there is an overlaping dialog
+    void unregisterNormal(window_t &win);       // does not do anything, unregistration is not needed for normal windows
+    void unregisterDialog(window_t &win);       // normal unregistration
+    void unregisterStrongDialog(window_t &win); // normal unregistration, todo what if there is more than one strong dialog?
+    void unregisterPopUp(window_t &win);        // just notify popup about unregistration, it wil unregister itself
 
     window_t *getFirstOverlapingDialog(Rect16 intersection_rect) const;
     window_t *getFirstOverlapingPopUp(Rect16 intersection_rect) const;
@@ -58,7 +37,7 @@ public:
     window_t *GetLast() const;
 
     window_frame_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_serial_t serial = is_closed_on_serial_t::yes);
-
+    virtual ~window_frame_t() override;
     window_t *GetNextSubWin(window_t *win) const;
     window_t *GetPrevSubWin(window_t *win) const;
     window_t *GetNextEnabledSubWin(window_t *win) const;
