@@ -34,7 +34,7 @@ class MI_SHEET_SELECT : public WI_LABEL_t {
 
 public:
     MI_SHEET_SELECT()
-        : WI_LABEL_t(label, 0, false, false) {};
+        : WI_LABEL_t(_(label), 0, false, false) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -47,7 +47,7 @@ class MI_SHEET_CALIBRATE : public WI_LABEL_t {
 
 public:
     MI_SHEET_CALIBRATE()
-        : WI_LABEL_t(label, 0, true, false) {};
+        : WI_LABEL_t(_(label), 0, true, false) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -60,7 +60,7 @@ class MI_SHEET_RENAME : public WI_LABEL_t {
 
 public:
     MI_SHEET_RENAME()
-        : WI_LABEL_t(label, 0, true, false) {};
+        : WI_LABEL_t(_(label), 0, true, false) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -73,7 +73,7 @@ class MI_SHEET_RESET : public WI_LABEL_t {
 
 public:
     MI_SHEET_RESET()
-        : WI_LABEL_t(label, 0, false, false) {};
+        : WI_LABEL_t(_(label), 0, false, false) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -82,7 +82,10 @@ protected:
 };
 
 using SheetProfileMenuScreen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SHEET_SELECT, MI_SHEET_CALIBRATE,
-    MI_SHEET_RENAME, MI_SHEET_RESET>;
+#if _DEBUG //todo remove #if _DEBUG after rename is finished
+    MI_SHEET_RENAME,
+#endif // _DEBUG
+    MI_SHEET_RESET>;
 
 template <typename Index>
 class SheetProfileMenuScreenT : public SheetProfileMenuScreen {
@@ -128,10 +131,12 @@ protected:
             break;
         case profile_action::Rename:
             _dbg("MI_SHEET_RENAME");
+#if _DEBUG //todo remove #if _DEBUG after rename is finished
             Screens::Access()->Open([]() {
                 screen_sheet_rename_t::index(Index::value);
                 return ScreenFactory::Screen<screen_sheet_rename_t>();
             });
+#endif // _DEBUG
             break;
         default:
             _dbg("Click: %d\n", static_cast<uint32_t>(action));
@@ -142,12 +147,13 @@ protected:
 
 template <typename Index>
 struct profile_record_t : public WI_LABEL_t {
+    char name[MAX_SHEET_NAME_LENGTH];
     profile_record_t()
-        : WI_LABEL_t(nullptr, 0, true, false) {
-        char name[MAX_SHEET_NAME_LENGTH];
+        : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), 0, true, false) {
         memset(name, 0, MAX_SHEET_NAME_LENGTH);
         sheet_name(Index::value, name, MAX_SHEET_NAME_LENGTH);
-        SetLabel(name);
+        // string_view_utf8::MakeRAM is safe. "name" is member var, exists until profile_record_t is destroyed
+        SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
     };
 
 protected:

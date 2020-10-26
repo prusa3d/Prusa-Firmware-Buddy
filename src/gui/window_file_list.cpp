@@ -20,16 +20,6 @@ bool window_file_list_t::IsPathRoot(const char *path) {
     return (path[0] == 0 || strcmp(path, "/") == 0);
 }
 
-/// First part of common setup/init of text rolling
-/// This is called in window_file_list_t::inc and window_file_list_t::dec when the selected item changes
-/// - that sometimes means the cursor stays on top or bottom and the whole window content moves
-void window_file_list_t::init_text_roll() {
-    roll.setup = TXTROLL_SETUP_INIT;
-    roll.phase = ROLL_SETUP;
-    gui_timer_restart_txtroll(this);
-    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
-}
-
 void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
     ldv->ChangeDirectory(sfn_path,
         (sort == WF_SORT_BY_NAME) ? LDV9::SortPolicy::BY_NAME : LDV9::SortPolicy::BY_CRMOD_DATETIME,
@@ -58,7 +48,7 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
 }
 
 void window_file_list_t::SetItemIndex(int index) {
-    if (count > index) {
+    if (count > index && this->index != index) {
         this->index = index;
         Invalidate();
     }
@@ -90,10 +80,6 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
     // Will be removed when this file gets converted to c++ (and cleaned)
     SetAlignment(ALIGN_LEFT_CENTER);
     Enable();
-    roll.count = roll.px_cd = roll.progress = 0;
-    roll.phase = ROLL_SETUP;
-    roll.setup = TXTROLL_SETUP_INIT;
-    gui_timer_create_txtroll(this, TEXT_ROLL_INITIAL_DELAY_MS);
     strlcpy(sfn_path, "/", FILE_PATH_MAX_LEN);
 }
 
@@ -154,29 +140,20 @@ void window_file_list_t::unconditionalDraw() {
             }
 
             if ((IsFocused()) && index == i) {
-                if (roll.phase == ROLL_SETUP) { // initiation of rolling is done in functions
+                if (roll.NeedInit()) {
+                    // there is single roll for all items, so it is reinitialized often
+                    // initiation of rolling is done in functions
                     // which move cursor up or down. They can handle the situation, when the cursor
                     // stays at one place (top or bottom), but the whole window list moves up/down.
-                    // Calling roll_init must be done here because of the rect.
+                    // Calling roll.Init must be done here because of the rect.
                     // That also solves the reinit of rolling the same file name, when the cursor doesn't move.
-                    roll_init(rc, itemText, font, padding, GetAlignment(), &roll);
+                    roll.Init(rc, itemText, font, padding, GetAlignment());
                 }
 
-                render_roll_text_align(rc,
-                    itemText,
-                    font,
-                    padding,
-                    GetAlignment(),
-                    color_back,
-                    color_text,
-                    &roll);
+                roll.RenderTextAlign(rc, itemText, font, color_back, color_text, padding, GetAlignment());
 
             } else {
-                render_text_align(rc,
-                    itemText,
-                    font,
-                    color_back, color_text,
-                    padding, GetAlignment());
+                render_text_align(rc, itemText, font, color_back, color_text, padding, GetAlignment());
             }
 
             /*	too slow
@@ -210,8 +187,9 @@ void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     case GUI_event_t::CAPT_1:
         //TODO: change flag to checked
         break;
-    case GUI_event_t::TIMER:
-        roll_text_phasing(this, font, &roll);
+    case GUI_event_t::TEXT_ROLL:
+        if (roll.Tick() == invalidate_t::yes)
+            Invalidate();
         break;
     default:
         break;
@@ -237,7 +215,7 @@ void window_file_list_t::inc(int dif) {
 
     if (repaint) {
         // here we know exactly, that the selected item changed -> prepare text rolling
-        init_text_roll();
+        roll.Deinit();
         Invalidate();
         Sound_Play(eSOUND_TYPE::EncoderMove);
     }
@@ -257,7 +235,7 @@ void window_file_list_t::dec(int dif) {
     }
 
     if (repaint) {
-        init_text_roll();
+        roll.Deinit();
         Invalidate();
         Sound_Play(eSOUND_TYPE::EncoderMove);
     }

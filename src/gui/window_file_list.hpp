@@ -14,6 +14,8 @@
 #include "display_helper.h"
 #include "../common/marlin_vars.h" // for FILE_PATH_MAX_LEN
 #include "lazyfilelist.h"
+#include "text_roll.hpp"
+
 using LDV9 = LazyDirView<9>;
 
 // This enum value is stored to eeprom as file sort settings
@@ -58,5 +60,4 @@ private:
     virtual void unconditionalDraw() override;
     void inc(int dif);
     void dec(int dif);
-    void init_text_roll();
 };

@@ -661,7 +661,7 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
         case MARLIN_PIN(Z_DIR):
             sim_motion_set_dir(2, ulVal ? 1 : 0);
             return;
-#else  //SIM_MOTION
+#else //SIM_MOTION
         case MARLIN_PIN(X_DIR):
         case MARLIN_PIN(X_STEP):
         case MARLIN_PIN(Z_ENA):
@@ -672,7 +672,9 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
         case MARLIN_PIN(E0_ENA):
         case MARLIN_PIN(Y_DIR):
         case MARLIN_PIN(Y_STEP):
+    #if (MARLIN_PIN(X_ENA) != MARLIN_PIN(Y_ENA))
         case MARLIN_PIN(Y_ENA):
+    #endif
         case MARLIN_PIN(Z_DIR):
             gpio_set(ulPin, ulVal ? 1 : 0);
             return;

@@ -10,12 +10,15 @@
 //todo remove this after jogwheel refactoring
 extern void gui_loop(void);
 
+enum class SetCapture_t { no,
+    yes };
+
 //interface for dialog
 class IDialog : public AddSuperWindow<window_frame_t> {
     window_t *prev_capture;
 
 public:
-    IDialog(Rect16 rc = GuiDefaults::RectScreenBody);
+    IDialog(Rect16 rc = GuiDefaults::RectScreenBody, SetCapture_t setCapture = SetCapture_t::yes);
     virtual ~IDialog();
 
     static constexpr Rect16 get_radio_button_rect(Rect16 rc_frame) {

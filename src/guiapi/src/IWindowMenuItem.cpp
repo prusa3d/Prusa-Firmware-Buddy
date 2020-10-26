@@ -2,25 +2,21 @@
 #include "display_helper.h" //render_icon_align
 #include "i18n.h"
 
-IWindowMenuItem::IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled, bool hidden)
-    : hidden(hidden)
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, bool enabled, bool hidden)
+    : label(label)
+    , hidden(hidden)
     , enabled(enabled)
     , focused(false)
     , selected(false)
     , id_icon(id_icon) {
-    SetLabel(label);
 }
 
-void IWindowMenuItem::SetLabel(const char *text) {
-    strncpy(label.data(), text, label.size());
+void IWindowMenuItem::SetLabel(string_view_utf8 text) {
+    label = text;
 }
 
-const char *IWindowMenuItem::GetLabel() const {
-    return label.data();
-}
-
-string_view_utf8 IWindowMenuItem::GetLocalizedLabel() const {
-    return _(GetLabel());
+string_view_utf8 IWindowMenuItem::GetLabel() const {
+    return label;
 }
 
 void IWindowMenuItem::Print(IWindowMenu &window_menu, Rect16 rect) const {
@@ -35,7 +31,6 @@ void IWindowMenuItem::Print(IWindowMenu &window_menu, Rect16 rect) const {
         swap |= ROPFN_SWAPBW;
     }
 
-    //printIcon(window_menu, rect, 0, color_back);
     printIcon(window_menu, rect, swap, window_menu.color_back);
     printText(window_menu, rect, color_text, color_back, swap);
 }
@@ -52,11 +47,7 @@ void IWindowMenuItem::printText(IWindowMenu &window_menu, Rect16 rect, color_t c
 }
 
 void IWindowMenuItem::printLabel_into_rect(Rect16 rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const {
-    if (focused && roll.setup == TXTROLL_SETUP_DONE) { //draw normally on TXTROLL_SETUP_INIT or TXTROLL_SETUP_IDLE
-        render_roll_text_align(rolling_rect, GetLocalizedLabel(), font, padding, alignment, color_back, color_text, &roll);
-    } else {
-        render_text_align(rolling_rect, GetLocalizedLabel(), font, color_back, color_text, padding, alignment);
-    }
+    roll.RenderTextAlign(rolling_rect, GetLabel(), font, color_back, color_text, padding, alignment);
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
@@ -66,16 +57,23 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
     }
 }
 
-void IWindowMenuItem::RollInit(IWindowMenu &window_menu, Rect16 rect) {
-    roll_init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.GetAlignment(), &roll);
+void IWindowMenuItem::InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) {
+    if (roll.NeedInit())
+        roll.Init(getRollingRect(window_menu, rect), GetLabel(), window_menu.font, window_menu.padding, window_menu.GetAlignment());
 }
-void IWindowMenuItem::Roll(IWindowMenu &window_menu) {
-    roll_text_phasing(&window_menu, window_menu.font, &roll); //warning it is accessing gui timer
+invalidate_t IWindowMenuItem::Roll() {
+    return roll.Tick();
 }
 
 void IWindowMenuItem::SetFocus() {
     focused = true;
-    roll.setup = TXTROLL_SETUP_INIT;
+    //cannot call InitRollIfNeeded(window_menu, rect), rect not known (cannot add it into param)
+    roll.Deinit();
+}
+
+void IWindowMenuItem::ClrFocus() {
+    focused = false;
+    roll.Stop();
 }
 
 Rect16 IWindowMenuItem::getIconRect(IWindowMenu &window_menu, Rect16 rect) {

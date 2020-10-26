@@ -30,6 +30,10 @@ static const char *txt_purging            = N_("Purging");
 static const char *txt_is_color           = N_("Is color correct?");
 static const char *txt_nozzle_cold        = N_("Nozzle is too cold.");
 
+/// indicator for M600 or filament runout phases
+/// because this sound should be beeping only for those parts (M600 & runout)
+bool DialogLoadUnload::is_M600_phase = false;
+
 static DialogLoadUnload::States LoadUnloadFactory() {
     DialogLoadUnload::States ret = {
         DialogLoadUnload::State { txt_first,                ClientResponses::GetResponses(PhasesLoadUnload::_first),                ph_txt_none },
@@ -63,6 +67,13 @@ DialogLoadUnload::DialogLoadUnload(string_view_utf8 name)
 
 // Phase callbacks to play a sound in specific moment at the start/end of
 // specified phase
-void DialogLoadUnload::phaseAlertSound() { Sound_Play(eSOUND_TYPE::SingleBeep); }
-void DialogLoadUnload::phaseWaitSound() { Sound_Play(eSOUND_TYPE::WaitingBeep); }
+void DialogLoadUnload::phaseAlertSound() {
+    Sound_Stop();
+    Sound_Play(eSOUND_TYPE::SingleBeep);
+}
+void DialogLoadUnload::phaseWaitSound() {
+    if (DialogLoadUnload::is_M600_phase) { /// this sound should be beeping only for M600 || runout
+        Sound_Play(eSOUND_TYPE::WaitingBeep);
+    }
+}
 void DialogLoadUnload::phaseStopSound() { Sound_Stop(); }

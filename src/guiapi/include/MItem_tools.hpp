@@ -36,7 +36,7 @@ protected:
 };
 
 class MI_MESH_BED : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Mesh Bed Level.");
+    static constexpr const char *const label = N_("Mesh Bed Leveling");
 
 public:
     MI_MESH_BED();
@@ -56,7 +56,7 @@ protected:
 };
 
 class MI_CALIB_FIRST : public WI_LABEL_t {
-    static constexpr const char *const label = N_("First Layer Cal.");
+    static constexpr const char *const label = N_("First Layer Calibration");
 
 public:
     MI_CALIB_FIRST();
@@ -330,7 +330,7 @@ public:
 
 class I_MI_Filament : public WI_LABEL_t {
 public:
-    I_MI_Filament(const char *long_name)
+    I_MI_Filament(string_view_utf8 long_name)
         : WI_LABEL_t(long_name, 0, true, false) {}
 
 protected:
@@ -341,7 +341,7 @@ template <FILAMENT_t T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(filaments[T].long_name) {}
+        : I_MI_Filament(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[T].long_name)) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
