@@ -564,6 +564,7 @@ if(GUI)
             src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.cpp
+            src/gui/screen_reset_error.cpp
             src/gui/screen_hardfault.cpp
             src/gui/screen_temperror.cpp
             src/gui/screen_menu_move.cpp
@@ -600,7 +601,6 @@ if(GUI)
             src/gui/test/screen_menu_test_temperature.cpp
             src/gui/test/screen_mesh_bed_lv.cpp
             src/gui/screen_menu_eeprom.cpp
-            src/gui/screen_menu_errors.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp
