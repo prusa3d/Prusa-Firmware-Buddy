@@ -30,6 +30,8 @@ public:
     std::array<char, VERSION_INFO_STR_MAXLEN> version_info_str;
     constexpr static const char *label = N_("VERSION INFO");
     ScreenMenuVersionInfo();
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 ScreenMenuVersionInfo::ScreenMenuVersionInfo()
@@ -91,8 +93,18 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of ths
     help.SetText(string_view_utf8::MakeRAM((const uint8_t *)version_info_str.data()));
+    help.Invalidate();
+		gui_invalidate();
 }
 
 ScreenFactory::UniquePtr GetScreenMenuVersionInfo() {
     return ScreenFactory::Screen<ScreenMenuVersionInfo>();
 }
+
+void ScreenMenuVersionInfo::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    help.Invalidate();
+    gui_invalidate();
+
+    SuperWindowEvent(sender, event, param);
+}
+
