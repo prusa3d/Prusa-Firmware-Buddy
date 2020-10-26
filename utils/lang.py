@@ -238,8 +238,8 @@ def cmd_generate_nonascii_chars(args):
                          for entry in translation for ch in entry.msgstr
                          if ord(ch) > 127)
     nonascii_chars = sorted(nonascii_chars)
-    open(args.output_dir / 'non-ascii-chars.txt',
-         'w').write(' '.join(nonascii_chars))
+    open(args.output_dir / 'non-ascii-chars.txt', 'w',
+         encoding='utf-8').write(' '.join(nonascii_chars))
     open(args.output_dir / 'non-ascii-chars.raw',
          'bw').write(''.join(nonascii_chars).encode('utf-32-le'))
 
