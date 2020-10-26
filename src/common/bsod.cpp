@@ -237,56 +237,54 @@ void draw_error_screen(const uint16_t error_code_short) {
     const char *text_body;
 
     uint32_t i = 0;
-    while (i < sizeof(error_list) && error_code_short != error_list[i].err_num) {
+    uint32_t count = sizeof(error_list) / sizeof(err_t);
+    while (i < count && error_code_short != error_list[i].err_num) {
         ++i;
     }
-    if (i == sizeof(error_list)) {
+    if (i == count) {
         /// no text found => leave blank screen
-        /// wait for restart - endless loop
-        while (1)
-            wdt_iwdg_refresh();
     } else {
         text_title = error_list[i].err_title;
         text_body = error_list[i].err_text;
+
+        /// draw header & main text
+        display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+        display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
+        display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
+
+        /// draw "Scan me" text
+        // r=1 c=34
+        static const char *scan_me_text = N_("Scan me for details");
+        render_text_align(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+
+        /// draw "Scan me" arrow
+        /// FIXME arrow overlaps with QR code (bad PNG)
+        render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me_64px, COLOR_RED_ALERT, 0);
+
+        /// draw QR
+        char qr_text[MAX_LEN_4QR + 1];
+        error_url_long(qr_text, sizeof(qr_text), error_code);
+        constexpr uint8_t qr_size_px = 140;
+        const Rect16 qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
+        window_qr_t win(nullptr, qr_rect);
+        win.rect = qr_rect;
+        window_qr_t *window = &win;
+        win.text = qr_text;
+        win.bg_color = COLOR_WHITE;
+
+        /// use PNG RAM for QR code image
+        uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
+        uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
+
+        if (generate_qr(qr_text, qrcode, qr_buff)) {
+            draw_qr(qrcode, window);
+        }
+
+        /// draw short URL
+        error_url_short(qr_text, sizeof(qr_text), error_code);
+        // this MakeRAM is safe - qr_text is a local buffer on stack
+        render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
     }
-
-    /// draw header & main text
-    display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
-    display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
-    display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
-
-    /// draw "Scan me" text
-    // r=1 c=34
-    static const char *scan_me_text = N_("Scan me for details");
-    render_text_align(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
-
-    /// draw "Scan me" arrow
-    /// FIXME arrow overlaps with QR code (bad PNG)
-    render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me_64px, COLOR_RED_ALERT, 0);
-
-    /// draw QR
-    char qr_text[MAX_LEN_4QR + 1];
-    error_url_long(qr_text, sizeof(qr_text), error_code);
-    constexpr uint8_t qr_size_px = 140;
-    const Rect16 qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
-    window_qr_t win(nullptr, qr_rect);
-    win.rect = qr_rect;
-    window_qr_t *window = &win;
-    win.text = qr_text;
-    win.bg_color = COLOR_WHITE;
-
-    /// use PNG RAM for QR code image
-    uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
-    uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
-
-    if (generate_qr(qr_text, qrcode, qr_buff)) {
-        draw_qr(qrcode, window);
-    }
-
-    /// draw short URL
-    error_url_short(qr_text, sizeof(qr_text), error_code);
-    // this MakeRAM is safe - qr_text is a local buffer on stack
-    render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
 }
 
 /// \returns nth character of the string
@@ -306,42 +304,43 @@ char nth_char(const char str[], uint16_t nth) {
 //! @n MSG_T_MINTEMP
 //! @n "Emergency stop (M112)"
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-    uint16_t error_code_short = 0;
+    uint16_t *perror_code_short = (uint16_t *)(DUMP_INFO_ADDR + 1);
+    //*((unsigned short *)(DUMP_INFO_ADDR + 1)) = code;
 
     /// Decision tree to define error code
     if (module == nullptr) {
         /// TODO share these strings (saves ~100 B of binary size)
         if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
-            error_code_short = 0;
+            *perror_code_short = 0;
         } else if (strcmp("Emergency stop (M112)", error) == 0) {
-            error_code_short = 510;
+            *perror_code_short = 510;
         } else if (strcmp("Inactive time kill", error) == 0) {
-            error_code_short = 0;
+            *perror_code_short = 0;
         }
     } else {
         using namespace Language_en;
 
         if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
-            error_code_short = 201;
+            *perror_code_short = 201;
         } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
-            error_code_short = 202;
+            *perror_code_short = 202;
         } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
-            error_code_short = 203;
+            *perror_code_short = 203;
         } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
-            error_code_short = 204;
+            *perror_code_short = 204;
 
         } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
-            error_code_short = 205;
+            *perror_code_short = 205;
         } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
-            error_code_short = 206;
+            *perror_code_short = 206;
         } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
-            error_code_short = 207;
+            *perror_code_short = 207;
         } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
-            error_code_short = 208;
+            *perror_code_short = 208;
         }
     }
 
-    DUMP_TEMPERROR_TO_CCRAM(error_code_short);
+    DUMP_TEMPERROR_TO_CCRAM();
     dump_to_xflash();
     sys_reset();
 }

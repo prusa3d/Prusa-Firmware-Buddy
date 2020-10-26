@@ -130,12 +130,11 @@ static const uint32_t DUMP_INFO_SIZE = 0x00000010;
     }
 
 // perform thermal error dump
-#define DUMP_TEMPERROR_TO_CCRAM(code)                     \
-    {                                                     \
-        DUMP_REGS_GEN_FAULT_BEGIN();                      \
-        *((unsigned short *)(DUMP_INFO_ADDR + 1)) = code; \
-        DUMP_REGS_GEN_EXC_TO_CCRAM();                     \
-        DUMP_INFO_TO_CCRAM(DUMP_TEMPERROR);               \
+#define DUMP_TEMPERROR_TO_CCRAM()           \
+    {                                       \
+        DUMP_REGS_GEN_FAULT_BEGIN();        \
+        DUMP_REGS_GEN_EXC_TO_CCRAM();       \
+        DUMP_INFO_TO_CCRAM(DUMP_TEMPERROR); \
     }
 
 #pragma pack(push)
