@@ -1,30 +1,38 @@
+# First, create a target converting .po files to txt files easily parseable by tests
+add_custom_command(
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/keys.txt"
+  COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/lang.py" "dump-pofiles"
+          "${CMAKE_SOURCE_DIR}/src/lang/po" "${CMAKE_CURRENT_BINARY_DIR}"
+  COMMENT "Generating text files out of .po files."
+  VERBATIM
+  )
+add_custom_target(translations_pofiles_dump DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/keys.txt")
 
 # define the test executable
-add_executable(translator_tests
-    ${CMAKE_SOURCE_DIR}/src/lang/translator.cpp
-    ${CMAKE_SOURCE_DIR}/src/lang/translation_provider_CPUFLASH.cpp
-    ${CMAKE_SOURCE_DIR}/src/lang/unaccent.cpp
-    ${CMAKE_SOURCE_DIR}/tests/unit/test_main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/providerCPUFLASH.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/hash.cpp
-)
+add_executable(
+  translator_tests
+  ${CMAKE_SOURCE_DIR}/src/lang/translator.cpp
+  ${CMAKE_SOURCE_DIR}/src/lang/translation_provider_CPUFLASH.cpp
+  ${CMAKE_SOURCE_DIR}/src/lang/unaccent.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/test_main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/providerCPUFLASH.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/hash.cpp
+  )
+
+add_dependencies(translator_tests translations_pofiles_dump)
+
+# target_link_libraries(translator_tests Buddy::Lang)
+
+target_link_libraries(translator_tests Buddy::Lang::Translations)
 
 # define required search paths
-target_include_directories(translator_tests PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/lang
-)
+target_include_directories(
+  translator_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/lang
+                          ${CMAKE_CURRENT_BINARY_DIR}
+  )
 
 # define custom macros
 target_compile_definitions(translator_tests PUBLIC TRANSLATIONS_UNITTEST)
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cs.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/de.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/es.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fr.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pl.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/it.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/keys.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 # tell build system about the test case
 add_catch_test(translator_tests)

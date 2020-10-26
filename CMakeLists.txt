@@ -323,6 +323,8 @@ add_subdirectory(lib)
 
 add_executable(firmware)
 
+add_subdirectory(src/lang)
+
 set_target_properties(firmware PROPERTIES CXX_STANDARD 17)
 
 if(WUI)
@@ -423,6 +425,7 @@ target_link_libraries(
           jsmn::jsmn
           QR
           CRC
+          Buddy::Lang
   )
 
 target_sources(
@@ -518,10 +521,6 @@ target_sources(
           src/gui/guimain.cpp
           src/common/filament.cpp
           src/common/fanctl.cpp
-          src/lang/translator.cpp
-          src/lang/translation_provider_CPUFLASH.cpp
-          src/lang/unaccent.cpp
-          src/lang/format_print_will_end.cpp
   )
 
 if(GUI)
