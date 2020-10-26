@@ -50,7 +50,7 @@ private:
     void saveMode();
     void saveVolume();
     void _sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f);
-    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], const int16_t delays[], unsigned size);
+    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int8_t repeats[], const int16_t delays[], unsigned size);
 
     void nextRepeat();
 
@@ -80,10 +80,10 @@ private:
     static const eSOUND_TYPE assistTypes[];
 
     /// signals repeats - how many times will sound signals repeat (-1 is infinite)
-    static const int onceRepeats[];
-    static const int loudRepeats[];
-    static const int silentRepeats[];
-    static const int assistRepeats[];
+    static const int8_t onceRepeats[];
+    static const int8_t loudRepeats[];
+    static const int8_t silentRepeats[];
+    static const int8_t assistRepeats[];
 
     /// delays for repeat sounds
     static const int16_t onceDelays[];

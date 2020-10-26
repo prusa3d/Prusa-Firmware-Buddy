@@ -35,10 +35,10 @@ const eSOUND_TYPE Sound::assistTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::Butt
     eSOUND_TYPE::WaitingBeep };
 
 /// signals repeats - how many times will sound signals repeat (-1 is infinite)
-const int Sound::onceRepeats[] = { 1, 1, 1, -1, 1 };
-const int Sound::loudRepeats[] = { 1, 1, -1, 3, -1, 1, -1 };
-const int Sound::silentRepeats[] = { 1, 1, -1 };
-const int Sound::assistRepeats[] = { 1, 1, -1, 3, 1, 1, -1, 1, -1 };
+const int8_t Sound::onceRepeats[] = { 1, 1, 1, -1, 1 };
+const int8_t Sound::loudRepeats[] = { 1, 1, -1, 3, -1, 1, -1 };
+const int8_t Sound::silentRepeats[] = { 1, 1, -1 };
+const int8_t Sound::assistRepeats[] = { 1, 1, -1, 3, 1, 1, -1, 1, -1 };
 
 /// delays for repeat sounds (ms)
 const int16_t Sound::onceDelays[] = { 1, 1, 1, 250, 1 };
@@ -131,7 +131,7 @@ void Sound::stop() {
 }
 
 void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
-    const int repeats[], const int16_t delays[], unsigned size) {
+    const int8_t repeats[], const int16_t delays[], unsigned size) {
     for (unsigned i = 0; i < size; i++) {
         eSOUND_TYPE type = types[i];
         if (type == sound) {
