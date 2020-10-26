@@ -21,10 +21,8 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_i
 
     /// Split window to menu and helper
     const int help_h = get_help_h(helper_lines, font_id);
-    const Rect16 help_rect(menu_item_rect.Left(), menu_item_rect.Top() + menu_item_rect.Height() - help_h, menu_item_rect.Width(), help_h);
-    help.rect = help_rect;
-    menu_item_rect -= Rect16::Height_t(help_h);
-    menu.rect = menu_item_rect;
+    help.rect = Rect16(menu_item_rect.Left(), menu_item_rect.Top() + menu_item_rect.Height() - help_h, menu_item_rect.Width(), help_h);
+    menu.rect = menu_item_rect - Rect16::Height_t(help_h);
 
     //pointer to container shall be provided by child
 
