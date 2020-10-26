@@ -59,6 +59,7 @@ struct screen_print_preview_data_t : public AddSuperWindow<window_frame_t> {
     GCodeInfoWithDescription gcode; //cannot be first
 
     bool redraw_thumbnail;
+    bool suppress_draw;
 
 public:
     screen_print_preview_data_t();
