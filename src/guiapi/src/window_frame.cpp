@@ -29,7 +29,7 @@ void window_frame_t::SetOnSerialClose() { flag_serial_close = is_closed_on_seria
 void window_frame_t::ClrOnSerialClose() { flag_serial_close = is_closed_on_serial_t::no; }
 
 window_t *window_frame_t::findFirst(window_t *begin, window_t *end, const WinFilter &filter) const {
-    while (begin && (begin->GetParent() != this) && (begin != end)) {
+    while (begin && (begin->GetParent() == this) && (begin != end)) {
         if (filter(*begin)) {
             return begin;
         }
@@ -42,11 +42,14 @@ window_t *window_frame_t::findLast(window_t *begin, window_t *end, const WinFilt
     //no need to check parrent or null, findFirst does that
     window_t *ret = end;
     window_t *temp = begin;
-    do {
+    while (true) {
         temp = findFirst(temp, end, filter);
-        if (temp != end)
+        if (temp != end) {
             ret = temp;
-    } while (temp != end);
+        } else {
+            break;
+        }
+    };
     return ret;
 }
 
@@ -70,10 +73,10 @@ void window_frame_t::RegisterSubWin(window_t *win) {
         registerDialog(*win);
         break;
     case win_type_t::popup:
-        registerStrongDialog(*win);
+        registerPopUp(*win);
         break;
     case win_type_t::strong_dialog:
-        registerPopUp(*win);
+        registerStrongDialog(*win);
         break;
     }
 }
@@ -95,8 +98,9 @@ void window_frame_t::registerNormal(window_t &win) {
     }
 #endif //_DEBUG
 
-    // situations with more than one popup will be very rare
-    // so simpler (but slower) code is better
+    // cannot be in RegisterSubWin directly
+    // if registering popup - it needs to know if can be created first
+    // so it is here to be in 1 place
     WinFilterIntersectingPopUp filter(win.rect);
     window_t *popup;
     while ((popup = findFirst(first, nullptr, filter)) != nullptr) {
@@ -109,7 +113,9 @@ void window_frame_t::registerNormal(window_t &win) {
 
 void window_frame_t::registerDialog(window_t &win) {
 
-#warning todo find strong dialogs ...
+    // todo missing implementation
+    // find strong dialogs, if exists
+    // register under it
     window_t *pWin = first;
     while (pWin) {
         if (win.rect.HasIntersection(pWin->rect)) {
@@ -128,10 +134,9 @@ void window_frame_t::registerStrongDialog(window_t &win) {
 void window_frame_t::registerPopUp(window_t &win) {
 
     WinFilterIntersectingDialog filter(win.rect);
-    window_t *dialog;
     // there can be no overlaping dialog
-    if ((dialog = findFirst(first, nullptr, filter)) == nullptr) {
-        registerNormal(win);
+    if (findFirst(first, nullptr, filter) == nullptr) {
+        registerDialog(win); // register like dialog
     }
 }
 
@@ -150,10 +155,10 @@ void window_frame_t::UnregisterSubWin(window_t *win) {
         unregisterDialog(*win);
         break;
     case win_type_t::popup:
-        unregisterStrongDialog(*win);
+        unregisterPopUp(*win);
         break;
     case win_type_t::strong_dialog:
-        unregisterPopUp(*win);
+        unregisterStrongDialog(*win);
         break;
     }
 }

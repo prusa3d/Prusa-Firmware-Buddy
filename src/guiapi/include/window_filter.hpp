@@ -45,6 +45,12 @@ public:
     };
 };
 
+//filter dialog windows
+class WinFilterDialog : public WinFilter {
+public:
+    virtual bool operator()(const window_t &win) const override { return win.IsDialog(); };
+};
+
 class WinFilterIntersectingDialog : public WinFilter {
     Rect16 rect;
 
