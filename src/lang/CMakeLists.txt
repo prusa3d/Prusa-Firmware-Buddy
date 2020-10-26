@@ -6,6 +6,7 @@ add_library(translations INTERFACE)
 target_include_directories(translations INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/hash_table_buckets.ipp"
+         "${CMAKE_CURRENT_BINARY_DIR}/hash_table_buckets_count.ipp"
   COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/lang.py" "generate-hash-tables"
           "${CMAKE_CURRENT_SOURCE_DIR}/po" "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating C++ files out of .po files."
