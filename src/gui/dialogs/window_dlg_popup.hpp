@@ -7,19 +7,17 @@
 
 #pragma once
 
-#include "IDialog.hpp"
+#include "window_frame.hpp"
 #include "window_text.hpp"
 
 //Singleton dialog for messages
-class window_dlg_popup_t : public AddSuperWindow<IDialog> {
+class window_dlg_popup_t : public AddSuperWindow<window_frame_t> {
     window_text_t text;
     uint32_t open_time;
     uint32_t ttl; //time to live
 
-    window_dlg_popup_t(Rect16 rect, string_view_utf8 txt, SetCapture_t setCapture);
+    window_dlg_popup_t(Rect16 rect, string_view_utf8 txt);
     window_dlg_popup_t(const window_dlg_popup_t &) = delete;
-
-    void UnregisterFromParent();
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

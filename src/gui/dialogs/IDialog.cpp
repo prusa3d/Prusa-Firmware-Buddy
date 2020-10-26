@@ -2,13 +2,11 @@
 #include <stdint.h>
 #include "ScreenHandler.hpp"
 
-IDialog::IDialog(Rect16 rc, SetCapture_t setCapture)
-    : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rc, is_dialog_t::yes) //use dialog ctor
-    , prev_capture(setCapture == SetCapture_t::yes ? GetCapturedWindow() : nullptr) {
+IDialog::IDialog(Rect16 rc)
+    : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rc, win_type_t::dialog) //use dialog ctor
+    , prev_capture(GetCapturedWindow()) {
     Enable();
-    if (setCapture == SetCapture_t::yes) {
-        SetCapture();
-    }
+    SetCapture();
 }
 
 IDialog::~IDialog() {
@@ -27,21 +25,21 @@ void IDialog::releaseCapture() {
     window_frame_t *const ActiveScreen = Screens::Access()->Get();
     //parent pointer must exist and must point to screen
     if (GetParent() && ActiveScreen == GetParent()) {
-        // dialog is registered as last in active screen
+
+        WinFilterDialogCapture filter(this);
+        window_t *dialog_holding_this = findFirst(reinterpret_cast<window_frame_t *>(GetParent())->GetFirst(), nullptr, filter);
+
         // can be unregistered normally
-        if (ActiveScreen->GetLast() == this) {
+        if (dialog_holding_this == nullptr) {
             if (prev_capture) {
                 prev_capture->SetCapture();
             }
         }
-        // dialog is not registered as last in active screen
+        // if an dialog has stored capture to this one, locally stored capture must be passed to it
         // it must pass its saved capture to next dialog, even if it is null_ptr
         else {
-            window_t *const NextSubwin = ActiveScreen->GetNextSubWin(this);
-            if (NextSubwin && NextSubwin->IsDialog()) { //this condition should be always true
-                IDialog *NextDialog = reinterpret_cast<IDialog *>(NextSubwin);
-                NextDialog->ModifyStoredCapture(prev_capture);
-            }
+            IDialog *NextDialog = reinterpret_cast<IDialog *>(dialog_holding_this);
+            NextDialog->ModifyStoredCapture(prev_capture);
         }
     }
     clearCapture();
