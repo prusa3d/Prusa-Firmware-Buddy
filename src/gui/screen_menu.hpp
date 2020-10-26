@@ -28,8 +28,8 @@ class IScreenMenu : public AddSuperWindow<window_frame_t> {
 protected:
     constexpr static const char *no_labelS = "MISSING";
     static string_view_utf8 no_label;
-    window_menu_t menu;
     window_header_t header;
+    window_menu_t menu;
     window_text_t help;
     status_footer_t footer;
 
