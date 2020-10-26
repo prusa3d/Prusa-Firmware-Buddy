@@ -26,20 +26,19 @@ void IDialog::releaseCapture() {
     //parent pointer must exist and must point to screen
     if (GetParent() && ActiveScreen == GetParent()) {
 
-        WinFilterDialog filter;
-        window_t *last_dialog = findLast(this->GetNext(), nullptr, filter);
+        WinFilterDialogCapture filter(this);
+        window_t *dialog_holding_this = findFirst(reinterpret_cast<window_frame_t *>(GetParent())->GetFirst(), nullptr, filter);
 
-        // dialog is registered as last dialog in active screen
         // can be unregistered normally
-        if (last_dialog == nullptr) {
+        if (dialog_holding_this == nullptr) {
             if (prev_capture) {
                 prev_capture->SetCapture();
             }
         }
-        // dialog is not registered as last in active screen
+        // if an dialog has stored capture to this one, locally stored capture must be passed to it
         // it must pass its saved capture to next dialog, even if it is null_ptr
         else {
-            IDialog *NextDialog = reinterpret_cast<IDialog *>(last_dialog);
+            IDialog *NextDialog = reinterpret_cast<IDialog *>(dialog_holding_this);
             NextDialog->ModifyStoredCapture(prev_capture);
         }
     }

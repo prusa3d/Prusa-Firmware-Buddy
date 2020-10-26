@@ -159,8 +159,8 @@ window_t::~window_t() {
     if (GetCapturedWindow() == this)
         capture_ptr = nullptr;
 
-    //no need to unregister non dialogs
-    if (GetParent() && (GetType() != win_type_t::normal))
+    //win_type_t::normal must be unregistered so ~window_frame_t can has functional linked list
+    if (GetParent())
         GetParent()->UnregisterSubWin(this);
 }
 

@@ -22,8 +22,8 @@ class window_frame_t : public AddSuperWindow<window_t> {
     void registerDialog(window_t &win);         // register on top of all windows except strong_dialogs
     void registerStrongDialog(window_t &win);   // just register no need to check anything
     void registerPopUp(window_t &win);          // fails if there is an overlaping dialog
-    void unregisterNormal(window_t &win);       // does not do anything, unregistration is not needed for normal windows
-    void unregisterDialog(window_t &win);       // normal unregistration
+    void unregisterNormal(window_t &win);       // normal unregistration
+    void unregisterDialog(window_t &win);       // normal unregistration, manage hidden behind dialog flags
     void unregisterStrongDialog(window_t &win); // normal unregistration, todo what if there is more than one strong dialog?
     void unregisterPopUp(window_t &win);        // just notify popup about unregistration, it wil unregister itself
 

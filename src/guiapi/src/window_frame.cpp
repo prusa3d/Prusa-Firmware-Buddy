@@ -14,6 +14,11 @@ window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, i
     Enable();
 }
 
+// popup windows are static and must be unregistred
+// other windows does not need unregistration
+// because dialog/strong dialog from marlin thread will consume close flag so screen cannot be closed before it
+// msgbox-like dialogs exist within events and screen cannot be closed inside an event
+// normal windows are already unregistered by their destructors
 window_frame_t::~window_frame_t() {
     WinFilterPopUp filter;
     window_t *popup;
@@ -164,16 +169,18 @@ void window_frame_t::UnregisterSubWin(window_t *win) {
 }
 
 void window_frame_t::unregisterNormal(window_t &win) {
-    // do nothing .. for now
-}
-
-void window_frame_t::unregisterDialog(window_t &win) {
     window_t *prev = GetPrevSubWin(&win);
     if (prev) {
         prev->SetNext(win.GetNext());
         if (last == &win)
             last = prev;
+    } else {
+        first = win.GetNext();
     }
+}
+
+void window_frame_t::unregisterDialog(window_t &win) {
+    unregisterNormal(win);
 
     //show all windows
     //todo check shadowed by dialog flag
@@ -182,6 +189,11 @@ void window_frame_t::unregisterDialog(window_t &win) {
         pWin->ShowAfterDialog();
         pWin = pWin->GetNext();
     }
+
+    if (!first)
+        return;
+    if (!last)
+        return; //just to be safe, if first == nullptr than last should be nullptr too
 
     if (last->GetType() != win_type_t::normal) {
         // there is one or more dialogs, have to find them all
