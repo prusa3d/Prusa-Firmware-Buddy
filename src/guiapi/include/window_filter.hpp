@@ -33,3 +33,25 @@ class WinFilterPopUp : public WinFilter {
 public:
     virtual bool operator()(const window_t &win) const override { return win.GetType() == win_type_t::popup; };
 };
+
+class WinFilterIntersectingPopUp : public WinFilter {
+    Rect16 rect;
+
+public:
+    constexpr WinFilterIntersectingPopUp(Rect16 rc)
+        : rect(rc) {}
+    virtual bool operator()(const window_t &win) const override {
+        return ((win.GetType() == win_type_t::popup) && rect.HasIntersection(win.rect));
+    };
+};
+
+class WinFilterIntersectingDialog : public WinFilter {
+    Rect16 rect;
+
+public:
+    constexpr WinFilterIntersectingDialog(Rect16 rc)
+        : rect(rc) {}
+    virtual bool operator()(const window_t &win) const override {
+        return (win.IsDialog() && rect.HasIntersection(win.rect));
+    };
+};

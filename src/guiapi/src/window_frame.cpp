@@ -97,11 +97,10 @@ void window_frame_t::registerNormal(window_t &win) {
 
     // situations with more than one popup will be very rare
     // so simpler (but slower) code is better
-    window_t *pWin;
-    while ((pWin = getFirstOverlapingPopUp(win.rect)) != nullptr) {
-#warning notify popup about unreg
-        // be cerefull - do not cause loop
-        this->UnregisterSubWin(pWin);
+    WinFilterIntersectingPopUp filter(win.rect);
+    window_t *popup;
+    while ((popup = findFirst(first, nullptr, filter)) != nullptr) {
+        UnregisterSubWin(popup);
     }
 
     last->SetNext(&win);
@@ -127,32 +126,13 @@ void window_frame_t::registerStrongDialog(window_t &win) {
 }
 
 void window_frame_t::registerPopUp(window_t &win) {
+
+    WinFilterIntersectingDialog filter(win.rect);
+    window_t *dialog;
     // there can be no overlaping dialog
-    if (getFirstOverlapingDialog(win.rect) != nullptr) {
+    if ((dialog = findFirst(first, nullptr, filter)) == nullptr) {
         registerNormal(win);
     }
-}
-
-window_t *window_frame_t::getFirstOverlapingDialog(Rect16 intersection_rect) const {
-    window_t *pWin = first;
-    while (pWin) {
-        if (pWin->IsDialog() && intersection_rect.HasIntersection(pWin->rect)) {
-            return pWin;
-        }
-        pWin = pWin->GetNext();
-    }
-    return nullptr;
-}
-
-window_t *window_frame_t::getFirstOverlapingPopUp(Rect16 intersection_rect) const {
-    window_t *pWin = first;
-    while (pWin) {
-        if ((pWin->GetType() == win_type_t::popup) && intersection_rect.HasIntersection(pWin->rect)) {
-            return pWin;
-        }
-        pWin = pWin->GetNext();
-    }
-    return nullptr;
 }
 
 //unregister sub win

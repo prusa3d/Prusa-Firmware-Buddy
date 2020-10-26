@@ -27,9 +27,6 @@ class window_frame_t : public AddSuperWindow<window_t> {
     void unregisterStrongDialog(window_t &win); // normal unregistration, todo what if there is more than one strong dialog?
     void unregisterPopUp(window_t &win);        // just notify popup about unregistration, it wil unregister itself
 
-    window_t *getFirstOverlapingDialog(Rect16 intersection_rect) const;
-    window_t *getFirstOverlapingPopUp(Rect16 intersection_rect) const;
-
 public:
     virtual void RegisterSubWin(window_t *win) override;
     virtual void UnregisterSubWin(window_t *win) override;
