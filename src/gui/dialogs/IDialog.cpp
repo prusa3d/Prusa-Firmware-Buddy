@@ -2,13 +2,11 @@
 #include <stdint.h>
 #include "ScreenHandler.hpp"
 
-IDialog::IDialog(Rect16 rc, SetCapture_t setCapture)
+IDialog::IDialog(Rect16 rc)
     : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rc, win_type_t::dialog) //use dialog ctor
-    , prev_capture(setCapture == SetCapture_t::yes ? GetCapturedWindow() : nullptr) {
+    , prev_capture(GetCapturedWindow()) {
     Enable();
-    if (setCapture == SetCapture_t::yes) {
-        SetCapture();
-    }
+    SetCapture();
 }
 
 IDialog::~IDialog() {
