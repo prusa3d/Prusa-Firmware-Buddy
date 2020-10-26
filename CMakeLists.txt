@@ -323,6 +323,8 @@ add_subdirectory(lib)
 
 add_executable(firmware)
 
+add_subdirectory(src/lang)
+
 set_target_properties(firmware PROPERTIES CXX_STANDARD 17)
 
 if(WUI)
@@ -423,6 +425,7 @@ target_link_libraries(
           jsmn::jsmn
           QR
           CRC
+          Buddy::Lang
   )
 
 target_sources(
@@ -518,10 +521,6 @@ target_sources(
           src/gui/guimain.cpp
           src/common/filament.cpp
           src/common/fanctl.cpp
-          src/lang/translator.cpp
-          src/lang/translation_provider_CPUFLASH.cpp
-          src/lang/unaccent.cpp
-          src/lang/format_print_will_end.cpp
   )
 
 if(GUI)
@@ -565,6 +564,7 @@ if(GUI)
             src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.cpp
+            src/gui/screen_reset_error.cpp
             src/gui/screen_hardfault.cpp
             src/gui/screen_temperror.cpp
             src/gui/screen_menu_move.cpp
@@ -601,7 +601,6 @@ if(GUI)
             src/gui/test/screen_menu_test_temperature.cpp
             src/gui/test/screen_mesh_bed_lv.cpp
             src/gui/screen_menu_eeprom.cpp
-            src/gui/screen_menu_errors.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp

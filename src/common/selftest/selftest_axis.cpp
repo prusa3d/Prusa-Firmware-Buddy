@@ -1,6 +1,7 @@
 // selftest_axis.cpp
 
 #include "selftest_axis.h"
+#include "wizard_config.hpp"
 #include "../../Marlin/src/module/planner.h"
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/endstops.h"
@@ -9,20 +10,24 @@
 static const char AxisLetter[] = { 'X', 'Y', 'Z', 'E' };
 
 CSelftestPart_Axis::CSelftestPart_Axis(const selftest_axis_config_t *pconfig)
-    : m_State(spsStart)
-    , m_pConfig(pconfig) {
+    : m_pConfig(pconfig) {
+    m_State = spsStart;
 }
 
 bool CSelftestPart_Axis::Start() {
-    return true;
+    if (!IsInProgress()) {
+        m_State = spsStart;
+        return true;
+    }
+    return false;
 }
 
 bool CSelftestPart_Axis::IsInProgress() const {
-    return ((m_State != spsIdle) && (m_State != spsFinished) && (m_State != spsAborted));
+    return ((m_State != spsIdle) && (m_State < spsFinished));
 }
 
 bool CSelftestPart_Axis::Loop() {
-    switch (m_State) {
+    switch ((TestState)m_State) {
     case spsIdle:
         return false;
     case spsStart: {
@@ -63,10 +68,15 @@ bool CSelftestPart_Axis::Loop() {
         break;
     case spsFinish:
         endstops.enable(false);
-        Selftest.log_printf("%s Finished\n", m_pConfig->partname);
+        if (m_Result == sprFailed)
+            m_State = spsFailed;
+        else
+            m_Result = sprPassed;
+        Selftest.log_printf("%s %s\n", m_pConfig->partname, (m_Result == sprPassed) ? "Passed" : "Failed");
         break;
     case spsFinished:
     case spsAborted:
+    case spsFailed:
         return false;
     }
     return next();
@@ -74,6 +84,14 @@ bool CSelftestPart_Axis::Loop() {
 
 bool CSelftestPart_Axis::Abort() {
     return true;
+}
+
+uint8_t CSelftestPart_Axis::getFSMState() {
+    if (m_State <= spsStart)
+        return (uint8_t)(SelftestSubtestState_t::undef);
+    else if (m_State < spsFinished)
+        return (uint8_t)(SelftestSubtestState_t::running);
+    return (uint8_t)((m_Result == sprPassed) ? (SelftestSubtestState_t::ok) : (SelftestSubtestState_t::not_good));
 }
 
 void CSelftestPart_Axis::phaseMove(int8_t dir) {
@@ -91,15 +109,14 @@ bool CSelftestPart_Axis::phaseWait(int8_t dir) {
     sg_sampling_disable();
     int32_t endPos_usteps = stepper.position((AxisEnum)m_pConfig->axis);
     int32_t length_usteps = dir * (endPos_usteps - m_StartPos_usteps);
-    Selftest.log_printf(" length = %f mm\n", (double)(length_usteps * planner.steps_to_mm[(AxisEnum)m_pConfig->axis]));
+    float length_mm = (length_usteps * planner.steps_to_mm[(AxisEnum)m_pConfig->axis]);
+    Selftest.log_printf(" length = %f mm\n", (double)length_mm);
+    if ((length_mm < m_pConfig->length_min) || (length_mm > m_pConfig->length_max)) {
+        m_Result = sprFailed;
+        m_State = spsFinish;
+        return true;
+    }
     return false;
-}
-
-bool CSelftestPart_Axis::next() {
-    if ((m_State == spsFinished) || (m_State == spsAborted))
-        return false;
-    m_State = (TestState)((int)m_State + 1);
-    return ((m_State != spsFinished) && (m_State != spsAborted));
 }
 
 uint32_t CSelftestPart_Axis::estimate(const selftest_axis_config_t *pconfig) {

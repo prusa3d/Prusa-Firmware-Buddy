@@ -174,6 +174,8 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     , redraw_thumbnail(gcode.has_thumbnail) {
     marlin_set_print_speed(100);
 
+    suppress_draw = false;
+
     super::ClrMenuTimeoutClose();
     // Title
     title_text.font = resource_font(IDR_FNT_BIG);
@@ -204,8 +206,6 @@ bool screen_print_preview_data_t::gcode_file_exists() {
 
 //FIXME simple solution not to brake functionality before release
 //rewrite later
-static bool suppress_draw = false;
-
 void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).
@@ -227,7 +227,6 @@ void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, wi
             break;
         case Response::No: //NO - cancel
             Screens::Access()->Close();
-            suppress_draw = false;
             return;
         case Response::Ignore: //IGNORE - disable
             fs_disable();

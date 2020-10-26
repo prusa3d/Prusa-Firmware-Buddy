@@ -185,13 +185,3 @@ MI_EEPROM::MI_EEPROM()
 void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenEeprom);
 }
-
-/*****************************************************************************/
-//MI_ERROR_SCREENS
-MI_ERROR_SCREENS::MI_ERROR_SCREENS()
-    : WI_LABEL_t(_(label), 0, true, false) {
-}
-
-void MI_ERROR_SCREENS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenErrors);
-}

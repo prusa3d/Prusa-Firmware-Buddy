@@ -187,13 +187,3 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
-
-class MI_ERROR_SCREENS : public WI_LABEL_t {
-    static constexpr const char *const label = "Error Screens";
-
-public:
-    MI_ERROR_SCREENS();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
