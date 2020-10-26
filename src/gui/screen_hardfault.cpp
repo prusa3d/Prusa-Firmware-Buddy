@@ -28,5 +28,5 @@ screen_hardfault_data_t::screen_hardfault_data_t()
 void screen_hardfault_data_t::draw() {
     window_frame_t::draw();
     ScreenHardFault();
-    Sound_Play(eSOUND_TYPE::CriticalAlert);
+    start_sound();
 }

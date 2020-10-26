@@ -6,7 +6,8 @@
 #include "sound.hpp"
 
 screen_reset_error_data_t::screen_reset_error_data_t()
-    : window_frame_t() {
+    : window_frame_t()
+    , sound_started(false) {
 
     ClrMenuTimeoutClose();
     ClrOnSerialClose();
@@ -15,9 +16,15 @@ screen_reset_error_data_t::screen_reset_error_data_t()
 
 void screen_reset_error_data_t::draw() {
     window_frame_t::draw();
-    /// avoid collision of sounds
-    Sound_Stop();
-    Sound_Play(eSOUND_TYPE::CriticalAlert);
+    start_sound();
+}
+
+void screen_reset_error_data_t::start_sound() {
+    if (!sound_started) {
+        /// avoid collision of sounds
+        Sound_Stop();
+        Sound_Play(eSOUND_TYPE::CriticalAlert);
+    }
 }
 
 void screen_reset_error_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

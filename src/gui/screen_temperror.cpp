@@ -14,5 +14,5 @@ void screen_temperror_data_t::draw() {
     //window_frame_t::draw();
     temp_error_code(dump_in_xflash_get_code());
     /// Play after draw not to collide with beep at printer start
-    Sound_Play(eSOUND_TYPE::CriticalAlert);
+    start_sound();
 }
