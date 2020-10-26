@@ -1,6 +1,7 @@
 // selftest_fan.cpp
 
 #include "selftest_fan.h"
+#include "wizard_config.hpp"
 #include "fanctl.h"
 
 #define FANTEST_STOP_DELAY    2000
@@ -8,12 +9,12 @@
 #define FANTEST_MEASURE_DELAY 2500
 
 CSelftestPart_Fan::CSelftestPart_Fan(const selftest_fan_config_t *pconfig)
-    : m_State(spsStart)
-    , m_pConfig(pconfig) {
+    : m_pConfig(pconfig) {
+    m_State = spsStart;
 }
 
 bool CSelftestPart_Fan::IsInProgress() const {
-    return ((m_State != spsIdle) && (m_State != spsFinished) && (m_State != spsAborted));
+    return ((m_State != spsIdle) && (m_State < spsFinished));
 }
 
 bool CSelftestPart_Fan::Start() {
@@ -24,7 +25,7 @@ bool CSelftestPart_Fan::Start() {
 }
 
 bool CSelftestPart_Fan::Loop() {
-    switch (m_State) {
+    switch ((TestState)m_State) {
     case spsIdle:
         return false;
     case spsStart:
@@ -52,13 +53,21 @@ bool CSelftestPart_Fan::Loop() {
         m_SampleCount = 0;
         m_SampleSum = 0;
         break;
-    case spsMeasure_rpm:
+    case spsMeasure_rpm: {
         if ((Selftest.m_Time - m_Time) <= FANTEST_MEASURE_DELAY) {
             m_SampleCount++;
             m_SampleSum += m_pConfig->pfanctl->getActualRPM();
             return true;
         }
-        Selftest.log_printf("%s at %u%% PWM = %u RPM\n", m_pConfig->partname, m_pConfig->pfanctl->getPWM(), m_SampleSum / m_SampleCount);
+        uint16_t rpm = m_SampleSum / m_SampleCount;
+        Selftest.log_printf("%s at %u%% PWM = %u RPM\n", m_pConfig->partname, m_pConfig->pfanctl->getPWM(), rpm);
+        if ((m_pConfig->rpm_min_table != nullptr) && (m_pConfig->rpm_max_table != nullptr))
+            if ((rpm < m_pConfig->rpm_min_table[m_Step]) || (rpm > m_pConfig->rpm_max_table[m_Step])) {
+                Selftest.log_printf("%s %u RPM out of range (%u - %u)\n", m_pConfig->partname, rpm, m_pConfig->rpm_min_table[m_Step], m_pConfig->rpm_max_table[m_Step]);
+                m_Result = sprFailed;
+                m_State = spsFinish;
+                return true;
+            }
         if (++m_Step < m_pConfig->steps) {
             m_pConfig->pfanctl->setPWM(m_pConfig->pfanctl->getPWM() + m_pConfig->pwm_step);
             m_Time = Selftest.m_Time;
@@ -66,12 +75,18 @@ bool CSelftestPart_Fan::Loop() {
             return true;
         }
         break;
+    }
     case spsFinish:
         m_pConfig->pfanctl->setPWM(0);
-        Selftest.log_printf("%s Finished\n", m_pConfig->partname);
+        if (m_Result == sprFailed)
+            m_State = spsFailed;
+        else
+            m_Result = sprPassed;
+        Selftest.log_printf("%s %s\n", m_pConfig->partname, (m_Result == sprPassed) ? "Passed" : "Failed");
         break;
     case spsFinished:
     case spsAborted:
+    case spsFailed:
         return false;
     }
     return next();
@@ -86,11 +101,12 @@ bool CSelftestPart_Fan::Abort() {
     return true;
 }
 
-bool CSelftestPart_Fan::next() {
-    if ((m_State == spsFinished) || (m_State == spsAborted))
-        return false;
-    m_State = (TestState)((int)m_State + 1);
-    return ((m_State != spsFinished) && (m_State != spsAborted));
+uint8_t CSelftestPart_Fan::getFSMState() {
+    if (m_State <= spsStart)
+        return (uint8_t)(SelftestSubtestState_t::undef);
+    else if (m_State < spsFinished)
+        return (uint8_t)(SelftestSubtestState_t::running);
+    return (uint8_t)((m_Result == sprPassed) ? (SelftestSubtestState_t::ok) : (SelftestSubtestState_t::not_good));
 }
 
 uint32_t CSelftestPart_Fan::estimate(const selftest_fan_config_t *pconfig) {
