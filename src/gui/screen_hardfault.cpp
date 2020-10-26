@@ -7,7 +7,8 @@
 #include "sound.hpp"
 
 screen_hardfault_data_t::screen_hardfault_data_t()
-    : text(this, Rect16(10, 70, 220, 24), is_multiline::yes)
+    : screen_reset_error_data_t()
+    , text(this, Rect16(10, 70, 220, 24), is_multiline::yes)
     , exit(this, Rect16(0, 110, 240, 24), is_multiline::no, is_closed_on_click_t::yes) {
 
     ClrMenuTimeoutClose();
