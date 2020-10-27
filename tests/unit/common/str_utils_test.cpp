@@ -526,6 +526,25 @@ TEST_CASE("multi-line", "[text_wrap]") {
                                "immagini sul manuale\n"
                                "per rifer."));
     }
+
+    SECTION("BFW-1390") {
+        using stack_buffer = std::array<memory_source::value_type, 32>;
+        memory_source mem("Was filament unload successful?");
+        monospace font;
+        text_wrapper<stack_buffer, const monospace *> w(230, &font);
+        char str[n255], c;
+        size_t index = 0;
+
+        while ((c = w.character(mem)) != '\0') {
+            /// replace spaces with underscore to visualise spaces
+            if (c == ' ')
+                c = '_';
+            str[index++] = c;
+        }
+        str[index] = '\0';
+
+        CHECK_THAT(str, Equals("Was_filament_unload\nsuccessful?"));
+    }
 }
 
 size_t to_unichar(const char *ss, std::vector<unichar> *out) {
