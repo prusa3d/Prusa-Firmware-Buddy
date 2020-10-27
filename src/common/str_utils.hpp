@@ -156,37 +156,33 @@ struct text_wrapper {
             current_width_ = (w + current_width_ == width_) ? 0 : current_width_ + w;
         }
 
+        value_type c = buffer_[index_];
         if (current_width_ == 0) {
             if (index_ < static_cast<int32_t>(word_length_)) {
-                value_type c = buffer_[index_];
+
                 buffer_[index_++] = 0;
                 return c;
             } else {
-                value_type c = buffer_[index_];
                 buffer_[index_] = 0;
                 index_ = -1;
                 return c == static_cast<value_type>(EOS)
                     ? c
                     : static_cast<value_type>(CHAR_NL);
             }
-        } else {
-            if (index_ < static_cast<int32_t>(word_length_)) {
-                value_type c = buffer_[index_];
-                buffer_[index_++] = 0;
-                return c;
-            } else {
-                value_type c = buffer_[index_];
-                buffer_[index_] = 0;
-                index_ = -1;
-                current_width_ += c == static_cast<value_type>(CHAR_SPACE)
-                    ? width::value(font_)
-                    : 0;
-                current_width_ += c == static_cast<value_type>(CHAR_NL)
-                    ? -current_width_
-                    : 0;
-                return c;
-            }
         }
+        if (index_ < static_cast<int32_t>(word_length_)) {
+            buffer_[index_++] = 0;
+            return c;
+        }
+        buffer_[index_] = 0;
+        index_ = -1;
+        current_width_ += c == static_cast<value_type>(CHAR_SPACE)
+            ? width::value(font_)
+            : 0;
+        current_width_ += c == static_cast<value_type>(CHAR_NL)
+            ? -current_width_
+            : 0;
+        return c;
     }
 
 private:
