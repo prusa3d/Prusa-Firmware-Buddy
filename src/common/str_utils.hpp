@@ -168,9 +168,9 @@ struct text_wrapper {
                 ? c
                 : static_cast<value_type>(CHAR_NL);
         }
-        if (c == static_cast<value_type>(CHAR_SPACE))
+        if (c == static_cast<value_type>(CHAR_SPACE)) {
             current_width_ += width::value(font_);
-        if (c == static_cast<value_type>(CHAR_NL))
+        } else if (c == static_cast<value_type>(CHAR_NL))
             current_width_ -= current_width_;
         return c;
     }
