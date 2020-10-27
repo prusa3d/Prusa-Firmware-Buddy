@@ -153,17 +153,25 @@ struct text_wrapper {
                 current_width_ = w;
                 return static_cast<value_type>(CHAR_NL);
             }
-            current_width_ = (w + current_width_ == width_) ? 0 : current_width_ + w;
+            /// if word fits perfectly signal it by the 0
+            if (w + current_width_ == width_) {
+                current_width_ = 0;
+            } else {
+                current_width_ += w;
+            }
         }
 
         const value_type c = buffer_[index_];
         buffer_[index_] = 0;
-        if (index_ < static_cast<int32_t>(word_length_)) {
+        if (index_ < word_length_) {
+            /// buffer not empty => send a character
             index_++;
             return c;
         }
-        index_ = -1;
+        /// last character in the buffer
+        index_ = -1; ///< read next word next time
         if (current_width_ == 0) {
+            /// word fits perfectly
             return c == static_cast<value_type>(EOS)
                 ? c
                 : static_cast<value_type>(CHAR_NL);
@@ -171,7 +179,7 @@ struct text_wrapper {
         if (c == static_cast<value_type>(CHAR_SPACE)) {
             current_width_ += width::value(font_);
         } else if (c == static_cast<value_type>(CHAR_NL))
-            current_width_ -= current_width_;
+            current_width_ = 0;
         return c;
     }
 
@@ -207,6 +215,6 @@ private:
     uint32_t width_;
     int32_t index_;
     uint32_t current_width_;
-    uint32_t word_length_;
+    int32_t word_length_;
     font_type font_;
 };
