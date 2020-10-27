@@ -137,18 +137,19 @@ struct text_wrapper {
     using value_type = typename memory_buffer::value_type;
 
     text_wrapper(uint32_t width, font_type font)
-        : width_(width)
-        , index_(-1)
-        , current_width_(0)
-        , word_length_(0)
+        : width_(width)     ///< width of the space for the text in pixels
+        , index_(-1)        ///< current position in buffer where single word is
+        , current_width_(0) ///< width used already
+        , word_length_(0)   ///< number characters of current word + trailing white character
         , font_(font) {};
 
     template <typename source>
     value_type character(source &s) {
         if (index_ < 0) {
-            uint32_t w = buffering(s);
+            const uint32_t w = buffering(s); ///< current word's width in pixels
             index_ = 0;
             if ((w + current_width_) > width_) {
+                /// this word will not fit to this line => break the line
                 current_width_ = w;
                 return static_cast<value_type>(CHAR_NL);
             } else if ((w + current_width_) == width_) {
@@ -192,6 +193,8 @@ struct text_wrapper {
     }
 
 private:
+    /// Copies current word to the buffer
+    /// \returns word's width in pixels
     template <typename source>
     uint32_t buffering(source &s) {
         uint32_t i = 0;
