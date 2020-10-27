@@ -153,12 +153,14 @@ struct text_wrapper {
                 current_width_ = w;
                 return static_cast<value_type>(CHAR_NL);
             }
-            /// if word fits perfectly signal it by the 0
-            if (w + current_width_ == width_) {
-                current_width_ = 0;
-            } else {
-                current_width_ += w;
+            if (w + current_width_ + 2 == width_) {
+                /// if word fits but trailing space not, break the line
+                if (buffer_[word_length_] == static_cast<value_type>(CHAR_SPACE)) {
+                    buffer_[word_length_] = static_cast<value_type>(CHAR_NL);
+                }
             }
+            /// if word fits perfectly signal it by the 0
+            current_width_ = (w + current_width_ == width_) ? 0 : current_width_ + w;
         }
 
         const value_type c = buffer_[index_];
