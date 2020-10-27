@@ -162,13 +162,12 @@ struct text_wrapper {
             index_++;
             return c;
         }
+        index_ = -1;
         if (current_width_ == 0) {
-            index_ = -1;
             return c == static_cast<value_type>(EOS)
                 ? c
                 : static_cast<value_type>(CHAR_NL);
         }
-        index_ = -1;
         current_width_ += c == static_cast<value_type>(CHAR_SPACE)
             ? width::value(font_)
             : 0;
