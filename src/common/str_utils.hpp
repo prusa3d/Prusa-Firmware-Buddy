@@ -157,24 +157,17 @@ struct text_wrapper {
         }
 
         value_type c = buffer_[index_];
-        if (current_width_ == 0) {
-            if (index_ < static_cast<int32_t>(word_length_)) {
-
-                buffer_[index_++] = 0;
-                return c;
-            } else {
-                buffer_[index_] = 0;
-                index_ = -1;
-                return c == static_cast<value_type>(EOS)
-                    ? c
-                    : static_cast<value_type>(CHAR_NL);
-            }
-        }
+        buffer_[index_] = 0;
         if (index_ < static_cast<int32_t>(word_length_)) {
-            buffer_[index_++] = 0;
+            index_++;
             return c;
         }
-        buffer_[index_] = 0;
+        if (current_width_ == 0) {
+            index_ = -1;
+            return c == static_cast<value_type>(EOS)
+                ? c
+                : static_cast<value_type>(CHAR_NL);
+        }
         index_ = -1;
         current_width_ += c == static_cast<value_type>(CHAR_SPACE)
             ? width::value(font_)
