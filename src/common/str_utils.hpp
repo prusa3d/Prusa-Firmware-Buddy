@@ -168,12 +168,10 @@ struct text_wrapper {
                 ? c
                 : static_cast<value_type>(CHAR_NL);
         }
-        current_width_ += c == static_cast<value_type>(CHAR_SPACE)
-            ? width::value(font_)
-            : 0;
-        current_width_ += c == static_cast<value_type>(CHAR_NL)
-            ? -current_width_
-            : 0;
+        if (c == static_cast<value_type>(CHAR_SPACE))
+            current_width_ += width::value(font_);
+        if (c == static_cast<value_type>(CHAR_NL))
+            current_width_ -= current_width_;
         return c;
     }
 
