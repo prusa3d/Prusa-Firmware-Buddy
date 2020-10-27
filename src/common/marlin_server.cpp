@@ -648,12 +648,15 @@ float marlin_server_get_temp_to_display(void) {
 // send notify message (variant8_t) to client queue (called from server thread)
 static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
     //synchronization not necessary because only server thread can write to this queue
+    uint64_t data = 0;
+    uint64_t *pdata = &data;
     if (queue == 0)
         return 0;
     if (osMessageAvailableSpace(queue) < 2)
         return 0;
-    osMessagePut(queue, (uint32_t)(msg & 0xFFFFFFFFU), osWaitForever);
-    osMessagePut(queue, (uint32_t)(msg >> 32), osWaitForever);
+    pdata = variant8_pack(&msg);
+    osMessagePut(queue, (uint32_t)(*pdata & 0xFFFFFFFFU), osWaitForever);
+    osMessagePut(queue, (uint32_t)(*pdata >> 32), osWaitForever);
     return 1;
 }
 

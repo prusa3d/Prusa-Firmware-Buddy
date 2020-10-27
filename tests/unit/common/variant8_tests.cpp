@@ -148,6 +148,25 @@ TEST_CASE("update", "[variant8]") {
         variant8_set_type(&v, VARIANT8_I8);
         CHECK(variant8_get_type(v) == VARIANT8_I8);
     };
+
+    SECTION("switch type pchar to user and back") {
+        char data[12] = "1234567890\0";
+        variant8_t v = variant8_pchar(data, 12, 1);
+        variant8_t *pv = &v;
+        REQUIRE(variant8_data_ptr(pv) != nullptr);
+        const char *pchar = (const char *)variant8_data_ptr(pv);
+        CHECK(variant8_get_type(v) == VARIANT8_PCHAR);
+        CHECK(pchar[0] == '1');
+        CHECK(pchar[9] == '0');
+        CHECK(pchar[10] == 0);
+        variant8_set_type(pv, VARIANT8_USER);
+        CHECK(variant8_get_type(v) == VARIANT8_USER);
+        variant8_set_type(pv, VARIANT8_PCHAR);
+        CHECK(variant8_get_type(v) == VARIANT8_PCHAR);
+        REQUIRE(variant8_data_ptr(pv) != nullptr);
+        variant8_done(&pv);
+        REQUIRE(variant8_data_ptr(pv) == nullptr);
+    };
 }
 
 TEST_CASE("size", "[variant8]") {

@@ -134,13 +134,15 @@ void marlin_client_loop(void) {
     client = marlin_client + client_id;
     if ((queue = marlin_client_queue[client_id]) != 0)
         while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
+            uint64_t data = 0;
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
-                msg |= ((variant8_t)ose.value.v << 32); //store high dword
-                _process_client_message(client, msg);   //call handler
+                data |= ((uint64_t)ose.value.v << 32); //store high dword
+                pmsg = variant8_extract(&data);
+                _process_client_message(client, msg); //call handler
                 variant8_done(&pmsg);
                 count++;
             } else
-                msg = ose.value.v;                //store low dword
+                data = ose.value.v;               //store low dword
             client->flags ^= MARLIN_CFLG_LOWHIGH; //flip flag
         }
     client->last_count = count;

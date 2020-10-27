@@ -39,7 +39,37 @@ enum {
     VARIANT8_ERR_OOFRNG,     // out of range (during conversion from bigger to lower range number)
 };
 
-typedef uint64_t variant8_t;
+typedef struct _variant8_t {
+    union {
+        void *ptr;
+        char *pch;
+        float *pflt;
+        uint32_t *pui32;
+        int32_t *pi32;
+        uint16_t *pui16;
+        int16_t *pi16;
+        uint8_t *pui8;
+        int8_t *pi8;
+        uint32_t usr32;
+        char ch;
+        float flt;
+        uint32_t ui32;
+        uint8_t ui8a[4]; // array for easy 8 <-> 32 bit conversion
+        int32_t i32;
+        uint16_t ui16;
+        int16_t i16;
+        uint8_t ui8;
+        int8_t i8;
+        uint32_t err32;
+    };
+    union {
+        uint16_t usr16;
+        uint16_t size;
+        uint16_t err16;
+    };
+    uint8_t type;
+    uint8_t usr8;
+} variant8_t;
 
 #ifdef __cplusplus
 
@@ -181,6 +211,14 @@ extern void *variant8_realloc(void *ptr, uint16_t size);
 
 // // returns 1 for numeric types (I8, I16, I32, UI8, UI16, UI32, float), otherwise returns 0
 // inline int variant8_is_number(const variant8_t *pvar8) { return (pvar8) ? ((variant8_is_integer(pvar8) || (pvar8->type == VARIANT8_FLT)) ? 1 : 0) : 0; }
+
+inline uint64_t *variant8_pack(variant8_t *v) {
+    return (uint64_t *)v;
+}
+
+inline variant8_t *variant8_extract(uint64_t *v) {
+    return (variant8_t *)v;
+}
 
 #ifdef __cplusplus
 }
