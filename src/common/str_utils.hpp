@@ -152,11 +152,8 @@ struct text_wrapper {
                 /// this word will not fit to this line => break the line
                 current_width_ = w;
                 return static_cast<value_type>(CHAR_NL);
-            } else if ((w + current_width_) == width_) {
-                current_width_ = 0;
-            } else {
-                current_width_ += w;
             }
+            current_width_ = (w + current_width_ == width_) ? 0 : current_width_ + w;
         }
 
         if (current_width_ == 0) {
@@ -206,14 +203,13 @@ private:
         while (i < buffer_.size()) {
             c = s.getUtf8Char();
             buffer_[i] = c;
+            if (c == static_cast<value_type>(CHAR_NL)
+                || c == static_cast<value_type>(CHAR_SPACE)
+                || c == static_cast<value_type>(EOS))
+                break;
             word_width += width::value(font_);
             if (c == static_cast<value_type>(CHAR_NBSP)) {
                 buffer_[i] = static_cast<value_type>(CHAR_SPACE);
-            } else if (c == static_cast<value_type>(CHAR_NL)
-                || c == static_cast<value_type>(CHAR_SPACE)
-                || c == static_cast<value_type>(EOS)) {
-                word_width -= width::value(font_);
-                break;
             }
             ++i;
         }
