@@ -1,4 +1,3 @@
-
 # define the test executable
 add_executable(wizard_tests tests_wizard_types.cpp)
 
