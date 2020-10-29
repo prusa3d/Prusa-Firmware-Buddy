@@ -340,7 +340,7 @@ TEST_CASE("multi-line", "[text_wrap]") {
 
         std::tie(origin, lines, expected) = GENERATE(
             std::make_tuple<std::string, size_t, std::string>(
-                "Bootloader Version %d.%d.%d Buddy Board %d.%d.%d %s", 3, "Bootloader_Version\n%d.%d.%d_Buddy_Board\n%d.%d.%d_%s"),
+                "Bootloader Version %d.%d.%d Buddy Board %d.%d.%d %s", 3, "Bootloader Version\n%d.%d.%d Buddy Board\n%d.%d.%d %s"),
             std::make_tuple<std::string, size_t, std::string>(
                 "A crash dump report (file dump.bin) has been saved to the USB drive.", 4, "A crash dump report\n(file dump.bin) has\nbeen saved to the\nUSB drive."),
             std::make_tuple<std::string, size_t, std::string>(
@@ -495,8 +495,8 @@ TEST_CASE("multi-line", "[text_wrap]") {
             str[index++] = c;
         str[index] = '\0';
         CHECK_THAT(str, Equals("The status bar is at\n"
-                               "the bottom of the \n"
-                               "screen. It contains \n"
+                               "the bottom of the\n"
+                               "screen. It contains\n"
                                "information about:\n"
                                "- Nozzle temp.\n"
                                "- Heatbed temp.\n"
@@ -529,15 +529,15 @@ TEST_CASE("multi-line", "[text_wrap]") {
             str[index++] = c;
         str[index] = '\0';
 
-        CHECK_THAT(str, Equals("Nel prossimo passo, \n"
-                               "usa la manopola per \n"
-                               "regolare l'altezza \n"
+        CHECK_THAT(str, Equals("Nel prossimo passo,\n"
+                               "usa la manopola per\n"
+                               "regolare l'altezza\n"
                                "ugello. Controlla le\n"
                                "immagini sul manuale\n"
-                               "per rifer.Nel \n"
-                               "prossimo passo, usa \n"
-                               "la manopola per \n"
-                               "regolare l'altezza \n"
+                               "per rifer.Nel\n"
+                               "prossimo passo, usa\n"
+                               "la manopola per\n"
+                               "regolare l'altezza\n"
                                "ugello. Controlla le\n"
                                "immagini sul manuale\n"
                                "per rifer."));
@@ -596,7 +596,7 @@ TEST_CASE("multi-line UTF-8", "[str2multiline][text_wrap]") {
         unichar c;
         std::vector<unichar> str(n255), expected(n255);
         size_t index = 0;
-        to_unichar("příliš žluťoučký kůň\núpěl ďábelské ódy : \nPŘÍLIŠ ŽLUŤOUČKÝ KŮŇ\nÚPĚL ĎÁBELSKÉ ÓDY", &expected);
+        to_unichar("příliš žluťoučký kůň\núpěl ďábelské ódy :\nPŘÍLIŠ ŽLUŤOUČKÝ KŮŇ\nÚPĚL ĎÁBELSKÉ ÓDY", &expected);
         while ((c = w.character(sf)) != '\0')
             str[index++] = c;
         str[index] = '\0';
