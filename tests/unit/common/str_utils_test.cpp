@@ -454,7 +454,7 @@ TEST_CASE("multi-line", "[text_wrap]") {
             std::make_tuple<std::string, size_t, std::string>(
                 "Check the print head heater & thermistor wiring for\xA0possible damage.", 4, "Check the print head\nheater & thermistor\nwiring for possible\ndamage."),
             std::make_tuple<std::string, size_t, std::string>(
-                "Now, let's calibrate\nthe distance between\nthe tip of the \nnozzle and the print\nsheet.", 5, "Now, let's calibrate\nthe distance between\nthe tip of the\nnozzle and the print\nsheet."));
+                "Now, let's calibrate\nthe distance between\nthe tip of the \nnozzle and the print\nsheet.", 5, "Now, let's calibrate\nthe distance between\nthe tip of the \nnozzle and the print\nsheet."));
 
         memory_source mem(origin);
         monospace font;
