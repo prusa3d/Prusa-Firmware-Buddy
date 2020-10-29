@@ -14,8 +14,7 @@ TEST_CASE("Window menu", "[window_menu]") {
         MI_LANGUAGE, MI_SORT_FILES,
         MI_SOUND_TYPE, MI_HF_TEST_0, MI_HF_TEST_1,
         MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
-        MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML,
-        MI_ES_12201, MI_ES_12202, MI_ES_12203, MI_ES_12204, MI_ES_12205, MI_ES_12206, MI_ES_12207, MI_ES_12208>
+        MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML>
         container;
 
     window_menu_t menu(null, Rect16(0, 0, 240, 320), &container);
