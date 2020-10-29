@@ -16,6 +16,21 @@ using Catch::Matchers::Equals;
 static const std::uint8_t n255 = 255;
 static const std::uint16_t n511 = 511;
 
+/// Replaces all occurrences of @find with @replace
+void replace(char *str, char find, char replace) {
+    while (str[0] != 0) {
+        if (str[0] == find)
+            str[0] = replace;
+        str++;
+    }
+}
+
+char replaceChar(char c, char find, char replace) {
+    if (c == ' ')
+        return replace;
+    return c;
+}
+
 TEST_CASE("Delete string", "[strdel]") {
     static constexpr char text[12] = "abcdXYZefgh";
     char str[n255] = "abcdXYZefgh";
@@ -325,7 +340,7 @@ TEST_CASE("multi-line", "[text_wrap]") {
 
         std::tie(origin, lines, expected) = GENERATE(
             std::make_tuple<std::string, size_t, std::string>(
-                "Bootloader Version %d.%d.%d Buddy Board %d.%d.%d %s", 3, "Bootloader Version \n%d.%d.%d Buddy Board\n%d.%d.%d %s"),
+                "Bootloader Version %d.%d.%d Buddy Board %d.%d.%d %s", 3, "Bootloader_Version\n%d.%d.%d Buddy_Board\n%d.%d.%d_%s"),
             std::make_tuple<std::string, size_t, std::string>(
                 "A crash dump report (file dump.bin) has been saved to the USB drive.", 4, "A crash dump report \n(file dump.bin) has \nbeen saved to the \nUSB drive."),
             std::make_tuple<std::string, size_t, std::string>(
@@ -448,7 +463,7 @@ TEST_CASE("multi-line", "[text_wrap]") {
         char str[n511], c;
 
         while ((c = w.character(mem)) != '\0') {
-            str[index++] = c;
+            str[index++] = replaceChar(c, ' ', '_');
             if (c == '\n')
                 ++n;
         }
@@ -531,7 +546,7 @@ TEST_CASE("multi-line", "[text_wrap]") {
         using stack_buffer = std::array<memory_source::value_type, 32>;
         memory_source mem("Was filament unload successful?");
         monospace font;
-        text_wrapper<stack_buffer, const monospace *> w(230, &font);
+        text_wrapper<stack_buffer, const monospace *> w(231, &font);
         char str[n255], c;
         size_t index = 0;
 

@@ -146,21 +146,16 @@ struct text_wrapper {
     template <typename source>
     value_type character(source &s) {
         if (index_ < 0) {
+            /// empty buffer => buffer next word
             const uint32_t w = buffering(s); ///< current word's width in pixels
             index_ = 0;
-            if ((w + current_width_) > width_) {
-                /// this word will not fit to this line => break the line
+            if ((w + current_width_) > width_ && current_width_ != 0) {
+                /// this word will not fit to this line but it's not the first word
+                /// on this line => break the line
                 current_width_ = w;
                 return static_cast<value_type>(CHAR_NL);
             }
-            if (w + current_width_ + 2 == width_) {
-                /// if word fits but trailing space not, break the line
-                if (buffer_[word_length_] == static_cast<value_type>(CHAR_SPACE)) {
-                    buffer_[word_length_] = static_cast<value_type>(CHAR_NL);
-                }
-            }
-            /// if word fits perfectly signal it by the 0
-            current_width_ = (w + current_width_ == width_) ? 0 : current_width_ + w;
+            current_width_ += w;
         }
 
         const value_type c = buffer_[index_];
@@ -172,13 +167,10 @@ struct text_wrapper {
         }
         /// last character in the buffer
         index_ = -1; ///< read next word next time
-        if (current_width_ == 0) {
-            /// word fits perfectly
-            return c == static_cast<value_type>(EOS)
-                ? c
-                : static_cast<value_type>(CHAR_NL);
-        }
-        if (c == static_cast<value_type>(CHAR_SPACE)) {
+        if (c == static_cast<value_type>(EOS)) {
+            return c;
+        } else if (c == static_cast<value_type>(CHAR_SPACE)) {
+            /// TODO space vs NL
             current_width_ += width::value(font_);
         } else if (c == static_cast<value_type>(CHAR_NL))
             current_width_ = 0;
