@@ -170,7 +170,17 @@ struct text_wrapper {
         if (c == static_cast<value_type>(EOS)) {
             return c;
         } else if (c == static_cast<value_type>(CHAR_SPACE)) {
-            /// TODO space vs NL
+
+            {
+                const uint32_t w = buffering(s);
+                index_ = 0;
+                if ((w + current_width_) > width_ && current_width_ != 0) {
+                    current_width_ = w;
+                    return static_cast<value_type>(CHAR_NL);
+                }
+                current_width_ += w;
+            }
+
             current_width_ += width::value(font_);
         } else if (c == static_cast<value_type>(CHAR_NL))
             current_width_ = 0;
