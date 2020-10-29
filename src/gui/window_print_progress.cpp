@@ -2,6 +2,7 @@
 #include "window_print_progress.hpp"
 #include "gui.hpp"
 #include <algorithm>
+#include "resource.h"
 
 /*****************************************************************************/
 //WindowPrintProgress

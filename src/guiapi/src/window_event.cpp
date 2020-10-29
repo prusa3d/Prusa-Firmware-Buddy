@@ -1,10 +1,9 @@
-//window_event.hpp
-#pragma once
+//window_event.cpp
 
-#include "window_even.hpp"
+#include "window_event.hpp"
 #include "dbg.h"
 
-class EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {
+EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {
     bool print = false;
 
     // clang-format off
