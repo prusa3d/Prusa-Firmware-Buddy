@@ -172,7 +172,7 @@ bool display_ex_draw_text(Rect16 rc, const char *str, const font_t *pf, color_t 
 
 /// Draws a rectangle boundary of defined color
 void display_ex_draw_rect(Rect16 rc, color_t clr) {
-    if (rc.Width() <= 0 || rc.Height() <= 0)
+    if (rc.IsEmpty())
         return;
 
     point_i16_t pt0 = rc.TopLeft();

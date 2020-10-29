@@ -18,7 +18,7 @@ struct GuiDefaults {
     static constexpr Rect16 RectFooter = { 0, 267, 240, 320 - 267 };         // default footer location & size
     static constexpr uint8_t ButtonHeight = 30;                              // default button height
     static constexpr uint8_t ButtonSpacing = 6;                              // default button spacing
-    static constexpr uint8_t FrameWidth = 10;                                // default frame width, what is this? it is used in buttons
+    static constexpr uint8_t FrameWidth = 10;                                // default frame padding
     static font_t *Font;                                                     //todo constexpr
     static font_t *FontBig;                                                  //todo constexpr
     static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4;                       // maximum number of radio buttons

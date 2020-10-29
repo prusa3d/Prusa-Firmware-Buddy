@@ -8,15 +8,17 @@
 typedef struct _selftest_fan_config_t {
     const char *partname;
     CFanCtl *pfanctl;
-    uint8_t steps;
     int pwm_start;
     int pwm_step;
+    const uint16_t *rpm_min_table;
+    const uint16_t *rpm_max_table;
+    uint8_t steps;
 } selftest_fan_config_t;
 
 class CSelftestPart_Fan : public CSelftestPart {
 public:
     enum TestState : uint8_t {
-        spsIdle,
+        spsIdle = 0,
         spsStart,
         spsWait_stopped,
         spsWait_rpm,
@@ -24,6 +26,7 @@ public:
         spsFinish,
         spsFinished,
         spsAborted,
+        spsFailed,
     };
 
 public:
@@ -37,12 +40,13 @@ public:
     virtual bool Loop() override;
     virtual bool Abort() override;
 
+public:
+    uint8_t getFSMState();
+
 protected:
-    bool next();
     static uint32_t estimate(const selftest_fan_config_t *pconfig);
 
 protected:
-    TestState m_State;
     const selftest_fan_config_t *m_pConfig;
     uint32_t m_Time;
     uint8_t m_Step;

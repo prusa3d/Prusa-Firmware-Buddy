@@ -31,6 +31,9 @@ class string_view_utf8 {
         struct FromCPUFLASH_RAM {
             const uint8_t *utf8raw; ///< pointer to raw utf8 data
             const uint8_t *readp;   ///< read pointer, aka read iterator
+            constexpr FromCPUFLASH_RAM()
+                : utf8raw(nullptr)
+                , readp(nullptr) {}
         } cpuflash;
         /// interface for utf-8 string stored in a FILE - used for validation of the whole translation infrastructure
         struct FromFile {
@@ -38,6 +41,8 @@ class string_view_utf8 {
                                ///< @@TODO beware - need some synchronization mechanism to prevent reading from another offset in the file when other instances read as well
             uint32_t startOfs; ///< start offset in input file
         } file;
+        constexpr Attrs()
+            : cpuflash() {}
     };
     Attrs attrs;
 
@@ -56,10 +61,10 @@ class string_view_utf8 {
 
     mutable uint8_t s; ///< must remember the last read character
 
-    static inline uint8_t CPUFLASH_getbyte(Attrs &attrs) {
+    static constexpr uint8_t CPUFLASH_getbyte(Attrs &attrs) {
         return *attrs.cpuflash.readp++; // beware - expecting, that the input string is null-terminated! No other checks are done
     }
-    static inline void CPUFLASH_rewind(Attrs &attrs) {
+    static constexpr void CPUFLASH_rewind(Attrs &attrs) {
         attrs.cpuflash.readp = attrs.cpuflash.utf8raw;
     }
 
@@ -74,16 +79,16 @@ class string_view_utf8 {
         }
     }
 
-    static inline uint8_t NULLSTR_getbyte(Attrs & /*attrs*/) {
+    static constexpr uint8_t NULLSTR_getbyte(Attrs & /*attrs*/) {
         return 0;
     }
-    static inline void NULLSTR_rewind(Attrs & /*attrs*/) {
+    static constexpr void NULLSTR_rewind(Attrs & /*attrs*/) {
     }
 
     /// Extracts one byte from source media and advances internal read ptr depending on the type of string_view (type of source data)
     /// The caller of this function makes sure it does not get called repeatedly after returning the end of input data.
     /// @return 0 in case of end of input data or an error
-    uint8_t getbyte() {
+    constexpr uint8_t getbyte() {
         switch (type) {
         case EType::RAM:
         case EType::CPUFLASH:
@@ -96,7 +101,7 @@ class string_view_utf8 {
     }
 
 public:
-    inline string_view_utf8()
+    constexpr string_view_utf8()
         : utf8Length(-1)
         , type(EType::NULLSTR)
         , s(0xff) {}
@@ -157,7 +162,7 @@ public:
     }
 
     /// returns true if the string if of type NULLSTR - typically used as a replacement for nullptr or "" strings
-    inline bool isNULLSTR() const {
+    constexpr bool isNULLSTR() const {
         return type == EType::NULLSTR;
     }
 
@@ -182,7 +187,7 @@ public:
     }
 
     /// Construct string_view_utf8 to provide data from CPU FLASH
-    static string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
+    static constexpr string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
         string_view_utf8 s;
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
         s.type = EType::CPUFLASH;
@@ -191,7 +196,7 @@ public:
 
     /// Construct string_view_utf8 to provide data from RAM
     /// basically the same as from CPU FLASH, only the string_view_utf8's type differs of course
-    static string_view_utf8 MakeRAM(const uint8_t *utf8raw) {
+    static constexpr string_view_utf8 MakeRAM(const uint8_t *utf8raw) {
         string_view_utf8 s;
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
         s.type = EType::RAM;
@@ -200,7 +205,7 @@ public:
 
     /// Construct string_view_utf8 to provide data from FILE
     /// The FILE *f shall aready be positioned to the spot, where the string starts
-    static string_view_utf8 MakeFILE(::FILE *f) {
+    static constexpr string_view_utf8 MakeFILE(::FILE *f) {
         string_view_utf8 s;
         s.attrs.file.f = f;
         if (f) {
@@ -211,7 +216,7 @@ public:
     }
 
     /// Construct an empty string_view_utf8 - behaves like a "" but is a special type NULL
-    static string_view_utf8 MakeNULLSTR() {
+    static constexpr string_view_utf8 MakeNULLSTR() {
         string_view_utf8 s;
         s.type = EType::NULLSTR;
         return s;

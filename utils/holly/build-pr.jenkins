@@ -57,6 +57,7 @@ pipeline {
                         stage("Build - ${config.printer},${config.build_type},${config.bootloader}boot") {
                             catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                 sh """
+                                    ln -fs /.dependencies
                                     python3 utils/build.py \
                                         --printer ${config.printer} \
                                         --build-type ${config.build_type} \

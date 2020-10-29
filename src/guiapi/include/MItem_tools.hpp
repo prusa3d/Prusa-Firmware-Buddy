@@ -36,7 +36,7 @@ protected:
 };
 
 class MI_MESH_BED : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Mesh Bed Level.");
+    static constexpr const char *const label = N_("Mesh Bed Leveling");
 
 public:
     MI_MESH_BED();
@@ -56,7 +56,7 @@ protected:
 };
 
 class MI_CALIB_FIRST : public WI_LABEL_t {
-    static constexpr const char *const label = N_("First Layer Cal.");
+    static constexpr const char *const label = N_("First Layer Calibration");
 
 public:
     MI_CALIB_FIRST();
@@ -245,86 +245,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_ES_12201 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12201"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12201();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12202 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12202"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12202();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12203 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12203"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12203();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12204 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12204"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12204();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12205 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12205"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12205();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12206 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12206"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12206();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12207 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12207"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12207();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12208 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12208"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12208();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_M600 : public WI_LABEL_t {
     static constexpr const char *const label = N_("Change Filament");
 
@@ -343,13 +263,19 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
+#ifdef _DEBUG
+class MI_SOUND_MODE : public WI_SWITCH_t<5> {
+#else
 class MI_SOUND_MODE : public WI_SWITCH_t<4> {
+#endif
     constexpr static const char *const label = N_("Sound Mode");
 
     constexpr static const char *str_Once = N_("Once");
     constexpr static const char *str_Loud = N_("Loud");
     constexpr static const char *str_Silent = N_("Silent");
     constexpr static const char *str_Assist = N_("Assist");
+    constexpr static const char *str_Debug = "Debug";
+
     size_t init_index() const;
 
 public:
@@ -404,7 +330,7 @@ public:
 
 class I_MI_Filament : public WI_LABEL_t {
 public:
-    I_MI_Filament(const char *long_name)
+    I_MI_Filament(string_view_utf8 long_name)
         : WI_LABEL_t(long_name, 0, true, false) {}
 
 protected:
@@ -415,7 +341,7 @@ template <FILAMENT_t T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(filaments[T].long_name) {}
+        : I_MI_Filament(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[T].long_name)) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {

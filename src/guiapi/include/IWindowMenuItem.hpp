@@ -5,6 +5,7 @@
 #include "guitypes.hpp"
 #include "display_helper.h"
 #include "Iwindow_menu.hpp" //needed for window settings like rect, padding ...
+#include "text_roll.hpp"
 
 //todo make version with constant label
 class IWindowMenuItem {
@@ -12,8 +13,7 @@ class IWindowMenuItem {
     //   IWindowMenu &window_menu;
 
 private:
-    /// Prefer calling GetLabel() and GetLocalizedLabel() over accessing this field directly even within this class
-    std::array<char, 23> label;
+    string_view_utf8 label;
     bool hidden : 1;
     bool enabled : 1;
     bool focused : 1;
@@ -34,7 +34,7 @@ protected:
     static Rect16 getIconRect(IWindowMenu &window_menu, Rect16 rect);
 
 public:
-    IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
+    IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, bool enabled = true, bool hidden = false);
 
     void Enable() { enabled = true; }
     void Disable() { enabled = false; }
@@ -43,17 +43,15 @@ public:
     void Show() { hidden = false; }
     bool IsHidden() const { return hidden; }
     void SetFocus();
-    void ClrFocus() { focused = false; }
+    void ClrFocus();
     bool IsFocused() const { return focused; }
     void SetIconId(uint16_t id) { id_icon = id; }
     uint16_t GetIconId() const { return id_icon; }
-    void SetLabel(const char *text);
-    /// @returns the untranslated label
-    const char *GetLabel() const;
-    /// @returns the label translated via gettext (in the future).
+    void SetLabel(string_view_utf8 text);
+    /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text
     /// to be displayed to the user based on his language settings.
-    string_view_utf8 GetLocalizedLabel() const;
+    string_view_utf8 GetLabel() const;
 
     void Print(IWindowMenu &window_menu, Rect16 rect) const;
 
@@ -62,8 +60,7 @@ public:
     bool Increment(uint8_t dif) { return Change(dif); }
     bool Decrement(uint8_t dif) { return Change(-int(dif)); }
     void Click(IWindowMenu &window_menu);
-    void Roll(IWindowMenu &window_menu);
-    void RollInit(IWindowMenu &window_menu, Rect16 rect);
-    bool RollNeedInit() const { return roll.setup == TXTROLL_SETUP_INIT; }
+    invalidate_t Roll();
+    void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect);
     virtual ~IWindowMenuItem() = default;
 };

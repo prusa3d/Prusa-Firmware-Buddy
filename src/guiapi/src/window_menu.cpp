@@ -212,10 +212,9 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
     case GUI_event_t::CAPT_1:
         //TODO: change flag to checked
         break;
-    case GUI_event_t::TIMER:
-        if (!item->RollNeedInit()) {
-            item->Roll(*this); //warning it is accessing gui timer
-        }
+    case GUI_event_t::TEXT_ROLL:
+        if (item->Roll() == invalidate_t::yes)
+            Invalidate();
         break;
     default:
         break;
@@ -224,7 +223,7 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         Invalidate();
 }
 
-void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IWindowMenuItem *item, const int item_height) {
+void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item, const int item_height) {
     if (item == nullptr)
         return;
 
@@ -232,11 +231,10 @@ void window_menu_t::printItem(const Rect16 &rect, const size_t visible_count, IW
         rect.Width(), uint16_t(item_height) };
 
     if (rect.Contain(rc)) {
-        if (item->RollNeedInit()) {
-            gui_timer_restart_txtroll(this);
-            gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
-            item->RollInit(*this, rc);
-        }
+
+        //only place I know rectangle to be able to reinit roll, ugly to do it in print
+        item->InitRollIfNeeded(*this, rc);
+
         item->Print(*this, rc);
     }
 }
@@ -284,7 +282,7 @@ void window_menu_t::redrawWholeMenu() {
         if (item->IsHidden())
             continue;
 
-        printItem(rect, visible_count, item, item_height);
+        printItem(visible_count, item, item_height);
         ++visible_count;
     }
 
@@ -310,7 +308,7 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
         if (item->IsHidden())
             continue;
         if (i == index) {
-            printItem(rect, visible_count, item, item_height);
+            printItem(visible_count, item, item_height);
             break;
         }
         ++visible_count;

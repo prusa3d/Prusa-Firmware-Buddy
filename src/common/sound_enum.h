@@ -6,6 +6,7 @@ enum class eSOUND_MODE : uint8_t {
     LOUD,
     SILENT,
     ASSIST,
+    DEBUG,
     UNDEF = 0xFF,
     DEFAULT = LOUD
 };

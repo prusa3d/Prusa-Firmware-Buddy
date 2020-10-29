@@ -21,6 +21,8 @@ static inline void dump_regs_SCB(void) {
 void dump_to_xflash(void) {
     _Static_assert(sizeof(dumpinfo_t) == 16, "invalid sizeof(dumpinfo_t)");
     uint32_t addr;
+    if (!dump_in_xflash_is_displayed()) // do not overwrite existing "not displayed" dump
+        return;
     dump_regs_SCB();
     if (w25x_init()) {
         for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {

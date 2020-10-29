@@ -15,6 +15,7 @@
     #define _MAX_LFN          103
     #define FILE_PATH_MAX_LEN 103
 extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
+extern "C" int strcasecmp(const char *a, const char *b); //strcasecmp defined weakly in unit tests to be able to compile them on windows
 #endif
 
 /// Lazy Dir View

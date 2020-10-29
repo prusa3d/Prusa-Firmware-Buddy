@@ -10,7 +10,7 @@
 //WI_LABEL
 class WI_LABEL_t : public IWindowMenuItem {
 public:
-    WI_LABEL_t(const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
+    WI_LABEL_t(string_view_utf8 label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif) override;
 };
 
@@ -29,7 +29,7 @@ protected:
     virtual void printText(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 
 public:
-    IWiSpin(const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+    IWiSpin(string_view_utf8 label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
         : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden) {}
     virtual void OnClick() {}
 };
@@ -47,7 +47,7 @@ protected:
     virtual char *sn_prt() const;
 
 public:
-    WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
+    WI_SPIN_t(T value, const T *range, const char *prt_format, string_view_utf8 label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif) override;
     void ClrVal() { value = static_cast<T>(0); }
 };
@@ -58,7 +58,7 @@ class WI_SPIN_I08_t : public WI_SPIN_t<int8_t> {
     constexpr static const char *prt_format = "%d";
 
 public:
-    WI_SPIN_I08_t(int8_t value, const int8_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+    WI_SPIN_I08_t(int8_t value, const int8_t *range, string_view_utf8 label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
         : WI_SPIN_t<int8_t>(value, range, prt_format, label, id_icon, enabled, hidden) {}
 };
 
@@ -68,7 +68,7 @@ class WI_SPIN_I16_t : public WI_SPIN_t<int16_t> {
     constexpr static const char *prt_format = "%d";
 
 public:
-    WI_SPIN_I16_t(int16_t value, const int16_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+    WI_SPIN_I16_t(int16_t value, const int16_t *range, string_view_utf8 label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
         : WI_SPIN_t<int16_t>(value, range, prt_format, label, id_icon, enabled, hidden) {}
 };
 
@@ -78,7 +78,7 @@ class WI_SPIN_I32_t : public WI_SPIN_t<int32_t> {
     constexpr static const char *prt_format = "%d";
 
 public:
-    WI_SPIN_I32_t(int32_t value, const int32_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+    WI_SPIN_I32_t(int32_t value, const int32_t *range, string_view_utf8 label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
         : WI_SPIN_t<int32_t>(value, range, prt_format, label, id_icon, enabled, hidden) {}
 };
 
@@ -88,7 +88,7 @@ class WI_SPIN_U08_t : public WI_SPIN_t<uint8_t> {
     constexpr static const char *prt_format = "%u";
 
 public:
-    WI_SPIN_U08_t(uint8_t value, const uint8_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+    WI_SPIN_U08_t(uint8_t value, const uint8_t *range, string_view_utf8 label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
         : WI_SPIN_t<uint8_t>(value, range, prt_format, label, id_icon, enabled, hidden) {}
 };
 
@@ -98,7 +98,7 @@ class WI_SPIN_U16_t : public WI_SPIN_t<uint16_t> {
     constexpr static const char *prt_format = "%u";
 
 public:
-    WI_SPIN_U16_t(uint16_t value, const uint16_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+    WI_SPIN_U16_t(uint16_t value, const uint16_t *range, string_view_utf8 label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
         : WI_SPIN_t<uint16_t>(value, range, prt_format, label, id_icon, enabled, hidden) {}
 };
 
@@ -108,7 +108,7 @@ class WI_SPIN_U32_t : public WI_SPIN_t<uint32_t> {
     constexpr static const char *prt_format = "%u";
 
 public:
-    WI_SPIN_U32_t(uint32_t value, const uint32_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+    WI_SPIN_U32_t(uint32_t value, const uint32_t *range, string_view_utf8 label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
         : WI_SPIN_t<uint32_t>(value, range, prt_format, label, id_icon, enabled, hidden) {}
 };
 
@@ -116,7 +116,7 @@ public:
 class IWiSwitch : public AddSuper<IWindowMenuItem> {
 public:
     size_t index; //todo private
-    IWiSwitch(int32_t index, const char *label, uint16_t id_icon, bool enabled, bool hidden);
+    IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, bool enabled, bool hidden);
     virtual void ClrIndex() { index = 0; }
     virtual size_t size() = 0;
     virtual bool Change(int dif);
@@ -146,7 +146,7 @@ public:
     //cannot create const std::array<const char *, SZ> with std::initializer_list<const char*>
     //template<class ...E> and {{std::forward<E>(e)...}} is workaround
     template <class... E>
-    WI_SWITCH_t(int32_t index, const char *label, uint16_t id_icon, bool enabled, bool hidden, E &&... e)
+    WI_SWITCH_t(int32_t index, string_view_utf8 label, uint16_t id_icon, bool enabled, bool hidden, E &&... e)
         : AddSuper<IWiSwitch>(index, label, id_icon, enabled, hidden)
         , items { { std::forward<E>(e)... } } {}
 
@@ -160,7 +160,7 @@ class WI_SWITCH_OFF_ON_t : public WI_SWITCH_t<2> {
     constexpr static const char *str_On = N_("On");
 
 public:
-    WI_SWITCH_OFF_ON_t(bool index, const char *const label, uint16_t id_icon, bool enabled, bool hidden)
+    WI_SWITCH_OFF_ON_t(bool index, string_view_utf8 label, uint16_t id_icon, bool enabled, bool hidden)
         : WI_SWITCH_t<2>(size_t(index), label, id_icon, enabled, hidden, str_Off, str_On) {}
 };
 
@@ -168,8 +168,6 @@ public:
 //WI_SELECT == switch with no label
 //but can be selected like WI_SPIN
 class WI_SELECT_t : public IWindowMenuItem {
-    constexpr static const char *no_lbl = "";
-
 public: //todo private
     uint32_t index;
     const char **strings;
@@ -186,7 +184,7 @@ public:
 //template definitions
 //WI_SPIN_t
 template <class T>
-WI_SPIN_t<T>::WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon, bool enabled, bool hidden)
+WI_SPIN_t<T>::WI_SPIN_t(T value, const T *range, const char *prt_format, string_view_utf8 label, uint16_t id_icon, bool enabled, bool hidden)
     : AddSuper<IWiSpin>(label, id_icon, enabled, hidden)
     , value(value)
     , range(range)

@@ -165,7 +165,7 @@ static void print_button_press() {
 
 screen_print_preview_data_t::screen_print_preview_data_t()
     : AddSuperWindow<window_frame_t>()
-    , title_text(this, Rect16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT), is_multiline::no)
+    , title_text(this, Rect16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT))
     , print_button(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_print_58px, print_button_press)
     , print_label(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
     , back_button(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_back_32px, []() { Screens::Access()->Close(); })
@@ -173,6 +173,8 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     , gcode(this)
     , redraw_thumbnail(gcode.has_thumbnail) {
     marlin_set_print_speed(100);
+
+    suppress_draw = false;
 
     super::ClrMenuTimeoutClose();
     // Title
@@ -204,8 +206,6 @@ bool screen_print_preview_data_t::gcode_file_exists() {
 
 //FIXME simple solution not to brake functionality before release
 //rewrite later
-static bool suppress_draw = false;
-
 void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).
@@ -227,7 +227,6 @@ void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, wi
             break;
         case Response::No: //NO - cancel
             Screens::Access()->Close();
-            suppress_draw = false;
             return;
         case Response::Ignore: //IGNORE - disable
             fs_disable();

@@ -6,6 +6,7 @@ Rect16::Rect16(point_i16_t p0, point_i16_t p1)
         std::swap(p1.x, top_left_.x);
     if (p1.y < top_left_.y)
         std::swap(p1.y, top_left_.y);
+    /// numbers are sorted so negative result is not possible
     width_ = p1.x - top_left_.x + 1;
     height_ = p1.y - top_left_.y + 1;
 }

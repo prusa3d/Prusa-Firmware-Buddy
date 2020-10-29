@@ -66,6 +66,8 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     bool waiting_for_abort; /// flag specific for stop pressed when MBL is performed
     printing_state_t state__readonly__use_change_print_state;
 
+    const Rect16 popup_rect;
+
 public:
     screen_printing_data_t();
 
@@ -94,4 +96,5 @@ private:
 
 public:
     printing_state_t GetState() const;
+    virtual Rect16 GetPopUpRect() override { return popup_rect; }
 };

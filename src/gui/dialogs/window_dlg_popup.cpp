@@ -11,16 +11,17 @@
 #include "ScreenHandler.hpp"
 
 window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
-    : AddSuperWindow<IDialog>(rect)
+    : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rect, win_type_t::popup)
     , text(this, rect, is_multiline::yes, is_closed_on_click_t::no, txt)
     , open_time(0)
     , ttl(0) {
+    Disable();
     text.SetAlignment(ALIGN_LEFT_TOP);
     text.SetPadding({ 0, 2, 0, 2 });
 }
 
-void window_dlg_popup_t::Show(string_view_utf8 txt, uint32_t time) {
-    static window_dlg_popup_t dlg(Rect16(0, 70, 240, 120), txt);
+void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) {
+    static window_dlg_popup_t dlg(rect, txt);
     dlg.open_time = HAL_GetTick();
     dlg.ttl = time;
     dlg.text.SetText(txt);
@@ -31,27 +32,15 @@ void window_dlg_popup_t::Show(string_view_utf8 txt, uint32_t time) {
             parent->RegisterSubWin(&dlg);
         }
     }
-    if (GetCapturedWindow() != &dlg) {
-        dlg.StoreCapture();
-        dlg.SetCapture();
-    }
-    //in 1st call text will be set twice, I could use static bool variable to prevent it
-    //but i prefer fewer code instead
-}
-
-//no need to care about focus/caption after unregistration
-//Screens::Loop() auto sets focus and caption to new screen or its child window
-void window_dlg_popup_t::UnregisterFromParent() {
-    if (!GetParent())
-        return;
-    releaseCapture();
-    GetParent()->UnregisterSubWin(this);
-    SetParent(nullptr);
 }
 
 void window_dlg_popup_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     const uint32_t openned = HAL_GetTick() - open_time;
-    if (event == GUI_event_t::LOOP && openned > ttl) //todo use timer
-        UnregisterFromParent();
-    SuperWindowEvent(sender, event, param);
+    if (event == GUI_event_t::LOOP && openned > ttl) { //todo use timer
+        if (GetParent()) {
+            GetParent()->UnregisterSubWin(this);
+            //frame will set parrent to null
+        }
+    } else
+        SuperWindowEvent(sender, event, param);
 }

@@ -1,5 +1,6 @@
 #include "DialogFactory.hpp"
 #include "i18n.h"
+#include "DialogLoadUnload.hpp"
 
 DialogFactory::mem_space DialogFactory::all_dialogs;
 
@@ -16,12 +17,14 @@ static_unique_ptr<IDialogMarlin> DialogFactory::load_unload(uint8_t data) {
     string_view_utf8 name;
     switch (static_cast<LoadUnloadMode>(data)) {
     case LoadUnloadMode::Change:
+        DialogLoadUnload::is_M600_phase = true;
         name = _(change);
         break;
     case LoadUnloadMode::Load:
         name = _(load);
         break;
     case LoadUnloadMode::Unload:
+        DialogLoadUnload::is_M600_phase = false;
         name = _(unload);
         break;
     case LoadUnloadMode::Purge:

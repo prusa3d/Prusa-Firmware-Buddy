@@ -19,7 +19,7 @@ void window_text_t::SetPadding(padding_ui8_t padd) {
 }
 
 window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close, string_view_utf8 txt)
-    : AddSuperWindow<window_aligned_t>(parent, rect, is_dialog_t::no, close)
+    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , text(txt)

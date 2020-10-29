@@ -21,6 +21,7 @@ enum class GUI_event_t {
     CHANGING,    //value/index changing (tag > 0)
     LOOP,        //gui loop (every 50ms)
     TIMER,       //gui timer
+    TEXT_ROLL,   //tick for text rolling classes
     MESSAGE,     //onStatusChange() message notification
     CHILD_CLICK, //click at the child screen
 };
@@ -61,39 +62,41 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
     // error: 'txt' declared 'static' in 'constexpr' function
     switch (event) {
     case GUI_event_t::BTN_DN:
-        return ("button down");
+        return "button down";
     case GUI_event_t::BTN_UP:
-        return ("button up");
+        return "button up";
     case GUI_event_t::ENC_DN:
-        return ("encoder minus");
+        return "encoder minus";
     case GUI_event_t::ENC_UP:
-        return ("encoder plus");
+        return "encoder plus";
     case GUI_event_t::FOCUS0:
-        return ("focus lost");
+        return "focus lost";
     case GUI_event_t::FOCUS1:
-        return ("focus set");
+        return "focus set";
     case GUI_event_t::CAPT_0:
-        return ("capture lost");
+        return "capture lost";
     case GUI_event_t::CAPT_1:
-        return ("capture set");
+        return "capture set";
     case GUI_event_t::CLICK:
-        return ("clicked");
+        return "clicked";
     case GUI_event_t::HOLD:
-        return ("held button");
+        return "held button";
     case GUI_event_t::CHANGE:
-        return ("value/index changed");
+        return "value/index changed";
     case GUI_event_t::CHANGING:
-        return ("value/index changing");
+        return "value/index changing";
     case GUI_event_t::LOOP:
-        return ("gui loop");
+        return "gui loop";
     case GUI_event_t::TIMER:
-        return ("gui timer");
+        return "gui timer";
+    case GUI_event_t::TEXT_ROLL:
+        return "text roll base tick";
     case GUI_event_t::MESSAGE:
-        return ("message notification");
+        return "message notification";
     case GUI_event_t::CHILD_CLICK:
-        return ("child click");
+        return "child click";
     }
-    return ("error bad index");
+    return "error bad index";
 }
 
 //forward declarations

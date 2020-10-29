@@ -38,8 +38,8 @@ void IScreenPrinting::TuneAction() {
         IScreenPrinting::ths->tuneAction();
 }
 
-bool IScreenPrinting::CanOpen() {
-    return IScreenPrinting::ths == nullptr;
+IScreenPrinting *IScreenPrinting::GetInstance() {
+    return IScreenPrinting::ths;
 }
 
 void IScreenPrinting::NotifyMarlinStart() {

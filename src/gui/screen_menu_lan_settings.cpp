@@ -164,7 +164,7 @@ class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_LAN_ONOFF()
-        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, label, 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, _(label), 0, true, false) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::On() : Eth::Off();
     }
@@ -181,7 +181,7 @@ class MI_LAN_IP_t : public WI_SWITCH_t<2> {
 
 public:
     MI_LAN_IP_t()
-        : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, label, 0, true, false, str_DHCP, str_static) {}
+        : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, _(label), 0, true, false, str_DHCP, str_static) {}
     virtual void OnChange(size_t old_index) override {
         bool success = old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
         if (!success)
@@ -197,7 +197,7 @@ class MI_LAN_SAVE : public WI_LABEL_t {
 
 public:
     MI_LAN_SAVE()
-        : WI_LABEL_t(label, 0, true, false) {}
+        : WI_LABEL_t(_(label), 0, true, false) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::SaveMessage();
     }
@@ -208,7 +208,7 @@ class MI_LAN_LOAD : public WI_LABEL_t {
 
 public:
     MI_LAN_LOAD()
-        : WI_LABEL_t(label, 0, true, false) {}
+        : WI_LABEL_t(_(label), 0, true, false) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::LoadIni();
     }
@@ -243,7 +243,7 @@ protected:
 };
 
 ScreenMenuLanSettings::ScreenMenuLanSettings()
-    : AddSuperWindow<window_frame_t>(nullptr, GuiDefaults::RectScreen, is_dialog_t::no, is_closed_on_timeout_t::no)
+    : AddSuperWindow<window_frame_t>(nullptr, GuiDefaults::RectScreen, win_type_t::normal, is_closed_on_timeout_t::no)
     , menu(this, GuiDefaults::RectScreenBodyNoFoot - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), GuiDefaults::RectScreen.Height() - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {

@@ -22,7 +22,7 @@
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Fil. sens.");
+    constexpr static const char *const label = N_("Filament sensor");
 
     void no_sensor_msg() const {
         MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
@@ -42,7 +42,7 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_FILAMENT_SENSOR()
-        : WI_SWITCH_OFF_ON_t(init_index(), label, 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(init_index(), _(label), 0, true, false) {}
     void CheckDisconnected() {
         fsensor_t fs = fs_wait_initialized();
         if (fs == fsensor_t::NotConnected) { //only way to have this state is that fs just disconnected
@@ -75,9 +75,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME,
     MI_LANGUAGE, MI_SORT_FILES,
     MI_SOUND_TYPE, MI_HF_TEST_0, MI_HF_TEST_1,
-    MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
-    MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML,
-    MI_ES_12201, MI_ES_12202, MI_ES_12203, MI_ES_12204, MI_ES_12205, MI_ES_12206, MI_ES_12207, MI_ES_12208>;
+    MI_EEPROM>;
 #else
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_HW_SETUP, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,

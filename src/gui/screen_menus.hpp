@@ -19,3 +19,4 @@ ScreenFactory::UniquePtr GetScreenMenuLanSettings();
 ScreenFactory::UniquePtr GetScreenMenuLanguagesNoRet();
 ScreenFactory::UniquePtr GetScreenMenuHwSetup();
 ScreenFactory::UniquePtr GetScreenMenuSteelSheets();
+ScreenFactory::UniquePtr GetScreenEeprom();

@@ -14,7 +14,8 @@ bool window_t::IsInvalid() const { return flag_invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return flag_timer; }
-bool window_t::IsDialog() const { return flag_dialog == is_dialog_t::yes; }
+win_type_t window_t::GetType() const { return win_type_t(flags_type); }
+bool window_t::IsDialog() const { return GetType() == win_type_t::dialog || GetType() == win_type_t::strong_dialog; }
 bool window_t::ClosedOnTimeout() const { return flag_timeout_close == is_closed_on_timeout_t::yes; }
 bool window_t::ClosedOnSerialPrint() const { return flag_serial_close == is_closed_on_serial_t::yes; }
 
@@ -136,13 +137,13 @@ void window_t::SetBackColor(color_t clr) {
     Invalidate();
 }
 
-window_t::window_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_on_click_t close)
+window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
     : parent(parent)
     , next(nullptr)
     , flg(0)
     , rect(rect)
     , color_back(GuiDefaults::ColorBack) {
-    flag_dialog = dialog;
+    flags_type = uint32_t(type);
     flag_close_on_click = close;
     close == is_closed_on_click_t::yes ? Enable() : Disable();
     Show();
@@ -158,8 +159,8 @@ window_t::~window_t() {
     if (GetCapturedWindow() == this)
         capture_ptr = nullptr;
 
-    //no need to unregister non dialogs
-    if (GetParent() && IsDialog())
+    //win_type_t::normal must be unregistered so ~window_frame_t can has functional linked list
+    if (GetParent())
         GetParent()->UnregisterSubWin(this);
 }
 
@@ -304,8 +305,8 @@ void window_t::ResetFocusedWindow() {
 /*****************************************************************************/
 //window_aligned_t
 
-window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_on_click_t close)
-    : AddSuperWindow<window_t>(parent, rect, dialog, close) {
+window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
+    : AddSuperWindow<window_t>(parent, rect, type, close) {
     SetAlignment(GuiDefaults::Alignment);
 }
 

@@ -13,7 +13,7 @@ class MI_COOLDOWN : public WI_LABEL_t {
 
 public:
     MI_COOLDOWN()
-        : WI_LABEL_t(label, 0, true, false) {
+        : WI_LABEL_t(_(label), 0, true, false) {
     }
 
 protected:
