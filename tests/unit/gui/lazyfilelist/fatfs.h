@@ -5,7 +5,7 @@
 
 // fatfs compatibility layer
 
-#define FF_USE_LFN 1
+#define FF_USE_LFN 2
 #define FF_SFN_BUF 13
 #define FF_LFN_BUF 96
 
