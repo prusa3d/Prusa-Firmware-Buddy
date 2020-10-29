@@ -143,20 +143,27 @@ struct text_wrapper {
         , word_length_(0)   ///< number characters of current word + trailing white character
         , font_(font) {};
 
+    /// \returns false if the new word does not fit current line
+    template <typename source>
+    bool buffer_next_word(source &s) {
+        const uint32_t w = buffering(s); ///< current word's width in pixels
+        index_ = 0;
+        if ((w + current_width_) > width_ && current_width_ != 0) {
+            /// this word will not fit to this line but it's not the first word
+            /// on this line => break the line
+            current_width_ = w;
+            return false;
+        }
+        current_width_ += w;
+        return true;
+    }
+
     template <typename source>
     value_type character(source &s) {
-        if (index_ < 0) {
+        if (index_ < 0)
             /// empty buffer => buffer next word
-            const uint32_t w = buffering(s); ///< current word's width in pixels
-            index_ = 0;
-            if ((w + current_width_) > width_ && current_width_ != 0) {
-                /// this word will not fit to this line but it's not the first word
-                /// on this line => break the line
-                current_width_ = w;
+            if (!buffer_next_word(s))
                 return static_cast<value_type>(CHAR_NL);
-            }
-            current_width_ += w;
-        }
 
         const value_type c = buffer_[index_];
         buffer_[index_] = 0;
@@ -170,17 +177,9 @@ struct text_wrapper {
         if (c == static_cast<value_type>(EOS)) {
             return c;
         } else if (c == static_cast<value_type>(CHAR_SPACE)) {
-
             current_width_ += width::value(font_);
-            {
-                const uint32_t w = buffering(s);
-                index_ = 0;
-                if ((w + current_width_) > width_ && current_width_ != 0) {
-                    current_width_ = w;
-                    return static_cast<value_type>(CHAR_NL);
-                }
-                current_width_ += w;
-            }
+            if (!buffer_next_word(s))
+                return static_cast<value_type>(CHAR_NL);
 
         } else if (c == static_cast<value_type>(CHAR_NL))
             current_width_ = 0;
