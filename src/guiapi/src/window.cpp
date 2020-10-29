@@ -1,7 +1,6 @@
 //window.cpp
 
 #include "window.hpp"
-#include "gui.hpp"
 #include <algorithm> // std::find
 #include "ScreenHandler.hpp"
 
@@ -235,7 +234,8 @@ void window_t::draw() {
 }
 
 //window does not support subwindow elements, but window_frame does
-void window_t::RegisterSubWin(window_t *win) {
+bool window_t::RegisterSubWin(window_t *win) {
+    return false;
 }
 
 void window_t::unconditionalDraw() {

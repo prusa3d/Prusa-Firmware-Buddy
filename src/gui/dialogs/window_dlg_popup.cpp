@@ -28,7 +28,6 @@ void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) 
     if (!dlg.GetParent()) {
         window_t *parent = Screens::Access()->Get();
         if (parent) {
-            dlg.SetParent(parent);
             parent->RegisterSubWin(&dlg);
         }
     }

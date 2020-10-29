@@ -18,17 +18,17 @@ class window_frame_t : public AddSuperWindow<window_t> {
     // this methods does not check rect or window type of win
     // public methods RegisterSubWin/UnregisterSubWin does
     // reference is used so nullptr test can be skipped
-    void registerNormal(window_t &win);         // just register no need to check anything
-    void registerDialog(window_t &win);         // register on top of all windows except strong_dialogs
-    void registerStrongDialog(window_t &win);   // just register no need to check anything
-    void registerPopUp(window_t &win);          // fails if there is an overlaping dialog
+    bool registerNormal(window_t &win);         // just register no need to check anything
+    bool registerDialog(window_t &win);         // register on top of all windows except strong_dialogs
+    bool registerStrongDialog(window_t &win);   // just register no need to check anything
+    bool registerPopUp(window_t &win);          // fails if there is an overlaping dialog
     void unregisterNormal(window_t &win);       // normal unregistration
     void unregisterDialog(window_t &win);       // normal unregistration, manage hidden behind dialog flags
     void unregisterStrongDialog(window_t &win); // normal unregistration, todo what if there is more than one strong dialog?
     void unregisterPopUp(window_t &win);        // just notify popup about unregistration, it wil unregister itself
 
 public:
-    virtual void RegisterSubWin(window_t *win) override;
+    virtual bool RegisterSubWin(window_t *win) override;
     virtual void UnregisterSubWin(window_t *win) override;
     window_t *GetFirst() const;
     window_t *GetLast() const;

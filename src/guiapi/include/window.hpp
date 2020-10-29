@@ -118,7 +118,7 @@ public:
     window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
 
-    virtual void RegisterSubWin(window_t *win);
+    virtual bool RegisterSubWin(window_t *win);
     virtual void UnregisterSubWin(window_t *win) {} //meant for dialogs, remove this window from frame
 
     void ShiftNextTo(ShiftDir_t direction);
