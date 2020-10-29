@@ -100,7 +100,7 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
     y += h;
     int h1 = std::max(0, rc.EndPoint().y - y);
     if (h1 > 0) /// FIXME hotfix because FillRect draws nonempty rect. for height 0
-        display::FillRect(Rect16(rc.Left(), y, rc.Width() - 10, h1), clr_bg);
+        display::FillRect(Rect16(rc.Left(), y, rc.Width(), h1), clr_bg);
 
     return size_ui16_t { rc.Width(), rc.Height() };
 }
