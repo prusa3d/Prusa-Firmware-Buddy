@@ -69,7 +69,8 @@ screen_home_data_t::screen_home_data_t()
 #ifndef _DEBUG
     header.SetText(_("HOME"));
 #else
-    header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)(N_("HOME - DEBUG - what a beautifull rolling text"))));
+    static const uint8_t msgHomeDebugRolling[] = "HOME - DEBUG - what a beautifull rolling text";
+    header.SetText(string_view_utf8::MakeCPUFLASH(msgHomeDebugRolling)); // intentionally not translated
 #endif
 
     for (uint8_t row = 0; row < 2; row++) {
