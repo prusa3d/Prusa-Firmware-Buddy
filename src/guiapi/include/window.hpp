@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 #include <functional>
-#include "guitypes.hpp"
+#include "GuiDefaults.hpp"
 #include "../../lang/string_view_utf8.hpp"
 #include "Rect16.h"
 #include "window_event.hpp"
