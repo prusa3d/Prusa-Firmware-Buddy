@@ -1,11 +1,10 @@
 //window.cpp
 
 #include "window.hpp"
-#include "gui.hpp"
 #include <algorithm> // std::find
 #include "ScreenHandler.hpp"
-
-extern osThreadId displayTaskHandle;
+#include "gui_timer.h"
+#include "display.h"
 
 bool window_t::IsVisible() const { return flag_visible && !flag_hidden_behind_dialog; }
 bool window_t::IsHiddenBehindDialog() const { return flag_hidden_behind_dialog; }
@@ -235,7 +234,8 @@ void window_t::draw() {
 }
 
 //window does not support subwindow elements, but window_frame does
-void window_t::RegisterSubWin(window_t *win) {
+bool window_t::RegisterSubWin(window_t *win) {
+    return false;
 }
 
 void window_t::unconditionalDraw() {
