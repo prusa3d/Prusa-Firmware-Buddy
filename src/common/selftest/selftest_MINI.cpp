@@ -278,24 +278,32 @@ void CSelftest::log_open() {
         serial_otp = 0;
     }
     char serial[32] = "unknown";
-    const char *suffix = "";
-    switch (m_Mask) {
-    case stmFans:
-        suffix = "_fans";
-        break;
-    case stmXYAxis:
-    case stmHome_XYAxis:
-        suffix = "_xyz";
-        break;
-    case stmXYZAxis:
-    case stmHome_XYZAxis:
-        suffix = "_xyz";
-        break;
-    case stmHeaters:
-        suffix = "_heaters";
-        break;
-    default:
-        break;
+    const char *suffix = "_no_suffix";
+     if (m_Mask & stmFans)
+     suffix = "_fans";
+     if (m_Mask & stmXYAxis)
+     suffix = "_xyz";
+     if (m_Mask & stmXYZAxis)
+     suffix = "_xyz";
+     if (m_Mask & stmHeaters)
+     suffix = "_heaters";
+     //switch (m_Mask) {
+     //case stmFans:
+     //    suffix = "_fans";
+     //    break;
+     // case stmXYAxis:
+     // case stmHome_XYAxis:
+     //     suffix = "_xyz";
+     //     break;
+     // case stmXYZAxis:
+     // case stmHome_XYZAxis:
+     //     suffix = "_xyz";
+     //     break;
+     // case stmHeaters:
+     //     suffix = "_heaters";
+     //     break;
+     // default:
+     //   break;
     }
     char fname[64];
     snprintf(fname, sizeof(fname), "test_unknown%s.txt", suffix);

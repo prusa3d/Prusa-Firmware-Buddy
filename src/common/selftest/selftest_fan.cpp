@@ -60,7 +60,7 @@ bool CSelftestPart_Fan::Loop() {
             return true;
         }
         uint16_t rpm = m_SampleSum / m_SampleCount;
-        Selftest.log_printf("%s at %u%% PWM = %u RPM\n", m_pConfig->partname, m_pConfig->pfanctl->getPWM(), rpm);
+        Selftest.log_printf("%s at %u%% PWM = %u RPM\n", m_pConfig->partname, 2*(m_pConfig->pfanctl->getPWM()), rpm); 
         if ((m_pConfig->rpm_min_table != nullptr) && (m_pConfig->rpm_max_table != nullptr))
             if ((rpm < m_pConfig->rpm_min_table[m_Step]) || (rpm > m_pConfig->rpm_max_table[m_Step])) {
                 Selftest.log_printf("%s %u RPM out of range (%u - %u)\n", m_pConfig->partname, rpm, m_pConfig->rpm_min_table[m_Step], m_pConfig->rpm_max_table[m_Step]);
