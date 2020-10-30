@@ -2,11 +2,8 @@
 
 #pragma once
 
-#include "guitypes.hpp"
-#include "GuiDefaults.hpp"
 #include "window.hpp"
 #include "window_filter.hpp"
-#include "display.h"
 
 class window_frame_t : public AddSuperWindow<window_t> {
     window_t *first;
