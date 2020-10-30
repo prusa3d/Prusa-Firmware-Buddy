@@ -48,7 +48,7 @@ public:
     ScreenMenuFwUpdate()
         : Screen(_(label)) {
         help.font = resource_font(IDR_FNT_SPECIAL);
-        help.SetText(_("Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."));
+        help.SetText(_("Select when you want to automatically flash updated firmware from USB flash disk."));
     }
 
 protected:
