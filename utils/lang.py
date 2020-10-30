@@ -140,19 +140,19 @@ def format_c_array(items, indent=4):
 
 def dump_hpp_array(path: Path, decl, items):
     """Write down a file with array definition."""
-    with open(path, 'w') as f:
+    with open(path, 'w', encoding='utf-8') as f:
         f.write(decl + ' = ' + format_c_array(items, indent=4))
 
 
 def dump_ipp_array(path: Path, items):
     """Write down a file with array definition (no decl, to be used inlined)"""
-    with open(path, 'w') as f:
+    with open(path, 'w', encoding='utf-8') as f:
         f.write(format_c_array(items, indent=0))
 
 
 def dump_buckets_count(path: Path, buckets_count):
     """Write down a file composed of constexpr size_t buckets_count = xxxx;"""
-    with open(path, 'w') as f:
+    with open(path, 'w', encoding='utf-8') as f:
         f.write('constexpr size_t buckets_count = ' + str(buckets_count) +
                 ';\n')
 
@@ -254,8 +254,8 @@ def cmd_dump_pofiles(args):
     # get list of keys
     keys = list(entry.msgid for entry in list(translations.values())[0])
     # output the keys.txt file
-    open(args.output_dir / 'keys.txt',
-         'w').writelines(k.replace('\n', '\\n') + '\n' for k in keys)
+    open(args.output_dir / 'keys.txt', 'w', encoding='utf-8').writelines(
+        k.replace('\n', '\\n') + '\n' for k in keys)
     # output all the [lang].txt files
     for langcode, pofile in translations.items():
         lines = list()
@@ -266,7 +266,8 @@ def cmd_dump_pofiles(args):
                     entry.msgid, key, langcode)
                 break
             lines.append(entry.msgstr.replace('\n', '\\n') + '\n')
-        open(args.output_dir / f'{langcode}.txt', 'w').writelines(lines)
+        open(args.output_dir / f'{langcode}.txt', 'w',
+             encoding='utf-8').writelines(lines)
 
 
 def main():
