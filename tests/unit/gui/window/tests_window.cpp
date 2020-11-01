@@ -4,6 +4,7 @@
 #include "window_frame.hpp"
 #include "sound_enum.h"
 #include "window_dlg_popup.hpp"
+#include "ScreenHandler.hpp"
 #include "cmsis_os.h" //HAL_GetTick
 
 void gui_timers_delete_by_window(window_t *pWin) {}
@@ -33,6 +34,7 @@ struct MockScreen : public AddSuperWindow<window_frame_t> {
 
 TEST_CASE("Window tests", "[window]") {
     MockScreen screen;
+    Screens::Access()->Set(&screen); //instead of screen registration
     window_text_t t(nullptr, Rect16(), is_multiline::no);
     window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
     SECTION("window registration") {
