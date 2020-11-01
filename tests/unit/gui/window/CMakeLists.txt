@@ -8,6 +8,7 @@ add_executable(
 # define required search paths
 target_include_directories(window_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include)
 target_include_directories(window_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/common)
+target_include_directories(window_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/gui/dialogs)
 
 # tell build system about the test case
 add_catch_test(window_tests)
