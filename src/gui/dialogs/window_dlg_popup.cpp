@@ -6,9 +6,8 @@
  */
 
 #include "window_dlg_popup.hpp"
-#include "display_helper.h"
-#include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "cmsis_os.h" //HAL_GetTick
 
 window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
     : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rect, win_type_t::popup)

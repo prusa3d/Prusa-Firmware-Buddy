@@ -4,11 +4,15 @@
 #include "window_frame.hpp"
 #include "sound_enum.h"
 #include "window_dlg_popup.hpp"
+#include "cmsis_os.h" //HAL_GetTick
 
 void gui_timers_delete_by_window(window_t *pWin) {}
 void gui_invalidate(void) {}
 EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {}
 void Sound_Play(eSOUND_TYPE eSoundType) {}
+
+//stubbed header does not have C linkage .. to be simpler
+uint32_t HAL_GetTick() { return 0; }
 
 struct MockScreen : public AddSuperWindow<window_frame_t> {
     window_t dummy0; // just so w0 is not first
@@ -28,10 +32,10 @@ struct MockScreen : public AddSuperWindow<window_frame_t> {
 };
 
 TEST_CASE("Window tests", "[window]") {
-
+    MockScreen screen;
+    window_text_t t(nullptr, Rect16(), is_multiline::no);
+    window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
     SECTION("window registration") {
-        MockScreen screen;
-
         //check parrent
         REQUIRE(screen.dummy0.GetParent() == &screen);
         REQUIRE(screen.dummy1.GetParent() == &screen);
