@@ -32,28 +32,38 @@ struct MockScreen : public AddSuperWindow<window_frame_t> {
         , dummy1(this, Rect16(0, 0, 10, 10)) {}
 };
 
-TEST_CASE("Window tests", "[window]") {
+void initial_test(MockScreen &screen) {
+    //check parrent
+    REQUIRE(screen.dummy0.GetParent() == &screen);
+    REQUIRE(screen.dummy1.GetParent() == &screen);
+    REQUIRE(screen.w0.GetParent() == &screen);
+    REQUIRE(screen.w1.GetParent() == &screen);
+    REQUIRE(screen.w2.GetParent() == &screen);
+    REQUIRE(screen.w3.GetParent() == &screen);
+
+    //check IsHiddenBehindDialog()
+    REQUIRE_FALSE(screen.dummy0.IsHiddenBehindDialog());
+    REQUIRE_FALSE(screen.dummy1.IsHiddenBehindDialog());
+    REQUIRE_FALSE(screen.w0.IsHiddenBehindDialog());
+    REQUIRE_FALSE(screen.w1.IsHiddenBehindDialog());
+    REQUIRE_FALSE(screen.w2.IsHiddenBehindDialog());
+    REQUIRE_FALSE(screen.w3.IsHiddenBehindDialog());
+
+    //check linked list
+    REQUIRE(screen.GetFirst() == &(screen.dummy0));
+    REQUIRE(screen.GetLast() == &(screen.dummy1));
+    REQUIRE(screen.GetLast()->GetNext() == nullptr);
+    REQUIRE(screen.GetFirst()->GetNext() == &(screen.w0));
+    REQUIRE(screen.w0.GetNext() == &(screen.w1));
+    REQUIRE(screen.w1.GetNext() == &(screen.w2));
+    REQUIRE(screen.w2.GetNext() == &(screen.w3));
+    REQUIRE(screen.w3.GetNext() == screen.GetLast());
+}
+
+TEST_CASE("Window registration tests", "[window]") {
     MockScreen screen;
     Screens::Access()->Set(&screen); //instead of screen registration
-    window_text_t t(nullptr, Rect16(), is_multiline::no);
-    window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
-    SECTION("window registration") {
-        //check parrent
-        REQUIRE(screen.dummy0.GetParent() == &screen);
-        REQUIRE(screen.dummy1.GetParent() == &screen);
-        REQUIRE(screen.w0.GetParent() == &screen);
-        REQUIRE(screen.w1.GetParent() == &screen);
-        REQUIRE(screen.w2.GetParent() == &screen);
-        REQUIRE(screen.w3.GetParent() == &screen);
-
-        //check linked list
-        REQUIRE(screen.GetFirst() == &(screen.dummy0));
-        REQUIRE(screen.GetLast() == &(screen.dummy1));
-        REQUIRE(screen.GetLast()->GetNext() == nullptr);
-        REQUIRE(screen.GetFirst()->GetNext() == &(screen.w0));
-        REQUIRE(screen.w0.GetNext() == &(screen.w1));
-        REQUIRE(screen.w1.GetNext() == &(screen.w2));
-        REQUIRE(screen.w2.GetNext() == &(screen.w3));
-        REQUIRE(screen.w3.GetNext() == screen.GetLast());
-    }
+    //window_text_t t(nullptr, Rect16(), is_multiline::no);
+    //window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
+    initial_test(screen);
 }

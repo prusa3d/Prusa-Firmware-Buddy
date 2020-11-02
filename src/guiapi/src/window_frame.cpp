@@ -75,7 +75,7 @@ bool window_frame_t::RegisterSubWin(window_t *win) {
     //adding first window is always fine
     if (!(first && last)) {
         first = last = win;
-        return false;
+        return true;
     }
     bool ret = false;
     switch (win->GetType()) {
