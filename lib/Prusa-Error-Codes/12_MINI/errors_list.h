@@ -38,35 +38,51 @@ typedef struct {
 } err_t;
 
 static constexpr err_t error_list[] = {
+    // r=1, c=19
     { N_("HEATING FAILED"),
+        // r=5, c=20
         N_("Check the heatbed heater & thermistor wiring for possible damage."),
         ERR_TEMPERATURE_HEATING_BED },
 
+    // r=1, c=19
     { N_("HEATING FAILED"),
+        // r=5, c=20
         N_("Check the print head heater & thermistor wiring for possible damage."),
         ERR_TEMPERATURE_HEATING_NOZZLE },
 
+    // r=1, c=19
     { N_("THERMAL RUNAWAY"),
+        // r=5, c=20
         N_("Check the heatbed thermistor wiring for possible damage."),
         ERR_TEMPERATURE_RUNAWAY_BED },
 
+    // r=1, c=19
     { N_("THERMAL RUNAWAY"),
+        // r=5, c=20
         N_("Check the print head thermistor wiring for possible damage."),
         ERR_TEMPERATURE_RUNAWAY_NOZZLE },
 
+    // r=1, c=19
     { N_("MAXTEMP ERROR"),
+        // r=5, c=20
         N_("Check the heatbed thermistor wiring for possible damage."),
         ERR_TEMPERATURE_MAX_BED },
 
+    // r=1, c=19
     { N_("MAXTEMP ERROR"),
+        // r=5, c=20
         N_("Check the print head thermistor wiring for possible damage."),
         ERR_TEMPERATURE_MAX_NOZZLE },
 
+    // r=1, c=19
     { N_("MINTEMP ERROR"),
+        // r=5, c=20
         N_("Check the heatbed thermistor wiring for possible damage."),
         ERR_TEMPERATURE_MIN_BED },
 
+    // r=1, c=19
     { N_("MINTEMP ERROR"),
+        // r=5, c=20
         N_("Check the print head thermistor wiring for possible damage."),
         ERR_TEMPERATURE_MIN_NOZZLE },
 };
