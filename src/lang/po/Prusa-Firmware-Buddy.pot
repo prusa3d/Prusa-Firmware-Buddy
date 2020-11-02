@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-11-02 14:11+0100\n"
+"POT-Creation-Date: 2020-11-02 16:16+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -224,7 +224,7 @@ msgid "FILAMENT"
 msgstr ""
 
 #: src/gui/wizard/screen_wizard.cpp:184
-msgid "FIRST LAYER CALIB."
+msgid "FIRST LAYER CALIBRATION"
 msgstr ""
 
 #: src/gui/screen_menu_fw_update.cpp:47
@@ -248,7 +248,7 @@ msgid "Fail Stats"
 msgstr ""
 
 #: src/gui/dialogs/DialogSelftestFans.cpp:11
-msgid "Fan test"
+msgid "Fan Test"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:99
@@ -267,14 +267,14 @@ msgstr ""
 msgid "Filament"
 msgstr ""
 
+#: src/gui/screen_menu_settings.cpp:25 src/guiapi/include/MItem_tools.hpp:359
+msgid "Filament Sensor"
+msgstr ""
+
 #: src/gui/screen_print_preview.cpp:223
 msgid ""
 "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to "
 "disable the filament sensor and continue."
-msgstr ""
-
-#: src/gui/screen_menu_settings.cpp:25 src/guiapi/include/MItem_tools.hpp:359
-msgid "Filament sensor"
 msgstr ""
 
 #. ***************************************************************************
@@ -288,12 +288,9 @@ msgstr ""
 msgid "Firmware Version\n"
 msgstr ""
 
-#: src/gui/ScreenFirstLayer.hpp:12 src/guiapi/include/MItem_tools.hpp:59
+#: src/gui/screen_menu_steel_sheets.cpp:46 src/gui/ScreenFirstLayer.hpp:12
+#: src/guiapi/include/MItem_tools.hpp:59
 msgid "First Layer Calibration"
-msgstr ""
-
-#: src/gui/screen_menu_steel_sheets.cpp:46
-msgid "First layer calibration"
 msgstr ""
 
 #: src/guiapi/include/MItem_print.hpp:40
@@ -360,7 +357,7 @@ msgid "Hotend"
 msgstr ""
 
 #: src/gui/dialogs/DialogSelftestFans.cpp:13
-msgid "Hotend fan"
+msgid "Hotend Fan"
 msgstr ""
 
 #. Filament_removed
@@ -427,7 +424,7 @@ msgid "LOAD FILAMENT"
 msgstr ""
 
 #: src/guiapi/include/MItem_menus.hpp:129
-msgid "Lan settings"
+msgid "Lan Settings"
 msgstr ""
 
 #: src/guiapi/include/MItem_menus.hpp:149
@@ -443,7 +440,7 @@ msgid "Load Filament"
 msgstr ""
 
 #: src/gui/screen_menu_lan_settings.cpp:207
-msgid "Load settings"
+msgid "Load Settings"
 msgstr ""
 
 #: src/gui/screen_splash.cpp:43
@@ -468,7 +465,7 @@ msgid "MAXTEMP ERROR"
 msgstr ""
 
 #: src/gui/test/screen_mesh_bed_lv.cpp:56
-msgid "MESH BED L."
+msgid "MESH BED LEVELING"
 msgstr ""
 
 #. Rect16(10, 28, 11 * 20, 18 * 16))
@@ -712,16 +709,13 @@ msgstr ""
 msgid "Print"
 msgstr ""
 
+#: src/gui/dialogs/DialogSelftestFans.cpp:15
 #: src/guiapi/include/MItem_print.hpp:24
 msgid "Print Fan"
 msgstr ""
 
 #: src/gui/screen_print_preview.cpp:127
 msgid "Print Time"
-msgstr ""
-
-#: src/gui/dialogs/DialogSelftestFans.cpp:15
-msgid "Print fan"
 msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
@@ -819,7 +813,7 @@ msgid "SENSOR INFO"
 msgstr ""
 
 #: src/gui/screen_printing_serial.hpp:13
-msgid "SERIAL PRT."
+msgid "SERIAL PRINTING"
 msgstr ""
 
 #: src/gui/screen_menu_settings.cpp:91
@@ -841,7 +835,7 @@ msgid "Save Crash Dump"
 msgstr ""
 
 #: src/gui/screen_menu_lan_settings.cpp:196
-msgid "Save settings"
+msgid "Save Settings"
 msgstr ""
 
 #. / draw "Scan me" text
@@ -861,7 +855,7 @@ msgid "Select"
 msgstr ""
 
 #: src/gui/wizard/firstlay.cpp:89
-msgid "Select filament type"
+msgid "Select Filament Type"
 msgstr ""
 
 #: src/gui/screen_menu_fw_update.cpp:51
@@ -899,7 +893,7 @@ msgid "Silent"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:304
-msgid "Sort files by"
+msgid "Sort Files by"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:271
@@ -972,12 +966,12 @@ msgstr ""
 msgid "Test FANs"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:79
-msgid "Test XYZ-Axis"
+#: src/guiapi/include/MItem_tools.hpp:89
+msgid "Test Heaters"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:89
-msgid "Test heaters"
+#: src/guiapi/include/MItem_tools.hpp:79
+msgid "Test XYZ-Axis"
 msgstr ""
 
 #: src/gui/wizard/screen_wizard.cpp:143
@@ -1125,7 +1119,7 @@ msgid "WIZARD - OK"
 msgstr ""
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:17
-msgid "Waiting for temp."
+msgid "Waiting for temperature"
 msgstr ""
 
 #: src/guiapi/src/window_msgbox.cpp:162

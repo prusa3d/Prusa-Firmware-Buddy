@@ -86,7 +86,7 @@ StateFncData StateFnc_FIRSTLAY_FILAMENT_ASK(StateFncData last_run) {
 }
 
 StateFncData StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT(StateFncData last_run) {
-    gui_dlg_preheat_forced(_("Select filament type"));
+    gui_dlg_preheat_forced(_("Select Filament Type"));
     return FIRSTLAY_FILAMENT_done();
 }
 
