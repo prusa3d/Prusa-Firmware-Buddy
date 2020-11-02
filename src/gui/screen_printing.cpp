@@ -1,16 +1,13 @@
 //screen_printing.cpp
 #include "dbg.h"
 #include "screen_printing.hpp"
-#include "config.h"
 #include "marlin_client.h"
-#include "marlin_server.h"
 #include "print_utils.hpp"
 #include "ffconf.h"
 #include "ScreenHandler.hpp"
 #include "screen_menus.hpp"
 #include <ctime>
 #include "wui_api.h"
-#include "i18n.h"
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"
 

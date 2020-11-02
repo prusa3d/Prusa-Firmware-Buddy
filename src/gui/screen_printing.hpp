@@ -1,6 +1,5 @@
 //screen_printing.hpp
 #pragma once
-#include "gui.hpp"
 #include "status_footer.h"
 #include "window_header.hpp"
 #include "window_roll_text.hpp"
