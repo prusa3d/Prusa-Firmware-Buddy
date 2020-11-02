@@ -89,6 +89,7 @@ typedef struct _eeprom_vars_t {
     Sheet SHEET_PROFILE5;
     Sheet SHEET_PROFILE6;
     Sheet SHEET_PROFILE7;
+    uint32_t SELFTEST_RESULT;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -140,6 +141,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SHEET_PROFILE5",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SHEET_PROFILE6",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SHEET_PROFILE7",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SELFTEST_RESULT", VARIANT8_UI32,  1, 0 }, // EEVAR_SELFTEST_RESULT
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -193,6 +195,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     {"Custom2", FLT_MAX },
     {"Custom3", FLT_MAX },
     {"Custom4", FLT_MAX },
+	0,               // EEVAR_SELFTEST_RESULT
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };

@@ -76,8 +76,9 @@ enum {
     EEVAR_SHEET_PROFILE5 = 0x25,
     EEVAR_SHEET_PROFILE6 = 0x26,
     EEVAR_SHEET_PROFILE7 = 0x27,
-    EEVAR__PADDING = 0x28, // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x29,    // uint32_t crc32 for
+    EEVAR_SELFTEST_RESULT = 0x28, // uint32_t, two bits for each selftest part
+    EEVAR__PADDING = 0x29,        // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_CRC32 = 0x2a,           // uint32_t crc32 for
 };
 
 enum {
