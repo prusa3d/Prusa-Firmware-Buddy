@@ -20,7 +20,7 @@
 #include "filament_sensor.hpp"
 #include "main_MINI.h"
 #include "Pin.hpp"
-#include "hwio_pindef_MINI.h"
+#include "hwio_pindef.h"
 
 /*****************************************************************************/
 //MI_WIZARD
