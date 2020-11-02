@@ -24,6 +24,7 @@
 #include "sound.hpp"
 #include "i18n.h"
 #include "eeprom.h"
+#include "w25x.h"
 
 extern int HAL_IWDG_Reset;
 
@@ -119,21 +120,25 @@ void gui_run(void) {
     Sound_Play(eSOUND_TYPE::Start);
 
     ScreenFactory::Creator error_screen = nullptr;
-    if (!dump_in_xflash_is_displayed()) {
-        switch (dump_in_xflash_get_type()) {
-        case DUMP_HARDFAULT:
-            error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
-            break;
-        case DUMP_TEMPERROR:
-            error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
-            break;
+    if (w25x_init()) {
+        if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
+            switch (dump_in_xflash_get_type()) {
+            case DUMP_HARDFAULT:
+                error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
+                break;
+            case DUMP_TEMPERROR:
+                error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
+                break;
 #ifndef _DEBUG
-        case DUMP_IWDGW:
-            error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
-            break;
+            case DUMP_IWDGW:
+                error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
+                break;
 #endif
+            }
+            dump_in_xflash_set_displayed();
         }
-        dump_in_xflash_set_displayed();
+    } else {
+        //TODO: hardware error
     }
 
 #ifndef _DEBUG
