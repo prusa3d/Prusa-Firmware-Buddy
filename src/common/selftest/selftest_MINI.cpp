@@ -304,7 +304,6 @@ void CSelftest::log_open() {
      //     break;
      // default:
      //   break;
-    }
     char fname[64];
     snprintf(fname, sizeof(fname), "test_unknown%s.txt", suffix);
     if (serial_otp) {
