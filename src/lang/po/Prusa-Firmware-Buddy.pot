@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-10-30 12:52+0100\n"
+"POT-Creation-Date: 2020-11-02 14:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -249,6 +249,10 @@ msgstr ""
 
 #: src/gui/dialogs/DialogSelftestFans.cpp:11
 msgid "Fan test"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:99
+msgid "Fan test OK"
 msgstr ""
 
 #: src/gui/screen_sysinf.cpp:71
@@ -966,10 +970,6 @@ msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:69
 msgid "Test FANs"
-msgstr ""
-
-#: src/guiapi/include/MItem_tools.hpp:99
-msgid "Test FANs fine"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:79
