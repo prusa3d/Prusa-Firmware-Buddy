@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-11-02 16:16+0100\n"
+"POT-Creation-Date: 2020-11-02 17:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -52,7 +52,7 @@ msgstr ""
 msgid "Always"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:103
+#: src/gui/screen_printing.cpp:100
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
@@ -73,7 +73,7 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:205
+#: src/gui/screen_printing.cpp:202
 msgid "Bed leveling failed. Try again?"
 msgstr ""
 
@@ -119,23 +119,27 @@ msgstr ""
 msgid "Change Filament"
 msgstr ""
 
-#: lib/Prusa-Error-Codes/12/errors_list.h:42
+#. r=5, c=20
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:44
 msgid "Check the heatbed heater & thermistor wiring for possible damage."
 msgstr ""
 
-#: lib/Prusa-Error-Codes/12/errors_list.h:50
-#: lib/Prusa-Error-Codes/12/errors_list.h:58
-#: lib/Prusa-Error-Codes/12/errors_list.h:66
+#. r=5, c=20
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:56
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:68
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:80
 msgid "Check the heatbed thermistor wiring for possible damage."
 msgstr ""
 
-#: lib/Prusa-Error-Codes/12/errors_list.h:46
+#. r=5, c=20
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:50
 msgid "Check the print head heater & thermistor wiring for possible damage."
 msgstr ""
 
-#: lib/Prusa-Error-Codes/12/errors_list.h:54
-#: lib/Prusa-Error-Codes/12/errors_list.h:62
-#: lib/Prusa-Error-Codes/12/errors_list.h:70
+#. r=5, c=20
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:62
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:74
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:86
 msgid "Check the print head thermistor wiring for possible damage."
 msgstr ""
 
@@ -302,8 +306,9 @@ msgstr ""
 msgid "Fri"
 msgstr ""
 
-#: lib/Prusa-Error-Codes/12/errors_list.h:41
-#: lib/Prusa-Error-Codes/12/errors_list.h:45
+#. r=1, c=19
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:42
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:48
 msgid "HEATING FAILED"
 msgstr ""
 
@@ -332,15 +337,15 @@ msgstr ""
 msgid "Heating"
 msgstr ""
 
-#: src/gui/guimain.cpp:164
+#: src/gui/guimain.cpp:169
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr ""
 
-#: src/gui/screen_printing.cpp:46
+#: src/gui/screen_printing.cpp:43
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/guimain.cpp:175
+#: src/gui/guimain.cpp:180
 msgid ""
 "Hi, this is your\n"
 "Original Prusa MINI."
@@ -348,7 +353,7 @@ msgstr ""
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
-#: src/gui/window_file_list.cpp:107 src/gui/screen_printing.cpp:48
+#: src/gui/window_file_list.cpp:107 src/gui/screen_printing.cpp:45
 msgid "Home"
 msgstr ""
 
@@ -369,7 +374,7 @@ msgstr ""
 msgid "INFO"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:298
+#: src/gui/screen_menu_lan_settings.cpp:292
 msgid ""
 "IP addresses or parameters are not valid or the file \"lan_settings.ini\" is "
 "not in the root directory of the USB drive."
@@ -406,7 +411,7 @@ msgstr ""
 msgid "Is steel sheet on heatbed?"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:226
+#: src/gui/screen_menu_lan_settings.cpp:220
 msgid "LAN SETTINGS"
 msgstr ""
 
@@ -439,7 +444,7 @@ msgstr ""
 msgid "Load Filament"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:207
+#: src/gui/screen_menu_lan_settings.cpp:201
 msgid "Load Settings"
 msgstr ""
 
@@ -459,8 +464,9 @@ msgstr ""
 msgid "M.I.N.D.A."
 msgstr ""
 
-#: lib/Prusa-Error-Codes/12/errors_list.h:57
-#: lib/Prusa-Error-Codes/12/errors_list.h:61
+#. r=1, c=19
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:66
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:72
 msgid "MAXTEMP ERROR"
 msgstr ""
 
@@ -473,8 +479,9 @@ msgstr ""
 msgid "MESSAGES"
 msgstr ""
 
-#: lib/Prusa-Error-Codes/12/errors_list.h:65
-#: lib/Prusa-Error-Codes/12/errors_list.h:69
+#. r=1, c=19
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:78
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:84
 msgid "MINTEMP ERROR"
 msgstr ""
 
@@ -613,7 +620,7 @@ msgstr ""
 msgid "PREHEAT for UNLOAD"
 msgstr ""
 
-#: src/gui/screen_printing.hpp:47 src/gui/screen_printing.cpp:360
+#: src/gui/screen_printing.hpp:46 src/gui/screen_printing.cpp:357
 msgid "PRINTING"
 msgstr ""
 
@@ -630,11 +637,11 @@ msgstr ""
 msgid "Parking"
 msgstr ""
 
-#: src/gui/ScreenPrintingModel.hpp:16 src/gui/screen_printing.cpp:41
+#: src/gui/ScreenPrintingModel.hpp:16 src/gui/screen_printing.cpp:38
 msgid "Pause"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:42
+#: src/gui/screen_printing.cpp:39
 msgid "Pausing..."
 msgstr ""
 
@@ -648,11 +655,11 @@ msgstr ""
 msgid "Please clean the nozzle for calibration. Click NEXT when done."
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:286
+#: src/gui/screen_menu_lan_settings.cpp:280
 msgid "Please insert a USB drive and try again."
 msgstr ""
 
-#: src/gui/guimain.cpp:176
+#: src/gui/guimain.cpp:181
 msgid ""
 "Please insert the USB\n"
 "drive that came with\n"
@@ -720,11 +727,11 @@ msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
 #. theoretically it can be removed completely in case the string is constant for the whole run of the screen
-#: src/gui/screen_printing.cpp:222
+#: src/gui/screen_printing.cpp:219
 msgid "Print will end"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:158
+#: src/gui/screen_printing.cpp:155
 msgid "Printing time"
 msgstr ""
 
@@ -749,7 +756,7 @@ msgstr ""
 msgid "RENAME"
 msgstr ""
 
-#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:177
+#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:182
 msgid "RESET PRINTER"
 msgstr ""
 
@@ -767,8 +774,8 @@ msgid "Really Disconnect?"
 msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-#: src/gui/screen_printing.cpp:147 src/gui/screen_printing.cpp:226
-#: src/gui/screen_printing.cpp:355
+#: src/gui/screen_printing.cpp:144 src/gui/screen_printing.cpp:223
+#: src/gui/screen_printing.cpp:352
 msgid "Remaining Time"
 msgstr ""
 
@@ -776,7 +783,7 @@ msgstr ""
 msgid "Rename"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:47
+#: src/gui/screen_printing.cpp:44
 msgid "Reprint"
 msgstr ""
 
@@ -784,11 +791,11 @@ msgstr ""
 msgid "Reset"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:44
+#: src/gui/screen_printing.cpp:41
 msgid "Resume"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:45
+#: src/gui/screen_printing.cpp:42
 msgid "Resuming..."
 msgstr ""
 
@@ -834,7 +841,7 @@ msgstr ""
 msgid "Save Crash Dump"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:196
+#: src/gui/screen_menu_lan_settings.cpp:190
 msgid "Save Settings"
 msgstr ""
 
@@ -880,7 +887,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:295
+#: src/gui/screen_menu_lan_settings.cpp:289
 msgid "Settings successfully loaded"
 msgstr ""
 
@@ -908,7 +915,7 @@ msgstr ""
 msgid "Speed"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:283
+#: src/gui/screen_menu_lan_settings.cpp:277
 msgid "Static IPv4 addresses were not set."
 msgstr ""
 
@@ -920,7 +927,7 @@ msgstr ""
 msgid "Steel Sheets"
 msgstr ""
 
-#: src/gui/ScreenPrintingModel.hpp:17 src/gui/screen_printing.cpp:43
+#: src/gui/ScreenPrintingModel.hpp:17 src/gui/screen_printing.cpp:40
 msgid "Stop"
 msgstr ""
 
@@ -941,8 +948,9 @@ msgstr ""
 msgid "TEMPERATURE"
 msgstr ""
 
-#: lib/Prusa-Error-Codes/12/errors_list.h:49
-#: lib/Prusa-Error-Codes/12/errors_list.h:53
+#. r=1, c=19
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:54
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:60
 msgid "THERMAL RUNAWAY"
 msgstr ""
 
@@ -993,7 +1001,7 @@ msgid ""
 "Then restart the Selftest."
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:289
+#: src/gui/screen_menu_lan_settings.cpp:283
 msgid ""
 "The settings have been saved successfully in the \"lan_settings.ini\" file."
 msgstr ""
@@ -1022,7 +1030,7 @@ msgid ""
 "- Selected filament"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:292
+#: src/gui/screen_menu_lan_settings.cpp:286
 msgid ""
 "There was an error saving the settings in the \"lan_settings.ini\" file."
 msgstr ""
@@ -1069,7 +1077,7 @@ msgstr ""
 msgid "Tue"
 msgstr ""
 
-#: src/gui/ScreenPrintingModel.hpp:15 src/gui/screen_printing.cpp:40
+#: src/gui/ScreenPrintingModel.hpp:15 src/gui/screen_printing.cpp:37
 msgid "Tune"
 msgstr ""
 
