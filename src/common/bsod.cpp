@@ -747,12 +747,15 @@ void ScreenHardFault(void) {
         space_counter++;
         uint32_t sp = 0;
         dump_in_xflash_read_RAM(&sp, (unsigned int)i, sizeof(uint32_t));
-        term_printf(&term, "0x%08x", sp);
+        // term_printf(&term, "0x%08x", sp);
+        addFormatText(buffer, buffer_size, buffer_pos, "0x%08x", sp);
         if (space_counter % 3)
-            term_printf(&term, " ");
+            // term_printf(&term, " ");
+            addText(buffer, buffer_size, buffer_pos, " ");
     }
 
-    render_term(&term, 10, 10, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    // render_term(&term, 10, 10, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    display::DrawText(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH(buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, RENDER_FLG_WORDB);
     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 }
 
