@@ -59,7 +59,7 @@
 #include "timer_defaults.h"
 #include "thread_measurement.h"
 #include "Z_probe.h"
-#include "hwio_pindef_MINI.h"
+#include "hwio_pindef.h"
 #include "gui.hpp"
 #include "config_a3ides2209_02.h"
 
