@@ -482,15 +482,22 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *p
 +--------------------------------------------------------+-------------+-----------------+-------------+
 */
 
-void addFormatText(char *buffer, int size, int position, char *format, char *text) {
-    int ret = snprintf(buffer[position], size - position, format, text);
+void addFormatNum(char *buffer, const int size, int position, const char *format, const uint32_t num) {
+    int ret = snprintf(&buffer[position], size - position, format, num);
     if (ret > 0)
         position += ret;
     return;
 }
 
-void addText(char *buffer, int size, int position, char *text) {
-    addFormatText(char *buffer, int size, int position, "%s", char *text)
+void addFormatText(char *buffer, const int size, int position, const char *format, const char *text) {
+    int ret = snprintf(&buffer[position], size - position, format, text);
+    if (ret > 0)
+        position += ret;
+    return;
+}
+
+void addText(char *buffer, const int size, int position, const char *text) {
+    addFormatText(buffer, size, position, "%s", text);
 }
 
 void ScreenHardFault(void) {
@@ -646,15 +653,15 @@ void ScreenHardFault(void) {
 
     default:
         // term_printf(&term, "Multiple Errors CFSR :%08x", __CFSR);
-        addFormatText(buffer, buffer_size, buffer_pos, "Multiple Errors CFSR :%08x", __CFSR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "Multiple Errors CFSR :%08x", __CFSR);
         break;
     }
     // term_printf(&term, "\n");
     addText(buffer, buffer_size, buffer_pos, "\n");
 
     // term_printf(&term, "bot: 0x%08x top: 0x%08x\n", pBotOfStack, pTopOfStack);
-    addFormatText(buffer, buffer_size, buffer_pos, "bot: 0x%08x ", pBotOfStack);
-    addFormatText(buffer, buffer_size, buffer_pos, "top: 0x%08x\n", pTopOfStack);
+    addFormatNum(buffer, buffer_size, buffer_pos, "bot: 0x%08x ", (uint32_t)pBotOfStack);
+    addFormatNum(buffer, buffer_size, buffer_pos, "top: 0x%08x\n", (uint32_t)pTopOfStack);
 
     uint32_t __CPUID = __SCB[0x00 >> 2];
     uint32_t __ICSR = __SCB[0x04 >> 2];
@@ -674,49 +681,35 @@ void ScreenHardFault(void) {
 
     //32 characters per line
     // term_printf(&term, "CPUID:%08x  ", __CPUID);
-    addFormatText(buffer, buffer_size, buffer_pos, "CPUID:%08x  ", __CPUID);
+    addFormatNum(buffer, buffer_size, buffer_pos, "CPUID:%08x  ", __CPUID);
     if (__ICSR)
-        // term_printf(&term, "ICSR :%08x  ", __ICSR);
-        addFormatText(buffer, buffer_size, buffer_pos, "ICSR :%08x  ", __ICSR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "ICSR :%08x  ", __ICSR);
     if (__VTOR)
-        // term_printf(&term, "VTOR :%08x  ", __VTOR);
-        addFormatText(buffer, buffer_size, buffer_pos, "VTOR :%08x  ", __VTOR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "VTOR :%08x  ", __VTOR);
     if (__AIRCR)
-        // term_printf(&term, "AIRCR:%08x  ", __AIRCR);
-        addFormatText(buffer, buffer_size, buffer_pos, "AIRCR:%08x  ", __AIRCR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "AIRCR:%08x  ", __AIRCR);
     if (__SCR)
-        // term_printf(&term, "SCR  :%08x  ", __SCR);
-        addFormatText(buffer, buffer_size, buffer_pos, "SCR  :%08x  ", __SCR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "SCR  :%08x  ", __SCR);
     if (__CCR)
-        // term_printf(&term, "CCR  :%08x  ", __CCR);
-        addFormatText(buffer, buffer_size, buffer_pos, "CCR  :%08x  ", __CCR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "CCR  :%08x  ", __CCR);
     if (__SHCSR)
-        // term_printf(&term, "SHCSR:%08x  ", __SHCSR);
-        addFormatText(buffer, buffer_size, buffer_pos, "SHCSR:%08x  ", __SHCSR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "SHCSR:%08x  ", __SHCSR);
     if (__HFSR)
-        // term_printf(&term, "HFSR :%08x  ", __HFSR);
-        addFormatText(buffer, buffer_size, buffer_pos, "HFSR :%08x  ", __HFSR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "HFSR :%08x  ", __HFSR);
     if (__DFSR)
-        // term_printf(&term, "DFSR :%08x  ", __DFSR);
-        addFormatText(buffer, buffer_size, buffer_pos, "DFSR :%08x  ", __DFSR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "DFSR :%08x  ", __DFSR);
     if ((__CFSR)&MMARVALID_Msk)
-        // term_printf(&term, "MMFAR:%08x  ", __MMFAR); //print this only if value is valid
-        addFormatText(buffer, buffer_size, buffer_pos, "MMFAR:%08x  ", __MMFAR); ///< print this only if value is valid
+        addFormatNum(buffer, buffer_size, buffer_pos, "MMFAR:%08x  ", __MMFAR); ///< print this only if value is valid
     if ((__CFSR)&BFARVALID_Msk)
-        // term_printf(&term, "BFAR :%08x  ", __BFAR); //print this only if value is valid
-        addFormatText(buffer, buffer_size, buffer_pos, "BFAR :%08x  ", __BFAR); ///< print this only if value is valid
+        addFormatNum(buffer, buffer_size, buffer_pos, "BFAR :%08x  ", __BFAR); ///< print this only if value is valid
     if (__AFSR)
-        // term_printf(&term, "AFSR :%08x  ", __AFSR);
-        addFormatText(buffer, buffer_size, buffer_pos, "AFSR :%08x  ", __AFSR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "AFSR :%08x  ", __AFSR);
     if (__DFR)
-        // term_printf(&term, "DFR  :%08x  ", __DFR);
-        addFormatText(buffer, buffer_size, buffer_pos, "DFR  :%08x  ", __DFR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "DFR  :%08x  ", __DFR);
     if (__ADR)
-        // term_printf(&term, "ADR  :%08x  ", __ADR);
-        addFormatText(buffer, buffer_size, buffer_pos, "ADR  :%08x  ", __ADR); );
+        addFormatNum(buffer, buffer_size, buffer_pos, "ADR  :%08x  ", __ADR);
     if (__CPACR)
-        // term_printf(&term, "CPACR:%08x\n", __CPACR);
-        addFormatText(buffer, buffer_size, buffer_pos, "CPACR:%08x\n", __CPACR);
+        addFormatNum(buffer, buffer_size, buffer_pos, "CPACR:%08x\n", __CPACR);
 
     /*
     term_printf(&term, "r0 :%08x", r0);
@@ -730,7 +723,9 @@ void ScreenHardFault(void) {
 
     //const int addr_string_len = 10;//"0x12345678"
     const int strings_per_row = 3;
-    int available_rows = term.rows - term.row - 1;
+
+    int lines = str2multiline(buffer, buffer_size, COLS);
+    int available_rows = lines < 0 ? 0 : ROWS - lines - 1;
     //int available_chars = available_rows * COLS;
     int stack_sz = pTopOfStack - pBotOfStack;
     //int stack_chars_to_print = (addr_string_len +1)* stack_sz - stack_sz / 3;//+1 == space, - stack_sz / 3 .. 3rd string does not have a space
@@ -748,14 +743,13 @@ void ScreenHardFault(void) {
         uint32_t sp = 0;
         dump_in_xflash_read_RAM(&sp, (unsigned int)i, sizeof(uint32_t));
         // term_printf(&term, "0x%08x", sp);
-        addFormatText(buffer, buffer_size, buffer_pos, "0x%08x", sp);
+        addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x", sp);
         if (space_counter % 3)
-            // term_printf(&term, " ");
             addText(buffer, buffer_size, buffer_pos, " ");
     }
 
     // render_term(&term, 10, 10, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
-    display::DrawText(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH(buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, RENDER_FLG_WORDB);
+    display::DrawText(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, RENDER_FLG_WORDB);
     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 }
 
