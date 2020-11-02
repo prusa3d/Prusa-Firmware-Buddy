@@ -281,11 +281,11 @@ void CSelftest::log_open() {
     const char *suffix = "_no_suffix";
     if (m_Mask & stmFans)
         suffix = "_fans";
-    if (m_Mask & stmXYAxis)
+    else if (m_Mask & stmXYAxis)
         suffix = "_xyz";
-    if (m_Mask & stmXYZAxis)
+    else if (m_Mask & stmXYZAxis)
         suffix = "_xyz";
-    if (m_Mask & stmHeaters)
+    else if (m_Mask & stmHeaters)
         suffix = "_heaters";
 
     char fname[64];
