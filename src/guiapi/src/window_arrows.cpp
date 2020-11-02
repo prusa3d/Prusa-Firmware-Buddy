@@ -27,14 +27,14 @@ WindowArrows::WindowArrows(window_t *parent, point_i16_t pt, padding_ui8_t paddi
 }
 
 WindowArrows::State_t WindowArrows::GetState() const {
-    return static_cast<WindowArrows::State_t>(mem_array_u08[1]);
+    return static_cast<WindowArrows::State_t>(flags.mem_array_u08[1]);
 }
 
 //there is a free space in window_t flags, store state in it
 void WindowArrows::SetState(WindowArrows::State_t s) {
     const uint8_t state = static_cast<uint8_t>(s);
-    if (state != mem_array_u08[1]) {
-        mem_array_u08[1] = state;
+    if (state != flags.mem_array_u08[1]) {
+        flags.mem_array_u08[1] = state;
         Invalidate();
     }
 }
