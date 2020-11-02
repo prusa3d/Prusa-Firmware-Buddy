@@ -16,7 +16,7 @@ from prusaerrors.shared.codes import unique_codes, Codes, Printer, Code, Categor
 @unique_codes
 class TestCodes(Codes):
     PRINTER = Printer.UNKNOWN
-    NONE = Code(PRINTER, Category.SYSTEM, 0, "No problem", True)
+    NONE = Code(PRINTER, Category.SYSTEM, 0, "No title", "No problem", True)
 
 
 class TestErrors(unittest.TestCase):
