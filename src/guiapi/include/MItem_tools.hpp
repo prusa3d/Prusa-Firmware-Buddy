@@ -96,7 +96,7 @@ protected:
 };
 
 class MI_TEST_FANS_fine : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test FANs fine");
+    static constexpr const char *const label = N_("Fan test OK");
 
 public:
     MI_TEST_FANS_fine();
