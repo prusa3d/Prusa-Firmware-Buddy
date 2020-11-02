@@ -67,13 +67,13 @@ window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value)
 }
 
 void window_numb_t::PrintAsFloat() {
-    flag_custom0 = false;
+    flags.custom0 = false;
 }
 
 void window_numb_t::PrintAsInt() {
-    flag_custom0 = true;
+    flags.custom0 = true;
 }
 
 bool window_numb_t::IsPrintingAsInt() const {
-    return flag_custom0;
+    return flags.custom0;
 }

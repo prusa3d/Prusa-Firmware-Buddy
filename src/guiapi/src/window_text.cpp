@@ -24,14 +24,14 @@ window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multili
     , font(GuiDefaults::Font)
     , text(txt)
     , padding(GuiDefaults::Padding) {
-    flag_custom0 = bool(multiline);
+    flags.custom0 = bool(multiline);
 }
 
 void window_text_t::unconditionalDraw() {
     render_text_align(rect, text, font,
         (IsFocused()) ? color_text : color_back,
         (IsFocused()) ? color_back : color_text,
-        padding, flag_custom0 ? GetAlignment() | RENDER_FLG_WORDB : GetAlignment());
+        padding, flags.custom0 ? GetAlignment() | RENDER_FLG_WORDB : GetAlignment());
 }
 
 /*****************************************************************************/
