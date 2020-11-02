@@ -482,6 +482,17 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *p
 +--------------------------------------------------------+-------------+-----------------+-------------+
 */
 
+void addFormatText(char *buffer, int size, int position, char *format, char *text) {
+    int ret = snprintf(buffer[position], size - position, format, text);
+    if (ret > 0)
+        position += ret;
+    return;
+}
+
+void addText(char *buffer, int size, int position, char *text) {
+    addFormatText(char *buffer, int size, int position, "%s", char *text)
+}
+
 void ScreenHardFault(void) {
     static const constexpr uint32_t IACCVIOL_Msk = 1u << 0;
     static const constexpr uint32_t DACCVIOL_Msk = 1u << 1;
@@ -543,12 +554,18 @@ void ScreenHardFault(void) {
     StackType_t *pTopOfStack = (StackType_t *)CurrentTCB.pxTopOfStack;
     StackType_t *pBotOfStack = CurrentTCB.pxStack;
 
-    display::Clear(COLOR_NAVY);               //clear with dark blue color
-    term_t term;                              //terminal structure
-    uint8_t buff[TERM_BUFF_SIZE(COLS, ROWS)]; //terminal buffer for 20x16
-    term_init(&term, COLS, ROWS, buff);       //initialize terminal structure (clear buffer etc)
+    display::Clear(COLOR_NAVY); //clear with dark blue color
 
-    term_printf(&term, "TASK: %s. ", tskName);
+    // term_t term;                              //terminal structure
+    // uint8_t buff[TERM_BUFF_SIZE(COLS, ROWS)]; //terminal buffer for 20x16
+    // term_init(&term, COLS, ROWS, buff);       //initialize terminal structure (clear buffer etc)
+
+    int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
+    char buffer[buffer_size];          ///< buffer for text
+    int buffer_pos = 0;                ///< position in buffer
+
+    //term_printf(&term, "TASK: %s. ", tskName);
+    addFormatText(buffer, buffer_size, buffer_pos, "TASK: %s. ", tskName);
 
     uint32_t __SCB[35];
     dump_in_xflash_read_regs_SCB(&__SCB, 35 * sizeof(uint32_t));
@@ -557,66 +574,87 @@ void ScreenHardFault(void) {
 
     switch ((__CFSR) & (IACCVIOL_Msk | DACCVIOL_Msk | MSTKERR_Msk | MUNSTKERR_Msk | MLSPERR_Msk | STKERR_Msk | UNSTKERR_Msk | IBUSERR_Msk | LSPERR_Msk | PRECISERR_Msk | IMPRECISERR_Msk | UNDEFINSTR_Msk | INVSTATE_Msk | INVPC_Msk | NOCPC_Msk | UNALIGNED_Msk | DIVBYZERO_Msk)) {
     case IACCVIOL_Msk:
-        term_printf(&term, IACCVIOL_Txt);
+        // term_printf(&term, IACCVIOL_Txt);
+        addText(buffer, buffer_size, buffer_pos, IACCVIOL_Txt);
         break;
     case DACCVIOL_Msk:
-        term_printf(&term, DACCVIOL_Txt);
+        // term_printf(&term, DACCVIOL_Txt);
+        addText(buffer, buffer_size, buffer_pos, DACCVIOL_Txt);
         break;
     case MSTKERR_Msk:
-        term_printf(&term, MSTKERR_Txt);
+        // term_printf(&term, MSTKERR_Txt);
+        addText(buffer, buffer_size, buffer_pos, MSTKERR_Txt);
         break;
     case MUNSTKERR_Msk:
-        term_printf(&term, MUNSTKERR_Txt);
+        // term_printf(&term, MUNSTKERR_Txt);
+        addText(buffer, buffer_size, buffer_pos, MUNSTKERR_Txt);
         break;
     case MLSPERR_Msk:
-        term_printf(&term, MLSPERR_Txt);
+        // term_printf(&term, MLSPERR_Txt);
+        addText(buffer, buffer_size, buffer_pos, MLSPERR_Txt);
         break;
 
     case STKERR_Msk:
-        term_printf(&term, STKERR_Txt);
+        // term_printf(&term, STKERR_Txt);
+        addText(buffer, buffer_size, buffer_pos, STKERR_Txt);
         break;
     case UNSTKERR_Msk:
-        term_printf(&term, UNSTKERR_Txt);
+        // term_printf(&term, UNSTKERR_Txt);
+        addText(buffer, buffer_size, buffer_pos, UNSTKERR_Txt);
         break;
     case IBUSERR_Msk:
-        term_printf(&term, IBUSERR_Txt);
+        // term_printf(&term, IBUSERR_Txt);
+        addText(buffer, buffer_size, buffer_pos, IBUSERR_Txt);
         break;
     case LSPERR_Msk:
-        term_printf(&term, LSPERR_Txt);
+        // term_printf(&term, LSPERR_Txt);
+        addText(buffer, buffer_size, buffer_pos, LSPERR_Txt);
         break;
     case PRECISERR_Msk:
-        term_printf(&term, PRECISERR_Txt);
+        // term_printf(&term, PRECISERR_Txt);
+        addText(buffer, buffer_size, buffer_pos, PRECISERR_Txt);
         break;
     case IMPRECISERR_Msk:
-        term_printf(&term, IMPRECISERR_Txt);
+        // term_printf(&term, IMPRECISERR_Txt);
+        addText(buffer, buffer_size, buffer_pos, IMPRECISERR_Txt);
         break;
 
     case UNDEFINSTR_Msk:
-        term_printf(&term, UNDEFINSTR_Txt);
+        // term_printf(&term, UNDEFINSTR_Txt);
+        addText(buffer, buffer_size, buffer_pos, UNDEFINSTR_Txt);
         break;
     case INVSTATE_Msk:
-        term_printf(&term, INVSTATE_Txt);
+        // term_printf(&term, INVSTATE_Txt);
+        addText(buffer, buffer_size, buffer_pos, INVSTATE_Txt);
         break;
     case INVPC_Msk:
-        term_printf(&term, INVPC_Txt);
+        // term_printf(&term, INVPC_Txt);
+        addText(buffer, buffer_size, buffer_pos, INVPC_Txt);
         break;
     case NOCPC_Msk:
-        term_printf(&term, NOCPC_Txt);
+        // term_printf(&term, NOCPC_Txt);
+        addText(buffer, buffer_size, buffer_pos, NOCPC_Txt);
         break;
     case UNALIGNED_Msk:
-        term_printf(&term, UNALIGNED_Txt);
+        // term_printf(&term, UNALIGNED_Txt);
+        addText(buffer, buffer_size, buffer_pos, UNALIGNED_Txt);
         break;
     case DIVBYZERO_Msk:
-        term_printf(&term, DIVBYZERO_Txt);
+        // term_printf(&term, DIVBYZERO_Txt);
+        addText(buffer, buffer_size, buffer_pos, DIVBYZERO_Txt);
         break;
 
     default:
-        term_printf(&term, "Multiple Errors CFSR :%08x", __CFSR);
+        // term_printf(&term, "Multiple Errors CFSR :%08x", __CFSR);
+        addFormatText(buffer, buffer_size, buffer_pos, "Multiple Errors CFSR :%08x", __CFSR);
         break;
     }
-    term_printf(&term, "\n");
+    // term_printf(&term, "\n");
+    addText(buffer, buffer_size, buffer_pos, "\n");
 
-    term_printf(&term, "bot: 0x%08x top: 0x%08x\n", pBotOfStack, pTopOfStack);
+    // term_printf(&term, "bot: 0x%08x top: 0x%08x\n", pBotOfStack, pTopOfStack);
+    addFormatText(buffer, buffer_size, buffer_pos, "bot: 0x%08x ", pBotOfStack);
+    addFormatText(buffer, buffer_size, buffer_pos, "top: 0x%08x\n", pTopOfStack);
 
     uint32_t __CPUID = __SCB[0x00 >> 2];
     uint32_t __ICSR = __SCB[0x04 >> 2];
@@ -634,36 +672,51 @@ void ScreenHardFault(void) {
     uint32_t __ADR = __SCB[0x4c >> 2];
     uint32_t __CPACR = __SCB[0x88 >> 2];
 
-    //32 characters pre line
-    term_printf(&term, "CPUID:%08x  ", __CPUID);
+    //32 characters per line
+    // term_printf(&term, "CPUID:%08x  ", __CPUID);
+    addFormatText(buffer, buffer_size, buffer_pos, "CPUID:%08x  ", __CPUID);
     if (__ICSR)
-        term_printf(&term, "ICSR :%08x  ", __ICSR);
+        // term_printf(&term, "ICSR :%08x  ", __ICSR);
+        addFormatText(buffer, buffer_size, buffer_pos, "ICSR :%08x  ", __ICSR);
     if (__VTOR)
-        term_printf(&term, "VTOR :%08x  ", __VTOR);
+        // term_printf(&term, "VTOR :%08x  ", __VTOR);
+        addFormatText(buffer, buffer_size, buffer_pos, "VTOR :%08x  ", __VTOR);
     if (__AIRCR)
-        term_printf(&term, "AIRCR:%08x  ", __AIRCR);
+        // term_printf(&term, "AIRCR:%08x  ", __AIRCR);
+        addFormatText(buffer, buffer_size, buffer_pos, "AIRCR:%08x  ", __AIRCR);
     if (__SCR)
-        term_printf(&term, "SCR  :%08x  ", __SCR);
+        // term_printf(&term, "SCR  :%08x  ", __SCR);
+        addFormatText(buffer, buffer_size, buffer_pos, "SCR  :%08x  ", __SCR);
     if (__CCR)
-        term_printf(&term, "CCR  :%08x  ", __CCR);
+        // term_printf(&term, "CCR  :%08x  ", __CCR);
+        addFormatText(buffer, buffer_size, buffer_pos, "CCR  :%08x  ", __CCR);
     if (__SHCSR)
-        term_printf(&term, "SHCSR:%08x  ", __SHCSR);
+        // term_printf(&term, "SHCSR:%08x  ", __SHCSR);
+        addFormatText(buffer, buffer_size, buffer_pos, "SHCSR:%08x  ", __SHCSR);
     if (__HFSR)
-        term_printf(&term, "HFSR :%08x  ", __HFSR);
+        // term_printf(&term, "HFSR :%08x  ", __HFSR);
+        addFormatText(buffer, buffer_size, buffer_pos, "HFSR :%08x  ", __HFSR);
     if (__DFSR)
-        term_printf(&term, "DFSR :%08x  ", __DFSR);
+        // term_printf(&term, "DFSR :%08x  ", __DFSR);
+        addFormatText(buffer, buffer_size, buffer_pos, "DFSR :%08x  ", __DFSR);
     if ((__CFSR)&MMARVALID_Msk)
-        term_printf(&term, "MMFAR:%08x  ", __MMFAR); //print this only if value is valid
+        // term_printf(&term, "MMFAR:%08x  ", __MMFAR); //print this only if value is valid
+        addFormatText(buffer, buffer_size, buffer_pos, "MMFAR:%08x  ", __MMFAR); ///< print this only if value is valid
     if ((__CFSR)&BFARVALID_Msk)
-        term_printf(&term, "BFAR :%08x  ", __BFAR); //print this only if value is valid
+        // term_printf(&term, "BFAR :%08x  ", __BFAR); //print this only if value is valid
+        addFormatText(buffer, buffer_size, buffer_pos, "BFAR :%08x  ", __BFAR); ///< print this only if value is valid
     if (__AFSR)
-        term_printf(&term, "AFSR :%08x  ", __AFSR);
+        // term_printf(&term, "AFSR :%08x  ", __AFSR);
+        addFormatText(buffer, buffer_size, buffer_pos, "AFSR :%08x  ", __AFSR);
     if (__DFR)
-        term_printf(&term, "DFR  :%08x  ", __DFR);
+        // term_printf(&term, "DFR  :%08x  ", __DFR);
+        addFormatText(buffer, buffer_size, buffer_pos, "DFR  :%08x  ", __DFR);
     if (__ADR)
-        term_printf(&term, "ADR  :%08x  ", __ADR);
+        // term_printf(&term, "ADR  :%08x  ", __ADR);
+        addFormatText(buffer, buffer_size, buffer_pos, "ADR  :%08x  ", __ADR); );
     if (__CPACR)
-        term_printf(&term, "CPACR:%08x\n", __CPACR);
+        // term_printf(&term, "CPACR:%08x\n", __CPACR);
+        addFormatText(buffer, buffer_size, buffer_pos, "CPACR:%08x\n", __CPACR);
 
     /*
     term_printf(&term, "r0 :%08x", r0);
