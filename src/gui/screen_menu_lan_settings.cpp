@@ -168,9 +168,6 @@ public:
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::On() : Eth::Off();
     }
-    void ReInit() {
-        index = Eth::IsOn() ? 1 : 0;
-    }
 };
 
 class MI_LAN_IP_t : public WI_SWITCH_t<2> {
@@ -186,9 +183,6 @@ public:
         bool success = old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
         if (!success)
             this->SetIndex(old_index);
-    }
-    void ReInit() {
-        index = Eth::IsStatic() ? 1 : 0;
     }
 };
 
@@ -303,13 +297,6 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
 }
 
 void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-
-    MI_LAN_IP_t *item = &std::get<MI_LAN_IP_t>(container.menu_items);
-    item->ReInit();
-
-    MI_LAN_ONOFF *lan_switch = &std::get<MI_LAN_ONOFF>(container.menu_items);
-    lan_switch->ReInit();
-
     refresh_addresses();
 
     show_msg(Eth::ConsumeMsg());
