@@ -15,8 +15,6 @@ static const uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of 
 extern "C" {
 #endif //__cplusplus
 
-typedef void (*message_cb_t)(const char *);
-
 //-----------------------------------------------------------------------------
 //externs from marlin server todo fixme use variables
 extern int marlin_all_axes_homed(void);
@@ -49,6 +47,8 @@ extern int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb);
 extern int marlin_client_set_fsm_change_cb(fsm_change_t cb);
 //sets dialog message, returns 1 on success
 extern int marlin_client_set_message_cb(message_cb_t cb);
+//sets dialog message, returns 1 on success
+extern int marlin_client_set_warning_cb(warning_cb_t cb);
 // returns enabled status of loop processing
 extern int marlin_processing(void);
 
