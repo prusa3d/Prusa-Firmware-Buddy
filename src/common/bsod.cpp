@@ -353,21 +353,21 @@ void temp_error_code(const uint16_t error_code) {
     draw_error_screen(error_code);
 }
 
-void addFormatNum(char *buffer, const int size, int position, const char *format, const uint32_t num) {
+void addFormatNum(char *buffer, const int size, int &position, const char *format, const uint32_t num) {
     int ret = snprintf(&buffer[position], size - position, format, num);
     if (ret > 0)
         position += ret;
     return;
 }
 
-void addFormatText(char *buffer, const int size, int position, const char *format, const char *text) {
+void addFormatText(char *buffer, const int size, int &position, const char *format, const char *text) {
     int ret = snprintf(&buffer[position], size - position, format, text);
     if (ret > 0)
         position += ret;
     return;
 }
 
-void addText(char *buffer, const int size, int position, const char *text) {
+void addText(char *buffer, const int size, int &position, const char *text) {
     addFormatText(buffer, size, position, "%s", text);
 }
 
@@ -547,7 +547,7 @@ void ScreenHardFault(void) {
     static const constexpr char *STKERR_Txt = "During exception stacking";
     static const constexpr char *UNSTKERR_Txt = "During exception unstacking";
     static const constexpr char *IBUSERR_Txt = "During instruction prefetching, precise";
-    static const constexpr char *LSPERR_Txt = "During lazy floating-point state preservation ";
+    static const constexpr char *LSPERR_Txt = "During lazy floating-point state preservation";
     static const constexpr char *PRECISERR_Txt = "Precise data access error, precise";
     static const constexpr char *IMPRECISERR_Txt = "Imprecise data access error, imprecise";
 
@@ -561,8 +561,8 @@ void ScreenHardFault(void) {
     static const constexpr uint32_t DIVBYZERO_Msk = 1u << 25;
 
     static const constexpr char *UNDEFINSTR_Txt = "Undefined instruction";
-    static const constexpr char *INVSTATE_Txt = "Attempt to enter an invalid instruction set state ";
-    static const constexpr char *INVPC_Txt = "Failed integrity check on exception return  ";
+    static const constexpr char *INVSTATE_Txt = "Attempt to enter an invalid instruction set state";
+    static const constexpr char *INVPC_Txt = "Failed integrity check on exception return";
     static const constexpr char *NOCPC_Txt = "Attempt to access a non-existing coprocessor";
     static const constexpr char *UNALIGNED_Txt = "Illegal unaligned load or store";
     static const constexpr char *DIVBYZERO_Txt = "Divide By 0";
