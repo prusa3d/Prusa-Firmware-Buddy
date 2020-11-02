@@ -28,21 +28,35 @@
     #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
     #include "../../lib/Marlin/Marlin/src/Marlin.h"
     #include "marlin_server.hpp"
+    #include "client_fsm_types.h"
 
 /**
  * M876: Handle Prompt Response
+ *
+ * E display error popup other parameters are ignored
+ * E value must be smaller than WarningType::_count
  */
 void GcodeSuite::M876() {
-    if (parser.seenval('P')) {
-        if (parser.value_int()) {
-            fsm_create(ClientFSM::Serial_printing);
-        } else {
-            fsm_destroy(ClientFSM::Serial_printing);
-            safety_timer_set_interval(1800000); // in miliseconds
+    //mainly for debug
+
+    if (parser.seenval('E')) {
+        uint32_t val = parser.value_int();
+        if (val >= uint32_t(WarningType::_count))
+            return;
+        set_warning(WarningType(val));
+    } else {
+
+        if (parser.seenval('P')) {
+            if (parser.value_int()) {
+                fsm_create(ClientFSM::Serial_printing);
+            } else {
+                fsm_destroy(ClientFSM::Serial_printing);
+                safety_timer_set_interval(1800000); // in miliseconds
+            }
         }
+        if (parser.seenval('S'))
+            host_response_handler((uint8_t)parser.value_int());
     }
-    if (parser.seenval('S'))
-        host_response_handler((uint8_t)parser.value_int());
 }
 
 #endif // HOST_PROMPT_SUPPORT && !EMERGENCY_PARSER
