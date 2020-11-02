@@ -140,16 +140,16 @@ static void stop_common(void) {
     display::Init();
 }
 
-//! @brief print white error message on background
-//!
-//! It prints also firmware version on bottom of the screen.
-//!
-//! @param term input message
-//! @param background_color background color
-static void print_error(term_t *term, color_t background_color) {
-    render_term(term, 10, 10, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
-    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
-}
+// //! @brief print white error message on background
+// //!
+// //! It prints also firmware version on bottom of the screen.
+// //!
+// //! @param term input message
+// //! @param background_color background color
+// static void print_error(term_t *term, color_t background_color) {
+//     render_term(term, 10, 10, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+//     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+// }
 
 //! @brief Marlin stopped
 //!
@@ -353,6 +353,24 @@ void temp_error_code(const uint16_t error_code) {
     draw_error_screen(error_code);
 }
 
+void addFormatNum(char *buffer, const int size, int position, const char *format, const uint32_t num) {
+    int ret = snprintf(&buffer[position], size - position, format, num);
+    if (ret > 0)
+        position += ret;
+    return;
+}
+
+void addFormatText(char *buffer, const int size, int position, const char *format, const char *text) {
+    int ret = snprintf(&buffer[position], size - position, format, text);
+    if (ret > 0)
+        position += ret;
+    return;
+}
+
+void addText(char *buffer, const int size, int position, const char *text) {
+    addFormatText(buffer, size, position, "%s", text);
+}
+
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     va_list args;
     va_start(args, line_number);
@@ -366,15 +384,25 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     stop_common();
 
     #ifdef PSOD_BSOD
+
     display::Clear(COLOR_BLACK); //clear with black color
     //display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_64px, COLOR_BLACK, 0);
     display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_140px, COLOR_BLACK, 0);
     display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
+
     #else
-    display::Clear(COLOR_NAVY);           //clear with dark blue color
-    term_t term;                          //terminal structure
-    uint8_t buff[TERM_BUFF_SIZE(20, 16)]; //terminal buffer for 20x16
-    term_init(&term, 20, 16, buff);       //initialize terminal structure (clear buffer etc)
+
+    display::Clear(COLOR_NAVY); ///< clear with dark blue color
+    // term_t term;                          ///< terminal structure
+    // uint8_t buff[TERM_BUFF_SIZE(20, 16)]; ///< terminal buffer for 20x16
+    // term_init(&term, 20, 16, buff);       ///< initialize terminal structure (clear buffer etc)
+
+    const int COLS = 20;
+    const int ROWS = 16;
+    int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
+    /// Buffer for text. PNG RAM cannot be used (font drawing).
+    char buffer[buffer_size];
+    int buffer_pos = 0; ///< position in buffer
 
     if (file_name != nullptr) {
         //remove text before "/" and "\", to get filename without path
@@ -385,31 +413,39 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         pc = strrchr(file_name, '\\');
         if (pc != 0)
             file_name = pc + 1;
-        {
-            char text[TERM_PRINTF_MAX];
+        // {
+        // char text[TERM_PRINTF_MAX];
+        vsnprintf(&buffer[buffer_pos], buffer_size - buffer_pos, fmt, args);
+        // const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
+        // for (size_t i = 0; i < range; i++)
+        //     term_write_char(&term, text[i]);
+        // }
+        // term_printf(&term, "\n");
+        addText(buffer, buffer_size, buffer_pos, "\n");
 
-            int ret = vsnprintf(text, sizeof(text), fmt, args);
-
-            const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
-            for (size_t i = 0; i < range; i++)
-                term_write_char(&term, text[i]);
-        }
-        term_printf(&term, "\n");
-        if (file_name != 0)
-            term_printf(&term, "%s", file_name); //print filename
-        if ((file_name != 0) && (line_number != -1))
-            term_printf(&term, " "); //print space
+        if (file_name != nullptr)
+            // term_printf(&term, "%s", file_name); //print filename
+            addText(buffer, buffer_size, buffer_pos, file_name);
+        if ((file_name != nullptr) && (line_number != -1))
+            // term_printf(&term, " "); //print space
+            addText(buffer, buffer_size, buffer_pos, " ");
         if (line_number != -1)
-            term_printf(&term, "%d", line_number); //print line number
-        if ((file_name != 0) || (line_number != -1))
-            term_printf(&term, "\n"); //new line if there is filename or line number
+            // term_printf(&term, "%d", line_number); //print line number
+            addFormatNum(buffer, buffer_size, buffer_pos, "%d", line_number);
+        if ((file_name != nullptr) || (line_number != -1))
+            // term_printf(&term, "\n"); //new line if there is filename or line number
+            addText(buffer, buffer_size, buffer_pos, "\n");
     }
 
-    term_printf(&term, "TASK:%s\n", tskName);
-    term_printf(&term, "b:%x", pBotOfStack);
-    term_printf(&term, "t:%x", pTopOfStack);
+    // term_printf(&term, "TASK:%s\n", tskName);
+    addFormatText(buffer, buffer_size, buffer_pos, "TASK:%s\n", tskName);
+    // term_printf(&term, "b:%x", pBotOfStack);
+    addFormatNum(buffer, buffer_size, buffer_pos, "b:%x", (uint32_t)pBotOfStack);
+    // term_printf(&term, "t:%x", pTopOfStack);
+    addFormatNum(buffer, buffer_size, buffer_pos, "t:%x", (uint32_t)pTopOfStack);
 
-    int lines_to_print = term.rows - term.row - 1;
+    const int lines = str2multiline(buffer, buffer_size, COLS);
+    const int lines_to_print = ROWS - lines - 1;
     int stack_sz = pTopOfStack - pBotOfStack;
 
     StackType_t *lastAddr;
@@ -419,10 +455,14 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         lastAddr = pTopOfStack - 2 * lines_to_print;
 
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
-        term_printf(&term, "%08x  ", *i);
+        // term_printf(&term, "%08x  ", *i);
+        addFormatNum(buffer, buffer_size, buffer_pos, "%08x  ", (uint32_t)*i);
     }
+    // print_error(&term, COLOR_NAVY);
+    // render_term(term, 10, 10, resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
+    display::DrawText(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, RENDER_FLG_WORDB);
+    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
 
-    print_error(&term, COLOR_NAVY);
     #endif
 
     while (1) //endless loop
@@ -481,24 +521,6 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *p
 | Divide By 0                                            |             |                 | DIVBYZERO   |
 +--------------------------------------------------------+-------------+-----------------+-------------+
 */
-
-void addFormatNum(char *buffer, const int size, int position, const char *format, const uint32_t num) {
-    int ret = snprintf(&buffer[position], size - position, format, num);
-    if (ret > 0)
-        position += ret;
-    return;
-}
-
-void addFormatText(char *buffer, const int size, int position, const char *format, const char *text) {
-    int ret = snprintf(&buffer[position], size - position, format, text);
-    if (ret > 0)
-        position += ret;
-    return;
-}
-
-void addText(char *buffer, const int size, int position, const char *text) {
-    addFormatText(buffer, size, position, "%s", text);
-}
 
 void ScreenHardFault(void) {
     static const constexpr uint32_t IACCVIOL_Msk = 1u << 0;
@@ -568,8 +590,9 @@ void ScreenHardFault(void) {
     // term_init(&term, COLS, ROWS, buff);       //initialize terminal structure (clear buffer etc)
 
     int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
-    char buffer[buffer_size];          ///< buffer for text
-    int buffer_pos = 0;                ///< position in buffer
+    /// Buffer for text. PNG RAM cannot be used (font drawing).
+    char buffer[buffer_size];
+    int buffer_pos = 0; ///< position in buffer
 
     //term_printf(&term, "TASK: %s. ", tskName);
     addFormatText(buffer, buffer_size, buffer_pos, "TASK: %s. ", tskName);
@@ -724,8 +747,8 @@ void ScreenHardFault(void) {
     //const int addr_string_len = 10;//"0x12345678"
     const int strings_per_row = 3;
 
-    int lines = str2multiline(buffer, buffer_size, COLS);
-    int available_rows = lines < 0 ? 0 : ROWS - lines - 1;
+    const int lines = str2multiline(buffer, buffer_size, COLS);
+    const int available_rows = lines < 0 ? 0 : ROWS - lines - 1;
     //int available_chars = available_rows * COLS;
     int stack_sz = pTopOfStack - pBotOfStack;
     //int stack_chars_to_print = (addr_string_len +1)* stack_sz - stack_sz / 3;//+1 == space, - stack_sz / 3 .. 3rd string does not have a space
