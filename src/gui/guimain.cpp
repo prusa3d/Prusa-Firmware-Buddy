@@ -14,6 +14,7 @@
 #include "window_temp_graph.hpp"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_popup.hpp"
+#include "window_dlg_fan_error.hpp"
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_hardfault.hpp"
@@ -78,6 +79,10 @@ void MsgCircleBuffer_cb(const char *txt) {
     }
 }
 
+void Warning_cb(WarningType type) {
+    window_dlg_fan_error_t::Show();
+}
+
 void gui_run(void) {
     if (diag_fastboot)
         return;
@@ -116,6 +121,7 @@ void gui_run(void) {
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
+    marlin_client_set_warning_cb(Warning_cb);
 
     Sound_Play(eSOUND_TYPE::Start);
 

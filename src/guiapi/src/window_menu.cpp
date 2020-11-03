@@ -21,12 +21,12 @@ IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
 
 uint8_t IWindowMenu::GetIconWidth() const {
     //mem_array_u08[0] is alignment
-    return mem_array_u08[1];
+    return flags.mem_array_u08[1];
 }
 
 void IWindowMenu::SetIconWidth(uint8_t width) {
     //mem_array_u08[0] is alignment
-    mem_array_u08[1] = width;
+    flags.mem_array_u08[1] = width;
     Invalidate();
 }
 

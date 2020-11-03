@@ -15,8 +15,8 @@ window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rec
 }
 
 void window_numberless_progress_t::SetProgressInPixels(uint16_t px) {
-    if (px != mem_space_u16) {
-        mem_space_u16 = px;
+    if (px != flags.mem_space_u16) {
+        flags.mem_space_u16 = px;
         Invalidate();
     }
 }
@@ -29,7 +29,7 @@ void window_numberless_progress_t::SetProgressPercent(float val) {
 }
 
 uint16_t window_numberless_progress_t::GetProgressPixels() const {
-    return mem_space_u16;
+    return flags.mem_space_u16;
 }
 
 void window_numberless_progress_t::SetColor(color_t clr) {
