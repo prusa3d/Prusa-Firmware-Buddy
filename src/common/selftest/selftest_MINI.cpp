@@ -19,7 +19,7 @@
 #define X_AXIS_PERCENT 33
 #define Y_AXIS_PERCENT 33
 #define Z_AXIS_PERCENT 34
-
+static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 static const float XYfr_table[] = { 50, 60, 75, 100 };
 
 static const float Zfr_table[] = { 20 };
@@ -278,15 +278,15 @@ void CSelftest::log_open() {
         serial_otp = 0;
     }
     char serial[32] = "unknown";
-    const char *suffix = "_no_suffix";
+    const char *suffix = "";
     if (m_Mask & stmFans)
-        suffix = "_fans";
+        suffix = _suffix[0];
     else if (m_Mask & stmXYAxis)
-        suffix = "_xyz";
+        suffix = _suffix[1];
     else if (m_Mask & stmXYZAxis)
-        suffix = "_xyz";
+        suffix = _suffix[1];
     else if (m_Mask & stmHeaters)
-        suffix = "_heaters";
+        suffix = _suffix[2];
 
     char fname[64];
     snprintf(fname, sizeof(fname), "test_unknown%s.txt", suffix);
