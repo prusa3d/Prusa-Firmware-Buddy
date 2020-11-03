@@ -140,6 +140,24 @@ static void stop_common(void) {
     display::Init();
 }
 
+void addFormatNum(char *buffer, const int size, int &position, const char *format, const uint32_t num) {
+    int ret = snprintf(&buffer[position], size - position, format, num);
+    if (ret > 0)
+        position += ret;
+    return;
+}
+
+void addFormatText(char *buffer, const int size, int &position, const char *format, const char *text) {
+    int ret = snprintf(&buffer[position], size - position, format, text);
+    if (ret > 0)
+        position += ret;
+    return;
+}
+
+void addText(char *buffer, const int size, int &position, const char *text) {
+    addFormatText(buffer, size, position, "%s", text);
+}
+
 //! @brief Marlin stopped
 //!
 //! Disable interrupts, print red error message and stop in infinite loop.
@@ -159,18 +177,19 @@ void general_error(const char *error, const char *module) {
     __disable_irq();
     stop_common();
     display::Clear(COLOR_RED_ALERT);
-    term_t term;
-    uint8_t buff[TERM_BUFF_SIZE(20, 16)];
-    term_init(&term, 20, 16, buff);
+    const int COLS = 20;
+    const int ROWS = 16;
+    int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
+    /// Buffer for text. PNG RAM cannot be used (font drawing).
+    char buffer[buffer_size];
+    int buffer_pos = 0; ///< position in buffer
 
     display::DrawText(Rect16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
-    term_printf(&term, module);
-    term_printf(&term, "\n");
-
-    render_term(&term, PADDING, 100, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    addFormatText(buffer, buffer_size, buffer_pos, "%s\n", module);
+    display::DrawText(Rect16(PADDING, 60, 240, 260), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
@@ -340,24 +359,6 @@ void temp_error_code(const uint16_t error_code) {
     //    general_error_init();
     display::Clear(COLOR_RED_ALERT);
     draw_error_screen(error_code);
-}
-
-void addFormatNum(char *buffer, const int size, int &position, const char *format, const uint32_t num) {
-    int ret = snprintf(&buffer[position], size - position, format, num);
-    if (ret > 0)
-        position += ret;
-    return;
-}
-
-void addFormatText(char *buffer, const int size, int &position, const char *format, const char *text) {
-    int ret = snprintf(&buffer[position], size - position, format, text);
-    if (ret > 0)
-        position += ret;
-    return;
-}
-
-void addText(char *buffer, const int size, int &position, const char *text) {
-    addFormatText(buffer, size, position, "%s", text);
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
