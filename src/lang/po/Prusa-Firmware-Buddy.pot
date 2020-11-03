@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-11-02 17:35+0100\n"
+"POT-Creation-Date: 2020-11-03 14:54+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1150,10 +1150,6 @@ msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:9
 msgid "Wizard"
-msgstr ""
-
-#: src/gui/screen_splash.cpp:37
-msgid "Wizard states invalid"
 msgstr ""
 
 #: src/gui/dialogs/DialogSelftestAxis.cpp:13
