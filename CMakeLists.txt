@@ -619,7 +619,6 @@ if(GUI)
             src/guiapi/src/st7789v.c
             src/guiapi/src/st7789v.cpp
             src/guiapi/src/display_ex.cpp
-            src/guiapi/src/window_event.cpp
             src/guiapi/src/window_icon.cpp
             src/guiapi/src/window_spin.cpp
             src/guiapi/src/window_text.cpp
