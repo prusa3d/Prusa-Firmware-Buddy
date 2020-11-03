@@ -4,8 +4,8 @@
 
 /*****************************************************************************/
 //WI_LABEL_t
-WI_LABEL_t::WI_LABEL_t(string_view_utf8 label, uint16_t id_icon, bool enabled, bool hidden)
-    : IWindowMenuItem(label, id_icon, enabled, hidden) {}
+WI_LABEL_t::WI_LABEL_t(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands_screen)
+    : IWindowMenuItem(label, id_icon, enabled, hidden, expands_screen) {}
 
 /**
  * return changed (== invalidate)
@@ -14,19 +14,39 @@ bool WI_LABEL_t::Change(int /*dif*/) {
     return false;
 }
 
+void WI_LABEL_t::printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    std::array<Rect16, 2> rects = getMenuRects(window_menu, rect);
+    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
+    if (expands == expands_t::yes) {
+        render_icon_align(rects[1], IDR_PNG_arrow_right_16px, window_menu.color_back, RENDER_FLG(ALIGN_LEFT_CENTER, swap));
+    }
+}
+
+std::array<Rect16, 2> WI_LABEL_t::getMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
+    Rect16 rolling_rect = getRollingRect(window_menu, rect);
+    Rect16 expand_icon_rc = { 0, 0, 0, 0 };
+    if (expands == expands_t::yes) {
+        expand_icon_rc = { int16_t(rect.Left() + rect.Width() - 26), rect.Top(), 26, rect.Height() };
+        if (rolling_rect.Left() + rolling_rect.Width() > expand_icon_rc.Left()) {
+            rolling_rect -= Rect16::Width_t(rolling_rect.Left() + rolling_rect.Width() - expand_icon_rc.Left());
+        }
+    }
+    return std::array<Rect16, 2> { rolling_rect, expand_icon_rc };
+}
+
+void WI_LABEL_t::InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) {
+    reInitRoll(window_menu, getMenuRects(window_menu, rect)[0]);
+}
+
 /*****************************************************************************/
 //IWiSpin
 std::array<char, 10> IWiSpin::temp_buff;
 
 void IWiSpin::click(IWindowMenu & /*window_menu*/) {
-    if (selected) {
+    if (selected == is_selected_t::yes) {
         OnClick();
     }
-    selected = !selected;
-}
-
-Rect16 IWiSpin::getRollingRect(IWindowMenu &window_menu, Rect16 rect) const {
-    return getRollingSpinRects(window_menu, rect)[0];
+    selected = selected == is_selected_t::yes ? is_selected_t::no : is_selected_t::yes;
 }
 
 /**
@@ -34,38 +54,23 @@ Rect16 IWiSpin::getRollingRect(IWindowMenu &window_menu, Rect16 rect) const {
  * with values of
  * {rolling_rect, spin_rect}
  **/
-std::array<Rect16, 2> IWiSpin::getRollingSpinRects(IWindowMenu &window_menu, Rect16 rect) const {
-    Rect16 base_rolling_rect = super::getRollingRect(window_menu, rect);
+std::array<Rect16, 2> IWiSpin::getMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
+    Rect16 base_rolling_rect = getRollingRect(window_menu, rect);
     char *buff = sn_prt();
-    Rect16 spin_rect = getSpinRect(window_menu, base_rolling_rect, strlen(buff));
+    Rect16 spin_rect = getCustomRect(window_menu, base_rolling_rect, strlen(buff) * window_menu.font->w + window_menu.padding.left + window_menu.padding.right);
 
     Rect16 rolling_rect = base_rolling_rect;
     rolling_rect = Rect16::Width_t(spin_rect.Left() - rolling_rect.Left());
     return std::array<Rect16, 2> { rolling_rect, spin_rect };
 }
 
-//helper method - to be used by getRollingRect
-Rect16 IWiSpin::getSpinRect(IWindowMenu &window_menu, Rect16 base_rolling_rect, size_t spin_strlen) {
-    Rect16 spin_rect = base_rolling_rect;
-    spin_rect = Rect16::Width_t(window_menu.font->w * spin_strlen + window_menu.padding.left + window_menu.padding.right);
-    spin_rect += Rect16::Left_t(base_rolling_rect.Width() - spin_rect.Width());
-    return spin_rect;
-}
-
-void IWiSpin::printText(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t /*swap*/) const {
-    std::array<Rect16, 2> rects = getRollingSpinRects(window_menu, rect);
-
-    //draw label
-    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
-    //draw spin
-    // this MakeRAM is safe - temp_buff is allocated for the whole life of IWiSpin
-    render_text_align(rects[1], string_view_utf8::MakeRAM((const uint8_t *)temp_buff.data()), window_menu.font,
-        color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.GetAlignment());
+void IWiSpin::InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) {
+    reInitRoll(window_menu, getMenuRects(window_menu, rect)[0]);
 }
 
 /*****************************************************************************/
 //IWiSwitch
-IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, bool enabled, bool hidden)
+IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden)
     , index(index) {}
 
@@ -91,42 +96,15 @@ bool IWiSwitch::SetIndex(size_t idx) {
     }
 }
 
-//helper method - to be used by getRollingRect
-Rect16 IWiSwitch::getSpinRect(IWindowMenu &window_menu, Rect16 base_rolling_rect, size_t spin_strlen) const {
-    Rect16 spin_rect = base_rolling_rect;
-    uint16_t spin_w = window_menu.font->w * spin_strlen + window_menu.padding.left + window_menu.padding.right;
-    spin_rect = Rect16::Left_t(base_rolling_rect.Left() + base_rolling_rect.Width() - spin_w);
-    spin_rect = Rect16::Width_t(spin_w);
-    return spin_rect;
-}
-
-/**
- * returns array<Rect16,2>
- * with values of
- * {rolling_rect, spin_rect}
- **/
-std::array<Rect16, 2> IWiSwitch::getRollingSpinRects(IWindowMenu &window_menu, Rect16 rect) const {
-    Rect16 base_rolling_rect = super::getRollingRect(window_menu, rect);
+std::array<Rect16, 2> IWiSwitch::getMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
+    Rect16 base_rolling_rect = getRollingRect(window_menu, rect);
+    Rect16 switch_rect;
     string_view_utf8 localizedItem = _(get_item());
-    Rect16 spin_rect = getSpinRect(window_menu, base_rolling_rect, localizedItem.computeNumUtf8CharsAndRewind());
+    switch_rect = getCustomRect(window_menu, base_rolling_rect, localizedItem.computeNumUtf8CharsAndRewind() * window_menu.font->w + window_menu.padding.left + window_menu.padding.right);
 
     Rect16 rolling_rect = base_rolling_rect;
-    rolling_rect = Rect16::Width_t(spin_rect.Left() - rolling_rect.Left());
-    return std::array<Rect16, 2> { rolling_rect, spin_rect };
-}
-
-Rect16 IWiSwitch::getRollingRect(IWindowMenu &window_menu, Rect16 rect) const {
-    return getRollingSpinRects(window_menu, rect)[0];
-}
-
-void IWiSwitch::printText(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t /*swap*/) const {
-    std::array<Rect16, 2> rects = getRollingSpinRects(window_menu, rect);
-
-    //draw label
-    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
-    //draw spin
-    render_text_align(rects[1], _(get_item()), window_menu.font,
-        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.GetAlignment());
+    rolling_rect = Rect16::Width_t(switch_rect.Left() - rolling_rect.Left());
+    return std::array<Rect16, 2> { rolling_rect, switch_rect };
 }
 
 /*****************************************************************************/
@@ -155,14 +133,14 @@ bool WI_SELECT_t::Change(int dif) {
     return true;
 }
 
-WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, bool enabled, bool hidden)
+WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : IWindowMenuItem(string_view_utf8::MakeNULLSTR(), id_icon, enabled, hidden)
     , index(index)
     , strings(strings) {}
 
-void WI_SELECT_t::printText(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const {
+void WI_SELECT_t::printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const {
     Rect16 rolling_rect = getRollingRect(window_menu, rect);
-    IWindowMenuItem::printText(window_menu, rolling_rect, color_text, color_back, swap);
+    IWindowMenuItem::printItem(window_menu, rolling_rect, color_text, color_back, swap);
     const char *txt = strings[index];
 
     Rect16 vrc = {
@@ -181,7 +159,7 @@ void WI_SELECT_t::printText(IWindowMenu &window_menu, Rect16 rect, color_t color
 /*****************************************************************************/
 //MI_RETURN
 MI_RETURN::MI_RETURN()
-    : WI_LABEL_t(_(label), IDR_PNG_folder_up_16px, true, false) {
+    : WI_LABEL_t(_(label), IDR_PNG_folder_up_16px, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_RETURN::click(IWindowMenu &window_menu) {
@@ -191,7 +169,7 @@ void MI_RETURN::click(IWindowMenu &window_menu) {
 
 MI_TEST_DISABLED_RETURN::MI_TEST_DISABLED_RETURN()
     //just for test (in debug), do not translate
-    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), IDR_PNG_folder_up_16px, false, false) {
+    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), IDR_PNG_folder_up_16px, is_enabled_t::no, is_hidden_t::no) {
 }
 
 void MI_TEST_DISABLED_RETURN::click(IWindowMenu & /*window_menu*/) {

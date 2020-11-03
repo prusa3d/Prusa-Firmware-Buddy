@@ -7,6 +7,7 @@ struct IWindowMenu : public window_aligned_t {
     color_t color_text;
     color_t color_disabled;
     font_t *font;
+    font_t *secondary_font;
     padding_ui8_t padding;
     IWindowMenu(window_t *parent, Rect16 rect);
     uint8_t GetIconWidth() const;

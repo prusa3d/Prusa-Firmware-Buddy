@@ -164,7 +164,7 @@ class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_LAN_ONOFF()
-        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, _(label), 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::On() : Eth::Off();
     }
@@ -178,7 +178,7 @@ class MI_LAN_IP_t : public WI_SWITCH_t<2> {
 
 public:
     MI_LAN_IP_t()
-        : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, _(label), 0, true, false, str_DHCP, str_static) {}
+        : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, _(label), 0, is_enabled_t::yes, is_hidden_t::no, str_DHCP, str_static) {}
     virtual void OnChange(size_t old_index) override {
         bool success = old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
         if (!success)
@@ -191,7 +191,7 @@ class MI_LAN_SAVE : public WI_LABEL_t {
 
 public:
     MI_LAN_SAVE()
-        : WI_LABEL_t(_(label), 0, true, false) {}
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::SaveMessage();
     }
@@ -202,7 +202,7 @@ class MI_LAN_LOAD : public WI_LABEL_t {
 
 public:
     MI_LAN_LOAD()
-        : WI_LABEL_t(_(label), 0, true, false) {}
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::LoadIni();
     }

@@ -100,6 +100,7 @@ void gui_run(void) {
 
     GuiDefaults::Font = resource_font(IDR_FNT_NORMAL);
     GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
+    GuiDefaults::FontSpecial = resource_font(IDR_FNT_SPECIAL);
 
     if (!sys_fw_is_valid())
         update_firmware_screen();

@@ -9,11 +9,14 @@
 #include "IWindowMenuItem.hpp"
 #include "cmath_ext.h"
 
+#define MENU_ITEM_DELIMETER_PADDING 6
+
 IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
     : window_aligned_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , color_disabled(GuiDefaults::ColorDisabled)
     , font(GuiDefaults::Font)
+    , secondary_font(GuiDefaults::FontSpecial)
     , padding { 6, 6, 6, 6 } {
     SetIconWidth(25);
     Enable();
@@ -156,7 +159,7 @@ bool window_menu_t::updateTopIndex() {
         return false;
 
     const int item_height = font->h + padding.top + padding.bottom;
-    const int visible_available = rect.Height() / item_height;
+    const int visible_available = rect.Height() / (item_height + 1); // 1 pixel for menu item delimeter
 
     const int visible_index = visibleIndex(index);
 
@@ -228,7 +231,7 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
         return;
 
     Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * item_height),
-        rect.Width(), uint16_t(item_height) };
+        rect.Width(), uint16_t(item_height - 1) }; // 1 pixel is for gray menu item delimeter
 
     if (rect.Contain(rc)) {
 
@@ -236,6 +239,9 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
         item->InitRollIfNeeded(*this, rc);
 
         item->Print(*this, rc);
+#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
+        display::DrawLine(point_ui16(rc.Left() + MENU_ITEM_DELIMETER_PADDING, rc.Top() + rc.Height()), point_ui16(rc.Left() + rc.Width() - 2 * MENU_ITEM_DELIMETER_PADDING, rc.Top() + rc.Height()), COLOR_SILVER);
+#endif // (PRINTER_TYPE != PRINTER_PRUSA_MINI)
     }
 }
 
@@ -271,7 +277,7 @@ void window_menu_t::unconditionalDraw() {
 
 void window_menu_t::redrawWholeMenu() {
     const int item_height = font->h + padding.top + padding.bottom;
-    const size_t visible_available = rect.Height() / item_height;
+    const size_t visible_available = rect.Height() / (item_height + 1);
     size_t visible_count = 0;
     IWindowMenuItem *item;
     for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
@@ -282,12 +288,12 @@ void window_menu_t::redrawWholeMenu() {
         if (item->IsHidden())
             continue;
 
-        printItem(visible_count, item, item_height);
+        printItem(visible_count, item, item_height + 1);
         ++visible_count;
     }
 
     /// fill the rest of the window by background
-    const int16_t menu_h = visible_count * item_height;
+    const int16_t menu_h = visible_count * (item_height + 1);
     Rect16 rc_win = rect;
     rc_win -= Rect16::Height_t(menu_h);
     if (rc_win.Height() <= 0)
@@ -298,7 +304,7 @@ void window_menu_t::redrawWholeMenu() {
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {
     const int item_height = font->h + padding.top + padding.bottom;
-    const size_t visible_available = rect.Height() / item_height;
+    const size_t visible_available = rect.Height() / (item_height + 1); // 1 pixel for menu item delimeter
     size_t visible_count = 0;
     IWindowMenuItem *item = nullptr;
     for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
@@ -308,7 +314,7 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
         if (item->IsHidden())
             continue;
         if (i == index) {
-            printItem(visible_count, item, item_height);
+            printItem(visible_count, item, item_height + 1); // 1 pixel for menu item delimeter
             break;
         }
         ++visible_count;

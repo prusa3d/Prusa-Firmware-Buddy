@@ -21,5 +21,6 @@ struct GuiDefaults {
     static constexpr uint8_t FrameWidth = 10;                                // default frame padding
     static font_t *Font;                                                     //todo constexpr
     static font_t *FontBig;                                                  //todo constexpr
-    static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4;                       // maximum number of radio buttons
+    static font_t *FontSpecial;
+    static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4; // maximum number of radio buttons
 };

@@ -17,7 +17,7 @@
 class MI_LangBase : public WI_LABEL_t {
 public:
     inline MI_LangBase(const char *label, uint16_t icon_id)
-        : WI_LABEL_t(_(label), icon_id, true, false) {}
+        : WI_LABEL_t(_(label), icon_id, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {

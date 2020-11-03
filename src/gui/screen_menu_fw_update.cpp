@@ -20,7 +20,7 @@ class MI_ALWAYS : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_ALWAYS()
-        : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? 1 : 0, _(label), 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? 1 : 0, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? sys_fw_update_enable() : sys_fw_update_disable();
         Screens::Access()->WindowEvent(GUI_event_t::CLICK, (void *)index);
@@ -34,7 +34,7 @@ class MI_ON_RESTART : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_ON_RESTART()
-        : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? true : (sys_fw_update_on_restart_is_enabled() ? true : false), _(label), 0, sys_fw_update_is_enabled() ? false : true, false) {}
+        : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? true : (sys_fw_update_on_restart_is_enabled() ? true : false), _(label), 0, sys_fw_update_is_enabled() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? sys_fw_update_on_restart_enable() : sys_fw_update_on_restart_disable();
     }
