@@ -141,14 +141,14 @@ static void stop_common(void) {
 }
 
 void addFormatNum(char *buffer, const int size, int &position, const char *format, const uint32_t num) {
-    int ret = snprintf(&buffer[position], size - position, format, num);
+    int ret = snprintf(&buffer[position], std::max(0, size - position), format, num);
     if (ret > 0)
         position += ret;
     return;
 }
 
 void addFormatText(char *buffer, const int size, int &position, const char *format, const char *text) {
-    int ret = snprintf(&buffer[position], size - position, format, text);
+    int ret = snprintf(&buffer[position], std::max(0, size - position), format, text);
     if (ret > 0)
         position += ret;
     return;
@@ -400,7 +400,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         if (pc != 0)
             file_name = pc + 1;
 
-        vsnprintf(&buffer[buffer_pos], buffer_size - buffer_pos, fmt, args);
+        vsnprintf(&buffer[buffer_pos], std::max(0, buffer_size - buffer_pos), fmt, args);
         addText(buffer, buffer_size, buffer_pos, "\n");
 
         if (file_name != nullptr)
