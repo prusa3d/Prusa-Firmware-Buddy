@@ -140,17 +140,6 @@ static void stop_common(void) {
     display::Init();
 }
 
-// //! @brief print white error message on background
-// //!
-// //! It prints also firmware version on bottom of the screen.
-// //!
-// //! @param term input message
-// //! @param background_color background color
-// static void print_error(term_t *term, color_t background_color) {
-//     render_term(term, 10, 10, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
-//     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
-// }
-
 //! @brief Marlin stopped
 //!
 //! Disable interrupts, print red error message and stop in infinite loop.
@@ -393,10 +382,6 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     #else
 
     display::Clear(COLOR_NAVY); ///< clear with dark blue color
-    // term_t term;                          ///< terminal structure
-    // uint8_t buff[TERM_BUFF_SIZE(20, 16)]; ///< terminal buffer for 20x16
-    // term_init(&term, 20, 16, buff);       ///< initialize terminal structure (clear buffer etc)
-
     const int COLS = 20;
     const int ROWS = 16;
     int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
@@ -413,35 +398,22 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         pc = strrchr(file_name, '\\');
         if (pc != 0)
             file_name = pc + 1;
-        // {
-        // char text[TERM_PRINTF_MAX];
+
         vsnprintf(&buffer[buffer_pos], buffer_size - buffer_pos, fmt, args);
-        // const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
-        // for (size_t i = 0; i < range; i++)
-        //     term_write_char(&term, text[i]);
-        // }
-        // term_printf(&term, "\n");
         addText(buffer, buffer_size, buffer_pos, "\n");
 
         if (file_name != nullptr)
-            // term_printf(&term, "%s", file_name); //print filename
             addText(buffer, buffer_size, buffer_pos, file_name);
         if ((file_name != nullptr) && (line_number != -1))
-            // term_printf(&term, " "); //print space
             addText(buffer, buffer_size, buffer_pos, " ");
         if (line_number != -1)
-            // term_printf(&term, "%d", line_number); //print line number
             addFormatNum(buffer, buffer_size, buffer_pos, "%d", line_number);
         if ((file_name != nullptr) || (line_number != -1))
-            // term_printf(&term, "\n"); //new line if there is filename or line number
             addText(buffer, buffer_size, buffer_pos, "\n");
     }
 
-    // term_printf(&term, "TASK:%s\n", tskName);
     addFormatText(buffer, buffer_size, buffer_pos, "TASK:%s\n", tskName);
-    // term_printf(&term, "b:%x", pBotOfStack);
     addFormatNum(buffer, buffer_size, buffer_pos, "b:%x", (uint32_t)pBotOfStack);
-    // term_printf(&term, "t:%x", pTopOfStack);
     addFormatNum(buffer, buffer_size, buffer_pos, "t:%x", (uint32_t)pTopOfStack);
 
     const int lines = str2multiline(buffer, buffer_size, COLS);
@@ -455,11 +427,8 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         lastAddr = pTopOfStack - 2 * lines_to_print;
 
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
-        // term_printf(&term, "%08x  ", *i);
         addFormatNum(buffer, buffer_size, buffer_pos, "%08x  ", (uint32_t)*i);
     }
-    // print_error(&term, COLOR_NAVY);
-    // render_term(term, 10, 10, resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
     display::DrawText(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, RENDER_FLG_WORDB);
     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
 
@@ -585,16 +554,11 @@ void ScreenHardFault(void) {
 
     display::Clear(COLOR_NAVY); //clear with dark blue color
 
-    // term_t term;                              //terminal structure
-    // uint8_t buff[TERM_BUFF_SIZE(COLS, ROWS)]; //terminal buffer for 20x16
-    // term_init(&term, COLS, ROWS, buff);       //initialize terminal structure (clear buffer etc)
-
     int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
     /// Buffer for text. PNG RAM cannot be used (font drawing).
     char buffer[buffer_size];
     int buffer_pos = 0; ///< position in buffer
 
-    //term_printf(&term, "TASK: %s. ", tskName);
     addFormatText(buffer, buffer_size, buffer_pos, "TASK: %s. ", tskName);
 
     uint32_t __SCB[35];
@@ -604,85 +568,65 @@ void ScreenHardFault(void) {
 
     switch ((__CFSR) & (IACCVIOL_Msk | DACCVIOL_Msk | MSTKERR_Msk | MUNSTKERR_Msk | MLSPERR_Msk | STKERR_Msk | UNSTKERR_Msk | IBUSERR_Msk | LSPERR_Msk | PRECISERR_Msk | IMPRECISERR_Msk | UNDEFINSTR_Msk | INVSTATE_Msk | INVPC_Msk | NOCPC_Msk | UNALIGNED_Msk | DIVBYZERO_Msk)) {
     case IACCVIOL_Msk:
-        // term_printf(&term, IACCVIOL_Txt);
         addText(buffer, buffer_size, buffer_pos, IACCVIOL_Txt);
         break;
     case DACCVIOL_Msk:
-        // term_printf(&term, DACCVIOL_Txt);
         addText(buffer, buffer_size, buffer_pos, DACCVIOL_Txt);
         break;
     case MSTKERR_Msk:
-        // term_printf(&term, MSTKERR_Txt);
         addText(buffer, buffer_size, buffer_pos, MSTKERR_Txt);
         break;
     case MUNSTKERR_Msk:
-        // term_printf(&term, MUNSTKERR_Txt);
         addText(buffer, buffer_size, buffer_pos, MUNSTKERR_Txt);
         break;
     case MLSPERR_Msk:
-        // term_printf(&term, MLSPERR_Txt);
         addText(buffer, buffer_size, buffer_pos, MLSPERR_Txt);
         break;
 
     case STKERR_Msk:
-        // term_printf(&term, STKERR_Txt);
         addText(buffer, buffer_size, buffer_pos, STKERR_Txt);
         break;
     case UNSTKERR_Msk:
-        // term_printf(&term, UNSTKERR_Txt);
         addText(buffer, buffer_size, buffer_pos, UNSTKERR_Txt);
         break;
     case IBUSERR_Msk:
-        // term_printf(&term, IBUSERR_Txt);
         addText(buffer, buffer_size, buffer_pos, IBUSERR_Txt);
         break;
     case LSPERR_Msk:
-        // term_printf(&term, LSPERR_Txt);
         addText(buffer, buffer_size, buffer_pos, LSPERR_Txt);
         break;
     case PRECISERR_Msk:
-        // term_printf(&term, PRECISERR_Txt);
         addText(buffer, buffer_size, buffer_pos, PRECISERR_Txt);
         break;
     case IMPRECISERR_Msk:
-        // term_printf(&term, IMPRECISERR_Txt);
         addText(buffer, buffer_size, buffer_pos, IMPRECISERR_Txt);
         break;
 
     case UNDEFINSTR_Msk:
-        // term_printf(&term, UNDEFINSTR_Txt);
         addText(buffer, buffer_size, buffer_pos, UNDEFINSTR_Txt);
         break;
     case INVSTATE_Msk:
-        // term_printf(&term, INVSTATE_Txt);
         addText(buffer, buffer_size, buffer_pos, INVSTATE_Txt);
         break;
     case INVPC_Msk:
-        // term_printf(&term, INVPC_Txt);
         addText(buffer, buffer_size, buffer_pos, INVPC_Txt);
         break;
     case NOCPC_Msk:
-        // term_printf(&term, NOCPC_Txt);
         addText(buffer, buffer_size, buffer_pos, NOCPC_Txt);
         break;
     case UNALIGNED_Msk:
-        // term_printf(&term, UNALIGNED_Txt);
         addText(buffer, buffer_size, buffer_pos, UNALIGNED_Txt);
         break;
     case DIVBYZERO_Msk:
-        // term_printf(&term, DIVBYZERO_Txt);
         addText(buffer, buffer_size, buffer_pos, DIVBYZERO_Txt);
         break;
 
     default:
-        // term_printf(&term, "Multiple Errors CFSR :%08x", __CFSR);
         addFormatNum(buffer, buffer_size, buffer_pos, "Multiple Errors CFSR :%08x", __CFSR);
         break;
     }
-    // term_printf(&term, "\n");
     addText(buffer, buffer_size, buffer_pos, "\n");
 
-    // term_printf(&term, "bot: 0x%08x top: 0x%08x\n", pBotOfStack, pTopOfStack);
     addFormatNum(buffer, buffer_size, buffer_pos, "bot: 0x%08x ", (uint32_t)pBotOfStack);
     addFormatNum(buffer, buffer_size, buffer_pos, "top: 0x%08x\n", (uint32_t)pTopOfStack);
 
@@ -703,7 +647,6 @@ void ScreenHardFault(void) {
     uint32_t __CPACR = __SCB[0x88 >> 2];
 
     //32 characters per line
-    // term_printf(&term, "CPUID:%08x  ", __CPUID);
     addFormatNum(buffer, buffer_size, buffer_pos, "CPUID:%08x  ", __CPUID);
     if (__ICSR)
         addFormatNum(buffer, buffer_size, buffer_pos, "ICSR :%08x  ", __ICSR);
@@ -750,9 +693,9 @@ void ScreenHardFault(void) {
     const int lines = str2multiline(buffer, buffer_size, COLS);
     const int available_rows = lines < 0 ? 0 : ROWS - lines - 1;
     //int available_chars = available_rows * COLS;
-    int stack_sz = pTopOfStack - pBotOfStack;
+    const int stack_sz = pTopOfStack - pBotOfStack;
     //int stack_chars_to_print = (addr_string_len +1)* stack_sz - stack_sz / 3;//+1 == space, - stack_sz / 3 .. 3rd string does not have a space
-    int requested_rows = stack_sz / 3;
+    const int requested_rows = stack_sz / 3; ///< 3 addresses per line
 
     StackType_t *lastAddr;
     if (requested_rows < available_rows)
@@ -765,15 +708,11 @@ void ScreenHardFault(void) {
         space_counter++;
         uint32_t sp = 0;
         dump_in_xflash_read_RAM(&sp, (unsigned int)i, sizeof(uint32_t));
-        // term_printf(&term, "0x%08x", sp);
-        addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x", sp);
-        if (space_counter % 3)
-            addText(buffer, buffer_size, buffer_pos, " ");
+        addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x ", sp);
     }
 
-    // render_term(&term, 10, 10, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
-    display::DrawText(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, RENDER_FLG_WORDB);
-    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    display::DrawText(Rect16(8, 10, 232, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, RENDER_FLG_WORDB);
+    display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 }
 
     #endif //PSOD_BSOD
