@@ -266,7 +266,8 @@ def cmd_dump_pofiles(args):
                     entry.msgid, key, langcode)
                 break
             lines.append(entry.msgstr.replace('\n', '\\n') + '\n')
-        open(args.output_dir / f'{langcode}.txt', 'w').writelines(lines)
+        open(args.output_dir / f'{langcode}.txt', 'w',
+             encoding='utf-8').writelines(lines)
 
 
 def main():
