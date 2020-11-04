@@ -47,6 +47,7 @@
 #endif
 #include "usb_device.h"
 #include "usb_host.h"
+#include "buffered_serial.hpp"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -101,9 +102,6 @@ UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart6_rx;
-
-osThreadId uart2_thread = 0;
-int32_t uart2_signal = UART2_SIG_RXCPL;
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
@@ -227,13 +225,17 @@ int main(void) {
     HAL_PWM_Initialized = 1;
     HAL_SPI_Initialized = 1;
 
+    buddy::hw::BufferedSerial::uart2.Open();
+
     uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
-    uartrxbuff_open(&uart1rxbuff);
+    uartrxbuff_reset(&uart1rxbuff);
+    HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
 
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
-    uartrxbuff_open(&uart6rxbuff);
-    uartslave_init(&uart6slave, &uart6rxbuff, sizeof(uart6slave_line), uart6slave_line);
+    uartrxbuff_reset(&uart6rxbuff);
+    uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
     putslave_init(&uart6slave);
+    HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
     wdt_iwdg_warning_cb = iwdg_warning_cb;
     /* USER CODE END 2 */
 
@@ -776,9 +778,6 @@ static void MX_USART2_UART_Init(void) {
     if (HAL_HalfDuplex_Init(&huart2) != HAL_OK) {
         Error_Handler();
     }
-    /* USER CODE BEGIN USART2_Init 2 */
-
-    /* USER CODE END USART2_Init 2 */
 }
 
 /**
@@ -910,13 +909,22 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
     st7789v_spi_tx_complete();
 }
 
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *haurt) {
+    if (haurt == &huart2)
+        buddy::hw::BufferedSerial::uart2.WriteFinishedISR();
+}
+
+void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart == &huart2)
+        buddy::hw::BufferedSerial::uart2.FirstHalfReachedISR();
+}
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart == &huart1)
         uartrxbuff_rxcplt_cb(&uart1rxbuff);
-    else if (huart == &huart2) {
-        if (uart2_thread)
-            osSignalSet(uart2_thread, uart2_signal);
-    } else if (huart == &huart6)
+    else if (huart == &huart2)
+        buddy::hw::BufferedSerial::uart2.SecondHalfReachedISR();
+    else if (huart == &huart6)
         uartrxbuff_rxcplt_cb(&uart6rxbuff);
 }
 

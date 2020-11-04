@@ -411,6 +411,7 @@ target_include_directories(
           src/gui/wizard
           src/guiapi/include
           src/lang
+          src/hw
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -458,6 +459,7 @@ target_sources(
           src/stm32f4xx_hal_timebase_tim.c
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
+          src/common/hardware_serial.cpp
           src/common/diag.cpp
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
@@ -492,7 +494,6 @@ target_sources(
           src/common/selftest/selftest_heater.cpp
           src/common/sim_motion.cpp
           src/common/st25dv64k.c
-          $<$<STREQUAL:${INIT_TRINAMIC_FROM_MARLIN_ONLY},NO>:src/common/trinamic.cpp>
           src/common/w25x.c
           src/common/gcode_file.cpp
           src/common/gcode_thumb_decoder.cpp
@@ -513,6 +514,7 @@ target_sources(
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M50.cpp
+          src/hw/buffered_serial.cpp
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/G26.cpp
           src/marlin_stubs/G162.cpp
@@ -529,6 +531,7 @@ target_sources(
           src/gui/guimain.cpp
           src/common/filament.cpp
           src/common/fanctl.cpp
+          src/common/trinamic.cpp
   )
 
 if(GUI)
@@ -667,6 +670,7 @@ set_property(
 
 set_property(
   SOURCE src/common/appmain.cpp src/common/marlin_test.cpp src/common/putslave.cpp
+         src/common/thread_measurement.cpp src/common/trinamic.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
