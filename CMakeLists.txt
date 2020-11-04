@@ -633,8 +633,7 @@ if(GUI)
             src/guiapi/src/MItem_tools.cpp
             src/guiapi/src/Jogwheel.cpp
             src/guiapi/src/ScreenShot.cpp
-            src/guiapi/src/menu_spin_config_basic.cpp
-            src/guiapi/src/menu_spin_config_with_units.cpp
+            $<$<STREQUAL:${PRINTER},MINI>:src/guiapi/src/menu_spin_config_basic.cpp>
     )
 endif()
 

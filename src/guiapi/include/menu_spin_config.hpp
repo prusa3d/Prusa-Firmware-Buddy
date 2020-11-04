@@ -7,13 +7,21 @@
  *
  * @copyright Copyright (c) 2020
  *
+ * included by menu_spin_config_basic.cpp xor menu_spin_config_with_units.cpp
  */
 #pragma once
+#include <array>
+#include "menu_spin_config_type.hpp"
+#include "menu_vars.h"
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #include "menu_spin_config_basic.hpp"
-using SpinCnf = DoNotUse::SpinCnf_basic; // DoNotUse is meant to be used here
-#else
-    #include "menu_spin_config_with_units.hpp"
-using SpinCnf = DoNotUse::SpinCnf_with_units; // DoNotUse is meant to be used here
-#endif
+struct SpinCnf {
+    static const SpinConfig_U16_t nozzle;
+    static const SpinConfig_U08_t bed;
+    static const SpinConfig_U08_t printfan;
+    static const SpinConfig_U16_t feedrate;
+    static const SpinConfig_U16_t flowfact;
+    static const SpinConfig_I08_t timezone_range;
+    static const SpinConfig_U08_t volume_range;
+    static const SpinConfig_I08_t sensor_range;
+    static const std::array<SpinConfig_I16_t, MenuVars::AXIS_CNT> axis_ranges;
+};
