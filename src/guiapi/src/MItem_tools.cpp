@@ -350,13 +350,10 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
 
 /*****************************************************************************/
 //MI_SOUND_VOLUME
-constexpr static const std::array<uint8_t, 3> volume_range = { { 0, 10, 1 } };
+//crank it up to 11
+constexpr static const std::array<uint8_t, 3> volume_range = { { 0, 11, 1 } };
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
     : WI_SPIN_U08_t(static_cast<uint8_t>(Sound_GetVolume()), volume_range.data(), _(label), 0, true, false) {}
-/* void MI_SOUND_VOLUME::Change(int dif) { */
-/* int v = value - dif; */
-/* Sound_SetVolume(value); */
-/* } */
 void MI_SOUND_VOLUME::OnClick() {
     Sound_SetVolume(value);
 }
