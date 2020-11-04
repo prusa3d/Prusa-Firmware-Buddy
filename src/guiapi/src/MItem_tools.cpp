@@ -21,6 +21,8 @@
 #include "main_MINI.h"
 #include "Pin.hpp"
 #include "hwio_pindef_MINI.h"
+#include "menu_spin_config.hpp"
+#include "window_types.hpp" //SENSOR_STATE
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -350,9 +352,9 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
 
 /*****************************************************************************/
 //MI_SOUND_VOLUME
-constexpr static const std::array<uint8_t, 3> volume_range = { { 0, 10, 1 } };
+
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
-    : WI_SPIN_U08_t(static_cast<uint8_t>(Sound_GetVolume()), "", volume_range.data(), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SPIN_U08_t(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 /* void MI_SOUND_VOLUME::Change(int dif) { */
 /* int v = value - dif; */
 /* Sound_SetVolume(value); */
@@ -363,7 +365,6 @@ void MI_SOUND_VOLUME::OnClick() {
 
 /*****************************************************************************/
 //MI_SORT_FILES
-
 MI_SORT_FILES::MI_SORT_FILES()
     : WI_SWITCH_t<2>(variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT)), _(label), 0, is_enabled_t::yes, is_hidden_t::no, str_time, str_name) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
@@ -378,9 +379,8 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
 
 /*****************************************************************************/
 //MI_TIMEZONE
-constexpr static const std::array<int8_t, 3> timezone_range = { { -12, 12, 1 } };
 MI_TIMEZONE::MI_TIMEZONE()
-    : WI_SPIN_I08_t(variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE)), "h", timezone_range.data(), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SPIN_I08_t(variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE)), SpinCnf::timezone_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = value;
     int8_t last_timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
@@ -418,10 +418,8 @@ bool set_changed_state(const T current_state, T *old_state) {
     return changed;
 }
 
-const int8_t sensor_range[3] = { (int8_t)SENSOR_STATE::unknown, (int8_t)SENSOR_STATE::high, 1 }; /// min value, max value, step
-
 MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
-    : WI_SPIN_I08_t(0, 0, sensor_range, _(label), 0, is_enabled_t::no, is_hidden_t::no) {
+    : WI_SPIN_I08_t(0, SpinCnf::sensor_range, _(label), 0, is_enabled_t::no, is_hidden_t::no) {
     value = (int8_t)get_state();
 }
 
@@ -442,7 +440,7 @@ bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
 }
 
 MI_MINDA::MI_MINDA()
-    : WI_SPIN_I08_t(0, 0, sensor_range, _(label), 0, is_enabled_t::no, is_hidden_t::no) {
+    : WI_SPIN_I08_t(0, SpinCnf::sensor_range, _(label), 0, is_enabled_t::no, is_hidden_t::no) {
     value = (int8_t)get_state();
 }
 

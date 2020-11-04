@@ -6,14 +6,15 @@
 #include "marlin_client.h"
 #include "menu_vars.h"
 #include "WindowMenuItems.hpp"
+#include "menu_spin_config.hpp"
 
 template <size_t INDEX>
 class MI_AXIS : public WI_SPIN_I16_t {
 
 public:
     MI_AXIS<INDEX>()
-        : WI_SPIN_I16_t(int32_t(marlin_vars()->pos[INDEX]), "mm",
-            MenuVars::axis_ranges[INDEX].data(), _(MenuVars::labels[INDEX]), 0, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_SPIN_I16_t(int32_t(marlin_vars()->pos[INDEX]),
+            SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual bool Change(int dif) override {
         bool ret = WI_SPIN_I16_t::Change(dif);
         marlin_gcode_printf("G0 %c%d F%d", MenuVars::axis_letters[INDEX], value, MenuVars::manual_feedrate[INDEX]);
