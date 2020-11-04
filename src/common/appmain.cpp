@@ -68,13 +68,15 @@ extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mo
 #endif                                 //BUDDY_ENABLE_ETHERNET
 
 void app_setup(void) {
+    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
+        init_tmc();
+    } else {
+        init_tmc_bare_minimum();
+    }
+
     setup();
 
     marlin_server_settings_load(); // load marlin variables from eeprom
-
-    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
-        init_tmc();
-    }
     //DBG("after init_tmc (%ld ms)", HAL_GetTick());
 }
 

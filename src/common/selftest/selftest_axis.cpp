@@ -148,8 +148,8 @@ void CSelftestPart_Axis::sg_sampling_enable() {
     m_SGOrig_mask = tmc_get_sg_mask();
     tmc_set_sg_mask(1 << m_pConfig->axis);
     tmc_set_sg_axis(m_pConfig->axis);
-    m_pSGOrig_cb = (void *)tmc_get_sg_sampe_cb();
-    tmc_set_sg_sampe_cb(sg_sample_cb);
+    m_pSGOrig_cb = (void *)tmc_get_sg_sample_cb();
+    tmc_set_sg_sample_cb(sg_sample_cb);
     m_pSGAxis = this;
     m_SGCount = 0;
     m_SGSum = 0;
@@ -158,7 +158,7 @@ void CSelftestPart_Axis::sg_sampling_enable() {
 void CSelftestPart_Axis::sg_sampling_disable() {
     tmc_set_sg_mask(m_SGOrig_mask);
     tmc_set_sg_axis(0);
-    tmc_set_sg_sampe_cb((tmc_sg_sample_cb_t *)m_pSGOrig_cb);
+    tmc_set_sg_sample_cb((tmc_sg_sample_cb_t *)m_pSGOrig_cb);
     m_pSGAxis = nullptr;
 }
 
