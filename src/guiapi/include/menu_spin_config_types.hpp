@@ -59,8 +59,6 @@ struct SpinConfig {
     constexpr T Max() const { return range[1]; }
     constexpr T Step() const { return range[2]; }
     constexpr const char *Unit() { return nullstr; } // not virtual
-    //char *sn_prt(std::array<char, 10>& temp_buff, SpinType value) const;
-    // bool Change(SpinType value, int dif) const;
 };
 
 template <class T>
@@ -72,17 +70,3 @@ struct SpinConfigWithUnit : public SpinConfig<T> {
         , unit(unit_) {}
     constexpr const char *Unit() { return unit; } // not virtual
 };
-/*
-template <class T>
-char *SpinConfig<T>::sn_prt(std::array<char, 10>& temp_buff, SpinType value) const {
-    snprintf(temp_buff.data(), temp_buff.size(), prt_format, (T)(value));
-    return temp_buff.data();
-}
-
-template <>
-inline char *SpinConfig<float>::sn_prt(std::array<char, 10>& temp_buff, SpinType value) const {
-    snprintf(temp_buff.data(), temp_buff.size(), prt_format, static_cast<double>(value.flt));
-    return temp_buff.data();
-}
-
-*/

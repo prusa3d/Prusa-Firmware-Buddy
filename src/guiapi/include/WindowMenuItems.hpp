@@ -65,7 +65,6 @@ public: //todo private
     const Config &config;
 
 protected:
-    //   virtual char *sn_prt() const override {return config.sn_prt(temp_buff,value);};
     virtual char *sn_prt() const override;
 
 public:
