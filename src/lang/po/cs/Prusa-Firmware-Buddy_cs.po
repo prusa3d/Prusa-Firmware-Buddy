@@ -122,11 +122,12 @@ msgstr "Zkontrolujte, zda není poškozen kabel termistoru vyhřívané podložk
 #: src/common/bsod.cpp:234
 msgid "Check the print head heater & thermistor wiring for possible damage."
 msgstr ""
-"Zkontrolujte, zda nejsou poškozeny kabely vyhřívané podložky a termistoru."
+"Zkontrolujte, zda nejsou poškozené kabely od topného bloku a termistoru "
+"tiskové hlavy."
 
 #: src/common/bsod.cpp:235
 msgid "Check the print head thermistor wiring for possible damage."
-msgstr "Zkontrolujte, zda není poškozen kabel termistoru v tiskové hlavě."
+msgstr "Zkontrolujte, zda není poškozen kabel termistoru tiskové hlavy."
 
 #: src/gui/wizard/selftest_fans_axis.cpp:51
 msgid "Checking axes"
@@ -323,11 +324,6 @@ msgstr "Zahřívání"
 #: src/gui/guimain.c:165
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Vyhřívání vypnuto po 30 minutách neaktivity."
-
-#: lib/Prusa-Error-Codes/12/errors_list.h:41
-#: lib/Prusa-Error-Codes/12/errors_list.h:45
-msgid "HEATING FAILED"
-msgstr "CHYBA VYHŘÍVÁNÍ"
 
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
@@ -695,6 +691,12 @@ msgstr "PŘEDEHŘEV"
 #: src/gui/screen_home.cpp:40
 msgid "Preheat"
 msgstr "Předehřev"
+
+#. r=1, c=19
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:42
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:48
+msgid "PREHEAT ERROR"
+msgstr "CHYBA PŘEDEHŘEVU"
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:31

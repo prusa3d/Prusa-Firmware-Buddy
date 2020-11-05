@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-11-03 14:54+0100\n"
+"POT-Creation-Date: 2020-11-04 14:43+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -306,12 +306,6 @@ msgstr ""
 msgid "Fri"
 msgstr ""
 
-#. r=1, c=19
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:42
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:48
-msgid "HEATING FAILED"
-msgstr ""
-
 #: src/gui/screen_home.cpp:70
 msgid "HOME"
 msgstr ""
@@ -337,7 +331,7 @@ msgstr ""
 msgid "Heating"
 msgstr ""
 
-#: src/gui/guimain.cpp:169
+#: src/gui/guimain.cpp:175
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr ""
 
@@ -345,7 +339,7 @@ msgstr ""
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/guimain.cpp:180
+#: src/gui/guimain.cpp:186
 msgid ""
 "Hi, this is your\n"
 "Original Prusa MINI."
@@ -610,6 +604,12 @@ msgstr ""
 msgid "PREHEAT"
 msgstr ""
 
+#. r=1, c=19
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:42
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:48
+msgid "PREHEAT ERROR"
+msgstr ""
+
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.cpp:34
 msgid "PREHEAT for LOAD"
@@ -659,7 +659,7 @@ msgstr ""
 msgid "Please insert a USB drive and try again."
 msgstr ""
 
-#: src/gui/guimain.cpp:181
+#: src/gui/guimain.cpp:187
 msgid ""
 "Please insert the USB\n"
 "drive that came with\n"
@@ -756,7 +756,7 @@ msgstr ""
 msgid "RENAME"
 msgstr ""
 
-#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:182
+#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:188
 msgid "RESET PRINTER"
 msgstr ""
 

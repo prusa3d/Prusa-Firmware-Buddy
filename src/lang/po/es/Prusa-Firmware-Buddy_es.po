@@ -116,8 +116,8 @@ msgstr "Cambiar Filamento"
 #: src/common/bsod.cpp:232
 msgid "Check the heatbed heater & thermistor wiring for possible damage."
 msgstr ""
-"Revisa el cableado del termistor y el calentador de la base calefactable "
-"para detectar posibles daños."
+"Revisa el cableado del termistor y el calentador de la base para detectar "
+"posibles daños."
 
 #: src/common/bsod.cpp:233
 msgid "Check the heatbed thermistor wiring for possible damage."
@@ -128,14 +128,12 @@ msgstr ""
 #: src/common/bsod.cpp:234
 msgid "Check the print head heater & thermistor wiring for possible damage."
 msgstr ""
-"Comprueba el cableado del termistor y el calentador del cabezal de impresión "
-"(fusor)   para ver si hay daños."
+"Revisa el cableado del termistor y del calentador del fusor para ver si hay "
+"daños."
 
 #: src/common/bsod.cpp:235
 msgid "Check the print head thermistor wiring for possible damage."
-msgstr ""
-"Revisa el cableado del termistor del cabezal de impresión (fusor)  para "
-"detectar posibles daños."
+msgstr "Revisa el cableado del termistor del fusor para ver si hay daños."
 
 #: src/gui/wizard/selftest_fans_axis.cpp:51
 msgid "Checking axes"
@@ -339,11 +337,6 @@ msgstr "Calentando"
 #: src/gui/guimain.c:165
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Calentamiento deshabilitado debido a 30 minutos de inactividad."
-
-#: lib/Prusa-Error-Codes/12/errors_list.h:41
-#: lib/Prusa-Error-Codes/12/errors_list.h:45
-msgid "HEATING FAILED"
-msgstr "FALLO EN CALENTAMIENTO"
 
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
@@ -722,6 +715,12 @@ msgstr "PRECALENTAR"
 #: src/gui/screen_home.cpp:40
 msgid "Preheat"
 msgstr "Precalentar"
+
+#. r=1, c=19
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:42
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:48
+msgid "PREHEAT ERROR"
+msgstr "ERROR DE PRECALENTAMIENTO"
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:31

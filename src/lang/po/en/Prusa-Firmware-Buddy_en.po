@@ -325,11 +325,6 @@ msgstr "Heating"
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Heating disabled due to 30 minutes of inactivity."
 
-#: lib/Prusa-Error-Codes/12/errors_list.h:41
-#: lib/Prusa-Error-Codes/12/errors_list.h:45
-msgid "HEATING FAILED"
-msgstr "HEATING FAILED"
-
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
 msgstr "Heating..."
@@ -698,6 +693,12 @@ msgstr "PREHEAT"
 #: src/gui/screen_home.cpp:40
 msgid "Preheat"
 msgstr "Preheat"
+
+#. r=1, c=19
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:42
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:48
+msgid "PREHEAT ERROR"
+msgstr "PREHEAT ERROR"
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:31
