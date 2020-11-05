@@ -49,7 +49,6 @@ class WI_SPIN_t : public AddSuper<IWiSpin> {
 public: //todo private
     using Config = SpinConfig_t<T>;
     T value;
-    const char *prt_format;
     const Config &config;
 
 protected:
@@ -102,7 +101,7 @@ protected:
     }
 
 public:
-    WI_SPIN_t(T value, const Config &cnf, const char *prt_format, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    WI_SPIN_t(T value, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
     virtual bool Change(int dif) override;
     void ClrVal() { value = static_cast<T>(0); }
 
@@ -111,65 +110,13 @@ public:
     }
 };
 
-//WI_SPIN_I08_t
-//defines print format for int8_t version of WI_SPIN_t
-class WI_SPIN_I08_t : public WI_SPIN_t<int8_t> {
-    constexpr static const char *prt_format = "%d";
-
-public:
-    WI_SPIN_I08_t(int8_t value, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
-        : WI_SPIN_t<int8_t>(value, cnf, prt_format, label, id_icon, enabled, hidden) {}
-};
-
-//WI_SPIN_I16_t
-//defines print format for int16_t version of WI_SPIN_t
-class WI_SPIN_I16_t : public WI_SPIN_t<int16_t> {
-    constexpr static const char *prt_format = "%d";
-
-public:
-    WI_SPIN_I16_t(int16_t value, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
-        : WI_SPIN_t<int16_t>(value, cnf, prt_format, label, id_icon, enabled, hidden) {}
-};
-
-//WI_SPIN_I32_t
-//defines print format for int32_t version of WI_SPIN_t
-class WI_SPIN_I32_t : public WI_SPIN_t<int32_t> {
-    constexpr static const char *prt_format = "%d";
-
-public:
-    WI_SPIN_I32_t(int32_t value, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
-        : WI_SPIN_t<int32_t>(value, cnf, prt_format, label, id_icon, enabled, hidden) {}
-};
-
-//WI_SPIN_U08_t
-//defines print format for uint8_t version of WI_SPIN_t
-class WI_SPIN_U08_t : public WI_SPIN_t<uint8_t> {
-    constexpr static const char *prt_format = "%u";
-
-public:
-    WI_SPIN_U08_t(uint8_t value, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
-        : WI_SPIN_t<uint8_t>(value, cnf, prt_format, label, id_icon, enabled, hidden) {}
-};
-
-//WI_SPIN_U16_t
-//defines print format for uint16_t version of WI_SPIN_t
-class WI_SPIN_U16_t : public WI_SPIN_t<uint16_t> {
-    constexpr static const char *prt_format = "%u";
-
-public:
-    WI_SPIN_U16_t(uint16_t value, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
-        : WI_SPIN_t<uint16_t>(value, cnf, prt_format, label, id_icon, enabled, hidden) {}
-};
-
-//WI_SPIN_U32_t
-//defines print format for uint32_t version of WI_SPIN_t
-class WI_SPIN_U32_t : public WI_SPIN_t<uint32_t> {
-    constexpr static const char *prt_format = "%u";
-
-public:
-    WI_SPIN_U32_t(uint32_t value, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
-        : WI_SPIN_t<uint32_t>(value, cnf, prt_format, label, id_icon, enabled, hidden) {}
-};
+using WI_SPIN_I08_t = WI_SPIN_t<int8_t>;
+using WI_SPIN_I16_t = WI_SPIN_t<int16_t>;
+using WI_SPIN_I32_t = WI_SPIN_t<int32_t>;
+using WI_SPIN_U08_t = WI_SPIN_t<uint8_t>;
+using WI_SPIN_U16_t = WI_SPIN_t<uint16_t>;
+using WI_SPIN_U32_t = WI_SPIN_t<uint32_t>;
+using WI_SPIN_FL_t = WI_SPIN_t<float>;
 
 //todo inherit from WI_SPIN_t<const char**>
 class IWiSwitch : public AddSuper<IWindowMenuItem> {
@@ -347,10 +294,9 @@ public:
 //template definitions
 //WI_SPIN_t
 template <class T>
-WI_SPIN_t<T>::WI_SPIN_t(T value, const Config &cnf, const char *prt_format, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
+WI_SPIN_t<T>::WI_SPIN_t(T value, const Config &cnf, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : AddSuper<IWiSpin>(label, id_icon, enabled, hidden)
     , value(value)
-    , prt_format(prt_format)
     , config(cnf) {}
 
 template <class T>
@@ -365,13 +311,13 @@ bool WI_SPIN_t<T>::Change(int dif) {
 
 template <class T>
 char *WI_SPIN_t<T>::sn_prt() const {
-    snprintf(temp_buff.data(), temp_buff.size(), prt_format, value);
+    snprintf(temp_buff.data(), temp_buff.size(), config.prt_format, value);
     return temp_buff.data();
 }
 
 template <>
 inline char *WI_SPIN_t<float>::sn_prt() const {
-    snprintf(temp_buff.data(), temp_buff.size(), prt_format, static_cast<double>(value));
+    snprintf(temp_buff.data(), temp_buff.size(), config.prt_format, static_cast<double>(value));
     return temp_buff.data();
 }
 
