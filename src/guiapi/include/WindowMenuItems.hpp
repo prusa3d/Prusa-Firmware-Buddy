@@ -35,6 +35,18 @@ protected:
     virtual std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const override;
     virtual char *sn_prt() const = 0;
 
+    /* getMenuRects (not derived because of New/Old GUI and 3 rect array return (not 2))
+    *   Returns rect array according to this format: [label], [value], [units]
+    */
+    std::array<Rect16, 3> getSpinMenuRects(IWindowMenu &window_menu, Rect16 rect) const;
+
+    /* derived printItem()
+    * Adition of new implementation:
+    *   values are offset from right (4 chars) and they are in secondary_font (smaller)
+    *   optional value units are added next to values (gray color)
+    */
+    virtual void printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+
 public:
     IWiSpin(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
         : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden) {}
@@ -48,66 +60,18 @@ class WI_SPIN_t : public AddSuper<IWiSpin> {
 
 public: //todo private
     using Config = SpinConfig_t<T>;
+    //using var_t = std::aligned_union<4, float, uint32_t, int32_t>;
+    //var_t value;
     T value;
     const Config &config;
 
 protected:
     virtual char *sn_prt() const override;
-    /* getMenuRects (not derived because of New/Old GUI and 3 rect array return (not 2))
-    *   Returns rect array according to this format: [label], [value], [units]
-    */
-    std::array<Rect16, 3> getSpinMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
-        Rect16 base_rect = getRollingRect(window_menu, rect);
-        Rect16 unit_rect = { int16_t(base_rect.Left() + base_rect.Width() - UNIT_RECT_CHAR_WIDTH * window_menu.secondary_font->w), base_rect.Top(), uint16_t(UNIT_RECT_CHAR_WIDTH * window_menu.secondary_font->w), base_rect.Height() };
-        base_rect -= unit_rect.Width();
-        char *buff = sn_prt();
-        Rect16 spin_rect = getCustomRect(window_menu, base_rect, strlen(buff) * window_menu.secondary_font->w);
-        base_rect -= spin_rect.Width();
-
-        return std::array<Rect16, 3> { base_rect, spin_rect, unit_rect };
-    }
-    /* derived printItem()
-    * Adition of new implementation:
-    *   values are offset from right (4 chars) and they are in secondary_font (smaller)
-    *   optional value units are added next to values (gray color)
-    */
-    virtual void printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const override {
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-        std::array<Rect16, 2> rects = IWiSpin::getMenuRects(window_menu, rect); // MINI GUI implementation
-#else                                                                           // PRINTER TYPE != PRUSA_PRINTER_MINI
-        std::array<Rect16, 3> rects = getSpinMenuRects(window_menu, rect);
-#endif                                                                          // PRINTER TYPE == PRUSA_PRINTER_MINI
-        //draw label
-        printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
-        //draw spin
-        // this MakeRAM is safe - temp_buff is allocated for the whole life of IWiSpin
-        render_text_align(rects[1], string_view_utf8::MakeRAM((const uint8_t *)temp_buff.data()),
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-            window_menu.font,
-            color_back, IsSelected() ? COLOR_ORANGE : color_text,
-            window_menu.padding,
-#else  // PRINTER TYPE != PRUSA_PRINTER_MINI
-            window_menu.secondary_font,
-            color_back, IsSelected() ? COLOR_ORANGE : color_text,
-            padding_ui8(0, 6, 0, 0),
-#endif // PRINTER TYPE == PRUSA_PRINTER_MINI
-            window_menu.GetAlignment());
-
-#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
-        uint8_t unit_padding_left = units[0] == '\177' ? 0 : UNIT_HALFSPACE_PADDING; // °C are not separated with halfspace
-        render_text_align(rects[2], string_view_utf8::MakeRAM((const uint8_t *)units), window_menu.secondary_font, color_back,
-            COLOR_SILVER, padding_ui8(unit_padding_left, 6, 0, 0), window_menu.GetAlignment());
-#endif // (PRINTER_TYPE != PRINTER_PRUSA_MINI
-    }
 
 public:
     WI_SPIN_t(T value, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
     virtual bool Change(int dif) override;
     void ClrVal() { value = static_cast<T>(0); }
-
-    virtual void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) override {
-        reInitRoll(window_menu, getSpinMenuRects(window_menu, rect)[0]);
-    }
 };
 
 using WI_SPIN_I08_t = WI_SPIN_t<int8_t>;
@@ -128,11 +92,27 @@ public:
     virtual bool Change(int dif) override;
     virtual bool SetIndex(size_t idx);
 
+    virtual void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) override {
+        reInitRoll(window_menu, getSwitchMenuRects(window_menu, rect)[0]);
+    }
+
 protected:
     virtual void OnChange(size_t old_index) = 0;
     virtual void click(IWindowMenu &window_menu) final;
     virtual std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const override;
     virtual const char *get_item() const = 0;
+
+    /**
+    * Returns Menu item rect devided into 4 rects according to this format: [label], ['['], [switch], [']']
+    **/
+    std::array<Rect16, 4> getSwitchMenuRects(IWindowMenu &window_menu, Rect16 rect) const;
+
+    /* derived printItem()
+    *  Aditions to the new implementation:
+    *   every switch value is scoped in gray brackets []
+    *   Secondary_font (smaller) is used on all items on right
+    */
+    virtual void printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 };
 
 /*****************************************************************************/
@@ -153,61 +133,8 @@ public:
         : AddSuper<IWiSwitch>(index, label, id_icon, enabled, hidden)
         , items { { std::forward<E>(e)... } } {}
 
-    virtual void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) override {
-        reInitRoll(window_menu, getSwitchMenuRects(window_menu, rect)[0]);
-    }
-
 protected:
     virtual const char *get_item() const override { return items[index]; }
-
-    /**
-    * Returns Menu item rect devided into 4 rects according to this format: [label], ['['], [switch], [']']
-    **/
-    std::array<Rect16, 4> getSwitchMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
-        Rect16 base_rect = getRollingRect(window_menu, rect);
-        Rect16 switch_rect, bracket_start, bracket_end;
-
-        bracket_end = { int16_t(base_rect.Left() + base_rect.Width() - window_menu.secondary_font->w), base_rect.Top(), uint16_t(window_menu.secondary_font->w), base_rect.Height() };
-        base_rect -= bracket_end.Width();
-
-        string_view_utf8 localizedItem = _(get_item());
-        switch_rect = getCustomRect(window_menu, base_rect, localizedItem.computeNumUtf8CharsAndRewind() * window_menu.secondary_font->w);
-        base_rect -= switch_rect.Width();
-
-        bracket_start = { int16_t(base_rect.Left() + base_rect.Width() - window_menu.secondary_font->w), base_rect.Top(), uint16_t(window_menu.secondary_font->w), base_rect.Height() };
-        base_rect -= bracket_start.Width();
-
-        return std::array<Rect16, 4> { base_rect, bracket_start, switch_rect, bracket_end };
-    }
-
-    /* derived printItem()
-    *  Aditions to the new implementation:
-    *   every switch value is scoped in gray brackets []
-    *   Secondary_font (smaller) is used on all items on right
-    */
-    virtual void printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const override {
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-        std::array<Rect16, 2> rects = IWiSwitch::getMenuRects(window_menu, rect);
-#else  // PRINTER_TYPE != PRINTER_PRUSA_MINI
-        std::array<Rect16, 4> rects = getSwitchMenuRects(window_menu, rect);
-#endif // PRINTER_TYPE == PRINTER_PRUSA_MINI
-
-        //draw label
-        printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-        render_text_align(rects[1], _(get_item()), window_menu.font,
-            color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.GetAlignment());
-#else  // PRINTER_TYPE != PRINTER_PRUSA_MINI
-        render_text_align(rects[1], _("["), window_menu.secondary_font,
-            color_back, COLOR_SILVER, padding_ui8(0, 6, 0, 0), window_menu.GetAlignment());
-        //draw switch
-        render_text_align(rects[2], _(get_item()), window_menu.secondary_font,
-            color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, padding_ui8(0, 6, 0, 0), window_menu.GetAlignment());
-        //draw bracket end  TODO: Change font
-        render_text_align(rects[3], _("]"), window_menu.secondary_font,
-            color_back, COLOR_SILVER, padding_ui8(0, 6, 0, 0), window_menu.GetAlignment());
-#endif // PRINTER_TYPE == PRINTER_PRUSA_MINI
-    }
 };
 
 //most common version of WI_SWITCH with on/off options
