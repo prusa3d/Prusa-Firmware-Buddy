@@ -48,7 +48,7 @@ private:
     /// main fnc
     void init();
     void saveMode();
-    void saveVolume();
+    void saveVolume(); // + one louder
     void _sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f);
     void _singleSound(float frq, int16_t dur, float vol);
     void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int8_t repeats[], const int16_t durations[], const int16_t delays[], unsigned size);
