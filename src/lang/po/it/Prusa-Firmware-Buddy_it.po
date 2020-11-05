@@ -114,26 +114,20 @@ msgstr "Cambio filamento"
 #: src/common/bsod.cpp:232
 msgid "Check the heatbed heater & thermistor wiring for possible damage."
 msgstr ""
-"Controllare la presenza di eventuali danni sul cablaggio del piano "
-"riscaldato e del termistore."
+"Controllare eventuali danni sui cavi del piano riscaldato e del termistore."
 
 #: src/common/bsod.cpp:233
 msgid "Check the heatbed thermistor wiring for possible damage."
 msgstr ""
-"Controllare che il cablaggio del termistore del piano riscaldato non sia "
-"danneggiato."
+"Controllare eventuali danni sul cavo del termistore del piano riscaldato."
 
 #: src/common/bsod.cpp:234
 msgid "Check the print head heater & thermistor wiring for possible damage."
-msgstr ""
-"Controllare che il riscaldatore dell'hotend e il cablaggio del termistore "
-"non siano danneggiati."
+msgstr "Controllare eventuali danni sui cavi del hotend e del termistore."
 
 #: src/common/bsod.cpp:235
 msgid "Check the print head thermistor wiring for possible damage."
-msgstr ""
-"Controllare che il cablaggio del termistore della testina di stampa non sia "
-"danneggiato."
+msgstr "Controllare eventuali danni sul cavo del termistore del hotend."
 
 #: src/gui/wizard/selftest_fans_axis.cpp:51
 msgid "Checking axes"
@@ -334,11 +328,6 @@ msgstr "Riscaldamento"
 #: src/gui/guimain.c:165
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Riscaldamento disattivato dopo 30 minuti di inattività."
-
-#: lib/Prusa-Error-Codes/12/errors_list.h:41
-#: lib/Prusa-Error-Codes/12/errors_list.h:45
-msgid "HEATING FAILED"
-msgstr "RISCALD FALLITO"
 
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
@@ -706,6 +695,12 @@ msgstr "PRERISCALDA"
 #: src/gui/screen_home.cpp:40
 msgid "Preheat"
 msgstr "Preriscalda"
+
+#. r=1, c=19
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:42
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:48
+msgid "PREHEAT ERROR"
+msgstr "ERRORE PREHEAT"
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:31

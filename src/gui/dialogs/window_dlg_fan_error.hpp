@@ -8,7 +8,7 @@
 
 //Singleton dialog for messages
 class window_dlg_fan_error_t : public AddSuperWindow<IDialog> {
-    static constexpr const char *text_en = N_("A very important text telling user what to do ... ");
+    static constexpr const char *text_en = "A very important text telling user what to do ... "; // I'm not going to translate this temporary text
     window_text_t text;
 
     window_dlg_fan_error_t();

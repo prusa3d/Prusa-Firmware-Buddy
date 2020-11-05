@@ -326,12 +326,7 @@ msgstr "Grzanie"
 
 #: src/gui/guimain.c:165
 msgid "Heating disabled due to 30 minutes of inactivity."
-msgstr "Grzanie wyłączone po 30-minutowym braku aktywności."
-
-#: lib/Prusa-Error-Codes/12/errors_list.h:41
-#: lib/Prusa-Error-Codes/12/errors_list.h:45
-msgid "HEATING FAILED"
-msgstr "BŁĄD GRZANIA"
+msgstr "Grzanie wyłączone po 30-minutowej bezczynności."
 
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
@@ -695,6 +690,12 @@ msgstr "NAGRZEWANIE"
 msgid "Preheat"
 msgstr "Nagrzewanie"
 
+#. r=1, c=19
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:42
+#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:48
+msgid "PREHEAT ERROR"
+msgstr "BŁĄD GRZANIA"
+
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:31
 #: src/gui/dialogs/window_dlg_load_unload.cpp:34
@@ -799,7 +800,7 @@ msgstr "Pozostały czas"
 
 #: src/gui/screen_sheet_rename.cpp:22
 msgid "RENAME"
-msgstr "ZMIEŃ NAZWĘ"
+msgstr "ZMIEN NAZWĘ"
 
 #: src/gui/screen_menu_steel_sheets.cpp:59
 msgid "Rename"
@@ -850,7 +851,7 @@ msgstr "Zapisz ustawienia"
 #. / draw "Scan me" text
 #: src/common/bsod.cpp:264
 msgid "Scan me for details"
-msgstr "Szczegóły - zeskanuj"
+msgstr "Zeskanuj po szczegóły"
 
 #: src/gui/wizard/xyzcalib.cpp:66
 msgid ""
