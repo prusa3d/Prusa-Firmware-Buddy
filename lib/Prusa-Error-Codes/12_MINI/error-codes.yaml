@@ -14,42 +14,42 @@
 Errors:
 # TEMPERATURE    xx2xx   # Temperature measurement, thermistors, heating
 - code: "12201"
-  title: "HEATING FAILED"
+  title: "PREHEAT ERROR"
   text: "Check the heatbed heater & thermistor wiring for possible damage."
   id: ""
-  approved: false
+  approved: true
 - code: "12202"
-  title: "HEATING FAILED"
+  title: "PREHEAT ERROR"
   text: "Check the print head heater & thermistor wiring for possible damage."
   id: ""
-  approved: false
+  approved: true
 - code: "12203"
   title: "THERMAL RUNAWAY"
   text: "Check the heatbed thermistor wiring for possible damage."
   id: ""
-  approved: false
+  approved: true
 - code: "12204"
   title: "THERMAL RUNAWAY"
   text: "Check the print head thermistor wiring for possible damage."
   id: ""
-  approved: false
+  approved: true
 - code: "12205"
   title: "MAXTEMP ERROR"
   text: "Check the heatbed thermistor wiring for possible damage."
   id: ""
-  approved: false
+  approved: true
 - code: "12206"
   title: "MAXTEMP ERROR"
   text: "Check the print head thermistor wiring for possible damage."
   id: ""
-  approved: false
+  approved: true
 - code: "12207"
   title: "MINTEMP ERROR"
   text: "Check the heatbed thermistor wiring for possible damage."
   id: ""
-  approved: false
+  approved: true
 - code: "12208"
   title: "MINTEMP ERROR"
   text: "Check the print head thermistor wiring for possible damage."
   id: ""
-  approved: false
+  approved: true
