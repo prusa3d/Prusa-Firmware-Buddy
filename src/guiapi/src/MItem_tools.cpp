@@ -360,7 +360,7 @@ MI_SOUND_VOLUME::MI_SOUND_VOLUME()
 /* Sound_SetVolume(value); */
 /* } */
 void MI_SOUND_VOLUME::OnClick() {
-    Sound_SetVolume(value);
+    Sound_SetVolume(GetVal().i32);
 }
 
 /*****************************************************************************/
@@ -382,7 +382,7 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
 MI_TIMEZONE::MI_TIMEZONE()
     : WI_SPIN_I08_t(variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE)), SpinCnf::timezone_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
-    int8_t timezone = value;
+    int8_t timezone = GetVal();
     int8_t last_timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
     eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(timezone));
     time_t seconds = 0;
@@ -420,7 +420,7 @@ bool set_changed_state(const T current_state, T *old_state) {
 
 MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
     : WI_SPIN_I08_t(0, SpinCnf::sensor_range, _(label), 0, is_enabled_t::no, is_hidden_t::no) {
-    value = (int8_t)get_state();
+    SetVal((int8_t)get_state());
 }
 
 SENSOR_STATE MI_FILAMENT_SENSOR_STATE::get_state() {
@@ -436,12 +436,13 @@ SENSOR_STATE MI_FILAMENT_SENSOR_STATE::get_state() {
 }
 
 bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
+    int8_t value = GetVal();
     return set_changed_state<int8_t>((int8_t)get_state(), &value);
 }
 
 MI_MINDA::MI_MINDA()
     : WI_SPIN_I08_t(0, SpinCnf::sensor_range, _(label), 0, is_enabled_t::no, is_hidden_t::no) {
-    value = (int8_t)get_state();
+    SetVal((int8_t)get_state());
 }
 
 SENSOR_STATE MI_MINDA::get_state() {
@@ -449,5 +450,6 @@ SENSOR_STATE MI_MINDA::get_state() {
 }
 
 bool MI_MINDA::StateChanged() {
+    int8_t value = GetVal();
     return set_changed_state<int8_t>((int8_t)get_state(), &value);
 }

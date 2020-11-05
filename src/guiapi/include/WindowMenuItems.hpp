@@ -26,9 +26,7 @@ public:
 //IWiSpin
 class IWiSpin : public AddSuper<IWindowMenuItem> {
 protected:
-    enum { WIO_MIN = 0,
-        WIO_MAX = 1,
-        WIO_STEP = 2 };
+    SpinType value;
     static std::array<char, 10> temp_buff; //temporary buffer to print value for text measurements
     virtual void click(IWindowMenu &window_menu) final;
     // Old GUI implementation (is used in derived classes in printItem instead of derived func, when we want old GUI)
@@ -48,10 +46,14 @@ protected:
     virtual void printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 
 public:
-    IWiSpin(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
-        : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden) {}
+    IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
+        : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden)
+        , value(val) {}
     virtual void OnClick() {}
     virtual void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) override;
+    inline void ClrVal() { value.u32 = 0; }
+    inline void SetVal(SpinType val) { value = val; }
+    inline SpinType GetVal() const { return value; }
 };
 
 //WI_SPIN
@@ -60,18 +62,15 @@ class WI_SPIN_t : public AddSuper<IWiSpin> {
 
 public: //todo private
     using Config = SpinConfig_t<T>;
-    //using var_t = std::aligned_union<4, float, uint32_t, int32_t>;
-    //var_t value;
-    T value;
     const Config &config;
 
 protected:
+    //   virtual char *sn_prt() const override {return config.sn_prt(temp_buff,value);};
     virtual char *sn_prt() const override;
 
 public:
     WI_SPIN_t(T value, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
     virtual bool Change(int dif) override;
-    void ClrVal() { value = static_cast<T>(0); }
 };
 
 using WI_SPIN_I08_t = WI_SPIN_t<int8_t>;
@@ -221,30 +220,31 @@ public:
 //template definitions
 //WI_SPIN_t
 template <class T>
-WI_SPIN_t<T>::WI_SPIN_t(T value, const Config &cnf, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : AddSuper<IWiSpin>(label, id_icon, enabled, hidden)
-    , value(value)
+WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
+    : AddSuper<IWiSpin>(val, label, id_icon, enabled, hidden)
     , config(cnf) {}
 
 template <class T>
 bool WI_SPIN_t<T>::Change(int dif) {
-    T old = value;
-    value += (T)dif * config.range[WIO_STEP];
-    value = dif >= 0 ? std::max(value, old) : std::min(value, old); //check overflow/underflow
-    value = std::min(value, config.range[WIO_MAX]);
-    value = std::max(value, config.range[WIO_MIN]);
-    return old != value;
+    T val = (T)value;
+    T old = val;
+    val += (T)dif * config.Step();
+    val = dif >= 0 ? std::max(val, old) : std::min(val, old); //check overflow/underflow
+    val = std::min(val, config.Max());
+    val = std::max(val, config.Min());
+    value = val;
+    return old != val;
 }
 
 template <class T>
 char *WI_SPIN_t<T>::sn_prt() const {
-    snprintf(temp_buff.data(), temp_buff.size(), config.prt_format, value);
+    snprintf(temp_buff.data(), temp_buff.size(), config.prt_format, (T)(value));
     return temp_buff.data();
 }
 
 template <>
 inline char *WI_SPIN_t<float>::sn_prt() const {
-    snprintf(temp_buff.data(), temp_buff.size(), config.prt_format, static_cast<double>(value));
+    snprintf(temp_buff.data(), temp_buff.size(), config.prt_format, static_cast<double>(value.flt));
     return temp_buff.data();
 }
 
