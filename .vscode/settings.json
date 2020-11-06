@@ -1,5 +1,6 @@
 {
     "cmake.configureOnOpen": true,
+    "editor.renderWhitespace": "all",
     "ccls.misc.compilationDatabaseDirectory": "build-vscode",
     "ccls.index.multiVersion": 1,
     "ccls.clang.extraArgs": [
@@ -20,4 +21,5 @@
     "cmake.cmakePath": "${workspaceFolder}/.dependencies/cmake-3.15.5/bin/cmake",
     "cmake.generator": "Ninja",
     "files.insertFinalNewline": true,
+    "files.encoding": "utf8"
 }
