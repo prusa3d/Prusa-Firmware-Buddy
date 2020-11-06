@@ -7,15 +7,16 @@
 
 window_dlg_fan_error_t::window_dlg_fan_error_t()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBodyNoFoot, IDialog::IsStrong::yes)
-    , text(this, GuiDefaults::RectScreenBodyNoFoot, is_multiline::yes, is_closed_on_click_t::no, _(text_en)) {
+    , text(this, GuiDefaults::RectScreenBodyNoFoot, is_multiline::yes, is_closed_on_click_t::no) {
 }
 
-void window_dlg_fan_error_t::Show() {
+void window_dlg_fan_error_t::Show(string_view_utf8 txt) {
     static window_dlg_fan_error_t dlg;
     if (!dlg.GetParent()) {
         window_t *parent = Screens::Access()->Get();
         if (parent) {
             parent->RegisterSubWin(&dlg);
+            dlg.text.SetText(txt);
 
             if (window_t::GetCapturedWindow() != &dlg) {
                 dlg.StoreCapture();

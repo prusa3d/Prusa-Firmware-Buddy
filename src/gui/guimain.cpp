@@ -80,7 +80,22 @@ void MsgCircleBuffer_cb(const char *txt) {
 }
 
 void Warning_cb(WarningType type) {
-    window_dlg_fan_error_t::Show();
+    static constexpr const char *HotendFanErrorMsg = N_("I am dummy HotendFanErrorMsg, I need to be replaced with something else ... ");
+    static constexpr const char *PrintFanErrorMsg = N_("I am dummy PrintFanError, I need to be replaced with something else ... ");
+    static constexpr const char *HeaterTimeoutMsg = N_("I am dummy HeaterTimeout, I need to be replaced with something else ... ");
+    switch (type) {
+    case WarningType::HotendFanError:
+        window_dlg_fan_error_t::Show(_(HotendFanErrorMsg));
+        break;
+    case WarningType::PrintFanError:
+        window_dlg_fan_error_t::Show(_(PrintFanErrorMsg));
+        break;
+    case WarningType::HeaterTimeout:
+        window_dlg_fan_error_t::Show(_(HeaterTimeoutMsg));
+        break;
+    default:
+        break;
+    }
 }
 
 void gui_run(void) {
