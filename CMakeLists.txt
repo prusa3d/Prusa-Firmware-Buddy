@@ -433,7 +433,6 @@ target_link_libraries(
           $<$<BOOL:${WUI}>:WUI>
           jsmn::jsmn
           QR
-          CRC
           Buddy::Lang
   )
 
@@ -511,6 +510,7 @@ target_sources(
           src/common/errors.cpp
           src/common/client_response.cpp
           src/common/crc32.c
+          src/common/crc32_zlib.c
           src/common/ini_handler.c
           src/common/sha256.c
           src/common/wui_api.c
