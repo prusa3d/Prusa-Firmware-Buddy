@@ -1,4 +1,13 @@
-//window_dlg_strong_warning.hpp
+/**
+ * @file window_dlg_strong_warning.hpp
+ * @author Radek Vana
+ * @brief Dialog to handle warnings from Marlin thread
+ * @version 0.1
+ * @date 2020-11-06
+ *
+ * @copyright Copyright (c) 2020
+ *
+ */
 
 #pragma once
 
