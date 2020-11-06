@@ -27,9 +27,10 @@ enum class LoadUnloadMode : uint8_t {
 };
 
 enum class WarningType : uint32_t {
-    FanError,
+    HotendFanError,
+    PrintFanError,
     HeaterTimeout,
-    _count
+    _last = HeaterTimeout
 };
 
 // Open dialog has a parameter because I need to set a caption of change filament dialog (load / unload / change).

@@ -41,7 +41,7 @@ void GcodeSuite::M876() {
 
     if (parser.seenval('E')) {
         uint32_t val = parser.value_int();
-        if (val >= uint32_t(WarningType::_count))
+        if (val > uint32_t(WarningType::_last))
             return;
         set_warning(WarningType(val));
     } else {
