@@ -176,7 +176,7 @@ void CFanCtl::tick() {
             m_pwm.set_PWM(m_PWMValue);
             if (m_Ticks < FANCTL_RPM_DELAY)
                 m_Ticks++;
-            else if (!rpm_is_ok())
+            else if (!getRPMIsOk())
                 m_State = error_running;
         }
         break;
@@ -185,7 +185,7 @@ void CFanCtl::tick() {
             m_State = idle;
         else {
             m_pwm.set_PWM(m_PWMValue);
-            if (rpm_is_ok())
+            if (getRPMIsOk())
                 m_State = running;
         }
         break;
@@ -243,7 +243,7 @@ void CFanCtl::safeState() {
     m_pwm.safeState();
 }
 
-bool CFanCtl::rpm_is_ok() {
+bool CFanCtl::getRPMIsOk() {
     if (m_PWMValue && (getActualRPM() < m_MinRPM))
         return false;
     return true;

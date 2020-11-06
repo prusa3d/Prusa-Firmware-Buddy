@@ -39,6 +39,7 @@ const char *__var_name[] = {
     "TIMTOEND",
     "FAN0_RPM",
     "FAN1_RPM",
+    "FAN_CHECK_ENABLED",
 };
 
 static_assert((sizeof(__var_name) / sizeof(char *)) == (MARLIN_VAR_MAX + 1), "Invalid number of elements in __var_name");
@@ -125,6 +126,8 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
         return variant8_ui16(vars->fan0_rpm);
     case MARLIN_VAR_FAN1_RPM:
         return variant8_ui16(vars->fan1_rpm);
+    case MARLIN_VAR_FAN_CHECK_ENABLED:
+        return variant8_ui8(vars->fan_check_enabled);
     }
     return variant8_empty();
 }
@@ -240,6 +243,9 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
     case MARLIN_VAR_FAN1_RPM:
         vars->fan1_rpm = variant_get_ui16(var);
         break;
+    case MARLIN_VAR_FAN_CHECK_ENABLED:
+        vars->fan_check_enabled = variant_get_ui8(var);
+        break;
     }
 }
 
@@ -306,6 +312,8 @@ int marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, uns
         return snprintf(str, size, "%u", (unsigned int)(vars->fan0_rpm));
     case MARLIN_VAR_FAN1_RPM:
         return snprintf(str, size, "%u", (unsigned int)(vars->fan1_rpm));
+    case MARLIN_VAR_FAN_CHECK_ENABLED:
+        return snprintf(str, size, "%u", (unsigned int)(vars->fan_check_enabled));
     default:
         return snprintf(str, size, "???");
     }
@@ -375,6 +383,8 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
         return sscanf(str, "%hu", &(vars->fan0_rpm));
     case MARLIN_VAR_FAN1_RPM:
         return sscanf(str, "%hu", &(vars->fan1_rpm));
+    case MARLIN_VAR_FAN_CHECK_ENABLED:
+        return sscanf(str, "%hhu", &(vars->fan_check_enabled));
     }
     return 0;
 }

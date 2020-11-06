@@ -4,6 +4,7 @@
 #include "display_helper.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "sound.hpp"
 
 window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBodyNoFoot, IDialog::IsStrong::yes)
@@ -37,11 +38,13 @@ void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, wi
 
 void window_dlg_strong_warning_t::ShowHotendFan() {
     static window_dlg_strong_warning_t dlg;
+    Sound_Play(eSOUND_TYPE::StandardAlert);
     dlg.show(_(HotendFanErrorMsg));
 }
 
 void window_dlg_strong_warning_t::ShowPrintFan() {
     static window_dlg_strong_warning_t dlg;
+    Sound_Play(eSOUND_TYPE::StandardAlert);
     dlg.show(_(PrintFanErrorMsg));
 }
 

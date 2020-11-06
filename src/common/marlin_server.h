@@ -119,6 +119,8 @@ extern void marlin_server_set_temp_to_display(float value);
 //
 extern float marlin_server_get_temp_to_display(void);
 
+extern void marlin_server_resuming_begin(void);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

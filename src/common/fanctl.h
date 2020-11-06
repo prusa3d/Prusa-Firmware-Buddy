@@ -129,14 +129,12 @@ public:
     { return m_tach.getRPM(); }
     inline uint8_t getPhaseShiftMode() const // get PhaseShiftMode
     { return m_pwm.get_PhaseShiftMode(); }
+    bool getRPMIsOk();
 
     // setters
     void setPWM(uint8_t pwm);            // set PWM value - switch to non closed-loop mode
     void setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
     void safeState();
-
-private:
-    bool rpm_is_ok();
 
 private:
     const uint16_t m_MinRPM; // minimum rpm value (set in constructor)
