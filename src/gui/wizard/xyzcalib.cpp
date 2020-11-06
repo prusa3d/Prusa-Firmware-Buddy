@@ -4,7 +4,7 @@
 #include "xyzcalib.hpp"
 
 StateFncData StateFnc_XYZCALIB_INIT(StateFncData last_run) {
-    static const char en_text[] = N_(
+    static const char en_text[] = ( // for now intentionally not translated
         "State\n"
         "XYZCALIB_INIT\n"
         "not implemented");
@@ -15,7 +15,7 @@ StateFncData StateFnc_XYZCALIB_INIT(StateFncData last_run) {
 }
 
 StateFncData StateFnc_XYZCALIB_HOME(StateFncData last_run) {
-    static const char en_text[] = N_(
+    static const char en_text[] = ( // for now intentionally not translated
         "State\n"
         "XYZCALIB_HOME\n"
         "not implemented");
@@ -26,7 +26,7 @@ StateFncData StateFnc_XYZCALIB_HOME(StateFncData last_run) {
 }
 
 StateFncData StateFnc_XYZCALIB_Z(StateFncData last_run) {
-    static const char en_text[] = N_(
+    static const char en_text[] = ( // for now intentionally not translated
         "State\n"
         "XYZCALIB_Z\n"
         "not implemented");
@@ -71,7 +71,7 @@ StateFncData StateFnc_XYZCALIB_XY_MSG_PLACE_PAPER(StateFncData last_run) {
 }
 
 StateFncData StateFnc_XYZCALIB_XY_SEARCH(StateFncData last_run) {
-    static const char en_text[] = N_(
+    static const char en_text[] = ( // for now intentionally not translated
         "State\n"
         "XYZCALIB_XY_SEARCH\n"
         "not implemented");

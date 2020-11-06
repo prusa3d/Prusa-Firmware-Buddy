@@ -342,7 +342,9 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
     eSOUND_TYPE st = static_cast<eSOUND_TYPE>(old_index);
     if (st == eSOUND_TYPE::StandardPrompt || st == eSOUND_TYPE::CriticalAlert) {
         Sound_Play(eSOUND_TYPE::StandardPrompt);
-        MsgBoxInfo(_("Continual beeps test\n press button to stop"), Responses_Ok);
+        // this is a debug-only menu item, intentionally not translated
+        static const uint8_t msg[] = "Continual beeps test\n press button to stop";
+        MsgBoxInfo(string_view_utf8::MakeCPUFLASH(msg), Responses_Ok);
     } else {
         Sound_Play(st);
     }
