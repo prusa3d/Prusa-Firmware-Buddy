@@ -1,4 +1,4 @@
-//window_dlg_fan_error.hpp
+//window_dlg_strong_warning.hpp
 
 #pragma once
 
@@ -7,11 +7,11 @@
 #include "i18n.h"
 
 //Singleton dialog for messages
-class window_dlg_fan_error_t : public AddSuperWindow<IDialog> {
+class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
     window_text_t text;
 
-    window_dlg_fan_error_t();
-    window_dlg_fan_error_t(const window_dlg_fan_error_t &) = delete;
+    window_dlg_strong_warning_t();
+    window_dlg_strong_warning_t(const window_dlg_strong_warning_t &) = delete;
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
