@@ -17,17 +17,17 @@
 //IWindowMenuItem
 //todo make version with constant label
 //layouts
-//+-------+--------------+--------------+
+//+-------+-----------------------------+
 //| icon  | text                        | label
 //+-------+--------------+--------------+
 //| icon  | text         | arrow        | label with expand
 //+-------+--------------+--------------+
 //| icon  | text         | value        | spin
+//+-------+--------------+-------+------+
+//| icon  | text         | value | unit | spin with units
+//+-------+--------------+-------+------+
+//| icon  | text         | value        |
 //+-------+--------------+--------------+
-//| icon  | text         | value        | spin with units
-//+-------+--------------+-------+------+
-//| icon  | text         | value | unit | switch
-//+-------+--------------+-------+------+
 //| icon  | text         | [value]      | switch with brackets
 //+-------+--------------+--------------+
 
@@ -45,14 +45,16 @@ protected:
     bool has_brackets : 1;      // determines if Switch has brackets
     uint16_t id_icon : 10;
 
+    static Rect16 getCustomRect(IWindowMenu &window_menu, Rect16 base_rect, uint16_t custom_rect_width);
+    static Rect16 getIconRect(IWindowMenu &window_menu, Rect16 rect);
+
     virtual void printIcon(IWindowMenu &window_menu, Rect16 rect, uint8_t swap, color_t color_back) const;
-    void printLabel_into_rect(Rect16 rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const;
     virtual void printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const;
     virtual void click(IWindowMenu &window_menu) = 0;
     virtual Rect16 getRollingRect(IWindowMenu &window_menu, Rect16 rect) const;
-    static Rect16 getCustomRect(IWindowMenu &window_menu, Rect16 base_rect, uint16_t custom_rect_width);
-    static Rect16 getIconRect(IWindowMenu &window_menu, Rect16 rect);
+
     void reInitRoll(IWindowMenu &window_menu, Rect16 rect);
+    void printLabel_into_rect(Rect16 rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const;
 
 public:
     IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no);
@@ -60,6 +62,7 @@ public:
     void Enable() { enabled = is_enabled_t::yes; }
     void Disable() { enabled = is_enabled_t::no; }
     bool IsEnabled() const { return enabled == is_enabled_t::yes; }
+    bool IsSelected() const { return selected == is_selected_t::yes; }
     void Hide() { hidden = is_hidden_t::yes; }
     void Show() { hidden = is_hidden_t::no; }
     bool IsHidden() const { return hidden == is_hidden_t::yes; }
@@ -76,12 +79,11 @@ public:
 
     void Print(IWindowMenu &window_menu, Rect16 rect) const;
 
-    bool IsSelected() const { return selected == is_selected_t::yes; }
-    virtual bool Change(int dif);
     inline bool Increment(uint8_t dif) { return Change(dif); }
     inline bool Decrement(uint8_t dif) { return Change(-int(dif)); }
     void Click(IWindowMenu &window_menu);
     virtual void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect);
+    virtual bool Change(int dif);
     invalidate_t Roll();
 
     std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const;
