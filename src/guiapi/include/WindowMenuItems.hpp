@@ -1,6 +1,5 @@
 #pragma once
 
-#include "IWindowMenuItem.hpp"
 #include "GuiDefaults.hpp"
 #include <algorithm>
 #include <array>
@@ -8,29 +7,95 @@
 #include "super.hpp"
 #include "i18n.h"
 #include "menu_spin_config_type.hpp" //SpinConfig_t
+#include "Iwindow_menu.hpp"          //needed for window settings like rect, padding ...
+#include "text_roll.hpp"
 
 #define UNIT_RECT_CHAR_WIDTH   4
 #define UNIT_HALFSPACE_PADDING 6
 #define SWITCH_ICON_RECT_WIDTH 40
 
-//WI_LABEL
-class WI_LABEL_t : public IWindowMenuItem {
+//IWindowMenuItem
+//todo make version with constant label
+//layouts
+//+-------+--------------+--------------+
+//| icon  | text                        | label
+//+-------+--------------+--------------+
+//| icon  | text         | arrow        | label with expand
+//+-------+--------------+--------------+
+//| icon  | text         | value        | spin
+//+-------+--------------+--------------+
+//| icon  | text         | value        | spin with units
+//+-------+--------------+-------+------+
+//| icon  | text         | value | unit | switch
+//+-------+--------------+-------+------+
+//| icon  | text         | [value]      | switch with brackets
+//+-------+--------------+--------------+
+
+class IWindowMenuItem {
+    string_view_utf8 label;
+    txtroll_t roll;
+
+    is_hidden_t hidden : 1;
+    is_enabled_t enabled : 1;
+    is_focused_t focused : 1;
+
+protected:
+    is_selected_t selected : 1; //should be in child, but is here because of size optimization
+    expands_t expands : 1;      // determines if Label expands to another screen (with a click)
+    bool has_brackets : 1;      // determines if Switch has brackets
+    uint16_t id_icon : 10;
+
+    virtual void printIcon(IWindowMenu &window_menu, Rect16 rect, uint8_t swap, color_t color_back) const;
+    void printLabel_into_rect(Rect16 rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const;
+    virtual void printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void click(IWindowMenu &window_menu) = 0;
+    virtual Rect16 getRollingRect(IWindowMenu &window_menu, Rect16 rect) const;
+    static Rect16 getCustomRect(IWindowMenu &window_menu, Rect16 base_rect, uint16_t custom_rect_width);
+    static Rect16 getIconRect(IWindowMenu &window_menu, Rect16 rect);
+    void reInitRoll(IWindowMenu &window_menu, Rect16 rect);
+
 public:
-    WI_LABEL_t(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no);
-    virtual bool Change(int dif) override;
-    virtual std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const override;
-    virtual void printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t /*swap*/) const override;
-    virtual void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) override;
+    IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no);
+    virtual ~IWindowMenuItem() = default;
+    void Enable() { enabled = is_enabled_t::yes; }
+    void Disable() { enabled = is_enabled_t::no; }
+    bool IsEnabled() const { return enabled == is_enabled_t::yes; }
+    void Hide() { hidden = is_hidden_t::yes; }
+    void Show() { hidden = is_hidden_t::no; }
+    bool IsHidden() const { return hidden == is_hidden_t::yes; }
+    void SetFocus();
+    void ClrFocus();
+    bool IsFocused() const { return focused == is_focused_t::yes; }
+    void SetIconId(uint16_t id) { id_icon = id; }
+    uint16_t GetIconId() const { return id_icon; }
+    void SetLabel(string_view_utf8 text);
+    /// @returns the label translated via gettext
+    /// Use this function when you want to get the actual translated text
+    /// to be displayed to the user based on his language settings.
+    string_view_utf8 GetLabel() const;
+
+    void Print(IWindowMenu &window_menu, Rect16 rect) const;
+
+    bool IsSelected() const { return selected == is_selected_t::yes; }
+    virtual bool Change(int dif);
+    inline bool Increment(uint8_t dif) { return Change(dif); }
+    inline bool Decrement(uint8_t dif) { return Change(-int(dif)); }
+    void Click(IWindowMenu &window_menu);
+    virtual void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect);
+    invalidate_t Roll();
+
+    std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const;
 };
+using WI_LABEL_t = IWindowMenuItem;
 
 //IWiSpin
-class IWiSpin : public AddSuper<IWindowMenuItem> {
+class IWiSpin : public AddSuper<WI_LABEL_t> {
 protected:
     SpinType value;
     static std::array<char, 10> temp_buff; //temporary buffer to print value for text measurements
     virtual void click(IWindowMenu &window_menu) final;
     // Old GUI implementation (is used in derived classes in printItem instead of derived func, when we want old GUI)
-    virtual std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const override;
+    std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const;
     virtual char *sn_prt() const = 0;
 
     /* getMenuRects (not derived because of New/Old GUI and 3 rect array return (not 2))
@@ -47,7 +112,7 @@ protected:
 
 public:
     IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
-        : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden)
+        : AddSuper<WI_LABEL_t>(label, id_icon, enabled, hidden)
         , value(val) {}
     virtual void OnClick() {}
     virtual void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) override;
@@ -81,7 +146,7 @@ using WI_SPIN_U32_t = WI_SPIN_t<uint32_t>;
 using WI_SPIN_FL_t = WI_SPIN_t<float>;
 
 //todo inherit from WI_SPIN_t<const char**>
-class IWiSwitch : public AddSuper<IWindowMenuItem> {
+class IWiSwitch : public AddSuper<WI_LABEL_t> {
 public:
     size_t index; //todo private
     IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden);
@@ -97,7 +162,7 @@ public:
 protected:
     virtual void OnChange(size_t old_index) = 0;
     virtual void click(IWindowMenu &window_menu) final;
-    virtual std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const override;
+    std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const;
     virtual const char *get_item() const = 0;
 
     /**
@@ -166,7 +231,7 @@ protected:
     // Returns selected icon id
     const uint16_t get_icon() const { return items[index]; }
     // Returns array of rects in this format: [label], [icon]
-    virtual std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const override {
+    std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
         Rect16 base_rect = getRollingRect(window_menu, rect);
         Rect16 icon_rect = { 0, 0, 0, 0 };
         if (get_icon()) { // WI_ICON_SWITCH
@@ -201,13 +266,13 @@ public:
 //currently broken todo FIXME
 //WI_SELECT == switch with no label
 //but can be selected like WI_SPIN
-class WI_SELECT_t : public IWindowMenuItem {
+class WI_SELECT_t : public WI_LABEL_t {
 public: //todo private
     uint32_t index;
     const char **strings;
 
 protected:
-    virtual std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const override;
+    std::array<Rect16, 2> getMenuRects(IWindowMenu &window_menu, Rect16 rect) const;
     virtual void printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 
 public:

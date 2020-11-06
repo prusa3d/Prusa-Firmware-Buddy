@@ -6,7 +6,7 @@
 #include "gui.hpp"
 #include "sound.hpp"
 #include "resource.h"
-#include "IWindowMenuItem.hpp"
+#include "WindowMenuItems.hpp"
 #include "cmath_ext.h"
 
 #define MENU_ITEM_DELIMETER_PADDING 6
