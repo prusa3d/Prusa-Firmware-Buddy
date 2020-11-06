@@ -18,7 +18,7 @@
 #include "DialogHandler.hpp"
 #include "selftest_MINI.h"
 #include "filament_sensor.hpp"
-#include "main_MINI.h"
+#include "main.h"
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "menu_spin_config.hpp"
