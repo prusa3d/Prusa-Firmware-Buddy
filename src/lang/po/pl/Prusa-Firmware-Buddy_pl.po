@@ -189,11 +189,11 @@ msgstr ""
 #: src/gui/wizard/firstlay.cpp:130
 #, c-format
 msgid ""
-"Do you want to use the current value? Current: %0.3f.\n"
+"Do you want to use the current value?\nCurrent: %0.3f.\n"
 "Default: %0.3f.\n"
 "Click NO to use the default value (recommended)"
 msgstr ""
-"Czy na pewno chcesz użyć tych wartości: Obecna: %0.3f.\n"
+"Czy na pewno chcesz użyć tych wartości:\nObecna: %0.3f.\n"
 "Domyślna: %0.3f.\n"
 "Wciśnij NIE, aby użyć domyślnej (zalecane)"
 
