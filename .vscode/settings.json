@@ -1,6 +1,5 @@
 {
     "cmake.configureOnOpen": true,
-    "editor.renderWhitespace": "all",
     "ccls.misc.compilationDatabaseDirectory": "build-vscode",
     "ccls.index.multiVersion": 1,
     "ccls.clang.extraArgs": [
