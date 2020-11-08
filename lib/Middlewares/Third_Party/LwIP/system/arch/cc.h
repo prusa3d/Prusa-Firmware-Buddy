@@ -86,4 +86,18 @@ typedef int sys_prot_t;
 /* Define random number generator function */
 #define LWIP_RAND() ((u32_t)rand())
 
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_NETBUF_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCP_SEG_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_SYS_TIMEOUT_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_NETCONN_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_UDP_PCB_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_FRAG_PBUF_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCPIP_MSG_API_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCP_PCB_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_PBUF_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_PBUF_POOL_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCPIP_MSG_INPKT_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCP_PCB_LISTEN_base[];
+extern uint8_t __attribute__((section(".ccmram"))) memp_memory_REASSDATA_base[];
+
 #endif /* __CC_H__ */
