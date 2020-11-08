@@ -19,7 +19,8 @@ osThreadId gui_task_handle = 0;
 
 font_t *GuiDefaults::Font = 0;
 font_t *GuiDefaults::FontBig = 0;
-font_t *GuiDefaults::FontSpecial = 0;
+font_t *GuiDefaults::FontMenuItems = 0;
+font_t *GuiDefaults::FontMenuSpecial = 0;
 
 // bool GuiDefaults::menu_timeout_enabled = true;
 

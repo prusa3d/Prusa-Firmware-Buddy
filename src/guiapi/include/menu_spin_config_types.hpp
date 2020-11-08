@@ -58,8 +58,30 @@ struct SpinConfig {
     constexpr T Min() const { return range[0]; }
     constexpr T Max() const { return range[1]; }
     constexpr T Step() const { return range[2]; }
-    constexpr const char *Unit() { return nullstr; } // not virtual
+    constexpr const char *Unit() const { return nullstr; } // not virtual
+
+    static size_t txtMeas(T val);
+
+    //calculate all possible values
+    size_t calculateMaxDigits() const {
+        size_t max_len = txtMeas(Max());
+        for (T step_sum = Min(); step_sum < Max(); step_sum += Step()) {
+            size_t len = txtMeas(step_sum);
+            max_len = std::max(len, max_len);
+        }
+        return max_len;
+    }
 };
+
+template <class T>
+size_t SpinConfig<T>::txtMeas(T val) {
+    return snprintf(NULL, 0, prt_format, val);
+}
+
+template <>
+inline size_t SpinConfig<float>::txtMeas(float val) {
+    return snprintf(NULL, 0, prt_format, (double)val);
+}
 
 template <class T>
 struct SpinConfigWithUnit : public SpinConfig<T> {
@@ -68,5 +90,5 @@ struct SpinConfigWithUnit : public SpinConfig<T> {
     constexpr SpinConfigWithUnit(const std::array<T, 3> &arr, const char *unit_)
         : SpinConfig<T>(arr)
         , unit(unit_) {}
-    constexpr const char *Unit() { return unit; } // not virtual
+    constexpr const char *Unit() const { return unit; } // not virtual
 };

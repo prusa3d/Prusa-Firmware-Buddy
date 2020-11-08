@@ -59,11 +59,11 @@ void ScreenMenuFwUpdate::windowEvent(EventLock /*has private ctor*/, window_t *s
     if (event == GUI_event_t::CLICK) {
         MI_ON_RESTART *mi_restart = &Item<MI_ON_RESTART>();
         if (size_t(param) == 1) {
-            mi_restart->index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
+            mi_restart->SetIndex(sys_fw_update_on_restart_is_enabled() ? 0 : 1);
             mi_restart->Enable();
         } else {
             mi_restart->Disable();
-            mi_restart->index = 0;
+            mi_restart->SetIndex(0);
         }
     } else {
         SuperWindowEvent(sender, event, param);

@@ -3,21 +3,43 @@
 #include "ScreenHandler.hpp"
 
 IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands)
+    : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden) {
+}
+
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : label(label)
     , hidden(hidden)
     , enabled(enabled)
     , focused(is_focused_t::no)
     , selected(is_selected_t::no)
-    , expands(expands)
-    , id_icon(id_icon) {
+    , id_icon(id_icon)
+    , extension_width(extension_width_) {
 }
 
-void IWindowMenuItem::SetLabel(string_view_utf8 text) {
-    label = text;
+/*****************************************************************************/
+//rectangles
+Rect16 IWindowMenuItem::getCustomRect(Rect16 base_rect, uint16_t custom_rect_width) {
+    Rect16 custom_rect = { base_rect.Left(), base_rect.Top(), custom_rect_width, base_rect.Height() };
+    custom_rect += Rect16::Left_t(base_rect.Width() - custom_rect.Width());
+    return custom_rect;
 }
 
-string_view_utf8 IWindowMenuItem::GetLabel() const {
-    return label;
+Rect16 IWindowMenuItem::getIconRect(Rect16 rect) const {
+    rect = icon_width;
+    return rect;
+}
+
+Rect16 IWindowMenuItem::getLabelRect(Rect16 rect) const {
+    rect -= icon_width;
+    rect -= extension_width;
+    rect += Rect16::Left_t(icon_width);
+    return rect;
+}
+
+Rect16 IWindowMenuItem::getExtensionRect(Rect16 rect) const {
+    rect += Rect16::Left_t(rect.Width() - extension_width);
+    rect = extension_width;
+    return rect;
 }
 
 void IWindowMenuItem::Print(IWindowMenu &window_menu, Rect16 rect) const {
@@ -32,18 +54,23 @@ void IWindowMenuItem::Print(IWindowMenu &window_menu, Rect16 rect) const {
         swap |= ROPFN_SWAPBW;
     }
 
-    printIcon(window_menu, rect, swap, window_menu.color_back);
-    printItem(window_menu, rect, color_text, color_back, swap);
+    printIcon(getIconRect(rect), swap, window_menu.color_back);
+    printLabel(getLabelRect(rect), window_menu, color_text, color_back);
+    if (extension_width)
+        printExtension(window_menu, getExtensionRect(rect), color_text, color_back, swap);
 }
 
-void IWindowMenuItem::printIcon(IWindowMenu &window_menu, Rect16 rect, uint8_t swap, color_t color_back) const {
-    //do not check id
-    //id == 0 wil render as black, it is needed
-    render_icon_align(getIconRect(window_menu, rect), id_icon, color_back, RENDER_FLG(ALIGN_CENTER, swap));
+void IWindowMenuItem::printIcon(Rect16 icon_rect, uint8_t swap, color_t color_back) const {
+    //do not check id. id == 0 will render as black, it is needed
+    render_icon_align(icon_rect, id_icon, color_back, RENDER_FLG(ALIGN_CENTER, swap));
 }
 
-void IWindowMenuItem::printLabel_into_rect(Rect16 rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const {
-    roll.RenderTextAlign(rolling_rect, GetLabel(), font, color_back, color_text, padding, alignment);
+void IWindowMenuItem::printLabel(Rect16 label_rect, IWindowMenu &window_menu, color_t color_text, color_t color_back) const {
+    roll.RenderTextAlign(label_rect, GetLabel(), window_menu.font, color_back, color_text, window_menu.padding, window_menu.GetAlignment());
+}
+
+void IWindowMenuItem::printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    render_icon_align(extension_rect, IDR_PNG_arrow_right_16px, window_menu.color_back, RENDER_FLG(ALIGN_LEFT_CENTER, swap));
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
@@ -52,9 +79,6 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
     if (IsEnabled()) {
         click(window_menu);
     }
-}
-invalidate_t IWindowMenuItem::Roll() {
-    return roll.Tick();
 }
 
 void IWindowMenuItem::SetFocus() {
@@ -68,24 +92,6 @@ void IWindowMenuItem::ClrFocus() {
     roll.Stop();
 }
 
-Rect16 IWindowMenuItem::getIconRect(IWindowMenu &window_menu, Rect16 rect) {
-    return rect = Rect16::Width_t(window_menu.GetIconWidth());
-}
-
-Rect16 IWindowMenuItem::getRollingRect(IWindowMenu &window_menu, Rect16 rect) const {
-    Rect16 irc = getIconRect(window_menu, rect);
-    rect += Rect16::Left_t(irc.Width());
-    rect -= irc.Width();
-    return rect;
-}
-
-// Returns custom width Rectangle, aligned intersection on the right of the base_rect
-Rect16 IWindowMenuItem::getCustomRect(IWindowMenu &window_menu, Rect16 base_rect, uint16_t custom_rect_width) {
-    Rect16 custom_rect = { base_rect.Left(), base_rect.Top(), custom_rect_width, base_rect.Height() };
-    custom_rect += Rect16::Left_t(base_rect.Width() - custom_rect.Width());
-    return custom_rect;
-}
-
 // Reinits text rolling in case of focus/defocus/click
 void IWindowMenuItem::reInitRoll(IWindowMenu &window_menu, Rect16 rect) {
     if (roll.NeedInit()) {
@@ -93,40 +99,15 @@ void IWindowMenuItem::reInitRoll(IWindowMenu &window_menu, Rect16 rect) {
     }
 }
 
-/**
- * return changed (== invalidate)
- **/
-bool IWindowMenuItem::Change(int /*dif*/) {
-    return false;
-}
-
-void IWindowMenuItem::printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    std::array<Rect16, 2> rects = getMenuRects(window_menu, rect);
-    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
-    if (expands == expands_t::yes) {
-        render_icon_align(rects[1], IDR_PNG_arrow_right_16px, window_menu.color_back, RENDER_FLG(ALIGN_LEFT_CENTER, swap));
-    }
-}
-
-std::array<Rect16, 2> IWindowMenuItem::getMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
-    Rect16 rolling_rect = getRollingRect(window_menu, rect);
-    Rect16 expand_icon_rc = { 0, 0, 0, 0 };
-    if (expands == expands_t::yes) {
-        expand_icon_rc = { int16_t(rect.Left() + rect.Width() - 26), rect.Top(), 26, rect.Height() };
-        if (rolling_rect.Left() + rolling_rect.Width() > expand_icon_rc.Left()) {
-            rolling_rect -= Rect16::Width_t(rolling_rect.Left() + rolling_rect.Width() - expand_icon_rc.Left());
-        }
-    }
-    return std::array<Rect16, 2> { rolling_rect, expand_icon_rc };
-}
-
-void IWindowMenuItem::InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) {
-    reInitRoll(window_menu, getMenuRects(window_menu, rect)[0]);
-}
-
 /*****************************************************************************/
 //IWiSpin
-std::array<char, 10> IWiSpin::temp_buff;
+IWiSpin::IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_)
+    : AddSuper<WI_LABEL_t>(label, extension_width_, id_icon, enabled, hidden)
+    , units(units_)
+    , value(val) {
+    //printSpinToBuffer(); initialized by parrent so it does not have to be virtual
+    has_unit = !units_.isNULLSTR();
+}
 
 void IWiSpin::click(IWindowMenu & /*window_menu*/) {
     if (selected == is_selected_t::yes) {
@@ -135,76 +116,61 @@ void IWiSpin::click(IWindowMenu & /*window_menu*/) {
     selected = selected == is_selected_t::yes ? is_selected_t::no : is_selected_t::yes;
 }
 
-/**
- * returns array<Rect16,2>
- * with values of
- * {rolling_rect, spin_rect}
- **/
-std::array<Rect16, 2> IWiSpin::getMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
-    Rect16 base_rolling_rect = getRollingRect(window_menu, rect);
-    char *buff = sn_prt();
-    Rect16 spin_rect = getCustomRect(window_menu, base_rolling_rect, strlen(buff) * window_menu.font->w + window_menu.padding.left + window_menu.padding.right);
-
-    Rect16 rolling_rect = base_rolling_rect;
-    rolling_rect = Rect16::Width_t(spin_rect.Left() - rolling_rect.Left());
-    return std::array<Rect16, 2> { rolling_rect, spin_rect };
+Rect16 IWiSpin::getSpinRect(Rect16 rect) const {
+    if (has_unit) {
+        //do not remove this commented code .. dynamical version
+        /*
+        string_view_utf8 un = units;//local var because of const
+        un.rewind();
+        Rect16::Width_t unit_width = un.computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
+        */
+        Rect16::Width_t unit_width = unit__number_of_characters * GuiDefaults::FontMenuSpecial->w;
+        rect -= unit_width;
+    }
+    return rect;
 }
 
-void IWiSpin::InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) {
-    reInitRoll(window_menu, getSpinMenuRects(window_menu, rect)[0]);
+Rect16 IWiSpin::getUnitRect(Rect16 rect) const {
+    Rect16 ret = getExtensionRect(rect);
+    Rect16::Width_t unit_width = unit__number_of_characters * GuiDefaults::FontMenuSpecial->w;
+    ret += Rect16::Left_t(getSpinRect(rect).Width());
+    ret = unit_width;
+    return ret;
 }
 
-std::array<Rect16, 3> IWiSpin::getSpinMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
-    Rect16 base_rect = getRollingRect(window_menu, rect);
-    Rect16 unit_rect = { int16_t(base_rect.Left() + base_rect.Width() - UNIT_RECT_CHAR_WIDTH * window_menu.secondary_font->w), base_rect.Top(), uint16_t(UNIT_RECT_CHAR_WIDTH * window_menu.secondary_font->w), base_rect.Height() };
-    base_rect -= unit_rect.Width();
-    char *buff = sn_prt();
-    Rect16 spin_rect = getCustomRect(window_menu, base_rect, strlen(buff) * window_menu.secondary_font->w);
-    base_rect -= spin_rect.Width();
+void IWiSpin::printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    const Rect16 spin_rc = getSpinRect(extension_rect);
+    const Rect16 unit_rc = getUnitRect(extension_rect);
 
-    return std::array<Rect16, 3> { base_rect, spin_rect, unit_rect };
-}
+    font_t *fnt = has_unit ? window_menu.font : GuiDefaults::FontMenuSpecial;
+    padding_ui8_t padding = has_unit ? window_menu.padding : padding_ui8(0, 6, 0, 0);
+    color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
+    string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
+    uint8_t align = window_menu.GetAlignment();
 
-void IWiSpin::printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const {
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    std::array<Rect16, 2> rects = IWiSpin::getMenuRects(window_menu, rect); // MINI GUI implementation
-#else                                                                       // PRINTER TYPE != PRUSA_PRINTER_MINI
-    std::array<Rect16, 3> rects = getSpinMenuRects(window_menu, rect);
-#endif                                                                      // PRINTER TYPE == PRUSA_PRINTER_MINI
-    //draw label
-    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
-    //draw spin
-    // this MakeRAM is safe - temp_buff is allocated for the whole life of IWiSpin
-    render_text_align(rects[1], string_view_utf8::MakeRAM((const uint8_t *)temp_buff.data()),
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-        window_menu.font,
-        color_back, IsSelected() ? COLOR_ORANGE : color_text,
-        window_menu.padding,
-#else  // PRINTER TYPE != PRUSA_PRINTER_MINI
-        window_menu.secondary_font,
-        color_back, IsSelected() ? COLOR_ORANGE : color_text,
-        padding_ui8(0, 6, 0, 0),
-#endif // PRINTER TYPE == PRUSA_PRINTER_MINI
-        window_menu.GetAlignment());
-
-#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
-    uint8_t unit_padding_left = units[0] == '\177' ? 0 : UNIT_HALFSPACE_PADDING; // °C are not separated with halfspace
-    render_text_align(rects[2], string_view_utf8::MakeRAM((const uint8_t *)units), window_menu.secondary_font, color_back,
-        COLOR_SILVER, padding_ui8(unit_padding_left, 6, 0, 0), window_menu.GetAlignment());
-#endif // (PRINTER_TYPE != PRINTER_PRUSA_MINI
+    render_text_align(spin_rc, spin_txt, fnt, color_back, cl_txt, padding, align); //render spin number
+    if (has_unit) {
+        string_view_utf8 un = units; //local var because of const
+        un.rewind();
+        uint32_t Utf8Char = un.getUtf8Char();
+        padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                 //177oct (127dec) todo check
+        render_text_align(unit_rc, units, fnt, color_back, COLOR_SILVER, padding, align); //render unit
+    }
 }
 
 /*****************************************************************************/
 //IWiSwitch
-IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : AddSuper<WI_LABEL_t>(label, id_icon, enabled, hidden)
-    , index(index) {}
+IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, size_t extension_width_)
+    : AddSuper<WI_LABEL_t>(label, extension_width_, id_icon, enabled, hidden)
+    , index(index) {
+    has_brackets = GuiDefaults::MenuSwitchHasBrackets;
+}
 
-bool IWiSwitch::Change(int /*dif*/) {
+invalidate_t IWiSwitch::Change(int /*dif*/) {
     if ((++index) >= size()) {
         index = 0;
     }
-    return true;
+    return invalidate_t::yes;
 }
 
 void IWiSwitch::click(IWindowMenu & /*window_menu*/) {
@@ -222,102 +188,42 @@ bool IWiSwitch::SetIndex(size_t idx) {
     }
 }
 
-std::array<Rect16, 2> IWiSwitch::getMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
-    Rect16 base_rolling_rect = getRollingRect(window_menu, rect);
-    Rect16 switch_rect;
-    string_view_utf8 localizedItem = _(get_item());
-    switch_rect = getCustomRect(window_menu, base_rolling_rect, localizedItem.computeNumUtf8CharsAndRewind() * window_menu.font->w + window_menu.padding.left + window_menu.padding.right);
+Rect16 IWiSwitch::getSwitchRect(Rect16 extension_rect) const {
+    if (!has_brackets)
+        return extension_rect;
 
-    Rect16 rolling_rect = base_rolling_rect;
-    rolling_rect = Rect16::Width_t(switch_rect.Left() - rolling_rect.Left());
-    return std::array<Rect16, 2> { rolling_rect, switch_rect };
+    extension_rect += Rect16::Left_t(BracketFont->w);
+    extension_rect -= Rect16::Width_t(BracketFont->w * 2);
+    return extension_rect;
 }
 
-std::array<Rect16, 4> IWiSwitch::getSwitchMenuRects(IWindowMenu &window_menu, Rect16 rect) const {
-    Rect16 base_rect = getRollingRect(window_menu, rect);
-    Rect16 switch_rect, bracket_start, bracket_end;
-
-    bracket_end = { int16_t(base_rect.Left() + base_rect.Width() - window_menu.secondary_font->w), base_rect.Top(), uint16_t(window_menu.secondary_font->w), base_rect.Height() };
-    base_rect -= bracket_end.Width();
-
-    string_view_utf8 localizedItem = _(get_item());
-    switch_rect = getCustomRect(window_menu, base_rect, localizedItem.computeNumUtf8CharsAndRewind() * window_menu.secondary_font->w);
-    base_rect -= switch_rect.Width();
-
-    bracket_start = { int16_t(base_rect.Left() + base_rect.Width() - window_menu.secondary_font->w), base_rect.Top(), uint16_t(window_menu.secondary_font->w), base_rect.Height() };
-    base_rect -= bracket_start.Width();
-
-    return std::array<Rect16, 4> { base_rect, bracket_start, switch_rect, bracket_end };
+Rect16 IWiSwitch::getLeftBracketRect(Rect16 extension_rect) const {
+    extension_rect = Rect16::Width_t(BracketFont->w);
+    return extension_rect;
 }
 
-void IWiSwitch::printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const {
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    std::array<Rect16, 2> rects = IWiSwitch::getMenuRects(window_menu, rect);
-#else  // PRINTER_TYPE != PRINTER_PRUSA_MINI
-    std::array<Rect16, 4> rects = getSwitchMenuRects(window_menu, rect);
-#endif // PRINTER_TYPE == PRINTER_PRUSA_MINI
+Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
+    extension_rect += Rect16::Left_t(extension_rect.Width() - BracketFont->w);
+    extension_rect = Rect16::Width_t(BracketFont->w);
+    return extension_rect;
+}
 
-    //draw label
-    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    render_text_align(rects[1], _(get_item()), window_menu.font,
-        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.GetAlignment());
-#else  // PRINTER_TYPE != PRINTER_PRUSA_MINI
-    render_text_align(rects[1], _("["), window_menu.secondary_font,
-        color_back, COLOR_SILVER, padding_ui8(0, 6, 0, 0), window_menu.GetAlignment());
+void IWiSwitch::printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
     //draw switch
-    render_text_align(rects[2], _(get_item()), window_menu.secondary_font,
-        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, padding_ui8(0, 6, 0, 0), window_menu.GetAlignment());
-    //draw bracket end  TODO: Change font
-    render_text_align(rects[3], _("]"), window_menu.secondary_font,
-        color_back, COLOR_SILVER, padding_ui8(0, 6, 0, 0), window_menu.GetAlignment());
-#endif // PRINTER_TYPE == PRINTER_PRUSA_MINI
-}
+    render_text_align(getSwitchRect(extension_rect), _(get_item()), window_menu.font,
+        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text,
+        has_brackets ? padding_ui8(0, 6, 0, 0) : window_menu.padding,
+        window_menu.GetAlignment());
 
-/*****************************************************************************/
-//WI_SELECT_t
-/**
- * return changed (== invalidate)
- **/
-bool WI_SELECT_t::Change(int dif) {
-    size_t size = 0;
-    while (strings[size] != nullptr) {
-        size++;
+    //draw brackets
+    if (has_brackets) {
+        render_text_align(getLeftBracketRect(extension_rect), _("["), BracketFont,
+            color_back, COLOR_SILVER, padding_ui8(0, 6, 0, 0), window_menu.GetAlignment());
+
+        //draw bracket end  TODO: Change font
+        render_text_align(getRightBracketRect(extension_rect), _("]"), BracketFont,
+            color_back, COLOR_SILVER, padding_ui8(0, 6, 0, 0), window_menu.GetAlignment());
     }
-
-    if (dif >= 0) {
-        ++index;
-        if (index >= size) {
-            index = 0;
-        }
-    } else {
-        --index;
-        if (index < 0) {
-            index = size - 1;
-        }
-    }
-
-    return true;
-}
-
-WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), id_icon, enabled, hidden)
-    , index(index)
-    , strings(strings) {}
-
-void WI_SELECT_t::printItem(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    Rect16 rolling_rect = getRollingRect(window_menu, rect);
-    WI_LABEL_t::printItem(window_menu, rolling_rect, color_text, color_back, swap);
-    const char *txt = strings[index];
-
-    Rect16 vrc = {
-        int16_t(rect.Left() + rect.Width()), rect.Top(), uint16_t(window_menu.font->w * strlen(txt) + window_menu.padding.left + window_menu.padding.right), rect.Height()
-    };
-    vrc -= Rect16::Left_t(vrc.Width());
-    rect -= vrc.Width();
-
-    render_text_align(vrc, _(txt), window_menu.font,
-        color_back, color_text, window_menu.padding, window_menu.GetAlignment());
 }
 
 /*****************************************************************************/

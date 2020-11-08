@@ -16,7 +16,6 @@ IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
     , color_text(GuiDefaults::ColorText)
     , color_disabled(GuiDefaults::ColorDisabled)
     , font(GuiDefaults::Font)
-    , secondary_font(GuiDefaults::FontSpecial)
     , padding { 6, 6, 6, 6 } {
     SetIconWidth(25);
     Enable();
@@ -200,14 +199,14 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         break;
     case GUI_event_t::ENC_DN:
         if (item->IsSelected()) {
-            invalid |= playEncoderSound(item->Decrement(value));
+            invalid |= playEncoderSound(item->Decrement(value) == invalidate_t::yes);
         } else {
             Decrement(value);
         }
         break;
     case GUI_event_t::ENC_UP:
         if (item->IsSelected()) {
-            invalid |= playEncoderSound(item->Increment(value));
+            invalid |= playEncoderSound(item->Increment(value) == invalidate_t::yes);
         } else {
             Increment(value);
         }
