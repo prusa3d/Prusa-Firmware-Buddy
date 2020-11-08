@@ -2,6 +2,7 @@
 
 #include "appmain.hpp"
 #include "app.h"
+#include "app_metrics.h"
 #include "dbg.h"
 #include "cmsis_os.h"
 #include "config.h"
@@ -81,6 +82,9 @@ void app_setup(void) {
 }
 
 void app_idle(void) {
+    Buddy::Metrics::RecordMarlinVariables();
+    Buddy::Metrics::RecordRuntimeStats();
+    Buddy::Metrics::RecordPrintFilename();
     osDelay(0); // switch to other threads - without this is UI slow during printing
 }
 
