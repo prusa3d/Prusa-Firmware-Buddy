@@ -485,8 +485,11 @@ target_sources(
           src/common/version.c
           src/common/marlin_events.c
           src/common/marlin_errors.c
+          src/common/metric.c
+          src/common/metric_handlers.c
           src/common/uartrxbuff.c
           src/common/appmain.cpp
+          src/common/app_metrics.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
           src/common/selftest/selftest_MINI.cpp
@@ -514,6 +517,7 @@ target_sources(
           src/common/z_calibration_fsm.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
+          src/marlin_stubs/M330.cpp
           src/marlin_stubs/M50.cpp
           src/hw/buffered_serial.cpp
           src/marlin_stubs/M876.cpp

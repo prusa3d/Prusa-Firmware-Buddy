@@ -1,0 +1,4 @@
+aioserial
+click
+aioinflux
+line-protocol-parser

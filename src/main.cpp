@@ -59,6 +59,7 @@
 #include "dump.h"
 #include "timer_defaults.h"
 #include "thread_measurement.h"
+#include "metric_handlers.h"
 #include "Z_probe.h"
 #include "hwio_pindef.h"
 #include "gui.hpp"
@@ -239,6 +240,11 @@ int main(void) {
     wdt_iwdg_warning_cb = iwdg_warning_cb;
     /* USER CODE END 2 */
 
+    static metric_handler_t *handlers[] = {
+        &metric_handler_syslog,
+        NULL
+    };
+    metric_system_init(handlers);
     /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
     /* USER CODE END RTOS_MUTEX */
