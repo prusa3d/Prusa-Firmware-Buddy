@@ -49,7 +49,6 @@ union SpinType {
 
 template <class T>
 struct SpinConfig {
-    static constexpr const char *nullstr = "";
     std::array<T, 3> range; // todo change array to struct containing min, max, step
     static const char *const prt_format;
 
@@ -58,7 +57,7 @@ struct SpinConfig {
     constexpr T Min() const { return range[0]; }
     constexpr T Max() const { return range[1]; }
     constexpr T Step() const { return range[2]; }
-    constexpr const char *Unit() const { return nullstr; } // not virtual
+    constexpr const char *Unit() const { return nullptr; } // not virtual
 
     static size_t txtMeas(T val);
 

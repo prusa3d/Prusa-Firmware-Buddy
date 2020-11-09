@@ -116,25 +116,22 @@ void IWiSpin::click(IWindowMenu & /*window_menu*/) {
     selected = selected == is_selected_t::yes ? is_selected_t::no : is_selected_t::yes;
 }
 
-Rect16 IWiSpin::getSpinRect(Rect16 rect) const {
-    if (has_unit) {
-        //do not remove this commented code .. dynamical version
-        /*
-        string_view_utf8 un = units;//local var because of const
-        un.rewind();
-        Rect16::Width_t unit_width = un.computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
-        */
-        Rect16::Width_t unit_width = unit__number_of_characters * GuiDefaults::FontMenuSpecial->w;
-        rect -= unit_width;
-    }
-    return rect;
+Rect16 IWiSpin::getSpinRect(Rect16 extension_rect) const {
+    extension_rect -= getUnitRect(extension_rect).Width();
+    return extension_rect;
 }
 
-Rect16 IWiSpin::getUnitRect(Rect16 rect) const {
-    Rect16 ret = getExtensionRect(rect);
-    Rect16::Width_t unit_width = unit__number_of_characters * GuiDefaults::FontMenuSpecial->w;
-    ret += Rect16::Left_t(getSpinRect(rect).Width());
-    ret = unit_width;
+Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
+    Rect16 ret = extension_rect;
+    if (has_unit) {
+        string_view_utf8 un = units; //local var because of const
+        un.rewind();
+        Rect16::Width_t unit_width = un.computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
+        ret = unit_width;
+    } else {
+        ret = Rect16::Width_t(0);
+    }
+    ret += Rect16::Left_t(extension_rect.Width() - ret.Width());
     return ret;
 }
 
@@ -167,7 +164,7 @@ IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is
 }
 
 invalidate_t IWiSwitch::Change(int /*dif*/) {
-    if ((++index) >= size()) {
+    if ((++index) >= get_items().size) {
         index = 0;
     }
     return invalidate_t::yes;
@@ -180,7 +177,7 @@ void IWiSwitch::click(IWindowMenu & /*window_menu*/) {
 }
 
 bool IWiSwitch::SetIndex(size_t idx) {
-    if (idx >= size())
+    if (idx >= get_items().size)
         return false;
     else {
         index = idx;
@@ -210,7 +207,7 @@ Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
 
 void IWiSwitch::printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
     //draw switch
-    render_text_align(getSwitchRect(extension_rect), _(get_item()), window_menu.font,
+    render_text_align(getSwitchRect(extension_rect), _(get_items().texts[index]), window_menu.font,
         color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text,
         has_brackets ? padding_ui8(0, 6, 0, 0) : window_menu.padding,
         window_menu.GetAlignment());

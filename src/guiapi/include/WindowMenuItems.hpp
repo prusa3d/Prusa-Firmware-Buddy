@@ -104,24 +104,24 @@ using WI_LABEL_t = IWindowMenuItem;
 //IWiSpin
 class IWiSpin : public AddSuper<WI_LABEL_t> {
 protected:
-    static constexpr size_t unit__number_of_characters = 26;
     static constexpr size_t unit__half_space_padding = 6;
 
-    std::array<char, 10> spin_text_buff; //temporary buffer to print value for text measurements
+    using SpinTextArray = std::array<char, 10>;
+    SpinTextArray spin_text_buff; //temporary buffer to print value for text measurements
 
     string_view_utf8 units;
     SpinType value;
 
-    static Rect16::Width_t calculateExtensionWidth(string_view_utf8 units_, size_t value_max_digits) {
-        size_t ret = units_.isNULLSTR() ? 0 : unit__number_of_characters * GuiDefaults::FontMenuSpecial->w;
-        ret += value_max_digits * (units_.isNULLSTR() ? GuiDefaults::FontMenuItems->w : GuiDefaults::FontMenuSpecial->w);
+    static Rect16::Width_t calculateExtensionWidth(const char *unit, size_t value_max_digits) {
+        string_view_utf8 un = _(unit);
+        size_t ret = unit == nullptr ? 0 : un.computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
+        ret += value_max_digits * (unit ? GuiDefaults::FontMenuItems->w : GuiDefaults::FontMenuSpecial->w);
         return ret;
     }
     Rect16 getSpinRect(Rect16 rect) const;
     Rect16 getUnitRect(Rect16 rect) const;
 
     virtual void click(IWindowMenu &window_menu) final;
-    virtual void printSpinToBuffer() = 0;
     virtual void printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 
 public:
@@ -142,7 +142,7 @@ public: //todo private
     const Config &config;
 
 protected:
-    virtual void printSpinToBuffer() override;
+    void printSpinToBuffer();
 
 public:
     WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
@@ -154,7 +154,7 @@ public:
 //WI_SPIN_t
 template <class T>
 WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : AddSuper<IWiSpin>(val, label, id_icon, enabled, hidden, _(cnf.Unit()), calculateExtensionWidth(_(cnf.Unit()), cnf.calculateMaxDigits()))
+    : AddSuper<IWiSpin>(val, label, id_icon, enabled, hidden, cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), calculateExtensionWidth(cnf.Unit(), cnf.calculateMaxDigits()))
     , config(cnf) {
     printSpinToBuffer();
 }
@@ -198,6 +198,11 @@ protected:
     size_t index;
 
 public:
+    struct Items_t {
+        const char *const *texts;
+        size_t size;
+    };
+
     static constexpr font_t *&BracketFont = GuiDefaults::FontMenuSpecial;
 
     IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, size_t extension_width_);
@@ -211,9 +216,8 @@ protected:
         return ret;
     }
 
-    virtual size_t size() = 0;
     virtual void OnChange(size_t old_index) = 0;
-    virtual const char *get_item() const = 0;
+    virtual Items_t get_items() const = 0;
     virtual void click(IWindowMenu &window_menu) final;
 
     Rect16 getSwitchRect(Rect16 extension_rect) const;
@@ -233,7 +237,6 @@ public: //todo private
     //using Array = const std::array<string_view_utf8, SZ>;//do not erase this commented code, solution storing string_view_utf8 instead const char*
     using Array = const std::array<const char *, SZ>;
     const Array items;
-    virtual size_t size() override { return items.size(); }
 
     //cannot create const std::array<const char *, SZ> with std::initializer_list<const char*>
     //template<class ...E> and {{std::forward<E>(e)...}} is workaround
@@ -270,7 +273,10 @@ protected:
         return IWiSwitch::calculateExtensionWidth(max_len);
     }
 
-    virtual const char *get_item() const override { return items[index]; }
+    virtual Items_t get_items() const override {
+        const Items_t ret = { items.data(), items.size() };
+        return ret;
+    }
 };
 
 // most common version of WI_SWITCH with on/off options
@@ -289,7 +295,6 @@ class WI_ICON_SWITCH_t : public AddSuper<IWiSwitch> {
 protected:
     using Array = const std::array<uint16_t, SZ>;
     const Array items;
-    virtual size_t size() override { return items.size(); }
 
     static size_t calculateExtensionWidth(const Array &items) {
         size_t max_width = 0;
@@ -308,7 +313,10 @@ public:
         , items { { std::forward<E>(e)... } } {}
 
 protected:
-    virtual const char *get_item() const override { return 0; } // TODO: useless here (but we need virtual get_item in iWiSwitch)
+    virtual Items_t get_items() const override {
+        const Items_t ret = { nullptr, items.size() };
+        return ret;
+    }
     // Returns selected icon id
     const uint16_t get_icon() const { return items[index]; }
 
