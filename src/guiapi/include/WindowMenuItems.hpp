@@ -57,12 +57,12 @@ protected:
     Rect16 getExtensionRect(Rect16 rect) const;
 
     virtual void printIcon(Rect16 icon_rect, uint8_t swap, color_t color_back) const; //must be virtual, because pictures of flags are drawn differently
-    void printLabel(Rect16 label_rect, IWindowMenu &window_menu, color_t color_text, color_t color_back) const;
+    void printLabel(Rect16 label_rect, color_t color_text, color_t color_back) const;
 
-    virtual void printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const; //things behind rect
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const; //things behind rect
     virtual void click(IWindowMenu &window_menu) = 0;
 
-    void reInitRoll(IWindowMenu &window_menu, Rect16 rect);
+    void reInitRoll(Rect16 rect);
 
 public:
     IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no);
@@ -86,12 +86,12 @@ public:
     /// to be displayed to the user based on his language settings.
     inline string_view_utf8 GetLabel() const { return label; }
 
-    void Print(IWindowMenu &window_menu, Rect16 rect) const;
+    void Print(Rect16 rect) const;
 
     inline invalidate_t Increment(uint8_t dif) { return Change(dif); }
     inline invalidate_t Decrement(uint8_t dif) { return Change(-int(dif)); }
     void Click(IWindowMenu &window_menu);
-    inline void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect) { reInitRoll(window_menu, getLabelRect(rect)); }
+    inline void InitRollIfNeeded(Rect16 rect) { reInitRoll(getLabelRect(rect)); }
     virtual invalidate_t Change(int /*dif*/) { return invalidate_t::no; }
     inline invalidate_t Roll() { return roll.Tick(); }
 };
@@ -122,7 +122,7 @@ protected:
     Rect16 getUnitRect(Rect16 rect) const;
 
     virtual void click(IWindowMenu &window_menu) final;
-    virtual void printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 
 public:
     IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
@@ -224,7 +224,7 @@ protected:
     Rect16 getLeftBracketRect(Rect16 extension_rect) const;
     Rect16 getRightBracketRect(Rect16 extension_rect) const;
 
-    virtual void printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 };
 
 /*****************************************************************************/
@@ -320,9 +320,9 @@ protected:
     // Returns selected icon id
     const uint16_t get_icon() const { return items[index]; }
 
-    virtual void printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override {
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override {
         //draw on/off icon
-        render_icon_align(extension_rect, get_icon(), window_menu.color_back, RENDER_FLG(ALIGN_CENTER, swap));
+        render_icon_align(extension_rect, get_icon(), GuiDefaults::MenuColorBack, RENDER_FLG(ALIGN_CENTER, swap));
     }
 };
 

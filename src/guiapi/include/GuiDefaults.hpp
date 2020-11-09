@@ -7,6 +7,7 @@ struct GuiDefaults {
     static constexpr color_t ColorBack = COLOR_BLACK;
     static constexpr color_t ColorText = COLOR_WHITE;
     static constexpr color_t ColorDisabled = COLOR_SILVER;
+    static constexpr color_t ColorSelected = COLOR_ORANGE;
     static constexpr color_t COLOR_VALUE_VALID = COLOR_WHITE;
     static constexpr color_t COLOR_VALUE_INVALID = COLOR_WHITE; //COLOR_YELLOW
     static constexpr padding_ui8_t Padding = { 2, 2, 2, 2 };
@@ -21,8 +22,19 @@ struct GuiDefaults {
     static constexpr uint8_t FrameWidth = 10;                                // default frame padding
     static font_t *Font;                                                     //todo constexpr
     static font_t *FontBig;                                                  //todo constexpr
-    static font_t *FontMenuItems;                                            // for menu items
-    static font_t *FontMenuSpecial;                                          // for units in menu
-    static constexpr bool MenuSwitchHasBrackets = false;                     // draw brackets around switch values in menus
     static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4;                       // maximum number of radio buttons
+
+    //special setting for menu items
+    static constexpr bool MenuLinesBetweenItems = false;
+    static constexpr color_t MenuColorBack = ColorBack;
+    static constexpr color_t MenuColorText = ColorText;
+    static constexpr color_t MenuColorDisabled = ColorDisabled;
+    static font_t *FontMenuItems;                        // for menu items
+    static font_t *FontMenuSpecial;                      // for units in menu
+    static constexpr bool MenuSwitchHasBrackets = false; // draw brackets around switch values in menus
+    static constexpr bool MenuSpinHasUnits = false;      // draw units behind spin
+    static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 6, 6, 6, 6 });
+    static constexpr padding_ui8_t MenuSwitchPadding = MenuSwitchHasBrackets ? padding_ui8_t({ 0, 6, 0, 0 }) : MenuPadding;
+    static constexpr uint8_t MenuAlignment = ALIGN_LEFT_TOP;
+    static constexpr size_t MenuIconWidth = 25;
 };

@@ -11,27 +11,6 @@
 
 #define MENU_ITEM_DELIMETER_PADDING 6
 
-IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
-    : window_aligned_t(parent, rect)
-    , color_text(GuiDefaults::ColorText)
-    , color_disabled(GuiDefaults::ColorDisabled)
-    , font(GuiDefaults::Font)
-    , padding { 6, 6, 6, 6 } {
-    SetIconWidth(25);
-    Enable();
-}
-
-uint8_t IWindowMenu::GetIconWidth() const {
-    //mem_array_u08[0] is alignment
-    return flags.mem_array_u08[1];
-}
-
-void IWindowMenu::SetIconWidth(uint8_t width) {
-    //mem_array_u08[0] is alignment
-    flags.mem_array_u08[1] = width;
-    Invalidate();
-}
-
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
@@ -157,7 +136,7 @@ bool window_menu_t::updateTopIndex() {
     if (index == top_index)
         return false;
 
-    const int item_height = font->h + padding.top + padding.bottom;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
     const int visible_available = rect.Height() / (item_height + 1); // 1 pixel for menu item delimeter
 
     const int visible_index = visibleIndex(index);
@@ -235,12 +214,11 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
     if (rect.Contain(rc)) {
 
         //only place I know rectangle to be able to reinit roll, ugly to do it in print
-        item->InitRollIfNeeded(*this, rc);
+        item->InitRollIfNeeded(rc);
 
-        item->Print(*this, rc);
-#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
-        display::DrawLine(point_ui16(rc.Left() + MENU_ITEM_DELIMETER_PADDING, rc.Top() + rc.Height()), point_ui16(rc.Left() + rc.Width() - 2 * MENU_ITEM_DELIMETER_PADDING, rc.Top() + rc.Height()), COLOR_SILVER);
-#endif // (PRINTER_TYPE != PRINTER_PRUSA_MINI)
+        item->Print(rc);
+        if (GuiDefaults::MenuLinesBetweenItems)
+            display::DrawLine(point_ui16(rc.Left() + MENU_ITEM_DELIMETER_PADDING, rc.Top() + rc.Height()), point_ui16(rc.Left() + rc.Width() - 2 * MENU_ITEM_DELIMETER_PADDING, rc.Top() + rc.Height()), COLOR_SILVER);
     }
 }
 
@@ -275,7 +253,7 @@ void window_menu_t::unconditionalDraw() {
 }
 
 void window_menu_t::redrawWholeMenu() {
-    const int item_height = font->h + padding.top + padding.bottom;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
     const size_t visible_available = rect.Height() / (item_height + 1);
     size_t visible_count = 0;
     IWindowMenuItem *item;
@@ -302,7 +280,7 @@ void window_menu_t::redrawWholeMenu() {
 }
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {
-    const int item_height = font->h + padding.top + padding.bottom;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
     const size_t visible_available = rect.Height() / (item_height + 1); // 1 pixel for menu item delimeter
     size_t visible_count = 0;
     IWindowMenuItem *item = nullptr;

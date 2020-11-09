@@ -42,9 +42,9 @@ Rect16 IWindowMenuItem::getExtensionRect(Rect16 rect) const {
     return rect;
 }
 
-void IWindowMenuItem::Print(IWindowMenu &window_menu, Rect16 rect) const {
-    color_t color_text = IsEnabled() ? window_menu.color_text : window_menu.color_disabled;
-    color_t color_back = window_menu.color_back;
+void IWindowMenuItem::Print(Rect16 rect) const {
+    color_t color_text = IsEnabled() ? GuiDefaults::MenuColorText : GuiDefaults::MenuColorDisabled;
+    color_t color_back = GuiDefaults::MenuColorBack;
     uint8_t swap = IsEnabled() ? 0 : ROPFN_DISABLE;
 
     if (IsFocused()) {
@@ -54,10 +54,10 @@ void IWindowMenuItem::Print(IWindowMenu &window_menu, Rect16 rect) const {
         swap |= ROPFN_SWAPBW;
     }
 
-    printIcon(getIconRect(rect), swap, window_menu.color_back);
-    printLabel(getLabelRect(rect), window_menu, color_text, color_back);
+    printIcon(getIconRect(rect), swap, GuiDefaults::MenuColorBack);
+    printLabel(getLabelRect(rect), color_text, color_back);
     if (extension_width)
-        printExtension(window_menu, getExtensionRect(rect), color_text, color_back, swap);
+        printExtension(getExtensionRect(rect), color_text, color_back, swap);
 }
 
 void IWindowMenuItem::printIcon(Rect16 icon_rect, uint8_t swap, color_t color_back) const {
@@ -65,12 +65,12 @@ void IWindowMenuItem::printIcon(Rect16 icon_rect, uint8_t swap, color_t color_ba
     render_icon_align(icon_rect, id_icon, color_back, RENDER_FLG(ALIGN_CENTER, swap));
 }
 
-void IWindowMenuItem::printLabel(Rect16 label_rect, IWindowMenu &window_menu, color_t color_text, color_t color_back) const {
-    roll.RenderTextAlign(label_rect, GetLabel(), window_menu.font, color_back, color_text, window_menu.padding, window_menu.GetAlignment());
+void IWindowMenuItem::printLabel(Rect16 label_rect, color_t color_text, color_t color_back) const {
+    roll.RenderTextAlign(label_rect, GetLabel(), GuiDefaults::FontMenuItems, color_back, color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
 }
 
-void IWindowMenuItem::printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    render_icon_align(extension_rect, IDR_PNG_arrow_right_16px, window_menu.color_back, RENDER_FLG(ALIGN_LEFT_CENTER, swap));
+void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    render_icon_align(extension_rect, IDR_PNG_arrow_right_16px, GuiDefaults::MenuColorBack, RENDER_FLG(ALIGN_LEFT_CENTER, swap));
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
@@ -83,7 +83,7 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
 
 void IWindowMenuItem::SetFocus() {
     focused = is_focused_t::yes;
-    //cannot call InitRollIfNeeded(window_menu, rect), rect not known (cannot add it into param)
+    //cannot call InitRollIfNeeded(rect), rect not known (cannot add it into param)
     roll.Deinit();
 }
 
@@ -93,9 +93,9 @@ void IWindowMenuItem::ClrFocus() {
 }
 
 // Reinits text rolling in case of focus/defocus/click
-void IWindowMenuItem::reInitRoll(IWindowMenu &window_menu, Rect16 rect) {
+void IWindowMenuItem::reInitRoll(Rect16 rect) {
     if (roll.NeedInit()) {
-        roll.Init(rect, GetLabel(), window_menu.font, window_menu.padding, window_menu.GetAlignment());
+        roll.Init(rect, GetLabel(), GuiDefaults::FontMenuItems, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
     }
 }
 
@@ -135,15 +135,15 @@ Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
     return ret;
 }
 
-void IWiSpin::printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
+void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
     const Rect16 spin_rc = getSpinRect(extension_rect);
     const Rect16 unit_rc = getUnitRect(extension_rect);
 
-    font_t *fnt = has_unit ? window_menu.font : GuiDefaults::FontMenuSpecial;
-    padding_ui8_t padding = has_unit ? window_menu.padding : padding_ui8(0, 6, 0, 0);
+    font_t *fnt = has_unit ? GuiDefaults::FontMenuItems : GuiDefaults::FontMenuSpecial;
+    padding_ui8_t padding = has_unit ? GuiDefaults::MenuPadding : padding_ui8(0, 6, 0, 0);
     color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
     string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
-    uint8_t align = window_menu.GetAlignment();
+    uint8_t align = GuiDefaults::MenuAlignment;
 
     render_text_align(spin_rc, spin_txt, fnt, color_back, cl_txt, padding, align); //render spin number
     if (has_unit) {
@@ -205,21 +205,20 @@ Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
     return extension_rect;
 }
 
-void IWiSwitch::printExtension(IWindowMenu &window_menu, Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
+void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
     //draw switch
-    render_text_align(getSwitchRect(extension_rect), _(get_items().texts[index]), window_menu.font,
-        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text,
-        has_brackets ? padding_ui8(0, 6, 0, 0) : window_menu.padding,
-        window_menu.GetAlignment());
+    render_text_align(getSwitchRect(extension_rect), _(get_items().texts[index]), GuiDefaults::FontMenuItems, color_back,
+        (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
+        GuiDefaults::MenuSwitchPadding, GuiDefaults::MenuAlignment);
 
     //draw brackets
     if (has_brackets) {
         render_text_align(getLeftBracketRect(extension_rect), _("["), BracketFont,
-            color_back, COLOR_SILVER, padding_ui8(0, 6, 0, 0), window_menu.GetAlignment());
+            color_back, COLOR_SILVER, GuiDefaults::MenuSwitchPadding, GuiDefaults::MenuAlignment);
 
         //draw bracket end  TODO: Change font
         render_text_align(getRightBracketRect(extension_rect), _("]"), BracketFont,
-            color_back, COLOR_SILVER, padding_ui8(0, 6, 0, 0), window_menu.GetAlignment());
+            color_back, COLOR_SILVER, GuiDefaults::MenuSwitchPadding, GuiDefaults::MenuAlignment);
     }
 }
 
