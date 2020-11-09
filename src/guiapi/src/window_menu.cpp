@@ -10,6 +10,7 @@
 #include "cmath_ext.h"
 
 #define MENU_ITEM_DELIMETER_PADDING 6
+#define SCROLLBAR_WIDTH             2
 
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
@@ -208,8 +209,9 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
     if (item == nullptr)
         return;
 
+    uint16_t rc_w = rect.Width() - (GuiDefaults::MenuHasScrollbar ? SCROLLBAR_WIDTH : 0);
     Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * item_height),
-        rect.Width(), uint16_t(item_height - 1) }; // 1 pixel is for gray menu item delimeter
+        rc_w, uint16_t(item_height - 1) }; // 1 pixel from Height is for gray menu item delimeter
 
     if (rect.Contain(rc)) {
 
@@ -252,21 +254,39 @@ void window_menu_t::unconditionalDraw() {
     }
 }
 
+void window_menu_t::printScrollBar(size_t available_count, uint16_t visible_count) {
+    uint16_t scroll_item_height = rect.Height() / available_count;
+    uint16_t sb_y_start = rect.Top() + top_index * scroll_item_height;
+    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - SCROLLBAR_WIDTH), rect.Top(), SCROLLBAR_WIDTH, rect.Height()), color_back);
+    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - SCROLLBAR_WIDTH), sb_y_start, SCROLLBAR_WIDTH, visible_count * scroll_item_height), COLOR_SILVER);
+}
+
 void window_menu_t::redrawWholeMenu() {
     const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
     const size_t visible_available = rect.Height() / (item_height + 1);
-    size_t visible_count = 0;
+    size_t visible_count = 0, available_invisible_count = 0;
     IWindowMenuItem *item;
-    for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
+    for (size_t i = 0; i < GetCount(); ++i) {
 
         item = GetItem(i);
         if (!item)
             break;
         if (item->IsHidden())
             continue;
+        if (visible_count < visible_available && i >= top_index) {
+            printItem(visible_count, item, item_height + 1);
+        }
+        if (i < top_index || visible_count >= visible_available) {
+            available_invisible_count++;
+        } else {
+            visible_count++;
+        }
+    }
 
-        printItem(visible_count, item, item_height + 1);
-        ++visible_count;
+    if (GuiDefaults::MenuHasScrollbar) {
+        if (available_invisible_count) {
+            printScrollBar(visible_count + available_invisible_count, visible_count);
+        }
     }
 
     /// fill the rest of the window by background
