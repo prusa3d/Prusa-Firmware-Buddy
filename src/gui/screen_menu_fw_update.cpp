@@ -69,7 +69,7 @@ void ScreenMenuFwUpdate::windowEvent(EventLock /*has private ctor*/, window_t *s
             mi_restart->index = 1;
         } else {
             mi_restart->Enable();
-            mi_restart->index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
+            mi_restart->index = sys_fw_update_on_restart_is_enabled() ? 1 : 0;
         }
         Invalidate();
     } else {
