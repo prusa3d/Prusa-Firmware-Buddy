@@ -43,7 +43,7 @@ protected:
 };
 
 class MI_SHEET_CALIBRATE : public WI_LABEL_t {
-    static constexpr const char *const label = N_("First layer calibration");
+    static constexpr const char *const label = N_("First Layer Calibration");
 
 public:
     MI_SHEET_CALIBRATE()

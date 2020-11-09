@@ -20,7 +20,7 @@
 #include "filament_sensor.hpp"
 #include "main_MINI.h"
 #include "Pin.hpp"
-#include "hwio_pindef_MINI.h"
+#include "hwio_pindef.h"
 #include "menu_spin_config.hpp"
 
 /*****************************************************************************/
@@ -347,7 +347,9 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
     eSOUND_TYPE st = static_cast<eSOUND_TYPE>(old_index);
     if (st == eSOUND_TYPE::StandardPrompt || st == eSOUND_TYPE::CriticalAlert) {
         Sound_Play(eSOUND_TYPE::StandardPrompt);
-        MsgBoxInfo(_("Continual beeps test\n press button to stop"), Responses_Ok);
+        // this is a debug-only menu item, intentionally not translated
+        static const uint8_t msg[] = "Continual beeps test\n press button to stop";
+        MsgBoxInfo(string_view_utf8::MakeCPUFLASH(msg), Responses_Ok);
     } else {
         Sound_Play(st);
     }
@@ -355,13 +357,10 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
 
 /*****************************************************************************/
 //MI_SOUND_VOLUME
-
+//crank it up to 11
+constexpr static const std::array<uint8_t, 3> volume_range = { { 0, 11, 1 } };
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
     : WI_SPIN_U08_t(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
-/* void MI_SOUND_VOLUME::Change(int dif) { */
-/* int v = value - dif; */
-/* Sound_SetVolume(value); */
-/* } */
 void MI_SOUND_VOLUME::OnClick() {
     Sound_SetVolume(GetVal().i32);
 }

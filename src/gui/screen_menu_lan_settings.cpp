@@ -187,7 +187,7 @@ public:
 };
 
 class MI_LAN_SAVE : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Save settings");
+    constexpr static const char *const label = N_("Save Settings");
 
 public:
     MI_LAN_SAVE()
@@ -198,7 +198,7 @@ public:
 };
 
 class MI_LAN_LOAD : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Load settings");
+    constexpr static const char *const label = N_("Load Settings");
 
 public:
     MI_LAN_LOAD()

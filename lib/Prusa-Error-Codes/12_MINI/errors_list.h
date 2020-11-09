@@ -39,13 +39,13 @@ typedef struct {
 
 static constexpr err_t error_list[] = {
     // r=1, c=19
-    { N_("HEATING FAILED"),
+    { N_("PREHEAT ERROR"),
         // r=5, c=20
         N_("Check the heatbed heater & thermistor wiring for possible damage."),
         ERR_TEMPERATURE_HEATING_BED },
 
     // r=1, c=19
-    { N_("HEATING FAILED"),
+    { N_("PREHEAT ERROR"),
         // r=5, c=20
         N_("Check the print head heater & thermistor wiring for possible damage."),
         ERR_TEMPERATURE_HEATING_NOZZLE },

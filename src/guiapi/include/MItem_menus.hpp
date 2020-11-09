@@ -126,7 +126,7 @@ protected:
 };
 
 class MI_LAN_SETTINGS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Lan settings");
+    static constexpr const char *const label = N_("Lan Settings");
 
 public:
     MI_LAN_SETTINGS();

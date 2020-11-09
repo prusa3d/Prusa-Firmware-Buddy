@@ -86,7 +86,7 @@ StateFncData StateFnc_FIRSTLAY_FILAMENT_ASK(StateFncData last_run) {
 }
 
 StateFncData StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT(StateFncData last_run) {
-    gui_dlg_preheat_forced(_("Select filament type"));
+    gui_dlg_preheat_forced(_("Select Filament Type"));
     return FIRSTLAY_FILAMENT_done();
 }
 
@@ -127,7 +127,7 @@ StateFncData StateFnc_FIRSTLAY_MSBX_USEVAL(StateFncData last_run) {
         {
             char fmt[20 * 7];
             // c=20 r=6
-            static const char fmt2Translate[] = N_("Do you want to use the current value? Current: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)");
+            static const char fmt2Translate[] = N_("Do you want to use the current value?\nCurrent: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)");
             _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
             snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)marlin_vars()->z_offset, (double)z_offset_def);
         }

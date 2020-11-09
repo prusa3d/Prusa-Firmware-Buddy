@@ -86,7 +86,7 @@ protected:
 };
 
 class MI_TEST_HEAT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test heaters");
+    static constexpr const char *const label = N_("Test Heaters");
 
 public:
     MI_TEST_HEAT();
@@ -96,7 +96,7 @@ protected:
 };
 
 class MI_TEST_FANS_fine : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test FANs fine");
+    static constexpr const char *const label = N_("Fan test OK");
 
 public:
     MI_TEST_FANS_fine();
@@ -302,7 +302,7 @@ public:
 };
 
 class MI_SORT_FILES : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = N_("Sort files by");
+    constexpr static const char *const label = N_("Sort Files by");
 
     constexpr static const char *str_name = N_("Name");
     constexpr static const char *str_time = N_("Time");
@@ -351,7 +351,7 @@ protected:
 };
 
 class MI_FILAMENT_SENSOR_STATE : public WI_SWITCH_0_1_NA_t {
-    static constexpr const char *const label = N_("Filament sensor");
+    static constexpr const char *const label = N_("Filament Sensor");
     static state_t get_state();
 
 public:

@@ -22,7 +22,7 @@
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Filament sensor");
+    constexpr static const char *const label = N_("Filament Sensor");
 
     void no_sensor_msg() const {
         MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));

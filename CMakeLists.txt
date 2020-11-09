@@ -132,10 +132,17 @@ set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_GUI "MINI")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
 
+# Set printer board
+set(PRINTERS_WITH_BUDDY "MINI")
+
 if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
 else()
   set(FILAMENT_SENSOR NO)
+endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_BUDDY)
+  set(BOARD_TYPE BUDDY_BOARD)
 endif()
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
@@ -178,6 +185,7 @@ target_compile_definitions(
   INTERFACE
   MOTHERBOARD=${MOTHERBOARD}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
+  BOARD_TYPE=${BOARD_TYPE}
   MARLIN_DISABLE_INFINITE_LOOP
   PROCESS_CUSTOM_GCODE
   STM32GENERIC
@@ -437,7 +445,7 @@ target_sources(
           src/freertos.c
           src/freertos_openocd.c
           src/usbh_diskio.c
-          src/main_${PRINTER}.cpp
+          src/main.cpp
           src/usbd_desc.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>
@@ -541,6 +549,7 @@ if(GUI)
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
+            src/gui/dialogs/window_dlg_strong_warning.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
             src/gui/dialogs/liveadjust_z.cpp
             src/gui/ScreenFactory.cpp
