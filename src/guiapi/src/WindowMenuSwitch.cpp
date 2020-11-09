@@ -14,14 +14,15 @@
 
 /*****************************************************************************/
 //IWiSwitch
-IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, size_t extension_width_)
-    : AddSuper<WI_LABEL_t>(label, extension_width_, id_icon, enabled, hidden)
-    , index(index) {
+IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_)
+    : AddSuper<WI_LABEL_t>(label, calculateExtensionWidth(items_), id_icon, enabled, hidden)
+    , index(index)
+    , items(items_) {
     has_brackets = GuiDefaults::MenuSwitchHasBrackets;
 }
 
 invalidate_t IWiSwitch::Change(int /*dif*/) {
-    if ((++index) >= get_items().size) {
+    if ((++index) >= items.size) {
         index = 0;
     }
     return invalidate_t::yes;
@@ -34,7 +35,7 @@ void IWiSwitch::click(IWindowMenu & /*window_menu*/) {
 }
 
 bool IWiSwitch::SetIndex(size_t idx) {
-    if (idx >= get_items().size)
+    if (idx >= items.size)
         return false;
     else {
         index = idx;
@@ -64,7 +65,7 @@ Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
 
 void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
     //draw switch
-    render_text_align(getSwitchRect(extension_rect), _(get_items().texts[index]), GuiDefaults::FontMenuItems, color_back,
+    render_text_align(getSwitchRect(extension_rect), items.texts[index], GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
         GuiDefaults::MenuSwitchPadding, GuiDefaults::MenuAlignment);
 
@@ -78,3 +79,6 @@ void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_
             color_back, COLOR_SILVER, GuiDefaults::MenuSwitchPadding, GuiDefaults::MenuAlignment);
     }
 }
+
+WI_SWITCH_t::WI_SWITCH_t(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_)
+    : AddSuper<IWiSwitch>(index, label, id_icon, enabled, hidden, items_) {}

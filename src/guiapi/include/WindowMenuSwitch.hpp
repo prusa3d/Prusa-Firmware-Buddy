@@ -13,34 +13,47 @@
 
 #include "WindowMenuLabel.hpp"
 #include "window_icon.hpp" //CalculateMinimalSize
+#include <type_traits>     //aligned_union
 
 /*****************************************************************************/
 //IWiSwitch
 class IWiSwitch : public AddSuper<WI_LABEL_t> {
-protected:
-    size_t index;
-
 public:
     struct Items_t {
-        const char *const *texts;
+        string_view_utf8 *texts;
         size_t size;
+
+        template <size_t SZ>
+        Items_t(std::array<string_view_utf8, SZ> &array)
+            : texts(array.data())
+            , size(SZ) {}
     };
 
+protected:
+    size_t index;
+    const Items_t items;
+
+public:
     static constexpr font_t *&BracketFont = GuiDefaults::FontMenuSpecial;
 
-    IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, size_t extension_width_);
+    IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_);
 
     virtual invalidate_t Change(int dif) override;
     bool SetIndex(size_t idx);
 
 protected:
-    static Rect16::Width_t calculateExtensionWidth(size_t max_switch_characters) {
-        size_t ret = GuiDefaults::FontMenuItems->w * max_switch_characters + (GuiDefaults::MenuSwitchHasBrackets ? BracketFont->w * 2 : 0);
+    static Rect16::Width_t calculateExtensionWidth(Items_t items) {
+        size_t max_len = 0;
+        for (size_t i = 0; i < items.size; ++i) {
+            size_t len = items.texts[i].computeNumUtf8CharsAndRewind();
+            if (len > max_len)
+                max_len = len;
+        }
+        size_t ret = GuiDefaults::FontMenuItems->w * max_len + (GuiDefaults::MenuSwitchHasBrackets ? BracketFont->w * 2 : 0);
         return ret;
     }
 
     virtual void OnChange(size_t old_index) = 0;
-    virtual Items_t get_items() const = 0;
     virtual void click(IWindowMenu &window_menu) final;
 
     Rect16 getSwitchRect(Rect16 extension_rect) const;
@@ -54,26 +67,44 @@ protected:
 //WI_SWITCH == text version of WI_SPIN (non-numeric)
 //unlike WI_SPIN cannot be selected
 //todo try to inherit from WI_SPIN<const char**> lot of code could be reused
+class WI_SWITCH_t : public AddSuper<IWiSwitch> {
+protected:
+    template <size_t SZ>
+    using ArrayMemSpace_t = std::aligned_storage<sizeof(std::array<string_view_utf8, SZ>), 1>;
+    template <size_t SZ>
+    using Array_t = std::array<string_view_utf8, SZ>;
+    template <size_t SZ, class... E>
+    Items_t FillArray(ArrayMemSpace_t<SZ> *ArrayMem, E &&... e) {
+        Array_t<SZ> *pArr = new (ArrayMem) Array_t<SZ>({ std::forward<E>(e)... });
+        Items_t ret = Items_t(*pArr);
+        return ret;
+    }
+
+public:
+    WI_SWITCH_t(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_);
+};
+
+#if 0
 template <size_t SZ>
 class WI_SWITCH_t : public AddSuper<IWiSwitch> {
 public: //todo private
     //using Array = const std::array<string_view_utf8, SZ>;//do not erase this commented code, solution storing string_view_utf8 instead const char*
     using Array = const std::array<const char *, SZ>;
-    const Array items;
+    const Array array;
 
     //cannot create const std::array<const char *, SZ> with std::initializer_list<const char*>
     //template<class ...E> and {{std::forward<E>(e)...}} is workaround
     template <class... E>
     WI_SWITCH_t(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&... e)
         : AddSuper<IWiSwitch>(index, label, id_icon, enabled, hidden, calculateExtensionWidth(Array({ std::forward<E>(e)... })))
-        , items { { std::forward<E>(e)... } } {}
+        , array { { std::forward<E>(e)... } } {}
 
     //do not erase this commented code, solution storing string_view_utf8 instead const char*
     /*
     static size_t MaxNumberOfCharacters(const Array>& items) {
         size_t max_len = 0;
         for (size_t i = 0; i < SZ; ++i) {
-            size_t len = items[i].computeNumUtf8CharsAndRewind();
+            size_t len = array[i].computeNumUtf8CharsAndRewind();
             if (len > max_len) max_len = len;
         }
         return IWiSwitch::calculateExtensionWidth(max_len);
@@ -82,18 +113,11 @@ public: //todo private
     //ctor must receive translated texts
     WI_SWITCH_t(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&... e)
         : AddSuper<IWiSwitch>(index, label, id_icon, enabled, hidden)
-        , items { { std::forward<E>(e)... } } {}
+        , array { { std::forward<E>(e)... } } {}
     */
 protected:
-    static size_t calculateExtensionWidth(const Array &items) {
-        size_t max_len = 0;
-        for (size_t i = 0; i < SZ; ++i) {
-            string_view_utf8 label = _(items[i]);
-            size_t len = label.computeNumUtf8CharsAndRewind();
-            if (len > max_len)
-                max_len = len;
-        }
-        return IWiSwitch::calculateExtensionWidth(max_len);
+    static size_t calculateExtensionWidth(const Array &array) {
+        return IWiSwitch::calculateExtensionWidth(Items_t ({array.data(),array.size()}));
     }
 
     virtual Items_t get_items() const override {
@@ -102,6 +126,8 @@ protected:
     }
 };
 
+#endif
+/*
 template <size_t SZ>
 class WI_ICON_SWITCH_t : public AddSuper<IWiSwitch> {
 protected:
@@ -137,3 +163,4 @@ protected:
         render_icon_align(extension_rect, get_icon(), GuiDefaults::MenuColorBack, RENDER_FLG(ALIGN_CENTER, swap));
     }
 };
+*/

@@ -325,13 +325,15 @@ size_t MI_SOUND_MODE::init_index() const {
     return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
+    : WI_SWITCH_t(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no,
+        FillArray<5>(&ArrayMemSpace, _(str_Once), _(str_Loud), _(str_Silent), _(str_Assist)
 #ifdef _DEBUG
-    : WI_SWITCH_t<5>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no, str_Once, str_Loud, str_Silent, str_Assist, str_Debug)
-#else
-    : WI_SWITCH_t<4>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no, str_Once, str_Loud, str_Silent, str_Assist)
+                                                                                  ,
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_Debug)
 #endif
-{
+                )) {
 }
+
 void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
     Sound_SetMode(static_cast<eSOUND_MODE>(index));
 }
@@ -339,7 +341,9 @@ void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
 /*****************************************************************************/
 //MI_SOUND_TYPE
 MI_SOUND_TYPE::MI_SOUND_TYPE()
-    : WI_SWITCH_t<8>(0, _(label), 0, is_enabled_t::yes, is_hidden_t::no, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_CriticalAlert, str_EncoderMove, str_BlindAlert, str_Start, str_SingleBeep) {}
+    : WI_SWITCH_t(0, _(label), 0, is_enabled_t::yes, is_hidden_t::no,
+        FillArray<8>(&ArrayMemSpace, _(str_ButtonEcho), _(str_StandardPrompt), _(str_StandardAlert), _(str_CriticalAlert),
+            _(str_EncoderMove), _(str_BlindAlert), _(str_Start), _(str_SingleBeep))) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
     eSOUND_TYPE st = static_cast<eSOUND_TYPE>(old_index);
     if (st == eSOUND_TYPE::StandardPrompt || st == eSOUND_TYPE::CriticalAlert) {
@@ -366,7 +370,7 @@ void MI_SOUND_VOLUME::OnClick() {
 /*****************************************************************************/
 //MI_SORT_FILES
 MI_SORT_FILES::MI_SORT_FILES()
-    : WI_SWITCH_t<2>(variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT)), _(label), 0, is_enabled_t::yes, is_hidden_t::no, str_time, str_name) {}
+    : WI_SWITCH_t(variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT)), _(label), 0, is_enabled_t::yes, is_hidden_t::no, FillArray<2>(&ArrayMemSpace, _(str_time), _(str_name))) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
     if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
         eeprom_set_var(EEVAR_FILE_SORT, variant8_ui8((uint8_t)WF_SORT_BY_NAME));
