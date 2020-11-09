@@ -170,17 +170,15 @@ public:
     }
 };
 
-class MI_LAN_IP_t : public WI_SWITCH_t {
+class MI_LAN_IP_t : public WI_SWITCH_t<2> {
     constexpr static const char *const label = "LAN IP";
 
     constexpr static const char *str_static = "static";
     constexpr static const char *str_DHCP = "DHCP";
 
-    ArrayMemSpace_t<2> ArrayMemSpace;
-
 public:
     MI_LAN_IP_t()
-        : WI_SWITCH_t(Eth::IsStatic() ? 1 : 0, _(label), 0, is_enabled_t::yes, is_hidden_t::no, FillArray<2>(&ArrayMemSpace, _(str_DHCP), _(str_static))) {}
+        : WI_SWITCH_t(Eth::IsStatic() ? 1 : 0, _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(str_DHCP), _(str_static)) {}
     virtual void OnChange(size_t old_index) override {
         bool success = old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
         if (!success)

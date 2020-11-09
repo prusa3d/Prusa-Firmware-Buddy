@@ -18,15 +18,13 @@
 
 // most common version of WI_SWITCH with on/off options
 // also very nice how-to-use example
-class WI_SWITCH_OFF_ON_t : public WI_SWITCH_t {
+class WI_SWITCH_OFF_ON_t : public WI_SWITCH_t<2> {
     constexpr static const char *str_Off = N_("Off");
     constexpr static const char *str_On = N_("On");
 
-    ArrayMemSpace_t<2> ArrayMemSpace;
-
 public:
     WI_SWITCH_OFF_ON_t(bool index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
-        : WI_SWITCH_t(size_t(index), label, id_icon, enabled, hidden, FillArray<2>(&ArrayMemSpace, _(str_Off), _(str_On))) {}
+        : WI_SWITCH_t(size_t(index), label, id_icon, enabled, hidden, _(str_Off), _(str_On)) {}
 };
 /*
 class WI_ICON_SWITCH_OFF_ON_t : public WI_ICON_SWITCH_t<2> {

@@ -263,7 +263,12 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_SOUND_MODE : public WI_SWITCH_t {
+#ifdef _DEBUG
+static constexpr size_t MI_SOUND_MODE_COUNT = 5;
+#else
+static constexpr size_t MI_SOUND_MODE_COUNT = 4;
+#endif
+class MI_SOUND_MODE : public WI_SWITCH_t<MI_SOUND_MODE_COUNT> {
     constexpr static const char *const label = N_("Sound Mode");
 
     constexpr static const char *str_Once = N_("Once");
@@ -272,8 +277,6 @@ class MI_SOUND_MODE : public WI_SWITCH_t {
     constexpr static const char *str_Assist = N_("Assist");
     constexpr static const char *str_Debug = "Debug";
 
-    ArrayMemSpace_t<5> ArrayMemSpace;
-
     size_t init_index() const;
 
 public:
@@ -281,7 +284,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_SOUND_TYPE : public WI_SWITCH_t {
+class MI_SOUND_TYPE : public WI_SWITCH_t<8> {
     constexpr static const char *const label = "Sound Type";
 
     constexpr static const char *str_ButtonEcho = "ButtonEcho";
@@ -293,20 +296,16 @@ class MI_SOUND_TYPE : public WI_SWITCH_t {
     constexpr static const char *str_Start = "Start";
     constexpr static const char *str_SingleBeep = "SingleBeep";
 
-    ArrayMemSpace_t<8> ArrayMemSpace;
-
 public:
     MI_SOUND_TYPE();
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_SORT_FILES : public WI_SWITCH_t {
+class MI_SORT_FILES : public WI_SWITCH_t<2> {
     constexpr static const char *const label = N_("Sort files by");
 
     constexpr static const char *str_name = N_("Name");
     constexpr static const char *str_time = N_("Time");
-
-    ArrayMemSpace_t<2> ArrayMemSpace;
 
 public:
     MI_SORT_FILES();

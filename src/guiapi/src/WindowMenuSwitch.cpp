@@ -80,5 +80,13 @@ void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_
     }
 }
 
-WI_SWITCH_t::WI_SWITCH_t(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_)
-    : AddSuper<IWiSwitch>(index, label, id_icon, enabled, hidden, items_) {}
+Rect16::Width_t IWiSwitch::calculateExtensionWidth(Items_t items) {
+    size_t max_len = 0;
+    for (size_t i = 0; i < items.size; ++i) {
+        size_t len = items.texts[i].computeNumUtf8CharsAndRewind();
+        if (len > max_len)
+            max_len = len;
+    }
+    size_t ret = GuiDefaults::FontMenuItems->w * max_len + (GuiDefaults::MenuSwitchHasBrackets ? BracketFont->w * 2 : 0);
+    return ret;
+}
