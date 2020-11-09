@@ -64,6 +64,17 @@ Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
 }
 
 void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    switch (items.type) {
+    case Items_t::type_t::text:
+        printExtension_text(extension_rect, color_text, color_back, swap);
+        break;
+    case Items_t::type_t::icon:
+        printExtension_icon(extension_rect, color_text, color_back, swap);
+        break;
+    }
+}
+
+void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
     //draw switch
     render_text_align(getSwitchRect(extension_rect), items.texts[index], GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
@@ -80,7 +91,24 @@ void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_
     }
 }
 
+void IWiSwitch::printExtension_icon(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    //draw icon
+    render_icon_align(extension_rect, items.icon_resources[index], color_back, RENDER_FLG(ALIGN_CENTER, swap));
+}
+
 Rect16::Width_t IWiSwitch::calculateExtensionWidth(Items_t items) {
+    switch (items.type) {
+    case Items_t::type_t::text:
+        return calculateExtensionWidth_text(items);
+        break;
+    case Items_t::type_t::icon:
+        return calculateExtensionWidth_icon(items);
+        break;
+    }
+    return 0;
+}
+
+Rect16::Width_t IWiSwitch::calculateExtensionWidth_text(Items_t items) {
     size_t max_len = 0;
     for (size_t i = 0; i < items.size; ++i) {
         size_t len = items.texts[i].computeNumUtf8CharsAndRewind();
@@ -89,4 +117,14 @@ Rect16::Width_t IWiSwitch::calculateExtensionWidth(Items_t items) {
     }
     size_t ret = GuiDefaults::FontMenuItems->w * max_len + (GuiDefaults::MenuSwitchHasBrackets ? BracketFont->w * 2 : 0);
     return ret;
+}
+
+Rect16::Width_t IWiSwitch::calculateExtensionWidth_icon(Items_t items) {
+    size_t max_width = 0;
+    for (size_t i = 0; i < items.size; ++i) {
+        size_t width = window_icon_t::CalculateMinimalSize(items.icon_resources[i]).w;
+        if (width > max_width)
+            max_width = width;
+    }
+    return max_width;
 }
