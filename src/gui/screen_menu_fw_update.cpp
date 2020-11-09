@@ -34,7 +34,13 @@ class MI_ON_RESTART : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_ON_RESTART()
-        : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? true : (sys_fw_update_on_restart_is_enabled() ? true : false), _(label), 0, sys_fw_update_is_enabled() ? false : true, false) {}
+        : WI_SWITCH_OFF_ON_t(
+            sys_fw_update_is_enabled()
+                ? true
+                : (sys_fw_update_on_restart_is_enabled()
+                        ? true
+                        : false),
+            _(label), 0, sys_fw_update_is_enabled() ? false : true, false) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? sys_fw_update_on_restart_enable() : sys_fw_update_on_restart_disable();
     }
@@ -59,12 +65,13 @@ void ScreenMenuFwUpdate::windowEvent(EventLock /*has private ctor*/, window_t *s
     if (event == GUI_event_t::CLICK) {
         MI_ON_RESTART *mi_restart = &Item<MI_ON_RESTART>();
         if (size_t(param) == 1) {
-            mi_restart->index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
-            mi_restart->Enable();
-        } else {
             mi_restart->Disable();
-            mi_restart->index = 0;
+            mi_restart->index = 1;
+        } else {
+            mi_restart->Enable();
+            mi_restart->index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
         }
+        Invalidate();
     } else {
         SuperWindowEvent(sender, event, param);
     }
