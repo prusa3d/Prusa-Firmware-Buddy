@@ -35,6 +35,8 @@ void IWiSwitch::click(IWindowMenu & /*window_menu*/) {
 }
 
 bool IWiSwitch::SetIndex(size_t idx) {
+    if (index == idx)
+        return false;
     if (idx >= items.size)
         return false;
     else {

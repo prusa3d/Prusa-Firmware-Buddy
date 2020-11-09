@@ -22,7 +22,6 @@
 #include "Pin.hpp"
 #include "hwio_pindef_MINI.h"
 #include "menu_spin_config.hpp"
-#include "window_types.hpp" //SENSOR_STATE
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -411,49 +410,34 @@ void I_MI_Filament::click_at(FILAMENT_t filament_index) {
     Screens::Access()->Close(); // skip this screen everytime
 }
 
-/// If \param new_state differs from \param old_state
-/// \param new_state will be saved to \param old_state
-/// \returns true if states differ
-template <class T>
-bool set_changed_state(const T current_state, T *old_state) {
-    const bool changed = (current_state != *old_state);
-    if (changed)
-        *old_state = current_state;
-    return changed;
-}
-
 MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
-    : WI_SPIN_I08_t(0, SpinCnf::sensor_range, _(label), 0, is_enabled_t::no, is_hidden_t::no) {
-    SetVal((int8_t)get_state());
+    : WI_SWITCH_0_1_NA_t(get_state(), _(label), 0, is_enabled_t::no, is_hidden_t::no) {
 }
 
-SENSOR_STATE MI_FILAMENT_SENSOR_STATE::get_state() {
+MI_FILAMENT_SENSOR_STATE::state_t MI_FILAMENT_SENSOR_STATE::get_state() {
     fsensor_t fs = fs_wait_initialized();
     switch (fs) {
     case fsensor_t::HasFilament:
-        return SENSOR_STATE::high;
+        return state_t::high;
     case fsensor_t::NoFilament:
-        return SENSOR_STATE::low;
+        return state_t::low;
     default:;
     }
-    return SENSOR_STATE::unknown;
+    return state_t::unknown;
 }
 
 bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
-    int8_t value = GetVal();
-    return set_changed_state<int8_t>((int8_t)get_state(), &value);
+    return SetIndex((size_t)get_state());
 }
 
 MI_MINDA::MI_MINDA()
-    : WI_SPIN_I08_t(0, SpinCnf::sensor_range, _(label), 0, is_enabled_t::no, is_hidden_t::no) {
-    SetVal((int8_t)get_state());
+    : WI_SWITCH_0_1_NA_t(get_state(), _(label), 0, is_enabled_t::no, is_hidden_t::no) {
 }
 
-SENSOR_STATE MI_MINDA::get_state() {
-    return (buddy::hw::zMin.read() == buddy::hw::Pin::State::low) ? SENSOR_STATE::low : SENSOR_STATE::high;
+MI_MINDA::state_t MI_MINDA::get_state() {
+    return (buddy::hw::zMin.read() == buddy::hw::Pin::State::low) ? state_t::low : state_t::high;
 }
 
 bool MI_MINDA::StateChanged() {
-    int8_t value = GetVal();
-    return set_changed_state<int8_t>((int8_t)get_state(), &value);
+    return SetIndex((size_t)get_state());
 }

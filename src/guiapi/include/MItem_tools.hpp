@@ -350,20 +350,22 @@ protected:
     }
 };
 
-class MI_FILAMENT_SENSOR_STATE : public WI_SPIN_I08_t {
+class MI_FILAMENT_SENSOR_STATE : public WI_SWITCH_0_1_NA_t {
     static constexpr const char *const label = N_("Filament sensor");
-    SENSOR_STATE get_state();
+    static state_t get_state();
 
 public:
     MI_FILAMENT_SENSOR_STATE();
     bool StateChanged();
+    virtual void OnChange(size_t old_index) override {}
 };
 
-class MI_MINDA : public WI_SPIN_I08_t {
+class MI_MINDA : public WI_SWITCH_0_1_NA_t {
     static constexpr const char *const label = N_("M.I.N.D.A.");
-    SENSOR_STATE get_state();
+    static state_t get_state();
 
 public:
     MI_MINDA();
     bool StateChanged();
+    virtual void OnChange(size_t old_index) override {}
 };

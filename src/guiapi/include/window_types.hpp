@@ -42,12 +42,6 @@ enum class win_type_t : uint8_t {
                   //   will be defined later - after we have multiple strong dialogs
 };
 
-enum class SENSOR_STATE : int8_t {
-    unknown = -1,
-    low = 0,
-    high = 1,
-};
-
 //todo add can capture flag (needed in frame event and SetCapture)
 union WindowFlags {
     uint32_t data;

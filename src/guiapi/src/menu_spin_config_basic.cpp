@@ -11,7 +11,6 @@
  * menu_spin_config_with_units.cpp must not be linked
  */
 #include "menu_spin_config.hpp"
-#include "window_types.hpp" //SENSOR_STATE
 
 // SpinConfig_t == SpinConfig
 const SpinConfig_U16_t SpinCnf::nozzle = SpinConfig_U16_t(MenuVars::nozzle_range);
@@ -21,5 +20,4 @@ const SpinConfig_U16_t SpinCnf::feedrate = SpinConfig_U16_t(MenuVars::feedrate_r
 const SpinConfig_U16_t SpinCnf::flowfact = SpinConfig_U16_t(MenuVars::flowfact_range);
 const SpinConfig_I08_t SpinCnf::timezone_range = { { -12, 12, 1 } };
 const SpinConfig_U08_t SpinCnf::volume_range = { { 0, 10, 1 } };
-const SpinConfig_I08_t SpinCnf::sensor_range = { { (int8_t)SENSOR_STATE::unknown, (int8_t)SENSOR_STATE::high, 1 } }; /// min value, max value, step
 const std::array<SpinConfig_I16_t, MenuVars::AXIS_CNT> SpinCnf::axis_ranges = { axis_ranges };
