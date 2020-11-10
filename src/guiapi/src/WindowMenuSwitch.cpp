@@ -79,7 +79,7 @@ void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, c
     //draw switch
     render_text_align(getSwitchRect(extension_rect), items.texts[index], GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
-        Padding, GuiDefaults::MenuAlignment);
+        Padding, ALIGN_RIGHT_TOP);
 
     //draw brackets
     if (has_brackets) {
