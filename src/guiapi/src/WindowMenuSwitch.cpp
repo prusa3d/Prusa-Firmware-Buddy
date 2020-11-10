@@ -9,7 +9,7 @@
  *
  */
 
-#include "WindowMenuItems.hpp"
+#include "WindowMenuSwitch.hpp"
 #include "resource.h"
 
 /*****************************************************************************/
@@ -18,7 +18,6 @@ IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is
     : AddSuper<WI_LABEL_t>(label, calculateExtensionWidth(items_), id_icon, enabled, hidden)
     , index(index)
     , items(items_) {
-    has_brackets = GuiDefaults::MenuSwitchHasBrackets;
 }
 
 invalidate_t IWiSwitch::Change(int /*dif*/) {
@@ -49,19 +48,19 @@ Rect16 IWiSwitch::getSwitchRect(Rect16 extension_rect) const {
     if (!has_brackets)
         return extension_rect;
 
-    extension_rect += Rect16::Left_t(BracketFont->w);
-    extension_rect -= Rect16::Width_t(BracketFont->w * 2);
+    extension_rect += Rect16::Left_t(BracketFont->w + Padding.left + Padding.right);
+    extension_rect -= Rect16::Width_t(BracketFont->w * 2 + Padding.left + Padding.right);
     return extension_rect;
 }
 
 Rect16 IWiSwitch::getLeftBracketRect(Rect16 extension_rect) const {
-    extension_rect = Rect16::Width_t(BracketFont->w);
+    extension_rect = Rect16::Width_t(BracketFont->w + Padding.left + Padding.right);
     return extension_rect;
 }
 
 Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
-    extension_rect += Rect16::Left_t(extension_rect.Width() - BracketFont->w);
-    extension_rect = Rect16::Width_t(BracketFont->w);
+    extension_rect += Rect16::Left_t(extension_rect.Width() - (BracketFont->w + Padding.left + Padding.right));
+    extension_rect = Rect16::Width_t(BracketFont->w * +Padding.left + Padding.right);
     return extension_rect;
 }
 
@@ -80,16 +79,16 @@ void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, c
     //draw switch
     render_text_align(getSwitchRect(extension_rect), items.texts[index], GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
-        GuiDefaults::MenuSwitchPadding, GuiDefaults::MenuAlignment);
+        Padding, GuiDefaults::MenuAlignment);
 
     //draw brackets
     if (has_brackets) {
         render_text_align(getLeftBracketRect(extension_rect), _("["), BracketFont,
-            color_back, COLOR_SILVER, GuiDefaults::MenuSwitchPadding, GuiDefaults::MenuAlignment);
+            color_back, COLOR_SILVER, Padding, GuiDefaults::MenuAlignment);
 
         //draw bracket end  TODO: Change font
         render_text_align(getRightBracketRect(extension_rect), _("]"), BracketFont,
-            color_back, COLOR_SILVER, GuiDefaults::MenuSwitchPadding, GuiDefaults::MenuAlignment);
+            color_back, COLOR_SILVER, Padding, GuiDefaults::MenuAlignment);
     }
 }
 
@@ -117,7 +116,7 @@ Rect16::Width_t IWiSwitch::calculateExtensionWidth_text(Items_t items) {
         if (len > max_len)
             max_len = len;
     }
-    size_t ret = GuiDefaults::FontMenuItems->w * max_len + (GuiDefaults::MenuSwitchHasBrackets ? BracketFont->w * 2 : 0);
+    size_t ret = GuiDefaults::FontMenuItems->w * max_len + Padding.left + Padding.right + (GuiDefaults::MenuSwitchHasBrackets ? (BracketFont->w + Padding.left + Padding.right) * 2 : 0);
     return ret;
 }
 
@@ -128,5 +127,5 @@ Rect16::Width_t IWiSwitch::calculateExtensionWidth_icon(Items_t items) {
         if (width > max_width)
             max_width = width;
     }
-    return max_width;
+    return max_width + Padding.left + Padding.right;
 }

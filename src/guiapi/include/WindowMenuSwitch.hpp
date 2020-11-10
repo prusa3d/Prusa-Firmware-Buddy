@@ -20,6 +20,8 @@
 class IWiSwitch : public AddSuper<WI_LABEL_t> {
 public:
     static constexpr font_t *&BracketFont = GuiDefaults::FontMenuSpecial;
+    static constexpr bool has_brackets = GuiDefaults::MenuSwitchHasBrackets;
+    static constexpr padding_ui8_t Padding = GuiDefaults::MenuSwitchHasBrackets ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPadding;
 
     struct Items_t {
         enum class type_t : uint8_t {
