@@ -644,12 +644,16 @@ if(GUI)
             src/guiapi/src/window.cpp
             src/guiapi/src/window_event.cpp
             src/guiapi/src/IWindowMenuItem.cpp
+            src/guiapi/src/WindowMenuSwitch.cpp
+            src/guiapi/src/WindowMenuSpin.cpp
             src/guiapi/src/WindowMenuItems.cpp
             src/guiapi/src/MItem_menus.cpp
             src/guiapi/src/MItem_print.cpp
             src/guiapi/src/MItem_tools.cpp
             src/guiapi/src/Jogwheel.cpp
             src/guiapi/src/ScreenShot.cpp
+            src/guiapi/src/menu_spin_config_types.cpp
+            $<$<STREQUAL:${PRINTER},MINI>:src/guiapi/src/menu_spin_config_basic.cpp>
     )
 endif()
 

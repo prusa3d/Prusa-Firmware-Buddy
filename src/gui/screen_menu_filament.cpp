@@ -34,7 +34,7 @@ protected:
 
 public:
     explicit MI_event_dispatcher(string_view_utf8 label)
-        : WI_LABEL_t(label, 0, true, false) {}
+        : WI_LABEL_t(label, 0, is_enabled_t::yes, is_hidden_t::no) {}
 
     virtual string_view_utf8 GetHeaderAlterLabel() = 0;
     virtual void Do() = 0;

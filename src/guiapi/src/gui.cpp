@@ -17,10 +17,10 @@ uint16_t gui_flags = 0;
 osThreadId gui_task_handle = 0;
 #endif //GUI_USE_RTOS
 
-font_t *GuiDefaults::Font = 0;
-font_t *GuiDefaults::FontBig = 0;
-
-// bool GuiDefaults::menu_timeout_enabled = true;
+font_t *GuiDefaults::Font = nullptr;
+font_t *GuiDefaults::FontBig = nullptr;
+font_t *GuiDefaults::FontMenuItems = nullptr;
+font_t *GuiDefaults::FontMenuSpecial = nullptr;
 
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
@@ -29,7 +29,7 @@ constexpr Rect16 GuiDefaults::RectScreenBodyNoFoot;
 constexpr Rect16 GuiDefaults::RectScreen;
 constexpr Rect16 GuiDefaults::RectFooter;
 
-gui_loop_cb_t *gui_loop_cb = 0;
+gui_loop_cb_t *gui_loop_cb = nullptr;
 uint32_t gui_loop_tick = 0;
 
 void gui_init(void) {

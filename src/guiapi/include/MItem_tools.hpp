@@ -264,10 +264,11 @@ public:
 };
 
 #ifdef _DEBUG
-class MI_SOUND_MODE : public WI_SWITCH_t<5> {
+static constexpr size_t MI_SOUND_MODE_COUNT = 5;
 #else
-class MI_SOUND_MODE : public WI_SWITCH_t<4> {
+static constexpr size_t MI_SOUND_MODE_COUNT = 4;
 #endif
+class MI_SOUND_MODE : public WI_SWITCH_t<MI_SOUND_MODE_COUNT> {
     constexpr static const char *const label = N_("Sound Mode");
 
     constexpr static const char *str_Once = N_("Once");
@@ -331,7 +332,7 @@ public:
 class I_MI_Filament : public WI_LABEL_t {
 public:
     I_MI_Filament(string_view_utf8 long_name)
-        : WI_LABEL_t(long_name, 0, true, false) {}
+        : WI_LABEL_t(long_name, 0, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     void click_at(FILAMENT_t filament_index);
@@ -349,26 +350,22 @@ protected:
     }
 };
 
-enum class SENSOR_STATE : int8_t {
-    unknown = -1,
-    low = 0,
-    high = 1,
-};
-
-class MI_FILAMENT_SENSOR_STATE : public WI_SPIN_I08_t {
+class MI_FILAMENT_SENSOR_STATE : public WI_SWITCH_0_1_NA_t {
     static constexpr const char *const label = N_("Filament Sensor");
-    SENSOR_STATE get_state();
+    static state_t get_state();
 
 public:
     MI_FILAMENT_SENSOR_STATE();
     bool StateChanged();
+    virtual void OnChange(size_t old_index) override {}
 };
 
-class MI_MINDA : public WI_SPIN_I08_t {
+class MI_MINDA : public WI_SWITCH_0_1_NA_t {
     static constexpr const char *const label = N_("M.I.N.D.A.");
-    SENSOR_STATE get_state();
+    static state_t get_state();
 
 public:
     MI_MINDA();
     bool StateChanged();
+    virtual void OnChange(size_t old_index) override {}
 };
