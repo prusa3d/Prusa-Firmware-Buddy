@@ -18,7 +18,10 @@
 //IWiSpin
 class IWiSpin : public AddSuper<WI_LABEL_t> {
 protected:
+    static constexpr font_t *&Font = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::FontMenuSpecial : GuiDefaults::FontMenuItems;
+    static constexpr padding_ui8_t Padding = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPadding;
     static constexpr size_t unit__half_space_padding = 6;
+    static constexpr bool has_unit = GuiDefaults::MenuSpinHasUnits;
 
     using SpinTextArray = std::array<char, 10>;
     SpinTextArray spin_text_buff; //temporary buffer to print value for text measurements
@@ -26,14 +29,9 @@ protected:
     string_view_utf8 units;
     SpinType value;
 
-    static Rect16::Width_t calculateExtensionWidth(const char *unit, size_t value_max_digits) {
-        string_view_utf8 un = _(unit);
-        size_t ret = unit == nullptr ? 0 : un.computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
-        ret += value_max_digits * (unit ? GuiDefaults::FontMenuItems->w : GuiDefaults::FontMenuSpecial->w);
-        return ret;
-    }
-    Rect16 getSpinRect(Rect16 rect) const;
-    Rect16 getUnitRect(Rect16 rect) const;
+    static Rect16::Width_t calculateExtensionWidth(const char *unit, size_t value_max_digits);
+    Rect16 getSpinRect(Rect16 extension_rect) const;
+    Rect16 getUnitRect(Rect16 extension_rect) const;
 
     virtual void click(IWindowMenu &window_menu) final;
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override;

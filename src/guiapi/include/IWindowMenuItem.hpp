@@ -55,7 +55,6 @@ private:
 protected:
     is_selected_t selected : 1; // should be in IWiSpin, but is here because of size optimization
     bool has_brackets : 1;      // determines if Switch has brackets, should be in IWiSwitch, but is here because of size optimization
-    bool has_unit : 1;          // determines if Spin has units, should be in IWiSpin, but is here because of size optimization
     uint16_t id_icon : 10;
     Rect16::Width_t extension_width;
 

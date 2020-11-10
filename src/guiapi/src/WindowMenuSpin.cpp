@@ -9,7 +9,7 @@
  *
  */
 
-#include "WindowMenuItems.hpp"
+#include "WindowMenuSpin.hpp"
 #include "resource.h"
 
 IWiSpin::IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_)
@@ -17,7 +17,6 @@ IWiSpin::IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enab
     , units(units_)
     , value(val) {
     //printSpinToBuffer(); initialized by parrent so it does not have to be virtual
-    has_unit = !units_.isNULLSTR();
 }
 
 void IWiSpin::click(IWindowMenu & /*window_menu*/) {
@@ -38,6 +37,7 @@ Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
         string_view_utf8 un = units; //local var because of const
         un.rewind();
         Rect16::Width_t unit_width = un.computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
+        unit_width = unit_width + Padding.left + Padding.right;
         ret = unit_width;
     } else {
         ret = Rect16::Width_t(0);
@@ -50,18 +50,28 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
     const Rect16 spin_rc = getSpinRect(extension_rect);
     const Rect16 unit_rc = getUnitRect(extension_rect);
 
-    font_t *fnt = has_unit ? GuiDefaults::FontMenuItems : GuiDefaults::FontMenuSpecial;
-    padding_ui8_t padding = has_unit ? GuiDefaults::MenuPadding : padding_ui8(0, 6, 0, 0);
-    color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
+    const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
     string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
-    uint8_t align = GuiDefaults::MenuAlignment;
+    const uint8_t align = ALIGN_RIGHT_TOP;
 
-    render_text_align(spin_rc, spin_txt, fnt, color_back, cl_txt, padding, align); //render spin number
+    render_text_align(spin_rc, spin_txt, Font, color_back, cl_txt, Padding, align); //render spin number
     if (has_unit) {
         string_view_utf8 un = units; //local var because of const
         un.rewind();
         uint32_t Utf8Char = un.getUtf8Char();
-        padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                 //177oct (127dec) todo check
-        render_text_align(unit_rc, units, fnt, color_back, COLOR_SILVER, padding, align); //render unit
+        padding_ui8_t padding = Padding;
+        padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                  //177oct (127dec) todo check
+        render_text_align(unit_rc, units, Font, color_back, COLOR_SILVER, padding, align); //render unit
     }
+}
+
+Rect16::Width_t IWiSpin::calculateExtensionWidth(const char *unit, size_t value_max_digits) {
+    size_t ret = value_max_digits * Font->w;
+    if (unit) {
+        ret += 2 * (Padding.left + Padding.right);
+        ret += _(unit).computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
+    } else {
+        ret += Padding.left + Padding.right;
+    }
+    return ret;
 }

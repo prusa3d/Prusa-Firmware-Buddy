@@ -33,9 +33,11 @@ struct GuiDefaults {
     static font_t *FontMenuSpecial;                      // for units in menu
     static constexpr bool MenuSwitchHasBrackets = false; // draw brackets around switch values in menus
     static constexpr bool MenuSpinHasUnits = false;      // draw units behind spin
-    static const bool MenuHasScrollbar = false;
+    static constexpr bool MenuHasScrollbar = false;
     static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 6, 6, 6, 6 });
+    static constexpr padding_ui8_t MenuPaddingSpecial = padding_ui8_t({ 0, 6, 0, 0 });
     static constexpr padding_ui8_t MenuSwitchPadding = MenuSwitchHasBrackets ? padding_ui8_t({ 0, 6, 0, 0 }) : MenuPadding;
+
     static constexpr uint8_t MenuAlignment = ALIGN_LEFT_TOP;
     static constexpr size_t MenuIconWidth = 25;
 };
