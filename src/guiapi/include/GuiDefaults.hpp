@@ -34,6 +34,7 @@ struct GuiDefaults {
     static constexpr bool MenuSwitchHasBrackets = false; // draw brackets around switch values in menus
     static constexpr bool MenuSpinHasUnits = false;      // draw units behind spin
     static constexpr bool MenuHasScrollbar = false;
+    static constexpr size_t MenuUseFixedUnitWidth = 28; // 0 == calculate in runtime
     static constexpr size_t MenuScrollbarWidth = 2;
     static constexpr size_t MenuItemDelimiterPadding = 6;
     static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 6, 6, 6, 6 });

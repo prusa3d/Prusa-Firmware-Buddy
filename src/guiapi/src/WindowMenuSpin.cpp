@@ -63,6 +63,8 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
 Rect16::Width_t IWiSpin::calculateExtensionWidth(const char *unit, size_t value_max_digits) {
     size_t ret = value_max_digits * Font->w;
     if (unit) {
+        if (GuiDefaults::MenuUseFixedUnitWidth)
+            return GuiDefaults::MenuUseFixedUnitWidth;
         ret += 2 * (Padding.left + Padding.right);
         ret += _(unit).computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
     } else {

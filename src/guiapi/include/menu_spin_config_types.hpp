@@ -8,6 +8,8 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include <cstddef>
+#include <stdio.h>
 // const char* Unit() is not virtual, because only one of SpinConfig SpinConfigWithUnit is used
 
 union SpinType {
