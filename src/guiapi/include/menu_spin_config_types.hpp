@@ -1,17 +1,13 @@
 /**
  * @file menu_spin_config_types.hpp
  * @author Radek Vana
- * @brief
- * @version 0.1
- * @date 2020-11-04
- *
- * @copyright Copyright (c) 2020
- * do not include this file outside menu_spin_config_type.hpp
+ * @brief do not include this file outside menu_spin_config_type.hpp
  * include menu_spin_config_type.hpp instead
+ * @date 2020-11-04
  */
 #pragma once
 #include <array>
-
+#include <cstdint>
 // const char* Unit() is not virtual, because only one of SpinConfig SpinConfigWithUnit is used
 
 union SpinType {
@@ -74,12 +70,12 @@ struct SpinConfig {
 
 template <class T>
 size_t SpinConfig<T>::txtMeas(T val) {
-    return snprintf(NULL, 0, prt_format, val);
+    return snprintf(nullptr, 0, prt_format, val);
 }
 
 template <>
 inline size_t SpinConfig<float>::txtMeas(float val) {
-    return snprintf(NULL, 0, prt_format, (double)val);
+    return snprintf(nullptr, 0, prt_format, (double)val);
 }
 
 template <class T>

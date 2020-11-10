@@ -1,12 +1,7 @@
 /**
  * @file WindowMenuItems.cpp
  * @author Radek Vana
- * @brief
- * @version 0.1
  * @date 2020-11-09
- *
- * @copyright Copyright (c) 2020
- *
  */
 
 #include "WindowMenuItems.hpp"

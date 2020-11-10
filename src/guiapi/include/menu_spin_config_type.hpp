@@ -1,17 +1,13 @@
 /**
  * @file menu_spin_config_type.hpp
  * @author Radek Vana
- * @brief
- * @version 0.1
+ * @brief select SpinConfig type by printer configuration
  * @date 2020-11-04
- *
- * @copyright Copyright (c) 2020
- *
  */
 #pragma once
 
 #include "menu_spin_config_types.hpp"
-#include <stdint.h>
+#include <cstdint>
 
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
 template <class T>

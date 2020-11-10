@@ -1,12 +1,8 @@
 /**
  * @file IWindowMenuItem.hpp
  * @author Radek Vana
- * @brief
- * @version 0.1
+ * @brief Parent of all menu items like label or spinner
  * @date 2020-11-09
- *
- * @copyright Copyright (c) 2020
- *
  */
 #pragma once
 

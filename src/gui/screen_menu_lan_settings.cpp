@@ -160,25 +160,26 @@ void Eth::LoadIni() {
 /*****************************************************************************/
 //ITEMS
 class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = "LAN";
+    constexpr static const char *const label = "LAN"; //do not translate
 
 public:
     MI_LAN_ONOFF()
-        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::On() : Eth::Off();
     }
 };
 
 class MI_LAN_IP_t : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = "LAN IP";
+    constexpr static const char *const label = "LAN IP"; //do not translate
 
-    constexpr static const char *str_static = "static";
-    constexpr static const char *str_DHCP = "DHCP";
+    constexpr static const char *str_static = "static"; //do not translate
+    constexpr static const char *str_DHCP = "DHCP";     //do not translate
 
 public:
     MI_LAN_IP_t()
-        : WI_SWITCH_t(Eth::IsStatic() ? 1 : 0, _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(str_DHCP), _(str_static)) {}
+        : WI_SWITCH_t(Eth::IsStatic() ? 1 : 0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no,
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_DHCP), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_static)) {}
     virtual void OnChange(size_t old_index) override {
         bool success = old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
         if (!success)

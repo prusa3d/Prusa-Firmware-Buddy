@@ -9,9 +9,6 @@
 #include "WindowMenuItems.hpp"
 #include "cmath_ext.h"
 
-#define MENU_ITEM_DELIMETER_PADDING 6
-#define SCROLLBAR_WIDTH             2
-
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
@@ -209,7 +206,7 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
     if (item == nullptr)
         return;
 
-    uint16_t rc_w = rect.Width() - (GuiDefaults::MenuHasScrollbar ? SCROLLBAR_WIDTH : 0);
+    uint16_t rc_w = rect.Width() - (GuiDefaults::MenuHasScrollbar ? GuiDefaults::MenuScrollbarWidth : 0);
     Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * item_height),
         rc_w, uint16_t(item_height - 1) }; // 1 pixel from Height is for gray menu item delimeter
 
@@ -220,7 +217,7 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
 
         item->Print(rc);
         if (GuiDefaults::MenuLinesBetweenItems)
-            display::DrawLine(point_ui16(rc.Left() + MENU_ITEM_DELIMETER_PADDING, rc.Top() + rc.Height()), point_ui16(rc.Left() + rc.Width() - 2 * MENU_ITEM_DELIMETER_PADDING, rc.Top() + rc.Height()), COLOR_SILVER);
+            display::DrawLine(point_ui16(rc.Left() + GuiDefaults::MenuItemDelimiterPadding, rc.Top() + rc.Height()), point_ui16(rc.Left() + rc.Width() - 2 * GuiDefaults::MenuItemDelimiterPadding, rc.Top() + rc.Height()), COLOR_SILVER);
     }
 }
 
@@ -257,8 +254,8 @@ void window_menu_t::unconditionalDraw() {
 void window_menu_t::printScrollBar(size_t available_count, uint16_t visible_count) {
     uint16_t scroll_item_height = rect.Height() / available_count;
     uint16_t sb_y_start = rect.Top() + top_index * scroll_item_height;
-    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - SCROLLBAR_WIDTH), rect.Top(), SCROLLBAR_WIDTH, rect.Height()), color_back);
-    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - SCROLLBAR_WIDTH), sb_y_start, SCROLLBAR_WIDTH, visible_count * scroll_item_height), COLOR_SILVER);
+    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - GuiDefaults::MenuScrollbarWidth), rect.Top(), GuiDefaults::MenuScrollbarWidth, rect.Height()), color_back);
+    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - GuiDefaults::MenuScrollbarWidth), sb_y_start, GuiDefaults::MenuScrollbarWidth, visible_count * scroll_item_height), COLOR_SILVER);
 }
 
 void window_menu_t::redrawWholeMenu() {

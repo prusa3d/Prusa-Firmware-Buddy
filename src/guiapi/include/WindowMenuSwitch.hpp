@@ -1,12 +1,10 @@
 /**
  * @file WindowMenuSwitch.hpp
  * @author Radek Vana
- * @brief
- * @version 0.1
+ * @brief WI_SWITCH == text version of WI_SPIN (non-numeric)
+ * unlike WI_SPIN cannot be selected
+ * todo try to inherit from WI_SPIN<const char**> lot of code could be reused
  * @date 2020-11-09
- *
- * @copyright Copyright (c) 2020
- *
  */
 
 #pragma once
@@ -87,11 +85,6 @@ protected:
     void printExtension_text(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const;
     void printExtension_icon(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const;
 };
-
-/*****************************************************************************/
-//WI_SWITCH == text version of WI_SPIN (non-numeric)
-//unlike WI_SPIN cannot be selected
-//todo try to inherit from WI_SPIN<const char**> lot of code could be reused
 
 // I could use single template with type parameter and make aliases for WI_SWITCH_t and WI_ICON_SWITCH_t
 // but I would have to rewrite all base ctor calls from ": WI_SWITCH_t(...)" to ": WI_SWITCH_t<N>(...)"

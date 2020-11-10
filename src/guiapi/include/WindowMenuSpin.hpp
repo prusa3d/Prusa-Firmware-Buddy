@@ -1,12 +1,8 @@
 /**
  * @file WindowMenuSpin.hpp
  * @author Radek Vana
- * @brief
- * @version 0.1
+ * @brief Spinner menu item, allow to numeric change value
  * @date 2020-11-09
- *
- * @copyright Copyright (c) 2020
- *
  */
 
 #pragma once

@@ -1,12 +1,8 @@
 /**
  * @file WindowMenuItems.hpp
  * @author Radek Vana
- * @brief
- * @version 0.1
+ * @brief Some commonly used menu items (to be inherited)
  * @date 2020-11-09
- *
- * @copyright Copyright (c) 2020
- *
  */
 
 #pragma once

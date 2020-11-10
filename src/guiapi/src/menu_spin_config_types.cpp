@@ -1,11 +1,7 @@
 /**
  * @file menu_spin_config_types.cpp
  * @author Radek Vana
- * @brief
- * @version 0.1
  * @date 2020-11-05
- *
- * @copyright Copyright (c) 2020
  */
 #include "menu_spin_config_types.hpp"
 
