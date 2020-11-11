@@ -56,17 +56,17 @@ void GuiMediaEventsHandler::tick() {
     case state_t::inserted:
         one_click_printing = true;
         state_sent = false;
-        break; // actualize after break
+        break; // update after break
     case state_t::removed:
     case state_t::error:
         one_click_printing = false;
         state_sent = false;
-        break; // actualize after break
+        break; // update after break
     default:
         return; //nothing happened, nothing to do .. just return
     }
 
-    media_state = actual_state; // actualize
+    media_state = actual_state; // update
 }
 
 bool GuiMediaEventsHandler::ConsumeOneClickPrinting() {
@@ -83,7 +83,7 @@ void GuiMediaEventsHandler::ClrMediaError() {
     //clear
     if (Instance().media_state == state_t::error)
         Instance().clr();
-    //actualize
+    //update
     Tick();
     //clear again
     if (Instance().media_state == state_t::error)
@@ -91,7 +91,7 @@ void GuiMediaEventsHandler::ClrMediaError() {
 }
 
 GuiMediaEventsHandler::state_t GuiMediaEventsHandler::ConsumeMediaState() {
-    Tick();                               //first actualize
+    Tick();                               //first update
     state_t ret = Instance().media_state; //remember
     if (ret != state_t::error)
         Instance().state_sent = false; //clear sent
