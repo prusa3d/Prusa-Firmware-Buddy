@@ -22,7 +22,7 @@ window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multili
     , font(nullptr)
     , text(txt)
     , padding({ 2, 2, 2, 2 }) {
-    flag_custom0 = bool(multiline);
+    flags.custom0 = bool(multiline);
 }
 
 void window_text_t::unconditionalDraw() {
