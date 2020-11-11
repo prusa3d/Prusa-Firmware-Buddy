@@ -40,6 +40,6 @@ public:
     static void Tick();
     static bool ConsumeOneClickPrinting();
     static bool IsStarting();
-    static void ClrMediaError();        //clear - actualize - clear again
-    static state_t ConsumeMediaState(); //actualize - remember - clear sent - return
+    static void ClrMediaError();        //clear - update - clear again
+    static state_t ConsumeMediaState(); //update - remember - clear sent - return
 };
