@@ -17,6 +17,8 @@
   CS = 26
 */
 
+void __attribute__((weak)) tmc_communication_error() {}
+
 uint16_t TMCStepper::cs2rms(uint8_t CS) {
   return (float)(CS+1)/32.0 * (vsense() ? 0.180 : 0.325)/(Rsense+0.02) / 1.41421 * 1000;
 }

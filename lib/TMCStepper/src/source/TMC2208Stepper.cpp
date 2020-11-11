@@ -107,11 +107,37 @@ uint8_t TMC2208Stepper::calcCRC(uint8_t datagram[], uint8_t len) {
 }
 
 void TMC2208Stepper::write(uint8_t addr, uint32_t regVal) {
+	if (addr == SLAVECONF_register.address) {
+		// When writing to the SLAVECONF register (adjusting reply delay), make an exception
+		// and let's not check the IFCNT. Why? We would have to read the IFCNT _before_ setting
+		// the reply delay, thus the TMC would reply us with a delay we might not support.
+		return _write(addr, regVal);
+	}
+
+	for (int i = 0; i <= max_retries; i++) {
+		// Read current IFCNT register value. We expect the value to increment by one (after the write)
+		uint8_t expected_ifcnt = IFCNT() + 1;
+
+		_write(addr, regVal);
+
+		// If the IFCNT matches the expected counter value, everything went well.
+		if (IFCNT() == expected_ifcnt) {
+			return;
+		}
+	}
+
+	// We failed the write `max_retries` times. Bummer
+	tmc_communication_error();
+}
+
+void TMC2208Stepper::_write(uint8_t addr, uint32_t regVal) {
 	uint8_t len = 7;
 	addr |= TMC_WRITE;
 	uint8_t datagram[] = {TMC2208_SYNC, slave_address, addr, (uint8_t)(regVal>>24), (uint8_t)(regVal>>16), (uint8_t)(regVal>>8), (uint8_t)(regVal>>0), 0x00};
 
 	datagram[len] = calcCRC(datagram, len);
+
+	auto lockGuard = TMCStepper::CommunicationLockGuard();
 
 	#if SW_CAPABLE_PLATFORM
 		if (SWSerial != NULL) {
@@ -124,17 +150,18 @@ void TMC2208Stepper::write(uint8_t addr, uint32_t regVal) {
 		  #ifdef TMC_SERIAL_SWITCH
 		    sswitch->active();
 		  #endif
-			for(int i=0; i<=len; i++){			
-				bytesWritten += HWSerial->write(datagram[i]);
-		}
+		HWSerial->write(datagram, len + 1);
 	}
+
 	delay(replyDelay);
 }
 
 template<typename SERIAL_TYPE>
 uint64_t _sendDatagram(SERIAL_TYPE &serPtr, uint8_t datagram[], const uint8_t len, uint16_t timeout) {
-	while (serPtr.available() > 0) serPtr.read(); // Flush
-	for(int i=0; i<=len; i++) serPtr.write(datagram[i]);
+	auto lockGuard = TMCStepper::CommunicationLockGuard();
+
+	serPtr.flush();
+	serPtr.write(datagram, len + 1);
 	delay(TMC2208Stepper::replyDelay);
 
 	// scan for the rx frame and read it
@@ -144,20 +171,21 @@ uint64_t _sendDatagram(SERIAL_TYPE &serPtr, uint8_t datagram[], const uint8_t le
 
 	do {
 		uint32_t ms2 = millis();
-		if (ms2 != ms) {
+		if (ms2 != ms && timeout) {
 			// 1ms tick
 			ms = ms2;
 			timeout--;
 		}
-		if (!timeout) return 0;
 
-		int16_t res = serPtr.read();
-		if (res < 0) continue;
+		int res = serPtr.read();
+		if (res < 0) {
+			if (!timeout) return 0;
+			continue;
+		}
 
 		sync <<= 8;
 		sync |= res & 0xFF;
 		sync &= 0xFFFFFF;
-
 	} while (sync != sync_target);
 
 	uint64_t out = sync;
@@ -166,15 +194,17 @@ uint64_t _sendDatagram(SERIAL_TYPE &serPtr, uint8_t datagram[], const uint8_t le
 
 	for(uint8_t i=0; i<5;) {
 		uint32_t ms2 = millis();
-		if (ms2 != ms) {
+		if (ms2 != ms && timeout) {
 			// 1ms tick
 			ms = ms2;
 			timeout--;
 		}
-		if (!timeout) return 0;
 
 		int16_t res = serPtr.read();
-		if (res < 0) continue;
+		if (res < 0) {
+			if (!timeout) return 0;
+			continue;
+		}
 
 		out <<= 8;
 		out |= res & 0xFF;
@@ -182,7 +212,7 @@ uint64_t _sendDatagram(SERIAL_TYPE &serPtr, uint8_t datagram[], const uint8_t le
 		i++;
 	}
 
-	while (serPtr.available() > 0) serPtr.read(); // Flush
+	serPtr.flush();
 	return out;
 }
 
@@ -213,12 +243,16 @@ uint32_t TMC2208Stepper::read(uint8_t addr) {
 		CRCerror = false;
 		uint8_t out_datagram[] = {(uint8_t)(out>>56), (uint8_t)(out>>48), (uint8_t)(out>>40), (uint8_t)(out>>32), (uint8_t)(out>>24), (uint8_t)(out>>16), (uint8_t)(out>>8), (uint8_t)(out>>0)};
 		uint8_t crc = calcCRC(out_datagram, 7);
-		if ((crc != (uint8_t)out) || crc == 0 ) {
+		if ((crc != (uint8_t)out) || out == 0 ) {
 			CRCerror = true;
 			out = 0;
 		} else {
 			break;
 		}
+	}
+
+	if (CRCerror) {
+		tmc_communication_error();
 	}
 
 	return out>>8;

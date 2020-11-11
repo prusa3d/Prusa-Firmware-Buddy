@@ -29,6 +29,7 @@ typedef enum {
     MARLIN_EVT_CommandEnd,          //
     MARLIN_EVT_SafetyTimerExpired,  // host action from marlin, hotends and bed turned off
     MARLIN_EVT_Message,             //
+    MARLIN_EVT_Warning,             // important messages like fan error or heater timeout
     MARLIN_EVT_Reheat,              //
     MARLIN_EVT_FSM_Create,          // create finite state machine in client
     MARLIN_EVT_FSM_Destroy,         // destroy finite state machine in client

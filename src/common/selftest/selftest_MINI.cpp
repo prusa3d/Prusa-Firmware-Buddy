@@ -22,7 +22,7 @@ static_assert(sizeof(SelftestResultEEprom_t) == 4, "Invalid size of SelftestResu
 #define X_AXIS_PERCENT 33
 #define Y_AXIS_PERCENT 33
 #define Z_AXIS_PERCENT 34
-
+static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 static const float XYfr_table[] = { 50, 60, 75, 100 };
 
 static const float Zfr_table[] = { 20 };
@@ -324,24 +324,15 @@ void CSelftest::log_open() {
     }
     char serial[32] = "unknown";
     const char *suffix = "";
-    switch (m_Mask) {
-    case stmFans:
-        suffix = "_fans";
-        break;
-    case stmXYAxis:
-    case stmHome_XYAxis:
-        suffix = "_xyz";
-        break;
-    case stmXYZAxis:
-    case stmHome_XYZAxis:
-        suffix = "_xyz";
-        break;
-    case stmHeaters:
-        suffix = "_heaters";
-        break;
-    default:
-        break;
-    }
+    if (m_Mask & stmFans)
+        suffix = _suffix[0];
+    else if (m_Mask & stmXYAxis)
+        suffix = _suffix[1];
+    else if (m_Mask & stmXYZAxis)
+        suffix = _suffix[1];
+    else if (m_Mask & stmHeaters)
+        suffix = _suffix[2];
+
     char fname[64];
     snprintf(fname, sizeof(fname), "test_unknown%s.txt", suffix);
     if (serial_otp) {

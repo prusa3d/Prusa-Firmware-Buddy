@@ -256,7 +256,7 @@ void eeprom_defaults(void) {
     vars.FWVERSION = eeprom_fwversion_ui16();
     eeprom_lock();
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
     eeprom_unlock();
@@ -416,7 +416,7 @@ static int eeprom_convert_from_v2(void) {
     if ((vars.ZOFFSET < -2) || (vars.ZOFFSET > 0))
         return 0;
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
     return 1;
@@ -449,7 +449,7 @@ static int eeprom_convert_from_v4(void) {
     // TODO: keep LAN host name (?)
 
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
 
@@ -474,7 +474,7 @@ static int eeprom_convert_from_v6(void) {
     st25dv64k_user_read_bytes(addr_start, &(vars.FILAMENT_TYPE), addr_end - addr_start);
 
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
 
@@ -499,7 +499,7 @@ static int eeprom_convert_from_v8(void) {
     st25dv64k_user_read_bytes(addr_start, &(vars.FILAMENT_TYPE), addr_end - addr_start);
     vars.SHEET_PROFILE0.z_offset = active_z_offset;
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
 
@@ -531,7 +531,7 @@ static int eeprom_check_crc32(void) {
     uint8_t data[EEPROM_MAX_DATASIZE];
     uint32_t crc2;
     st25dv64k_user_read_bytes(EEPROM_ADDRESS, data, datasize);
-    crc2 = crc32_calc((uint32_t *)data, (datasize - 4) / 4);
+    crc2 = crc32_calc((uint8_t *)data, datasize - 4);
     return (crc == crc2) ? 1 : 0;
 #else //
 #endif
@@ -546,7 +546,7 @@ static void eeprom_update_crc32() {
     // read eeprom data
     st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write crc to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
 #else //

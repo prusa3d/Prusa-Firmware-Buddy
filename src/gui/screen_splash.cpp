@@ -34,7 +34,7 @@ screen_splash_data_t::screen_splash_data_t()
     , icon_debug(this, Rect16(80, 240, 80, 80), IDR_PNG_marlin_logo) {
 
     if (ScreenWizard::IsConfigInvalid()) {
-        static const char en_text[] = N_("Wizard states invalid");
+        static const char en_text[] = "Wizard states invalid"; // intentionally not translated
         bsod(en_text);
     }
 

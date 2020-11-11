@@ -28,6 +28,7 @@ const char *__evt_name[] = {
     "CommandEnd",
     "SafetyTimerExpired",
     "Message",
+    "Warning",
     "Reheat",
     "DialogOpen",
     "DialogClose",

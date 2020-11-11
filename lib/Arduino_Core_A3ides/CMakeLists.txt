@@ -10,7 +10,6 @@ endif()
 add_library(
   CoreA3ides
   $<$<STREQUAL:${ARDUINO_CORE_VARIANT},2209>:${CMAKE_CURRENT_SOURCE_DIR}/variants/A3IDES_F407VET6_2209/variant.cpp>
-  cores/arduino/HardwareSerial.cpp
   cores/arduino/Print.cpp
   cores/arduino/Stream.cpp
   cores/arduino/USBSerial.cpp

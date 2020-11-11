@@ -53,7 +53,7 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     , textExit(this, Rect16(2, 245, 60, 22), []() {if (mesh_state != mesh_state_t::idle) return; Screens::Access()->Close(); }) {
 
     textMenuName.font = resource_font(IDR_FNT_BIG);
-    textMenuName.SetText(_("MESH BED L."));
+    textMenuName.SetText(_("MESH BED LEVELING"));
 
     btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
 

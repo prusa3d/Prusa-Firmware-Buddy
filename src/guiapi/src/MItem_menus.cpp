@@ -10,7 +10,7 @@
 /*****************************************************************************/
 //MI_VERSION_INFO
 MI_VERSION_INFO::MI_VERSION_INFO()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
@@ -20,7 +20,7 @@ void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_SENSOR_INFO
 MI_SENSOR_INFO::MI_SENSOR_INFO()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SENSOR_INFO::click(IWindowMenu & /*window_menu*/) {
@@ -30,7 +30,7 @@ void MI_SENSOR_INFO::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_FILAMENT
 MI_FILAMENT::MI_FILAMENT()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FILAMENT::click(IWindowMenu & /*window_menu*/) {
@@ -40,7 +40,7 @@ void MI_FILAMENT::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_SYS_INFO
 MI_SYS_INFO::MI_SYS_INFO()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SYS_INFO::click(IWindowMenu & /*window_menu*/) {
@@ -50,25 +50,25 @@ void MI_SYS_INFO::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_STATISTIC_disabled
 MI_STATISTIC_disabled::MI_STATISTIC_disabled()
-    : WI_LABEL_t(_(label), 0, false, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::no, is_hidden_t::no) {
 }
 
 /*****************************************************************************/
 //MI_FAIL_STAT_disabled
 MI_FAIL_STAT_disabled::MI_FAIL_STAT_disabled()
-    : WI_LABEL_t(_(label), 0, false, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::no, is_hidden_t::no) {
 }
 
 /*****************************************************************************/
 //MI_SUPPORT_disabled
 MI_SUPPORT_disabled::MI_SUPPORT_disabled()
-    : WI_LABEL_t(_(label), 0, false, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::no, is_hidden_t::no) {
 }
 
 /*****************************************************************************/
 //MI_TEMPERATURE
 MI_TEMPERATURE::MI_TEMPERATURE()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_TEMPERATURE::click(IWindowMenu & /*window_menu*/) {
@@ -78,7 +78,7 @@ void MI_TEMPERATURE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_MOVE_AXIS
 MI_MOVE_AXIS::MI_MOVE_AXIS()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_MOVE_AXIS::click(IWindowMenu & /*window_menu*/) {
@@ -88,7 +88,7 @@ void MI_MOVE_AXIS::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_SERVICE
 MI_SERVICE::MI_SERVICE()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SERVICE::click(IWindowMenu & /*window_menu*/) {
@@ -98,7 +98,7 @@ void MI_SERVICE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_TEST
 MI_TEST::MI_TEST()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_TEST::click(IWindowMenu & /*window_menu*/) {
@@ -108,7 +108,7 @@ void MI_TEST::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_FW_UPDATE
 MI_FW_UPDATE::MI_FW_UPDATE()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
@@ -118,7 +118,7 @@ void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_LAN_SETTINGS
 MI_LAN_SETTINGS::MI_LAN_SETTINGS()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_LAN_SETTINGS::click(IWindowMenu & /*window_menu*/) {
@@ -128,7 +128,7 @@ void MI_LAN_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_MESSAGES
 MI_MESSAGES::MI_MESSAGES()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_MESSAGES::click(IWindowMenu & /*window_menu*/) {
@@ -138,7 +138,7 @@ void MI_MESSAGES::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_LANGUAGE
 MI_LANGUAGE::MI_LANGUAGE()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
@@ -148,7 +148,7 @@ void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_HW_SETUP
 MI_HW_SETUP::MI_HW_SETUP()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
@@ -158,7 +158,7 @@ void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_CURRENT_PROFILE
 MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
-    : WI_LABEL_t(_(label), 0, true, true) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::yes) {
 }
 
 void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
@@ -179,7 +179,7 @@ void MI_CURRENT_PROFILE::UpdateLabel() {
 /*****************************************************************************/
 //MI_EEPROM
 MI_EEPROM::MI_EEPROM()
-    : WI_LABEL_t(_(label), 0, true, false) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {

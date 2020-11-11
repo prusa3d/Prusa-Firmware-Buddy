@@ -14,6 +14,7 @@
 #include "window_temp_graph.hpp"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_popup.hpp"
+#include "window_dlg_strong_warning.hpp"
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_hardfault.hpp"
@@ -38,6 +39,7 @@ int guimain_spi_test = 0;
 #include "dbg.h"
 #include "wdt.h"
 #include "dump.h"
+#include "gui_media_events.hpp"
 
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
@@ -52,6 +54,7 @@ void update_firmware_screen(void);
 
 static void _gui_loop_cb() {
     marlin_client_loop();
+    GuiMediaEventsHandler::Tick();
 }
 
 char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
@@ -78,6 +81,25 @@ void MsgCircleBuffer_cb(const char *txt) {
     }
 }
 
+void Warning_cb(WarningType type) {
+    static constexpr const char *HotendFanErrorMsg = N_("I am dummy HotendFanErrorMsg, I need to be replaced with something else ... ");
+    static constexpr const char *PrintFanErrorMsg = N_("I am dummy PrintFanError, I need to be replaced with something else ... ");
+    static constexpr const char *HeaterTimeoutMsg = N_("I am dummy HeaterTimeout, I need to be replaced with something else ... ");
+    switch (type) {
+    case WarningType::HotendFanError:
+        window_dlg_strong_warning_t::Show(_(HotendFanErrorMsg));
+        break;
+    case WarningType::PrintFanError:
+        window_dlg_strong_warning_t::Show(_(PrintFanErrorMsg));
+        break;
+    case WarningType::HeaterTimeout:
+        window_dlg_strong_warning_t::Show(_(HeaterTimeoutMsg));
+        break;
+    default:
+        break;
+    }
+}
+
 void gui_run(void) {
     if (diag_fastboot)
         return;
@@ -100,6 +122,8 @@ void gui_run(void) {
 
     GuiDefaults::Font = resource_font(IDR_FNT_NORMAL);
     GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
+    GuiDefaults::FontMenuItems = resource_font(IDR_FNT_NORMAL);
+    GuiDefaults::FontMenuSpecial = resource_font(IDR_FNT_SPECIAL);
 
     if (!sys_fw_is_valid())
         update_firmware_screen();
@@ -116,6 +140,7 @@ void gui_run(void) {
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
+    marlin_client_set_warning_cb(Warning_cb);
 
     Sound_Play(eSOUND_TYPE::Start);
 

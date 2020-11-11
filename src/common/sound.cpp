@@ -100,7 +100,8 @@ void Sound::init() {
     if (eSoundMode == eSOUND_MODE::UNDEF) {
         setMode(eSOUND_MODE::DEFAULT);
     }
-    varVolume = variant_get_ui8(eeprom_get_var(EEVAR_SOUND_VOLUME)) / 10.F;
+    varVolume = variant_get_ui8(eeprom_get_var(EEVAR_SOUND_VOLUME));
+    varVolume = varVolume == 11 ? varVolume : varVolume / 10.F;
     /// GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = true;
 }
@@ -110,7 +111,10 @@ eSOUND_MODE Sound::getMode() const {
 }
 
 int Sound::getVolume() {
-    int retval = (varVolume * 10.F);
+    /// varVolume is float 0-1 if it's not on One Louder (then it's 11)
+    /// getVolume is called in MI_SOUND_VOLUME just getting uint8_t value
+    /// value bigger then 1 means it's set on One Louder (11)
+    int retval = varVolume == 11 ? varVolume : (varVolume * 10.F);
     return retval;
 }
 
@@ -120,7 +124,8 @@ void Sound::setMode(eSOUND_MODE eSMode) {
 }
 
 void Sound::setVolume(int vol) {
-    varVolume = static_cast<uint8_t>(vol) / 10.F;
+    /// let's add one little push over the cliff - just a one more
+    varVolume = vol == 11 ? vol : static_cast<uint8_t>(vol) / 10.F;
     saveVolume();
 }
 
@@ -131,7 +136,8 @@ void Sound::saveMode() {
 
 /// Store new Sound VOLUME value into a EEPROM.
 void Sound::saveVolume() {
-    eeprom_set_var(EEVAR_SOUND_VOLUME, variant8_ui8((uint8_t)(varVolume * 10.F)));
+    uint8_t tmpVol = varVolume > 1 ? varVolume : varVolume * 10.F;
+    eeprom_set_var(EEVAR_SOUND_VOLUME, variant8_ui8(tmpVol));
 }
 
 /// [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
@@ -186,8 +192,12 @@ void Sound::play(eSOUND_TYPE eSoundType) {
 void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f) {
     /// forced non-repeat sounds - can be played when another
     /// repeating sound is playing
-
-    float tmpVol = f ? 0.3F : (vol * varVolume) * 0.3F;
+    float tmpVol;
+    if (varVolume > 1) {
+        tmpVol = 1.F;
+    } else {
+        tmpVol = f ? 0.3F : (vol * varVolume) * 0.3F;
+    }
     if (rep == 1) {
         _singleSound(frq, dur, tmpVol);
     } else {

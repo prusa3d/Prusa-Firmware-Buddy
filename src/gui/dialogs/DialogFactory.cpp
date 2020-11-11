@@ -13,7 +13,7 @@ static_unique_ptr<IDialogMarlin> DialogFactory::load_unload(uint8_t data) {
     static const char load[] = N_("LOAD FILAMENT");
     static const char unload[] = N_("UNLOAD FILAMENT");
     static const char purge[] = N_("PURGE FILAMENT");
-    static const char def[] = N_("INDEX ERROR"); //will not be translated
+    static const char def[] = "INDEX ERROR"; // intentionally not to be translated
     string_view_utf8 name;
     switch (static_cast<LoadUnloadMode>(data)) {
     case LoadUnloadMode::Change:
