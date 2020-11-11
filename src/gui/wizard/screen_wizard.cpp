@@ -258,7 +258,7 @@ void ScreenWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender,
     StateFncData data = stateFnc(StateFncData(state, results[size_t(state)])); // perform state action
 
     results[size_t(state)] = data.GetResult(); // store result of actual state
-    state = data.GetState();                   // actualize state
+    state = data.GetState();                   // update state
 }
 
 const PhaseResponses Responses_IgnoreYesNo = { Response::Ignore, Response::Yes, Response::No, Response::_none };
