@@ -116,23 +116,20 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         }
     }
 
-    if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
-        //TODO rewrite
-        // is this 5000ms check needed?
-        if (HAL_GetTick() > 5000) {
-            // we are using marlin variables for filename and filepath buffers
-            marlin_vars_t *vars = marlin_vars();
-            //check if the variables filename and filepath are allocated
-            if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
-                if (find_latest_gcode(
-                        vars->media_SFN_path,
-                        FILE_PATH_MAX_LEN,
-                        vars->media_LFN,
-                        FILE_NAME_MAX_LEN)) {
-                    screen_print_preview_data_t::SetGcodeFilepath(vars->media_SFN_path);
-                    screen_print_preview_data_t::SetGcodeFilename(vars->media_LFN);
-                    Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
-                }
+    if (event == GUI_event_t::LOOP && GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
+
+        // we are using marlin variables for filename and filepath buffers
+        marlin_vars_t *vars = marlin_vars();
+        //check if the variables filename and filepath are allocated
+        if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
+            if (find_latest_gcode(
+                    vars->media_SFN_path,
+                    FILE_PATH_MAX_LEN,
+                    vars->media_LFN,
+                    FILE_NAME_MAX_LEN)) {
+                screen_print_preview_data_t::SetGcodeFilepath(vars->media_SFN_path);
+                screen_print_preview_data_t::SetGcodeFilename(vars->media_LFN);
+                Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
             }
         }
     }
