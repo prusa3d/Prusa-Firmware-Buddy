@@ -39,6 +39,7 @@ int guimain_spi_test = 0;
 #include "dbg.h"
 #include "wdt.h"
 #include "dump.h"
+#include "gui_media_events.hpp"
 
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
@@ -53,6 +54,7 @@ void update_firmware_screen(void);
 
 static void _gui_loop_cb() {
     marlin_client_loop();
+    GuiMediaEventsHandler::Tick();
 }
 
 char gui_media_LFN[FILE_NAME_MAX_LEN + 1];

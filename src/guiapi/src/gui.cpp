@@ -8,6 +8,7 @@
 #include "IDialog.hpp"
 #include "Jogwheel.hpp"
 #include "ScreenShot.hpp"
+#include "gui_media_events.hpp"
 
 static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
 
@@ -105,6 +106,17 @@ void gui_loop(void) {
     }
     #endif //GUI_JOGWHEEL_SUPPORT
 
+    GuiMediaEventsHandler::state_t media_state = GuiMediaEventsHandler::ConsumeMediaState();
+    switch (media_state) {
+    case GuiMediaEventsHandler::state_t::inserted:
+    case GuiMediaEventsHandler::state_t::removed:
+    case GuiMediaEventsHandler::state_t::error:
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::MEDIA, (void *)int(media_state));
+        break;
+    default:
+        break;
+    }
+
     delay = gui_timers_cycle();
     if (delay < GUI_DELAY_MIN)
         delay = GUI_DELAY_MIN;
@@ -121,7 +133,7 @@ void gui_loop(void) {
         if (gui_loop_cb)
             gui_loop_cb();
         gui_loop_tick = tick;
-        Screens::Access()->ScreenEvent(0, GUI_event_t::LOOP, 0);
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
     }
     --guiloop_nesting;
 

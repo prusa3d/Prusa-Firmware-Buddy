@@ -233,7 +233,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     }
 
     /// -- check when media is or isn't inserted
-    if (header.EventClr_MediaRemoved() || header.EventClr_MediaInserted()) {
+    if (event == GUI_event_t::MEDIA) {
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
     }
