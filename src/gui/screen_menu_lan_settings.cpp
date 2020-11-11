@@ -298,7 +298,9 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
 }
 
 void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    refresh_addresses();
+    if (event == GUI_event_t::LOOP) {
+        refresh_addresses();
+    }
 
     show_msg(Eth::ConsumeMsg());
     SuperWindowEvent(sender, event, param);
