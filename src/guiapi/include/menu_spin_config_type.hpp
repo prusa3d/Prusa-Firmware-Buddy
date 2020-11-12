@@ -7,6 +7,7 @@
 #pragma once
 
 #include "menu_spin_config_types.hpp"
+#include "printers.h"
 #include <cstdint>
 
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
@@ -17,11 +18,11 @@ template <class T>
 using SpinConfig_t = SpinConfigWithUnit<T>;
 #endif
 
-using SpinConfig_U08_t = SpinConfig<uint8_t>;
-using SpinConfig_I08_t = SpinConfig<int8_t>;
+using SpinConfig_U08_t = SpinConfig_t<uint8_t>;
+using SpinConfig_I08_t = SpinConfig_t<int8_t>;
 
-using SpinConfig_U16_t = SpinConfig<uint16_t>;
-using SpinConfig_I16_t = SpinConfig<int16_t>;
+using SpinConfig_U16_t = SpinConfig_t<uint16_t>;
+using SpinConfig_I16_t = SpinConfig_t<int16_t>;
 
-using SpinConfig_U32_t = SpinConfig<uint32_t>;
-using SpinConfig_I32_t = SpinConfig<int32_t>;
+using SpinConfig_U32_t = SpinConfig_t<uint32_t>;
+using SpinConfig_I32_t = SpinConfig_t<int32_t>;
