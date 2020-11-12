@@ -326,7 +326,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sende
     case GUI_event_t::CAPT_0:
         break;
     case GUI_event_t::CAPT_1:
-        if (pWin->GetParent() != this) {
+        if (pWin && pWin->GetParent() != this) {
             pWin = first;
             if (pWin && !pWin->IsEnabled())
                 pWin = pWin->GetNextEnabled();
@@ -368,11 +368,11 @@ void window_frame_t::validate(Rect16 validation_rect) {
 }
 
 bool window_frame_t::IsChildCaptured() {
-    return GetCapturedWindow()->GetParent() == this;
+    return GetCapturedWindow() != nullptr ? (GetCapturedWindow()->GetParent() == this) : false;
 }
 
 bool window_frame_t::IsChildFocused() {
-    return GetFocusedWindow()->GetParent() == this;
+    return GetFocusedWindow() != nullptr ? (GetFocusedWindow()->GetParent() == this) : false;
 }
 
 window_t *window_frame_t::GetNextSubWin(window_t *win) const {
