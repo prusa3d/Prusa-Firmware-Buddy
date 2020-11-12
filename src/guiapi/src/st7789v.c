@@ -11,6 +11,7 @@
 #include "gpio.h"
 #include "cmath_ext.h"
 #include "bsod.h"
+#include "scratch_buffer.hpp"
 
 #ifdef ST7789V_USE_RTOS
     #include "cmsis_os.h"
@@ -384,7 +385,6 @@ enum {
     PNG_MAX_CHUNKS = 10
 };
 
-uint8_t png_mem_pool[49152] __attribute__((section(".ccmram")));
 void *png_mem_ptr0 = 0;
 uint32_t png_mem_total = 0;
 void *png_mem_ptrs[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -393,9 +393,9 @@ uint32_t png_mem_cnt = 0;
 
 png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
     if (png_mem_ptr0 == NULL) {
-        png_mem_ptr0 = (void *)png_mem_pool;
+        png_mem_ptr0 = (void *)scratch_buffer;
     }
-    if (png_mem_total + size >= sizeof(png_mem_pool)) {
+    if (png_mem_total + size >= sizeof(scratch_buffer)) {
         general_error("pngmalloc", "out of memory");
     }
     void *p = ((uint8_t *)png_mem_ptr0) + png_mem_total;

@@ -515,6 +515,7 @@ target_sources(
           src/common/sha256.c
           src/common/wui_api.c
           src/common/z_calibration_fsm.cpp
+          src/common/scratch_buffer.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M330.cpp
