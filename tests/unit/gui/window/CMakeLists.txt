@@ -7,6 +7,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window_frame.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/Rect16.cpp
   ${CMAKE_SOURCE_DIR}/src/gui/dialogs/window_dlg_popup.cpp
+  ${CMAKE_SOURCE_DIR}/src/gui/dialogs/IDialog.cpp
   )
 
 # define required search paths

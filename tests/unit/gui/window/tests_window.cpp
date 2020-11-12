@@ -5,12 +5,14 @@
 #include "sound_enum.h"
 #include "window_dlg_popup.hpp"
 #include "ScreenHandler.hpp"
+#include "IDialog.hpp"
 #include "cmsis_os.h" //HAL_GetTick
 
 void gui_timers_delete_by_window(window_t *pWin) {}
 void gui_invalidate(void) {}
 EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {}
 void Sound_Play(eSOUND_TYPE eSoundType) {}
+void gui_loop() {}
 
 //stubbed header does not have C linkage .. to be simpler
 uint32_t HAL_GetTick() { return 0; }
@@ -60,6 +62,7 @@ void window_linked_list_check(MockScreen &screen, has_dialog_t has_dialog) {
 void basic_basic_screen_check(MockScreen &screen, has_dialog_t has_dialog) {
     //check parrent
     window_parrent_check(screen);
+    screen.SetCapture();
 
     //check IsHiddenBehindDialog()
     REQUIRE_FALSE(screen.w_first.IsHiddenBehindDialog());
@@ -79,16 +82,17 @@ TEST_CASE("Window registration tests", "[window]") {
 
     SECTION("initial screen check") {
         basic_basic_screen_check(screen, has_dialog_t::no);
+        REQUIRE(window_t::GetCapturedWindow() == &screen);
     }
 
-    SECTION("dialog with no rectangle") {
+    SECTION("popup with no rectangle") {
         window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
         basic_basic_screen_check(screen, has_dialog_t::yes);
-
         REQUIRE(screen.GetLast() == screen.w_last.GetNext());
+        // REQUIRE_FALSE(window_t::GetCapturedWindow() == &screen);
     }
 
-    SECTION("dialog hiding w0 - w4") {
+    SECTION("popup hiding w0 - w4") {
         window_dlg_popup_t::Show(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect), string_view_utf8::MakeNULLSTR());
         //check parrent
         window_parrent_check(screen);
@@ -105,5 +109,6 @@ TEST_CASE("Window registration tests", "[window]") {
         window_linked_list_check(screen, has_dialog_t::yes);
 
         REQUIRE(screen.GetLast() == screen.w_last.GetNext());
+        //REQUIRE_FALSE(window_t::GetCapturedWindow() == &screen);
     }
 }

@@ -14,6 +14,7 @@ public:
         return &ret;
     }
     void Close() {}
+    bool ConsumeClose() { return false; }
     window_frame_t *Get() { return frame; };
     void Set(window_frame_t *fr) { frame = fr; };
 };
