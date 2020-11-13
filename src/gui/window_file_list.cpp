@@ -16,16 +16,6 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "cmath_ext.h"
-#include "WindowMenuItems.hpp"
-
-class FL_LABEL : public WI_LABEL_t {
-public:
-    FL_LABEL(string_view_utf8 label, uint16_t id_icon)
-        : WI_LABEL_t(label, id_icon, is_enabled_t::yes, is_hidden_t::no) {}
-
-protected:
-    virtual void click(IWindowMenu &window_menu) {}
-};
 
 bool window_file_list_t::IsPathRoot(const char *path) {
     return (path[0] == 0 || strcmp(path, "/") == 0);
@@ -86,7 +76,8 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , padding({ 2, 6, 2, 6 })
-    , ldv(LDV_Get()) {
+    , ldv(LDV_Get())
+    , activeItem(_(""), (uint16_t)0) {
     // it is still the same address every time, no harm assigning it again.
     // Will be removed when this file gets converted to c++ (and cleaned)
     SetAlignment(ALIGN_LEFT_CENTER);
@@ -128,56 +119,16 @@ void window_file_list_t::unconditionalDraw() {
         if (!rect.Contain(rc))
             continue;
 
-        FL_LABEL label(itemText, id_icon);
-        if ((IsFocused()) && (index == i)) {
-            label.SetFocus();
-            label.InitRollIfNeeded(rc);
+        if (IsFocused() && index == i) {
+            activeItem.SetLabel(itemText);
+            activeItem.SetIconId(id_icon);
+            activeItem.SetFocus();
+            activeItem.InitRollIfNeeded(rc);
+            activeItem.Print(rc);
+        } else {
+            FL_LABEL label(itemText, id_icon);
+            label.Print(rc);
         }
-        label.Print(rc);
-
-        // color_t color_text
-        //     = this->color_text;
-        // color_t color_back = COLOR_LIME;
-        // uint8_t swap = 0;
-        // if ((IsFocused()) && (index == i)) {
-        //     SWAP(color_text, color_back);
-        //     swap = ROPFN_SWAPBW;
-        // }
-
-        // padding_ui8_t padding = this->padding;
-        // if (id_icon) {
-        //     Rect16 icon_rc = { rc.TopLeft(), 16, 30 };
-        //     rc += Rect16::Left_t(icon_rc.Width());
-        //     rc -= icon_rc.Width();
-        //     //            render_icon_align(icon_rc, id_icon, this->color_back, RENDER_FLG(ALIGN_CENTER, swap));
-        //     render_icon_align(icon_rc, id_icon, COLOR_RED, RENDER_FLG(ALIGN_CENTER, swap));
-        // } else {
-        //     padding.left += 16;
-        // }
-
-        // if ((IsFocused()) && index == i) {
-        //     if (roll.NeedInit()) {
-        //         // there is single roll for all items, so it is reinitialized often
-        //         // initiation of rolling is done in functions
-        //         // which move cursor up or down. They can handle the situation, when the cursor
-        //         // stays at one place (top or bottom), but the whole window list moves up/down.
-        //         // Calling roll.Init must be done here because of the rect.
-        //         // That also solves the reinit of rolling the same file name, when the cursor doesn't move.
-        //         roll.Init(rc, itemText, font, padding, GetAlignment());
-        //     }
-
-        //     roll.RenderTextAlign(rc, itemText, font, color_back, color_text, padding, GetAlignment());
-
-        // } else {
-        //     render_text_align(rc, itemText, font, color_back, color_text, padding, GetAlignment());
-        // }
-
-        /*	too slow
-				display::DrawLine(
-						point_ui16(rect.x, rect.y + (i+1) * item_height-1),
-						point_ui16(rect.x+rect.w, rect.y + (i+1) * item_height-1),
-						COLOR_GRAY);
-			 */
     }
 
     /// fill the rest of the window by background
@@ -205,7 +156,7 @@ void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         //TODO: change flag to checked
         break;
     case GUI_event_t::TEXT_ROLL:
-        if (roll.Tick() == invalidate_t::yes)
+        if (activeItem.Roll() == invalidate_t::yes)
             Invalidate();
         break;
     default:
@@ -253,44 +204,11 @@ void window_file_list_t::inc(int dif) {
         return;
 
     // cursor moved => rolling will be elsewhere
-    roll.Deinit();
+    activeItem.ClrFocus();
     Invalidate();
-
-    // if (index >= int(ldv->WindowSize() - 1)) {
-    //     repaint = ldv->MoveDown();
-    //     if (!repaint) {
-    //         Sound_Play(eSOUND_TYPE::BlindAlert);
-    //     }
-    // } else {
-    //     // this 'if' solves a situation with less files than slots on the screen
-    //     if (index < int(ldv->TotalFilesCount() - 1)) {
-    //         index += 1; // @@TODO dif > 1 if needed
-    //         repaint = true;
-    //     } else {
-    //         Sound_Play(eSOUND_TYPE::BlindAlert);
-    //     }
-    // }
 }
 
 void window_file_list_t::dec(int dif) {
     inc(-dif);
     return;
-
-    // bool repaint = false;
-    // if (index == 0) {
-    //     // at the beginning of the window
-    //     repaint = ldv->MoveUp();
-    //     if (!repaint) {
-    //         Sound_Play(eSOUND_TYPE::BlindAlert);
-    //     }
-    // } else {
-    //     --index;
-    //     repaint = true;
-    // }
-
-    // if (repaint) {
-    //     roll.Deinit();
-    //     Invalidate();
-    //     Sound_Play(eSOUND_TYPE::EncoderMove);
-    // }
 }
