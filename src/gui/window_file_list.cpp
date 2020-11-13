@@ -77,7 +77,7 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
     , font(GuiDefaults::Font)
     , padding({ 2, 6, 2, 6 })
     , ldv(LDV_Get())
-    , activeItem(_(""), (uint16_t)0) {
+    , activeItem(string_view_utf8(), (uint16_t)0) {
     // it is still the same address every time, no harm assigning it again.
     // Will be removed when this file gets converted to c++ (and cleaned)
     SetAlignment(ALIGN_LEFT_CENTER);
@@ -120,10 +120,13 @@ void window_file_list_t::unconditionalDraw() {
             continue;
 
         if (IsFocused() && index == i) {
-            activeItem.SetLabel(itemText);
-            activeItem.SetIconId(id_icon);
-            activeItem.SetFocus();
-            activeItem.InitRollIfNeeded(rc);
+            /// activate rolling if needed
+            if (!activeItem.IsFocused()) {
+                activeItem.SetFocus();
+                activeItem.SetLabel(itemText);
+                activeItem.SetIconId(id_icon);
+                activeItem.InitRollIfNeeded(rc);
+            }
             activeItem.Print(rc);
         } else {
             FL_LABEL label(itemText, id_icon);
@@ -145,6 +148,7 @@ void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     switch (event) {
     case GUI_event_t::CLICK:
         Screens::Access()->Get()->WindowEvent(this, GUI_event_t::CLICK, (void *)index);
+        activeItem.ClrFocus();
         break;
     case GUI_event_t::ENC_DN:
         inc(-(int)param);
