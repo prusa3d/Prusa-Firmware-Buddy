@@ -196,7 +196,7 @@ void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         Screens::Access()->Get()->WindowEvent(this, GUI_event_t::CLICK, (void *)index);
         break;
     case GUI_event_t::ENC_DN:
-        dec((int)param);
+        inc(-(int)param);
         break;
     case GUI_event_t::ENC_UP:
         inc((int)param);
@@ -226,7 +226,7 @@ void window_file_list_t::inc(int dif) {
                 middle = ldv->MoveDown();    ///< last result defines end of list
                 repaint = repaint || middle; ///< any movement triggers repaint
             } else if (index < int(ldv->TotalFilesCount() - 1)) {
-                index++;
+                ++index;
                 repaint = true;
             } else {
                 middle = false;
@@ -234,11 +234,14 @@ void window_file_list_t::inc(int dif) {
         }
     } else {
         while (dif++ && middle) {
-            middle = ldv->MoveUp();      ///< last result defines end of list
-            repaint = repaint || middle; ///< any movement triggers repaint
-            index--;
+            if (index <= 0) {
+                middle = ldv->MoveUp();      ///< last result defines end of list
+                repaint = repaint || middle; ///< any movement triggers repaint
+            } else {
+                --index;
+                repaint = true;
+            }
         }
-        index++;
     }
 
     if (!middle) {
@@ -270,24 +273,24 @@ void window_file_list_t::inc(int dif) {
 }
 
 void window_file_list_t::dec(int dif) {
-    // inc(-dif);
-    // return;
+    inc(-dif);
+    return;
 
-    bool repaint = false;
-    if (index == 0) {
-        // at the beginning of the window
-        repaint = ldv->MoveUp();
-        if (!repaint) {
-            Sound_Play(eSOUND_TYPE::BlindAlert);
-        }
-    } else {
-        --index;
-        repaint = true;
-    }
+    // bool repaint = false;
+    // if (index == 0) {
+    //     // at the beginning of the window
+    //     repaint = ldv->MoveUp();
+    //     if (!repaint) {
+    //         Sound_Play(eSOUND_TYPE::BlindAlert);
+    //     }
+    // } else {
+    //     --index;
+    //     repaint = true;
+    // }
 
-    if (repaint) {
-        roll.Deinit();
-        Invalidate();
-        Sound_Play(eSOUND_TYPE::EncoderMove);
-    }
+    // if (repaint) {
+    //     roll.Deinit();
+    //     Invalidate();
+    //     Sound_Play(eSOUND_TYPE::EncoderMove);
+    // }
 }
