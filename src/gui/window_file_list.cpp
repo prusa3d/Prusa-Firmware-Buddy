@@ -129,8 +129,10 @@ void window_file_list_t::unconditionalDraw() {
             continue;
 
         FL_LABEL label(itemText, id_icon);
-        if ((IsFocused()) && (index == i))
+        if ((IsFocused()) && (index == i)) {
             label.SetFocus();
+            label.InitRollIfNeeded(rc);
+        }
         label.Print(rc);
 
         // color_t color_text
@@ -212,31 +214,65 @@ void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *s
 }
 
 void window_file_list_t::inc(int dif) {
+    if (dif == 0)
+        return;
+
     bool repaint = false;
-    if (index >= int(ldv->WindowSize() - 1)) {
-        repaint = ldv->MoveDown();
-        if (!repaint) {
-            Sound_Play(eSOUND_TYPE::BlindAlert);
+    bool middle = true; ///< cursor ended in the middle of the list, not at the end (or start)
+
+    if (dif > 0) {
+        while (dif-- && middle) {
+            if (index >= int(ldv->WindowSize() - 1)) {
+                middle = ldv->MoveDown();    ///< last result defines end of list
+                repaint = repaint || middle; ///< any movement triggers repaint
+            } else if (index < int(ldv->TotalFilesCount() - 1)) {
+                index++;
+                repaint = true;
+            } else {
+                middle = false;
+            }
         }
     } else {
-        // this 'if' solves a situation with less files than slots on the screen
-        if (index < int(ldv->TotalFilesCount() - 1)) {
-            index += 1; // @@TODO dif > 1 if needed
-            repaint = true;
-        } else {
-            Sound_Play(eSOUND_TYPE::BlindAlert);
+        while (dif++ && middle) {
+            middle = ldv->MoveUp();      ///< last result defines end of list
+            repaint = repaint || middle; ///< any movement triggers repaint
+            index--;
         }
+        index++;
     }
 
-    if (repaint) {
-        // here we know exactly, that the selected item changed -> prepare text rolling
-        roll.Deinit();
-        Invalidate();
+    if (!middle) {
+        Sound_Play(eSOUND_TYPE::BlindAlert);
+    } else if (repaint) {
         Sound_Play(eSOUND_TYPE::EncoderMove);
     }
+    if (!repaint)
+        return;
+
+    // cursor moved => rolling will be elsewhere
+    roll.Deinit();
+    Invalidate();
+
+    // if (index >= int(ldv->WindowSize() - 1)) {
+    //     repaint = ldv->MoveDown();
+    //     if (!repaint) {
+    //         Sound_Play(eSOUND_TYPE::BlindAlert);
+    //     }
+    // } else {
+    //     // this 'if' solves a situation with less files than slots on the screen
+    //     if (index < int(ldv->TotalFilesCount() - 1)) {
+    //         index += 1; // @@TODO dif > 1 if needed
+    //         repaint = true;
+    //     } else {
+    //         Sound_Play(eSOUND_TYPE::BlindAlert);
+    //     }
+    // }
 }
 
 void window_file_list_t::dec(int dif) {
+    // inc(-dif);
+    // return;
+
     bool repaint = false;
     if (index == 0) {
         // at the beginning of the window
