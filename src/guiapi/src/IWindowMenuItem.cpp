@@ -6,6 +6,7 @@
 
 #include "WindowMenuItems.hpp"
 #include "resource.h"
+#include "cmath_ext.h"
 
 IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands)
     : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden) {
@@ -53,9 +54,7 @@ void IWindowMenuItem::Print(Rect16 rect) const {
     uint8_t swap = IsEnabled() ? 0 : ROPFN_DISABLE;
 
     if (IsFocused()) {
-        color_t swp = color_text;
-        color_text = color_back;
-        color_back = swp;
+        SWAP(color_text, color_back);
         swap |= ROPFN_SWAPBW;
     }
 

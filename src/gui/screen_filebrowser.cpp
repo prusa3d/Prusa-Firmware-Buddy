@@ -15,6 +15,7 @@
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
+#include "GuiDefaults.hpp"
 
 #ifndef MAXPATHNAMELENGTH
     #define MAXPATHNAMELENGTH F_MAXPATHNAMELENGTH
@@ -34,7 +35,7 @@ static char firstVisibleSFN[SFN_len] = "";
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : AddSuperWindow<window_frame_t>()
     , header(this)
-    , w_filelist(this, Rect16(10, 32, 220, 278)) {
+    , w_filelist(this, GuiDefaults::RectScreenBodyNoFoot) {
     screen_filebrowser_sort = (WF_Sort_t)variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT));
 
     header.SetIcon(IDR_PNG_folder_full_16px);
