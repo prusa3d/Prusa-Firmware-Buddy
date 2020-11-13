@@ -15,7 +15,8 @@ void Sound_Play(eSOUND_TYPE eSoundType) {}
 void gui_loop() {}
 
 //stubbed header does not have C linkage .. to be simpler
-uint32_t HAL_GetTick() { return 0; }
+static uint32_t hal_tick = 0;
+uint32_t HAL_GetTick() { return hal_tick; }
 
 struct MockScreen : public AddSuperWindow<window_frame_t> {
     window_t w_first; // just so w0 is not first
@@ -33,6 +34,12 @@ struct MockScreen : public AddSuperWindow<window_frame_t> {
         , w3(this, Rect16(40, 40, 10, 10))
         , w_last(this, Rect16(0, 0, 10, 10)) {}
 };
+
+struct MockMsgBox : public AddSuperWindow<IDialog> {
+    MockMsgBox(Rect16 rc)
+        : AddSuperWindow<IDialog>(rc) {}
+};
+
 enum class has_dialog_t : bool { no,
     yes };
 
@@ -62,7 +69,6 @@ void window_linked_list_check(MockScreen &screen, has_dialog_t has_dialog) {
 void basic_basic_screen_check(MockScreen &screen, has_dialog_t has_dialog) {
     //check parrent
     window_parrent_check(screen);
-    screen.SetCapture();
 
     //check IsHiddenBehindDialog()
     REQUIRE_FALSE(screen.w_first.IsHiddenBehindDialog());
@@ -89,7 +95,7 @@ TEST_CASE("Window registration tests", "[window]") {
         window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
         basic_basic_screen_check(screen, has_dialog_t::yes);
         REQUIRE(screen.GetLast() == screen.w_last.GetNext());
-        // REQUIRE_FALSE(window_t::GetCapturedWindow() == &screen);
+        REQUIRE(window_t::GetCapturedWindow() == &screen); //popup does not claim capture
     }
 
     SECTION("popup hiding w0 - w4") {
@@ -109,6 +115,45 @@ TEST_CASE("Window registration tests", "[window]") {
         window_linked_list_check(screen, has_dialog_t::yes);
 
         REQUIRE(screen.GetLast() == screen.w_last.GetNext());
-        //REQUIRE_FALSE(window_t::GetCapturedWindow() == &screen);
+        REQUIRE(window_t::GetCapturedWindow() == &screen); //popup does not claim capture
     }
+
+    SECTION("msgbox with no rectangle") {
+        MockMsgBox msgbox(Rect16(0, 0, 0, 0));
+        REQUIRE(msgbox.GetParent() == &screen);
+        basic_basic_screen_check(screen, has_dialog_t::yes);
+        REQUIRE(screen.GetLast() == &msgbox);
+        REQUIRE(window_t::GetCapturedWindow() == &msgbox); //msgbox does claim capture
+    }
+
+    SECTION("msgbox hiding w0 - w4") {
+        MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
+        REQUIRE(msgbox.GetParent() == &screen);
+
+        //check parrent
+        window_parrent_check(screen);
+
+        //check IsHiddenBehindDialog()
+        REQUIRE_FALSE(screen.w_first.IsHiddenBehindDialog());
+        REQUIRE_FALSE(screen.w_last.IsHiddenBehindDialog());
+        REQUIRE(screen.w0.IsHiddenBehindDialog());
+        REQUIRE(screen.w1.IsHiddenBehindDialog());
+        REQUIRE(screen.w2.IsHiddenBehindDialog());
+        REQUIRE(screen.w3.IsHiddenBehindDialog());
+
+        //check linked list
+        window_linked_list_check(screen, has_dialog_t::yes);
+
+        REQUIRE(screen.GetLast() == &msgbox);
+        REQUIRE(window_t::GetCapturedWindow() == &msgbox); //msgbox does claim capture
+    }
+
+    hal_tick = 1000;                                   //set openned on popup
+    screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); //loop will initialize popup timeout
+    hal_tick = 10000;                                  //timeout popup
+    screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); //loop event will unregister popup
+
+    //at the end of all sections screen must be returned to its original state
+    basic_basic_screen_check(screen, has_dialog_t::no);
+    REQUIRE(window_t::GetCapturedWindow() == &screen);
 }
