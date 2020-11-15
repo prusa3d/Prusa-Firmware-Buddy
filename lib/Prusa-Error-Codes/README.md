@@ -16,6 +16,11 @@ Example: 12201
 
 01 - specific error code: Heatbed heating failed
 
+## Printer number
+10 - Original Prusa SL1
+
+12 - Original Prusa MINI
+
 ## Error categories
 1. Mechanical - XYZ motors, tower, axis range
 2. Temperature - thermistors/heating

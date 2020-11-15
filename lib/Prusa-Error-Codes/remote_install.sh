@@ -16,14 +16,14 @@ echo "Target is ${target}"
 set -o xtrace
 
 # Create temp root
-tmp=$(mktemp --directory --tmpdir=/tmp/ sl1-errors.XXXX)
+tmp=$(mktemp --directory --tmpdir=/tmp/ prusa_errors.XXXX)
 echo "Local temp is ${tmp}"
 
 echo "Running setup"
 python3 setup.py sdist --dist-dir=${tmp}
 
 # Create remote temp
-target_tmp=$(ssh root@${target} "mktemp --directory --tmpdir=/tmp/ sl1-errors.XXXX")
+target_tmp=$(ssh root@${target} "mktemp --directory --tmpdir=/tmp/ prusa_errors.XXXX")
 echo "Remote temp is ${target_tmp}"
 
 echo "Installing on target"
@@ -31,9 +31,9 @@ scp -r ${tmp}/* root@${target}:${target_tmp}
 ssh root@${target} "\
 set -o xtrace; \
 cd ${target_tmp}; \
-tar xvf sl1-errors*.tar.gz; \
-rm sl1-errors*.tar.gz; \
-cd sl1-errors-*; \
+tar xvf prusa_errors*.tar.gz; \
+rm prusa_errors*.tar.gz; \
+cd prusa_errors-*; \
 pip3 install . ; \
 "
 

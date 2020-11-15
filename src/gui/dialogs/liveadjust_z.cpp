@@ -199,7 +199,7 @@ LiveAdjustZ::LiveAdjustZ()
     , scale(this, { 45, 125 }) {
 
     /// using window_t 1bit flag
-    flag_close_on_click = is_closed_on_click_t::yes;
+    flags.close_on_click = is_closed_on_click_t::yes;
 
     /// title text
     constexpr static const char *txt = N_("Adjust the nozzle height above the heatbed by turning the knob");
@@ -250,7 +250,7 @@ void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         /// GUI_event_t::CLICK could bubble into window_t::windowEvent and close dialog
         /// so CLICK could be left unhandled here
         /// but there is a problem with focus !!!parrent window of this dialog has it!!!
-        if (flag_close_on_click == is_closed_on_click_t::yes)
+        if (flags.close_on_click == is_closed_on_click_t::yes)
             Screens::Access()->Close();
         break;
     default:

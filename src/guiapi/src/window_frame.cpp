@@ -8,8 +8,8 @@ window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, i
     , first(nullptr)
     , last(nullptr) {
 
-    flag_timeout_close = timeout;
-    flag_serial_close = serial;
+    flags.timeout_close = timeout;
+    flags.serial_close = serial;
 
     Enable();
 }
@@ -27,11 +27,11 @@ window_frame_t::~window_frame_t() {
     }
 }
 
-void window_frame_t::SetMenuTimeoutClose() { flag_timeout_close = is_closed_on_timeout_t::yes; }
-void window_frame_t::ClrMenuTimeoutClose() { flag_timeout_close = is_closed_on_timeout_t::no; }
+void window_frame_t::SetMenuTimeoutClose() { flags.timeout_close = is_closed_on_timeout_t::yes; }
+void window_frame_t::ClrMenuTimeoutClose() { flags.timeout_close = is_closed_on_timeout_t::no; }
 
-void window_frame_t::SetOnSerialClose() { flag_serial_close = is_closed_on_serial_t::yes; }
-void window_frame_t::ClrOnSerialClose() { flag_serial_close = is_closed_on_serial_t::no; }
+void window_frame_t::SetOnSerialClose() { flags.serial_close = is_closed_on_serial_t::yes; }
+void window_frame_t::ClrOnSerialClose() { flags.serial_close = is_closed_on_serial_t::no; }
 
 window_t *window_frame_t::findFirst(window_t *begin, window_t *end, const WinFilter &filter) const {
     while (begin && (begin->GetParent() == this) && (begin != end)) {
@@ -59,34 +59,46 @@ window_t *window_frame_t::findLast(window_t *begin, window_t *end, const WinFilt
 }
 
 //register sub win
-void window_frame_t::RegisterSubWin(window_t *win) {
+bool window_frame_t::RegisterSubWin(window_t *win) {
+    //invalid win pointer
+    if (!win)
+        return false;
+
+    //different parent
+    if (win->GetParent() != nullptr && win->GetParent() != this)
+        return false;
+
     //window must fit inside frame
     if (!rect.Contain(win->rect))
-        return;
+        return false;
 
     //adding first window is always fine
     if (!(first && last)) {
         first = last = win;
-        return;
+        return false;
     }
-
+    bool ret = false;
     switch (win->GetType()) {
     case win_type_t::normal:
-        registerNormal(*win);
+        ret = registerNormal(*win);
         break;
     case win_type_t::dialog:
-        registerDialog(*win);
+        ret = registerDialog(*win);
         break;
     case win_type_t::popup:
-        registerPopUp(*win);
+        ret = registerPopUp(*win); //can clear parent
         break;
     case win_type_t::strong_dialog:
-        registerStrongDialog(*win);
+        ret = registerStrongDialog(*win);
         break;
     }
+
+    win->SetParent(ret ? this : nullptr);
+    win->Invalidate();
+    return ret;
 }
 
-void window_frame_t::registerNormal(window_t &win) {
+bool window_frame_t::registerNormal(window_t &win) {
 
 //in debug windows with intersection are painted with red background
 #ifdef _DEBUG
@@ -114,9 +126,10 @@ void window_frame_t::registerNormal(window_t &win) {
 
     last->SetNext(&win);
     last = last->GetNext();
+    return true;
 }
 
-void window_frame_t::registerDialog(window_t &win) {
+bool window_frame_t::registerDialog(window_t &win) {
 
     // todo missing implementation
     // find strong dialogs, if exists
@@ -129,20 +142,22 @@ void window_frame_t::registerDialog(window_t &win) {
         pWin = pWin->GetNext();
     }
 
-    registerNormal(win);
+    return registerNormal(win);
 }
 
-void window_frame_t::registerStrongDialog(window_t &win) {
-    registerNormal(win);
+bool window_frame_t::registerStrongDialog(window_t &win) {
+    return registerNormal(win);
 }
 
-void window_frame_t::registerPopUp(window_t &win) {
+bool window_frame_t::registerPopUp(window_t &win) {
 
     WinFilterIntersectingDialog filter(win.rect);
     // there can be no overlaping dialog
     if (findFirst(first, nullptr, filter) == nullptr) {
         registerDialog(win); // register like dialog
+        return true;
     }
+    return false;
 }
 
 //unregister sub win

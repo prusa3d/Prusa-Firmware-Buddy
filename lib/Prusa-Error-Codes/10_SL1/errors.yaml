@@ -1,0 +1,439 @@
+# Error codes list for Original Prusa SL1 printer
+# GitHub repo https://github.com/prusa3d/Prusa-Error-Codes
+
+# Printer code
+# SL1            10xxx
+
+# Error categories
+# MECHANICAL     xx1xx   # Mechanical failures, engines XYZ, tower
+# TEMPERATURE    xx2xx   # Temperature measurement, thermistors, heating
+# ELECTRICAL     xx3xx   # Electrical, MINDA, FINDA, Motion Controller, …
+# CONNECTIVITY   xx4xx   # Connectivity - Wi - Fi, LAN, Prusa Connect Cloud
+# SYSTEM         xx5xx   # System - BSOD, ...
+# BOOTLOADER     xx6xx   #
+# WARNINGS       xx7xx   # Category-less warnings
+
+
+
+Errors:
+# MECHANICAL     101xx   # Mechanical failures, engines XYZ, tower
+- code: "10101"
+  title: "TILT HOME FAILED"
+  text: null
+  id: "TILT_HOME_FAILED"
+  approved: false
+
+- code: "10102"
+  title: "TOWER HOME FAILED"
+  text: null
+  id: "TOWER_HOME_FAILED"
+  approved: false
+
+- code: "10103"
+  title: "TOWER MOVE FAILED"
+  text: null
+  id: "TOWER_MOVE_FAILED"
+  approved: false
+
+- code: "10106"
+  title: "FAN FAILED"
+  text: null
+  id: "FAN_FAILED"
+  approved: false
+
+- code: "10108"
+  title: "RESIN TOO LOW"
+  text: null
+  id: "RESIN_TOO_LOW"
+  approved: false
+
+- code: "10109"
+  title: "RESIN TOO HIGH"
+  text: null
+  id: "RESIN_TOO_HIGH"
+  approved: false
+
+- code: "10113"
+  title: "NOT MECHANICALLY CALIBRATED"
+  text: null
+  id: "NOT_MECHANICALLY_CALIBRATED"
+  approved: false
+
+- code: "10114"
+  title: "TOWER ENDSTOP NOT REACHED"
+  text: "Failed to reach tower endstop"
+  id: "TOWER_ENDSTOP_NOT_REACHED"
+  approved: false
+
+- code: "10115"
+  title: "TILT ENDSTOP NOT REACHED"
+  text: "Failed to reach tilt endstop"
+  id: "TILT_ENDSTOP_NOT_REACHED"
+  approved: false
+
+- code: "10118"
+  title: "TOWER AXIS CHECK FAILED"
+  text: "Tower axis check failed!
+
+
+    Current position: %d nm
+
+
+    Please check if the ballscrew can move smoothly in its entire range."
+  id: "TOWER_AXIS_CHECK_FAILED"
+  approved: false
+
+- code: "10119"
+  title: "TILT AXIS CHECK FAILED"
+  text: "Tilt axis check failed!
+
+
+    Current position: %d steps
+
+
+    Please check if the tilt can move smoothly in its entire range."
+  id: "TILT_AXIS_CHECK_FAILED"
+  approved: false
+
+- code: "10120"
+  title: "DISPLAY TEST FAILED"
+  text: "Display test failed."
+  id: "DISPLAY_TEST_FAILED"
+  approved: false
+
+- code: "10121"
+  title: "INVALID TILT ALIGN POSITION"
+  text: "Invalid tilt align position"
+  id: "INVALID_TILT_ALIGN_POSITION"
+  approved: false
+
+- code: "10122"
+  title: "FAN RPM OUT OF TEST RANGE"
+  text: "RPM of %(fan)s not in range!
+
+
+    Please check if the fan is connected correctly.
+
+
+    RPM data: %(rpm)s
+
+    Average: %(avg)s
+
+    Fan error: %(fanError)s"
+  id: "FAN_RPM_OUT_OF_TEST_RANGE"
+  approved: false
+
+- code: "10123"
+  title: "TOWER BELOW SURFACE"
+  text: "Tower not at the expected position.
+
+
+    Is the platform and tank secured in correct position?
+
+
+    "
+  id: "TOWER_BELOW_SURFACE"
+  approved: false
+
+
+
+
+# TEMPERATURE    102xx   # Temperature measurement, thermistors, heating
+- code: "10205"
+  title: "TEMP SENSOR FAILED"
+  text: null
+  id: "TEMP_SENSOR_FAILED"
+  approved: false
+
+- code: "10206"
+  title: "UVLED HEAT SINK FAILED"
+  text: "UV LED overheating! Check proper heatsink installation."
+  id: "UVLED_HEAT_SINK_FAILED"
+  approved: false
+
+
+
+
+# ELECTRICAL     103xx   # Electrical, MINDA, FINDA, Motion Controller, …
+- code: "10301"
+  title: "MOTION CONTROLLER WRONG REVISION"
+  text: "Wrong revision of the motion controller. Please replace it or contact our support."
+  id: "MOTION_CONTROLLER_WRONG_REVISION"
+  approved: false
+
+- code: "10306"
+  title: "MOTION CONTROLLER EXCEPTION"
+  text: null
+  id: "MOTION_CONTROLLER_EXCEPTION"
+  approved: false
+
+- code: "10307"
+  title: "RESIN SENSOR FAILED"
+  text: null
+  id: "RESIN_SENSOR_FAILED"
+  approved: false
+
+- code: "10308"
+  title: "NOT UV CALIBRATED"
+  text: null
+  id: "NOT_UV_CALIBRATED"
+  approved: false
+
+- code: "10309"
+  title: "UVLED VOLTAGE DIFFER TOO MUCH"
+  text: "UV LED voltages differ too much. Possibly LED module is broken."
+  id: "UVLED_VOLTAGE_DIFFER_TOO_MUCH"
+  approved: false
+
+- code: "10310"
+  title: "SOUND TEST FAILED"
+  text: "Speaker is broken"
+  id: "SOUND_TEST_FAILED"
+  approved: false
+
+
+
+
+# CONNECTIVITY   104xx   # Connectivity - Wi - Fi, LAN, Prusa Connect Cloud
+- code: "10401"
+  title: "MQTT SEND FAILED"
+  text: "Cannot send factory config to MQTT!"
+  id: "MQTT_SEND_FAILED"
+  approved: false
+
+- code: "10402"
+  title: "NOT CONNECTED TO NETWORK"
+  text: null
+  id: "NOT_CONNECTED_TO_NETWORK"
+  approved: false
+
+- code: "10403"
+  title: "CONNECTION FAILED"
+  text: null
+  id: "CONNECTION_FAILED"
+  approved: false
+
+- code: "10404"
+  title: "DOWNLOAD FAILED"
+  text: null
+  id: "DOWNLOAD_FAILED"
+  approved: false
+
+
+
+
+# SYSTEM         105xx   # System - BSOD, ...
+- code: "10500"
+  title: "NONE"
+  text: "No problem"
+  id: "NONE"
+  approved: false
+
+- code: "10501"
+  title: "UNKNOWN"
+  text: "An unexpected error has occurred :-(.
+
+
+    If the SL1 is printing, current job will be finished.
+
+
+    You can turn the printer off by pressing the front power button.
+
+
+    Please follow the instructions in Chapter 3.1 in the handbook to learn how to
+    save a log file. Please send the log to us and help us improve the printer.
+
+
+    Thank you!"
+  id: "UNKNOWN"
+  approved: false
+
+- code: "10503"
+  title: "PRELOAD FAILED"
+  text: "Image preloader did not finish successfully!"
+  id: "PRELOAD_FAILED"
+  approved: false
+
+- code: "10504"
+  title: "PROJECT FAILED"
+  text: null
+  id: "PROJECT_FAILED"
+  approved: false
+
+- code: "10505"
+  title: "CONFIG EXCEPTION"
+  text: "Failed to read configuration file"
+  id: "CONFIG_EXCEPTION"
+  approved: false
+
+- code: "10506"
+  title: "NOT AVAILABLE IN STATE"
+  text: null
+  id: "NOT_AVAILABLE_IN_STATE"
+  approved: false
+
+- code: "10507"
+  title: "DBUS MAPPING ERROR"
+  text: null
+  id: "DBUS_MAPPING_ERROR"
+  approved: false
+
+- code: "10508"
+  title: "REPRINT WITHOUT HISTORY"
+  text: null
+  id: "REPRINT_WITHOUT_HISTORY"
+  approved: false
+
+- code: "10509"
+  title: "MISSING WIZARD DATA"
+  text: "The wizard did not finish successfully!"
+  id: "MISSING_WIZARD_DATA"
+  approved: false
+
+- code: "10510"
+  title: "MISSING CALIBRATION DATA"
+  text: "The calibration did not finish successfully!"
+  id: "MISSING_CALIBRATION_DATA"
+  approved: false
+
+- code: "10511"
+  title: "MISSING UVCALIBRATION DATA"
+  text: "The automatic UV LED calibration did not finish successfully!"
+  id: "MISSING_UVCALIBRATION_DATA"
+  approved: false
+
+- code: "10512"
+  title: "MISSING UVPWM SETTINGS"
+  text: null
+  id: "MISSING_UVPWM_SETTINGS"
+  approved: false
+
+- code: "10513"
+  title: "FAILED UPDATE CHANNEL SET"
+  text: "Cannot set update channel"
+  id: "FAILED_UPDATE_CHANNEL_SET"
+  approved: false
+
+- code: "10514"
+  title: "FAILED UPDATE CHANNEL GET"
+  text: null
+  id: "FAILED_UPDATE_CHANNEL_GET"
+  approved: false
+
+- code: "10515"
+  title: "WARNING ESCALATION"
+  text: null
+  id: "WARNING_ESCALATION"
+  approved: false
+
+- code: "10516"
+  title: "NOT ENOUGH INTERNAL SPACE"
+  text: null
+  id: "NOT_ENOUGH_INTERNAL_SPACE"
+  approved: false
+
+- code: "10517"
+  title: "ADMIN NOT AVAILABLE"
+  text: null
+  id: "ADMIN_NOT_AVAILABLE"
+  approved: false
+
+- code: "10518"
+  title: "FILE NOT FOUND"
+  text: "Cannot find a file!"
+  id: "FILE_NOT_FOUND"
+  approved: false
+
+- code: "10519"
+  title: "INVALID EXTENSION"
+  text: "File has an invalid extension!"
+  id: "INVALID_EXTENSION"
+  approved: false
+
+- code: "10520"
+  title: "FILE ALREADY EXISTS"
+  text: "File already exists!"
+  id: "FILE_ALREADY_EXISTS"
+  approved: false
+
+- code: "10521"
+  title: "INVALID PROJECT"
+  text: "The project file is invalid!"
+  id: "INVALID_PROJECT"
+  approved: false
+
+- code: "10522"
+  title: "WIZARD NOT CANCELABLE"
+  text: "This wizard cannot be canceled"
+  id: "WIZARD_NOT_CANCELABLE"
+  approved: false
+
+
+
+
+# WARNINGS       107xx   # Category-less warnings
+- code: "10700"
+  title: "NONE WARNING"
+  text: "No warning"
+  id: "NONE_WARNING"
+  approved: false
+
+- code: "10701"
+  title: "UNKNOWN WARNING"
+  text: "Unknown warning"
+  id: "UNKNOWN_WARNING"
+  approved: false
+
+- code: "10702"
+  title: "AMBIENT TOO HOT WARNING"
+  text: null
+  id: "AMBIENT_TOO_HOT_WARNING"
+  approved: false
+
+- code: "10703"
+  title: "AMBIENT TOO COLD WARNING"
+  text: null
+  id: "AMBIENT_TOO_COLD_WARNING"
+  approved: false
+
+- code: "10704"
+  title: "PRINTING DIRECTLY WARNING"
+  text: null
+  id: "PRINTING_DIRECTLY_WARNING"
+  approved: false
+
+- code: "10705"
+  title: "PRINTER MODEL MISMATCH WARNING"
+  text: null
+  id: "PRINTER_MODEL_MISMATCH_WARNING"
+  approved: false
+
+- code: "10706"
+  title: "RESIN NOT ENOUGH WARNING"
+  text: null
+  id: "RESIN_NOT_ENOUGH_WARNING"
+  approved: false
+
+- code: "10707"
+  title: "PROJECT SETTINGS MODIFIED WARNING"
+  text: null
+  id: "PROJECT_SETTINGS_MODIFIED_WARNING"
+  approved: false
+
+- code: "10708"
+  title: "PERPARTES NOAVAIL WARNING"
+  text: null
+  id: "PERPARTES_NOAVAIL_WARNING"
+  approved: false
+
+- code: "10709"
+  title: "MASK NOAVAIL WARNING"
+  text: null
+  id: "MASK_NOAVAIL_WARNING"
+  approved: false
+
+- code: "10710"
+  title: "OBJECT TRUNCATED WARNING"
+  text: null
+  id: "OBJECT_TRUNCATED_WARNING"
+  approved: false

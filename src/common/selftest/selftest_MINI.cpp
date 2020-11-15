@@ -13,6 +13,9 @@
 #include "ff.h"
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/temperature.h"
+#include "eeprom.h"
+
+static_assert(sizeof(SelftestResultEEprom_t) == 4, "Invalid size of SelftestResultEEprom_t (!= 4).");
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at oposite side to home position
 
@@ -163,6 +166,24 @@ void CSelftest::phaseStart() {
         thermalManager.setTargetBed(40);
     }
     log_open();
+    SelftestResultEEprom_t eeres; // read previous result
+    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+
+    if (m_Mask & stmFans) {
+        eeres.fan0 = 0;
+        eeres.fan1 = 0;
+    }
+    if (m_Mask & stmXAxis)
+        eeres.xaxis = 0;
+    if (m_Mask & stmYAxis)
+        eeres.yaxis = 0;
+    if (m_Mask & stmZAxis)
+        eeres.zaxis = 0;
+    if (m_Mask & stmHeaters) {
+        eeres.nozzle = 0;
+        eeres.bed = 0;
+    }
+    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32)); // reset status for all selftest parts in eeprom
 }
 
 bool CSelftest::phaseFans(const selftest_fan_config_t *pconfig_fan0, const selftest_fan_config_t *pconfig_fan1) {
@@ -181,6 +202,11 @@ bool CSelftest::phaseFans(const selftest_fan_config_t *pconfig_fan0, const selft
     }
     fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, 100, m_pFan0->getFSMState());
     fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, 100, m_pFan1->getFSMState());
+    SelftestResultEEprom_t eeres;
+    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.fan0 = m_pFan0->GetResult();
+    eeres.fan1 = m_pFan1->GetResult();
+    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
     delete m_pFan0;
     m_pFan0 = nullptr;
     delete m_pFan1;
@@ -214,6 +240,20 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestP
         return true;
     }
     fsm_change(ClientFSM::SelftestAxis, (PhasesSelftestAxis)fsm_phase, p, (*ppaxis)->getFSMState());
+    SelftestResultEEprom_t eeres;
+    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    switch (pconfig_axis->axis) {
+    case X_AXIS:
+        eeres.xaxis = (*ppaxis)->GetResult();
+        break;
+    case Y_AXIS:
+        eeres.yaxis = (*ppaxis)->GetResult();
+        break;
+    case Z_AXIS:
+        eeres.zaxis = (*ppaxis)->GetResult();
+        break;
+    }
+    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
     delete *ppaxis;
     *ppaxis = nullptr;
     return false;
@@ -235,6 +275,11 @@ bool CSelftest::phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, con
     }
     fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_heat, 100, m_pHeater_Nozzle->getFSMState_heat());
     fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_heat, 100, m_pHeater_Bed->getFSMState_heat());
+    SelftestResultEEprom_t eeres;
+    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.nozzle = m_pHeater_Nozzle->GetResult();
+    eeres.bed = m_pHeater_Bed->GetResult();
+    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
     delete m_pHeater_Nozzle;
     m_pHeater_Nozzle = nullptr;
     delete m_pHeater_Bed;

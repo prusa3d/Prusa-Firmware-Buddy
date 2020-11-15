@@ -4,7 +4,6 @@
 #include <inttypes.h>
 #include "guitypes.hpp"
 #include "../../lang/string_view_utf8.hpp"
-#include "dbg.h"
 
 //window events
 enum class GUI_event_t {
@@ -109,20 +108,7 @@ struct AddSuperWindow;
 // hasprivate ctor - only friend (AddSuperWindow or base window_t) can create lock and call locked methods
 // also provides trace
 class EventLock {
-    EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {
-        bool print = false;
-
-        // clang-format off
-        // uncomment debug options
-        if (GUI_event_IsKnob(event)) print = true;
-        if (GUI_event_IsWindowKnobReaction(event)) print = true;
-        //if (GUI_event_IsAnyButLoop(event)) print = true;
-        // clang-format on
-
-        if (print) {
-            _dbg("%s ptr: %p, event %s\n", event_method_name, sender, GUI_event_prt(event));
-        }
-    } //ctor must be private
+    EventLock(const char *event_method_name, window_t *sender, GUI_event_t event); //ctor must be private
     template <class T>
     friend class AddSuperWindow;
     friend class window_t;

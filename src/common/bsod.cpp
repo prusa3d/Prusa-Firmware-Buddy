@@ -36,7 +36,7 @@
     #include "str_utils.hpp"
     #include "guitypes.h"
     #include "i18n.h"
-    #include "../../lib/Prusa-Error-Codes/12/errors_list.h"
+    #include "../../lib/Prusa-Error-Codes/12_MINI/errors_list.h"
     #include "../../lib/Marlin/Marlin/src/core/language.h"
     #include "../../lib/Marlin/Marlin/src/lcd/language/language_en.h"
 

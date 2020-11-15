@@ -76,6 +76,7 @@ typedef struct {
     uint32_t fsmCreate;                              // fsm create ui32 argument for resend
     uint32_t fsmDestroy;                             // fsm destroy ui32 argument for resend
     uint32_t fsmChange;                              // fsm change ui32 argument for resend
+    uint32_t warning_type;
     int request_len;
     uint32_t last_update;   // last update tick count
     uint32_t command;       // actually running command
@@ -756,6 +757,10 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
                 if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.fsmChange, 0))
                     sent |= msk; // event sent, set bit
                 break;
+            case MARLIN_EVT_Warning:
+                if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.warning_type, 0))
+                    sent |= msk; // event sent, set bit
+                break;
             }
             if ((sent & msk) == 0)
                 break; //skip sending if queue is full
@@ -785,6 +790,8 @@ static uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t 
                     marlin_server.fsmDestroy = usr32;
                 else if (evt_id == MARLIN_EVT_FSM_Change)
                     marlin_server.fsmChange = usr32;
+                else if (evt_id == MARLIN_EVT_Warning)
+                    marlin_server.warning_type = usr32;
             } else
                 client_msk |= (1 << client_id);
         }
@@ -1437,6 +1444,13 @@ void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pr
     DBG_FSM("fsm_change %d", usr32);
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Change;
     _send_notify_event(evt_id, usr32, 0);
+}
+
+void set_warning(WarningType type) {
+    DBG_FSM("warning type %d set", (int)type);
+
+    const MARLIN_EVT_t evt_id = MARLIN_EVT_Warning;
+    _send_notify_event(evt_id, uint32_t(type), 0);
 }
 
 /*****************************************************************************/

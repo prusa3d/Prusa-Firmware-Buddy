@@ -1,34 +1,33 @@
 //window.cpp
 
 #include "window.hpp"
-#include "gui.hpp"
 #include <algorithm> // std::find
 #include "ScreenHandler.hpp"
+#include "gui_timer.h"
+#include "display.h"
 
-extern osThreadId displayTaskHandle;
-
-bool window_t::IsVisible() const { return flag_visible && !flag_hidden_behind_dialog; }
-bool window_t::IsHiddenBehindDialog() const { return flag_hidden_behind_dialog; }
-bool window_t::IsEnabled() const { return flag_enabled; }
-bool window_t::IsInvalid() const { return flag_invalid; }
+bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }
+bool window_t::IsHiddenBehindDialog() const { return flags.hidden_behind_dialog; }
+bool window_t::IsEnabled() const { return flags.enabled; }
+bool window_t::IsInvalid() const { return flags.invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
-bool window_t::HasTimer() const { return flag_timer; }
-win_type_t window_t::GetType() const { return win_type_t(flags_type); }
+bool window_t::HasTimer() const { return flags.timer; }
+win_type_t window_t::GetType() const { return win_type_t(flags.type); }
 bool window_t::IsDialog() const { return GetType() == win_type_t::dialog || GetType() == win_type_t::strong_dialog; }
-bool window_t::ClosedOnTimeout() const { return flag_timeout_close == is_closed_on_timeout_t::yes; }
-bool window_t::ClosedOnSerialPrint() const { return flag_serial_close == is_closed_on_serial_t::yes; }
+bool window_t::ClosedOnTimeout() const { return flags.timeout_close == is_closed_on_timeout_t::yes; }
+bool window_t::ClosedOnSerialPrint() const { return flags.serial_close == is_closed_on_serial_t::yes; }
 
 void window_t::Validate(Rect16 validation_rect) {
     if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
-        flag_invalid = false;
+        flags.invalid = false;
         validate(validation_rect);
     }
 }
 
 void window_t::Invalidate(Rect16 validation_rect) {
     if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
-        flag_invalid = true;
+        flags.invalid = true;
         invalidate(validation_rect);
         gui_invalidate();
     }
@@ -42,13 +41,13 @@ void window_t::invalidate(Rect16 validation_rect) {
 void window_t::validate(Rect16 validation_rect) {
 }
 
-void window_t::SetHasTimer() { flag_timer = true; }
-void window_t::ClrHasTimer() { flag_timer = false; }
-void window_t::Enable() { flag_enabled = true; }
-void window_t::Disable() { flag_enabled = false; }
+void window_t::SetHasTimer() { flags.timer = true; }
+void window_t::ClrHasTimer() { flags.timer = false; }
+void window_t::Enable() { flags.enabled = true; }
+void window_t::Disable() { flags.enabled = false; }
 
 void window_t::SetFocus() {
-    if (!IsVisible() || !flag_enabled)
+    if (!IsVisible() || !flags.enabled)
         return;
     if (focused_ptr == this)
         return;
@@ -66,7 +65,7 @@ void window_t::SetFocus() {
 void window_t::SetCapture() {
     // do not check IsVisible()
     // window hidden by dialog can get capture
-    if (flag_visible && flag_enabled) {
+    if (flags.visible && flags.enabled) {
         if (capture_ptr) {
             capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
         }
@@ -77,34 +76,34 @@ void window_t::SetCapture() {
 }
 
 void window_t::Show() {
-    if (!flag_visible) {
-        flag_visible = true;
+    if (!flags.visible) {
+        flags.visible = true;
         //cannot invalidate when is hidden by dialog - could flicker
-        if (!flag_hidden_behind_dialog)
+        if (!flags.hidden_behind_dialog)
             Invalidate();
     }
 }
 
 void window_t::Hide() {
-    if (flag_visible) {
-        flag_visible = false;
+    if (flags.visible) {
+        flags.visible = false;
         //cannot invalidate when is hidden by dialog - could flicker
-        if (!flag_hidden_behind_dialog)
+        if (!flags.hidden_behind_dialog)
             Invalidate();
     }
 }
 
 void window_t::ShowAfterDialog() {
-    if (flag_hidden_behind_dialog) {
-        flag_hidden_behind_dialog = false;
+    if (flags.hidden_behind_dialog) {
+        flags.hidden_behind_dialog = false;
         //must invalidate even when is not visible
         Invalidate();
     }
 }
 
 void window_t::HideBehindDialog() {
-    if (!flag_hidden_behind_dialog) {
-        flag_hidden_behind_dialog = true;
+    if (!flags.hidden_behind_dialog) {
+        flags.hidden_behind_dialog = true;
         //must invalidate - only part of window can be behind dialog
         Invalidate();
 
@@ -114,18 +113,18 @@ void window_t::HideBehindDialog() {
 }
 
 bool window_t::IsShadowed() const {
-    return flag_shadow == true;
+    return flags.shadow == true;
 }
 
 void window_t::Shadow() {
-    if (!flag_shadow) {
-        flag_shadow = true;
+    if (!flags.shadow) {
+        flags.shadow = true;
         Invalidate();
     }
 }
 void window_t::Unshadow() {
-    if (flag_shadow) {
-        flag_shadow = false;
+    if (flags.shadow) {
+        flags.shadow = false;
         Invalidate();
     }
 }
@@ -140,11 +139,11 @@ void window_t::SetBackColor(color_t clr) {
 window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
     : parent(parent)
     , next(nullptr)
-    , flg(0)
+    , flags(0)
     , rect(rect)
     , color_back(GuiDefaults::ColorBack) {
-    flags_type = uint32_t(type);
-    flag_close_on_click = close;
+    flags.type = uint8_t(type);
+    flags.close_on_click = close;
     close == is_closed_on_click_t::yes ? Enable() : Disable();
     Show();
     Invalidate();
@@ -235,7 +234,8 @@ void window_t::draw() {
 }
 
 //window does not support subwindow elements, but window_frame does
-void window_t::RegisterSubWin(window_t *win) {
+bool window_t::RegisterSubWin(window_t *win) {
+    return false;
 }
 
 void window_t::unconditionalDraw() {
@@ -264,7 +264,7 @@ void window_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
 // call nonvirtual WindowEvent instead (contains debug output)
 void window_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK && parent) {
-        if (flag_close_on_click == is_closed_on_click_t::yes) {
+        if (flags.close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();
         } else {
             parent->WindowEvent(this, event, param);
@@ -311,10 +311,10 @@ window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, win_type_t typ
 }
 
 uint8_t window_aligned_t::GetAlignment() const {
-    return mem_array_u08[0];
+    return flags.mem_array_u08[0];
 }
 
 void window_aligned_t::SetAlignment(uint8_t alignment) {
-    mem_array_u08[0] = alignment;
+    flags.mem_array_u08[0] = alignment;
     Invalidate();
 }
