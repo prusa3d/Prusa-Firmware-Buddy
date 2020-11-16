@@ -82,7 +82,7 @@ void basic_basic_screen_check(MockScreen &screen, has_dialog_t has_dialog) {
     window_linked_list_check(screen, has_dialog);
 }
 
-void msg_box_check(MockScreen &screen, MockMsgBox &msgbox) {
+void msg_box_check(MockScreen &screen, MockMsgBox &msgbox, size_t no_of_msgboxes = 1) {
     REQUIRE(msgbox.GetParent() == &screen);
 
     //check parrent
@@ -100,8 +100,16 @@ void msg_box_check(MockScreen &screen, MockMsgBox &msgbox) {
     window_linked_list_check(screen, has_dialog_t::yes);
 
     REQUIRE(screen.GetLast() == &msgbox);
-    REQUIRE(window_t::GetCapturedWindow() == &msgbox);    //msgbox does claim capture
-    REQUIRE(screen.w_last.GetNext() == screen.GetLast()); // check id only 1 extra window is registered
+    REQUIRE(window_t::GetCapturedWindow() == &msgbox); //msgbox does claim capture
+
+    window_t *pWin = screen.w_last.GetNext();
+    REQUIRE_FALSE(pWin == nullptr);
+    while (--no_of_msgboxes) {
+        pWin = pWin->GetNext();
+        REQUIRE_FALSE(pWin == nullptr);
+    }
+
+    REQUIRE(pWin == screen.GetLast()); // check id only 1 extra window is registered
 }
 
 TEST_CASE("Window registration tests", "[window]") {
@@ -165,6 +173,18 @@ TEST_CASE("Window registration tests", "[window]") {
         MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
         //popup must autoclose so test is same as if only msgbox is openned
         msg_box_check(screen, msgbox);
+    }
+
+    SECTION("live adj Z + M600") {
+        //emulate by 2 nested msgboxes
+        window_dlg_popup_t::Show(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect), string_view_utf8::MakeNULLSTR());
+        MockMsgBox msgbox0(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
+        MockMsgBox msgbox1(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
+
+        msg_box_check(screen, msgbox1, 2);
+
+        REQUIRE(msgbox0.IsHiddenBehindDialog());
+        REQUIRE_FALSE(msgbox1.IsHiddenBehindDialog());
     }
 
     hal_tick = 1000;                                   //set openned on popup
