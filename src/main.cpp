@@ -229,14 +229,14 @@ int main(void) {
     buddy::hw::BufferedSerial::uart2.Open();
 
     uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
-    uartrxbuff_reset(&uart1rxbuff);
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
+    uartrxbuff_reset(&uart1rxbuff);
 
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
+    HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
     uartrxbuff_reset(&uart6rxbuff);
     uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
     putslave_init(&uart6slave);
-    HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
     wdt_iwdg_warning_cb = iwdg_warning_cb;
     /* USER CODE END 2 */
 
