@@ -6,7 +6,9 @@
 #include <limits>    //std::numeric_limits
 #include <algorithm> //std::swap
 enum class WizardState_t {
-    first,
+    repeat = -2,
+    next = -1,
+    first = 0,
 
     START_first = first,
     START = START_first,
@@ -73,9 +75,9 @@ constexpr uint64_t WizardMaskRange(WizardState_t first, WizardState_t last) {
     return WizardMaskUpTo(last) & ((~WizardMaskUpTo(first)) | WizardMask(first));
 }
 
-constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::EXIT); }
+constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last) | WizardMask(WizardState_t::EXIT) | WizardMask(WizardState_t::EXIT); }
 constexpr uint64_t WizardMaskSelfTest() {
-    return (WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::EXIT) /*| WizardMaskStart()*/)
+    return (WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last) | WizardMask(WizardState_t::EXIT) | WizardMask(WizardState_t::EXIT) /*| WizardMaskStart()*/)
         & ~WizardMaskRange(WizardState_t::SELFTEST_X, WizardState_t::SELFTEST_Z); //exclude standalone axis tests
 }
 constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(WizardState_t::XYZCALIB_first, WizardState_t::XYZCALIB_last) | WizardMaskStart(); }
@@ -83,7 +85,7 @@ constexpr uint64_t WizardMaskSelfTestAndXYZCalib() { //SELFTEST_RESULT has diffe
     return (WizardMaskSelfTest() | WizardMaskXYZCalib() | WizardMask(WizardState_t::SELFTEST_AND_XYZCALIB)) & ~WizardMask(WizardState_t::SELFTEST_RESULT);
 }
 constexpr uint64_t WizardMaskFirstLay() {
-    return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::EXIT) /* | WizardMaskStart()*/;
+    return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMask(WizardState_t::EXIT) | WizardMask(WizardState_t::EXIT) /* | WizardMaskStart()*/;
 }
 
 //disabled XYZ calib
@@ -116,16 +118,3 @@ constexpr WizardTestState_t InitState(WizardState_t st, uint64_t mask) {
         return WizardTestState_t::DISABLED;
     }
 }
-
-class StateFncData {
-    WizardState_t next_state;
-    WizardTestState_t result;
-
-public:
-    WizardState_t GetState() { return next_state; }
-    WizardTestState_t GetResult() { return result; }
-    StateFncData PassToNext() { return StateFncData(GetNextWizardState(GetState()), WizardTestState_t::PASSED); }
-    StateFncData(WizardState_t state, WizardTestState_t res)
-        : next_state(state)
-        , result(res) {}
-};

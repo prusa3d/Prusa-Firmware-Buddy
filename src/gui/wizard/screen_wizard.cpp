@@ -54,7 +54,7 @@ string_view_utf8 WizardGetCaption(WizardState_t st) {
         return _("FIRST LAYER CALIBRATION");
     }
 
-    if (st == WizardState_t::FINISH) {
+    if (st == WizardState_t::EXIT) {
         return _("WIZARD - OK");
     }
 
@@ -68,33 +68,21 @@ WizardState_t ScreenWizard::start_state = WizardState_t::START_first;
 
 bool ScreenWizard::is_config_invalid = true;
 
-ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
-    ResultArray ret;
-    ret.fill(WizardTestState_t::DISABLED); //not needed, just to be safe;
-
-    for (size_t i = size_t(WizardState_t::START_first); i <= size_t(WizardState_t::last); ++i) {
-        ret[i] = InitState(WizardState_t(i), mask);
-    }
-
-    return ret;
-}
-
 ScreenWizard::ScreenWizard()
     : AddSuperWindow<window_frame_t>()
     , header(this, WizardGetCaption(WizardState_t::START_first))
     , footer(this)
-    , results(ResultInitializer(run_mask))
     , state(start_state)
     , loopInProgress(false) {
     marlin_set_print_speed(100);
     start_state = WizardState_t::START_first;
-    //marlin_set_exclusive_mode(1); //hope i will not need this
     ClrMenuTimeoutClose();
     ClrOnSerialClose();
 }
 
 //consumes loop, is it OK?
 void ScreenWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    static bool repaint_caption = false;
 
     if (event != GUI_event_t::LOOP) {
         SuperWindowEvent(sender, event, param);
@@ -107,25 +95,34 @@ void ScreenWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender,
     AutoRestore<bool> AR(loopInProgress);
     loopInProgress = true;
 
-    bool changed = false;
-    while (results[size_t(state)] == WizardTestState_t::DISABLED) { // check for disabled result == skip state
-        state = WizardState_t(int(state) + 1);                      // skip disabled states
-        changed = true;
+    while (run_mask & (1 << int(state))) {     // skip disabled states
+        state = WizardState_t(int(state) + 1); // skip disabled states
+        repaint_caption = true;
     }
-    if (changed) {
+    if (repaint_caption) {
         header.SetText(WizardGetCaption(state)); // change caption
     }
 
-    StateFnc stateFnc = states[size_t(state)];                                 // actual state function (action)
-    StateFncData data = stateFnc(StateFncData(state, results[size_t(state)])); // perform state action
+    StateFnc stateFnc = states[size_t(state)]; // actual state function (action)
+    WizardState_t data = stateFnc();           // perform state action
+    switch (data) {                            // update state
+    case WizardState_t::repeat:
+        //do nothing - leave state as it is
+        break;
+    case WizardState_t::next:
+        state = (state != WizardState_t::last) ? WizardState_t(int(state) + 1) : WizardState_t::last;
+        break;
+    default:
+        state = data;
+        break;
+    }
 
-    results[size_t(state)] = data.GetResult(); // store result of actual state
-    state = data.GetState();                   // update state
+    repaint_caption = data != state;
 }
 
 const PhaseResponses Responses_IgnoreYesNo = { Response::Ignore, Response::Yes, Response::No, Response::_none };
 
-StateFncData StateFnc_START(StateFncData last_run) {
+WizardState_t StateFnc_START() {
     static const char en_text[] = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
     string_view_utf8 translatedText = _(en_text);
 #ifdef _DEBUG
@@ -141,28 +138,28 @@ StateFncData StateFnc_START(StateFncData last_run) {
         eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
         eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
         eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
-        return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
+        return WizardState_t::EXIT;
 #endif //_DEBUG
     case Response::Yes:
-        return last_run.PassToNext();
+        return WizardState_t::next;
     case Response::No:
     default:
-        return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
+        return WizardState_t::EXIT;
     }
 }
 
-StateFncData StateFnc_INIT(StateFncData last_run) {
+WizardState_t StateFnc_INIT() {
     //wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
     if (fs_get_state() == fsensor_t::Disabled) {
         fs_enable();
         if (fs_wait_initialized() == fsensor_t::NotConnected)
             fs_disable();
     }
-    return last_run.PassToNext();
+    return WizardState_t::next;
 }
 
 //todo both is_multiline::no and is_multiline::yes does not work with \n
-StateFncData StateFnc_INFO(StateFncData last_run) {
+WizardState_t StateFnc_INFO() {
     static const char en_text[] = N_("The status bar is at "
                                      "the bottom of the "
                                      "screen. It contains "
@@ -174,26 +171,26 @@ StateFncData StateFnc_INFO(StateFncData last_run) {
                                      "- Selected filament");
     string_view_utf8 translatedText = _(en_text);
     MsgBox(translatedText, Responses_Next);
-    return last_run.PassToNext();
+    return WizardState_t::next;
 }
 
-StateFncData StateFnc_FIRST(StateFncData last_run) {
+WizardState_t StateFnc_FIRST() {
     static const char en_text[] = N_("Press NEXT to run the Selftest, which checks for potential issues related to the assembly.");
     string_view_utf8 translatedText = _(en_text);
     MsgBox(translatedText, Responses_Next);
-    return last_run.PassToNext();
+    return WizardState_t::next;
 }
 
-StateFncData StateFnc_FINISH(StateFncData last_run) {
+WizardState_t StateFnc_FINISH() {
     static const char en_text[] = N_("Calibration successful! Happy printing!");
     string_view_utf8 translatedText = _(en_text);
     MsgBox(translatedText, Responses_Next);
-    return last_run.PassToNext();
+    return WizardState_t::next;
 }
 
-StateFncData StateFnc_EXIT(StateFncData last_run) {
+WizardState_t StateFnc_EXIT() {
     Screens::Access()->Close();
-    return last_run;
+    return WizardState_t::repeat;
 }
 
 ScreenWizard::StateArray ScreenWizard::StateInitializer() {
@@ -237,7 +234,7 @@ ScreenWizard::StateArray ScreenWizard::StateInitializer() {
     ret[static_cast<size_t>(WizardState_t::FIRSTLAY_MSBX_REPEAT_PRINT)] = StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT;
     ret[static_cast<size_t>(WizardState_t::FIRSTLAY_RESULT)] = StateFnc_FIRSTLAY_RESULT;
 
-    ret[static_cast<size_t>(WizardState_t::FINISH)] = StateFnc_FINISH;
+    ret[static_cast<size_t>(WizardState_t::EXIT)] = StateFnc_FINISH;
     ret[static_cast<size_t>(WizardState_t::EXIT)] = StateFnc_EXIT;
 
     is_config_invalid = false;

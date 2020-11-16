@@ -2,13 +2,13 @@
 #pragma once
 #include "wizard_types.hpp"
 
-StateFncData StateFnc_FIRSTLAY_FILAMENT_ASK(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_FILAMENT_LOAD(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_FILAMENT_UNLOAD(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_MSBX_CALIB(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_MSBX_USEVAL(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_MSBX_START_PRINT(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_PRINT(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_RESULT(StateFncData last_run);
+WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK();
+WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT();
+WizardState_t StateFnc_FIRSTLAY_FILAMENT_LOAD();
+WizardState_t StateFnc_FIRSTLAY_FILAMENT_UNLOAD();
+WizardState_t StateFnc_FIRSTLAY_MSBX_CALIB();
+WizardState_t StateFnc_FIRSTLAY_MSBX_USEVAL();
+WizardState_t StateFnc_FIRSTLAY_MSBX_START_PRINT();
+WizardState_t StateFnc_FIRSTLAY_PRINT();
+WizardState_t StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT();
+WizardState_t StateFnc_FIRSTLAY_RESULT();
