@@ -923,6 +923,8 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *haurt) {
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
     if (huart == &huart2)
         buddy::hw::BufferedSerial::uart2.FirstHalfReachedISR();
+    else if (huart == &huart6)
+        uartrxbuff_rxhalf_cb(&uart6rxbuff);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
