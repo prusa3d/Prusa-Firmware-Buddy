@@ -732,6 +732,17 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
 
         // Link with DMA
         __HAL_LINKDMA(huart, hdmarx, hdma_usart6_rx);
+
+        // Enable interrupts on the peripheral
+        __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
+        __HAL_UART_ENABLE_IT(huart, UART_IT_TC);
+
+        // Clear Transmit Complete ISR flag
+        __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_TC);
+
+        // Enable the ISR
+        HAL_NVIC_SetPriority(USART6_IRQn, 5, 0);
+        HAL_NVIC_EnableIRQ(USART6_IRQn);
     }
 }
 
