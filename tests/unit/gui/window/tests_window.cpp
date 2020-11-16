@@ -82,6 +82,28 @@ void basic_basic_screen_check(MockScreen &screen, has_dialog_t has_dialog) {
     window_linked_list_check(screen, has_dialog);
 }
 
+void msg_box_check(MockScreen &screen, MockMsgBox &msgbox) {
+    REQUIRE(msgbox.GetParent() == &screen);
+
+    //check parrent
+    window_parrent_check(screen);
+
+    //check IsHiddenBehindDialog()
+    REQUIRE_FALSE(screen.w_first.IsHiddenBehindDialog());
+    REQUIRE_FALSE(screen.w_last.IsHiddenBehindDialog());
+    REQUIRE(screen.w0.IsHiddenBehindDialog());
+    REQUIRE(screen.w1.IsHiddenBehindDialog());
+    REQUIRE(screen.w2.IsHiddenBehindDialog());
+    REQUIRE(screen.w3.IsHiddenBehindDialog());
+
+    //check linked list
+    window_linked_list_check(screen, has_dialog_t::yes);
+
+    REQUIRE(screen.GetLast() == &msgbox);
+    REQUIRE(window_t::GetCapturedWindow() == &msgbox);    //msgbox does claim capture
+    REQUIRE(screen.w_last.GetNext() == screen.GetLast()); // check id only 1 extra window is registered
+}
+
 TEST_CASE("Window registration tests", "[window]") {
     MockScreen screen;
     Screens::Access()->Set(&screen); //instead of screen registration
@@ -128,24 +150,21 @@ TEST_CASE("Window registration tests", "[window]") {
 
     SECTION("msgbox hiding w0 - w4") {
         MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
-        REQUIRE(msgbox.GetParent() == &screen);
+        msg_box_check(screen, msgbox);
+    }
 
-        //check parrent
-        window_parrent_check(screen);
+    SECTION("popup inside msgbox hiding w0 - w4") {
+        MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
+        window_dlg_popup_t::Show(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect), string_view_utf8::MakeNULLSTR());
+        //popup cannot open so test is same as if only msgbox is openned
+        msg_box_check(screen, msgbox);
+    }
 
-        //check IsHiddenBehindDialog()
-        REQUIRE_FALSE(screen.w_first.IsHiddenBehindDialog());
-        REQUIRE_FALSE(screen.w_last.IsHiddenBehindDialog());
-        REQUIRE(screen.w0.IsHiddenBehindDialog());
-        REQUIRE(screen.w1.IsHiddenBehindDialog());
-        REQUIRE(screen.w2.IsHiddenBehindDialog());
-        REQUIRE(screen.w3.IsHiddenBehindDialog());
-
-        //check linked list
-        window_linked_list_check(screen, has_dialog_t::yes);
-
-        REQUIRE(screen.GetLast() == &msgbox);
-        REQUIRE(window_t::GetCapturedWindow() == &msgbox); //msgbox does claim capture
+    SECTION("msgbox inside popup hiding w0 - w4") {
+        window_dlg_popup_t::Show(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect), string_view_utf8::MakeNULLSTR());
+        MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
+        //popup must autoclose so test is same as if only msgbox is openned
+        msg_box_check(screen, msgbox);
     }
 
     hal_tick = 1000;                                   //set openned on popup
