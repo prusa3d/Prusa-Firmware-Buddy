@@ -17,7 +17,6 @@
 #include "lazyfilelist.h"
 #include "text_roll.hpp"
 #include "WindowMenuItems.hpp"
-// #include "IWindowMenuItem.hpp"
 
 using LDV9 = LazyDirView<9>;
 
@@ -70,7 +69,6 @@ protected:
 
 private:
     virtual void unconditionalDraw() override;
-    void inc(int dif);
-    void dec(int dif);
+    void inc(int dif);   ///< negative values move cursor in opposite direction
     FL_LABEL activeItem; ///< used for text rolling
 };

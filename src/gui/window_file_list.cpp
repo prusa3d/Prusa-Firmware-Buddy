@@ -77,9 +77,7 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
     , font(GuiDefaults::Font)
     , padding({ 2, 6, 2, 6 })
     , ldv(LDV_Get())
-    , activeItem(string_view_utf8(), (uint16_t)0) {
-    // it is still the same address every time, no harm assigning it again.
-    // Will be removed when this file gets converted to c++ (and cleaned)
+    , activeItem(string_view_utf8(), IDR_NULL) {
     SetAlignment(ALIGN_LEFT_CENTER);
     Enable();
     strlcpy(sfn_path, "/", FILE_PATH_MAX_LEN);
@@ -114,7 +112,7 @@ void window_file_list_t::unconditionalDraw() {
             itemText = string_view_utf8::MakeRAM((const uint8_t *)item.first);
         }
 
-        Rect16 rc
+        const Rect16 rc
             = { rect.Left(), int16_t(rect.Top() + i * item_height), rect.Width(), uint16_t(item_height) };
         if (!rect.Contain(rc))
             continue;
@@ -134,7 +132,7 @@ void window_file_list_t::unconditionalDraw() {
         }
     }
 
-    /// fill the rest of the window by background
+    /// fill the rest of the window with background
     const int menu_h = i * item_height;
     Rect16 rc_win = rect;
     rc_win -= Rect16::Height_t(menu_h);
@@ -210,9 +208,4 @@ void window_file_list_t::inc(int dif) {
     // cursor moved => rolling will be elsewhere
     activeItem.ClrFocus();
     Invalidate();
-}
-
-void window_file_list_t::dec(int dif) {
-    inc(-dif);
-    return;
 }
