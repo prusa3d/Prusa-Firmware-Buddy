@@ -38,7 +38,7 @@ size_t MI_UPDATE::init_index() const {
 }
 
 MI_UPDATE::MI_UPDATE()
-    : WI_SWITCH_t<3>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(str_0), _(str_1), _(str_2)) {
+    : WI_SWITCH_t<3>(init_index(), _(label), 0, true, false, str_0, str_1, str_2) {
 }
 
 void MI_UPDATE::OnChange(size_t /*old_index*/) {
