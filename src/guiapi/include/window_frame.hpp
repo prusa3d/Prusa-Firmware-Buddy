@@ -12,7 +12,7 @@ class window_frame_t : public AddSuperWindow<window_t> {
     virtual void invalidate(Rect16 validation_rect = Rect16()) override;
     virtual void validate(Rect16 validation_rect = Rect16()) override;
 
-    // this methods do not check rect or window type of win
+    // these methods do not check rect or window type of win
     // public methods RegisterSubWin/UnregisterSubWin does
     // reference is used so nullptr test can be skipped
     void unregisterConflictingPopUps(Rect16 rect, window_t *last_strong);

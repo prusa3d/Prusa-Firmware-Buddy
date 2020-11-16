@@ -114,10 +114,10 @@ protected:
 };
 
 enum TestResult_t : uint8_t {
-    sprUnknown,
-    sprSkipped,
-    sprPassed,
-    sprFailed,
+    sprUnknown = SelftestResult_Unknown,
+    sprSkipped = SelftestResult_Skipped,
+    sprPassed = SelftestResult_Passed,
+    sprFailed = SelftestResult_Failed,
 };
 
 class CSelftestPart {

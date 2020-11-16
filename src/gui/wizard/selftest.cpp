@@ -45,9 +45,7 @@ StateFncData StateFnc_SELFTEST_RESULT(StateFncData last_run) {
 
     SelftestResultEEprom_t result;
     result.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
-
-    result.reserved = (1 << SelftestResultEEprom_reserved_bits) - 1; //fill unused bites with with log 1
-    if (result.ui32 == UINT32_MAX) {
+    if (result.fan0 == SelftestResult_Passed && result.fan1 == SelftestResult_Passed && result.xaxis == SelftestResult_Passed && result.yaxis == SelftestResult_Passed && result.zaxis == SelftestResult_Passed && result.nozzle == SelftestResult_Passed && result.bed == SelftestResult_Passed) {
         eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
         MsgBoxPepa(translated_ok, Responses_Next);
         return last_run.PassToNext();
