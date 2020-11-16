@@ -13,40 +13,48 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-/*****************************************************************************/
-//MI_ALWAYS
-class MI_ALWAYS : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Always");
+class MI_UPDATE : public WI_SWITCH_t<3> {
+    constexpr static const char *const label = N_("Firmware Update");
+
+    constexpr static const char *str_0 = N_("Off");
+    constexpr static const char *str_1 = N_("On restart");
+    constexpr static const char *str_2 = N_("Always");
+
+    size_t init_index() const;
 
 public:
-    MI_ALWAYS()
-        : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? 1 : 0, _(label), 0, true, false) {}
-    virtual void OnChange(size_t old_index) override {
-        old_index == 0 ? sys_fw_update_enable() : sys_fw_update_disable();
-        Screens::Access()->WindowEvent(GUI_event_t::CLICK, (void *)index);
-    }
+    MI_UPDATE();
+
+protected:
+    virtual void OnChange(size_t) override;
 };
 
-/*****************************************************************************/
-//MI_ON_RESTART
-class MI_ON_RESTART : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("On restart");
+size_t MI_UPDATE::init_index() const {
+    return (size_t)sys_fw_update_is_enabled()
+        ? 1
+        : sys_fw_update_on_restart_is_enabled()
+            ? 2
+            : 0;
+}
 
-public:
-    MI_ON_RESTART()
-        : WI_SWITCH_OFF_ON_t(
-            sys_fw_update_is_enabled()
-                ? true
-                : (sys_fw_update_on_restart_is_enabled()
-                        ? true
-                        : false),
-            _(label), 0, sys_fw_update_is_enabled() ? false : true, false) {}
-    virtual void OnChange(size_t old_index) override {
-        old_index == 0 ? sys_fw_update_on_restart_enable() : sys_fw_update_on_restart_disable();
+MI_UPDATE::MI_UPDATE()
+    : WI_SWITCH_t<3>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(str_0), _(str_1), _(str_2)) {
+}
+
+void MI_UPDATE::OnChange(size_t /*old_index*/) {
+    if (index == 1) {
+        sys_fw_update_on_restart_enable();
+        sys_fw_update_disable();
+    } else if (index == 2) {
+        sys_fw_update_on_restart_disable();
+        sys_fw_update_enable();
+    } else if (index == 0) {
+        sys_fw_update_on_restart_disable();
+        sys_fw_update_disable();
     }
-};
+}
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_Default, MI_RETURN, MI_ALWAYS, MI_ON_RESTART>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_Default, MI_RETURN, MI_UPDATE>;
 
 class ScreenMenuFwUpdate : public Screen {
 public:
@@ -56,26 +64,7 @@ public:
         help.font = resource_font(IDR_FNT_SPECIAL);
         help.SetText(_("Select when you want to automatically flash updated firmware from USB flash disk."));
     }
-
-protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
-
-void ScreenMenuFwUpdate::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::CLICK) {
-        MI_ON_RESTART *mi_restart = &Item<MI_ON_RESTART>();
-        if (size_t(param) == 1) {
-            mi_restart->Disable();
-            mi_restart->index = 1;
-        } else {
-            mi_restart->Enable();
-            mi_restart->index = sys_fw_update_on_restart_is_enabled() ? 1 : 0;
-        }
-        Invalidate();
-    } else {
-        SuperWindowEvent(sender, event, param);
-    }
-}
 
 ScreenFactory::UniquePtr GetScreenMenuFwUpdate() {
     return ScreenFactory::Screen<ScreenMenuFwUpdate>();
