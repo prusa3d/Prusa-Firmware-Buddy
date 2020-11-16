@@ -7,14 +7,16 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #include "window.hpp"
 #include "ff.h"
-#include <stdbool.h>
 #include "file_list_defs.h"
 #include "display_helper.h"
 #include "../common/marlin_vars.h" // for FILE_PATH_MAX_LEN
 #include "lazyfilelist.h"
 #include "text_roll.hpp"
+#include "WindowMenuItems.hpp"
 
 using LDV9 = LazyDirView<9>;
 
@@ -31,6 +33,15 @@ inline LDV9 *LDV_Get(void) {
     static LDV9 ldv;
     return &ldv;
 }
+
+class FL_LABEL : public WI_LABEL_t {
+public:
+    FL_LABEL(string_view_utf8 label, uint16_t id_icon)
+        : WI_LABEL_t(label, id_icon, is_enabled_t::yes, is_hidden_t::no) {}
+
+protected:
+    virtual void click(IWindowMenu &window_menu) {}
+};
 
 struct window_file_list_t : public window_aligned_t {
     color_t color_text;
@@ -58,6 +69,6 @@ protected:
 
 private:
     virtual void unconditionalDraw() override;
-    void inc(int dif);
-    void dec(int dif);
+    void inc(int dif);   ///< negative values move cursor in opposite direction
+    FL_LABEL activeItem; ///< used for text rolling
 };

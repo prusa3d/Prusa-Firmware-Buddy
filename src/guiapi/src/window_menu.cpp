@@ -287,7 +287,7 @@ void window_menu_t::redrawWholeMenu() {
     }
 
     /// fill the rest of the window by background
-    const int16_t menu_h = visible_count * (item_height + 1);
+    const int menu_h = visible_count * (item_height + 1);
     Rect16 rc_win = rect;
     rc_win -= Rect16::Height_t(menu_h);
     if (rc_win.Height() <= 0)
