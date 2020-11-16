@@ -6,29 +6,8 @@
 #include "gui.hpp"
 #include "sound.hpp"
 #include "resource.h"
-#include "IWindowMenuItem.hpp"
+#include "WindowMenuItems.hpp"
 #include "cmath_ext.h"
-
-IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
-    : window_aligned_t(parent, rect)
-    , color_text(GuiDefaults::ColorText)
-    , color_disabled(GuiDefaults::ColorDisabled)
-    , font(GuiDefaults::Font)
-    , padding { 6, 6, 6, 6 } {
-    SetIconWidth(25);
-    Enable();
-}
-
-uint8_t IWindowMenu::GetIconWidth() const {
-    //mem_array_u08[0] is alignment
-    return flags.mem_array_u08[1];
-}
-
-void IWindowMenu::SetIconWidth(uint8_t width) {
-    //mem_array_u08[0] is alignment
-    flags.mem_array_u08[1] = width;
-    Invalidate();
-}
 
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
@@ -155,8 +134,8 @@ bool window_menu_t::updateTopIndex() {
     if (index == top_index)
         return false;
 
-    const int item_height = font->h + padding.top + padding.bottom;
-    const int visible_available = rect.Height() / item_height;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
+    const int visible_available = rect.Height() / (item_height + 1); // 1 pixel for menu item delimeter
 
     const int visible_index = visibleIndex(index);
 
@@ -197,14 +176,14 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         break;
     case GUI_event_t::ENC_DN:
         if (item->IsSelected()) {
-            invalid |= playEncoderSound(item->Decrement(value));
+            invalid |= playEncoderSound(item->Decrement(value) == invalidate_t::yes);
         } else {
             Decrement(value);
         }
         break;
     case GUI_event_t::ENC_UP:
         if (item->IsSelected()) {
-            invalid |= playEncoderSound(item->Increment(value));
+            invalid |= playEncoderSound(item->Increment(value) == invalidate_t::yes);
         } else {
             Increment(value);
         }
@@ -227,15 +206,18 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
     if (item == nullptr)
         return;
 
+    uint16_t rc_w = rect.Width() - (GuiDefaults::MenuHasScrollbar ? GuiDefaults::MenuScrollbarWidth : 0);
     Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * item_height),
-        rect.Width(), uint16_t(item_height) };
+        rc_w, uint16_t(item_height - 1) }; // 1 pixel from Height is for gray menu item delimeter
 
     if (rect.Contain(rc)) {
 
         //only place I know rectangle to be able to reinit roll, ugly to do it in print
-        item->InitRollIfNeeded(*this, rc);
+        item->InitRollIfNeeded(rc);
 
-        item->Print(*this, rc);
+        item->Print(rc);
+        if (GuiDefaults::MenuLinesBetweenItems)
+            display::DrawLine(point_ui16(rc.Left() + GuiDefaults::MenuItemDelimiterPadding, rc.Top() + rc.Height()), point_ui16(rc.Left() + rc.Width() - 2 * GuiDefaults::MenuItemDelimiterPadding, rc.Top() + rc.Height()), COLOR_SILVER);
     }
 }
 
@@ -269,25 +251,43 @@ void window_menu_t::unconditionalDraw() {
     }
 }
 
+void window_menu_t::printScrollBar(size_t available_count, uint16_t visible_count) {
+    uint16_t scroll_item_height = rect.Height() / available_count;
+    uint16_t sb_y_start = rect.Top() + top_index * scroll_item_height;
+    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - GuiDefaults::MenuScrollbarWidth), rect.Top(), GuiDefaults::MenuScrollbarWidth, rect.Height()), color_back);
+    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - GuiDefaults::MenuScrollbarWidth), sb_y_start, GuiDefaults::MenuScrollbarWidth, visible_count * scroll_item_height), COLOR_SILVER);
+}
+
 void window_menu_t::redrawWholeMenu() {
-    const int item_height = font->h + padding.top + padding.bottom;
-    const size_t visible_available = rect.Height() / item_height;
-    size_t visible_count = 0;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
+    const size_t visible_available = rect.Height() / (item_height + 1);
+    size_t visible_count = 0, available_invisible_count = 0;
     IWindowMenuItem *item;
-    for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
+    for (size_t i = 0; i < GetCount(); ++i) {
 
         item = GetItem(i);
         if (!item)
             break;
         if (item->IsHidden())
             continue;
+        if (visible_count < visible_available && i >= top_index) {
+            printItem(visible_count, item, item_height + 1);
+        }
+        if (i < top_index || visible_count >= visible_available) {
+            available_invisible_count++;
+        } else {
+            visible_count++;
+        }
+    }
 
-        printItem(visible_count, item, item_height);
-        ++visible_count;
+    if (GuiDefaults::MenuHasScrollbar) {
+        if (available_invisible_count) {
+            printScrollBar(visible_count + available_invisible_count, visible_count);
+        }
     }
 
     /// fill the rest of the window by background
-    const int16_t menu_h = visible_count * item_height;
+    const int16_t menu_h = visible_count * (item_height + 1);
     Rect16 rc_win = rect;
     rc_win -= Rect16::Height_t(menu_h);
     if (rc_win.Height() <= 0)
@@ -297,8 +297,8 @@ void window_menu_t::redrawWholeMenu() {
 }
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {
-    const int item_height = font->h + padding.top + padding.bottom;
-    const size_t visible_available = rect.Height() / item_height;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
+    const size_t visible_available = rect.Height() / (item_height + 1); // 1 pixel for menu item delimeter
     size_t visible_count = 0;
     IWindowMenuItem *item = nullptr;
     for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
@@ -308,7 +308,7 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
         if (item->IsHidden())
             continue;
         if (i == index) {
-            printItem(visible_count, item, item_height);
+            printItem(visible_count, item, item_height + 1); // 1 pixel for menu item delimeter
             break;
         }
         ++visible_count;

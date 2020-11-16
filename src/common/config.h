@@ -26,11 +26,6 @@ enum {
 #define CRC32_USE_HW
 #define CRC32_USE_RTOS
 
-//uart2 rx complete signal
-enum {
-    UART2_SIG_RXCPL = 0x4, /// converted to int32_t
-};
-
 //guiconfig.h included with config
 #include "guiconfig.h"
 

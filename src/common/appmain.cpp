@@ -2,6 +2,7 @@
 
 #include "appmain.hpp"
 #include "app.h"
+#include "app_metrics.h"
 #include "dbg.h"
 #include "cmsis_os.h"
 #include "config.h"
@@ -68,17 +69,22 @@ extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mo
 #endif                                 //BUDDY_ENABLE_ETHERNET
 
 void app_setup(void) {
+    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
+        init_tmc();
+    } else {
+        init_tmc_bare_minimum();
+    }
+
     setup();
 
     marlin_server_settings_load(); // load marlin variables from eeprom
-
-    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
-        init_tmc();
-    }
     //DBG("after init_tmc (%ld ms)", HAL_GetTick());
 }
 
 void app_idle(void) {
+    Buddy::Metrics::RecordMarlinVariables();
+    Buddy::Metrics::RecordRuntimeStats();
+    Buddy::Metrics::RecordPrintFilename();
     osDelay(0); // switch to other threads - without this is UI slow during printing
 }
 

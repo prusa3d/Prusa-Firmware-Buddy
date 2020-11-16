@@ -42,7 +42,7 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_FILAMENT_SENSOR()
-        : WI_SWITCH_OFF_ON_t(init_index(), _(label), 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     void CheckDisconnected() {
         fsensor_t fs = fs_wait_initialized();
         if (fs == fsensor_t::NotConnected) { //only way to have this state is that fs just disconnected

@@ -98,10 +98,11 @@ const int16_t MenuVars::extrude_min_temp = EXTRUDE_MINTEMP;
 
 const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::nozzle_range = { 0, (HEATER_0_MAXTEMP - 15), 1 };
 const std::array<uint8_t, MenuVars::RANGE_SZ> MenuVars::bed_range = { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 };
-const std::array<uint8_t, MenuVars::RANGE_SZ> MenuVars::printfan_range = { 0, 255, 1 };
-const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::flowfact_range = { 50, 150, 1 };
-const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::feedrate_range = { 10, 255, 1 };
 const std::array<float, MenuVars::RANGE_SZ> MenuVars::zoffset_fl_range = { z_offset_min, z_offset_max, z_offset_step };
+
+const std::array<uint8_t, MenuVars::RANGE_SZ> MenuVars::printfan_range;
+const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::flowfact_range;
+const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::feedrate_range;
 
 constexpr const int32_t filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
 constexpr const int32_t filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;

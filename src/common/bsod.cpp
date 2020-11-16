@@ -39,6 +39,7 @@
     #include "../../lib/Prusa-Error-Codes/12_MINI/errors_list.h"
     #include "../../lib/Marlin/Marlin/src/core/language.h"
     #include "../../lib/Marlin/Marlin/src/lcd/language/language_en.h"
+    #include "scratch_buffer.hpp"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -281,7 +282,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         win.bg_color = COLOR_WHITE;
 
         /// use PNG RAM for QR code image
-        uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
+        uint8_t *qrcode = scratch_buffer;
         uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
 
         if (generate_qr(qr_text, qrcode, qr_buff)) {
