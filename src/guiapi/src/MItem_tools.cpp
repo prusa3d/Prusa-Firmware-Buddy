@@ -40,7 +40,7 @@ MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
 }
 
 void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
-    LiveAdjustZ::Open();
+    LiveAdjustZ::Show();
 }
 
 /*****************************************************************************/

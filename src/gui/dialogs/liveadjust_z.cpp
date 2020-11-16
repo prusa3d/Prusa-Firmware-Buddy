@@ -259,7 +259,7 @@ void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
 }
 
 /// static
-void LiveAdjustZ::Open() {
+void LiveAdjustZ::Show() {
     LiveAdjustZ liveadjust;
     liveadjust.MakeBlocking();
 }

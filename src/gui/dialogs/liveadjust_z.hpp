@@ -72,10 +72,10 @@ class LiveAdjustZ : public AddSuperWindow<IDialog> {
     WindowScale scale;
     window_frame_t moveLine;
 
-    LiveAdjustZ(); // created by static Open method
+    LiveAdjustZ(); // created by static Show method
 
 public:
-    static void Open();
+    static void Show();
 
 protected:
     void moveNozzle();
