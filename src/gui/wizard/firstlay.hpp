@@ -11,5 +11,4 @@ StateFncData StateFnc_FIRSTLAY_MSBX_USEVAL(StateFncData last_run);
 StateFncData StateFnc_FIRSTLAY_MSBX_START_PRINT(StateFncData last_run);
 StateFncData StateFnc_FIRSTLAY_PRINT(StateFncData last_run);
 StateFncData StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_PASS(StateFncData last_run);
-StateFncData StateFnc_FIRSTLAY_FAIL(StateFncData last_run);
+StateFncData StateFnc_FIRSTLAY_RESULT(StateFncData last_run);

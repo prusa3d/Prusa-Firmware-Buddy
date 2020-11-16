@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include "ff.h"
+#include "eeprom.h"
 
 #define SELFTEST_MAX_LOG_PRINTF 128
 #define SELFTEST_LOOP_PERIODE   50
@@ -60,20 +61,6 @@ typedef enum _SelftestHomeState_t : uint8_t {
     sthsHommingInProgress,
     sthsHommingFinished,
 } SelftestHomeState_t;
-
-typedef union _SelftestResultEEprom_t {
-    struct {
-        uint8_t fan0 : 2;       // bit 0-1
-        uint8_t fan1 : 2;       // bit 2-3
-        uint8_t xaxis : 2;      // bit 4-5
-        uint8_t yaxis : 2;      // bit 6-7
-        uint8_t zaxis : 2;      // bit 8-9
-        uint8_t nozzle : 2;     // bit 10-11
-        uint8_t bed : 2;        // bit 12-13
-        uint32_t reserved : 18; // bit 14-31
-    };
-    uint32_t ui32;
-} SelftestResultEEprom_t;
 
 // class representing whole self-test
 class CSelftest {

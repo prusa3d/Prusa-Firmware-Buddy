@@ -15,5 +15,4 @@ StateFncData StateFnc_XYZCALIB_XY_MSG_PLACE_PAPER(StateFncData last_run);
 StateFncData StateFnc_XYZCALIB_XY_SEARCH(StateFncData last_run);
 StateFncData StateFnc_XYZCALIB_XY_MSG_PLACE_SHEET(StateFncData last_run);
 StateFncData StateFnc_XYZCALIB_XY_MEASURE(StateFncData last_run);
-StateFncData StateFnc_XYZCALIB_PASS(StateFncData last_run);
-StateFncData StateFnc_XYZCALIB_FAIL(StateFncData last_run);
+StateFncData StateFnc_XYZCALIB_RESULT(StateFncData last_run);

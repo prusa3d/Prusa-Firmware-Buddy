@@ -36,7 +36,6 @@ protected:
 public:
     static void ChangeStartState(WizardState_t state) { start_state = state; }
     ScreenWizard();
-    ~ScreenWizard();
 
     static void RunAll();
     static void RunSelfTest();

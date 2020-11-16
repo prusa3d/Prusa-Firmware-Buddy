@@ -22,11 +22,10 @@ enum class WizardState_t {
     SELFTEST_Z,
     SELFTEST_XYZ,
     SELFTEST_TEMP,
-    SELFTEST_PASS,
-    SELFTEST_FAIL,
-    SELFTEST_last = SELFTEST_FAIL,
+    SELFTEST_RESULT,
+    SELFTEST_last = SELFTEST_RESULT,
 
-    SELFTEST_AND_XYZCALIB, //SELFTEST_PASS has different message when it is combined with XYZCALIB
+    SELFTEST_AND_XYZCALIB, //SELFTEST_RESULT has different message when it is combined with XYZCALIB
 
     XYZCALIB_first,
     XYZCALIB_INIT = XYZCALIB_first,
@@ -39,9 +38,8 @@ enum class WizardState_t {
     XYZCALIB_XY_SEARCH,
     XYZCALIB_XY_MSG_PLACE_SHEET,
     XYZCALIB_XY_MEASURE,
-    XYZCALIB_PASS,
-    XYZCALIB_FAIL,
-    XYZCALIB_last = XYZCALIB_FAIL,
+    XYZCALIB_RESULT,
+    XYZCALIB_last = XYZCALIB_RESULT,
 
     FIRSTLAY_first,
     FIRSTLAY_FILAMENT_ASK = FIRSTLAY_first,
@@ -54,9 +52,8 @@ enum class WizardState_t {
     FIRSTLAY_MSBX_START_PRINT,
     FIRSTLAY_PRINT,
     FIRSTLAY_MSBX_REPEAT_PRINT,
-    FIRSTLAY_PASS,
-    FIRSTLAY_FAIL, //cannot fail now, but could due MINDA issue
-    FIRSTLAY_last = FIRSTLAY_FAIL,
+    FIRSTLAY_RESULT,
+    FIRSTLAY_last = FIRSTLAY_RESULT,
 
     FINISH,
     EXIT,
@@ -82,8 +79,8 @@ constexpr uint64_t WizardMaskSelfTest() {
         & ~WizardMaskRange(WizardState_t::SELFTEST_X, WizardState_t::SELFTEST_Z); //exclude standalone axis tests
 }
 constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(WizardState_t::XYZCALIB_first, WizardState_t::XYZCALIB_last) | WizardMaskStart(); }
-constexpr uint64_t WizardMaskSelfTestAndXYZCalib() { //SELFTEST_PASS has different message when it is combined with XYZCALIB
-    return (WizardMaskSelfTest() | WizardMaskXYZCalib() | WizardMask(WizardState_t::SELFTEST_AND_XYZCALIB)) & ~WizardMask(WizardState_t::SELFTEST_PASS);
+constexpr uint64_t WizardMaskSelfTestAndXYZCalib() { //SELFTEST_RESULT has different message when it is combined with XYZCALIB
+    return (WizardMaskSelfTest() | WizardMaskXYZCalib() | WizardMask(WizardState_t::SELFTEST_AND_XYZCALIB)) & ~WizardMask(WizardState_t::SELFTEST_RESULT);
 }
 constexpr uint64_t WizardMaskFirstLay() {
     return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::EXIT) /* | WizardMaskStart()*/;

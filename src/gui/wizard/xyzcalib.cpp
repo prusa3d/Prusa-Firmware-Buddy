@@ -92,11 +92,7 @@ StateFncData StateFnc_XYZCALIB_XY_MEASURE(StateFncData last_run) {
     return last_run.PassToNext();
 }
 
-StateFncData StateFnc_XYZCALIB_PASS(StateFncData last_run) {
-    return last_run.PassToNext();
-}
-
-StateFncData StateFnc_XYZCALIB_FAIL(StateFncData last_run) {
+StateFncData StateFnc_XYZCALIB_RESULT(StateFncData last_run) {
     return last_run.PassToNext();
 }
 
@@ -214,5 +210,95 @@ int xyzcalib_is_ok(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t
     ok &= (p_data->state_xy_measure == _TEST_PASSED);
     return ok;
 }
+
+.........................................................................................
+
+            case _STATE_XYZCALIB_INIT:
+                pd->state = _STATE_XYZCALIB_HOME;
+                pd->frame_footer.Show();
+                wizard_init(0, 0);
+                break;
+            case _STATE_XYZCALIB_HOME:
+                if (xyzcalib_home(frame_id, p_xyzcalib_screen, p_xyzcalib_data) == 100)
+                    pd->state = _STATE_XYZCALIB_Z;
+                break;
+            case _STATE_XYZCALIB_Z:
+                if (xyzcalib_z(frame_id, p_xyzcalib_screen, p_xyzcalib_data) == 100)
+                    pd->state = _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE;
+                break;
+            case _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE:
+                pd->screen_variant.xyzcalib_screen.text_state.SetText(_("Calibration XY"));
+                wizard_msgbox1(_(
+                                   "Please clean the nozzle "
+                                   "for calibration. Click "
+                                   "NEXT when done."),
+                    MSGBOX_BTN_NEXT, 0);
+                pd->state = _STATE_XYZCALIB_XY_MSG_IS_SHEET;
+                break;
+            case _STATE_XYZCALIB_XY_MSG_IS_SHEET:
+                if (wizard_msgbox1(_(
+                                       "Is steel sheet "
+                                       "on heatbed?"),
+                        MSGBOX_BTN_YESNO, 0)
+                    == MSGBOX_RES_YES)
+                    pd->state = _STATE_XYZCALIB_XY_MSG_REMOVE_SHEET;
+                else
+                    pd->state = _STATE_XYZCALIB_XY_MSG_PLACE_PAPER;
+                break;
+            case _STATE_XYZCALIB_XY_MSG_REMOVE_SHEET:
+                wizard_msgbox1(_(
+                                   "Please remove steel "
+                                   "sheet from heatbed."),
+                    MSGBOX_BTN_NEXT, 0);
+                pd->state = _STATE_XYZCALIB_XY_MSG_PLACE_PAPER;
+                break;
+            case _STATE_XYZCALIB_XY_MSG_PLACE_PAPER:
+                wizard_msgbox1(_(
+                                   "Place a sheet of paper "
+                                   "under the nozzle during "
+                                   "the calibration of first "
+                                   "4 points. "
+                                   "If the nozzle "
+                                   "catches the paper, power "
+                                   "off printer immediately!"),
+                    MSGBOX_BTN_NEXT, 0);
+                pd->state = _STATE_XYZCALIB_XY_SEARCH;
+                break;
+            case _STATE_XYZCALIB_XY_SEARCH:
+                if (xyzcalib_xy_search(frame_id, p_xyzcalib_screen, p_xyzcalib_data) == 100)
+                    pd->state = _STATE_XYZCALIB_XY_MSG_PLACE_SHEET;
+                break;
+            case _STATE_XYZCALIB_XY_MSG_PLACE_SHEET:
+                wizard_msgbox1(_(
+                                   "Please place steel sheet "
+                                   "on heatbed."),
+                    MSGBOX_BTN_NEXT, 0);
+                pd->state = _STATE_XYZCALIB_XY_MEASURE;
+                break;
+            case _STATE_XYZCALIB_XY_MEASURE:
+                if (xyzcalib_xy_measure(frame_id, p_xyzcalib_screen, p_xyzcalib_data) == 100) {
+                    pd->state = xyzcalib_is_ok(frame_id, p_xyzcalib_screen, p_xyzcalib_data)
+                        ? _STATE_XYZCALIB_RESULT
+                        : _STATE_XYZCALIB_FAIL;
+                    wizard_done_screen(screen);
+                }
+                break;
+            case _STATE_XYZCALIB_RESULT:
+                eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
+                wizard_msgbox(_(
+                                  "Congratulations! "
+                                  "XYZ calibration is ok. "
+                                  "XY axes are "
+                                  "perpendicular."),
+                    MSGBOX_BTN_NEXT, IDR_PNG_pepa_64px);
+                pd->state = _STATE_FIRSTLAY_INIT;
+                break;
+            case _STATE_XYZCALIB_FAIL:
+                wizard_msgbox(_(
+                                  "The XYZ calibration failed to finish. "
+                                  "Double-check the printer's wiring and axes, then restart the XYZ calibration."),
+                    MSGBOX_BTN_DONE, 0);
+                Screens::Access()->Close();
+                break;
 
 #endif //0

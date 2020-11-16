@@ -13,19 +13,6 @@
 #include <algorithm>         // std::max
 #include "screen_wizard.hpp" // ChangeStartState
 
-//Do I need this?
-/*
-            case _STATE_FIRSTLAY_INIT: {
-                pd->state = _STATE_FIRSTLAY_LOAD;
-                pd->frame_footer.Show();
-                FILAMENT_t filament = get_filament();
-                if (filament == FILAMENT_NONE || fs_get_state() == NoFilament)
-                    filament = FILAMENT_PLA;
-                wizard_init(filaments[filament].nozzle, filaments[filament].heatbed);
-                p_firstlay_screen->load_unload_state = LD_UNLD_INIT;
-            } break;
-*/
-
 enum {
     FKNOWN = 0x01,      //filament is known
     F_NOTSENSED = 0x02, //filament is not in sensor
@@ -166,7 +153,6 @@ StateFncData StateFnc_FIRSTLAY_PRINT(StateFncData last_run) {
     marlin_gcode_printf("M109 S%d", temp_nozzle);                          // wait for displayed temperature
     marlin_gcode("G26");                                                   //firstlay
 
-    //todo save to eeprom
     auto ret = last_run.PassToNext();
     ScreenWizard::ChangeStartState(ret.GetState()); //marlin_gcode("G26"); will close wizard screen, need to save reopen state
     return ret;
@@ -179,9 +165,7 @@ StateFncData StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT(StateFncData last_run) {
         marlin_gcode("M104 S0"); // nozzle target
         marlin_gcode("M140 S0"); // bed target
 
-        //eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(p_firstlay_screen->Z_offset));
-        //eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
-        return StateFncData(WizardState_t::FIRSTLAY_PASS, WizardTestState_t::PASSED);
+        return StateFncData(WizardState_t::FIRSTLAY_RESULT, WizardTestState_t::PASSED);
     } else {
         static const char en_text[] = N_("Clean steel sheet.");
         string_view_utf8 translatedText = _(en_text);
@@ -191,15 +175,17 @@ StateFncData StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT(StateFncData last_run) {
     }
 }
 
-StateFncData StateFnc_FIRSTLAY_PASS(StateFncData last_run) {
-    //seve eeprom flag
+StateFncData StateFnc_FIRSTLAY_RESULT(StateFncData last_run) {
+    //save eeprom flag
+    eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
     return StateFncData(WizardState_t::FINISH, WizardTestState_t::PASSED);
-}
 
-StateFncData StateFnc_FIRSTLAY_FAIL(StateFncData last_run) {
-    //seve eeprom flag
+    //use folowing code when firstlay fails
+#if 0
+    //save eeprom flag
     static const char en_text[] = N_("The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration.");
     string_view_utf8 translatedText = _(en_text);
     MsgBox(translatedText, Responses_Next);
     return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
+#endif //#if 0
 }
