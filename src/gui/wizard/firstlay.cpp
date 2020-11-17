@@ -37,7 +37,7 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK() {
         string_view_utf8 translatedText = _(en_text);
         switch (MsgBox(translatedText, responses, def_bt)) {
         case Response::Next:
-            return WizardState_t::FIRSTLAY_FILAMENT_last;
+            return WizardState_t::FIRSTLAY_MSBX_CALIB;
         case Response::Unload:
             return WizardState_t::FIRSTLAY_FILAMENT_UNLOAD;
         default:
@@ -69,17 +69,17 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK() {
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT() {
     gui_dlg_preheat_forced(_("Select Filament Type"));
-    return WizardState_t::FIRSTLAY_FILAMENT_last;
+    return WizardState_t::FIRSTLAY_MSBX_CALIB;
 }
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_LOAD() {
     switch (gui_dlg_load_forced()) {
     case DLG_OK:
-        return WizardState_t::FIRSTLAY_FILAMENT_last;
+        return WizardState_t::FIRSTLAY_MSBX_CALIB;
     case DLG_ABORTED:
         return WizardState_t::FIRSTLAY_FILAMENT_ASK;
     default:
-        return WizardState_t::FIRSTLAY_FILAMENT_last;
+        return WizardState_t::FIRSTLAY_MSBX_CALIB;
     }
 }
 
@@ -90,7 +90,7 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_UNLOAD() {
     case DLG_ABORTED:
         return WizardState_t::FIRSTLAY_FILAMENT_ASK;
     default:
-        return WizardState_t::FIRSTLAY_FILAMENT_last;
+        return WizardState_t::FIRSTLAY_MSBX_CALIB;
     }
 }
 
@@ -142,13 +142,13 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
     marlin_gcode_printf("M140 S%d", temp_bed);                             // bed target
     marlin_gcode_printf("M109 R%d", temp_nozzle_preheat);                  // Set target temperature, wait even if cooling
     marlin_gcode_printf("M190 S", temp_bed);                               // Set target temperature, wait
-    marlin_gcode("G28");                                                   //autohome
-    marlin_gcode("G29");                                                   //mbl
+    marlin_gcode("G28");                                                   // autohome
+    marlin_gcode("G29");                                                   // mbl
     marlin_gcode_printf("M104 S%d", temp_nozzle);                          // set displayed temperature
     marlin_gcode_printf("M109 S%d", temp_nozzle);                          // wait for displayed temperature
-    marlin_gcode("G26");                                                   //firstlay
+    marlin_gcode("G26");                                                   // firstlay
 
-    WizardState_t ret = WizardState_t::next;
+    WizardState_t ret = WizardState_t::FIRSTLAY_MSBX_REPEAT_PRINT;
     ScreenWizard::ChangeStartState(ret); //marlin_gcode("G26"); will close wizard screen, need to save reopen state
     return ret;
 }

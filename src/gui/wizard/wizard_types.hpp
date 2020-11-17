@@ -48,7 +48,6 @@ enum class WizardState_t {
     FIRSTLAY_FILAMENT_ASK_PREHEAT,
     FIRSTLAY_FILAMENT_LOAD,
     FIRSTLAY_FILAMENT_UNLOAD,
-    FIRSTLAY_FILAMENT_last = FIRSTLAY_FILAMENT_UNLOAD,
     FIRSTLAY_MSBX_CALIB,
     FIRSTLAY_MSBX_USEVAL,
     FIRSTLAY_MSBX_START_PRINT,
@@ -91,30 +90,6 @@ constexpr uint64_t WizardMaskFirstLay() {
 //disabled XYZ calib
 constexpr uint64_t WizardMaskAll() { return WizardMaskStart() | WizardMaskSelfTest() | WizardMaskFirstLay(); }
 
-enum class WizardTestState_t : uint8_t {
-    START,
-    RUNNING,
-    PASSED,
-    FAILED,
-    DISABLED
-};
-
-constexpr uint64_t DidTestPass(WizardTestState_t result) {
-    return (result == WizardTestState_t::PASSED) || (result == WizardTestState_t::DISABLED);
-}
-
-constexpr uint64_t IsTestDone(WizardTestState_t result) {
-    return DidTestPass(result) || (result == WizardTestState_t::FAILED);
-}
-
 constexpr bool IsStateInWizardMask(WizardState_t st, uint64_t mask) {
     return ((((uint64_t)1) << int(st)) & mask) != 0;
-}
-
-constexpr WizardTestState_t InitState(WizardState_t st, uint64_t mask) {
-    if (IsStateInWizardMask(st, mask)) {
-        return WizardTestState_t::START;
-    } else {
-        return WizardTestState_t::DISABLED;
-    }
 }

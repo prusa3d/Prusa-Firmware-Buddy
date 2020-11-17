@@ -95,8 +95,8 @@ void ScreenWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender,
     AutoRestore<bool> AR(loopInProgress);
     loopInProgress = true;
 
-    while (run_mask & (1 << int(state))) {     // skip disabled states
-        state = WizardState_t(int(state) + 1); // skip disabled states
+    while (!IsStateInWizardMask(state, run_mask) && state != WizardState_t::last) { // skip disabled states
+        state = WizardState_t(int(state) + 1);                                      // skip disabled states
         repaint_caption = true;
     }
     if (repaint_caption) {
@@ -234,7 +234,7 @@ ScreenWizard::StateArray ScreenWizard::StateInitializer() {
     ret[static_cast<size_t>(WizardState_t::FIRSTLAY_MSBX_REPEAT_PRINT)] = StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT;
     ret[static_cast<size_t>(WizardState_t::FIRSTLAY_RESULT)] = StateFnc_FIRSTLAY_RESULT;
 
-    ret[static_cast<size_t>(WizardState_t::EXIT)] = StateFnc_FINISH;
+    ret[static_cast<size_t>(WizardState_t::FINISH)] = StateFnc_FINISH;
     ret[static_cast<size_t>(WizardState_t::EXIT)] = StateFnc_EXIT;
 
     is_config_invalid = false;
