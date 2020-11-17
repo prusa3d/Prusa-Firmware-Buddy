@@ -141,7 +141,7 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
     marlin_gcode_printf("M104 S%d D%d", temp_nozzle_preheat, temp_nozzle); // nozzle target
     marlin_gcode_printf("M140 S%d", temp_bed);                             // bed target
     marlin_gcode_printf("M109 R%d", temp_nozzle_preheat);                  // Set target temperature, wait even if cooling
-    marlin_gcode_printf("M190 S", temp_bed);                               // Set target temperature, wait
+    marlin_gcode_printf("M190 R%d", temp_bed);                             // Set target temperature, wait even if cooling
     marlin_gcode("G28");                                                   // autohome
     marlin_gcode("G29");                                                   // mbl
     marlin_gcode_printf("M104 S%d", temp_nozzle);                          // set displayed temperature
