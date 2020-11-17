@@ -155,6 +155,12 @@ WizardState_t StateFnc_INIT() {
         if (fs_wait_initialized() == fsensor_t::NotConnected)
             fs_disable();
     }
+
+    //preheat for SELFTEST_TEMP, so selftest is quicker
+    if (IsStateInWizardMask(WizardState_t::SELFTEST_TEMP, ScreenWizard::GetMask())) {
+        marlin_gcode("M104 S35"); // Set nozzle temperature 35
+        marlin_gcode("M140 S35"); // Set bed temperature 35
+    }
     return WizardState_t::next;
 }
 
