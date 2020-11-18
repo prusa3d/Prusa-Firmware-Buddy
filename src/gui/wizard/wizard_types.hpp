@@ -27,8 +27,6 @@ enum class WizardState_t {
     SELFTEST_RESULT,
     SELFTEST_last = SELFTEST_RESULT,
 
-    SELFTEST_AND_XYZCALIB, //SELFTEST_RESULT has different message when it is combined with XYZCALIB
-
     XYZCALIB_first,
     XYZCALIB_INIT = XYZCALIB_first,
     XYZCALIB_HOME,
@@ -81,7 +79,7 @@ constexpr uint64_t WizardMaskSelfTest() {
 }
 constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(WizardState_t::XYZCALIB_first, WizardState_t::XYZCALIB_last) | WizardMaskStart(); }
 constexpr uint64_t WizardMaskSelfTestAndXYZCalib() { //SELFTEST_RESULT has different message when it is combined with XYZCALIB
-    return (WizardMaskSelfTest() | WizardMaskXYZCalib() | WizardMask(WizardState_t::SELFTEST_AND_XYZCALIB)) & ~WizardMask(WizardState_t::SELFTEST_RESULT);
+    return (WizardMaskSelfTest() | WizardMaskXYZCalib());
 }
 constexpr uint64_t WizardMaskFirstLay() {
     return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMask(WizardState_t::EXIT) | WizardMask(WizardState_t::EXIT) /* | WizardMaskStart()*/;

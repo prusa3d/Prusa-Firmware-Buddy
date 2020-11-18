@@ -215,8 +215,6 @@ ScreenWizard::StateArray ScreenWizard::StateInitializer() {
     ret[static_cast<size_t>(WizardState_t::SELFTEST_TEMP)] = StateFnc_SELFTEST_TEMP;
     ret[static_cast<size_t>(WizardState_t::SELFTEST_RESULT)] = StateFnc_SELFTEST_RESULT;
 
-    ret[static_cast<size_t>(WizardState_t::SELFTEST_AND_XYZCALIB)] = StateFnc_SELFTEST_AND_XYZCALIB;
-
     ret[static_cast<size_t>(WizardState_t::XYZCALIB_INIT)] = StateFnc_XYZCALIB_INIT;
     ret[static_cast<size_t>(WizardState_t::XYZCALIB_HOME)] = StateFnc_XYZCALIB_HOME;
     ret[static_cast<size_t>(WizardState_t::XYZCALIB_Z)] = StateFnc_XYZCALIB_Z;
