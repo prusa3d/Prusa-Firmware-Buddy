@@ -37,7 +37,8 @@ public:
     virtual void OnClick() {}
     inline void ClrVal() { value.u32 = 0; }
     inline void SetVal(SpinType val) { value = val; }
-    inline SpinType GetVal() const { return value; }
+    /// don't define GetVal here since we don't know the return type yet
+    /// and C++ does not allow return type overloading (yet)
 };
 
 /*****************************************************************************/
@@ -55,6 +56,8 @@ protected:
 public:
     WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
     virtual invalidate_t Change(int dif) override;
+    /// returns the same type to be on the safe side (SpinType is not type safe)
+    T GetVal() const { return value; }
 };
 
 /*****************************************************************************/
