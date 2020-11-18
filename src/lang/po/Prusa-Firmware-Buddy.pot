@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-11-06 11:21+0100\n"
+"POT-Creation-Date: 2020-11-18 14:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,7 +30,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:186
+#: src/guiapi/src/MItem_tools.cpp:187
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr ""
 
@@ -44,7 +44,7 @@ msgstr ""
 msgid "Adjust the nozzle height above the heatbed by turning the knob"
 msgstr ""
 
-#: src/gui/wizard/selftest.cpp:40
+#: src/gui/wizard/selftest.cpp:42
 msgid "All tests finished successfully!"
 msgstr ""
 
@@ -56,7 +56,7 @@ msgstr ""
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:276
+#: src/guiapi/include/MItem_tools.hpp:277
 msgid "Assist"
 msgstr ""
 
@@ -99,19 +99,19 @@ msgstr ""
 msgid "CPU load"
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:174
+#: src/gui/wizard/xyzcalib.cpp:170
 msgid "Calibrating Z"
 msgstr ""
 
-#: src/gui/screen_home.cpp:35
+#: src/gui/screen_home.cpp:36
 msgid "Calibration"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:75
+#: src/gui/wizard/xyzcalib.cpp:230
 msgid "Calibration XY"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:326
+#: src/gui/wizard/screen_wizard.cpp:191
 msgid "Calibration successful! Happy printing!"
 msgstr ""
 
@@ -151,11 +151,11 @@ msgstr ""
 msgid "Checking hotend and heatbed heaters"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:186
+#: src/gui/wizard/firstlay.cpp:165
 msgid "Clean steel sheet."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:134
+#: src/gui/wizard/xyzcalib.cpp:289
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
 msgstr ""
 
@@ -184,14 +184,14 @@ msgstr ""
 msgid "Disconnect"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:176
+#: src/gui/wizard/firstlay.cpp:157
 msgid ""
 "Do you want to repeat the last step and readjust the distance between the "
 "nozzle and heatbed?"
 msgstr ""
 
 #. c=20 r=6
-#: src/gui/wizard/firstlay.cpp:130
+#: src/gui/wizard/firstlay.cpp:112
 #, c-format
 msgid ""
 "Do you want to use the current value?\n"
@@ -212,13 +212,13 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:188
+#: src/guiapi/src/MItem_tools.cpp:189
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
 msgstr ""
 
-#: src/gui/wizard/selftest.cpp:54
+#: src/gui/wizard/selftest.cpp:44
 msgid ""
 "Everything is alright. I will run XYZ calibration now. It will take "
 "approximately 12 minutes."
@@ -228,7 +228,7 @@ msgstr ""
 msgid "FILAMENT"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:184
+#: src/gui/wizard/screen_wizard.cpp:54
 msgid "FIRST LAYER CALIBRATION"
 msgstr ""
 
@@ -244,7 +244,7 @@ msgstr ""
 msgid "Factory Reset"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:173
+#: src/guiapi/src/MItem_tools.cpp:174
 msgid "Factory defaults loaded. The system will now restart."
 msgstr ""
 
@@ -268,11 +268,11 @@ msgstr ""
 msgid "Fan1 RPM"
 msgstr ""
 
-#: src/gui/screen_home.cpp:34 src/guiapi/include/MItem_menus.hpp:29
+#: src/gui/screen_home.cpp:35 src/guiapi/include/MItem_menus.hpp:29
 msgid "Filament"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:25 src/guiapi/include/MItem_tools.hpp:359
+#: src/gui/screen_menu_settings.cpp:25 src/guiapi/include/MItem_tools.hpp:354
 msgid "Filament Sensor"
 msgstr ""
 
@@ -307,7 +307,7 @@ msgstr ""
 msgid "Fri"
 msgstr ""
 
-#: src/gui/screen_home.cpp:70
+#: src/gui/screen_home.cpp:67
 msgid "HOME"
 msgstr ""
 
@@ -332,7 +332,7 @@ msgstr ""
 msgid "Heating"
 msgstr ""
 
-#: src/gui/guimain.cpp:175
+#: src/gui/guimain.cpp:195
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr ""
 
@@ -340,7 +340,7 @@ msgstr ""
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/guimain.cpp:186
+#: src/gui/guimain.cpp:206
 msgid ""
 "Hi, this is your\n"
 "Original Prusa MINI."
@@ -369,20 +369,20 @@ msgstr ""
 msgid "INFO"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:292
+#: src/gui/screen_menu_lan_settings.cpp:293
 msgid ""
 "IP addresses or parameters are not valid or the file \"lan_settings.ini\" is "
 "not in the root directory of the USB drive."
 msgstr ""
 
 #. static const char en_text[] = N_("Observe the pattern and turn the knob to adjust the nozzle height in real time. Extruded plastic must stick to the print surface.");
-#: src/gui/wizard/firstlay.cpp:146
+#: src/gui/wizard/firstlay.cpp:128
 msgid ""
 "In the next step, use the knob to adjust the nozzle height. Check the "
 "pictures in the handbook for reference."
 msgstr ""
 
-#: src/gui/screen_home.cpp:37
+#: src/gui/screen_home.cpp:38
 msgid "Info"
 msgstr ""
 
@@ -402,11 +402,11 @@ msgstr ""
 msgid "Is filament in extruder gear?"
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:47 src/gui/wizard/screen_wizard.cpp:85
+#: src/gui/wizard/xyzcalib.cpp:47 src/gui/wizard/xyzcalib.cpp:240
 msgid "Is steel sheet on heatbed?"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:220
+#: src/gui/screen_menu_lan_settings.cpp:221
 msgid "LAN SETTINGS"
 msgstr ""
 
@@ -439,7 +439,7 @@ msgstr ""
 msgid "Load Filament"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:201
+#: src/gui/screen_menu_lan_settings.cpp:202
 msgid "Load Settings"
 msgstr ""
 
@@ -451,11 +451,11 @@ msgstr ""
 msgid "Loading to nozzle"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:274
+#: src/guiapi/include/MItem_tools.hpp:275
 msgid "Loud"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:368
+#: src/guiapi/include/MItem_tools.hpp:364
 msgid "M.I.N.D.A."
 msgstr ""
 
@@ -480,7 +480,7 @@ msgstr ""
 msgid "MINTEMP ERROR"
 msgstr ""
 
-#: src/gui/screen_menu_move.cpp:43
+#: src/gui/screen_menu_move.cpp:44
 msgid "MOVE AXIS"
 msgstr ""
 
@@ -492,7 +492,7 @@ msgstr ""
 msgid "Material"
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:196
+#: src/gui/wizard/xyzcalib.cpp:192
 msgid ""
 "Measuring reference\n"
 "height of calib.\n"
@@ -546,11 +546,11 @@ msgstr ""
 msgid "NO"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:306
+#: src/guiapi/include/MItem_tools.hpp:307
 msgid "Name"
 msgstr ""
 
-#: src/gui/screen_home.cpp:38
+#: src/gui/screen_home.cpp:39
 msgid "No USB"
 msgstr ""
 
@@ -560,7 +560,7 @@ msgid ""
 "again."
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:116
+#: src/gui/wizard/firstlay.cpp:98
 msgid ""
 "Now, let's calibrate the distance between the tip of the nozzle and the "
 "print sheet."
@@ -579,11 +579,11 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: src/guiapi/include/WindowMenuItems.hpp:159
+#: src/guiapi/include/WindowMenuItems.hpp:19
 msgid "Off"
 msgstr ""
 
-#: src/guiapi/include/WindowMenuItems.hpp:160
+#: src/guiapi/include/WindowMenuItems.hpp:20
 msgid "On"
 msgstr ""
 
@@ -591,7 +591,7 @@ msgstr ""
 msgid "On restart"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:273
+#: src/guiapi/include/MItem_tools.hpp:274
 msgid "Once"
 msgstr ""
 
@@ -646,21 +646,21 @@ msgstr ""
 msgid "Pausing..."
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:66 src/gui/wizard/screen_wizard.cpp:102
+#: src/gui/wizard/xyzcalib.cpp:66 src/gui/wizard/xyzcalib.cpp:257
 msgid ""
 "Place a sheet of paper under the nozzle during the calibration of first 4 "
 "points. If the nozzle catches the paper, power off printer immediately!"
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:40 src/gui/wizard/screen_wizard.cpp:77
+#: src/gui/wizard/xyzcalib.cpp:40 src/gui/wizard/xyzcalib.cpp:232
 msgid "Please clean the nozzle for calibration. Click NEXT when done."
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:280
+#: src/gui/screen_menu_lan_settings.cpp:281
 msgid "Please insert a USB drive and try again."
 msgstr ""
 
-#: src/gui/guimain.cpp:187
+#: src/gui/guimain.cpp:207
 msgid ""
 "Please insert the USB\n"
 "drive that came with\n"
@@ -673,11 +673,11 @@ msgstr ""
 msgid "Please open idler and remove filament manually"
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:85 src/gui/wizard/screen_wizard.cpp:118
+#: src/gui/wizard/xyzcalib.cpp:85 src/gui/wizard/xyzcalib.cpp:273
 msgid "Please place steel sheet on heatbed."
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:59 src/gui/wizard/screen_wizard.cpp:95
+#: src/gui/wizard/xyzcalib.cpp:59 src/gui/wizard/xyzcalib.cpp:250
 msgid "Please remove steel sheet from heatbed."
 msgstr ""
 
@@ -685,7 +685,7 @@ msgstr ""
 msgid "Please wait"
 msgstr ""
 
-#: src/gui/screen_home.cpp:33
+#: src/gui/screen_home.cpp:34
 msgid "Preheat"
 msgstr ""
 
@@ -697,23 +697,13 @@ msgstr ""
 msgid "Press CONTINUE and push filament into the extruder."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:49
-msgid ""
-"Press NEXT to run  \n"
-"the Selftest, which\n"
-"checks for         \n"
-"potential issues   \n"
-"related to         \n"
-"the assembly."
-msgstr ""
-
-#: src/gui/wizard/screen_wizard.cpp:319
+#: src/gui/wizard/screen_wizard.cpp:184
 msgid ""
 "Press NEXT to run the Selftest, which checks for potential issues related to "
 "the assembly."
 msgstr ""
 
-#: src/gui/screen_print_preview.cpp:185 src/gui/screen_home.cpp:32
+#: src/gui/screen_print_preview.cpp:185 src/gui/screen_home.cpp:33
 msgid "Print"
 msgstr ""
 
@@ -757,7 +747,7 @@ msgstr ""
 msgid "RENAME"
 msgstr ""
 
-#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:188
+#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:208
 msgid "RESET PRINTER"
 msgstr ""
 
@@ -770,7 +760,7 @@ msgstr ""
 msgid "Ramming"
 msgstr ""
 
-#: src/gui/screen_printing_serial.cpp:47
+#: src/gui/screen_printing_serial.cpp:45
 msgid "Really Disconnect?"
 msgstr ""
 
@@ -800,11 +790,11 @@ msgstr ""
 msgid "Resuming..."
 msgstr ""
 
-#: src/guiapi/include/WindowMenuItems.hpp:221
+#: src/guiapi/include/WindowMenuItems.hpp:54
 msgid "Return"
 msgstr ""
 
-#: src/gui/screen_filebrowser.cpp:43
+#: src/gui/screen_filebrowser.cpp:41
 msgid "SELECT FILE"
 msgstr ""
 
@@ -812,7 +802,7 @@ msgstr ""
 msgid "SELECT LANGUAGE"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:176
+#: src/gui/wizard/screen_wizard.cpp:46
 msgid "SELFTEST"
 msgstr ""
 
@@ -842,17 +832,17 @@ msgstr ""
 msgid "Save Crash Dump"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:190
+#: src/gui/screen_menu_lan_settings.cpp:191
 msgid "Save Settings"
 msgstr ""
 
 #. / draw "Scan me" text
 #. r=1 c=34
-#: src/common/bsod.cpp:257
+#: src/common/bsod.cpp:266
 msgid "Scan me for details"
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:184
+#: src/gui/wizard/xyzcalib.cpp:180
 msgid ""
 "Searching bed\n"
 "calibration points"
@@ -862,7 +852,7 @@ msgstr ""
 msgid "Select"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:89
+#: src/gui/wizard/firstlay.cpp:71
 msgid "Select Filament Type"
 msgstr ""
 
@@ -884,11 +874,11 @@ msgstr ""
 msgid "Service"
 msgstr ""
 
-#: src/gui/screen_home.cpp:36
+#: src/gui/screen_home.cpp:37
 msgid "Settings"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:289
+#: src/gui/screen_menu_lan_settings.cpp:290
 msgid "Settings successfully loaded"
 msgstr ""
 
@@ -896,19 +886,19 @@ msgstr ""
 msgid "Sheet Profile"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:275
+#: src/guiapi/include/MItem_tools.hpp:276
 msgid "Silent"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:304
+#: src/guiapi/include/MItem_tools.hpp:305
 msgid "Sort Files by"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:271
+#: src/guiapi/include/MItem_tools.hpp:272
 msgid "Sound Mode"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:315
+#: src/guiapi/include/MItem_tools.hpp:316
 msgid "Sound Volume"
 msgstr ""
 
@@ -916,7 +906,7 @@ msgstr ""
 msgid "Speed"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:277
+#: src/gui/screen_menu_lan_settings.cpp:278
 msgid "Static IPv4 addresses were not set."
 msgstr ""
 
@@ -983,44 +973,31 @@ msgstr ""
 msgid "Test XYZ-Axis"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:143
+#: src/gui/wizard/xyzcalib.cpp:298
 msgid ""
 "The XYZ calibration failed to finish. Double-check the printer's wiring and "
 "axes, then restart the XYZ calibration."
 msgstr ""
 
-#. seve eeprom flag
-#: src/gui/wizard/firstlay.cpp:201
+#. save eeprom flag
+#: src/gui/wizard/firstlay.cpp:181
 msgid ""
 "The first layer calibration failed to finish. Double-check the printer's "
 "wiring, nozzle and axes, then restart the calibration."
 msgstr ""
 
-#: src/gui/wizard/selftest.cpp:47
+#: src/gui/wizard/selftest.cpp:43
 msgid ""
 "The selftest failed to finish. Double-check the printer's wiring and axes. "
 "Then restart the Selftest."
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:283
+#: src/gui/screen_menu_lan_settings.cpp:284
 msgid ""
 "The settings have been saved successfully in the \"lan_settings.ini\" file."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:35
-msgid ""
-"The status bar is at\n"
-"the bottom of the  \n"
-"screen. It contains\n"
-"information about: \n"
-" - Nozzle temp.    \n"
-" - Heatbed temp.   \n"
-" - Printing speed  \n"
-" - Z-axis height   \n"
-" - Selected filament"
-msgstr ""
-
-#: src/gui/wizard/screen_wizard.cpp:304
+#: src/gui/wizard/screen_wizard.cpp:169
 msgid ""
 "The status bar is at the bottom of the screen. It contains information "
 "about:\n"
@@ -1031,7 +1008,7 @@ msgid ""
 "- Selected filament"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:286
+#: src/gui/screen_menu_lan_settings.cpp:287
 msgid ""
 "There was an error saving the settings in the \"lan_settings.ini\" file."
 msgstr ""
@@ -1041,7 +1018,7 @@ msgid "This G-CODE was set up for another printer type."
 msgstr ""
 
 #. window_menu
-#: src/guiapi/src/MItem_tools.cpp:171
+#: src/guiapi/src/MItem_tools.cpp:172
 msgid ""
 "This operation can't be undone, current configuration will be lost! Are you "
 "really sure to reset printer to factory defaults?"
@@ -1052,17 +1029,17 @@ msgstr ""
 msgid "Thr"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:307
+#: src/guiapi/include/MItem_tools.hpp:308
 msgid "Time"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:54
+#: src/gui/wizard/firstlay.cpp:36
 msgid ""
 "To calibrate with currently loaded filament, press NEXT. To change filament, "
 "press UNLOAD."
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:71
+#: src/gui/wizard/firstlay.cpp:53
 msgid ""
 "To calibrate with currently loaded filament, press NEXT. To load filament, "
 "press LOAD. To change filament, press UNLOAD."
@@ -1119,11 +1096,11 @@ msgstr ""
 msgid "WARNING:"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:172
+#: src/gui/wizard/screen_wizard.cpp:42
 msgid "WIZARD"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:188
+#: src/gui/wizard/screen_wizard.cpp:58
 msgid "WIZARD - OK"
 msgstr ""
 
@@ -1144,7 +1121,7 @@ msgstr ""
 msgid "Wed"
 msgstr ""
 
-#: src/gui/test/screen_test_msgbox.cpp:9 src/gui/wizard/screen_wizard.cpp:267
+#: src/gui/test/screen_test_msgbox.cpp:9 src/gui/wizard/screen_wizard.cpp:126
 msgid ""
 "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
 msgstr ""
@@ -1157,7 +1134,7 @@ msgstr ""
 msgid "X-axis"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:180
+#: src/gui/wizard/screen_wizard.cpp:50
 msgid "XYZ CALIBRATION"
 msgstr ""
 

@@ -82,9 +82,10 @@ void MsgCircleBuffer_cb(const char *txt) {
 }
 
 void Warning_cb(WarningType type) {
-    static constexpr const char *HotendFanErrorMsg = N_("I am dummy HotendFanErrorMsg, I need to be replaced with something else ... ");
-    static constexpr const char *PrintFanErrorMsg = N_("I am dummy PrintFanError, I need to be replaced with something else ... ");
-    static constexpr const char *HeaterTimeoutMsg = N_("I am dummy HeaterTimeout, I need to be replaced with something else ... ");
+    // until these texts become final, do not mark them for translation
+    static constexpr const char *HotendFanErrorMsg = ("I am dummy HotendFanErrorMsg, I need to be replaced with something else ... ");
+    static constexpr const char *PrintFanErrorMsg = ("I am dummy PrintFanError, I need to be replaced with something else ... ");
+    static constexpr const char *HeaterTimeoutMsg = ("I am dummy HeaterTimeout, I need to be replaced with something else ... ");
     switch (type) {
     case WarningType::HotendFanError:
         window_dlg_strong_warning_t::Show(_(HotendFanErrorMsg));
