@@ -24,10 +24,12 @@ protected:
 
     string_view_utf8 units;
     SpinType value;
+    size_t spin_val_width;
 
-    static Rect16::Width_t calculateExtensionWidth(const char *unit, size_t value_max_digits);
+    static Rect16::Width_t calculateExtensionWidth(size_t unit_len, char uchar, size_t value_max_digits);
     Rect16 getSpinRect(Rect16 extension_rect) const;
     Rect16 getUnitRect(Rect16 extension_rect) const;
+    void changeExtentionWidth(size_t unit_len, char uchar, size_t width);
 
     virtual void click(IWindowMenu &window_menu) final;
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override;
@@ -71,9 +73,11 @@ public:
 //WI_SPIN_t
 template <class T>
 WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : AddSuper<IWiSpin>(val, label, id_icon, enabled, hidden, cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), calculateExtensionWidth(cnf.Unit(), cnf.calculateMaxDigits()))
+    : AddSuper<IWiSpin>(val, label, id_icon, enabled, hidden, cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), 0)
     , config(cnf) {
     printSpinToBuffer();
+    spin_val_width = cnf.txtMeas(val);
+    extension_width = Rect16::Width_t(calculateExtensionWidth(units.computeNumUtf8CharsAndRewind(), units.getUtf8Char(), spin_val_width));
 }
 
 template <class T>
@@ -86,8 +90,10 @@ invalidate_t WI_SPIN_t<T>::Change(int dif) {
     val = std::max(val, config.Min());
     value = val;
     invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; //0 dif forces redraw
-    if (invalid == invalidate_t::yes)
+    if (invalid == invalidate_t::yes) {
+        changeExtentionWidth(units.computeNumUtf8CharsAndRewind(), units.getUtf8Char(), config.txtMeas(value));
         printSpinToBuffer(); // could be in draw method, but traded little performance for code size (printSpinToBuffer is not virtual when it is here)
+    }
     return invalid;
 }
 

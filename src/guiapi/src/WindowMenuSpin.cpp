@@ -30,15 +30,24 @@ Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
     Rect16 ret = extension_rect;
     if (has_unit) {
         string_view_utf8 un = units; //local var because of const
+        size_t half_space_padding = un.getUtf8Char() == '\177' ? 0 : unit__half_space_padding;
         un.rewind();
-        Rect16::Width_t unit_width = un.computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
-        unit_width = unit_width + Padding.left + Padding.right;
+        Rect16::Width_t unit_width = un.computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w + Rect16::Width_t(half_space_padding);
+        unit_width = unit_width + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right;
         ret = unit_width;
     } else {
         ret = Rect16::Width_t(0);
     }
     ret += Rect16::Left_t(extension_rect.Width() - ret.Width());
     return ret;
+}
+
+void IWiSpin::changeExtentionWidth(size_t unit_len, char uchar, size_t width) {
+    if (width != spin_val_width) {
+        spin_val_width = width;
+        extension_width = calculateExtensionWidth(unit_len, uchar, width);
+        deInitRoll();
+    }
 }
 
 void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
@@ -54,21 +63,22 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
         string_view_utf8 un = units; //local var because of const
         un.rewind();
         uint32_t Utf8Char = un.getUtf8Char();
-        padding_ui8_t padding = Padding;
-        padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                  //177oct (127dec) todo check
-        render_text_align(unit_rc, units, Font, color_back, COLOR_SILVER, padding, align); //render unit
+        padding_ui8_t padding = GuiDefaults::MenuPaddingSpecial;
+        padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                                          //177oct (127dec) todo check
+        render_text_align(unit_rc, units, GuiDefaults::FontMenuSpecial, color_back, COLOR_SILVER, padding, align); //render unit
     }
 }
 
-Rect16::Width_t IWiSpin::calculateExtensionWidth(const char *unit, size_t value_max_digits) {
+Rect16::Width_t IWiSpin::calculateExtensionWidth(size_t unit_len, char uchar, size_t value_max_digits) {
     size_t ret = value_max_digits * Font->w;
-    if (unit) {
+    uint8_t half_space = 0;
+    if (unit_len) {
         if (GuiDefaults::MenuUseFixedUnitWidth)
             return GuiDefaults::MenuUseFixedUnitWidth;
-        ret += 2 * (Padding.left + Padding.right);
-        ret += _(unit).computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
-    } else {
-        ret += Padding.left + Padding.right;
+        ret += unit_len * GuiDefaults::FontMenuSpecial->w;
+        ret += GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right;
+        half_space = uchar == '\177' ? 0 : unit__half_space_padding;
     }
+    ret += Padding.left + Padding.right + half_space;
     return ret;
 }

@@ -102,3 +102,7 @@ void IWindowMenuItem::reInitRoll(Rect16 rect) {
         roll.Init(rect, GetLabel(), GuiDefaults::FontMenuItems, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
     }
 }
+
+void IWindowMenuItem::deInitRoll() {
+    roll.Deinit();
+}

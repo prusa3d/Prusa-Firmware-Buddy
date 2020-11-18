@@ -134,8 +134,8 @@ bool window_menu_t::updateTopIndex() {
     if (index == top_index)
         return false;
 
-    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
-    const int visible_available = rect.Height() / item_height;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom - GuiDefaults::MenuItemDelimeterHeight;
+    const int visible_available = rect.Height() / (item_height + GuiDefaults::MenuItemDelimeterHeight);
 
     const int visible_index = visibleIndex(index);
 
@@ -207,8 +207,8 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
         return;
 
     uint16_t rc_w = rect.Width() - (GuiDefaults::MenuHasScrollbar ? GuiDefaults::MenuScrollbarWidth : 0);
-    Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * item_height),
-        rc_w, uint16_t(item_height - 1) }; // 1 pixel height for menu item delimeter
+    Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * (item_height + GuiDefaults::MenuItemDelimeterHeight)),
+        rc_w, uint16_t(item_height) };
 
     if (rect.Contain(rc)) {
 
@@ -216,8 +216,6 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
         item->InitRollIfNeeded(rc);
 
         item->Print(rc);
-        if (GuiDefaults::MenuLinesBetweenItems)
-            display::DrawLine(point_ui16(rc.Left() + GuiDefaults::MenuItemDelimiterPadding, rc.Top() + rc.Height()), point_ui16(rc.Left() + rc.Width() - 2 * GuiDefaults::MenuItemDelimiterPadding, rc.Top() + rc.Height()), COLOR_SILVER);
     }
 }
 
@@ -259,8 +257,8 @@ void window_menu_t::printScrollBar(size_t available_count, uint16_t visible_coun
 }
 
 void window_menu_t::redrawWholeMenu() {
-    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
-    const size_t visible_available = rect.Height() / item_height;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom - GuiDefaults::MenuItemDelimeterHeight;
+    const size_t visible_available = rect.Height() / (item_height + GuiDefaults::MenuItemDelimeterHeight);
     size_t visible_count = 0, available_invisible_count = 0;
     IWindowMenuItem *item;
     for (size_t i = 0; i < GetCount(); ++i) {
@@ -277,6 +275,10 @@ void window_menu_t::redrawWholeMenu() {
             available_invisible_count++;
         } else {
             visible_count++;
+            if (GuiDefaults::MenuLinesBetweenItems) {
+                display::DrawLine(point_ui16(rect.Left() + GuiDefaults::MenuItemDelimiterPadding, rect.Top() + visible_count * (item_height + GuiDefaults::MenuItemDelimeterHeight) - 1),
+                    point_ui16(rect.Left() + rect.Width() - 2 * GuiDefaults::MenuItemDelimiterPadding, rect.Top() + visible_count * (item_height + GuiDefaults::MenuItemDelimeterHeight) - 1), COLOR_SILVER);
+            }
         }
     }
 
@@ -287,7 +289,7 @@ void window_menu_t::redrawWholeMenu() {
     }
 
     /// fill the rest of the window by background
-    const int menu_h = visible_count * item_height;
+    const int menu_h = visible_count * (item_height + GuiDefaults::MenuItemDelimeterHeight);
     Rect16 rc_win = rect;
     rc_win -= Rect16::Height_t(menu_h);
     if (rc_win.Height() <= 0)
@@ -297,8 +299,8 @@ void window_menu_t::redrawWholeMenu() {
 }
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {
-    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
-    const size_t visible_available = rect.Height() / item_height;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom - GuiDefaults::MenuItemDelimeterHeight;
+    const size_t visible_available = rect.Height() / (item_height + GuiDefaults::MenuItemDelimeterHeight);
     size_t visible_count = 0;
     IWindowMenuItem *item = nullptr;
     for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {

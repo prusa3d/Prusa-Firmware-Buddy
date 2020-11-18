@@ -71,10 +71,11 @@ public:
     bool SetIndex(size_t idx);
 
 protected:
-    static Rect16::Width_t calculateExtensionWidth(Items_t items);
-    static Rect16::Width_t calculateExtensionWidth_text(Items_t items);
+    static Rect16::Width_t calculateExtensionWidth(Items_t items, int32_t index);
+    static Rect16::Width_t calculateExtensionWidth_text(Items_t items, int32_t index);
     static Rect16::Width_t calculateExtensionWidth_icon(Items_t items);
 
+    void changeExtentionWidth();
     Rect16 getSwitchRect(Rect16 extension_rect) const;
     Rect16 getLeftBracketRect(Rect16 extension_rect) const;
     Rect16 getRightBracketRect(Rect16 extension_rect) const;
