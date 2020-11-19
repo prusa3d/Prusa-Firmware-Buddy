@@ -6,6 +6,7 @@
 #include "usbh_core.h"
 #include "../Marlin/src/gcode/queue.h"
 #include <algorithm>
+#include "marlin_server.hpp"
 
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
@@ -174,6 +175,8 @@ void media_print_start(const char *sfnFilePath) {
                 media_current_position = 0;
                 media_current_line = 0;
                 media_print_state = media_print_state_PRINTING;
+            } else {
+                set_warning(WarningType::USBFlashDiskError);
             }
         }
     }
@@ -202,8 +205,10 @@ void media_print_resume(void) {
         if (f_open(&media_print_fil, media_print_SFN_path, FA_READ) == FR_OK) {
             if (f_lseek(&media_print_fil, media_current_position) == FR_OK)
                 media_print_state = media_print_state_PRINTING;
-            else
+            else {
+                set_warning(WarningType::USBFlashDiskError);
                 f_close(&media_print_fil);
+            }
         }
     }
 }
@@ -261,8 +266,10 @@ void media_loop(void) {
                 } else {
                     if (f_eof(&media_print_fil)) //we need check eof also after read operation
                         media_print_stop();      //stop on eof
-                    else
+                    else {
+                        set_warning(WarningType::USBFlashDiskError);
                         media_print_pause(); //pause in other case (read error - media removed)
+                    }
                     break;
                 }
             }

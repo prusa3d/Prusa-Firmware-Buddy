@@ -30,7 +30,8 @@ enum class WarningType : uint32_t {
     HotendFanError,
     PrintFanError,
     HeaterTimeout,
-    _last = HeaterTimeout
+    USBFlashDiskError,
+    _last = USBFlashDiskError
 };
 
 // Open dialog has a parameter because I need to set a caption of change filament dialog (load / unload / change).

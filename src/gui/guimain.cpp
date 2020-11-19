@@ -86,6 +86,8 @@ void Warning_cb(WarningType type) {
     static constexpr const char *HotendFanErrorMsg = ("I am dummy HotendFanErrorMsg, I need to be replaced with something else ... ");
     static constexpr const char *PrintFanErrorMsg = ("I am dummy PrintFanError, I need to be replaced with something else ... ");
     static constexpr const char *HeaterTimeoutMsg = ("I am dummy HeaterTimeout, I need to be replaced with something else ... ");
+    static constexpr const char *USBFlashDiskError = N_("USB drive error. Print paused.");
+
     switch (type) {
     case WarningType::HotendFanError:
         window_dlg_strong_warning_t::Show(_(HotendFanErrorMsg));
@@ -95,6 +97,9 @@ void Warning_cb(WarningType type) {
         break;
     case WarningType::HeaterTimeout:
         window_dlg_strong_warning_t::Show(_(HeaterTimeoutMsg));
+        break;
+    case WarningType::USBFlashDiskError:
+        window_dlg_strong_warning_t::Show(_(USBFlashDiskError));
         break;
     default:
         break;
