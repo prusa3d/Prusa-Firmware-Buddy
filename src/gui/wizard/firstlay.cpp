@@ -68,7 +68,7 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK() {
 }
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT() {
-    gui_dlg_preheat_forced(_("Select Filament Type"));
+    set_filament(gui_dlg_preheat_forced(_("Select Filament Type")));
     return WizardState_t::FIRSTLAY_MSBX_CALIB;
 }
 
