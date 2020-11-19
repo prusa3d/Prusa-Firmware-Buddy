@@ -360,7 +360,7 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
     : WI_SPIN_U08_t(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_SOUND_VOLUME::OnClick() {
-    Sound_SetVolume(GetVal().i32);
+    Sound_SetVolume(GetVal());
 }
 
 /*****************************************************************************/

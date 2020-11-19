@@ -12,15 +12,11 @@ class ScreenWizard : public AddSuperWindow<window_frame_t> {
     window_header_t header;
     status_footer_t footer;
 
-    using StateFnc = StateFncData (*)(StateFncData last_run);
+    using StateFnc = WizardState_t (*)();
     using StateArray = std::array<StateFnc, size_t(WizardState_t::last) + 1>;
-    using ResultArray = std::array<WizardTestState_t, size_t(WizardState_t::last) + 1>;
 
     static StateArray states;
     static StateArray StateInitializer();
-
-    ResultArray results;
-    static ResultArray ResultInitializer(uint64_t mask);
 
     WizardState_t state;
     bool loopInProgress;
@@ -36,7 +32,6 @@ protected:
 public:
     static void ChangeStartState(WizardState_t state) { start_state = state; }
     ScreenWizard();
-    ~ScreenWizard();
 
     static void RunAll();
     static void RunSelfTest();
