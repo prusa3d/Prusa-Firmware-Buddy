@@ -35,8 +35,14 @@ protected:
 public:
     IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
     virtual void OnClick() {}
-    inline void ClrVal() { value.u32 = 0; }
-    inline void SetVal(SpinType val) { value = val; }
+    inline void ClrVal() {
+        value.u32 = 0;
+        Change(0);
+    }
+    inline void SetVal(SpinType val) {
+        value = val;
+        Change(0);
+    }
     /// don't define GetVal here since we don't know the return type yet
     /// and C++ does not allow return type overloading (yet)
 };
@@ -79,9 +85,10 @@ invalidate_t WI_SPIN_t<T>::Change(int dif) {
     val = std::min(val, config.Max());
     val = std::max(val, config.Min());
     value = val;
-    if (old != val)
+    invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; //0 dif forces redraw
+    if (invalid == invalidate_t::yes)
         printSpinToBuffer(); // could be in draw method, but traded little performance for code size (printSpinToBuffer is not virtual when it is here)
-    return old == val ? invalidate_t::no : invalidate_t::yes;
+    return invalid;
 }
 
 template <class T>
