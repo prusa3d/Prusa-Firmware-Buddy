@@ -18,9 +18,19 @@ class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
     window_dlg_strong_warning_t();
     window_dlg_strong_warning_t(const window_dlg_strong_warning_t &) = delete;
 
+    // until these texts become final, do not mark them for translation
+    static constexpr const char *HotendFanErrorMsg = ("I am dummy HotendFanErrorMsg, I need to be replaced with something else ... ");
+    static constexpr const char *PrintFanErrorMsg = ("I am dummy PrintFanError, I need to be replaced with something else ... ");
+    static constexpr const char *HeaterTimeoutMsg = ("I am dummy HeaterTimeout, I need to be replaced with something else ... ");
+    static constexpr const char *USBFlashDiskError = N_("USB drive error. Print paused.");
+
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    void show(string_view_utf8 txt); // could use const char *, but with stringview I can pass both translated and not translated texts
 
 public:
-    static void Show(string_view_utf8 txt);
+    static void ShowHotendFan();
+    static void ShowPrintFan();
+    static void ShowHeaterTimeout();
+    static void ShowUSBFlashDisk();
 };

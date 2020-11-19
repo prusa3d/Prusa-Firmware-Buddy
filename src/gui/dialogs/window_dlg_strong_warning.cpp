@@ -10,17 +10,16 @@ window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     , text(this, GuiDefaults::RectScreenBodyNoFoot, is_multiline::yes, is_closed_on_click_t::no) {
 }
 
-void window_dlg_strong_warning_t::Show(string_view_utf8 txt) {
-    static window_dlg_strong_warning_t dlg;
-    if (!dlg.GetParent()) {
+void window_dlg_strong_warning_t::show(string_view_utf8 txt) {
+    if (!GetParent()) {
         window_t *parent = Screens::Access()->Get();
         if (parent) {
-            parent->RegisterSubWin(&dlg);
-            dlg.text.SetText(txt);
+            parent->RegisterSubWin(this);
+            text.SetText(txt);
 
-            if (window_t::GetCapturedWindow() != &dlg) {
-                dlg.StoreCapture();
-                dlg.SetCapture();
+            if (window_t::GetCapturedWindow() != this) {
+                StoreCapture();
+                SetCapture();
             }
         }
     }
@@ -29,9 +28,29 @@ void window_dlg_strong_warning_t::Show(string_view_utf8 txt) {
 void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK) { //todo use timer
         if (GetParent()) {
-            GetParent()->UnregisterSubWin(this);
             releaseCapture();
+            GetParent()->UnregisterSubWin(this);
         }
     } else
         SuperWindowEvent(sender, event, param);
+}
+
+void window_dlg_strong_warning_t::ShowHotendFan() {
+    static window_dlg_strong_warning_t dlg;
+    dlg.show(_(HotendFanErrorMsg));
+}
+
+void window_dlg_strong_warning_t::ShowPrintFan() {
+    static window_dlg_strong_warning_t dlg;
+    dlg.show(_(PrintFanErrorMsg));
+}
+
+void window_dlg_strong_warning_t::ShowHeaterTimeout() {
+    static window_dlg_strong_warning_t dlg;
+    dlg.show(_(HeaterTimeoutMsg));
+}
+
+void window_dlg_strong_warning_t::ShowUSBFlashDisk() {
+    static window_dlg_strong_warning_t dlg;
+    dlg.show(_(USBFlashDiskError));
 }

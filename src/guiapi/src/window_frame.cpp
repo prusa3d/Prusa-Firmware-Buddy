@@ -289,6 +289,7 @@ void window_frame_t::unregisterDialog(window_t &win) {
 
 void window_frame_t::unregisterStrongDialog(window_t &win) {
     unregisterDialog(win);
+    win.SetParent(nullptr);
 }
 
 void window_frame_t::unregisterPopUp(window_t &win) {
