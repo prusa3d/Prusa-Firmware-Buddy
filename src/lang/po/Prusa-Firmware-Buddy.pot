@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-11-18 14:07+0100\n"
+"POT-Creation-Date: 2020-11-20 10:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -86,7 +86,7 @@ msgstr ""
 msgid "CANCEL"
 msgstr ""
 
-#: src/gui/dialogs/DialogFactory.cpp:12 src/gui/screen_menu_filament.cpp:82
+#: src/gui/dialogs/DialogFactory.cpp:12 src/gui/screen_menu_filament.cpp:90
 msgid "CHANGE FILAMENT"
 msgstr ""
 
@@ -115,7 +115,7 @@ msgstr ""
 msgid "Calibration successful! Happy printing!"
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:81 src/guiapi/include/MItem_tools.hpp:249
+#: src/gui/screen_menu_filament.cpp:89 src/guiapi/include/MItem_tools.hpp:249
 msgid "Change Filament"
 msgstr ""
 
@@ -224,7 +224,7 @@ msgid ""
 "approximately 12 minutes."
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:124
+#: src/gui/screen_menu_filament.cpp:127
 msgid "FILAMENT"
 msgstr ""
 
@@ -276,6 +276,12 @@ msgstr ""
 msgid "Filament Sensor"
 msgstr ""
 
+#: src/gui/screen_menu_filament.cpp:53
+msgid ""
+"Filament appears to be already loaded, are you sure you want to load it "
+"anyway?"
+msgstr ""
+
 #: src/gui/screen_print_preview.cpp:223
 msgid ""
 "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to "
@@ -319,10 +325,6 @@ msgstr ""
 msgid "HW Setup"
 msgstr ""
 
-#: src/gui/test/screen_test_msgbox.cpp:11
-msgid "Header"
-msgstr ""
-
 #: src/gui/dialogs/DialogSelftestTemp.cpp:24
 #: src/guiapi/include/MItem_print.hpp:16
 msgid "Heatbed"
@@ -348,7 +350,7 @@ msgstr ""
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
-#: src/gui/window_file_list.cpp:107 src/gui/screen_printing.cpp:45
+#: src/gui/window_file_list.cpp:104 src/gui/screen_printing.cpp:45
 msgid "Home"
 msgstr ""
 
@@ -419,7 +421,7 @@ msgstr ""
 msgid "LOAD"
 msgstr ""
 
-#: src/gui/dialogs/DialogFactory.cpp:13 src/gui/screen_menu_filament.cpp:47
+#: src/gui/dialogs/DialogFactory.cpp:13 src/gui/screen_menu_filament.cpp:52
 msgid "LOAD FILAMENT"
 msgstr ""
 
@@ -435,7 +437,7 @@ msgstr ""
 msgid "Live Adjust Z"
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:46
+#: src/gui/screen_menu_filament.cpp:51
 msgid "Load Filament"
 msgstr ""
 
@@ -625,7 +627,7 @@ msgstr ""
 msgid "PRINTING"
 msgstr ""
 
-#: src/gui/dialogs/DialogFactory.cpp:15 src/gui/screen_menu_filament.cpp:102
+#: src/gui/dialogs/DialogFactory.cpp:15 src/gui/screen_menu_filament.cpp:110
 msgid "PURGE FILAMENT"
 msgstr ""
 
@@ -726,7 +728,7 @@ msgstr ""
 msgid "Printing time"
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:101
+#: src/gui/screen_menu_filament.cpp:109
 msgid "Purge Filament"
 msgstr ""
 
@@ -794,7 +796,7 @@ msgstr ""
 msgid "Return"
 msgstr ""
 
-#: src/gui/screen_filebrowser.cpp:41
+#: src/gui/screen_filebrowser.cpp:42
 msgid "SELECT FILE"
 msgstr ""
 
@@ -1064,11 +1066,11 @@ msgstr ""
 msgid "UNLOAD"
 msgstr ""
 
-#: src/gui/dialogs/DialogFactory.cpp:14 src/gui/screen_menu_filament.cpp:64
+#: src/gui/dialogs/DialogFactory.cpp:14 src/gui/screen_menu_filament.cpp:72
 msgid "UNLOAD FILAMENT"
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:63
+#: src/gui/screen_menu_filament.cpp:71
 msgid "Unload Filament"
 msgstr ""
 
@@ -1121,7 +1123,7 @@ msgstr ""
 msgid "Wed"
 msgstr ""
 
-#: src/gui/test/screen_test_msgbox.cpp:9 src/gui/wizard/screen_wizard.cpp:126
+#: src/gui/wizard/screen_wizard.cpp:126
 msgid ""
 "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
 msgstr ""
