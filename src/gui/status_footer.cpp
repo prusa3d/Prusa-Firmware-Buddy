@@ -11,6 +11,7 @@
 #include "stm32f4xx_hal.h"
 #include "limits.h"
 #include <algorithm>
+#include "odometer.hpp"
 
 static const float heating_difference = 2.5F;
 
@@ -177,12 +178,15 @@ void status_footer_t::update_filament() {
     if (0 == strcmp(filament, filaments[get_filament()].name))
         return;
 
-    filament = filaments[get_filament()].name;
+    //filament = filaments[get_filament()].name;
+    static char filament[10];
+    snprintf(filament, 10, "%f", odometer.trip_xyze[3]);
     wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filament));
 }
 
 /// Repaints nozzle temperature in proper color
 void status_footer_t::repaint_nozzle() {
+    update_filament();
     color_t clr = DEFAULT_COLOR;
 
     switch (nozzle_state) {
