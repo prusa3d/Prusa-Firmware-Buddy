@@ -13,11 +13,20 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-class MI_UPDATE : public WI_SWITCH_t<3> {
-    constexpr static const char *const label = N_("Firmware Update");
+class MI_UPDATE_LABEL : public WI_LABEL_t {
+    static constexpr const char *const label = N_("FW Update");
 
+public:
+    MI_UPDATE_LABEL()
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {};
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override {};
+};
+
+class MI_UPDATE : public WI_SWITCH_t<3> {
     constexpr static const char *const str_0 = N_("Off");
-    constexpr static const char *const str_1 = N_("On restart");
+    constexpr static const char *const str_1 = N_("On Restart");
     constexpr static const char *const str_2 = N_("Always");
 
     size_t init_index() const;
@@ -30,15 +39,15 @@ protected:
 };
 
 size_t MI_UPDATE::init_index() const {
-    return (size_t)sys_fw_update_is_enabled()
+    return (size_t)sys_fw_update_on_restart_is_enabled()
         ? 1
-        : sys_fw_update_on_restart_is_enabled()
+        : sys_fw_update_is_enabled()
             ? 2
             : 0;
 }
 
 MI_UPDATE::MI_UPDATE()
-    : WI_SWITCH_t<3>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(str_0), _(str_1), _(str_2)) {
+    : WI_SWITCH_t<3>(init_index(), string_view_utf8::MakeNULLSTR(), 0, is_enabled_t::yes, is_hidden_t::no, _(str_0), _(str_1), _(str_2)) {
 }
 
 void MI_UPDATE::OnChange(size_t /*old_index*/) {
@@ -54,7 +63,7 @@ void MI_UPDATE::OnChange(size_t /*old_index*/) {
     }
 }
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_Default, MI_RETURN, MI_UPDATE>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_Default, MI_RETURN, MI_UPDATE_LABEL, MI_UPDATE>;
 
 class ScreenMenuFwUpdate : public Screen {
 public:
