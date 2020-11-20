@@ -67,9 +67,11 @@ void Screens::RInit(const ScreenFactory::Creator *begin, const ScreenFactory::Cr
     Access()->RPushBeforeCurrent(begin, r_node.base());
 }
 
-void Screens::EnableMenuTimeout() { menu_timeout_enabled = true; }
+void Screens::EnableMenuTimeout() {
+    ResetTimeout();
+    menu_timeout_enabled = true;
+}
 void Screens::DisableMenuTimeout() {
-    gui_timer_delete(gui_get_menu_timeout_id());
     menu_timeout_enabled = false;
 }
 bool Screens::GetMenuTimeout() { return menu_timeout_enabled; }
