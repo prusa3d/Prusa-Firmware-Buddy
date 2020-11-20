@@ -15,6 +15,8 @@
 #include "cmath_ext.h"
 #include "eeprom.h"
 #include "screen_home.hpp"
+#include "odometer.hpp"
+
 static const float heating_difference = 2.5F;
 
 /*enum class ButtonStatus {
@@ -39,6 +41,8 @@ static char const *err = "ERR";
 /// Callback function which triggers update and repaint of values
 void status_footer_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     uint32_t mseconds = HAL_GetTick();
+
+    update_filament();
 
     if (mseconds - last_timer_repaint_values >= REPAINT_VALUE_PERIOD) {
         update_temperatures();
@@ -173,10 +177,13 @@ void status_footer_t::update_z_axis() {
 }
 
 void status_footer_t::update_filament() {
-    if (0 == strcmp(filament, filaments[get_filament()].name))
-        return;
+    // if (0 == strcmp(filament, filaments[get_filament()].name))
+    //     return;
 
-    filament = filaments[get_filament()].name;
+    // filament = filaments[get_filament()].name;
+    static char filament[10];
+    snprintf(filament, 10, "%f", odometer.trip_xyze[3]);
+
     wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filament));
 }
 
