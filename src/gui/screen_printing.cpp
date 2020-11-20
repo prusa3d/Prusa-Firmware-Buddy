@@ -60,7 +60,6 @@ void screen_printing_data_t::tuneAction() {
     case printing_state_t::PRINTING:
     case printing_state_t::PAUSED:
         Screens::Access()->Open(GetScreenMenuTune);
-        change_print_state();
         break;
     default:
         break;
@@ -95,7 +94,6 @@ void screen_printing_data_t::stopAction() {
     }
     switch (GetState()) {
     case printing_state_t::PRINTED:
-        change_print_state();
         Screens::Access()->Close();
         return;
     case printing_state_t::PAUSING:
