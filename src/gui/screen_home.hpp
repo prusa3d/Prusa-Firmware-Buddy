@@ -5,6 +5,8 @@
 #include "gui.hpp"
 
 struct screen_home_data_t : public AddSuperWindow<window_frame_t> {
+    bool usbInserted;
+
     window_header_t header;
     status_footer_t footer;
 

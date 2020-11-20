@@ -42,6 +42,7 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
 
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<window_frame_t>()
+    , usbInserted(marlin_vars()->media_inserted)
     , header(this)
     , footer(this)
     , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_prusa_printer_logo)
@@ -76,7 +77,7 @@ screen_home_data_t::screen_home_data_t()
             w_buttons[i].rect = Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
             w_buttons[i].SetIdRes(icons[i]);
 
-            w_labels[i].rect = Rect16(80 * col, 152 + (15 + 64) * row, 80, 14);
+            w_labels[i].rect = Rect16(80 * col, 154 + (15 + 64) * row, 80, 14);
             w_labels[i].font = resource_font(IDR_FNT_SMALL);
             w_labels[i].SetAlignment(ALIGN_CENTER);
             w_labels[i].SetPadding({ 0, 0, 0, 0 });
@@ -84,8 +85,9 @@ screen_home_data_t::screen_home_data_t()
         }
     }
 
-    if (!marlin_vars()->media_inserted)
+    if (!usbInserted) {
         printBtnDis();
+    }
 }
 
 screen_home_data_t::~screen_home_data_t() {
@@ -105,11 +107,17 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     if (event == GUI_event_t::MEDIA) {
         switch (GuiMediaEventsHandler::state_t(int(param))) {
         case GuiMediaEventsHandler::state_t::inserted:
-            printBtnEna();
+            if (!usbInserted) {
+                usbInserted = true;
+                printBtnEna();
+            }
             break;
         case GuiMediaEventsHandler::state_t::removed:
         case GuiMediaEventsHandler::state_t::error:
-            printBtnDis();
+            if (usbInserted) {
+                usbInserted = false;
+                printBtnDis();
+            }
             break;
         default:
             break;
