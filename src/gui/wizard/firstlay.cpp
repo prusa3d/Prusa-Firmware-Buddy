@@ -147,6 +147,7 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
     marlin_gcode_printf("M104 S%d", temp_nozzle);                          // set displayed temperature
     marlin_gcode_printf("M109 S%d", temp_nozzle);                          // wait for displayed temperature
     marlin_gcode("G26");                                                   // firstlay
+    marlin_gcode("G27 P2");                                                // park nozzle and raise Z axis when done
 
     WizardState_t ret = WizardState_t::FIRSTLAY_MSBX_REPEAT_PRINT;
     ScreenWizard::ChangeStartState(ret); //marlin_gcode("G26"); will close wizard screen, need to save reopen state
