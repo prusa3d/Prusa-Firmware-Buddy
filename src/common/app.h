@@ -1,11 +1,17 @@
 // app.h
-#ifndef _APP_H
-#define _APP_H
+#pragma once
 
 #include <inttypes.h>
 
 #ifdef __cplusplus
+
+    #include "fanctl.h"
+
+extern CFanCtl fanctl0;
+extern CFanCtl fanctl1;
+
 extern "C" {
+
 #endif //__cplusplus
 
 extern void app_setup(void);
@@ -25,5 +31,3 @@ extern void app_tim14_tick(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif // _APP_H

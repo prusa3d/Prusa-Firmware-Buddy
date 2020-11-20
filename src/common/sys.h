@@ -2,15 +2,14 @@
 #include "stdint.h"
 #include "shared_config.h"
 
-#ifndef _SYS_H
-    #define _SYS_H
+#pragma once
 
-    #ifdef __cplusplus
+#ifdef __cplusplus
 
 extern version_t &boot_version; // (address) from flash -> "volatile" is not necessary
 
 extern "C" {
-    #endif //__cplusplus
+#endif //__cplusplus
 
 extern volatile data_exchange_t ram_data_exchange;
 
@@ -60,8 +59,6 @@ extern int sys_flash_write(void *dst, void *src, int size);
 
 extern int sys_flash_erase_sector(unsigned int sector);
 
-    #ifdef __cplusplus
+#ifdef __cplusplus
 }
-    #endif //__cplusplus
-
-#endif // _SYS_H
+#endif //__cplusplus

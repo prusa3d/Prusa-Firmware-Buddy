@@ -1,6 +1,5 @@
 // sim_bed.h
-#ifndef _SIM_BED_H
-#define _SIM_BED_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,5 +14,3 @@ extern void sim_bed_set_power(float P);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif // _SIM_BED_H

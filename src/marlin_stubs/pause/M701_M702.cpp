@@ -44,8 +44,8 @@
 #include <cmath>
 
 #define DO_NOT_RESTORE_Z_AXIS
-#define Z_AXIS_LOAD_POS   40
-#define Z_AXIS_UNLOAD_POS 20
+static const constexpr uint8_t Z_AXIS_LOAD_POS = 40;
+static const constexpr uint8_t Z_AXIS_UNLOAD_POS = 20;
 
 using Func = std::function<void()>;
 

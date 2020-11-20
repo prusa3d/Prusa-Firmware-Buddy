@@ -1,6 +1,8 @@
 //appmain.cpp - arduino-like app start
 
+#include "appmain.hpp"
 #include "app.h"
+#include "app_metrics.h"
 #include "dbg.h"
 #include "cmsis_os.h"
 #include "config.h"
@@ -36,12 +38,18 @@
 
 #ifdef NEW_FANCTL
     #include "fanctl.h"
-CFanCtl fanctl0 = CFanCtl(FANCTL0_PIN_OUTP, FANCTL0_PIN_TACH,
+CFanCtl fanctl0 = CFanCtl(
+    buddy::hw::fan0pwm,
+    buddy::hw::fan0tach,
     FANCTL0_PWM_MIN, FANCTL0_PWM_MAX,
-    FANCTL0_RPM_MIN, FANCTL0_RPM_MAX);
-CFanCtl fanctl1 = CFanCtl(FANCTL1_PIN_OUTP, FANCTL1_PIN_TACH,
+    FANCTL0_RPM_MIN, FANCTL0_RPM_MAX,
+    FANCTL0_PWM_THR);
+CFanCtl fanctl1 = CFanCtl(
+    buddy::hw::fan1pwm,
+    buddy::hw::fan1tach,
     FANCTL1_PWM_MIN, FANCTL1_PWM_MAX,
-    FANCTL1_RPM_MIN, FANCTL1_RPM_MAX);
+    FANCTL1_RPM_MIN, FANCTL1_RPM_MAX,
+    FANCTL1_PWM_THR);
 #endif //NEW_FANCTL
 
 #define DBG _dbg0 //debug level 0
@@ -61,17 +69,22 @@ extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mo
 #endif                                 //BUDDY_ENABLE_ETHERNET
 
 void app_setup(void) {
+    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
+        init_tmc();
+    } else {
+        init_tmc_bare_minimum();
+    }
+
     setup();
 
     marlin_server_settings_load(); // load marlin variables from eeprom
-
-    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
-        init_tmc();
-    }
     //DBG("after init_tmc (%ld ms)", HAL_GetTick());
 }
 
 void app_idle(void) {
+    Buddy::Metrics::RecordMarlinVariables();
+    Buddy::Metrics::RecordRuntimeStats();
+    Buddy::Metrics::RecordPrintFilename();
     osDelay(0); // switch to other threads - without this is UI slow during printing
 }
 
@@ -92,10 +105,6 @@ void app_run(void) {
     marlin_server_idle_cb = app_idle;
 
     adc_init();
-
-#ifdef NEW_FANCTL
-    fanctl_init();
-#endif //NEW_FANCTL
 
 #ifdef SIM_HEATER
     sim_heater_init();
@@ -225,7 +234,7 @@ void app_tim14_tick(void) {
 #ifndef HAS_GUI
     #error "HAS_GUI not defined."
 #elif HAS_GUI
-    jogwheel.Update1ms();
+    jogwheel.Update1msFromISR();
 #endif
     Sound_Update1ms();
     //hwio_update_1ms();

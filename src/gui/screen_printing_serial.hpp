@@ -1,16 +1,16 @@
 //screen_printing_serial.hpp
 #pragma once
-#include "IScreenPrinting.hpp"
+#include "ScreenPrintingModel.hpp"
 #include "gui.hpp"
 #include "window_header.hpp"
 #include "status_footer.h"
 #include "window_text.hpp"
 #include <array>
 
-static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
+static constexpr btn_resource res_disconnect = { IDR_PNG_disconnect_48px, N_("Disconnect") };
 
-class screen_printing_serial_data_t : public IScreenPrinting {
-    static constexpr const char *caption = "SERIAL PRT.";
+class screen_printing_serial_data_t : public AddSuperWindow<ScreenPrintingModel> {
+    static constexpr const char *caption = N_("SERIAL PRINTING");
     // static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
 
     window_icon_t octo_icon;
@@ -26,8 +26,10 @@ class screen_printing_serial_data_t : public IScreenPrinting {
 public:
     screen_printing_serial_data_t();
 
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
 private:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
     void DisableButton(btn &b);
 
     virtual void stopAction() override;

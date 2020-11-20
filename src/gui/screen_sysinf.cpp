@@ -34,7 +34,7 @@ enum { row_h = 20 };
 #define RECT_MACRO(col) Rect16(col_##col, row2draw, col_##col##_w, row_h)
 
 screen_sysinfo_data_t::screen_sysinfo_data_t()
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , textMenuName(this, Rect16(0, 0, display::GetW(), 22), is_multiline::no)
     , textCPU_load(this, Rect16(col_0, 25, col_0_w, row_h), is_multiline::no)
     , textCPU_load_val(this, Rect16(col_1, 25, col_1_w, row_h))
@@ -87,8 +87,8 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textExit.SetText(_(ex));
 }
 
-void screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_LOOP) {
+void screen_sysinfo_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
         actual_CPU_load = osGetCPUUsage();
         if (last_CPU_load != actual_CPU_load) {
             textCPU_load_val.SetValue(actual_CPU_load);
@@ -99,5 +99,5 @@ void screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *p
         if (marlin_change_clr(MARLIN_VAR_FAN1_RPM))
             textFan1_RPM_val.SetValue(marlin_vars()->fan1_rpm);
     }
-    window_frame_t::windowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }

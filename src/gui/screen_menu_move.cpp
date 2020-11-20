@@ -6,6 +6,7 @@
 #include "marlin_client.h"
 #include "menu_vars.h"
 #include "WindowMenuItems.hpp"
+#include "menu_spin_config.hpp"
 
 template <size_t INDEX>
 class MI_AXIS : public WI_SPIN_I16_t {
@@ -13,9 +14,9 @@ class MI_AXIS : public WI_SPIN_I16_t {
 public:
     MI_AXIS<INDEX>()
         : WI_SPIN_I16_t(int32_t(marlin_vars()->pos[INDEX]),
-            MenuVars::axis_ranges[INDEX].data(), MenuVars::labels[INDEX], 0, true, false) {}
-    virtual bool Change(int dif) override {
-        bool ret = WI_SPIN_I16_t::Change(dif);
+            SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    virtual invalidate_t Change(int dif) override {
+        invalidate_t ret = WI_SPIN_I16_t::Change(dif);
         marlin_gcode_printf("G0 %c%d F%d", MenuVars::axis_letters[INDEX], value, MenuVars::manual_feedrate[INDEX]);
         return ret;
     }
@@ -27,7 +28,7 @@ public:
         marlin_gcode("G90");    // Set to Absolute Positioning
         marlin_gcode("M82");    // Set extruder to absolute mode
         marlin_gcode("G92 E0"); // Reset position before change
-        value = 0;              // Reset spin before change
+        ClrVal();               // Reset spin before change
         //original code erased invalid flag from menu. Why?
     }
 };
@@ -43,11 +44,13 @@ public:
     constexpr static const char *label = N_("MOVE AXIS");
     ScreenMenuMove()
         : Screen(_(label)) {}
-    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
+
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
-void ScreenMenuMove::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_LOOP) {
+void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
 
         bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::extrude_min_temp);
         IWindowMenuItem *pAxis_E = &Item<MI_AXIS_E>();
@@ -57,7 +60,7 @@ void ScreenMenuMove::windowEvent(window_t *sender, uint8_t event, void *param) {
             pAxis_E->Disable();
     }
 
-    Screen::windowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuMove() {

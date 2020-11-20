@@ -1,4 +1,4 @@
-// term.c
+// term.cpp
 #include <stdarg.h>
 #include <algorithm>
 
@@ -178,7 +178,8 @@ void term_write_char(term_t *pt, uint8_t ch) {
         ++(pt->col);
     }
 }
-
+//duplicit function, todo erase
+//to be replaced by window_term_t::Printf, but it does not work in bsod
 int term_printf(term_t *pt, const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
@@ -195,3 +196,30 @@ int term_printf(term_t *pt, const char *fmt, ...) {
 
     return ret;
 }
+
+// cannot use this
+// passing va_list into multiple nested functions does not work
+// undefined behavior
+/*
+int term_printf(term_t *pt, const char *fmt, ...) {
+    va_list va;
+    va_start(va, fmt);
+    int ret = term_vprintf(pt, fmt, va);
+    va_end(va);
+    return ret;
+}
+
+
+int term_vprintf(term_t *pt, const char *fmt, va_list va) {
+
+    char text[TERM_PRINTF_MAX];
+
+    int ret = vsnprintf(text, sizeof(text), fmt, va);
+
+    const size_t range = std::min(ret, TERM_PRINTF_MAX);
+    for (size_t i = 0; i < range; i++)
+        term_write_char(pt, text[i]);
+
+    return ret;
+}
+*/

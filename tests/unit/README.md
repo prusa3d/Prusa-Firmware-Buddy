@@ -3,8 +3,7 @@
 ```bash
 # create a build folder and run cmake within it
 cd ../.. && mkdir build_tests && cd build_tests
-cmake .. -G Ninja -DCUSTOM_COMPILE_OPTIONS:STRING=-Dstrlcpy=strncpy
-# FIXME: CUSTOM_COMPILE_OPTIONS: a dirty hack currently needed to compile some tests on platforms without strlcpy
+cmake .. -G Ninja
 
 # build all the unit tests
 ninja tests
@@ -45,7 +44,7 @@ mkdir -p build_tests \
 && export PATH="$(python ../utils/bootstrap.py --print-dependency-directory cmake)/bin:$PATH" \
 && export PATH="$(python ../utils/bootstrap.py --print-dependency-directory ninja):$PATH" \
 && export CTEST_OUTPUT_ON_FAILURE=1 \
-&& cmake .. -G Ninja -DCUSTOM_COMPILE_OPTIONS:STRING=-Dstrlcpy=strncpy
+&& cmake .. -G Ninja
 ```
 
 6. Run the tests:

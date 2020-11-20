@@ -1,6 +1,5 @@
 // marlin_server.h
-#ifndef _MARLIN_SERVER_H
-#define _MARLIN_SERVER_H
+#pragma once
 
 #include "marlin_events.h"
 #include "marlin_vars.h"
@@ -8,36 +7,21 @@
 #include "client_fsm_types.h"
 
 // server flags
-#define MARLIN_SFLG_STARTED 0x0001 // server started (set in marlin_server_init)
-#define MARLIN_SFLG_PROCESS 0x0002 // loop processing in main thread is enabled
-#define MARLIN_SFLG_BUSY    0x0004 // loop is busy
-#define MARLIN_SFLG_PENDREQ 0x0008 // pending request
-#define MARLIN_SFLG_EXCMODE 0x0010 // exclusive mode enabled (currently used for selftest/wizard)
+// FIXME define the same type for these and marlin_server.flags
+static const uint16_t MARLIN_SFLG_STARTED = 0x0001; // server started (set in marlin_server_init)
+static const uint16_t MARLIN_SFLG_PROCESS = 0x0002; // loop processing in main thread is enabled
+static const uint16_t MARLIN_SFLG_BUSY = 0x0004;    // loop is busy
+static const uint16_t MARLIN_SFLG_PENDREQ = 0x0008; // pending request
+static const uint16_t MARLIN_SFLG_EXCMODE = 0x0010; // exclusive mode enabled (currently used for selftest/wizard)
 
 // server variable update interval [ms]
-#define MARLIN_UPDATE_PERIOD 100
-#define MSG_STACK_SIZE       8  //status message stack size
-#define MSG_MAX_LENGTH       21 //status message max length
+static const uint8_t MARLIN_UPDATE_PERIOD = 100;
 
 typedef void(marlin_server_idle_t)(void);
-
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct msg_stack {
-
-    char msg_data[MSG_STACK_SIZE][MSG_MAX_LENGTH];
-    uint8_t count;
-
-} msg_stack_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
-
-extern msg_stack_t msg_stack;
 
 // callback for idle operation inside marlin (called from ExtUI handler onIdle)
 extern marlin_server_idle_t *marlin_server_idle_cb;
@@ -85,6 +69,18 @@ extern void marlin_server_manage_heater(void);
 extern void marlin_server_quick_stop(void);
 
 //
+extern uint32_t marlin_server_get_command(void);
+
+//
+extern void marlin_server_set_command(uint32_t command);
+
+//
+extern void marlin_server_test_start(uint32_t mask);
+
+//
+extern void marlin_server_test_abort(void);
+
+//
 extern void marlin_server_print_abort(void);
 
 //
@@ -114,6 +110,9 @@ extern int marlin_all_axes_known(void);
 // returns state of exclusive mode (1/0)
 extern int marlin_server_get_exclusive_mode(void);
 
+// set state of exclusive mode (1/0)
+extern void marlin_server_set_exclusive_mode(int exclusive);
+
 // display different value than target, used in preheat
 extern void marlin_server_set_temp_to_display(float value);
 
@@ -123,5 +122,3 @@ extern float marlin_server_get_temp_to_display(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_MARLIN_SERVER_H

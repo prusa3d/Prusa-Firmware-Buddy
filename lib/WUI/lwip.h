@@ -83,21 +83,48 @@ extern "C" {
 #include "wui_api.h"
 /* Global Variables ---------------------------------------------------------*/
 
+#define DNS_1 0
+#define DNS_2 1
+
 extern struct netif eth0;
-extern ip4_addr_t ipaddr;
-extern ip4_addr_t netmask;
-extern ip4_addr_t gw;
-extern ETH_HandleTypeDef heth;
+extern WUI_ETH_LINK_STATUS_t link_status;
+extern WUI_ETH_NETIF_STATUS_t netif_status;
+extern ETH_config_t wui_eth_config;
+
+typedef enum {
+    WUI_IP4_DHCP,
+    WUI_IP4_STATIC
+} WUI_IP4_TYPE;
+
+/*!****************************************************************************
+* \brief checks plug/un-plug status and take action
+*
+* \param    void
+*
+* \return   void
+*
+*****************************************************************************/
+void wui_lwip_link_status();
+
+/*!****************************************************************************
+* \brief configures the LAN settings from GUI
+*
+* \param    void
+*
+* \return   void
+*
+*****************************************************************************/
+void wui_lwip_sync_gui_lan_settings();
 
 /*!****************************************************************************
 * \brief Main LwIP stack initialization function
 *
-* \param    void
+* \param    ETH_config_t
 *
 * \return	void
 *
 *****************************************************************************/
-void MX_LWIP_Init(void);
+void MX_LWIP_Init(ETH_config_t *ethconfig);
 
 /* MINI LwIP interface functions --------------------------------------------*/
 

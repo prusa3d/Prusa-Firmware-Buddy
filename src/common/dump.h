@@ -1,43 +1,47 @@
 // dump.h
-#ifndef _DUMP_H
-#define _DUMP_H
+#pragma once
 
 #include <inttypes.h>
 #include "stm32f4xx_hal.h"
 
 // dump types and flags
-#define DUMP_UNDEFINED 0xff // undefined - memory erased/empty
-#define DUMP_HARDFAULT 0x01 // hardfault dump
-#define DUMP_IWDGW     0x02 // IWDG warning dump
-#define DUMP_NOT_SAVED 0x80 // dump not saved flag - (unsaved dump cannot be overwritten)
+static const uint8_t DUMP_UNDEFINED = 0xff; // undefined - memory erased/empty
+static const uint8_t DUMP_HARDFAULT = 0x01; // hardfault dump
+static const uint8_t DUMP_IWDGW = 0x02;     // IWDG warning dump
+static const uint8_t DUMP_GENERAL = 0x03;   // general error dump
+static const uint8_t DUMP_TEMPERROR = 0x04; // thermal error dump
+static const uint8_t DUMP_NOT_SAVED = 0x80; // dump not saved flag - (unsaved dump cannot be overwritten)
+static const uint8_t DUMP_NOT_DISPL = 0x40; // dump not displayed after startup
 
-// dumped ram area (128kb)
-#define DUMP_RAM_ADDR 0x20000000
-#define DUMP_RAM_SIZE 0x00020000
+enum {
+    // dumped ram area (128kb)
+    DUMP_RAM_ADDR = 0x20000000,
+    DUMP_RAM_SIZE = 0x00020000,
 
-// dumped ccram area (64kb), last 256 bytes used for register dump etc.
-#define DUMP_CCRAM_ADDR 0x10000000
-#define DUMP_CCRAM_SIZE 0x00010000
+    // dumped ccram area (64kb), last 256 bytes used for register dump etc.
+    DUMP_CCRAM_ADDR = 0x10000000,
+    DUMP_CCRAM_SIZE = 0x00010000,
 
-// dumped otp area (32kb)
-#define DUMP_OTP_ADDR 0x1FFF0000
-#define DUMP_OTP_SIZE 0x00008000
+    // dumped otp area (32kb)
+    DUMP_OTP_ADDR = 0x1FFF0000,
+    DUMP_OTP_SIZE = 0x00008000,
 
-// dumped flash area (1024kb)
-#define DUMP_FLASH_ADDR 0x08000000
-#define DUMP_FLASH_SIZE 0x00100000
+    // dumped flash area (1024kb)
+    DUMP_FLASH_ADDR = 0x08000000,
+    DUMP_FLASH_SIZE = 0x00100000,
+};
 
 // general registers stored to ccram
 // r0-r12, sp, lr, pc - 64 bytes
 // xpsr, fpcsr, PRIMASK, BASEPRI, FAULTMASK, CONTROL, MSP, PSP - 32 bytes
-#define DUMP_REGS_GEN_ADDR 0x1000ff00
-#define DUMP_REGS_GEN_SIZE 0x00000060
+static const uint32_t DUMP_REGS_GEN_ADDR = 0x1000ff00;
+static const uint32_t DUMP_REGS_GEN_SIZE = 0x00000060;
 // scb registers stored to ccram (140 bytes)
-#define DUMP_REGS_SCB_ADDR 0x1000ff60
-#define DUMP_REGS_SCB_SIZE 0x0000008c
+static const uint32_t DUMP_REGS_SCB_ADDR = 0x1000ff60;
+static const uint32_t DUMP_REGS_SCB_SIZE = 0x0000008c;
 // dump info stored to ccram (16 bytes)
-#define DUMP_INFO_ADDR 0x1000fff0
-#define DUMP_INFO_SIZE 0x00000010
+static const uint32_t DUMP_INFO_ADDR = 0x1000fff0;
+static const uint32_t DUMP_INFO_SIZE = 0x00000010;
 
 // prepare R0 and R3 for DUMP_REGS_GEN_EXC_TO_CCRAM in fault handlers
 #define DUMP_REGS_GEN_FAULT_BEGIN()                       \
@@ -103,16 +107,11 @@
         "    str r2, [r1, #0x54]    \n"                                                 \
         "    mrs r2, PSP            \n" /* PSP  */                                      \
         "    str r2, [r1, #0x58]    \n"                                                 \
-        "    str r3, [r1, #0x5c]    \n" /* lrexc  */                                    \
-        "    ldr r0, =0xffffffff    \n" /* fill dumpinfo with 0xff */                   \
-        "    str r0, [r1, #0xf0]    \n"                                                 \
-        "    str r0, [r1, #0xf4]    \n"                                                 \
-        "    str r0, [r1, #0xf8]    \n"                                                 \
-        "    str r0, [r1, #0xfc]    \n")
+        "    str r3, [r1, #0x5c]    \n") /* lrexc  */
 
 // fill dumpinfo
 #define DUMP_INFO_TO_CCRAM(type) \
-    *((unsigned char *)DUMP_INFO_ADDR) = type | DUMP_NOT_SAVED;
+    *((unsigned char *)DUMP_INFO_ADDR) = type | DUMP_NOT_SAVED | DUMP_NOT_DISPL;
 
 // perform hardfault dump (directly from HardFault_Handler that must be "naked")
 #define DUMP_HARDFAULT_TO_CCRAM()           \
@@ -130,14 +129,21 @@
         DUMP_INFO_TO_CCRAM(DUMP_IWDGW);   \
     }
 
+// perform thermal error dump
+#define DUMP_TEMPERROR_TO_CCRAM()           \
+    {                                       \
+        DUMP_REGS_GEN_FAULT_BEGIN();        \
+        DUMP_REGS_GEN_EXC_TO_CCRAM();       \
+        DUMP_INFO_TO_CCRAM(DUMP_TEMPERROR); \
+    }
+
 #pragma pack(push)
 #pragma pack(1)
-
 typedef struct _dumpinfo_t {
     unsigned char type_flags;   //
-    unsigned char reserved[15]; // TODO: RTC time
+    unsigned short code;        //
+    unsigned char reserved[13]; // TODO: RTC time
 } dumpinfo_t;
-
 #pragma pack(pop)
 
 #ifdef __cplusplus
@@ -150,6 +156,20 @@ extern int dump_in_xflash_is_valid(void);
 
 extern int dump_in_xflash_is_saved(void);
 
+extern int dump_in_xflash_is_displayed(void);
+
+extern int dump_in_xflash_get_type(void);
+
+extern unsigned short dump_in_xflash_get_code(void);
+
+extern void dump_in_xflash_set_displayed(void);
+
+extern unsigned int dump_in_xflash_read_RAM(void *pRAM, unsigned int addr, unsigned int size);
+
+extern unsigned int dump_in_xflash_read_regs_SCB(void *pRegsSCB, unsigned int size);
+
+extern unsigned int dump_in_xflash_read_regs_GEN(void *pRegsGEN, unsigned int size);
+
 extern int dump_save_to_usb(const char *fn);
 
 extern void dump_hardfault_test_0(void);
@@ -159,5 +179,3 @@ extern int dump_hardfault_test_1(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_DUMP_H

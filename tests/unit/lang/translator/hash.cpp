@@ -155,7 +155,7 @@ bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char 
             for_each(b, ie, [&firstLetters](const String &s) { firstLetters.insert(s.s.substr(0, 2)); });
             // If this is not true, we have a collision which cannot be solved just by the first 2 letters
             // In such a case one must either enlarge the search hash map (more buckets) or do some other changes
-            REQUIRE(firstLetters.size() == distance(b, ie));
+            REQUIRE((long)firstLetters.size() == distance(b, ie));
         }
         b = ie; // move onto the next bucket
     }

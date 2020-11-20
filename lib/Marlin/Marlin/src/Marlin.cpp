@@ -48,9 +48,6 @@
 
 #include "module/stepper/indirection.h"
 
-#ifdef ARDUINO
-  #include <pins_arduino.h>
-#endif
 #include <math.h>
 #include "libs/nozzle.h"
 

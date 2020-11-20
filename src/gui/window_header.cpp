@@ -3,6 +3,7 @@
 #include "marlin_client.h"
 #include "i18n.h"
 #include "marlin_events.h"
+#include "gui_media_events.hpp"
 
 #ifdef BUDDY_ENABLE_ETHERNET
     #include "wui_api.h"
@@ -32,53 +33,21 @@ void window_header_t::SetText(string_view_utf8 txt) {
     Invalidate();
 }
 
-void window_header_t::EventClr() {
-    EventClr_MediaInserted();
-    EventClr_MediaRemoved();
-    EventClr_MediaError();
-}
-
-bool window_header_t::EventClr_MediaInserted() {
-    /* lwip fces only read states, invalid states by another thread never mind */
-    update_ETH_icon();
-    if (marlin_event_clr(MARLIN_EVT_MediaInserted)) {
-        USB_Activate();
-        return 1;
-    }
-    return 0;
-}
-
-bool window_header_t::EventClr_MediaRemoved() {
-    /* lwip fces only read states, invalid states by another thread never mind */
-    update_ETH_icon();
-    if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) {
-        USB_On();
-        return 1;
-    }
-    return 0;
-}
-
-bool window_header_t::EventClr_MediaError() {
-    /* lwip fces only read states, invalid states by another thread never mind */
-    update_ETH_icon();
-    if (marlin_event_clr(MARLIN_EVT_MediaError)) {
-        return 1;
-    }
-    return 0;
-}
-
 static const uint16_t span = 2 + 2;
 static const Rect16::Width_t icon_usb_width(36);
 static const Rect16::Width_t icon_lan_width(20);
 static const Rect16::Width_t icons_width(icon_usb_width + icon_lan_width);
+static const Rect16::Width_t icon_base_width(40);
 
-window_header_t::window_header_t(window_t *parent)
-    : window_frame_t(parent, GuiDefaults::RectHeader)
-    , icon_base(this, Rect16(rect.Left() + span, rect.Top(), rect.Width(), rect.Height()), 0)
-    , label(this, rect + Rect16::Left_t(span) - Rect16::Width_t(icons_width + span), is_multiline::no)
-    , icon_usb(this, (rect + Rect16::Left_t(rect.Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_header_icon_usb)
-    , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_header_icon_lan) {
-    label.SetAlignment(ALIGN_CENTER);
+window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
+    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectHeader)
+    , icon_base(this, Rect16(rect.TopLeft(), icon_base_width, rect.Height() - 5), 0)
+    , label(this, rect - Rect16::Width_t(icons_width + span + icon_base_width) + Rect16::Left_t(icon_base_width), txt)
+    , icon_usb(this, (rect + Rect16::Left_t(rect.Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_usb_16px)
+    , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_lan_16px) {
+    /// label and icon aligmnent and offset
+    label.SetAlignment(ALIGN_LEFT_BOTTOM);
+    icon_base.SetAlignment(ALIGN_CENTER_BOTTOM);
 
     marlin_vars()->media_inserted ? USB_Activate() : USB_On();
 
@@ -114,4 +83,28 @@ window_header_t::header_states_t window_header_t::GetStateLAN() const {
     if (!icon_lan.IsVisible())
         return header_states_t::OFF;
     return icon_lan.IsEnabled() ? header_states_t::ACTIVE : header_states_t::ON;
+}
+
+void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+
+    if (event == GUI_event_t::MEDIA) {
+        switch (GuiMediaEventsHandler::state_t(int(param))) {
+        case GuiMediaEventsHandler::state_t::inserted:
+            USB_Activate();
+            break;
+        case GuiMediaEventsHandler::state_t::removed:
+            USB_On();
+            break;
+        case GuiMediaEventsHandler::state_t::error:
+            USB_Off();
+            break;
+        default:
+            break;
+        }
+    }
+    if (event == GUI_event_t::LOOP) {
+        update_ETH_icon();
+    }
+
+    SuperWindowEvent(sender, event, param);
 }

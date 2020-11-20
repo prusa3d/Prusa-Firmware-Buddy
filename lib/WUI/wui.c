@@ -9,34 +9,44 @@
 #include "wui.h"
 #include "wui_vars.h"
 #include "marlin_client.h"
-#include "wui_helper_funcs.h"
+#include "wui_api.h"
 #include "lwip.h"
 #include "ethernetif.h"
 #include <string.h>
 #include "sntp_client.h"
 #include "dbg.h"
 
-#define MAX_WUI_REQUEST_LEN    100
-#define MAX_MARLIN_REQUEST_LEN 100
-#define WUI_FLG_PEND_REQ       0x0001
-#define TCP_WUI_QUEUE_SIZE     64
+#define WUI_NETIF_SETUP_DELAY  1000
+#define WUI_COMMAND_QUEUE_SIZE WUI_WUI_MQ_CNT // maximal number of messages at once in WUI command messageQ
 
-osSemaphoreId tcp_wui_semaphore_id = 0;
-osMessageQDef(tcp_wui_queue, TCP_WUI_QUEUE_SIZE, uint32_t);
-osMessageQId tcp_wui_queue_id = 0;
-osPoolDef(tcp_wui_mpool, TCP_WUI_QUEUE_SIZE, wui_cmd_t);
-osPoolId tcp_wui_mpool_id;
-
-osMutexDef(wui_thread_mutex);   // Mutex object for exchanging WUI thread TCP thread
-osMutexId(wui_thread_mutex_id); // Mutex ID
+// WUI thread mutex for updating marlin vars
+osMutexDef(wui_thread_mutex);
+osMutexId(wui_thread_mutex_id);
 
 static marlin_vars_t *wui_marlin_vars;
 wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
 
-static void update_wui_vars(void) {
+static void wui_marlin_client_init(void) {
+    wui_marlin_vars = marlin_client_init(); // init the client
+    // force update variables when starts
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
+    if (wui_marlin_vars) {
+        wui_marlin_vars->media_LFN = wui_media_LFN;
+    }
+}
+
+static void sync_with_marlin_server(void) {
+    if (wui_marlin_vars) {
+        marlin_client_loop();
+    } else {
+        return;
+    }
     osMutexWait(wui_thread_mutex_id, osWaitForever);
-    wui_vars.pos[Z_AXIS_POS] = wui_marlin_vars->pos[Z_AXIS_POS];
+    for (int i = 0; i < 4; i++) {
+        wui_vars.pos[i] = wui_marlin_vars->pos[i];
+    }
     wui_vars.temp_nozzle = wui_marlin_vars->temp_nozzle;
     wui_vars.temp_bed = wui_marlin_vars->temp_bed;
     wui_vars.target_nozzle = wui_marlin_vars->target_nozzle;
@@ -48,6 +58,7 @@ static void update_wui_vars(void) {
     wui_vars.sd_precent_done = wui_marlin_vars->sd_percent_done;
     wui_vars.sd_printing = wui_marlin_vars->sd_printing;
     wui_vars.time_to_end = wui_marlin_vars->time_to_end;
+    wui_vars.print_state = wui_marlin_vars->print_state;
     if (marlin_change_clr(MARLIN_VAR_FILENAME)) {
         strlcpy(wui_vars.gcode_name, wui_marlin_vars->media_LFN, FILE_NAME_MAX_LEN);
     }
@@ -55,83 +66,32 @@ static void update_wui_vars(void) {
     osMutexRelease(wui_thread_mutex_id);
 }
 
-static int process_wui_request(wui_cmd_t *request) {
-
-    if (request->lvl == HIGH_LVL_CMD) {
-
-    } else if (request->lvl == LOW_LVL_CMD) {
-        _dbg("sending command: %s to marlin", request);
-        marlin_gcode(request->arg);
-    }
-    return 1;
-}
-
-static void wui_queue_cycle() {
-
-    osEvent wui_event = osMessageGet(tcp_wui_queue_id, 0);
-
-    if (wui_event.status == osEventMessage) {
-        wui_cmd_t *rptr;
-        rptr = wui_event.value.p;
-        if (NULL != wui_event.value.p) {
-            _dbg("command in wui queue");
-            process_wui_request(rptr);
-        }
-        osStatus status = osPoolFree(tcp_wui_mpool_id, rptr); // free memory allocated for message
-        if (osOK != status) {
-            _dbg("wui_queue_pool free error: %d", status);
-        }
-    }
-}
-
-void update_state_variables_step(void) {
-
-    ETH_config_t config;
-    config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(&config);
-
-    uint32_t eth_link = ethernetif_link(&eth0); // handles Ethernet link plug/un-plug events
-
-    eth_status_step(&config, eth_link);
-    sntp_client_step();
+static void update_eth_changes(void) {
+    wui_lwip_link_status(); // checks plug/unplug status and take action
+    wui_lwip_sync_gui_lan_settings();
 }
 
 void StartWebServerTask(void const *argument) {
-    // semaphore for filling tcp - wui message qeue
-    osSemaphoreDef(tcp_wui_semaphore);
-    tcp_wui_semaphore_id = osSemaphoreCreate(osSemaphore(tcp_wui_semaphore), 1);
-    // message queue for commands from tcp thread to wui main loop
-    tcp_wui_mpool_id = osPoolCreate(osPool(tcp_wui_mpool)); // create memory pool
-    tcp_wui_queue_id = osMessageCreate(osMessageQ(tcp_wui_queue), NULL);
-
+    // get settings from ini file
+    osDelay(1000);
+    printf("wui starts");
+    if (load_ini_file(&wui_eth_config)) {
+        save_eth_params(&wui_eth_config);
+    }
+    wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    load_eth_params(&wui_eth_config);
     // mutex for passing marlin variables to tcp thread
     wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
-
-    // marlin client initialization
-    wui_marlin_vars = marlin_client_init(); // init the client
-    // force update variables when starts
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
-    if (wui_marlin_vars) {
-        wui_marlin_vars->media_LFN = wui_media_LFN;
-    }
+    // marlin client initialization for WUI
+    wui_marlin_client_init();
     // LwIP related initalizations
-    MX_LWIP_Init();
+    MX_LWIP_Init(&wui_eth_config);
     http_server_init();
-    // get settings from ini file
-    ETH_config_t config;
-    load_ini_params(&config);
-
+    sntp_client_init();
+    osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
     for (;;) {
-
-        wui_queue_cycle(); // checks for commands to WUI
-        update_state_variables_step();
-
-        if (wui_marlin_vars) {
-            marlin_client_loop();
-            update_wui_vars();
-        }
-
-        osDelay(100);
+        update_eth_changes();
+        sync_with_marlin_server();
+        osDelay(1);
     }
 }

@@ -5,8 +5,7 @@
  *      Author: Radek Vana
  */
 
-#ifndef _THREAD_MEASUREMENT_H
-#define _THREAD_MEASUREMENT_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,5 +16,3 @@ void StartMeasurementTask(void const *argument);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_THREAD_MEASUREMENT_H

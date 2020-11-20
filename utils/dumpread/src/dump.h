@@ -1,9 +1,9 @@
 // dump.h
-#ifndef _DUMP_H
-#define _DUMP_H
+#pragma once
 
 #include <inttypes.h>
 #include <stdio.h>
+#include "mapfile.h"
 
 #define DUMP_RAM_ADDR   0x20000000
 #define DUMP_RAM_SIZE   0x00020000
@@ -16,9 +16,7 @@
 
 #define DUMP_REGS_GEN 0x1000ff00
 #define DUMP_REGS_SCB 0x1000ff60
-
-#pragma pack(push)
-#pragma pack(1)
+#define DUMP_INFO     0x1000fff0
 
 typedef struct _dump_regs_gen_t {
     union {
@@ -62,16 +60,23 @@ typedef struct _dump_regs_gen_t {
     uint32_t LREXC;
 } dump_regs_gen_t;
 
-typedef struct _dump_tcb_t {
-    uint32_t pxTopOfStack;
-    uint32_t xStateListItem[5];
-    uint32_t xEventListItem[5];
-    uint32_t uxPriority;
-    uint32_t pxStack;
-    char pcTaskName[16];
-} dump_tcb_t;
+typedef struct _dump_info_t {
+    uint8_t type_flags;
+    uint8_t reserved[15];
+} dump_info_t;
 
-#pragma pack(pop)
+typedef struct _dump_mallinfo_t {
+    uint32_t arena;    /* total space allocated from system */
+    uint32_t ordblks;  /* number of non-inuse chunks */
+    uint32_t smblks;   /* unused -- always zero */
+    uint32_t hblks;    /* number of mmapped regions */
+    uint32_t hblkhd;   /* total space in mmapped regions */
+    uint32_t usmblks;  /* unused -- always zero */
+    uint32_t fsmblks;  /* unused -- always zero */
+    uint32_t uordblks; /* total allocated space */
+    uint32_t fordblks; /* total non-inuse space */
+    uint32_t keepcost; /* top-most, releasable (via malloc_trim) space */
+} dump_mallinfo_t;
 
 typedef struct _dump_t {
     uint8_t *ram;
@@ -79,7 +84,8 @@ typedef struct _dump_t {
     uint8_t *otp;
     uint8_t *flash;
     dump_regs_gen_t *regs_gen;
-    uint8_t *regs_scb;
+    uint32_t *regs_scb;
+    dump_info_t *info;
 } dump_t;
 
 #ifdef __cplusplus
@@ -100,16 +106,28 @@ extern void dump_get_data(dump_t *pd, uint32_t addr, uint32_t size, uint8_t *dat
 
 extern uint32_t dump_get_ui32(dump_t *pd, uint32_t addr);
 
-extern void dump_print_hardfault_simple(dump_t *pd);
-
-extern void dump_print_hardfault_detail(dump_t *pd);
-
 extern int dump_load_bin_from_file(void *data, int size, const char *fn);
 
 extern int dump_save_bin_to_file(void *data, int size, const char *fn);
 
+extern uint32_t dump_find_in_flash(dump_t *pd, uint8_t *pdata, uint16_t size, uint32_t start_addr, uint32_t end_addr);
+
+extern uint32_t dump_find_in_ram(dump_t *pd, uint8_t *pdata, uint16_t size, uint32_t start_addr, uint32_t end_addr);
+
+extern int dump_add_symbol(uint32_t addr, uint32_t size, const char *name);
+
+extern int dump_find_symbol_by_addr(uint32_t addr, char *name, uint32_t *offs);
+
+extern mapfile_mem_entry_t *dump_print_var(dump_t *pd, mapfile_t *pm, const char *name);
+
+extern mapfile_mem_entry_t *dump_print_var_ui32(dump_t *pd, mapfile_t *pm, const char *name);
+
+extern mapfile_mem_entry_t *dump_print_var_pchar(dump_t *pd, mapfile_t *pm, const char *name);
+
+extern void dump_print_stack(dump_t *pd, mapfile_t *pm, uint32_t addr, uint32_t depth);
+
+extern void dump_print_all(dump_t *pd, mapfile_t *pm);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_DUMP_H

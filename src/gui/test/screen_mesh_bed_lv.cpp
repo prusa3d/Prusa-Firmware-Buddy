@@ -20,8 +20,8 @@ static const char *meshStrings[] = { "Mesh not in failed state", "Mesh in failed
 //-----------------------------------------------------------------------------
 //methods
 
-#define MESH_DEFAULT_CL COLOR_WHITE
-#define MESH_ACTIVE_CL  COLOR_RED
+static const constexpr color_t MESH_DEFAULT_CL = COLOR_WHITE;
+static const constexpr color_t MESH_ACTIVE_CL = COLOR_RED;
 
 //mesh callbacks
 void screen_mesh_bed_lv_data_t::gui_state_mesh_off() {
@@ -44,31 +44,26 @@ static constexpr uint16_t row_h = 25;
 mesh_state_t screen_mesh_bed_lv_data_t::mesh_state = mesh_state_t::idle;
 
 screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , footer(this)
     , textMenuName(this, Rect16(0, 0, display::GetW(), row_h), is_multiline::no)
     , btMesh(this, Rect16(2, 50, 200, row_h), []() { if (mesh_state == mesh_state_t::idle) mesh_state = mesh_state_t::start; })
     , text_mesh_state(this, Rect16(2, 75, 200, row_h), is_multiline::no)
-    , term(this, Rect16(10, 28, 11 * 20, 18 * 16))
-    //, terminal(this, )
+    , term(this, { 10, 28 }, &term_buff)
     , textExit(this, Rect16(2, 245, 60, 22), []() {if (mesh_state != mesh_state_t::idle) return; Screens::Access()->Close(); }) {
 
     textMenuName.font = resource_font(IDR_FNT_BIG);
-    textMenuName.SetText(_("MESH BED L."));
+    textMenuName.SetText(_("MESH BED LEVELING"));
 
     btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
-
-    //terminal
-    term_init(&(terminal), 20, 16, term_buff);
-    term.term = &(terminal);
 
     //exit and footer
     textExit.font = resource_font(IDR_FNT_BIG);
     textExit.SetText(_("EXIT"));
 }
 
-void screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_LOOP) {
+void screen_mesh_bed_lv_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
         if (marlin_error(MARLIN_ERR_ProbingFailed)) {
             text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[1]));
         } else {
@@ -118,5 +113,5 @@ void screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, voi
             break;
         }
     }
-    window_frame_t::windowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "IWindowMenuItem.hpp"
+#include "WindowMenuItems.hpp"
 
 //todo
 //I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N> .. need to add iterators

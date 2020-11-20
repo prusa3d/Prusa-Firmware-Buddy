@@ -13,6 +13,8 @@
 #else
     #define _MAX_LFN          103
     #define FILE_PATH_MAX_LEN 103
+extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
+extern "C" int strcasecmp(const char *a, const char *b); //strcasecmp defined weakly in unit tests to be able to compile them on windows
 #endif
 
 /// Lazy Dir View
@@ -218,13 +220,28 @@ private:
             sfn[0] = 0;
             date = time = 0;
         }
+        void ReplaceNonAsciiChars(size_t charsCopied) {
+            for (char *p = lfn; p != lfn + charsCopied; ++p) {
+                if (*p < 32 || *p > 127) {
+                    *p = '*';
+                }
+            }
+        }
         void CopyFrom(const FILINFO &fno) {
-            strlcpy(lfn, fno.fname, sizeof(lfn));
+            size_t charsCopied = strlcpy(lfn, fno.fname, sizeof(lfn));
             if (fno.altname[0] == 0) { // the lfn is identical to sfn
                 strlcpy(sfn, lfn, sizeof(sfn));
             } else {
                 strlcpy(sfn, fno.altname, sizeof(sfn));
             }
+            // Safety precautions - remove all non-ascii characters from the LFN, which are not in range <32-127>
+            // and replace them with a placeholder - in our case a '*'
+            // @@TODO beware: if someone deliberately makes 2 filenames differing only in one non-ascii character,
+            // this may break the whole file sorting - because both filenames will have a '*' at that index,
+            // i.e. the file names will not be unique. In such a case the list of files may be incomplete or work
+            // incorrectly. But remember - we do not support diacritics in filenames AT ALL.
+            ReplaceNonAsciiChars(charsCopied);
+
             isFile = (fno.fattrib & AM_DIR) == 0;
             date = fno.fdate;
             time = fno.ftime;

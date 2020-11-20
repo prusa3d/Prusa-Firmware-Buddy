@@ -1,7 +1,6 @@
 // sim_motion.h
 
-#ifndef _SIM_MOTION_H
-#define _SIM_MOTION_H
+#pragma once
 
 #include <inttypes.h>
 
@@ -30,5 +29,3 @@ extern void sim_motion_print_buff(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_SIM_MOTION_H

@@ -8,8 +8,9 @@
 #include "IDialog.hpp"
 #include "Jogwheel.hpp"
 #include "ScreenShot.hpp"
+#include "gui_media_events.hpp"
 
-#define GUI_FLG_INVALID 0x0001
+static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
 
 uint16_t gui_flags = 0;
 
@@ -17,8 +18,10 @@ uint16_t gui_flags = 0;
 osThreadId gui_task_handle = 0;
 #endif //GUI_USE_RTOS
 
-font_t *GuiDefaults::Font = 0;
-font_t *GuiDefaults::FontBig = 0;
+font_t *GuiDefaults::Font = nullptr;
+font_t *GuiDefaults::FontBig = nullptr;
+font_t *GuiDefaults::FontMenuItems = nullptr;
+font_t *GuiDefaults::FontMenuSpecial = nullptr;
 
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
@@ -27,7 +30,7 @@ constexpr Rect16 GuiDefaults::RectScreenBodyNoFoot;
 constexpr Rect16 GuiDefaults::RectScreen;
 constexpr Rect16 GuiDefaults::RectFooter;
 
-gui_loop_cb_t *gui_loop_cb = 0;
+gui_loop_cb_t *gui_loop_cb = nullptr;
 uint32_t gui_loop_tick = 0;
 
 void gui_init(void) {
@@ -50,9 +53,9 @@ void gui_invalidate(void) {
 #endif //GUI_USE_RTOS
 }
 
-#define GUI_DELAY_MIN  1
-#define GUI_DELAY_MAX  10
-#define GUI_DELAY_LOOP 100
+static const constexpr uint8_t GUI_DELAY_MIN = 1;
+static const constexpr uint8_t GUI_DELAY_MAX = 10;
+static const constexpr uint8_t GUI_DELAY_LOOP = 100;
 
 #ifdef GUI_WINDOW_SUPPORT
 
@@ -65,43 +68,54 @@ void gui_loop(void) {
     uint32_t tick;
 
     #ifdef GUI_JOGWHEEL_SUPPORT
-    Jogwheel::ButtonAction btn = jogwheel.GetButtonAction();
-    bool encoder_changed = jogwheel.EncoderChanged();
-    if (btn == Jogwheel::ButtonAction::BTN_PUSHED) {
-        Sound_Play(eSOUND_TYPE_ButtonEcho);
-    }
+    Jogwheel::BtnState_t btn_ev;
+    bool is_btn = jogwheel.ConsumeButtonEvent(btn_ev);
+    int32_t encoder_diff = jogwheel.ConsumeEncoderDiff();
 
-    if (encoder_changed || btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
+    if (encoder_diff != 0 || is_btn) {
         if (gui_loop_cb)
             gui_loop_cb();
         window_t *capturedWin = window_t::GetCapturedWindow();
-        int diff = jogwheel.GetEncoderDiff();
-        if (diff != 0) {
-            if (diff > 0) {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_UP, (void *)diff);
+
+        if (encoder_diff != 0) {
+            if (encoder_diff > 0) {
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::ENC_UP, (void *)encoder_diff);
             } else {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_DN, (void *)-diff);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::ENC_DN, (void *)-encoder_diff);
             }
-            Sound_Play(eSOUND_TYPE_EncoderMove);
-            gui_reset_menu_timer();
         }
-        if (btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
-            if (btn == Jogwheel::ButtonAction::BTN_PUSHED) {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_DN, 0);
-            } else if (btn == Jogwheel::ButtonAction::BTN_CLICKED) {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_CLICK, 0);
-            } else if (btn == Jogwheel::ButtonAction::BTN_DOUBLE_CLICKED) {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_DOUBLE_CLICK, 0); // first click is a normal click so event should not react to WINDOW_CLICK_EVENT
-            } else if (btn == Jogwheel::ButtonAction::BTN_HELD) {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
-                Sound_Play(eSOUND_TYPE_ButtonEcho);
+
+        if (is_btn) {
+            switch (btn_ev) {
+            case Jogwheel::BtnState_t::Pressed:
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_DN, 0);
+                break;
+            case Jogwheel::BtnState_t::Released:
+                Sound_Play(eSOUND_TYPE::ButtonEcho);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::CLICK, 0);
+                break;
+            case Jogwheel::BtnState_t::Held:
+                Sound_Play(eSOUND_TYPE::ButtonEcho);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::HOLD, 0);
+                break;
             }
-            gui_reset_menu_timer();
         }
+
+        Screens::Access()->ResetTimeout();
     }
     #endif //GUI_JOGWHEEL_SUPPORT
+
+    GuiMediaEventsHandler::state_t media_state = GuiMediaEventsHandler::ConsumeMediaState();
+    switch (media_state) {
+    case GuiMediaEventsHandler::state_t::inserted:
+    case GuiMediaEventsHandler::state_t::removed:
+    case GuiMediaEventsHandler::state_t::error:
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::MEDIA, (void *)int(media_state));
+        break;
+    default:
+        break;
+    }
 
     delay = gui_timers_cycle();
     if (delay < GUI_DELAY_MIN)
@@ -119,23 +133,13 @@ void gui_loop(void) {
         if (gui_loop_cb)
             gui_loop_cb();
         gui_loop_tick = tick;
-        Screens::Access()->ScreenEvent(0, WINDOW_EVENT_LOOP, 0);
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
     }
     --guiloop_nesting;
 
     // -- reset menu timer when we're in dialog
     if (guiloop_nesting > 0) {
-        gui_reset_menu_timer();
-    }
-}
-
-void gui_reset_menu_timer() {
-    if (menu_timeout_enabled) {
-        if (gui_get_menu_timeout_id() >= 0) {
-            gui_timer_reset(gui_get_menu_timeout_id());
-        } else {
-            //gui_timer_create_timeout((uint32_t)MENU_TIMEOUT_MS, (int16_t)-1);
-        }
+        Screens::Access()->ResetTimeout();
     }
 }
 

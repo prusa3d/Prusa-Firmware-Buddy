@@ -26,7 +26,7 @@
     //#include "wiring_time.h"
     //#include "wiring_digital.h"
     #include "wiring.h"
-    #include "pins_arduino.h"
+    #include "variant.h"
 
 //#include "HardwareSerial.h"
 //#include "binary.h"
@@ -69,8 +69,5 @@ void yield(void);
     #ifdef __cplusplus
 } // extern "C"
     #endif // __cplusplus
-
-// Include pins variant
-//#include "pins_arduino.h"
 
 #endif // Arduino_h

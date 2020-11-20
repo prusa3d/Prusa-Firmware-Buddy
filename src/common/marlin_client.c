@@ -25,30 +25,32 @@
 //#define DBG_VAR_MSK (MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK_TEMP_ALL)
 
 //maximum string length for DBG_VAR
-#define DBG_VAR_STR_MAX_LEN 128
-
-#pragma pack(push)
-#pragma pack(1)
+enum {
+    DBG_VAR_STR_MAX_LEN = 128
+};
 
 // client
 typedef struct _marlin_client_t {
-    uint8_t id;          // client id (0..MARLIN_MAX_CLIENTS-1)
-    uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
-    uint64_t events;     // event mask
-    uint64_t changes;    // variable change mask
-    marlin_vars_t vars;  // cached variables
-    uint32_t ack;        // cached ack value from last Acknowledge event
-    uint16_t last_count; // number of messages received in last client loop
+    uint64_t events;  // event mask
+    uint64_t changes; // variable change mask
     uint64_t errors;
-    marlin_mesh_t mesh;           // meshbed leveling
+    marlin_mesh_t mesh; // meshbed leveling
+
+    marlin_vars_t vars;           // cached variables
+    uint32_t ack;                 // cached ack value from last Acknowledge event
     uint32_t command;             // processed command (G28,G29,M701,M702,M600)
-    uint8_t reheating;            // reheating in progress
     fsm_create_t fsm_create_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
     fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
     fsm_change_t fsm_change_cb;   // to register callback for change of state
-} marlin_client_t;
+    message_cb_t message_cb;      // to register callback message
+    warning_cb_t warning_cb;      // to register callback for important message
 
-#pragma pack(pop)
+    uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
+    uint16_t last_count; // number of messages received in last client loop
+
+    uint8_t id;        // client id (0..MARLIN_MAX_CLIENTS-1)
+    uint8_t reheating; // reheating in progress
+} marlin_client_t;
 
 //-----------------------------------------------------------------------------
 // variables
@@ -104,6 +106,9 @@ marlin_vars_t *marlin_client_init(void) {
         client->reheating = 0;
         client->fsm_create_cb = NULL;
         client->fsm_destroy_cb = NULL;
+        client->fsm_change_cb = NULL;
+        client->message_cb = NULL;
+        client->warning_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(marlin_server_sema);
@@ -118,6 +123,7 @@ void marlin_client_loop(void) {
     uint16_t count = 0;
     osEvent ose;
     variant8_t msg;
+    variant8_t *pmsg = &msg;
     int client_id;
     marlin_client_t *client;
     osMessageQId queue;
@@ -131,13 +137,13 @@ void marlin_client_loop(void) {
     if ((queue = marlin_client_queue[client_id]) != 0)
         while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
-                *(((uint32_t *)(&msg)) + 1) = ose.value.v; //store high dword
-                _process_client_message(client, msg);      //call handler
-                variant8_done(&msg);
+                msg |= ((variant8_t)ose.value.v << 32); //store high dword
+                _process_client_message(client, msg);   //call handler
+                variant8_done(&pmsg);
                 count++;
             } else
-                *(((uint32_t *)(&msg)) + 0) = ose.value.v; //store low dword
-            client->flags ^= MARLIN_CFLG_LOWHIGH;          //flip flag
+                msg = ose.value.v;                //store low dword
+            client->flags ^= MARLIN_CFLG_LOWHIGH; //flip flag
         }
     client->last_count = count;
 }
@@ -189,6 +195,29 @@ int marlin_client_set_fsm_change_cb(fsm_change_t cb) {
     }
     return 0;
 }
+
+//register callback to message
+//return success
+int marlin_client_set_message_cb(message_cb_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->message_cb = cb;
+        return 1;
+    }
+    return 0;
+}
+
+//register callback to warning_cb_t (fan failure, heater timeout ...)
+//return success
+int marlin_client_set_warning_cb(warning_cb_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->warning_cb = cb;
+        return 1;
+    }
+    return 0;
+}
+
 int marlin_processing(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
@@ -426,13 +455,17 @@ variant8_t marlin_get_var(uint8_t var_id) {
 variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
     variant8_t retval = variant8_empty();
     char request[MARLIN_MAX_REQUEST];
-    int n;
     marlin_client_t *client = _client_ptr();
     if (client) {
         retval = marlin_vars_get_var(&(client->vars), var_id);
         marlin_vars_set_var(&(client->vars), var_id, val);
-        n = snprintf(request, MARLIN_MAX_REQUEST, "!var %s ", marlin_vars_get_name(var_id));
-        if (marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n) >= (sizeof(request) - n))
+        const int n = snprintf(request, MARLIN_MAX_REQUEST, "!var %s ", marlin_vars_get_name(var_id));
+        if (n < 0)
+            bsod("Error formatting var name.");
+        const int v = marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n);
+        if (v < 0)
+            bsod("Error formatting var value.");
+        if (((size_t)v + (size_t)n) >= sizeof(request))
             bsod("Request too long.");
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
@@ -567,12 +600,33 @@ void marlin_quick_stop(void) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_test_start(uint32_t mask) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    snprintf(request, MARLIN_MAX_REQUEST, "!test %u", (unsigned int)mask);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
+void marlin_test_abort(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!tabort");
+    _wait_ack_from_server(client->id);
+}
+
 void marlin_print_start(const char *filename) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    if (snprintf(request, sizeof(request), "!pstart %s", filename) >= sizeof(request))
+    const int len = snprintf(request, sizeof(request), "!pstart %s", filename);
+    if (len < 0)
+        bsod("Error formatting request.");
+    if ((size_t)len >= sizeof(request))
         bsod("Request too long.");
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
@@ -608,17 +662,6 @@ void marlin_park_head(void) {
         return;
     _send_request_to_server(client->id, "!park");
     _wait_ack_from_server(client->id);
-}
-
-uint8_t marlin_message_received(void) {
-    marlin_client_t *client = _client_ptr();
-    if (client == 0)
-        return 0;
-    if (client->flags & MARLIN_CFLG_MESSAGE) {
-        client->flags &= ~MARLIN_CFLG_MESSAGE;
-        return 1;
-    } else
-        return 0;
 }
 
 // returns 1 if reheating is in progress, otherwise 0
@@ -730,9 +773,6 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_CommandEnd:
             client->command = MARLIN_CMD_NONE;
             break;
-        case MARLIN_EVT_Message:
-            client->flags |= MARLIN_CFLG_MESSAGE;
-            break;
         case MARLIN_EVT_Reheat:
             client->reheating = (uint8_t)variant8_get_ui32(msg);
             break;
@@ -751,6 +791,20 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             if (client->fsm_change_cb)
                 client->fsm_change_cb((uint8_t)variant8_get_ui32(msg), (uint8_t)(variant8_get_ui32(msg) >> 8), (uint8_t)(variant8_get_ui32(msg) >> 16), (uint8_t)(variant8_get_ui32(msg) >> 24));
             break;
+        case MARLIN_EVT_Message: {
+            variant8_t *pvar = &msg;
+            variant8_set_type(pvar, VARIANT8_PCHAR);
+            const char *str = variant8_get_pch(msg);
+            if (client->message_cb) {
+                client->message_cb(str);
+            }
+            variant8_done(&pvar);
+            break;
+        case MARLIN_EVT_Warning:
+            if (client->warning_cb)
+                client->warning_cb(variant8_get_i32(msg));
+            break;
+        }
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added
         case MARLIN_EVT_Startup:

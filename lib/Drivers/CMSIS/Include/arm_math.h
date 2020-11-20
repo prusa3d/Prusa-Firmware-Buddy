@@ -39,7 +39,7 @@
  * -------------------------------------------------------------------- */
 
 /**
-   \mainpage CMSIS DSP Software Library
+   \file CMSIS DSP Software Library
    *
    * Introduction
    * ------------

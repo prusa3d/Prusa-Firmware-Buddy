@@ -1,15 +1,14 @@
 //screen_printing.hpp
 #pragma once
-#include "gui.hpp"
 #include "status_footer.h"
 #include "window_header.hpp"
-#include "window_text.hpp"
+#include "window_roll_text.hpp"
 #include "window_icon.hpp"
 #include "window_spin.hpp"
 #include "window_list.hpp"
 #include "window_term.hpp"
-#include "window_progress.hpp"
-#include "IScreenPrinting.hpp"
+#include "window_print_progress.hpp"
+#include "ScreenPrintingModel.hpp"
 #include <array>
 
 enum class printing_state_t : uint8_t {
@@ -43,11 +42,11 @@ constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
 constexpr static const size_t MAX_END_TIMESTAMP_SIZE = 14 + 12 + 5; // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
 constexpr static const size_t MAX_TIMEDUR_STR_SIZE = 9;
 
-class screen_printing_data_t : public IScreenPrinting {
-    static constexpr const char *caption = "PRINTING";
+class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
+    static constexpr const char *caption = N_("PRINTING");
 
-    window_text_t w_filename;
-    window_progress_t w_progress;
+    window_roll_text_t w_filename;
+    WindowPrintProgress w_progress;
     window_text_t w_time_label;
     window_text_t w_time_value;
     window_text_t w_etime_label;
@@ -61,26 +60,23 @@ class screen_printing_data_t : public IScreenPrinting {
     //std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end" // nope, if you have only 2 static const strings, you can swap pointers
     string_view_utf8 label_etime;      // not sure if we really must keep this in memory
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
-
-    window_text_t w_message; //Messages from onStatusChanged()
     uint32_t message_timer;
-    bool message_flag;
     bool stop_pressed;
     bool waiting_for_abort; /// flag specific for stop pressed when MBL is performed
     printing_state_t state__readonly__use_change_print_state;
-    uint8_t last_sd_percent_done;
+
+    const Rect16 popup_rect;
 
 public:
     screen_printing_data_t();
 
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
 private:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
     void invalidate_print_state();
-    void open_popup_message();
-    void close_popup_message();
     void disable_tune_button();
     void enable_tune_button();
-    void update_progress(uint8_t percent, uint16_t print_speed);
     void update_remaining_time(time_t rawtime, uint16_t print_speed);
     void update_end_timestamp(time_t now_sec, uint16_t print_speed);
     void update_print_duration(time_t rawtime);
@@ -99,4 +95,5 @@ private:
 
 public:
     printing_state_t GetState() const;
+    virtual Rect16 GetPopUpRect() override { return popup_rect; }
 };

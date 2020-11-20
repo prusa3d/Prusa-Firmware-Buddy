@@ -9,7 +9,9 @@ Screens::Screens(const ScreenFactory::Creator screen_creator)
     , current(nullptr)
     , creator(screen_creator)
     , close(false)
-    , close_all(false) {
+    , close_all(false)
+    , close_serial(false)
+    , timeout_tick(0) {
 }
 
 void Screens::Init(const ScreenFactory::Creator screen_creator) {
@@ -65,6 +67,15 @@ void Screens::RInit(const ScreenFactory::Creator *begin, const ScreenFactory::Cr
     Access()->RPushBeforeCurrent(begin, r_node.base());
 }
 
+void Screens::EnableMenuTimeout() {
+    ResetTimeout();
+    menu_timeout_enabled = true;
+}
+void Screens::DisableMenuTimeout() {
+    menu_timeout_enabled = false;
+}
+bool Screens::GetMenuTimeout() { return menu_timeout_enabled; }
+
 // Push enabled creators on stack - in reverted order
 // not a bug non reverting method must use reverse iterators
 void Screens::PushBeforeCurrent(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end) {
@@ -111,15 +122,29 @@ Screens *Screens::Access() {
     return instance;
 }
 
-void Screens::ScreenEvent(window_t *sender, uint8_t event, void *param) {
+void Screens::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
+    if (current == nullptr)
+        return;
+    //todo shouldn't I use "sender ? sender : current.get()"?
     current->ScreenEvent(current.get(), event, param);
 }
 
+void Screens::WindowEvent(GUI_event_t event, void *param) {
+    if (current == nullptr)
+        return;
+    current->WindowEvent(current.get(), event, param);
+}
+
 void Screens::Draw() {
+    if (current == nullptr)
+        return;
     current->Draw();
 }
 
 window_frame_t *Screens::Get() {
+    if (!current) {
+        return nullptr;
+    }
     return current.get();
 }
 
@@ -133,6 +158,16 @@ void Screens::Close() {
 
 void Screens::CloseAll() {
     close_all = true;
+}
+
+void Screens::CloseSerial() {
+    /// serial close logic:
+    /// when serial printing screen (M876) is open, Screens::SerialClose() is
+    /// called and it will iterate all screens to close those that should be closed
+    while (Get() && Get()->ClosedOnSerialPrint() && stack_iterator != stack.begin()) {
+        close = true;
+        InnerLoop();
+    }
 }
 
 //used to close blocking dialogs
@@ -152,7 +187,29 @@ void Screens::PushBeforeCurrent(const ScreenFactory::Creator screen_creator) {
     }
 }
 
+void Screens::ResetTimeout() {
+    timeout_tick = HAL_GetTick();
+}
+
 void Screens::Loop() {
+    /// menu timeout logic:
+    /// when timeout is expired on current screen,
+    /// we iterate through whole stack and close every screen that should be closed
+    if (menu_timeout_enabled && Get() && Get()->ClosedOnTimeout()) {
+        if (HAL_GetTick() - timeout_tick > MENU_TIMEOUT_MS) {
+            while (Get() && Get()->ClosedOnTimeout() && stack_iterator != stack.begin()) {
+                close = true;
+                InnerLoop();
+            }
+            ResetTimeout();
+            return;
+        }
+    }
+    /// continue inner loop
+    InnerLoop();
+}
+
+void Screens::InnerLoop() {
     if (close_all) {
         if (current) {                              // is there something to close?
             if (creator) {                          // have creator, have to emulate opening
@@ -187,10 +244,17 @@ void Screens::Loop() {
                 }
             }
         }
+
+        /// need to reset focused and capture ptr before calling current = creator();
+        /// screen ctor can change those pointers
+        /// screen was destroyed by unique_ptr.release()
+        window_t::ResetCapturedWindow();
+        window_t::ResetFocusedWindow();
         current = creator();
         if (!current->IsChildCaptured())
             current->SetCapture();
-        if (!current->IsChildFocused() && !current->IsChildFocused()) {
+        /// need to be reset also focused ptr
+        if (!current->IsFocused() && !current->IsChildFocused()) {
             window_t *child = current->GetFirstEnabledSubWin();
             if (child) {
                 child->SetFocus();

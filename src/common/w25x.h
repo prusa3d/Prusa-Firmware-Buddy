@@ -1,15 +1,14 @@
 //w25x.h
-#ifndef _W25X_H
-#define _W25X_H
+#pragma once
 
 #include <inttypes.h>
 
-#define W25X_STATUS_BUSY 0x01
-#define W25X_STATUS_WEL  0x02
-#define W25X_STATUS_BP0  0x04
-#define W25X_STATUS_BP1  0x08
-#define W25X_STATUS_TB   0x20
-#define W25X_STATUS_SRP  0x80
+static const uint8_t W25X_STATUS_BUSY = 0x01;
+static const uint8_t W25X_STATUS_WEL = 0x02;
+static const uint8_t W25X_STATUS_BP0 = 0x04;
+static const uint8_t W25X_STATUS_BP1 = 0x08;
+static const uint8_t W25X_STATUS_TB = 0x20;
+static const uint8_t W25X_STATUS_SRP = 0x80;
 
 #define W25X_SPI_ENTER() // spi_setup(W25X20CL_SPCR, W25X20CL_SPSR)
 
@@ -34,4 +33,3 @@ extern void w25x_wait_busy(void);
 #if defined(__cplusplus)
 }
 #endif //defined(__cplusplus)
-#endif //_W25X_H

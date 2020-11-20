@@ -5,22 +5,25 @@
 #include "i18n.h"
 //todo make some automatic checks names vs enum
 //list of all button types
-
+// order and count must match to enum class Response!
 const std::array<const char *, static_cast<size_t>(Response::_last) + 1> BtnTexts::texts {
-    "",
-    N_("ABORT"),
-    N_("BACK"),
-    N_("CANCEL"),
-    N_("CONTINUE"),
-    N_("DISABLE SENSOR"),
-    N_("IGNORE"),
-    N_("NO"),
-    N_("OK"),
-    N_("PURGE MORE"),
-    N_("REHEAT"),
-    N_("RETRY"),
-    N_("STOP"),
-    N_("YES"),
+    "",                   // _none
+    N_("ABORT"),          // Abort
+    N_("BACK"),           // Back
+    N_("CANCEL"),         // Cancel
+    N_("CONTINUE"),       // Continue
+    N_("DISABLE SENSOR"), // Filament_removed
+    N_("IGNORE"),         // Ignore
+    N_("LOAD"),           // Load
+    N_("NEXT"),           // Next
+    N_("NO"),             // No
+    N_("OK"),             // Ok
+    N_("PURGE MORE"),     // Purge_more
+    N_("REHEAT"),         // Reheat
+    N_("RETRY"),          // Retry
+    N_("STOP"),           // Stop
+    N_("UNLOAD"),         // Unload
+    N_("YES"),            // Yes
 };
 
 /*****************************************************************************/

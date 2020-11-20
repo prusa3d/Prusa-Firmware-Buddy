@@ -5,21 +5,22 @@
  *      Author: Michal Rudolf
  */
 //todo THIS SHOULD NOT BE MENU!!!
+#include <stdlib.h>
+
 #include "gui.hpp"
 #include "screen_menus.hpp"
 #include "screen_menu.hpp"
 #include "config.h"
-#include <stdlib.h>
 #include "version.h"
 #include "resource.h"
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 
-#define OTP_START_ADDR  0x1FFF7800
-#define SERIAL_NUM_ADDR 0x1FFF7808
+static const constexpr uint32_t OTP_START_ADDR = 0x1FFF7800;
+static const constexpr uint32_t SERIAL_NUM_ADDR = 0x1FFF7808;
 
-#define VERSION_INFO_STR_MAXLEN 150
+static const constexpr uint8_t VERSION_INFO_STR_MAXLEN = 150;
 
 constexpr static const HelperConfig HelpCfg = { 10, IDR_FNT_NORMAL };
 using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpCfg, MI_RETURN>;
@@ -34,7 +35,7 @@ public:
 ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     : Screen(_(label)) {
     //=============SCREEN INIT===============
-    header.SetIcon(IDR_PNG_header_icon_info);
+    header.SetIcon(IDR_PNG_info_16px);
 
     //=============VARIABLES=================
 

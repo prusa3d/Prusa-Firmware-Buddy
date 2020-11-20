@@ -16,9 +16,7 @@ The currently supported model is:
 
 ### Cloning this repository
 
-Run `git clone --recurse https://github.com/prusa3d/Prusa-Firmware-Buddy.git`.
-
-In the case you already cloned the repository without the `--recurse` flag, run `git submodule update --init`.
+Run `git clone https://github.com/prusa3d/Prusa-Firmware-Buddy.git`.
 
 ### Building (on all platforms, without an IDE)
 

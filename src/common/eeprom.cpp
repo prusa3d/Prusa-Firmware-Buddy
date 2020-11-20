@@ -1,34 +1,43 @@
-// eeprom.c
-
 #include "eeprom.h"
-#include <stdio.h>
 #include <string.h>
-#include "config.h"
+#include <float.h>
 #include "st25dv64k.h"
 #include "dbg.h"
 #include "cmsis_os.h"
-#include "ff.h"
 #include "crc32.h"
 #include "version.h"
 #include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
+#include "cmath_ext.h"
 
-#define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
-#define EEPROM_DATASIZE sizeof(eeprom_vars_t)
-#define EEPROM__PADDING 2
-
-#define EEPROM_MAX_NAME          16     // maximum name length (with '\0')
-#define EEPROM_MAX_DATASIZE      256    // maximum datasize
-#define EEPROM_FIRST_VERSION_CRC 0x0004 // first eeprom version with crc support
+static const constexpr uint8_t EEPROM__PADDING = 3;
+static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;         // maximum datasize
+static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
-#define EEVAR_FLG_READONLY 0x0001 // variable is read only
+static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read only
 
 // measure time needed to update crc
 //#define EEPROM_MEASURE_CRC_TIME
 
-#pragma pack(push)
-#pragma pack(1)
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+enum {
+    MAX_SHEETS = 8,
+    EEPROM_SHEET_SIZEOF = 12
+};
+
+typedef struct
+{
+    char name[MAX_SHEET_NAME_LENGTH]; //!< Can be null terminated, doesn't need to be null terminated
+    float z_offset;                   //!< Z_BABYSTEP_MIN .. Z_BABYSTEP_MAX = Z_BABYSTEP_MIN*2/1000 [mm] .. Z_BABYSTEP_MAX*2/1000 [mm]
+} Sheet;
+
+static_assert(sizeof(Sheet) == EEPROM_SHEET_SIZEOF, "Sizeof(Sheets) is not EEPROM_SHEETS_SIZEOF.");
+
+#endif
+// this pragma pack must remain intact, the ordering of EEPROM variables is not alignment-friendly
+#pragma pack(push, 1)
 
 // eeprom map entry structure
 typedef struct _eeprom_entry_t {
@@ -70,10 +79,22 @@ typedef struct _eeprom_vars_t {
     uint8_t SOUND_VOLUME;
     uint16_t LANGUAGE;
     uint8_t FILE_SORT;
+    uint8_t MENU_TIMEOUT;
+    uint8_t ACTIVE_SHEET;
+    Sheet SHEET_PROFILE0;
+    Sheet SHEET_PROFILE1;
+    Sheet SHEET_PROFILE2;
+    Sheet SHEET_PROFILE3;
+    Sheet SHEET_PROFILE4;
+    Sheet SHEET_PROFILE5;
+    Sheet SHEET_PROFILE6;
+    Sheet SHEET_PROFILE7;
+    uint32_t SELFTEST_RESULT;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
 
+static_assert(sizeof(eeprom_vars_t) % 4 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
 #pragma pack(pop)
 
 // clang-format off
@@ -110,9 +131,23 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SOUND_VOLUME",    VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_VOLUME
     { "LANGUAGE",        VARIANT8_UI16,  1, 0 }, // EEVAR_LANGUAGE
     { "FILE_SORT",       VARIANT8_UI8,   1, 0 }, // EEVAR_FILE_SORT
+    { "MENU_TIMEOUT",    VARIANT8_UI8,   1, 0 }, // EEVAR_MENU_TIMEOUT
+    { "ACTIVE_SHEET",    VARIANT8_UI8,   1, 0 }, // EEVAR_ACTIVE_SHEET
+    { "SHEET_PROFILE0",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE1",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE2",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE3",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE4",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE5",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE6",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE7",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SELFTEST_RESULT", VARIANT8_UI32,  1, 0 }, // EEVAR_SELFTEST_RESULT
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
+
+static const constexpr uint32_t EEPROM_VARCOUNT = sizeof(eeprom_map) / sizeof(eeprom_entry_t);
+static const constexpr uint32_t EEPROM_DATASIZE = sizeof(eeprom_vars_t);
 
 // eeprom variable defaults
 static const eeprom_vars_t eeprom_var_defaults = {
@@ -150,6 +185,17 @@ static const eeprom_vars_t eeprom_var_defaults = {
     5,               // EEVAR_SOUND_VOLUME
     0xffff,          // EEVAR_LANGUAGE
     0,               // EEVAR_FILE_SORT
+    1,               // EEVAR_MENU_TIMEOUT
+    0,               // EEVAR_ACTIVE_SHEET
+    {"Smooth1", 0.0f },
+    {"Smooth2", FLT_MAX },
+    {"Textur1", FLT_MAX },
+    {"Textur2", FLT_MAX },
+    {"Custom1", FLT_MAX },
+    {"Custom2", FLT_MAX },
+    {"Custom3", FLT_MAX },
+    {"Custom4", FLT_MAX },
+	0,               // EEVAR_SELFTEST_RESULT
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
@@ -176,7 +222,7 @@ static int eeprom_convert_from_v2(void);
 static int eeprom_convert_from(uint16_t version, uint16_t features);
 
 static int eeprom_check_crc32(void);
-static void eeprom_update_crc32(uint16_t addr, uint16_t size);
+static void eeprom_update_crc32();
 
 static uint16_t eeprom_fwversion_ui16(void);
 
@@ -210,7 +256,7 @@ void eeprom_defaults(void) {
     vars.FWVERSION = eeprom_fwversion_ui16();
     eeprom_lock();
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
     eeprom_unlock();
@@ -246,6 +292,15 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
     uint16_t data_size;
     void *data_ptr;
     if (id < EEPROM_VARCOUNT) {
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+        if (id == EEVAR_ZOFFSET && variant8_get_type(var) == VARIANT8_FLT) {
+            variant8_t recent_sheet = eeprom_get_var(EEVAR_ACTIVE_SHEET);
+            uint8_t index = variant_get_ui8(recent_sheet);
+            uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+            float z_offset = variant8_get_flt(var);
+            st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH, &z_offset, sizeof(float));
+        }
+#endif
         eeprom_lock();
         if (variant8_get_type(var) == eeprom_map[id].type) {
             size = eeprom_var_size(id);
@@ -254,7 +309,7 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
                 addr = eeprom_var_addr(id);
                 data_ptr = variant8_data_ptr(&var);
                 st25dv64k_user_write_bytes(addr, data_ptr, data_size);
-                eeprom_update_crc32(addr, size);
+                eeprom_update_crc32();
             } else {
                 // TODO: error
             }
@@ -325,20 +380,21 @@ static void eeprom_print_vars(void) {
     uint8_t id;
     char text[128];
     variant8_t var8;
+    variant8_t *pvar = &var8;
     for (id = 0; id < EEPROM_VARCOUNT; id++) {
         var8 = eeprom_get_var(id);
         eeprom_var_format(text, sizeof(text), id, var8);
         _dbg("%s=%s", eeprom_map[id].name, text);
-        variant8_done(&var8);
+        variant8_done(&pvar);
     }
 }
 
-#define ADDR_V2_FILAMENT_TYPE  0x0400
-#define ADDR_V2_FILAMENT_COLOR EEPROM_ADDRESS + 3
-#define ADDR_V2_RUN_SELFTEST   EEPROM_ADDRESS + 19
-#define ADDR_V2_ZOFFSET        0x010e
-#define ADDR_V2_PID_NOZ_P      0x019d
-#define ADDR_V2_PID_BED_P      0x01af
+static const constexpr uint16_t ADDR_V2_FILAMENT_TYPE = 0x0400;
+static const constexpr uint16_t ADDR_V2_FILAMENT_COLOR = EEPROM_ADDRESS + 3;
+static const constexpr uint16_t ADDR_V2_RUN_SELFTEST = EEPROM_ADDRESS + 19;
+static const constexpr uint16_t ADDR_V2_ZOFFSET = 0x010e;
+static const constexpr uint16_t ADDR_V2_PID_NOZ_P = 0x019d;
+static const constexpr uint16_t ADDR_V2_PID_BED_P = 0x01af;
 
 // conversion function for old version 2 format (marlin eeprom)
 static int eeprom_convert_from_v2(void) {
@@ -360,7 +416,7 @@ static int eeprom_convert_from_v2(void) {
     if ((vars.ZOFFSET < -2) || (vars.ZOFFSET > 0))
         return 0;
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
     return 1;
@@ -393,7 +449,7 @@ static int eeprom_convert_from_v4(void) {
     // TODO: keep LAN host name (?)
 
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
 
@@ -418,7 +474,32 @@ static int eeprom_convert_from_v6(void) {
     st25dv64k_user_read_bytes(addr_start, &(vars.FILAMENT_TYPE), addr_end - addr_start);
 
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
+    // write data to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+
+    return 1;
+}
+
+// conversion function for old version 8 (v 4.3.RC)
+static int eeprom_convert_from_v8(void) {
+    uint16_t addr_start;
+    uint16_t addr_end;
+    eeprom_vars_t vars = eeprom_var_defaults;
+    float active_z_offset = variant8_get_flt(eeprom_get_var(EEVAR_ZOFFSET));
+    // these variables not initialised in eeprom_var_defaults
+    vars.FWBUILD = project_build_number;
+    vars.FWVERSION = eeprom_fwversion_ui16();
+
+    // start addres of imported data block (FILAMENT_TYPE..EEVAR_SOUND_MODE)
+    addr_start = eeprom_var_addr(EEVAR_FILAMENT_TYPE);
+    // end addres of imported data
+    addr_end = eeprom_var_addr(EEVAR_MENU_TIMEOUT);
+    // read first block
+    st25dv64k_user_read_bytes(addr_start, &(vars.FILAMENT_TYPE), addr_end - addr_start);
+    vars.SHEET_PROFILE0.z_offset = active_z_offset;
+    // calculate crc32
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
 
@@ -433,6 +514,8 @@ static int eeprom_convert_from(uint16_t version, uint16_t features) {
         return eeprom_convert_from_v4();
     if (version == 6)
         return eeprom_convert_from_v6();
+    if (version == 8)
+        return eeprom_convert_from_v8();
     return 0;
 }
 
@@ -448,13 +531,13 @@ static int eeprom_check_crc32(void) {
     uint8_t data[EEPROM_MAX_DATASIZE];
     uint32_t crc2;
     st25dv64k_user_read_bytes(EEPROM_ADDRESS, data, datasize);
-    crc2 = crc32_calc((uint32_t *)data, (datasize - 4) / 4);
+    crc2 = crc32_calc((uint8_t *)data, datasize - 4);
     return (crc == crc2) ? 1 : 0;
 #else //
 #endif
 }
 
-static void eeprom_update_crc32(uint16_t addr, uint16_t size) {
+static void eeprom_update_crc32() {
 #ifdef EEPROM_MEASURE_CRC_TIME
     uint32_t time = _microseconds();
 #endif
@@ -463,7 +546,7 @@ static void eeprom_update_crc32(uint16_t addr, uint16_t size) {
     // read eeprom data
     st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
     // calculate crc32
-    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write crc to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
 #else //
@@ -502,4 +585,144 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
             res_flag = 0;
     }
     return res_flag;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Sheets profile methods
+uint32_t sheet_next_calibrated() {
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+
+    for (int8_t i = 1; i < MAX_SHEETS; ++i) {
+        if (sheet_select((index + i) % MAX_SHEETS))
+            return (index + i) % MAX_SHEETS;
+    }
+#endif
+    return 0;
+}
+
+bool sheet_is_calibrated(uint32_t index) {
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    float z_offset = FLT_MAX;
+    st25dv64k_user_read_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
+        &z_offset, sizeof(float));
+    return !nearlyEqual(z_offset, FLT_MAX, 0.001f);
+#else
+    return index == 0;
+#endif
+}
+
+bool sheet_select(uint32_t index) {
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    if (index >= MAX_SHEETS || !sheet_is_calibrated(index))
+        return false;
+    uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
+    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    uint16_t z_offset_address = eeprom_var_addr(EEVAR_ZOFFSET);
+    float z_offset = FLT_MAX;
+    st25dv64k_user_read_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
+        &z_offset, sizeof(float));
+    st25dv64k_user_write(active_sheet_address, static_cast<uint8_t>(index));
+    st25dv64k_user_write_bytes(z_offset_address, &z_offset, sizeof(float));
+    eeprom_update_crc32();
+    return true;
+#else
+    return index == 0;
+#endif
+}
+
+bool sheet_calibrate(uint32_t index) {
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    if (index >= MAX_SHEETS)
+        return false;
+    uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
+    st25dv64k_user_write(active_sheet_address, static_cast<uint8_t>(index));
+    eeprom_update_crc32();
+    return true;
+#else
+    return index == 0;
+#endif
+}
+
+bool sheet_reset(uint32_t index) {
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    if (index >= MAX_SHEETS)
+        return false;
+    uint8_t active = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    float z_offset = FLT_MAX;
+    st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
+        &z_offset, sizeof(float));
+    eeprom_update_crc32();
+    if (active == index)
+        sheet_next_calibrated();
+    return true;
+#else
+    return false;
+#endif
+}
+
+uint32_t sheet_number_of_calibrated() {
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    uint32_t count = 1;
+    for (int8_t i = 1; i < MAX_SHEETS; ++i) {
+        if (sheet_is_calibrated(i))
+            ++count;
+    }
+    return count;
+#else
+    return 1;
+#endif
+}
+
+uint32_t sheet_active_name(char *buffer, uint32_t length) {
+    if (!buffer || !length)
+        return 0;
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    return sheet_name(index, buffer, length);
+#else
+    memcpy(buffer, "DEFAULT", MAX_SHEET_NAME_LENGTH - 1);
+    return MAX_SHEET_NAME_LENGTH - 1;
+#endif
+}
+
+uint32_t sheet_name(uint32_t index, char *buffer, uint32_t length) {
+    if (index >= MAX_SHEETS || !buffer || !length)
+        return 0;
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
+        ? length
+        : MAX_SHEET_NAME_LENGTH - 1;
+    st25dv64k_user_read_bytes(profile_address,
+        buffer, l);
+    while (l > 0 && !buffer[l - 1])
+        --l;
+    return l;
+#else
+    static const char def[] = "DEFAULT";
+    memcpy(buffer, def, MAX_SHEET_NAME_LENGTH - 1);
+    return MAX_SHEET_NAME_LENGTH - 1;
+#endif
+}
+
+uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    if (index >= MAX_SHEETS || !name || !length)
+        return false;
+    char eeprom_name[MAX_SHEET_NAME_LENGTH];
+    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
+        ? length
+        : MAX_SHEET_NAME_LENGTH - 1;
+    memset(eeprom_name, 0, MAX_SHEET_NAME_LENGTH);
+    memcpy(eeprom_name, name, l);
+    st25dv64k_user_write_bytes(profile_address, eeprom_name, MAX_SHEET_NAME_LENGTH);
+    eeprom_update_crc32();
+    return l;
+#else
+    return 0;
+#endif
 }

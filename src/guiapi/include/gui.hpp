@@ -12,7 +12,7 @@ typedef void(gui_loop_cb_t)(void);
 
 extern gui_loop_cb_t *gui_loop_cb;
 
-extern int8_t menu_timeout_enabled;
+extern void gui_run(void);
 
 extern void gui_init(void);
 
@@ -40,11 +40,20 @@ extern osThreadId gui_task_handle;
     #include "window_msgbox.hpp"
     #include "window_progress.hpp"
     #include "window_qr.hpp"
+    #include "circle_buffer.hpp"
 
 extern uint8_t gui_get_nesting(void);
 
 extern void gui_loop(void);
 
 extern void gui_reset_menu_timer();
+
+//meant to be use as MsgCircleBuffer().push_back(txt);
+static constexpr size_t MSG_STACK_SIZE = 8 + 1; //status message stack size
+static constexpr size_t MSG_MAX_LENGTH = 21;    //status message max length
+using MsgBuff_t = CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH>;
+
+MsgBuff_t &MsgCircleBuffer();
+void MsgCircleBuffer_cb(const char *txt);
 
 #endif //GUI_WINDOW_SUPPORT

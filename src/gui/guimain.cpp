@@ -13,16 +13,19 @@
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
 #include "window_dlg_wait.hpp"
-#ifdef _DEBUG
-    #include "window_dlg_popup.hpp"
-#endif //_DEBUG
+#include "window_dlg_popup.hpp"
+#include "window_dlg_strong_warning.hpp"
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
+#include "screen_hardfault.hpp"
+#include "screen_temperror.hpp"
 #include "screen_watchdog.hpp"
-
+#include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
 #include "i18n.h"
+#include "eeprom.h"
+#include "w25x.h"
 
 extern int HAL_IWDG_Reset;
 
@@ -35,34 +38,69 @@ int guimain_spi_test = 0;
 #include "sys.h"
 #include "dbg.h"
 #include "wdt.h"
+#include "dump.h"
+#include "gui_media_events.hpp"
 
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
-    ST7789V_PIN_CS,     // CS pin
-    ST7789V_PIN_RS,     // RS pin
-    ST7789V_PIN_RST,    // RST pin
     ST7789V_FLG_DMA,    // flags (DMA, MISO)
     ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
     ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
 };
 
 marlin_vars_t *gui_marlin_vars = 0;
-int8_t menu_timeout_enabled = 1; // Default: enabled
 
 void update_firmware_screen(void);
 
 static void _gui_loop_cb() {
     marlin_client_loop();
+    GuiMediaEventsHandler::Tick();
 }
 
 char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
 char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
 
 #ifdef GUI_JOGWHEEL_SUPPORT
-
-Jogwheel jogwheel(JOGWHEEL_PIN_EN1, JOGWHEEL_PIN_EN2, JOGWHEEL_PIN_ENC);
+Jogwheel jogwheel;
 #endif // GUI_JOGWHEEL_SUPPORT
-extern "C" void gui_run(void) {
+
+MsgBuff_t &MsgCircleBuffer() {
+    static CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;
+    return ret;
+}
+
+void MsgCircleBuffer_cb(const char *txt) {
+    MsgCircleBuffer().push_back(txt);
+    //cannot open == already openned
+    IScreenPrinting *const prt_screen = IScreenPrinting::GetInstance();
+    if (prt_screen && (!prt_screen->GetPopUpRect().IsEmpty())) {
+        // message for MakeRAM must exist at least as long as string_view_utf8 exists
+        static std::array<uint8_t, MSG_MAX_LENGTH> msg;
+        strlcpy((char *)msg.data(), txt, MSG_MAX_LENGTH);
+        window_dlg_popup_t::Show(prt_screen->GetPopUpRect(), string_view_utf8::MakeRAM(msg.data()), 5000);
+    }
+}
+
+void Warning_cb(WarningType type) {
+    switch (type) {
+    case WarningType::HotendFanError:
+        window_dlg_strong_warning_t::ShowHotendFan();
+        break;
+    case WarningType::PrintFanError:
+        window_dlg_strong_warning_t::ShowPrintFan();
+        break;
+    case WarningType::HeaterTimeout:
+        window_dlg_strong_warning_t::ShowHeaterTimeout();
+        break;
+    case WarningType::USBFlashDiskError:
+        window_dlg_strong_warning_t::ShowUSBFlashDisk();
+        break;
+    default:
+        break;
+    }
+}
+
+void gui_run(void) {
     if (diag_fastboot)
         return;
 
@@ -84,6 +122,8 @@ extern "C" void gui_run(void) {
 
     GuiDefaults::Font = resource_font(IDR_FNT_NORMAL);
     GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
+    GuiDefaults::FontMenuItems = resource_font(IDR_FNT_NORMAL);
+    GuiDefaults::FontMenuSpecial = resource_font(IDR_FNT_SPECIAL);
 
     if (!sys_fw_is_valid())
         update_firmware_screen();
@@ -99,13 +139,39 @@ extern "C" void gui_run(void) {
     marlin_client_set_fsm_create_cb(DialogHandler::Open);
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
+    marlin_client_set_message_cb(MsgCircleBuffer_cb);
+    marlin_client_set_warning_cb(Warning_cb);
 
-    Sound_Play(eSOUND_TYPE_Start);
+    Sound_Play(eSOUND_TYPE::Start);
+
+    ScreenFactory::Creator error_screen = nullptr;
+    if (w25x_init()) {
+        if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
+            switch (dump_in_xflash_get_type()) {
+            case DUMP_HARDFAULT:
+                error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
+                break;
+            case DUMP_TEMPERROR:
+                error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
+                break;
+#ifndef _DEBUG
+            case DUMP_IWDGW:
+                error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
+                break;
+#endif
+            }
+            dump_in_xflash_set_displayed();
+        }
+    } else {
+        //TODO: hardware error
+    }
+
+#ifndef _DEBUG
+//        HAL_IWDG_Reset ? ScreenFactory::Screen<screen_watchdog_data_t> : nullptr, // wdt
+#endif
 
     ScreenFactory::Creator screen_initializer[] {
-#ifndef _DEBUG
-        HAL_IWDG_Reset ? ScreenFactory::Screen<screen_watchdog_data_t> : nullptr, // wdt
-#endif
+        error_screen,
         ScreenFactory::Screen<screen_splash_data_t>, // splash
         ScreenFactory::Screen<screen_home_data_t>    // home
     };
@@ -113,9 +179,14 @@ extern "C" void gui_run(void) {
     //Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
+    //TIMEOUT variable getting value from EEPROM when EEPROM interface is inicialized
+    if (variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT)) != 0) {
+        Screens::Access()->EnableMenuTimeout();
+    } else {
+        Screens::Access()->DisableMenuTimeout();
+    }
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
-    //int8_t gui_timeout_id;
     while (1) {
         Screens::Access()->Loop();
         // show warning dialog on safety timer expiration
@@ -123,19 +194,6 @@ extern "C" void gui_run(void) {
             MsgBoxInfo(_("Heating disabled due to 30 minutes of inactivity."), Responses_Ok);
         }
         gui_loop();
-        /*if (marlin_message_received()) {
-            screen_t *curr = screen_get_curr();
-            if (curr == get_scr_printing()) {
-                screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);
-            }
-        }
-        if (menu_timeout_enabled) {
-            gui_timeout_id = gui_get_menu_timeout_id();
-            if (gui_timer_expired(gui_timeout_id) == 1) {
-                screen_close_multiple(scrn_close_on_timeout);
-                gui_timer_delete(gui_timeout_id);
-            }
-        }*/
     }
 }
 
@@ -143,12 +201,13 @@ void update_firmware_screen(void) {
     font_t *font = resource_font(IDR_FNT_SPECIAL);
     font_t *font1 = resource_font(IDR_FNT_NORMAL);
     display::Clear(COLOR_BLACK);
-    render_icon_align(Rect16(70, 20, 100, 100), IDR_PNG_icon_pepa, COLOR_BLACK, RENDER_FLG(ALIGN_CENTER, 0));
+    render_icon_align(Rect16(70, 20, 100, 100), IDR_PNG_pepa_64px, COLOR_BLACK, RENDER_FLG(ALIGN_CENTER, 0));
     display::DrawText(Rect16(10, 115, 240, 60), _("Hi, this is your\nOriginal Prusa MINI."), font, COLOR_BLACK, COLOR_WHITE);
     display::DrawText(Rect16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
     render_text_align(Rect16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, { 2, 6, 2, 2 }, ALIGN_CENTER);
+    Jogwheel::BtnState_t btn_ev;
     while (1) {
-        if (jogwheel.GetButtonAction() == Jogwheel::ButtonAction::BTN_HELD)
+        if (jogwheel.ConsumeButtonEvent(btn_ev) && btn_ev == Jogwheel::BtnState_t::Held)
             sys_reset();
         osDelay(1);
         wdt_iwdg_refresh();

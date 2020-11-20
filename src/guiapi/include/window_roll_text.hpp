@@ -8,9 +8,19 @@
 #pragma once
 
 #include "window_text.hpp"
-#include "display_helper.h"
+#include "display_helper.h" //txtroll_t
+#include "text_roll.hpp"
 
-struct window_roll_text_t : window_text_t {
+class window_roll_text_t : public AddSuperWindow<window_text_t> {
     txtroll_t roll;
-    window_roll_text_t(window_t *parent, Rect16 rect);
+
+    void rollInit() { roll.Init(rect, text, font, padding, GetAlignment()); }
+
+public:
+    window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
+    virtual void SetText(string_view_utf8 txt) override;
+
+protected:
+    virtual void unconditionalDraw() override;
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

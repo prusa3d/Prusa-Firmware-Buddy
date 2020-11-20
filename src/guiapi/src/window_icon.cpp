@@ -11,7 +11,7 @@ void window_icon_t::SetIdRes(int16_t id) {
 }
 
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, uint16_t id_res, is_closed_on_click_t close)
-    : window_aligned_t(parent, rect, is_dialog_t::no, close)
+    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
     , id_res(id_res) {
     SetAlignment(ALIGN_CENTER);
 }
@@ -43,10 +43,6 @@ void window_icon_t::unconditionalDraw() {
     render_icon_align(rect, id_res, color_back, RENDER_FLG(GetAlignment(), ropfn));
 }
 
-bool window_icon_t::IsShadowed() const { return flag_custom0 == true; }
-void window_icon_t::Shadow() { flag_custom0 = true; }
-void window_icon_t::Unshadow() { flag_custom0 = false; }
-
 size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
     size_ui16_t ret = size_ui16(0, 0);
     if (!id_res)
@@ -61,23 +57,23 @@ size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
 /*****************************************************************************/
 //window_icon_button_t
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb)
-    : window_icon_t(parent, rect, id_res)
+    : AddSuperWindow<window_icon_t>(parent, rect, id_res)
     , callback(cb) {
     Enable();
 }
 
-void window_icon_button_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK) {
+void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CLICK) {
         callback();
     } else {
-        window_icon_t::windowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 
 /*****************************************************************************/
 //window_icon_hourglass_t
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
-    : window_icon_t(parent, IDR_PNG_wizard_icon_hourglass, pt, padding, close)
+    : AddSuperWindow<window_icon_t>(parent, IDR_PNG_hourglass_39px, pt, padding, close)
     , start_time(HAL_GetTick())
     , animation_color(COLOR_ORANGE)
     , phase(0) {
@@ -161,11 +157,79 @@ void window_icon_hourglass_t::unconditionalDraw() {
     }
 }
 
-void window_icon_hourglass_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     uint8_t phs = ((HAL_GetTick() - start_time) / ANIMATION_STEP_MS);
     phs %= ANIMATION_STEPS;
     if (phase != phs) {
         phase = phs;
         Invalidate();
+    }
+}
+
+/*****************************************************************************/
+//WindowIcon_OkNg
+
+//both must be same size
+const uint16_t WindowIcon_OkNg::id_res_na = IDR_PNG_dash_18px;
+const uint16_t WindowIcon_OkNg::id_res_ok = IDR_PNG_ok_color_18px;
+const uint16_t WindowIcon_OkNg::id_res_ng = IDR_PNG_nok_color_18px;
+const uint16_t WindowIcon_OkNg::id_res_ip0 = IDR_PNG_loading1_18px;
+const uint16_t WindowIcon_OkNg::id_res_ip1 = IDR_PNG_loading2_18px;
+
+//Icon rect is increased by padding, icon is centered inside it
+WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t padding)
+    : AddSuperWindow<window_aligned_t>(
+        parent,
+        [pt, padding] {
+            size_ui16_t sz = window_icon_t::CalculateMinimalSize(WindowIcon_OkNg::id_res_ok);
+            if (!(sz.h && sz.w))
+                return Rect16();
+            return Rect16(pt,
+                sz.w + padding.left + padding.right,
+                sz.h + padding.top + padding.bottom);
+        }()) {
+    SetState(SelftestSubtestState_t::undef);
+}
+
+SelftestSubtestState_t WindowIcon_OkNg::GetState() const {
+    return static_cast<SelftestSubtestState_t>(flags.mem_array_u08[1]);
+}
+
+//there is a free space in window_t flags, store state in it
+void WindowIcon_OkNg::SetState(SelftestSubtestState_t s) {
+    const uint8_t state = static_cast<uint8_t>(s);
+    if (state != flags.mem_array_u08[1]) {
+        flags.mem_array_u08[1] = state;
+        Invalidate();
+    }
+}
+
+void WindowIcon_OkNg::unconditionalDraw() {
+    uint16_t id_res = 0;
+    switch (GetState()) {
+    case SelftestSubtestState_t::ok:
+        id_res = id_res_ok;
+        break;
+    case SelftestSubtestState_t::not_good:
+        id_res = id_res_ng;
+        break;
+    case SelftestSubtestState_t::undef:
+        id_res = id_res_na;
+        break;
+    case SelftestSubtestState_t::running:
+        id_res = flags.custom0 ? id_res_ip1 : id_res_ip0;
+        break;
+    }
+
+    render_icon_align(rect, id_res, color_back, GetAlignment());
+}
+
+void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (GetState() == SelftestSubtestState_t::running) {
+        bool b = (HAL_GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0x01;
+        if (flags.custom0 != b) {
+            flags.custom0 = b;
+            Invalidate();
+        }
     }
 }

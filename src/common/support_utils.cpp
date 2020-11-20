@@ -7,13 +7,12 @@
 #include "support_utils.h"
 #include "display.h"
 #include "string.h"
-#include "lang.h"
-#include "../../gui/wizard/selftest.h"
+#include "../../gui/wizard/selftest.hpp"
 #include "version.h"
-#include "eeprom.h"
+#include "language_eeprom.hpp"
 #include "sha256.h"
+#include "crc32.h"
 
-#include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
 #include "support_utils_lib.hpp"
 
@@ -28,10 +27,7 @@ char *eofstr(char *str) {
 }
 
 void append_crc(char *str, const uint32_t str_size) {
-    uint32_t crc;
-
-    TM_CRC_Init(); // !!! should be somewhere else (not sure where yet)
-    crc = TM_CRC_Calculate8((uint8_t *)(str + sizeof(ERROR_URL_LONG_PREFIX) - 1), strlen(str) - sizeof(ERROR_URL_LONG_PREFIX) + 1, 1);
+    uint32_t crc = crc32_calc((uint8_t *)(str + sizeof(ERROR_URL_LONG_PREFIX) - 1), strlen(str) - sizeof(ERROR_URL_LONG_PREFIX) + 1);
     snprintf(eofstr(str), str_size - strlen(str), "/%08lX", crc);
 }
 
@@ -82,7 +78,7 @@ void printerCode(char *str) {
 /// Adds "/en" or other language abbreviation
 void addLanguage(char *str, const uint32_t str_size) {
     char lang[3];
-    const uint16_t langNum = variant_get_ui16(eeprom_get_var(EEVAR_LANGUAGE));
+    const uint16_t langNum = LangEEPROM::getInstance().getLanguage();
     uint16_t *langP = (uint16_t *)lang;
     *langP = langNum;
     //uint16_t *(lang) = langNum;
@@ -127,6 +123,7 @@ void error_url_short(char *str, const uint32_t str_size, const int error_code) {
 }
 
 void create_path_info_4service(char *str, const uint32_t str_size) {
+#if 0
 
     strlcpy(str, INFO_URL_LONG_PREFIX, str_size);
     // PrinterType
@@ -154,8 +151,8 @@ void create_path_info_4service(char *str, const uint32_t str_size) {
     //!//     snprintf(eofstr(str), str_size - strlen(str), "%04X-", (uint16_t)(FW_VERSION));
     // BuildNumber
     //!//     snprintf(eofstr(str), str_size - strlen(str), "%d/",FW_BUILDNR);
-    // LanguageInfo
-    snprintf(eofstr(str), str_size - strlen(str), "%d/", get_actual_lang()->lang_code);
+    // LanguageInfo - removed
+    //    snprintf(eofstr(str), str_size - strlen(str), "%d/", get_actual_lang()->lang_code);
     // SelfTestResult
     if (last_selftest_time == 0)
         strlcat(str, "0", str_size);
@@ -165,4 +162,5 @@ void create_path_info_4service(char *str, const uint32_t str_size) {
     // LockBlock
     block2hex(str, str_size, (uint8_t *)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
     append_crc(str, str_size);
+#endif //0
 }

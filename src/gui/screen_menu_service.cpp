@@ -83,7 +83,7 @@ int screen_menu_service_event(screen_t *screen, window_t *window, uint8_t event,
     if (screen_menu_event(screen, window, event, param)) {
         return 1;
     }
-    if (event == WINDOW_EVENT_CLICK) {
+    if (event == GUI_event_t::CLICK) {
         switch ((int)param) {
         case MI_SYS_RESET:
             sys_reset();
@@ -123,7 +123,7 @@ int screen_menu_service_event(screen_t *screen, window_t *window, uint8_t event,
             break;
         }
         }
-    } else if (event == WINDOW_EVENT_CHANGE) {
+    } else if (event == GUI_event_t::CHANGE) {
         switch ((int)param) {
         case MI_SSCG_FREQ:
         case MI_SSCG_DEPTH:

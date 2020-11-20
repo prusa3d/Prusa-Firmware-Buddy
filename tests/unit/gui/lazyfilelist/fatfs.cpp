@@ -4,9 +4,9 @@
 #include <string>
 #include <algorithm>
 #include <iostream>
+#include <assert.h>
 
-// filesystem se bude simulovat
-// budou ruzne velky adresare s ruznejma casama
+// Simulated filesystem with FATfs interface
 
 #if 0
 static std::vector<FileEntry> testFiles0 = {
@@ -51,14 +51,27 @@ std::vector<FileEntry> testFiles0;
 
 extern "C" {
 
+/// fill FILINFO with LFN and simulate a SFN based on file's index
+void MakeLFNSFN(FILINFO *fno, const char *lfn, size_t fileindex) {
+    assert(fileindex < 100); // to make the SFN numeric suffix within 2 digits for now
+    assert(lfn);
+    assert(fno);
+    strncpy(fno->fname, lfn, sizeof(fno->fname));
+    if (strlen(lfn) >= FF_SFN_BUF) {
+        snprintf(fno->altname, sizeof(fno->altname), "%-.6s~%02u.GCO", lfn, fileindex);
+    } else {
+        fno->altname[0] = 0;
+    }
+}
+
 FRESULT f_findfirst(
-    DIR *dp,             /* [OUT] Poninter to the directory object */
-    FILINFO *fno,        /* [OUT] Pointer to the file information structure */
-    const TCHAR *path,   /* [IN] Pointer to the directory name to be opened */
-    const TCHAR *pattern /* [IN] Pointer to the matching pattern string */
+    DIR *dp,                /* [OUT] Poninter to the directory object */
+    FILINFO *fno,           /* [OUT] Pointer to the file information structure */
+    const TCHAR * /*path*/, /* [IN] Pointer to the directory name to be opened */
+    const TCHAR *pattern    /* [IN] Pointer to the matching pattern string */
 ) {
     if (!strcmp(pattern, "*")) {
-        strncpy(fno->fname, testFiles0[0].lfn.c_str(), 96);
+        MakeLFNSFN(fno, testFiles0[0].lfn.c_str(), 0);
         fno->fattrib = testFiles0[0].dir ? AM_DIR : 0;
         fno->fdate = testFiles0[0].date;
         fno->ftime = testFiles0[0].time;
@@ -68,7 +81,7 @@ FRESULT f_findfirst(
             return strcmp(pattern, e.lfn.c_str()) == 0;
         });
         if (i != testFiles0.end()) {
-            strncpy(fno->fname, i->lfn.c_str(), 96);
+            MakeLFNSFN(fno, i->lfn.c_str(), std::distance(i, testFiles0.begin()));
             fno->fattrib = i->dir ? AM_DIR : 0;
             fno->fdate = i->date;
             fno->ftime = i->time;
@@ -86,9 +99,10 @@ FRESULT f_findnext(
 ) {
     if (dp->obj >= (int)testFiles0.size() - 1) {
         fno->fname[0] = 0;
+        fno->altname[0] = 0;
     } else {
         ++dp->obj;
-        strncpy(fno->fname, testFiles0[dp->obj].lfn.c_str(), 96);
+        MakeLFNSFN(fno, testFiles0[dp->obj].lfn.c_str(), dp->obj);
         fno->fattrib = testFiles0[dp->obj].dir ? AM_DIR : 0;
         fno->fdate = testFiles0[dp->obj].date;
         fno->ftime = testFiles0[dp->obj].time;
@@ -97,8 +111,8 @@ FRESULT f_findnext(
 }
 
 FRESULT f_opendir(
-    DIR *dp,          /* [OUT] Poninter to the directory object */
-    const TCHAR *path /* [IN] Pointer to the directory name to be opened */
+    DIR *dp,               /* [OUT] Poninter to the directory object */
+    const TCHAR * /*path*/ /* [IN] Pointer to the directory name to be opened */
 ) {
     dp->obj = 0;
     return FR_OK;
@@ -111,8 +125,7 @@ FRESULT f_readdir(
     if (dp->obj >= (int)testFiles0.size()) {
         fno->fname[0] = 0;
     } else {
-        strncpy(fno->fname, testFiles0[dp->obj].lfn.c_str(), 96);
-        strncpy(fno->altname, testFiles0[dp->obj].lfn.c_str(), 13); // tady je mi to celkem jedno, pak se to muze zlepsit
+        MakeLFNSFN(fno, testFiles0[dp->obj].lfn.c_str(), dp->obj);
         fno->fattrib = testFiles0[dp->obj].dir ? AM_DIR : 0;
         fno->fdate = testFiles0[dp->obj].date;
         fno->ftime = testFiles0[dp->obj].time;
@@ -122,7 +135,7 @@ FRESULT f_readdir(
 }
 
 FRESULT f_closedir(
-    DIR *dp /* [IN] Pointer to the directory object */
+    DIR * /*dp*/ /* [IN] Pointer to the directory object */
 ) {
     return 1;
 }

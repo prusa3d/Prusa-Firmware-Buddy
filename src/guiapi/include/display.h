@@ -55,6 +55,11 @@ public:
         // convert unichar into font index - all fonts have the same layout, thus this can be computed here
         // ... and also because doing it in C++ is much easier than in plain C
         uint8_t charX = 15, charY = 1;
+
+        if (c < pf->asc_min) { // this really happens with non-utf8 characters on filesystems
+            c = '?';           // substitute with a '?' or any other suitable character, which is in the range of the fonts
+        }
+        // here is intentionally no else
         if (c < 128) {
             // normal ASCII character
             charX = (c - pf->asc_min) % 16;

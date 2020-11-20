@@ -10,31 +10,31 @@
 #include <w25x.h>
 #include "main.h"
 
-#define _MFRID     0xEF
-#define _DEVID     0x13
-#define _DEVID_NEW 0x16
+static const uint8_t _MFRID = 0xEF;
+static const uint8_t _DEVID = 0x13;
+static const uint8_t _DEVID_NEW = 0x16;
 
-#define _CMD_ENABLE_WR     0x06
-#define _CMD_ENABLE_WR_VSR 0x50
-#define _CMD_DISABLE_WR    0x04
-#define _CMD_RD_STATUS_REG 0x05
-#define _CMD_WR_STATUS_REG 0x01
-#define _CMD_RD_DATA       0x03
-#define _CMD_RD_FAST       0x0b
-#define _CMD_RD_FAST_D_O   0x3b
-#define _CMD_RD_FAST_D_IO  0xbb
-#define _CMD_PAGE_PROGRAM  0x02
-#define _CMD_SECTOR_ERASE  0x20
-#define _CMD_BLOCK32_ERASE 0x52
-#define _CMD_BLOCK64_ERASE 0xd8
-#define _CMD_CHIP_ERASE    0xc7
-#define _CMD_CHIP_ERASE2   0x60
-#define _CMD_PWR_DOWN      0xb9
-#define _CMD_PWR_DOWN_REL  0xab
-#define _CMD_MFRID_DEVID   0x90
-#define _CMD_MFRID_DEVID_D 0x92
-#define _CMD_JEDEC_ID      0x9f
-#define _CMD_RD_UID        0x4b
+static const uint8_t _CMD_ENABLE_WR = 0x06;
+// static const uint8_t _CMD_ENABLE_WR_VSR = 0x50;
+static const uint8_t _CMD_DISABLE_WR = 0x04;
+static const uint8_t _CMD_RD_STATUS_REG = 0x05;
+static const uint8_t _CMD_WR_STATUS_REG = 0x01;
+static const uint8_t _CMD_RD_DATA = 0x03;
+// static const uint8_t _CMD_RD_FAST = 0x0b;
+// static const uint8_t _CMD_RD_FAST_D_O = 0x3b;
+// static const uint8_t _CMD_RD_FAST_D_IO = 0xbb;
+static const uint8_t _CMD_PAGE_PROGRAM = 0x02;
+static const uint8_t _CMD_SECTOR_ERASE = 0x20;
+static const uint8_t _CMD_BLOCK32_ERASE = 0x52;
+static const uint8_t _CMD_BLOCK64_ERASE = 0xd8;
+static const uint8_t _CMD_CHIP_ERASE = 0xc7;
+// static const uint8_t _CMD_CHIP_ERASE2 = 0x60;
+// static const uint8_t _CMD_PWR_DOWN = 0xb9;
+// static const uint8_t _CMD_PWR_DOWN_REL = 0xab;
+static const uint8_t _CMD_MFRID_DEVID = 0x90;
+// static const uint8_t _CMD_MFRID_DEVID_D = 0x92;
+// static const uint8_t _CMD_JEDEC_ID = 0x9f;
+static const uint8_t _CMD_RD_UID = 0x4b;
 
 #define _CS_LOW()  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, 0)
 #define _CS_HIGH() HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, 1)

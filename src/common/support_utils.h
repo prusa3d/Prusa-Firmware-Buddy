@@ -1,9 +1,10 @@
-#ifndef _UTILS_H
-#define _UTILS_H
+#pragma once
 
 #include "qrcodegen.h"
 
-#define MAX_LEN_4QR 256 //143
+enum {
+    MAX_LEN_4QR = 256 //143
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,5 +20,3 @@ extern void create_path_info_4service(char *str, const uint32_t str_size);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // _UTILS_H

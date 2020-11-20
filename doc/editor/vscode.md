@@ -3,7 +3,7 @@
 ![vscode screenshot](vscode_screenshot.png)
 
 1. In Visual Studio Code, install the following extensions:
-    - `CMake Tools` (handles configuring and building the project),
+    - `CMake Tools` (handles configuring and building the project, requires CMake to be installed),
     - `Cortex-Debug` and `Cortex-Debug: Device Support Pack - STM32F4` (support for debugging of the firmware),
     - `ccls` extension, which provides autocompletion and code navigation.
     - `Code Spell Checker` (streetsidesoftware.code-spell-checker) extension, which provides spell checking and correction suggestions.
@@ -50,6 +50,11 @@
 
 ### FAQ
 
+#### Bad CMake Executable "", VSCODE cannot configure project
+
+This is a well known issue. See [https://github.com/microsoft/vscode-cmake-tools/issues/685](https://github.com/microsoft/vscode-cmake-tools/issues/685) for more details.
+Workaround is to reinstall CMake, close vscode and with another start the project should configure itself with no problem.
+
 #### OpenOCD: Error: Can't find interface/stlink.cfg
 
 Most likely, your OpenOCD is too old (or let's rephrase it - not new enough). The general solution is to uninstall it and build it from source yourself! Yay! 💪
@@ -71,6 +76,7 @@ Unplug and plug the STlink back and it should work.
 #### Linux/Ubuntu: Error: couldn't bind tcl to socket on port 6666: Address already in use
 
 The openocd process is already running - kill it ;) .
+This also can keep doing an Issue below with `libncurses`.
 
 #### Linux/Ubuntu: arm-none-eabi-gdb not working
 
@@ -79,7 +85,7 @@ on a newer incarnation of Linux/Ubuntu, it means your libraries (libncurses and 
 The output from `ldd` shows, that the arm-gdb didn't get all its libraries:
 
 ```bash
-$ ldd gcc-arm-none-eabi-7.3.1/bin/arm-none-eabi-gdb
+$ ldd PrusaFirmwareBuddy/.dependencies/gcc-arm-none-eabi-7.3.1/bin/arm-none-eabi-gdb
         linux-vdso.so.1 (0x00007fff072a8000)
         libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f900b711000)
         libncurses.so.5 => not found
@@ -89,7 +95,7 @@ $ ldd gcc-arm-none-eabi-7.3.1/bin/arm-none-eabi-gdb
         /lib64/ld-linux-x86-64.so.2 (0x00007f900b751000)
 ```
 
-On Ubuntu 19.10 this is exacty the case, the system contains `libncurses.so.6` and not `libncurses.so.5`.
+On Ubuntu 19.10 or Arch Linux this is exacty the case, the system contains `libncurses.so.6` and not `libncurses.so.5`.
 This may be _hacked_ similarly like this:
 
 ```bash

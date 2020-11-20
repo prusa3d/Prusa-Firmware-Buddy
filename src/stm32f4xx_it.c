@@ -41,6 +41,8 @@
 /* USER CODE BEGIN Includes */
 #include "bsod.h"
 #include "dump.h"
+#include "sys.h"
+#include "buffered_serial.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -83,6 +85,9 @@ extern TIM_HandleTypeDef htim14;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
+extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart6;
+extern uartrxbuff_t uart6rxbuff;
 extern TIM_HandleTypeDef htim6;
 extern WWDG_HandleTypeDef hwwdg;
 
@@ -112,7 +117,7 @@ void __attribute__((naked)) HardFault_Handler(void) {
     /* USER CODE BEGIN HardFault_IRQn 0 */
     DUMP_HARDFAULT_TO_CCRAM();
     dump_to_xflash();
-    ScreenHardFault();
+    sys_reset();
     /* USER CODE END HardFault_IRQn 0 */
     while (1) {
         /* USER CODE BEGIN W1_HardFault_IRQn 0 */
@@ -177,6 +182,22 @@ void DebugMon_Handler(void) {
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
+
+void USART2_IRQHandler() {
+    if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE)) {
+        __HAL_UART_CLEAR_IDLEFLAG(&huart2);
+        uart2_idle_cb(&huart2);
+    }
+    HAL_UART_IRQHandler(&huart2);
+}
+
+void USART6_IRQHandler() {
+    if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
+        __HAL_UART_CLEAR_IDLEFLAG(&huart6);
+        uartrxbuff_idle_cb(&uart6rxbuff);
+    }
+    HAL_UART_IRQHandler(&huart6);
+}
 
 /**
   * @brief This function handles Window watchdog interrupt.

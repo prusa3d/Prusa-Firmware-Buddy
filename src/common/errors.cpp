@@ -1,10 +1,11 @@
+#include <inttypes.h>
+
 #include "errors.h"
 #include "str_utils.hpp"
-#include <inttypes.h>
 
 static err_num_t actual_error;
 
-#define ERR_ITEMS (sizeof(error_list) / sizeof(error_list[0]))
+static const constexpr uint32_t ERR_ITEMS = sizeof(error_list) / sizeof(error_list[0]);
 
 /// inner function (error-table item finding)
 static const err_t *get_error_item(err_num_t err_num) {

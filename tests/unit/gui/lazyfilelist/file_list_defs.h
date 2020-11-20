@@ -22,5 +22,3 @@
 #ifndef MAXPATHNAMELENGTH
     #define F_MAXPATHNAMELENGTH (1 + (F_MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + _MAX_LFN)
 #endif
-
-#define strlcpy strncpy

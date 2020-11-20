@@ -1,26 +1,27 @@
 //----------------------------------------------------------------------------//
 // hwio.h - hardware input output abstraction
-#ifndef _HWIO_H
-#define _HWIO_H
+#pragma once
 
 #include <inttypes.h>
 
 //low level I/O classes
-#define HWIO_CLS_DI  0x01 //class digital input
-#define HWIO_CLS_DO  0x02 //class digital output
-#define HWIO_CLS_ADC 0x03 //class analog input
-#define HWIO_CLS_DAC 0x04 //class analog output
-#define HWIO_CLS_PWM 0x05 //class pwm output
+static const uint8_t HWIO_CLS_DI = 0x01;  //class digital input
+static const uint8_t HWIO_CLS_DO = 0x02;  //class digital output
+static const uint8_t HWIO_CLS_ADC = 0x03; //class analog input
+static const uint8_t HWIO_CLS_DAC = 0x04; //class analog output
+static const uint8_t HWIO_CLS_PWM = 0x05; //class pwm output
 
 //high level I/O classes
-#define HWIO_CLS_FAN    0x10 //class fan controller
-#define HWIO_CLS_HEATER 0x11 //class heater controller
+static const uint8_t HWIO_CLS_FAN = 0x10;    //class fan controller
+static const uint8_t HWIO_CLS_HEATER = 0x11; //class heater controller
 
 //pwm outputs
-#define HWIO_PWM_HEATER_BED 0 //BED PWM
-#define HWIO_PWM_HEATER_0   1 //NOZZLE PWM
-#define HWIO_PWM_FAN1       2 //PRINT FAN?
-#define HWIO_PWM_FAN        3 //NOZZLE FAN?
+enum {
+    HWIO_PWM_HEATER_BED, //BED PWM
+    HWIO_PWM_HEATER_0,   //NOZZLE PWM
+    HWIO_PWM_FAN1,       //PRINT FAN?
+    HWIO_PWM_FAN,        //NOZZLE FAN?
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,6 +80,10 @@ extern void hwio_heater_set_pwm(int i_heater, int val); //pwm output maximum val
 //--------------------------------------
 // misc I/O functions
 
+//fancontrol
+extern void hwio_fan_control_enable(void);
+extern void hwio_fan_control_disable(void);
+
 //jogwheel
 extern void hwio_jogwheel_enable(void);
 extern void hwio_jogwheel_disable(void);
@@ -97,5 +102,3 @@ extern void hwio_update_1ms(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_HWIO_H

@@ -5,7 +5,7 @@
 #include "support_utils.h" //MAX_LEN_4QR
 #include <array>
 
-struct screen_qr_error_data_t : public window_frame_t {
+struct screen_qr_error_data_t : public AddSuperWindow<window_frame_t> {
     window_text_t errText;
     window_text_t errDescription;
     window_text_t info;
@@ -16,7 +16,7 @@ struct screen_qr_error_data_t : public window_frame_t {
 public:
     screen_qr_error_data_t();
 
-private:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     virtual void unconditionalDraw() override;
 };

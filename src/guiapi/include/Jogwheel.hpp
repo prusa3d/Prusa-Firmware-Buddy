@@ -14,47 +14,56 @@
 //new encoder (1 steps per 1 count) - Type1
 
 class Jogwheel {
+    using QueueHandle_t = void *; //do not want to include rtos files in this header
 public:
     /**
      * Constructor
      *
-     * sets up default values to members and initialize input pins
+     * sets up default values to members
      *
-     * @param [in] encoder_pin1 - input pin for encoder phase0
-     *
-     * @param [in] encoder_pin2 - input pin for encoder phase1
-     *
-     * @param [in] btn_pin - input pin for button press action
      */
-    Jogwheel(uint8_t encoder_pin1, uint8_t encoder_pin2, uint8_t btn_pin);
-    ~Jogwheel() {}
+    Jogwheel();
+    ~Jogwheel() = default;
 
     /** Updates jogwheel states and variables every 1ms, this function is called from the interupt. */
-    void Update1ms();
+    void Update1msFromISR();
 
-    /** Returns button input state, this funtion is for BSOD and situations where interupts are disabled. */
-    const int GetJogwheelButtonPinState() const;
+    /** Returns button input state, this function is for BSOD and situations where interupts are disabled. */
+    static int GetJogwheelButtonPinState();
 
-    /** Returns if encoder was changed. */
-    const bool EncoderChanged() {
-        bool ret = jogwheel_changed & 2;
-        jogwheel_changed = 0;
-        return ret;
-    }
-
-    enum class ButtonAction {
-        BTN_NO_ACTION = 0,
-        BTN_CLICKED,
-        BTN_DOUBLE_CLICKED,
-        BTN_HELD,
-        BTN_PUSHED,
+    // current state of button, event is stored into buffer on button change
+    enum class BtnState_t : uint8_t {
+        Released,
+        Pressed,
+        Held
     };
 
-    /** Returns button action that was triggered, BTN_NO_ACTION = 0, BTN_CLICK, BTN_DOUBLE CLICK or BTN_HELD. */
-    const ButtonAction GetButtonAction();
+    //structure to be read in rtos thread (outside interrupt)
+    //size must be 32 bit to be atomic
+    struct encoder_t {
+        union {
+            struct {
+                int16_t value;
+                uint8_t gear;
+                uint8_t tick;
+            };
+            uint32_t data;
+        };
+    };
 
-    /** Returns current encoder value. */
-    const int32_t GetEncoder() const { return encoder; }
+    /**
+     * Fills up the parameter with an event from inner event buffer.
+     *
+     * throws bsod on buffer malloc failure
+     *
+     * returns success (inner buffer was not empty)
+     *
+     * @param [out] ev - stores an event if inner buffer is not empty else left unchanged
+     */
+    bool ConsumeButtonEvent(BtnState_t &ev);
+
+    /** Returns current encoder value, reading int is atomic - can do it directly */
+    int32_t GetEncoder() const { return encoder; }
 
     /**
      * Sets type of the jogwheel.
@@ -62,14 +71,38 @@ public:
      * There are two types with slightly different behaviour
      * and we have to decide in runtime (guimain.cpp), which type are we using.
      *
-     * @param [in] delay - jogwheel type recognision mechanism
+     * @param [in] delay - jogwheel type recognition mechanism
      */
     void SetJogwheelType(uint16_t delay);
 
-    /** Returns difference between last_encoder and encoder and then resets last_encoder */
-    int32_t GetEncoderDiff();
+    /**
+     * Returns difference between last_encoder and encoder and then resets last_encoder
+     *
+     * throws bsod on buffer malloc failure
+     */
+    int32_t ConsumeEncoderDiff();
 
 private:
+    static int32_t CalculateEncoderDiff(encoder_t enc);
+
+    /**
+     * Initialize queue for button messages (button_queue_handle)
+     *
+     * cannot use Mayers singleton - first call in IRQ can cause deadlock
+     *
+     * could set nullptr, handled in ConsumeButtonEvent (bsod)
+     */
+    void InitButtonMessageQueueInstance_NotFromISR();
+
+    /**
+     * Initialize queue for button messages (spin_queue_handle)
+     *
+     * cannot use Mayers singleton - first call in IRQ can cause deadlock
+     *
+     * could set nullptr, handled in ConsumeEncoderDiff (bsod)
+     */
+    void InitSpinMessageQueueInstance_NotFromISR();
+
     /**
      * Fills up the parameter with input pins signals.
      *
@@ -77,14 +110,16 @@ private:
      *
      * @param [out] signals - stores signals: bit0 - phase0, bit1 - phase1, bit2 - button pressed (inverted)
      */
-    void ReadInput(uint8_t &signals);
+    static void ReadInput(uint8_t &signals);
 
     /**
      * Updates member variables according to input signals.
      *
+     * To be used in interrupt
+     *
      * @param [in] signals - input signals
      */
-    void UpdateVariables(const uint8_t signals);
+    void UpdateVariablesFromISR(uint8_t signals);
 
     /**
      * Updates encoder, different types of jogwheel have different implementations.
@@ -92,14 +127,16 @@ private:
      * @param [in] change - change of signals from the last read.
      * @param [in] signals - current signals read from input pins.
      */
-    int32_t JogwheelTypeBehaviour(const uint8_t change, const uint8_t signals) const;
+    int32_t JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const;
 
     /**
-     * Analyzes member variables and updates btn_action if any button action was triggered.
+     * Analyzes member variables and updates btn_event if any button event was triggered.
      *
-     * It stores button action until it gets returned in gui_loop, then it is fliped back to BTN_NO_ACTION.
+     * To be used in interrupt
+     *
+     * It stores button event into rtos queue which shall be read in rtos thread (outside interrupt).
      */
-    void UpdateButtonAction();
+    void UpdateButtonActionFromISR();
 
     /**
      * Switches up encoders gears.
@@ -108,32 +145,27 @@ private:
      */
     void Transmission();
 
-    typedef struct {
-        uint8_t pinEN1; // encoder phase1 pin
-        uint8_t pinEN2; // encoder phase2 pin
-        uint8_t pinENC; // button pin
-    } Config;
+    /** Returns button state (HW pin) from last reading. */
+    bool IsBtnPressed();
 
-    int32_t encoder;              //!< jogwheel encoder
-    int32_t last_encoder;         //!< helping variable - GUI encoder variable for diff counting (sets itself equal to encoder in gui_loop)
-    uint16_t doubleclick_counter; //!< keep track of ms from last click
-    uint16_t hold_counter;        //!< keep track of ms from button down
+    /** Changes button state and stores event into buffer */
+    void ChangeStateFromISR(BtnState_t new_state);
 
-    Config config;                //!< pin configurations
-    uint8_t jogwheel_signals;     //!< input signals
-    uint8_t jogwheel_changed;     //!< stores changed input states
-    uint8_t jogwheel_signals_old; //!< stores pre-previous input signals
-    uint8_t jogwheel_signals_new; //!< stores previous signals
-    ButtonAction btn_action;      //!< variable describes the last button action or BTN_NO_ACTION when action was already executed
-    bool jogwheel_button_down;    //!< helping variable - stores last button input pin state
-    bool btn_pressed;             //!< keeps current state of button input pin
-    bool doubleclicked;           //!< helping variable - detect doubleclick after first click's release
-    bool being_held;              //!< helping variable - don't click after hold was detected
-    bool type1;                   //!< jogwheel is type1 = true or type2 = false
-    bool spin_accelerator;        //!< turns up spin accelerator feature
-    uint32_t spin_speed_counter;  //!< counting variable for encoder_gear system
-    uint32_t speed_traps[4];      //!< stores previous encoder's change timestamp
-    uint8_t encoder_gear;         //!< multiple gears for jogwheel spinning
+    // variables are set in interrupt
+    // ordered by size, from biggest to smallest (most size-effective)
+    uint32_t speed_traps[4];           //!< stores previous encoder's change timestamp
+    QueueHandle_t button_queue_handle; //!< pointer to message button queue, cannot use Mayers singleton - first call in IRQ can cause deadlock
+    volatile encoder_t threadsafe_enc; //!< encoder data struct to be passed to rtos thread (outside interrupt)
+    uint32_t tick_counter;             //!< counting variable for encoder_gear system
+    int32_t encoder;                   //!< jogwheel encoder
+    uint16_t hold_counter;             //!< keep track of ms from button down
+    BtnState_t btn_state;              //!< current state of button, size uint8_t
+    uint8_t jogwheel_signals;          //!< input signals
+    uint8_t jogwheel_signals_old;      //!< stores pre-previous input signals
+    uint8_t jogwheel_noise_filter;     //!< stores previous signals
+    uint8_t encoder_gear;              //!< multiple gears for jogwheel spinning
+    bool type1;                        //!< jogwheel is type1 = true or type2 = false
+    bool spin_accelerator;             //!< turns up spin accelerator feature
 };
 
 extern Jogwheel jogwheel; // Jogwheel static instance

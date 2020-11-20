@@ -9,72 +9,78 @@
 #include "res/cc/font_9x15.c"  //IDR_FNT_TERMINAL
 #include "res/cc/font_9x16.c"  //IDR_FNT_SPECIAL
 
-#include "res/cc/png_splashscreen_logo_marlin.c" //IDR_PNG_splash_logo_marlin
+#include "res/cc/png_marlin_logo.c" //IDR_PNG_splash_logo_marlin
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #include "res/cc/png_splashscreen_logo_prusamini.c" //IDR_PNG_splash_logo_prusa_prn
-    #include "res/cc/png_statusscreen_logo_prusamini.c" //IDR_PNG_status_logo_prusa_prn
+    #include "res/cc/png_prusa_mini_splash.c" //IDR_PNG_prusa_printer_splash
+    #include "res/cc/png_prusa_mini_logo.c"   //IDR_PNG_prusa_printer_logo
 #else
     #error "Unknown PRINTER_TYPE."
 #endif // PRINTER_TYPE
 
-#include "res/cc/png_statusscreen_icon_nozzle.c"   //IDR_PNG_status_icon_nozzle
-#include "res/cc/png_statusscreen_icon_heatbed.c"  //IDR_PNG_status_icon_heatbed
-#include "res/cc/png_statusscreen_icon_prnspeed.c" //IDR_PNG_status_icon_prnspeed
-#include "res/cc/png_statusscreen_icon_filament.c" //IDR_PNG_status_icon_filament
-#include "res/cc/png_statusscreen_icon_z_axis.c"   //IDR_PNG_status_icon_z_axis
-#include "res/cc/png_statusscreen_icon_home.c"     //IDR_PNG_status_icon_home
-#include "res/cc/png_statusscreen_icon_printing.c" //IDR_PNG_status_icon_printing
+#include "res/cc/png_nozzle_16px.c"     //IDR_PNG_nozzle_16px
+#include "res/cc/png_heatbed_16px.c"    //IDR_PNG_heatbed_16px
+#include "res/cc/png_speed_16px.c"      //IDR_PNG_speed_16px
+#include "res/cc/png_spool_16px.c"      //IDR_PNG_spool_16px
+#include "res/cc/png_z_axis_16px.c"     //IDR_PNG_z_axis_16px
+#include "res/cc/png_home_shape_16px.c" //IDR_PNG_home_shape_16px
+#include "res/cc/png_print_16px.c"      //IDR_PNG_print_16px
 
-#include "res/cc/png_menu_icon_print.c"       //IDR_PNG_menu_icon_print
-#include "res/cc/png_menu_icon_preheat.c"     //IDR_PNG_menu_icon_preheat
-#include "res/cc/png_menu_icon_spool.c"       //IDR_PNG_menu_icon_spool
-#include "res/cc/png_menu_icon_reprint.c"     //IDR_PNG_menu_icon_reprint
-#include "res/cc/png_menu_icon_calibration.c" //IDR_PNG_menu_icon_calibration
-#include "res/cc/png_menu_icon_settings.c"    //IDR_PNG_menu_icon_settings
-#include "res/cc/png_menu_icon_info.c"        //IDR_PNG_menu_icon_info
-#include "res/cc/png_menu_icon_pause.c"       //IDR_PNG_menu_icon_pause
-#include "res/cc/png_menu_icon_stop.c"        //IDR_PNG_menu_icon_stop
-#include "res/cc/png_menu_icon_resume.c"      //IDR_PNG_menu_icon_resume
-#include "res/cc/png_menu_icon_home.c"        //IDR_PNG_menu_icon_home
-#include "res/cc/png_menu_icon_back.c"        //IDR_PNG_menu_icon_back
-#include "res/cc/png_menu_icon_disconnect.c"  //IDR_PNG_menu_icon_disconnect
+#include "res/cc/png_print_58px.c"      //IDR_PNG_print_58px
+#include "res/cc/png_preheat_58px.c"    //IDR_PNG_preheat_58px
+#include "res/cc/png_spool_58px.c"      //IDR_PNG_spool_58px
+#include "res/cc/png_reprint_48px.c"    //IDR_PNG_reprint_48px
+#include "res/cc/png_calibrate_58px.c"  //IDR_PNG_calibrate_58px
+#include "res/cc/png_settings_58px.c"   //IDR_PNG_settings_58px
+#include "res/cc/png_info_58px.c"       //IDR_PNG_info_58px
+#include "res/cc/png_pause_58px.c"      //IDR_PNG_pause_58px
+#include "res/cc/png_stop_58px.c"       //IDR_PNG_stop_58px
+#include "res/cc/png_resume_48px.c"     //IDR_PNG_resume_48px
+#include "res/cc/png_home_58px.c"       //IDR_PNG_home_58px
+#include "res/cc/png_back_32px.c"       //IDR_PNG_back_32px
+#include "res/cc/png_disconnect_48px.c" //IDR_PNG_disconnect_48px
 
-#include "res/cc/png_filescreen_icon_home.c"      //IDR_PNG_filescreen_icon_home
-#include "res/cc/png_filescreen_icon_folder.c"    //IDR_PNG_filescreen_icon_folder
-#include "res/cc/png_filescreen_icon_up_folder.c" //IDR_PNG_filescreen_icon_up_folder
+#include "res/cc/png_home_full_16px.c"    //IDR_PNG_home_full_16px
+#include "res/cc/png_folder_full_16px.c"  //IDR_PNG_folder_full_16px
+#include "res/cc/png_folder_up_16px.c"    //IDR_PNG_folder_up_16px
+#include "res/cc/png_folder_shape_16px.c" //IDR_PNG_folder_shape_16px
+#include "res/cc/png_folder_open_16px.c"  //IDR_PNG_folder_open_16px
 
-#include "res/cc/png_icon_pepa.c" //IDR_PNG_icon_pepa
+#include "res/cc/png_pepa_64px.c" //IDR_PNG_pepa_64px
 
-#include "res/cc/png_msgbox_icon_error.c"    //IDR_PNG_msgbox_icon_error
-#include "res/cc/png_msgbox_icon_question.c" //IDR_PNG_msgbox_icon_question
-#include "res/cc/png_msgbox_icon_warning.c"  //IDR_PNG_msgbox_icon_warning
-#include "res/cc/png_msgbox_icon_info.c"     //IDR_PNG_msgbox_icon_info
+#include "res/cc/png_dash_18px.c"            //IDR_PNG_dash_18px
+#include "res/cc/png_ok_color_18px.c"        //IDR_PNG_ok_color_18px
+#include "res/cc/png_nok_color_18px.c"       //IDR_PNG_nok_color_18px
+#include "res/cc/png_loading1_18px.c"        //IDR_PNG_loading1_18px
+#include "res/cc/png_loading2_18px.c"        //IDR_PNG_loading2_18px
+#include "res/cc/png_hourglass_39px.c"       //IDR_PNG_hourglass_39px
+#include "res/cc/png_wizard_icon_autohome.c" //IDR_PNG_wizard_icon_autohome
+#include "res/cc/png_wizard_icon_search.c"   //IDR_PNG_wizard_icon_search
+#include "res/cc/png_wizard_icon_measure.c"  //IDR_PNG_wizard_icon_measure
 
-#include "res/cc/png_wizard_icon_na.c"        //IDR_PNG_wizard_icon_na
-#include "res/cc/png_wizard_icon_ok.c"        //IDR_PNG_wizard_icon_ok
-#include "res/cc/png_wizard_icon_ng.c"        //IDR_PNG_wizard_icon_ng
-#include "res/cc/png_wizard_icon_ip0.c"       //IDR_PNG_wizard_icon_ip0
-#include "res/cc/png_wizard_icon_ip1.c"       //IDR_PNG_wizard_icon_ip1
-#include "res/cc/png_wizard_icon_hourglass.c" //IDR_PNG_wizard_icon_hourglass
-#include "res/cc/png_wizard_icon_autohome.c"  //IDR_PNG_wizard_icon_autohome
-#include "res/cc/png_wizard_icon_search.c"    //IDR_PNG_wizard_icon_search
-#include "res/cc/png_wizard_icon_measure.c"   //IDR_PNG_wizard_icon_measure
+#include "res/cc/png_pepa_140px.c" //IDR_PNG_pepa_140px
 
-#include "res/cc/png_icon_pepa_psod.c" //IDR_PNG_icon_pepa_psod
+#include "res/cc/png_usb_16px.c"          //IDR_PNG_usb_16px
+#include "res/cc/png_lan_16px.c"          //IDR_PNG_lan_16px
+#include "res/cc/png_wifi_16px.c"         //IDR_PNG_wifi_16px - unused
+#include "res/cc/png_info_16px.c"         //IDR_PNG_info_16px
+#include "res/cc/png_error_16px.c"        //IDR_PNG_error_16px
+#include "res/cc/png_warning_16px.c"      //IDR_PNG_warning_16px
+#include "res/cc/png_question_16px.c"     //IDR_PNG_question_16px
+#include "res/cc/png_nozzle_shape_48px.c" //IDR_PNG_nozzle_shape_48px
 
-#include "res/cc/png_header_icon_usb.c"      //IDR_PNG_header_icon_usb
-#include "res/cc/png_header_icon_lan.c"      //IDR_PNG_header_icon_lan
-#include "res/cc/png_header_icon_wifi.c"     //IDR_PNG_header_icon_wifi
-#include "res/cc/png_header_icon_info.c"     //IDR_PNG_header_icon_info
-#include "res/cc/png_header_icon_error.c"    //IDR_PNG_header_icon_error
-#include "res/cc/png_header_icon_warning.c"  //IDR_PNG_header_icon_warning
-#include "res/cc/png_header_icon_question.c" //IDR_PNG_header_icon_question
+#include "res/cc/png_arrow_up_16px.c"         //IDR_PNG_arrow_up_16px
+#include "res/cc/png_arrow_down_16px.c"       //IDR_PNG_arrow_down_16px
+#include "res/cc/png_arrow_left_16px.c"       //IDR_PNG_arrow_left_16px
+#include "res/cc/png_arrow_right_16px.c"      //IDR_PNG_arrow_right_16px
+#include "res/cc/png_arrow_up_8px.c"          //IDR_PNG_arrow_up_8px
+#include "res/cc/png_arrow_down_8px.c"        //IDR_PNG_arrow_down_8px
+#include "res/cc/png_arrow_up_orange_8px.c"   //IDR_PNG_arrow_up_orange_8px
+#include "res/cc/png_arrow_down_orange_8px.c" //IDR_PNG_arrow_down_orange_8px
 
-#include "res/cc/png_arrow_up.c"      //IDR_PNG_arrow_up
-#include "res/cc/png_arrow_down.c"    //IDR_PNG_arrow_down
-#include "res/cc/png_arrow_scan_me.c" //IDR_PNG_arrow_scan_me
-
-#include "res/cc/png_serial_printing.c" //IDR_PNG_serial_printing
+#include "res/cc/png_arrow_scan_me_64px.c" //IDR_PNG_arrow_scan_me_64px
+#include "res/cc/png_serial_printing.c"    //IDR_PNG_serial_printing
+#include "res/cc/png_switch_off_36px.c"    //IDR_PNG_switch_off_36px
+#include "res/cc/png_switch_on_36px.c"     //IDR_PNG_switch_on_36px
 
 #include "res/cc/png_flag_cs.c"
 #include "res/cc/png_flag_de.c"
@@ -84,6 +90,7 @@
 #include "res/cc/png_flag_it.c"
 #include "res/cc/png_flag_pl.c"
 
+#include "res/cc/png_sheets_profile_16px.c"
 RESOURCE_TABLE_BEGIN
 RESOURCE_ENTRY_NUL() //IDR_NULL
 //fonts
@@ -95,69 +102,74 @@ RESOURCE_ENTRY_FNT(font_9x15)  //IDR_FNT_TERMINAL
 RESOURCE_ENTRY_FNT(font_9x16)  //IDR_FNT_SPECIAL
 
 //pngs
-RESOURCE_ENTRY_PNG(png_splashscreen_logo_marlin)    //IDR_PNG_splash_logo_marlin
-RESOURCE_ENTRY_PNG(png_splashscreen_logo_prusa_prn) //IDR_PNG_splash_logo_prusa_prn
-RESOURCE_ENTRY_PNG(png_statusscreen_logo_prusa_prn) //IDR_PNG_status_logo_prusa_prn
+RESOURCE_ENTRY_PNG(png_marlin_logo)          //IDR_PNG_malin_logo
+RESOURCE_ENTRY_PNG(png_prusa_printer_splash) //IDR_PNG_prusa_printer_splash
+RESOURCE_ENTRY_PNG(png_prusa_printer_logo)   //IDR_PNG_prusa_printer_logo
 
-RESOURCE_ENTRY_PNG(png_statusscreen_icon_nozzle)
-RESOURCE_ENTRY_PNG(png_statusscreen_icon_heatbed)
-RESOURCE_ENTRY_PNG(png_statusscreen_icon_prnspeed)
-RESOURCE_ENTRY_PNG(png_statusscreen_icon_filament)
-RESOURCE_ENTRY_PNG(png_statusscreen_icon_z_axis)
-RESOURCE_ENTRY_PNG(png_statusscreen_icon_home)
-RESOURCE_ENTRY_PNG(png_statusscreen_icon_printing)
+RESOURCE_ENTRY_PNG(png_nozzle_16px)
+RESOURCE_ENTRY_PNG(png_heatbed_16px)
+RESOURCE_ENTRY_PNG(png_speed_16px)
+RESOURCE_ENTRY_PNG(png_spool_16px)
+RESOURCE_ENTRY_PNG(png_z_axis_16px)
+RESOURCE_ENTRY_PNG(png_home_shape_16px)
+RESOURCE_ENTRY_PNG(png_print_16px)
 
-RESOURCE_ENTRY_PNG(png_menu_icon_print)
-RESOURCE_ENTRY_PNG(png_menu_icon_preheat)
-RESOURCE_ENTRY_PNG(png_menu_icon_spool)
-RESOURCE_ENTRY_PNG(png_menu_icon_reprint)
-RESOURCE_ENTRY_PNG(png_menu_icon_calibration)
-RESOURCE_ENTRY_PNG(png_menu_icon_settings)
-RESOURCE_ENTRY_PNG(png_menu_icon_info)
-RESOURCE_ENTRY_PNG(png_menu_icon_pause)
-RESOURCE_ENTRY_PNG(png_menu_icon_stop)
-RESOURCE_ENTRY_PNG(png_menu_icon_resume)
-RESOURCE_ENTRY_PNG(png_menu_icon_home)
+RESOURCE_ENTRY_PNG(png_print_58px)
+RESOURCE_ENTRY_PNG(png_preheat_58px)
+RESOURCE_ENTRY_PNG(png_spool_58px)
+RESOURCE_ENTRY_PNG(png_reprint_48px)
+RESOURCE_ENTRY_PNG(png_calibrate_58px)
+RESOURCE_ENTRY_PNG(png_settings_58px)
+RESOURCE_ENTRY_PNG(png_info_58px)
+RESOURCE_ENTRY_PNG(png_pause_58px)
+RESOURCE_ENTRY_PNG(png_stop_58px)
+RESOURCE_ENTRY_PNG(png_resume_48px)
+RESOURCE_ENTRY_PNG(png_home_58px)
 
-RESOURCE_ENTRY_PNG(png_filescreen_icon_home)
-RESOURCE_ENTRY_PNG(png_filescreen_icon_folder)
-RESOURCE_ENTRY_PNG(png_filescreen_icon_up_folder)
+RESOURCE_ENTRY_PNG(png_home_full_16px)
+RESOURCE_ENTRY_PNG(png_folder_full_16px)
+RESOURCE_ENTRY_PNG(png_folder_up_16px)
+RESOURCE_ENTRY_PNG(png_folder_shape_16px)
+RESOURCE_ENTRY_PNG(png_folder_open_16px)
 
-RESOURCE_ENTRY_PNG(png_icon_pepa)
+RESOURCE_ENTRY_PNG(png_pepa_64px)
 
-RESOURCE_ENTRY_PNG(png_msgbox_icon_error)
-RESOURCE_ENTRY_PNG(png_msgbox_icon_question)
-RESOURCE_ENTRY_PNG(png_msgbox_icon_warning)
-RESOURCE_ENTRY_PNG(png_msgbox_icon_info)
-
-RESOURCE_ENTRY_PNG(png_wizard_icon_na)
-RESOURCE_ENTRY_PNG(png_wizard_icon_ok)
-RESOURCE_ENTRY_PNG(png_wizard_icon_ng)
-RESOURCE_ENTRY_PNG(png_wizard_icon_ip0)
-RESOURCE_ENTRY_PNG(png_wizard_icon_ip1)
-RESOURCE_ENTRY_PNG(png_wizard_icon_hourglass)
+RESOURCE_ENTRY_PNG(png_dash_18px)
+RESOURCE_ENTRY_PNG(png_ok_color_18px)
+RESOURCE_ENTRY_PNG(png_nok_color_18px)
+RESOURCE_ENTRY_PNG(png_loading1_18px)
+RESOURCE_ENTRY_PNG(png_loading2_18px)
+RESOURCE_ENTRY_PNG(png_hourglass_39px)
 RESOURCE_ENTRY_PNG(png_wizard_icon_autohome)
 RESOURCE_ENTRY_PNG(png_wizard_icon_search)
 RESOURCE_ENTRY_PNG(png_wizard_icon_measure)
 
-RESOURCE_ENTRY_PNG(png_icon_pepa_psod)
+RESOURCE_ENTRY_PNG(png_pepa_140px)
 
-RESOURCE_ENTRY_PNG(png_header_icon_usb)
-RESOURCE_ENTRY_PNG(png_header_icon_lan)
-RESOURCE_ENTRY_PNG(png_header_icon_wifi)
-RESOURCE_ENTRY_PNG(png_header_icon_info)
-RESOURCE_ENTRY_PNG(png_header_icon_error)
-RESOURCE_ENTRY_PNG(png_header_icon_warning)
-RESOURCE_ENTRY_PNG(png_header_icon_question)
+RESOURCE_ENTRY_PNG(png_usb_16px)
+RESOURCE_ENTRY_PNG(png_lan_16px)
+RESOURCE_ENTRY_PNG(png_wifi_16px)
+RESOURCE_ENTRY_PNG(png_info_16px)
+RESOURCE_ENTRY_PNG(png_error_16px)
+RESOURCE_ENTRY_PNG(png_warning_16px)
+RESOURCE_ENTRY_PNG(png_question_16px)
+RESOURCE_ENTRY_PNG(png_nozzle_shape_48px)
 
-RESOURCE_ENTRY_PNG(png_arrow_up)
-RESOURCE_ENTRY_PNG(png_arrow_down)
-RESOURCE_ENTRY_PNG(png_arrow_scan_me)
+RESOURCE_ENTRY_PNG(png_arrow_up_16px)
+RESOURCE_ENTRY_PNG(png_arrow_down_16px)
+RESOURCE_ENTRY_PNG(png_arrow_left_16px)
+RESOURCE_ENTRY_PNG(png_arrow_right_16px)
+RESOURCE_ENTRY_PNG(png_arrow_up_8px)
+RESOURCE_ENTRY_PNG(png_arrow_down_8px)
+RESOURCE_ENTRY_PNG(png_arrow_up_orange_8px)
+RESOURCE_ENTRY_PNG(png_arrow_down_orange_8px)
+RESOURCE_ENTRY_PNG(png_arrow_scan_me_64px)
 
-RESOURCE_ENTRY_PNG(png_menu_icon_back)
-
+RESOURCE_ENTRY_PNG(png_back_32px)
 RESOURCE_ENTRY_PNG(png_serial_printing)
-RESOURCE_ENTRY_PNG(png_menu_icon_disconnect)
+RESOURCE_ENTRY_PNG(png_disconnect_48px)
+RESOURCE_ENTRY_PNG(png_switch_off_36px)
+RESOURCE_ENTRY_PNG(png_switch_on_36px)
 
 RESOURCE_ENTRY_PNG(png_flag_cs)
 RESOURCE_ENTRY_PNG(png_flag_de)
@@ -166,5 +178,5 @@ RESOURCE_ENTRY_PNG(png_flag_es)
 RESOURCE_ENTRY_PNG(png_flag_fr)
 RESOURCE_ENTRY_PNG(png_flag_it)
 RESOURCE_ENTRY_PNG(png_flag_pl)
-
+RESOURCE_ENTRY_PNG(png_sheets_profile_16px)
 RESOURCE_TABLE_END

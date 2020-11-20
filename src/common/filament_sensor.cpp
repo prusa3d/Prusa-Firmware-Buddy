@@ -1,17 +1,19 @@
-// filament_sensor.c
+/**
+ * @file
+ */
 
 //there is 10kOhm PU to 5V in filament sensor
-//mcu PU/PD is in range 30 - 50 kOhm
+//MCU PU/PD is in range 30 - 50 kOhm
 
 //when PD is selected and sensor is connected Vmcu = min 3.75V .. (5V * 30kOhm) / (30 + 10 kOhm)
 //pin is 5V tolerant
 
-//mcu has 5pF, transistor D-S max 15pF
+//MCU has 5pF, transistor D-S max 15pF
 //max R is 50kOhm
 //Max Tau ~= 20*10^-12 * 50*10^3 = 1*10^-6 s ... about 1us
 
-#include "filament_sensor.h"
-#include "hwio_pindef.h" //PIN_FSENSOR
+#include "filament_sensor.hpp"
+#include "hwio_pindef.h"
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 #include "eeprom.h"
@@ -20,8 +22,10 @@
 #include "cmsis_os.h"      //osDelay
 #include "marlin_client.h" //enable/disable fs in marlin
 
-static volatile fsensor_t state = FS_NOT_INITIALIZED;
-static volatile fsensor_t last_state = FS_NOT_INITIALIZED;
+using buddy::hw::fSensor;
+using buddy::hw::Pin;
+static volatile fsensor_t state = fsensor_t::NotInitialized;
+static volatile fsensor_t last_state = fsensor_t::NotInitialized;
 
 typedef enum {
     M600_on_edge = 0,
@@ -39,7 +43,7 @@ static status_t status = { 0, M600_on_edge, 0 };
 /*---------------------------------------------------------------------------*/
 //debug functions
 
-extern "C" {
+//extern "C" {
 
 int fs_was_M600_send() {
     return status.M600_sent != 0;
@@ -62,12 +66,12 @@ char fs_get_send_M600_on() {
 static void _init();
 
 static int block_M600_injection = 0;
-//called when Serial print screen is openned
+//called when Serial print screen is opened
 //printer is not in sd printing mode, so filament sensor does not trigger M600
 
 //todo should I block ClientFSM::Serial_printing?
 //this code did not work in last builds and no one reported problem with octoscreen
-//i fear enebling it could break something
+//I fear enabling it could break something
 static void fsm_create_cb(ClientFSM fsm, uint8_t data) {
     if (/*fsm == ClientFSM::Serial_printing ||*/ fsm == ClientFSM::Load_unload)
         block_M600_injection = 1;
@@ -88,15 +92,15 @@ static void _set_state(fsensor_t st) {
 }
 
 static void _enable() {
-    gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
-    state = FS_NOT_INITIALIZED;
-    last_state = FS_NOT_INITIALIZED;
+    fSensor.pullUp();
+    state = fsensor_t::NotInitialized;
+    last_state = fsensor_t::NotInitialized;
     status.meas_cycle = 0;
 }
 
 static void _disable() {
-    state = FS_DISABLED;
-    last_state = FS_DISABLED;
+    state = fsensor_t::Disabled;
+    last_state = fsensor_t::Disabled;
     status.meas_cycle = 0;
 }
 
@@ -108,7 +112,7 @@ fsensor_t fs_get_state() {
 
 //value can change during read, but it is not a problem
 int fs_did_filament_runout() {
-    return state == FS_NO_FILAMENT;
+    return state == fsensor_t::NoFilament;
 }
 
 void fs_send_M600_on_edge() {
@@ -161,7 +165,7 @@ void fs_restore__send_M600_on(uint8_t send_M600_on) {
 
 fsensor_t fs_wait_initialized() {
     fsensor_t ret = fs_get_state();
-    while (ret == FS_NOT_INITIALIZED) {
+    while (ret == fsensor_t::NotInitialized) {
         osDelay(0); // switch to other threads
         ret = fs_get_state();
     }
@@ -210,16 +214,16 @@ static void _injectM600() {
 }
 
 static void _cycle0() {
-    if (gpio_get(PIN_FSENSOR) == 1) {
-        gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLDOWN, GPIO_SPEED_FREQ_VERY_HIGH); // pulldown
-        status.meas_cycle = 1;                                                             //next cycle shall be 1
+    if (fSensor.read() == Pin::State::high) {
+        fSensor.pullDown();
+        status.meas_cycle = 1; //next cycle shall be 1
     } else {
-        int had_filament = state == FS_HAS_FILAMENT ? 1 : 0;
-        _set_state(FS_NO_FILAMENT); //it is filtered, 2 requests are needed to change state
-        //M600_on_edge == inject after state was changed from FS_HAS_FILAMENT to FS_NO_FILAMENT
-        //M600_on_level == inject on FS_NO_FILAMENT
+        int had_filament = state == fsensor_t::HasFilament ? 1 : 0;
+        _set_state(fsensor_t::NoFilament); //it is filtered, 2 requests are needed to change state
+        //M600_on_edge == inject after state was changed from HasFilament to NoFilament
+        //M600_on_level == inject on NoFilament
         //M600_never == do not inject
-        if (state == FS_NO_FILAMENT) {
+        if (state == fsensor_t::NoFilament) {
             switch (status.send_M600_on) {
             case M600_on_edge:
                 if (!had_filament)
@@ -241,15 +245,15 @@ static void _cycle0() {
 //called only in fs_cycle
 static void _cycle1() {
     //pulldown was set in cycle 0
-    _set_state(gpio_get(PIN_FSENSOR) == 1 ? FS_HAS_FILAMENT : FS_NOT_CONNECTED);
-    gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
-    status.meas_cycle = 0;                                                           //next cycle shall be 0
+    _set_state(fSensor.read() == Pin::State::high ? fsensor_t::HasFilament : fsensor_t::NotConnected);
+    fSensor.pullUp();
+    status.meas_cycle = 0; //next cycle shall be 0
 }
 
-//dealay between calls must be 1us or longer
+//delay between calls must be 1us or longer
 void fs_cycle() {
     //sensor is disabled (only init can enable it)
-    if (state == FS_DISABLED)
+    if (state == fsensor_t::Disabled)
         return;
 
     //sensor is enabled
@@ -260,4 +264,4 @@ void fs_cycle() {
     }
 }
 
-} //extern "C"
+//} //extern "C"

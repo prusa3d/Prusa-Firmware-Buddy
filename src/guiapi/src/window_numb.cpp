@@ -4,13 +4,15 @@
 
 // @@TODO Beware - keep this big enough as long as the SetFormat is being abused to print
 // long utf8 text messages in selftest_cool.cpp (and probably in other places too)
-#define WINDOW_NUMB_MAX_TEXT 30
+static const constexpr uint8_t WINDOW_NUMB_MAX_TEXT = 30;
 
 void window_numb_t::unconditionalDraw() {
     color_t clr_back = (IsFocused()) ? color_text : color_back;
     color_t clr_text = (IsFocused()) ? color_back : color_text;
     if (IsCaptured())
         clr_text = COLOR_ORANGE;
+    if (IsShadowed())
+        clr_text = COLOR_GRAY;
     char text[WINDOW_NUMB_MAX_TEXT];
     if (IsPrintingAsInt()) {
         snprintf(text, WINDOW_NUMB_MAX_TEXT, format, (int)(value));
@@ -65,13 +67,13 @@ window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value)
 }
 
 void window_numb_t::PrintAsFloat() {
-    flag_custom0 = false;
+    flags.custom0 = false;
 }
 
 void window_numb_t::PrintAsInt() {
-    flag_custom0 = true;
+    flags.custom0 = true;
 }
 
 bool window_numb_t::IsPrintingAsInt() const {
-    return flag_custom0;
+    return flags.custom0;
 }

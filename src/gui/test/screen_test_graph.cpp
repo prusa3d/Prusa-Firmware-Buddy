@@ -23,8 +23,8 @@ screen_test_graph_t::screen_test_graph_t()
     button.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rtn));
 }
 
-void screen_test_graph_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_LOOP) {
+void screen_test_graph_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
         if (loop_index == 5) {
             graph.graph_invalid = true;
             //osSignalSet(displayTaskHandle, SIG_DISP_REDRAW);

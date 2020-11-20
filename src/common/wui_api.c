@@ -18,59 +18,14 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 
-#define MAX_UINT16           65535
-#define PRINTER_TYPE_ADDR    0x0802002F // 1 B
-#define PRINTER_VERSION_ADDR 0x08020030 // 1 B
+// static const uint16_t MAX_UINT16 = 65535;
+static const uint32_t PRINTER_TYPE_ADDR = 0x0802002F;    // 1 B
+static const uint32_t PRINTER_VERSION_ADDR = 0x08020030; // 1 B
 
 static bool sntp_time_init = false;
 
-static bool ini_string_match(const char *section, const char *section_var, const char *name, const char *name_var) {
-    return strcmp(section_var, section) == 0 && strcmp(name_var, name) == 0;
-}
-
-static int ini_handler_func(void *user, const char *section, const char *name, const char *value) {
-
-    ETH_config_t *tmp_config = (ETH_config_t *)user;
-
-    if (ini_string_match(section, "lan_ip4", name, "type")) {
-        if (strncmp(value, "DHCP", 4) == 0 || strncmp(value, "dhcp", 4) == 0) {
-            CHANGE_LAN_TO_DHCP(tmp_config->lan.flag);
-            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        } else if (strncmp(value, "STATIC", 6) == 0 || strncmp(value, "static", 6) == 0) {
-            CHANGE_LAN_TO_STATIC(tmp_config->lan.flag);
-            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        }
-    } else if (ini_string_match(section, "lan_ip4", name, "hostname")) {
-        strlcpy(tmp_config->hostname, value, ETH_HOSTNAME_LEN + 1);
-        tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_HOSTNAME);
-    } else if (ini_string_match(section, "lan_ip4", name, "address")) {
-        if (ip4addr_aton(value, &tmp_config->lan.addr_ip4)) {
-            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
-        }
-    } else if (ini_string_match(section, "lan_ip4", name, "mask")) {
-        if (ip4addr_aton(value, &tmp_config->lan.msk_ip4)) {
-            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_MSK_IP4);
-        }
-    } else if (ini_string_match(section, "lan_ip4", name, "gateway")) {
-        if (ip4addr_aton(value, &tmp_config->lan.gw_ip4)) {
-            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_GW_IP4);
-        }
-    } else {
-        return 0; /* unknown section/name, error */
-    }
-    return 1;
-}
-
-uint32_t load_ini_params(ETH_config_t *config) {
-    config->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(config);
-    config->var_mask = 0;
-
-    if (ini_load_file(ini_handler_func, config)) {
-        return set_loaded_eth_params(config);
-    } else {
-        return 0;
-    }
+uint32_t load_ini_file(ETH_config_t *config) {
+    return ini_load_file(config);
 }
 
 uint32_t save_eth_params(ETH_config_t *ethconfig) {
@@ -115,8 +70,9 @@ uint32_t load_eth_params(ETH_config_t *ethconfig) {
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
         variant8_t hostname = eeprom_get_var(EEVAR_LAN_HOSTNAME);
+        variant8_t *pvar = &hostname;
         strlcpy(ethconfig->hostname, variant8_get_pch(hostname), ETH_HOSTNAME_LEN + 1);
-        variant8_done(&hostname);
+        variant8_done(&pvar);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_TIMEZONE)) {
         ethconfig->timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
@@ -165,69 +121,19 @@ void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config) {
 void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config) {
     char addr[IP4_ADDR_STR_SIZE], msk[IP4_ADDR_STR_SIZE], gw[IP4_ADDR_STR_SIZE];
     mac_address_t mac;
-
-    ip4addr_ntoa_r(&(config->lan.addr_ip4), addr, IP4_ADDR_STR_SIZE);
-    ip4addr_ntoa_r(&(config->lan.msk_ip4), msk, IP4_ADDR_STR_SIZE);
-    ip4addr_ntoa_r(&(config->lan.gw_ip4), gw, IP4_ADDR_STR_SIZE);
     parse_MAC_address(&mac);
 
-    snprintf(*dest, LAN_DESCP_SIZE, "IPv4 Address:\n  %s      \nIPv4 Netmask:\n  %s      \nIPv4 Gateway:\n  %s      \nMAC Address:\n  %s",
-        addr, msk, gw, mac);
-}
+    if (get_eth_status() == ETH_NETIF_UP) {
 
-void update_eth_addrs(ETH_config_t *config) {
-    config->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(config);
+        ip4addr_ntoa_r(&(config->lan.addr_ip4), addr, IP4_ADDR_STR_SIZE);
+        ip4addr_ntoa_r(&(config->lan.msk_ip4), msk, IP4_ADDR_STR_SIZE);
+        ip4addr_ntoa_r(&(config->lan.gw_ip4), gw, IP4_ADDR_STR_SIZE);
 
-    if (IS_LAN_STATIC(config->lan.flag)) {
-        config->var_mask = ETHVAR_STATIC_LAN_ADDRS;
-        load_eth_params(config);
+        snprintf(*dest, LAN_DESCP_SIZE, "IPv4 Address:\n%s\nIPv4 Netmask:\n%s\nIPv4 Gateway:\n%s\nMAC Address:\n%s",
+            addr, msk, gw, mac);
     } else {
-        get_addrs_from_dhcp(config);
+        snprintf(*dest, LAN_DESCP_SIZE, "NO CONNECTION\n\nMAC Address:\n%s", mac);
     }
-}
-
-uint32_t set_loaded_eth_params(ETH_config_t *config) {
-
-    if (config->var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
-        // if lan type is set to STATIC
-        if (IS_LAN_STATIC(config->lan.flag)) {
-            if ((config->var_mask & ETHVAR_STATIC_LAN_ADDRS) != ETHVAR_STATIC_LAN_ADDRS) {
-                return 0;
-            }
-        }
-    } else {
-        return 0;
-    }
-    if (config->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
-        strlcpy(eth_hostname, config->hostname, ETH_HOSTNAME_LEN + 1);
-    }
-
-    // Aquire lan flags before load
-    uint8_t prev_lan_flag = config->lan.flag;
-    uint32_t save_mask = config->var_mask;
-    config->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(config);
-    config->var_mask = save_mask;
-    {
-        uint8_t swapper = prev_lan_flag;
-        prev_lan_flag = config->lan.flag;
-        config->lan.flag = swapper;
-    }
-
-    // if there was a change from STATIC to DHCP
-    if (IS_LAN_STATIC(prev_lan_flag) && IS_LAN_DHCP(config->lan.flag)) {
-        set_LAN_to_dhcp(config);
-        // or STATIC to STATIC
-    } else if (IS_LAN_STATIC(config->lan.flag)) {
-        set_LAN_to_static(config);
-    }
-    // from DHCP to DHCP: do nothing
-    config->var_mask = save_mask;
-    config->var_mask = save_mask;
-    save_eth_params(config);
-
-    return 1;
 }
 
 time_t sntp_get_system_time(void) {
@@ -255,7 +161,7 @@ time_t sntp_get_system_time(void) {
 }
 
 void sntp_set_system_time(uint32_t sec, int8_t last_timezone) {
-    ETH_config_t config;
+    ETH_config_t config = {};
     config.var_mask = ETHVAR_MSK(ETHVAR_TIMEZONE);
     load_eth_params(&config);
 

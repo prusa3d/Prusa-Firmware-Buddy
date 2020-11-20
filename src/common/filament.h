@@ -25,10 +25,9 @@ typedef enum {
     FILAMENTS_END
 } FILAMENT_t;
 
-#define DEFAULT_FILAMENT FILAMENT_PLA
+static const FILAMENT_t DEFAULT_FILAMENT = FILAMENT_PLA;
 
-#define PREHEAT_TEMP        170.01f // like 170 but user cannot set it
-#define PREHEAT_TEMP_STRING "170"   // used for G codes
+static const float PREHEAT_TEMP = 170.f;
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,5 +1,4 @@
-#ifndef NETIF_SETTINGS_H
-#define NETIF_SETTINGS_H
+#pragma once
 
 #include "lwip/ip_addr.h"
 
@@ -24,6 +23,16 @@ typedef enum {
     ETH_NETIF_UP,   // ETH interface is UP
 } ETH_STATUS_t;
 
+typedef enum {
+    WUI_ETH_LINK_DOWN, // ETH cable is unplugged
+    WUI_ETH_LINK_UP,   // ETH cable is plugged
+} WUI_ETH_LINK_STATUS_t;
+
+typedef enum {
+    WUI_ETH_NETIF_DOWN, // ETH interface is down
+    WUI_ETH_NETIF_UP,   // ETH interface is up
+} WUI_ETH_NETIF_STATUS_t;
+
 typedef struct {
     uint8_t flag;        // lan flags: pos0 = switch(ON=0, OFF=1), pos1 = type(DHCP=0, STATIC=1)
     ip4_addr_t addr_ip4; // user defined static ip4 address
@@ -34,9 +43,20 @@ typedef struct {
 typedef struct {
     char hostname[ETH_HOSTNAME_LEN + 1]; // ETH hostname: MAX 20 chars
     int8_t timezone;                     // user defined difference to UTC
+    ip_addr_t dns1_ip4;                  // user defined DNS #1
+    ip_addr_t dns2_ip4;                  // user defined DNS #2
     lan_t lan;                           // user defined LAN configurations
     uint32_t var_mask;                   // mask for setting ethvars
 } ETH_config_t;
 
-extern char eth_hostname[ETH_HOSTNAME_LEN + 1]; // static string storing ethernet hostname
-#endif                                          //NETIF_SETTINGS_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void set_eth_update_mask(uint32_t var_mask);
+void clear_eth_update_mask();
+uint32_t get_eth_update_mask();
+
+#ifdef __cplusplus
+}
+#endif

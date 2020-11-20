@@ -1,132 +1,198 @@
-#include "Jogwheel.hpp"
 #include <limits.h>
-#include "gpio.h"
 
-// time constants
-#define JG_DOUBLECLICK_INTERVAL 500  // [ms] jogwheel max double click delay - if second click is after 500ms it doesn't trigger doubleclick
-#define JG_HOLD_INTERVAL        1000 // [ms] jogwheel min hold delay - if user holds for shorter time than this, it triggers normal click instead
+#include "Jogwheel.hpp"
+#include "hwio_pindef.h"
+#include "cmsis_os.h" //__disable_irq, __enabe_irq, HAL_GetTick
+#include "queue.h"    // freertos queue
+#include "bsod.h"
 
-// encoder limits
-#define JG_ENCODER_MAX INT_MAX
-#define JG_ENCODER_MIN INT_MIN
+using SpinMessage_t = int32_t;
 
-// signal flags
-#define JG_PHASE_0                   0x01
-#define JG_PHASE_1                   0x02
-#define JG_PHASES_CHANGED            0x03
-#define JG_BUTTON_PRESSED            0x04
-#define JG_PHASES_OR_BUTTON_CHANGED  0x07
-#define JG_ENCODER_CHANGED           0x08
-#define JG_BUTTON_OR_ENCODER_CHANGED 0x0C
+// rtos queues config
+static constexpr size_t ButtonMessageQueueLength = 32;
+static constexpr size_t SpinMessageQueueLength = 32;
 
-Jogwheel::Jogwheel(uint8_t encoder_pin1, uint8_t encoder_pin2, uint8_t btn_pin) {
-    jogwheel_signals_old = jogwheel_signals_new = jogwheel_signals = last_encoder = encoder = jogwheel_changed = doubleclick_counter = hold_counter = spin_speed_counter = 0;
-    encoder_gear = 1;
-    config = {
-        encoder_pin1, // encoder phase1
-        encoder_pin2, // encoder phase2
-        btn_pin       // button
-    };
-    speed_traps[0] = speed_traps[1] = speed_traps[2] = speed_traps[3] = 0;
-    btn_pressed = doubleclicked = being_held = jogwheel_button_down = false;
-    btn_action = ButtonAction::BTN_NO_ACTION;
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
 
-    gpio_init(config.pinEN1, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
-    gpio_init(config.pinEN2, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
-    gpio_init(config.pinENC, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
+void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
+    constexpr size_t item_sz = sizeof(Jogwheel::BtnState_t);
+    constexpr size_t length = ButtonMessageQueueLength;
+    static StaticQueue_t queue;
+    static uint8_t storage_area[length * item_sz];
+    button_queue_handle = xQueueCreateStatic(length, item_sz, storage_area, &queue);
 }
 
-const int Jogwheel::GetJogwheelButtonPinState() const {
-    return gpio_get(config.pinENC);
+#else // (configSUPPORT_STATIC_ALLOCATION == 1 )
+
+void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
+    button_queue_handle = xQueueCreate(ButtonMessageQueueLength, sizeof(Jogwheel::BtnState_t));
+}
+
+#endif // (configSUPPORT_STATIC_ALLOCATION == 1 )
+
+using buddy::hw::jogWheelEN1;
+using buddy::hw::jogWheelEN2;
+using buddy::hw::jogWheelENC;
+using buddy::hw::Pin;
+
+// time constants
+static const constexpr uint16_t JG_HOLD_INTERVAL = 1000; // [ms] jogwheel min hold delay - if user holds for shorter time than this, it triggers normal click instead
+
+// encoder limits
+// used later to compare with int, warning does not do anything - no 32bit integer is bigger than INT_MAX or lower than INT_MIN
+static const constexpr int32_t JG_ENCODER_MAX = INT_MAX;
+static const constexpr int32_t JG_ENCODER_MIN = INT_MIN;
+
+static_assert(sizeof(Jogwheel::encoder_t) == 4, "encoder_t must be 32bit to have atomic read");
+
+// signal flags
+enum : uint8_t {
+    JG_PHASE_0 = 0x01,
+    JG_PHASE_1 = 0x02,
+    JG_PHASES_CHANGED = 0x03,
+    JG_BUTTON_PRESSED = 0x04,
+    JG_PHASES_OR_BUTTON_CHANGED = 0x07,
+    JG_ENCODER_CHANGED = 0x08,
+    JG_BUTTON_OR_ENCODER_CHANGED = 0x0C,
+};
+
+Jogwheel::Jogwheel()
+    : speed_traps { 0, 0, 0, 0 }
+    , button_queue_handle(nullptr)
+    , threadsafe_enc({ 0, 1, 0 })
+    , tick_counter(0)
+    , encoder(0)
+    , hold_counter(0)
+    , btn_state(BtnState_t::Released)
+    , jogwheel_signals(0)
+    , jogwheel_signals_old(0)
+    , jogwheel_noise_filter(0)
+    , encoder_gear(1)
+    , type1(true)
+    , spin_accelerator(false) {
+}
+
+int Jogwheel::GetJogwheelButtonPinState() {
+    return static_cast<int>(jogWheelENC.read());
 }
 
 void Jogwheel::ReadInput(uint8_t &signals) {
 
-    if (gpio_get(config.pinENC)) {
+    if (jogWheelENC.read() == Pin::State::high) {
         signals |= JG_BUTTON_PRESSED; //bit 2 - button press
     }
     signals ^= JG_BUTTON_PRESSED; // we are using inverted button pin
 
-    if (gpio_get(config.pinEN1)) {
+    if (jogWheelEN1.read() == Pin::State::high) {
         signals |= JG_PHASE_0; //bit 0 - phase0
     }
-    if (gpio_get(config.pinEN2)) {
+    if (jogWheelEN2.read() == Pin::State::high) {
         signals |= JG_PHASE_1; //bit 1 - phase1
     }
 }
 
-const Jogwheel::ButtonAction Jogwheel::GetButtonAction() {
-    ButtonAction ret = btn_action;
-    btn_action = ButtonAction::BTN_NO_ACTION;
-    return ret;
+bool Jogwheel::ConsumeButtonEvent(Jogwheel::BtnState_t &ev) {
+    // this can happen only once
+    // queue is initialized in a rtos thread (outside interrupt) on first attempt to read
+    if (button_queue_handle == nullptr) {
+        InitButtonMessageQueueInstance_NotFromISR();
+
+        if (button_queue_handle == nullptr) {
+            bsod("ButtonMessageQueue heap malloc error");
+        }
+    }
+
+    return (xQueueReceive(button_queue_handle, &ev, 0 /*0 == do not wait*/) == pdPASS);
+}
+
+int32_t Jogwheel::ConsumeEncoderDiff() {
+    // thread safe design
+    // just read atomic structure and pass it into static method
+    // do not do anything else !!!
+    // method CalculateEncoderDiff must remain static !!!
+
+    encoder_t temp_enc;
+    temp_enc.data = threadsafe_enc.data;
+
+    return CalculateEncoderDiff(temp_enc);
+}
+
+int32_t Jogwheel::CalculateEncoderDiff(Jogwheel::encoder_t current_enc) {
+    static encoder_t last_enc = { 0, 1, 0 };
+
+    if (last_enc.tick == current_enc.tick)
+        return 0; //this data were already used
+
+    int32_t diff = current_enc.value - last_enc.value;
+    diff *= current_enc.gear;
+
+    last_enc.data = current_enc.data;
+
+    return diff; //could overflow to 0 .. does not matter
 }
 
 void Jogwheel::SetJogwheelType(uint16_t delay) {
     type1 = delay > 1000;
 }
 
-void Jogwheel::UpdateButtonAction() {
-    if (!btn_pressed && jogwheel_button_down) {
-        btn_action = ButtonAction::BTN_PUSHED;
-        btn_pressed = true;
-        hold_counter = 1;
-        if (doubleclick_counter > 0) { // double click detection interval goes <click release;second click push>
-            doubleclicked = true;
-            doubleclick_counter = 0;
+void Jogwheel::UpdateButtonActionFromISR() {
+    switch (btn_state) {
+    case BtnState_t::Released:
+        if (IsBtnPressed()) {
+            ChangeStateFromISR(BtnState_t::Pressed);
+            hold_counter = 0;
         }
-    } else if (btn_pressed && !jogwheel_button_down) {
-        btn_pressed = false;
-        if (being_held) {
-            being_held = false;
+        break;
+    case BtnState_t::Pressed:
+        if (!IsBtnPressed()) {
+            ChangeStateFromISR(BtnState_t::Released);
         } else {
-            if (doubleclicked) {
-                btn_action = ButtonAction::BTN_DOUBLE_CLICKED;
-                doubleclick_counter = 0;
-                doubleclicked = false;
-            } else {
-                btn_action = ButtonAction::BTN_CLICKED;
-                doubleclick_counter = 1;
+            if ((++hold_counter) > JG_HOLD_INTERVAL) {
+                ChangeStateFromISR(BtnState_t::Held);
             }
         }
-        hold_counter = 0;
-    }
-
-    if (doubleclick_counter) {
-        doubleclick_counter++;
-        if (doubleclick_counter > JG_DOUBLECLICK_INTERVAL) {
-            doubleclick_counter = 0;
+        break;
+    case BtnState_t::Held:
+        if (!IsBtnPressed()) {
+            ChangeStateFromISR(BtnState_t::Released);
         }
-    }
-    if (hold_counter) {
-        hold_counter++;
-        if (hold_counter > JG_HOLD_INTERVAL) {
-            btn_action = ButtonAction::BTN_HELD;
-            doubleclick_counter = 0;
-            hold_counter = 0;
-            being_held = true;
-        }
+        break;
     }
 }
 
-int32_t Jogwheel::GetEncoderDiff() {
-    int32_t diff = encoder - last_encoder;
-    last_encoder = encoder;
-    // WARNING: jogwheel_button_down was here
-    return diff * encoder_gear;
+bool Jogwheel::IsBtnPressed() {
+    return (jogwheel_signals & JG_BUTTON_PRESSED) != 0;
 }
 
-void Jogwheel::Update1ms() {
+void Jogwheel::ChangeStateFromISR(BtnState_t new_state) {
+    if (button_queue_handle == nullptr)
+        return;
+    btn_state = new_state;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE; //xQueueSendFromISR require address of this
+    xQueueSendFromISR(button_queue_handle, &btn_state, &xHigherPriorityTaskWoken);
+}
+
+void Jogwheel::Update1msFromISR() {
+    //do nothing while queues are not initialized
+    if (button_queue_handle == nullptr)
+        return;
+    tick_counter++;
 
     uint8_t signals = 0;
 
     ReadInput(signals);
 
-    UpdateVariables(signals);
+    if (jogwheel_noise_filter != signals) {
+        jogwheel_noise_filter = signals; // noise detection
+        return;
+    }
 
-    UpdateButtonAction();
+    UpdateVariablesFromISR(signals);
+
+    UpdateButtonActionFromISR();
 }
 
-int32_t Jogwheel::JogwheelTypeBehaviour(const uint8_t change, const uint8_t signals) const {
+int32_t Jogwheel::JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const {
     int32_t new_encoder = encoder;
     if (type1) {
         if ((change & JG_PHASE_0) && (signals & JG_PHASE_0) && !(signals & JG_PHASE_1))
@@ -145,15 +211,7 @@ int32_t Jogwheel::JogwheelTypeBehaviour(const uint8_t change, const uint8_t sign
     return new_encoder;
 }
 
-void Jogwheel::UpdateVariables(const uint8_t signals) {
-
-    spin_speed_counter++;
-
-    if (jogwheel_signals_new != signals) {
-        jogwheel_signals_new = signals; // noise detection
-        return;
-    }
-
+void Jogwheel::UpdateVariablesFromISR(uint8_t signals) {
     uint8_t change = signals ^ jogwheel_signals;
 
     if (change & JG_PHASES_CHANGED) //encoder phase signals changed
@@ -164,32 +222,29 @@ void Jogwheel::UpdateVariables(const uint8_t signals) {
             encoder = JG_ENCODER_MIN;
         if (encoder > JG_ENCODER_MAX)
             encoder = JG_ENCODER_MAX;
-        if (encoder != new_encoder) { // last_encoder is not used because it stores GUI last encoder position
+        if (encoder != new_encoder) {
             encoder = new_encoder;
             change |= JG_ENCODER_CHANGED; //bit3 means encoder changed
             speed_traps[3] = speed_traps[2];
             speed_traps[2] = speed_traps[1];
             speed_traps[1] = speed_traps[0];
-            speed_traps[0] = spin_speed_counter;
+            speed_traps[0] = tick_counter;
             Transmission();
         }
     }
 
-    jogwheel_button_down = signals & JG_BUTTON_PRESSED;
+    if (change & (JG_PHASES_OR_BUTTON_CHANGED | JG_ENCODER_CHANGED)) //encoder phase signals, encoder or button changed
+    {
+        jogwheel_signals_old = jogwheel_signals; //save old signal state
+        jogwheel_signals = signals;              //update signal state
+    }
 
-    if (change & JG_PHASES_OR_BUTTON_CHANGED) //encoder phase signals or button changed
-    {
-        jogwheel_signals_old = jogwheel_signals; //save old signal state
-        jogwheel_signals = signals;              //update signal state
-    }
-    if (change & JG_BUTTON_OR_ENCODER_CHANGED) //encoder changed or button changed
-    {
-        jogwheel_signals_old = jogwheel_signals; //save old signal state
-        jogwheel_signals = signals;              //update signal state
-        jogwheel_changed |= (change >> 2);       //synchronization is not necessary because we are inside interrupt
-    }
+    threadsafe_enc.value = int16_t(encoder);
+    threadsafe_enc.gear = encoder_gear;
+    threadsafe_enc.tick = uint8_t(tick_counter);
 }
 
+//if encoder is not moved 49 days, this will fail
 void Jogwheel::Transmission() {
     uint32_t time_diff = speed_traps[0] - speed_traps[1];
     time_diff = time_diff > speed_traps[1] - speed_traps[2] ? time_diff : speed_traps[1] - speed_traps[2];

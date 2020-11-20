@@ -5,11 +5,23 @@
 #include <vector>
 #include <tuple>
 
+/// Warning!
+/// With yet unknown reason for us the method Catch::getResultCapture() returns nullptr in case the
+/// benchmarks in CATCH2 are configured as enable. Please consider this issue when you'll decide to
+/// write benchmark tests.
 #define COMPARE_ARRAYS(lhs, rhs) compareArrays(Catch::getResultCapture().getCurrentTestName(), __LINE__, lhs, rhs)
 
 template <typename T, size_t N>
 void compareArrays(const std::string &test, unsigned line, std::array<T, N> lhs, std::array<T, N> rhs) {
     std::vector<T> lv(lhs.begin(), lhs.end());
+    std::vector<T> rv(rhs.begin(), rhs.end());
+    INFO("Test case [" << test << "] failed at line " << line); // Reported only if REQUIRE fails
+    CHECK(lv == rv);
+}
+
+template <typename T, size_t N>
+void compareArrays(const std::string &test, unsigned line, T *lhs, std::array<T, N> rhs) {
+    std::vector<T> lv(lhs, lhs + N);
     std::vector<T> rv(rhs.begin(), rhs.end());
     INFO("Test case [" << test << "] failed at line " << line); // Reported only if REQUIRE fails
     CHECK(lv == rv);
@@ -290,45 +302,78 @@ TEST_CASE("rectangle Contain", "[rectangle]") {
     CHECK(res == expected);
 }
 
-// TEST_CASE("rectangle split", "[rectangle]") {
-//     using Sequence = std::array<Rect16, 4>;
-//
-//     SECTION("horizontal") {
-//         Sequence expected, result;
-//         Rect16 r;
-//         uint16_t span, count;
-//
-//         std::tie(r, span, count, expected) = GENERATE(
-//             std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
-//                 { 0, 0, 0, 0 }, 10, 0, { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } } }),
-//             std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
-//                 { 0, 0, 100, 100 }, 10, 4, { { { 0, 0, 10, 100 }, { 10, 0, 20, 100 }, { 20, 0, 30, 100 }, { 30, 0, 40, 100 } } })
-//             // std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
-//             //     { 0, 0, 100, 100 }, 30, 3, { { { 0, 0, 30, 100 }, { 30, 0, 60, 100 }, { 60, 0, 90, 100 } } })
-// 						    );
-//
-//         size_t l = r.HorizontalSplit(result, span);
-//         CHECK(l == count);
-//         COMPARE_ARRAYS(expected, result);
-//     }
-//
-//     // SECTION("vertical") {
-//     //     Sequence expected, result;
-//     //     Rect16 r;
-//     //     uint16_t span, count;
-// 				//
-//     //     std::tie(r, span, count, expected) = GENERATE(
-//     //         std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
-//     //             { 0, 0, 0, 0 }, 10, 0, { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } } }),
-//     //         std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
-//     //             { 0, 0, 100, 100 }, 10, 4, { { { 0, 0, 100, 10 }, { 0, 10, 100, 20 }, { 0, 20, 100, 30 }, { 0, 30, 100, 40 } } }),
-//     //         std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
-//     //             { 0, 0, 100, 100 }, 30, 3, { { { 0, 0, 100, 30 }, { 0, 30, 100, 60 }, { 0, 60, 100, 90 } } })
-// 				//
-//     //     );
-// 				//
-//     //     size_t l = r.VerticalSplit(result, span);
-//     //     CHECK(l == count);
-//     //     COMPARE_ARRAYS(expected, result);
-//     // }
-// }
+TEST_CASE("rectangle split", "[rectangle]") {
+    using Sequence = std::array<Rect16, 4>;
+    using Ratio = std::array<uint8_t, 4>;
+
+    SECTION("horizontal - splits with spaces") {
+        Sequence expSplits, expSpaces;
+        Rect16 r;
+        size_t count;
+        uint16_t spacing;
+        Ratio ratio;
+        Rect16 splits[4];
+        Rect16 spaces[4];
+
+        //TESTING
+        // r = Rect16({0, 0}, 120, 100);
+        // count = 4;
+        // spacing = 10;
+        // ratio = {1, 2, 2, 1};
+        //
+        // r.HorizontalSplit(splits, spaces, count, spacing, ratio.data());
+        //
+        // CHECK(spaces[0].TopLeft().x == 15);
+        // CHECK(spaces[1].TopLeft().x == 55);
+        // CHECK(spaces[2].TopLeft().x == 95);
+
+        std::tie(r, count, spacing, ratio, expSplits, expSpaces) = GENERATE(
+            std::make_tuple<Rect16, size_t, uint16_t, Ratio, Sequence, Sequence>(
+                { 0, 0, 100, 100 }, 2, 0, { { 1, 1 } }, { { { 0, 0, 50, 100 }, { 50, 0, 50, 100 } } }, { { { 50, 0, 0, 100 } } }),
+            std::make_tuple<Rect16, size_t, uint16_t, Ratio, Sequence, Sequence>(
+                { 0, 0, 120, 100 }, 4, 10, { { 1, 2, 2, 1 } }, { { { 0, 0, 15, 100 }, { 25, 0, 30, 100 }, { 65, 0, 30, 100 }, { 105, 0, 15, 100 } } }, { { { 15, 0, 10, 100 }, { 55, 0, 10, 100 }, { 95, 0, 10, 100 } } }));
+
+        r.HorizontalSplit(splits, spaces, count, spacing, ratio.data());
+
+        COMPARE_ARRAYS(splits, expSplits);
+        COMPARE_ARRAYS(spaces, expSpaces);
+    }
+
+    SECTION("horizontal - cuts") {
+        Sequence expected, result;
+        Rect16 r;
+        uint16_t span, count;
+
+        std::tie(r, span, count, expected) = GENERATE(
+            std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
+                { 0, 0, 0, 0 }, 10, 0, { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } } }),
+            std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
+                { 0, 0, 100, 100 }, 10, 4, { { { 0, 0, 10, 100 }, { 10, 0, 10, 100 }, { 20, 0, 10, 100 }, { 30, 0, 10, 100 } } }),
+            std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
+                { 0, 0, 100, 100 }, 30, 3, { { { 0, 0, 30, 100 }, { 30, 0, 30, 100 }, { 60, 0, 30, 100 } } }));
+
+        size_t l = r.HorizontalSplit(result, span);
+        CHECK(l == count);
+        COMPARE_ARRAYS(expected, result);
+    }
+
+    SECTION("vertical - cuts") {
+        Sequence expected, result;
+        Rect16 r;
+        uint16_t span, count;
+
+        std::tie(r, span, count, expected) = GENERATE(
+            std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
+                { 0, 0, 0, 0 }, 10, 0, { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } } }),
+            std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
+                { 0, 0, 100, 100 }, 10, 4, { { { 0, 0, 100, 10 }, { 0, 10, 100, 10 }, { 0, 20, 100, 10 }, { 0, 30, 100, 10 } } }),
+            std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
+                { 0, 0, 100, 100 }, 30, 3, { { { 0, 0, 100, 30 }, { 0, 30, 100, 30 }, { 0, 60, 100, 30 } } })
+
+        );
+
+        size_t l = r.VerticalSplit(result, span);
+        CHECK(l == count);
+        COMPARE_ARRAYS(expected, result);
+    }
+}

@@ -26,8 +26,11 @@
 #define ETHVAR_STATIC_LAN_ADDRS \
     (ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4) | ETHVAR_MSK(ETHVAR_LAN_MSK_IP4) | ETHVAR_MSK(ETHVAR_LAN_GW_IP4))
 
+#define ETHVAR_STATIC_DNS_ADDRS \
+    (ETHVAR_MSK(ETHVAR_DNS1_IP4) | ETHVAR_MSK(ETHVAR_DNS2_IP4))
+
 #define ETHVAR_EEPROM_CONFIG \
-    (ETHVAR_STATIC_LAN_ADDRS | ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_HOSTNAME))
+    (ETHVAR_STATIC_LAN_ADDRS | ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_HOSTNAME) | ETHVAR_MSK(ETHVAR_DNS1_IP4) | ETHVAR_MSK(ETHVAR_DNS2_IP4))
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,6 +43,8 @@ typedef enum {
     ETHVAR_LAN_MSK_IP4,  // ip4_addr_t, lan.msk_ip4
     ETHVAR_LAN_GW_IP4,   // ip4_addr_t, lan.gw_ip4
     ETHVAR_TIMEZONE,     // int8_t, timezone
+    ETHVAR_DNS1_IP4,     // ip_addr_t, dns1_ip4
+    ETHVAR_DNS2_IP4,     // ip_addr_t, dns2_ip4
 } ETHVAR_t;
 
 typedef char mac_address_t[MAC_ADDR_STR_LEN];
@@ -64,11 +69,11 @@ typedef struct {
 const ETH_STATUS_t get_eth_status(void);
 
 /*!*************************************************************************************************
-* \brief get if DHCP supplied addresses
+* \brief Returns LAN flag from WUI
 *
-* \retval True if dhcp supplied addresses
+* \retval uint8_t the lan_t.flag of WUI
 ***************************************************************************************************/
-bool get_dhcp_supplied(void);
+uint8_t get_lan_flag(void);
 
 /*!*************************************************************************************************
 * \brief saves the Ethernet specific parameters to non-volatile memory
@@ -101,7 +106,7 @@ uint32_t load_eth_params(ETH_config_t *ethconfig);
 *
 * \retval   1 if successful
 *****************************************************************************/
-uint32_t load_ini_params(ETH_config_t *config);
+uint32_t load_ini_file(ETH_config_t *config);
 
 /*!****************************************************************************
 * \brief access user defined addresses in memory and aquire vital printer info
@@ -134,66 +139,12 @@ void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config);
 *******************************************************************************************/
 void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config);
 
-/*!****************************************************************************
-* \brief Sets up network interface according to loaded configuration values
-*
-* \param    [in] config - storage for loaded ethernet configurations
-*
-* \return   uint32_t    error value
-*
-* \retval   1 if successful
-*****************************************************************************/
-uint32_t set_loaded_eth_params(ETH_config_t *config);
-/*!*******************************************************************************************
-* \brief Updates ethernet addresses and their static strings according to ethconfig structure
-*
-* \param    [out] config - storage for loaded ethernet configurations
-*********************************************************************************************/
-void update_eth_addrs(ETH_config_t *config);
-
 /*!***************************************************************************
-* \brief Returns addresses aquired/or not (0.0.0.0) from DHCP server
+* \brief Returns the ethernet addresses
 *
 * \param [in] config - structure that stores currnet ethernet configurations
 *****************************************************************************/
-void get_addrs_from_dhcp(ETH_config_t *config);
-
-/*!**********************************************************************************
-* \brief Checks and sets ethernet status
-*
-* \param [in] config - structure that stores currnet ethernet configurations
-*
-* \param [in] eth_link - stores whether ehternet is pluged, 0 otherwise
-************************************************************************************/
-void eth_status_step(ETH_config_t *config, uint32_t eth_link);
-
-/*!****************************************************************************
-* \brief Turns software switch of ETH netif to OFF
-*
-* \param [out] config - structure that stores currnet ethernet configurations
-******************************************************************************/
-void turn_off_LAN(ETH_config_t *config);
-
-/*!****************************************************************************
-* \brief Turns software switch of ETH netif to ON
-*
-* \param [out] config - structure that stores currnet ethernet configurations
-******************************************************************************/
-void turn_on_LAN(ETH_config_t *config);
-
-/*!****************************************************************************
-* \brief Switches ETH netif to use user-defined STATIC addresses
-*
-* \param [in] config - structure that stores currnet ethernet configurations
-******************************************************************************/
-void set_LAN_to_static(ETH_config_t *config);
-
-/*!****************************************************************************
-* \brief Switches ETH netif to use addresses from DHCP server
-*
-* \param [out] config - structure that stores currnet ethernet configurations
-******************************************************************************/
-void set_LAN_to_dhcp(ETH_config_t *config);
+void get_eth_address(ETH_config_t *config);
 
 /*!*********************************************************************************************************************
 * \brief Parses time from device's time storage to seconds. MONTHS are from 0 and YEARS are from 1900

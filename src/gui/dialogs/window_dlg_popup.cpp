@@ -6,75 +6,40 @@
  */
 
 #include "window_dlg_popup.hpp"
-#include "display_helper.h"
-#include "gui.hpp"
-#include "dbg.h"
-#include "stm32f4xx_hal.h"
-#include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "cmsis_os.h" //HAL_GetTick
 
-#define POPUP_DELAY_MS 1000
-
-extern msg_stack_t msg_stack;
-
-window_dlg_popup_t::window_dlg_popup_t(window_t *parent, Rect16 rect)
-    : window_t(parent, rect)
-    , color_text(GuiDefaults::ColorText)
-    , font(GuiDefaults::Font)
-    , font_title(GuiDefaults::FontBig)
-    , padding(GuiDefaults::Padding)
-    , timer(0)
-    , text("") {
-    Enable();
+window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
+    : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rect, win_type_t::popup)
+    , text(this, rect, is_multiline::yes, is_closed_on_click_t::no, txt)
+    , open_time(0)
+    , ttl(0) {
+    Disable();
+    text.SetAlignment(ALIGN_LEFT_TOP);
+    text.SetPadding({ 0, 2, 0, 2 });
 }
-/*
-void window_dlg_popup_draw(window_dlg_popup_t *window) {
-    if (window->IsVisible()) {
-        Rect16 rc = window->rect;
-        rc = Rect16::Height_t(140);
 
-        if (window->IsInvalid()) {
-            display::FillRect(rc, window->color_back);
-            Rect16 text_rc = rc;
-            text_rc.x += 10;
-            text_rc.y += 20;
-            text_rc.h = 30;
-            text_rc.w -= 10;
-            render_text_align(text_rc, _(window->text),
-                window->font, window->color_back,
-                window->color_text, window->padding,
-                ALIGN_LEFT_CENTER);
-            window->Validate();
+void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) {
+    static window_dlg_popup_t dlg(rect, txt);
+    dlg.open_time = HAL_GetTick();
+    dlg.ttl = time;
+    dlg.text.SetText(txt);
+    dlg.rect = rect;
+    if (!dlg.GetParent()) {
+        window_t *parent = Screens::Access()->Get();
+        if (parent) {
+            parent->RegisterSubWin(&dlg);
         }
     }
-}*/
+}
 
-void gui_pop_up(void) {
-
-    static uint8_t opened = 0;
-    if (opened == 1)
-        return;
-    opened = 1;
-
-    window_dlg_popup_t dlg(nullptr, Rect16(0, 32, 240, 120));
-
-    window_t *id_capture = window_t::GetCapturedWindow();
-    memset(dlg.text, '\0', sizeof(dlg.text) * sizeof(char)); // set to zeros to be on the safe side
-    strlcpy(dlg.text, msg_stack.msg_data[0], sizeof(dlg.text));
-    gui_invalidate();
-    dlg.SetCapture();
-
-    dlg.timer = HAL_GetTick();
-
-    while ((HAL_GetTick() - dlg.timer) < POPUP_DELAY_MS) {
-        gui_loop();
-    }
-
-    //window_destroy(id);
-    if (id_capture)
-        id_capture->SetCapture();
-    window_t *pWin = Screens::Access()->Get();
-    if (pWin != 0)
-        pWin->Invalidate();
-    opened = 0;
+void window_dlg_popup_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    const uint32_t openned = HAL_GetTick() - open_time;
+    if (event == GUI_event_t::LOOP && openned > ttl) { //todo use timer
+        if (GetParent()) {
+            GetParent()->UnregisterSubWin(this);
+            //frame will set parrent to null
+        }
+    } else
+        SuperWindowEvent(sender, event, param);
 }

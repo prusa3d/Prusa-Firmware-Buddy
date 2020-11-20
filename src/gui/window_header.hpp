@@ -4,13 +4,13 @@
 #include "window_text.hpp"
 #include "window_frame.hpp"
 
-struct window_header_t : public window_frame_t {
+struct window_header_t : public AddSuperWindow<window_frame_t> {
     enum class header_states_t : uint8_t { OFF,
         ON,
         ACTIVE };
 
     window_icon_t icon_base;
-    window_text_t label;
+    window_roll_text_t label;
     window_icon_t icon_usb;
     window_icon_t icon_lan;
 
@@ -18,10 +18,6 @@ struct window_header_t : public window_frame_t {
     void SetText(string_view_utf8 txt);
     header_states_t GetStateUSB() const;
     header_states_t GetStateLAN() const;
-    bool EventClr_MediaInserted();
-    bool EventClr_MediaRemoved();
-    bool EventClr_MediaError();
-    void EventClr();
     //private:
     void USB_Off();
     void USB_On();
@@ -31,5 +27,8 @@ struct window_header_t : public window_frame_t {
     void LAN_Activate();
 
     void update_ETH_icon();
-    window_header_t(window_t *parent);
+    window_header_t(window_t *parent, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
+
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

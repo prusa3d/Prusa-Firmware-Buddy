@@ -9,22 +9,21 @@
 #include "display_math_helper.h"
 
 //public flags (config)
-#define ST7789V_FLG_DMA  0x08 // DMA enabled
-#define ST7789V_FLG_MISO 0x10 // MISO enabled
-#define ST7789V_FLG_SAFE 0x20 // SAFE mode (no DMA and safe delay)
+enum {
+    ST7789V_FLG_DMA = 0x08,  // DMA enabled
+    ST7789V_FLG_MISO = 0x10, // MISO enabled
+    ST7789V_FLG_SAFE = 0x20, // SAFE mode (no DMA and safe delay)
 
-#define ST7789V_DEF_COLMOD 0x05 // interface pixel format (5-6-5, hi-color)
-#define ST7789V_DEF_MADCTL 0xC0 // memory data access control (mirror XY)
+    ST7789V_DEF_COLMOD = 0x05, // interface pixel format (5-6-5, hi-color)
+    ST7789V_DEF_MADCTL = 0xC0, // memory data access control (mirror XY)
 
-#define ST7789V_COLS      240 //
-#define ST7789V_ROWS      320 //
-#define ST7789V_BUFF_ROWS 16
+    ST7789V_COLS = 240,
+    ST7789V_ROWS = 320,
+    ST7789V_BUFF_ROWS = 16,
+};
 
 typedef struct _st7789v_config_t {
     SPI_HandleTypeDef *phspi; // spi handle pointer
-    uint8_t pinCS;            // CS pin
-    uint8_t pinRS;            // RS pin
-    uint8_t pinRST;           // RST pin
     uint8_t flg;              // flags (DMA, MISO)
     uint8_t colmod;           // interface pixel format
     uint8_t madctl;           // memory data access control

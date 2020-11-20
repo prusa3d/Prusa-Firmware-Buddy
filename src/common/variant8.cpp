@@ -8,10 +8,52 @@
 
 #define VARIANT8_DBG_MALLOC
 
-#define _VARIANT8_TYPE(type, _8, _16, _32) ((variant8_t) { { _32 }, { _16 }, type, _8 })
+#define _VARIANT8_TYPE(type, _8, _16, _32) ((_variant8_t) { { _32 }, { _16 }, type, _8 })
 #define _VARIANT8_EMPTY()                  _VARIANT8_TYPE(VARIANT8_EMPTY, 0, .size = 0, .ui32 = 0)
 
+struct _variant8_t {
+    union {
+        void *ptr;
+        char *pch;
+        float *pflt;
+        uint32_t *pui32;
+        int32_t *pi32;
+        uint16_t *pui16;
+        int16_t *pi16;
+        uint8_t *pui8;
+        int8_t *pi8;
+        uint32_t usr32;
+        char ch;
+        float flt;
+        uint32_t ui32;
+        uint8_t ui8a[4]; // array for easy 8 <-> 32 bit conversion
+        int32_t i32;
+        uint16_t ui16;
+        int16_t i16;
+        uint8_t ui8;
+        int8_t i8;
+        uint32_t err32;
+    };
+    union {
+        uint16_t usr16;
+        uint16_t size;
+        uint16_t err16;
+    };
+    uint8_t type;
+    uint8_t usr8;
+};
+
+static_assert(sizeof(_variant8_t) == sizeof(variant8_t), "Incompatible types");
+
 extern "C" {
+
+static inline variant8_t *pack(_variant8_t *v) {
+    return (variant8_t *)v;
+}
+
+static inline _variant8_t *unpack(variant8_t *v) {
+    return (_variant8_t *)v;
+}
 
 // variant8 malloc function
 static void *variant8_malloc(uint16_t size);
@@ -23,8 +65,8 @@ static void variant8_free(void *ptr);
 static variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8);
 
 //macros for variant8 structure constants
-variant8_t variant8_init(uint8_t type, uint16_t count, void *pdata) {
-    variant8_t var8;
+variant8_t variant8_init(uint8_t type, uint16_t count, void const *pdata) {
+    _variant8_t var8;
     uint16_t size;
     if ((count == 1) && !(type & VARIANT8_PTR)) {
         var8 = _VARIANT8_TYPE(type, 0, .size = 0, .ui32 = 0);
@@ -55,44 +97,47 @@ variant8_t variant8_init(uint8_t type, uint16_t count, void *pdata) {
     } else if ((count > 1) && (type & VARIANT8_PTR)) {
         size = variant8_type_size(type & ~VARIANT8_PTR) * count;
         var8 = _VARIANT8_TYPE(type, 0, .size = size, 0);
-        if (size) {
+        if (size && pdata) {
             var8.ptr = variant8_malloc(size);
             if (var8.ptr) {
-                if (pdata)
-                    memcpy(var8.ptr, pdata, size);
-            }
-            //            else
-            //                var8 = _VARIANT8_ERROR(VARIANT8_ERR_MALLOC, 0, 0);
+                memcpy(var8.ptr, pdata, size);
+                var8.type |= VARIANT8_PTR_OWNER;
+            } else
+                return variant8_error(VARIANT8_ERR_MALLOC, 0, 0);
         }
     } else
-        var8 = variant8_error(VARIANT8_ERR_UNSTYP, 0, 0);
-    return var8;
+        return variant8_error(VARIANT8_ERR_UNSTYP, 0, 0);
+    return *pack(&var8);
 }
 
-void variant8_done(variant8_t *pvar8) {
+void variant8_done(variant8_t **pvar8) {
     if (pvar8) {
-        if (pvar8->type & VARIANT8_PTR) {
-            if (pvar8->size && pvar8->ptr)
-                variant8_free(pvar8->ptr);
+        _variant8_t *v = unpack(*pvar8);
+        if ((v->type & (~VARIANT8_ERROR)) == (VARIANT8_PTR_OWNER | VARIANT8_PTR)
+            && v->size) {
+            variant8_free(v->ptr);
         }
-        *pvar8 = _VARIANT8_EMPTY();
+        *v = _VARIANT8_EMPTY();
+        *pvar8 = pack(v);
     }
 }
 
+#ifdef CLEAN_UNUSED
+
 variant8_t variant8_copy(const variant8_t *pvar8) {
-    variant8_t var8 = pvar8 ? (*pvar8) : _VARIANT8_EMPTY();
+    variant8_t v = *pvar8;
+    _variant8_t var8 = pvar8 ? *unpack(&v) : _VARIANT8_EMPTY();
     if ((var8.type & VARIANT8_PTR) && var8.size && var8.ptr) {
         void *ptr = var8.ptr;
         var8.ptr = variant8_malloc(var8.size);
         if (var8.ptr)
             memcpy(var8.ptr, ptr, var8.size);
         else
-            var8 = variant8_error(VARIANT8_ERR_MALLOC, 0, 0);
+            return variant8_error(VARIANT8_ERR_MALLOC, 0, 0);
     }
-    return var8;
+    return *pack(&var8);
 }
 
-#ifdef CLEAN_UNUSED
 int variant8_change_type(variant8_t *pvar8, uint8_t type) {
     if (pvar8 == 0)
         return 0;
@@ -188,19 +233,103 @@ int variant8_change_type(variant8_t *pvar8, uint8_t type) {
     return ret;
 }
 #endif
-variant8_t variant8_empty(void) { return _VARIANT8_EMPTY(); }
-variant8_t variant8_i8(int8_t i8) { return _VARIANT8_TYPE(VARIANT8_I8, 0, 0, .i8 = i8); }
-variant8_t variant8_ui8(uint8_t ui8) { return _VARIANT8_TYPE(VARIANT8_UI8, 0, 0, .ui8 = ui8); }
-variant8_t variant8_i16(int16_t i16) { return _VARIANT8_TYPE(VARIANT8_I16, 0, 0, .i16 = i16); }
-variant8_t variant8_ui16(uint16_t ui16) { return _VARIANT8_TYPE(VARIANT8_UI16, 0, 0, .ui16 = ui16); }
-variant8_t variant8_i32(int32_t i32) { return _VARIANT8_TYPE(VARIANT8_I32, 0, 0, .i32 = i32); }
-variant8_t variant8_ui32(uint32_t ui32) { return _VARIANT8_TYPE(VARIANT8_UI32, 0, 0, .ui32 = ui32); }
-variant8_t variant8_flt(float flt) { return _VARIANT8_TYPE(VARIANT8_FLT, 0, 0, .flt = flt); }
-
-void variant8_set_usr8(variant8_t *v, uint8_t usr) {
-    v->usr8 = usr;
+variant8_t variant8_empty(void) {
+    _variant8_t v = _VARIANT8_EMPTY();
+    return *pack(&v);
+}
+variant8_t variant8_i8(int8_t i8) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_I8, 0, 0, .i8 = i8);
+    return *pack(&v);
+}
+variant8_t variant8_ui8(uint8_t ui8) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_UI8, 0, 0, .ui8 = ui8);
+    return *pack(&v);
+}
+variant8_t variant8_i16(int16_t i16) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_I16, 0, 0, .i16 = i16);
+    return *pack(&v);
+}
+variant8_t variant8_ui16(uint16_t ui16) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_UI16, 0, 0, .ui16 = ui16);
+    return *pack(&v);
+}
+variant8_t variant8_i32(int32_t i32) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_I32, 0, 0, .i32 = i32);
+    return *pack(&v);
+}
+variant8_t variant8_ui32(uint32_t ui32) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_UI32, 0, 0, .ui32 = ui32);
+    return *pack(&v);
+}
+variant8_t variant8_flt(float flt) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_FLT, 0, 0, .flt = flt);
+    return *pack(&v);
 }
 
+variant8_t variant8_pchar(char *pch, uint16_t count, int init) {
+    if (init)
+        return variant8_init(VARIANT8_PCHAR, count ? count : strlen(pch) + 1, (void *)pch);
+    else {
+        _variant8_t v = _VARIANT8_TYPE(VARIANT8_PCHAR, 0, .size = (uint16_t)(count ? count : strlen(pch) + 1), .pch = pch);
+        return *pack(&v);
+    }
+}
+
+variant8_t variant8_user(uint32_t usr32, uint16_t usr16, uint8_t usr8) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_USER, usr8, .usr16 = usr16, .usr32 = usr32);
+    return *pack(&v);
+}
+
+static variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_ERROR, err8, .err16 = err16, .err32 = err32);
+    return *pack(&v);
+}
+
+void variant8_set_usr8(variant8_t *v, uint8_t usr) {
+    unpack(v)->usr8 = usr;
+}
+
+void variant8_set_type(variant8_t *v, uint8_t type) {
+    if (type & VARIANT8_PTR)
+        type |= VARIANT8_PTR_OWNER;
+    unpack(v)->type = type;
+}
+
+uint8_t variant8_get_type(variant8_t v) { return unpack(&v)->type & (~VARIANT8_PTR_OWNER); }
+
+// returns variant8_t usr8
+uint8_t variant8_get_usr8(variant8_t v) { return unpack(&v)->usr8; }
+
+// returns variant8_t usr16
+uint16_t variant8_get_usr16(variant8_t v) { return unpack(&v)->usr16; }
+
+// returns variant8_t flt
+float variant8_get_flt(variant8_t v) { return unpack(&v)->flt; }
+
+// returns variant8_t pch
+char *variant8_get_pch(variant8_t v) {
+    return (unpack(&v)->type & (~VARIANT8_PTR_OWNER)) == VARIANT8_PCHAR ? unpack(&v)->pch : NULL;
+}
+
+// returns variant8_t ui8
+uint8_t variant8_get_uia(variant8_t v, uint8_t index) { return index < 4 ? unpack(&v)->ui8a[index] : UINT8_MAX; }
+
+// returns variant8_t ui32
+uint32_t variant8_get_ui32(variant8_t v) { return unpack(&v)->ui32; }
+
+// returns variant8_t i32
+int32_t variant8_get_i32(variant8_t v) { return unpack(&v)->i32; }
+
+// returns variant8_t ui16
+uint16_t variant_get_ui16(variant8_t v) { return unpack(&v)->ui16; }
+
+// returns variant8_t ui8
+uint8_t variant_get_ui8(variant8_t v) { return unpack(&v)->ui8; }
+
+// returns variant8_t i8
+int8_t variant8_get_i8(variant8_t v) { return unpack(&v)->i8; }
+
+#ifdef CLEAN_UNUSED
 variant8_t variant8_pui8(uint8_t *pui8, uint16_t count, int init) {
     if (init)
         return variant8_init(VARIANT8_PUI8, count, (void *)pui8);
@@ -224,21 +353,7 @@ variant8_t variant8_pflt(float *pflt, uint16_t count, int init) {
         return variant8_init(VARIANT8_PFLT, count, (void *)pflt);
     return _VARIANT8_TYPE(VARIANT8_PFLT, 0, .size = (uint16_t)(count * sizeof(float)), .pflt = pflt);
 }
-
-variant8_t variant8_pchar(char *pch, uint16_t count, int init) {
-    if (init)
-        return variant8_init(VARIANT8_PCHAR, count ? count : strlen(pch) + 1, (void *)pch);
-    return _VARIANT8_TYPE(VARIANT8_PCHAR, 0, .size = (uint16_t)(count ? count : strlen(pch) + 1), .pch = pch);
-}
-
-variant8_t variant8_user(uint32_t usr32, uint16_t usr16, uint8_t usr8) {
-    return _VARIANT8_TYPE(VARIANT8_USER, usr8, .usr16 = usr16, .usr32 = usr32);
-}
-
-static variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8) {
-    return _VARIANT8_TYPE(VARIANT8_ERROR, err8, .err16 = err16, .err32 = err32);
-}
-
+#endif
 uint16_t variant8_type_size(uint8_t type) {
     switch (type) {
     case VARIANT8_I8:
@@ -262,38 +377,40 @@ uint16_t variant8_type_size(uint8_t type) {
 
 uint16_t variant8_data_size(variant8_t *pvar8) {
     if (pvar8) {
-        if (pvar8->type & VARIANT8_PTR)
-            return pvar8->size;
+        _variant8_t v = *unpack(pvar8);
+        if (v.type & VARIANT8_PTR)
+            return v.size;
         else
-            return variant8_type_size(pvar8->type);
+            return variant8_type_size(v.type);
     }
     return 0;
 }
 
 void *variant8_data_ptr(variant8_t *pvar8) {
     if (pvar8) {
-        if (pvar8->type & VARIANT8_PTR)
-            return pvar8->ptr;
+        _variant8_t *v = unpack(pvar8);
+        if (v->type & VARIANT8_PTR)
+            return v->ptr;
         else
-            switch (pvar8->type) {
+            switch (v->type) {
             case VARIANT8_I8:
-                return &(pvar8->i8);
+                return &(v->i8);
             case VARIANT8_UI8:
-                return &(pvar8->ui8);
+                return &(v->ui8);
             case VARIANT8_CHAR:
-                return &(pvar8->ch);
+                return &(v->ch);
             case VARIANT8_I16:
-                return &(pvar8->i16);
+                return &(v->i16);
             case VARIANT8_UI16:
-                return &(pvar8->ui16);
+                return &(v->ui16);
             case VARIANT8_I32:
-                return &(pvar8->i32);
+                return &(v->i32);
             case VARIANT8_UI32:
-                return &(pvar8->ui32);
+                return &(v->ui32);
             case VARIANT8_FLT:
-                return &(pvar8->flt);
+                return &(v->flt);
             case VARIANT8_USER:
-                return &(pvar8->usr8);
+                return &(v->usr8);
             }
     }
     return 0;
@@ -317,49 +434,53 @@ const char *variant8_typename(uint8_t type) {
 #endif
 int variant8_snprintf(char *str, unsigned int size, const char *fmt, variant8_t *pvar8) {
     int n = 0;
-    switch (pvar8->type) {
+    _variant8_t *pv = unpack(pvar8);
+    switch (pv->type) {
     case VARIANT8_EMPTY:
         if (size)
             *str = 0;
         break;
     case VARIANT8_I8:
-        n = snprintf(str, size, fmt ? fmt : "%i", (int)pvar8->i8);
+        n = snprintf(str, size, fmt ? fmt : "%i", (int)pv->i8);
         break;
     case VARIANT8_UI8:
-        n = snprintf(str, size, fmt ? fmt : "%u", (unsigned int)pvar8->ui8);
+        n = snprintf(str, size, fmt ? fmt : "%u", (unsigned int)pv->ui8);
         break;
     case VARIANT8_I16:
-        n = snprintf(str, size, fmt ? fmt : "%i", (int)pvar8->i16);
+        n = snprintf(str, size, fmt ? fmt : "%i", (int)pv->i16);
         break;
     case VARIANT8_UI16:
-        n = snprintf(str, size, fmt ? fmt : "%u", (unsigned int)pvar8->ui16);
+        n = snprintf(str, size, fmt ? fmt : "%u", (unsigned int)pv->ui16);
         break;
     case VARIANT8_I32:
-        n = snprintf(str, size, fmt ? fmt : "%i", (int)pvar8->i32);
+        n = snprintf(str, size, fmt ? fmt : "%i", (int)pv->i32);
         break;
     case VARIANT8_UI32:
-        n = snprintf(str, size, fmt ? fmt : "%u", (unsigned int)pvar8->ui32);
+        n = snprintf(str, size, fmt ? fmt : "%u", (unsigned int)pv->ui32);
         break;
     case VARIANT8_FLT:
-        n = snprintf(str, size, fmt ? fmt : "%f", (double)pvar8->flt);
+        n = snprintf(str, size, fmt ? fmt : "%f", (double)pv->flt);
         break;
     case VARIANT8_CHAR:
-        n = snprintf(str, size, fmt ? fmt : "%c", pvar8->ch);
+        n = snprintf(str, size, fmt ? fmt : "%c", pv->ch);
         break;
     case VARIANT8_USER:
-        n = snprintf(str, size, fmt ? fmt : "%u %u %u", (unsigned int)pvar8->usr32, (unsigned int)pvar8->usr16, (unsigned int)pvar8->usr8);
+        n = snprintf(str, size, fmt ? fmt : "%u %u %u", (unsigned int)pv->usr32, (unsigned int)pv->usr16, (unsigned int)pv->usr8);
         break;
     case VARIANT8_PCHAR:
-        n = snprintf(str, size, fmt ? fmt : "%s", pvar8->pch);
+        n = snprintf(str, size, fmt ? fmt : "%s", pv->pch);
         break;
     }
     return n;
 }
 
 #ifdef CLEAN_UNUSED
-    #define VARIANT8_TO_STR_MAX_BUFF 32
+enum {
+    VARIANT8_TO_STR_MAX_BUFF = 32
+};
 
-char *variant8_to_str(variant8_t *pvar8, const char *fmt) {
+char *
+variant8_to_str(variant8_t *pvar8, const char *fmt) {
     // FIXME - do we need to print to buff and then to str?
     char buff[VARIANT8_TO_STR_MAX_BUFF] = "";
     int n = variant8_snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt, pvar8);
@@ -525,56 +646,304 @@ void *variant8_realloc(void *ptr, uint16_t size) {
 // VARIANT8_PCHAR -> VARIANT8_CHAR    fmt
 // VARIANT8_PCHAR -> VARIANT8_USER    fmt
 //
+#ifdef CLEAN_UNUSED
+class cvariant8 {
+public: // construction/destruction
+    cvariant8();
+    cvariant8(const cvariant8 &var8);
+    #if __cplusplus >= 201103L
+    cvariant8(cvariant8 &&var8);
+    #endif
+    cvariant8(int8_t val);
+    cvariant8(uint8_t val);
+    cvariant8(int16_t val);
+    cvariant8(uint16_t val);
+    cvariant8(int32_t val);
+    cvariant8(uint32_t val);
+    cvariant8(float val);
+    cvariant8(const char *val);
+
+    cvariant8(uint64_t val);
+
+    ~cvariant8();
+
+public: // public functions
+    cvariant8 copy();
+    uint64_t pack() const;
+
+    // cvariant8 &attach(variant8_t var8);
+    // variant8_t detach();
+    #ifdef CLEAN_UNUSED
+    cvariant8 &change_type(uint8_t new_type);
+    #endif
+
+public: //
+    bool is_empty() const;
+    bool is_error() const;
+    bool is_signed() const;
+    bool is_unsigned() const;
+    bool is_integer() const;
+    bool is_number() const;
+
+public: // assignment operators
+    cvariant8 &operator=(const cvariant8 &var8);
+    #if __cplusplus >= 201103L
+    cvariant8 &operator=(cvariant8 &&var8);
+    #endif
+    cvariant8 &operator=(int8_t val);
+    cvariant8 &operator=(uint8_t val);
+    cvariant8 &operator=(int16_t val);
+    cvariant8 &operator=(uint16_t val);
+    cvariant8 &operator=(int32_t val);
+    cvariant8 &operator=(uint32_t val);
+    cvariant8 &operator=(float val);
+    cvariant8 &operator=(const char *val);
+
+private:
+    int32_t get_valid_int() const; //helper for extractors, works ony on integer values
+public:                            // extractors
+    // clang-format off
+    operator int8_t()       const { return (is_integer())           ?   int8_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ?   int8_t(data_.flt)           : 0); }
+    operator uint8_t()      const { return (is_integer())           ?  uint8_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ?  uint8_t(data_.flt)           : 0); }
+    operator int16_t()      const { return (is_integer())           ?  int16_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ?  int16_t(data_.flt)           : 0); }
+    operator uint16_t()     const { return (is_integer())           ? uint16_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ? uint16_t(data_.flt)           : 0); }
+    operator int32_t()      const { return (is_integer())           ?  int32_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ?  int32_t(data_.flt)           : 0); }
+    operator uint32_t()     const { return (is_integer())           ? uint32_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ? uint32_t(data_.flt)           : 0); }
+    operator float()        const { return (data_.type == VARIANT8_FLT)   ? data_.flt                       : ((is_integer())         ? float(get_valid_int())  : 0); }
+    operator const char *() const { return (data_.type == VARIANT8_PCHAR) ? data_.pch : 0; }
+    // clang-format on
+private:
+    enum class operator_x { plus,
+        minus,
+        multiplies,
+        divides }; //float has no modulus
+    //T should be int types or float - better pass by value
+    template <class T>
+    T calc(T lhs, T rhs, operator_x op) {
+        switch (op) {
+        case operator_x::minus:
+            return lhs - rhs;
+        case operator_x::multiplies:
+            return lhs * rhs;
+        case operator_x::divides:
+            return lhs / rhs;
+        case operator_x::plus:
+        default: //avoid warning
+            return lhs + rhs;
+        }
+    }
+    //used by assignment operators like +=
+    cvariant8 &assignment_operator_x(const cvariant8 &rhs, operator_x op);
+
+public: //arithmetic operators
+    cvariant8 &operator+=(const cvariant8 &rhs) {
+        return assignment_operator_x(rhs, operator_x::plus);
+    }
+    cvariant8 &operator-=(const cvariant8 &rhs) {
+        return assignment_operator_x(rhs, operator_x::minus);
+    }
+    cvariant8 &operator*=(const cvariant8 &rhs) {
+        return assignment_operator_x(rhs, operator_x::multiplies);
+    }
+    cvariant8 &operator/=(const cvariant8 &rhs) {
+        return assignment_operator_x(rhs, operator_x::divides);
+    }
+
+    // friends defined inside class body are inline and are hidden from non-ADL lookup
+    // passing lhs by value helps optimize chained a+b+c
+    // otherwise, both parameters may be const references
+    friend cvariant8 operator+(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs += rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+    friend cvariant8 operator-(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs -= rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+    friend cvariant8 operator*(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs *= rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+    friend cvariant8 operator/(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs /= rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+
+private:
+    variant8_t data_;
+};
+#endif
+
+#ifdef CLEAN_UNUSED
+
+class cvariant8 : public variant8_t {
+public: // construction/destruction
+    cvariant8();
+    cvariant8(const cvariant8 &var8);
+    #if __cplusplus >= 201103L
+    cvariant8(cvariant8 &&var8);
+    #endif
+    cvariant8(int8_t val);
+    cvariant8(uint8_t val);
+    cvariant8(int16_t val);
+    cvariant8(uint16_t val);
+    cvariant8(int32_t val);
+    cvariant8(uint32_t val);
+    cvariant8(float val);
+    cvariant8(const char *val);
+    ~cvariant8();
+
+public: // public functions
+    cvariant8 copy();
+    cvariant8 &attach(variant8_t var8);
+    variant8_t detach();
+    #ifdef CLEAN_UNUSED
+    cvariant8 &change_type(uint8_t new_type);
+    #endif
+
+public: //
+    bool is_empty() const;
+    bool is_error() const;
+    bool is_signed() const;
+    bool is_unsigned() const;
+    bool is_integer() const;
+    bool is_number() const;
+
+public: // assignment operators
+    cvariant8 &operator=(const cvariant8 &var8);
+    #if __cplusplus >= 201103L
+    cvariant8 &operator=(cvariant8 &&var8);
+    #endif
+    cvariant8 &operator=(int8_t val);
+    cvariant8 &operator=(uint8_t val);
+    cvariant8 &operator=(int16_t val);
+    cvariant8 &operator=(uint16_t val);
+    cvariant8 &operator=(int32_t val);
+    cvariant8 &operator=(uint32_t val);
+    cvariant8 &operator=(float val);
+    cvariant8 &operator=(const char *val);
+
+private:
+    int32_t get_valid_int() const; //helper for extractors, works ony on integer values
+public:                            // extractors
+    // clang-format off
+    operator int8_t()       const { return (is_integer())           ?   int8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?   int8_t(flt)           : 0); }
+    operator uint8_t()      const { return (is_integer())           ?  uint8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  uint8_t(flt)           : 0); }
+    operator int16_t()      const { return (is_integer())           ?  int16_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  int16_t(flt)           : 0); }
+    operator uint16_t()     const { return (is_integer())           ? uint16_t(get_valid_int()) : ((type == VARIANT8_FLT) ? uint16_t(flt)           : 0); }
+    operator int32_t()      const { return (is_integer())           ?  int32_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  int32_t(flt)           : 0); }
+    operator uint32_t()     const { return (is_integer())           ? uint32_t(get_valid_int()) : ((type == VARIANT8_FLT) ? uint32_t(flt)           : 0); }
+    operator float()        const { return (type == VARIANT8_FLT)   ? flt                       : ((is_integer())         ? float(get_valid_int())  : 0); }
+    operator const char *() const { return (type == VARIANT8_PCHAR) ? pch : 0; }
+    // clang-format on
+private:
+    enum class operator_x { plus,
+        minus,
+        multiplies,
+        divides }; //float has no modulus
+    //T should be int types or float - better pass by value
+    template <class T>
+    T calc(T lhs, T rhs, operator_x op) {
+        switch (op) {
+        case operator_x::minus:
+            return lhs - rhs;
+        case operator_x::multiplies:
+            return lhs * rhs;
+        case operator_x::divides:
+            return lhs / rhs;
+        case operator_x::plus:
+        default: //avoid warning
+            return lhs + rhs;
+        }
+    }
+    //used by assignment operators like +=
+    cvariant8 &assignment_operator_x(const cvariant8 &rhs, operator_x op);
+
+public: //arithmetic operators
+    cvariant8 &operator+=(const cvariant8 &rhs) {
+        return assignment_operator_x(rhs, operator_x::plus);
+    }
+    cvariant8 &operator-=(const cvariant8 &rhs) {
+        return assignment_operator_x(rhs, operator_x::minus);
+    }
+    cvariant8 &operator*=(const cvariant8 &rhs) {
+        return assignment_operator_x(rhs, operator_x::multiplies);
+    }
+    cvariant8 &operator/=(const cvariant8 &rhs) {
+        return assignment_operator_x(rhs, operator_x::divides);
+    }
+
+    // friends defined inside class body are inline and are hidden from non-ADL lookup
+    // passing lhs by value helps optimize chained a+b+c
+    // otherwise, both parameters may be const references
+    friend cvariant8 operator+(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs += rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+    friend cvariant8 operator-(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs -= rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+    friend cvariant8 operator*(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs *= rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+    friend cvariant8 operator/(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs /= rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+
+protected:
+};
 
 cvariant8::cvariant8() {
-    *((variant8_t *)this) = variant8_empty();
+    data_ = variant8_empty();
 }
 
 cvariant8::cvariant8(const cvariant8 &var8) {
-    *((variant8_t *)this) = variant8_copy((variant8_t *)&var8);
+    data_ = variant8_copy(&var8.data_);
 }
 
-#if __cplusplus >= 201103L
+    #if __cplusplus >= 201103L
 cvariant8::cvariant8(cvariant8 &&var8) {
-    *((variant8_t *)this) = var8;
-    *((variant8_t *)(&var8)) = variant8_empty();
+    data_ = var8.data_;
+    *((&var8.data_)) = variant8_empty();
 }
-#endif
+    #endif
 
 cvariant8::cvariant8(int8_t val) {
-    *((variant8_t *)this) = variant8_i8(val);
+    data_ = variant8_i8(val);
 }
 
 cvariant8::cvariant8(uint8_t val) {
-    *((variant8_t *)this) = variant8_ui8(val);
+    data_ = variant8_ui8(val);
 }
 
 cvariant8::cvariant8(int16_t val) {
-    *((variant8_t *)this) = variant8_i16(val);
+    data_ = variant8_i16(val);
 }
 
 cvariant8::cvariant8(uint16_t val) {
-    *((variant8_t *)this) = variant8_ui16(val);
+    data_ = variant8_ui16(val);
 }
 
 cvariant8::cvariant8(int32_t val) {
-    *((variant8_t *)this) = variant8_i32(val);
+    data_ = variant8_i32(val);
 }
 
 cvariant8::cvariant8(uint32_t val) {
-    *((variant8_t *)this) = variant8_ui32(val);
+    data_ = variant8_ui32(val);
 }
 
 cvariant8::cvariant8(float val) {
-    *((variant8_t *)this) = variant8_flt(val);
+    data_ = variant8_flt(val);
 }
 
 cvariant8::cvariant8(const char *val) {
-    *((variant8_t *)this) = variant8_pchar((char *)val, 0, 1);
+    data_ = variant8_pchar((char *)val, 0, 1);
 }
-
 cvariant8::~cvariant8() {
-    variant8_done(this);
+    variant8_done(&data_);
 }
 
 cvariant8 cvariant8::copy() {
@@ -582,114 +951,122 @@ cvariant8 cvariant8::copy() {
     return var8;
 }
 
-cvariant8 &cvariant8::attach(variant8_t var8) {
-    variant8_done(this);
-    *((variant8_t *)this) = var8;
-    return *this;
+packed_variant8_t cvariant8::pack() const {
+    packed_variant8_t r;
+    memcpy(&r, &data_, sizeof(packed_variant8_t));
+    return r;
 }
 
-variant8_t cvariant8::detach() {
-    variant8_t var8 = *this;
-    variant8_done(this);
-    return var8;
+std::uint16_t cvariant8::size() const {
+    return variant8_type_size(data_.type);
 }
-#ifdef CLEAN_UNUSED
+
+// cvariant8 &cvariant8::attach(variant8_t var8) {
+//     variant8_done(this);
+//     *((variant8_t *)this) = var8;
+//     return *this;
+// }
+
+// variant8_t cvariant8::detach() {
+//     variant8_t var8 = *this;
+//     variant8_done(this);
+//     return var8;
+// }
 cvariant8 &cvariant8::change_type(uint8_t new_type) {
     variant8_change_type(this, new_type);
     return *this;
 }
-#endif
-bool cvariant8::is_empty() const { return (type == VARIANT8_EMPTY) ? true : false; }
+bool cvariant8::is_empty() const { return (data_.type == VARIANT8_EMPTY) ? true : false; }
 
-bool cvariant8::is_error() const { return (type == VARIANT8_ERROR) ? true : false; }
+bool cvariant8::is_error() const { return (data_.type == VARIANT8_ERROR) ? true : false; }
 
-bool cvariant8::is_signed() const { return variant8_is_signed(this) ? true : false; }
+bool cvariant8::is_signed() const { return variant8_is_signed(&data_) ? true : false; }
 
-bool cvariant8::is_unsigned() const { return variant8_is_unsigned(this) ? true : false; }
+bool cvariant8::is_unsigned() const { return variant8_is_unsigned(&data_) ? true : false; }
 
-bool cvariant8::is_integer() const { return variant8_is_integer(this) ? true : false; }
+bool cvariant8::is_integer() const { return variant8_is_integer(&data_) ? true : false; }
 
-bool cvariant8::is_number() const { return variant8_is_number(this) ? true : false; }
+bool cvariant8::is_number() const { return variant8_is_number(&data_) ? true : false; }
 
 cvariant8 &cvariant8::operator=(const cvariant8 &var8) {
-    variant8_done(this);
-    *((variant8_t *)this) = variant8_copy((variant8_t *)&var8);
+    variant8_done(&data_);
+    data_ = variant8_copy(&var8.data_);
     return *this;
 }
 
-#if __cplusplus >= 201103L
+    #if __cplusplus >= 201103L
 cvariant8 &cvariant8::operator=(cvariant8 &&var8) {
-    variant8_done(this);
-    *((variant8_t *)this) = var8;
-    *((variant8_t *)(&var8)) = variant8_empty();
+    variant8_done(&data_);
+    data_ = variant8_copy(&var8.data_);
+    *((&var8.data_)) = variant8_empty();
     return *this;
 }
-#endif
+    #endif
 
 cvariant8 &cvariant8::operator=(int8_t val) {
-    variant8_done(this);
-    *((variant8_t *)this) = variant8_i8(val);
+    variant8_done(&data_);
+    data_ = variant8_i8(val);
     return *this;
 }
 
 cvariant8 &cvariant8::operator=(uint8_t val) {
-    variant8_done(this);
-    *((variant8_t *)this) = variant8_ui8(val);
+    variant8_done(&data_);
+    data_ = variant8_ui8(val);
     return *this;
 }
 
 cvariant8 &cvariant8::operator=(int16_t val) {
-    variant8_done(this);
-    *((variant8_t *)this) = variant8_i16(val);
+    variant8_done(&data_);
+    data_ = variant8_i16(val);
     return *this;
 }
 
 cvariant8 &cvariant8::operator=(uint16_t val) {
-    variant8_done(this);
-    *((variant8_t *)this) = variant8_ui16(val);
+    variant8_done(&data_);
+    data_ = variant8_ui16(val);
     return *this;
 }
 
 cvariant8 &cvariant8::operator=(int32_t val) {
-    variant8_done(this);
-    *((variant8_t *)this) = variant8_i32(val);
+    variant8_done(&data_);
+    data_ = variant8_i32(val);
     return *this;
 }
 
 cvariant8 &cvariant8::operator=(uint32_t val) {
-    variant8_done(this);
-    *((variant8_t *)this) = variant8_ui32(val);
+    variant8_done(&data_);
+    data_ = variant8_ui32(val);
     return *this;
 }
 
 cvariant8 &cvariant8::operator=(float val) {
-    variant8_done(this);
-    *((variant8_t *)this) = variant8_flt(val);
+    variant8_done(&data_);
+    data_ = variant8_flt(val);
     return *this;
 }
 
 cvariant8 &cvariant8::operator=(const char *val) {
-    variant8_done(this);
-    *((variant8_t *)this) = variant8_pchar((char *)val, 0, 1);
+    variant8_done(&data_);
+    data_ = variant8_pchar((char *)val, 0, 1);
     return *this;
 }
 
 //helper for extractors
 //works ony on integer values
 int32_t cvariant8::get_valid_int() const {
-    switch (type) {
+    switch (data_.type) {
     case VARIANT8_I8:
-        return i8;
+        return data_.i8;
     case VARIANT8_UI8:
-        return ui8;
+        return data_.ui8;
     case VARIANT8_I16:
-        return i16;
+        return data_.i16;
     case VARIANT8_UI16:
-        return ui16;
+        return data_.ui16;
     case VARIANT8_I32:
-        return i32;
+        return data_.i32;
     case VARIANT8_UI32:
-        return ui32;
+        return data_.ui32;
     default: //wrong type
         return 0;
     }
@@ -697,38 +1074,39 @@ int32_t cvariant8::get_valid_int() const {
 
 //used by assignment operators like +=
 cvariant8 &cvariant8::assignment_operator_x(const cvariant8 &rhs, cvariant8::operator_x op) {
-    if (type == rhs.type) {
-        switch (type) {
+    if (data_.type == rhs.data_.type) {
+        switch (data_.type) {
         case VARIANT8_I8:
-            i8 = calc(i8, rhs.i8, op);
+            data_.i8 = calc(data_.i8, rhs.data_.i8, op);
             break;
         case VARIANT8_UI8:
-            ui8 = calc(ui8, rhs.ui8, op);
+            data_.ui8 = calc(data_.ui8, rhs.data_.ui8, op);
             break;
         case VARIANT8_I16:
-            i16 = calc(i16, rhs.i16, op);
+            data_.i16 = calc(data_.i16, rhs.data_.i16, op);
             break;
         case VARIANT8_UI16:
-            ui16 = calc(ui16, rhs.ui16, op);
+            data_.ui16 = calc(data_.ui16, rhs.data_.ui16, op);
             break;
         case VARIANT8_I32:
-            i32 = calc(i32, rhs.i32, op);
+            data_.i32 = calc(data_.i32, rhs.data_.i32, op);
             break;
         case VARIANT8_UI32:
-            ui32 = calc(ui32, rhs.ui32, op);
+            data_.ui32 = calc(data_.ui32, rhs.data_.ui32, op);
             break;
         case VARIANT8_FLT:
-            flt = calc(flt, rhs.flt, op);
+            data_.flt = calc(data_.flt, rhs.data_.flt, op);
             break;
         case VARIANT8_EMPTY: //empty is fine
             break;
         default:
             //unsupported types set error
-            type = VARIANT8_ERROR;
+            data_.type = VARIANT8_ERROR;
             break;
         }
     } else {
-        type = VARIANT8_ERROR;
+        data_.type = VARIANT8_ERROR;
     }
     return *this;
 }
+#endif

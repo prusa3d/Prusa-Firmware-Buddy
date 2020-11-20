@@ -45,6 +45,8 @@ enum class PhasesLoadUnload : uint16_t {
     Ramming,
     Unloading,
     RemoveFilament,
+    IsFilamentUnloaded,
+    ManualUnload,
     UserPush,
     NozzleTimeout,
     MakeSureInserted,
@@ -63,6 +65,33 @@ enum class PhasesG162 : uint16_t {
     _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
     Parking,
     _last = Parking
+};
+
+//not bound to responses
+enum class PhasesSelftestFans : uint16_t {
+    _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
+    TestFan0 = _first, //in this case is safe to have TestFan0 == _first
+    TestFan1,
+    _last = TestFan1
+};
+
+//not bound to responses
+enum class PhasesSelftestAxis : uint16_t {
+    _first = static_cast<uint16_t>(PhasesSelftestFans::_last) + 1,
+    Xaxis = _first, //in this case is safe to have Xaxis == _first
+    Yaxis,
+    Zaxis,
+    _last = Zaxis
+};
+
+//not bound to responses
+enum class PhasesSelftestHeat : uint16_t {
+    _first = static_cast<uint16_t>(PhasesSelftestAxis::_last) + 1,
+    noz_cool = _first, //in this case is safe to have Xaxis == _first
+    noz_heat,
+    bed_cool,
+    bed_heat,
+    _last = bed_heat
 };
 
 //static class for work with fsm responses (like button click)

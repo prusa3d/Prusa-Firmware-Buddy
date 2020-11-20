@@ -1,13 +1,11 @@
-add_subdirectory(str_utils)
 
 add_executable(support_utils_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/support_utils_lib_test.cpp
     ${CMAKE_SOURCE_DIR}/src/common/support_utils_lib.cpp
 )
-target_include_directories(support_utils_tests PUBLIC .
+target_include_directories(support_utils_tests PUBLIC
     ${CMAKE_SOURCE_DIR}/src/common
 )
-target_compile_definitions(support_utils_tests PUBLIC SUPPORT_UTILS_UNITTEST)
 
 add_executable(variant8_tests
     ${CMAKE_SOURCE_DIR}/tests/unit/test_main.cpp
@@ -20,5 +18,16 @@ target_include_directories(variant8_tests PUBLIC
     ${CMAKE_SOURCE_DIR}/src
 )
 
+add_executable(str_utils_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/str_utils_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
+    ${CMAKE_SOURCE_DIR}/src/common/str_utils.hpp
+)
+target_include_directories(str_utils_tests PUBLIC
+#    ${CMAKE_SOURCE_DIR}/src/common
+    ${CMAKE_SOURCE_DIR}/src
+)
+
 add_catch_test(support_utils_tests)
 add_catch_test(variant8_tests)
+add_catch_test(str_utils_tests)

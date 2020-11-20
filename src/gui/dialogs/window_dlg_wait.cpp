@@ -9,7 +9,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-#define ANIMATION_MILISEC_DELAY 500 // number of milisecond for frame change
+static const constexpr uint16_t ANIMATION_MILISEC_DELAY = 500; // number of milisecond for frame change
 
 window_dlg_wait_t::window_dlg_wait_t(Rect16 rect)
     : IDialog(rect)
@@ -19,7 +19,7 @@ window_dlg_wait_t::window_dlg_wait_t(Rect16 rect)
     text.SetAlignment(ALIGN_CENTER);
 }
 
-void gui_dlg_wait(void (*closing_callback)()) {
+void gui_dlg_wait(std::function<void()> closing_callback) {
 
     window_dlg_wait_t dlg(GuiDefaults::RectScreenBody);
     dlg.MakeBlocking(closing_callback);

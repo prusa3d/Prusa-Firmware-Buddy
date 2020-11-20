@@ -116,13 +116,13 @@ bool display_ex_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, 
         pc = pch + j * bpr;
         for (i = 0; i < w; i++) {
             if ((i % ppb) == 0) {
-                if (pf->flg & FONT_FLG_SWAP) {
+                if (pf->flg & (uint32_t)FONT_FLG_SWAP) {
                     rb = (i / ppb) ^ 1;
                     crd = pch[rb + j * bpr];
                 } else
                     crd = *(pc++);
             }
-            if (pf->flg & FONT_FLG_LSBF) {
+            if (pf->flg & (uint32_t)FONT_FLG_LSBF) {
                 buff.Insert(crd & pms);
                 crd >>= bpp;
             } else {
@@ -172,7 +172,7 @@ bool display_ex_draw_text(Rect16 rc, const char *str, const font_t *pf, color_t 
 
 /// Draws a rectangle boundary of defined color
 void display_ex_draw_rect(Rect16 rc, color_t clr) {
-    if (rc.Width() <= 0 || rc.Height() <= 0)
+    if (rc.IsEmpty())
         return;
 
     point_i16_t pt0 = rc.TopLeft();

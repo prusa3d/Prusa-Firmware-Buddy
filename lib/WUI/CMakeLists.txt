@@ -3,11 +3,10 @@ add_library(WUI INTERFACE)
 target_sources(WUI INTERFACE
   wui.c
   wui_REST_api.c
-  wui_helper_funcs.c
-  wui_request_parser.c
   http/altcp_proxyconnect.c
   http/fs.c
   http/httpd.c
+  http/httpd_parser.c
   lwip.c
   ethernetif.c
   netif_settings.c

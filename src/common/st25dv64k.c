@@ -9,31 +9,31 @@
 #define ST25DV64K_RTOS
 
 //system config address registr
-#define REG_GPO         0x0000
-#define REG_IT_TIME     0x0001
-#define REG_EH_MODE     0x0002
-#define REG_RF_MNGT     0x0003
-#define REG_RFA1SS      0x0004
-#define REG_ENDA1       0x0005
-#define REG_RFA2SS      0x0006
-#define REG_ENDA2       0x0007
-#define REG_RFA3SS      0x0008
-#define REG_ENDA3       0x0009
-#define REG_RFA4SS      0x000A
-#define REG_I2CSS       0x000B
-#define REG_LOCK_CCFILE 0x000C
-#define REG_MB_MODE     0x000D
-#define REG_MB_WDG      0x000E
-#define REG_LOCK_CFG    0x000F
+// static const uint16_t REG_GPO = 0x0000;
+// static const uint16_t REG_IT_TIME = 0x0001;
+// static const uint16_t REG_EH_MODE = 0x0002;
+// static const uint16_t REG_RF_MNGT = 0x0003;
+// static const uint16_t REG_RFA1SS = 0x0004;
+static const uint16_t REG_ENDA1 = 0x0005;
+// static const uint16_t REG_RFA2SS = 0x0006;
+static const uint16_t REG_ENDA2 = 0x0007;
+// static const uint16_t REG_RFA3SS = 0x0008;
+static const uint16_t REG_ENDA3 = 0x0009;
+// static const uint16_t REG_RFA4SS = 0x000A;
+// static const uint16_t REG_I2CSS = 0x000B;
+// static const uint16_t REG_LOCK_CCFILE = 0x000C;
+// static const uint16_t REG_MB_MODE = 0x000D;
+// static const uint16_t REG_MB_WDG = 0x000E;
+// static const uint16_t REG_LOCK_CFG = 0x000F;
 
 // EEPROM I2C addresses
-#define ADDR_WRITE     0xA6
-#define ADDR_READ      0xA7
-#define ADDR_WRITE_SYS 0xAE
-#define ADDR_READ_SYS  0xAF
+static const uint16_t ADDR_WRITE = 0xA6;
+static const uint16_t ADDR_READ = 0xA7;
+static const uint16_t ADDR_WRITE_SYS = 0xAE;
+static const uint16_t ADDR_READ_SYS = 0xAF;
 
-#define BLOCK_DELAY 5 // block delay [ms]
-#define BLOCK_BYTES 4 // bytes per block
+static const uint8_t BLOCK_DELAY = 5; // block delay [ms]
+static const uint8_t BLOCK_BYTES = 4; // bytes per block
 
 #define DELAY HAL_Delay
 
@@ -116,8 +116,8 @@ void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint8_t size) {
     st25dv64k_unlock();
 }
 
-void st25dv64k_user_write_bytes(uint16_t address, void *pdata, uint8_t size) {
-    uint8_t *p = (uint8_t *)pdata;
+void st25dv64k_user_write_bytes(uint16_t address, void const *pdata, uint8_t size) {
+    uint8_t const *p = (uint8_t const *)pdata;
     uint8_t _out[6];
     uint8_t block_size;
     st25dv64k_lock();

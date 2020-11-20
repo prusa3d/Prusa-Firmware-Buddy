@@ -16,7 +16,7 @@ template <class T, class... Args>
 std::unique_ptr<T, static_unique_ptr_deleter>
 make_static_unique_ptr(void *place, Args &&... args) {
     return std::unique_ptr<T, static_unique_ptr_deleter> {
-        ::new (place) T(std::forward<Args>(args)...) //::new - global new (not new difined elsewhere)
+        ::new (place) T(std::forward<Args>(args)...) //::new - global new (no other new defined elsewhere)
     };
 }
 

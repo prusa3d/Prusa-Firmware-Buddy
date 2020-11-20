@@ -48,7 +48,7 @@
 #include "pause_stubbed.hpp"
 
 #include "marlin_server.hpp"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "filament.h"
 #include "RAII.hpp"
 #include <cmath>
@@ -214,10 +214,10 @@ bool Pause::FilamentLoad() {
             Response isFilamentInGear;
             do {
 #endif
-                // wait till filament sensor does not show "FS_NO_FILAMENT" in this block
+                // wait till filament sensor does not show "NoFilament" in this block
                 // ask user to insert filament, than wait continue button
                 do {
-                    while (fs_get_state() == FS_NO_FILAMENT) {
+                    while (fs_get_state() == fsensor_t::NoFilament) {
                         idle(true);
                         fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
                     }
@@ -359,6 +359,25 @@ bool Pause::FilamentUnload() {
 #if ENABLED(PID_EXTRUSION_SCALING)
     thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
 #endif //ENABLED(PID_EXTRUSION_SCALING)
+
+    /// IsUnloaded confirm phase
+    Response isUnloaded;
+    Response manualUnload;
+    do {
+        fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsFilamentUnloaded, 100, 100);
+        do {
+            idle(true);
+            isUnloaded = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsFilamentUnloaded);
+        } while (isUnloaded != Response::Yes && isUnloaded != Response::No);
+        if (isUnloaded == Response::No) {
+            fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::ManualUnload, 100, 100);
+            do {
+                idle(true);
+                manualUnload = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::ManualUnload);
+            } while (manualUnload != Response::Continue);
+            isUnloaded = Response::Yes;
+        }
+    } while (isUnloaded != Response::Yes);
 
     return true;
 }

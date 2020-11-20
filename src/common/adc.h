@@ -1,6 +1,5 @@
 // adc.h
-#ifndef _ADC_H
-#define _ADC_H
+#pragma once
 
 #include <inttypes.h>
 #include "config.h"
@@ -22,5 +21,3 @@ extern void adc_cycle(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif // _ADC_H

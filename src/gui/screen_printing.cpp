@@ -1,25 +1,19 @@
 //screen_printing.cpp
 #include "dbg.h"
 #include "screen_printing.hpp"
-#include "config.h"
 #include "marlin_client.h"
-#include "marlin_server.h"
 #include "print_utils.hpp"
 #include "ffconf.h"
 #include "ScreenHandler.hpp"
 #include "screen_menus.hpp"
 #include <ctime>
 #include "wui_api.h"
-#include "i18n.h"
 #include "../lang/format_print_will_end.hpp"
+#include "window_dlg_popup.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
-    #include "filament_sensor.h"
+    #include "filament_sensor.hpp"
 #endif
-
-#define COLOR_VALUE_VALID COLOR_WHITE
-//#define COLOR_VALUE_INVALID COLOR_YELLOW
-#define COLOR_VALUE_INVALID COLOR_WHITE
 
 enum class Btn {
     Tune = 0,
@@ -28,15 +22,15 @@ enum class Btn {
 };
 
 const uint16_t printing_icons[static_cast<size_t>(item_id_t::count)] = {
-    IDR_PNG_menu_icon_settings,
-    IDR_PNG_menu_icon_pause,
-    IDR_PNG_menu_icon_pause, //same as pause
-    IDR_PNG_menu_icon_stop,
-    IDR_PNG_menu_icon_resume,
-    IDR_PNG_menu_icon_resume,
-    IDR_PNG_menu_icon_resume, //reheating is same as resume, bud disabled
-    IDR_PNG_menu_icon_reprint,
-    IDR_PNG_menu_icon_home,
+    IDR_PNG_settings_58px,
+    IDR_PNG_pause_58px,
+    IDR_PNG_pause_58px, //same as pause
+    IDR_PNG_stop_58px,
+    IDR_PNG_resume_48px,
+    IDR_PNG_resume_48px,
+    IDR_PNG_resume_48px, //reheating is same as resume, bud disabled
+    IDR_PNG_reprint_48px,
+    IDR_PNG_home_58px,
 };
 
 const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
@@ -79,12 +73,15 @@ void screen_printing_data_t::pauseAction() {
     switch (GetState()) {
     case printing_state_t::PRINTING:
         marlin_print_pause();
+        change_print_state();
         break;
     case printing_state_t::PAUSED:
         marlin_print_resume();
+        change_print_state();
         break;
     case printing_state_t::PRINTED:
         screen_printing_reprint();
+        change_print_state();
         break;
     default:
         break;
@@ -117,24 +114,20 @@ void screen_printing_data_t::stopAction() {
 /******************************************************************************/
 
 screen_printing_data_t::screen_printing_data_t()
-    : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
-    , w_filename(this, Rect16(10, 33, 220, 29), is_multiline::no)
-    , w_progress(this, Rect16(10, 70, 220, 50), 16, COLOR_ORANGE)
+    : AddSuperWindow<ScreenPrintingModel>(_(caption))
+    , w_filename(this, Rect16(10, 33, 220, 29))
+    , w_progress(this, { 10, 70 }, HasNumber_t::yes)
     , w_time_label(this, Rect16(10, 128, 101, 20), is_multiline::no)
     , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)
     , w_etime_label(this, Rect16(130, 128, 101, 20), is_multiline::no)
     , w_etime_value(this, Rect16(30, 148, 201, 20), is_multiline::no)
-
     , last_print_duration(-1)
     , last_time_to_end(-1)
-
-    , w_message(this, Rect16(10, 75, 230, 95), is_multiline::yes)
     , message_timer(0)
-    , message_flag(false)
     , stop_pressed(false)
     , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
-    , last_sd_percent_done(-1) {
+    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.rect, w_time_value.rect, w_etime_label.rect, w_etime_value.rect }))) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
 
     marlin_vars_t *vars = marlin_vars();
@@ -147,8 +140,6 @@ screen_printing_data_t::screen_printing_data_t()
     w_filename.SetAlignment(ALIGN_LEFT_BOTTOM);
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
     w_filename.SetText(vars->media_LFN ? string_view_utf8::MakeRAM((const uint8_t *)vars->media_LFN) : string_view_utf8::MakeNULLSTR());
-
-    w_progress.SetFont(resource_font(IDR_FNT_BIG));
 
     w_etime_label.font = resource_font(IDR_FNT_SMALL);
     w_etime_label.SetAlignment(ALIGN_RIGHT_BOTTOM);
@@ -172,40 +163,9 @@ screen_printing_data_t::screen_printing_data_t()
     // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
 
-    w_message.font = resource_font(IDR_FNT_NORMAL);
-    w_message.SetAlignment(ALIGN_LEFT_TOP);
-    w_message.SetPadding({ 0, 2, 0, 2 });
-    w_message.SetText(_("No messages"));
-    w_message.Hide();
-    message_flag = false;
-}
-
-void screen_printing_data_t::open_popup_message() {
-    w_etime_label.Hide();
-    w_etime_value.Hide();
-    w_progress.Hide();
-    w_time_label.Hide();
-    w_time_value.Hide();
-
-    // this MakeRAM is safe - msg stack and its items are allocated in RAM for the lifetime of pw
-    w_message.SetText(string_view_utf8::MakeRAM((const uint8_t *)msg_stack.msg_data[0]));
-
-    w_message.Show();
-    message_timer = HAL_GetTick();
-    message_flag = true;
-}
-
-void screen_printing_data_t::close_popup_message() {
-    w_etime_label.Show();
-    w_etime_value.Show();
-    w_progress.Show();
-    w_time_label.Show();
-    w_time_value.Show();
-
-    w_message.SetText(string_view_utf8::MakeNULLSTR());
-
-    w_message.Hide();
-    message_flag = false;
+    initAndSetIconAndLabel(btn_tune, res_tune);
+    initAndSetIconAndLabel(btn_pause, res_pause);
+    initAndSetIconAndLabel(btn_stop, res_stop);
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -213,7 +173,7 @@ extern int _is_in_M600_flg;
 extern uint32_t *pCommand;
 #endif
 
-void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
     if (HAL_GetTick() - _last > 300) {
@@ -238,15 +198,6 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         marlin_print_abort();
         waiting_for_abort = false;
         return;
-    }
-
-    if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
-        open_popup_message();
-        return;
-    }
-
-    if ((!is_abort_state(marlin_vars()->print_state)) && message_flag && (HAL_GetTick() - message_timer >= POPUP_MSG_DUR_MS)) {
-        close_popup_message();
     }
 
     if (p_state == printing_state_t::PRINTED && marlin_error(MARLIN_ERR_ProbingFailed)) {
@@ -277,8 +228,6 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         }
         last_time_to_end = marlin_vars()->time_to_end;
     }
-    if (marlin_vars()->sd_percent_done != last_sd_percent_done)
-        update_progress(marlin_vars()->sd_percent_done, marlin_vars()->print_speed);
 
     /// -- close screen when print is done / stopped and USB media is removed
     if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
@@ -287,12 +236,12 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
     }
 
     /// -- check when media is or isn't inserted
-    if (header.EventClr_MediaRemoved() || header.EventClr_MediaInserted()) {
+    if (event == GUI_event_t::MEDIA) {
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
     }
 
-    IScreenPrinting::windowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 void screen_printing_data_t::disable_tune_button() {
@@ -312,13 +261,8 @@ void screen_printing_data_t::enable_tune_button() {
     btn_tune.ico.Invalidate();
 }
 
-void screen_printing_data_t::update_progress(uint8_t percent, uint16_t print_speed) {
-    w_progress.SetNumbColor((percent <= 100) && (print_speed == 100) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID);
-    w_progress.SetValue(percent);
-}
-
 void screen_printing_data_t::update_remaining_time(time_t rawtime, uint16_t print_speed) {
-    w_etime_value.color_text = rawtime != time_t(-1) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID;
+    w_etime_value.color_text = rawtime != time_t(-1) ? GuiDefaults::COLOR_VALUE_VALID : GuiDefaults::COLOR_VALUE_INVALID;
     if (rawtime != time_t(-1)) {
         if (print_speed != 100)
             // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
@@ -347,10 +291,10 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
 
     bool time_invalid = false;
     if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
-        w_etime_value.color_text = COLOR_VALUE_INVALID;
+        w_etime_value.color_text = GuiDefaults::COLOR_VALUE_INVALID;
         time_invalid = true;
     } else {
-        w_etime_value.color_text = COLOR_VALUE_VALID;
+        w_etime_value.color_text = GuiDefaults::COLOR_VALUE_VALID;
     }
 
     static const uint32_t full_day_in_seconds = 86400;
@@ -391,7 +335,7 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
     w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));
 }
 void screen_printing_data_t::update_print_duration(time_t rawtime) {
-    w_time_value.color_text = COLOR_VALUE_VALID;
+    w_time_value.color_text = GuiDefaults::COLOR_VALUE_VALID;
     const struct tm *timeinfo = localtime(&rawtime);
     if (timeinfo->tm_yday) {
         snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);

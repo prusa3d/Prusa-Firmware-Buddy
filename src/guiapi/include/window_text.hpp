@@ -7,14 +7,14 @@
 enum class is_multiline : bool { no,
     yes };
 
-struct window_text_t : public window_aligned_t {
+struct window_text_t : public AddSuperWindow<window_aligned_t> {
     color_t color_text;
     font_t *font;
     string_view_utf8 text;
     padding_ui8_t padding;
 
     string_view_utf8 GetText() const { return text; }
-    void SetText(string_view_utf8 txt);
+    virtual void SetText(string_view_utf8 txt);
     void SetTextColor(color_t clr);
 
     color_t GetTextColor() const { return color_text; }
@@ -26,11 +26,11 @@ protected:
     virtual void unconditionalDraw() override;
 };
 
-struct window_text_button_t : public window_text_t {
+struct window_text_button_t : public AddSuperWindow<window_text_t> {
     ButtonCallback callback;
 
     window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, string_view_utf8 txt = string_view_utf8::MakeNULLSTR()); //default action is close screen
 
 protected:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

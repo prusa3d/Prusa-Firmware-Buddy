@@ -58,83 +58,148 @@
 #include "lwip.h"
 #include "lwip/init.h"
 #include "lwip/netif.h"
+#include "dns.h"
 #include "netifapi.h"
 
 #include <string.h>
-
 #include "dbg.h"
 #include "ethernetif.h"
 #include "wui_api.h"
+// global variables
+WUI_ETH_LINK_STATUS_t link_status = WUI_ETH_LINK_DOWN;
+WUI_ETH_NETIF_STATUS_t netif_status = WUI_ETH_NETIF_DOWN;
+struct netif eth0;           // network interface structure for ETH
+ETH_config_t wui_eth_config; // the active WUI configuration for ethernet, connect and server
+// local static variables
+static ip4_addr_t ipaddr;
+static ip4_addr_t netmask;
+static ip4_addr_t gw;
+static uint32_t ip4_type = WUI_IP4_DHCP;
+static char eth_hostname[ETH_HOSTNAME_LEN + 1] = { 0 };
 
-ip4_addr_t ipaddr;
-ip4_addr_t netmask;
-ip4_addr_t gw;
+static void wui_lwip_set_lan_static(ETH_config_t *ethconfig) {
+    ip4_type = WUI_IP4_DHCP;
+    ipaddr.addr = ethconfig->lan.addr_ip4.addr;
+    netmask.addr = ethconfig->lan.msk_ip4.addr;
+    gw.addr = ethconfig->lan.gw_ip4.addr;
+    dns_setserver(DNS_1, &ethconfig->dns1_ip4);
+    dns_setserver(DNS_2, &ethconfig->dns2_ip4);
+    netifapi_netif_set_addr(&eth0, &ipaddr, &netmask, &gw);
+    netifapi_dhcp_inform(&eth0);
+}
 
-void Error_Handler(void);
+static void wui_lwip_set_lan_dhcp() {
+    ip4_type = WUI_IP4_DHCP;
+    netifapi_dhcp_start(&eth0);
+}
 
 void netif_link_callback(struct netif *eth) {
     ethernetif_update_config(eth);
-    ETH_config_t ethconfig;
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(&ethconfig);
     if (netif_is_link_up(eth)) {
-        if (IS_LAN_ON(ethconfig.lan.flag)) {
+        if (!netif_is_up(eth)) {
             netif_set_up(eth);
-            if (IS_LAN_DHCP(ethconfig.lan.flag)) {
-                dhcp_start(eth);
-            } else {
-                dhcp_inform(eth);
-            }
         }
     } else {
-        if (IS_LAN_DHCP(ethconfig.lan.flag)) {
-            dhcp_release_and_stop(eth);
+        if (netif_is_up(eth)) {
+            netif_set_down(eth);
         }
-        netif_set_down(eth);
     }
 }
 
-void MX_LWIP_Init(void) {
+void netif_status_callback(struct netif *eth) {
+    netif_status = netif_is_up(eth) ? WUI_ETH_NETIF_UP : WUI_ETH_NETIF_DOWN;
+}
+
+void wui_lwip_link_status() {
+    if (ethernetif_link(&eth0)) {
+        link_status = WUI_ETH_LINK_UP;
+        if (!netif_is_link_up(&eth0)) {
+            netifapi_netif_set_link_up(&eth0);
+            // start the DHCP if needed!
+            if (!IS_LAN_STATIC(wui_eth_config.lan.flag)) {
+                dhcp_start(&eth0);
+            }
+        }
+    } else {
+        link_status = WUI_ETH_LINK_DOWN;
+        if (netif_is_link_up(&eth0)) {
+            netifapi_netif_set_link_down(&eth0);
+        }
+    }
+}
+
+void wui_lwip_sync_gui_lan_settings() {
+    uint32_t var_mask = get_eth_update_mask();
+    if (var_mask) {
+        wui_eth_config.var_mask = var_mask;
+        load_eth_params(&wui_eth_config);
+        clear_eth_update_mask();
+        // LAN related changes
+        if (wui_eth_config.var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
+            //// LAN ON/OFF
+            if (IS_LAN_ON(wui_eth_config.lan.flag)) {
+                if (!netif_is_up(&eth0)) {
+                    netif_set_up(&eth0);
+                }
+            } else {
+                if (netif_is_up(&eth0)) {
+                    netif_set_down(&eth0);
+                }
+            }
+            //// DHCP/static ?
+            if (IS_LAN_STATIC(wui_eth_config.lan.flag)) {
+                if (WUI_IP4_DHCP == ip4_type)
+                    wui_lwip_set_lan_static(&wui_eth_config);
+            } else {
+                if (WUI_IP4_STATIC == ip4_type)
+                    wui_lwip_set_lan_dhcp();
+            }
+        }
+    }
+}
+
+void MX_LWIP_Init(ETH_config_t *ethconfig) {
     /* Initilialize the LwIP stack with RTOS */
     tcpip_init(NULL, NULL);
 
-    /* IP addresses initialization with DHCP (IPv4) */
-    ipaddr.addr = 0;
-    netmask.addr = 0;
-    gw.addr = 0;
+    if (IS_LAN_STATIC(ethconfig->lan.flag)) {
+        ip4_type = WUI_IP4_STATIC;
+        ipaddr.addr = ethconfig->lan.addr_ip4.addr;
+        netmask.addr = ethconfig->lan.msk_ip4.addr;
+        gw.addr = ethconfig->lan.gw_ip4.addr;
 
+        dns_setserver(DNS_1, &ethconfig->dns1_ip4);
+        dns_setserver(DNS_2, &ethconfig->dns2_ip4);
+
+        netif_set_addr(&eth0, &ipaddr, &netmask, &gw);
+    } else {
+        ip4_type = WUI_IP4_DHCP;
+        ipaddr.addr = 0;
+        netmask.addr = 0;
+        gw.addr = 0;
+    }
     /* add the network interface (IPv4/IPv6) with RTOS */
     netif_add(&eth0, &ipaddr, &netmask, &gw, NULL, &ethernetif_init,
         &tcpip_input);
-
     /* Registers the default network interface */
     netif_set_default(&eth0);
-
-    /* Load all eth configuration values stored in non-volatile memory unit */
-    ETH_config_t ethconfig;
-    ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS | ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_HOSTNAME);
-    load_eth_params(&ethconfig);
-    strlcpy(eth_hostname, ethconfig.hostname, ETH_HOSTNAME_LEN + 1);
+    // set the host name
+    strlcpy(eth_hostname, ethconfig->hostname, ETH_HOSTNAME_LEN + 1);
     eth0.hostname = eth_hostname;
-    /* This won't execute until user loads static lan settings at least once (default is DHCP) */
-    if (IS_LAN_STATIC(ethconfig.lan.flag)) {
-
-        ipaddr.addr = ethconfig.lan.addr_ip4.addr;
-        netmask.addr = ethconfig.lan.msk_ip4.addr;
-        gw.addr = ethconfig.lan.gw_ip4.addr;
-
-        netif_set_addr(&eth0, &ipaddr, &netmask, &gw);
-    }
     /* Setting necessary callbacks after initial setup */
     netif_set_link_callback(&eth0, netif_link_callback);
+    netif_set_status_callback(&eth0, netif_status_callback);
 
-    // ETH force reset
-    if (eth0.flags & NETIF_FLAG_LINK_UP && IS_LAN_ON(ethconfig.lan.flag)) {
-        eth0.flags &= ~NETIF_FLAG_LINK_UP;
-        netifapi_netif_set_link_up(&eth0);
+    if (netif_is_link_up(&eth0)) {
+        /* When the netif is fully configured this function must be called */
+        netif_set_up(&eth0);
+        // start the DHCP if needed!
+        if (!IS_LAN_STATIC(ethconfig->lan.flag)) {
+            dhcp_start(&eth0);
+        }
     } else {
-        eth0.flags |= NETIF_FLAG_LINK_UP;
-        netifapi_netif_set_link_down(&eth0);
+        /* When the netif link is down this function must be called */
+        netif_set_down(&eth0);
     }
 }
 

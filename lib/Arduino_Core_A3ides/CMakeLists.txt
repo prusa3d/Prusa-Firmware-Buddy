@@ -1,4 +1,4 @@
-set(ARDUINO_CORE_VARIANTS "2209" "2130")
+set(ARDUINO_CORE_VARIANTS "2209")
 
 if(NOT ARDUINO_CORE_TARGET)
   message(FATAL_ERROR "ARDUINO_CORE_TARGET: not set")
@@ -9,9 +9,7 @@ endif()
 
 add_library(
   CoreA3ides
-  $<$<STREQUAL:${ARDUINO_CORE_VARIANT},2130>:${CMAKE_CURRENT_SOURCE_DIR}/variants/A3IDES_F407VET6_2130/variant.cpp>
   $<$<STREQUAL:${ARDUINO_CORE_VARIANT},2209>:${CMAKE_CURRENT_SOURCE_DIR}/variants/A3IDES_F407VET6_2209/variant.cpp>
-  cores/arduino/HardwareSerial.cpp
   cores/arduino/Print.cpp
   cores/arduino/Stream.cpp
   cores/arduino/USBSerial.cpp

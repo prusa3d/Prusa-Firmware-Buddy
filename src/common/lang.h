@@ -1,6 +1,5 @@
 // lang.h
-#ifndef _LANG_H
-#define _LANG_H
+#pragma once
 
 #include "inttypes.h"
 
@@ -31,5 +30,3 @@ typedef struct {
 
 extern void set_actual_lang(lang_code_t lang_code);
 extern const lang_t *get_actual_lang(void);
-
-#endif // _LANG_H

@@ -5,7 +5,7 @@
 /*****************************************************************************/
 // Z Calibration FSM Notifier
 
-Z_Calib_FSM::Z_Calib_FSM(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max)
+Z_Calib_FSM::Z_Calib_FSM(ClientFSM type, uint8_t phase, float min, float max, uint8_t progress_min, uint8_t progress_max)
     : Notifier(type, phase, min, max, progress_min, progress_max) {
     sw_endstop_state = soft_endstops_enabled;
     hw_endstop_state = endstops.global_enabled();

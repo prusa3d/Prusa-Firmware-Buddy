@@ -8,7 +8,7 @@
     #include "../Marlin/src/module/stepper.h"
     #include "dbg.h"
 
-    #define BUFF_SIZE 256
+static const constexpr uint16_t BUFF_SIZE = 256;
 
 extern "C" {
 

@@ -2,15 +2,13 @@
 #include "adc.h"
 #include "stm32f4xx_hal.h"
 #include "hwio.h"
+#include "main.h"
 
 #ifndef ADC_SIM_MSK
     #define ADC_SIM_MSK 0
 #endif
 
 extern ADC_HandleTypeDef hadc1;
-
-//Main error handler
-extern void Error_Handler(void);
 
 uint32_t adc_val[ADC_CHAN_CNT]; //sampled values
 uint8_t adc_cnt[ADC_CHAN_CNT];  //number of samples

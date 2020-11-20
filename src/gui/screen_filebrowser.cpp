@@ -11,9 +11,11 @@
 #include "ScreenHandler.hpp"
 #include "eeprom.h"
 #include "i18n.h"
+#include "gui_media_events.hpp"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
+#include "GuiDefaults.hpp"
 
 #ifndef MAXPATHNAMELENGTH
     #define MAXPATHNAMELENGTH F_MAXPATHNAMELENGTH
@@ -31,15 +33,12 @@ constexpr unsigned int SFN_len = 13;
 static char firstVisibleSFN[SFN_len] = "";
 
 screen_filebrowser_data_t::screen_filebrowser_data_t()
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , header(this)
-    , w_filelist(this, Rect16(10, 32, 220, 278)) {
+    , w_filelist(this, GuiDefaults::RectScreenBodyNoFoot) {
     screen_filebrowser_sort = (WF_Sort_t)variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT));
 
-    // FIXME: this could crash with very fast insert and eject, status_header will fix this
-    marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted
-
-    header.SetIcon(IDR_PNG_filescreen_icon_folder);
+    header.SetIcon(IDR_PNG_folder_full_16px);
     static const char sf[] = N_("SELECT FILE");
     header.SetText(_(sf));
 
@@ -64,17 +63,18 @@ static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
     firstVisibleSFN[0] = 0; // clear the last top item
 }
 
-void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     marlin_vars_t *vars = marlin_vars();
-    if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) { // close screen when media removed
-        screen_filebrowser_clear_firstVisibleSFN(vars);
-        Screens::Access()->Close();
+    if (event == GUI_event_t::MEDIA) {
+        GuiMediaEventsHandler::state_t media_state = GuiMediaEventsHandler::state_t(int(param));
+        if (media_state == GuiMediaEventsHandler::state_t::removed || media_state == GuiMediaEventsHandler::state_t::error) {
+            screen_filebrowser_clear_firstVisibleSFN(vars);
+            Screens::Access()->Close();
+        }
     }
 
-    header.EventClr();
-
-    if (event != WINDOW_EVENT_CLICK) {
-        window_frame_t::windowEvent(sender, event, param);
+    if (event != GUI_event_t::CLICK) {
+        SuperWindowEvent(sender, event, param);
         return;
     }
 
@@ -93,7 +93,7 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
     size_t sfnPathLen = strlen(w_filelist.sfn_path);
     if ((sfnPathLen + strlen(currentSFN) + 1) >= MAXPATHNAMELENGTH) {
         LOG_ERROR("path too long");
-        window_frame_t::windowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
         return;
     }
     if (!currentIsFile) {                // directory selected
@@ -130,7 +130,7 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
             }
             if (written < 0 || written >= (int)FILE_PATH_MAX_LEN) {
                 LOG_ERROR("failed to prepare file path for print");
-                window_frame_t::windowEvent(sender, event, param);
+                SuperWindowEvent(sender, event, param);
                 return;
             }
 
@@ -146,6 +146,4 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
             return;
         }
     }
-    window_frame_t::windowEvent(sender, event, param);
-    return;
 }

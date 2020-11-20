@@ -1,5 +1,4 @@
-#ifndef GCODE_THUMB_DECODER_H
-#define GCODE_THUMB_DECODER_H
+#pragma once
 
 // bod 2 - uchodit parser na g-code (bohuzel nemuzu pouzit boost::spirit, to by
 // me Robert asi sezral :) ) ale ono to nebude tak strasne - jde o to, ze se
@@ -162,5 +161,3 @@ public:
             bytesQ.dequeue();
     }
 };
-
-#endif // GCODE_THUMB_DECODER_H

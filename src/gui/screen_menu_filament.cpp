@@ -5,12 +5,18 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "filament.h"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "marlin_client.h"
 #include "window_dlg_load_unload.h"
 #include "dbg.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "sound.hpp"
+
+enum {
+    F_EEPROM = 0x01, // filament is known
+    F_SENSED = 0x02  // filament is not in sensor
+};
 
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
@@ -28,12 +34,12 @@ class MI_event_dispatcher : public WI_LABEL_t {
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
         //no way to change header on this level, have to dispatch event
-        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CLICK, (void *)this); //WI_LABEL is not a window, cannot set sender param
+        Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CLICK, (void *)this); //WI_LABEL is not a window, cannot set sender param
     }
 
 public:
-    explicit MI_event_dispatcher(const char *label)
-        : WI_LABEL_t(label, 0, true, false) {}
+    explicit MI_event_dispatcher(string_view_utf8 label)
+        : WI_LABEL_t(label, 0, is_enabled_t::yes, is_hidden_t::no) {}
 
     virtual string_view_utf8 GetHeaderAlterLabel() = 0;
     virtual void Do() = 0;
@@ -44,15 +50,18 @@ public:
 class MI_LOAD : public MI_event_dispatcher {
     constexpr static const char *const label = N_("Load Filament");
     constexpr static const char *const header_label = N_("LOAD FILAMENT");
+    constexpr static const char *const warning_loaded = N_("Filament appears to be already loaded, are you sure you want to load it anyway?");
 
 public:
     MI_LOAD()
-        : MI_event_dispatcher(label) {}
+        : MI_event_dispatcher(_(label)) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
         return _(header_label);
     }
     virtual void Do() override {
-        gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+        if ((get_filament() == FILAMENT_NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
+            gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+        }
     }
 };
 
@@ -64,12 +73,13 @@ class MI_UNLOAD : public MI_event_dispatcher {
 
 public:
     MI_UNLOAD()
-        : MI_event_dispatcher(label) {}
+        : MI_event_dispatcher(_(label)) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
         return _(header_label);
     }
     virtual void Do() override {
         gui_dlg_unload();
+        Sound_Stop();
     }
 };
 
@@ -81,12 +91,13 @@ class MI_CHANGE : public MI_event_dispatcher {
 
 public:
     MI_CHANGE()
-        : MI_event_dispatcher(label) {}
+        : MI_event_dispatcher(_(label)) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
         return _(header_label);
     }
     virtual void Do() override {
         if (gui_dlg_unload() == DLG_OK) {
+            Sound_Stop();
             gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
         }
     }
@@ -100,7 +111,7 @@ class MI_PURGE : public MI_event_dispatcher {
 
 public:
     MI_PURGE()
-        : MI_event_dispatcher(label) {}
+        : MI_event_dispatcher(_(label)) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
         return _(header_label);
     }
@@ -112,16 +123,16 @@ public:
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
 
 class ScreenMenuFilament : public Screen {
-    enum {
-        F_EEPROM = 0x01, // filament is known
-        F_SENSED = 0x02  // filament is not in sensor
-    };
-
 public:
     constexpr static const char *label = N_("FILAMENT");
     ScreenMenuFilament()
-        : Screen(_(label)) { deactivate_item(); }
-    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
+        : Screen(_(label)) {
+        Screen::ClrMenuTimeoutClose(); // don't close on menu timeout
+        deactivate_item();
+    }
+
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 private:
     void deactivate_item();
@@ -146,9 +157,9 @@ ScreenFactory::UniquePtr GetScreenMenuFilament() {
     return ScreenFactory::Screen<ScreenMenuFilament>();
 }
 
-void ScreenMenuFilament::windowEvent(window_t *sender, uint8_t ev, void *param) {
+void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     deactivate_item();
-    if (ev == WINDOW_EVENT_CLICK) {
+    if (event == GUI_event_t::CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
             header.SetText(item->GetHeaderAlterLabel()); //set new label
@@ -156,7 +167,7 @@ void ScreenMenuFilament::windowEvent(window_t *sender, uint8_t ev, void *param) 
             header.SetText(_(label));                    //restore label
         }
     } else {
-        Screen::windowEvent(sender, ev, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 
@@ -164,39 +175,32 @@ void ScreenMenuFilament::windowEvent(window_t *sender, uint8_t ev, void *param) 
 //non-static method definition
 
 /*
- * +---------+--------++------+--------+--------+-------+--------------------------------------------------------+
- * | FSENSOR | EEPROM || load | unload | change | purge | comment                                                |
- * +---------+--------++------+--------+--------+-------+--------------------------------------------------------+
- * |       0 |      0 ||  YES |    YES |     NO |    NO | filament not loaded                                    |
- * |       0 |      1 ||   NO |    YES |    YES |    NO | filament loaded but just runout                        |
- * |       1 |      0 ||  YES |    YES |     NO |    NO | user pushed filament into sensor, but it is not loaded |
- * |       1 |      1 ||   NO |    YES |    YES |   YES | filament loaded                                        |
- * +---------+--------++------+--------+--------+-------+--------------------------------------------------------+
+ * +---------+--------++------------+--------+--------+-------+--------------------------------------------------------+
+ * | FSENSOR | EEPROM || load       | unload | change | purge | comment                                                |
+ * +---------+--------++------------+--------+--------+-------+--------------------------------------------------------+
+ * |       0 |      0 ||  YES       |    YES |     NO |    NO | filament not loaded                                    |
+ * |       0 |      1 ||  YES (ASK) |    YES |    YES |    NO | filament loaded but just runout                        |
+ * |       1 |      0 ||  YES       |    YES |     NO |    NO | user pushed filament into sensor, but it is not loaded |
+ * |       1 |      1 ||  YES (ASK) |    YES |    YES |   YES | filament loaded                                        |
+ * +---------+--------++------------+--------+--------+-------+--------------------------------------------------------+
  */
 void ScreenMenuFilament::deactivate_item() {
 
     uint8_t filament = 0;
     filament |= get_filament() != FILAMENT_NONE ? F_EEPROM : 0;
-    filament |= fs_get_state() == FS_NO_FILAMENT ? 0 : F_SENSED;
+    filament |= fs_get_state() == fsensor_t::NoFilament ? 0 : F_SENSED;
     switch (filament) {
-    case 0: //filament not loaded
-        ena<MI_LOAD>();
+    case 0:        //filament not loaded
+    case F_SENSED: //user pushed filament into sensor, but it is not loaded
         dis<MI_CHANGE>();
         dis<MI_PURGE>();
         break;
     case F_EEPROM: //filament loaded but just runout
-        dis<MI_LOAD>();
         ena<MI_CHANGE>();
-        dis<MI_PURGE>();
-        break;
-    case F_SENSED: //user pushed filament into sensor, but it is not loaded
-        ena<MI_LOAD>();
-        dis<MI_CHANGE>();
         dis<MI_PURGE>();
         break;
     case F_SENSED | F_EEPROM: //filament loaded
     default:
-        dis<MI_LOAD>();
         ena<MI_CHANGE>();
         ena<MI_PURGE>();
         break;

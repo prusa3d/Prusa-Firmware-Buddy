@@ -220,6 +220,7 @@ int32_t Stepper::ticks_nominal = -1;
 
 xyz_long_t Stepper::endstops_trigsteps;
 xyze_long_t Stepper::count_position{0};
+xyze_long_t Stepper::count_position_from_startup{0};
 xyze_int8_t Stepper::count_direction{0};
 
 #define DUAL_ENDSTOP_APPLY_STEP(A,V)                                                                                        \
@@ -1433,6 +1434,7 @@ void Stepper::stepper_pulse_phase_isr() {
       if (delta_error[_AXIS(AXIS)] >= 0) { \
         _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), 0); \
         count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+        count_position_from_startup[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
       } \
     }while(0)
 
@@ -2226,6 +2228,10 @@ int32_t Stepper::position(const AxisEnum axis) {
     if (was_enabled) ENABLE_STEPPER_DRIVER_INTERRUPT();
   #endif
   return v;
+}
+
+int32_t Stepper::position_from_startup(const AxisEnum axis) {
+    return count_position_from_startup[axis];
 }
 
 // Signal endstops were triggered - This function can be called from

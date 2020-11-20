@@ -17,7 +17,7 @@
 class MI_LangBase : public WI_LABEL_t {
 public:
     inline MI_LangBase(const char *label, uint16_t icon_id)
-        : WI_LABEL_t(label, icon_id, true, false) {}
+        : WI_LABEL_t(_(label), icon_id, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
@@ -26,8 +26,8 @@ protected:
     }
     virtual uint16_t LangCode() const = 0;
 
-    virtual void printIcon(IWindowMenu &window_menu, Rect16 rect, uint8_t swap, color_t color_back) const override {
-        render_unswapable_icon_align(getIconRect(window_menu, rect), id_icon, color_back, RENDER_FLG(ALIGN_CENTER, swap));
+    virtual void printIcon(Rect16 icon_rect, uint8_t swap, color_t color_back) const override {
+        render_unswapable_icon_align(icon_rect, id_icon, color_back, RENDER_FLG(ALIGN_CENTER, swap));
     }
 };
 
@@ -136,6 +136,8 @@ public:
     constexpr static const char *label = N_("SELECT LANGUAGE");
     ScreenMenuLanguagesNoRet()
         : Screen_noReturn(_(label)) {
+        window_frame_t::ClrMenuTimeoutClose();
+        window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     }
 };
 
