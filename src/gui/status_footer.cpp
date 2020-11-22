@@ -182,7 +182,7 @@ void status_footer_t::update_filament() {
 
     // filament = filaments[get_filament()].name;
     static char filament[10];
-    snprintf(filament, 10, "%f", odometer.trip_xyze[3]);
+    snprintf(filament, 10, "%f", (double)odometer.trip_xyze[3]);
 
     wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filament));
 }

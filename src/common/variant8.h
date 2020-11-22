@@ -111,6 +111,8 @@ extern uint8_t variant8_get_usr8(variant8_t v);
 extern uint16_t variant8_get_usr16(variant8_t v);
 // returns variant8_t flt
 extern float variant8_get_flt(variant8_t v);
+// returns variant8_t pflt
+extern float *variant8_get_pflt(variant8_t v);
 // returns variant8_t pch
 extern char *variant8_get_pch(variant8_t v);
 // returns variant8_t ui8
@@ -136,6 +138,8 @@ extern void variant8_set_usr8(variant8_t *, uint8_t);
 
 // set variant8_t usr8 member
 extern void variant8_set_type(variant8_t *, uint8_t);
+
+extern variant8_t variant8_pflt(float *pflt, uint16_t count, int init);
 
 // returns VARIANT8_PCHAR
 // Because PCHAR is special case of pointer type, there is a simplification for defining size.

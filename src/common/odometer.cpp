@@ -2,6 +2,7 @@
 
 #include "odometer.hpp"
 #include "cmath_ext.h"
+#include "eeprom.h"
 
 odometer_c odometer;
 /// minimal value saved to EEPROM
@@ -13,15 +14,15 @@ void odometer_c::lazy_add_to_eeprom(int axis) {
     if (axis >= 0) {
         save = save || trip_xyze[axis] >= min_trip;
     } else {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < AXES; i++)
             save = save || trip_xyze[i] >= min_trip;
     }
     if (!save)
         return;
 
-    float odo_xyze[4];
+    float odo_xyze[AXES];
     /// TODO: read EEPROM to odo_xyze
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < AXES; i++) {
         if (trip_xyze[i] >= min_trip) {
             odo_xyze[i] += trip_xyze[i];
             trip_xyze[i] = 0;
@@ -31,7 +32,10 @@ void odometer_c::lazy_add_to_eeprom(int axis) {
 }
 
 void odometer_c::force_to_eeprom() {
-    /// TODO:
+    float *odo = variant8_get_pflt(eeprom_get_var(EEVAR_ODOMETER));
+    for (int i = 0; i < AXES; ++i)
+        odo[i] += trip_xyze[i];
+    eeprom_set_var(EEVAR_ODOMETER, variant8_pflt(odo, AXES, 0));
 }
 
 void odometer_c::add_new_value(int axis, float value) {
