@@ -4,7 +4,8 @@
 #include "cmath_ext.h"
 
 odometer_c odometer;
-static const constexpr float min_trip = 1000;
+/// minimal value saved to EEPROM
+static const constexpr float min_trip = 10000;
 static const constexpr int E_AXIS = 3;
 
 void odometer_c::lazy_add_to_eeprom(int axis) {
@@ -34,11 +35,7 @@ void odometer_c::force_to_eeprom() {
 }
 
 void odometer_c::add_new_value(int axis, float value) {
-    if (axis != E_AXIS) {
-        trip_xyze[axis] += ABS(value);
-        lazy_add_to_eeprom(axis);
-    } else if (value > 0) {
-        trip_xyze[axis] += value;
-        lazy_add_to_eeprom(axis);
-    }
+    /// E axis counts filament used instead of filament moved
+    trip_xyze[axis] += (axis == E_AXIS) ? value : ABS(value);
+    lazy_add_to_eeprom(axis);
 }
