@@ -190,7 +190,7 @@ WizardState_t StateFnc_FIRST() {
 WizardState_t StateFnc_FINISH() {
     static const char en_text[] = N_("Calibration successful! Happy printing!");
     string_view_utf8 translatedText = _(en_text);
-    MsgBox(translatedText, Responses_Next);
+    MsgBoxPepa(translatedText, Responses_Next);
     return WizardState_t::next;
 }
 
