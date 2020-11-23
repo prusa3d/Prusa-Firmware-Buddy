@@ -1,7 +1,6 @@
 // window_frame.cpp
 #include "window_frame.hpp"
 #include "sound.hpp"
-#include "ScreenHandler.hpp"
 
 window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
     : AddSuperWindow<window_t>(parent, rect, type)
@@ -56,23 +55,15 @@ window_t *window_frame_t::findLast(window_t *begin, window_t *end, const WinFilt
 
 //register sub win
 //structure: normal windows - than dialogs - than strong dialogs - than popups
-bool window_frame_t::RegisterSubWin(window_t *win) {
-    //invalid win pointer
-    if (!win)
-        return false;
-
-    //different parent
-    if (win->GetParent() != nullptr && win->GetParent() != this)
-        return false;
-
+bool window_frame_t::registerSubWin(window_t &win) {
     //window must fit inside frame
-    if (!rect.Contain(win->rect))
+    if (!rect.Contain(win.rect))
         return false;
 
     //adding first window - it must be normal window
     if (!(first && last)) {
-        if (win->GetType() == win_type_t::normal) {
-            first = last = win;
+        if (win.GetType() == win_type_t::normal) {
+            first = last = &win;
             return true;
         } else {
             return false;
@@ -100,7 +91,7 @@ bool window_frame_t::RegisterSubWin(window_t *win) {
     window_t *predecessor = nullptr;
 
     //find place to register
-    switch (win->GetType()) {
+    switch (win.GetType()) {
     case win_type_t::normal:
 #ifdef _DEBUG
         colorConflictBackgroundToRed(*win);
@@ -111,9 +102,9 @@ bool window_frame_t::RegisterSubWin(window_t *win) {
         predecessor = last_dialog;
         break;
     case win_type_t::popup:
-        if (canRegisterPopup(*win, *last_strong)) {
-            unregisterConflictingPopUps(win->rect, last_strong); // could break predecessor of poppup
-            predecessor = last_popup;                            // so it is set after unregistration
+        if (canRegisterPopup(win, *last_strong)) {
+            unregisterConflictingPopUps(win.rect, last_strong); // could break predecessor of poppup
+            predecessor = last_popup;                           // so it is set after unregistration
         }
         break;
     case win_type_t::strong_dialog:
@@ -123,13 +114,13 @@ bool window_frame_t::RegisterSubWin(window_t *win) {
 
     if (!predecessor)
         return false;
-    unregisterConflictingPopUps(win->rect, last_strong); //normally could break predecessor of poppup, but it was handled in switch
+    unregisterConflictingPopUps(win.rect, last_strong); //normally could break predecessor of poppup, but it was handled in switch
 
     window_t *successor = predecessor->GetNext();
-    registerSubWin(*win, *predecessor, successor);
+    registerSubWin(win, *predecessor, successor);
 
-    win->SetParent(this);
-    win->Invalidate();
+    win.SetParent(this);
+    win.Invalidate();
 
     clearAllHiddenBehindDialogFlags();
     hideSubwinsBehindDialogs();
@@ -202,6 +193,11 @@ void window_frame_t::hideSubwinsBehindDialogs() {
     }
 }
 
+bool window_frame_t::HasDialogOrPopup() {
+    WinFilterDialogOrPopUp filter;
+    return findFirst(first, nullptr, filter) != nullptr;
+}
+
 bool window_frame_t::canRegisterPopup(window_t &win, window_t &last_strong) {
     WinFilterIntersectingDialog filter(win.rect);
     //find intersecting non popup
@@ -214,24 +210,19 @@ bool window_frame_t::canRegisterPopup(window_t &win, window_t &last_strong) {
 }
 
 //unregister sub win
-void window_frame_t::UnregisterSubWin(window_t *win) {
-    //is not subwin
-    if ((!win) || (win->GetParent() != this)) {
-        return;
-    }
-
-    switch (win->GetType()) {
+void window_frame_t::unregisterSubWin(window_t &win) {
+    switch (win.GetType()) {
     case win_type_t::normal:
-        unregisterNormal(*win);
+        unregisterNormal(win);
         break;
     case win_type_t::dialog:
-        unregisterDialog(*win);
+        unregisterDialog(win);
         break;
     case win_type_t::popup:
-        unregisterPopUp(*win);
+        unregisterPopUp(win);
         break;
     case win_type_t::strong_dialog:
-        unregisterStrongDialog(*win);
+        unregisterStrongDialog(win);
         break;
     }
 }

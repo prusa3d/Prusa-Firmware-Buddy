@@ -41,4 +41,6 @@ public:
             }
         }
     };
+
+    void ResetTimeout() {}
 };
