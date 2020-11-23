@@ -591,6 +591,7 @@ if(GUI)
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_menu_languages.cpp
             src/gui/screen_menu_sensor_info.cpp
+            src/gui/screen_menu_odometer.cpp
             src/gui/screen_qr_error.cpp
             src/gui/screen_menu_hw_setup.cpp
             src/gui/screen_menu_steel_sheets.cpp

@@ -33,13 +33,23 @@ void odometer_c::lazy_add_to_eeprom(int axis) {
 
 void odometer_c::force_to_eeprom() {
     float *odo = variant8_get_pflt(eeprom_get_var(EEVAR_ODOMETER));
-    for (int i = 0; i < AXES; ++i)
+    bool changed = false;
+    for (int i = 0; i < AXES; ++i) {
+        if (trip_xyze[i] == 0)
+            continue;
         odo[i] += trip_xyze[i];
-    eeprom_set_var(EEVAR_ODOMETER, variant8_pflt(odo, AXES, 0));
+        trip_xyze[i] = 0;
+        changed = true;
+    }
+    if (changed)
+        eeprom_set_var(EEVAR_ODOMETER, variant8_pflt(odo, AXES, 0));
 }
 
 void odometer_c::add_new_value(int axis, float value) {
     /// E axis counts filament used instead of filament moved
     trip_xyze[axis] += (axis == E_AXIS) ? value : ABS(value);
     lazy_add_to_eeprom(axis);
+}
+
+float *odometer_c::get_from_eeprom() {
 }

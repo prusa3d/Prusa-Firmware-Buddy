@@ -28,6 +28,15 @@ void MI_SENSOR_INFO::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+MI_ODOMETER::MI_ODOMETER()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_ODOMETER::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuOdometer);
+}
+
+/*****************************************************************************/
 //MI_FILAMENT
 MI_FILAMENT::MI_FILAMENT()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {

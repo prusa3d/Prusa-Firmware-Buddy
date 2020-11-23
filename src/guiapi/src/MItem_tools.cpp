@@ -408,7 +408,7 @@ void I_MI_Filament::click_at(FILAMENT_t filament_index) {
 }
 
 MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
-    : WI_SWITCH_0_1_NA_t(get_state(), _(label), 0, is_enabled_t::no, is_hidden_t::no) {
+    : WI_SWITCH_0_1_NA_t(get_state(), _(label), IDR_NULL, is_enabled_t::no, is_hidden_t::no) {
 }
 
 MI_FILAMENT_SENSOR_STATE::state_t MI_FILAMENT_SENSOR_STATE::get_state() {
@@ -428,7 +428,7 @@ bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
 }
 
 MI_MINDA::MI_MINDA()
-    : WI_SWITCH_0_1_NA_t(get_state(), _(label), 0, is_enabled_t::no, is_hidden_t::no) {
+    : WI_SWITCH_0_1_NA_t(get_state(), _(label), IDR_NULL, is_enabled_t::no, is_hidden_t::no) {
 }
 
 MI_MINDA::state_t MI_MINDA::get_state() {

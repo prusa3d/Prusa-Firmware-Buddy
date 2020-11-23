@@ -18,6 +18,8 @@ public:
     void force_to_eeprom();
     /// save new movement
     void add_new_value(int axis, float value);
+    /// read values from EEPROM
+    float *get_from_eeprom();
 };
 
 extern odometer_c odometer;
