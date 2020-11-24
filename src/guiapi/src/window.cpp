@@ -5,6 +5,7 @@
 #include "ScreenHandler.hpp"
 #include "gui_timer.h"
 #include "display.h"
+#include "sound.hpp"
 
 bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }
 bool window_t::IsHiddenBehindDialog() const { return flags.hidden_behind_dialog; }
@@ -161,6 +162,8 @@ window_t::~window_t() {
     //win_type_t::normal must be unregistered so ~window_frame_t can has functional linked list
     if (GetParent())
         GetParent()->UnregisterSubWin(this);
+
+    Screens::Access()->ResetTimeout();
 }
 
 void window_t::SetNext(window_t *nxt) {
@@ -235,7 +238,22 @@ void window_t::draw() {
 
 //window does not support subwindow elements, but window_frame does
 bool window_t::RegisterSubWin(window_t *win) {
+    return win ? registerSubWin(*win) : false;
+    Screens::Access()->ResetTimeout();
+}
+
+void window_t::UnregisterSubWin(window_t *win) {
+    if ((!win) || (win->GetParent() != this))
+        return;
+    unregisterSubWin(*win);
+    Screens::Access()->ResetTimeout();
+}
+
+bool window_t::registerSubWin(window_t &win) {
     return false;
+}
+
+void window_t::unregisterSubWin(window_t &win) {
 }
 
 void window_t::unconditionalDraw() {
@@ -302,6 +320,44 @@ void window_t::ResetCapturedWindow() {
 void window_t::ResetFocusedWindow() {
     focused_ptr = nullptr;
 }
+
+bool window_t::EventEncoder(int diff) {
+    if ((!capture_ptr) || (diff == 0))
+        return false;
+
+    if (diff > 0) {
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_UP, (void *)diff);
+    } else {
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_DN, (void *)-diff);
+    }
+
+    Screens::Access()->ResetTimeout();
+    return true;
+}
+
+bool window_t::EventJogwheel(BtnState_t state) {
+    if (!capture_ptr)
+        return false;
+
+    switch (state) {
+    case BtnState_t::Pressed:
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::BTN_DN, 0);
+        break;
+    case BtnState_t::Released:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::BTN_UP, 0);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
+        break;
+    case BtnState_t::Held:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HOLD, 0);
+        break;
+    }
+
+    Screens::Access()->ResetTimeout();
+    return true;
+}
+
 /*****************************************************************************/
 //window_aligned_t
 

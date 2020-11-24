@@ -76,4 +76,11 @@ union WindowFlags {
         : data(dt) {}
 };
 
+// current state of button, event is stored into buffer on button change
+enum class BtnState_t : uint8_t {
+    Released,
+    Pressed,
+    Held
+};
+
 static_assert(sizeof(WindowFlags) == sizeof(WindowFlags::data), "WindowFlags structure invalid");

@@ -195,13 +195,13 @@ void Screens::Loop() {
     /// menu timeout logic:
     /// when timeout is expired on current screen,
     /// we iterate through whole stack and close every screen that should be closed
-    if (menu_timeout_enabled && Get() && Get()->ClosedOnTimeout()) {
+    if (menu_timeout_enabled && Get() && Get()->ClosedOnTimeout() && (!Get()->HasDialogOrPopup())) {
         if (HAL_GetTick() - timeout_tick > MENU_TIMEOUT_MS) {
             while (Get() && Get()->ClosedOnTimeout() && stack_iterator != stack.begin()) {
                 close = true;
                 InnerLoop();
             }
-            ResetTimeout();
+            // no need to call ResetTimeout() - screen destructor does that
             return;
         }
     }
