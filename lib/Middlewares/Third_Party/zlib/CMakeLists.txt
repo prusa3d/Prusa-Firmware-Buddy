@@ -2,7 +2,6 @@ add_library(
   zlib
   adler32.c
   compress.c
-  crc32.c
   deflate.c
   gzclose.c
   gzlib.c

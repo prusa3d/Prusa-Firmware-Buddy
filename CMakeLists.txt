@@ -132,10 +132,17 @@ set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_GUI "MINI")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
 
+# Set printer board
+set(PRINTERS_WITH_BUDDY "MINI")
+
 if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
 else()
   set(FILAMENT_SENSOR NO)
+endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_BUDDY)
+  set(BOARD_TYPE BUDDY_BOARD)
 endif()
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
@@ -178,6 +185,7 @@ target_compile_definitions(
   INTERFACE
   MOTHERBOARD=${MOTHERBOARD}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
+  BOARD_TYPE=${BOARD_TYPE}
   MARLIN_DISABLE_INFINITE_LOOP
   PROCESS_CUSTOM_GCODE
   STM32GENERIC
@@ -403,6 +411,7 @@ target_include_directories(
           src/gui/wizard
           src/guiapi/include
           src/lang
+          src/hw
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -424,7 +433,6 @@ target_link_libraries(
           $<$<BOOL:${WUI}>:WUI>
           jsmn::jsmn
           QR
-          CRC
           Buddy::Lang
   )
 
@@ -437,7 +445,7 @@ target_sources(
           src/freertos.c
           src/freertos_openocd.c
           src/usbh_diskio.c
-          src/main_${PRINTER}.cpp
+          src/main.cpp
           src/usbd_desc.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>
@@ -450,6 +458,7 @@ target_sources(
           src/stm32f4xx_hal_timebase_tim.c
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
+          src/common/hardware_serial.cpp
           src/common/diag.cpp
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
@@ -460,6 +469,7 @@ target_sources(
           src/common/sim_bed.c
           src/common/sys.cpp
           src/common/sim_nozzle.c
+          src/common/heap.c
           src/common/hwio_a3ides_2209_02.cpp
           src/common/putslave.cpp
           src/common/safe_state.cpp
@@ -474,8 +484,11 @@ target_sources(
           src/common/version.c
           src/common/marlin_events.c
           src/common/marlin_errors.c
+          src/common/metric.c
+          src/common/metric_handlers.c
           src/common/uartrxbuff.c
           src/common/appmain.cpp
+          src/common/app_metrics.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
           src/common/selftest/selftest_MINI.cpp
@@ -484,7 +497,6 @@ target_sources(
           src/common/selftest/selftest_heater.cpp
           src/common/sim_motion.cpp
           src/common/st25dv64k.c
-          $<$<STREQUAL:${INIT_TRINAMIC_FROM_MARLIN_ONLY},NO>:src/common/trinamic.cpp>
           src/common/w25x.c
           src/common/gcode_file.cpp
           src/common/gcode_thumb_decoder.cpp
@@ -498,13 +510,17 @@ target_sources(
           src/common/errors.cpp
           src/common/client_response.cpp
           src/common/crc32.c
+          src/common/crc32_zlib.c
           src/common/ini_handler.c
           src/common/sha256.c
           src/common/wui_api.c
           src/common/z_calibration_fsm.cpp
+          src/common/scratch_buffer.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
+          src/marlin_stubs/M330.cpp
           src/marlin_stubs/M50.cpp
+          src/hw/buffered_serial.cpp
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/G26.cpp
           src/marlin_stubs/G162.cpp
@@ -521,6 +537,7 @@ target_sources(
           src/gui/guimain.cpp
           src/common/filament.cpp
           src/common/fanctl.cpp
+          src/common/trinamic.cpp
   )
 
 if(GUI)
@@ -541,11 +558,12 @@ if(GUI)
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
-            src/gui/dialogs/window_dlg_fan_error.cpp
+            src/gui/dialogs/window_dlg_strong_warning.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
             src/gui/dialogs/liveadjust_z.cpp
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
+            src/gui/gui_media_events.cpp
             src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
@@ -628,12 +646,16 @@ if(GUI)
             src/guiapi/src/window.cpp
             src/guiapi/src/window_event.cpp
             src/guiapi/src/IWindowMenuItem.cpp
+            src/guiapi/src/WindowMenuSwitch.cpp
+            src/guiapi/src/WindowMenuSpin.cpp
             src/guiapi/src/WindowMenuItems.cpp
             src/guiapi/src/MItem_menus.cpp
             src/guiapi/src/MItem_print.cpp
             src/guiapi/src/MItem_tools.cpp
             src/guiapi/src/Jogwheel.cpp
             src/guiapi/src/ScreenShot.cpp
+            src/guiapi/src/menu_spin_config_types.cpp
+            $<$<STREQUAL:${PRINTER},MINI>:src/guiapi/src/menu_spin_config_basic.cpp>
     )
 endif()
 
@@ -659,6 +681,7 @@ set_property(
 
 set_property(
   SOURCE src/common/appmain.cpp src/common/marlin_test.cpp src/common/putslave.cpp
+         src/common/thread_measurement.cpp src/common/trinamic.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>

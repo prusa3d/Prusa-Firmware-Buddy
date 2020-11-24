@@ -216,7 +216,7 @@ void hwio_pwm_set_period_us(int i_pwm, int T_us) //set pwm resolution
 
     int prescaler = T_us * (int32_t)TIM_BASE_CLK_MHZ / (_pwm_max[i_pwm] + 1) - 1;
     hwio_pwm_set_prescaler(i_pwm, prescaler);
-    //actualize seconds
+    //update seconds
     *ptr_period_us = T_us;
 }
 
@@ -242,7 +242,7 @@ void hwio_pwm_set_prescaler(int i_pwm, int prescaler) {
 
     //calculate micro seconds
     int T_us = GEN_PERIOD_US(prescaler, htim->Init.Period);
-    //actualize micro
+    //update micro
     int *ptr_period_us = _pwm_period_us[i_pwm];
     *ptr_period_us = T_us;
 }
@@ -296,7 +296,7 @@ TIM_HandleTypeDef *_pwm_get_htim(int i_pwm) {
     return _pwm_p_htim[i_pwm];
 }
 
-void hwio_pwm_set_val(int i_pwm, uint32_t val) //write pwm output and actualize _pwm_analogWrite_val
+void hwio_pwm_set_val(int i_pwm, uint32_t val) //write pwm output and update _pwm_analogWrite_val
 {
     if (!is_pwm_id_valid(i_pwm))
         return;
@@ -308,7 +308,7 @@ void hwio_pwm_set_val(int i_pwm, uint32_t val) //write pwm output and actualize 
     if ((_pwm_analogWrite_val[i_pwm] ^ val) || (cmp != val)) {
         _hwio_pwm_set_val(i_pwm, val);
 
-        //actualize _pwm_analogWrite_val
+        //update _pwm_analogWrite_val
         int pwm_max = hwio_pwm_get_max(i_pwm);
         int pwm_analogWrite_max = _pwm_analogWrite_max[i_pwm];
 

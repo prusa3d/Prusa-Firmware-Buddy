@@ -395,6 +395,13 @@ public:
         }
     }
 
+    template <class... E>
+    static Rect16 Merge_ParamPack(E &&... e) {
+        const size_t SZ = sizeof...(E);
+        std::array<Rect16, SZ> arr = { { std::forward<E>(e)... } };
+        return Merge(arr);
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Determines the rectangle structure that represents the union of
     /// all given rectangles.

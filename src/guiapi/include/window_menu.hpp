@@ -28,6 +28,10 @@ class window_menu_t : public IWindowMenu {
     /// \returns index of the item (including hidden) defined by
     /// index in visible item list (excluding hidden)
     int realIndex(const int visible_index);
+    ///Prints scrollbar
+    ///\param available_count - Number of all items that haven't got is_hidden enabled
+    ///\param visible_count - Number of all currently visible items
+    void printScrollBar(size_t available_count, uint16_t visible_count);
     /// Redraws whole window
     void redrawWholeMenu();
     /// Plays proper sound according to item/value changed

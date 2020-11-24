@@ -23,6 +23,7 @@ enum class GUI_event_t {
     TIMER,       //gui timer
     TEXT_ROLL,   //tick for text rolling classes
     MESSAGE,     //onStatusChange() message notification
+    MEDIA,       // marlin media change
     CHILD_CLICK, //click at the child screen
 };
 
@@ -93,6 +94,8 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
         return "text roll base tick";
     case GUI_event_t::MESSAGE:
         return "message notification";
+    case GUI_event_t::MEDIA:
+        return "Marlin media changed";
     case GUI_event_t::CHILD_CLICK:
         return "child click";
     }

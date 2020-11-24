@@ -13,6 +13,7 @@
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
 #include "screen_menus.hpp"
+#include "gui_media_events.hpp"
 
 #include "i18n.h"
 
@@ -41,6 +42,7 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
 
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<window_frame_t>()
+    , usbInserted(marlin_vars()->media_inserted)
     , header(this)
     , footer(this)
     , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_prusa_printer_logo)
@@ -60,16 +62,13 @@ screen_home_data_t::screen_home_data_t()
 {
     window_frame_t::ClrMenuTimeoutClose();
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
-    // Every 49days and some time in 5 seconds window, auto filebrowser open will not work.
-    // Seconds (timestamp) from UNIX epocho will fix this
-    time = HAL_GetTick();
-    is_starting = (time < 5000) ? 1 : 0;
 
     header.SetIcon(IDR_PNG_home_shape_16px);
 #ifndef _DEBUG
     header.SetText(_("HOME"));
 #else
-    header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)(N_("HOME - DEBUG - what a beautifull rolling text"))));
+    static const uint8_t msgHomeDebugRolling[] = "HOME - DEBUG - what a beautifull rolling text";
+    header.SetText(string_view_utf8::MakeCPUFLASH(msgHomeDebugRolling)); // intentionally not translated
 #endif
 
     for (uint8_t row = 0; row < 2; row++) {
@@ -78,7 +77,7 @@ screen_home_data_t::screen_home_data_t()
             w_buttons[i].rect = Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
             w_buttons[i].SetIdRes(icons[i]);
 
-            w_labels[i].rect = Rect16(80 * col, 152 + (15 + 64) * row, 80, 14);
+            w_labels[i].rect = Rect16(80 * col, 154 + (15 + 64) * row, 80, 14);
             w_labels[i].font = resource_font(IDR_FNT_SMALL);
             w_labels[i].SetAlignment(ALIGN_CENTER);
             w_labels[i].SetPadding({ 0, 0, 0, 0 });
@@ -86,12 +85,17 @@ screen_home_data_t::screen_home_data_t()
         }
     }
 
-    if (!marlin_vars()->media_inserted)
+    if (!usbInserted) {
         printBtnDis();
+    }
+}
+
+screen_home_data_t::~screen_home_data_t() {
+    GuiMediaEventsHandler::ConsumeOneClickPrinting();
 }
 
 void screen_home_data_t::draw() {
-    window_frame_t::draw();
+    super::draw();
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
     display::DrawText(Rect16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
@@ -100,41 +104,42 @@ void screen_home_data_t::draw() {
 
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
-    if (is_starting) // first 1000ms (cca 50ms is event period) skip MediaInserted
-    {
-        uint32_t now = HAL_GetTick();
-        if ((now - time) > 950) {
-            is_starting = 0;
+    if (event == GUI_event_t::MEDIA) {
+        switch (GuiMediaEventsHandler::state_t(int(param))) {
+        case GuiMediaEventsHandler::state_t::inserted:
+            if (!usbInserted) {
+                usbInserted = true;
+                printBtnEna();
+            }
+            break;
+        case GuiMediaEventsHandler::state_t::removed:
+        case GuiMediaEventsHandler::state_t::error:
+            if (usbInserted) {
+                usbInserted = false;
+                printBtnDis();
+            }
+            break;
+        default:
+            break;
         }
-
-        //header.EventClr();
-        if (header.EventClr_MediaInserted())
-            printBtnEna();
     }
 
-    //todo i think this should be handled in print preview
-    if (header.EventClr_MediaInserted()) {
-        if (HAL_GetTick() > 5000) {
-            // we are using marlin variables for filename and filepath buffers
-            marlin_vars_t *vars = marlin_vars();
-            //check if the variables filename and filepath are allocated
-            if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
-                if (find_latest_gcode(
-                        vars->media_SFN_path,
-                        FILE_PATH_MAX_LEN,
-                        vars->media_LFN,
-                        FILE_NAME_MAX_LEN)) {
-                    screen_print_preview_data_t::SetGcodeFilepath(vars->media_SFN_path);
-                    screen_print_preview_data_t::SetGcodeFilename(vars->media_LFN);
-                    Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
-                }
+    if (event == GUI_event_t::LOOP && GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
+
+        // we are using marlin variables for filename and filepath buffers
+        marlin_vars_t *vars = marlin_vars();
+        //check if the variables filename and filepath are allocated
+        if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
+            if (find_latest_gcode(
+                    vars->media_SFN_path,
+                    FILE_PATH_MAX_LEN,
+                    vars->media_LFN,
+                    FILE_NAME_MAX_LEN)) {
+                screen_print_preview_data_t::SetGcodeFilepath(vars->media_SFN_path);
+                screen_print_preview_data_t::SetGcodeFilename(vars->media_LFN);
+                Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
             }
         }
-        printBtnEna();
-    }
-
-    if (header.EventClr_MediaRemoved()) {
-        printBtnDis();
     }
 
     SuperWindowEvent(sender, event, param);
