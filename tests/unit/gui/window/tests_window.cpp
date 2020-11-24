@@ -28,12 +28,12 @@ struct MockScreen : public AddSuperWindow<window_frame_t> {
     window_t w_last; // just so w3 is not last
 
     MockScreen()
-        : w_first(this, Rect16(0, 0, 10, 10))
-        , w0(this, Rect16(20, 20, 10, 10))
-        , w1(this, Rect16(20, 40, 10, 10))
-        , w2(this, Rect16(40, 20, 10, 10))
-        , w3(this, Rect16(40, 40, 10, 10))
-        , w_last(this, Rect16(0, 0, 10, 10)) {}
+        : w_first(this, GuiDefaults::RectHeader) // header is not hidden behind dialog
+        , w0(this, Rect16(20, 20, 10, 10) + GuiDefaults::RectScreenBody.Top())
+        , w1(this, Rect16(20, 40, 10, 10) + GuiDefaults::RectScreenBody.Top())
+        , w2(this, Rect16(40, 20, 10, 10) + GuiDefaults::RectScreenBody.Top())
+        , w3(this, Rect16(40, 40, 10, 10) + GuiDefaults::RectScreenBody.Top())
+        , w_last(this, GuiDefaults::RectHeader) {} // header is not hidden behind dialog
 };
 
 struct MockMsgBox : public AddSuperWindow<IDialog> {
@@ -220,8 +220,8 @@ TEST_CASE("Window registration tests", "[window]") {
 
     SECTION("ShowHotendFan") {
         MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
-
-        //msg_box_check(screen, strong, 1);
+        msg_box_check(screen, strong, 1);
+        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
     }
 
     hal_tick = 1000;                                   //set openned on popup
