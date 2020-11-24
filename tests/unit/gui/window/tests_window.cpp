@@ -7,6 +7,7 @@
 #include "ScreenHandler.hpp"
 #include "IDialog.hpp"
 #include "cmsis_os.h" //HAL_GetTick
+#include "window_dlg_strong_warning.hpp"
 
 void gui_timers_delete_by_window(window_t *pWin) {}
 void gui_invalidate(void) {}
@@ -38,6 +39,35 @@ struct MockScreen : public AddSuperWindow<window_frame_t> {
 struct MockMsgBox : public AddSuperWindow<IDialog> {
     MockMsgBox(Rect16 rc)
         : AddSuperWindow<IDialog>(rc) {}
+};
+
+class MockStrongDialog : public AddSuperWindow<window_dlg_strong_warning_t> {
+public:
+    void Show(string_view_utf8 txt) { show(txt); }
+
+    static MockStrongDialog &ShowHotendFan() {
+        static MockStrongDialog dlg;
+        dlg.Show(_(HotendFanErrorMsg));
+        return dlg;
+    }
+
+    static MockStrongDialog &ShowPrintFan() {
+        static MockStrongDialog dlg;
+        dlg.Show(_(PrintFanErrorMsg));
+        return dlg;
+    }
+
+    static MockStrongDialog &ShowHeaterTimeout() {
+        static MockStrongDialog dlg;
+        dlg.Show(_(HeaterTimeoutMsg));
+        return dlg;
+    }
+
+    static MockStrongDialog &ShowUSBFlashDisk() {
+        static MockStrongDialog dlg;
+        dlg.Show(_(USBFlashDiskError));
+        return dlg;
+    }
 };
 
 enum class has_dialog_t : bool { no,
@@ -82,7 +112,8 @@ void basic_basic_screen_check(MockScreen &screen, has_dialog_t has_dialog) {
     window_linked_list_check(screen, has_dialog);
 }
 
-void msg_box_check(MockScreen &screen, MockMsgBox &msgbox, size_t no_of_msgboxes = 1) {
+template <class T>
+void msg_box_check(MockScreen &screen, T &msgbox, size_t no_of_msgboxes = 1) {
     REQUIRE(msgbox.GetParent() == &screen);
 
     //check parrent
@@ -185,6 +216,12 @@ TEST_CASE("Window registration tests", "[window]") {
 
         REQUIRE(msgbox0.IsHiddenBehindDialog());
         REQUIRE_FALSE(msgbox1.IsHiddenBehindDialog());
+    }
+
+    SECTION("ShowHotendFan") {
+        MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
+
+        //msg_box_check(screen, strong, 1);
     }
 
     hal_tick = 1000;                                   //set openned on popup
