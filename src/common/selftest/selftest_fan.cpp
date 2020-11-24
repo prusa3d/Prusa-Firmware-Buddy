@@ -6,7 +6,7 @@
 
 #define FANTEST_STOP_DELAY    2000
 #define FANTEST_WAIT_DELAY    2500
-#define FANTEST_MEASURE_DELAY 2500
+#define FANTEST_MEASURE_DELAY 7500
 
 CSelftestPart_Fan::CSelftestPart_Fan(const selftest_fan_config_t *pconfig)
     : m_pConfig(pconfig) {
