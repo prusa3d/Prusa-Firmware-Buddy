@@ -95,18 +95,18 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_TEST_FANS_fine : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Fan test OK");
+class MI_ADVANCED_FAN_TEST : public WI_LABEL_t {
+    static constexpr const char *const label = "Advanced fan test"; // debug only - not translated
 
 public:
-    MI_TEST_FANS_fine();
+    MI_ADVANCED_FAN_TEST();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
 class MI_TEST_ABORT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test Abort");
+    static constexpr const char *const label = "Test Abort"; // debug only - not translated
 
 public:
     MI_TEST_ABORT();

@@ -133,11 +133,11 @@ void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
 
 /*****************************************************************************/
 //MI_TEST_FANS_fine
-MI_TEST_FANS_fine::MI_TEST_FANS_fine()
+MI_ADVANCED_FAN_TEST::MI_ADVANCED_FAN_TEST()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_TEST_FANS_fine::click(IWindowMenu & /*window_menu*/) {
+void MI_ADVANCED_FAN_TEST::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmFans_fine);
     DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
 }
