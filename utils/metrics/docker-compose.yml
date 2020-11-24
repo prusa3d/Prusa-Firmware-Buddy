@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+      - "8090:8090"
+    volumes:
+      - ./data_influxdb:/var/lib/influxdb
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    user: "0"
+    links:
+      - influxdb
+    volumes:
+      - ./data_grafana:/var/lib/grafana
+      - ./grafana:/etc/grafana/provisioning
+    environment:
+      - GF_INSTALL_PLUGINS=natel-discrete-panel
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
+
+  metric-handler:
+    build: .
+    ports:
+      - '8500:8500/udp'
+    links:
+      - influxdb
+    depends_on:
+      - influxdb

@@ -11,6 +11,17 @@
 #include "hash.hpp"
 #include "unaccent.hpp"
 
+#define CHECK_MESSAGE(cond, msg) \
+    do {                         \
+        INFO(msg);               \
+        CHECK(cond);             \
+    } while ((void)0, 0)
+#define REQUIRE_MESSAGE(cond, msg) \
+    do {                           \
+        INFO(msg);                 \
+        REQUIRE(cond);             \
+    } while ((void)0, 0)
+
 using namespace std;
 
 using TPBSH = CPUFLASHTranslationProviderBase::SHashTable;
@@ -208,15 +219,24 @@ pair<uint16_t, uint16_t> FillStringTable(const deque<string> &translatedStrings,
     return make_pair(stringBegins - stringsBeginOrigin, utf8Raw - utf8RawOrigin);
 }
 
-bool CompareStringViews(string_view_utf8 s, string_view_utf8 s2, set<unichar> &nonAsciiChars) {
+bool CompareStringViews(string_view_utf8 s, string_view_utf8 s2, set<unichar> &nonAsciiChars, const char *langCode) {
     unichar c;
     while ((c = s.getUtf8Char()) != 0) {
         if (c > 128) {
             nonAsciiChars.insert(c); // just stats how many non-ASCII UTF-8 characters do we have for now
             const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
+
             if (cASCII.key == 0xffff) {
-                // this string wants a new non-ascii character
-                std::cout << "xx\n";
+                // this string wants a new non-ascii character - force fail the whole test immediately
+                // When this happens, one must either add the character into unaccent.cpp, if the character is meaningfull
+                // Or kick the translator person to stop copying BS formatting characters from MS Word into Phraseapp
+                // Typical situation: U+202A -> e2 80 aa -> LEFT-TO-RIGHT EMBEDDING
+                char tmp[1024];
+                s2.rewind();
+                s2.copyToRAM(tmp, 1024);
+                INFO("Language=" << langCode << " : string='" << tmp << "': needs an unknown non-ASCII character ord=0x" << std::hex << c);
+                REQUIRE(cASCII.key != 0xffff);
+                return false;
             }
         }
         if (c != s2.getUtf8Char()) {
@@ -241,7 +261,7 @@ bool LoadTranslatedStringsFile(const char *fname, deque<string> *st) {
 }
 
 bool CheckAllTheStrings(const deque<string> &rawStringKeys, const deque<string> &translatedStrings,
-    CPUFLASHTranslationProviderBase &provider, set<unichar> &nonAsciiChars) {
+    CPUFLASHTranslationProviderBase &provider, set<unichar> &nonAsciiChars, const char *langCode) {
     // prepare a map for comparison
     map<string, string> stringControlMap;
     {
@@ -268,14 +288,14 @@ bool CheckAllTheStrings(const deque<string> &rawStringKeys, const deque<string> 
         const char *value = v.second.c_str();
         string_view_utf8 s2 = string_view_utf8::MakeRAM((const uint8_t *)value);
         // now compare - that means iterating over both string views and making sure both return the same utf8 characters
-        CHECK(CompareStringViews(s, s2, nonAsciiChars));
+        CHECK(CompareStringViews(s, s2, nonAsciiChars, langCode));
     });
 
     { // check for a non-existing string
         static const char nex[] = "NoN_ExIsTiNg:string";
         string_view_utf8 s = provider.GetText(nex);
         string_view_utf8 s2 = string_view_utf8::MakeRAM((const uint8_t *)nex);
-        CHECK(CompareStringViews(s, s2, nonAsciiChars));
+        CHECK(CompareStringViews(s, s2, nonAsciiChars, langCode));
     }
 
     return true;
@@ -391,12 +411,12 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
             nonASCIICharacters.insert(c);
         }
     }
-    REQUIRE(CheckAllTheStrings(rawStringKeys, csStrings, providerCS, nonASCIICharacters));
-    REQUIRE(CheckAllTheStrings(rawStringKeys, deStrings, providerDE, nonASCIICharacters));
-    REQUIRE(CheckAllTheStrings(rawStringKeys, esStrings, providerES, nonASCIICharacters));
-    REQUIRE(CheckAllTheStrings(rawStringKeys, frStrings, providerFR, nonASCIICharacters));
-    REQUIRE(CheckAllTheStrings(rawStringKeys, itStrings, providerIT, nonASCIICharacters));
-    REQUIRE(CheckAllTheStrings(rawStringKeys, plStrings, providerPL, nonASCIICharacters));
+    REQUIRE(CheckAllTheStrings(rawStringKeys, csStrings, providerCS, nonASCIICharacters, "cs"));
+    REQUIRE(CheckAllTheStrings(rawStringKeys, deStrings, providerDE, nonASCIICharacters, "de"));
+    REQUIRE(CheckAllTheStrings(rawStringKeys, esStrings, providerES, nonASCIICharacters, "es"));
+    REQUIRE(CheckAllTheStrings(rawStringKeys, frStrings, providerFR, nonASCIICharacters, "fr"));
+    REQUIRE(CheckAllTheStrings(rawStringKeys, itStrings, providerIT, nonASCIICharacters, "it"));
+    REQUIRE(CheckAllTheStrings(rawStringKeys, plStrings, providerPL, nonASCIICharacters, "pl"));
 
     CompareHashTables();
 
@@ -416,7 +436,7 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
             // but is important for character generation (newly added characters)
             // check, that we have this character in our temporary translation table
             const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
-            CHECK(cASCII.key != 0xffff);
+            CHECK_MESSAGE(cASCII.key != 0xffff, "Missing char ord=0x" << std::hex << c);
         });
     }
 }

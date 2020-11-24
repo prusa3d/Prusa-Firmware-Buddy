@@ -8,7 +8,6 @@
 //#define UARTSLAVE_TST
 
 int uartslave_parse_mod_mask(uartslave_t *pslave, char *pstr, uint16_t *pmod_msk) {
-    _Static_assert(sizeof(uartslave_t) == 32, "invalid sizeof(uartslave_t)");
     int ret = 0;
     char ch;
     do {
@@ -55,7 +54,8 @@ int uartslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t c
     return UARTSLAVE_OK;
 }
 
-void uartslave_init(uartslave_t *pslave, uartrxbuff_t *prxbuff, int size, char *pline) {
+void uartslave_init(uartslave_t *pslave, uartrxbuff_t *prxbuff, UART_HandleTypeDef *huart, int size, char *pline) {
+    pslave->huart = huart;
     pslave->prxbuff = prxbuff;
     pslave->flags = 0;
     pslave->count = 0;
@@ -134,7 +134,7 @@ int uartslave_printf(uartslave_t *pslave, const char *fmt, ...) {
     va_start(va, fmt);
     const int len = vsnprintf(text, text_len, fmt, va);
     va_end(va);
-    HAL_StatusTypeDef ret = HAL_UART_Transmit(pslave->prxbuff->phuart, (uint8_t *)text, len, HAL_MAX_DELAY);
+    HAL_StatusTypeDef ret = HAL_UART_Transmit(pslave->huart, (uint8_t *)text, len, HAL_MAX_DELAY);
     if (ret == HAL_OK)
         return len;
     return -1;

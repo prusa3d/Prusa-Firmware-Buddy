@@ -17,7 +17,7 @@ class MI_STEEL_SHEETS : public WI_LABEL_t {
 
 public:
     MI_STEEL_SHEETS()
-        : WI_LABEL_t(_(label), 0, true, false) {};
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {

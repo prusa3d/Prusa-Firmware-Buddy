@@ -1,6 +1,5 @@
 // DialogHandler.cpp
 #include "DialogHandler.hpp"
-#include "gui.hpp"
 #include "DialogLoadUnload.hpp"
 #include "DialogFactory.hpp"
 #include "IScreenPrinting.hpp"
@@ -33,9 +32,6 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
     if (ptr)
         return; //the dialog is already openned
 
-    if (gui_get_nesting() > 1) //another test if the dialog is openned, TODO: remove after gui refactoring
-        return;
-
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
     switch (dialog) {
@@ -58,9 +54,6 @@ void DialogHandler::close(ClientFSM dialog) {
     if (waiting_closed == dialog) {
         waiting_closed = ClientFSM::_none;
     } else {
-        if (gui_get_nesting() > 1) //test if dialog is openned todo remove after gui refactoring
-            return;
-
         //hack get_scr_printing_serial() is no dialog but screen ... todo change to dialog?
 
         switch (dialog) {

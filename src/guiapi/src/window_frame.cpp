@@ -47,18 +47,15 @@ window_t *window_frame_t::findLast(window_t *begin, window_t *end, const WinFilt
     //no need to check parrent or null, findFirst does that
     window_t *ret = end;
     window_t *temp = begin;
-    while (true) {
-        temp = findFirst(temp, end, filter);
-        if (temp != end) {
-            ret = temp;
-        } else {
-            break;
-        }
+    while (((temp = findFirst(temp, end, filter)) != nullptr) && (temp != end)) {
+        ret = temp;
+        temp = temp->GetNext();
     };
     return ret;
 }
 
 //register sub win
+//structure: normal windows - than dialogs - than strong dialogs - than popups
 bool window_frame_t::RegisterSubWin(window_t *win) {
     //invalid win pointer
     if (!win)
@@ -72,36 +69,95 @@ bool window_frame_t::RegisterSubWin(window_t *win) {
     if (!rect.Contain(win->rect))
         return false;
 
-    //adding first window is always fine
+    //adding first window - it must be normal window
     if (!(first && last)) {
-        first = last = win;
-        return false;
+        if (win->GetType() == win_type_t::normal) {
+            first = last = win;
+            return true;
+        } else {
+            return false;
+        }
     }
-    bool ret = false;
+
+    WinFilterNormal filter_normal;
+    WinFilterDialog filter_dialog;
+    WinFilterStrongDialog filter_strong;
+
+    window_t *last_normal = findLast(first, nullptr, filter_normal);
+    window_t *last_dialog = findLast(first, nullptr, filter_dialog);
+    window_t *last_strong = findLast(first, nullptr, filter_strong);
+    window_t *last_popup = last; // no need for findLast(first, nullptr, filter_popup);
+
+    if (!last_normal)
+        return false; //should not happen
+    if (!last_dialog)
+        last_dialog = last_normal;
+    if (!last_strong)
+        last_strong = last_dialog;
+    if (!last_popup)
+        last_popup = last_strong;
+
+    window_t *predecessor = nullptr;
+
+    //find place to register
     switch (win->GetType()) {
     case win_type_t::normal:
-        ret = registerNormal(*win);
+#ifdef _DEBUG
+        colorConflictBackgroundToRed(*win);
+#endif //_DEBUG
+        predecessor = last_normal;
         break;
     case win_type_t::dialog:
-        ret = registerDialog(*win);
+        predecessor = last_dialog;
         break;
     case win_type_t::popup:
-        ret = registerPopUp(*win); //can clear parent
+        if (canRegisterPopup(*win, *last_strong)) {
+            unregisterConflictingPopUps(win->rect, last_strong); // could break predecessor of poppup
+            predecessor = last_popup;                            // so it is set after unregistration
+        }
         break;
     case win_type_t::strong_dialog:
-        ret = registerStrongDialog(*win);
+        predecessor = last_strong;
         break;
     }
 
-    win->SetParent(ret ? this : nullptr);
+    if (!predecessor)
+        return false;
+    unregisterConflictingPopUps(win->rect, last_strong); //normally could break predecessor of poppup, but it was handled in switch
+
+    window_t *successor = predecessor->GetNext();
+    registerSubWin(*win, *predecessor, successor);
+
+    win->SetParent(this);
     win->Invalidate();
-    return ret;
+
+    clearAllHiddenBehindDialogFlags();
+    hideSubwinsBehindDialogs();
+    return true;
 }
 
-bool window_frame_t::registerNormal(window_t &win) {
+void window_frame_t::unregisterConflictingPopUps(Rect16 rect, window_t *last_strong) {
+    if (!last_strong)
+        return;
+    WinFilterIntersectingPopUp filter_popup(rect);
+    window_t *popup;
+    window_t *first_popup = last_strong->GetNext();
+    //find intersecting popups and close them
+    while ((popup = findFirst(first_popup, nullptr, filter_popup)) != nullptr) {
+        UnregisterSubWin(first_popup);
+    }
+}
 
-//in debug windows with intersection are painted with red background
-#ifdef _DEBUG
+void window_frame_t::registerSubWin(window_t &win, window_t &predecessor, window_t *pSuccessor) {
+    predecessor.SetNext(&win);
+    win.SetNext(pSuccessor);
+
+    if (last == &predecessor)
+        last = &win;
+}
+
+void window_frame_t::colorConflictBackgroundToRed(window_t &win) {
+    //in debug windows with intersection are painted with red background
     // check of win_type_t::normal is needed, because other registration methods can recall this one
     if (win.GetType() == win_type_t::normal) {
 
@@ -113,51 +169,48 @@ bool window_frame_t::registerNormal(window_t &win) {
             pWin = pWin->GetNext();
         }
     }
-#endif //_DEBUG
-
-    // cannot be in RegisterSubWin directly
-    // if registering popup - it needs to know if can be created first
-    // so it is here to be in 1 place
-    WinFilterIntersectingPopUp filter(win.rect);
-    window_t *popup;
-    while ((popup = findFirst(first, nullptr, filter)) != nullptr) {
-        UnregisterSubWin(popup);
-    }
-
-    last->SetNext(&win);
-    last = last->GetNext();
-    return true;
 }
 
-bool window_frame_t::registerDialog(window_t &win) {
+void window_frame_t::clearAllHiddenBehindDialogFlags() {
+    window_t *ptr = first;
+    while (ptr) {
+        ptr->ShowAfterDialog();
+        ptr = ptr->GetNext();
+    }
+}
+void window_frame_t::hideSubwinsBehindDialogs() {
+    //find last normal window
+    WinFilterNormal filter_normal;
+    window_t *last_normal = findLast(first, nullptr, filter_normal);
+    window_t *pBegin = last_normal ? last_normal->GetNext() : nullptr; //first not normal window
+    if (!pBegin)
+        return; //no dialog .. nothing is hidden behind dialog
 
-    // todo missing implementation
-    // find strong dialogs, if exists
-    // register under it
-    window_t *pWin = first;
-    while (pWin) {
-        if (win.rect.HasIntersection(pWin->rect)) {
-            pWin->HideBehindDialog();
+    //find last visible dialog
+    WinFilterVisible filter_visible;
+    window_t *pEnd = nullptr;
+    window_t *pLastVisibleDialog;
+    while ((pLastVisibleDialog = findLast(pBegin, pEnd, filter_visible)) != pEnd) {
+        //hide all conflicting windows
+        WinFilterIntersectingVisible filter_intersecting(pLastVisibleDialog->rect);
+        window_t *pIntersectingWin;
+        while ((pIntersectingWin = findFirst(first, pLastVisibleDialog, filter_intersecting)) != pLastVisibleDialog) {
+            pIntersectingWin->HideBehindDialog();
         }
-        pWin = pWin->GetNext();
+
+        pEnd = pLastVisibleDialog; //new end of search
     }
-
-    return registerNormal(win);
 }
 
-bool window_frame_t::registerStrongDialog(window_t &win) {
-    return registerNormal(win);
-}
-
-bool window_frame_t::registerPopUp(window_t &win) {
-
+bool window_frame_t::canRegisterPopup(window_t &win, window_t &last_strong) {
     WinFilterIntersectingDialog filter(win.rect);
-    // there can be no overlaping dialog
-    if (findFirst(first, nullptr, filter) == nullptr) {
-        registerDialog(win); // register like dialog
-        return true;
+    //find intersecting non popup
+    if (findFirst(first, last_strong.GetNext(), filter)) {
+        //registration failed
+        win.SetParent(nullptr);
+        return false;
     }
-    return false;
+    return true;
 }
 
 //unregister sub win
@@ -236,6 +289,7 @@ void window_frame_t::unregisterDialog(window_t &win) {
 
 void window_frame_t::unregisterStrongDialog(window_t &win) {
     unregisterDialog(win);
+    win.SetParent(nullptr);
 }
 
 void window_frame_t::unregisterPopUp(window_t &win) {
@@ -326,7 +380,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sende
     case GUI_event_t::CAPT_0:
         break;
     case GUI_event_t::CAPT_1:
-        if (pWin->GetParent() != this) {
+        if (pWin && pWin->GetParent() != this) {
             pWin = first;
             if (pWin && !pWin->IsEnabled())
                 pWin = pWin->GetNextEnabled();
@@ -368,11 +422,11 @@ void window_frame_t::validate(Rect16 validation_rect) {
 }
 
 bool window_frame_t::IsChildCaptured() {
-    return GetCapturedWindow()->GetParent() == this;
+    return GetCapturedWindow() != nullptr ? (GetCapturedWindow()->GetParent() == this) : false;
 }
 
 bool window_frame_t::IsChildFocused() {
-    return GetFocusedWindow()->GetParent() == this;
+    return GetFocusedWindow() != nullptr ? (GetFocusedWindow()->GetParent() == this) : false;
 }
 
 window_t *window_frame_t::GetNextSubWin(window_t *win) const {

@@ -35,8 +35,6 @@ protected:
 
     window_t *prev_capture;
 
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-
 public:
     IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
     ~IScreenMenu();

@@ -3,6 +3,7 @@
 
 #include "PrusaGcodeSuite.hpp"
 
+#include "M330.h"
 #include "M50.hpp"
 
 bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
@@ -12,6 +13,25 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 50:
             PrusaGcodeSuite::M50(); //selftest
             return true;
+#if defined(_DEBUG)
+        case 330:
+            PrusaGcodeSuite::M330();
+            return true;
+        case 331:
+            PrusaGcodeSuite::M331();
+            return true;
+        case 332:
+            PrusaGcodeSuite::M332();
+            return true;
+        case 333:
+            PrusaGcodeSuite::M333();
+            return true;
+        case 334:
+            PrusaGcodeSuite::M334();
+            return true;
+#endif
+        default:
+            return false;
         }
         return false;
     case 'G':

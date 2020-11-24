@@ -6,9 +6,9 @@
 #include "ScreenHandler.hpp"
 #include "window_msgbox.hpp"
 
-static const char *test_text = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
+static const char *test_text = "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?";
 static const string_view_utf8 test_text_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(test_text));
-static const char *test_header = N_("Header");
+static const char *test_header = "Header";
 static const string_view_utf8 test_header_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(test_header));
 
 screen_test_msgbox_data_t::screen_test_msgbox_data_t()

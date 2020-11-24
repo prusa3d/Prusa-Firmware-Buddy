@@ -269,7 +269,7 @@ int putslave_do_cmd_q_gpup(uartslave_t *pslave, char *pstr) {
 int putslave_do_cmd_q_uart(uartslave_t *pslave) {
     uint8_t uart1rx_data[32] = { 0 };
     uint8_t data_out[2] = "i";
-    HAL_UART_Transmit(uart1rxbuff.phuart, (uint8_t *)data_out, sizeof(data_out), HAL_MAX_DELAY);
+    HAL_UART_Transmit(pslave->huart, (uint8_t *)data_out, sizeof(data_out), HAL_MAX_DELAY);
     if (uart1rx_data[0] == data_out[0])
         return UARTSLAVE_OK;
     uart1rx_data[0] = 0;

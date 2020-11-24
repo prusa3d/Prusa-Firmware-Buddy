@@ -55,11 +55,12 @@ struct MenuVars {
     static const char axis_letters[AXIS_CNT];
     static const int16_t extrude_min_temp;
 
+    constexpr static std::array<uint8_t, RANGE_SZ> printfan_range = { 0, 255, 1 };
+    constexpr static std::array<uint16_t, RANGE_SZ> flowfact_range = { 50, 150, 1 };
+    constexpr static std::array<uint16_t, RANGE_SZ> feedrate_range = { 10, 255, 1 };
+    //todo make constexpr
     static const std::array<uint16_t, RANGE_SZ> nozzle_range;
     static const std::array<uint8_t, RANGE_SZ> bed_range;
-    static const std::array<uint8_t, RANGE_SZ> printfan_range;
-    static const std::array<uint16_t, RANGE_SZ> flowfact_range;
-    static const std::array<uint16_t, RANGE_SZ> feedrate_range;
     static const std::array<float, RANGE_SZ> zoffset_fl_range;
 
 private:
