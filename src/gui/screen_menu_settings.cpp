@@ -73,7 +73,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_TIMEZONE,
     #endif // BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME,
-    MI_LANGUAGE, MI_SORT_FILES,
+    MI_QR_PRIVACY, MI_LANGUAGE, MI_SORT_FILES,
     MI_SOUND_TYPE, MI_HF_TEST_0, MI_HF_TEST_1,
     MI_EEPROM>;
 #else
@@ -83,7 +83,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
     #endif //BUDDY_ENABLE_ETHERNET
-    MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_LANGUAGE>;
+    MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_QR_PRIVACY, MI_LANGUAGE>;
 #endif
 
 class ScreenMenuSettings : public Screen {

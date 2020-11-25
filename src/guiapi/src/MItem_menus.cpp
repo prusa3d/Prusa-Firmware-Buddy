@@ -185,3 +185,17 @@ MI_EEPROM::MI_EEPROM()
 void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenEeprom);
 }
+
+/*****************************************************************************/
+//MI_QR_PRIVACY
+MI_QR_PRIVACY::MI_QR_PRIVACY()
+    : WI_SWITCH_OFF_ON_t(variant_get_ui8(eeprom_get_var(EEVAR_QR_PRIVACY)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_QR_PRIVACY::OnChange(size_t old_index) {
+    if (!old_index) {
+        /// enable
+        eeprom_set_var(EEVAR_QR_PRIVACY, variant8_ui8(1));
+    } else {
+        /// disable
+        eeprom_set_var(EEVAR_QR_PRIVACY, variant8_ui8(0));
+    }
+}
