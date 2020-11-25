@@ -112,16 +112,33 @@ void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t co
         return;
     /// top
     const Rect16 rc_t = { r_out->Left(), r_out->Top(), r_out->Width(), uint16_t(r_in->Top() - r_out->Top()) };
+#ifdef _DEBUG
+    display::FillRect(rc_t, COLOR_PURPLE);
+#else
     display::FillRect(rc_t, color);
+#endif
     /// bottom
-    const Rect16 rc_b = { r_out->Left(), int16_t(r_in->Top() + r_in->Height()), r_out->Width(), uint16_t((r_out->Top() + r_out->Height()) - (r_in->Top() + r_in->Height())) };
+    const Rect16 rc_b = { r_out->Left(), int16_t(r_in->Top() + r_in->Height() + 1), r_out->Width(), uint16_t((r_out->Top() + r_out->Height()) - (r_in->Top() + r_in->Height())) };
+    /// magical +1 is temporary workaround for blinking _ in rolling text (BFW-1426, BFW-1398)
+#ifdef _DEBUG
+    display::FillRect(rc_b, COLOR_GREEN);
+#else
     display::FillRect(rc_b, color);
+#endif
     /// left
     const Rect16 rc_l = { r_out->Left(), r_in->Top(), uint16_t(r_in->Left() - r_out->Left()), r_in->Height() };
+#ifdef _DEBUG
+    display::FillRect(rc_l, COLOR_BLUE);
+#else
     display::FillRect(rc_l, color);
+#endif
     /// right
     const Rect16 rc_r = { int16_t(r_in->Left() + r_in->Width()), r_in->Top(), uint16_t((r_out->Left() + r_out->Width()) - (r_in->Left() + r_in->Width())), r_in->Height() };
+#ifdef _DEBUG
+    display::FillRect(rc_r, COLOR_YELLOW);
+#else
     display::FillRect(rc_r, color);
+#endif
 }
 
 /// Draws text into the specified rectangle with proper alignment (@flags)
