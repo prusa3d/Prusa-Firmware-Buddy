@@ -94,7 +94,7 @@ bool window_frame_t::registerSubWin(window_t &win) {
     switch (win.GetType()) {
     case win_type_t::normal:
 #ifdef _DEBUG
-        colorConflictBackgroundToRed(*win);
+        colorConflictBackgroundToRed(win);
 #endif //_DEBUG
         predecessor = last_normal;
         break;
