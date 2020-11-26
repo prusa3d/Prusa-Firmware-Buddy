@@ -855,7 +855,7 @@ class Temperature {
         static tr_state_machine_t tr_state_machine_chamber;
       #endif
 
-      static void thermal_runaway_protection(tr_state_machine_t &state, const float &current, const float &target, const heater_ind_t heater_id, const uint16_t period_seconds, const uint16_t hysteresis_degc);
+      static void thermal_runaway_protection(tr_state_machine_t &state, const float &current, const float &target, const heater_ind_t heater_id, const uint16_t period_seconds, const uint16_t hysteresis_degc_up, const uint16_t hysteresis_degc_down);
 
     #endif // HAS_THERMAL_PROTECTION
 };

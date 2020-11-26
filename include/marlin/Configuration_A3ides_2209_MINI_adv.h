@@ -77,7 +77,8 @@
  */
 #if ENABLED(THERMAL_PROTECTION_HOTENDS)
     #define THERMAL_PROTECTION_PERIOD 20        // Seconds
-    #define THERMAL_PROTECTION_HYSTERESIS 6 //4     // Degrees Celsius
+    #define THERMAL_PROTECTION_HYSTERESIS_UP 6 //4     // Degrees Celsius // upper threshold
+    #define THERMAL_PROTECTION_HYSTERESIS_DOWN 6 //4     // Degrees Celsius //lower threshold
 
     //#define ADAPTIVE_FAN_SLOWING              // Slow part cooling fan if temperature drops
     #if BOTH(ADAPTIVE_FAN_SLOWING, PIDTEMP)
@@ -105,7 +106,8 @@
  */
 #if ENABLED(THERMAL_PROTECTION_BED)
     #define THERMAL_PROTECTION_BED_PERIOD 45 // Seconds
-    #define THERMAL_PROTECTION_BED_HYSTERESIS 25 // Degrees Celsius
+    #define THERMAL_PROTECTION_BED_HYSTERESIS_DOWN 25 // Degrees Celsius - lower threshould for BED temperature 
+    #define THERMAL_PROTECTION_BED_HYSTERESIS_UP 6 // Degrees Celsius - upper threshold for bed temperature
 
     /**
    * As described above, except for the bed (M140/M190/M303).
