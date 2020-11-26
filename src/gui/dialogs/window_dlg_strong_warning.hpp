@@ -18,8 +18,8 @@ class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
     window_dlg_strong_warning_t();
     window_dlg_strong_warning_t(const window_dlg_strong_warning_t &) = delete;
 
-    static constexpr const char *HotendFanErrorMsg = N_("Print fan not spinning");
-    static constexpr const char *PrintFanErrorMsg = N_("Hotend fan not spinning");
+    static constexpr const char *HotendFanErrorMsg = N_("Hotend fan not spinning");
+    static constexpr const char *PrintFanErrorMsg = N_("Print fan not spinning");
     static constexpr const char *HeaterTimeoutMsg = N_("Heating disabled due to a heaters timeout.");
     static constexpr const char *USBFlashDiskError = N_("USB drive error. Print paused.");
 
