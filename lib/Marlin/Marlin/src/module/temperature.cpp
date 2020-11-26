@@ -2603,7 +2603,7 @@ void Temperature::readings_ready() {
         || (temp_bed.soft_pwm_amount > 0)
       #endif
     ;
-    if (BEDCMP(temp_bed.raw, maxtemp_raw_BED)) max_temp_error(H_BED);
+ //   if (BEDCMP(temp_bed.raw, maxtemp_raw_BED)) max_temp_error(H_BED);
     if (bed_on && BEDCMP(mintemp_raw_BED, temp_bed.raw)) min_temp_error(H_BED);
   #endif
 
