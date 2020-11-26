@@ -1,5 +1,5 @@
 #include "ScreenShot.hpp"
-#include "st7789v.h"
+#include "st7789v.hpp"
 #include "display.h"
 #include <inttypes.h>
 #include "ff.h"

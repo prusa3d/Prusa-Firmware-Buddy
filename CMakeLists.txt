@@ -664,7 +664,6 @@ if(GUI)
             src/guiapi/src/window_term.cpp
             src/guiapi/src/window_arrows.cpp
             src/guiapi/src/window_numb.cpp
-            src/guiapi/src/st7789v.c
             src/guiapi/src/st7789v.cpp
             src/guiapi/src/display_ex.cpp
             src/guiapi/src/window_icon.cpp
