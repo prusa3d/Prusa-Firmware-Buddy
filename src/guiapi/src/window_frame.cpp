@@ -71,7 +71,7 @@ bool window_frame_t::registerSubWin(window_t &win) {
     }
 
     WinFilterNormal filter_normal;
-    WinFilterDialog filter_dialog;
+    WinFilterDialogNonStrong filter_dialog;
     WinFilterStrongDialog filter_strong;
 
     window_t *last_normal = findLast(first, nullptr, filter_normal);

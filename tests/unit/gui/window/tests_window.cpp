@@ -112,9 +112,10 @@ void basic_basic_screen_check(MockScreen &screen, has_dialog_t has_dialog) {
     window_linked_list_check(screen, has_dialog);
 }
 
-template <class T>
-void msg_box_check(MockScreen &screen, T &msgbox, size_t no_of_msgboxes = 1) {
-    REQUIRE(msgbox.GetParent() == &screen);
+template <class... E>
+void check_window_order_and_visibility(MockScreen &screen, E *... e) {
+    constexpr size_t sz = sizeof...(e);
+    std::array<window_t *, sz> extra_windows = { e... };
 
     //check parrent
     window_parrent_check(screen);
@@ -130,17 +131,19 @@ void msg_box_check(MockScreen &screen, T &msgbox, size_t no_of_msgboxes = 1) {
     //check linked list
     window_linked_list_check(screen, has_dialog_t::yes);
 
-    REQUIRE(screen.GetLast() == &msgbox);
-    REQUIRE(window_t::GetCapturedWindow() == &msgbox); //msgbox does claim capture
+    //check last pointer
+    REQUIRE(screen.GetLast() == extra_windows[sz - 1]);
 
-    window_t *pWin = screen.w_last.GetNext();
-    REQUIRE_FALSE(pWin == nullptr);
-    while (--no_of_msgboxes) {
+    window_t *pWin = &screen.w_last;
+    REQUIRE_FALSE(pWin == nullptr); //should never fail
+
+    //check order of all extra windows
+    for (size_t i = 0; i < sz; ++i) {
         pWin = pWin->GetNext();
         REQUIRE_FALSE(pWin == nullptr);
     }
 
-    REQUIRE(pWin == screen.GetLast()); // check id only 1 extra window is registered
+    REQUIRE(pWin == screen.GetLast()); // check if only 1 extra window is registered
 }
 
 TEST_CASE("Window registration tests", "[window]") {
@@ -189,21 +192,24 @@ TEST_CASE("Window registration tests", "[window]") {
 
     SECTION("msgbox hiding w0 - w4") {
         MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
-        msg_box_check(screen, msgbox);
+        check_window_order_and_visibility(screen, &msgbox);
+        REQUIRE(window_t::GetCapturedWindow() == &msgbox); //msgbox does claim capture
     }
 
     SECTION("popup inside msgbox hiding w0 - w4") {
         MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
         window_dlg_popup_t::Show(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect), string_view_utf8::MakeNULLSTR());
         //popup cannot open so test is same as if only msgbox is openned
-        msg_box_check(screen, msgbox);
+        check_window_order_and_visibility(screen, &msgbox);
+        REQUIRE(window_t::GetCapturedWindow() == &msgbox); //msgbox does claim capture
     }
 
-    SECTION("msgbox inside popup hiding w0 - w4") {
+    SECTION("msgbox closing popup hiding w0 - w4") {
         window_dlg_popup_t::Show(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect), string_view_utf8::MakeNULLSTR());
         MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
         //popup must autoclose so test is same as if only msgbox is openned
-        msg_box_check(screen, msgbox);
+        check_window_order_and_visibility(screen, &msgbox);
+        REQUIRE(window_t::GetCapturedWindow() == &msgbox); //msgbox does claim capture
     }
 
     SECTION("live adj Z + M600") {
@@ -212,16 +218,43 @@ TEST_CASE("Window registration tests", "[window]") {
         MockMsgBox msgbox0(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
         MockMsgBox msgbox1(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
 
-        msg_box_check(screen, msgbox1, 2);
+        check_window_order_and_visibility(screen, &msgbox0, &msgbox1);
+        REQUIRE(window_t::GetCapturedWindow() == &msgbox1); //msgbox does claim capture
 
         REQUIRE(msgbox0.IsHiddenBehindDialog());
         REQUIRE_FALSE(msgbox1.IsHiddenBehindDialog());
     }
 
-    SECTION("ShowHotendFan") {
+    SECTION("strong dialog") {
         MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
-        msg_box_check(screen, strong, 1);
-        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        check_window_order_and_visibility(screen, &strong);
+        REQUIRE(window_t::GetCapturedWindow() == &strong); //strong does claim capture
+        window_t::EventJogwheel(BtnState_t::Released);     //unregister strong dialog
+    }
+
+    SECTION("2 strong dialogs") {
+        MockStrongDialog &strong0 = MockStrongDialog::ShowHotendFan();
+        check_window_order_and_visibility(screen, &strong0);
+        REQUIRE(window_t::GetCapturedWindow() == &strong0); //strong0 does claim capture
+        MockStrongDialog &strong1 = MockStrongDialog::ShowPrintFan();
+        check_window_order_and_visibility(screen, &strong0, &strong1);
+        REQUIRE(window_t::GetCapturedWindow() == &strong1); //strong1 does claim capture from strong0
+        window_t::EventJogwheel(BtnState_t::Released);      //unregister strong dialog
+        check_window_order_and_visibility(screen, &strong0);
+        REQUIRE(window_t::GetCapturedWindow() == &strong0); //strong1 resturns capture to strong1
+        window_t::EventJogwheel(BtnState_t::Released);      //unregister strong dialog
+    }
+
+    SECTION("strong dialog + msgbox") {
+        MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
+        check_window_order_and_visibility(screen, &strong);
+        REQUIRE(window_t::GetCapturedWindow() == &strong); //strong does claim capture
+        MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
+        check_window_order_and_visibility(screen, &msgbox, &strong); //strong must remain on top
+        REQUIRE(window_t::GetCapturedWindow() == &strong);           //strong cannot give capture to msgbox claim capture
+        window_t::EventJogwheel(BtnState_t::Released);               //unregister strong dialog
+        check_window_order_and_visibility(screen, &msgbox);          //msgbox must remain
+        REQUIRE(window_t::GetCapturedWindow() == &strong);           //strong must give capture to message box upon destruction
     }
 
     hal_tick = 1000;                                   //set openned on popup
