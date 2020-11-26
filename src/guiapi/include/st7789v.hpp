@@ -1,4 +1,6 @@
-//st7789v.h
+/**
+ * @file
+ */
 #pragma once
 
 #include "stm32f4xx_hal.h"
@@ -33,10 +35,6 @@ typedef struct _st7789v_config_t {
     uint8_t is_inverted;
     uint8_t control;
 } st7789v_config_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
 
 __attribute__((used)) inline uint16_t color_to_565(uint32_t clr) {
     return swap_ui16(((clr >> 19) & 0x001f) | ((clr >> 5) & 0x07e0) | ((clr << 8) & 0xf800));
@@ -81,7 +79,3 @@ extern uint16_t st7789v_reset_delay;
 extern void st7789v_enable_safe_mode(void);
 
 extern void st7789v_spi_tx_complete(void);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus

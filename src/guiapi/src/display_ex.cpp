@@ -7,7 +7,8 @@
 #include "font_flags.hpp"
 
 #ifdef USE_ST7789
-    #include "st7789v.h"
+    #include "st7789v.hpp"
+    #include "st7789v_impl.hpp"
 /*****************************************************************************/
 //st7789v specific variables objects and function aliases
 static constexpr Rect16 DisplayClip() { return Rect16(0, 0, ST7789V_COLS, ST7789V_ROWS); }
@@ -19,14 +20,6 @@ inline uint16_t color_to_native(uint32_t clr) {
 inline uint32_t color_from_native(uint16_t clr) {
     return color_from_565(clr);
 }
-
-extern "C" {
-
-extern uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; //16 lines buffer
-
-extern void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-
-} //extern "C"
 
 //TDispBuffer configuration
 static constexpr size_t FontMaxBitLen = 4;         // used in mask and buffer size
