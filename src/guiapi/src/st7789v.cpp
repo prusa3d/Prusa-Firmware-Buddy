@@ -275,13 +275,13 @@ void st7789v_cmd_dispon(void) {
 }
 
 void st7789v_cmd_caset(uint16_t x, uint16_t cx) {
-    uint8_t data[4] = { x >> 8, x & 0xff, cx >> 8, cx & 0xff };
-    st7789v_cmd(CMD_CASET, data, 4);
+    uint8_t data[4] = { static_cast<uint8_t>(x >> 8), static_cast<uint8_t>(x & 0xff), static_cast<uint8_t>(cx >> 8), static_cast<uint8_t>(cx & 0xff) };
+    st7789v_cmd(CMD_CASET, data, sizeof(data));
 }
 
 void st7789v_cmd_raset(uint16_t y, uint16_t cy) {
-    uint8_t data[4] = { y >> 8, y & 0xff, cy >> 8, cy & 0xff };
-    st7789v_cmd(CMD_RASET, data, 4);
+    uint8_t data[4] = { static_cast<uint8_t>(y >> 8), static_cast<uint8_t>(y & 0xff), static_cast<uint8_t>(cy >> 8), static_cast<uint8_t>(cy & 0xff) };
+    st7789v_cmd(CMD_RASET, data, sizeof(data));
 }
 
 void st7789v_cmd_ramwr(uint8_t *pdata, uint16_t size) {
