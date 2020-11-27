@@ -57,10 +57,10 @@ union WindowFlags {
         is_closed_on_timeout_t timeout_close : 1; // 09 - menu timeout flag - it's meant to be used in window_frame_t
         is_closed_on_serial_t serial_close : 1;   // 0A - serial printing screen open close
         bool shadow : 1;                          // 0B - this flag can be defined in parent
-        bool custom0 : 1;                         // 0C - this flag can be defined in parent
-        bool custom1 : 1;                         // 0D - this flag can be defined in parent
-        bool custom2 : 1;                         // 0E - this flag can be defined in parent
-        bool custom3 : 1;                         // 0F - this flag can be defined in parent
+        bool sub_win_has_capture : 1;             // 0C - this flag can be defined in parent
+        bool custom0 : 1;                         // 0D - this flag can be defined in parent
+        bool custom1 : 1;                         // 0E - this flag can be defined in parent
+        bool custom2 : 1;                         // 0F - this flag can be defined in parent
 
         // here would be 2 unused Bytes (structure data alignment),
         // make them accessible to be used in child to save RAM

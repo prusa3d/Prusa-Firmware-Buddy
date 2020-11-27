@@ -15,18 +15,19 @@ class window_frame_t : public AddSuperWindow<window_t> {
     // these methods do not check rect or window type of win
     // public methods RegisterSubWin/UnregisterSubWin does
     // reference is used so nullptr test can be skipped
-    void unregisterConflictingPopUps(Rect16 rect, window_t *last_strong);
+    void unregisterConflictingPopUps(Rect16 rect, window_t &first_normal);
     void registerSubWin(window_t &win, window_t &predecessor, window_t *pSuccessor);
 
-    bool canRegisterPopup(window_t &win, window_t &last_strong); // return last non strong_dialog window
-    void unregisterNormal(window_t &win);                        // normal unregistration
-    void unregisterDialog(window_t &win);                        // normal unregistration, manage hidden behind dialog flags
-    void unregisterStrongDialog(window_t &win);                  // normal unregistration, todo what if there is more than one strong dialog?
-    void unregisterPopUp(window_t &win);                         // just notify popup about unregistration, it will unregister itself
+    bool canRegisterPopup(window_t &win, window_t &first_normal, window_t &last_strong);
+    void unregisterNormal(window_t &win);       // normal unregistration
+    void unregisterDialog(window_t &win);       // normal unregistration, manage hidden behind dialog flags
+    void unregisterStrongDialog(window_t &win); // normal unregistration, todo what if there is more than one strong dialog?
+    void unregisterPopUp(window_t &win);        // just notify popup about unregistration, it will unregister itself
 
     void colorConflictBackgroundToRed(window_t &win);
     void clearAllHiddenBehindDialogFlags();
     void hideSubwinsBehindDialogs();
+    void hideSubwinsBehindDialogs(window_t &beginNormal, window_t *pEndNormal, window_t &beginAbnormal, window_t *pEndAbnormal); //begin cannot be null, end can
 
     virtual bool registerSubWin(window_t &win) override;
     virtual void unregisterSubWin(window_t &win) override;

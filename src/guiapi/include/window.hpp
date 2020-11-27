@@ -62,6 +62,7 @@ public:
 
     bool RegisterSubWin(window_t *win);
     void UnregisterSubWin(window_t *win);
+    bool CaptureSubWin(window_t *win);
 
     void ShiftNextTo(ShiftDir_t direction);
     virtual void Shift(ShiftDir_t direction, uint16_t distance);

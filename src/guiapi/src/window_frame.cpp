@@ -54,7 +54,7 @@ window_t *window_frame_t::findLast(window_t *begin, window_t *end, const WinFilt
 }
 
 //register sub win
-//structure: normal windows - than dialogs - than strong dialogs - than popups
+//structure: popups - than normal windows - than dialogs - than strong dialogs
 bool window_frame_t::registerSubWin(window_t &win) {
     //window must fit inside frame
     if (!rect.Contain(win.rect))
@@ -72,21 +72,21 @@ bool window_frame_t::registerSubWin(window_t &win) {
 
     WinFilterNormal filter_normal;
     WinFilterDialogNonStrong filter_dialog;
-    WinFilterStrongDialog filter_strong;
+    WinFilterPopUp filter_popup;
 
+    window_t *last_popup = findLast(first, nullptr, filter_popup);
     window_t *last_normal = findLast(first, nullptr, filter_normal);
     window_t *last_dialog = findLast(first, nullptr, filter_dialog);
-    window_t *last_strong = findLast(first, nullptr, filter_strong);
-    window_t *last_popup = last; // no need for findLast(first, nullptr, filter_popup);
+    window_t *last_strong = last; // no need for findLast(first, nullptr, filter_strong);
 
-    if (!last_normal)
-        return false; //should not happen
+    window_t *first_normal = last_popup ? last_popup->GetNext() : first;
+
+    if (!first_normal || !last_normal)
+        return false; //should not happen, there is always at least one normal window
     if (!last_dialog)
         last_dialog = last_normal;
     if (!last_strong)
         last_strong = last_dialog;
-    if (!last_popup)
-        last_popup = last_strong;
 
     window_t *predecessor = nullptr;
 
@@ -94,7 +94,7 @@ bool window_frame_t::registerSubWin(window_t &win) {
     switch (win.GetType()) {
     case win_type_t::normal:
 #ifdef _DEBUG
-        colorConflictBackgroundToRed(*win);
+        colorConflictBackgroundToRed(win);
 #endif //_DEBUG
         predecessor = last_normal;
         break;
@@ -102,22 +102,31 @@ bool window_frame_t::registerSubWin(window_t &win) {
         predecessor = last_dialog;
         break;
     case win_type_t::popup:
-        if (canRegisterPopup(win, *last_strong)) {
-            unregisterConflictingPopUps(win.rect, last_strong); // could break predecessor of poppup
-            predecessor = last_popup;                           // so it is set after unregistration
+        if (!canRegisterPopup(win, *first_normal, *last_strong)) {
+            return false;
         }
         break;
     case win_type_t::strong_dialog:
         predecessor = last_strong;
         break;
+    default:
+        return false;
     }
 
-    if (!predecessor)
-        return false;
-    unregisterConflictingPopUps(win.rect, last_strong); //normally could break predecessor of poppup, but it was handled in switch
+    unregisterConflictingPopUps(win.rect, *first_normal); //normally could break predecessor of poppup, so it is found after
 
-    window_t *successor = predecessor->GetNext();
-    registerSubWin(win, *predecessor, successor);
+    if (!predecessor) {                                       // popup registration sets predecessor to nullptr
+        predecessor = findLast(first, nullptr, filter_popup); // need to find it again, unregisterConflictingPopUps could break it
+    }
+
+    if (predecessor) {
+        window_t *successor = predecessor->GetNext();
+        registerSubWin(win, *predecessor, successor);
+    } else {
+        // popup registration, but no popup is registered yet
+        win.SetNext(first);
+        first = &win;
+    }
 
     win.SetParent(this);
     win.Invalidate();
@@ -127,15 +136,13 @@ bool window_frame_t::registerSubWin(window_t &win) {
     return true;
 }
 
-void window_frame_t::unregisterConflictingPopUps(Rect16 rect, window_t *last_strong) {
-    if (!last_strong)
-        return;
+void window_frame_t::unregisterConflictingPopUps(Rect16 rect, window_t &first_normal) {
+
     WinFilterIntersectingPopUp filter_popup(rect);
     window_t *popup;
-    window_t *first_popup = last_strong->GetNext();
     //find intersecting popups and close them
-    while ((popup = findFirst(first_popup, nullptr, filter_popup)) != nullptr) {
-        UnregisterSubWin(first_popup);
+    while ((popup = findFirst(first, &first_normal, filter_popup)) != &first_normal) {
+        UnregisterSubWin(popup);
     }
 }
 
@@ -169,27 +176,45 @@ void window_frame_t::clearAllHiddenBehindDialogFlags() {
         ptr = ptr->GetNext();
     }
 }
-void window_frame_t::hideSubwinsBehindDialogs() {
-    //find last normal window
-    WinFilterNormal filter_normal;
-    window_t *last_normal = findLast(first, nullptr, filter_normal);
-    window_t *pBegin = last_normal ? last_normal->GetNext() : nullptr; //first not normal window
-    if (!pBegin)
-        return; //no dialog .. nothing is hidden behind dialog
 
+void window_frame_t::hideSubwinsBehindDialogs() {
+    WinFilterNormal filter_normal;
+    WinFilterNormal filter_popup;
+    window_t *last_normal = findLast(first, nullptr, filter_normal);
+    window_t *last_popup = findLast(first, nullptr, filter_popup);
+    window_t *first_dialog = last_normal ? last_normal->GetNext() : nullptr; //first not normal window
+    window_t *first_popup = first;
+    window_t *first_normal = (last_popup && last_popup->GetNext()) ? last_popup->GetNext() : first; //when last_popup != nullptr, last_popup->GetNext() != nullptr, check to be sure
+
+    if (!last_normal)
+        return; //should never happen
+
+    // popups are in front normal windows, have to call hiding method twice
+    // popups are never hidden - they must be closed before this method is called
+    // first call - hide all windows coliding with popups
+    if (last_popup) {
+        hideSubwinsBehindDialogs(*first_normal, nullptr, *first_popup, first_normal);
+    }
+
+    // second call - hide all windows (but popups) coliding with any kind of dialog (but popup)
+    if (first_dialog) {
+        hideSubwinsBehindDialogs(*first_normal, nullptr, *first_dialog, nullptr);
+    }
+}
+
+void window_frame_t::hideSubwinsBehindDialogs(window_t &beginNormal, window_t *pEndNormal, window_t &beginAbnormal, window_t *pEndAbnormal) {
     //find last visible dialog
     WinFilterVisible filter_visible;
-    window_t *pEnd = nullptr;
     window_t *pLastVisibleDialog;
-    while ((pLastVisibleDialog = findLast(pBegin, pEnd, filter_visible)) != pEnd) {
+    while ((pLastVisibleDialog = findLast(&beginAbnormal, pEndAbnormal, filter_visible)) != pEndAbnormal) {
         //hide all conflicting windows
         WinFilterIntersectingVisible filter_intersecting(pLastVisibleDialog->rect);
         window_t *pIntersectingWin;
-        while ((pIntersectingWin = findFirst(first, pLastVisibleDialog, filter_intersecting)) != pLastVisibleDialog) {
+        while ((pIntersectingWin = findFirst(&beginNormal, pEndNormal, filter_intersecting)) != pEndNormal) {
             pIntersectingWin->HideBehindDialog();
         }
 
-        pEnd = pLastVisibleDialog; //new end of search
+        pEndAbnormal = pLastVisibleDialog; //new end of search
     }
 }
 
@@ -198,10 +223,10 @@ bool window_frame_t::HasDialogOrPopup() {
     return findFirst(first, nullptr, filter) != nullptr;
 }
 
-bool window_frame_t::canRegisterPopup(window_t &win, window_t &last_strong) {
+bool window_frame_t::canRegisterPopup(window_t &win, window_t &first_normal, window_t &last_strong) {
     WinFilterIntersectingDialog filter(win.rect);
     //find intersecting non popup
-    if (findFirst(first, last_strong.GetNext(), filter)) {
+    if (findFirst(&first_normal, last_strong.GetNext(), filter)) {
         //registration failed
         win.SetParent(nullptr);
         return false;

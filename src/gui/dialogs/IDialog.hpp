@@ -18,7 +18,7 @@ public:
     enum class IsStrong : bool { no,
         yes };
     IDialog(Rect16 rc = GuiDefaults::RectScreenBody, IsStrong strong = IsStrong::no);
-    virtual ~IDialog();
+    virtual ~IDialog() override;
 
     static constexpr Rect16 get_radio_button_rect(Rect16 rc_frame) {
         return Rect16(
