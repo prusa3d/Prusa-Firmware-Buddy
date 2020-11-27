@@ -54,6 +54,8 @@
 
 #include "feature/pause.h"
 #include "feature/safety_timer.h"
+#include "marlin_server.hpp"
+
 #include "sd/cardreader.h"
 
 #include "lcd/marlinui.h"
@@ -419,6 +421,7 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
 
   if (safety_timer_is_expired()) {
     thermalManager.disable_all_heaters();
+    set_warning(WarningType::HeaterTimeout);
 
     #ifdef ACTION_ON_SAFETY_TIMER_EXPIRED
       host_action_safety_timer_expired();
