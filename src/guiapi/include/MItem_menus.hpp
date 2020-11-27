@@ -187,3 +187,11 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_QR_PRIVACY : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Anonymized QR");
+
+public:
+    MI_QR_PRIVACY();
+    virtual void OnChange(size_t old_index) override;
+};

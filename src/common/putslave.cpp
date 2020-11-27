@@ -90,8 +90,6 @@ int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
             cmd_id = PUTSLAVE_CMD_ID_FRPM;
         else if (strncmp(pstr, "fpsm", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_FPSM;
-        else if (strncmp(pstr, "fmea", 4) == 0)
-            cmd_id = PUTSLAVE_CMD_ID_FMEA;
         else if (strncmp(pstr, "gpcf", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_GPCF;
         else if (strncmp(pstr, "doer", 4) == 0)
@@ -624,20 +622,6 @@ int putslave_do_cmd_a_fpsm(uartslave_t *pslave, char *pstr) {
     return UARTSLAVE_ERR_ONP;
 }
 
-int putslave_do_cmd_a_fmea(uartslave_t *pslave, char *pstr) {
-    unsigned int fan = 0;
-    if (strlen(pstr)) {
-        if (sscanf(pstr, "%u", &fan) != 1)
-            return UARTSLAVE_ERR_SYN;
-        if (fan > 1)
-            return UARTSLAVE_ERR_OOR;
-        uint32_t ui = fanctl_measure(fan);
-        uartslave_printf(pslave, "%u ", ui);
-        return UARTSLAVE_OK;
-    }
-    return UARTSLAVE_ERR_ONP;
-}
-
 int putslave_do_cmd_a_tst(uartslave_t *pslave, char *pstr) {
 #if 0 // used to test eeprom wizard flags
     int run_selftest = 0;
@@ -809,8 +793,6 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_a_fpwm(pslave, pstr);
             case PUTSLAVE_CMD_ID_FPSM:
                 return putslave_do_cmd_a_fpsm(pslave, pstr);
-            case PUTSLAVE_CMD_ID_FMEA:
-                return putslave_do_cmd_a_fmea(pslave, pstr);
             case PUTSLAVE_CMD_ID_EEDEF:
                 return putslave_do_cmd_a_eedef(pslave);
             case PUTSLAVE_CMD_ID_GPIO:

@@ -101,3 +101,9 @@ public:
         return (win.IsVisible() && rect.HasIntersection(win.rect));
     };
 };
+
+//filter dialog or popup windows
+class WinFilterDialogOrPopUp : public WinFilter {
+public:
+    virtual bool operator()(const window_t &win) const override { return win.IsDialog() || win.GetType() == win_type_t::popup; };
+};
