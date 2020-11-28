@@ -362,6 +362,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sende
         } else {
             //todo should not I resend event to super?
         }
+
         break;
     case GUI_event_t::ENC_DN:
         while (pWin && dif--) {
@@ -435,10 +436,6 @@ void window_frame_t::validate(Rect16 validation_rect) {
         ptr->Validate(validation_rect);
         ptr = ptr->GetNext();
     }
-}
-
-bool window_frame_t::IsChildCaptured() {
-    return GetCapturedWindow() != nullptr ? (GetCapturedWindow()->GetParent() == this) : false;
 }
 
 bool window_frame_t::IsChildFocused() {
@@ -562,4 +559,10 @@ void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
     }
 
     super::Shift(direction, distance);
+}
+
+window_t *window_frame_t::GetCapturedSubWin() {
+    if (!flags.sub_win_has_capture)
+        return this;
+    return last ? last->GetCapturedSubWin() : nullptr;
 }

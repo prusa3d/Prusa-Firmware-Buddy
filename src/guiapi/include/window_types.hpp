@@ -56,8 +56,8 @@ union WindowFlags {
         bool hidden_behind_dialog : 1;            // 08 - there is an dialog over this window
         is_closed_on_timeout_t timeout_close : 1; // 09 - menu timeout flag - it's meant to be used in window_frame_t
         is_closed_on_serial_t serial_close : 1;   // 0A - serial printing screen open close
-        bool shadow : 1;                          // 0B - this flag can be defined in parent
-        bool sub_win_has_capture : 1;             // 0C - this flag can be defined in parent
+        bool shadow : 1;                          // 0B - darker colors
+        bool sub_win_has_capture : 1;             // 0C - nested (child) window has capture
         bool custom0 : 1;                         // 0D - this flag can be defined in parent
         bool custom1 : 1;                         // 0E - this flag can be defined in parent
         bool custom2 : 1;                         // 0F - this flag can be defined in parent

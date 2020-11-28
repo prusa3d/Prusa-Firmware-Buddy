@@ -12,13 +12,10 @@ extern void gui_loop(void);
 
 //interface for dialog
 class IDialog : public AddSuperWindow<window_frame_t> {
-    window_t *prev_capture;
-
 public:
     enum class IsStrong : bool { no,
         yes };
     IDialog(Rect16 rc = GuiDefaults::RectScreenBody, IsStrong strong = IsStrong::no);
-    virtual ~IDialog() override;
 
     static constexpr Rect16 get_radio_button_rect(Rect16 rc_frame) {
         return Rect16(
@@ -37,13 +34,7 @@ public:
         }
     }
 
-    window_t *GetStoredCapture() const { return prev_capture; }
-    void StoreCapture();                         // set capture pointer (to be restore after dialog closes)
-    void ModifyStoredCapture(window_t *capture); // in some cases another closing dialog can pass its capture
 protected:
-    void releaseCapture();
-    void clearCapture();
-
     //used in MakeBlocking
     //needs included files which cannot be included in header
     bool consumeCloseFlag() const;
@@ -52,7 +43,7 @@ protected:
 
 void create_blocking_dialog_from_normal_window(window_t &dlg);
 void create_blocking_dialog(IDialog &dlg);
-
+/*
 class WinFilterDialogCapture : public WinFilter {
     window_t *target_capture;
 
@@ -61,4 +52,4 @@ public:
         : target_capture(capture) {}
 
     virtual bool operator()(const window_t &win) const override { return win.IsDialog() && reinterpret_cast<const IDialog &>(win).GetStoredCapture() == target_capture; };
-};
+};*/

@@ -54,7 +54,6 @@ public:
     window_t *GetPrevEnabledSubWin(window_t *win, Rect16 intersection_rect) const;
     window_t *GetFirstEnabledSubWin(Rect16 intersection_rect) const;
 
-    bool IsChildCaptured();
     bool IsChildFocused();
 
     void SetMenuTimeoutClose();
@@ -66,6 +65,7 @@ public:
     Rect16 GenerateRect(ShiftDir_t direction);
     virtual void Shift(ShiftDir_t direction, uint16_t distance) override;
 
+    virtual window_t *GetCapturedSubWin() override; //do not use, use GetCapturedWindow instead
 protected:
     virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

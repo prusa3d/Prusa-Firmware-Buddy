@@ -19,14 +19,13 @@ public:
         return false;
     }
 
-    window_frame_t *Get() {
+    window_frame_t *Get() const {
         return frame;
     };
 
     void Set(window_frame_t *current) {
         frame = current;
 
-        window_t::ResetCapturedWindow();
         window_t::ResetFocusedWindow();
 
         if (!current->IsChildCaptured())

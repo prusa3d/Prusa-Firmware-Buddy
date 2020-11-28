@@ -12,7 +12,6 @@ bool window_t::IsHiddenBehindDialog() const { return flags.hidden_behind_dialog;
 bool window_t::IsEnabled() const { return flags.enabled; }
 bool window_t::IsInvalid() const { return flags.invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
-bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return flags.timer; }
 win_type_t window_t::GetType() const { return win_type_t(flags.type); }
 bool window_t::IsDialog() const { return GetType() == win_type_t::dialog || GetType() == win_type_t::strong_dialog; }
@@ -61,19 +60,6 @@ void window_t::SetFocus() {
     Invalidate();
     WindowEvent(this, GUI_event_t::FOCUS1, 0); //will not resend event to anyone
     gui_invalidate();
-}
-
-void window_t::SetCapture() {
-    // do not check IsVisible()
-    // window hidden by dialog can get capture
-    if (flags.visible && flags.enabled) {
-        if (capture_ptr) {
-            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
-        }
-        capture_ptr = this;
-        WindowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
-        gui_invalidate();
-    }
 }
 
 void window_t::Show() {
@@ -156,8 +142,9 @@ window_t::~window_t() {
     gui_timers_delete_by_window(this);
     if (GetFocusedWindow() == this)
         focused_ptr = nullptr;
-    if (GetCapturedWindow() == this)
-        capture_ptr = nullptr;
+
+    // if this window has captured, than it will be passed automaticaly to previous one
+    // because last window in screen has it, no code needed
 
     //win_type_t::normal must be unregistered so ~window_frame_t can has functional linked list
     if (GetParent())
@@ -303,25 +290,71 @@ void window_t::Shift(ShiftDir_t direction, uint16_t distance) {
 //static
 
 window_t *window_t::focused_ptr = nullptr;
-window_t *window_t::capture_ptr = nullptr;
 
 window_t *window_t::GetFocusedWindow() {
     return focused_ptr;
-}
-
-window_t *window_t::GetCapturedWindow() {
-    return capture_ptr;
-}
-
-void window_t::ResetCapturedWindow() {
-    capture_ptr = nullptr;
 }
 
 void window_t::ResetFocusedWindow() {
     focused_ptr = nullptr;
 }
 
+/*****************************************************************************/
+//capture
+bool window_t::IsChildCaptured() const {
+    return flags.sub_win_has_capture;
+}
+
+window_t *window_t::GetCapturedSubWin() {
+    return flags.sub_win_has_capture ? nullptr : this;
+}
+
+window_t *window_t::GetCapturedWindow() {
+    window_t *pWin = Screens::Access()->Get();
+    while (pWin && pWin->IsChildCaptured()) {
+        pWin = pWin->GetCapturedSubWin();
+    }
+    return pWin;
+}
+
+bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
+
+bool window_t::SetCapture() {
+    window_t *last_captured = GetCapturedWindow();
+    if (setChildHasCaptureRecursive()) {
+        if (last_captured) {
+            last_captured->WindowEvent(last_captured, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
+        }
+        WindowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
+        gui_invalidate();
+        return true;
+    }
+    return false;
+}
+
+bool window_t::setChildHasCaptureRecursive() {
+    if (CanBeCaptured())
+        return false;
+    setChildHasCaptureRecursiveNoCheck();
+    return true;
+}
+
+void window_t::setChildHasCaptureRecursiveNoCheck() {
+    if (parent)
+        parent->setChildHasCaptureRecursiveNoCheck();
+    flags.sub_win_has_capture = true;
+}
+
+bool window_t::CanBeCaptured() {
+    if (parent && !parent->CanBeCaptured())
+        return false;
+    // do not check IsVisible()
+    // window hidden by dialog can get capture
+    return flags.visible && flags.enabled;
+}
+
 bool window_t::EventEncoder(int diff) {
+    window_t *capture_ptr = GetCapturedWindow();
     if ((!capture_ptr) || (diff == 0))
         return false;
 
@@ -336,6 +369,7 @@ bool window_t::EventEncoder(int diff) {
 }
 
 bool window_t::EventJogwheel(BtnState_t state) {
+    window_t *capture_ptr = GetCapturedWindow();
     if (!capture_ptr)
         return false;
 

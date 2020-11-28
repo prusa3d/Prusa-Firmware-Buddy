@@ -33,11 +33,8 @@ protected:
     window_text_t help;
     status_footer_t footer;
 
-    window_t *prev_capture;
-
 public:
     IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
-    ~IScreenMenu();
     void unconditionalDrawItem(uint8_t index);
 };
 

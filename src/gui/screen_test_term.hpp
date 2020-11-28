@@ -4,8 +4,6 @@
 #include "status_footer.h"
 #include "window_text.hpp"
 #include "window_icon.hpp"
-#include "window_spin.hpp"
-#include "window_list.hpp"
 #include "window_term.hpp"
 #include "window_progress.hpp"
 
