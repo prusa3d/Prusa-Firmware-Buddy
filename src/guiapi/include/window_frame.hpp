@@ -6,32 +6,19 @@
 #include "window_filter.hpp"
 
 class window_frame_t : public AddSuperWindow<window_t> {
-    window_t *first;
-    window_t *last;
+protected:
+    window_t *first_normal;
+    window_t *last_normal;
 
-    // these methods do not check rect or window type of win
-    // public methods RegisterSubWin/UnregisterSubWin does
-    // reference is used so nullptr test can be skipped
-    void unregisterConflictingPopUps(Rect16 rect, window_t &first_normal);
-    void registerSubWin(window_t &win, window_t &predecessor, window_t *pSuccessor);
-
-    bool canRegisterPopup(window_t &win, window_t &first_normal, window_t &last_strong);
-    void unregisterNormal(window_t &win);       // normal unregistration
-    void unregisterDialog(window_t &win);       // normal unregistration, manage hidden behind dialog flags
-    void unregisterStrongDialog(window_t &win); // normal unregistration, todo what if there is more than one strong dialog?
-    void unregisterPopUp(window_t &win);        // just notify popup about unregistration, it will unregister itself
+    void registerAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast);
+    void unregisterAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast);
 
     void colorConflictBackgroundToRed(window_t &win);
     void clearAllHiddenBehindDialogFlags();
-    void hideSubwinsBehindDialogs();
-    void hideSubwinsBehindDialogs(window_t &beginNormal, window_t *pEndNormal, window_t &beginAbnormal, window_t *pEndAbnormal); //begin cannot be null, end can
-
-    virtual bool registerSubWin(window_t &win) override;
-    virtual void unregisterSubWin(window_t &win) override;
 
 public:
-    window_t *GetFirst() const;
-    window_t *GetLast() const;
+    window_t *GetFirstNormal() const;
+    window_t *GetLastNormal() const;
     bool HasDialogOrPopup();
 
     window_frame_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_serial_t serial = is_closed_on_serial_t::yes);
@@ -69,6 +56,8 @@ protected:
     virtual void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
     virtual void invalidate(Rect16 validation_rect = Rect16()) override;
     virtual void validate(Rect16 validation_rect = Rect16()) override;
+    virtual bool registerSubWin(window_t &win) override;
+    virtual void unregisterSubWin(window_t &win) override;
 
     window_t *findFirst(window_t *begin, window_t *end, const WinFilter &filter) const;
     window_t *findLast(window_t *begin, window_t *end, const WinFilter &filter) const;

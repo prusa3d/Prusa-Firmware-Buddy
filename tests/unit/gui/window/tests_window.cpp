@@ -84,15 +84,15 @@ void window_parrent_check(MockScreen &screen) {
 
 void window_linked_list_check(MockScreen &screen, has_dialog_t has_dialog) {
     //check linked list
-    REQUIRE(screen.GetFirst() == &(screen.w_first));
-    REQUIRE(screen.GetLast()->GetNext() == nullptr);
-    REQUIRE(screen.GetFirst()->GetNext() == &(screen.w0));
+    REQUIRE(screen.GetFirstNormal() == &(screen.w_first));
+    REQUIRE(screen.GetLastNormal()->GetNext() == nullptr);
+    REQUIRE(screen.GetFirstNormal()->GetNext() == &(screen.w0));
     REQUIRE(screen.w0.GetNext() == &(screen.w1));
     REQUIRE(screen.w1.GetNext() == &(screen.w2));
     REQUIRE(screen.w2.GetNext() == &(screen.w3));
     REQUIRE(screen.w3.GetNext() == &(screen.w_last));
     REQUIRE((screen.w_last.GetNext() == nullptr) != bool(has_dialog));
-    REQUIRE((screen.GetLast() == &(screen.w_last)) != bool(has_dialog));
+    REQUIRE((screen.GetLastNormal() == &(screen.w_last)) != bool(has_dialog));
 }
 
 void basic_basic_screen_check(MockScreen &screen, has_dialog_t has_dialog) {
@@ -131,7 +131,7 @@ void check_window_order_and_visibility(MockScreen &screen, E *... e) {
     window_linked_list_check(screen, has_dialog_t::yes);
 
     //check last pointer
-    REQUIRE(screen.GetLast() == extra_windows[sz - 1]);
+    REQUIRE(screen.GetLastNormal() == extra_windows[sz - 1]);
 
     window_t *pWin = &screen.w_last;
     REQUIRE_FALSE(pWin == nullptr); //should never fail
@@ -142,7 +142,7 @@ void check_window_order_and_visibility(MockScreen &screen, E *... e) {
         REQUIRE_FALSE(pWin == nullptr);
     }
 
-    REQUIRE(pWin == screen.GetLast()); // check if only 1 extra window is registered
+    REQUIRE(pWin == screen.GetLastNormal()); // check if only 1 extra window is registered
 }
 
 TEST_CASE("Window registration tests", "[window]") {
@@ -157,7 +157,7 @@ TEST_CASE("Window registration tests", "[window]") {
     SECTION("popup with no rectangle") {
         window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
         basic_basic_screen_check(screen, has_dialog_t::yes);
-        REQUIRE(screen.GetLast() == screen.w_last.GetNext());
+        REQUIRE(screen.GetLastNormal() == screen.w_last.GetNext());
         REQUIRE(window_t::GetCapturedWindow() == &screen); //popup does not claim capture
     }
 
@@ -177,7 +177,7 @@ TEST_CASE("Window registration tests", "[window]") {
         //check linked list
         window_linked_list_check(screen, has_dialog_t::yes);
 
-        REQUIRE(screen.GetLast() == screen.w_last.GetNext());
+        REQUIRE(screen.GetLastNormal() == screen.w_last.GetNext());
         REQUIRE(window_t::GetCapturedWindow() == &screen); //popup does not claim capture
     }
 
@@ -185,7 +185,7 @@ TEST_CASE("Window registration tests", "[window]") {
         MockMsgBox msgbox(Rect16(0, 0, 0, 0));
         REQUIRE(msgbox.GetParent() == &screen);
         basic_basic_screen_check(screen, has_dialog_t::yes);
-        REQUIRE(screen.GetLast() == &msgbox);
+        REQUIRE(screen.GetLastNormal() == &msgbox);
         REQUIRE(window_t::GetCapturedWindow() == &msgbox); //msgbox does claim capture
     }
 

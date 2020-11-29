@@ -224,9 +224,17 @@ void window_t::draw() {
 }
 
 //window does not support subwindow elements, but window_frame does
-bool window_t::RegisterSubWin(window_t *win) {
-    return win ? registerSubWin(*win) : false;
+bool window_t::RegisterSubWin(window_t *pWin) {
+    if (!pWin)
+        return false;
+
+    //window must fit inside frame
+    if (!rect.Contain(pWin->rect))
+        return false;
+
     Screens::Access()->ResetTimeout();
+
+    return registerSubWin(*pWin);
 }
 
 void window_t::UnregisterSubWin(window_t *win) {
