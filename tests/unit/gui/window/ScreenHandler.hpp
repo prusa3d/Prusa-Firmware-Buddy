@@ -1,9 +1,9 @@
 //ScreenHandler.hpp
-#include "window_frame.hpp"
+#include "screen.hpp"
 #pragma once
 
 class Screens {
-    window_frame_t *frame;
+    screen_t *frame;
     Screens()
         : frame(nullptr) {
     }
@@ -19,11 +19,11 @@ public:
         return false;
     }
 
-    window_frame_t *Get() const {
+    screen_t *Get() const {
         return frame;
     };
 
-    void Set(window_frame_t *current) {
+    void Set(screen_t *current) {
         frame = current;
 
         window_t::ResetFocusedWindow();

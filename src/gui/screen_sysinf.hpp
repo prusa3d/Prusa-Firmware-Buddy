@@ -3,6 +3,7 @@
 #include "gui.hpp"
 #include "window_text.hpp"
 #include "window_numb.hpp"
+#include "screen.hpp"
 
 // Use this #define to hide the static display of current NTP time - only for debugging
 // Clean solution will come later
@@ -13,7 +14,7 @@
     #include "wui_api.h"
 #endif
 
-struct screen_sysinfo_data_t : public AddSuperWindow<window_frame_t> {
+struct screen_sysinfo_data_t : public AddSuperWindow<screen_t> {
     window_text_t textMenuName;
     window_text_t textCPU_load;
     window_numb_t textCPU_load_val;

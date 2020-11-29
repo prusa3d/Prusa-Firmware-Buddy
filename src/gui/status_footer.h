@@ -11,7 +11,7 @@ enum class HeatState : uint8_t {
     STABLE,
 };
 
-class status_footer_t : public window_frame_t {
+class status_footer_t : public AddSuperWindow<window_frame_t> {
     window_icon_t wi_nozzle;
     window_icon_t wi_heatbed;
     window_icon_t wi_prnspeed;

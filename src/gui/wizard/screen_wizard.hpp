@@ -5,10 +5,11 @@
 #include "window_header.hpp"
 #include "status_footer.h"
 #include "wizard_types.hpp"
+#include "screen.hpp"
 
 string_view_utf8 WizardGetCaption(WizardState_t st); //todo constexpr
 
-class ScreenWizard : public AddSuperWindow<window_frame_t> {
+class ScreenWizard : public AddSuperWindow<screen_t> {
     window_header_t header;
     status_footer_t footer;
 

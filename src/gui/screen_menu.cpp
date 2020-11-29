@@ -11,7 +11,7 @@ static uint16_t get_help_h(size_t helper_lines, uint32_t font_id) {
 }
 
 IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
-    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreen, parent != nullptr ? win_type_t::dialog : win_type_t::normal)
+    : AddSuperWindow<screen_t>(parent, GuiDefaults::RectScreen, parent != nullptr ? win_type_t::dialog : win_type_t::normal)
     , header(this)
     , menu(this, Rect16(0, 0, 0, 0), nullptr)
     , help(this, Rect16(0, 0, 0, 0), is_multiline::yes)

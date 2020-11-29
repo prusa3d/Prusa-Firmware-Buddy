@@ -5,7 +5,7 @@
 #include "ScreenHandler.hpp"
 
 screen_watchdog_data_t::screen_watchdog_data_t()
-    : window_frame_t()
+    : AddSuperWindow<screen_t>()
     , text(this, Rect16(10, 70, 220, 24), is_multiline::yes)
     , exit(this, Rect16(0, 110, 240, 24), is_multiline::no, is_closed_on_click_t::yes) {
     SetBackColor(COLOR_RED);

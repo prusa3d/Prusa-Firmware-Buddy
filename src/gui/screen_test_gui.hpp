@@ -5,8 +5,9 @@
 #include "window_icon.hpp"
 #include "window_term.hpp"
 #include "window_progress.hpp"
+#include "screen.hpp"
 
-struct screen_test_gui_data_t : public window_frame_t {
+struct screen_test_gui_data_t : public AddSuperWindow<screen_t> {
     window_icon_t logo_prusa_mini;
     window_text_t text0;
     window_text_t text1;

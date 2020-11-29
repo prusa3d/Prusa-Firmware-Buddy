@@ -1,7 +1,7 @@
 //ScreenHandler.hpp
 
 #pragma once
-#include "window_frame.hpp"
+#include "screen.hpp"
 #include "ScreenFactory.hpp"
 #include <array>
 
@@ -52,7 +52,7 @@ public:
     void ScreenEvent(window_t *sender, GUI_event_t event, void *param);
     void WindowEvent(GUI_event_t event, void *param);
 
-    window_frame_t *Get() const;
+    screen_t *Get() const;
 
     void EnableMenuTimeout();
     void DisableMenuTimeout();

@@ -217,7 +217,7 @@ inline uint16_t get_help_h() {
     return 8 * (resource_font(IDR_FNT_SPECIAL)->h + 1);
 }
 
-class ScreenMenuLanSettings : public AddSuperWindow<window_frame_t> {
+class ScreenMenuLanSettings : public AddSuperWindow<screen_t> {
     constexpr static const char *label = N_("LAN SETTINGS");
 
     MenuContainer container;
@@ -238,7 +238,7 @@ protected:
 };
 
 ScreenMenuLanSettings::ScreenMenuLanSettings()
-    : AddSuperWindow<window_frame_t>(nullptr, GuiDefaults::RectScreen, win_type_t::normal, is_closed_on_timeout_t::no)
+    : AddSuperWindow<screen_t>(nullptr, GuiDefaults::RectScreen, win_type_t::normal, is_closed_on_timeout_t::no)
     , menu(this, GuiDefaults::RectScreenBodyNoFoot - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), GuiDefaults::RectScreen.Height() - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {

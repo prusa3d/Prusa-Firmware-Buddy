@@ -4,7 +4,7 @@
 #include "window_text.hpp"
 #include "screen_reset_error.hpp"
 
-class screen_hardfault_data_t : public screen_reset_error_data_t {
+class screen_hardfault_data_t : public AddSuperWindow<screen_reset_error_data_t> {
     window_text_t text;
     window_text_t exit;
 

@@ -141,7 +141,7 @@ void Screens::Draw() {
     current->Draw();
 }
 
-window_frame_t *Screens::Get() const {
+screen_t *Screens::Get() const {
     if (!current) {
         return nullptr;
     }

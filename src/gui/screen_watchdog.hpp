@@ -2,8 +2,9 @@
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"
+#include "screen.hpp"
 
-class screen_watchdog_data_t : public window_frame_t {
+class screen_watchdog_data_t : public AddSuperWindow<screen_t> {
     window_text_t text;
     window_text_t exit;
 

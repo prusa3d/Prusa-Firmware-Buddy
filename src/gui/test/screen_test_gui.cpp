@@ -6,7 +6,7 @@
 #include "ScreenHandler.hpp"
 
 screen_test_gui_data_t::screen_test_gui_data_t()
-    : window_frame_t()
+    : AddSuperWindow<screen_t>()
     , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_prusa_printer_splash, is_closed_on_click_t::yes)
     , text0(this, Rect16(10, 70, 60, 22), is_multiline::no)
     , text1(this, Rect16(80, 70, 60, 22), is_multiline::no)

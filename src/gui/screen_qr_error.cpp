@@ -6,7 +6,7 @@
 #include "errors.h"
 
 screen_qr_error_data_t::screen_qr_error_data_t()
-    : AddSuperWindow<window_frame_t>()
+    : AddSuperWindow<screen_t>()
     , errText(this, Rect16(8, 0, 224, 25), is_multiline::no)
     , errDescription(this, Rect16(8, 30, 224, 95), is_multiline::yes)
     , info(this, Rect16(8, 275, 224, 20), is_multiline::no)
@@ -30,7 +30,7 @@ screen_qr_error_data_t::screen_qr_error_data_t()
 }
 
 void screen_qr_error_data_t::unconditionalDraw() {
-    window_frame_t::unconditionalDraw();
+    super::unconditionalDraw();
     display::FillRect(Rect16(8, 25, 224, 2), COLOR_WHITE);
 }
 

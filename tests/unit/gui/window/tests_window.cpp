@@ -1,7 +1,6 @@
 #include "catch2/catch.hpp"
 
-#include "window.hpp"
-#include "window_frame.hpp"
+#include "screen.hpp"
 #include "sound_enum.h"
 #include "window_dlg_popup.hpp"
 #include "ScreenHandler.hpp"
@@ -19,7 +18,7 @@ void gui_loop() {}
 static uint32_t hal_tick = 0;
 uint32_t HAL_GetTick() { return hal_tick; }
 
-struct MockScreen : public AddSuperWindow<window_frame_t> {
+struct MockScreen : public AddSuperWindow<screen_t> {
     window_t w_first; // just so w0 is not first
     window_t w0;
     window_t w1;

@@ -2,8 +2,9 @@
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"
+#include "screen.hpp"
 
-class screen_reset_error_data_t : public window_frame_t {
+class screen_reset_error_data_t : public AddSuperWindow<screen_t> {
 
 public:
     screen_reset_error_data_t();

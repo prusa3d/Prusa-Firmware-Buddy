@@ -6,8 +6,8 @@
 
 #include "screen.hpp"
 
-Screen::Screen()
-    : AddSuperWindow<window_frame_t>(nullptr, GuiDefaults::RectScreen, win_type_t::normal, is_closed_on_timeout_t::yes, is_closed_on_serial_t::yes)
+screen_t::screen_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
+    : AddSuperWindow<window_frame_t>(parent, rect, type, timeout, serial)
     , captured_normal_window(nullptr)
     , first_dialog(nullptr)
     , last_dialog(nullptr)
