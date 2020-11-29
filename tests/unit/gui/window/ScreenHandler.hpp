@@ -28,8 +28,6 @@ public:
 
         window_t::ResetFocusedWindow();
 
-        if (!current->IsChildCaptured())
-            current->SetCapture();
         /// need to be reset also focused ptr
         if (!current->IsFocused() && !current->IsChildFocused()) {
             window_t *child = current->GetFirstEnabledSubWin();

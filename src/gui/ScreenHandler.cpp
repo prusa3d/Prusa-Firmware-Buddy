@@ -250,8 +250,6 @@ void Screens::InnerLoop() {
         /// screen was destroyed by unique_ptr.release()
         window_t::ResetFocusedWindow();
         current = creator();
-        if (!current->IsChildCaptured())
-            current->SetCapture();
         /// need to be reset also focused ptr
         if (!current->IsFocused() && !current->IsChildFocused()) {
             window_t *child = current->GetFirstEnabledSubWin();

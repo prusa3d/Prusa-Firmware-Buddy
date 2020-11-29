@@ -133,3 +133,35 @@ void screen_t::unregisterSubWin(window_t &win) {
     clearAllHiddenBehindDialogFlags();
     hideSubwinsBehindDialogs();
 }
+
+bool screen_t::CaptureNormalWindow(window_t &win) {
+    if (win.GetParent() != this || win.GetType() != win_type_t::normal)
+        return false;
+    window_t *last_captured = GetCapturedWindow();
+    if (last_captured) {
+        last_captured->WindowEvent(this, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
+    }
+    captured_normal_window = &win;
+    win.WindowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
+    gui_invalidate();
+
+    return true;
+}
+
+bool screen_t::IsChildCaptured() const {
+    return captured_normal_window != nullptr;
+}
+
+window_t *screen_t::GetCapturedSubWin() const {
+    return captured_normal_window;
+}
+
+window_t *screen_t::GetCapturedWindow() {
+    if (last_strong_dialog)
+        return last_strong_dialog;
+    if (last_dialog)
+        return last_dialog;
+    if (captured_normal_window)
+        return captured_normal_window;
+    return this;
+}

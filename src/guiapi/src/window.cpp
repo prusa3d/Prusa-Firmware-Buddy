@@ -309,60 +309,10 @@ void window_t::ResetFocusedWindow() {
 
 /*****************************************************************************/
 //capture
-bool window_t::IsChildCaptured() const {
-    return flags.sub_win_has_capture;
-}
-
-window_t *window_t::GetCapturedSubWin() {
-    return flags.sub_win_has_capture ? nullptr : this;
-}
-
-window_t *window_t::GetCapturedWindow() {
-    window_t *pWin = Screens::Access()->Get();
-    while (pWin && pWin->IsChildCaptured()) {
-        pWin = pWin->GetCapturedSubWin();
-    }
-    return pWin;
-}
-
-bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
-
-bool window_t::SetCapture() {
-    window_t *last_captured = GetCapturedWindow();
-    if (setChildHasCaptureRecursive()) {
-        if (last_captured) {
-            last_captured->WindowEvent(last_captured, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
-        }
-        WindowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
-        gui_invalidate();
-        return true;
-    }
-    return false;
-}
-
-bool window_t::setChildHasCaptureRecursive() {
-    if (CanBeCaptured())
-        return false;
-    setChildHasCaptureRecursiveNoCheck();
-    return true;
-}
-
-void window_t::setChildHasCaptureRecursiveNoCheck() {
-    if (parent)
-        parent->setChildHasCaptureRecursiveNoCheck();
-    flags.sub_win_has_capture = true;
-}
-
-bool window_t::CanBeCaptured() {
-    if (parent && !parent->CanBeCaptured())
-        return false;
-    // do not check IsVisible()
-    // window hidden by dialog can get capture
-    return flags.visible && flags.enabled;
-}
+bool window_t::IsCaptured() const { return Screens::Access()->Get()->GetCapturedWindow() == this; }
 
 bool window_t::EventEncoder(int diff) {
-    window_t *capture_ptr = GetCapturedWindow();
+    window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
     if ((!capture_ptr) || (diff == 0))
         return false;
 
@@ -377,7 +327,7 @@ bool window_t::EventEncoder(int diff) {
 }
 
 bool window_t::EventJogwheel(BtnState_t state) {
-    window_t *capture_ptr = GetCapturedWindow();
+    window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
     if (!capture_ptr)
         return false;
 

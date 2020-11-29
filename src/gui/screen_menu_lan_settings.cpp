@@ -244,8 +244,8 @@ ScreenMenuLanSettings::ScreenMenuLanSettings()
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), GuiDefaults::RectScreen.Height() - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {
     header.SetText(_(label));
     help.font = resource_font(IDR_FNT_SPECIAL);
-    menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
-    menu.SetCapture();                // set capture to list
+    menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
+    CaptureNormalWindow(menu);        // set capture to list
     menu.SetFocus();
 
     refresh_addresses();

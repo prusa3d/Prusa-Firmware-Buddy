@@ -22,6 +22,7 @@ void create_blocking_dialog_from_normal_window(window_t &dlg) {
     if (prev_capture && (prev_capture == &dlg || prev_capture->IsChildOf(&dlg))) {
         prev_capture = nullptr;
     } else {
+        //use CaptureNormalWindow
         dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
     }
     //gui_invalidate();

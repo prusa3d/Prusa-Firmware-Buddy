@@ -23,6 +23,10 @@ class screen_t : public AddSuperWindow<window_frame_t> {
 
 public:
     screen_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_serial_t serial = is_closed_on_serial_t::yes);
+    bool CaptureNormalWindow(window_t &win);
+    bool IsChildCaptured() const;
+    window_t *GetCapturedSubWin() const;
+    window_t *GetCapturedWindow();
 
 protected:
     virtual bool registerSubWin(window_t &win) override;

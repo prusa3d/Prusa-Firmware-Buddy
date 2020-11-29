@@ -33,7 +33,6 @@ public:
     bool IsInvalid() const;
     bool IsFocused() const;
     bool IsCaptured() const;
-    bool IsChildCaptured() const;
     bool IsShadowed() const;
     bool HasTimer() const;
     win_type_t GetType() const;
@@ -46,16 +45,6 @@ public:
     void SetHasTimer();
     void ClrHasTimer();
     void SetFocus();
-    bool SetCapture();
-
-protected:
-    bool setChildHasCaptureRecursive();
-
-private:
-    void setChildHasCaptureRecursiveNoCheck();
-
-public:
-    bool CanBeCaptured();
     void Enable();
     void Disable();
     void Show();
@@ -72,7 +61,6 @@ public:
 
     bool RegisterSubWin(window_t *win);
     void UnregisterSubWin(window_t *win);
-    bool CaptureSubWin(window_t *win);
 
     void ShiftNextTo(ShiftDir_t direction);
     virtual void Shift(ShiftDir_t direction, uint16_t distance);
@@ -94,13 +82,11 @@ private:
 
 public:
     static window_t *GetFocusedWindow();
-    static window_t *GetCapturedWindow();
     static void ResetFocusedWindow();
 
     //knob events
     static bool EventEncoder(int diff);
     static bool EventJogwheel(BtnState_t state);
-    virtual window_t *GetCapturedSubWin(); //do not use, use GetCapturedWindow instead
 };
 
 //all children of window_t and their children must use AddSuperWindow<parent_window> for inheritance

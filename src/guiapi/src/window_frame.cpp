@@ -374,9 +374,3 @@ void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
 
     super::Shift(direction, distance);
 }
-
-window_t *window_frame_t::GetCapturedSubWin() {
-    if (!flags.sub_win_has_capture)
-        return this;
-    return last_normal ? last_normal->GetCapturedSubWin() : nullptr;
-}

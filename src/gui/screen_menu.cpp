@@ -37,7 +37,7 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_i
 
     FOOTER == EFooter::On ? footer.Show() : footer.Hide();
 
-    menu.SetCapture(); // set capture to list
+    CaptureNormalWindow(menu); // set capture to list
     menu.SetFocus();
 
     if (helper_lines > 0) {
