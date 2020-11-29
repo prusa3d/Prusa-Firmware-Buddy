@@ -9,9 +9,6 @@ class window_frame_t : public AddSuperWindow<window_t> {
     window_t *first;
     window_t *last;
 
-    virtual void invalidate(Rect16 validation_rect = Rect16()) override;
-    virtual void validate(Rect16 validation_rect = Rect16()) override;
-
     // these methods do not check rect or window type of win
     // public methods RegisterSubWin/UnregisterSubWin does
     // reference is used so nullptr test can be skipped
@@ -70,6 +67,8 @@ protected:
     virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     virtual void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
+    virtual void invalidate(Rect16 validation_rect = Rect16()) override;
+    virtual void validate(Rect16 validation_rect = Rect16()) override;
 
     window_t *findFirst(window_t *begin, window_t *end, const WinFilter &filter) const;
     window_t *findLast(window_t *begin, window_t *end, const WinFilter &filter) const;

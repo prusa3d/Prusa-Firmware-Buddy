@@ -626,6 +626,7 @@ if(GUI)
             src/guiapi/src/Rect16.cpp
             src/guiapi/src/window_progress.cpp
             src/guiapi/src/window_frame.cpp
+            src/guiapi/src/screen.cpp
             src/guiapi/src/gui_timer.cpp
             src/guiapi/src/display_helper.cpp
             src/guiapi/src/text_roll.cpp

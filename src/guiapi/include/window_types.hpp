@@ -31,15 +31,14 @@ enum class is_closed_on_serial_t : bool { no,
 //type of window
 //carefull if any states are added - flags and getter must be modified
 enum class win_type_t : uint8_t {
-    normal,       // normal window, registered in ctor, registration must succedd, does not unregister
-    dialog,       // child of IDialog - modal window - multiple supported
-    popup,        // similar to dialog, but does not claim capture, cannot overlap or be overlapped
+    normal,       // single normal window in screen can have capture, registered in ctor, registration must succedd
+    dialog,       // can have capture, child of IDialog - modal window - multiple supported
+    popup,        // can't have capture, similar to dialog, but does not claim capture, cannot overlap or be overlapped
                   //   by dialog (not registered / auto destroyed).
                   // destroyed when any window tries to overlap it
-    strong_dialog // child of IDialog - stays on absolute top (normal dialog can open under it, but
+    strong_dialog // can have capture, stays on absolute top (normal dialog can open under it, but
                   //   will not get capture), only user can close it
-                  // behavior of multipre strong dialogs is undefined for now
-                  //   will be defined later - after we have multiple strong dialogs
+                  // last open strong dialog is on top
 };
 
 //todo add can capture flag (needed in frame event and SetCapture)

@@ -37,7 +37,6 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_i
 
     FOOTER == EFooter::On ? footer.Show() : footer.Hide();
 
-    //if (!IsDialog())       // dialog needs to save actual value of caption first
     menu.SetCapture(); // set capture to list
     menu.SetFocus();
 
