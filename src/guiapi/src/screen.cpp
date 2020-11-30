@@ -58,7 +58,7 @@ bool screen_t::registerSubWin(window_t &win) {
         return false;
     }
 
-    unregisterConflictingPopUps(win.rect, win.GetType() == win_type_t::popup ? nullptr : &win);
+    unregisterConflictingPopUps(win.rect, win.GetType() == win_type_t::popup ? &win : nullptr);
 
     clearAllHiddenBehindDialogFlags();
     hideSubwinsBehindDialogs();
@@ -89,7 +89,6 @@ bool screen_t::canRegisterPopup(window_t &win) {
 void screen_t::hideSubwinsBehindDialogs() {
     if ((!first_normal) || (!last_normal))
         return; //error, must have normal window
-    window_t *pEndNormal = first_normal->GetNext();
     window_t *pBeginAbnormal = first_popup;
     if (first_strong_dialog)
         pBeginAbnormal = first_strong_dialog;
@@ -106,7 +105,7 @@ void screen_t::hideSubwinsBehindDialogs() {
         //hide all conflicting windows
         WinFilterIntersectingVisible filter_intersecting(pLastVisibleDialog->rect);
         window_t *pIntersectingWin;
-        while ((pIntersectingWin = findFirst(first_normal, pEndNormal, filter_intersecting)) != pEndNormal) {
+        while ((pIntersectingWin = findFirst(first_normal, pBeginAbnormal, filter_intersecting)) != pBeginAbnormal) {
             pIntersectingWin->HideBehindDialog();
         }
 
@@ -152,8 +151,32 @@ bool screen_t::IsChildCaptured() const {
     return captured_normal_window != nullptr;
 }
 
-window_t *screen_t::GetCapturedSubWin() const {
+window_t *screen_t::getCapturedNormalWin() const {
     return captured_normal_window;
+}
+
+window_t *screen_t::getFirstDialog() const {
+    return first_dialog;
+}
+
+window_t *screen_t::getLastDialog() const {
+    return last_dialog;
+}
+
+window_t *screen_t::getFirstStrongDialog() const {
+    return first_strong_dialog;
+}
+
+window_t *screen_t::getLastStrongDialog() const {
+    return last_strong_dialog;
+}
+
+window_t *screen_t::getFirstPopUp() const {
+    return first_popup;
+}
+
+window_t *screen_t::getLastPopUp() const {
+    return last_popup;
 }
 
 window_t *screen_t::GetCapturedWindow() {

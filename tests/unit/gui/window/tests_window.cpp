@@ -1,12 +1,9 @@
 #include "catch2/catch.hpp"
 
-#include "screen.hpp"
 #include "sound_enum.h"
-#include "window_dlg_popup.hpp"
 #include "ScreenHandler.hpp"
-#include "IDialog.hpp"
 #include "cmsis_os.h" //HAL_GetTick
-#include "window_dlg_strong_warning.hpp"
+#include "mock_windows.hpp"
 
 void gui_timers_delete_by_window(window_t *pWin) {}
 void gui_invalidate(void) {}
@@ -18,153 +15,24 @@ void gui_loop() {}
 static uint32_t hal_tick = 0;
 uint32_t HAL_GetTick() { return hal_tick; }
 
-struct MockScreen : public AddSuperWindow<screen_t> {
-    window_t w_first; // just so w0 is not first
-    window_t w0;
-    window_t w1;
-    window_t w2;
-    window_t w3;
-    window_t w_last; // just so w3 is not last
-
-    MockScreen()
-        : w_first(this, GuiDefaults::RectHeader) // header is not hidden behind dialog
-        , w0(this, Rect16(20, 20, 10, 10) + GuiDefaults::RectScreenBody.Top())
-        , w1(this, Rect16(20, 40, 10, 10) + GuiDefaults::RectScreenBody.Top())
-        , w2(this, Rect16(40, 20, 10, 10) + GuiDefaults::RectScreenBody.Top())
-        , w3(this, Rect16(40, 40, 10, 10) + GuiDefaults::RectScreenBody.Top())
-        , w_last(this, GuiDefaults::RectHeader) {} // header is not hidden behind dialog
-};
-
-struct MockMsgBox : public AddSuperWindow<IDialog> {
-    MockMsgBox(Rect16 rc)
-        : AddSuperWindow<IDialog>(rc) {}
-};
-
-class MockStrongDialog : public AddSuperWindow<window_dlg_strong_warning_t> {
-public:
-    void Show(string_view_utf8 txt) { show(txt); }
-
-    static MockStrongDialog &ShowHotendFan() {
-        static MockStrongDialog dlg;
-        dlg.Show(_(HotendFanErrorMsg));
-        return dlg;
-    }
-
-    static MockStrongDialog &ShowPrintFan() {
-        static MockStrongDialog dlg;
-        dlg.Show(_(PrintFanErrorMsg));
-        return dlg;
-    }
-
-    static MockStrongDialog &ShowHeaterTimeout() {
-        static MockStrongDialog dlg;
-        dlg.Show(_(HeaterTimeoutMsg));
-        return dlg;
-    }
-
-    static MockStrongDialog &ShowUSBFlashDisk() {
-        static MockStrongDialog dlg;
-        dlg.Show(_(USBFlashDiskError));
-        return dlg;
-    }
-};
-
-enum class has_dialog_t : bool { no,
-    yes };
-
-void window_parrent_check(MockScreen &screen) {
-    //check parrent
-    REQUIRE(screen.w_first.GetParent() == &screen);
-    REQUIRE(screen.w_last.GetParent() == &screen);
-    REQUIRE(screen.w0.GetParent() == &screen);
-    REQUIRE(screen.w1.GetParent() == &screen);
-    REQUIRE(screen.w2.GetParent() == &screen);
-    REQUIRE(screen.w3.GetParent() == &screen);
-}
-
-void window_linked_list_check(MockScreen &screen, has_dialog_t has_dialog) {
-    //check linked list
-    REQUIRE(screen.GetFirstNormal() == &(screen.w_first));
-    REQUIRE(screen.GetLastNormal()->GetNext() == nullptr);
-    REQUIRE(screen.GetFirstNormal()->GetNext() == &(screen.w0));
-    REQUIRE(screen.w0.GetNext() == &(screen.w1));
-    REQUIRE(screen.w1.GetNext() == &(screen.w2));
-    REQUIRE(screen.w2.GetNext() == &(screen.w3));
-    REQUIRE(screen.w3.GetNext() == &(screen.w_last));
-    REQUIRE((screen.w_last.GetNext() == nullptr) != bool(has_dialog));
-    REQUIRE((screen.GetLastNormal() == &(screen.w_last)) != bool(has_dialog));
-}
-
-void basic_basic_screen_check(MockScreen &screen, has_dialog_t has_dialog) {
-    //check parrent
-    window_parrent_check(screen);
-
-    //check IsHiddenBehindDialog()
-    REQUIRE_FALSE(screen.w_first.IsHiddenBehindDialog());
-    REQUIRE_FALSE(screen.w_last.IsHiddenBehindDialog());
-    REQUIRE_FALSE(screen.w0.IsHiddenBehindDialog());
-    REQUIRE_FALSE(screen.w1.IsHiddenBehindDialog());
-    REQUIRE_FALSE(screen.w2.IsHiddenBehindDialog());
-    REQUIRE_FALSE(screen.w3.IsHiddenBehindDialog());
-
-    //check linked list
-    window_linked_list_check(screen, has_dialog);
-}
-
-template <class... E>
-void check_window_order_and_visibility(MockScreen &screen, E *... e) {
-    constexpr size_t sz = sizeof...(e);
-    std::array<window_t *, sz> extra_windows = { e... };
-
-    //check parrent
-    window_parrent_check(screen);
-
-    //check IsHiddenBehindDialog()
-    REQUIRE_FALSE(screen.w_first.IsHiddenBehindDialog());
-    REQUIRE_FALSE(screen.w_last.IsHiddenBehindDialog());
-    REQUIRE(screen.w0.IsHiddenBehindDialog());
-    REQUIRE(screen.w1.IsHiddenBehindDialog());
-    REQUIRE(screen.w2.IsHiddenBehindDialog());
-    REQUIRE(screen.w3.IsHiddenBehindDialog());
-
-    //check linked list
-    window_linked_list_check(screen, has_dialog_t::yes);
-
-    //check last pointer
-    REQUIRE(screen.GetLastNormal() == extra_windows[sz - 1]);
-
-    window_t *pWin = &screen.w_last;
-    REQUIRE_FALSE(pWin == nullptr); //should never fail
-
-    //check order of all extra windows
-    for (size_t i = 0; i < sz; ++i) {
-        pWin = pWin->GetNext();
-        REQUIRE_FALSE(pWin == nullptr);
-    }
-
-    REQUIRE(pWin == screen.GetLastNormal()); // check if only 1 extra window is registered
-}
-
 TEST_CASE("Window registration tests", "[window]") {
     MockScreen screen;
     Screens::Access()->Set(&screen); //instead of screen registration
 
-    SECTION("initial screen check") {
-        basic_basic_screen_check(screen, has_dialog_t::no);
-        REQUIRE(screen.GetCapturedWindow() == &screen);
-    }
+    // initial screen check
+    screen.BasicCheck();
+    REQUIRE(screen.GetCapturedWindow() == &screen);
 
     SECTION("popup with no rectangle") {
         window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
-        basic_basic_screen_check(screen, has_dialog_t::yes);
-        REQUIRE(screen.GetLastNormal() == screen.w_last.GetNext());
+        screen.BasicCheck(1);
         REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
     }
 
     SECTION("popup hiding w0 - w4") {
         window_dlg_popup_t::Show(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect), string_view_utf8::MakeNULLSTR());
         //check parrent
-        window_parrent_check(screen);
+        screen.ParrentCheck();
 
         //check IsHiddenBehindDialog()
         REQUIRE_FALSE(screen.w_first.IsHiddenBehindDialog());
@@ -175,17 +43,15 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.w3.IsHiddenBehindDialog());
 
         //check linked list
-        window_linked_list_check(screen, has_dialog_t::yes);
-
-        REQUIRE(screen.GetLastNormal() == screen.w_last.GetNext());
+        screen.LinkedListCheck(1);
         REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
     }
-
+    /*
     SECTION("msgbox with no rectangle") {
         MockMsgBox msgbox(Rect16(0, 0, 0, 0));
         REQUIRE(msgbox.GetParent() == &screen);
-        basic_basic_screen_check(screen, has_dialog_t::yes);
-        REQUIRE(screen.GetLastNormal() == &msgbox);
+        screen.BasicCheck(0, 1);
+        REQUIRE(screen.getLastNormal() == &msgbox);
         REQUIRE(screen.GetCapturedWindow() == &msgbox); //msgbox does claim capture
     }
 
@@ -254,7 +120,7 @@ TEST_CASE("Window registration tests", "[window]") {
         window_t::EventJogwheel(BtnState_t::Released);               //unregister strong dialog
         check_window_order_and_visibility(screen, &msgbox);          //msgbox must remain
         REQUIRE(screen.GetCapturedWindow() == &strong);              //strong must give capture to message box upon destruction
-    }
+    }*/
 
     hal_tick = 1000;                                   //set openned on popup
     screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); //loop will initialize popup timeout
@@ -262,6 +128,6 @@ TEST_CASE("Window registration tests", "[window]") {
     screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); //loop event will unregister popup
 
     //at the end of all sections screen must be returned to its original state
-    basic_basic_screen_check(screen, has_dialog_t::no);
+    screen.BasicCheck();
     REQUIRE(screen.GetCapturedWindow() == &screen);
 }

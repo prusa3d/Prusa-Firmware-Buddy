@@ -134,13 +134,15 @@ void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, windo
         pFirst = nullptr;
         pLast = nullptr;
     }
+
+    win.SetParent(nullptr);
 }
 
-window_t *window_frame_t::GetFirstNormal() const {
+window_t *window_frame_t::getFirstNormal() const {
     return first_normal;
 }
 
-window_t *window_frame_t::GetLastNormal() const {
+window_t *window_frame_t::getLastNormal() const {
     return last_normal;
 }
 

@@ -10,6 +10,9 @@ protected:
     window_t *first_normal;
     window_t *last_normal;
 
+    window_t *getFirstNormal() const;
+    window_t *getLastNormal() const;
+
     void registerAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast);
     void unregisterAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast);
 
@@ -17,8 +20,6 @@ protected:
     void clearAllHiddenBehindDialogFlags();
 
 public:
-    window_t *GetFirstNormal() const;
-    window_t *GetLastNormal() const;
     bool HasDialogOrPopup();
 
     window_frame_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_serial_t serial = is_closed_on_serial_t::yes);
