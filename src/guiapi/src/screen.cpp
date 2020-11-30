@@ -95,7 +95,7 @@ void screen_t::hideSubwinsBehindDialogs() {
         pBeginAbnormal = first_strong_dialog;
     if (first_dialog)
         pBeginAbnormal = first_dialog;
-    if (pBeginAbnormal)
+    if (!pBeginAbnormal)
         return; //nothing to hide
     window_t *pEndAbnormal = nullptr;
 
@@ -158,10 +158,10 @@ window_t *screen_t::GetCapturedSubWin() const {
 
 window_t *screen_t::GetCapturedWindow() {
     if (last_strong_dialog)
-        return last_strong_dialog;
+        return last_strong_dialog->GetCapturedWindow();
     if (last_dialog)
-        return last_dialog;
+        return last_dialog->GetCapturedWindow();
     if (captured_normal_window)
-        return captured_normal_window;
+        return captured_normal_window->GetCapturedWindow();
     return this;
 }

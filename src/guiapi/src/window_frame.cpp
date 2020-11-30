@@ -117,13 +117,22 @@ void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, windo
     if ((!pFirst) || (!pLast))
         return;
 
+    bool clr_begin_end = (&win == pFirst && pFirst == pLast);
+
     window_t *prev = GetPrevSubWin(&win);
     if (prev) {
         prev->SetNext(win.GetNext());
         if (pLast == &win)
             pLast = prev;
-    } else {
+    }
+
+    if (pFirst == &win) {
         pFirst = win.GetNext();
+    }
+
+    if (clr_begin_end) {
+        pFirst = nullptr;
+        pLast = nullptr;
     }
 }
 

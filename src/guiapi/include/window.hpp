@@ -81,6 +81,7 @@ private:
     static window_t *focused_ptr; // has focus
 
 public:
+    virtual window_t *GetCapturedWindow() { return this; } // do not use, used by screen
     static window_t *GetFocusedWindow();
     static void ResetFocusedWindow();
 

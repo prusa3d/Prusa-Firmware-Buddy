@@ -16,22 +16,7 @@ void IDialog::guiLoop() const {
 }
 
 void create_blocking_dialog_from_normal_window(window_t &dlg) {
-    /*window_t *prev_capture = window_t::GetCapturedWindow();
-
-    //if dialog or its child window has capture, it must handle its release itsefl
-    if (prev_capture && (prev_capture == &dlg || prev_capture->IsChildOf(&dlg))) {
-        prev_capture = nullptr;
-    } else {
-        //use CaptureNormalWindow
-        dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
-    }
-    //gui_invalidate();
-
     while (!Screens::Access()->ConsumeClose()) {
         gui_loop();
     }
-
-    //if dialog or its child window has capture, it must handle its release itsefl
-    if (prev_capture)
-        prev_capture->SetCapture();*/
 }

@@ -26,7 +26,7 @@ public:
     bool CaptureNormalWindow(window_t &win);
     bool IsChildCaptured() const;
     window_t *GetCapturedSubWin() const;
-    window_t *GetCapturedWindow();
+    virtual window_t *GetCapturedWindow() override;
 
 protected:
     virtual bool registerSubWin(window_t &win) override;
