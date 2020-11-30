@@ -127,26 +127,34 @@ TEST_CASE("Window registration tests", "[window]") {
         screen.CheckOrderAndVisibility(msgbox1.get());
     }
 
-    /*SECTION("strong dialog") {
+    SECTION("strong dialog") {
         MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
-        check_window_order_and_visibility(screen, &strong);
+        REQUIRE(strong.GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
-        window_t::EventJogwheel(BtnState_t::Released);  //unregister strong dialog
+        screen.CheckOrderAndVisibility(&strong);
+        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
     }
 
     SECTION("2 strong dialogs") {
         MockStrongDialog &strong0 = MockStrongDialog::ShowHotendFan();
-        check_window_order_and_visibility(screen, &strong0);
+        REQUIRE(strong0.GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &strong0); //strong0 does claim capture
-        MockStrongDialog &strong1 = MockStrongDialog::ShowPrintFan();
-        check_window_order_and_visibility(screen, &strong0, &strong1);
-        REQUIRE(screen.GetCapturedWindow() == &strong1); //strong1 does claim capture from strong0
-        window_t::EventJogwheel(BtnState_t::Released);   //unregister strong dialog
-        check_window_order_and_visibility(screen, &strong0);
-        REQUIRE(screen.GetCapturedWindow() == &strong0); //strong1 resturns capture to strong1
-        window_t::EventJogwheel(BtnState_t::Released);   //unregister strong dialog
-    }
+        screen.CheckOrderAndVisibility(&strong0);
 
+        MockStrongDialog &strong1 = MockStrongDialog::ShowPrintFan();
+        REQUIRE(strong0.GetParent() == &screen);
+        REQUIRE(strong1.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &strong1); //strong1 does claim capture
+        screen.CheckOrderAndVisibility(&strong0, &strong1);
+
+        window_t::EventJogwheel(BtnState_t::Released); //unregister strong1
+        REQUIRE(strong0.GetParent() == &screen);
+        REQUIRE(strong1.GetParent() == nullptr);         // check parrent unregistration
+        REQUIRE(screen.GetCapturedWindow() == &strong0); //strong1 resturns capture to strong1
+        screen.CheckOrderAndVisibility(&strong0);
+        window_t::EventJogwheel(BtnState_t::Released); //unregister strong0
+    }
+    /*
     SECTION("strong dialog + msgbox") {
         MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
         check_window_order_and_visibility(screen, &strong);
