@@ -421,6 +421,12 @@ static void eeprom_init_FW_identifiers(eeprom_vars_t &vars) {
     vars.FWVERSION = eeprom_fwversion_ui16();
 }
 
+static void eeprom_make_patches(eeprom_vars_t &vars) {
+    // patch active sheet profile's live-z value
+    // copying the ZOFFSET var directly is safe, it has been in the eeprom at least from v2
+    vars.SHEET_PROFILE0.z_offset = vars.ZOFFSET;
+}
+
 // conversion function for old version 2 format (marlin eeprom)
 static int eeprom_convert_from_v2(void) {
     eeprom_vars_t vars = eeprom_var_defaults;
@@ -439,6 +445,9 @@ static int eeprom_convert_from_v2(void) {
     // check ZOFFSET valid range, cancel conversion if not of valid range (defaults will be loaded)
     if ((vars.ZOFFSET < -2) || (vars.ZOFFSET > 0))
         return 0;
+
+    eeprom_make_patches(vars);
+
     eeprom_save_upgraded(vars);
     return 1;
 }
@@ -456,6 +465,8 @@ static int eeprom_convert_from_v4(void) {
 
     // TODO: keep LAN host name (?)
 
+    eeprom_make_patches(vars);
+
     eeprom_save_upgraded(vars);
     return 1;
 }
@@ -468,6 +479,8 @@ static int eeprom_convert_from_v6(void) {
     // start addres of imported data block (FILAMENT_TYPE..EEVAR_SOUND_MODE)
     eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_SOUND_VOLUME, &(vars.FILAMENT_TYPE));
 
+    eeprom_make_patches(vars);
+
     eeprom_save_upgraded(vars);
     return 1;
 }
@@ -477,13 +490,10 @@ static int eeprom_convert_from_v7(void) {
     eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_init_FW_identifiers(vars);
 
-    float active_z_offset = variant8_get_flt(eeprom_get_var(EEVAR_ZOFFSET));
-
     // start addres of imported data block (FILAMENT_TYPE..EEVAR_LANGUAGE)
     eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_FILE_SORT, &(vars.FILAMENT_TYPE));
 
-    // patch active sheet profile's live-z value
-    vars.SHEET_PROFILE0.z_offset = active_z_offset;
+    eeprom_make_patches(vars);
 
     eeprom_save_upgraded(vars);
     return 1;
@@ -494,13 +504,10 @@ static int eeprom_convert_from_v8(void) {
     eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_init_FW_identifiers(vars);
 
-    float active_z_offset = variant8_get_flt(eeprom_get_var(EEVAR_ZOFFSET));
-
     // start addres of imported data block (FILAMENT_TYPE..EEVAR_SOUND_MODE)
     eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_MENU_TIMEOUT, &(vars.FILAMENT_TYPE));
 
-    // patch active sheet profile's live-z value
-    vars.SHEET_PROFILE0.z_offset = active_z_offset;
+    eeprom_make_patches(vars);
 
     eeprom_save_upgraded(vars);
     return 1;
