@@ -74,7 +74,7 @@ msgstr "Retour"
 
 #: src/gui/screen_printing.cpp:335
 msgid "Bed leveling failed. Try again?"
-msgstr "Échec nivelage plateau. Réessayer ?"
+msgstr "Échec niveau plateau. Réessayer ?"
 
 #: src/gui/wizard/xyzcalib.cpp:55
 msgid "Calibrating Z"
@@ -161,7 +161,7 @@ msgstr ""
 
 #: src/gui/wizard/screen_wizard.c:462
 msgid "Clean steel sheet."
-msgstr "Nettoyez la feuille d'acier."
+msgstr "Nettoyez la plaque d'acier."
 
 #: src/gui/wizard/screen_wizard.c:362
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
@@ -220,9 +220,9 @@ msgid ""
 "Default: %0.3f.\n"
 "Click NO to use the default value (recommended)"
 msgstr ""
-"Voulez-vous utiliser la valeur actuelle ?\nActuelle : %0.3f.\n"
+"Voulez-vous utiliser la valeur actuelle?\nActuelle : %0.3f.\n"
 "Défaut : %0.3f.\n"
-"Cliquez sur NON pour utiliser la valeur par défaut (recommandé)"
+"Cliquez sur NON pour la valeur par défaut (recommandé)"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:55
 msgid "Ejecting"
@@ -375,14 +375,14 @@ msgstr ""
 
 #: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:82
 msgid "HOME"
-msgstr "POSITION INITIALE"
+msgstr "ACCUEIL"
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
 #: src/gui/window_file_list.c:120 src/gui/window_file_list.c:122
 #: src/gui/window_file_list.c:133
 msgid "Home"
-msgstr "Position Initiale"
+msgstr "Accueil"
 
 #: src/gui/dialogs/DialogFactory.cpp:37
 msgid "HOME TO MAX"
@@ -453,7 +453,7 @@ msgstr "Le filament est-il dans l'extrudeur ?"
 
 #: src/gui/wizard/screen_wizard.c:313
 msgid "Is steel sheet on heatbed?"
-msgstr "La feuille d'acier est-elle sur le plateau chauffant ?"
+msgstr "La plaque d'acier est-elle sur le plateau chauffant ?"
 
 #: src/gui/screen_menu_lan_settings.cpp:267
 #: src/gui/screen_menu_lan_settings.cpp:268
@@ -475,7 +475,7 @@ msgstr "LANGUES"
 
 #: src/guiapi/include/MItem_print.hpp:48
 msgid "Live Adjust Z"
-msgstr "Live Adjust Z"
+msgstr "Ajustement Z"
 
 #: src/gui/wizard/wizard_load_unload.cpp:44
 msgid "LOAD"
@@ -546,11 +546,11 @@ msgstr "Timeout Menu"
 
 #: src/guiapi/include/MItem_tools.hpp:39
 msgid "Mesh Bed Leveling"
-msgstr "Mesh Bed Level."
+msgstr "Niveau Plateau"
 
 #: src/gui/test/screen_mesh_bed_lv.cpp:56
 msgid "MESH BED LEVELING"
-msgstr "MESH BED LEVEL."
+msgstr "NIVEAU PLATEAU"
 
 #. p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
 #: src/gui/screen_messages.cpp:63
@@ -616,7 +616,7 @@ msgid ""
 "No filament sensor detected. Verify that the sensor is connected and try "
 "again."
 msgstr ""
-"Aucun capteur de filament n'a été détecté. Vérifiez que le capteur est bien "
+"Capteur de filament non détecté. Vérifiez que le capteur est bien "
 "branché et réessayez."
 
 #: src/gui/screen_home.cpp:45
@@ -628,7 +628,7 @@ msgid ""
 "Now, let's calibrate the distance between the tip of the nozzle and the "
 "print sheet."
 msgstr ""
-"À présent calibrons la distance entre l'extrémité de la buse et la feuille "
+"À présent calibrons la distance entre l'extrémité de la buse et la surface "
 "d'impression."
 
 #: src/guiapi/include/MItem_print.hpp:8
@@ -670,7 +670,7 @@ msgid ""
 msgstr ""
 "Lorsque l'imprimante commence à extruder le plastique ajustez la hauteur de "
 "buse en faisant tourner le bouton jusqu'à ce que le filament adhère à la "
-"feuille d'impression."
+"surface d'impression."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:45
 msgid "Parking"
@@ -696,7 +696,7 @@ msgstr ""
 #: src/gui/wizard/screen_wizard.c:305
 msgid "Please clean the nozzle for calibration. Click NEXT when done."
 msgstr ""
-"Veuillez nettoyer la buse en vue de la calibration. Cliquez sur NEXT une "
+"Veuillez nettoyer la buse en vue de la calibration. Cliquez sur SUIV. une "
 "fois cela fait."
 
 #: src/gui/screen_menu_lan_settings.cpp:293
@@ -725,11 +725,11 @@ msgstr ""
 
 #: src/gui/wizard/screen_wizard.c:346
 msgid "Please place steel sheet on heatbed."
-msgstr "Veuillez positionner la feuille d'acier sur le plateau chauffant."
+msgstr "Veuillez positionner la plaque d'acier sur le plateau chauffant."
 
 #: src/gui/wizard/screen_wizard.c:323
 msgid "Please remove steel sheet from heatbed."
-msgstr "Veuillez retirer la feuille d'impression du plateau."
+msgstr "Veuillez retirer la plaque d'acier du plateau."
 
 #. 30 pixels for title
 #: src/gui/dialogs/window_dlg_wait.c:53
@@ -748,7 +748,7 @@ msgstr "Préchauffage"
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:42
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:48
 msgid "PREHEAT ERROR"
-msgstr "ERREUR DE PRÉCHAUFFAGE"
+msgstr "ERREUR DE PRÉCHAUF."
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:31
@@ -760,7 +760,7 @@ msgstr "PRÉCHAUF. av. CHARG."
 #: src/gui/dialogs/window_dlg_load_unload.c:49
 #: src/gui/dialogs/window_dlg_load_unload.cpp:54
 msgid "PREHEAT for UNLOAD"
-msgstr "PRÉCHAUFFER pour DÉCHARGER"
+msgstr "PRÉCHAUF. pour DÉCHARGER"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:48
 msgid "Preparing to ram"
@@ -779,7 +779,7 @@ msgid ""
 "related to         \n"
 "the assembly."
 msgstr ""
-"Appuyez sur NEXT pour lancer le Selftest détectant les éventuels problèmes "
+"Appuyez sur SUIV. pour lancer le Selftest détectant les éventuels problèmes "
 "liés à l'assemblage."
 
 #: src/gui/wizard/screen_wizard.cpp:319
@@ -787,7 +787,7 @@ msgid ""
 "Press NEXT to run the Selftest, which checks for potential issues related to "
 "the assembly."
 msgstr ""
-"Appuyez sur SUIVANT pour lancer le Selftest détectant les éventuels "
+"Appuyez sur SUIV. pour lancer le Selftest détectant les éventuels "
 "problèmes liés à l'assemblage."
 
 #: src/gui/screen_home.cpp:39
@@ -982,12 +982,12 @@ msgstr "Chargement des réglages réussi"
 
 #: src/gui/screen_menu_steel_sheets.cpp:93
 msgid "Sheet Profile"
-msgstr "Profil de Feuille"
+msgstr "Profil de Plaque"
 
 #: src/guiapi/include/MItem_tools.hpp:211
 #: src/guiapi/include/MItem_tools.hpp:210
 msgid "Silent"
-msgstr "Silencieux"
+msgstr "Muet"
 
 #: src/guiapi/include/MItem_tools.hpp:304
 msgid "Sort Files by"
@@ -1018,7 +1018,7 @@ msgstr "Statistique"
 
 #: src/gui/screen_menu_steel_sheets.cpp:176 src/gui/screen_menu_hw_setup.cpp:16
 msgid "Steel Sheets"
-msgstr "Feuilles d'Acier"
+msgstr "Plaque d'Acier"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:28
 msgid "STOP"
@@ -1059,7 +1059,7 @@ msgstr "Stopper le Test"
 
 #: src/guiapi/include/MItem_tools.hpp:69
 msgid "Test FANs"
-msgstr "Test VENTILATEURs"
+msgstr "Test VENTILOs"
 
 #: src/guiapi/include/MItem_tools.hpp:89
 msgid "Test Heaters"
@@ -1074,7 +1074,7 @@ msgid ""
 "The first layer calibration failed to finish. Double-check the printer's "
 "wiring, nozzle and axes, then restart the calibration."
 msgstr ""
-"La calibration de première couche n'a pu aboutir. Vérifiez bien le câblage "
+"La calibration première couche pas aboutie. Vérifiez bien le câblage "
 "de l'imprimante, la buse et les axes, puis relancez la calibration."
 
 #: src/gui/wizard/selftest.cpp:47
@@ -1082,7 +1082,7 @@ msgid ""
 "The selftest failed to finish. Double-check the printer's wiring and axes. "
 "Then restart the Selftest."
 msgstr ""
-"Le selftest pas pu aboutir. Vérifiez bien le câblage et les axes de "
+"Le selftest pas abouti. Vérifiez bien le câblage et les axes de "
 "l'imprimante. Puis relancez le selftest."
 
 #: src/gui/screen_menu_lan_settings.cpp:296
@@ -1124,7 +1124,7 @@ msgid ""
 "- Z-axis height\n"
 "- Selected filament"
 msgstr ""
-"La barre de statut se trouve dans le bas de l'écran. Elle contient des infos "
+"La barre de statut se trouve en bas de l'écran. Elle contient des infos "
 "concernant :\n"
 "- La temp. de la buse\n"
 "- La temp. du plateau\n"
@@ -1137,7 +1137,7 @@ msgid ""
 "The XYZ calibration failed to finish. Double-check the printer's wiring and "
 "axes, then restart the XYZ calibration."
 msgstr ""
-"La calibration XYZ n'a pas pu aboutir. Vérifiez bien le câblage et les axes "
+"La calibration XYZ n'a pas aboutie. Vérifiez bien le câblage et les axes "
 "de l'imprimante, puis relancez la calibration XYZ."
 
 #: src/gui/screen_menu_lan_settings.cpp:299
@@ -1164,9 +1164,9 @@ msgid ""
 "This operation can't be undone, current configuration will be lost! Are you "
 "really sure to reset printer to factory defaults?"
 msgstr ""
-"Cette action est Irréversible, la configuration actuelle sera perdue ! Êtes-"
+"Cette action est Irréversible, la configuration actuelle sera perdue! Êtes-"
 "vous certain de vouloir réinitialiser les paramètres d'usine pour "
-"l'imprimante ?"
+"l'imprimante?"
 
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:49
