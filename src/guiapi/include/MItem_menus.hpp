@@ -189,7 +189,7 @@ protected:
 };
 
 class MI_QR_PRIVACY : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Anonymized QR");
+    constexpr static const char *const label = N_("Device hash in QR");
 
 public:
     MI_QR_PRIVACY();
