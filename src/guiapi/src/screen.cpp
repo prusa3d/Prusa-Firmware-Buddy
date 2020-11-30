@@ -67,10 +67,12 @@ bool screen_t::registerSubWin(window_t &win) {
 
 void screen_t::unregisterConflictingPopUps(Rect16 rect, window_t *end) {
 
+    if (!getFirstPopUp())
+        return;
     WinFilterIntersectingPopUp filter_popup(rect);
     window_t *popup;
     //find intersecting popups and close them
-    while ((popup = findFirst(first_normal, end, filter_popup)) != end) {
+    while ((popup = findFirst(getFirstPopUp(), end, filter_popup)) != end) {
         UnregisterSubWin(popup);
     }
 }
@@ -105,7 +107,7 @@ void screen_t::hideSubwinsBehindDialogs() {
         //hide all conflicting windows
         WinFilterIntersectingVisible filter_intersecting(pLastVisibleDialog->rect);
         window_t *pIntersectingWin;
-        while ((pIntersectingWin = findFirst(first_normal, pBeginAbnormal, filter_intersecting)) != pBeginAbnormal) {
+        while ((pIntersectingWin = findFirst(first_normal, pLastVisibleDialog, filter_intersecting)) != pLastVisibleDialog) {
             pIntersectingWin->HideBehindDialog();
         }
 
