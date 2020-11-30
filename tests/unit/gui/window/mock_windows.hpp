@@ -71,7 +71,23 @@ struct MockScreen : public AddSuperWindow<screen_t> {
 
 private:
     void checkPtrRange(window_t *&iter, size_t cnt, window_t *first, window_t *last) const;
+
+    template <class T>
+    static void checkHidden(const T &arr, window_t &win);
 };
+
+template <class T>
+void MockScreen::checkHidden(const T &extra_windows, window_t &win) {
+    bool hidden = false;
+
+    for (size_t i = 0; i < extra_windows.size(); ++i) {
+        if (win.rect.HasIntersection(extra_windows[i]->rect))
+            hidden = true;
+    }
+
+    //check IsHiddenBehindDialog()
+    REQUIRE(win.IsHiddenBehindDialog() == hidden);
+}
 
 template <class... E>
 void MockScreen::CheckOrderAndVisibility(E *... e) {
@@ -101,39 +117,16 @@ void MockScreen::CheckOrderAndVisibility(E *... e) {
     //check parrent
     ParrentCheck();
 
-    bool hidden_first = false;
-    bool hidden_last = false;
-    bool hidden_w0 = false;
-    bool hidden_w1 = false;
-    bool hidden_w2 = false;
-    bool hidden_w3 = false;
-
-    for (size_t i = 0; i < sz; ++i) {
-        if (w_first.rect.HasIntersection(extra_windows[i]->rect))
-            hidden_first = true;
-        if (w_last.rect.HasIntersection(extra_windows[i]->rect))
-            hidden_last = true;
-        if (w0.rect.HasIntersection(extra_windows[i]->rect))
-            hidden_w0 = true;
-        if (w1.rect.HasIntersection(extra_windows[i]->rect))
-            hidden_w1 = true;
-        if (w2.rect.HasIntersection(extra_windows[i]->rect))
-            hidden_w2 = true;
-        if (w3.rect.HasIntersection(extra_windows[i]->rect))
-            hidden_w3 = true;
-    }
-
-    //check IsHiddenBehindDialog()
-    REQUIRE(w_first.IsHiddenBehindDialog() == hidden_first);
-    REQUIRE(w_last.IsHiddenBehindDialog() == hidden_last);
-    REQUIRE(w0.IsHiddenBehindDialog() == hidden_w0);
-    REQUIRE(w1.IsHiddenBehindDialog() == hidden_w1);
-    REQUIRE(w2.IsHiddenBehindDialog() == hidden_w2);
-    REQUIRE(w3.IsHiddenBehindDialog() == hidden_w3);
-
     //check linked list
-    //LinkedListCheck(popup_cnt, dialog_cnt, strong_dialog_cnt);
     LinkedListCheck(popup_cnt, dialog_cnt, strong_dialog_cnt);
+
+    //hidden check
+    REQUIRE_FALSE(getFirstNormal() == nullptr);
+    REQUIRE_FALSE(getLastNormal() == nullptr);
+    for (window_t *pWin = getFirstNormal(); pWin != getLastNormal()->GetNext(); pWin = pWin->GetNext()) {
+        REQUIRE_FALSE(pWin == nullptr);
+        checkHidden(extra_windows, *pWin);
+    }
 
     window_t *pWin = &w_last;
     REQUIRE_FALSE(pWin == nullptr); //should never fail
