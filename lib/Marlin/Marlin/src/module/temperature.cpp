@@ -1298,7 +1298,7 @@ void Temperature::manage_heater() {
 
       #if ENABLED(THERMAL_PROTECTION_HOTENDS)
         // Check for thermal runaway
-        thermal_runaway_protection(tr_state_machine[e], temp_hotend[e].celsius, temp_hotend[e].target, (heater_ind_t)e, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
+        thermal_runaway_protection(tr_state_machine[e], temp_hotend[e].celsius, temp_hotend[e].target, (heater_ind_t)e, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS_UP, THERMAL_PROTECTION_HYSTERESIS_DOWN);
       #endif
 
       temp_hotend[e].soft_pwm_amount = (temp_hotend[e].celsius > temp_range[e].mintemp || is_preheating(e)) && temp_hotend[e].celsius < temp_range[e].maxtemp ? (int)get_pid_output_hotend(e) >> 1 : 0;
@@ -1377,7 +1377,7 @@ void Temperature::manage_heater() {
       #endif
 
       #if HAS_THERMALLY_PROTECTED_BED
-        thermal_runaway_protection(tr_state_machine_bed, temp_bed.celsius, temp_bed.target, H_BED, THERMAL_PROTECTION_BED_PERIOD, THERMAL_PROTECTION_BED_HYSTERESIS);
+        thermal_runaway_protection(tr_state_machine_bed, temp_bed.celsius, temp_bed.target, H_BED, THERMAL_PROTECTION_BED_PERIOD, THERMAL_PROTECTION_BED_HYSTERESIS_UP, THERMAL_PROTECTION_BED_HYSTERESIS_DOWN);
       #endif
 
       #if HEATER_IDLE_HANDLER
@@ -2158,7 +2158,7 @@ void Temperature::init() {
     Temperature::tr_state_machine_t Temperature::tr_state_machine_chamber; // = { TRInactive, 0 };
   #endif
 
-  void Temperature::thermal_runaway_protection(Temperature::tr_state_machine_t &sm, const float &current, const float &target, const heater_ind_t heater_id, const uint16_t period_seconds, const uint16_t hysteresis_degc) {
+  void Temperature::thermal_runaway_protection(Temperature::tr_state_machine_t &sm, const float &current, const float &target, const heater_ind_t heater_id, const uint16_t period_seconds, const uint16_t hysteresis_degc_up, const uint16_t hysteresis_degc_down) {
 
     static float tr_target_temperature[HOTENDS + 1] = { 0.0 };
 
@@ -2225,7 +2225,7 @@ void Temperature::init() {
           }
         #endif
 
-        if (current >= tr_target_temperature[heater_index] - hysteresis_degc) {
+        if (current >= (tr_target_temperature[heater_index] - hysteresis_degc_down) && (current >= tr_target_temperature[heater_index] + hysteresis_degc_up)){
           sm.timer = millis() + period_seconds * 1000UL;
           break;
         }
@@ -2233,6 +2233,9 @@ void Temperature::init() {
         sm.state = TRRunaway;
 
       case TRRunaway:
+      if (heater_index==H_BED)
+      _temp_error(H_BED, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY_BED));
+      else
         _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY));
     }
   }
