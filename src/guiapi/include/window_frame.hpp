@@ -28,11 +28,13 @@ class window_frame_t : public AddSuperWindow<window_t> {
     void clearAllHiddenBehindDialogFlags();
     void hideSubwinsBehindDialogs();
 
+    virtual bool registerSubWin(window_t &win) override;
+    virtual void unregisterSubWin(window_t &win) override;
+
 public:
-    virtual bool RegisterSubWin(window_t *win) override;
-    virtual void UnregisterSubWin(window_t *win) override;
     window_t *GetFirst() const;
     window_t *GetLast() const;
+    bool HasDialogOrPopup();
 
     window_frame_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_serial_t serial = is_closed_on_serial_t::yes);
     virtual ~window_frame_t() override;

@@ -189,10 +189,6 @@ void gui_run(void) {
     gui_loop_cb = _gui_loop_cb;
     while (1) {
         Screens::Access()->Loop();
-        // show warning dialog on safety timer expiration
-        if (marlin_event_clr(MARLIN_EVT_SafetyTimerExpired)) {
-            MsgBoxInfo(_("Heating disabled due to 30 minutes of inactivity."), Responses_Ok);
-        }
         gui_loop();
     }
 }
@@ -205,9 +201,9 @@ void update_firmware_screen(void) {
     display::DrawText(Rect16(10, 115, 240, 60), _("Hi, this is your\nOriginal Prusa MINI."), font, COLOR_BLACK, COLOR_WHITE);
     display::DrawText(Rect16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
     render_text_align(Rect16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, { 2, 6, 2, 2 }, ALIGN_CENTER);
-    Jogwheel::BtnState_t btn_ev;
+    BtnState_t btn_ev;
     while (1) {
-        if (jogwheel.ConsumeButtonEvent(btn_ev) && btn_ev == Jogwheel::BtnState_t::Held)
+        if (jogwheel.ConsumeButtonEvent(btn_ev) && btn_ev == BtnState_t::Held)
             sys_reset();
         osDelay(1);
         wdt_iwdg_refresh();

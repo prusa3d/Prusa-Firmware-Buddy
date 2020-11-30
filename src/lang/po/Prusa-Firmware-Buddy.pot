@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-11-20 11:11+0100\n"
+"POT-Creation-Date: 2020-11-26 13:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -52,7 +52,11 @@ msgstr ""
 msgid "Always"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:100
+#: src/guiapi/include/MItem_menus.hpp:192
+msgid "Anonymized QR"
+msgstr ""
+
+#: src/gui/screen_printing.cpp:103
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
@@ -73,11 +77,11 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:202
+#: src/gui/screen_printing.cpp:205
 msgid "Bed leveling failed. Try again?"
 msgstr ""
 
-#: src/gui/screen_menu_calibration.cpp:22
+#: src/gui/screen_menu_calibration.cpp:27
 msgid "CALIBRATION"
 msgstr ""
 
@@ -151,7 +155,7 @@ msgstr ""
 msgid "Checking hotend and heatbed heaters"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:165
+#: src/gui/wizard/firstlay.cpp:166
 msgid "Clean steel sheet."
 msgstr ""
 
@@ -184,7 +188,7 @@ msgstr ""
 msgid "Disconnect"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:157
+#: src/gui/wizard/firstlay.cpp:158
 msgid ""
 "Do you want to repeat the last step and readjust the distance between the "
 "nozzle and heatbed?"
@@ -256,10 +260,6 @@ msgstr ""
 msgid "Fan Test"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:99
-msgid "Fan test OK"
-msgstr ""
-
 #: src/gui/screen_sysinf.cpp:71
 msgid "Fan0 RPM"
 msgstr ""
@@ -313,7 +313,7 @@ msgstr ""
 msgid "Fri"
 msgstr ""
 
-#: src/gui/screen_home.cpp:67
+#: src/gui/screen_home.cpp:68
 msgid "HOME"
 msgstr ""
 
@@ -366,7 +366,7 @@ msgstr ""
 msgid "Hotend Fan"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
 msgid "Hotend fan not spinning"
 msgstr ""
 
@@ -632,7 +632,7 @@ msgstr ""
 msgid "PREHEAT for UNLOAD"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:357 src/gui/screen_printing.hpp:46
+#: src/gui/screen_printing.cpp:360 src/gui/screen_printing.hpp:46
 msgid "PRINTING"
 msgstr ""
 
@@ -727,17 +727,17 @@ msgstr ""
 msgid "Print Time"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
 msgid "Print fan not spinning"
 msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
 #. theoretically it can be removed completely in case the string is constant for the whole run of the screen
-#: src/gui/screen_printing.cpp:219
+#: src/gui/screen_printing.cpp:222
 msgid "Print will end"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:155
+#: src/gui/screen_printing.cpp:158
 msgid "Printing time"
 msgstr ""
 
@@ -780,8 +780,8 @@ msgid "Really Disconnect?"
 msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-#: src/gui/screen_printing.cpp:144 src/gui/screen_printing.cpp:223
-#: src/gui/screen_printing.cpp:352
+#: src/gui/screen_printing.cpp:147 src/gui/screen_printing.cpp:226
+#: src/gui/screen_printing.cpp:355
 msgid "Remaining Time"
 msgstr ""
 
@@ -853,7 +853,7 @@ msgstr ""
 
 #. / draw "Scan me" text
 #. r=1 c=34
-#: src/common/bsod.cpp:266
+#: src/common/bsod.cpp:267
 msgid "Scan me for details"
 msgstr ""
 
@@ -972,10 +972,6 @@ msgstr ""
 msgid "Test"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:109
-msgid "Test Abort"
-msgstr ""
-
 #: src/guiapi/include/MItem_tools.hpp:69
 msgid "Test FANs"
 msgstr ""
@@ -995,7 +991,7 @@ msgid ""
 msgstr ""
 
 #. save eeprom flag
-#: src/gui/wizard/firstlay.cpp:181
+#: src/gui/wizard/firstlay.cpp:182
 msgid ""
 "The first layer calibration failed to finish. Double-check the printer's "
 "wiring, nozzle and axes, then restart the calibration."
