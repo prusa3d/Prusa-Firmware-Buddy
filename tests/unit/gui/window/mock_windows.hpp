@@ -120,12 +120,24 @@ void MockScreen::CheckOrderAndVisibility(E *... e) {
     //check linked list
     LinkedListCheck(popup_cnt, dialog_cnt, strong_dialog_cnt);
 
-    //hidden check
+    //hidden check of normal windows
     REQUIRE_FALSE(getFirstNormal() == nullptr);
     REQUIRE_FALSE(getLastNormal() == nullptr);
     for (window_t *pWin = getFirstNormal(); pWin != getLastNormal()->GetNext(); pWin = pWin->GetNext()) {
         REQUIRE_FALSE(pWin == nullptr);
         checkHidden(extra_windows, *pWin);
+    }
+
+    //check hidden of extra_windows
+    std::array<bool, sz> hiddens;
+    hiddens.fill(false);
+    for (int top_win_index = sz - 1; top_win_index >= 0; --top_win_index) {
+        for (int bot_win_index = top_win_index - 1; bot_win_index >= 0; --bot_win_index) {
+            if (extra_windows[top_win_index]->rect.HasIntersection(extra_windows[bot_win_index]->rect))
+                hiddens[bot_win_index] = true;
+        }
+        //outer loop can also check result of current window
+        REQUIRE(extra_windows[top_win_index]->IsHiddenBehindDialog() == hiddens[top_win_index]);
     }
 
     window_t *pWin = &w_last;
