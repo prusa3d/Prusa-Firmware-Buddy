@@ -25,36 +25,38 @@ TEST_CASE("Window registration tests", "[window]") {
 
     SECTION("popup with no rectangle") {
         window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
-        screen.BasicCheck(1);
+        screen.BasicCheck(1); // basic check must pass, because rect is empty
+
+        //popup is singleton must get its pointer from screen
+        window_t *popup = screen.w_last.GetNext();
+        REQUIRE_FALSE(popup == nullptr);
+        REQUIRE(popup->GetType() == win_type_t::popup);
+
         REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
+        screen.CheckOrderAndVisibility(popup);
     }
 
     SECTION("popup hiding w0 - w4") {
         window_dlg_popup_t::Show(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect), string_view_utf8::MakeNULLSTR());
-        //check parrent
-        screen.ParrentCheck();
 
-        //check IsHiddenBehindDialog()
-        REQUIRE_FALSE(screen.w_first.IsHiddenBehindDialog());
-        REQUIRE_FALSE(screen.w_last.IsHiddenBehindDialog());
-        REQUIRE(screen.w0.IsHiddenBehindDialog());
-        REQUIRE(screen.w1.IsHiddenBehindDialog());
-        REQUIRE(screen.w2.IsHiddenBehindDialog());
-        REQUIRE(screen.w3.IsHiddenBehindDialog());
+        //popup is singleton must get its pointer from screen
+        window_t *popup = screen.w_last.GetNext();
+        REQUIRE_FALSE(popup == nullptr);
+        REQUIRE(popup->GetType() == win_type_t::popup);
 
-        //check linked list
-        screen.LinkedListCheck(1);
         REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
+        screen.CheckOrderAndVisibility(popup);
     }
-    /*
+
     SECTION("msgbox with no rectangle") {
         MockMsgBox msgbox(Rect16(0, 0, 0, 0));
-        REQUIRE(msgbox.GetParent() == &screen);
-        screen.BasicCheck(0, 1);
-        REQUIRE(screen.getLastNormal() == &msgbox);
-        REQUIRE(screen.GetCapturedWindow() == &msgbox); //msgbox does claim capture
-    }
+        screen.BasicCheck(0, 1); // basic check must pass, because rect is empty
 
+        REQUIRE(msgbox.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &msgbox); //msgbox does claim capture
+        screen.CheckOrderAndVisibility(&msgbox);
+    }
+    /*
     SECTION("msgbox hiding w0 - w4") {
         MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
         check_window_order_and_visibility(screen, &msgbox);

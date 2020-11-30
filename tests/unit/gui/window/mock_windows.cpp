@@ -3,10 +3,10 @@
  * @author Radek Vana
  * @date 2020-11-30
  */
-#include "mock_windows.hpp"
-#include "catch2/catch.hpp"
 
-void MockScreen::ParrentCheck() {
+#include "mock_windows.hpp"
+
+void MockScreen::ParrentCheck() const {
     //check parrent
     REQUIRE(w_first.GetParent() == this);
     REQUIRE(w_last.GetParent() == this);
@@ -16,7 +16,7 @@ void MockScreen::ParrentCheck() {
     REQUIRE(w3.GetParent() == this);
 }
 
-void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_dialog_cnt) {
+void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_dialog_cnt) const {
     //check linked list
     REQUIRE(getFirstNormal() == &(w_first));
     REQUIRE(getLastNormal() == &(w_last));
@@ -27,37 +27,15 @@ void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt, size_t str
     REQUIRE(w3.GetNext() == &(w_last));
 
     window_t *pLast = getLastNormal();
-    REQUIRE_FALSE(pLast == nullptr);
 
-    /*  size_t cnt = popup_cnt + dialog_cnt + strong_dialog_cnt;
-    for (size_t i = 0; i < cnt; ++i ) {
-        pLast = pLast->GetNext();
-        REQUIRE_FALSE(pLast == nullptr);
-    }*/
+    checkPtrRange(pLast, dialog_cnt, getFirstDialog(), getLastDialog());
+    checkPtrRange(pLast, strong_dialog_cnt, getFirstStrongDialog(), getLastStrongDialog());
+    checkPtrRange(pLast, popup_cnt, getFirstPopUp(), getLastPopUp());
 
-    if (dialog_cnt) {
-        REQUIRE(pLast->GetNext() == nullptr);
-        while (dialog_cnt--) {
-            pLast = pLast->GetNext();
-            REQUIRE_FALSE(pLast == nullptr);
-        }
-    }
-
-    while (strong_dialog_cnt--) {
-        pLast = pLast->GetNext();
-        REQUIRE_FALSE(pLast == nullptr);
-    }
-
-    while (popup_cnt--) {
-        pLast = pLast->GetNext();
-        REQUIRE_FALSE(pLast == nullptr);
-    }
-
-    pLast = pLast->GetNext();
-    REQUIRE(pLast == nullptr);
+    REQUIRE(pLast->GetNext() == nullptr);
 }
 
-void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_dialog_cnt) {
+void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_dialog_cnt) const {
     //check parrent
     ParrentCheck();
 
@@ -72,38 +50,22 @@ void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_d
     //check linked list
     LinkedListCheck(popup_cnt, dialog_cnt, strong_dialog_cnt);
 }
-/*
-template <class... E>
-void check_window_order_and_visibility(MockScreen &screen, E *... e) {
-    constexpr size_t sz = sizeof...(e);
-    std::array<window_t *, sz> extra_windows = { e... };
 
-    //check parrent
-    screen.ParrentCheck();
-
-    //check IsHiddenBehindDialog()
-    REQUIRE_FALSE(screen.w_first.IsHiddenBehindDialog());
-    REQUIRE_FALSE(screen.w_last.IsHiddenBehindDialog());
-    REQUIRE(screen.w0.IsHiddenBehindDialog());
-    REQUIRE(screen.w1.IsHiddenBehindDialog());
-    REQUIRE(screen.w2.IsHiddenBehindDialog());
-    REQUIRE(screen.w3.IsHiddenBehindDialog());
-
-    //check linked list
-    screen.LinkedListCheck(has_dialog_t::yes);
-
-    //check last pointer
-    REQUIRE(screen.getLastNormal() == extra_windows[sz - 1]);
-
-    window_t *pWin = &screen.w_last;
-    REQUIRE_FALSE(pWin == nullptr); //should never fail
-
-    //check order of all extra windows
-    for (size_t i = 0; i < sz; ++i) {
-        pWin = pWin->GetNext();
-        REQUIRE_FALSE(pWin == nullptr);
+void MockScreen::checkPtrRange(window_t *&iter, size_t cnt, window_t *first, window_t *last) const {
+    REQUIRE_FALSE(iter == nullptr);
+    if (cnt) {
+        //not empty list
+        REQUIRE_FALSE(first == nullptr);
+        REQUIRE_FALSE(last == nullptr);
+        REQUIRE(iter->GetNext() == first);
+        while (cnt--) {
+            iter = iter->GetNext();
+            REQUIRE_FALSE(iter == nullptr);
+        }
+        REQUIRE(iter == last);
+    } else {
+        //empty list
+        REQUIRE(first == nullptr);
+        REQUIRE(last == nullptr);
     }
-
-    REQUIRE(pWin == screen.getLastNormal()); // check if only 1 extra window is registered
 }
-*/
