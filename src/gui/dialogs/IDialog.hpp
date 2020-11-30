@@ -43,13 +43,3 @@ protected:
 
 void create_blocking_dialog_from_normal_window(window_t &dlg);
 void create_blocking_dialog(IDialog &dlg);
-/*
-class WinFilterDialogCapture : public WinFilter {
-    window_t *target_capture;
-
-public:
-    constexpr WinFilterDialogCapture(window_t *capture)
-        : target_capture(capture) {}
-
-    virtual bool operator()(const window_t &win) const override { return win.IsDialog() && reinterpret_cast<const IDialog &>(win).GetStoredCapture() == target_capture; };
-};*/
