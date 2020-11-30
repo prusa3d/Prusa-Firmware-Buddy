@@ -2225,7 +2225,7 @@ void Temperature::init() {
           }
         #endif
 
-        if (current >= (tr_target_temperature[heater_index] - hysteresis_degc_down) && (current >= tr_target_temperature[heater_index] + hysteresis_degc_up)){
+        if (current >= (tr_target_temperature[heater_index] - hysteresis_degc_down) && (current =< tr_target_temperature[heater_index] + hysteresis_degc_up)){
           sm.timer = millis() + period_seconds * 1000UL;
           break;
         }
