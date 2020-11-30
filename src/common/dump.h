@@ -164,6 +164,8 @@ extern unsigned short dump_in_xflash_get_code(void);
 
 extern void dump_in_xflash_set_displayed(void);
 
+extern void dump_in_xflash_reset(void);
+
 extern unsigned int dump_in_xflash_read_RAM(void *pRAM, unsigned int addr, unsigned int size);
 
 extern unsigned int dump_in_xflash_read_regs_SCB(void *pRegsSCB, unsigned int size);

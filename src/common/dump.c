@@ -97,6 +97,18 @@ void dump_in_xflash_set_displayed(void) {
     dump_in_xflash_clear_flag(DUMP_NOT_DISPL);
 }
 
+void dump_in_xflash_reset(void) {
+    if (w25x_init()) {
+        for (uint32_t addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
+            w25x_wait_busy();
+            w25x_enable_wr();
+            w25x_block64_erase(DUMP_OFFSET + addr);
+        }
+        w25x_wait_busy();
+        w25x_disable_wr();
+    }
+}
+
 unsigned int dump_in_xflash_read_RAM(void *pRAM, unsigned int addr, unsigned int size) {
     if ((addr >= DUMP_RAM_ADDR) && (addr < (DUMP_RAM_ADDR + DUMP_RAM_SIZE))) {
         if (size > (DUMP_RAM_ADDR + DUMP_RAM_SIZE - addr))
