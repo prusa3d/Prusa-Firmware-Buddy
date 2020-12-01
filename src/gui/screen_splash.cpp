@@ -24,7 +24,7 @@ void screen_splash_data_t::timer(uint32_t mseconds) {
 }
 
 screen_splash_data_t::screen_splash_data_t()
-    : window_frame_t()
+    : AddSuperWindow<screen_t>()
     , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_prusa_printer_splash)
     , text_progress(this, Rect16(10, 171, 220, 20), is_multiline::no)
     , progress(this, Rect16(10, 200, 220, 15), 15, COLOR_ORANGE, COLOR_GRAY)
@@ -51,7 +51,7 @@ screen_splash_data_t::screen_splash_data_t()
 }
 
 void screen_splash_data_t::draw() {
-    window_frame_t::draw();
+    super::draw();
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
     display::DrawText(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);

@@ -141,7 +141,7 @@ void Screens::Draw() {
     current->Draw();
 }
 
-window_frame_t *Screens::Get() {
+screen_t *Screens::Get() const {
     if (!current) {
         return nullptr;
     }
@@ -248,11 +248,8 @@ void Screens::InnerLoop() {
         /// need to reset focused and capture ptr before calling current = creator();
         /// screen ctor can change those pointers
         /// screen was destroyed by unique_ptr.release()
-        window_t::ResetCapturedWindow();
         window_t::ResetFocusedWindow();
         current = creator();
-        if (!current->IsChildCaptured())
-            current->SetCapture();
         /// need to be reset also focused ptr
         if (!current->IsFocused() && !current->IsChildFocused()) {
             window_t *child = current->GetFirstEnabledSubWin();

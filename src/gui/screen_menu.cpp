@@ -11,12 +11,11 @@ static uint16_t get_help_h(size_t helper_lines, uint32_t font_id) {
 }
 
 IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
-    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreen, parent != nullptr ? win_type_t::dialog : win_type_t::normal)
+    : AddSuperWindow<screen_t>(parent, GuiDefaults::RectScreen, parent != nullptr ? win_type_t::dialog : win_type_t::normal)
     , header(this)
     , menu(this, Rect16(0, 0, 0, 0), nullptr)
     , help(this, Rect16(0, 0, 0, 0), is_multiline::yes)
-    , footer(this)
-    , prev_capture(window_t::GetCapturedWindow()) {
+    , footer(this) {
 
     /// Split window to menu and helper
     const int help_h = get_help_h(helper_lines, font_id);
@@ -38,21 +37,12 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_i
 
     FOOTER == EFooter::On ? footer.Show() : footer.Hide();
 
-    //if (!IsDialog())       // dialog needs to save actual value of caption first
-    menu.SetCapture(); // set capture to list
+    CaptureNormalWindow(menu); // set capture to list
     menu.SetFocus();
 
     if (helper_lines > 0) {
         help.font = resource_font(font_id);
     }
-}
-
-IScreenMenu::~IScreenMenu() {
-    //if (!IsDialog())
-    if (prev_capture != nullptr) // in some cases prev_capture can be null
-        prev_capture->SetCapture();
-    else
-        window_t::ResetCapturedWindow(); // set window_t::capture_ptr to null
 }
 
 void IScreenMenu::unconditionalDrawItem(uint8_t index) {

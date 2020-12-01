@@ -69,7 +69,7 @@ WizardState_t ScreenWizard::start_state = WizardState_t::START_first;
 bool ScreenWizard::is_config_invalid = true;
 
 ScreenWizard::ScreenWizard()
-    : AddSuperWindow<window_frame_t>()
+    : AddSuperWindow<screen_t>()
     , header(this, WizardGetCaption(WizardState_t::START_first))
     , footer(this)
     , state(start_state)

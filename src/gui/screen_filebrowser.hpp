@@ -2,8 +2,9 @@
 #include "gui.hpp"
 #include "window_file_list.hpp"
 #include "window_header.hpp"
+#include "screen.hpp"
 
-class screen_filebrowser_data_t : public AddSuperWindow<window_frame_t> {
+class screen_filebrowser_data_t : public AddSuperWindow<screen_t> {
     window_header_t header;
     window_file_list_t w_filelist;
 

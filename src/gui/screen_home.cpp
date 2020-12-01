@@ -41,7 +41,7 @@ const char *labels[7] = {
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 
 screen_home_data_t::screen_home_data_t()
-    : AddSuperWindow<window_frame_t>()
+    : AddSuperWindow<screen_t>()
     , usbInserted(marlin_vars()->media_inserted)
     , header(this)
     , footer(this)

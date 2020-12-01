@@ -8,7 +8,7 @@
 #include "ScreenHandler.hpp"
 
 screen_test_term_data_t::screen_test_term_data_t()
-    : AddSuperWindow<window_frame_t>()
+    : AddSuperWindow<screen_t>()
     , text(this, Rect16(10, 0, 220, 22), is_multiline::no)
     , term(this, { 10, 28 }, &term_buff) {
     SetBackColor(COLOR_GRAY);
