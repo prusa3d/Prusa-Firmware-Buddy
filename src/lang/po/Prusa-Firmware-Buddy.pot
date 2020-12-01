@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-11-24 15:14+0100\n"
+"POT-Creation-Date: 2020-11-30 18:06+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -174,6 +174,10 @@ msgstr ""
 #. Continue
 #: src/gui/dialogs/dialog_response.cpp:15
 msgid "DISABLE SENSOR"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:192
+msgid "Device hash in QR"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:119
@@ -362,7 +366,7 @@ msgstr ""
 msgid "Hotend Fan"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
 msgid "Hotend fan not spinning"
 msgstr ""
 
@@ -723,7 +727,7 @@ msgstr ""
 msgid "Print Time"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
 msgid "Print fan not spinning"
 msgstr ""
 
@@ -849,7 +853,7 @@ msgstr ""
 
 #. / draw "Scan me" text
 #. r=1 c=34
-#: src/common/bsod.cpp:266
+#: src/common/bsod.cpp:267
 msgid "Scan me for details"
 msgstr ""
 

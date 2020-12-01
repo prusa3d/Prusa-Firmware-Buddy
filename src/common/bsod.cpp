@@ -40,6 +40,7 @@
     #include "../../lib/Marlin/Marlin/src/core/language.h"
     #include "../../lib/Marlin/Marlin/src/lcd/language/language_en.h"
     #include "scratch_buffer.hpp"
+    #include "eeprom.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -272,7 +273,15 @@ void draw_error_screen(const uint16_t error_code_short) {
 
         /// draw QR
         char qr_text[MAX_LEN_4QR + 1];
-        error_url_long(qr_text, sizeof(qr_text), error_code);
+
+        /// switch for sending UID of printer or not
+        bool devhash_in_qr = variant_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR));
+        if (devhash_in_qr) {
+            error_url_long(qr_text, sizeof(qr_text), error_code);
+        } else {
+            error_url_short(qr_text, sizeof(qr_text), error_code);
+        }
+
         constexpr uint8_t qr_size_px = 140;
         const Rect16 qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
         window_qr_t win(nullptr, qr_rect);

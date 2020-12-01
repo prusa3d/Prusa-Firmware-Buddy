@@ -289,6 +289,10 @@ if(CMAKE_CROSSCOMPILING)
   # split and gc sections
   add_compile_options(-ffunction-sections -fdata-sections)
   add_link_options(-Wl,--gc-sections)
+
+  # disable exceptions and related metadata
+  add_compile_options(-fno-exceptions -fno-unwind-tables)
+  add_link_options(-Wl,--defsym,__exidx_start=0,--defsym,__exidx_end=0)
 endif()
 
 # enable all warnings (well, not all, but some)
