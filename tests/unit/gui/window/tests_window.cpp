@@ -154,18 +154,26 @@ TEST_CASE("Window registration tests", "[window]") {
         screen.CheckOrderAndVisibility(&strong0);
         window_t::EventJogwheel(BtnState_t::Released); //unregister strong0
     }
-    /*
+
     SECTION("strong dialog + msgbox") {
         MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
-        check_window_order_and_visibility(screen, &strong);
+        REQUIRE(strong.GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
+        screen.CheckOrderAndVisibility(&strong);
+
         MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
-        check_window_order_and_visibility(screen, &msgbox, &strong); //strong must remain on top
-        REQUIRE(screen.GetCapturedWindow() == &strong);              //strong cannot give capture to msgbox claim capture
-        window_t::EventJogwheel(BtnState_t::Released);               //unregister strong dialog
-        check_window_order_and_visibility(screen, &msgbox);          //msgbox must remain
-        REQUIRE(screen.GetCapturedWindow() == &strong);              //strong must give capture to message box upon destruction
-    }*/
+        REQUIRE(msgbox.GetParent() == &screen);
+        REQUIRE(strong.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &strong);   //strong cannot give capture to msgbox
+        screen.CheckOrderAndVisibility(&msgbox, &strong); //strong must remain on top
+
+        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        REQUIRE(msgbox.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &msgbox); //strong must give capture to message box upon destruction
+        screen.CheckOrderAndVisibility(&msgbox);        //msgbox must remain
+    }
+
+    //TODO normal window
 
     hal_tick = 1000;                                   //set openned on popup
     screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); //loop will initialize popup timeout

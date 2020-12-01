@@ -25,6 +25,7 @@ bool screen_t::registerSubWin(window_t &win) {
         registerAnySubWin(win, first_dialog, last_dialog);
         if (&win == first_dialog && last_normal) { //connect to list
             last_normal->SetNext(&win);
+            win.SetNext(first_strong_dialog ? first_strong_dialog : first_popup);
         }
         break;
     case win_type_t::strong_dialog:
@@ -36,6 +37,7 @@ bool screen_t::registerSubWin(window_t &win) {
             } else if (last_normal) {
                 last_normal->SetNext(&win);
             }
+            win.SetNext(first_popup);
         }
         break;
     case win_type_t::popup:
