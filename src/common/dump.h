@@ -160,9 +160,13 @@ extern int dump_in_xflash_is_displayed(void);
 
 extern int dump_in_xflash_get_type(void);
 
+extern void dump_in_xflash_reset(void);
+
 extern unsigned short dump_in_xflash_get_code(void);
 
 extern void dump_in_xflash_set_displayed(void);
+
+extern void dump_in_xflash_clear_flag(uint8_t flag);
 
 extern unsigned int dump_in_xflash_read_RAM(void *pRAM, unsigned int addr, unsigned int size);
 
