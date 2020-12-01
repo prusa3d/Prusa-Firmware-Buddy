@@ -151,6 +151,14 @@ bool screen_t::CaptureNormalWindow(window_t &win) {
     return true;
 }
 
+void screen_t::ReleaseCaptureOfNormalWindow() {
+    if (captured_normal_window) {
+        captured_normal_window->WindowEvent(this, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
+    }
+    captured_normal_window = nullptr;
+    gui_invalidate();
+}
+
 bool screen_t::IsChildCaptured() const {
     return captured_normal_window != nullptr;
 }

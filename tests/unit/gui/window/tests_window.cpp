@@ -60,6 +60,40 @@ TEST_CASE("Window registration tests", "[window]") {
         screen.CheckOrderAndVisibility(&msgbox);
     }
 
+    SECTION("popup with no rectangle + msgbox hiding w0 - w4") {
+        window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
+        screen.BasicCheck(1); // basic check must pass, because rect is empty
+        //popup is singleton must get its pointer from screen
+        window_t *popup = screen.w_last.GetNext();
+        REQUIRE_FALSE(popup == nullptr);
+        REQUIRE(popup->GetType() == win_type_t::popup);
+        REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
+        screen.CheckOrderAndVisibility(popup);
+
+        MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
+        REQUIRE(msgbox.GetParent() == &screen);
+        REQUIRE(popup->GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &msgbox); //msgbox does claim capture
+        screen.CheckOrderAndVisibility(&msgbox, popup);
+    }
+
+    SECTION("msgbox hiding w0 - w4 + popup with no rectangle") {
+        MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
+        REQUIRE(msgbox.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &msgbox); //msgbox does claim capture
+        screen.CheckOrderAndVisibility(&msgbox);
+
+        window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
+        //popup is singleton must get its pointer from screen
+        window_t *popup = msgbox.GetNext();
+        REQUIRE_FALSE(popup == nullptr);
+        REQUIRE(msgbox.GetParent() == &screen);
+        REQUIRE(popup->GetParent() == &screen);
+        REQUIRE(popup->GetType() == win_type_t::popup);
+        REQUIRE(screen.GetCapturedWindow() == &msgbox); //popup does not claim capture
+        screen.CheckOrderAndVisibility(&msgbox, popup);
+    }
+
     SECTION("popup inside msgbox hiding w0 - w4") {
         MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
         window_dlg_popup_t::Show(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect), string_view_utf8::MakeNULLSTR());
@@ -173,7 +207,140 @@ TEST_CASE("Window registration tests", "[window]") {
         screen.CheckOrderAndVisibility(&msgbox);        //msgbox must remain
     }
 
-    //TODO normal window
+    SECTION("msgbox + strong dialog") {
+        MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
+        REQUIRE(msgbox.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &msgbox); //msgbox does claim capture
+        screen.CheckOrderAndVisibility(&msgbox);
+
+        MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
+        REQUIRE(msgbox.GetParent() == &screen);
+        REQUIRE(strong.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
+        screen.CheckOrderAndVisibility(&msgbox, &strong);
+
+        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        REQUIRE(msgbox.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &msgbox); //strong must give capture to message box upon destruction
+        screen.CheckOrderAndVisibility(&msgbox);        //msgbox must remain
+    }
+
+    SECTION("msgbox + strong dialog, destroy msgbox first") {
+        auto msgbox = std::make_unique<MockMsgBox>(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect));
+        REQUIRE(msgbox->GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == msgbox.get()); //msgbox does claim capture
+        screen.CheckOrderAndVisibility(msgbox.get());
+
+        MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
+        REQUIRE(strong.GetParent() == &screen);
+        REQUIRE(msgbox->GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
+        screen.CheckOrderAndVisibility(msgbox.get(), &strong);
+
+        //destroy msgbox before strong
+        msgbox.reset();
+
+        REQUIRE(strong.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
+        screen.CheckOrderAndVisibility(&strong);
+
+        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+    }
+
+    SECTION("popup with no rectangle + strong dialog") {
+        window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
+        screen.BasicCheck(1); // basic check must pass, because rect is empty
+        //popup is singleton must get its pointer from screen
+        window_t *popup = screen.w_last.GetNext();
+        REQUIRE_FALSE(popup == nullptr);
+        REQUIRE(popup->GetType() == win_type_t::popup);
+        REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
+        screen.CheckOrderAndVisibility(popup);
+
+        MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
+        REQUIRE(strong.GetParent() == &screen);
+        REQUIRE(popup->GetParent() == &screen);         // popup must remain
+        REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
+        screen.CheckOrderAndVisibility(popup, &strong);
+
+        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        REQUIRE(popup->GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
+        screen.CheckOrderAndVisibility(popup);          //popup must remain
+    }
+
+    SECTION("strong dialog + popup with no rectangle") {
+        MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
+        REQUIRE(strong.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
+        screen.CheckOrderAndVisibility(&strong);
+
+        window_dlg_popup_t::Show(Rect16(), string_view_utf8::MakeNULLSTR());
+        window_t *popup = strong.GetNext();
+        REQUIRE_FALSE(popup == nullptr);
+        REQUIRE(popup->GetType() == win_type_t::popup);
+        REQUIRE(strong.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &strong); //popup does not claim capture
+        screen.CheckOrderAndVisibility(popup, &strong);
+
+        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        REQUIRE(popup->GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
+        screen.CheckOrderAndVisibility(popup);          //popup must remain
+    }
+
+    SECTION("normal window") {
+        screen.BasicCheck();
+        REQUIRE(screen.GetCapturedWindow() == &screen);
+        screen.CaptureNormalWindow(screen.w0);
+        screen.BasicCheck();
+        REQUIRE(screen.GetCapturedWindow() == &screen.w0);
+        screen.ReleaseCaptureOfNormalWindow();
+    }
+
+    SECTION("popup hiding w0 - w4 + normal window") {
+        window_dlg_popup_t::Show(Rect16::Merge_ParamPack(screen.w0.rect, screen.w1.rect, screen.w2.rect, screen.w3.rect), string_view_utf8::MakeNULLSTR());
+        //popup is singleton must get its pointer from screen
+        window_t *popup = screen.w_last.GetNext();
+        REQUIRE_FALSE(popup == nullptr);
+        REQUIRE(popup->GetType() == win_type_t::popup);
+        REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
+        screen.CheckOrderAndVisibility(popup);
+
+        screen.CaptureNormalWindow(screen.w0);
+        REQUIRE(screen.GetCapturedWindow() == &screen.w0);
+        screen.ReleaseCaptureOfNormalWindow();
+    }
+
+    SECTION("strong dialog + normal window") {
+        MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
+        REQUIRE(strong.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
+        screen.CheckOrderAndVisibility(&strong);
+
+        screen.CaptureNormalWindow(screen.w0);
+        REQUIRE(screen.GetCapturedWindow() == &strong); //strong still has capture
+
+        window_t::EventJogwheel(BtnState_t::Released);     //unregister strong dialog
+        REQUIRE(screen.GetCapturedWindow() == &screen.w0); //capture must return to normal win
+        screen.ReleaseCaptureOfNormalWindow();
+    }
+
+    SECTION("normal window + strong dialog") {
+        screen.BasicCheck();
+        REQUIRE(screen.GetCapturedWindow() == &screen);
+        screen.CaptureNormalWindow(screen.w0);
+        screen.BasicCheck();
+
+        MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
+        REQUIRE(strong.GetParent() == &screen);
+        REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
+        screen.CheckOrderAndVisibility(&strong);
+
+        window_t::EventJogwheel(BtnState_t::Released);     //unregister strong dialog
+        REQUIRE(screen.GetCapturedWindow() == &screen.w0); //capture must return to normal win
+        screen.ReleaseCaptureOfNormalWindow();
+    }
 
     hal_tick = 1000;                                   //set openned on popup
     screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); //loop will initialize popup timeout
