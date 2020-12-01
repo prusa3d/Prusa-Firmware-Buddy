@@ -145,6 +145,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_XFLASH_RESET : public WI_LABEL_t {
+    static constexpr const char *const label = "XFLASH RESET"; // intentionally not translated, only for debugging
+
+public:
+    MI_XFLASH_RESET();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_HF_TEST_0 : public WI_LABEL_t {
     static constexpr const char *const label = "HF0 test"; // intentionally not translated, only for debugging
 
