@@ -190,6 +190,16 @@ void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+//MI_XFLASH_RESET
+MI_XFLASH_RESET::MI_XFLASH_RESET()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
+    dump_in_xflash_reset();
+}
+
+/*****************************************************************************/
 //MI_HF_TEST_0
 MI_HF_TEST_0::MI_HF_TEST_0()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
