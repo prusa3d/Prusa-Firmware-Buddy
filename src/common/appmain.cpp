@@ -31,6 +31,7 @@
 #include "safe_state.h"
 #include "crc32.h"
 #include "ff.h"
+#include "dump.h"
 
 #include <Arduino.h>
 #include "trinamic.h"
@@ -98,7 +99,11 @@ void app_run(void) {
 
     crc32_init();
 
-    uint8_t defaults_loaded = eeprom_init();
+    uint8_t eeprom_init_status = eeprom_init();
+    if (eeprom_init_status == EEPROM_INIT_Defaults || eeprom_init_status == EEPROM_INIT_Upgraded) {
+        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
+        dump_in_xflash_reset();
+    }
     LangEEPROM::getInstance();
 
     marlin_server_init();
@@ -128,7 +133,7 @@ void app_run(void) {
     }
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
-    if (defaults_loaded && marlin_server_processing()) {
+    if (eeprom_init_status == EEPROM_INIT_Defaults && marlin_server_processing()) {
         settings.reset();
     }
 
