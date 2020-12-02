@@ -144,6 +144,18 @@ void dump_in_xflash_reset(void) {
     }
 }
 
+void dump_in_xflash_delete(void) {
+    if (w25x_init()) {
+        for (uint32_t addr = 0; addr < 0x800000; addr += 0x10000) {
+            w25x_wait_busy();
+            w25x_enable_wr();
+            w25x_block64_erase(DUMP_OFFSET + addr);
+        }
+        w25x_wait_busy();
+        w25x_disable_wr();
+    }
+}
+
 int dump_save_to_usb(const char *fn) {
     FIL fil;
     uint32_t addr;
