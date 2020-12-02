@@ -27,17 +27,17 @@ static const float XYfr_table[] = { 50, 60, 75, 100 };
 
 static const float Zfr_table[] = { 20 };
 
-static const uint16_t Fan0min_rpm_table[] = { 300, 1400, 2500, 3400, 4000 };
+static const uint16_t Fan0min_rpm_table[] = { 300, 1400, 2500, 3200, 4000 };
 
 static const uint16_t Fan0max_rpm_table[] = { 1800, 3800, 4900, 5800, 6500 };
 
-static const uint16_t Fan1min_rpm_table[] = { 2500, 4900, 6100, 7000, 7800 };
+static const uint16_t Fan1min_rpm_table[] = { 2500, 4700, 6100, 7000, 7800 };
 
-static const uint16_t Fan1max_rpm_table[] = { 3600, 5700, 6900, 7900, 8800 };
+static const uint16_t Fan1max_rpm_table[] = { 3800, 5900, 6900, 7900, 8800 };
 
-static const selftest_fan_config_t Config_Fan0 = { .partname = "Fan0", .pfanctl = &fanctl0, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan0min_rpm_table, .rpm_max_table = Fan0max_rpm_table, .steps = 5 };
+static const selftest_fan_config_t Config_Fan0 = { .partname = "Print fan", .pfanctl = &fanctl0, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan0min_rpm_table, .rpm_max_table = Fan0max_rpm_table, .steps = 5 };
 
-static const selftest_fan_config_t Config_Fan1 = { .partname = "Fan1", .pfanctl = &fanctl1, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan1min_rpm_table, .rpm_max_table = Fan1max_rpm_table, .steps = 5 };
+static const selftest_fan_config_t Config_Fan1 = { .partname = "Hotend fan", .pfanctl = &fanctl1, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan1min_rpm_table, .rpm_max_table = Fan1max_rpm_table, .steps = 5 };
 
 static const selftest_axis_config_t Config_XAxis = { .partname = "X-Axis", .length = 186, .fr_table = XYfr_table, .length_min = 178, .length_max = 188, .axis = X_AXIS, .steps = 4, .dir = -1 };
 
@@ -49,9 +49,9 @@ static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzl
 
 static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heat_time_ms = 60000, .start_temp = 40, .target_temp = 110, .heat_min_temp = 50, .heat_max_temp = 65, .heater = 0xff };
 
-static const selftest_fan_config_t Config_Fan0_fine = { .partname = "Fan0", .pfanctl = &fanctl0, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
+static const selftest_fan_config_t Config_Fan0_fine = { .partname = "Print fan", .pfanctl = &fanctl0, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
 
-static const selftest_fan_config_t Config_Fan1_fine = { .partname = "Fan1", .pfanctl = &fanctl1, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
+static const selftest_fan_config_t Config_Fan1_fine = { .partname = "Hotend fan", .pfanctl = &fanctl1, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
 
 CSelftest::CSelftest()
     : m_State(stsIdle)
