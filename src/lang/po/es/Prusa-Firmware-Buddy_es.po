@@ -150,7 +150,7 @@ msgstr "Perfil Actual"
 
 #: src/guiapi/include/MItem_menus.hpp:192
 msgid "Device hash in QR"
-msgstr "Hash del dispositivo en código QR"
+msgstr "Identificar unidad en QR"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "DISABLE SENSOR"
