@@ -23,47 +23,63 @@
 //MI_FILAMENT_SENSOR
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Filament Sensor");
+    static bool fs_not_connected;
+    static bool consumeNotConnected();
+    void no_sensor_msg() const;
 
-    void no_sensor_msg() const {
-        MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
-    }
-
-    size_t init_index() const {
-        fsensor_t fs = fs_wait_initialized();
-        if (fs == fsensor_t::NotConnected) //tried to enable but there is no sensor
-        {
-            fs_disable();
-            no_sensor_msg();
-            fs = fsensor_t::Disabled;
-        }
-        return fs == fsensor_t::Disabled ? 0 : 1;
-    }
-    // bool fs_not_connected;
+    bool init_index() const;
 
 public:
     MI_FILAMENT_SENSOR()
         : WI_SWITCH_OFF_ON_t(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
-    void CheckDisconnected() {
-        fsensor_t fs = fs_wait_initialized();
-        if (fs == fsensor_t::NotConnected) { //only way to have this state is that fs just disconnected
-            fs_disable();
-            index = 0;
-            no_sensor_msg();
-        }
-    }
+    void CheckDisconnected();
 
 protected:
-    virtual void OnChange(size_t old_index) {
-        old_index == 1 ? fs_disable() : fs_enable();
-        fsensor_t fs = fs_wait_initialized();
-        if (fs == fsensor_t::NotConnected) //tried to enable but there is no sensor
-        {
-            fs_disable();
-            index = old_index;
-            no_sensor_msg();
-        }
-    }
+    virtual void OnChange(size_t old_index) override;
 };
+
+void MI_FILAMENT_SENSOR::no_sensor_msg() const {
+    MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
+}
+
+bool MI_FILAMENT_SENSOR::init_index() const {
+    fsensor_t fs = fs_wait_initialized();
+    fs_not_connected = fs == fsensor_t::NotConnected;
+    if (fs_not_connected) //tried to enable but there is no sensor
+    {
+        fs_disable();
+        fs_not_connected = true;
+        fs = fsensor_t::Disabled;
+    }
+    return fs == fsensor_t::Disabled ? 0 : 1;
+}
+
+void MI_FILAMENT_SENSOR::CheckDisconnected() {
+    if (consumeNotConnected() || fs_wait_initialized() == fsensor_t::NotConnected) {
+        fs_disable();
+        index = 0;
+        no_sensor_msg();
+    }
+}
+
+bool MI_FILAMENT_SENSOR::consumeNotConnected() {
+    bool ret = fs_not_connected;
+    fs_not_connected = false;
+    return ret;
+}
+
+void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
+    old_index == 1 ? fs_disable() : fs_enable();
+    fsensor_t fs = fs_wait_initialized();
+    if (fs == fsensor_t::NotConnected) //tried to enable but there is no sensor
+    {
+        fs_disable();
+        index = old_index;
+        fs_not_connected = true;
+    }
+}
+
+bool MI_FILAMENT_SENSOR::fs_not_connected = false;
 
 #ifdef _DEBUG
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
