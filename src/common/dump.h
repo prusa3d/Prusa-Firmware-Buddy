@@ -156,6 +156,8 @@ extern int dump_in_xflash_is_valid(void);
 
 extern int dump_in_xflash_is_saved(void);
 
+extern int dump_in_xflash_is_empty(void);
+
 extern int dump_in_xflash_is_displayed(void);
 
 extern int dump_in_xflash_get_type(void);
