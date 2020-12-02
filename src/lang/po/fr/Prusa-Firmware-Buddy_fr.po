@@ -5,12 +5,31 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: PhraseApp (phraseapp.com)\n"
+"X-Generator: Poedit 2.3.1\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
 
 #: src/gui/screen_menu_version_info.cpp:90
 #, c-format
-msgid "\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"
-msgstr "\nBootloader Version\n %d.%d.%d\n\nBuddy Board\n%d.%d.%d\n %s"
+msgid ""
+"\n"
+"Bootloader Version\n"
+"%d.%d.%d\n"
+"\n"
+"Buddy Board\n"
+"%d.%d.%d\n"
+"%s"
+msgstr ""
+"\n"
+"Bootloader Version\n"
+" %d.%d.%d\n"
+"\n"
+"Buddy Board\n"
+"%d.%d.%d\n"
+" %s"
 
 #: src/guiapi/src/MItem_tools.cpp:121
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
@@ -73,7 +92,9 @@ msgstr "CALIBRATION"
 
 #: src/gui/wizard/screen_wizard.cpp:326
 msgid "Calibration successful! Happy printing!"
-msgstr "Calibration réussie!\nBonnes impressions!"
+msgstr ""
+"Calibration réussie!\n"
+"Bonnes impressions!"
 
 #: src/gui/wizard/screen_wizard.cpp:304
 msgid "Calibration XY"
@@ -98,19 +119,19 @@ msgstr "Changer le Filament"
 #. / FIXME split heating, min/max temp and thermal runaway
 #: src/common/bsod.cpp:232
 msgid "Check the heatbed heater & thermistor wiring for possible damage."
-msgstr "Vérifier dommages\npossibles sur câbles\nbloc de chauffe\net thermistance\ndu plateau chauf."
+msgstr "Vérifier dommages possibles sur câbles bloc de chauffe et thermistance du plateau chauf."
 
 #: src/common/bsod.cpp:233
 msgid "Check the heatbed thermistor wiring for possible damage."
-msgstr "Vérifier dommages\npossibles sur câbles\nde thermistance\ndu plateau chauf."
+msgstr "Vérifier dommages possibles sur câbles de thermistance du plateau chauf."
 
 #: src/common/bsod.cpp:234
 msgid "Check the print head heater & thermistor wiring for possible damage."
-msgstr "Vérifier dommages\npossibles sur câbles\ndu bloc de chauf.\n& thermistance\nde tête d'extr."
+msgstr "Vérifier dommages possibles sur câbles du bloc de chauf. & thermistance de tête d'extr."
 
 #: src/common/bsod.cpp:235
 msgid "Check the print head thermistor wiring for possible damage."
-msgstr "Vérifier dommages\npossibles sur câbles\nde thermistance\nde tête d'extr."
+msgstr "Vérifier dommages possibles sur câbles de thermistance de tête d'extr."
 
 #: src/gui/wizard/selftest_fans_axis.cpp:51
 msgid "Checking axes"
@@ -118,11 +139,13 @@ msgstr "Vérification axes"
 
 #: src/gui/dialogs/DialogSelftestTemp.cpp:22
 msgid "Checking hotend and heatbed heaters"
-msgstr "Vérif. hotend et\nchauf. plateau"
+msgstr ""
+"Vérif. hotend et\n"
+"chauf. plateau"
 
 #: src/gui/wizard/screen_wizard.c:462
 msgid "Clean steel sheet."
-msgstr "Nettoyez la feuille d'acier."
+msgstr "Nettoyez la plaque d'acier."
 
 #: src/gui/wizard/screen_wizard.c:362
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
@@ -148,6 +171,10 @@ msgstr "Charge CPU"
 msgid "Current Profile"
 msgstr "Profil Actuel"
 
+#: src/guiapi/include/MItem_menus.hpp:192
+msgid "Device hash in QR"
+msgstr "QR infos appareil"
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "DISABLE SENSOR"
 msgstr "DÉSACTIVER CAPTEUR"
@@ -162,13 +189,21 @@ msgstr "Déconnecter"
 
 #: src/gui/wizard/firstlay.cpp:176
 msgid "Do you want to repeat the last step and readjust the distance between the nozzle and heatbed?"
-msgstr "Répéter la dernière\nétape et réajuster\nla distance entre\nla buse et le\nplateau chauffant ?"
+msgstr "Répéter la dernière étape et réajuster la distance entre la buse et le plateau chauffant ?"
 
 #. c=20 r=6
 #: src/gui/wizard/firstlay.cpp:112
 #, c-format
-msgid "Do you want to use the current value?\nCurrent: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)"
-msgstr "Voulez-vous utiliser les valeurs actuelles ?\nActuelles : %0.3f.\nDéfaut : %0.3f.\nCliquez sur NON pour utiliser la valeur par défaut (recommandé)"
+msgid ""
+"Do you want to use the current value?\n"
+"Current: %0.3f.\n"
+"Default: %0.3f.\n"
+"Click NO to use the default value (recommended)"
+msgstr ""
+"Voulez-vous utiliser les valeurs actuelles ?\n"
+"Actuelles : %0.3f.\n"
+"Défaut : %0.3f.\n"
+"Cliquez sur NON pour utiliser la valeur par défaut (recommandé)"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:55
 msgid "Ejecting"
@@ -240,7 +275,7 @@ msgstr "Capteur de Filament"
 #. clang-format off
 #: src/gui/dialogs/DialogG162.cpp:8 src/gui/dialogs/DialogLoadUnload.cpp:14
 msgid "Finishing buffered gcodes."
-msgstr "Finalisation G-Codes\nen mémoire tampon.\n"
+msgstr "Finalisation G-Codes en mémoire tampon."
 
 #. =============SET TEXT================
 #: src/gui/screen_menu_version_info.cpp:72
@@ -250,11 +285,15 @@ msgstr "Version Firmware\n"
 
 #: src/gui/ScreenFirstLayer.hpp:12 src/guiapi/include/MItem_tools.hpp:59
 msgid "First Layer Calibration"
-msgstr "Calibration\nPremière Couche"
+msgstr ""
+"Calibration\n"
+"Première Couche"
 
 #: src/gui/wizard/screen_wizard.cpp:184
 msgid "FIRST LAYER CALIBRATION"
-msgstr "CALIBRATION\nPREMIÈRE COUCHE"
+msgstr ""
+"CALIBRATION\n"
+"PREMIÈRE COUCHE"
 
 #: src/guiapi/include/MItem_print.hpp:40
 msgid "Flow Factor"
@@ -294,19 +333,23 @@ msgid "Heating..."
 msgstr "En chauffe..."
 
 #: src/gui/guimain.c:189
-msgid "Hi, this is your\nOriginal Prusa MINI."
-msgstr "Bonjour, voici votre\nOriginal Prusa MINI."
+msgid ""
+"Hi, this is your\n"
+"Original Prusa MINI."
+msgstr ""
+"Bonjour, voici votre\n"
+"Original Prusa MINI."
 
 #: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:82
 msgid "HOME"
-msgstr "POSITION INITIALE"
+msgstr "ACCUEIL"
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
 #: src/gui/window_file_list.c:120 src/gui/window_file_list.c:122
 #: src/gui/window_file_list.c:133
 msgid "Home"
-msgstr "Position Initiale"
+msgstr "Accueil"
 
 #: src/gui/dialogs/DialogFactory.cpp:37
 msgid "HOME TO MAX"
@@ -320,7 +363,7 @@ msgstr "Hotend"
 msgid "Hotend Fan"
 msgstr "Vent. hotend"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
 msgid "Hotend fan not spinning"
 msgstr "Le ventilateur de hotend ne tourne pas"
 
@@ -361,7 +404,7 @@ msgstr "Les adresses IP ou les paramètres ne sont pas valides ou alors le fichi
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:58
 msgid "Is color correct?"
-msgstr "La couleur\nest-elle\ncorrecte ?"
+msgstr "La couleur est-elle correcte ?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:26
 msgid "Is filament in extruder gear?"
@@ -369,7 +412,7 @@ msgstr "Le filament est-il dans l'extrudeur ?"
 
 #: src/gui/wizard/screen_wizard.c:313
 msgid "Is steel sheet on heatbed?"
-msgstr "La feuille d'acier est-elle sur le plateau chauffant ?"
+msgstr "La plaque d'acier est-elle sur le plateau chauffant ?"
 
 #: src/gui/screen_menu_lan_settings.cpp:267
 #: src/gui/screen_menu_lan_settings.cpp:268
@@ -416,7 +459,7 @@ msgstr "Chargement..."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:56
 msgid "Loading to nozzle"
-msgstr "Chargement\nde la buse"
+msgstr "Chargement de la buse"
 
 #: src/guiapi/include/MItem_tools.hpp:210
 #: src/guiapi/include/MItem_tools.hpp:209
@@ -429,7 +472,7 @@ msgstr "M.I.N.D.A."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:24
 msgid "Make sure the filament is inserted through the sensor."
-msgstr "Vérifiez que le\nfilament est bien\ninséré dans le\ncapteur."
+msgstr "Vérifiez que le filament est bien inséré dans le capteur."
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"
@@ -441,8 +484,14 @@ msgid "MAXTEMP ERROR"
 msgstr "ERREUR MAXTEMP"
 
 #: src/gui/wizard/xyzcalib.cpp:78
-msgid "Measuring reference\nheight of calib.\npoints"
-msgstr "Mesure des hauteurs\ndé référence des\npoints de calib."
+msgid ""
+"Measuring reference\n"
+"height of calib.\n"
+"points"
+msgstr ""
+"Mesure des hauteurs\n"
+"dé référence des\n"
+"points de calib."
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Menu Timeout"
@@ -533,7 +582,7 @@ msgstr "Buse"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:59
 msgid "Nozzle is too cold."
-msgstr "Buse trop froide"
+msgstr "Buse trop froide."
 
 #: src/guiapi/include/WindowMenuItems.hpp:130
 #: src/guiapi/include/WindowMenuItems.hpp:159
@@ -590,12 +639,20 @@ msgid "Please insert a USB drive and try again."
 msgstr "Veuillez insérer une clé USB et réessayer."
 
 #: src/gui/guimain.c:190
-msgid "Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"
+msgid ""
+"Please insert the USB\n"
+"drive that came with\n"
+"your MINI and reset\n"
+"the printer to flash\n"
+"the firmware"
 msgstr "Veuillez insérer la clé USB fournie avec votre MINI et redémarrez l'imprimante pour flasher le firmware"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:22
 msgid "Please open idler and remove filament manually"
-msgstr "Ouvrez l'idler et\nretirez le filament\nmanuellement"
+msgstr ""
+"Ouvrez l'idler et\n"
+"retirez le filament\n"
+"manuellement"
 
 #: src/gui/wizard/screen_wizard.c:346
 msgid "Please place steel sheet on heatbed."
@@ -642,7 +699,7 @@ msgstr "Expulsion en préparation"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:23
 msgid "Press CONTINUE and push filament into the extruder."
-msgstr "Appuyez sur CONTINUER et insérez le filament dans l'extrudeur. "
+msgstr "Appuyez sur CONTINUER et insérez le filament dans l'extrudeur."
 
 #: src/gui/wizard/screen_wizard.cpp:319
 msgid "Press NEXT to run the Selftest, which checks for potential issues related to the assembly."
@@ -656,7 +713,7 @@ msgstr "Impression"
 msgid "Print Fan"
 msgstr "Ventil. d'impression"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
 msgid "Print fan not spinning"
 msgstr "Le ventilateur d'impression ne tourne pas"
 
@@ -770,8 +827,12 @@ msgid "Scan me for details"
 msgstr "Scannez pour infos"
 
 #: src/gui/wizard/xyzcalib.cpp:66
-msgid "Searching bed\ncalibration points"
-msgstr "Recherche des points\nde calib. du plateau"
+msgid ""
+"Searching bed\n"
+"calibration points"
+msgstr ""
+"Recherche des points\n"
+"de calib. du plateau"
 
 #: src/gui/screen_menu_steel_sheets.cpp:33
 msgid "Select"
@@ -779,7 +840,9 @@ msgstr "Sélectionner"
 
 #: src/gui/wizard/firstlay.cpp:89
 msgid "Select Filament Type"
-msgstr "Sélectionner\nle Type de Filament"
+msgstr ""
+"Sélectionner\n"
+"le Type de Filament"
 
 #: src/gui/screen_filebrowser.cpp:61
 msgid "SELECT FILE"
@@ -932,8 +995,20 @@ msgid "The settings have been saved successfully in the \"lan_settings.ini\" fil
 msgstr "Les réglages ont été sauvegardés avec succès dans le fichier \"lan_settings.ini\"."
 
 #: src/gui/wizard/screen_wizard.cpp:304
-msgid "The status bar is at the bottom of the screen. It contains information about:\n- Nozzle temp.\n- Heatbed temp.\n- Printing speed\n- Z-axis height\n- Selected filament"
-msgstr "La barre de statut se trouve dans le bas de l'écran. Elle contient des infos concernant :\n- La temp. de la buse\n- La temp. du plateau\n- La vitesse d'impr.\n- La hauteur Z-axis\n- Le fil. sélectionné"
+msgid ""
+"The status bar is at the bottom of the screen. It contains information about:\n"
+"- Nozzle temp.\n"
+"- Heatbed temp.\n"
+"- Printing speed\n"
+"- Z-axis height\n"
+"- Selected filament"
+msgstr ""
+"La barre de statut se trouve dans le bas de l'écran. Elle contient des infos concernant :\n"
+"-La temp. de la buse\n"
+"-La temp. du plateau\n"
+"-La vitesse d'impr.\n"
+"-La hauteur Z-axis\n"
+"-Le fil. sélectionné"
 
 #: src/gui/wizard/screen_wizard.c:371
 msgid "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
@@ -1048,7 +1123,7 @@ msgstr "ATTENTION :"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:21
 msgid "Was filament unload successful?"
-msgstr "Le filament a-t-il\nété bien chargé ?"
+msgstr "Le filament a-t-il été bien chargé ?"
 
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:47

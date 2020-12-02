@@ -5,12 +5,31 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n%10 >= 2 && n%10 <=4 && (n%100 < 12 || n%100 > 14)) ? 1 : ((n%10 == 0 || n%10 == 1 || (n%10 >= 5 && n%10 <=9)) || (n%100 >= 12 && n%100 <= 14)) ? 2 : 3);\n"
-"X-Generator: PhraseApp (phraseapp.com)\n"
+"X-Generator: Poedit 2.3.1\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
 
 #: src/gui/screen_menu_version_info.cpp:90
 #, c-format
-msgid "\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"
-msgstr "\nWersja Bootloadera\n%d.%d.%d\n\nPłyta Buddy\n%d.%d.%d\n%s"
+msgid ""
+"\n"
+"Bootloader Version\n"
+"%d.%d.%d\n"
+"\n"
+"Buddy Board\n"
+"%d.%d.%d\n"
+"%s"
+msgstr ""
+"\n"
+"Wersja Bootloadera\n"
+"%d.%d.%d\n"
+"\n"
+"Płyta Buddy\n"
+"%d.%d.%d\n"
+"%s"
 
 #: src/guiapi/src/MItem_tools.cpp:121
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
@@ -148,6 +167,10 @@ msgstr "Obciążenie CPU"
 msgid "Current Profile"
 msgstr "Aktualny profil"
 
+#: src/guiapi/include/MItem_menus.hpp:192
+msgid "Device hash in QR"
+msgstr "Identyfikator urządzenia w QR"
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "DISABLE SENSOR"
 msgstr "WYŁĄCZ CZUJNIK"
@@ -167,8 +190,16 @@ msgstr "Czy chcesz powtórzyć ostatni krok i poprawić kalibrację odległości
 #. c=20 r=6
 #: src/gui/wizard/firstlay.cpp:112
 #, c-format
-msgid "Do you want to use the current value?\nCurrent: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)"
-msgstr "Czy chcesz użyć obecnej wartości?\nObecna: %0.3f.\nDomyślna: %0.3f.\nWybierz NIE, aby użyć domyślnych (zalecane)"
+msgid ""
+"Do you want to use the current value?\n"
+"Current: %0.3f.\n"
+"Default: %0.3f.\n"
+"Click NO to use the default value (recommended)"
+msgstr ""
+"Czy na pewno chcesz użyć tych wartości:\n"
+"Obecna: %0.3f.\n"
+"Domyślna: %0.3f.\n"
+"Wciśnij NIE, aby użyć domyślnej (zalecane)"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:55
 msgid "Ejecting"
@@ -294,7 +325,9 @@ msgid "Heating..."
 msgstr "Nagrzewanie..."
 
 #: src/gui/guimain.c:189
-msgid "Hi, this is your\nOriginal Prusa MINI."
+msgid ""
+"Hi, this is your\n"
+"Original Prusa MINI."
 msgstr "Cześć, jestem Twoją Original Prusa Mini"
 
 #: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:82
@@ -320,7 +353,7 @@ msgstr "Hotend"
 msgid "Hotend Fan"
 msgstr "Wentylator hotendu"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
 msgid "Hotend fan not spinning"
 msgstr "Wentylator hotendu nie obraca się"
 
@@ -441,8 +474,14 @@ msgid "MAXTEMP ERROR"
 msgstr "BŁĄD MAXTEMP"
 
 #: src/gui/wizard/xyzcalib.cpp:78
-msgid "Measuring reference\nheight of calib.\npoints"
-msgstr "Pomiar wysokości\npunktów\nkalibracyjnych"
+msgid ""
+"Measuring reference\n"
+"height of calib.\n"
+"points"
+msgstr ""
+"Pomiar wysokości\n"
+"punktów\n"
+"kalibracyjnych"
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Menu Timeout"
@@ -590,7 +629,12 @@ msgid "Please insert a USB drive and try again."
 msgstr "Podłącz pamięć USB i spróbuj ponownie."
 
 #: src/gui/guimain.c:190
-msgid "Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"
+msgid ""
+"Please insert the USB\n"
+"drive that came with\n"
+"your MINI and reset\n"
+"the printer to flash\n"
+"the firmware"
 msgstr "Podłącz pamięć USB dostarczoną z Twoją MINI i zresetuj drukarkę, aby wgrać firmware"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:22
@@ -656,7 +700,7 @@ msgstr "Druk"
 msgid "Print Fan"
 msgstr "Went. wydruku"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
 msgid "Print fan not spinning"
 msgstr "Wentylator wydruku nie obraca się"
 
@@ -770,8 +814,12 @@ msgid "Scan me for details"
 msgstr "Zeskanuj po szczegóły"
 
 #: src/gui/wizard/xyzcalib.cpp:66
-msgid "Searching bed\ncalibration points"
-msgstr "Szukam punktów\nkalibracyjnych stołu"
+msgid ""
+"Searching bed\n"
+"calibration points"
+msgstr ""
+"Szukam punktów\n"
+"kalibracyjnych stołu"
 
 #: src/gui/screen_menu_steel_sheets.cpp:33
 msgid "Select"
@@ -932,8 +980,20 @@ msgid "The settings have been saved successfully in the \"lan_settings.ini\" fil
 msgstr "Ustawienia zostały pomyślnie zapisane w pliku \"lan_settings.ini\"."
 
 #: src/gui/wizard/screen_wizard.cpp:304
-msgid "The status bar is at the bottom of the screen. It contains information about:\n- Nozzle temp.\n- Heatbed temp.\n- Printing speed\n- Z-axis height\n- Selected filament"
-msgstr "Pasek stanu znajduje się na spodzie ekranu. Zawiera informacje:\n- Temperatura dyszy\n- Temperatura stołu\n- Prędkość druku\n- Pozycja osi Z\n- Wybrany filament"
+msgid ""
+"The status bar is at the bottom of the screen. It contains information about:\n"
+"- Nozzle temp.\n"
+"- Heatbed temp.\n"
+"- Printing speed\n"
+"- Z-axis height\n"
+"- Selected filament"
+msgstr ""
+"Pasek stanu znajduje się na spodzie ekranu. Zawiera informacje:\n"
+"- Temperatura dyszy\n"
+"- Temperatura stołu\n"
+"- Prędkość druku\n"
+"- Pozycja osi Z\n"
+"- Wybrany filament"
 
 #: src/gui/wizard/screen_wizard.c:371
 msgid "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
@@ -979,7 +1039,7 @@ msgstr "Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby za�
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
 msgid "Today at"
-msgstr "Dziś o "
+msgstr "Dziś o"
 
 #. abbreviated Tuesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:45
@@ -1044,7 +1104,7 @@ msgstr "Ostrzeżenie"
 
 #: src/gui/screen_print_preview.cpp:149
 msgid "WARNING:"
-msgstr "OSTRZEZENIE:"
+msgstr "UWAGA:"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:21
 msgid "Was filament unload successful?"

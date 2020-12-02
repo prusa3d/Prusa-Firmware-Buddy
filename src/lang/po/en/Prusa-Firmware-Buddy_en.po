@@ -148,6 +148,10 @@ msgstr "CPU load"
 msgid "Current Profile"
 msgstr "Current Profile"
 
+#: src/guiapi/include/MItem_menus.hpp:192
+msgid "Device hash in QR"
+msgstr "Device hash in QR"
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "DISABLE SENSOR"
 msgstr "DISABLE SENSOR"
@@ -226,7 +230,7 @@ msgstr "Filament"
 
 #: src/gui/screen_menu_filament.cpp:53
 msgid "Filament appears to be already loaded, are you sure you want to load it anyway?"
-msgstr "Filament appears to be already loaded, are you sure you want to load it anyway?"
+msgstr "Filament appears to be already loaded. Are you sure you want to load it anyway?"
 
 #: src/gui/screen_print_preview.cpp:320
 msgid "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."
@@ -287,7 +291,7 @@ msgstr "Heating disabled due to 30 minutes of inactivity."
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:23
 msgid "Heating disabled due to a heaters timeout."
-msgstr "Heating disabled due to a heaters timeout."
+msgstr "Heating disabled due to a heater timeout."
 
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
@@ -320,7 +324,7 @@ msgstr "Hotend"
 msgid "Hotend Fan"
 msgstr "Hotend Fan"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
 msgid "Hotend fan not spinning"
 msgstr "Hotend fan not spinning"
 
@@ -656,7 +660,7 @@ msgstr "Print"
 msgid "Print Fan"
 msgstr "Print Fan"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
 msgid "Print fan not spinning"
 msgstr "Print fan not spinning"
 
@@ -1018,7 +1022,7 @@ msgstr "Unparking"
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:24
 msgid "USB drive error. Print paused."
-msgstr "USB drive error. Print paused."
+msgstr "USB driver error. Print paused."
 
 #: src/gui/screen_print_preview.cpp:162
 msgid "Used Filament"

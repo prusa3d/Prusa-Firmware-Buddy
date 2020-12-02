@@ -118,15 +118,15 @@ msgstr "Comprobando ejes"
 
 #: src/gui/dialogs/DialogSelftestTemp.cpp:22
 msgid "Checking hotend and heatbed heaters"
-msgstr "Compro. calentadores del fusor y de la base"
+msgstr "Comprobando calentadores del fusor y la base"
 
 #: src/gui/wizard/screen_wizard.c:462
 msgid "Clean steel sheet."
-msgstr "Limpiar la superficie de la lámina de acero de la base."
+msgstr "Limpia la superficie de la lámina de acero."
 
 #: src/gui/wizard/screen_wizard.c:362
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
-msgstr "¡Felicidades! La calibración XYZ finalizó correctamente. Los ejes XY están perpendiculares."
+msgstr "¡Felicidades! La calibración XYZ finalizó correctamente. Los ejes XY son perpendiculares."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:29
 msgid "CONTINUE"
@@ -147,6 +147,10 @@ msgstr "Carga del procesador"
 #: src/guiapi/include/MItem_menus.hpp:169
 msgid "Current Profile"
 msgstr "Perfil Actual"
+
+#: src/guiapi/include/MItem_menus.hpp:192
+msgid "Device hash in QR"
+msgstr "Hash del dispositivo en código QR"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "DISABLE SENSOR"
@@ -198,7 +202,7 @@ msgstr "Valores predefinidos de fábrica cargados. Reiniciando el sistema."
 
 #: src/guiapi/include/MItem_tools.hpp:68
 msgid "Factory Reset"
-msgstr "Reset de fábrica"
+msgstr "Restaurar valores de fábrica"
 
 #: src/guiapi/include/MItem_menus.hpp:48
 msgid "Fail Stats"
@@ -320,7 +324,7 @@ msgstr "Fusor"
 msgid "Hotend Fan"
 msgstr "Vent. del fusor"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
 msgid "Hotend fan not spinning"
 msgstr "No gira el ventilador del fusor"
 
@@ -646,7 +650,7 @@ msgstr "Presiona CONTINUAR\ny empuja el       \nfilamento en      \nel extrusor.
 
 #: src/gui/wizard/screen_wizard.cpp:319
 msgid "Press NEXT to run the Selftest, which checks for potential issues related to the assembly."
-msgstr "Presione SIGUIENTE para ejecutar el Selftest, que comprueba problemas potenciales relacionado con el montaje."
+msgstr "Pulsa SIGUIENTE para ejecutar el Selftest, que comprueba potenciales problemas  con el montaje."
 
 #: src/gui/screen_home.cpp:39
 msgid "Print"
@@ -656,7 +660,7 @@ msgstr "Imprimir"
 msgid "Print Fan"
 msgstr "Vent. de impresión"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
 msgid "Print fan not spinning"
 msgstr "No gira el ventilador de impresión"
 
@@ -1048,7 +1052,7 @@ msgstr "CUIDADO:"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:21
 msgid "Was filament unload successful?"
-msgstr "¿Se descargó con exito?"
+msgstr "¿Se descargó el filamento con éxito?"
 
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:47

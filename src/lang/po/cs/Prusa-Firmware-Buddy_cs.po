@@ -148,6 +148,10 @@ msgstr "CPU vyt."
 msgid "Current Profile"
 msgstr "Zvolený profil"
 
+#: src/guiapi/include/MItem_menus.hpp:192
+msgid "Device hash in QR"
+msgstr "Hash zařízení v QR"
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "DISABLE SENSOR"
 msgstr "VYPNOUT SENZOR"
@@ -320,7 +324,7 @@ msgstr "Hotend"
 msgid "Hotend Fan"
 msgstr "Vent. hotendu"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
 msgid "Hotend fan not spinning"
 msgstr "Ventilátor hotendu se netočí"
 
@@ -656,7 +660,7 @@ msgstr "Tisk"
 msgid "Print Fan"
 msgstr "Tisk. vent."
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
 msgid "Print fan not spinning"
 msgstr "Tiskový ventilátor se netočí"
 
@@ -911,7 +915,7 @@ msgstr "Test ventilátorů"
 
 #: src/guiapi/include/MItem_tools.hpp:89
 msgid "Test Heaters"
-msgstr "Test výhřevu"
+msgstr "Test vyhřívání"
 
 #: src/guiapi/include/MItem_tools.hpp:79
 msgid "Test XYZ-Axis"
