@@ -234,7 +234,7 @@ static uint16_t eeprom_fwversion_ui16(void);
 uint8_t eeprom_init(void) {
     uint16_t version;
     uint16_t features;
-    uint8_t defaults = 0;
+    uint8_t status = EEPROM_INIT_Normal;
     osSemaphoreDef(eepromSema);
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
@@ -242,15 +242,18 @@ uint8_t eeprom_init(void) {
     version = variant_get_ui16(eeprom_get_var(EEVAR_VERSION));
     features = (version >= 4) ? variant_get_ui16(eeprom_get_var(EEVAR_FEATURES)) : 0;
     if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32())
-        defaults = 1;
+        status = EEPROM_INIT_Defaults;
     else if ((version != EEPROM_VERSION) || (features != EEPROM_FEATURES)) {
-        if (eeprom_convert_from(version, features) == 0)
-            defaults = 1;
+        if (eeprom_convert_from(version, features) == 0) {
+            status = EEPROM_INIT_Defaults;
+        } else {
+            status = EEPROM_INIT_Upgraded;
+        }
     }
-    if (defaults)
+    if (status == EEPROM_INIT_Defaults)
         eeprom_defaults();
     eeprom_print_vars();
-    return defaults;
+    return status;
 }
 
 void eeprom_defaults(void) {
