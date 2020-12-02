@@ -136,6 +136,8 @@ void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, windo
     }
 
     win.SetParent(nullptr);
+
+    Invalidate();
 }
 
 window_t *window_frame_t::getFirstNormal() const {
