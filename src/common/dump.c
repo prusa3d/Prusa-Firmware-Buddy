@@ -21,8 +21,13 @@ static inline void dump_regs_SCB(void) {
 void dump_to_xflash(void) {
     _Static_assert(sizeof(dumpinfo_t) == 16, "invalid sizeof(dumpinfo_t)");
     uint32_t addr;
-    if (((!dump_in_xflash_is_displayed()) && dump_in_xflash_is_saved()) || (!dump_in_xflash_is_empty())) // do not overwrite existing "not displayed" dump
-        return;
+    if (!dump_in_xflash_is_empty()) {
+        if (dump_in_xflash_is_saved()) {
+            if (!dump_in_xflash_is_displayed()) {
+                return;
+            }
+        }
+    }
     dump_regs_SCB();
     if (w25x_init()) {
         for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
@@ -46,7 +51,8 @@ void dump_to_xflash(void) {
 }
 
 int dump_in_xflash_is_empty(void) {
-    dumpinfo_t dumpinfo;    w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
+    dumpinfo_t dumpinfo;
+    w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
     return (dumpinfo.type_flags & DUMP_UNDEFINED) ? 0 : 1;
 }
 
