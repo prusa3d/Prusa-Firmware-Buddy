@@ -643,6 +643,10 @@ float marlin_server_get_temp_to_display(void) {
     return marlin_server.vars.display_nozzle;
 }
 
+float marlin_server_get_temp_nozzle(void) {
+    return marlin_server.vars.temp_nozzle;
+}
+
 //-----------------------------------------------------------------------------
 // private functions
 

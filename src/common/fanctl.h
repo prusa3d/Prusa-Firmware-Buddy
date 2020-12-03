@@ -94,6 +94,11 @@ private:
     const buddy::hw::InputPin &m_pin;
 };
 
+enum class is_autofan_t : bool {
+    no,
+    yes
+};
+
 //
 class CFanCtl {
 public:
@@ -107,7 +112,7 @@ public:
 
 public:
     // constructor
-    CFanCtl(const buddy::hw::OutputPin &pinOut, const buddy::hw::InputPin &pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM);
+    CFanCtl(const buddy::hw::OutputPin &pinOut, const buddy::hw::InputPin &pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan);
 
 public:
     void tick(); // tick callback from timer interrupt
@@ -129,6 +134,8 @@ public:
     { return m_tach.getRPM(); }
     inline uint8_t getPhaseShiftMode() const // get PhaseShiftMode
     { return m_pwm.get_PhaseShiftMode(); }
+    inline bool isAutoFan() const // get fan type
+    { return is_autofan == is_autofan_t::yes; }
 
     // setters
     void setPWM(uint8_t pwm);            // set PWM value - switch to non closed-loop mode
@@ -143,9 +150,10 @@ private:
     const uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
     uint16_t m_Ticks;        // tick counter - used for starting and measurement
     uint16_t m_Result;
-    FanState m_State;   // fan control state
-    uint8_t m_PWMValue; // current pwm value
-    uint8_t m_Edges;    // edge counter - used for starting and measurement
+    FanState m_State;        // fan control state
+    uint8_t m_PWMValue;      // current pwm value
+    uint8_t m_Edges;         // edge counter - used for starting and measurement
+    is_autofan_t is_autofan; // autofan restores temp differently (used in selftest)
     CFanCtlPWM m_pwm;
     CFanCtlTach m_tach;
 };
