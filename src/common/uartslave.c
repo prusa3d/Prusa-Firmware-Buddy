@@ -2,6 +2,7 @@
 
 #include "uartslave.h"
 #include <stdarg.h>
+#include <stdio.h>
 #include "stm32f4xx_hal.h"
 #include "dbg.h"
 
