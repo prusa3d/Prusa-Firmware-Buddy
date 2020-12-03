@@ -57,6 +57,7 @@ static const color_t COLOR_CYAN = 0x00ffff00L;
 static const color_t COLOR_MAGENTA = 0x00ff00ffL;
 static const color_t COLOR_SILVER = 0x00c0c0c0L;
 static const color_t COLOR_GRAY = 0x00808080L;
+static const color_t COLOR_DARK_GRAY = 0x005B5B5BL;
 static const color_t COLOR_MAROON = 0x00000080L;
 static const color_t COLOR_OLIVE = 0x00008080L;
 static const color_t COLOR_GREEN = 0x00008000L;
