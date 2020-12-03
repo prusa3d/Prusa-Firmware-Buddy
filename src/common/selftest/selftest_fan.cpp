@@ -3,6 +3,8 @@
 #include "selftest_fan.h"
 #include "wizard_config.hpp"
 #include "fanctl.h"
+#include "../../../lib/Marlin/Marlin/src/inc/MarlinConfigPre.h" //EXTRUDER_AUTO_FAN_TEMPERATURE
+#include "marlin_server.h"                                      //marlin_server_get_temp_nozzle()
 
 #define FANTEST_STOP_DELAY    2000
 #define FANTEST_WAIT_DELAY    2500
@@ -21,6 +23,7 @@ bool CSelftestPart_Fan::Start() {
     if (IsInProgress())
         return false;
     m_State = spsStart;
+    initial_pwm = m_pConfig->pfanctl->getPWM();
     return true;
 }
 
@@ -77,7 +80,7 @@ bool CSelftestPart_Fan::Loop() {
         break;
     }
     case spsFinish:
-        m_pConfig->pfanctl->setPWM(0);
+        restorePWM();
         if (m_Result == sprFailed)
             m_State = spsFailed;
         else
@@ -95,10 +98,21 @@ bool CSelftestPart_Fan::Loop() {
 bool CSelftestPart_Fan::Abort() {
     if (!IsInProgress())
         return false;
-    if (m_pConfig->pfanctl)
-        m_pConfig->pfanctl->setPWM(0);
+    restorePWM();
     m_State = spsAborted;
     return true;
+}
+
+void CSelftestPart_Fan::restorePWM() {
+    if (m_pConfig->pfanctl) {
+        uint8_t pwm_to_restore;
+        if (m_pConfig->pfanctl->isAutoFan())
+            pwm_to_restore = (marlin_server_get_temp_nozzle() >= EXTRUDER_AUTO_FAN_TEMPERATURE) ? initial_pwm : 0;
+        else
+            pwm_to_restore = initial_pwm;
+
+        m_pConfig->pfanctl->setPWM(pwm_to_restore);
+    }
 }
 
 uint8_t CSelftestPart_Fan::getFSMState() {
