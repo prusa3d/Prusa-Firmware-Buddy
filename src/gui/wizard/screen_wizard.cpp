@@ -17,31 +17,13 @@
 #include "firstlay.hpp"
 #include "xyzcalib.hpp"
 
-void ScreenWizard::RunAll() {
-    run_mask = WizardMaskAll();
-    caption_type = caption_t::all;
+void ScreenWizard::Run(wizard_run_type_t type) {
+    run_mask = WizardMask(type);
+    caption_type = type;
     Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
 }
 
-void ScreenWizard::RunSelfTest() {
-    run_mask = WizardMaskSelfTest();
-    caption_type = caption_t::selftest;
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
-}
-
-void ScreenWizard::RunXYZCalib() {
-    run_mask = WizardMaskXYZCalib();
-    caption_type = caption_t::xyz;
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
-}
-
-void ScreenWizard::RunFirstLay() {
-    run_mask = WizardMaskFirstLay();
-    caption_type = caption_t::firstlay;
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
-}
-
-string_view_utf8 ScreenWizard::WizardGetCaption(WizardState_t st, ScreenWizard::caption_t type) {
+string_view_utf8 ScreenWizard::WizardGetCaption(WizardState_t st, wizard_run_type_t type) {
     static constexpr const char *en_wizard = N_("WIZARD");
     static constexpr const char *en_wizard_ok = N_("WIZARD - OK");
     static constexpr const char *en_selftest = N_("SELFTEST");
@@ -49,13 +31,13 @@ string_view_utf8 ScreenWizard::WizardGetCaption(WizardState_t st, ScreenWizard::
     static constexpr const char *en_firstlay = N_("FIRST LAYER CALIBRATION");
 
     switch (type) {
-    case caption_t::firstlay:
+    case wizard_run_type_t::firstlay:
         return _(en_firstlay);
-    case caption_t::selftest:
+    case wizard_run_type_t::selftest:
         return _(en_selftest);
-    case caption_t::xyz:
+    case wizard_run_type_t::xyz:
         return _(en_xyz);
-    case caption_t::all:
+    default:
         if (IsStateInWizardMask(st, WizardMaskStart())) {
             return _(en_wizard);
         }
@@ -84,7 +66,7 @@ ScreenWizard::StateArray ScreenWizard::states = StateInitializer();
 
 uint64_t ScreenWizard::run_mask = WizardMaskAll();
 WizardState_t ScreenWizard::start_state = WizardState_t::START_first;
-ScreenWizard::caption_t ScreenWizard::caption_type = ScreenWizard::caption_t::all;
+wizard_run_type_t ScreenWizard::caption_type = wizard_run_type_t::all;
 bool ScreenWizard::is_config_invalid = true;
 
 ScreenWizard::ScreenWizard()
