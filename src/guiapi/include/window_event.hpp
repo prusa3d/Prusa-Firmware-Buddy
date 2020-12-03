@@ -2,8 +2,6 @@
 #pragma once
 
 #include <inttypes.h>
-#include "guitypes.hpp"
-#include "../../lang/string_view_utf8.hpp"
 
 //window events
 enum class GUI_event_t {
