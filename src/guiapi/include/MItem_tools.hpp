@@ -362,7 +362,7 @@ template <FILAMENT_t T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[T].long_name)) {}
+        : I_MI_Filament(_(filaments[T].long_name)) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
