@@ -246,7 +246,6 @@ ScreenMenuLanSettings::ScreenMenuLanSettings()
     help.font = resource_font(IDR_FNT_SPECIAL);
     menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);        // set capture to list
-    menu.SetFocus();
 
     refresh_addresses();
     msg_shown = false;
