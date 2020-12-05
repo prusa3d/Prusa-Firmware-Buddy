@@ -1,11 +1,24 @@
 // wizard_config.hpp
 #pragma once
+#include "eeprom.h" // SelftestResult_Passed, SelftestResult_Failed
+
 enum class SelftestSubtestState_t : uint8_t { //it is passed as uint8_t between threads
     undef,
     ok,
     not_good,
     running
 };
+
+constexpr SelftestSubtestState_t SelftestStateFromEeprom(uint8_t state) {
+    switch (state) {
+    case SelftestResult_Passed:
+        return SelftestSubtestState_t::ok;
+    case SelftestResult_Failed:
+        return SelftestSubtestState_t::not_good;
+    default:
+        return SelftestSubtestState_t::undef;
+    }
+}
 
 enum {
     WIZARD_MARGIN_LEFT = 6,
