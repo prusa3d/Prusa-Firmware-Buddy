@@ -4,16 +4,18 @@
 #include "window_icon.hpp"
 
 class DialogSelftestTemp : public IDialogMarlin {
-    window_text_t text_checking_temp;
-    window_numberless_progress_t progress;
+    //noz
     window_text_t text_noz;
-    window_text_t text_noz_cool;
-    WindowIcon_OkNg icon_noz_cool;
+    window_numberless_progress_t progress_noz;
+    window_text_t text_noz_prep;
+    WindowIcon_OkNg icon_noz_prep;
     window_text_t text_noz_heat;
     WindowIcon_OkNg icon_noz_heat;
+    //bed
     window_text_t text_bed;
-    window_text_t text_bed_cool;
-    WindowIcon_OkNg icon_bed_cool;
+    window_numberless_progress_t progress_bed;
+    window_text_t text_bed_prep;
+    WindowIcon_OkNg icon_bed_prep;
     window_text_t text_bed_heat;
     WindowIcon_OkNg icon_bed_heat;
 
