@@ -1,8 +1,8 @@
 //display_helper.h
 #pragma once
 
-#include "window.hpp"
 #include "guitypes.hpp"
+#include "Rect16.h"
 #include "../../lang/string_view_utf8.hpp"
 
 static const uint16_t RENDER_FLG_ALIGN = 0x00ff; // alignment mask (ALIGN_xxx)
