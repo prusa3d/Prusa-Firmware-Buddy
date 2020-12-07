@@ -10,7 +10,13 @@
 static const char AxisLetter[] = { 'X', 'Y', 'Z', 'E' };
 
 CSelftestPart_Axis::CSelftestPart_Axis(const selftest_axis_config_t *pconfig)
-    : m_pConfig(pconfig) {
+    : m_pConfig(pconfig)
+    , m_Time(0)
+    , m_Step(0)
+    , m_StartPos_usteps(0)
+    , m_SGCount(0)
+    , m_SGSum(0)
+    , m_pSGOrig_cb(nullptr) {
     m_State = spsStart;
 }
 

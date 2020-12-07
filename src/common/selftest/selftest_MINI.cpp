@@ -25,7 +25,7 @@ static_assert(sizeof(SelftestResultEEprom_t) == 4, "Invalid size of SelftestResu
 static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 static const float XYfr_table[] = { 50, 60, 75, 100 };
 
-static const float Zfr_table[] = { 20 };
+static const float Zfr_table[] = { 10 };
 
 static const uint16_t Fan0min_rpm_table[] = { 150, 1250, 2350, 3250, 3850 };
 
@@ -116,7 +116,7 @@ void CSelftest::Loop() {
             return;
         break;
     case stsZAxis:
-        if (phaseAxis(&Config_ZAxis, &m_pZAxis, (uint16_t)PhasesSelftestAxis::Zaxis, Y_AXIS_PERCENT, Z_AXIS_PERCENT))
+        if (phaseAxis(&Config_ZAxis, &m_pZAxis, (uint16_t)PhasesSelftestAxis::Zaxis, X_AXIS_PERCENT + Y_AXIS_PERCENT, Z_AXIS_PERCENT))
             return;
         break;
     case stsWait_axes:
@@ -380,6 +380,8 @@ bool CSelftest::abort_part(CSelftestPart **pppart) {
 
 CSelftestPart::CSelftestPart()
     : m_State(0)
+    , m_StartTime(0)
+    , m_EndTime(UINT_MAX)
     , m_Result(sprUnknown) {
 }
 
