@@ -10,17 +10,17 @@
 #include "display.h"
 #include "ScreenHandler.hpp"
 
-static constexpr size_t col_0 = WIZARD_MARGIN_LEFT;
-static constexpr size_t col_0_w = 200;
-static constexpr size_t col_1 = col_0_w + WIZARD_MARGIN_LEFT;
+static constexpr size_t col_0 = WizardDefaults::MarginLeft;
+static constexpr size_t col_1 = WizardDefaults::status_icon_X_pos;
+static constexpr size_t col_0_w = col_1 - col_0;
 
-static constexpr size_t txt_h = 22;
-static constexpr size_t row_h = 24;
+static constexpr size_t txt_h = WizardDefaults::txt_h;
+static constexpr size_t row_h = WizardDefaults::row_h;
 
-static constexpr size_t line_width = 1;
-static constexpr size_t line_space = 3;
+static constexpr size_t line_width = WizardDefaults::separator_width;
+static constexpr size_t line_space = WizardDefaults::separator_padding_bottom;
 
-static constexpr size_t row_fan_0 = 40;
+static constexpr size_t row_fan_0 = WizardDefaults::row_0;
 static constexpr size_t row_fan_line = row_fan_0 + row_h;
 static constexpr size_t row_fan_1 = row_fan_line + line_width + line_space;
 static constexpr size_t row_fan_2 = row_fan_1 + row_h;
@@ -50,13 +50,13 @@ static constexpr const char *txt_en_bed = N_("Heatbed");
 DialogSelftestResult::DialogSelftestResult(SelftestResultEEprom_t result)
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBodyNoFoot)
     //fans
-    , text_fan_test(this, Rect16(col_0, row_fan_0, WIZARD_X_SPACE, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_fan_test))
+    , text_fan_test(this, Rect16(col_0, row_fan_0, WizardDefaults::X_space, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_fan_test))
     , text_hotend_fan(this, Rect16(col_0, row_fan_1, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_hotend_fan))
     , icon_hotend_fan(this, { col_1, row_fan_1 }, SelftestStateFromEeprom(result.fan0))
     , text_print_fan(this, Rect16(col_0, row_fan_2, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_print_fan))
     , icon_print_fan(this, { col_1, row_fan_2 }, SelftestStateFromEeprom(result.fan1))
     //axis
-    , text_checking_axis(this, Rect16(col_0, row_axis_0, WIZARD_X_SPACE, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_checking_axis))
+    , text_checking_axis(this, Rect16(col_0, row_axis_0, WizardDefaults::X_space, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_checking_axis))
     , text_x_axis(this, Rect16(col_0, row_axis_1, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_x_axis))
     , icon_x_axis(this, { col_1, row_axis_1 }, SelftestStateFromEeprom(result.xaxis))
     , text_y_axis(this, Rect16(col_0, row_axis_2, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_y_axis))
@@ -64,7 +64,7 @@ DialogSelftestResult::DialogSelftestResult(SelftestResultEEprom_t result)
     , text_z_axis(this, Rect16(col_0, row_axis_3, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_z_axis))
     , icon_z_axis(this, { col_1, row_axis_3 }, SelftestStateFromEeprom(result.zaxis))
     //temp
-    , text_checking_temp(this, Rect16(col_0, row_temp_0, WIZARD_X_SPACE, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_checking_temp))
+    , text_checking_temp(this, Rect16(col_0, row_temp_0, WizardDefaults::X_space, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_checking_temp))
     , text_noz(this, Rect16(col_0, row_temp_1, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_noz))
     , icon_noz(this, { col_1, row_temp_1 }, SelftestStateFromEeprom(result.nozzle))
     , text_bed(this, Rect16(col_0, row_temp_2, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_bed))
@@ -73,9 +73,9 @@ DialogSelftestResult::DialogSelftestResult(SelftestResultEEprom_t result)
 
 void DialogSelftestResult::unconditionalDraw() {
     super::unconditionalDraw();
-    display::DrawRect(Rect16(col_0, row_fan_line, WIZARD_X_SPACE, 1), COLOR_SILVER);
-    display::DrawRect(Rect16(col_0, row_axis_line, WIZARD_X_SPACE, 1), COLOR_SILVER);
-    display::DrawRect(Rect16(col_0, row_temp_line, WIZARD_X_SPACE, 1), COLOR_SILVER);
+    display::DrawRect(Rect16(col_0, row_fan_line, WizardDefaults::X_space, line_width), COLOR_SILVER);
+    display::DrawRect(Rect16(col_0, row_axis_line, WizardDefaults::X_space, line_width), COLOR_SILVER);
+    display::DrawRect(Rect16(col_0, row_temp_line, WizardDefaults::X_space, line_width), COLOR_SILVER);
 }
 
 void DialogSelftestResult::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
