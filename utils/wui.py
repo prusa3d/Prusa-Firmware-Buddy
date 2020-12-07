@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
 import os
 from pathlib import Path
 import gzip
@@ -46,18 +45,37 @@ class WUIFiles:
     # arg[0] file_path
     # return string of raw hex data
     def getHex(self, file_path):
-        print('hex from file :', file_path)
+
+
         with open(file_path, 'rb') as file:
             hex_data = []
-            d = file.read(1)
-            while d:
-                for ch in d:
-                    hex_data.append(hex(ch) + '')
-                d = file.read(1)
+            while True:
+                hd = file.read(1).hex()
+                if len(hd) == 0:
+                    break;
+                hex_data.append('0x' + hd)
             hex_data.append('0x00')
 
-        d = ','.join(hex_data)
-        return d 
+        ret = ','.join(hex_data)
+        return ret
+
+
+
+        #  print('hex from file :', file_path)
+        #  with open(file_path, 'rb') as file:
+            #  hex_data = []
+            #  d = file.read(1)
+            #  while d:
+                #  for ch in d:
+                    #  hex_data.append(hex(ord(ch)) + '')
+                    #  ch = ch.encode('utf-8')
+                    #  hex_data.append(hex(ch) + '')
+                    #  hex_data.append(ch.hex() + '')
+                #  d = file.read(1)
+            #  hex_data.append('0x00')
+#
+        #  ret = ','.join(hex_data)
+        #  return ret
     #endef
 
     # finish script - replace tmp generated file for origin & delete it
@@ -99,8 +117,8 @@ class WUIFiles:
 
     def replaceOrigin(self):
         # remove gziped files
-        for file in self.wui_files:
-            os.remove(file)
+        #  for file in self.wui_files:
+            #  os.remove(file + '.gz')
 
         # remove original file and rename tmp file
         os.remove(self.raw_data_file)
@@ -162,7 +180,7 @@ class WUIFiles:
         data.append(hex_data)
 
         # hex file data 
-        hex_data = self.getHex(file)
+        hex_data = self.getHex(file + '.gz')
         hex_data += ',\n'
         data.append(hex_data)
 
