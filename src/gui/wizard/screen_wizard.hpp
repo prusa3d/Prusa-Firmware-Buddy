@@ -7,8 +7,6 @@
 #include "wizard_types.hpp"
 #include "screen.hpp"
 
-string_view_utf8 WizardGetCaption(WizardState_t st); //todo constexpr
-
 class ScreenWizard : public AddSuperWindow<screen_t> {
     window_header_t header;
     status_footer_t footer;
@@ -24,8 +22,11 @@ class ScreenWizard : public AddSuperWindow<screen_t> {
 
     static uint64_t run_mask;
     static WizardState_t start_state;
+    static wizard_run_type_t caption_type;
 
     static bool is_config_invalid;
+
+    static string_view_utf8 WizardGetCaption(WizardState_t st, wizard_run_type_t type); //todo constexpr
 
 protected:
     void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
@@ -34,11 +35,7 @@ public:
     static void ChangeStartState(WizardState_t state) { start_state = state; }
     ScreenWizard();
 
-    static void RunAll();
-    static void RunSelfTest();
-    static void RunXYZCalib();
-    static void RunFirstLay();
-    static void RunFirstLayerStandAlone();
+    static void Run(wizard_run_type_t type);
 
     static uint64_t GetMask() { return run_mask; }
     static bool IsConfigInvalid() { return is_config_invalid; }
