@@ -559,6 +559,7 @@ if(GUI)
             src/gui/dialogs/DialogSelftestAxis.cpp
             src/gui/dialogs/DialogSelftestFans.cpp
             src/gui/dialogs/DialogSelftestTemp.cpp
+            src/gui/dialogs/DialogSelftestResult.cpp
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp

@@ -55,6 +55,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_SELFTEST_RESULT : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Show SelfTest result");
+
+public:
+    MI_SELFTEST_RESULT();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_CALIB_FIRST : public WI_LABEL_t {
     static constexpr const char *const label = N_("First Layer Calibration");
 
