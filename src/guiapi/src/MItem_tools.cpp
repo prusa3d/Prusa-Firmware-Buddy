@@ -31,7 +31,7 @@ MI_WIZARD::MI_WIZARD()
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunAll();
+    ScreenWizard::Run(wizard_run_type_t::all);
 }
 
 /*****************************************************************************/
@@ -86,7 +86,7 @@ MI_SELFTEST::MI_SELFTEST()
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunSelfTest();
+    ScreenWizard::Run(wizard_run_type_t::selftest);
 }
 
 /*****************************************************************************/
@@ -108,7 +108,7 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunFirstLay();
+    ScreenWizard::Run(wizard_run_type_t::firstlay);
 }
 
 /*****************************************************************************/
