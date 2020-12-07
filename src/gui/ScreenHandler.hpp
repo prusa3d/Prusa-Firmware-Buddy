@@ -58,6 +58,10 @@ public:
     void DisableMenuTimeout();
     bool GetMenuTimeout();
 
+    void EnableFanCheck();
+    void DisableFanCheck();
+    bool GetFanChceck();
+
     static void Init(const ScreenFactory::Creator screen_creator);
     static void Init(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end);  // init in normal order, skips nullptr
     static void RInit(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end); // init in reversed order, skips nullptr
