@@ -46,7 +46,23 @@ class WUIFiles:
     # return string of raw hex data
     def getHex(self, file_path):
 
+        # read file as non binary
+        #  with open(file_path, 'r') as file:
+            #  hex_data = []
+            #  while True:
+                #  hd = file.read(1)
+                #  if len(hd) == 0:
+                    #  break;
+                #  print(hex(ord(hd)))
+                #  hex_data.append('0x' + hd)
+            #  hex_data.append('0x00')
 
+        #  ret = ','.join(hex_data)
+        #  return ret
+
+
+        # read file as binary
+        # we are using gziped files so this will be better way
         with open(file_path, 'rb') as file:
             hex_data = []
             while True:
@@ -58,8 +74,6 @@ class WUIFiles:
 
         ret = ','.join(hex_data)
         return ret
-
-
 
         #  print('hex from file :', file_path)
         #  with open(file_path, 'rb') as file:
@@ -180,6 +194,7 @@ class WUIFiles:
         data.append(hex_data)
 
         # hex file data 
+        #  hex_data = self.getHex(file)
         hex_data = self.getHex(file + '.gz')
         hex_data += ',\n'
         data.append(hex_data)
@@ -233,4 +248,3 @@ class WUIFiles:
 
 # start instance
 wf = WUIFiles()
-
