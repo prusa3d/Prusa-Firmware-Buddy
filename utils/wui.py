@@ -46,23 +46,8 @@ class WUIFiles:
     # return string of raw hex data
     def getHex(self, file_path):
 
-        # read file as non binary
-        #  with open(file_path, 'r') as file:
-            #  hex_data = []
-            #  while True:
-                #  hd = file.read(1)
-                #  if len(hd) == 0:
-                    #  break;
-                #  print(hex(ord(hd)))
-                #  hex_data.append('0x' + hd)
-            #  hex_data.append('0x00')
-
-        #  ret = ','.join(hex_data)
-        #  return ret
-
-
-        # read file as binary
-        # we are using gziped files so this will be better way
+        # read file as binary because
+        # we are using gziped files
         with open(file_path, 'rb') as file:
             hex_data = []
             while True:
@@ -74,22 +59,6 @@ class WUIFiles:
 
         ret = ','.join(hex_data)
         return ret
-
-        #  print('hex from file :', file_path)
-        #  with open(file_path, 'rb') as file:
-            #  hex_data = []
-            #  d = file.read(1)
-            #  while d:
-                #  for ch in d:
-                    #  hex_data.append(hex(ord(ch)) + '')
-                    #  ch = ch.encode('utf-8')
-                    #  hex_data.append(hex(ch) + '')
-                    #  hex_data.append(ch.hex() + '')
-                #  d = file.read(1)
-            #  hex_data.append('0x00')
-#
-        #  ret = ','.join(hex_data)
-        #  return ret
     #endef
 
     # finish script - replace tmp generated file for origin & delete it
@@ -100,7 +69,8 @@ class WUIFiles:
         last_file = last_file.replace('.', '_')
 
         # add define to file num & root
-        data.append('\n#define FS_NUMFILES ' + str(file_num) +'\n')
+        data.append('\n')
+        data.append('#define FS_NUMFILES ' + str(file_num) +'\n')
         data.append('#define FS_ROOT ' + last_file + '\n')
 
         # write data
@@ -131,8 +101,8 @@ class WUIFiles:
 
     def replaceOrigin(self):
         # remove gziped files
-        #  for file in self.wui_files:
-            #  os.remove(file + '.gz')
+        for file in self.wui_files:
+            os.remove(file + '.gz')
 
         # remove original file and rename tmp file
         os.remove(self.raw_data_file)
