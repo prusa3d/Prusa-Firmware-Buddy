@@ -36,16 +36,16 @@ static constexpr size_t row_temp_line = row_temp_0 + row_h;
 static constexpr size_t row_temp_1 = row_temp_line + line_width + line_space;
 static constexpr size_t row_temp_2 = row_temp_1 + row_h;
 
-static constexpr const char *txt_en_fan_test = "Fan Test";
-static constexpr const char *txt_en_hotend_fan = "Hotend Fan";
-static constexpr const char *txt_en_print_fan = "Print Fan";
-static constexpr const char *txt_en_checking_axis = "Checking axes";
-static constexpr const char *txt_en_x_axis = "X-axis";
-static constexpr const char *txt_en_y_axis = "Y-axis";
-static constexpr const char *txt_en_z_axis = "Z-axis";
-static constexpr const char *txt_en_checking_temp = "Nozzle and Heatbed";
-static constexpr const char *txt_en_noz = "Nozzle";
-static constexpr const char *txt_en_bed = "Heatbed";
+static constexpr const char *txt_en_fan_test = N_("Fan Test");
+static constexpr const char *txt_en_hotend_fan = N_("Hotend Fan");
+static constexpr const char *txt_en_print_fan = N_("Print Fan");
+static constexpr const char *txt_en_checking_axis = N_("Checking axes");
+static constexpr const char *txt_en_x_axis = N_("X-axis");
+static constexpr const char *txt_en_y_axis = N_("Y-axis");
+static constexpr const char *txt_en_z_axis = N_("Z-axis");
+static constexpr const char *txt_en_checking_temp = N_("Nozzle and Heatbed");
+static constexpr const char *txt_en_noz = N_("Nozzle");
+static constexpr const char *txt_en_bed = N_("Heatbed");
 
 DialogSelftestResult::DialogSelftestResult(SelftestResultEEprom_t result)
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBodyNoFoot)
