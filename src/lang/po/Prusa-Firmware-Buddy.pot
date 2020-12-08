@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-11-26 13:46+0100\n"
+"POT-Creation-Date: 2020-12-08 16:20+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -60,7 +60,7 @@ msgstr ""
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:277
+#: src/guiapi/include/MItem_tools.hpp:297
 msgid "Assist"
 msgstr ""
 
@@ -119,7 +119,7 @@ msgstr ""
 msgid "Calibration successful! Happy printing!"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:249 src/gui/screen_menu_filament.cpp:89
+#: src/gui/screen_menu_filament.cpp:89 src/guiapi/include/MItem_tools.hpp:269
 msgid "Change Filament"
 msgstr ""
 
@@ -163,7 +163,7 @@ msgstr ""
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
 msgstr ""
 
-#: src/gui/screen_menu_temperature.cpp:12 src/common/filament.cpp:13
+#: src/common/filament.cpp:13 src/gui/screen_menu_temperature.cpp:12
 msgid "Cooldown"
 msgstr ""
 
@@ -204,7 +204,7 @@ msgid ""
 "Click NO to use the default value (recommended)"
 msgstr ""
 
-#: src/gui/screen_sysinf.cpp:86 src/gui/test/screen_mesh_bed_lv.cpp:62
+#: src/gui/test/screen_mesh_bed_lv.cpp:62 src/gui/screen_sysinf.cpp:86
 msgid "EXIT"
 msgstr ""
 
@@ -240,7 +240,7 @@ msgstr ""
 msgid "FW UPDATE"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:119 src/gui/screen_menu_fw_update.cpp:17
+#: src/gui/screen_menu_fw_update.cpp:17 src/guiapi/include/MItem_menus.hpp:119
 msgid "FW Update"
 msgstr ""
 
@@ -260,6 +260,10 @@ msgstr ""
 msgid "Fan Test"
 msgstr ""
 
+#: src/guiapi/include/MItem_tools.hpp:394
+msgid "Fan check"
+msgstr ""
+
 #: src/gui/screen_sysinf.cpp:71
 msgid "Fan0 RPM"
 msgstr ""
@@ -268,11 +272,11 @@ msgstr ""
 msgid "Fan1 RPM"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:29 src/gui/screen_home.cpp:35
+#: src/gui/screen_home.cpp:35 src/guiapi/include/MItem_menus.hpp:29
 msgid "Filament"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:354 src/gui/screen_menu_settings.cpp:25
+#: src/gui/screen_menu_settings.cpp:25 src/guiapi/include/MItem_tools.hpp:374
 msgid "Filament Sensor"
 msgstr ""
 
@@ -290,7 +294,7 @@ msgstr ""
 
 #. ***************************************************************************
 #. clang-format off
-#: src/gui/dialogs/DialogLoadUnload.cpp:14 src/gui/dialogs/DialogG162.cpp:8
+#: src/gui/dialogs/DialogG162.cpp:8 src/gui/dialogs/DialogLoadUnload.cpp:14
 msgid "Finishing buffered gcodes."
 msgstr ""
 
@@ -299,8 +303,8 @@ msgstr ""
 msgid "Firmware Version\n"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:59
 #: src/gui/screen_menu_steel_sheets.cpp:46 src/gui/ScreenFirstLayer.hpp:12
+#: src/guiapi/include/MItem_tools.hpp:59
 msgid "First Layer Calibration"
 msgstr ""
 
@@ -321,21 +325,17 @@ msgstr ""
 msgid "HOME TO MAX"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:159 src/gui/screen_menu_hw_setup.cpp:32
+#: src/gui/screen_menu_hw_setup.cpp:32 src/guiapi/include/MItem_menus.hpp:159
 msgid "HW Setup"
 msgstr ""
 
-#: src/guiapi/include/MItem_print.hpp:16
 #: src/gui/dialogs/DialogSelftestTemp.cpp:24
+#: src/guiapi/include/MItem_print.hpp:16
 msgid "Heatbed"
 msgstr ""
 
 #: src/gui/dialogs/DialogSelftestTemp.cpp:26
 msgid "Heating"
-msgstr ""
-
-#: src/gui/guimain.cpp:194
-msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr ""
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:23
@@ -346,7 +346,7 @@ msgstr ""
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/guimain.cpp:205
+#: src/gui/guimain.cpp:201
 msgid ""
 "Hi, this is your\n"
 "Original Prusa MINI."
@@ -354,7 +354,7 @@ msgstr ""
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
-#: src/gui/screen_printing.cpp:45 src/gui/window_file_list.cpp:104
+#: src/gui/window_file_list.cpp:104 src/gui/screen_printing.cpp:45
 msgid "Home"
 msgstr ""
 
@@ -461,11 +461,11 @@ msgstr ""
 msgid "Loading to nozzle"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:275
+#: src/guiapi/include/MItem_tools.hpp:295
 msgid "Loud"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:364
+#: src/guiapi/include/MItem_tools.hpp:384
 msgid "M.I.N.D.A."
 msgstr ""
 
@@ -509,7 +509,7 @@ msgid ""
 "points"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:259
+#: src/guiapi/include/MItem_tools.hpp:279
 msgid "Menu Timeout"
 msgstr ""
 
@@ -556,7 +556,7 @@ msgstr ""
 msgid "NO"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:307
+#: src/guiapi/include/MItem_tools.hpp:327
 msgid "Name"
 msgstr ""
 
@@ -589,8 +589,8 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: src/guiapi/include/WindowMenuItems.hpp:19
 #: src/gui/screen_menu_fw_update.cpp:28
+#: src/guiapi/include/WindowMenuItems.hpp:19
 msgid "Off"
 msgstr ""
 
@@ -602,7 +602,7 @@ msgstr ""
 msgid "On Restart"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:274
+#: src/guiapi/include/MItem_tools.hpp:294
 msgid "Once"
 msgstr ""
 
@@ -632,7 +632,7 @@ msgstr ""
 msgid "PREHEAT for UNLOAD"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:360 src/gui/screen_printing.hpp:46
+#: src/gui/screen_printing.hpp:46 src/gui/screen_printing.cpp:360
 msgid "PRINTING"
 msgstr ""
 
@@ -645,11 +645,11 @@ msgstr ""
 msgid "PURGE MORE"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:15 src/gui/dialogs/DialogG162.cpp:9
+#: src/gui/dialogs/DialogG162.cpp:9 src/gui/dialogs/DialogLoadUnload.cpp:15
 msgid "Parking"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:38 src/gui/ScreenPrintingModel.hpp:16
+#: src/gui/ScreenPrintingModel.hpp:16 src/gui/screen_printing.cpp:38
 msgid "Pause"
 msgstr ""
 
@@ -671,7 +671,7 @@ msgstr ""
 msgid "Please insert a USB drive and try again."
 msgstr ""
 
-#: src/gui/guimain.cpp:206
+#: src/gui/guimain.cpp:202
 msgid ""
 "Please insert the USB\n"
 "drive that came with\n"
@@ -718,8 +718,8 @@ msgstr ""
 msgid "Print"
 msgstr ""
 
-#: src/guiapi/include/MItem_print.hpp:24
 #: src/gui/dialogs/DialogSelftestFans.cpp:15
+#: src/guiapi/include/MItem_print.hpp:24
 msgid "Print Fan"
 msgstr ""
 
@@ -762,7 +762,7 @@ msgstr ""
 msgid "RENAME"
 msgstr ""
 
-#: src/gui/guimain.cpp:207 src/common/MindaRedscreen.cpp:175
+#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:203
 msgid "RESET PRINTER"
 msgstr ""
 
@@ -851,12 +851,6 @@ msgstr ""
 msgid "Save Settings"
 msgstr ""
 
-#. / draw "Scan me" text
-#. r=1 c=34
-#: src/common/bsod.cpp:267
-msgid "Scan me for details"
-msgstr ""
-
 #: src/gui/wizard/xyzcalib.cpp:180
 msgid ""
 "Searching bed\n"
@@ -901,19 +895,19 @@ msgstr ""
 msgid "Sheet Profile"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:276
+#: src/guiapi/include/MItem_tools.hpp:296
 msgid "Silent"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:305
+#: src/guiapi/include/MItem_tools.hpp:325
 msgid "Sort Files by"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:272
+#: src/guiapi/include/MItem_tools.hpp:292
 msgid "Sound Mode"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:316
+#: src/guiapi/include/MItem_tools.hpp:336
 msgid "Sound Volume"
 msgstr ""
 
@@ -929,11 +923,11 @@ msgstr ""
 msgid "Statistic"
 msgstr ""
 
-#: src/gui/screen_menu_hw_setup.cpp:16 src/gui/screen_menu_steel_sheets.cpp:176
+#: src/gui/screen_menu_steel_sheets.cpp:176 src/gui/screen_menu_hw_setup.cpp:16
 msgid "Steel Sheets"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:40 src/gui/ScreenPrintingModel.hpp:17
+#: src/gui/ScreenPrintingModel.hpp:17 src/gui/screen_printing.cpp:40
 msgid "Stop"
 msgstr ""
 
@@ -1040,7 +1034,7 @@ msgstr ""
 msgid "Thr"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:308
+#: src/guiapi/include/MItem_tools.hpp:328
 msgid "Time"
 msgstr ""
 
@@ -1066,7 +1060,7 @@ msgstr ""
 msgid "Tue"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:37 src/gui/ScreenPrintingModel.hpp:15
+#: src/gui/ScreenPrintingModel.hpp:15 src/gui/screen_printing.cpp:37
 msgid "Tune"
 msgstr ""
 

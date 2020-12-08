@@ -55,7 +55,7 @@ typedef struct tskTaskControlBlock {
     volatile StackType_t *pxTopOfStack; /*< Points to the location of the last item placed on the tasks stack.  THIS MUST BE THE FIRST MEMBER OF THE TCB STRUCT. */
 
     #if (portUSING_MPU_WRAPPERS == 1)
-    xMPU_SETTINGS xMPUSettings; /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
+    xMPU_SETTINGS xMPUSettings;         /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
     #endif
 
     ListItem_t xStateListItem;                /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
@@ -66,7 +66,7 @@ typedef struct tskTaskControlBlock {
     /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
 
     #if (portSTACK_GROWTH > 0)
-    StackType_t *pxEndOfStack; /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
+    StackType_t *pxEndOfStack;     /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
     #endif
 
     #if (portCRITICAL_NESTING_IN_TCB == 1)
@@ -74,12 +74,12 @@ typedef struct tskTaskControlBlock {
     #endif
 
     #if (configUSE_TRACE_FACILITY == 1)
-    UBaseType_t uxTCBNumber;  /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
-    UBaseType_t uxTaskNumber; /*< Stores a number specifically for use by third party trace code. */
+    UBaseType_t uxTCBNumber;       /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
+    UBaseType_t uxTaskNumber;      /*< Stores a number specifically for use by third party trace code. */
     #endif
 
     #if (configUSE_MUTEXES == 1)
-    UBaseType_t uxBasePriority; /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
+    UBaseType_t uxBasePriority;    /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
     UBaseType_t uxMutexesHeld;
     #endif
 
@@ -300,7 +300,8 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// draw footer information
         /// fw version, hash, [apendix], [fw signed]
         /// fw version
-        char fw_version[32];
+        char fw_version[13]; // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
+                             // snprintf will clamp the text if the input is too long
         snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
         render_text_align(Rect16(6, 290, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         /// hash
@@ -313,12 +314,12 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// TODO: fw signed is not available ATM
         /// signed fw
         if (0) {
-            char signed_fw_str[4] = "[S]";
+            static const char signed_fw_str[4] = "[S]";
             render_text_align(Rect16(160, 290, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// apendix
         if (ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK) {
-            char apendix_str[4] = "[A]";
+            static const char apendix_str[4] = "[A]";
             render_text_align(Rect16(185, 290, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
     }
@@ -747,7 +748,7 @@ void ScreenHardFault(void) {
 
     #endif //PSOD_BSOD
 
-#else //HAS_GUI
+#else  //HAS_GUI
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {}
 void general_error(const char *error, const char *module) {}
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {}
