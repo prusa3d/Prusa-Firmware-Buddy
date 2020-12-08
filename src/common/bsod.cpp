@@ -307,20 +307,26 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// draw footer information
         /// fw version, hash, [apendix], [fw signed]
         /// fw version
-        char fw_version[16];
-        snprintf(fw_version, sizeof(fw_version), "[%s%s]", project_version, project_version_suffix_short);
-        render_text_align(Rect16(24, 290, 60, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        char fw_version[32];
+        snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
+        render_text_align(Rect16(6, 290, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         /// hash
         if (!qr_privacy) {
             char p_code[] = {};
             printerCode(p_code);
-            render_text_align(Rect16(80, 290, 60, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+            render_text_align(Rect16(98, 290, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// [apendix, fw signed]
         /// TODO: fw signed is not available ATM
-        if (ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) {
+        /// signed fw
+        if (0) {
+            char signed_fw_str[4] = "[S]";
+            render_text_align(Rect16(160, 290, 40, 10), string_view_utf8::MakeRAM((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        }
+        /// apendix
+        if (ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK) {
             char apendix_str[4] = "[A]";
-            render_text_align(Rect16(140, 290, 60, 10), string_view_utf8::MakeRAM((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+            render_text_align(Rect16(185, 290, 40, 10), string_view_utf8::MakeRAM((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
     }
 }

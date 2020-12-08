@@ -12,7 +12,7 @@ screen_qr_error_data_t::screen_qr_error_data_t()
     , info(this, Rect16(8, 275, 224, 20), is_multiline::no)
     , qr(this, Rect16(59, 140, 224, 95))
     , first_run_flag(true) {
-    errText.SetBackColor(COLOR_BLUE);
+    errText.SetBackColor(COLOR_RED_ALERT);
     errText.font = resource_font(IDR_FNT_BIG);
     errText.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)get_actual_error()->err_title));
 
