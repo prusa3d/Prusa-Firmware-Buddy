@@ -305,7 +305,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
         render_text_align(Rect16(6, 290, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         /// hash
-        if (!qr_privacy) {
+        if (devhash_in_qr) {
             char p_code[9];
             printerCode(p_code);
             render_text_align(Rect16(98, 290, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
