@@ -67,7 +67,7 @@ void printerCode(char *str) {
     }
 
     /// appendix state
-    if (ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) {
+    if (ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK) {
         setBit((uint8_t *)hash, 6);
         //setBit(str[0], 6);
     }
