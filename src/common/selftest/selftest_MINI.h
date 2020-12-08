@@ -14,10 +14,11 @@ class CSelftestPart_Fan;
 class CSelftestPart_Axis;
 class CSelftestPart_Heater;
 class FSM_Holder;
+class CFanCtl;
 
-typedef struct _selftest_fan_config_t selftest_fan_config_t;
-typedef struct _selftest_axis_config_t selftest_axis_config_t;
-typedef struct _selftest_heater_config_t selftest_heater_config_t;
+struct selftest_fan_config_t;
+struct selftest_axis_config_t;
+struct selftest_heater_config_t;
 
 typedef enum {
     stsIdle,
@@ -82,10 +83,10 @@ public:
 
 protected:
     void phaseStart();
-    bool phaseFans(const selftest_fan_config_t *pconfig_fan0, const selftest_fan_config_t *pconfig_fan1);
+    bool phaseFans(const selftest_fan_config_t &config_fan0, const selftest_fan_config_t &config_fan1);
     bool phaseHome();
-    bool phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase, uint8_t progress_add, uint8_t progress_mul);
-    bool phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, const selftest_heater_config_t *pconfig_bed, const selftest_fan_config_t *pconfig_fan0, const selftest_fan_config_t *pconfig_fan1);
+    bool phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase, uint8_t progress_add, uint8_t progress_mul);
+    bool phaseHeaters(const selftest_heater_config_t &config_nozzle, const selftest_heater_config_t &config_bed, CFanCtl &fan0, CFanCtl &fan1);
     void phaseFinish();
     bool phaseWait();
 

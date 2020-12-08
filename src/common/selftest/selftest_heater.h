@@ -5,7 +5,7 @@
 #include "selftest_MINI.h"
 #include "fanctl.h"
 
-typedef struct _selftest_heater_config_t {
+struct selftest_heater_config_t {
     const char *partname;
     uint32_t heat_time_ms;
     int16_t start_temp;
@@ -14,7 +14,7 @@ typedef struct _selftest_heater_config_t {
     int16_t heat_min_temp;
     int16_t heat_max_temp;
     uint8_t heater;
-} selftest_heater_config_t;
+};
 
 class CSelftestPart_Heater : public CSelftestPart {
 public:
@@ -32,7 +32,7 @@ public:
     };
 
 public:
-    CSelftestPart_Heater(const selftest_heater_config_t *pconfig);
+    CSelftestPart_Heater(const selftest_heater_config_t &config);
 
 public:
     virtual bool IsInProgress() const override;
@@ -47,14 +47,14 @@ public:
     uint8_t getFSMState_heat();
 
 protected:
-    static uint32_t estimate(const selftest_heater_config_t *pconfig);
+    static uint32_t estimate(const selftest_heater_config_t &config);
 
 protected:
     float getTemp();
     void setTargetTemp(int target_temp);
 
 protected:
-    const selftest_heater_config_t *m_pConfig;
+    const selftest_heater_config_t &m_config;
     uint32_t m_Time;
     uint32_t m_MeasureStartTime;
     float m_Temp;
@@ -70,8 +70,8 @@ protected:
 
 //extra fan control
 class CSelftestPart_HeaterHotend : public CSelftestPart_Heater {
-    CFanCtl *fanctl0;
-    CFanCtl *fanctl1;
+    CFanCtl &m_fanctl0;
+    CFanCtl &m_fanctl1;
     uint8_t fan0_initial_pwm;
     uint8_t fan1_initial_pwm;
     bool stored_can_enable_fan_control;
@@ -81,5 +81,5 @@ protected:
     virtual void stateTargetTemp() override;
 
 public:
-    CSelftestPart_HeaterHotend(const selftest_heater_config_t *pconfig, CFanCtl *pfanctl0, CFanCtl *pfanctl1);
+    CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, CFanCtl &fanctl0, CFanCtl &fanctl1);
 };

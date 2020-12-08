@@ -10,8 +10,8 @@ static constexpr float TEMP_DELTA_LIMIT = 0.05F;
 static constexpr uint32_t TEMP_MEASURE_CYCLE_DELAY = 1000;
 static constexpr uint32_t TEMP_WAIT_CYCLE_DELAY = 2000;
 
-CSelftestPart_Heater::CSelftestPart_Heater(const selftest_heater_config_t *pconfig)
-    : m_pConfig(pconfig) {
+CSelftestPart_Heater::CSelftestPart_Heater(const selftest_heater_config_t &config)
+    : m_config(config) {
     m_State = spsStart;
 }
 
@@ -27,22 +27,22 @@ bool CSelftestPart_Heater::Start() {
 }
 
 void CSelftestPart_Heater::stateStart() {
-    Selftest.log_printf("%s Started\n", m_pConfig->partname);
+    Selftest.log_printf("%s Started\n", m_config.partname);
     m_Time = Selftest.m_Time;
     m_StartTime = m_Time;
-    m_EndTime = m_StartTime + estimate(m_pConfig);
+    m_EndTime = m_StartTime + estimate(m_config);
     m_TempDiffSum = 0;
     m_TempDiffSum = 0;
     m_TempCount = 0;
     m_Temp = getTemp();
-    enable_cooldown = m_Temp >= m_pConfig->start_temp;
+    enable_cooldown = m_Temp >= m_config.start_temp;
     setTargetTemp(0);
 }
 
 void CSelftestPart_Heater::stateTargetTemp() {
     if (can_enable_fan_control)
         hwio_fan_control_enable();
-    setTargetTemp(m_pConfig->start_temp);
+    setTargetTemp(m_config.start_temp);
 }
 
 bool CSelftestPart_Heater::Loop() {
@@ -56,7 +56,7 @@ bool CSelftestPart_Heater::Loop() {
         if (!enable_cooldown)
             break;
         m_Temp = getTemp();
-        if (m_Temp > m_pConfig->undercool_temp)
+        if (m_Temp > m_config.undercool_temp)
             return true;
         break;
     case spsSetTargetTemp:
@@ -65,7 +65,7 @@ bool CSelftestPart_Heater::Loop() {
     case spsWait: {
         if ((Selftest.m_Time - m_Time) < TEMP_WAIT_CYCLE_DELAY) {
             float temp = getTemp();
-            float temp_diff = (temp - m_pConfig->start_temp);
+            float temp_diff = (temp - m_config.start_temp);
             float temp_delta = (temp - m_Temp);
             m_Temp = temp;
             m_TempDiffSum += temp_diff;
@@ -82,7 +82,7 @@ bool CSelftestPart_Heater::Loop() {
             m_TempCount = 0;
             return true;
         }
-        setTargetTemp(m_pConfig->target_temp);
+        setTargetTemp(m_config.target_temp);
         m_Time = Selftest.m_Time;
         m_MeasureStartTime = m_Time;
         m_Temp = 0;
@@ -97,15 +97,15 @@ bool CSelftestPart_Heater::Loop() {
             return true;
         }
         m_Temp /= m_TempCount;
-        Selftest.log_printf("%s %5u ms  %5.1f C\n", m_pConfig->partname, m_Time - m_MeasureStartTime, (double)m_Temp);
-        if ((m_Time - m_MeasureStartTime) < m_pConfig->heat_time_ms) {
+        Selftest.log_printf("%s %5u ms  %5.1f C\n", m_config.partname, m_Time - m_MeasureStartTime, (double)m_Temp);
+        if ((m_Time - m_MeasureStartTime) < m_config.heat_time_ms) {
             m_Time = Selftest.m_Time;
             m_Temp = 0;
             m_TempCount = 0;
             return true;
         }
-        if ((m_Temp < m_pConfig->heat_min_temp) || (m_Temp > m_pConfig->heat_max_temp)) {
-            Selftest.log_printf("%s %i out of range (%i - %i)\n", m_pConfig->partname, (int)m_Temp, m_pConfig->heat_min_temp, m_pConfig->heat_max_temp);
+        if ((m_Temp < m_config.heat_min_temp) || (m_Temp > m_config.heat_max_temp)) {
+            Selftest.log_printf("%s %i out of range (%i - %i)\n", m_config.partname, (int)m_Temp, m_config.heat_min_temp, m_config.heat_max_temp);
             m_Result = sprFailed;
             m_State = spsFinish;
             return true;
@@ -117,7 +117,7 @@ bool CSelftestPart_Heater::Loop() {
             m_State = spsFailed;
         else
             m_Result = sprPassed;
-        Selftest.log_printf("%s %s\n", m_pConfig->partname, (m_Result == sprPassed) ? "Passed" : "Failed");
+        Selftest.log_printf("%s %s\n", m_config.partname, (m_Result == sprPassed) ? "Passed" : "Failed");
         break;
     case spsFinished:
     case spsAborted:
@@ -148,21 +148,21 @@ uint8_t CSelftestPart_Heater::getFSMState_heat() {
     return (uint8_t)((m_Result == sprPassed) ? (SelftestSubtestState_t::ok) : (SelftestSubtestState_t::not_good));
 }
 
-uint32_t CSelftestPart_Heater::estimate(const selftest_heater_config_t *pconfig) {
-    return pconfig->heat_time_ms;
+uint32_t CSelftestPart_Heater::estimate(const selftest_heater_config_t &config) {
+    return config.heat_time_ms;
 }
 
 float CSelftestPart_Heater::getTemp() {
-    if (m_pConfig->heater == 0xff)
+    if (m_config.heater == 0xff)
         return thermalManager.temp_bed.celsius;
-    return thermalManager.temp_hotend[m_pConfig->heater].celsius;
+    return thermalManager.temp_hotend[m_config.heater].celsius;
 }
 
 void CSelftestPart_Heater::setTargetTemp(int target_temp) {
-    if (m_pConfig->heater == 0xff)
+    if (m_config.heater == 0xff)
         thermalManager.setTargetBed(target_temp);
     else
-        thermalManager.setTargetHotend(target_temp, m_pConfig->heater);
+        thermalManager.setTargetHotend(target_temp, m_config.heater);
 }
 
 bool CSelftestPart_Heater::can_enable_fan_control = true;
@@ -170,10 +170,10 @@ bool CSelftestPart_Heater::can_enable_fan_control = true;
 /*****************************************************************************/
 //CSelftestPart_HeaterHotend
 
-CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t *pconfig, CFanCtl *pfanctl0, CFanCtl *pfanctl1)
-    : CSelftestPart_Heater(pconfig)
-    , fanctl0(pfanctl0)
-    , fanctl1(pfanctl1)
+CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, CFanCtl &fanctl0, CFanCtl &fanctl1)
+    : CSelftestPart_Heater(config)
+    , m_fanctl0(fanctl0)
+    , m_fanctl1(fanctl1)
     , stored_can_enable_fan_control(can_enable_fan_control) {
     can_enable_fan_control = false;
 }
@@ -182,12 +182,12 @@ void CSelftestPart_HeaterHotend::stateStart() {
     CSelftestPart_Heater::stateStart();
     if (enable_cooldown) {
         hwio_fan_control_disable();
-        fanctl0->setPWM(255); //marlin will restore it automatically
-        fanctl1->setPWM(255); //marlin will restore it automatically
+        m_fanctl0.setPWM(255); //marlin will restore it automatically
+        m_fanctl1.setPWM(255); //marlin will restore it automatically
     }
 }
 
 void CSelftestPart_HeaterHotend::stateTargetTemp() {
     hwio_fan_control_enable(); //do not check can_enable_fan_control
-    setTargetTemp(m_pConfig->start_temp);
+    setTargetTemp(m_config.start_temp);
 }
