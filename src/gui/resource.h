@@ -75,7 +75,6 @@ enum {
     IDR_PNG_arrow_down_8px,
     IDR_PNG_arrow_up_orange_8px,
     IDR_PNG_arrow_down_orange_8px,
-    IDR_PNG_arrow_scan_me_64px,
 
     IDR_PNG_back_32px,
     IDR_PNG_serial_printing,

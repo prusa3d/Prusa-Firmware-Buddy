@@ -77,7 +77,6 @@
 #include "res/cc/png_arrow_up_orange_8px.c"   //IDR_PNG_arrow_up_orange_8px
 #include "res/cc/png_arrow_down_orange_8px.c" //IDR_PNG_arrow_down_orange_8px
 
-#include "res/cc/png_arrow_scan_me_64px.c" //IDR_PNG_arrow_scan_me_64px
 #include "res/cc/png_serial_printing.c"    //IDR_PNG_serial_printing
 #include "res/cc/png_switch_off_36px.c"    //IDR_PNG_switch_off_36px
 #include "res/cc/png_switch_on_36px.c"     //IDR_PNG_switch_on_36px
@@ -164,7 +163,6 @@ RESOURCE_ENTRY_PNG(png_arrow_up_8px)
 RESOURCE_ENTRY_PNG(png_arrow_down_8px)
 RESOURCE_ENTRY_PNG(png_arrow_up_orange_8px)
 RESOURCE_ENTRY_PNG(png_arrow_down_orange_8px)
-RESOURCE_ENTRY_PNG(png_arrow_scan_me_64px)
 
 RESOURCE_ENTRY_PNG(png_back_32px)
 RESOURCE_ENTRY_PNG(png_serial_printing)

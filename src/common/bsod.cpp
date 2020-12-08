@@ -262,15 +262,8 @@ void draw_error_screen(const uint16_t error_code_short) {
         display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
         display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
 
-        /// draw "Scan me" text
-        // r=1 c=34
-        // static const char *scan_me_text = N_("Scan me for details");
-        // render_text_align(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
-
-        /// draw "Scan me" arrow
-        /// FIXME arrow overlaps with QR code (bad PNG)
-        // render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me_64px, COLOR_RED_ALERT, 0);
-        render_icon_align(Rect16(20, 145, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, 0);
+        /// draw "Hand QR" icon
+        render_icon_align(Rect16(20, 155, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, 0);
 
         /// draw QR
         char qr_text[MAX_LEN_4QR + 1];
@@ -284,7 +277,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         }
 
         constexpr uint8_t qr_size_px = 140;
-        const Rect16 qr_rect = { 160 - qr_size_px / 2, 180 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
+        const Rect16 qr_rect = { 160 - qr_size_px / 2, 190 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
         window_qr_t win(nullptr, qr_rect);
         win.rect = qr_rect;
         window_qr_t *window = &win;
@@ -312,7 +305,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         render_text_align(Rect16(6, 290, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         /// hash
         if (!qr_privacy) {
-            char p_code[] = {};
+            char p_code[9];
             printerCode(p_code);
             render_text_align(Rect16(98, 290, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
@@ -321,12 +314,12 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// signed fw
         if (0) {
             char signed_fw_str[4] = "[S]";
-            render_text_align(Rect16(160, 290, 40, 10), string_view_utf8::MakeRAM((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+            render_text_align(Rect16(160, 290, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// apendix
         if (ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK) {
             char apendix_str[4] = "[A]";
-            render_text_align(Rect16(185, 290, 40, 10), string_view_utf8::MakeRAM((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+            render_text_align(Rect16(185, 290, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
     }
 }
