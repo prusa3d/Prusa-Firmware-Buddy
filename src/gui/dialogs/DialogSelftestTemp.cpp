@@ -23,8 +23,8 @@ static constexpr size_t row_bed_3 = row_bed_2 + row_h;
 
 static constexpr const char *en_text_noz = N_("Nozzle heater check");
 static constexpr const char *en_text_bed = N_("Heatbed heater check");
-static constexpr const char *en_text_prep = N_("Prepare");
-static constexpr const char *en_text_heat = N_("Heating");
+static constexpr const char *en_text_prep = N_("Preparing");
+static constexpr const char *en_text_heat = N_("Heater testing");
 
 DialogSelftestTemp::DialogSelftestTemp()
     : IDialogMarlin()

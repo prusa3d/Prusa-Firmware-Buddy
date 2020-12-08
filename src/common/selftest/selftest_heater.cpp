@@ -5,10 +5,10 @@
 #include "wizard_config.hpp"
 #include "../../Marlin/src/module/temperature.h"
 
-#define TEMP_DIFF_LIMIT          0.25F
-#define TEMP_DELTA_LIMIT         0.05F
-#define TEMP_MEASURE_CYCLE_DELAY 1000
-#define TEMP_WAIT_CYCLE_DELAY    2000
+static constexpr float TEMP_DIFF_LIMIT = 0.25;
+static constexpr float TEMP_DELTA_LIMIT = 0.05F;
+static constexpr uint32_t TEMP_MEASURE_CYCLE_DELAY = 1000;
+static constexpr uint32_t TEMP_WAIT_CYCLE_DELAY = 2000;
 
 CSelftestPart_Heater::CSelftestPart_Heater(const selftest_heater_config_t *pconfig)
     : m_pConfig(pconfig) {
@@ -26,20 +26,34 @@ bool CSelftestPart_Heater::Start() {
     return true;
 }
 
+void CSelftestPart_Heater::stateStart() {
+    Selftest.log_printf("%s Started\n", m_pConfig->partname);
+    m_Time = Selftest.m_Time;
+    m_StartTime = m_Time;
+    m_EndTime = m_StartTime + estimate(m_pConfig);
+    hwio_fan_control_enable();
+    m_TempDiffSum = 0;
+    m_TempDiffSum = 0;
+    m_TempCount = 0;
+    m_Temp = getTemp();
+    need_cooldown = m_Temp >= m_pConfig->start_temp;
+    setTargetTemp(0);
+}
+
 bool CSelftestPart_Heater::Loop() {
     switch ((TestState)m_State) {
     case spsIdle:
         return false;
     case spsStart:
-        Selftest.log_printf("%s Started\n", m_pConfig->partname);
-        m_Time = Selftest.m_Time;
-        m_StartTime = m_Time;
-        m_EndTime = m_StartTime + estimate(m_pConfig);
-        hwio_fan_control_enable();
-        m_TempDiffSum = 0;
-        m_TempDiffSum = 0;
-        m_TempCount = 0;
+        stateStart();
+        break;
+    case spsCooldown:
+        if (!need_cooldown)
+            break;
         m_Temp = getTemp();
+        need_cooldown = m_Temp >= m_pConfig->undercool_temp;
+        return true;
+    case spsSetTargetTemp:
         setTargetTemp(m_pConfig->start_temp);
         break;
     case spsWait: {
@@ -143,4 +157,13 @@ void CSelftestPart_Heater::setTargetTemp(int target_temp) {
         thermalManager.setTargetBed(target_temp);
     else
         thermalManager.setTargetHotend(target_temp, m_pConfig->heater);
+}
+
+/*****************************************************************************/
+//CSelftestPart_HeaterHotend
+
+CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t *pconfig, const CFanCtl *pfanctl0, const CFanCtl *pfanctl1)
+    : CSelftestPart_Heater(pconfig)
+    , m_pConfig_fan0(pfanctl0)
+    , m_pConfig_fan1(pfanctl1) {
 }

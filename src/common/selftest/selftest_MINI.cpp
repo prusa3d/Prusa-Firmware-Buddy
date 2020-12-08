@@ -45,9 +45,9 @@ static const selftest_axis_config_t Config_YAxis = { .partname = "Y-Axis", .leng
 
 static const selftest_axis_config_t Config_ZAxis = { .partname = "Z-Axis", .length = 185, .fr_table = Zfr_table, .length_min = 181, .length_max = 191, .axis = Z_AXIS, .steps = 1, .dir = 1 };
 
-static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzle", .heat_time_ms = 42000, .start_temp = 40, .target_temp = 290, .heat_min_temp = 130, .heat_max_temp = 190, .heater = 0 };
+static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzle", .heat_time_ms = 42000, .start_temp = 40, .undercool_temp = 35, .target_temp = 290, .heat_min_temp = 130, .heat_max_temp = 190, .heater = 0 };
 
-static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heat_time_ms = 60000, .start_temp = 40, .target_temp = 110, .heat_min_temp = 50, .heat_max_temp = 65, .heater = 0xff };
+static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heat_time_ms = 60000, .start_temp = 40, .undercool_temp = 35, .target_temp = 110, .heat_min_temp = 50, .heat_max_temp = 65, .heater = 0xff };
 
 static const selftest_fan_config_t Config_Fan0_fine = { .partname = "Fan0", .pfanctl = &fanctl0, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
 
@@ -124,7 +124,7 @@ void CSelftest::Loop() {
             return;
         break;
     case stsHeaters:
-        if (phaseHeaters(&Config_HeaterNozzle, &Config_HeaterBed))
+        if (phaseHeaters(&Config_HeaterNozzle, &Config_HeaterBed, &Config_Fan0, &Config_Fan1))
             return;
         break;
     case stsWait_heaters:
@@ -259,9 +259,9 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestP
     return false;
 }
 
-bool CSelftest::phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, const selftest_heater_config_t *pconfig_bed) {
+bool CSelftest::phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, const selftest_heater_config_t *pconfig_bedconst, const selftest_fan_config_t *pconfig_fan0, const selftest_fan_config_t *pconfig_fan1) {
     m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestHeat, 0);
-    m_pHeater_Nozzle = m_pHeater_Nozzle ? m_pHeater_Nozzle : new CSelftestPart_Heater(&Config_HeaterNozzle);
+    m_pHeater_Nozzle = m_pHeater_Nozzle ? m_pHeater_Nozzle : new CSelftestPart_HeaterHotend(&Config_HeaterNozzle, pconfig_fan0->pfanctl, pconfig_fan1->pfanctl);
     m_pHeater_Bed = m_pHeater_Bed ? m_pHeater_Bed : new CSelftestPart_Heater(&Config_HeaterBed);
     m_pHeater_Nozzle->Loop();
     m_pHeater_Bed->Loop();
