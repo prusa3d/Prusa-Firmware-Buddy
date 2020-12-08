@@ -4,7 +4,7 @@
 #include "guitypes.h"
 #include "res/cc/font_7x13.c"  //IDR_FNT_SMALL
 #include "res/cc/font_11x18.c" //IDR_FNT_NORMAL
-//#include "res/cc/font_10x18.c" //IDR_FNT_NORMAL
+                               //#include "res/cc/font_10x18.c" //IDR_FNT_NORMAL
 #include "res/cc/font_12x21.c" //IDR_FNT_BIG
 #include "res/cc/font_9x15.c"  //IDR_FNT_TERMINAL
 #include "res/cc/font_9x16.c"  //IDR_FNT_SPECIAL
@@ -77,10 +77,10 @@
 #include "res/cc/png_arrow_up_orange_8px.c"   //IDR_PNG_arrow_up_orange_8px
 #include "res/cc/png_arrow_down_orange_8px.c" //IDR_PNG_arrow_down_orange_8px
 
-#include "res/cc/png_serial_printing.c"    //IDR_PNG_serial_printing
-#include "res/cc/png_switch_off_36px.c"    //IDR_PNG_switch_off_36px
-#include "res/cc/png_switch_on_36px.c"     //IDR_PNG_switch_on_36px
-#include "res/cc/png_hand_qr.c"            //IDR_PNG_hand_qr
+#include "res/cc/png_serial_printing.c" //IDR_PNG_serial_printing
+#include "res/cc/png_switch_off_36px.c" //IDR_PNG_switch_off_36px
+#include "res/cc/png_switch_on_36px.c"  //IDR_PNG_switch_on_36px
+#include "res/cc/png_hand_qr.c"         //IDR_PNG_hand_qr
 
 #include "res/cc/png_flag_cs.c"
 #include "res/cc/png_flag_de.c"
