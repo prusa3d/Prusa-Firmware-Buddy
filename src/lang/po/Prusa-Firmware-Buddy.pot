@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-11-30 18:06+0100\n"
+"POT-Creation-Date: 2020-12-08 16:20+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -56,7 +56,7 @@ msgstr ""
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:277
+#: src/guiapi/include/MItem_tools.hpp:297
 msgid "Assist"
 msgstr ""
 
@@ -115,7 +115,7 @@ msgstr ""
 msgid "Calibration successful! Happy printing!"
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:89 src/guiapi/include/MItem_tools.hpp:249
+#: src/gui/screen_menu_filament.cpp:89 src/guiapi/include/MItem_tools.hpp:269
 msgid "Change Filament"
 msgstr ""
 
@@ -260,6 +260,10 @@ msgstr ""
 msgid "Fan Test"
 msgstr ""
 
+#: src/guiapi/include/MItem_tools.hpp:394
+msgid "Fan check"
+msgstr ""
+
 #: src/gui/screen_sysinf.cpp:71
 msgid "Fan0 RPM"
 msgstr ""
@@ -272,7 +276,7 @@ msgstr ""
 msgid "Filament"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:25 src/guiapi/include/MItem_tools.hpp:354
+#: src/gui/screen_menu_settings.cpp:25 src/guiapi/include/MItem_tools.hpp:374
 msgid "Filament Sensor"
 msgstr ""
 
@@ -334,10 +338,6 @@ msgstr ""
 msgid "Heating"
 msgstr ""
 
-#: src/gui/guimain.cpp:194
-msgid "Heating disabled due to 30 minutes of inactivity."
-msgstr ""
-
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:23
 msgid "Heating disabled due to a heaters timeout."
 msgstr ""
@@ -346,7 +346,7 @@ msgstr ""
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/guimain.cpp:205
+#: src/gui/guimain.cpp:201
 msgid ""
 "Hi, this is your\n"
 "Original Prusa MINI."
@@ -461,11 +461,11 @@ msgstr ""
 msgid "Loading to nozzle"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:275
+#: src/guiapi/include/MItem_tools.hpp:295
 msgid "Loud"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:364
+#: src/guiapi/include/MItem_tools.hpp:384
 msgid "M.I.N.D.A."
 msgstr ""
 
@@ -509,7 +509,7 @@ msgid ""
 "points"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:259
+#: src/guiapi/include/MItem_tools.hpp:279
 msgid "Menu Timeout"
 msgstr ""
 
@@ -556,7 +556,7 @@ msgstr ""
 msgid "NO"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:307
+#: src/guiapi/include/MItem_tools.hpp:327
 msgid "Name"
 msgstr ""
 
@@ -602,7 +602,7 @@ msgstr ""
 msgid "On Restart"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:274
+#: src/guiapi/include/MItem_tools.hpp:294
 msgid "Once"
 msgstr ""
 
@@ -671,7 +671,7 @@ msgstr ""
 msgid "Please insert a USB drive and try again."
 msgstr ""
 
-#: src/gui/guimain.cpp:206
+#: src/gui/guimain.cpp:202
 msgid ""
 "Please insert the USB\n"
 "drive that came with\n"
@@ -762,7 +762,7 @@ msgstr ""
 msgid "RENAME"
 msgstr ""
 
-#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:207
+#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:203
 msgid "RESET PRINTER"
 msgstr ""
 
@@ -851,12 +851,6 @@ msgstr ""
 msgid "Save Settings"
 msgstr ""
 
-#. / draw "Scan me" text
-#. r=1 c=34
-#: src/common/bsod.cpp:267
-msgid "Scan me for details"
-msgstr ""
-
 #: src/gui/wizard/xyzcalib.cpp:180
 msgid ""
 "Searching bed\n"
@@ -901,19 +895,19 @@ msgstr ""
 msgid "Sheet Profile"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:276
+#: src/guiapi/include/MItem_tools.hpp:296
 msgid "Silent"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:305
+#: src/guiapi/include/MItem_tools.hpp:325
 msgid "Sort Files by"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:272
+#: src/guiapi/include/MItem_tools.hpp:292
 msgid "Sound Mode"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:316
+#: src/guiapi/include/MItem_tools.hpp:336
 msgid "Sound Volume"
 msgstr ""
 
@@ -1040,7 +1034,7 @@ msgstr ""
 msgid "Thr"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:308
+#: src/guiapi/include/MItem_tools.hpp:328
 msgid "Time"
 msgstr ""
 
