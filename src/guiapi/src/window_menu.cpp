@@ -11,9 +11,10 @@
 
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
+    , moveIndex(0)
+    , initialized(false)
     , pContainer(pContainer) {
     setIndex(index);
-    moveIndex = 0;
     top_index = 0;
     updateTopIndex();
 }
@@ -231,12 +232,12 @@ void window_menu_t::unconditionalDraw() {
         return;
     }
 
-    if (moveIndex == 0) { /// startup or single item change
-        if (item->IsSelected()) {
-            unconditionalDrawItem(index);
-        } else {
-            redrawWholeMenu();
-        }
+    if (!initialized) {
+        initialized = true;
+        redrawWholeMenu();
+        return;
+    } else if (item->IsSelected()) {
+        unconditionalDrawItem(index);
         return;
     }
 
@@ -246,8 +247,10 @@ void window_menu_t::unconditionalDraw() {
     if (updateTopIndex()) {
         redrawWholeMenu(); /// whole menu moved, redraw everything
     } else {
-        unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
-        unconditionalDrawItem(index);
+        if (old_index != index) {
+            unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
+            unconditionalDrawItem(index);
+        }
     }
 }
 
