@@ -82,6 +82,7 @@ enum {
     IDR_PNG_disconnect_48px,
     IDR_PNG_switch_off_36px,
     IDR_PNG_switch_on_36px,
+    IDR_PNG_hand_qr,
 
     IDR_PNG_flag_cs,
     IDR_PNG_flag_de,

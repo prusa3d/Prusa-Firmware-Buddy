@@ -55,7 +55,7 @@ typedef struct tskTaskControlBlock {
     volatile StackType_t *pxTopOfStack; /*< Points to the location of the last item placed on the tasks stack.  THIS MUST BE THE FIRST MEMBER OF THE TCB STRUCT. */
 
     #if (portUSING_MPU_WRAPPERS == 1)
-    xMPU_SETTINGS xMPUSettings;         /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
+    xMPU_SETTINGS xMPUSettings; /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
     #endif
 
     ListItem_t xStateListItem;                /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
@@ -66,7 +66,7 @@ typedef struct tskTaskControlBlock {
     /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
 
     #if (portSTACK_GROWTH > 0)
-    StackType_t *pxEndOfStack;     /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
+    StackType_t *pxEndOfStack; /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
     #endif
 
     #if (portCRITICAL_NESTING_IN_TCB == 1)
@@ -74,12 +74,12 @@ typedef struct tskTaskControlBlock {
     #endif
 
     #if (configUSE_TRACE_FACILITY == 1)
-    UBaseType_t uxTCBNumber;       /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
-    UBaseType_t uxTaskNumber;      /*< Stores a number specifically for use by third party trace code. */
+    UBaseType_t uxTCBNumber;  /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
+    UBaseType_t uxTaskNumber; /*< Stores a number specifically for use by third party trace code. */
     #endif
 
     #if (configUSE_MUTEXES == 1)
-    UBaseType_t uxBasePriority;    /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
+    UBaseType_t uxBasePriority; /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
     UBaseType_t uxMutexesHeld;
     #endif
 
@@ -264,12 +264,13 @@ void draw_error_screen(const uint16_t error_code_short) {
 
         /// draw "Scan me" text
         // r=1 c=34
-        static const char *scan_me_text = N_("Scan me for details");
-        render_text_align(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        // static const char *scan_me_text = N_("Scan me for details");
+        // render_text_align(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
 
         /// draw "Scan me" arrow
         /// FIXME arrow overlaps with QR code (bad PNG)
-        render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me_64px, COLOR_RED_ALERT, 0);
+        // render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me_64px, COLOR_RED_ALERT, 0);
+        render_icon_align(Rect16(20, 145, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, 0);
 
         /// draw QR
         char qr_text[MAX_LEN_4QR + 1];
@@ -283,7 +284,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         }
 
         constexpr uint8_t qr_size_px = 140;
-        const Rect16 qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
+        const Rect16 qr_rect = { 160 - qr_size_px / 2, 180 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
         window_qr_t win(nullptr, qr_rect);
         win.rect = qr_rect;
         window_qr_t *window = &win;
@@ -301,7 +302,26 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// draw short URL
         error_url_short(qr_text, sizeof(qr_text), error_code);
         // this MakeRAM is safe - qr_text is a local buffer on stack
-        render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        render_text_align(Rect16(0, 255, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+
+        /// draw footer information
+        /// fw version, hash, [apendix], [fw signed]
+        /// fw version
+        char fw_version[16];
+        snprintf(fw_version, sizeof(fw_version), "[%s%s]", project_version, project_version_suffix_short);
+        render_text_align(Rect16(24, 290, 60, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        /// hash
+        if (!qr_privacy) {
+            char p_code[] = {};
+            printerCode(p_code);
+            render_text_align(Rect16(80, 290, 60, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        }
+        /// [apendix, fw signed]
+        /// TODO: fw signed is not available ATM
+        if (ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) {
+            char apendix_str[4] = "[A]";
+            render_text_align(Rect16(140, 290, 60, 10), string_view_utf8::MakeRAM((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        }
     }
 }
 
@@ -728,7 +748,7 @@ void ScreenHardFault(void) {
 
     #endif //PSOD_BSOD
 
-#else  //HAS_GUI
+#else //HAS_GUI
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {}
 void general_error(const char *error, const char *module) {}
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {}
