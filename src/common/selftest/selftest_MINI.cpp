@@ -45,9 +45,9 @@ static const selftest_axis_config_t Config_YAxis = { .partname = "Y-Axis", .leng
 
 static const selftest_axis_config_t Config_ZAxis = { .partname = "Z-Axis", .length = 185, .fr_table = Zfr_table, .length_min = 181, .length_max = 191, .axis = Z_AXIS, .steps = 1, .dir = 1 };
 
-static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzle", .heat_time_ms = 42000, .start_temp = 40, .undercool_temp = 35, .target_temp = 290, .heat_min_temp = 130, .heat_max_temp = 190, .heater = 0 };
+static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzle", .heat_time_ms = 42000, .start_temp = 40, .undercool_temp = 37, .target_temp = 290, .heat_min_temp = 130, .heat_max_temp = 190, .heater = 0 };
 
-static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heat_time_ms = 60000, .start_temp = 40, .undercool_temp = 35, .target_temp = 110, .heat_min_temp = 50, .heat_max_temp = 65, .heater = 0xff };
+static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heat_time_ms = 60000, .start_temp = 40, .undercool_temp = 39, .target_temp = 110, .heat_min_temp = 50, .heat_max_temp = 65, .heater = 0xff };
 
 static const selftest_fan_config_t Config_Fan0_fine = { .partname = "Fan0", .pfanctl = &fanctl0, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
 

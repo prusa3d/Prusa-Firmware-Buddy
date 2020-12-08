@@ -61,19 +61,25 @@ protected:
     float m_TempDiffSum;
     float m_TempDeltaSum;
     uint16_t m_TempCount;
-    bool need_cooldown;
+    bool enable_cooldown;
+    static bool can_enable_fan_control;
 
-public:
     virtual void stateStart();
+    virtual void stateTargetTemp();
 };
 
 //extra fan control
 class CSelftestPart_HeaterHotend : public CSelftestPart_Heater {
-    const CFanCtl *m_pConfig_fan0;
-    const CFanCtl *m_pConfig_fan1;
+    CFanCtl *fanctl0;
+    CFanCtl *fanctl1;
     uint8_t fan0_initial_pwm;
     uint8_t fan1_initial_pwm;
+    bool stored_can_enable_fan_control;
+
+protected:
+    virtual void stateStart() override;
+    virtual void stateTargetTemp() override;
 
 public:
-    CSelftestPart_HeaterHotend(const selftest_heater_config_t *pconfig, const CFanCtl *pfanctl0, const CFanCtl *pfanctl1);
+    CSelftestPart_HeaterHotend(const selftest_heater_config_t *pconfig, CFanCtl *pfanctl0, CFanCtl *pfanctl1);
 };

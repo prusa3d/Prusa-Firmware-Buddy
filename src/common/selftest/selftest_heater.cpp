@@ -31,13 +31,18 @@ void CSelftestPart_Heater::stateStart() {
     m_Time = Selftest.m_Time;
     m_StartTime = m_Time;
     m_EndTime = m_StartTime + estimate(m_pConfig);
-    hwio_fan_control_enable();
     m_TempDiffSum = 0;
     m_TempDiffSum = 0;
     m_TempCount = 0;
     m_Temp = getTemp();
-    need_cooldown = m_Temp >= m_pConfig->start_temp;
+    enable_cooldown = m_Temp >= m_pConfig->start_temp;
     setTargetTemp(0);
+}
+
+void CSelftestPart_Heater::stateTargetTemp() {
+    if (can_enable_fan_control)
+        hwio_fan_control_enable();
+    setTargetTemp(m_pConfig->start_temp);
 }
 
 bool CSelftestPart_Heater::Loop() {
@@ -48,13 +53,14 @@ bool CSelftestPart_Heater::Loop() {
         stateStart();
         break;
     case spsCooldown:
-        if (!need_cooldown)
+        if (!enable_cooldown)
             break;
         m_Temp = getTemp();
-        need_cooldown = m_Temp >= m_pConfig->undercool_temp;
-        return true;
+        if (m_Temp > m_pConfig->undercool_temp)
+            return true;
+        break;
     case spsSetTargetTemp:
-        setTargetTemp(m_pConfig->start_temp);
+        stateTargetTemp();
         break;
     case spsWait: {
         if ((Selftest.m_Time - m_Time) < TEMP_WAIT_CYCLE_DELAY) {
@@ -159,11 +165,29 @@ void CSelftestPart_Heater::setTargetTemp(int target_temp) {
         thermalManager.setTargetHotend(target_temp, m_pConfig->heater);
 }
 
+bool CSelftestPart_Heater::can_enable_fan_control = true;
+
 /*****************************************************************************/
 //CSelftestPart_HeaterHotend
 
-CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t *pconfig, const CFanCtl *pfanctl0, const CFanCtl *pfanctl1)
+CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t *pconfig, CFanCtl *pfanctl0, CFanCtl *pfanctl1)
     : CSelftestPart_Heater(pconfig)
-    , m_pConfig_fan0(pfanctl0)
-    , m_pConfig_fan1(pfanctl1) {
+    , fanctl0(pfanctl0)
+    , fanctl1(pfanctl1)
+    , stored_can_enable_fan_control(can_enable_fan_control) {
+    can_enable_fan_control = false;
+}
+
+void CSelftestPart_HeaterHotend::stateStart() {
+    CSelftestPart_Heater::stateStart();
+    if (enable_cooldown) {
+        hwio_fan_control_disable();
+        fanctl0->setPWM(255); //marlin will restore it automatically
+        fanctl1->setPWM(255); //marlin will restore it automatically
+    }
+}
+
+void CSelftestPart_HeaterHotend::stateTargetTemp() {
+    hwio_fan_control_enable(); //do not check can_enable_fan_control
+    setTargetTemp(m_pConfig->start_temp);
 }
