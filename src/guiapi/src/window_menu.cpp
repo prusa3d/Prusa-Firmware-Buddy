@@ -13,6 +13,7 @@ window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *p
     : IWindowMenu(parent, rect)
     , moveIndex(0)
     , initialized(false)
+    , clicked(false)
     , pContainer(pContainer) {
     setIndex(index);
     top_index = 0;
@@ -173,6 +174,7 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
     case GUI_event_t::CLICK:
 
         item->Click(*this);
+        clicked = true;
         //Invalidate(); //called inside click
         break;
     case GUI_event_t::ENC_DN:
@@ -236,7 +238,8 @@ void window_menu_t::unconditionalDraw() {
         initialized = true;
         redrawWholeMenu();
         return;
-    } else if (item->IsSelected()) {
+    } else if (item->IsSelected() || clicked) {
+        clicked = false;
         unconditionalDrawItem(index);
         return;
     }

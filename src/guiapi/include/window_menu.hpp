@@ -11,6 +11,7 @@ class window_menu_t : public IWindowMenu {
     uint8_t index;    /// index of cursor
     int8_t moveIndex; /// accumulator for cursor changes
     bool initialized; /// triggers first redraw
+    bool clicked;     /// triggers click redraw (item->Click invalidates whole menu, but we need to know what happend to redraw only nessessary items)
 
     void setIndex(uint8_t index); //for ctor (cannot fail)
     /// Prints single item in the menu
