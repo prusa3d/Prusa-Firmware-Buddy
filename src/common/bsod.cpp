@@ -318,7 +318,7 @@ void draw_error_screen(const uint16_t error_code_short) {
             render_text_align(Rect16(160, 290, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// apendix
-        if (ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK) {
+        if (!(ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK)) {
             static const char apendix_str[4] = "[A]";
             render_text_align(Rect16(185, 290, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
