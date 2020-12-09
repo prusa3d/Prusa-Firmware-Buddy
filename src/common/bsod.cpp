@@ -263,7 +263,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
 
         /// draw "Hand QR" icon
-        render_icon_align(Rect16(20, 155, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, 0);
+        render_icon_align(Rect16(20, 165, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, 0);
 
         /// draw QR
         char qr_text[MAX_LEN_4QR + 1];
@@ -277,7 +277,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         }
 
         constexpr uint8_t qr_size_px = 140;
-        const Rect16 qr_rect = { 160 - qr_size_px / 2, 190 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
+        const Rect16 qr_rect = { 160 - qr_size_px / 2, 200 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
         window_qr_t win(nullptr, qr_rect);
         win.rect = qr_rect;
         window_qr_t *window = &win;
@@ -295,7 +295,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// draw short URL
         error_url_short(qr_text, sizeof(qr_text), error_code);
         // this MakeRAM is safe - qr_text is a local buffer on stack
-        render_text_align(Rect16(0, 255, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        render_text_align(Rect16(0, 265, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
 
         /// draw footer information
         /// fw version, hash, [apendix], [fw signed]
