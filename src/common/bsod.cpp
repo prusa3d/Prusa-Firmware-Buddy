@@ -295,7 +295,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// draw short URL
         error_url_short(qr_text, sizeof(qr_text), error_code);
         // this MakeRAM is safe - qr_text is a local buffer on stack
-        render_text_align(Rect16(0, 265, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        render_text_align(Rect16(0, 270, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
 
         /// draw footer information
         /// fw version, hash, [apendix], [fw signed]
@@ -303,24 +303,24 @@ void draw_error_screen(const uint16_t error_code_short) {
         char fw_version[13]; // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
                              // snprintf will clamp the text if the input is too long
         snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
-        render_text_align(Rect16(6, 290, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        render_text_align(Rect16(6, 295, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         /// hash
         if (devhash_in_qr) {
             char p_code[9];
             printerCode(p_code);
-            render_text_align(Rect16(98, 290, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+            render_text_align(Rect16(98, 295, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// [apendix, fw signed]
         /// TODO: fw signed is not available ATM
         /// signed fw
         if (0) {
             static const char signed_fw_str[4] = "[S]";
-            render_text_align(Rect16(160, 290, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+            render_text_align(Rect16(160, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// apendix
-        if (ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK) {
+        if (!(ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK)) {
             static const char apendix_str[4] = "[A]";
-            render_text_align(Rect16(185, 290, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+            render_text_align(Rect16(185, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
     }
 }
