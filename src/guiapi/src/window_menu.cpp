@@ -12,7 +12,7 @@
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
     , moveIndex(0)
-    , initialized(false)
+    , redrawAll(true)
     , clicked(false)
     , pContainer(pContainer) {
     setIndex(index);
@@ -234,8 +234,8 @@ void window_menu_t::unconditionalDraw() {
         return;
     }
 
-    if (!initialized) {
-        initialized = true;
+    if (redrawAll) {
+        redrawAll = false;
         redrawWholeMenu();
         return;
     } else if (item->IsSelected() || clicked) {
@@ -318,5 +318,14 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
             break;
         }
         ++visible_count;
+    }
+}
+
+void window_menu_t::ShowAfterDialog() {
+    if (flags.hidden_behind_dialog) {
+        flags.hidden_behind_dialog = false;
+        //must invalidate even when is not visible
+        redrawAll = true;
+        Invalidate();
     }
 }

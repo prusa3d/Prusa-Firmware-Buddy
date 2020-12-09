@@ -52,7 +52,7 @@ public:
     void Shadow();
     void Unshadow();
     void HideBehindDialog();
-    void ShowAfterDialog();
+    virtual void ShowAfterDialog();
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
 
