@@ -135,7 +135,7 @@ public:
     virtual bool Abort() = 0;
 
 public:
-    float GetProgress() const;
+    virtual float GetProgress();
     TestResult_t GetResult() const { return m_Result; };
 
 protected:

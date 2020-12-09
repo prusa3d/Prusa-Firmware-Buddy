@@ -261,14 +261,14 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPa
 
 bool CSelftest::phaseHeaters(const selftest_heater_config_t &config_nozzle, const selftest_heater_config_t &config_bedconst, CFanCtl &fan0, CFanCtl &fan1) {
     m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestHeat, 0);
-    m_pHeater_Nozzle = m_pHeater_Nozzle ? m_pHeater_Nozzle : new CSelftestPart_HeaterHotend(Config_HeaterNozzle, fan0, fan1);
-    m_pHeater_Bed = m_pHeater_Bed ? m_pHeater_Bed : new CSelftestPart_Heater(Config_HeaterBed);
+    m_pHeater_Nozzle = m_pHeater_Nozzle ? m_pHeater_Nozzle : new CSelftestPart_HeaterHotend(Config_HeaterNozzle, Temperature::temp_hotend[0].pid, fan0, fan1);
+    m_pHeater_Bed = m_pHeater_Bed ? m_pHeater_Bed : new CSelftestPart_Heater(Config_HeaterBed, Temperature::temp_bed.pid);
     m_pHeater_Nozzle->Loop();
     m_pHeater_Bed->Loop();
     if (m_pHeater_Nozzle->IsInProgress() || m_pHeater_Bed->IsInProgress()) {
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_prep, m_pHeater_Nozzle->GetProgress(), m_pHeater_Nozzle->getFSMState_cool());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_prep, m_pHeater_Nozzle->GetProgress(), m_pHeater_Nozzle->getFSMState_prepare());
         fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_heat, m_pHeater_Nozzle->GetProgress(), m_pHeater_Nozzle->getFSMState_heat());
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_prep, m_pHeater_Bed->GetProgress(), m_pHeater_Bed->getFSMState_cool());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_prep, m_pHeater_Bed->GetProgress(), m_pHeater_Bed->getFSMState_prepare());
         fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_heat, m_pHeater_Bed->GetProgress(), m_pHeater_Bed->getFSMState_heat());
         return true;
     }
@@ -387,7 +387,7 @@ CSelftestPart::CSelftestPart()
 CSelftestPart::~CSelftestPart() {
 }
 
-float CSelftestPart::GetProgress() const {
+float CSelftestPart::GetProgress() {
     float progress = 100.0F * (Selftest.m_Time - m_StartTime) / (m_EndTime - m_StartTime);
     if (progress < 0)
         progress = 0;
