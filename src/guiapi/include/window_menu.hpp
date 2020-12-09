@@ -10,7 +10,7 @@
 class window_menu_t : public IWindowMenu {
     uint8_t index;    /// index of cursor
     int8_t moveIndex; /// accumulator for cursor changes
-    bool initialized; /// triggers first redraw
+    bool redrawAll;   /// triggers whole menu redraw
     bool clicked;     /// triggers click redraw (item->Click invalidates whole menu, but we need to know what happend to redraw only nessessary items)
 
     void setIndex(uint8_t index); //for ctor (cannot fail)
@@ -59,4 +59,5 @@ public:
 protected:
     virtual void unconditionalDraw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void ShowAfterDialog() override;
 };
