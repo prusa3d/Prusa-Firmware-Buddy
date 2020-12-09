@@ -69,15 +69,19 @@ enum {
 
     IDR_PNG_arrow_up_16px,
     IDR_PNG_arrow_down_16px,
+    IDR_PNG_arrow_left_16px,
+    IDR_PNG_arrow_right_16px,
     IDR_PNG_arrow_up_8px,
     IDR_PNG_arrow_down_8px,
     IDR_PNG_arrow_up_orange_8px,
     IDR_PNG_arrow_down_orange_8px,
-    IDR_PNG_arrow_scan_me_64px,
 
     IDR_PNG_back_32px,
     IDR_PNG_serial_printing,
     IDR_PNG_disconnect_48px,
+    IDR_PNG_switch_off_36px,
+    IDR_PNG_switch_on_36px,
+    IDR_PNG_hand_qr,
 
     IDR_PNG_flag_cs,
     IDR_PNG_flag_de,

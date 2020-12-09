@@ -14,7 +14,7 @@
 #include "gui.hpp"
 
 screen_messages_data_t::screen_messages_data_t()
-    : AddSuperWindow<window_frame_t>()
+    : AddSuperWindow<screen_t>()
     , header(this)
     , footer(this)
     , term(this, GuiDefaults::RectScreenBody.TopLeft(), &term_buff) { // Rect16(10, 28, 11 * 20, 18 * 16))

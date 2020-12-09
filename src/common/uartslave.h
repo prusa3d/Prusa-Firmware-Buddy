@@ -2,6 +2,7 @@
 #pragma once
 
 #include "uartrxbuff.h"
+#include "stm32f4xx_hal.h"
 
 static const uint8_t UARTSLAVE_FLG_ECHO = 0x01;
 static const uint16_t UARTSLAVE_MOD_MSK_0 = 0x0000;
@@ -26,6 +27,7 @@ typedef int(uartslave_parse_cmd_id_t)(uartslave_t *pslave, char *pstr, uint16_t 
 typedef int(uartslave_do_cmd_t)(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t pcmd_id, char *pstr);
 
 typedef struct _uartslave_t {
+    UART_HandleTypeDef *huart;
     uartrxbuff_t *prxbuff;
     uartslave_parse_mod_mask_t *parse_mod_mask;
     uartslave_parse_cmd_id_t *parse_cmd_id;
@@ -34,14 +36,13 @@ typedef struct _uartslave_t {
     int count;
     int size;
     uint8_t flags;
-    uint8_t reserve[3];
 } uartslave_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
 
-extern void uartslave_init(uartslave_t *pslave, uartrxbuff_t *prxbuff, int size, char *pline);
+extern void uartslave_init(uartslave_t *pslave, uartrxbuff_t *prxbuff, UART_HandleTypeDef *huart, int size, char *pline);
 
 extern void uartslave_cycle(uartslave_t *pslave);
 

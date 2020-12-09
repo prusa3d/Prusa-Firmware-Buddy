@@ -82,6 +82,11 @@ void CFanCtlPWM::set_PWM(uint8_t new_pwm) {
     pwm = new_pwm;
 }
 
+void CFanCtlPWM::safeState() {
+    set_PWM(max_value);
+    m_pin.write(Pin::State::high);
+}
+
 //------------------------------------------------------------------------------
 // CFanCtlTach implementation
 
@@ -120,10 +125,11 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
 // CFanCtl implementation
 
 CFanCtl::CFanCtl(const OutputPin &pinOut, const InputPin &pinTach,
-    uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM)
+    uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan)
     : m_MinRPM(minRPM)
     , m_MaxRPM(maxRPM)
     , m_State(idle)
+    , is_autofan(autofan)
     , m_pwm(pinOut, minPWM, maxPWM, thrPWM)
     , m_tach(pinTach) {
     m_PWMValue = 0;
@@ -157,38 +163,32 @@ void CFanCtl::tick() {
                 m_pwm.set_PWM(m_pwm.get_max_PWM());
                 if (edge)
                     m_Edges++;
-                if (m_Edges >= FANCTL_START_EDGES)
+                if (m_Edges >= FANCTL_START_EDGES) {
                     m_State = running;
+                    m_Ticks = 0;
+                }
             }
         }
         break;
-    case measuring:
-        m_Ticks++;
-        if (m_Ticks > FANCTL_MEASURE_TIMEOUT) {
-            m_Result = 0;
-            m_State = blanking;
-        } else {
-            m_pwm.set_PWM(m_pwm.get_max_PWM());
-            if (edge)
-                m_Edges++;
-            if (m_Edges >= FANCTL_MEASURE_EDGES) {
-                m_Result = m_Ticks;
-                m_State = blanking;
-            }
-        }
-        break;
-    case blanking:
-        m_pwm.set_PWM(0);
-        if (m_Ticks > 0)
-            m_Ticks--;
-        else
-            m_State = m_TmpState;
-        break;
-    default: // running and error state
+    case running:
         if (m_PWMValue == 0)
             m_State = idle;
-        else
+        else {
             m_pwm.set_PWM(m_PWMValue);
+            if (m_Ticks < FANCTL_RPM_DELAY)
+                m_Ticks++;
+            else if (!rpm_is_ok())
+                m_State = error_running;
+        }
+        break;
+    default: // error state
+        if (m_PWMValue == 0)
+            m_State = idle;
+        else {
+            m_pwm.set_PWM(m_PWMValue);
+            if (rpm_is_ok())
+                m_State = running;
+        }
         break;
     }
 }
@@ -199,19 +199,6 @@ void CFanCtl::setPWM(uint8_t pwm) {
 
 void CFanCtl::setPhaseShiftMode(uint8_t psm) {
     m_pwm.set_PhaseShiftMode((CFanCtlPWM::PhaseShiftMode)psm);
-}
-
-uint32_t CFanCtl::measure() {
-    __disable_irq();
-    m_Ticks = 0;
-    m_Edges = 0;
-    m_TmpState = m_State;
-    m_State = measuring;
-    __enable_irq();
-    while (m_State == measuring) {
-        osDelay(1);
-    }
-    return m_Result;
 }
 
 //------------------------------------------------------------------------------
@@ -251,19 +238,14 @@ uint8_t fanctl_get_psm(uint8_t fan) {
         return CFanCtl_instance[fan]->getPhaseShiftMode();
     return 0;
 }
-
-uint32_t fanctl_measure(uint8_t fan) {
-    if (fan < CFanCtl_count)
-        return CFanCtl_instance[fan]->measure();
-    return 0;
-}
 }
 
 void CFanCtl::safeState() {
     m_pwm.safeState();
 }
 
-void CFanCtlPWM::safeState() {
-    set_PWM(max_value);
-    m_pin.write(Pin::State::high);
+bool CFanCtl::rpm_is_ok() {
+    if (m_PWMValue && (getActualRPM() < m_MinRPM))
+        return false;
+    return true;
 }

@@ -19,19 +19,19 @@ void window_text_t::SetPadding(padding_ui8_t padd) {
 }
 
 window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close, string_view_utf8 txt)
-    : AddSuperWindow<window_aligned_t>(parent, rect, is_dialog_t::no, close)
+    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , text(txt)
     , padding(GuiDefaults::Padding) {
-    flag_custom0 = bool(multiline);
+    flags.custom0 = bool(multiline);
 }
 
 void window_text_t::unconditionalDraw() {
     render_text_align(rect, text, font,
         (IsFocused()) ? color_text : color_back,
         (IsFocused()) ? color_back : color_text,
-        padding, flag_custom0 ? GetAlignment() | RENDER_FLG_WORDB : GetAlignment());
+        padding, flags.custom0 ? GetAlignment() | RENDER_FLG_WORDB : GetAlignment());
 }
 
 /*****************************************************************************/

@@ -20,7 +20,10 @@ static bool irq_on = true;
 void __disable_irq() { irq_on = false; }
 void __enable_irq() { irq_on = true; }
 
-static Jogwheel::BtnState_t ev;
+static uint32_t hal_tick = 0;
+uint32_t HAL_GetTick() { return hal_tick; }
+
+static BtnState_t ev;
 
 enum class phase_t {
     P0lo_P1lo,

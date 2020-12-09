@@ -1,66 +1,99 @@
+/**
+ * @file IWindowMenuItem.hpp
+ * @author Radek Vana
+ * @brief Parent of all menu items like label or spinner
+ * @date 2020-11-09
+ */
 #pragma once
 
-#include <stdint.h>
+#include "GuiDefaults.hpp"
+#include <algorithm>
 #include <array>
-#include "guitypes.hpp"
 #include "display_helper.h"
-#include "Iwindow_menu.hpp" //needed for window settings like rect, padding ...
+#include "super.hpp"
+#include "i18n.h"
+#include "Iwindow_menu.hpp" //needed invalidate for click
 #include "text_roll.hpp"
 
+//IWindowMenuItem
 //todo make version with constant label
+//layouts
+//+-------+-----------------------------+
+//| icon  | text                        | label
+//+-------+--------------+--------------+
+//| icon  | text         | arrow        | label with expand
+//+-------+--------------+--------------+
+//| icon  | text         | value        | spin
+//+-------+--------------+-------+------+
+//| icon  | text         | value | unit | spin with units
+//+-------+--------------+-------+------+
+//| icon  | text         | value        |
+//+-------+--------------+--------------+
+//| icon  | text         | [value]      | switch with brackets
+//+-------+--------------+--------------+
+
+/*****************************************************************************/
+//IWindowMenuItem
 class IWindowMenuItem {
-    //protected:
-    //   IWindowMenu &window_menu;
+protected:
+    //could me moved to gui defaults
+    static constexpr Rect16::Width_t expand_icon_width = 26;
+    static constexpr Rect16::Width_t icon_width = 26;
 
 private:
     string_view_utf8 label;
-    bool hidden : 1;
-    bool enabled : 1;
-    bool focused : 1;
-
-protected:
-    bool selected : 1; //should be in child, but is here because of size optimization
-    uint16_t id_icon : 10;
-
-private:
     txtroll_t roll;
 
+    is_hidden_t hidden : 1;
+    is_enabled_t enabled : 1;
+    is_focused_t focused : 1;
+
 protected:
-    virtual void printIcon(IWindowMenu &window_menu, Rect16 rect, uint8_t swap, color_t color_back) const;
-    void printLabel_into_rect(Rect16 rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const;
-    virtual void printText(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    is_selected_t selected : 1; // should be in IWiSpin, but is here because of size optimization
+    uint16_t id_icon : 10;
+    Rect16::Width_t extension_width;
+
+    static Rect16 getCustomRect(Rect16 base_rect, uint16_t custom_rect_width); // general method Returns custom width Rectangle, aligned intersection on the right of the base_rect
+    Rect16 getIconRect(Rect16 rect) const;
+    Rect16 getLabelRect(Rect16 rect) const;
+    Rect16 getExtensionRect(Rect16 rect) const;
+
+    virtual void printIcon(Rect16 icon_rect, uint8_t swap, color_t color_back) const; //must be virtual, because pictures of flags are drawn differently
+    void printLabel(Rect16 label_rect, color_t color_text, color_t color_back) const;
+
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const; //things behind rect
     virtual void click(IWindowMenu &window_menu) = 0;
-    virtual Rect16 getRollingRect(IWindowMenu &window_menu, Rect16 rect) const;
-    static Rect16 getIconRect(IWindowMenu &window_menu, Rect16 rect);
+
+    void reInitRoll(Rect16 rect);
 
 public:
-    IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, bool enabled = true, bool hidden = false);
-
-    void Enable() { enabled = true; }
-    void Disable() { enabled = false; }
-    bool IsEnabled() const { return enabled; }
-    void Hide() { hidden = true; }
-    void Show() { hidden = false; }
-    bool IsHidden() const { return hidden; }
+    IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no);
+    IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    virtual ~IWindowMenuItem() = default;
+    void Enable() { enabled = is_enabled_t::yes; }
+    void Disable() { enabled = is_enabled_t::no; }
+    bool IsEnabled() const { return enabled == is_enabled_t::yes; }
+    bool IsSelected() const { return selected == is_selected_t::yes; }
+    void Hide() { hidden = is_hidden_t::yes; }
+    void Show() { hidden = is_hidden_t::no; }
+    bool IsHidden() const { return hidden == is_hidden_t::yes; }
     void SetFocus();
     void ClrFocus();
-    bool IsFocused() const { return focused; }
+    bool IsFocused() const { return focused == is_focused_t::yes; }
     void SetIconId(uint16_t id) { id_icon = id; }
     uint16_t GetIconId() const { return id_icon; }
-    void SetLabel(string_view_utf8 text);
+    inline void SetLabel(string_view_utf8 text) { label = text; }
     /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text
     /// to be displayed to the user based on his language settings.
-    string_view_utf8 GetLabel() const;
+    inline string_view_utf8 GetLabel() const { return label; }
 
-    void Print(IWindowMenu &window_menu, Rect16 rect) const;
+    void Print(Rect16 rect) const;
 
-    bool IsSelected() const { return selected; }
-    virtual bool Change(int dif) = 0;
-    bool Increment(uint8_t dif) { return Change(dif); }
-    bool Decrement(uint8_t dif) { return Change(-int(dif)); }
+    inline invalidate_t Increment(uint8_t dif) { return Change(dif); }
+    inline invalidate_t Decrement(uint8_t dif) { return Change(-int(dif)); }
     void Click(IWindowMenu &window_menu);
-    invalidate_t Roll();
-    void InitRollIfNeeded(IWindowMenu &window_menu, Rect16 rect);
-    virtual ~IWindowMenuItem() = default;
+    inline void InitRollIfNeeded(Rect16 rect) { reInitRoll(getLabelRect(rect)); }
+    virtual invalidate_t Change(int /*dif*/) { return invalidate_t::no; }
+    inline invalidate_t Roll() { return roll.Tick(); }
 };

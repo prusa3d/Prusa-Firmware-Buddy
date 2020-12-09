@@ -4,18 +4,19 @@
 #include "config.h"
 #include "i18n.h"
 
-static const char label_wizard_icon_na[] = N_("icon_na");
-static const char label_wizard_icon_ok[] = N_("icon_ok");
-static const char label_wizard_icon_ng[] = N_("icon_ng");
-static const char label_wizard_icon_ip0[] = N_("icon_ip0");
-static const char label_wizard_icon_ip1[] = N_("icon_ip1");
-static const char label_wizard_icon_hourglass[] = N_("icon_hourglass");
-static const char label_wizard_icon_autohome[] = N_("icon_autohome");
-static const char label_wizard_icon_search[] = N_("icon_search");
-static const char label_wizard_icon_measure[] = N_("icon_measure");
+// testing code - intentionally not translated
+static const char label_wizard_icon_na[] = "icon_na";
+static const char label_wizard_icon_ok[] = "icon_ok";
+static const char label_wizard_icon_ng[] = "icon_ng";
+static const char label_wizard_icon_ip0[] = "icon_ip0";
+static const char label_wizard_icon_ip1[] = "icon_ip1";
+static const char label_wizard_icon_hourglass[] = "icon_hourglass";
+static const char label_wizard_icon_autohome[] = "icon_autohome";
+static const char label_wizard_icon_search[] = "icon_search";
+static const char label_wizard_icon_measure[] = "icon_measure";
 
 screen_test_wizard_icons::screen_test_wizard_icons()
-    : window_frame_t()
+    : AddSuperWindow<screen_t>()
     , tst(this, Rect16(10, 32, 220, 22), is_multiline::no)
     , back(this, Rect16(10, 54, 220, 22), is_multiline::no, is_closed_on_click_t::yes)
     , txt_na(this, Rect16(10, 76, 220 - 22, 22), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_wizard_icon_na))
@@ -39,9 +40,10 @@ screen_test_wizard_icons::screen_test_wizard_icons()
     , ico_measure(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_wizard_icon_measure)
 
 {
-    static const char tm[] = N_("TEST Wizard ico");
+    // testing code - intentionally not translated
+    static const char tm[] = "TEST Wizard ico";
     tst.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tm));
 
-    static const char bck[] = N_("back");
+    static const char bck[] = "back";
     back.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bck));
 }

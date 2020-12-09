@@ -76,7 +76,7 @@ protected:
     // get arguments callbacks and call them
     virtual void phaseEnter() {
         radio.Change(&states[phase].btn_resp, &states[phase].btn_labels);
-        label.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)states[phase].label));
+        label.SetText(_(states[phase].label));
         if (states[phase].onEnter) {
             states[phase].onEnter();
         }

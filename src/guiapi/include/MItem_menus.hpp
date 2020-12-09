@@ -126,7 +126,7 @@ protected:
 };
 
 class MI_LAN_SETTINGS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Lan settings");
+    static constexpr const char *const label = N_("Lan Settings");
 
 public:
     MI_LAN_SETTINGS();
@@ -188,12 +188,10 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_ERROR_SCREENS : public WI_LABEL_t {
-    static constexpr const char *const label = "Error Screens";
+class MI_DEVHASH_IN_QR : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Device hash in QR");
 
 public:
-    MI_ERROR_SCREENS();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
+    MI_DEVHASH_IN_QR();
+    virtual void OnChange(size_t old_index) override;
 };

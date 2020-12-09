@@ -18,7 +18,9 @@ protected:
 public:
     constexpr static const char *label = N_("SENSOR INFO");
     ScreenMenuSensorInfo()
-        : Screen(_(label)) {}
+        : Screen(_(label)) {
+        flags.timeout_close = is_closed_on_timeout_t::no;
+    }
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSensorInfo() {

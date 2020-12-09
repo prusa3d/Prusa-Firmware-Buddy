@@ -161,7 +161,7 @@ public:
         }
     }
 
-    /// returns true if the string if of type NULLSTR - typically used as a replacement for nullptr or "" strings
+    /// returns true if the string is of type NULLSTR - typically used as a replacement for nullptr or "" strings
     constexpr bool isNULLSTR() const {
         return type == EType::NULLSTR;
     }

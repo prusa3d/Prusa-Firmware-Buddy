@@ -2,12 +2,10 @@
 #pragma once
 #include "wizard_types.hpp"
 
-StateFncData StateFnc_SELFTEST_FAN(StateFncData last_run);
-StateFncData StateFnc_SELFTEST_X(StateFncData last_run);
-StateFncData StateFnc_SELFTEST_Y(StateFncData last_run);
-StateFncData StateFnc_SELFTEST_Z(StateFncData last_run);
-StateFncData StateFnc_SELFTEST_XYZ(StateFncData last_run);
-StateFncData StateFnc_SELFTEST_PASS(StateFncData last_run);
-StateFncData StateFnc_SELFTEST_FAIL(StateFncData last_run);
-StateFncData StateFnc_SELFTEST_AND_XYZCALIB(StateFncData last_run);
-StateFncData StateFnc_SELFTEST_TEMP(StateFncData last_run);
+WizardState_t StateFnc_SELFTEST_FAN();
+WizardState_t StateFnc_SELFTEST_X();
+WizardState_t StateFnc_SELFTEST_Y();
+WizardState_t StateFnc_SELFTEST_Z();
+WizardState_t StateFnc_SELFTEST_XYZ();
+WizardState_t StateFnc_SELFTEST_RESULT();
+WizardState_t StateFnc_SELFTEST_TEMP();

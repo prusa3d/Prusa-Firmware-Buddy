@@ -44,7 +44,7 @@ static constexpr uint16_t row_h = 25;
 mesh_state_t screen_mesh_bed_lv_data_t::mesh_state = mesh_state_t::idle;
 
 screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
-    : AddSuperWindow<window_frame_t>()
+    : AddSuperWindow<screen_t>()
     , footer(this)
     , textMenuName(this, Rect16(0, 0, display::GetW(), row_h), is_multiline::no)
     , btMesh(this, Rect16(2, 50, 200, row_h), []() { if (mesh_state == mesh_state_t::idle) mesh_state = mesh_state_t::start; })
@@ -53,7 +53,7 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     , textExit(this, Rect16(2, 245, 60, 22), []() {if (mesh_state != mesh_state_t::idle) return; Screens::Access()->Close(); }) {
 
     textMenuName.font = resource_font(IDR_FNT_BIG);
-    textMenuName.SetText(_("MESH BED L."));
+    textMenuName.SetText(_("MESH BED LEVELING"));
 
     btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
 

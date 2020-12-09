@@ -48,9 +48,10 @@ private:
     /// main fnc
     void init();
     void saveMode();
-    void saveVolume();
+    void saveVolume(); // + one louder
     void _sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f);
-    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], const int16_t delays[], unsigned size);
+    void _singleSound(float frq, int16_t dur, float vol);
+    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int8_t repeats[], const int16_t durations[], const int16_t delays[], unsigned size);
 
     void nextRepeat();
 
@@ -70,6 +71,7 @@ private:
     static const int16_t durations[eSOUND_TYPE::count];
     static const float frequencies[eSOUND_TYPE::count];
     static const float volumes[eSOUND_TYPE::count];
+
     /// forced sound types - ignores volume settings
     static const bool forced[eSOUND_TYPE::count];
 
@@ -80,16 +82,22 @@ private:
     static const eSOUND_TYPE assistTypes[];
 
     /// signals repeats - how many times will sound signals repeat (-1 is infinite)
-    static const int onceRepeats[];
-    static const int loudRepeats[];
-    static const int silentRepeats[];
-    static const int assistRepeats[];
+    static const int8_t onceRepeats[];
+    static const int8_t loudRepeats[];
+    static const int8_t silentRepeats[];
+    static const int8_t assistRepeats[];
 
     /// delays for repeat sounds
     static const int16_t onceDelays[];
     static const int16_t loudDelays[];
     static const int16_t silentDelays[];
     static const int16_t assistDelays[];
+
+    /// durations for sounds modes
+    static const int16_t onceDurations[];
+    static const int16_t loudDurations[];
+    static const int16_t silentDurations[];
+    static const int16_t assistDurations[];
 
     eSOUND_MODE eSoundMode;
 };

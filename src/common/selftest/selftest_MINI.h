@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include "ff.h"
+#include "eeprom.h"
 
 #define SELFTEST_MAX_LOG_PRINTF 128
 #define SELFTEST_LOOP_PERIODE   50
@@ -22,31 +23,35 @@ typedef enum {
     stsIdle,
     stsStart,
     stsFans,
+    stsWait_fans,
     stsHome,
     stsXAxis,
     stsYAxis,
     stsZAxis,
-    //    stsHeatTo40,
+    stsWait_axes,
     stsHeaters,
+    stsWait_heaters,
     stsFans_fine,
     stsFinish,
     stsFinished,
-    //	stsAbort,
     stsAborted,
 } SelftestState_t;
 
 typedef enum {
     stmNone = 0,
     stmFans = (1 << stsFans),
+    stmWait_fans = (1 << stsWait_fans),
     stmHome = (1 << stsHome),
     stmXAxis = (1 << stsXAxis),
     stmYAxis = (1 << stsYAxis),
     stmZAxis = (1 << stsZAxis),
     stmXYAxis = (stmXAxis | stmYAxis),
     stmXYZAxis = (stmXAxis | stmYAxis | stmZAxis),
+    stmWait_axes = (1 << stsWait_axes),
     stmHome_XYAxis = (stmXYAxis | stmHome),
     stmHome_XYZAxis = (stmXYZAxis | stmHome),
     stmHeaters = (1 << stsHeaters),
+    stmWait_heaters = (1 << stsWait_heaters),
     stmAll = (stmFans | stmXYZAxis | stmHeaters),
     stmFans_fine = (1 << stsFans_fine),
 } SelftestMask_t;
@@ -82,6 +87,7 @@ protected:
     bool phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase, uint8_t progress_add, uint8_t progress_mul);
     bool phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, const selftest_heater_config_t *pconfig_bed);
     void phaseFinish();
+    bool phaseWait();
 
 protected:
     void next();
@@ -108,10 +114,10 @@ protected:
 };
 
 enum TestResult_t : uint8_t {
-    sprUnknown,
-    sprSkipped,
-    sprPassed,
-    sprFailed,
+    sprUnknown = SelftestResult_Unknown,
+    sprSkipped = SelftestResult_Skipped,
+    sprPassed = SelftestResult_Passed,
+    sprFailed = SelftestResult_Failed,
 };
 
 class CSelftestPart {
@@ -132,6 +138,10 @@ public:
     TestResult_t GetResult() const { return m_Result; };
 
 protected:
+    bool next();
+
+protected:
+    int m_State;
     uint32_t m_StartTime;
     uint32_t m_EndTime;
     TestResult_t m_Result;

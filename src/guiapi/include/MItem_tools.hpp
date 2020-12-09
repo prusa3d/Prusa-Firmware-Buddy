@@ -55,6 +55,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_SELFTEST_RESULT : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Show SelfTest result");
+
+public:
+    MI_SELFTEST_RESULT();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_CALIB_FIRST : public WI_LABEL_t {
     static constexpr const char *const label = N_("First Layer Calibration");
 
@@ -86,7 +96,7 @@ protected:
 };
 
 class MI_TEST_HEAT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test heaters");
+    static constexpr const char *const label = N_("Test Heaters");
 
 public:
     MI_TEST_HEAT();
@@ -95,18 +105,18 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_TEST_FANS_fine : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test FANs fine");
+class MI_ADVANCED_FAN_TEST : public WI_LABEL_t {
+    static constexpr const char *const label = "Advanced fan test"; // debug only - not translated
 
 public:
-    MI_TEST_FANS_fine();
+    MI_ADVANCED_FAN_TEST();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
 class MI_TEST_ABORT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test Abort");
+    static constexpr const char *const label = "Test Abort"; // debug only - not translated
 
 public:
     MI_TEST_ABORT();
@@ -140,6 +150,26 @@ class MI_SAVE_DUMP : public WI_LABEL_t {
 
 public:
     MI_SAVE_DUMP();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_XFLASH_DELETE : public WI_LABEL_t {
+    static constexpr const char *const label = "XFLASH DELETE"; // intentionally not translated, only for debugging
+
+public:
+    MI_XFLASH_DELETE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_XFLASH_RESET : public WI_LABEL_t {
+    static constexpr const char *const label = "XFLASH RESET"; // intentionally not translated, only for debugging
+
+public:
+    MI_XFLASH_RESET();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -245,86 +275,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_ES_12201 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12201"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12201();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12202 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12202"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12202();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12203 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12203"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12203();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12204 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12204"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12204();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12205 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12205"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12205();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12206 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12206"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12206();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12207 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12207"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12207();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ES_12208 : public WI_LABEL_t {
-    static constexpr const char *const label = "Error 12208"; // intentionally not translated, only for debugging
-
-public:
-    MI_ES_12208();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_M600 : public WI_LABEL_t {
     static constexpr const char *const label = N_("Change Filament");
 
@@ -344,10 +294,11 @@ public:
 };
 
 #ifdef _DEBUG
-class MI_SOUND_MODE : public WI_SWITCH_t<5> {
+static constexpr size_t MI_SOUND_MODE_COUNT = 5;
 #else
-class MI_SOUND_MODE : public WI_SWITCH_t<4> {
+static constexpr size_t MI_SOUND_MODE_COUNT = 4;
 #endif
+class MI_SOUND_MODE : public WI_SWITCH_t<MI_SOUND_MODE_COUNT> {
     constexpr static const char *const label = N_("Sound Mode");
 
     constexpr static const char *str_Once = N_("Once");
@@ -381,7 +332,7 @@ public:
 };
 
 class MI_SORT_FILES : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = N_("Sort files by");
+    constexpr static const char *const label = N_("Sort Files by");
 
     constexpr static const char *str_name = N_("Name");
     constexpr static const char *str_time = N_("Time");
@@ -411,7 +362,7 @@ public:
 class I_MI_Filament : public WI_LABEL_t {
 public:
     I_MI_Filament(string_view_utf8 long_name)
-        : WI_LABEL_t(long_name, 0, true, false) {}
+        : WI_LABEL_t(long_name, 0, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     void click_at(FILAMENT_t filament_index);
@@ -421,7 +372,7 @@ template <FILAMENT_t T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[T].long_name)) {}
+        : I_MI_Filament(_(filaments[T].long_name)) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
@@ -429,26 +380,22 @@ protected:
     }
 };
 
-enum class SENSOR_STATE : int8_t {
-    unknown = -1,
-    low = 0,
-    high = 1,
-};
-
-class MI_FILAMENT_SENSOR_STATE : public WI_SPIN_I08_t {
-    static constexpr const char *const label = N_("Filament sensor");
-    SENSOR_STATE get_state();
+class MI_FILAMENT_SENSOR_STATE : public WI_SWITCH_0_1_NA_t {
+    static constexpr const char *const label = N_("Filament Sensor");
+    static state_t get_state();
 
 public:
     MI_FILAMENT_SENSOR_STATE();
     bool StateChanged();
+    virtual void OnChange(size_t old_index) override {}
 };
 
-class MI_MINDA : public WI_SPIN_I08_t {
+class MI_MINDA : public WI_SWITCH_0_1_NA_t {
     static constexpr const char *const label = N_("M.I.N.D.A.");
-    SENSOR_STATE get_state();
+    static state_t get_state();
 
 public:
     MI_MINDA();
     bool StateChanged();
+    virtual void OnChange(size_t old_index) override {}
 };

@@ -14,6 +14,7 @@
 #include "window_temp_graph.hpp"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_popup.hpp"
+#include "window_dlg_strong_warning.hpp"
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_hardfault.hpp"
@@ -24,6 +25,7 @@
 #include "sound.hpp"
 #include "i18n.h"
 #include "eeprom.h"
+#include "w25x.h"
 
 extern int HAL_IWDG_Reset;
 
@@ -37,6 +39,7 @@ int guimain_spi_test = 0;
 #include "dbg.h"
 #include "wdt.h"
 #include "dump.h"
+#include "gui_media_events.hpp"
 
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
@@ -51,6 +54,7 @@ void update_firmware_screen(void);
 
 static void _gui_loop_cb() {
     marlin_client_loop();
+    GuiMediaEventsHandler::Tick();
 }
 
 char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
@@ -77,6 +81,25 @@ void MsgCircleBuffer_cb(const char *txt) {
     }
 }
 
+void Warning_cb(WarningType type) {
+    switch (type) {
+    case WarningType::HotendFanError:
+        window_dlg_strong_warning_t::ShowHotendFan();
+        break;
+    case WarningType::PrintFanError:
+        window_dlg_strong_warning_t::ShowPrintFan();
+        break;
+    case WarningType::HeaterTimeout:
+        window_dlg_strong_warning_t::ShowHeaterTimeout();
+        break;
+    case WarningType::USBFlashDiskError:
+        window_dlg_strong_warning_t::ShowUSBFlashDisk();
+        break;
+    default:
+        break;
+    }
+}
+
 void gui_run(void) {
     if (diag_fastboot)
         return;
@@ -99,6 +122,8 @@ void gui_run(void) {
 
     GuiDefaults::Font = resource_font(IDR_FNT_NORMAL);
     GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
+    GuiDefaults::FontMenuItems = resource_font(IDR_FNT_NORMAL);
+    GuiDefaults::FontMenuSpecial = resource_font(IDR_FNT_SPECIAL);
 
     if (!sys_fw_is_valid())
         update_firmware_screen();
@@ -115,25 +140,30 @@ void gui_run(void) {
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
+    marlin_client_set_warning_cb(Warning_cb);
 
     Sound_Play(eSOUND_TYPE::Start);
 
     ScreenFactory::Creator error_screen = nullptr;
-    if (!dump_in_xflash_is_displayed()) {
-        switch (dump_in_xflash_get_type()) {
-        case DUMP_HARDFAULT:
-            error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
-            break;
-        case DUMP_TEMPERROR:
-            error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
-            break;
+    if (w25x_init()) {
+        if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
+            switch (dump_in_xflash_get_type()) {
+            case DUMP_HARDFAULT:
+                error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
+                break;
+            case DUMP_TEMPERROR:
+                error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
+                break;
 #ifndef _DEBUG
-        case DUMP_IWDGW:
-            error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
-            break;
+            case DUMP_IWDGW:
+                error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
+                break;
 #endif
+            }
+            dump_in_xflash_set_displayed();
         }
-        dump_in_xflash_set_displayed();
+    } else {
+        //TODO: hardware error
     }
 
 #ifndef _DEBUG
@@ -175,9 +205,9 @@ void update_firmware_screen(void) {
     display::DrawText(Rect16(10, 115, 240, 60), _("Hi, this is your\nOriginal Prusa MINI."), font, COLOR_BLACK, COLOR_WHITE);
     display::DrawText(Rect16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
     render_text_align(Rect16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, { 2, 6, 2, 2 }, ALIGN_CENTER);
-    Jogwheel::BtnState_t btn_ev;
+    BtnState_t btn_ev;
     while (1) {
-        if (jogwheel.ConsumeButtonEvent(btn_ev) && btn_ev == Jogwheel::BtnState_t::Held)
+        if (jogwheel.ConsumeButtonEvent(btn_ev) && btn_ev == BtnState_t::Held)
             sys_reset();
         osDelay(1);
         wdt_iwdg_refresh();

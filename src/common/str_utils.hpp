@@ -137,61 +137,58 @@ struct text_wrapper {
     using value_type = typename memory_buffer::value_type;
 
     text_wrapper(uint32_t width, font_type font)
-        : width_(width)
-        , index_(-1)
-        , current_width_(0)
-        , word_length_(0)
+        : width_(width)     ///< width of the space for the text in pixels
+        , index_(-1)        ///< current position in buffer where single word is
+        , current_width_(0) ///< width used already
+        , word_length_(0)   ///< number characters of current word + trailing white character
         , font_(font) {};
+
+    /// \returns false if the new word does not fit current line
+    template <typename source>
+    bool buffer_next_word(source &s) {
+        const uint32_t w = buffering(s); ///< current word's width in pixels
+        index_ = 0;
+        if ((w + current_width_) > width_ && current_width_ != 0) {
+            /// this word will not fit to this line but it's not the first word
+            /// on this line => break the line
+            current_width_ = w;
+            return false;
+        }
+        current_width_ += w;
+        return true;
+    }
 
     template <typename source>
     value_type character(source &s) {
-        if (index_ < 0) {
-            uint32_t w = buffering(s);
-            index_ = 0;
-            if ((w + current_width_) > width_) {
-                current_width_ = w;
+        if (index_ < 0)
+            /// empty buffer => buffer next word
+            if (!buffer_next_word(s))
                 return static_cast<value_type>(CHAR_NL);
-            } else if ((w + current_width_) == width_) {
-                current_width_ = 0;
-            } else {
-                current_width_ += w;
-            }
-        }
 
-        if (current_width_ == 0) {
-            if (index_ < static_cast<int32_t>(word_length_)) {
-                value_type c = buffer_[index_];
-                buffer_[index_++] = 0;
-                return c;
-            } else {
-                value_type c = buffer_[index_];
-                buffer_[index_] = 0;
-                index_ = -1;
-                return c == static_cast<value_type>(EOS)
-                    ? c
-                    : static_cast<value_type>(CHAR_NL);
-            }
-        } else {
-            if (index_ < static_cast<int32_t>(word_length_)) {
-                value_type c = buffer_[index_];
-                buffer_[index_++] = 0;
-                return c;
-            } else {
-                value_type c = buffer_[index_];
-                buffer_[index_] = 0;
-                index_ = -1;
-                current_width_ += c == static_cast<value_type>(CHAR_SPACE)
-                    ? width::value(font_)
-                    : 0;
-                current_width_ += c == static_cast<value_type>(CHAR_NL)
-                    ? -current_width_
-                    : 0;
-                return c;
-            }
+        const value_type c = buffer_[index_];
+        buffer_[index_] = 0;
+        if (index_ < word_length_) {
+            /// buffer not empty => send a character
+            index_++;
+            return c;
         }
+        /// last character in the buffer
+        index_ = -1; ///< read next word next time
+        if (c == static_cast<value_type>(EOS)) {
+            return c;
+        } else if (c == static_cast<value_type>(CHAR_SPACE)) {
+            current_width_ += width::value(font_);
+            if (!buffer_next_word(s))
+                return static_cast<value_type>(CHAR_NL);
+
+        } else if (c == static_cast<value_type>(CHAR_NL))
+            current_width_ = 0;
+        return c;
     }
 
 private:
+    /// Copies current word to the buffer
+    /// \returns word's width in pixels
     template <typename source>
     uint32_t buffering(source &s) {
         uint32_t i = 0;
@@ -203,14 +200,13 @@ private:
         while (i < buffer_.size()) {
             c = s.getUtf8Char();
             buffer_[i] = c;
+            if (c == static_cast<value_type>(CHAR_NL)
+                || c == static_cast<value_type>(CHAR_SPACE)
+                || c == static_cast<value_type>(EOS))
+                break;
             word_width += width::value(font_);
             if (c == static_cast<value_type>(CHAR_NBSP)) {
                 buffer_[i] = static_cast<value_type>(CHAR_SPACE);
-            } else if (c == static_cast<value_type>(CHAR_NL)
-                || c == static_cast<value_type>(CHAR_SPACE)
-                || c == static_cast<value_type>(EOS)) {
-                word_width -= width::value(font_);
-                break;
             }
             ++i;
         }
@@ -222,6 +218,6 @@ private:
     uint32_t width_;
     int32_t index_;
     uint32_t current_width_;
-    uint32_t word_length_;
+    int32_t word_length_;
     font_type font_;
 };

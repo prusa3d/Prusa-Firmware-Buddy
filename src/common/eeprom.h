@@ -76,8 +76,10 @@ enum {
     EEVAR_SHEET_PROFILE5 = 0x25,
     EEVAR_SHEET_PROFILE6 = 0x26,
     EEVAR_SHEET_PROFILE7 = 0x27,
-    EEVAR__PADDING = 0x28, // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x29,    // uint32_t crc32 for
+    EEVAR_SELFTEST_RESULT = 0x28, // uint32_t, two bits for each selftest part
+    EEVAR_DEVHASH_IN_QR = 0x29,   // uint8_t on / off sending UID in QR
+    EEVAR__PADDING = 0x2a,        // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_CRC32 = 0x2b,           // uint32_t crc32 for
 };
 
 enum {
@@ -87,11 +89,39 @@ enum {
     LAN_EEFLG_TYPE = 2,  //EEPROM flag for user-defined settings (Switch between dhcp and static)
 };
 
+#define SelftestResult_Unknown 0
+#define SelftestResult_Skipped 1
+#define SelftestResult_Passed  2
+#define SelftestResult_Failed  3
+
+typedef union _SelftestResultEEprom_t {
+    struct {
+        uint8_t fan0 : 2;       // bit 0-1
+        uint8_t fan1 : 2;       // bit 2-3
+        uint8_t xaxis : 2;      // bit 4-5
+        uint8_t yaxis : 2;      // bit 6-7
+        uint8_t zaxis : 2;      // bit 8-9
+        uint8_t nozzle : 2;     // bit 10-11
+        uint8_t bed : 2;        // bit 12-13
+        uint32_t reserved : 18; // bit 14-31
+    };
+    uint32_t ui32;
+} SelftestResultEEprom_t;
+
+enum {
+    EEPROM_INIT_Normal = 0,
+    EEPROM_INIT_Defaults = 1,
+    EEPROM_INIT_Upgraded = 2
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
 
-// initialize eeprom, return values:  1 - defaults loaded, 0 - normal init (eeprom data valid)
+/// initialize eeprom
+/// @returns 0 - normal init (eeprom data valid)
+///          1 - defaults loaded
+///          2 - eeprom upgraded successfully from a previous version
 extern uint8_t eeprom_init(void);
 
 // write default values to all variables

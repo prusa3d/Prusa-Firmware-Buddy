@@ -130,12 +130,11 @@ static const uint32_t DUMP_INFO_SIZE = 0x00000010;
     }
 
 // perform thermal error dump
-#define DUMP_TEMPERROR_TO_CCRAM(code)                     \
-    {                                                     \
-        DUMP_REGS_GEN_FAULT_BEGIN();                      \
-        *((unsigned short *)(DUMP_INFO_ADDR + 1)) = code; \
-        DUMP_REGS_GEN_EXC_TO_CCRAM();                     \
-        DUMP_INFO_TO_CCRAM(DUMP_TEMPERROR);               \
+#define DUMP_TEMPERROR_TO_CCRAM()           \
+    {                                       \
+        DUMP_REGS_GEN_FAULT_BEGIN();        \
+        DUMP_REGS_GEN_EXC_TO_CCRAM();       \
+        DUMP_INFO_TO_CCRAM(DUMP_TEMPERROR); \
     }
 
 #pragma pack(push)
@@ -157,13 +156,21 @@ extern int dump_in_xflash_is_valid(void);
 
 extern int dump_in_xflash_is_saved(void);
 
+extern int dump_in_xflash_is_empty(void);
+
 extern int dump_in_xflash_is_displayed(void);
 
 extern int dump_in_xflash_get_type(void);
 
+extern void dump_in_xflash_reset(void);
+
+extern void dump_in_xflash_delete(void);
+
 extern unsigned short dump_in_xflash_get_code(void);
 
 extern void dump_in_xflash_set_displayed(void);
+
+extern void dump_in_xflash_clear_flag(uint8_t flag);
 
 extern unsigned int dump_in_xflash_read_RAM(void *pRAM, unsigned int addr, unsigned int size);
 

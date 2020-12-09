@@ -1,16 +1,13 @@
 //screen_printing.cpp
 #include "dbg.h"
 #include "screen_printing.hpp"
-#include "config.h"
 #include "marlin_client.h"
-#include "marlin_server.h"
 #include "print_utils.hpp"
 #include "ffconf.h"
 #include "ScreenHandler.hpp"
 #include "screen_menus.hpp"
 #include <ctime>
 #include "wui_api.h"
-#include "i18n.h"
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"
 
@@ -76,12 +73,15 @@ void screen_printing_data_t::pauseAction() {
     switch (GetState()) {
     case printing_state_t::PRINTING:
         marlin_print_pause();
+        change_print_state();
         break;
     case printing_state_t::PAUSED:
         marlin_print_resume();
+        change_print_state();
         break;
     case printing_state_t::PRINTED:
         screen_printing_reprint();
+        change_print_state();
         break;
     default:
         break;
@@ -194,7 +194,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 
     /// check stop clicked when MBL is running
     printing_state_t p_state = GetState();
-    if (stop_pressed && waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && p_state == printing_state_t::ABORTING) {
+    if (stop_pressed && waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && (p_state == printing_state_t::ABORTING || p_state == printing_state_t::PAUSED)) {
         marlin_print_abort();
         waiting_for_abort = false;
         return;
@@ -236,7 +236,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     }
 
     /// -- check when media is or isn't inserted
-    if (header.EventClr_MediaRemoved() || header.EventClr_MediaInserted()) {
+    if (event == GUI_event_t::MEDIA) {
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
     }
@@ -502,7 +502,7 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::PRINTING;
         break;
     case mpsPaused:
-        stop_pressed = false;
+        // stop_pressed = false;
         st = printing_state_t::PAUSED;
         break;
     case mpsPausing_Begin:

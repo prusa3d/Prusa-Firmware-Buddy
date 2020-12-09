@@ -160,55 +160,50 @@ void Eth::LoadIni() {
 /*****************************************************************************/
 //ITEMS
 class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = "LAN";
+    constexpr static const char *const label = "LAN"; //do not translate
 
 public:
     MI_LAN_ONOFF()
-        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, _(label), 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::On() : Eth::Off();
-    }
-    void ReInit() {
-        index = Eth::IsOn() ? 1 : 0;
     }
 };
 
 class MI_LAN_IP_t : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = "LAN IP";
+    constexpr static const char *const label = "LAN IP"; //do not translate
 
-    constexpr static const char *str_static = "static";
-    constexpr static const char *str_DHCP = "DHCP";
+    constexpr static const char *str_static = "static"; //do not translate
+    constexpr static const char *str_DHCP = "DHCP";     //do not translate
 
 public:
     MI_LAN_IP_t()
-        : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, _(label), 0, true, false, str_DHCP, str_static) {}
+        : WI_SWITCH_t(Eth::IsStatic() ? 1 : 0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no,
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_DHCP), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_static)) {}
     virtual void OnChange(size_t old_index) override {
         bool success = old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
         if (!success)
             this->SetIndex(old_index);
     }
-    void ReInit() {
-        index = Eth::IsStatic() ? 1 : 0;
-    }
 };
 
 class MI_LAN_SAVE : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Save settings");
+    constexpr static const char *const label = N_("Save Settings");
 
 public:
     MI_LAN_SAVE()
-        : WI_LABEL_t(_(label), 0, true, false) {}
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::SaveMessage();
     }
 };
 
 class MI_LAN_LOAD : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Load settings");
+    constexpr static const char *const label = N_("Load Settings");
 
 public:
     MI_LAN_LOAD()
-        : WI_LABEL_t(_(label), 0, true, false) {}
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::LoadIni();
     }
@@ -222,7 +217,7 @@ inline uint16_t get_help_h() {
     return 8 * (resource_font(IDR_FNT_SPECIAL)->h + 1);
 }
 
-class ScreenMenuLanSettings : public AddSuperWindow<window_frame_t> {
+class ScreenMenuLanSettings : public AddSuperWindow<screen_t> {
     constexpr static const char *label = N_("LAN SETTINGS");
 
     MenuContainer container;
@@ -243,15 +238,14 @@ protected:
 };
 
 ScreenMenuLanSettings::ScreenMenuLanSettings()
-    : AddSuperWindow<window_frame_t>(nullptr, GuiDefaults::RectScreen, is_dialog_t::no, is_closed_on_timeout_t::no)
+    : AddSuperWindow<screen_t>(nullptr, GuiDefaults::RectScreen, win_type_t::normal, is_closed_on_timeout_t::no)
     , menu(this, GuiDefaults::RectScreenBodyNoFoot - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), GuiDefaults::RectScreen.Height() - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {
     header.SetText(_(label));
     help.font = resource_font(IDR_FNT_SPECIAL);
-    menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
-    menu.SetCapture();                // set capture to list
-    menu.SetFocus();
+    menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
+    CaptureNormalWindow(menu);        // set capture to list
 
     refresh_addresses();
     msg_shown = false;
@@ -303,14 +297,9 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
 }
 
 void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-
-    MI_LAN_IP_t *item = &std::get<MI_LAN_IP_t>(container.menu_items);
-    item->ReInit();
-
-    MI_LAN_ONOFF *lan_switch = &std::get<MI_LAN_ONOFF>(container.menu_items);
-    lan_switch->ReInit();
-
-    refresh_addresses();
+    if (event == GUI_event_t::LOOP) {
+        refresh_addresses();
+    }
 
     show_msg(Eth::ConsumeMsg());
     SuperWindowEvent(sender, event, param);

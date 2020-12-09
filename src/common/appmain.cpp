@@ -2,6 +2,7 @@
 
 #include "appmain.hpp"
 #include "app.h"
+#include "app_metrics.h"
 #include "dbg.h"
 #include "cmsis_os.h"
 #include "config.h"
@@ -30,6 +31,7 @@
 #include "safe_state.h"
 #include "crc32.h"
 #include "ff.h"
+#include "dump.h"
 
 #include <Arduino.h>
 #include "trinamic.h"
@@ -42,13 +44,15 @@ CFanCtl fanctl0 = CFanCtl(
     buddy::hw::fan0tach,
     FANCTL0_PWM_MIN, FANCTL0_PWM_MAX,
     FANCTL0_RPM_MIN, FANCTL0_RPM_MAX,
-    FANCTL0_PWM_THR);
+    FANCTL0_PWM_THR,
+    is_autofan_t::no);
 CFanCtl fanctl1 = CFanCtl(
     buddy::hw::fan1pwm,
     buddy::hw::fan1tach,
     FANCTL1_PWM_MIN, FANCTL1_PWM_MAX,
     FANCTL1_RPM_MIN, FANCTL1_RPM_MAX,
-    FANCTL1_PWM_THR);
+    FANCTL1_PWM_THR,
+    is_autofan_t::yes);
 #endif //NEW_FANCTL
 
 #define DBG _dbg0 //debug level 0
@@ -68,17 +72,22 @@ extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mo
 #endif                                 //BUDDY_ENABLE_ETHERNET
 
 void app_setup(void) {
+    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
+        init_tmc();
+    } else {
+        init_tmc_bare_minimum();
+    }
+
     setup();
 
     marlin_server_settings_load(); // load marlin variables from eeprom
-
-    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
-        init_tmc();
-    }
     //DBG("after init_tmc (%ld ms)", HAL_GetTick());
 }
 
 void app_idle(void) {
+    Buddy::Metrics::RecordMarlinVariables();
+    Buddy::Metrics::RecordRuntimeStats();
+    Buddy::Metrics::RecordPrintFilename();
     osDelay(0); // switch to other threads - without this is UI slow during printing
 }
 
@@ -92,7 +101,11 @@ void app_run(void) {
 
     crc32_init();
 
-    uint8_t defaults_loaded = eeprom_init();
+    uint8_t eeprom_init_status = eeprom_init();
+    if (eeprom_init_status == EEPROM_INIT_Defaults || eeprom_init_status == EEPROM_INIT_Upgraded) {
+        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
+        dump_in_xflash_reset();
+    }
     LangEEPROM::getInstance();
 
     marlin_server_init();
@@ -122,7 +135,7 @@ void app_run(void) {
     }
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
-    if (defaults_loaded && marlin_server_processing()) {
+    if (eeprom_init_status == EEPROM_INIT_Defaults && marlin_server_processing()) {
         settings.reset();
     }
 

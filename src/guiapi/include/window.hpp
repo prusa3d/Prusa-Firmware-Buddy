@@ -1,65 +1,17 @@
 //window.hpp
 #pragma once
 
-#include <inttypes.h>
-#include <functional>
-#include "guitypes.hpp"
-#include "../../lang/string_view_utf8.hpp"
+#include "window_types.hpp"
+#include "GuiDefaults.hpp"
 #include "Rect16.h"
 #include "window_event.hpp"
-
-using ButtonCallback = std::function<void()>;
-
-struct window_list_t;
-typedef void(window_list_item_t)(window_list_t *pwindow_list,
-    uint16_t index, const char **pptext, uint16_t *pid_icon);
-
-//to be safe, ctor has this 2 bool parameters, can't switch them
-enum class is_dialog_t : bool { no,
-    yes };
-enum class is_closed_on_click_t : bool { no,
-    yes };
-enum class is_closed_on_timeout_t : bool { no,
-    yes };
-enum class is_closed_on_serial_t : bool { no,
-    yes };
 
 class window_t {
     window_t *parent;
     window_t *next;
 
 protected:
-    //todo add can capture flag (needed in frame event and SetCapture)
-    union {
-        uint32_t flg;
-        struct {
-            bool flag_visible : 1;                         // 00 - is visible
-            bool flag_enabled : 1;                         // 01 - is enabled (can be focused)
-            bool flag_invalid : 1;                         // 02 - content is invalid (draw)
-            bool flag_checked : 1;                         // 03 - is checked/selected
-            bool flag_timer : 1;                           // 04 - window has timers
-            is_dialog_t flag_dialog : 1;                   // 05 - window id dialog
-            is_closed_on_click_t flag_close_on_click : 1;  // 06 - window id dialog
-            bool flag_hidden_behind_dialog : 1;            // 07 - there is an dialog over this window
-            is_closed_on_timeout_t flag_timeout_close : 1; // 08 - menu timeout flag - it's meant to be used in window_frame_t
-            is_closed_on_serial_t flag_serial_close : 1;   // 09 - serial printing screen open close
-            bool flag_shadow : 1;                          // 0A - this flag can be defined in parent
-            bool flag_custom0 : 1;                         // 0B - this flag can be defined in parent
-            bool flag_custom1 : 1;                         // 0C - this flag can be defined in parent
-            bool flag_custom2 : 1;                         // 0D - this flag can be defined in parent
-            bool flag_custom3 : 1;                         // 0E - this flag can be defined in parent
-            bool flag_custom4 : 1;                         // 0F - this flag can be defined in parent
-
-            // here would be 2 unused Bytes (structure data alignment),
-            // make them accessible to be used in child to save RAM
-            union {
-                uint16_t mem_space_u16;
-                int16_t mem_space_s16;
-                std::array<uint8_t, 2> mem_array_u08;
-                std::array<int8_t, 2> mem_array_s08;
-            };
-        };
-    };
+    WindowFlags flags;
 
 public:
     Rect16 rect; // (8 bytes) display rectangle
@@ -82,6 +34,7 @@ public:
     bool IsCaptured() const;
     bool IsShadowed() const;
     bool HasTimer() const;
+    win_type_t GetType() const;
     bool IsDialog() const;
     bool ClosedOnTimeout() const;
     bool ClosedOnSerialPrint() const;
@@ -91,7 +44,6 @@ public:
     void SetHasTimer();
     void ClrHasTimer();
     void SetFocus();
-    void SetCapture();
     void Enable();
     void Disable();
     void Show();
@@ -103,11 +55,11 @@ public:
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
 
-    window_t(window_t *parent, Rect16 rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
+    window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
 
-    virtual void RegisterSubWin(window_t *win);
-    virtual void UnregisterSubWin(window_t *win) {} //meant for dialogs, remove this window from frame
+    bool RegisterSubWin(window_t *win);
+    void UnregisterSubWin(window_t *win);
 
     void ShiftNextTo(ShiftDir_t direction);
     virtual void Shift(ShiftDir_t direction, uint16_t distance);
@@ -118,19 +70,23 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param);
     virtual void screenEvent(window_t *sender, GUI_event_t event, void *param);
 
+    virtual bool registerSubWin(window_t &win);
+    virtual void unregisterSubWin(window_t &win);
+
 private:
     virtual void invalidate(Rect16 validation_rect);
     virtual void validate(Rect16 validation_rect);
 
     static window_t *focused_ptr; // has focus
-    static window_t *capture_ptr; // capture jog events
 
 public:
+    virtual window_t *GetCapturedWindow() { return this; } // do not use, used by screen
     static window_t *GetFocusedWindow();
-    static window_t *GetCapturedWindow();
-
-    static void ResetCapturedWindow();
     static void ResetFocusedWindow();
+
+    //knob events
+    static bool EventEncoder(int diff);
+    static bool EventJogwheel(BtnState_t state);
 };
 
 //all children of window_t and their children must use AddSuperWindow<parent_window> for inheritance
@@ -152,7 +108,7 @@ protected:
 //window_aligned_t
 //uses window_t  mem_array_u08[0] to store alignment (saves RAM)
 struct window_aligned_t : public AddSuperWindow<window_t> {
-    window_aligned_t(window_t *parent, Rect16 rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
+    window_aligned_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     /// alignment constants are in guitypes.h
     uint8_t GetAlignment() const;
     void SetAlignment(uint8_t alignment);

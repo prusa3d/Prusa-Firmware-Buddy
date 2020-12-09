@@ -24,7 +24,7 @@ void screen_splash_data_t::timer(uint32_t mseconds) {
 }
 
 screen_splash_data_t::screen_splash_data_t()
-    : window_frame_t()
+    : AddSuperWindow<screen_t>()
     , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_prusa_printer_splash)
     , text_progress(this, Rect16(10, 171, 220, 20), is_multiline::no)
     , progress(this, Rect16(10, 200, 220, 15), 15, COLOR_ORANGE, COLOR_GRAY)
@@ -34,7 +34,7 @@ screen_splash_data_t::screen_splash_data_t()
     , icon_debug(this, Rect16(80, 240, 80, 80), IDR_PNG_marlin_logo) {
 
     if (ScreenWizard::IsConfigInvalid()) {
-        static const char en_text[] = N_("Wizard states invalid");
+        static const char en_text[] = "Wizard states invalid"; // intentionally not translated
         bsod(en_text);
     }
 
@@ -51,7 +51,7 @@ screen_splash_data_t::screen_splash_data_t()
 }
 
 void screen_splash_data_t::draw() {
-    window_frame_t::draw();
+    super::draw();
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
     display::DrawText(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
@@ -80,8 +80,8 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t 
         const bool run_lang = !LangEEPROM::getInstance().IsValid();
 
         const ScreenFactory::Creator screens[] {
-            run_lang ? GetScreenMenuLanguagesNoRet : nullptr,                              // lang
-            run_wizard ? nullptr /*ScreenFactory::Screen<screen_wizard_data_t>*/ : nullptr // wizard
+            run_lang ? GetScreenMenuLanguagesNoRet : nullptr,          // lang
+            run_wizard ? ScreenFactory::Screen<ScreenWizard> : nullptr // wizard
         };
         Screens::Access()->PushBeforeCurrent(screens, screens + (sizeof(screens) / sizeof(screens[0])));
         Screens::Access()->Close();
@@ -91,37 +91,3 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t 
 #endif
     }
 }
-
-/*
-        if ((run_wizard || run_firstlay)) {
-            if (run_wizard) {
-                screen_stack_push(get_scr_home()->id);
-                if (lang_valid) {
-                    wizard_run_complete();
-                } else {
-                    wizard_stack_push_complete();
-                    //screen_open(get_scr_menu_languages_noret()->id);
-                }
-            } else if (run_firstlay) {
-                if (gui_msgbox(_("The printer is not calibrated. Start First Layer Calibration?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING) == MSGBOX_RES_YES) {
-                    screen_stack_push(get_scr_home()->id);
-                    if (lang_valid) {
-                        wizard_run_firstlay();
-                    } else {
-                        wizard_stack_push_firstlay();
-                        //screen_open(get_scr_menu_languages_noret()->id);
-                    }
-                } else if (lang_valid) {
-                    //screen_open(get_scr_home()->id);
-                } else {
-                    screen_stack_push(get_scr_home()->id);
-                    //screen_open(get_scr_menu_languages_noret()->id);
-                }
-            }
-        } else if (lang_valid) {
-            //screen_open(get_scr_home()->id);
-        } else {
-            screen_stack_push(get_scr_home()->id);
-            //screen_open(get_scr_menu_languages_noret()->id);
-
-        }*/

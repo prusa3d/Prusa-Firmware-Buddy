@@ -1,3 +1,4 @@
+/// cmath_ext.h
 ///
 /// Library of flexible functions not defined in standard C99
 ///
@@ -69,3 +70,11 @@
 #define IS_OUT_OF_RANGE(value, min, max) \
     ({ __typeof__ (value) a_ = (value); \
         ( a_ < min || max < a_); })
+
+/// Saturates value
+/// \returns min if value is less than min
+/// \returns max if value is more than min
+/// \returns value otherwise
+#define CLAMP(value, min, max) \
+    ({ __typeof__ (value) a_ = (value); \
+        ( a_ < min ? min : (a_ <= max ? a_ : max)); })

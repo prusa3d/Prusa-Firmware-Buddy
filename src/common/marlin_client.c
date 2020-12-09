@@ -43,6 +43,7 @@ typedef struct _marlin_client_t {
     fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
     fsm_change_t fsm_change_cb;   // to register callback for change of state
     message_cb_t message_cb;      // to register callback message
+    warning_cb_t warning_cb;      // to register callback for important message
 
     uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
     uint16_t last_count; // number of messages received in last client loop
@@ -107,6 +108,7 @@ marlin_vars_t *marlin_client_init(void) {
         client->fsm_destroy_cb = NULL;
         client->fsm_change_cb = NULL;
         client->message_cb = NULL;
+        client->warning_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(marlin_server_sema);
@@ -200,6 +202,17 @@ int marlin_client_set_message_cb(message_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
         client->message_cb = cb;
+        return 1;
+    }
+    return 0;
+}
+
+//register callback to warning_cb_t (fan failure, heater timeout ...)
+//return success
+int marlin_client_set_warning_cb(warning_cb_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->warning_cb = cb;
         return 1;
     }
     return 0;
@@ -786,6 +799,10 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
                 client->message_cb(str);
             }
             variant8_done(&pvar);
+            break;
+        case MARLIN_EVT_Warning:
+            if (client->warning_cb)
+                client->warning_cb(variant8_get_i32(msg));
             break;
         }
             //not handled events

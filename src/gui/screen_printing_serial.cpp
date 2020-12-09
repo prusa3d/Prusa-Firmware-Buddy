@@ -38,8 +38,6 @@ void screen_printing_serial_data_t::DisableButton(btn &b) {
 }
 
 void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    header.EventClr();
-
     /// end sequence waiting for empty marlin gcode queue
     /// parking -> cooldown hotend & bed -> turn off print fan
     if (connection == connection_state_t::disconnect) {

@@ -13,6 +13,11 @@
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
 
+enum {
+    F_EEPROM = 0x01, // filament is known
+    F_SENSED = 0x02  // filament is not in sensor
+};
+
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
     /// read from Marlin, not from EEPROM since it's not in sync
@@ -34,7 +39,7 @@ protected:
 
 public:
     explicit MI_event_dispatcher(string_view_utf8 label)
-        : WI_LABEL_t(label, 0, true, false) {}
+        : WI_LABEL_t(label, 0, is_enabled_t::yes, is_hidden_t::no) {}
 
     virtual string_view_utf8 GetHeaderAlterLabel() = 0;
     virtual void Do() = 0;
@@ -45,6 +50,7 @@ public:
 class MI_LOAD : public MI_event_dispatcher {
     constexpr static const char *const label = N_("Load Filament");
     constexpr static const char *const header_label = N_("LOAD FILAMENT");
+    constexpr static const char *const warning_loaded = N_("Filament appears to be already loaded, are you sure you want to load it anyway?");
 
 public:
     MI_LOAD()
@@ -53,7 +59,9 @@ public:
         return _(header_label);
     }
     virtual void Do() override {
-        gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+        if ((get_filament() == FILAMENT_NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
+            gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+        }
     }
 };
 
@@ -115,11 +123,6 @@ public:
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
 
 class ScreenMenuFilament : public Screen {
-    enum {
-        F_EEPROM = 0x01, // filament is known
-        F_SENSED = 0x02  // filament is not in sensor
-    };
-
 public:
     constexpr static const char *label = N_("FILAMENT");
     ScreenMenuFilament()
@@ -172,14 +175,14 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
 //non-static method definition
 
 /*
- * +---------+--------++------+--------+--------+-------+--------------------------------------------------------+
- * | FSENSOR | EEPROM || load | unload | change | purge | comment                                                |
- * +---------+--------++------+--------+--------+-------+--------------------------------------------------------+
- * |       0 |      0 ||  YES |    YES |     NO |    NO | filament not loaded                                    |
- * |       0 |      1 ||   NO |    YES |    YES |    NO | filament loaded but just runout                        |
- * |       1 |      0 ||  YES |    YES |     NO |    NO | user pushed filament into sensor, but it is not loaded |
- * |       1 |      1 ||   NO |    YES |    YES |   YES | filament loaded                                        |
- * +---------+--------++------+--------+--------+-------+--------------------------------------------------------+
+ * +---------+--------++------------+--------+--------+-------+--------------------------------------------------------+
+ * | FSENSOR | EEPROM || load       | unload | change | purge | comment                                                |
+ * +---------+--------++------------+--------+--------+-------+--------------------------------------------------------+
+ * |       0 |      0 ||  YES       |    YES |     NO |    NO | filament not loaded                                    |
+ * |       0 |      1 ||  YES (ASK) |    YES |    YES |    NO | filament loaded but just runout                        |
+ * |       1 |      0 ||  YES       |    YES |     NO |    NO | user pushed filament into sensor, but it is not loaded |
+ * |       1 |      1 ||  YES (ASK) |    YES |    YES |   YES | filament loaded                                        |
+ * +---------+--------++------------+--------+--------+-------+--------------------------------------------------------+
  */
 void ScreenMenuFilament::deactivate_item() {
 
@@ -187,24 +190,17 @@ void ScreenMenuFilament::deactivate_item() {
     filament |= get_filament() != FILAMENT_NONE ? F_EEPROM : 0;
     filament |= fs_get_state() == fsensor_t::NoFilament ? 0 : F_SENSED;
     switch (filament) {
-    case 0: //filament not loaded
-        ena<MI_LOAD>();
+    case 0:        //filament not loaded
+    case F_SENSED: //user pushed filament into sensor, but it is not loaded
         dis<MI_CHANGE>();
         dis<MI_PURGE>();
         break;
     case F_EEPROM: //filament loaded but just runout
-        dis<MI_LOAD>();
         ena<MI_CHANGE>();
-        dis<MI_PURGE>();
-        break;
-    case F_SENSED: //user pushed filament into sensor, but it is not loaded
-        ena<MI_LOAD>();
-        dis<MI_CHANGE>();
         dis<MI_PURGE>();
         break;
     case F_SENSED | F_EEPROM: //filament loaded
     default:
-        dis<MI_LOAD>();
         ena<MI_CHANGE>();
         ena<MI_PURGE>();
         break;

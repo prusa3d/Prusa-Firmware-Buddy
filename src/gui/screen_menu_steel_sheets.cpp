@@ -34,7 +34,7 @@ class MI_SHEET_SELECT : public WI_LABEL_t {
 
 public:
     MI_SHEET_SELECT()
-        : WI_LABEL_t(_(label), 0, false, false) {};
+        : WI_LABEL_t(_(label), 0, is_enabled_t::no, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -43,11 +43,11 @@ protected:
 };
 
 class MI_SHEET_CALIBRATE : public WI_LABEL_t {
-    static constexpr const char *const label = N_("First layer calibration");
+    static constexpr const char *const label = N_("First Layer Calibration");
 
 public:
     MI_SHEET_CALIBRATE()
-        : WI_LABEL_t(_(label), 0, true, false) {};
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -60,7 +60,7 @@ class MI_SHEET_RENAME : public WI_LABEL_t {
 
 public:
     MI_SHEET_RENAME()
-        : WI_LABEL_t(_(label), 0, true, false) {};
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -73,7 +73,7 @@ class MI_SHEET_RESET : public WI_LABEL_t {
 
 public:
     MI_SHEET_RESET()
-        : WI_LABEL_t(_(label), 0, false, false) {};
+        : WI_LABEL_t(_(label), 0, is_enabled_t::no, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -122,12 +122,12 @@ protected:
         case profile_action::Select:
             _dbg("MI_SHEET_SELECT");
             sheet_select(Index::value);
-            marlin_settings_load();
+            marlin_set_z_offset(variant8_get_flt(eeprom_get_var(EEVAR_ZOFFSET)));
             break;
         case profile_action::Calibrate:
             _dbg("MI_SHEET_CALIBRATE");
             sheet_calibrate(Index::value);
-            ScreenWizard::RunFirstLay();
+            ScreenWizard::Run(wizard_run_type_t::firstlay);
             break;
         case profile_action::Rename:
             _dbg("MI_SHEET_RENAME");
@@ -149,7 +149,7 @@ template <typename Index>
 struct profile_record_t : public WI_LABEL_t {
     char name[MAX_SHEET_NAME_LENGTH];
     profile_record_t()
-        : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), 0, true, false) {
+        : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), 0, is_enabled_t::yes, is_hidden_t::no) {
         memset(name, 0, MAX_SHEET_NAME_LENGTH);
         sheet_name(Index::value, name, MAX_SHEET_NAME_LENGTH);
         // string_view_utf8::MakeRAM is safe. "name" is member var, exists until profile_record_t is destroyed

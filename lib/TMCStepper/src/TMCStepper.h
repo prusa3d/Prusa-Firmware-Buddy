@@ -50,6 +50,10 @@
 
 #define TMCSTEPPER_VERSION 0x000501 // v0.5.1
 
+extern "C" bool tmc_serial_lock_acquire();
+extern "C" void tmc_serial_lock_release();
+extern "C" void tmc_communication_error();
+
 class TMCStepper {
 	public:
 		uint16_t cs2rms(uint8_t CS);
@@ -105,6 +109,17 @@ class TMCStepper {
 		uint32_t MSCURACT();
 		int16_t cur_a();
 		int16_t cur_b();
+
+		struct CommunicationLockGuard {
+			CommunicationLockGuard() {
+				if (!tmc_serial_lock_acquire())
+					abort();
+			}
+
+			~CommunicationLockGuard() {
+				tmc_serial_lock_release();
+			}
+		};
 
 	protected:
 		TMCStepper(float RS) : Rsense(RS) {};
@@ -1000,11 +1015,14 @@ class TMC2208Stepper : public TMCStepper {
 															TMC2208_SLAVE_ADDR = 0x00;
 		const bool write_only;
 		static constexpr uint8_t replyDelay = 2;
-		static constexpr uint8_t abort_window = 5;
+		static constexpr uint8_t abort_window = 2;
 		static constexpr uint8_t max_retries = 2;
 
+		/// Returns the datagram on success. Zero on failure/timeout.
 		template<typename SERIAL_TYPE>
 		friend uint64_t _sendDatagram(SERIAL_TYPE &, uint8_t [], const uint8_t, uint16_t);
+	private:
+		void _write(uint8_t addr, uint32_t regVal);
 };
 
 class TMC2209Stepper : public TMC2208Stepper {

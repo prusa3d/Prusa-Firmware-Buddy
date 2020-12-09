@@ -6,7 +6,9 @@
 #include <limits>    //std::numeric_limits
 #include <algorithm> //std::swap
 enum class WizardState_t {
-    first,
+    repeat = -2,
+    next = -1,
+    first = 0,
 
     START_first = first,
     START = START_first,
@@ -22,11 +24,8 @@ enum class WizardState_t {
     SELFTEST_Z,
     SELFTEST_XYZ,
     SELFTEST_TEMP,
-    SELFTEST_PASS,
-    SELFTEST_FAIL,
-    SELFTEST_last = SELFTEST_FAIL,
-
-    SELFTEST_AND_XYZCALIB, //SELFTEST_PASS has different message when it is combined with XYZCALIB
+    SELFTEST_RESULT,
+    SELFTEST_last = SELFTEST_RESULT,
 
     XYZCALIB_first,
     XYZCALIB_INIT = XYZCALIB_first,
@@ -39,29 +38,34 @@ enum class WizardState_t {
     XYZCALIB_XY_SEARCH,
     XYZCALIB_XY_MSG_PLACE_SHEET,
     XYZCALIB_XY_MEASURE,
-    XYZCALIB_PASS,
-    XYZCALIB_FAIL,
-    XYZCALIB_last = XYZCALIB_FAIL,
+    XYZCALIB_RESULT,
+    XYZCALIB_last = XYZCALIB_RESULT,
 
     FIRSTLAY_first,
     FIRSTLAY_FILAMENT_ASK = FIRSTLAY_first,
     FIRSTLAY_FILAMENT_ASK_PREHEAT,
     FIRSTLAY_FILAMENT_LOAD,
     FIRSTLAY_FILAMENT_UNLOAD,
-    FIRSTLAY_FILAMENT_last = FIRSTLAY_FILAMENT_UNLOAD,
     FIRSTLAY_MSBX_CALIB,
     FIRSTLAY_MSBX_USEVAL,
     FIRSTLAY_MSBX_START_PRINT,
     FIRSTLAY_PRINT,
     FIRSTLAY_MSBX_REPEAT_PRINT,
-    FIRSTLAY_PASS,
-    FIRSTLAY_FAIL, //cannot fail now, but could due MINDA issue
-    FIRSTLAY_last = FIRSTLAY_FAIL,
+    FIRSTLAY_RESULT,
+    FIRSTLAY_last = FIRSTLAY_RESULT,
 
     FINISH,
     EXIT,
 
     last = EXIT
+};
+
+enum class wizard_run_type_t {
+    all,
+    selftest,
+    xyz,
+    selftest_and_xyz,
+    firstlay
 };
 
 static_assert(int(WizardState_t::last) < 64, "too many states in wizard_state_t");
@@ -76,59 +80,38 @@ constexpr uint64_t WizardMaskRange(WizardState_t first, WizardState_t last) {
     return WizardMaskUpTo(last) & ((~WizardMaskUpTo(first)) | WizardMask(first));
 }
 
-constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::EXIT); }
+constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last) | WizardMask(WizardState_t::EXIT); }
 constexpr uint64_t WizardMaskSelfTest() {
-    return (WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::EXIT) /*| WizardMaskStart()*/)
+    return (WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last) | WizardMask(WizardState_t::EXIT))
         & ~WizardMaskRange(WizardState_t::SELFTEST_X, WizardState_t::SELFTEST_Z); //exclude standalone axis tests
 }
 constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(WizardState_t::XYZCALIB_first, WizardState_t::XYZCALIB_last) | WizardMaskStart(); }
-constexpr uint64_t WizardMaskSelfTestAndXYZCalib() { //SELFTEST_PASS has different message when it is combined with XYZCALIB
-    return (WizardMaskSelfTest() | WizardMaskXYZCalib() | WizardMask(WizardState_t::SELFTEST_AND_XYZCALIB)) & ~WizardMask(WizardState_t::SELFTEST_PASS);
+constexpr uint64_t WizardMaskSelfTestAndXYZCalib() { //SELFTEST_RESULT has different message when it is combined with XYZCALIB
+    return (WizardMaskSelfTest() | WizardMaskXYZCalib());
 }
 constexpr uint64_t WizardMaskFirstLay() {
-    return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::EXIT) /* | WizardMaskStart()*/;
+    return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMask(WizardState_t::EXIT);
 }
 
 //disabled XYZ calib
-constexpr uint64_t WizardMaskAll() { return WizardMaskStart() | WizardMaskSelfTest() | WizardMaskFirstLay(); }
+constexpr uint64_t WizardMaskAll() { return WizardMaskStart() | WizardMaskSelfTest() | WizardMaskFirstLay() | WizardMask(WizardState_t::FINISH); }
 
-enum class WizardTestState_t : uint8_t {
-    START,
-    RUNNING,
-    PASSED,
-    FAILED,
-    DISABLED
-};
-
-constexpr uint64_t DidTestPass(WizardTestState_t result) {
-    return (result == WizardTestState_t::PASSED) || (result == WizardTestState_t::DISABLED);
-}
-
-constexpr uint64_t IsTestDone(WizardTestState_t result) {
-    return DidTestPass(result) || (result == WizardTestState_t::FAILED);
+constexpr uint64_t WizardMask(wizard_run_type_t type) {
+    switch (type) {
+    case wizard_run_type_t::firstlay:
+        return WizardMaskFirstLay();
+    case wizard_run_type_t::selftest:
+        return WizardMaskSelfTest();
+    case wizard_run_type_t::xyz:
+        return WizardMaskXYZCalib();
+    case wizard_run_type_t::selftest_and_xyz:
+        return WizardMaskSelfTestAndXYZCalib();
+    case wizard_run_type_t::all:
+    default:
+        return WizardMaskAll();
+    }
 }
 
 constexpr bool IsStateInWizardMask(WizardState_t st, uint64_t mask) {
     return ((((uint64_t)1) << int(st)) & mask) != 0;
 }
-
-constexpr WizardTestState_t InitState(WizardState_t st, uint64_t mask) {
-    if (IsStateInWizardMask(st, mask)) {
-        return WizardTestState_t::START;
-    } else {
-        return WizardTestState_t::DISABLED;
-    }
-}
-
-class StateFncData {
-    WizardState_t next_state;
-    WizardTestState_t result;
-
-public:
-    WizardState_t GetState() { return next_state; }
-    WizardTestState_t GetResult() { return result; }
-    StateFncData PassToNext() { return StateFncData(GetNextWizardState(GetState()), WizardTestState_t::PASSED); }
-    StateFncData(WizardState_t state, WizardTestState_t res)
-        : next_state(state)
-        , result(res) {}
-};

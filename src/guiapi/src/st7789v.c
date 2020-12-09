@@ -10,6 +10,9 @@
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 #include "cmath_ext.h"
+#include "bsod.h"
+#include "scratch_buffer.hpp"
+
 #ifdef ST7789V_USE_RTOS
     #include "cmsis_os.h"
 #endif //ST7789V_USE_RTOS
@@ -384,21 +387,18 @@ enum {
 
 void *png_mem_ptr0 = 0;
 uint32_t png_mem_total = 0;
-uint32_t png_mem_max = 0;
 void *png_mem_ptrs[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_sizes[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_cnt = 0;
 
 png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
-    //	return malloc(size);
-    //	return pvPortMalloc(size);
-    if (png_mem_ptr0 == 0)
-        //png_mem_ptr0 = pvPortMalloc(0xc000); //48k
-        png_mem_ptr0 = (void *)0x10000000; //ccram
+    if (png_mem_ptr0 == NULL) {
+        png_mem_ptr0 = (void *)scratch_buffer;
+    }
+    if (png_mem_total + size >= sizeof(scratch_buffer)) {
+        general_error("pngmalloc", "out of memory");
+    }
     void *p = ((uint8_t *)png_mem_ptr0) + png_mem_total;
-    //	if (p == 0)
-    //		while (1);
-    //	else
     {
         int i;
         for (i = 0; i < PNG_MAX_CHUNKS; i++)
@@ -410,14 +410,11 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
         png_mem_sizes[i] = size;
         png_mem_total += size;
         png_mem_cnt++;
-        if (png_mem_max < png_mem_total)
-            png_mem_max = png_mem_total;
     }
     return p;
 }
 
 void _pngfree(png_structp pp, png_voidp mem) {
-    //	free(mem);
     int i;
 
     for (i = 0; i < 10; i++)
@@ -428,7 +425,6 @@ void _pngfree(png_structp pp, png_voidp mem) {
             png_mem_total -= size;
             png_mem_cnt--;
         }
-    //	vPortFree(mem);
 }
 
 void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
@@ -449,77 +445,84 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
         122, 84, 88, 116, '\0'  /* zTXt */
     };
     //	rewind(pf);
-    //png_structp pp = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    png_structp pp = png_create_read_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, _pngmalloc, _pngfree);
-    // Ignore unused chunks: see https://libpng.sourceforge.io/decompression_bombs.html
-    png_set_keep_unknown_chunks(pp, 1, unused_chunks, (int)sizeof(unused_chunks) / 5);
-    //png_set_mem_fn(pp, 0, _pngmalloc, _pngfree);
-    if (pp == NULL)
-        goto _e_0;
-    png_infop ppi = png_create_info_struct(pp);
-    if (ppi == NULL)
-        goto _e_1;
-    if (setjmp(png_jmpbuf(pp)))
-        goto _e_1;
-    png_init_io(pp, pf);
+
     {
-        uint8_t sig[8];
-        if (fread(sig, 1, 8, pf) < 8)
-            goto _e_1;
-        if (!png_check_sig(sig, 8))
-            goto _e_1; /* bad signature */
-        png_set_sig_bytes(pp, 8);
-    }
-    png_read_info(pp, ppi);
-    uint16_t w = png_get_image_width(pp, ppi);
-    uint16_t h = png_get_image_height(pp, ppi);
-    int rowsize = png_get_rowbytes(pp, ppi);
-    //_dbg("display_ex_draw_png rowsize = %i", rowsize);
-    if (rowsize > ST7789V_COLS * 4)
-        goto _e_1;
-    int pixsize = rowsize / w;
-    //_dbg("display_ex_draw_png pixsize = %i", pixsize);
-    int i;
-    int j;
-    st7789v_clr_cs();
-    if (setjmp(png_jmpbuf(pp)))
-        goto _e_2;
-    st7789v_cmd_caset(point_x, point_x + w - 1);
-    st7789v_cmd_raset(point_y, point_y + h - 1);
-    st7789v_cmd_ramwr(0, 0);
-    switch (rop) {
-        //case ROPFN_INVERT: rop_rgb888_invert((uint8_t*)&clr0); break;
-        //case ROPFN_SWAPBW: rop_rgb888_swapbw((uint8_t*)&clr0); break;
-    }
-    for (i = 0; i < h; i++) {
-        png_read_row(pp, st7789v_buff, NULL);
-        for (j = 0; j < w; j++) {
-            uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
-            uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
-            if (pixsize == 4) { //RGBA
-                *((uint32_t *)ppx888) = color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
+        png_structp pp = png_create_read_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, _pngmalloc, _pngfree);
+        // Ignore unused chunks: see https://libpng.sourceforge.io/decompression_bombs.html
+        png_set_keep_unknown_chunks(pp, 1, unused_chunks, (int)sizeof(unused_chunks) / 5);
+        if (pp == NULL)
+            goto _e_0;
+
+        { // explicitly limit the scope of the local vars in order to enable use of goto
+            // which is the preffered error recovery system in libpng
+            // the vars must be destroyed before label _e_0
+            png_infop ppi = png_create_info_struct(pp);
+            if (ppi == NULL)
+                goto _e_1;
+            if (setjmp(png_jmpbuf(pp)))
+                goto _e_1;
+            png_init_io(pp, pf);
+            {
+                uint8_t sig[8];
+                if (fread(sig, 1, 8, pf) < 8)
+                    goto _e_1;
+                if (!png_check_sig(sig, 8))
+                    goto _e_1; /* bad signature */
+                png_set_sig_bytes(pp, 8);
             }
-            switch (rop) {
-            case ROPFN_INVERT:
-                rop_rgb888_invert(ppx888);
-                break;
-            case ROPFN_SWAPBW:
-                rop_rgb888_swapbw(ppx888);
-                break;
-            case ROPFN_DISABLE:
-                rop_rgb888_disabled(ppx888);
-                break;
+            png_read_info(pp, ppi);
+            { // these vars must be destroyed before label _e_1
+                uint16_t w = png_get_image_width(pp, ppi);
+                uint16_t h = png_get_image_height(pp, ppi);
+                int rowsize = png_get_rowbytes(pp, ppi);
+                //_dbg("display_ex_draw_png rowsize = %i", rowsize);
+                if (rowsize > ST7789V_COLS * 4)
+                    goto _e_1;
+                int pixsize = rowsize / w;
+                //_dbg("display_ex_draw_png pixsize = %i", pixsize);
+                int i;
+                int j;
+                st7789v_clr_cs();
+                if (setjmp(png_jmpbuf(pp)))
+                    goto _e_2;
+                st7789v_cmd_caset(point_x, point_x + w - 1);
+                st7789v_cmd_raset(point_y, point_y + h - 1);
+                st7789v_cmd_ramwr(0, 0);
+                switch (rop) {
+                    //case ROPFN_INVERT: rop_rgb888_invert((uint8_t*)&clr0); break;
+                    //case ROPFN_SWAPBW: rop_rgb888_swapbw((uint8_t*)&clr0); break;
+                }
+                for (i = 0; i < h; i++) {
+                    png_read_row(pp, st7789v_buff, NULL);
+                    for (j = 0; j < w; j++) {
+                        uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
+                        uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
+                        if (pixsize == 4) { //RGBA
+                            *((uint32_t *)ppx888) = color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
+                        }
+                        switch (rop) {
+                        case ROPFN_INVERT:
+                            rop_rgb888_invert(ppx888);
+                            break;
+                        case ROPFN_SWAPBW:
+                            rop_rgb888_swapbw(ppx888);
+                            break;
+                        case ROPFN_DISABLE:
+                            rop_rgb888_disabled(ppx888);
+                            break;
+                        }
+                        *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+                    }
+                    st7789v_wr(st7789v_buff, 2 * w);
+                _e_2:
+                    st7789v_set_cs();
+                }
             }
-            *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+        _e_1:
+            png_destroy_read_struct(&pp, &ppi, 0);
         }
-        st7789v_wr(st7789v_buff, 2 * w);
+    _e_0:; // enforce an empty statement just to make the compiler happy
     }
-_e_2:
-    st7789v_set_cs();
-_e_1:
-    png_destroy_read_struct(&pp, &ppi, 0);
-_e_0:
-    return;
 }
 
 void st7789v_inversion_on(void) {

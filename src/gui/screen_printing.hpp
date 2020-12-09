@@ -1,12 +1,9 @@
 //screen_printing.hpp
 #pragma once
-#include "gui.hpp"
 #include "status_footer.h"
 #include "window_header.hpp"
 #include "window_roll_text.hpp"
 #include "window_icon.hpp"
-#include "window_spin.hpp"
-#include "window_list.hpp"
 #include "window_term.hpp"
 #include "window_print_progress.hpp"
 #include "ScreenPrintingModel.hpp"

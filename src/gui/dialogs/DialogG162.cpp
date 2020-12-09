@@ -5,7 +5,7 @@
 
 /*****************************************************************************/
 // clang-format off
-static const char *txt_first              = N_("Finishing         \nbuffered gcodes.  \n");
+static const char *txt_first              = N_("Finishing buffered gcodes.");
 static const char *txt_parking            = N_("Parking");
 
 static DialogG162::States Factory() {

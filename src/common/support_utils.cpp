@@ -11,8 +11,8 @@
 #include "version.h"
 #include "language_eeprom.hpp"
 #include "sha256.h"
+#include "crc32.h"
 
-#include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
 #include "support_utils_lib.hpp"
 
@@ -27,10 +27,7 @@ char *eofstr(char *str) {
 }
 
 void append_crc(char *str, const uint32_t str_size) {
-    uint32_t crc;
-
-    TM_CRC_Init(); // !!! should be somewhere else (not sure where yet)
-    crc = TM_CRC_Calculate8((uint8_t *)(str + sizeof(ERROR_URL_LONG_PREFIX) - 1), strlen(str) - sizeof(ERROR_URL_LONG_PREFIX) + 1, 1);
+    uint32_t crc = crc32_calc((uint8_t *)(str + sizeof(ERROR_URL_LONG_PREFIX) - 1), strlen(str) - sizeof(ERROR_URL_LONG_PREFIX) + 1);
     snprintf(eofstr(str), str_size - strlen(str), "/%08lX", crc);
 }
 
@@ -70,7 +67,7 @@ void printerCode(char *str) {
     }
 
     /// appendix state
-    if (ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) {
+    if (ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK) {
         setBit((uint8_t *)hash, 6);
         //setBit(str[0], 6);
     }
