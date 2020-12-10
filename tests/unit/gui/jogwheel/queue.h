@@ -11,13 +11,12 @@ enum { pdFALSE = 0,
 
     pdPASS = pdTRUE };
 
-inline void *GetQ32() {
-    static std::queue<uint32_t> ret;
-    return &ret;
-}
-
+//not general version, queue with 4B items only
 inline QueueHandle_t xQueueCreate(uint32_t uxQueueLength, uint32_t uxItemSize) {
-    return GetQ32();
+    static std::queue<uint32_t> q32;
+    std::queue<uint32_t> empty;
+    std::swap(q32, empty);
+    return &q32;
 }
 
 template <class T>
