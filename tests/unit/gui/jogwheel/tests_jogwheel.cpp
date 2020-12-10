@@ -23,8 +23,6 @@ void __enable_irq() { irq_on = true; }
 static uint32_t hal_tick = 0;
 uint32_t HAL_GetTick() { return hal_tick; }
 
-static BtnState_t ev;
-
 enum class phase_t {
     P0lo_P1lo,
     P0hi_P1lo,
@@ -107,11 +105,37 @@ public:
 };
 
 TEST_CASE("Jogwheel tests", "[jogwheel]") {
+    BtnState_t ev;
+    TestJogwheel j;
+
+    //without ConsumeButtonEvent there should be no click or encoder change
+    SECTION("uninitialized jogwheel test") {
+
+        j.SetEncoderPhase(phase_t::P0lo_P1lo);
+
+        REQUIRE(j.GetEncoder() == 0); // read at tick 0
+
+        j.SpinR(1, 2);                //2 ms  not filtered out
+        REQUIRE(j.GetEncoder() == 0); // not initialized by read, must return 0
+
+        jogWheelENC.state = Pin::State::high; // inverted
+        j.Update1msFromISR();
+
+        jogWheelENC.state = Pin::State::low; // inverted
+        j.Update1msFromISR();
+
+        jogWheelENC.state = Pin::State::high; // inverted
+        j.Update1msFromISR();
+
+        jogWheelENC.state = Pin::State::low; // inverted
+        j.Update1msFromISR();
+
+        REQUIRE_FALSE(j.ConsumeButtonEvent(ev)); // clicks before first read must be discarded
+    }
+
+    j.ConsumeButtonEvent(ev); //this call will initialize queue
+
     SECTION("encoder - noise filter") {
-        TestJogwheel j;
-
-        j.ConsumeButtonEvent(ev); //this call will initialize queue
-
         j.SetEncoderPhase(phase_t::P0lo_P1lo);
 
         REQUIRE(j.GetEncoder() == 0); // read at tick 0
@@ -127,10 +151,13 @@ TEST_CASE("Jogwheel tests", "[jogwheel]") {
     }
 
     SECTION("button test") {
-        TestJogwheel j;
-        jogWheelENC.state = Pin::State::high; //inverted
+
+        jogWheelENC.state = Pin::State::high; // inverted
         j.Update1msFromISR();
 
-        REQUIRE_FALSE(j.ConsumeButtonEvent(ev)); // not clicked
+        jogWheelENC.state = Pin::State::low; // inverted
+        j.Update1msFromISR();
+
+        REQUIRE(j.ConsumeButtonEvent(ev)); // clicked
     }
 }

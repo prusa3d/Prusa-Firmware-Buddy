@@ -98,13 +98,13 @@ private:
     void InitSpinMessageQueueInstance_NotFromISR();
 
     /**
-     * Fills up the parameter with input pins signals.
+     * Converts pin levels to signals variable
      *
      * pinENC - button input pin, pinEN1 and pinEN2 - encoder input pins.
      *
-     * @param [out] signals - stores signals: bit0 - phase0, bit1 - phase1, bit2 - button pressed (inverted)
+     * returns signals - stores signals: bit0 - phase0, bit1 - phase1, bit2 - button pressed (inverted)
      */
-    static void ReadInput(uint8_t &signals);
+    static uint8_t ReadHwInputsFromISR();
 
     /**
      * Updates member variables according to input signals.
@@ -156,7 +156,6 @@ private:
     BtnState_t btn_state;              //!< current state of button, size uint8_t
     uint8_t jogwheel_signals;          //!< input signals
     uint8_t jogwheel_signals_old;      //!< stores pre-previous input signals
-    uint8_t jogwheel_noise_filter;     //!< stores previous signals
     uint8_t encoder_gear;              //!< multiple gears for jogwheel spinning
     bool type1;                        //!< jogwheel is type1 = true or type2 = false
     bool spin_accelerator;             //!< turns up spin accelerator feature
