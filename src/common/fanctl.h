@@ -9,7 +9,7 @@ enum {
     FANCTL_MAX_FANS = 2,         // maximum number of fans for C wrapper functions
     FANCTL_START_TIMEOUT = 2000, //
     FANCTL_START_EDGES = 4,      //
-    FANCTL_RPM_DELAY = 2000,     //
+    FANCTL_RPM_DELAY = 5000,     //
 };
 
 // this structure contain variables for rpm measuement
