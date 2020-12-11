@@ -107,7 +107,8 @@ uint32_t *pCommand = &marlin_server.command;
 #endif
 marlin_server_idle_t *marlin_server_idle_cb = 0; // idle callback
 
-static bool error_dialog_show = false;
+static bool hotend_fan_error_dialog_show = false;
+static bool print_fan_error_dialog_show = false;
 
 void _add_status_msg(const char *const popup_msg) {
     //I could check client mask here
@@ -515,7 +516,7 @@ static void _server_print_loop(void) {
         if (marlin_server_print_reheat_ready()) {
             if (marlin_server.vars.fan_check_enabled) {
                 if (fanctl1.getRPMIsOk()) {
-                    error_dialog_show = false;
+                    hotend_fan_error_dialog_show = false;
                     marlin_server_unpark_head();
                     marlin_server.print_state = mpsResuming_UnparkHead;
                 } else {
@@ -595,22 +596,24 @@ static void _server_print_loop(void) {
     }
 
     if (marlin_server.vars.fan_check_enabled) {
-        if (fanctl1.getState() == CFanCtl::error_running && error_dialog_show == false) {
+        if (fanctl1.getState() == CFanCtl::error_running && hotend_fan_error_dialog_show == false) {
             set_warning(WarningType::HotendFanError);
             if (marlin_server.print_state == mpsPrinting) {
                 marlin_server.print_state = mpsPausing_Begin;
             } else {
                 thermalManager.setTargetHotend(0, 0);
             }
-            error_dialog_show = true;
-        } else if (fanctl0.getState() == CFanCtl::error_running && error_dialog_show == false) {
+            hotend_fan_error_dialog_show = true;
+        } else if (fanctl0.getState() == CFanCtl::error_running && print_fan_error_dialog_show == false) {
             set_warning(WarningType::PrintFanError);
             if (marlin_server.print_state == mpsPrinting) {
                 marlin_server.print_state = mpsPausing_Begin;
             }
-            error_dialog_show = true;
-        } else if (fanctl1.getState() == CFanCtl::running || fanctl1.getState() == CFanCtl::running) {
-            error_dialog_show = false;
+            print_fan_error_dialog_show = true;
+        } else if (fanctl1.getRPMIsOk() && hotend_fan_error_dialog_show == true) {
+            hotend_fan_error_dialog_show = false;
+        } else if (fanctl0.getRPMIsOk() && print_fan_error_dialog_show == true) {
+            print_fan_error_dialog_show = false;
         }
     }
 }
