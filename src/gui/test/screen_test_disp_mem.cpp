@@ -15,7 +15,7 @@
 
 extern int sim_heater_temp2val(float temp);
 
-struct screen_test_disp_mem_data_t : public window_frame_t {
+struct screen_test_disp_mem_data_t : public AddSuperWindow<screen_t> {
     window_text_t textMenuName;
     window_text_t textSpiClk;
     window_text_t textMode;

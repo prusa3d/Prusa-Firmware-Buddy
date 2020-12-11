@@ -13,6 +13,7 @@
 
 //Singleton dialog for messages
 class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
+protected: // inherited by unit tests, must be protected
     window_text_t text;
 
     window_dlg_strong_warning_t();
@@ -23,7 +24,6 @@ class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
     static constexpr const char *HeaterTimeoutMsg = N_("Heating disabled due to a heaters timeout.");
     static constexpr const char *USBFlashDiskError = N_("USB drive error. Print paused.");
 
-protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     void show(string_view_utf8 txt); // could use const char *, but with stringview I can pass both translated and not translated texts
 

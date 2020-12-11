@@ -2,18 +2,30 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 
-static constexpr size_t col_0 = WIZARD_MARGIN_LEFT;
-static constexpr size_t col_0_w = 200;
-static constexpr size_t col_1 = col_0_w + WIZARD_MARGIN_LEFT;
+static constexpr size_t col_0 = WizardDefaults::MarginLeft;
+static constexpr size_t col_1 = WizardDefaults::status_icon_X_pos;
+static constexpr size_t col_0_w = col_1 - col_0;
+
+static constexpr size_t txt_h = WizardDefaults::txt_h;
+static constexpr size_t row_h = WizardDefaults::row_h;
+
+static constexpr size_t row_0 = WizardDefaults::row_0;
+static constexpr size_t row_1 = row_0 + row_h;
+static constexpr size_t row_2 = row_1 + WizardDefaults::progress_row_h;
+static constexpr size_t row_3 = row_2 + row_h;
+
+static constexpr const char *en_text_fan_test = N_("Fan Test");
+static constexpr const char *en_text_hotend_fan = N_("Hotend Fan");
+static constexpr const char *en_text_print_fan = N_("Print Fan");
 
 DialogSelftestFans::DialogSelftestFans()
     : IDialogMarlin()
-    , text_fan_test(this, Rect16(col_0, 40, WIZARD_X_SPACE, 22), is_multiline::no, is_closed_on_click_t::no, _("Fan Test"))
-    , progress(this, Rect16(col_0, 62, WIZARD_X_SPACE, 8), COLOR_LIME, COLOR_BLACK)
-    , text_hotend_fan(this, Rect16(col_0, 74, col_0_w, 22), is_multiline::no, is_closed_on_click_t::no, _("Hotend Fan"))
-    , icon_hotend_fan(this, { col_1, 74 })
-    , text_print_fan(this, Rect16(col_0, 96, col_0_w, 22), is_multiline::no, is_closed_on_click_t::no, _("Print Fan"))
-    , icon_print_fan(this, { col_1, 96 }) {
+    , text_fan_test(this, Rect16(col_0, row_0, WizardDefaults::X_space, txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_fan_test))
+    , progress(this, row_1)
+    , text_hotend_fan(this, Rect16(col_0, row_2, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_hotend_fan))
+    , icon_hotend_fan(this, { col_1, row_2 })
+    , text_print_fan(this, Rect16(col_0, row_3, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_print_fan))
+    , icon_print_fan(this, { col_1, row_3 }) {
 }
 
 bool DialogSelftestFans::change(uint8_t phs, uint8_t progress_tot, uint8_t progress_state) {

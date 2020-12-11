@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-12-08 16:20+0100\n"
+"POT-Creation-Date: 2020-12-09 09:25+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,7 +30,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:187
+#: src/guiapi/src/MItem_tools.cpp:200
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr ""
 
@@ -44,7 +44,7 @@ msgstr ""
 msgid "Adjust the nozzle height above the heatbed by turning the knob"
 msgstr ""
 
-#: src/gui/wizard/selftest.cpp:42
+#: src/gui/wizard/selftest.cpp:43
 msgid "All tests finished successfully!"
 msgstr ""
 
@@ -52,15 +52,11 @@ msgstr ""
 msgid "Always"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:192
-msgid "Anonymized QR"
-msgstr ""
-
 #: src/gui/screen_printing.cpp:103
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:297
+#: src/guiapi/include/MItem_tools.hpp:307
 msgid "Assist"
 msgstr ""
 
@@ -81,7 +77,7 @@ msgstr ""
 msgid "Bed leveling failed. Try again?"
 msgstr ""
 
-#: src/gui/screen_menu_calibration.cpp:27
+#: src/gui/screen_menu_calibration.cpp:20
 msgid "CALIBRATION"
 msgstr ""
 
@@ -115,11 +111,11 @@ msgstr ""
 msgid "Calibration XY"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:191
+#: src/gui/wizard/screen_wizard.cpp:192
 msgid "Calibration successful! Happy printing!"
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:89 src/guiapi/include/MItem_tools.hpp:269
+#: src/gui/screen_menu_filament.cpp:89 src/guiapi/include/MItem_tools.hpp:279
 msgid "Change Filament"
 msgstr ""
 
@@ -147,12 +143,9 @@ msgstr ""
 msgid "Check the print head thermistor wiring for possible damage."
 msgstr ""
 
-#: src/gui/dialogs/DialogSelftestAxis.cpp:11
+#: src/gui/dialogs/DialogSelftestResult.cpp:42
+#: src/gui/dialogs/DialogSelftestAxis.cpp:18
 msgid "Checking axes"
-msgstr ""
-
-#: src/gui/dialogs/DialogSelftestTemp.cpp:22
-msgid "Checking hotend and heatbed heaters"
 msgstr ""
 
 #: src/gui/wizard/firstlay.cpp:166
@@ -167,10 +160,6 @@ msgstr ""
 msgid "Cooldown"
 msgstr ""
 
-#: src/gui/dialogs/DialogSelftestTemp.cpp:25
-msgid "Cooling"
-msgstr ""
-
 #: src/guiapi/include/MItem_menus.hpp:169
 msgid "Current Profile"
 msgstr ""
@@ -180,7 +169,11 @@ msgstr ""
 msgid "DISABLE SENSOR"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:119
+#: src/guiapi/include/MItem_menus.hpp:192
+msgid "Device hash in QR"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:129
 msgid "Disable Steppers"
 msgstr ""
 
@@ -216,13 +209,13 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:189
+#: src/guiapi/src/MItem_tools.cpp:202
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
 msgstr ""
 
-#: src/gui/wizard/selftest.cpp:44
+#: src/gui/wizard/selftest.cpp:45
 msgid ""
 "Everything is alright. I will run XYZ calibration now. It will take "
 "approximately 12 minutes."
@@ -232,7 +225,7 @@ msgstr ""
 msgid "FILAMENT"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:54
+#: src/gui/wizard/screen_wizard.cpp:31
 msgid "FIRST LAYER CALIBRATION"
 msgstr ""
 
@@ -244,11 +237,11 @@ msgstr ""
 msgid "FW Update"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:129
+#: src/guiapi/include/MItem_tools.hpp:139
 msgid "Factory Reset"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:174
+#: src/guiapi/src/MItem_tools.cpp:187
 msgid "Factory defaults loaded. The system will now restart."
 msgstr ""
 
@@ -256,12 +249,9 @@ msgstr ""
 msgid "Fail Stats"
 msgstr ""
 
-#: src/gui/dialogs/DialogSelftestFans.cpp:11
+#: src/gui/dialogs/DialogSelftestFans.cpp:17
+#: src/gui/dialogs/DialogSelftestResult.cpp:39
 msgid "Fan Test"
-msgstr ""
-
-#: src/guiapi/include/MItem_tools.hpp:394
-msgid "Fan check"
 msgstr ""
 
 #: src/gui/screen_sysinf.cpp:71
@@ -276,7 +266,7 @@ msgstr ""
 msgid "Filament"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:25 src/guiapi/include/MItem_tools.hpp:374
+#: src/gui/screen_menu_settings.cpp:25 src/guiapi/include/MItem_tools.hpp:384
 msgid "Filament Sensor"
 msgstr ""
 
@@ -304,7 +294,7 @@ msgid "Firmware Version\n"
 msgstr ""
 
 #: src/gui/screen_menu_steel_sheets.cpp:46 src/gui/ScreenFirstLayer.hpp:12
-#: src/guiapi/include/MItem_tools.hpp:59
+#: src/guiapi/include/MItem_tools.hpp:69
 msgid "First Layer Calibration"
 msgstr ""
 
@@ -329,16 +319,24 @@ msgstr ""
 msgid "HW Setup"
 msgstr ""
 
-#: src/gui/dialogs/DialogSelftestTemp.cpp:24
+#: src/gui/dialogs/DialogSelftestResult.cpp:48
 #: src/guiapi/include/MItem_print.hpp:16
 msgid "Heatbed"
 msgstr ""
 
-#: src/gui/dialogs/DialogSelftestTemp.cpp:26
-msgid "Heating"
+#: src/gui/dialogs/DialogSelftestTemp.cpp:25
+msgid "Heatbed heater check"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:23
+#: src/gui/dialogs/DialogSelftestTemp.cpp:27
+msgid "Heater testing"
+msgstr ""
+
+#: src/gui/guimain.cpp:194
+msgid "Heating disabled due to 30 minutes of inactivity."
+msgstr ""
+
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:24
 msgid "Heating disabled due to a heaters timeout."
 msgstr ""
 
@@ -346,7 +344,7 @@ msgstr ""
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/guimain.cpp:201
+#: src/gui/guimain.cpp:205
 msgid ""
 "Hi, this is your\n"
 "Original Prusa MINI."
@@ -358,15 +356,12 @@ msgstr ""
 msgid "Home"
 msgstr ""
 
-#: src/gui/dialogs/DialogSelftestTemp.cpp:23
-msgid "Hotend"
-msgstr ""
-
-#: src/gui/dialogs/DialogSelftestFans.cpp:13
+#: src/gui/dialogs/DialogSelftestFans.cpp:18
+#: src/gui/dialogs/DialogSelftestResult.cpp:40
 msgid "Hotend Fan"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:21
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
 msgid "Hotend fan not spinning"
 msgstr ""
 
@@ -379,7 +374,7 @@ msgstr ""
 msgid "INFO"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:293
+#: src/gui/screen_menu_lan_settings.cpp:292
 msgid ""
 "IP addresses or parameters are not valid or the file \"lan_settings.ini\" is "
 "not in the root directory of the USB drive."
@@ -461,11 +456,11 @@ msgstr ""
 msgid "Loading to nozzle"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:295
+#: src/guiapi/include/MItem_tools.hpp:305
 msgid "Loud"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:384
+#: src/guiapi/include/MItem_tools.hpp:394
 msgid "M.I.N.D.A."
 msgstr ""
 
@@ -509,7 +504,7 @@ msgid ""
 "points"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:279
+#: src/guiapi/include/MItem_tools.hpp:289
 msgid "Menu Timeout"
 msgstr ""
 
@@ -556,7 +551,7 @@ msgstr ""
 msgid "NO"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:327
+#: src/guiapi/include/MItem_tools.hpp:337
 msgid "Name"
 msgstr ""
 
@@ -564,7 +559,7 @@ msgstr ""
 msgid "No USB"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:28
+#: src/gui/screen_menu_settings.cpp:42
 msgid ""
 "No filament sensor detected. Verify that the sensor is connected and try "
 "again."
@@ -576,8 +571,17 @@ msgid ""
 "print sheet."
 msgstr ""
 
+#: src/gui/dialogs/DialogSelftestResult.cpp:47
 #: src/guiapi/include/MItem_print.hpp:8
 msgid "Nozzle"
+msgstr ""
+
+#: src/gui/dialogs/DialogSelftestResult.cpp:46
+msgid "Nozzle and Heatbed"
+msgstr ""
+
+#: src/gui/dialogs/DialogSelftestTemp.cpp:24
+msgid "Nozzle heater check"
 msgstr ""
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:31
@@ -602,7 +606,7 @@ msgstr ""
 msgid "On Restart"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:294
+#: src/guiapi/include/MItem_tools.hpp:304
 msgid "Once"
 msgstr ""
 
@@ -632,7 +636,7 @@ msgstr ""
 msgid "PREHEAT for UNLOAD"
 msgstr ""
 
-#: src/gui/screen_printing.hpp:46 src/gui/screen_printing.cpp:360
+#: src/gui/screen_printing.hpp:44 src/gui/screen_printing.cpp:360
 msgid "PRINTING"
 msgstr ""
 
@@ -667,11 +671,11 @@ msgstr ""
 msgid "Please clean the nozzle for calibration. Click NEXT when done."
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:281
+#: src/gui/screen_menu_lan_settings.cpp:280
 msgid "Please insert a USB drive and try again."
 msgstr ""
 
-#: src/gui/guimain.cpp:202
+#: src/gui/guimain.cpp:206
 msgid ""
 "Please insert the USB\n"
 "drive that came with\n"
@@ -700,6 +704,10 @@ msgstr ""
 msgid "Preheat"
 msgstr ""
 
+#: src/gui/dialogs/DialogSelftestTemp.cpp:26
+msgid "Preparing"
+msgstr ""
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:18
 msgid "Preparing to ram"
 msgstr ""
@@ -708,7 +716,7 @@ msgstr ""
 msgid "Press CONTINUE and push filament into the extruder."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:184
+#: src/gui/wizard/screen_wizard.cpp:185
 msgid ""
 "Press NEXT to run the Selftest, which checks for potential issues related to "
 "the assembly."
@@ -718,7 +726,8 @@ msgstr ""
 msgid "Print"
 msgstr ""
 
-#: src/gui/dialogs/DialogSelftestFans.cpp:15
+#: src/gui/dialogs/DialogSelftestFans.cpp:19
+#: src/gui/dialogs/DialogSelftestResult.cpp:41
 #: src/guiapi/include/MItem_print.hpp:24
 msgid "Print Fan"
 msgstr ""
@@ -727,7 +736,7 @@ msgstr ""
 msgid "Print Time"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:23
 msgid "Print fan not spinning"
 msgstr ""
 
@@ -762,7 +771,7 @@ msgstr ""
 msgid "RENAME"
 msgstr ""
 
-#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:203
+#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:207
 msgid "RESET PRINTER"
 msgstr ""
 
@@ -817,7 +826,7 @@ msgstr ""
 msgid "SELECT LANGUAGE"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:46
+#: src/gui/wizard/screen_wizard.cpp:29
 msgid "SELFTEST"
 msgstr ""
 
@@ -829,7 +838,7 @@ msgstr ""
 msgid "SERIAL PRINTING"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:91
+#: src/gui/screen_menu_settings.cpp:107
 msgid "SETTINGS"
 msgstr ""
 
@@ -843,7 +852,7 @@ msgstr ""
 msgid "Sat"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:139
+#: src/guiapi/include/MItem_tools.hpp:149
 msgid "Save Crash Dump"
 msgstr ""
 
@@ -887,7 +896,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:290
+#: src/gui/screen_menu_lan_settings.cpp:289
 msgid "Settings successfully loaded"
 msgstr ""
 
@@ -895,19 +904,23 @@ msgstr ""
 msgid "Sheet Profile"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:296
+#: src/guiapi/include/MItem_tools.hpp:59
+msgid "Show SelfTest result"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:306
 msgid "Silent"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:325
+#: src/guiapi/include/MItem_tools.hpp:335
 msgid "Sort Files by"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:292
+#: src/guiapi/include/MItem_tools.hpp:302
 msgid "Sound Mode"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:336
+#: src/guiapi/include/MItem_tools.hpp:346
 msgid "Sound Volume"
 msgstr ""
 
@@ -915,7 +928,7 @@ msgstr ""
 msgid "Speed"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:278
+#: src/gui/screen_menu_lan_settings.cpp:277
 msgid "Static IPv4 addresses were not set."
 msgstr ""
 
@@ -966,15 +979,15 @@ msgstr ""
 msgid "Test"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:69
+#: src/guiapi/include/MItem_tools.hpp:79
 msgid "Test FANs"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:89
+#: src/guiapi/include/MItem_tools.hpp:99
 msgid "Test Heaters"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:79
+#: src/guiapi/include/MItem_tools.hpp:89
 msgid "Test XYZ-Axis"
 msgstr ""
 
@@ -991,18 +1004,18 @@ msgid ""
 "wiring, nozzle and axes, then restart the calibration."
 msgstr ""
 
-#: src/gui/wizard/selftest.cpp:43
+#: src/gui/wizard/selftest.cpp:44
 msgid ""
 "The selftest failed to finish. Double-check the printer's wiring and axes. "
 "Then restart the Selftest."
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:284
+#: src/gui/screen_menu_lan_settings.cpp:283
 msgid ""
 "The settings have been saved successfully in the \"lan_settings.ini\" file."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:169
+#: src/gui/wizard/screen_wizard.cpp:170
 msgid ""
 "The status bar is at the bottom of the screen. It contains information "
 "about:\n"
@@ -1013,7 +1026,7 @@ msgid ""
 "- Selected filament"
 msgstr ""
 
-#: src/gui/screen_menu_lan_settings.cpp:287
+#: src/gui/screen_menu_lan_settings.cpp:286
 msgid ""
 "There was an error saving the settings in the \"lan_settings.ini\" file."
 msgstr ""
@@ -1023,7 +1036,7 @@ msgid "This G-CODE was set up for another printer type."
 msgstr ""
 
 #. window_menu
-#: src/guiapi/src/MItem_tools.cpp:172
+#: src/guiapi/src/MItem_tools.cpp:185
 msgid ""
 "This operation can't be undone, current configuration will be lost! Are you "
 "really sure to reset printer to factory defaults?"
@@ -1034,7 +1047,7 @@ msgstr ""
 msgid "Thr"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:328
+#: src/guiapi/include/MItem_tools.hpp:338
 msgid "Time"
 msgstr ""
 
@@ -1073,7 +1086,7 @@ msgstr ""
 msgid "UNLOAD FILAMENT"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:24
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:25
 msgid "USB drive error. Print paused."
 msgstr ""
 
@@ -1105,11 +1118,11 @@ msgstr ""
 msgid "WARNING:"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:42
+#: src/gui/wizard/screen_wizard.cpp:27
 msgid "WIZARD"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:58
+#: src/gui/wizard/screen_wizard.cpp:28
 msgid "WIZARD - OK"
 msgstr ""
 
@@ -1130,7 +1143,7 @@ msgstr ""
 msgid "Wed"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:126
+#: src/gui/wizard/screen_wizard.cpp:127
 msgid ""
 "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
 msgstr ""
@@ -1139,15 +1152,17 @@ msgstr ""
 msgid "Wizard"
 msgstr ""
 
-#: src/gui/dialogs/DialogSelftestAxis.cpp:13
+#: src/gui/dialogs/DialogSelftestResult.cpp:43
+#: src/gui/dialogs/DialogSelftestAxis.cpp:19
 msgid "X-axis"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:50
+#: src/gui/wizard/screen_wizard.cpp:30
 msgid "XYZ CALIBRATION"
 msgstr ""
 
-#: src/gui/dialogs/DialogSelftestAxis.cpp:15
+#: src/gui/dialogs/DialogSelftestResult.cpp:44
+#: src/gui/dialogs/DialogSelftestAxis.cpp:20
 msgid "Y-axis"
 msgstr ""
 
@@ -1160,6 +1175,7 @@ msgstr ""
 msgid "Z height:"
 msgstr ""
 
-#: src/gui/dialogs/DialogSelftestAxis.cpp:17
+#: src/gui/dialogs/DialogSelftestResult.cpp:45
+#: src/gui/dialogs/DialogSelftestAxis.cpp:21
 msgid "Z-axis"
 msgstr ""

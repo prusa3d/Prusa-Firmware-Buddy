@@ -25,15 +25,15 @@ static_assert(sizeof(SelftestResultEEprom_t) == 4, "Invalid size of SelftestResu
 static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 static const float XYfr_table[] = { 50, 60, 75, 100 };
 
-static const float Zfr_table[] = { 20 };
+static const float Zfr_table[] = { 10 };
 
-static const uint16_t Fan0min_rpm_table[] = { 300, 1400, 2500, 3400, 4000 };
+static const uint16_t Fan0min_rpm_table[] = { 150, 1250, 2350, 3250, 3850 };
 
-static const uint16_t Fan0max_rpm_table[] = { 1800, 3800, 4900, 5800, 6500 };
+static const uint16_t Fan0max_rpm_table[] = { 1950, 3950, 5050, 5950, 6650 };
 
-static const uint16_t Fan1min_rpm_table[] = { 2500, 4900, 6100, 7000, 7800 };
+static const uint16_t Fan1min_rpm_table[] = { 2350, 4750, 5950, 6850, 7650 };
 
-static const uint16_t Fan1max_rpm_table[] = { 3600, 5700, 6900, 7900, 8800 };
+static const uint16_t Fan1max_rpm_table[] = { 3750, 5850, 7050, 8050, 8950 };
 
 static const selftest_fan_config_t Config_Fan0 = { .partname = "Fan0", .pfanctl = &fanctl0, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan0min_rpm_table, .rpm_max_table = Fan0max_rpm_table, .steps = 5 };
 
@@ -116,7 +116,7 @@ void CSelftest::Loop() {
             return;
         break;
     case stsZAxis:
-        if (phaseAxis(&Config_ZAxis, &m_pZAxis, (uint16_t)PhasesSelftestAxis::Zaxis, Y_AXIS_PERCENT, Z_AXIS_PERCENT))
+        if (phaseAxis(&Config_ZAxis, &m_pZAxis, (uint16_t)PhasesSelftestAxis::Zaxis, X_AXIS_PERCENT + Y_AXIS_PERCENT, Z_AXIS_PERCENT))
             return;
         break;
     case stsWait_axes:
@@ -266,11 +266,10 @@ bool CSelftest::phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, con
     m_pHeater_Nozzle->Loop();
     m_pHeater_Bed->Loop();
     if (m_pHeater_Nozzle->IsInProgress() || m_pHeater_Bed->IsInProgress()) {
-        int p = std::min(m_pHeater_Nozzle->GetProgress(), m_pHeater_Bed->GetProgress());
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_cool, p, m_pHeater_Nozzle->getFSMState_cool());
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_heat, p, m_pHeater_Nozzle->getFSMState_heat());
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_cool, p, m_pHeater_Bed->getFSMState_cool());
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_heat, p, m_pHeater_Bed->getFSMState_heat());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_prep, m_pHeater_Nozzle->GetProgress(), m_pHeater_Nozzle->getFSMState_cool());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_heat, m_pHeater_Nozzle->GetProgress(), m_pHeater_Nozzle->getFSMState_heat());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_prep, m_pHeater_Bed->GetProgress(), m_pHeater_Bed->getFSMState_cool());
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_heat, m_pHeater_Bed->GetProgress(), m_pHeater_Bed->getFSMState_heat());
         return true;
     }
     fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_heat, 100, m_pHeater_Nozzle->getFSMState_heat());
@@ -380,6 +379,8 @@ bool CSelftest::abort_part(CSelftestPart **pppart) {
 
 CSelftestPart::CSelftestPart()
     : m_State(0)
+    , m_StartTime(0)
+    , m_EndTime(UINT_MAX)
     , m_Result(sprUnknown) {
 }
 
