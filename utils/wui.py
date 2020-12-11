@@ -5,7 +5,7 @@ from pathlib import Path
 import gzip
 import shutil
 
-class WUIFiles:
+class WUI_Files:
     def __init__(self):
         self.wui_files = []
         # path to resource files directory
@@ -16,35 +16,36 @@ class WUIFiles:
         self.raw_data_file_tmp = Path(__file__).resolve().parent.parent / 'lib' / 'WUI' / 'resources' / str(self.main_file_name + '_tmp')
 
         # start
-        self.getFiles()
-        self.gzipFiles()
-        self.generateRawDataFile()
-    #endef
+        self.get_files()
+        self.gzip_files()
+        self.generate_raw_data_file()
 
-    # store paths to static wui files in array for later use
-    def getFiles(self):
+    """ store paths to static wui files in array for later use """
+    def get_files(self):
         os.chdir(self.wui_path)
         root, dirs, files = next(os.walk(self.wui_path))
         for file in files:
-            # *.gz files is ignored
-            # if for some reason gziped files is in root dir - we don't want them
-            # TODO: check for gziped files and delete them ?!
+            """
+            *.gz files is ignored
+            if for some reason gziped files is in root dir - we don't want them
+            TODO: check for gziped files and delete them ?!
+            """
             if file.find('.gz') < 0:
                 self.wui_files.append(os.path.join(root, file));
-    #endef
 
-    # gzip wui static files in same directory
-    def gzipFiles(self):
+    """ gzip wui static files in same directory """
+    def gzip_files(self):
         for file in self.wui_files:
             with open(file, 'rb') as f_in:
                 with gzip.open(file + '.gz', 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
-    #endef
 
-    # get hex from file
-    # arg[0] file_path
-    # return string of raw hex data
-    def getHex(self, file_path):
+    """
+    get hex from file
+    arg[0] file_path
+    return string of raw hex data
+    """
+    def get_hex(self, file_path):
 
         # read file as binary because
         # we are using gziped files
@@ -59,10 +60,9 @@ class WUIFiles:
 
         ret = ','.join(hex_data)
         return ret
-    #endef
 
-    # finish script - replace tmp generated file for origin & delete it
-    def finishMainFile(self):
+    """ finish script - replace tmp generated file for origin & delete it """
+    def finish_main_file(self):
         data = []
         file_num = len(self.wui_files)
         last_file = 'file__' + Path(self.wui_files[file_num - 1]).name
@@ -74,10 +74,10 @@ class WUIFiles:
         data.append('#define FS_ROOT ' + last_file + '\n')
 
         # write data
-        self.writeTmpData(data)
-    #endef
+        self.write_tmp_data(data)
 
-    def writeVariables(self):
+    """ generate variables at the end of the file """
+    def write_variables(self):
         data = []
 
         previous_file = 'file_NULL'
@@ -96,10 +96,13 @@ class WUIFiles:
             previous_file = 'file__' + file_name
 
         # write data
-        self.writeTmpData(data)
-    #endef
+        self.write_tmp_data(data)
 
-    def replaceOrigin(self):
+    """ 
+    remove created gziped files, 
+    remove original main file with raw data and replace it with TMP file as new origin
+    """
+    def replace_origin(self):
         # remove gziped files
         for file in self.wui_files:
             os.remove(file + '.gz')
@@ -107,14 +110,13 @@ class WUIFiles:
         # remove original file and rename tmp file
         os.remove(self.raw_data_file)
         os.rename(self.raw_data_file_tmp, self.raw_data_file)
-    #endef
     
-    # generate hex raw data from all resources files into a one C file
-    def generateRawDataFile(self):
+    """ generate hex raw data from all resources files into a one C file """
+    def generate_raw_data_file(self):
         # tmp file for writing data
-        self.createTmpFile()
+        self.create_tmp_file()
         # write static data as header
-        self.generateHeader()
+        self.generate_header()
 
         # dev test
         #  self.getHex(self.wui_files[0])
@@ -122,25 +124,23 @@ class WUIFiles:
 
         # generate hex from files
         for file in self.wui_files:
-            self.writeFile(file)
+            self.write_file(file)
 
         # add footer with variables
-        self.writeVariables()
+        self.write_variables()
         # add footer with defines of files
-        self.finishMainFile()
+        self.finish_main_file()
         # replace & remove
-        self.replaceOrigin()
-    #endef
+        self.replace_origin()
 
-    # write data into a file
-    def writeTmpData(self, data):
+    """ write data into a file """
+    def write_tmp_data(self, data):
         tmp_file = open(self.raw_data_file_tmp, 'a')
         tmp_file.writelines(data)
         tmp_file.close()
-    #endef
 
-    # read file as binary and wrote hex data into a main file
-    def writeFile(self, file):
+    """ read file as binary and wrote hex data into a main file """
+    def write_file(self, file):
         # lines to wrote into a tmp file
         data = []
         # file name
@@ -164,8 +164,7 @@ class WUIFiles:
         data.append(hex_data)
 
         # hex file data 
-        #  hex_data = self.getHex(file)
-        hex_data = self.getHex(file + '.gz')
+        hex_data = self.get_hex(file + '.gz')
         hex_data += ',\n'
         data.append(hex_data)
 
@@ -173,16 +172,17 @@ class WUIFiles:
         data.append('};\n\n')
 
         # write data
-        self.writeTmpData(data)
-    #endef
+        self.write_tmp_data(data)
     
-    # create new temporary file to write content into it then,
-    # after all content is made, this file will replace the original one
-    def createTmpFile(self):
+    """
+    create new temporary file to write content into it then,
+    after all content is made, this file will replace the original one
+    """
+    def create_tmp_file(self):
         open(self.raw_data_file_tmp, 'w')
-    #endef
 
-    def generateHeader(self):
+    """ generate and write static makros and includes as a header of main file with raw data """
+    def generate_header(self):
         # lines to wrote into a tmp file
         data = []
 
@@ -212,9 +212,7 @@ class WUIFiles:
         #  data.append('')
 
         # write data
-        self.writeTmpData(data)
-    #endef
-#enclass
+        self.write_tmp_data(data)
 
 # start instance
-wf = WUIFiles()
+wf = WUI_Files()

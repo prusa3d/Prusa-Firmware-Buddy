@@ -14,6 +14,13 @@ target_sources(WUI INTERFACE
   sntp/sntp.c
 )
 
+add_custom_command(
+  OUTPUT "${PROJECT_ROOT_DIR}/lib/WUI/resources/fsdata_wui_local.c"
+  COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/wui.py"
+  COMMENT "Generating fsdata_wui_local raw data from WUI resources."
+  VERBATIM
+  )
+
 target_include_directories(
   WUI
   INTERFACE

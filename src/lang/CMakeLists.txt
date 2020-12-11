@@ -12,12 +12,6 @@ add_custom_command(
   COMMENT "Generating C++ files out of .po files."
   VERBATIM
   )
-add_custom_command(
-  OUTPUT "${PROJECT_ROOT_DIR}/lib/WUI/resources/fsdata_wui_local.c"
-  COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/wui.py"
-  COMMENT "Generating fsdata_wui_local raw data from WUI resources."
-  VERBATIM
-  )
 add_custom_target(
   translations-genfiles DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/hash_table_buckets.ipp"
   )
