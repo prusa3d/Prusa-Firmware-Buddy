@@ -21,6 +21,10 @@ add_custom_command(
   VERBATIM
   )
 
+add_custom_target(
+  wui-genfile DEPENDS "${PROJECT_ROOT_DIR}/lib/WUI/resources/fsdata_wui_local.c"
+  )
+
 target_include_directories(
   WUI
   INTERFACE
