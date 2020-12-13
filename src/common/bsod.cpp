@@ -248,6 +248,8 @@ void draw_error_screen(const uint16_t error_code_short) {
 
     uint32_t i = 0;
     uint32_t count = sizeof(error_list) / sizeof(err_t);
+    const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
+
     while (i < count && error_code_short != error_list[i].err_num) {
         ++i;
     }
@@ -318,7 +320,9 @@ void draw_error_screen(const uint16_t error_code_short) {
             render_text_align(Rect16(160, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// apendix
-        if (!(ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK)) {
+        if (!(ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK)
+            && bootloader->major >= 1
+            && bootloader->minor >= 1) {
             static const char apendix_str[4] = "[A]";
             render_text_align(Rect16(185, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
