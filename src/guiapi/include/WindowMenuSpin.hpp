@@ -93,7 +93,11 @@ invalidate_t WI_SPIN_t<T>::Change(int dif) {
 
 template <class T>
 void WI_SPIN_t<T>::printSpinToBuffer() {
-    snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, (T)(value));
+    if (config.IsOffOptionEnabled() && (T)(value) == 0) {
+        snprintf(spin_text_buff.data(), spin_text_buff.size(), "Off");
+    } else {
+        snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, (T)(value));
+    }
 }
 
 template <>
