@@ -9,8 +9,8 @@
 
 static const char AxisLetter[] = { 'X', 'Y', 'Z', 'E' };
 
-CSelftestPart_Axis::CSelftestPart_Axis(const selftest_axis_config_t *pconfig)
-    : m_pConfig(pconfig)
+CSelftestPart_Axis::CSelftestPart_Axis(const selftest_axis_config_t &config)
+    : m_config(config)
     , m_Time(0)
     , m_Step(0)
     , m_StartPos_usteps(0)
@@ -37,12 +37,12 @@ bool CSelftestPart_Axis::Loop() {
     case spsIdle:
         return false;
     case spsStart: {
-        Selftest.log_printf("%s Started\n", m_pConfig->partname);
+        Selftest.log_printf("%s Started\n", m_config.partname);
         m_Time = Selftest.m_Time;
         m_StartTime = m_Time;
-        m_EndTime = m_StartTime + estimate(m_pConfig);
+        m_EndTime = m_StartTime + estimate(m_config);
         char gcode[6];
-        sprintf(gcode, "G28 %c", AxisLetter[m_pConfig->axis]);
+        sprintf(gcode, "G28 %c", AxisLetter[m_config.axis]);
         queue.enqueue_one_now(gcode);
         break;
     }
@@ -55,19 +55,19 @@ bool CSelftestPart_Axis::Loop() {
         m_Time = Selftest.m_Time;
         break;
     case spsMoveFwd:
-        phaseMove(m_pConfig->dir);
+        phaseMove(m_config.dir);
         break;
     case spsWaitFwd:
-        if (phaseWait(m_pConfig->dir))
+        if (phaseWait(m_config.dir))
             return true;
         break;
     case spsMoveRev:
-        phaseMove(-m_pConfig->dir);
+        phaseMove(-m_config.dir);
         break;
     case spsWaitRev:
-        if (phaseWait(-m_pConfig->dir))
+        if (phaseWait(-m_config.dir))
             return true;
-        if (++m_Step < m_pConfig->steps) {
+        if (++m_Step < m_config.steps) {
             m_State = spsMoveFwd;
             return true;
         }
@@ -78,7 +78,7 @@ bool CSelftestPart_Axis::Loop() {
             m_State = spsFailed;
         else
             m_Result = sprPassed;
-        Selftest.log_printf("%s %s\n", m_pConfig->partname, (m_Result == sprPassed) ? "Passed" : "Failed");
+        Selftest.log_printf("%s %s\n", m_config.partname, (m_Result == sprPassed) ? "Passed" : "Failed");
         break;
     case spsFinished:
     case spsAborted:
@@ -101,23 +101,23 @@ uint8_t CSelftestPart_Axis::getFSMState() {
 }
 
 void CSelftestPart_Axis::phaseMove(int8_t dir) {
-    Selftest.log_printf("%s %s @%d mm/s\n", ((dir * m_pConfig->dir) > 0) ? "fwd" : "rew", m_pConfig->partname, (int)m_pConfig->fr_table[m_Step]);
+    Selftest.log_printf("%s %s @%d mm/s\n", ((dir * m_config.dir) > 0) ? "fwd" : "rew", m_config.partname, (int)m_config.fr_table[m_Step]);
     planner.synchronize();
     sg_sampling_enable();
-    m_StartPos_usteps = stepper.position((AxisEnum)m_pConfig->axis);
-    current_position.pos[m_pConfig->axis] += dir * (m_pConfig->length + 10);
-    line_to_current_position(m_pConfig->fr_table[m_Step]);
+    m_StartPos_usteps = stepper.position((AxisEnum)m_config.axis);
+    current_position.pos[m_config.axis] += dir * (m_config.length + 10);
+    line_to_current_position(m_config.fr_table[m_Step]);
 }
 
 bool CSelftestPart_Axis::phaseWait(int8_t dir) {
     if (planner.movesplanned())
         return true;
     sg_sampling_disable();
-    int32_t endPos_usteps = stepper.position((AxisEnum)m_pConfig->axis);
+    int32_t endPos_usteps = stepper.position((AxisEnum)m_config.axis);
     int32_t length_usteps = dir * (endPos_usteps - m_StartPos_usteps);
-    float length_mm = (length_usteps * planner.steps_to_mm[(AxisEnum)m_pConfig->axis]);
+    float length_mm = (length_usteps * planner.steps_to_mm[(AxisEnum)m_config.axis]);
     Selftest.log_printf(" length = %f mm\n", (double)length_mm);
-    if ((length_mm < m_pConfig->length_min) || (length_mm > m_pConfig->length_max)) {
+    if ((length_mm < m_config.length_min) || (length_mm > m_config.length_max)) {
         m_Result = sprFailed;
         m_State = spsFinish;
         return true;
@@ -125,10 +125,10 @@ bool CSelftestPart_Axis::phaseWait(int8_t dir) {
     return false;
 }
 
-uint32_t CSelftestPart_Axis::estimate(const selftest_axis_config_t *pconfig) {
+uint32_t CSelftestPart_Axis::estimate(const selftest_axis_config_t &config) {
     uint32_t total_time = 0;
-    for (int i = 0; i < pconfig->steps; i++) {
-        total_time += 2 * estimate_move(pconfig->length, pconfig->fr_table[i]);
+    for (int i = 0; i < config.steps; i++) {
+        total_time += 2 * estimate_move(config.length, config.fr_table[i]);
     }
     return total_time;
 }
@@ -139,12 +139,12 @@ uint32_t CSelftestPart_Axis::estimate_move(float len_mm, float fr_mms) {
 }
 
 void CSelftestPart_Axis::sg_sample_cb(uint8_t axis, uint16_t sg) {
-    if (m_pSGAxis && (m_pSGAxis->m_pConfig->axis == axis))
+    if (m_pSGAxis && (m_pSGAxis->m_config.axis == axis))
         m_pSGAxis->sg_sample(sg);
 }
 
 void CSelftestPart_Axis::sg_sample(uint16_t sg) {
-    int32_t pos = stepper.position((AxisEnum)m_pConfig->axis);
+    int32_t pos = stepper.position((AxisEnum)m_config.axis);
     Selftest.log_printf("%u %d %d\n", HAL_GetTick() - m_StartTime, pos, sg);
     m_SGCount++;
     m_SGSum += sg;
@@ -152,8 +152,8 @@ void CSelftestPart_Axis::sg_sample(uint16_t sg) {
 
 void CSelftestPart_Axis::sg_sampling_enable() {
     m_SGOrig_mask = tmc_get_sg_mask();
-    tmc_set_sg_mask(1 << m_pConfig->axis);
-    tmc_set_sg_axis(m_pConfig->axis);
+    tmc_set_sg_mask(1 << m_config.axis);
+    tmc_set_sg_axis(m_config.axis);
     m_pSGOrig_cb = (void *)tmc_get_sg_sample_cb();
     tmc_set_sg_sample_cb(sg_sample_cb);
     m_pSGAxis = this;
