@@ -2870,8 +2870,11 @@ void Temperature::init() {
 
       case TRRunaway:
         TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
-        _temp_error(heater_id, FPSTR(str_t_thermal_runaway), GET_TEXT_F(MSG_THERMAL_RUNAWAY));
 
+        if (heater_id==H_BED)
+          _temp_error(H_BED, FPSTR(str_t_thermal_runaway), GET_TEXT_F(MSG_THERMAL_RUNAWAY_BED));
+        else
+          _temp_error(heater_id, FPSTR(str_t_thermal_runaway), GET_TEXT_F(MSG_THERMAL_RUNAWAY));
       #if ENABLED(THERMAL_PROTECTION_VARIANCE_MONITOR)
         case TRMalfunction:
           TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
