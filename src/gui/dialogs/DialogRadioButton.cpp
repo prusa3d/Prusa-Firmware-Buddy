@@ -127,7 +127,14 @@ void RadioButton::draw_n_btns(const size_t btn_count) const {
     rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
 
     for (size_t i = 0; i < btn_count; ++i) {
-        button_draw(splits[i], _((*texts)[i]), pfont, GetBtnIndex() == i && IsEnabled());
+        string_view_utf8 drawn = _((*texts)[i]);
+        char buffer[128];
+        if ((pfont->w * ratio[i]) > splits[i].Width()) {
+            size_t length = drawn.copyToRAM(buffer, splits[i].Width() / pfont->w);
+            buffer[length] = 0;
+            drawn = string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer);
+        }
+        button_draw(splits[i], drawn, pfont, GetBtnIndex() == i && IsEnabled());
     }
     for (size_t i = 0; i < btn_count - 1; ++i) {
         display::FillRect(spaces[i], color_back);
