@@ -5,15 +5,18 @@ from pathlib import Path
 import gzip
 import shutil
 
+
 class WUI_Files:
     def __init__(self):
         self.wui_files = []
-        # path to resource files directory
-        self.wui_path = Path(__file__).resolve().parent.parent / 'lib' / 'WUI' / 'resources' / 'src_local'
-        # path to main C file with raw data
         self.main_file_name = 'fsdata_wui_local.c'
-        self.raw_data_file = Path(__file__).resolve().parent.parent / 'lib' / 'WUI' / 'resources' / self.main_file_name
-        self.raw_data_file_tmp = Path(__file__).resolve().parent.parent / 'lib' / 'WUI' / 'resources' / str(self.main_file_name + '_tmp')
+        # path to resource files directory
+        project_root = Path(__file__).resolve().parent.parent
+        wui_root = project_root / 'lib' / 'WUI'
+        self.wui_path = wui_root / 'resources' / 'src_local'
+        # path to main C file with raw data
+        self.raw_data_file = wui_root / 'resources' / self.main_file_name
+        self.raw_data_file_tmp = wui_root / 'resources' / f'{self.main_file_name}.tmp'
 
         # start
         self.get_files()
@@ -21,6 +24,7 @@ class WUI_Files:
         self.generate_raw_data_file()
 
     """ store paths to static wui files in array for later use """
+
     def get_files(self):
         os.chdir(self.wui_path)
         root, dirs, files = next(os.walk(self.wui_path))
@@ -31,9 +35,10 @@ class WUI_Files:
             TODO: check for gziped files and delete them ?!
             """
             if file.find('.gz') < 0:
-                self.wui_files.append(os.path.join(root, file));
+                self.wui_files.append(os.path.join(root, file))
 
     """ gzip wui static files in same directory """
+
     def gzip_files(self):
         for file in self.wui_files:
             with open(file, 'rb') as f_in:
@@ -45,6 +50,7 @@ class WUI_Files:
     arg[0] file_path
     return string of raw hex data
     """
+
     def get_hex(self, file_path):
 
         # read file as binary because
@@ -54,7 +60,7 @@ class WUI_Files:
             while True:
                 hd = file.read(1).hex()
                 if len(hd) == 0:
-                    break;
+                    break
                 hex_data.append('0x' + hd)
             hex_data.append('0x00')
 
@@ -62,6 +68,7 @@ class WUI_Files:
         return ret
 
     """ finish script - replace tmp generated file for origin & delete it """
+
     def finish_main_file(self):
         data = []
         file_num = len(self.wui_files)
@@ -70,13 +77,14 @@ class WUI_Files:
 
         # add define to file num & root
         data.append('\n')
-        data.append('#define FS_NUMFILES ' + str(file_num) +'\n')
+        data.append('#define FS_NUMFILES ' + str(file_num) + '\n')
         data.append('#define FS_ROOT ' + last_file + '\n')
 
         # write data
         self.write_tmp_data(data)
 
     """ generate variables at the end of the file """
+
     def write_variables(self):
         data = []
 
@@ -85,11 +93,14 @@ class WUI_Files:
             file_name = Path(file).name.replace('.', '_')
             file_length = len('/' + file_name) + 1
 
-            data.append('const struct fsdata_file file__' + file_name + '[] = { {\n')
+            data.append('const struct fsdata_file file__' + file_name +
+                        '[] = { {\n')
             data.append(previous_file + ',\n')
             data.append('data__' + file_name + ',\n')
-            data.append('data__' + file_name + ' + ' + str(file_length) + ',\n')
-            data.append('sizeof(data__' + file_name + ') - ' + str(file_length) + ',\n')
+            data.append('data__' + file_name + ' + ' + str(file_length) +
+                        ',\n')
+            data.append('sizeof(data__' + file_name + ') - ' +
+                        str(file_length) + ',\n')
             data.append('0,\n')
             data.append('} };\n\n')
 
@@ -98,10 +109,11 @@ class WUI_Files:
         # write data
         self.write_tmp_data(data)
 
-    """ 
-    remove created gziped files, 
+    """
+    remove created gziped files,
     remove original main file with raw data and replace it with TMP file as new origin
     """
+
     def replace_origin(self):
         # remove gziped files
         for file in self.wui_files:
@@ -110,8 +122,9 @@ class WUI_Files:
         # remove original file and rename tmp file
         os.remove(self.raw_data_file)
         os.rename(self.raw_data_file_tmp, self.raw_data_file)
-    
+
     """ generate hex raw data from all resources files into a one C file """
+
     def generate_raw_data_file(self):
         # tmp file for writing data
         self.create_tmp_file()
@@ -134,20 +147,23 @@ class WUI_Files:
         self.replace_origin()
 
     """ write data into a file """
+
     def write_tmp_data(self, data):
         tmp_file = open(self.raw_data_file_tmp, 'a')
         tmp_file.writelines(data)
         tmp_file.close()
 
     """ read file as binary and wrote hex data into a main file """
+
     def write_file(self, file):
         # lines to wrote into a tmp file
         data = []
         # file name
         file_name = Path(file).name
-        
+
         # define file array
-        data.append('static const unsigned char FSDATA_ALIGN_PRE data__' +file_name.replace('.', '_') + '[] FSDATA_ALIGN_POST = {\n')
+        data.append('static const unsigned char FSDATA_ALIGN_PRE data__' +
+                    file_name.replace('.', '_') + '[] FSDATA_ALIGN_POST = {\n')
 
         # get hex of file name, add into text data array
         file_name = '/' + file_name
@@ -163,7 +179,7 @@ class WUI_Files:
         hex_data += ',\n'
         data.append(hex_data)
 
-        # hex file data 
+        # hex file data
         hex_data = self.get_hex(file + '.gz')
         hex_data += ',\n'
         data.append(hex_data)
@@ -173,22 +189,24 @@ class WUI_Files:
 
         # write data
         self.write_tmp_data(data)
-    
+
     """
     create new temporary file to write content into it then,
     after all content is made, this file will replace the original one
     """
+
     def create_tmp_file(self):
         open(self.raw_data_file_tmp, 'w')
 
     """ generate and write static makros and includes as a header of main file with raw data """
+
     def generate_header(self):
         # lines to wrote into a tmp file
         data = []
 
         data.append('#include "lwip/apps/fs.h"\n')
         data.append('#include "lwip/def.h"\n\n')
-        
+
         data.append('#define file_NULL (struct fsdata_file *)NULL\n\n')
 
         data.append('#ifndef FS_FILE_FLAGS_HEADER_INCLUDED\n')
@@ -213,6 +231,7 @@ class WUI_Files:
 
         # write data
         self.write_tmp_data(data)
+
 
 # start instance
 wf = WUI_Files()
