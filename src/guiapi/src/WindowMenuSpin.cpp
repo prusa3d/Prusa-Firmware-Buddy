@@ -42,14 +42,24 @@ Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
 }
 
 void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    const Rect16 spin_rc = getSpinRect(extension_rect);
-    const Rect16 unit_rc = getUnitRect(extension_rect);
 
-    const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
     string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
+    const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
     const uint8_t align = ALIGN_RIGHT_TOP;
 
+    // If there is spin_off_opt::yes set in SpinConfig (with units), it prints "Off" instead of "0"
+    if (spin_txt.getUtf8Char() == 'O') {
+        spin_txt.rewind();
+        extension_rect = Rect16::Width_t(Font->w * 3 + Padding.left + Padding.right);
+        render_text_align(extension_rect, spin_txt, Font, color_back, cl_txt, Padding, align); //render spin number
+        return;
+    }
+
+    spin_txt.rewind();
+    const Rect16 spin_rc = getSpinRect(extension_rect);
+    const Rect16 unit_rc = getUnitRect(extension_rect);
     render_text_align(spin_rc, spin_txt, Font, color_back, cl_txt, Padding, align); //render spin number
+
     if (has_unit) {
         string_view_utf8 un = units; //local var because of const
         un.rewind();
