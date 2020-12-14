@@ -4,7 +4,7 @@
 #include <inttypes.h>
 #include "selftest_MINI.h"
 
-typedef struct _selftest_axis_config_t {
+struct selftest_axis_config_t {
     const char *partname;
     float length;
     const float *fr_table;
@@ -13,7 +13,7 @@ typedef struct _selftest_axis_config_t {
     uint8_t axis;
     uint8_t steps;
     int8_t dir;
-} selftest_axis_config_t;
+};
 
 class CSelftestPart_Axis : public CSelftestPart {
 public:
@@ -32,7 +32,7 @@ public:
     };
 
 public:
-    CSelftestPart_Axis(const selftest_axis_config_t *pconfig);
+    CSelftestPart_Axis(const selftest_axis_config_t &config);
 
 public:
     virtual bool IsInProgress() const override;
@@ -50,7 +50,7 @@ protected:
     bool phaseWait(int8_t dir);
 
 protected:
-    static uint32_t estimate(const selftest_axis_config_t *pconfig);
+    static uint32_t estimate(const selftest_axis_config_t &config);
     static uint32_t estimate_move(float len_mm, float fr_mms);
     static void sg_sample_cb(uint8_t axis, uint16_t sg);
 
@@ -60,7 +60,7 @@ protected:
     void sg_sampling_disable();
 
 protected:
-    const selftest_axis_config_t *m_pConfig;
+    const selftest_axis_config_t &m_config;
     uint32_t m_Time;
     uint8_t m_Step;
     uint32_t m_StartPos_usteps;
