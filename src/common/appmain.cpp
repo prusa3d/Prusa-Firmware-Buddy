@@ -44,13 +44,15 @@ CFanCtl fanctl0 = CFanCtl(
     buddy::hw::fan0tach,
     FANCTL0_PWM_MIN, FANCTL0_PWM_MAX,
     FANCTL0_RPM_MIN, FANCTL0_RPM_MAX,
-    FANCTL0_PWM_THR);
+    FANCTL0_PWM_THR,
+    is_autofan_t::no);
 CFanCtl fanctl1 = CFanCtl(
     buddy::hw::fan1pwm,
     buddy::hw::fan1tach,
     FANCTL1_PWM_MIN, FANCTL1_PWM_MAX,
     FANCTL1_RPM_MIN, FANCTL1_RPM_MAX,
-    FANCTL1_PWM_THR);
+    FANCTL1_PWM_THR,
+    is_autofan_t::yes);
 #endif //NEW_FANCTL
 
 #define DBG _dbg0 //debug level 0

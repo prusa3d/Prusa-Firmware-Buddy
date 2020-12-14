@@ -125,10 +125,11 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
 // CFanCtl implementation
 
 CFanCtl::CFanCtl(const OutputPin &pinOut, const InputPin &pinTach,
-    uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM)
+    uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan)
     : m_MinRPM(minRPM)
     , m_MaxRPM(maxRPM)
     , m_State(idle)
+    , is_autofan(autofan)
     , m_pwm(pinOut, minPWM, maxPWM, thrPWM)
     , m_tach(pinTach) {
     m_PWMValue = 0;

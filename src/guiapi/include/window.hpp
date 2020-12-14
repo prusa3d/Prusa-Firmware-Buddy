@@ -44,7 +44,6 @@ public:
     void SetHasTimer();
     void ClrHasTimer();
     void SetFocus();
-    void SetCapture();
     void Enable();
     void Disable();
     void Show();
@@ -79,13 +78,10 @@ private:
     virtual void validate(Rect16 validation_rect);
 
     static window_t *focused_ptr; // has focus
-    static window_t *capture_ptr; // capture jog events
 
 public:
+    virtual window_t *GetCapturedWindow() { return this; } // do not use, used by screen
     static window_t *GetFocusedWindow();
-    static window_t *GetCapturedWindow();
-
-    static void ResetCapturedWindow();
     static void ResetFocusedWindow();
 
     //knob events

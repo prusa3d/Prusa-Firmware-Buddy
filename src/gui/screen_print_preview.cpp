@@ -164,7 +164,7 @@ static void print_button_press() {
 }
 
 screen_print_preview_data_t::screen_print_preview_data_t()
-    : AddSuperWindow<window_frame_t>()
+    : AddSuperWindow<screen_t>()
     , title_text(this, Rect16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT))
     , print_button(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_print_58px, print_button_press)
     , print_label(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)

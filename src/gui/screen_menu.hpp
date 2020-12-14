@@ -8,6 +8,7 @@
 #include "WindowMenuItems.hpp"
 #include <stdint.h>
 #include "resource.h"
+#include "screen.hpp"
 #include <new>
 
 enum class EHeader { On,
@@ -24,7 +25,7 @@ constexpr static const HelperConfig HelpLines_None = { 0, IDR_FNT_SPECIAL };
 constexpr static const HelperConfig HelpLines_Default = { 4, IDR_FNT_SPECIAL };
 
 //parent to not repeat code in templates
-class IScreenMenu : public AddSuperWindow<window_frame_t> {
+class IScreenMenu : public AddSuperWindow<screen_t> {
 protected:
     constexpr static const char *no_labelS = "MISSING";
     static string_view_utf8 no_label;
@@ -33,11 +34,8 @@ protected:
     window_text_t help;
     status_footer_t footer;
 
-    window_t *prev_capture;
-
 public:
     IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
-    ~IScreenMenu();
     void unconditionalDrawItem(uint8_t index);
 };
 

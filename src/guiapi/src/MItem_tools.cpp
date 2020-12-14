@@ -22,6 +22,7 @@
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "menu_spin_config.hpp"
+#include "DialogSelftestResult.hpp"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -30,7 +31,7 @@ MI_WIZARD::MI_WIZARD()
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunAll();
+    ScreenWizard::Run(wizard_run_type_t::all);
 }
 
 /*****************************************************************************/
@@ -85,7 +86,19 @@ MI_SELFTEST::MI_SELFTEST()
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunSelfTest();
+    ScreenWizard::Run(wizard_run_type_t::selftest);
+}
+
+/*****************************************************************************/
+//MI_SELFTEST_RESULT
+MI_SELFTEST_RESULT::MI_SELFTEST_RESULT()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
+    SelftestResultEEprom_t result;
+    result.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    DialogSelftestResult::Show(result);
 }
 
 /*****************************************************************************/
@@ -95,7 +108,7 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunFirstLay();
+    ScreenWizard::Run(wizard_run_type_t::firstlay);
 }
 
 /*****************************************************************************/

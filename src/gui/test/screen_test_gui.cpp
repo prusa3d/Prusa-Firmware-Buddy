@@ -6,15 +6,12 @@
 #include "ScreenHandler.hpp"
 
 screen_test_gui_data_t::screen_test_gui_data_t()
-    : window_frame_t()
+    : AddSuperWindow<screen_t>()
     , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_prusa_printer_splash, is_closed_on_click_t::yes)
     , text0(this, Rect16(10, 70, 60, 22), is_multiline::no)
     , text1(this, Rect16(80, 70, 60, 22), is_multiline::no)
     , text2(this, Rect16(150, 70, 60, 22), is_multiline::no)
     , numb0(this, Rect16(10, 100, 60, 22))
-    , spin0(this, Rect16(80, 100, 60, 22))
-    , spin1(this, Rect16(150, 100, 60, 22))
-    , list(this, Rect16(10, 130, 220, 66))
     , icon0(this, Rect16(10, 234, 64, 64), IDR_PNG_print_58px)
     , icon1(this, Rect16(80, 234, 64, 64), IDR_PNG_preheat_58px)
     , icon2(this, Rect16(150, 234, 64, 64), IDR_PNG_spool_58px)
@@ -35,16 +32,6 @@ screen_test_gui_data_t::screen_test_gui_data_t()
 
     numb0.SetFormat((const char *)"%.0f");
     numb0.SetValue(100.0F);
-
-    spin0.SetFormat("%1.0f");
-    spin0.SetMinMaxStep(0.0F, 270.0F, 1.0F);
-    spin0.SetValue(100.0F);
-
-    spin1.SetFormat("%.3f");
-    spin1.SetMinMaxStep(0.0F, 1.0F, 0.001F);
-    spin1.SetValue(1.000F);
-
-    list.SetItemIndex(2);
 
     text_terminal.font = resource_font(IDR_FNT_TERMINAL);
     static const char tf[] = "Terminal Font IBM ISO9";

@@ -6,7 +6,7 @@
 #include "sound.hpp"
 
 screen_reset_error_data_t::screen_reset_error_data_t()
-    : window_frame_t()
+    : AddSuperWindow<screen_t>()
     , sound_started(false) {
 
     ClrMenuTimeoutClose();
@@ -15,7 +15,7 @@ screen_reset_error_data_t::screen_reset_error_data_t()
 }
 
 void screen_reset_error_data_t::draw() {
-    window_frame_t::draw();
+    super::draw();
     start_sound();
 }
 
