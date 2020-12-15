@@ -112,7 +112,7 @@ void RadioButton::draw_1_btn() const {
 void RadioButton::draw_n_btns(const size_t btn_count) const {
     if (!texts)
         return;
-
+    const uint32_t MAX_TEXT_BUFFER = 128;
     static_assert(sizeof(btn_count) <= GuiDefaults::MAX_DIALOG_BUTTON_COUNT, "Too many RadioButtons to draw.");
 
     /// fix size of dialog buttons - MAX_DIALOG_BUTTON_COUNT
@@ -128,10 +128,10 @@ void RadioButton::draw_n_btns(const size_t btn_count) const {
 
     for (size_t i = 0; i < btn_count; ++i) {
         string_view_utf8 drawn = _((*texts)[i]);
-        char buffer[128];
+        char buffer[MAX_TEXT_BUFFER] = { 0 };
         if ((pfont->w * ratio[i]) > splits[i].Width()) {
             size_t length = drawn.copyToRAM(buffer, splits[i].Width() / pfont->w);
-            buffer[length] = 0;
+            buffer[length < MAX_TEXT_BUFFER ? length : MAX_TEXT_BUFFER - 1] = 0;
             drawn = string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer);
         }
         button_draw(splits[i], drawn, pfont, GetBtnIndex() == i && IsEnabled());
