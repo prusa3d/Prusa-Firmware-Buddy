@@ -50,7 +50,7 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
     // If there is spin_off_opt::yes set in SpinConfig (with units), it prints "Off" instead of "0"
     if (spin_txt.getUtf8Char() == 'O') {
         spin_txt.rewind();
-        extension_rect = Rect16::Width_t(Font->w * 3 + Padding.left + Padding.right);
+        extension_rect = Rect16::Width_t(Font->w * spin_txt.computeNumUtf8CharsAndRewind() + Padding.left + Padding.right);
         render_text_align(extension_rect, spin_txt, Font, color_back, cl_txt, Padding, align); //render spin number
         return;
     }
