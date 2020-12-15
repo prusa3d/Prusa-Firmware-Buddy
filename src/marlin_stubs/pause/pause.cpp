@@ -177,9 +177,6 @@ void Pause::hotend_idle_start(uint32_t time) {
     thermalManager.hotend_idle[e].start((millis_t)(time)*1000UL);
 }
 
-//uncomment to activate
-//#define ASK_FILAMENT_IN_GEAR
-
 /**
  * Load filament into the hotend
  *
@@ -210,49 +207,28 @@ bool Pause::FilamentLoad() {
         AutoRestore<float> AR(planner.settings.retract_acceleration);
 
         if (slow_load_length > 0) {
-#if ENABLED(ASK_FILAMENT_IN_GEAR)
-            Response isFilamentInGear;
+            // wait till filament sensor does not show "NoFilament" in this block
+            // ask user to insert filament, than wait continue button
             do {
-#endif
-                // wait till filament sensor does not show "NoFilament" in this block
-                // ask user to insert filament, than wait continue button
-                do {
-                    while (fs_get_state() == fsensor_t::NoFilament) {
-                        idle(true);
-                        fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
-                    }
+                while (fs_get_state() == fsensor_t::NoFilament) {
                     idle(true);
-                    fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::UserPush, 0, 0);
-                } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
-                hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT * 2); //user just clicked - restart idle timers
-
-                // filament is being inserted
-                // Slow Load filament
-                if (slow_load_length) {
-                    AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
-                    thermalManager.allow_cold_extrude = true;
-                    do_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 10, 30);
+                    fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
                 }
+                idle(true);
+                fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::UserPush, 0, 0);
+            } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
+            hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT * 2); //user just clicked - restart idle timers
 
-                fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsFilamentInGear, 30, 0);
+            // filament is being inserted
+            // Slow Load filament
+            if (slow_load_length) {
+                AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
+                thermalManager.allow_cold_extrude = true;
+                do_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 10, 30);
+            }
 
-#if ENABLED(ASK_FILAMENT_IN_GEAR)
-                //wait until response
-                do {
-                    idle(true);
-                    isFilamentInGear = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsFilamentInGear);
-                } while (isFilamentInGear != Response::Yes && isFilamentInGear != Response::No);
+            fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsFilamentInGear, 30, 0);
 
-                //eject what was inserted
-                if (isFilamentInGear == Response::No) {
-                    if (slow_load_length) {
-                        AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
-                        thermalManager.allow_cold_extrude = true;
-                        do_e_move_notify_progress(-slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Ejecting, 10, 30);
-                    }
-                }
-            } while (isFilamentInGear != Response::Yes);
-#endif
             set_filament(filament_to_load);
         } //slow_load_length > 0
 
