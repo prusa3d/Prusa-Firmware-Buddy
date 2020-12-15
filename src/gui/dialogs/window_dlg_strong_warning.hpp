@@ -30,6 +30,6 @@ protected: // inherited by unit tests, must be protected
 public:
     static void ShowHotendFan();
     static void ShowPrintFan();
-    static void ShowHeaterTimeout();
+    static void ShowHeatersTimeout();
     static void ShowUSBFlashDisk();
 };

@@ -42,6 +42,7 @@ public:
     bool FilamentLoad();
     bool PrintPause(float retract, const xyz_pos_t &park_point);
     void PrintResume();
+    bool CanSafetyTimerExpire() { return true; }
 
 private:
     void unpark_nozzle_and_notify();

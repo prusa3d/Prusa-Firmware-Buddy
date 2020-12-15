@@ -89,8 +89,9 @@ void Warning_cb(WarningType type) {
     case WarningType::PrintFanError:
         window_dlg_strong_warning_t::ShowPrintFan();
         break;
-    case WarningType::HeaterTimeout:
-        window_dlg_strong_warning_t::ShowHeaterTimeout();
+    case WarningType::HeatersTimeout:
+    case WarningType::NozzleTimeout:
+        window_dlg_strong_warning_t::ShowHeatersTimeout();
         break;
     case WarningType::USBFlashDiskError:
         window_dlg_strong_warning_t::ShowUSBFlashDisk();

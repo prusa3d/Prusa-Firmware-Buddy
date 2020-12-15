@@ -33,7 +33,7 @@ public:
         return dlg;
     }
 
-    static MockStrongDialog &ShowHeaterTimeout() {
+    static MockStrongDialog &ShowHeatersTimeout() {
         static MockStrongDialog dlg;
         dlg.Show(_(HeaterTimeoutMsg));
         return dlg;
