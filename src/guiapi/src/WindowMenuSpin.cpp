@@ -54,8 +54,8 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
         uint16_t off_opt_width = Font->w * spin_txt.computeNumUtf8CharsAndRewind() + Padding.left + Padding.right;
         if (curr_width < off_opt_width) {
             extension_rect -= Rect16::Left_t(off_opt_width - curr_width);
+            extension_rect = Rect16::Width_t(off_opt_width);
         }
-        extension_rect = Rect16::Width_t(off_opt_width);
         render_text_align(extension_rect, spin_txt, Font, color_back, cl_txt, Padding, align); //render spin number
         return;
     }
