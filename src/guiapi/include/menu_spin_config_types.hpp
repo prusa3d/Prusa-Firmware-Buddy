@@ -12,8 +12,8 @@
 #include <stdio.h>
 // const char* Unit() is not virtual, because only one of SpinConfig SpinConfigWithUnit is used
 
-typedef enum { yes,
-    no } spin_off_opt_t;
+enum class spin_off_opt_t : bool { no,
+    yes };
 
 union SpinType {
     float flt;
