@@ -130,9 +130,11 @@ void RadioButton::draw_n_btns(const size_t btn_count) const {
         string_view_utf8 drawn = _((*texts)[i]);
         char buffer[MAX_TEXT_BUFFER] = { 0 };
         if ((pfont->w * ratio[i]) > splits[i].Width()) {
-            size_t length = drawn.copyToRAM(buffer, splits[i].Width() / pfont->w);
-            buffer[length < MAX_TEXT_BUFFER ? length : MAX_TEXT_BUFFER - 1] = 0;
-            drawn = string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer);
+            uint32_t max_btn_label_text = splits[i].Width() / pfont->w;
+            size_t length = std::min(max_btn_label_text, MAX_TEXT_BUFFER - 1);
+            length = drawn.copyToRAM(buffer, length);
+            buffer[length] = 0;
+            drawn = string_view_utf8::MakeRAM((const uint8_t *)buffer);
         }
         button_draw(splits[i], drawn, pfont, GetBtnIndex() == i && IsEnabled());
     }
