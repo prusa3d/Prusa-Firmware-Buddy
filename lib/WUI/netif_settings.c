@@ -8,9 +8,9 @@
 static uint32_t wui_eth_config_update = 0;
 
 const ETH_STATUS_t get_eth_status(void) {
-    if (WUI_ETH_NETIF_UP == netif_status) {
+    if (WUI_ETH_NETIF_UP == netif_status && link_status == WUI_ETH_LINK_UP) {
         return ETH_NETIF_UP;
-    } else if (WUI_ETH_LINK_UP == link_status) {
+    } else if (WUI_ETH_LINK_UP == link_status && WUI_ETH_NETIF_DOWN == netif_status) {
         return ETH_NETIF_DOWN;
     }
     return ETH_UNLINKED;
