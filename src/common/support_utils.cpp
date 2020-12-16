@@ -12,6 +12,7 @@
 #include "language_eeprom.hpp"
 #include "sha256.h"
 #include "crc32.h"
+#include "stm32f4xx_hal_gpio.h"
 
 #include "qrcodegen.h"
 #include "support_utils_lib.hpp"
@@ -67,7 +68,7 @@ void printerCode(char *str) {
     }
 
     /// appendix state
-    if (ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK) {
+    if (appendix_exist()) {
         setBit((uint8_t *)hash, 6);
         //setBit(str[0], 6);
     }
@@ -163,4 +164,21 @@ void create_path_info_4service(char *str, const uint32_t str_size) {
     block2hex(str, str_size, (uint8_t *)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
     append_crc(str, str_size);
 #endif //0
+}
+
+bool appendix_exist() {
+    const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
+    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitStruct.Pin = GPIO_PIN_13;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+
+    if (bootloader->major >= 1 && bootloader->minor >= 1) {
+        return !(ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK);
+    } else {
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+        HAL_Delay(50);
+        GPIO_PinState pinState = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_13);
+        return pinState == GPIO_PIN_RESET;
+    }
 }

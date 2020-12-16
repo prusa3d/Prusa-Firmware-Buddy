@@ -19,6 +19,8 @@ extern void create_path_info_4service(char *str, const uint32_t str_size);
 
 extern void printerCode(char *str);
 
+extern bool appendix_exist();
+
 #ifdef __cplusplus
 }
 #endif
