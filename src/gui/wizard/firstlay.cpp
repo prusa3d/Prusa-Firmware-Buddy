@@ -5,7 +5,7 @@
 #include "filament_sensor.hpp"
 #include "filament.h"
 #include "window_dlg_preheat.hpp"
-#include "window_dlg_load_unload.h"
+#include "window_dlg_load_unload.hpp"
 #include "marlin_client.h"
 #include "menu_vars.h"
 #include "eeprom.h"
@@ -74,9 +74,9 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT() {
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_LOAD() {
     switch (gui_dlg_load_forced()) {
-    case DLG_OK:
+    case dlg_result_t::ok:
         return WizardState_t::FIRSTLAY_MSBX_CALIB;
-    case DLG_ABORTED:
+    case dlg_result_t::aborted:
         return WizardState_t::FIRSTLAY_FILAMENT_ASK;
     default:
         return WizardState_t::FIRSTLAY_MSBX_CALIB;
@@ -85,9 +85,9 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_LOAD() {
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_UNLOAD() {
     switch (gui_dlg_unload_forced()) {
-    case DLG_OK:
+    case dlg_result_t::ok:
         return WizardState_t::FIRSTLAY_FILAMENT_LOAD;
-    case DLG_ABORTED:
+    case dlg_result_t::aborted:
         return WizardState_t::FIRSTLAY_FILAMENT_ASK;
     default:
         return WizardState_t::FIRSTLAY_MSBX_CALIB;
