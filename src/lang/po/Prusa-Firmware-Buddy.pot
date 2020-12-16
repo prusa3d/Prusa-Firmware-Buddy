@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-12-09 09:25+0100\n"
+"POT-Creation-Date: 2020-12-16 13:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -148,7 +148,7 @@ msgstr ""
 msgid "Checking axes"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:166
+#: src/gui/wizard/firstlay.cpp:168
 msgid "Clean steel sheet."
 msgstr ""
 
@@ -181,7 +181,7 @@ msgstr ""
 msgid "Disconnect"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:158
+#: src/gui/wizard/firstlay.cpp:160
 msgid ""
 "Do you want to repeat the last step and readjust the distance between the "
 "nozzle and heatbed?"
@@ -391,7 +391,7 @@ msgstr ""
 msgid "Info"
 msgstr ""
 
-#: src/guiapi/src/window_msgbox.cpp:172
+#: src/guiapi/src/window_msgbox.cpp:169
 msgid "Information"
 msgstr ""
 
@@ -758,7 +758,7 @@ msgstr ""
 msgid "Purging"
 msgstr ""
 
-#: src/guiapi/src/window_msgbox.cpp:156
+#: src/guiapi/src/window_msgbox.cpp:155
 msgid "Question"
 msgstr ""
 
@@ -998,7 +998,7 @@ msgid ""
 msgstr ""
 
 #. save eeprom flag
-#: src/gui/wizard/firstlay.cpp:182
+#: src/gui/wizard/firstlay.cpp:184
 msgid ""
 "The first layer calibration failed to finish. Double-check the printer's "
 "wiring, nozzle and axes, then restart the calibration."
@@ -1130,7 +1130,7 @@ msgstr ""
 msgid "Waiting for temperature"
 msgstr ""
 
-#: src/guiapi/src/window_msgbox.cpp:162
+#: src/guiapi/src/window_msgbox.cpp:160
 msgid "Warning"
 msgstr ""
 
