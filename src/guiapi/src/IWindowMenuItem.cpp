@@ -19,6 +19,7 @@ IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extensi
     , focused(is_focused_t::no)
     , selected(is_selected_t::no)
     , id_icon(id_icon)
+    , label_font(GuiDefaults::FontMenuItems)
     , extension_width(extension_width_) {
 }
 
@@ -70,7 +71,7 @@ void IWindowMenuItem::printIcon(Rect16 icon_rect, uint8_t swap, color_t color_ba
 }
 
 void IWindowMenuItem::printLabel(Rect16 label_rect, color_t color_text, color_t color_back) const {
-    roll.RenderTextAlign(label_rect, GetLabel(), GuiDefaults::FontMenuItems, color_back, color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
+    roll.RenderTextAlign(label_rect, GetLabel(), label_font, color_back, color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
 }
 
 void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
