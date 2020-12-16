@@ -165,7 +165,7 @@ void CSelftest::phaseStart() {
         thermalManager.setTargetHotend(40, 0);
         thermalManager.setTargetBed(40);
     }
-    log_open();
+    //log_open();
     SelftestResultEEprom_t eeres; // read previous result
     eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
 
