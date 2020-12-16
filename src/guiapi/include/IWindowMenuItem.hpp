@@ -51,6 +51,7 @@ private:
 protected:
     is_selected_t selected : 1; // should be in IWiSpin, but is here because of size optimization
     uint16_t id_icon : 10;
+    font_t *label_font;
     Rect16::Width_t extension_width;
 
     static Rect16 getCustomRect(Rect16 base_rect, uint16_t custom_rect_width); // general method Returns custom width Rectangle, aligned intersection on the right of the base_rect
@@ -82,6 +83,8 @@ public:
     bool IsFocused() const { return focused == is_focused_t::yes; }
     void SetIconId(uint16_t id) { id_icon = id; }
     uint16_t GetIconId() const { return id_icon; }
+    font_t *GetLabelFont() const { return label_font; }
+    void SetLabelFont(font_t *f) { label_font = f; }
     inline void SetLabel(string_view_utf8 text) { label = text; }
     /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text
