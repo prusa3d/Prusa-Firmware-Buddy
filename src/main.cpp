@@ -64,6 +64,9 @@
 #include "hwio_pindef.h"
 #include "gui.hpp"
 #include "config_a3ides2209_02.h"
+#include "eeprom.h"
+#include "crc32.h"
+#include "w25x.h"
 
 /* USER CODE END Includes */
 
@@ -238,6 +241,21 @@ int main(void) {
     uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
     putslave_init(&uart6slave);
     wdt_iwdg_warning_cb = iwdg_warning_cb;
+
+    crc32_init();
+    w25x_init();
+
+    int irq = __get_PRIMASK() & 1;
+    __enable_irq();
+    eeprom_init();
+    uint8_t status = eeprom_get_init_status();
+    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
+        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
+        dump_in_xflash_reset();
+    }
+    if (irq == 0)
+        __disable_irq();
+
     /* USER CODE END 2 */
 
     static metric_handler_t *handlers[] = {
