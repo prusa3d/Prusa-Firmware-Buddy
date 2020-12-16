@@ -7,7 +7,7 @@
 #include "filament.h"
 #include "filament_sensor.hpp"
 #include "marlin_client.h"
-#include "window_dlg_load_unload.h"
+#include "window_dlg_load_unload.hpp"
 #include "dbg.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
@@ -60,7 +60,7 @@ public:
     }
     virtual void Do() override {
         if ((get_filament() == FILAMENT_NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
-            gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+            gui_dlg_load(GetHeaderAlterLabel()) == dlg_result_t::ok ? setPreheatTemp() : clrPreheatTemp();
         }
     }
 };
@@ -78,7 +78,7 @@ public:
         return _(header_label);
     }
     virtual void Do() override {
-        gui_dlg_unload();
+        gui_dlg_unload(GetHeaderAlterLabel());
         Sound_Stop();
     }
 };
@@ -96,9 +96,9 @@ public:
         return _(header_label);
     }
     virtual void Do() override {
-        if (gui_dlg_unload() == DLG_OK) {
+        if (gui_dlg_unload(GetHeaderAlterLabel()) == dlg_result_t::ok) {
             Sound_Stop();
-            gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+            gui_dlg_load(GetHeaderAlterLabel()) == dlg_result_t::ok ? setPreheatTemp() : clrPreheatTemp();
         }
     }
 };
@@ -116,7 +116,7 @@ public:
         return _(header_label);
     }
     virtual void Do() override {
-        gui_dlg_purge() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+        gui_dlg_purge(GetHeaderAlterLabel()) == dlg_result_t::ok ? setPreheatTemp() : clrPreheatTemp();
     }
 };
 
@@ -162,9 +162,8 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
     if (event == GUI_event_t::CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
-            header.SetText(item->GetHeaderAlterLabel()); //set new label
-            item->Do();                                  //do action (load filament ...)
-            header.SetText(_(label));                    //restore label
+            item->Do();               //do action (load filament ...)
+            header.SetText(_(label)); //restore label
         }
     } else {
         SuperWindowEvent(sender, event, param);

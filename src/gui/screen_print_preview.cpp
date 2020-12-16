@@ -3,7 +3,7 @@
 #include "gcode_file.h"
 #include "marlin_client.h"
 #include "resource.h"
-#include "window_dlg_load_unload.h"
+#include "window_dlg_load_unload.hpp"
 #include "filament_sensor.hpp"
 #include <stdarg.h>
 #include "sound.hpp"
