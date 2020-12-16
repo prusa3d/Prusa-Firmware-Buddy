@@ -216,11 +216,14 @@ static inline void eeprom_unlock(void) {
     osSemaphoreRelease(eeprom_sema);
 }
 
+// result of eeprom_init (reset defaults, upgrade ...)
+static uint8_t eeprom_init_status = EEPROM_INIT_Undefined;
+
 // forward declarations of private functions
 
 static uint16_t eeprom_var_size(uint8_t id);
 static uint16_t eeprom_var_addr(uint8_t id);
-static void eeprom_print_vars(void);
+//static void eeprom_print_vars(void);
 static int eeprom_convert_from_v2(void);
 static int eeprom_convert_from(uint16_t version, uint16_t features);
 
@@ -252,8 +255,13 @@ uint8_t eeprom_init(void) {
     }
     if (status == EEPROM_INIT_Defaults)
         eeprom_defaults();
-    eeprom_print_vars();
+    //eeprom_print_vars(); this is not possible here because it hangs - init is now done in main.cpp, not in defaultThread
+    eeprom_init_status = status;
     return status;
+}
+
+uint8_t eeprom_get_init_status(void) {
+    return eeprom_init_status;
 }
 
 void eeprom_defaults(void) {
@@ -382,7 +390,7 @@ static uint16_t eeprom_var_addr(uint8_t id) {
     return addr;
 }
 
-static void eeprom_print_vars(void) {
+/*static void eeprom_print_vars(void) {
     uint8_t id;
     char text[128];
     variant8_t var8;
@@ -393,7 +401,7 @@ static void eeprom_print_vars(void) {
         _dbg("%s=%s", eeprom_map[id].name, text);
         variant8_done(&pvar);
     }
-}
+}*/
 
 static const constexpr uint16_t ADDR_V2_FILAMENT_TYPE = 0x0400;
 static const constexpr uint16_t ADDR_V2_FILAMENT_COLOR = EEPROM_ADDRESS + 3;
