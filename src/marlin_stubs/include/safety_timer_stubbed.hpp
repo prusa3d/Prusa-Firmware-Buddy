@@ -9,8 +9,8 @@
 #include "../../lib/Marlin/Marlin/src/core/utility.h"
 
 class SafetyTimer {
-    static constexpr millis_t default_interval = 30 * 60 * 1000;
-    millis_t interval; // zero if disabled
+    static constexpr millis_t default_interval = 3000; // 30 * 60 * 1000;
+    millis_t interval;                                 // zero if disabled
     millis_t reset_treshold;
 
     SafetyTimer();

@@ -5,6 +5,30 @@
 
 //used by load / unlaod /change filament
 class Pause {
+    enum class LoadPhases_t {
+        _init,
+        has_slow_load,
+        check_filament_sensor,
+        user_push__ask,
+        load_in_gear,
+        filament_in_gear__ask,
+        wait_temp,
+        error_temp,
+        has_long_load,
+        long_load,
+        purge,
+        stand_alone_purge,
+        ask_is_color_correct,
+        ask_is_color_correct__stand_alone_purge,
+        eject,
+        _finish,
+    };
+
+    PhasesLoadUnload phase; //needed for CanSafetyTimerExpire
+    static constexpr PhasesLoadUnload init_load_phase = PhasesLoadUnload::MakeSureInserted;
+    void setPhase(PhasesLoadUnload ph, uint8_t progress_tot = 0, uint8_t progress = 0);
+    void phaseEnter(LoadPhases_t ph);
+
     xyze_pos_t resume_position;
 
     //singleton
@@ -42,9 +66,10 @@ public:
     bool FilamentLoad();
     bool PrintPause(float retract, const xyz_pos_t &park_point);
     void PrintResume();
-    bool CanSafetyTimerExpire() { return true; }
+    bool CanSafetyTimerExpire() const;
 
 private:
+    static bool canSafetyTimerExpire(PhasesLoadUnload phase);
     void unpark_nozzle_and_notify();
     void park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_point);
     bool is_target_temperature_safe();
