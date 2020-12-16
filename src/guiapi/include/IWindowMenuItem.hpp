@@ -65,11 +65,14 @@ protected:
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const; //things behind rect
     virtual void click(IWindowMenu &window_menu) = 0;
 
+    void setLabelFont(font_t *src) { label_font = src; }
+    font_t *getLabelFont() const { return label_font; }
+
     void reInitRoll(Rect16 rect);
 
 public:
-    IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no);
-    IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
+    IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
     virtual ~IWindowMenuItem() = default;
     void Enable() { enabled = is_enabled_t::yes; }
     void Disable() { enabled = is_enabled_t::no; }
@@ -83,8 +86,6 @@ public:
     bool IsFocused() const { return focused == is_focused_t::yes; }
     void SetIconId(uint16_t id) { id_icon = id; }
     uint16_t GetIconId() const { return id_icon; }
-    font_t *GetLabelFont() const { return label_font; }
-    void SetLabelFont(font_t *f) { label_font = f; }
     inline void SetLabel(string_view_utf8 text) { label = text; }
     /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text
