@@ -11,7 +11,6 @@ class Pause {
         check_filament_sensor,
         user_push__ask,
         load_in_gear,
-        filament_in_gear__ask,
         wait_temp,
         error_temp,
         has_long_load,
@@ -21,7 +20,16 @@ class Pause {
         ask_is_color_correct,
         ask_is_color_correct__stand_alone_purge,
         eject,
-        _finish,
+        _finish
+    };
+
+    enum class UnloadPhases_t {
+        _init,
+        ram_sequence,
+        unload,
+        unloaded__ask,
+        manual_unload,
+        _finish
     };
 
     PhasesLoadUnload phase; //needed for CanSafetyTimerExpire

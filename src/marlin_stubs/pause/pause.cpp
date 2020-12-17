@@ -361,60 +361,71 @@ bool Pause::FilamentUnload() {
     constexpr float mm_per_minute = 1 / 60.f;
     constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
 
-    //cannot draw progress in plan_e_move, so just change phase to ramming
-    setPhase(PhasesLoadUnload::Ramming, 50, 0);
-    {
-        bool counting = false;
-        for (size_t i = 0; i < ramUnloadSeqSize; ++i) {
-            plan_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
-            if (ramUnloadSeq[i].e < 0)
-                counting = true;
-            if (counting)
-                ramUnloadLength += ramUnloadSeq[i].e;
+    UnloadPhases_t unload_ph = UnloadPhases_t::_init;
+
+    do {
+        //transitions
+        switch (unload_ph) {
+        case UnloadPhases_t::_init:
+        case UnloadPhases_t::ram_sequence:
+            setPhase(PhasesLoadUnload::Ramming, 50, 0);
+            {
+                bool counting = false;
+                for (size_t i = 0; i < ramUnloadSeqSize; ++i) {
+                    plan_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
+                    if (ramUnloadSeq[i].e < 0)
+                        counting = true;
+                    if (counting)
+                        ramUnloadLength += ramUnloadSeq[i].e;
+                }
+            }
+            unload_ph = UnloadPhases_t::unload;
+            break;
+        case UnloadPhases_t::unload: {
+            const float saved_acceleration = planner.settings.retract_acceleration;
+            planner.settings.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
+
+            planner.synchronize(); //do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
+
+            // subtract the already performed extruder movement from the total unload length
+            do_e_move_notify_progress((unload_length - ramUnloadLength), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), PhasesLoadUnload::Unloading, 51, 99);
+
+            planner.settings.retract_acceleration = saved_acceleration;
+
+            set_filament(FILAMENT_NONE);
+            setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100, 100);
+            unload_ph = UnloadPhases_t::unloaded__ask;
+        } break;
+        case UnloadPhases_t::unloaded__ask: {
+            const Response response = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsFilamentUnloaded);
+            if (response == Response::Yes) {
+                unload_ph = UnloadPhases_t::_finish;
+            }
+            if (response == Response::No) {
+                setPhase(PhasesLoadUnload::ManualUnload, 100, 100);
+                disable_e_stepper(active_extruder);
+                unload_ph = UnloadPhases_t::manual_unload;
+            }
+
+        } break;
+        case UnloadPhases_t::manual_unload: {
+            const Response response = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::ManualUnload);
+            if (response == Response::Continue) {
+                enable_e_steppers();
+                unload_ph = UnloadPhases_t::_finish;
+            }
+        } break;
+        default:
+            unload_ph = UnloadPhases_t::_finish;
         }
-    }
 
-    // Unload filament
-    const float saved_acceleration = planner.settings.retract_acceleration;
-    planner.settings.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
+        idle(true);
 
-    planner.synchronize(); //do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
-
-    // subtract the already performed extruder movement from the total unload length
-    do_e_move_notify_progress((unload_length - ramUnloadLength), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), PhasesLoadUnload::Unloading, 51, 99);
-
-    planner.settings.retract_acceleration = saved_acceleration;
-
-    set_filament(FILAMENT_NONE);
-
-// Disable E steppers for manual change
-#if HAS_E_STEPPER_ENABLE
-    disable_e_stepper(active_extruder);
-    safe_delay(100);
-#endif
+    } while (unload_ph != UnloadPhases_t::_finish);
 
 #if ENABLED(PID_EXTRUSION_SCALING)
     thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
 #endif //ENABLED(PID_EXTRUSION_SCALING)
-
-    /// IsUnloaded confirm phase
-    Response isUnloaded;
-    Response manualUnload;
-    do {
-        setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100, 100);
-        do {
-            idle(true);
-            isUnloaded = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsFilamentUnloaded);
-        } while (isUnloaded != Response::Yes && isUnloaded != Response::No);
-        if (isUnloaded == Response::No) {
-            setPhase(PhasesLoadUnload::ManualUnload, 100, 100);
-            do {
-                idle(true);
-                manualUnload = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::ManualUnload);
-            } while (manualUnload != Response::Continue);
-            isUnloaded = Response::Yes;
-        }
-    } while (isUnloaded != Response::Yes);
 
     return true;
 }
