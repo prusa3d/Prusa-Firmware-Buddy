@@ -3,8 +3,26 @@
 #include "../../../lib/Marlin/Marlin/src/core/types.h"
 #include "client_response.hpp"
 
+class PrivatePhase {
+    PhasesLoadUnload phase; //needed for CanSafetyTimerExpire
+protected:
+    PrivatePhase()
+        : phase(PhasesLoadUnload::_first) {}
+    void setPhase(PhasesLoadUnload ph, uint8_t progress_tot = 0);
+    PhasesLoadUnload getPhase() const;
+    Response getResponse() const;
+    constexpr uint8_t getPhaseIndex() const {
+        return GetPhaseIndex(phase);
+    }
+};
+
 //used by load / unlaod /change filament
-class Pause {
+class Pause : protected PrivatePhase {
+    //singleton
+    Pause() {}
+    Pause(const Pause &) = delete;
+    Pause &operator=(const Pause &) = delete;
+
     enum class LoadPhases_t {
         _init,
         has_slow_load,
@@ -32,20 +50,8 @@ class Pause {
         _finish
     };
 
-    PhasesLoadUnload phase; //needed for CanSafetyTimerExpire
-    static constexpr PhasesLoadUnload init_load_phase = PhasesLoadUnload::MakeSureInserted;
-    void setPhase(PhasesLoadUnload ph, uint8_t progress_tot = 0, uint8_t progress = 0);
-    void phaseEnter(LoadPhases_t ph);
-
-    xyze_pos_t resume_position;
-
-    //singleton
-    Pause() {}
-    Pause(const Pause &) = delete;
-    Pause &operator=(const Pause &) = delete;
-
-    enum { Z_MOVE_PRECENT = 75,
-        XY_MOVE_PRECENT = 100 - Z_MOVE_PRECENT };
+    static constexpr int Z_MOVE_PRECENT = 75;
+    static constexpr int XY_MOVE_PRECENT = 100 - Z_MOVE_PRECENT;
 
     struct RamUnloadSeqItem {
         int16_t e;        ///< relative movement of Extruder
@@ -54,7 +60,9 @@ class Pause {
 
     static constexpr const float heating_phase_min_hotend_diff = 5.0F;
 
-    //this walues must be set before every load/unload
+    xyze_pos_t resume_position;
+
+    //this values must be set before every load/unload
     float unload_length = 0;
     float slow_load_length = 0;
     float fast_load_length = 0;
@@ -77,17 +85,16 @@ public:
     bool CanSafetyTimerExpire() const;
 
 private:
-    bool loadLoop(LoadPhases_t load_ph);
-    void unloadLoop(UnloadPhases_t unload_ph);
-    static bool canSafetyTimerExpire(PhasesLoadUnload phase);
+    bool loadLoop(LoadPhases_t &load_ph);
+    void unloadLoop(UnloadPhases_t &unload_ph);
     void unpark_nozzle_and_notify();
     void park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_point);
     bool is_target_temperature_safe();
-    bool ensure_safe_temperature_notify_progress(PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max);
     void hotend_idle_start(uint32_t time);
-    void plan_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max);
     void plan_e_move(const float &length, const feedRate_t &fr_mm_s);
-    void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max);
+    bool ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t progress_max);
+    void plan_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+    void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
 };
 
 extern Pause &pause;
