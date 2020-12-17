@@ -19,12 +19,21 @@ protected:
 //used by load / unlaod /change filament
 class Pause : protected PrivatePhase {
     //singleton
-    Pause() {}
+    Pause();
     Pause(const Pause &) = delete;
     Pause &operator=(const Pause &) = delete;
 
-    enum class LoadPhases_t {
+    enum class UnloadPhases_t {
         _init,
+        ram_sequence,
+        unload,
+        unloaded__ask,
+        manual_unload,
+        _finish
+    };
+
+    enum class LoadPhases_t {
+        _init = int(UnloadPhases_t::_finish) + 1,
         has_slow_load,
         check_filament_sensor,
         user_push__ask,
@@ -41,15 +50,6 @@ class Pause : protected PrivatePhase {
         _finish
     };
 
-    enum class UnloadPhases_t {
-        _init,
-        ram_sequence,
-        unload,
-        unloaded__ask,
-        manual_unload,
-        _finish
-    };
-
     static constexpr int Z_MOVE_PRECENT = 75;
     static constexpr int XY_MOVE_PRECENT = 100 - Z_MOVE_PRECENT;
 
@@ -60,29 +60,39 @@ class Pause : protected PrivatePhase {
 
     static constexpr const float heating_phase_min_hotend_diff = 5.0F;
 
-    xyze_pos_t resume_position;
-
     //this values must be set before every load/unload
-    float unload_length = 0;
-    float slow_load_length = 0;
-    float fast_load_length = 0;
+    float unload_length;
+    float slow_load_length;
+    float fast_load_length;
     float purge_length = minimal_purge;
+    float retract;
+
+    xyz_pos_t park_pos;
+    xyze_pos_t resume_position;
 
 public:
     static constexpr const float minimal_purge = 1;
-    static Pause &GetInstance();
+    static Pause &Instance();
+
+    //defaults
+    static float GetDefaultFastLoadLength();
+    static float GetDefaultSlowLoadLength();
+    static float GetDefaultUnloadLength();
+    static float GetDefaultPurgeLength();
+    static float GetDefaultRetractLength();
 
     void SetUnloadLength(float len);
     void SetSlowLoadLength(float len);
     void SetFastLoadLength(float len);
     void SetPurgeLength(float len);
-    float GetDefaultLoadLength() const;
-    float GetDefaultUnloadLength() const;
+    void SetRetractLength(float len);
+    void SetParkPoint(const xyz_pos_t &park_point);
+
+    bool CanSafetyTimerExpire() const;
+
     bool FilamentUnload();
     bool FilamentLoad();
-    bool PrintPause(float retract, const xyz_pos_t &park_point);
-    void PrintResume();
-    bool CanSafetyTimerExpire() const;
+    void FilamentChange();
 
 private:
     bool loadLoop(LoadPhases_t &load_ph);
@@ -96,5 +106,3 @@ private:
     void plan_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
 };
-
-extern Pause &pause;

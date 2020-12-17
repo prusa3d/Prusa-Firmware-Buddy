@@ -101,35 +101,61 @@ Response PrivatePhase::getResponse() const {
 
 /*****************************************************************************/
 //Pause
-Pause &pause = Pause::GetInstance();
-
-Pause &Pause::GetInstance() {
+Pause &Pause::Instance() {
     static Pause s;
     return s;
 }
 
+Pause::Pause()
+    : unload_length(GetDefaultUnloadLength())
+    , slow_load_length(GetDefaultSlowLoadLength())
+    , fast_load_length(GetDefaultFastLoadLength())
+    , purge_length(GetDefaultPurgeLength())
+    , retract(GetDefaultRetractLength()) {
+}
+
 void Pause::SetUnloadLength(float len) {
-    unload_length = -std::abs(len); // it is negative value
+    unload_length = -std::abs(isnan(len) ? GetDefaultUnloadLength() : len); // it is negative value
 }
 
 void Pause::SetSlowLoadLength(float len) {
-    slow_load_length = std::abs(len);
+    slow_load_length = std::abs(isnan(len) ? GetDefaultSlowLoadLength() : len);
 }
 
 void Pause::SetFastLoadLength(float len) {
-    fast_load_length = std::abs(len);
+    fast_load_length = std::abs(isnan(len) ? GetDefaultFastLoadLength() : len);
 }
 
 void Pause::SetPurgeLength(float len) {
-    purge_length = std::max(std::abs(len), (float)minimal_purge);
+    purge_length = std::max(std::abs(isnan(len) ? GetDefaultPurgeLength() : len), (float)minimal_purge);
 }
 
-float Pause::GetDefaultLoadLength() const {
+void Pause::SetRetractLength(float len) {
+    retract = -std::abs(isnan(len) ? GetDefaultRetractLength() : len); // retract is negative
+}
+
+void Pause::SetParkPoint(const xyz_pos_t &park_point) {
+    park_pos = park_point; //TODO check limits
+}
+
+float Pause::GetDefaultFastLoadLength() {
     return fc_settings[active_extruder].load_length;
 }
 
-float Pause::GetDefaultUnloadLength() const {
+float Pause::GetDefaultSlowLoadLength() {
+    return FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
+}
+
+float Pause::GetDefaultUnloadLength() {
     return fc_settings[active_extruder].unload_length;
+}
+
+float Pause::GetDefaultPurgeLength() {
+    return ADVANCED_PAUSE_PURGE_LENGTH;
+}
+
+float Pause::GetDefaultRetractLength() {
+    return PAUSE_PARK_RETRACT_LENGTH;
 }
 
 bool Pause::is_target_temperature_safe() {
@@ -500,7 +526,7 @@ void Pause::unpark_nozzle_and_notify() {
 // public:
 
 /**
- * Pause procedure
+ * FilamentChange procedure
  *
  * - Abort if already paused
  * - Send host action for pause, if configured
@@ -509,18 +535,26 @@ void Pause::unpark_nozzle_and_notify() {
  * - Initial retract, if current temperature is hot enough
  * - Park the nozzle at the given position
  * - Call FilamentUnload (if a length was specified)
- *
- * Return 'true' if pause was completed, 'false' for abort
+ * - Load filament if specified, but only if:
+ *   - a nozzle timed out, or
+ *   - the nozzle is already heated.
+ * - Display "wait for print to resume"
+ * - Re-prime the nozzle...
+ *   -  FWRETRACT: Recover/prime from the prior G10.
+ * - Move the nozzle back to resume_position
+ * - Sync the planner E to resume_position.e
+ * - Send host action for resume, if configured
+ * - Resume the current SD print job, if any
  */
-bool Pause::PrintPause(float retract, const xyz_pos_t &park_point) {
-
+void Pause::FilamentChange() {
     if (did_pause_print)
-        return false; // already paused
+        return; // already paused
+
+    FSM_Holder D(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Change));
 
     if (!DEBUGGING(DRYRUN) && unload_length && thermalManager.targetTooColdToExtrude(active_extruder)) {
         SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
-
-        return false; // unable to reach safe temperature
+        return; // unable to reach safe temperature
     }
 
     // Indicate that the printer is paused
@@ -538,34 +572,10 @@ bool Pause::PrintPause(float retract, const xyz_pos_t &park_point) {
     thermalManager.set_fans_paused(true);
 #endif
 
-    park_nozzle_and_notify(retract, park_point);
+    park_nozzle_and_notify(retract, park_pos);
 
     if (unload_length) // Unload the filament
         FilamentUnload();
-
-    return true;
-}
-
-/**
- * Resume or Start print procedure
- *
- * - If not paused, do nothing and return
- * - Reset heater idle timers
- * - Load filament if specified, but only if:
- *   - a nozzle timed out, or
- *   - the nozzle is already heated.
- * - Display "wait for print to resume"
- * - Re-prime the nozzle...
- *   -  FWRETRACT: Recover/prime from the prior G10.
- * - Move the nozzle back to resume_position
- * - Sync the planner E to resume_position.e
- * - Send host action for resume, if configured
- * - Resume the current SD print job, if any
- */
-void Pause::PrintResume() {
-
-    if (!did_pause_print)
-        return;
 
     FilamentLoad();
 

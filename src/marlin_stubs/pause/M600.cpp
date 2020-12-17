@@ -61,20 +61,6 @@ void GcodeSuite::M600() {
     if (target_extruder < 0)
         return;
 
-    FSM_Holder D(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Change));
-#if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
-    // Don't allow filament change without homing first
-    if (axes_need_homing())
-        home_all_axes();
-#endif
-
-    // Initial retract before move to filament change position
-    const float retract = -std::abs(parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
-#ifdef PAUSE_PARK_RETRACT_LENGTH
-                + (PAUSE_PARK_RETRACT_LENGTH)
-#endif
-    );
-
     xyz_pos_t park_point =
 #ifdef NOZZLE_PARK_POINT_M600
         NOZZLE_PARK_POINT_M600;
@@ -95,20 +81,15 @@ void GcodeSuite::M600() {
 #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA)
     park_point += hotend_offset[active_extruder];
 #endif
+    Pause &pause = Pause::Instance();
 
-    // Unload filament
-    pause.SetUnloadLength(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                           : pause.GetDefaultUnloadLength());
-
-    // Slow load filament
-    pause.SetSlowLoadLength(FILAMENT_CHANGE_SLOW_LOAD_LENGTH);
-
-    // Fast load filament
-    pause.SetFastLoadLength(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                             : pause.GetDefaultLoadLength());
-
-    // Purge filament
-    pause.SetPurgeLength(ADVANCED_PAUSE_PURGE_LENGTH);
+    //NAN == default
+    pause.SetUnloadLength(parser.seen('U') ? parser.value_axis_units(E_AXIS) : NAN);
+    pause.SetSlowLoadLength(NAN);
+    pause.SetFastLoadLength(parser.seen('L') ? parser.value_axis_units(E_AXIS) : NAN);
+    pause.SetPurgeLength(NAN);
+    pause.SetParkPoint(park_point);
+    pause.SetRetractLength(std::abs(parser.seen('E') ? parser.value_axis_units(E_AXIS) : NAN)); // Initial retract before move to filament change position
 
     float disp_temp = marlin_server_get_temp_to_display();
     float targ_temp = Temperature::degTargetHotend(target_extruder);
@@ -117,9 +98,7 @@ void GcodeSuite::M600() {
         thermalManager.setTargetHotend(disp_temp, target_extruder);
     }
 
-    if (pause.PrintPause(retract, park_point)) {
-        pause.PrintResume();
-    }
+    pause.FilamentChange();
 
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(targ_temp, target_extruder);

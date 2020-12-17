@@ -34,7 +34,7 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     if (!interval)
         return expired_t::no;
 
-    if (!anyHeatherIsActive() || printingIsActive() || !Pause::GetInstance().CanSafetyTimerExpire()) {
+    if (!anyHeatherIsActive() || printingIsActive() || !Pause::Instance().CanSafetyTimerExpire()) {
         reset_treshold = now;
         return expired_t::no;
     }
