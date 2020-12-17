@@ -110,6 +110,7 @@ typedef union _SelftestResultEEprom_t {
 } SelftestResultEEprom_t;
 
 enum {
+    EEPROM_INIT_Undefined = -1,
     EEPROM_INIT_Normal = 0,
     EEPROM_INIT_Defaults = 1,
     EEPROM_INIT_Upgraded = 2
@@ -124,6 +125,9 @@ extern "C" {
 ///          1 - defaults loaded
 ///          2 - eeprom upgraded successfully from a previous version
 extern uint8_t eeprom_init(void);
+
+// returns last result of eeprom_init() or EEPROM_INIT_Undefined
+extern uint8_t eeprom_get_init_status(void);
 
 // write default values to all variables
 extern void eeprom_defaults(void);
