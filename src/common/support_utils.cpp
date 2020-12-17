@@ -168,17 +168,25 @@ void create_path_info_4service(char *str, const uint32_t str_size) {
 
 bool appendix_exist() {
     const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
-    GPIO_InitStruct.Pin = GPIO_PIN_13;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
 
     if (bootloader->major >= 1 && bootloader->minor >= 1) {
         return !(ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK);
     } else {
+        GPIO_PinState pinState = GPIO_PIN_SET;
+#ifndef _DEBUG //Secure backward compatibility
+        GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+        GPIO_InitStruct.Pin = GPIO_PIN_13;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
         HAL_Delay(50);
-        GPIO_PinState pinState = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_13);
+        pinState = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_13);
+#else //In debug version the appendix status has to be tested by bootloader version greater or equal than 1.1
+        pinState = ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK
+            ? GPIO_PIN_SET
+            : GPIO_PIN_RESET;
+#endif
         return pinState == GPIO_PIN_RESET;
     }
 }
