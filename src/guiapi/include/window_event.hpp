@@ -23,6 +23,7 @@ enum class GUI_event_t {
     MESSAGE,     //onStatusChange() message notification
     MEDIA,       // marlin media change
     CHILD_CLICK, //click at the child screen
+    GUI_STARTUP, //finish splash screen => initialization finish
 };
 
 constexpr bool GUI_event_IsKnob(GUI_event_t event) {
@@ -96,6 +97,8 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
         return "Marlin media changed";
     case GUI_event_t::CHILD_CLICK:
         return "child click";
+    case GUI_event_t::GUI_STARTUP:
+        return "gui startup";
     }
     return "error bad index";
 }

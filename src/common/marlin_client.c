@@ -44,6 +44,7 @@ typedef struct _marlin_client_t {
     fsm_change_t fsm_change_cb;   // to register callback for change of state
     message_cb_t message_cb;      // to register callback message
     warning_cb_t warning_cb;      // to register callback for important message
+    startup_cb_t startup_cb;      // to register callback after marlin complete initialization
 
     uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
     uint16_t last_count; // number of messages received in last client loop
@@ -109,6 +110,7 @@ marlin_vars_t *marlin_client_init(void) {
         client->fsm_change_cb = NULL;
         client->message_cb = NULL;
         client->warning_cb = NULL;
+        client->startup_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(marlin_server_sema);
@@ -213,6 +215,17 @@ int marlin_client_set_warning_cb(warning_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
         client->warning_cb = cb;
+        return 1;
+    }
+    return 0;
+}
+
+//register callback to startup_cb_t (complete initialization)
+//return success
+int marlin_client_set_startup_cb(startup_cb_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->startup_cb = cb;
         return 1;
     }
     return 0;
@@ -757,7 +770,8 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             uint8_t y = variant8_get_usr16(msg) >> 8;
             float z = variant8_get_flt(msg);
             client->mesh.z[x + client->mesh.xc * y] = z;
-        } break;
+            break;
+        }
         case MARLIN_EVT_StartProcessing:
             client->flags |= MARLIN_CFLG_PROCESS;
             break;
@@ -800,14 +814,18 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             }
             variant8_done(&pvar);
             break;
+        }
         case MARLIN_EVT_Warning:
             if (client->warning_cb)
                 client->warning_cb(variant8_get_i32(msg));
             break;
-        }
+        case MARLIN_EVT_Startup:
+            if (client->startup_cb) {
+                client->startup_cb();
+            }
+            break;
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added
-        case MARLIN_EVT_Startup:
         case MARLIN_EVT_PrinterKilled:
         case MARLIN_EVT_MediaInserted:
         case MARLIN_EVT_MediaError:
