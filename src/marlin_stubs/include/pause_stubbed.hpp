@@ -77,6 +77,8 @@ public:
     bool CanSafetyTimerExpire() const;
 
 private:
+    bool loadLoop(LoadPhases_t load_ph);
+    void unloadLoop(UnloadPhases_t unload_ph);
     static bool canSafetyTimerExpire(PhasesLoadUnload phase);
     void unpark_nozzle_and_notify();
     void park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_point);
