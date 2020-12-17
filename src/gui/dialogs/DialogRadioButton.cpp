@@ -112,7 +112,7 @@ void RadioButton::draw_1_btn() const {
 void RadioButton::draw_n_btns(const size_t btn_count) const {
     if (!texts)
         return;
-
+    const uint32_t MAX_TEXT_BUFFER = 128;
     static_assert(sizeof(btn_count) <= GuiDefaults::MAX_DIALOG_BUTTON_COUNT, "Too many RadioButtons to draw.");
 
     /// fix size of dialog buttons - MAX_DIALOG_BUTTON_COUNT
@@ -127,7 +127,16 @@ void RadioButton::draw_n_btns(const size_t btn_count) const {
     rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
 
     for (size_t i = 0; i < btn_count; ++i) {
-        button_draw(splits[i], _((*texts)[i]), pfont, GetBtnIndex() == i && IsEnabled());
+        string_view_utf8 drawn = _((*texts)[i]);
+        char buffer[MAX_TEXT_BUFFER] = { 0 };
+        if ((pfont->w * ratio[i]) > splits[i].Width()) {
+            uint32_t max_btn_label_text = splits[i].Width() / pfont->w;
+            size_t length = std::min(max_btn_label_text, MAX_TEXT_BUFFER - 1);
+            length = drawn.copyToRAM(buffer, length);
+            buffer[length] = 0;
+            drawn = string_view_utf8::MakeRAM((const uint8_t *)buffer);
+        }
+        button_draw(splits[i], drawn, pfont, GetBtnIndex() == i && IsEnabled());
     }
     for (size_t i = 0; i < btn_count - 1; ++i) {
         display::FillRect(spaces[i], color_back);

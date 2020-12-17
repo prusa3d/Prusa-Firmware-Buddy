@@ -131,6 +131,9 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_START_PRINT() {
     return WizardState_t::next;
 }
 
+//cannot add more gcodes, gcode queue is small
+//and it would block dialog opening
+//checking marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE))->gqueue and calling gui_loop() does not help
 WizardState_t StateFnc_FIRSTLAY_PRINT() {
     DialogHandler::Open(ClientFSM::FirstLayer, 0); //open screen now, it would auto open later (on G26)
 
@@ -147,7 +150,6 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
     marlin_gcode_printf("M104 S%d", temp_nozzle);                          // set displayed temperature
     marlin_gcode_printf("M109 S%d", temp_nozzle);                          // wait for displayed temperature
     marlin_gcode("G26");                                                   // firstlay
-    marlin_gcode("G27 P2");                                                // park nozzle and raise Z axis when done
 
     WizardState_t ret = WizardState_t::FIRSTLAY_MSBX_REPEAT_PRINT;
     ScreenWizard::ChangeStartState(ret); //marlin_gcode("G26"); will close wizard screen, need to save reopen state
