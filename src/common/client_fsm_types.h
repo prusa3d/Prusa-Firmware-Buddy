@@ -42,6 +42,7 @@ using fsm_destroy_t = void (*)(ClientFSM);                                      
 using fsm_change_t = void (*)(ClientFSM, uint8_t phase, uint8_t progress_tot, uint8_t progress); //change fsm state or progress
 using message_cb_t = void (*)(const char *);
 using warning_cb_t = void (*)(WarningType);
+using startup_cb_t = void (*)(void);
 #else  // !__cplusplus
 //C
 typedef void (*fsm_create_t)(uint8_t, uint8_t);                                               //create finite state machine
@@ -49,4 +50,5 @@ typedef void (*fsm_destroy_t)(uint8_t);                                         
 typedef void (*fsm_change_t)(uint8_t, uint8_t phase, uint8_t progress_tot, uint8_t progress); //change fsm state or progress
 typedef void (*message_cb_t)(const char *);
 typedef void (*warning_cb_t)(uint32_t);
+typedef void (*startup_cb_t)(void);
 #endif //__cplusplus

@@ -19,8 +19,9 @@
 #endif
 
 void screen_splash_data_t::timer(uint32_t mseconds) {
-    float percent = mseconds / 3000.0 * 100;
-    progress.SetValue((percent < 95) ? percent : 95);
+    static uint32_t start = mseconds;
+    float percent = (mseconds - start) / 300;
+    progress.SetValue((percent < 99) ? percent : 99);
 }
 
 screen_splash_data_t::screen_splash_data_t()
@@ -63,7 +64,7 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t 
 
 #ifdef _EXTUI
 
-    if (marlin_event_clr(MARLIN_EVT_Startup)) { //without clear it could run multiple times before screen is closed
+    if (event == GUI_event_t::GUI_STARTUP && marlin_event_clr(MARLIN_EVT_Startup)) { //without clear it could run multiple times before screen is closed
 
         /*if (marlin_event(MARLIN_EVT_StartProcessing)) {
         // Originally these lines should be immediately after marlin_client_init, but because the functions are blocking
