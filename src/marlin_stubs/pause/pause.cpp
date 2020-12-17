@@ -114,6 +114,26 @@ Pause::Pause()
     , retract(GetDefaultRetractLength()) {
 }
 
+float Pause::GetDefaultFastLoadLength() {
+    return fc_settings[active_extruder].load_length;
+}
+
+float Pause::GetDefaultSlowLoadLength() {
+    return FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
+}
+
+float Pause::GetDefaultUnloadLength() {
+    return fc_settings[active_extruder].unload_length;
+}
+
+float Pause::GetDefaultPurgeLength() {
+    return ADVANCED_PAUSE_PURGE_LENGTH;
+}
+
+float Pause::GetDefaultRetractLength() {
+    return PAUSE_PARK_RETRACT_LENGTH;
+}
+
 void Pause::SetUnloadLength(float len) {
     unload_length = -std::abs(isnan(len) ? GetDefaultUnloadLength() : len); // it is negative value
 }
@@ -138,24 +158,8 @@ void Pause::SetParkPoint(const xyz_pos_t &park_point) {
     park_pos = park_point; //TODO check limits
 }
 
-float Pause::GetDefaultFastLoadLength() {
-    return fc_settings[active_extruder].load_length;
-}
-
-float Pause::GetDefaultSlowLoadLength() {
-    return FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
-}
-
-float Pause::GetDefaultUnloadLength() {
-    return fc_settings[active_extruder].unload_length;
-}
-
-float Pause::GetDefaultPurgeLength() {
-    return ADVANCED_PAUSE_PURGE_LENGTH;
-}
-
-float Pause::GetDefaultRetractLength() {
-    return PAUSE_PARK_RETRACT_LENGTH;
+void Pause::SetResumePoint(const xyze_pos_t &resume_point) {
+    resume_pos = resume_point; //TODO check limits
 }
 
 bool Pause::is_target_temperature_safe() {
@@ -213,15 +217,6 @@ void Pause::plan_e_move_notify_progress(const float &length, const feedRate_t &f
 void Pause::hotend_idle_start(uint32_t time) {
     HOTEND_LOOP()
     thermalManager.hotend_idle[e].start((millis_t)(time)*1000UL);
-}
-
-bool Pause::CanSafetyTimerExpire() const {
-    switch (getPhase()) {
-    case PhasesLoadUnload::UserPush: //add more
-        return true;
-    default:
-        return false;
-    }
 }
 
 bool Pause::loadLoop(LoadPhases_t &load_ph) {
@@ -335,6 +330,11 @@ bool Pause::loadLoop(LoadPhases_t &load_ph) {
     return ret;
 }
 
+bool Pause::FilamentLoad() {
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    return filamentLoad();
+}
+
 /**
  * Load filament into the hotend
  *
@@ -347,7 +347,7 @@ bool Pause::loadLoop(LoadPhases_t &load_ph) {
  *
  * Returns 'true' if load was completed, 'false' for abort
  */
-bool Pause::FilamentLoad() {
+bool Pause::filamentLoad() {
 
     // actual temperature does not matter, only target
     if (!is_target_temperature_safe())
@@ -439,6 +439,11 @@ void Pause::unloadLoop(UnloadPhases_t &unload_ph) {
     idle(true);
 }
 
+bool Pause::FilamentUnload() {
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    return filamentUnload();
+}
+
 /**
  * Unload filament from the hotend
  *
@@ -449,7 +454,7 @@ void Pause::unloadLoop(UnloadPhases_t &unload_ph) {
  *
  * Returns 'true' if unload was completed, 'false' for abort
  */
-bool Pause::FilamentUnload() {
+bool Pause::filamentUnload() {
     setPhase(PhasesLoadUnload::WaitingTemp);
     if (!ensureSafeTemperatureNotifyProgress(0, 50)) {
         return false;
@@ -473,7 +478,7 @@ bool Pause::FilamentUnload() {
     return true;
 }
 
-void Pause::park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_point) {
+void Pause::park_nozzle_and_notify() {
     setPhase(PhasesLoadUnload::Parking);
     // Initial retract before move to filament change position
     if (retract && thermalManager.hotEnoughToExtrude(active_extruder))
@@ -482,19 +487,19 @@ void Pause::park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_p
     // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
     if (!axes_need_homing()) {
         {
-            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, park_point.z, 0, Z_MOVE_PRECENT);
-            do_blocking_move_to_z(_MIN(current_position.z + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
+            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, park_pos.z, 0, Z_MOVE_PRECENT);
+            do_blocking_move_to_z(_MIN(current_position.z + park_pos.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
         }
         {
-            const bool x_greater_than_y = std::abs(current_position.x - park_point.x) > std::abs(current_position.y - park_point.y);
+            const bool x_greater_than_y = std::abs(current_position.x - park_pos.x) > std::abs(current_position.y - park_pos.y);
             const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
-            const float &end_pos = x_greater_than_y ? park_point.x : park_point.y;
+            const float &end_pos = x_greater_than_y ? park_pos.x : park_pos.y;
             if (x_greater_than_y) {
                 Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, Z_MOVE_PRECENT, 100);
-                do_blocking_move_to_xy(park_point, NOZZLE_PARK_XY_FEEDRATE);
+                do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
             } else {
                 Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, Z_MOVE_PRECENT, 100);
-                do_blocking_move_to_xy(park_point, NOZZLE_PARK_XY_FEEDRATE);
+                do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
             }
         }
         report_current_position();
@@ -505,21 +510,21 @@ void Pause::unpark_nozzle_and_notify() {
     setPhase(PhasesLoadUnload::Unparking);
     // Move XY to starting position, then Z
     {
-        const bool x_greater_than_y = std::abs(current_position.x - resume_position.x) > std::abs(current_position.y - resume_position.y);
+        const bool x_greater_than_y = std::abs(current_position.x - resume_pos.x) > std::abs(current_position.y - resume_pos.y);
         const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
-        const float &end_pos = x_greater_than_y ? resume_position.x : resume_position.y;
+        const float &end_pos = x_greater_than_y ? resume_pos.x : resume_pos.y;
         if (x_greater_than_y) {
             Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
-            do_blocking_move_to_xy(resume_position, NOZZLE_PARK_XY_FEEDRATE);
+            do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
         } else {
             Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
-            do_blocking_move_to_xy(resume_position, NOZZLE_PARK_XY_FEEDRATE);
+            do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
         }
     }
     // Move Z_AXIS to saved position
     {
-        Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, resume_position.z, XY_MOVE_PRECENT, 100);
-        do_blocking_move_to_z(resume_position.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+        Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, resume_pos.z, XY_MOVE_PRECENT, 100);
+        do_blocking_move_to_z(resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 }
 
@@ -550,8 +555,6 @@ void Pause::FilamentChange() {
     if (did_pause_print)
         return; // already paused
 
-    FSM_Holder D(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Change));
-
     if (!DEBUGGING(DRYRUN) && unload_length && thermalManager.targetTooColdToExtrude(active_extruder)) {
         SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
         return; // unable to reach safe temperature
@@ -562,9 +565,6 @@ void Pause::FilamentChange() {
 
     print_job_timer.pause();
 
-    // Save current position
-    resume_position = current_position;
-
     // Wait for buffered blocks to complete
     planner.synchronize();
 
@@ -572,12 +572,18 @@ void Pause::FilamentChange() {
     thermalManager.set_fans_paused(true);
 #endif
 
-    park_nozzle_and_notify(retract, park_pos);
+    {
+        FSM_HolderLoadUnload H(*this, LoadUnloadMode::Change);
 
-    if (unload_length) // Unload the filament
-        FilamentUnload();
+        //park_nozzle_and_notify(retract, park_pos);
 
-    FilamentLoad();
+        if (unload_length) // Unload the filament
+            filamentUnload();
+
+        filamentLoad();
+
+        //unpark_nozzle_and_notify();
+    }
 
 // Intelligent resuming
 #if ENABLED(FWRETRACT)
@@ -586,15 +592,13 @@ void Pause::FilamentChange() {
         do_pause_e_move(-fwretract.settings.retract_length, fwretract.settings.retract_feedrate_mm_s);
 #endif
 
-    unpark_nozzle_and_notify();
-
 #if ADVANCED_PAUSE_RESUME_PRIME != 0
     do_pause_e_move(ADVANCED_PAUSE_RESUME_PRIME, feedRate_t(ADVANCED_PAUSE_PURGE_FEEDRATE));
 #endif
 
     // Now all extrusion positions are resumed and ready to be confirmed
     // Set extruder to saved position
-    planner.set_e_position_mm((destination.e = current_position.e = resume_position.e));
+    planner.set_e_position_mm((destination.e = current_position.e = resume_pos.e));
 
     --did_pause_print;
 
@@ -611,4 +615,14 @@ void Pause::FilamentChange() {
 #if HAS_DISPLAY
     ui.reset_status();
 #endif
+}
+
+bool Pause::CanSafetyTimerExpire() const {
+    return false;
+    switch (getPhase()) {
+    case PhasesLoadUnload::UserPush: //add more
+        return true;
+    default:
+        return false;
+    }
 }

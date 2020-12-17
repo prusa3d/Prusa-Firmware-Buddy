@@ -89,6 +89,7 @@ void GcodeSuite::M600() {
     pause.SetFastLoadLength(parser.seen('L') ? parser.value_axis_units(E_AXIS) : NAN);
     pause.SetPurgeLength(NAN);
     pause.SetParkPoint(park_point);
+    pause.SetResumePoint(current_position);
     pause.SetRetractLength(std::abs(parser.seen('E') ? parser.value_axis_units(E_AXIS) : NAN)); // Initial retract before move to filament change position
 
     float disp_temp = marlin_server_get_temp_to_display();

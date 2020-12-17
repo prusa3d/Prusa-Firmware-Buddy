@@ -2,6 +2,7 @@
 #include "stdint.h"
 #include "../../../lib/Marlin/Marlin/src/core/types.h"
 #include "client_response.hpp"
+#include "marlin_server.hpp"
 
 class PrivatePhase {
     PhasesLoadUnload phase; //needed for CanSafetyTimerExpire
@@ -68,7 +69,7 @@ class Pause : protected PrivatePhase {
     float retract;
 
     xyz_pos_t park_pos;
-    xyze_pos_t resume_position;
+    xyze_pos_t resume_pos;
 
 public:
     static constexpr const float minimal_purge = 1;
@@ -87,6 +88,7 @@ public:
     void SetPurgeLength(float len);
     void SetRetractLength(float len);
     void SetParkPoint(const xyz_pos_t &park_point);
+    void SetResumePoint(const xyze_pos_t &resume_point);
 
     bool CanSafetyTimerExpire() const;
 
@@ -95,14 +97,34 @@ public:
     void FilamentChange();
 
 private:
+    bool filamentUnload(); // does not create FSM_HolderLoadUnload
+    bool filamentLoad();   // does not create FSM_HolderLoadUnload
     bool loadLoop(LoadPhases_t &load_ph);
     void unloadLoop(UnloadPhases_t &unload_ph);
     void unpark_nozzle_and_notify();
-    void park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_point);
+    void park_nozzle_and_notify();
     bool is_target_temperature_safe();
     void hotend_idle_start(uint32_t time);
     void plan_e_move(const float &length, const feedRate_t &fr_mm_s);
     bool ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t progress_max);
     void plan_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+
+    //create finite state machine and automatically destroy it at the end of scope
+    //parks in ctor and unparks in dtor
+    class FSM_HolderLoadUnload : public FSM_Holder {
+        Pause &pause;
+
+    public:
+        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode)
+            : FSM_Holder(ClientFSM::Load_unload, uint8_t(mode))
+            , pause(p) {
+            pause.park_nozzle_and_notify();
+        }
+
+        ~FSM_HolderLoadUnload() {
+            pause.unpark_nozzle_and_notify();
+        }
+        friend class Pause;
+    };
 };

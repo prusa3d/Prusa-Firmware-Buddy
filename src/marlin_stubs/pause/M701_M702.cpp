@@ -41,6 +41,7 @@
 #include "pause_stubbed.hpp"
 #include "filament.h"
 #include <functional> // std::invoke
+#include <algorithm>
 #include <cmath>
 
 #define DO_NOT_RESTORE_Z_AXIS
@@ -67,22 +68,37 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
     if (parser.seenval('Z'))
         min_Z_pos = parser.linearval('Z');
 
-    FSM_Holder D(ClientFSM::Load_unload, uint8_t(type));
-
-    // Lift Z axis
+    xyz_pos_t park_position = current_position;
     if (min_Z_pos > 0) {
-        const float target_Z = _MIN(_MAX(current_position.z, min_Z_pos), Z_MAX_POS);
+        static constexpr float Z_max = Z_MAX_POS;
+        park_position.z = std::min(std::max(current_position.z, float(min_Z_pos)), Z_max);
+    }
+#ifdef DO_NOT_RESTORE_Z_AXIS
+    xyze_pos_t resume_position = park_position;
+#else
+    xyze_pos_t resume_position = current_position;
+#endif
+    Pause &pause = Pause::Instance();
+    pause.SetParkPoint(park_position);
+    pause.SetResumePoint(resume_position);
+
+    //FSM_Holder D(ClientFSM::Load_unload, uint8_t(type));
+
+    /*   // Lift Z axis
+    if (min_Z_pos > 0) {
+        static constexpr float Z_max = Z_MAX_POS;
+        const float target_Z = std::min(std::max(current_position.z, float(min_Z_pos)), Z_max);
         Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-    }
+    }*/
 
     // Load/Unload filament
-    std::invoke(f_load_unload, Pause::Instance());
+    std::invoke(f_load_unload, pause);
 
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(targ_temp, target_extruder);
     }
-
+    /*
 #ifndef DO_NOT_RESTORE_Z_AXIS
     // Restore Z axis
     if (min_Z_pos > 0) {
@@ -90,7 +106,7 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
         Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 0, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
-#endif
+#endif*/
 }
 
 /**
