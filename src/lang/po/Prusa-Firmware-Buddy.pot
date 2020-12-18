@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-12-16 13:35+0100\n"
+"POT-Creation-Date: 2020-12-18 18:54+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -332,19 +332,15 @@ msgstr ""
 msgid "Heater testing"
 msgstr ""
 
-#: src/gui/guimain.cpp:194
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:34
 msgid "Heating disabled due to 30 minutes of inactivity."
-msgstr ""
-
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:24
-msgid "Heating disabled due to a heaters timeout."
 msgstr ""
 
 #: src/gui/screen_printing.cpp:43
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/guimain.cpp:205
+#: src/gui/guimain.cpp:223
 msgid ""
 "Hi, this is your\n"
 "Original Prusa MINI."
@@ -361,8 +357,10 @@ msgstr ""
 msgid "Hotend Fan"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
-msgid "Hotend fan not spinning"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:32
+msgid ""
+"Hotend fan not spinning. Check it for possible debris, then inspect the "
+"wiring."
 msgstr ""
 
 #. Filament_removed
@@ -371,6 +369,7 @@ msgid "IGNORE"
 msgstr ""
 
 #: src/gui/screen_menu_info.cpp:20
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:31
 msgid "INFO"
 msgstr ""
 
@@ -448,7 +447,7 @@ msgstr ""
 msgid "Load Settings"
 msgstr ""
 
-#: src/gui/screen_splash.cpp:43
+#: src/gui/screen_splash.cpp:39
 msgid "Loading ..."
 msgstr ""
 
@@ -584,10 +583,6 @@ msgstr ""
 msgid "Nozzle heater check"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:31
-msgid "Nozzle is too cold."
-msgstr ""
-
 #. No
 #: src/gui/screen_sheet_rename.cpp:17 src/gui/dialogs/dialog_response.cpp:20
 msgid "OK"
@@ -626,13 +621,12 @@ msgstr ""
 msgid "PREHEAT ERROR"
 msgstr ""
 
-#. todo must be called inside _gui_dlg, but nested dialogs are not supported now
-#: src/gui/dialogs/window_dlg_load_unload.cpp:34
+#: src/gui/dialogs/window_dlg_load_unload.cpp:33
 msgid "PREHEAT for LOAD"
 msgstr ""
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
-#: src/gui/dialogs/window_dlg_load_unload.cpp:54
+#: src/gui/dialogs/window_dlg_load_unload.cpp:55
 msgid "PREHEAT for UNLOAD"
 msgstr ""
 
@@ -675,7 +669,7 @@ msgstr ""
 msgid "Please insert a USB drive and try again."
 msgstr ""
 
-#: src/gui/guimain.cpp:206
+#: src/gui/guimain.cpp:224
 msgid ""
 "Please insert the USB\n"
 "drive that came with\n"
@@ -736,8 +730,10 @@ msgstr ""
 msgid "Print Time"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:23
-msgid "Print fan not spinning"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:33
+msgid ""
+"Print fan not spinning. Check it for possible debris, then inspect the "
+"wiring."
 msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
@@ -771,7 +767,7 @@ msgstr ""
 msgid "RENAME"
 msgstr ""
 
-#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:207
+#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:225
 msgid "RESET PRINTER"
 msgstr ""
 
@@ -1086,8 +1082,8 @@ msgstr ""
 msgid "UNLOAD FILAMENT"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:25
-msgid "USB drive error. Print paused."
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:35
+msgid "USB drive error, the print is now paused. Reconnect the drive."
 msgstr ""
 
 #: src/gui/screen_menu_filament.cpp:71
