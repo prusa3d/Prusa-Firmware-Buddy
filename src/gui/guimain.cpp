@@ -100,6 +100,10 @@ void Warning_cb(WarningType type) {
     }
 }
 
+static void Startup_cb(void) {
+    Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, nullptr);
+}
+
 void gui_run(void) {
     if (diag_fastboot)
         return;
@@ -141,6 +145,7 @@ void gui_run(void) {
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
     marlin_client_set_warning_cb(Warning_cb);
+    marlin_client_set_startup_cb(Startup_cb);
 
     Sound_Play(eSOUND_TYPE::Start);
 
