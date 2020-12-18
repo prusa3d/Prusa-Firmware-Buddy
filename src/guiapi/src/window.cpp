@@ -6,6 +6,7 @@
 #include "gui_timer.h"
 #include "display.h"
 #include "sound.hpp"
+#include "marlin_client.h"
 
 bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }
 bool window_t::IsHiddenBehindDialog() const { return flags.hidden_behind_dialog; }
@@ -312,6 +313,7 @@ void window_t::ResetFocusedWindow() {
 bool window_t::IsCaptured() const { return Screens::Access()->Get()->GetCapturedWindow() == this; }
 
 bool window_t::EventEncoder(int diff) {
+    marlin_notify_server_about_encoder_move();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
     if ((!capture_ptr) || (diff == 0))
         return false;
@@ -327,6 +329,7 @@ bool window_t::EventEncoder(int diff) {
 }
 
 bool window_t::EventJogwheel(BtnState_t state) {
+    marlin_notify_server_about_konb_click();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
     if (!capture_ptr)
         return false;

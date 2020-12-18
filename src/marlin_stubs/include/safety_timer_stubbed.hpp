@@ -11,8 +11,9 @@
 class SafetyTimer {
     static constexpr millis_t default_interval = 3000; // 30 * 60 * 1000;
     millis_t interval;                                 // zero if disabled
-    millis_t reset_treshold;
-
+    millis_t last_reset;
+    uint32_t knob_moves;
+    uint32_t knob_clicks;
     SafetyTimer();
     SafetyTimer(const SafetyTimer &) = delete;
 

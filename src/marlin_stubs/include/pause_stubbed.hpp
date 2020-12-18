@@ -51,7 +51,12 @@ protected:
     PrivatePhase();
     void setPhase(PhasesLoadUnload ph, uint8_t progress_tot = 0);
     PhasesLoadUnload getPhase() const;
-    Response getResponse(); // auto restores temp turned off by safety timer
+
+    // auto restores temp turned off by safety timer,
+    // it is also restored by SafetyTimer on any user click
+    // cannot guarante that SafetyTimer will happen first, so have to do it on both places
+    Response getResponse();
+
     constexpr uint8_t getPhaseIndex() const {
         return GetPhaseIndex(phase);
     }
@@ -79,12 +84,12 @@ protected:
     }
 
     void clrRestoreTemp();
-    void restoreTemp();
 
 public:
+    void RestoreTemp();
     bool CanSafetyTimerExpire() const; //evaluate if client can click == safety timer can expire
     void NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp);
-    bool hasTempToRestore() const;
+    bool HasTempToRestore() const;
 };
 
 //used by load / unlaod /change filament

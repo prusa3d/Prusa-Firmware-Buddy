@@ -88,13 +88,13 @@ Response PrivatePhase::getResponse() {
     const Response ret = ClientResponseHandler::GetResponseFromPhase(phase);
     //user just clicked
     if (ret != Response::_none) {
-        restoreTemp();
+        RestoreTemp();
     }
     return ret;
 }
 
 bool PrivatePhase::CanSafetyTimerExpire() const {
-    if (hasTempToRestore())
+    if (HasTempToRestore())
         return false;                              // already expired
     return ClientResponses::HasButton(getPhase()); // button in current phase == can wait on user == can timeout
 }
@@ -111,7 +111,7 @@ void PrivatePhase::clrRestoreTemp() {
     bed_restore_temp = NAN;
 }
 
-void PrivatePhase::restoreTemp() {
+void PrivatePhase::RestoreTemp() {
     if (!isnan(nozzle_restore_temp)) {
         thermalManager.setTargetHotend(nozzle_restore_temp, 0);
         nozzle_restore_temp = NAN;
@@ -122,7 +122,7 @@ void PrivatePhase::restoreTemp() {
     }
 }
 
-bool PrivatePhase::hasTempToRestore() const {
+bool PrivatePhase::HasTempToRestore() const {
     return (!isnan(nozzle_restore_temp)) || (!isnan(bed_restore_temp));
 }
 
