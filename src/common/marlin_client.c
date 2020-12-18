@@ -677,6 +677,22 @@ void marlin_park_head(void) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_notify_server_about_encoder_move(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!kmove");
+    _wait_ack_from_server(client->id);
+}
+
+void marlin_notify_server_about_konb_click(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!kclick");
+    _wait_ack_from_server(client->id);
+}
+
 // returns 1 if reheating is in progress, otherwise 0
 int marlin_reheating(void) {
     marlin_client_t *client = _client_ptr();

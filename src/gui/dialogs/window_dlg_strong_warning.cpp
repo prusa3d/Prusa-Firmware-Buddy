@@ -55,7 +55,7 @@ void window_dlg_strong_warning_t::ShowPrintFan() {
     dlg.setIcon(IDR_PNG_fan_error);
 }
 
-void window_dlg_strong_warning_t::ShowHeaterTimeout() {
+void window_dlg_strong_warning_t::ShowHeatersTimeout() {
     static window_dlg_strong_warning_t dlg;
     dlg.show(_(HeaterTimeoutMsg));
     dlg.setIcon(IDR_PNG_exposure_times_48px);

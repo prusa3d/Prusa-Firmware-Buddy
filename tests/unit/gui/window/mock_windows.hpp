@@ -48,7 +48,7 @@ public:
         return dlg;
     }
 
-    static MockStrongDialog &ShowHeaterTimeout() {
+    static MockStrongDialog &ShowHeatersTimeout() {
         static MockStrongDialog dlg;
         dlg.Show(string_view_utf8::MakeNULLSTR());
         return dlg;

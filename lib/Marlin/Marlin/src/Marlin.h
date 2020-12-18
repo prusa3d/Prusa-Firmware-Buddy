@@ -333,6 +333,7 @@ inline bool IsStopped() { return !Running; }
 
 bool printingIsActive();
 bool printingIsPaused();
+bool anyHeatherIsActive();
 
 extern bool wait_for_heatup;
 

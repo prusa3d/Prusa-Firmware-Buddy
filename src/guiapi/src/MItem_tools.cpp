@@ -428,7 +428,6 @@ void MI_TIMEZONE::OnClick() {
 //I_MI_Filament
 void I_MI_Filament::click_at(FILAMENT_t filament_index) {
     const filament_t filament = filaments[filament_index];
-    marlin_gcode("M86 S1800"); // enable safety timer
     /// don't use preheat temp for cooldown
     if (PREHEAT_TEMP >= filament.nozzle) {
         marlin_gcode_printf("M104 S%d", (int)filament.nozzle);

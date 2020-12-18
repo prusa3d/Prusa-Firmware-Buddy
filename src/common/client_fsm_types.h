@@ -29,7 +29,8 @@ enum class LoadUnloadMode : uint8_t {
 enum class WarningType : uint32_t {
     HotendFanError,
     PrintFanError,
-    HeaterTimeout,
+    HeatersTimeout,
+    NozzleTimeout,
     USBFlashDiskError,
     _last = USBFlashDiskError
 };
