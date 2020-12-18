@@ -10,7 +10,22 @@
 #include "screen.hpp"
 #include "window_dlg_popup.hpp"
 #include "IDialog.hpp"
-#include "window_dlg_strong_warning.hpp"
+
+class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
+protected: // inherited by unit tests, must be protected
+    window_dlg_strong_warning_t();
+    window_dlg_strong_warning_t(const window_dlg_strong_warning_t &) = delete;
+
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    void show(string_view_utf8 txt); // could use const char *, but with stringview I can pass both translated and not translated texts
+    void setIcon(int16_t resId);
+
+public:
+    static void ShowHotendFan();
+    static void ShowPrintFan();
+    static void ShowHeaterTimeout();
+    static void ShowUSBFlashDisk();
+};
 
 struct MockMsgBox : public AddSuperWindow<IDialog> {
     MockMsgBox(Rect16 rc)
@@ -23,25 +38,25 @@ public:
 
     static MockStrongDialog &ShowHotendFan() {
         static MockStrongDialog dlg;
-        dlg.Show(_(HotendFanErrorMsg));
+        dlg.Show(string_view_utf8::MakeNULLSTR());
         return dlg;
     }
 
     static MockStrongDialog &ShowPrintFan() {
         static MockStrongDialog dlg;
-        dlg.Show(_(PrintFanErrorMsg));
+        dlg.Show(string_view_utf8::MakeNULLSTR());
         return dlg;
     }
 
     static MockStrongDialog &ShowHeatersTimeout() {
         static MockStrongDialog dlg;
-        dlg.Show(_(HeaterTimeoutMsg));
+        dlg.Show(string_view_utf8::MakeNULLSTR());
         return dlg;
     }
 
     static MockStrongDialog &ShowUSBFlashDisk() {
         static MockStrongDialog dlg;
-        dlg.Show(_(USBFlashDiskError));
+        dlg.Show(string_view_utf8::MakeNULLSTR());
         return dlg;
     }
 };

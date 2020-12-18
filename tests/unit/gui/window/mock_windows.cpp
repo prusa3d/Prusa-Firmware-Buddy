@@ -5,7 +5,7 @@
  */
 
 #include "mock_windows.hpp"
-
+#include "ScreenHandler.hpp"
 void MockScreen::ParrentCheck() const {
     //check parrent
     REQUIRE(w_first.GetParent() == this);
@@ -68,4 +68,50 @@ void MockScreen::checkPtrRange(window_t *&iter, size_t cnt, window_t *first, win
         REQUIRE(first == nullptr);
         REQUIRE(last == nullptr);
     }
+}
+
+window_dlg_strong_warning_t::window_dlg_strong_warning_t()
+    : AddSuperWindow<IDialog>(GuiDefaults::RectScreen, IDialog::IsStrong::yes) {
+}
+
+void window_dlg_strong_warning_t::setIcon(int16_t resId) {
+}
+
+void window_dlg_strong_warning_t::show(string_view_utf8 txt) {
+    if (!GetParent()) {
+        window_t *parent = Screens::Access()->Get();
+        if (parent) {
+            parent->RegisterSubWin(this);
+        }
+    }
+}
+
+void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (!GetParent())
+        return;
+    if (event == GUI_event_t::CLICK) { //todo use timer
+        GetParent()->UnregisterSubWin(this);
+    } else {
+        SuperWindowEvent(sender, event, param);
+    }
+}
+
+void window_dlg_strong_warning_t::ShowHotendFan() {
+    static window_dlg_strong_warning_t dlg;
+    dlg.show(string_view_utf8::MakeNULLSTR());
+}
+
+void window_dlg_strong_warning_t::ShowPrintFan() {
+    static window_dlg_strong_warning_t dlg;
+    dlg.show(string_view_utf8::MakeNULLSTR());
+}
+
+void window_dlg_strong_warning_t::ShowHeaterTimeout() {
+    static window_dlg_strong_warning_t dlg;
+    dlg.show(string_view_utf8::MakeNULLSTR());
+}
+
+void window_dlg_strong_warning_t::ShowUSBFlashDisk() {
+    static window_dlg_strong_warning_t dlg;
+    dlg.show(string_view_utf8::MakeNULLSTR());
 }

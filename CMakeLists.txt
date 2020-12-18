@@ -605,6 +605,7 @@ if(GUI)
             src/gui/test/screen_test_gui.cpp
             src/gui/test/screen_test_term.cpp
             src/gui/test/screen_test_msgbox.cpp
+            src/gui/test/screen_test_dlg.cpp
             src/gui/test/screen_test_wizard_icons.cpp
             src/gui/test/screen_test_graph.cpp
             src/gui/wizard/selftest.cpp
