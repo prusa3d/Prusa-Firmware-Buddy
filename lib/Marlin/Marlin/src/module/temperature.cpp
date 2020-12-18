@@ -2243,6 +2243,15 @@ void Temperature::init() {
 #endif // HAS_THERMAL_PROTECTION
 
 void Temperature::disable_all_heaters() {
+    disable_heaters(disable_bed_t::yes);
+}
+
+void Temperature::disable_hotend() {
+    disable_heaters(disable_bed_t::no);
+
+}
+
+void Temperature::disable_heaters(Temperature::disable_bed_t disable_bed) {
 
   #if ENABLED(AUTOTEMP)
     planner.autotemp_enabled = false;
@@ -2253,7 +2262,11 @@ void Temperature::disable_all_heaters() {
   #endif
 
   #if HAS_HEATED_BED
-    setTargetBed(0);
+    if (disable_bed == disable_bed_t::yes){
+      setTargetBed(0);
+      temp_bed.soft_pwm_amount = 0;
+      WRITE_HEATER_BED(LOW);
+    }
   #endif
 
   #if HAS_HEATED_CHAMBER
@@ -2288,12 +2301,6 @@ void Temperature::disable_all_heaters() {
         #endif // HOTENDS > 3
       #endif // HOTENDS > 2
     #endif // HOTENDS > 1
-  #endif
-
-  #if HAS_HEATED_BED
-    temp_bed.target = 0;
-    temp_bed.soft_pwm_amount = 0;
-    WRITE_HEATER_BED(LOW);
   #endif
 
   #if HAS_HEATED_CHAMBER

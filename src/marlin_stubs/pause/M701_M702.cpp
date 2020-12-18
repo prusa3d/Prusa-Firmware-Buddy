@@ -40,14 +40,15 @@
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
 #include "filament.h"
-#include <functional>
+#include <functional> // std::invoke
+#include <algorithm>
 #include <cmath>
 
 #define DO_NOT_RESTORE_Z_AXIS
 static const constexpr uint8_t Z_AXIS_LOAD_POS = 40;
 static const constexpr uint8_t Z_AXIS_UNLOAD_POS = 20;
 
-using Func = std::function<void()>;
+using Func = bool (Pause::*)(); //member fnc pointer
 
 /**
  * Shared code for load/unload filament
@@ -57,40 +58,36 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
     if (target_extruder < 0)
         return;
 
-    FSM_Holder D(ClientFSM::Load_unload, uint8_t(type));
-    // Z axis lift
-    if (parser.seenval('Z'))
-        min_Z_pos = parser.linearval('Z');
-
-    // Lift Z axis
-    if (min_Z_pos > 0) {
-        const float target_Z = _MIN(_MAX(current_position.z, min_Z_pos), Z_MAX_POS);
-        Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 100);
-        do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-    }
-
     float disp_temp = marlin_server_get_temp_to_display();
     float targ_temp = Temperature::degTargetHotend(target_extruder);
 
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(disp_temp, target_extruder);
     }
+    // Z axis lift
+    if (parser.seenval('Z'))
+        min_Z_pos = parser.linearval('Z');
+
+    xyz_pos_t park_position = current_position;
+    if (min_Z_pos > 0) {
+        static constexpr float Z_max = Z_MAX_POS;
+        park_position.z = std::min(std::max(current_position.z, float(min_Z_pos)), Z_max);
+    }
+#ifdef DO_NOT_RESTORE_Z_AXIS
+    xyze_pos_t resume_position = park_position;
+#else
+    xyze_pos_t resume_position = current_position;
+#endif
+    Pause &pause = Pause::Instance();
+    pause.SetParkPoint(park_position);
+    pause.SetResumePoint(resume_position);
 
     // Load/Unload filament
-    f_load_unload();
+    std::invoke(f_load_unload, pause);
 
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(targ_temp, target_extruder);
     }
-
-#ifndef DO_NOT_RESTORE_Z_AXIS
-    // Restore Z axis
-    if (min_Z_pos > 0) {
-        const float target_Z = _MAX(current_position.z - min_Z_pos, 0);
-        Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 0, 100);
-        do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-    }
-#endif
 }
 
 /**
@@ -119,19 +116,19 @@ void GcodeSuite::M701() {
             }
         }
     }
-
+    Pause &pause = Pause::Instance();
     const bool isL = (parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin));
-    const float fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : pause.GetDefaultLoadLength());
+    const float fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : pause.GetDefaultFastLoadLength());
     pause.SetPurgeLength(ADVANCED_PAUSE_PURGE_LENGTH);
     pause.SetSlowLoadLength(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
     pause.SetFastLoadLength(fast_load_length);
 
     if (fast_load_length)
         load_unload(
-            LoadUnloadMode::Load, [] { pause.FilamentLoad(); }, Z_AXIS_LOAD_POS);
+            LoadUnloadMode::Load, &Pause::FilamentLoad, Z_AXIS_LOAD_POS);
     else
         load_unload(
-            LoadUnloadMode::Purge, [] { pause.FilamentLoad(); }, Z_AXIS_LOAD_POS);
+            LoadUnloadMode::Purge, &Pause::FilamentLoad, Z_AXIS_LOAD_POS);
 }
 
 /**
@@ -146,7 +143,7 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-    pause.SetUnloadLength(parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause.GetDefaultUnloadLength());
+    Pause::Instance().SetUnloadLength(parser.seen('U') ? parser.value_axis_units(E_AXIS) : NAN);
     load_unload(
-        LoadUnloadMode::Unload, [] { pause.FilamentUnload(); }, Z_AXIS_UNLOAD_POS);
+        LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS);
 }

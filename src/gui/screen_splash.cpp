@@ -32,7 +32,8 @@ screen_splash_data_t::screen_splash_data_t()
     , text_version(this, Rect16(0, 295, 240, 22), is_multiline::no)
     , icon_logo_buddy(this, Rect16(), 0)  //unused?
     , icon_logo_marlin(this, Rect16(), 0) //unused?
-    , icon_debug(this, Rect16(80, 240, 80, 80), IDR_PNG_marlin_logo) {
+    , icon_debug(this, Rect16(80, 215, 80, 80), IDR_PNG_marlin_logo) {
+    super::ClrMenuTimeoutClose();
 
     if (ScreenWizard::IsConfigInvalid()) {
         static const char en_text[] = "Wizard states invalid"; // intentionally not translated

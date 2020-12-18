@@ -536,6 +536,7 @@ target_sources(
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
+          src/marlin_stubs/feature/safety_timer.cpp
           src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
           src/marlin_stubs/host/M115.cpp
           src/gui/guimain.cpp
@@ -604,6 +605,7 @@ if(GUI)
             src/gui/test/screen_test_gui.cpp
             src/gui/test/screen_test_term.cpp
             src/gui/test/screen_test_msgbox.cpp
+            src/gui/test/screen_test_dlg.cpp
             src/gui/test/screen_test_wizard_icons.cpp
             src/gui/test/screen_test_graph.cpp
             src/gui/wizard/selftest.cpp

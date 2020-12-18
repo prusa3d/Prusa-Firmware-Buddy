@@ -11,22 +11,12 @@ enum { pdFALSE = 0,
 
     pdPASS = pdTRUE };
 
-inline void *GetQ32() {
-    static std::queue<uint32_t> ret;
-    return &ret;
-}
-
-inline void *GetQ8() {
-    static std::queue<uint8_t> ret;
-    return &ret;
-}
-
+//not general version, queue with 4B items only
 inline QueueHandle_t xQueueCreate(uint32_t uxQueueLength, uint32_t uxItemSize) {
-    if (uxItemSize == 1) {
-        return GetQ8();
-    } else {
-        return GetQ32();
-    }
+    static std::queue<uint32_t> q32;
+    std::queue<uint32_t> empty;
+    std::swap(q32, empty);
+    return &q32;
 }
 
 template <class T>
@@ -47,17 +37,9 @@ inline BaseType_t xQueueSendFromISR_Test(std::queue<T> *queue, const void *const
 }
 
 inline int xQueueReceive(QueueHandle_t xQueue, void *const pvBuffer, uint32_t xTicksToWait) {
-    if (xQueue == GetQ8()) {
-        return xQueueReceiveTest((std::queue<uint8_t> *)xQueue, pvBuffer);
-    } else {
-        return xQueueReceiveTest((std::queue<uint32_t> *)xQueue, pvBuffer);
-    }
+    return xQueueReceiveTest((std::queue<uint32_t> *)xQueue, pvBuffer);
 }
 
 inline BaseType_t xQueueSendFromISR(QueueHandle_t xQueue, const void *const pvItemToQueue, BaseType_t *const pxHigherPriorityTaskWoken) {
-    if (xQueue == GetQ8()) {
-        return xQueueSendFromISR_Test((std::queue<uint8_t> *)xQueue, pvItemToQueue);
-    } else {
-        return xQueueSendFromISR_Test((std::queue<uint32_t> *)xQueue, pvItemToQueue);
-    }
+    return xQueueSendFromISR_Test((std::queue<uint32_t> *)xQueue, pvItemToQueue);
 }

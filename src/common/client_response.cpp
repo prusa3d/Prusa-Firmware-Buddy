@@ -12,7 +12,6 @@ const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoad
     { Response::Yes, Response::No },                               //IsFilamentUnloaded,
     { Response::Continue },                                        //ManualUnload,
     { Response::Continue },                                        //UserPush,
-    { Response::Reheat },                                          //NozzleTimeout,
     {},                                                            //MakeSureInserted,
     {},                                                            //Inserting,
     { Response::Yes, Response::No },                               //IsFilamentInGear,
