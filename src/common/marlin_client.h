@@ -49,6 +49,8 @@ extern int marlin_client_set_fsm_change_cb(fsm_change_t cb);
 extern int marlin_client_set_message_cb(message_cb_t cb);
 //sets dialog message, returns 1 on success
 extern int marlin_client_set_warning_cb(warning_cb_t cb);
+//sets startup callback, returns 1 on success
+extern int marlin_client_set_startup_cb(startup_cb_t cb);
 // returns enabled status of loop processing
 extern int marlin_processing(void);
 
