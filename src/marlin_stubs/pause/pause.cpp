@@ -213,12 +213,6 @@ void Pause::plan_e_move_notify_progress(const float &length, const feedRate_t &f
     }
 }
 
-// Start the heater idle timers
-void Pause::hotend_idle_start(uint32_t time) {
-    HOTEND_LOOP()
-    thermalManager.hotend_idle[e].start((millis_t)(time)*1000UL);
-}
-
 bool Pause::loadLoop(LoadPhases_t &load_ph) {
     bool ret = true;
     const float purge_ln = std::max(purge_length, minimal_purge);
@@ -230,24 +224,19 @@ bool Pause::loadLoop(LoadPhases_t &load_ph) {
     case LoadPhases_t::_init:
     case LoadPhases_t::has_slow_load:
         if (slow_load_length > 0) {
-            load_ph = LoadPhases_t::check_filament_sensor;
+            load_ph = LoadPhases_t::check_filament_sensor_and_user_push__ask;
         } else {
             load_ph = LoadPhases_t::wait_temp;
         }
         break;
-    case LoadPhases_t::check_filament_sensor:
+    case LoadPhases_t::check_filament_sensor_and_user_push__ask:
         if (fs_get_state() == fsensor_t::NoFilament) {
             setPhase(PhasesLoadUnload::MakeSureInserted);
         } else {
             setPhase(PhasesLoadUnload::UserPush);
-            load_ph = LoadPhases_t::user_push__ask;
-        }
-        break;
-    case LoadPhases_t::user_push__ask:
-        if (response == Response::Continue) { // TODO method without param using actual phase
-            load_ph = LoadPhases_t::load_in_gear;
-        } else {
-            load_ph = LoadPhases_t::check_filament_sensor;
+            if (response == Response::Continue) {
+                load_ph = LoadPhases_t::load_in_gear;
+            }
         }
         break;
     case LoadPhases_t::load_in_gear: { //slow load
@@ -487,8 +476,9 @@ void Pause::park_nozzle_and_notify() {
     // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
     if (!axes_need_homing()) {
         {
-            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, park_pos.z, 0, Z_MOVE_PRECENT);
-            do_blocking_move_to_z(_MIN(current_position.z + park_pos.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
+            const float target_Z = _MIN(park_pos.z, Z_MAX_POS);
+            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, Z_MOVE_PRECENT);
+            do_blocking_move_to_z(target_Z, NOZZLE_PARK_Z_FEEDRATE);
         }
         {
             const bool x_greater_than_y = std::abs(current_position.x - park_pos.x) > std::abs(current_position.y - park_pos.y);
@@ -507,24 +497,26 @@ void Pause::park_nozzle_and_notify() {
 }
 
 void Pause::unpark_nozzle_and_notify() {
-    setPhase(PhasesLoadUnload::Unparking);
-    // Move XY to starting position, then Z
-    {
-        const bool x_greater_than_y = std::abs(current_position.x - resume_pos.x) > std::abs(current_position.y - resume_pos.y);
-        const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
-        const float &end_pos = x_greater_than_y ? resume_pos.x : resume_pos.y;
-        if (x_greater_than_y) {
-            Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
-            do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
-        } else {
-            Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
-            do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+    if (!axes_need_homing()) {
+        setPhase(PhasesLoadUnload::Unparking);
+        // Move XY to starting position, then Z
+        {
+            const bool x_greater_than_y = std::abs(current_position.x - resume_pos.x) > std::abs(current_position.y - resume_pos.y);
+            const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
+            const float &end_pos = x_greater_than_y ? resume_pos.x : resume_pos.y;
+            if (x_greater_than_y) {
+                Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
+                do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+            } else {
+                Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
+                do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+            }
         }
-    }
-    // Move Z_AXIS to saved position
-    {
-        Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, resume_pos.z, XY_MOVE_PRECENT, 100);
-        do_blocking_move_to_z(resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+        // Move Z_AXIS to saved position
+        {
+            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, resume_pos.z, XY_MOVE_PRECENT, 100);
+            do_blocking_move_to_z(resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+        }
     }
 }
 

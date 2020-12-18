@@ -36,8 +36,7 @@ class Pause : protected PrivatePhase {
     enum class LoadPhases_t {
         _init = int(UnloadPhases_t::_finish) + 1,
         has_slow_load,
-        check_filament_sensor,
-        user_push__ask,
+        check_filament_sensor_and_user_push__ask, //must be one phase because of button click
         load_in_gear,
         wait_temp,
         error_temp,
@@ -104,7 +103,6 @@ private:
     void unpark_nozzle_and_notify();
     void park_nozzle_and_notify();
     bool is_target_temperature_safe();
-    void hotend_idle_start(uint32_t time);
     void plan_e_move(const float &length, const feedRate_t &fr_mm_s);
     bool ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t progress_max);
     void plan_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);

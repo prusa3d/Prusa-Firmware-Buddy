@@ -81,6 +81,8 @@ void GcodeSuite::M600() {
 #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA)
     park_point += hotend_offset[active_extruder];
 #endif
+
+    park_point.z += current_position.z;
     Pause &pause = Pause::Instance();
 
     //NAN == default
