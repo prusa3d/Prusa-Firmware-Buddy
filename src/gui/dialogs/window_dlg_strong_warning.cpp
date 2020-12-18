@@ -14,7 +14,7 @@ window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreen, IDialog::IsStrong::yes)
     , header(this, _(Title))
     , footer(this)
-    , icon(this, IDR_PNG_exposure_times_48px, { 120 - 32, 48 })
+    , icon(this, IDR_PNG_exposure_times_48px, { 120 - 24, 48 })
     , text(this, { 0, 104, 240, 120 }, is_multiline::yes)
     , button(this, get_radio_button_rect(rect) - Rect16::Top_t(64), &dlg_responses, &ph_txt_continue) {
 }
