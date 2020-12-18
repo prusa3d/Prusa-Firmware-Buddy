@@ -1,3 +1,11 @@
+/**
+ * @file pause_stubbed.hpp
+ * @author Radek Vana
+ * @brief stubbed version of marlin pause.hpp
+ * mainly used for load / unload / change filament
+ * @date 2020-12-18
+ */
+
 #pragma once
 #include "stdint.h"
 #include "../../../lib/Marlin/Marlin/src/core/types.h"
@@ -5,32 +13,21 @@
 #include "marlin_server.hpp"
 
 class PrivatePhase {
-    PhasesLoadUnload phase; //needed for CanSafetyTimerExpire
+    PhasesLoadUnload phase;       //needed for CanSafetyTimerExpire
+    int load_unload_shared_phase; //shared variable for UnloadPhases_t and LoadPhases_t
+
+    float nozzle_restore_temp;
+    float bed_restore_temp;
+
 protected:
-    PrivatePhase()
-        : phase(PhasesLoadUnload::_first) {}
-    void setPhase(PhasesLoadUnload ph, uint8_t progress_tot = 0);
-    PhasesLoadUnload getPhase() const;
-    Response getResponse() const;
-    constexpr uint8_t getPhaseIndex() const {
-        return GetPhaseIndex(phase);
-    }
-};
-
-//used by load / unlaod /change filament
-class Pause : protected PrivatePhase {
-    //singleton
-    Pause();
-    Pause(const Pause &) = delete;
-    Pause &operator=(const Pause &) = delete;
-
     enum class UnloadPhases_t {
         _init,
         ram_sequence,
         unload,
         unloaded__ask,
         manual_unload,
-        _finish
+        _phase_does_not_exist,
+        _finish = _phase_does_not_exist
     };
 
     enum class LoadPhases_t {
@@ -47,8 +44,55 @@ class Pause : protected PrivatePhase {
         ask_is_color_correct,
         ask_is_color_correct__stand_alone_purge,
         eject,
-        _finish
+        _phase_does_not_exist,
+        _finish = _phase_does_not_exist
     };
+
+    PrivatePhase();
+    void setPhase(PhasesLoadUnload ph, uint8_t progress_tot = 0);
+    PhasesLoadUnload getPhase() const;
+    Response getResponse(); // auto restores temp turned off by safety timer
+    constexpr uint8_t getPhaseIndex() const {
+        return GetPhaseIndex(phase);
+    }
+
+    //use UnloadPhases_t or LoadPhases_t
+    template <class ENUM>
+    ENUM get() {
+        if (load_unload_shared_phase < int(ENUM::_init))
+            return ENUM::_phase_does_not_exist;
+        if (load_unload_shared_phase > int(ENUM::_finish))
+            return ENUM::_phase_does_not_exist;
+        return ENUM(load_unload_shared_phase);
+    }
+
+    LoadPhases_t getLoadPhase() {
+        return get<LoadPhases_t>();
+    }
+    UnloadPhases_t getUnloadPhase() {
+        return get<UnloadPhases_t>();
+    }
+
+    template <class ENUM>
+    void set(ENUM en) {
+        load_unload_shared_phase = int(en);
+    }
+
+    void clrRestoreTemp();
+    void restoreTemp();
+
+public:
+    bool CanSafetyTimerExpire() const; //evaluate if client can click == safety timer can expire
+    void NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp);
+    bool hasTempToRestore() const;
+};
+
+//used by load / unlaod /change filament
+class Pause : public PrivatePhase {
+    //singleton
+    Pause();
+    Pause(const Pause &) = delete;
+    Pause &operator=(const Pause &) = delete;
 
     static constexpr int Z_MOVE_PRECENT = 75;
     static constexpr int XY_MOVE_PRECENT = 100 - Z_MOVE_PRECENT;
@@ -89,8 +133,6 @@ public:
     void SetParkPoint(const xyz_pos_t &park_point);
     void SetResumePoint(const xyze_pos_t &resume_point);
 
-    bool CanSafetyTimerExpire() const;
-
     bool FilamentUnload();
     bool FilamentLoad();
     void FilamentChange();
@@ -98,8 +140,8 @@ public:
 private:
     bool filamentUnload(); // does not create FSM_HolderLoadUnload
     bool filamentLoad();   // does not create FSM_HolderLoadUnload
-    bool loadLoop(LoadPhases_t &load_ph);
-    void unloadLoop(UnloadPhases_t &unload_ph);
+    bool loadLoop();
+    void unloadLoop();
     void unpark_nozzle_and_notify();
     void park_nozzle_and_notify();
     bool is_target_temperature_safe();
@@ -117,10 +159,12 @@ private:
         FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode)
             : FSM_Holder(ClientFSM::Load_unload, uint8_t(mode))
             , pause(p) {
+            pause.clrRestoreTemp();
             pause.park_nozzle_and_notify();
         }
 
         ~FSM_HolderLoadUnload() {
+            pause.clrRestoreTemp();
             pause.unpark_nozzle_and_notify();
         }
         friend class Pause;

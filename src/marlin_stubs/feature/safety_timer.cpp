@@ -45,6 +45,7 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     }
 
     //timer is expired
+    Pause::Instance().NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed());
     if (printingIsPaused()) {
         // disable only nozzle
         thermalManager.disable_hotend();

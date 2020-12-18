@@ -1,29 +1,11 @@
 /**
- * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
- *
- * Based on Sprinter and grbl.
- * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * @file pause.cpp
+ * @author Radek Vana
+ * @brief stubbed version of marlin pause.cpp
+ * mainly used for load / unload / change filament
+ * @date 2020-12-18
  */
 
-/**
- * feature/pause.cpp - Pause feature support functions
- * This may be combined with related G-codes if features are consolidated.
- */
 #include "../../lib/Marlin/Marlin/src/inc/MarlinConfigPre.h"
 
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
@@ -46,10 +28,10 @@
 #include "../../lib/Marlin/Marlin/src/feature/pause.h"
 
 #include "pause_stubbed.hpp"
-
 #include "marlin_server.hpp"
 #include "filament_sensor.hpp"
 #include "filament.h"
+#include "client_response.hpp"
 #include "RAII.hpp"
 #include <cmath>
 
@@ -88,6 +70,13 @@ void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
 
 /*****************************************************************************/
 //PrivatePhase
+
+PrivatePhase::PrivatePhase()
+    : phase(PhasesLoadUnload::_first)
+    , load_unload_shared_phase(int(UnloadPhases_t::_init))
+    , nozzle_restore_temp(NAN)
+    , bed_restore_temp(NAN) {}
+
 void PrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress_tot) {
     phase = ph;
     fsm_change(ClientFSM::Load_unload, phase, progress_tot, progress_tot == 100 ? 100 : 0);
@@ -95,8 +84,46 @@ void PrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress_tot) {
 
 PhasesLoadUnload PrivatePhase::getPhase() const { return phase; }
 
-Response PrivatePhase::getResponse() const {
-    return ClientResponseHandler::GetResponseFromPhase(phase);
+Response PrivatePhase::getResponse() {
+    const Response ret = ClientResponseHandler::GetResponseFromPhase(phase);
+    //user just clicked
+    if (ret != Response::_none) {
+        restoreTemp();
+    }
+    return ret;
+}
+
+bool PrivatePhase::CanSafetyTimerExpire() const {
+    if (hasTempToRestore())
+        return false;                              // already expired
+    return ClientResponses::HasButton(getPhase()); // button in current phase == can wait on user == can timeout
+}
+
+void PrivatePhase::NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) {
+    if (CanSafetyTimerExpire()) {
+        nozzle_restore_temp = hotend_temp;
+        bed_restore_temp = bed_temp;
+    }
+}
+
+void PrivatePhase::clrRestoreTemp() {
+    nozzle_restore_temp = NAN;
+    bed_restore_temp = NAN;
+}
+
+void PrivatePhase::restoreTemp() {
+    if (!isnan(nozzle_restore_temp)) {
+        thermalManager.setTargetHotend(nozzle_restore_temp, 0);
+        nozzle_restore_temp = NAN;
+    }
+    if (!isnan(bed_restore_temp)) {
+        thermalManager.setTargetBed(bed_restore_temp);
+        bed_restore_temp = NAN;
+    }
+}
+
+bool PrivatePhase::hasTempToRestore() const {
+    return (!isnan(nozzle_restore_temp)) || (!isnan(bed_restore_temp));
 }
 
 /*****************************************************************************/
@@ -213,20 +240,20 @@ void Pause::plan_e_move_notify_progress(const float &length, const feedRate_t &f
     }
 }
 
-bool Pause::loadLoop(LoadPhases_t &load_ph) {
+bool Pause::loadLoop() {
     bool ret = true;
     const float purge_ln = std::max(purge_length, minimal_purge);
 
     const Response response = getResponse();
 
     //transitions
-    switch (load_ph) {
+    switch (getLoadPhase()) {
     case LoadPhases_t::_init:
     case LoadPhases_t::has_slow_load:
         if (slow_load_length > 0) {
-            load_ph = LoadPhases_t::check_filament_sensor_and_user_push__ask;
+            set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         } else {
-            load_ph = LoadPhases_t::wait_temp;
+            set(LoadPhases_t::wait_temp);
         }
         break;
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
@@ -235,7 +262,7 @@ bool Pause::loadLoop(LoadPhases_t &load_ph) {
         } else {
             setPhase(PhasesLoadUnload::UserPush);
             if (response == Response::Continue) {
-                load_ph = LoadPhases_t::load_in_gear;
+                set(LoadPhases_t::load_in_gear);
             }
         }
         break;
@@ -246,73 +273,73 @@ bool Pause::loadLoop(LoadPhases_t &load_ph) {
         do_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         set_filament(filament_to_load);
     }
-        load_ph = LoadPhases_t::wait_temp;
+        set(LoadPhases_t::wait_temp);
         break;
     case LoadPhases_t::wait_temp:
         setPhase(PhasesLoadUnload::WaitingTemp, 30);
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
-            load_ph = LoadPhases_t::long_load;
+            set(LoadPhases_t::long_load);
         } else {
-            load_ph = LoadPhases_t::error_temp;
+            set(LoadPhases_t::error_temp);
         }
         break;
     case LoadPhases_t::error_temp:
         ret = false;
-        load_ph = LoadPhases_t::_finish;
+        set(LoadPhases_t::_finish);
         break;
     case LoadPhases_t::has_long_load:
         if (fast_load_length) {
-            load_ph = LoadPhases_t::long_load;
+            set(LoadPhases_t::long_load);
         } else {
-            load_ph = LoadPhases_t::stand_alone_purge;
+            set(LoadPhases_t::stand_alone_purge);
         }
         break;
     case LoadPhases_t::long_load:
         planner.settings.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
         setPhase(PhasesLoadUnload::Loading, 50);
         do_e_move_notify_progress(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
-        load_ph = LoadPhases_t::purge;
+        set(LoadPhases_t::purge);
         break;
     case LoadPhases_t::purge:
         // Extrude filament to get into hotend
         setPhase(PhasesLoadUnload::Purging, 70);
         do_e_move_notify_progress(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         setPhase(PhasesLoadUnload::IsColor, 99);
-        load_ph = LoadPhases_t::ask_is_color_correct;
+        set(LoadPhases_t::ask_is_color_correct);
         break;
     case LoadPhases_t::stand_alone_purge:
         // Extrude filament to get into hotend
         setPhase(PhasesLoadUnload::Purging, 70);
         do_e_move_notify_progress(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         setPhase(PhasesLoadUnload::IsColorPurge, 99);
-        load_ph = LoadPhases_t::ask_is_color_correct__stand_alone_purge;
+        set(LoadPhases_t::ask_is_color_correct__stand_alone_purge);
         break;
     case LoadPhases_t::ask_is_color_correct: {
         if (response == Response::Purge_more) {
-            load_ph = LoadPhases_t::purge;
+            set(LoadPhases_t::purge);
         }
         if (response == Response::Retry) {
-            load_ph = LoadPhases_t::eject;
+            set(LoadPhases_t::eject);
         }
         if (response == Response::Continue) {
-            load_ph = LoadPhases_t::_finish;
+            set(LoadPhases_t::_finish);
         }
     } break;
     case LoadPhases_t::ask_is_color_correct__stand_alone_purge: {
         if (response == Response::Purge_more) {
-            load_ph = LoadPhases_t::stand_alone_purge;
+            set(LoadPhases_t::stand_alone_purge);
         }
         if (response == Response::Continue) {
-            load_ph = LoadPhases_t::_finish;
+            set(LoadPhases_t::_finish);
         }
     } break;
     case LoadPhases_t::eject:
         setPhase(PhasesLoadUnload::Ejecting, 99);
         do_e_move_notify_progress(-slow_load_length - fast_load_length - purge_ln, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 10, 99);
-        load_ph = LoadPhases_t::has_slow_load;
+        set(LoadPhases_t::has_slow_load);
         break;
     default:
-        load_ph = LoadPhases_t::_finish;
+        set(LoadPhases_t::_finish);
     }
 
     idle(true); // idle loop to prevet wdt and manage heaters etc, true == do not shutdown steppers
@@ -348,12 +375,12 @@ bool Pause::filamentLoad() {
 #endif //ENABLED(PID_EXTRUSION_SCALING)
 
     AutoRestore<float> AR(planner.settings.retract_acceleration);
-    LoadPhases_t load_ph = LoadPhases_t::_init;
+    set(LoadPhases_t::_init);
 
     bool ret = true;
     do {
-        ret = loadLoop(load_ph);
-    } while (load_ph != LoadPhases_t::_finish);
+        ret = loadLoop();
+    } while (getLoadPhase() != LoadPhases_t::_finish);
 
 #if ENABLED(PID_EXTRUSION_SCALING)
     thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
@@ -362,7 +389,7 @@ bool Pause::filamentLoad() {
     return ret;
 }
 
-void Pause::unloadLoop(UnloadPhases_t &unload_ph) {
+void Pause::unloadLoop() {
     static const RamUnloadSeqItem ramUnloadSeq[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
     decltype(RamUnloadSeqItem::e) ramUnloadLength = 0; //Sum of ramming distances starting from first retraction
 
@@ -372,7 +399,7 @@ void Pause::unloadLoop(UnloadPhases_t &unload_ph) {
     const Response response = getResponse();
 
     //transitions
-    switch (unload_ph) {
+    switch (getUnloadPhase()) {
     case UnloadPhases_t::_init:
     case UnloadPhases_t::ram_sequence:
         setPhase(PhasesLoadUnload::Ramming, 50);
@@ -386,7 +413,7 @@ void Pause::unloadLoop(UnloadPhases_t &unload_ph) {
                     ramUnloadLength += ramUnloadSeq[i].e;
             }
         }
-        unload_ph = UnloadPhases_t::unload;
+        set(UnloadPhases_t::unload);
         break;
     case UnloadPhases_t::unload: {
         const float saved_acceleration = planner.settings.retract_acceleration;
@@ -402,27 +429,27 @@ void Pause::unloadLoop(UnloadPhases_t &unload_ph) {
 
         set_filament(FILAMENT_NONE);
         setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
-        unload_ph = UnloadPhases_t::unloaded__ask;
+        set(UnloadPhases_t::unloaded__ask);
     } break;
     case UnloadPhases_t::unloaded__ask: {
         if (response == Response::Yes) {
-            unload_ph = UnloadPhases_t::_finish;
+            set(UnloadPhases_t::_finish);
         }
         if (response == Response::No) {
             setPhase(PhasesLoadUnload::ManualUnload, 100);
             disable_e_stepper(active_extruder);
-            unload_ph = UnloadPhases_t::manual_unload;
+            set(UnloadPhases_t::manual_unload);
         }
 
     } break;
     case UnloadPhases_t::manual_unload: {
         if (response == Response::Continue) {
             enable_e_steppers();
-            unload_ph = UnloadPhases_t::_finish;
+            set(UnloadPhases_t::_finish);
         }
     } break;
     default:
-        unload_ph = UnloadPhases_t::_finish;
+        set(UnloadPhases_t::_finish);
     }
 
     idle(true);
@@ -454,11 +481,11 @@ bool Pause::filamentUnload() {
     thermalManager.setExtrusionScalingEnabled(false);
 #endif //ENABLED(PID_EXTRUSION_SCALING)
 
-    UnloadPhases_t unload_ph = UnloadPhases_t::_init;
+    set(UnloadPhases_t::_init);
 
     do {
-        unloadLoop(unload_ph);
-    } while (unload_ph != UnloadPhases_t::_finish);
+        unloadLoop();
+    } while (getUnloadPhase() != UnloadPhases_t::_finish);
 
 #if ENABLED(PID_EXTRUSION_SCALING)
     thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
@@ -519,8 +546,6 @@ void Pause::unpark_nozzle_and_notify() {
         }
     }
 }
-
-// public:
 
 /**
  * FilamentChange procedure
@@ -607,14 +632,4 @@ void Pause::FilamentChange() {
 #if HAS_DISPLAY
     ui.reset_status();
 #endif
-}
-
-bool Pause::CanSafetyTimerExpire() const {
-    return false;
-    switch (getPhase()) {
-    case PhasesLoadUnload::UserPush: //add more
-        return true;
-    default:
-        return false;
-    }
 }

@@ -135,6 +135,10 @@ public:
     static const PhaseResponses &GetResponses(T phase) {
         return getResponsesInPhase(phase);
     }
+    template <class T>
+    static bool HasButton(T phase) {
+        return GetResponse(phase, 0) != Response::_none; // this phase has no responses
+    }
 
     //encode phase and client response (in GUI radio button and clicked index) into int
     //use on client side
