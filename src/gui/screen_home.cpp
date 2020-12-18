@@ -190,13 +190,13 @@ void screen_home_data_t::printBtnEna() {
 }
 
 void screen_home_data_t::printBtnDis() {
-    w_buttons[0].Shadow();
-    w_buttons[0].Disable(); // cant't be focused
-    w_buttons[0].Invalidate();
-    w_labels[0].SetText(_(labels[labelNoUSBId]));
-
     // move to preheat when Print is focused
     if (w_buttons[0].IsFocused()) {
         w_buttons[1].SetFocus();
     }
+
+    w_buttons[0].Shadow();
+    w_buttons[0].Disable(); // cant't be focused
+    w_buttons[0].Invalidate();
+    w_labels[0].SetText(_(labels[labelNoUSBId]));
 }
