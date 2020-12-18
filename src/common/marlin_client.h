@@ -55,10 +55,10 @@ extern int marlin_client_set_startup_cb(startup_cb_t cb);
 extern int marlin_processing(void);
 
 //sets event notification mask
-extern void marlin_client_set_event_notify(uint64_t notify_events);
+extern void marlin_client_set_event_notify(uint64_t notify_events, void (*cb)());
 
 //sets variable change notification mask
-extern void marlin_client_set_change_notify(uint64_t notify_changes);
+extern void marlin_client_set_change_notify(uint64_t notify_changes, void (*cb)());
 
 // returns currently running command or MARLIN_CMD_NONE
 extern uint32_t marlin_command(void);

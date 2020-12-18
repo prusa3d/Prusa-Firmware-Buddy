@@ -17,7 +17,7 @@ void StartMeasurementTask(void const *argument) {
     marlin_client_init();
     marlin_client_wait_for_start_processing();
     fs_init_on_edge();
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_FSM);
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_FSM, nullptr);
 
     uint32_t next_fs_cycle = HAL_GetTick();
     uint32_t next_sg_cycle = HAL_GetTick();

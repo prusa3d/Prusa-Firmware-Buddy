@@ -102,7 +102,19 @@ void Warning_cb(WarningType type) {
 }
 
 static void Startup_cb(void) {
-    Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, nullptr);
+}
+
+void client_gui_refresh() {
+    static uint32_t start = HAL_GetTick();
+    static uint32_t last_tick = HAL_GetTick();
+    uint32_t tick = HAL_GetTick();
+    if (last_tick != tick) {
+        uint32_t percent = (tick - start) / (3000 / 100); //3000ms / 100%
+        percent = ((percent < 99) ? percent : 99);
+        Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)percent);
+        last_tick = tick;
+        gui_redraw();
+    }
 }
 
 void gui_run(void) {
@@ -136,9 +148,6 @@ void gui_run(void) {
     gui_marlin_vars = marlin_client_init();
     gui_marlin_vars->media_LFN = gui_media_LFN;
     gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
-
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
 
     DialogHandler::Access(); //to create class NOW, not at first call of one of callback
     marlin_client_set_fsm_create_cb(DialogHandler::Open);
@@ -193,12 +202,15 @@ void gui_run(void) {
     }
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
+
+    Screens::Access()->Loop();
+
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, client_gui_refresh);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF, client_gui_refresh);
+    uint32_t progr100 = 100;
+    Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)progr100);
     while (1) {
         Screens::Access()->Loop();
-        // show warning dialog on safety timer expiration
-        if (marlin_event_clr(MARLIN_EVT_SafetyTimerExpired)) {
-            MsgBoxInfo(_("Heating disabled due to 30 minutes of inactivity."), Responses_Ok);
-        }
         gui_loop();
     }
 }

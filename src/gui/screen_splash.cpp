@@ -18,12 +18,6 @@
     #include "marlin_client.h"
 #endif
 
-void screen_splash_data_t::timer(uint32_t mseconds) {
-    static uint32_t start = mseconds;
-    float percent = (mseconds - start) / 300;
-    progress.SetValue((percent < 99) ? percent : 99);
-}
-
 screen_splash_data_t::screen_splash_data_t()
     : AddSuperWindow<screen_t>()
     , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_prusa_printer_splash)
@@ -61,13 +55,14 @@ void screen_splash_data_t::draw() {
 }
 
 void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    timer(HAL_GetTick());
-
 #ifdef _EXTUI
+    if (event == GUI_event_t::GUI_STARTUP) { //without clear it could run multiple times before screen is closed
 
-    if (event == GUI_event_t::GUI_STARTUP && marlin_event_clr(MARLIN_EVT_Startup)) { //without clear it could run multiple times before screen is closed
+        uint32_t percent = uint32_t(param);
+        progress.SetValue((percent < 99) ? percent : 99);
 
-        /*if (marlin_event(MARLIN_EVT_StartProcessing)) {
+        if (percent > 99) {
+            /*if (marlin_event(MARLIN_EVT_StartProcessing)) {
         // Originally these lines should be immediately after marlin_client_init, but because the functions are blocking
         // and we want the gui thread alive, we moved the lines here.
         marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
@@ -75,18 +70,19 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t 
         Screens::Access()->Close();
         */
 
-        const bool run_selftest = variant_get_ui8(eeprom_get_var(EEVAR_RUN_SELFTEST)) ? 1 : 0;
-        const bool run_xyzcalib = variant_get_ui8(eeprom_get_var(EEVAR_RUN_XYZCALIB)) ? 1 : 0;
-        const bool run_firstlay = variant_get_ui8(eeprom_get_var(EEVAR_RUN_FIRSTLAY)) ? 1 : 0;
-        const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
-        const bool run_lang = !LangEEPROM::getInstance().IsValid();
+            const bool run_selftest = variant_get_ui8(eeprom_get_var(EEVAR_RUN_SELFTEST)) ? 1 : 0;
+            const bool run_xyzcalib = variant_get_ui8(eeprom_get_var(EEVAR_RUN_XYZCALIB)) ? 1 : 0;
+            const bool run_firstlay = variant_get_ui8(eeprom_get_var(EEVAR_RUN_FIRSTLAY)) ? 1 : 0;
+            const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
+            const bool run_lang = !LangEEPROM::getInstance().IsValid();
 
-        const ScreenFactory::Creator screens[] {
-            run_lang ? GetScreenMenuLanguagesNoRet : nullptr,          // lang
-            run_wizard ? ScreenFactory::Screen<ScreenWizard> : nullptr // wizard
-        };
-        Screens::Access()->PushBeforeCurrent(screens, screens + (sizeof(screens) / sizeof(screens[0])));
-        Screens::Access()->Close();
+            const ScreenFactory::Creator screens[] {
+                run_lang ? GetScreenMenuLanguagesNoRet : nullptr,          // lang
+                run_wizard ? ScreenFactory::Screen<ScreenWizard> : nullptr // wizard
+            };
+            Screens::Access()->PushBeforeCurrent(screens, screens + (sizeof(screens) / sizeof(screens[0])));
+            Screens::Access()->Close();
+        }
 #else
     if (HAL_GetTick() > 3000) {
         Screens::Access()->Close();

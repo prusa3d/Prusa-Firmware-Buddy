@@ -75,6 +75,7 @@ extern osSemaphoreId marlin_server_sema; // semaphore handle
 static void _wait_server_started(void);
 static void _send_request_to_server(uint8_t client_id, const char *request);
 static uint32_t _wait_ack_from_server(uint8_t client_id);
+static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)());
 static void _process_client_message(marlin_client_t *client, variant8_t msg);
 static marlin_client_t *_client_ptr(void);
 
@@ -238,23 +239,23 @@ int marlin_processing(void) {
     return 0;
 }
 
-void marlin_client_set_event_notify(uint64_t notify_events) {
+void marlin_client_set_event_notify(uint64_t notify_events, void (*cb)()) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client) {
         snprintf(request, MARLIN_MAX_REQUEST, "!event_msk %08lx %08lx", (uint32_t)(notify_events & 0xffffffff), (uint32_t)(notify_events >> 32));
         _send_request_to_server(client->id, request);
-        _wait_ack_from_server(client->id);
+        _wait_ack_from_server_with_callback(client->id, cb);
     }
 }
 
-void marlin_client_set_change_notify(uint64_t notify_changes) {
+void marlin_client_set_change_notify(uint64_t notify_changes, void (*cb)()) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client) {
         snprintf(request, MARLIN_MAX_REQUEST, "!change_msk %08lx %08lx", (uint32_t)(notify_changes & 0xffffffff), (uint32_t)(notify_changes >> 32));
         _send_request_to_server(client->id, request);
-        _wait_ack_from_server(client->id);
+        _wait_ack_from_server_with_callback(client->id, cb);
     }
 }
 
@@ -754,14 +755,21 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
 }
 
 // wait for ack event, blocking - used for synchronization, called typicaly at end of client request functions
-static uint32_t _wait_ack_from_server(uint8_t client_id) {
+static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)()) {
     while ((marlin_client[client_id].events & MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge)) == 0) {
         marlin_client_loop();
-        if (marlin_client[client_id].last_count == 0)
+        if (marlin_client[client_id].last_count == 0) {
+            if (cb)
+                cb();
             osDelay(10);
+        }
     }
     marlin_client[client_id].events &= ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge);
     return marlin_client[client_id].ack;
+}
+
+static uint32_t _wait_ack_from_server(uint8_t client_id) {
+    return _wait_ack_from_server_with_callback(client_id, NULL);
 }
 
 // process message on client side (set flags, update vars etc.)
