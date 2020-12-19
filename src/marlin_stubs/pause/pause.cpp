@@ -28,6 +28,7 @@
 #include "../../lib/Marlin/Marlin/src/feature/pause.h"
 
 #include "pause_stubbed.hpp"
+#include "safety_timer_stubbed.hpp"
 #include "marlin_server.hpp"
 #include "filament_sensor.hpp"
 #include "filament.h"
@@ -69,22 +70,22 @@ void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
 }
 
 /*****************************************************************************/
-//PrivatePhase
+//PausePrivatePhase
 
-PrivatePhase::PrivatePhase()
+PausePrivatePhase::PausePrivatePhase()
     : phase(PhasesLoadUnload::_first)
     , load_unload_shared_phase(int(UnloadPhases_t::_init))
     , nozzle_restore_temp(NAN)
     , bed_restore_temp(NAN) {}
 
-void PrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress_tot) {
+void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress_tot) {
     phase = ph;
     fsm_change(ClientFSM::Load_unload, phase, progress_tot, progress_tot == 100 ? 100 : 0);
 }
 
-PhasesLoadUnload PrivatePhase::getPhase() const { return phase; }
+PhasesLoadUnload PausePrivatePhase::getPhase() const { return phase; }
 
-Response PrivatePhase::getResponse() {
+Response PausePrivatePhase::getResponse() {
     const Response ret = ClientResponseHandler::GetResponseFromPhase(phase);
     //user just clicked
     if (ret != Response::_none) {
@@ -93,25 +94,25 @@ Response PrivatePhase::getResponse() {
     return ret;
 }
 
-bool PrivatePhase::CanSafetyTimerExpire() const {
+bool PausePrivatePhase::CanSafetyTimerExpire() const {
     if (HasTempToRestore())
         return false;                              // already expired
     return ClientResponses::HasButton(getPhase()); // button in current phase == can wait on user == can timeout
 }
 
-void PrivatePhase::NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) {
+void PausePrivatePhase::NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) {
     if (CanSafetyTimerExpire()) {
         nozzle_restore_temp = hotend_temp;
         bed_restore_temp = bed_temp;
     }
 }
 
-void PrivatePhase::clrRestoreTemp() {
+void PausePrivatePhase::clrRestoreTemp() {
     nozzle_restore_temp = NAN;
     bed_restore_temp = NAN;
 }
 
-void PrivatePhase::RestoreTemp() {
+void PausePrivatePhase::RestoreTemp() {
     if (!isnan(nozzle_restore_temp)) {
         thermalManager.setTargetHotend(nozzle_restore_temp, 0);
         nozzle_restore_temp = NAN;
@@ -122,7 +123,7 @@ void PrivatePhase::RestoreTemp() {
     }
 }
 
-bool PrivatePhase::HasTempToRestore() const {
+bool PausePrivatePhase::HasTempToRestore() const {
     return (!isnan(nozzle_restore_temp)) || (!isnan(bed_restore_temp));
 }
 
@@ -632,4 +633,15 @@ void Pause::FilamentChange() {
 #if HAS_DISPLAY
     ui.reset_status();
 #endif
+}
+
+/*****************************************************************************/
+//Pause::FSM_HolderLoadUnload
+
+void Pause::FSM_HolderLoadUnload::bindToSafetyTimer() {
+    SafetyTimer::Instance().BindPause(pause);
+}
+
+void Pause::FSM_HolderLoadUnload::unbindFromSafetyTimer() {
+    SafetyTimer::Instance().UnbindPause(pause);
 }

@@ -15,7 +15,8 @@ SafetyTimer &SafetyTimer::Instance() {
 }
 
 SafetyTimer::SafetyTimer()
-    : interval(default_interval)
+    : pBindedPause(nullptr)
+    , interval(default_interval)
     , last_reset(0)
     , knob_moves(0)
     , knob_clicks(0) {
@@ -38,18 +39,16 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     knob_moves = marlin_server_get_user_move_count();
     knob_clicks = marlin_server_get_user_click_count();
 
-    Pause &pause = Pause::Instance();
-
     // auto restores temp only on click (ignore move),
     // it is also restored by Pause on any phase change
     // cannot guarante that SafetyTimer will happen first, so have to do it on both places
-    if (click_dif && pause.HasTempToRestore()) {
-        pause.RestoreTemp();
+    if (click_dif && pBindedPause && pBindedPause->HasTempToRestore()) {
+        pBindedPause->RestoreTemp();
         last_reset = now;
         return expired_t::no;
     }
 
-    if (!interval || move_dif || click_dif || !anyHeatherIsActive() || printingIsActive() || !pause.CanSafetyTimerExpire()) {
+    if (!interval || move_dif || click_dif || !anyHeatherIsActive() || printingIsActive() || (pBindedPause && !pBindedPause->CanSafetyTimerExpire())) {
         last_reset = now;
         return expired_t::no;
     }
@@ -60,7 +59,9 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     }
 
     //timer is expired
-    pause.NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed());
+    if (pBindedPause) {
+        pBindedPause->NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed());
+    }
     if (printingIsPaused()) {
         // disable only nozzle
         thermalManager.disable_hotend();
@@ -77,4 +78,13 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
 //marlin compatibility function
 void safety_timer_set_interval(millis_t ms) {
     SafetyTimer::Instance().SetInterval(ms);
+}
+
+void SafetyTimer::BindPause(PausePrivatePhase &pause) {
+    pBindedPause = &pause;
+}
+void SafetyTimer::UnbindPause(PausePrivatePhase &pause) {
+    if (pBindedPause == &pause) {
+        pBindedPause = nullptr;
+    }
 }

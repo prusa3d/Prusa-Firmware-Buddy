@@ -6,10 +6,12 @@
  */
 #pragma once
 
+#include "pause_stubbed.hpp"
 #include "../../lib/Marlin/Marlin/src/core/utility.h"
 
 class SafetyTimer {
     static constexpr millis_t default_interval = 30 * 60 * 1000;
+    PausePrivatePhase *pBindedPause;
     millis_t interval; // zero if disabled
     millis_t last_reset;
     uint32_t knob_moves;
@@ -26,4 +28,7 @@ public:
     void SetInterval(millis_t ms);  // Set expire interval and reset the timer, 0 == disabled.
 
     void ReInit(); //set default values
+
+    void BindPause(PausePrivatePhase &pause);
+    void UnbindPause(PausePrivatePhase &pause);
 };

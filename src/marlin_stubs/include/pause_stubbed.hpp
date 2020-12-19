@@ -12,7 +12,7 @@
 #include "client_response.hpp"
 #include "marlin_server.hpp"
 
-class PrivatePhase {
+class PausePrivatePhase {
     PhasesLoadUnload phase;       //needed for CanSafetyTimerExpire
     int load_unload_shared_phase; //shared variable for UnloadPhases_t and LoadPhases_t
 
@@ -48,7 +48,7 @@ protected:
         _finish = _phase_does_not_exist
     };
 
-    PrivatePhase();
+    PausePrivatePhase();
     void setPhase(PhasesLoadUnload ph, uint8_t progress_tot = 0);
     PhasesLoadUnload getPhase() const;
 
@@ -93,7 +93,7 @@ public:
 };
 
 //used by load / unlaod /change filament
-class Pause : public PrivatePhase {
+class Pause : public PausePrivatePhase {
     //singleton
     Pause();
     Pause(const Pause &) = delete;
@@ -160,17 +160,22 @@ private:
     class FSM_HolderLoadUnload : public FSM_Holder {
         Pause &pause;
 
+        void bindToSafetyTimer();
+        void unbindFromSafetyTimer();
+
     public:
         FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode)
             : FSM_Holder(ClientFSM::Load_unload, uint8_t(mode))
             , pause(p) {
             pause.clrRestoreTemp();
+            bindToSafetyTimer();
             pause.park_nozzle_and_notify();
         }
 
         ~FSM_HolderLoadUnload() {
-            pause.clrRestoreTemp();
             pause.unpark_nozzle_and_notify();
+            unbindFromSafetyTimer();
+            pause.RestoreTemp();
         }
         friend class Pause;
     };
