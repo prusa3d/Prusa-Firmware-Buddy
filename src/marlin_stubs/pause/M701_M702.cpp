@@ -123,12 +123,7 @@ void GcodeSuite::M701() {
     pause.SetSlowLoadLength(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
     pause.SetFastLoadLength(fast_load_length);
 
-    if (fast_load_length)
-        load_unload(
-            LoadUnloadMode::Load, &Pause::FilamentLoad, Z_AXIS_LOAD_POS);
-    else
-        load_unload(
-            LoadUnloadMode::Purge, &Pause::FilamentLoad, Z_AXIS_LOAD_POS);
+    load_unload(fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge, &Pause::FilamentLoad, Z_AXIS_LOAD_POS);
 }
 
 /**

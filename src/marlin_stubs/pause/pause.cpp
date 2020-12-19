@@ -501,47 +501,43 @@ void Pause::park_nozzle_and_notify() {
     if (retract && thermalManager.hotEnoughToExtrude(active_extruder))
         do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
 
-    // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
-    if (!axes_need_homing()) {
-        {
-            const float target_Z = _MIN(park_pos.z, Z_MAX_POS);
-            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, Z_MOVE_PRECENT);
-            do_blocking_move_to_z(target_Z, NOZZLE_PARK_Z_FEEDRATE);
-        }
-        {
-            const bool x_greater_than_y = std::abs(current_position.x - park_pos.x) > std::abs(current_position.y - park_pos.y);
-            const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
-            const float &end_pos = x_greater_than_y ? park_pos.x : park_pos.y;
-            if (x_greater_than_y) {
-                Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, Z_MOVE_PRECENT, 100);
-                do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
-            } else {
-                Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, Z_MOVE_PRECENT, 100);
-                do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
-            }
-        }
-        report_current_position();
+    // move by z_lift
+    { //scope for Notifier_POS_Z
+        const float target_Z = std::min(park_pos.z, maximum_Z);
+        Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, Z_MOVE_PRECENT);
+        do_blocking_move_to_z(target_Z, NOZZLE_PARK_Z_FEEDRATE);
     }
+    // move to (x_pos, y_pos)
+    const bool x_greater_than_y = std::abs(current_position.x - park_pos.x) > std::abs(current_position.y - park_pos.y);
+    const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
+    const float &end_pos = x_greater_than_y ? park_pos.x : park_pos.y;
+    if (x_greater_than_y) {
+        Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, Z_MOVE_PRECENT, 100);
+        do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
+    } else {
+        Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, Z_MOVE_PRECENT, 100);
+        do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
+    }
+
+    report_current_position();
 }
 
 void Pause::unpark_nozzle_and_notify() {
-    if (!axes_need_homing()) {
+    if (!axes_need_homing()) { //do not unpark if not homed
         setPhase(PhasesLoadUnload::Unparking);
         // Move XY to starting position, then Z
-        {
-            const bool x_greater_than_y = std::abs(current_position.x - resume_pos.x) > std::abs(current_position.y - resume_pos.y);
-            const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
-            const float &end_pos = x_greater_than_y ? resume_pos.x : resume_pos.y;
-            if (x_greater_than_y) {
-                Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
-                do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
-            } else {
-                Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
-                do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
-            }
+        const bool x_greater_than_y = std::abs(current_position.x - resume_pos.x) > std::abs(current_position.y - resume_pos.y);
+        const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
+        const float &end_pos = x_greater_than_y ? resume_pos.x : resume_pos.y;
+        if (x_greater_than_y) {
+            Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
+            do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+        } else {
+            Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
+            do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
         }
-        // Move Z_AXIS to saved position
-        {
+
+        { // Move Z_AXIS to saved position, scope for Notifier_POS_Z
             Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, resume_pos.z, XY_MOVE_PRECENT, 100);
             do_blocking_move_to_z(resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
         }
@@ -593,14 +589,10 @@ void Pause::FilamentChange() {
     {
         FSM_HolderLoadUnload H(*this, LoadUnloadMode::Change);
 
-        //park_nozzle_and_notify(retract, park_pos);
-
         if (unload_length) // Unload the filament
             filamentUnload();
 
         filamentLoad();
-
-        //unpark_nozzle_and_notify();
     }
 
 // Intelligent resuming
