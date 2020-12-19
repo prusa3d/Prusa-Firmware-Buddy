@@ -279,7 +279,7 @@ bool Pause::loadLoop() {
     case LoadPhases_t::wait_temp:
         setPhase(PhasesLoadUnload::WaitingTemp, 30);
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
-            set(LoadPhases_t::long_load);
+            set(LoadPhases_t::has_long_load);
         } else {
             set(LoadPhases_t::error_temp);
         }
@@ -348,7 +348,7 @@ bool Pause::loadLoop() {
 }
 
 bool Pause::FilamentLoad() {
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    FSM_HolderLoadUnload H(*this, fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge);
     return filamentLoad();
 }
 
