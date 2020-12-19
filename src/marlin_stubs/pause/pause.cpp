@@ -347,7 +347,7 @@ bool Pause::loadLoop() {
 }
 
 bool Pause::FilamentLoad() {
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
     return filamentLoad();
 }
 
@@ -456,7 +456,7 @@ void Pause::unloadLoop() {
 }
 
 bool Pause::FilamentUnload() {
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
     return filamentUnload();
 }
 
