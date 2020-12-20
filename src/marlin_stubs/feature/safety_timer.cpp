@@ -15,7 +15,7 @@ SafetyTimer &SafetyTimer::Instance() {
 }
 
 SafetyTimer::SafetyTimer()
-    : pBindedPause(nullptr)
+    : pBoundPause(nullptr)
     , interval(default_interval)
     , last_reset(0)
     , knob_moves(0)
@@ -42,13 +42,13 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     // auto restores temp only on click (ignore move),
     // it is also restored by Pause on any phase change
     // cannot guarante that SafetyTimer will happen first, so have to do it on both places
-    if (click_dif && pBindedPause && pBindedPause->HasTempToRestore()) {
-        pBindedPause->RestoreTemp();
+    if (click_dif && pBoundPause && pBoundPause->HasTempToRestore()) {
+        pBoundPause->RestoreTemp();
         last_reset = now;
         return expired_t::no;
     }
 
-    if (!interval || move_dif || click_dif || !anyHeatherIsActive() || printingIsActive() || (pBindedPause && !pBindedPause->CanSafetyTimerExpire())) {
+    if (!interval || move_dif || click_dif || !anyHeatherIsActive() || printingIsActive() || (pBoundPause && !pBoundPause->CanSafetyTimerExpire())) {
         last_reset = now;
         return expired_t::no;
     }
@@ -59,8 +59,8 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     }
 
     //timer is expired
-    if (pBindedPause) {
-        pBindedPause->NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed());
+    if (pBoundPause) {
+        pBoundPause->NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed());
     }
     if (printingIsPaused()) {
         // disable only nozzle
@@ -81,10 +81,10 @@ void safety_timer_set_interval(millis_t ms) {
 }
 
 void SafetyTimer::BindPause(PausePrivatePhase &pause) {
-    pBindedPause = &pause;
+    pBoundPause = &pause;
 }
 void SafetyTimer::UnbindPause(PausePrivatePhase &pause) {
-    if (pBindedPause == &pause) {
-        pBindedPause = nullptr;
+    if (pBoundPause == &pause) {
+        pBoundPause = nullptr;
     }
 }

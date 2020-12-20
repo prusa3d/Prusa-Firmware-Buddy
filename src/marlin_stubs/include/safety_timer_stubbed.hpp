@@ -11,7 +11,7 @@
 
 class SafetyTimer {
     static constexpr millis_t default_interval = 30 * 60 * 1000;
-    PausePrivatePhase *pBindedPause;
+    PausePrivatePhase *pBoundPause;
     millis_t interval; // zero if disabled
     millis_t last_reset;
     uint32_t knob_moves;
