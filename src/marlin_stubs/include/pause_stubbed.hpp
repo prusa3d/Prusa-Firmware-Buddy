@@ -99,9 +99,6 @@ class Pause : public PausePrivatePhase {
     Pause(const Pause &) = delete;
     Pause &operator=(const Pause &) = delete;
 
-    static constexpr int Z_MOVE_PRECENT = 75;
-    static constexpr int XY_MOVE_PRECENT = 100 - Z_MOVE_PRECENT;
-
     struct RamUnloadSeqItem {
         int16_t e;        ///< relative movement of Extruder
         int16_t feedrate; ///< feedrate of the move
@@ -179,9 +176,10 @@ private:
         }
 
         ~FSM_HolderLoadUnload() {
-            pause.unpark_nozzle_and_notify();
             unbindFromSafetyTimer();
             pause.RestoreTemp();
+            pause.ensureSafeTemperatureNotifyProgress(0, 100);
+            pause.unpark_nozzle_and_notify();
         }
         friend class Pause;
     };

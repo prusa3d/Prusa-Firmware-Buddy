@@ -208,6 +208,8 @@ bool Pause::ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t pr
         return true;
     }
 
+    setPhase(PhasesLoadUnload::WaitingTemp, progress_min);
+
     Notifier_TEMP_NOZ N(ClientFSM::Load_unload, getPhaseIndex(), Temperature::degHotend(active_extruder),
         Temperature::degTargetHotend(active_extruder), progress_min, progress_max);
 
@@ -277,7 +279,6 @@ bool Pause::loadLoop() {
         set(LoadPhases_t::wait_temp);
         break;
     case LoadPhases_t::wait_temp:
-        setPhase(PhasesLoadUnload::WaitingTemp, 30);
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
             set(LoadPhases_t::has_long_load);
         } else {
@@ -472,7 +473,6 @@ bool Pause::FilamentUnload() {
  * Returns 'true' if unload was completed, 'false' for abort
  */
 bool Pause::filamentUnload() {
-    setPhase(PhasesLoadUnload::WaitingTemp);
     if (!ensureSafeTemperatureNotifyProgress(0, 50)) {
         return false;
     }
