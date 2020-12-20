@@ -24,6 +24,8 @@ add_custom_command(
 
 add_custom_target(wui-genfile DEPENDS "${PROJECT_ROOT_DIR}/lib/WUI/resources/fsdata_wui_local.c")
 
+add_dependencies(WUI wui-genfile)
+
 target_include_directories(WUI INTERFACE ${CMAKE_CURRENT_LIST_DIR} http sntp resources)
 
 target_link_libraries(WUI INTERFACE LwIP)
