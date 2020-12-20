@@ -104,6 +104,9 @@ class Pause : public PausePrivatePhase {
         int16_t feedrate; ///< feedrate of the move
     };
 
+    enum class is_standalone_t : bool { no,
+        yes };
+
     static constexpr const float heating_phase_min_hotend_diff = 5.0F;
 
     //this values must be set before every load/unload
@@ -146,10 +149,10 @@ private:
     uint32_t parkMoveXYPercent(float z_move_len, float xy_move_len) const;
     bool parkMoveXGreaterThanY(const xyz_pos_t &pos0, const xyz_pos_t &pos1) const;
 
-    bool filamentUnload(); // does not create FSM_HolderLoadUnload
-    bool filamentLoad();   // does not create FSM_HolderLoadUnload
-    bool loadLoop();
-    void unloadLoop();
+    bool filamentUnload(is_standalone_t standalone); // does not create FSM_HolderLoadUnload
+    bool filamentLoad(is_standalone_t standalone);   // does not create FSM_HolderLoadUnload
+    bool loadLoop(is_standalone_t standalone);
+    void unloadLoop(is_standalone_t standalone);
     void unpark_nozzle_and_notify();
     void park_nozzle_and_notify();
     bool is_target_temperature_safe();
@@ -167,20 +170,8 @@ private:
         void unbindFromSafetyTimer();
 
     public:
-        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode)
-            : FSM_Holder(ClientFSM::Load_unload, uint8_t(mode))
-            , pause(p) {
-            pause.clrRestoreTemp();
-            bindToSafetyTimer();
-            pause.park_nozzle_and_notify();
-        }
-
-        ~FSM_HolderLoadUnload() {
-            unbindFromSafetyTimer();
-            pause.RestoreTemp();
-            pause.ensureSafeTemperatureNotifyProgress(0, 100);
-            pause.unpark_nozzle_and_notify();
-        }
+        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode);
+        ~FSM_HolderLoadUnload();
         friend class Pause;
     };
 };
