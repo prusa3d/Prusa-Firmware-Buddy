@@ -41,7 +41,7 @@ IDialogStateful::IDialogStateful(string_view_utf8 name)
     title.SetAlignment(ALIGN_CENTER);
     progress.SetFont(resource_font(IDR_FNT_BIG));
     label.font = GuiDefaults::FontBig;
-    label.SetAlignment(ALIGN_CENTER);
+    label.SetAlignment(ALIGN_CENTER_TOP);
 }
 
 bool IDialogStateful::change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {
