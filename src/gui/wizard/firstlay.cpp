@@ -141,6 +141,7 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
     const int temp_nozzle = std::max(int(marlin_vars()->display_nozzle), int(filaments[get_filament()].nozzle));
     const int temp_bed = std::max(int(marlin_vars()->target_bed), int(filaments[get_filament()].heatbed));
 
+    marlin_gcode("M73 P0 R0");                                             // reset progress
     marlin_gcode_printf("M104 S%d D%d", temp_nozzle_preheat, temp_nozzle); // nozzle target
     marlin_gcode_printf("M140 S%d", temp_bed);                             // bed target
     marlin_gcode_printf("M109 R%d", temp_nozzle_preheat);                  // Set target temperature, wait even if cooling

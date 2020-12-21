@@ -28,6 +28,7 @@
 #include "../../lib/Marlin/Marlin/src/feature/pause.h"
 
 #include "pause_stubbed.hpp"
+#include "safety_timer_stubbed.hpp"
 #include "marlin_server.hpp"
 #include "filament_sensor.hpp"
 #include "filament.h"
@@ -69,22 +70,22 @@ void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
 }
 
 /*****************************************************************************/
-//PrivatePhase
+//PausePrivatePhase
 
-PrivatePhase::PrivatePhase()
+PausePrivatePhase::PausePrivatePhase()
     : phase(PhasesLoadUnload::_first)
     , load_unload_shared_phase(int(UnloadPhases_t::_init))
     , nozzle_restore_temp(NAN)
     , bed_restore_temp(NAN) {}
 
-void PrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress_tot) {
+void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress_tot) {
     phase = ph;
     fsm_change(ClientFSM::Load_unload, phase, progress_tot, progress_tot == 100 ? 100 : 0);
 }
 
-PhasesLoadUnload PrivatePhase::getPhase() const { return phase; }
+PhasesLoadUnload PausePrivatePhase::getPhase() const { return phase; }
 
-Response PrivatePhase::getResponse() {
+Response PausePrivatePhase::getResponse() {
     const Response ret = ClientResponseHandler::GetResponseFromPhase(phase);
     //user just clicked
     if (ret != Response::_none) {
@@ -93,25 +94,25 @@ Response PrivatePhase::getResponse() {
     return ret;
 }
 
-bool PrivatePhase::CanSafetyTimerExpire() const {
+bool PausePrivatePhase::CanSafetyTimerExpire() const {
     if (HasTempToRestore())
         return false;                              // already expired
     return ClientResponses::HasButton(getPhase()); // button in current phase == can wait on user == can timeout
 }
 
-void PrivatePhase::NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) {
+void PausePrivatePhase::NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) {
     if (CanSafetyTimerExpire()) {
         nozzle_restore_temp = hotend_temp;
         bed_restore_temp = bed_temp;
     }
 }
 
-void PrivatePhase::clrRestoreTemp() {
+void PausePrivatePhase::clrRestoreTemp() {
     nozzle_restore_temp = NAN;
     bed_restore_temp = NAN;
 }
 
-void PrivatePhase::RestoreTemp() {
+void PausePrivatePhase::RestoreTemp() {
     if (!isnan(nozzle_restore_temp)) {
         thermalManager.setTargetHotend(nozzle_restore_temp, 0);
         nozzle_restore_temp = NAN;
@@ -122,7 +123,7 @@ void PrivatePhase::RestoreTemp() {
     }
 }
 
-bool PrivatePhase::HasTempToRestore() const {
+bool PausePrivatePhase::HasTempToRestore() const {
     return (!isnan(nozzle_restore_temp)) || (!isnan(bed_restore_temp));
 }
 
@@ -207,6 +208,8 @@ bool Pause::ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t pr
         return true;
     }
 
+    setPhase(PhasesLoadUnload::WaitingTemp, progress_min);
+
     Notifier_TEMP_NOZ N(ClientFSM::Load_unload, getPhaseIndex(), Temperature::degHotend(active_extruder),
         Temperature::degTargetHotend(active_extruder), progress_min, progress_max);
 
@@ -240,7 +243,7 @@ void Pause::plan_e_move_notify_progress(const float &length, const feedRate_t &f
     }
 }
 
-bool Pause::loadLoop() {
+bool Pause::loadLoop(is_standalone_t standalone) {
     bool ret = true;
     const float purge_ln = std::max(purge_length, minimal_purge);
 
@@ -276,9 +279,8 @@ bool Pause::loadLoop() {
         set(LoadPhases_t::wait_temp);
         break;
     case LoadPhases_t::wait_temp:
-        setPhase(PhasesLoadUnload::WaitingTemp, 30);
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
-            set(LoadPhases_t::long_load);
+            set(LoadPhases_t::has_long_load);
         } else {
             set(LoadPhases_t::error_temp);
         }
@@ -347,8 +349,8 @@ bool Pause::loadLoop() {
 }
 
 bool Pause::FilamentLoad() {
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
-    return filamentLoad();
+    FSM_HolderLoadUnload H(*this, fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge);
+    return filamentLoad(is_standalone_t::yes);
 }
 
 /**
@@ -363,7 +365,7 @@ bool Pause::FilamentLoad() {
  *
  * Returns 'true' if load was completed, 'false' for abort
  */
-bool Pause::filamentLoad() {
+bool Pause::filamentLoad(is_standalone_t standalone) {
 
     // actual temperature does not matter, only target
     if (!is_target_temperature_safe())
@@ -379,7 +381,7 @@ bool Pause::filamentLoad() {
 
     bool ret = true;
     do {
-        ret = loadLoop();
+        ret = loadLoop(standalone);
     } while (getLoadPhase() != LoadPhases_t::_finish);
 
 #if ENABLED(PID_EXTRUSION_SCALING)
@@ -389,7 +391,7 @@ bool Pause::filamentLoad() {
     return ret;
 }
 
-void Pause::unloadLoop() {
+void Pause::unloadLoop(is_standalone_t standalone) {
     static const RamUnloadSeqItem ramUnloadSeq[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
     decltype(RamUnloadSeqItem::e) ramUnloadLength = 0; //Sum of ramming distances starting from first retraction
 
@@ -429,7 +431,7 @@ void Pause::unloadLoop() {
 
         set_filament(FILAMENT_NONE);
         setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
-        set(UnloadPhases_t::unloaded__ask);
+        set(standalone == is_standalone_t::yes ? UnloadPhases_t::_finish : UnloadPhases_t::unloaded__ask);
     } break;
     case UnloadPhases_t::unloaded__ask: {
         if (response == Response::Yes) {
@@ -456,8 +458,8 @@ void Pause::unloadLoop() {
 }
 
 bool Pause::FilamentUnload() {
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
-    return filamentUnload();
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    return filamentUnload(is_standalone_t::yes);
 }
 
 /**
@@ -470,8 +472,7 @@ bool Pause::FilamentUnload() {
  *
  * Returns 'true' if unload was completed, 'false' for abort
  */
-bool Pause::filamentUnload() {
-    setPhase(PhasesLoadUnload::WaitingTemp);
+bool Pause::filamentUnload(is_standalone_t standalone) {
     if (!ensureSafeTemperatureNotifyProgress(0, 50)) {
         return false;
     }
@@ -484,7 +485,7 @@ bool Pause::filamentUnload() {
     set(UnloadPhases_t::_init);
 
     do {
-        unloadLoop();
+        unloadLoop(standalone);
     } while (getUnloadPhase() != UnloadPhases_t::_finish);
 
 #if ENABLED(PID_EXTRUSION_SCALING)
@@ -493,6 +494,29 @@ bool Pause::filamentUnload() {
 
     return true;
 }
+/*****************************************************************************/
+//park moves
+uint32_t Pause::parkMoveZPercent(float z_move_len, float xy_move_len) const {
+    const float Z_time_ratio = std::abs(z_move_len / float(NOZZLE_PARK_Z_FEEDRATE));
+    const float XY_time_ratio = std::abs(xy_move_len / float(NOZZLE_PARK_XY_FEEDRATE));
+
+    if (!isfinite(Z_time_ratio))
+        return 100;
+    if (!isfinite(XY_time_ratio))
+        return 0;
+    if ((Z_time_ratio + XY_time_ratio) == 0)
+        return 50; // due abs should not happen except both == 0
+
+    return 100.f * (Z_time_ratio / (Z_time_ratio + XY_time_ratio));
+}
+
+uint32_t Pause::parkMoveXYPercent(float z_move_len, float xy_move_len) const {
+    return 100 - parkMoveZPercent(z_move_len, xy_move_len);
+}
+
+bool Pause::parkMoveXGreaterThanY(const xyz_pos_t &pos0, const xyz_pos_t &pos1) const {
+    return std::abs(pos0.x - pos1.x) > std::abs(pos0.y - pos1.y);
+}
 
 void Pause::park_nozzle_and_notify() {
     setPhase(PhasesLoadUnload::Parking);
@@ -500,50 +524,54 @@ void Pause::park_nozzle_and_notify() {
     if (retract && thermalManager.hotEnoughToExtrude(active_extruder))
         do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
 
-    // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
-    if (!axes_need_homing()) {
-        {
-            const float target_Z = _MIN(park_pos.z, Z_MAX_POS);
-            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, Z_MOVE_PRECENT);
-            do_blocking_move_to_z(target_Z, NOZZLE_PARK_Z_FEEDRATE);
-        }
-        {
-            const bool x_greater_than_y = std::abs(current_position.x - park_pos.x) > std::abs(current_position.y - park_pos.y);
-            const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
-            const float &end_pos = x_greater_than_y ? park_pos.x : park_pos.y;
-            if (x_greater_than_y) {
-                Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, Z_MOVE_PRECENT, 100);
-                do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
-            } else {
-                Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, Z_MOVE_PRECENT, 100);
-                do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
-            }
-        }
-        report_current_position();
+    const float target_Z = std::min(park_pos.z, maximum_Z);
+    const bool x_greater_than_y = parkMoveXGreaterThanY(current_position, park_pos);
+    const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
+    const float &end_pos = x_greater_than_y ? park_pos.x : park_pos.y;
+
+    const float Z_len = current_position.z - target_Z; // sign does not matter
+    const float XY_len = begin_pos - end_pos;          // sign does not matter
+
+    // move by z_lift, scope for Notifier_POS_Z
+    {
+        Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
+        do_blocking_move_to_z(target_Z, NOZZLE_PARK_Z_FEEDRATE);
     }
+    // move to (x_pos, y_pos)
+    if (x_greater_than_y) {
+        Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
+        do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
+    } else {
+        Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveXYPercent(Z_len, XY_len), 100); //from Z% to 100%
+        do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
+    }
+
+    report_current_position();
 }
 
 void Pause::unpark_nozzle_and_notify() {
-    if (!axes_need_homing()) {
-        setPhase(PhasesLoadUnload::Unparking);
-        // Move XY to starting position, then Z
-        {
-            const bool x_greater_than_y = std::abs(current_position.x - resume_pos.x) > std::abs(current_position.y - resume_pos.y);
-            const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
-            const float &end_pos = x_greater_than_y ? resume_pos.x : resume_pos.y;
-            if (x_greater_than_y) {
-                Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
-                do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
-            } else {
-                Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
-                do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
-            }
-        }
-        // Move Z_AXIS to saved position
-        {
-            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, resume_pos.z, XY_MOVE_PRECENT, 100);
-            do_blocking_move_to_z(resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-        }
+
+    setPhase(PhasesLoadUnload::Unparking);
+    // Move XY to starting position, then Z
+    const bool x_greater_than_y = parkMoveXGreaterThanY(current_position, resume_pos);
+    const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
+    const float &end_pos = x_greater_than_y ? resume_pos.x : resume_pos.y;
+
+    const float Z_len = current_position.z - resume_pos.z; // sign does not matter, does not check Z max val (unlike park_nozzle_and_notify)
+    const float XY_len = begin_pos - end_pos;              // sign does not matter
+
+    if (x_greater_than_y) {
+        Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
+        do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+    } else {
+        Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
+        do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+    }
+
+    // Move Z_AXIS to saved position, scope for Notifier_POS_Z
+    {
+        Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, resume_pos.z, parkMoveXYPercent(Z_len, XY_len), 100); //from XY% to 100%
+        do_blocking_move_to_z(resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 }
 
@@ -592,14 +620,10 @@ void Pause::FilamentChange() {
     {
         FSM_HolderLoadUnload H(*this, LoadUnloadMode::Change);
 
-        //park_nozzle_and_notify(retract, park_pos);
-
         if (unload_length) // Unload the filament
-            filamentUnload();
+            filamentUnload(is_standalone_t::no);
 
-        filamentLoad();
-
-        //unpark_nozzle_and_notify();
+        filamentLoad(is_standalone_t::no);
     }
 
 // Intelligent resuming
@@ -632,4 +656,35 @@ void Pause::FilamentChange() {
 #if HAS_DISPLAY
     ui.reset_status();
 #endif
+}
+
+/*****************************************************************************/
+//Pause::FSM_HolderLoadUnload
+
+void Pause::FSM_HolderLoadUnload::bindToSafetyTimer() {
+    SafetyTimer::Instance().BindPause(pause);
+}
+
+void Pause::FSM_HolderLoadUnload::unbindFromSafetyTimer() {
+    SafetyTimer::Instance().UnbindPause(pause);
+}
+
+Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode)
+    : FSM_Holder(ClientFSM::Load_unload, uint8_t(mode))
+    , pause(p) {
+    pause.clrRestoreTemp();
+    bindToSafetyTimer();
+    pause.park_nozzle_and_notify();
+}
+
+Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
+    pause.RestoreTemp();
+
+    const float min_layer_h = 0.05f;
+    //do not unpark and wait for temp if not homed or z park len is 0
+    if (!axes_need_homing() && std::abs(current_position.z - pause.resume_pos.z) >= min_layer_h) {
+        pause.ensureSafeTemperatureNotifyProgress(0, 100);
+        pause.unpark_nozzle_and_notify();
+    }
+    unbindFromSafetyTimer(); //unbind must be last action, without it Pause cannot block safety timer
 }
