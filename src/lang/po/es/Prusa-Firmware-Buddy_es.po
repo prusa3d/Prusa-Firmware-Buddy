@@ -293,10 +293,6 @@ msgstr "Probando Calent."
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Calentamiento deshabilitado debido a 30 minutos de inactividad."
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:24
-msgid "Heating disabled due to a heaters timeout."
-msgstr "Calentamiento inhabilitado debido al tiempo de espera de los calentadores."
-
 #: src/gui/screen_printing.cpp:43
 msgid "Heating..."
 msgstr "Calentando..."
@@ -324,9 +320,9 @@ msgstr "HOME TO MAX"
 msgid "Hotend Fan"
 msgstr "Vent. del fusor"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
-msgid "Hotend fan not spinning"
-msgstr "No gira el ventilador del fusor"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:32
+msgid "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "El ventilador del fusor no gira. Comprueba que no hay residuos, luego inspecciona el cableado."
 
 #: src/gui/screen_menu_hw_setup.cpp:32 src/guiapi/include/MItem_menus.hpp:159
 msgid "HW Setup"
@@ -540,10 +536,6 @@ msgstr "Base y Boquilla"
 msgid "Nozzle heater check"
 msgstr "Comp. calor boquilla"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:31
-msgid "Nozzle is too cold."
-msgstr "La boquilla está muy fría."
-
 #: src/gui/screen_menu_fw_update.cpp:28
 #: src/guiapi/include/WindowMenuItems.hpp:19
 msgid "Off"
@@ -664,9 +656,9 @@ msgstr "Imprimir"
 msgid "Print Fan"
 msgstr "Vent. de impresión"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:23
-msgid "Print fan not spinning"
-msgstr "No gira el ventilador de impresión"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:33
+msgid "Print fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "El ventilador de impresión no gira. Comprueba que no hay residuos, luego inspecciona el cableado."
 
 #: src/gui/screen_print_preview.cpp:127
 msgid "Print Time"
@@ -1018,9 +1010,9 @@ msgstr "Descargando"
 msgid "Unparking"
 msgstr "Unparking"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:25
-msgid "USB drive error. Print paused."
-msgstr "Error de unidad USB. Impresión en pausa."
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:35
+msgid "USB drive error, the print is now paused. Reconnect the drive."
+msgstr "Error de la unidad USB, la impresión ahora está en pausa. Vuelve a conectar la unidad."
 
 #: src/gui/screen_print_preview.cpp:129
 msgid "Used Filament"

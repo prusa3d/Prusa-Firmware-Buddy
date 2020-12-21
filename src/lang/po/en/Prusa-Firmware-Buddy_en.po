@@ -293,10 +293,6 @@ msgstr "Heater testing"
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Heating disabled due to 30 minutes of inactivity."
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:24
-msgid "Heating disabled due to a heaters timeout."
-msgstr "Heating disabled due to a heaters timeout."
-
 #: src/gui/screen_printing.cpp:43
 msgid "Heating..."
 msgstr "Heating..."
@@ -324,9 +320,9 @@ msgstr "HOME TO MAX"
 msgid "Hotend Fan"
 msgstr "Hotend Fan"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
-msgid "Hotend fan not spinning"
-msgstr "Hotend fan not spinning"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:32
+msgid "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
 
 #: src/gui/screen_menu_hw_setup.cpp:32 src/guiapi/include/MItem_menus.hpp:159
 msgid "HW Setup"
@@ -540,10 +536,6 @@ msgstr "Nozzle and Heatbed"
 msgid "Nozzle heater check"
 msgstr "Nozzle heater check"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:31
-msgid "Nozzle is too cold."
-msgstr "Nozzle is too cold."
-
 #: src/gui/screen_menu_fw_update.cpp:28
 #: src/guiapi/include/WindowMenuItems.hpp:19
 msgid "Off"
@@ -664,9 +656,9 @@ msgstr "Print"
 msgid "Print Fan"
 msgstr "Print Fan"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:23
-msgid "Print fan not spinning"
-msgstr "Print fan not spinning"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:33
+msgid "Print fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "Print fan not spinning. Check it for possible debris, then inspect the wiring."
 
 #: src/gui/screen_print_preview.cpp:127
 msgid "Print Time"
@@ -1018,9 +1010,9 @@ msgstr "Unloading"
 msgid "Unparking"
 msgstr "Unparking"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:25
-msgid "USB drive error. Print paused."
-msgstr "USB drive error. Print paused."
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:35
+msgid "USB drive error, the print is now paused. Reconnect the drive."
+msgstr "USB drive error, the print is now paused. Reconnect the drive."
 
 #: src/gui/screen_print_preview.cpp:129
 msgid "Used Filament"

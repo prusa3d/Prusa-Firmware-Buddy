@@ -293,10 +293,6 @@ msgstr "Test grzałki"
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Grzanie wyłączone po 30-minutowej bezczynności."
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:24
-msgid "Heating disabled due to a heaters timeout."
-msgstr "Grzałki wyłączone przez nieaktywność"
-
 #: src/gui/screen_printing.cpp:43
 msgid "Heating..."
 msgstr "Nagrzewanie..."
@@ -324,9 +320,9 @@ msgstr "HOME TO MAX"
 msgid "Hotend Fan"
 msgstr "Wentylator hotendu"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
-msgid "Hotend fan not spinning"
-msgstr "Wentylator hotendu nie obraca się"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:32
+msgid "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "Wentylator hotendu nie obraca się. Sprawdź, czy nie jest zablokowany przez zanieczyszczenia, następnie sprawdź przewody."
 
 #: src/gui/screen_menu_hw_setup.cpp:32 src/guiapi/include/MItem_menus.hpp:159
 msgid "HW Setup"
@@ -540,10 +536,6 @@ msgstr "Dysza i stół"
 msgid "Nozzle heater check"
 msgstr "Test grzałki hotendu"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:31
-msgid "Nozzle is too cold."
-msgstr "Dysza ma zbyt niską temperaturę."
-
 #: src/gui/screen_menu_fw_update.cpp:28
 #: src/guiapi/include/WindowMenuItems.hpp:19
 msgid "Off"
@@ -664,9 +656,9 @@ msgstr "Druk"
 msgid "Print Fan"
 msgstr "Went. wydruku"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:23
-msgid "Print fan not spinning"
-msgstr "Wentylator wydruku nie obraca się"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:33
+msgid "Print fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "Wentylator wydruku nie obraca się. Sprawdź, czy nie jest zablokowany przez zanieczyszczenia, następnie sprawdź przewody."
 
 #: src/gui/screen_print_preview.cpp:127
 msgid "Print Time"
@@ -1018,9 +1010,9 @@ msgstr "Rozładowywanie"
 msgid "Unparking"
 msgstr "Odparkowanie"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:25
-msgid "USB drive error. Print paused."
-msgstr "Błąd nośnika USB. Wydruk wstrzymany."
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:35
+msgid "USB drive error, the print is now paused. Reconnect the drive."
+msgstr "Błąd nośnika USB. Drukowanie zostało wstrzymane. Odłącz i ponownie podłącz nośnik."
 
 #: src/gui/screen_print_preview.cpp:129
 msgid "Used Filament"

@@ -293,10 +293,6 @@ msgstr "Testování výhřevu"
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Vyhřívání vypnuto po 30 minutách neaktivity."
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:24
-msgid "Heating disabled due to a heaters timeout."
-msgstr "Zahřívání přerušeno bezpečnostním časovačem."
-
 #: src/gui/screen_printing.cpp:43
 msgid "Heating..."
 msgstr "Zahřívání..."
@@ -324,9 +320,9 @@ msgstr "HOME TO MAX"
 msgid "Hotend Fan"
 msgstr "Vent. hotendu"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
-msgid "Hotend fan not spinning"
-msgstr "Ventilátor hotendu se netočí"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:32
+msgid "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "Ventilátor hotendu se netočí. Zkontrolujte, zda není blokován. Pak zkontrolujte zapojení."
 
 #: src/gui/screen_menu_hw_setup.cpp:32 src/guiapi/include/MItem_menus.hpp:159
 msgid "HW Setup"
@@ -540,10 +536,6 @@ msgstr "Tryska a podložka"
 msgid "Nozzle heater check"
 msgstr "Výhřev trysky"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:31
-msgid "Nozzle is too cold."
-msgstr "Studená tryska."
-
 #: src/gui/screen_menu_fw_update.cpp:28
 #: src/guiapi/include/WindowMenuItems.hpp:19
 msgid "Off"
@@ -664,9 +656,9 @@ msgstr "Tisk"
 msgid "Print Fan"
 msgstr "Tisk. vent."
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:23
-msgid "Print fan not spinning"
-msgstr "Tiskový ventilátor se netočí"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:33
+msgid "Print fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "Tiskový ventilátor se netočí. Zkontrolujte, zda není blokován. Pak zkontrolujte zapojení."
 
 #: src/gui/screen_print_preview.cpp:127
 msgid "Print Time"
@@ -1018,9 +1010,9 @@ msgstr "Vysouvání"
 msgid "Unparking"
 msgstr "Odparkování"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:25
-msgid "USB drive error. Print paused."
-msgstr "Chyba USB disku. Tisk pozastaven."
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:35
+msgid "USB drive error, the print is now paused. Reconnect the drive."
+msgstr "Chyba USB úložiště. Tisk pozastaven. Disk vyjměte a znovu vložte."
 
 #: src/gui/screen_print_preview.cpp:129
 msgid "Used Filament"

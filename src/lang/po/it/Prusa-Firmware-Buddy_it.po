@@ -293,10 +293,6 @@ msgstr "Test riscald."
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Riscaldamento disattivato dopo 30 minuti di inattività."
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:24
-msgid "Heating disabled due to a heaters timeout."
-msgstr "Riscaldamento disattivato per timeout riscaldamento."
-
 #: src/gui/screen_printing.cpp:43
 msgid "Heating..."
 msgstr "Riscaldamento..."
@@ -324,9 +320,9 @@ msgstr "HOME TO MAX"
 msgid "Hotend Fan"
 msgstr "Ventola hotend"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
-msgid "Hotend fan not spinning"
-msgstr "La ventola hotend non gira"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:32
+msgid "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "La ventola dell'hotend non gira. Verifica la presenza di eventuali detriti, quindi ispeziona il cablaggio."
 
 #: src/gui/screen_menu_hw_setup.cpp:32 src/guiapi/include/MItem_menus.hpp:159
 msgid "HW Setup"
@@ -540,10 +536,6 @@ msgstr "Ugello e Piano risc."
 msgid "Nozzle heater check"
 msgstr "Contr. risc. Ugello"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:31
-msgid "Nozzle is too cold."
-msgstr "Ugello troppo freddo."
-
 #: src/gui/screen_menu_fw_update.cpp:28
 #: src/guiapi/include/WindowMenuItems.hpp:19
 msgid "Off"
@@ -664,9 +656,9 @@ msgstr "Stampa"
 msgid "Print Fan"
 msgstr "Ventola di stampa"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:23
-msgid "Print fan not spinning"
-msgstr "La ventola di stampa non gira"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:33
+msgid "Print fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "La ventola di stampa non gira. Verifica la presenza di eventuali detriti, quindi ispeziona il cablaggio."
 
 #: src/gui/screen_print_preview.cpp:127
 msgid "Print Time"
@@ -1018,9 +1010,9 @@ msgstr "Scaricamento"
 msgid "Unparking"
 msgstr "Unparking"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:25
-msgid "USB drive error. Print paused."
-msgstr "Errore drive USB. Stampa in pausa."
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:35
+msgid "USB drive error, the print is now paused. Reconnect the drive."
+msgstr "Errore unità USB, la stampa è ora in pausa. Ricollegare l'unità."
 
 #: src/gui/screen_print_preview.cpp:129
 msgid "Used Filament"

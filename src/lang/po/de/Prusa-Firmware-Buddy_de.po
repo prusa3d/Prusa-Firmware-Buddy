@@ -293,10 +293,6 @@ msgstr "Heizungsprüfung"
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Heizung wegen 30 Minuten Inaktivität deaktiviert."
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:24
-msgid "Heating disabled due to a heaters timeout."
-msgstr "Heizung aufgrund einer Zeitüberschreitung deaktiviert."
-
 #: src/gui/screen_printing.cpp:43
 msgid "Heating..."
 msgstr "Aufheizen..."
@@ -324,9 +320,9 @@ msgstr "HOME TO MAX"
 msgid "Hotend Fan"
 msgstr "Hotend Lüfter"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:22
-msgid "Hotend fan not spinning"
-msgstr "Hotendlüfter dreht sich nicht"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:32
+msgid "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "Lüfter am Hotend dreht sich nicht. Überprüfen Sie ihn auf mögliche Verschmutzungen und dann die Verkabelung."
 
 #: src/gui/screen_menu_hw_setup.cpp:32 src/guiapi/include/MItem_menus.hpp:159
 msgid "HW Setup"
@@ -540,10 +536,6 @@ msgstr "Düse und Heizbett"
 msgid "Nozzle heater check"
 msgstr "Düsenheizung prüfen"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:31
-msgid "Nozzle is too cold."
-msgstr "Düse ist zu kalt."
-
 #: src/gui/screen_menu_fw_update.cpp:28
 #: src/guiapi/include/WindowMenuItems.hpp:19
 msgid "Off"
@@ -664,9 +656,9 @@ msgstr "Drucken"
 msgid "Print Fan"
 msgstr "Drucklüfter"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:23
-msgid "Print fan not spinning"
-msgstr "Drucklüfter dreht sich nicht"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:33
+msgid "Print fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "Drucklüfter dreht sich nicht. Überprüfen Sie ihn auf mögliche Verschmutzungen und dann die Verkabelung."
 
 #: src/gui/screen_print_preview.cpp:127
 msgid "Print Time"
@@ -1018,9 +1010,9 @@ msgstr "Entlade"
 msgid "Unparking"
 msgstr "Entparke"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:25
-msgid "USB drive error. Print paused."
-msgstr "USB-Stick-Fehler. Druck pausiert."
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:35
+msgid "USB drive error, the print is now paused. Reconnect the drive."
+msgstr "USB-Laufwerksfehler, der Druck ist jetzt angehalten. Schließen Sie das Laufwerk wieder an."
 
 #: src/gui/screen_print_preview.cpp:129
 msgid "Used Filament"
