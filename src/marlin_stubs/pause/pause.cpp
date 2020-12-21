@@ -678,7 +678,6 @@ Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode)
 }
 
 Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
-    unbindFromSafetyTimer();
     pause.RestoreTemp();
 
     const float min_layer_h = 0.05f;
@@ -687,4 +686,5 @@ Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
         pause.ensureSafeTemperatureNotifyProgress(0, 100);
         pause.unpark_nozzle_and_notify();
     }
+    unbindFromSafetyTimer(); //unbind must be last action, without it Pause cannot block safety timer
 }
