@@ -296,6 +296,10 @@ void FirstLayer::print_shape_1() {
 }
 
 void FirstLayer::print_shape_2() {
+    enable_all_steppers();
+    //M221 S100 ; reset flow
+    planner.flow_percentage[0] = 100;
+    planner.refresh_e_factor(0);
     /// fixed lines - constant to show 100% at the end + calibration pattern
     total_lines = 8 - 3 + ARRAY_SIZE(snake2);
     current_line = 0;
@@ -327,9 +331,7 @@ void FirstLayer::print_shape_2() {
     thermalManager.setTargetHotend(0, 0);           // M104 S0 ; turn off temperature
     thermalManager.setTargetBed(0);                 // M140 S0 ; turn off heatbed
     thermalManager.set_fan_speed(0, 0);             //M107 ; turn off fan
-    //M221 S100 ; reset flow
-    planner.flow_percentage[0] = 0;
-    planner.refresh_e_factor(0);
+
     //no need lro reset linear advance, was not set // M900 K0 ; reset LA
     planner.finish_and_disable(); // M84 ; disable motors
     //TODO setprecent? // M73 P100 R0
