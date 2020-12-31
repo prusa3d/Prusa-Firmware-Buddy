@@ -600,6 +600,7 @@ if(GUI)
             src/gui/screen_menu_hw_setup.cpp
             src/gui/screen_menu_steel_sheets.cpp
             src/gui/screen_sheet_rename.cpp
+            src/gui/screen_snake.cpp
             src/gui/test/screen_test.cpp
             src/gui/test/screen_test_disp_mem.cpp
             src/gui/test/screen_test_gui.cpp
