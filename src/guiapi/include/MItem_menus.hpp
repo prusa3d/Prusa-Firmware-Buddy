@@ -195,3 +195,13 @@ public:
     MI_DEVHASH_IN_QR();
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_SNAKE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Prussssssaaaaaa");
+
+public:
+    MI_SNAKE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
