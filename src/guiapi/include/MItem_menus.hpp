@@ -197,7 +197,7 @@ public:
 };
 
 class MI_SNAKE : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Prussssssaaaaaa");
+    static constexpr const char *const label = _("Prussssssaaaaaa");
 
 public:
     MI_SNAKE();
