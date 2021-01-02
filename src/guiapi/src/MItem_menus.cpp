@@ -6,6 +6,7 @@
 #include "screen_test.hpp"
 #include "screen_messages.hpp"
 #include "marlin_client.h"
+#include "screen_snake.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
