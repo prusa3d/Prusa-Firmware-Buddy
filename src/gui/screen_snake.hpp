@@ -3,7 +3,6 @@
 #include "gui.hpp"
 #include "window_text.hpp"
 #include "window_numb.hpp"
-#include "screen.hpp"
 #include "guitypes.hpp"
 #include "cmath_ext.h"
 
@@ -11,7 +10,7 @@ using point_ui8_t = point_t<uint8_t>;
 using point_i8_t = point_t<int8_t>;
 const constexpr int snake_max_length = 1000;
 
-class screen_snake_data_t : public AddSuperWindow<screen_t> {
+class screen_snake_data_t : public AddSuperWindow<window_frame_t> {
 public:
     screen_snake_data_t();
 
