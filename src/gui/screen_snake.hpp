@@ -27,11 +27,11 @@ private:
     int snake_length = 1;
     point_ui8_t food;
     bool stop = false;
-    uint8_t changes = 0;
+    int changes = 0;
 
     void move_snake();
     void generate_food();
-    void draw_block(point_ui8_t point, color_t color);
+    void draw_block(const point_ui8_t point, const color_t color);
     void check_food();
     bool collision(uint8_t idx);
     void draw_food();

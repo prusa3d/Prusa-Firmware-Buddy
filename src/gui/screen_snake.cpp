@@ -26,7 +26,7 @@ screen_snake_data_t::screen_snake_data_t()
     food.y = snake[0].y - 1;
 }
 
-void screen_snake_data_t::draw_block(point_ui8_t point, color_t color) {
+void screen_snake_data_t::draw_block(const point_ui8_t point, const color_t color) {
     display::FillRect(Rect16(point.x * block_size + 1, point.y * block_size + 1, block_size - 2, block_size - 2), color);
 }
 
@@ -76,7 +76,7 @@ void screen_snake_data_t::move_snake() {
     snake[buffer_pos].y = (snake[tip_idx].y + (int)direction.y + blocks.y) % blocks.y;
     if (collision(buffer_pos)) {
         stop = true;
-        draw_block(snake[buffer_pos], color_dead);
+        // draw_block(snake[buffer_pos], color_dead);
         return;
     }
     draw_block(snake[buffer_pos], color_snake);
@@ -99,19 +99,16 @@ void screen_snake_data_t::windowEvent(EventLock /*has private ctor*/, window_t *
         changes = 0;
     }
 
-    if (changes > 2)
-        return;
-
     const uint8_t old_x = direction.x;
-    if (event == GUI_event_t::ENC_UP) {
+    if (event == GUI_event_t::ENC_UP && changes <= 0) {
         direction.x = -direction.y;
         direction.y = old_x;
         ++changes;
     }
 
-    if (event == GUI_event_t::ENC_DN) {
+    if (event == GUI_event_t::ENC_DN && changes >= 0) {
         direction.x = direction.y;
         direction.y = -old_x;
-        ++changes;
+        --changes;
     }
 }
