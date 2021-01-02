@@ -187,3 +187,13 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_SNAKE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Prussssssaaaaaa");
+
+public:
+    MI_SNAKE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
