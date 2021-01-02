@@ -188,20 +188,6 @@ void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_DEVHASH_IN_QR
-MI_DEVHASH_IN_QR::MI_DEVHASH_IN_QR()
-    : WI_SWITCH_OFF_ON_t(variant_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
-void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
-    if (!old_index) {
-        /// enable
-        eeprom_set_var(EEVAR_DEVHASH_IN_QR, variant8_ui8(1));
-    } else {
-        /// disable
-        eeprom_set_var(EEVAR_DEVHASH_IN_QR, variant8_ui8(0));
-    }
-}
-
-/*****************************************************************************/
 //MI_SNAKE
 MI_SNAKE::MI_SNAKE()
     : WI_LABEL_t(N_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
