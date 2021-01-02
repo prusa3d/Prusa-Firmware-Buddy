@@ -9,7 +9,7 @@
 
 using point_ui8_t = point_t<uint8_t>;
 using point_i8_t = point_t<int8_t>;
-const constexpr int snake_max_length = 100;
+const constexpr int snake_max_length = 1000;
 
 struct screen_snake_data_t : public AddSuperWindow<screen_t> {
 public:
@@ -27,12 +27,13 @@ private:
     int snake_length = 1;
     point_ui8_t food;
     bool stop = false;
+    /// avoids going in reverse & knob acceleration
     int changes = 0;
 
     void move_snake();
     void generate_food();
     void draw_block(const point_ui8_t point, const color_t color);
     void check_food();
-    bool collision(uint8_t idx);
+    bool collision();
     void draw_food();
 };
