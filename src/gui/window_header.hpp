@@ -14,6 +14,8 @@ struct window_header_t : public AddSuperWindow<window_frame_t> {
     window_icon_t icon_usb;
     window_icon_t icon_lan;
 
+    bool LAN_changed_off;
+
     void SetIcon(int16_t id_res);
     void SetText(string_view_utf8 txt);
     header_states_t GetStateUSB() const;
