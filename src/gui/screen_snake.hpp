@@ -5,10 +5,11 @@
 #include "window_numb.hpp"
 #include "guitypes.hpp"
 #include "cmath_ext.h"
+#include "scratch_buffer.hpp"
 
 using point_ui8_t = point_t<uint8_t>;
 using point_i8_t = point_t<int8_t>;
-const constexpr int snake_max_length = 1000;
+const constexpr int snake_max_length = SCRATCH_BUFFER_SIZE / sizeof(point_ui8_t);
 
 class screen_snake_data_t : public AddSuperWindow<window_frame_t> {
 public:
@@ -21,7 +22,7 @@ private:
     uint32_t last_redraw = 0;
     point_i8_t direction = { 0, -1 };
     /// circular buffer
-    point_ui8_t snake[snake_max_length];
+    point_ui8_t *snake = (point_ui8_t *)scratch_buffer;
     int buffer_pos = 0;
     int snake_length = 1;
     point_ui8_t food;

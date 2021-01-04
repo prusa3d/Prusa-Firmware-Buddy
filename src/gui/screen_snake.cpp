@@ -23,7 +23,7 @@ screen_snake_data_t::screen_snake_data_t()
 }
 
 void screen_snake_data_t::draw_block(const point_ui8_t point, const color_t color) {
-    display::FillRect(Rect16(point.x * block_size + 1, point.y * block_size + 1, block_size - 2, block_size - 2), color);
+    display::FillRect(Rect16(point.x * block_size, point.y * block_size, block_size, block_size), color);
 }
 
 void screen_snake_data_t::draw_food() {
