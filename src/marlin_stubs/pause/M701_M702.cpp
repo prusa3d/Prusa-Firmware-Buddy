@@ -120,10 +120,10 @@ void GcodeSuite::M701() {
     const bool isL = (parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin));
     const float fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : pause.GetDefaultFastLoadLength());
     pause.SetPurgeLength(ADVANCED_PAUSE_PURGE_LENGTH);
-    pause.SetSlowLoadLength(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
+    pause.SetSlowLoadLength(fast_load_length > 0.f ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0.f);
     pause.SetFastLoadLength(fast_load_length);
 
-    load_unload(fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge, &Pause::FilamentLoad, Z_AXIS_LOAD_POS);
+    load_unload(fast_load_length != 0.f ? LoadUnloadMode::Load : LoadUnloadMode::Purge, &Pause::FilamentLoad, Z_AXIS_LOAD_POS);
 }
 
 /**
