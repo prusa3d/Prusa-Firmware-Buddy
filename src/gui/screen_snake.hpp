@@ -11,7 +11,7 @@ using point_ui8_t = point_t<uint8_t>;
 using point_i8_t = point_t<int8_t>;
 const constexpr int snake_max_length = SCRATCH_BUFFER_SIZE / sizeof(point_ui8_t);
 
-class screen_snake_data_t : public AddSuperWindow<window_frame_t> {
+class screen_snake_data_t : public AddSuperWindow<screen_t> {
 public:
     screen_snake_data_t();
 

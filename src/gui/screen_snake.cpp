@@ -14,7 +14,7 @@ static const constexpr int block_size = 5;
 static const constexpr point_ui8_t blocks = { 240 / block_size, 320 / block_size };
 
 screen_snake_data_t::screen_snake_data_t()
-    : AddSuperWindow<window_frame_t>() {
+    : AddSuperWindow<screen_t>() {
     flags.timeout_close = is_closed_on_timeout_t::no;
     snake[0].x = blocks.x / 2;
     snake[0].y = blocks.y / 2;
