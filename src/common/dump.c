@@ -21,8 +21,13 @@ static inline void dump_regs_SCB(void) {
 void dump_to_xflash(void) {
     _Static_assert(sizeof(dumpinfo_t) == 16, "invalid sizeof(dumpinfo_t)");
     uint32_t addr;
-    if (!dump_in_xflash_is_displayed()) // do not overwrite existing "not displayed" dump
-        return;
+    if (!dump_in_xflash_is_empty()) {
+        if (dump_in_xflash_is_saved()) {
+            if (!dump_in_xflash_is_displayed()) {
+                return;
+            }
+        }
+    }
     dump_regs_SCB();
     if (w25x_init()) {
         for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
@@ -43,6 +48,12 @@ void dump_to_xflash(void) {
         w25x_wait_busy();
         w25x_disable_wr();
     }
+}
+
+int dump_in_xflash_is_empty(void) {
+    dumpinfo_t dumpinfo;
+    w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
+    return (dumpinfo.type_flags & DUMP_UNDEFINED) ? 0 : 1;
 }
 
 int dump_in_xflash_is_valid(void) {
@@ -119,6 +130,30 @@ unsigned int dump_in_xflash_read_regs_GEN(void *pRegsGEN, unsigned int size) {
         size = DUMP_REGS_GEN_SIZE;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_REGS_GEN_ADDR - DUMP_CCRAM_ADDR, (uint8_t *)(pRegsGEN), size);
     return size;
+}
+
+void dump_in_xflash_reset(void) {
+    if (w25x_init()) {
+        for (uint32_t addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
+            w25x_wait_busy();
+            w25x_enable_wr();
+            w25x_block64_erase(DUMP_OFFSET + addr);
+        }
+        w25x_wait_busy();
+        w25x_disable_wr();
+    }
+}
+
+void dump_in_xflash_delete(void) {
+    if (w25x_init()) {
+        for (uint32_t addr = 0; addr < 0x800000; addr += 0x10000) {
+            w25x_wait_busy();
+            w25x_enable_wr();
+            w25x_block64_erase(DUMP_OFFSET + addr);
+        }
+        w25x_wait_busy();
+        w25x_disable_wr();
+    }
 }
 
 int dump_save_to_usb(const char *fn) {

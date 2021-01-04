@@ -7,7 +7,7 @@
 #include "sound.hpp"
 
 screen_hardfault_data_t::screen_hardfault_data_t()
-    : screen_reset_error_data_t()
+    : AddSuperWindow<screen_reset_error_data_t>()
     , text(this, Rect16(10, 70, 220, 24), is_multiline::yes)
     , exit(this, Rect16(0, 110, 240, 24), is_multiline::no, is_closed_on_click_t::yes) {
 
@@ -27,7 +27,15 @@ screen_hardfault_data_t::screen_hardfault_data_t()
 }
 
 void screen_hardfault_data_t::draw() {
-    window_frame_t::draw();
+    super::draw();
+    ScreenHardFault();
+}
+
+/*
+//TODO check if above works, if not, use this
+void screen_hardfault_data_t::draw() {
+    screen_t::draw();
     ScreenHardFault();
     start_sound();
 }
+*/

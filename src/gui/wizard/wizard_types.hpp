@@ -60,6 +60,14 @@ enum class WizardState_t {
     last = EXIT
 };
 
+enum class wizard_run_type_t {
+    all,
+    selftest,
+    xyz,
+    selftest_and_xyz,
+    firstlay
+};
+
 static_assert(int(WizardState_t::last) < 64, "too many states in wizard_state_t");
 
 constexpr WizardState_t GetNextWizardState(WizardState_t state) { return state == WizardState_t::last ? WizardState_t::last : WizardState_t(int(state) + 1); }
@@ -72,9 +80,9 @@ constexpr uint64_t WizardMaskRange(WizardState_t first, WizardState_t last) {
     return WizardMaskUpTo(last) & ((~WizardMaskUpTo(first)) | WizardMask(first));
 }
 
-constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last) | WizardMask(WizardState_t::EXIT) | WizardMask(WizardState_t::EXIT); }
+constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last) | WizardMask(WizardState_t::EXIT); }
 constexpr uint64_t WizardMaskSelfTest() {
-    return (WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last) | WizardMask(WizardState_t::EXIT) | WizardMask(WizardState_t::EXIT) /*| WizardMaskStart()*/)
+    return (WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last) | WizardMask(WizardState_t::EXIT))
         & ~WizardMaskRange(WizardState_t::SELFTEST_X, WizardState_t::SELFTEST_Z); //exclude standalone axis tests
 }
 constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(WizardState_t::XYZCALIB_first, WizardState_t::XYZCALIB_last) | WizardMaskStart(); }
@@ -82,11 +90,27 @@ constexpr uint64_t WizardMaskSelfTestAndXYZCalib() { //SELFTEST_RESULT has diffe
     return (WizardMaskSelfTest() | WizardMaskXYZCalib());
 }
 constexpr uint64_t WizardMaskFirstLay() {
-    return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMask(WizardState_t::EXIT) | WizardMask(WizardState_t::EXIT) /* | WizardMaskStart()*/;
+    return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMask(WizardState_t::EXIT);
 }
 
 //disabled XYZ calib
-constexpr uint64_t WizardMaskAll() { return WizardMaskStart() | WizardMaskSelfTest() | WizardMaskFirstLay(); }
+constexpr uint64_t WizardMaskAll() { return WizardMaskStart() | WizardMaskSelfTest() | WizardMaskFirstLay() | WizardMask(WizardState_t::FINISH); }
+
+constexpr uint64_t WizardMask(wizard_run_type_t type) {
+    switch (type) {
+    case wizard_run_type_t::firstlay:
+        return WizardMaskFirstLay();
+    case wizard_run_type_t::selftest:
+        return WizardMaskSelfTest();
+    case wizard_run_type_t::xyz:
+        return WizardMaskXYZCalib();
+    case wizard_run_type_t::selftest_and_xyz:
+        return WizardMaskSelfTestAndXYZCalib();
+    case wizard_run_type_t::all:
+    default:
+        return WizardMaskAll();
+    }
+}
 
 constexpr bool IsStateInWizardMask(WizardState_t st, uint64_t mask) {
     return ((((uint64_t)1) << int(st)) & mask) != 0;

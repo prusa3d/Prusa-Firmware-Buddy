@@ -12,6 +12,9 @@
 #include <stdio.h>
 // const char* Unit() is not virtual, because only one of SpinConfig SpinConfigWithUnit is used
 
+enum class spin_off_opt_t : bool { no,
+    yes };
+
 union SpinType {
     float flt;
     uint32_t u32;
@@ -49,13 +52,16 @@ template <class T>
 struct SpinConfig {
     std::array<T, 3> range; // todo change array to struct containing min, max, step
     static const char *const prt_format;
+    spin_off_opt_t off_opt;
 
-    constexpr SpinConfig(const std::array<T, 3> &arr)
-        : range(arr) {}
+    constexpr SpinConfig(const std::array<T, 3> &arr, spin_off_opt_t off_opt_ = spin_off_opt_t::no)
+        : range(arr)
+        , off_opt(off_opt_) {}
     constexpr T Min() const { return range[0]; }
     constexpr T Max() const { return range[1]; }
     constexpr T Step() const { return range[2]; }
     constexpr const char *Unit() const { return nullptr; } // not virtual
+    bool IsOffOptionEnabled() const { return off_opt == spin_off_opt_t::yes; }
 
     static size_t txtMeas(T val);
 
@@ -84,8 +90,8 @@ template <class T>
 struct SpinConfigWithUnit : public SpinConfig<T> {
     const char *const unit;
 
-    constexpr SpinConfigWithUnit(const std::array<T, 3> &arr, const char *unit_)
-        : SpinConfig<T>(arr)
+    constexpr SpinConfigWithUnit(const std::array<T, 3> &arr, const char *unit_, spin_off_opt_t off_opt_ = spin_off_opt_t::no)
+        : SpinConfig<T>(arr, off_opt_)
         , unit(unit_) {}
     constexpr const char *Unit() const { return unit; } // not virtual
 };

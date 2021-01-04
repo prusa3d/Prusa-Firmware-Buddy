@@ -141,7 +141,7 @@ void Screens::Draw() {
     current->Draw();
 }
 
-window_frame_t *Screens::Get() {
+screen_t *Screens::Get() const {
     if (!current) {
         return nullptr;
     }
@@ -195,13 +195,13 @@ void Screens::Loop() {
     /// menu timeout logic:
     /// when timeout is expired on current screen,
     /// we iterate through whole stack and close every screen that should be closed
-    if (menu_timeout_enabled && Get() && Get()->ClosedOnTimeout()) {
+    if (menu_timeout_enabled && Get() && Get()->ClosedOnTimeout() && (!Get()->HasDialogOrPopup())) {
         if (HAL_GetTick() - timeout_tick > MENU_TIMEOUT_MS) {
             while (Get() && Get()->ClosedOnTimeout() && stack_iterator != stack.begin()) {
                 close = true;
                 InnerLoop();
             }
-            ResetTimeout();
+            // no need to call ResetTimeout() - screen destructor does that
             return;
         }
     }
@@ -248,11 +248,8 @@ void Screens::InnerLoop() {
         /// need to reset focused and capture ptr before calling current = creator();
         /// screen ctor can change those pointers
         /// screen was destroyed by unique_ptr.release()
-        window_t::ResetCapturedWindow();
         window_t::ResetFocusedWindow();
         current = creator();
-        if (!current->IsChildCaptured())
-            current->SetCapture();
         /// need to be reset also focused ptr
         if (!current->IsFocused() && !current->IsChildFocused()) {
             window_t *child = current->GetFirstEnabledSubWin();

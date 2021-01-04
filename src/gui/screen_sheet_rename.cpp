@@ -11,7 +11,7 @@ void screen_sheet_rename_t::index(uint32_t index) {
     screen_sheet_rename_t::index_ = index;
 }
 screen_sheet_rename_t::screen_sheet_rename_t()
-    : window_frame_t()
+    : screen_t()
     , header(this)
     , footer(this)
     , button_ok(this, Rect16(10, 100, 80, 20), onclick_ok, _("OK"))

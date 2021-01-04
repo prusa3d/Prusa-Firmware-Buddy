@@ -64,6 +64,40 @@
 #include "hwio_pindef.h"
 #include "gui.hpp"
 #include "config_a3ides2209_02.h"
+#include "eeprom.h"
+#include "crc32.h"
+#include "w25x.h"
+
+#define USB_OVERC_Pin       GPIO_PIN_4
+#define USB_OVERC_GPIO_Port GPIOE
+#define USB_EN_Pin          GPIO_PIN_5
+#define USB_EN_GPIO_Port    GPIOE
+#define ESP_GPIO0_Pin       GPIO_PIN_6
+#define ESP_GPIO0_GPIO_Port GPIOE
+#define ESP_RST_Pin         GPIO_PIN_13
+#define ESP_RST_GPIO_Port   GPIOC
+#define BED_MON_Pin         GPIO_PIN_7
+#define BED_MON_GPIO_Port   GPIOE
+#define FAN0_TACH_Pin       GPIO_PIN_10
+#define FAN0_TACH_GPIO_Port GPIOE
+#define FAN0_TACH_EXTI_IRQn EXTI15_10_IRQn
+#define FAN1_TACH_Pin       GPIO_PIN_14
+#define FAN1_TACH_GPIO_Port GPIOE
+#define FAN1_TACH_EXTI_IRQn EXTI15_10_IRQn
+#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+    #define Z_MIN_Pin       GPIO_PIN_8
+    #define Z_MIN_EXTI_IRQn EXTI9_5_IRQn
+#endif
+#define SWDIO_Pin           GPIO_PIN_13
+#define SWDIO_GPIO_Port     GPIOA
+#define SWCLK_Pin           GPIO_PIN_14
+#define SWCLK_GPIO_Port     GPIOA
+#define FLASH_CSN_Pin       GPIO_PIN_7
+#define FLASH_CSN_GPIO_Port GPIOD
+#define WP2_Pin             GPIO_PIN_5
+#define WP2_GPIO_Port       GPIOB
+#define WP1_Pin             GPIO_PIN_0
+#define WP1_GPIO_Port       GPIOE
 
 /* USER CODE END Includes */
 
@@ -238,6 +272,21 @@ int main(void) {
     uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
     putslave_init(&uart6slave);
     wdt_iwdg_warning_cb = iwdg_warning_cb;
+
+    crc32_init();
+    w25x_init();
+
+    int irq = __get_PRIMASK() & 1;
+    __enable_irq();
+    eeprom_init();
+    uint8_t status = eeprom_get_init_status();
+    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
+        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
+        dump_in_xflash_reset();
+    }
+    if (irq == 0)
+        __disable_irq();
+
     /* USER CODE END 2 */
 
     static metric_handler_t *handlers[] = {
@@ -591,9 +640,6 @@ static void MX_TIM1_Init(void) {
     //HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
     //HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
     /* USER CODE END TIM1_Init 2 */
-#ifndef NEW_FANCTL
-    HAL_TIM_MspPostInit(&htim1);
-#endif
 }
 
 /**

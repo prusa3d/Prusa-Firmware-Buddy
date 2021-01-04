@@ -165,7 +165,7 @@ MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
 void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
     sheet_next_calibrated();
     UpdateLabel();
-    marlin_settings_load();
+    marlin_set_z_offset(variant8_get_flt(eeprom_get_var(EEVAR_ZOFFSET)));
 }
 
 void MI_CURRENT_PROFILE::UpdateLabel() {
@@ -185,6 +185,20 @@ MI_EEPROM::MI_EEPROM()
 
 void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenEeprom);
+}
+
+/*****************************************************************************/
+//MI_DEVHASH_IN_QR
+MI_DEVHASH_IN_QR::MI_DEVHASH_IN_QR()
+    : WI_SWITCH_OFF_ON_t(variant_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
+    if (!old_index) {
+        /// enable
+        eeprom_set_var(EEVAR_DEVHASH_IN_QR, variant8_ui8(1));
+    } else {
+        /// disable
+        eeprom_set_var(EEVAR_DEVHASH_IN_QR, variant8_ui8(0));
+    }
 }
 
 /*****************************************************************************/

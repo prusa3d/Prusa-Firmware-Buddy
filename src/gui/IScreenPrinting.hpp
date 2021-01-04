@@ -1,11 +1,12 @@
 //IScreenPrinting.hpp
 #pragma once
 #include "gui.hpp"
+#include "screen.hpp"
 #include "window_header.hpp"
 #include "status_footer.h"
 #include "resource.h"
 
-class IScreenPrinting : public AddSuperWindow<window_frame_t> {
+class IScreenPrinting : public AddSuperWindow<screen_t> {
 protected:
     window_header_t header;
     status_footer_t footer;
