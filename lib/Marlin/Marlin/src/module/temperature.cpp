@@ -26,6 +26,7 @@
 
 #include "temperature.h"
 #include "endstops.h"
+#include "safe_state.h"
 
 #include "../Marlin.h"
 #include "../lcd/ultralcd.h"
@@ -2638,6 +2639,13 @@ void Temperature::readings_ready() {
 
 }
 
+
+bool isr_blocked = false;
+
+void blockISR() {
+  isr_blocked = true;
+}
+
 /**
  * Timer 0 is shared with millies so don't change the prescaler.
  *
@@ -2656,7 +2664,12 @@ void Temperature::readings_ready() {
 HAL_TEMP_TIMER_ISR() {
   HAL_timer_isr_prologue(TEMP_TIMER_NUM);
 
-  Temperature::isr();
+  if (!isr_blocked) {
+    Temperature::isr();
+  } else {
+      hwio_safe_state();
+      watchdog_refresh();
+  }
 
   HAL_timer_isr_epilogue(TEMP_TIMER_NUM);
 }
