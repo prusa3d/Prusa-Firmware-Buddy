@@ -6,6 +6,7 @@
 #include "guitypes.hpp"
 #include "cmath_ext.h"
 #include "scratch_buffer.hpp"
+#include "screen.hpp"
 
 using point_ui8_t = point_t<uint8_t>;
 using point_i8_t = point_t<int8_t>;
