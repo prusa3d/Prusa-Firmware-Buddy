@@ -41,6 +41,8 @@ int guimain_spi_test = 0;
 #include "dump.h"
 #include "gui_media_events.hpp"
 
+extern void blockISR(); // do not want to include marlin temperature
+
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
     ST7789V_FLG_DMA,    // flags (DMA, MISO)
@@ -162,6 +164,7 @@ void gui_run(void) {
     ScreenFactory::Creator error_screen = nullptr;
     if (w25x_init()) {
         if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
+            blockISR();
             switch (dump_in_xflash_get_type()) {
             case DUMP_HARDFAULT:
                 error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
