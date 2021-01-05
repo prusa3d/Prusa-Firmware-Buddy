@@ -9,6 +9,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include "window_types.hpp" // BtnState_t
 
 //old encoder (with new encoder 2 steps per 1 count) - Type2
 //new encoder (1 steps per 1 count) - Type1
@@ -30,13 +31,6 @@ public:
 
     /** Returns button input state, this function is for BSOD and situations where interupts are disabled. */
     static int GetJogwheelButtonPinState();
-
-    // current state of button, event is stored into buffer on button change
-    enum class BtnState_t : uint8_t {
-        Released,
-        Pressed,
-        Held
-    };
 
     //structure to be read in rtos thread (outside interrupt)
     //size must be 32 bit to be atomic

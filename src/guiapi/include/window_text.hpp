@@ -3,6 +3,7 @@
 #pragma once
 
 #include "window.hpp"
+#include "../../lang/string_view_utf8.hpp"
 
 enum class is_multiline : bool { no,
     yes };

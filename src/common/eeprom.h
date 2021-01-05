@@ -7,7 +7,7 @@
 
 enum {
     EEPROM_ADDRESS = 0x0500, // uint16_t
-    EEPROM_VERSION = 10,     // uint16_t
+    EEPROM_VERSION = 11,     // uint16_t
 };
 
 #define EEPROM_FEATURE_PID_NOZ 0x0001
@@ -76,8 +76,10 @@ enum {
     EEVAR_SHEET_PROFILE5 = 0x25,
     EEVAR_SHEET_PROFILE6 = 0x26,
     EEVAR_SHEET_PROFILE7 = 0x27,
-    EEVAR_SELFTEST_RESULT = 0x28, // uint32_t, two bits for each selftest part
-    EEVAR_ODOMETER = 0x29,        // float
+    EEVAR_SELFTEST_RESULT = 0x28,   // uint32_t, two bits for each selftest part
+    EEVAR_DEVHASH_IN_QR = 0x29,     // uint8_t on / off sending UID in QR
+    EEVAR_FAN_CHECK_ENABLED = 0x2a, // uint8_t on / off fan check
+    EEVAR_ODOMETER = 0x2b,          // 4x float
 
     EEVAR__PADDING, // 1..4 chars, to ensure (DATASIZE % 4 == 0)
     EEVAR_CRC32,    // uint32_t crc32 for
@@ -109,12 +111,25 @@ typedef union _SelftestResultEEprom_t {
     uint32_t ui32;
 } SelftestResultEEprom_t;
 
+enum {
+    EEPROM_INIT_Undefined = -1,
+    EEPROM_INIT_Normal = 0,
+    EEPROM_INIT_Defaults = 1,
+    EEPROM_INIT_Upgraded = 2
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
 
-// initialize eeprom, return values:  1 - defaults loaded, 0 - normal init (eeprom data valid)
+/// initialize eeprom
+/// @returns 0 - normal init (eeprom data valid)
+///          1 - defaults loaded
+///          2 - eeprom upgraded successfully from a previous version
 extern uint8_t eeprom_init(void);
+
+// returns last result of eeprom_init() or EEPROM_INIT_Undefined
+extern uint8_t eeprom_get_init_status(void);
 
 // write default values to all variables
 extern void eeprom_defaults(void);

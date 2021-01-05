@@ -31,15 +31,14 @@ enum class is_closed_on_serial_t : bool { no,
 //type of window
 //carefull if any states are added - flags and getter must be modified
 enum class win_type_t : uint8_t {
-    normal,       // normal window, registered in ctor, registration must succedd, does not unregister
-    dialog,       // child of IDialog - modal window - multiple supported
-    popup,        // similar to dialog, but does not claim capture, cannot overlap or be overlapped
+    normal,       // single normal window in screen can have capture, registered in ctor, registration must succedd
+    dialog,       // can have capture, child of IDialog - modal window - multiple supported
+    popup,        // can't have capture, similar to dialog, but does not claim capture, cannot overlap or be overlapped
                   //   by dialog (not registered / auto destroyed).
                   // destroyed when any window tries to overlap it
-    strong_dialog // child of IDialog - stays on absolute top (normal dialog can open under it, but
+    strong_dialog // can have capture, stays on absolute top (normal dialog can open under it, but
                   //   will not get capture), only user can close it
-                  // behavior of multipre strong dialogs is undefined for now
-                  //   will be defined later - after we have multiple strong dialogs
+                  // last open strong dialog is on top
 };
 
 //todo add can capture flag (needed in frame event and SetCapture)
@@ -56,11 +55,11 @@ union WindowFlags {
         bool hidden_behind_dialog : 1;            // 08 - there is an dialog over this window
         is_closed_on_timeout_t timeout_close : 1; // 09 - menu timeout flag - it's meant to be used in window_frame_t
         is_closed_on_serial_t serial_close : 1;   // 0A - serial printing screen open close
-        bool shadow : 1;                          // 0B - this flag can be defined in parent
-        bool custom0 : 1;                         // 0C - this flag can be defined in parent
-        bool custom1 : 1;                         // 0D - this flag can be defined in parent
-        bool custom2 : 1;                         // 0E - this flag can be defined in parent
-        bool custom3 : 1;                         // 0F - this flag can be defined in parent
+        bool shadow : 1;                          // 0B - darker colors
+        bool custom3 : 1;                         // 0C - this flag can be defined in parent
+        bool custom2 : 1;                         // 0D - this flag can be defined in parent
+        bool custom1 : 1;                         // 0E - this flag can be defined in parent
+        bool custom0 : 1;                         // 0F - this flag can be defined in parent
 
         // here would be 2 unused Bytes (structure data alignment),
         // make them accessible to be used in child to save RAM
@@ -74,6 +73,13 @@ union WindowFlags {
 
     constexpr WindowFlags(uint32_t dt = 0)
         : data(dt) {}
+};
+
+// current state of button, event is stored into buffer on button change
+enum class BtnState_t : uint8_t {
+    Released,
+    Pressed,
+    Held
 };
 
 static_assert(sizeof(WindowFlags) == sizeof(WindowFlags::data), "WindowFlags structure invalid");

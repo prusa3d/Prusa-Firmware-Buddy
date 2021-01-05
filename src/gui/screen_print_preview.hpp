@@ -4,6 +4,7 @@
 #include "window_header.hpp"
 #include "window_roll_text.hpp"
 #include "ff.h"
+#include "screen.hpp"
 
 static const constexpr uint16_t PADDING = 10;
 static const constexpr uint16_t SCREEN_WIDTH = 240;  //FIXME should be in display.h
@@ -49,7 +50,7 @@ struct GCodeInfoWithDescription : public GCodeInfo {
 };
 
 //todo implement draw, i am using visible property on some description_lines
-struct screen_print_preview_data_t : public AddSuperWindow<window_frame_t> {
+struct screen_print_preview_data_t : public AddSuperWindow<screen_t> {
     window_roll_text_t title_text;
     window_icon_button_t print_button;
     window_text_t print_label;

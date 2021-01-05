@@ -11,9 +11,11 @@
 
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
+    , moveIndex(0)
+    , redrawAll(true)
+    , clicked(false)
     , pContainer(pContainer) {
     setIndex(index);
-    moveIndex = 0;
     top_index = 0;
     updateTopIndex();
 }
@@ -172,6 +174,7 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
     case GUI_event_t::CLICK:
 
         item->Click(*this);
+        clicked = true;
         //Invalidate(); //called inside click
         break;
     case GUI_event_t::ENC_DN:
@@ -231,12 +234,13 @@ void window_menu_t::unconditionalDraw() {
         return;
     }
 
-    if (moveIndex == 0) { /// startup or single item change
-        if (item->IsSelected()) {
-            unconditionalDrawItem(index);
-        } else {
-            redrawWholeMenu();
-        }
+    if (redrawAll) {
+        redrawAll = false;
+        redrawWholeMenu();
+        return;
+    } else if (item->IsSelected() || clicked) {
+        clicked = false;
+        unconditionalDrawItem(index);
         return;
     }
 
@@ -246,8 +250,10 @@ void window_menu_t::unconditionalDraw() {
     if (updateTopIndex()) {
         redrawWholeMenu(); /// whole menu moved, redraw everything
     } else {
-        unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
-        unconditionalDrawItem(index);
+        if (old_index != index) {
+            unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
+            unconditionalDrawItem(index);
+        }
     }
 }
 
@@ -312,5 +318,14 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
             break;
         }
         ++visible_count;
+    }
+}
+
+void window_menu_t::ShowAfterDialog() {
+    if (flags.hidden_behind_dialog) {
+        flags.hidden_behind_dialog = false;
+        //must invalidate even when is not visible
+        redrawAll = true;
+        Invalidate();
     }
 }

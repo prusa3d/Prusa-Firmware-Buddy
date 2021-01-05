@@ -15,7 +15,7 @@ static constexpr size_t SpinMessageQueueLength = 32;
 #if (configSUPPORT_STATIC_ALLOCATION == 1)
 
 void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
-    constexpr size_t item_sz = sizeof(Jogwheel::BtnState_t);
+    constexpr size_t item_sz = sizeof(BtnState_t);
     constexpr size_t length = ButtonMessageQueueLength;
     static StaticQueue_t queue;
     static uint8_t storage_area[length * item_sz];
@@ -25,7 +25,7 @@ void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
 #else // (configSUPPORT_STATIC_ALLOCATION == 1 )
 
 void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
-    button_queue_handle = xQueueCreate(ButtonMessageQueueLength, sizeof(Jogwheel::BtnState_t));
+    button_queue_handle = xQueueCreate(ButtonMessageQueueLength, sizeof(BtnState_t));
 }
 
 #endif // (configSUPPORT_STATIC_ALLOCATION == 1 )
@@ -91,7 +91,7 @@ void Jogwheel::ReadInput(uint8_t &signals) {
     }
 }
 
-bool Jogwheel::ConsumeButtonEvent(Jogwheel::BtnState_t &ev) {
+bool Jogwheel::ConsumeButtonEvent(BtnState_t &ev) {
     // this can happen only once
     // queue is initialized in a rtos thread (outside interrupt) on first attempt to read
     if (button_queue_handle == nullptr) {

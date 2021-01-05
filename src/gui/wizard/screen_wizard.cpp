@@ -17,45 +17,46 @@
 #include "firstlay.hpp"
 #include "xyzcalib.hpp"
 
-void ScreenWizard::RunAll() {
-    run_mask = WizardMaskAll();
+void ScreenWizard::Run(wizard_run_type_t type) {
+    run_mask = WizardMask(type);
+    caption_type = type;
     Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
 }
 
-void ScreenWizard::RunSelfTest() {
-    run_mask = WizardMaskSelfTest();
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
-}
+string_view_utf8 ScreenWizard::WizardGetCaption(WizardState_t st, wizard_run_type_t type) {
+    static constexpr const char *en_wizard = N_("WIZARD");
+    static constexpr const char *en_wizard_ok = N_("WIZARD - OK");
+    static constexpr const char *en_selftest = N_("SELFTEST");
+    static constexpr const char *en_xyz = N_("XYZ CALIBRATION");
+    static constexpr const char *en_firstlay = N_("FIRST LAYER CALIBRATION");
 
-void ScreenWizard::RunXYZCalib() {
-    run_mask = WizardMaskXYZCalib();
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
-}
+    switch (type) {
+    case wizard_run_type_t::firstlay:
+        return _(en_firstlay);
+    case wizard_run_type_t::selftest:
+        return _(en_selftest);
+    case wizard_run_type_t::xyz:
+        return _(en_xyz);
+    default:
+        if (IsStateInWizardMask(st, WizardMaskStart())) {
+            return _(en_wizard);
+        }
 
-void ScreenWizard::RunFirstLay() {
-    run_mask = WizardMaskFirstLay();
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
-}
+        if (IsStateInWizardMask(st, WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last))) {
+            return _(en_selftest);
+        }
 
-string_view_utf8 WizardGetCaption(WizardState_t st) {
-    if (IsStateInWizardMask(st, WizardMaskStart())) {
-        return _("WIZARD");
-    }
+        if (IsStateInWizardMask(st, WizardMaskXYZCalib())) {
+            return _(en_xyz);
+        }
 
-    if (IsStateInWizardMask(st, WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last))) {
-        return _("SELFTEST");
-    }
+        if (IsStateInWizardMask(st, WizardMaskFirstLay())) {
+            return _(en_firstlay);
+        }
 
-    if (IsStateInWizardMask(st, WizardMaskXYZCalib())) {
-        return _("XYZ CALIBRATION");
-    }
-
-    if (IsStateInWizardMask(st, WizardMaskFirstLay())) {
-        return _("FIRST LAYER CALIBRATION");
-    }
-
-    if (st == WizardState_t::EXIT) {
-        return _("WIZARD - OK");
+        if (st == WizardState_t::EXIT) {
+            return _(en_wizard_ok);
+        }
     }
 
     return string_view_utf8::MakeNULLSTR(); //to avoid warning
@@ -65,12 +66,12 @@ ScreenWizard::StateArray ScreenWizard::states = StateInitializer();
 
 uint64_t ScreenWizard::run_mask = WizardMaskAll();
 WizardState_t ScreenWizard::start_state = WizardState_t::START_first;
-
+wizard_run_type_t ScreenWizard::caption_type = wizard_run_type_t::all;
 bool ScreenWizard::is_config_invalid = true;
 
 ScreenWizard::ScreenWizard()
-    : AddSuperWindow<window_frame_t>()
-    , header(this, WizardGetCaption(WizardState_t::START_first))
+    : AddSuperWindow<screen_t>()
+    , header(this, WizardGetCaption(WizardState_t::START_first, caption_type))
     , footer(this)
     , state(start_state)
     , loopInProgress(false) {
@@ -100,7 +101,7 @@ void ScreenWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender,
         repaint_caption = true;
     }
     if (repaint_caption) {
-        header.SetText(WizardGetCaption(state)); // change caption
+        header.SetText(WizardGetCaption(state, caption_type)); // change caption
     }
 
     StateFnc stateFnc = states[size_t(state)]; // actual state function (action)
@@ -190,7 +191,7 @@ WizardState_t StateFnc_FIRST() {
 WizardState_t StateFnc_FINISH() {
     static const char en_text[] = N_("Calibration successful! Happy printing!");
     string_view_utf8 translatedText = _(en_text);
-    MsgBox(translatedText, Responses_Next);
+    MsgBoxPepa(translatedText, Responses_Next);
     return WizardState_t::next;
 }
 

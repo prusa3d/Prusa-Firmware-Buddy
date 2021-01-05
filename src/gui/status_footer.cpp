@@ -239,7 +239,7 @@ void status_footer_t::update_sheet_profile() {
 }
 
 status_footer_t::status_footer_t(window_t *parent)
-    : window_frame_t(parent, GuiDefaults::RectFooter)
+    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectFooter)
     , wi_nozzle(this, Rect16(8, 270, 16, 16), IDR_PNG_nozzle_16px)
     , wi_heatbed(this, Rect16(128, 270, 20, 16), IDR_PNG_heatbed_16px)
     , wi_prnspeed(this, Rect16(10, 297, 16, 12), IDR_PNG_speed_16px)

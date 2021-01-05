@@ -5,13 +5,13 @@
 #include "ScreenHandler.hpp"
 #include "gui_timer.h"
 #include "display.h"
+#include "sound.hpp"
 
 bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }
 bool window_t::IsHiddenBehindDialog() const { return flags.hidden_behind_dialog; }
 bool window_t::IsEnabled() const { return flags.enabled; }
 bool window_t::IsInvalid() const { return flags.invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
-bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return flags.timer; }
 win_type_t window_t::GetType() const { return win_type_t(flags.type); }
 bool window_t::IsDialog() const { return GetType() == win_type_t::dialog || GetType() == win_type_t::strong_dialog; }
@@ -60,19 +60,6 @@ void window_t::SetFocus() {
     Invalidate();
     WindowEvent(this, GUI_event_t::FOCUS1, 0); //will not resend event to anyone
     gui_invalidate();
-}
-
-void window_t::SetCapture() {
-    // do not check IsVisible()
-    // window hidden by dialog can get capture
-    if (flags.visible && flags.enabled) {
-        if (capture_ptr) {
-            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
-        }
-        capture_ptr = this;
-        WindowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
-        gui_invalidate();
-    }
 }
 
 void window_t::Show() {
@@ -155,12 +142,15 @@ window_t::~window_t() {
     gui_timers_delete_by_window(this);
     if (GetFocusedWindow() == this)
         focused_ptr = nullptr;
-    if (GetCapturedWindow() == this)
-        capture_ptr = nullptr;
+
+    // if this window has captured, than it will be passed automaticaly to previous one
+    // because last window in screen has it, no code needed
 
     //win_type_t::normal must be unregistered so ~window_frame_t can has functional linked list
     if (GetParent())
         GetParent()->UnregisterSubWin(this);
+
+    Screens::Access()->ResetTimeout();
 }
 
 void window_t::SetNext(window_t *nxt) {
@@ -234,8 +224,31 @@ void window_t::draw() {
 }
 
 //window does not support subwindow elements, but window_frame does
-bool window_t::RegisterSubWin(window_t *win) {
+bool window_t::RegisterSubWin(window_t *pWin) {
+    if (!pWin)
+        return false;
+
+    //window must fit inside frame
+    if (!rect.Contain(pWin->rect))
+        return false;
+
+    Screens::Access()->ResetTimeout();
+
+    return registerSubWin(*pWin);
+}
+
+void window_t::UnregisterSubWin(window_t *win) {
+    if ((!win) || (win->GetParent() != this))
+        return;
+    unregisterSubWin(*win);
+    Screens::Access()->ResetTimeout();
+}
+
+bool window_t::registerSubWin(window_t &win) {
     return false;
+}
+
+void window_t::unregisterSubWin(window_t &win) {
 }
 
 void window_t::unconditionalDraw() {
@@ -285,23 +298,58 @@ void window_t::Shift(ShiftDir_t direction, uint16_t distance) {
 //static
 
 window_t *window_t::focused_ptr = nullptr;
-window_t *window_t::capture_ptr = nullptr;
 
 window_t *window_t::GetFocusedWindow() {
     return focused_ptr;
 }
 
-window_t *window_t::GetCapturedWindow() {
-    return capture_ptr;
-}
-
-void window_t::ResetCapturedWindow() {
-    capture_ptr = nullptr;
-}
-
 void window_t::ResetFocusedWindow() {
     focused_ptr = nullptr;
 }
+
+/*****************************************************************************/
+//capture
+bool window_t::IsCaptured() const { return Screens::Access()->Get()->GetCapturedWindow() == this; }
+
+bool window_t::EventEncoder(int diff) {
+    window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
+    if ((!capture_ptr) || (diff == 0))
+        return false;
+
+    if (diff > 0) {
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_UP, (void *)diff);
+    } else {
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_DN, (void *)-diff);
+    }
+
+    Screens::Access()->ResetTimeout();
+    return true;
+}
+
+bool window_t::EventJogwheel(BtnState_t state) {
+    window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
+    if (!capture_ptr)
+        return false;
+
+    switch (state) {
+    case BtnState_t::Pressed:
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::BTN_DN, 0);
+        break;
+    case BtnState_t::Released:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::BTN_UP, 0);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
+        break;
+    case BtnState_t::Held:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HOLD, 0);
+        break;
+    }
+
+    Screens::Access()->ResetTimeout();
+    return true;
+}
+
 /*****************************************************************************/
 //window_aligned_t
 

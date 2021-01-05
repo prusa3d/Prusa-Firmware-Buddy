@@ -3,6 +3,7 @@
 #include "client_response.hpp"
 #include "dialog_response.hpp"
 #include "window.hpp"
+#include "../../lang/string_view_utf8.hpp"
 
 //created from array of responses and array of labels
 //responses are counted and stored into btn_count

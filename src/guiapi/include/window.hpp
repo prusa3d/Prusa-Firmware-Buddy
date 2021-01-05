@@ -1,9 +1,8 @@
 //window.hpp
 #pragma once
 
-#include <window_types.hpp>
+#include "window_types.hpp"
 #include "GuiDefaults.hpp"
-#include "../../lang/string_view_utf8.hpp"
 #include "Rect16.h"
 #include "window_event.hpp"
 
@@ -45,7 +44,6 @@ public:
     void SetHasTimer();
     void ClrHasTimer();
     void SetFocus();
-    void SetCapture();
     void Enable();
     void Disable();
     void Show();
@@ -53,15 +51,15 @@ public:
     void Shadow();
     void Unshadow();
     void HideBehindDialog();
-    void ShowAfterDialog();
+    virtual void ShowAfterDialog();
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
 
     window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
 
-    virtual bool RegisterSubWin(window_t *win);
-    virtual void UnregisterSubWin(window_t *win) {} //meant for dialogs, remove this window from frame
+    bool RegisterSubWin(window_t *win);
+    void UnregisterSubWin(window_t *win);
 
     void ShiftNextTo(ShiftDir_t direction);
     virtual void Shift(ShiftDir_t direction, uint16_t distance);
@@ -72,19 +70,23 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param);
     virtual void screenEvent(window_t *sender, GUI_event_t event, void *param);
 
+    virtual bool registerSubWin(window_t &win);
+    virtual void unregisterSubWin(window_t &win);
+
 private:
     virtual void invalidate(Rect16 validation_rect);
     virtual void validate(Rect16 validation_rect);
 
     static window_t *focused_ptr; // has focus
-    static window_t *capture_ptr; // capture jog events
 
 public:
+    virtual window_t *GetCapturedWindow() { return this; } // do not use, used by screen
     static window_t *GetFocusedWindow();
-    static window_t *GetCapturedWindow();
-
-    static void ResetCapturedWindow();
     static void ResetFocusedWindow();
+
+    //knob events
+    static bool EventEncoder(int diff);
+    static bool EventJogwheel(BtnState_t state);
 };
 
 //all children of window_t and their children must use AddSuperWindow<parent_window> for inheritance

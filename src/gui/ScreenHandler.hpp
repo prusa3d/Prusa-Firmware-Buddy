@@ -1,7 +1,7 @@
 //ScreenHandler.hpp
 
 #pragma once
-#include "window_frame.hpp"
+#include "screen.hpp"
 #include "ScreenFactory.hpp"
 #include <array>
 
@@ -52,11 +52,15 @@ public:
     void ScreenEvent(window_t *sender, GUI_event_t event, void *param);
     void WindowEvent(GUI_event_t event, void *param);
 
-    window_frame_t *Get();
+    screen_t *Get() const;
 
     void EnableMenuTimeout();
     void DisableMenuTimeout();
     bool GetMenuTimeout();
+
+    void EnableFanCheck();
+    void DisableFanCheck();
+    bool GetFanChceck();
 
     static void Init(const ScreenFactory::Creator screen_creator);
     static void Init(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end);  // init in normal order, skips nullptr

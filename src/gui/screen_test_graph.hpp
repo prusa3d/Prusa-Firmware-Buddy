@@ -3,8 +3,9 @@
 #include "gui.hpp"
 #include "window_text.hpp"
 #include "window_temp_graph.hpp"
+#include "screen.hpp"
 
-struct screen_test_graph_t : public window_frame_t {
+struct screen_test_graph_t : public AddSuperWindow<screen_t> {
     window_text_t text;
     window_text_t button;
     window_temp_graph_t graph;

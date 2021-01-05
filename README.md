@@ -11,8 +11,7 @@ The currently supported model is:
 
 ### Requirements
 
-- Python 3.6 or newer
-- python3-pip
+- Python 3.6 or newer (with pip)
 
 ### Cloning this repository
 
@@ -49,6 +48,10 @@ Build the firmware for MINI using a custom version of gcc-arm-none-eabi (availab
 ```bash
 python utils/build.py --printer mini --toolchain cmake/AnyGccArmNoneEabi.cmake --generator 'Unix Makefiles'
 ```
+#### Windows 10 troubleshooting
+
+If you have python installed and in your PATH but still getting cmake error `Python3 not found.` Try running python and python3 from cmd. If one of it opens Microsoft Store instead of either opening python interpreter or complaining `'python3' is not recognized as an internal or external command,
+operable program or batch file.` Open `manage app execution aliases` and disable `App Installer` association with `python.exe` and `python3.exe`.
 
 ### Development
 

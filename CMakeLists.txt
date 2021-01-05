@@ -289,6 +289,10 @@ if(CMAKE_CROSSCOMPILING)
   # split and gc sections
   add_compile_options(-ffunction-sections -fdata-sections)
   add_link_options(-Wl,--gc-sections)
+
+  # disable exceptions and related metadata
+  add_compile_options(-fno-exceptions -fno-unwind-tables)
+  add_link_options(-Wl,--defsym,__exidx_start=0,--defsym,__exidx_end=0)
 endif()
 
 # enable all warnings (well, not all, but some)
@@ -556,6 +560,7 @@ if(GUI)
             src/gui/dialogs/DialogSelftestAxis.cpp
             src/gui/dialogs/DialogSelftestFans.cpp
             src/gui/dialogs/DialogSelftestTemp.cpp
+            src/gui/dialogs/DialogSelftestResult.cpp
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
@@ -628,19 +633,18 @@ if(GUI)
             src/guiapi/src/Rect16.cpp
             src/guiapi/src/window_progress.cpp
             src/guiapi/src/window_frame.cpp
+            src/guiapi/src/screen.cpp
             src/guiapi/src/gui_timer.cpp
             src/guiapi/src/display_helper.cpp
             src/guiapi/src/text_roll.cpp
             src/guiapi/src/window_menu.cpp
             src/guiapi/src/window_term.cpp
             src/guiapi/src/window_arrows.cpp
-            src/guiapi/src/window_list.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
             src/guiapi/src/st7789v.cpp
             src/guiapi/src/display_ex.cpp
             src/guiapi/src/window_icon.cpp
-            src/guiapi/src/window_spin.cpp
             src/guiapi/src/window_text.cpp
             src/guiapi/src/window_roll_text.cpp
             src/guiapi/src/window_msgbox.cpp
