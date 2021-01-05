@@ -97,6 +97,7 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
  *                For non-mixing, current extruder if omitted.
  *  Z<distance> - Move the Z axis by this distance
  *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
+ *  P<distance> - Purge distance (positive value)
  *  S"Filament" - save filament by name, for example S"PLA". RepRap compatible.
  *  Default values are used for omitted arguments.
  */
@@ -119,7 +120,8 @@ void GcodeSuite::M701() {
     Pause &pause = Pause::Instance();
     const bool isL = (parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin));
     const float fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : pause.GetDefaultFastLoadLength());
-    pause.SetPurgeLength(ADVANCED_PAUSE_PURGE_LENGTH);
+    const float purge_len = parser.seenval('P') ? parser.linearval('P') : ADVANCED_PAUSE_PURGE_LENGTH;
+    pause.SetPurgeLength(purge_len);
     pause.SetSlowLoadLength(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
     pause.SetFastLoadLength(fast_load_length);
 
