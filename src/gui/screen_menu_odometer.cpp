@@ -1,10 +1,5 @@
-/*
- * 	screen_version_info.cpp
- *
- *  Created on: 2019-10-14
- *      Author: Michal Rudolf
- */
-//todo THIS SHOULD NOT BE MENU!!!
+// screen_menu .cpp
+
 #include <stdlib.h>
 
 #include "screen_menus.hpp"
@@ -13,6 +8,7 @@
 #include "odometer.hpp"
 
 static const constexpr HelperConfig HelpCfg = { 10, IDR_FNT_NORMAL };
+static const constexpr char *filament_text = N_("Filament");
 enum : int {
     TEXT_MAX_LENGTH = 150
 };
@@ -32,11 +28,16 @@ ScreenMenuOdometer::ScreenMenuOdometer()
 
     header.SetIcon(IDR_PNG_info_16px);
     odometer.force_to_eeprom();
-    float xyze[AXES];
-    xyze = odometer.get_from_eeprom();
-    snprintf(text, TEXT_MAX_LENGTH, "X        %.1f m\n\nY        %.1f m\n\nZ        %.1f m\n\nFilament %.1f m", xyze[0], xyze[1], xyze[2], xyze[3]);
+    int written = snprintf(text, TEXT_MAX_LENGTH, "X        %.1f m\n\nY        %.1f m\n\nZ        %.1f m\n\n", odometer.get_from_eeprom(0), odometer.get_from_eeprom(1), odometer.get_from_eeprom(2));
+    if (written < 0)
+        return;
+    int written2 = snprintf(text + written, TEXT_MAX_LENGTH - written, "%s", _(filament_text));
+    if (written2 < 0)
+        return;
+    written += written2;
+    snprintf(text + written, TEXT_MAX_LENGTH - written, " %.1f m", odometer.get_from_eeprom(3));
 
-    // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of this
+    // this MakeRAM is safe
     help.SetText(string_view_utf8::MakeRAM((const uint8_t *)text));
 }
 

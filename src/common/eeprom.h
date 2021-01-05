@@ -79,7 +79,10 @@ enum {
     EEVAR_SELFTEST_RESULT = 0x28,   // uint32_t, two bits for each selftest part
     EEVAR_DEVHASH_IN_QR = 0x29,     // uint8_t on / off sending UID in QR
     EEVAR_FAN_CHECK_ENABLED = 0x2a, // uint8_t on / off fan check
-    EEVAR_ODOMETER = 0x2b,          // 4x float
+    EEVAR_ODOMETER_X = 0x2b,        // float
+    EEVAR_ODOMETER_Y = 0x2c,        // float
+    EEVAR_ODOMETER_Z = 0x2d,        // float
+    EEVAR_ODOMETER_E = 0x2e,        // float
 
     EEVAR__PADDING, // 1..4 chars, to ensure (DATASIZE % 4 == 0)
     EEVAR_CRC32,    // uint32_t crc32 for

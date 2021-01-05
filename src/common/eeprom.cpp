@@ -95,7 +95,10 @@ typedef struct _eeprom_vars_t {
     uint32_t SELFTEST_RESULT;
     uint8_t DEVHASH_IN_QR;
     uint8_t FAN_CHECK_ENABLED;
-    float EEVAR_ODOMETER[4];
+    float EEVAR_ODOMETER_X;
+    float EEVAR_ODOMETER_Y;
+    float EEVAR_ODOMETER_Z;
+    float EEVAR_ODOMETER_E;
 
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
@@ -151,7 +154,10 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SELFTEST_RESULT", VARIANT8_UI32,  1, 0 }, // EEVAR_SELFTEST_RESULT
     { "DEVHASH_IN_QR",   VARIANT8_UI8,   1, 0 }, // EEVAR_DEVHASH_IN_QR
     { "FAN_CHECK_ENA",   VARIANT8_UI8,   1, 0 }, // EEVAR_FAN_CHECK_ENABLED
-    { "ODOMETER",        VARIANT8_PFLT,  4, 0 },
+    { "ODOMETER_X",      VARIANT8_FLT,   1, 0 },
+    { "ODOMETER_Y",      VARIANT8_FLT,   1, 0 },
+    { "ODOMETER_Z",      VARIANT8_FLT,   1, 0 },
+    { "ODOMETER_E",      VARIANT8_FLT,   1, 0 },
 
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
@@ -209,8 +215,10 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_SELFTEST_RESULT
     1,               // EEVAR_DEVHASH_IN_QR
     1,               // EEVAR_FAN_CHECK_ENABLED
-    0,               // EEVAR_SELFTEST_RESULT
-    {0, 0, 0, 0},    // EEVAR_ODOMETER
+    0,               // EEVAR_ODOMETER_X
+    0,               // EEVAR_ODOMETER_Y
+    0,               // EEVAR_ODOMETER_Z
+    0,               // EEVAR_ODOMETER_E
 
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32

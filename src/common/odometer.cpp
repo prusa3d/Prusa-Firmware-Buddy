@@ -1,5 +1,7 @@
 // odometer.cpp
 
+#include <cmath>
+
 #include "odometer.hpp"
 #include "cmath_ext.h"
 #include "eeprom.h"
@@ -14,15 +16,15 @@ void odometer_c::lazy_add_to_eeprom(int axis) {
     if (axis >= 0) {
         save = save || trip_xyze[axis] >= min_trip;
     } else {
-        for (int i = 0; i < AXES; i++)
+        for (int i = 0; i < ODOMETER_AXES; i++)
             save = save || trip_xyze[i] >= min_trip;
     }
     if (!save)
         return;
 
-    float odo_xyze[AXES];
+    float odo_xyze[ODOMETER_AXES];
     /// TODO: read EEPROM to odo_xyze
-    for (int i = 0; i < AXES; i++) {
+    for (int i = 0; i < ODOMETER_AXES; i++) {
         if (trip_xyze[i] >= min_trip) {
             odo_xyze[i] += trip_xyze[i];
             trip_xyze[i] = 0;
@@ -32,17 +34,22 @@ void odometer_c::lazy_add_to_eeprom(int axis) {
 }
 
 void odometer_c::force_to_eeprom() {
-    float *odo = variant8_get_pflt(eeprom_get_var(EEVAR_ODOMETER));
+    float odo[ODOMETER_AXES];
     bool changed = false;
-    for (int i = 0; i < AXES; ++i) {
+    for (int i = 0; i < ODOMETER_AXES; ++i) {
+        odo[i] = 0;
         if (trip_xyze[i] == 0)
             continue;
-        odo[i] += trip_xyze[i];
+        odo[i] = get_from_eeprom(i) + trip_xyze[i];
         trip_xyze[i] = 0;
         changed = true;
     }
-    if (changed)
-        eeprom_set_var(EEVAR_ODOMETER, variant8_pflt(odo, AXES, 0));
+    if (changed) {
+        eeprom_set_var(EEVAR_ODOMETER_X, variant8_flt(odo[0]));
+        eeprom_set_var(EEVAR_ODOMETER_Y, variant8_flt(odo[1]));
+        eeprom_set_var(EEVAR_ODOMETER_Z, variant8_flt(odo[2]));
+        eeprom_set_var(EEVAR_ODOMETER_E, variant8_flt(odo[3]));
+    }
 }
 
 void odometer_c::add_new_value(int axis, float value) {
@@ -51,5 +58,16 @@ void odometer_c::add_new_value(int axis, float value) {
     lazy_add_to_eeprom(axis);
 }
 
-float *odometer_c::get_from_eeprom() {
+float odometer_c::get_from_eeprom(int axis) {
+    switch (axis) {
+    case 0:
+        return variant8_get_flt(eeprom_get_var(EEVAR_ODOMETER_X));
+    case 1:
+        return variant8_get_flt(eeprom_get_var(EEVAR_ODOMETER_Y));
+    case 2:
+        return variant8_get_flt(eeprom_get_var(EEVAR_ODOMETER_Z));
+    case 3:
+        return variant8_get_flt(eeprom_get_var(EEVAR_ODOMETER_E));
+    }
+    return nanf("-");
 }
