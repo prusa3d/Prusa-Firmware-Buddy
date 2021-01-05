@@ -19,7 +19,6 @@ class ScreenMenuOdometer : public Screen {
 
 public:
     static const constexpr char *label = N_("ODOMETER");
-    static const constexpr char *filament_text = N_("Filament");
     ScreenMenuOdometer();
 };
 
@@ -41,7 +40,13 @@ ScreenMenuOdometer::ScreenMenuOdometer()
     int written = snprintf(text, TEXT_MAX_LENGTH, "X        %d.%.1d m\n\nY        %d.%.1d m\n\nZ        %d.%.1d m\n\n", (int)x, first_decimal(x), (int)y, first_decimal(y), (int)z, first_decimal(z));
     if (written < 0)
         return;
-    int written2 = snprintf(text + written, TEXT_MAX_LENGTH - written, "%s", _(filament_text));
+
+    static const constexpr char *filament_text = N_("Filament");
+    const constexpr transl_size = 30;
+    char filament_text_translated[transl_size];
+    _(filament_text).copyToRAM(filament_text_translated, transl_size);
+
+    int written2 = snprintf(text + written, TEXT_MAX_LENGTH - written, "%s", filament_text_translated);
     if (written2 < 0)
         return;
     written += written2;
