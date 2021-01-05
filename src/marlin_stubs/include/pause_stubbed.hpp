@@ -119,6 +119,8 @@ class Pause : public PausePrivatePhase {
     xyz_pos_t park_pos;
     xyze_pos_t resume_pos;
 
+    bool user_purge_len;
+
 public:
     static constexpr const float maximum_Z = Z_MAX_POS;
     static constexpr const float minimal_purge = 1;

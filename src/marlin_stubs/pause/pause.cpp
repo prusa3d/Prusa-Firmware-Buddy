@@ -139,7 +139,8 @@ Pause::Pause()
     , slow_load_length(GetDefaultSlowLoadLength())
     , fast_load_length(GetDefaultFastLoadLength())
     , purge_length(GetDefaultPurgeLength())
-    , retract(GetDefaultRetractLength()) {
+    , retract(GetDefaultRetractLength())
+    , user_purge_len(false) {
 }
 
 float Pause::GetDefaultFastLoadLength() {
@@ -176,6 +177,7 @@ void Pause::SetFastLoadLength(float len) {
 
 void Pause::SetPurgeLength(float len) {
     purge_length = std::max(std::abs(isnan(len) ? GetDefaultPurgeLength() : len), (float)minimal_purge);
+    user_purge_len = isnan(len) ? false : true;
 }
 
 void Pause::SetRetractLength(float len) {
@@ -314,7 +316,7 @@ bool Pause::loadLoop(is_standalone_t standalone) {
         setPhase(PhasesLoadUnload::Purging, 70);
         do_e_move_notify_progress(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         setPhase(PhasesLoadUnload::IsColorPurge, 99);
-        set(LoadPhases_t::ask_is_color_correct__stand_alone_purge);
+        set(user_purge_len ? LoadPhases_t::_finish : LoadPhases_t::ask_is_color_correct__stand_alone_purge);
         break;
     case LoadPhases_t::ask_is_color_correct: {
         if (response == Response::Purge_more) {
