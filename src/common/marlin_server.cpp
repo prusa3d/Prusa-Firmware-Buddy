@@ -146,6 +146,8 @@ static int _process_server_request(const char *request);
 static int _server_set_var(const char *const name_val_str);
 static void _server_update_and_notify(int client_id, uint64_t update);
 
+static void _server_fan_check_error(WarningType warning, CFanCtl fan, bool &error_shown);
+
 //-----------------------------------------------------------------------------
 // server side functions
 
@@ -501,12 +503,8 @@ static void _server_print_loop(void) {
         }
         break;
     case mpsPaused:
-        if (marlin_server.vars.fan_check_enabled) {
+        if ((marlin_server.vars.target_nozzle > 0) && (HAL_GetTick() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
             thermalManager.setTargetHotend(0, 0);
-        } else {
-            if ((marlin_server.vars.target_nozzle > 0) && (HAL_GetTick() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
-                thermalManager.setTargetHotend(0, 0);
-        }
         gcode.reset_stepper_timeout(); //prevent disable axis
         break;
     case mpsResuming_Begin:
@@ -596,25 +594,27 @@ static void _server_print_loop(void) {
     }
 
     if (marlin_server.vars.fan_check_enabled) {
-        if (fanctl1.getState() == CFanCtl::error_running && hotend_fan_error_dialog_show == false) {
-            set_warning(WarningType::HotendFanError);
-            if (marlin_server.print_state == mpsPrinting) {
-                marlin_server.print_state = mpsPausing_Begin;
-            } else {
-                thermalManager.setTargetHotend(0, 0);
-            }
-            hotend_fan_error_dialog_show = true;
-        } else if (fanctl0.getState() == CFanCtl::error_running && print_fan_error_dialog_show == false) {
-            set_warning(WarningType::PrintFanError);
-            if (marlin_server.print_state == mpsPrinting) {
-                marlin_server.print_state = mpsPausing_Begin;
-            }
-            print_fan_error_dialog_show = true;
-        } else if (fanctl1.getRPMIsOk() && hotend_fan_error_dialog_show == true) {
-            hotend_fan_error_dialog_show = false;
-        } else if (fanctl0.getRPMIsOk() && print_fan_error_dialog_show == true) {
-            print_fan_error_dialog_show = false;
+        _server_fan_check_error(WarningType::HotendFanError, fanctl1, hotend_fan_error_dialog_show);
+        _server_fan_check_error(WarningType::PrintFanError, fanctl0, print_fan_error_dialog_show);
+    }
+
+    if (fanctl1.getRPMIsOk() && hotend_fan_error_dialog_show == true) {
+        hotend_fan_error_dialog_show = false;
+    } else if (fanctl0.getRPMIsOk() && print_fan_error_dialog_show == true) {
+        print_fan_error_dialog_show = false;
+    }
+}
+
+void _server_fan_check_error(WarningType warning, CFanCtl fan, bool &error_shown) {
+    if (fan.getState() == CFanCtl::error_running && error_shown == false) {
+        set_warning(warning);
+        if (marlin_server.print_state == mpsPrinting) {
+            marlin_server.print_state = mpsPausing_Begin;
         }
+        if (fan.isAutoFan()) {
+            thermalManager.setTargetHotend(0, 0);
+        }
+        error_shown = true;
     }
 }
 
