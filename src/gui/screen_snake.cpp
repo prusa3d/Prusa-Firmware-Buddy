@@ -3,6 +3,7 @@
 #include "screen_snake.hpp"
 #include "display.h"
 #include "ScreenHandler.hpp"
+#include "GuiDefaults.hpp"
 
 /// this defines movement speed in miliseconds
 static const constexpr int movement_delay = 100;
@@ -11,7 +12,7 @@ static const constexpr color_t color_food = COLOR_LIME;
 static const constexpr color_t color_bg = COLOR_BLACK;
 static const constexpr color_t color_dead = COLOR_RED;
 static const constexpr int block_size = 5;
-static const constexpr point_ui8_t blocks = { 240 / block_size, 320 / block_size };
+static const constexpr point_ui8_t blocks = { GuiDefaults::RectScreen.Width() / block_size, GuiDefaults::RectScreen.Height() / block_size };
 
 screen_snake_data_t::screen_snake_data_t()
     : AddSuperWindow<screen_t>() {
