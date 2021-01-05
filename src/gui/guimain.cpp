@@ -164,12 +164,14 @@ void gui_run(void) {
     ScreenFactory::Creator error_screen = nullptr;
     if (w25x_init()) {
         if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
-            blockISR();
+            blockISR(); //TODO delete blockISR() on this line to enable start after click
             switch (dump_in_xflash_get_type()) {
             case DUMP_HARDFAULT:
                 error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
                 break;
             case DUMP_TEMPERROR:
+                //TODO uncomment to enable start after click
+                //blockISR();
                 error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
                 break;
 #ifndef _DEBUG
