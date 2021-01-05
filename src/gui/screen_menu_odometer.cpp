@@ -23,24 +23,29 @@ public:
     ScreenMenuOdometer();
 };
 
+int first_decimal(float f) {
+    return (int)(x * 10) % 10;
+}
+
 ScreenMenuOdometer::ScreenMenuOdometer()
     : Screen(_(label)) {
 
     header.SetIcon(IDR_PNG_info_16px);
     odometer.force_to_eeprom();
-    float x = odometer.get(0) * .001;
-    float y = odometer.get(1) * .001;
-    float z = odometer.get(2) * .001;
-    float e = odometer.get(3) * .001;
+    const float x = odometer.get(0) * .001f;
+    const float y = odometer.get(1) * .001f;
+    const float z = odometer.get(2) * .001f;
+    const float e = odometer.get(3) * .001f;
 
-    int written = snprintf(text, TEXT_MAX_LENGTH, "X        %.1f m\n\nY        %.1f m\n\nZ        %.1f m\n\n", x, y, z);
+    /// FIXME this is not aligned if "Filament" is translated
+    int written = snprintf(text, TEXT_MAX_LENGTH, "X        %d.%.1d m\n\nY        %d.%.1d m\n\nZ        %d.%.1d m\n\n", (int)x, first_decimal(x), (int)y, first_decimal(y), (int)z, first_decimal(z));
     if (written < 0)
         return;
     int written2 = snprintf(text + written, TEXT_MAX_LENGTH - written, "%s", _(filament_text));
     if (written2 < 0)
         return;
     written += written2;
-    snprintf(text + written, TEXT_MAX_LENGTH - written, " %.1f m", e);
+    snprintf(text + written, TEXT_MAX_LENGTH - written, " %d.%.1d m", (int)e, first_decimal(e));
 
     // this MakeRAM is safe
     help.SetText(string_view_utf8::MakeRAM((const uint8_t *)text));
