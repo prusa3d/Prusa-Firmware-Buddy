@@ -19,6 +19,8 @@ public:
     void add_new_value(int axis, float value);
     /// read values from EEPROM
     float get_from_eeprom(int axis);
+    /// read current status
+    float get(int axis);
 };
 
 extern odometer_c odometer;

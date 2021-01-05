@@ -8,7 +8,6 @@
 #include "odometer.hpp"
 
 static const constexpr HelperConfig HelpCfg = { 10, IDR_FNT_NORMAL };
-static const constexpr char *filament_text = N_("Filament");
 enum : int {
     TEXT_MAX_LENGTH = 150
 };
@@ -19,7 +18,8 @@ class ScreenMenuOdometer : public Screen {
     char text[TEXT_MAX_LENGTH];
 
 public:
-    constexpr static const char *label = N_("ODOMETER");
+    static const constexpr char *label = N_("ODOMETER");
+    static const constexpr char *filament_text = N_("Filament");
     ScreenMenuOdometer();
 };
 
@@ -28,14 +28,14 @@ ScreenMenuOdometer::ScreenMenuOdometer()
 
     header.SetIcon(IDR_PNG_info_16px);
     odometer.force_to_eeprom();
-    int written = snprintf(text, TEXT_MAX_LENGTH, "X        %.1f m\n\nY        %.1f m\n\nZ        %.1f m\n\n", odometer.get_from_eeprom(0), odometer.get_from_eeprom(1), odometer.get_from_eeprom(2));
+    int written = snprintf(text, TEXT_MAX_LENGTH, "X        %.1f m\n\nY        %.1f m\n\nZ        %.1f m\n\n", odometer.get(0) * .001, odometer.get(1) * .001, odometer.get(2) * .001);
     if (written < 0)
         return;
     int written2 = snprintf(text + written, TEXT_MAX_LENGTH - written, "%s", _(filament_text));
     if (written2 < 0)
         return;
     written += written2;
-    snprintf(text + written, TEXT_MAX_LENGTH - written, " %.1f m", odometer.get_from_eeprom(3));
+    snprintf(text + written, TEXT_MAX_LENGTH - written, " %.1f m", odometer.get(3));
 
     // this MakeRAM is safe
     help.SetText(string_view_utf8::MakeRAM((const uint8_t *)text));

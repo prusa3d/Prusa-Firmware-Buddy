@@ -37,19 +37,20 @@ void odometer_c::force_to_eeprom() {
     float odo[ODOMETER_AXES];
     bool changed = false;
     for (int i = 0; i < ODOMETER_AXES; ++i) {
-        odo[i] = 0;
-        if (trip_xyze[i] == 0)
-            continue;
-        odo[i] = get_from_eeprom(i) + trip_xyze[i];
+        if (trip_xyze[i] != 0) {
+            changed = true;
+            break;
+        }
+    }
+    if (!changed)
+        return;
+
+    eeprom_set_var(EEVAR_ODOMETER_X, variant8_flt(get(0)));
+    eeprom_set_var(EEVAR_ODOMETER_Y, variant8_flt(get(1)));
+    eeprom_set_var(EEVAR_ODOMETER_Z, variant8_flt(get(2)));
+    eeprom_set_var(EEVAR_ODOMETER_E, variant8_flt(get(3)));
+    for (int i = 0; i < ODOMETER_AXES; ++i)
         trip_xyze[i] = 0;
-        changed = true;
-    }
-    if (changed) {
-        eeprom_set_var(EEVAR_ODOMETER_X, variant8_flt(odo[0]));
-        eeprom_set_var(EEVAR_ODOMETER_Y, variant8_flt(odo[1]));
-        eeprom_set_var(EEVAR_ODOMETER_Z, variant8_flt(odo[2]));
-        eeprom_set_var(EEVAR_ODOMETER_E, variant8_flt(odo[3]));
-    }
 }
 
 void odometer_c::add_new_value(int axis, float value) {
@@ -70,4 +71,10 @@ float odometer_c::get_from_eeprom(int axis) {
         return variant8_get_flt(eeprom_get_var(EEVAR_ODOMETER_E));
     }
     return nanf("-");
+}
+
+float odometer_c::get(int axis) {
+    if (axis < 0 || axis >= ODOMETER_AXES)
+        return nanf("-");
+    return get_from_eeprom(axis) + trip_xyze[axis];
 }
