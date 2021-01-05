@@ -24,7 +24,7 @@ public:
 };
 
 int first_decimal(float f) {
-    return (int)(x * 10) % 10;
+    return (int)(f * 10) % 10;
 }
 
 ScreenMenuOdometer::ScreenMenuOdometer()
