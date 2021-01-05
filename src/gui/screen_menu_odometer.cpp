@@ -42,7 +42,7 @@ ScreenMenuOdometer::ScreenMenuOdometer()
         return;
 
     static const constexpr char *filament_text = N_("Filament");
-    const constexpr transl_size = 30;
+    const constexpr int transl_size = 30;
     char filament_text_translated[transl_size];
     _(filament_text).copyToRAM(filament_text_translated, transl_size);
 
