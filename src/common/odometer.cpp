@@ -34,7 +34,6 @@ void odometer_c::lazy_add_to_eeprom(int axis) {
 }
 
 void odometer_c::force_to_eeprom() {
-    float odo[ODOMETER_AXES];
     bool changed = false;
     for (int i = 0; i < ODOMETER_AXES; ++i) {
         if (trip_xyze[i] != 0) {
