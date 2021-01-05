@@ -28,14 +28,19 @@ ScreenMenuOdometer::ScreenMenuOdometer()
 
     header.SetIcon(IDR_PNG_info_16px);
     odometer.force_to_eeprom();
-    int written = snprintf(text, TEXT_MAX_LENGTH, "X        %.1f m\n\nY        %.1f m\n\nZ        %.1f m\n\n", (double)odometer.get(0) * .001, float(odometer.get(1) * .001), odometer.get(2) * .001);
+    float x = odometer.get(0) * .001;
+    float y = odometer.get(1) * .001;
+    float z = odometer.get(2) * .001;
+    float e = odometer.get(3) * .001;
+
+    int written = snprintf(text, TEXT_MAX_LENGTH, "X        %.1f m\n\nY        %.1f m\n\nZ        %.1f m\n\n", x, y, z);
     if (written < 0)
         return;
     int written2 = snprintf(text + written, TEXT_MAX_LENGTH - written, "%s", _(filament_text));
     if (written2 < 0)
         return;
     written += written2;
-    snprintf(text + written, TEXT_MAX_LENGTH - written, " %.1f m", odometer.get(3) * (float).001);
+    snprintf(text + written, TEXT_MAX_LENGTH - written, " %.1f m", e);
 
     // this MakeRAM is safe
     help.SetText(string_view_utf8::MakeRAM((const uint8_t *)text));
