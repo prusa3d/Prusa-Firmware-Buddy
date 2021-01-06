@@ -11,28 +11,17 @@ odometer_c odometer;
 static const constexpr float min_trip = 10000;
 static const constexpr int E_AXIS = 3;
 
-void odometer_c::lazy_add_to_eeprom(int axis) {
-    bool save = false;
-    if (axis >= 0) {
-        save = save || trip_xyze[axis] >= min_trip;
-    } else {
-        for (int i = 0; i < ODOMETER_AXES; i++)
-            save = save || trip_xyze[i] >= min_trip;
-    }
-    if (!save)
-        return;
-
-    float odo_xyze[ODOMETER_AXES];
-    /// TODO: read EEPROM to odo_xyze
-    for (int i = 0; i < ODOMETER_AXES; i++) {
+/// Saves to RAM, if any value is too high it saves to EEPROM
+void odometer_c::lazy_add_to_eeprom() {
+    for (int i = 0; i < ODOMETER_AXES; ++i) {
         if (trip_xyze[i] >= min_trip) {
-            odo_xyze[i] += trip_xyze[i];
-            trip_xyze[i] = 0;
+            force_to_eeprom();
+            break;
         }
     }
-    force_to_eeprom();
 }
 
+/// Saves all axes to EEPROM if any value has changed
 void odometer_c::force_to_eeprom() {
     bool changed = false;
     for (int i = 0; i < ODOMETER_AXES; ++i) {
@@ -52,12 +41,14 @@ void odometer_c::force_to_eeprom() {
         trip_xyze[i] = 0;
 }
 
+/// Increments value of an axis
 void odometer_c::add_new_value(int axis, float value) {
     /// E axis counts filament used instead of filament moved
     trip_xyze[axis] += (axis == E_AXIS) ? value : ABS(value);
-    lazy_add_to_eeprom(axis);
+    lazy_add_to_eeprom();
 }
 
+/// Reads a value of the specific axis from EEPROM
 float odometer_c::get_from_eeprom(int axis) {
     switch (axis) {
     case 0:
@@ -72,6 +63,7 @@ float odometer_c::get_from_eeprom(int axis) {
     return nanf("-");
 }
 
+/// \returns a value of the specific axis
 float odometer_c::get(int axis) {
     if (axis < 0 || axis >= ODOMETER_AXES)
         return nanf("-");

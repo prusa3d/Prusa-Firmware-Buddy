@@ -36,7 +36,7 @@ ScreenMenuOdometer::ScreenMenuOdometer()
     const float z = odometer.get(2) * .001f;
     const float e = odometer.get(3) * .001f;
 
-    /// FIXME this is not aligned if "Filament" is translated
+    /// FIXME this is not aligned if "Filament" is translated or numbers have different length
     int written = snprintf(text, TEXT_MAX_LENGTH, "X        %d.%.1d m\n\nY        %d.%.1d m\n\nZ        %d.%.1d m\n\n", (int)x, first_decimal(x), (int)y, first_decimal(y), (int)z, first_decimal(z));
     if (written < 0)
         return;

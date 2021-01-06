@@ -12,7 +12,7 @@ public:
     /// to improve precision (1e20 + 1 = 1e20)
     float trip_xyze[ODOMETER_AXES];
     /// saves new values to EEPROM if the change is significant
-    void lazy_add_to_eeprom(int axis = -1);
+    void lazy_add_to_eeprom();
     /// saves values to EEPROM if they are not zero
     void force_to_eeprom();
     /// save new movement
