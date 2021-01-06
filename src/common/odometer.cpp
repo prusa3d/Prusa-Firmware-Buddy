@@ -7,19 +7,7 @@
 #include "eeprom.h"
 
 odometer_c odometer;
-/// minimal value saved to EEPROM
-static const constexpr float min_trip = 10000;
 static const constexpr int E_AXIS = 3;
-
-/// Saves to RAM, if any value is too high it saves to EEPROM
-void odometer_c::lazy_add_to_eeprom() {
-    for (int i = 0; i < ODOMETER_AXES; ++i) {
-        if (trip_xyze[i] >= min_trip) {
-            force_to_eeprom();
-            break;
-        }
-    }
-}
 
 /// Saves all axes to EEPROM if any value has changed
 void odometer_c::force_to_eeprom() {
@@ -45,7 +33,6 @@ void odometer_c::force_to_eeprom() {
 void odometer_c::add_new_value(int axis, float value) {
     /// E axis counts filament used instead of filament moved
     trip_xyze[axis] += (axis == E_AXIS) ? value : ABS(value);
-    lazy_add_to_eeprom();
 }
 
 /// Reads a value of the specific axis from EEPROM

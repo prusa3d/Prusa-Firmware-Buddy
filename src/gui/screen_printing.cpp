@@ -546,6 +546,6 @@ void screen_printing_data_t::change_print_state() {
         set_tune_icon_and_label();
         set_stop_icon_and_label();
     }
-    if (st == printing_state_t::PRINTED)
+    if (st == printing_state_t::PRINTED || st == printing_state_t::PAUSED)
         odometer.force_to_eeprom();
 }

@@ -8,11 +8,9 @@ class odometer_c {
 public:
     /// stores value changes from the last save
     /// extruder trip counts length of filament used (not moved)
-    /// new values are not added to the total values immediately
-    /// to improve precision (1e20 + 1 = 1e20)
+    /// new values are stored to RAM (fast, unlimited writes)
+    /// it should be stored to EEPROM after a while (slow, limited number of writes)
     float trip_xyze[ODOMETER_AXES];
-    /// saves new values to EEPROM if the change is significant
-    void lazy_add_to_eeprom();
     /// saves values to EEPROM if they are not zero
     void force_to_eeprom();
     /// save new movement
