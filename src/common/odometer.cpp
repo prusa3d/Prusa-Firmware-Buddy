@@ -54,5 +54,5 @@ float odometer_c::get_from_eeprom(int axis) {
 float odometer_c::get(int axis) {
     if (axis < 0 || axis >= ODOMETER_AXES)
         return nanf("-");
-    return get_from_eeprom(axis) + trip_xyze[axis];
+    return get_from_eeprom(axis) + MAX(0, trip_xyze[axis]);
 }
