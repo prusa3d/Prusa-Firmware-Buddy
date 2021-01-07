@@ -8,6 +8,7 @@
 #include <algorithm>
 #include "marlin_server.hpp"
 
+#include "gcode_input_filter.hpp"
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
 static const constexpr uint8_t USBHOST_REENUM_DELAY = 100;    // pool delay [ms]
@@ -236,6 +237,9 @@ float media_print_get_percent_done(void) {
     return 0;
 }
 
+/// this solution has several flaws, and one of them is absolutely deadly
+/// - if there is a comment line >96 bytes long and it contains G-codes, they may get interpreted (and they do according to some github issues!)
+#if 0
 void media_loop(void) {
     _usbhost_reenum();
     if (media_print_state == media_print_state_PRINTING) {
@@ -277,6 +281,77 @@ void media_loop(void) {
             media_print_stop(); //stop on eof
     }
 }
+#else
+// a new streaming solution, potentially also less CPU-hungry in terms of reading data from USB
+using R = RDbuf<64>;
+R rdbuf;
+using G = GCodeInputFilter<MAX_CMD_SIZE + 1>;
+G gcodefilter;
+void media_loop(void) {
+    _usbhost_reenum(); // @@TODO this won't be necessary with the updated USB stack ... hopefully ...
+    if (media_print_state == media_print_state_PRINTING) {
+        for (;;) {
+            auto rdf = R::OK;
+            // avoid filling the buffer again if the filter hasn't finished processing yet
+            if (!gcodefilter.OnHold()) {
+                rdf = rdbuf.Fill(
+                    // FREAD
+                    [&](char *rdbuf, uint32_t rdbufsize, uint32_t *bytes_read) {
+                        static_assert(sizeof(UINT) == sizeof(uint32_t)); // avoiding imprecise definition of UINT in FATfs
+                        bool rv = f_read(&media_print_fil, rdbuf, (UINT)rdbufsize, (UINT *)bytes_read) == FR_OK;
+                        if (!rv) {
+                            return false; // fail immediately in case of an error
+                        }
+                        return true;
+                    },
+                    // FEOF
+                    [&]() {
+                        return f_eof(&media_print_fil);
+                    });
+            }
+            switch (rdf) {
+            case R::END:            // end of input file reached
+                media_print_stop(); // print finished correctly
+                return;
+            case R::OK: { // some data read successfully
+                int frv = gcodefilter.Filter(rdbuf,
+                    // how to enqueue a G-code into Marlin
+                    [&](const char *gcodebuff, uint32_t new_file_offset) -> bool {
+                        // check for empty queue
+                        if (queue.length >= (BUFSIZE - 1))
+                            return false;
+                        queue.enqueue_one(gcodebuff, false);
+                        int index_w = queue.index_r + queue.length - 1; //calculate index_w because it is private
+                        if (index_w >= BUFSIZE)
+                            index_w -= BUFSIZE;
+                        //save current line - not sure if we want/need this...
+                        media_queue_line[index_w] = media_current_line;
+                        // update internal offset in the file only after successfully pushing a valid G-code line into Marlin
+                        media_current_position = new_file_offset;
+                        return true;
+                    });
+                if (frv == (int)rdbuf.size()) {
+                    break; // all data sucessfully processed
+                } else if (frv >= 0) {
+                    // a serious problem - not all data could have been pushed into Marlin - usually caused by some malformed G-code line
+                    // @@TODO discuss when doing code review - see gcode_input_filter.hpp
+                    media_print_stop();
+                    return;
+                } else {
+                    return; // on hold with enqueuing data into Marlin - return from this method and wait outside
+                }
+            } break; // let's continue reading the next chunk of data
+            case R::ERROR:
+                set_warning(WarningType::USBFlashDiskError);
+                media_print_pause(); //pause in case of a read error - e.g. media removed
+                return;
+            }
+        }
+    } else {
+        media_print_stop(); // call print stop in every case when the reading was finished
+    }
+}
+#endif
 
 void media_set_removed(void) {
     media_state = media_state_REMOVED;
