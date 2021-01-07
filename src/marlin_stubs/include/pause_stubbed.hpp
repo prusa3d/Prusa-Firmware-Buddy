@@ -160,6 +160,8 @@ private:
     bool ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t progress_max);
     void plan_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+    void do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+    void do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
 
     //create finite state machine and automatically destroy it at the end of scope
     //parks in ctor and unparks in dtor

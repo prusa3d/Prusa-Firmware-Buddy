@@ -227,6 +227,19 @@ void Pause::do_e_move_notify_progress(const float &length, const feedRate_t &fr_
     planner.synchronize();
 }
 
+void Pause::do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
+    AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
+    thermalManager.allow_cold_extrude = true;
+    do_e_move_notify_progress(length, fr_mm_s, progress_min, progress_max);
+}
+
+void Pause::do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
+    PhasesLoadUnload last_ph = getPhase();
+    ensureSafeTemperatureNotifyProgress(0, 100);
+    setPhase(last_ph, progress_min);
+    do_e_move_notify_progress(length, fr_mm_s, progress_min, progress_max);
+}
+
 void Pause::plan_e_move(const float &length, const feedRate_t &fr_mm_s) {
     current_position.e += length / planner.e_factor[active_extruder];
     while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
@@ -269,13 +282,10 @@ bool Pause::loadLoop(is_standalone_t standalone) {
             }
         }
         break;
-    case LoadPhases_t::load_in_gear: { //slow load
-        AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
-        thermalManager.allow_cold_extrude = true;
+    case LoadPhases_t::load_in_gear: //slow load
         setPhase(PhasesLoadUnload::Inserting, 10);
-        do_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
+        do_e_move_notify_progress_coldextrude(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         set_filament(filament_to_load);
-    }
         set(LoadPhases_t::wait_temp);
         break;
     case LoadPhases_t::wait_temp:
@@ -299,20 +309,20 @@ bool Pause::loadLoop(is_standalone_t standalone) {
     case LoadPhases_t::long_load:
         planner.settings.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
         setPhase(PhasesLoadUnload::Loading, 50);
-        do_e_move_notify_progress(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
+        do_e_move_notify_progress_hotextrude(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
         set(LoadPhases_t::purge);
         break;
     case LoadPhases_t::purge:
         // Extrude filament to get into hotend
         setPhase(PhasesLoadUnload::Purging, 70);
-        do_e_move_notify_progress(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
+        do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         setPhase(PhasesLoadUnload::IsColor, 99);
         set(LoadPhases_t::ask_is_color_correct);
         break;
     case LoadPhases_t::stand_alone_purge:
         // Extrude filament to get into hotend
         setPhase(PhasesLoadUnload::Purging, 70);
-        do_e_move_notify_progress(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
+        do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         setPhase(PhasesLoadUnload::IsColorPurge, 99);
         set(LoadPhases_t::ask_is_color_correct__stand_alone_purge);
         break;
@@ -337,7 +347,7 @@ bool Pause::loadLoop(is_standalone_t standalone) {
     } break;
     case LoadPhases_t::eject:
         setPhase(PhasesLoadUnload::Ejecting, 99);
-        do_e_move_notify_progress(-slow_load_length - fast_load_length - purge_ln, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 10, 99);
+        do_e_move_notify_progress_hotextrude(-slow_load_length - fast_load_length - purge_ln, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 10, 99);
         set(LoadPhases_t::has_slow_load);
         break;
     default:
@@ -425,7 +435,7 @@ void Pause::unloadLoop(is_standalone_t standalone) {
 
         // subtract the already performed extruder movement from the total unload length
         setPhase(PhasesLoadUnload::Unloading, 51);
-        do_e_move_notify_progress((unload_length - ramUnloadLength), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), 51, 99);
+        do_e_move_notify_progress_hotextrude((unload_length - ramUnloadLength), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), 51, 99);
 
         planner.settings.retract_acceleration = saved_acceleration;
 
