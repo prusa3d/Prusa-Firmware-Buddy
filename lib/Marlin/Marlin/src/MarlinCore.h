@@ -59,6 +59,7 @@ inline bool IsStopped() { return marlin_state == MF_STOPPED; }
 bool printingIsActive();
 bool printJobOngoing();
 bool printingIsPaused();
+bool anyHeatherIsActive();
 void startOrResumeJob();
 
 bool printer_busy();

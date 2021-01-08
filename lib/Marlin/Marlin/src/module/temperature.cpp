@@ -33,6 +33,7 @@
 
 #include "temperature.h"
 #include "endstops.h"
+#include "safe_state.h"
 #include "planner.h"
 #include "printcounter.h"
 
@@ -2888,6 +2889,15 @@ void Temperature::init() {
 #endif // HAS_THERMAL_PROTECTION
 
 void Temperature::disable_all_heaters() {
+    disable_heaters(disable_bed_t::yes);
+}
+
+void Temperature::disable_hotend() {
+    disable_heaters(disable_bed_t::no);
+
+}
+
+void Temperature::disable_heaters(Temperature::disable_bed_t disable_bed) {
 
   // Disable autotemp, unpause and reset everything
   TERN_(AUTOTEMP, planner.autotemp_enabled = false);
@@ -2906,9 +2916,11 @@ void Temperature::disable_all_heaters() {
   #endif
 
   #if HAS_HEATED_BED
-    setTargetBed(0);
-    temp_bed.soft_pwm_amount = 0;
-    WRITE_HEATER_BED(LOW);
+    if (disable_bed == disable_bed_t::yes){
+      setTargetBed(0);
+      temp_bed.soft_pwm_amount = 0;
+      WRITE_HEATER_BED(LOW);
+    }
   #endif
 
   #if HAS_HEATED_CHAMBER
@@ -3218,6 +3230,13 @@ void Temperature::readings_ready() {
   TERN_(HAS_JOY_ADC_Z, joystick.z.reset());
 }
 
+
+bool isr_blocked = false;
+
+void blockISR() {
+  isr_blocked = true;
+}
+
 /**
  * Timer 0 is shared with millies so don't change the prescaler.
  *
@@ -3236,7 +3255,12 @@ void Temperature::readings_ready() {
 HAL_TEMP_TIMER_ISR() {
   HAL_timer_isr_prologue(MF_TIMER_TEMP);
 
-  Temperature::isr();
+  if (!isr_blocked) {
+    Temperature::isr();
+  } else {
+      hwio_safe_state();
+      watchdog_refresh();
+  }
 
   HAL_timer_isr_epilogue(MF_TIMER_TEMP);
 }

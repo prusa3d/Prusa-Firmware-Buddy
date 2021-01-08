@@ -927,10 +927,21 @@ class Temperature {
      */
     static int16_t getHeaterPower(const heater_id_t heater_id);
 
+private:
+    enum class disable_bed_t : bool {no, yes};
+    /**
+     * used by disable_all_heaters and disable_hotend
+     */
+    static void disable_heaters(disable_bed_t disable_bed);
+public:
     /**
      * Switch off all heaters, set all target temperatures to 0
      */
     static void disable_all_heaters();
+    /**
+     * Switch off all hotends, set all hotend target temperatures to 0
+     */
+    static void disable_hotend();
 
     /**
      * Cooldown, as from the LCD. Disables all heaters and fans.
