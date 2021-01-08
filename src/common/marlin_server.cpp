@@ -82,7 +82,9 @@ typedef struct {
     uint32_t command;       // actually running command
     uint32_t command_begin; // variable for notification
     uint32_t command_end;   // variable for notification
-    uint16_t flags;         // server flags (MARLIN_SFLG)
+    uint32_t knob_click_counter;
+    uint32_t knob_move_counter;
+    uint16_t flags; // server flags (MARLIN_SFLG)
     char request[MARLIN_MAX_REQUEST];
     uint8_t idle_cnt;         // idle call counter
     uint8_t pqueue_head;      // copy of planner.block_buffer_head
@@ -692,6 +694,14 @@ float marlin_server_get_temp_nozzle(void) {
     return marlin_server.vars.temp_nozzle;
 }
 
+extern uint32_t marlin_server_get_user_click_count(void) {
+    return marlin_server.knob_click_counter;
+}
+
+extern uint32_t marlin_server_get_user_move_count(void) {
+    return marlin_server.knob_move_counter;
+}
+
 //-----------------------------------------------------------------------------
 // private functions
 
@@ -1176,6 +1186,12 @@ static int _process_server_request(const char *request) {
         processed = 1;
     } else if (strcmp("!park", request) == 0) {
         marlin_server_park_head();
+        processed = 1;
+    } else if (strcmp("!kmove", request) == 0) {
+        ++marlin_server.knob_move_counter;
+        processed = 1;
+    } else if (strcmp("!kclick", request) == 0) {
+        ++marlin_server.knob_click_counter;
         processed = 1;
     } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
         ClientResponseHandler::SetResponse(ival);

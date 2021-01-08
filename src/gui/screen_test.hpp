@@ -12,6 +12,7 @@ struct screen_test_data_t : public AddSuperWindow<screen_t> {
     window_text_button_t tst_term;
     window_text_button_t tst_msgbox;
     window_text_button_t tst_wizard_icons;
+    window_text_button_t tst_safety_dlg;
     window_text_button_t tst_graph;
     window_text_button_t tst_temperature;
     window_text_button_t tst_heat_err;

@@ -44,7 +44,8 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , icon_base(this, Rect16(rect.TopLeft(), icon_base_width, rect.Height() - 5), 0)
     , label(this, rect - Rect16::Width_t(icons_width + span + icon_base_width) + Rect16::Left_t(icon_base_width), txt)
     , icon_usb(this, (rect + Rect16::Left_t(rect.Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_usb_16px)
-    , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_lan_16px) {
+    , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_lan_16px)
+    , LAN_changed_off(false) {
     /// label and icon aligmnent and offset
     label.SetAlignment(ALIGN_LEFT_BOTTOM);
     icon_base.SetAlignment(ALIGN_CENTER_BOTTOM);
@@ -64,12 +65,20 @@ void window_header_t::USB_Activate() {
     icon_usb.Show();
     icon_usb.Unshadow();
 }
-void window_header_t::LAN_Off() { icon_lan.Hide(); }
+void window_header_t::LAN_Off() {
+    icon_lan.Hide();
+    if (!LAN_changed_off) {
+        LAN_changed_off = true;
+        Invalidate();
+    }
+}
 void window_header_t::LAN_On() {
+    LAN_changed_off = false;
     icon_lan.Show();
     icon_lan.Shadow();
 }
 void window_header_t::LAN_Activate() {
+    LAN_changed_off = false;
     icon_lan.Show();
     icon_lan.Unshadow();
 }

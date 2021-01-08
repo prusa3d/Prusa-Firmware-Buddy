@@ -358,7 +358,7 @@ bool printingIsPaused() {
 /**
  * Whether any heater (bed or hotend) has target temperature != 0
  */
-static bool anyHeatherIsActive() {
+bool anyHeatherIsActive() {
   bool active = false;
   #if HAS_HEATED_BED
     active |= thermalManager.degTargetBed() != 0;
@@ -391,14 +391,8 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
 
   const millis_t ms = millis();
 
-  if (printingIsActive() || printingIsPaused() || !anyHeatherIsActive()) {
-      safety_timer_reset();
-  }
-
-  if (safety_timer_is_expired()) {
-    thermalManager.disable_all_heaters();
-    set_warning(WarningType::HeaterTimeout);
-
+  SafetyTimer::expired_t expired = SafetyTimer::Instance().Loop();
+  if (expired ==  SafetyTimer::expired_t::yes)  {
     #ifdef ACTION_ON_SAFETY_TIMER_EXPIRED
       host_action_safety_timer_expired();
     #endif

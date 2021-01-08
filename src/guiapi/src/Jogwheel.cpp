@@ -66,7 +66,6 @@ Jogwheel::Jogwheel()
     , btn_state(BtnState_t::Released)
     , jogwheel_signals(0)
     , jogwheel_signals_old(0)
-    , jogwheel_noise_filter(0)
     , encoder_gear(1)
     , type1(true)
     , spin_accelerator(false) {
@@ -76,8 +75,8 @@ int Jogwheel::GetJogwheelButtonPinState() {
     return static_cast<int>(jogWheelENC.read());
 }
 
-void Jogwheel::ReadInput(uint8_t &signals) {
-
+uint8_t Jogwheel::ReadHwInputsFromISR() {
+    uint8_t signals = 0;
     if (jogWheelENC.read() == Pin::State::high) {
         signals |= JG_BUTTON_PRESSED; //bit 2 - button press
     }
@@ -89,6 +88,7 @@ void Jogwheel::ReadInput(uint8_t &signals) {
     if (jogWheelEN2.read() == Pin::State::high) {
         signals |= JG_PHASE_1; //bit 1 - phase1
     }
+    return signals;
 }
 
 bool Jogwheel::ConsumeButtonEvent(BtnState_t &ev) {
@@ -176,16 +176,17 @@ void Jogwheel::Update1msFromISR() {
     //do nothing while queues are not initialized
     if (button_queue_handle == nullptr)
         return;
-    tick_counter++;
 
-    uint8_t signals = 0;
+    uint8_t signals = ReadHwInputsFromISR();
 
-    ReadInput(signals);
-
-    if (jogwheel_noise_filter != signals) {
-        jogwheel_noise_filter = signals; // noise detection
+    // initialization of static variable to inverted signals, so first value si filtered out
+    static uint8_t signals_filter = ~signals;
+    if (signals_filter != signals) {
+        signals_filter = signals; // noise detection
         return;
     }
+
+    tick_counter++;
 
     UpdateVariablesFromISR(signals);
 

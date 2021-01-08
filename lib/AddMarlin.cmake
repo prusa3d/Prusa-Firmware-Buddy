@@ -19,7 +19,6 @@ add_library(
   Marlin/Marlin/src/feature/host_actions.cpp
   Marlin/Marlin/src/feature/joystick.cpp
   Marlin/Marlin/src/feature/runout.cpp
-  Marlin/Marlin/src/feature/safety_timer.cpp
   Marlin/Marlin/src/feature/spindle_laser.cpp
   Marlin/Marlin/src/feature/tmc_util.cpp
   Marlin/Marlin/src/feature/touch/xpt2046.cpp

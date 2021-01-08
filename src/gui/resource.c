@@ -77,10 +77,13 @@
 #include "res/cc/png_arrow_up_orange_8px.c"   //IDR_PNG_arrow_up_orange_8px
 #include "res/cc/png_arrow_down_orange_8px.c" //IDR_PNG_arrow_down_orange_8px
 
-#include "res/cc/png_serial_printing.c" //IDR_PNG_serial_printing
-#include "res/cc/png_switch_off_36px.c" //IDR_PNG_switch_off_36px
-#include "res/cc/png_switch_on_36px.c"  //IDR_PNG_switch_on_36px
-#include "res/cc/png_hand_qr.c"         //IDR_PNG_hand_qr
+#include "res/cc/png_serial_printing.c"     //IDR_PNG_serial_printing
+#include "res/cc/png_switch_off_36px.c"     //IDR_PNG_switch_off_36px
+#include "res/cc/png_switch_on_36px.c"      //IDR_PNG_switch_on_36px
+#include "res/cc/png_hand_qr.c"             //IDR_PNG_hand_qr
+#include "res/cc/png_exposure_times_48px.c" //IDR_PNG_exposure_times_48px
+#include "res/cc/png_usb_error.c"           //IDR_PNG_usb_error
+#include "res/cc/png_fan_error.c"           //IDR_PNG_fan_error
 
 #include "res/cc/png_flag_cs.c"
 #include "res/cc/png_flag_de.c"
@@ -170,6 +173,9 @@ RESOURCE_ENTRY_PNG(png_disconnect_48px)
 RESOURCE_ENTRY_PNG(png_switch_off_36px)
 RESOURCE_ENTRY_PNG(png_switch_on_36px)
 RESOURCE_ENTRY_PNG(png_hand_qr)
+RESOURCE_ENTRY_PNG(png_exposure_times_48px)
+RESOURCE_ENTRY_PNG(png_usb_error)
+RESOURCE_ENTRY_PNG(png_fan_error)
 
 RESOURCE_ENTRY_PNG(png_flag_cs)
 RESOURCE_ENTRY_PNG(png_flag_de)

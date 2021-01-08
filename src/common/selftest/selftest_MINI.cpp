@@ -27,13 +27,24 @@ static const float XYfr_table[] = { 50, 60, 75, 100 };
 
 static const float Zfr_table[] = { 10 };
 
-static const uint16_t Fan0min_rpm_table[] = { 150, 1250, 2350, 3250, 3850 };
+static const uint16_t Fan0min_rpm_table[] = { 10, 10, 10, 10, 10 };
+
+static const uint16_t Fan0max_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
+
+static const uint16_t Fan1min_rpm_table[] = { 10, 10, 10, 10, 10 };
+
+static const uint16_t Fan1max_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
+
+//use this?
+/*
+static const uint16_t Fan0min_rpm_table[] = { 150, 1250, 3250, 3250, 3850 };
 
 static const uint16_t Fan0max_rpm_table[] = { 1950, 3950, 5050, 5950, 6650 };
 
 static const uint16_t Fan1min_rpm_table[] = { 2350, 4750, 5950, 6850, 7650 };
 
 static const uint16_t Fan1max_rpm_table[] = { 3750, 5850, 7050, 8050, 8950 };
+*/
 
 static const selftest_fan_config_t Config_Fan0 = { .partname = "Fan0", .fanctl = fanctl0, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan0min_rpm_table, .rpm_max_table = Fan0max_rpm_table, .steps = 5 };
 
@@ -165,7 +176,7 @@ void CSelftest::phaseStart() {
         thermalManager.setTargetHotend(40, 0);
         thermalManager.setTargetBed(40);
     }
-    log_open();
+    //log_open();
     SelftestResultEEprom_t eeres; // read previous result
     eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
 

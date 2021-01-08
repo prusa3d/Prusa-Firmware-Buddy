@@ -23,6 +23,7 @@
 
 #include "../HAL/HAL.h"
 #include "../core/utility.h"
+#include "safety_timer_stubbed.hpp"
 
 /**
  * Set the interval after which the safety timer will expire

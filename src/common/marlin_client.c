@@ -44,6 +44,7 @@ typedef struct _marlin_client_t {
     fsm_change_t fsm_change_cb;   // to register callback for change of state
     message_cb_t message_cb;      // to register callback message
     warning_cb_t warning_cb;      // to register callback for important message
+    startup_cb_t startup_cb;      // to register callback after marlin complete initialization
 
     uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
     uint16_t last_count; // number of messages received in last client loop
@@ -74,6 +75,7 @@ extern osSemaphoreId marlin_server_sema; // semaphore handle
 static void _wait_server_started(void);
 static void _send_request_to_server(uint8_t client_id, const char *request);
 static uint32_t _wait_ack_from_server(uint8_t client_id);
+static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)());
 static void _process_client_message(marlin_client_t *client, variant8_t msg);
 static marlin_client_t *_client_ptr(void);
 
@@ -109,6 +111,7 @@ marlin_vars_t *marlin_client_init(void) {
         client->fsm_change_cb = NULL;
         client->message_cb = NULL;
         client->warning_cb = NULL;
+        client->startup_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(marlin_server_sema);
@@ -218,6 +221,17 @@ int marlin_client_set_warning_cb(warning_cb_t cb) {
     return 0;
 }
 
+//register callback to startup_cb_t (complete initialization)
+//return success
+int marlin_client_set_startup_cb(startup_cb_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->startup_cb = cb;
+        return 1;
+    }
+    return 0;
+}
+
 int marlin_processing(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
@@ -225,23 +239,23 @@ int marlin_processing(void) {
     return 0;
 }
 
-void marlin_client_set_event_notify(uint64_t notify_events) {
+void marlin_client_set_event_notify(uint64_t notify_events, void (*cb)()) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client) {
         snprintf(request, MARLIN_MAX_REQUEST, "!event_msk %08lx %08lx", (uint32_t)(notify_events & 0xffffffff), (uint32_t)(notify_events >> 32));
         _send_request_to_server(client->id, request);
-        _wait_ack_from_server(client->id);
+        _wait_ack_from_server_with_callback(client->id, cb);
     }
 }
 
-void marlin_client_set_change_notify(uint64_t notify_changes) {
+void marlin_client_set_change_notify(uint64_t notify_changes, void (*cb)()) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client) {
         snprintf(request, MARLIN_MAX_REQUEST, "!change_msk %08lx %08lx", (uint32_t)(notify_changes & 0xffffffff), (uint32_t)(notify_changes >> 32));
         _send_request_to_server(client->id, request);
-        _wait_ack_from_server(client->id);
+        _wait_ack_from_server_with_callback(client->id, cb);
     }
 }
 
@@ -664,6 +678,22 @@ void marlin_park_head(void) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_notify_server_about_encoder_move(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!kmove");
+    _wait_ack_from_server(client->id);
+}
+
+void marlin_notify_server_about_konb_click(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!kclick");
+    _wait_ack_from_server(client->id);
+}
+
 // returns 1 if reheating is in progress, otherwise 0
 int marlin_reheating(void) {
     marlin_client_t *client = _client_ptr();
@@ -725,14 +755,21 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
 }
 
 // wait for ack event, blocking - used for synchronization, called typicaly at end of client request functions
-static uint32_t _wait_ack_from_server(uint8_t client_id) {
+static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)()) {
     while ((marlin_client[client_id].events & MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge)) == 0) {
         marlin_client_loop();
-        if (marlin_client[client_id].last_count == 0)
+        if (marlin_client[client_id].last_count == 0) {
+            if (cb)
+                cb();
             osDelay(10);
+        }
     }
     marlin_client[client_id].events &= ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge);
     return marlin_client[client_id].ack;
+}
+
+static uint32_t _wait_ack_from_server(uint8_t client_id) {
+    return _wait_ack_from_server_with_callback(client_id, NULL);
 }
 
 // process message on client side (set flags, update vars etc.)
@@ -757,7 +794,8 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             uint8_t y = variant8_get_usr16(msg) >> 8;
             float z = variant8_get_flt(msg);
             client->mesh.z[x + client->mesh.xc * y] = z;
-        } break;
+            break;
+        }
         case MARLIN_EVT_StartProcessing:
             client->flags |= MARLIN_CFLG_PROCESS;
             break;
@@ -800,14 +838,18 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             }
             variant8_done(&pvar);
             break;
+        }
         case MARLIN_EVT_Warning:
             if (client->warning_cb)
                 client->warning_cb(variant8_get_i32(msg));
             break;
-        }
+        case MARLIN_EVT_Startup:
+            if (client->startup_cb) {
+                client->startup_cb();
+            }
+            break;
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added
-        case MARLIN_EVT_Startup:
         case MARLIN_EVT_PrinterKilled:
         case MARLIN_EVT_MediaInserted:
         case MARLIN_EVT_MediaError:
