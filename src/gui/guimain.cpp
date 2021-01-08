@@ -41,6 +41,8 @@ int guimain_spi_test = 0;
 #include "dump.h"
 #include "gui_media_events.hpp"
 
+extern void blockISR(); // do not want to include marlin temperature
+
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
     ST7789V_FLG_DMA,    // flags (DMA, MISO)
@@ -89,14 +91,31 @@ void Warning_cb(WarningType type) {
     case WarningType::PrintFanError:
         window_dlg_strong_warning_t::ShowPrintFan();
         break;
-    case WarningType::HeaterTimeout:
-        window_dlg_strong_warning_t::ShowHeaterTimeout();
+    case WarningType::HeatersTimeout:
+    case WarningType::NozzleTimeout:
+        window_dlg_strong_warning_t::ShowHeatersTimeout();
         break;
     case WarningType::USBFlashDiskError:
         window_dlg_strong_warning_t::ShowUSBFlashDisk();
         break;
     default:
         break;
+    }
+}
+
+static void Startup_cb(void) {
+}
+
+void client_gui_refresh() {
+    static uint32_t start = HAL_GetTick();
+    static uint32_t last_tick = HAL_GetTick();
+    uint32_t tick = HAL_GetTick();
+    if (last_tick != tick) {
+        uint32_t percent = (tick - start) / (3000 / 100); //3000ms / 100%
+        percent = ((percent < 99) ? percent : 99);
+        Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)percent);
+        last_tick = tick;
+        gui_redraw();
     }
 }
 
@@ -132,26 +151,27 @@ void gui_run(void) {
     gui_marlin_vars->media_LFN = gui_media_LFN;
     gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
 
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
-
     DialogHandler::Access(); //to create class NOW, not at first call of one of callback
     marlin_client_set_fsm_create_cb(DialogHandler::Open);
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
     marlin_client_set_warning_cb(Warning_cb);
+    marlin_client_set_startup_cb(Startup_cb);
 
     Sound_Play(eSOUND_TYPE::Start);
 
     ScreenFactory::Creator error_screen = nullptr;
     if (w25x_init()) {
         if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
+            blockISR(); //TODO delete blockISR() on this line to enable start after click
             switch (dump_in_xflash_get_type()) {
             case DUMP_HARDFAULT:
                 error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
                 break;
             case DUMP_TEMPERROR:
+                //TODO uncomment to enable start after click
+                //blockISR();
                 error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
                 break;
 #ifndef _DEBUG
@@ -187,6 +207,13 @@ void gui_run(void) {
     }
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
+
+    Screens::Access()->Loop();
+
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, client_gui_refresh);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF, client_gui_refresh);
+    uint32_t progr100 = 100;
+    Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)progr100);
     while (1) {
         Screens::Access()->Loop();
         gui_loop();

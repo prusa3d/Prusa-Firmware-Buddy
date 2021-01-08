@@ -40,6 +40,8 @@ const char *labels[7] = {
 };
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 
+bool screen_home_data_t::usbWasAlreadyInserted = false;
+
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<screen_t>()
     , usbInserted(marlin_vars()->media_inserted)
@@ -87,6 +89,8 @@ screen_home_data_t::screen_home_data_t()
 
     if (!usbInserted) {
         printBtnDis();
+    } else {
+        usbWasAlreadyInserted = true;
     }
 }
 
@@ -110,6 +114,10 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
             if (!usbInserted) {
                 usbInserted = true;
                 printBtnEna();
+                if (!usbWasAlreadyInserted) {
+                    w_buttons[0].SetFocus(); //print button
+                    usbWasAlreadyInserted = true;
+                }
             }
             break;
         case GuiMediaEventsHandler::state_t::removed:
@@ -190,13 +198,13 @@ void screen_home_data_t::printBtnEna() {
 }
 
 void screen_home_data_t::printBtnDis() {
-    w_buttons[0].Shadow();
-    w_buttons[0].Disable(); // cant't be focused
-    w_buttons[0].Invalidate();
-    w_labels[0].SetText(_(labels[labelNoUSBId]));
-
     // move to preheat when Print is focused
     if (w_buttons[0].IsFocused()) {
         w_buttons[1].SetFocus();
     }
+
+    w_buttons[0].Shadow();
+    w_buttons[0].Disable(); // cant't be focused
+    w_buttons[0].Invalidate();
+    w_labels[0].SetText(_(labels[labelNoUSBId]));
 }

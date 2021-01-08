@@ -113,11 +113,12 @@ void netif_status_callback(struct netif *eth) {
 void wui_lwip_link_status() {
     if (ethernetif_link(&eth0)) {
         link_status = WUI_ETH_LINK_UP;
-        if (!netif_is_link_up(&eth0)) {
+        load_eth_params(&wui_eth_config);
+        if (!netif_is_link_up(&eth0) && IS_LAN_ON(wui_eth_config.lan.flag)) {
             netifapi_netif_set_link_up(&eth0);
             // start the DHCP if needed!
             if (!IS_LAN_STATIC(wui_eth_config.lan.flag)) {
-                dhcp_start(&eth0);
+                dhcp_renew(&eth0);
             }
         }
     } else {
@@ -140,6 +141,9 @@ void wui_lwip_sync_gui_lan_settings() {
             if (IS_LAN_ON(wui_eth_config.lan.flag)) {
                 if (!netif_is_up(&eth0)) {
                     netif_set_up(&eth0);
+                    if (!IS_LAN_STATIC(wui_eth_config.lan.flag)) {
+                        dhcp_start(&eth0);
+                    }
                 }
             } else {
                 if (netif_is_up(&eth0)) {
@@ -190,7 +194,7 @@ void MX_LWIP_Init(ETH_config_t *ethconfig) {
     netif_set_link_callback(&eth0, netif_link_callback);
     netif_set_status_callback(&eth0, netif_status_callback);
 
-    if (netif_is_link_up(&eth0)) {
+    if (netif_is_link_up(&eth0) && IS_LAN_ON(ethconfig->lan.flag)) {
         /* When the netif is fully configured this function must be called */
         netif_set_up(&eth0);
         // start the DHCP if needed!
