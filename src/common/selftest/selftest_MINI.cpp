@@ -23,6 +23,8 @@ static_assert(sizeof(SelftestResultEEprom_t) == 4, "Invalid size of SelftestResu
 #define Y_AXIS_PERCENT 33
 #define Z_AXIS_PERCENT 34
 static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
+/// These speeds create major chord
+/// https://en.wikipedia.org/wiki/Just_intonation
 static const float XYfr_table[] = { 50, 62.5f, 75, 100 };
 
 static const float Zfr_table[] = { 10 };
