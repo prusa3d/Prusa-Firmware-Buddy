@@ -17,13 +17,13 @@
 
 static_assert(sizeof(SelftestResultEEprom_t) == 4, "Invalid size of SelftestResultEEprom_t (!= 4).");
 
-#define HOMING_TIME 15000 // ~15s when X and Y axes are at oposite side to home position
+#define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
 
 #define X_AXIS_PERCENT 33
 #define Y_AXIS_PERCENT 33
 #define Z_AXIS_PERCENT 34
 static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
-static const float XYfr_table[] = { 50, 60, 75, 100 };
+static const float XYfr_table[] = { 50, 62.5f, 75, 100 };
 
 static const float Zfr_table[] = { 10 };
 
