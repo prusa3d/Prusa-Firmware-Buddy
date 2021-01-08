@@ -6,7 +6,6 @@
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
 #include "../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "safety_timer_stubbed.hpp"
-#include "pause_stubbed.hpp"
 #include "marlin_server.hpp"
 
 SafetyTimer &SafetyTimer::Instance() {
@@ -80,10 +79,10 @@ void safety_timer_set_interval(millis_t ms) {
     SafetyTimer::Instance().SetInterval(ms);
 }
 
-void SafetyTimer::BindPause(PausePrivatePhase &pause) {
+void SafetyTimer::BindPause(IPause &pause) {
     pBoundPause = &pause;
 }
-void SafetyTimer::UnbindPause(PausePrivatePhase &pause) {
+void SafetyTimer::UnbindPause(IPause &pause) {
     if (pBoundPause == &pause) {
         pBoundPause = nullptr;
     }

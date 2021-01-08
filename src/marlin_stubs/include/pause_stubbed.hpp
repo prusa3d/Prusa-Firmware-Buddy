@@ -11,8 +11,9 @@
 #include "../../../lib/Marlin/Marlin/src/core/types.h"
 #include "client_response.hpp"
 #include "marlin_server.hpp"
+#include "IPause.hpp"
 
-class PausePrivatePhase {
+class PausePrivatePhase : public IPause {
     PhasesLoadUnload phase;       //needed for CanSafetyTimerExpire
     int load_unload_shared_phase; //shared variable for UnloadPhases_t and LoadPhases_t
 
@@ -86,10 +87,10 @@ protected:
     void clrRestoreTemp();
 
 public:
-    void RestoreTemp();
-    bool CanSafetyTimerExpire() const; //evaluate if client can click == safety timer can expire
-    void NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp);
-    bool HasTempToRestore() const;
+    virtual void RestoreTemp() override;
+    virtual bool CanSafetyTimerExpire() const override; //evaluate if client can click == safety timer can expire
+    virtual void NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) override;
+    virtual bool HasTempToRestore() const override;
 };
 
 //used by load / unlaod /change filament
