@@ -1,9 +1,11 @@
 // display_ex.cpp
 #include "display_ex.hpp"
-#include "st7789v.h"
 #include <functional>
 #include <cmath>
+#include "guiconfig.h" //USE_ST7789
 
+#ifdef USE_ST7789
+    #include "st7789v.h"
 /*****************************************************************************/
 //st7789v specific variables objects and function aliases
 extern "C" {
@@ -22,6 +24,34 @@ inline uint16_t color_to_native(uint32_t clr) {
 
 void display_ex_clear(const color_t clr) {
     st7789v_clear(color_to_565(clr));
+}
+
+static inline void get_display_info(uint16_t *cols, uint16_t *rows, uint8_t *buff_rows, uint8_t *bpp) {
+    *cols = ST7789V_COLS;
+    *rows = ST7789V_ROWS;
+    *buff_rows = 16;
+    *bpp = 2; // bytes per pixel
+}
+
+static inline void draw_from_buffer(Rect16 rect) {
+    st7789v_draw_char_from_buffer(rect.TopLeft().x, rect.TopLeft().y, rect.Width(), rect.Height());
+}
+
+static inline void draw_to_buffer(Rect16 rect, uint16_t artefact_width, color_t color) {
+    uint8_t *buff = st7789v_buff + (rect.Top() * artefact_width + rect.Left()) * 2;
+    uint32_t clr = color_to_565(color);
+    for (int i = 0; i < rect.Height(); i++) {
+        int offset = i * artefact_width * 2;
+        for (int j = 0; j < rect.Width(); j++) {
+            buff[offset + (2 * j) + 0] = (uint8_t)clr;
+            buff[offset + (2 * j) + 1] = (uint8_t)(clr << 8);
+        }
+    }
+    return;
+}
+
+static inline void clear_buffer_line(int i, color_t back) {
+    draw_to_buffer(Rect16(0, i, ST7789V_COLS, 1), ST7789V_COLS, back);
 }
 
 static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
@@ -67,6 +97,7 @@ public:
 };
 //end st7789v specific variables objects and function aliases
 /*****************************************************************************/
+#endif //USE_ST7789
 
 static bool display_ex_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     const uint16_t w = pf->w; //char width

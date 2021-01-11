@@ -414,6 +414,7 @@ target_include_directories(
           src/gui/dialogs
           src/gui/wizard
           src/guiapi/include
+          src/guiconfig
           src/lang
           src/hw
   )

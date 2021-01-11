@@ -2,6 +2,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include "guiconfig.h"
 #include "guitypes.hpp"
 #include "display_helper.h"
 #include <algorithm>
@@ -89,7 +90,8 @@ public:
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };
 
-#include "st7789v.h"
+#ifdef USE_ST7789
+    #include "st7789v.h"
 using display = Display<ST7789V_COLS, ST7789V_ROWS,
     st7789v_init,
     st7789v_done,
@@ -103,3 +105,21 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     render_text,
     display_ex_draw_icon,
     display_ex_draw_png>;
+#endif
+
+#ifdef USE_MOCK_DISPLAY
+    #include "mock_display.hpp"
+using display = Display<MockDisplay::Cols(), MockDisplay::Rows(),
+    MockDisplay::init,
+    MockDisplay::done,
+    MockDisplay::clear,
+    MockDisplay::set_pixel,
+    MockDisplay::get_block,
+    MockDisplay::draw_line,
+    MockDisplay::draw_rect,
+    MockDisplay::fill_rect,
+    MockDisplay::draw_charUnicode,
+    render_text,
+    MockDisplay::draw_icon,
+    MockDisplay::draw_png>;
+#endif
