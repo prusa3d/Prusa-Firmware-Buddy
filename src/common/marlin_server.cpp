@@ -581,7 +581,9 @@ static void _server_print_loop(void) {
         break;
     case mpsFinishing_WaitIdle:
         if ((planner.movesplanned() == 0) && (queue.length == 0)) {
+#ifdef PARK_HEAD_ON_PRINT_FINISH
             marlin_server_park_head();
+#endif
             marlin_server.print_state = mpsFinishing_ParkHead;
         }
         break;
