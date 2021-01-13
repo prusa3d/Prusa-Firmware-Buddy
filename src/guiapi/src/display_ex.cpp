@@ -1,35 +1,50 @@
 // display_ex.cpp
 #include "display_ex.hpp"
-#include "st7789v.h"
 #include <functional>
 #include <cmath>
+#include "guiconfig.h" //USE_ST7789
+#include "display_math_helper.h"
 
+#ifdef USE_ST7789
+    #include "st7789v.h"
 /*****************************************************************************/
 //st7789v specific variables objects and function aliases
-extern "C" {
-
-extern uint8_t st7789v_buff[ST7789V_COLS * 2 * 16]; //16 lines buffer
-
-extern void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-
-} //extern "C"
-
 static constexpr Rect16 display_clip = { 0, 0, ST7789V_COLS, ST7789V_ROWS };
 
 inline uint16_t color_to_native(uint32_t clr) {
     return color_to_565(clr);
 }
 
+inline uint32_t color_from_native(uint16_t clr) {
+    return color_from_565(clr);
+}
+
+extern "C" {
+
+extern uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; //16 lines buffer
+
+extern void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+
+} //extern "C"
+
+//TDispBuffer configuration
+static constexpr size_t BuffLEN = 16;              // size of buffer (number of fields, not bytes)
+using BuffDATA_TYPE = uint16_t;                    // type of buffer internally used in TDispBuffer
+using BuffPTR_TYPE = uint16_t;                     // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
+static constexpr size_t BuffNATIVE_PIXEL_SIZE = 2; // bytes per pixel (can be same or smaller than size of BuffDATA_TYPE)
+
+static constexpr uint8_t *getBuff() { return st7789v_buff; }
+
+static inline void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) {
+    st7789v_draw_char_from_buffer(pt.x, pt.y, w, h);
+}
+
 void display_ex_clear(const color_t clr) {
-    st7789v_clear(color_to_565(clr));
+    st7789v_clear(color_to_native(clr));
 }
 
 static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
     st7789v_draw_png_ex(point_x, point_y, pf, clr0, rop);
-}
-
-static inline uint32_t get_pixel_C(uint16_t point_x, uint16_t point_y) {
-    return color_from_565(st7789v_get_pixel_colorFormat565(point_x, point_y));
 }
 
 static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
@@ -47,26 +62,114 @@ static inline void set_pixel_colorFormatNative(uint16_t point_x, uint16_t point_
 static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr) {
     st7789v_fill_rect_colorFormat565(rect_x, rect_y, rect_w, rect_h, nativeclr);
 }
+//end st7789v specific variables objects and function aliases
+/*****************************************************************************/
+#endif //USE_ST7789
 
-class DispBuffer {
-    uint16_t *p;
-    uint16_t clr565[16];
+#ifdef USE_MOCK_DISPLAY
+    #include "mock_display.hpp"
+/*****************************************************************************/
+//mock_display specific variables objects and function aliases
+static constexpr Rect16 display_clip = { 0, 0, MockDisplay::Cols(), MockDisplay::Rows() };
+
+inline uint32_t color_to_native(uint32_t clr) {
+    return clr;
+}
+
+inline uint32_t color_from_native(uint32_t clr) {
+    return clr;
+}
+
+//TDispBuffer configuration
+static constexpr size_t BuffLEN = 16;              // size of buffer (number of fields, not bytes)
+using BuffDATA_TYPE = uint32_t;                    // type of buffer internally used in TDispBuffer
+using BuffPTR_TYPE = uint32_t;                     // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
+static constexpr size_t BuffNATIVE_PIXEL_SIZE = 4; // bytes per pixel (can be same or smaller than size of BuffDATA_TYPE)
+
+static inline uint8_t *getBuff() { return MockDisplay::Instance().getBuff(); }
+
+static inline void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) {
+    MockDisplay::Instance().drawCharFromBuff(pt, w, h);
+}
+
+void display_ex_clear(const color_t clr) {
+    MockDisplay::Instance().clear(clr);
+}
+
+static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
+    //todo
+}
+
+FILE *resource_fopen(uint16_t id, const char *opentype) {
+    //todo
+    return nullptr;
+}
+
+static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
+    return MockDisplay::Instance().GetBlock(start_x, start_y, end_x, end_y);
+}
+
+static inline uint32_t get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
+    return MockDisplay::Instance().GetpixelNativeColor(point_x, point_y);
+}
+
+static inline void set_pixel_colorFormatNative(uint16_t point_x, uint16_t point_y, uint32_t nativeclr) {
+    MockDisplay::Instance().SetpixelNativeColor(point_x, point_y, nativeclr);
+}
+
+static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr) {
+    MockDisplay::Instance().FillRectNativeColor(rect_x, rect_y, rect_w, rect_h, nativeclr);
+}
+
+//end mock_display specific variables objects and function aliases
+/*****************************************************************************/
+#endif //USE_MOCK_DISPLAY
+
+//do not use directly, use DispBuffer instead
+template <size_t LEN, class DATA_TYPE, class PTR_TYPE, uint32_t NATIVE_PIXEL_SIZE>
+class TDispBuffer {
+    PTR_TYPE *p;
+    DATA_TYPE clr_native[LEN];
     const color_t clr_bg;
     const color_t clr_fg;
 
 public:
-    DispBuffer(uint8_t pms, color_t clr_bg, color_t clr_fg)
-        : p((uint16_t *)st7789v_buff)
+    TDispBuffer(uint8_t pms, color_t clr_bg, color_t clr_fg)
+        : p((PTR_TYPE *)getBuff())
         , clr_bg(clr_bg)
         , clr_fg(clr_fg) {
         for (size_t i = 0; i <= pms; i++)
-            clr565[i] = color_to_native(color_alpha(clr_bg, clr_fg, 255 * i / pms));
+            clr_native[i] = color_to_native(color_alpha(clr_bg, clr_fg, 255 * i / pms));
     }
-    void Insert(size_t pos) { *(p++) = clr565[pos]; }
-    void Draw(point_ui16_t pt, uint16_t w, uint16_t h) { st7789v_draw_char_from_buffer(pt.x, pt.y, w, h); }
+    void inline Insert(size_t pos) {
+        *(DATA_TYPE *)p = clr_native[pos];
+        p += NATIVE_PIXEL_SIZE / sizeof(BuffPTR_TYPE);
+    }
+    void inline Draw(point_ui16_t pt, uint16_t w, uint16_t h) { drawCharFromBuff(pt, w, h); }
 };
-//end st7789v specific variables objects and function aliases
-/*****************************************************************************/
+using DispBuffer = TDispBuffer<BuffLEN, BuffDATA_TYPE, BuffPTR_TYPE, BuffNATIVE_PIXEL_SIZE>;
+
+static inline void store_to_buffer(Rect16 rect, uint16_t artefact_width, color_t color) {
+    uint8_t *buff = getBuff() + (rect.Top() * artefact_width + rect.Left()) * BuffNATIVE_PIXEL_SIZE;
+    uint32_t clr = color_to_native(color);
+    for (int i = 0; i < rect.Height(); i++) {
+        int offset = i * artefact_width * BuffNATIVE_PIXEL_SIZE;
+        for (int j = 0; j < rect.Width(); j++) {
+            for (size_t NthByte = 0; NthByte < BuffNATIVE_PIXEL_SIZE; ++NthByte) {
+                buff[offset + (2 * j) + NthByte] = (uint8_t)(clr << (8 * NthByte));
+            }
+        }
+    }
+    return;
+}
+
+static inline void clear_buffer_line(int i, color_t back) {
+    store_to_buffer(Rect16(0, i, display_clip.Width(), 1), display_clip.Width(), back);
+}
+
+static inline uint32_t get_pixel(uint16_t point_x, uint16_t point_y) {
+    return color_from_native(get_pixel_directColor_C(point_x, point_y));
+}
 
 static bool display_ex_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     const uint16_t w = pf->w; //char width
@@ -249,7 +352,7 @@ void display_ex_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 color_t display_ex_get_pixel(point_ui16_t pt) {
     if (!display_clip.Contain(pt))
         return 0;
-    return get_pixel_C(pt.x, pt.y);
+    return get_pixel(pt.x, pt.y);
 }
 
 uint8_t *display_ex_get_block(point_ui16_t start, point_ui16_t end) {
