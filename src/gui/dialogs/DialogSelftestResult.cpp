@@ -52,9 +52,9 @@ DialogSelftestResult::DialogSelftestResult(SelftestResultEEprom_t result)
     //fans
     , text_fan_test(this, Rect16(col_0, row_fan_0, WizardDefaults::X_space, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_fan_test))
     , text_hotend_fan(this, Rect16(col_0, row_fan_1, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_hotend_fan))
-    , icon_hotend_fan(this, { col_1, row_fan_1 }, SelftestStateFromEeprom(result.fan0))
+    , icon_hotend_fan(this, { col_1, row_fan_1 }, SelftestStateFromEeprom(result.fan1))
     , text_print_fan(this, Rect16(col_0, row_fan_2, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_print_fan))
-    , icon_print_fan(this, { col_1, row_fan_2 }, SelftestStateFromEeprom(result.fan1))
+    , icon_print_fan(this, { col_1, row_fan_2 }, SelftestStateFromEeprom(result.fan0))
     //axis
     , text_checking_axis(this, Rect16(col_0, row_axis_0, WizardDefaults::X_space, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_checking_axis))
     , text_x_axis(this, Rect16(col_0, row_axis_1, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_x_axis))
