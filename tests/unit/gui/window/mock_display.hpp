@@ -28,7 +28,6 @@ public:
     void SetpixelNativeColor(uint16_t point_x, uint16_t point_y, uint32_t clr);
     uint8_t *GetBlock(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) const;
     void FillRectNativeColor(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr);
-    void ClrBufferLine(int line);
 
     uint8_t *getBuff() { return (uint8_t *)buffer; }
     void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h);
