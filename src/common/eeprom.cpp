@@ -10,7 +10,7 @@
 #include "../Marlin/src/module/temperature.h"
 #include "cmath_ext.h"
 
-static const constexpr uint8_t EEPROM__PADDING = 1;
+static const constexpr uint8_t EEPROM__PADDING = 4;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
 static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;         // maximum datasize
 static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
@@ -92,6 +92,7 @@ typedef struct _eeprom_vars_t {
     uint32_t SELFTEST_RESULT;
     uint8_t DEVHASH_IN_QR;
     uint8_t FAN_CHECK_ENABLED;
+    uint8_t FS_AUTOLOAD_ENABLED;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -146,6 +147,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SELFTEST_RESULT", VARIANT8_UI32,  1, 0 }, // EEVAR_SELFTEST_RESULT
     { "DEVHASH_IN_QR",   VARIANT8_UI8,   1, 0 }, // EEVAR_DEVHASH_IN_QR
     { "FAN_CHECK_ENA",   VARIANT8_UI8,   1, 0 }, // EEVAR_FAN_CHECK_ENABLED
+    { "FS_AUTOL_ENA",    VARIANT8_UI8,   1, 0},  // EEVAR_FS_AUTOLOAD_ENABLED
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -202,6 +204,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_SELFTEST_RESULT
     1,               // EEVAR_DEVHASH_IN_QR
     1,               // EEVAR_FAN_CHECK_ENABLED
+    0,               // EEVAR_FS_AUTOLOAD_ENABLED
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };

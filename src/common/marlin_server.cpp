@@ -385,6 +385,7 @@ void marlin_server_settings_load(void) {
     thermalManager.updatePID();
 #endif
     marlin_server.vars.fan_check_enabled = variant_get_ui8(eeprom_get_var(EEVAR_FAN_CHECK_ENABLED));
+    marlin_server.vars.fs_autoload_enabled = variant_get_ui8(eeprom_get_var(EEVAR_FS_AUTOLOAD_ENABLED));
 }
 
 void marlin_server_settings_reset(void) {
