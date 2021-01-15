@@ -17,7 +17,7 @@
 #include "ScreenHandler.hpp"
 #include "IDialog.hpp"
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN,
     MI_Filament<FILAMENT_PLA>,
     MI_Filament<FILAMENT_PETG>,
     MI_Filament<FILAMENT_ASA>,
@@ -28,7 +28,8 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
     MI_Filament<FILAMENT_PP>,
     MI_Filament<FILAMENT_NONE>>;
 
-using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
+// is used in firstlay calibration and print preview, does not have return and cooldown
+using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On,
     MI_Filament<FILAMENT_PLA>,
     MI_Filament<FILAMENT_PETG>,
     MI_Filament<FILAMENT_ASA>,
@@ -36,8 +37,7 @@ using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
     MI_Filament<FILAMENT_PC>,
     MI_Filament<FILAMENT_FLEX>,
     MI_Filament<FILAMENT_HIPS>,
-    MI_Filament<FILAMENT_PP>,
-    MI_Filament<FILAMENT_NONE>>;
+    MI_Filament<FILAMENT_PP>>;
 
 template <class T>
 FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {

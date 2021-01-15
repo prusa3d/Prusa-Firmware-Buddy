@@ -9,7 +9,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN,
     MI_Filament<FILAMENT_PLA>,
     MI_Filament<FILAMENT_PETG>,
     MI_Filament<FILAMENT_ASA>,
@@ -31,7 +31,7 @@ ScreenFactory::UniquePtr GetScreenMenuPreheat() {
     return ScreenFactory::Screen<ScreenMenuPreheat>();
 }
 
-using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
+using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On,
     MI_Filament<FILAMENT_PLA>,
     MI_Filament<FILAMENT_PETG>,
     MI_Filament<FILAMENT_ASA>,

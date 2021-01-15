@@ -9,7 +9,7 @@
 #include "IWinMenuContainer.hpp"
 #include <tuple>
 
-using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpLines_None, MI_RETURN, MI_FILAMENT_SENSOR_STATE, MI_MINDA>;
+using Screen = ScreenMenu<EHeader::On, EFooter::On, MI_RETURN, MI_FILAMENT_SENSOR_STATE, MI_MINDA>;
 
 class ScreenMenuSensorInfo : public Screen {
 protected:
