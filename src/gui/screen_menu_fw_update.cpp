@@ -63,17 +63,40 @@ void MI_UPDATE::OnChange(size_t /*old_index*/) {
     }
 }
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_Default, MI_RETURN, MI_UPDATE_LABEL, MI_UPDATE>;
+using MenuContainer = WinMenuContainer<MI_RETURN, MI_UPDATE_LABEL, MI_UPDATE>;
 
-class ScreenMenuFwUpdate : public Screen {
-public:
+class ScreenMenuFwUpdate : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("FW UPDATE");
-    ScreenMenuFwUpdate()
-        : Screen(_(label)) {
-        help.font = resource_font(IDR_FNT_SPECIAL);
-        help.SetText(_("Select when you want to automatically flash updated firmware from USB flash disk."));
+    static constexpr size_t helper_lines = 4;
+    static constexpr int helper_font = IDR_FNT_SPECIAL;
+
+    MenuContainer container;
+    window_menu_t menu;
+    window_header_t header;
+    window_text_t help;
+    status_footer_t footer;
+
+public:
+    ScreenMenuFwUpdate();
+
+protected:
+    static inline uint16_t get_help_h() {
+        return helper_lines * (resource_font(helper_font)->h);
     }
 };
+
+ScreenMenuFwUpdate::ScreenMenuFwUpdate()
+    : AddSuperWindow<screen_t>(nullptr, GuiDefaults::RectScreen)
+    , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
+    , header(this)
+    , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectFooter.Top()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
+    , footer(this) {
+    header.SetText(_(label));
+    help.font = resource_font(helper_font);
+    help.SetText(_("Select when you want to automatically flash updated firmware from USB flash disk."));
+    menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
+    CaptureNormalWindow(menu);        // set capture to list
+}
 
 ScreenFactory::UniquePtr GetScreenMenuFwUpdate() {
     return ScreenFactory::Screen<ScreenMenuFwUpdate>();

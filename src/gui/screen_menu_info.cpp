@@ -7,10 +7,10 @@
 #include "screen_menus.hpp"
 
 #ifdef _DEBUG
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_STATISTIC_disabled, MI_SYS_INFO, MI_FAIL_STAT_disabled,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_STATISTIC_disabled, MI_SYS_INFO, MI_FAIL_STAT_disabled,
     MI_SUPPORT_disabled, MI_SENSOR_INFO, MI_VERSION_INFO>;
 #else
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SYS_INFO, MI_SENSOR_INFO, MI_VERSION_INFO>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_SYS_INFO, MI_SENSOR_INFO, MI_VERSION_INFO>;
 #endif //_DEBUG
 
 //cannot move it to header - 'ScreenMenuInfo' has a field 'ScreenMenuInfo::<anonymous>' whose type uses the anonymous namespace [-Wsubobject-linkage]
