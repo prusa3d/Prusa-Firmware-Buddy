@@ -37,6 +37,7 @@
 #include "../../../lib/Marlin/Marlin/src/Marlin.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
+#include "../PrusaGcodeSuite.hpp"
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
 #include "filament.h"
@@ -142,4 +143,21 @@ void GcodeSuite::M702() {
     Pause::Instance().SetUnloadLength(parser.seen('U') ? parser.value_axis_units(E_AXIS) : NAN);
     load_unload(
         LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS);
+}
+
+/**
+ * M1400: Preheat
+ *
+ *  S<bit fields value> - [0 - 1] type - 0 NONE
+ *                                     - 1 LOAD
+ *                                     - 2 UNLOAD
+ *                      - [2 - 5] reserved
+ *                      - [6] has return option
+ *                      - [7] has cooldown option
+ *                      - [8 - 31] reserved
+ *
+ *  Default value S0
+ */
+void PrusaGcodeSuite::M1400() {
+    const uint32_t val = parser.ulongval('S', 0);
 }
