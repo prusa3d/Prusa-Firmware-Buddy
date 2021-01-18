@@ -203,7 +203,7 @@ LiveAdjustZ::LiveAdjustZ()
 
     /// title text
     constexpr static const char *txt = N_("Adjust the nozzle height above the heatbed by turning the knob");
-    static const string_view_utf8 text_view = _(txt);
+    const string_view_utf8 text_view = _(txt);
     text.SetText(text_view);
     text.SetPadding({ 20, 5, 0, 0 });
 
@@ -212,7 +212,7 @@ LiveAdjustZ::LiveAdjustZ()
 }
 
 const Rect16 LiveAdjustZ::getTextRect() {
-    return Rect16(0, 32, 240, 60);
+    return Rect16(0, 32, 240, 4 * 18); // make space for 4 rows of text rendered with 18px font
 }
 
 const Rect16 LiveAdjustZ::getNozzleRect() {
