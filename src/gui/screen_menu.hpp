@@ -26,7 +26,7 @@ protected:
     status_footer_t footer;
 
 public:
-    IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER);
+    IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTER);
     void unconditionalDrawItem(uint8_t index);
 };
 
@@ -37,7 +37,7 @@ protected:
     WinMenuContainer<T...> container;
 
 public:
-    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr, Rect16 menu_item_rect = GuiDefaults::RectScreenBody);
+    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr);
 
     //compiletime access by index
     template <std::size_t I>
@@ -52,8 +52,8 @@ public:
 };
 
 template <EHeader HEADER, EFooter FOOTER, class... T>
-ScreenMenu<HEADER, FOOTER, T...>::ScreenMenu(string_view_utf8 label, window_t *parent, Rect16 menu_item_rect)
-    : AddSuperWindow<IScreenMenu>(parent, label, menu_item_rect, FOOTER) {
+ScreenMenu<HEADER, FOOTER, T...>::ScreenMenu(string_view_utf8 label, window_t *parent)
+    : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
     menu.pContainer = &container;
     menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
 }
