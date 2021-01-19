@@ -156,7 +156,7 @@ static inline void store_to_buffer(Rect16 rect, uint16_t artefact_width, color_t
         int offset = i * artefact_width * BuffNATIVE_PIXEL_SIZE;
         for (int j = 0; j < rect.Width(); j++) {
             for (size_t NthByte = 0; NthByte < BuffNATIVE_PIXEL_SIZE; ++NthByte) {
-                buff[offset + (2 * j) + NthByte] = (uint8_t)(clr << (8 * NthByte));
+                buff[offset + (BuffNATIVE_PIXEL_SIZE * j) + NthByte] = (uint8_t)(clr >> (8 * NthByte));
             }
         }
     }
