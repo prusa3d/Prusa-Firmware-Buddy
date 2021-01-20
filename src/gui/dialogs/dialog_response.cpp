@@ -14,6 +14,7 @@ const std::array<const char *, static_cast<size_t>(Response::_last) + 1> BtnText
     N_("BACK"),           // Back
     N_("CANCEL"),         // Cancel
     N_("CONTINUE"),       // Continue
+    N_("COOLDOWN"),       // Cooldown
     N_("DISABLE SENSOR"), // Filament_removed
     "FLEX",               //FLEX filament, do not translate
     "HIPS",               //HIPS filament, do not translate

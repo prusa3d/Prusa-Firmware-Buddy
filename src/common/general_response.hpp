@@ -17,6 +17,7 @@ enum class Response : uint8_t {
     Back,
     Cancel,
     Continue,
+    Cooldown,
     Filament_removed,
     FLEX,
     HIPS,

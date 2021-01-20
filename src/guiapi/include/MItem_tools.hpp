@@ -365,14 +365,14 @@ public:
         : WI_LABEL_t(long_name, 0, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
-    void click_at(FILAMENT_t filament_index);
+    void click_at(filament_t filament_index);
 };
 
-template <FILAMENT_t T>
+template <filament_t T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(_(filaments[T].long_name)) {}
+        : I_MI_Filament(_(filaments[size_t(T)].long_name)) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {

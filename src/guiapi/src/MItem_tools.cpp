@@ -426,8 +426,8 @@ void MI_TIMEZONE::OnClick() {
 
 /*****************************************************************************/
 //I_MI_Filament
-void I_MI_Filament::click_at(FILAMENT_t filament_index) {
-    const filament_t filament = filaments[filament_index];
+void I_MI_Filament::click_at(filament_t filament_index) {
+    const Filament filament = filaments[size_t(filament_index)];
     /// don't use preheat temp for cooldown
     if (PREHEAT_TEMP >= filament.nozzle) {
         marlin_gcode_printf("M104 S%d", (int)filament.nozzle);

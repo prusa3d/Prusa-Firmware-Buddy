@@ -59,7 +59,7 @@ public:
         return _(header_label);
     }
     virtual void Do() override {
-        if ((get_filament() == FILAMENT_NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
+        if ((get_filament() == filament_t::NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
             gui_dlg_load(GetHeaderAlterLabel()) == dlg_result_t::ok ? setPreheatTemp() : clrPreheatTemp();
         }
     }
@@ -186,7 +186,7 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
 void ScreenMenuFilament::deactivate_item() {
 
     uint8_t filament = 0;
-    filament |= get_filament() != FILAMENT_NONE ? F_EEPROM : 0;
+    filament |= get_filament() != filament_t::NONE ? F_EEPROM : 0;
     filament |= fs_get_state() == fsensor_t::NoFilament ? 0 : F_SENSED;
     switch (filament) {
     case 0:        //filament not loaded

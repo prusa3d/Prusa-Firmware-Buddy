@@ -173,10 +173,10 @@ void status_footer_t::update_z_axis() {
 }
 
 void status_footer_t::update_filament() {
-    if (0 == strcmp(filament, filaments[get_filament()].name))
+    if (0 == strcmp(filament, filaments[size_t(get_filament())].name))
         return;
 
-    filament = filaments[get_filament()].name;
+    filament = filaments[size_t(get_filament())].name;
     wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filament));
 }
 
@@ -275,7 +275,7 @@ status_footer_t::status_footer_t(window_t *parent)
 
     wt_filament.font = resource_font(IDR_FNT_SPECIAL);
     wt_filament.SetAlignment(ALIGN_CENTER);
-    wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[get_filament()].name));
+    wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[size_t(get_filament())].name));
 
     filament = emptystr;
 

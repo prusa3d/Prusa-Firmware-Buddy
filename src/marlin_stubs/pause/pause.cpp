@@ -439,7 +439,7 @@ void Pause::unloadLoop(is_standalone_t standalone) {
 
         planner.settings.retract_acceleration = saved_acceleration;
 
-        set_filament(FILAMENT_NONE);
+        set_filament(filament_t::NONE);
         setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
         set(standalone == is_standalone_t::yes ? UnloadPhases_t::_finish : UnloadPhases_t::unloaded__ask);
     } break;

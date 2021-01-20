@@ -110,8 +110,8 @@ void GcodeSuite::M701() {
             ++text_begin; //move pointer from '"' to first letter
             const char *text_end = strchr(text_begin, '"');
             if (text_end) {
-                FILAMENT_t filament = get_filament_from_string(text_begin, text_end - text_begin);
-                if (filament != FILAMENT_NONE) {
+                filament_t filament = get_filament_from_string(text_begin, text_end - text_begin);
+                if (filament != filament_t::NONE) {
                     filament_to_load = filament;
                 }
             }
