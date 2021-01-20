@@ -4,6 +4,7 @@
 
 window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
     : AddSuperWindow<window_t>(parent, rect, type)
+    , captured_normal_window(nullptr)
     , first_normal(nullptr)
     , last_normal(nullptr) {
 
@@ -386,4 +387,40 @@ void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
     }
 
     super::Shift(direction, distance);
+}
+
+window_t *window_frame_t::getCapturedNormalWin() const {
+    return captured_normal_window;
+}
+
+bool window_frame_t::IsChildCaptured() const {
+    return captured_normal_window != nullptr;
+}
+
+bool window_frame_t::CaptureNormalWindow(window_t &win) {
+    if (win.GetParent() != this || win.GetType() != win_type_t::normal)
+        return false;
+    window_t *last_captured = GetCapturedWindow();
+    if (last_captured) {
+        last_captured->WindowEvent(this, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
+    }
+    captured_normal_window = &win;
+    win.WindowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
+    gui_invalidate();
+
+    return true;
+}
+
+void window_frame_t::ReleaseCaptureOfNormalWindow() {
+    if (captured_normal_window) {
+        captured_normal_window->WindowEvent(this, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
+    }
+    captured_normal_window = nullptr;
+    gui_invalidate();
+}
+
+window_t *window_frame_t::GetCapturedWindow() {
+    if (getCapturedNormalWin())
+        return getCapturedNormalWin()->GetCapturedWindow();
+    return this;
 }
