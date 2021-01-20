@@ -48,6 +48,7 @@
 #include "usb_device.h"
 #include "usb_host.h"
 #include "buffered_serial.hpp"
+#include "HardwareSerial.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -96,8 +97,11 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim14;
-
+#ifdef USE_UART1_SERIAL
+UART_HandleTypeDef huart1;
+#else
 static UART_HandleTypeDef huart1;
+#endif
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart1_rx;
@@ -228,9 +232,11 @@ int main(void) {
 
     buddy::hw::BufferedSerial::uart2.Open();
 
+#ifndef USE_UART1_SERIAL
     uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
     uartrxbuff_reset(&uart1rxbuff);
+#endif
 
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
     HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
