@@ -11,8 +11,7 @@ The currently supported model is:
 
 ### Requirements
 
-- Python 3.6 or newer
-- python3-pip
+- Python 3.6 or newer (with pip)
 
 ### Cloning this repository
 

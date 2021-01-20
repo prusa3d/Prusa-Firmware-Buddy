@@ -109,6 +109,9 @@ uint32_t *pCommand = &marlin_server.command;
 #endif
 marlin_server_idle_t *marlin_server_idle_cb = 0; // idle callback
 
+static bool hotend_fan_error_dialog_show = false;
+static bool print_fan_error_dialog_show = false;
+
 void _add_status_msg(const char *const popup_msg) {
     //I could check client mask here
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
@@ -144,6 +147,8 @@ static uint64_t _server_update_vars(uint64_t force_update_msk);
 static int _process_server_request(const char *request);
 static int _server_set_var(const char *const name_val_str);
 static void _server_update_and_notify(int client_id, uint64_t update);
+
+static void _server_fan_check_error(WarningType warning, CFanCtl fan, bool &error_shown);
 
 //-----------------------------------------------------------------------------
 // server side functions
@@ -379,6 +384,7 @@ void marlin_server_settings_load(void) {
     Temperature::temp_hotend[0].pid.Kd = variant8_get_flt(eeprom_get_var(EEVAR_PID_NOZ_D));
     thermalManager.updatePID();
 #endif
+    marlin_server.vars.fan_check_enabled = variant_get_ui8(eeprom_get_var(EEVAR_FAN_CHECK_ENABLED));
 }
 
 void marlin_server_settings_reset(void) {
@@ -504,18 +510,23 @@ static void _server_print_loop(void) {
         gcode.reset_stepper_timeout(); //prevent disable axis
         break;
     case mpsResuming_Begin:
-        if (marlin_server_print_reheat_ready()) {
-            marlin_server_unpark_head();
-            marlin_server.print_state = mpsResuming_UnparkHead;
-        } else {
-            thermalManager.setTargetHotend(marlin_server.resume_nozzle_temp, 0);
-            marlin_server.print_state = mpsResuming_Reheating;
-        }
+        marlin_server_resuming_begin();
         break;
     case mpsResuming_Reheating:
         if (marlin_server_print_reheat_ready()) {
-            marlin_server_unpark_head();
-            marlin_server.print_state = mpsResuming_UnparkHead;
+            if (marlin_server.vars.fan_check_enabled) {
+                if (fanctl1.getRPMIsOk()) {
+                    hotend_fan_error_dialog_show = false;
+                    marlin_server_unpark_head();
+                    marlin_server.print_state = mpsResuming_UnparkHead;
+                } else {
+                    set_warning(WarningType::HotendFanError);
+                    marlin_server.print_state = mpsPaused;
+                }
+            } else {
+                marlin_server_unpark_head();
+                marlin_server.print_state = mpsResuming_UnparkHead;
+            }
         }
         break;
     case mpsResuming_UnparkHead:
@@ -570,7 +581,9 @@ static void _server_print_loop(void) {
         break;
     case mpsFinishing_WaitIdle:
         if ((planner.movesplanned() == 0) && (queue.length == 0)) {
+#ifdef PARK_HEAD_ON_PRINT_FINISH
             marlin_server_park_head();
+#endif
             marlin_server.print_state = mpsFinishing_ParkHead;
         }
         break;
@@ -582,6 +595,40 @@ static void _server_print_loop(void) {
         break;
     default:
         break;
+    }
+
+    if (marlin_server.vars.fan_check_enabled) {
+        _server_fan_check_error(WarningType::HotendFanError, fanctl1, hotend_fan_error_dialog_show);
+        _server_fan_check_error(WarningType::PrintFanError, fanctl0, print_fan_error_dialog_show);
+    }
+
+    if (fanctl1.getRPMIsOk() && hotend_fan_error_dialog_show == true) {
+        hotend_fan_error_dialog_show = false;
+    } else if (fanctl0.getRPMIsOk() && print_fan_error_dialog_show == true) {
+        print_fan_error_dialog_show = false;
+    }
+}
+
+void _server_fan_check_error(WarningType warning, CFanCtl fan, bool &error_shown) {
+    if (fan.getState() == CFanCtl::error_running && error_shown == false) {
+        set_warning(warning);
+        if (marlin_server.print_state == mpsPrinting) {
+            marlin_server.print_state = mpsPausing_Begin;
+        }
+        if (fan.isAutoFan()) {
+            thermalManager.setTargetHotend(0, 0);
+        }
+        error_shown = true;
+    }
+}
+
+void marlin_server_resuming_begin(void) {
+    if (marlin_server_print_reheat_ready()) {
+        marlin_server_unpark_head();
+        marlin_server.print_state = mpsResuming_UnparkHead;
+    } else {
+        thermalManager.setTargetHotend(marlin_server.resume_nozzle_temp, 0);
+        marlin_server.print_state = mpsResuming_Reheating;
     }
 }
 

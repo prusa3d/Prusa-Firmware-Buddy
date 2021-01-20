@@ -15,7 +15,7 @@
 
 #include "ScreenHandler.hpp"
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN,
     MI_Filament<FILAMENT_PLA>,
     MI_Filament<FILAMENT_PETG>,
     MI_Filament<FILAMENT_ASA>,
@@ -26,7 +26,8 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
     MI_Filament<FILAMENT_PP>,
     MI_Filament<FILAMENT_NONE>>;
 
-using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
+// is used in firstlay calibration and print preview, does not have return and cooldown
+using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On,
     MI_Filament<FILAMENT_PLA>,
     MI_Filament<FILAMENT_PETG>,
     MI_Filament<FILAMENT_ASA>,
@@ -34,13 +35,12 @@ using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
     MI_Filament<FILAMENT_PC>,
     MI_Filament<FILAMENT_FLEX>,
     MI_Filament<FILAMENT_HIPS>,
-    MI_Filament<FILAMENT_PP>,
-    MI_Filament<FILAMENT_NONE>>;
+    MI_Filament<FILAMENT_PP>>;
 
 template <class T>
 FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
     set_last_preheated_filament(FILAMENT_NONE);
-    T dlg(caption, Screens::Access()->Get(), GuiDefaults::RectScreenBody);
+    T dlg(caption, Screens::Access()->Get());
     create_blocking_dialog_from_normal_window(dlg);
     return get_last_preheated_filament();
 }

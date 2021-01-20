@@ -17,18 +17,19 @@ struct GuiDefaults {
     static constexpr color_t COLOR_VALUE_VALID = COLOR_WHITE;
     static constexpr color_t COLOR_VALUE_INVALID = COLOR_WHITE; //COLOR_YELLOW
     static constexpr padding_ui8_t Padding = { 2, 2, 2, 2 };
-    static constexpr uint8_t Alignment = ALIGN_LEFT_TOP;                                                //todo enum
-    static constexpr Rect16 RectHeader = { 0, 0, ScreenWidth, HeaderHeight };                           // default header location & size
-    static constexpr Rect16 RectScreenBody = { 0, HeaderHeight, ScreenWidth, BodyHeight };              // default screen body location & size
-    static constexpr Rect16 RectScreen = { 0, 0, ScreenWidth, ScreenHeight };                           // full screen body & header
-    static constexpr Rect16 RectScreenNoFoot = { 0, 0, ScreenWidth, ScreenHeight - FooterHeight };      // screen body without footer location & size
-    static constexpr Rect16 RectFooter = { 0, ScreenHeight - FooterHeight, ScreenWidth, FooterHeight }; // default footer location & size
-    static constexpr uint8_t ButtonHeight = 30;                                                         // default button height
-    static constexpr uint8_t ButtonSpacing = 6;                                                         // default button spacing
-    static constexpr uint8_t FrameWidth = 10;                                                           // default frame padding
-    static font_t *Font;                                                                                //todo constexpr
-    static font_t *FontBig;                                                                             //todo constexpr
-    static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4;                                                  // maximum number of radio buttons
+    static constexpr uint8_t Alignment = ALIGN_LEFT_TOP;                                                        //todo enum
+    static constexpr Rect16 RectHeader = { 0, 0, ScreenWidth, HeaderHeight };                                   // default header location & size
+    static constexpr Rect16 RectScreenBody = { 0, HeaderHeight, ScreenWidth, BodyHeight };                      // default screen body location & size
+    static constexpr Rect16 RectScreen = { 0, 0, ScreenWidth, ScreenHeight };                                   // full screen body & header
+    static constexpr Rect16 RectScreenNoFoot = { 0, 0, ScreenWidth, ScreenHeight - FooterHeight };              // screen body without footer location & size
+    static constexpr Rect16 RectScreenNoHeader = { 0, HeaderHeight, ScreenWidth, ScreenHeight - HeaderHeight }; // screen body without header location & size
+    static constexpr Rect16 RectFooter = { 0, ScreenHeight - FooterHeight, ScreenWidth, FooterHeight };         // default footer location & size
+    static constexpr uint8_t ButtonHeight = 30;                                                                 // default button height
+    static constexpr uint8_t ButtonSpacing = 6;                                                                 // default button spacing
+    static constexpr uint8_t FrameWidth = 10;                                                                   // default frame padding
+    static font_t *Font;                                                                                        //todo constexpr
+    static font_t *FontBig;                                                                                     //todo constexpr
+    static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4;                                                          // maximum number of radio buttons
 
     //special setting for menu items
     static constexpr bool MenuLinesBetweenItems = false;

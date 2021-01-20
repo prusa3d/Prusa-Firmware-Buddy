@@ -18,7 +18,7 @@
 #include "DialogHandler.hpp"
 #include "selftest_MINI.h"
 #include "filament_sensor.hpp"
-#include "main_MINI.h"
+#include "main.h"
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "menu_spin_config.hpp"
@@ -469,4 +469,17 @@ MI_MINDA::state_t MI_MINDA::get_state() {
 
 bool MI_MINDA::StateChanged() {
     return SetIndex((size_t)get_state());
+}
+
+/*****************************************************************************/
+//MI_FAN_CHECK
+MI_FAN_CHECK::MI_FAN_CHECK()
+    : WI_SWITCH_OFF_ON_t(variant_get_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_FAN_CHECK::OnChange(size_t old_index) {
+    if (!old_index) {
+        marlin_set_var(MARLIN_VAR_FAN_CHECK_ENABLED, variant8_ui8(1));
+    } else {
+        marlin_set_var(MARLIN_VAR_FAN_CHECK_ENABLED, variant8_ui8(0));
+    }
+    eeprom_set_var(EEVAR_FAN_CHECK_ENABLED, variant8_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED)));
 }

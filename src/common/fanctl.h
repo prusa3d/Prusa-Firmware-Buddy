@@ -9,7 +9,7 @@ enum {
     FANCTL_MAX_FANS = 2,         // maximum number of fans for C wrapper functions
     FANCTL_START_TIMEOUT = 2000, //
     FANCTL_START_EDGES = 4,      //
-    FANCTL_RPM_DELAY = 2000,     //
+    FANCTL_RPM_DELAY = 5000,     //
 };
 
 // this structure contain variables for rpm measuement
@@ -134,6 +134,7 @@ public:
     { return m_tach.getRPM(); }
     inline uint8_t getPhaseShiftMode() const // get PhaseShiftMode
     { return m_pwm.get_PhaseShiftMode(); }
+    bool getRPMIsOk();
     inline bool isAutoFan() const // get fan type
     { return is_autofan == is_autofan_t::yes; }
 
@@ -141,9 +142,6 @@ public:
     void setPWM(uint8_t pwm);            // set PWM value - switch to non closed-loop mode
     void setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
     void safeState();
-
-private:
-    bool rpm_is_ok();
 
 private:
     const uint16_t m_MinRPM; // minimum rpm value (set in constructor)

@@ -8,17 +8,18 @@
 #include "resource.h"
 #include "cmath_ext.h"
 
-IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands)
-    : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden) {
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands, font_t *label_font)
+    : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden, label_font) {
 }
 
-IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, font_t *label_font)
     : label(label)
     , hidden(hidden)
     , enabled(enabled)
     , focused(is_focused_t::no)
     , selected(is_selected_t::no)
     , id_icon(id_icon)
+    , label_font(label_font)
     , extension_width(extension_width_) {
 }
 
@@ -70,7 +71,7 @@ void IWindowMenuItem::printIcon(Rect16 icon_rect, uint8_t swap, color_t color_ba
 }
 
 void IWindowMenuItem::printLabel(Rect16 label_rect, color_t color_text, color_t color_back) const {
-    roll.RenderTextAlign(label_rect, GetLabel(), GuiDefaults::FontMenuItems, color_back, color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
+    roll.RenderTextAlign(label_rect, GetLabel(), label_font, color_back, color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
 }
 
 void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
@@ -99,6 +100,6 @@ void IWindowMenuItem::ClrFocus() {
 // Reinits text rolling in case of focus/defocus/click
 void IWindowMenuItem::reInitRoll(Rect16 rect) {
     if (roll.NeedInit()) {
-        roll.Init(rect, GetLabel(), GuiDefaults::FontMenuItems, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
+        roll.Init(rect, GetLabel(), label_font, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
     }
 }

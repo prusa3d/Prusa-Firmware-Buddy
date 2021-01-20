@@ -399,3 +399,11 @@ public:
     bool StateChanged();
     virtual void OnChange(size_t old_index) override {}
 };
+
+class MI_FAN_CHECK : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Fan check");
+
+public:
+    MI_FAN_CHECK();
+    virtual void OnChange(size_t old_index) override;
+};

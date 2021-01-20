@@ -686,7 +686,7 @@ void marlin_notify_server_about_encoder_move(void) {
     _wait_ack_from_server(client->id);
 }
 
-void marlin_notify_server_about_konb_click(void) {
+void marlin_notify_server_about_knob_click(void) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;

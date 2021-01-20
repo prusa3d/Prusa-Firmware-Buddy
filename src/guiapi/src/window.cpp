@@ -329,7 +329,7 @@ bool window_t::EventEncoder(int diff) {
 }
 
 bool window_t::EventJogwheel(BtnState_t state) {
-    marlin_notify_server_about_konb_click();
+    marlin_notify_server_about_knob_click();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
     if (!capture_ptr)
         return false;

@@ -45,12 +45,14 @@ void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, wi
 
 void window_dlg_strong_warning_t::ShowHotendFan() {
     static window_dlg_strong_warning_t dlg;
+    Sound_Play(eSOUND_TYPE::StandardAlert);
     dlg.show(_(HotendFanErrorMsg));
     dlg.setIcon(IDR_PNG_fan_error);
 }
 
 void window_dlg_strong_warning_t::ShowPrintFan() {
     static window_dlg_strong_warning_t dlg;
+    Sound_Play(eSOUND_TYPE::StandardAlert);
     dlg.show(_(PrintFanErrorMsg));
     dlg.setIcon(IDR_PNG_fan_error);
 }
