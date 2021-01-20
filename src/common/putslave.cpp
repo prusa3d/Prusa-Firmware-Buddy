@@ -577,6 +577,11 @@ int putslave_do_cmd_a_pwm(uartslave_t *pslave, char *pstr) {
     if ((value < 0) || (value > hwio_pwm_get_max(pwm)))
         return UARTSLAVE_ERR_OOR;
     hwio_pwm_set_val(pwm, value);
+    if (pwm == 2) {
+        fanctl1.setPWM(value);
+    } else if (pwm == 3) {
+        fanctl0.setPWM(value);
+    }
     return UARTSLAVE_OK;
 }
 
