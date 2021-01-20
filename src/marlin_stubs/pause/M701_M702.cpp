@@ -147,10 +147,12 @@ void GcodeSuite::M702() {
 
 /**
  * M1400: Preheat
+ * not meant to be used during print
  *
  *  S<bit fields value> - [0 - 1] type - 0 NONE
  *                                     - 1 LOAD
  *                                     - 2 UNLOAD
+ *                                     - 3 change
  *                      - [2 - 5] reserved
  *                      - [6] has return option
  *                      - [7] has cooldown option
@@ -160,4 +162,24 @@ void GcodeSuite::M702() {
  */
 void PrusaGcodeSuite::M1400() {
     const uint32_t val = parser.ulongval('S', 0);
+    const PreheatMode mode = PreheatMode(val & 0x03);
+
+    Response ret;
+    // preheat part
+    {
+        FSM_Holder H(ClientFSM::Preheat, uint8_t(mode));
+        while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) != Response::_none) {
+        }
+    }
+
+    switch (mode) {
+    case PreheatMode::None:
+        break;
+    case PreheatMode::Load:
+        break;
+    case PreheatMode::Unload:
+        break;
+    case PreheatMode::Change:
+        break;
+    }
 }

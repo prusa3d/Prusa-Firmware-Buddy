@@ -239,7 +239,7 @@ protected:
 
 ScreenMenuLanSettings::ScreenMenuLanSettings()
     : AddSuperWindow<screen_t>(nullptr, GuiDefaults::RectScreen, win_type_t::normal, is_closed_on_timeout_t::no)
-    , menu(this, GuiDefaults::RectScreenBodyNoFoot - Rect16::Height_t(get_help_h()), &container)
+    , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), GuiDefaults::RectScreen.Height() - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {
     header.SetText(_(label));

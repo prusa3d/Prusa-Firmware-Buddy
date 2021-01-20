@@ -25,7 +25,6 @@ font_t *GuiDefaults::FontMenuSpecial = nullptr;
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
 constexpr Rect16 GuiDefaults::RectScreenBody;
-constexpr Rect16 GuiDefaults::RectScreenBodyNoFoot;
 constexpr Rect16 GuiDefaults::RectScreen;
 constexpr Rect16 GuiDefaults::RectFooter;
 

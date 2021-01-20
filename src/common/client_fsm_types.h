@@ -9,6 +9,7 @@
 enum class ClientFSM : uint8_t {
     Serial_printing,
     Load_unload,
+    Preheat,
     G162,
     SelftestAxis,
     SelftestFans,
@@ -24,6 +25,14 @@ enum class LoadUnloadMode : uint8_t {
     Load,
     Unload,
     Purge
+};
+
+enum class PreheatMode : uint8_t {
+    None,
+    Load,
+    Unload,
+    Purge,
+    Change
 };
 
 enum class WarningType : uint32_t {

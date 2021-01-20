@@ -29,7 +29,10 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 334:
             PrusaGcodeSuite::M334();
             return true;
-#endif
+#endif // _DEBUG
+        case 1400:
+            PrusaGcodeSuite::M1400();
+            return true;
         default:
             return false;
         }

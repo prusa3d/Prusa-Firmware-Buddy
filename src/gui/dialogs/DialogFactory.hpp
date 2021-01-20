@@ -19,8 +19,11 @@ public:
     using Ctors = std::array<fnc, size_t(ClientFSM::_count)>;
     //define factory methods for all dialogs here
     static static_unique_ptr<IDialogMarlin> serial_printing(uint8_t data);
+    static static_unique_ptr<IDialogMarlin> printing(uint8_t data);
+    static static_unique_ptr<IDialogMarlin> first_layer(uint8_t data);
     static static_unique_ptr<IDialogMarlin> load_unload(uint8_t data);
     static static_unique_ptr<IDialogMarlin> G162(uint8_t data);
+    static static_unique_ptr<IDialogMarlin> Preheat(uint8_t data);
 
     static Ctors GetAll(); //returns all factory methods in an array
 };
