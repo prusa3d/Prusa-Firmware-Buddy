@@ -8,7 +8,7 @@
 #include "wui_REST_api.h"
 #include "wui_api.h"
 #include "wui.h"
-#include "filament.h"
+#include "filament.h" //get_selected_filament_name
 #include <string.h>
 #include "wui_vars.h"
 #include "eeprom.h"
@@ -48,7 +48,7 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
     double z_pos_mm = (double)wui_vars_copy.pos[Z_AXIS_POS];
     uint16_t print_speed = (uint16_t)(wui_vars_copy.print_speed);
     uint16_t flow_factor = (uint16_t)(wui_vars_copy.flow_factor);
-    const char *filament_material = filaments[get_filament()].name;
+    const char *filament_material = get_selected_filament_name();
     int8_t time_zone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
 
     if (!wui_vars_copy.sd_printing) {
