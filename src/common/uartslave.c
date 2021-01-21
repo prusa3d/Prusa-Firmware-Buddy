@@ -84,6 +84,10 @@ void uartslave_cycle(uartslave_t *pslave) {
             if ((ch == 0) || (pslave->count >= pslave->size))
                 break;
         }
+        if (ch == UARTRXBUFF_ERR_OVERFLOW) {
+          uartrxbuff_reset(pslave->prxbuff);
+          pslave->count = 0;
+        }
     }
     if (pslave->count >= pslave->size) { //command overflow
         _dbg0("ERROR: command overflow\n");
