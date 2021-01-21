@@ -41,19 +41,19 @@ static_unique_ptr<IDialogMarlin> DialogFactory::load_unload(uint8_t data) {
     default:
         name = string_view_utf8::MakeCPUFLASH((const uint8_t *)def); //not translated
     }
-    return make_static_unique_ptr<DialogLoadUnload>(&all_dialogs, name);
+    return makePtr<DialogLoadUnload>(name);
 }
 
 static_unique_ptr<IDialogMarlin> DialogFactory::G162(uint8_t data) {
     static const char *nm = N_("HOME TO MAX");
     string_view_utf8 name = _(nm);
-    return make_static_unique_ptr<DialogG162>(&all_dialogs, name);
+    return makePtr<DialogG162>(name);
 }
 
 static_unique_ptr<IDialogMarlin> DialogFactory::Preheat(uint8_t data) {
     static const char *nm = N_("XXXXXXX");
     string_view_utf8 name = _(nm);
-    return make_static_unique_ptr<DialogMenuPreheat>(&all_dialogs, name);
+    return makePtr<DialogMenuPreheat>(name);
 }
 
 DialogFactory::Ctors DialogFactory::GetAll() {
@@ -65,12 +65,16 @@ DialogFactory::Ctors DialogFactory::GetAll() {
     ret[size_t(ClientFSM::Load_unload)] = load_unload;
     ret[size_t(ClientFSM::G162)] = G162;
     ret[size_t(ClientFSM::Preheat)] = Preheat;
-    ret[size_t(ClientFSM::SelftestAxis)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(make_static_unique_ptr<DialogSelftestAxis>(&all_dialogs)); };
-    ret[size_t(ClientFSM::SelftestFans)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(make_static_unique_ptr<DialogSelftestFans>(&all_dialogs)); };
-    ret[size_t(ClientFSM::SelftestHeat)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(make_static_unique_ptr<DialogSelftestTemp>(&all_dialogs)); };
+    ret[size_t(ClientFSM::SelftestAxis)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(makePtr<DialogSelftestAxis>()); };
+    ret[size_t(ClientFSM::SelftestFans)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(makePtr<DialogSelftestFans>()); };
+    ret[size_t(ClientFSM::SelftestHeat)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(makePtr<DialogSelftestTemp>()); };
 
     if (std::find(std::begin(ret), std::end(ret), nullptr) != std::end(ret))
         bsod("Error missing dialog Ctor");
 
     return ret;
+}
+
+void DialogFactory::size_error(size_t memspace, size_t dialog) {
+    bsod("Error dialog does not fit %d, %d", memspace, dialog);
 }

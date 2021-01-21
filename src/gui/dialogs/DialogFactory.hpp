@@ -5,14 +5,24 @@
 #include "DialogSelftestAxis.hpp"
 #include "DialogSelftestFans.hpp"
 #include "DialogSelftestTemp.hpp"
+#include "window_dlg_preheat.hpp"
 #include "static_alocation_ptr.hpp"
 #include <array>
 
 class DialogFactory {
     DialogFactory() = delete;
     DialogFactory(const DialogFactory &) = delete;
-    using mem_space = std::aligned_union<0, DialogLoadUnload>::type;
+    using mem_space = std::aligned_union<0, DialogMenuPreheat, DialogLoadUnload>::type;
     static mem_space all_dialogs;
+
+    static void size_error(size_t memspace, size_t dialog);
+
+    //safer than make_static_unique_ptr, checks storage size
+    template <class T, class... Args>
+    static static_unique_ptr<IDialogMarlin> makePtr(Args &&... args) {
+        static_assert(sizeof(T) <= sizeof(all_dialogs), "Error dialog does not fit");
+        return make_static_unique_ptr<T>(&all_dialogs, std::forward<Args>(args)...);
+    }
 
 public:
     typedef static_unique_ptr<IDialogMarlin> (*fnc)(uint8_t data); //function pointer definition
