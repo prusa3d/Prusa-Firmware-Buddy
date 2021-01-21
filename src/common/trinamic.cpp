@@ -149,7 +149,6 @@ uint8_t tmc_get_diag() //0 = X, 2 = Y, 4 = Z, 8 = E
     diag = 0;
 
     for (tmp_step = 0; tmp_step < step; step--) {
-        tmc_delay(1024 * 2);
         if (step_mask & 1)
             xStep.write(Pin::State::low);
         if (step_mask & 2)
@@ -158,7 +157,7 @@ uint8_t tmc_get_diag() //0 = X, 2 = Y, 4 = Z, 8 = E
             zStep.write(Pin::State::low);
         if (step_mask & 8)
             e0Step.write(Pin::State::low);
-        //fixme why there is no delay?
+        tmc_delay(1024 * 2);
         xStep.write(Pin::State::high);
         yStep.write(Pin::State::high);
         zStep.write(Pin::State::high);
