@@ -268,7 +268,11 @@ void sys_fw_update_on_restart_disable(void) {
 
 // returns 1 if last byte in the flash is nonzero
 int sys_fw_is_valid(void) {
+#ifdef _DEBUG
+    return true;
+#else
     return (*psys_fw_valid != 0) ? 1 : 0;
+#endif
 }
 
 // write zero to last byte in the flash
