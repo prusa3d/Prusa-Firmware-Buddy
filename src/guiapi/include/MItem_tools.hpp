@@ -3,7 +3,7 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
-#include "filament.h"
+#include "filament.hpp"
 
 class MI_WIZARD : public WI_LABEL_t {
     static constexpr const char *const label = N_("Wizard");

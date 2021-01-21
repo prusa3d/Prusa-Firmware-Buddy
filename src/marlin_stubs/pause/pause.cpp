@@ -31,7 +31,7 @@
 #include "safety_timer_stubbed.hpp"
 #include "marlin_server.hpp"
 #include "filament_sensor.hpp"
-#include "filament.h"
+#include "filament.hpp"
 #include "client_response.hpp"
 #include "RAII.hpp"
 #include <cmath>

@@ -4,7 +4,7 @@
 #include "screen_menus.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
-#include "filament.h"
+#include "filament.hpp"
 #include "filament_sensor.hpp"
 #include "marlin_client.h"
 #include "window_dlg_load_unload.hpp"

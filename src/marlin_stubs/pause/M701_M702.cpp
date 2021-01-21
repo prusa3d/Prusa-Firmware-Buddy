@@ -40,7 +40,7 @@
 #include "../PrusaGcodeSuite.hpp"
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
-#include "filament.h"
+#include "filament.hpp"
 #include <functional> // std::invoke
 #include <algorithm>
 #include <cmath>
@@ -168,9 +168,44 @@ void PrusaGcodeSuite::M1400() {
     // preheat part
     {
         FSM_Holder H(ClientFSM::Preheat, uint8_t(mode));
-        while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) != Response::_none) {
+        while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
+            idle(true);
         }
     }
+
+    filament_t filament = Filaments::Find(ret);
+
+    /*
+
+    case Response::ABS:
+    case Response::ASA:
+    case Response::FLEX:
+    case Response::HIPS:
+    case Response::PC:
+    case Response::PETG:
+    case Response::PLA:
+    case Response::PP:
+*/
+
+    if (filament == filament_t::NONE) {
+        switch (ret) {
+        case Response::Abort:
+            return;
+        case Response::Cooldown:
+            //set temperatures to zero
+            thermalManager.setTargetHotend(0, 0);
+            thermalManager.setTargetBed(0);
+            marlin_server_set_temp_to_display(0);
+            return;
+        default: //should not happen
+            return;
+        }
+    }
+
+    const Filament &fil_cnf = Filaments::Get(filament);
+    thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
+    thermalManager.setTargetBed(fil_cnf.heatbed);
+    marlin_server_set_temp_to_display(fil_cnf.nozzle);
 
     switch (mode) {
     case PreheatMode::None:

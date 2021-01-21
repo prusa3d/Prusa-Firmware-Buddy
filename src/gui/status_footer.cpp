@@ -9,7 +9,7 @@
 
 #include "config.h"
 #include "status_footer.h"
-#include "filament.h"
+#include "filament.hpp"
 #include "marlin_client.h"
 #include "stm32f4xx_hal.h"
 #include "cmath_ext.h"

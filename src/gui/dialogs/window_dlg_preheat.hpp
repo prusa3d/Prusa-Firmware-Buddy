@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "filament.h"
+#include "filament.hpp"
 #include "../../lang/string_view_utf8.hpp"
 #include "screen_menu.hpp"
 #include "DialogStateful.hpp"
@@ -38,6 +38,16 @@ class DialogMenuPreheat : public AddSuperWindow<IDialogMarlin> {
         virtual void click(IWindowMenu & /*window_menu*/) override {
             click_at(T);
         }
+    };
+
+    class MI_RETURN : public WI_LABEL_t {
+        static constexpr const char *const label = N_("Return");
+
+    public:
+        MI_RETURN();
+
+    protected:
+        virtual void click(IWindowMenu &window_menu);
     };
 
     //TODO try to use HIDDEN on return and filament_t::NONE

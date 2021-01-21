@@ -3,7 +3,7 @@
 #include "gui.hpp"
 #include "firstlay.hpp"
 #include "filament_sensor.hpp"
-#include "filament.h"
+#include "filament.hpp"
 #include "window_dlg_preheat.hpp"
 #include "window_dlg_load_unload.hpp"
 #include "marlin_client.h"

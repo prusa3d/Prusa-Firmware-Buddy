@@ -3,7 +3,7 @@
 #include "window_dlg_load_unload.hpp"
 #include "marlin_client.h"
 #include "window_dlg_preheat.hpp"
-#include "filament.h"
+#include "filament.hpp"
 #include "DialogHandler.hpp"
 #include "i18n.h"
 

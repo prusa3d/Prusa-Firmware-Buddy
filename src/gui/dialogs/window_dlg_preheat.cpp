@@ -90,19 +90,19 @@ filament_t gui_dlg_preheat_autoselect_if_able_forced(string_view_utf8 caption) {
 /*****************************************************************************/
 //DialogMenuPreheat::I_MI_Filament
 void DialogMenuPreheat::I_MI_Filament::click_at(filament_t filament_index) {
-    //Response response = radio.Click();
-    //marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), response);
+    const Response response = filaments[size_t(filament_index)].response;
+    marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
+}
 
-    const Filament filament = filaments[size_t(filament_index)];
-    /// don't use preheat temp for cooldown
-    if (PREHEAT_TEMP >= filament.nozzle) {
-        marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
-    } else {
-        marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
-    }
-    marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
-    set_last_preheated_filament(filament_index);
-    Screens::Access()->Close(); // skip this screen everytime
+/*****************************************************************************/
+//DialogMenuPreheat::MI_RETURN
+DialogMenuPreheat::MI_RETURN::MI_RETURN()
+    : WI_LABEL_t(_(label), IDR_PNG_folder_up_16px, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void DialogMenuPreheat::MI_RETURN::click(IWindowMenu &window_menu) {
+    window_menu.Validate(); /// don't redraw since we leave the menu
+    marlin_FSM_response(PhasesPreheat::UserTempSelection, Response::Abort);
 }
 
 /*****************************************************************************/
@@ -118,4 +118,5 @@ DialogMenuPreheat::DialogMenuPreheat(string_view_utf8 name)
 }
 
 bool DialogMenuPreheat::change(uint8_t phs, uint8_t progress_tot, uint8_t progress) {
+    return true;
 }

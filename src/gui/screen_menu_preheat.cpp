@@ -2,7 +2,7 @@
 
 #include "screen_menus.hpp"
 #include "screen_menu.hpp"
-#include "filament.h"
+#include "filament.hpp"
 #include "marlin_client.h"
 #include "screen_menu.hpp"
 #include "MItem_tools.hpp"

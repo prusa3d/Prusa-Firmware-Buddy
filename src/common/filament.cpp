@@ -5,6 +5,7 @@
 #include "eeprom.h"
 #include "assert.h"
 #include "filament.h"
+#include "filament.hpp"
 #include <cstring>
 #include "i18n.h"
 #include "dialog_response.hpp"
@@ -25,7 +26,7 @@ static constexpr const char *hips_str = "HIPS     220/100";
 static constexpr const char *pp_str = "PP       240/100";
 
 //fixme generating long names, takes too long
-const Filament filaments[size_t(filament_t::count)] = {
+const Filament filaments[size_t(filament_t::_last) + 1] = {
     { "---", BtnTexts::Get(Response::Cooldown), 0, 0, Response::Cooldown },
     { BtnTexts::Get(Response::PLA), pla_str, 215, 60, Response::PLA },
     { BtnTexts::Get(Response::PETG), pet_g_str, 230, 85, Response::PETG },
@@ -37,31 +38,32 @@ const Filament filaments[size_t(filament_t::count)] = {
     { BtnTexts::Get(Response::PP), pp_str, 240, 100, Response::PP },
 };
 
-static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament_t::count), "Filament count error.");
+static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament_t::_last) + 1, "Filament count error.");
 
-static filament_t filament_selected = filament_t::count;
 static filament_t filament_last_preheat = filament_t::NONE;
 
 //todo remove this variable after pause refactoring
 filament_t filament_to_load = DEFAULT_FILAMENT;
 
-void set_filament(filament_t filament) {
-    assert(filament < filament_t::count);
-    if (filament == filament_selected) {
-        return;
+static filament_t &get_filament_ref() {
+    static filament_t filament_selected = filament_t(variant_get_ui8(eeprom_get_var(EEVAR_FILAMENT_TYPE)));
+    if (size_t(filament_selected) > size_t(filament_t::_last)) {
+        filament_selected = filament_t::NONE;
     }
-    filament_selected = filament;
-    eeprom_set_var(EEVAR_FILAMENT_TYPE, variant8_ui8(size_t(filament)));
+    return filament_selected;
 }
 
 filament_t get_filament() {
-    if (filament_selected == filament_t::count) {
-        size_t fil = variant_get_ui8(eeprom_get_var(EEVAR_FILAMENT_TYPE));
-        if (fil >= size_t(filament_t::count))
-            fil = 0;
-        filament_selected = (filament_t)fil;
+    return get_filament_ref();
+}
+
+void set_filament(filament_t filament) {
+    assert(filament <= filament_t::_last);
+    if (filament == get_filament_ref()) {
+        return;
     }
-    return filament_selected;
+    get_filament_ref() = filament;
+    eeprom_set_var(EEVAR_FILAMENT_TYPE, variant8_ui8(size_t(filament)));
 }
 
 filament_t get_last_preheated_filament() {
@@ -73,10 +75,22 @@ void set_last_preheated_filament(filament_t filament) {
 }
 
 filament_t get_filament_from_string(const char *s, size_t len) {
-    for (size_t i = size_t(filament_t::NONE) + 1; i < size_t(filament_t::count); ++i) {
-        if ((strlen(filaments[size_t(i)].name) == len) && (!strncmp(s, filaments[size_t(i)].name, len))) {
+    for (size_t i = size_t(filament_t::NONE) + 1; i <= size_t(filament_t::_last); ++i) {
+        if ((strlen(filaments[i].name) == len) && (!strncmp(s, filaments[i].name, len))) {
             return static_cast<filament_t>(i);
         }
     }
     return filament_t::NONE;
+}
+
+filament_t Filaments::Find(Response resp) {
+    for (size_t i = size_t(filament_t::NONE) + 1; i <= size_t(filament_t::_last); ++i) {
+        if (filaments[i].response == resp) {
+            return static_cast<filament_t>(i);
+        }
+    }
+}
+
+const Filament &Filaments::Get(filament_t filament) {
+    return filaments[size_t(filament)];
 }
