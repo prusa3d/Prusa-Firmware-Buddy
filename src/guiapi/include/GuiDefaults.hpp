@@ -4,6 +4,7 @@
 #include "Rect16.h"
 
 struct GuiDefaults {
+    //TODO bind this values
     static constexpr size_t ScreenWidth = 240;
     static constexpr size_t ScreenHeight = 320;
     static constexpr size_t FooterHeight = 53;

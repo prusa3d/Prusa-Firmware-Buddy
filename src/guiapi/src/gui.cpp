@@ -26,6 +26,8 @@ constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
 constexpr Rect16 GuiDefaults::RectScreenBody;
 constexpr Rect16 GuiDefaults::RectScreen;
+constexpr Rect16 GuiDefaults::RectScreenNoFoot;
+constexpr Rect16 GuiDefaults::RectScreenNoHeader;
 constexpr Rect16 GuiDefaults::RectFooter;
 
 gui_loop_cb_t *gui_loop_cb = nullptr;
