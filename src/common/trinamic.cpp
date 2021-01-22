@@ -157,7 +157,7 @@ uint8_t tmc_get_diag() //0 = X, 2 = Y, 4 = Z, 8 = E
             zStep.write(Pin::State::low);
         if (step_mask & 8)
             e0Step.write(Pin::State::low);
-        tmc_delay(1024 * 2);
+        tmc_delay(10);
         xStep.write(Pin::State::high);
         yStep.write(Pin::State::high);
         zStep.write(Pin::State::high);
