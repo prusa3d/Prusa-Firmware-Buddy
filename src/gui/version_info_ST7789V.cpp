@@ -16,9 +16,7 @@
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
-
-static const constexpr uint32_t OTP_START_ADDR = 0x1FFF7800;
-static const constexpr uint32_t SERIAL_NUM_ADDR = 0x1FFF7808;
+#include "../common/otp.h"
 
 static const constexpr uint8_t VERSION_INFO_STR_MAXLEN = 150;
 
@@ -67,10 +65,10 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     //=============ACCESS IN ADDR=================
     for (uint8_t i = 0; i < 3; i++) {
-        board_version[i] = *(volatile uint8_t *)(OTP_START_ADDR + i);
+        board_version[i] = *(volatile uint8_t *)(OTP_BOARD_REVISION_ADDR + i);
     }
     for (uint8_t i = 0; i < 14; i++) {
-        serial_numbers[i] = *(volatile char *)(SERIAL_NUM_ADDR + i);
+        serial_numbers[i] = *(volatile char *)(OTP_SERIAL_NUMBER_ADDR + i);
     }
     serial_numbers[14] = '\0';
 
