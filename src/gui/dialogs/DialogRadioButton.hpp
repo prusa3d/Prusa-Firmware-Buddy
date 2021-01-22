@@ -10,11 +10,12 @@
 //if there is more labels than buttons, "additional buttons" are not acessible
 //if there is less labels than buttons, "remaining buttons" have no labels
 class RadioButton : public AddSuperWindow<window_t> {
+    static constexpr size_t max_buttons = 4;
     font_t *pfont;
     const PhaseResponses *responses;
     const PhaseTexts *texts;
 
-    void SetBtnCount(uint8_t cnt) { flags.mem_array_u08[0] = cnt & (RESPONSE_BITS + 1); }
+    void SetBtnCount(uint8_t cnt) { flags.mem_array_u08[0] = cnt & ((1 << RESPONSE_BITS) - 1); }
     const uint8_t GetBtnCount() const { return flags.mem_array_u08[0]; }
 
     static void button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected);
