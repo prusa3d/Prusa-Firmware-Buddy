@@ -14,6 +14,7 @@
 #include "ScreenFactory.hpp"
 #include "screen_menus.hpp"
 #include "gui_media_events.hpp"
+#include "window_dlg_load_unload.hpp"
 
 #include "i18n.h"
 
@@ -49,7 +50,7 @@ screen_home_data_t::screen_home_data_t()
     , footer(this)
     , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_prusa_printer_logo)
     , w_buttons { { this, Rect16(), 0, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuPreheat); } },
+        { this, Rect16(), 0, []() { PreheatStatus::Dialog(PreheatMode::None, RetAndCool_t::Both); } },
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuSettings); } },

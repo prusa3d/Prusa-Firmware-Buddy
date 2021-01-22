@@ -11,22 +11,13 @@
 #include "dbg.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "DialogHandler.hpp"
 #include "sound.hpp"
 
 enum {
     F_EEPROM = 0x01, // filament is known
     F_SENSED = 0x02  // filament is not in sensor
 };
-
-/// Sets temperature of nozzle not to ooze before print (MBL)
-void setPreheatTemp() {
-    /// read from Marlin, not from EEPROM since it's not in sync
-    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
-    marlin_gcode_printf("M104 S%d D%d", (int)Filaments::PreheatTemp, (int)vars->target_nozzle);
-}
-void clrPreheatTemp() {
-    marlin_gcode("M104 S0");
-}
 
 /*****************************************************************************/
 //parent
@@ -40,8 +31,6 @@ protected:
 public:
     explicit MI_event_dispatcher(string_view_utf8 label)
         : WI_LABEL_t(label, 0, is_enabled_t::yes, is_hidden_t::no) {}
-
-    virtual string_view_utf8 GetHeaderAlterLabel() = 0;
     virtual void Do() = 0;
 };
 
@@ -49,18 +38,14 @@ public:
 //MI_LOAD
 class MI_LOAD : public MI_event_dispatcher {
     constexpr static const char *const label = N_("Load Filament");
-    constexpr static const char *const header_label = N_("LOAD FILAMENT");
     constexpr static const char *const warning_loaded = N_("Filament appears to be already loaded, are you sure you want to load it anyway?");
 
 public:
     MI_LOAD()
         : MI_event_dispatcher(_(label)) {}
-    virtual string_view_utf8 GetHeaderAlterLabel() override {
-        return _(header_label);
-    }
     virtual void Do() override {
         if ((Filaments::CurrentIndex() == filament_t::NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
-            gui_dlg_load(GetHeaderAlterLabel()) == dlg_result_t::ok ? setPreheatTemp() : clrPreheatTemp();
+            PreheatStatus::Dialog(PreheatMode::Load, RetAndCool_t::Return);
         }
     }
 };
@@ -74,12 +59,9 @@ class MI_UNLOAD : public MI_event_dispatcher {
 public:
     MI_UNLOAD()
         : MI_event_dispatcher(_(label)) {}
-    virtual string_view_utf8 GetHeaderAlterLabel() override {
-        return _(header_label);
-    }
     virtual void Do() override {
-        gui_dlg_unload(GetHeaderAlterLabel());
-        Sound_Stop();
+        PreheatStatus::Dialog(PreheatMode::Unload, RetAndCool_t::Return);
+        Sound_Stop(); // TODO what is Sound_Stop(); doing here?
     }
 };
 
@@ -92,14 +74,9 @@ class MI_CHANGE : public MI_event_dispatcher {
 public:
     MI_CHANGE()
         : MI_event_dispatcher(_(label)) {}
-    virtual string_view_utf8 GetHeaderAlterLabel() override {
-        return _(header_label);
-    }
     virtual void Do() override {
-        if (gui_dlg_unload(GetHeaderAlterLabel()) == dlg_result_t::ok) {
-            Sound_Stop();
-            gui_dlg_load(GetHeaderAlterLabel()) == dlg_result_t::ok ? setPreheatTemp() : clrPreheatTemp();
-        }
+        PreheatStatus::Dialog(PreheatMode::Change_phase1, RetAndCool_t::Return);
+        Sound_Stop(); // TODO what is Sound_Stop(); doing here?
     }
 };
 
@@ -112,11 +89,8 @@ class MI_PURGE : public MI_event_dispatcher {
 public:
     MI_PURGE()
         : MI_event_dispatcher(_(label)) {}
-    virtual string_view_utf8 GetHeaderAlterLabel() override {
-        return _(header_label);
-    }
     virtual void Do() override {
-        gui_dlg_purge(GetHeaderAlterLabel()) == dlg_result_t::ok ? setPreheatTemp() : clrPreheatTemp();
+        PreheatStatus::Dialog(PreheatMode::Purge, RetAndCool_t::Return);
     }
 };
 
@@ -152,10 +126,6 @@ private:
         }
     }
 };
-
-ScreenFactory::UniquePtr GetScreenMenuFilament() {
-    return ScreenFactory::Screen<ScreenMenuFilament>();
-}
 
 void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     deactivate_item();
@@ -204,4 +174,8 @@ void ScreenMenuFilament::deactivate_item() {
         ena<MI_PURGE>();
         break;
     }
+}
+
+ScreenFactory::UniquePtr GetScreenMenuFilament() {
+    return ScreenFactory::Screen<ScreenMenuFilament>();
 }

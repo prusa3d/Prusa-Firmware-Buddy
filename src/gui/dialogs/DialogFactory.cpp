@@ -5,6 +5,15 @@
 #include "window_dlg_preheat.hpp"
 DialogFactory::mem_space DialogFactory::all_dialogs;
 
+constexpr static const char change[] = N_("CHANGE FILAMENT");
+constexpr static const char load[] = N_("LOAD FILAMENT");
+constexpr static const char unload[] = N_("UNLOAD FILAMENT");
+constexpr static const char purge[] = N_("PURGE FILAMENT");
+constexpr static const char load_preheat[] = N_("PREHEAT for LOAD");
+constexpr static const char unload_preheat[] = N_("PREHEAT for UNLOAD");
+constexpr static const char purge_preheat[] = N_("PREHEAT for PURGE");
+constexpr static const char index_error[] = "INDEX ERROR"; // intentionally not to be translated
+
 //screens .. not used, return nullptr (to pass check in GetAll)
 static_unique_ptr<IDialogMarlin> DialogFactory::serial_printing(uint8_t /*data*/) {
     return nullptr;
@@ -17,11 +26,7 @@ static_unique_ptr<IDialogMarlin> DialogFactory::first_layer(uint8_t /*data*/) {
 }
 
 static_unique_ptr<IDialogMarlin> DialogFactory::load_unload(uint8_t data) {
-    static const char change[] = N_("CHANGE FILAMENT");
-    static const char load[] = N_("LOAD FILAMENT");
-    static const char unload[] = N_("UNLOAD FILAMENT");
-    static const char purge[] = N_("PURGE FILAMENT");
-    static const char def[] = "INDEX ERROR"; // intentionally not to be translated
+
     string_view_utf8 name;
     switch (static_cast<LoadUnloadMode>(data)) {
     case LoadUnloadMode::Change:
@@ -39,7 +44,7 @@ static_unique_ptr<IDialogMarlin> DialogFactory::load_unload(uint8_t data) {
         name = _(purge);
         break;
     default:
-        name = string_view_utf8::MakeCPUFLASH((const uint8_t *)def); //not translated
+        name = string_view_utf8::MakeCPUFLASH((const uint8_t *)index_error); //not translated
     }
     return makePtr<DialogLoadUnload>(name);
 }
@@ -51,9 +56,32 @@ static_unique_ptr<IDialogMarlin> DialogFactory::G162(uint8_t data) {
 }
 
 static_unique_ptr<IDialogMarlin> DialogFactory::Preheat(uint8_t data) {
-    static const char *nm = N_("XXXXXXX");
-    string_view_utf8 name = _(nm);
-    return makePtr<DialogMenuPreheat>(name);
+    PreheatData type(data);
+    string_view_utf8 name;
+    switch (type.Mode()) {
+    case PreheatMode::None:
+        name = string_view_utf8::MakeNULLSTR();
+        break;
+    case PreheatMode::Load:
+        name = _(load_preheat);
+        break;
+    case PreheatMode::Unload:
+        name = _(unload_preheat);
+        break;
+    case PreheatMode::Purge:
+        name = _(purge_preheat);
+        break;
+    case PreheatMode::Change_phase1:
+        name = _(unload_preheat); //use unload caption, not a bug
+        break;
+    case PreheatMode::Change_phase2:
+        name = _(load_preheat); //use load caption, not a bug
+        break;
+    default:
+        name = string_view_utf8::MakeCPUFLASH((const uint8_t *)index_error); //not translated
+    }
+
+    return makePtr<DialogMenuPreheat>(name, type);
 }
 
 DialogFactory::Ctors DialogFactory::GetAll() {
