@@ -8,7 +8,6 @@
 
 screen_t::screen_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
     : AddSuperWindow<window_frame_t>(parent, rect, type, timeout, serial)
-    , captured_normal_window(nullptr)
     , first_dialog(nullptr)
     , last_dialog(nullptr)
     , first_strong_dialog(nullptr)
@@ -137,36 +136,6 @@ void screen_t::unregisterSubWin(window_t &win) {
     hideSubwinsBehindDialogs();
 }
 
-bool screen_t::CaptureNormalWindow(window_t &win) {
-    if (win.GetParent() != this || win.GetType() != win_type_t::normal)
-        return false;
-    window_t *last_captured = GetCapturedWindow();
-    if (last_captured) {
-        last_captured->WindowEvent(this, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
-    }
-    captured_normal_window = &win;
-    win.WindowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
-    gui_invalidate();
-
-    return true;
-}
-
-void screen_t::ReleaseCaptureOfNormalWindow() {
-    if (captured_normal_window) {
-        captured_normal_window->WindowEvent(this, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
-    }
-    captured_normal_window = nullptr;
-    gui_invalidate();
-}
-
-bool screen_t::IsChildCaptured() const {
-    return captured_normal_window != nullptr;
-}
-
-window_t *screen_t::getCapturedNormalWin() const {
-    return captured_normal_window;
-}
-
 window_t *screen_t::getFirstDialog() const {
     return first_dialog;
 }
@@ -196,7 +165,5 @@ window_t *screen_t::GetCapturedWindow() {
         return last_strong_dialog->GetCapturedWindow();
     if (last_dialog)
         return last_dialog->GetCapturedWindow();
-    if (captured_normal_window)
-        return captured_normal_window->GetCapturedWindow();
-    return this;
+    return super::GetCapturedWindow();
 }
