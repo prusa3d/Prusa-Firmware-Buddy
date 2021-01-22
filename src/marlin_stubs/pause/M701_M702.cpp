@@ -102,7 +102,7 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-    filament_to_load = DEFAULT_FILAMENT;
+    Filaments::SetToBeLoaded(Filaments::Default);
     const char *text_begin = 0;
     if (parser.seen('S')) {
         text_begin = strchr(parser.string_arg, '"');
@@ -110,9 +110,9 @@ void GcodeSuite::M701() {
             ++text_begin; //move pointer from '"' to first letter
             const char *text_end = strchr(text_begin, '"');
             if (text_end) {
-                filament_t filament = get_filament_from_string(text_begin, text_end - text_begin);
+                filament_t filament = Filaments::FindByName(text_begin, text_end - text_begin);
                 if (filament != filament_t::NONE) {
-                    filament_to_load = filament;
+                    Filaments::SetToBeLoaded(filament);
                 }
             }
         }

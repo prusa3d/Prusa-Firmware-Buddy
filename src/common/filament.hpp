@@ -30,25 +30,29 @@ enum class filament_t {
     _last = PP
 };
 
-static const filament_t DEFAULT_FILAMENT = filament_t::PLA;
-
-static const float PREHEAT_TEMP = 170.f;
-
-//todo remove this variable after pause refactoring
-extern filament_t filament_to_load;
-
-extern const Filament filaments[size_t(filament_t::_last) + 1];
-
-void set_filament(filament_t filament);
-
-filament_t get_filament();
-filament_t get_last_preheated_filament();
-void set_last_preheated_filament(filament_t filament);
-
-filament_t get_filament_from_string(const char *s, size_t len);
-
 class Filaments {
+    static filament_t filament_to_load;
+    static filament_t filament_last_preheat;
+
+    static filament_t &get_ref();
+
 public:
+    using Array = const Filament[size_t(filament_t::_last) + 1];
+
+    static constexpr filament_t Default = filament_t::PLA;
+    static constexpr float PreheatTemp = 170.f;
+
     static filament_t Find(Response resp);
+    static filament_t FindByName(const char *s, size_t len);
+
     static const Filament &Get(filament_t filament);
+    static const Filament &Current();
+    static const filament_t CurrentIndex();
+    static void Set(filament_t filament);
+
+    static filament_t GetToBeLoaded();
+    static void SetToBeLoaded(filament_t filament);
+
+    static filament_t GetLastPreheated();
+    static void SetLastPreheated(filament_t filament);
 };

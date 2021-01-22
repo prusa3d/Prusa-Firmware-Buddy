@@ -581,7 +581,7 @@ if(GUI)
             src/gui/screen_menu_settings.cpp
             src/gui/window_header.cpp
             src/gui/screen_sysinf.cpp
-            src/gui/screen_menu_version_info.cpp
+            src/gui/version_info_ST7789V.cpp
             src/gui/test_display.cpp
             src/gui/screen_splash.cpp
             src/gui/screen_menu_service.cpp

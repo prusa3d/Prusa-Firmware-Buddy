@@ -13,7 +13,7 @@ dlg_result_t gui_dlg_load(string_view_utf8 caption) {
     if (filament == filament_t::NONE) {
         return dlg_result_t::aborted;
     }
-    marlin_gcode_printf("M701 S\"%s\"", filaments[size_t(filament)].name);
+    marlin_gcode_printf("M701 S\"%s\"", Filaments::Get(filament).name);
     DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load));
     return dlg_result_t::ok;
 }
@@ -36,7 +36,7 @@ dlg_result_t gui_dlg_load_forced(void) {
     if (filament == filament_t::NONE) {
         return dlg_result_t::aborted; //dlg_result_t::aborted should not happen
     }
-    marlin_gcode_printf("M701 S\"%s\"", filaments[size_t(filament)].name);
+    marlin_gcode_printf("M701 S\"%s\"", Filaments::Get(filament).name);
     DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load));
     return dlg_result_t::ok;
 }

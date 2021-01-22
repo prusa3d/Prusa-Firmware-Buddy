@@ -70,11 +70,7 @@ DialogFactory::Ctors DialogFactory::GetAll() {
     ret[size_t(ClientFSM::SelftestHeat)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(makePtr<DialogSelftestTemp>()); };
 
     if (std::find(std::begin(ret), std::end(ret), nullptr) != std::end(ret))
-        bsod("Error missing dialog Ctor");
+        bsod("Error missing dialog Ctor"); // GUI init will throw this
 
     return ret;
-}
-
-void DialogFactory::size_error(size_t memspace, size_t dialog) {
-    bsod("Error dialog does not fit %d, %d", memspace, dialog);
 }

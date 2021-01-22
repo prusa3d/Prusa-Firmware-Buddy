@@ -39,10 +39,10 @@ using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On,
 
 template <class T>
 filament_t make_preheat_dialog(string_view_utf8 caption) {
-    set_last_preheated_filament(filament_t::NONE);
+    Filaments::SetLastPreheated(filament_t::NONE);
     T dlg(caption, Screens::Access()->Get());
     create_blocking_dialog_from_normal_window(dlg);
-    return get_last_preheated_filament();
+    return Filaments::GetLastPreheated();
 }
 
 filament_t gui_dlg_preheat(string_view_utf8 caption) {
@@ -50,16 +50,16 @@ filament_t gui_dlg_preheat(string_view_utf8 caption) {
 }
 
 filament_t gui_dlg_preheat_autoselect_if_able(string_view_utf8 caption) {
-    const filament_t fil = get_filament();
+    const filament_t fil = Filaments::CurrentIndex();
     if (fil == filament_t::NONE) {
         //no filament selected
         return gui_dlg_preheat(caption);
     } else {
         //when filament is known, but heating is off, just turn it on and do not ask
         marlin_vars_t *p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
-        if (p_vars->target_nozzle != filaments[size_t(fil)].nozzle) {
-            marlin_gcode_printf("M104 S%d", (int)filaments[size_t(fil)].nozzle);
-            marlin_gcode_printf("M140 S%d", (int)filaments[size_t(fil)].heatbed);
+        if (p_vars->target_nozzle != Filaments::Get(fil).nozzle) {
+            marlin_gcode_printf("M104 S%d", (int)Filaments::Get(fil).nozzle);
+            marlin_gcode_printf("M140 S%d", (int)Filaments::Get(fil).heatbed);
         }
     }
     return fil;
@@ -72,16 +72,16 @@ filament_t gui_dlg_preheat_forced(string_view_utf8 caption) {
 
 //no return option
 filament_t gui_dlg_preheat_autoselect_if_able_forced(string_view_utf8 caption) {
-    const filament_t fil = get_filament();
+    const filament_t fil = Filaments::CurrentIndex();
     if (fil == filament_t::NONE) {
         //no filament selected
         return gui_dlg_preheat_forced(caption);
     } else {
         //when filament is known, but heating is off, just turn it on and do not ask
         marlin_vars_t *p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
-        if (p_vars->target_nozzle != filaments[size_t(fil)].nozzle) {
-            marlin_gcode_printf("M104 S%d", (int)filaments[size_t(fil)].nozzle);
-            marlin_gcode_printf("M140 S%d", (int)filaments[size_t(fil)].heatbed);
+        if (p_vars->target_nozzle != Filaments::Get(fil).nozzle) {
+            marlin_gcode_printf("M104 S%d", (int)Filaments::Get(fil).nozzle);
+            marlin_gcode_printf("M140 S%d", (int)Filaments::Get(fil).heatbed);
         }
     }
     return fil;
@@ -90,7 +90,7 @@ filament_t gui_dlg_preheat_autoselect_if_able_forced(string_view_utf8 caption) {
 /*****************************************************************************/
 //DialogMenuPreheat::I_MI_Filament
 void DialogMenuPreheat::I_MI_Filament::click_at(filament_t filament_index) {
-    const Response response = filaments[size_t(filament_index)].response;
+    const Response response = Filaments::Get(filament_index).response;
     marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
 }
 

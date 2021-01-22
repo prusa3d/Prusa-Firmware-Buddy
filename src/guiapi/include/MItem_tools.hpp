@@ -372,7 +372,7 @@ template <filament_t T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(_(filaments[size_t(T)].long_name)) {}
+        : I_MI_Filament(_(Filaments::Get(T).long_name)) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {

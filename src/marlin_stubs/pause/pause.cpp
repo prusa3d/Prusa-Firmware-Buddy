@@ -285,7 +285,7 @@ bool Pause::loadLoop(is_standalone_t standalone) {
     case LoadPhases_t::load_in_gear: //slow load
         setPhase(PhasesLoadUnload::Inserting, 10);
         do_e_move_notify_progress_coldextrude(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
-        set_filament(filament_to_load);
+        Filaments::Set(Filaments::GetToBeLoaded());
         set(LoadPhases_t::wait_temp);
         break;
     case LoadPhases_t::wait_temp:
@@ -439,7 +439,7 @@ void Pause::unloadLoop(is_standalone_t standalone) {
 
         planner.settings.retract_acceleration = saved_acceleration;
 
-        set_filament(filament_t::NONE);
+        Filaments::Set(filament_t::NONE);
         setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
         set(standalone == is_standalone_t::yes ? UnloadPhases_t::_finish : UnloadPhases_t::unloaded__ask);
     } break;

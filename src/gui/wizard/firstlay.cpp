@@ -20,7 +20,7 @@ enum {
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK() {
     uint8_t filament = 0;
-    filament |= get_filament() != filament_t::NONE ? FKNOWN : 0;
+    filament |= Filaments::CurrentIndex() != filament_t::NONE ? FKNOWN : 0;
     filament |= fs_get_state() == fsensor_t::NoFilament ? F_NOTSENSED : 0;
 
     size_t def_bt = filament == (FKNOWN | F_NOTSENSED) ? 1 : 0; //default button
@@ -68,7 +68,7 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK() {
 }
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT() {
-    set_filament(gui_dlg_preheat_forced(_("Select Filament Type")));
+    Filaments::Set(gui_dlg_preheat_forced(_("Select Filament Type")));
     return WizardState_t::FIRSTLAY_MSBX_CALIB;
 }
 
@@ -137,9 +137,9 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_START_PRINT() {
 WizardState_t StateFnc_FIRSTLAY_PRINT() {
     DialogHandler::Open(ClientFSM::FirstLayer, 0); //open screen now, it would auto open later (on G26)
 
-    const int temp_nozzle_preheat = int(PREHEAT_TEMP);
-    const int temp_nozzle = std::max(int(marlin_vars()->display_nozzle), int(filaments[size_t(get_filament())].nozzle));
-    const int temp_bed = std::max(int(marlin_vars()->target_bed), int(filaments[size_t(get_filament())].heatbed));
+    const int temp_nozzle_preheat = int(Filaments::PreheatTemp);
+    const int temp_nozzle = std::max(int(marlin_vars()->display_nozzle), int(Filaments::Current().nozzle));
+    const int temp_bed = std::max(int(marlin_vars()->target_bed), int(Filaments::Current().heatbed));
 
     marlin_gcode("M73 P0 R0");                                             // reset progress
     marlin_gcode_printf("M104 S%d D%d", temp_nozzle_preheat, temp_nozzle); // nozzle target

@@ -12,10 +12,8 @@
 class DialogFactory {
     DialogFactory() = delete;
     DialogFactory(const DialogFactory &) = delete;
-    using mem_space = std::aligned_union<0, DialogMenuPreheat, DialogLoadUnload>::type;
+    using mem_space = std::aligned_union<0, DialogLoadUnload, DialogG162, DialogSelftestAxis, DialogSelftestFans, DialogSelftestTemp, DialogMenuPreheat>::type;
     static mem_space all_dialogs;
-
-    static void size_error(size_t memspace, size_t dialog);
 
     //safer than make_static_unique_ptr, checks storage size
     template <class T, class... Args>

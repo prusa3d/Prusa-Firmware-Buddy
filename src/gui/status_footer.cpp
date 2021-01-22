@@ -70,7 +70,7 @@ void status_footer_t::update_nozzle(const marlin_vars_t *vars) {
         return;
 
     /// nozzle state
-    if (nearlyEqual(vars->target_nozzle, PREHEAT_TEMP, 0.4999f) && vars->display_nozzle > vars->target_nozzle) { /// preheat mode
+    if (nearlyEqual(vars->target_nozzle, Filaments::PreheatTemp, 0.4999f) && vars->display_nozzle > vars->target_nozzle) { /// preheat mode
         nozzle_state = HeatState::PREHEAT;
         if (vars->target_nozzle > vars->temp_nozzle + heating_difference) {
             nozzle_state = HeatState::HEATING;
@@ -173,10 +173,10 @@ void status_footer_t::update_z_axis() {
 }
 
 void status_footer_t::update_filament() {
-    if (0 == strcmp(filament, filaments[size_t(get_filament())].name))
+    if (0 == strcmp(filament, Filaments::Current().name))
         return;
 
-    filament = filaments[size_t(get_filament())].name;
+    filament = Filaments::Current().name;
     wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filament));
 }
 
@@ -275,7 +275,7 @@ status_footer_t::status_footer_t(window_t *parent)
 
     wt_filament.font = resource_font(IDR_FNT_SPECIAL);
     wt_filament.SetAlignment(ALIGN_CENTER);
-    wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[size_t(get_filament())].name));
+    wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)Filaments::Current().name));
 
     filament = emptystr;
 
