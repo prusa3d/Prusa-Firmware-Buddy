@@ -8,7 +8,7 @@ string_view_utf8 IScreenMenu::no_label = string_view_utf8::MakeCPUFLASH((const u
 IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTER)
     : AddSuperWindow<screen_t>(parent, GuiDefaults::RectScreen, parent != nullptr ? win_type_t::dialog : win_type_t::normal)
     , header(this)
-    , menu(this, FOOTER == EFooter::On ? GuiDefaults::RectScreenBody : GuiDefaults::RectScreenBodyNoFoot, nullptr)
+    , menu(this, FOOTER == EFooter::On ? GuiDefaults::RectScreenNoHeader : GuiDefaults::RectScreenBody, nullptr)
     , footer(this) {
 
     header.SetText(label);

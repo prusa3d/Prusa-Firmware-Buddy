@@ -147,7 +147,7 @@ static void print_button_press() {
     bool approved = true;
     if (!valid_printer_settings) {
         switch (MsgBoxTitle(_("WARNING:"), _("This G-CODE was set up for another printer type."),
-            Responses_OkCancel, 0, GuiDefaults::RectScreenBodyNoFoot)) {
+            Responses_OkCancel, 0, GuiDefaults::RectScreenBody)) {
         case Response::Ok:
             break;
         case Response::Cancel:
@@ -221,7 +221,7 @@ void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, wi
         // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
         switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name),
             _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
-            btns, 0, GuiDefaults::RectScreenBodyNoFoot)) {
+            btns, 0, GuiDefaults::RectScreenBody)) {
         case Response::Yes: //YES - load
             gui_dlg_load_forced();
             break;

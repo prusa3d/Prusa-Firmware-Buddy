@@ -18,6 +18,8 @@ protected:
 
 public:
     bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress) { return change(phs, progress_tot, progress); }
+    IDialogMarlin(Rect16 rc = GuiDefaults::RectScreenBody)
+        : IDialog(rc) {}
 };
 
 //abstract parent containing general code for any number of phases
