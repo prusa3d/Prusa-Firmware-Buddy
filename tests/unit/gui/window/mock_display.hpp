@@ -2,7 +2,7 @@
  * @file mock_display.hpp
  * @author Radek Vana
  * @brief class for display emulation
- *  all methods are static, because I need to pass them ad function pointers
+ *  all methods are static, because I need to pass them by function pointers
  * @date 2021-01-11
  */
 

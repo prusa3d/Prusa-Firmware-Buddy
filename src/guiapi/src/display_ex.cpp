@@ -138,7 +138,7 @@ public:
         : p((PTR_TYPE *)getBuff())
         , clr_bg(clr_bg)
         , clr_fg(clr_fg) {
-        for (size_t i = 0; i <= pms; i++)
+        for (size_t i = 0; i < std::min(LEN, size_t(pms + 1)); i++)
             clr_native[i] = color_to_native(color_alpha(clr_bg, clr_fg, 255 * i / pms));
     }
     void inline Insert(size_t pos) {
