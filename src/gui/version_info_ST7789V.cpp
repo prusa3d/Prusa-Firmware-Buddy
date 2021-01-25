@@ -16,24 +16,44 @@
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
-
-static const constexpr uint32_t OTP_START_ADDR = 0x1FFF7800;
-static const constexpr uint32_t SERIAL_NUM_ADDR = 0x1FFF7808;
+#include "../common/otp.h"
 
 static const constexpr uint8_t VERSION_INFO_STR_MAXLEN = 150;
 
-constexpr static const HelperConfig HelpCfg = { 10, IDR_FNT_NORMAL };
-using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpCfg, MI_RETURN>;
+using MenuContainer = WinMenuContainer<MI_RETURN>;
 
-class ScreenMenuVersionInfo : public Screen {
-public:
+class ScreenMenuVersionInfo : public AddSuperWindow<screen_t> {
     std::array<char, VERSION_INFO_STR_MAXLEN> version_info_str;
     constexpr static const char *label = N_("VERSION INFO");
+    static constexpr size_t helper_lines = 10;
+    static constexpr int helper_font = IDR_FNT_NORMAL;
+
+    MenuContainer container;
+    window_menu_t menu;
+    window_header_t header;
+    window_text_t help;
+    status_footer_t footer;
+
+public:
     ScreenMenuVersionInfo();
+
+protected:
+    static inline uint16_t get_help_h() {
+        return helper_lines * (resource_font(helper_font)->h);
+    }
 };
 
 ScreenMenuVersionInfo::ScreenMenuVersionInfo()
-    : Screen(_(label)) {
+    : AddSuperWindow<screen_t>(nullptr, GuiDefaults::RectScreen)
+    , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
+    , header(this)
+    , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectFooter.Top()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
+    , footer(this) {
+    header.SetText(_(label));
+    help.font = resource_font(helper_font);
+    menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
+    CaptureNormalWindow(menu);        // set capture to list
+
     //=============SCREEN INIT===============
     header.SetIcon(IDR_PNG_info_16px);
 
@@ -45,10 +65,10 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     //=============ACCESS IN ADDR=================
     for (uint8_t i = 0; i < 3; i++) {
-        board_version[i] = *(volatile uint8_t *)(OTP_START_ADDR + i);
+        board_version[i] = *(volatile uint8_t *)(OTP_BOARD_REVISION_ADDR + i);
     }
     for (uint8_t i = 0; i < 14; i++) {
-        serial_numbers[i] = *(volatile char *)(SERIAL_NUM_ADDR + i);
+        serial_numbers[i] = *(volatile char *)(OTP_SERIAL_NUMBER_ADDR + i);
     }
     serial_numbers[14] = '\0';
 

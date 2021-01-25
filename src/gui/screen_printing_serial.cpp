@@ -2,7 +2,7 @@
 #include "screen_printing_serial.hpp"
 #include "config.h"
 #include "marlin_client.h"
-#include "filament.h"
+#include "filament.hpp"
 #include "marlin_server.h"
 #include "guitypes.hpp"    //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick

@@ -17,73 +17,73 @@
 #include "ScreenHandler.hpp"
 #include "IDialog.hpp"
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
-    MI_Filament<FILAMENT_PLA>,
-    MI_Filament<FILAMENT_PETG>,
-    MI_Filament<FILAMENT_ASA>,
-    MI_Filament<FILAMENT_ABS>,
-    MI_Filament<FILAMENT_PC>,
-    MI_Filament<FILAMENT_FLEX>,
-    MI_Filament<FILAMENT_HIPS>,
-    MI_Filament<FILAMENT_PP>,
-    MI_Filament<FILAMENT_NONE>>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN,
+    MI_Filament<filament_t::PLA>,
+    MI_Filament<filament_t::PETG>,
+    MI_Filament<filament_t::ASA>,
+    MI_Filament<filament_t::ABS>,
+    MI_Filament<filament_t::PC>,
+    MI_Filament<filament_t::FLEX>,
+    MI_Filament<filament_t::HIPS>,
+    MI_Filament<filament_t::PP>,
+    MI_Filament<filament_t::NONE>>;
 
-using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
-    MI_Filament<FILAMENT_PLA>,
-    MI_Filament<FILAMENT_PETG>,
-    MI_Filament<FILAMENT_ASA>,
-    MI_Filament<FILAMENT_ABS>,
-    MI_Filament<FILAMENT_PC>,
-    MI_Filament<FILAMENT_FLEX>,
-    MI_Filament<FILAMENT_HIPS>,
-    MI_Filament<FILAMENT_PP>,
-    MI_Filament<FILAMENT_NONE>>;
+// is used in firstlay calibration and print preview, does not have return and cooldown
+using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On,
+    MI_Filament<filament_t::PLA>,
+    MI_Filament<filament_t::PETG>,
+    MI_Filament<filament_t::ASA>,
+    MI_Filament<filament_t::ABS>,
+    MI_Filament<filament_t::PC>,
+    MI_Filament<filament_t::FLEX>,
+    MI_Filament<filament_t::HIPS>,
+    MI_Filament<filament_t::PP>>;
 
 template <class T>
-FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
-    set_last_preheated_filament(FILAMENT_NONE);
-    T dlg(caption, Screens::Access()->Get(), GuiDefaults::RectScreenBody);
+filament_t make_preheat_dialog(string_view_utf8 caption) {
+    Filaments::SetLastPreheated(filament_t::NONE);
+    T dlg(caption, Screens::Access()->Get());
     create_blocking_dialog_from_normal_window(dlg);
-    return get_last_preheated_filament();
+    return Filaments::GetLastPreheated();
 }
 
-FILAMENT_t gui_dlg_preheat(string_view_utf8 caption) {
+filament_t gui_dlg_preheat(string_view_utf8 caption) {
     return make_preheat_dialog<Screen>(caption);
 }
 
-FILAMENT_t gui_dlg_preheat_autoselect_if_able(string_view_utf8 caption) {
-    const FILAMENT_t fil = get_filament();
-    if (fil == FILAMENT_NONE) {
+filament_t gui_dlg_preheat_autoselect_if_able(string_view_utf8 caption) {
+    const filament_t fil = Filaments::CurrentIndex();
+    if (fil == filament_t::NONE) {
         //no filament selected
         return gui_dlg_preheat(caption);
     } else {
         //when filament is known, but heating is off, just turn it on and do not ask
         marlin_vars_t *p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
-        if (p_vars->target_nozzle != filaments[fil].nozzle) {
-            marlin_gcode_printf("M104 S%d", (int)filaments[fil].nozzle);
-            marlin_gcode_printf("M140 S%d", (int)filaments[fil].heatbed);
+        if (p_vars->target_nozzle != Filaments::Get(fil).nozzle) {
+            marlin_gcode_printf("M104 S%d", (int)Filaments::Get(fil).nozzle);
+            marlin_gcode_printf("M140 S%d", (int)Filaments::Get(fil).heatbed);
         }
     }
     return fil;
 }
 
 //no return option
-FILAMENT_t gui_dlg_preheat_forced(string_view_utf8 caption) {
+filament_t gui_dlg_preheat_forced(string_view_utf8 caption) {
     return make_preheat_dialog<ScreenNoRet>(caption);
 }
 
 //no return option
-FILAMENT_t gui_dlg_preheat_autoselect_if_able_forced(string_view_utf8 caption) {
-    const FILAMENT_t fil = get_filament();
-    if (fil == FILAMENT_NONE) {
+filament_t gui_dlg_preheat_autoselect_if_able_forced(string_view_utf8 caption) {
+    const filament_t fil = Filaments::CurrentIndex();
+    if (fil == filament_t::NONE) {
         //no filament selected
         return gui_dlg_preheat_forced(caption);
     } else {
         //when filament is known, but heating is off, just turn it on and do not ask
         marlin_vars_t *p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
-        if (p_vars->target_nozzle != filaments[fil].nozzle) {
-            marlin_gcode_printf("M104 S%d", (int)filaments[fil].nozzle);
-            marlin_gcode_printf("M140 S%d", (int)filaments[fil].heatbed);
+        if (p_vars->target_nozzle != Filaments::Get(fil).nozzle) {
+            marlin_gcode_printf("M104 S%d", (int)Filaments::Get(fil).nozzle);
+            marlin_gcode_printf("M140 S%d", (int)Filaments::Get(fil).heatbed);
         }
     }
     return fil;

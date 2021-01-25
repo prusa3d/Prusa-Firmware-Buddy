@@ -16,14 +16,6 @@ enum class EHeader { On,
 enum class EFooter { On,
     Off };
 
-struct HelperConfig {
-    uint16_t lines;
-    uint16_t font_id;
-};
-
-constexpr static const HelperConfig HelpLines_None = { 0, IDR_FNT_SPECIAL };
-constexpr static const HelperConfig HelpLines_Default = { 4, IDR_FNT_SPECIAL };
-
 //parent to not repeat code in templates
 class IScreenMenu : public AddSuperWindow<screen_t> {
 protected:
@@ -31,22 +23,21 @@ protected:
     static string_view_utf8 no_label;
     window_header_t header;
     window_menu_t menu;
-    window_text_t help;
     status_footer_t footer;
 
 public:
-    IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
+    IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTER);
     void unconditionalDrawItem(uint8_t index);
 };
 
-template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
+template <EHeader HEADER, EFooter FOOTER, class... T>
 class ScreenMenu : public AddSuperWindow<IScreenMenu> {
 protected:
     //std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
     WinMenuContainer<T...> container;
 
 public:
-    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr, Rect16 menu_item_rect = GuiDefaults::RectScreenBody);
+    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr);
 
     //compiletime access by index
     template <std::size_t I>
@@ -60,9 +51,9 @@ public:
     }
 };
 
-template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
-ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(string_view_utf8 label, window_t *parent, Rect16 menu_item_rect)
-    : AddSuperWindow<IScreenMenu>(parent, label, menu_item_rect, FOOTER, HELP_CNF.lines, HELP_CNF.font_id) {
+template <EHeader HEADER, EFooter FOOTER, class... T>
+ScreenMenu<HEADER, FOOTER, T...>::ScreenMenu(string_view_utf8 label, window_t *parent)
+    : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
     menu.pContainer = &container;
     menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
 }

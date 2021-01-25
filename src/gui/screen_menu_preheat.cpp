@@ -2,23 +2,23 @@
 
 #include "screen_menus.hpp"
 #include "screen_menu.hpp"
-#include "filament.h"
+#include "filament.hpp"
 #include "marlin_client.h"
 #include "screen_menu.hpp"
 #include "MItem_tools.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
-    MI_Filament<FILAMENT_PLA>,
-    MI_Filament<FILAMENT_PETG>,
-    MI_Filament<FILAMENT_ASA>,
-    MI_Filament<FILAMENT_ABS>,
-    MI_Filament<FILAMENT_PC>,
-    MI_Filament<FILAMENT_FLEX>,
-    MI_Filament<FILAMENT_HIPS>,
-    MI_Filament<FILAMENT_PP>,
-    MI_Filament<FILAMENT_NONE>>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN,
+    MI_Filament<filament_t::PLA>,
+    MI_Filament<filament_t::PETG>,
+    MI_Filament<filament_t::ASA>,
+    MI_Filament<filament_t::ABS>,
+    MI_Filament<filament_t::PC>,
+    MI_Filament<filament_t::FLEX>,
+    MI_Filament<filament_t::HIPS>,
+    MI_Filament<filament_t::PP>,
+    MI_Filament<filament_t::NONE>>;
 
 class ScreenMenuPreheat : public Screen {
 public:
@@ -31,16 +31,16 @@ ScreenFactory::UniquePtr GetScreenMenuPreheat() {
     return ScreenFactory::Screen<ScreenMenuPreheat>();
 }
 
-using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
-    MI_Filament<FILAMENT_PLA>,
-    MI_Filament<FILAMENT_PETG>,
-    MI_Filament<FILAMENT_ASA>,
-    MI_Filament<FILAMENT_ABS>,
-    MI_Filament<FILAMENT_PC>,
-    MI_Filament<FILAMENT_FLEX>,
-    MI_Filament<FILAMENT_HIPS>,
-    MI_Filament<FILAMENT_PP>,
-    MI_Filament<FILAMENT_NONE>>;
+using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On,
+    MI_Filament<filament_t::PLA>,
+    MI_Filament<filament_t::PETG>,
+    MI_Filament<filament_t::ASA>,
+    MI_Filament<filament_t::ABS>,
+    MI_Filament<filament_t::PC>,
+    MI_Filament<filament_t::FLEX>,
+    MI_Filament<filament_t::HIPS>,
+    MI_Filament<filament_t::PP>,
+    MI_Filament<filament_t::NONE>>;
 
 class ScreenMenuPreheatNoRet : public ScreenNoRet {
 public:

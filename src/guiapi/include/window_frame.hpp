@@ -6,6 +6,7 @@
 #include "window_filter.hpp"
 
 class window_frame_t : public AddSuperWindow<window_t> {
+    window_t *captured_normal_window; //might need to move it in window frame after menu refactoring
 protected:
     window_t *first_normal;
     window_t *last_normal;
@@ -61,4 +62,12 @@ protected:
 
     window_t *findFirst(window_t *begin, window_t *end, const WinFilter &filter) const;
     window_t *findLast(window_t *begin, window_t *end, const WinFilter &filter) const;
+
+    window_t *getCapturedNormalWin() const;
+
+public:
+    bool IsChildCaptured() const;
+    bool CaptureNormalWindow(window_t &win);
+    void ReleaseCaptureOfNormalWindow();
+    virtual window_t *GetCapturedWindow() override;
 };
