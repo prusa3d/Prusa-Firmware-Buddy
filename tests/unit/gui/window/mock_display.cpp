@@ -5,11 +5,11 @@
  */
 #include "mock_display.hpp"
 
-std::unique_ptr<IMockDisplay> MockDisplay::instance;
+IMockDisplay *MockDisplay::instance = nullptr;
 
 IMockDisplay &MockDisplay::Instance() {
     if (!instance)
-        instance.reset(new TMockDisplay<DefCols, DefRows, DefBuffRows>);
+        throw "MockDisplay accesing nullptr";
     return *instance;
 }
 
@@ -27,4 +27,8 @@ uint16_t MockDisplay::BuffRows() {
 
 void MockDisplay::init() {
     Instance().clear(COLOR_WHITE);
+}
+
+void MockDisplay::Bind(IMockDisplay &disp) {
+    instance = &disp;
 }

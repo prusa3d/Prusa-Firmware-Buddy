@@ -74,16 +74,6 @@ private:
 
 class MockDisplay {
 public:
-    class Lock {
-    public:
-        ~Lock() {
-            MockDisplay::instance.reset(nullptr);
-        }
-    };
-
-    static constexpr uint16_t DefCols = 240;
-    static constexpr uint16_t DefRows = 320;
-    static constexpr uint16_t DefBuffRows = 16;
     static uint16_t Cols();
     static uint16_t Rows();
     static uint16_t BuffRows();
@@ -91,16 +81,8 @@ public:
     static void done() {}
 
     static IMockDisplay &Instance();
-    template <uint16_t COLS = 240, uint16_t ROWS = 320, uint16_t BUFF_ROWS = 16>
-    static Lock ResizeLock() {
-        instance.reset(new TMockDisplay<COLS, ROWS, BUFF_ROWS>);
-        return Lock();
-    }
+    static void Bind(IMockDisplay &disp);
 
 private:
-    //singleton
-    MockDisplay() = default;
-    MockDisplay(MockDisplay &) = delete;
-
-    static std::unique_ptr<IMockDisplay> instance;
+    static IMockDisplay *instance;
 };

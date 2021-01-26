@@ -21,6 +21,10 @@ font_t *GuiDefaults::FontBig = &font_dot;
 font_t *GuiDefaults::FontMenuItems = &font_dot;
 font_t *GuiDefaults::FontMenuSpecial = &font_dot;
 
+//to be binded - static for easier debug
+static TMockDisplay<240, 320, 16> MockDispBasic;
+static TMockDisplay<5, 5, 256> MockDisp5x5;
+
 //stubbed header does not have C linkage .. to be simpler
 static uint32_t hal_tick = 0;
 uint32_t HAL_GetTick() { return hal_tick; }
@@ -71,31 +75,37 @@ static void TestDispRectDraw(Rect16 rect, color_t color_win, color_t color_disp)
 };
 
 TEST_CASE("Window layout tests", "[window]") {
+
+    SECTION("RECT") {
+        MockDisplay::Bind(MockDispBasic);
+MockDisplay::Instance().clear(COLOR_BLACK);
+TestRectColor({ 0, 0, MockDisplay::Cols(), MockDisplay::Rows() }, COLOR_BLACK);
+
+TestDispRectDraw(Rect16(0, 0, 0, 0), COLOR_BLUE, COLOR_WHITE);
+
+TestDispRectDraw(DispRect(), COLOR_BLUE, COLOR_WHITE);
+
+TestDispRectDraw({ 1, 0, uint16_t(int(MockDisplay::Cols()) - 1), MockDisplay::Rows() }, COLOR_RED, COLOR_BLACK);
+
+TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLUE, COLOR_WHITE);
+
+TestDispRectDraw(Rect16(0, 0, 1, 2), COLOR_RED, COLOR_BLUE);
+
+TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_WHITE, COLOR_BLACK);
+
+TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLACK, COLOR_BLUE);
+}
+
+SECTION("Text") {
+    MockDisplay::Bind(MockDisp5x5);
     MockDisplay::Instance().clear(COLOR_BLACK);
     TestRectColor({ 0, 0, MockDisplay::Cols(), MockDisplay::Rows() }, COLOR_BLACK);
 
-    SECTION("RECT") {
-        TestDispRectDraw(Rect16(0, 0, 0, 0), COLOR_BLUE, COLOR_WHITE);
-
-        TestDispRectDraw(DispRect(), COLOR_BLUE, COLOR_WHITE);
-
-        TestDispRectDraw({ 1, 0, uint16_t(int(MockDisplay::Cols()) - 1), MockDisplay::Rows() }, COLOR_RED, COLOR_BLACK);
-
-        TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLUE, COLOR_WHITE);
-
-        TestDispRectDraw(Rect16(0, 0, 1, 2), COLOR_RED, COLOR_BLUE);
-
-        TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_WHITE, COLOR_BLACK);
-
-        TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLACK, COLOR_BLUE);
-    }
-
-    SECTION("Text") {
-        auto lock = MockDisplay::ResizeLock<5, 5, 256>();
-        window_text_t txt(nullptr,
-            Rect16(0, 0, 1 + GuiDefaults::Padding.left + GuiDefaults::Padding.right, 1 + GuiDefaults::Padding.top + GuiDefaults::Padding.bottom),
-            is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1")));
-        txt.Draw();
-        TestRectDiffColor(DispRect(), Rect16(GuiDefaults::Padding.left, GuiDefaults::Padding.top, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
-    }
-};
+    window_text_t txt(nullptr,
+        Rect16(0, 0, 1 + GuiDefaults::Padding.left + GuiDefaults::Padding.right, 1 + GuiDefaults::Padding.top + GuiDefaults::Padding.bottom),
+        is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1")));
+    txt.Draw();
+    TestRectDiffColor(DispRect(), Rect16(GuiDefaults::Padding.left, GuiDefaults::Padding.top, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+}
+}
+;
