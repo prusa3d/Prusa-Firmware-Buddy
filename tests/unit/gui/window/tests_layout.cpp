@@ -75,37 +75,90 @@ static void TestDispRectDraw(Rect16 rect, color_t color_win, color_t color_disp)
 };
 
 TEST_CASE("Window layout tests", "[window]") {
-
-    SECTION("RECT") {
-        MockDisplay::Bind(MockDispBasic);
-MockDisplay::Instance().clear(COLOR_BLACK);
-TestRectColor({ 0, 0, MockDisplay::Cols(), MockDisplay::Rows() }, COLOR_BLACK);
-
-TestDispRectDraw(Rect16(0, 0, 0, 0), COLOR_BLUE, COLOR_WHITE);
-
-TestDispRectDraw(DispRect(), COLOR_BLUE, COLOR_WHITE);
-
-TestDispRectDraw({ 1, 0, uint16_t(int(MockDisplay::Cols()) - 1), MockDisplay::Rows() }, COLOR_RED, COLOR_BLACK);
-
-TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLUE, COLOR_WHITE);
-
-TestDispRectDraw(Rect16(0, 0, 1, 2), COLOR_RED, COLOR_BLUE);
-
-TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_WHITE, COLOR_BLACK);
-
-TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLACK, COLOR_BLUE);
-}
-
-SECTION("Text") {
-    MockDisplay::Bind(MockDisp5x5);
+    MockDisplay::Bind(MockDispBasic);
     MockDisplay::Instance().clear(COLOR_BLACK);
     TestRectColor({ 0, 0, MockDisplay::Cols(), MockDisplay::Rows() }, COLOR_BLACK);
 
-    window_text_t txt(nullptr,
-        Rect16(0, 0, 1 + GuiDefaults::Padding.left + GuiDefaults::Padding.right, 1 + GuiDefaults::Padding.top + GuiDefaults::Padding.bottom),
-        is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1")));
-    txt.Draw();
-    TestRectDiffColor(DispRect(), Rect16(GuiDefaults::Padding.left, GuiDefaults::Padding.top, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
-}
-}
-;
+    SECTION("RECT") {
+        TestDispRectDraw(Rect16(0, 0, 0, 0), COLOR_BLUE, COLOR_WHITE);
+
+        TestDispRectDraw(DispRect(), COLOR_BLUE, COLOR_WHITE);
+
+        TestDispRectDraw({ 1, 0, uint16_t(int(MockDisplay::Cols()) - 1), MockDisplay::Rows() }, COLOR_RED, COLOR_BLACK);
+
+        TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLUE, COLOR_WHITE);
+
+        TestDispRectDraw(Rect16(0, 0, 1, 2), COLOR_RED, COLOR_BLUE);
+
+        TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_WHITE, COLOR_BLACK);
+
+        TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLACK, COLOR_BLUE);
+    }
+
+    SECTION("Singleline Text") {
+        MockDisplay::Bind(MockDisp5x5);
+        MockDisplay::Instance().clear(COLOR_BLACK);
+        TestRectColor({ 0, 0, MockDisplay::Cols(), MockDisplay::Rows() }, COLOR_BLACK);
+
+        //default padding
+        window_text_t txt(nullptr,
+            Rect16(0, 0, 1 + GuiDefaults::Padding.left + GuiDefaults::Padding.right, 1 + GuiDefaults::Padding.top + GuiDefaults::Padding.bottom),
+            is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1")));
+        txt.Draw();
+        TestRectDiffColor(DispRect(), Rect16(GuiDefaults::Padding.left, GuiDefaults::Padding.top, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        //no padding, ALIGN_LEFT_TOP
+        MockDisplay::Instance().clear(COLOR_BLACK);
+        txt.SetPadding({ 0, 0, 0, 0 });
+        txt.Draw();
+        TestRectDiffColor(DispRect(), Rect16(0, 0, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        //no padding, ALIGN_CENTER
+        MockDisplay::Instance().clear(COLOR_BLACK);
+        txt.SetAlignment(ALIGN_CENTER);
+        txt.Draw();
+        TestRectDiffColor(DispRect(), Rect16(2, 2, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        //no padding, ALIGN_LEFT_CENTER
+        MockDisplay::Instance().clear(COLOR_BLACK);
+        txt.SetAlignment(ALIGN_LEFT_CENTER);
+        txt.Draw();
+        TestRectDiffColor(DispRect(), Rect16(0, 2, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        //no padding, ALIGN_LEFT_BOTTOM
+        MockDisplay::Instance().clear(COLOR_BLACK);
+        txt.SetAlignment(ALIGN_LEFT_BOTTOM);
+        txt.Draw();
+        TestRectDiffColor(DispRect(), Rect16(0, 4, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        //no padding, ALIGN_RIGHT_TOP
+        MockDisplay::Instance().clear(COLOR_BLACK);
+        txt.SetAlignment(ALIGN_RIGHT_TOP);
+        txt.Draw();
+        TestRectDiffColor(DispRect(), Rect16(4, 0, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        //no padding, ALIGN_RIGHT_CENTER
+        MockDisplay::Instance().clear(COLOR_BLACK);
+        txt.SetAlignment(ALIGN_RIGHT_CENTER);
+        txt.Draw();
+        TestRectDiffColor(DispRect(), Rect16(4, 2, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        //no padding, ALIGN_RIGHT_BOTTOM
+        MockDisplay::Instance().clear(COLOR_BLACK);
+        txt.SetAlignment(ALIGN_RIGHT_BOTTOM);
+        txt.Draw();
+        TestRectDiffColor(DispRect(), Rect16(4, 4, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        //no padding, ALIGN_CENTER_TOP
+        MockDisplay::Instance().clear(COLOR_BLACK);
+        txt.SetAlignment(ALIGN_CENTER_TOP);
+        txt.Draw();
+        TestRectDiffColor(DispRect(), Rect16(2, 0, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        //no padding, ALIGN_CENTER_BOTTOM
+        MockDisplay::Instance().clear(COLOR_BLACK);
+        txt.SetAlignment(ALIGN_CENTER_BOTTOM);
+        txt.Draw();
+        TestRectDiffColor(DispRect(), Rect16(2, 4, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
+    }
+};
