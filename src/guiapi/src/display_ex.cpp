@@ -28,7 +28,7 @@ extern void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, ui
 } //extern "C"
 
 //TDispBuffer configuration
-static constexpr size_t BuffLEN = 16;              // size of buffer (number of fields, not bytes)
+static constexpr size_t FontMaxBitLen = 4;         // used in mask and buffer size
 using BuffDATA_TYPE = uint16_t;                    // type of buffer internally used in TDispBuffer
 using BuffPTR_TYPE = uint16_t;                     // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
 static constexpr size_t BuffNATIVE_PIXEL_SIZE = 2; // bytes per pixel (can be same or smaller than size of BuffDATA_TYPE)
@@ -81,7 +81,7 @@ inline uint32_t color_from_native(uint32_t clr) {
 }
 
 //TDispBuffer configuration
-static constexpr size_t BuffLEN = 256;             // size of buffer (number of fields, not bytes)
+static constexpr size_t FontMaxBitLen = 8;         // used in mask and buffer size
 using BuffDATA_TYPE = uint32_t;                    // type of buffer internally used in TDispBuffer
 using BuffPTR_TYPE = uint32_t;                     // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
 static constexpr size_t BuffNATIVE_PIXEL_SIZE = 4; // bytes per pixel (can be same or smaller than size of BuffDATA_TYPE)
@@ -125,6 +125,8 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 /*****************************************************************************/
 #endif //USE_MOCK_DISPLAY
 
+static constexpr size_t BuffAlphaLen = (1 << FontMaxBitLen); // size of buffer for alpha channel 4bit font need 2^4 == 16 etc
+
 //do not use directly, use DispBuffer instead
 template <size_t LEN, class DATA_TYPE, class PTR_TYPE, uint32_t NATIVE_PIXEL_SIZE>
 class TDispBuffer {
@@ -134,6 +136,7 @@ class TDispBuffer {
     const color_t clr_fg;
 
 public:
+    //pms (pixel mask) == number of combinations of font bits
     TDispBuffer(uint8_t pms, color_t clr_bg, color_t clr_fg)
         : p((PTR_TYPE *)getBuff())
         , clr_bg(clr_bg)
@@ -147,7 +150,7 @@ public:
     }
     void inline Draw(point_ui16_t pt, uint16_t w, uint16_t h) { drawCharFromBuff(pt, w, h); }
 };
-using DispBuffer = TDispBuffer<BuffLEN, BuffDATA_TYPE, BuffPTR_TYPE, BuffNATIVE_PIXEL_SIZE>;
+using DispBuffer = TDispBuffer<BuffAlphaLen, BuffDATA_TYPE, BuffPTR_TYPE, BuffNATIVE_PIXEL_SIZE>;
 
 static inline void store_to_buffer(Rect16 rect, uint16_t artefact_width, color_t color) {
     uint8_t *buff = getBuff() + (rect.Top() * artefact_width + rect.Left()) * BuffNATIVE_PIXEL_SIZE;
@@ -193,8 +196,13 @@ static bool display_ex_draw_char(point_ui16_t pt, char chr, const font_t *pf, co
 /// If font is not available for the character, solid rectangle will be drawn in background color
 /// \returns true if character is available in the font and was drawn
 bool display_ex_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    const uint16_t w = pf->w; //char width
-    const uint16_t h = pf->h; //char height
+    const uint16_t w = pf->w;                                               //char width
+    const uint16_t h = pf->h;                                               //char height
+    const uint8_t bpr = pf->bpr;                                            //bytes per row
+    const uint16_t bpc = bpr * h;                                           //bytes per char
+    const uint8_t bpp = 8 * bpr / w;                                        //bits per pixel
+    const uint8_t ppb = 8 / bpp;                                            //pixels per byte
+    const uint8_t pms = std::min(size_t((1 << bpp) - 1), BuffAlphaLen - 1); //pixel mask, cannot be bigger than array to store alpha channel combinations
 
     int i;
     int j;
@@ -202,12 +210,6 @@ bool display_ex_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, 
     uint8_t crd = 0; //current row byte data
     uint8_t rb;      //row byte
     uint8_t *pc;
-
-    const uint8_t bpr = pf->bpr;        //bytes per row
-    const uint16_t bpc = bpr * h;       //bytes per char
-    const uint8_t bpp = 8 * bpr / w;    //bits per pixel
-    const uint8_t ppb = 8 / bpp;        //pixels per byte
-    const uint8_t pms = (1 << bpp) - 1; //pixel mask
 
     DispBuffer buff(pms, clr_bg, clr_fg);
 

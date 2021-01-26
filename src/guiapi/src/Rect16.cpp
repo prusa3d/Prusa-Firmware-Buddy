@@ -81,6 +81,8 @@ Rect16::Rect16(point_i16_t top_left, size_ui16_t s)
 }
 
 Rect16 Rect16::Intersection(Rect16 const &r) const {
+    if (IsEmpty() || r.IsEmpty())
+        return Rect16(0, 0, 0, 0);
     point_i16_t top_left;
     point_i16_t bot_right;
 
@@ -133,7 +135,7 @@ Rect16 Rect16::Union(Rect16 const &r) const {
 }
 
 bool Rect16::HasIntersection(Rect16 const &r) const {
-    if (r.IsEmpty())
+    if (IsEmpty() || r.IsEmpty())
         return false;
     return TopLeft().x < r.EndPoint().x
         && EndPoint().x > r.TopLeft().x
