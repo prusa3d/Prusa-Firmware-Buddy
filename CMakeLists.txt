@@ -616,7 +616,6 @@ if(GUI)
             src/gui/wizard/xyzcalib.cpp
             src/gui/screen_home.cpp
             src/gui/screen_filebrowser.cpp
-            src/gui/screen_menu_preheat.cpp
             src/gui/status_footer.cpp
             src/gui/menu_vars.cpp
             src/gui/IScreenPrinting.cpp

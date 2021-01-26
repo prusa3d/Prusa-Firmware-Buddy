@@ -10,81 +10,53 @@
 #include "resource.h"
 #include "stdlib.h"
 #include "i18n.h"
-#include "window_frame.hpp"
 #include <limits>
-#include "MItem_tools.hpp"
-#include "screen_menu.hpp"
-#include "ScreenHandler.hpp"
-#include "IDialog.hpp"
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN,
-    MI_Filament<filament_t::PLA>,
-    MI_Filament<filament_t::PETG>,
-    MI_Filament<filament_t::ASA>,
-    MI_Filament<filament_t::ABS>,
-    MI_Filament<filament_t::PC>,
-    MI_Filament<filament_t::FLEX>,
-    MI_Filament<filament_t::HIPS>,
-    MI_Filament<filament_t::PP>,
-    MI_Filament<filament_t::NONE>>;
-
-// is used in firstlay calibration and print preview, does not have return and cooldown
-using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On,
-    MI_Filament<filament_t::PLA>,
-    MI_Filament<filament_t::PETG>,
-    MI_Filament<filament_t::ASA>,
-    MI_Filament<filament_t::ABS>,
-    MI_Filament<filament_t::PC>,
-    MI_Filament<filament_t::FLEX>,
-    MI_Filament<filament_t::HIPS>,
-    MI_Filament<filament_t::PP>>;
-
-template <class T>
-filament_t make_preheat_dialog(string_view_utf8 caption) {
-    Filaments::SetLastPreheated(filament_t::NONE);
-    T dlg(caption, Screens::Access()->Get());
-    create_blocking_dialog_from_normal_window(dlg);
-    return Filaments::GetLastPreheated();
+/*****************************************************************************/
+//NsPreheat::I_MI_Filament
+void NsPreheat::I_MI_Filament::click_at(filament_t filament_index) {
+    const Response response = Filaments::Get(filament_index).response;
+    marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
 }
 
-filament_t gui_dlg_preheat(string_view_utf8 caption) {
-    return make_preheat_dialog<Screen>(caption);
+/*****************************************************************************/
+//NsPreheat::MI_RETURN
+NsPreheat::MI_RETURN::MI_RETURN()
+    : WI_LABEL_t(_(label), IDR_PNG_folder_up_16px, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-filament_t gui_dlg_preheat_autoselect_if_able(string_view_utf8 caption) {
-    const filament_t fil = Filaments::CurrentIndex();
-    if (fil == filament_t::NONE) {
-        //no filament selected
-        return gui_dlg_preheat(caption);
-    } else {
-        //when filament is known, but heating is off, just turn it on and do not ask
-        marlin_vars_t *p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
-        if (p_vars->target_nozzle != Filaments::Get(fil).nozzle) {
-            marlin_gcode_printf("M104 S%d", (int)Filaments::Get(fil).nozzle);
-            marlin_gcode_printf("M140 S%d", (int)Filaments::Get(fil).heatbed);
-        }
+void NsPreheat::MI_RETURN::click(IWindowMenu &window_menu) {
+    window_menu.Validate(); /// don't redraw since we leave the menu
+    marlin_FSM_response(PhasesPreheat::UserTempSelection, Response::Abort);
+}
+
+/*****************************************************************************/
+//DialogMenuPreheat
+DialogMenuPreheat::DialogMenuPreheat(string_view_utf8 name, PreheatData type)
+    : AddSuperWindow<IDialogMarlin>(name.isNULLSTR() ? GuiDefaults::RectScreenNoHeader : GuiDefaults::RectScreen)
+    , menu(this, GuiDefaults::RectScreenNoHeader, newContainer(type))
+    , header(this) {                                         // header registration should fail in case name.isNULLSTR(), it is OK
+    name.isNULLSTR() ? header.Hide() : header.SetText(name); // hide it anyway, to be safe
+
+    menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
+    CaptureNormalWindow(menu);
+}
+
+IWinMenuContainer *DialogMenuPreheat::newContainer(PreheatData type) {
+    switch (type.RetAndCool()) {
+    case RetAndCool_t::Both:
+        return new (&container_mem_space) NsPreheat::MenuContainerHasRetCool;
+    case RetAndCool_t::Return:
+        return new (&container_mem_space) NsPreheat::MenuContainerHasRet;
+    case RetAndCool_t::Cooldown:
+        return new (&container_mem_space) NsPreheat::MenuContainerHasCool;
+    case RetAndCool_t::Neither:
+    default:
+        break;
     }
-    return fil;
+    return new (&container_mem_space) NsPreheat::MenuContainer;
 }
 
-//no return option
-filament_t gui_dlg_preheat_forced(string_view_utf8 caption) {
-    return make_preheat_dialog<ScreenNoRet>(caption);
-}
-
-//no return option
-filament_t gui_dlg_preheat_autoselect_if_able_forced(string_view_utf8 caption) {
-    const filament_t fil = Filaments::CurrentIndex();
-    if (fil == filament_t::NONE) {
-        //no filament selected
-        return gui_dlg_preheat_forced(caption);
-    } else {
-        //when filament is known, but heating is off, just turn it on and do not ask
-        marlin_vars_t *p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
-        if (p_vars->target_nozzle != Filaments::Get(fil).nozzle) {
-            marlin_gcode_printf("M104 S%d", (int)Filaments::Get(fil).nozzle);
-            marlin_gcode_printf("M140 S%d", (int)Filaments::Get(fil).heatbed);
-        }
-    }
-    return fil;
+bool DialogMenuPreheat::change(uint8_t phs, uint8_t progress_tot, uint8_t progress) {
+    return true;
 }
