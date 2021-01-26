@@ -60,8 +60,14 @@ enum class PhasesLoadUnload : uint16_t {
     _last = Unparking
 };
 
-enum class PhasesG162 : uint16_t {
+enum class PhasesPreheat : uint16_t {
     _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
+    UserTempSelection,
+    _last = UserTempSelection
+};
+
+enum class PhasesG162 : uint16_t {
+    _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
     Parking,
     _last = Parking
 };
@@ -101,10 +107,12 @@ class ClientResponses {
 
     //declare 2d arrays of single buttons for radio buttons
     static const PhaseResponses LoadUnloadResponses[CountPhases<PhasesLoadUnload>()];
+    static const PhaseResponses PreheatResponses[CountPhases<PhasesPreheat>()];
     static const PhaseResponses G162Responses[CountPhases<PhasesG162>()];
 
     //methods to "bind" button array with enum type
     static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesG162 phase) { return G162Responses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesG162::_first)]; }
 
 protected:

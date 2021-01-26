@@ -29,7 +29,7 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 334:
             PrusaGcodeSuite::M334();
             return true;
-#endif
+#endif // _DEBUG
 
 #ifdef M999_MCU_RESET
         case 999:
@@ -39,7 +39,11 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             } else {
                 return false;
             }
+        case 1400:
+            PrusaGcodeSuite::M1400();
+            return true;
 #endif
+
         default:
             return false;
         }

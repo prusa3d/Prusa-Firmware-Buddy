@@ -37,18 +37,22 @@
 #include "../../../lib/Marlin/Marlin/src/Marlin.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
+#include "../PrusaGcodeSuite.hpp"
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
 #include "filament.hpp"
 #include <functional> // std::invoke
 #include <algorithm>
 #include <cmath>
+#include "task.h" //critical sections
+#include "preheat_multithread_status.hpp"
 
 #define DO_NOT_RESTORE_Z_AXIS
 static const constexpr uint8_t Z_AXIS_LOAD_POS = 40;
 static const constexpr uint8_t Z_AXIS_UNLOAD_POS = 20;
 
 using Func = bool (Pause::*)(); //member fnc pointer
+static Pause &pause = Pause::Instance();
 
 /**
  * Shared code for load/unload filament
@@ -78,7 +82,6 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
 #else
     xyze_pos_t resume_position = current_position;
 #endif
-    Pause &pause = Pause::Instance();
     pause.SetParkPoint(park_position);
     pause.SetResumePoint(resume_position);
 
@@ -88,6 +91,16 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(targ_temp, target_extruder);
     }
+}
+
+void M701_no_parser(filament_t filament_to_be_laded, float fast_load_length) {
+    Filaments::SetToBeLoaded(filament_to_be_laded);
+    pause.SetPurgeLength(ADVANCED_PAUSE_PURGE_LENGTH);
+    pause.SetSlowLoadLength(fast_load_length > 0.f ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0.f);
+    pause.SetFastLoadLength(fast_load_length);
+    pause.SetRetractLength(0.f);
+
+    load_unload(fast_load_length != 0.f ? LoadUnloadMode::Load : LoadUnloadMode::Purge, &Pause::FilamentLoad, Z_AXIS_LOAD_POS);
 }
 
 /**
@@ -101,7 +114,7 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-    Filaments::SetToBeLoaded(Filaments::Default);
+    filament_t filament_to_be_laded = Filaments::Default;
     const char *text_begin = 0;
     if (parser.seen('S')) {
         text_begin = strchr(parser.string_arg, '"');
@@ -111,20 +124,14 @@ void GcodeSuite::M701() {
             if (text_end) {
                 filament_t filament = Filaments::FindByName(text_begin, text_end - text_begin);
                 if (filament != filament_t::NONE) {
-                    Filaments::SetToBeLoaded(filament);
+                    filament_to_be_laded = filament;
                 }
             }
         }
     }
-    Pause &pause = Pause::Instance();
     const bool isL = (parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin));
     const float fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : pause.GetDefaultFastLoadLength());
-    pause.SetPurgeLength(ADVANCED_PAUSE_PURGE_LENGTH);
-    pause.SetSlowLoadLength(fast_load_length > 0.f ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0.f);
-    pause.SetFastLoadLength(fast_load_length);
-    pause.SetRetractLength(0.f);
-
-    load_unload(fast_load_length != 0.f ? LoadUnloadMode::Load : LoadUnloadMode::Purge, &Pause::FilamentLoad, Z_AXIS_LOAD_POS);
+    M701_no_parser(filament_to_be_laded, fast_load_length);
 }
 
 /**
@@ -142,4 +149,127 @@ void GcodeSuite::M702() {
     Pause::Instance().SetUnloadLength(parser.seen('U') ? parser.value_axis_units(E_AXIS) : NAN);
     load_unload(
         LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS);
+}
+
+static PreheatStatus::Result M1400_no_parser(uint32_t val) {
+    const PreheatData data(val);
+
+    Response ret;
+    // preheat part
+    if ((data.Mode() == PreheatMode::Unload || data.Mode() == PreheatMode::Change_phase1) && Filaments::CurrentIndex() != filament_t::NONE) {
+        //do not preheat
+        ret = Filaments::Current().response; //fake response
+    } else {
+        FSM_Holder H(ClientFSM::Preheat, uint8_t(val)); //this must remain inside scope
+        while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
+            idle(true);
+        }
+    }
+
+    filament_t filament = Filaments::Find(ret);
+
+    if (filament == filament_t::NONE) {
+        switch (ret) {
+        case Response::Abort:
+            return PreheatStatus::Result::Aborted;
+        case Response::Cooldown:
+            return PreheatStatus::Result::CooledDown;
+        default: //should not happen
+            return PreheatStatus::Result::Error;
+        }
+    }
+
+    // filament != filament_t::NONE
+    const Filament &fil_cnf = Filaments::Get(filament);
+    thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
+    thermalManager.setTargetBed(fil_cnf.heatbed);
+    marlin_server_set_temp_to_display(fil_cnf.nozzle);
+
+    switch (data.Mode()) {
+    case PreheatMode::None:
+        return Filaments::CurrentIndex() == filament_t::NONE ? PreheatStatus::Result::DoneNoFilament : PreheatStatus::Result::DoneHasFilament;
+    case PreheatMode::Purge:
+        M701_no_parser(filament, 0);
+        return PreheatStatus::Result::DoneHasFilament;
+    case PreheatMode::Load:
+    case PreheatMode::Change_phase2:
+        M701_no_parser(filament, pause.GetDefaultFastLoadLength());
+        return PreheatStatus::Result::DoneHasFilament;
+    case PreheatMode::Unload:
+    case PreheatMode::Change_phase1:
+        Pause::Instance().SetUnloadLength(NAN);
+        load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS);
+
+        if (data.Mode() == PreheatMode::Change_phase1) {
+            //2nd preheat, recursion
+            return M1400_no_parser((val & ~0x07) | uint32_t(PreheatMode::Change_phase2));
+        } else {
+            return PreheatStatus::Result::DoneNoFilament;
+        }
+    default:
+        return PreheatStatus::Result::Error;
+    }
+    return PreheatStatus::Result::Error;
+}
+
+namespace PreheatStatus {
+
+volatile static Result preheatResult = Result::DidNotFinish;
+
+Result ConsumeResult() {
+    taskENTER_CRITICAL();
+    Result ret = preheatResult;
+    preheatResult = Result::DidNotFinish;
+    taskEXIT_CRITICAL();
+    return ret;
+}
+
+static void setResult(Result res) {
+    preheatResult = res;
+}
+
+}
+
+/**
+ * M1400: Preheat
+ * not meant to be used during print
+ *
+ *  S<bit fields value> - [0 - 2] PreheatMode - 0 None
+ *                                            - 1 Load
+ *                                            - 2 Unload
+ *                                            - 3 Purge
+ *                                            - 4 Change_phase1 == unload + recursively call Change_phase2
+ *                                            - 5 Change_phase2 (internal use only, do load)
+ *                      - [3 - 5] reserved
+ *                      - [6] has return option
+ *                      - [7] has cooldown option, PreheatMode must be PreheatMode::None, othervise ignored
+ *                      - [8 - 31] reserved
+ *
+ *  Default value S0
+ */
+void PrusaGcodeSuite::M1400() {
+    const uint32_t val = parser.ulongval('S', 0);
+    PreheatStatus::Result res = M1400_no_parser(val);
+
+    // modify temperatures
+    switch (res) {
+    case PreheatStatus::Result::DoneHasFilament:
+        thermalManager.setTargetHotend(Filaments::PreheatTemp, 0);
+        break;
+    case PreheatStatus::Result::CooledDown:
+        //set temperatures to zero
+        thermalManager.setTargetHotend(0, 0);
+        thermalManager.setTargetBed(0);
+        marlin_server_set_temp_to_display(0);
+        break;
+    case PreheatStatus::Result::DoneNoFilament:
+    case PreheatStatus::Result::Aborted:
+    case PreheatStatus::Result::Error:
+    case PreheatStatus::Result::DidNotFinish: //cannot happen
+    default:
+        break; //do not alter temp
+    }
+
+    // store result, so other threads can see it
+    PreheatStatus::setResult(res);
 }

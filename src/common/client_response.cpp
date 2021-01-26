@@ -23,6 +23,11 @@ const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoad
     {},                                                            //Unparking,
 };
 
+const PhaseResponses ClientResponses::PreheatResponses[CountPhases<PhasesPreheat>()] = {
+    {},                                                                                                                                                               //_first
+    { Response::Abort, Response::Cooldown, Response::PLA, Response::PETG, Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP }, //UserTempSelection
+};
+
 const PhaseResponses ClientResponses::G162Responses[CountPhases<PhasesG162>()] = {
     {}, //_first
     {}, //Parking

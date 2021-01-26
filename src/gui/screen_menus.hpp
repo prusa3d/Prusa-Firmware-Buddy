@@ -4,7 +4,6 @@
 
 ScreenFactory::UniquePtr GetScreenMenuInfo();
 ScreenFactory::UniquePtr GetScreenMenuSettings();
-ScreenFactory::UniquePtr GetScreenMenuPreheat();
 ScreenFactory::UniquePtr GetScreenMenuCalibration();
 ScreenFactory::UniquePtr GetScreenMenuFilament();
 ScreenFactory::UniquePtr GetScreenMenuTemperature();

@@ -223,7 +223,7 @@ void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, wi
             _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
             btns, 0, GuiDefaults::RectScreenBody)) {
         case Response::Yes: //YES - load
-            gui_dlg_load_forced();
+            PreheatStatus::DialogBlocking(PreheatMode::Load, RetAndCool_t::Return);
             break;
         case Response::No: //NO - cancel
             Screens::Access()->Close();
