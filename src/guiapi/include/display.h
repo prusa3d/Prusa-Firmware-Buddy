@@ -9,6 +9,8 @@
 #include "Rect16.h"
 #include "display_ex.hpp"
 
+typedef uint16_t(display_size_t)(void);
+typedef void(display_init_t)(void);
 typedef void(display_init_t)(void);
 typedef void(display_done_t)(void);
 typedef void(display_clear_t)(color_t clr);
@@ -35,14 +37,26 @@ static constexpr const FCIndex fontCharIndices[] =
 #include "fnt-indices.ipp"
     static constexpr const uint32_t fontCharIndicesNumItems = sizeof(fontCharIndices) / sizeof(FCIndex);
 
-template <uint16_t W, uint16_t H, display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK, display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR, display_draw_text_t *DRAW_TEXT, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
+template <
+#ifndef USE_MOCK_DISPLAY // mock display has dynamical size
+    uint16_t W, uint16_t H
+#else  // USE_MOCK_DISPLAY
+    display_size_t *COLS, display_size_t *ROWS
+#endif // USE_MOCK_DISPLAY
+    ,
+    display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK, display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR, display_draw_text_t *DRAW_TEXT, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
 class Display {
     // sorted raw array of known utf8 character indices
 public:
-    /// Get width of display
+    /// Get width or height  of display
+#ifndef USE_MOCK_DISPLAY // mock display has dynamical size
     constexpr static uint16_t GetW() { return W; }
-    /// Get height of display
     constexpr static uint16_t GetH() { return H; }
+#else  // USE_MOCK_DISPLAY
+    constexpr static uint16_t GetW() { return COLS(); }
+    constexpr static uint16_t GetH() { return ROWS(); }
+#endif // USE_MOCK_DISPLAY
+
     constexpr static void Init() { INIT(); }
     constexpr static void Done() { DONE(); }
     constexpr static void Clear(color_t clr) { CLEAR(clr); }
@@ -57,8 +71,8 @@ public:
         // ... and also because doing it in C++ is much easier than in plain C
         uint8_t charX = 15, charY = 1;
 
-        if (c < pf->asc_min) { // this really happens with non-utf8 characters on filesystems
-            c = '?';           // substitute with a '?' or any other suitable character, which is in the range of the fonts
+        if (c < uint8_t(pf->asc_min)) { // this really happens with non-utf8 characters on filesystems
+            c = '?';                    // substitute with a '?' or any other suitable character, which is in the range of the fonts
         }
         // here is intentionally no else
         if (c < 128) {
@@ -109,7 +123,7 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
 
 #ifdef USE_MOCK_DISPLAY
     #include "mock_display.hpp"
-using display = Display<MockDisplay::Cols(), MockDisplay::Rows(),
+using display = Display<MockDisplay::Cols, MockDisplay::Rows,
     MockDisplay::init,
     MockDisplay::done,
     display_ex_clear,
