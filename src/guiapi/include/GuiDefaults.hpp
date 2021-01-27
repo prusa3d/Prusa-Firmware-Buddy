@@ -50,9 +50,9 @@ struct GuiDefaults {
     // Menu text settings
     static font_t *FontMenuItems;   // for menu items
     static font_t *FontMenuSpecial; // for units in menu
+    static constexpr uint8_t MenuAlignment = ALIGN_LEFT_TOP;
     static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 6, 6, 6, 6 });
     static constexpr padding_ui8_t MenuPaddingSpecial = padding_ui8_t({ 0, 6, 0, 0 });
-    static constexpr uint8_t MenuAlignment = ALIGN_LEFT_TOP;
 
     // Enable new menu features
     static constexpr bool MenuLinesBetweenItems = false;
@@ -63,5 +63,5 @@ struct GuiDefaults {
     // New menu feature settings
     static constexpr size_t MenuUseFixedUnitWidth = 28; // 0 == calculate in runtime
     static constexpr size_t MenuScrollbarWidth = 2;
-    static constexpr size_t MenuItemDelimiterPadding = 6;
+    static constexpr padding_ui8_t MenuItemDelimiterPadding = padding_ui8_t({ 6, 0, 6, 0 });
 };
