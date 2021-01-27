@@ -58,11 +58,11 @@ void Buddy::Metrics::RecordMarlinVariables() {
     metric_record_integer(&fan_speed, thermalManager.fan_speed[0]);
 #endif
 
-    static metric_t ipos_x = METRIC("ipos_x", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
+    static metric_t ipos_x = METRIC("ipos_x", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_ENABLE_ALL);
     metric_record_integer(&ipos_x, stepper.position_from_startup(AxisEnum::X_AXIS));
-    static metric_t ipos_y = METRIC("ipos_y", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
+    static metric_t ipos_y = METRIC("ipos_y", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_ENABLE_ALL);
     metric_record_integer(&ipos_y, stepper.position_from_startup(AxisEnum::Y_AXIS));
-    static metric_t ipos_z = METRIC("ipos_z", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
+    static metric_t ipos_z = METRIC("ipos_z", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_ENABLE_ALL);
     metric_record_integer(&ipos_z, stepper.position_from_startup(AxisEnum::Z_AXIS));
 
     static metric_t pos_x = METRIC("pos_x", METRIC_VALUE_FLOAT, 11, METRIC_HANDLER_DISABLE_ALL);

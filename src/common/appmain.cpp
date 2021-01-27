@@ -12,6 +12,8 @@
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
+#include "metric.h"
+#include "cpu_utils.h"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
 
@@ -63,6 +65,8 @@ extern void USBSerial_put_rx_data(uint8_t *buffer, uint32_t length);
 extern void reset_trinamic_drivers();
 
 extern "C" {
+
+metric_t metric_cpu_usage = METRIC("cpu_usage", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
 extern uartrxbuff_t uart6rxbuff; // PUT rx buffer
 extern uartslave_t uart6slave;   // PUT slave
@@ -133,6 +137,8 @@ void app_run(void) {
     }
 
     while (1) {
+        metric_record_integer(&metric_cpu_usage, osGetCPUUsage());
+
         if (marlin_server_processing()) {
             loop();
         }
