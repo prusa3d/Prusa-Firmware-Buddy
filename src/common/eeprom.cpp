@@ -595,6 +595,8 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
 
     for (i = 0; i < count; i++) {
         st25dv64k_user_write_bytes(EEPROM_ADDRESS + i * size, &line, size);
+        if ((i % 16) == 0)
+            wdt_iwdg_refresh();
     }
 
     int8_t res_flag = 1;
@@ -603,6 +605,8 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
         st25dv64k_user_read_bytes(EEPROM_ADDRESS + i * size, &line2, size);
         if (strcmp(line2, line))
             res_flag = 0;
+        if ((i % 16) == 0)
+            wdt_iwdg_refresh();
     }
     return res_flag;
 }
