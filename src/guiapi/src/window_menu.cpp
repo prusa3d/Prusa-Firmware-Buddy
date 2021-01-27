@@ -220,7 +220,8 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
 
         item->Print(rc);
         if (GuiDefaults::MenuLinesBetweenItems)
-            display::DrawLine(point_ui16(rc.Left() + GuiDefaults::MenuItemDelimiterPadding, rc.Top() + rc.Height()), point_ui16(rc.Left() + rc.Width() - 2 * GuiDefaults::MenuItemDelimiterPadding, rc.Top() + rc.Height()), COLOR_SILVER);
+            display::DrawLine(point_ui16(rc.Left() + GuiDefaults::MenuItemDelimiterPadding.left, rc.Top() + rc.Height()),
+                point_ui16(rc.Left() + rc.Width() - (GuiDefaults::MenuItemDelimiterPadding.left + GuiDefaults::MenuItemDelimiterPadding.right), rc.Top() + rc.Height()), COLOR_SILVER);
     }
 }
 
