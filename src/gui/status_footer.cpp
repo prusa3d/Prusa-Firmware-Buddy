@@ -49,7 +49,10 @@ void status_footer_t::windowEvent(EventLock /*has private ctor*/, window_t *send
 
     if (dynamic_cast<screen_home_data_t *>(GetParent()) != nullptr //is home_screen
         && sheet_number_of_calibrated() > 1) {                     // calibrated more profiles than 1
-        update_sheet_profile();
+        if (mseconds - last_timer_repaint_profile >= REPAINT_PROFILE_PERIOD) {
+            update_sheet_profile();
+            last_timer_repaint_profile = mseconds;
+        }
     } else if (mseconds - last_timer_repaint_z_pos >= REPAINT_Z_POS_PERIOD) {
         update_z_axis();
         last_timer_repaint_z_pos = mseconds;
@@ -252,6 +255,7 @@ status_footer_t::status_footer_t(window_t *parent)
     , last_timer_repaint_values(0)
     , last_timer_repaint_colors(0)
     , last_timer_repaint_z_pos(0)
+    , last_timer_repaint_profile(0)
     , print_speed(0) /// print speed in percents
     //, nozzle_state;
     //, heatbed_state;
