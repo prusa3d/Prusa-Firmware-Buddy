@@ -37,7 +37,66 @@ void fill_till_end_of_line(const int left, const int top, const int h, Rect16 rc
 /// \param clr_fg font/foreground color
 /// \returns size of drawn area
 /// Draws unused space of @rc with @clr_bg
-size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags) {
+size_ui16_t render_text_singleline(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+    int x = rc.Left();
+    int y = rc.Top();
+
+    const int w = pf->w; //char width
+    const int h = pf->h; //char height
+    // prepare for stream processing
+    unichar c = 0;
+    no_wrap text_plain;
+
+    while (true) {
+        c = text_plain.character(str);
+
+        if (c == 0)
+            break;
+
+        /// Break line char or drawable char won't fit into this line any more
+        if (c == '\n') {
+            break; /// end of single line => no more text to print
+        }
+
+        if (x + w > rc.EndPoint().x) {
+            continue;
+        }
+
+        /// draw part
+#ifdef UNACCENT
+        // FIXME no check for enough space to draw char/chars
+        if (c < 128) {
+            display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+            x += w;
+        } else {
+            auto convertedChar = ConvertUnicharToFontCharIndex(c);
+            for (size_t i = 0; i < convertedChar.second; ++i) {
+                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
+                x += w; // this will screw up character counting for DE language @@TODO
+            }
+        }
+#else
+        display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+        x += w;
+#endif
+    }
+    /// fill background to the end of the line and all below till the border of @rc
+    fill_till_end_of_line(x, y, h, rc, clr_bg);
+    y += h;
+    int h1 = std::max(0, rc.EndPoint().y - y);
+    if (h1 > 0) /// FIXME hotfix because FillRect draws nonempty rect. for height 0
+        display::FillRect(Rect16(rc.Left(), y, rc.Width(), h1), clr_bg);
+
+    return size_ui16_t { rc.Width(), rc.Height() };
+}
+
+/// Draws a text into the specified rectangle @rc
+/// If a character does not fit into the rectangle the drawing is stopped
+/// \param clr_bg background color
+/// \param clr_fg font/foreground color
+/// \returns size of drawn area
+/// Draws unused space of @rc with @clr_bg
+size_ui16_t render_text_multiline(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     int x = rc.Left();
     int y = rc.Top();
 
@@ -47,20 +106,15 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
     unichar c = 0;
     /// TODO define parent class for both below and use parent.character(str) instead (few lines below)
     text_wrapper<ram_buffer, const font_t *> wrapper(rc.Width(), pf);
-    no_wrap text_plain;
-    const bool wrap_text = flags & RENDER_FLG_WORDB;
 
     while (true) {
-        c = wrap_text ? wrapper.character(str) : text_plain.character(str);
+        c = wrapper.character(str);
 
         if (c == 0)
             break;
 
         /// Break line char or drawable char won't fit into this line any more
         if (c == '\n') {
-            if (!wrap_text)
-                break; /// end of single line => no more text to print
-
             /// draw background till the border of @rc
             fill_till_end_of_line(x, y, h, rc, clr_bg);
             /// new line
@@ -140,28 +194,25 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
         return;
     }
 
-    /// single line
+    /// single line, can modify rc pad
     if (font->h * 2 > rc_pad.Height()                              /// 2 lines would not fit
         || (txt_size.y == font->h && txt_size.x <= rc_pad.Width()) /// text fits into a single line completely
         || !(flags & RENDER_FLG_WORDB)) {                          /// wrapping turned off
 
         Rect16 rc_txt = Rect16(0, 0, txt_size.x, txt_size.y); /// set size
         rc_txt.Align(rc_pad, flags & ALIGN_MASK);             /// position the rectangle
-        rc_txt = rc_txt.Intersection(rc_pad);                 /// crop the rectangle if the text is too long
+        rc_pad = rc_txt.Intersection(rc_pad);                 ///  set padding rect to new value, crop the rectangle if the text is too long
 
-        /// fill borders (padding)
-        fill_between_rectangles(&rc, &rc_txt, clr0);
         /// 2nd pass reading the string_view_utf8 - draw the text
-        render_text(rc_txt, text, font, clr0, clr1, 0);
-        return;
+        render_text_singleline(rc_pad, text, font, clr0, clr1);
+    } else {
+        /// multiline text
+        /// 2nd pass reading the string_view_utf8 - draw the text
+        render_text_multiline(rc_pad, text, font, clr0, clr1);
     }
-
-    /// multiline text
 
     /// fill borders (padding)
     fill_between_rectangles(&rc, &rc_pad, clr0);
-    /// 2nd pass reading the string_view_utf8 - draw the text
-    render_text(rc_pad, text, font, clr0, clr1, RENDER_FLG_WORDB);
 }
 
 void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, uint16_t flags) {
