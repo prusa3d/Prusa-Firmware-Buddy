@@ -48,7 +48,7 @@ void status_footer_t::windowEvent(EventLock /*has private ctor*/, window_t *send
     }
 
     if (dynamic_cast<screen_home_data_t *>(GetParent()) != nullptr //is home_screen
-        && sheet_number_of_calibrated() > 1) {                     // calibrated more profiles than 1
+        && false) {                                                // calibrated more profiles than 1
         update_sheet_profile();
     } else if (mseconds - last_timer_repaint_z_pos >= REPAINT_Z_POS_PERIOD) {
         update_z_axis();
