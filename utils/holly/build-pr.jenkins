@@ -22,7 +22,6 @@ pipeline {
                 script {
                     // required configurations
                     def configurations = [
-                        [printer: "mini", build_type: "release", bootloader: "no"],
                         [printer: "mini", build_type: "release", bootloader: "yes"],
                     ]
 
@@ -42,7 +41,7 @@ pipeline {
                         // This is build of an ordinary branch (not a release branch)
                         short_suffix = "-BETA+${commit_nr}"
                         def branch_spec = env.BRANCH_NAME.replaceAll("_", "-")
-                        full_suffix = "${short_suffix}.BRANCH-${branch_spec}.B${env.BUILD_NUMBER}"
+                        full_suffix = "${short_suffix}.PF${env.BUILD_NUMBER}"
                     }
 
                     if (params.VERSION_SUFFIX != '<default>') {
