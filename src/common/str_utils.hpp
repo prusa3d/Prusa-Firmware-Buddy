@@ -104,6 +104,53 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
+/// numbers of characters in lines
+class RectTextLayout {
+public:
+    static constexpr size_t MaxLines = 31;
+    static constexpr uint8_t MaxCharInLine = 255;     //uint8_t
+    using Data_t = std::array<uint8_t, MaxLines + 1>; // last elem stores current line
+private:
+    Data_t data;
+    uint8_t currentLine() const { return data[MaxLines]; }
+
+public:
+    RectTextLayout() {
+        data.fill(0);
+    }
+
+    uint8_t LineCharacters(uint8_t line) const {
+        return data[line];
+    }
+
+    uint8_t CurrentLineCharacters() const {
+        return LineCharacters(currentLine());
+    }
+
+    uint8_t GetLineCount() const {
+        return CurrentLineCharacters() == 0 ? currentLine() : currentLine() + 1;
+    }
+
+    //increment number of lines
+    bool NewLine() {
+        if (currentLine() >= MaxLines)
+            return false;
+        data[MaxLines] += 1;
+        return true;
+    }
+
+    bool IncrementNumOfCharsUpTo(uint8_t max_val) {
+        if (currentLine() >= MaxLines)
+            return false;
+        if (CurrentLineCharacters() >= max_val)
+            return false;
+        data[currentLine()] += 1;
+        return true;
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///
 /// Stream reader without breaking the lines
 ///
 struct no_wrap {

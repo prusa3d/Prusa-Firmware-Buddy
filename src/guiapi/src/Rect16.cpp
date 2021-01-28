@@ -244,3 +244,32 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count,
         splits[count - 1].height_ += Height() - final_height;
     }
 }
+
+Rect16 Rect16::LeftSubrect(Rect16 subtrahend) {
+    Rect16 ret = *this;
+    if (subtrahend.Left() < Left()) {
+        ret = Width_t(0);
+        return ret;
+    }
+
+    if (subtrahend.Left() >= (Left() + Width())) {
+        return ret;
+    }
+
+    ret = Width_t(subtrahend.Left() - ret.Left());
+    return ret;
+}
+
+Rect16 Rect16::RightSubrect(Rect16 subtrahend) {
+    Rect16 ret = *this;
+
+    if (subtrahend.Left() + subtrahend.Width() >= Left() + Width()) {
+        ret = Width_t(0);
+        return ret;
+    }
+
+    ret = Left_t(subtrahend.Left() + subtrahend.Width());
+    ret -= Width_t(subtrahend.Left() - Left());
+    ret -= subtrahend.Width();
+    return ret;
+}

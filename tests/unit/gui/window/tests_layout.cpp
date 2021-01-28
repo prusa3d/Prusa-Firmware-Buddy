@@ -9,12 +9,28 @@
 #include "window_text.hpp"
 #include <memory>
 
+//8 bit resolution 1px per row .. 1 byte per row
 uint8_t font_dot_data[] = {
-    0x00,
-    0xff // 0x80 ? or 0x01?
+    0x00, // '0' 8 bit resolution
+    0xff  // '1' 8 bit resolution
 };
 
+// 1 px font
 font_t font_dot = { 1, 1, 1, 0, (uint16_t *)font_dot_data, '0', '1' };
+
+//4 bit resolution 2 px per row .. 1 byte per row
+uint8_t font_2dot_data[] = {
+    // '0' empty square 2x2
+    0x00, // '0' 2px 4 bit resolution line 0
+    0x00, // '0' 2px 4 bit resolution line 1
+
+    // '1' full square 2x2
+    0xff, // '1' 2px 4 bit resolution line 0
+    0xff  // '1' 2px 4 bit resolution line 1
+};
+
+//2x2 px font
+font_t font_2dot = { 2, 2, 1, 0, (uint16_t *)font_2dot_data, '0', '1' };
 
 font_t *GuiDefaults::Font = &font_dot;
 font_t *GuiDefaults::FontBig = &font_dot;
@@ -24,6 +40,8 @@ font_t *GuiDefaults::FontMenuSpecial = &font_dot;
 //to be binded - static for easier debug
 static TMockDisplay<240, 320, 16> MockDispBasic;
 static TMockDisplay<5, 5, 256> MockDisp5x5;
+static TMockDisplay<8, 4, 256> MockDisp8x4;
+static TMockDisplay<8, 8, 256> MockDisp8x8;
 
 //stubbed header does not have C linkage .. to be simpler
 static uint32_t hal_tick = 0;
@@ -110,7 +128,7 @@ TEST_CASE("Window layout tests", "[window]") {
         TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLACK, COLOR_BLUE);
     }
 
-    SECTION("Singleline Text") {
+    SECTION("Singlechar Text ") {
         MockDisplay::Bind(MockDisp5x5);
         MockDisplay::Instance().clear(COLOR_BLACK);
         TestRectColor(DispRect(), COLOR_BLACK);
@@ -177,22 +195,82 @@ TEST_CASE("Window layout tests", "[window]") {
         TestRectDiffColor(DispRect(), Rect16(2, 4, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
     }
 
+    SECTION("Singleline Text ") {
+        MockDisplay::Bind(MockDisp8x4);
+        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        TestRectColor(DispRect(), COLOR_RED);
+        window_text_t txt(nullptr, DispRect(), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1101")));
+        txt.SetPadding({ 0, 0, 0, 0 });
+
+        txt.SetAlignment(ALIGN_LEFT_TOP);
+        txt.Draw();
+        std::array<std::array<bool, 8>, 4> mask = { { { 1, 1, 0, 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } } };
+        TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        txt.SetAlignment(ALIGN_CENTER);
+        txt.Draw();
+        mask = { { { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 1, 1, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } } };
+        TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
+    }
+
     SECTION("Multiline Text") {
         MockDisplay::Bind(MockDisp5x5);
-        MockDisplay::Instance().clear(COLOR_BLACK);
-        TestRectColor(DispRect(), COLOR_BLACK);
+        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        TestRectColor(DispRect(), COLOR_RED);
         window_text_t txt(nullptr, DispRect(), is_multiline::yes, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1\n0\n1")));
         txt.SetPadding({ 0, 0, 0, 0 });
 
         txt.SetAlignment(ALIGN_LEFT_TOP);
         txt.Draw();
-        std::array<std::array<bool, 5>, 5> mask_left_top = { { { 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } } };
-        TestPixelMask(mask_left_top, GuiDefaults::ColorBack, GuiDefaults::ColorText);
+        std::array<std::array<bool, 5>, 5> mask = { { { 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } } };
+        TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
-        MockDisplay::Instance().clear(COLOR_BLACK);
+        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
         txt.SetAlignment(ALIGN_CENTER);
         txt.Draw();
-        std::array<std::array<bool, 5>, 5> mask_center = { { { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 } } };
-        TestPixelMask(mask_center, GuiDefaults::ColorBack, GuiDefaults::ColorText);
+        mask = { { { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 } } };
+        TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)("111\n101\n10001")));
+        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        txt.SetAlignment(ALIGN_CENTER);
+        txt.Draw();
+        mask = { { { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 0 }, { 0, 1, 0, 1, 0 }, { 1, 0, 0, 0, 1 }, { 0, 0, 0, 0, 0 } } };
+        TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
+    }
+
+    SECTION("Multiline Text, font 2x2") {
+        MockDisplay::Bind(MockDisp8x8);
+        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        TestRectColor(DispRect(), COLOR_RED);
+        window_text_t txt(nullptr, DispRect(), is_multiline::yes, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1\n0\n1")));
+        txt.font = &font_2dot;
+        txt.SetPadding({ 0, 0, 0, 0 });
+
+        txt.SetAlignment(ALIGN_LEFT_TOP);
+        txt.Draw();
+        std::array<std::array<bool, 8>, 8> mask = { { { 1, 1, 0, 0, 0, 0, 0, 0 },
+            { 1, 1, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 1, 1, 0, 0, 0, 0, 0, 0 },
+            { 1, 1, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0 } } };
+        TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        /* MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        txt.SetAlignment(ALIGN_CENTER);
+        txt.Draw();
+        mask = { { { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 } } };
+        TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
+
+        txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)("111\n101\n10001")));
+        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        txt.SetAlignment(ALIGN_CENTER);
+        txt.Draw();
+        mask = { { { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 0 }, { 0, 1, 0, 1, 0 }, { 1, 0, 0, 0, 1 }, { 0, 0, 0, 0, 0 } } };
+        TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);*/
     }
 };
