@@ -122,10 +122,6 @@ size_ui16_t render_text_singleline(Rect16 rc, string_view_utf8 str, const font_t
     return render_line(text_plain, rc, str, pf, clr_bg, clr_fg);
 }
 
-struct dummy_font {
-    static constexpr size_t w = 1;
-};
-
 //count characters in lines
 static RectTextLayout multiline_loop(uint8_t MaxColsInRect, uint8_t MaxRowsInRect, string_view_utf8 str) {
     RectTextLayout layout;
@@ -136,8 +132,8 @@ static RectTextLayout multiline_loop(uint8_t MaxColsInRect, uint8_t MaxRowsInRec
     // text_wrapper needs font to support Disproportionate fonts in future
     // multiline_loop is not compatible with them and will need to be rewritten
     // so I can use dummy font
-    static constexpr dummy_font dummy;
-    text_wrapper<ram_buffer, const dummy_font *> wrapper(MaxColsInRect, &dummy);
+    static constexpr font_emulation_w1 dummy;
+    text_wrapper<ram_buffer, const font_emulation_w1 *> wrapper(MaxColsInRect, &dummy);
 
     bool exit = false;
 

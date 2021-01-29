@@ -26,10 +26,18 @@ int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-/// Emulate font with the constant character width
+/// Emulate font with the constant character width == 12
 ///
 struct monospace {
-    const uint32_t w = 12;
+    static constexpr uint32_t w = 12;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Emulate font with the constant character width == 1
+///
+struct font_emulation_w1 {
+    static constexpr size_t w = 1;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
