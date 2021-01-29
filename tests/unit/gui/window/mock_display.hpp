@@ -2,7 +2,7 @@
  * @file mock_display.hpp
  * @author Radek Vana
  * @brief class for display emulation
- *  all methods are static, because I need to pass them ad function pointers
+ *  all methods are static, because I need to pass them by function pointers
  * @date 2021-01-11
  */
 
@@ -10,35 +10,79 @@
 #pragma once
 #include "guitypes.hpp"
 #include <inttypes.h>
+#include <memory>
 #include <array>
 
-class MockDisplay {
-    constexpr static uint16_t cols = 240;
-    constexpr static uint16_t rows = 320;
-    constexpr static uint16_t buff_rows = 16;
-
+//interface
+class IMockDisplay {
 public:
-    constexpr static uint16_t Cols() { return cols; }
-    constexpr static uint16_t Rows() { return rows; }
-    constexpr static uint16_t BuffRows() { return buff_rows; }
-    static void init();
-    static void done() {}
-    void clear(color_t clr);
-    uint32_t GetpixelNativeColor(uint16_t point_x, uint16_t point_y);
-    void SetpixelNativeColor(uint16_t point_x, uint16_t point_y, uint32_t clr);
-    uint8_t *GetBlock(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) const;
-    void FillRectNativeColor(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr);
+    virtual uint16_t Cols() = 0;
+    virtual uint16_t Rows() = 0;
+    virtual uint16_t BuffRows() = 0;
+    virtual void clear(color_t clr) = 0;
+    virtual uint32_t GetpixelNativeColor(uint16_t point_x, uint16_t point_y) = 0;
+    virtual void SetpixelNativeColor(uint16_t point_x, uint16_t point_y, uint32_t clr) = 0;
+    virtual uint8_t *GetBlock(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) const = 0;
+    virtual void FillRectNativeColor(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr) = 0;
+    virtual uint8_t *getBuff() = 0;
+    virtual void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) = 0;
+    virtual ~IMockDisplay() = default;
+};
 
-    uint8_t *getBuff() { return (uint8_t *)buffer; }
-    void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h);
+//template for different display sizes
+template <uint16_t COLS, uint16_t ROWS, uint16_t BUFF_ROWS>
+class TMockDisplay : public IMockDisplay {
+public:
+    virtual uint16_t Cols() override { return COLS; }
+    virtual uint16_t Rows() override { return ROWS; }
+    virtual uint16_t BuffRows() override { return BUFF_ROWS; }
+    virtual void clear(color_t clr) override {
+        std::array<color_t, COLS> row;
+        row.fill(clr);
+        pixels.fill(row);
+    }
+    virtual uint32_t GetpixelNativeColor(uint16_t point_x, uint16_t point_y) override {
+        return pixels[point_y][point_x];
+    }
+    virtual void SetpixelNativeColor(uint16_t point_x, uint16_t point_y, uint32_t clr) override {
+        pixels[point_y][point_x] = clr;
+    }
+    virtual uint8_t *GetBlock(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) const { return nullptr; }
+    virtual void FillRectNativeColor(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr) override {
+        for (size_t row = 0; row < rect_h; ++row) {
+            for (size_t col = 0; col < rect_w; ++col) {
+                SetpixelNativeColor(rect_x + col, rect_y + row, nativeclr);
+            }
+        }
+    }
 
-    static MockDisplay &Instance();
+    virtual uint8_t *getBuff() override { return (uint8_t *)buffer; }
+    virtual void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) override {
+        size_t buff_pos = 0;
+        for (uint16_t Y = pt.y; Y < (h + pt.y); ++Y) {
+            for (uint16_t X = pt.x; X < (w + pt.x); ++X) {
+                SetpixelNativeColor(X, Y, buffer[buff_pos]);
+                ++buff_pos;
+            }
+        }
+    }
 
 private:
-    //singleton
-    MockDisplay() = default;
-    MockDisplay(MockDisplay &) = delete;
+    std::array<std::array<color_t, COLS>, ROWS> pixels;
+    uint32_t buffer[COLS * BUFF_ROWS];
+};
 
-    std::array<std::array<color_t, cols>, rows> pixels;
-    uint32_t buffer[cols * buff_rows];
+class MockDisplay {
+public:
+    static uint16_t Cols();
+    static uint16_t Rows();
+    static uint16_t BuffRows();
+    static void init();
+    static void done() {}
+
+    static IMockDisplay &Instance();
+    static void Bind(IMockDisplay &disp);
+
+private:
+    static IMockDisplay *instance;
 };

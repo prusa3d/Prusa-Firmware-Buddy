@@ -9,6 +9,8 @@
 #include "Rect16.h"
 #include "display_ex.hpp"
 
+typedef uint16_t(display_size_t)(void);
+typedef void(display_init_t)(void);
 typedef void(display_init_t)(void);
 typedef void(display_done_t)(void);
 typedef void(display_clear_t)(color_t clr);
@@ -21,7 +23,7 @@ typedef void(display_fill_rect_t)(Rect16 rc, color_t clr);
 /// @param charX x-coordinate of character (glyph) in font bitmap (remember, fonts are bitmaps 16 chars wide and arbitrary lines of chars tall)
 /// @param charY y-coordinate of character (glyph) in font bitmap
 typedef bool(display_draw_char_t)(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
-typedef size_ui16_t(display_draw_text_t)(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags);
+typedef size_ui16_t(display_draw_text_t)(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef void(display_draw_icon_t)(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);
 typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
 
@@ -35,14 +37,28 @@ static constexpr const FCIndex fontCharIndices[] =
 #include "fnt-indices.ipp"
     static constexpr const uint32_t fontCharIndicesNumItems = sizeof(fontCharIndices) / sizeof(FCIndex);
 
-template <uint16_t W, uint16_t H, display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK, display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR, display_draw_text_t *DRAW_TEXT, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
+template <
+#ifndef USE_MOCK_DISPLAY // mock display has dynamical size
+    uint16_t W, uint16_t H
+#else  // USE_MOCK_DISPLAY
+    display_size_t *COLS, display_size_t *ROWS
+#endif // USE_MOCK_DISPLAY
+    ,
+    display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK,
+    display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR,
+    display_draw_text_t *DRAW_TEXT, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
 class Display {
     // sorted raw array of known utf8 character indices
 public:
-    /// Get width of display
+    /// Get width or height  of display
+#ifndef USE_MOCK_DISPLAY // mock display has dynamical size
     constexpr static uint16_t GetW() { return W; }
-    /// Get height of display
     constexpr static uint16_t GetH() { return H; }
+#else  // USE_MOCK_DISPLAY
+    constexpr static uint16_t GetW() { return COLS(); }
+    constexpr static uint16_t GetH() { return ROWS(); }
+#endif // USE_MOCK_DISPLAY
+
     constexpr static void Init() { INIT(); }
     constexpr static void Done() { DONE(); }
     constexpr static void Clear(color_t clr) { CLEAR(clr); }
@@ -57,8 +73,8 @@ public:
         // ... and also because doing it in C++ is much easier than in plain C
         uint8_t charX = 15, charY = 1;
 
-        if (c < pf->asc_min) { // this really happens with non-utf8 characters on filesystems
-            c = '?';           // substitute with a '?' or any other suitable character, which is in the range of the fonts
+        if (c < uint8_t(pf->asc_min)) { // this really happens with non-utf8 characters on filesystems
+            c = '?';                    // substitute with a '?' or any other suitable character, which is in the range of the fonts
         }
         // here is intentionally no else
         if (c < 128) {
@@ -85,7 +101,7 @@ public:
     /// \param rc rectangle where text will be placed
     /// \param flags if RENDER_FLG_WORDB is set, the text is wrapped to fit the rectangle,
     /// otherwise, the first line (until \0 or \n) will be drawn only.
-    static size_ui16_t DrawText(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags = 0) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg, flags); }
+    static size_ui16_t DrawText(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
     constexpr static void DrawIcon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop) { DRAW_ICON(pt, id_res, clr0, rop); }
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };
@@ -102,14 +118,14 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     display_ex_draw_rect,
     display_ex_fill_rect,
     display_ex_draw_charUnicode,
-    render_text,
+    render_text_singleline,
     display_ex_draw_icon,
     display_ex_draw_png>;
 #endif
 
 #ifdef USE_MOCK_DISPLAY
     #include "mock_display.hpp"
-using display = Display<MockDisplay::Cols(), MockDisplay::Rows(),
+using display = Display<MockDisplay::Cols, MockDisplay::Rows,
     MockDisplay::init,
     MockDisplay::done,
     display_ex_clear,
@@ -119,7 +135,7 @@ using display = Display<MockDisplay::Cols(), MockDisplay::Rows(),
     display_ex_draw_rect,
     display_ex_fill_rect,
     display_ex_draw_charUnicode,
-    render_text,
+    render_text_singleline,
     display_ex_draw_icon,
     display_ex_draw_png>;
 #endif

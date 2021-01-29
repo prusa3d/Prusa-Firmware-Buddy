@@ -21,12 +21,14 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/empty_mocks.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/mock_display.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/mock_windows.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/window_text_stub.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window_frame.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/window_text.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/screen.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/Rect16.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/display_ex.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/display_helper.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
   ${CMAKE_SOURCE_DIR}/src/gui/dialogs/window_dlg_popup.cpp
   ${CMAKE_SOURCE_DIR}/src/gui/dialogs/IDialog.cpp
   )

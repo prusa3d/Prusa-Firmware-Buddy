@@ -114,7 +114,7 @@ void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
 
     if (!set_txt_rc.IsEmpty()) {
         fill_between_rectangles(&rc, &set_txt_rc, clr_back);
-        render_text(set_txt_rc, /*str*/ text, font, clr_back, clr_text, 0);
+        render_text_singleline(set_txt_rc, /*str*/ text, font, clr_back, clr_text);
     } else {
         display::FillRect(rc, clr_back);
     }

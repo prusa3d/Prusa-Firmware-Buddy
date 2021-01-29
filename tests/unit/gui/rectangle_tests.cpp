@@ -377,3 +377,177 @@ TEST_CASE("rectangle split", "[rectangle]") {
         COMPARE_ARRAYS(expected, result);
     }
 }
+
+TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
+    SECTION("empty") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
+        Rect16 expected_result { 0, 1, 0, 1 };
+
+        Rect16 result = minuend.LeftSubrect(subtrahend);
+
+        REQUIRE(expected_result == result);
+    }
+
+    SECTION("normal cut") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 subtrahend { 4, 1, 8, 1 }; // the rect that is to be subtracted.
+        Rect16 expected_result { 0, 1, 4, 1 };
+
+        Rect16 result = minuend.LeftSubrect(subtrahend);
+
+        REQUIRE(expected_result == result);
+    }
+
+    SECTION("cut till end") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 subtrahend { 8, 1, 8, 1 }; // the rect that is to be subtracted.
+        Rect16 expected_result { 0, 1, 8, 1 };
+
+        Rect16 result = minuend.LeftSubrect(subtrahend);
+
+        REQUIRE(expected_result == result);
+    }
+
+    SECTION("cut behind end") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 subtrahend { 12, 1, 8, 1 }; // the rect that is to be subtracted.
+        Rect16 expected_result { 0, 1, 12, 1 };
+
+        Rect16 result = minuend.LeftSubrect(subtrahend);
+
+        REQUIRE(expected_result == result);
+    }
+
+    SECTION("empty cut at end") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 subtrahend { 16, 1, 8, 1 }; // the rect that is to be subtracted.
+        Rect16 expected_result = minuend;
+
+        Rect16 result = minuend.LeftSubrect(subtrahend);
+
+        REQUIRE(expected_result == result);
+    }
+
+    SECTION("empty cut behind end") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 subtrahend { 32, 1, 8, 1 }; // the rect that is to be subtracted.
+        Rect16 expected_result = minuend;
+
+        Rect16 result = minuend.LeftSubrect(subtrahend);
+
+        REQUIRE(expected_result == result);
+    }
+
+    SECTION("empty cut in front begin") {
+        //y and h does not matter
+        Rect16 minuend { 8, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
+
+        Rect16 result = minuend.LeftSubrect(subtrahend);
+
+        REQUIRE(result.Width() == 0);
+    }
+}
+
+TEST_CASE("rectangle RightSubrect", "[rectangle]") {
+    SECTION("normal cut from begin") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
+        Rect16 expected_result { 8, 1, 8, 1 };
+
+        Rect16 result = minuend.RightSubrect(subtrahend);
+
+        REQUIRE(expected_result == result);
+    }
+
+    SECTION("normal cut middle") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 subtrahend { 4, 1, 8, 1 }; // the rect that is to be subtracted.
+        Rect16 expected_result { 12, 1, 4, 1 };
+
+        Rect16 result = minuend.RightSubrect(subtrahend);
+
+        REQUIRE(expected_result == result);
+    }
+
+    SECTION("cut till end") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 subtrahend { 8, 1, 8, 1 }; // the rect that is to be subtracted.
+
+        Rect16 result = minuend.RightSubrect(subtrahend);
+
+        REQUIRE(result.Width() == 0);
+    }
+
+    SECTION("cut behind end") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 subtrahend { 12, 1, 8, 1 }; // the rect that is to be subtracted.
+
+        Rect16 result = minuend.RightSubrect(subtrahend);
+
+        REQUIRE(result.Width() == 0);
+    }
+
+    SECTION("empty cut at end") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 subtrahend { 16, 1, 8, 1 }; // the rect that is to be subtracted.
+
+        Rect16 result = minuend.RightSubrect(subtrahend);
+
+        REQUIRE(result.Width() == 0);
+    }
+
+    SECTION("empty cut behind end") {
+        //y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 subtrahend { 32, 1, 8, 1 }; // the rect that is to be subtracted.
+
+        Rect16 result = minuend.RightSubrect(subtrahend);
+
+        REQUIRE(result.Width() == 0);
+    }
+
+    SECTION("not intersecting cut in front begin") {
+        //y and h does not matter
+        Rect16 minuend { 8, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
+        Rect16 expected_result = { 8, 1, 16, 1 };
+
+        Rect16 result = minuend.RightSubrect(subtrahend);
+
+        REQUIRE(expected_result == result);
+    }
+
+    SECTION("intersecting cut in front begin") {
+        //y and h does not matter
+        Rect16 minuend { 8, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 subtrahend { 0, 1, 16, 1 }; // the rect that is to be subtracted.
+        Rect16 expected_result = { 16, 1, 8, 1 };
+
+        Rect16 result = minuend.RightSubrect(subtrahend);
+
+        REQUIRE(expected_result == result);
+    }
+
+    SECTION("overlaping cut") {
+        //y and h does not matter
+        Rect16 minuend { 8, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 subtrahend { 0, 1, 32, 1 }; // the rect that is to be subtracted.
+
+        Rect16 result = minuend.RightSubrect(subtrahend);
+
+        REQUIRE(result.Width() == 0);
+    }
+}
