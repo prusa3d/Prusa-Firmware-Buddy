@@ -20,7 +20,7 @@ typedef void(display_fill_rect_t)(Rect16 rc, color_t clr);
 /// @param charX x-coordinate of character (glyph) in font bitmap (remember, fonts are bitmaps 16 chars wide and arbitrary lines of chars tall)
 /// @param charY y-coordinate of character (glyph) in font bitmap
 typedef bool(display_draw_char_t)(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
-typedef size_ui16_t(display_draw_text_t)(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags);
+typedef size_ui16_t(display_draw_text_t)(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef void(display_draw_icon_t)(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);
 typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
 
@@ -56,8 +56,8 @@ public:
         // ... and also because doing it in C++ is much easier than in plain C
         uint8_t charX = 15, charY = 1;
 
-        if (c < pf->asc_min) { // this really happens with non-utf8 characters on filesystems
-            c = '?';           // substitute with a '?' or any other suitable character, which is in the range of the fonts
+        if (c < uint8_t(pf->asc_min)) { // this really happens with non-utf8 characters on filesystems
+            c = '?';                    // substitute with a '?' or any other suitable character, which is in the range of the fonts
         }
         // here is intentionally no else
         if (c < 128) {
@@ -84,7 +84,7 @@ public:
     /// \param rc rectangle where text will be placed
     /// \param flags if RENDER_FLG_WORDB is set, the text is wrapped to fit the rectangle,
     /// otherwise, the first line (until \0 or \n) will be drawn only.
-    static size_ui16_t DrawText(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags = 0) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg, flags); }
+    static size_ui16_t DrawText(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
     constexpr static void DrawIcon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop) { DRAW_ICON(pt, id_res, clr0, rop); }
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };
@@ -100,6 +100,6 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     display_ex_draw_rect,
     display_ex_fill_rect,
     display_ex_draw_charUnicode,
-    render_text,
+    render_text_singleline,
     display_ex_draw_icon,
     display_ex_draw_png>;

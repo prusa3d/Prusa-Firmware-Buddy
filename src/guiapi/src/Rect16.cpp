@@ -81,6 +81,8 @@ Rect16::Rect16(point_i16_t top_left, size_ui16_t s)
 }
 
 Rect16 Rect16::Intersection(Rect16 const &r) const {
+    if (IsEmpty() || r.IsEmpty())
+        return Rect16(0, 0, 0, 0);
     point_i16_t top_left;
     point_i16_t bot_right;
 
@@ -133,7 +135,7 @@ Rect16 Rect16::Union(Rect16 const &r) const {
 }
 
 bool Rect16::HasIntersection(Rect16 const &r) const {
-    if (r.IsEmpty())
+    if (IsEmpty() || r.IsEmpty())
         return false;
     return TopLeft().x < r.EndPoint().x
         && EndPoint().x > r.TopLeft().x
@@ -241,4 +243,33 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count,
     if (final_height < Height()) {
         splits[count - 1].height_ += Height() - final_height;
     }
+}
+
+Rect16 Rect16::LeftSubrect(Rect16 subtrahend) {
+    Rect16 ret = *this;
+    if (subtrahend.Left() < Left()) {
+        ret = Width_t(0);
+        return ret;
+    }
+
+    if (subtrahend.Left() >= (Left() + Width())) {
+        return ret;
+    }
+
+    ret = Width_t(subtrahend.Left() - ret.Left());
+    return ret;
+}
+
+Rect16 Rect16::RightSubrect(Rect16 subtrahend) {
+    Rect16 ret = *this;
+
+    if (subtrahend.Left() + subtrahend.Width() >= Left() + Width()) {
+        ret = Width_t(0);
+        return ret;
+    }
+
+    ret = Left_t(subtrahend.Left() + subtrahend.Width());
+    ret -= Width_t(subtrahend.Left() - Left());
+    ret -= subtrahend.Width();
+    return ret;
 }
