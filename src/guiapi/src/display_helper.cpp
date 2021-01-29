@@ -23,16 +23,16 @@ std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
     return std::make_pair(a.str, a.size); // we are returning some number of characters to replace the input utf8 character
 }
 
-void draw_char_and_increment(const font_t *pf, color_t clr_bg, color_t clr_fg, unichar c, int x, int y, int w) {
+void draw_char_and_increment(const font_t *pf, color_t clr_bg, color_t clr_fg, unichar c, int &ref_x, int y, int w) {
     // FIXME no check for enough space to draw char/chars
     if (c < 128) {
-        display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
-        x += w;
+        display::DrawChar(point_ui16(ref_x, y), c, pf, clr_bg, clr_fg);
+        ref_x += w;
     } else {
         auto convertedChar = ConvertUnicharToFontCharIndex(c);
         for (size_t i = 0; i < convertedChar.second; ++i) {
-            display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
-            x += w; // this will screw up character counting for DE language @@TODO
+            display::DrawChar(point_ui16(ref_x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
+            ref_x += w; // this will screw up character counting for DE language @@TODO
         }
     }
 }
@@ -164,61 +164,6 @@ static RectTextLayout multiline_loop(uint8_t MaxColsInRect, uint8_t MaxRowsInRec
     }
 
     return layout;
-}
-
-//TODO erase me
-/// Draws a text into the specified rectangle @rc
-/// If a character does not fit into the rectangle the drawing is stopped
-/// \param clr_bg background color
-/// \param clr_fg font/foreground color
-/// \returns size of drawn area
-/// Draws unused space of @rc with @clr_bg
-size_ui16_t render_text_multiline(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    int x = rc.Left();
-    int y = rc.Top();
-
-    const int w = pf->w; //char width
-    const int h = pf->h; //char height
-    // prepare for stream processing
-    unichar c = 0;
-    /// TODO define parent class for both below and use parent.character(str) instead (few lines below)
-    text_wrapper<ram_buffer, const font_t *> wrapper(rc.Width(), pf);
-
-    while (true) {
-        c = wrapper.character(str);
-
-        if (c == 0)
-            break;
-
-        /// Break line char or drawable char won't fit into this line any more
-        if (c == '\n') {
-            /// draw background till the border of @rc
-            fill_till_end_of_line(x, y, h, rc, clr_bg);
-            /// new line
-            y += h;
-            x = rc.Left();
-
-            if (y + h > rc.EndPoint().y) /// next char won't fit vertically
-                break;
-
-            continue;
-        }
-
-        if (x + w > rc.EndPoint().x) {
-            continue;
-        }
-
-        /// draw part
-        draw_char_and_increment(pf, clr_bg, clr_fg, c, x, y, w);
-    }
-    /// fill background to the end of the line and all below till the border of @rc
-    fill_till_end_of_line(x, y, h, rc, clr_bg);
-    y += h;
-    int h1 = std::max(0, rc.EndPoint().y - y);
-    if (h1 > 0) /// FIXME hotfix because FillRect draws nonempty rect. for height 0
-        display::FillRect(Rect16(rc.Left(), y, rc.Width(), h1), clr_bg);
-
-    return size_ui16_t { rc.Width(), rc.Height() };
 }
 
 /// Draws text into the specified rectangle with proper alignment (@flags)

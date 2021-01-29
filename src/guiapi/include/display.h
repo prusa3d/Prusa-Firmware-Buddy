@@ -46,9 +46,7 @@ template <
     ,
     display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK,
     display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR,
-    display_draw_text_t *DRAW_TEXT,
-    display_draw_text_t *DRAW_TEXT_MULTILINE, // TODO remove, blocked by BSOD - general error
-    display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
+    display_draw_text_t *DRAW_TEXT, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
 class Display {
     // sorted raw array of known utf8 character indices
 public:
@@ -104,7 +102,6 @@ public:
     /// \param flags if RENDER_FLG_WORDB is set, the text is wrapped to fit the rectangle,
     /// otherwise, the first line (until \0 or \n) will be drawn only.
     static size_ui16_t DrawText(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
-    static size_ui16_t DrawTextMultiline(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT_MULTILINE(rc, str, pf, clr_bg, clr_fg); } // TODO remove, blocked by BSOD - general error
     constexpr static void DrawIcon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop) { DRAW_ICON(pt, id_res, clr0, rop); }
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };
@@ -122,7 +119,6 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     display_ex_fill_rect,
     display_ex_draw_charUnicode,
     render_text_singleline,
-    render_text_multiline, // TODO remove, blocked by BSOD - general error
     display_ex_draw_icon,
     display_ex_draw_png>;
 #endif
@@ -140,7 +136,6 @@ using display = Display<MockDisplay::Cols, MockDisplay::Rows,
     display_ex_fill_rect,
     display_ex_draw_charUnicode,
     render_text_singleline,
-    render_text_multiline, // TODO remove, blocked by BSOD - general error
     display_ex_draw_icon,
     display_ex_draw_png>;
 #endif

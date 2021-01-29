@@ -191,7 +191,7 @@ void general_error(const char *error, const char *module) {
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     addFormatText(buffer, buffer_size, buffer_pos, "%s\n", module);
-    display::DrawTextMultiline(Rect16(PADDING, 60, 240, 260), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    render_text_align(Rect16(PADDING, 60, 240, 260), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
@@ -261,7 +261,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// draw header & main text
         display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
         display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
-        display::DrawTextMultiline(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+        render_text_align(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
 
         /// draw "Hand QR" icon
         render_icon_align(Rect16(20, 165, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, 0);
@@ -461,7 +461,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
         addFormatNum(buffer, buffer_size, buffer_pos, "%08x  ", (uint32_t)*i);
     }
-    display::DrawTextMultiline(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    render_text_align(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
 
     #endif
@@ -743,7 +743,7 @@ void ScreenHardFault(void) {
         addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x ", sp);
     }
 
-    display::DrawTextMultiline(Rect16(8, 10, 232, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    render_text_align(Rect16(8, 10, 232, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
     display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 }
 
