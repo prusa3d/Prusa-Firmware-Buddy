@@ -39,6 +39,7 @@ class status_footer_t : public AddSuperWindow<window_frame_t> {
     HeatState nozzle_state;
     HeatState heatbed_state;
     bool show_second_color;
+    uint32_t cached_no_of_calibrated_sheets;
 
     void timer(uint32_t mseconds);
     void update_nozzle(const marlin_vars_t *vars);
@@ -50,6 +51,7 @@ class status_footer_t : public AddSuperWindow<window_frame_t> {
     void repaint_nozzle();
     void repaint_heatbed();
     void update_sheet_profile();
+    uint32_t no_of_calibrated_sheets();
 
 public:
     status_footer_t(window_t *parent);

@@ -207,9 +207,6 @@ static const eeprom_vars_t eeprom_var_defaults = {
 
 // semaphore handle (lock/unlock)
 static osSemaphoreId eeprom_sema = 0;
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-static uint32_t no_of_calibrated_sheets = 0;
-#endif
 
 static inline void eeprom_lock(void) {
     osSemaphoreWait(eeprom_sema, osWaitForever);
@@ -661,10 +658,6 @@ bool sheet_calibrate(uint32_t index) {
         return false;
     uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
 
-    if (!sheet_is_calibrated(index)) {
-        ++no_of_calibrated_sheets;
-    }
-
     st25dv64k_user_write(active_sheet_address, static_cast<uint8_t>(index));
     eeprom_update_crc32();
     return true;
@@ -681,10 +674,6 @@ bool sheet_reset(uint32_t index) {
     uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
     float z_offset = FLT_MAX;
 
-    if (sheet_is_calibrated(index)) {
-        --no_of_calibrated_sheets;
-    }
-
     st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
         &z_offset, sizeof(float));
     eeprom_update_crc32();
@@ -698,14 +687,12 @@ bool sheet_reset(uint32_t index) {
 
 uint32_t sheet_number_of_calibrated() {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    if (!no_of_calibrated_sheets) {
-        ++no_of_calibrated_sheets;
-        for (int8_t i = 1; i < MAX_SHEETS; ++i) {
-            if (sheet_is_calibrated(i))
-                ++no_of_calibrated_sheets;
-        }
+    uint32_t count = 1;
+    for (int8_t i = 1; i < MAX_SHEETS; ++i) {
+        if (sheet_is_calibrated(i))
+            ++count;
     }
-    return no_of_calibrated_sheets;
+    return count;
 #else
     return 1;
 #endif
