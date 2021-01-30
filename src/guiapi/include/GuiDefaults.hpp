@@ -2,6 +2,7 @@
 #pragma once
 #include "guitypes.hpp"
 #include "Rect16.h"
+#include "colors.hpp"
 
 struct GuiDefaults {
     //display specific defaults
@@ -14,12 +15,12 @@ struct GuiDefaults {
     // COMMON DEFAULTS
 
     // Color settings
-    static constexpr color_t ColorBack = COLOR_BLACK;
-    static constexpr color_t ColorText = COLOR_WHITE;
-    static constexpr color_t ColorDisabled = COLOR_SILVER;
-    static constexpr color_t ColorSelected = COLOR_ORANGE;
-    static constexpr color_t COLOR_VALUE_VALID = COLOR_WHITE;
-    static constexpr color_t COLOR_VALUE_INVALID = COLOR_WHITE; //COLOR_YELLOW
+    static constexpr color_t ColorBack = color_t::Black;
+    static constexpr color_t ColorText = color_t::White;
+    static constexpr color_t ColorDisabled = color_t::Silver;
+    static constexpr color_t ColorSelected = color_t::Orange;
+    static constexpr color_t COLOR_VALUE_VALID = color_t::White;
+    static constexpr color_t COLOR_VALUE_INVALID = color_t::White; //color_t::Yellow
     // Menu color settings
     static constexpr color_t MenuColorBack = ColorBack;
     static constexpr color_t MenuColorText = ColorText;

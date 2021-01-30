@@ -95,51 +95,51 @@ static const constexpr int32_t BED_BOT_H = (int)(0.04F * BED_H);
 void mbl_error(uint16_t moves, uint16_t points) {
     __disable_irq();
     stop_common();
-    display::Clear(COLOR_RED_ALERT);
+    display::Clear(color_t::RedAlert);
 
     static const char mblerr[] = "MBL ERROR";
     display::DrawText(Rect16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)mblerr),
-        GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
-    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
+        GuiDefaults::Font, color_t::RedAlert, color_t::White);
+    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), color_t::White);
 
     //bed
     Rect16 rect(POINT_BASE_X_OFFSET - BED_EDGE, POINT_BASE_Y_OFFSET - BED_EDGE, BED_W, BED_H);
 
-    display::FillRect(rect, COLOR_DARK_KHAKI);
-    display::DrawRect(rect, COLOR_BLACK);
+    display::FillRect(rect, color_t::DarkKhaki);
+    display::DrawRect(rect, color_t::Black);
 
     //top part surounding
     rect = Rect16(rect.Left() + BED_W / 2 - BED_TOP_W / 2, rect.Top() - BED_TOP_H, BED_TOP_W, BED_TOP_H);
 
-    display::DrawRect(rect, COLOR_BLACK);
+    display::DrawRect(rect, color_t::Black);
     //top part filling
     rect += Rect16::Left_t(1);
     rect += Rect16::Top_t(1);
     rect -= Rect16::Width_t(2);
     //h must remain the same
-    display::FillRect(rect, COLOR_DARK_KHAKI);
+    display::FillRect(rect, color_t::DarkKhaki);
 
     //bot left part surounding
     rect = Rect16(POINT_BASE_X_OFFSET - BED_EDGE, POINT_BASE_Y_OFFSET - BED_EDGE + BED_H, BED_BOT_W, BED_BOT_H);
 
-    display::DrawRect(rect, COLOR_BLACK);
+    display::DrawRect(rect, color_t::Black);
     //bot left part filling
     rect += Rect16::Left_t(1);
     rect -= Rect16::Top_t(1);
     rect -= Rect16::Width_t(2);
     //h must remain the same
-    display::FillRect(rect, COLOR_DARK_KHAKI);
+    display::FillRect(rect, color_t::DarkKhaki);
 
     //bot right part surounding
     rect = Rect16(POINT_BASE_X_OFFSET - BED_EDGE + BED_W - BED_BOT_W, POINT_BASE_Y_OFFSET - BED_EDGE + BED_H, BED_BOT_W, BED_BOT_H);
 
-    display::DrawRect(rect, COLOR_BLACK);
+    display::DrawRect(rect, color_t::Black);
     //bot right part filling
     rect += Rect16::Left_t(1);
     rect -= Rect16::Top_t(1);
     rect -= Rect16::Width_t(2);
     //h must remain the same
-    display::FillRect(rect, COLOR_DARK_KHAKI);
+    display::FillRect(rect, color_t::DarkKhaki);
 
     //points
     for (size_t i = 0; i < POINT_CNT; ++i) {
@@ -148,13 +148,13 @@ void mbl_error(uint16_t moves, uint16_t points) {
         rect += Rect16::Top_t(POINT_BASE_Y_OFFSET);
         if (points & (1 << i)) {
             //err
-            display::FillRect(rect, COLOR_RED);
+            display::FillRect(rect, color_t::Red);
 
         } else {
             //no err
-            display::FillRect(rect, COLOR_GREEN);
+            display::FillRect(rect, color_t::Green);
         }
-        display::DrawRect(rect, COLOR_BLACK);
+        display::DrawRect(rect, color_t::Black);
     }
     //moves
     for (size_t i = 0; i < MOVE_CNT; ++i) {
@@ -163,17 +163,17 @@ void mbl_error(uint16_t moves, uint16_t points) {
         rect += Rect16::Top_t(POINT_BASE_Y_OFFSET);
         if (moves & (1 << i)) {
             //err
-            display::FillRect(rect, COLOR_RED);
+            display::FillRect(rect, color_t::Red);
 
         } else {
             //no err
-            display::FillRect(rect, COLOR_GREEN);
+            display::FillRect(rect, color_t::Green);
         }
-        display::DrawRect(rect, COLOR_BLACK);
+        display::DrawRect(rect, color_t::Black);
     }
 
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), GuiDefaults::Font,
-        COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
+        color_t::White, color_t::Black, { 0, 0, 0, 0 }, ALIGN_CENTER);
 
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {

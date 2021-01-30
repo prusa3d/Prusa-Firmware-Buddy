@@ -11,12 +11,12 @@
 //st7789v specific variables objects and function aliases
 static constexpr Rect16 DisplayClip() { return Rect16(0, 0, ST7789V_COLS, ST7789V_ROWS); }
 
-inline uint16_t color_to_native(uint32_t clr) {
-    return color_to_565(clr);
+inline uint16_t color_to_native(color_t clr) {
+    return color_to_565(uint32_t(clr));
 }
 
-inline uint32_t color_from_native(uint16_t clr) {
-    return color_from_565(clr);
+inline color_t color_from_native(uint16_t clr) {
+    return color_t(color_from_565(clr));
 }
 
 extern "C" {
@@ -72,12 +72,12 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 //mock_display specific variables objects and function aliases
 static Rect16 DisplayClip() { return Rect16(0, 0, MockDisplay::Cols(), MockDisplay::Rows()); }
 
-inline uint32_t color_to_native(uint32_t clr) {
-    return clr;
+static inline uint32_t color_to_native(color_t clr) {
+    return uint32_t(clr);
 }
 
-inline uint32_t color_from_native(uint32_t clr) {
-    return clr;
+static inline color_t color_from_native(uint32_t clr) {
+    return color_t(clr);
 }
 
 //TDispBuffer configuration
@@ -93,7 +93,7 @@ static inline void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) {
 }
 
 void display_ex_clear(const color_t clr) {
-    MockDisplay::Instance().clear(clr);
+    MockDisplay::Instance().clear(uint32_t(clr));
 }
 
 static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
@@ -170,7 +170,7 @@ static inline void clear_buffer_line(int i, color_t back) {
     store_to_buffer(Rect16(0, i, DisplayClip().Width(), 1), DisplayClip().Width(), back);
 }
 
-static inline uint32_t get_pixel(uint16_t point_x, uint16_t point_y) {
+static inline color_t get_pixel(uint16_t point_x, uint16_t point_y) {
     return color_from_native(get_pixel_directColor_C(point_x, point_y));
 }
 
@@ -353,7 +353,7 @@ void display_ex_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 
 color_t display_ex_get_pixel(point_ui16_t pt) {
     if (!DisplayClip().Contain(pt))
-        return 0;
+        return color_t(0);
     return get_pixel(pt.x, pt.y);
 }
 
@@ -385,7 +385,7 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt) {
 
 void display_ex_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop) {
     FILE *pf = resource_fopen(id_res, "rb");
-    draw_png_ex_C(pt.x, pt.y, pf, clr0, rop);
+    draw_png_ex_C(pt.x, pt.y, pf, uint32_t(clr0), rop);
     fclose(pf);
 }
 

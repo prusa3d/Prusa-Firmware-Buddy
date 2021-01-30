@@ -4,6 +4,7 @@
 #include "guitypes.hpp"
 #include "Rect16.h"
 #include "../../lang/string_view_utf8.hpp"
+#include "colors.hpp"
 
 static const uint16_t RENDER_FLG_ALIGN = 0x00ff; // alignment mask (ALIGN_xxx)
 static const uint16_t RENDER_FLG_ROPFN = 0x0f00; // raster operation function mask (ROPFN_xxx << 8)

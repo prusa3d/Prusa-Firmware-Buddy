@@ -13,7 +13,7 @@ screen_hardfault_data_t::screen_hardfault_data_t()
 
     ClrMenuTimeoutClose();
     ClrOnSerialClose();
-    SetBackColor(COLOR_RED);
+    SetBackColor(color_t::Red);
 
     text.font = resource_font(IDR_FNT_BIG);
     static const char wdgr[] = "HARDFAULT RESET";

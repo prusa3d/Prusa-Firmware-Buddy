@@ -73,9 +73,9 @@ DialogSelftestResult::DialogSelftestResult(SelftestResultEEprom_t result)
 
 void DialogSelftestResult::unconditionalDraw() {
     super::unconditionalDraw();
-    display::DrawRect(Rect16(col_0, row_fan_line, WizardDefaults::X_space, line_width), COLOR_SILVER);
-    display::DrawRect(Rect16(col_0, row_axis_line, WizardDefaults::X_space, line_width), COLOR_SILVER);
-    display::DrawRect(Rect16(col_0, row_temp_line, WizardDefaults::X_space, line_width), COLOR_SILVER);
+    display::DrawRect(Rect16(col_0, row_fan_line, WizardDefaults::X_space, line_width), color_t::Silver);
+    display::DrawRect(Rect16(col_0, row_axis_line, WizardDefaults::X_space, line_width), color_t::Silver);
+    display::DrawRect(Rect16(col_0, row_temp_line, WizardDefaults::X_space, line_width), color_t::Silver);
 }
 
 void DialogSelftestResult::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

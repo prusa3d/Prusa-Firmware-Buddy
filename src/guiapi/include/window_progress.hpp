@@ -10,7 +10,7 @@ class window_numberless_progress_t : public AddSuperWindow<window_t> {
     virtual void unconditionalDraw() override;
 
 public:
-    window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress = COLOR_LIME, color_t cl_back = COLOR_GRAY);
+    window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress = color_t::Lime, color_t cl_back = color_t::Gray);
 
     void SetProgressInPixels(uint16_t px);
     void SetProgressPercent(float val);
@@ -26,7 +26,7 @@ class window_progress_t : public AddSuperWindow<window_frame_t> {
     float max;
 
 public:
-    window_progress_t(window_t *parent, Rect16 rect, uint16_t h_progr = 8, color_t cl_progress = COLOR_LIME, color_t cl_back = COLOR_GRAY);
+    window_progress_t(window_t *parent, Rect16 rect, uint16_t h_progr = 8, color_t cl_progress = color_t::Lime, color_t cl_back = color_t::Gray);
     void SetValue(float val);
     void SetFont(font_t *val);
     void SetProgressColor(color_t clr);

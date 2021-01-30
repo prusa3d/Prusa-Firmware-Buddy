@@ -9,7 +9,7 @@
 #include "marlin_client.h"
 WindowPrintProgress::WindowPrintProgress(window_t *parent, point_i16_t position, HasNumber_t hasNum)
     : AddSuperWindow<window_progress_t>(parent, Rect16(position.x, position.y, GuiDefaults::RectScreen.Width() - (2 * position.x), hasNum == HasNumber_t::yes ? 50 : 8),
-        hasNum == HasNumber_t::yes ? 16 : 8, hasNum == HasNumber_t::yes ? COLOR_ORANGE : COLOR_LIME)
+        hasNum == HasNumber_t::yes ? 16 : 8, hasNum == HasNumber_t::yes ? color_t::Orange : color_t::Lime)
     , last_sd_percent_done(-1) {
     SetFont(resource_font(IDR_FNT_BIG));
 }

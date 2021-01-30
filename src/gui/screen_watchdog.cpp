@@ -14,7 +14,7 @@ screen_watchdog_data_t::screen_watchdog_data_t()
 
     ClrOnSerialClose();
     ClrMenuTimeoutClose();
-    SetBackColor(COLOR_RED);
+    SetBackColor(color_t::Red);
 
     Sound_Stop();
     Sound_Play(eSOUND_TYPE::CriticalAlert);

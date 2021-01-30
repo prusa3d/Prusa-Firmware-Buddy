@@ -10,9 +10,9 @@ void window_numb_t::unconditionalDraw() {
     color_t clr_back = (IsFocused()) ? color_text : color_back;
     color_t clr_text = (IsFocused()) ? color_back : color_text;
     if (IsCaptured())
-        clr_text = COLOR_ORANGE;
+        clr_text = color_t::Orange;
     if (IsShadowed())
-        clr_text = COLOR_GRAY;
+        clr_text = color_t::Gray;
     char text[WINDOW_NUMB_MAX_TEXT];
     if (IsPrintingAsInt()) {
         snprintf(text, WINDOW_NUMB_MAX_TEXT, format, (int)(value));

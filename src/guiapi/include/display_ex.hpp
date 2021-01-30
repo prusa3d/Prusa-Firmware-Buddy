@@ -4,6 +4,7 @@
 
 #include "guitypes.hpp"
 #include "Rect16.h"
+#include "colors.hpp"
 
 void display_ex_clear(const color_t clr);
 

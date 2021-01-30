@@ -88,7 +88,7 @@ void window_frame_t::colorConflictBackgroundToRed(window_t &win) {
         window_t *pWin = first_normal;
         while (pWin) {
             if (win.rect.HasIntersection(pWin->rect)) {
-                win.SetBackColor(COLOR_RED_ALERT);
+                win.SetBackColor(color_t::RedAlert);
             }
             pWin = pWin->GetNext();
         }

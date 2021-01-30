@@ -11,7 +11,7 @@ screen_test_term_data_t::screen_test_term_data_t()
     : AddSuperWindow<screen_t>()
     , text(this, Rect16(10, 0, 220, 22), is_multiline::no)
     , term(this, { 10, 28 }, &term_buff) {
-    SetBackColor(COLOR_GRAY);
+    SetBackColor(color_t::Gray);
 
     static const char tst[] = "Test";
     text.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));

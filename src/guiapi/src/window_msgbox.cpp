@@ -107,7 +107,7 @@ void MsgBoxTitled::unconditionalDraw() {
 
     display::DrawLine(point_ui16(rc.Left() + title.padding.left, rc.Top() - 1),
         point_ui16(rc.Width() - 2 * (title.padding.left + title.padding.right), rc.Top() - 1),
-        COLOR_RED_ALERT);
+        color_t::RedAlert);
 }
 
 /*****************************************************************************/

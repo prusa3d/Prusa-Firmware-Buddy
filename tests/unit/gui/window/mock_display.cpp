@@ -26,7 +26,7 @@ uint16_t MockDisplay::BuffRows() {
 }
 
 void MockDisplay::init() {
-    Instance().clear(COLOR_WHITE);
+    Instance().clear(0xFFFFFF);
 }
 
 void MockDisplay::Bind(IMockDisplay &disp) {

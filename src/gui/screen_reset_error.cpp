@@ -11,7 +11,7 @@ screen_reset_error_data_t::screen_reset_error_data_t()
 
     ClrMenuTimeoutClose();
     ClrOnSerialClose();
-    SetBackColor(COLOR_RED);
+    SetBackColor(color_t::Red);
 }
 
 void screen_reset_error_data_t::draw() {

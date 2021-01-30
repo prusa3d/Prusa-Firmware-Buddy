@@ -7,10 +7,10 @@
 
 window_temp_graph_t::window_temp_graph_t(window_t *parent, Rect16 rect)
     : window_t(parent, rect)
-    , color_extruder_t(COLOR_LIME)
-    , color_bed_t(COLOR_CYAN)
-    , color_extruder_c(COLOR_ORANGE)
-    , color_bed_c(COLOR_BLUE)
+    , color_extruder_t(color_t::Lime)
+    , color_bed_t(color_t::Cyan)
+    , color_extruder_c(color_t::Orange)
+    , color_bed_c(color_t::Blue)
     , y_min(0.0F)
     , y_max(300.0F)
     , count(200)
@@ -44,15 +44,15 @@ void window_temp_graph_t::draw_axes(bool wipe_before_draw, bool xy_only) {
 
     if (wipe_before_draw)
         display::FillRect(rect, color_back);
-    display::DrawLine(point_ui16(x, y - 1), point_ui16(x, y + h - 1), COLOR_WHITE);             //y
-    display::DrawLine(point_ui16(x, y + h - 1), point_ui16(x + w - 1, y + h - 1), COLOR_WHITE); //x
+    display::DrawLine(point_ui16(x, y - 1), point_ui16(x, y + h - 1), color_t::White);             //y
+    display::DrawLine(point_ui16(x, y + h - 1), point_ui16(x + w - 1, y + h - 1), color_t::White); //x
 
     if (!xy_only) {
         uint8_t j;
         for (j = 25; j < 175; j += 25)
-            display::DrawLine(point_ui16(x + 1, y + h - j), point_ui16(x + w - 1, y + h - j), COLOR_GRAY); //x
+            display::DrawLine(point_ui16(x + 1, y + h - j), point_ui16(x + w - 1, y + h - j), color_t::Gray); //x
         for (j = 25; j < 175; j += 25)
-            display::DrawLine(point_ui16(x + j, y + h), point_ui16(x + j, y + h - 5), COLOR_GRAY); //-50
+            display::DrawLine(point_ui16(x + j, y + h), point_ui16(x + j, y + h - 5), color_t::Gray); //-50
     }
 }
 

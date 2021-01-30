@@ -221,7 +221,7 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
         item->Print(rc);
         if (GuiDefaults::MenuLinesBetweenItems)
             display::DrawLine(point_ui16(rc.Left() + GuiDefaults::MenuItemDelimiterPadding.left, rc.Top() + rc.Height()),
-                point_ui16(rc.Left() + rc.Width() - (GuiDefaults::MenuItemDelimiterPadding.left + GuiDefaults::MenuItemDelimiterPadding.right), rc.Top() + rc.Height()), COLOR_SILVER);
+                point_ui16(rc.Left() + rc.Width() - (GuiDefaults::MenuItemDelimiterPadding.left + GuiDefaults::MenuItemDelimiterPadding.right), rc.Top() + rc.Height()), color_t::Silver);
     }
 }
 
@@ -262,7 +262,7 @@ void window_menu_t::printScrollBar(size_t available_count, uint16_t visible_coun
     uint16_t scroll_item_height = rect.Height() / available_count;
     uint16_t sb_y_start = rect.Top() + top_index * scroll_item_height;
     display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - GuiDefaults::MenuScrollbarWidth), rect.Top(), GuiDefaults::MenuScrollbarWidth, rect.Height()), color_back);
-    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - GuiDefaults::MenuScrollbarWidth), sb_y_start, GuiDefaults::MenuScrollbarWidth, visible_count * scroll_item_height), COLOR_SILVER);
+    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - GuiDefaults::MenuScrollbarWidth), sb_y_start, GuiDefaults::MenuScrollbarWidth, visible_count * scroll_item_height), color_t::Silver);
 }
 
 void window_menu_t::redrawWholeMenu() {

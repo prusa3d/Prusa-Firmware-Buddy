@@ -58,38 +58,38 @@ void WindowScale::unconditionalDraw() {
     display::DrawLine(
         point_ui16(rect.Left(), mark_old_y),
         point_ui16(rect.Left() + 10, mark_old_y),
-        COLOR_BLACK);
+        color_t::Black);
     /// vertical line of scale
     display::DrawLine(
         point_ui16(rect.Left() + 5, rect.Top()),
         point_ui16(rect.Left() + 5, rect.Top() + rect.Height()),
-        COLOR_WHITE);
+        color_t::White);
     /// horizontal lines
     display::DrawLine( // top (0)
         point_ui16(rect.Left(), rect.Top()),
         point_ui16(rect.Left() + 10, rect.Top()),
-        COLOR_WHITE);
+        color_t::White);
     display::DrawLine( // -
         point_ui16(rect.Left() + 2, rect.Top() + (rect.Height() * .25F)),
         point_ui16(rect.Left() + 8, rect.Top() + (rect.Height() * .25F)),
-        COLOR_WHITE);
+        color_t::White);
     display::DrawLine( // middle (-1)
         point_ui16(rect.Left(), rect.Top() + (rect.Height() / 2)),
         point_ui16(rect.Left() + 10, rect.Top() + (rect.Height() / 2)),
-        COLOR_WHITE);
+        color_t::White);
     display::DrawLine( // -
         point_ui16(rect.Left() + 2, rect.Top() + (rect.Height() * .75F)),
         point_ui16(rect.Left() + 8, rect.Top() + (rect.Height() * .75F)),
-        COLOR_WHITE);
+        color_t::White);
     display::DrawLine( // bottom (-2)
         point_ui16(rect.Left() + 2, rect.Top() + rect.Height()),
         point_ui16(rect.Left() + 8, rect.Top() + rect.Height()),
-        COLOR_WHITE);
+        color_t::White);
     /// scale mark line
     display::DrawLine(
         point_ui16(rect.Left(), mark_new_y),
         point_ui16(rect.Left() + 10, mark_new_y),
-        COLOR_ORANGE);
+        color_t::Orange);
 }
 /*****************************************************************************/
 //WindowLiveAdjustZ

@@ -56,10 +56,14 @@ point_ui16_t icon_meas(const uint8_t *pi) {
 
 static Rect16 DispRect() { return Rect16(0, 0, MockDisplay::Cols(), MockDisplay::Rows()); }
 
+static void Clear(color_t clr) {
+    MockDisplay::Instance().clear(uint32_t(clr));
+}
+
 static void TestRectColor(Rect16 rect, color_t color) {
     for (int16_t X = rect.Left(); X < rect.Width(); ++X) {
         for (int16_t Y = rect.Top(); Y < rect.Height(); ++Y) {
-            REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == color);
+            REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == uint32_t(color));
         }
     }
 };
@@ -70,9 +74,9 @@ static void TestRectDiffColor(Rect16 Minuend, Rect16 Subtrahend, color_t Minuend
     for (int16_t X = Minuend.Left(); X < Minuend.Width(); ++X) {
         for (int16_t Y = Minuend.Top(); Y < Minuend.Height(); ++Y) {
             if (Subtrahend.Contain(point_i16_t({ X, Y }))) {
-                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == DiffColor);
+                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == uint32_t(DiffColor));
             } else {
-                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == MinuendColor);
+                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == uint32_t(MinuendColor));
             }
         }
     }
@@ -86,7 +90,7 @@ static void TestRectDraw(Rect16 rect, color_t color) {
 };
 
 static void TestDispRectDraw(Rect16 rect, color_t color_win, color_t color_disp) {
-    MockDisplay::Instance().clear(color_disp);
+    Clear(color_disp);
     TestRectColor(DispRect(), color_disp);
     TestRectDraw(rect, color_win);
     TestRectDiffColor(DispRect(), rect, color_disp, color_win);
@@ -99,9 +103,9 @@ static void TestPixelMask(std::array<std::array<bool, COLS>, ROWS> mask, color_t
     for (uint16_t X = 0; X < COLS; ++X) {
         for (uint16_t Y = 0; Y < ROWS; ++Y) {
             if (mask[Y][X]) {
-                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == cl_true);
+                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == uint32_t(cl_true));
             } else {
-                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == cl_false);
+                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == uint32_t(cl_false));
             }
         }
     }
@@ -109,29 +113,29 @@ static void TestPixelMask(std::array<std::array<bool, COLS>, ROWS> mask, color_t
 
 TEST_CASE("Window layout tests", "[window]") {
     MockDisplay::Bind(MockDispBasic);
-    MockDisplay::Instance().clear(COLOR_BLACK);
-    TestRectColor(DispRect(), COLOR_BLACK);
+    Clear(color_t::Black);
+    TestRectColor(DispRect(), color_t::Black);
 
     SECTION("RECT") {
-        TestDispRectDraw(Rect16(0, 0, 0, 0), COLOR_BLUE, COLOR_WHITE);
+        TestDispRectDraw(Rect16(0, 0, 0, 0), color_t::Blue, color_t::White);
 
-        TestDispRectDraw(DispRect(), COLOR_BLUE, COLOR_WHITE);
+        TestDispRectDraw(DispRect(), color_t::Blue, color_t::White);
 
-        TestDispRectDraw({ 1, 0, uint16_t(int(MockDisplay::Cols()) - 1), MockDisplay::Rows() }, COLOR_RED, COLOR_BLACK);
+        TestDispRectDraw({ 1, 0, uint16_t(int(MockDisplay::Cols()) - 1), MockDisplay::Rows() }, color_t::Red, color_t::Black);
 
-        TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLUE, COLOR_WHITE);
+        TestDispRectDraw(Rect16(10, 20, 1, 2), color_t::Blue, color_t::White);
 
-        TestDispRectDraw(Rect16(0, 0, 1, 2), COLOR_RED, COLOR_BLUE);
+        TestDispRectDraw(Rect16(0, 0, 1, 2), color_t::Red, color_t::Blue);
 
-        TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_WHITE, COLOR_BLACK);
+        TestDispRectDraw(Rect16(10, 20, 1, 2), color_t::White, color_t::Black);
 
-        TestDispRectDraw(Rect16(10, 20, 1, 2), COLOR_BLACK, COLOR_BLUE);
+        TestDispRectDraw(Rect16(10, 20, 1, 2), color_t::Black, color_t::Blue);
     }
 
     SECTION("Singlechar Text ") {
         MockDisplay::Bind(MockDisp5x5);
-        MockDisplay::Instance().clear(COLOR_BLACK);
-        TestRectColor(DispRect(), COLOR_BLACK);
+        Clear(color_t::Black);
+        TestRectColor(DispRect(), color_t::Black);
 
         //default padding
         window_text_t txt(nullptr,
@@ -141,55 +145,55 @@ TEST_CASE("Window layout tests", "[window]") {
         TestRectDiffColor(DispRect(), Rect16(GuiDefaults::Padding.left, GuiDefaults::Padding.top, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_LEFT_TOP
-        MockDisplay::Instance().clear(COLOR_BLACK);
+        Clear(color_t::Black);
         txt.SetPadding({ 0, 0, 0, 0 });
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(0, 0, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_CENTER
-        MockDisplay::Instance().clear(COLOR_BLACK);
+        Clear(color_t::Black);
         txt.SetAlignment(ALIGN_CENTER);
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(2, 2, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_LEFT_CENTER
-        MockDisplay::Instance().clear(COLOR_BLACK);
+        Clear(color_t::Black);
         txt.SetAlignment(ALIGN_LEFT_CENTER);
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(0, 2, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_LEFT_BOTTOM
-        MockDisplay::Instance().clear(COLOR_BLACK);
+        Clear(color_t::Black);
         txt.SetAlignment(ALIGN_LEFT_BOTTOM);
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(0, 4, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_RIGHT_TOP
-        MockDisplay::Instance().clear(COLOR_BLACK);
+        Clear(color_t::Black);
         txt.SetAlignment(ALIGN_RIGHT_TOP);
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(4, 0, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_RIGHT_CENTER
-        MockDisplay::Instance().clear(COLOR_BLACK);
+        Clear(color_t::Black);
         txt.SetAlignment(ALIGN_RIGHT_CENTER);
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(4, 2, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_RIGHT_BOTTOM
-        MockDisplay::Instance().clear(COLOR_BLACK);
+        Clear(color_t::Black);
         txt.SetAlignment(ALIGN_RIGHT_BOTTOM);
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(4, 4, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_CENTER_TOP
-        MockDisplay::Instance().clear(COLOR_BLACK);
+        Clear(color_t::Black);
         txt.SetAlignment(ALIGN_CENTER_TOP);
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(2, 0, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_CENTER_BOTTOM
-        MockDisplay::Instance().clear(COLOR_BLACK);
+        Clear(color_t::Black);
         txt.SetAlignment(ALIGN_CENTER_BOTTOM);
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(2, 4, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
@@ -197,8 +201,8 @@ TEST_CASE("Window layout tests", "[window]") {
 
     SECTION("Singleline Text ") {
         MockDisplay::Bind(MockDisp8x4);
-        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
-        TestRectColor(DispRect(), COLOR_RED);
+        Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
+        TestRectColor(DispRect(), color_t::Red);
         window_text_t txt(nullptr, DispRect(), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1101")));
         txt.SetPadding({ 0, 0, 0, 0 });
 
@@ -207,7 +211,7 @@ TEST_CASE("Window layout tests", "[window]") {
         std::array<std::array<bool, 8>, 4> mask = { { { 1, 1, 0, 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
-        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
         txt.SetAlignment(ALIGN_CENTER);
         txt.Draw();
         mask = { { { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 1, 1, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } } };
@@ -216,8 +220,8 @@ TEST_CASE("Window layout tests", "[window]") {
 
     SECTION("Multiline Text") {
         MockDisplay::Bind(MockDisp5x5);
-        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
-        TestRectColor(DispRect(), COLOR_RED);
+        Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
+        TestRectColor(DispRect(), color_t::Red);
         window_text_t txt(nullptr, DispRect(), is_multiline::yes, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1\n0\n1")));
         txt.SetPadding({ 0, 0, 0, 0 });
 
@@ -226,14 +230,14 @@ TEST_CASE("Window layout tests", "[window]") {
         std::array<std::array<bool, 5>, 5> mask = { { { 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
-        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
         txt.SetAlignment(ALIGN_CENTER);
         txt.Draw();
         mask = { { { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)("111\n101\n10001")));
-        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
         txt.SetAlignment(ALIGN_CENTER);
         txt.Draw();
         mask = { { { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 0 }, { 0, 1, 0, 1, 0 }, { 1, 0, 0, 0, 1 }, { 0, 0, 0, 0, 0 } } };
@@ -242,8 +246,8 @@ TEST_CASE("Window layout tests", "[window]") {
 
     SECTION("Multiline Text, font 2x2") {
         MockDisplay::Bind(MockDisp8x8);
-        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
-        TestRectColor(DispRect(), COLOR_RED);
+        Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
+        TestRectColor(DispRect(), color_t::Red);
         window_text_t txt(nullptr, DispRect(), is_multiline::yes, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1\n0\n1")));
         txt.font = &font_2dot;
         txt.SetPadding({ 0, 0, 0, 0 });
@@ -260,14 +264,14 @@ TEST_CASE("Window layout tests", "[window]") {
             { 0, 0, 0, 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
-        /* MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        /* Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
         txt.SetAlignment(ALIGN_CENTER);
         txt.Draw();
         mask = { { { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)("111\n101\n10001")));
-        MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
+        Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
         txt.SetAlignment(ALIGN_CENTER);
         txt.Draw();
         mask = { { { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 0 }, { 0, 1, 0, 1, 0 }, { 1, 0, 0, 0, 1 }, { 0, 0, 0, 0, 0 } } };

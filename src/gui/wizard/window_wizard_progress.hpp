@@ -12,5 +12,5 @@
 class window_wizard_progress_t : public window_numberless_progress_t {
 public:
     window_wizard_progress_t(window_t *parent, Rect16::Top_t top)
-        : window_numberless_progress_t(parent, Rect16(WizardDefaults::progress_LR_margin, top, WizardDefaults::progress_width, WizardDefaults::progress_h), COLOR_ORANGE, COLOR_GRAY) {}
+        : window_numberless_progress_t(parent, Rect16(WizardDefaults::progress_LR_margin, top, WizardDefaults::progress_width, WizardDefaults::progress_h), color_t::Orange, color_t::Gray) {}
 };

@@ -44,7 +44,7 @@ Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
 void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
 
     string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
-    const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
+    const color_t cl_txt = IsSelected() ? color_t::Orange : color_text;
     const uint8_t align = ALIGN_RIGHT_TOP;
 
     // If there is spin_off_opt::yes set in SpinConfig (with units), it prints "Off" instead of "0"
@@ -70,8 +70,8 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
         un.rewind();
         uint32_t Utf8Char = un.getUtf8Char();
         padding_ui8_t padding = Padding;
-        padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                  //177oct (127dec) todo check
-        render_text_align(unit_rc, units, Font, color_back, COLOR_SILVER, padding, align); //render unit
+        padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                     //177oct (127dec) todo check
+        render_text_align(unit_rc, units, Font, color_back, color_t::Silver, padding, align); //render unit
     }
 }
 

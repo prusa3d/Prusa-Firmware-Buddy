@@ -75,7 +75,7 @@ void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t 
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : AddSuperWindow<window_icon_t>(parent, IDR_PNG_hourglass_39px, pt, padding, close)
     , start_time(HAL_GetTick())
-    , animation_color(COLOR_ORANGE)
+    , animation_color(color_t::Orange)
     , phase(0) {
 }
 
@@ -98,8 +98,8 @@ struct LineColored : public Line {
 
 void window_icon_hourglass_t::unconditionalDraw() {
 
-    static constexpr color_t animation_color = COLOR_ORANGE;
-    static constexpr color_t back_color = COLOR_BLACK;
+    static constexpr color_t animation_color = color_t::Orange;
+    static constexpr color_t back_color = color_t::Black;
 
     static constexpr LineColored lines[] = {
         { 13, 24, 13, 28, animation_color },

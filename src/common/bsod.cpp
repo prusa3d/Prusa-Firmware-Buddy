@@ -178,7 +178,7 @@ void addText(char *buffer, const int size, int &position, const char *text) {
 void general_error(const char *error, const char *module) {
     __disable_irq();
     stop_common();
-    display::Clear(COLOR_RED_ALERT);
+    display::Clear(color_t::RedAlert);
     const int COLS = 20;
     const int ROWS = 16;
     int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
@@ -187,15 +187,15 @@ void general_error(const char *error, const char *module) {
     int buffer_pos = 0; ///< position in buffer
 
     display::DrawText(Rect16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
-        COLOR_RED_ALERT, COLOR_WHITE);
-    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
+        color_t::RedAlert, color_t::White);
+    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), color_t::White);
 
     addFormatText(buffer, buffer_size, buffer_pos, "%s\n", module);
-    render_text_align(Rect16(PADDING, 60, 240, 260), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
+    render_text_align(Rect16(PADDING, 60, 240, 260), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), GuiDefaults::Font, color_t::RedAlert, color_t::White, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
-        COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
+        color_t::White, color_t::Black, { 0, 0, 0, 0 }, ALIGN_CENTER);
 
     //questionable placement - where now, in almost every BSOD timers are
     //stopped and Sound class cannot update itself for timing sound signals.
@@ -259,12 +259,12 @@ void draw_error_screen(const uint16_t error_code_short) {
         text_body = error_list[i].err_text;
 
         /// draw header & main text
-        display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
-        display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
-        render_text_align(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
+        display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, color_t::RedAlert, color_t::White);
+        display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), color_t::White);
+        render_text_align(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, color_t::RedAlert, color_t::White, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
 
         /// draw "Hand QR" icon
-        render_icon_align(Rect16(20, 165, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, 0);
+        render_icon_align(Rect16(20, 165, 64, 82), IDR_PNG_hand_qr, color_t::RedAlert, 0);
 
         /// draw QR
         char qr_text[MAX_LEN_4QR + 1];
@@ -283,7 +283,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         win.rect = qr_rect;
         window_qr_t *window = &win;
         win.text = qr_text;
-        win.bg_color = COLOR_WHITE;
+        win.bg_color = color_t::White;
 
         /// use PNG RAM for QR code image
         uint8_t *qrcode = scratch_buffer;
@@ -296,7 +296,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// draw short URL
         error_url_short(qr_text, sizeof(qr_text), error_code);
         // this MakeRAM is safe - qr_text is a local buffer on stack
-        render_text_align(Rect16(0, 270, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        render_text_align(Rect16(0, 270, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), color_t::RedAlert, color_t::White, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
 
         /// draw footer information
         /// fw version, hash, [apendix], [fw signed]
@@ -304,24 +304,24 @@ void draw_error_screen(const uint16_t error_code_short) {
         char fw_version[13]; // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
                              // snprintf will clamp the text if the input is too long
         snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
-        render_text_align(Rect16(6, 295, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+        render_text_align(Rect16(6, 295, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), color_t::RedAlert, color_t::White, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         /// hash
         if (devhash_in_qr) {
             char p_code[9];
             printerCode(p_code);
-            render_text_align(Rect16(98, 295, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+            render_text_align(Rect16(98, 295, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), color_t::RedAlert, color_t::White, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// [apendix, fw signed]
         /// TODO: fw signed is not available ATM
         /// signed fw
         if (0) {
             static const char signed_fw_str[4] = "[S]";
-            render_text_align(Rect16(160, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+            render_text_align(Rect16(160, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), color_t::RedAlert, color_t::White, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// apendix
         if (appendix_exist()) {
             static const char apendix_str[4] = "[A]";
-            render_text_align(Rect16(185, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+            render_text_align(Rect16(185, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), color_t::RedAlert, color_t::White, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
     }
 }
@@ -388,7 +388,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 /// Use for Debug only
 void temp_error_code(const uint16_t error_code) {
     //    general_error_init();
-    display::Clear(COLOR_RED_ALERT);
+    display::Clear(color_t::RedAlert);
     draw_error_screen(error_code);
 }
 
@@ -406,14 +406,14 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
     #ifdef PSOD_BSOD
 
-    display::Clear(COLOR_BLACK); //clear with black color
-    //display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_64px, COLOR_BLACK, 0);
-    display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_140px, COLOR_BLACK, 0);
-    display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
+    display::Clear(color_t::Black); //clear with black color
+    //display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_64px, color_t::Black, 0);
+    display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_140px, color_t::Black, 0);
+    display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), color_t::Black, color_t::White);
 
     #else
 
-    display::Clear(COLOR_NAVY); ///< clear with dark blue color
+    display::Clear(color_t::Navy); ///< clear with dark blue color
     const int COLS = 20;
     const int ROWS = 16;
     int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
@@ -461,8 +461,8 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
         addFormatNum(buffer, buffer_size, buffer_pos, "%08x  ", (uint32_t)*i);
     }
-    render_text_align(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
-    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
+    render_text_align(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), color_t::Navy, color_t::White, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
+    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), color_t::Navy, color_t::White);
 
     #endif
 
@@ -584,7 +584,7 @@ void ScreenHardFault(void) {
     StackType_t *pTopOfStack = (StackType_t *)CurrentTCB.pxTopOfStack;
     StackType_t *pBotOfStack = CurrentTCB.pxStack;
 
-    display::Clear(COLOR_NAVY); //clear with dark blue color
+    display::Clear(color_t::Navy); //clear with dark blue color
 
     int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
     /// Buffer for text. PNG RAM cannot be used (font drawing).
@@ -743,8 +743,8 @@ void ScreenHardFault(void) {
         addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x ", sp);
     }
 
-    render_text_align(Rect16(8, 10, 232, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
-    display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    render_text_align(Rect16(8, 10, 232, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), color_t::Navy, color_t::White, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
+    display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), color_t::Navy, color_t::White);
 }
 
     #endif //PSOD_BSOD

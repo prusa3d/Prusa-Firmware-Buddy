@@ -92,8 +92,8 @@ window_qr_t::window_qr_t(window_t *parent, Rect16 rect)
 // , mode(qrcodegen_Mode_ALPHANUMERIC)
 // , border(4)
 // , px_per_module(3)
-// , bg_color(COLOR_WHITE)
-//    , px_color(COLOR_BLACK)
+// , bg_color(color_t::White)
+//    , px_color(color_t::Black)
 {
 }
 

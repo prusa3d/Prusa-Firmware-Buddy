@@ -25,7 +25,7 @@ void test_display_rgbcolors(uint16_t cnt);
 void test_display_spectrum(uint16_t cnt);
 
 void do_test(test_display_t *func, int cnt, const char *name, const char *unit) {
-    display::Clear(COLOR_BLACK);
+    display::Clear(color_t::Black);
 
 #if (DBG_LEVEL >= 3)
     uint32_t tim = _microseconds();
@@ -189,12 +189,12 @@ void test_display_fade(uint16_t cnt) {
 
 void test_display_rgbcolors(uint16_t cnt) {
     color_t colors[] = {
-        COLOR_BLACK, COLOR_WHITE,
-        COLOR_RED, COLOR_LIME, COLOR_BLUE,
-        COLOR_YELLOW, COLOR_CYAN, COLOR_MAGENTA,
-        COLOR_SILVER, COLOR_GRAY,
-        COLOR_MAROON, COLOR_OLIVE, COLOR_GREEN,
-        COLOR_PURPLE, COLOR_TEAL, COLOR_NAVY
+        color_t::Black, color_t::White,
+        color_t::Red, color_t::Lime, color_t::Blue,
+        color_t::Yellow, color_t::Cyan, color_t::Magenta,
+        color_t::Silver, color_t::Gray,
+        color_t::Maroon, color_t::Olive, color_t::Green,
+        color_t::Purple, color_t::Teal, color_t::Navy
     };
     static const char *names[] = {
         "BLACK", "WHITE",
@@ -213,7 +213,7 @@ void test_display_rgbcolors(uint16_t cnt) {
             Rect16 rc_text = Rect16(10, item_height * i + 1, strlen(names[i]) * font->w, font->h);
             //display::FillRect(rc_item, colors[i]);
             fill_between_rectangles(&rc_item, &rc_text, colors[i]);
-            display::DrawText(rc_text, string_view_utf8::MakeCPUFLASH((const uint8_t *)names[i]), font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);
+            display::DrawText(rc_text, string_view_utf8::MakeCPUFLASH((const uint8_t *)names[i]), font, colors[i], (i == 0) ? color_t::White : color_t::Black);
         }
 }
 
@@ -291,13 +291,13 @@ void test_display2(void) {
 
 #if 0
 		tim = _microseconds();
-		display::Clear(COLOR_BLACK);
+		display::Clear(color_t::Black);
 		tim = _microseconds() - tim;
 		_dbg3("display_clear %u", tim);
 #endif
 
 #if 0
-		display::Clear(COLOR_BLACK);
+		display::Clear(color_t::Black);
 		tim = _microseconds();
 		test_display_random_png_64x64(100);
 		tim = _microseconds() - tim;

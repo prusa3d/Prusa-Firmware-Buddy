@@ -287,7 +287,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     static const char rzx[] = "R 0x";
     pd->textR0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rzx));
-    pd->textR0x.SetTextColor(COLOR_RED);
+    pd->textR0x.SetTextColor(color_t::Red);
 
     col += w_of_0xX;
     hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrR0));
@@ -300,7 +300,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     static const char gzx[] = "G 0x";
     pd->textG0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)gzx));
-    pd->textG0x.SetTextColor(COLOR_GREEN);
+    pd->textG0x.SetTextColor(color_t::Green);
 
     col += w_of_0xX;
     hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrG0));
@@ -313,7 +313,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     static const char bzx[] = "B 0x";
     pd->textB0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bzx));
-    pd->textB0x.SetTextColor(COLOR_BLUE);
+    pd->textB0x.SetTextColor(color_t::Blue);
 
     col += w_of_0xX;
     hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrB0));

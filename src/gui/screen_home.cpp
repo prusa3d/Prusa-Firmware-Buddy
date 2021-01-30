@@ -103,7 +103,7 @@ void screen_home_data_t::draw() {
     super::draw();
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
-    display::DrawText(Rect16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+    display::DrawText(Rect16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), color_t::Black, color_t::Red);
 #endif //_DEBUG
 }
 

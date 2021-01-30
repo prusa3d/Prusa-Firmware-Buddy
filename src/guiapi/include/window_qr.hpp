@@ -7,9 +7,9 @@
 
 struct window_qr_t : public window_t {
     // 32 bit
-    color_t bg_color = COLOR_WHITE; /// background color
-    color_t px_color = COLOR_BLACK; /// foreground color
-    char *text = nullptr;           /// border size in pixels; same for all sides
+    color_t bg_color = color_t::White; /// background color
+    color_t px_color = color_t::Black; /// foreground color
+    char *text = nullptr;              /// border size in pixels; same for all sides
     // 8 bit
     uint8_t border = 4;           /// border size in pixels; same for all sides
     uint8_t px_per_module = 2;    /// width/height of module (single colored square)

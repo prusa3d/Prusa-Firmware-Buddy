@@ -81,11 +81,11 @@ void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, c
         static const uint8_t bf[] = "[";
         static const uint8_t be[] = "]";
         render_text_align(getLeftBracketRect(extension_rect), string_view_utf8::MakeCPUFLASH(bf), BracketFont,
-            color_back, COLOR_SILVER, Padding, GuiDefaults::MenuAlignment);
+            color_back, color_t::Silver, Padding, GuiDefaults::MenuAlignment);
 
         //draw bracket end  TODO: Change font
         render_text_align(getRightBracketRect(extension_rect), string_view_utf8::MakeCPUFLASH(be), BracketFont,
-            color_back, COLOR_SILVER, Padding, GuiDefaults::MenuAlignment);
+            color_back, color_t::Silver, Padding, GuiDefaults::MenuAlignment);
     }
 }
 
