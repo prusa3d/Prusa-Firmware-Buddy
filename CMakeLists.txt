@@ -26,6 +26,7 @@ endif()
 
 set(PRINTER_VALID_OPTS "MINI")
 set(MOTHERBOARD_VALID_OPTS "1823")
+set(MCU_VALID_OPTS "STM32F407VG" "STM32F429VI")
 set(BOOTLOADER_VALID_OPTS "NO" "EMPTY" "YES")
 
 set(PRINTER
@@ -43,6 +44,12 @@ set(MOTHERBOARD
     CACHE
       STRING
       "Select the motherboard for which you want to compile the project (valid values are ${MOTHERBOARD_VALID_OPTS})."
+    )
+set(MCU
+    "STM32F407VG"
+    CACHE
+      STRING
+      "Select the MCU for which you want to compile the project (valid values are ${MCU_VALID_OPTS})."
     )
 set(GENERATE_BBF
     "NO"
@@ -82,7 +89,7 @@ set(WUI
     )
 
 # Validate options
-foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
+foreach(OPTION "PRINTER" "MOTHERBOARD" "MCU" "BOOTLOADER")
   if(NOT ${OPTION} IN_LIST ${OPTION}_VALID_OPTS)
     message(FATAL_ERROR "Invalid ${OPTION} ${${OPTION}}: Valid values are ${${OPTION}_VALID_OPTS}")
   endif()
@@ -184,6 +191,7 @@ target_compile_definitions(
   A3idesHeaders
   INTERFACE
   MOTHERBOARD=${MOTHERBOARD}
+  MCU=${MCU}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
   BOARD_TYPE=${BOARD_TYPE}
   MARLIN_DISABLE_INFINITE_LOOP
@@ -272,10 +280,14 @@ add_compile_options(-g)
 
 # optimizations
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_compile_options(-Og)
-else()
+  if(MCU STREQUAL "STM32F429VI")
+    add_compile_options(-O0)
+  else() # != "STM32F429VI"
+    add_compile_options(-Og)
+  endif() # "STM32F429VI"
+else() # != "Debug"
   add_compile_options(-Os)
-endif()
+endif() # "Debug"
 
 if(CMAKE_CROSSCOMPILING)
   # mcu related settings
@@ -316,9 +328,17 @@ endif()
 if(CMAKE_CROSSCOMPILING)
   # configure linker script
   if(BOOTLOADER)
-    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
+    if(MCU STREQUAL "STM32F429VI")
+      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F429VI_FLASH_boot.ld")
+    elseif(MCU STREQUAL "STM32F407VG")
+      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
+    endif()
   else(NOT BOOTLOADER)
-    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
+    if(MCU STREQUAL "STM32F429VI")
+      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F429VI_FLASH.ld")
+    elseif(MCU STREQUAL "STM32F407VG")
+      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
+    endif()
   endif()
   add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 endif()
