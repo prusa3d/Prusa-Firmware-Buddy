@@ -137,28 +137,28 @@ screen_printing_data_t::screen_printing_data_t()
 
     w_filename.font = resource_font(IDR_FNT_BIG);
     w_filename.SetPadding({ 0, 0, 0, 0 });
-    w_filename.SetAlignment(ALIGN_LEFT_BOTTOM);
+    w_filename.SetAlignment(Align_t::LeftBottom());
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
     w_filename.SetText(vars->media_LFN ? string_view_utf8::MakeRAM((const uint8_t *)vars->media_LFN) : string_view_utf8::MakeNULLSTR());
 
     w_etime_label.font = resource_font(IDR_FNT_SMALL);
-    w_etime_label.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    w_etime_label.SetAlignment(Align_t::RightBottom());
     w_etime_label.SetPadding({ 0, 2, 0, 2 });
     w_etime_label.SetText(_("Remaining Time"));
 
     w_etime_value.font = resource_font(IDR_FNT_SMALL);
-    w_etime_value.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    w_etime_value.SetAlignment(Align_t::RightBottom());
     w_etime_value.SetPadding({ 0, 2, 0, 2 });
     // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
     w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));
 
     w_time_label.font = resource_font(IDR_FNT_SMALL);
-    w_time_label.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    w_time_label.SetAlignment(Align_t::RightBottom());
     w_time_label.SetPadding({ 0, 2, 0, 2 });
     w_time_label.SetText(_("Printing time"));
 
     w_time_value.font = resource_font(IDR_FNT_SMALL);
-    w_time_value.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    w_time_value.SetAlignment(Align_t::RightBottom());
     w_time_value.SetPadding({ 0, 2, 0, 2 });
     // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));

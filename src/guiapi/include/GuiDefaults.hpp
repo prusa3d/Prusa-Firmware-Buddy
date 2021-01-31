@@ -2,6 +2,7 @@
 #pragma once
 #include "guitypes.hpp"
 #include "Rect16.h"
+#include "align.hpp"
 
 struct GuiDefaults {
     //display specific defaults
@@ -27,9 +28,9 @@ struct GuiDefaults {
 
     // Text settings
     static constexpr padding_ui8_t Padding = { 2, 2, 2, 2 };
-    static constexpr uint8_t Alignment = ALIGN_LEFT_TOP; //todo enum
-    static font_t *Font;                                 //todo constexpr
-    static font_t *FontBig;                              //todo constexpr
+    static constexpr Align_t Align() { return Align_t::LeftTop(); }
+    static font_t *Font;    //todo constexpr
+    static font_t *FontBig; //todo constexpr
 
     // Layout settings
     static constexpr size_t BodyHeight = ScreenHeight - FooterHeight - HeaderHeight;
@@ -50,7 +51,7 @@ struct GuiDefaults {
     // Menu text settings
     static font_t *FontMenuItems;   // for menu items
     static font_t *FontMenuSpecial; // for units in menu
-    static constexpr uint8_t MenuAlignment = ALIGN_LEFT_TOP;
+    static constexpr Align_t MenuAlignment() { return Align_t::LeftTop(); }
     static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 6, 6, 6, 6 });
     static constexpr padding_ui8_t MenuPaddingSpecial = padding_ui8_t({ 0, 6, 0, 0 });
 

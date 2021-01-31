@@ -258,23 +258,23 @@ status_footer_t::status_footer_t(window_t *parent)
     , show_second_color(false) {
 
     wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
-    wt_nozzle.SetAlignment(ALIGN_CENTER);
+    wt_nozzle.SetAlignment(Align_t::Center());
     wt_nozzle.SetText(string_view_utf8::MakeNULLSTR());
 
     wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
-    wt_heatbed.SetAlignment(ALIGN_CENTER);
+    wt_heatbed.SetAlignment(Align_t::Center());
     wt_heatbed.SetText(string_view_utf8::MakeNULLSTR());
 
     wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
-    wt_prnspeed.SetAlignment(ALIGN_CENTER);
+    wt_prnspeed.SetAlignment(Align_t::Center());
     wt_prnspeed.SetText(string_view_utf8::MakeNULLSTR());
 
     wt_z_profile.font = resource_font(IDR_FNT_SPECIAL);
-    wt_z_profile.SetAlignment(ALIGN_CENTER);
+    wt_z_profile.SetAlignment(Align_t::Center());
     wt_z_profile.SetText(string_view_utf8::MakeNULLSTR());
 
     wt_filament.font = resource_font(IDR_FNT_SPECIAL);
-    wt_filament.SetAlignment(ALIGN_CENTER);
+    wt_filament.SetAlignment(Align_t::Center());
     wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)Filaments::Current().name));
 
     filament = emptystr;

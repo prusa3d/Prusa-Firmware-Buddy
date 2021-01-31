@@ -67,15 +67,15 @@ void IWindowMenuItem::Print(Rect16 rect) const {
 
 void IWindowMenuItem::printIcon(Rect16 icon_rect, uint8_t swap, color_t color_back) const {
     //do not check id. id == 0 will render as black, it is needed
-    render_icon_align(icon_rect, id_icon, color_back, RENDER_FLG(ALIGN_CENTER, swap));
+    render_icon_align(icon_rect, id_icon, color_back, { Align_t::Center(), swap });
 }
 
 void IWindowMenuItem::printLabel(Rect16 label_rect, color_t color_text, color_t color_back) const {
-    roll.RenderTextAlign(label_rect, GetLabel(), label_font, color_back, color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
+    roll.RenderTextAlign(label_rect, GetLabel(), label_font, color_back, color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
 }
 
 void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    render_icon_align(extension_rect, IDR_PNG_arrow_right_16px, GuiDefaults::MenuColorBack, RENDER_FLG(ALIGN_LEFT_CENTER, swap));
+    render_icon_align(extension_rect, IDR_PNG_arrow_right_16px, GuiDefaults::MenuColorBack, { Align_t::Center(), swap });
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
@@ -100,6 +100,6 @@ void IWindowMenuItem::ClrFocus() {
 // Reinits text rolling in case of focus/defocus/click
 void IWindowMenuItem::reInitRoll(Rect16 rect) {
     if (roll.NeedInit()) {
-        roll.Init(rect, GetLabel(), label_font, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment);
+        roll.Init(rect, GetLabel(), label_font, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
     }
 }

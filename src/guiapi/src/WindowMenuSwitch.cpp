@@ -74,24 +74,24 @@ void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, c
     //draw switch
     render_text_align(getSwitchRect(extension_rect), items.texts[index], GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
-        Padding, ALIGN_RIGHT_TOP);
+        Padding, Align_t::RightTop());
 
     //draw brackets
     if (has_brackets) {
         static const uint8_t bf[] = "[";
         static const uint8_t be[] = "]";
         render_text_align(getLeftBracketRect(extension_rect), string_view_utf8::MakeCPUFLASH(bf), BracketFont,
-            color_back, COLOR_SILVER, Padding, GuiDefaults::MenuAlignment);
+            color_back, COLOR_SILVER, Padding, GuiDefaults::MenuAlignment());
 
         //draw bracket end  TODO: Change font
         render_text_align(getRightBracketRect(extension_rect), string_view_utf8::MakeCPUFLASH(be), BracketFont,
-            color_back, COLOR_SILVER, Padding, GuiDefaults::MenuAlignment);
+            color_back, COLOR_SILVER, Padding, GuiDefaults::MenuAlignment());
     }
 }
 
 void IWiSwitch::printExtension_icon(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
     //draw icon
-    render_icon_align(extension_rect, items.icon_resources[index], color_back, RENDER_FLG(ALIGN_CENTER, swap));
+    render_icon_align(extension_rect, items.icon_resources[index], color_back, { Align_t::Center(), swap });
 }
 
 Rect16::Width_t IWiSwitch::calculateExtensionWidth(Items_t items) {

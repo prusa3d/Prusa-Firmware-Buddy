@@ -27,7 +27,7 @@ protected:
     virtual uint16_t LangCode() const = 0;
 
     virtual void printIcon(Rect16 icon_rect, uint8_t swap, color_t color_back) const override {
-        render_unswapable_icon_align(icon_rect, id_icon, color_back, RENDER_FLG(ALIGN_CENTER, swap));
+        render_unswapable_icon_align(icon_rect, id_icon, color_back, { Align_t::Center(), swap });
     }
 };
 

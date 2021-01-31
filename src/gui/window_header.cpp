@@ -47,8 +47,8 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_lan_16px)
     , LAN_changed_off(false) {
     /// label and icon aligmnent and offset
-    label.SetAlignment(ALIGN_LEFT_BOTTOM);
-    icon_base.SetAlignment(ALIGN_CENTER_BOTTOM);
+    label.SetAlignment(Align_t::LeftBottom());
+    icon_base.SetAlignment(Align_t::CenterBottom());
 
     marlin_vars()->media_inserted ? USB_Activate() : USB_On();
 

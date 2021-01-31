@@ -11,9 +11,9 @@ struct window_qr_t : public window_t {
     color_t px_color = COLOR_BLACK; /// foreground color
     char *text = nullptr;           /// border size in pixels; same for all sides
     // 8 bit
-    uint8_t border = 4;           /// border size in pixels; same for all sides
-    uint8_t px_per_module = 2;    /// width/height of module (single colored square)
-    uint8_t align = ALIGN_CENTER; /// alignment of QR code in the window
+    uint8_t border = 4;                /// border size in pixels; same for all sides
+    uint8_t px_per_module = 2;         /// width/height of module (single colored square)
+    Align_t align = Align_t::Center(); /// alignment of QR code in the window
     // other
     bool scale = true; /// changes px_per_module so the QR code is the biggest that fits in the window
     window_qr_t(window_t *parent, Rect16 rect);

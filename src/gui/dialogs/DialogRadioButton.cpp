@@ -147,7 +147,7 @@ void RadioButton::draw_n_btns(const size_t btn_count) const {
 void RadioButton::button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected) {
     color_t back_cl = is_selected ? COLOR_ORANGE : COLOR_GRAY;
     color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
-    render_text_align(rc_btn, text, pf, back_cl, text_cl, { 0, 0, 0, 0 }, ALIGN_CENTER);
+    render_text_align(rc_btn, text, pf, back_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
 }
 
 bool RadioButton::IsEnabled() const {

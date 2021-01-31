@@ -20,7 +20,7 @@ ScreenPrintingModel::ScreenPrintingModel(string_view_utf8 caption)
 void ScreenPrintingModel::initBtnText(btn &ref_button) {
     ref_button.txt.font = resource_font(IDR_FNT_SMALL);
     ref_button.txt.SetPadding({ 0, 0, 0, 0 });
-    ref_button.txt.SetAlignment(ALIGN_CENTER);
+    ref_button.txt.SetAlignment(Align_t::Center());
 }
 
 void ScreenPrintingModel::setIconAndLabel(btn &ref_button, const btn_resource &res) {

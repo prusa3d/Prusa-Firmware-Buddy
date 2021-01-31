@@ -45,7 +45,7 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
 
     string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
     const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
-    const uint8_t align = ALIGN_RIGHT_TOP;
+    const Align_t align = Align_t::RightTop();
 
     // If there is spin_off_opt::yes set in SpinConfig (with units), it prints "Off" instead of "0"
     if (spin_txt.getUtf8Char() == 'O') {
