@@ -82,6 +82,7 @@ template <class T>
 size_ui16_t render_line(T &textWrapper, Rect16 rc, string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     int x = rc.Left();
     int y = rc.Top();
+    size_t drawn_chars = 0;
 
     const int w = pf->w; //char width
 
@@ -100,14 +101,15 @@ size_ui16_t render_line(T &textWrapper, Rect16 rc, string_view_utf8 &str, const 
         }
 
         if (x + w > rc.EndPoint().x) {
-            continue;
+            break;
         }
 
         /// draw part
         draw_char_and_increment(pf, clr_bg, clr_fg, c, x, y, w);
+        ++drawn_chars;
     }
 
-    return size_ui16_t { rc.Width(), rc.Height() };
+    return size_ui16_t { uint16_t(drawn_chars * w), rc.Height() };
 }
 
 /// Draws a text into the specified rectangle @rc
@@ -188,7 +190,8 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
         rc_pad = rc_txt.Intersection(rc_pad);                 ///  set padding rect to new value, crop the rectangle if the text is too long
 
         /// 2nd pass reading the string_view_utf8 - draw the text
-        render_text_singleline(rc_pad, text, font, clr_bg, clr_fg);
+        /// surrounding of rc_pad will be printed with back color
+        rc_pad = Rect16(rc_pad.TopLeft(), render_text_singleline(rc_pad, text, font, clr_bg, clr_fg));
     } else {
         /// multiline text
         const uint8_t MaxColsInRect = std::min(255, rc_pad.Width() / font->w);
