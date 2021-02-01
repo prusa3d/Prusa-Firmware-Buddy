@@ -21,11 +21,12 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
     MI_Filament<FILAMENT_PLA>,
     MI_Filament<FILAMENT_PETG>,
     MI_Filament<FILAMENT_ASA>,
-    MI_Filament<FILAMENT_ABS>,
     MI_Filament<FILAMENT_PC>,
-    MI_Filament<FILAMENT_FLEX>,
+    MI_Filament<FILAMENT_PVB>,
+    MI_Filament<FILAMENT_ABS>,
     MI_Filament<FILAMENT_HIPS>,
     MI_Filament<FILAMENT_PP>,
+    MI_Filament<FILAMENT_FLEX>,
     MI_Filament<FILAMENT_NONE>>;
 
 // is used in firstlay calibration and print preview, does not have return and cooldown
@@ -33,11 +34,12 @@ using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
     MI_Filament<FILAMENT_PLA>,
     MI_Filament<FILAMENT_PETG>,
     MI_Filament<FILAMENT_ASA>,
-    MI_Filament<FILAMENT_ABS>,
     MI_Filament<FILAMENT_PC>,
-    MI_Filament<FILAMENT_FLEX>,
+    MI_Filament<FILAMENT_PVB>,
+    MI_Filament<FILAMENT_ABS>,
     MI_Filament<FILAMENT_HIPS>,
-    MI_Filament<FILAMENT_PP>>;
+    MI_Filament<FILAMENT_PP>,
+    MI_Filament<FILAMENT_FLEX>>;
 
 template <class T>
 FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
