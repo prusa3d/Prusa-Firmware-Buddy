@@ -172,7 +172,7 @@ msgstr "Chcete zopakovat poslední krok a upravit nastavení vzdálenosti mezi t
 #: src/gui/wizard/firstlay.cpp:112
 #, c-format
 msgid "Do you want to use the current value?\nCurrent: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)"
-msgstr "Chcete použít aktuální hodnotu?\nAktuální: %0.3f.\nVýchozí: %03.f.\nZvolením NE vyberete výchozí hodnotu (doporučeno)"
+msgstr "Chcete použít aktuální hodnotu?\nAktuální: %0.3f.\nVýchozí: %0.3f.\nZvolením NE vyberete výchozí hodnotu (doporučeno)"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:27
 msgid "Ejecting"
