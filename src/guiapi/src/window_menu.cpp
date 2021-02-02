@@ -208,7 +208,7 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
 
     uint16_t rc_w = rect.Width() - (GuiDefaults::MenuHasScrollbar ? GuiDefaults::MenuScrollbarWidth : 0);
     Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * item_height),
-        rc_w, uint16_t(item_height - 1) }; // 1 pixel height for menu item delimeter
+        rc_w, uint16_t(item_height) }; // TODO what was this? - uint16_t(item_height - 1) }; // 1 pixel height for menu item delimeter
 
     if (rect.Contain(rc)) {
 
