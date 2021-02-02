@@ -12,7 +12,7 @@ static uint16_t get_help_h(size_t helper_lines, uint32_t font_id) {
 
 IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
     : AddSuperWindow<screen_t>(parent, GuiDefaults::RectScreen, parent != nullptr ? win_type_t::dialog : win_type_t::normal)
-    , header(this)
+    , header(this, label)
     , menu(this, Rect16(0, 0, 0, 0), nullptr)
     , help(this, Rect16(0, 0, 0, 0), is_multiline::yes)
     , footer(this) {
@@ -32,8 +32,6 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_i
     //const uint16_t item_h = GuiDefaults::Font->h + padding.top + padding.bottom;
     //const uint16_t menu_rect_h = win_h - help_h - header_h - (FOOTER == EFooter::On ? footer_h : 0);
     //const Rect16 menu_rect = Rect16(win_x, header_h, win_w, menu_rect_h - menu_rect_h % item_h);
-
-    header.SetText(label);
 
     FOOTER == EFooter::On ? footer.Show() : footer.Hide();
 
