@@ -107,3 +107,16 @@ void __malloc_unlock(struct _reent *r) {
 uint32_t mem_is_heap_allocated(const void *ptr) {
     return (ptr >= (void *)&__HeapBase && ptr < (void *)&__HeapLimit);
 }
+
+//
+// _dtoa_r wrap to ensure it is not being called from ISR
+//
+
+extern char *__real__dtoa_r(struct _reent *, double, int, int, int *, int *, char **);
+
+char *__wrap__dtoa_r(struct _reent *r, double a, int b, int c, int *d, int *e, char **f) {
+    if (xPortIsInsideInterrupt()) {
+        bsod_nofn_noln("_dtoa_r (float formatting) called from ISR");
+    }
+    return __real__dtoa_r(r, a, b, c, d, e, f);
+}

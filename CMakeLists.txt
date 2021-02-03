@@ -455,6 +455,9 @@ if(CMAKE_CROSSCOMPILING)
   add_link_options(
     -Wl,--defsym=printf=printf_,--defsym=sprintf=sprintf_,--defsym=snprintf=snprintf_,--defsym=vprintf=vprintf_,--defsym=vsnprintf=vsnprintf_
     )
+
+  # wrap _dtoa to ensure formatting of floats isn't being called from ISR
+  add_link_options(-Wl,--wrap=_dtoa_r)
 endif()
 
 # support _DEBUG macro (some code uses to recognize debug builds)
