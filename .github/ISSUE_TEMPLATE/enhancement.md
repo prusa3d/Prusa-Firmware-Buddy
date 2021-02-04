@@ -1,7 +1,7 @@
 ---
 name: Enhancement
 about: Suggest an idea for this project
-title: "[ENHANCEMENT]<Enter comprehensive title>"
+title: "[ENHANCEMENT] <Enter comprehensive title>"
 labels: enhancement
 assignees: ''
 
