@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: "[BUG]<Enter comprehensive title>"
+title: "[BUG] <Enter comprehensive title>"
 labels: bug
 assignees: ''
 
@@ -11,9 +11,9 @@ Please, before you create a new bug report, please make sure you searched in ope
 
 **Printer type** - [MINI]
 
-**Printer firmware version**-  [e.g. 4.0.5, ...]
+**Printer firmware version** - [e.g. 4.0.5, ...]
 
-**Original or Custom firmware** [Original/Custom]
+**Original or Custom firmware** - [Original/Custom]
 
 **Optional upgrades** - [e.g. Filament Runout Sensor]
 
