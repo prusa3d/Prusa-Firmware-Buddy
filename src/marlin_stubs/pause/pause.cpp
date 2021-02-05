@@ -96,8 +96,10 @@ Response PausePrivatePhase::getResponse() {
 
 bool PausePrivatePhase::CanSafetyTimerExpire() const {
     if (HasTempToRestore())
-        return false;                              // already expired
-    return ClientResponses::HasButton(getPhase()); // button in current phase == can wait on user == can timeout
+        return false;                                     // already expired
+    if (getPhase() == PhasesLoadUnload::MakeSureInserted) // special waiting state without button
+        return true;                                      // waits for filament sensor
+    return ClientResponses::HasButton(getPhase());        // button in current phase == can wait on user == can timeout
 }
 
 void PausePrivatePhase::NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) {
