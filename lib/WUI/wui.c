@@ -92,6 +92,6 @@ void StartWebServerTask(void const *argument) {
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
-        osDelay(1);
+        osDelay(1000);
     }
 }

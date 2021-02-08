@@ -120,10 +120,17 @@ void CSelftest::Loop() {
         if (phaseHome())
             return;
         break;
-    case stsXAxis:
+    case stsXAxis: {
         if (phaseAxis(Config_XAxis, &m_pXAxis, (uint16_t)PhasesSelftestAxis::Xaxis, 0, X_AXIS_PERCENT))
             return;
+        SelftestResultEEprom_t eeres;
+        eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+        if (eeres.xaxis == SelftestResult_Failed) {
+            m_State = stsWait_axes;
+            return;
+        }
         break;
+    }
     case stsYAxis:
         if (phaseAxis(Config_YAxis, &m_pYAxis, (uint16_t)PhasesSelftestAxis::Yaxis, X_AXIS_PERCENT, Y_AXIS_PERCENT))
             return;

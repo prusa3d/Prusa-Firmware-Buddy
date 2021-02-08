@@ -243,7 +243,7 @@ msgstr "Sensor fil."
 #. clang-format off
 #: src/gui/dialogs/DialogG162.cpp:8 src/gui/dialogs/DialogLoadUnload.cpp:14
 msgid "Finishing buffered gcodes."
-msgstr "Finalizando \nCod. G en memoria.\n"
+msgstr "Finalizando Cod. G en memoria."
 
 #. r=1 c=20
 #: src/gui/screen_menu_version_info.cpp:60
@@ -360,11 +360,11 @@ msgstr "Las direcciones IP o los parámetros no son válidos o el archivo \"lan_
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "Is color correct?"
-msgstr "¿Está bien\nel color?"
+msgstr "¿Está bien el color?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:26
 msgid "Is filament in extruder gear?"
-msgstr "¿Está el filamento \nen los engranajes \ndel extrusor?"
+msgstr "¿Está el filamento en los engranajes del extrusor?"
 
 #: src/gui/wizard/xyzcalib.cpp:47 src/gui/wizard/xyzcalib.cpp:240
 msgid "Is steel sheet on heatbed?"
@@ -413,7 +413,7 @@ msgstr "Cargando..."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:28
 msgid "Loading to nozzle"
-msgstr "Cargando     \na la boquilla"
+msgstr "Cargando a la boquilla"
 
 #: src/guiapi/include/MItem_tools.hpp:305
 msgid "Loud"
@@ -425,7 +425,7 @@ msgstr "M.I.N.D.A."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:24
 msgid "Make sure the filament is inserted through the sensor."
-msgstr "Asegúrate que     \nfilamento está    \ninsertado a través\ndel sensor.       "
+msgstr "Asegúrate que filamento está insertado a través del sensor."
 
 #: src/gui/screen_print_preview.cpp:128
 msgid "Material"
@@ -640,7 +640,7 @@ msgstr "Preparando para expulsar"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:23
 msgid "Press CONTINUE and push filament into the extruder."
-msgstr "Presiona CONTINUAR\ny empuja el       \nfilamento en      \nel extrusor.      "
+msgstr "Presiona CONTINUAR y empuja el filamento en el extrusor."
 
 #: src/gui/wizard/screen_wizard.cpp:185
 msgid "Press NEXT to run the Selftest, which checks for potential issues related to the assembly."
@@ -790,7 +790,7 @@ msgstr "SELECC. IDIOMA"
 
 #: src/gui/screen_menu_fw_update.cpp:74
 msgid "Select when you want to automatically flash updated firmware from USB flash disk."
-msgstr "Selecciona donde\nquieres flashear\nautomáticamente\nel firmware\nactualizado desde\nuna memoria USB."
+msgstr "Selecciona donde quieres flashear automáticamente el firmware actualizado desde una memoria USB."
 
 #: src/guiapi/include/MItem_tools.hpp:49
 msgid "SelfTest"
