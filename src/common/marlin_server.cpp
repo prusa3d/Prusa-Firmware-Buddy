@@ -173,6 +173,24 @@ void marlin_server_init(void) {
     marlin_server.vars.media_SFN_path = media_print_filepath();
 }
 
+void print_fan_spd() {
+    if (DEBUGGING(INFO)) {
+        static int time = 0;
+        static int last_prt = 0;
+        time = HAL_GetTick();
+        int timediff = time - last_prt;
+        if (timediff >= 1000) {
+            serial_echopair_PGM("Tacho_FAN0 ", fanctl0.getActualRPM());
+            serialprintPGM("rpm ");
+            SERIAL_EOL();
+            serial_echopair_PGM("Tacho_FAN1 ", fanctl1.getActualRPM());
+            serialprintPGM("rpm ");
+            SERIAL_EOL();
+            last_prt = time;
+        }
+    }
+}
+
 #ifdef MINDA_BROKEN_CABLE_DETECTION
 static void print_Z_probe_cnt() {
     if (DEBUGGING(INFO)) {
@@ -201,6 +219,8 @@ int marlin_server_cycle(void) {
         _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
 
     FSM_notifier::SendNotification();
+
+    print_fan_spd();
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();

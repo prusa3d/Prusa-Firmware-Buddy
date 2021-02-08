@@ -109,10 +109,10 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_USEVAL() {
     //show dialog only when values are not equal
     float diff = marlin_vars()->z_offset - z_offset_def;
     if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
-        char buff[20 * 7];
+        char buff[21 * 9];
         {
-            char fmt[20 * 7];
-            // c=20 r=6
+            char fmt[21 * 9];
+            // c=21 r=9
             static const char fmt2Translate[] = N_("Do you want to use the current value?\nCurrent: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)");
             _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
             snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)marlin_vars()->z_offset, (double)z_offset_def);

@@ -15,14 +15,18 @@ extern "C" const char *get_selected_filament_name() {
     return Filaments::Current().name;
 }
 
-static constexpr const char *pla_str = "PLA      215/ 60";
+// clang-format off
+// to keep the texts aligned for easier checking of their alignment on the LCD
+static constexpr const char *pla_str =   "PLA      215/ 60";
 static constexpr const char *pet_g_str = "PETG     230/ 85";
-static constexpr const char *asa_str = "ASA      260/100";
-static constexpr const char *abs_str = "ABS      255/100";
-static constexpr const char *pc_str = "PC       275/100";
-static constexpr const char *flex_str = "FLEX     240/ 50";
-static constexpr const char *hips_str = "HIPS     220/100";
-static constexpr const char *pp_str = "PP       240/100";
+static constexpr const char *asa_str =   "ASA      260/100";
+static constexpr const char *pc_str =    "PC       275/100";
+static constexpr const char *pvb_str =   "PVB      215/ 75";
+static constexpr const char *abs_str =   "ABS      255/100";
+static constexpr const char *hips_str =  "HIPS     220/100";
+static constexpr const char *pp_str =    "PP       240/100";
+static constexpr const char *flex_str =  "FLEX     240/ 50";
+// clang-format on
 
 //not a member - static_assert cannot access private members
 //fixme generating long names, takes too long

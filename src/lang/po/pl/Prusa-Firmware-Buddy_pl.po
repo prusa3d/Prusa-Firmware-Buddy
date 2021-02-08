@@ -640,7 +640,7 @@ msgstr "Przygotowywanie do wyciskania"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:23
 msgid "Press CONTINUE and push filament into the extruder."
-msgstr "Naciśnij KONTYNUUJ i wsuń filament do ekstrudera.    "
+msgstr "Naciśnij KONTYNUUJ i wsuń filament do ekstrudera."
 
 #: src/gui/wizard/screen_wizard.cpp:185
 msgid "Press NEXT to run the Selftest, which checks for potential issues related to the assembly."
