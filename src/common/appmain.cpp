@@ -118,10 +118,10 @@ void app_run(void) {
             for (int i = 0; i < hwio_fan_get_cnt(); ++i)
                 hwio_fan_set_pwm(i, 0); // disable fans
         }
-        reset_trinamic_drivers();
         if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
             init_tmc();
         }
+        reset_trinamic_drivers();
     } else {
         app_setup();
         marlin_server_start_processing();

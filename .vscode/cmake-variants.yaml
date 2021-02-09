@@ -30,3 +30,16 @@ bootloader:
       long: Without bootloader
       settings:
         BOOTLOADER: 'NO'
+mcu:
+  default: F407
+  choices:
+    F407:
+      short: STM32F407VG
+      long: MCU STM32F407VG - standard
+      settings:
+        MCU: STM32F407VG
+    F429:
+      short: STM32F429VI
+      long: MCU STM32F429VI - development
+      settings:
+        MCU: STM32F429VI
