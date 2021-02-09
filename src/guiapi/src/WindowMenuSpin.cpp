@@ -41,7 +41,7 @@ Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
     return ret;
 }
 
-void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
+void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
 
     string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
     const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;

@@ -81,9 +81,9 @@ protected:
 
     virtual void OnChange(size_t old_index) = 0;
     virtual void click(IWindowMenu &window_menu) final;
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override;
-    void printExtension_text(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const;
-    void printExtension_icon(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
+    void printExtension_text(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const;
+    void printExtension_icon(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const;
 };
 
 // I could use single template with type parameter and make aliases for WI_SWITCH_t and WI_ICON_SWITCH_t

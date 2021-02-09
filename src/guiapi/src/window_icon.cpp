@@ -32,15 +32,15 @@ window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_i16_t pt, 
 }
 
 void window_icon_t::unconditionalDraw() {
-    uint8_t ropfn = 0;
+    ropfn raster_op;
     if (IsShadowed()) { // that could not be set, but what if
-        ropfn |= ROPFN_DISABLE;
+        raster_op.disable = is_disabled::yes;
     }
     if (IsFocused()) {
-        ropfn |= ROPFN_SWAPBW;
+        raster_op.swap_bw = has_swapped_bw::yes;
     }
 
-    render_icon_align(rect, id_res, color_back, { GetAlignment(), ropfn });
+    render_icon_align(rect, id_res, color_back, icon_flags(GetAlignment(), raster_op));
 }
 
 size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {

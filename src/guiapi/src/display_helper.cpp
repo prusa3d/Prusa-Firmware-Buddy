@@ -182,7 +182,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     /// single line, can modify rc pad
     if (font->h * 2 > rc_pad.Height()                              /// 2 lines would not fit
         || (txt_size.y == font->h && txt_size.x <= rc_pad.Width()) /// text fits into a single line completely
-        || !(flags.multiline == is_multiline::yes)) {              /// wrapping turned off
+        || !flags.IsMultiline()) {                                 /// wrapping turned off
 
         Rect16 rc_txt = Rect16(0, 0, txt_size.x, txt_size.y); /// set size
         rc_txt.Align(rc_pad, flags.align);                    /// position the rectangle
@@ -237,20 +237,15 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
 
 void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, icon_flags flags) {
     color_t opt_clr;
-    switch (flags.raster_flags & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
-    case ROPFN_SWAPBW | ROPFN_DISABLE:
+
+    if (flags.HasSwappedBW() && flags.IsDisabled()) {
         opt_clr = GuiDefaults::ColorDisabled;
-        break;
-    case ROPFN_SWAPBW:
+    } else if (flags.HasSwappedBW()) {
         opt_clr = clr0 ^ 0xffffffff;
-        break;
-    case ROPFN_DISABLE:
+    } else {
         opt_clr = clr0;
-        break;
-    default:
-        opt_clr = clr0;
-        break;
     }
+
     point_ui16_t wh_ico = icon_meas(resource_ptr(id_res));
     if (wh_ico.x && wh_ico.y) {
         Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
@@ -265,21 +260,16 @@ void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, icon_flags flag
 //todo rewrite
 void render_unswapable_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, icon_flags flags) {
     color_t opt_clr;
-    switch ((flags.raster_flags) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
-    case ROPFN_SWAPBW | ROPFN_DISABLE:
+
+    if (flags.HasSwappedBW() && flags.IsDisabled()) {
         opt_clr = GuiDefaults::ColorDisabled;
-        break;
-    case ROPFN_SWAPBW:
+    } else if (flags.HasSwappedBW()) {
         opt_clr = clr0 ^ 0xffffffff;
-        break;
-    case ROPFN_DISABLE:
+    } else {
         opt_clr = clr0;
-        break;
-    default:
-        opt_clr = clr0;
-        break;
     }
-    flags.raster_flags &= ~(ROPFN_SWAPBW); //clr swapbw
+
+    flags.raster_flags.swap_bw = has_swapped_bw::no; //clr swapbw
     point_ui16_t wh_ico = icon_meas(resource_ptr(id_res));
     if (wh_ico.x && wh_ico.y) {
         Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);

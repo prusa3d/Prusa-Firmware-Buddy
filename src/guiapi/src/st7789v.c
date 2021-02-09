@@ -12,6 +12,7 @@
 #include "cmath_ext.h"
 #include "bsod.h"
 #include "scratch_buffer.hpp"
+#include "raster_opfn_c.h"
 
 #ifdef ST7789V_USE_RTOS
     #include "cmsis_os.h"

@@ -59,10 +59,10 @@ protected:
     Rect16 getLabelRect(Rect16 rect) const;
     Rect16 getExtensionRect(Rect16 rect) const;
 
-    virtual void printIcon(Rect16 icon_rect, uint8_t swap, color_t color_back) const; //must be virtual, because pictures of flags are drawn differently
+    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const; //must be virtual, because pictures of flags are drawn differently
     void printLabel(Rect16 label_rect, color_t color_text, color_t color_back) const;
 
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const; //things behind rect
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; //things behind rect
     virtual void click(IWindowMenu &window_menu) = 0;
 
     void setLabelFont(font_t *src) { label_font = src; }

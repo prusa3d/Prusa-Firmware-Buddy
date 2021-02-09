@@ -6,20 +6,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-//raster operation function constants
-enum {
-    ROPFN_COPY = 0x00,    //copy (no operation)
-    ROPFN_INVERT = 0x01,  //invert
-    ROPFN_SWAPBW = 0x02,  //swap black-white
-    ROPFN_DISABLE = 0x04, //disables (darker colors)
-};
-
-//font flags
-enum {
-    FONT_FLG_SWAP = 0x00000001, // swap low/high byte
-    FONT_FLG_LSBF = 0x02,       // LSB first
-};
-
 typedef uint32_t color_t;
 
 //color constants
