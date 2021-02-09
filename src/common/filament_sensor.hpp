@@ -41,6 +41,8 @@ void fs_init_on_level();
 void fs_init_never();
 void fs_cycle(); //call it in thread, max call speed 1MHz
 
+void autoload_loop();
+
 //for debug
 int fs_was_M600_send();
 char fs_get_send_M600_on();

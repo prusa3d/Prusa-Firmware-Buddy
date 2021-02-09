@@ -29,6 +29,7 @@ void StartMeasurementTask(void const *argument) {
         // sample filament sensor
         if (checkTimestampsAscendingOrder(next_fs_cycle, now)) {
             fs_cycle();
+            autoload_loop();
             // call fs_cycle every ~50 ms
             next_fs_cycle = now + 50;
         }

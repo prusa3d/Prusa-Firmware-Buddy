@@ -7,7 +7,7 @@
 
 enum {
     EEPROM_ADDRESS = 0x0500, // uint16_t
-    EEPROM_VERSION = 10,     // uint16_t
+    EEPROM_VERSION = 11,     // uint16_t
 };
 
 #define EEPROM_FEATURE_PID_NOZ 0x0001
@@ -76,11 +76,12 @@ enum {
     EEVAR_SHEET_PROFILE5 = 0x25,
     EEVAR_SHEET_PROFILE6 = 0x26,
     EEVAR_SHEET_PROFILE7 = 0x27,
-    EEVAR_SELFTEST_RESULT = 0x28,   // uint32_t, two bits for each selftest part
-    EEVAR_DEVHASH_IN_QR = 0x29,     // uint8_t on / off sending UID in QR
-    EEVAR_FAN_CHECK_ENABLED = 0x2a, // uint8_t on / off fan check
-    EEVAR__PADDING = 0x2b,          // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x2c,             // uint32_t crc32 for
+    EEVAR_SELFTEST_RESULT = 0x28,     // uint32_t, two bits for each selftest part
+    EEVAR_DEVHASH_IN_QR = 0x29,       // uint8_t on / off sending UID in QR
+    EEVAR_FAN_CHECK_ENABLED = 0x2a,   // uint8_t on / off fan check
+    EEVAR_FS_AUTOLOAD_ENABLED = 0x2b, // uint8_t on / off fs autoload
+    EEVAR__PADDING = 0x2c,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_CRC32 = 0x2d,               // uint32_t crc32 for
 };
 
 enum {

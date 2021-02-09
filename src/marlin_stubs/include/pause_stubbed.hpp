@@ -27,6 +27,7 @@ protected:
         unload,
         unloaded__ask,
         manual_unload,
+        filament_not_in_fs,
         _phase_does_not_exist,
         _finish = _phase_does_not_exist
     };
