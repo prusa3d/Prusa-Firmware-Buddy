@@ -97,7 +97,7 @@ void display_ex_clear(const color_t clr) {
     MockDisplay::Instance().clear(clr);
 }
 
-static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
+static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, ropfn rop) {
     //todo
 }
 
