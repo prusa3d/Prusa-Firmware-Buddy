@@ -101,6 +101,10 @@ public:
     constexpr static const char *label = N_("FILAMENT");
     ScreenMenuFilament()
         : Screen(_(label)) {
+        if (marlin_vars()->fs_autoload_enabled == 1) {
+            Item<MI_LOAD>().Hide();
+            Item<MI_CHANGE>().Hide();
+        }
         Screen::ClrMenuTimeoutClose(); // don't close on menu timeout
         deactivate_item();
     }
