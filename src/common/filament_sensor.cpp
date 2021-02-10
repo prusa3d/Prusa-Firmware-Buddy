@@ -40,6 +40,10 @@ typedef struct {
 } status_t;
 static status_t status = { 0, M600_on_edge, 0 };
 
+static bool old_fs_state = false;
+static bool run_first = true;
+static bool current_detect_filament_insert = false;
+
 /*---------------------------------------------------------------------------*/
 //debug functions
 
@@ -261,6 +265,26 @@ void fs_cycle() {
         _cycle0();
     } else {
         _cycle1();
+    }
+}
+
+void autoload_loop() {
+    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_SD_PRINT | MARLIN_VAR_MSK_FS);
+    if (vars->fs_autoload_enabled && fs_get_state() != fsensor_t::Disabled) {
+        if (fs_get_state() == fsensor_t::HasFilament) {
+            current_detect_filament_insert = true;
+        } else if (fs_get_state() == fsensor_t::NoFilament) {
+            current_detect_filament_insert = false;
+            run_first = false;
+        }
+
+        if (current_detect_filament_insert != old_fs_state && current_detect_filament_insert == true && run_first == false) {
+            if (!vars->sd_printing) {
+                marlin_gcode_printf("M1400 S1");
+            }
+        }
+
+        old_fs_state = current_detect_filament_insert;
     }
 }
 

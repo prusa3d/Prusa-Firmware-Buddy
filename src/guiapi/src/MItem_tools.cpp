@@ -483,3 +483,20 @@ void MI_FAN_CHECK::OnChange(size_t old_index) {
     }
     eeprom_set_var(EEVAR_FAN_CHECK_ENABLED, variant8_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED)));
 }
+
+/*****************************************************************************/
+//MI_FS_AUTOLOAD
+is_hidden_t hide_autoload_item() {
+    return fs_get_state() == fsensor_t::Disabled ? is_hidden_t::yes : is_hidden_t::no;
+}
+
+MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
+    : WI_SWITCH_OFF_ON_t(variant_get_ui8(marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED)), _(label), 0, is_enabled_t::yes, hide_autoload_item()) {}
+void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
+    if (!old_index) {
+        marlin_set_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED, variant8_ui8(1));
+    } else {
+        marlin_set_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED, variant8_ui8(0));
+    }
+    eeprom_set_var(EEVAR_FS_AUTOLOAD_ENABLED, variant8_ui8(marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED)));
+}

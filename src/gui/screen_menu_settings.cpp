@@ -70,6 +70,7 @@ bool MI_FILAMENT_SENSOR::consumeNotConnected() {
 
 void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
     old_index == 1 ? fs_disable() : fs_enable();
+
     fsensor_t fs = fs_wait_initialized();
     if (fs == fsensor_t::NotConnected) //tried to enable but there is no sensor
     {
@@ -83,7 +84,7 @@ bool MI_FILAMENT_SENSOR::fs_not_connected = false;
 
 #ifdef _DEBUG
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_HW_SETUP, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT, MI_FAN_CHECK,
+    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_HW_SETUP, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_FS_AUTOLOAD, MI_TIMEOUT, MI_FAN_CHECK,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
@@ -94,7 +95,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_TEMPERATURE, 
     MI_EEPROM>;
 #else
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_HW_SETUP, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT, MI_FAN_CHECK,
+    MI_FACTORY_DEFAULTS, MI_HW_SETUP, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_FS_AUTOLOAD, MI_TIMEOUT, MI_FAN_CHECK,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
