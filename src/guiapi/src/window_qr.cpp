@@ -60,15 +60,15 @@ void draw_qr(uint8_t qrcode[], const window_qr_t *const window) {
     const uint16_t px_size = get_qr_px_size(qrcode, window, ppm);
 
     /// alignment
-    if (window->align & ALIGN_HCENTER) {
+    if (window->align.Horizontal() == Align_t::horizontal::center) {
         x0 = std::max(0, (window->rect.Width() - px_size)) / 2;
-    } else if (window->align & ALIGN_RIGHT) {
+    } else if (window->align.Horizontal() == Align_t::horizontal::right) {
         x0 = std::max(0, (window->rect.Width() - px_size));
     }
 
-    if (window->align & ALIGN_VCENTER) {
+    if (window->align.Vertical() == Align_t::vertical::center) {
         y0 = std::max(0, (window->rect.Height() - px_size)) / 2;
-    } else if (window->align & ALIGN_BOTTOM) {
+    } else if (window->align.Vertical() == Align_t::vertical::bottom) {
         y0 = std::max(0, (window->rect.Height() - px_size));
     }
 

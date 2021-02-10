@@ -5,6 +5,7 @@
 #include "GuiDefaults.hpp"
 #include "Rect16.h"
 #include "window_event.hpp"
+#include "align.hpp"
 
 class window_t {
     window_t *parent;
@@ -110,8 +111,8 @@ protected:
 struct window_aligned_t : public AddSuperWindow<window_t> {
     window_aligned_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     /// alignment constants are in guitypes.h
-    uint8_t GetAlignment() const;
-    void SetAlignment(uint8_t alignment);
+    Align_t GetAlignment() const;
+    void SetAlignment(Align_t alignment);
 };
 
 void gui_invalidate(void);

@@ -28,7 +28,7 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, 
     , buttons(this, get_radio_button_rect(rect), resp, labels)
     , result(Response::_none) {
     buttons.SetBtnIndex(def_btn);
-    //text.SetAlignment(ALIGN_CENTER);
+    //text.SetAlignment(Align_t::Center());
     //buttons.SetCapture(); //todo make this work
 }
 

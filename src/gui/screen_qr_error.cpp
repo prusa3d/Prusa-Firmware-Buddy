@@ -20,7 +20,7 @@ screen_qr_error_data_t::screen_qr_error_data_t()
     errDescription.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)get_actual_error()->err_text));
 
     info.SetBackColor(color_t::RedAlert);
-    info.SetAlignment(ALIGN_CENTER);
+    info.SetAlignment(Align_t::Center());
     static const char hlp[] = "help.prusa3d.com";
     info.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)hlp));
 

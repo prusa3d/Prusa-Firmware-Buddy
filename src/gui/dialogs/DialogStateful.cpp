@@ -38,10 +38,10 @@ IDialogStateful::IDialogStateful(string_view_utf8 name)
     , radio(this, get_radio_button_rect(rect), nullptr, nullptr)
     , phase(0) {
     title.font = GuiDefaults::FontBig;
-    title.SetAlignment(ALIGN_CENTER);
+    title.SetAlignment(Align_t::Center());
     progress.SetFont(resource_font(IDR_FNT_BIG));
     label.font = GuiDefaults::FontBig;
-    label.SetAlignment(ALIGN_CENTER_TOP);
+    label.SetAlignment(Align_t::CenterTop());
 }
 
 bool IDialogStateful::change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {

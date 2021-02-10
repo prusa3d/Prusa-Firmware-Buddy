@@ -31,7 +31,7 @@ protected:
     Rect16 getUnitRect(Rect16 extension_rect) const;
 
     virtual void click(IWindowMenu &window_menu) final;
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
 
 public:
     IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);

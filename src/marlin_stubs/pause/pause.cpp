@@ -445,7 +445,7 @@ void Pause::unloadLoop(is_standalone_t standalone) {
     } break;
     case UnloadPhases_t::unloaded__ask: {
         if (response == Response::Yes) {
-            set(UnloadPhases_t::_finish);
+            set(UnloadPhases_t::filament_not_in_fs);
         }
         if (response == Response::No) {
             setPhase(PhasesLoadUnload::ManualUnload, 100);
@@ -454,10 +454,16 @@ void Pause::unloadLoop(is_standalone_t standalone) {
         }
 
     } break;
+    case UnloadPhases_t::filament_not_in_fs: {
+        setPhase(PhasesLoadUnload::FilamentNotInFS);
+        if (fs_get_state() != fsensor_t::HasFilament) {
+            set(UnloadPhases_t::_finish);
+        }
+    } break;
     case UnloadPhases_t::manual_unload: {
         if (response == Response::Continue) {
             enable_e_steppers();
-            set(UnloadPhases_t::_finish);
+            set(UnloadPhases_t::filament_not_in_fs);
         }
     } break;
     default:

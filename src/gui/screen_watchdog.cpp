@@ -22,12 +22,12 @@ screen_watchdog_data_t::screen_watchdog_data_t()
     text.font = resource_font(IDR_FNT_BIG);
     static const char wdgr[] = "WATCHDOG RESET";
     text.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)wdgr));
-    text.SetAlignment(ALIGN_CENTER);
+    text.SetAlignment(Align_t::Center());
     /*
     exit.font = resource_font(IDR_FNT_NORMAL);
     static const char ptc[] = "press to continue...";
     exit.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ptc));
-    exit.SetAlignment(ALIGN_CENTER);
+    exit.SetAlignment(Align_t::Center());
     */
 }
 

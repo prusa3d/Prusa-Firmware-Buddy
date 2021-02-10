@@ -152,49 +152,49 @@ TEST_CASE("Window layout tests", "[window]") {
 
         //no padding, ALIGN_CENTER
         Clear(color_t::Black);
-        txt.SetAlignment(ALIGN_CENTER);
+        txt.SetAlignment(Align_t::Center());
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(2, 2, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_LEFT_CENTER
         Clear(color_t::Black);
-        txt.SetAlignment(ALIGN_LEFT_CENTER);
+        txt.SetAlignment(Align_t::LeftCenter());
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(0, 2, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_LEFT_BOTTOM
         Clear(color_t::Black);
-        txt.SetAlignment(ALIGN_LEFT_BOTTOM);
+        txt.SetAlignment(Align_t::LeftBottom());
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(0, 4, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_RIGHT_TOP
         Clear(color_t::Black);
-        txt.SetAlignment(ALIGN_RIGHT_TOP);
+        txt.SetAlignment(Align_t::RightTop());
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(4, 0, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_RIGHT_CENTER
         Clear(color_t::Black);
-        txt.SetAlignment(ALIGN_RIGHT_CENTER);
+        txt.SetAlignment(Align_t::RightCenter());
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(4, 2, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_RIGHT_BOTTOM
         Clear(color_t::Black);
-        txt.SetAlignment(ALIGN_RIGHT_BOTTOM);
+        txt.SetAlignment(Align_t::RightBottom());
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(4, 4, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_CENTER_TOP
         Clear(color_t::Black);
-        txt.SetAlignment(ALIGN_CENTER_TOP);
+        txt.SetAlignment(Align_t::CenterTop());
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(2, 0, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         //no padding, ALIGN_CENTER_BOTTOM
         Clear(color_t::Black);
-        txt.SetAlignment(ALIGN_CENTER_BOTTOM);
+        txt.SetAlignment(Align_t::CenterBottom());
         txt.Draw();
         TestRectDiffColor(DispRect(), Rect16(2, 4, 1, 1), GuiDefaults::ColorBack, GuiDefaults::ColorText);
     }
@@ -206,13 +206,13 @@ TEST_CASE("Window layout tests", "[window]") {
         window_text_t txt(nullptr, DispRect(), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1101")));
         txt.SetPadding({ 0, 0, 0, 0 });
 
-        txt.SetAlignment(ALIGN_LEFT_TOP);
+        txt.SetAlignment(Align_t::LeftTop());
         txt.Draw();
         std::array<std::array<bool, 8>, 4> mask = { { { 1, 1, 0, 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
-        txt.SetAlignment(ALIGN_CENTER);
+        txt.SetAlignment(Align_t::Center());
         txt.Draw();
         mask = { { { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 1, 1, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
@@ -225,20 +225,20 @@ TEST_CASE("Window layout tests", "[window]") {
         window_text_t txt(nullptr, DispRect(), is_multiline::yes, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1\n0\n1")));
         txt.SetPadding({ 0, 0, 0, 0 });
 
-        txt.SetAlignment(ALIGN_LEFT_TOP);
+        txt.SetAlignment(Align_t::LeftTop());
         txt.Draw();
         std::array<std::array<bool, 5>, 5> mask = { { { 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
-        txt.SetAlignment(ALIGN_CENTER);
+        txt.SetAlignment(Align_t::Center());
         txt.Draw();
         mask = { { { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)("111\n101\n10001")));
         Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
-        txt.SetAlignment(ALIGN_CENTER);
+        txt.SetAlignment(Align_t::Center());
         txt.Draw();
         mask = { { { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 0 }, { 0, 1, 0, 1, 0 }, { 1, 0, 0, 0, 1 }, { 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
@@ -252,7 +252,7 @@ TEST_CASE("Window layout tests", "[window]") {
         txt.font = &font_2dot;
         txt.SetPadding({ 0, 0, 0, 0 });
 
-        txt.SetAlignment(ALIGN_LEFT_TOP);
+        txt.SetAlignment(Align_t::LeftTop());
         txt.Draw();
         std::array<std::array<bool, 8>, 8> mask = { { { 1, 1, 0, 0, 0, 0, 0, 0 },
             { 1, 1, 0, 0, 0, 0, 0, 0 },
@@ -265,14 +265,14 @@ TEST_CASE("Window layout tests", "[window]") {
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         /* Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
-        txt.SetAlignment(ALIGN_CENTER);
+        txt.SetAlignment(Align_t::Center());
         txt.Draw();
         mask = { { { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
 
         txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)("111\n101\n10001")));
         Clear(color_t::Red); // all display must be rewritten, no red pixel can remain
-        txt.SetAlignment(ALIGN_CENTER);
+        txt.SetAlignment(Align_t::Center());
         txt.Draw();
         mask = { { { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 0 }, { 0, 1, 0, 1, 0 }, { 1, 0, 0, 0, 1 }, { 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);*/

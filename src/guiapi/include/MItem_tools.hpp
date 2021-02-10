@@ -407,3 +407,11 @@ public:
     MI_FAN_CHECK();
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_FS_AUTOLOAD : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("FS autoload");
+
+public:
+    MI_FS_AUTOLOAD();
+    virtual void OnChange(size_t old_index) override;
+};

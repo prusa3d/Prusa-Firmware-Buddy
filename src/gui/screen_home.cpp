@@ -82,7 +82,7 @@ screen_home_data_t::screen_home_data_t()
 
             w_labels[i].rect = Rect16(80 * col, 154 + (15 + 64) * row, 80, 14);
             w_labels[i].font = resource_font(IDR_FNT_SMALL);
-            w_labels[i].SetAlignment(ALIGN_CENTER);
+            w_labels[i].SetAlignment(Align_t::Center());
             w_labels[i].SetPadding({ 0, 0, 0, 0 });
             w_labels[i].SetText(_(labels[i]));
         }

@@ -182,7 +182,7 @@ uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[200];
 
 uartrxbuff_t uart6rxbuff;
-uint8_t uart6rx_data[32];
+uint8_t uart6rx_data[128];
 uartslave_t uart6slave;
 char uart6slave_line[32];
 

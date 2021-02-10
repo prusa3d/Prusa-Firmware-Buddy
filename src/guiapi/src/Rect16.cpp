@@ -149,27 +149,27 @@ bool Rect16::Contain(Rect16 const &r) const {
     return Contain(r.TopLeft()) && Contain(r.BottomRight());
 }
 
-void Rect16::Align(Rect16 rc, uint8_t align) {
-    switch (align & ALIGN_HMASK) {
-    case ALIGN_LEFT:
+void Rect16::Align(Rect16 rc, Align_t align) {
+    switch (align.Horizontal()) {
+    case Align_t::horizontal::left:
         top_left_.x = rc.Left();
         break;
-    case ALIGN_RIGHT:
+    case Align_t::horizontal::right:
         top_left_.x = rc.Left() + rc.Width() - width_;
         break;
-    case ALIGN_HCENTER:
+    case Align_t::horizontal::center:
         top_left_.x = rc.Left() + (rc.Width() - width_) / 2;
         break;
     }
 
-    switch (align & ALIGN_VMASK) {
-    case ALIGN_TOP:
+    switch (align.Vertical()) {
+    case Align_t::vertical::top:
         top_left_.y = rc.Top();
         break;
-    case ALIGN_BOTTOM:
+    case Align_t::vertical::bottom:
         top_left_.y = rc.Top() + rc.Height() - height_;
         break;
-    case ALIGN_VCENTER:
+    case Align_t::vertical::center:
         top_left_.y = rc.Top() + (rc.Height() - height_) / 2;
         break;
     }

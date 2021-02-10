@@ -42,13 +42,11 @@ static const Rect16::Width_t icon_base_width(40);
 window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectHeader)
     , icon_base(this, Rect16(rect.TopLeft(), icon_base_width, rect.Height() - 5), 0)
-    , label(this, rect - Rect16::Width_t(icons_width + span + icon_base_width) + Rect16::Left_t(icon_base_width), txt)
+    , label(this, rect - Rect16::Width_t(icons_width + span + icon_base_width) + Rect16::Left_t(icon_base_width), txt, Align_t::LeftBottom())
     , icon_usb(this, (rect + Rect16::Left_t(rect.Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_usb_16px)
     , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_lan_16px)
     , LAN_changed_off(false) {
-    /// label and icon aligmnent and offset
-    label.SetAlignment(ALIGN_LEFT_BOTTOM);
-    icon_base.SetAlignment(ALIGN_CENTER_BOTTOM);
+    icon_base.SetAlignment(Align_t::CenterBottom());
 
     marlin_vars()->media_inserted ? USB_Activate() : USB_On();
 
