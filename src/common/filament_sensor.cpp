@@ -254,23 +254,9 @@ static void _cycle1() {
     status.meas_cycle = 0; //next cycle shall be 0
 }
 
-//delay between calls must be 1us or longer
-void fs_cycle() {
-    //sensor is disabled (only init can enable it)
-    if (state == fsensor_t::Disabled)
-        return;
-
-    //sensor is enabled
-    if (status.meas_cycle == 0) {
-        _cycle0();
-    } else {
-        _cycle1();
-    }
-}
-
-void autoload_loop() {
+static void _autoload_loop() {
     marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_SD_PRINT | MARLIN_VAR_MSK_FS);
-    if (vars->fs_autoload_enabled && fs_get_state() != fsensor_t::Disabled) {
+    if (vars->fs_autoload_enabled) {
         if (fs_get_state() == fsensor_t::HasFilament) {
             current_detect_filament_insert = true;
         } else if (fs_get_state() == fsensor_t::NoFilament) {
@@ -288,4 +274,19 @@ void autoload_loop() {
     }
 }
 
+//delay between calls must be 1us or longer
+void fs_cycle() {
+    //sensor is disabled (only init can enable it)
+    if (state == fsensor_t::Disabled)
+        return;
+
+    //sensor is enabled
+    if (status.meas_cycle == 0) {
+        _cycle0();
+    } else {
+        _cycle1();
+    }
+
+    _autoload_loop();
+}
 //} //extern "C"
