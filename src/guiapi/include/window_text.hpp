@@ -3,10 +3,8 @@
 #pragma once
 
 #include "window.hpp"
+#include "display_helper.h" // is_multiline
 #include "../../lang/string_view_utf8.hpp"
-
-enum class is_multiline : bool { no,
-    yes };
 
 struct window_text_t : public AddSuperWindow<window_aligned_t> {
     color_t color_text;

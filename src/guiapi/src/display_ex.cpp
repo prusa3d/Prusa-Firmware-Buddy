@@ -4,6 +4,7 @@
 #include <cmath>
 #include "guiconfig.h" //USE_ST7789
 #include "display_math_helper.h"
+#include "font_flags.hpp"
 
 #ifdef USE_ST7789
     #include "st7789v.h"
@@ -43,8 +44,8 @@ void display_ex_clear(const color_t clr) {
     st7789v_clear(color_to_native(clr));
 }
 
-static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
-    st7789v_draw_png_ex(point_x, point_y, pf, clr0, rop);
+static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, ropfn rop) {
+    st7789v_draw_png_ex(point_x, point_y, pf, clr0, rop.ConvertToC());
 }
 
 static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
@@ -96,7 +97,7 @@ void display_ex_clear(const color_t clr) {
     MockDisplay::Instance().clear(clr);
 }
 
-static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
+static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, ropfn rop) {
     //todo
 }
 
@@ -211,6 +212,8 @@ bool display_ex_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, 
     uint8_t rb;      //row byte
     uint8_t *pc;
 
+    const font_flags flags(pf->flg);
+
     DispBuffer buff(pms, clr_bg, clr_fg);
 
     uint32_t chr = charY * 16 + charX; // compute character index in font
@@ -221,13 +224,13 @@ bool display_ex_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, 
         pc = pch + j * bpr;
         for (i = 0; i < w; i++) {
             if ((i % ppb) == 0) {
-                if (pf->flg & (uint32_t)FONT_FLG_SWAP) {
+                if (flags.swap == is_swap::yes) {
                     rb = (i / ppb) ^ 1;
                     crd = pch[rb + j * bpr];
                 } else
                     crd = *(pc++);
             }
-            if (pf->flg & (uint32_t)FONT_FLG_LSBF) {
+            if (flags.lsb == fnt_lsb::yes) {
                 buff.Insert(crd & pms);
                 crd >>= bpp;
             } else {
@@ -383,12 +386,12 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt) {
     return get_pixel_directColor_C(pt.x, pt.y);
 }
 
-void display_ex_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop) {
+void display_ex_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, ropfn rop) {
     FILE *pf = resource_fopen(id_res, "rb");
     draw_png_ex_C(pt.x, pt.y, pf, clr0, rop);
     fclose(pf);
 }
 
 void display_ex_draw_png(point_ui16_t pt, FILE *pf) {
-    draw_png_ex_C(pt.x, pt.y, pf, 0, 0);
+    draw_png_ex_C(pt.x, pt.y, pf, 0, ropfn());
 }

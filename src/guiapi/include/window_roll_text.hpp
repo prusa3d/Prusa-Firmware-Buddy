@@ -17,7 +17,7 @@ class window_roll_text_t : public AddSuperWindow<window_text_t> {
     void rollInit() { roll.Init(rect, text, font, padding, GetAlignment()); }
 
 public:
-    window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR(), uint8_t align = GuiDefaults::Alignment);
+    window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR(), Align_t align = GuiDefaults::Align());
     virtual void SetText(string_view_utf8 txt) override;
 
 protected:

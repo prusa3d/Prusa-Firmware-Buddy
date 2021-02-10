@@ -49,7 +49,7 @@ description_line_t::description_line_t(window_frame_t *frame, bool has_thumbnail
 
 {
     title.SetText(title_str);
-    title.SetAlignment(ALIGN_LEFT_BOTTOM);
+    title.SetAlignment(Align_t::LeftBottom());
     title.SetPadding({ 0, 0, 0, 0 });
     title.font = resource_font(IDR_FNT_SMALL);
 
@@ -59,7 +59,7 @@ description_line_t::description_line_t(window_frame_t *frame, bool has_thumbnail
     va_end(args);
     // this MakeRAM is safe - value_buffer is allocated in RAM for the lifetime of line
     value.SetText(string_view_utf8::MakeRAM((const uint8_t *)value_buffer));
-    value.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    value.SetAlignment(Align_t::RightBottom());
     value.SetPadding({ 0, 0, 0, 0 });
     value.font = resource_font(IDR_FNT_SMALL);
 }
@@ -183,11 +183,11 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name));
 
     print_label.SetText(_("Print"));
-    print_label.SetAlignment(ALIGN_CENTER);
+    print_label.SetAlignment(Align_t::Center());
     print_label.font = resource_font(IDR_FNT_SMALL);
 
     back_label.SetText(_("Back"));
-    back_label.SetAlignment(ALIGN_CENTER);
+    back_label.SetAlignment(Align_t::Center());
     back_label.font = resource_font(IDR_FNT_SMALL);
 }
 

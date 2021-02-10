@@ -61,7 +61,7 @@ invalidate_t txtroll_t::Tick() {
 }
 
 void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
-    padding_ui8_t padding, uint8_t alignment) {
+    padding_ui8_t padding, Align_t alignment) {
     rect = rect_meas(rc, text, font, padding, alignment);
     count_from_init = meas(rect, text, font);
     font_w = font->w;
@@ -69,7 +69,7 @@ void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
 }
 
 void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
-    color_t clr_back, color_t clr_text, padding_ui8_t padding, uint8_t alignment) const {
+    color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment) const {
     switch (phase) {
     case phase_t::uninitialized:
     case phase_t::idle:
@@ -84,7 +84,7 @@ void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
 }
 
 void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
-    color_t clr_back, color_t clr_text, padding_ui8_t padding, uint8_t alignment) const {
+    color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment) const {
 
     if (text.isNULLSTR()) {
         display::FillRect(rc, clr_back);
@@ -120,7 +120,7 @@ void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
     }
 }
 
-Rect16 txtroll_t::rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags) {
+Rect16 txtroll_t::rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, Align_t alignment) {
 
     Rect16 rc_pad = rc;
     rc_pad.CutPadding(padding);
@@ -129,7 +129,7 @@ Rect16 txtroll_t::rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font
     Rect16 rc_txt = { 0, 0, 0, 0 };
     if (wh_txt.x && wh_txt.y) {
         rc_txt = Rect16(0, 0, wh_txt.x, wh_txt.y);
-        rc_txt.Align(rc_pad, flags & ALIGN_MASK);
+        rc_txt.Align(rc_pad, alignment);
         rc_txt = rc_txt.Intersection(rc_pad);
     }
     return rc_txt;

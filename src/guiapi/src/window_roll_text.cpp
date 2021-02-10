@@ -27,7 +27,7 @@ void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     }
 }
 
-window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt, uint8_t align)
+window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt, Align_t align)
     : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt) {
     this->SetAlignment(align);
     rollInit();
