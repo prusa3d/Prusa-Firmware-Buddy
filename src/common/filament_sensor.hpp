@@ -1,8 +1,8 @@
-/*
- * filament_sensor.hpp
- *
- *  Created on: 2019-12-16
- *      Author: Radek Vana
+/**
+ * @file filament_sensor.hpp
+ * @author Radek Vana
+ * @brief basic api of filament sensor
+ * @date 2019-12-16
  */
 
 #pragma once
