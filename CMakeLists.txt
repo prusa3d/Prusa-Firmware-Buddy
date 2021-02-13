@@ -482,7 +482,8 @@ target_sources(
           src/usbh_conf.c
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
-          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
+          src/common/filament_sensor.cpp
+          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_photoeletric.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/hardware_serial.cpp
           src/common/diag.cpp
@@ -542,7 +543,6 @@ target_sources(
           src/common/wui_api.c
           src/common/z_calibration_fsm.cpp
           src/common/scratch_buffer.cpp
-          src/common/print_processor.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M330.cpp

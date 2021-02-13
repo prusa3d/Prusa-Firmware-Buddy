@@ -273,7 +273,7 @@ bool Pause::loadLoop(is_standalone_t standalone) {
         }
         break;
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
-        if (fs_get_state() == fsensor_t::NoFilament) {
+        if (FS_instance().Get() == fsensor_t::NoFilament) {
             setPhase(PhasesLoadUnload::MakeSureInserted);
         } else {
             setPhase(PhasesLoadUnload::UserPush);
@@ -456,7 +456,7 @@ void Pause::unloadLoop(is_standalone_t standalone) {
     } break;
     case UnloadPhases_t::filament_not_in_fs: {
         setPhase(PhasesLoadUnload::FilamentNotInFS);
-        if (fs_get_state() != fsensor_t::HasFilament) {
+        if (FS_instance().Get() != fsensor_t::HasFilament) {
             set(UnloadPhases_t::_finish);
         }
     } break;
@@ -667,7 +667,7 @@ void Pause::FilamentChange() {
     if (print_job_timer.isPaused())
         print_job_timer.start();
 
-    fs_clr_sent(); //reset filament sensor M600 sent flag
+    FS_instance().ClrM600Sent(); //reset filament sensor M600 sent flag
 
 #if HAS_DISPLAY
     ui.reset_status();

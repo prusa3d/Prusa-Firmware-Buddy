@@ -101,7 +101,7 @@ public:
     constexpr static const char *label = N_("FILAMENT");
     ScreenMenuFilament()
         : Screen(_(label)) {
-        if (marlin_vars()->fs_autoload_enabled == 1 && (fs_get_state() == fsensor_t::HasFilament || fs_get_state() == fsensor_t::NoFilament)) {
+        if (marlin_vars()->fs_autoload_enabled == 1 && (FS_instance().Get() == fsensor_t::HasFilament || FS_instance().Get() == fsensor_t::NoFilament)) {
             Item<MI_LOAD>().Hide();
             Item<MI_CHANGE>().Hide();
         }
@@ -161,7 +161,7 @@ void ScreenMenuFilament::deactivate_item() {
 
     uint8_t filament = 0;
     filament |= Filaments::CurrentIndex() != filament_t::NONE ? F_EEPROM : 0;
-    filament |= fs_get_state() == fsensor_t::NoFilament ? 0 : F_SENSED;
+    filament |= FS_instance().Get() == fsensor_t::NoFilament ? 0 : F_SENSED;
     switch (filament) {
     case 0:        //filament not loaded
     case F_SENSED: //user pushed filament into sensor, but it is not loaded

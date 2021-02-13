@@ -17,30 +17,87 @@ enum class fsensor_t : uint8_t {
     Disabled
 };
 
-//thread safe functions
-fsensor_t fs_get_state();
-int fs_did_filament_runout(); //for arduino / marlin
+//basic filament sensor api
+class FSensor {
+protected:
+    enum class event {
+        NoFilament,
+        HasFilament,
+        EdgeFilamentInserted,
+        EdgeFilamentRemoved
+    };
 
-//switch behavior when M600 should be send
-void fs_send_M600_on_edge(); //default behavior
-void fs_send_M600_on_level();
-void fs_send_M600_never();
+    enum class inject_t : uint8_t {
+        on_edge = 0,
+        on_level = 1,
+        never = 2
+    };
 
-//thread safe functions, but cannot be called from interrupt
-void fs_enable();
-void fs_disable();
+    struct status_t {
+        bool M600_sent;
+        bool Autoload_sent;
+        inject_t send_event_on;
 
-uint8_t fs_get__send_M600_on__and_disable();
-void fs_restore__send_M600_on(uint8_t send_M600_on);
-fsensor_t fs_wait_initialized();
-void fs_clr_sent();
+        status_t()
+            : M600_sent(false)
+            , Autoload_sent(false)
+            , send_event_on(inject_t::on_edge) {}
+    };
+    status_t status;
 
-//not thread safe functions
-void fs_init_on_edge();
-void fs_init_on_level();
-void fs_init_never();
-void fs_cycle(); //call it in thread, max call speed 1MHz
+    volatile fsensor_t state;
+    volatile fsensor_t last_state;
 
-//for debug
-int fs_was_M600_send();
-char fs_get_send_M600_on();
+    uint32_t event_lock; // 0 == unlocked
+
+    void init();
+    void set_state(fsensor_t st);
+
+    void restore_send_M600_on(FSensor::inject_t send_event_on);
+    inject_t getM600_send_on_and_disable();
+
+    event generateEvent(fsensor_t last_state_before_cycle) const;
+    void evaluateEventConditions(event ev);
+
+    virtual void enable() = 0;
+    virtual void disable() = 0;
+    virtual void cycle() = 0;
+
+    inline bool isEvLocked() { return event_lock > 0; }
+
+public:
+    void Cycle();
+    //thread safe functions
+    fsensor_t Get();
+    bool DidRunOut(); //for arduino / marlin
+
+    //switch behavior when M600 should be send
+    void M600_on_edge(); //default behavior
+    void M600_on_level();
+    void M600_never();
+
+    //thread safe functions, but cannot be called from interrupt
+    void Enable();
+    void Disable();
+
+    uint32_t DecEvLock();
+    uint32_t IncEvLock();
+
+    fsensor_t WaitInitialized();
+    void ClrM600Sent();
+    void ClrAutoloadSent();
+
+    //not thread safe functions
+    void InitOnEdge();
+    void InitOnLevel();
+    void InitNever();
+
+    //for debug
+    bool WasM600_send();
+    char GetM600_send_on();
+
+    FSensor();
+};
+
+//singleton defined in childs cpp file
+FSensor &FS_instance();

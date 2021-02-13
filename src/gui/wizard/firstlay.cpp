@@ -21,7 +21,7 @@ enum {
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK() {
     uint8_t filament = 0;
     filament |= Filaments::CurrentIndex() != filament_t::NONE ? FKNOWN : 0;
-    filament |= fs_get_state() == fsensor_t::NoFilament ? F_NOTSENSED : 0;
+    filament |= FS_instance().Get() == fsensor_t::NoFilament ? F_NOTSENSED : 0;
 
     size_t def_bt = filament == (FKNOWN | F_NOTSENSED) ? 1 : 0; //default button
 

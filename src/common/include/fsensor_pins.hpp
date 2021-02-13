@@ -10,7 +10,7 @@
 //cannot use anonymous namespace on this stupid header, idk why
 #include "hwio_pindef.h"
 
-class FSensor {
+class FSensorPins {
 public:
     inline static void pullUp() { buddy::hw::fSensor.pullUp(); }
     inline static void pullDown() { buddy::hw::fSensor.pullDown(); }

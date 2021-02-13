@@ -181,9 +181,9 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         _last = HAL_GetTick();
 
         static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
-        buff[1] = fs_get_state() + '0';                              // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
-        buff[4] = fs_get_send_M600_on();                             // Me edge, Ml level, Mn never, Mx undefined
-        buff[6] = fs_was_M600_send() ? 's' : 'n';                    // s == send, n== not send
+        buff[1] = FS_instance().Get() + '0';                         // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
+        buff[4] = FS_instance().GetM600_send_on();                   // Me edge, Ml level, Mn never, Mx undefined
+        buff[6] = FS_instance().WasM600_send() ? 's' : 'n';          // s == send, n== not send
         buff[8] = _is_in_M600_flg ? 'M' : '0';                       // M == marlin is doing M600
         buff[9] = marlin_event(MARLIN_EVT_CommandBegin) ? 'B' : '0'; // B == Event begin
         buff[10] = marlin_command() == MARLIN_CMD_M600 ? 'C' : '0';  // C == Command M600
