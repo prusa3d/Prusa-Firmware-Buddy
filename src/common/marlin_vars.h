@@ -43,7 +43,7 @@ enum {
 };
 
 // variable masks
-#define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (uint8_t)(v_id))
+#define MARLIN_VAR_MSK(v_id) (((uint64_t)1) << (uint8_t)(v_id))
 
 //maximum number of masks is 64
 //maximum mask index is 63
@@ -70,8 +70,6 @@ static const uint64_t MARLIN_VAR_MSK_DEF = MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK(
 
 static const uint64_t MARLIN_VAR_MSK_WUI
     = MARLIN_VAR_MSK_TEMP_CURR | MARLIN_VAR_MSK(MARLIN_VAR_POS_Z) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT) | MARLIN_VAR_MSK(MARLIN_VAR_DURATION) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_FILENAME);
-
-static const uint64_t MARLIN_VAR_MSK_FS = MARLIN_VAR_MSK(MARLIN_VAR_FS_AUTOLOAD_ENABLED);
 
 // usr8 in variant8_t message contains id (bit0..6) and variable/event flag (bit7)
 static const uint8_t MARLIN_USR8_VAR_FLG = 0x80; // usr8 - variable flag (bit7 set)

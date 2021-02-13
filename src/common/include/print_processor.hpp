@@ -12,10 +12,9 @@
 namespace {
 #include "marlin_client.h"
 };
+#include "filament_sensor.hpp"
 
 class PrintProcessor {
-    static bool block_M600_injection;
-
     //called when Serial print screen is opened
     //printer is not in sd printing mode, so filament sensor does not trigger M600
     //todo should I block ClientFSM::Serial_printing?
@@ -23,19 +22,18 @@ class PrintProcessor {
     //I fear enabling it could break something
     static void fsm_create_cb(ClientFSM fsm, uint8_t data) {
         if (/*fsm == ClientFSM::Serial_printing ||*/ fsm == ClientFSM::Load_unload)
-            block_M600_injection = true;
+            FS_instance().IncEvLock();
     }
     static void fsm_destroy_cb(ClientFSM fsm) {
         if (/*fsm == ClientFSM::Serial_printing ||*/ fsm == ClientFSM::Load_unload)
-            block_M600_injection = false;
+            FS_instance().DecEvLock();
     }
 
 public:
-    static inline void Update() { marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_MSK_FS)); }
+    static inline void Update() { marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_FS_AUTOLOAD_ENABLED)); }
     static inline void InjectGcode(const char *str) { marlin_gcode_push_front(str); }
     static inline bool IsPrinting() { return marlin_vars()->sd_printing; }
     static inline bool IsAutoloadEnabled() { return marlin_vars()->fs_autoload_enabled; }
-    static inline bool IsM600injectionBlocked() { return block_M600_injection; }
 
     static void Init() {
         marlin_client_set_fsm_create_cb(fsm_create_cb);

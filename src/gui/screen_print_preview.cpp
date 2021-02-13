@@ -214,7 +214,7 @@ void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, wi
         return;
     }
 
-    if (!suppress_draw && fs_did_filament_runout()) {
+    if (!suppress_draw && FS_instance().DidRunOut()) {
         suppress_draw = true;
         Sound_Play(eSOUND_TYPE::SingleBeep);
         const PhaseResponses btns = { Response::Yes, Response::No, Response::Ignore, Response::_none };
@@ -229,7 +229,7 @@ void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, wi
             Screens::Access()->Close();
             return;
         case Response::Ignore: //IGNORE - disable
-            fs_disable();
+            FS_instance().Disable();
             break;
         default:
             break;

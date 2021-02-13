@@ -444,7 +444,7 @@ MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
 }
 
 MI_FILAMENT_SENSOR_STATE::state_t MI_FILAMENT_SENSOR_STATE::get_state() {
-    fsensor_t fs = fs_wait_initialized();
+    fsensor_t fs = FS_instance().WaitInitialized();
     switch (fs) {
     case fsensor_t::HasFilament:
         return state_t::high;
@@ -487,7 +487,7 @@ void MI_FAN_CHECK::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_FS_AUTOLOAD
 is_hidden_t hide_autoload_item() {
-    return fs_get_state() == fsensor_t::Disabled ? is_hidden_t::yes : is_hidden_t::no;
+    return FS_instance().Get() == fsensor_t::Disabled ? is_hidden_t::yes : is_hidden_t::no;
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
