@@ -68,7 +68,7 @@ window_progress_t::window_progress_t(window_t *parent, Rect16 rect, uint16_t h_p
     , max(100) {
     Disable();
     numb.format = "%.0f%%";
-    numb.SetAlignment(ALIGN_CENTER);
+    numb.SetAlignment(Align_t::Center());
 }
 
 void window_progress_t::SetFont(font_t *val) {

@@ -15,7 +15,7 @@ window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
     , open_time(0)
     , ttl(0) {
     Disable();
-    text.SetAlignment(ALIGN_LEFT_TOP);
+    text.SetAlignment(Align_t::LeftTop());
     text.SetPadding({ 0, 2, 0, 2 });
 }
 

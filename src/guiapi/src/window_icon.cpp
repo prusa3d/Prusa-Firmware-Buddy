@@ -13,7 +13,7 @@ void window_icon_t::SetIdRes(int16_t id) {
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, uint16_t id_res, is_closed_on_click_t close)
     : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
     , id_res(id_res) {
-    SetAlignment(ALIGN_CENTER);
+    SetAlignment(Align_t::Center());
 }
 
 //Icon rect is increased by padding, icon is centered inside it
@@ -32,15 +32,15 @@ window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_i16_t pt, 
 }
 
 void window_icon_t::unconditionalDraw() {
-    uint8_t ropfn = 0;
+    ropfn raster_op;
     if (IsShadowed()) { // that could not be set, but what if
-        ropfn |= ROPFN_DISABLE;
+        raster_op.disable = is_disabled::yes;
     }
     if (IsFocused()) {
-        ropfn |= ROPFN_SWAPBW;
+        raster_op.swap_bw = has_swapped_bw::yes;
     }
 
-    render_icon_align(rect, id_res, color_back, RENDER_FLG(GetAlignment(), ropfn));
+    render_icon_align(rect, id_res, color_back, icon_flags(GetAlignment(), raster_op));
 }
 
 size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {

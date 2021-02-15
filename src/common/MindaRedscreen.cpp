@@ -173,7 +173,7 @@ void mbl_error(uint16_t moves, uint16_t points) {
     }
 
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), GuiDefaults::Font,
-        COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
+        COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, Align_t::Center());
 
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {

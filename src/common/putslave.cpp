@@ -577,6 +577,11 @@ int putslave_do_cmd_a_pwm(uartslave_t *pslave, char *pstr) {
     if ((value < 0) || (value > hwio_pwm_get_max(pwm)))
         return UARTSLAVE_ERR_OOR;
     hwio_pwm_set_val(pwm, value);
+    if (pwm == 2) {
+        fanctl1.setPWM(value);
+    } else if (pwm == 3) {
+        fanctl0.setPWM(value);
+    }
     return UARTSLAVE_OK;
 }
 
@@ -676,7 +681,7 @@ int putslave_do_cmd_a_ten(uartslave_t *pslave, char *pstr) {
     if (sscanf(pstr, "%d", &state) != 1)
         return UARTSLAVE_ERR_SYN;
     const Pin::State pinState = static_cast<Pin::State>(state);
-    if ((pinState != Pin::State::low) || (pinState != Pin::State::high))
+    if ((pinState != Pin::State::low) && (pinState != Pin::State::high))
         return UARTSLAVE_ERR_OOR;
     tmc_set_mres();
     xEnable.write(pinState);

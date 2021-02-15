@@ -116,6 +116,6 @@ void StartWebServerTask(void const *argument) {
         _dbg0("MASLO %s", ub->buffer);
         _dbg0("-----------\n");
 
-        osDelay(1);
+        osDelay(10);
     }
 }

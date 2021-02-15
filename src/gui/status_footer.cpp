@@ -48,7 +48,7 @@ void status_footer_t::windowEvent(EventLock /*has private ctor*/, window_t *send
     }
 
     if (dynamic_cast<screen_home_data_t *>(GetParent()) != nullptr //is home_screen
-        && sheet_number_of_calibrated() > 1) {                     // calibrated more profiles than 1
+        && no_of_calibrated_sheets() > 1) {                        // calibrated more profiles than 1
         update_sheet_profile();
     } else if (mseconds - last_timer_repaint_z_pos >= REPAINT_Z_POS_PERIOD) {
         update_z_axis();
@@ -252,29 +252,31 @@ status_footer_t::status_footer_t(window_t *parent)
     , last_timer_repaint_values(0)
     , last_timer_repaint_colors(0)
     , last_timer_repaint_z_pos(0)
+    , last_timer_repaint_profile(0)
     , print_speed(0) /// print speed in percents
     //, nozzle_state;
     //, heatbed_state;
-    , show_second_color(false) {
+    , show_second_color(false)
+    , cached_no_of_calibrated_sheets(0) {
 
     wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
-    wt_nozzle.SetAlignment(ALIGN_CENTER);
+    wt_nozzle.SetAlignment(Align_t::Center());
     wt_nozzle.SetText(string_view_utf8::MakeNULLSTR());
 
     wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
-    wt_heatbed.SetAlignment(ALIGN_CENTER);
+    wt_heatbed.SetAlignment(Align_t::Center());
     wt_heatbed.SetText(string_view_utf8::MakeNULLSTR());
 
     wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
-    wt_prnspeed.SetAlignment(ALIGN_CENTER);
+    wt_prnspeed.SetAlignment(Align_t::Center());
     wt_prnspeed.SetText(string_view_utf8::MakeNULLSTR());
 
     wt_z_profile.font = resource_font(IDR_FNT_SPECIAL);
-    wt_z_profile.SetAlignment(ALIGN_CENTER);
+    wt_z_profile.SetAlignment(Align_t::Center());
     wt_z_profile.SetText(string_view_utf8::MakeNULLSTR());
 
     wt_filament.font = resource_font(IDR_FNT_SPECIAL);
-    wt_filament.SetAlignment(ALIGN_CENTER);
+    wt_filament.SetAlignment(Align_t::Center());
     wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)Filaments::Current().name));
 
     filament = emptystr;
@@ -283,7 +285,7 @@ status_footer_t::status_footer_t(window_t *parent)
     update_temperatures();
     update_feedrate();
     update_filament();
-    if (sheet_number_of_calibrated() > 1)
+    if (no_of_calibrated_sheets() > 1)
         update_sheet_profile();
     else
         update_z_axis();
@@ -291,4 +293,13 @@ status_footer_t::status_footer_t(window_t *parent)
     repaint_heatbed();
 
     Disable();
+}
+
+uint32_t status_footer_t::no_of_calibrated_sheets() {
+    uint32_t mseconds = HAL_GetTick();
+    if (mseconds - last_timer_repaint_profile >= REPAINT_PROFILE_PERIOD) {
+        cached_no_of_calibrated_sheets = sheet_number_of_calibrated();
+        last_timer_repaint_profile = mseconds;
+    }
+    return cached_no_of_calibrated_sheets;
 }

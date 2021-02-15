@@ -358,14 +358,14 @@ bool window_t::EventJogwheel(BtnState_t state) {
 
 window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
     : AddSuperWindow<window_t>(parent, rect, type, close) {
-    SetAlignment(GuiDefaults::Alignment);
+    SetAlignment(GuiDefaults::Align());
 }
 
-uint8_t window_aligned_t::GetAlignment() const {
-    return flags.mem_array_u08[0];
+Align_t window_aligned_t::GetAlignment() const {
+    return (Align_t &)(flags.mem_array_u08[0]); //retype to Align_t reference, to avoid using private ctor
 }
 
-void window_aligned_t::SetAlignment(uint8_t alignment) {
-    flags.mem_array_u08[0] = alignment;
+void window_aligned_t::SetAlignment(Align_t alignment) {
+    flags.mem_array_u08[0] = (uint8_t &)(alignment);
     Invalidate();
 }

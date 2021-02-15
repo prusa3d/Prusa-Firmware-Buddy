@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <numeric>
 #include <limits.h> //SHRT_MAX, SHRT_MIN
+#include "align.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @enum ShiftDir_t
@@ -263,7 +264,7 @@ public:
     /// @return Return true if the rectangles is subrectangle, false otherwise.
     bool Contain(Rect16 const &) const;
 
-    void Align(Rect16 rc, uint8_t align);
+    void Align(Rect16 rc, Align_t align);
 
     constexpr bool IsEmpty() const { return !(width_ && height_); }
 

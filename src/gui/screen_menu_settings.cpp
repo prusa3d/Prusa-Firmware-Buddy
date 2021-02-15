@@ -43,11 +43,11 @@ void MI_FILAMENT_SENSOR::no_sensor_msg() const {
 }
 
 bool MI_FILAMENT_SENSOR::init_index() const {
-    fsensor_t fs = fs_wait_initialized();
+    fsensor_t fs = FS_instance().WaitInitialized();
     fs_not_connected = fs == fsensor_t::NotConnected;
     if (fs_not_connected) //tried to enable but there is no sensor
     {
-        fs_disable();
+        FS_instance().Disable();
         fs_not_connected = true;
         fs = fsensor_t::Disabled;
     }
@@ -55,8 +55,8 @@ bool MI_FILAMENT_SENSOR::init_index() const {
 }
 
 void MI_FILAMENT_SENSOR::CheckDisconnected() {
-    if (consumeNotConnected() || fs_wait_initialized() == fsensor_t::NotConnected) {
-        fs_disable();
+    if (consumeNotConnected() || FS_instance().WaitInitialized() == fsensor_t::NotConnected) {
+        FS_instance().Disable();
         index = 0;
         no_sensor_msg();
     }
@@ -69,11 +69,12 @@ bool MI_FILAMENT_SENSOR::consumeNotConnected() {
 }
 
 void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
-    old_index == 1 ? fs_disable() : fs_enable();
-    fsensor_t fs = fs_wait_initialized();
+    old_index == 1 ? FS_instance().Disable() : FS_instance().Enable();
+
+    fsensor_t fs = FS_instance().WaitInitialized();
     if (fs == fsensor_t::NotConnected) //tried to enable but there is no sensor
     {
-        fs_disable();
+        FS_instance().Disable();
         index = old_index;
         fs_not_connected = true;
     }
@@ -83,7 +84,7 @@ bool MI_FILAMENT_SENSOR::fs_not_connected = false;
 
 #ifdef _DEBUG
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_HW_SETUP, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT, MI_FAN_CHECK,
+    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_HW_SETUP, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_FS_AUTOLOAD, MI_TIMEOUT, MI_FAN_CHECK,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_WIFI_SETTINGS,
     MI_LAN_SETTINGS,
@@ -95,7 +96,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_TEMPERATURE, 
     MI_EEPROM>;
 #else
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_HW_SETUP, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT, MI_FAN_CHECK,
+    MI_FACTORY_DEFAULTS, MI_HW_SETUP, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_FS_AUTOLOAD, MI_TIMEOUT, MI_FAN_CHECK,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_WIFI_SETTINGS,
     MI_LAN_SETTINGS,

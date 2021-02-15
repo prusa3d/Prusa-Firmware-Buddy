@@ -10,6 +10,7 @@ const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoad
     {},                                                            //Unloading,
     { Response::Filament_removed },                                //RemoveFilament,
     { Response::Yes, Response::No },                               //IsFilamentUnloaded,
+    {},                                                            //FilamentNotInFS
     { Response::Continue },                                        //ManualUnload,
     { Response::Continue },                                        //UserPush,
     {},                                                            //MakeSureInserted,

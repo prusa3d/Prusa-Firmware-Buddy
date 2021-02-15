@@ -46,6 +46,7 @@
 #include <cmath>
 #include "task.h" //critical sections
 #include "preheat_multithread_status.hpp"
+#include "fs_event_autolock.hpp"
 
 #define DO_NOT_RESTORE_Z_AXIS
 static const constexpr uint8_t Z_AXIS_LOAD_POS = 40;
@@ -248,6 +249,7 @@ static void setResult(Result res) {
  *  Default value S0
  */
 void PrusaGcodeSuite::M1400() {
+    FS_EventAutolock LOCK;
     const uint32_t val = parser.ulongval('S', 0);
     PreheatStatus::Result res = M1400_no_parser(val);
 
@@ -272,4 +274,6 @@ void PrusaGcodeSuite::M1400() {
 
     // store result, so other threads can see it
     PreheatStatus::setResult(res);
+
+    FS_instance().ClrAutoloadSent();
 }

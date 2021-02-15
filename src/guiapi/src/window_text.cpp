@@ -31,7 +31,7 @@ void window_text_t::unconditionalDraw() {
     render_text_align(rect, text, font,
         (IsFocused()) ? color_text : color_back,
         (IsFocused()) ? color_back : color_text,
-        padding, flags.custom0 ? GetAlignment() | RENDER_FLG_WORDB : GetAlignment());
+        padding, { GetAlignment(), is_multiline(flags.custom0) });
 }
 
 /*****************************************************************************/
