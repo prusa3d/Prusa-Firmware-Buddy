@@ -182,7 +182,7 @@ uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[200];
 
 uartrxbuff_t uart6rxbuff;
-uint8_t uart6rx_data[32];
+uint8_t uart6rx_data[512];
 uartslave_t uart6slave;
 char uart6slave_line[32];
 
@@ -269,9 +269,9 @@ int main(void) {
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
     HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
     uartrxbuff_reset(&uart6rxbuff);
-    uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
-    putslave_init(&uart6slave);
-    wdt_iwdg_warning_cb = iwdg_warning_cb;
+    // uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
+    // putslave_init(&uart6slave);
+    // wdt_iwdg_warning_cb = iwdg_warning_cb;
 
     crc32_init();
     w25x_init();
@@ -905,7 +905,7 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOD, FLASH_CSN_Pin, GPIO_PIN_RESET);
@@ -969,8 +969,8 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *haurt) {
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
     if (huart == &huart2)
         buddy::hw::BufferedSerial::uart2.FirstHalfReachedISR();
-    else if (huart == &huart6)
-        uartrxbuff_rxhalf_cb(&uart6rxbuff);
+    // else if (huart == &huart6)
+        // uartrxbuff_rxhalf_cb(&uart6rxbuff);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
@@ -978,8 +978,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         uartrxbuff_rxcplt_cb(&uart1rxbuff);
     else if (huart == &huart2)
         buddy::hw::BufferedSerial::uart2.SecondHalfReachedISR();
-    else if (huart == &huart6)
-        uartrxbuff_rxcplt_cb(&uart6rxbuff);
+    // else if (huart == &huart6)
+        // uartrxbuff_rxcplt_cb(&uart6rxbuff);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {

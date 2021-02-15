@@ -15,9 +15,14 @@
 #include <string.h>
 #include "sntp_client.h"
 #include "dbg.h"
+#include "UART_RingBuffer.h"
+#include "uartrxbuff.h"
 
 #define WUI_NETIF_SETUP_DELAY  1000
 #define WUI_COMMAND_QUEUE_SIZE WUI_WUI_MQ_CNT // maximal number of messages at once in WUI command messageQ
+
+extern UART_HandleTypeDef huart6;
+extern uartrxbuff_t uart6rxbuff;
 
 // WUI thread mutex for updating marlin vars
 osMutexDef(wui_thread_mutex);
@@ -75,6 +80,16 @@ void StartWebServerTask(void const *argument) {
     // get settings from ini file
     osDelay(1000);
     printf("wui starts");
+    
+    // Ringbuf_init();
+
+    // Uart_flush(&huart6);
+    // char line[] = "AT+CWSAP=\"PRUSA_MINI\",\"\",5,0\r\n";
+    // Uart_sendstring("AT+CWSAP=\"PRUSA_HOVNO\",\"\",5,0\r\n", &huart6);
+    // Uart_sendstring("AT\r\n", &huart6);
+    // while(!(Wait_for("OK\r\n", &huart6)));
+    // _dbg0("AT+CWSAP-->OK\n");
+
     if (load_ini_file(&wui_eth_config)) {
         save_eth_params(&wui_eth_config);
     }
@@ -89,9 +104,18 @@ void StartWebServerTask(void const *argument) {
     http_server_init();
     sntp_client_init();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
+
+    uartrxbuff_t *ub = &uart6rxbuff;
+
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
+
+        // char *rxBuff = &uart6rxbuff.buffer
+        // _dbg0("MASLO %s", rxBuff);
+        _dbg0("MASLO %s", ub->buffer);
+        _dbg0("-----------\n");
+
         osDelay(1);
     }
 }

@@ -43,6 +43,7 @@
 #include "dump.h"
 #include "sys.h"
 #include "buffered_serial.hpp"
+#include "UART_RingBuffer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -192,6 +193,7 @@ void USART2_IRQHandler() {
 }
 
 void USART6_IRQHandler() {
+    // Uart_isr(&huart6);
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart6);
         uartrxbuff_idle_cb(&uart6rxbuff);
