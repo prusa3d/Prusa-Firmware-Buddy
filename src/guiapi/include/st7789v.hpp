@@ -36,11 +36,11 @@ typedef struct _st7789v_config_t {
     uint8_t control;
 } st7789v_config_t;
 
-__attribute__((used)) inline uint16_t color_to_565(uint32_t clr) {
+inline uint16_t color_to_565(uint32_t clr) {
     return swap_ui16(((clr >> 19) & 0x001f) | ((clr >> 5) & 0x07e0) | ((clr << 8) & 0xf800));
 }
 
-__attribute__((used)) inline uint32_t color_from_565(uint16_t clr565) {
+inline uint32_t color_from_565(uint16_t clr565) {
     //TODO
     return 0;
 }
