@@ -12,6 +12,11 @@ target_sources(WUI INTERFACE
   netif_settings.c
   sntp/sntp_client.c
   sntp/sntp.c
+  #lwesp------
+  lwesp/src/system/lwesp_sys_freertos_os.c
+  lwesp/src/system/lwesp_mem_lwmem.c
+  lwesp/src/system/lwesp_ll_stm32.c
+  lwesp/src/system/lwesp_mem_lwmem.c
 )
 
 target_include_directories(
@@ -21,6 +26,8 @@ target_include_directories(
     http
     sntp
     resources
+    lwesp/src/include
+    lwesp/src/include/system/port/freertos
 )
 
 target_link_libraries(
