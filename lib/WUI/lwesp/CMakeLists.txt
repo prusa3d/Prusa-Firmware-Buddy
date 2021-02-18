@@ -8,12 +8,8 @@ target_include_directories(
   lwesp
   INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}
-    src
-    api
-    cli
-    include
-    lwesp
-    system
+    src/include
+    src/include/system/port/cmsis_os
 )
 
 target_link_libraries(
