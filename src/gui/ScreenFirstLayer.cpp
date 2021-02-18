@@ -11,7 +11,7 @@
 ScreenFirstLayer::ScreenFirstLayer()
     : IScreenPrinting(_(caption))
     , text(this, Rect16(WizardDefaults::MarginLeft, 40, GuiDefaults::RectScreen.Width() - WizardDefaults::MarginLeft * 2, 150), is_multiline::yes, is_closed_on_click_t::no, _(text_str))
-    , progress(this, { WizardDefaults::MarginLeft, 190 + 30 }, HasNumber_t::no)
+    , progress(this, Rect16(WizardDefaults::MarginLeft, 190 + 30, GuiDefaults::RectScreen.Width() - 2 * WizardDefaults::MarginLeft, 8))
     , live_z(this, { int16_t(WizardDefaults::MarginLeft), 190 }, rect.Width() - WizardDefaults::MarginLeft * 2) {
     CaptureNormalWindow(live_z);
     live_z.Idle();
