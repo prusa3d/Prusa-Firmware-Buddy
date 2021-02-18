@@ -116,7 +116,8 @@ void screen_printing_data_t::stopAction() {
 screen_printing_data_t::screen_printing_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
     , w_filename(this, Rect16(10, 33, 220, 29))
-    , w_progress(this, { 10, 70 }, HasNumber_t::yes)
+    , w_progress(this, Rect16(10, 70, GuiDefaults::RectScreen.Width() - 2 * 10, 16))
+    , w_progress_txt(this, Rect16(10, 86, GuiDefaults::RectScreen.Width() - 2 * 10, 30))
     , w_time_label(this, Rect16(10, 128, 101, 20), is_multiline::no)
     , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)
     , w_etime_label(this, Rect16(130, 128, 101, 20), is_multiline::no)
@@ -162,6 +163,11 @@ screen_printing_data_t::screen_printing_data_t()
     w_time_value.SetPadding({ 0, 2, 0, 2 });
     // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
+
+    w_progress_txt.font = resource_font(IDR_FNT_BIG);
+    w_progress_txt.SetAlignment(Align_t::Center());
+    w_progress_txt.SetValue(0);
+    w_progress_txt.SetFormat("%d%%");
 
     initAndSetIconAndLabel(btn_tune, res_tune);
     initAndSetIconAndLabel(btn_pause, res_pause);
@@ -223,6 +229,13 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
         Screens::Access()->Close();
         return;
+    }
+
+    if (marlin_vars()->sd_percent_done != w_progress_txt.value) {
+        if (marlin_vars()->sd_percent_done > 0 && marlin_vars()->sd_percent_done <= 100) {
+            w_progress_txt.SetValue(marlin_vars()->sd_percent_done);
+            w_progress_txt.Invalidate();
+        }
     }
 
     /// -- check when media is or isn't inserted
