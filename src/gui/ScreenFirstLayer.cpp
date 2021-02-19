@@ -15,6 +15,7 @@ ScreenFirstLayer::ScreenFirstLayer()
     , live_z(this, { int16_t(WizardDefaults::MarginLeft), 190 }, rect.Width() - WizardDefaults::MarginLeft * 2) {
     CaptureNormalWindow(live_z);
     live_z.Idle();
+    progress.SetColor(COLOR_LIME);
 }
 
 void ScreenFirstLayer::notifyMarlinStart() { live_z.Activate(); };
