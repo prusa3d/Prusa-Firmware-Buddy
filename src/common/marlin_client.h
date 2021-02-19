@@ -40,11 +40,7 @@ extern int marlin_client_id(void);
 extern void marlin_client_wait_for_start_processing(void);
 
 //sets dialog callback, returns 1 on success
-extern int marlin_client_set_fsm_create_cb(fsm_create_t cb);
-//sets dialog callback, returns 1 on success
-extern int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb);
-//sets dialog callback, returns 1 on success
-extern int marlin_client_set_fsm_change_cb(fsm_change_t cb);
+extern int marlin_client_set_fsm_cb(fsm_cb_t cb);
 //sets dialog message, returns 1 on success
 extern int marlin_client_set_message_cb(message_cb_t cb);
 //sets dialog message, returns 1 on success

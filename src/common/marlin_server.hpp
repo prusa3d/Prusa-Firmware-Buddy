@@ -8,7 +8,7 @@
 //C++ only features
 
 //todo ensure signature match
-//notify all clients to create finit statemachine, must match fsm_create_t signature
+//notify all clients to create finit statemachine
 void fsm_create(ClientFSM type, uint8_t data = 0);
 //notify all clients to destroy finit statemachine, must match fsm_destroy_t signature
 void fsm_destroy(ClientFSM type);

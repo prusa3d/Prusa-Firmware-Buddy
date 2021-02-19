@@ -94,9 +94,6 @@ void dump_marlinapi_print(dump_t *pd, mapfile_t *pm) {
         printf(" .resume_nozzle_temp = %f\n", pmarlin_server->resume_nozzle_temp);
         printf(" .resume_fan_speed = %u\n", pmarlin_server->resume_fan_speed);
         printf(" .paused_ticks = %u\n", pmarlin_server->paused_ticks);
-        printf(" .fsmCreate = %u\n", pmarlin_server->fsmCreate);
-        printf(" .fsmDestroy = %u\n", pmarlin_server->fsmDestroy);
-        printf(" .fsmChange = %u\n", pmarlin_server->fsmChange);
     }
 
     marlin_client_t *pmarlin_client = 0;
@@ -119,9 +116,7 @@ void dump_marlinapi_print(dump_t *pd, mapfile_t *pm) {
                     printf("   [%u][%u] = %f\n", x, y, pmarlin_client[c].mesh.z[x + y * pmarlin_client[c].mesh.xc]);
             printf("  .command = 0x%08x (%u)\n", pmarlin_client[c].command, pmarlin_client[c].command);
             printf("  .reheating = %u\n", pmarlin_client[c].reheating);
-            printf("  .fsm_create_cb = 0x%08x\n", pmarlin_client[c].fsm_create_cb);
-            printf("  .fsm_destroy_cb = 0x%08x\n", pmarlin_client[c].fsm_destroy_cb);
-            printf("  .fsm_change_cb = 0x%08x\n", pmarlin_client[c].fsm_change_cb);
+            printf("  .fsm_cb = 0x%08x\n", pmarlin_client[c].fsm_cb);
         }
     }
 

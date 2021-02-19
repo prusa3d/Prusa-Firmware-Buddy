@@ -36,15 +36,13 @@ typedef struct _marlin_client_t {
     uint64_t errors;
     marlin_mesh_t mesh; // meshbed leveling
 
-    marlin_vars_t vars;           // cached variables
-    uint32_t ack;                 // cached ack value from last Acknowledge event
-    uint32_t command;             // processed command (G28,G29,M701,M702,M600)
-    fsm_create_t fsm_create_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
-    fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
-    fsm_change_t fsm_change_cb;   // to register callback for change of state
-    message_cb_t message_cb;      // to register callback message
-    warning_cb_t warning_cb;      // to register callback for important message
-    startup_cb_t startup_cb;      // to register callback after marlin complete initialization
+    marlin_vars_t vars;      // cached variables
+    uint32_t ack;            // cached ack value from last Acknowledge event
+    uint32_t command;        // processed command (G28,G29,M701,M702,M600)
+    fsm_cb_t fsm_cb;         // to register callback for dialog or screen creation/destruction/change (M876), callback ensures M876 is processed asap, so there is no need for queue
+    message_cb_t message_cb; // to register callback message
+    warning_cb_t warning_cb; // to register callback for important message
+    startup_cb_t startup_cb; // to register callback after marlin complete initialization
 
     uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
     uint16_t last_count; // number of messages received in last client loop
@@ -106,9 +104,7 @@ marlin_vars_t *marlin_client_init(void) {
         client->mesh.yc = 4;
         client->command = MARLIN_CMD_NONE;
         client->reheating = 0;
-        client->fsm_create_cb = NULL;
-        client->fsm_destroy_cb = NULL;
-        client->fsm_change_cb = NULL;
+        client->fsm_cb = NULL;
         client->message_cb = NULL;
         client->warning_cb = NULL;
         client->startup_cb = NULL;
@@ -168,32 +164,10 @@ void marlin_client_wait_for_start_processing(void) {
 
 //register callback to fsm creation
 //return success
-int marlin_client_set_fsm_create_cb(fsm_create_t cb) {
+int marlin_client_set_fsm_cb(fsm_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
-        client->fsm_create_cb = cb;
-        return 1;
-    }
-    return 0;
-}
-
-//register callback to fsm destruction
-//return success
-int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb) {
-    marlin_client_t *client = _client_ptr();
-    if (client && cb) {
-        client->fsm_destroy_cb = cb;
-        return 1;
-    }
-    return 0;
-}
-
-//register callback to fsm change
-//return success
-int marlin_client_set_fsm_change_cb(fsm_change_t cb) {
-    marlin_client_t *client = _client_ptr();
-    if (client && cb) {
-        client->fsm_change_cb = cb;
+        client->fsm_cb = cb;
         return 1;
     }
     return 0;
@@ -817,17 +791,9 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_Acknowledge:
             client->ack = variant8_get_ui32(msg);
             break;
-        case MARLIN_EVT_FSM_Create:
-            if (client->fsm_create_cb)
-                client->fsm_create_cb((uint8_t)variant8_get_ui32(msg), (uint8_t)(variant8_get_ui32(msg) >> 8));
-            break;
-        case MARLIN_EVT_FSM_Destroy:
-            if (client->fsm_destroy_cb)
-                client->fsm_destroy_cb((uint8_t)variant8_get_ui32(msg));
-            break;
-        case MARLIN_EVT_FSM_Change:
-            if (client->fsm_change_cb)
-                client->fsm_change_cb((uint8_t)variant8_get_ui32(msg), (uint8_t)(variant8_get_ui32(msg) >> 8), (uint8_t)(variant8_get_ui32(msg) >> 16), (uint8_t)(variant8_get_ui32(msg) >> 24));
+        case MARLIN_EVT_FSM:
+            if (client->fsm_cb)
+                client->fsm_cb(variant8_get_ui32(msg));
             break;
         case MARLIN_EVT_Message: {
             variant8_t *pvar = &msg;
