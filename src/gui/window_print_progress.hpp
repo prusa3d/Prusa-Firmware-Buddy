@@ -13,6 +13,7 @@ enum class HasNumber_t {
 };
 
 class WindowPrintProgress : public AddSuperWindow<window_numberless_progress_t> {
+    int8_t last_sd_percent_done;
     void update_progress(uint8_t percent, uint16_t print_speed);
 
 public:
