@@ -117,7 +117,7 @@ screen_printing_data_t::screen_printing_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
     , w_filename(this, Rect16(10, 33, 220, 29))
     , w_progress(this, Rect16(10, 70, GuiDefaults::RectScreen.Width() - 2 * 10, 16))
-    , w_progress_txt(this, Rect16(10, 86, GuiDefaults::RectScreen.Width() - 2 * 10, 30))
+    , w_progress_txt(this, Rect16(10, 86, GuiDefaults::RectScreen.Width() - 2 * 10, 30), 0)
     , w_time_label(this, Rect16(10, 128, 101, 20), is_multiline::no)
     , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)
     , w_etime_label(this, Rect16(130, 128, 101, 20), is_multiline::no)
@@ -167,6 +167,7 @@ screen_printing_data_t::screen_printing_data_t()
     w_progress_txt.font = resource_font(IDR_FNT_BIG);
     w_progress_txt.SetAlignment(Align_t::Center());
     w_progress_txt.SetValue(0);
+    w_progress_txt.PrintAsInt();
     w_progress_txt.SetFormat("%d%%");
 
     initAndSetIconAndLabel(btn_tune, res_tune);
