@@ -164,12 +164,6 @@ screen_printing_data_t::screen_printing_data_t()
     // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
 
-    w_progress_txt.font = resource_font(IDR_FNT_BIG);
-    w_progress_txt.SetAlignment(Align_t::Center());
-    w_progress_txt.SetValue(0);
-    w_progress_txt.PrintAsInt();
-    w_progress_txt.SetFormat("%d%%");
-
     initAndSetIconAndLabel(btn_tune, res_tune);
     initAndSetIconAndLabel(btn_pause, res_pause);
     initAndSetIconAndLabel(btn_stop, res_stop);
@@ -230,13 +224,6 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
         Screens::Access()->Close();
         return;
-    }
-
-    if (marlin_vars()->sd_percent_done != w_progress_txt.value) {
-        if (marlin_vars()->sd_percent_done > 0 && marlin_vars()->sd_percent_done <= 100) {
-            w_progress_txt.SetValue(marlin_vars()->sd_percent_done);
-            w_progress_txt.Invalidate();
-        }
     }
 
     /// -- check when media is or isn't inserted
