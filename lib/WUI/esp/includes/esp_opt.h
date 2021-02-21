@@ -1,46 +1,10 @@
-/**
- * \file            lwesp_opt.h
- * \brief           ESP-AT options
- */
-
-/*
- * Copyright (c) 2020 Tilen MAJERLE
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * This file is part of LwESP - Lightweight ESP-AT parser library.
- *
- * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v1.0.0
- */
-#ifndef LWESP_HDR_DEFAULT_CONFIG_H
-#define LWESP_HDR_DEFAULT_CONFIG_H
-
 /* Include application options */
-#ifndef LWESP_IGNORE_USER_OPTS
-#include "lwesp_opts.h"
-#endif /* LWESP_IGNORE_USER_OPTS */
+#ifndef ESP_IGNORE_USER_OPTS
+    #include "esp_opts.h"
+#endif /* ESP_IGNORE_USER_OPTS */
 
 /**
- * \defgroup        LWESP_OPT Configuration
+ * \defgroup        ESP_OPT Configuration
  * \brief           ESP-AT options
  * \{
  *
@@ -50,16 +14,8 @@
  * \brief           Enables `1` or disables `0` support for ESP8266 AT commands
  *
  */
-#ifndef LWESP_CFG_ESP8266
-#define LWESP_CFG_ESP8266                     1
-#endif
-
-/**
- * \brief           Enables `1` or disables `0` support for ESP32 AT commands
- *
- */
-#ifndef LWESP_CFG_ESP32
-#define LWESP_CFG_ESP32                       0
+#ifndef ESP_CFG_ESP8266
+    #define ESP_CFG_ESP8266 1
 #endif
 
 /**
@@ -67,29 +23,29 @@
  *
  * \note            Value must be set to `1` in the current revision
  *
- * \note            Check \ref LWESP_OPT_OS group for more configuration related to operating system
+ * \note            Check \ref ESP_OPT_OS group for more configuration related to operating system
  *
  */
-#ifndef LWESP_CFG_OS
-#define LWESP_CFG_OS                          1
+#ifndef ESP_CFG_OS
+    #define ESP_CFG_OS 1
 #endif
 
 /**
  * \brief           Enables `1` or disables `0` custom memory management functions
  *
- * When set to `1`, \ref LWESP_MEM block must be provided manually.
- * This includes implementation of functions \ref lwesp_mem_malloc,
- * \ref lwesp_mem_calloc, \ref lwesp_mem_realloc and \ref lwesp_mem_free
+ * When set to `1`, \ref ESP_MEM block must be provided manually.
+ * This includes implementation of functions \ref esp_mem_malloc,
+ * \ref esp_mem_calloc, \ref esp_mem_realloc and \ref esp_mem_free
  *
  * \note            Function declaration follows standard C functions `malloc, calloc, realloc, free`.
- *                  Declaration is available in `lwesp/lwesp_mem.h` file. Include this file to final
+ *                  Declaration is available in `esp/esp_mem.h` file. Include this file to final
  *                  implementation file
  *
  * \note            When implementing custom memory allocation, it is necessary
  *                  to take care of multiple threads accessing same resource for custom allocator
  */
-#ifndef LWESP_CFG_MEM_CUSTOM
-#define LWESP_CFG_MEM_CUSTOM                  0
+#ifndef ESP_CFG_MEM_CUSTOM
+    #define ESP_CFG_MEM_CUSTOM 0
 #endif
 
 /**
@@ -103,8 +59,8 @@
  *
  * \note            This value must be power of `2`
  */
-#ifndef LWESP_CFG_MEM_ALIGNMENT
-#define LWESP_CFG_MEM_ALIGNMENT               4
+#ifndef ESP_CFG_MEM_ALIGNMENT
+    #define ESP_CFG_MEM_ALIGNMENT 4
 #endif
 
 /**
@@ -113,16 +69,16 @@
  * When enabled, `2` additional parameters are available in API functions.
  * When command is executed, callback function with its parameter could be called when not set to `NULL`.
  */
-#ifndef LWESP_CFG_USE_API_FUNC_EVT
-#define LWESP_CFG_USE_API_FUNC_EVT            1
+#ifndef ESP_CFG_USE_API_FUNC_EVT
+    #define ESP_CFG_USE_API_FUNC_EVT 1
 #endif
 
 /**
  * \brief           Maximal number of connections AT software can support on ESP device
  * \note            In case of official AT software, leave this on default value (`5`)
  */
-#ifndef LWESP_CFG_MAX_CONNS
-#define LWESP_CFG_MAX_CONNS                   5
+#ifndef ESP_CFG_MAX_CONNS
+    #define ESP_CFG_MAX_CONNS 5
 #endif
 
 /**
@@ -135,8 +91,8 @@
  *                  is not an issue, it should be set to maximal value (`2048`)
  *                  to optimize data transfer speed performance
  */
-#ifndef LWESP_CFG_CONN_MAX_DATA_LEN
-#define LWESP_CFG_CONN_MAX_DATA_LEN           2048
+#ifndef ESP_CFG_CONN_MAX_DATA_LEN
+    #define ESP_CFG_CONN_MAX_DATA_LEN 2048
 #endif
 
 /**
@@ -145,8 +101,8 @@
  * Sometimes it may happen that `AT+SEND` command fails due to different problems.
  * Trying to send the same data multiple times can raise chances for success.
  */
-#ifndef LWESP_CFG_MAX_SEND_RETRIES
-#define LWESP_CFG_MAX_SEND_RETRIES            3
+#ifndef ESP_CFG_MAX_SEND_RETRIES
+    #define ESP_CFG_MAX_SEND_RETRIES 3
 #endif
 
 /**
@@ -154,8 +110,8 @@
  *
  * \note            When ESP sends buffer bigger than maximal, multiple buffers are created
  */
-#ifndef LWESP_CFG_CONN_MAX_RECV_BUFF_SIZE
-#define LWESP_CFG_CONN_MAX_RECV_BUFF_SIZE     1460
+#ifndef ESP_CFG_CONN_MAX_RECV_BUFF_SIZE
+    #define ESP_CFG_CONN_MAX_RECV_BUFF_SIZE 1460
 #endif
 
 /**
@@ -163,8 +119,8 @@
  *
  * \note            User may call API function to change to desired baudrate if necessary
  */
-#ifndef LWESP_CFG_AT_PORT_BAUDRATE
-#define LWESP_CFG_AT_PORT_BAUDRATE            115200
+#ifndef ESP_CFG_AT_PORT_BAUDRATE
+    #define ESP_CFG_AT_PORT_BAUDRATE 115200
 #endif
 
 /**
@@ -172,8 +128,8 @@
  *
  * \note            When device is in station mode, it can connect to other access points
  */
-#ifndef LWESP_CFG_MODE_STATION
-#define LWESP_CFG_MODE_STATION                1
+#ifndef ESP_CFG_MODE_STATION
+    #define ESP_CFG_MODE_STATION 1
 #endif
 
 /**
@@ -181,8 +137,8 @@
  *
  * \note            When device is in access point mode, it can accept connections from other stations
  */
-#ifndef LWESP_CFG_MODE_ACCESS_POINT
-#define LWESP_CFG_MODE_ACCESS_POINT           1
+#ifndef ESP_CFG_MODE_ACCESS_POINT
+    #define ESP_CFG_MODE_ACCESS_POINT 1
 #endif
 
 /**
@@ -194,48 +150,48 @@
  *                  In case of DMA (CPU can work other tasks), buffer may be smaller as CPU
  *                  will have more time to process all the incoming bytes
  *
- * \note            This parameter has no meaning when \ref LWESP_CFG_INPUT_USE_PROCESS is enabled
+ * \note            This parameter has no meaning when \ref ESP_CFG_INPUT_USE_PROCESS is enabled
  */
-#ifndef LWESP_CFG_RCV_BUFF_SIZE
-#define LWESP_CFG_RCV_BUFF_SIZE               0x400
+#ifndef ESP_CFG_RCV_BUFF_SIZE
+    #define ESP_CFG_RCV_BUFF_SIZE 0x400
 #endif
 
 /**
- * \brief           Enables `1` or disables `0` reset sequence after \ref lwesp_init call
+ * \brief           Enables `1` or disables `0` reset sequence after \ref esp_init call
  *
- * \note            When this functionality is disabled, user must manually call \ref lwesp_reset to send
+ * \note            When this functionality is disabled, user must manually call \ref esp_reset to send
  *                  reset sequence to ESP device.
  */
-#ifndef LWESP_CFG_RESET_ON_INIT
-#define LWESP_CFG_RESET_ON_INIT               1
+#ifndef ESP_CFG_RESET_ON_INIT
+    #define ESP_CFG_RESET_ON_INIT 1
 #endif
 
 /**
- * \brief           Enables `1` or disables `0` device restore after \ref lwesp_init call
+ * \brief           Enables `1` or disables `0` device restore after \ref esp_init call
  *
  * \note            When this feature is enabled, it will automatically
  *                  restore and clear any settings stored as \em default in ESP device
  */
-#ifndef LWESP_CFG_RESTORE_ON_INIT
-#define LWESP_CFG_RESTORE_ON_INIT             1
+#ifndef ESP_CFG_RESTORE_ON_INIT
+    #define ESP_CFG_RESTORE_ON_INIT 1
 #endif
 
 /**
- * \brief           Enables `1` or disables `0` reset sequence after \ref lwesp_device_set_present call
+ * \brief           Enables `1` or disables `0` reset sequence after \ref esp_device_set_present call
  *
- * \note            When this functionality is disabled, user must manually call \ref lwesp_reset to send
+ * \note            When this functionality is disabled, user must manually call \ref esp_reset to send
  *                  reset sequence to ESP device.
  */
-#ifndef LWESP_CFG_RESET_ON_DEVICE_PRESENT
-#define LWESP_CFG_RESET_ON_DEVICE_PRESENT     1
+#ifndef ESP_CFG_RESET_ON_DEVICE_PRESENT
+    #define ESP_CFG_RESET_ON_DEVICE_PRESENT 1
 #endif
 
 /**
  * \brief           Default delay (milliseconds unit) before sending first AT command on reset sequence
  *
  */
-#ifndef LWESP_CFG_RESET_DELAY_DEFAULT
-#define LWESP_CFG_RESET_DELAY_DEFAULT         1000
+#ifndef ESP_CFG_RESET_DELAY_DEFAULT
+    #define ESP_CFG_RESET_DELAY_DEFAULT 1000
 #endif
 
 /**
@@ -243,8 +199,8 @@
  *
  * \note            This parameter must include trailling zero
  */
-#ifndef LWESP_CFG_MAX_SSID_LENGTH
-#define LWESP_CFG_MAX_SSID_LENGTH             21
+#ifndef ESP_CFG_MAX_SSID_LENGTH
+    #define ESP_CFG_MAX_SSID_LENGTH 21
 #endif
 
 /**
@@ -252,12 +208,12 @@
  *
  * \note            This parameter must include trailling zero
  */
-#ifndef LWESP_CFG_MAX_PWD_LENGTH
-#define LWESP_CFG_MAX_PWD_LENGTH             65
+#ifndef ESP_CFG_MAX_PWD_LENGTH
+    #define ESP_CFG_MAX_PWD_LENGTH 65
 #endif
 
 /**
- * \defgroup        LWESP_OPT_DBG Debugging
+ * \defgroup        ESP_OPT_DBG Debugging
  * \brief           Debugging configurations
  * \{
  */
@@ -265,12 +221,12 @@
 /**
  * \brief           Set global debug support
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  *
- * \note            Set to \ref LWESP_DBG_OFF to globally disable all debugs
+ * \note            Set to \ref ESP_DBG_OFF to globally disable all debugs
  */
-#ifndef LWESP_CFG_DBG
-#define LWESP_CFG_DBG                         LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG
+    #define ESP_CFG_DBG ESP_DBG_OFF
 #endif
 
 /**
@@ -278,119 +234,123 @@
  *
  * Called with format and optional parameters for printf-like debug
  */
-#ifndef LWESP_CFG_DBG_OUT
-#define LWESP_CFG_DBG_OUT(fmt, ...)           do { extern int printf( const char * format, ... ); printf(fmt, ## __VA_ARGS__); } while (0)
+#ifndef ESP_CFG_DBG_OUT
+    #define ESP_CFG_DBG_OUT(fmt, ...)                   \
+        do {                                            \
+            extern int printf(const char *format, ...); \
+            printf(fmt, ##__VA_ARGS__);                 \
+        } while (0)
 #endif
 
 /**
  * \brief           Minimal debug level
  *
- * Check \ref LWESP_DBG_LVL for possible values
+ * Check \ref ESP_DBG_LVL for possible values
  */
-#ifndef LWESP_CFG_DBG_LVL_MIN
-#define LWESP_CFG_DBG_LVL_MIN                 LWESP_DBG_LVL_ALL
+#ifndef ESP_CFG_DBG_LVL_MIN
+    #define ESP_CFG_DBG_LVL_MIN ESP_DBG_LVL_ALL
 #endif
 
 /**
  * \brief           Enabled debug types
  *
- * When debug is globally enabled with \ref LWESP_CFG_DBG parameter,
+ * When debug is globally enabled with \ref ESP_CFG_DBG parameter,
  * user must enable debug types such as TRACE or STATE messages.
  *
- * Check \ref LWESP_DBG_TYPE for possible options. Separate values with `bitwise OR` operator
+ * Check \ref ESP_DBG_TYPE for possible options. Separate values with `bitwise OR` operator
  */
-#ifndef LWESP_CFG_DBG_TYPES_ON
-#define LWESP_CFG_DBG_TYPES_ON                0
+#ifndef ESP_CFG_DBG_TYPES_ON
+    #define ESP_CFG_DBG_TYPES_ON 0
 #endif
 
 /**
  * \brief           Set debug level for init function
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_INIT
-#define LWESP_CFG_DBG_INIT                    LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_INIT
+    #define ESP_CFG_DBG_INIT ESP_DBG_OFF
 #endif
 
 /**
  * \brief           Set debug level for memory manager
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_MEM
-#define LWESP_CFG_DBG_MEM                     LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_MEM
+    #define ESP_CFG_DBG_MEM ESP_DBG_OFF
 #endif
 
 /**
  * \brief           Set debug level for input module
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_INPUT
-#define LWESP_CFG_DBG_INPUT                   LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_INPUT
+    #define ESP_CFG_DBG_INPUT ESP_DBG_OFF
 #endif
 
 /**
  * \brief           Set debug level for ESP threads
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_THREAD
-#define LWESP_CFG_DBG_THREAD                  LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_THREAD
+    #define ESP_CFG_DBG_THREAD ESP_DBG_OFF
 #endif
 
 /**
  * \brief           Set debug level for asserting of input variables
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_ASSERT
-#define LWESP_CFG_DBG_ASSERT                  LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_ASSERT
+    #define ESP_CFG_DBG_ASSERT ESP_DBG_OFF
 #endif
 
 /**
  * \brief           Set debug level for incoming data received from device
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_IPD
-#define LWESP_CFG_DBG_IPD                     LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_IPD
+    #define ESP_CFG_DBG_IPD ESP_DBG_OFF
 #endif
 
 /**
  * \brief           Set debug level for netconn sequential API
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_NETCONN
-#define LWESP_CFG_DBG_NETCONN                 LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_NETCONN
+    #define ESP_CFG_DBG_NETCONN ESP_DBG_OFF
 #endif
 
 /**
  * \brief           Set debug level for packet buffer manager
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_PBUF
-#define LWESP_CFG_DBG_PBUF                    LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_PBUF
+    #define ESP_CFG_DBG_PBUF ESP_DBG_OFF
 #endif
 
 /**
  * \brief           Set debug level for connections
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_CONN
-#define LWESP_CFG_DBG_CONN                    LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_CONN
+    #define ESP_CFG_DBG_CONN ESP_DBG_OFF
 #endif
 
 /**
  * \brief           Set debug level for dynamic variable allocations
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_VAR
-#define LWESP_CFG_DBG_VAR                     LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_VAR
+    #define ESP_CFG_DBG_VAR ESP_DBG_OFF
 #endif
 
 /**
@@ -399,8 +359,8 @@
  *
  * \note            This mode is useful when debugging ESP communication
  */
-#ifndef LWESP_CFG_AT_ECHO
-#define LWESP_CFG_AT_ECHO                     0
+#ifndef ESP_CFG_AT_ECHO
+    #define ESP_CFG_AT_ECHO 0
 #endif
 
 /**
@@ -408,7 +368,7 @@
  */
 
 /**
- * \defgroup        LWESP_OPT_OS OS configuration
+ * \defgroup        ESP_OPT_OS OS configuration
  * \brief           Operating system dependant configuration
  * \{
  */
@@ -418,8 +378,8 @@
  *
  * Message queue is used for storing memory address to command data
  */
-#ifndef LWESP_CFG_THREAD_PRODUCER_MBOX_SIZE
-#define LWESP_CFG_THREAD_PRODUCER_MBOX_SIZE   16
+#ifndef ESP_CFG_THREAD_PRODUCER_MBOX_SIZE
+    #define ESP_CFG_THREAD_PRODUCER_MBOX_SIZE 16
 #endif
 
 /**
@@ -427,29 +387,29 @@
  *
  * Message queue is used to notify processing thread about new received data on AT port
  */
-#ifndef LWESP_CFG_THREAD_PROCESS_MBOX_SIZE
-#define LWESP_CFG_THREAD_PROCESS_MBOX_SIZE    16
+#ifndef ESP_CFG_THREAD_PROCESS_MBOX_SIZE
+    #define ESP_CFG_THREAD_PROCESS_MBOX_SIZE 16
 #endif
 
 /**
  * \brief           Enables `1` or disables `0` direct support for processing input data
  *
  * When this mode is enabled, no overhead is included for copying data
- * to receive buffer because bytes are processed directly by \ref lwesp_input_process function
+ * to receive buffer because bytes are processed directly by \ref esp_input_process function
  *
- * If this mode is not enabled, then user have to send every received byte via \ref lwesp_input
+ * If this mode is not enabled, then user have to send every received byte via \ref esp_input
  * function to the internal buffer for future processing. This may introduce additional overhead
  * with data copy and may decrease library performance
  *
- * \note            This mode can only be used when \ref LWESP_CFG_OS is enabled
+ * \note            This mode can only be used when \ref ESP_CFG_OS is enabled
  *
  * \note            When using this mode, separate thread must be dedicated only
  *                  for reading data on AT port. It is usually implemented in LL driver
  *
  * \note            Best case for using this mode is if DMA receive is supported by host device
  */
-#ifndef LWESP_CFG_INPUT_USE_PROCESS
-#define LWESP_CFG_INPUT_USE_PROCESS           0
+#ifndef ESP_CFG_INPUT_USE_PROCESS
+    #define ESP_CFG_INPUT_USE_PROCESS 0
 #endif
 
 /**
@@ -457,8 +417,8 @@
  *
  * It can be used to check if thread is alive.
  */
-#ifndef LWESP_THREAD_PRODUCER_HOOK
-#define LWESP_THREAD_PRODUCER_HOOK()
+#ifndef ESP_THREAD_PRODUCER_HOOK
+    #define ESP_THREAD_PRODUCER_HOOK()
 #endif
 
 /**
@@ -466,8 +426,8 @@
  *
  * It can be used to check if thread is alive.
  */
-#ifndef LWESP_THREAD_PROCESS_HOOK
-#define LWESP_THREAD_PROCESS_HOOK()
+#ifndef ESP_THREAD_PROCESS_HOOK
+    #define ESP_THREAD_PROCESS_HOOK()
 #endif
 
 /**
@@ -475,13 +435,13 @@
  */
 
 /**
- * \defgroup        LWESP_OPT_MODULES Modules
+ * \defgroup        ESP_OPT_MODULES Modules
  * \brief           Configuration of specific modules
  * \{
  */
 
 /**
- * \defgroup        LWESP_OPT_MODULES_NETCONN Netconn module
+ * \defgroup        ESP_OPT_MODULES_NETCONN Netconn module
  * \brief           Configuration of netconn API module
  * \{
  */
@@ -490,10 +450,10 @@
  * \brief           Enables `1` or disables `0` NETCONN sequential API support for OS systems
  *
  * \note            To use this feature, OS support is mandatory.
- * \sa              LWESP_CFG_OS
+ * \sa              ESP_CFG_OS
  */
-#ifndef LWESP_CFG_NETCONN
-#define LWESP_CFG_NETCONN                     0
+#ifndef ESP_CFG_NETCONN
+    #define ESP_CFG_NETCONN 0
 #endif
 
 /**
@@ -506,8 +466,8 @@
  * \note            Even if this option is enabled, user must still manually set timeout,
  *                  by default time will be set to 0 which means no timeout.
  */
-#ifndef LWESP_CFG_NETCONN_RECEIVE_TIMEOUT
-#define LWESP_CFG_NETCONN_RECEIVE_TIMEOUT     1
+#ifndef ESP_CFG_NETCONN_RECEIVE_TIMEOUT
+    #define ESP_CFG_NETCONN_RECEIVE_TIMEOUT 1
 #endif
 
 /**
@@ -515,8 +475,8 @@
  *
  * Defines number of maximal clients waiting in accept queue of server connection
  */
-#ifndef LWESP_CFG_NETCONN_ACCEPT_QUEUE_LEN
-#define LWESP_CFG_NETCONN_ACCEPT_QUEUE_LEN    5
+#ifndef ESP_CFG_NETCONN_ACCEPT_QUEUE_LEN
+    #define ESP_CFG_NETCONN_ACCEPT_QUEUE_LEN 5
 #endif
 
 /**
@@ -524,8 +484,8 @@
  *
  * Defines maximal number of pbuf data packet references for receive
  */
-#ifndef LWESP_CFG_NETCONN_RECEIVE_QUEUE_LEN
-#define LWESP_CFG_NETCONN_RECEIVE_QUEUE_LEN   8
+#ifndef ESP_CFG_NETCONN_RECEIVE_QUEUE_LEN
+    #define ESP_CFG_NETCONN_RECEIVE_QUEUE_LEN 8
 #endif
 
 /**
@@ -533,7 +493,7 @@
  */
 
 /**
- * \defgroup        LWESP_OPT_MODULES_MQTT MQTT client module
+ * \defgroup        ESP_OPT_MODULES_MQTT MQTT client module
  * \brief           Configuration of MQTT and MQTT API client modules
  * \{
  */
@@ -542,26 +502,26 @@
  * \brief           Maximal number of open MQTT requests at a time
  *
  */
-#ifndef LWESP_CFG_MQTT_MAX_REQUESTS
-#define LWESP_CFG_MQTT_MAX_REQUESTS           8
+#ifndef ESP_CFG_MQTT_MAX_REQUESTS
+    #define ESP_CFG_MQTT_MAX_REQUESTS 8
 #endif
 
 /**
  * \brief           Set debug level for MQTT client module
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_MQTT
-#define LWESP_CFG_DBG_MQTT                    LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_MQTT
+    #define ESP_CFG_DBG_MQTT ESP_DBG_OFF
 #endif
 
 /**
  * \brief           Set debug level for MQTT API client module
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_MQTT_API
-#define LWESP_CFG_DBG_MQTT_API                LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_MQTT_API
+    #define ESP_CFG_DBG_MQTT_API ESP_DBG_OFF
 #endif
 
 /**
@@ -569,7 +529,7 @@
  */
 
 /**
- * \defgroup        LWESP_OPT_MODULES_CAYENNE Cayenne MQTT client
+ * \defgroup        ESP_OPT_MODULES_CAYENNE Cayenne MQTT client
  * \brief           Configuration of Cayenne MQTT client
  * \{
  */
@@ -577,10 +537,10 @@
 /**
  * \brief           Set debug level for Cayenne MQTT client module
  *
- * Possible values are \ref LWESP_DBG_ON or \ref LWESP_DBG_OFF
+ * Possible values are \ref ESP_DBG_ON or \ref ESP_DBG_OFF
  */
-#ifndef LWESP_CFG_DBG_CAYENNE
-#define LWESP_CFG_DBG_CAYENNE                 LWESP_DBG_OFF
+#ifndef ESP_CFG_DBG_CAYENNE
+    #define ESP_CFG_DBG_CAYENNE ESP_DBG_OFF
 #endif
 
 /**
@@ -591,56 +551,56 @@
  * \brief           Enables `1` or disables `0` support for DNS functions
  *
  */
-#ifndef LWESP_CFG_DNS
-#define LWESP_CFG_DNS                         0
+#ifndef ESP_CFG_DNS
+    #define ESP_CFG_DNS 0
 #endif
 
 /**
  * \brief           Enables `1` or disables `0` support for WPS functions
  *
  */
-#ifndef LWESP_CFG_WPS
-#define LWESP_CFG_WPS                         0
+#ifndef ESP_CFG_WPS
+    #define ESP_CFG_WPS 0
 #endif
 
 /**
  * \brief           Enables `1` or disables `0` support for SNTP protocol with AT commands
  *
  */
-#ifndef LWESP_CFG_SNTP
-#define LWESP_CFG_SNTP                        0
+#ifndef ESP_CFG_SNTP
+    #define ESP_CFG_SNTP 0
 #endif
 
 /**
  * \brief           Enables `1` or disables `0` support for hostname with AT commands
  *
  */
-#ifndef LWESP_CFG_HOSTNAME
-#define LWESP_CFG_HOSTNAME                    0
+#ifndef ESP_CFG_HOSTNAME
+    #define ESP_CFG_HOSTNAME 0
 #endif
 
 /**
  * \brief           Enables `1` or disables `0` support for ping functions
  *
  */
-#ifndef LWESP_CFG_PING
-#define LWESP_CFG_PING                        0
+#ifndef ESP_CFG_PING
+    #define ESP_CFG_PING 0
 #endif
 
 /**
  * \brief           Enables `1` or disables `0` support for mDNS
  *
  */
-#ifndef LWESP_CFG_MDNS
-#define LWESP_CFG_MDNS                        0
+#ifndef ESP_CFG_MDNS
+    #define ESP_CFG_MDNS 0
 #endif
 
 /**
  * \brief           Enables `1` or disables `0` support for SMART config
  *
  */
-#ifndef LWESP_CFG_SMART
-#define LWESP_CFG_SMART                       0
+#ifndef ESP_CFG_SMART
+    #define ESP_CFG_SMART 0
 #endif
 
 /**
@@ -654,8 +614,8 @@
  *
  * \note            Single poll interval applies for all connections
  */
-#ifndef LWESP_CFG_CONN_POLL_INTERVAL
-#define LWESP_CFG_CONN_POLL_INTERVAL          500
+#ifndef ESP_CFG_CONN_POLL_INTERVAL
+    #define ESP_CFG_CONN_POLL_INTERVAL 500
 #endif
 
 /**
@@ -670,12 +630,12 @@
  *
  * \note            This feature is only available for `TCP` connections.
  */
-#ifndef LWESP_CFG_CONN_MANUAL_TCP_RECEIVE
-#define LWESP_CFG_CONN_MANUAL_TCP_RECEIVE     0
+#ifndef ESP_CFG_CONN_MANUAL_TCP_RECEIVE
+    #define ESP_CFG_CONN_MANUAL_TCP_RECEIVE 0
 #endif
 
 /**
- * \defgroup        LWESP_OPT_STD_LIB Standard library
+ * \defgroup        ESP_OPT_STD_LIB Standard library
  * \brief           Standard C library configuration
  * \{
  *
@@ -700,8 +660,8 @@ void *  my_memcpy(void* dst, const void* src, size_t len);
  * \param[in]       len: Number of bytes to copy
  * \return          Destination memory start address
  */
-#ifndef LWESP_MEMCPY
-#define LWESP_MEMCPY(dst, src, len)           memcpy(dst, src, len)
+#ifndef ESP_MEMCPY
+    #define ESP_MEMCPY(dst, src, len) memcpy(dst, src, len)
 #endif
 
 /**
@@ -718,20 +678,20 @@ void *  my_memset(void* dst, int b, size_t len);
  * \param[in]       len: Number of bytes to set
  * \return          Destination memory start address
  */
-#ifndef LWESP_MEMSET
-#define LWESP_MEMSET(dst, b, len)             memset(dst, b, len)
+#ifndef ESP_MEMSET
+    #define ESP_MEMSET(dst, b, len) memset(dst, b, len)
 #endif
 
 /**
  * \}
  */
 
-#define LWESP_MIN_AT_VERSION_MAJOR_ESP8266    2 /*!< Minimal major version for ESP8266 */
-#define LWESP_MIN_AT_VERSION_MINOR_ESP8266    1 /*!< Minimal minor version for ESP8266 */
-#define LWESP_MIN_AT_VERSION_PATCH_ESP8266    0 /*!< Minimal patch version for ESP8266 */
-#define LWESP_MIN_AT_VERSION_MAJOR_ESP32      2 /*!< Minimal major version for ESP32 */
-#define LWESP_MIN_AT_VERSION_MINOR_ESP32      1 /*!< Minimal minor version for ESP32 */
-#define LWESP_MIN_AT_VERSION_PATCH_ESP32      0 /*!< Minimal patch version for ESP32 */
+#define ESP_MIN_AT_VERSION_MAJOR_ESP8266 2 /*!< Minimal major version for ESP8266 */
+#define ESP_MIN_AT_VERSION_MINOR_ESP8266 1 /*!< Minimal minor version for ESP8266 */
+#define ESP_MIN_AT_VERSION_PATCH_ESP8266 0 /*!< Minimal patch version for ESP8266 */
+#define ESP_MIN_AT_VERSION_MAJOR_ESP32   2 /*!< Minimal major version for ESP32 */
+#define ESP_MIN_AT_VERSION_MINOR_ESP32   1 /*!< Minimal minor version for ESP32 */
+#define ESP_MIN_AT_VERSION_PATCH_ESP32   0 /*!< Minimal patch version for ESP32 */
 
 /**
  * \}
@@ -739,33 +699,31 @@ void *  my_memset(void* dst, int b, size_t len);
 
 #if !__DOXYGEN__
 
-/* Define group mode value */
-#define LWESP_CFG_MODE_STATION_ACCESS_POINT   (LWESP_CFG_MODE_STATION && LWESP_CFG_MODE_ACCESS_POINT)
+    /* Define group mode value */
+    #define ESP_CFG_MODE_STATION_ACCESS_POINT (ESP_CFG_MODE_STATION && ESP_CFG_MODE_ACCESS_POINT)
 
-/* At least one of them must be enabled */
-#if !LWESP_CFG_MODE_STATION && !LWESP_CFG_MODE_ACCESS_POINT
-#error "Invalid ESP configuration. LWESP_CFG_MODE_STATION and LWESP_CFG_MODE_ACCESS_POINT cannot be disabled at the same time!"
-#endif
+    /* At least one of them must be enabled */
+    #if !ESP_CFG_MODE_STATION && !ESP_CFG_MODE_ACCESS_POINT
+        #error "Invalid ESP configuration. ESP_CFG_MODE_STATION and ESP_CFG_MODE_ACCESS_POINT cannot be disabled at the same time!"
+    #endif
 
-/* Operating system config */
-#if !LWESP_CFG_OS
-#if LWESP_CFG_INPUT_USE_PROCESS
-#error "LWESP_CFG_INPUT_USE_PROCESS may only be enabled when OS is used!"
-#endif /* LWESP_CFG_INPUT_USE_PROCESS */
-#endif /* !LWESP_CFG_OS */
+    /* Operating system config */
+    #if !ESP_CFG_OS
+        #if ESP_CFG_INPUT_USE_PROCESS
+            #error "ESP_CFG_INPUT_USE_PROCESS may only be enabled when OS is used!"
+        #endif /* ESP_CFG_INPUT_USE_PROCESS */
+    #endif     /* !ESP_CFG_OS */
 
-/* Device config */
-#if !LWESP_CFG_ESP8266 && !LWESP_CFG_ESP32
-#error "At least one of LWESP_CFG_ESP8266 or LWESP_CFG_ESP32 must be set to 1!"
-#endif /* !LWESP_CFG_ESP8266 && !LWESP_CFG_ESP32 */
+    /* Device config */
+    #if !ESP_CFG_ESP8266 && !ESP_CFG_ESP32
+        #error "At least one of ESP_CFG_ESP8266 or ESP_CFG_ESP32 must be set to 1!"
+    #endif /* !ESP_CFG_ESP8266 && !ESP_CFG_ESP32 */
 
-/* WPS config */
-#if LWESP_CFG_WPS && !LWESP_CFG_MODE_STATION
-#error "WPS function may only be used when station mode is enabled!"
-#endif /* LWESP_CFG_WPS && !LWESP_CFG_MODE_STATION */
+    /* WPS config */
+    #if ESP_CFG_WPS && !ESP_CFG_MODE_STATION
+        #error "WPS function may only be used when station mode is enabled!"
+    #endif /* ESP_CFG_WPS && !ESP_CFG_MODE_STATION */
 
 #endif /* !__DOXYGEN__ */
 
-#include "lwesp/lwesp_debug.h"
-
-#endif /* LWESP_HDR_DEFAULT_CONFIG_H */
+#include "esp/esp_debug.h"

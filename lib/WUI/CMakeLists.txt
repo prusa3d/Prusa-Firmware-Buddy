@@ -12,6 +12,14 @@ target_sources(WUI INTERFACE
   netif_settings.c
   sntp/sntp_client.c
   sntp/sntp.c
+
+  esp/esp_ap.c
+  esp/esp_sta.c
+  esp/esp_conn.c
+  esp/esp_int.c
+  esp/esp_netconn.c
+  esp/esp_parser.c
+  esp/esp_pbuf.c
 )
 
 target_include_directories(
@@ -21,6 +29,7 @@ target_include_directories(
     http
     sntp
     resources
+    esp
 )
 
 target_link_libraries(
