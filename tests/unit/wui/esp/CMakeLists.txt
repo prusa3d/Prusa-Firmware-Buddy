@@ -1,11 +1,13 @@
 # define the test executable
 add_executable(wui_esp_tests
+../../../../lib/WUI/esp/esp_int.c
 ../../test_main.cpp
 tests.cpp
 )
 
 # define required search paths
 target_include_directories(wui_esp_tests PUBLIC . ${CMAKE_SOURCE_DIR}/lib/WUI)
+target_include_directories(wui_esp_tests PUBLIC . ${CMAKE_SOURCE_DIR}/lib/WUI/esp)
 target_include_directories(wui_esp_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/common)
 
 # define custom macros
