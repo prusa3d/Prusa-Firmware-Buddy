@@ -1,0 +1,58 @@
+#include "esp/esp.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+/**
+ * \ingroup         ESP
+ * \defgroup        ESP_BUFF Ring buffer
+ * \brief           Generic ring buffer
+ * \{
+ */
+
+/* --- Buffer unique part starts --- */
+/**
+ * \brief           Buffer function/typedef prefix string
+ *
+ * It is used to change function names in zero time to easily re-use same library between applications.
+ * Use `#define BUF_PREF(x)    my_prefix_ ## x` to change all function names to (for example) `my_prefix_buff_init`
+ *
+ * \note            Modification of this macro must be done in header and source file aswell
+ */
+#define BUF_PREF(x)                     esp_ ## x
+/* --- Buffer unique part ends --- */
+
+uint8_t     BUF_PREF(buff_init)(BUF_PREF(buff_t)* buff, size_t size);
+void        BUF_PREF(buff_free)(BUF_PREF(buff_t)* buff);
+void        BUF_PREF(buff_reset)(BUF_PREF(buff_t)* buff);
+
+/* Read/Write functions */
+size_t      BUF_PREF(buff_write)(BUF_PREF(buff_t)* buff, const void* data, size_t btw);
+size_t      BUF_PREF(buff_read)(BUF_PREF(buff_t)* buff, void* data, size_t btr);
+size_t      BUF_PREF(buff_peek)(BUF_PREF(buff_t)* buff, size_t skip_count, void* data, size_t btp);
+
+/* Buffer size information */
+size_t      BUF_PREF(buff_get_free)(BUF_PREF(buff_t)* buff);
+size_t      BUF_PREF(buff_get_full)(BUF_PREF(buff_t)* buff);
+
+/* Read data block management */
+void*       BUF_PREF(buff_get_linear_block_read_address)(BUF_PREF(buff_t)* buff);
+size_t      BUF_PREF(buff_get_linear_block_read_length)(BUF_PREF(buff_t)* buff);
+size_t      BUF_PREF(buff_skip)(BUF_PREF(buff_t)* buff, size_t len);
+
+/* Write data block management */
+void*       BUF_PREF(buff_get_linear_block_write_address)(BUF_PREF(buff_t)* buff);
+size_t      BUF_PREF(buff_get_linear_block_write_length)(BUF_PREF(buff_t)* buff);
+size_t      BUF_PREF(buff_advance)(BUF_PREF(buff_t)* buff, size_t len);
+
+#undef BUF_PREF                                 /* Prefix not needed anymore */
+
+/**
+ * \}
+ */
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+

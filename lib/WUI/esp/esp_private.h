@@ -1,6 +1,7 @@
+#pragma once
+
 #include "esp/esp.h"
 #include "esp/esp_typedefs.h"
-#include "esp/esp_debug.h"
 
 #ifdef __cplusplus
 extern "C" {

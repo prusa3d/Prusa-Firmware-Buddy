@@ -1,18 +1,11 @@
-/* Include application options */
-#ifndef ESP_IGNORE_USER_OPTS
-    #include "esp_opts.h"
-#endif /* ESP_IGNORE_USER_OPTS */
-
 /**
  * \defgroup        ESP_OPT Configuration
  * \brief           ESP-AT options
  * \{
- *
  */
 
 /**
  * \brief           Enables `1` or disables `0` support for ESP8266 AT commands
- *
  */
 #ifndef ESP_CFG_ESP8266
     #define ESP_CFG_ESP8266 1
@@ -20,11 +13,8 @@
 
 /**
  * \brief           Enables `1` or disables `0` operating system support for ESP library
- *
  * \note            Value must be set to `1` in the current revision
- *
  * \note            Check \ref ESP_OPT_OS group for more configuration related to operating system
- *
  */
 #ifndef ESP_CFG_OS
     #define ESP_CFG_OS 1
@@ -32,15 +22,12 @@
 
 /**
  * \brief           Enables `1` or disables `0` custom memory management functions
- *
  * When set to `1`, \ref ESP_MEM block must be provided manually.
  * This includes implementation of functions \ref esp_mem_malloc,
  * \ref esp_mem_calloc, \ref esp_mem_realloc and \ref esp_mem_free
- *
  * \note            Function declaration follows standard C functions `malloc, calloc, realloc, free`.
  *                  Declaration is available in `esp/esp_mem.h` file. Include this file to final
  *                  implementation file
- *
  * \note            When implementing custom memory allocation, it is necessary
  *                  to take care of multiple threads accessing same resource for custom allocator
  */
@@ -50,13 +37,10 @@
 
 /**
  * \brief           Memory alignment for dynamic memory allocations
- *
  * \note            Some CPUs can work faster if memory is aligned, usually to `4` or `8` bytes.
  *                  To speed up this possibilities, you can set memory alignment and library
  *                  will try to allocate memory on aligned boundaries.
- *
  * \note            Some CPUs such ARM Cortex-M0 dont't support unaligned memory access.
- *
  * \note            This value must be power of `2`
  */
 #ifndef ESP_CFG_MEM_ALIGNMENT
@@ -65,7 +49,6 @@
 
 /**
  * \brief           Enables `1` or disables `0` callback function and custom parameter for API functions
- *
  * When enabled, `2` additional parameters are available in API functions.
  * When command is executed, callback function with its parameter could be called when not set to `NULL`.
  */
@@ -689,9 +672,6 @@ void *  my_memset(void* dst, int b, size_t len);
 #define ESP_MIN_AT_VERSION_MAJOR_ESP8266 2 /*!< Minimal major version for ESP8266 */
 #define ESP_MIN_AT_VERSION_MINOR_ESP8266 1 /*!< Minimal minor version for ESP8266 */
 #define ESP_MIN_AT_VERSION_PATCH_ESP8266 0 /*!< Minimal patch version for ESP8266 */
-#define ESP_MIN_AT_VERSION_MAJOR_ESP32   2 /*!< Minimal major version for ESP32 */
-#define ESP_MIN_AT_VERSION_MINOR_ESP32   1 /*!< Minimal minor version for ESP32 */
-#define ESP_MIN_AT_VERSION_PATCH_ESP32   0 /*!< Minimal patch version for ESP32 */
 
 /**
  * \}
@@ -726,4 +706,3 @@ void *  my_memset(void* dst, int b, size_t len);
 
 #endif /* !__DOXYGEN__ */
 
-#include "esp/esp_debug.h"
