@@ -1,6 +1,7 @@
 #pragma once
 
-#include "esp/esp.h"
+// #include "esp/esp.h"
+#include "esp/esp_opt.h"
 #include "esp/esp_typedefs.h"
 
 #ifdef __cplusplus
@@ -209,7 +210,7 @@ typedef struct esp_msg {
     esp_cmd_t cmd;                  /*!< Since some commands can have different
                                                         subcommands, sub command is used here */
     uint8_t i;                      /*!< Variable to indicate order number of subcommands */
-    esp_sys_sem_t sem;              /*!< Semaphore for the message */
+    // esp_sys_sem_t sem;              [>!< Semaphore for the message <]
     uint8_t is_blocking;            /*!< Status if command is blocking */
     uint32_t block_time;            /*!< Maximal blocking time in units of milliseconds.
                                                         Use `0` to for non-blocking call */
@@ -488,13 +489,13 @@ typedef struct {
 typedef struct {
     size_t locked_cnt; /*!< Counter how many times (recursive) stack is currently locked */
 
-    esp_sys_sem_t sem_sync;          /*!< Synchronization semaphore between threads */
-    esp_sys_mbox_t mbox_producer;    /*!< Producer message queue handle */
-    esp_sys_mbox_t mbox_process;     /*!< Consumer message queue handle */
-    esp_sys_thread_t thread_produce; /*!< Producer thread handle */
-    esp_sys_thread_t thread_process; /*!< Processing thread handle */
+    // esp_sys_sem_t sem_sync;          [>!< Synchronization semaphore between threads <]
+    // esp_sys_mbox_t mbox_producer;    [>!< Producer message queue handle <]
+    // esp_sys_mbox_t mbox_process;     [>!< Consumer message queue handle <]
+    // esp_sys_thread_t thread_produce; [>!< Producer thread handle <]
+    // esp_sys_thread_t thread_process; [>!< Processing thread handle <]
 #if !ESP_CFG_INPUT_USE_PROCESS || __DOXYGEN__
-    esp_buff_t buff; /*!< Input processing buffer */
+    // esp_buff_t buff; [>!< Input processing buffer <]
 #endif               /* !ESP_CFG_INPUT_USE_PROCESS || __DOXYGEN__ */
     esp_ll_t ll;     /*!< Low level functions */
 

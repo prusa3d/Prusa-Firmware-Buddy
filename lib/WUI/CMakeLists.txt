@@ -13,13 +13,13 @@ target_sources(WUI INTERFACE
   sntp/sntp_client.c
   sntp/sntp.c
 
-  esp/esp_ap.c
-  esp/esp_sta.c
-  esp/esp_conn.c
-  esp/esp_int.c
-  esp/esp_netconn.c
-  esp/esp_parser.c
-  esp/esp_pbuf.c
+  # esp/esp_ap.c
+  # esp/esp_sta.c
+  # esp/esp_conn.c
+  # esp/esp_int.c
+  # esp/esp_netconn.c
+  # esp/esp_parser.c
+  # esp/esp_pbuf.c
 )
 
 target_include_directories(
