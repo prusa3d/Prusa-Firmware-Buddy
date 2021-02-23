@@ -5,6 +5,7 @@
 #include "esp/esp_buff.h"
 #include "esp/esp_input.h"
 #include "esp/esp_evt.h"
+#include "esp/esp_debug.h"
 #include "esp/esp_utils.h"
 #include "esp/esp_pbuf.h"
 #include "esp/esp_conn.h"
