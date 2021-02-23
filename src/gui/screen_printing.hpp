@@ -37,7 +37,7 @@ enum class item_id_t {
 };
 
 constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
-constexpr static const size_t MAX_END_TIMESTAMP_SIZE = 14 + 12 + 5; // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
+constexpr static const size_t MAX_END_TIMESTAMP_SIZE = 14 + 12 + 5; // "dd.mm.yyyy at hh:mm:ss" + safety measures for 3digit where 2 digits should be
 constexpr static const size_t MAX_TIMEDUR_STR_SIZE = 9;
 
 class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {

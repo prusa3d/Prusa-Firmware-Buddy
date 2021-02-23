@@ -24,6 +24,8 @@
  * queue.cpp - The G-code command queue
  */
 
+// clang-format off
+
 #include "queue.h"
 GCodeQueue queue;
 
@@ -566,7 +568,7 @@ void GCodeQueue::get_serial_commands() {
 
         _commit_command(false);
 
-        #if ENABLED(POWER_LOSS_RECOVERY)
+        #if ENABLED(POWER_LOSS_RECOVERY) && ENABLED(SDSUPPORT)
           recovery.cmd_sdpos = card.getIndex(); // Prime for the next _commit_command
         #endif
       }

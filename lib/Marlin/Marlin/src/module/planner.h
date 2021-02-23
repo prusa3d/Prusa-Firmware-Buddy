@@ -21,6 +21,8 @@
  */
 #pragma once
 
+// clang-format off
+
 /**
  * planner.h
  *
@@ -724,6 +726,16 @@ class Planner {
      */
     static float get_axis_position_mm(const AxisEnum axis);
 
+    /**
+     * Get planner's axis position
+     */
+    static long get_axis_position(const AxisEnum axis) { return position[axis]; }
+
+    /**
+     * Set planner's axis position.
+     */
+    static void set_axis_position(const AxisEnum axis, const long pos) { position[axis] = pos; }
+
     // SCARA AB axes are in degrees, not mm
     #if IS_SCARA
       FORCE_INLINE static float get_axis_position_degrees(const AxisEnum axis) { return get_axis_position_mm(axis); }
@@ -733,7 +745,7 @@ class Planner {
     // a Full Shutdown is required, or when endstops are hit)
     static void quick_stop();
 
-    // Called when an endstop is triggered. Causes the machine to stop inmediately
+    // Called when an endstop is triggered. Causes the machine to stop immediately
     static void endstop_triggered(const AxisEnum axis);
 
     // Triggered position of an axis in mm (not core-savvy)

@@ -24,6 +24,8 @@
  * power_loss_recovery.cpp - Resume an SD print after power-loss
  */
 
+// clang-format off
+
 #include "../inc/MarlinConfigPre.h"
 
 #if ENABLED(POWER_LOSS_RECOVERY)
@@ -33,7 +35,7 @@
 
 bool PrintJobRecovery::enabled; // Initialized by settings.load()
 
-SdFile PrintJobRecovery::file;
+// SdFile PrintJobRecovery::file;
 job_recovery_info_t PrintJobRecovery::info;
 const char PrintJobRecovery::filename[5] = "/PLR";
 uint8_t PrintJobRecovery::queue_index_r;
@@ -41,7 +43,7 @@ uint32_t PrintJobRecovery::cmd_sdpos, // = 0
          PrintJobRecovery::sdpos[BUFSIZE];
 
 #include "../sd/cardreader.h"
-#include "../lcd/ultralcd.h"
+// #include "../lcd/ultralcd.h"
 #include "../gcode/queue.h"
 #include "../gcode/gcode.h"
 #include "../module/motion.h"
@@ -97,41 +99,41 @@ void PrintJobRecovery::changed() {
  * If a saved state exists send 'M1000 S' to initiate job recovery.
  */
 void PrintJobRecovery::check() {
-  if (enabled) {
-    if (!card.isMounted()) card.mount();
-    if (card.isMounted()) {
-      load();
-      if (!valid()) return purge();
-      queue.inject_P(PSTR("M1000 S"));
-    }
-  }
+  // if (enabled) {
+  //   if (!card.isMounted()) card.mount();
+  //   if (card.isMounted()) {
+  //     load();
+  //     if (!valid()) return purge();
+  //     queue.inject_P(PSTR("M1000 S"));
+  //   }
+  // }
 }
 
 /**
  * Delete the recovery file and clear the recovery data
  */
 void PrintJobRecovery::purge() {
-  init();
-  card.removeJobRecoveryFile();
+  // init();
+  // card.removeJobRecoveryFile();
 }
 
 /**
  * Load the recovery data, if it exists
  */
 void PrintJobRecovery::load() {
-  if (exists()) {
-    open(true);
-    (void)file.read(&info, sizeof(info));
-    close();
-  }
-  debug(PSTR("Load"));
+  // if (exists()) {
+  //   open(true);
+  //   (void)file.read(&info, sizeof(info));
+  //   close();
+  // }
+  // debug(PSTR("Load"));
 }
 
 /**
  * Set info fields that won't change
  */
 void PrintJobRecovery::prepare() {
-  card.getAbsFilename(info.sd_filename);  // SD filename
+  // card.getAbsFilename(info.sd_filename);  // SD filename
   cmd_sdpos = 0;
 }
 
@@ -237,13 +239,13 @@ void PrintJobRecovery::save(const bool force/*=false*/, const bool save_queue/*=
  */
 void PrintJobRecovery::write() {
 
-  debug(PSTR("Write"));
+  // debug(PSTR("Write"));
 
-  open(false);
-  file.seekSet(0);
-  const int16_t ret = file.write(&info, sizeof(info));
-  if (ret == -1) DEBUG_ECHOLNPGM("Power-loss file write failed.");
-  if (!file.close()) DEBUG_ECHOLNPGM("Power-loss file close failed.");
+  // open(false);
+  // file.seekSet(0);
+  // const int16_t ret = file.write(&info, sizeof(info));
+  // if (ret == -1) DEBUG_ECHOLNPGM("Power-loss file write failed.");
+  // if (!file.close()) DEBUG_ECHOLNPGM("Power-loss file close failed.");
 }
 
 /**
@@ -251,165 +253,165 @@ void PrintJobRecovery::write() {
  */
 void PrintJobRecovery::resume() {
 
-  #define RECOVERY_ZRAISE 2
+  // #define RECOVERY_ZRAISE 2
 
-  const uint32_t resume_sdpos = info.sdpos; // Get here before the stepper ISR overwrites it
+  // const uint32_t resume_sdpos = info.sdpos; // Get here before the stepper ISR overwrites it
 
-  #if HAS_LEVELING
-    // Make sure leveling is off before any G92 and G28
-    gcode.process_subcommands_now_P(PSTR("M420 S0 Z0"));
-  #endif
+  // #if HAS_LEVELING
+  //   // Make sure leveling is off before any G92 and G28
+  //   gcode.process_subcommands_now_P(PSTR("M420 S0 Z0"));
+  // #endif
 
-  // Reset E, raise Z, home XY...
-  gcode.process_subcommands_now_P(PSTR("G92.9 E0"
-    #if Z_HOME_DIR > 0
-      // If Z homing goes to max, reset E and home all
-      "\nG28R0"
-      #if ENABLED(MARLIN_DEV_MODE)
-        "S"
-      #endif
-    #else
-      // Set Z to 0, raise Z by RECOVERY_ZRAISE, and Home (XY only for Cartesian)
-      // with no raise. (Only do simulated homing in Marlin Dev Mode.)
-      "Z0\nG1Z" STRINGIFY(RECOVERY_ZRAISE) "\nG28R0"
-      #if ENABLED(MARLIN_DEV_MODE)
-        "S"
-      #elif !IS_KINEMATIC
-        "XY"
-      #endif
-    #endif
-  ));
+  // // Reset E, raise Z, home XY...
+  // gcode.process_subcommands_now_P(PSTR("G92.9 E0"
+  //   #if Z_HOME_DIR > 0
+  //     // If Z homing goes to max, reset E and home all
+  //     "\nG28R0"
+  //     #if ENABLED(MARLIN_DEV_MODE)
+  //       "S"
+  //     #endif
+  //   #else
+  //     // Set Z to 0, raise Z by RECOVERY_ZRAISE, and Home (XY only for Cartesian)
+  //     // with no raise. (Only do simulated homing in Marlin Dev Mode.)
+  //     "Z0\nG1Z" STRINGIFY(RECOVERY_ZRAISE) "\nG28R0"
+  //     #if ENABLED(MARLIN_DEV_MODE)
+  //       "S"
+  //     #elif !IS_KINEMATIC
+  //       "XY"
+  //     #endif
+  //   #endif
+  // ));
 
-  // Pretend that all axes are homed
-  axis_homed = axis_known_position = xyz_bits;
+  // // Pretend that all axes are homed
+  // axis_homed = axis_known_position = xyz_bits;
 
-  char cmd[MAX_CMD_SIZE+16], str_1[16], str_2[16];
+  // char cmd[MAX_CMD_SIZE+16], str_1[16], str_2[16];
 
-  // Select the previously active tool (with no_move)
-  #if EXTRUDERS > 1
-    sprintf_P(cmd, PSTR("T%i S"), info.active_extruder);
-    gcode.process_subcommands_now(cmd);
-  #endif
+  // // Select the previously active tool (with no_move)
+  // #if EXTRUDERS > 1
+  //   sprintf_P(cmd, PSTR("T%i S"), info.active_extruder);
+  //   gcode.process_subcommands_now(cmd);
+  // #endif
 
-  #if HAS_HEATED_BED
-    const int16_t bt = info.target_temperature_bed;
-    if (bt) {
-      // Restore the bed temperature
-      sprintf_P(cmd, PSTR("M190 S%i"), bt);
-      gcode.process_subcommands_now(cmd);
-    }
-  #endif
+  // #if HAS_HEATED_BED
+  //   const int16_t bt = info.target_temperature_bed;
+  //   if (bt) {
+  //     // Restore the bed temperature
+  //     sprintf_P(cmd, PSTR("M190 S%i"), bt);
+  //     gcode.process_subcommands_now(cmd);
+  //   }
+  // #endif
 
-  // Restore all hotend temperatures
-  #if HOTENDS
-    HOTEND_LOOP() {
-      const int16_t et = info.target_temperature[e];
-      if (et) {
-        #if HOTENDS > 1
-          sprintf_P(cmd, PSTR("T%i"), e);
-          gcode.process_subcommands_now(cmd);
-        #endif
-        sprintf_P(cmd, PSTR("M109 S%i"), et);
-        gcode.process_subcommands_now(cmd);
-      }
-    }
-  #endif
+  // // Restore all hotend temperatures
+  // #if HOTENDS
+  //   HOTEND_LOOP() {
+  //     const int16_t et = info.target_temperature[e];
+  //     if (et) {
+  //       #if HOTENDS > 1
+  //         sprintf_P(cmd, PSTR("T%i"), e);
+  //         gcode.process_subcommands_now(cmd);
+  //       #endif
+  //       sprintf_P(cmd, PSTR("M109 S%i"), et);
+  //       gcode.process_subcommands_now(cmd);
+  //     }
+  //   }
+  // #endif
 
-  // Restore print cooling fan speeds
-  FANS_LOOP(i) {
-    uint8_t f = info.fan_speed[i];
-    if (f) {
-      sprintf_P(cmd, PSTR("M106 P%i S%i"), i, f);
-      gcode.process_subcommands_now(cmd);
-    }
-  }
+  // // Restore print cooling fan speeds
+  // FANS_LOOP(i) {
+  //   uint8_t f = info.fan_speed[i];
+  //   if (f) {
+  //     sprintf_P(cmd, PSTR("M106 P%i S%i"), i, f);
+  //     gcode.process_subcommands_now(cmd);
+  //   }
+  // }
 
-  // Restore retract and hop state
-  #if ENABLED(FWRETRACT)
-    for (uint8_t e = 0; e < EXTRUDERS; e++) {
-      if (info.retract[e] != 0.0)
-        fwretract.current_retract[e] = info.retract[e];
-        fwretract.retracted[e] = true;
-    }
-    fwretract.current_hop = info.retract_hop;
-  #endif
+  // // Restore retract and hop state
+  // #if ENABLED(FWRETRACT)
+  //   for (uint8_t e = 0; e < EXTRUDERS; e++) {
+  //     if (info.retract[e] != 0.0)
+  //       fwretract.current_retract[e] = info.retract[e];
+  //       fwretract.retracted[e] = true;
+  //   }
+  //   fwretract.current_hop = info.retract_hop;
+  // #endif
 
-  #if HAS_LEVELING
-    // Restore leveling state before 'G92 Z' to ensure
-    // the Z stepper count corresponds to the native Z.
-    if (info.fade || info.leveling) {
-      sprintf_P(cmd, PSTR("M420 S%i Z%s"), int(info.leveling), dtostrf(info.fade, 1, 1, str_1));
-      gcode.process_subcommands_now(cmd);
-    }
-  #endif
+  // #if HAS_LEVELING
+  //   // Restore leveling state before 'G92 Z' to ensure
+  //   // the Z stepper count corresponds to the native Z.
+  //   if (info.fade || info.leveling) {
+  //     sprintf_P(cmd, PSTR("M420 S%i Z%s"), int(info.leveling), dtostrf(info.fade, 1, 1, str_1));
+  //     gcode.process_subcommands_now(cmd);
+  //   }
+  // #endif
 
-  #if ENABLED(GRADIENT_MIX)
-    memcpy(&mixer.gradient, &info.gradient, sizeof(info.gradient));
-  #endif
+  // #if ENABLED(GRADIENT_MIX)
+  //   memcpy(&mixer.gradient, &info.gradient, sizeof(info.gradient));
+  // #endif
 
-  // Extrude and retract to clean the nozzle
-  #if POWER_LOSS_PURGE_LEN
-    //sprintf_P(cmd, PSTR("G1 E%d F200"), POWER_LOSS_PURGE_LEN);
-    //gcode.process_subcommands_now(cmd);
-    gcode.process_subcommands_now_P(PSTR("G1 E" STRINGIFY(POWER_LOSS_PURGE_LEN) " F200"));
-  #endif
+  // // Extrude and retract to clean the nozzle
+  // #if POWER_LOSS_PURGE_LEN
+  //   //sprintf_P(cmd, PSTR("G1 E%d F200"), POWER_LOSS_PURGE_LEN);
+  //   //gcode.process_subcommands_now(cmd);
+  //   gcode.process_subcommands_now_P(PSTR("G1 E" STRINGIFY(POWER_LOSS_PURGE_LEN) " F200"));
+  // #endif
 
-  #if POWER_LOSS_RETRACT_LEN
-    sprintf_P(cmd, PSTR("G1 E%d F3000"), POWER_LOSS_PURGE_LEN - (POWER_LOSS_RETRACT_LEN));
-    gcode.process_subcommands_now(cmd);
-  #endif
+  // #if POWER_LOSS_RETRACT_LEN
+  //   sprintf_P(cmd, PSTR("G1 E%d F3000"), POWER_LOSS_PURGE_LEN - (POWER_LOSS_RETRACT_LEN));
+  //   gcode.process_subcommands_now(cmd);
+  // #endif
 
-  // Move back to the saved XY
-  sprintf_P(cmd, PSTR("G1 X%s Y%s F3000"),
-    dtostrf(info.current_position.x, 1, 3, str_1),
-    dtostrf(info.current_position.y, 1, 3, str_2)
-  );
-  gcode.process_subcommands_now(cmd);
+  // // Move back to the saved XY
+  // sprintf_P(cmd, PSTR("G1 X%s Y%s F3000"),
+  //   dtostrf(info.current_position.x, 1, 3, str_1),
+  //   dtostrf(info.current_position.y, 1, 3, str_2)
+  // );
+  // gcode.process_subcommands_now(cmd);
 
-  // Move back to the saved Z
-  dtostrf(info.current_position.z, 1, 3, str_1);
-  #if Z_HOME_DIR > 0
-    sprintf_P(cmd, PSTR("G1 Z%s F200"), str_1);
-  #else
-    gcode.process_subcommands_now_P(PSTR("G1 Z0 F200"));
-    sprintf_P(cmd, PSTR("G92.9 Z%s"), str_1);
-  #endif
-  gcode.process_subcommands_now(cmd);
+  // // Move back to the saved Z
+  // dtostrf(info.current_position.z, 1, 3, str_1);
+  // #if Z_HOME_DIR > 0
+  //   sprintf_P(cmd, PSTR("G1 Z%s F200"), str_1);
+  // #else
+  //   gcode.process_subcommands_now_P(PSTR("G1 Z0 F200"));
+  //   sprintf_P(cmd, PSTR("G92.9 Z%s"), str_1);
+  // #endif
+  // gcode.process_subcommands_now(cmd);
 
-  // Un-retract
-  #if POWER_LOSS_PURGE_LEN
-    //sprintf_P(cmd, PSTR("G1 E%d F3000"), POWER_LOSS_PURGE_LEN);
-    //gcode.process_subcommands_now(cmd);
-    gcode.process_subcommands_now_P(PSTR("G1 E" STRINGIFY(POWER_LOSS_PURGE_LEN) " F3000"));
-  #endif
+  // // Un-retract
+  // #if POWER_LOSS_PURGE_LEN
+  //   //sprintf_P(cmd, PSTR("G1 E%d F3000"), POWER_LOSS_PURGE_LEN);
+  //   //gcode.process_subcommands_now(cmd);
+  //   gcode.process_subcommands_now_P(PSTR("G1 E" STRINGIFY(POWER_LOSS_PURGE_LEN) " F3000"));
+  // #endif
 
-  // Restore the feedrate
-  sprintf_P(cmd, PSTR("G1 F%d"), info.feedrate);
-  gcode.process_subcommands_now(cmd);
+  // // Restore the feedrate
+  // sprintf_P(cmd, PSTR("G1 F%d"), info.feedrate);
+  // gcode.process_subcommands_now(cmd);
 
-  // Restore E position with G92.9
-  sprintf_P(cmd, PSTR("G92.9 E%s"), dtostrf(info.current_position.e, 1, 3, str_1));
-  gcode.process_subcommands_now(cmd);
+  // // Restore E position with G92.9
+  // sprintf_P(cmd, PSTR("G92.9 E%s"), dtostrf(info.current_position.e, 1, 3, str_1));
+  // gcode.process_subcommands_now(cmd);
 
-  // Relative axis modes
-  gcode.axis_relative = info.axis_relative;
+  // // Relative axis modes
+  // gcode.axis_relative = info.axis_relative;
 
-  #if HAS_HOME_OFFSET
-    home_offset = info.home_offset;
-  #endif
-  #if HAS_POSITION_SHIFT
-    position_shift = info.position_shift;
-  #endif
-  #if HAS_HOME_OFFSET || HAS_POSITION_SHIFT
-    LOOP_XYZ(i) update_workspace_offset((AxisEnum)i);
-  #endif
+  // #if HAS_HOME_OFFSET
+  //   home_offset = info.home_offset;
+  // #endif
+  // #if HAS_POSITION_SHIFT
+  //   position_shift = info.position_shift;
+  // #endif
+  // #if HAS_HOME_OFFSET || HAS_POSITION_SHIFT
+  //   LOOP_XYZ(i) update_workspace_offset((AxisEnum)i);
+  // #endif
 
-  // Resume the SD file from the last position
-  char *fn = info.sd_filename;
-  sprintf_P(cmd, PSTR("M23 %s"), fn);
-  gcode.process_subcommands_now(cmd);
-  sprintf_P(cmd, PSTR("M24 S%ld T%ld"), resume_sdpos, info.print_job_elapsed);
-  gcode.process_subcommands_now(cmd);
+  // // Resume the SD file from the last position
+  // char *fn = info.sd_filename;
+  // sprintf_P(cmd, PSTR("M23 %s"), fn);
+  // gcode.process_subcommands_now(cmd);
+  // sprintf_P(cmd, PSTR("M24 S%ld T%ld"), resume_sdpos, info.print_job_elapsed);
+  // gcode.process_subcommands_now(cmd);
 }
 
 #if ENABLED(DEBUG_POWER_LOSS_RECOVERY)

@@ -62,6 +62,8 @@
  * was designed, written and tested by Eduardo José Tagle on April/2018
  */
 
+// clang-format off
+
 #include "planner.h"
 #include "stepper.h"
 #include "motion.h"
@@ -1585,12 +1587,14 @@ bool Planner::_buffer_steps(const xyze_long_t &target
   , feedRate_t fr_mm_s, const uint8_t extruder, const float &millimeters
 ) {
 
-  // If we are cleaning, do not accept queuing of movements
-  if (cleaning_buffer_counter) return false;
-
   // Wait for the next available block
   uint8_t next_buffer_head;
   block_t * const block = get_next_free_block(next_buffer_head);
+
+  // If we are cleaning, do not accept queuing of movements
+  // This must be after get_next_free_block() because it calls idle()
+  // where cleaning_buffer_counter can be changed
+  if (cleaning_buffer_counter) return false;
 
   // Fill the block with the specified movement
   if (!_populate_block(block, false, target
@@ -2803,6 +2807,8 @@ void Planner::reset_acceleration_rates() {
 }
 
 // Recalculate position, steps_to_mm if settings.axis_steps_per_mm changes!
+// Changes stepper positions as well.
+// Waits until planner buffer is empty.
 void Planner::refresh_positioning() {
   LOOP_XYZE_N(i) steps_to_mm[i] = 1.0f / settings.axis_steps_per_mm[i];
   set_position_mm(current_position);

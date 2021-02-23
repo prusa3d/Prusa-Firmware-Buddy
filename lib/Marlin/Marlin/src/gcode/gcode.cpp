@@ -25,6 +25,8 @@
  *             Most will migrate to classes, by feature.
  */
 
+// clang-format off
+
 #include "gcode.h"
 GcodeSuite gcode;
 
@@ -818,8 +820,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       case 999: M999(); break;                                    // M999: Restart after being Stopped
 
       #if ENABLED(POWER_LOSS_RECOVERY)
-        case 413: M413(); break;                                  // M413: Enable/disable/query Power-Loss Recovery
-        case 1000: M1000(); break;                                // M1000: Resume from power-loss
+        // case 413: M413(); break;                                  // M413: Enable/disable/query Power-Loss Recovery
+        // case 1000: M1000(); break;                                // M1000: Resume from power-loss
       #endif
 
       default: parser.unknown_command_error(); break;

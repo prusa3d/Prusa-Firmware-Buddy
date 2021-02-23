@@ -774,6 +774,20 @@
     #endif
 #endif // LED_CONTROL_MENU
 
+/**
+ * Continue after Power-Loss (Creality3D)
+ *
+ * Store the current state to the SD Card at the start of each layer
+ * during SD printing. If the recovery file is found at boot time, present
+ * an option on the LCD screen to continue the print from the last-known
+ * point in the file.
+ */
+#define POWER_LOSS_RECOVERY
+#if ENABLED(POWER_LOSS_RECOVERY)
+//#define POWER_LOSS_PIN   44     // Pin to detect power loss
+//#define POWER_LOSS_STATE HIGH   // State of pin indicating power loss
+#endif
+
 #if ENABLED(SDSUPPORT)
 
     // Some RAMPS and other boards don't detect when an SD card is inserted. You can work

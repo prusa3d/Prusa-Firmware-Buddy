@@ -17,10 +17,6 @@
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 #include "GuiDefaults.hpp"
 
-#ifndef MAXPATHNAMELENGTH
-    #define MAXPATHNAMELENGTH F_MAXPATHNAMELENGTH
-#endif
-
 #define LOG_ERROR(...) _dbg3("FILEBROWSER ERROR: " __VA_ARGS__)
 
 // Default value could be rewritten by eeprom settings

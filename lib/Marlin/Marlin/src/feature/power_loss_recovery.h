@@ -21,12 +21,15 @@
  */
 #pragma once
 
+// clang-format off
+
 /**
  * power_loss_recovery.h - Resume an SD print after power-loss
  */
 
 #include "../sd/cardreader.h"
 #include "../inc/MarlinConfig.h"
+#include "../../../../../src/gui/file_list_defs.h"
 
 #if ENABLED(MIXING_EXTRUDER)
   #include "../feature/mixing.h"
@@ -107,7 +110,7 @@ class PrintJobRecovery {
   public:
     static const char filename[5];
 
-    static SdFile file;
+    // static SdFile file;
     static job_recovery_info_t info;
 
     static uint8_t queue_index_r;     //!< Queue index of the active command
@@ -142,9 +145,9 @@ class PrintJobRecovery {
     static void check();
     static void resume();
 
-    static inline bool exists() { return card.jobRecoverFileExists(); }
-    static inline void open(const bool read) { card.openJobRecoveryFile(read); }
-    static inline void close() { file.close(); }
+    // static inline bool exists() { return card.jobRecoverFileExists(); }
+    // static inline void open(const bool read) { card.openJobRecoveryFile(read); }
+    // static inline void close() { file.close(); }
 
     static void purge();
     static void load();

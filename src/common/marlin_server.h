@@ -96,7 +96,7 @@ extern void marlin_server_print_reheat_start(void);
 extern int marlin_server_print_reheat_ready(void);
 
 //
-extern void marlin_server_park_head(void);
+extern void marlin_server_park_head(bool after_crash = false);
 
 //
 extern void marlin_server_unpark_head(void);

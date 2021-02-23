@@ -3,6 +3,8 @@
 
 #include <inttypes.h>
 
+#undef CHANGE /// collision with Arduino macro
+
 //window events
 enum class GUI_event_t {
     BTN_DN = 1,  //button down

@@ -1,15 +1,17 @@
 // marlin_server.cpp
 
-#include "marlin_server.h"
-#include "marlin_server.hpp"
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h> //strncmp
+#include <assert.h>
+
+#include "crash_recovery.hpp"
+#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "dbg.h"
 #include "app.h"
 #include "bsod.h"
 #include "cmsis_os.h"
-#include <string.h> //strncmp
-#include <assert.h>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -67,7 +69,7 @@ typedef struct {
     uint64_t client_events[MARLIN_MAX_CLIENTS];      // client event mask
     uint64_t client_changes[MARLIN_MAX_CLIENTS];     // client variable change mask
     uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
-    variant8_t event_messages[MARLIN_MAX_CLIENTS];   // last MARLIN_EVT_Message for clients, cannot use cvariant, desctructor would free memory
+    variant8_t event_messages[MARLIN_MAX_CLIENTS];   // last MARLIN_EVT_Message for clients, cannot use cvariant, destructor would free memory
     uint64_t update_vars;                            // variable update mask
     marlin_print_state_t print_state;                // printing state (printing, paused, ...)
     float resume_pos[4];                             // resume position for unpark_head
@@ -92,6 +94,9 @@ typedef struct {
     uint8_t pqueue;           // calculated number of records in planner queue
     uint8_t gqueue;           // copy of queue.length - number of commands in gcode queue
     uint8_t resume_fan_speed; // resume fan speed
+
+    float axis_length[2]; /// length of axes measured after crash
+
 } marlin_server_t;
 
 extern "C" {
@@ -467,6 +472,16 @@ void marlin_server_print_pause(void) {
     }
 }
 
+void pause_print() {
+    media_print_pause();
+    print_job_timer.pause();
+    marlin_server.resume_nozzle_temp = marlin_server.vars.target_nozzle; //save nozzle target temp
+    marlin_server.resume_fan_speed = marlin_server.vars.fan_speed;       //save fan speed
+#if FAN_COUNT > 0
+    thermalManager.set_fan_speed(0, 0); //disable print fan
+#endif
+}
+
 void marlin_server_print_resume(void) {
     if (marlin_server.print_state == mpsPaused) {
         marlin_server.print_state = mpsResuming_Begin;
@@ -487,6 +502,42 @@ int marlin_server_print_reheat_ready(void) {
     return 0;
 }
 
+void marlin_server_print_crash(void) {
+    if (marlin_server.print_state != mpsPrinting)
+        return;
+
+    /// mask interrupt
+    /// otherwise stepper driver influences planner
+    if (STEPPER_ISR_ENABLED())
+        DISABLE_STEPPER_DRIVER_INTERRUPT();
+
+    /// save file position from planner's buffer
+    uint32_t pos = Planner::block_buffer[Planner::block_buffer_tail].sdpos;
+    crash_quick_stop();
+    /// avoid insertion of movements by Marlin
+    Planner::cleaning_buffer_counter = 10000;
+    pause_print();
+    /// set correct resume position
+    media_print_set_position(pos);
+
+    // Reenable Stepper ISR
+    if (STEPPER_ISR_ENABLED())
+        ENABLE_STEPPER_DRIVER_INTERRUPT();
+
+    marlin_server.print_state = mpsCrashRecovery_Begin;
+}
+
+bool axes_length_ok() {
+    const int x_len = X_MAX_POS - X_MIN_POS;
+    const int y_len = Y_MAX_POS - Y_MIN_POS;
+    const int tol = 50;
+
+    return x_len < marlin_server.axis_length[0]
+        && marlin_server.axis_length[0] <= x_len + tol
+        && y_len < marlin_server.axis_length[1]
+        && marlin_server.axis_length[1] <= y_len + tol;
+}
+
 static void _server_print_loop(void) {
     switch (marlin_server.print_state) {
     case mpsIdle:
@@ -504,13 +555,7 @@ static void _server_print_loop(void) {
         }
         break;
     case mpsPausing_Begin:
-        media_print_pause();
-        print_job_timer.pause();
-        marlin_server.resume_nozzle_temp = marlin_server.vars.target_nozzle; //save nozzle target temp
-        marlin_server.resume_fan_speed = marlin_server.vars.fan_speed;       //save fan speed
-#if FAN_COUNT > 0
-        thermalManager.set_fan_speed(0, 0); //disable print fan
-#endif
+        pause_print();
         marlin_server.print_state = mpsPausing_WaitIdle;
         break;
     case mpsPausing_WaitIdle:
@@ -571,7 +616,7 @@ static void _server_print_loop(void) {
         marlin_server_set_temp_to_display(0);
         print_job_timer.stop();
         planner.quick_stop();
-        wait_for_heatup = false; // This is necessary because M109/wait_for_hotend can be in progress, we need abort it
+        wait_for_heatup = false; // This is necessary because M109/wait_for_hotend can be in progress, we need to abort it
         marlin_server.print_state = mpsAborting_WaitIdle;
         break;
     case mpsAborting_WaitIdle:
@@ -614,6 +659,54 @@ static void _server_print_loop(void) {
             fsm_destroy(ClientFSM::Printing);
         }
         break;
+
+    case mpsCrashRecovery_Begin:
+        /// Enables movements after quick stop
+        Planner::cleaning_buffer_counter = 0;
+        marlin_server_park_head(true);
+        marlin_server.print_state = mpsCrashRecovery_Lifting;
+        break;
+    case mpsCrashRecovery_Lifting:
+        if ((planner.movesplanned() != 0) || (queue.length != 0))
+            break;
+        homing_start(X_AXIS, true);
+        marlin_server.print_state = mpsCrashRecovery_X_HOME;
+        break;
+    case mpsCrashRecovery_X_HOME:
+        if (planner.movesplanned() != 0)
+            break;
+        homing_finish(X_AXIS, true, true);
+        marlin_server.axis_length[0] = current_position.pos[X_AXIS];
+        homing_start(X_AXIS, false);
+        marlin_server.print_state = mpsCrashRecovery_X_END;
+        break;
+    case mpsCrashRecovery_X_END:
+        if (planner.movesplanned() != 0)
+            break;
+        homing_finish_axis(X_AXIS);
+        marlin_server.axis_length[0] = fabs(marlin_server.axis_length[0] - current_position.pos[X_AXIS]);
+        homing_start(Y_AXIS, false);
+        marlin_server.print_state = mpsCrashRecovery_Y_HOME;
+        break;
+    case mpsCrashRecovery_Y_HOME:
+        if (planner.movesplanned() != 0)
+            break;
+        homing_finish(Y_AXIS, false, true);
+        marlin_server.axis_length[1] = current_position.pos[Y_AXIS];
+        homing_start(Y_AXIS, true);
+        marlin_server.print_state = mpsCrashRecovery_Y_END;
+        break;
+    case mpsCrashRecovery_Y_END:
+        if (planner.movesplanned() != 0)
+            break;
+        homing_finish_axis(Y_AXIS);
+        marlin_server.axis_length[1] = fabs(marlin_server.axis_length[1] - current_position.pos[Y_AXIS]);
+        if (axes_length_ok()) {
+            marlin_server.print_state = mpsResuming_Begin;
+            break;
+        }
+        marlin_server.print_state = mpsPaused;
+        break;
     default:
         break;
     }
@@ -653,22 +746,38 @@ void marlin_server_resuming_begin(void) {
     }
 }
 
-void marlin_server_park_head(void) {
-    constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
-    constexpr xyz_pos_t park = NOZZLE_PARK_POINT;
+/// Retrieves position in mm in G code's space (no modifiers)
+void marlin_server_get_Gcode_position(float *pos) {
+    xyze_pos_t plan_pos = { planner.get_axis_position_mm(X_AXIS), planner.get_axis_position_mm(Y_AXIS), planner.get_axis_position_mm(Z_AXIS), planner.get_axis_position_mm(E_AXIS) };
+#if HAS_POSITION_MODIFIERS
+    planner.unapply_modifiers(plan_pos
+    #if HAS_LEVELING
+        ,
+        true
+    #endif
+    );
+#endif
+
+    for (int i = X_AXIS; i < E_AXIS; ++i)
+        pos[i] = plan_pos.pos[i];
+}
+
+void marlin_server_park_head(bool after_crash) {
+    const constexpr xyz_pos_t park = NOZZLE_PARK_POINT;
     //homed check
     if (all_axes_homed() && all_axes_known()) {
         planner.synchronize();
-        marlin_server.resume_pos[0] = current_position.x;
-        marlin_server.resume_pos[1] = current_position.y;
-        marlin_server.resume_pos[2] = current_position.z;
-        marlin_server.resume_pos[3] = current_position.e;
+        marlin_server_get_Gcode_position(marlin_server.resume_pos);
+
         current_position.e -= (float)PAUSE_PARK_RETRACT_LENGTH / planner.e_factor[active_extruder];
         line_to_current_position(PAUSE_PARK_RETRACT_FEEDRATE);
         current_position.z = _MIN(current_position.z + park.z, Z_MAX_POS);
-        line_to_current_position(fr_z);
-        current_position.set(park.x, park.y);
-        line_to_current_position(fr_xy);
+        line_to_current_position(NOZZLE_PARK_Z_FEEDRATE);
+
+        if (!after_crash) {
+            current_position.set(park.x, park.y);
+            line_to_current_position(NOZZLE_PARK_XY_FEEDRATE);
+        }
     }
 }
 
@@ -1215,6 +1324,9 @@ static int _process_server_request(const char *request) {
         processed = 1;
     } else if (strcmp("!kclick", request) == 0) {
         ++marlin_server.knob_click_counter;
+        processed = 1;
+    } else if (strcmp("!pcrash", request) == 0) {
+        marlin_server_print_crash();
         processed = 1;
     } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
         ClientResponseHandler::SetResponse(ival);

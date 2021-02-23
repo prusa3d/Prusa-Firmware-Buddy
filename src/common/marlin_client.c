@@ -694,6 +694,13 @@ void marlin_notify_server_about_knob_click(void) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_print_crash() {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!pcrash");
+}
+
 // returns 1 if reheating is in progress, otherwise 0
 int marlin_reheating(void) {
     marlin_client_t *client = _client_ptr();

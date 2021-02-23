@@ -28,6 +28,8 @@
  * Some of these methods may migrate to the planner class.
  */
 
+// clang-format off
+
 #include "../inc/MarlinConfig.h"
 
 #if HAS_BED_PROBE
@@ -159,6 +161,7 @@ void report_current_position();
 
 void get_cartesian_from_steppers();
 void set_current_from_steppers_for_axis(const AxisEnum axis);
+void set_current_from_steppers();
 
 /**
  * sync_plan_position

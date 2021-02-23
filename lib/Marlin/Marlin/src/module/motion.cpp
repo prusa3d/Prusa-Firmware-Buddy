@@ -24,6 +24,8 @@
  * motion.cpp
  */
 
+// clang-format off
+
 #include "motion.h"
 #include "endstops.h"
 #include "stepper.h"
@@ -101,6 +103,7 @@ bool relative_mode; // = false;
 
 /**
  * Cartesian Current Position
+ *   Planned position. Printer is heading to this position or is at this position.
  *   Used to track the native machine position as moves are queued.
  *   Used by 'line_to_current_position' to do a move after changing it.
  *   Used by 'sync_plan_position' to update 'planner.position'.
@@ -284,6 +287,16 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     current_position[axis] = cartes[axis];
 }
 
+
+/**
+ * Set the current_position for all axes based on
+ * the stepper positions, removing any leveling that
+ * may have been applied.
+ */
+void set_current_from_steppers() {
+  set_current_from_steppers_for_axis(ALL_AXES);
+}
+
 /**
  * Move the planner to the current position from wherever it last moved
  * (or from wherever it has been told it is located).
@@ -345,7 +358,8 @@ void _internal_move_to_destination(const feedRate_t &fr_mm_s/*=0.0f*/
 }
 
 /**
- * Plan a move to (X, Y, Z) and set the current_position
+ * Performs a blocking move to (X, Y, Z) and sets the current_position
+ * Moves XY and Z independently. Raises before or lowers after XY motion
  */
 void do_blocking_move_to(const float rx, const float ry, const float rz, const feedRate_t &fr_mm_s/*=0.0*/) {
   if (DEBUGGING(LEVELING)) DEBUG_XYZ(">>> do_blocking_move_to", rx, ry, rz);

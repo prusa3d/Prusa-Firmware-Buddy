@@ -20,11 +20,13 @@
  *
  */
 #pragma once
+// clang-format off
 
 #include <math.h>
 #include <stddef.h>
 
 #include "millis_t.h"
+#include "macros.h"
 
 //
 // Enumerated axis indices

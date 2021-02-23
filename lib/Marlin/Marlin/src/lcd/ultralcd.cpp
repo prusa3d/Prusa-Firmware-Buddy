@@ -20,6 +20,8 @@
  *
  */
 
+// clang-format off
+
 #include "../inc/MarlinConfigPre.h"
 
 #ifdef LED_BACKLIGHT_TIMEOUT
@@ -92,10 +94,6 @@
 #include "../module/motion.h"
 
 #include "../Marlin.h"
-
-#if ENABLED(POWER_LOSS_RECOVERY)
-  #include "../feature/power_loss_recovery.h"
-#endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
   #include "../feature/bedlevel/bedlevel.h"
@@ -1492,6 +1490,10 @@ void MarlinUI::update() {
 
   #if ANY(PARK_HEAD_ON_PAUSE, SDSUPPORT)
     #include "../gcode/queue.h"
+  #endif
+
+  #if ENABLED(POWER_LOSS_RECOVERY)
+    #include "../feature/power_loss_recovery.h"
   #endif
 
   void MarlinUI::pause_print() {

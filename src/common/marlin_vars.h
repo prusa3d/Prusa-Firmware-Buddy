@@ -112,6 +112,12 @@ typedef enum {
     mpsFinishing_WaitIdle,
     mpsFinishing_ParkHead,
     mpsFinished,
+    mpsCrashRecovery_Begin,
+    mpsCrashRecovery_Lifting,
+    mpsCrashRecovery_X_HOME,
+    mpsCrashRecovery_X_END,
+    mpsCrashRecovery_Y_HOME,
+    mpsCrashRecovery_Y_END,
 } marlin_print_state_t;
 
 // variables structure - used in server and client

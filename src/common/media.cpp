@@ -1,12 +1,14 @@
 // media.cpp
 
+#include <algorithm>
+
 #include "media.h"
 #include "dbg.h"
 #include "ff.h"
 #include "usbh_core.h"
 #include "../Marlin/src/gcode/queue.h"
-#include <algorithm>
 #include "marlin_server.hpp"
+#include "../Marlin/src/feature/power_loss_recovery.h"
 
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
@@ -57,10 +59,6 @@ static media_error_t media_error = media_error_OK;
 static media_print_state_t media_print_state = media_print_state_NONE;
 static FIL media_print_fil;
 static uint32_t media_print_size = 0;
-static uint32_t media_current_position = 0;
-static uint32_t media_current_line = 0;
-static uint32_t media_queue_position[BUFSIZE];
-static uint32_t media_queue_line[BUFSIZE];
 
 media_state_t media_get_state(void) {
     return media_state;
@@ -172,8 +170,8 @@ void media_print_start(const char *sfnFilePath) {
             strlcpy(media_print_LFN, fo.LFName(), sizeof(media_print_LFN));
             media_print_size = fo.FSize(); //filinfo.fsize;
             if (f_open(&media_print_fil, media_print_SFN_path, FA_READ) == FR_OK) {
-                media_current_position = 0;
-                media_current_line = 0;
+                recovery.cmd_sdpos = 0;
+                // media_current_line = 0;
                 media_print_state = media_print_state_PRINTING;
             } else {
                 set_warning(WarningType::USBFlashDiskError);
@@ -192,9 +190,7 @@ void media_print_stop(void) {
 void media_print_pause(void) {
     if (media_print_state == media_print_state_PRINTING) {
         f_close(&media_print_fil);
-        int index_r = queue.index_r;
-        media_current_position = media_queue_position[index_r];
-        media_current_line = media_queue_line[index_r];
+        recovery.cmd_sdpos = recovery.sdpos[queue.index_r];
         queue.clear();
         media_print_state = media_print_state_PAUSED;
     }
@@ -203,7 +199,7 @@ void media_print_pause(void) {
 void media_print_resume(void) {
     if (media_print_state == media_print_state_PAUSED) {
         if (f_open(&media_print_fil, media_print_SFN_path, FA_READ) == FR_OK) {
-            if (f_lseek(&media_print_fil, media_current_position) == FR_OK)
+            if (f_lseek(&media_print_fil, recovery.cmd_sdpos) == FR_OK)
                 media_print_state = media_print_state_PRINTING;
             else {
                 set_warning(WarningType::USBFlashDiskError);
@@ -222,17 +218,17 @@ uint32_t media_print_get_size(void) {
 }
 
 uint32_t media_print_get_position(void) {
-    return media_current_position;
+    return recovery.cmd_sdpos;
 }
 
 void media_print_set_position(uint32_t pos) {
     if (pos < media_print_size)
-        media_current_position = pos;
+        recovery.cmd_sdpos = pos;
 }
 
 float media_print_get_percent_done(void) {
     if (media_print_size)
-        return 100 * ((float)media_current_position / media_print_size);
+        return 100 * ((float)recovery.cmd_sdpos / media_print_size);
     return 0;
 }
 
@@ -257,12 +253,9 @@ void media_loop(void) {
                         queue.enqueue_one(buffer, false);
                         int index_w = queue.index_r + queue.length - 1; //calculate index_w because it is private
                         if (index_w >= BUFSIZE)
-                            index_w -= BUFSIZE;                                 //..
-                        media_queue_position[index_w] = media_current_position; //save current position
-                        media_queue_line[index_w] = media_current_line;         //save current line
+                            index_w -= BUFSIZE; //..
                     }
-                    media_current_position = f_tell(&media_print_fil); //update current position
-                    media_current_line++;                              //update current line
+                    recovery.cmd_sdpos = f_tell(&media_print_fil); //update current position
                 } else {
                     if (f_eof(&media_print_fil)) //we need check eof also after read operation
                         media_print_stop();      //stop on eof
