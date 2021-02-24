@@ -15,7 +15,6 @@
 #include "cmath_ext.h"
 #include "eeprom.h"
 #include "screen_home.hpp"
-
 static const float heating_difference = 2.5F;
 
 /*enum class ButtonStatus {
