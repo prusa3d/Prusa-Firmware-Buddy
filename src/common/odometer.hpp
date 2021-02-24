@@ -18,10 +18,10 @@ public:
     /// saves values to EEPROM if they are not zero
     void force_to_eeprom();
     /// save new movement
-    void add_new_value(int axis, float value);
+    void add_value(int axis, float value);
     /// read values from EEPROM
     float get_from_eeprom(int axis);
-    /// read current status
+    /// \returns a value of the specific axis
     float get(int axis);
 };
 

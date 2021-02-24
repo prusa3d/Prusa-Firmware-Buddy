@@ -9,7 +9,6 @@
 odometer_c odometer;
 static const constexpr int E_AXIS = 3;
 
-/// Saves all axes to EEPROM if any value has changed
 void odometer_c::force_to_eeprom() {
     bool changed = false;
     for (int i = 0; i < ODOMETER_AXES; ++i) {
@@ -29,13 +28,11 @@ void odometer_c::force_to_eeprom() {
         trip_xyze[i] = 0;
 }
 
-/// Increments value of an axis
-void odometer_c::add_new_value(int axis, float value) {
+void odometer_c::add_value(int axis, float value) {
     /// E axis counts filament used instead of filament moved
     trip_xyze[axis] += (axis == E_AXIS) ? value : ABS(value);
 }
 
-/// Reads a value of the specific axis from EEPROM
 float odometer_c::get_from_eeprom(int axis) {
     switch (axis) {
     case 0:
@@ -50,7 +47,6 @@ float odometer_c::get_from_eeprom(int axis) {
     return nanf("-");
 }
 
-/// \returns a value of the specific axis
 float odometer_c::get(int axis) {
     if (axis < 0 || axis >= ODOMETER_AXES)
         return nanf("-");

@@ -126,7 +126,7 @@ void GcodeSuite::get_destination_from_command() {
     else
       destination[i] = current_position[i];
 
-    odometer.add_new_value(i, destination[i] - current_position[i]);
+    odometer.add_value(i, destination[i] - current_position[i]);
   }
 
   #if ENABLED(POWER_LOSS_RECOVERY) && !PIN_EXISTS(POWER_LOSS)
