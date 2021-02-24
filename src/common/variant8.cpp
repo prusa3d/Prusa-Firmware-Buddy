@@ -266,13 +266,6 @@ variant8_t variant8_flt(float flt) {
     return *pack(&v);
 }
 
-variant8_t variant8_pflt(float *pflt, uint16_t count, int init) {
-    if (init)
-        return variant8_init(VARIANT8_PFLT, count, (void *)pflt);
-    _variant8_t v = _VARIANT8_TYPE(VARIANT8_PFLT, 0, .size = count, .pflt = pflt);
-    return *pack(&v);
-}
-
 variant8_t variant8_pchar(char *pch, uint16_t count, int init) {
     if (init)
         return variant8_init(VARIANT8_PCHAR, count ? count : strlen(pch) + 1, (void *)pch);
@@ -312,11 +305,6 @@ uint16_t variant8_get_usr16(variant8_t v) { return unpack(&v)->usr16; }
 
 // returns variant8_t flt
 float variant8_get_flt(variant8_t v) { return unpack(&v)->flt; }
-
-// returns variant8_t pflt
-float *variant8_get_pflt(variant8_t v) {
-    return (unpack(&v)->type & (~VARIANT8_PTR_OWNER)) == VARIANT8_PFLT ? unpack(&v)->pflt : NULL;
-}
 
 // returns variant8_t pch
 char *variant8_get_pch(variant8_t v) {
