@@ -1,6 +1,7 @@
 # define the test executable
 add_executable(wui_esp_tests
 ../../../../lib/WUI/esp/esp_int.c
+../../../../lib/WUI/esp/esp_utils.c
 ../../test_main.cpp
 tests.cpp
 )

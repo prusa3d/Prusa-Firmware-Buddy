@@ -1,5 +1,7 @@
 #include "esp_private.h"
 #include "esp_opt.h"
+#include "esp_utils.h"
+#include "esp_debug.h"
 // #include "esp.h"
 #include "esp_int.h"
 // #include "esp_mem.h"
@@ -342,41 +344,39 @@ void espi_reset_everything(uint8_t forced) {
      */
 
     /* Step 1: Close all connections in memory */
-    reset_connections(forced);
+    // reset_connections(forced);
 
 #if ESP_CFG_MODE_STATION
     esp.m.sta.has_ip = 0;
     if (esp.m.sta.is_connected) {
-        espi_send_cb(ESP_EVT_WIFI_DISCONNECTED);
+        // espi_send_cb(ESP_EVT_WIFI_DISCONNECTED);
     }
     esp.m.sta.is_connected = 0;
 #endif /* ESP_CFG_MODE_STATION */
 
     /* Check if IPD active */
     if (esp.m.ipd.buff != NULL) {
-        esp_pbuf_free(esp.m.ipd.buff);
+        // esp_pbuf_free(esp.m.ipd.buff);
         esp.m.ipd.buff = NULL;
     }
 
     /* Invalid ESP modules */
-    ESP_MEMSET(&esp.m, 0x00, sizeof(esp.m));
+    // ESP_MEMSET(&esp.m, 0x00, sizeof(esp.m));
 
     /* Set default device */
-#if ESP_CFG_ESP8266 && !ESP_CFG_ESP32
+#if ESP_CFG_ESP8266
     esp.m.device = ESP_DEVICE_ESP8266;
-#elif !ESP_CFG_ESP8266 && ESP_CFG_ESP32
-    esp.m.device = ESP_DEVICE_ESP32;
 #else
     esp.m.device = ESP_DEVICE_UNKNOWN;
 #endif /* ESP_CFG_ESP8266 && !ESP_CFG_ESP32 */
 
     /* Reset baudrate to default */
     esp.ll.uart.baudrate = ESP_CFG_AT_PORT_BAUDRATE;
-    esp_ll_init(&esp.ll);
+    // esp_ll_init(&esp.ll);
 
     /* If reset was not forced by user, repeat with manual reset */
     if (!forced) {
-        esp_reset(NULL, NULL, 0);
+        // esp_reset(NULL, NULL, 0);
     }
 }
 
@@ -768,13 +768,6 @@ espi_parse_received(esp_recv_t *rcv) {
                 patch = ESP_MIN_AT_VERSION_PATCH_ESP8266;
             }
     #endif /* ESP_CFG_ESP8266 */
-    #if ESP_CFG_ESP32
-            if (esp.m.device == ESP_DEVICE_ESP32) {
-                major = ESP_MIN_AT_VERSION_MAJOR_ESP32;
-                minor = ESP_MIN_AT_VERSION_MINOR_ESP32;
-                patch = ESP_MIN_AT_VERSION_PATCH_ESP32;
-            }
-    #endif /* ESP_CFG_ESP32 */
 
             /* TODO: Compare ESP8266 vs ESP32 separatelly */
             /* Compare versions */
@@ -1000,7 +993,7 @@ espi_parse_received(esp_recv_t *rcv) {
              * from user thread and start with next command
              */
             if (res != espCONT) {                   /* Do we have to continue to wait for command? */
-                esp_sys_sem_release(&esp.sem_sync); /* Release semaphore */
+                // esp_sys_sem_release(&esp.sem_sync); [> Release semaphore <]
             }
         }
     }
@@ -2313,50 +2306,50 @@ espi_send_msg_to_producer_mbox(esp_msg_t *msg, esp_res_t (*process_fn)(esp_msg_t
     esp_res_t res = msg->res = espOK;
 
     /* Check here if stack is even enabled or shall we disable new command entry? */
-    esp_core_lock();
+    // esp_core_lock();
     /* If locked more than 1 time, means we were called from callback or internally */
-    if (esp.locked_cnt > 1 && msg->is_blocking) {
-        res = espERRBLOCKING; /* Blocking mode not allowed */
-    }
+    // if (esp.locked_cnt > 1 && msg->is_blocking) {
+        // res = espERRBLOCKING; [> Blocking mode not allowed <]
+    // }
     /* Check if device present */
-    if (res == espOK && !esp.status.f.dev_present) {
-        res = espERRNODEVICE; /* No device connected */
-    }
-    esp_core_unlock();
-    if (res != espOK) {
-        ESP_MSG_VAR_FREE(msg); /* Free memory and return */
-        return res;
-    }
+    // if (res == espOK && !esp.status.f.dev_present) {
+        // res = espERRNODEVICE; [> No device connected <]
+    // }
+    // esp_core_unlock();
+    // if (res != espOK) {
+        // ESP_MSG_VAR_FREE(msg); [> Free memory and return <]
+        // return res;
+    // }
 
-    if (msg->is_blocking) {                      /* In case message is blocking */
-        if (!esp_sys_sem_create(&msg->sem, 0)) { /* Create semaphore and lock it immediately */
-            ESP_MSG_VAR_FREE(msg);               /* Release memory and return */
-            return espERRMEM;
-        }
-    }
-    if (!msg->cmd) {             /* Set start command if not set by user */
-        msg->cmd = msg->cmd_def; /* Set it as default */
-    }
-    msg->block_time = max_block_time; /* Set blocking status if necessary */
-    msg->fn = process_fn;             /* Save processing function to be called as callback */
-    if (msg->is_blocking) {
-        esp_sys_mbox_put(&esp.mbox_producer, msg); /* Write message to producer queue and wait forever */
-    } else {
-        if (!esp_sys_mbox_putnow(&esp.mbox_producer, msg)) { /* Write message to producer queue immediately */
-            ESP_MSG_VAR_FREE(msg);                           /* Release message */
-            return espERRMEM;
-        }
-    }
-    if (res == espOK && msg->is_blocking) { /* In case we have blocking request */
-        uint32_t time;
-        time = esp_sys_sem_wait(&msg->sem, 0); /* Wait forever for semaphore */
-        if (time == ESP_SYS_TIMEOUT) {         /* If semaphore was not accessed within given time */
-            res = espTIMEOUT;                  /* Semaphore not released in time */
-        } else {
-            res = msg->res; /* Set response status from message response */
-        }
-        ESP_MSG_VAR_FREE(msg); /* Release message */
-    }
+    // if (msg->is_blocking) {                      [> In case message is blocking <]
+        // if (!esp_sys_sem_create(&msg->sem, 0)) { [> Create semaphore and lock it immediately <]
+            // ESP_MSG_VAR_FREE(msg);               [> Release memory and return <]
+            // return espERRMEM;
+        // }
+    // }
+    // if (!msg->cmd) {             [> Set start command if not set by user <]
+        // msg->cmd = msg->cmd_def; [> Set it as default <]
+    // }
+    // msg->block_time = max_block_time; [> Set blocking status if necessary <]
+    // msg->fn = process_fn;             [> Save processing function to be called as callback <]
+    // if (msg->is_blocking) {
+        // esp_sys_mbox_put(&esp.mbox_producer, msg); [> Write message to producer queue and wait forever <]
+    // } else {
+        // if (!esp_sys_mbox_putnow(&esp.mbox_producer, msg)) { [> Write message to producer queue immediately <]
+            // ESP_MSG_VAR_FREE(msg);                           [> Release message <]
+            // return espERRMEM;
+        // }
+    // }
+    // if (res == espOK && msg->is_blocking) { [> In case we have blocking request <]
+        // uint32_t time;
+        // time = esp_sys_sem_wait(&msg->sem, 0); [> Wait forever for semaphore <]
+        // if (time == ESP_SYS_TIMEOUT) {         [> If semaphore was not accessed within given time <]
+            // res = espTIMEOUT;                  [> Semaphore not released in time <]
+        // } else {
+            // res = msg->res; [> Set response status from message response <]
+        // }
+        // ESP_MSG_VAR_FREE(msg); [> Release message <]
+    // }
     return res;
 }
 

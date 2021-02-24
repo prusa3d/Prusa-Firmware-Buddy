@@ -495,7 +495,7 @@ typedef struct {
     // esp_sys_thread_t thread_produce; [>!< Producer thread handle <]
     // esp_sys_thread_t thread_process; [>!< Processing thread handle <]
 #if !ESP_CFG_INPUT_USE_PROCESS || __DOXYGEN__
-    // esp_buff_t buff; [>!< Input processing buffer <]
+    esp_buff_t buff; /*[>!< Input processing buffer <]*/
 #endif               /* !ESP_CFG_INPUT_USE_PROCESS || __DOXYGEN__ */
     esp_ll_t ll;     /*!< Low level functions */
 
@@ -561,11 +561,11 @@ extern esp_t esp;
     #define ESP_MSG_VAR_FREE(name)                                                                     \
         do {                                                                                           \
             ESP_DEBUGF(ESP_CFG_DBG_VAR | ESP_DBG_TYPE_TRACE, "[MSG VAR] Free memory: %p\r\n", (name)); \
-            if (esp_sys_sem_isvalid(&((name)->sem))) {                                                 \
-                esp_sys_sem_delete(&((name)->sem));                                                    \
-                esp_sys_sem_invalid(&((name)->sem));                                                   \
-            }                                                                                          \
-            esp_mem_free_s((void **)&(name));                                                          \
+            // if (esp_sys_sem_isvalid(&((name)->sem))) {                                                 \
+                // esp_sys_sem_delete(&((name)->sem));                                                    \
+                // esp_sys_sem_invalid(&((name)->sem));                                                   \
+            // }                                                                                          \
+            // esp_mem_free_s((void **)&(name));                                                          \
         } while (0)
     #if ESP_CFG_USE_API_FUNC_EVT
         #define ESP_MSG_VAR_SET_EVT(name, e_fn, e_arg) \
@@ -609,7 +609,7 @@ void espi_conn_start_timeout(esp_conn_p conn);
 esp_res_t espi_conn_check_available_rx_data(void);
 esp_res_t espi_conn_manual_tcp_try_read_data(esp_conn_p conn);
 esp_res_t espi_send_msg_to_producer_mbox(esp_msg_t *msg, esp_res_t (*process_fn)(esp_msg_t *), uint32_t max_block_time);
-uint32_t espi_get_from_mbox_with_timeout_checks(esp_sys_mbox_t *b, void **m, uint32_t timeout);
+// uint32_t espi_get_from_mbox_with_timeout_checks(esp_sys_mbox_t *b, void **m, uint32_t timeout);
 
 void espi_reset_everything(uint8_t forced);
 void espi_process_events_for_timeout_or_error(esp_msg_t *msg, esp_res_t err);
