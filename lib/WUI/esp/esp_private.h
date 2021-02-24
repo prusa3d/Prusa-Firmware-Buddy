@@ -206,13 +206,13 @@ typedef struct {
  * \brief           Message queue structure to share between threads
  */
 typedef struct esp_msg {
-    esp_cmd_t cmd_def;              /*!< Default message type received from queue */
-    esp_cmd_t cmd;                  /*!< Since some commands can have different
+    esp_cmd_t cmd_def; /*!< Default message type received from queue */
+    esp_cmd_t cmd;     /*!< Since some commands can have different
                                                         subcommands, sub command is used here */
-    uint8_t i;                      /*!< Variable to indicate order number of subcommands */
+    uint8_t i;         /*!< Variable to indicate order number of subcommands */
     // esp_sys_sem_t sem;              [>!< Semaphore for the message <]
-    uint8_t is_blocking;            /*!< Status if command is blocking */
-    uint32_t block_time;            /*!< Maximal blocking time in units of milliseconds.
+    uint8_t is_blocking;               /*!< Status if command is blocking */
+    uint32_t block_time;               /*!< Maximal blocking time in units of milliseconds.
                                                         Use `0` to for non-blocking call */
     esp_res_t res;                     /*!< Result of message operation */
     esp_res_t (*fn)(struct esp_msg *); /*!< Processing callback function to process packet */
@@ -527,7 +527,7 @@ typedef struct {
     uint8_t ch[4]; /*!< UTF-8 max characters */
     uint8_t t;     /*!< Total expected length in UTF-8 sequence */
     uint8_t r;     /*!< Remaining bytes in UTF-8 sequence */
-    esp_res_t res;    /*!< Current result of processing */
+    esp_res_t res; /*!< Current result of processing */
 } esp_unicode_t;
 
 /**
@@ -561,7 +561,7 @@ extern esp_t esp;
     #define ESP_MSG_VAR_FREE(name)                                                                     \
         do {                                                                                           \
             ESP_DEBUGF(ESP_CFG_DBG_VAR | ESP_DBG_TYPE_TRACE, "[MSG VAR] Free memory: %p\r\n", (name)); \
-            // if (esp_sys_sem_isvalid(&((name)->sem))) {                                                 \
+        // if (esp_sys_sem_isvalid(&((name)->sem))) {                                                 \
                 // esp_sys_sem_delete(&((name)->sem));                                                    \
                 // esp_sys_sem_invalid(&((name)->sem));                                                   \
             // }                                                                                          \
