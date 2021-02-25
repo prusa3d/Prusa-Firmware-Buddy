@@ -65,4 +65,5 @@ struct GuiDefaults {
     static constexpr size_t MenuUseFixedUnitWidth = 28; // 0 == calculate in runtime
     static constexpr size_t MenuScrollbarWidth = 2;
     static constexpr padding_ui8_t MenuItemDelimiterPadding = padding_ui8_t({ 6, 0, 6, 0 });
+    static constexpr size_t MenuItemDelimeterHeight = MenuLinesBetweenItems ? 1 : 0;
 };
