@@ -210,7 +210,7 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
         return;
 
     uint16_t rc_w = rect.Width() - (GuiDefaults::MenuHasScrollbar ? GuiDefaults::MenuScrollbarWidth : 0);
-    Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * (item_height + 1)), // 1 pixel height for menu item delimeter
+    Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * (item_height + GuiDefaults::MenuItemDelimeterHeight)),
         rc_w, uint16_t(item_height) };
 
     if (rect.Contain(rc)) {
@@ -220,8 +220,8 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
 
         item->Print(rc);
         if (GuiDefaults::MenuLinesBetweenItems)
-            display::DrawLine(point_ui16(rc.Left() + GuiDefaults::MenuItemDelimiterPadding.left, rc.Top() + rc.Height()),
-                point_ui16(rc.Left() + rc.Width() - (GuiDefaults::MenuItemDelimiterPadding.left + GuiDefaults::MenuItemDelimiterPadding.right), rc.Top() + rc.Height()), COLOR_SILVER);
+            display::DrawLine(point_ui16(rect.Left() + GuiDefaults::MenuItemDelimiterPadding.left, rc.Top() + rc.Height()),
+                point_ui16(rect.Left() + rect.Width() - GuiDefaults::MenuItemDelimiterPadding.right, rc.Top() + rc.Height()), COLOR_DARK_GRAY);
     }
 }
 
