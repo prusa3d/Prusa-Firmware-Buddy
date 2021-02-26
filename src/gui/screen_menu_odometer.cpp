@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 
+#include "cmath_ext.h"
 #include "screen_menus.hpp"
 #include "screen_menu.hpp"
 #include "i18n.h"
@@ -36,8 +37,21 @@ ScreenMenuOdometer::ScreenMenuOdometer()
     const float z = odometer.get(2) * .001f;
     const float e = odometer.get(3) * .001f;
 
-    /// FIXME this is not aligned if "Filament" is translated or numbers have different length
-    int written = snprintf(text, TEXT_MAX_LENGTH, "X        %d.%.1d m\n\nY        %d.%.1d m\n\nZ        %d.%.1d m\n\n", (int)x, first_decimal(x), (int)y, first_decimal(y), (int)z, first_decimal(z));
+    static const constexpr char *filament_text = N_("Filament");
+    string_view_utf8 filament_view = _(filament_text);
+    const constexpr int transl_size = 30;
+    char filament_text_translated[transl_size];
+    filament_view.copyToRAM(filament_text_translated, transl_size);
+    const int transl_length = filament_view.computeNumUtf8CharsAndRewind();
+
+    const int padding = 1 + transl_length;
+    char pad[30];
+    int i = 0;
+    for (; i < MIN(29, padding); ++i)
+        pad[i] = ' ';
+    pad[i] = 0;
+
+    int written = snprintf(text, TEXT_MAX_LENGTH, "X%s%d.%.1d m\n\nY%s%d.%.1d m\n\nZ%s%d.%.1d m\n\n", pad, (int)x, first_decimal(x), pad, (int)y, first_decimal(y), pad, (int)z, first_decimal(z));
     if (written < 0)
         return;
 
