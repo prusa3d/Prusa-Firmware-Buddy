@@ -119,7 +119,7 @@ MI_TEST_FANS::MI_TEST_FANS()
 
 void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmFans);
-    DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
+    DialogHandler::DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestFans, 0);
 }
 
 /*****************************************************************************/
@@ -130,7 +130,7 @@ MI_TEST_XYZ::MI_TEST_XYZ()
 
 void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmXYZAxis);
-    DialogHandler::WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+    DialogHandler::DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
 }
 
 /*****************************************************************************/
@@ -141,7 +141,7 @@ MI_TEST_HEAT::MI_TEST_HEAT()
 
 void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmHeaters);
-    DialogHandler::WaitUntilClosed(ClientFSM::SelftestHeat, 0);
+    DialogHandler::DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestHeat, 0);
 }
 
 /*****************************************************************************/
@@ -152,7 +152,7 @@ MI_ADVANCED_FAN_TEST::MI_ADVANCED_FAN_TEST()
 
 void MI_ADVANCED_FAN_TEST::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmFans_fine);
-    DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
+    DialogHandler::DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestFans, 0);
 }
 
 /*****************************************************************************/
