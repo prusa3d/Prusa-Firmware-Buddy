@@ -81,13 +81,6 @@ void DialogHandler::change(fsm::change_t o) {
         ptr->Change(o.phase, o.progress_tot, o.progress);
 }
 
-void DialogHandler::wait_until_closed(ClientFSM dialog, uint8_t data) {
-    open(fsm::create_t(dialog, data));
-    waiting_closed = dialog;
-    while (waiting_closed == dialog)
-        gui_loop();
-}
-
 //*****************************************************************************
 //Meyers singleton
 DialogHandler &DialogHandler::Access() {
@@ -120,7 +113,12 @@ void DialogHandler::command(fsm::variant_t variant) {
 }
 
 void DialogHandler::WaitUntilClosed(ClientFSM dialog, uint8_t data) {
-    Access().wait_until_closed(dialog, data);
+    PreOpen(dialog, data);
+    waiting_closed = dialog;
+    while (waiting_closed == dialog) {
+        Loop();
+        gui_loop();
+    }
 }
 
 void DialogHandler::PreOpen(ClientFSM dialog, uint8_t data) {
@@ -128,11 +126,11 @@ void DialogHandler::PreOpen(ClientFSM dialog, uint8_t data) {
 }
 
 void DialogHandler::Loop() {
-    fsm::variant_t variant = Access().command_queue.Front();
+    fsm::variant_t variant = command_queue.Front();
 
     if (variant.GetCommand() == ClientFSM_Command::none)
         return; //no command in queue
 
-    Access().command(variant);
-    Access().command_queue.Pop(); //erase item from queue
+    command(variant);
+    command_queue.Pop(); //erase item from queue
 }

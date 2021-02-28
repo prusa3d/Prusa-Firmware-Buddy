@@ -213,7 +213,7 @@ void gui_run(void) {
     uint32_t progr100 = 100;
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)progr100);
     while (1) {
-        DialogHandler::Loop();
+        DialogHandler::Access().Loop();
         Screens::Access()->Loop();
         gui_loop();
     }
