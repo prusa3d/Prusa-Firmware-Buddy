@@ -5,14 +5,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * \ingroup         LWESP
- * \defgroup        LWESP_AP Access point
+ * \ingroup         ESP
+ * \defgroup        ESP_AP Access point
  * \brief           Access point
  * \{
  *
  * Functions to manage access point (AP) on ESP device.
  *
- * In order to be able to use AP feature, \ref LWESP_CFG_MODE_ACCESS_POINT must be enabled.
+ * In order to be able to use AP feature, \ref ESP_CFG_MODE_ACCESS_POINT must be enabled.
  */
 
 esp_res_t    esp_ap_getip(esp_ip_t* ip, esp_ip_t* gw, esp_ip_t* nm, const esp_api_cmd_evt_fn evt_fn, void* const evt_arg, const uint32_t blocking);

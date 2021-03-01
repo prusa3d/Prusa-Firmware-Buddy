@@ -1,6 +1,7 @@
 #include "esp/esp_private.h"
 #include "esp/esp_sta.h"
-#include "esp/esp_mem.h"
+// #include "esp/esp_mem.h"
+#include "esp_utils.h"
 
 #if ESP_CFG_MODE_STATION || __DOXYGEN__
 
@@ -246,10 +247,14 @@ esp_sta_setmac(const esp_mac_t* mac,
 uint8_t
 esp_sta_has_ip(void) {
     uint8_t res;
+#ifdef ESP_UNITTEST
+    return 1;
+#else
     esp_core_lock();
     res = ESP_U8(esp.m.sta.has_ip);
     esp_core_unlock();
     return res;
+#endif
 }
 
 /**
@@ -273,6 +278,9 @@ esp_sta_is_joined(void) {
 esp_res_t
 esp_sta_copy_ip(esp_ip_t* ip, esp_ip_t* gw, esp_ip_t* nm, uint8_t* is_dhcp) {
     esp_res_t res = espERR;
+#ifdef ESP_UNITTEST
+    res = espOK;
+#else
     if ((ip != NULL || gw != NULL || nm != NULL || is_dhcp != NULL)
         && esp_sta_has_ip()) {                /* Do we have a valid IP address? */
         esp_core_lock();
@@ -291,6 +299,7 @@ esp_sta_copy_ip(esp_ip_t* ip, esp_ip_t* gw, esp_ip_t* nm, uint8_t* is_dhcp) {
         res = espOK;
         esp_core_unlock();
     }
+#endif
     return res;
 }
 

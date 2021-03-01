@@ -546,6 +546,10 @@ typedef struct {
 extern esp_t esp;
 
     #define ESP_MSG_VAR_DEFINE(name) esp_msg_t *name
+    #ifdef ESP_UNITTEST
+    #define ESP_MSG_VAR_ALLOC(name, blocking)                                                                                                    \
+      do {} while(0)
+    #else
     #define ESP_MSG_VAR_ALLOC(name, blocking)                                                                                                    \
         do {                                                                                                                                     \
             (name) = esp_mem_malloc(sizeof(*(name)));                                                                                            \
@@ -557,6 +561,7 @@ extern esp_t esp;
             ESP_MEMSET((name), 0x00, sizeof(*(name)));                                                                                           \
             (name)->is_blocking = ESP_U8((blocking) > 0);                                                                                        \
         } while (0)
+    #endif
     #define ESP_MSG_VAR_REF(name) (*(name))
     #define ESP_MSG_VAR_FREE(name)                                                                     \
         do {                                                                                           \

@@ -3,6 +3,8 @@ add_executable(wui_esp_tests
 ../../../../lib/WUI/esp/esp_parser.c
 ../../../../lib/WUI/esp/esp_int.c
 ../../../../lib/WUI/esp/esp_utils.c
+../../../../lib/WUI/esp/esp_ap.c
+../../../../lib/WUI/esp/esp_sta.c
 ../../test_main.cpp
 tests.cpp
 )

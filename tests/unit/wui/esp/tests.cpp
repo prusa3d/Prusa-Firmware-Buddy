@@ -10,6 +10,8 @@
 #include "esp_utils.h"
 #include "esp_private.h"
 #include "esp_int.h"
+#include "esp_ap.h"
+#include "esp_sta.h"
 
 esp_t esp;
 std::string command_data = "";
@@ -64,6 +66,7 @@ TEST_CASE("ESP - AT API") {
         CHECK(cmd == command_data);
     }
 
+    res = espERR;
     SECTION("GET VERSION COMMAND") {
         command_data = "";
         esp.msg->cmd = ESP_CMD_GMR;
@@ -73,62 +76,82 @@ TEST_CASE("ESP - AT API") {
         CHECK(cmd == command_data);
     }
 
-    SECTION("JOIN AP - test with arguments"){
+    res = espERR;
+    SECTION("JOIN AP - test with arguments") {
+        command_data = "";
+
+        esp.msg->cmd = ESP_CMD_WIFI_CWJAP;
+        esp.msg->msg.sta_join.name = "chleba";
+        esp.msg->msg.sta_join.pass = "maslo";
+        esp.msg->msg.sta_join.mac = NULL;
+
+        res = espi_initiate_cmd(&msg);
+        CHECK(res == espOK);
+        char cmd[] = "AT+CWJAP=\"chleba\",\"maslo\"\r\n";
+        CHECK(cmd == command_data);
+    }
+
+    res = espERR;
+    SECTION("WIFI MODE - test esp_utils") {
+        command_data = "";
+
+        esp.msg->cmd = ESP_CMD_WIFI_CWMODE;
+        // need to be def (is set when called via API fn, now just for test)
+        esp.msg->cmd_def = ESP_CMD_WIFI_CWMODE;
+        esp.msg->msg.wifi_mode.mode = ESP_MODE_AP;
+
+        res = espi_initiate_cmd(&msg);
+        CHECK(res == espOK);
+        char cmd[] = "AT+CWMODE=2\r\n";
+        CHECK(cmd == command_data);
+    }
+
+    res = espERR;
+    SECTION("TCP - start connection (TCP)") {
+        command_data = "";
+
+        esp.msg->cmd = ESP_CMD_TCPIP_CIPSTART;
+        esp.msg->msg.conn_start.type = ESP_CONN_TYPE_TCP;
+        esp.msg->msg.conn_start.local_ip = NULL;
+        esp.msg->msg.conn_start.tcp_ssl_keep_alive = 0;
+        esp.msg->msg.conn_start.remote_host = "prusa3d.cz";
+        esp.msg->msg.conn_start.remote_port = 80;
+
+        res = espi_initiate_cmd(&msg);
+        CHECK(res == espOK);
+
+        // check created connection
+        esp_conn_t *conn = NULL;
+        conn = *esp.msg->msg.conn_start.conn;
+        CHECK(conn != NULL);
+
+        // char cmd[] = "AT+CIPSTART=4,\"TCP\",\"prusa3d.cz\",80,0\r\n";
+        std::string c = "AT+CIPSTART=4,\"TCP\",\"prusa3d.cz\",80,0\r\n";
+        CHECK(command_data.find(c) != std::string::npos);
+        CHECK(c == command_data);
+    }
+
+    res = espERR;
+    SECTION("TCP - send data") {
+      // sending data of predefined size
+      // for test we just test AT command generation without any data
+        command_data = "";
+        esp.msg->cmd = ESP_CMD_TCPIP_CIPSEND;
+        res = espi_initiate_cmd(&msg);
+        CHECK(res == espOK);
+        // we don't have any msg stored so zero length will be send
+        std::string c = "AT+CIPSEND=0,0\r\n";
+        CHECK(command_data.find(c) != std::string::npos);
+        CHECK(c == command_data);
+    }
+
+    res = espERR;
+    SECTION("STATION MODE API  test") {
       command_data = "";
-      
-      esp.msg->cmd = ESP_CMD_WIFI_CWJAP;
-      esp.msg->msg.sta_join.name = "chleba";
-      esp.msg->msg.sta_join.pass = "maslo";
-      esp.msg->msg.sta_join.mac = NULL;
+      esp_sta_join("chleba", "maslo", NULL, NULL, NULL, 0);
+      CHECK(1 == 1);
 
-      res = espi_initiate_cmd(&msg);
-      CHECK(res == espOK);
-      char cmd[] = "AT+CWJAP=\"chleba\",\"maslo\"\r\n";
-      CHECK(cmd == command_data);
+
     }
 
-    SECTION("WIFI MODE - test esp_utils"){
-      command_data = "";
-
-      esp.msg->cmd = ESP_CMD_WIFI_CWMODE;
-      // need to be def (is set when called via API fn, now just for test)
-      esp.msg->cmd_def = ESP_CMD_WIFI_CWMODE;
-      esp.msg->msg.wifi_mode.mode = ESP_MODE_AP;
-
-      res = espi_initiate_cmd(&msg);
-      CHECK(res == espOK);
-      char cmd[] = "AT+CWMODE=2\r\n";
-      CHECK(cmd == command_data);
-    }
-
-    SECTION("TCP - start connection (TCP)"){
-      command_data = "";
-
-      esp.msg->cmd = ESP_CMD_TCPIP_CIPSTART;
-      esp.msg->msg.conn_start.type = ESP_CONN_TYPE_TCP;
-      esp.msg->msg.conn_start.local_ip = NULL;
-      esp.msg->msg.conn_start.tcp_ssl_keep_alive = 0;
-      esp.msg->msg.conn_start.remote_host = "prusa3d.cz";
-      esp.msg->msg.conn_start.remote_port = 80;
-
-      res = espi_initiate_cmd(&msg);
-      CHECK(res == espOK);
-
-      // check created connection
-      esp_conn_t *c = NULL;
-      // CHECK(esp.msg->msg.conn_start.conn != NULL);
-      c = *esp.msg->msg.conn_start.conn;
-      CHECK(c != NULL);
-
-
-
-      // char cmd[] = "AT+CIPSTART=\"TCP\",\"prusa3d.cz\",80,0\r\n";
-      // std::string c = "AT+CIPSTART=5,";
-      // CHECK(command_data.find(c) != std::string::npos);
-      // CHECK(cmd == command_data);
-    }
-
-    SECTION("TCP - send data"){
-
-    }
 }

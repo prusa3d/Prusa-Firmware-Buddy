@@ -1,6 +1,7 @@
 #include "esp/esp_private.h"
 #include "esp/esp_ap.h"
-#include "esp/esp_mem.h"
+// #include "esp/esp_mem.h"
+#include "esp_utils.h"
 
 #if ESP_CFG_MODE_ACCESS_POINT || __DOXYGEN__
 
