@@ -22,7 +22,7 @@ class DialogHandler {
 public:
     //accessor for static methods
     static DialogHandler &Access();
-    static void Command(uint32_t data);                  //static method to be registered as callback, marlin client is in C, so cannot pass fsm::variant_t
+    static void Command(uint32_t u32, uint16_t u16);     //static method to be registered as callback, marlin client is in C, so cannot pass fsm::variant_t
     static void PreOpen(ClientFSM dialog, uint8_t data); //can be enforced (pre openned), unlike change/close
 
     void Loop();                                          //synchronization loop, call it outside event

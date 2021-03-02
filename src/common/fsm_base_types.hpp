@@ -11,23 +11,32 @@
 #include <stdint.h>
 
 namespace fsm {
+#pragma pack(push, 1) // must be packed to fit in variant8
 
-using PhaseData = std::array<uint8_t, 5>;
+static const size_t BaseDataSZ = 5;
+using PhaseData = std::array<uint8_t, BaseDataSZ - 1>;
 
-struct BaseData {
-    std::array<uint8_t, 6> phase_and_data;
-    constexpr uint8_t GetPhase() const { return phase_and_data[0]; }
-    constexpr const uint8_t *Get_pData() const { return phase_and_data.cbegin() + 1; }
-    constexpr void SetPhase(uint8_t phase) { phase_and_data[0] = phase; }
-    void SetData(PhaseData data) { std::copy(data.begin(), data.end(), phase_and_data.begin() + 1); } // std::copy is not const expr until C++20
+class BaseData {
+
+    PhaseData data;
+    uint8_t phase;
+
+public:
+    constexpr uint8_t GetPhase() const { return phase; }
+    constexpr PhaseData GetData() const { return data; }
+    constexpr void SetPhase(uint8_t ph) { phase = ph; }
+    constexpr void SetData(PhaseData dt) { data = dt; }
 
     constexpr BaseData()
-        : phase_and_data({ {} }) {}
+        : data({ {} })
+        , phase(0) {}
     constexpr BaseData(uint8_t phase, PhaseData data)
         : BaseData() {
         SetPhase(phase);
         SetData(data);
     }
 };
+static_assert(sizeof(BaseData) == BaseDataSZ, "Wrong size of BaseData");
 
+#pragma pack(pop)
 };

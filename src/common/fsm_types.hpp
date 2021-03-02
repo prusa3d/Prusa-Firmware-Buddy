@@ -13,6 +13,7 @@
 #include "fsm_base_types.hpp"
 
 namespace fsm {
+#pragma pack(push, 1) // must be packed to fit in variant8
 
 struct type_t {
     uint8_t command_and_type;
@@ -21,6 +22,7 @@ struct type_t {
     constexpr ClientFSM_Command GetCommand() const { return ClientFSM_Command(command_and_type & uint8_t(ClientFSM_Command::_mask)); }
     constexpr ClientFSM GetType() const { return ClientFSM(command_and_type & (~uint8_t(ClientFSM_Command::_mask))); }
 };
+static_assert(sizeof(type_t) == 1, "Wrong size of type_t");
 
 struct create_t {
     type_t type;
@@ -29,12 +31,14 @@ struct create_t {
         : type(type_t(ClientFSM_Command::create, type_))
         , data(data) {}
 };
+static_assert(sizeof(create_t) <= BaseDataSZ + sizeof(type_t), "Wrong size of create_t");
 
 struct destroy_t {
     type_t type;
     constexpr destroy_t(ClientFSM type_)
         : type(type_t(ClientFSM_Command::destroy, type_)) {}
 };
+static_assert(sizeof(destroy_t) <= BaseDataSZ + sizeof(type_t), "Wrong size of destroy_t");
 
 struct change_t {
     type_t type;
@@ -42,36 +46,35 @@ struct change_t {
     constexpr change_t(ClientFSM type_, BaseData data)
         : type(type_t(ClientFSM_Command::change, type_))
         , data(data) {}
-    constexpr change_t(ClientFSM type_, uint32_t u32, uint16_t u16)
-        : type(type_t(ClientFSM_Command::change, type_)) {
-        SetU32(u32); //data[0-3]
-        SetU16(u16); //data[4-5]
-    }
-    constexpr uint32_t GetU32() const { return *(reinterpret_cast<const uint32_t *>(data.phase_and_data.begin())); }     //data[0-3]
-    constexpr uint32_t GetU16() const { return *(reinterpret_cast<const uint16_t *>(data.phase_and_data.begin() + 4)); } //data[4-5]
-    constexpr void SetU32(uint32_t data_) { *(reinterpret_cast<uint32_t *>(data.phase_and_data.begin())) = data_; }      //data[0-3]
-    constexpr void SetU16(uint16_t data_) { *(reinterpret_cast<uint16_t *>(data.phase_and_data.begin() + 4)) = data_; }  //data[4-5]
 };
+static_assert(sizeof(change_t) <= BaseDataSZ + sizeof(type_t), "Wrong size of change_t");
 
 union variant_t {
     create_t create;
     destroy_t destroy;
     change_t change;
-    uint32_t data;
+    struct {
+        uint32_t u32;
+        uint16_t u16;
+    };
     constexpr variant_t()
-        : data(0) {} //ClientFSM_Command::none
+        : u32(0) {} //ClientFSM_Command::none
+    constexpr variant_t(uint32_t u32, uint16_t u16)
+        : u32(u32)
+        , u16(u16) {}
     constexpr variant_t(create_t create)
         : create(create) {}
     constexpr variant_t(destroy_t destroy)
         : destroy(destroy) {}
     constexpr variant_t(change_t change)
         : change(change) {}
-    constexpr variant_t(uint32_t data)
-        : data(data) {}
     constexpr ClientFSM_Command GetCommand() const { return create.type.GetCommand(); }
     constexpr ClientFSM GetType() const { return create.type.GetType(); }
 };
 static_assert(int(ClientFSM_Command::none) == 0, "ClientFSM_Command::none must equal zero or fix variant_t::variant_t() ctor");
+static_assert(sizeof(variant_t) == BaseDataSZ + sizeof(type_t), "Wrong size of variant_t");
+
+#pragma pack(pop)
 
 // Smart queue, discards events which can be discarded (no longer important events - if new event is inserted)
 // for instance destroy, erases all other events in buffer, because they are no longer important (but nothing can erase destroy)
@@ -99,7 +102,7 @@ protected:
 
 public:
     constexpr Queue()
-        : queue({ variant_t(0), variant_t(0), variant_t(0) })
+        : queue({ variant_t(), variant_t(), variant_t() })
         , count(0) {}
 
     variant_t Front() const; //returns ClientFSM_Command::none on empty

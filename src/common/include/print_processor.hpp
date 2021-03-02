@@ -18,8 +18,8 @@ class PrintProcessor {
     //todo should I block ClientFSM::Serial_printing?
     //this code did not work in last builds and no one reported problem with octoscreen
     //I fear enabling it could break something
-    static void fsm_cb(uint32_t data) {
-        fsm::variant_t variant(data);
+    static void fsm_cb(uint32_t u32, uint16_t u16) {
+        fsm::variant_t variant(u32, u16);
         if (/*variant.GetType() == ClientFSM::Serial_printing ||*/ variant.GetType() == ClientFSM::Load_unload) {
             if (variant.GetCommand() == ClientFSM_Command::create) {
                 FS_instance().IncEvLock();

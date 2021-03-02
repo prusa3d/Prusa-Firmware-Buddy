@@ -11,31 +11,31 @@
 
 WizardState_t StateFnc_SELFTEST_FAN() {
     marlin_test_start(stmFans);
-    DialogHandler::DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestFans, 0);
+    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestFans, 0);
     return WizardState_t::next;
 }
 
 WizardState_t StateFnc_SELFTEST_X() {
     marlin_test_start(stmXAxis);
-    DialogHandler::DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
     return WizardState_t::next;
 }
 
 WizardState_t StateFnc_SELFTEST_Y() {
     marlin_test_start(stmYAxis);
-    DialogHandler::DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
     return WizardState_t::next;
 }
 
 WizardState_t StateFnc_SELFTEST_Z() {
     marlin_test_start(stmZAxis);
-    DialogHandler::DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
     return WizardState_t::next;
 }
 
 WizardState_t StateFnc_SELFTEST_XYZ() {
     marlin_test_start(stmXYZAxis);
-    DialogHandler::DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
     return WizardState_t::next;
 }
 
@@ -63,6 +63,6 @@ WizardState_t StateFnc_SELFTEST_RESULT() {
 
 WizardState_t StateFnc_SELFTEST_TEMP() {
     marlin_test_start(stmHeaters);
-    DialogHandler::DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestHeat, 0);
+    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestHeat, 0);
     return WizardState_t::next;
 }

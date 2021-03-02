@@ -793,7 +793,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             break;
         case MARLIN_EVT_FSM:
             if (client->fsm_cb)
-                client->fsm_cb(variant8_get_ui32(msg));
+                client->fsm_cb(variant8_get_ui32(msg), variant8_get_usr16(msg));
             break;
         case MARLIN_EVT_Message: {
             variant8_t *pvar = &msg;
