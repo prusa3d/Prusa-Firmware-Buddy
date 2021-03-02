@@ -30,6 +30,11 @@ struct SelftestHeaters_t {
         , bed_prep_state(bed_prep_state)
         , bed_heat_state(bed_heat_state) {}
 
+    constexpr SelftestHeaters_t(fsm::PhaseData new_data)
+        : SelftestHeaters_t() {
+        Deserialize(new_data);
+    }
+
     constexpr fsm::PhaseData Serialize() const {
         fsm::PhaseData ret = { { noz_progress, bed_progress,
             uint8_t(uint8_t(noz_prep_state) | (uint8_t(noz_heat_state) << 2)),

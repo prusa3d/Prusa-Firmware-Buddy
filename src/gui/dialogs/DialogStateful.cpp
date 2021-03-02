@@ -44,7 +44,7 @@ IDialogStateful::IDialogStateful(string_view_utf8 name)
     label.SetAlignment(Align_t::CenterTop());
 }
 
-bool IDialogStateful::change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {
+bool IDialogStateful::change(uint8_t phs, fsm::PhaseData data) {
     if (!can_change(phs))
         return false;
     if (phase != phs) {
@@ -53,7 +53,7 @@ bool IDialogStateful::change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*
         phaseEnter();
     }
 
-    progress.SetValue(progress_tot <= 100 ? progress_tot : 0);
+    progress.SetValue(data[1] <= 100 ? data[1] : 0); //TODO
     //Invalidate();
     return true;
 }

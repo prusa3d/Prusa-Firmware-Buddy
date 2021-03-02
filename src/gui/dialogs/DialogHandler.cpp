@@ -88,8 +88,8 @@ DialogHandler &DialogHandler::Access() {
     return ret;
 }
 
-void DialogHandler::Command(uint32_t data) {
-    fsm::variant_t variant(data);
+void DialogHandler::Command(uint32_t u32, uint16_t u16) {
+    fsm::variant_t variant(u32, u16);
 
     // not sure about buffering ClientFSM_Command::change, it could work without it
     // but it is buffered too to be simpler
@@ -122,7 +122,8 @@ void DialogHandler::WaitUntilClosed(ClientFSM dialog, uint8_t data) {
 }
 
 void DialogHandler::PreOpen(ClientFSM dialog, uint8_t data) {
-    Command(fsm::variant_t(fsm::create_t(dialog, data)).data);
+    const fsm::variant_t var(fsm::create_t(dialog, data));
+    Command(var.u32, var.u16);
 }
 
 void DialogHandler::Loop() {

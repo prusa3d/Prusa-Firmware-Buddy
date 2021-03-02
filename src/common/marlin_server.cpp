@@ -751,7 +751,7 @@ static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLI
         fsm::variant_t variant = fsm_event_queues[client_id].Front();
         if (variant.GetCommand() == ClientFSM_Command::none)
             return true; // no event to send, return "sent" to erase send flag
-        msg = variant8_user(variant.data, 0, evt_id);
+        msg = variant8_user(variant.u32, variant.u16, evt_id);
     } break;
     default:
         msg = variant8_user(usr32, usr16, evt_id);
