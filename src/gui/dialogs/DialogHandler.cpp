@@ -78,7 +78,7 @@ void DialogHandler::close(fsm::destroy_t o) {
 
 void DialogHandler::change(fsm::change_t o) {
     if (ptr)
-        ptr->Change(o.phase, o.progress_tot, o.progress);
+        ptr->Change(o.data);
 }
 
 //*****************************************************************************

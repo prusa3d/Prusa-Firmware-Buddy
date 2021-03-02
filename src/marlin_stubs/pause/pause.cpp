@@ -80,7 +80,7 @@ PausePrivatePhase::PausePrivatePhase()
 
 void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress_tot) {
     phase = ph;
-    fsm_change(ClientFSM::Load_unload, phase, progress_tot, progress_tot == 100 ? 100 : 0);
+    fsm_change(ClientFSM::Load_unload, phase, { { progress_tot } });
 }
 
 PhasesLoadUnload PausePrivatePhase::getPhase() const { return phase; }

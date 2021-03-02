@@ -48,10 +48,10 @@ void Queue::pushDestroy(destroy_t destroy) {
     push(variant_t(destroy));
 }
 
-void Queue::PushChange(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+void Queue::PushChange(ClientFSM type, BaseData data) {
     if (type == ClientFSM::_none)
         return;
-    pushChange(change_t(type, phase, progress_tot, progress));
+    pushChange(change_t(type, data));
 }
 
 // must be empty or last command must create or change

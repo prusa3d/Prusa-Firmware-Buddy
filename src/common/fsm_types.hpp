@@ -10,6 +10,7 @@
 #include "client_fsm_types.h"
 #include <stdint.h>
 #include <array>
+#include "fsm_base_types.hpp"
 
 namespace fsm {
 
@@ -37,14 +38,19 @@ struct destroy_t {
 
 struct change_t {
     type_t type;
-    uint8_t phase;
-    uint8_t progress_tot;
-    uint8_t progress;
-    constexpr change_t(ClientFSM type_, uint8_t phase, uint8_t progress_tot, uint8_t progress)
+    BaseData data;
+    constexpr change_t(ClientFSM type_, BaseData data)
         : type(type_t(ClientFSM_Command::change, type_))
-        , phase(phase)
-        , progress_tot(progress_tot)
-        , progress(progress) {}
+        , data(data) {}
+    constexpr change_t(ClientFSM type_, uint32_t u32, uint16_t u16)
+        : type(type_t(ClientFSM_Command::change, type_)) {
+        SetU32(u32); //data[0-3]
+        SetU16(u16); //data[4-5]
+    }
+    constexpr uint32_t GetU32() const { return *(reinterpret_cast<const uint32_t *>(data.phase_and_data.begin())); }     //data[0-3]
+    constexpr uint32_t GetU16() const { return *(reinterpret_cast<const uint16_t *>(data.phase_and_data.begin() + 4)); } //data[4-5]
+    constexpr void SetU32(uint32_t data_) { *(reinterpret_cast<uint32_t *>(data.phase_and_data.begin())) = data_; }      //data[0-3]
+    constexpr void SetU16(uint16_t data_) { *(reinterpret_cast<uint16_t *>(data.phase_and_data.begin() + 4)) = data_; }  //data[4-5]
 };
 
 union variant_t {
@@ -102,7 +108,7 @@ public:
     void Pop();
     void PushCreate(ClientFSM type, uint8_t data);
     void PushDestroy(ClientFSM type);
-    void PushChange(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
+    void PushChange(ClientFSM type, BaseData data);
 };
 
 }; //namespace fsm

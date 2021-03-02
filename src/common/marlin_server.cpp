@@ -1524,11 +1524,11 @@ void fsm_destroy(ClientFSM type) {
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
-void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    DBG_FSM("fsm_change %d", int(type));
+void _fsm_change(ClientFSM type, fsm::BaseData data) {
+    DBG_FSM("fsm_change %d %d", int(type), data.GetPhase());
 
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
-        fsm_event_queues[i].PushChange(type, phase, progress_tot, progress);
+        fsm_event_queues[i].PushChange(type, data);
     }
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
@@ -1587,7 +1587,7 @@ void FSM_notifier::SendNotification() {
     // after first sent, progress can only rise
     if ((s_data.last_progress_sent == uint8_t(-1)) || (progress > s_data.last_progress_sent)) {
         s_data.last_progress_sent = progress;
-        _fsm_change(s_data.type, s_data.phase, progress, 0);
+        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, { { uint8_t(progress) } }));
     }
     activeInstance->postSendNotification();
 }
