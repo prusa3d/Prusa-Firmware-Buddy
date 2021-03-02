@@ -1,0 +1,49 @@
+/**
+ * @file selftest_axis_type.hpp
+ * @author Radek Vana
+ * @brief selftest axis data to be passed between threads
+ * @date 2021-03-01
+ */
+
+#pragma once
+
+#include "fsm_base_types.hpp"
+#include "wizard_config.hpp" // SelftestSubtestState_t
+
+struct SelftestAxis_t {
+    uint8_t x_progress;
+    uint8_t y_progress;
+    uint8_t z_progress;
+    uint8_t tot_progress;
+    SelftestSubtestState_t x_state;
+    SelftestSubtestState_t y_state;
+    SelftestSubtestState_t z_state;
+
+    constexpr SelftestAxis_t(uint8_t x_progress = 0, uint8_t y_progress = 0,
+        uint8_t z_progress = 0, uint8_t tot_progress = 0,
+        SelftestSubtestState_t x_state = SelftestSubtestState_t::undef,
+        SelftestSubtestState_t y_state = SelftestSubtestState_t::undef,
+        SelftestSubtestState_t z_state = SelftestSubtestState_t::undef)
+        : x_progress(x_progress)
+        , y_progress(y_progress)
+        , z_progress(z_progress)
+        , tot_progress(tot_progress)
+        , x_state(x_state)
+        , y_state(y_state)
+        , z_state(z_state) {}
+
+    constexpr fsm::PhaseData Serialize() const {
+        fsm::PhaseData ret = { { x_progress, y_progress, z_progress, tot_progress, uint8_t(uint8_t(x_state) | (uint8_t(y_state) << 2) | (uint8_t(z_state) << 4)) } };
+        return ret;
+    }
+
+    constexpr void Deserialize(fsm::PhaseData new_data) {
+        x_progress = new_data[0];
+        y_progress = new_data[1];
+        z_progress = new_data[2];
+        tot_progress = new_data[3];
+        x_state = SelftestSubtestState_t(new_data[4] & 0x03);
+        y_state = SelftestSubtestState_t((new_data[4] >> 2) & 0x03);
+        z_state = SelftestSubtestState_t((new_data[4] >> 4) & 0x03);
+    }
+};

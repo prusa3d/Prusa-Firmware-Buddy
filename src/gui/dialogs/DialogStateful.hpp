@@ -8,6 +8,7 @@
 #include "i18n.h"
 #include "window_text.hpp"
 #include "window_progress.hpp"
+#include "fsm_types.hpp"
 
 // function pointer for onEnter & onExit callbacks
 using change_state_cb_t = void (*)();
@@ -17,7 +18,7 @@ protected:
     virtual bool change(uint8_t phs, uint8_t progress_tot, uint8_t progress) = 0;
 
 public:
-    bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress) { return change(phs, progress_tot, progress); }
+    bool Change(fsm::BaseData data) { return change(data.GetPhase(), data.phase_and_data[1], data.phase_and_data[2]); }
     IDialogMarlin(Rect16 rc = GuiDefaults::RectScreenBody)
         : IDialog(rc) {}
 };

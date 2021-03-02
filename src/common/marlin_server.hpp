@@ -3,6 +3,7 @@
 
 #include "marlin_server.h"
 #include "client_response.hpp"
+#include "fsm_types.hpp"
 
 /*****************************************************************************/
 //C++ only features
@@ -14,11 +15,11 @@ void fsm_create(ClientFSM type, uint8_t data = 0);
 void fsm_destroy(ClientFSM type);
 //notify all clients to change state of finit statemachine, must match fsm_change_t signature
 //can be called inside while, notification is send only when is different from previous one
-void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
+void _fsm_change(ClientFSM type, fsm::BaseData data);
 
 template <class T>
-void fsm_change(ClientFSM type, T phase, uint8_t progress_tot, uint8_t progress) {
-    _fsm_change(type, GetPhaseIndex(phase), progress_tot, progress);
+void fsm_change(ClientFSM type, T phase, fsm::PhaseData data) {
+    _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), data));
 }
 
 //inherited class for server side to be able to work with server_side_encoded_response
