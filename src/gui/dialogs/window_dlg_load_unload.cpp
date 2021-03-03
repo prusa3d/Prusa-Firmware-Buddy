@@ -7,6 +7,7 @@
 #include "window_dlg_load_unload.hpp"
 #include "marlin_client.h"
 #include "gui.hpp" // gui_loop
+#include "DialogHandler.hpp"
 
 namespace PreheatStatus {
 
@@ -20,6 +21,7 @@ Result DialogBlocking(PreheatMode mode, RetAndCool_t retAndCool) {
     Dialog(mode, retAndCool);
     PreheatStatus::Result ret;
     while ((ret = PreheatStatus::ConsumeResult()) == PreheatStatus::Result::DidNotFinish) {
+        DialogHandler::Access().Loop(); // fsm events .. to be able to change state
         gui_loop();
     }
     return ret;
