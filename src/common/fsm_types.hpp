@@ -21,6 +21,12 @@ struct type_t {
         : command_and_type(uint8_t(type) | uint8_t(command)) {}
     constexpr ClientFSM_Command GetCommand() const { return ClientFSM_Command(command_and_type & uint8_t(ClientFSM_Command::_mask)); }
     constexpr ClientFSM GetType() const { return ClientFSM(command_and_type & (~uint8_t(ClientFSM_Command::_mask))); }
+    constexpr bool operator==(const type_t &other) const {
+        return command_and_type == other.command_and_type;
+    }
+    constexpr bool operator!=(const type_t &other) const {
+        return !((*this) == other);
+    }
 };
 static_assert(sizeof(type_t) == 1, "Wrong size of type_t");
 
@@ -30,6 +36,12 @@ struct create_t {
     constexpr create_t(ClientFSM type_, uint8_t data)
         : type(type_t(ClientFSM_Command::create, type_))
         , data(data) {}
+    constexpr bool operator==(const create_t &other) const {
+        return (type == other.type) && (data == other.data);
+    }
+    constexpr bool operator!=(const create_t &other) const {
+        return !((*this) == other);
+    }
 };
 static_assert(sizeof(create_t) <= BaseDataSZ + sizeof(type_t), "Wrong size of create_t");
 
@@ -37,6 +49,12 @@ struct destroy_t {
     type_t type;
     constexpr destroy_t(ClientFSM type_)
         : type(type_t(ClientFSM_Command::destroy, type_)) {}
+    constexpr bool operator==(const destroy_t &other) const {
+        return type == other.type;
+    }
+    constexpr bool operator!=(const destroy_t &other) const {
+        return !((*this) == other);
+    }
 };
 static_assert(sizeof(destroy_t) <= BaseDataSZ + sizeof(type_t), "Wrong size of destroy_t");
 
@@ -46,6 +64,12 @@ struct change_t {
     constexpr change_t(ClientFSM type_, BaseData data)
         : type(type_t(ClientFSM_Command::change, type_))
         , data(data) {}
+    constexpr bool operator==(const change_t &other) const {
+        return (type == other.type) && (data == other.data);
+    }
+    constexpr bool operator!=(const change_t &other) const {
+        return !((*this) == other);
+    }
 };
 static_assert(sizeof(change_t) <= BaseDataSZ + sizeof(type_t), "Wrong size of change_t");
 
@@ -73,6 +97,24 @@ union variant_t {
         : change(change) {}
     constexpr ClientFSM_Command GetCommand() const { return create.type.GetCommand(); }
     constexpr ClientFSM GetType() const { return create.type.GetType(); }
+
+    constexpr bool operator==(const variant_t &other) const {
+        if (GetCommand() != other.GetCommand())
+            return false;
+        switch (GetCommand()) {
+        case ClientFSM_Command::create:
+            return create == other.create;
+        case ClientFSM_Command::destroy:
+            return destroy == other.destroy;
+        case ClientFSM_Command::change:
+            return change == other.change;
+        default:
+            return false;
+        }
+    }
+    constexpr bool operator!=(const variant_t &other) const {
+        return !((*this) == other);
+    }
 };
 static_assert(int(ClientFSM_Command::none) == 0, "ClientFSM_Command::none must equal zero or fix variant_t::variant_t() ctor");
 static_assert(sizeof(variant_t) == BaseDataSZ + sizeof(type_t), "Wrong size of variant_t");

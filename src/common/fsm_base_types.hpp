@@ -9,6 +9,7 @@
 
 #include <array>
 #include <stdint.h>
+#include <cstddef> //size_t
 
 namespace fsm {
 #pragma pack(push, 1) // must be packed to fit in variant8
@@ -34,6 +35,12 @@ public:
         : BaseData() {
         SetPhase(phase);
         SetData(data);
+    }
+    constexpr bool operator==(const BaseData &other) const {
+        return GetPhase() == other.GetPhase() && GetData() == other.GetData();
+    }
+    constexpr bool operator!=(const BaseData &other) const {
+        return !((*this) == other);
     }
 };
 static_assert(sizeof(BaseData) == BaseDataSZ, "Wrong size of BaseData");
