@@ -10,8 +10,10 @@
 
 #include "fsm_types.hpp"
 
+using namespace fsm;
+
 void test_type(ClientFSM_Command command, ClientFSM type) {
-    fsm::type_t tst(command, type);
+    type_t tst(command, type);
     REQUIRE(command == tst.GetCommand());
     REQUIRE(type == tst.GetType());
 }
@@ -24,7 +26,7 @@ void test_type_all_commands(ClientFSM type) {
 }
 
 void test_create(ClientFSM type, uint8_t data) {
-    fsm::create_t tst(type, data);
+    create_t tst(type, data);
 
     REQUIRE(tst.type.GetCommand() == ClientFSM_Command::create);
     REQUIRE(tst.type.GetType() == type);
@@ -32,26 +34,24 @@ void test_create(ClientFSM type, uint8_t data) {
 }
 
 void test_destroy(ClientFSM type) {
-    fsm::destroy_t tst(type);
+    destroy_t tst(type);
 
     REQUIRE(tst.type.GetCommand() == ClientFSM_Command::destroy);
     REQUIRE(tst.type.GetType() == type);
 }
 
-void test_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    fsm::change_t tst(type, phase, progress_tot, progress);
+void test_change(ClientFSM type, BaseData data) {
+    change_t tst(type, data);
 
     REQUIRE(tst.type.GetCommand() == ClientFSM_Command::change);
     REQUIRE(tst.type.GetType() == type);
-    REQUIRE(tst.phase == phase);
-    REQUIRE(tst.progress_tot == progress_tot);
-    REQUIRE(tst.progress == progress);
+    REQUIRE(tst.data == data);
 }
 
 void test_variant(ClientFSM type) {
-    fsm::variant_t tst_create(fsm::create_t(type, 0));
-    fsm::variant_t tst_destroy(fsm::destroy_t({ type }));
-    fsm::variant_t tst_change(fsm::change_t(type, 0, 0, 0));
+    fsm::variant_t tst_create(create_t(type, 0));
+    fsm::variant_t tst_destroy(destroy_t({ type })); // destroy_t(type) would not call ctor !!!
+    fsm::variant_t tst_change(change_t(type, BaseData()));
 
     REQUIRE(tst_create.GetCommand() == ClientFSM_Command::create);
     REQUIRE(tst_create.GetType() == type);
@@ -76,13 +76,13 @@ public:
 
 /*****************************************************************************/
 //tests
-TEST_CASE("fsm::type_t", "[fsm_type]") {
+TEST_CASE("fsm::type_t", "[fsm]") {
     test_type_all_commands(ClientFSM(0));
     test_type_all_commands(ClientFSM::_none); // _none != 0
     test_type_all_commands(ClientFSM::Load_unload);
 }
 
-TEST_CASE("fsm::create_t", "[fsm_create]") {
+TEST_CASE("fsm::create_t", "[fsm]") {
     test_create(ClientFSM(0), 0x00);
     test_create(ClientFSM(0), 0xAB);
     test_create(ClientFSM(0), 0xFF);
@@ -97,34 +97,52 @@ TEST_CASE("fsm::create_t", "[fsm_create]") {
     test_create(ClientFSM::FirstLayer, 0xFF);
 }
 
-TEST_CASE("fsm::destroy_t", "[fsm_destroy]") {
+TEST_CASE("fsm::destroy_t", "[fsm]") {
     test_destroy(ClientFSM(0));
     test_destroy(ClientFSM::_none); // _none != 0
     test_destroy(ClientFSM::Load_unload);
 }
 
-TEST_CASE("fsm::change_t", "[fsm_change]") {
-    test_change(ClientFSM(0), 0x00, 0x00, 0x00);
-    test_change(ClientFSM(0), 0xAB, 0x12, 0x23);
-    test_change(ClientFSM(0), 0xFF, 0xFF, 0xFF);
+TEST_CASE("fsm::change_t", "[fsm]") {
+    test_change(ClientFSM(0), BaseData(0x00, { { 0x00, 0x00, 0x00, 0x00 } }));
+    test_change(ClientFSM(0), BaseData(0xAB, { { 0x12, 0x23, 0x34, 0x56 } }));
+    test_change(ClientFSM(0), BaseData(0xFF, { { 0xFF, 0xFF, 0xFF, 0xFF } }));
 
     // _none != 0
-    test_change(ClientFSM::_none, 0x00, 0x00, 0x00);
-    test_change(ClientFSM::_none, 0x01, 0x02, 0x03);
-    test_change(ClientFSM::_none, 0xFF, 0xFF, 0xFF);
+    test_change(ClientFSM::_none, BaseData(0x00, { { 0x00, 0x00, 0x00, 0x00 } }));
+    test_change(ClientFSM::_none, BaseData(0x12, { { 0x23, 0x34, 0x56, 0x78 } }));
+    test_change(ClientFSM::_none, BaseData(0xFF, { { 0xFF, 0xFF, 0xFF, 0xFF } }));
 
-    test_change(ClientFSM::Load_unload, 0x00, 0x00, 0x00);
-    test_change(ClientFSM::Printing, 0x00, 0x01, 0xFF);
-    test_change(ClientFSM::FirstLayer, 0xFF, 0xFF, 0xFF);
+    test_change(ClientFSM::Load_unload, BaseData(0x00, { { 0x00, 0x00, 0x00, 0x00 } }));
+    test_change(ClientFSM::Printing, BaseData(0x0F, { { 0x34, 0x56, 0x12, 0x23 } }));
+    test_change(ClientFSM::FirstLayer, BaseData(0xFF, { { 0xFF, 0xFF, 0xFF, 0xFF } }));
 }
 
-TEST_CASE("fsm::variant_t", "[fsm_variant]") {
+TEST_CASE("fsm::variant_t", "[fsm]") {
     test_variant(ClientFSM(0));
     test_variant(ClientFSM::_none); // _none != 0
     test_variant(ClientFSM::Load_unload);
 }
 
-TEST_CASE("fsm::Queue", "[fsm_Queue]") {
+TEST_CASE("Equality of BaseData", "[fsm]") {
+    const BaseData base_data12(0x01, { { 0x02, 0x00, 0x00, 0x00 } });
+    const BaseData base_data12_b(0x01, { { 0x02, 0x00, 0x00, 0x00 } });
+    const BaseData base_data11(0x01, { { 0x01, 0x00, 0x00, 0x00 } });
+    const BaseData base_data21(0x02, { { 0x01, 0x00, 0x00, 0x00 } });
+    const BaseData base_data22(0x02, { { 0x02, 0x00, 0x00, 0x00 } });
+
+    REQUIRE(base_data12 == base_data12_b);
+    REQUIRE_FALSE(base_data12 == base_data11);
+    REQUIRE_FALSE(base_data12 == base_data21);
+    REQUIRE_FALSE(base_data12 == base_data22);
+
+    REQUIRE_FALSE(base_data12 != base_data12_b);
+    REQUIRE(base_data12 != base_data11);
+    REQUIRE(base_data12 != base_data21);
+    REQUIRE(base_data12 != base_data22);
+}
+
+TEST_CASE("fsm::Queue", "[fsm]") {
     MockQueue q;
     fsm::variant_t front = q.Front();
     fsm::variant_t back = q.Back();
@@ -141,26 +159,22 @@ TEST_CASE("fsm::Queue", "[fsm_Queue]") {
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(back.data == front.data);
+        REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::create);
         REQUIRE(front.GetType() == ClientFSM::Preheat);
         REQUIRE(front.create.data == data);
         q.Pop();
         q.TestEmpty();
 
-        const uint8_t phase = 0x21;
-        const uint8_t progress_tot = 0x32;
-        const uint8_t progress = 0x45;
-        q.PushChange(ClientFSM::Preheat, phase, progress_tot, progress);
+        const BaseData base_data(0xCD, { { 0xAB, 0xBA, 0x1A, 0xF0 } });
+        q.PushChange(ClientFSM::Preheat, base_data);
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(back.data == front.data);
+        REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::change);
         REQUIRE(front.GetType() == ClientFSM::Preheat);
-        REQUIRE(front.change.phase == phase);
-        REQUIRE(front.change.progress_tot == progress_tot);
-        REQUIRE(front.change.progress == progress);
+        REQUIRE(front.change.data == base_data);
         q.Pop();
         q.TestEmpty();
 
@@ -168,7 +182,7 @@ TEST_CASE("fsm::Queue", "[fsm_Queue]") {
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(back.data == front.data);
+        REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::destroy);
         REQUIRE(front.GetType() == ClientFSM::Preheat);
         q.Pop();
@@ -182,7 +196,7 @@ TEST_CASE("fsm::Queue", "[fsm_Queue]") {
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(back.data == front.data);
+        REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::destroy);
         REQUIRE(front.GetType() == ClientFSM::Preheat);
 
@@ -190,7 +204,7 @@ TEST_CASE("fsm::Queue", "[fsm_Queue]") {
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(back.data == front.data);
+        REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::destroy);
         REQUIRE(front.GetType() == ClientFSM::Preheat); // new destroy command cannot rewrite old one
 
@@ -206,7 +220,7 @@ TEST_CASE("fsm::Queue", "[fsm_Queue]") {
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(back.data == front.data);
+        REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::create);
         REQUIRE(front.GetType() == ClientFSM::Preheat);
         REQUIRE(front.create.data == data);
@@ -217,7 +231,7 @@ TEST_CASE("fsm::Queue", "[fsm_Queue]") {
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(back.data == front.data);
+        REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::create);
         REQUIRE(front.GetType() == ClientFSM::Preheat); // old one
         REQUIRE(front.create.data == data);             // old one
@@ -229,52 +243,42 @@ TEST_CASE("fsm::Queue", "[fsm_Queue]") {
     SECTION("Multiple change") {
         q.TestEmpty();
 
-        const uint8_t phase = 0x21;
-        const uint8_t progress_tot = 0x32;
-        const uint8_t progress = 0x45;
-        q.PushChange(ClientFSM::Preheat, phase, progress_tot, progress);
+        const BaseData base_data(0x1D, { { 0xF0, 0xAB, 0xBA, 0x1A } });
+        q.PushChange(ClientFSM::Preheat, base_data);
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(back.data == front.data);
+        REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::change);
         REQUIRE(front.GetType() == ClientFSM::Preheat);
-        REQUIRE(front.change.phase == phase);
-        REQUIRE(front.change.progress_tot == progress_tot);
-        REQUIRE(front.change.progress == progress);
+        REQUIRE(front.change.data == base_data);
 
         //insertion must fail .. wrong type
-        const uint8_t phase2 = 0x12;
-        const uint8_t progress_tot2 = 0x23;
-        const uint8_t progress2 = 0x5A;
-        q.PushChange(ClientFSM::Load_unload, phase2, progress_tot2, progress2);
+        const BaseData base_data2(0x20, { { 0xF0, 0xAB, 0xBA, 0x1A } });
+        q.PushChange(ClientFSM::Load_unload, base_data2);
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(back.data == front.data);
+        REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::change);
-        REQUIRE(front.GetType() == ClientFSM::Preheat);     //old one
-        REQUIRE(front.change.phase == phase);               //old one
-        REQUIRE(front.change.progress_tot == progress_tot); //old one
-        REQUIRE(front.change.progress == progress);         //old one
+        REQUIRE(front.GetType() == ClientFSM::Preheat); //old one
+        REQUIRE(front.change.data == base_data);        //old one
 
         //insertion must rewrite last one .. same type
-        q.PushChange(ClientFSM::Preheat, phase2, progress_tot2, progress2);
+        q.PushChange(ClientFSM::Preheat, base_data2);
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(back.data == front.data);
+        REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::change);
-        REQUIRE(front.GetType() == ClientFSM::Preheat);      //new one (but same as old one)
-        REQUIRE(front.change.phase == phase2);               //new one
-        REQUIRE(front.change.progress_tot == progress_tot2); //new one
-        REQUIRE(front.change.progress == progress2);         //new one
+        REQUIRE(front.GetType() == ClientFSM::Preheat); //new one (but same as old one)
+        REQUIRE(front.change.data == base_data2);       //new one
 
         q.Pop();
         q.TestEmpty();
     }
 
-    SECTION("Multiple max queue length") {
+    SECTION("Max queue length") {
         q.TestEmpty();
 
         //destroy
@@ -294,35 +298,135 @@ TEST_CASE("fsm::Queue", "[fsm_Queue]") {
         REQUIRE(back.create.data == data);
 
         //change
-        const uint8_t phase = 0x21;
-        const uint8_t progress_tot = 0x32;
-        const uint8_t progress = 0x45;
-        q.PushChange(ClientFSM::Preheat, phase, progress_tot, progress);
+        const BaseData base_data(0x1D, { { 0xF0, 0xAB, 0xBA, 0x1A } });
+        q.PushChange(ClientFSM::Preheat, base_data);
         back = q.Back();
         REQUIRE(q.GetCount() == 3);
         REQUIRE(back.GetCommand() == ClientFSM_Command::change);
         REQUIRE(back.GetType() == ClientFSM::Preheat);
-        REQUIRE(back.change.phase == phase);
-        REQUIRE(back.change.progress_tot == progress_tot);
-        REQUIRE(back.change.progress == progress);
+        REQUIRE(back.change.data == base_data);
 
-        /*
         //insertion must rewrite last change .. same type
-        q.PushChange(ClientFSM::Preheat, phase2, progress_tot2, progress2);
-        front = q.Front();
+        const BaseData base_data2(0x20, { { 0xA0, 0xAB, 0xCD, 0xFA } });
+        q.PushChange(ClientFSM::Preheat, base_data2);
         back = q.Back();
         REQUIRE(q.GetCount() == 3);
-        REQUIRE(back.data == front.data);
-        REQUIRE(front.GetCommand() == ClientFSM_Command::change);
-        REQUIRE(front.GetType() == ClientFSM::Preheat);      //new one (but same as old one)
-        REQUIRE(front.change.phase == phase2);               //new one
-        REQUIRE(front.change.progress_tot == progress_tot2); //new one
-        REQUIRE(front.change.progress == progress2);         //new one
-*/
+        REQUIRE(back.GetCommand() == ClientFSM_Command::change); //new one (but same as old one)
+        REQUIRE(back.GetType() == ClientFSM::Preheat);           //new one (but same as old one)
+        REQUIRE(back.change.data == base_data2);                 //new one
+
+        //insertion must fail, crewate is already in queue
+        const uint8_t data2 = 0xAA;
+        q.PushCreate(ClientFSM::Load_unload, data2);
+        REQUIRE(q.GetCount() == 3);
+
+        front = q.Front(); //destroy
+        REQUIRE(q.GetCount() == 3);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::destroy);
+        REQUIRE(front.GetType() == ClientFSM::Preheat);
+
         q.Pop();
+        front = q.Front(); //create
         REQUIRE(q.GetCount() == 2);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(front.GetType() == ClientFSM::Preheat);
+        REQUIRE(front.create.data == data);
+
         q.Pop();
+        front = q.Front(); //change with rewritten data
         REQUIRE(q.GetCount() == 1);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::change);
+        REQUIRE(front.GetType() == ClientFSM::Preheat);
+        REQUIRE(front.change.data == base_data2); //new data
+
+        q.Pop();
+        q.TestEmpty();
+    }
+
+    SECTION("Erase queue by pushing destroy") {
+        q.TestEmpty();
+
+        //destroy
+        q.PushDestroy(ClientFSM::Load_unload);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::destroy);
+        REQUIRE(back.GetType() == ClientFSM::Load_unload);
+
+        //create
+        const uint8_t data = 0x25;
+        q.PushCreate(ClientFSM::Preheat, data);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 2);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(back.GetType() == ClientFSM::Preheat);
+        REQUIRE(back.create.data == data);
+
+        //change
+        const BaseData base_data(0x1D, { { 0xF0, 0xAB, 0xBA, 0x1A } });
+        q.PushChange(ClientFSM::Preheat, base_data);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 3);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::change);
+        REQUIRE(back.GetType() == ClientFSM::Preheat);
+        REQUIRE(back.change.data == base_data);
+
+        //destroy must clear queue, without changing existing destroy
+        q.PushDestroy(ClientFSM::Preheat);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::destroy);
+        REQUIRE(back.GetType() == ClientFSM::Load_unload); // new destroy command cannot rewrite old one
+
+        q.Pop();
+        q.TestEmpty();
+    }
+
+    SECTION("Erase queue") {
+        q.TestEmpty();
+
+        //create
+        const uint8_t data = 0x25;
+        q.PushCreate(ClientFSM::Preheat, data);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(back.GetType() == ClientFSM::Preheat);
+        REQUIRE(back.create.data == data);
+
+        //change
+        const BaseData base_data(0x1D, { { 0xF0, 0xAB, 0xBA, 0x1A } });
+        q.PushChange(ClientFSM::Preheat, base_data);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 2);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::change);
+        REQUIRE(back.GetType() == ClientFSM::Preheat);
+        REQUIRE(back.change.data == base_data);
+
+        //there is no destroy must clear queue
+        q.PushDestroy(ClientFSM::Preheat);
+        q.TestEmpty();
+    }
+
+    SECTION("Erase queue and insert ne destroy since there was no create/destroy") {
+        q.TestEmpty();
+
+        //change
+        const BaseData base_data(0x1D, { { 0xF0, 0xAB, 0xBA, 0x1A } });
+        q.PushChange(ClientFSM::Preheat, base_data);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::change);
+        REQUIRE(back.GetType() == ClientFSM::Preheat);
+        REQUIRE(back.change.data == base_data);
+
+        //destroy must clear queue, and insert itself
+        q.PushDestroy(ClientFSM::Load_unload);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::destroy); // change rewritten to destroy
+        REQUIRE(back.GetType() == ClientFSM::Load_unload);        // change rewritten to destroy even if type does not match
+
         q.Pop();
         q.TestEmpty();
     }
