@@ -1587,7 +1587,8 @@ void FSM_notifier::SendNotification() {
     // after first sent, progress can only rise
     if ((s_data.last_progress_sent == uint8_t(-1)) || (progress > s_data.last_progress_sent)) {
         s_data.last_progress_sent = progress;
-        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, { { uint8_t(progress) } }));
+        ProgressSerializer serializer(progress);
+        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, serializer.Serialize()));
     }
     activeInstance->postSendNotification();
 }

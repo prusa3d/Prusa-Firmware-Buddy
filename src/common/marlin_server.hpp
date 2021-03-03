@@ -4,6 +4,7 @@
 #include "marlin_server.h"
 #include "client_response.hpp"
 #include "fsm_types.hpp"
+#include "fsm_progress_type.hpp"
 
 /*****************************************************************************/
 //C++ only features
@@ -137,8 +138,9 @@ public:
     }
 
     template <class T>
-    void Change(T phase, uint8_t progress_tot, uint8_t progress) const {
-        fsm_change(dialog, phase, progress_tot, progress);
+    void Change(T phase, uint8_t progress) const {
+        ProgressSerializer serializer(progress);
+        fsm_change(dialog, phase, serializer.Serialize());
     }
 
     ~FSM_Holder() {
