@@ -58,14 +58,17 @@ union variant_t {
         uint16_t u16;
     };
     constexpr variant_t()
-        : u32(0) {} //ClientFSM_Command::none
+        : u32(0) //contains ClientFSM_Command::none
+        , u16(0) {}
     constexpr variant_t(uint32_t u32, uint16_t u16)
         : u32(u32)
         , u16(u16) {}
-    constexpr variant_t(create_t create)
-        : create(create) {}
-    constexpr variant_t(destroy_t destroy)
-        : destroy(destroy) {}
+    constexpr variant_t(create_t create_)
+        : variant_t() // avoid uninitialized warning when accessing u16
+    { create = create_; }
+    constexpr variant_t(destroy_t destroy_)
+        : variant_t() // avoid uninitialized warning when accessing u16
+    { destroy = destroy_; }
     constexpr variant_t(change_t change)
         : change(change) {}
     constexpr ClientFSM_Command GetCommand() const { return create.type.GetCommand(); }

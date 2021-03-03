@@ -2,6 +2,7 @@
 #include "guitypes.hpp"
 #include "i18n.h"
 #include "resource.h" //IDR_FNT_BIG
+#include "fsm_progress_type.hpp"
 
 static const constexpr int PROGRESS_BAR_X_PAD = 10;
 static const constexpr int PROGRESS_BAR_Y_PAD = 30;
@@ -53,7 +54,8 @@ bool IDialogStateful::change(uint8_t phs, fsm::PhaseData data) {
         phaseEnter();
     }
 
-    progress.SetValue(data[1] <= 100 ? data[1] : 0); //TODO
+    ProgressSerializer serializer(data);
+    progress.SetValue(serializer.progress);
     //Invalidate();
     return true;
 }

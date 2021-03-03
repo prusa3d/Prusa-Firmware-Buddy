@@ -78,9 +78,10 @@ PausePrivatePhase::PausePrivatePhase()
     , nozzle_restore_temp(NAN)
     , bed_restore_temp(NAN) {}
 
-void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress_tot) {
+void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress) {
     phase = ph;
-    fsm_change(ClientFSM::Load_unload, phase, { { progress_tot } });
+    ProgressSerializer serializer(progress);
+    fsm_change(ClientFSM::Load_unload, phase, serializer.Serialize());
 }
 
 PhasesLoadUnload PausePrivatePhase::getPhase() const { return phase; }
