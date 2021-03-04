@@ -8,7 +8,7 @@
 #pragma once
 
 #include "fsm_base_types.hpp"
-#include "wizard_config.hpp" // SelftestSubtestState_t
+#include "selftest_sub_state.hpp"
 
 struct SelftestAxis_t {
     uint8_t x_progress;
@@ -46,5 +46,13 @@ struct SelftestAxis_t {
         x_state = SelftestSubtestState_t(new_data[3] & 0x03);
         y_state = SelftestSubtestState_t((new_data[3] >> 2) & 0x03);
         z_state = SelftestSubtestState_t((new_data[3] >> 4) & 0x03);
+    }
+
+    constexpr bool operator==(const SelftestAxis_t &other) const {
+        return (x_progress == other.x_progress) && (y_progress == other.y_progress) && (z_progress == other.z_progress) && (x_state == other.x_state) && (y_state == other.y_state) && (z_state == other.z_state);
+    }
+
+    constexpr bool operator!=(const SelftestAxis_t &other) const {
+        return !((*this) == other);
     }
 };

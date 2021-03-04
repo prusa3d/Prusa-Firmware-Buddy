@@ -8,7 +8,7 @@
 #pragma once
 
 #include "fsm_base_types.hpp"
-#include "wizard_config.hpp" // SelftestSubtestState_t
+#include "selftest_sub_state.hpp"
 
 struct SelftestHeaters_t {
     uint8_t noz_progress;
@@ -49,5 +49,13 @@ struct SelftestHeaters_t {
         noz_heat_state = SelftestSubtestState_t((new_data[2] >> 2) & 0x03);
         bed_prep_state = SelftestSubtestState_t(new_data[3] & 0x03);
         bed_heat_state = SelftestSubtestState_t((new_data[3] >> 2) & 0x03);
+    }
+
+    constexpr bool operator==(const SelftestHeaters_t &other) const {
+        return (noz_progress == other.noz_progress) && (bed_progress == other.bed_progress) && (noz_prep_state == other.noz_prep_state) && (noz_heat_state == other.noz_heat_state) && (bed_prep_state == other.bed_prep_state) && (bed_heat_state == other.bed_heat_state);
+    }
+
+    constexpr bool operator!=(const SelftestHeaters_t &other) const {
+        return !((*this) == other);
     }
 };

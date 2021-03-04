@@ -30,4 +30,12 @@ struct ProgressSerializer {
     constexpr void Deserialize(fsm::PhaseData new_data) {
         progress = new_data[0];
     }
+
+    constexpr bool operator==(const ProgressSerializer &other) const {
+        return progress == other.progress;
+    }
+
+    constexpr bool operator!=(const ProgressSerializer &other) const {
+        return !((*this) == other);
+    }
 };
