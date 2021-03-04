@@ -7,6 +7,7 @@
 #include "window_term.hpp"
 #include "window_print_progress.hpp"
 #include "ScreenPrintingModel.hpp"
+#include "screen_saver.hpp"
 #include <array>
 
 enum class printing_state_t : uint8_t {
@@ -42,6 +43,8 @@ constexpr static const size_t MAX_TIMEDUR_STR_SIZE = 9;
 
 class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     static constexpr const char *caption = N_("PRINTING");
+
+    ScreenSaver scr_saver;
 
     window_roll_text_t w_filename;
     WindowPrintProgress w_progress;
