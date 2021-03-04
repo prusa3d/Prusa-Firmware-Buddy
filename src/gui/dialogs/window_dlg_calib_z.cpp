@@ -20,5 +20,5 @@ dlg_result_t gui_dlg_calib_z(void) {
     marlin_gcode("G162 Z");
     // create blocking dialog
     DialogHandler::WaitUntilClosed(ClientFSM::G162, 0);
-    return DLG_OK;
+    return dlg_result_t::ok;
 }

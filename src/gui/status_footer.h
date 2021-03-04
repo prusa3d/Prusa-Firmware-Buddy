@@ -11,7 +11,7 @@ enum class HeatState : uint8_t {
     STABLE,
 };
 
-class status_footer_t : public window_frame_t {
+class status_footer_t : public AddSuperWindow<window_frame_t> {
     window_icon_t wi_nozzle;
     window_icon_t wi_heatbed;
     window_icon_t wi_prnspeed;
@@ -34,10 +34,12 @@ class status_footer_t : public window_frame_t {
     uint32_t last_timer_repaint_values;
     uint32_t last_timer_repaint_colors;
     uint32_t last_timer_repaint_z_pos;
+    uint32_t last_timer_repaint_profile;
     uint16_t print_speed; /// print speed in percents
     HeatState nozzle_state;
     HeatState heatbed_state;
     bool show_second_color;
+    uint32_t cached_no_of_calibrated_sheets;
 
     void timer(uint32_t mseconds);
     void update_nozzle(const marlin_vars_t *vars);
@@ -49,6 +51,7 @@ class status_footer_t : public window_frame_t {
     void repaint_nozzle();
     void repaint_heatbed();
     void update_sheet_profile();
+    uint32_t no_of_calibrated_sheets();
 
 public:
     status_footer_t(window_t *parent);
@@ -57,9 +60,10 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
-static const uint16_t REPAINT_Z_POS_PERIOD = 256;  /// time span between z position repaint [miliseconds]
-static const uint16_t REPAINT_VALUE_PERIOD = 1024; /// time span between value repaint [miliseconds]
-static const uint16_t BLINK_PERIOD = 512;          /// time span between color changes [miliseconds]
+static const uint16_t REPAINT_Z_POS_PERIOD = 256;    /// time span between z position repaint [miliseconds]
+static const uint16_t REPAINT_VALUE_PERIOD = 1024;   /// time span between value repaint [miliseconds]
+static const uint16_t BLINK_PERIOD = 512;            /// time span between color changes [miliseconds]
+static const uint16_t REPAINT_PROFILE_PERIOD = 1024; /// time span between profile changes [miliseconds]
 
 static const uint8_t COOL_NOZZLE = 50; /// highest temperature of nozzle to be considered as cool
 static const uint8_t COOL_BED = 45;    /// highest temperature of bed to be considered as cool

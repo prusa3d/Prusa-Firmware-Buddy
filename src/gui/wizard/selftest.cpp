@@ -7,6 +7,7 @@
 #include "DialogHandler.hpp"
 #include "eeprom.h"
 #include "screen_wizard.hpp"
+#include "DialogSelftestResult.hpp"
 
 WizardState_t StateFnc_SELFTEST_FAN() {
     marlin_test_start(stmFans);
@@ -48,12 +49,14 @@ WizardState_t StateFnc_SELFTEST_RESULT() {
 
     SelftestResultEEprom_t result;
     result.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+
     if (result.fan0 == SelftestResult_Passed && result.fan1 == SelftestResult_Passed && result.xaxis == SelftestResult_Passed && result.yaxis == SelftestResult_Passed && result.zaxis == SelftestResult_Passed && result.nozzle == SelftestResult_Passed && result.bed == SelftestResult_Passed) {
         eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
         MsgBoxPepa(IsStateInWizardMask(WizardState_t::XYZCALIB_first, ScreenWizard::GetMask()) ? translated_xyz : translated_ok, Responses_Next);
         return WizardState_t::next;
     } else {
         MsgBox(translated_nok, Responses_Next);
+        DialogSelftestResult::Show(result);
         return WizardState_t::EXIT;
     }
 }

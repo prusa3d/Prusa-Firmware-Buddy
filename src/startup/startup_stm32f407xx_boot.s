@@ -104,17 +104,6 @@ LoopFillZerobss:
   ldr  r3, = _ebss
   cmp  r2, r3
   bcc  FillZerobss
-  ldr  r2, =_sboot_fw_data_exchange
-  b  LoopFillZeroBootData	/* Zero fill ram data exchange area */
-
-FillZeroBootData:
-  movs  r3, #0
-  str  r3, [r2], #4
-
-LoopFillZeroBootData:
-  ldr  r3, = _eboot_fw_data_exchange
-  cmp  r2, r3
-  bcc  FillZeroBootData
 
 /* Call the clock system intitialization function.*/
   bl  SystemInit

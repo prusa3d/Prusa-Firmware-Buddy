@@ -22,6 +22,7 @@
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "menu_spin_config.hpp"
+#include "DialogSelftestResult.hpp"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -30,7 +31,7 @@ MI_WIZARD::MI_WIZARD()
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunAll();
+    ScreenWizard::Run(wizard_run_type_t::all);
 }
 
 /*****************************************************************************/
@@ -85,7 +86,19 @@ MI_SELFTEST::MI_SELFTEST()
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunSelfTest();
+    ScreenWizard::Run(wizard_run_type_t::selftest);
+}
+
+/*****************************************************************************/
+//MI_SELFTEST_RESULT
+MI_SELFTEST_RESULT::MI_SELFTEST_RESULT()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
+    SelftestResultEEprom_t result;
+    result.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    DialogSelftestResult::Show(result);
 }
 
 /*****************************************************************************/
@@ -95,7 +108,7 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunFirstLay();
+    ScreenWizard::Run(wizard_run_type_t::firstlay);
 }
 
 /*****************************************************************************/
@@ -187,6 +200,26 @@ void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     else
         MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
+}
+
+/*****************************************************************************/
+//MI_XFLASH_DELETE
+MI_XFLASH_DELETE::MI_XFLASH_DELETE()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_XFLASH_DELETE::click(IWindowMenu & /*window_menu*/) {
+    dump_in_xflash_delete();
+}
+
+/*****************************************************************************/
+//MI_XFLASH_RESET
+MI_XFLASH_RESET::MI_XFLASH_RESET()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
+    dump_in_xflash_reset();
 }
 
 /*****************************************************************************/
@@ -395,7 +428,6 @@ void MI_TIMEZONE::OnClick() {
 //I_MI_Filament
 void I_MI_Filament::click_at(FILAMENT_t filament_index) {
     const filament_t filament = filaments[filament_index];
-    marlin_gcode("M86 S1800"); // enable safety timer
     /// don't use preheat temp for cooldown
     if (PREHEAT_TEMP >= filament.nozzle) {
         marlin_gcode_printf("M104 S%d", (int)filament.nozzle);

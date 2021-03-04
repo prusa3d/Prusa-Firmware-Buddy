@@ -3,8 +3,10 @@
 #include "window_header.hpp"
 #include "status_footer.h"
 #include "gui.hpp"
+#include "screen.hpp"
 
-struct screen_home_data_t : public AddSuperWindow<window_frame_t> {
+struct screen_home_data_t : public AddSuperWindow<screen_t> {
+    static bool usbWasAlreadyInserted; // usb inserted at least once
     bool usbInserted;
 
     window_header_t header;

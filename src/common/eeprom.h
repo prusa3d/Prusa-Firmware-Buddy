@@ -77,7 +77,7 @@ enum {
     EEVAR_SHEET_PROFILE6 = 0x26,
     EEVAR_SHEET_PROFILE7 = 0x27,
     EEVAR_SELFTEST_RESULT = 0x28, // uint32_t, two bits for each selftest part
-    EEVAR_QR_PRIVACY = 0x29,      // uint8_t on / off sending UID in QR
+    EEVAR_DEVHASH_IN_QR = 0x29,   // uint8_t on / off sending UID in QR
     EEVAR__PADDING = 0x2a,        // 1..4 chars, to ensure (DATASIZE % 4 == 0)
     EEVAR_CRC32 = 0x2b,           // uint32_t crc32 for
 };
@@ -108,12 +108,25 @@ typedef union _SelftestResultEEprom_t {
     uint32_t ui32;
 } SelftestResultEEprom_t;
 
+enum {
+    EEPROM_INIT_Undefined = -1,
+    EEPROM_INIT_Normal = 0,
+    EEPROM_INIT_Defaults = 1,
+    EEPROM_INIT_Upgraded = 2
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
 
-// initialize eeprom, return values:  1 - defaults loaded, 0 - normal init (eeprom data valid)
+/// initialize eeprom
+/// @returns 0 - normal init (eeprom data valid)
+///          1 - defaults loaded
+///          2 - eeprom upgraded successfully from a previous version
 extern uint8_t eeprom_init(void);
+
+// returns last result of eeprom_init() or EEPROM_INIT_Undefined
+extern uint8_t eeprom_get_init_status(void);
 
 // write default values to all variables
 extern void eeprom_defaults(void);

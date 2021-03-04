@@ -63,6 +63,21 @@ static uint32_t crc32_hw(const uint32_t *buffer, uint32_t length, uint32_t crc) 
     return result;
 }
 
+uint32_t crc32_eeprom(const uint32_t *buffer, uint32_t length) {
+    // ensure nobody else uses the peripheral
+    osMutexWait(crc32_hw_mutex_id, osWaitForever);
+    // prepare the CRC unit
+    CRC->CR = CRC_CR_RESET;
+    // calculate the CRC32 value
+    while (length--) {
+        CRC->DR = *((uint32_t *)buffer++);
+    }
+    uint32_t result = CRC->DR;
+    // release the peripheral
+    osMutexRelease(crc32_hw_mutex_id);
+    return result;
+}
+
 static uint32_t crc32_soft(const uint8_t *buffer, uint32_t length, uint32_t crc) {
     uint32_t value = crc ^ 0xFFFFFFFF;
     while (length--) {

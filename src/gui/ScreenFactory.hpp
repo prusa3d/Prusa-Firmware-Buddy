@@ -12,8 +12,8 @@ class ScreenFactory {
     static mem_space all_screens;
 
 public:
-    using UniquePtr = static_unique_ptr<window_frame_t>;
-    using Creator = static_unique_ptr<window_frame_t> (*)(); //function pointer definition
+    using UniquePtr = static_unique_ptr<screen_t>;
+    using Creator = static_unique_ptr<screen_t> (*)(); //function pointer definition
 
     template <class T>
     static UniquePtr Screen() {

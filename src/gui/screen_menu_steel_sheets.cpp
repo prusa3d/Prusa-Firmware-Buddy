@@ -122,12 +122,12 @@ protected:
         case profile_action::Select:
             _dbg("MI_SHEET_SELECT");
             sheet_select(Index::value);
-            marlin_settings_load();
+            marlin_set_z_offset(variant8_get_flt(eeprom_get_var(EEVAR_ZOFFSET)));
             break;
         case profile_action::Calibrate:
             _dbg("MI_SHEET_CALIBRATE");
             sheet_calibrate(Index::value);
-            ScreenWizard::RunFirstLay();
+            ScreenWizard::Run(wizard_run_type_t::firstlay);
             break;
         case profile_action::Rename:
             _dbg("MI_SHEET_RENAME");

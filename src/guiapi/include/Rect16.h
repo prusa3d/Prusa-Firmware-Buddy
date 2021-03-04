@@ -496,6 +496,22 @@ public:
 		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
 		 */
     void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
+
+    /**
+     * @brief Line operation substracts subtrahend
+     * Top and Height is ignored
+     * @param subtrahend the rect that is to be subtracted.
+     * @return Rect16 front part of original rect after substraction
+     */
+    Rect16 LeftSubrect(Rect16 subtrahend);
+
+    /**
+     * @brief Line operation substracts subtrahend
+     * Top and Height is ignored
+     * @param subtrahend the rect that is to be subtracted.
+     * @return Rect16 tail part of original rect after substraction
+     */
+    Rect16 RightSubrect(Rect16 subtrahend);
 };
 
 ////////////////////////////////////////////////////////////////////////////

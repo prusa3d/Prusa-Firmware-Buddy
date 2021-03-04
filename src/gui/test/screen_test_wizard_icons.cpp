@@ -16,7 +16,7 @@ static const char label_wizard_icon_search[] = "icon_search";
 static const char label_wizard_icon_measure[] = "icon_measure";
 
 screen_test_wizard_icons::screen_test_wizard_icons()
-    : window_frame_t()
+    : AddSuperWindow<screen_t>()
     , tst(this, Rect16(10, 32, 220, 22), is_multiline::no)
     , back(this, Rect16(10, 54, 220, 22), is_multiline::no, is_closed_on_click_t::yes)
     , txt_na(this, Rect16(10, 76, 220 - 22, 22), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_wizard_icon_na))

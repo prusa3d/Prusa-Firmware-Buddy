@@ -4,8 +4,6 @@
 #include "window_header.hpp"
 #include "window_roll_text.hpp"
 #include "window_icon.hpp"
-#include "window_spin.hpp"
-#include "window_list.hpp"
 #include "window_term.hpp"
 #include "window_print_progress.hpp"
 #include "ScreenPrintingModel.hpp"
@@ -77,7 +75,7 @@ private:
     void invalidate_print_state();
     void disable_tune_button();
     void enable_tune_button();
-    void update_remaining_time(time_t rawtime, uint16_t print_speed);
+    void update_remaining_time(uint32_t sec, uint16_t print_speed); // must use uint32_t instead time_t, because of validity check
     void update_end_timestamp(time_t now_sec, uint16_t print_speed);
     void update_print_duration(time_t rawtime);
     void screen_printing_reprint();
@@ -88,6 +86,7 @@ private:
     void set_tune_icon_and_label();
     void set_stop_icon_and_label();
     void change_print_state();
+    void change_etime();
 
     virtual void stopAction() override;
     virtual void pauseAction() override;

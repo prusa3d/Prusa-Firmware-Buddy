@@ -48,7 +48,6 @@ enum class PhasesLoadUnload : uint16_t {
     IsFilamentUnloaded,
     ManualUnload,
     UserPush,
-    NozzleTimeout,
     MakeSureInserted,
     Inserting,
     IsFilamentInGear,
@@ -87,9 +86,9 @@ enum class PhasesSelftestAxis : uint16_t {
 //not bound to responses
 enum class PhasesSelftestHeat : uint16_t {
     _first = static_cast<uint16_t>(PhasesSelftestAxis::_last) + 1,
-    noz_cool = _first, //in this case is safe to have Xaxis == _first
+    noz_prep = _first, //in this case is safe to have Xaxis == _first
     noz_heat,
-    bed_cool,
+    bed_prep,
     bed_heat,
     _last = bed_heat
 };
@@ -135,6 +134,10 @@ public:
     template <class T>
     static const PhaseResponses &GetResponses(T phase) {
         return getResponsesInPhase(phase);
+    }
+    template <class T>
+    static bool HasButton(T phase) {
+        return GetResponse(phase, 0) != Response::_none; // this phase has no responses
     }
 
     //encode phase and client response (in GUI radio button and clicked index) into int

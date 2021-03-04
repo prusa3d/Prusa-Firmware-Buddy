@@ -55,6 +55,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_SELFTEST_RESULT : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Show SelfTest result");
+
+public:
+    MI_SELFTEST_RESULT();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_CALIB_FIRST : public WI_LABEL_t {
     static constexpr const char *const label = N_("First Layer Calibration");
 
@@ -140,6 +150,26 @@ class MI_SAVE_DUMP : public WI_LABEL_t {
 
 public:
     MI_SAVE_DUMP();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_XFLASH_DELETE : public WI_LABEL_t {
+    static constexpr const char *const label = "XFLASH DELETE"; // intentionally not translated, only for debugging
+
+public:
+    MI_XFLASH_DELETE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_XFLASH_RESET : public WI_LABEL_t {
+    static constexpr const char *const label = "XFLASH RESET"; // intentionally not translated, only for debugging
+
+public:
+    MI_XFLASH_RESET();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -342,7 +372,7 @@ template <FILAMENT_t T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[T].long_name)) {}
+        : I_MI_Filament(_(filaments[T].long_name)) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {

@@ -31,6 +31,7 @@
 #include "safe_state.h"
 #include "crc32.h"
 #include "ff.h"
+#include "dump.h"
 
 #include <Arduino.h>
 #include "trinamic.h"
@@ -43,13 +44,15 @@ CFanCtl fanctl0 = CFanCtl(
     buddy::hw::fan0tach,
     FANCTL0_PWM_MIN, FANCTL0_PWM_MAX,
     FANCTL0_RPM_MIN, FANCTL0_RPM_MAX,
-    FANCTL0_PWM_THR);
+    FANCTL0_PWM_THR,
+    is_autofan_t::no);
 CFanCtl fanctl1 = CFanCtl(
     buddy::hw::fan1pwm,
     buddy::hw::fan1tach,
     FANCTL1_PWM_MIN, FANCTL1_PWM_MAX,
     FANCTL1_RPM_MIN, FANCTL1_RPM_MAX,
-    FANCTL1_PWM_THR);
+    FANCTL1_PWM_THR,
+    is_autofan_t::yes);
 #endif //NEW_FANCTL
 
 #define DBG _dbg0 //debug level 0
@@ -96,9 +99,6 @@ void app_run(void) {
         osThreadResume(webServerTaskHandle);
 #endif //BUDDY_ENABLE_ETHERNET
 
-    crc32_init();
-
-    uint8_t defaults_loaded = eeprom_init();
     LangEEPROM::getInstance();
 
     marlin_server_init();
@@ -118,17 +118,17 @@ void app_run(void) {
             for (int i = 0; i < hwio_fan_get_cnt(); ++i)
                 hwio_fan_set_pwm(i, 0); // disable fans
         }
-        reset_trinamic_drivers();
         if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
             init_tmc();
         }
+        reset_trinamic_drivers();
     } else {
         app_setup();
         marlin_server_start_processing();
     }
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
-    if (defaults_loaded && marlin_server_processing()) {
+    if (eeprom_get_init_status() == EEPROM_INIT_Defaults && marlin_server_processing()) {
         settings.reset();
     }
 

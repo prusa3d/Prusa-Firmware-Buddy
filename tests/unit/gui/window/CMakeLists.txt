@@ -2,9 +2,11 @@
 add_executable(
   window_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/tests_window.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/mock_windows.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/window_text_stub.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window_frame.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/screen.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/Rect16.cpp
   ${CMAKE_SOURCE_DIR}/src/gui/dialogs/window_dlg_popup.cpp
   ${CMAKE_SOURCE_DIR}/src/gui/dialogs/IDialog.cpp

@@ -24,7 +24,7 @@
 #if ENABLED(HOST_PROMPT_SUPPORT) && DISABLED(EMERGENCY_PARSER)
 
     #include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
-    #include "../../lib/Marlin/Marlin/src/feature/safety_timer.h"
+    #include "safety_timer_stubbed.hpp"
     #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
     #include "../../lib/Marlin/Marlin/src/Marlin.h"
     #include "marlin_server.hpp"
@@ -51,7 +51,7 @@ void GcodeSuite::M876() {
                 fsm_create(ClientFSM::Serial_printing);
             } else {
                 fsm_destroy(ClientFSM::Serial_printing);
-                safety_timer_set_interval(1800000); // in miliseconds
+                SafetyTimer::Instance().ReInit(); // in miliseconds
             }
         }
         if (parser.seenval('S'))

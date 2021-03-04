@@ -30,8 +30,8 @@ static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode fil
 static void wui_marlin_client_init(void) {
     wui_marlin_vars = marlin_client_init(); // init the client
     // force update variables when starts
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM, NULL);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
     if (wui_marlin_vars) {
         wui_marlin_vars->media_LFN = wui_media_LFN;
     }
@@ -92,6 +92,6 @@ void StartWebServerTask(void const *argument) {
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
-        osDelay(1);
+        osDelay(1000);
     }
 }

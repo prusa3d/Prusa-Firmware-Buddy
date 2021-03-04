@@ -113,8 +113,8 @@ void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
     }
 
     if (!set_txt_rc.IsEmpty()) {
-        fill_between_rectangles(&rc, &set_txt_rc, clr_back);
-        render_text(set_txt_rc, /*str*/ text, font, clr_back, clr_text, 0);
+        Rect16 text_drawn_at(set_txt_rc.TopLeft(), render_text_singleline(set_txt_rc, text, font, clr_back, clr_text));
+        fill_between_rectangles(&rc, &text_drawn_at, clr_back);
     } else {
         display::FillRect(rc, clr_back);
     }

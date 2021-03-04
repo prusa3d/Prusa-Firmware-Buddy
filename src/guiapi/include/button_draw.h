@@ -1,7 +1,6 @@
 // button_draw.h
 #pragma once
 
-#include "stdbool.h"
 #include "guitypes.hpp"
 #include "../../lang/string_view_utf8.hpp"
 

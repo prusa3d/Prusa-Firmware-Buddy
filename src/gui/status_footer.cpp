@@ -48,7 +48,7 @@ void status_footer_t::windowEvent(EventLock /*has private ctor*/, window_t *send
     }
 
     if (dynamic_cast<screen_home_data_t *>(GetParent()) != nullptr //is home_screen
-        && sheet_number_of_calibrated() > 1) {                     // calibrated more profiles than 1
+        && no_of_calibrated_sheets() > 1) {                        // calibrated more profiles than 1
         update_sheet_profile();
     } else if (mseconds - last_timer_repaint_z_pos >= REPAINT_Z_POS_PERIOD) {
         update_z_axis();
@@ -232,7 +232,7 @@ void status_footer_t::update_sheet_profile() {
 }
 
 status_footer_t::status_footer_t(window_t *parent)
-    : window_frame_t(parent, GuiDefaults::RectFooter)
+    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectFooter)
     , wi_nozzle(this, Rect16(8, 270, 16, 16), IDR_PNG_nozzle_16px)
     , wi_heatbed(this, Rect16(128, 270, 20, 16), IDR_PNG_heatbed_16px)
     , wi_prnspeed(this, Rect16(10, 297, 16, 12), IDR_PNG_speed_16px)
@@ -252,10 +252,12 @@ status_footer_t::status_footer_t(window_t *parent)
     , last_timer_repaint_values(0)
     , last_timer_repaint_colors(0)
     , last_timer_repaint_z_pos(0)
+    , last_timer_repaint_profile(0)
     , print_speed(0) /// print speed in percents
     //, nozzle_state;
     //, heatbed_state;
-    , show_second_color(false) {
+    , show_second_color(false)
+    , cached_no_of_calibrated_sheets(0) {
 
     wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
     wt_nozzle.SetAlignment(ALIGN_CENTER);
@@ -283,7 +285,7 @@ status_footer_t::status_footer_t(window_t *parent)
     update_temperatures();
     update_feedrate();
     update_filament();
-    if (sheet_number_of_calibrated() > 1)
+    if (no_of_calibrated_sheets() > 1)
         update_sheet_profile();
     else
         update_z_axis();
@@ -291,4 +293,13 @@ status_footer_t::status_footer_t(window_t *parent)
     repaint_heatbed();
 
     Disable();
+}
+
+uint32_t status_footer_t::no_of_calibrated_sheets() {
+    uint32_t mseconds = HAL_GetTick();
+    if (mseconds - last_timer_repaint_profile >= REPAINT_PROFILE_PERIOD) {
+        cached_no_of_calibrated_sheets = sheet_number_of_calibrated();
+        last_timer_repaint_profile = mseconds;
+    }
+    return cached_no_of_calibrated_sheets;
 }

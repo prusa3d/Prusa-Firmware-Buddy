@@ -82,7 +82,9 @@ typedef struct {
     uint32_t command;       // actually running command
     uint32_t command_begin; // variable for notification
     uint32_t command_end;   // variable for notification
-    uint16_t flags;         // server flags (MARLIN_SFLG)
+    uint32_t knob_click_counter;
+    uint32_t knob_move_counter;
+    uint16_t flags; // server flags (MARLIN_SFLG)
     char request[MARLIN_MAX_REQUEST];
     uint8_t idle_cnt;         // idle call counter
     uint8_t pqueue_head;      // copy of planner.block_buffer_head
@@ -166,6 +168,24 @@ void marlin_server_init(void) {
     marlin_server.vars.media_SFN_path = media_print_filepath();
 }
 
+void print_fan_spd() {
+    if (DEBUGGING(INFO)) {
+        static int time = 0;
+        static int last_prt = 0;
+        time = HAL_GetTick();
+        int timediff = time - last_prt;
+        if (timediff >= 1000) {
+            serial_echopair_PGM("Tacho_FAN0 ", fanctl0.getActualRPM());
+            serialprintPGM("rpm ");
+            SERIAL_EOL();
+            serial_echopair_PGM("Tacho_FAN1 ", fanctl1.getActualRPM());
+            serialprintPGM("rpm ");
+            SERIAL_EOL();
+            last_prt = time;
+        }
+    }
+}
+
 #ifdef MINDA_BROKEN_CABLE_DETECTION
 static void print_Z_probe_cnt() {
     if (DEBUGGING(INFO)) {
@@ -194,6 +214,8 @@ int marlin_server_cycle(void) {
         _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
 
     FSM_notifier::SendNotification();
+
+    print_fan_spd();
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
@@ -641,6 +663,18 @@ void marlin_server_set_temp_to_display(float value) {
 }
 float marlin_server_get_temp_to_display(void) {
     return marlin_server.vars.display_nozzle;
+}
+
+float marlin_server_get_temp_nozzle(void) {
+    return marlin_server.vars.temp_nozzle;
+}
+
+extern uint32_t marlin_server_get_user_click_count(void) {
+    return marlin_server.knob_click_counter;
+}
+
+extern uint32_t marlin_server_get_user_move_count(void) {
+    return marlin_server.knob_move_counter;
 }
 
 //-----------------------------------------------------------------------------
@@ -1127,6 +1161,12 @@ static int _process_server_request(const char *request) {
         processed = 1;
     } else if (strcmp("!park", request) == 0) {
         marlin_server_park_head();
+        processed = 1;
+    } else if (strcmp("!kmove", request) == 0) {
+        ++marlin_server.knob_move_counter;
+        processed = 1;
+    } else if (strcmp("!kclick", request) == 0) {
+        ++marlin_server.knob_click_counter;
         processed = 1;
     } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
         ClientResponseHandler::SetResponse(ival);

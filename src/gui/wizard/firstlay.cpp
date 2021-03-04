@@ -5,7 +5,7 @@
 #include "filament_sensor.hpp"
 #include "filament.h"
 #include "window_dlg_preheat.hpp"
-#include "window_dlg_load_unload.h"
+#include "window_dlg_load_unload.hpp"
 #include "marlin_client.h"
 #include "menu_vars.h"
 #include "eeprom.h"
@@ -74,9 +74,9 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT() {
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_LOAD() {
     switch (gui_dlg_load_forced()) {
-    case DLG_OK:
+    case dlg_result_t::ok:
         return WizardState_t::FIRSTLAY_MSBX_CALIB;
-    case DLG_ABORTED:
+    case dlg_result_t::aborted:
         return WizardState_t::FIRSTLAY_FILAMENT_ASK;
     default:
         return WizardState_t::FIRSTLAY_MSBX_CALIB;
@@ -85,9 +85,9 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_LOAD() {
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_UNLOAD() {
     switch (gui_dlg_unload_forced()) {
-    case DLG_OK:
+    case dlg_result_t::ok:
         return WizardState_t::FIRSTLAY_FILAMENT_LOAD;
-    case DLG_ABORTED:
+    case dlg_result_t::aborted:
         return WizardState_t::FIRSTLAY_FILAMENT_ASK;
     default:
         return WizardState_t::FIRSTLAY_MSBX_CALIB;
@@ -105,10 +105,10 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_USEVAL() {
     //show dialog only when values are not equal
     float diff = marlin_vars()->z_offset - z_offset_def;
     if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
-        char buff[20 * 7];
+        char buff[21 * 9];
         {
-            char fmt[20 * 7];
-            // c=20 r=6
+            char fmt[21 * 9];
+            // c=21 r=9
             static const char fmt2Translate[] = N_("Do you want to use the current value?\nCurrent: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)");
             _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
             snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)marlin_vars()->z_offset, (double)z_offset_def);
@@ -131,6 +131,9 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_START_PRINT() {
     return WizardState_t::next;
 }
 
+//cannot add more gcodes, gcode queue is small
+//and it would block dialog opening
+//checking marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE))->gqueue and calling gui_loop() does not help
 WizardState_t StateFnc_FIRSTLAY_PRINT() {
     DialogHandler::Open(ClientFSM::FirstLayer, 0); //open screen now, it would auto open later (on G26)
 
@@ -138,6 +141,7 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
     const int temp_nozzle = std::max(int(marlin_vars()->display_nozzle), int(filaments[get_filament()].nozzle));
     const int temp_bed = std::max(int(marlin_vars()->target_bed), int(filaments[get_filament()].heatbed));
 
+    marlin_gcode("M73 P0 R0");                                             // reset progress
     marlin_gcode_printf("M104 S%d D%d", temp_nozzle_preheat, temp_nozzle); // nozzle target
     marlin_gcode_printf("M140 S%d", temp_bed);                             // bed target
     marlin_gcode_printf("M109 R%d", temp_nozzle_preheat);                  // Set target temperature, wait even if cooling
@@ -147,7 +151,6 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
     marlin_gcode_printf("M104 S%d", temp_nozzle);                          // set displayed temperature
     marlin_gcode_printf("M109 S%d", temp_nozzle);                          // wait for displayed temperature
     marlin_gcode("G26");                                                   // firstlay
-    marlin_gcode("G27 P2");                                                // park nozzle and raise Z axis when done
 
     WizardState_t ret = WizardState_t::FIRSTLAY_MSBX_REPEAT_PRINT;
     ScreenWizard::ChangeStartState(ret); //marlin_gcode("G26"); will close wizard screen, need to save reopen state

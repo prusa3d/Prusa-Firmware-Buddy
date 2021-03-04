@@ -177,7 +177,7 @@ const uint16_t WindowIcon_OkNg::id_res_ip0 = IDR_PNG_loading1_18px;
 const uint16_t WindowIcon_OkNg::id_res_ip1 = IDR_PNG_loading2_18px;
 
 //Icon rect is increased by padding, icon is centered inside it
-WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t padding)
+WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
     : AddSuperWindow<window_aligned_t>(
         parent,
         [pt, padding] {
@@ -188,7 +188,7 @@ WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t
                 sz.w + padding.left + padding.right,
                 sz.h + padding.top + padding.bottom);
         }()) {
-    SetState(SelftestSubtestState_t::undef);
+    SetState(state);
 }
 
 SelftestSubtestState_t WindowIcon_OkNg::GetState() const {

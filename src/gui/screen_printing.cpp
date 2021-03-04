@@ -166,6 +166,7 @@ screen_printing_data_t::screen_printing_data_t()
     initAndSetIconAndLabel(btn_tune, res_tune);
     initAndSetIconAndLabel(btn_pause, res_pause);
     initAndSetIconAndLabel(btn_stop, res_stop);
+    change_etime();
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -194,7 +195,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 
     /// check stop clicked when MBL is running
     printing_state_t p_state = GetState();
-    if (stop_pressed && waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && p_state == printing_state_t::ABORTING) {
+    if (stop_pressed && waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && (p_state == printing_state_t::ABORTING || p_state == printing_state_t::PAUSED)) {
         marlin_print_abort();
         waiting_for_abort = false;
         return;
@@ -215,18 +216,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (marlin_vars()->print_duration != last_print_duration)
         update_print_duration(marlin_vars()->print_duration);
     if (marlin_vars()->time_to_end != last_time_to_end) {
-        time_t sec = sntp_get_system_time();
-        if (sec != 0) {
-            // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-            // theoretically it can be removed completely in case the string is constant for the whole run of the screen
-            w_etime_label.SetText(label_etime = _("Print will end"));
-            update_end_timestamp(sec, marlin_vars()->print_speed);
-        } else {
-            // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-            w_etime_label.SetText(label_etime = _("Remaining Time"));
-            update_remaining_time(marlin_vars()->time_to_end, marlin_vars()->print_speed);
-        }
-        last_time_to_end = marlin_vars()->time_to_end;
+        change_etime();
     }
 
     /// -- close screen when print is done / stopped and USB media is removed
@@ -242,6 +232,21 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     }
 
     SuperWindowEvent(sender, event, param);
+}
+
+void screen_printing_data_t::change_etime() {
+    time_t sec = sntp_get_system_time();
+    if (sec != 0) {
+        // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
+        // theoretically it can be removed completely in case the string is constant for the whole run of the screen
+        w_etime_label.SetText(label_etime = _("Print will end"));
+        update_end_timestamp(sec, marlin_vars()->print_speed);
+    } else {
+        // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
+        w_etime_label.SetText(label_etime = _("Remaining Time"));
+        update_remaining_time(marlin_vars()->time_to_end, marlin_vars()->print_speed);
+    }
+    last_time_to_end = marlin_vars()->time_to_end;
 }
 
 void screen_printing_data_t::disable_tune_button() {
@@ -261,12 +266,15 @@ void screen_printing_data_t::enable_tune_button() {
     btn_tune.ico.Invalidate();
 }
 
-void screen_printing_data_t::update_remaining_time(time_t rawtime, uint16_t print_speed) {
-    w_etime_value.color_text = rawtime != time_t(-1) ? GuiDefaults::COLOR_VALUE_VALID : GuiDefaults::COLOR_VALUE_INVALID;
-    if (rawtime != time_t(-1)) {
-        if (print_speed != 100)
+void screen_printing_data_t::update_remaining_time(uint32_t sec, uint16_t print_speed) {
+    bool is_time_valid = sec < (60 * 60 * 24 * 365); // basic check, check of year in tm struct, does not work
+    w_etime_value.color_text = is_time_valid ? GuiDefaults::COLOR_VALUE_VALID : GuiDefaults::COLOR_VALUE_INVALID;
+    if (is_time_valid) {
+        time_t rawtime = time_t(sec);
+        if (print_speed != 100) {
             // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
             rawtime = (rawtime * 100) / print_speed;
+        }
         const struct tm *timeinfo = localtime(&rawtime);
         //standard would be:
         //strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
@@ -502,7 +510,7 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::PRINTING;
         break;
     case mpsPaused:
-        stop_pressed = false;
+        // stop_pressed = false;
         st = printing_state_t::PAUSED;
         break;
     case mpsPausing_Begin:

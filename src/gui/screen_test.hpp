@@ -3,14 +3,16 @@
 #include "gui.hpp"
 #include "window_text.hpp"
 #include "window_temp_graph.hpp"
+#include "screen.hpp"
 
-struct screen_test_data_t : public window_frame_t {
+struct screen_test_data_t : public AddSuperWindow<screen_t> {
     window_text_t test;
     window_text_t back;
     window_text_button_t tst_gui;
     window_text_button_t tst_term;
     window_text_button_t tst_msgbox;
     window_text_button_t tst_wizard_icons;
+    window_text_button_t tst_safety_dlg;
     window_text_button_t tst_graph;
     window_text_button_t tst_temperature;
     window_text_button_t tst_heat_err;

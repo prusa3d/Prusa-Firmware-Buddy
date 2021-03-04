@@ -119,6 +119,13 @@ extern void marlin_server_set_temp_to_display(float value);
 //
 extern float marlin_server_get_temp_to_display(void);
 
+//
+extern float marlin_server_get_temp_nozzle(void);
+
+extern uint32_t marlin_server_get_user_click_count(void);
+
+extern uint32_t marlin_server_get_user_move_count(void);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

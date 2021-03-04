@@ -1,7 +1,8 @@
 #pragma once
 #include "gui.hpp"
+#include "screen.hpp"
 
-struct screen_splash_data_t : public window_frame_t {
+struct screen_splash_data_t : public AddSuperWindow<screen_t> {
     window_icon_t logo_prusa_mini;
     window_text_t text_progress;
     window_progress_t progress;
@@ -17,7 +18,6 @@ struct screen_splash_data_t : public window_frame_t {
     screen_splash_data_t();
 
 private:
-    void timer(uint32_t mseconds);
     virtual void draw() override;
 
 protected:
