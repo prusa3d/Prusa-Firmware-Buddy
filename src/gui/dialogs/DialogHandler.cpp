@@ -129,9 +129,11 @@ void DialogHandler::PreOpen(ClientFSM dialog, uint8_t data) {
 void DialogHandler::Loop() {
     fsm::variant_t variant = command_queue.Front();
 
-    if (variant.GetCommand() == ClientFSM_Command::none)
-        return; //no command in queue
+    // execute all commands - fewer redraws
+    while (variant.GetCommand() != ClientFSM_Command::none) {
+        command(variant);
+        command_queue.Pop(); //erase item from queue
 
-    command(variant);
-    command_queue.Pop(); //erase item from queue
+        variant = command_queue.Front();
+    }
 }
