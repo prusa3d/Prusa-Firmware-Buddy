@@ -76,52 +76,32 @@ public:
 
 /*****************************************************************************/
 //tests
-TEST_CASE("fsm::type_t", "[fsm]") {
-    test_type_all_commands(ClientFSM(0));
-    test_type_all_commands(ClientFSM::_none); // _none != 0
-    test_type_all_commands(ClientFSM::Load_unload);
-}
+TEST_CASE("fsm::type_t, create_t, destroy_t, change_t, variant_t", "[fsm]") {
+    ClientFSM generator_client = GENERATE(ClientFSM(0), ClientFSM::_none, ClientFSM::Load_unload); // _none != 0 , it is last
 
-TEST_CASE("fsm::create_t", "[fsm]") {
-    test_create(ClientFSM(0), 0x00);
-    test_create(ClientFSM(0), 0xAB);
-    test_create(ClientFSM(0), 0xFF);
+    SECTION("type_t") {
+        test_type_all_commands(generator_client);
+    }
 
-    // _none != 0
-    test_create(ClientFSM::_none, 0x00);
-    test_create(ClientFSM::_none, 0xAB);
-    test_create(ClientFSM::_none, 0xFF);
+    SECTION("create_t") {
+        uint8_t generator_data = GENERATE(0x00, 0xAB, 0xFF);
+        test_create(generator_client, generator_data);
+    }
 
-    test_create(ClientFSM::Load_unload, 0x00);
-    test_create(ClientFSM::Printing, 0xAB);
-    test_create(ClientFSM::FirstLayer, 0xFF);
-}
+    SECTION("destroy_t") {
+        test_destroy(generator_client);
+    }
 
-TEST_CASE("fsm::destroy_t", "[fsm]") {
-    test_destroy(ClientFSM(0));
-    test_destroy(ClientFSM::_none); // _none != 0
-    test_destroy(ClientFSM::Load_unload);
-}
+    SECTION("change_t") {
+        uint8_t generator_phase = GENERATE(0x00, 0xAB, 0xFF);
+        PhaseData generator_phaseData = GENERATE(PhaseData({ 0x00, 0x00, 0x00, 0x00 }), PhaseData({ { 0x12, 0x23, 0x34, 0x56 } }), PhaseData({ { 0xFF, 0xFF, 0xFF, 0xFF } }));
 
-TEST_CASE("fsm::change_t", "[fsm]") {
-    test_change(ClientFSM(0), BaseData(0x00, { { 0x00, 0x00, 0x00, 0x00 } }));
-    test_change(ClientFSM(0), BaseData(0xAB, { { 0x12, 0x23, 0x34, 0x56 } }));
-    test_change(ClientFSM(0), BaseData(0xFF, { { 0xFF, 0xFF, 0xFF, 0xFF } }));
+        test_change(generator_client, BaseData(generator_phase, generator_phaseData));
+    }
 
-    // _none != 0
-    test_change(ClientFSM::_none, BaseData(0x00, { { 0x00, 0x00, 0x00, 0x00 } }));
-    test_change(ClientFSM::_none, BaseData(0x12, { { 0x23, 0x34, 0x56, 0x78 } }));
-    test_change(ClientFSM::_none, BaseData(0xFF, { { 0xFF, 0xFF, 0xFF, 0xFF } }));
-
-    test_change(ClientFSM::Load_unload, BaseData(0x00, { { 0x00, 0x00, 0x00, 0x00 } }));
-    test_change(ClientFSM::Printing, BaseData(0x0F, { { 0x34, 0x56, 0x12, 0x23 } }));
-    test_change(ClientFSM::FirstLayer, BaseData(0xFF, { { 0xFF, 0xFF, 0xFF, 0xFF } }));
-}
-
-TEST_CASE("fsm::variant_t", "[fsm]") {
-    test_variant(ClientFSM(0));
-    test_variant(ClientFSM::_none); // _none != 0
-    test_variant(ClientFSM::Load_unload);
+    SECTION("variant_t") {
+        test_variant(generator_client);
+    }
 }
 
 TEST_CASE("Equality of BaseData", "[fsm]") {
