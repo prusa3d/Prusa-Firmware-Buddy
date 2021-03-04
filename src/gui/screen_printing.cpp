@@ -212,6 +212,8 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         }
     }
 
+    scr_saver.Tick(*this, event);
+
     change_print_state();
 
     if (marlin_vars()->print_duration != last_print_duration)
