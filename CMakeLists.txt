@@ -586,18 +586,16 @@ if(GUI)
             src/gui/dialogs/DialogSelftestFans.cpp
             src/gui/dialogs/DialogSelftestTemp.cpp
             src/gui/dialogs/DialogSelftestResult.cpp
-            src/gui/dialogs/DialogTimed.cpp
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
             src/gui/dialogs/window_dlg_strong_warning.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
             src/gui/dialogs/liveadjust_z.cpp
-            src/gui/dialogs/window_dlg_calib_z.cpp
-            src/gui/dialogs/screen_saver.cpp
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
             src/gui/gui_media_events.cpp
+            src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
             src/gui/window_print_progress.cpp
