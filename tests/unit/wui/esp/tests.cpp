@@ -146,9 +146,9 @@ TEST_CASE("ESP - AT API") {
     }
 
     res = espERR;
-    SECTION("STATION MODE API  test") {
+    SECTION("STATION MODE API test") {
       command_data = "";
-      esp_sta_join("chleba", "maslo", NULL, NULL, NULL, 0);
+      // esp_sta_join("chleba", "maslo", NULL, NULL, NULL, 0);
       CHECK(1 == 1);
 
 

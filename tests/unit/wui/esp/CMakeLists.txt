@@ -1,5 +1,6 @@
 # define the test executable
 add_executable(wui_esp_tests
+${CMAKE_SOURCE_DIR}/tests/stubs/esp_sys_prusa3d.cpp
 ../../../../lib/WUI/esp/esp_parser.c
 ../../../../lib/WUI/esp/esp_int.c
 ../../../../lib/WUI/esp/esp_utils.c
