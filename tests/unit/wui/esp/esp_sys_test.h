@@ -1,10 +1,6 @@
 #include <stdint.h>
 #include "esp_opt.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
 /**
  * \defgroup        ESP_SYS System functions
  * \brief           System based function for OS management, timings, etc
@@ -100,8 +96,4 @@ uint8_t     esp_sys_thread_yield(void);
 /**
  * \}
  */
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
