@@ -8,6 +8,7 @@ static const uint32_t BOOTLOADER_VERSION_ADDRESS = 0x0801FFFA;
 
 // EEPROM firmware update flag
 static const uint8_t FW_UPDATE_ENABLE = 0xAA;
+static const uint8_t FW_UPDATE_OLDER = 0x55;
 static const uint8_t FW_UPDATE_DISABLE = 0x00;
 
 // pin PA13 state
