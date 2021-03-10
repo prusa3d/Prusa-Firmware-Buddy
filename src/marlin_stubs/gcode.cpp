@@ -31,6 +31,10 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             return true;
 #endif // _DEBUG
 
+        case 997:
+            PrusaGcodeSuite::M997();
+            return true;
+
 #ifdef M999_MCU_RESET
         case 999:
             if (parser.seen('R')) {
