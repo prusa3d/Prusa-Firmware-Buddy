@@ -1,13 +1,7 @@
-#include "esp_sys_test.h"
-#include <chrono>
-// #include <queue>
-// #include <mutex>
-// #include <thread>
-
-std::mutex sys_mutex;
+#include "lwesp/lwesp.h"
 
 uint32_t osKernelSysTick(void) {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    return 0;
 }
 
 /**
@@ -18,8 +12,7 @@ uint32_t osKernelSysTick(void) {
  *
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_init(void) {
-    esp_sys_mutex_create(&sys_mutex);
+uint8_t lwesp_sys_init(void) {
     return 1;
 }
 
@@ -27,8 +20,8 @@ uint8_t esp_sys_init(void) {
  * \brief           Get current time in units of milliseconds
  * \return          Current time in units of milliseconds
  */
-uint32_t esp_sys_now(void) {
-    return osKernelSysTick();
+uint32_t lwesp_sys_now(void) {
+    return 0;
 }
 
 /**
@@ -41,8 +34,7 @@ uint32_t esp_sys_now(void) {
  * \note            Most operating systems support recursive mutexes.
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_protect(void) {
-    esp_sys_mutex_lock(&sys_mutex);
+uint8_t lwesp_sys_protect(void) {
     return 1;
 }
 
@@ -55,8 +47,7 @@ uint8_t esp_sys_protect(void) {
  * \note            Most operating systems support recursive mutexes.
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_unprotect(void) {
-    esp_sys_mutex_unlock(&sys_mutex);
+uint8_t lwesp_sys_unprotect(void) {
     return 1;
 }
 
@@ -66,10 +57,7 @@ uint8_t esp_sys_unprotect(void) {
  * \param[out]      p: Pointer to mutex structure to allocate
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mutex_create(esp_sys_mutex_t *p) {
-    // *p = &sys_mutex;
-    // return *p != NULL;
-    // return *sys_mutex != NULL
+uint8_t lwesp_sys_mutex_create(lwesp_sys_mutex_t *p) {
     return 1;
 }
 
@@ -78,8 +66,7 @@ uint8_t esp_sys_mutex_create(esp_sys_mutex_t *p) {
  * \param[in]       p: Pointer to mutex structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mutex_delete(esp_sys_mutex_t *p) {
-    // return osMutexDelete(*p) == osOK;
+uint8_t lwesp_sys_mutex_delete(lwesp_sys_mutex_t *p) {
     return 1;
 }
 
@@ -88,9 +75,7 @@ uint8_t esp_sys_mutex_delete(esp_sys_mutex_t *p) {
  * \param[in]       p: Pointer to mutex structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mutex_lock(esp_sys_mutex_t *p) {
-    // std::lock_guard<std::mutex> lock(p);
-    p->lock();
+uint8_t lwesp_sys_mutex_lock(lwesp_sys_mutex_t *p) {
     return 1;
 }
 
@@ -99,8 +84,7 @@ uint8_t esp_sys_mutex_lock(esp_sys_mutex_t *p) {
  * \param[in]       p: Pointer to mutex structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mutex_unlock(esp_sys_mutex_t *p) {
-    p->unlock();
+uint8_t lwesp_sys_mutex_unlock(lwesp_sys_mutex_t *p) {
     return 1;
     // return osRecursiveMutexRelease(*p) == osOK;
 }
@@ -110,8 +94,7 @@ uint8_t esp_sys_mutex_unlock(esp_sys_mutex_t *p) {
  * \param[in]       p: Pointer to mutex structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mutex_isvalid(esp_sys_mutex_t *p) {
-    // return p != NULL && *p != NULL;
+uint8_t lwesp_sys_mutex_isvalid(lwesp_sys_mutex_t *p) {
     return 1;
 }
 
@@ -120,8 +103,7 @@ uint8_t esp_sys_mutex_isvalid(esp_sys_mutex_t *p) {
  * \param[in]       p: Pointer to mutex structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mutex_invalid(esp_sys_mutex_t *p) {
-    // *p = ESP_SYS_MUTEX_NULL;
+uint8_t lwesp_sys_mutex_invalid(lwesp_sys_mutex_t *p) {
     return 1;
 }
 
@@ -134,7 +116,7 @@ uint8_t esp_sys_mutex_invalid(esp_sys_mutex_t *p) {
  *                     `1`: Keep token available
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_sem_create(esp_sys_sem_t *p, uint8_t cnt) {
+uint8_t lwesp_sys_sem_create(lwesp_sys_sem_t *p, uint8_t cnt) {
     // osSemaphoreDef(SEM);
     // *p = osSemaphoreCreate(osSemaphore(SEM), 1);
     //
@@ -150,7 +132,7 @@ uint8_t esp_sys_sem_create(esp_sys_sem_t *p, uint8_t cnt) {
  * \param[in]       p: Pointer to semaphore structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_sem_delete(esp_sys_sem_t *p) {
+uint8_t lwesp_sys_sem_delete(lwesp_sys_sem_t *p) {
     // return osSemaphoreDelete(*p) == osOK;
     return 1;
 }
@@ -162,7 +144,7 @@ uint8_t esp_sys_sem_delete(esp_sys_sem_t *p) {
  * \return          Number of milliseconds waited for semaphore to become available or
  *                      \ref ESP_SYS_TIMEOUT if not available within given time
  */
-uint32_t esp_sys_sem_wait(esp_sys_sem_t *p, uint32_t timeout) {
+uint32_t lwesp_sys_sem_wait(lwesp_sys_sem_t *p, uint32_t timeout) {
     // uint32_t tick = osKernelSysTick();
     // return (osSemaphoreWait(*p, !timeout ? osWaitForever : timeout) == osOK) ? (osKernelSysTick() - tick) : ESP_SYS_TIMEOUT;
     return 1;
@@ -173,7 +155,7 @@ uint32_t esp_sys_sem_wait(esp_sys_sem_t *p, uint32_t timeout) {
  * \param[in]       p: Pointer to semaphore structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_sem_release(esp_sys_sem_t *p) {
+uint8_t lwesp_sys_sem_release(lwesp_sys_sem_t *p) {
     // return osSemaphoreRelease(*p) == osOK;
     return 1;
 }
@@ -183,7 +165,7 @@ uint8_t esp_sys_sem_release(esp_sys_sem_t *p) {
  * \param[in]       p: Pointer to semaphore structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_sem_isvalid(esp_sys_sem_t *p) {
+uint8_t lwesp_sys_sem_isvalid(lwesp_sys_sem_t *p) {
     // return p != NULL && *p != NULL;
     return 1;
 }
@@ -193,7 +175,7 @@ uint8_t esp_sys_sem_isvalid(esp_sys_sem_t *p) {
  * \param[in]       p: Pointer to semaphore structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_sem_invalid(esp_sys_sem_t *p) {
+uint8_t lwesp_sys_sem_invalid(lwesp_sys_sem_t *p) {
     // *p = ESP_SYS_SEM_NULL;
     return 1;
 }
@@ -204,7 +186,7 @@ uint8_t esp_sys_sem_invalid(esp_sys_sem_t *p) {
  * \param[in]       size: Number of entries for message queue to hold
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mbox_create(esp_sys_mbox_t *b, size_t size) {
+uint8_t lwesp_sys_mbox_create(lwesp_sys_mbox_t *b, size_t size) {
     // osMessageQDef(MBOX, size, void *);
     // *b = osMessageCreate(osMessageQ(MBOX), NULL);
     // return *b != NULL;
@@ -216,7 +198,7 @@ uint8_t esp_sys_mbox_create(esp_sys_mbox_t *b, size_t size) {
  * \param[in]       b: Pointer to message queue structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mbox_delete(esp_sys_mbox_t *b) {
+uint8_t lwesp_sys_mbox_delete(lwesp_sys_mbox_t *b) {
     // if (osMessageWaiting(*b)) {
     // return 0;
     // }
@@ -230,7 +212,7 @@ uint8_t esp_sys_mbox_delete(esp_sys_mbox_t *b) {
  * \param[in]       m: Pointer to entry to insert to message queue
  * \return          Time in units of milliseconds needed to put a message to queue
  */
-uint32_t esp_sys_mbox_put(esp_sys_mbox_t *b, void *m) {
+uint32_t lwesp_sys_mbox_put(lwesp_sys_mbox_t *b, void *m) {
     // uint32_t tick = osKernelSysTick();
     // return osMessagePut(*b, (uint32_t)m, osWaitForever) == osOK ? (osKernelSysTick() - tick) : ESP_SYS_TIMEOUT;
     return 1;
@@ -244,7 +226,7 @@ uint32_t esp_sys_mbox_put(esp_sys_mbox_t *b, void *m) {
  * \return          Time in units of milliseconds needed to put a message to queue
  *                      or \ref ESP_SYS_TIMEOUT if it was not successful
  */
-uint32_t esp_sys_mbox_get(esp_sys_mbox_t *b, void **m, uint32_t timeout) {
+uint32_t lwesp_sys_mbox_get(lwesp_sys_mbox_t *b, void **m, uint32_t timeout) {
     // osEvent evt;
     // uint32_t time = osKernelSysTick();
     //
@@ -253,7 +235,7 @@ uint32_t esp_sys_mbox_get(esp_sys_mbox_t *b, void **m, uint32_t timeout) {
     // *m = evt.value.p;
     // return osKernelSysTick() - time;
     // }
-    return ESP_SYS_TIMEOUT;
+    return LWESP_SYS_TIMEOUT;
 }
 
 /**
@@ -262,7 +244,7 @@ uint32_t esp_sys_mbox_get(esp_sys_mbox_t *b, void **m, uint32_t timeout) {
  * \param[in]       m: Pointer to message to save to queue
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mbox_putnow(esp_sys_mbox_t *b, void *m) {
+uint8_t lwesp_sys_mbox_putnow(lwesp_sys_mbox_t *b, void *m) {
     // return osMessagePut(*b, (uint32_t)m, 0) == osOK;
     return 1;
 }
@@ -273,7 +255,7 @@ uint8_t esp_sys_mbox_putnow(esp_sys_mbox_t *b, void *m) {
  * \param[in]       m: Pointer to pointer to result to save value from message queue to
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mbox_getnow(esp_sys_mbox_t *b, void **m) {
+uint8_t lwesp_sys_mbox_getnow(lwesp_sys_mbox_t *b, void **m) {
     // osEvent evt;
     //
     // evt = osMessageGet(*b, 0);
@@ -290,7 +272,7 @@ uint8_t esp_sys_mbox_getnow(esp_sys_mbox_t *b, void **m) {
  * \param[in]       b: Pointer to message queue structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mbox_isvalid(esp_sys_mbox_t *b) {
+uint8_t lwesp_sys_mbox_isvalid(lwesp_sys_mbox_t *b) {
     // return b != NULL && *b != NULL;
     return 0;
 }
@@ -300,7 +282,7 @@ uint8_t esp_sys_mbox_isvalid(esp_sys_mbox_t *b) {
  * \param[in]       b: Pointer to message queue structure
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_mbox_invalid(esp_sys_mbox_t *b) {
+uint8_t lwesp_sys_mbox_invalid(lwesp_sys_mbox_t *b) {
     // *b = ESP_SYS_MBOX_NULL;
     return 1;
 }
@@ -316,8 +298,8 @@ uint8_t esp_sys_mbox_invalid(esp_sys_mbox_t *b) {
  * \param[in]       prio: Thread priority
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_thread_create(esp_sys_thread_t *t, const char *name, esp_sys_thread_fn thread_func,
-    void *const arg, size_t stack_size, esp_sys_thread_prio_t prio) {
+uint8_t lwesp_sys_thread_create(lwesp_sys_thread_t *t, const char *name, lwesp_sys_thread_fn thread_func,
+    void *const arg, size_t stack_size, lwesp_sys_thread_prio_t prio) {
     // const osThreadDef_t thread_def = {
     // (char *)name,
     // (os_pthread)thread_func,
@@ -348,10 +330,10 @@ uint8_t esp_sys_thread_create(esp_sys_thread_t *t, const char *name, esp_sys_thr
  *                      If set to `NULL`, terminate current thread (thread from where function is called)
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_thread_terminate(esp_sys_thread_t *t) {
-    t->join();
+uint8_t lwesp_sys_thread_terminate(lwesp_sys_thread_t *t) {
+//    t->join();
     // osThreadTerminate(t != NULL ? *t : NULL);
-    delete t;
+//    delete t;
     return 1;
 }
 
@@ -359,7 +341,7 @@ uint8_t esp_sys_thread_terminate(esp_sys_thread_t *t) {
  * \brief           Yield current thread
  * \return          `1` on success, `0` otherwise
  */
-uint8_t esp_sys_thread_yield(void) {
+uint8_t lwesp_sys_thread_yield(void) {
     // osThreadYield();
     return 1;
 }

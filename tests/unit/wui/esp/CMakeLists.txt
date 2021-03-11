@@ -1,22 +1,26 @@
 # define the test executable
 add_executable(wui_esp_tests
-${CMAKE_SOURCE_DIR}/tests/stubs/esp_sys_prusa3d.cpp
-../../../../lib/WUI/esp/esp_parser.c
-../../../../lib/WUI/esp/esp_int.c
-../../../../lib/WUI/esp/esp_utils.c
-../../../../lib/WUI/esp/esp_ap.c
-../../../../lib/WUI/esp/esp_sta.c
-../../test_main.cpp
+${CMAKE_SOURCE_DIR}/tests/stubs/lwesp_sys_prusa3d.cpp
+${CMAKE_SOURCE_DIR}/tests/stubs/lwesp_ll_prusa3d.cpp
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_parser.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_int.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_utils.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_ap.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_sta.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_mem.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_pbuf.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_conn.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_unicode.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_threads.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_evt.c
+${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/lwesp/lwesp_timeout.c
 tests.cpp
 )
 
 # define required search paths
-target_include_directories(wui_esp_tests PUBLIC . ${CMAKE_SOURCE_DIR}/lib/WUI)
-target_include_directories(wui_esp_tests PUBLIC . ${CMAKE_SOURCE_DIR}/lib/WUI/esp)
-target_include_directories(wui_esp_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/common)
-
-# define custom macros
-target_compile_definitions(wui_esp_tests PUBLIC ESP_UNITTEST)
+target_include_directories(wui_esp_tests PUBLIC . ${CMAKE_SOURCE_DIR}/lib/lwesp/lwesp/src/include)
+target_include_directories(wui_esp_tests PUBLIC . ${CMAKE_SOURCE_DIR}/tests/stubs)
 
 # tell build system about the test case
 add_catch_test(wui_esp_tests)
