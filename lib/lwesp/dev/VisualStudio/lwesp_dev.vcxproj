@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{5D881BA7-6232-4F33-B72F-0BB5DFF2A575}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>lwesp_dev_os</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>.;..\..\lwesp\src\include\system\port\win32;..\..\lwesp\src\include;..\..\snippets\include;..\..\..\lwmem\lwmem\src\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ShowIncludes>false</ShowIncludes>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\lwmem\lwmem\src\lwmem\lwmem.c" />
+    <ClCompile Include="..\..\..\lwmem\lwmem\src\system\lwmem_sys_win32.c" />
+    <ClCompile Include="..\..\lwesp\src\apps\cayenne\lwesp_cayenne.c" />
+    <ClCompile Include="..\..\lwesp\src\apps\cayenne\lwesp_cayenne_evt.c" />
+    <ClCompile Include="..\..\lwesp\src\apps\mqtt\lwesp_mqtt_client_api.c" />
+    <ClCompile Include="..\..\lwesp\src\cli\cli.c" />
+    <ClCompile Include="..\..\lwesp\src\cli\cli_input.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_cli.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_dhcp.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_dns.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_hostname.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_ping.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_utils.c" />
+    <ClCompile Include="..\..\lwesp\src\system\lwesp_mem_lwmem.c" />
+    <ClCompile Include="..\..\snippets\client.c" />
+    <ClCompile Include="..\..\snippets\dns.c" />
+    <ClCompile Include="..\..\snippets\http_server.c" />
+    <ClCompile Include="..\..\snippets\mqtt_client.c" />
+    <ClCompile Include="..\..\snippets\mqtt_client_api.c" />
+    <ClCompile Include="..\..\snippets\mqtt_client_api_cayenne.c" />
+    <ClCompile Include="..\..\snippets\netconn_client.c" />
+    <ClCompile Include="..\..\snippets\netconn_server.c" />
+    <ClCompile Include="..\..\snippets\netconn_server_1thread.c" />
+    <ClCompile Include="..\..\snippets\sntp.c" />
+    <ClCompile Include="..\..\snippets\station_manager.c" />
+    <ClCompile Include="..\..\lwesp\src\api\lwesp_netconn.c" />
+    <ClCompile Include="..\..\lwesp\src\apps\http_server\lwesp_http_server.c" />
+    <ClCompile Include="..\..\lwesp\src\apps\http_server\lwesp_http_server_fs.c" />
+    <ClCompile Include="..\..\lwesp\src\apps\http_server\lwesp_http_server_fs_win32.c" />
+    <ClCompile Include="..\..\lwesp\src\apps\mqtt\lwesp_mqtt_client.c">
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
+    </ClCompile>
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_ap.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_buff.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_conn.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_debug.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_evt.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_input.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_int.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_mdns.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_mem.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_parser.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_pbuf.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_sntp.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_sta.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_threads.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_timeout.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_unicode.c" />
+    <ClCompile Include="..\..\lwesp\src\lwesp\lwesp_wps.c" />
+    <ClCompile Include="..\..\lwesp\src\system\lwesp_ll_win32.c" />
+    <ClCompile Include="..\..\lwesp\src\system\lwesp_sys_win32.c" />
+    <ClCompile Include="..\..\snippets\telnet_server.c" />
+    <ClCompile Include="main.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
