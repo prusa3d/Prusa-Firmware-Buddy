@@ -31,8 +31,7 @@ TEST_CASE("rectangle construc", "[rectangle]") {
 
     SECTION("topleft corner & width & height") {
         point_i16_t top_left = { 10, 20 };
-        size_ui16_t size = { 20, 40 };
-        Rect16 r { top_left, size };
+        Rect16 r { top_left, 20, 40 };
         CHECK(r.Width() == 20);
         CHECK(r.Height() == 40);
     }
@@ -70,6 +69,51 @@ TEST_CASE("rectangle construc", "[rectangle]") {
         CHECK(r.BeginPoint().y == 20);
         CHECK(r.Width() == 20);
         CHECK(r.Height() == 40);
+    }
+
+    SECTION("2 points") {
+        point_i16_t p0 = { 10, 20 };
+        point_i16_t p1 = { 32, 48 };
+        point_i16_t p2 = { 2, 48 };
+
+        Rect16 r0 { p0, p1 };
+        CHECK(r0.TopLeft().x == 10);
+        CHECK(r0.TopLeft().y == 20);
+        CHECK(r0.BottomRight().x == 32);
+        CHECK(r0.BottomRight().y == 48);
+
+        // same 2 points in different order must create same rect
+        Rect16 r1 { p1, p0 };
+        CHECK(r0 == r1);
+
+        // p0 top-right
+        // p2 bottom-left
+        Rect16 r2 { p0, p2 };
+        CHECK(r2.Top() == p0.y);
+        CHECK(r2.Left() == p2.x);
+        CHECK(r2.BottomRight().x == p0.x);
+        CHECK(r2.BottomRight().y == p2.y);
+
+        // same 2 points in different order must create same rect
+        Rect16 r3 { p2, p0 };
+        CHECK(r2 == r3);
+    }
+
+    SECTION("Top Left Bottom and Right accessors") {
+
+        point_i16_t top_left, bot_right;
+
+        std::tie(top_left, bot_right) = GENERATE(
+            std::make_tuple<point_i16_t, point_i16_t>({ 0, 0 }, { 10, 20 }),
+            std::make_tuple<point_i16_t, point_i16_t>({ 2, 4 }, { 10, 20 }),
+            std::make_tuple<point_i16_t, point_i16_t>({ -10, -20 }, { 10, 20 }),
+            std::make_tuple<point_i16_t, point_i16_t>({ -100, -200 }, { 10, 20 }));
+
+        Rect16 r { top_left, bot_right };
+        CHECK(r.Top() == top_left.y);
+        CHECK(r.Left() == top_left.x);
+        CHECK(r.Bottom() == bot_right.y);
+        CHECK(r.Right() == bot_right.x);
     }
 
     // SECTION("by coordinates & wrong x") {
@@ -112,6 +156,111 @@ TEST_CASE("rectangle construc", "[rectangle]") {
         CHECK(res.EndPoint().x == expected.EndPoint().x);
         CHECK(res.EndPoint().y == expected.EndPoint().y);
     }
+
+    SECTION("copy & shift no offset and CalculateShift") {
+        Rect16 r, expected;
+        ShiftDir_t dir;
+
+        std::tie(r, dir, expected) = GENERATE(
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ -10, 10, 30, 30 }, ShiftDir_t::Left, { -40, 10, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 10, 10, 30, 30 }, ShiftDir_t::Left, { -20, 10, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 40, 10, 30, 30 }, ShiftDir_t::Left, { 10, 10, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ -10, 10, 30, 30 }, ShiftDir_t::Right, { 20, 10, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 10, 10, 30, 30 }, ShiftDir_t::Right, { 40, 10, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ -40, 10, 30, 30 }, ShiftDir_t::Right, { -10, 10, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 10, -10, 30, 30 }, ShiftDir_t::Top, { 10, -40, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 10, 10, 30, 30 }, ShiftDir_t::Top, { 10, -20, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 10, 40, 30, 30 }, ShiftDir_t::Top, { 10, 10, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 10, -10, 30, 30 }, ShiftDir_t::Bottom, { 10, 20, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 10, 10, 30, 30 }, ShiftDir_t::Bottom, { 10, 40, 30, 30 }),
+            std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 10, -40, 30, 30 }, ShiftDir_t::Bottom, { 10, -10, 30, 30 }));
+
+        //internally use CalculateShift
+        Rect16 res { r, dir };
+
+        CHECK(res.Width() == expected.Width());
+        CHECK(res.Height() == expected.Height());
+        CHECK(res.BeginPoint().x == expected.BeginPoint().x);
+        CHECK(res.BeginPoint().y == expected.BeginPoint().y);
+        CHECK(res.EndPoint().x == expected.EndPoint().x);
+        CHECK(res.EndPoint().y == expected.EndPoint().y);
+    }
+}
+
+TEST_CASE("Swap") {
+    Rect16 unSwapped = GENERATE(
+        Rect16({ -10, 10, 30, 40 }),
+        Rect16({ 10, 10, 30, 40 }),
+        Rect16({ -10, 10, 30, 30 }),
+        Rect16({ 0, 10, 30, 40 }),
+        Rect16({ -10, 0, 40, 30 }));
+
+    Rect16 swapped = unSwapped;
+    swapped.SwapXY();
+
+    CHECK(swapped.Width() == unSwapped.Height());
+    CHECK(swapped.Height() == unSwapped.Width());
+    CHECK(swapped.BeginPoint().x == unSwapped.BeginPoint().y);
+    CHECK(swapped.BeginPoint().y == unSwapped.BeginPoint().x);
+    CHECK(swapped.EndPoint().x == unSwapped.EndPoint().y);
+    CHECK(swapped.EndPoint().y == unSwapped.EndPoint().x);
+}
+
+TEST_CASE("rectangle mirror", "[rectangle]") {
+    Rect16 original, mirrored, swapped, swapped_mirrored;
+    int16_t mirror_point;
+    std::tie(original, mirror_point, mirrored) = GENERATE(
+        std::make_tuple<Rect16, int16_t, Rect16>({ 0, 10, 30, 40 }, 0, { -30, 10, 30, 40 }),
+        std::make_tuple<Rect16, int16_t, Rect16>({ 0, 10, 30, 40 }, 5, { -20, 10, 30, 40 }),
+        std::make_tuple<Rect16, int16_t, Rect16>({ 0, 10, 30, 40 }, -5, { -40, 10, 30, 40 }),
+
+        std::make_tuple<Rect16, int16_t, Rect16>({ 10, 10, 30, 40 }, 0, { -40, 10, 30, 40 }),
+        std::make_tuple<Rect16, int16_t, Rect16>({ 10, 10, 30, 40 }, 5, { -30, 10, 30, 40 }),
+        std::make_tuple<Rect16, int16_t, Rect16>({ 10, 10, 30, 40 }, -5, { -50, 10, 30, 40 }),
+
+        std::make_tuple<Rect16, int16_t, Rect16>({ -10, 10, 30, 40 }, 0, { -20, 10, 30, 40 }),
+        std::make_tuple<Rect16, int16_t, Rect16>({ -10, 10, 30, 40 }, 5, { -10, 10, 30, 40 }),
+        std::make_tuple<Rect16, int16_t, Rect16>({ -10, 10, 30, 40 }, -5, { -30, 10, 30, 40 }),
+
+        std::make_tuple<Rect16, int16_t, Rect16>({ 10, 10, 30, 40 }, 40, { 40, 10, 30, 40 }), // mirror at the end of rect
+        std::make_tuple<Rect16, int16_t, Rect16>({ 10, 10, 30, 40 }, 100, { 160, 10, 30, 40 }),
+        std::make_tuple<Rect16, int16_t, Rect16>({ -10, 10, 30, 40 }, 20, { 20, 10, 30, 40 }), // mirror at the end of rect
+        std::make_tuple<Rect16, int16_t, Rect16>({ -10, 10, 30, 40 }, -100, { -190 - 30, 10, 30, 40 }));
+
+    Rect16 res = original;
+    res.MirrorX(mirror_point);
+    CHECK(res == mirrored);
+
+    Rect16 res_swapped = original;
+    res_swapped.SwapXY();
+    res_swapped.MirrorY(mirror_point);
+    swapped_mirrored = mirrored;
+    swapped_mirrored.SwapXY();
+    CHECK(res_swapped == swapped_mirrored);
+}
+
+TEST_CASE("rectangle Contain point and IsEmpty", "[rectangle]") {
+    Rect16 r;
+    bool empty;
+    std::tie(r, empty) = GENERATE(
+        std::make_tuple<Rect16, bool>({ 0, 0, 30, 40 }, false),
+        std::make_tuple<Rect16, bool>({ -30, -40, 30, 40 }, false), // ends 0,0
+        std::make_tuple<Rect16, bool>({ 10, 10, 30, 40 }, false),
+        std::make_tuple<Rect16, bool>({ -100, -100, 30, 40 }, false),
+        std::make_tuple<Rect16, bool>({ 0, 0, 0, 0 }, true),
+        std::make_tuple<Rect16, bool>({ 10, 10, 0, 10 }, true),
+        std::make_tuple<Rect16, bool>({ 10, 10, 10, 0 }, true),
+        std::make_tuple<Rect16, bool>({ 10, 10, 0, 0 }, true));
+
+    //first must make sure IsEmptyWorks
+    CHECK(r.IsEmpty() == empty);
+
+    //empty does not contain anything
+    CHECK_FALSE(r.Contain(r.TopLeft()) == r.IsEmpty());
+    CHECK_FALSE(r.Contain(r.BottomRight()) == r.IsEmpty());
+    CHECK_FALSE(r.Contain(r.EndPoint()));
+    CHECK_FALSE(r.Contain(r.TopEndPoint()));
+    CHECK_FALSE(r.Contain(r.LeftEndPoint()));
 }
 
 TEST_CASE("rectangle intersection", "[rectangle]") {
@@ -169,11 +318,14 @@ TEST_CASE("rectangles is subrectangle", "[rectangle]") {
 
 TEST_CASE("rectangle union", "[rectangle]") {
     SECTION("single rectangle") {
+        //it also tests operators + and += since Union use them
         Rect16 l, r, expected;
         std::tie(l, r, expected) = GENERATE(
             std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 20, 20 }, { 20, 20, 40, 40 }, { 0, 0, 60, 60 }),
             std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 40, 40 }, { 20, 20, 20, 20 }, { 0, 0, 40, 40 }),
-            std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 30, 30 }, { 20, 20, 10, 10 }, { 10, 10, 30, 30 }));
+            std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 30, 30 }, { 20, 20, 10, 10 }, { 10, 10, 30, 30 }),
+            std::make_tuple<Rect16, Rect16, Rect16>({ -21, -22, 10, 10 }, { 0, 0, 25, 30 }, { -21, -22, 46, 52 }),
+            std::make_tuple<Rect16, Rect16, Rect16>({ -20, -20, 10, 10 }, { -40, -40, 10, 10 }, { -40, -40, 30, 30 }));
 
         Rect16 res = l.Union(r);
 
@@ -196,7 +348,8 @@ TEST_CASE("rectangle union", "[rectangle]") {
             std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 20, 20 }, { { { 20, 20, 40, 40 } } }, { 0, 0, 60, 60 }),
             std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 20, 20 }, { { { 0, 20, 20, 40 }, { 20, 0, 40, 20 } } }, { 0, 0, 60, 60 }),
             std::make_tuple<Rect16, Sequence, Rect16>({ 10, 10, 20, 20 }, { { { 0, 0, 10, 10 }, { 0, 20, 20, 40 }, { 20, 0, 40, 20 } } }, { 0, 0, 60, 60 }),
-            std::make_tuple<Rect16, Sequence, Rect16>({ -20, -20, 10, 10 }, { { { 0, 0, 20, 20 } } }, { -20, -20, 20, 20 }));
+            std::make_tuple<Rect16, Sequence, Rect16>({ -21, -22, 10, 10 }, { { { 0, 0, 25, 30 } } }, { -21, -22, 46, 52 }),
+            std::make_tuple<Rect16, Sequence, Rect16>({ -20, -20, 10, 10 }, { { { -40, -40, 10, 10 } } }, { -40, -40, 30, 30 }));
 
         Rect16 res = l.Union(s);
 
@@ -206,6 +359,48 @@ TEST_CASE("rectangle union", "[rectangle]") {
         CHECK(res.BeginPoint().y == expected.BeginPoint().y);
         CHECK(res.EndPoint().x == expected.EndPoint().x);
         CHECK(res.EndPoint().y == expected.EndPoint().y);
+    }
+}
+
+TEST_CASE("rectangle Align", "[rectangle]") {
+    Rect16 toBeAligned, alignRC;
+    Align_t align = Align_t::Center();
+    point_i16_t expected_point;
+    size_ui16_t sz;
+    SECTION("precise fit") {
+        sz = { 25, 52 }; // precise fit, all rects has same size
+
+        std::tie(toBeAligned, alignRC, align) = std::make_tuple<Rect16, Rect16, Align_t>(
+            Rect16(
+                GENERATE(point_i16_t({ 0, 0 }), point_i16_t({ -10, 30 }), point_i16_t({ 110, 0 })) //some X Y coords
+                ,
+                sz),
+            Rect16(
+                GENERATE(point_i16_t({ 0, 0 }), point_i16_t({ 10, -30 }), point_i16_t({ 333, 222 })) //some X Y coords
+                ,
+                sz),
+            Align_t(
+                GENERATE(Align_t(Align_t::vertical::top), Align_t(Align_t::horizontal::center), Align_t(Align_t::vertical::center, Align_t::horizontal::center))) // precise fit, align should not matter
+        );
+
+        toBeAligned.Align(alignRC, align);
+
+        CHECK(toBeAligned == alignRC); // alignRC precisely fits in toBeAligned
+    }
+
+    SECTION("normal use") {
+        std::tie(toBeAligned, alignRC, align, expected_point) = GENERATE(
+            std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 0, 0, 0, 0 }, { 0, 0, 0, 0 }, Align_t(Align_t::vertical::top, Align_t::horizontal::left), { 0, 0 }), //zero aligned via zero aligns to zero
+            std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 0, 0, 10, 20 }, { 3, 5, 100, 100 }, Align_t(Align_t::vertical::top, Align_t::horizontal::left), { 3, 5 }),
+            std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 666, 0, 10, 20 }, { 0, 0, 100, 100 }, Align_t(Align_t::vertical::top, Align_t::horizontal::left), { 0, 0 }),
+            std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 0, 666, 3, 5 }, { 1, -1, 5, 9 }, Align_t(Align_t::vertical::center, Align_t::horizontal::center), { 2, 1 }),
+            std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 0, 0, 100, 20 }, { 0, 0, 10, 10 }, Align_t(Align_t::vertical::top, Align_t::horizontal::left), { 0, 0 }), //does not fit .. should not matter for top left
+            std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 666, 0, 30, 20 }, { 0, 0, 10, 10 }, Align_t(Align_t::vertical::bottom, Align_t::horizontal::right), { -20, -10 }));
+
+        sz = toBeAligned.Size();
+        toBeAligned.Align(alignRC, align);
+
+        CHECK(toBeAligned == Rect16(expected_point, sz));
     }
 }
 
@@ -287,7 +482,27 @@ TEST_CASE("rectangle Merge", "[rectangle]") {
     }
 }
 
-TEST_CASE("rectangle Contain", "[rectangle]") {
+TEST_CASE("rectangle Merge_ParamPack", "[rectangle]") {
+    SECTION("static impl") {
+        Rect16 res;
+        Rect16 expected;
+
+        std::tie(res, expected) = GENERATE(
+            std::make_tuple<Rect16, Rect16>(Rect16::Merge_ParamPack(Rect16()), { 0, 0, 0, 0 }),
+            std::make_tuple<Rect16, Rect16>(Rect16::Merge_ParamPack(Rect16(0, 0, 20, 20), Rect16(20, 20, 40, 40)), { 0, 0, 60, 60 }),
+            std::make_tuple<Rect16, Rect16>(Rect16::Merge_ParamPack(Rect16(0, 0, 20, 20), Rect16(0, 20, 20, 40), Rect16(20, 0, 40, 20)),
+                { 0, 0, 60, 60 }));
+
+        CHECK(res.Width() == expected.Width());
+        CHECK(res.Height() == expected.Height());
+        CHECK(res.BeginPoint().x == expected.BeginPoint().x);
+        CHECK(res.BeginPoint().y == expected.BeginPoint().y);
+        CHECK(res.EndPoint().x == expected.EndPoint().x);
+        CHECK(res.EndPoint().y == expected.EndPoint().y);
+    }
+}
+
+TEST_CASE("rectangle Contain rectangle", "[rectangle]") {
     Rect16 r;
     bool expected;
     point_i16_t p;
