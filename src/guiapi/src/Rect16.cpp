@@ -114,24 +114,23 @@ Rect16 Rect16::Intersection(Rect16 const &r) const {
     return Rect16 { top_left, bot_right };
 }
 
-Rect16 Rect16::Union(Rect16 const &r) const {
-    point_i16_t top_left;
-    point_i16_t bot_right;
+Rect16 &Rect16::operator+=(Rect16 rhs) {
+    // this is empty, rhs is not .. just replace this with rhs
+    if ((this->IsEmpty()) && (!rhs.IsEmpty())) {
+        *this = rhs;
+    }
 
-    top_left.x = TopLeft().x < r.TopLeft().x
-        ? TopLeft().x
-        : r.TopLeft().x;
-    bot_right.x = BottomRight().x > r.BottomRight().x
-        ? BottomRight().x
-        : r.BottomRight().x;
-    top_left.y = TopLeft().y < r.TopLeft().y
-        ? TopLeft().y
-        : r.TopLeft().y;
-    bot_right.y = BottomRight().y > r.BottomRight().y
-        ? BottomRight().y
-        : r.BottomRight().y;
+    if ((!this->IsEmpty()) && (!rhs.IsEmpty())) {
+        int16_t max_x = std::max(EndPoint().x, rhs.EndPoint().x);
+        int16_t max_y = std::max(EndPoint().y, rhs.EndPoint().y);
 
-    return Rect16 { top_left, bot_right };
+        top_left_.x = std::min(top_left_.x, rhs.TopLeft().x);
+        top_left_.y = std::min(top_left_.y, rhs.TopLeft().y);
+        width_ = uint16_t(max_x - top_left_.x);
+        height_ = uint16_t(max_y - top_left_.y);
+    }
+
+    return *this;
 }
 
 bool Rect16::HasIntersection(Rect16 const &r) const {
@@ -271,5 +270,17 @@ Rect16 Rect16::RightSubrect(Rect16 subtrahend) {
     ret = Left_t(subtrahend.Left() + subtrahend.Width());
     ret -= Width_t(subtrahend.Left() - Left());
     ret -= subtrahend.Width();
+    return ret;
+}
+
+Rect16 Rect16::merge(const Rect16 *rectangles, size_t count) {
+    // this is private method called by public one(s)
+    // public method must not set count == 0
+    // public method is a template one and count is checked at compile time
+    Rect16 ret = rectangles[0];
+
+    for (size_t i = 1; i < count; ++i) {
+        ret += rectangles[i];
+    }
     return ret;
 }
