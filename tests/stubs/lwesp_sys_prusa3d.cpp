@@ -1,5 +1,43 @@
 #include "lwesp/lwesp.h"
 
+/**
+ * \brief           Custom message queue implementation for WIN32
+ */
+typedef struct {
+    lwesp_sys_sem_t sem_not_empty; // [>!< Semaphore indicates not empty <]
+    lwesp_sys_sem_t sem_not_full;  // [>!< Semaphore indicates not full <]
+    lwesp_sys_sem_t sem;           // [>!< Semaphore to lock access <]
+    size_t in, out, size;
+    void *entries[1];
+} custom_mbox_t;
+
+
+/**
+ * \brief           Check if message box is full
+ * \param[in]       m: Message box handle
+ * \return          1 if full, 0 otherwise
+ */
+static uint8_t
+mbox_is_full(custom_mbox_t *m) {
+    size_t size = 0;
+    if (m->in > m->out) {
+        size = (m->in - m->out);
+    } else if (m->out > m->in) {
+        size = m->size - m->out + m->in;
+    }
+    return size == m->size - 1;
+}
+
+/**
+ * \brief           Check if message box is empty
+ * \param[in]       m: Message box handle
+ * \return          1 if empty, 0 otherwise
+ */
+static uint8_t
+mbox_is_empty(custom_mbox_t *m) {
+    return m->in == m->out;
+}
+
 uint32_t osKernelSysTick(void) {
     return 0;
 }
@@ -187,10 +225,19 @@ uint8_t lwesp_sys_sem_invalid(lwesp_sys_sem_t *p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t lwesp_sys_mbox_create(lwesp_sys_mbox_t *b, size_t size) {
-    // osMessageQDef(MBOX, size, void *);
-    // *b = osMessageCreate(osMessageQ(MBOX), NULL);
+    custom_mbox_t *mbox;
+    // *b = NULL;
+    // delete b;
+    // mbox = malloc(sizeof(*mbox) + size * sizeof(void *));
+    // if (mbox != NULL) {
+        // memset(mbox, 0x00, sizeof(*mbox));
+        // mbox->size = size + 1; [> Set it to 1 more as cyclic buffer has only one less than size <]
+        // lwesp_sys_sem_create(&mbox->sem, 1);
+        // lwesp_sys_sem_create(&mbox->sem_not_empty, 0);
+        // lwesp_sys_sem_create(&mbox->sem_not_full, 0);
+        // *b = mbox;
+    // }
     // return *b != NULL;
-    return 1;
 }
 
 /**
@@ -199,10 +246,11 @@ uint8_t lwesp_sys_mbox_create(lwesp_sys_mbox_t *b, size_t size) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t lwesp_sys_mbox_delete(lwesp_sys_mbox_t *b) {
-    // if (osMessageWaiting(*b)) {
-    // return 0;
-    // }
-    // return osMessageDelete(*b) == osOK;
+    // custom_mbox_t *mbox = *b;
+    // lwesp_sys_sem_delete(&mbox->sem);
+    // lwesp_sys_sem_delete(&mbox->sem_not_full);
+    // lwesp_sys_sem_delete(&mbox->sem_not_empty);
+    // free(mbox);
     return 1;
 }
 
@@ -319,7 +367,7 @@ uint8_t lwesp_sys_thread_create(lwesp_sys_thread_t *t, const char *name, lwesp_s
 
     // std::thread id = std::thread(thread_func, 1);
     // if (t != NULL) {
-        // *t = &id;
+    // *t = &id;
     // }
     // return id != NULL;
 }
@@ -331,9 +379,9 @@ uint8_t lwesp_sys_thread_create(lwesp_sys_thread_t *t, const char *name, lwesp_s
  * \return          `1` on success, `0` otherwise
  */
 uint8_t lwesp_sys_thread_terminate(lwesp_sys_thread_t *t) {
-//    t->join();
+    //    t->join();
     // osThreadTerminate(t != NULL ? *t : NULL);
-//    delete t;
+    //    delete t;
     return 1;
 }
 
