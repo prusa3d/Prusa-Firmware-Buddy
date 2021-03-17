@@ -332,7 +332,12 @@ bool window_t::IsCaptured() const { return Screens::Access()->Get()->GetCaptured
 bool window_t::EventEncoder(int diff) {
     marlin_notify_server_about_encoder_move();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
-    if ((!capture_ptr) || (diff == 0))
+    if (diff == 0)
+        return false;
+
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::ENC_CHANGE, (void *)diff);
+
+    if (!capture_ptr)
         return false;
 
     if (diff > 0) {
@@ -348,21 +353,20 @@ bool window_t::EventEncoder(int diff) {
 bool window_t::EventJogwheel(BtnState_t state) {
     marlin_notify_server_about_knob_click();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
-    if (!capture_ptr)
-        return false;
 
     switch (state) {
     case BtnState_t::Pressed:
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::BTN_DN, 0);
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::BTN_DN, 0);
         break;
     case BtnState_t::Released:
         Sound_Play(eSOUND_TYPE::ButtonEcho);
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::BTN_UP, 0);
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::BTN_UP, 0);
+        if (capture_ptr)
+            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
         break;
     case BtnState_t::Held:
-        Sound_Play(eSOUND_TYPE::ButtonEcho);
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HOLD, 0);
+        if (capture_ptr)
+            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HOLD, 0);
         break;
     }
 
