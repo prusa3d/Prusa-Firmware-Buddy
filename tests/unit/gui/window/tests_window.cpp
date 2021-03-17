@@ -284,8 +284,6 @@ TEST_CASE("Window registration tests", "[window]") {
     }
 
     SECTION("normal window") {
-        screen.BasicCheck();
-        REQUIRE(screen.GetCapturedWindow() == &screen);
         screen.CaptureNormalWindow(screen.w0);
         screen.BasicCheck();
         REQUIRE(screen.GetCapturedWindow() == &screen.w0);
@@ -321,8 +319,6 @@ TEST_CASE("Window registration tests", "[window]") {
     }
 
     SECTION("normal window + strong dialog") {
-        screen.BasicCheck();
-        REQUIRE(screen.GetCapturedWindow() == &screen);
         screen.CaptureNormalWindow(screen.w0);
         screen.BasicCheck();
 
