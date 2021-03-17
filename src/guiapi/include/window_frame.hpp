@@ -7,6 +7,11 @@
 
 class window_frame_t : public AddSuperWindow<window_t> {
     window_t *captured_normal_window; //might need to move it in window frame after menu refactoring
+
+    // stored rect to print in draw method (exept when enetire screen is invalid)
+    // hiding, or unregistration of window sets it
+    Rect16 invalid_area;
+
 protected:
     window_t *first_normal;
     window_t *last_normal;
@@ -19,6 +24,8 @@ protected:
 
     void colorConflictBackgroundToRed(window_t &win);
     void clearAllHiddenBehindDialogFlags();
+
+    Rect16 getInvalidationRect() const;
 
 public:
     bool HasDialogOrPopup();
@@ -50,6 +57,7 @@ public:
 
     Rect16 GenerateRect(ShiftDir_t direction);
     virtual void Shift(ShiftDir_t direction, uint16_t distance) override;
+    virtual void ChildVisibilityChanged(window_t &child) override;
 
 protected:
     virtual void draw() override;
@@ -59,6 +67,7 @@ protected:
     virtual void validate(Rect16 validation_rect = Rect16()) override;
     virtual bool registerSubWin(window_t &win) override;
     virtual void unregisterSubWin(window_t &win) override;
+    virtual void addInvalidationRect(Rect16 rc) override;
 
     window_t *findFirst(window_t *begin, window_t *end, const WinFilter &filter) const;
     window_t *findLast(window_t *begin, window_t *end, const WinFilter &filter) const;

@@ -28,6 +28,7 @@ public:
     void ScreenEvent(window_t *sender, GUI_event_t event, void *param); //try to handle, frame resends children
     void WindowEvent(window_t *sender, GUI_event_t event, void *param); //try to handle, can sent click to parent
     bool IsVisible() const;                                             // visible and not hidden by dialog
+    bool HasVisibleFlag() const;                                        // visible, but still can be hidden behind dialog
     bool IsHiddenBehindDialog() const;
     bool IsEnabled() const;
     bool IsInvalid() const;
@@ -59,11 +60,12 @@ public:
     window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
 
-    bool RegisterSubWin(window_t *win);
-    void UnregisterSubWin(window_t *win);
+    bool RegisterSubWin(window_t &win);
+    void UnregisterSubWin(window_t &win);
 
     void ShiftNextTo(ShiftDir_t direction);
     virtual void Shift(ShiftDir_t direction, uint16_t distance);
+    virtual void ChildVisibilityChanged(window_t &child);
 
 protected:
     virtual void unconditionalDraw();
@@ -73,15 +75,16 @@ protected:
 
     virtual bool registerSubWin(window_t &win);
     virtual void unregisterSubWin(window_t &win);
+    virtual void addInvalidationRect(Rect16 rc);
 
 private:
     virtual void invalidate(Rect16 validation_rect);
-    virtual void validate(Rect16 validation_rect);
+    virtual void validate(Rect16 validation_rect); // do not use, used by screen
 
     static window_t *focused_ptr; // has focus
 
 public:
-    virtual window_t *GetCapturedWindow() { return this; } // do not use, used by screen
+    virtual window_t *GetCapturedWindow();
     static window_t *GetFocusedWindow();
     static void ResetFocusedWindow();
 

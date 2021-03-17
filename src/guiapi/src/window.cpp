@@ -9,6 +9,7 @@
 #include "marlin_client.h"
 
 bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }
+bool window_t::HasVisibleFlag() const { return flags.visible; };
 bool window_t::IsHiddenBehindDialog() const { return flags.hidden_behind_dialog; }
 bool window_t::IsEnabled() const { return flags.enabled; }
 bool window_t::IsInvalid() const { return flags.invalid; }
@@ -40,6 +41,13 @@ void window_t::invalidate(Rect16 validation_rect) {
 
 //frame will validate children
 void window_t::validate(Rect16 validation_rect) {
+}
+
+// "IsCapturable() ? this : nullptr" does not work because of popup,
+// popup does not claim capture, but can hide window
+// At this point we are sure no dialog has capture, so we check only visible flag
+window_t *window_t::GetCapturedWindow() {
+    return HasVisibleFlag() ? this : nullptr;
 }
 
 void window_t::SetHasTimer() { flags.timer = true; }
@@ -79,6 +87,10 @@ void window_t::Hide() {
         if (!flags.hidden_behind_dialog)
             Invalidate();
     }
+}
+
+//do nothing screen/frame will do something ...
+void window_t::ChildVisibilityChanged(window_t &child) {
 }
 
 void window_t::ShowAfterDialog() {
@@ -136,7 +148,7 @@ window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_
     Show();
     Invalidate();
     if (parent)
-        parent->RegisterSubWin(this);
+        parent->RegisterSubWin(*this);
 }
 
 window_t::~window_t() {
@@ -149,7 +161,7 @@ window_t::~window_t() {
 
     //win_type_t::normal must be unregistered so ~window_frame_t can has functional linked list
     if (GetParent())
-        GetParent()->UnregisterSubWin(this);
+        GetParent()->UnregisterSubWin(*this);
 
     Screens::Access()->ResetTimeout();
 }
@@ -225,23 +237,21 @@ void window_t::draw() {
 }
 
 //window does not support subwindow elements, but window_frame does
-bool window_t::RegisterSubWin(window_t *pWin) {
-    if (!pWin)
-        return false;
-
+bool window_t::RegisterSubWin(window_t &win) {
     //window must fit inside frame
-    if (!rect.Contain(pWin->rect))
+    if (!rect.Contain(win.rect))
         return false;
 
     Screens::Access()->ResetTimeout();
 
-    return registerSubWin(*pWin);
+    return registerSubWin(win);
 }
 
-void window_t::UnregisterSubWin(window_t *win) {
-    if ((!win) || (win->GetParent() != this))
+void window_t::UnregisterSubWin(window_t &win) {
+    if (win.GetParent() != this)
         return;
-    unregisterSubWin(*win);
+    addInvalidationRect(win.rect);
+    unregisterSubWin(win);
     Screens::Access()->ResetTimeout();
 }
 
@@ -250,6 +260,13 @@ bool window_t::registerSubWin(window_t &win) {
 }
 
 void window_t::unregisterSubWin(window_t &win) {
+}
+
+//cannot add rect, it is stored in frame, so must incalidate entire window
+void window_t::addInvalidationRect(Rect16 rc) {
+    if (!rect.IsEmpty()) {
+        Invalidate();
+    }
 }
 
 void window_t::unconditionalDraw() {

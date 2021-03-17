@@ -27,6 +27,21 @@ public:
     static void ShowUSBFlashDisk();
 };
 
+struct MockFrame_VisibilityNotifycations : public AddSuperWindow<window_frame_t> {
+    window_t win;
+    uint32_t ChangedCounter;
+    virtual void ChildVisibilityChanged(window_t &child) override {
+        super::ChildVisibilityChanged(child);
+        ++ChangedCounter;
+    }
+
+    MockFrame_VisibilityNotifycations()
+        : win(this, Rect16(20, 20, 10, 10))
+        , ChangedCounter(0) {}
+
+    Rect16 GetInvRect() const { return getInvalidationRect(); }
+};
+
 struct MockMsgBox : public AddSuperWindow<IDialog> {
     MockMsgBox(Rect16 rc)
         : AddSuperWindow<IDialog>(rc) {}
@@ -83,6 +98,9 @@ struct MockScreen : public AddSuperWindow<screen_t> {
 
     template <class... E>
     void CheckOrderAndVisibility(E *... e);
+
+    Rect16 GetInvalidationRect() const;
+    Rect16 GetInvRect() const { return getInvalidationRect(); }
 
 private:
     void checkPtrRange(window_t *&iter, size_t cnt, window_t *first, window_t *last) const;

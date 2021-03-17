@@ -1,6 +1,7 @@
 // window_frame.cpp
 #include "window_frame.hpp"
 #include "sound.hpp"
+#include "display.h"
 
 window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
     : AddSuperWindow<window_t>(parent, rect, type)
@@ -23,7 +24,7 @@ window_frame_t::~window_frame_t() {
     WinFilterPopUp filter;
     window_t *popup;
     while ((popup = findFirst(first_normal, nullptr, filter)) != nullptr) {
-        UnregisterSubWin(popup);
+        UnregisterSubWin(*popup);
     }
 }
 
@@ -141,6 +142,14 @@ void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, windo
     Invalidate();
 }
 
+void window_frame_t::addInvalidationRect(Rect16 rc) {
+    invalid_area += rc;
+}
+
+Rect16 window_frame_t::getInvalidationRect() const {
+    return invalid_area;
+}
+
 window_t *window_frame_t::getFirstNormal() const {
     return first_normal;
 }
@@ -158,6 +167,11 @@ void window_frame_t::draw() {
         unconditionalDraw();
         Validate();
         setChildrenInvalid = true;
+    } else {
+        // invalid_area must be drawn before subwins
+        if (!invalid_area.IsEmpty()) {
+            display::FillRect(invalid_area, color_back);
+        }
     }
 
     window_t *ptr = first_normal;
@@ -171,9 +185,15 @@ void window_frame_t::draw() {
             }
         }
 
+        if (invalid_area.HasIntersection(ptr->rect)) {
+            ptr->Invalidate();
+        }
+
         ptr->Draw();
         ptr = ptr->GetNext();
     }
+
+    invalid_area = Rect16(); // clear invalid_area
 }
 
 void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -387,6 +407,10 @@ void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
     }
 
     super::Shift(direction, distance);
+}
+
+void window_frame_t::ChildVisibilityChanged(window_t &child) {
+    addInvalidationRect(child.rect);
 }
 
 window_t *window_frame_t::getCapturedNormalWin() const {
