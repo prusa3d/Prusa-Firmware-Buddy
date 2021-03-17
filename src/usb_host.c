@@ -98,7 +98,9 @@ static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);
   */
 void MX_USB_HOST_Init(void) {
     /* USER CODE BEGIN USB_HOST_Init_PreTreatment */
-
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
+    HAL_Delay(200);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);
     /* USER CODE END USB_HOST_Init_PreTreatment */
 
     /* Init host Library, add supported class and start the library. */
