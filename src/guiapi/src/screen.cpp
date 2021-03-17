@@ -74,7 +74,7 @@ void screen_t::unregisterConflictingPopUps(Rect16 rect, window_t *end) {
     window_t *popup;
     //find intersecting popups and close them
     while ((popup = findFirst(getFirstPopUp(), end, filter_popup)) != end) {
-        UnregisterSubWin(popup);
+        UnregisterSubWin(*popup);
     }
 }
 
@@ -166,4 +166,10 @@ window_t *screen_t::GetCapturedWindow() {
     if (last_dialog)
         return last_dialog->GetCapturedWindow();
     return super::GetCapturedWindow();
+}
+
+void screen_t::ChildVisibilityChanged(window_t &child) {
+    super::ChildVisibilityChanged(child);
+    clearAllHiddenBehindDialogFlags();
+    hideSubwinsBehindDialogs();
 }

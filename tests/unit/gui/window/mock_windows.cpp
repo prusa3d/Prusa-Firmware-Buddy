@@ -51,6 +51,10 @@ void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_d
     LinkedListCheck(popup_cnt, dialog_cnt, strong_dialog_cnt);
 }
 
+Rect16 MockScreen::GetInvalidationRect() const {
+    return getInvalidationRect();
+}
+
 void MockScreen::checkPtrRange(window_t *&iter, size_t cnt, window_t *first, window_t *last) const {
     REQUIRE_FALSE(iter == nullptr);
     if (cnt) {
@@ -81,7 +85,7 @@ void window_dlg_strong_warning_t::show(string_view_utf8 txt) {
     if (!GetParent()) {
         window_t *parent = Screens::Access()->Get();
         if (parent) {
-            parent->RegisterSubWin(this);
+            parent->RegisterSubWin(*this);
         }
     }
 }
@@ -90,7 +94,7 @@ void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, wi
     if (!GetParent())
         return;
     if (event == GUI_event_t::CLICK) { //todo use timer
-        GetParent()->UnregisterSubWin(this);
+        GetParent()->UnregisterSubWin(*this);
     } else {
         SuperWindowEvent(sender, event, param);
     }

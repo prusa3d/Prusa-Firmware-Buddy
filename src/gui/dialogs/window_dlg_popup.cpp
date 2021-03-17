@@ -28,7 +28,7 @@ void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) 
     if (!dlg.GetParent()) {
         window_t *parent = Screens::Access()->Get();
         if (parent) {
-            parent->RegisterSubWin(&dlg);
+            parent->RegisterSubWin(dlg);
         }
     }
 }
@@ -37,7 +37,7 @@ void window_dlg_popup_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     const uint32_t openned = HAL_GetTick() - open_time;
     if (event == GUI_event_t::LOOP && openned > ttl) { //todo use timer
         if (GetParent()) {
-            GetParent()->UnregisterSubWin(this);
+            GetParent()->UnregisterSubWin(*this);
             //frame will set parrent to null
         }
     } else
