@@ -25,6 +25,15 @@ public:
     virtual window_t *GetCapturedWindow() override;
     virtual void ChildVisibilityChanged(window_t &child) override;
 
+    virtual window_t *GetFirstDialog() const override;
+    virtual window_t *GetLastDialog() const override;
+
+    virtual window_t *GetFirstStrongDialog() const override;
+    virtual window_t *GetLastStrongDialog() const override;
+
+    virtual window_t *GetFirstPopUp() const override;
+    virtual window_t *GetLastPopUp() const override;
+
 protected:
     virtual bool registerSubWin(window_t &win) override;
     virtual void unregisterSubWin(window_t &win) override;
