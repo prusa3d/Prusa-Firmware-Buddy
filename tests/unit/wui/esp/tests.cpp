@@ -32,8 +32,8 @@ TEST_CASE("ESP - AT API") {
     /// add dummy fn for sending commands
     esp.ll.send_fn = command_fn;
     /// create msg to store into esp global value
-    lwesp_msg_t msg;
-    esp.msg = &msg;
+    // lwesp_msg_t msg_test;
+    // esp.msg = &msg;
     /// response
     lwespr_t res = lwespTIMEOUT;
 
@@ -48,21 +48,33 @@ TEST_CASE("ESP - AT API") {
     // CHECK(strcmp(cmd, command_data) == 0);
     // }
 
+    SECTION("MSG CMD") {
+        uint8_t blocking = 0;
+        LWESP_MSG_VAR_DEFINE(msg);
+
+        LWESP_MSG_VAR_ALLOC(msg, blocking);
+        // LWESP_MSG_VAR_SET_EVT(msg, evt_fn, evt_arg);
+        LWESP_MSG_VAR_REF(msg).cmd = LWESP_CMD_RESET;
+
+        // return lwespi_send_msg_to_producer_mbox(&LWESP_MSG_VAR_REF(msg), lwespi_initiate_cmd, 5000);
+    }
+
     SECTION("RESET COMMAND") {
-        at_cmd = LWESP_CMD_RESET;
+        // at_cmd = LWESP_CMD_RESET;
         /// clear check string
         command_data = "";
         /// set AT command
-        esp.msg->cmd = at_cmd;
+        // &esp.msg->cmd = at_cmd;
+        // &msg->fn = lwespi_initiate_cmd;
         /// build AT command
-        res = lwespi_initiate_cmd(&msg);
-        CHECK(res == lwespERR);
+        // res = lwespi_initiate_cmd(&msg);
+        // CHECK(res == lwespERR);
         /// check generated AT command
         // char cmd[] = "AT+RST\r\n";
         // CHECK(cmd == command_data);
     }
 
-/*     SECTION("GET VERSION COMMAND") { */
+    /*     SECTION("GET VERSION COMMAND") { */
     //     command_data = "";
     //     esp.msg->cmd = LWESP_CMD_GMR;
     //     res = lwespi_initiate_cmd(&msg);
@@ -143,5 +155,4 @@ TEST_CASE("ESP - AT API") {
     //
     //
     /* } */
-
 }
