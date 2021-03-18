@@ -444,7 +444,14 @@ void window_frame_t::ReleaseCaptureOfNormalWindow() {
 }
 
 window_t *window_frame_t::GetCapturedWindow() {
-    if (getCapturedNormalWin())
-        return getCapturedNormalWin()->GetCapturedWindow();
-    return this;
+    window_t *ret = window_t::GetCapturedWindow(); // this, if it can be captured or nullptr
+
+    //rewrite ret value with valid captured subwin
+    //cannot use IsCapturable or IsVisible, because it use hidden_behind_dialog flag
+    //but it might be popup. At this point we are sure no dialog has capture, so we check only visible flag
+    if (getCapturedNormalWin() && getCapturedNormalWin()->HasVisibleFlag()) {
+        ret = getCapturedNormalWin()->GetCapturedWindow();
+    }
+
+    return ret;
 }

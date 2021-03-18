@@ -35,6 +35,8 @@ public:
     bool IsFocused() const;
     bool IsCaptured() const;
     bool IsShadowed() const;
+    bool IsCapturable() const;
+    bool HasEnforcedCapture() const;
     bool HasTimer() const;
     win_type_t GetType() const;
     bool IsDialog() const;
@@ -43,6 +45,8 @@ public:
     void Validate(Rect16 validation_rect = Rect16());
     void Invalidate(Rect16 validation_rect = Rect16());
 
+    void SetEnforceCapture();
+    void ClrEnforceCapture();
     void SetHasTimer();
     void ClrHasTimer();
     void SetFocus();
@@ -76,6 +80,7 @@ protected:
     virtual bool registerSubWin(window_t &win);
     virtual void unregisterSubWin(window_t &win);
     virtual void addInvalidationRect(Rect16 rc);
+    void notifyVisibilityChange();
 
 private:
     virtual void invalidate(Rect16 validation_rect);
@@ -116,6 +121,21 @@ struct window_aligned_t : public AddSuperWindow<window_t> {
     /// alignment constants are in guitypes.h
     Align_t GetAlignment() const;
     void SetAlignment(Align_t alignment);
+};
+
+class DoNotEnforceCapture_ScopeLock {
+    window_t &ths;
+    bool enforce;
+
+public:
+    DoNotEnforceCapture_ScopeLock(window_t &win)
+        : ths(win)
+        , enforce(win.HasEnforcedCapture()) {
+        ths.ClrEnforceCapture();
+    }
+    ~DoNotEnforceCapture_ScopeLock() {
+        enforce ? ths.SetEnforceCapture() : ths.ClrEnforceCapture();
+    }
 };
 
 void gui_invalidate(void);

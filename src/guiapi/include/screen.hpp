@@ -32,13 +32,5 @@ protected:
     void unregisterConflictingPopUps(Rect16 rect, window_t *end);
     bool canRegisterPopup(window_t &win);
     void hideSubwinsBehindDialogs();
-
-    window_t *getFirstDialog() const;
-    window_t *getLastDialog() const;
-
-    window_t *getFirstStrongDialog() const;
-    window_t *getLastStrongDialog() const;
-
-    window_t *getFirstPopUp() const;
-    window_t *getLastPopUp() const;
+    window_t *findCaptured(window_t *first, window_t *last) const;
 };

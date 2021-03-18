@@ -341,3 +341,116 @@ TEST_CASE("Window registration tests", "[window]") {
     screen.BasicCheck();
     REQUIRE(screen.GetCapturedWindow() == &screen);
 }
+
+TEST_CASE("Capturable test, all combinations", "[window]") {
+    window_t win(nullptr, Rect16(20, 20, 10, 10));
+
+    // default
+    // 1 .. visible
+    // 0 .. enforced capture
+    // 0 .. hidden behind dialog
+    REQUIRE(win.IsVisible());
+    REQUIRE(win.HasVisibleFlag());
+    REQUIRE_FALSE(win.HasEnforcedCapture());
+    REQUIRE_FALSE(win.IsHiddenBehindDialog());
+    REQUIRE(win.IsCapturable());
+
+    win.Hide();
+    // 0 .. visible
+    // 0 .. enforced capture
+    // 0 .. hidden behind dialog
+    REQUIRE_FALSE(win.IsVisible());
+    REQUIRE_FALSE(win.HasVisibleFlag());
+    REQUIRE_FALSE(win.HasEnforcedCapture());
+    REQUIRE_FALSE(win.IsHiddenBehindDialog());
+    REQUIRE_FALSE(win.IsCapturable());
+
+    win.SetEnforceCapture();
+    // 0 .. visible
+    // 1 .. enforced capture
+    // 0 .. hidden behind dialog
+    REQUIRE_FALSE(win.IsVisible());
+    REQUIRE_FALSE(win.HasVisibleFlag());
+    REQUIRE(win.HasEnforcedCapture());
+    REQUIRE_FALSE(win.IsHiddenBehindDialog());
+    REQUIRE(win.IsCapturable());
+
+    win.HideBehindDialog();
+    // 0 .. visible
+    // 1 .. enforced capture
+    // 1 .. hidden behind dialog
+    REQUIRE_FALSE(win.IsVisible());
+    REQUIRE_FALSE(win.HasVisibleFlag());
+    REQUIRE(win.HasEnforcedCapture());
+    REQUIRE(win.IsHiddenBehindDialog());
+    REQUIRE(win.IsCapturable());
+
+    win.ClrEnforceCapture();
+    // 0 .. visible
+    // 0 .. enforced capture
+    // 1 .. hidden behind dialog
+    REQUIRE_FALSE(win.IsVisible());
+    REQUIRE_FALSE(win.HasVisibleFlag());
+    REQUIRE_FALSE(win.HasEnforcedCapture());
+    REQUIRE(win.IsHiddenBehindDialog());
+    REQUIRE_FALSE(win.IsCapturable());
+
+    win.Show();
+    // 1 .. visible
+    // 0 .. enforced capture
+    // 1 .. hidden behind dialog
+    REQUIRE_FALSE(win.IsVisible());
+    REQUIRE(win.HasVisibleFlag());
+    REQUIRE_FALSE(win.HasEnforcedCapture());
+    REQUIRE(win.IsHiddenBehindDialog());
+    REQUIRE_FALSE(win.IsCapturable());
+
+    win.SetEnforceCapture();
+    // 1 .. visible
+    // 1 .. enforced capture
+    // 1 .. hidden behind dialog
+    REQUIRE_FALSE(win.IsVisible());
+    REQUIRE(win.HasVisibleFlag());
+    REQUIRE(win.HasEnforcedCapture());
+    REQUIRE(win.IsHiddenBehindDialog());
+    REQUIRE(win.IsCapturable());
+
+    win.ShowAfterDialog();
+    // 1 .. visible
+    // 1 .. enforced capture
+    // 0 .. hidden behind dialog
+    REQUIRE(win.IsVisible());
+    REQUIRE(win.HasVisibleFlag());
+    REQUIRE(win.HasEnforcedCapture());
+    REQUIRE_FALSE(win.IsHiddenBehindDialog());
+    REQUIRE(win.IsCapturable());
+}
+
+TEST_CASE("DoNotEnforceCapture_ScopeLock", "[window]") {
+    window_t win(nullptr, Rect16(20, 20, 10, 10));
+
+    SECTION("Disabled") {
+        REQUIRE_FALSE(win.HasEnforcedCapture());
+
+        {
+            DoNotEnforceCapture_ScopeLock lock(win);
+            REQUIRE_FALSE(win.HasEnforcedCapture());
+        }
+
+        //auto restored after end of the scope
+        REQUIRE_FALSE(win.HasEnforcedCapture());
+    }
+
+    SECTION("Enabled") {
+        win.SetEnforceCapture();
+        REQUIRE(win.HasEnforcedCapture());
+
+        {
+            DoNotEnforceCapture_ScopeLock lock(win);
+            REQUIRE_FALSE(win.HasEnforcedCapture());
+        }
+
+        //auto restored after end of the scope
+        REQUIRE(win.HasEnforcedCapture());
+    }
+}
