@@ -28,9 +28,9 @@ void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt, size_t str
 
     window_t *pLast = getLastNormal();
 
-    checkPtrRange(pLast, dialog_cnt, getFirstDialog(), getLastDialog());
-    checkPtrRange(pLast, strong_dialog_cnt, getFirstStrongDialog(), getLastStrongDialog());
-    checkPtrRange(pLast, popup_cnt, getFirstPopUp(), getLastPopUp());
+    checkPtrRange(pLast, dialog_cnt, GetFirstDialog(), GetLastDialog());
+    checkPtrRange(pLast, strong_dialog_cnt, GetFirstStrongDialog(), GetLastStrongDialog());
+    checkPtrRange(pLast, popup_cnt, GetFirstPopUp(), GetLastPopUp());
 
     REQUIRE(pLast->GetNext() == nullptr);
 }

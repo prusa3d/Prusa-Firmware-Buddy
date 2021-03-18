@@ -71,6 +71,15 @@ public:
     virtual void Shift(ShiftDir_t direction, uint16_t distance);
     virtual void ChildVisibilityChanged(window_t &child);
 
+    virtual window_t *GetFirstDialog() const { return nullptr; }
+    virtual window_t *GetLastDialog() const { return nullptr; }
+
+    virtual window_t *GetFirstStrongDialog() const { return nullptr; }
+    virtual window_t *GetLastStrongDialog() const { return nullptr; }
+
+    virtual window_t *GetFirstPopUp() const { return nullptr; }
+    virtual window_t *GetLastPopUp() const { return nullptr; }
+
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
