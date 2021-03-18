@@ -45,6 +45,23 @@ extern "C" {
 
 #if LWESP_CFG_OS && !__DOXYGEN__
 
+#if (osCMSIS < 0x20000U)
+
+typedef osMutexId                   lwesp_sys_mutex_t;
+typedef osSemaphoreId               lwesp_sys_sem_t;
+typedef osMessageQId                lwesp_sys_mbox_t;
+typedef osThreadId                  lwesp_sys_thread_t;
+typedef osPriority                  lwesp_sys_thread_prio_t;
+
+#define LWESP_SYS_MUTEX_NULL          ((lwesp_sys_mutex_t)0)
+#define LWESP_SYS_SEM_NULL            ((lwesp_sys_sem_t)0)
+#define LWESP_SYS_MBOX_NULL           ((lwesp_sys_mbox_t)0)
+#define LWESP_SYS_TIMEOUT             ((uint32_t)osWaitForever)
+#define LWESP_SYS_THREAD_PRIO         (osPriorityNormal)
+#define LWESP_SYS_THREAD_SS           (512)
+
+#else
+
 typedef osMutexId_t                 lwesp_sys_mutex_t;
 typedef osSemaphoreId_t             lwesp_sys_sem_t;
 typedef osMessageQueueId_t          lwesp_sys_mbox_t;
@@ -57,6 +74,7 @@ typedef osPriority_t                lwesp_sys_thread_prio_t;
 #define LWESP_SYS_TIMEOUT             ((uint32_t)osWaitForever)
 #define LWESP_SYS_THREAD_PRIO         (osPriorityNormal)
 #define LWESP_SYS_THREAD_SS           (512)
+#endif
 
 #endif /* LWESP_CFG_OS && !__DOXYGEN__ */
 

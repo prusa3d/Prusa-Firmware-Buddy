@@ -67,6 +67,7 @@
 #include "eeprom.h"
 #include "crc32.h"
 #include "w25x.h"
+#include "lwesp/lwesp.h"
 
 #define USB_OVERC_Pin       GPIO_PIN_4
 #define USB_OVERC_GPIO_Port GPIOE
@@ -294,6 +295,7 @@ int main(void) {
         NULL
     };
     metric_system_init(handlers);
+    lwesp_init(nullptr, 1);
     /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
     /* USER CODE END RTOS_MUTEX */
