@@ -39,8 +39,8 @@ constexpr bool GUI_event_IsKnob(GUI_event_t event) {
 
 constexpr bool GUI_event_IsCaptureEv(GUI_event_t event) {
     switch (event) {
-    case GUI_event_t::BTN_DN:
-    case GUI_event_t::BTN_UP:
+    case GUI_event_t::ENC_DN:
+    case GUI_event_t::ENC_UP:
     case GUI_event_t::CLICK:
     case GUI_event_t::HOLD:
         return true;

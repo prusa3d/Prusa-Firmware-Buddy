@@ -32,7 +32,7 @@ void DialogTimed::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
     }
 
     if (IsVisible()) {
-        if (GUI_event_IsCaptureEv(event) || GUI_event_IsKnob(event)) { // this window must be captured
+        if (GUI_event_IsCaptureEv(event)) { // this window must be captured
             Hide();
             time_of_last_action = now;
             return; // event consumed
