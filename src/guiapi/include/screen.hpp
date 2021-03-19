@@ -25,6 +25,15 @@ public:
     virtual window_t *GetCapturedWindow() override;
     virtual void ChildVisibilityChanged(window_t &child) override;
 
+    virtual window_t *GetFirstDialog() const override;
+    virtual window_t *GetLastDialog() const override;
+
+    virtual window_t *GetFirstStrongDialog() const override;
+    virtual window_t *GetLastStrongDialog() const override;
+
+    virtual window_t *GetFirstPopUp() const override;
+    virtual window_t *GetLastPopUp() const override;
+
 protected:
     virtual bool registerSubWin(window_t &win) override;
     virtual void unregisterSubWin(window_t &win) override;
@@ -32,13 +41,5 @@ protected:
     void unregisterConflictingPopUps(Rect16 rect, window_t *end);
     bool canRegisterPopup(window_t &win);
     void hideSubwinsBehindDialogs();
-
-    window_t *getFirstDialog() const;
-    window_t *getLastDialog() const;
-
-    window_t *getFirstStrongDialog() const;
-    window_t *getLastStrongDialog() const;
-
-    window_t *getFirstPopUp() const;
-    window_t *getLastPopUp() const;
+    window_t *findCaptured_first_last(window_t *first, window_t *last) const; //does not use begin - end like normal find
 };

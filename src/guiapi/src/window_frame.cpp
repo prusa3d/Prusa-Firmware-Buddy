@@ -35,7 +35,13 @@ void window_frame_t::SetOnSerialClose() { flags.serial_close = is_closed_on_seri
 void window_frame_t::ClrOnSerialClose() { flags.serial_close = is_closed_on_serial_t::no; }
 
 window_t *window_frame_t::findFirst(window_t *begin, window_t *end, const WinFilter &filter) const {
-    while (begin && (begin->GetParent() == this) && (begin != end)) {
+    if (!begin)
+        return end;
+    window_t *parent = begin->GetParent();
+    if ((parent == nullptr) || (end && (end->GetParent() != parent))) {
+        return end;
+    }
+    while (begin && (begin->GetParent() == parent) && (begin != end)) {
         if (filter(*begin)) {
             return begin;
         }
@@ -424,7 +430,7 @@ bool window_frame_t::IsChildCaptured() const {
 bool window_frame_t::CaptureNormalWindow(window_t &win) {
     if (win.GetParent() != this || win.GetType() != win_type_t::normal)
         return false;
-    window_t *last_captured = GetCapturedWindow();
+    window_t *last_captured = getCapturedNormalWin(); //recursive !!! GetCapturedWindow();
     if (last_captured) {
         last_captured->WindowEvent(this, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
     }
@@ -444,7 +450,14 @@ void window_frame_t::ReleaseCaptureOfNormalWindow() {
 }
 
 window_t *window_frame_t::GetCapturedWindow() {
-    if (getCapturedNormalWin())
-        return getCapturedNormalWin()->GetCapturedWindow();
-    return this;
+    window_t *ret = window_t::GetCapturedWindow(); // this, if it can be captured or nullptr
+
+    //rewrite ret value with valid captured subwin
+    //cannot use IsCapturable or IsVisible, because it use hidden_behind_dialog flag
+    //but it might be popup. At this point we are sure no dialog has capture, so we check only visible flag
+    if (getCapturedNormalWin() && getCapturedNormalWin()->HasVisibleFlag()) {
+        ret = getCapturedNormalWin()->GetCapturedWindow();
+    }
+
+    return ret;
 }

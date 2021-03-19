@@ -19,6 +19,8 @@ win_type_t window_t::GetType() const { return win_type_t(flags.type); }
 bool window_t::IsDialog() const { return GetType() == win_type_t::dialog || GetType() == win_type_t::strong_dialog; }
 bool window_t::ClosedOnTimeout() const { return flags.timeout_close == is_closed_on_timeout_t::yes; }
 bool window_t::ClosedOnSerialPrint() const { return flags.serial_close == is_closed_on_serial_t::yes; }
+bool window_t::HasEnforcedCapture() const { return flags.enforce_capture_when_not_visible; }
+bool window_t::IsCapturable() const { return IsVisible() || HasEnforcedCapture(); }
 
 void window_t::Validate(Rect16 validation_rect) {
     if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
@@ -54,6 +56,8 @@ void window_t::SetHasTimer() { flags.timer = true; }
 void window_t::ClrHasTimer() { flags.timer = false; }
 void window_t::Enable() { flags.enabled = true; }
 void window_t::Disable() { flags.enabled = false; }
+void window_t::SetEnforceCapture() { flags.enforce_capture_when_not_visible = true; }
+void window_t::ClrEnforceCapture() { flags.enforce_capture_when_not_visible = false; }
 
 void window_t::SetFocus() {
     if (!IsVisible() || !flags.enabled)
@@ -77,6 +81,8 @@ void window_t::Show() {
         //cannot invalidate when is hidden by dialog - could flicker
         if (!flags.hidden_behind_dialog)
             Invalidate();
+
+        notifyVisibilityChange();
     }
 }
 
@@ -86,7 +92,14 @@ void window_t::Hide() {
         //cannot invalidate when is hidden by dialog - could flicker
         if (!flags.hidden_behind_dialog)
             Invalidate();
+
+        notifyVisibilityChange();
     }
+}
+
+void window_t::notifyVisibilityChange() {
+    if (GetParent())
+        GetParent()->ChildVisibilityChanged(*this);
 }
 
 //do nothing screen/frame will do something ...
@@ -145,7 +158,7 @@ window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_
     flags.type = uint8_t(type);
     flags.close_on_click = close;
     close == is_closed_on_click_t::yes ? Enable() : Disable();
-    Show();
+    flags.visible = true; // do not call show, it needs parent to be registered
     Invalidate();
     if (parent)
         parent->RegisterSubWin(*this);

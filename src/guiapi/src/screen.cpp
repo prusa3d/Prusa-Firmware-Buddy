@@ -68,12 +68,12 @@ bool screen_t::registerSubWin(window_t &win) {
 
 void screen_t::unregisterConflictingPopUps(Rect16 rect, window_t *end) {
 
-    if (!getFirstPopUp())
+    if (!GetFirstPopUp())
         return;
     WinFilterIntersectingPopUp filter_popup(rect);
     window_t *popup;
     //find intersecting popups and close them
-    while ((popup = findFirst(getFirstPopUp(), end, filter_popup)) != end) {
+    while ((popup = findFirst(GetFirstPopUp(), end, filter_popup)) != end) {
         UnregisterSubWin(*popup);
     }
 }
@@ -136,36 +136,61 @@ void screen_t::unregisterSubWin(window_t &win) {
     hideSubwinsBehindDialogs();
 }
 
-window_t *screen_t::getFirstDialog() const {
+window_t *screen_t::GetFirstDialog() const {
     return first_dialog;
 }
 
-window_t *screen_t::getLastDialog() const {
+window_t *screen_t::GetLastDialog() const {
     return last_dialog;
 }
 
-window_t *screen_t::getFirstStrongDialog() const {
+window_t *screen_t::GetFirstStrongDialog() const {
     return first_strong_dialog;
 }
 
-window_t *screen_t::getLastStrongDialog() const {
+window_t *screen_t::GetLastStrongDialog() const {
     return last_strong_dialog;
 }
 
-window_t *screen_t::getFirstPopUp() const {
+window_t *screen_t::GetFirstPopUp() const {
     return first_popup;
 }
 
-window_t *screen_t::getLastPopUp() const {
+window_t *screen_t::GetLastPopUp() const {
     return last_popup;
 }
 
 window_t *screen_t::GetCapturedWindow() {
-    if (last_strong_dialog)
-        return last_strong_dialog->GetCapturedWindow();
-    if (last_dialog)
-        return last_dialog->GetCapturedWindow();
+    window_t *ret;
+
+    ret = findCaptured_first_last(first_strong_dialog, last_strong_dialog);
+    if (ret)
+        return ret;
+
+    ret = findCaptured_first_last(first_dialog, last_dialog);
+    if (ret)
+        return ret;
+
+    //default frame behavior
     return super::GetCapturedWindow();
+}
+
+window_t *screen_t::findCaptured_first_last(window_t *first, window_t *last) const {
+    if ((!first) || (!last))
+        return nullptr;
+
+    //last can be directly accessed
+    if (last->IsCapturable()) {
+        return last->GetCapturedWindow();
+    }
+
+    //non last can not be directly accessed
+    WinFilterCapturable filter;
+    window_t *win = findLast(first, last, filter);
+    if (win != last)
+        return win;
+
+    return nullptr;
 }
 
 void screen_t::ChildVisibilityChanged(window_t &child) {
