@@ -430,7 +430,7 @@ bool window_frame_t::IsChildCaptured() const {
 bool window_frame_t::CaptureNormalWindow(window_t &win) {
     if (win.GetParent() != this || win.GetType() != win_type_t::normal)
         return false;
-    window_t *last_captured = getCapturedNormalWin(); //recursive !!! GetCapturedWindow();
+    window_t *last_captured = getCapturedNormalWin();
     if (last_captured) {
         last_captured->WindowEvent(this, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
     }
