@@ -10,6 +10,7 @@
 #include "screen.hpp"
 #include "window_dlg_popup.hpp"
 #include "IDialog.hpp"
+#include "DialogTimed.hpp"
 
 class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
 protected: // inherited by unit tests, must be protected
@@ -184,3 +185,11 @@ void MockScreen::CheckOrderAndVisibility(E *... e) {
 
     REQUIRE(pWin->GetNext() == nullptr); // verify if all windows were checked
 }
+
+class MockDialogTimed : public AddSuperWindow<DialogTimed> {
+
+public:
+    MockDialogTimed(window_t *parent, Rect16 rc, uint32_t time = 500)
+        : AddSuperWindow<DialogTimed>(parent, rc, time) {
+    }
+};
