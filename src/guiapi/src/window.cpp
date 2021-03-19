@@ -158,7 +158,7 @@ window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_
     flags.type = uint8_t(type);
     flags.close_on_click = close;
     close == is_closed_on_click_t::yes ? Enable() : Disable();
-    Show();
+    flags.visible = true; // do not call show, it needs parent to be registered
     Invalidate();
     if (parent)
         parent->RegisterSubWin(*this);

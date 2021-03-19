@@ -35,6 +35,8 @@ void window_frame_t::SetOnSerialClose() { flags.serial_close = is_closed_on_seri
 void window_frame_t::ClrOnSerialClose() { flags.serial_close = is_closed_on_serial_t::no; }
 
 window_t *window_frame_t::findFirst(window_t *begin, window_t *end, const WinFilter &filter) const {
+    if (!begin)
+        return end;
     window_t *parent = begin->GetParent();
     if ((parent == nullptr) || (end && (end->GetParent() != parent))) {
         return end;

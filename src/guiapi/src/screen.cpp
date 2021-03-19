@@ -163,11 +163,11 @@ window_t *screen_t::GetLastPopUp() const {
 window_t *screen_t::GetCapturedWindow() {
     window_t *ret;
 
-    ret = findCaptured(first_strong_dialog, last_strong_dialog);
+    ret = findCaptured_first_last(first_strong_dialog, last_strong_dialog);
     if (ret)
         return ret;
 
-    ret = findCaptured(first_dialog, last_dialog);
+    ret = findCaptured_first_last(first_dialog, last_dialog);
     if (ret)
         return ret;
 
@@ -175,19 +175,21 @@ window_t *screen_t::GetCapturedWindow() {
     return super::GetCapturedWindow();
 }
 
-window_t *screen_t::findCaptured(window_t *first, window_t *last) const {
+window_t *screen_t::findCaptured_first_last(window_t *first, window_t *last) const {
+    if ((!first) || (!last))
+        return nullptr;
+
     //last can be directly accessed
-    if (last) {
-        if (last->IsCapturable()) {
-            return last->GetCapturedWindow();
-        }
-    } else {
-        //non last can not be directly accessed
-        WinFilterCapturable filter;
-        window_t *win = findLast(first, last, filter);
-        if (win != last)
-            return win;
+    if (last->IsCapturable()) {
+        return last->GetCapturedWindow();
     }
+
+    //non last can not be directly accessed
+    WinFilterCapturable filter;
+    window_t *win = findLast(first, last, filter);
+    if (win != last)
+        return win;
+
     return nullptr;
 }
 

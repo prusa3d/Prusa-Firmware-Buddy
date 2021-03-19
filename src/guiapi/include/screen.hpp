@@ -41,5 +41,5 @@ protected:
     void unregisterConflictingPopUps(Rect16 rect, window_t *end);
     bool canRegisterPopup(window_t &win);
     void hideSubwinsBehindDialogs();
-    window_t *findCaptured(window_t *first, window_t *last) const;
+    window_t *findCaptured_first_last(window_t *first, window_t *last) const; //does not use begin - end like normal find
 };

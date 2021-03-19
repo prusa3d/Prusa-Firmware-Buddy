@@ -278,10 +278,11 @@ TEST_CASE("Window layout tests", "[window]") {
 // Frame is different than screen (cannot host subwindows)
 // also check if frame is notified about visibility changes
 TEST_CASE("Visibility notifycation test", "[window]") {
+    MockDisplay::Bind(MockDispBasic);
+    MockDisplay::Instance().clear(COLOR_BLACK);
     MockFrame_VisibilityNotifycations frame;
 
     window_t &win = frame.win;
-    REQUIRE(frame.GetInvRect() == win.rect);
     frame.Draw(); //clears invalidation rect
 
     // no need to call HideBehindDialog, because frame cannot host dialogs
@@ -342,6 +343,8 @@ TEST_CASE("Visibility notifycation test", "[window]") {
 }
 
 TEST_CASE("Visibility notifycation test, hidden win registration", "[window]") {
+    MockDisplay::Bind(MockDispBasic);
+    MockDisplay::Instance().clear(COLOR_BLACK);
     Rect16 rc = GENERATE(GuiDefaults::RectScreen, Rect16(20, 20, 20, 20));
     MockScreen screen;
     screen.Draw(); //clear invalidation rect
@@ -354,6 +357,8 @@ TEST_CASE("Visibility notifycation test, hidden win registration", "[window]") {
 }
 
 TEST_CASE("Capturable test window in screen", "[window]") {
+    MockDisplay::Bind(MockDispBasic);
+    MockDisplay::Instance().clear(COLOR_BLACK);
     MockScreen screen;
     Screens::Access()->Set(&screen); //instead of screen registration
     screen.Draw();                   //clears invalidation rect
