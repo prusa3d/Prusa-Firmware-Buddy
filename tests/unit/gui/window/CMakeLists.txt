@@ -31,6 +31,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
   ${CMAKE_SOURCE_DIR}/src/gui/dialogs/window_dlg_popup.cpp
   ${CMAKE_SOURCE_DIR}/src/gui/dialogs/IDialog.cpp
+  ${CMAKE_SOURCE_DIR}/src/gui/dialogs/DialogTimed.cpp
   )
 
 # define required search paths

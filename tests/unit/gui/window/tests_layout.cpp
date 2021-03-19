@@ -402,3 +402,43 @@ TEST_CASE("Capturable test window in screen", "[window]") {
     REQUIRE_FALSE(win.IsHiddenBehindDialog());
     REQUIRE(win.IsCapturable());
 }
+
+TEST_CASE("Timed dialog tests", "[window]") {
+    MockDisplay::Bind(MockDispBasic);
+    MockDisplay::Instance().clear(COLOR_BLACK);
+    MockScreen screen;
+    Screens::Access()->Set(&screen); //instead of screen registration
+
+    // initial screen check
+    screen.BasicCheck();
+    REQUIRE(screen.GetCapturedWindow() == &screen);
+
+    SECTION("Screen timed dialog test") {
+        Rect16 rc = GENERATE(GuiDefaults::RectScreen, Rect16(20, 20, 20, 20));
+        screen.Draw();
+        screen.BasicCheck();
+        REQUIRE(screen.GetCapturedWindow() == &screen);
+        REQUIRE(screen.GetInvalidationRect().IsEmpty()); //cleared by draw
+
+        MockDialogTimed dlg_timed(&screen, rc);
+        REQUIRE(screen.GetInvRect() == rc);
+
+        dlg_timed.Show();                   // win is hidden by default
+        REQUIRE(screen.GetInvRect() == rc); // unlike frame, screen invalidates on Show too, (multiple dialog priority, far shorter code)
+
+        dlg_timed.Hide();
+        REQUIRE(screen.GetInvRect() == rc);
+
+        screen.Draw();
+        REQUIRE(screen.GetInvalidationRect().IsEmpty()); //cleared by draw
+    }
+
+    hal_tick = 1000;                                   //set openned on popup
+    screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); //loop will initialize popup timeout
+    hal_tick = 10000;                                  //timeout popup
+    screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); //loop event will unregister popup
+
+    //at the end of all sections screen must be returned to its original state
+    screen.BasicCheck();
+    REQUIRE(screen.GetCapturedWindow() == &screen);
+}
