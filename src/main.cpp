@@ -906,8 +906,8 @@ static void MX_GPIO_Init(void) {
 
     /*Configure GPIO pin Output Level */
     // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
-    // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
-    // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOD, FLASH_CSN_Pin, GPIO_PIN_RESET);
