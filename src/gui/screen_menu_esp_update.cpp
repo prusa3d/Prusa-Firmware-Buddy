@@ -17,31 +17,100 @@
 
 extern UART_HandleTypeDef huart6;
 
-class MI_ESP_FLASH_MODE : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Flash mode");
+/* // ---------------------------------------------------------------- */
+// // RESET
+// class MI_ESP_RESET : public WI_LABEL_t {
+//     constexpr static const char *const label = N_("ESP RESET");
+//
+// public:
+//     MI_ESP_RESET()
+//         : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+//     virtual void click(IWindowMenu & [>window_menu<]) override {
+//
+//         HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+//
+//         // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
+//         // char at_cmd[] = "AT+RST\r\n";
+//         // HAL_UART_Transmit(&huart6, (uint8_t *)at_cmd, sizeof(at_cmd), HAL_MAX_DELAY);
+//
+//         // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
+//         // osDelay(10);
+//         // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
+//         // osDelay(10);
+//         // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+//
+//         _dbg0("HW RESET");
+//     }
+// };
+/* // ---------------------------------------------------------------- */
+
+// ----------------------------------------------------------------
+// RESET - SWITCH
+class MI_ESP_RESET : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = N_("ESP RESET");
+    constexpr static const char *const s_on = N_("On");
+    constexpr static const char *const s_off = N_("Off");
+
+    size_t init_index() const;
 
 public:
-    MI_ESP_FLASH_MODE()
-        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
-    virtual void click(IWindowMenu & /*window_menu*/) override {
-
-        HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_RESET);
-        char at_cmd[] = "AT+RST\r\n";
-        HAL_UART_Transmit(&huart6, (uint8_t *)at_cmd, sizeof(at_cmd), HAL_MAX_DELAY);
-
-        // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
-        // osDelay(10);
-        // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
-        // osDelay(10);
-        // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
-
-        _dbg0("HW RESET with flash mode");
-
-        // Eth::SaveMessage();
-    }
+    MI_ESP_RESET();
+protected:
+    virtual void OnChange(size_t) override;
 };
+MI_ESP_RESET::MI_ESP_RESET()
+    : WI_SWITCH_t<2>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(s_on), _(s_off)) {}
+size_t MI_ESP_RESET::init_index() const {
+    return 0;
+}
+void MI_ESP_RESET::OnChange(size_t old_index) {
+    if (index == 0) {
+        // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+    } else if (index == 1) {
+        // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
+    } else {
+        HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+    }
+    _dbg0("%d index of ESP_RST_Pin", index);
+}
+// ----------------------------------------------------------------
 
-using MenuContainer = WinMenuContainer<MI_RETURN, MI_ESP_FLASH_MODE>;
+// ----------------------------------------------------------------
+// GPIO0 - UP/DOWN
+class MI_ESP_FLASH : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = N_("ESP FLASH");
+    constexpr static const char *const s_on = N_("On");
+    constexpr static const char *const s_off = N_("Off");
+
+    size_t init_index() const;
+
+public:
+    MI_ESP_FLASH();
+protected:
+    virtual void OnChange(size_t) override;
+};
+MI_ESP_FLASH::MI_ESP_FLASH()
+    : WI_SWITCH_t<2>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(s_on), _(s_off)) {}
+size_t MI_ESP_FLASH::init_index() const {
+    return 0;
+}
+void MI_ESP_FLASH::OnChange(size_t old_index) {
+    if (index == 0) {
+        HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_RESET);
+        // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+    } else if (index == 1) {
+        HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
+        // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
+    } else {
+        // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+    }
+    _dbg0("%d index of ESP_RST_Pin", index);
+}
+// ----------------------------------------------------------------
+
+using MenuContainer = WinMenuContainer<MI_RETURN, MI_ESP_FLASH, MI_ESP_RESET>;
 
 class ScreenMenuESPUpdate : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("ESP UPDATE");
