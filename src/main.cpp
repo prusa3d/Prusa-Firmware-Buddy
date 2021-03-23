@@ -72,10 +72,10 @@
 #define USB_OVERC_GPIO_Port GPIOE
 #define USB_EN_Pin          GPIO_PIN_5
 #define USB_EN_GPIO_Port    GPIOE
-#define ESP_GPIO0_Pin       GPIO_PIN_6
-#define ESP_GPIO0_GPIO_Port GPIOE
-#define ESP_RST_Pin         GPIO_PIN_13
-#define ESP_RST_GPIO_Port   GPIOC
+// #define ESP_GPIO0_Pin       GPIO_PIN_6
+// #define ESP_GPIO0_GPIO_Port GPIOE
+// #define ESP_RST_Pin         GPIO_PIN_13
+// #define ESP_RST_GPIO_Port   GPIOC
 #define BED_MON_Pin         GPIO_PIN_7
 #define BED_MON_GPIO_Port   GPIOE
 #define FAN0_TACH_Pin       GPIO_PIN_10
@@ -905,7 +905,8 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
+    // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOD, FLASH_CSN_Pin, GPIO_PIN_RESET);
