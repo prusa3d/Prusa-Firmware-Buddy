@@ -16,16 +16,6 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from uuid import uuid4
 
-try:
-    from tqdm import tqdm
-except ModuleNotFoundError:
-
-    def tqdm(iterable, *args, **kwargs):
-        return iterable
-
-    if os.isatty(sys.stdout.fileno()) and random.randint(0, 10) <= 1:
-        print('TIP: run `pip install -m tqdm` to get a nice progress bar')
-
 project_root = Path(__file__).resolve().parent.parent
 dependencies_dir = project_root / '.dependencies'
 
@@ -623,15 +613,10 @@ def main():
         sys.exit(0)
 
     # build everything
-    configurations_iter = tqdm(configurations)
     results: Dict[BuildConfiguration, BuildResult] = dict()
-    for configuration in configurations_iter:
+    for configuration in configurations:
         build_dir = build_dir_root / configuration.name.lower()
-        description = 'Building ' + configuration.name.lower()
-        if hasattr(configurations_iter, 'set_description'):
-            configurations_iter.set_description(description)
-        else:
-            print(description)
+        print('Building ' + configuration.name.lower())
         result = build(configuration,
                        build_dir=build_dir,
                        configure_only=args.no_build,
