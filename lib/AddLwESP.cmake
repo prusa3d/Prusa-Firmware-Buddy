@@ -28,13 +28,13 @@ target_sources(lwesp INTERFACE
   lwesp/lwesp/src/lwesp/lwesp_wps.c
 
   lwesp/lwesp/src/system/lwesp_mem_lwmem.c
-  lwesp/lwesp/src/system/lwesp_sys_freertos_os.c
-  lwesp/lwesp/src/system/lwesp_hal_stm32.c
+  lwesp/lwesp/src/system/lwesp_sys_buddy.c
+  lwesp/lwesp/src/system/lwesp_ll_buddy.c
 )
 
 target_include_directories(lwesp INTERFACE
     lwesp/lwesp/src/include
-    lwesp/lwesp/src/include/system/port/cmsis_os
+    lwesp/lwesp/src/include/system/port/buddy
     ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/include
     ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS
     ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
