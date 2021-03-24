@@ -846,7 +846,8 @@ static void MX_USART6_UART_Init(void) {
     /* USER CODE END USART6_Init 0 */
 
     /* USER CODE BEGIN USART6_Init 1 */
-
+    HAL_NVIC_SetPriority(USART6_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(USART6_IRQn);
     /* USER CODE END USART6_Init 1 */
     huart6.Instance = USART6;
     huart6.Init.BaudRate = 115200;
@@ -885,6 +886,9 @@ static void MX_DMA_Init(void) {
     /* DMA2_Stream2_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+    /* DMA2_Stream6_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
 }
 
 /**

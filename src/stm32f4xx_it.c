@@ -39,6 +39,7 @@
 #include "cmsis_os.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "config.h"
 #include "bsod.h"
 #include "dump.h"
 #include "sys.h"
@@ -191,7 +192,7 @@ void USART2_IRQHandler() {
     }
     HAL_UART_IRQHandler(&huart2);
 }
-
+#ifndef USE_ESP01_WITH_UART6
 void USART6_IRQHandler() {
     // Uart_isr(&huart6);
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
@@ -200,7 +201,7 @@ void USART6_IRQHandler() {
     }
     HAL_UART_IRQHandler(&huart6);
 }
-
+#endif
 /**
   * @brief This function handles Window watchdog interrupt.
   */
@@ -319,6 +320,7 @@ void DMA2_Stream1_IRQHandler(void) {
     /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
 
+#ifndef USE_ESP01_WITH_UART6
 /**
   * @brief This function handles DMA2 stream2 global interrupt.
   */
@@ -331,7 +333,7 @@ void DMA2_Stream2_IRQHandler(void) {
 
     /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
-
+#endif
 /**
   * @brief This function handles Ethernet global interrupt.
   */
