@@ -565,8 +565,17 @@ def main():
     )
     parser.add_argument(
         '--no-store-output',
-        action='store_false',
+        dest='store_output',
+        action='store_const',
+        const=False,
         help='Do not write build output to files - print it to console instead.'
+    )
+    parser.add_argument(
+        '--store-output',
+        dest='store_output',
+        action='store_const',
+        const=True,
+        help='Write build output to files - print it to console instead.'
     )
     parser.add_argument(
         '-D', '--cmake-def',
@@ -635,7 +644,8 @@ def main():
         result = build(configuration,
                        build_dir=build_dir,
                        configure_only=args.no_build,
-                       output_to_file=args.no_store_output is not False)
+                       output_to_file=args.store_output
+                       if args.store_output is not None else False)
         store_products(result.products, configuration, products_dir_root)
         results[configuration] = result
 
