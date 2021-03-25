@@ -1,6 +1,6 @@
 /**
- * \file            lwesp_opts.h
- * \brief           ESP application options
+ * \file            lwesp_opts_template.h
+ * \brief           Template config file
  */
 
 /*
@@ -40,7 +40,8 @@
  * Open "include/lwesp/lwesp_opt.h" and
  * copy & replace here settings you want to change values
  */
-#define LWESP_CFG_AT_ECHO                     1
-#define LWESP_CFG_INPUT_USE_PROCESS           1
+#define LWESP_CFG_INPUT_USE_PROCESS 1
+#define LWESP_CFG_RESET_ON_INIT     0
+#define LWESP_CFG_RESTORE_ON_INIT   0
 
 #endif /* LWESP_HDR_OPTS_H */
