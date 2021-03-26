@@ -75,6 +75,8 @@ WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, uint16
     : AddSuper<IWiSpin>(val, label, id_icon, enabled, hidden, cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), calculateExtensionWidth(cnf.Unit(), cnf.calculateMaxDigits()))
     , config(cnf) {
     printSpinToBuffer();
+    val = std::clamp(T(value), config.Min(), config.Max());
+    value = val;
 }
 
 template <class T>
@@ -83,8 +85,7 @@ invalidate_t WI_SPIN_t<T>::Change(int dif) {
     T old = val;
     val += (T)dif * config.Step();
     val = dif >= 0 ? std::max(val, old) : std::min(val, old); //check overflow/underflow
-    val = std::min(val, config.Max());
-    val = std::max(val, config.Min());
+    val = std::clamp(val, config.Min(), config.Max());
     value = val;
     invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; //0 dif forces redraw
     if (invalid == invalidate_t::yes)
