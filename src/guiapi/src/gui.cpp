@@ -84,15 +84,17 @@ void gui_loop(void) {
     }
     #endif //GUI_JOGWHEEL_SUPPORT
 
-    GuiMediaEventsHandler::state_t media_state = GuiMediaEventsHandler::ConsumeMediaState();
-    switch (media_state) {
-    case GuiMediaEventsHandler::state_t::inserted:
-    case GuiMediaEventsHandler::state_t::removed:
-    case GuiMediaEventsHandler::state_t::error:
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::MEDIA, (void *)int(media_state));
-        break;
-    default:
-        break;
+    media_state_t media_state = media_state_t::unknown;
+    if (GuiMediaEventsHandler::ConsumeSent(media_state)) {
+        switch (media_state) {
+        case media_state_t::inserted:
+        case media_state_t::removed:
+        case media_state_t::error:
+            Screens::Access()->ScreenEvent(nullptr, GUI_event_t::MEDIA, (void *)int(media_state));
+            break;
+        default:
+            break;
+        }
     }
 
     delay = gui_timers_cycle();

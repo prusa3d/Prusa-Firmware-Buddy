@@ -19,7 +19,7 @@ GuiMediaEventsHandler::GuiMediaEventsHandler()
     , is_starting(true)
     , one_click_printing(false)
     , state_sent(true)
-    , media_state(state_t::unknown) {
+    , media_state(media_state_t::unknown) {
 }
 
 void GuiMediaEventsHandler::Tick() {
@@ -33,32 +33,32 @@ void GuiMediaEventsHandler::tick() {
             marlin_event_clr(MARLIN_EVT_MediaInserted);
             marlin_event_clr(MARLIN_EVT_MediaError);
             is_starting = false;
-            media_state = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS))->media_inserted ? state_t::inserted : state_t::removed;
-            // state_sent == true, set by ctor
+            media_state = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS))->media_inserted ? media_state_t::inserted : media_state_t::removed;
+            state_sent = false;
         }
         return;
     }
 
     // normal run
-    state_t actual_state = state_t::unknown;
+    media_state_t actual_state = media_state_t::unknown;
 
     if (marlin_event_clr(MARLIN_EVT_MediaInserted))
-        actual_state = state_t::inserted;
+        actual_state = media_state_t::inserted;
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved))
-        actual_state = state_t::removed;
+        actual_state = media_state_t::removed;
     if (marlin_event_clr(MARLIN_EVT_MediaError))
-        actual_state = state_t::error;
+        actual_state = media_state_t::error;
 
-    if (media_state == state_t::error)
+    if (media_state == media_state_t::error)
         return; //error must be cleared manually
 
     switch (actual_state) {
-    case state_t::inserted:
+    case media_state_t::inserted:
         one_click_printing = true;
         state_sent = false;
         break; // update after break
-    case state_t::removed:
-    case state_t::error:
+    case media_state_t::removed:
+    case media_state_t::error:
         one_click_printing = false;
         state_sent = false;
         break; // update after break
@@ -81,19 +81,24 @@ bool GuiMediaEventsHandler::IsStarting() {
 
 void GuiMediaEventsHandler::ClrMediaError() {
     //clear
-    if (Instance().media_state == state_t::error)
+    if (Instance().media_state == media_state_t::error)
         Instance().clr();
     //update
     Tick();
     //clear again
-    if (Instance().media_state == state_t::error)
+    if (Instance().media_state == media_state_t::error)
         Instance().clr();
 }
 
-GuiMediaEventsHandler::state_t GuiMediaEventsHandler::ConsumeMediaState() {
-    Tick();                               //first update
-    state_t ret = Instance().media_state; //remember
-    if (ret != state_t::error)
-        Instance().state_sent = false; //clear sent
-    return ret;
+bool GuiMediaEventsHandler::ConsumeSent(media_state_t &ret) {
+    Tick();                       //first update
+    ret = Instance().media_state; //remember
+    bool sent = Instance().state_sent;
+    if (ret != media_state_t::error)
+        Instance().state_sent = true; //set sent
+    return !sent;
+}
+
+media_state_t GuiMediaEventsHandler::Get() {
+    return Instance().media_state;
 }
