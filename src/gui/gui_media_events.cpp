@@ -19,7 +19,7 @@ GuiMediaEventsHandler::GuiMediaEventsHandler()
     , is_starting(true)
     , one_click_printing(false)
     , state_sent(true)
-    , media_state(media_state_t::unknown) {
+    , media_state(MediaState_t::unknown) {
 }
 
 void GuiMediaEventsHandler::Tick() {
@@ -33,32 +33,32 @@ void GuiMediaEventsHandler::tick() {
             marlin_event_clr(MARLIN_EVT_MediaInserted);
             marlin_event_clr(MARLIN_EVT_MediaError);
             is_starting = false;
-            media_state = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS))->media_inserted ? media_state_t::inserted : media_state_t::removed;
+            media_state = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS))->media_inserted ? MediaState_t::inserted : MediaState_t::removed;
             state_sent = false;
         }
         return;
     }
 
     // normal run
-    media_state_t actual_state = media_state_t::unknown;
+    MediaState_t actual_state = MediaState_t::unknown;
 
     if (marlin_event_clr(MARLIN_EVT_MediaInserted))
-        actual_state = media_state_t::inserted;
+        actual_state = MediaState_t::inserted;
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved))
-        actual_state = media_state_t::removed;
+        actual_state = MediaState_t::removed;
     if (marlin_event_clr(MARLIN_EVT_MediaError))
-        actual_state = media_state_t::error;
+        actual_state = MediaState_t::error;
 
-    if (media_state == media_state_t::error)
+    if (media_state == MediaState_t::error)
         return; //error must be cleared manually
 
     switch (actual_state) {
-    case media_state_t::inserted:
+    case MediaState_t::inserted:
         one_click_printing = true;
         state_sent = false;
         break; // update after break
-    case media_state_t::removed:
-    case media_state_t::error:
+    case MediaState_t::removed:
+    case MediaState_t::error:
         one_click_printing = false;
         state_sent = false;
         break; // update after break
@@ -81,24 +81,24 @@ bool GuiMediaEventsHandler::IsStarting() {
 
 void GuiMediaEventsHandler::ClrMediaError() {
     //clear
-    if (Instance().media_state == media_state_t::error)
+    if (Instance().media_state == MediaState_t::error)
         Instance().clr();
     //update
     Tick();
     //clear again
-    if (Instance().media_state == media_state_t::error)
+    if (Instance().media_state == MediaState_t::error)
         Instance().clr();
 }
 
-bool GuiMediaEventsHandler::ConsumeSent(media_state_t &ret) {
+bool GuiMediaEventsHandler::ConsumeSent(MediaState_t &ret) {
     Tick();                       //first update
     ret = Instance().media_state; //remember
     bool sent = Instance().state_sent;
-    if (ret != media_state_t::error)
+    if (ret != MediaState_t::error)
         Instance().state_sent = true; //set sent
     return !sent;
 }
 
-media_state_t GuiMediaEventsHandler::Get() {
+MediaState_t GuiMediaEventsHandler::Get() {
     return Instance().media_state;
 }

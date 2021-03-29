@@ -23,11 +23,11 @@ private:
     bool is_starting;
     bool one_click_printing;
     bool state_sent;
-    media_state_t media_state;
+    MediaState_t media_state;
 
     void tick();
     void clr() {
-        media_state = media_state_t::unknown;
+        media_state = MediaState_t::unknown;
         state_sent = true;
     }
 
@@ -35,7 +35,7 @@ public:
     static void Tick();
     static bool ConsumeOneClickPrinting();
     static bool IsStarting();
-    static void ClrMediaError();                 //clear - update - clear again
-    static bool ConsumeSent(media_state_t &ret); //update - remember - set sent - return
-    static media_state_t Get();
+    static void ClrMediaError();                //clear - update - clear again
+    static bool ConsumeSent(MediaState_t &ret); //update - remember - set sent - return
+    static MediaState_t Get();
 };

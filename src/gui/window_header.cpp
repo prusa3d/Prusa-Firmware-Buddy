@@ -88,7 +88,7 @@ window_header_t::header_states_t window_header_t::GetStateLAN() const {
 void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
     if (event == GUI_event_t::MEDIA) {
-        updateMedia(media_state_t(int(param)));
+        updateMedia(MediaState_t(int(param)));
     }
     if (event == GUI_event_t::LOOP) {
         update_ETH_icon();
@@ -97,15 +97,15 @@ void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *send
     SuperWindowEvent(sender, event, param);
 }
 
-void window_header_t::updateMedia(media_state_t state) {
+void window_header_t::updateMedia(MediaState_t state) {
     switch (state) {
-    case media_state_t::inserted:
+    case MediaState_t::inserted:
         USB_Activate();
         break;
-    case media_state_t::removed:
+    case MediaState_t::removed:
         USB_On();
         break;
-    case media_state_t::error:
+    case MediaState_t::error:
     default:
         USB_Off();
         break;

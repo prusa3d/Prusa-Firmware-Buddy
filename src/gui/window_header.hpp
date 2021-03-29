@@ -16,7 +16,7 @@ private:
     window_icon_t icon_usb;
     window_icon_t icon_lan;
 
-    void updateMedia(media_state_t state);
+    void updateMedia(MediaState_t state);
 
     bool LAN_changed_off;
 
