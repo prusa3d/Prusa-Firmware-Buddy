@@ -66,8 +66,8 @@ static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
 void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     marlin_vars_t *vars = marlin_vars();
     if (event == GUI_event_t::MEDIA) {
-        media_state_t media_state = media_state_t(int(param));
-        if (media_state == media_state_t::removed || media_state == media_state_t::error) {
+        MediaState_t media_state = MediaState_t(int(param));
+        if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
             screen_filebrowser_clear_firstVisibleSFN(vars);
             Screens::Access()->Close();
         }

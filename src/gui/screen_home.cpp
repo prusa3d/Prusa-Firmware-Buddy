@@ -110,8 +110,8 @@ void screen_home_data_t::draw() {
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
     if (event == GUI_event_t::MEDIA) {
-        switch (media_state_t(int(param))) {
-        case media_state_t::inserted:
+        switch (MediaState_t(int(param))) {
+        case MediaState_t::inserted:
             if (!usbInserted) {
                 usbInserted = true;
                 printBtnEna();
@@ -121,8 +121,8 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                 }
             }
             break;
-        case media_state_t::removed:
-        case media_state_t::error:
+        case MediaState_t::removed:
+        case MediaState_t::error:
             if (usbInserted) {
                 usbInserted = false;
                 printBtnDis();

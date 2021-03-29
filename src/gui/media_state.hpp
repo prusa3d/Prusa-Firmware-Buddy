@@ -7,7 +7,7 @@
 
 #pragma once
 
-enum class media_state_t {
+enum class MediaState_t {
     unknown,
     inserted,
     removed,
