@@ -72,11 +72,10 @@ public:
 //WI_SPIN_t
 template <class T>
 WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : AddSuper<IWiSpin>(val, label, id_icon, enabled, hidden, cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), calculateExtensionWidth(cnf.Unit(), cnf.calculateMaxDigits()))
+    : AddSuper<IWiSpin>(std::clamp(T(val), cnf.Min(), cnf.Max()), label, id_icon, enabled, hidden,
+        cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), calculateExtensionWidth(cnf.Unit(), cnf.calculateMaxDigits()))
     , config(cnf) {
     printSpinToBuffer();
-    val = std::clamp(T(value), config.Min(), config.Max());
-    value = val;
 }
 
 template <class T>
