@@ -11,8 +11,7 @@
 ap_entry_t
     ap_list[]
     = {
-          //{ "SSID name", "SSID password" },
-          { "Prusa Research Office1", "prasopesMK3" },
+          { "SSID name", "SSID password" },
       };
 
 /**
