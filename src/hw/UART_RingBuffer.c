@@ -22,7 +22,7 @@ void Ringbuf_init(void) {
 }
 
 void store_char(unsigned char c, ring_buffer *buffer) {
-    int i = (unsigned int)(buffer->head + 1) % UART_BUFFER_SIZE;
+    unsigned int i = (unsigned int)(buffer->head + 1) % UART_BUFFER_SIZE;
     // if we should be storing the received character into the location
     // just before the tail (meaning that the head would advance to the
     // current location of the tail), we're about to overflow the buffer
@@ -142,7 +142,7 @@ int Uart_read(UART_HandleTypeDef *uart) {
 
 void Uart_write(int c, UART_HandleTypeDef *uart) {
     if (c >= 0) {
-        int i = (_tx_buffer1->head + 1) % UART_BUFFER_SIZE;
+        unsigned int i = (_tx_buffer1->head + 1) % UART_BUFFER_SIZE;
 
         // If the output buffer is full, there's nothing for it other than to
         // wait for the interrupt handler to empty it a bit
@@ -317,4 +317,3 @@ void Uart_isr(UART_HandleTypeDef *huart) {
         return;
     }
 }
-
