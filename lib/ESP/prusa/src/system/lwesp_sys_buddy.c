@@ -95,7 +95,7 @@ lwesp_sys_unprotect(void) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_create(lwesp_sys_mutex_t* p) {
+lwesp_sys_mutex_create(lwesp_sys_mutex_t *p) {
     osMutexDef(MUT);
     *p = osRecursiveMutexCreate(osMutex(MUT));
     return *p != NULL;
@@ -107,7 +107,7 @@ lwesp_sys_mutex_create(lwesp_sys_mutex_t* p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_delete(lwesp_sys_mutex_t* p) {
+lwesp_sys_mutex_delete(lwesp_sys_mutex_t *p) {
     return osMutexDelete(*p) == osOK;
 }
 
@@ -117,7 +117,7 @@ lwesp_sys_mutex_delete(lwesp_sys_mutex_t* p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_lock(lwesp_sys_mutex_t* p) {
+lwesp_sys_mutex_lock(lwesp_sys_mutex_t *p) {
     return osRecursiveMutexWait(*p, osWaitForever) == osOK;
 }
 
@@ -127,7 +127,7 @@ lwesp_sys_mutex_lock(lwesp_sys_mutex_t* p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_unlock(lwesp_sys_mutex_t* p) {
+lwesp_sys_mutex_unlock(lwesp_sys_mutex_t *p) {
     return osRecursiveMutexRelease(*p) == osOK;
 }
 
@@ -137,7 +137,7 @@ lwesp_sys_mutex_unlock(lwesp_sys_mutex_t* p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_isvalid(lwesp_sys_mutex_t* p) {
+lwesp_sys_mutex_isvalid(lwesp_sys_mutex_t *p) {
     return p != NULL && *p != NULL;
 }
 
@@ -147,7 +147,7 @@ lwesp_sys_mutex_isvalid(lwesp_sys_mutex_t* p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_invalid(lwesp_sys_mutex_t* p) {
+lwesp_sys_mutex_invalid(lwesp_sys_mutex_t *p) {
     *p = LWESP_SYS_MUTEX_NULL;
     return 1;
 }
@@ -162,7 +162,7 @@ lwesp_sys_mutex_invalid(lwesp_sys_mutex_t* p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_sem_create(lwesp_sys_sem_t* p, uint8_t cnt) {
+lwesp_sys_sem_create(lwesp_sys_sem_t *p, uint8_t cnt) {
     osSemaphoreDef(SEM);
     *p = osSemaphoreCreate(osSemaphore(SEM), 1);
 
@@ -178,7 +178,7 @@ lwesp_sys_sem_create(lwesp_sys_sem_t* p, uint8_t cnt) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_sem_delete(lwesp_sys_sem_t* p) {
+lwesp_sys_sem_delete(lwesp_sys_sem_t *p) {
     return osSemaphoreDelete(*p) == osOK;
 }
 
@@ -190,7 +190,7 @@ lwesp_sys_sem_delete(lwesp_sys_sem_t* p) {
  *                      \ref LWESP_SYS_TIMEOUT if not available within given time
  */
 uint32_t
-lwesp_sys_sem_wait(lwesp_sys_sem_t* p, uint32_t timeout) {
+lwesp_sys_sem_wait(lwesp_sys_sem_t *p, uint32_t timeout) {
     uint32_t tick = osKernelSysTick();
     return (osSemaphoreWait(*p, !timeout ? osWaitForever : timeout) == osOK) ? (osKernelSysTick() - tick) : LWESP_SYS_TIMEOUT;
 }
@@ -201,7 +201,7 @@ lwesp_sys_sem_wait(lwesp_sys_sem_t* p, uint32_t timeout) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_sem_release(lwesp_sys_sem_t* p) {
+lwesp_sys_sem_release(lwesp_sys_sem_t *p) {
     return osSemaphoreRelease(*p) == osOK;
 }
 
@@ -211,7 +211,7 @@ lwesp_sys_sem_release(lwesp_sys_sem_t* p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_sem_isvalid(lwesp_sys_sem_t* p) {
+lwesp_sys_sem_isvalid(lwesp_sys_sem_t *p) {
     return p != NULL && *p != NULL;
 }
 
@@ -221,7 +221,7 @@ lwesp_sys_sem_isvalid(lwesp_sys_sem_t* p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_sem_invalid(lwesp_sys_sem_t* p) {
+lwesp_sys_sem_invalid(lwesp_sys_sem_t *p) {
     *p = LWESP_SYS_SEM_NULL;
     return 1;
 }
@@ -233,8 +233,8 @@ lwesp_sys_sem_invalid(lwesp_sys_sem_t* p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_create(lwesp_sys_mbox_t* b, size_t size) {
-    osMessageQDef(MBOX, size, void*);
+lwesp_sys_mbox_create(lwesp_sys_mbox_t *b, size_t size) {
+    osMessageQDef(MBOX, size, void *);
     *b = osMessageCreate(osMessageQ(MBOX), NULL);
     return *b != NULL;
 }
@@ -245,7 +245,7 @@ lwesp_sys_mbox_create(lwesp_sys_mbox_t* b, size_t size) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_delete(lwesp_sys_mbox_t* b) {
+lwesp_sys_mbox_delete(lwesp_sys_mbox_t *b) {
     if (osMessageWaiting(*b)) {
         return 0;
     }
@@ -259,7 +259,7 @@ lwesp_sys_mbox_delete(lwesp_sys_mbox_t* b) {
  * \return          Time in units of milliseconds needed to put a message to queue
  */
 uint32_t
-lwesp_sys_mbox_put(lwesp_sys_mbox_t* b, void* m) {
+lwesp_sys_mbox_put(lwesp_sys_mbox_t *b, void *m) {
     uint32_t tick = osKernelSysTick();
     return osMessagePut(*b, (uint32_t)m, osWaitForever) == osOK ? (osKernelSysTick() - tick) : LWESP_SYS_TIMEOUT;
 }
@@ -273,7 +273,7 @@ lwesp_sys_mbox_put(lwesp_sys_mbox_t* b, void* m) {
  *                      or \ref LWESP_SYS_TIMEOUT if it was not successful
  */
 uint32_t
-lwesp_sys_mbox_get(lwesp_sys_mbox_t* b, void** m, uint32_t timeout) {
+lwesp_sys_mbox_get(lwesp_sys_mbox_t *b, void **m, uint32_t timeout) {
     osEvent evt;
     uint32_t time = osKernelSysTick();
 
@@ -292,7 +292,7 @@ lwesp_sys_mbox_get(lwesp_sys_mbox_t* b, void** m, uint32_t timeout) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_putnow(lwesp_sys_mbox_t* b, void* m) {
+lwesp_sys_mbox_putnow(lwesp_sys_mbox_t *b, void *m) {
     return osMessagePut(*b, (uint32_t)m, 0) == osOK;
 }
 
@@ -303,7 +303,7 @@ lwesp_sys_mbox_putnow(lwesp_sys_mbox_t* b, void* m) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_getnow(lwesp_sys_mbox_t* b, void** m) {
+lwesp_sys_mbox_getnow(lwesp_sys_mbox_t *b, void **m) {
     osEvent evt;
 
     evt = osMessageGet(*b, 0);
@@ -320,7 +320,7 @@ lwesp_sys_mbox_getnow(lwesp_sys_mbox_t* b, void** m) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_isvalid(lwesp_sys_mbox_t* b) {
+lwesp_sys_mbox_isvalid(lwesp_sys_mbox_t *b) {
     return b != NULL && *b != NULL;
 }
 
@@ -330,7 +330,7 @@ lwesp_sys_mbox_isvalid(lwesp_sys_mbox_t* b) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_invalid(lwesp_sys_mbox_t* b) {
+lwesp_sys_mbox_invalid(lwesp_sys_mbox_t *b) {
     *b = LWESP_SYS_MBOX_NULL;
     return 1;
 }
@@ -347,10 +347,10 @@ lwesp_sys_mbox_invalid(lwesp_sys_mbox_t* b) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_thread_create(lwesp_sys_thread_t* t, const char* name, lwesp_sys_thread_fn thread_func,
-                      void* const arg, size_t stack_size, lwesp_sys_thread_prio_t prio) {
+lwesp_sys_thread_create(lwesp_sys_thread_t *t, const char *name, lwesp_sys_thread_fn thread_func,
+    void *const arg, size_t stack_size, lwesp_sys_thread_prio_t prio) {
     const osThreadDef_t thread_def = {
-        (char*)name,
+        (char *)name,
         (os_pthread)thread_func,
         (osPriority)prio,
         0,
@@ -372,7 +372,7 @@ lwesp_sys_thread_create(lwesp_sys_thread_t* t, const char* name, lwesp_sys_threa
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_thread_terminate(lwesp_sys_thread_t* t) {
+lwesp_sys_thread_terminate(lwesp_sys_thread_t *t) {
     osThreadTerminate(t != NULL ? *t : NULL);
     return 1;
 }
