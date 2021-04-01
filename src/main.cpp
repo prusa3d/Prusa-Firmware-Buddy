@@ -1002,9 +1002,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
 void StartESPTask(void const *argument) {
     if (lwesp_init(NULL, 1) != lwespOK) {
-        printf("Cannot initialize LwESP!\r\n");
+        _dbg0("Cannot initialize LwESP!\r\n");
     } else {
-        printf("LwESP initialized!\r\n");
+        _dbg0("LwESP initialized!\r\n");
     }
     lwesp_mode_t mode = LWESP_MODE_STA_AP;
 
@@ -1012,9 +1012,10 @@ void StartESPTask(void const *argument) {
 
         lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
         if (mode == LWESP_MODE_STA) {
-            printf("hkhk");
+            _dbg0("hkhk");
         }
         osDelay(3000);
+        _dbg0("MORE");
     }
 }
 /* USER CODE BEGIN Header_StartDefaultTask */

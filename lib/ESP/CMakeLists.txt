@@ -38,11 +38,14 @@ target_sources(
             lwesp/lwesp/src/system/lwesp_mem_lwmem.c
             prusa/src/system/lwesp_sys_buddy.c
             prusa/src/system/lwesp_ll_buddy.c
+            prusa/src/lwesp_conn_upload.c
+            prusa/src/lwesp_upload.c
   )
 
 target_include_directories(
   lwesp
   INTERFACE lwesp/lwesp/src/include
+            prusa/include/
             prusa/include/system/port/buddy
             ${CMAKE_SOURCE_DIR}/include/esp
             ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/include
