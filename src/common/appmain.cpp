@@ -135,10 +135,10 @@ void app_run(void) {
     }
 
     // ESP TEST
-    const char *line;
-    line = "AT+GMR\r\n";
+    // const char *line;
+    // line = "AT+GMR\r\n";
     // line = "AT+CIUPDATE=1,\"v2.1.0.0\"\r\n";
-    HAL_UART_Transmit(&huart6, (uint8_t *)line, strlen(line), 10);
+    // HAL_UART_Transmit(&huart6, (uint8_t *)line, strlen(line), 10);
     // line = "AT+CWSAP=\"PRUSA_MINI\",\"\",5,0\r\n";
     // HAL_UART_Transmit(&huart6, (uint8_t *)line, strlen(line), 10);
 
