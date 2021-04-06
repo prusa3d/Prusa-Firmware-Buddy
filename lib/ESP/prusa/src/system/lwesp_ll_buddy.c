@@ -5,6 +5,7 @@
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
 #include "main.h"
+#include "dbg.h"
 
 /*
  * UART and other pin configuration for ESP01 module
@@ -35,6 +36,7 @@ static osMessageQId uartBufferMbox_id;
 #endif /* !defined(LWESP_MEM_SIZE) */
 
 static uint8_t is_running;
+static uint8_t is_flashing;
 static uint8_t initialized;
 static size_t old_pos;
 
@@ -104,7 +106,9 @@ uint8_t reset_device(uint8_t state) {
  */
 size_t
 send_data(const void *data, size_t len) {
+    _dbg0("ESP data sent - '%s'", data);
     for (size_t i = 0; i < len; ++i) {
+        // _dbg0("ESP data sent - '%02X'", (char *)(data+i));
         HAL_UART_Transmit(&huart6, (uint8_t *)(data + i), 1, 10);
     }
     return len;

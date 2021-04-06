@@ -1018,7 +1018,6 @@ void StartESPTask(void const *argument) {
             // _dbg0("hkhk");
         // }
         osDelay(3000);
-        _dbg0("MORE");
     }
 }
 
