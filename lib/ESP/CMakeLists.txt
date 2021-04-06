@@ -39,6 +39,7 @@ target_sources(
             prusa/src/system/lwesp_sys_buddy.c
             prusa/src/system/lwesp_ll_buddy.c
             prusa/src/lwesp_conn_upload.c
+            prusa/src/lwesp_input_upload.c
             prusa/src/lwesp_upload.c
   )
 

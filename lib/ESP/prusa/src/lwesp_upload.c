@@ -155,3 +155,25 @@ lwespr_t lwespi_upload_cmd(lwesp_msg_t *msg) {
 
     return lwespOK;
 }
+
+lwespr_t lwespi_upload_process(const void *data, size_t data_len) {
+    uint8_t ch;
+    const uint8_t *d = data;
+    size_t d_len = data_len;
+    static uint8_t ch_prev1, ch_prev2;
+    static lwesp_unicode_t unicode;
+
+    /* Check status if device is available */
+    if (!esp.status.f.dev_present) {
+        return lwespERRNODEVICE;
+    }
+
+    while (d_len > 0) { /* Read entire set of characters from buffer */
+        ch = *d;        /* Get next character */
+        ++d;            /* Go to next character, must be here as it is used later on */
+        --d_len;        /* Decrease remaining length, must be here as it is decreased later too */
+    }
+
+    return lwespOK;
+}
+

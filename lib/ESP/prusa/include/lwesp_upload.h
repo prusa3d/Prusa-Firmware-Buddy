@@ -21,6 +21,7 @@ extern "C" {
 
 void esp_upload_start();
 lwespr_t lwespi_upload_cmd(lwesp_msg_t *msg);
+lwespr_t lwespi_upload_process(const void *data, size_t data_len);
 
 // -- logic sequence
 // void esp_upload_sync();

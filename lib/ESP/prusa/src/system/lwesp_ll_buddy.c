@@ -1,6 +1,7 @@
 #include "lwesp/lwesp.h"
 #include "lwesp/lwesp_mem.h"
 #include "lwesp/lwesp_input.h"
+#include "lwesp_input_upload.h"
 #include "system/lwesp_ll.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
@@ -72,11 +73,23 @@ void StartUartBufferThread(void const *arg) {
         pos = sizeof(dma_buffer_rx) - dma_bytes_left;
         if (pos != old_pos && is_running) {
             if (pos > old_pos) {
-                lwesp_input_process(&dma_buffer_rx[old_pos], pos - old_pos);
+                if (is_flashing) {
+                    lwesp_input_upload_process(&dma_buffer_rx[old_pos], pos - old_pos);
+                } else {
+                    lwesp_input_process(&dma_buffer_rx[old_pos], pos - old_pos);
+                }
             } else {
-                lwesp_input_process(&dma_buffer_rx[old_pos], sizeof(dma_buffer_rx) - old_pos);
+                if (is_flashing) {
+                    lwesp_input_upload_process(&dma_buffer_rx[old_pos], pos - old_pos);
+                } else {
+                    lwesp_input_process(&dma_buffer_rx[old_pos], sizeof(dma_buffer_rx) - old_pos);
+                }
                 if (pos > 0) {
-                    lwesp_input_process(&dma_buffer_rx[0], pos);
+                    if (is_flashing) {
+                        lwesp_input_upload_process(&dma_buffer_rx[old_pos], pos - old_pos);
+                    } else {
+                        lwesp_input_process(&dma_buffer_rx[0], pos);
+                    }
                 }
             }
             old_pos = pos;
