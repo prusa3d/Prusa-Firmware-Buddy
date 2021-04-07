@@ -44,7 +44,6 @@
 #include "dump.h"
 #include "sys.h"
 #include "buffered_serial.hpp"
-#include "UART_RingBuffer.h"
 #include "lwesp_ll_buddy.h"
 /* USER CODE END Includes */
 

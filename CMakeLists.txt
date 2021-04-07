@@ -550,7 +550,6 @@ target_sources(
           src/marlin_stubs/M330.cpp
           src/marlin_stubs/M50.cpp
           src/hw/buffered_serial.cpp
-          src/hw/UART_RingBuffer.c
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/G26.cpp
           src/marlin_stubs/G162.cpp
@@ -623,7 +622,6 @@ if(GUI)
             src/gui/screen_menu_move.cpp
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_menu_languages.cpp
-            src/gui/screen_menu_wifi.cpp
             src/gui/screen_menu_sensor_info.cpp
             src/gui/screen_qr_error.cpp
             src/gui/screen_menu_hw_setup.cpp
