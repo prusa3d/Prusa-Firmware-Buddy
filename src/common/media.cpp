@@ -241,6 +241,15 @@ float media_print_get_percent_done(void) {
     return 0;
 }
 
+void media_no_data() {
+    if (f_eof(&media_print_fil)) //we need check eof also after read operation
+        media_print_stop();      //stop on eof
+    else {
+        set_warning(WarningType::USBFlashDiskError);
+        media_print_pause(); //pause in other case (read error - media removed)
+    }
+}
+
 void media_loop(void) {
     _usbhost_reenum();
     if (media_print_state == media_print_state_PRINTING) {
@@ -248,7 +257,9 @@ void media_loop(void) {
         char *pch;
         if (!f_eof(&media_print_fil))              //check eof
             while (queue.length < (BUFSIZE - 1)) { //keep one free slot for serial commands
-                if (f_gets(buffer, MAX_CMD_SIZE, &media_print_fil)) {
+                int len = 0;
+                if (f_gets(buffer, sizeof(buffer), &media_print_fil)) {
+                    len = strlen(buffer);
                     pch = strchr(buffer, '\r');
                     if (pch)
                         *pch = 0; //replace CR with 0
@@ -257,8 +268,8 @@ void media_loop(void) {
                         *pch = 0; //replace LF with 0
                     pch = strchr(buffer, ';');
                     if (pch)
-                        *pch = 0;         //replace ; with 0 (cut comment)
-                    if (strlen(buffer)) { //enqueue only not empty lines
+                        *pch = 0;    //replace ; with 0 (cut comment)
+                    if (buffer[0]) { //enqueue only not empty lines
                         queue.enqueue_one(buffer, false);
                         int index_w = queue.index_r + queue.length - 1; //calculate index_w because it is private
                         if (index_w >= BUFSIZE)
@@ -269,13 +280,18 @@ void media_loop(void) {
                     media_current_position = f_tell(&media_print_fil); //update current position
                     media_current_line++;                              //update current line
                 } else {
-                    if (f_eof(&media_print_fil)) //we need check eof also after read operation
-                        media_print_stop();      //stop on eof
-                    else {
-                        set_warning(WarningType::USBFlashDiskError);
-                        media_print_pause(); //pause in other case (read error - media removed)
+                    media_no_data();
+                    return;
+                }
+
+                // Read until the end of the line
+                while (len == MAX_CMD_SIZE && buffer[MAX_CMD_SIZE - 1] != '\n') {
+                    if (!f_gets(buffer, sizeof(buffer), &media_print_fil)) {
+                        media_no_data();
+                        return;
                     }
-                    break;
+                    media_current_position = f_tell(&media_print_fil); //update current position
+                    len = strlen(buffer);
                 }
             }
         else
