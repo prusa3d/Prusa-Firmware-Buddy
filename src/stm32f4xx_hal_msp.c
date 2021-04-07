@@ -713,6 +713,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
 
         // Link with DMA
         __HAL_LINKDMA(huart, hdmarx, hdma_usart6_rx);
+
         // Enable interrupts on the peripheral
         __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
         __HAL_UART_ENABLE_IT(huart, UART_IT_TC);
