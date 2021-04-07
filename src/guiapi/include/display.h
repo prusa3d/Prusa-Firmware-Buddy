@@ -105,7 +105,7 @@ public:
 };
 
 #ifdef USE_ST7789
-    #include "st7789v.h"
+    #include "st7789v.hpp"
 using display = Display<ST7789V_COLS, ST7789V_ROWS,
     st7789v_init,
     st7789v_done,

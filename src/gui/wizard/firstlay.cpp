@@ -139,7 +139,7 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_START_PRINT() {
 //and it would block dialog opening
 //checking marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE))->gqueue and calling gui_loop() does not help
 WizardState_t StateFnc_FIRSTLAY_PRINT() {
-    DialogHandler::Open(ClientFSM::FirstLayer, 0); //open screen now, it would auto open later (on G26)
+    DialogHandler::PreOpen(ClientFSM::FirstLayer, 0); //open screen now, it would auto open later (on G26)
 
     const int temp_nozzle_preheat = int(Filaments::PreheatTemp);
     const int temp_nozzle = std::max(int(marlin_vars()->display_nozzle), int(Filaments::Current().nozzle));

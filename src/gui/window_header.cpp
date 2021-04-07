@@ -1,8 +1,6 @@
 #include "window_header.hpp"
 #include "config.h"
-#include "marlin_client.h"
 #include "i18n.h"
-#include "marlin_events.h"
 #include "gui_media_events.hpp"
 
 #ifdef BUDDY_ENABLE_ETHERNET
@@ -48,7 +46,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , LAN_changed_off(false) {
     icon_base.SetAlignment(Align_t::CenterBottom());
 
-    marlin_vars()->media_inserted ? USB_Activate() : USB_On();
+    updateMedia(GuiMediaEventsHandler::Get());
 
     update_ETH_icon();
     Disable();
@@ -81,11 +79,6 @@ void window_header_t::LAN_Activate() {
     icon_lan.Unshadow();
 }
 
-window_header_t::header_states_t window_header_t::GetStateUSB() const {
-    if (!icon_usb.IsVisible())
-        return header_states_t::OFF;
-    return icon_usb.IsEnabled() ? header_states_t::ACTIVE : header_states_t::ON;
-}
 window_header_t::header_states_t window_header_t::GetStateLAN() const {
     if (!icon_lan.IsVisible())
         return header_states_t::OFF;
@@ -95,19 +88,7 @@ window_header_t::header_states_t window_header_t::GetStateLAN() const {
 void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
     if (event == GUI_event_t::MEDIA) {
-        switch (GuiMediaEventsHandler::state_t(int(param))) {
-        case GuiMediaEventsHandler::state_t::inserted:
-            USB_Activate();
-            break;
-        case GuiMediaEventsHandler::state_t::removed:
-            USB_On();
-            break;
-        case GuiMediaEventsHandler::state_t::error:
-            USB_Off();
-            break;
-        default:
-            break;
-        }
+        updateMedia(MediaState_t(int(param)));
     }
     if (event == GUI_event_t::LOOP) {
         update_ETH_icon();
@@ -115,3 +96,18 @@ void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *send
 
     SuperWindowEvent(sender, event, param);
 }
+
+void window_header_t::updateMedia(MediaState_t state) {
+    switch (state) {
+    case MediaState_t::inserted:
+        USB_Activate();
+        break;
+    case MediaState_t::removed:
+        USB_On();
+        break;
+    case MediaState_t::error:
+    default:
+        USB_Off();
+        break;
+    }
+};

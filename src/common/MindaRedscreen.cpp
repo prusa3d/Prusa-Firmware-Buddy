@@ -8,9 +8,9 @@
 #include "stm32f4xx_hal.h"
 #include "config.h"
 #include "gui.hpp"
-#include "st7789v.h"
 #include "safe_state.h"
 #include "Jogwheel.hpp"
+#include "st7789v.hpp"
 #include "gpio.h"
 #include "sys.h"
 #include "hwio.h" //hwio_beeper_set_pwm

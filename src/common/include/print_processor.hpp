@@ -8,11 +8,9 @@
 #pragma once
 
 #include <stdint.h>
-
-namespace {
 #include "marlin_client.h"
-};
 #include "filament_sensor.hpp"
+#include "fsm_types.hpp"
 
 class PrintProcessor {
     //called when Serial print screen is opened
@@ -20,13 +18,16 @@ class PrintProcessor {
     //todo should I block ClientFSM::Serial_printing?
     //this code did not work in last builds and no one reported problem with octoscreen
     //I fear enabling it could break something
-    static void fsm_create_cb(ClientFSM fsm, uint8_t data) {
-        if (/*fsm == ClientFSM::Serial_printing ||*/ fsm == ClientFSM::Load_unload)
-            FS_instance().IncEvLock();
-    }
-    static void fsm_destroy_cb(ClientFSM fsm) {
-        if (/*fsm == ClientFSM::Serial_printing ||*/ fsm == ClientFSM::Load_unload)
-            FS_instance().DecEvLock();
+    static void fsm_cb(uint32_t u32, uint16_t u16) {
+        fsm::variant_t variant(u32, u16);
+        if (/*variant.GetType() == ClientFSM::Serial_printing ||*/ variant.GetType() == ClientFSM::Load_unload) {
+            if (variant.GetCommand() == ClientFSM_Command::create) {
+                FS_instance().IncEvLock();
+            }
+            if (variant.GetCommand() == ClientFSM_Command::destroy) {
+                FS_instance().DecEvLock();
+            }
+        }
     }
 
 public:
@@ -36,7 +37,6 @@ public:
     static inline bool IsAutoloadEnabled() { return marlin_vars()->fs_autoload_enabled; }
 
     static void Init() {
-        marlin_client_set_fsm_create_cb(fsm_create_cb);
-        marlin_client_set_fsm_destroy_cb(fsm_destroy_cb);
+        marlin_client_set_fsm_cb(fsm_cb);
     }
 };

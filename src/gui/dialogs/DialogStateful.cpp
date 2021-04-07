@@ -2,6 +2,7 @@
 #include "guitypes.hpp"
 #include "i18n.h"
 #include "resource.h" //IDR_FNT_BIG
+#include "fsm_progress_type.hpp"
 
 static const constexpr int PROGRESS_BAR_X_PAD = 10;
 static const constexpr int PROGRESS_BAR_Y_PAD = 30;
@@ -44,7 +45,7 @@ IDialogStateful::IDialogStateful(string_view_utf8 name)
     label.SetAlignment(Align_t::CenterTop());
 }
 
-bool IDialogStateful::change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {
+bool IDialogStateful::change(uint8_t phs, fsm::PhaseData data) {
     if (!can_change(phs))
         return false;
     if (phase != phs) {
@@ -53,7 +54,8 @@ bool IDialogStateful::change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*
         phaseEnter();
     }
 
-    progress.SetValue(progress_tot <= 100 ? progress_tot : 0);
+    ProgressSerializer serializer(data);
+    progress.SetValue(serializer.progress);
     //Invalidate();
     return true;
 }

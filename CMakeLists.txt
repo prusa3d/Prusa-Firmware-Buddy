@@ -519,6 +519,7 @@ target_sources(
           src/common/app_metrics.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
+          src/common/fsm_types.cpp
           src/common/selftest/selftest_MINI.cpp
           src/common/selftest/selftest_fan.cpp
           src/common/selftest/selftest_axis.cpp
@@ -554,6 +555,7 @@ target_sources(
           src/marlin_stubs/G26.cpp
           src/marlin_stubs/G162.cpp
           src/marlin_stubs/gcode.cpp
+          src/marlin_stubs/M997.cpp
           src/marlin_stubs/M999.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
@@ -593,10 +595,10 @@ if(GUI)
             src/gui/dialogs/window_dlg_strong_warning.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
             src/gui/dialogs/liveadjust_z.cpp
+            src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
             src/gui/gui_media_events.cpp
-            src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
             src/gui/window_print_progress.cpp
@@ -667,7 +669,6 @@ if(GUI)
             src/guiapi/src/window_term.cpp
             src/guiapi/src/window_arrows.cpp
             src/guiapi/src/window_numb.cpp
-            src/guiapi/src/st7789v.c
             src/guiapi/src/st7789v.cpp
             src/guiapi/src/display_ex.cpp
             src/guiapi/src/window_icon.cpp

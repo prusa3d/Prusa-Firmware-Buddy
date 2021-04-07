@@ -57,6 +57,6 @@ IWinMenuContainer *DialogMenuPreheat::newContainer(PreheatData type) {
     return new (&container_mem_space) NsPreheat::MenuContainer;
 }
 
-bool DialogMenuPreheat::change(uint8_t phs, uint8_t progress_tot, uint8_t progress) {
+bool DialogMenuPreheat::change(uint8_t phs, fsm::PhaseData data) {
     return true;
 }

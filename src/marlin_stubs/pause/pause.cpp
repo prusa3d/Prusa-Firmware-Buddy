@@ -78,9 +78,10 @@ PausePrivatePhase::PausePrivatePhase()
     , nozzle_restore_temp(NAN)
     , bed_restore_temp(NAN) {}
 
-void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress_tot) {
+void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress) {
     phase = ph;
-    fsm_change(ClientFSM::Load_unload, phase, progress_tot, progress_tot == 100 ? 100 : 0);
+    ProgressSerializer serializer(progress);
+    fsm_change(ClientFSM::Load_unload, phase, serializer.Serialize());
 }
 
 PhasesLoadUnload PausePrivatePhase::getPhase() const { return phase; }
@@ -96,8 +97,10 @@ Response PausePrivatePhase::getResponse() {
 
 bool PausePrivatePhase::CanSafetyTimerExpire() const {
     if (HasTempToRestore())
-        return false;                              // already expired
-    return ClientResponses::HasButton(getPhase()); // button in current phase == can wait on user == can timeout
+        return false;                                     // already expired
+    if (getPhase() == PhasesLoadUnload::MakeSureInserted) // special waiting state without button
+        return true;                                      // waits for filament sensor
+    return ClientResponses::HasButton(getPhase());        // button in current phase == can wait on user == can timeout
 }
 
 void PausePrivatePhase::NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) {

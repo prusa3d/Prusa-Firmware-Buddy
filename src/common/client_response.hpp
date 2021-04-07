@@ -76,28 +76,22 @@ enum class PhasesG162 : uint16_t {
 //not bound to responses
 enum class PhasesSelftestFans : uint16_t {
     _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
-    TestFan0 = _first, //in this case is safe to have TestFan0 == _first
-    TestFan1,
-    _last = TestFan1
+    measure = _first, //in this case is safe to have measure == _first
+    _last = measure
 };
 
 //not bound to responses
 enum class PhasesSelftestAxis : uint16_t {
     _first = static_cast<uint16_t>(PhasesSelftestFans::_last) + 1,
-    Xaxis = _first, //in this case is safe to have Xaxis == _first
-    Yaxis,
-    Zaxis,
-    _last = Zaxis
+    measure = _first, //in this case is safe to have measure == _first
+    _last = measure
 };
 
 //not bound to responses
 enum class PhasesSelftestHeat : uint16_t {
     _first = static_cast<uint16_t>(PhasesSelftestAxis::_last) + 1,
-    noz_prep = _first, //in this case is safe to have Xaxis == _first
-    noz_heat,
-    bed_prep,
-    bed_heat,
-    _last = bed_heat
+    measure = _first, //in this case is safe to have measure == _first
+    _last = measure
 };
 
 //static class for work with fsm responses (like button click)

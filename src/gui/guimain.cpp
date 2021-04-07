@@ -152,9 +152,7 @@ void gui_run(void) {
     gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
 
     DialogHandler::Access(); //to create class NOW, not at first call of one of callback
-    marlin_client_set_fsm_create_cb(DialogHandler::Open);
-    marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
-    marlin_client_set_fsm_change_cb(DialogHandler::Change);
+    marlin_client_set_fsm_cb(DialogHandler::Command);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
     marlin_client_set_warning_cb(Warning_cb);
     marlin_client_set_startup_cb(Startup_cb);
@@ -215,6 +213,7 @@ void gui_run(void) {
     uint32_t progr100 = 100;
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)progr100);
     while (1) {
+        DialogHandler::Access().Loop();
         Screens::Access()->Loop();
         gui_loop();
     }
