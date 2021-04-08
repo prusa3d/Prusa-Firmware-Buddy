@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/MaJerle/lwesp.git
+	branch = develop
+	commit = 5e947d4caf67a0ae5d2ac09877365c241fffc5cc
+	parent = 95cdb78f4b2cf224d3f0f0fdf44af9e3f0236710
+	method = merge
+	cmdver = 0.4.3

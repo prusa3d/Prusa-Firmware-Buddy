@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\ESP API">
+      <UniqueIdentifier>{94ead1d5-2b52-462a-b26c-3db27c3537ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ESP CORE">
+      <UniqueIdentifier>{4d4e328c-01d2-42de-ba16-f15c886d1141}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ESP LL">
+      <UniqueIdentifier>{9a9a144b-a02a-4bb3-a8f4-c55e360bf70f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ESP SNIPPETS">
+      <UniqueIdentifier>{792653fc-9de7-4fc4-85f2-faec1d2684c9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_ap.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_buff.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_conn.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_debug.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_input.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_int.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_mem.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_parser.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_pbuf.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_sntp.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_sta.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_threads.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_timeout.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_unicode.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_wps.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\system\esp_ll_win32.c">
+      <Filter>Source Files\ESP LL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\system\esp_sys_win32.c">
+      <Filter>Source Files\ESP LL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\snippets\station_manager.c">
+      <Filter>Source Files\ESP SNIPPETS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\api\esp_netconn.c">
+      <Filter>Source Files\ESP API</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_evt.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_utils.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ESP_AT_Lib\src\esp\esp_dns.c">
+      <Filter>Source Files\ESP CORE</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\snippets\client.c">
+      <Filter>Source Files\ESP SNIPPETS</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

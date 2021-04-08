@@ -787,6 +787,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart) {
 
         /* USART6 DMA DeInit */
         HAL_DMA_DeInit(huart->hdmarx);
+
+        /* USART6 interrupt DeInit */
+        HAL_NVIC_DisableIRQ(USART6_IRQn);
         /* USER CODE BEGIN USART6_MspDeInit 1 */
 
         /* USER CODE END USART6_MspDeInit 1 */
