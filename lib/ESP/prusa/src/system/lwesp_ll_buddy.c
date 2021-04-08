@@ -44,7 +44,7 @@ uint32_t rx_tail = 0; // last read accessed location
 
 uint8_t data_rx[RX_BUFFER_LEN];
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
-
+#if 0
 void handle_rx_data(UART_HandleTypeDef *huart) {
 
     if (uartBufferMbox_id != NULL) {
@@ -52,7 +52,7 @@ void handle_rx_data(UART_HandleTypeDef *huart) {
         osMessagePut(uartBufferMbox_id, message, 0);
     }
 }
-
+#endif
 /**
  * \brief           USART data processing
  */

@@ -14,7 +14,10 @@
 #include "ethernetif.h"
 #include <string.h>
 #include "sntp_client.h"
+#include "httpc/httpc.h"
 #include "dbg.h"
+
+osThreadId httpcTaskHandle;
 
 #define WUI_NETIF_SETUP_DELAY  1000
 #define WUI_COMMAND_QUEUE_SIZE WUI_WUI_MQ_CNT // maximal number of messages at once in WUI command messageQ
@@ -89,6 +92,9 @@ void StartWebServerTask(void const *argument) {
     http_server_init();
     sntp_client_init();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
+    // Initialize the thread for httpc
+    //    osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 1024);
+    //    httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
