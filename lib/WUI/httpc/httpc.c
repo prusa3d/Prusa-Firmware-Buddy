@@ -16,8 +16,9 @@
 #include "buddy_socket.h"
 #include "cmsis_os.h"
 
-char rx_buffer[512];
-char tx_buffer[256] = "message";
+#define RX_BUFFER_LEN 10
+char rx_buffer[RX_BUFFER_LEN];
+char tx_buffer[10] = "message";
 static int sock_httpc = -1;
 static struct sockaddr_in address_httpc;
 typedef enum {
@@ -79,7 +80,7 @@ void httpc_loop() {
     case HTTPC_STATE_PARSE:
         httpc_parse_recv();
         httpc_rec_len = 0;
-        memset(rx_buffer, 0, 512);
+        memset(rx_buffer, 0, RX_BUFFER_LEN);
         httpcstate = HTTPC_STATE_INIT;
         break;
     case HTTC_STATE_CLOSE:

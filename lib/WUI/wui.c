@@ -94,16 +94,15 @@ void StartWebServerTask(void const *argument) {
     sntp_client_init();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
     // Initialize the thread for httpc
-    //    osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 1024);
-    //    httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
+    osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 512);
+    httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
     // lwesp stuffs
     //if (lwesp_init(NULL, 1) != lwespOK) {
     //    printf("Cannot initialize LwESP!\r\n");
     //} else {
     //    printf("LwESP initialized!\r\n");
     //}
-
-    lwesp_mode_t mode = LWESP_MODE_STA_AP;
+    //lwesp_mode_t mode = LWESP_MODE_STA_AP;
 
     for (;;) {
         update_eth_changes();
