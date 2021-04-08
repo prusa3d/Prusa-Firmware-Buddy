@@ -221,4 +221,27 @@ public:
         s.type = EType::NULLSTR;
         return s;
     }
+
+    /// string view has same resource
+    constexpr bool operator==(const string_view_utf8 &other) const {
+        if (type != other.type)
+            return false;
+
+        switch (type) {
+        case EType::RAM:
+        case EType::CPUFLASH:
+            return attrs.cpuflash.utf8raw == other.attrs.cpuflash.utf8raw;
+        case EType::FILE:
+            return (attrs.file.f == other.attrs.file.f) && (attrs.file.startOfs == other.attrs.file.startOfs);
+        case EType::SPIFLASH:
+        case EType::USBFLASH:
+        case EType::NULLSTR:
+            return true;
+        }
+        return false; //somehow out of enum range
+    }
+
+    constexpr bool operator!=(const string_view_utf8 &other) const {
+        return !((*this) == other);
+    }
 };
