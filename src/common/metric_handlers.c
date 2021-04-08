@@ -129,7 +129,7 @@ static void syslog_message_send(char *buffer, int buffer_len) {
     if (netif_default == NULL)
         return;
 
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    int sock = lwip_socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0)
         return;
 
@@ -138,12 +138,12 @@ static void syslog_message_send(char *buffer, int buffer_len) {
     addr.sin_addr.s_addr = inet_addr(syslog_server_ipaddr);
     addr.sin_port = htons(syslog_server_port);
 
-    if (sendto(sock, buffer, buffer_len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        close(sock);
+    if (lwip_sendto(sock, buffer, buffer_len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        lwip_close(sock);
         return;
     }
 
-    close(sock);
+    lwip_close(sock);
 }
 
 static void syslog_handler(metric_point_t *point) {
