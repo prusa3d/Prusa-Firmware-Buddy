@@ -303,14 +303,14 @@ TEST_CASE("Visibility notifycation test", "[window]") {
     REQUIRE_FALSE(win.IsHiddenBehindDialog());
     REQUIRE_FALSE(win.IsCapturable());
     REQUIRE(frame.ChangedCounter == 1);
-    REQUIRE(frame.GetInvRect() == win.rect);
+    REQUIRE(frame.GetInvRect() == win.GetRect());
     frame.ChangedCounter = 0;
     frame.Draw(); //clears invalidation rect
 
     // unregistration must invalidate rect
     // mock does not increase counter
     frame.UnregisterSubWin(win);
-    REQUIRE(frame.GetInvRect() == win.rect);
+    REQUIRE(frame.GetInvRect() == win.GetRect());
     frame.Draw(); //clears invalidation rect
 
     // registration cannot invalidate rect
@@ -338,7 +338,7 @@ TEST_CASE("Visibility notifycation test", "[window]") {
     // unregistration must invalidate rect
     // mock does not increase counter
     frame.UnregisterSubWin(win);
-    REQUIRE(frame.GetInvRect() == win.rect);
+    REQUIRE(frame.GetInvRect() == win.GetRect());
     frame.Draw(); //clears invalidation rect
 }
 
@@ -391,7 +391,7 @@ TEST_CASE("Capturable test window in screen", "[window]") {
     REQUIRE_FALSE(win.HasEnforcedCapture());
     REQUIRE_FALSE(win.IsHiddenBehindDialog()); // screen cleared this flag, because of Hide notifycation
     REQUIRE_FALSE(win.IsCapturable());
-    REQUIRE(screen.GetInvRect() == win.rect);
+    REQUIRE(screen.GetInvRect() == win.GetRect());
     screen.Draw();
 
     win.SetEnforceCapture();

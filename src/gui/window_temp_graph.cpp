@@ -37,13 +37,13 @@ void window_temp_graph_t::redraw_last_point(uint16_t x, uint16_t y0, uint16_t y1
 }
 
 void window_temp_graph_t::draw_axes(bool wipe_before_draw, bool xy_only) {
-    const uint16_t x = rect.Left();
-    const uint16_t y = rect.Top();
-    const uint16_t w = rect.Width();
-    const uint16_t h = rect.Height();
+    const uint16_t x = Left();
+    const uint16_t y = Top();
+    const uint16_t w = Width();
+    const uint16_t h = Height();
 
     if (wipe_before_draw)
-        display::FillRect(rect, color_back);
+        display::FillRect(GetRect(), color_back);
     display::DrawLine(point_ui16(x, y - 1), point_ui16(x, y + h - 1), COLOR_WHITE);             //y
     display::DrawLine(point_ui16(x, y + h - 1), point_ui16(x + w - 1, y + h - 1), COLOR_WHITE); //x
 
@@ -81,8 +81,8 @@ void window_temp_graph_t::unconditionalDraw() {
         uint8_t ync = y_nozzle_c[0];
         uint8_t ybc = y_bed_c[0];
 
-        const uint16_t x = rect.Left();
-        const uint16_t y = rect.Top();
+        const uint16_t x = Left();
+        const uint16_t y = Top();
 
         for (i = 0; i < 178; i++) {
             redraw_point(x + i + 1, y, &y_nozzle_t[i], color_back, color_extruder_t);

@@ -10,13 +10,34 @@
 class window_t {
     window_t *parent;
     window_t *next;
+    Rect16 rect; // (8 bytes) display rectangle
 
 protected:
     WindowFlags flags;
 
 public:
-    Rect16 rect; // (8 bytes) display rectangle
     color_t color_back;
+    Rect16 GetRect() const;
+    void SetRect(Rect16 rc);
+
+    inline Rect16::Left_t Left() const { return GetRect().Left(); }
+    inline Rect16::Top_t Top() const { return GetRect().Top(); }
+    inline Rect16::Width_t Width() const { return GetRect().Width(); }
+    inline Rect16::Height_t Height() const { return GetRect().Height(); }
+
+    void Reposition(Rect16::Top_t top);
+    void Reposition(Rect16::Left_t left);
+    void Resize(Rect16::Height_t height);
+    void Resize(Rect16::Width_t width);
+
+    template <class T>
+    constexpr void operator+=(T val) {
+        SetRect(GetRect() += val);
+    }
+    template <class T>
+    constexpr void operator-=(T val) {
+        SetRect(GetRect() -= val);
+    }
 
     void SetNext(window_t *nxt);
     void SetParent(window_t *par);
