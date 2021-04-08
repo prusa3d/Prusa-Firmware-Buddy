@@ -24,7 +24,7 @@ void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) 
     dlg.open_time = HAL_GetTick();
     dlg.ttl = time;
     dlg.text.SetText(txt);
-    dlg.rect = rect;
+    dlg.SetRect(rect);
     if (!dlg.GetParent()) {
         window_t *parent = Screens::Access()->Get();
         if (parent) {

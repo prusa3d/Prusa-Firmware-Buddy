@@ -152,8 +152,8 @@ void window_t::SetBackColor(color_t clr) {
 window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
     : parent(parent)
     , next(nullptr)
-    , flags(0)
     , rect(rect)
+    , flags(0)
     , color_back(GuiDefaults::ColorBack) {
     flags.type = uint8_t(type);
     flags.close_on_click = close;
@@ -177,6 +177,30 @@ window_t::~window_t() {
         GetParent()->UnregisterSubWin(*this);
 
     Screens::Access()->ResetTimeout();
+}
+
+Rect16 window_t::GetRect() const {
+    return rect;
+}
+
+void window_t::SetRect(Rect16 rc) {
+    rect = rc;
+}
+
+void window_t::Reposition(Rect16::Top_t top) {
+    SetRect(GetRect() = top);
+}
+
+void window_t::Reposition(Rect16::Left_t left) {
+    SetRect(GetRect() = left);
+}
+
+void window_t::Resize(Rect16::Height_t height) {
+    SetRect(GetRect() = height);
+}
+
+void window_t::Resize(Rect16::Width_t width) {
+    SetRect(GetRect() = width);
 }
 
 void window_t::SetNext(window_t *nxt) {
@@ -252,7 +276,7 @@ void window_t::draw() {
 //window does not support subwindow elements, but window_frame does
 bool window_t::RegisterSubWin(window_t &win) {
     //window must fit inside frame
-    if (!rect.Contain(win.rect))
+    if (!rect.Contain(win.GetRect()))
         return false;
 
     Screens::Access()->ResetTimeout();
@@ -263,7 +287,7 @@ bool window_t::RegisterSubWin(window_t &win) {
 void window_t::UnregisterSubWin(window_t &win) {
     if (win.GetParent() != this)
         return;
-    addInvalidationRect(win.rect);
+    addInvalidationRect(win.GetRect());
     unregisterSubWin(win);
     Screens::Access()->ResetTimeout();
 }
@@ -283,7 +307,7 @@ void window_t::addInvalidationRect(Rect16 rc) {
 }
 
 void window_t::unconditionalDraw() {
-    display::FillRect(rect, color_back);
+    display::FillRect(GetRect(), color_back);
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {

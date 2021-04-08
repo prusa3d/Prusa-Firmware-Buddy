@@ -94,7 +94,7 @@ void window_frame_t::colorConflictBackgroundToRed(window_t &win) {
 
         window_t *pWin = first_normal;
         while (pWin) {
-            if (win.rect.HasIntersection(pWin->rect)) {
+            if (win.GetRect().HasIntersection(pWin->GetRect())) {
                 win.SetBackColor(COLOR_RED_ALERT);
             }
             pWin = pWin->GetNext();
@@ -184,14 +184,14 @@ void window_frame_t::draw() {
     while (ptr) {
         if (setChildrenInvalid) {
             //if hidden window has no intersection with other windows, it must be drawn (back color)
-            if (ptr->IsVisible() || !GetFirstEnabledSubWin(ptr->rect)) {
+            if (ptr->IsVisible() || !GetFirstEnabledSubWin(ptr->GetRect())) {
                 ptr->Invalidate();
             } else {
                 ptr->Validate();
             }
         }
 
-        if (invalid_area.HasIntersection(ptr->rect)) {
+        if (invalid_area.HasIntersection(ptr->GetRect())) {
             ptr->Invalidate();
         }
 
@@ -350,7 +350,7 @@ window_t *window_frame_t::GetNextSubWin(window_t *win, Rect16 intersection_rect)
     //endless loop is safe here, last_normal window points to nullptr
     while (true) {
         win = win->GetNext();
-        if (!win || win->rect.HasIntersection(intersection_rect)) {
+        if (!win || win->GetRect().HasIntersection(intersection_rect)) {
             return win;
         }
     }
@@ -377,7 +377,7 @@ window_t *window_frame_t::GetNextEnabledSubWin(window_t *win, Rect16 intersectio
     //endless loop is safe here, last_normal window points to nullptr
     while (true) {
         win = win->GetNextEnabled();
-        if (!win || win->rect.HasIntersection(intersection_rect)) {
+        if (!win || win->GetRect().HasIntersection(intersection_rect)) {
             return win;
         }
     }
@@ -394,7 +394,7 @@ window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win, Rect16 intersectio
 window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const {
     if (!first_normal)
         return nullptr;
-    if (first_normal->IsEnabled() && first_normal->rect.HasIntersection(intersection_rect))
+    if (first_normal->IsEnabled() && first_normal->GetRect().HasIntersection(intersection_rect))
         return first_normal;
     return GetNextEnabledSubWin(first_normal, intersection_rect);
 }
@@ -402,7 +402,7 @@ window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const 
 Rect16 window_frame_t::GenerateRect(ShiftDir_t direction) {
     if (!last_normal)
         return Rect16();
-    return Rect16(last_normal->rect, direction);
+    return Rect16(last_normal->GetRect(), direction);
 }
 
 void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
@@ -416,7 +416,7 @@ void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
 }
 
 void window_frame_t::ChildVisibilityChanged(window_t &child) {
-    addInvalidationRect(child.rect);
+    addInvalidationRect(child.GetRect());
 }
 
 window_t *window_frame_t::getCapturedNormalWin() const {
