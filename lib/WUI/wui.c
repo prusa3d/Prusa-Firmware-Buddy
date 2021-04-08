@@ -16,6 +16,7 @@
 #include "sntp_client.h"
 #include "httpc/httpc.h"
 #include "dbg.h"
+#include "lwesp/lwesp.h"
 
 osThreadId httpcTaskHandle;
 
@@ -95,9 +96,22 @@ void StartWebServerTask(void const *argument) {
     // Initialize the thread for httpc
     //    osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 1024);
     //    httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
+    // lwesp stuffs
+    //if (lwesp_init(NULL, 1) != lwespOK) {
+    //    printf("Cannot initialize LwESP!\r\n");
+    //} else {
+    //    printf("LwESP initialized!\r\n");
+    //}
+
+    lwesp_mode_t mode = LWESP_MODE_STA_AP;
+
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
+        //     lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
+        //     if (mode == LWESP_MODE_STA) {
+        //         printf("test ok");
+        //     }
         osDelay(1000);
     }
 }

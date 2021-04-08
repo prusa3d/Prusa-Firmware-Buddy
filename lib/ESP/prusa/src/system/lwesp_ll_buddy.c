@@ -29,9 +29,9 @@ osMessageQDef(uartBufferMbox, 16, NULL);
 static osMessageQId uartBufferMbox_id;
 
 //UART buffer stuffs
-#define RX_BUFFER_LEN 0x1000
+#define RX_BUFFER_LEN 0x500
 #if !defined(LWESP_MEM_SIZE)
-    #define LWESP_MEM_SIZE 0x1000
+    #define LWESP_MEM_SIZE 0x500
 #endif /* !defined(LWESP_MEM_SIZE) */
 
 static uint8_t is_running;
@@ -127,7 +127,7 @@ void configure_uart(uint32_t baudrate) {
         }
     }
     if (UartBufferThread_id == NULL) {
-        osThreadDef(UartBufferThread, StartUartBufferThread, osPriorityNormal, 0, 512);
+        osThreadDef(UartBufferThread, StartUartBufferThread, osPriorityNormal, 0, 100);
         UartBufferThread_id = osThreadCreate(osThread(UartBufferThread), NULL);
         if (UartBufferThread_id == NULL) {
             printf("error!");

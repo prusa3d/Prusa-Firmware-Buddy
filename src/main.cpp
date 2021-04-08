@@ -67,7 +67,6 @@
 #include "eeprom.h"
 #include "crc32.h"
 #include "w25x.h"
-#include "lwesp/lwesp.h"
 
 #define USB_OVERC_Pin       GPIO_PIN_4
 #define USB_OVERC_GPIO_Port GPIOE
@@ -182,12 +181,12 @@ void iwdg_warning_cb(void);
 
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[200];
-
+#ifndef USE_ESP01_WITH_UART6
 uartrxbuff_t uart6rxbuff;
 uint8_t uart6rx_data[128];
 uartslave_t uart6slave;
 char uart6slave_line[32];
-
+#endif
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
@@ -267,7 +266,7 @@ int main(void) {
     uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
     uartrxbuff_reset(&uart1rxbuff);
-#if 0
+#ifndef USE_ESP01_WITH_UART6
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
     HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
     uartrxbuff_reset(&uart6rxbuff);
@@ -322,10 +321,6 @@ int main(void) {
     osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, BUDDY_WEB_STACK_SIZE);
     webServerTaskHandle = osThreadCreate(osThread(webServerTask), NULL);
 #endif
-
-    /* definition and creation of webServerTask */
-    osThreadDef(ESPTask, StartESPTask, osPriorityNormal, 0, 1024);
-    webServerTaskHandle = osThreadCreate(osThread(ESPTask), NULL);
 
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
@@ -911,7 +906,7 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-#if 0
+#ifndef USE_ESP01_WITH_UART6
     HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
 #endif
     /*Configure GPIO pin Output Level */
@@ -931,7 +926,7 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(USB_EN_GPIO_Port, &GPIO_InitStruct);
-#if 0
+#ifndef USE_ESP01_WITH_UART6
     /*Configure GPIO pins : ESP_RST_Pin LCD_RST_Pin LCD_CS_Pin */
     GPIO_InitStruct.Pin = ESP_RST_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -987,7 +982,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         uartrxbuff_rxcplt_cb(&uart1rxbuff);
     else if (huart == &huart2)
         buddy::hw::BufferedSerial::uart2.SecondHalfReachedISR();
-#if 0
+#ifndef USE_ESP01_WITH_UART6
     else if (huart == &huart6)
         uartrxbuff_rxcplt_cb(&uart6rxbuff);
 #endif
@@ -1003,23 +998,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
 /* USER CODE END 4 */
 
-void StartESPTask(void const *argument) {
-    if (lwesp_init(NULL, 1) != lwespOK) {
-        printf("Cannot initialize LwESP!\r\n");
-    } else {
-        printf("LwESP initialized!\r\n");
-    }
-    lwesp_mode_t mode = LWESP_MODE_STA_AP;
-
-    for (;;) {
-
-        lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
-        if (mode == LWESP_MODE_STA) {
-            printf("hkhk");
-        }
-        osDelay(3000);
-    }
-}
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
   * @brief  Function implementing the defaultTask thread.
