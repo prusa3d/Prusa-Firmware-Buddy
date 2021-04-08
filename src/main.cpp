@@ -316,13 +316,13 @@ int main(void) {
     /* definition and creation of displayTask */
     osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 2048);
     displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
-#if 0
-    #ifdef BUDDY_ENABLE_WUI
+
+#ifdef BUDDY_ENABLE_WUI
     /* definition and creation of webServerTask */
     osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, BUDDY_WEB_STACK_SIZE);
     webServerTaskHandle = osThreadCreate(osThread(webServerTask), NULL);
-    #endif
 #endif
+
     /* definition and creation of webServerTask */
     osThreadDef(ESPTask, StartESPTask, osPriorityNormal, 0, 1024);
     webServerTaskHandle = osThreadCreate(osThread(ESPTask), NULL);
