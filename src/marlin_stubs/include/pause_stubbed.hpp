@@ -51,7 +51,7 @@ protected:
     };
 
     PausePrivatePhase();
-    void setPhase(PhasesLoadUnload ph, uint8_t progress_tot = 0);
+    void setPhase(PhasesLoadUnload ph, uint8_t progress = 0);
     PhasesLoadUnload getPhase() const;
 
     // auto restores temp turned off by safety timer,

@@ -39,5 +39,9 @@ public:
         }
     };
 
+    void ScreenEvent(window_t *sender, GUI_event_t event, void *param) {}
+
+    void WindowEvent(GUI_event_t event, void *param) {}
+
     void ResetTimeout() {}
 };

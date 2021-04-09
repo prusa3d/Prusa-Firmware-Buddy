@@ -126,16 +126,6 @@ void MI_LAN_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_WIFI_SETTINGS
-MI_WIFI_SETTINGS::MI_WIFI_SETTINGS()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_WIFI_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuWiFi);
-}
-
-/*****************************************************************************/
 //MI_MESSAGES
 MI_MESSAGES::MI_MESSAGES()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {

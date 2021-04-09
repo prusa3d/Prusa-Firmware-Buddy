@@ -32,7 +32,6 @@
 #include "crc32.h"
 #include "ff.h"
 #include "dump.h"
-#include "UART_RingBuffer.h"
 
 #include <Arduino.h>
 #include "trinamic.h"
@@ -65,9 +64,9 @@ extern void reset_trinamic_drivers();
 
 extern "C" {
 
-extern uartrxbuff_t uart6rxbuff; // PUT rx buffer
-extern uartslave_t uart6slave;   // PUT slave
-extern UART_HandleTypeDef huart6;
+#ifndef USE_ESP01_WITH_UART6
+extern uartslave_t uart6slave; // PUT slave
+#endif
 
 #ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
@@ -134,24 +133,13 @@ void app_run(void) {
         settings.reset();
     }
 
-    // ESP TEST
-    // const char *line;
-    // line = "AT+GMR\r\n";
-    // line = "AT+CIUPDATE=1,\"v2.1.0.0\"\r\n";
-    // HAL_UART_Transmit(&huart6, (uint8_t *)line, strlen(line), 10);
-    // line = "AT+CWSAP=\"PRUSA_MINI\",\"\",5,0\r\n";
-    // HAL_UART_Transmit(&huart6, (uint8_t *)line, strlen(line), 10);
-
-    // Uart_flush(&huart6);
-    // Uart_sendstring("AT\r\n", &huart6);
-    // while(!(Wait_for("OK\r\n", &huart6)));
-    // _dbg0("AT-->OK\n");
-
     while (1) {
         if (marlin_server_processing()) {
             loop();
         }
-        // uartslave_cycle(&uart6slave);
+#ifndef USE_ESP01_WITH_UART6
+        uartslave_cycle(&uart6slave);
+#endif
         marlin_server_loop();
         osDelay(0); // switch to other threads - without this is UI slow
 #ifdef JOGWHEEL_TRACE

@@ -109,5 +109,5 @@ public:
     DialogMenuPreheat(string_view_utf8 name, PreheatData type);
 
 protected:
-    virtual bool change(uint8_t phs, uint8_t progress_tot, uint8_t progress) override;
+    virtual bool change(uint8_t phase, fsm::PhaseData data) override;
 };

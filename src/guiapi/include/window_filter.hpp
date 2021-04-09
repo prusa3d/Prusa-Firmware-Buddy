@@ -108,6 +108,11 @@ public:
     };
 };
 
+class WinFilterCapturable : public WinFilter {
+public:
+    virtual bool operator()(const window_t &win) const override { return win.IsCapturable(); };
+};
+
 //filter dialog or popup windows
 class WinFilterDialogOrPopUp : public WinFilter {
 public:

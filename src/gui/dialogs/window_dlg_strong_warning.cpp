@@ -27,7 +27,7 @@ void window_dlg_strong_warning_t::show(string_view_utf8 txt) {
     if (!GetParent()) {
         window_t *parent = Screens::Access()->Get();
         if (parent) {
-            parent->RegisterSubWin(this);
+            parent->RegisterSubWin(*this);
             text.SetText(txt);
         }
     }
@@ -37,7 +37,7 @@ void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, wi
     if (!GetParent())
         return;
     if (event == GUI_event_t::CLICK) { //todo use timer
-        GetParent()->UnregisterSubWin(this);
+        GetParent()->UnregisterSubWin(*this);
     } else {
         SuperWindowEvent(sender, event, param);
     }

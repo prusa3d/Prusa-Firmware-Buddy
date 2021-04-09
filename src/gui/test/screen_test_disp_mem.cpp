@@ -9,9 +9,9 @@
     #include "config.h"
     #include "stm32f4xx_hal.h"
 
-    #include "st7789v.h"
     #include "sys.h"
     #include <assert.h>
+    #include "st7789v.hpp"
 
 extern int sim_heater_temp2val(float temp);
 
