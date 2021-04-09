@@ -98,6 +98,8 @@ void StartWebServerTask(void const *argument) {
     }
 
     lwesp_mode_t mode = LWESP_MODE_STA_AP;
+    // -- flash uploader conn start
+    lwesp_conn_upload_start(NULL, NULL, conn_upload_callback_func, 0);
 
     for (;;) {
         update_eth_changes();
@@ -109,3 +111,36 @@ void StartWebServerTask(void const *argument) {
         osDelay(1000);
     }
 }
+
+static lwespr_t conn_upload_callback_func(lwesp_evt_t *evt) {
+    lwesp_conn_p conn;
+    lwespr_t res = lwespOK;
+    uint8_t conn_num;
+
+    conn = lwesp_conn_get_from_evt(evt);
+    if (conn == NULL) {
+        return lwespERR;
+    }
+    conn_num = lwesp_conn_getnum(conn); /* Get connection number for identification */
+    switch (lwesp_evt_get_type(evt)) {
+    case LWESP_EVT_CONN_SEND: { /* Data send event */
+        lwespr_t res = lwesp_evt_conn_send_get_result(evt);
+        if (res == lwespOK) {
+            _dbg0("Data sent successfully");
+        } else {
+            _dbg0("Data sent ERROR");
+        }
+        break;
+    }
+    case LWESP_EVT_CONN_RECV: { /* Data received from remote side */
+        lwesp_pbuf_p pbuf = lwesp_evt_conn_recv_get_buff(evt);
+        lwesp_conn_recved(conn, pbuf); /* Notify stack about received pbuf */
+        _dbg0("Received %d bytes..", (int)lwesp_pbuf_length(pbuf, 1));
+        break;
+    }
+    default:
+        break;
+    }
+    return res;
+}
+
