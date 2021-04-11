@@ -116,6 +116,16 @@ void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+//MI_FW_UPDATE
+MI_ESP_UPDATE::MI_ESP_UPDATE()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_ESP_UPDATE::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuESPUpdate);
+}
+
+/*****************************************************************************/
 //MI_LAN_SETTINGS
 MI_LAN_SETTINGS::MI_LAN_SETTINGS()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {

@@ -66,3 +66,8 @@ void Error_Handler(void);
 #define ESP_TX_GPIO_Port      GPIOC
 #define ESP_RX_Pin            GPIO_PIN_7
 #define ESP_RX_GPIO_Port      GPIOC
+#define ESP_GPIO0_Pin         GPIO_PIN_6
+#define ESP_GPIO0_GPIO_Port   GPIOE
+#define ESP_RST_Pin         GPIO_PIN_13
+#define ESP_RST_GPIO_Port   GPIOC
+
