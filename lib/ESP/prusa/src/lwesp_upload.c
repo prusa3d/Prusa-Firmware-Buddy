@@ -54,22 +54,16 @@ void get_32bit_as_char(char d[4], uint32_t v) {
 
 void rom_cmd_checksum(unsigned char *data) {
     int32_t checksum = get_checksum(data);
-    unsigned char z[4];
-    z[0] = (checksum >> 24) & 0xff;
-    z[1] = (checksum >> 16) & 0xff;
-    z[2] = (checksum >> 8) & 0xff;
-    z[3] = checksum & 0xff;
+    char z[4];
+    get_32bit_as_char(z, checksum);
     BUART_SEND_CONST_STR(&z);
 }
 
 void rom_cmd_zero_checksum() {
     // zeroes
     int32_t zero = 0;
-    unsigned char z[4];
-    z[0] = (zero >> 24) & 0xff;
-    z[1] = (zero >> 16) & 0xff;
-    z[2] = (zero >> 8) & 0xff;
-    z[3] = zero & 0xff;
+    char z[4];
+    get_32bit_as_char(z, zero);
     BUART_SEND_CONST_STR(&z);
 }
 
@@ -119,7 +113,7 @@ lwespr_t lwespi_upload_cmd(lwesp_msg_t *msg) {
         size_t bin_size = msg->msg.conn_send.sent;
         uint32_t block_num = 4;
         size_t offset = msg->msg.conn_send.btw;
-        
+
         char d_tmp[4] = {};
         // -- erase size
         get_32bit_as_char(d_tmp, (uint32_t)(bin_size));
@@ -176,4 +170,3 @@ lwespr_t lwespi_upload_process(const void *data, size_t data_len) {
 
     return lwespOK;
 }
-

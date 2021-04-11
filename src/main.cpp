@@ -999,7 +999,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     }
 }
 
-static lwespr_t conn_upload_callback_func(lwesp_evt_t *evt);
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */

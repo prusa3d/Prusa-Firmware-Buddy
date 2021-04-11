@@ -72,6 +72,8 @@ static void update_eth_changes(void) {
     wui_lwip_sync_gui_lan_settings();
 }
 
+static lwespr_t conn_upload_callback_func(lwesp_evt_t *evt);
+
 void StartWebServerTask(void const *argument) {
     // get settings from ini file
     osDelay(1000);
