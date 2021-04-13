@@ -9,22 +9,27 @@
 #include "uart_socket.h"
 
 static lan_interface_type interface_connected = BUDDY_LAN_ETH;
+static uint8_t open_socket = 0;
 
 int socket(int domain, int type, int protocol) {
-
-    interface_connected = get_lan_type();
+    if (!open_socket) {
+        interface_connected = get_lan_type();
+        open_socket = 1;
+    } else {
+        return -1;
+    }
 
     switch (interface_connected) {
     case BUDDY_LAN_ETH:
-        lwip_socket(domain, type, protocol);
+        return lwip_socket(domain, type, protocol);
         break;
     case BUDDY_LAN_WIFI:
-        uart_socket(domain, type, protocol);
+        return uart_socket(domain, type, protocol);
         break;
     default:
         break;
     }
-    return 0;
+    return -1;
 }
 
 int connect(int s, const struct sockaddr *name, socklen_t namelen) {
@@ -86,9 +91,6 @@ ssize_t recv(int s, void *mem, size_t len, int flags) {
 int close(int s) {
     int ret = -1;
 
-    if (interface_connected != get_lan_type())
-        return -1;
-
     switch (interface_connected) {
     case BUDDY_LAN_ETH:
         ret = lwip_close(s);
@@ -99,5 +101,6 @@ int close(int s) {
     default:
         break;
     }
+    open_socket = 0;
     return ret;
 }

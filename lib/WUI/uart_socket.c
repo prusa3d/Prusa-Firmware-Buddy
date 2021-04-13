@@ -34,6 +34,8 @@ static osMessageQId uartSocketMbox_id;
 
 static uint8_t is_running;
 static size_t old_pos;
+static uint8_t uart_initalized = 0;
+static int socket_id = -1;
 
 uint8_t data_rx[RX_BUFFER_LEN];
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
@@ -63,9 +65,11 @@ void configure_uart_socket(uint32_t baudrate) {
     }
 }
 
-static int socket_id = -1;
 int uart_socket(int domain, int type, int protocol) {
-    configure_uart_socket(115200);
+    if (!uart_initalized) {
+        configure_uart_socket(115200);
+        uart_initalized = 1;
+    }
     socket_id++;
     return socket_id;
 }
@@ -111,5 +115,6 @@ ssize_t uart_recv(int s, void *mem, size_t len, int flags) {
 }
 
 int uart_close(int s) {
+    socket_id--;
     return 0;
 }

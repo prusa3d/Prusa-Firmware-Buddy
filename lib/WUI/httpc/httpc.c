@@ -17,9 +17,11 @@
 #include "cmsis_os.h"
 #include "lan_interface.h"
 
-#define RX_BUFFER_LEN 10
+#define RX_BUFFER_LEN 20
+#define TX_BUFFER_LEN 20
 char rx_buffer[RX_BUFFER_LEN];
-char tx_buffer[10] = "message";
+char tx_buffer[TX_BUFFER_LEN] = "message";
+static uint32_t message_count = 0;
 static int sock_httpc = -1;
 static struct sockaddr_in address_httpc;
 typedef enum {
@@ -28,7 +30,7 @@ typedef enum {
     HTTPC_STATE_SEND,
     HTTPC_STATE_RECEIVE,
     HTTPC_STATE_PARSE,
-    HTTC_STATE_CLOSE
+    HTTPC_STATE_CLOSE
 } HTTPC_STATE;
 static HTTPC_STATE httpcstate = HTTPC_STATE_INIT;
 static int httpc_rec_len = 0;
@@ -46,12 +48,11 @@ void httpc_parse_recv(void) {
 void httpc_loop() {
     switch (httpcstate) {
     case HTTPC_STATE_INIT:
-        if (sock_httpc > -1) {
+        if ((sock_httpc = socket(AF_INET, SOCK_STREAM, IPPROTO_IP)) != -1) {
             httpcstate = HTTPC_STATE_CONNECT;
-            break;
+        } else {
+            httpcstate = HTTPC_STATE_CLOSE;
         }
-        if ((sock_httpc = socket(AF_INET, SOCK_STREAM, IPPROTO_IP)) != -1)
-            httpcstate = HTTPC_STATE_CONNECT;
         break;
     case HTTPC_STATE_CONNECT: {
         int ret = connect(sock_httpc, (struct sockaddr *)&address_httpc, sizeof(address_httpc));
@@ -61,30 +62,32 @@ void httpc_loop() {
         else if (0 == ret) // new connection
             httpcstate = HTTPC_STATE_SEND;
         else // error occurred
-            httpcstate = HTTC_STATE_CLOSE;
+            httpcstate = HTTPC_STATE_CLOSE;
     } break;
     case HTTPC_STATE_SEND: {
+        snprintf(tx_buffer, TX_BUFFER_LEN, "%s:%ld", "message", message_count);
         int ret = send(sock_httpc, tx_buffer, strlen(tx_buffer), 0);
-        //todo comparison
-        if (strlen(tx_buffer) == ret)
+        if (0 > ret) {
+            httpcstate = HTTPC_STATE_CLOSE;
+        } else if (strlen(tx_buffer) == (unsigned int)ret) {
             httpcstate = HTTPC_STATE_RECEIVE;
-        else if (ret < 0)
-            httpcstate = HTTC_STATE_CLOSE;
+        }
     } break;
     case HTTPC_STATE_RECEIVE:
         httpc_rec_len = recv(sock_httpc, rx_buffer, sizeof(rx_buffer) - 1, MSG_DONTWAIT);
         if (httpc_rec_len) {
-            // rx_buffer[httpc_rec_len] = 0; // Null-terminate whatever we received and treat like a string
             httpcstate = HTTPC_STATE_PARSE;
+        } else {
+            httpcstate = HTTPC_STATE_CLOSE;
         }
         break;
     case HTTPC_STATE_PARSE:
+        message_count++;
         httpc_parse_recv();
         httpc_rec_len = 0;
-        memset(rx_buffer, 0, RX_BUFFER_LEN);
-        httpcstate = HTTPC_STATE_INIT;
+        httpcstate = HTTPC_STATE_CLOSE;
         break;
-    case HTTC_STATE_CLOSE:
+    case HTTPC_STATE_CLOSE:
         close(sock_httpc);
         sock_httpc = -1;
         httpcstate = HTTPC_STATE_INIT;
@@ -92,13 +95,12 @@ void httpc_loop() {
     default:
         break;
     }
-    osDelay(1000);
 }
 
 void StarthttpcTask(void const *argument) {
     httpc_init();
     for (;;) {
         httpc_loop();
-        osDelay(10);
+        osDelay(1000);
     }
 }

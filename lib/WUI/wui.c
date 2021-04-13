@@ -90,7 +90,7 @@ void StartWebServerTask(void const *argument) {
     wui_marlin_client_init();
     // LwIP related initalizations
     MX_LWIP_Init(&wui_eth_config);
-    http_server_init();
+    //    http_server_init();
     sntp_client_init();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
     // Initialize the thread for httpc
