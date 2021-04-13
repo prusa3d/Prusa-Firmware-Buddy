@@ -204,7 +204,7 @@ class MI_LAN_INTERFACE_t : public WI_SWITCH_t<2> {
 public:
     MI_LAN_INTERFACE_t()
         : WI_SWITCH_t(Eth::IsLANETH() ? 1 : 0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no,
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi)) {}
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth)) {}
     virtual void OnChange(size_t old_index) override {
         bool success = old_index == 0 ? Eth::SetLANETH() : Eth::SetLANWiFi();
         if (!success)

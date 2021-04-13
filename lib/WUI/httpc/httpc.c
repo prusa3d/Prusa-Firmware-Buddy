@@ -15,6 +15,7 @@
 #include "httpc.h"
 #include "buddy_socket.h"
 #include "cmsis_os.h"
+#include "lan_interface.h"
 
 #define RX_BUFFER_LEN 10
 char rx_buffer[RX_BUFFER_LEN];
@@ -98,6 +99,6 @@ void StarthttpcTask(void const *argument) {
     httpc_init();
     for (;;) {
         httpc_loop();
-        osDelay(100);
+        osDelay(10);
     }
 }
