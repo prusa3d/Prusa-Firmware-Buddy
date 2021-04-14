@@ -101,16 +101,17 @@ void StartWebServerTask(void const *argument) {
 
     lwesp_mode_t mode = LWESP_MODE_STA_AP;
     // -- flash uploader conn start
-    lwesp_conn_upload_start(NULL, NULL, conn_upload_callback_func, 0);
+    // lwesp_conn_upload_start(NULL, NULL, conn_upload_callback_func, 0);
 
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
-        lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
-        if (mode == LWESP_MODE_STA) {
-            printf("test ok");
-        }
-        osDelay(1000);
+        // lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
+        // if (mode == LWESP_MODE_STA) {
+        // printf("test ok");
+        // }
+        lwesp_conn_upload_start(NULL, NULL, conn_upload_callback_func, 0);
+        osDelay(2000);
     }
 }
 
@@ -145,4 +146,3 @@ static lwespr_t conn_upload_callback_func(lwesp_evt_t *evt) {
     }
     return res;
 }
-

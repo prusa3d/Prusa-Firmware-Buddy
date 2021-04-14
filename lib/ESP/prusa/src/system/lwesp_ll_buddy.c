@@ -37,7 +37,7 @@ static osMessageQId uartBufferMbox_id;
 #endif /* !defined(LWESP_MEM_SIZE) */
 
 static uint8_t is_running;
-static uint8_t is_flashing;
+static uint8_t is_flashing = 1;
 static uint8_t initialized;
 static size_t old_pos;
 
@@ -63,6 +63,7 @@ void StartUartBufferThread(void const *arg) {
     size_t pos;
 
     LWESP_UNUSED(arg);
+    // _dbg0("START UART THREAD");
 
     while (1) {
         /* Wait for the event message from DMA or USART */
@@ -80,13 +81,13 @@ void StartUartBufferThread(void const *arg) {
                 }
             } else {
                 if (is_flashing) {
-                    lwesp_input_upload_process(&dma_buffer_rx[old_pos], pos - old_pos);
+                    lwesp_input_upload_process(&dma_buffer_rx[old_pos], sizeof(dma_buffer_rx) - old_pos);
                 } else {
                     lwesp_input_process(&dma_buffer_rx[old_pos], sizeof(dma_buffer_rx) - old_pos);
                 }
                 if (pos > 0) {
                     if (is_flashing) {
-                        lwesp_input_upload_process(&dma_buffer_rx[old_pos], pos - old_pos);
+                        lwesp_input_upload_process(&dma_buffer_rx[0], pos);
                     } else {
                         lwesp_input_process(&dma_buffer_rx[0], pos);
                     }

@@ -911,7 +911,8 @@ static void MX_GPIO_Init(void) {
     /*Configure GPIO pin Output Level */
 #ifndef USE_ESP01_WITH_UART6
     HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET); // -- normal boot
+    // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_RESET); // -- UART flash
 #endif
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOD, FLASH_CSN_Pin, GPIO_PIN_RESET);
@@ -919,7 +920,7 @@ static void MX_GPIO_Init(void) {
     /*Configure GPIO pins : USB_OVERC_Pin ESP_GPIO0_Pin
                            BED_MON_Pin WP1_Pin */
     // GPIO_InitStruct.Pin = USB_OVERC_Pin | ESP_GPIO0_Pin
-        // | BED_MON_Pin | WP1_Pin;
+    // | BED_MON_Pin | WP1_Pin;
     GPIO_InitStruct.Pin = USB_OVERC_Pin | BED_MON_Pin | WP1_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -930,7 +931,7 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-    
+
     /*Configure GPIO pin : USB_EN_Pin */
     GPIO_InitStruct.Pin = USB_EN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;

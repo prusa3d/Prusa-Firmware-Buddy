@@ -1,6 +1,30 @@
 #include "lwesp_upload.h"
 #include "dbg.h"
 
+typedef struct {
+    char data[128]; /*!< Received characters */
+    size_t len;     /*!< Length of valid characters */
+} lwesp_recv_t;
+
+uint8_t active_cmd = ESP_SYNC;
+
+/* Receive character macros */
+#define RECV_UPLOAD_ADD(ch)                                 \
+    do {                                                    \
+        if (recv_buff.len < (sizeof(recv_buff.data)) - 1) { \
+            recv_buff.data[recv_buff.len++] = ch;           \
+            recv_buff.data[recv_buff.len] = 0;              \
+        }                                                   \
+    } while (0)
+#define RECV_UPLOAD_RESET()    \
+    do {                       \
+        recv_buff.len = 0;     \
+        recv_buff.data[0] = 0; \
+    } while (0)
+#define RECV_UPLOAD_LEN()      ((size_t)recv_buff.len)
+#define RECV_UPLOAD_IDX(index) recv_buff.data[index]
+
+/* Sending data over UART */
 #define BUART_SEND_FLUSH()        esp.ll.send_fn(NULL, 0)
 #define BUART_SEND_CHR(str)       esp.ll.send_fn((const void *)(str), (size_t)1)
 #define BUART_SEND_STR(str)       esp.ll.send_fn((const void *)(str), (size_t)strlen(str))
@@ -18,10 +42,16 @@
 void esp_upload_start() {
 }
 
+uint32_t parse_int32(const char buf[4]) {
+    uint32_t ui0 = buf[0], ui1 = buf[1], ui2 = buf[2], ui3 = buf[3];
+    uint32_t val = ui0 | (ui1 << 8) | (ui2 << 16) | (ui3 << 24);
+    return val;
+}
+
 void rom_cmd_req(unsigned char op, unsigned short datalen) {
     // ROM command pack itself into:
     // https://github.com/espressif/esptool/wiki/Serial-Protocol#command
-    // char 1B - 0x00
+    // char 1B - 0x00 (0x00 for request 0x01 for response)
     // char 1B - op (cmd)
     // int16_t 2B - datalen
     // int32_t 4B - checksum(for _DATA cmds) or just zero
@@ -67,13 +97,18 @@ void rom_cmd_zero_checksum() {
     BUART_SEND_CONST_STR(&z);
 }
 
+// ------------------------------------
 // custom fn to handle cmds for ESP UART ROM bootloader
 // sending SLIP packets to issue a cmd with data
+// ------------------------------------
 lwespr_t lwespi_upload_cmd(lwesp_msg_t *msg) {
     switch (CMD_GET_CUR()) {
 
     // SYNC - ESP_SYNC (0x08)
     case LWESP_CMD_TCPIP_CIPSTATUS: {
+        BUART_SEND_CONST_STR("AT\r\n");
+        break;
+        active_cmd = ESP_SYNC;
         unsigned char cmd_data[36] = { 0x07, 0x07, 0x12, 0x20, [4 ... 35] = 0x55 };
         _dbg0("sync cmd to send - %s", cmd_data);
         // -- SLIP begin
@@ -92,6 +127,7 @@ lwespr_t lwespi_upload_cmd(lwesp_msg_t *msg) {
 
     // READ_REG - ESP_READ_REG (0x0a)
     case LWESP_CMD_TCPIP_CIFSR: {
+        active_cmd = ESP_READ_REG;
         _dbg0("READ REG ESP ROM BOOTLOADER");
         break;
     }
@@ -103,6 +139,7 @@ lwespr_t lwespi_upload_cmd(lwesp_msg_t *msg) {
     // #4 - create request packet header
     // #5 - add data (#3)
     case LWESP_CMD_TCPIP_CIPSTART: {
+        active_cmd = ESP_FLASH_BEGIN;
         // data structure:
         // #1 (4B) size to erase
         // #2 (4B) number of blocks
@@ -142,6 +179,7 @@ lwespr_t lwespi_upload_cmd(lwesp_msg_t *msg) {
 
     // FLASH DATA - ESP_FLASH_DATA (0x03)
     case LWESP_CMD_TCPIP_CIPSEND: {
+        active_cmd = ESP_FLASH_DATA;
         _dbg0("FLASH DATA ESP ROM BOOTLOADER");
         break;
     }
@@ -150,22 +188,59 @@ lwespr_t lwespi_upload_cmd(lwesp_msg_t *msg) {
     return lwespOK;
 }
 
+static lwesp_recv_t recv_buff;
+
+static void esp_upload_process_packet(lwesp_recv_t *rcv) {
+    _dbg0("recv packet - %s", &rcv);
+}
+
+// ------------------------------------
+// process & parse input data from ESP
+// ------------------------------------
 lwespr_t lwespi_upload_process(const void *data, size_t data_len) {
     uint8_t ch;
     const uint8_t *d = data;
     size_t d_len = data_len;
     static uint8_t ch_prev1, ch_prev2;
-    static lwesp_unicode_t unicode;
 
+    _dbg0("MASLO ???----");
     /* Check status if device is available */
     if (!esp.status.f.dev_present) {
         return lwespERRNODEVICE;
     }
 
+    uint8_t f_slip = 0;
+    uint8_t f_escape = 0;
     while (d_len > 0) { /* Read entire set of characters from buffer */
-        ch = *d;        /* Get next character */
-        ++d;            /* Go to next character, must be here as it is used later on */
-        --d_len;        /* Decrease remaining length, must be here as it is decreased later too */
+        _dbg0("PROCESS-%s", data);
+        ch = *d; /* Get next character */
+        ++d;     /* Go to next character, must be here as it is used later on */
+        --d_len; /* Decrease remaining length, must be here as it is decreased later too */
+
+        if (!f_slip && ch == '\xc0') {
+            // -- start SLIP packet
+            f_slip = 1;
+            RECV_UPLOAD_ADD(ch);
+        } else if (f_escape) {
+            // UART bootloader serial protocol replace:
+            // 0xc0 for 0xdb 0xdc
+            // 0xdb for 0xdb 0xdd
+            f_escape = 0;
+            if (ch == '\xdc') {
+                RECV_UPLOAD_ADD('\xc0');
+            } else if (ch == '\xdd') {
+                RECV_UPLOAD_ADD('\xdb');
+            }
+        } else if (ch == '\xdb') {
+            f_escape = 1;
+        } else if (ch == '\xc0' && f_slip) {
+            // -- end SLIP packet, start parsing
+            RECV_UPLOAD_ADD(ch);
+            esp_upload_process_packet(&recv_buff);
+            RECV_UPLOAD_RESET();
+        } else {
+            RECV_UPLOAD_ADD(ch);
+        }
     }
 
     return lwespOK;

@@ -29,6 +29,11 @@ lwespr_t lwespi_upload_process(const void *data, size_t data_len);
 // void esp_upload_flash_begin();
 // void esp_upload_flash_data();
 
+typedef enum {
+  ESP_BOOT_SYNC = 0,
+  ESP_BOOT_
+} lwesp_upload_state;
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
