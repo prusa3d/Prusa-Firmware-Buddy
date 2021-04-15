@@ -35,6 +35,7 @@
 #include "lwesp/lwesp.h"
 #include "lwesp/lwesp_input.h"
 #include "lwesp/lwesp_buff.h"
+#include "dbg.h"
 
 static uint32_t lwesp_recv_total_len;
 static uint32_t lwesp_recv_calls;

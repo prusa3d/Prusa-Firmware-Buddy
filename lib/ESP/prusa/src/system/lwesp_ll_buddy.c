@@ -37,7 +37,7 @@ static osMessageQId uartBufferMbox_id;
 #endif /* !defined(LWESP_MEM_SIZE) */
 
 static uint8_t is_running;
-static uint8_t is_flashing = 1;
+static uint8_t is_flashing = 0;
 static uint8_t initialized;
 static size_t old_pos;
 
@@ -129,9 +129,11 @@ send_data(const void *data, size_t len) {
 }
 
 void configure_uart(uint32_t baudrate) {
-    __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
-    if (HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
-        Error_Handler();
+    if (!initialized) {
+        __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
+        if (HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
+            Error_Handler();
+        }
     }
     is_running = 0;
     old_pos = 0;

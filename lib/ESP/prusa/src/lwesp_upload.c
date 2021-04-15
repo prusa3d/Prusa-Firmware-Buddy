@@ -106,8 +106,9 @@ lwespr_t lwespi_upload_cmd(lwesp_msg_t *msg) {
 
     // SYNC - ESP_SYNC (0x08)
     case LWESP_CMD_TCPIP_CIPSTATUS: {
-        BUART_SEND_CONST_STR("AT\r\n");
-        break;
+        _dbg0("SYNC CMD PITCHO");
+        // BUART_SEND_STR("AT\r\n");
+        // break;
         active_cmd = ESP_SYNC;
         unsigned char cmd_data[36] = { 0x07, 0x07, 0x12, 0x20, [4 ... 35] = 0x55 };
         _dbg0("sync cmd to send - %s", cmd_data);

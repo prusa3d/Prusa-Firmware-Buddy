@@ -74,8 +74,27 @@ static void update_eth_changes(void) {
 
 static lwespr_t conn_upload_callback_func(lwesp_evt_t *evt);
 
+lwesp_ap_t aps[100];
+static size_t apf;
+lwespr_t AP_list() {
+    lwespr_t eres;
+    do {
+        if ((eres = lwesp_sta_list_ap(NULL, aps, LWESP_ARRAYSIZE(aps), &apf, NULL, NULL, 1)) == lwespOK) {
+            for (size_t i = 0; i < apf; i++) {
+                _dbg0("AP found: %s, CH: %d, RSSI: %d\r\n", aps[i].ssid, aps[i].ch, aps[i].rssi);
+            }
+            return lwespOK;
+        } else if (eres == lwespERRNODEVICE) {
+            _dbg0("Device is not present!\r\n");
+            break;
+        } else {
+            _dbg0("Error on WIFI scan procedure!\r\n");
+        }
+    } while (1);
+    return lwespERR;
+}
+
 void StartWebServerTask(void const *argument) {
-    // get settings from ini file
     osDelay(1000);
     printf("wui starts");
     if (load_ini_file(&wui_eth_config)) {
@@ -85,34 +104,69 @@ void StartWebServerTask(void const *argument) {
     load_eth_params(&wui_eth_config);
     // mutex for passing marlin variables to tcp thread
     wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
-    // marlin client initialization for WUI
-    wui_marlin_client_init();
-    // LwIP related initalizations
-    MX_LWIP_Init(&wui_eth_config);
-    http_server_init();
-    sntp_client_init();
-    osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
-    // lwesp stuffs
+
     if (lwesp_init(NULL, 1) != lwespOK) {
-        printf("Cannot initialize LwESP!\r\n");
+        _dbg0("Cannot initialize LwESP!\r\n");
     } else {
-        printf("LwESP initialized!\r\n");
+        _dbg0("LwESP initialized!\r\n");
     }
-
-    lwesp_mode_t mode = LWESP_MODE_STA_AP;
-    // -- flash uploader conn start
-    // lwesp_conn_upload_start(NULL, NULL, conn_upload_callback_func, 0);
-
+    osDelay(100);
+    if (lwesp_device_is_present()) {
+        _dbg0("ESP JE TU");
+    }
+    lwesp_set_wifi_mode(LWESP_MODE_STA, NULL, NULL, 1);
+    osDelay(100);
+    // AP_list();
     for (;;) {
-        update_eth_changes();
-        sync_with_marlin_server();
-        // lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
-        // if (mode == LWESP_MODE_STA) {
-        // printf("test ok");
-        // }
-        lwesp_conn_upload_start(NULL, NULL, conn_upload_callback_func, 0);
-        osDelay(2000);
+
+        // lwesp_conn_upload_start(NULL, NULL, NULL, 0);
+        osDelay(1000);
     }
+
+    /*     // get settings from ini file */
+    // osDelay(1000);
+    // printf("wui starts");
+    // if (load_ini_file(&wui_eth_config)) {
+    //     save_eth_params(&wui_eth_config);
+    // }
+    // wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    // load_eth_params(&wui_eth_config);
+    // // mutex for passing marlin variables to tcp thread
+    // wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
+    // // marlin client initialization for WUI
+    // wui_marlin_client_init();
+    // // LwIP related initalizations
+    // MX_LWIP_Init(&wui_eth_config);
+    // http_server_init();
+    // sntp_client_init();
+    // osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
+    // // lwesp stuffs
+    // if (lwesp_init(NULL, 1) != lwespOK) {
+    //     printf("Cannot initialize LwESP!\r\n");
+    // } else {
+    //     printf("LwESP initialized!\r\n");
+    // }
+    // osDelay(2000);
+    //
+    // if(lwesp_device_is_present()){
+    //   _dbg0("ESP JE TU");
+    // }
+    // lwesp_reset(NULL, NULL, 1);
+    //
+    // lwesp_mode_t mode = LWESP_MODE_STA_AP;
+    // // -- flash uploader conn start
+    // // lwesp_conn_upload_start(NULL, NULL, conn_upload_callback_func, 0);
+    //
+    // for (;;) {
+    //     update_eth_changes();
+    //     sync_with_marlin_server();
+    //     // lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
+    //     // if (mode == LWESP_MODE_STA) {
+    //     // printf("test ok");
+    //     // }
+    //     // lwesp_conn_upload_start(NULL, NULL, conn_upload_callback_func, 0);
+    //     osDelay(2000);
+    /* } */
 }
 
 static lwespr_t conn_upload_callback_func(lwesp_evt_t *evt) {

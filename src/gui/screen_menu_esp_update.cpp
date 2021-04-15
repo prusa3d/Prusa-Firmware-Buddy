@@ -14,6 +14,7 @@
 #include "ScreenHandler.hpp"
 #include "main.h"
 #include "dbg.h"
+#include "lwesp_conn_upload.h"
 
 extern UART_HandleTypeDef huart6;
 
@@ -45,6 +46,25 @@ extern UART_HandleTypeDef huart6;
 /* // ---------------------------------------------------------------- */
 
 // ----------------------------------------------------------------
+// ESP UPLOADER - SYNC
+class MI_ESP_SYNC : public WI_LABEL_t {
+    constexpr static const char *const label = N_("ESP: sync");
+
+public:
+    MI_ESP_SYNC()
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    virtual void click(IWindowMenu & /* [ > window_menu < ] */) override {
+        // if (lwesp_conn_upload_start(NULL, NULL, NULL, 1) == lwespOK) {
+        if (lwesp_set_wifi_mode(LWESP_MODE_STA, NULL, NULL, 1) == lwespOK) {
+            _dbg0("POSLANO SYNC");
+        } else {
+            _dbg0("SYNC ESP ERROR");
+        }
+    }
+};
+// ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
 // RESET - SWITCH
 class MI_ESP_RESET : public WI_SWITCH_t<2> {
     constexpr static const char *const label = N_("ESP RESET");
@@ -55,6 +75,7 @@ class MI_ESP_RESET : public WI_SWITCH_t<2> {
 
 public:
     MI_ESP_RESET();
+
 protected:
     virtual void OnChange(size_t) override;
 };
@@ -88,6 +109,7 @@ class MI_ESP_FLASH : public WI_SWITCH_t<2> {
 
 public:
     MI_ESP_FLASH();
+
 protected:
     virtual void OnChange(size_t) override;
 };
@@ -110,7 +132,7 @@ void MI_ESP_FLASH::OnChange(size_t old_index) {
 }
 // ----------------------------------------------------------------
 
-using MenuContainer = WinMenuContainer<MI_RETURN, MI_ESP_FLASH, MI_ESP_RESET>;
+using MenuContainer = WinMenuContainer<MI_RETURN, MI_ESP_FLASH, MI_ESP_RESET, MI_ESP_SYNC>;
 
 class ScreenMenuESPUpdate : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("ESP UPDATE");
