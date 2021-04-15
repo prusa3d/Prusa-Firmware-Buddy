@@ -3,7 +3,7 @@
 #include <string.h>
 #include "metric_handlers.h"
 #include "stm32f4xx_hal.h"
-#include "sockets.h"
+#include "buddy_socket.h"
 
 #define MAC_ADDR_START            0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE             6
@@ -129,7 +129,7 @@ static void syslog_message_send(char *buffer, int buffer_len) {
     if (netif_default == NULL)
         return;
 
-    int sock = lwip_socket(AF_INET, SOCK_DGRAM, 0);
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0)
         return;
 
@@ -138,12 +138,12 @@ static void syslog_message_send(char *buffer, int buffer_len) {
     addr.sin_addr.s_addr = inet_addr(syslog_server_ipaddr);
     addr.sin_port = htons(syslog_server_port);
 
-    if (lwip_sendto(sock, buffer, buffer_len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        lwip_close(sock);
+    if (sendto(sock, buffer, buffer_len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        close(sock);
         return;
     }
 
-    lwip_close(sock);
+    close(sock);
 }
 
 static void syslog_handler(metric_point_t *point) {

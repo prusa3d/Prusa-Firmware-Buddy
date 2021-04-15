@@ -69,6 +69,25 @@ ssize_t send(int s, const void *data, size_t size, int flags) {
     return ret;
 }
 
+int sendto(int s, void *data, size_t size, int flags, struct sockaddr *addr,
+    socklen_t length) {
+    int ret = -1;
+
+    if (interface_connected != get_lan_type())
+        return -1;
+
+    switch (interface_connected) {
+    case BUDDY_LAN_ETH:
+        ret = lwip_sendto(s, data, size, flags, addr, length);
+        break;
+    case BUDDY_LAN_WIFI:
+        ret = uart_send(s, data, size, 0); // other parameters are not valid
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
 ssize_t recv(int s, void *mem, size_t len, int flags) {
     ssize_t rec_len = -1;
 
