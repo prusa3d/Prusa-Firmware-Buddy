@@ -39,7 +39,6 @@ lwespr_t lwesp_conn_upload_start(lwesp_conn_p *conn, void *const arg,
     lwesp_evt_fn conn_evt_fn, const uint32_t blocking) {
 
     LWESP_MSG_VAR_DEFINE(msg);
-    LWESP_ASSERT("conn_evt_fn != NULL", conn_evt_fn != NULL);
     LWESP_MSG_VAR_ALLOC(msg, blocking);
 
     // we have to use AT cmds as suplement for UART bootloader's cmds
@@ -58,7 +57,6 @@ lwespr_t lwesp_conn_upload_read_reg(lwesp_conn_p *conn, void *const arg,
     uint32_t addr, lwesp_evt_fn conn_evt_fn, const uint32_t blocking) {
 
     LWESP_MSG_VAR_DEFINE(msg);
-    LWESP_ASSERT("conn_evt_fn != NULL", conn_evt_fn != NULL);
     LWESP_MSG_VAR_ALLOC(msg, blocking);
 
     // we have to use AT cmds as suplement for UART bootloader's cmds
@@ -77,7 +75,6 @@ lwespr_t lwesp_conn_upload_flash(lwesp_conn_p *conn, void *const arg,
     uint32_t bin_size, uint32_t offset, lwesp_evt_fn conn_evt_fn, const uint32_t blocking) {
 
     LWESP_MSG_VAR_DEFINE(msg);
-    LWESP_ASSERT("conn_evt_fn != NULL", conn_evt_fn != NULL);
     LWESP_MSG_VAR_ALLOC(msg, blocking);
 
     // we have to use AT cmds as suplement for UART bootloader's cmds

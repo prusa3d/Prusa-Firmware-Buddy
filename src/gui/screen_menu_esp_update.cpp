@@ -18,32 +18,23 @@
 
 extern UART_HandleTypeDef huart6;
 
-/* // ---------------------------------------------------------------- */
-// // RESET
-// class MI_ESP_RESET : public WI_LABEL_t {
-//     constexpr static const char *const label = N_("ESP RESET");
-//
-// public:
-//     MI_ESP_RESET()
-//         : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
-//     virtual void click(IWindowMenu & [>window_menu<]) override {
-//
-//         HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
-//
-//         // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
-//         // char at_cmd[] = "AT+RST\r\n";
-//         // HAL_UART_Transmit(&huart6, (uint8_t *)at_cmd, sizeof(at_cmd), HAL_MAX_DELAY);
-//
-//         // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
-//         // osDelay(10);
-//         // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
-//         // osDelay(10);
-//         // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
-//
-//         _dbg0("HW RESET");
-//     }
-// };
-/* // ---------------------------------------------------------------- */
+// ----------------------------------------------------------------
+// RESET
+class MI_ESP_RESET : public WI_LABEL_t {
+    constexpr static const char *const label = N_("ESP RESET");
+
+public:
+    MI_ESP_RESET()
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    virtual void click(IWindowMenu & /* [>window_menu<] */) override {
+        // reset via GPIO pins LOW then HIGH
+        HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
+        osDelay(100);
+        HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+        _dbg0("HW RESET");
+    }
+};
+// ----------------------------------------------------------------
 
 // ----------------------------------------------------------------
 // ESP UPLOADER - SYNC
@@ -54,11 +45,16 @@ public:
     MI_ESP_SYNC()
         : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /* [ > window_menu < ] */) override {
-        if (lwesp_conn_upload_start(NULL, NULL, NULL, 1) == lwespOK) {
+        lwespr_t eres;
+        if ((eres = lwesp_conn_upload_start(NULL, NULL, NULL, 1)) == lwespOK) {
             // if (lwesp_set_wifi_mode(LWESP_MODE_STA, NULL, NULL, 1) == lwespOK) {
             _dbg0("POSLANO SYNC");
+        } else if (eres == lwespTIMEOUT) {
+            _dbg0("ESP TIMEOUT");
+        } else if (eres == lwespERRNODEVICE) {
+            _dbg0("ESP NO DEVICE");
         } else {
-            _dbg0("SYNC ESP ERROR");
+            _dbg0("ESP ERROR %d", eres);
         }
     }
 };
@@ -80,8 +76,10 @@ public:
             _dbg0("POSLANO READ na adrese: %x", addr);
         } else if (eres == lwespTIMEOUT) {
             _dbg0("READ REG ESP TIMEOUT");
+        } else if (eres == lwespERRNODEVICE) {
+            _dbg0("FLAS ESP NO DEVICE");
         } else {
-            _dbg0("ESP ERROR");
+            _dbg0("ESP ERROR %d", eres);
         }
     }
 };
@@ -103,45 +101,13 @@ public:
             _dbg0("POSLANO ERASE na adrese: %x o delce: %x", offset, bin_size);
         } else if (eres == lwespTIMEOUT) {
             _dbg0("FLAS ESP TIMEOUT");
+        } else if (eres == lwespERRNODEVICE) {
+            _dbg0("FLAS ESP NO DEVICE");
         } else {
-            _dbg0("ESP ERROR");
+            _dbg0("ESP ERROR %d", eres);
         }
     }
 };
-// ----------------------------------------------------------------
-
-// ----------------------------------------------------------------
-// RESET - SWITCH
-class MI_ESP_RESET : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = N_("ESP RESET");
-    constexpr static const char *const s_on = N_("On");
-    constexpr static const char *const s_off = N_("Off");
-
-    size_t init_index() const;
-
-public:
-    MI_ESP_RESET();
-
-protected:
-    virtual void OnChange(size_t) override;
-};
-MI_ESP_RESET::MI_ESP_RESET()
-    : WI_SWITCH_t<2>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(s_on), _(s_off)) {}
-size_t MI_ESP_RESET::init_index() const {
-    return 0;
-}
-void MI_ESP_RESET::OnChange(size_t old_index) {
-    if (index == 0) {
-        // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
-    } else if (index == 1) {
-        // HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
-    } else {
-        HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
-    }
-    _dbg0("%d index of ESP_RST_Pin", index);
-}
 // ----------------------------------------------------------------
 
 // ----------------------------------------------------------------
@@ -162,17 +128,15 @@ protected:
 MI_ESP_FLASH::MI_ESP_FLASH()
     : WI_SWITCH_t<2>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(s_on), _(s_off)) {}
 size_t MI_ESP_FLASH::init_index() const {
-    return 0;
+    uint8_t gpio_state = (HAL_GPIO_ReadPin(GPIOE, (1 << (ESP_GPIO0_Pin & 0x0f))) != GPIO_PIN_RESET) ? 1 : 0;
+    return gpio_state;
 }
 void MI_ESP_FLASH::OnChange(size_t old_index) {
     if (index == 0) {
         HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_RESET);
-        // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
-    } else if (index == 1) {
+    }
+    if (index == 1) {
         HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
-        // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
-    } else {
-        // HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
     }
     _dbg0("%d index of ESP_RST_Pin", index);
 }

@@ -95,35 +95,7 @@ lwespr_t AP_list() {
 }
 
 void StartWebServerTask(void const *argument) {
-/*     osDelay(1000); */
-    // printf("wui starts");
-    // if (load_ini_file(&wui_eth_config)) {
-    //     save_eth_params(&wui_eth_config);
-    // }
-    // wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    // load_eth_params(&wui_eth_config);
-    // // mutex for passing marlin variables to tcp thread
-    // wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
-    //
-    // if (lwesp_init(NULL, 1) != lwespOK) {
-    //     _dbg0("Cannot initialize LwESP!\r\n");
-    // } else {
-    //     _dbg0("LwESP initialized!\r\n");
-    // }
-    // osDelay(100);
-    // if (lwesp_device_is_present()) {
-    //     _dbg0("ESP JE TU");
-    // }
-    // lwesp_set_wifi_mode(LWESP_MODE_STA, NULL, NULL, 1);
-    // osDelay(100);
-    // // AP_list();
-    // for (;;) {
-    //
-    //     // lwesp_conn_upload_start(NULL, NULL, NULL, 0);
-    //     osDelay(1000);
-    /* } */
-
-        // get settings from ini file
+    // get settings from ini file
     osDelay(1000);
     printf("wui starts");
     if (load_ini_file(&wui_eth_config)) {

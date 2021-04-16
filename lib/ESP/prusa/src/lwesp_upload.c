@@ -241,6 +241,9 @@ lwespr_t lwespi_upload_process(const void *data, size_t data_len) {
         } else {
             RECV_UPLOAD_ADD(ch);
         }
+
+        ch_prev2 = ch_prev1; /* Save previous character as previous previous */
+        ch_prev1 = ch;       /* Set current as previous */
     }
 
     return lwespOK;
