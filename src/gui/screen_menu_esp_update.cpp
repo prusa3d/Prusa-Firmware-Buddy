@@ -54,11 +54,57 @@ public:
     MI_ESP_SYNC()
         : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /* [ > window_menu < ] */) override {
-        // if (lwesp_conn_upload_start(NULL, NULL, NULL, 1) == lwespOK) {
-        if (lwesp_set_wifi_mode(LWESP_MODE_STA, NULL, NULL, 1) == lwespOK) {
+        if (lwesp_conn_upload_start(NULL, NULL, NULL, 1) == lwespOK) {
+            // if (lwesp_set_wifi_mode(LWESP_MODE_STA, NULL, NULL, 1) == lwespOK) {
             _dbg0("POSLANO SYNC");
         } else {
             _dbg0("SYNC ESP ERROR");
+        }
+    }
+};
+// ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
+// ESP UPLOADER - READREG
+class MI_ESP_READ : public WI_LABEL_t {
+    constexpr static const char *const label = N_("ESP: read_reg");
+
+public:
+    MI_ESP_READ()
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    virtual void click(IWindowMenu & /* [ > window_menu < ] */) override {
+        lwespr_t eres;
+        uint32_t addr = 0;
+        // if (lwesp_conn_upload_start(NULL, NULL, NULL, 1) == lwespOK) {
+        if ((eres = lwesp_set_wifi_mode(LWESP_MODE_STA, NULL, NULL, 1)) == lwespOK) {
+            _dbg0("POSLANO READ na adrese: %x", addr);
+        } else if (eres == lwespTIMEOUT) {
+            _dbg0("READ REG ESP TIMEOUT");
+        } else {
+            _dbg0("ESP ERROR");
+        }
+    }
+};
+// ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
+// ESP UPLOADER - FLASH START
+class MI_ESP_ERASE : public WI_LABEL_t {
+    constexpr static const char *const label = N_("ESP: erase flash");
+
+public:
+    MI_ESP_ERASE()
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    virtual void click(IWindowMenu & /* [ > window_menu < ] */) override {
+        lwespr_t eres;
+        uint32_t bin_size = 0x400;
+        uint32_t offset = 0;
+        if ((eres = lwesp_conn_upload_flash(NULL, NULL, bin_size, offset, NULL, 1)) == lwespOK) {
+            _dbg0("POSLANO ERASE na adrese: %x o delce: %x", offset, bin_size);
+        } else if (eres == lwespTIMEOUT) {
+            _dbg0("FLAS ESP TIMEOUT");
+        } else {
+            _dbg0("ESP ERROR");
         }
     }
 };
@@ -132,7 +178,7 @@ void MI_ESP_FLASH::OnChange(size_t old_index) {
 }
 // ----------------------------------------------------------------
 
-using MenuContainer = WinMenuContainer<MI_RETURN, MI_ESP_FLASH, MI_ESP_RESET, MI_ESP_SYNC>;
+using MenuContainer = WinMenuContainer<MI_RETURN, MI_ESP_FLASH, MI_ESP_RESET, MI_ESP_SYNC, MI_ESP_READ, MI_ESP_ERASE>;
 
 class ScreenMenuESPUpdate : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("ESP UPDATE");
