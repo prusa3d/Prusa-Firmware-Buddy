@@ -74,7 +74,6 @@ static void update_eth_changes(void) {
 void StartWebServerTask(void const *argument) {
     // get settings from ini file
     osDelay(1000);
-    printf("wui starts");
     if (load_ini_file(&wui_eth_config)) {
         save_eth_params(&wui_eth_config);
     }
