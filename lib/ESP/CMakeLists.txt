@@ -52,3 +52,28 @@ target_include_directories(
             lwesp/lwesp
             lwesp/snippets/include
   )
+
+
+# set(PORT                 STM32)
+# add_subdirectory(serial-flasher)
+
+add_library(flasher INTERFACE)
+
+target_sources(
+  flasher
+  INTERFACE serial-flasher/src/esp_loader.c
+            serial-flasher/src/esp_targets.c
+            serial-flasher/src/md5_hash.c
+            serial-flasher/src/serial_comm.c
+            serial-flasher/port/stm32_port.c
+            serial-flasher/examples/common/example_common.c
+)
+
+target_include_directories(
+  flasher
+  INTERFACE serial-flasher/include
+            serial-flasher/port
+            serial-flasher/private_include
+            serial-flasher/examples/common
+)
+

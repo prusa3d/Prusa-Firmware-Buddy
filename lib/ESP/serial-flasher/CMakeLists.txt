@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 
+project(
+  Buddy
+  LANGUAGES C ASM
+  VERSION 1.0.0
+  )
+
 if (DEFINED ESP_PLATFORM)
 
     # Register component to esp-idf build system

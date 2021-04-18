@@ -452,6 +452,7 @@ target_link_libraries(
           LwIP
           FatFs
           lwesp
+          flasher
           lpng
           STM32::USBHost
           STM32::USBDevice
