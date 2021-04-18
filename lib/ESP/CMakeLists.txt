@@ -52,3 +52,14 @@ target_include_directories(
             lwesp/lwesp
             lwesp/snippets/include
   )
+
+add_library(flasher INTERFACE)
+
+target_sources(
+  flasher INTERFACE serial-flasher/src/esp_loader.c serial-flasher/src/esp_targets.c
+                    prusa/src/serial-flasher/serial_comm.c serial-flasher/port/stm32_port.c
+  )
+
+target_include_directories(
+  flasher INTERFACE serial-flasher/include serial-flasher/port serial-flasher/private_include
+  )
