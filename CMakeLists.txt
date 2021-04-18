@@ -305,6 +305,11 @@ if(CMAKE_CROSSCOMPILING)
   # disable exceptions and related metadata
   add_compile_options(-fno-exceptions -fno-unwind-tables)
   add_link_options(-Wl,--defsym,__exidx_start=0,--defsym,__exidx_end=0)
+
+  # use custom printf implementation instead of the one in newlib (see lib/printf)
+  add_link_options(
+    -Wl,--defsym=printf=printf_,--defsym=sprintf=sprintf_,--defsym=snprintf=snprintf_,--defsym=vprintf=vprintf_,--defsym=vsnprintf=vsnprintf_
+    )
 endif()
 
 # enable all warnings (well, not all, but some)
@@ -460,6 +465,7 @@ target_link_libraries(
           jsmn::jsmn
           QR
           Buddy::Lang
+          printf::printf
   )
 
 target_sources(
