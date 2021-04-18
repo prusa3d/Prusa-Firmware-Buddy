@@ -37,7 +37,7 @@ static osMessageQId uartBufferMbox_id;
 #endif /* !defined(LWESP_MEM_SIZE) */
 
 static uint8_t is_running;
-static uint8_t is_flashing = 0;
+static uint8_t is_flashing = 1;
 static uint8_t initialized;
 static size_t old_pos;
 
@@ -123,7 +123,7 @@ send_data(const void *data, size_t len) {
     _dbg0("ESP data sent - '%s'", data);
     for (size_t i = 0; i < len; ++i) {
         // _dbg0("ESP data sent - '%02X'", (char *)(data+i));
-        HAL_UART_Transmit(&huart6, (uint8_t *)(data + i), 1, 10);
+        HAL_UART_Transmit(&huart6, (uint8_t *)(data + i), 1, 1000);
     }
     return len;
 }

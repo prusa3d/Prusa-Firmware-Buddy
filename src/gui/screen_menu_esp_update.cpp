@@ -17,6 +17,7 @@
 #include "lwesp_conn_upload.h"
 
 extern UART_HandleTypeDef huart6;
+// extern uint8_t is_flashing;
 
 // ----------------------------------------------------------------
 // RESET
@@ -133,9 +134,11 @@ size_t MI_ESP_FLASH::init_index() const {
 }
 void MI_ESP_FLASH::OnChange(size_t old_index) {
     if (index == 0) {
+        // is_flashing = 1;
         HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_RESET);
     }
     if (index == 1) {
+        // is_flashing = 0;
         HAL_GPIO_WritePin(GPIOE, ESP_GPIO0_Pin, GPIO_PIN_SET);
     }
     _dbg0("%d index of ESP_RST_Pin", index);

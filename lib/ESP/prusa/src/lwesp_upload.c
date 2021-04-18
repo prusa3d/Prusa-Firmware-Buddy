@@ -31,12 +31,11 @@ uint8_t active_cmd = ESP_SYNC;
 #define BUART_SEND_CONST_STR(str) esp.ll.send_fn((const void *)(str), (size_t)(sizeof(str) - 1))
 #define BUART_SEND_BEGIN_SLIP() \
     do {                        \
-        BUART_SEND_CHR("\x0c"); \
+        BUART_SEND_CHR("\xc0"); \
     } while (0)
 #define BUART_SEND_END_SLIP()   \
     do {                        \
-        BUART_SEND_CHR("\x0c"); \
-        BUART_SEND_FLUSH();     \
+        BUART_SEND_CHR("\xc0"); \
     } while (0)
 
 void esp_upload_start() {
@@ -192,18 +191,23 @@ static lwesp_recv_t recv_buff;
 
 static void esp_upload_process_packet(lwesp_recv_t *rcv) {
     _dbg0("recv packet - %s", &rcv);
+
+    lwespr_t res = lwespOK;
+    if (res != lwespCONT) {                   /* Do we have to continue to wait for command? */
+        lwesp_sys_sem_release(&esp.sem_sync); /* Release semaphore */
+    }
 }
 
 // ------------------------------------
 // process & parse input data from ESP
 // ------------------------------------
-lwespr_t lwespi_upload_process(const void *data, size_t data_len) {
+lwespr_t lwespi_input_upload_process(const void *data, size_t data_len) {
     uint8_t ch;
     const uint8_t *d = data;
     size_t d_len = data_len;
     static uint8_t ch_prev1, ch_prev2;
 
-    _dbg0("MASLO ???----");
+    // _dbg0("input data: %s", data);
     /* Check status if device is available */
     if (!esp.status.f.dev_present) {
         return lwespERRNODEVICE;
@@ -211,11 +215,11 @@ lwespr_t lwespi_upload_process(const void *data, size_t data_len) {
 
     uint8_t f_slip = 0;
     uint8_t f_escape = 0;
-    while (d_len > 0) { /* Read entire set of characters from buffer */
-        _dbg0("PROCESS-%s", data);
-        ch = *d; /* Get next character */
-        ++d;     /* Go to next character, must be here as it is used later on */
-        --d_len; /* Decrease remaining length, must be here as it is decreased later too */
+    while (d_len > 0) {
+        // _dbg0("PROCESS-%s", data);
+        ch = *d;
+        ++d;
+        --d_len;
 
         if (!f_slip && ch == '\xc0') {
             // -- start SLIP packet
@@ -241,9 +245,6 @@ lwespr_t lwespi_upload_process(const void *data, size_t data_len) {
         } else {
             RECV_UPLOAD_ADD(ch);
         }
-
-        ch_prev2 = ch_prev1; /* Save previous character as previous previous */
-        ch_prev1 = ch;       /* Set current as previous */
     }
 
     return lwespOK;

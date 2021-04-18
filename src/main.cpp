@@ -189,6 +189,7 @@ uartrxbuff_t uart6rxbuff;
 uint8_t uart6rx_data[128];
 uartslave_t uart6slave;
 char uart6slave_line[32];
+// static uint8_t is_flashing = 0;
 #endif
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
