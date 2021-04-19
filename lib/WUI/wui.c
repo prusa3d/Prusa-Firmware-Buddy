@@ -21,8 +21,6 @@
 #include "stm32f4xx_hal.h"
 #include "stm32_port.h"
 #include "esp_loader.h"
-// #include "example_common.h"
-// #define HIGHER_BAUDRATE 115520
 
 #define WUI_NETIF_SETUP_DELAY  1000
 #define WUI_COMMAND_QUEUE_SIZE WUI_WUI_MQ_CNT // maximal number of messages at once in WUI command messageQ
@@ -112,7 +110,7 @@ void StartWebServerTask(void const *argument) {
         }
 
     } else {
-        // osDelay(5000);
+        // ESP FLASHER init
         loader_stm32_config_t config = {
             .huart = &huart6,
             .port_io0 = GPIOE,
@@ -121,11 +119,6 @@ void StartWebServerTask(void const *argument) {
             .pin_num_rst = GPIO_PIN_13,
         };
         loader_port_stm32_init(&config);
-        // if (connect_to_target(HIGHER_BAUDRATE) == ESP_LOADER_SUCCESS) {
-            // _dbg0("SYNC DONe - connected with ESP");
-        // } else {
-          // _dbg0("SYNC FAiLED");
-        // }
     }
 
     for (;;) {

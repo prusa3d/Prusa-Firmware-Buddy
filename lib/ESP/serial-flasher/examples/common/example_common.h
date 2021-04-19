@@ -15,10 +15,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
 typedef struct {
     const uint8_t *data;
     uint32_t size;
@@ -34,8 +30,3 @@ typedef struct {
 void get_example_binaries(target_chip_t target, example_binaries_t *binaries);
 esp_loader_error_t connect_to_target(uint32_t higrer_baudrate);
 esp_loader_error_t flash_binary(const uint8_t *bin, size_t size, size_t address);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-

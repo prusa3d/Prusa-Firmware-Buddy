@@ -21,7 +21,7 @@
 #include "stm32_port.h"
 #include "dbg.h"
 
-#define SERIAL_DEBUG_ENABLE
+// #define SERIAL_DEBUG_ENABLE
 
 static UART_HandleTypeDef *uart;
 static GPIO_TypeDef* gpio_port_io0, *gpio_port_rst;

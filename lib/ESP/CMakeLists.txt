@@ -66,7 +66,7 @@ target_sources(
             serial-flasher/src/md5_hash.c
             serial-flasher/src/serial_comm.c
             serial-flasher/port/stm32_port.c
-            serial-flasher/examples/common/example_common.c
+            prusa/src/esp_flasher.c
 )
 
 target_include_directories(
@@ -74,6 +74,6 @@ target_include_directories(
   INTERFACE serial-flasher/include
             serial-flasher/port
             serial-flasher/private_include
-            serial-flasher/examples/common
+            prusa/include
 )
 
