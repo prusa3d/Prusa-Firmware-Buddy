@@ -19,8 +19,9 @@
 #include <sys/param.h>
 #include <stdio.h>
 #include "stm32_port.h"
+#include "dbg.h"
 
-// #define SERIAL_DEBUG_ENABLE
+#define SERIAL_DEBUG_ENABLE
 
 static UART_HandleTypeDef *uart;
 static GPIO_TypeDef* gpio_port_io0, *gpio_port_rst;
@@ -47,12 +48,12 @@ static void serial_debug_print(const uint8_t *data, uint16_t size, bool write)
 
     if(write_prev != write) {
         write_prev = write;
-        printf("\n--- %s ---\n", write ? "WRITE" : "READ");
+        _dbg0("\n--- %s ---\n", write ? "WRITE" : "READ");
     }
 
     for(uint32_t i = 0; i < size; i++) {
         dec_to_hex_str(data[i], hex_str);
-        printf("%s ", hex_str);
+        _dbg0("%s ", hex_str);
     }
 }
 
@@ -98,7 +99,6 @@ esp_loader_error_t loader_port_serial_read(uint8_t *data, uint16_t size, uint32_
 }
 
 void loader_port_stm32_init(loader_stm32_config_t *config)
-
 {
     uart = config->huart;
     gpio_port_io0 = config->port_io0; 
@@ -149,7 +149,7 @@ uint32_t loader_port_remaining_time(void)
 
 void loader_port_debug_print(const char *str)
 {
-    printf("DEBUG: %s", str);
+    _dbg0("DEBUG: %s", str);
 }
 
 esp_loader_error_t loader_port_change_baudrate(uint32_t baudrate)

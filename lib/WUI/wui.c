@@ -112,6 +112,7 @@ void StartWebServerTask(void const *argument) {
         }
 
     } else {
+        osDelay(5000);
         loader_stm32_config_t config = {
             .huart = &huart6,
             .port_io0 = GPIOE,
