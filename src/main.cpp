@@ -190,6 +190,7 @@ char uart6slave_line[32];
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
+static uint8_t is_flashing = 0;
 /* USER CODE END 0 */
 
 /**
@@ -197,6 +198,7 @@ uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
   * @retval int
   */
 int main(void) {
+    is_flashing = 0;
     /* USER CODE BEGIN 1 */
 
     /*
