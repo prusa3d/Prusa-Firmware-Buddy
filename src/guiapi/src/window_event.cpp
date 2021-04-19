@@ -14,6 +14,6 @@ EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_
     // clang-format on
 
     if (print) {
-        _dbg("%s ptr: %p, event %s\n", event_method_name, sender, GUI_event_prt(event));
+        // _dbg("%s ptr: %p, event %s\n", event_method_name, sender, GUI_event_prt(event));
     }
 } //ctor must be private
