@@ -348,7 +348,7 @@ void marlin_gcode_push_front(const char *gcode) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    snprintf(request, MARLIN_MAX_REQUEST, "!ig %p", gcode);
+    snprintf(request, MARLIN_MAX_REQUEST, "!ig 0x%p", gcode);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
