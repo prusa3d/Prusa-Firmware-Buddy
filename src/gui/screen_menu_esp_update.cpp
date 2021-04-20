@@ -73,31 +73,38 @@ void ESP_FLASHER::FlashESP_AT() {
         esp_loader_error_t err;
         char tmp_str[ESP_DESC_SIZE];
 
+        // -- BLINK TEST FW (flashing on board LED)
         strcpy(tmp_str, "- Flashing blink.bin\n");
         WriteStr(tmp_str);
         err = flash_binary(bin.boot.data, bin.boot.size, bin.boot.addr);
+        if (err == ESP_LOADER_SUCCESS) {
+            strcpy(tmp_str, "- Flash SUCCESS\n");
+        } else {
+            strcpy(tmp_str, "- Flash ERROR: Try again\n");
+        }
+        WriteStr(tmp_str);
 
-
+        // -- ESP AT FW v.1.7.4
         // strcpy(tmp_str, "- Flashing boot1.7.bin\n");
         // WriteStr(tmp_str);
         // err = flash_binary(bin.boot.data, bin.boot.size, bin.boot.addr);
-//
+        //
         // strcpy(tmp_str, "- Flashing user partition\n");
         // WriteStr(tmp_str);
         // err = flash_binary(bin.user.data, bin.user.size, bin.user.addr);
-//
+        //
         // strcpy(tmp_str, "- Flashing blank.bin\n");
         // WriteStr(tmp_str);
         // err = flash_binary(bin.blank1.data, bin.blank1.size, bin.blank1.addr);
-//
+        //
         // strcpy(tmp_str, "- Flashing init_data.bin\n");
         // WriteStr(tmp_str);
         // err = flash_binary(bin.init_data.data, bin.init_data.size, bin.init_data.addr);
-//
+        //
         // strcpy(tmp_str, "- Flashing blank2.bin\n");
         // WriteStr(tmp_str);
         // err = flash_binary(bin.blank2.data, bin.blank2.size, bin.blank2.addr);
-//
+        //
         // strcpy(tmp_str, "- Flashing blank3.bin\n");
         // WriteStr(tmp_str);
         // err = flash_binary(bin.blank3.data, bin.blank3.size, bin.blank3.addr);
@@ -237,6 +244,9 @@ public:
     MI_ESP_FLASH_ESP_AT()
         : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /* [ > window_menu < ] */) override {
+        char init_line[] = "- Start Flashing ESP\n";
+        ESP_FLASHER::WriteStr(init_line);
+
         ESP_FLASHER::FlashESP_AT();
     }
 };
@@ -313,9 +323,10 @@ void ScreenMenuESPUpdate::show_msg(ESP_FLASHER::Msg msg) {
 }
 
 void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::LOOP) {
-        refresh_help_text();
-    }
+    // if (event == GUI_event_t::LOOP) {
+    // refresh_help_text();
+    // }
+    refresh_help_text();
     show_msg(ESP_FLASHER::ConsumeMsg());
     SuperWindowEvent(sender, event, param);
 }
