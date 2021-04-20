@@ -6,8 +6,10 @@ enum {
 
 /// Singleton class that measures
 /// distance traveled and filament consumed
-class odometer_c {
+class Odometer_s {
 private:
+    Odometer_s() {}
+
     /// stores value changes from the last save
     /// extruder trip counts length of filament used (not moved)
     /// new values are stored to RAM (fast, unlimited writes)
@@ -23,6 +25,18 @@ public:
     float get_from_eeprom(int axis);
     /// \returns a value of the specific axis
     float get(int axis);
+
+    /// Mayer's singleton must have part
+public:
+    static Odometer_s &instance() {
+        static Odometer_s s;
+        return s;
+    }
+    Odometer_s(const Odometer_s &) = delete;
+    Odometer_s &operator=(const Odometer_s &) = delete;
+
+private:
+    ~Odometer_s() {}
 };
 
-extern odometer_c odometer;
+extern Odometer_s &odometer_s;

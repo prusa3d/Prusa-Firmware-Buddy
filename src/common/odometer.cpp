@@ -1,4 +1,4 @@
-// odometer.cpp
+// odometer_s.cpp
 
 #include <cmath>
 
@@ -6,10 +6,10 @@
 #include "cmath_ext.h"
 #include "eeprom.h"
 
-odometer_c odometer;
+Odometer_s &odometer_s(Odometer_s::instance());
 static const constexpr int E_AXIS = 3;
 
-void odometer_c::force_to_eeprom() {
+void Odometer_s::force_to_eeprom() {
     bool changed = false;
     for (int i = 0; i < ODOMETER_AXES; ++i) {
         if (trip_xyze[i] != 0) {
@@ -28,12 +28,12 @@ void odometer_c::force_to_eeprom() {
         trip_xyze[i] = 0;
 }
 
-void odometer_c::add_value(int axis, float value) {
+void Odometer_s::add_value(int axis, float value) {
     /// E axis counts filament used instead of filament moved
     trip_xyze[axis] += (axis == E_AXIS) ? value : ABS(value);
 }
 
-float odometer_c::get_from_eeprom(int axis) {
+float Odometer_s::get_from_eeprom(int axis) {
     switch (axis) {
     case 0:
         return variant8_get_flt(eeprom_get_var(EEVAR_ODOMETER_X));
@@ -47,7 +47,7 @@ float odometer_c::get_from_eeprom(int axis) {
     return nanf("-");
 }
 
-float odometer_c::get(int axis) {
+float Odometer_s::get(int axis) {
     if (axis < 0 || axis >= ODOMETER_AXES)
         return nanf("-");
     return get_from_eeprom(axis) + MAX(0, trip_xyze[axis]);

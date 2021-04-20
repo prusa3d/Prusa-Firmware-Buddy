@@ -31,11 +31,11 @@ ScreenMenuOdometer::ScreenMenuOdometer()
     : Screen(_(label)) {
 
     header.SetIcon(IDR_PNG_info_16px);
-    odometer.force_to_eeprom();
-    const float x = odometer.get(0) * .001f;
-    const float y = odometer.get(1) * .001f;
-    const float z = odometer.get(2) * .001f;
-    const float e = odometer.get(3) * .001f;
+    odometer_s.force_to_eeprom();
+    const float x = odometer_s.get(0) * .001f;
+    const float y = odometer_s.get(1) * .001f;
+    const float z = odometer_s.get(2) * .001f;
+    const float e = odometer_s.get(3) * .001f;
 
     static const constexpr char *filament_text = N_("Filament");
     string_view_utf8 filament_view = _(filament_text);
@@ -54,11 +54,6 @@ ScreenMenuOdometer::ScreenMenuOdometer()
     int written = snprintf(text, TEXT_MAX_LENGTH, "X%s%d.%.1d m\n\nY%s%d.%.1d m\n\nZ%s%d.%.1d m\n\n", pad, (int)x, first_decimal(x), pad, (int)y, first_decimal(y), pad, (int)z, first_decimal(z));
     if (written < 0)
         return;
-
-    static const constexpr char *filament_text = N_("Filament");
-    const constexpr int transl_size = 30;
-    char filament_text_translated[transl_size];
-    _(filament_text).copyToRAM(filament_text_translated, transl_size);
 
     int written2 = snprintf(text + written, TEXT_MAX_LENGTH - written, "%s", filament_text_translated);
     if (written2 < 0)
