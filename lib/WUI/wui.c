@@ -14,8 +14,11 @@
 #include "ethernetif.h"
 #include <string.h>
 #include "sntp_client.h"
+#include "httpc/httpc.h"
 #include "dbg.h"
 #include "lwesp/lwesp.h"
+
+osThreadId httpcTaskHandle;
 
 #define WUI_NETIF_SETUP_DELAY  1000
 #define WUI_COMMAND_QUEUE_SIZE WUI_WUI_MQ_CNT // maximal number of messages at once in WUI command messageQ
@@ -87,25 +90,27 @@ void StartWebServerTask(void const *argument) {
     wui_marlin_client_init();
     // LwIP related initalizations
     MX_LWIP_Init(&wui_eth_config);
-    http_server_init();
+    //    http_server_init();
     sntp_client_init();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
+    // Initialize the thread for httpc
+    osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 512);
+    httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
     // lwesp stuffs
-    if (lwesp_init(NULL, 1) != lwespOK) {
-        printf("Cannot initialize LwESP!\r\n");
-    } else {
-        printf("LwESP initialized!\r\n");
-    }
-
-    lwesp_mode_t mode = LWESP_MODE_STA_AP;
+    //    if (lwesp_init(NULL, 1) != lwespOK) {
+    //        printf("Cannot initialize LwESP!\r\n");
+    //    } else {
+    //        printf("LwESP initialized!\r\n");
+    //    }
+    //    lwesp_mode_t mode = LWESP_MODE_STA_AP;
 
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
-        lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
-        if (mode == LWESP_MODE_STA) {
-            printf("test ok");
-        }
+        //        lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
+        //        if (mode == LWESP_MODE_STA) {
+        //            printf("test ok");
+        //        }
         osDelay(1000);
     }
 }
