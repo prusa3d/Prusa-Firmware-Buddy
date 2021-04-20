@@ -67,6 +67,8 @@ target_sources(
             serial-flasher/src/serial_comm.c
             serial-flasher/port/stm32_port.c
             prusa/src/esp_flasher.c
+            prusa/src/esp_blink_binary.c
+            # prusa/src/esp_at_binaries.c
 )
 
 target_include_directories(

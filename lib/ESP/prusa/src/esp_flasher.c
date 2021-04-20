@@ -8,30 +8,56 @@
 
 #ifndef SINGLE_TARGET_SUPPORT
 
-    #define BOOTLOADER_ADDRESS_8266 0x1000
-    #define BOOTLOADER_ADDRESS      0x1000
-    #define PARTITION_ADDRESS       0x8000
-    #define APPLICATION_ADDRESS     0x10000
+    #define BOOT_ADDRESS      0x00000
+    #define USER_ADDRESS      0x01000
+    #define INIT_DATA_ADDRESS 0xfc000
+    #define BLANK1_ADDRESS    0xfb000
+    #define BLANK2_ADDRESS    0xfe000
+    #define BLANK3_ADDRESS    0x7e000
 
-extern const uint8_t ESP8266_bootloader_bin[];
-extern const uint32_t ESP8266_bootloader_bin_size;
-extern const uint8_t ESP8266_hello_world_bin[];
-extern const uint32_t ESP8266_hello_world_bin_size;
-extern const uint8_t ESP8266_partition_table_bin[];
-extern const uint32_t ESP8266_partition_table_bin_size;
+// extern const uint8_t ESP8266_boot_bin[];
+// extern const uint32_t ESP8266_boot_bin_size;
+// extern const uint8_t ESP8266_user_bin[];
+// extern const uint32_t ESP8266_user_bin_size;
+// extern const uint8_t ESP8266_blank_bin[];
+// extern const uint32_t ESP8266_blank_bin_size;
+// extern const uint8_t ESP8266_init_data_bin[];
+// extern const uint32_t ESP8266_init_data_bin_size;
 
-void get_esp8266_binaries(target_chip_t target, esp8266_binaries_t *bins) {
-    bins->boot.data = ESP8266_bootloader_bin;
-    bins->boot.size = ESP8266_bootloader_bin_size;
-    bins->boot.addr = BOOTLOADER_ADDRESS_8266;
-    bins->part.data = ESP8266_partition_table_bin;
-    bins->part.size = ESP8266_partition_table_bin_size;
-    bins->part.addr = PARTITION_ADDRESS;
-    bins->app.data = ESP8266_hello_world_bin;
-    bins->app.size = ESP8266_hello_world_bin_size;
-    bins->app.addr = APPLICATION_ADDRESS;
+extern const uint8_t ESP8266_blink_bin[];
+extern const uint32_t ESP8266_blink_bin_size;
+
+
+void get_esp8266_binaries(esp8266_binaries_t *bins) {
+    bins->boot.data = ESP8266_blink_bin;
+    bins->boot.size = ESP8266_blink_bin_size;
+    bins->boot.addr = BOOT_ADDRESS;
+
+
+    // bins->boot.data = ESP8266_boot_bin;
+    // bins->boot.size = ESP8266_boot_bin_size;
+    // bins->boot.addr = BOOT_ADDRESS;
+//
+    // bins->user.data = ESP8266_user_bin;
+    // bins->user.size = ESP8266_user_bin_size;
+    // bins->user.addr = USER_ADDRESS;
+//
+    // bins->blank1.data = ESP8266_blank_bin;
+    // bins->blank1.size = ESP8266_blank_bin_size;
+    // bins->blank1.addr = BLANK1_ADDRESS;
+//
+    // bins->init_data.data = ESP8266_init_data_bin;
+    // bins->init_data.size = ESP8266_init_data_bin_size;
+    // bins->init_data.addr = INIT_DATA_ADDRESS;
+//
+    // bins->blank2.data = ESP8266_blank_bin;
+    // bins->blank2.size = ESP8266_blank_bin_size;
+    // bins->blank2.addr = BLANK2_ADDRESS;
+//
+    // bins->blank3.data = ESP8266_blank_bin;
+    // bins->blank3.size = ESP8266_blank_bin_size;
+    // bins->blank3.addr = BLANK3_ADDRESS;
 }
-
 #endif
 
 esp_loader_error_t connect_to_target() {
@@ -47,7 +73,7 @@ esp_loader_error_t connect_to_target() {
 
     // esp8266 chip only (ESP-01)
     if (esp_loader_get_target() != ESP8266_CHIP) {
-      return ESP_LOADER_ERROR_UNSUPPORTED_CHIP;
+        return ESP_LOADER_ERROR_UNSUPPORTED_CHIP;
     }
 
     return ESP_LOADER_SUCCESS;

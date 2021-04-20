@@ -24,6 +24,7 @@
 
 extern uint8_t is_flashing;
 char plan_str[ESP_DESC_SIZE];
+esp8266_binaries_t bin;
 
 class ESP_FLASHER {
 public:
@@ -33,7 +34,9 @@ public:
         ConnectNOK
     };
     static Msg msg;
+    static bool esp_connected;
 
+    static void FlashESP_AT();
     static void Connect();
     static void Reset();
     static void WriteStr(char *str);
@@ -41,7 +44,9 @@ public:
     static uint8_t GetLinesInBuffer(char *str);
 };
 ESP_FLASHER::Msg ESP_FLASHER::msg = ESP_FLASHER::Msg::NoMsg;
+bool ESP_FLASHER::esp_connected = false;
 void ESP_FLASHER::Reset() {
+    esp_connected = false;
     esp_loader_reset_target();
     char tmp_str1[] = "- ESP not connected\n";
     WriteStr(tmp_str1);
@@ -50,6 +55,7 @@ void ESP_FLASHER::Connect() {
     char tmp_str[ESP_DESC_SIZE];
     if (connect_to_target() == ESP_LOADER_SUCCESS) {
         // msg = Msg::ConnectOK;
+        esp_connected = true;
         char tmp_str1[] = "- ESP Connected\n";
         strcpy(tmp_str, tmp_str1);
         _dbg0("SYNC DONe - connected with ESP");
@@ -60,6 +66,42 @@ void ESP_FLASHER::Connect() {
         _dbg0("SYNC FAiLED");
     }
     WriteStr(tmp_str);
+}
+void ESP_FLASHER::FlashESP_AT() {
+    if (esp_connected) {
+        get_esp8266_binaries(&bin);
+        esp_loader_error_t err;
+        char tmp_str[ESP_DESC_SIZE];
+
+        strcpy(tmp_str, "- Flashing blink.bin\n");
+        WriteStr(tmp_str);
+        err = flash_binary(bin.boot.data, bin.boot.size, bin.boot.addr);
+
+
+        // strcpy(tmp_str, "- Flashing boot1.7.bin\n");
+        // WriteStr(tmp_str);
+        // err = flash_binary(bin.boot.data, bin.boot.size, bin.boot.addr);
+//
+        // strcpy(tmp_str, "- Flashing user partition\n");
+        // WriteStr(tmp_str);
+        // err = flash_binary(bin.user.data, bin.user.size, bin.user.addr);
+//
+        // strcpy(tmp_str, "- Flashing blank.bin\n");
+        // WriteStr(tmp_str);
+        // err = flash_binary(bin.blank1.data, bin.blank1.size, bin.blank1.addr);
+//
+        // strcpy(tmp_str, "- Flashing init_data.bin\n");
+        // WriteStr(tmp_str);
+        // err = flash_binary(bin.init_data.data, bin.init_data.size, bin.init_data.addr);
+//
+        // strcpy(tmp_str, "- Flashing blank2.bin\n");
+        // WriteStr(tmp_str);
+        // err = flash_binary(bin.blank2.data, bin.blank2.size, bin.blank2.addr);
+//
+        // strcpy(tmp_str, "- Flashing blank3.bin\n");
+        // WriteStr(tmp_str);
+        // err = flash_binary(bin.blank3.data, bin.blank3.size, bin.blank3.addr);
+    }
 }
 uint8_t ESP_FLASHER::GetLinesInBuffer(char *str) {
     // count lines
@@ -187,20 +229,20 @@ public:
 
 // ----------------------------------------------------------------
 // ESP UPLOADER - FLASH SIZE
-class MI_ESP_FLASH_SIZE
+class MI_ESP_FLASH_ESP_AT
     : public WI_LABEL_t {
-    constexpr static const char *const label = N_("ESP FLASH SIZE");
+    constexpr static const char *const label = N_("FLASH ESP AT");
 
 public:
-    MI_ESP_FLASH_SIZE()
+    MI_ESP_FLASH_ESP_AT()
         : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /* [ > window_menu < ] */) override {
-        // ESP_FLASHER::Connect();
+        ESP_FLASHER::FlashESP_AT();
     }
 };
 // ----------------------------------------------------------------
 
-using MenuContainer = WinMenuContainer<MI_RETURN, MI_ESP_RESET, MI_ESP_CONNECT>;
+using MenuContainer = WinMenuContainer<MI_RETURN, MI_ESP_RESET, MI_ESP_CONNECT, MI_ESP_FLASH_ESP_AT>;
 
 class ScreenMenuESPUpdate : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("ESP FLASH");

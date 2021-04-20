@@ -12,11 +12,14 @@ typedef struct {
 
 typedef struct {
     partition_attr_t boot;
-    partition_attr_t part;
-    partition_attr_t app;
+    partition_attr_t user;
+    partition_attr_t blank1;
+    partition_attr_t init_data;
+    partition_attr_t blank2;
+    partition_attr_t blank3;
 } esp8266_binaries_t;
 
-void get_esp8266_binaries(target_chip_t target, esp8266_binaries_t *binaries);
+void get_esp8266_binaries(esp8266_binaries_t *binaries);
 esp_loader_error_t connect_to_target();
 esp_loader_error_t flash_binary(const uint8_t *bin, size_t size, size_t address);
 
