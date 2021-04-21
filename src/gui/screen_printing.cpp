@@ -178,8 +178,8 @@ extern uint32_t *pCommand;
 void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
-    if (HAL_GetTick() - _last > 300) {
-        _last = HAL_GetTick();
+    if (gui::GetTick() - _last > 300) {
+        _last = gui::GetTick();
 
         static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
         buff[1] = FS_instance().Get() + '0';                         // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled

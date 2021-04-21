@@ -599,6 +599,7 @@ if(GUI)
             src/gui/gui_media_events.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
+            src/gui/gui_time.cpp
             src/gui/window_print_progress.cpp
             src/gui/window_file_list.cpp
             src/gui/window_temp_graph.cpp
