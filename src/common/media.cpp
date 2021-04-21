@@ -7,6 +7,7 @@
 #include "../Marlin/src/gcode/queue.h"
 #include <algorithm>
 #include "marlin_server.hpp"
+#include "gcode_filter.hpp"
 
 #ifdef REENUMERATE_USB
 
@@ -62,10 +63,15 @@ static media_error_t media_error = media_error_OK;
 static media_print_state_t media_print_state = media_print_state_NONE;
 static FIL media_print_fil;
 static uint32_t media_print_size = 0;
-static uint32_t media_current_position = 0;
-static uint32_t media_current_line = 0;
+static uint32_t media_current_position = 0; // Current position in the file
+static uint32_t media_gcode_position = 0;   // Beginning of the current G-Code
 static uint32_t media_queue_position[BUFSIZE];
-static uint32_t media_queue_line[BUFSIZE];
+
+char getByte(GCodeFilter::State *state);
+static char gcode_buffer[MAX_CMD_SIZE + 1]; // + 1 for NULL char
+static GCodeFilter gcode_filter(&getByte, gcode_buffer, sizeof(gcode_buffer));
+static uint32_t media_loop_read = 0;
+static const constexpr uint32_t MEDIA_LOOP_MAX_READ = 4096;
 
 media_state_t media_get_state(void) {
     return media_state;
@@ -177,8 +183,7 @@ void media_print_start(const char *sfnFilePath) {
             strlcpy(media_print_LFN, fo.LFName(), sizeof(media_print_LFN));
             media_print_size = fo.FSize(); //filinfo.fsize;
             if (f_open(&media_print_fil, media_print_SFN_path, FA_READ) == FR_OK) {
-                media_current_position = 0;
-                media_current_line = 0;
+                media_gcode_position = media_current_position = 0;
                 media_print_state = media_print_state_PRINTING;
             } else {
                 set_warning(WarningType::USBFlashDiskError);
@@ -187,9 +192,14 @@ void media_print_start(const char *sfnFilePath) {
     }
 }
 
+inline void close_file() {
+    f_close(&media_print_fil);
+    gcode_filter.reset();
+}
+
 void media_print_stop(void) {
     if ((media_print_state == media_print_state_PRINTING) || (media_print_state == media_print_state_PAUSED)) {
-        f_close(&media_print_fil);
+        close_file();
         media_print_state = media_print_state_NONE;
     }
 }
@@ -198,8 +208,7 @@ void media_print_pause(void) {
     if (media_print_state == media_print_state_PRINTING) {
         f_close(&media_print_fil);
         int index_r = queue.index_r;
-        media_current_position = media_queue_position[index_r];
-        media_current_line = media_queue_line[index_r];
+        media_gcode_position = media_current_position = media_queue_position[index_r];
         queue.clear();
         media_print_state = media_print_state_PAUSED;
     }
@@ -231,8 +240,9 @@ uint32_t media_print_get_position(void) {
 }
 
 void media_print_set_position(uint32_t pos) {
-    if (pos < media_print_size)
-        media_current_position = pos;
+    if (pos < media_print_size) {
+        media_gcode_position = media_current_position = pos;
+    }
 }
 
 float media_print_get_percent_done(void) {
@@ -241,45 +251,85 @@ float media_print_get_percent_done(void) {
     return 0;
 }
 
+char getByte(GCodeFilter::State *state) {
+    char byte = '\0';
+
+    if (media_loop_read == MEDIA_LOOP_MAX_READ) {
+        // Don't read too many data at once
+        *state = GCodeFilter::State::Skip;
+        return byte;
+    }
+
+    UINT bytes_read = 0;
+    FRESULT result = f_read(&media_print_fil, &byte, 1, &bytes_read);
+
+    if (result == FR_OK && bytes_read == 1) {
+        *state = GCodeFilter::State::Ok;
+        media_current_position++;
+        media_loop_read++;
+    } else if (f_eof(&media_print_fil)) {
+        *state = GCodeFilter::State::Eof;
+    } else {
+        *state = GCodeFilter::State::Error;
+    }
+
+    return byte;
+}
+
 void media_loop(void) {
     _usbhost_reenum();
-    if (media_print_state == media_print_state_PRINTING) {
-        char buffer[MAX_CMD_SIZE + 1];
-        char *pch;
-        if (!f_eof(&media_print_fil))              //check eof
-            while (queue.length < (BUFSIZE - 1)) { //keep one free slot for serial commands
-                if (f_gets(buffer, MAX_CMD_SIZE, &media_print_fil)) {
-                    pch = strchr(buffer, '\r');
-                    if (pch)
-                        *pch = 0; //replace CR with 0
-                    pch = strchr(buffer, '\n');
-                    if (pch)
-                        *pch = 0; //replace LF with 0
-                    pch = strchr(buffer, ';');
-                    if (pch)
-                        *pch = 0;         //replace ; with 0 (cut comment)
-                    if (strlen(buffer)) { //enqueue only not empty lines
-                        queue.enqueue_one(buffer, false);
-                        int index_w = queue.index_r + queue.length - 1; //calculate index_w because it is private
-                        if (index_w >= BUFSIZE)
-                            index_w -= BUFSIZE;                                 //..
-                        media_queue_position[index_w] = media_current_position; //save current position
-                        media_queue_line[index_w] = media_current_line;         //save current line
-                    }
-                    media_current_position = f_tell(&media_print_fil); //update current position
-                    media_current_line++;                              //update current line
-                } else {
-                    if (f_eof(&media_print_fil)) //we need check eof also after read operation
-                        media_print_stop();      //stop on eof
-                    else {
-                        set_warning(WarningType::USBFlashDiskError);
-                        media_print_pause(); //pause in other case (read error - media removed)
-                    }
-                    break;
-                }
+
+    if (media_print_state != media_print_state_PRINTING) {
+        return;
+    }
+
+    media_loop_read = 0;
+
+    while (queue.length < (BUFSIZE - 1)) { // Keep one free slot for serial commands
+        GCodeFilter::State state;
+        char *gcode = gcode_filter.nextGcode(&state);
+
+        if (state == GCodeFilter::State::Skip) {
+            // Unlock the loop
+            return;
+        }
+        if (state == GCodeFilter::State::Error) {
+            // Pause in case of some issue
+            set_warning(WarningType::USBFlashDiskError);
+            media_print_pause();
+            return;
+        }
+
+        if (gcode == NULL || gcode[0] == '\0') {
+            if (state == GCodeFilter::State::Eof) {
+                // Stop print on EOF
+                media_print_stop();
+                return;
             }
-        else
-            media_print_stop(); //stop on eof
+            // Nothing to process, continue to the next G-Code
+            continue;
+        }
+
+        queue.enqueue_one(gcode, false);
+
+        // Calculate index_w because it is private
+        int index_w = queue.index_r + queue.length - 1;
+        if (index_w >= BUFSIZE)
+            index_w -= BUFSIZE;
+
+        // Save current position and line
+        media_queue_position[index_w] = media_gcode_position;
+
+        if (state == GCodeFilter::State::Eof) {
+            // Stop print on EOF, no need to update media_gcode_position
+            media_print_stop();
+            return;
+        }
+
+        // Current position can be after ';' char or after new line.  We need
+        // to store the position before a semicolon. Position before a new line
+        // char is also safe, therefore decrement the position.
+        media_gcode_position = media_current_position - 1;
     }
 }
 
