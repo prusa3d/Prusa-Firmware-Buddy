@@ -206,11 +206,7 @@ void media_print_stop(void) {
 
 void media_print_pause(void) {
     if (media_print_state == media_print_state_PRINTING) {
-        f_close(&media_print_fil);
-        int index_r = queue.index_r;
-        media_gcode_position = media_current_position = media_queue_position[index_r];
-        queue.clear();
-        media_print_state = media_print_state_PAUSED;
+        media_print_state = media_print_state_PAUSING;
     }
 }
 
@@ -277,6 +273,15 @@ char getByte(GCodeFilter::State *state) {
 }
 
 void media_loop(void) {
+    if (media_print_state == media_print_state_PAUSING) {
+        f_close(&media_print_fil);
+        int index_r = queue.index_r;
+        media_gcode_position = media_current_position = media_queue_position[index_r];
+        queue.clear();
+        media_print_state = media_print_state_PAUSED;
+        return;
+    }
+
     _usbhost_reenum();
 
     if (media_print_state != media_print_state_PRINTING) {
