@@ -41,6 +41,8 @@ public:
 
     static constexpr filament_t Default = filament_t::PLA;
     static constexpr float PreheatTemp = 170.f;
+    static constexpr float ColdNozzle = 50.f;
+    static constexpr float ColdBed = 45.f;
 
     static filament_t Find(Response resp);
     static filament_t FindByName(const char *s, size_t len);
