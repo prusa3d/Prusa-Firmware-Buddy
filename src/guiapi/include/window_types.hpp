@@ -27,6 +27,8 @@ enum class is_closed_on_timeout_t : bool { no,
     yes };
 enum class is_closed_on_serial_t : bool { no,
     yes };
+enum class positioning : bool { absolute,
+    relative };
 
 //type of window
 //carefull if any states are added - flags and getter must be modified
@@ -57,7 +59,7 @@ union WindowFlags {
         is_closed_on_serial_t serial_close : 1;    // 0A - serial printing screen open close
         bool shadow : 1;                           // 0B - darker colors
         bool enforce_capture_when_not_visible : 1; // 0C - normally invisible / hidden_behind_dialog windows does not get capture
-        bool custom2 : 1;                          // 0D - this flag can be defined in parent
+        bool has_relative_subwins : 1;             // 0D - X Y coords of all children are relative to this, screen cannot have this flag because 1st level windows can be dialogs and they must not have relative coords
         bool custom1 : 1;                          // 0E - this flag can be defined in parent
         bool custom0 : 1;                          // 0F - this flag can be defined in parent
 
