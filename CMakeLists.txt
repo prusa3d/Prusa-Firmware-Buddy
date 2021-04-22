@@ -438,6 +438,7 @@ target_include_directories(
           src/common/include
           src/gui
           src/gui/dialogs
+          src/gui/footer
           src/gui/wizard
           src/guiapi/include
           src/guiconfig
@@ -600,6 +601,18 @@ if(GUI)
             src/gui/dialogs/window_dlg_preheat.cpp
             src/gui/dialogs/liveadjust_z.cpp
             src/gui/dialogs/window_dlg_calib_z.cpp
+            src/gui/footer/footer_icon.cpp
+            src/gui/footer/footer_text.cpp
+            src/gui/footer/ifooter_item.cpp
+            src/gui/footer/ifooter_string_item.cpp
+            src/gui/footer/footer_items_heaters.cpp
+            src/gui/footer/footer_item_filament.cpp
+            src/gui/footer/footer_item_sheet_profile.cpp
+            src/gui/footer/footer_item_printspeed.cpp
+            src/gui/footer/footer_item_live_z.cpp
+            src/gui/footer/footer_items_nozzle_bed.cpp
+            src/gui/footer/footer_line.cpp
+            $<$<STREQUAL:${PRINTER},MINI>:src/gui/footer/footer_mini.cpp>
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
             src/gui/gui_media_events.cpp
@@ -647,7 +660,6 @@ if(GUI)
             src/gui/wizard/xyzcalib.cpp
             src/gui/screen_home.cpp
             src/gui/screen_filebrowser.cpp
-            src/gui/status_footer.cpp
             src/gui/menu_vars.cpp
             src/gui/IScreenPrinting.cpp
             src/gui/ScreenFirstLayer.cpp

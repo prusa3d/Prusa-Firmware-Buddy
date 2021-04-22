@@ -3,13 +3,13 @@
 
 #include "gui.hpp"
 #include "window_header.hpp"
-#include "status_footer.h"
+#include "status_footer.hpp"
 #include "wizard_types.hpp"
 #include "screen.hpp"
 
 class ScreenWizard : public AddSuperWindow<screen_t> {
     window_header_t header;
-    status_footer_t footer;
+    StatusFooter footer;
 
     using StateFnc = WizardState_t (*)();
     using StateArray = std::array<StateFnc, size_t(WizardState_t::last) + 1>;

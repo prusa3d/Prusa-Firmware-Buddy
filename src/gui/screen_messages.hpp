@@ -2,13 +2,13 @@
 #pragma once
 #include "gui.hpp"
 #include "window_header.hpp"
-#include "status_footer.h"
+#include "status_footer.hpp"
 #include "window_term.hpp"
 #include "screen.hpp"
 
 struct screen_messages_data_t : public AddSuperWindow<screen_t> {
     window_header_t header;
-    status_footer_t footer;
+    StatusFooter footer;
     window_term_t term;
     term_buff_t<20, 13> term_buff;
 

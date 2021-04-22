@@ -141,6 +141,7 @@ void gui_run(void) {
     GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
     GuiDefaults::FontMenuItems = resource_font(IDR_FNT_NORMAL);
     GuiDefaults::FontMenuSpecial = resource_font(IDR_FNT_SPECIAL);
+    GuiDefaults::FooterFont = resource_font(IDR_FNT_SPECIAL);
 
     gui_marlin_vars = marlin_client_init();
     gui_marlin_vars->media_LFN = gui_media_LFN;

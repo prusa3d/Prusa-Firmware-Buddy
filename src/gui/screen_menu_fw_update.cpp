@@ -74,7 +74,7 @@ class ScreenMenuFwUpdate : public AddSuperWindow<screen_t> {
     window_menu_t menu;
     window_header_t header;
     window_text_t help;
-    status_footer_t footer;
+    StatusFooter footer;
 
 public:
     ScreenMenuFwUpdate();

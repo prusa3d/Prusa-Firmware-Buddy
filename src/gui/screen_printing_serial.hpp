@@ -3,7 +3,7 @@
 #include "ScreenPrintingModel.hpp"
 #include "gui.hpp"
 #include "window_header.hpp"
-#include "status_footer.h"
+#include "status_footer.hpp"
 #include "window_text.hpp"
 #include <array>
 

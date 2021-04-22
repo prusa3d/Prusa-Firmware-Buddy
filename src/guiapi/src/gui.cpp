@@ -21,6 +21,7 @@ font_t *GuiDefaults::Font = nullptr;
 font_t *GuiDefaults::FontBig = nullptr;
 font_t *GuiDefaults::FontMenuItems = nullptr;
 font_t *GuiDefaults::FontMenuSpecial = nullptr;
+font_t *GuiDefaults::FooterFont = nullptr;
 
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
