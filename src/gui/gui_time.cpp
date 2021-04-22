@@ -16,11 +16,11 @@ uint32_t gui::GetTick() {
     return current_tick;
 }
 
-uint64_t gui::GetTickLong() {
-    uint64_t long_time = uint64_t(current_tick_overflows);
-    long_time <<= 32;
-    long_time |= uint64_t(current_tick);
-    return long_time;
+uint64_t gui::GetTickU64() {
+    uint64_t u64_tick = uint64_t(current_tick_overflows);
+    u64_tick <<= 32;
+    u64_tick |= uint64_t(current_tick);
+    return u64_tick;
 }
 
 uint32_t gui::GetTick_IgnoreTickLoop() {
