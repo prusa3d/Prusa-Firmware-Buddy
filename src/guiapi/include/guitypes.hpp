@@ -7,6 +7,10 @@ template <class T>
 struct point_t {
     T x;
     T y;
+    constexpr bool operator==(const point_t &rhs) const {
+        return (x == rhs.x) && (y == rhs.y);
+    }
+    constexpr bool operator!=(const point_t &rhs) const { return !((*this) == rhs); }
 };
 
 using point_i16_t = point_t<int16_t>;
