@@ -11,7 +11,6 @@
 #include "status_footer.h"
 #include "filament.hpp"
 #include "marlin_client.h"
-#include "stm32f4xx_hal.h"
 #include "cmath_ext.h"
 #include "eeprom.h"
 #include "screen_home.hpp"
@@ -38,7 +37,7 @@ static char const *err = "ERR";
 
 /// Callback function which triggers update and repaint of values
 void status_footer_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    uint32_t mseconds = HAL_GetTick();
+    uint32_t mseconds = gui::GetTick();
 
     if (mseconds - last_timer_repaint_values >= REPAINT_VALUE_PERIOD) {
         update_temperatures();
@@ -296,7 +295,7 @@ status_footer_t::status_footer_t(window_t *parent)
 }
 
 uint32_t status_footer_t::no_of_calibrated_sheets() {
-    uint32_t mseconds = HAL_GetTick();
+    uint32_t mseconds = gui::GetTick();
     if (mseconds - last_timer_repaint_profile >= REPAINT_PROFILE_PERIOD) {
         cached_no_of_calibrated_sheets = sheet_number_of_calibrated();
         last_timer_repaint_profile = mseconds;

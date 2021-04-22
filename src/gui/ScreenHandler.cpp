@@ -188,7 +188,7 @@ void Screens::PushBeforeCurrent(const ScreenFactory::Creator screen_creator) {
 }
 
 void Screens::ResetTimeout() {
-    timeout_tick = HAL_GetTick();
+    timeout_tick = gui::GetTick();
 }
 
 void Screens::Loop() {
@@ -196,7 +196,7 @@ void Screens::Loop() {
     /// when timeout is expired on current screen,
     /// we iterate through whole stack and close every screen that should be closed
     if (menu_timeout_enabled && Get() && Get()->ClosedOnTimeout() && (!Get()->HasDialogOrPopup())) {
-        if (HAL_GetTick() - timeout_tick > MENU_TIMEOUT_MS) {
+        if (gui::GetTick() - timeout_tick > MENU_TIMEOUT_MS) {
             while (Get() && Get()->ClosedOnTimeout() && stack_iterator != stack.begin()) {
                 close = true;
                 InnerLoop();

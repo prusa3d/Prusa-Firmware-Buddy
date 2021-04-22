@@ -2,7 +2,7 @@
 
 #include "sound_enum.h"
 #include "ScreenHandler.hpp"
-#include "cmsis_os.h" //HAL_GetTick
+#include "gui_time.hpp" //gui::GetTick
 #include "mock_windows.hpp"
 #include "mock_display.hpp"
 #include "GuiDefaults.hpp"
@@ -45,7 +45,7 @@ static TMockDisplay<8, 8, 256> MockDisp8x8;
 
 //stubbed header does not have C linkage .. to be simpler
 static uint32_t hal_tick = 0;
-uint32_t HAL_GetTick() { return hal_tick; }
+uint32_t gui::GetTick() { return hal_tick; }
 const uint8_t *resource_ptr(uint16_t id) {
     return 0;
 }

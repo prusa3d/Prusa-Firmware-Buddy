@@ -6,6 +6,8 @@
 #include "Rect16.h"
 #include "window_event.hpp"
 #include "align.hpp"
+#include "gui_time.hpp" // not needed here, but will save lot of includes
+                        // !!! all windows should use gui::GetTick() to access tick value!!!
 
 class window_t {
     window_t *parent;

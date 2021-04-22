@@ -4,7 +4,6 @@
 #include "config.h"
 #include "window_progress.hpp"
 #include "ScreenHandler.hpp"
-#include "stm32f4xx_hal.h"
 #include "ScreenHandler.hpp"
 
 screen_test_term_data_t::screen_test_term_data_t()
@@ -23,7 +22,7 @@ void screen_test_term_data_t::windowEvent(EventLock /*has private ctor*/, window
         Screens::Access()->Close();
     }
     if (event != GUI_event_t::LOOP) {
-        term.Printf("%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
+        term.Printf("%010d w:%d e:%d\n", gui::GetTick(), winid, (int)event);
     } else {
         SuperWindowEvent(sender, event, param);
     }

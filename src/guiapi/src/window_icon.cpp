@@ -74,7 +74,7 @@ void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t 
 //window_icon_hourglass_t
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : AddSuperWindow<window_icon_t>(parent, IDR_PNG_hourglass_39px, pt, padding, close)
-    , start_time(HAL_GetTick())
+    , start_time(gui::GetTick())
     , animation_color(COLOR_ORANGE)
     , phase(0) {
 }
@@ -158,7 +158,7 @@ void window_icon_hourglass_t::unconditionalDraw() {
 }
 
 void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    uint8_t phs = ((HAL_GetTick() - start_time) / ANIMATION_STEP_MS);
+    uint8_t phs = ((gui::GetTick() - start_time) / ANIMATION_STEP_MS);
     phs %= ANIMATION_STEPS;
     if (phase != phs) {
         phase = phs;
@@ -226,7 +226,7 @@ void WindowIcon_OkNg::unconditionalDraw() {
 
 void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (GetState() == SelftestSubtestState_t::running) {
-        bool b = (HAL_GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0x01;
+        bool b = (gui::GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0x01;
         if (flags.custom0 != b) {
             flags.custom0 = b;
             Invalidate();
