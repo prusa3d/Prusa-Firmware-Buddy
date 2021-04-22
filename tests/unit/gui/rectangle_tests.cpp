@@ -316,6 +316,42 @@ TEST_CASE("rectangles is subrectangle", "[rectangle]") {
     CHECK(l.Contain(r) == expected);
 }
 
+TEST_CASE("rectangle point arithmetic", "[rectangle]") {
+    SECTION("operator=") {
+        point_i16_t point = GENERATE(point_i16_t({ 0, 0 }), point_i16_t({ 10, 10 }), point_i16_t({ -2, 8 }), point_i16_t({ -33, 0 }));
+        Rect16 r = GENERATE( //this operation does not have meaning on empty rect -  must not be empty
+            Rect16({ 0, 0, 1, 1 }),
+            Rect16({ 10, 10, 5, 8 }),
+            Rect16({ -2, 0, 3, 2 }));
+        r = point;
+        CHECK(r.TopLeft() == point);
+    }
+
+    SECTION("operator+") {
+        //it use internally +=
+        Rect16 r;
+        point_i16_t point, expected;
+        std::tie(r, point, expected) = GENERATE(
+            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ 0, 0, 30, 30 }, { 0, 2 }, { 0, 2 }),
+            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ 0, 20, 30, 30 }, { 6, -5 }, { 6, 15 }),
+            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ -5, 20, 30, 30 }, { -3, -30 }, { -8, -10 }),
+            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ -6, -1, 30, 30 }, { 20, 20 }, { 14, 19 }));
+        CHECK((r + point).TopLeft() == expected);
+    }
+
+    SECTION("operator-") {
+        //it use internally -=
+        Rect16 r;
+        point_i16_t point, expected;
+        std::tie(r, point, expected) = GENERATE(
+            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ 0, 0, 30, 30 }, { 0, 2 }, { 0, -2 }),
+            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ 0, 20, 30, 30 }, { 6, -5 }, { -6, 25 }),
+            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ -5, 20, 30, 30 }, { -3, -30 }, { -2, 50 }),
+            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ -6, -1, 30, 30 }, { 20, 20 }, { -26, -21 }));
+        CHECK((r - point).TopLeft() == expected);
+    }
+}
+
 TEST_CASE("rectangle union", "[rectangle]") {
     SECTION("single rectangle") {
         //it also tests operators + and += since Union use them
