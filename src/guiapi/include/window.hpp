@@ -20,7 +20,10 @@ protected:
 public:
     color_t color_back;
     Rect16 GetRect() const;
-    void SetRect(Rect16 rc);
+    Rect16 GetRectWithoutTransformation() const;
+    void SetRect(Rect16 rc); // does not transform
+    void SetRectWithoutTransformation(Rect16 rc);
+    Rect16 TransformRect(Rect16 rc) const; // just transforms given rect, calls parrents transform if this window is relative
 
     inline Rect16::Left_t Left() const { return GetRect().Left(); }
     inline Rect16::Top_t Top() const { return GetRect().Top(); }
@@ -83,6 +86,7 @@ public:
     virtual void ShowAfterDialog();
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
+    void SetRelativeSubwins() { flags.has_relative_subwins = true; }
 
     window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();

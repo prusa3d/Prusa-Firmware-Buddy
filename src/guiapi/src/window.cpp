@@ -180,27 +180,55 @@ window_t::~window_t() {
 }
 
 Rect16 window_t::GetRect() const {
+    if (GetParent()) {
+        return GetParent()->TransformRect(rect); // do not use GetRect() - would be recursive
+    }
+
+    return rect;
+}
+
+Rect16 window_t::GetRectWithoutTransformation() const {
     return rect;
 }
 
 void window_t::SetRect(Rect16 rc) {
+    if (GetParent()) {
+        rect = GetParent()->TransformRect(rc); // do not use SetRect() - would be recursive
+        return;
+    }
+
     rect = rc;
 }
 
+void window_t::SetRectWithoutTransformation(Rect16 rc) {
+    rect = rc;
+}
+
+//TransformRect calls GetRect which calls TransformRect on parrent level ...
+Rect16 window_t::TransformRect(Rect16 rc) const {
+    Rect16 this_rect = GetRect();
+    if (flags.has_relative_subwins) {
+        rc.Transform(this_rect);
+    } else {
+        rc = rc.Intersection(this_rect);
+    }
+    return rc;
+}
+
 void window_t::Reposition(Rect16::Top_t top) {
-    SetRect(GetRect() = top);
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = top);
 }
 
 void window_t::Reposition(Rect16::Left_t left) {
-    SetRect(GetRect() = left);
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = left);
 }
 
 void window_t::Resize(Rect16::Height_t height) {
-    SetRect(GetRect() = height);
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = height);
 }
 
 void window_t::Resize(Rect16::Width_t width) {
-    SetRect(GetRect() = width);
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = width);
 }
 
 void window_t::SetNext(window_t *nxt) {
@@ -276,8 +304,11 @@ void window_t::draw() {
 //window does not support subwindow elements, but window_frame does
 bool window_t::RegisterSubWin(window_t &win) {
     //window must fit inside frame
-    if (!rect.Contain(win.GetRect()))
+    if (!GetRect().Contain(win.GetRect())) //could speed this up, but prefer smaller codesize
         return false;
+    //parrent has relative subwins, child must have them too
+    if (flags.has_relative_subwins)
+        win.SetRelativeSubwins();
 
     Screens::Access()->ResetTimeout();
 

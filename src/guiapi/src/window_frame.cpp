@@ -15,6 +15,11 @@ window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, i
     Enable();
 }
 
+window_frame_t::window_frame_t(window_t *parent, Rect16 rect, positioning sub_win_pos)
+    : window_frame_t(parent, rect, win_type_t::normal, is_closed_on_timeout_t::yes, is_closed_on_serial_t::yes) {
+    flags.has_relative_subwins = sub_win_pos == positioning::relative;
+}
+
 // popup windows are static and must be unregistred
 // other windows does not need unregistration
 // because dialog/strong dialog from marlin thread will consume close flag so screen cannot be closed before it

@@ -9,6 +9,8 @@
 
 #include "window_frame.hpp"
 
+// DO NOT SET has_relative_subwins flag !!!
+// screen must have rect == GuiDefaults::RectScreen
 class screen_t : public AddSuperWindow<window_frame_t> {
     window_t *first_dialog;
     window_t *last_dialog;
