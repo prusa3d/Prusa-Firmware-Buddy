@@ -365,6 +365,36 @@ public:
     void Align(Rect16, Align_t);
 
     ////////////////////////////////////////////////////////////////////////////
+    /// @brief Transform current rect into given one (relative coords calculation)
+    ///        changes X and Y coordinate and can cut size to fit
+    ///
+    /// @param[in] rect Rectangle given to transform into
+    constexpr void Transform(Rect16 rect) {
+        this->operator+=(rect.TopLeft());
+        Cut(rect);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Cut current rect with given one (to fit)
+    ///        does not chang X and Y coordinate, can change size
+    ///
+    /// @param[in] rect Rectangle given to cut with
+    constexpr void Cut(Rect16 rect) {
+        int max_w = rect.Width() - (Left() - rect.Left());
+        int max_h = rect.Height() - (Top() - rect.Top());
+        LimitSize({ uint16_t(std::max(max_w, 0)), uint16_t(std::max(max_h, 0)) }); // std::max ensures not converting negative number to unsigned
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Limit size of current rect with given one
+    ///
+    /// @param[in] max_sz given size limit
+    constexpr void LimitSize(size_ui16_t max_sz) {
+        width_ = std::min(width_, max_sz.w);
+        height_ = std::min(height_, max_sz.h);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     /// @brief Check whether rectangle is empty
     ///
     /// @return Return true if the rectangle is empty
@@ -453,6 +483,27 @@ public:
         return lhs;
     }
     friend constexpr Rect16 operator-(Rect16 lhs, H_t rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+
+    constexpr Rect16 &operator+=(point_i16_t point) {
+        top_left_.x += X_t(point.x);
+        top_left_.y += Y_t(point.y);
+        return *this;
+    }
+    constexpr Rect16 &operator-=(point_i16_t point) {
+        return operator+=({ int16_t(-point.x), int16_t(-point.y) });
+    }
+    constexpr Rect16 &operator=(point_i16_t val) {
+        top_left_ = val;
+        return *this;
+    }
+    friend constexpr Rect16 operator+(Rect16 lhs, point_i16_t rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    friend constexpr Rect16 operator-(Rect16 lhs, point_i16_t rhs) {
         lhs -= rhs;
         return lhs;
     }
@@ -549,6 +600,16 @@ public:
 		 */
     void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 
+    /**
+		 * @brief Vertical split with dynamic spaces from parent Rect16
+         *  if splits would not fit, can decrease count (even to zero!!!)
+		 * @param[out] splits[] buffer to fill of splitted Rect16
+         * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
+		 * @param[in] count number of splits
+         * @return Number of valid splits usually == count, but can be anything between 0 and count
+		 */
+    size_t HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) const;
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Split the current rectangle by given height and return such a
     /// collection of created rectangles
@@ -603,6 +664,15 @@ public:
      * @return Rect16 tail part of original rect after substraction
      */
     Rect16 RightSubrect(Rect16 subtrahend);
+
+private:
+    /**
+		 * @brief Vertical split private version for internal use only. (no checks)
+		 * @param[out] splits* buffer to fill of splitted Rect16
+         * @param[in] widths* widths of rectangles
+		 * @param[in] count number of splits
+		 */
+    static void horizontalSplit(Rect16 *splits, Width_t *widths, size_t count, Width_t width_sum, Rect16 rect);
 };
 
 ////////////////////////////////////////////////////////////////////////////
