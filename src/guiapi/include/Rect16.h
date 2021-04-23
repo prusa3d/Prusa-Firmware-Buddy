@@ -369,20 +369,9 @@ public:
     ///        changes X and Y coordinate and can cut size to fit
     ///
     /// @param[in] rect Rectangle given to transform into
-    constexpr void Transform(Rect16 rect) {
+    void Transform(Rect16 rect) {
         this->operator+=(rect.TopLeft());
-        Cut(rect);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    /// @brief Cut current rect with given one (to fit)
-    ///        does not chang X and Y coordinate, can change size
-    ///
-    /// @param[in] rect Rectangle given to cut with
-    constexpr void Cut(Rect16 rect) {
-        int max_w = rect.Width() - (Left() - rect.Left());
-        int max_h = rect.Height() - (Top() - rect.Top());
-        LimitSize({ uint16_t(std::max(max_w, 0)), uint16_t(std::max(max_h, 0)) }); // std::max ensures not converting negative number to unsigned
+        this->operator=(Intersection(rect));
     }
 
     ////////////////////////////////////////////////////////////////////////////
