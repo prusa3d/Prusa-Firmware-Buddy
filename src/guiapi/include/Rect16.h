@@ -367,6 +367,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Transform current rect into given one (relative coords calculation)
     ///        changes X and Y coordinate and can cut size to fit
+    ///        result is empty when one or both rectangle are empty
     ///
     /// @param[in] rect Rectangle given to transform into
     void Transform(Rect16 rect) {
