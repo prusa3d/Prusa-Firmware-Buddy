@@ -380,6 +380,41 @@ TEST_CASE("rectangle LimitSize", "[rectangle]") {
     }
 }
 
+TEST_CASE("rectangle Transform", "[rectangle]") {
+    SECTION("not empty") {
+        Rect16 r, target, expected;
+        std::tie(r, target, expected) = GENERATE(
+            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 30, 30 }),      //fits
+            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 2, 80, 40 }, { 1, 2, 5, 5 }, { 1, 4, 5, 3 }),            //does not fit
+            std::make_tuple<Rect16, Rect16, Rect16>({ 5, 20, 20, 1 }, { 20, -3, 6, 200 }, { 25, 17, 1, 1 }),      //width does not fit
+            std::make_tuple<Rect16, Rect16, Rect16>({ 10, 1, 100, 3 }, { -100, 3, 1000, 2 }, { -90, 4, 100, 1 }), //height does not fit
+            //rect with negative coords is cut
+            //data for X, Y is made by SwapXY
+            std::make_tuple<Rect16, Rect16, Rect16>({ -1, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 29, 30 }), //negative x
+            std::make_tuple<Rect16, Rect16, Rect16>({ -1, 8, 30, 30 }, { 2, 3, 10, 100 }, { 2, 11, 10, 30 }), //negative x, does not fit into target
+            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 4, 30, 30 }, { 2, 3, 10, 100 }, { 2, 7, 8, 30 }),  //negative x, would not fit into target, but fits after negative coord cut
+            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 2, 30, 30 }, { 2, 3, 1, 100 }, { 2, 5, 1, 30 }),   //negative x, would not fit into target, and still does not fit even after negative coord cut
+            //both X and Y negative
+            std::make_tuple<Rect16, Rect16, Rect16>({ -1, -1, 10, 6 }, { 2, 3, 100, 100 }, { 2, 3, 9, 5 }),
+            std::make_tuple<Rect16, Rect16, Rect16>({ -1, -4, 20, 7 }, { 2, 3, 10, 100 }, { 2, 3, 10, 3 }), //X does not fit into target
+            std::make_tuple<Rect16, Rect16, Rect16>({ -22, -2, 30, 8 }, { 2, 3, 10, 100 }, { 2, 3, 8, 6 })  //X would not fit into target, but fits after negative coord cut
+        );
+
+        Rect16 r_sw = r;
+        Rect16 target_sw = target;
+        Rect16 expected_sw = expected;
+        r_sw.SwapXY();
+        target_sw.SwapXY();
+        expected_sw.SwapXY();
+
+        r.Transform(target);
+        CHECK(r == expected);
+
+        r_sw.Transform(target_sw);
+        CHECK(r_sw == expected_sw);
+    }
+}
+
 TEST_CASE("rectangle union", "[rectangle]") {
     SECTION("single rectangle") {
         //it also tests operators + and += since Union use them
