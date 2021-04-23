@@ -352,6 +352,34 @@ TEST_CASE("rectangle point arithmetic", "[rectangle]") {
     }
 }
 
+TEST_CASE("rectangle LimitSize", "[rectangle]") {
+    SECTION("not empty") {
+        Rect16 r, expected;
+        size_ui16_t limit;
+        std::tie(r, limit, expected) = GENERATE(
+            std::make_tuple<Rect16, size_ui16_t, Rect16>({ 0, 0, 30, 30 }, { 2, 2 }, { 0, 0, 2, 2 }),
+            std::make_tuple<Rect16, size_ui16_t, Rect16>({ 0, 20, 80, 40 }, { 6, 1000 }, { 0, 20, 6, 40 }),
+            std::make_tuple<Rect16, size_ui16_t, Rect16>({ -5, 20, 20, 1 }, { 20, 1 }, { -5, 20, 20, 1 }),
+            std::make_tuple<Rect16, size_ui16_t, Rect16>({ -6, -1, 100, 3 }, { 99, 3 }, { -6, -1, 99, 3 }));
+
+        r.LimitSize(limit);
+        CHECK(r == expected);
+    }
+    SECTION("empty") {
+        Rect16 r;
+        size_ui16_t limit;
+        std::tie(r, limit) = GENERATE(
+            std::make_tuple<Rect16, size_ui16_t>({ 0, 0, 0, 0 }, { 0, 0 }),
+            std::make_tuple<Rect16, size_ui16_t>({ 0, 0, 0, 30 }, { 2, 2 }),
+            std::make_tuple<Rect16, size_ui16_t>({ 0, 20, 80, 40 }, { 6, 0 }),
+            std::make_tuple<Rect16, size_ui16_t>({ -5, 20, 0, 0 }, { 20, 1 }),
+            std::make_tuple<Rect16, size_ui16_t>({ -6, -1, 100, 3 }, { 0, 0 }));
+
+        r.LimitSize(limit);
+        CHECK(r.IsEmpty());
+    }
+}
+
 TEST_CASE("rectangle union", "[rectangle]") {
     SECTION("single rectangle") {
         //it also tests operators + and += since Union use them
