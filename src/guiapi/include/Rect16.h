@@ -387,7 +387,8 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Limit size of current rect with given one
-    ///
+    ///        when limiting width / height / both to zero or when limiting empty rect
+    ///             result just must be empty
     /// @param[in] max_sz given size limit
     constexpr void LimitSize(size_ui16_t max_sz) {
         width_ = std::min(width_, max_sz.w);
