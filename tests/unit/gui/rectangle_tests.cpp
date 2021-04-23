@@ -362,8 +362,17 @@ TEST_CASE("rectangle LimitSize", "[rectangle]") {
             std::make_tuple<Rect16, size_ui16_t, Rect16>({ -5, 20, 20, 1 }, { 20, 1 }, { -5, 20, 20, 1 }),
             std::make_tuple<Rect16, size_ui16_t, Rect16>({ -6, -1, 100, 3 }, { 99, 3 }, { -6, -1, 99, 3 }));
 
+        Rect16 r_sw = r;
+        size_ui16_t limit_sw = { limit.h, limit.w };
+        Rect16 expected_sw = expected;
+        r_sw.SwapXY();
+        expected_sw.SwapXY();
+
         r.LimitSize(limit);
         CHECK(r == expected);
+
+        r_sw.LimitSize(limit_sw);
+        CHECK(r_sw == expected_sw);
     }
     SECTION("empty") {
         Rect16 r;
