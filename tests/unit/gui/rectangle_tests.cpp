@@ -9,22 +9,52 @@
 /// With yet unknown reason for us the method Catch::getResultCapture() returns nullptr in case the
 /// benchmarks in CATCH2 are configured as enable. Please consider this issue when you'll decide to
 /// write benchmark tests.
-#define COMPARE_ARRAYS(lhs, rhs) compareArrays(Catch::getResultCapture().getCurrentTestName(), __LINE__, lhs, rhs)
+#define COMPARE_ARRAYS(lhs, rhs)                   compareArrays(Catch::getResultCapture().getCurrentTestName(), __LINE__, lhs, rhs)
+#define COMPARE_ARRAYS_SIZE_FROM_SMALLER(lhs, rhs) compareArraysGetSizeFromSmaller(Catch::getResultCapture().getCurrentTestName(), __LINE__, lhs, rhs)
 
-template <typename T, size_t N>
-void compareArrays(const std::string &test, unsigned line, std::array<T, N> lhs, std::array<T, N> rhs) {
-    std::vector<T> lv(lhs.begin(), lhs.end());
-    std::vector<T> rv(rhs.begin(), rhs.end());
+template <typename T>
+void compareVectors(const std::string &test, unsigned line, const std::vector<T> &lhs, const std::vector<T> &rhs) {
     INFO("Test case [" << test << "] failed at line " << line); // Reported only if REQUIRE fails
-    CHECK(lv == rv);
+    CHECK(lhs == rhs);
 }
 
 template <typename T, size_t N>
-void compareArrays(const std::string &test, unsigned line, T *lhs, std::array<T, N> rhs) {
+void compareArrays(const std::string &test, unsigned line, const std::array<T, N> &lhs, const std::array<T, N> &rhs) {
+    std::vector<T> lv(lhs.begin(), lhs.end());
+    std::vector<T> rv(rhs.begin(), rhs.end());
+    compareVectors(test, line, lv, rv);
+}
+
+template <typename T, size_t N>
+void compareArrays(const std::string &test, unsigned line, const T *lhs, const std::array<T, N> &rhs) {
     std::vector<T> lv(lhs, lhs + N);
     std::vector<T> rv(rhs.begin(), rhs.end());
-    INFO("Test case [" << test << "] failed at line " << line); // Reported only if REQUIRE fails
-    CHECK(lv == rv);
+    compareVectors(test, line, lv, rv);
+}
+
+template <typename T, size_t N>
+void compareArrays(const std::string &test, unsigned line, const std::vector<T> &lhs, const std::array<T, N> &rhs) {
+    std::vector<T> rv(rhs.begin(), rhs.end());
+    compareVectors(test, line, lhs, rv);
+}
+
+template <typename T>
+void compareArraysGetSizeFromSmaller(const std::string &test, unsigned line, const std::vector<T> &lhs, const std::vector<T> &rhs) {
+    size_t min_len = std::min(rhs.size(), lhs.size());
+    std::vector<T> lv(lhs.begin(), lhs.begin() + min_len);
+    std::vector<T> rv(rhs.begin(), rhs.begin() + min_len);
+    compareVectors(test, line, lv, rv);
+}
+
+template <typename T, size_t N>
+void compareArraysGetSizeFromSmaller(const std::string &test, unsigned line, const std::vector<T> &lhs, const std::array<T, N> &rhs) {
+    std::vector<T> rv(rhs.begin(), rhs.begin() + std::min(lhs.size(), N));
+    compareVectors(test, line, lhs, rv);
+}
+
+template <typename T, size_t N>
+void compareArraysGetSizeFromSmaller(const std::string &test, unsigned line, const std::array<T, N> &lhs, const std::vector<T> &rhs) {
+    compareArraysGetSizeFromSmaller(test, line, rhs, lhs);
 }
 
 TEST_CASE("rectangle construc", "[rectangle]") {
@@ -660,6 +690,45 @@ TEST_CASE("rectangle split", "[rectangle]") {
 
         COMPARE_ARRAYS(splits, expSplits);
         COMPARE_ARRAYS(spaces, expSpaces);
+    }
+
+    SECTION("horizontal - given widths 'footer style'") {
+
+        Rect16 r;
+        static constexpr size_t max_count = 4;
+        static constexpr size_t h = 10;
+
+        std::vector<Rect16> expSplits; //expected
+        std::array<Rect16, max_count> splits;
+        std::vector<Rect16::Width_t> widths;
+
+        std::tie(r, widths, expSplits) = GENERATE(
+            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
+                { 0, 0, 100, h }, { 1, 2 }, { { { 0, 0, 1, h }, { 98, 0, 2, h } } }),
+            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
+                { 0, 0, 7, h }, { 1, 1, 1, 1 }, { { { 0, 0, 1, h }, { 2, 0, 1, h }, { 4, 0, 1, h }, { 6, 0, 1, h } } }),
+            //last does not fit
+            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
+                { 0, 0, 12, h }, { 1, 2, 3, 40 }, { { { 0, 0, 1, h }, { 4, 0, 2, h }, { 9, 0, 3, h } } }),
+            //not exact space, last is bit further
+            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
+                { 0, 0, 8, h }, { 1, 1, 1, 1 }, { { { 0, 0, 1, h }, { 2, 0, 1, h }, { 4, 0, 1, h }, { 7, 0, 1, h } } }),
+            //only one fits
+            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
+                { 1, 2, 10, h }, { 5, 100, 1, 1 }, { { { 1, 2, 5, h } } }),
+            //empty
+            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
+                { 1, 0, 10, h }, { 50, 10, 1, 1 }, std::vector<Rect16>()));
+
+        size_t expCount = expSplits.size();
+        size_t do_N_splits = widths.size();
+        CHECK(expCount <= max_count);
+        CHECK(do_N_splits <= max_count); // unnecessary, next check would find it too, but this will tell me exact reason of failure
+        CHECK(expCount <= do_N_splits);
+
+        size_t count = r.HorizontalSplit(&splits[0], &widths[0], do_N_splits);
+        CHECK(expCount == count);
+        COMPARE_ARRAYS_SIZE_FROM_SMALLER(splits, expSplits);
     }
 
     SECTION("horizontal - cuts") {

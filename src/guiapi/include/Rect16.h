@@ -582,7 +582,7 @@ public:
     }
 
     /**
-		 * @brief Vertical split with spaces from parent Rect16
+		 * @brief Horizontal split with spaces from parent Rect16
 		 * @param[out] splits[] buffer to fill of splitted Rect16
 		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
 		 * @param[in] count number of splits
@@ -592,10 +592,10 @@ public:
     void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 
     /**
-		 * @brief Vertical split with dynamic spaces from parent Rect16
+		 * @brief Horizontal split with dynamic spaces from parent Rect16
          *  if splits would not fit, can decrease count (even to zero!!!)
 		 * @param[out] splits[] buffer to fill of splitted Rect16
-         * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
+         * @param[in] widths[] widths of wanted splits (optional = nullptr)
 		 * @param[in] count number of splits
          * @return Number of valid splits usually == count, but can be anything between 0 and count
 		 */
@@ -658,7 +658,7 @@ public:
 
 private:
     /**
-		 * @brief Vertical split private version for internal use only. (no checks)
+		 * @brief horizontal split private version for internal use only. (no checks)
 		 * @param[out] splits* buffer to fill of splitted Rect16
          * @param[in] widths* widths of rectangles
 		 * @param[in] count number of splits

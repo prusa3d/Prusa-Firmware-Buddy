@@ -247,6 +247,8 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count,
 size_t Rect16::HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) const {
     if (count == 0)
         return 0;
+    if (IsEmpty())
+        return 0; // nothing can fit in this rectangle
 
     size_t used_count = 0;
     Width_t width_sum = Width_t(0);
@@ -254,6 +256,8 @@ size_t Rect16::HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) 
 
     //calculate used width and used used_count of rectangles
     for (; used_count < count; ++used_count) {
+        if (widths[used_count] == 0)
+            return 0; // invalid input data
         if (width_sum + widths[used_count] <= width_max) {
             // next rect fits
             width_sum = width_sum + widths[used_count];
