@@ -380,6 +380,57 @@ TEST_CASE("rectangle point arithmetic", "[rectangle]") {
             std::make_tuple<Rect16, point_i16_t, point_i16_t>({ -6, -1, 30, 30 }, { 20, 20 }, { -26, -21 }));
         CHECK((r - point).TopLeft() == expected);
     }
+
+    SECTION("operators == and !=") {
+        //it use internally -=
+        Rect16 r0, r1;
+        bool equal;
+
+        std::tie(r0, r1, equal) = GENERATE(
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 0 }, { 0, 0, 0, 0 }, true),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 30 }, { 0, 0, 30, 30 }, true),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { 0, 20, 30, 30 }, true),
+            std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 30, 30 }, { -5, 20, 30, 30 }, true),
+            std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 30, 30 }, { -6, -1, 30, 30 }, true),
+
+            //x is wrong
+            std::make_tuple<Rect16, Rect16, bool>({ 1, 0, 0, 0 }, { 0, 0, 0, 0 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 22, 0, 30, 30 }, { 0, 0, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 89, 20, 30, 30 }, { 0, 20, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { -5, 20, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ -4, -1, 30, 30 }, { -6, -1, 30, 30 }, false),
+
+            //y is wrong
+            std::make_tuple<Rect16, Rect16, bool>({ 0, -20, 0, 0 }, { 0, 0, 0, 0 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { 0, 0, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 30 }, { 0, 20, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ -5, 0, 30, 30 }, { -5, 20, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ -6, -21, 30, 30 }, { -6, -1, 30, 30 }, false),
+
+            //w is wrong
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 10, 0 }, { 0, 0, 0, 0 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 30 }, { 0, 0, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 10, 30 }, { 0, 20, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 300, 30 }, { -5, 20, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 0, 30 }, { -6, -1, 30, 30 }, false),
+
+            //h is wrong
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 110 }, { 0, 0, 0, 0 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 0 }, { 0, 0, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 3 }, { 0, 20, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 30, 322 }, { -5, 20, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 30, 1 }, { -6, -1, 30, 30 }, false),
+
+            //multiple wrong values
+            std::make_tuple<Rect16, Rect16, bool>({ 1, 1, 1, 1 }, { 0, 0, 0, 0 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ -3, -3, 30, 30 }, { 0, 0, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 3, 3 }, { 0, 20, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ -5, 2, 3, 3 }, { -5, 20, 30, 30 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ -60, -10, 3, 30 }, { -6, -1, 30, 30 }, false));
+
+        CHECK((r0 == r1) == equal);
+        CHECK((r0 != r1) != equal);
+    }
 }
 
 TEST_CASE("rectangle LimitSize", "[rectangle]") {

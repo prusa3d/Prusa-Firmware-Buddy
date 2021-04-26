@@ -666,7 +666,7 @@ private:
 /// @param[in] rhs Rectangle to compare
 /// @return Return true when the rectangle perfectly match, false otherwise
 constexpr bool operator==(Rect16 const &lhs, Rect16 const &rhs) {
-    return lhs.TopLeft().x == rhs.TopLeft().x
+    return lhs.TopLeft() == rhs.TopLeft()
         && lhs.Width() == rhs.Width()
         && lhs.Height() == rhs.Height();
 }
