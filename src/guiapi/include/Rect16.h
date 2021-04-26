@@ -581,24 +581,22 @@ public:
         return i;
     }
 
-    /**
-		 * @brief Horizontal split with spaces from parent Rect16
-		 * @param[out] splits[] buffer to fill of splitted Rect16
-		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
-		 * @param[in] count number of splits
-		 * @param[in] spacing with of spaces between rectangle's splits (optional = 0)
-		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
-		 */
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Horizontal split with spaces from parent Rect16
+    /// @param[out] splits[] buffer to fill of splitted Rect16
+    /// @param[out] spaces[] buffer to fill of spaces between Rect16 splits
+    /// @param[in] count number of splits
+    /// @param[in] spacing with of spaces between rectangle's splits (optional = 0)
+    /// @param[in] ratio[] ratio of wanted splits (optional = nullptr)
     void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 
-    /**
-		 * @brief Horizontal split with dynamic spaces from parent Rect16
-         *  if splits would not fit, can decrease count (even to zero!!!)
-		 * @param[out] splits[] buffer to fill of splitted Rect16
-         * @param[in] widths[] widths of wanted splits (optional = nullptr)
-		 * @param[in] count number of splits
-         * @return Number of valid splits usually == count, but can be anything between 0 and count
-		 */
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Horizontal split with dynamic spaces from parent Rect16
+    ///   if splits would not fit, can decrease count (even to zero!!!)
+    /// @param[out] splits[] buffer to fill of splitted Rect16
+    /// @param[in] widths[] widths of wanted splits (optional = nullptr)
+    /// @param[in] count number of splits
+    /// @return Number of valid splits usually == count, but can be anything between 0 and count
     size_t HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) const;
 
     ////////////////////////////////////////////////////////////////////////////
@@ -630,39 +628,35 @@ public:
         return i;
     }
 
-    /**
-		 * @brief Vertical split with spaces from parent Rect16
-		 * @param[out] splits[] buffer to fill of splitted Rect16
-		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
-		 * @param[in] count number of splits
-		 * @param[in] spacing with of spaces between rectangle's splits (optional = 0)
-		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
-		 */
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Vertical split with spaces from parent Rect16
+    /// @param[out] splits[] buffer to fill of splitted Rect16
+    /// @param[out] spaces[] buffer to fill of spaces between Rect16 splits
+    /// @param[in] count number of splits
+    /// @param[in] spacing with of spaces between rectangle's splits (optional = 0)
+    /// @param[in] ratio[] ratio of wanted splits (optional = nullptr)
     void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 
-    /**
-     * @brief Line operation substracts subtrahend
-     * Top and Height is ignored
-     * @param subtrahend the rect that is to be subtracted.
-     * @return Rect16 front part of original rect after substraction
-     */
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Line operation substracts subtrahend
+    /// Top and Height is ignored
+    /// @param subtrahend the rect that is to be subtracted.
+    /// @return Rect16 front part of original rect after substraction
     Rect16 LeftSubrect(Rect16 subtrahend);
 
-    /**
-     * @brief Line operation substracts subtrahend
-     * Top and Height is ignored
-     * @param subtrahend the rect that is to be subtracted.
-     * @return Rect16 tail part of original rect after substraction
-     */
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Line operation substracts subtrahend
+    /// Top and Height is ignored
+    /// @param subtrahend the rect that is to be subtracted.
+    /// @return Rect16 tail part of original rect after substraction
     Rect16 RightSubrect(Rect16 subtrahend);
 
 private:
-    /**
-		 * @brief horizontal split private version for internal use only. (no checks)
-		 * @param[out] splits* buffer to fill of splitted Rect16
-         * @param[in] widths* widths of rectangles
-		 * @param[in] count number of splits
-		 */
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief horizontal split private version for internal use only. (no checks)
+    /// @param[out] splits* buffer to fill of splitted Rect16
+    /// @param[in] widths* widths of rectangles
+    /// @param[in] count number of splits
     static void horizontalSplit(Rect16 *splits, Width_t *widths, size_t count, Width_t width_sum, Rect16 rect);
 };
 
