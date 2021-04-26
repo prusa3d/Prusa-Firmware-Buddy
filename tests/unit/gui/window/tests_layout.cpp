@@ -414,7 +414,8 @@ TEST_CASE("Timed dialog tests", "[window]") {
     REQUIRE(screen.GetCapturedWindow() == &screen);
 
     SECTION("Screen timed dialog test") {
-        Rect16 rc = GENERATE(GuiDefaults::RectScreen, Rect16(20, 20, 20, 20));
+        static constexpr Rect16 RC2(20, 20, 20, 20);
+        Rect16 rc = GENERATE(GuiDefaults::RectScreen, RC2);
         screen.Draw();
         screen.BasicCheck();
         REQUIRE(screen.GetCapturedWindow() == &screen);
