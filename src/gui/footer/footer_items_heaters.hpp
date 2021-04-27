@@ -10,12 +10,11 @@
 #include <array>
 
 class FooterItemHeater : public AddSuperWindow<FooterIconText_IntVal> {
-    static bool left_aligned; // can be left aligned or with constant positions
-                              // left aligned string will be appended with spaces
+    static footer::ItemDrawType draw_type;
+
 public:
-    static bool IsLeftAligned();
-    static void LeftAlign();
-    static void ConstPositions();
+    static footer::ItemDrawType GetDrawType();
+    static void SetDrawType(footer::ItemDrawType type);
 
     enum class HeatState : uint8_t {
         stable,

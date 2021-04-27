@@ -4,6 +4,14 @@
 #include "Rect16.h"
 #include "align.hpp"
 
+namespace footer {
+enum class ItemDrawType {
+    Static,            // numbers at fixed positions
+    StaticLeftAligned, // numbers aligned to the left, but fix size
+    Dynamic
+}; // numbers aligned to the left, dynamic size
+};
+
 struct GuiDefaults {
     // Footer settings
     static constexpr size_t FooterLines = 2;
@@ -15,6 +23,8 @@ struct GuiDefaults {
     static constexpr size_ui16_t FooterIconSize = { 16, FooterItemHeight }; //DO NOT CHANGE HEIGHT!!! it must match item height (item height can be changed instead), real icon height can be smaller
     static constexpr Rect16::Height_t FooterTextHeight = FooterItemHeight;  //DO NOT CHANGE!!!        it must match item height (item height can be changed instead), real text height can be smaller
     static font_t *FooterFont;                                              //TODO constexpr, font_9x16, IT MUST MATCH OR BE SMALLER THAN FooterItemHeight!!!
+    static constexpr footer::ItemDrawType FooterHeaterPosition = footer::ItemDrawType::Dynamic;
+    static constexpr bool FooterItemsCenter2andFewer = true;
 
     //display specific defaults
     //TODO bind this values

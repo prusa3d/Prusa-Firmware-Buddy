@@ -9,11 +9,10 @@
 #include "display_helper.h" // font_meas_text
 #include <cmath>
 
-bool FooterItemHeater::left_aligned = false;
+footer::ItemDrawType FooterItemHeater::draw_type = GuiDefaults::FooterHeaterPosition;
 
-bool FooterItemHeater::IsLeftAligned() { return left_aligned; }
-void FooterItemHeater::LeftAlign() { left_aligned = true; }
-void FooterItemHeater::ConstPositions() { left_aligned = false; }
+footer::ItemDrawType FooterItemHeater::GetDrawType() { return draw_type; }
+void FooterItemHeater::SetDrawType(footer::ItemDrawType type) { draw_type = type; }
 
 FooterItemHeater::FooterItemHeater(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader)
     : AddSuperWindow<FooterIconText_IntVal>(parent, icon_id, view_maker, value_reader) {
@@ -27,11 +26,11 @@ string_view_utf8 FooterItemHeater::static_makeViewIntoBuff(int value, std::array
     const uint current = std::clamp(int(temps.current), 0, 999);
     const uint target_or_display = std::clamp(int(temps.target_or_display), 0, 999);
 
-    int printed_chars = snprintf(buff.data(), buff.size(), left_aligned ? left_aligned_str : const_size_str, current, target_or_display);
+    int printed_chars = snprintf(buff.data(), buff.size(), draw_type == footer::ItemDrawType::Static ? const_size_str : left_aligned_str, current, target_or_display);
 
     if (printed_chars <= 0) {
         buff[0] = '\0';
-    } else {
+    } else if (draw_type == footer::ItemDrawType::StaticLeftAligned) {
         //left_aligned print need to end with spaces ensure fixed size
         *(buff.end() - 1) = '\0';
         for (; size_t(printed_chars) < buff.size() - 1; ++printed_chars) {
