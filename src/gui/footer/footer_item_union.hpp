@@ -27,4 +27,12 @@ enum class items {
     count_
 };
 
+constexpr void *EncodeItemForEvent(items item) {
+    return (void *)int(item);
+}
+
+constexpr items DecodeItemFromEvent(void *encoded) {
+    return items(int(encoded));
+}
+
 }

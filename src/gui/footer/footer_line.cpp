@@ -86,7 +86,7 @@ void FooterLine::positionWindows() {
 
     //store widths
     for (size_t index = 0; index < max_items; ++index) {
-        window_t *pWin = slotAccess(index);
+        window_t *pWin = SlotAccess(index);
         if (pWin) {
             widths[count] = pWin->GetRectWithoutTransformation().Width(); // without this complicated call last rect could be cut - when resized from small to big
             ++count;
@@ -105,7 +105,7 @@ void FooterLine::positionWindows() {
     size_t index = 0;      // index of item (nth item)
     size_t used_index = 0; // index of valid item (nth item)
     for (; index < max_items; ++index) {
-        window_t *pWin = slotAccess(index);
+        window_t *pWin = SlotAccess(index);
         if (pWin) {
             pWin->SetRectWithoutTransformation(splits[used_index]);
             ++used_index;
@@ -118,14 +118,20 @@ bool FooterLine::slotUsed(size_t index) {
     return item_ids[index] != footer::items::count_;
 }
 
-window_t *FooterLine::slotAccess(size_t index) {
+window_t *FooterLine::SlotAccess(size_t index) {
+    if (index >= item_ids.size())
+        return nullptr;
     if (!slotUsed(index))
         return nullptr;
     return (window_t *)(&(items[index]));
 }
 
+footer::items FooterLine::SlotUsedBy(size_t index) {
+    return item_ids[index];
+}
+
 void FooterLine::unregister(size_t index) {
-    window_t *pWin = slotAccess(index);
+    window_t *pWin = SlotAccess(index);
     if (pWin) {
         unregisterAnySubWin(*pWin, first_normal, last_normal);
         item_ids[index] = footer::items::count_;

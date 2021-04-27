@@ -8,11 +8,21 @@
 #include "GuiDefaults.hpp"
 #include "display_helper.h" // font_meas_text
 #include <cmath>
+#include "ScreenHandler.hpp"
 
 footer::ItemDrawType FooterItemHeater::draw_type = GuiDefaults::FooterHeaterPosition;
 
 footer::ItemDrawType FooterItemHeater::GetDrawType() { return draw_type; }
-void FooterItemHeater::SetDrawType(footer::ItemDrawType type) { draw_type = type; }
+void FooterItemHeater::SetDrawType(footer::ItemDrawType type) {
+    if (draw_type == type) {
+        return;
+    }
+    draw_type = type;
+    // item type is ItemNozzle or ItemBed
+    // sadly this is static method, so i can do this in children (FooterItemHeater should not need to know about ItemNozzle/ItemBed)
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::ItemNozzle));
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::ItemBed));
+}
 
 FooterItemHeater::FooterItemHeater(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader)
     : AddSuperWindow<FooterIconText_IntVal>(parent, icon_id, view_maker, value_reader) {

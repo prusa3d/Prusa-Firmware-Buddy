@@ -26,7 +26,8 @@ IFooterItem::TickResult IFooterItem::tick() {
 }
 
 void IFooterItem::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::LOOP) {
+    switch (event) {
+    case GUI_event_t::LOOP: {
         uint16_t now = gui::GetTick(); // must be uint16_t - to match other time variables
         if (uint16_t(now - last_updated) >= update_period) {
             last_updated = now;
@@ -36,6 +37,18 @@ void IFooterItem::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
                     GetParent()->WindowEvent(this, GUI_event_t::CHILD_CHANGED, nullptr);
             }
         }
+    } break;
+    case GUI_event_t::REINIT_FOOTER:
+        //print format could change - updateState will recreate stringview
+        //do not update value (it is not its time)
+        //just update state and notify parent if size changed
+        if (updateState() == resized_t::yes) {
+            if (GetParent())
+                GetParent()->WindowEvent(this, GUI_event_t::CHILD_CHANGED, nullptr);
+        }
+        break;
+    default:
+        break;
     }
 
     SuperWindowEvent(sender, event, param);

@@ -24,7 +24,10 @@ public:
 
     bool Create(footer::items item, size_t index);
     void Create(const IdArray &ids);
-    void Erase(size_t index); // index >= max_items erases all
+    void Erase(size_t index);               // index >= max_items erases all
+    window_t *SlotAccess(size_t index);     // footer event might need to acces this method, so it must be public
+    footer::items SlotUsedBy(size_t index); //meant to be compared with footer::DecodeItemFromEvent in events
+    static constexpr size_t Size() { return max_items; }
 
 protected:
     void validatePointers();
@@ -32,6 +35,5 @@ protected:
 
     void positionWindows();
     bool slotUsed(size_t index);
-    window_t *slotAccess(size_t index);
     void unregister(size_t index);
 };
