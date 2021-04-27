@@ -55,8 +55,6 @@ protected:
     static constexpr int heating_difference = 2;
 
     static constexpr std::array<color_t, size_t(HeatState::_last) + 1> colors = { { COLOR_WHITE, COLOR_ORANGE, COLOR_BLUE, COLOR_GREEN } };
-    static void writeNum(uint num, size_t index, char *buff);
-    static void writeNums(uint actual, uint target, char *buff);
     static HeatState getState(int current, int target, int display, int cold, int preheat); //need signed values for comparations
     static string_view_utf8 static_makeViewIntoBuff(int value, std::array<char, 10> &buff);
 
