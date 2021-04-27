@@ -50,19 +50,26 @@ public:
     }
 };
 
-class MI_LEFT_ALIGN_TEMP_ONOFF : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Left align temp.");
+class MI_LEFT_ALIGN_TEMP : public WI_SWITCH_t<3> {
+    constexpr static const char *const label = N_("Temp. style");
+    constexpr static const char *str_0 = "Static";
+    constexpr static const char *str_1 = "Static-left";
+    constexpr static const char *str_2 = "Dynamic";
 
 public:
-    MI_LEFT_ALIGN_TEMP_ONOFF()
-        : WI_SWITCH_OFF_ON_t(FooterItemHeater::IsLeftAligned() ? 1 : 0,
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no) {}
-    virtual void OnChange(size_t old_index) override {
-        old_index == 0 ? FooterItemHeater::LeftAlign() : FooterItemHeater::ConstPositions();
+    MI_LEFT_ALIGN_TEMP()
+        : WI_SWITCH_t(size_t(FooterItemHeater::GetDrawType()),
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no,
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_0),
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_1),
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_2)) {}
+
+    virtual void OnChange(size_t /*old_index*/) override {
+        FooterItemHeater::SetDrawType(footer::ItemDrawType(index));
     }
 };
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_LEFT_ALIGN_TEMP_ONOFF, IMiFooter<0>, IMiFooter<1>, IMiFooter<2>>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_LEFT_ALIGN_TEMP, IMiFooter<0>, IMiFooter<1>, IMiFooter<2>>;
 
 class ScreenMenuFooterSettings : public Screen {
 public:
