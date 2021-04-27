@@ -88,7 +88,7 @@ void FooterLine::positionWindows() {
     for (size_t index = 0; index < max_items; ++index) {
         window_t *pWin = slotAccess(index);
         if (pWin) {
-            widths[count] = pWin->Width();
+            widths[count] = pWin->GetRectWithoutTransformation().Width(); // without this complicated call last rect could be cut - when resized from small to big
             ++count;
         }
     }
