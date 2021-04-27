@@ -256,8 +256,6 @@ size_t Rect16::HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) 
 
     //calculate used width and used used_count of rectangles
     for (; used_count < count; ++used_count) {
-        if (widths[used_count] == 0)
-            return 0; // invalid input data
         if (width_sum + widths[used_count] <= width_max) {
             // next rect fits
             width_sum = width_sum + widths[used_count];

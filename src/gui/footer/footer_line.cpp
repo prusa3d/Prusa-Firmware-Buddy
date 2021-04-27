@@ -7,6 +7,8 @@
 #include "footer_line.hpp"
 #include "footer_positioning.hpp"
 
+size_t FooterLine::center_N_andFewer = GuiDefaults::FooterItemsCenter_N_andFewer;
+
 FooterLine::FooterLine(window_t *parent, size_t line_no)
     : AddSuperWindow<window_frame_t>(parent, footer::LineRect(line_no), positioning::relative) {
     item_ids.fill(footer::items::count_);
@@ -80,9 +82,11 @@ void FooterLine::Erase(size_t index) {
 }
 
 void FooterLine::positionWindows() {
-    Rect16 splits[max_items];
-    Rect16::Width_t widths[max_items];
+    static constexpr size_t array_sz = max_items + 2; //can add 2 zero rects for centering
+    Rect16 splits[array_sz];
+    Rect16::Width_t widths[array_sz];
     size_t count = 0;
+    bool center = false;
 
     //store widths
     for (size_t index = 0; index < max_items; ++index) {
@@ -96,6 +100,17 @@ void FooterLine::positionWindows() {
     if (!count)
         return; // no item
 
+    //add zero widths in edges
+    if (center_N_andFewer >= count) {
+        widths[count + 1] = 0;
+        for (int i = count; i > 0; --i) {
+            widths[i] = widths[i - 1];
+        }
+        widths[0] = 0;
+        count += 2;
+        center = true;
+    }
+
     //calculate rects
     Rect16 ths_rc = GetRectWithoutTransformation();
     ths_rc = point_i16_t({ 0, 0 }); // pos 0:0, because of relative coords
@@ -107,7 +122,7 @@ void FooterLine::positionWindows() {
     for (; index < max_items; ++index) {
         window_t *pWin = SlotAccess(index);
         if (pWin) {
-            pWin->SetRectWithoutTransformation(splits[used_index]);
+            pWin->SetRectWithoutTransformation(splits[used_index + int(center)]); //false ads 0, true adds 1 == skips zero rect added for centering
             ++used_index;
         }
     }
