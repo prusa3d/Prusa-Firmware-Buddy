@@ -21,27 +21,22 @@ FooterItemHeater::FooterItemHeater(window_t *parent, uint16_t icon_id, view_make
 
 //Must not contain buffer!!! every child must provide own buffer
 string_view_utf8 FooterItemHeater::static_makeViewIntoBuff(int value, std::array<char, 10> &buff) {
-    static constexpr const char *default_str = "  0/  0\177C";
+    static constexpr const char *left_aligned_str = "%u/%u\177C";
+    static constexpr const char *const_size_str = "%3u/%3u\177C";
     const StateAndTemps temps(value);
     const uint current = std::clamp(int(temps.current), 0, 999);
     const uint target_or_display = std::clamp(int(temps.target_or_display), 0, 999);
 
-    size_t printed_chars = 0;
+    int printed_chars = snprintf(buff.data(), buff.size(), left_aligned ? left_aligned_str : const_size_str, current, target_or_display);
 
-    if (left_aligned) {
-        printed_chars = snprintf(buff.data(), buff.size(), "%u/%u\177C", current, target_or_display);
+    if (printed_chars <= 0) {
+        buff[0] = '\0';
     } else {
-        strncpy(buff.data(), default_str, buff.size());
-    }
-
-    if (printed_chars) {
-        //left_aligned print successfull, add spaces to ensure fixed size
+        //left_aligned print need to end with spaces ensure fixed size
         *(buff.end() - 1) = '\0';
-        for (; printed_chars < buff.size() - 1; ++printed_chars) {
+        for (; size_t(printed_chars) < buff.size() - 1; ++printed_chars) {
             buff[printed_chars] = ' ';
         }
-    } else {
-        writeNums(current, target_or_display, buff.data()); //const size format
     }
     return string_view_utf8::MakeRAM((const uint8_t *)buff.data());
 }
@@ -68,26 +63,4 @@ IFooterItem::resized_t FooterItemHeater::updateState() {
     const StateAndTemps temps(value);
     text.SetBlinkColor(ColorFromState(temps.state));
     return super::updateState();
-}
-
-// much faster than snprintf
-void FooterItemHeater::writeNum(uint num, size_t index, char *buff) {
-    for (int i = index + 2; i >= int(index); --i) {
-        buff[i] = num % 10;
-        buff[i] += '0';
-        num /= 10;
-    }
-
-    //replace front zeroes with spaces
-    for (int i = index; i <= int(index) + 1; ++i) {
-        if (buff[i] == '0')
-            buff[i] = ' ';
-        else
-            return;
-    }
-}
-
-void FooterItemHeater::writeNums(uint actual, uint target, char *buff) {
-    writeNum(actual, 0, buff);
-    writeNum(target, 4, buff);
 }
