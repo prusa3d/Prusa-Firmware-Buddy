@@ -11,6 +11,7 @@
 
 class FooterLine : public AddSuperWindow<window_frame_t> {
     static constexpr size_t max_items = GuiDefaults::FooterItemsPerLine;
+    static size_t center_N_andFewer;
 
 public:
     using IdArray = std::array<footer::items, max_items>;
