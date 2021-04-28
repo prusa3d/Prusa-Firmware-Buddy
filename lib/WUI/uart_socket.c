@@ -40,12 +40,14 @@ static int socket_id = -1;
 uint8_t data_rx[RX_BUFFER_LEN];
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 
+#if 0
 void handle_rx_data(UART_HandleTypeDef *huart) {
     if (uartSocketMbox_id != NULL) {
         uint32_t message = 0;
         osMessagePut(uartSocketMbox_id, message, 0);
     }
 }
+#endif
 
 void configure_uart_socket(uint32_t baudrate) {
     __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
@@ -67,7 +69,7 @@ void configure_uart_socket(uint32_t baudrate) {
 
 int uart_socket(int domain, int type, int protocol) {
     if (!uart_initalized) {
-        configure_uart_socket(115200);
+        ///        configure_uart_socket(115200);
         uart_initalized = 1;
     }
     socket_id++;
