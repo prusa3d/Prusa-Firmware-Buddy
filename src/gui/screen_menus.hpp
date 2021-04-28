@@ -13,6 +13,7 @@ ScreenFactory::UniquePtr GetScreenMenuVersionInfo();
 ScreenFactory::UniquePtr GetScreenMenuTune();
 //ScreenFactory::UniquePtr GetScreenMenuService();
 ScreenFactory::UniquePtr GetScreenMenuFwUpdate();
+ScreenFactory::UniquePtr GetScreenMenuESPUpdate();
 ScreenFactory::UniquePtr GetScreenMenuLanguages();
 ScreenFactory::UniquePtr GetScreenMenuLanSettings();
 ScreenFactory::UniquePtr GetScreenMenuLanguagesNoRet();
