@@ -6,6 +6,7 @@
 
 #include "footer_line.hpp"
 #include "footer_positioning.hpp"
+#include "ScreenHandler.hpp"
 
 size_t FooterLine::center_N_andFewer = GuiDefaults::FooterItemsCenter_N_andFewer;
 
@@ -15,8 +16,18 @@ FooterLine::FooterLine(window_t *parent, size_t line_no)
 }
 
 void FooterLine::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::CHILD_CHANGED) {
+    switch (event) {
+    case GUI_event_t::CHILD_CHANGED: //event from child
         positionWindows();
+        break;
+    case GUI_event_t::REINIT_FOOTER:
+        // count means all items changed, could be caused by change of centering option
+        if (footer::DecodeItemFromEvent(param) == footer::items::count_) {
+            positionWindows();
+        }
+        break;
+    default:
+        break;
     }
 
     SuperWindowEvent(sender, event, param);
@@ -100,7 +111,7 @@ void FooterLine::positionWindows() {
     if (!count)
         return; // no item
 
-    //add zero widths in edges
+    //add zero widths on sides
     if (center_N_andFewer >= count) {
         widths[count + 1] = 0;
         for (int i = count; i > 0; --i) {
@@ -122,7 +133,7 @@ void FooterLine::positionWindows() {
     for (; index < max_items; ++index) {
         window_t *pWin = SlotAccess(index);
         if (pWin) {
-            pWin->SetRectWithoutTransformation(splits[used_index + int(center)]); //false ads 0, true adds 1 == skips zero rect added for centering
+            pWin->SetRectWithoutTransformation(splits[used_index + int(center)]); //false adds 0, true adds 1 == skips zero rect added for centering
             ++used_index;
         }
     }
@@ -151,4 +162,13 @@ void FooterLine::unregister(size_t index) {
         unregisterAnySubWin(*pWin, first_normal, last_normal);
         item_ids[index] = footer::items::count_;
     }
+}
+
+void FooterLine::SetCenterN(size_t n_and_fewer) {
+    center_N_andFewer = n_and_fewer;
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::count_));
+}
+
+size_t FooterLine::GetCenterN() {
+    return center_N_andFewer;
 }

@@ -12,6 +12,7 @@
 #include "screen_menus.hpp"
 #include "footer_item_union.hpp"
 #include "status_footer.hpp"
+#include "menu_spin_config.hpp"
 
 static constexpr std::array<const char *, 3> labels = { { N_("Item 0"),
     N_("Item 1"),
@@ -69,7 +70,19 @@ public:
     }
 };
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_LEFT_ALIGN_TEMP, IMiFooter<0>, IMiFooter<1>, IMiFooter<2>>;
+class MI_FOOTER_CENTER_N : public WI_SPIN_U08_t {
+    constexpr static const char *const label = N_("Center N and fewer items");
+
+public:
+    MI_FOOTER_CENTER_N()
+        : WI_SPIN_U08_t(uint8_t(FooterLine::GetCenterN()),
+            SpinCnf::footer_center_N_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    virtual void OnClick() override {
+        FooterLine::SetCenterN(GetVal());
+    }
+};
+
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_ALIGN_TEMP, IMiFooter<0>, IMiFooter<1>, IMiFooter<2>>;
 
 class ScreenMenuFooterSettings : public Screen {
 public:

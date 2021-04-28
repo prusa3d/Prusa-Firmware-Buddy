@@ -29,6 +29,8 @@ public:
     window_t *SlotAccess(size_t index);     // footer event might need to acces this method, so it must be public
     footer::items SlotUsedBy(size_t index); //meant to be compared with footer::DecodeItemFromEvent in events
     static constexpr size_t Size() { return max_items; }
+    static void SetCenterN(size_t n_and_fewer);
+    static size_t GetCenterN();
 
 protected:
     void validatePointers();

@@ -28,11 +28,11 @@ enum class items {
 };
 
 constexpr void *EncodeItemForEvent(items item) {
-    return (void *)int(item);
+    return reinterpret_cast<void *>(static_cast<int>(item));
 }
 
 constexpr items DecodeItemFromEvent(void *encoded) {
-    return items(int(encoded));
+    return static_cast<items>(reinterpret_cast<int>(encoded));
 }
 
 }
