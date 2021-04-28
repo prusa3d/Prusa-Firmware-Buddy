@@ -14,9 +14,12 @@
 #include "ethernetif.h"
 #include <string.h>
 #include "sntp_client.h"
+#include "httpc/httpc.h"
 #include "dbg.h"
 #include "lwesp/lwesp.h"
 #include "stm32_port.h"
+
+osThreadId httpcTaskHandle;
 
 #define WUI_NETIF_SETUP_DELAY  1000
 #define WUI_COMMAND_QUEUE_SIZE WUI_WUI_MQ_CNT // maximal number of messages at once in WUI command messageQ
@@ -91,7 +94,7 @@ void StartWebServerTask(void const *argument) {
     wui_marlin_client_init();
     // LwIP related initalizations
     MX_LWIP_Init(&wui_eth_config);
-    http_server_init();
+    //    http_server_init();
     sntp_client_init();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
 
