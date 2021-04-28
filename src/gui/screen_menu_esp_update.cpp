@@ -15,6 +15,7 @@ extern "C" {
 
 #include "stm32_port.h"
 #include "esp_loader.h"
+#include "lwesp_ll_buddy.h"
 
 #ifdef __cplusplus
 }
@@ -66,13 +67,13 @@ class ScreenMenuESPUpdate : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("ESP FLASH");
     static constexpr size_t helper_lines = 8;
     static constexpr int helper_font = IDR_FNT_SPECIAL;
-    static constexpr size_t buffer_length = 1024;
+    static constexpr size_t buffer_length = 512;
 
     MenuContainer container;
     window_menu_t menu;
     window_header_t header;
     window_text_t help;
-    std::array<esp_entry, 6> firmware_set;
+    std::array<esp_entry, 5> firmware_set;
     bool loopInProgress;
     FIL file_descriptor;
     esp_upload_action progress_state;
@@ -95,7 +96,7 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
-    , firmware_set({ { { .address = BOOT_ADDRESS, .filename = "/boot_v1.7.bin", .size = 0 },
+    , firmware_set({ { //          { .address = BOOT_ADDRESS, .filename = "/boot_v1.7.bin", .size = 0 },
           { .address = USER_ADDRESS, .filename = "/user1.1024.new.2.bin", .size = 0 },
           { .address = BLANK1_ADDRESS, .filename = "/blank.bin", .size = 0 },
           { .address = BLANK2_ADDRESS, .filename = "/blank.bin", .size = 0 },
@@ -117,7 +118,8 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);        // set capture to list
     help.SetText(_("- ESP not connected"));
-    //    loader_port_stm32_init(&loader_config);
+    esp_set_operating_mode(ESP_FLASHING_MODE);
+    loader_port_stm32_init(&loader_config);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuESPUpdate() {
@@ -208,8 +210,10 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
         }
         case esp_upload_action::Reset:
             esp_loader_flash_finish(true);
+            esp_set_operating_mode(ESP_RUNNING_MODE);
             progress_state = esp_upload_action::Initial;
             current_file = firmware_set.begin();
+            readCount = 0;
             break;
         default:
             break;

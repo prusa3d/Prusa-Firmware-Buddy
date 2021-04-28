@@ -97,35 +97,24 @@ void StartWebServerTask(void const *argument) {
     //    http_server_init();
     sntp_client_init();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
+    // Initialize the thread for httpc
+    osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 512);
+    httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
 
     lwesp_mode_t mode = LWESP_MODE_STA_AP;
-    if (!serial_flashing) {
-        // lwesp stuffs
-        if (lwesp_init(NULL, 1) != lwespOK) {
-            printf("Cannot initialize LwESP!\r\n");
-        } else {
-            printf("LwESP initialized!\r\n");
-        }
+    // lwesp stuffs
+    if (lwesp_init(NULL, 1) != lwespOK) {
+        printf("Cannot initialize LwESP!\r\n");
     } else {
-        // ESP FLASHER init
-        loader_stm32_config_t config = {
-            .huart = &huart6,
-            .port_io0 = GPIOE,
-            .pin_num_io0 = GPIO_PIN_6,
-            .port_rst = GPIOC,
-            .pin_num_rst = GPIO_PIN_13,
-        };
-        loader_port_stm32_init(&config);
+        printf("LwESP initialized!\r\n");
     }
 
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
-        if (!serial_flashing) {
-            lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
-            if (mode == LWESP_MODE_STA) {
-                printf("test ok");
-            }
+        lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
+        if (mode == LWESP_MODE_STA) {
+            printf("test ok");
         }
         osDelay(1000);
     }
