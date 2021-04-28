@@ -14,9 +14,44 @@
 #include "status_footer.hpp"
 #include "menu_spin_config.hpp"
 
-static constexpr std::array<const char *, 3> labels = { { N_("Item 0"),
-    N_("Item 1"),
-    N_("Item 2") } };
+static constexpr std::array<const char *, FOOTER_ITEMS_PER_LINE__> labels = { { N_("Item 0")
+#if FOOTER_ITEMS_PER_LINE__ > 1
+                                                                                    ,
+    N_("Item 1")
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 2
+        ,
+    N_("Item 2")
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 3
+        ,
+    N_("Item 3")
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 4
+        ,
+    N_("Item 4")
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 5
+        ,
+    N_("Item 5")
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 6
+        ,
+    N_("Item 6")
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 7
+        ,
+    N_("Item 7")
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 8
+        ,
+    N_("Item 8")
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 9
+        ,
+    N_("Item 9")
+#endif
+} };
 
 static constexpr std::array<const char *, size_t(footer::items::count_) + 1> item_labels = { {
     N_("Nozzle"),   //ItemNozzle
@@ -33,7 +68,7 @@ class IMiFooter : public WI_SWITCH_t<size_t(footer::items::count_) + 1> {
 
 public:
     IMiFooter()
-        : WI_SWITCH_t(size_t(FooterMini::GetSlotInit(INDEX)),
+        : WI_SWITCH_t(size_t(StatusFooter::GetSlotInit(INDEX)),
             string_view_utf8::MakeCPUFLASH((const uint8_t *)labels[INDEX]),
             0, is_enabled_t::yes, is_hidden_t::no,
             string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[0]),
@@ -47,7 +82,7 @@ public:
     virtual void OnChange(size_t old_index) override {
         if (index > size_t(footer::items::count_))
             return; //should not happen
-        FooterMini::SetSlotInit(INDEX, footer::items(index));
+        StatusFooter::SetSlotInit(INDEX, footer::items(index));
     }
 };
 
@@ -82,7 +117,44 @@ public:
     }
 };
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_ALIGN_TEMP, IMiFooter<0>, IMiFooter<1>, IMiFooter<2>>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_ALIGN_TEMP, IMiFooter<0>
+#if FOOTER_ITEMS_PER_LINE__ > 1
+    ,
+    IMiFooter<1>
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 2
+    ,
+    IMiFooter<2>
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 3
+    ,
+    IMiFooter<3>
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 4
+    ,
+    IMiFooter<4>
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 5
+    ,
+    IMiFooter<5>
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 6
+    ,
+    IMiFooter<6>
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 7
+    ,
+    IMiFooter<7>
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 8
+    ,
+    IMiFooter<8>
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 9
+    ,
+    IMiFooter<9>
+#endif
+    >;
 
 class ScreenMenuFooterSettings : public Screen {
 public:

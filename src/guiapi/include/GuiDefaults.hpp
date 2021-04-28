@@ -12,10 +12,13 @@ enum class ItemDrawType {
 };
 };
 
+//sadly this must be macro, it is used in preprocessor
+#define FOOTER_ITEMS_PER_LINE__ 3
+
 struct GuiDefaults {
     // Footer settings
+    static constexpr size_t FooterItemsPerLine = FOOTER_ITEMS_PER_LINE__; //max items per line
     static constexpr size_t FooterLines = 2;
-    static constexpr size_t FooterItemsPerLine = 3;                         //max items per line
     static constexpr size_t FooterIconTextSpace = 3;                        //space between icon and text of footer item in px
     static constexpr padding_ui8_t FooterPadding = { 4, 4, 4, 4 };          //number of edge pixels that will remain black in all cases
     static constexpr size_t FooterLinesSpace = 8;                           //space between footer lines

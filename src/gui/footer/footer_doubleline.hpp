@@ -1,5 +1,5 @@
 /**
- * @file footer_mini.hpp
+ * @file footer_doubleline.hpp
  * @author Radek Vana
  * @brief MINI printer footer
  * @date 2021-04-14
@@ -10,7 +10,7 @@
 #include "footer_line.hpp"
 #include "footer_item_union.hpp"
 
-class FooterMini : public AddSuperWindow<window_frame_t> {
+class FooterDoubleLine : public AddSuperWindow<window_frame_t> {
     FooterLine line_0;
     FooterLine line_1;
 
@@ -19,7 +19,7 @@ class FooterMini : public AddSuperWindow<window_frame_t> {
     static FooterLine::IdArray line1_init; //adjustable
 
 public:
-    FooterMini(window_t *parent);
+    FooterDoubleLine(window_t *parent);
 
     //sets line 1, line 0 is const
     bool SetSlot(size_t slot_id, footer::items item);
