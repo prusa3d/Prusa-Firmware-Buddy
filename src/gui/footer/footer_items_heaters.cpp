@@ -35,8 +35,9 @@ string_view_utf8 FooterItemHeater::static_makeViewIntoBuff(int value, std::array
     const StateAndTemps temps(value);
     const uint current = std::clamp(int(temps.current), 0, 999);
     const uint target_or_display = std::clamp(int(temps.target_or_display), 0, 999);
+    const char *const str = (draw_type == footer::ItemDrawType::Static) ? const_size_str : left_aligned_str;
 
-    int printed_chars = snprintf(buff.data(), buff.size(), draw_type == footer::ItemDrawType::Static ? const_size_str : left_aligned_str, current, target_or_display);
+    int printed_chars = snprintf(buff.data(), buff.size(), str, current, target_or_display);
 
     if (printed_chars <= 0) {
         buff[0] = '\0';

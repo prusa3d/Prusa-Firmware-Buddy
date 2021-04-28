@@ -8,8 +8,8 @@ namespace footer {
 enum class ItemDrawType {
     Static,            // numbers at fixed positions
     StaticLeftAligned, // numbers aligned to the left, but fix size
-    Dynamic
-}; // numbers aligned to the left, dynamic size
+    Dynamic            // numbers aligned to the left, dynamic size
+};
 };
 
 struct GuiDefaults {
