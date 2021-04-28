@@ -394,35 +394,37 @@ TEST_CASE("rectangle point arithmetic", "[rectangle]") {
             std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 30, 30 }, { -6, -1, 30, 30 }, true),
 
             //x is wrong
-            std::make_tuple<Rect16, Rect16, bool>({ 1, 0, 0, 0 }, { 0, 0, 0, 0 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 1, 0, 0, 0 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
             std::make_tuple<Rect16, Rect16, bool>({ 22, 0, 30, 30 }, { 0, 0, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 89, 20, 30, 30 }, { 0, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { -5, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -4, -1, 30, 30 }, { -6, -1, 30, 30 }, false),
 
             //y is wrong
-            std::make_tuple<Rect16, Rect16, bool>({ 0, -20, 0, 0 }, { 0, 0, 0, 0 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, -20, 0, 0 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
             std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { 0, 0, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 30 }, { 0, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -5, 0, 30, 30 }, { -5, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -6, -21, 30, 30 }, { -6, -1, 30, 30 }, false),
 
             //w is wrong
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 10, 0 }, { 0, 0, 0, 0 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 10, 0 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
             std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 30 }, { 0, 0, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 10, 30 }, { 0, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 300, 30 }, { -5, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 0, 30 }, { -6, -1, 30, 30 }, false),
 
             //h is wrong
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 110 }, { 0, 0, 0, 0 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 110 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
             std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 0 }, { 0, 0, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 3 }, { 0, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 30, 322 }, { -5, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 30, 1 }, { -6, -1, 30, 30 }, false),
 
             //multiple wrong values
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 3, 0 }, { 0, 0, 0, 1 }, true), // all empty rectangles are equal
             std::make_tuple<Rect16, Rect16, bool>({ 1, 1, 1, 1 }, { 0, 0, 0, 0 }, false),
+            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 3, 6 }, { 0, 0, 0, 0 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -3, -3, 30, 30 }, { 0, 0, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 3, 3 }, { 0, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -5, 2, 3, 3 }, { -5, 20, 30, 30 }, false),
@@ -767,6 +769,11 @@ TEST_CASE("rectangle split", "[rectangle]") {
             //only one fits
             std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
                 { 1, 2, 10, h }, { 5, 100, 1, 1 }, { { { 1, 2, 5, h } } }),
+            // 2 border empty rects .. any empty rects are equal
+            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
+                { 1, 2, 14, h }, { 0, 2, 3, 0 }, { { { 0, 0, 0, 0 }, { 4, 2, 2, h }, { 9, 2, 3, h }, { 0, 0, 0, 0 } } }),
+            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
+                { 0, 2, 9, h }, { 0, 5, 0 }, { { { 0, 0, 0, 0 }, { 2, 2, 5, h }, { 0, 0, 0, 0 } } }),
             //empty
             std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
                 { 1, 0, 10, h }, { 50, 10, 1, 1 }, std::vector<Rect16>()));
