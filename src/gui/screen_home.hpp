@@ -10,7 +10,7 @@ struct screen_home_data_t : public AddSuperWindow<screen_t> {
     bool usbInserted;
 
     window_header_t header;
-    FooterMini footer;
+    StatusFooter footer;
 
     window_icon_t logo;
     window_icon_button_t w_buttons[6];

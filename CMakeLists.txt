@@ -612,7 +612,7 @@ if(GUI)
             src/gui/footer/footer_item_live_z.cpp
             src/gui/footer/footer_items_nozzle_bed.cpp
             src/gui/footer/footer_line.cpp
-            $<$<STREQUAL:${PRINTER},MINI>:src/gui/footer/footer_mini.cpp>
+            $<$<STREQUAL:${PRINTER},MINI>:src/gui/footer/footer_doubleline.cpp>
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
             src/gui/gui_media_events.cpp
