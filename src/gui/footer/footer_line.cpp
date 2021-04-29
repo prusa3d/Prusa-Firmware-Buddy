@@ -93,13 +93,68 @@ void FooterLine::Erase(size_t index) {
 }
 
 void FooterLine::positionWindows() {
-    static constexpr size_t array_sz = max_items + 2; //can add 2 zero rects for centering
-    Rect16 splits[array_sz];
-    Rect16::Width_t widths[array_sz];
+    Rect16 item_rects[array_sz];
+    std::array<Rect16::Width_t, max_items> widths;
+    std::array<Rect16::Width_t, array_sz> widths_after_centering; //can have 2 extra 0 valuses
     size_t count = 0;
-    bool center = false;
+    size_t count_with_borders = 0;
+    size_t count_after_split = 0;
 
-    //store widths
+    count = storeWidths(widths);
+
+    // this loop will usually be run only once, max twice, when items does not fit in the window
+    do {
+        if (!count) {
+            // no item, should not happen
+            // all items will be hidden
+            break;
+        }
+
+        //add zero widths on sides
+        if (center_N_andFewer >= count) {
+            widths_after_centering = addBorderZeroWidths(widths, count);
+            count_with_borders = count + 2;
+        } else {
+            std::copy(widths.begin(), widths.begin() + count, widths_after_centering.begin());
+            count_with_borders = count;
+        }
+        count_after_split = calculateItemRects(item_rects, widths_after_centering.data(), count_with_borders);
+
+        if (!count_after_split)
+            break;
+        if (count_with_borders != count_after_split) {
+            --count; // 1 fewer item for next attempt
+        }
+    } while (count_with_borders != count_after_split);
+
+    // change rects
+    bool centered = widths_after_centering[0] == 0;
+    Rect16 *item_rectangles = centered ? item_rects + 1 : item_rects; //skip dummy empty rect meant for centering
+    size_t index = 0;                                                 // index of item (nth item)
+    size_t used_index = 0;                                            // index of valid item (nth item)
+    for (; index < max_items; ++index) {
+        window_t *pWin = SlotAccess(index);
+        if (pWin) {
+            if (used_index < count) {
+                pWin->SetRectWithoutTransformation(item_rectangles[used_index]);
+                ++used_index;
+                pWin->Show();
+            } else {
+                pWin->Hide();
+            }
+        }
+    }
+    Invalidate();
+}
+
+size_t FooterLine::calculateItemRects(Rect16 *item_rects, Rect16::Width_t *widths, size_t count) const {
+    Rect16 ths_rc = GetRectWithoutTransformation();
+    ths_rc = point_i16_t({ 0, 0 }); // pos 0:0, because of relative coords
+    return ths_rc.HorizontalSplit(item_rects, widths, count);
+}
+
+size_t FooterLine::storeWidths(std::array<Rect16::Width_t, max_items> &widths) const {
+    size_t count = 0;
     for (size_t index = 0; index < max_items; ++index) {
         window_t *pWin = SlotAccess(index);
         if (pWin) {
@@ -107,44 +162,22 @@ void FooterLine::positionWindows() {
             ++count;
         }
     }
-
-    if (!count)
-        return; // no item
-
-    //add zero widths on sides
-    if (center_N_andFewer >= count) {
-        widths[count + 1] = 0;
-        for (int i = count; i > 0; --i) {
-            widths[i] = widths[i - 1];
-        }
-        widths[0] = 0;
-        count += 2;
-        center = true;
-    }
-
-    //calculate rects
-    Rect16 ths_rc = GetRectWithoutTransformation();
-    ths_rc = point_i16_t({ 0, 0 }); // pos 0:0, because of relative coords
-    count = ths_rc.HorizontalSplit(splits, widths, count);
-
-    // change rects
-    size_t index = 0;      // index of item (nth item)
-    size_t used_index = 0; // index of valid item (nth item)
-    for (; index < max_items; ++index) {
-        window_t *pWin = SlotAccess(index);
-        if (pWin) {
-            pWin->SetRectWithoutTransformation(splits[used_index + int(center)]); //false adds 0, true adds 1 == skips zero rect added for centering
-            ++used_index;
-        }
-    }
-    Invalidate();
+    return count;
 }
 
-bool FooterLine::slotUsed(size_t index) {
+std::array<Rect16::Width_t, FooterLine::array_sz> FooterLine::addBorderZeroWidths(const std::array<Rect16::Width_t, FooterLine::max_items> &source, size_t count) {
+    count = std::min(count, FooterLine::max_items);
+    std::array<Rect16::Width_t, array_sz> ret;
+    ret.fill(0);
+    std::copy(source.begin(), source.begin() + count, ret.begin() + 1);
+    return ret;
+}
+
+bool FooterLine::slotUsed(size_t index) const {
     return item_ids[index] != footer::items::count_;
 }
 
-window_t *FooterLine::SlotAccess(size_t index) {
+window_t *FooterLine::SlotAccess(size_t index) const {
     if (index >= item_ids.size())
         return nullptr;
     if (!slotUsed(index))

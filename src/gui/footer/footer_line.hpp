@@ -8,10 +8,15 @@
 #pragma once
 #include "window_frame.hpp"
 #include "footer_item_union.hpp" // all possible footer items
+#include <array>
 
 class FooterLine : public AddSuperWindow<window_frame_t> {
     static constexpr size_t max_items = GuiDefaults::FooterItemsPerLine;
+    static constexpr size_t array_sz = max_items + 2; //can add 2 zero rects for centering
     static size_t center_N_andFewer;
+    static std::array<Rect16::Width_t, array_sz> addBorderZeroWidths(const std::array<Rect16::Width_t, max_items> &source, size_t count);
+    size_t storeWidths(std::array<Rect16::Width_t, max_items> &widths) const;                   //returns count of stored widths
+    size_t calculateItemRects(Rect16 *item_rects, Rect16::Width_t *widths, size_t count) const; //returns count of used rectangles
 
 public:
     using IdArray = std::array<footer::items, max_items>;
@@ -25,9 +30,9 @@ public:
 
     bool Create(footer::items item, size_t index);
     void Create(const IdArray &ids);
-    void Erase(size_t index);               // index >= max_items erases all
-    window_t *SlotAccess(size_t index);     // footer event might need to acces this method, so it must be public
-    footer::items SlotUsedBy(size_t index); //meant to be compared with footer::DecodeItemFromEvent in events
+    void Erase(size_t index);                 // index >= max_items erases all
+    window_t *SlotAccess(size_t index) const; // footer event might need to acces this method, so it must be public
+    footer::items SlotUsedBy(size_t index);   //meant to be compared with footer::DecodeItemFromEvent in events
     static constexpr size_t Size() { return max_items; }
     static void SetCenterN(size_t n_and_fewer);
     static size_t GetCenterN();
@@ -37,6 +42,6 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
     void positionWindows();
-    bool slotUsed(size_t index);
+    bool slotUsed(size_t index) const;
     void unregister(size_t index);
 };
