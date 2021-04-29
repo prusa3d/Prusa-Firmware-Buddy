@@ -6,10 +6,12 @@
 #include "status_footer.h"
 #include "window_text.hpp"
 #include <array>
+#include "non_file_printing_counter.hpp"
 
 static constexpr btn_resource res_disconnect = { IDR_PNG_disconnect_48px, N_("Disconnect") };
 
 class screen_printing_serial_data_t : public AddSuperWindow<ScreenPrintingModel> {
+    NonFilePrintingCounter fs_lock; // filament sensor will think printer is in printing state
     static constexpr const char *caption = N_("SERIAL PRINTING");
     // static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
 

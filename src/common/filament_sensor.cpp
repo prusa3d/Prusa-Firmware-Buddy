@@ -21,6 +21,7 @@
 #include "task.h"          //critical sections
 #include "cmsis_os.h"      //osDelay
 #include "marlin_client.h" //enable/disable fs in marlin
+#include "non_file_printing_counter.hpp"
 
 using buddy::hw::fSensor;
 using buddy::hw::Pin;
@@ -207,7 +208,7 @@ void fs_init_never() {
 //methods called only in fs_cycle
 static void _injectM600() {
     marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
-    if (status.M600_sent == 0 && (vars->sd_printing && !block_M600_injection)) {
+    if (status.M600_sent == 0 && ((vars->sd_printing || NonFilePrintingCounter::IsPrinting()) && !block_M600_injection)) {
         marlin_gcode_push_front("M600"); //change filament
         status.M600_sent = 1;
     }
