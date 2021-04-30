@@ -8,12 +8,12 @@
 #include <algorithm>
 #include "marlin_server.hpp"
 
+#ifdef REENUMERATE_USB
+
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
 static const constexpr uint8_t USBHOST_REENUM_DELAY = 100;    // pool delay [ms]
 static const constexpr uint16_t USBHOST_REENUM_TIMEOUT = 500; // state-hang timeout [ms]
-
-extern "C" {
 
 // Re-enumerate UsbHost in case that it hangs in enumeration state (HOST_ENUMERATION,ENUM_IDLE)
 // this is not solved in original UsbHost driver
@@ -35,6 +35,11 @@ static void _usbhost_reenum(void) {
             timer = tick;
     }
 }
+#else
+static void _usbhost_reenum(void) {};
+#endif
+
+extern "C" {
 
 /// File name (Long-File-Name) of the file being printed
 static char media_print_LFN[MEDIA_PRINT_FILENAME_SIZE] = { 0 };
