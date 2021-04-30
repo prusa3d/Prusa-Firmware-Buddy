@@ -57,12 +57,16 @@ bool FooterLine::Create(footer::items item_id, size_t index) {
     case footer::items::ItemSpeed:
         new (&items[index]) FooterItemSpeed(this);
         break;
+#if defined(FOOTER_HAS_LIVE_Z)
     case footer::items::ItemLiveZ:
         new (&items[index]) FooterItemLiveZ(this);
         break;
+#endif
+#if defined(FOOTER_HAS_SHEETS)
     case footer::items::ItemSheets:
         new (&items[index]) FooterItemSheets(this);
         break;
+#endif
     case footer::items::count_:
         break;
     }

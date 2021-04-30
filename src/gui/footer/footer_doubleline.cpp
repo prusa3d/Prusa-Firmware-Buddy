@@ -7,7 +7,15 @@
 #include "footer_doubleline.hpp"
 #include "ScreenHandler.hpp"
 
-FooterLine::IdArray FooterDoubleLine::line1_init = { { footer::items::ItemSpeed, footer::items::ItemLiveZ, footer::items::ItemFilament } };
+FooterLine::IdArray FooterDoubleLine::line1_init = { { footer::items::ItemSpeed,
+#if defined(FOOTER_HAS_LIVE_Z)
+    footer::items::ItemLiveZ,
+#elif defined(FOOTER_HAS_SHEETS)
+    footer::items::ItemSheets,
+#else
+    footer::items::count_,
+#endif
+    footer::items::ItemFilament } };
 
 FooterDoubleLine::FooterDoubleLine(window_t *parent)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectFooter, positioning::absolute)
