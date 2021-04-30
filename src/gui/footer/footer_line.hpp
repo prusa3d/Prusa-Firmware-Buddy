@@ -13,11 +13,14 @@
 class FooterLine : public AddSuperWindow<window_frame_t> {
     static constexpr size_t max_items = GuiDefaults::FooterItemsPerLine;
     static constexpr size_t array_sz = max_items + 2; //can add 2 zero rects for centering
+    using Rectangles = std::array<Rect16, max_items>;
     static size_t center_N_andFewer;
     static std::array<Rect16::Width_t, array_sz> addBorderZeroWidths(const std::array<Rect16::Width_t, max_items> &source, size_t count);
-    size_t storeWidths(std::array<Rect16::Width_t, max_items> &widths) const;                   //returns count of stored widths
-    size_t calculateItemRects(Rect16 *item_rects, Rect16::Width_t *widths, size_t count) const; //returns count of used rectangles
-
+    size_t storeWidths(std::array<Rect16::Width_t, max_items> &widths) const;                                             //returns count of stored widths
+    size_t calculateItemRects(Rect16 *item_rects, Rect16::Width_t *widths, size_t count) const;                           //returns count of used rectangles
+    bool try_split(Rectangles &returned_rects, const std::array<Rect16::Width_t, max_items> &widths, size_t count) const; //single iteration
+    size_t split(Rectangles &returned_rects, const std::array<Rect16::Width_t, max_items> &widths, size_t count) const;   //split line rectangle into rectangles for items
+    void setItemRectangles(Rectangles::iterator rectangles_begin, Rectangles::iterator rectangles_end);                   // set given rectangles into valid items, show those items and hide the rest
 public:
     using IdArray = std::array<footer::items, max_items>;
 
