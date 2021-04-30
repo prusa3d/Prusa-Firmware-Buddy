@@ -117,6 +117,19 @@ public:
     }
 };
 
+class MI_SHOW_ZERO_TEMP_TARGET : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Temp. show zero");
+
+public:
+    MI_SHOW_ZERO_TEMP_TARGET()
+        : WI_SWITCH_OFF_ON_t(FooterItemHeater::IsZeroTargetDrawn(),
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+
+    virtual void OnChange(size_t old_index) override {
+        old_index == 0 ? FooterItemHeater::EnableDrawZeroTarget() : FooterItemHeater::DisableDrawZeroTarget();
+    }
+};
+
 class MI_FOOTER_CENTER_N : public WI_SPIN_U08_t {
     constexpr static const char *const label = N_("Center N and fewer items");
 
@@ -129,7 +142,7 @@ public:
     }
 };
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_ALIGN_TEMP, IMiFooter<0>
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_ALIGN_TEMP, MI_SHOW_ZERO_TEMP_TARGET, IMiFooter<0>
 #if FOOTER_ITEMS_PER_LINE__ > 1
     ,
     IMiFooter<1>

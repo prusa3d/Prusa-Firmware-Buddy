@@ -11,10 +11,15 @@
 
 class FooterItemHeater : public AddSuperWindow<FooterIconText_IntVal> {
     static footer::ItemDrawType draw_type;
+    static bool draw_zero_target;
+    static void setDrawMode(footer::ItemDrawType type, bool draw_zero);
 
 public:
     static footer::ItemDrawType GetDrawType();
     static void SetDrawType(footer::ItemDrawType type);
+    static bool IsZeroTargetDrawn();
+    static void EnableDrawZeroTarget();
+    static void DisableDrawZeroTarget();
 
     enum class HeatState : uint8_t {
         stable,
