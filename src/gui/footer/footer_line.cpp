@@ -93,58 +93,72 @@ void FooterLine::Erase(size_t index) {
 }
 
 void FooterLine::positionWindows() {
-    Rect16 item_rects[array_sz];
+    Rectangles item_rects;
     std::array<Rect16::Width_t, max_items> widths;
-    std::array<Rect16::Width_t, array_sz> widths_after_centering; //can have 2 extra 0 valuses
-    size_t count = 0;
-    size_t count_with_borders = 0;
-    size_t count_after_split = 0;
+    size_t count = storeWidths(widths);
 
-    count = storeWidths(widths);
+    count = split(item_rects, widths, count);
 
-    // this loop will usually be run only once, max twice, when items does not fit in the window
-    do {
-        if (!count) {
-            // no item, should not happen
-            // all items will be hidden
-            break;
-        }
+    setItemRectangles(item_rects.begin(), item_rects.begin() + count);
 
-        //add zero widths on sides
-        if (center_N_andFewer >= count) {
-            widths_after_centering = addBorderZeroWidths(widths, count);
-            count_with_borders = count + 2;
-        } else {
-            std::copy(widths.begin(), widths.begin() + count, widths_after_centering.begin());
-            count_with_borders = count;
-        }
-        count_after_split = calculateItemRects(item_rects, widths_after_centering.data(), count_with_borders);
+    Invalidate();
+}
 
-        if (!count_after_split)
-            break;
-        if (count_with_borders != count_after_split) {
-            --count; // 1 fewer item for next attempt
-        }
-    } while (count_with_borders != count_after_split);
-
-    // change rects
-    bool centered = widths_after_centering[0] == 0;
-    Rect16 *item_rectangles = centered ? item_rects + 1 : item_rects; //skip dummy empty rect meant for centering
-    size_t index = 0;                                                 // index of item (nth item)
-    size_t used_index = 0;                                            // index of valid item (nth item)
-    for (; index < max_items; ++index) {
+void FooterLine::setItemRectangles(Rectangles::iterator rectangles_begin, Rectangles::iterator rectangles_end) {
+    // index == index of item (nth item)
+    for (size_t index = 0; index < max_items; ++index) {
         window_t *pWin = SlotAccess(index);
         if (pWin) {
-            if (used_index < count) {
-                pWin->SetRectWithoutTransformation(item_rectangles[used_index]);
-                ++used_index;
+            if (rectangles_begin != rectangles_end) {
+                pWin->SetRectWithoutTransformation(*rectangles_begin);
+                ++rectangles_begin;
                 pWin->Show();
             } else {
                 pWin->Hide();
             }
         }
     }
-    Invalidate();
+}
+
+size_t FooterLine::split(Rectangles &returned_rects, const std::array<Rect16::Width_t, max_items> &widths, size_t count) const {
+    bool split_result = false;
+    // this loop will usually be run only once, max twice, when items does not fit in the window
+    while ((!split_result) && count) {
+
+        split_result = try_split(returned_rects, widths, count);
+
+        if (!split_result) {
+            --count; // 1 fewer item for next attempt
+        }
+    }
+
+    return count;
+}
+
+bool FooterLine::try_split(Rectangles &returned_rects, const std::array<Rect16::Width_t, max_items> &widths, size_t count) const {
+    bool center = center_N_andFewer >= count;
+    std::array<Rect16, array_sz> temp_rects;           //can have 2 extra empty rectangles
+    std::array<Rect16::Width_t, array_sz> temp_widths; //can have 2 extra 0 valuses
+    size_t count_with_borders = 0;
+
+    if (center) {
+        //add zero widths on sides
+        temp_widths = addBorderZeroWidths(widths, count);
+        count_with_borders = count + 2;
+    } else {
+        std::copy(widths.begin(), widths.begin() + count, temp_widths.begin());
+        count_with_borders = count;
+    }
+    size_t count_after_split = calculateItemRects(temp_rects.data(), temp_widths.data(), count_with_borders);
+
+    if (count_with_borders != count_after_split)
+        return false; //did not fit
+
+    auto src_begin = center ? temp_rects.begin() + 1 : temp_rects.begin();
+    auto src_end = src_begin + count;
+    std::copy(src_begin, src_end, returned_rects.begin());
+
+    return true;
 }
 
 size_t FooterLine::calculateItemRects(Rect16 *item_rects, Rect16::Width_t *widths, size_t count) const {
