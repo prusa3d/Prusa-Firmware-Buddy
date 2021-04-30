@@ -12,18 +12,36 @@
 #include "footer_item_printspeed.hpp"
 #include "footer_item_live_z.hpp"
 #include "footer_item_sheet_profile.hpp"
+#include "printers.h"
+
+#if defined(PRINTER_TYPE) && PRINTER_TYPE == PRINTER_PRUSA_MINI
+    #define FOOTER_HAS_LIVE_Z
+    #define FOOTER_HAS_SHEETS
+#endif
 
 namespace footer {
-using ItemUnion = std::aligned_union<0, FooterItemNozzle, FooterItemBed, FooterItemFilament,
-    FooterItemSpeed, FooterItemLiveZ, FooterItemSheets>::type;
+using ItemUnion = std::aligned_union<0, FooterItemNozzle, FooterItemBed, FooterItemFilament, FooterItemSpeed
+#if defined(FOOTER_HAS_LIVE_Z)
+    ,
+    FooterItemLiveZ
+#endif
+#if defined(FOOTER_HAS_SHEETS)
+    ,
+    FooterItemSheets
+#endif
+    >::type;
 
 enum class items {
     ItemNozzle,
     ItemBed,
     ItemFilament,
     ItemSpeed,
+#if defined(FOOTER_HAS_LIVE_Z)
     ItemLiveZ,
+#endif
+#if defined(FOOTER_HAS_SHEETS)
     ItemSheets,
+#endif
     count_
 };
 
