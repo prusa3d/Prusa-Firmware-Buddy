@@ -120,27 +120,6 @@ esp_transmit_data(const void *data, size_t len) {
     return len;
 }
 
-void configure_uart(uint32_t baudrate) {
-    if (HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
-        Error_Handler();
-    }
-
-    /* Create mbox and start thread */
-    if (uartBufferMbox_id == NULL) {
-        uartBufferMbox_id = osMessageCreate(osMessageQ(uartBufferMbox), NULL);
-        if (uartBufferMbox_id == NULL) {
-            printf("error!");
-        }
-    }
-    if (UartBufferThread_id == NULL) {
-        osThreadDef(UartBufferThread, StartUartBufferThread, osPriorityNormal, 0, 100);
-        UartBufferThread_id = osThreadCreate(osThread(UartBufferThread), NULL);
-        if (UartBufferThread_id == NULL) {
-            printf("error!");
-        }
-    }
-}
-
 /**
  * \brief           Callback function called from initialization process
  */
@@ -158,10 +137,27 @@ lwesp_ll_init(lwesp_ll_t *ll) {
 #endif /* !LWESP_CFG_MEM_CUSTOM */
     if (!initialized) {
         ll->send_fn = esp_transmit_data; /* Set callback function to send data */
-        ll->reset_fn = reset_device;     /* Set callback for hardware reset */
+        ll->reset_fn = NULL;             /* Set callback for hardware reset */
+        if (HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
+            Error_Handler();
+        }
+
+        /* Create mbox and start thread */
+        if (uartBufferMbox_id == NULL) {
+            uartBufferMbox_id = osMessageCreate(osMessageQ(uartBufferMbox), NULL);
+            if (uartBufferMbox_id == NULL) {
+                printf("error!");
+            }
+        }
+        if (UartBufferThread_id == NULL) {
+            osThreadDef(UartBufferThread, StartUartBufferThread, osPriorityNormal, 0, 100);
+            UartBufferThread_id = osThreadCreate(osThread(UartBufferThread), NULL);
+            if (UartBufferThread_id == NULL) {
+                printf("error!");
+            }
+        }
     }
 
-    configure_uart(ll->uart.baudrate); /* Initialize UART for communication */
     esp_set_operating_mode(ESP_RUNNING_MODE);
     initialized = 1;
     return lwespOK;

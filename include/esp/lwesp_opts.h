@@ -35,14 +35,25 @@
 #define LWESP_HDR_OPTS_H
 
 /* Rename this file to "lwesp_opts.h" for your application */
+#include "dbg.h"
 
 /*
  * Open "include/lwesp/lwesp_opt.h" and
  * copy & replace here settings you want to change values
  */
 #define LWESP_CFG_INPUT_USE_PROCESS 1
-#define LWESP_CFG_RESET_ON_INIT     0
+#define LWESP_CFG_RESET_ON_INIT     1
 #define LWESP_CFG_RESTORE_ON_INIT   0
 #define LWESP_CFG_MAX_SSID_LENGTH   25
+#define LWESP_CFG_DBG               LWESP_DBG_ON
+#define LWESP_CFG_DBG_TYPES_ON      LWESP_DBG_TYPE_ALL
+#define LWESP_CFG_DBG_OUT(fmt, ...) \
+    do {                            \
+        _dbg(fmt, ##__VA_ARGS__);   \
+    } while (0)
+#define LWESP_CFG_USE_API_FUNC_EVT 1
+#define LWESP_CFG_NETCONN          1
+#define LWESP_CFG_DBG_INIT         LWESP_DBG_ON
+#define LWESP_CFG_AT_ECHO          1
 
 #endif /* LWESP_HDR_OPTS_H */

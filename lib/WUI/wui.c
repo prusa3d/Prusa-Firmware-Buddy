@@ -32,7 +32,6 @@ static marlin_vars_t *wui_marlin_vars;
 wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
 
-static uint8_t serial_flashing = 1;
 extern UART_HandleTypeDef huart6;
 
 static void wui_marlin_client_init(void) {
