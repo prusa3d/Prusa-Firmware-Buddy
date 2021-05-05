@@ -88,6 +88,9 @@ void StartUartBufferThread(void const *arg) {
                 old_pos = 0;
             }
         }
+
+        // FIXME: This should not be here - this is necessary to restart DMA transfers
+        // TODO: Start DMA receive on UART ready, not just all the time
         HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
     }
 }
