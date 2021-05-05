@@ -81,9 +81,9 @@ int uart_connect(int s, const struct sockaddr *name, socklen_t namelen) {
 }
 
 ssize_t uart_send(int s, const void *data, size_t size, int flags) {
-    for (size_t i = 0; i < size; ++i) {
-        HAL_UART_Transmit(&huart6, (uint8_t *)(data + i), 1, 10);
-    }
+    // for (size_t i = 0; i < size; ++i) {
+    //     HAL_UART_Transmit(&huart6, (uint8_t *)(data + i), 1, 10);
+    // }
     return size;
 }
 

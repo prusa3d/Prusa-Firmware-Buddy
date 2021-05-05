@@ -23,9 +23,9 @@ int socket(int domain, int type, int protocol) {
     case BUDDY_LAN_ETH:
         return lwip_socket(domain, type, protocol);
         break;
-    case BUDDY_LAN_WIFI:
-        return uart_socket(domain, type, protocol);
-        break;
+    // case BUDDY_LAN_WIFI:
+    //     return uart_socket(domain, type, protocol);
+    //     break;
     default:
         break;
     }
@@ -41,9 +41,9 @@ int connect(int s, const struct sockaddr *name, socklen_t namelen) {
     case BUDDY_LAN_ETH:
         lwip_connect(s, name, namelen);
         break;
-    case BUDDY_LAN_WIFI:
-        uart_connect(s, name, namelen);
-        break;
+    // case BUDDY_LAN_WIFI:
+    //     uart_connect(s, name, namelen);
+    //     break;
     default:
         break;
     }
@@ -60,9 +60,9 @@ ssize_t send(int s, const void *data, size_t size, int flags) {
     case BUDDY_LAN_ETH:
         ret = lwip_send(s, data, size, 0);
         break;
-    case BUDDY_LAN_WIFI:
-        ret = uart_send(s, data, size, 0);
-        break;
+    // case BUDDY_LAN_WIFI:
+    //     ret = uart_send(s, data, size, 0);
+    //     break;
     default:
         break;
     }
@@ -80,9 +80,9 @@ int sendto(int s, void *data, size_t size, int flags, struct sockaddr *addr,
     case BUDDY_LAN_ETH:
         ret = lwip_sendto(s, data, size, flags, addr, length);
         break;
-    case BUDDY_LAN_WIFI:
-        ret = uart_send(s, data, size, 0); // other parameters are not valid
-        break;
+    // case BUDDY_LAN_WIFI:
+    //     ret = uart_send(s, data, size, 0); // other parameters are not valid
+    //     break;
     default:
         break;
     }
@@ -98,9 +98,9 @@ ssize_t recv(int s, void *mem, size_t len, int flags) {
     case BUDDY_LAN_ETH:
         rec_len = lwip_recv(s, mem, len, flags);
         break;
-    case BUDDY_LAN_WIFI:
-        rec_len = uart_recv(s, mem, len, flags);
-        break;
+    // case BUDDY_LAN_WIFI:
+    //     rec_len = uart_recv(s, mem, len, flags);
+    //     break;
     default:
         break;
     }
@@ -114,9 +114,9 @@ int close(int s) {
     case BUDDY_LAN_ETH:
         ret = lwip_close(s);
         break;
-    case BUDDY_LAN_WIFI:
-        ret = uart_close(s);
-        break;
+    // case BUDDY_LAN_WIFI:
+    //     ret = uart_close(s);
+    //     break;
     default:
         break;
     }

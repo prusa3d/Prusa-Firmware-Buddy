@@ -15,7 +15,7 @@ target_sources(
             lwesp/lwesp/src/lwesp/lwesp_buff.c
             lwesp/lwesp/src/lwesp/lwesp_cli.c
             lwesp/lwesp/src/lwesp/lwesp_conn.c
-            lwesp/lwesp/src/lwesp/lwesp_debug.c
+            # lwesp/lwesp/src/lwesp/lwesp_debug.c
             lwesp/lwesp/src/lwesp/lwesp_dhcp.c
             lwesp/lwesp/src/lwesp/lwesp_dns.c
             lwesp/lwesp/src/lwesp/lwesp_evt.c
@@ -38,6 +38,9 @@ target_sources(
             lwesp/lwesp/src/system/lwesp_mem_lwmem.c
             prusa/src/system/lwesp_sys_buddy.c
             prusa/src/system/lwesp_ll_buddy.c
+            # prusa/src/esp.c prusa/src/lwesp_sta.c
+            prusa/snippets/client.c
+            lwesp/lwesp/src/api/lwesp_netconn.c
   )
 
 target_include_directories(
@@ -51,6 +54,7 @@ target_include_directories(
             ${CMAKE_SOURCE_DIR}/include/freertos
             lwesp/lwesp
             lwesp/snippets/include
+            prusa/include
   )
 
 add_library(flasher INTERFACE)
