@@ -19,6 +19,7 @@
 #include "lwesp/lwesp.h"
 #include "stm32_port.h"
 
+#include "esp.h"
 osThreadId httpcTaskHandle;
 
 #define WUI_NETIF_SETUP_DELAY  1000
@@ -31,8 +32,6 @@ osMutexId(wui_thread_mutex_id);
 static marlin_vars_t *wui_marlin_vars;
 wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
-
-extern UART_HandleTypeDef huart6;
 
 static void wui_marlin_client_init(void) {
     wui_marlin_vars = marlin_client_init(); // init the client
@@ -78,10 +77,15 @@ static void update_eth_changes(void) {
     wui_lwip_sync_gui_lan_settings();
 }
 
+extern void netconn_client_thread(void const *arg);
+
 void StartWebServerTask(void const *argument) {
+    ap_entry_t ap = { "SSID", "password" };
+    uint32_t res;
+
     // get settings from ini file
     osDelay(1000);
-    printf("wui starts");
+    _dbg("wui starts");
     if (load_ini_file(&wui_eth_config)) {
         save_eth_params(&wui_eth_config);
     }
@@ -100,21 +104,19 @@ void StartWebServerTask(void const *argument) {
     osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 512);
     httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
 
-    lwesp_mode_t mode = LWESP_MODE_STA_AP;
     // lwesp stuffs
-    if (lwesp_init(NULL, 1) != lwespOK) {
-        printf("Cannot initialize LwESP!\r\n");
-    } else {
-        printf("LwESP initialized!\r\n");
+    res = esp_initialize();
+    _dbg("LwESP initialized with result = %ld", res);
+
+    if (!esp_connect_to_AP(&ap)) {
+        _dbg("LwESP connect to AP %s!", ap.ssid);
+        lwesp_sys_thread_create(NULL, "netconn_client", (lwesp_sys_thread_fn)netconn_client_thread, NULL, 512, LWESP_SYS_THREAD_PRIO);
     }
 
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
-        lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
-        if (mode == LWESP_MODE_STA) {
-            printf("test ok");
-        }
+
         osDelay(1000);
     }
 }
