@@ -50,10 +50,10 @@ void handle_rx_data(UART_HandleTypeDef *huart) {
 #endif
 
 void configure_uart_socket(uint32_t baudrate) {
-    __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
-    if (HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
-        Error_Handler();
-    }
+    // __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
+    // if (HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
+    //     Error_Handler();
+    // }
     is_running = 0;
     old_pos = 0;
     is_running = 1;
@@ -91,28 +91,28 @@ ssize_t uart_recv(int s, void *mem, size_t len, int flags) {
     size_t pos;
     ssize_t received_len = 0;
     /* Wait for the event message from DMA or USART */
-    osMessageGet(uartSocketMbox_id, 500);
+    // osMessageGet(uartSocketMbox_id, 500);
 
-    /* Read data */
-    uint16_t dma_bytes_left = (uint16_t)(&huart6)->hdmarx->Instance->NDTR; // no. of bytes left for buffer full
-    pos = sizeof(dma_buffer_rx) - dma_bytes_left;
-    if (pos != old_pos && is_running) {
-        if (pos > old_pos) {
-            received_len = pos - old_pos;
-            memcpy(mem, &dma_buffer_rx[old_pos], len);
-        } else {
-            received_len = sizeof(dma_buffer_rx) - old_pos;
-            memcpy(mem, &dma_buffer_rx[old_pos], len);
-            if (pos > 0) {
-                received_len = len + pos;
-                memcpy((mem + (sizeof(dma_buffer_rx) - old_pos)), &dma_buffer_rx[0], pos);
-            }
-        }
-        old_pos = pos;
-        if (old_pos == sizeof(dma_buffer_rx)) {
-            old_pos = 0;
-        }
-    }
+    // /* Read data */
+    // uint16_t dma_bytes_left = (uint16_t)(&huart6)->hdmarx->Instance->NDTR; // no. of bytes left for buffer full
+    // pos = sizeof(dma_buffer_rx) - dma_bytes_left;
+    // if (pos != old_pos && is_running) {
+    //     if (pos > old_pos) {
+    //         received_len = pos - old_pos;
+    //         memcpy(mem, &dma_buffer_rx[old_pos], len);
+    //     } else {
+    //         received_len = sizeof(dma_buffer_rx) - old_pos;
+    //         memcpy(mem, &dma_buffer_rx[old_pos], len);
+    //         if (pos > 0) {
+    //             received_len = len + pos;
+    //             memcpy((mem + (sizeof(dma_buffer_rx) - old_pos)), &dma_buffer_rx[0], pos);
+    //         }
+    //     }
+    //     old_pos = pos;
+    //     if (old_pos == sizeof(dma_buffer_rx)) {
+    //         old_pos = 0;
+    //     }
+    // }
     return received_len;
 }
 

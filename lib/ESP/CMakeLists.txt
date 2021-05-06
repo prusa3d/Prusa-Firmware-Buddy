@@ -38,7 +38,8 @@ target_sources(
             lwesp/lwesp/src/system/lwesp_mem_lwmem.c
             prusa/src/system/lwesp_sys_buddy.c
             prusa/src/system/lwesp_ll_buddy.c
-            # prusa/src/esp.c prusa/src/lwesp_sta.c
+            prusa/src/esp.c
+            # prusa/src/lwesp_sta.c
             prusa/snippets/client.c
             lwesp/lwesp/src/api/lwesp_netconn.c
   )

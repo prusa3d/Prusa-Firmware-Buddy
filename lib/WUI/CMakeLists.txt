@@ -14,7 +14,7 @@ target_sources(
             sntp/sntp_client.c
             sntp/sntp.c
             buddy_socket.c
-            uart_socket.c
+            # uart_socket.c
             lan_interface.c
             httpc/httpc.c
   )
