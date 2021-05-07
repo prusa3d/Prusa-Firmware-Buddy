@@ -14,8 +14,7 @@ static lwesp_ap_t aps[32];
  */
 static size_t apf;
 
-static uint32_t esp_state = 0;
-lwesp_sta_info_ap_t connected_ap_info;
+static lwesp_sta_info_ap_t connected_ap_info;
 
 /**
  * \brief           Event callback function for ESP stack
@@ -37,33 +36,33 @@ lwesp_callback_func(lwesp_evt_t *evt) {
         break;
     }
     case LWESP_EVT_INIT_FINISH: {
-        _dbg("Library initialized!");
+        _dbg("LWESP_EVT_INIT_FINISH");
         break;
     }
     case LWESP_EVT_RESET: {
-        _dbg("Device reset sequence finished!");
-        esp_state = 1;
+        _dbg("LWESP_EVT_RESET");
         break;
     }
     case LWESP_EVT_RESET_DETECTED: {
-        _dbg("Device reset detected!");
+        _dbg("LWESP_EVT_RESET_DETECTED");
         break;
     }
     case LWESP_EVT_WIFI_GOT_IP: {
-        _dbg("Wifi got an IP address.\r\n");
+        _dbg("LWESP_EVT_WIFI_GOT_IP");
+        lwesp_set_wifi_mode(LWESP_MODE_STA, NULL, NULL, 0);
         break;
     }
     case LWESP_EVT_WIFI_CONNECTED: {
-        _dbg("Wifi just connected. Read access point information\r\n");
+        _dbg("LWESP_EVT_WIFI_CONNECTED");
         lwesp_sta_get_ap_info(&connected_ap_info, NULL, NULL, 0);
         break;
     }
     case LWESP_EVT_WIFI_DISCONNECTED: {
-        _dbg("Wifi just disconnected\r\n");
+        _dbg("LWESP_EVT_WIFI_DISCONNECTED");
         break;
     }
     case LWESP_EVT_CMD_TIMEOUT: {
-        _dbg("Device timeout!");
+        _dbg("LWESP_EVT_CMD_TIMEOUT");
         break;
     }
     default:
@@ -115,25 +114,6 @@ uint32_t esp_initialize() {
 uint32_t esp_connect_to_AP(const ap_entry_t *preferead_ap) {
     lwespr_t eres;
     uint32_t tried = MAX_TIMEOUT_ATTEMPTS;
-    lwesp_mode_t mode = LWESP_MODE_STA_AP;
-
-    // if(esp_state == 0 ) {
-    //     return 0;
-    // }
-
-    while (mode != LWESP_MODE_STA && tried) {
-        eres = lwesp_set_wifi_mode(LWESP_MODE_STA, NULL, NULL, 1);
-        if (eres != lwespOK) {
-            _dbg("Unable to set wifi mode : %d", eres);
-            --tried;
-        }
-        lwesp_get_wifi_mode(&mode, NULL, NULL, 1);
-    }
-
-    // lwesp_sta_cipmux(NULL, NULL, 1 );
-    if (lwesp_sta_has_ip()) {
-        return (uint32_t)lwespOK;
-    }
 
     /*
      * Scan for network access points
@@ -152,18 +132,17 @@ uint32_t esp_connect_to_AP(const ap_entry_t *preferead_ap) {
                     _dbg("Connecting to \"%s\" network...", preferead_ap->ssid);
                     /* Try to join to access point */
                     if ((eres = lwesp_sta_join(preferead_ap->ssid, preferead_ap->pass, NULL, NULL, NULL, 1)) == lwespOK) {
-                        // lwesp_ip_t ip, gw, mask;
-                        // uint8_t is_dhcp;
-                        // lwesp_sta_getip(&ip, &gw, &mask, NULL, NULL, 1);
-                        // lwesp_sta_copy_ip(&ip, NULL, NULL, &is_dhcp);
-                        // _dbg("Connected to %s network!", preferead_ap->ssid);
-                        // _dbg("Station IP address: %d.%d.%d.%d",
-                        //     (int)ip.ip[0], (int)ip.ip[1], (int)ip.ip[2], (int)ip.ip[3]);
-                        // _dbg("Station gateway address: %d.%d.%d.%d",
-                        //     (int)gw.ip[0], (int)gw.ip[1], (int)gw.ip[2], (int)gw.ip[3]);
-                        // _dbg("Station mask address: %d.%d.%d.%d",
-                        //     (int)mask.ip[0], (int)mask.ip[1], (int)mask.ip[2], (int)mask.ip[3]);
-                        // esp_state = 2;
+                        lwesp_ip_t ip, gw, mask;
+                        uint8_t is_dhcp;
+                        lwesp_sta_getip(&ip, &gw, &mask, NULL, NULL, 1);
+                        lwesp_sta_copy_ip(&ip, NULL, NULL, &is_dhcp);
+                        _dbg("Connected to %s network!", preferead_ap->ssid);
+                        _dbg("Station IP address: %d.%d.%d.%d",
+                            (int)ip.ip[0], (int)ip.ip[1], (int)ip.ip[2], (int)ip.ip[3]);
+                        _dbg("Station gateway address: %d.%d.%d.%d",
+                            (int)gw.ip[0], (int)gw.ip[1], (int)gw.ip[2], (int)gw.ip[3]);
+                        _dbg("Station mask address: %d.%d.%d.%d",
+                            (int)mask.ip[0], (int)mask.ip[1], (int)mask.ip[2], (int)mask.ip[3]);
                         return (uint32_t)lwespOK;
                     } else {
                         _dbg("Connection error: %d", (int)eres);
