@@ -88,6 +88,7 @@ void StartUartBufferThread(void const *arg) {
                 old_pos = 0;
             }
         }
+        HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
     }
 }
 
@@ -100,6 +101,20 @@ uint8_t reset_device(uint8_t state) {
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
     }
     return 1;
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART6 && (huart->ErrorCode & HAL_UART_ERROR_NE || huart->ErrorCode & HAL_UART_ERROR_FE)) {
+        __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);
+        HAL_UART_DeInit(huart);
+        if (HAL_UART_Init(huart) != HAL_OK) {
+            Error_Handler();
+        }
+        if (HAL_UART_Receive_DMA(huart, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
+            Error_Handler();
+        }
+        __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
+    }
 }
 
 /**
@@ -137,7 +152,7 @@ lwesp_ll_init(lwesp_ll_t *ll) {
 #endif /* !LWESP_CFG_MEM_CUSTOM */
     if (!initialized) {
         ll->send_fn = esp_transmit_data; /* Set callback function to send data */
-        ll->reset_fn = NULL;             /* Set callback for hardware reset */
+        ll->reset_fn = reset_device;     /* Set callback for hardware reset */
         if (HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
             Error_Handler();
         }
