@@ -108,7 +108,7 @@ void StartWebServerTask(void const *argument) {
     res = esp_initialize();
     _dbg("LwESP initialized with result = %ld", res);
     UNUSED(ap);
-
+    UNUSED(res);
     // if(!esp_connect_to_AP(&ap)) {
     //     _dbg("LwESP connect to AP %s!", ap.ssid);
     //     lwesp_sys_thread_create(NULL, "netconn_client", (lwesp_sys_thread_fn)netconn_client_thread, NULL, 512, LWESP_SYS_THREAD_PRIO);
