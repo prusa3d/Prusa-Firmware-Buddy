@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/ARMmbed/mbedtls.git
+	branch = v2.26.0
+	commit = e483a77c85e1f9c1dd2eb1c5a8f552d2617fe400
+	parent = 98c44d59192c6a5ba2f7eb9a577d7bf9eb27fdab
+	method = merge
+	cmdver = 0.4.3
