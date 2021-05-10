@@ -9,6 +9,7 @@
 //stubbed header does not have C linkage .. to be simpler
 static uint32_t hal_tick = 0;
 uint32_t gui::GetTick() { return hal_tick; }
+void gui::TickLoop() {}
 
 TEST_CASE("Window registration tests", "[window]") {
     MockScreen screen;
