@@ -1,3 +1,0 @@
-[submodule "third_party/embedded-libs"]
-	path = third_party/embedded-libs
-	url = https://github.com/MaJerle/embedded-libs

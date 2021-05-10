@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lwesp/lwesp.h"
+#include "esp/esp.h"
 #include "main.h"
 
 #ifdef __cplusplus
