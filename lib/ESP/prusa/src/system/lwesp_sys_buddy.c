@@ -1,5 +1,5 @@
 /**
- * \file            lwesp_sys_template.c
+ * \file            esp_sys_template.c
  * \brief           System dependant functions
  */
 
@@ -29,7 +29,7 @@
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
  * Version:         v1.0.0
  */
-#include "system/lwesp_sys.h"
+#include "system/esp_sys.h"
 #include "cmsis_os.h"
 
 static osMutexId sys_mutex;
@@ -43,8 +43,8 @@ static osMutexId sys_mutex;
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_init(void) {
-    lwesp_sys_mutex_create(&sys_mutex);
+esp_sys_init(void) {
+    esp_sys_mutex_create(&sys_mutex);
     return 1;
 }
 
@@ -53,7 +53,7 @@ lwesp_sys_init(void) {
  * \return          Current time in units of milliseconds
  */
 uint32_t
-lwesp_sys_now(void) {
+esp_sys_now(void) {
     return osKernelSysTick();
 }
 
@@ -68,23 +68,23 @@ lwesp_sys_now(void) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_protect(void) {
-    lwesp_sys_mutex_lock(&sys_mutex);
+esp_sys_protect(void) {
+    esp_sys_mutex_lock(&sys_mutex);
     return 1;
 }
 
 /**
  * \brief           Unprotect middleware core
  *
- * This function must follow number of calls of \ref lwesp_sys_protect
+ * This function must follow number of calls of \ref esp_sys_protect
  * and unlock access only when counter reached back zero.
  *
  * \note            Most operating systems support recursive mutexes.
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_unprotect(void) {
-    lwesp_sys_mutex_unlock(&sys_mutex);
+esp_sys_unprotect(void) {
+    esp_sys_mutex_unlock(&sys_mutex);
     return 1;
 }
 
@@ -95,7 +95,7 @@ lwesp_sys_unprotect(void) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_create(lwesp_sys_mutex_t *p) {
+esp_sys_mutex_create(esp_sys_mutex_t *p) {
     osMutexDef(MUT);
     *p = osRecursiveMutexCreate(osMutex(MUT));
     return *p != NULL;
@@ -107,7 +107,7 @@ lwesp_sys_mutex_create(lwesp_sys_mutex_t *p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_delete(lwesp_sys_mutex_t *p) {
+esp_sys_mutex_delete(esp_sys_mutex_t *p) {
     return osMutexDelete(*p) == osOK;
 }
 
@@ -117,7 +117,7 @@ lwesp_sys_mutex_delete(lwesp_sys_mutex_t *p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_lock(lwesp_sys_mutex_t *p) {
+esp_sys_mutex_lock(esp_sys_mutex_t *p) {
     return osRecursiveMutexWait(*p, osWaitForever) == osOK;
 }
 
@@ -127,7 +127,7 @@ lwesp_sys_mutex_lock(lwesp_sys_mutex_t *p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_unlock(lwesp_sys_mutex_t *p) {
+esp_sys_mutex_unlock(esp_sys_mutex_t *p) {
     return osRecursiveMutexRelease(*p) == osOK;
 }
 
@@ -137,7 +137,7 @@ lwesp_sys_mutex_unlock(lwesp_sys_mutex_t *p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_isvalid(lwesp_sys_mutex_t *p) {
+esp_sys_mutex_isvalid(esp_sys_mutex_t *p) {
     return p != NULL && *p != NULL;
 }
 
@@ -147,8 +147,8 @@ lwesp_sys_mutex_isvalid(lwesp_sys_mutex_t *p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mutex_invalid(lwesp_sys_mutex_t *p) {
-    *p = LWESP_SYS_MUTEX_NULL;
+esp_sys_mutex_invalid(esp_sys_mutex_t *p) {
+    *p = ESP_SYS_MUTEX_NULL;
     return 1;
 }
 
@@ -162,7 +162,7 @@ lwesp_sys_mutex_invalid(lwesp_sys_mutex_t *p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_sem_create(lwesp_sys_sem_t *p, uint8_t cnt) {
+esp_sys_sem_create(esp_sys_sem_t *p, uint8_t cnt) {
     osSemaphoreDef(SEM);
     *p = osSemaphoreCreate(osSemaphore(SEM), 1);
 
@@ -178,7 +178,7 @@ lwesp_sys_sem_create(lwesp_sys_sem_t *p, uint8_t cnt) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_sem_delete(lwesp_sys_sem_t *p) {
+esp_sys_sem_delete(esp_sys_sem_t *p) {
     return osSemaphoreDelete(*p) == osOK;
 }
 
@@ -187,12 +187,12 @@ lwesp_sys_sem_delete(lwesp_sys_sem_t *p) {
  * \param[in]       p: Pointer to semaphore structure
  * \param[in]       timeout: Timeout to wait in milliseconds. When `0` is applied, wait forever
  * \return          Number of milliseconds waited for semaphore to become available or
- *                      \ref LWESP_SYS_TIMEOUT if not available within given time
+ *                      \ref ESP_SYS_TIMEOUT if not available within given time
  */
 uint32_t
-lwesp_sys_sem_wait(lwesp_sys_sem_t *p, uint32_t timeout) {
+esp_sys_sem_wait(esp_sys_sem_t *p, uint32_t timeout) {
     uint32_t tick = osKernelSysTick();
-    return (osSemaphoreWait(*p, !timeout ? osWaitForever : timeout) == osOK) ? (osKernelSysTick() - tick) : LWESP_SYS_TIMEOUT;
+    return (osSemaphoreWait(*p, !timeout ? osWaitForever : timeout) == osOK) ? (osKernelSysTick() - tick) : ESP_SYS_TIMEOUT;
 }
 
 /**
@@ -201,7 +201,7 @@ lwesp_sys_sem_wait(lwesp_sys_sem_t *p, uint32_t timeout) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_sem_release(lwesp_sys_sem_t *p) {
+esp_sys_sem_release(esp_sys_sem_t *p) {
     return osSemaphoreRelease(*p) == osOK;
 }
 
@@ -211,7 +211,7 @@ lwesp_sys_sem_release(lwesp_sys_sem_t *p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_sem_isvalid(lwesp_sys_sem_t *p) {
+esp_sys_sem_isvalid(esp_sys_sem_t *p) {
     return p != NULL && *p != NULL;
 }
 
@@ -221,8 +221,8 @@ lwesp_sys_sem_isvalid(lwesp_sys_sem_t *p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_sem_invalid(lwesp_sys_sem_t *p) {
-    *p = LWESP_SYS_SEM_NULL;
+esp_sys_sem_invalid(esp_sys_sem_t *p) {
+    *p = ESP_SYS_SEM_NULL;
     return 1;
 }
 
@@ -233,7 +233,7 @@ lwesp_sys_sem_invalid(lwesp_sys_sem_t *p) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_create(lwesp_sys_mbox_t *b, size_t size) {
+esp_sys_mbox_create(esp_sys_mbox_t *b, size_t size) {
     osMessageQDef(MBOX, size, void *);
     *b = osMessageCreate(osMessageQ(MBOX), NULL);
     return *b != NULL;
@@ -245,7 +245,7 @@ lwesp_sys_mbox_create(lwesp_sys_mbox_t *b, size_t size) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_delete(lwesp_sys_mbox_t *b) {
+esp_sys_mbox_delete(esp_sys_mbox_t *b) {
     if (osMessageWaiting(*b)) {
         return 0;
     }
@@ -259,9 +259,9 @@ lwesp_sys_mbox_delete(lwesp_sys_mbox_t *b) {
  * \return          Time in units of milliseconds needed to put a message to queue
  */
 uint32_t
-lwesp_sys_mbox_put(lwesp_sys_mbox_t *b, void *m) {
+esp_sys_mbox_put(esp_sys_mbox_t *b, void *m) {
     uint32_t tick = osKernelSysTick();
-    return osMessagePut(*b, (uint32_t)m, osWaitForever) == osOK ? (osKernelSysTick() - tick) : LWESP_SYS_TIMEOUT;
+    return osMessagePut(*b, (uint32_t)m, osWaitForever) == osOK ? (osKernelSysTick() - tick) : ESP_SYS_TIMEOUT;
 }
 
 /**
@@ -270,10 +270,10 @@ lwesp_sys_mbox_put(lwesp_sys_mbox_t *b, void *m) {
  * \param[in]       m: Pointer to pointer to result to save value from message queue to
  * \param[in]       timeout: Maximal timeout to wait for new message. When `0` is applied, wait for unlimited time
  * \return          Time in units of milliseconds needed to put a message to queue
- *                      or \ref LWESP_SYS_TIMEOUT if it was not successful
+ *                      or \ref ESP_SYS_TIMEOUT if it was not successful
  */
 uint32_t
-lwesp_sys_mbox_get(lwesp_sys_mbox_t *b, void **m, uint32_t timeout) {
+esp_sys_mbox_get(esp_sys_mbox_t *b, void **m, uint32_t timeout) {
     osEvent evt;
     uint32_t time = osKernelSysTick();
 
@@ -282,7 +282,7 @@ lwesp_sys_mbox_get(lwesp_sys_mbox_t *b, void **m, uint32_t timeout) {
         *m = evt.value.p;
         return osKernelSysTick() - time;
     }
-    return LWESP_SYS_TIMEOUT;
+    return ESP_SYS_TIMEOUT;
 }
 
 /**
@@ -292,7 +292,7 @@ lwesp_sys_mbox_get(lwesp_sys_mbox_t *b, void **m, uint32_t timeout) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_putnow(lwesp_sys_mbox_t *b, void *m) {
+esp_sys_mbox_putnow(esp_sys_mbox_t *b, void *m) {
     return osMessagePut(*b, (uint32_t)m, 0) == osOK;
 }
 
@@ -303,7 +303,7 @@ lwesp_sys_mbox_putnow(lwesp_sys_mbox_t *b, void *m) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_getnow(lwesp_sys_mbox_t *b, void **m) {
+esp_sys_mbox_getnow(esp_sys_mbox_t *b, void **m) {
     osEvent evt;
 
     evt = osMessageGet(*b, 0);
@@ -320,7 +320,7 @@ lwesp_sys_mbox_getnow(lwesp_sys_mbox_t *b, void **m) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_isvalid(lwesp_sys_mbox_t *b) {
+esp_sys_mbox_isvalid(esp_sys_mbox_t *b) {
     return b != NULL && *b != NULL;
 }
 
@@ -330,8 +330,8 @@ lwesp_sys_mbox_isvalid(lwesp_sys_mbox_t *b) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_mbox_invalid(lwesp_sys_mbox_t *b) {
-    *b = LWESP_SYS_MBOX_NULL;
+esp_sys_mbox_invalid(esp_sys_mbox_t *b) {
+    *b = ESP_SYS_MBOX_NULL;
     return 1;
 }
 
@@ -347,16 +347,16 @@ lwesp_sys_mbox_invalid(lwesp_sys_mbox_t *b) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_thread_create(lwesp_sys_thread_t *t, const char *name, lwesp_sys_thread_fn thread_func,
-    void *const arg, size_t stack_size, lwesp_sys_thread_prio_t prio) {
+esp_sys_thread_create(esp_sys_thread_t *t, const char *name, esp_sys_thread_fn thread_func,
+    void *const arg, size_t stack_size, esp_sys_thread_prio_t prio) {
     const osThreadDef_t thread_def = {
         (char *)name,
         (os_pthread)thread_func,
         (osPriority)prio,
         0,
-        stack_size > 0 ? stack_size : LWESP_SYS_THREAD_SS
+        stack_size > 0 ? stack_size : ESP_SYS_THREAD_SS
     };
-    lwesp_sys_thread_t id;
+    esp_sys_thread_t id;
 
     id = osThreadCreate(&thread_def, arg);
     if (t != NULL) {
@@ -372,7 +372,7 @@ lwesp_sys_thread_create(lwesp_sys_thread_t *t, const char *name, lwesp_sys_threa
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_thread_terminate(lwesp_sys_thread_t *t) {
+esp_sys_thread_terminate(esp_sys_thread_t *t) {
     osThreadTerminate(t != NULL ? *t : NULL);
     return 1;
 }
@@ -382,7 +382,7 @@ lwesp_sys_thread_terminate(lwesp_sys_thread_t *t) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwesp_sys_thread_yield(void) {
+esp_sys_thread_yield(void) {
     osThreadYield();
     return 1;
 }

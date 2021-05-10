@@ -10,50 +10,48 @@ add_library(lwesp INTERFACE)
 
 target_sources(
   lwesp
-  INTERFACE lwesp/lwesp/src/lwesp/lwesp.c
-            lwesp/lwesp/src/lwesp/lwesp_ap.c
-            lwesp/lwesp/src/lwesp/lwesp_buff.c
-            lwesp/lwesp/src/lwesp/lwesp_cli.c
-            lwesp/lwesp/src/lwesp/lwesp_conn.c
-            # lwesp/lwesp/src/lwesp/lwesp_debug.c
-            lwesp/lwesp/src/lwesp/lwesp_dhcp.c
-            lwesp/lwesp/src/lwesp/lwesp_dns.c
-            lwesp/lwesp/src/lwesp/lwesp_evt.c
-            lwesp/lwesp/src/lwesp/lwesp_hostname.c
-            lwesp/lwesp/src/lwesp/lwesp_input.c
-            lwesp/lwesp/src/lwesp/lwesp_int.c
-            lwesp/lwesp/src/lwesp/lwesp_mdns.c
-            lwesp/lwesp/src/lwesp/lwesp_mem.c
-            lwesp/lwesp/src/lwesp/lwesp_parser.c
-            lwesp/lwesp/src/lwesp/lwesp_pbuf.c
-            lwesp/lwesp/src/lwesp/lwesp_ping.c
-            lwesp/lwesp/src/lwesp/lwesp_smart.c
-            lwesp/lwesp/src/lwesp/lwesp_sntp.c
-            lwesp/lwesp/src/lwesp/lwesp_sta.c
-            lwesp/lwesp/src/lwesp/lwesp_threads.c
-            lwesp/lwesp/src/lwesp/lwesp_timeout.c
-            lwesp/lwesp/src/lwesp/lwesp_unicode.c
-            lwesp/lwesp/src/lwesp/lwesp_utils.c
-            lwesp/lwesp/src/lwesp/lwesp_wps.c
-            lwesp/lwesp/src/system/lwesp_mem_lwmem.c
+  INTERFACE lwesp/src/esp/esp.c
+            lwesp/src/esp/esp_ap.c
+            lwesp/src/esp/esp_buff.c
+            lwesp/src/esp/esp_cli.c
+            lwesp/src/esp/esp_conn.c
+            # lwesp/src/esp/esp_dhcp.c lwesp/src/esp/esp_dns.c
+            lwesp/src/esp/esp_evt.c
+            lwesp/src/esp/esp_hostname.c
+            lwesp/src/esp/esp_input.c
+            lwesp/src/esp/esp_int.c
+            lwesp/src/esp/esp_mdns.c
+            lwesp/src/esp/esp_mem.c
+            lwesp/src/esp/esp_parser.c
+            lwesp/src/esp/esp_pbuf.c
+            lwesp/src/esp/esp_ping.c
+            # lwesp/src/esp/esp_smart.c
+            lwesp/src/esp/esp_sntp.c
+            lwesp/src/esp/esp_sta.c
+            lwesp/src/esp/esp_threads.c
+            lwesp/src/esp/esp_timeout.c
+            lwesp/src/esp/esp_unicode.c
+            # lwesp/src/esp/esp_utils.c
+            lwesp/src/esp/esp_wps.c
+            # lwesp/src/system/esp_mem_lwmem.c
             prusa/src/system/lwesp_sys_buddy.c
             prusa/src/system/lwesp_ll_buddy.c
             prusa/src/esp.c
             # prusa/src/lwesp_sta.c
             prusa/snippets/client.c
-            lwesp/lwesp/src/api/lwesp_netconn.c
+            lwesp/src/api/esp_netconn.c
   )
 
 target_include_directories(
   lwesp
-  INTERFACE lwesp/lwesp/src/include
+  INTERFACE lwesp/src/include
             prusa/include/system/port/buddy
             ${CMAKE_SOURCE_DIR}/include/esp
             ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/include
             ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS
             ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
             ${CMAKE_SOURCE_DIR}/include/freertos
-            lwesp/lwesp
+            lwesp/esp
             lwesp/snippets/include
             prusa/include
   )

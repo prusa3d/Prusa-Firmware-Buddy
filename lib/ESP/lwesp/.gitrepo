@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/MaJerle/lwesp.git
-	branch = develop
-	commit = 5e947d4caf67a0ae5d2ac09877365c241fffc5cc
-	parent = 95cdb78f4b2cf224d3f0f0fdf44af9e3f0236710
+	branch = v0.5.0
+	commit = 4dd5399fabebedf601042d5dad4c29f9e6c24abe
+	parent = 04f8547400d0f5493dbd8f690b24146b5d144999
 	method = merge
 	cmdver = 0.4.3

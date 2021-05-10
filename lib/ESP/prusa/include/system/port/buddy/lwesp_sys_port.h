@@ -36,7 +36,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include "lwesp/lwesp_opt.h"
+#include "esp/lwesp_opt.h"
 #include "cmsis_os.h"
 
 #ifdef __cplusplus

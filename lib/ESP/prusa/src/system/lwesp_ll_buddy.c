@@ -1,7 +1,7 @@
-#include "lwesp/lwesp.h"
-#include "lwesp/lwesp_mem.h"
-#include "lwesp/lwesp_input.h"
-#include "system/lwesp_ll.h"
+#include "esp/esp.h"
+#include "esp/esp_mem.h"
+#include "esp/esp_input.h"
+#include "system/esp_ll.h"
 #include "lwesp_ll_buddy.h"
 
 /*
@@ -28,9 +28,9 @@ static osMessageQId uartBufferMbox_id;
 
 //UART buffer stuffs
 #define RX_BUFFER_LEN 0x500
-#if !defined(LWESP_MEM_SIZE)
-    #define LWESP_MEM_SIZE 0x500
-#endif /* !defined(LWESP_MEM_SIZE) */
+#if !defined(ESP_MEM_SIZE)
+    #define ESP_MEM_SIZE 0x500
+#endif /* !defined(ESP_MEM_SIZE) */
 
 static uint32_t esp_working_mode;
 static uint32_t initialized;
@@ -51,7 +51,7 @@ uint32_t esp_get_operating_mode(void) {
 }
 
 void esp_receive_data(UART_HandleTypeDef *huart) {
-    LWESP_UNUSED(huart);
+    ESP_UNUSED(huart);
     if (uartBufferMbox_id != NULL) {
         uint32_t message = 0;
         osMessagePut(uartBufferMbox_id, message, 0);
@@ -65,7 +65,7 @@ void StartUartBufferThread(void const *arg) {
     size_t old_pos = 0;
     size_t pos = 0;
 
-    LWESP_UNUSED(arg);
+    ESP_UNUSED(arg);
 
     while (1) {
         /* Wait for the event message from DMA or USART */
@@ -76,11 +76,11 @@ void StartUartBufferThread(void const *arg) {
         pos = sizeof(dma_buffer_rx) - dma_bytes_left;
         if (pos != old_pos && esp_get_operating_mode() == ESP_RUNNING_MODE) {
             if (pos > old_pos) {
-                lwesp_input_process(&dma_buffer_rx[old_pos], pos - old_pos);
+                esp_input_process(&dma_buffer_rx[old_pos], pos - old_pos);
             } else {
-                lwesp_input_process(&dma_buffer_rx[old_pos], sizeof(dma_buffer_rx) - old_pos);
+                esp_input_process(&dma_buffer_rx[old_pos], sizeof(dma_buffer_rx) - old_pos);
                 if (pos > 0) {
-                    lwesp_input_process(&dma_buffer_rx[0], pos);
+                    esp_input_process(&dma_buffer_rx[0], pos);
                 }
             }
             old_pos = pos;
@@ -138,21 +138,21 @@ esp_transmit_data(const void *data, size_t len) {
 /**
  * \brief           Callback function called from initialization process
  */
-lwespr_t
-lwesp_ll_init(lwesp_ll_t *ll) {
-#if !LWESP_CFG_MEM_CUSTOM
-    static uint8_t memory[LWESP_MEM_SIZE];
-    lwesp_mem_region_t mem_regions[] = {
+espr_t
+esp_ll_init(esp_ll_t *ll) {
+#if !ESP_CFG_MEM_CUSTOM
+    static uint8_t memory[ESP_MEM_SIZE];
+    esp_mem_region_t mem_regions[] = {
         { memory, sizeof(memory) }
     };
 
     if (!initialized) {
-        lwesp_mem_assignmemory(mem_regions, LWESP_ARRAYSIZE(mem_regions)); /* Assign memory for allocations */
+        esp_mem_assignmemory(mem_regions, ESP_ARRAYSIZE(mem_regions)); /* Assign memory for allocations */
     }
-#endif /* !LWESP_CFG_MEM_CUSTOM */
+#endif /* !ESP_CFG_MEM_CUSTOM */
     if (!initialized) {
         ll->send_fn = esp_transmit_data; /* Set callback function to send data */
-        ll->reset_fn = reset_device;     /* Set callback for hardware reset */
+                                         //        ll->reset_fn = reset_device;     /* Set callback for hardware reset */
         if (HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
             Error_Handler();
         }
@@ -175,14 +175,14 @@ lwesp_ll_init(lwesp_ll_t *ll) {
 
     esp_set_operating_mode(ESP_RUNNING_MODE);
     initialized = 1;
-    return lwespOK;
+    return espOK;
 }
 
 /**
  * \brief           Callback function to de-init low-level communication part
  */
-lwespr_t
-lwesp_ll_deinit(lwesp_ll_t *ll) {
+espr_t
+esp_ll_deinit(esp_ll_t *ll) {
     if (uartBufferMbox_id != NULL) {
         osMessageQId tmp = uartBufferMbox_id;
         uartBufferMbox_id = NULL;
@@ -194,6 +194,6 @@ lwesp_ll_deinit(lwesp_ll_t *ll) {
         osThreadTerminate(tmp);
     }
     initialized = 0;
-    LWESP_UNUSED(ll);
-    return lwespOK;
+    ESP_UNUSED(ll);
+    return espOK;
 }

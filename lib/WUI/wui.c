@@ -16,7 +16,7 @@
 #include "sntp_client.h"
 #include "httpc/httpc.h"
 #include "dbg.h"
-#include "lwesp/lwesp.h"
+#include "esp/esp.h"
 #include "stm32_port.h"
 
 #include "esp.h"
@@ -107,12 +107,12 @@ void StartWebServerTask(void const *argument) {
     // lwesp stuffs
     res = esp_initialize();
     _dbg("LwESP initialized with result = %ld", res);
-    UNUSED(ap);
-    UNUSED(res);
-    // if(!esp_connect_to_AP(&ap)) {
-    //     _dbg("LwESP connect to AP %s!", ap.ssid);
-    //     lwesp_sys_thread_create(NULL, "netconn_client", (lwesp_sys_thread_fn)netconn_client_thread, NULL, 512, LWESP_SYS_THREAD_PRIO);
-    // }
+    LWIP_UNUSED_ARG(res);
+
+    if (!esp_connect_to_AP(&ap)) {
+        _dbg("LwESP connect to AP %s!", ap.ssid);
+        esp_sys_thread_create(NULL, "netconn_client", (esp_sys_thread_fn)netconn_client_thread, NULL, 512, ESP_SYS_THREAD_PRIO);
+    }
 
     for (;;) {
         update_eth_changes();
