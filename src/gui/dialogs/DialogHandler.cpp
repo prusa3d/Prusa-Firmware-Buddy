@@ -116,6 +116,7 @@ void DialogHandler::WaitUntilClosed(ClientFSM dialog, uint8_t data) {
     PreOpen(dialog, data);
     waiting_closed = dialog;
     while (waiting_closed == dialog) {
+        gui::TickLoop();
         Loop();
         gui_loop();
     }

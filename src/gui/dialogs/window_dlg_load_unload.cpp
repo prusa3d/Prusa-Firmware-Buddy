@@ -21,6 +21,7 @@ Result DialogBlocking(PreheatMode mode, RetAndCool_t retAndCool) {
     Dialog(mode, retAndCool);
     PreheatStatus::Result ret;
     while ((ret = PreheatStatus::ConsumeResult()) == PreheatStatus::Result::DidNotFinish) {
+        gui::TickLoop();
         DialogHandler::Access().Loop(); // fsm events .. to be able to change state
         gui_loop();
     }
