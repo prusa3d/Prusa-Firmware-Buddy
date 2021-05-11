@@ -3,7 +3,7 @@
 #include "USBSerial.h"
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
-#include "usbd_def.h"
+#include "usbd_cdc_if.h"
 
 #define USBSERIAL_OBUF_SIZE 256
 #define USBSERIAL_IBUF_SIZE 256
@@ -11,10 +11,6 @@
 #define USBSERIAL_MAX_FAIL  10
 
 extern "C" {
-
-extern USBD_HandleTypeDef hUsbDeviceFS;
-extern uint8_t CDC_Transmit_FS(uint8_t *Buf, uint16_t Len);
-extern int usbd_cdc_initialized;
 
 int USBSerial_failcount = 0;
 
@@ -29,10 +25,10 @@ uint32_t ibufw = 0;                 //input buffer write index
 void usb_cdc_tx_buffer(void) {
     uint8_t ret;
     int retry = USBSERIAL_RETRY;
-    if (hUsbDeviceFS.pClassData && usbd_cdc_initialized) // end-point connected
+    if (usbd_cdc_is_ready()) // end-point connected
     {
         while (retry) {
-            ret = CDC_Transmit_FS(obuff, obufc);
+            ret = usbd_cdc_transmit(obuff, obufc);
             if (ret == USBD_OK)
                 break;
             osDelay(1);
@@ -41,7 +37,7 @@ void usb_cdc_tx_buffer(void) {
         if (retry == 0) {
             USBSerial_failcount++;
             if (USBSerial_failcount > USBSERIAL_MAX_FAIL) { //disable usb_cdc, reset fail counter
-                usbd_cdc_initialized = 0;
+                usbd_cdc_if.DeInit();
                 USBSerial_failcount = 0;
             }
         }

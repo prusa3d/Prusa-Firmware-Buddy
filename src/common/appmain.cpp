@@ -14,6 +14,7 @@
 #include "gpio.h"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
+#include "usbd_cdc_if.h"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"
@@ -59,6 +60,7 @@ CFanCtl fanctl1 = CFanCtl(
 //#define DBG(...)  //disable debug
 
 extern void USBSerial_put_rx_data(uint8_t *buffer, uint32_t length);
+extern void app_cdc_rx(uint8_t *buffer, uint32_t length);
 
 extern void reset_trinamic_drivers();
 
@@ -77,6 +79,9 @@ void app_setup(void) {
     } else {
         init_tmc_bare_minimum();
     }
+
+    // enable cdc
+    usbd_cdc_register_receive_fn(app_cdc_rx);
 
     setup();
 
