@@ -22,9 +22,9 @@
  *
  * @par Example usage:
  * @code
- * #define PIN_TABLE(F) \
- *      F(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), InitState::reset COMMA OMode::pushPull COMMA OSpeed::low) \
- *      F(buddy::hw::InputPin, fastBoot, IoPort::C COMMA IoPin::p7, IMode::input COMMA Pull::up)
+ * #define PIN_TABLE(MACRO_FUNCTION) \
+ *      MACRO_FUNCTION(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), InitState::reset COMMA OMode::pushPull COMMA OSpeed::low) \
+ *      MACRO_FUNCTION(buddy::hw::InputPin, fastBoot, IoPort::C COMMA IoPin::p7, IMode::input COMMA Pull::up)
  *
  * namespace buddy::hw {
  * DECLARE_PINS(PIN_TABLE)
