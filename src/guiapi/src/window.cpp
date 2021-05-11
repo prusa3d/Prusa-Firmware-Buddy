@@ -29,16 +29,16 @@ void window_t::Validate(Rect16 validation_rect) {
     }
 }
 
-void window_t::Invalidate(Rect16 validation_rect) {
-    if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
-        flags.invalid = true;
-        invalidate(validation_rect);
+void window_t::Invalidate(Rect16 invalidation_rect) {
+    if (invalidation_rect.IsEmpty() || rect.HasIntersection(invalidation_rect)) {
+        invalidate(invalidation_rect);
         gui_invalidate();
     }
 }
 
 //frame will invalidate children
 void window_t::invalidate(Rect16 validation_rect) {
+    flags.invalid = true;
 }
 
 //frame will validate children

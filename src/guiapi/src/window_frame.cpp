@@ -130,6 +130,7 @@ void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, windo
     if ((!pFirst) || (!pLast))
         return;
 
+    Rect16 inv_rect = win.GetRect();
     bool clr_begin_end = (&win == pFirst && pFirst == pLast);
 
     window_t *prev = GetPrevSubWin(&win);
@@ -150,7 +151,7 @@ void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, windo
 
     win.SetParent(nullptr);
 
-    Invalidate();
+    Invalidate(inv_rect);
 }
 
 void window_frame_t::addInvalidationRect(Rect16 rc) {
@@ -280,11 +281,16 @@ void window_frame_t::screenEvent(window_t *sender, GUI_event_t event, void *para
 }
 
 //resend invalidation to all children
-void window_frame_t::invalidate(Rect16 validation_rect) {
+void window_frame_t::invalidate(Rect16 invalidation_rect) {
     window_t *ptr = first_normal;
     while (ptr) {
-        ptr->Invalidate(validation_rect);
+        ptr->Invalidate(invalidation_rect);
         ptr = ptr->GetNext();
+    }
+    if (invalidation_rect.IsEmpty()) {
+        flags.invalid = true;
+    } else {
+        addInvalidationRect(invalidation_rect);
     }
 }
 
