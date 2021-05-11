@@ -87,6 +87,10 @@ set(WUI
     "YES"
     CACHE BOOL "Enable Web User Interface"
     )
+set(ESP
+    "YES"
+    CACHE BOOL "Enable ESP link"
+    )
 
 # Validate options
 foreach(OPTION "PRINTER" "MOTHERBOARD" "MCU" "BOOTLOADER")
@@ -129,6 +133,7 @@ message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
 message(STATUS "Printer: ${PRINTER}")
 message(STATUS "Web User Interface: ${WUI}")
+message(STATUS "ESP link: ${ESP}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
@@ -361,6 +366,18 @@ set_target_properties(firmware PROPERTIES CXX_STANDARD 17)
 
 if(WUI)
   target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
+endif()
+
+if(ESP)
+  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_ESP)
+  set(WUI_ESP_DMA_TEST
+      "NO"
+      CACHE BOOL "wui esp dma test"
+      )
+  if(WUI_ESP_DMA_TEST)
+    target_compile_definitions(firmware PRIVATE WUI_ESP_DMA_TEST)
+    message(STATUS "WUI_ESP_DMA_TEST: ${WUI_ESP_DMA_TEST}")
+  endif()
 endif()
 
 # generate firmware.bin file

@@ -192,25 +192,20 @@ void USART2_IRQHandler() {
     }
     HAL_UART_IRQHandler(&huart2);
 }
-#ifdef USE_ESP01_WITH_UART6
-void USART6_IRQHandler(void) {
-    HAL_UART_IRQHandler(&huart6);
 
-    if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
-        __HAL_UART_CLEAR_IDLEFLAG(&huart6);
-        handle_rx_data(&huart6);
-    }
-}
-#else
 void USART6_IRQHandler() {
     // Uart_isr(&huart6);
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart6);
+#ifdef USE_ESP01_WITH_UART6
+        handle_lwesp_rx_data();
+#else
         uartrxbuff_idle_cb(&uart6rxbuff);
+#endif
     }
     HAL_UART_IRQHandler(&huart6);
 }
-#endif
+
 /**
   * @brief This function handles Window watchdog interrupt.
   */
@@ -329,7 +324,6 @@ void DMA2_Stream1_IRQHandler(void) {
     /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
 
-#ifndef USE_ESP01_WITH_UART6
 /**
   * @brief This function handles DMA2 stream2 global interrupt.
   */
@@ -342,7 +336,7 @@ void DMA2_Stream2_IRQHandler(void) {
 
     /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
-#endif
+
 /**
   * @brief This function handles Ethernet global interrupt.
   */

@@ -72,10 +72,6 @@
 #define USB_OVERC_GPIO_Port GPIOE
 #define USB_EN_Pin          GPIO_PIN_5
 #define USB_EN_GPIO_Port    GPIOE
-#define ESP_GPIO0_Pin       GPIO_PIN_6
-#define ESP_GPIO0_GPIO_Port GPIOE
-#define ESP_RST_Pin         GPIO_PIN_13
-#define ESP_RST_GPIO_Port   GPIOC
 #define BED_MON_Pin         GPIO_PIN_7
 #define BED_MON_GPIO_Port   GPIOE
 #define FAN0_TACH_Pin       GPIO_PIN_10
@@ -167,7 +163,6 @@ static void MX_TIM14_Init(void);
 static void MX_RTC_Init(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
-void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
 /* USER CODE BEGIN PFP */
@@ -181,12 +176,14 @@ void iwdg_warning_cb(void);
 
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[200];
+
 #ifndef USE_ESP01_WITH_UART6
-uartrxbuff_t uart6rxbuff;
-uint8_t uart6rx_data[128];
 uartslave_t uart6slave;
 char uart6slave_line[32];
 #endif
+uartrxbuff_t uart6rxbuff;
+uint8_t uart6rx_data[RX_BUFFER_LEN];
+
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
@@ -266,10 +263,10 @@ int main(void) {
     uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
     uartrxbuff_reset(&uart1rxbuff);
-#ifndef USE_ESP01_WITH_UART6
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
     HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
     uartrxbuff_reset(&uart6rxbuff);
+#ifndef USE_ESP01_WITH_UART6
     uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
     putslave_init(&uart6slave);
     wdt_iwdg_warning_cb = iwdg_warning_cb;
@@ -848,7 +845,7 @@ static void MX_USART6_UART_Init(void) {
 
     /* USER CODE END USART6_Init 1 */
     huart6.Instance = USART6;
-    huart6.Init.BaudRate = 115200;
+    huart6.Init.BaudRate = UART6_DEFAULT_BAUDRATE;
     huart6.Init.WordLength = UART_WORDLENGTH_8B;
     huart6.Init.StopBits = UART_STOPBITS_1;
     huart6.Init.Parity = UART_PARITY_NONE;
@@ -922,30 +919,23 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(USB_EN_GPIO_Port, &GPIO_InitStruct);
-#ifdef USE_ESP01_WITH_UART6
-    /*Configure GPIO pins : ESP_RST_Pin */
-    GPIO_InitStruct.Pin = ESP_RST_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+
     /*Configure ESP GPIO0 (PROG, High for ESP module boot from Flash)*/
     GPIO_InitStruct.Pin = GPIO_PIN_6;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
-#else
+    HAL_GPIO_Init(ESP_GPIO0_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(ESP_GPIO0_GPIO_Port, ESP_GPIO0_Pin, GPIO_PIN_SET);
+
     /*Configure GPIO pins : ESP_RST_Pin */
     GPIO_InitStruct.Pin = ESP_RST_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
-#endif
+    HAL_GPIO_Init(ESP_RST_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
+
     /*Configure GPIO pins : FLASH_CSN_Pin */
     GPIO_InitStruct.Pin = FLASH_CSN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;

@@ -41,8 +41,8 @@
  * copy & replace here settings you want to change values
  */
 #define LWESP_CFG_INPUT_USE_PROCESS 1
-#define LWESP_CFG_RESET_ON_INIT     0
-#define LWESP_CFG_RESTORE_ON_INIT   0
+#define LWESP_CFG_RESET_ON_INIT     1
+#define LWESP_CFG_RESTORE_ON_INIT   1
 #define LWESP_CFG_MAX_SSID_LENGTH   25
 
 #endif /* LWESP_HDR_OPTS_H */

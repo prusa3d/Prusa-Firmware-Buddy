@@ -50,5 +50,4 @@ target_include_directories(
             ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
             ${CMAKE_SOURCE_DIR}/include/freertos
             lwesp/lwesp
-            lwesp/snippets/include
   )

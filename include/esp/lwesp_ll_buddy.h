@@ -7,7 +7,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-void handle_rx_data(UART_HandleTypeDef *huart);
+void handle_lwesp_rx_data();
 
 #ifdef __cplusplus
 }

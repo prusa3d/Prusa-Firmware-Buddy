@@ -4,7 +4,11 @@
 #include "system/lwesp_ll.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
+#include "stm32f4xx_ll_usart.h"
 #include "main.h"
+#include "config.h"
+#include "uartrxbuff.h"
+#include "at_link.h"
 
 /*
  * UART and other pin configuration for ESP01 module
@@ -21,6 +25,11 @@
  * UART_RX_STREAM      STREAM_1
  * UART_TX_STREAM      STREAM_6
  */
+#ifdef WUI_ESP_DMA_TEST
+    #define DMA_BUFF_FUN atlink_input_process
+#else
+    #define DMA_BUFF_FUN lwesp_input_process
+#endif
 
 //Thread stuffs
 static osThreadId UartBufferThread_id;
@@ -29,23 +38,18 @@ osMessageQDef(uartBufferMbox, 16, NULL);
 static osMessageQId uartBufferMbox_id;
 
 //UART buffer stuffs
-#define RX_BUFFER_LEN 0x500
 #if !defined(LWESP_MEM_SIZE)
     #define LWESP_MEM_SIZE 0x500
 #endif /* !defined(LWESP_MEM_SIZE) */
 
 static uint8_t is_running;
 static uint8_t initialized;
-static size_t old_pos;
+static int old_pos;
 
-uint32_t rollover_rx = 0;
-uint32_t rx_head = 0; // last write location
-uint32_t rx_tail = 0; // last read accessed location
+extern uartrxbuff_t uart6rxbuff;
+extern DMA_HandleTypeDef hdma_usart6_rx;
 
-uint8_t data_rx[RX_BUFFER_LEN];
-uint8_t dma_buffer_rx[RX_BUFFER_LEN];
-
-void handle_rx_data(UART_HandleTypeDef *huart) {
+void handle_lwesp_rx_data() {
 
     if (uartBufferMbox_id != NULL) {
         uint32_t message = 0;
@@ -57,7 +61,7 @@ void handle_rx_data(UART_HandleTypeDef *huart) {
  * \brief           USART data processing
  */
 void StartUartBufferThread(void const *arg) {
-    size_t pos;
+    int pos;
 
     LWESP_UNUSED(arg);
 
@@ -66,19 +70,19 @@ void StartUartBufferThread(void const *arg) {
         osMessageGet(uartBufferMbox_id, osWaitForever);
 
         /* Read data */
-        uint16_t dma_bytes_left = (uint16_t)(&huart6)->hdmarx->Instance->NDTR; // no. of bytes left for buffer full
-        pos = sizeof(dma_buffer_rx) - dma_bytes_left;
+        uint32_t dma_bytes_left = (&hdma_usart6_rx)->Instance->NDTR; // no. of bytes left for buffer full
+        pos = uart6rxbuff.buffer_size - dma_bytes_left;
         if (pos != old_pos && is_running) {
             if (pos > old_pos) {
-                lwesp_input_process(&dma_buffer_rx[old_pos], pos - old_pos);
+                DMA_BUFF_FUN((uart6rxbuff.buffer + old_pos), pos - old_pos);
             } else {
-                lwesp_input_process(&dma_buffer_rx[old_pos], sizeof(dma_buffer_rx) - old_pos);
+                DMA_BUFF_FUN((uart6rxbuff.buffer + old_pos), uart6rxbuff.buffer_size - old_pos);
                 if (pos > 0) {
-                    lwesp_input_process(&dma_buffer_rx[0], pos);
+                    DMA_BUFF_FUN(uart6rxbuff.buffer, pos);
                 }
             }
             old_pos = pos;
-            if (old_pos == sizeof(dma_buffer_rx)) {
+            if (old_pos == uart6rxbuff.buffer_size) {
                 old_pos = 0;
             }
         }
@@ -88,10 +92,10 @@ void StartUartBufferThread(void const *arg) {
 uint8_t reset_device(uint8_t state) {
     if (state) {
         // pin sate to reset
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
     } else {
         // pin sate to set
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_SET);
     }
     return 1;
 }
@@ -111,13 +115,24 @@ send_data(const void *data, size_t len) {
 }
 
 void configure_uart(uint32_t baudrate) {
-    __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
-    if (HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
-        Error_Handler();
-    }
+
     is_running = 0;
     old_pos = 0;
-    is_running = 1;
+
+    // stop DMA
+    HAL_UART_DMAStop(&huart6);
+    // disable UART6
+    __HAL_UART_DISABLE_IT(&huart6, UART_IT_IDLE);
+    HAL_NVIC_DisableIRQ(USART6_IRQn);
+    LL_USART_Disable((&huart6)->Instance);
+    // set new baud rate
+    LL_USART_SetBaudRate((&huart6)->Instance, HAL_RCC_GetPCLK2Freq(), UART_OVERSAMPLING_16, baudrate);
+    // start DMA
+    HAL_UART_Receive_DMA(&huart6, (uint8_t *)uart6rxbuff.buffer, RX_BUFFER_LEN);
+    // enable UART6 again
+    LL_USART_Enable((&huart6)->Instance);
+    HAL_NVIC_EnableIRQ(USART6_IRQn);
+    __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
 
     /* Create mbox and start thread */
     if (uartBufferMbox_id == NULL) {
@@ -133,6 +148,8 @@ void configure_uart(uint32_t baudrate) {
             printf("error!");
         }
     }
+
+    is_running = 1;
 }
 
 /**

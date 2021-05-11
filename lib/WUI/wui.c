@@ -16,6 +16,7 @@
 #include "sntp_client.h"
 #include "dbg.h"
 #include "lwesp/lwesp.h"
+#include "tests/wui_tests.h"
 
 #define WUI_NETIF_SETUP_DELAY  1000
 #define WUI_COMMAND_QUEUE_SIZE WUI_WUI_MQ_CNT // maximal number of messages at once in WUI command messageQ
@@ -81,31 +82,22 @@ void StartWebServerTask(void const *argument) {
     }
     wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&wui_eth_config);
+#ifdef WUI_ESP_DMA_TEST
+    esp_dma_test();
+#endif
     // mutex for passing marlin variables to tcp thread
     wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
     // marlin client initialization for WUI
     wui_marlin_client_init();
-    // LwIP related initalizations
+    // LwIP related initializations
     MX_LWIP_Init(&wui_eth_config);
     http_server_init();
     sntp_client_init();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
-    // lwesp stuffs
-    if (lwesp_init(NULL, 1) != lwespOK) {
-        printf("Cannot initialize LwESP!\r\n");
-    } else {
-        printf("LwESP initialized!\r\n");
-    }
-
-    lwesp_mode_t mode = LWESP_MODE_STA_AP;
 
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
-        lwesp_get_wifi_mode(&mode, NULL, NULL, 0);
-        if (mode == LWESP_MODE_STA) {
-            printf("test ok");
-        }
         osDelay(1000);
     }
 }

@@ -11,6 +11,17 @@
     #define BUDDY_ENABLE_ETHERNET
 #endif //BUDDY_ENABLE_WUI
 //--------------------------------------
+// ESP configs
+#ifdef BUDDY_ENABLE_ESP
+    #define USE_ESP01_WITH_UART6
+#endif
+// UART6 configs
+#ifdef USE_ESP01_WITH_UART6
+    #define RX_BUFFER_LEN 0x2500
+#else
+    #define RX_BUFFER_LEN 128
+#endif
+
 //marlin api config
 enum {
     MARLIN_MAX_CLIENTS = 3,    // maximum number of clients registered in same time
@@ -25,9 +36,6 @@ enum {
 //CRC32 config - use hardware CRC32 with RTOS
 #define CRC32_USE_HW
 #define CRC32_USE_RTOS
-
-// ESP configs
-#define USE_ESP01_WITH_UART6
 
 //guiconfig.h included with config
 #include "../guiconfig/guiconfig.h"

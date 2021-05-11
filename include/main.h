@@ -28,6 +28,8 @@ void Error_Handler(void);
 }
 #endif //__cplusplus
 
+#define UART6_DEFAULT_BAUDRATE 115200
+
 #define USB_HS_N_Pin          GPIO_PIN_14
 #define USB_HS_N_GPIO_Port    GPIOB
 #define USB_HS_P_Pin          GPIO_PIN_15
@@ -66,3 +68,7 @@ void Error_Handler(void);
 #define ESP_TX_GPIO_Port      GPIOC
 #define ESP_RX_Pin            GPIO_PIN_7
 #define ESP_RX_GPIO_Port      GPIOC
+#define ESP_GPIO0_Pin         GPIO_PIN_6
+#define ESP_GPIO0_GPIO_Port   GPIOE
+#define ESP_RST_Pin           GPIO_PIN_13
+#define ESP_RST_GPIO_Port     GPIOC
