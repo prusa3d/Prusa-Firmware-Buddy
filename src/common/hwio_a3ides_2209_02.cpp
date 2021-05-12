@@ -643,11 +643,6 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
     }
 }
 
-void digitalToggle(uint32_t ulPin) {
-    digitalWrite(ulPin, !digitalRead(ulPin));
-    // TODO test me
-}
-
 uint32_t analogRead(uint32_t ulPin) {
     if (HAL_ADC_Initialized) {
         switch (ulPin) {

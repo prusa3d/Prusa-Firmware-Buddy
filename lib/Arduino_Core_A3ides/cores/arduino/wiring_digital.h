@@ -14,8 +14,6 @@ extern void digitalWrite(uint32_t marlinPin, uint32_t dwVal);
 
 extern int digitalRead(uint32_t marlinPin);
 
-extern void digitalToggle(uint32_t ulPin);
-
 #ifdef __cplusplus
 }
 #endif
