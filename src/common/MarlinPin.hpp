@@ -14,7 +14,7 @@
  * Obey naming convention MARLIN_PORT_\<PIN_NAME\> MARLIN_PIN_NR_\<PIN_NAME\>
  * @par Example
  * @code
- * //inside hwio_pindef_\<printer\>.h
+ * //inside hwio_pindef.h
  * #define MARLIN_PORT_E0_DIR   MARLIN_PORT_B
  * #define MARLIN_PIN_NR_E0_DIR MARLIN_PIN_NR_8
  * //inside PIN_TABLE
@@ -67,3 +67,8 @@ static_assert(buddy::hw::IoPort::F == static_cast<buddy::hw::IoPort>(MARLIN_PORT
 static_assert(buddy::hw::IoPin::p0 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_0), "Marlin pin doesn't match Buddy IoPin.");
 static_assert(buddy::hw::IoPin::p1 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_1), "Marlin pin doesn't match Buddy IoPin.");
 static_assert(buddy::hw::IoPin::p15 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_15), "Marlin pin doesn't match Buddy IoPin.");
+
+namespace buddy::hw {
+bool physicalPinExist(uint32_t marlinPin);
+bool isOutputPin(uint32_t marlinPin);
+}
