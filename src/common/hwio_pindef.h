@@ -14,9 +14,6 @@
 #else
     #include "MarlinPin.hpp"
 
-    #define MARLIN_PORT_TEMP_BOARD   MARLIN_PORT_V
-    #define MARLIN_PIN_NR_TEMP_BOARD MARLIN_PIN_NR_0
-
     #define MARLIN_PORT_X_DIAG   MARLIN_PORT_E
     #define MARLIN_PIN_NR_X_DIAG MARLIN_PIN_NR_2
 
