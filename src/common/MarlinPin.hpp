@@ -51,6 +51,7 @@
 #define MARLIN_PORT_D 3
 #define MARLIN_PORT_E 4
 #define MARLIN_PORT_F 5
+#define MARLIN_PORT_V 7
 
 #define MARLIN_PORT_PIN(port, pin) ((16 * (port)) + (pin))
 
