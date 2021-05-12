@@ -489,7 +489,9 @@ target_sources(
           src/usbh_conf.c
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
-          src/common/filament_sensor.cpp
+          src/common/non_file_printing_counter.cpp
+          src/common/print_processor.cpp
+          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_photoeletric.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/hardware_serial.cpp
@@ -534,6 +536,7 @@ target_sources(
           src/common/st25dv64k.c
           src/common/w25x.c
           src/common/gcode_file.cpp
+          src/common/gcode_filter.cpp
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
           src/common/base64_stream_decoder.cpp
