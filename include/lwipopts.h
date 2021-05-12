@@ -47,7 +47,6 @@
   *
   ******************************************************************************
   */
-#include "wui_config.h"
 
 /* Define to prevent recursive inclusion --------------------------------------*/
 #ifndef __LWIPOPTS__H__
@@ -149,12 +148,7 @@ extern "C" {
     #define LWIP_HTTPD_DYNAMIC_HEADERS 1
     #define LWIP_NETIF_HOSTNAME        1
     #define LWIP_HTTPD_SUPPORT_POST    1
-    #ifdef WUI_HOST_NAME
-        #define HTTPD_SERVER_AGENT WUI_HOST_NAME
-    #else
-        #define HTTPD_SERVER_AGENT "Prusa Buddy"
-    #endif
-    #define LWIP_DNS 1
+    #define LWIP_DNS                   1
 
 /* USER CODE END 1 */
 

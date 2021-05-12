@@ -88,6 +88,10 @@
  * about an unknown extension, make sure to add it (and its doctype) to
  * the 'g_psHTTPHeaders' list.
  */
+
+#define WUI_HOST_NAME      "Prusa Mini"
+#define HTTPD_SERVER_AGENT WUI_HOST_NAME
+
 #include "lwip/init.h"
 #include "httpd.h"
 #include "lwip/debug.h"
@@ -120,6 +124,7 @@
 #include "httpd_parser.h"
 #include "wui.h"
 #include "dbg.h"
+
 #define WUI_API_ROOT_STR_LEN 5
 
 #define POST_REQUEST_BUFFSIZE  1500
