@@ -525,7 +525,6 @@ target_sources(
           src/common/uartrxbuff.c
           src/common/appmain.cpp
           src/common/app_metrics.cpp
-          src/common/sim_heater.cpp
           src/common/marlin_server.cpp
           src/common/fsm_types.cpp
           src/common/selftest/selftest_MINI.cpp

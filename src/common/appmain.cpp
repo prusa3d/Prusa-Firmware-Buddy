@@ -16,10 +16,6 @@
 #include "language_eeprom.hpp"
 #include "usbd_cdc_if.h"
 
-#ifdef SIM_HEATER
-    #include "sim_heater.h"
-#endif //SIM_HEATER
-
 #include "uartslave.h"
 #include "marlin_server.h"
 #include "bsod.h"
@@ -107,10 +103,6 @@ void app_run(void) {
 
     adc_init();
 
-#ifdef SIM_HEATER
-    sim_heater_init();
-#endif //SIM_HEATER
-
     //DBG("before setup (%ld ms)", HAL_GetTick());
     if (diag_fastboot || (!sys_fw_is_valid())) {
         if (!sys_fw_is_valid()) // following code will be done only with invalidated firmware
@@ -194,14 +186,6 @@ void app_cdc_rx(uint8_t *buffer, uint32_t length) {
 
 void adc_tick_1ms(void) {
     adc_cycle();
-#ifdef SIM_HEATER
-    static uint8_t cnt_sim_heater = 0;
-    if (++cnt_sim_heater >= 50) // sim_heater freq = 20Hz
-    {
-        sim_heater_cycle();
-        cnt_sim_heater = 0;
-    }
-#endif //SIM_HEATER
 }
 
 void app_tim14_tick(void) {
