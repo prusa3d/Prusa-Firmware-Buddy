@@ -530,7 +530,6 @@ target_sources(
           src/common/selftest/selftest_fan.cpp
           src/common/selftest/selftest_axis.cpp
           src/common/selftest/selftest_heater.cpp
-          src/common/sim_motion.cpp
           src/common/st25dv64k.c
           src/common/w25x.c
           src/common/gcode_file.cpp

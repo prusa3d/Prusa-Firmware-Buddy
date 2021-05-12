@@ -11,7 +11,6 @@
 #include "adc.h"
 #include "sim_nozzle.h"
 #include "sim_bed.h"
-#include "sim_motion.h"
 #include "Arduino.h"
 #include "timer_defaults.h"
 #include "hwio_pindef.h"
@@ -557,18 +556,6 @@ void hwio_arduino_error(int err, uint32_t pin32) {
 int digitalRead(uint32_t ulPin) {
     if (HAL_GPIO_Initialized) {
         switch (ulPin) {
-#ifdef SIM_MOTION
-        case MARLIN_PIN(Z_MIN):
-            return sim_motion_get_min_end(2);
-        case MARLIN_PIN(E0_DIAG):
-            return sim_motion_get_diag(3);
-        case MARLIN_PIN(Y_DIAG):
-            return sim_motion_get_diag(1);
-        case MARLIN_PIN(X_DIAG):
-            return sim_motion_get_diag(0);
-        case MARLIN_PIN(Z_DIAG):
-            return sim_motion_get_diag(2);
-#else  //SIM_MOTION
         case MARLIN_PIN(Z_MIN):
         case MARLIN_PIN(E0_DIAG):
         case MARLIN_PIN(Y_DIAG):
@@ -576,7 +563,6 @@ int digitalRead(uint32_t ulPin) {
         case MARLIN_PIN(Z_DIAG):
         case MARLIN_PIN(Z_DIR):
             return gpio_get(ulPin);
-#endif //SIM_MOTION
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_DIG_RD, ulPin); //error: undefined pin digital read
         }
@@ -624,44 +610,6 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulVal ? _pwm_analogWrite_max[HWIO_PWM_FAN] : 0);
 #endif //NEW_FANCTL
             return;
-#ifdef SIM_MOTION
-        case MARLIN_PIN(X_DIR):
-            sim_motion_set_dir(0, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(X_STEP):
-            sim_motion_set_stp(0, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Z_ENABLE):
-            sim_motion_set_ena(2, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(X_ENABLE):
-            sim_motion_set_ena(0, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Z_STEP):
-            sim_motion_set_stp(2, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(E_DIR):
-            sim_motion_set_dir(3, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(E_STEP):
-            sim_motion_set_stp(3, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(E_ENABLE):
-            sim_motion_set_ena(3, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Y_DIR):
-            sim_motion_set_dir(1, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Y_STEP):
-            sim_motion_set_stp(1, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Y_ENABLE):
-            sim_motion_set_ena(1, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Z_DIR):
-            sim_motion_set_dir(2, ulVal ? 1 : 0);
-            return;
-#else //SIM_MOTION
         case MARLIN_PIN(X_DIR):
         case MARLIN_PIN(X_STEP):
         case MARLIN_PIN(Z_ENA):
@@ -672,13 +620,12 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
         case MARLIN_PIN(E0_ENA):
         case MARLIN_PIN(Y_DIR):
         case MARLIN_PIN(Y_STEP):
-    #if (MARLIN_PIN(X_ENA) != MARLIN_PIN(Y_ENA))
+#if (MARLIN_PIN(X_ENA) != MARLIN_PIN(Y_ENA))
         case MARLIN_PIN(Y_ENA):
-    #endif
+#endif
         case MARLIN_PIN(Z_DIR):
             gpio_set(ulPin, ulVal ? 1 : 0);
             return;
-#endif //SIM_MOTION
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_DIG_WR, ulPin); //error: undefined pin digital write
         }
