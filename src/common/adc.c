@@ -4,10 +4,6 @@
 #include "hwio.h"
 #include "main.h"
 
-#ifndef ADC_SIM_MSK
-    #define ADC_SIM_MSK 0
-#endif
-
 extern ADC_HandleTypeDef hadc1;
 
 uint32_t adc_val[ADC_CHAN_CNT]; //sampled values
@@ -15,11 +11,6 @@ uint8_t adc_cnt[ADC_CHAN_CNT];  //number of samples
 uint8_t adc_chn[ADC_CHAN_CNT];  //physical channels
 uint8_t adc_sta = 0xff;         //current state, 0xff means "not initialized"
 int8_t adc_idx = 0;             //current value index
-
-uint32_t adc_sim_val[ADC_CHAN_CNT]; //simulated values
-uint32_t adc_sim_msk = ADC_SIM_MSK; //mask simulated channels
-
-void adc_init_sim_vals(void);
 
 //convert value index to physical channel
 uint8_t adc_chan(uint8_t idx) {
@@ -54,7 +45,6 @@ void adc_init(void) {
     }
     adc_idx = 0;
     adc_sta = 0x00;
-    adc_init_sim_vals();
 }
 
 //sampling cycle (called from interrupt)
@@ -65,10 +55,7 @@ void adc_cycle(void) {
         return; //skip sampling if not initialized
     if (adc_sta & 0x80) {
         if (__HAL_ADC_GET_FLAG(&hadc1, ADC_FLAG_EOC)) {
-            if ((1 << adc_idx) & adc_sim_msk)
-                val = adc_sim_val[adc_idx];
-            else
-                val = HAL_ADC_GetValue(&hadc1);
+            val = HAL_ADC_GetValue(&hadc1);
             adc_val[adc_idx] += val;
             if (++adc_cnt[adc_idx] >= ADC_OVRSAMPL) {
                 ADC_READY(adc_idx);
@@ -88,25 +75,4 @@ void adc_cycle(void) {
         HAL_ADC_Start(&hadc1);
         adc_sta |= 0x80;
     }
-}
-
-void adc_init_sim_vals(void) {
-#ifdef ADC_SIM_VAL0
-    adc_sim_val[0] = ADC_SIM_VAL0;
-#endif //ADC_SIM_VAL0
-#ifdef ADC_SIM_VAL1
-    adc_sim_val[1] = ADC_SIM_VAL1;
-#endif //ADC_SIM_VAL1
-#ifdef ADC_SIM_VAL2
-    adc_sim_val[2] = ADC_SIM_VAL2;
-#endif //ADC_SIM_VAL2
-#ifdef ADC_SIM_VAL3
-    adc_sim_val[3] = ADC_SIM_VAL3;
-#endif //ADC_SIM_VAL3
-#ifdef ADC_SIM_VAL4
-    adc_sim_val[4] = ADC_SIM_VAL4;
-#endif //ADC_SIM_VAL4
-#ifdef ADC_SIM_VAL5
-    adc_sim_val[5] = ADC_SIM_VAL5;
-#endif //ADC_SIM_VAL4
 }
