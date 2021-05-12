@@ -288,4 +288,5 @@ public:
 private:
     const OutputInputPin &m_outputInputPin;
 };
+
 } // namespace buddy::hw

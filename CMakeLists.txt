@@ -498,6 +498,7 @@ target_sources(
           src/common/diag.cpp
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
+          src/common/MarlinPin.cpp
           src/common/marlin_vars.c
           src/common/media.cpp
           src/common/Pin.cpp
