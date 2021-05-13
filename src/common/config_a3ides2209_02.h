@@ -47,7 +47,14 @@ static const uint8_t ADC_SEQ_LEN = 18; //sampling sequence length
 #define ADC_SEQ2IDX adc_seq2idx        //callback function (convert seq to channel index)
 #define ADC_READY   adc_ready          //callback function (value for any channel is ready)
 static const uint16_t ADC_VREF = 5010; //reference voltage [mV]
-
+//simulated values
+enum {
+    ADC_SIM_VAL0 = 512 * 4, //HW_IDENTIFY
+    ADC_SIM_VAL1 = 966 * 4, //THERM1 (bed)     means 30C
+    ADC_SIM_VAL2 = 512 * 4, //THERM2
+    ADC_SIM_VAL3 = 512 * 4, //THERM_PINDA
+    ADC_SIM_VAL4 = 977 * 4, //THERM0 (nozzle)  means 25C
+};
 //
 //old seq for three channels (len = 12):
 //012345678901
@@ -80,6 +87,15 @@ static const uint8_t FANCTL1_PWM_THR = 20;
     #define FANCTL1_TRACE
 
 #endif //NEW_FANCTL
+
+//Simulator configuration
+//#define SIM_HEATER
+
+#ifdef SIM_HEATER
+    #define ADC_SIM_MSK           0x0012 //simulated logical AD channels bit mask (1,4)
+    #define SIM_HEATER_NOZZLE_ADC 4      //
+    #define SIM_HEATER_BED_ADC    1      //
+#endif                                   //SIM_HEATER
 
 //new pause settings
 static const uint8_t PAUSE_NOZZLE_TIMEOUT = 45; // nozzle "sleep" after 45s inside paused state

@@ -10,6 +10,10 @@ extern "C" {
 
 extern uint32_t adc_val[ADC_CHAN_CNT];
 
+extern uint32_t adc_sim_val[ADC_CHAN_CNT];
+
+extern uint32_t adc_sim_msk;
+
 extern void adc_init(void);
 
 extern void adc_cycle(void);
