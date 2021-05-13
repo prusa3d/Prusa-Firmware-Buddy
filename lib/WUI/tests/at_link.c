@@ -126,7 +126,7 @@ void esp_dma_test(void) {
         } else {
             fail_count++;
         }
-        if (success_count < fail_count) {
+        if ((success_count + 3) < fail_count) {
             Error_Handler();
         }
         osDelay(3000);
