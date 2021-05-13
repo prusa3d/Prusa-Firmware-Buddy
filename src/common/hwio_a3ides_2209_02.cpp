@@ -611,10 +611,20 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
 #endif //_DEBUG
     switch (marlinPin) {
     case MARLIN_PIN(BED_HEAT):
-        _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_BED] : 0);
+#ifdef SIM_HEATER_BED_ADC
+        if (adc_sim_msk & (1 << SIM_HEATER_BED_ADC))
+            sim_bed_set_power(ulVal ? 100 : 0);
+        else
+#endif //SIM_HEATER_BED_ADC
+            _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_BED] : 0);
         return;
     case MARLIN_PIN(HEAT0):
-        _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_0] : 0);
+#ifdef SIM_HEATER_NOZZLE_ADC
+        if (adc_sim_msk & (1 << SIM_HEATER_NOZZLE_ADC))
+            sim_nozzle_set_power(ulVal ? 40 : 0);
+        else
+#endif //SIM_HEATER_NOZZLE_ADC
+            _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_0] : 0);
         return;
     case MARLIN_PIN(FAN1):
 #ifdef NEW_FANCTL
