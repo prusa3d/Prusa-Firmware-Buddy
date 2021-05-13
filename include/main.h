@@ -18,6 +18,8 @@ extern RTC_HandleTypeDef hrtc;
 extern uartrxbuff_t uart1rxbuff;
 extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim1;
+extern RNG_HandleTypeDef hrng;
+
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 void Error_Handler(void);
