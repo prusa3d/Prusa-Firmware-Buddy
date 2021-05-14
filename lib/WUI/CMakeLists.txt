@@ -21,16 +21,20 @@ target_sources(
             ${CMAKE_SOURCE_DIR}/lib/SSL/mbedtls/library/memory_buffer_alloc.c
   )
 
+list(APPEND MBED_COMPILE_OPTIONS
+            "-DMBEDTLS_CONFIG_FILE=<${CMAKE_SOURCE_DIR}/include/mbedtls_config.h>;${MCU_FLAGS}"
+     )
+set(MBEDTLS_BINARY_DIR ${CMAKE_BINARY_DIR}/lib/mbedtls-release)
+
 add_custom_target(
   mbedtls-release
   COMMAND
     ${CMAKE_COMMAND} -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_BUILD_TYPE=Release
-    -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} ${MCU_FLAGS} -DMBEDTLS_CONFIG_FILE=<${CMAKE_SOURCE_DIR}/include/mbedtls_config.h>"
-    -DCMAKE_STATIC_LINKER_FLAGS_RELEASE="${CMAKE_STATIC_LINKER_FLAGS_RELEASE}"
-    -DLIB_INSTALL_DIR=${CMAKE_BINARY_DIR}/lib -DENABLE_PROGRAMS=OFF -S
-    ${CMAKE_SOURCE_DIR}/lib/SSL/mbedtls -B ${CMAKE_BINARY_DIR}/lib/mbedtls-release -G Ninja
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/lib/mbedtls-release --target mbedtls
+    -DCUSTOM_COMPILE_OPTIONS="${MBED_COMPILE_OPTIONS}"
+    -DCMAKE_STATIC_LINKER_FLAGS_RELEASE="${CMAKE_STATIC_LINKER_FLAGS_RELEASE}" -DENABLE_PROGRAMS=OFF
+    -DENABLE_TESTING=OFF -S ${CMAKE_SOURCE_DIR}/lib/SSL -B ${MBEDTLS_BINARY_DIR} -G Ninja
+  COMMAND ${CMAKE_COMMAND} --build ${MBEDTLS_BINARY_DIR} --target mbedtls
   COMMENT "MbedTLS v2.26.0 relase build" USES_TERMINAL
   )
 
@@ -38,5 +42,5 @@ target_include_directories(
   WUI INTERFACE ${CMAKE_CURRENT_LIST_DIR} http sntp resources
                 ${CMAKE_SOURCE_DIR}/lib/SSL/mbedtls/include
   )
-target_link_directories(WUI INTERFACE ${CMAKE_BINARY_DIR}/lib/mbedtls-release/library)
+target_link_directories(WUI INTERFACE ${MBEDTLS_BINARY_DIR}/mbedtls/library)
 target_link_libraries(WUI INTERFACE LwIP mbedtls mbedcrypto mbedx509)

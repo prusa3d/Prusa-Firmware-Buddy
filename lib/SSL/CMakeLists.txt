@@ -1,163 +1,395 @@
-cmake_minimum_required(VERSION 3.12)
+#
+# CMake build system design considerations:
+#
+# * Include directories: + Do not define include directories globally using the include_directories
+#   command but rather at the target level using the target_include_directories command. That way,
+#   it is easier to guarantee that targets are built using the proper list of include directories. +
+#   Use the PUBLIC and PRIVATE keywords to specifiy the scope of include directories. That way, a
+#   target linking to a library (using the target_link_librairies command) inherits from the library
+#   PUBLIC include directories and not from the PRIVATE ones. + Note: there is currently one
+#   remaining include_directories command in the CMake files. It is related to ZLIB support which is
+#   planned to be removed. When the support is removed, the associated include_directories command
+#   will be removed as well as this note.
+# * MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling CMake in order to
+#   avoid target name clashes, via the use of MBEDTLS_TARGET_PREFIX. The value of this variable is
+#   prefixed to the mbedtls, mbedx509, mbedcrypto and apidoc targets.
+#
 
-project(mbedtls VERSION 2.26.0)
+cmake_minimum_required(VERSION 2.8.12)
 
-option(USE_STATIC_MBEDTLS_LIBRARY "Build mbed TLS static library." ON)
-option(USE_SHARED_MBEDTLS_LIBRARY "Build mbed TLS shared library." OFF)
+# https://cmake.org/cmake/help/latest/policy/CMP0011.html Setting this policy is required in CMake
+# >= 3.18.0, otherwise a warning is generated. The OLD policy setting is deprecated, and will be
+# removed in future versions.
+cmake_policy(SET CMP0011 NEW)
+# https://cmake.org/cmake/help/latest/policy/CMP0012.html Setting the CMP0012 policy to NEW is
+# required for FindPython3 to work with CMake 3.18.2 (there is a bug in this particular version),
+# otherwise, setting the CMP0012 policy is required for CMake versions >= 3.18.3 otherwise a
+# deprecated warning is generated. The OLD policy setting is deprecated and will be removed in
+# future versions.
+cmake_policy(SET CMP0012 NEW)
 
-if(NOT DEFINED MBEDTLS_DIR)
-  set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/mbedtls)
+if(TEST_CPP)
+  project("mbed TLS" C CXX)
+else()
+  project("mbed TLS" C)
 endif()
 
-set(MBEDTLS_LIB_DIR ${MBEDTLS_DIR}/library)
+# Set the project root directory.
+set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/mbedtls)
 
-set(src_crypto
-    ${MBEDTLS_LIB_DIR}/aes.c
-    ${MBEDTLS_LIB_DIR}/aesni.c
-    ${MBEDTLS_LIB_DIR}/arc4.c
-    ${MBEDTLS_LIB_DIR}/aria.c
-    ${MBEDTLS_LIB_DIR}/asn1parse.c
-    ${MBEDTLS_LIB_DIR}/asn1write.c
-    ${MBEDTLS_LIB_DIR}/base64.c
-    ${MBEDTLS_LIB_DIR}/bignum.c
-    ${MBEDTLS_LIB_DIR}/blowfish.c
-    ${MBEDTLS_LIB_DIR}/camellia.c
-    ${MBEDTLS_LIB_DIR}/ccm.c
-    ${MBEDTLS_LIB_DIR}/chacha20.c
-    ${MBEDTLS_LIB_DIR}/chachapoly.c
-    ${MBEDTLS_LIB_DIR}/cipher.c
-    ${MBEDTLS_LIB_DIR}/cipher_wrap.c
-    ${MBEDTLS_LIB_DIR}/cmac.c
-    ${MBEDTLS_LIB_DIR}/ctr_drbg.c
-    ${MBEDTLS_LIB_DIR}/des.c
-    ${MBEDTLS_LIB_DIR}/dhm.c
-    ${MBEDTLS_LIB_DIR}/ecdh.c
-    ${MBEDTLS_LIB_DIR}/ecdsa.c
-    ${MBEDTLS_LIB_DIR}/ecjpake.c
-    ${MBEDTLS_LIB_DIR}/ecp.c
-    ${MBEDTLS_LIB_DIR}/ecp_curves.c
-    ${MBEDTLS_LIB_DIR}/entropy.c
-    ${MBEDTLS_LIB_DIR}/entropy_poll.c
-    ${MBEDTLS_LIB_DIR}/error.c
-    ${MBEDTLS_LIB_DIR}/gcm.c
-    ${MBEDTLS_LIB_DIR}/havege.c
-    ${MBEDTLS_LIB_DIR}/hkdf.c
-    ${MBEDTLS_LIB_DIR}/hmac_drbg.c
-    ${MBEDTLS_LIB_DIR}/md.c
-    ${MBEDTLS_LIB_DIR}/md2.c
-    ${MBEDTLS_LIB_DIR}/md4.c
-    ${MBEDTLS_LIB_DIR}/md5.c
-    ${MBEDTLS_LIB_DIR}/memory_buffer_alloc.c
-    ${MBEDTLS_LIB_DIR}/nist_kw.c
-    ${MBEDTLS_LIB_DIR}/oid.c
-    ${MBEDTLS_LIB_DIR}/padlock.c
-    ${MBEDTLS_LIB_DIR}/pem.c
-    ${MBEDTLS_LIB_DIR}/pk.c
-    ${MBEDTLS_LIB_DIR}/pk_wrap.c
-    ${MBEDTLS_LIB_DIR}/pkcs12.c
-    ${MBEDTLS_LIB_DIR}/pkcs5.c
-    ${MBEDTLS_LIB_DIR}/pkparse.c
-    ${MBEDTLS_LIB_DIR}/pkwrite.c
-    ${MBEDTLS_LIB_DIR}/platform.c
-    ${MBEDTLS_LIB_DIR}/platform_util.c
-    ${MBEDTLS_LIB_DIR}/poly1305.c
-    ${MBEDTLS_LIB_DIR}/psa_crypto.c
-    ${MBEDTLS_LIB_DIR}/psa_crypto_client.c
-    ${MBEDTLS_LIB_DIR}/psa_crypto_driver_wrappers.c
-    ${MBEDTLS_LIB_DIR}/psa_crypto_ecp.c
-    ${MBEDTLS_LIB_DIR}/psa_crypto_rsa.c
-    ${MBEDTLS_LIB_DIR}/psa_crypto_se.c
-    ${MBEDTLS_LIB_DIR}/psa_crypto_slot_management.c
-    ${MBEDTLS_LIB_DIR}/psa_crypto_storage.c
-    ${MBEDTLS_LIB_DIR}/psa_its_file.c
-    ${MBEDTLS_LIB_DIR}/ripemd160.c
-    ${MBEDTLS_LIB_DIR}/rsa.c
-    ${MBEDTLS_LIB_DIR}/rsa_internal.c
-    ${MBEDTLS_LIB_DIR}/sha1.c
-    ${MBEDTLS_LIB_DIR}/sha256.c
-    ${MBEDTLS_LIB_DIR}/sha512.c
-    ${MBEDTLS_LIB_DIR}/threading.c
-    ${MBEDTLS_LIB_DIR}/timing.c
-    ${MBEDTLS_LIB_DIR}/version.c
-    ${MBEDTLS_LIB_DIR}/version_features.c
-    ${MBEDTLS_LIB_DIR}/xtea.c
+option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
+option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
+
+option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
+
+option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
+option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
+
+string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
+string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
+string(REGEX MATCH "IAR" CMAKE_COMPILER_IS_IAR "${CMAKE_C_COMPILER_ID}")
+string(REGEX MATCH "MSVC" CMAKE_COMPILER_IS_MSVC "${CMAKE_C_COMPILER_ID}")
+
+# the test suites currently have compile errors with MSVC
+if(CMAKE_COMPILER_IS_MSVC)
+  option(ENABLE_TESTING "Build mbed TLS tests." OFF)
+else()
+  option(ENABLE_TESTING "Build mbed TLS tests." ON)
+endif()
+
+set(CUSTOM_COMPILE_OPTIONS
+    ""
+    CACHE STRING "Allows adding custom C/C++ flags"
     )
 
-list(APPEND src_crypto ${thirdparty_src})
+# Warning string - created as a list for compatibility with CMake 2.8
+set(WARNING_BORDER "*******************************************************\n")
+set(NULL_ENTROPY_WARN_L1 "****  WARNING!  MBEDTLS_TEST_NULL_ENTROPY defined!\n")
+set(NULL_ENTROPY_WARN_L2 "****  THIS BUILD HAS NO DEFINED ENTROPY SOURCES\n")
+set(NULL_ENTROPY_WARN_L3 "****  AND IS *NOT* SUITABLE FOR PRODUCTION USE\n")
 
-set(src_x509
-    ${MBEDTLS_LIB_DIR}/certs.c
-    ${MBEDTLS_LIB_DIR}/pkcs11.c
-    ${MBEDTLS_LIB_DIR}/x509.c
-    ${MBEDTLS_LIB_DIR}/x509_create.c
-    ${MBEDTLS_LIB_DIR}/x509_crl.c
-    ${MBEDTLS_LIB_DIR}/x509_crt.c
-    ${MBEDTLS_LIB_DIR}/x509_csr.c
-    ${MBEDTLS_LIB_DIR}/x509write_crt.c
-    ${MBEDTLS_LIB_DIR}/x509write_csr.c
+set(NULL_ENTROPY_WARNING "${WARNING_BORDER}" "${NULL_ENTROPY_WARN_L1}" "${NULL_ENTROPY_WARN_L2}"
+                         "${NULL_ENTROPY_WARN_L3}" "${WARNING_BORDER}"
     )
 
-set(src_tls
-    ${MBEDTLS_LIB_DIR}/debug.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/prusa/net_sockets.c
-    ${MBEDTLS_LIB_DIR}/ssl_cache.c
-    ${MBEDTLS_LIB_DIR}/ssl_ciphersuites.c
-    ${MBEDTLS_LIB_DIR}/ssl_cli.c
-    ${MBEDTLS_LIB_DIR}/ssl_cookie.c
-    ${MBEDTLS_LIB_DIR}/ssl_msg.c
-    ${MBEDTLS_LIB_DIR}/ssl_srv.c
-    ${MBEDTLS_LIB_DIR}/ssl_ticket.c
-    ${MBEDTLS_LIB_DIR}/ssl_tls.c
-    ${MBEDTLS_LIB_DIR}/ssl_tls13_keys.c
+set(CTR_DRBG_128_BIT_KEY_WARN_L1 "****  WARNING!  MBEDTLS_CTR_DRBG_USE_128_BIT_KEY defined!\n")
+set(CTR_DRBG_128_BIT_KEY_WARN_L2
+    "****  Using 128-bit keys for CTR_DRBG limits the security of generated\n"
+    )
+set(CTR_DRBG_128_BIT_KEY_WARN_L3
+    "****  keys and operations that use random values generated to 128-bit security\n"
     )
 
-set(mbedtls_target "${MBEDTLS_TARGET_PREFIX}mbedtls")
-set(mbedx509_target "${MBEDTLS_TARGET_PREFIX}mbedx509")
-set(mbedcrypto_target "${MBEDTLS_TARGET_PREFIX}mbedcrypto")
-
-set(mbedtls_target
-    ${mbedtls_target}
-    PARENT_SCOPE
-    )
-set(mbedx509_target
-    ${mbedx509_target}
-    PARENT_SCOPE
-    )
-set(mbedcrypto_target
-    ${mbedcrypto_target}
-    PARENT_SCOPE
+set(CTR_DRBG_128_BIT_KEY_WARNING
+    "${WARNING_BORDER}" "${CTR_DRBG_128_BIT_KEY_WARN_L1}" "${CTR_DRBG_128_BIT_KEY_WARN_L2}"
+    "${CTR_DRBG_128_BIT_KEY_WARN_L3}" "${WARNING_BORDER}"
     )
 
-set(mbedtls_static_target ${mbedtls_target})
-set(mbedx509_static_target ${mbedx509_target})
-set(mbedcrypto_static_target ${mbedcrypto_target})
+# Python 3 is only needed here to check for configuration warnings.
+if(NOT CMAKE_VERSION VERSION_LESS 3.15.0)
+  set(Python3_FIND_STRATEGY LOCATION)
+  find_package(Python3 COMPONENTS Interpreter)
+  if(Python3_Interpreter_FOUND)
+    set(MBEDTLS_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+  endif()
+else()
+  find_package(PythonInterp 3)
+  if(PYTHONINTERP_FOUND)
+    set(MBEDTLS_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
+  endif()
+endif()
+if(MBEDTLS_PYTHON_EXECUTABLE)
 
-add_library(${mbedcrypto_static_target} STATIC ${src_crypto})
-set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
-target_link_libraries(${mbedcrypto_static_target} PUBLIC ${libs})
+  # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
+  execute_process(
+    COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${MBEDTLS_DIR}/scripts/config.py -f
+            ${MBEDTLS_DIR}/include/mbedtls/config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    RESULT_VARIABLE result
+    )
+  if(${result} EQUAL 0)
+    message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})
+  endif()
 
-add_library(${mbedx509_static_target} STATIC ${src_x509})
-set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
-target_link_libraries(${mbedx509_static_target} PUBLIC ${libs} ${mbedcrypto_static_target})
+  # If NULL Entropy is configured, display an appropriate warning
+  execute_process(
+    COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${MBEDTLS_DIR}/scripts/config.py -f
+            ${MBEDTLS_DIR}/include/mbedtls/config.h get MBEDTLS_TEST_NULL_ENTROPY
+    RESULT_VARIABLE result
+    )
+  if(${result} EQUAL 0)
+    message(WARNING ${NULL_ENTROPY_WARNING})
 
-add_library(${mbedtls_static_target} STATIC ${src_tls})
-set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls)
-target_link_libraries(${mbedtls_static_target} PUBLIC ${libs} ${mbedx509_static_target})
+    if(NOT UNSAFE_BUILD)
+      message(
+        FATAL_ERROR
+          "\
+\n\
+Warning! You have enabled MBEDTLS_TEST_NULL_ENTROPY. \
+This option is not safe for production use and negates all security \
+It is intended for development use only. \
+\n\
+To confirm you want to build with this option, re-run cmake with the \
+option: \n\
+  cmake -DUNSAFE_BUILD=ON "
+        )
 
-set(target_libraries ${mbedcrypto_target} ${mbedx509_target} ${mbedtls_target})
+      return()
+    endif()
+  endif()
+endif()
 
-foreach(target IN LISTS target_libraries)
+# If this is the root project add longer list of available CMAKE_BUILD_TYPE values
+if(CMAKE_SOURCE_DIR STREQUAL MBEDTLS_DIR)
+  set(CMAKE_BUILD_TYPE
+      ${CMAKE_BUILD_TYPE}
+      CACHE
+        STRING
+        "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"
+        FORCE
+      )
+endif()
+
+# Create a symbolic link from ${base_name} in the binary directory to the corresponding path in the
+# source directory.
+function(link_to_source base_name)
+  # Get OS dependent path to use in `execute_process`
+  if(CMAKE_HOST_WIN32)
+    # mklink is an internal command of cmd.exe it can only work with \
+    string(REPLACE "/" "\\" link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
+    string(REPLACE "/" "\\" target "${MBEDTLS_DIR}/${base_name}")
+  else()
+    set(link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
+    set(target "${MBEDTLS_DIR}/${base_name}")
+  endif()
+
+  if(NOT EXISTS ${link})
+    if(CMAKE_HOST_UNIX)
+      set(command ln -s ${target} ${link})
+    else()
+      if(IS_DIRECTORY ${target})
+        set(command cmd.exe /c mklink /j ${link} ${target})
+      else()
+        set(command cmd.exe /c mklink /h ${link} ${target})
+      endif()
+    endif()
+
+    execute_process(
+      COMMAND ${command}
+      RESULT_VARIABLE result
+      ERROR_VARIABLE output
+      )
+
+    if(NOT ${result} EQUAL 0)
+      message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
+    endif()
+  endif()
+endfunction(link_to_source)
+
+string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
+
+include(CheckCCompilerFlag)
+
+if(CMAKE_COMPILER_IS_GNU)
+  # some warnings we want are not available with old GCC versions note: starting with CMake 2.8 we
+  # could use CMAKE_C_COMPILER_VERSION
+  execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings")
+  if(GCC_VERSION VERSION_GREATER 3.0 OR GCC_VERSION VERSION_EQUAL 3.0)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat=2 -Wno-format-nonliteral")
+  endif()
+  if(GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wvla")
+  endif()
+  if(GCC_VERSION VERSION_GREATER 4.5 OR GCC_VERSION VERSION_EQUAL 4.5)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wlogical-op")
+  endif()
+  if(GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshadow")
+  endif()
+  if(GCC_VERSION VERSION_GREATER 5.0)
+    check_c_compiler_flag("-Wformat-signedness" C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS)
+    if(C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS)
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-signedness")
+    endif()
+  endif()
+  if(GCC_VERSION VERSION_GREATER 7.0 OR GCC_VERSION VERSION_EQUAL 7.0)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-overflow=2 -Wformat-truncation=2")
+  endif()
+  set(CMAKE_C_FLAGS_RELEASE "-O2")
+  set(CMAKE_C_FLAGS_DEBUG "-O0 -g3")
+  set(CMAKE_C_FLAGS_COVERAGE "-O0 -g3 --coverage")
+  set(CMAKE_C_FLAGS_ASAN
+      "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3"
+      )
+  set(CMAKE_C_FLAGS_ASANDBG
+      "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+      )
+  set(CMAKE_C_FLAGS_CHECK "-Os")
+  set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
+endif(CMAKE_COMPILER_IS_GNU)
+
+if(CMAKE_COMPILER_IS_CLANG)
+  set(CMAKE_C_FLAGS
+      "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral"
+      )
+  set(CMAKE_C_FLAGS_RELEASE "-O2")
+  set(CMAKE_C_FLAGS_DEBUG "-O0 -g3")
+  set(CMAKE_C_FLAGS_COVERAGE "-O0 -g3 --coverage")
+  set(CMAKE_C_FLAGS_ASAN
+      "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3"
+      )
+  set(CMAKE_C_FLAGS_ASANDBG
+      "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+      )
+  set(CMAKE_C_FLAGS_MEMSAN "-fsanitize=memory -O3")
+  set(CMAKE_C_FLAGS_MEMSANDBG
+      "-fsanitize=memory -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2"
+      )
+  set(CMAKE_C_FLAGS_CHECK "-Os")
+endif(CMAKE_COMPILER_IS_CLANG)
+
+if(CMAKE_COMPILER_IS_IAR)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts --warnings_are_errors -Ohz")
+endif(CMAKE_COMPILER_IS_IAR)
+
+if(CMAKE_COMPILER_IS_MSVC)
+  # Strictest warnings
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
+endif(CMAKE_COMPILER_IS_MSVC)
+
+if(MBEDTLS_FATAL_WARNINGS)
+  if(CMAKE_COMPILER_IS_MSVC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+  endif(CMAKE_COMPILER_IS_MSVC)
+
+  if(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+    if(UNSAFE_BUILD)
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=cpp")
+      set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_ASAN} -Wno-error=cpp")
+      set(CMAKE_C_FLAGS_ASANDBG "${CMAKE_C_FLAGS_ASANDBG} -Wno-error=cpp")
+    endif(UNSAFE_BUILD)
+  endif(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
+endif(MBEDTLS_FATAL_WARNINGS)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
+  if(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
+    set(CMAKE_SHARED_LINKER_FLAGS "--coverage")
+  endif(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
+endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
+
+if(CUSTOM_COMPILE_OPTIONS)
+  string(REPLACE " " ";" CUSTOM_COMPILE_OPTIONS "${CUSTOM_COMPILE_OPTIONS}")
+  message(STATUS "Additional compile options: ${CUSTOM_COMPILE_OPTIONS}")
+  add_compile_options(${CUSTOM_COMPILE_OPTIONS})
+endif(CUSTOM_COMPILE_OPTIONS)
+
+if(LIB_INSTALL_DIR)
+
+else()
+  set(LIB_INSTALL_DIR lib)
+endif()
+
+if(ENABLE_ZLIB_SUPPORT)
+  find_package(ZLIB)
+
+  if(ZLIB_FOUND)
+    include_directories(${ZLIB_INCLUDE_DIR})
+  endif(ZLIB_FOUND)
+endif(ENABLE_ZLIB_SUPPORT)
+
+add_subdirectory(${MBEDTLS_DIR}/include)
+
+add_subdirectory(${MBEDTLS_DIR}/3rdparty)
+list(APPEND libs ${thirdparty_lib})
+
+add_subdirectory(${MBEDTLS_DIR}/library)
+
+#
+# The C files in tests/src directory contain test code shared among test suites and programs. This
+# shared test code is compiled and linked to test suites and programs objects as a set of compiled
+# objects. The compiled objects are NOT built into a library that the test suite and program objects
+# would link against as they link against the mbedcrypto, mbedx509 and mbedtls libraries. The reason
+# is that such library is expected to have mutual dependencies with the aforementioned libraries and
+# that there is as of today no portable way of handling such dependencies (only toolchain specific
+# solutions).
+#
+# Thus the below definition of the `mbedtls_test` CMake library of objects target. This library of
+# objects is used by tests and programs CMake files to define the test executables.
+#
+if(ENABLE_TESTING OR ENABLE_PROGRAMS)
+  file(GLOB MBEDTLS_TEST_FILES ${MBEDTLS_DIR}/tests/src/*.c ${MBEDTLS_DIR}/tests/src/drivers/*.c)
+  add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
   target_include_directories(
-    ${target}
-    PUBLIC ${MBEDTLS_DIR}/include/
-    PRIVATE ${MBEDTLS_LIB_DIR}/
-    PRIVATE ${CMAKE_SOURCE_DIR}/include
-    PRIVATE ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
-    PRIVATE ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system
-    PRIVATE ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/include
-    PRIVATE ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS
-    PRIVATE ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
-    PRIVATE ${CMAKE_SOURCE_DIR}/include/freertos
+    mbedtls_test
+    PRIVATE ${MBEDTLS_DIR}/tests/include
+    PRIVATE ${MBEDTLS_DIR}/include
+    PRIVATE ${MBEDTLS_DIR}/library
     )
-  target_compile_definitions(${target} PRIVATE "MBEDTLS_CONFIG_FILE=<mbedtls_config.h>")
-endforeach(target)
+endif()
+
+if(ENABLE_PROGRAMS)
+  add_subdirectory(${MBEDTLS_DIR}/programs)
+endif()
+
+add_custom_target(
+  ${MBEDTLS_TARGET_PREFIX}apidoc
+  COMMAND doxygen mbedtls.doxyfile
+  WORKING_DIRECTORY ${MBEDTLS_DIR}/doxygen
+  )
+
+if(ENABLE_TESTING)
+  enable_testing()
+
+  add_subdirectory(${MBEDTLS_DIR}/tests)
+
+  # additional convenience targets for Unix only
+  if(UNIX)
+
+    add_custom_target(
+      covtest
+      COMMAND make test
+      COMMAND programs/test/selftest
+      COMMAND tests/compat.sh
+      COMMAND tests/ssl-opt.sh
+      )
+
+    add_custom_target(
+      lcov
+      COMMAND rm -rf Coverage
+      COMMAND
+        lcov --capture --initial --directory library/CMakeFiles/mbedtls.dir -o files.info
+      COMMAND lcov --capture --directory library/CMakeFiles/mbedtls.dir -o tests.info
+      COMMAND
+        lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
+      COMMAND lcov --remove all.info -o final.info '*.h'
+      COMMAND gendesc tests/Descriptions.txt -o descriptions
+      COMMAND
+        genhtml --title "mbed TLS" --description-file descriptions --keep-descriptions --legend
+        --no-branch-coverage -o Coverage final.info
+      COMMAND
+        rm -f files.info tests.info all.info final.info descriptions
+      )
+
+    add_custom_target(
+      memcheck
+      COMMAND sed -i.bak s+/usr/bin/valgrind+`which valgrind`+ DartConfiguration.tcl
+      COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
+      COMMAND
+        tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
+      COMMAND rm -f memcheck.log
+      COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
+      )
+  endif(UNIX)
+
+  # Make scripts needed for testing available in an out-of-source build.
+  if(NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${MBEDTLS_DIR})
+    link_to_source(scripts)
+    # Copy (don't link) DartConfiguration.tcl, needed for memcheck, to keep things simple with the
+    # sed commands in the memcheck target.
+    configure_file(
+      ${MBEDTLS_DIR}/DartConfiguration.tcl ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl
+      COPYONLY
+      )
+  endif()
+endif()
