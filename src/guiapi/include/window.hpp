@@ -13,12 +13,11 @@ class window_t {
     window_t *parent;
     window_t *next;
     Rect16 rect; // (8 bytes) display rectangle
-
 protected:
     WindowFlags flags;
+    color_t color_back;
 
 public:
-    color_t color_back;
     Rect16 GetRect() const;
     Rect16 GetRectWithoutTransformation() const;
     void SetRect(Rect16 rc); // does not transform
