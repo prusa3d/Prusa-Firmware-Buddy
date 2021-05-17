@@ -14,7 +14,13 @@
 #include "ethernetif.h"
 #include <string.h>
 #include "sntp_client.h"
+#include "httpc/httpc.h"
 #include "dbg.h"
+#include "esp/esp.h"
+#include "stm32_port.h"
+
+#include "esp.h"
+osThreadId httpcTaskHandle;
 
 #define WUI_NETIF_SETUP_DELAY  1000
 #define WUI_COMMAND_QUEUE_SIZE WUI_WUI_MQ_CNT // maximal number of messages at once in WUI command messageQ
@@ -71,9 +77,15 @@ static void update_eth_changes(void) {
     wui_lwip_sync_gui_lan_settings();
 }
 
+extern void netconn_client_thread(void const *arg);
+
 void StartWebServerTask(void const *argument) {
+    ap_entry_t ap = { "SSID", "password" };
+    uint32_t res;
+
     // get settings from ini file
     osDelay(1000);
+    _dbg("wui starts");
     if (load_ini_file(&wui_eth_config)) {
         save_eth_params(&wui_eth_config);
     }
@@ -85,12 +97,27 @@ void StartWebServerTask(void const *argument) {
     wui_marlin_client_init();
     // LwIP related initalizations
     MX_LWIP_Init(&wui_eth_config);
-    http_server_init();
+    //    http_server_init();
     sntp_client_init();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
+    // Initialize the thread for httpc
+    osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 512);
+    httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
+
+    // lwesp stuffs
+    res = esp_initialize();
+    _dbg("LwESP initialized with result = %ld", res);
+    LWIP_UNUSED_ARG(res);
+
+    if (!esp_connect_to_AP(&ap)) {
+        _dbg("LwESP connect to AP %s!", ap.ssid);
+        esp_sys_thread_create(NULL, "netconn_client", (esp_sys_thread_fn)netconn_client_thread, NULL, 512, ESP_SYS_THREAD_PRIO);
+    }
+
     for (;;) {
         update_eth_changes();
         sync_with_marlin_server();
+
         osDelay(1000);
     }
 }

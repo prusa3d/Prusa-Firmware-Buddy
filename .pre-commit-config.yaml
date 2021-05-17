@@ -37,5 +37,8 @@ exclude: |
     ^lib/Middlewares/Third_Party/LwIP/|
     ^lib/jsmn/|
     ^lib/Catch2/|
-    ^lib/CycloneTCP/
+    ^lib/CycloneTCP/|
+    ^lib/ESP/serial-flasher/|
+    ^lib/ESP/lwesp/|
+    ^lib/ESP/prusa/src/serial-flasher/serial_comm.c
   )

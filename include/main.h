@@ -15,6 +15,8 @@ extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern RTC_HandleTypeDef hrtc;
 
+extern UART_HandleTypeDef huart6;
+
 extern uartrxbuff_t uart1rxbuff;
 extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim1;
