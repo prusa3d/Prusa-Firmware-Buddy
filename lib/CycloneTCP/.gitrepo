@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:Oryx-Embedded/CycloneTCP.git
+	branch = master
+	commit = 2325b881794a6a3da5363f3d405c88f9778f5faa
+	parent = 946842571290d869025fc0e32532a6c26e256461
+	method = merge
+	cmdver = 0.4.3
