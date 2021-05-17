@@ -4,19 +4,19 @@ import os
 from pathlib import Path
 import gzip
 import shutil
+import argparse
 
 
 class WUI_Files:
-    def __init__(self):
+    def __init__(self, input_folder: Path, output_folder: Path, filename):
         self.wui_files = []
-        self.main_file_name = 'fsdata_wui_local.c'
-        # path to resource files directory
-        project_root = Path(__file__).resolve().parent.parent
-        wui_root = project_root / 'lib' / 'WUI'
-        self.wui_path = wui_root / 'resources' / 'src_local'
+        self.main_file_name = filename
+
+        self.wui_path = input_folder
         # path to main C file with raw data
-        self.raw_data_file = wui_root / 'resources' / self.main_file_name
-        self.raw_data_file_tmp = wui_root / 'resources' / f'{self.main_file_name}.tmp'
+        self.raw_data_file = os.path.join(output_folder, self.main_file_name)
+        self.raw_data_file_tmp = os.path.join(output_folder,
+                                              f'{self.main_file_name}.tmp')
 
         # start
         self.get_files()
@@ -120,8 +120,7 @@ class WUI_Files:
             os.remove(file + '.gz')
 
         # remove original file and rename tmp file
-        os.remove(self.raw_data_file)
-        os.rename(self.raw_data_file_tmp, self.raw_data_file)
+        os.replace(self.raw_data_file_tmp, self.raw_data_file)
 
     """ generate hex raw data from all resources files into a one C file """
 
@@ -233,5 +232,11 @@ class WUI_Files:
         self.write_tmp_data(data)
 
 
+parser = argparse.ArgumentParser(description='Web.....')
+parser.add_argument('--input-folder', type=Path, help='input folder')
+parser.add_argument('--output-folder', type=Path, help='output folder')
+parser.add_argument('filename', help='output file')
+args = parser.parse_args()
+
 # start instance
-wf = WUI_Files()
+wf = WUI_Files(args.input_folder, args.output_folder, args.filename)

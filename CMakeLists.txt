@@ -663,9 +663,6 @@ if(GUI)
     )
 endif()
 
-# Set fsdata filename for HTTPServer
-target_compile_definitions(firmware PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
-
 set_property(
   SOURCE src/common/version.c
   APPEND
