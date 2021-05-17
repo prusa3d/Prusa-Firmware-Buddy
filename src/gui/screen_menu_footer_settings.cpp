@@ -142,7 +142,7 @@ public:
     }
 };
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_ALIGN_TEMP, MI_SHOW_ZERO_TEMP_TARGET, IMiFooter<0>
+using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_ALIGN_TEMP, MI_SHOW_ZERO_TEMP_TARGET, IMiFooter<0>
 #if FOOTER_ITEMS_PER_LINE__ > 1
     ,
     IMiFooter<1>

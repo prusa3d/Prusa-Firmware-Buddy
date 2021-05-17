@@ -11,10 +11,8 @@
 #include "screen.hpp"
 #include <new>
 
-enum class EHeader { On,
-    Off }; //affect only events
-enum class EFooter { On,
-    Off };
+enum class EFooter { Off,
+    On };
 
 //parent to not repeat code in templates
 class IScreenMenu : public AddSuperWindow<screen_t> {
@@ -30,7 +28,7 @@ public:
     void unconditionalDrawItem(uint8_t index);
 };
 
-template <EHeader HEADER, EFooter FOOTER, class... T>
+template <EFooter FOOTER, class... T>
 class ScreenMenu : public AddSuperWindow<IScreenMenu> {
 protected:
     //std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
@@ -51,8 +49,8 @@ public:
     }
 };
 
-template <EHeader HEADER, EFooter FOOTER, class... T>
-ScreenMenu<HEADER, FOOTER, T...>::ScreenMenu(string_view_utf8 label, window_t *parent)
+template <EFooter FOOTER, class... T>
+ScreenMenu<FOOTER, T...>::ScreenMenu(string_view_utf8 label, window_t *parent)
     : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
     menu.pContainer = &container;
     menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
