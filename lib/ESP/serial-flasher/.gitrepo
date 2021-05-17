@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:espressif/esp-serial-flasher.git
+	branch = master
+	commit = e13fa455b0fb00bb039ab5c668985d8aab859418
+	parent = e55e1ae0a5a51080409a113d0402b199424c162c
+	method = merge
+	cmdver = 0.4.3

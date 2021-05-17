@@ -1,104 +1,113 @@
-#include "client.h"
-#include "lwesp/lwesp.h"
-
-/* Host parameter */
-#define CONN_HOST "helloworld.org"
-#define CONN_PORT 80
-
-static lwespr_t conn_callback_func(lwesp_evt_t *evt);
+#include "esp/esp.h"
+#include "esp/esp_netconn.h"
+#include "dbg.h"
 
 /**
- * \brief           Request data for connection
+ * \brief           Host and port settings
  */
-static const uint8_t req_data[] = ""
-                                  "GET / HTTP/1.1\r\n"
-                                  "Host: " CONN_HOST "\r\n"
-                                  "Connection: close\r\n"
-                                  "\r\n";
+#define NETCONN_HOST "google.com"
+#define NETCONN_PORT 80
 
 /**
- * \brief           Start a new connection(s) as client
+ * \brief           Request header to send on successful connection
  */
-void client_connect(void) {
-    lwespr_t res;
+static const char
+    request_header[]
+    = ""
+      "GET / HTTP/1.1\r\n"
+      "Host: " NETCONN_HOST "\r\n"
+      "Connection: close\r\n"
+      "\r\n";
 
-    /* Start a new connection as client in non-blocking mode */
-    if ((res = lwesp_conn_start(NULL, LWESP_CONN_TYPE_TCP, "helloworld.org", 80, NULL, conn_callback_func, 0)) == lwespOK) {
-        printf("Connection to " CONN_HOST " started...\r\n");
-    } else {
-        printf("Cannot start connection to " CONN_HOST "!\r\n");
-    }
-
-    /* Start 2 more */
-    lwesp_conn_start(NULL, LWESP_CONN_TYPE_TCP, CONN_HOST, CONN_PORT, NULL, conn_callback_func, 0);
+/**
+ * \brief           Netconn client thread implementation
+ * \param[in]       arg: User argument
+ */
+void netconn_client_thread(void const *arg) {
+    espr_t res;
+    esp_pbuf_p pbuf;
+    esp_netconn_p client;
+    esp_sys_sem_t *sem = (void *)arg;
 
     /*
-     * An example of connection which should fail in connecting.
-     * When this is the case, \ref LWESP_EVT_CONN_ERROR event should be triggered
-     * in callback function processing
+     * First create a new instance of netconn
+     * connection and initialize system message boxes
+     * to accept received packet buffers
      */
-    lwesp_conn_start(NULL, LWESP_CONN_TYPE_TCP, CONN_HOST, 10, NULL, conn_callback_func, 0);
-}
+    client = esp_netconn_new(ESP_NETCONN_TYPE_TCP);
+    if (client != NULL) {
+        /*
+         * Connect to external server as client
+         * with custom NETCONN_CONN_HOST and CONN_PORT values
+         *
+         * Function will block thread until we are successfully connected (or not) to server
+         */
+        res = esp_netconn_connect(client, NETCONN_HOST, NETCONN_PORT);
+        if (res == espOK) { /* Are we successfully connected? */
+            _dbg("Connected to " NETCONN_HOST "\r\n");
+            res = esp_netconn_write(client, request_header, sizeof(request_header) - 1); /* Send data to server */
+            if (res == espOK) {
+                res = esp_netconn_flush(client); /* Flush data to output */
+            }
+            if (res == espOK) { /* Were data sent? */
+                _dbg("Data were successfully sent to server\r\n");
 
-/**
- * \brief           Event callback function for connection-only
- * \param[in]       evt: Event information with data
- * \return          \ref lwespOK on success, member of \ref lwespr_t otherwise
- */
-static lwespr_t
-conn_callback_func(lwesp_evt_t *evt) {
-    lwesp_conn_p conn;
-    lwespr_t res;
-    uint8_t conn_num;
+                /*
+                 * Since we sent HTTP request,
+                 * we are expecting some data from server
+                 * or at least forced connection close from remote side
+                 */
+                do {
+                    /*
+                     * Receive single packet of data
+                     *
+                     * Function will block thread until new packet
+                     * is ready to be read from remote side
+                     *
+                     * After function returns, don't forgot the check value.
+                     * Returned status will give you info in case connection
+                     * was closed too early from remote side
+                     */
+                    res = esp_netconn_receive(client, &pbuf);
+                    if (res == espCLOSED) { /* Was the connection closed? This can be checked by return status of receive function */
+                        _dbg("Connection closed by remote side...\r\n");
+                        break;
+                    } else if (res == espTIMEOUT) {
+                        _dbg("Netconn timeout while receiving data. You may try multiple readings before deciding to close manually\r\n");
+                    }
 
-    conn = lwesp_conn_get_from_evt(evt); /* Get connection handle from event */
-    if (conn == NULL) {
-        return lwespERR;
-    }
-    conn_num = lwesp_conn_getnum(conn); /* Get connection number for identification */
-    switch (lwesp_evt_get_type(evt)) {
-    case LWESP_EVT_CONN_ACTIVE: { /* Connection just active */
-        printf("Connection %d active!\r\n", (int)conn_num);
-        res = lwesp_conn_send(conn, req_data, sizeof(req_data) - 1, NULL, 0); /* Start sending data in non-blocking mode */
-        if (res == lwespOK) {
-            printf("Sending request data to server...\r\n");
+                    if (res == espOK && pbuf != NULL) { /* Make sure we have valid packet buffer */
+                        /*
+                         * At this point read and manipulate
+                         * with received buffer and check if you expect more data
+                         *
+                         * After you are done using it, it is important
+                         * you free the memory otherwise memory leaks will appear
+                         */
+                        _dbg("Received new data packet of %d bytes\r\n", (int)esp_pbuf_length(pbuf, 1));
+                        esp_pbuf_free(pbuf); /* Free the memory after usage */
+                        pbuf = NULL;
+                    }
+                } while (1);
+            } else {
+                _dbg("Error writing data to remote host!\r\n");
+            }
+
+            /*
+             * Check if connection was closed by remote server
+             * and in case it wasn't, close it manually
+             */
+            if (res != espCLOSED) {
+                esp_netconn_close(client);
+            }
         } else {
-            printf("Cannot send request data to server. Closing connection manually...\r\n");
-            lwesp_conn_close(conn, 0); /* Close the connection */
+            _dbg("Cannot connect to remote host %s:%d %d!\r\n", NETCONN_HOST, NETCONN_PORT, res);
         }
-        break;
+        esp_netconn_delete(client); /* Delete netconn structure */
     }
-    case LWESP_EVT_CONN_CLOSE: { /* Connection closed */
-        if (lwesp_evt_conn_close_is_forced(evt)) {
-            printf("Connection %d closed by client!\r\n", (int)conn_num);
-        } else {
-            printf("Connection %d closed by remote side!\r\n", (int)conn_num);
-        }
-        break;
+
+    if (esp_sys_sem_isvalid(sem)) {
+        esp_sys_sem_release(sem);
     }
-    case LWESP_EVT_CONN_SEND: { /* Data send event */
-        lwespr_t res = lwesp_evt_conn_send_get_result(evt);
-        if (res == lwespOK) {
-            printf("Data sent successfully on connection %d...waiting to receive data from remote side...\r\n", (int)conn_num);
-        } else {
-            printf("Error while sending data on connection %d!\r\n", (int)conn_num);
-        }
-        break;
-    }
-    case LWESP_EVT_CONN_RECV: { /* Data received from remote side */
-        lwesp_pbuf_p pbuf = lwesp_evt_conn_recv_get_buff(evt);
-        lwesp_conn_recved(conn, pbuf); /* Notify stack about received pbuf */
-        printf("Received %d bytes on connection %d..\r\n", (int)lwesp_pbuf_length(pbuf, 1), (int)conn_num);
-        break;
-    }
-    case LWESP_EVT_CONN_ERROR: { /* Error connecting to server */
-        const char *host = lwesp_evt_conn_error_get_host(evt);
-        lwesp_port_t port = lwesp_evt_conn_error_get_port(evt);
-        printf("Error connecting to %s:%d\r\n", host, (int)port);
-        break;
-    }
-    default:
-        break;
-    }
-    return lwespOK;
+    esp_sys_thread_terminate(NULL); /* Terminate current thread */
 }

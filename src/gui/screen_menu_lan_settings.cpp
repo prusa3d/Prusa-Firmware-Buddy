@@ -48,6 +48,9 @@ public:
     static bool IsUpdated();
     static bool SetStatic();
     static bool SetDHCP();
+    static bool SetLANWiFi();
+    static bool SetLANETH();
+    static bool IsLANETH();
     static Msg ConsumeMsg();
 };
 
@@ -95,6 +98,10 @@ bool Eth::IsOn() {
     return !IS_LAN_OFF(GetFlag());
 }
 
+bool Eth::IsLANETH() {
+    return IS_LAN_INTERFACE_ETH(GetFlag());
+}
+
 bool Eth::IsUpdated() {
     return false;
 }
@@ -119,6 +126,24 @@ bool Eth::SetDHCP() {
     ETH_config_t ethconfig = {};
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     CHANGE_LAN_TO_DHCP(ethconfig.lan.flag);
+    save_eth_params(&ethconfig);
+    set_eth_update_mask(ethconfig.var_mask);
+    return true;
+}
+
+bool Eth::SetLANETH() {
+    ETH_config_t ethconfig = {};
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    LAN_INTERFACE_ETH(ethconfig.lan.flag);
+    save_eth_params(&ethconfig);
+    set_eth_update_mask(ethconfig.var_mask);
+    return true;
+}
+
+bool Eth::SetLANWiFi() {
+    ETH_config_t ethconfig = {};
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    LAN_INTERFACE_WIFI(ethconfig.lan.flag);
     save_eth_params(&ethconfig);
     set_eth_update_mask(ethconfig.var_mask);
     return true;
@@ -170,6 +195,23 @@ public:
     }
 };
 
+class MI_LAN_INTERFACE_t : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = "LAN Interface"; //do not translate
+
+    constexpr static const char *str_eth = "ETH";   //do not translate
+    constexpr static const char *str_wifi = "WIFI"; //do not translate
+
+public:
+    MI_LAN_INTERFACE_t()
+        : WI_SWITCH_t(Eth::IsLANETH() ? 1 : 0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no,
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth)) {}
+    virtual void OnChange(size_t old_index) override {
+        bool success = old_index == 0 ? Eth::SetLANETH() : Eth::SetLANWiFi();
+        if (!success)
+            this->SetIndex(old_index);
+    }
+};
+
 class MI_LAN_IP_t : public WI_SWITCH_t<2> {
     constexpr static const char *const label = "LAN IP"; //do not translate
 
@@ -211,7 +253,7 @@ public:
 
 /*****************************************************************************/
 //parent alias
-using MenuContainer = WinMenuContainer<MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
+using MenuContainer = WinMenuContainer<MI_RETURN, MI_LAN_ONOFF, MI_LAN_INTERFACE_t, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
 
 class ScreenMenuLanSettings : public AddSuperWindow<screen_t> {
     constexpr static const char *label = N_("LAN SETTINGS");

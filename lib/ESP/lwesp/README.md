@@ -1,19 +1,10 @@
-# Lightweight ESP-AT parser
+# ESP8266 AT commands parser for RTOS systems
 
-LwESP is lightweight ESP AT commands parser library to communicate with ESP8266 or ESP32 Wi-Fi module using AT commands. Module is written in C99 and is independent from used platform. Its main targets are embedded system devices like ARM Cortex-M, AVR, PIC and others, but can easily work under `Windows`, `Linux` or `MAC` environments.
-
-`esp-at-lib` is a library for host device (MCU as an example) which drives ESP32 or ESP8266 devices running official `AT commands` firmware written and maintained by Espressif System.
-Source of official firmware is publicly available at [esp32-at](https://github.com/espressif/esp-at) repository.
-
-If you are only interested in using module and not writing firmware for it, you may download pre-build AT firmware from [Espressif systems download section](https://www.espressif.com/en/support/download/at) and focus only on firmware development on host side, for which you need the library posted here.
-
-Follow documentation for more information on implementation and details.
-
-<h3>Read first: <a href="https://docs.majerle.eu/projects/lwesp/">Documentation</a></h3>
+ESP-AT Library commands parser is a generic, platform independent, library for communicating with ESP8266 Wi-Fi module using AT commands. Module is written in C99 and is independent from used platform. Its main targets are embedded system devices like ARM Cortex-M, AVR, PIC and others, but can easily work under `Windows`, `Linux` or `MAC` environments.
 
 ## Features
 
-- Supports latest ESP32 & ESP8266 RTOS-SDK based AT commands firmware
+- Supports latest ESP8266 AT commands software
 - Platform independent and very easy to port
 - Development of library under Win32 platform
 - Available examples for ARM Cortex-M or Win32 platforms
@@ -25,18 +16,19 @@ Follow documentation for more information on implementation and details.
   - Netconn sequential API for client and server
   - HTTP server with dynamic files (file system) supported
   - MQTT client
-- Embeds other AT features, such as WPS management, custom DNS setup, Hostname for DHCP, Ping feature
+- Embeds other AT features, such as `WPS`, `PING`, `Hostname` and others
 - User friendly MIT license
 
-## Contribute
+## Examples and resources
 
-Fresh contributions are always welcome. Simple instructions to proceed::
+For examples, please check second repository, available at https://github.com/MaJerle/ESP_AT_Lib_res
 
-1. Fork Github repository
-2. Respect [C style & coding rules](https://github.com/MaJerle/c-code-style) used by the library
-3. Create a pull request to develop branch with new features or bug fixes
+## Documentation
 
-Alternatively you may:
+Full API documentation with description and examples is available and is regulary updated with the source changes
 
-1. Report a bug
-2. Ask for a feature request
+http://majerle.eu/documentation/esp_at/html/index.html
+
+## Contribution
+
+I invite you to give feature request or report a bug. Please use issues tracker.
