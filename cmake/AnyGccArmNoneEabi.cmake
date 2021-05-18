@@ -85,7 +85,7 @@ set(CMAKE_CXX_FLAGS_INIT
     CACHE STRING "" FORCE
     )
 set(CMAKE_EXE_LINKER_FLAGS_INIT
-    "--specs=nosys.specs --specs=nano.specs -u _scanf_float"
+    "-u _scanf_float"
     CACHE STRING "" FORCE
     )
 
