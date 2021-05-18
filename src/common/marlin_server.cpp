@@ -494,6 +494,7 @@ static void _server_print_loop(void) {
     case mpsPrinting:
         switch (media_print_get_state()) {
         case media_print_state_PRINTING:
+        case media_print_state_PAUSING:
             break;
         case media_print_state_PAUSED:
             marlin_server.print_state = mpsPausing_Begin;

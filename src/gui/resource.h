@@ -65,6 +65,7 @@ enum {
     IDR_PNG_error_16px,
     IDR_PNG_warning_16px,
     IDR_PNG_question_16px,
+    IDR_PNG_sheets_profile_16px,
     IDR_PNG_nozzle_shape_48px,
 
     IDR_PNG_arrow_up_16px,
@@ -93,5 +94,4 @@ enum {
     IDR_PNG_flag_fr,
     IDR_PNG_flag_it,
     IDR_PNG_flag_pl,
-    IDR_PNG_sheet_profile,
 };

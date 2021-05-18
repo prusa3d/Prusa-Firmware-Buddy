@@ -6,8 +6,8 @@
 
 #include "screen.hpp"
 
-screen_t::screen_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
-    : AddSuperWindow<window_frame_t>(parent, rect, type, timeout, serial)
+screen_t::screen_t(window_t *parent, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
+    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreen, type, timeout, serial)
     , first_dialog(nullptr)
     , last_dialog(nullptr)
     , first_strong_dialog(nullptr)
@@ -59,7 +59,7 @@ bool screen_t::registerSubWin(window_t &win) {
         return false;
     }
 
-    unregisterConflictingPopUps(win.rect, win.GetType() == win_type_t::popup ? &win : nullptr);
+    unregisterConflictingPopUps(win.GetRect(), win.GetType() == win_type_t::popup ? &win : nullptr);
 
     clearAllHiddenBehindDialogFlags();
     hideSubwinsBehindDialogs();
@@ -79,7 +79,7 @@ void screen_t::unregisterConflictingPopUps(Rect16 rect, window_t *end) {
 }
 
 bool screen_t::canRegisterPopup(window_t &win) {
-    WinFilterIntersectingDialog filter(win.rect);
+    WinFilterIntersectingDialog filter(win.GetRect());
     //find intersecting non popup
     if (findFirst(first_normal, nullptr, filter)) {
         //registration failed
@@ -106,7 +106,7 @@ void screen_t::hideSubwinsBehindDialogs() {
     window_t *pLastVisibleDialog;
     while ((pLastVisibleDialog = findLast(pBeginAbnormal, pEndAbnormal, filter_visible)) != pEndAbnormal) {
         //hide all conflicting windows
-        WinFilterIntersectingVisible filter_intersecting(pLastVisibleDialog->rect);
+        WinFilterIntersectingVisible filter_intersecting(pLastVisibleDialog->GetRect());
         window_t *pIntersectingWin;
         while ((pIntersectingWin = findFirst(first_normal, pLastVisibleDialog, filter_intersecting)) != pLastVisibleDialog) {
             pIntersectingWin->HideBehindDialog();

@@ -29,16 +29,16 @@ void window_t::Validate(Rect16 validation_rect) {
     }
 }
 
-void window_t::Invalidate(Rect16 validation_rect) {
-    if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
-        flags.invalid = true;
-        invalidate(validation_rect);
+void window_t::Invalidate(Rect16 invalidation_rect) {
+    if (invalidation_rect.IsEmpty() || rect.HasIntersection(invalidation_rect)) {
+        invalidate(invalidation_rect);
         gui_invalidate();
     }
 }
 
 //frame will invalidate children
 void window_t::invalidate(Rect16 validation_rect) {
+    flags.invalid = true;
 }
 
 //frame will validate children
@@ -152,8 +152,8 @@ void window_t::SetBackColor(color_t clr) {
 window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
     : parent(parent)
     , next(nullptr)
-    , flags(0)
     , rect(rect)
+    , flags(0)
     , color_back(GuiDefaults::ColorBack) {
     flags.type = uint8_t(type);
     flags.close_on_click = close;
@@ -177,6 +177,58 @@ window_t::~window_t() {
         GetParent()->UnregisterSubWin(*this);
 
     Screens::Access()->ResetTimeout();
+}
+
+Rect16 window_t::GetRect() const {
+    if (GetParent()) {
+        return GetParent()->TransformRect(rect); // do not use GetRect() - would be recursive
+    }
+
+    return rect;
+}
+
+Rect16 window_t::GetRectWithoutTransformation() const {
+    return rect;
+}
+
+void window_t::SetRect(Rect16 rc) {
+    if (GetParent()) {
+        rect = GetParent()->TransformRect(rc); // do not use SetRect() - would be recursive
+        return;
+    }
+
+    rect = rc;
+}
+
+void window_t::SetRectWithoutTransformation(Rect16 rc) {
+    rect = rc;
+}
+
+//TransformRect calls GetRect which calls TransformRect on parrent level ...
+Rect16 window_t::TransformRect(Rect16 rc) const {
+    Rect16 this_rect = GetRect();
+    if (flags.has_relative_subwins) {
+        rc.Transform(this_rect);
+    } else {
+        rc = rc.Intersection(this_rect);
+    }
+    return rc;
+}
+
+void window_t::Reposition(Rect16::Top_t top) {
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = top);
+}
+
+void window_t::Reposition(Rect16::Left_t left) {
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = left);
+}
+
+void window_t::Resize(Rect16::Height_t height) {
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = height);
+}
+
+void window_t::Resize(Rect16::Width_t width) {
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = width);
 }
 
 void window_t::SetNext(window_t *nxt) {
@@ -252,8 +304,11 @@ void window_t::draw() {
 //window does not support subwindow elements, but window_frame does
 bool window_t::RegisterSubWin(window_t &win) {
     //window must fit inside frame
-    if (!rect.Contain(win.rect))
+    if (!GetRect().Contain(win.GetRect())) //could speed this up, but prefer smaller codesize
         return false;
+    //parrent has relative subwins, child must have them too
+    if (flags.has_relative_subwins)
+        win.SetRelativeSubwins();
 
     Screens::Access()->ResetTimeout();
 
@@ -263,7 +318,7 @@ bool window_t::RegisterSubWin(window_t &win) {
 void window_t::UnregisterSubWin(window_t &win) {
     if (win.GetParent() != this)
         return;
-    addInvalidationRect(win.rect);
+    addInvalidationRect(win.GetRect());
     unregisterSubWin(win);
     Screens::Access()->ResetTimeout();
 }
@@ -283,7 +338,7 @@ void window_t::addInvalidationRect(Rect16 rc) {
 }
 
 void window_t::unconditionalDraw() {
-    display::FillRect(rect, color_back);
+    display::FillRect(GetRect(), color_back);
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {

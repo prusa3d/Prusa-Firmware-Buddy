@@ -15,6 +15,11 @@ window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, i
     Enable();
 }
 
+window_frame_t::window_frame_t(window_t *parent, Rect16 rect, positioning sub_win_pos)
+    : window_frame_t(parent, rect, win_type_t::normal, is_closed_on_timeout_t::yes, is_closed_on_serial_t::yes) {
+    flags.has_relative_subwins = sub_win_pos == positioning::relative;
+}
+
 // popup windows are static and must be unregistred
 // other windows does not need unregistration
 // because dialog/strong dialog from marlin thread will consume close flag so screen cannot be closed before it
@@ -94,7 +99,7 @@ void window_frame_t::colorConflictBackgroundToRed(window_t &win) {
 
         window_t *pWin = first_normal;
         while (pWin) {
-            if (win.rect.HasIntersection(pWin->rect)) {
+            if (win.GetRect().HasIntersection(pWin->GetRect())) {
                 win.SetBackColor(COLOR_RED_ALERT);
             }
             pWin = pWin->GetNext();
@@ -125,6 +130,7 @@ void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, windo
     if ((!pFirst) || (!pLast))
         return;
 
+    Rect16 inv_rect = win.GetRect();
     bool clr_begin_end = (&win == pFirst && pFirst == pLast);
 
     window_t *prev = GetPrevSubWin(&win);
@@ -145,7 +151,7 @@ void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, windo
 
     win.SetParent(nullptr);
 
-    Invalidate();
+    Invalidate(inv_rect);
 }
 
 void window_frame_t::addInvalidationRect(Rect16 rc) {
@@ -184,14 +190,14 @@ void window_frame_t::draw() {
     while (ptr) {
         if (setChildrenInvalid) {
             //if hidden window has no intersection with other windows, it must be drawn (back color)
-            if (ptr->IsVisible() || !GetFirstEnabledSubWin(ptr->rect)) {
+            if (ptr->IsVisible() || !GetFirstEnabledSubWin(ptr->GetRect())) {
                 ptr->Invalidate();
             } else {
                 ptr->Validate();
             }
         }
 
-        if (invalid_area.HasIntersection(ptr->rect)) {
+        if (invalid_area.HasIntersection(ptr->GetRect())) {
             ptr->Invalidate();
         }
 
@@ -275,11 +281,16 @@ void window_frame_t::screenEvent(window_t *sender, GUI_event_t event, void *para
 }
 
 //resend invalidation to all children
-void window_frame_t::invalidate(Rect16 validation_rect) {
+void window_frame_t::invalidate(Rect16 invalidation_rect) {
     window_t *ptr = first_normal;
     while (ptr) {
-        ptr->Invalidate(validation_rect);
+        ptr->Invalidate(invalidation_rect);
         ptr = ptr->GetNext();
+    }
+    if (invalidation_rect.IsEmpty()) {
+        flags.invalid = true;
+    } else {
+        addInvalidationRect(invalidation_rect);
     }
 }
 
@@ -350,7 +361,7 @@ window_t *window_frame_t::GetNextSubWin(window_t *win, Rect16 intersection_rect)
     //endless loop is safe here, last_normal window points to nullptr
     while (true) {
         win = win->GetNext();
-        if (!win || win->rect.HasIntersection(intersection_rect)) {
+        if (!win || win->GetRect().HasIntersection(intersection_rect)) {
             return win;
         }
     }
@@ -377,7 +388,7 @@ window_t *window_frame_t::GetNextEnabledSubWin(window_t *win, Rect16 intersectio
     //endless loop is safe here, last_normal window points to nullptr
     while (true) {
         win = win->GetNextEnabled();
-        if (!win || win->rect.HasIntersection(intersection_rect)) {
+        if (!win || win->GetRect().HasIntersection(intersection_rect)) {
             return win;
         }
     }
@@ -394,7 +405,7 @@ window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win, Rect16 intersectio
 window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const {
     if (!first_normal)
         return nullptr;
-    if (first_normal->IsEnabled() && first_normal->rect.HasIntersection(intersection_rect))
+    if (first_normal->IsEnabled() && first_normal->GetRect().HasIntersection(intersection_rect))
         return first_normal;
     return GetNextEnabledSubWin(first_normal, intersection_rect);
 }
@@ -402,7 +413,7 @@ window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const 
 Rect16 window_frame_t::GenerateRect(ShiftDir_t direction) {
     if (!last_normal)
         return Rect16();
-    return Rect16(last_normal->rect, direction);
+    return Rect16(last_normal->GetRect(), direction);
 }
 
 void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
@@ -416,7 +427,7 @@ void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
 }
 
 void window_frame_t::ChildVisibilityChanged(window_t &child) {
-    addInvalidationRect(child.rect);
+    addInvalidationRect(child.GetRect());
 }
 
 window_t *window_frame_t::getCapturedNormalWin() const {

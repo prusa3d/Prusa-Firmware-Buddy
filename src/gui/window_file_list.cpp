@@ -84,8 +84,8 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
 }
 
 void window_file_list_t::unconditionalDraw() {
-    const int item_height = font->h + padding.top + padding.bottom;
-    const int visible_slots = rect.Height() / item_height;
+    const Rect16::Height_t item_height = font->h + padding.top + padding.bottom;
+    const int visible_slots = Height() / item_height;
     const int ldv_visible_files = ldv->VisibleFilesCount();
     const int maxi = std::min(count, std::min(visible_slots, ldv_visible_files));
 
@@ -113,8 +113,8 @@ void window_file_list_t::unconditionalDraw() {
         }
 
         const Rect16 rc
-            = { rect.Left(), int16_t(rect.Top() + i * item_height), rect.Width(), uint16_t(item_height) };
-        if (!rect.Contain(rc))
+            = { Left(), Rect16::Top_t(Top() + i * item_height), Width(), item_height };
+        if (!GetRect().Contain(rc))
             continue;
 
         if (IsFocused() && index == i) {
@@ -134,7 +134,7 @@ void window_file_list_t::unconditionalDraw() {
 
     /// fill the rest of the window with background
     const int menu_h = i * item_height;
-    Rect16 rc_win = rect;
+    Rect16 rc_win = GetRect();
     rc_win -= Rect16::Height_t(menu_h);
     if (rc_win.Height() <= 0)
         return;

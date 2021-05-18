@@ -2,7 +2,6 @@
 
 #include "gui_timer.h"
 #include <string.h>
-#include "stm32f4xx_hal.h"
 #include "ScreenHandler.hpp"
 #include "text_roll.hpp"
 #include <algorithm>
@@ -34,7 +33,7 @@ int8_t gui_menu_timeout_id = -1;
 
 int8_t gui_timer_new(window_t *pWin, uint8_t timer, uint32_t ms) {
     window_t *window;
-    uint32_t tick = HAL_GetTick();
+    uint32_t tick = gui::GetTick();
     int8_t id = -1;
     if (gui_timer_count < GUI_MAX_TIMERS) {
         id = 0;
@@ -96,7 +95,7 @@ uint32_t fire_text_roll_event(uint32_t tick, uint32_t diff_min) {
 }
 
 uint32_t gui_timers_cycle(void) {
-    uint32_t tick = HAL_GetTick();
+    uint32_t tick = gui::GetTick();
     uint32_t delay;
     uint32_t diff;
     uint32_t diff_min = 0xffffffff;
@@ -133,7 +132,7 @@ uint32_t gui_timers_cycle(void) {
 void gui_timer_reset(int8_t id) {
 
     if ((id >= 0) && (id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE))
-        gui_timers[id].start = HAL_GetTick();
+        gui_timers[id].start = gui::GetTick();
 }
 
 int8_t gui_timer_expired(int8_t id) {

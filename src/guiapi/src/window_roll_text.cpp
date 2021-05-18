@@ -12,7 +12,7 @@
 
 void window_roll_text_t::unconditionalDraw() {
 
-    roll.RenderTextAlign(rect, text, font,
+    roll.RenderTextAlign(GetRect(), text, font,
         (IsFocused()) ? color_text : color_back,
         (IsFocused()) ? color_back : color_text,
         padding, GetAlignment());

@@ -1,5 +1,7 @@
-//----------------------------------------------------------------------------//
-// hwio_a3ides.c - hardware input output abstraction for a3ides board
+/**
+ * @file
+ * @brief hardware input output abstraction for Buddy board
+ */
 
 #include <inttypes.h>
 
@@ -11,27 +13,31 @@
 #include "adc.h"
 #include "sim_nozzle.h"
 #include "sim_bed.h"
-#include "sim_motion.h"
 #include "Arduino.h"
 #include "timer_defaults.h"
 #include "hwio_pindef.h"
 #include "bsod.h"
 #include "main.h"
 #include "fanctl.h"
+#include "MarlinPin.hpp"
 
-//hwio arduino wrapper errors
+/**
+ * @brief hwio Marlin wrapper errors
+ */
 enum {
-    HWIO_ERR_UNINI_DIG_RD = 0x01,
-    HWIO_ERR_UNINI_DIG_WR,
-    HWIO_ERR_UNINI_ANA_RD,
-    HWIO_ERR_UNINI_ANA_WR,
-    HWIO_ERR_UNDEF_DIG_RD,
-    HWIO_ERR_UNDEF_DIG_WR,
-    HWIO_ERR_UNDEF_ANA_RD,
-    HWIO_ERR_UNDEF_ANA_WR,
+    HWIO_ERR_UNINI_DIG_RD = 0x01, //!< uninitialized digital read
+    HWIO_ERR_UNINI_DIG_WR,        //!< uninitialized digital write
+    HWIO_ERR_UNINI_ANA_RD,        //!< uninitialized analog read
+    HWIO_ERR_UNINI_ANA_WR,        //!< uninitialized analog write
+    HWIO_ERR_UNDEF_DIG_RD,        //!< undefined pin digital read
+    HWIO_ERR_UNDEF_DIG_WR,        //!< undefined pin digital write
+    HWIO_ERR_UNDEF_ANA_RD,        //!< undefined pin analog write
+    HWIO_ERR_UNDEF_ANA_WR,        //!< undefined pin analog write
 };
 
-// a3ides analog input pins
+/**
+ * @brief analog input pins
+ */
 const uint32_t _adc_pin32[] = {
     MARLIN_PIN(HW_IDENTIFY),
     MARLIN_PIN(TEMP_BED),
@@ -39,13 +45,20 @@ const uint32_t _adc_pin32[] = {
     MARLIN_PIN(TEMP_HEATBREAK),
     MARLIN_PIN(TEMP_0), // THERM0 (nozzle)
 };
-// a3ides analog input maximum values
+/**
+ * @brief analog input maximum values
+ */
 const int _adc_max[] = { 4095, 4095, 4095, 4095, 4095 };
 static const size_t _ADC_CNT = sizeof(_adc_pin32) / sizeof(uint32_t);
-//sampled analog inputs
+
+/**
+ * @brief sampled analog inputs
+ */
 int _adc_val[] = { 0, 0, 0, 0, 0 };
 
-// a3ides analog output pins
+/**
+ * @brief analog output pins
+ */
 const uint32_t _dac_pin32[] = {};
 // a3ides analog output maximum values
 const int _dac_max[] = { 0 };
@@ -551,144 +564,93 @@ void hwio_arduino_error(int err, uint32_t pin32) {
     bsod(text);
 }
 
-//--------------------------------------
-// Arduino digital/analog wrapper functions
-
-int digitalRead(uint32_t ulPin) {
-    if (HAL_GPIO_Initialized) {
-        switch (ulPin) {
-#ifdef SIM_MOTION
-        case MARLIN_PIN(Z_MIN):
-            return sim_motion_get_min_end(2);
-        case MARLIN_PIN(E0_DIAG):
-            return sim_motion_get_diag(3);
-        case MARLIN_PIN(Y_DIAG):
-            return sim_motion_get_diag(1);
-        case MARLIN_PIN(X_DIAG):
-            return sim_motion_get_diag(0);
-        case MARLIN_PIN(Z_DIAG):
-            return sim_motion_get_diag(2);
-#else  //SIM_MOTION
-        case MARLIN_PIN(Z_MIN):
-        case MARLIN_PIN(E0_DIAG):
-        case MARLIN_PIN(Y_DIAG):
-        case MARLIN_PIN(X_DIAG):
-        case MARLIN_PIN(Z_DIAG):
-        case MARLIN_PIN(Z_DIR):
-            return gpio_get(ulPin);
-#endif //SIM_MOTION
-        default:
-            hwio_arduino_error(HWIO_ERR_UNDEF_DIG_RD, ulPin); //error: undefined pin digital read
+/**
+ * @brief Read digital pin to be used from Marlin
+ *
+ * Use MARLIN_PIN macro when handling special cases (virtual pins)
+ * @example @code
+ * case MARLIN_PIN(Z_MIN):
+ * @endcode
+ *
+ * @todo Bypass electric signal when reading output pin
+ */
+int digitalRead(uint32_t marlinPin) {
+#if _DEBUG
+    if (!HAL_GPIO_Initialized) {
+        hwio_arduino_error(HWIO_ERR_UNINI_DIG_RD, marlinPin); //error: uninitialized digital read
+        return 0;
+    }
+#endif //_DEBUG
+    switch (marlinPin) {
+    default:
+#if _DEBUG
+        if (!buddy::hw::physicalPinExist(marlinPin)) {
+            hwio_arduino_error(HWIO_ERR_UNDEF_DIG_RD, marlinPin); //error: undefined pin digital read
+            return 0;
         }
-    } else
-        hwio_arduino_error(HWIO_ERR_UNINI_DIG_RD, ulPin); //error: uninitialized digital read
-    return 0;
+#endif //_DEBUG
+        return gpio_get(marlinPin);
+    }
 }
 
-void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
-    if (HAL_GPIO_Initialized) {
-        switch (ulPin) {
-        case MARLIN_PIN(BED_HEAT):
-            //hwio_heater_set_pwm(_HEATER_BED, ulVal?255:0);
+/**
+ * @brief Write digital pin to be used from Marlin
+ *
+ * Use MARLIN_PIN macro when handling special cases (virtual pins)
+ * @example @code
+ * case MARLIN_PIN(FAN):
+ * @endcode
+ *
+ */
+void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
+#if _DEBUG
+    if (!HAL_GPIO_Initialized) {
+        hwio_arduino_error(HWIO_ERR_UNINI_DIG_WR, marlinPin); //error: uninitialized digital write
+        return;
+    }
+#endif //_DEBUG
+    switch (marlinPin) {
+    case MARLIN_PIN(BED_HEAT):
 #ifdef SIM_HEATER_BED_ADC
-            if (adc_sim_msk & (1 << SIM_HEATER_BED_ADC))
-                sim_bed_set_power(ulVal ? 100 : 0);
-            else
+        if (adc_sim_msk & (1 << SIM_HEATER_BED_ADC))
+            sim_bed_set_power(ulVal ? 100 : 0);
+        else
 #endif //SIM_HEATER_BED_ADC
-                _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_BED] : 0);
-            return;
-        case MARLIN_PIN(HEAT0):
-            //hwio_heater_set_pwm(_HEATER_0, ulVal?255:0);
+            _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_BED] : 0);
+        return;
+    case MARLIN_PIN(HEAT0):
 #ifdef SIM_HEATER_NOZZLE_ADC
-            if (adc_sim_msk & (1 << SIM_HEATER_NOZZLE_ADC))
-                sim_nozzle_set_power(ulVal ? 40 : 0);
-            else
+        if (adc_sim_msk & (1 << SIM_HEATER_NOZZLE_ADC))
+            sim_nozzle_set_power(ulVal ? 40 : 0);
+        else
 #endif //SIM_HEATER_NOZZLE_ADC
-                _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_0] : 0);
-            return;
-        case MARLIN_PIN(FAN1):
-            //hwio_fan_set_pwm(_FAN1, ulVal?255:0);
-            //_hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? _pwm_analogWrite_max[HWIO_PWM_FAN1] : 0);
+            _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_0] : 0);
+        return;
+    case MARLIN_PIN(FAN1):
 #ifdef NEW_FANCTL
-            if (hwio_fan_control_enabled)
-                fanctl_set_pwm(1, ulVal ? (100 * 50 / 255) : 0);
+        if (hwio_fan_control_enabled)
+            fanctl_set_pwm(1, ulVal ? (100 * 50 / 255) : 0);
 #else  //NEW_FANCTL
-            _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? 100 : 0);
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? 100 : 0);
 #endif //NEW_FANCTL
-            return;
-        case MARLIN_PIN(FAN):
+        return;
+    case MARLIN_PIN(FAN):
 #ifdef NEW_FANCTL
-            if (hwio_fan_control_enabled)
-                fanctl_set_pwm(0, ulVal ? 50 : 0);
+        if (hwio_fan_control_enabled)
+            fanctl_set_pwm(0, ulVal ? 50 : 0);
 #else  //NEW_FANCTL
-            _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulVal ? _pwm_analogWrite_max[HWIO_PWM_FAN] : 0);
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulVal ? _pwm_analogWrite_max[HWIO_PWM_FAN] : 0);
 #endif //NEW_FANCTL
+        return;
+    default:
+#if _DEBUG
+        if (!buddy::hw::isOutputPin(marlinPin)) {
+            hwio_arduino_error(HWIO_ERR_UNDEF_DIG_WR, marlinPin); //error: undefined pin digital write
             return;
-#ifdef SIM_MOTION
-        case MARLIN_PIN(X_DIR):
-            sim_motion_set_dir(0, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(X_STEP):
-            sim_motion_set_stp(0, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Z_ENABLE):
-            sim_motion_set_ena(2, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(X_ENABLE):
-            sim_motion_set_ena(0, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Z_STEP):
-            sim_motion_set_stp(2, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(E_DIR):
-            sim_motion_set_dir(3, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(E_STEP):
-            sim_motion_set_stp(3, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(E_ENABLE):
-            sim_motion_set_ena(3, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Y_DIR):
-            sim_motion_set_dir(1, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Y_STEP):
-            sim_motion_set_stp(1, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Y_ENABLE):
-            sim_motion_set_ena(1, ulVal ? 1 : 0);
-            return;
-        case MARLIN_PIN(Z_DIR):
-            sim_motion_set_dir(2, ulVal ? 1 : 0);
-            return;
-#else //SIM_MOTION
-        case MARLIN_PIN(X_DIR):
-        case MARLIN_PIN(X_STEP):
-        case MARLIN_PIN(Z_ENA):
-        case MARLIN_PIN(X_ENA):
-        case MARLIN_PIN(Z_STEP):
-        case MARLIN_PIN(E0_DIR):
-        case MARLIN_PIN(E0_STEP):
-        case MARLIN_PIN(E0_ENA):
-        case MARLIN_PIN(Y_DIR):
-        case MARLIN_PIN(Y_STEP):
-    #if (MARLIN_PIN(X_ENA) != MARLIN_PIN(Y_ENA))
-        case MARLIN_PIN(Y_ENA):
-    #endif
-        case MARLIN_PIN(Z_DIR):
-            gpio_set(ulPin, ulVal ? 1 : 0);
-            return;
-#endif //SIM_MOTION
-        default:
-            hwio_arduino_error(HWIO_ERR_UNDEF_DIG_WR, ulPin); //error: undefined pin digital write
         }
-    } else
-        hwio_arduino_error(HWIO_ERR_UNINI_DIG_WR, ulPin); //error: uninitialized digital write
-}
-
-void digitalToggle(uint32_t ulPin) {
-    digitalWrite(ulPin, !digitalRead(ulPin));
-    // TODO test me
+#endif //_DEBUG
+        gpio_set(marlinPin, ulVal ? 1 : 0);
+    }
 }
 
 uint32_t analogRead(uint32_t ulPin) {

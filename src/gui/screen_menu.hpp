@@ -2,7 +2,7 @@
 
 #include "gui.hpp"
 #include "window_header.hpp"
-#include "status_footer.h"
+#include "status_footer.hpp"
 #include "window_menu.hpp"
 #include "WinMenuContainer.hpp"
 #include "WindowMenuItems.hpp"
@@ -23,7 +23,7 @@ protected:
     static string_view_utf8 no_label;
     window_header_t header;
     window_menu_t menu;
-    status_footer_t footer;
+    StatusFooter footer;
 
 public:
     IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTER);
