@@ -11,33 +11,6 @@
 /**
  * @name Macros manipulating PIN_TABLE macro
  *
- * Define @p PIN_TABLE macro containing all physical pins used in project.
- * When defining @p PIN_TABLE use @p COMMA macro to separate parameters inside sections PORTPIN and PARAMETERS,
- * use ordinary comma (,) to separate sections (TYPE, NAME, PORTPIN, PARAMETERS).
- * @par Sections:
- * @n @p TYPE pin type e.g. InputPin, OutputPin, OutputInputPin, ...
- * @n @p NAME Name used to access pin. E.g. fastBoot, later accessed as e.g. fastboot.read()
- * @n @p PORTPIN Physical location of pin. E.g. IoPort::C COMMA IoPin::p7 or BUDDY_PIN(E0_DIR) for pin defined for MARLIN earlier.
- * @n @p PARAMETERS Parameters passed to pin constructor. Number and type of parameters varies between Pins @p TYPE
- *
- * @par Example usage:
- * @code
- * #define PIN_TABLE(MACRO_FUNCTION) \
- *      MACRO_FUNCTION(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), InitState::reset COMMA OMode::pushPull COMMA OSpeed::low) \
- *      MACRO_FUNCTION(buddy::hw::InputPin, fastBoot, IoPort::C COMMA IoPin::p7, IMode::input COMMA Pull::up)
- *
- * namespace buddy::hw {
- * DECLARE_PINS(PIN_TABLE)
- * }
- *
- * CONFIGURE_PINS(PIN_TABLE)
- *
- * constexpr PinChecker pinsToCheck[] = {
- *   PINS_TO_CHECK(PIN_TABLE)
- * };
- *
- * @endcode
- *
  * @{
  */
 /**
