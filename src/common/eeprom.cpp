@@ -9,6 +9,7 @@
 #include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
 #include "cmath_ext.h"
+#include "footer_eeprom.hpp"
 
 static const constexpr uint8_t EEPROM__PADDING = 4;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
@@ -22,18 +23,16 @@ static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read
 //#define EEPROM_MEASURE_CRC_TIME
 
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-enum {
-    MAX_SHEETS = 8,
-    EEPROM_SHEET_SIZEOF = 12
-};
-
 typedef struct
 {
     char name[MAX_SHEET_NAME_LENGTH]; //!< Can be null terminated, doesn't need to be null terminated
     float z_offset;                   //!< Z_BABYSTEP_MIN .. Z_BABYSTEP_MAX = Z_BABYSTEP_MIN*2/1000 [mm] .. Z_BABYSTEP_MAX*2/1000 [mm]
 } Sheet;
 
-static_assert(sizeof(Sheet) == EEPROM_SHEET_SIZEOF, "Sizeof(Sheets) is not EEPROM_SHEETS_SIZEOF.");
+enum {
+    MAX_SHEETS = 8,
+    EEPROM_SHEET_SIZEOF = sizeof(Sheet)
+};
 
 #endif
 // this pragma pack must remain intact, the ordering of EEPROM variables is not alignment-friendly
@@ -89,6 +88,7 @@ typedef struct _eeprom_vars_t {
     Sheet SHEET_PROFILE5;
     Sheet SHEET_PROFILE6;
     Sheet SHEET_PROFILE7;
+    uint32_t FOOTER_SETTING;
     uint32_t SELFTEST_RESULT;
     uint8_t DEVHASH_IN_QR;
     uint8_t FAN_CHECK_ENABLED;
@@ -144,6 +144,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SHEET_PROFILE5",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SHEET_PROFILE6",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SHEET_PROFILE7",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "FOOTER_SETTING",  VARIANT8_UI32,  1, 0 }, // EEVAR_FOOTER_SETTING
     { "SELFTEST_RESULT", VARIANT8_UI32,  1, 0 }, // EEVAR_SELFTEST_RESULT
     { "DEVHASH_IN_QR",   VARIANT8_UI8,   1, 0 }, // EEVAR_DEVHASH_IN_QR
     { "FAN_CHECK_ENA",   VARIANT8_UI8,   1, 0 }, // EEVAR_FAN_CHECK_ENABLED
@@ -201,6 +202,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     {"Custom2", FLT_MAX },
     {"Custom3", FLT_MAX },
     {"Custom4", FLT_MAX },
+    footer::eeprom::Encode(footer::eeprom::def), // EEVAR_FOOTER_SETTING
     0,               // EEVAR_SELFTEST_RESULT
     1,               // EEVAR_DEVHASH_IN_QR
     1,               // EEVAR_FAN_CHECK_ENABLED

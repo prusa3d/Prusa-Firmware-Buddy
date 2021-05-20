@@ -16,7 +16,6 @@ class FooterDoubleLine : public AddSuperWindow<window_frame_t> {
 
     //line0 cannot be changed, it shows temperatures only
     static constexpr FooterLine::IdArray line0_defaults = { { footer::items::ItemNozzle, footer::items::ItemBed, footer::items::count_ } };
-    static FooterLine::IdArray line1_init; //adjustable
 
 public:
     FooterDoubleLine(window_t *parent);
