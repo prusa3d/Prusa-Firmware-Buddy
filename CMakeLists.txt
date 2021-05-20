@@ -495,7 +495,6 @@ target_sources(
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_photoeletric.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/hardware_serial.cpp
-          src/common/diag.cpp
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
           src/common/MarlinPin.cpp
@@ -508,7 +507,6 @@ target_sources(
           src/common/sim_nozzle.c
           src/common/heap.c
           src/common/hwio_a3ides_2209_02.cpp
-          src/common/putslave.cpp
           src/common/safe_state.cpp
           src/common/variant8.cpp
           src/common/dbg.c
@@ -517,7 +515,6 @@ target_sources(
           src/common/marlin_client.c
           src/common/bsod.cpp
           src/common/adc.c
-          src/common/uartslave.c
           src/common/version.c
           src/common/marlin_events.c
           src/common/marlin_errors.c
@@ -733,7 +730,6 @@ set_property(
          src/common/bsod.cpp
          src/common/appmain.cpp
          src/common/sys.cpp
-         src/common/putslave.cpp
          src/marlin_stubs/M50.cpp
          src/marlin_stubs/gcode.cpp
          src/common/hwio_a3ides_2209_02.cpp
@@ -743,8 +739,8 @@ set_property(
   )
 
 set_property(
-  SOURCE src/common/appmain.cpp src/common/marlin_test.cpp src/common/putslave.cpp
-         src/common/thread_measurement.cpp src/common/trinamic.cpp
+  SOURCE src/common/appmain.cpp src/common/marlin_test.cpp src/common/thread_measurement.cpp
+         src/common/trinamic.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>

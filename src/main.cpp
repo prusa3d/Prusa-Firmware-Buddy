@@ -55,7 +55,6 @@
 #include "app.h"
 #include "dbg.h"
 #include "wdt.h"
-#include "diag.h"
 #include "dump.h"
 #include "timer_defaults.h"
 #include "thread_measurement.h"
@@ -175,16 +174,12 @@ void iwdg_warning_cb(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#include "uartslave.h"
-#include "putslave.h"
 
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[200];
 
 uartrxbuff_t uart6rxbuff;
 uint8_t uart6rx_data[128];
-uartslave_t uart6slave;
-char uart6slave_line[32];
 
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
@@ -235,8 +230,6 @@ int main(void) {
 
     /* USER CODE BEGIN SysInit */
 
-    diag_check_fastboot();
-
     /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
@@ -269,8 +262,6 @@ int main(void) {
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
     HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
     uartrxbuff_reset(&uart6rxbuff);
-    uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
-    putslave_init(&uart6slave);
     wdt_iwdg_warning_cb = iwdg_warning_cb;
 
     crc32_init();
