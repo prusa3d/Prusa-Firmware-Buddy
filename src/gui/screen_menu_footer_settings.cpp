@@ -13,6 +13,7 @@
 #include "footer_item_union.hpp"
 #include "status_footer.hpp"
 #include "menu_spin_config.hpp"
+#include "footer_eeprom.hpp"
 
 static constexpr std::array<const char *, FOOTER_ITEMS_PER_LINE__> labels = { { N_("Item 0")
 #if FOOTER_ITEMS_PER_LINE__ > 1

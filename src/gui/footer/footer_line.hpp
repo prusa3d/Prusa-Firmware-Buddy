@@ -8,7 +8,7 @@
 #pragma once
 #include "window_frame.hpp"
 #include "footer_item_union.hpp" // all possible footer items
-#include <array>
+#include "footer_def.hpp"
 
 class FooterLine : public AddSuperWindow<window_frame_t> {
     static constexpr size_t max_items = GuiDefaults::FooterItemsPerLine;
@@ -22,7 +22,7 @@ class FooterLine : public AddSuperWindow<window_frame_t> {
     size_t split(Rectangles &returned_rects, const std::array<Rect16::Width_t, max_items> &widths, size_t count) const;   //split line rectangle into rectangles for items
     void setItemRectangles(Rectangles::iterator rectangles_begin, Rectangles::iterator rectangles_end);                   // set given rectangles into valid items, show those items and hide the rest
 public:
-    using IdArray = std::array<footer::items, max_items>;
+    using IdArray = footer::record;
 
 private:
     std::array<footer::ItemUnion, max_items> items;

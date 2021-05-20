@@ -3,6 +3,7 @@
 #include "guitypes.hpp"
 #include "Rect16.h"
 #include "align.hpp"
+#include "footer_def.hpp"
 
 namespace footer {
 enum class ItemDrawType {
@@ -11,9 +12,6 @@ enum class ItemDrawType {
     Dynamic            // numbers aligned to the left, dynamic size
 };
 };
-
-//sadly this must be macro, it is used in preprocessor
-#define FOOTER_ITEMS_PER_LINE__ 3
 
 struct GuiDefaults {
     // Footer settings

@@ -6,16 +6,7 @@
 
 #include "footer_doubleline.hpp"
 #include "ScreenHandler.hpp"
-
-FooterLine::IdArray FooterDoubleLine::line1_init = { { footer::items::ItemSpeed,
-#if defined(FOOTER_HAS_LIVE_Z)
-    footer::items::ItemLiveZ,
-#elif defined(FOOTER_HAS_SHEETS)
-    footer::items::ItemSheets,
-#else
-    footer::items::count_,
-#endif
-    footer::items::ItemFilament } };
+#include "footer_eeprom.hpp"
 
 FooterDoubleLine::FooterDoubleLine(window_t *parent)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectFooter, positioning::absolute)
@@ -23,7 +14,7 @@ FooterDoubleLine::FooterDoubleLine(window_t *parent)
     , line_1(this, 1) {
     Disable();
     line_0.Create(line0_defaults);
-    line_1.Create(line1_init);
+    line_1.Create(footer::eeprom::Load());
 }
 
 bool FooterDoubleLine::SetSlot(size_t slot_id, footer::items item) {
@@ -31,10 +22,10 @@ bool FooterDoubleLine::SetSlot(size_t slot_id, footer::items item) {
 }
 
 bool FooterDoubleLine::SetSlotInit(size_t slot_id, footer::items item) {
-    if (slot_id >= line1_init.size())
+    if (slot_id >= footer::eeprom::Load().size())
         return false;
-    if (line1_init[slot_id] != item) {
-        line1_init[slot_id] = item;
+    if (footer::eeprom::Load()[slot_id] != item) {
+        footer::eeprom::Set(item, slot_id);
         //send event to all windows - there can be multiple footers, ScreenEvent is the best way
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(item));
     }
@@ -42,9 +33,9 @@ bool FooterDoubleLine::SetSlotInit(size_t slot_id, footer::items item) {
 }
 
 footer::items FooterDoubleLine::GetSlotInit(size_t slot_id) {
-    if (slot_id >= line1_init.size())
+    if (slot_id >= footer::eeprom::Load().size())
         return footer::items::count_;
-    return line1_init[slot_id];
+    return footer::eeprom::Load()[slot_id];
 }
 
 void FooterDoubleLine::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -54,7 +45,7 @@ void FooterDoubleLine::windowEvent(EventLock /*has private ctor*/, window_t *sen
         for (size_t index = 0; index < FooterLine::Size(); ++index) {
             //no need to recreate for line 0 - it is const
             //2nd line is not const, can create different item
-            line_1.Create(line1_init[index], index); // create will not do anything if wanted item type already exist in given slot
+            line_1.Create(footer::eeprom::Load()); // create will not do anything if wanted item type already exist in given slot
         }
     }
 
