@@ -467,6 +467,7 @@ target_link_libraries(
           QR
           Buddy::Lang
           printf::printf
+          sysbase
   )
 
 target_sources(
