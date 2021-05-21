@@ -9,36 +9,33 @@
 #include "display_helper.h" // font_meas_text
 #include <cmath>
 #include "ScreenHandler.hpp"
-
-footer::ItemDrawType FooterItemHeater::draw_type = GuiDefaults::FooterHeaterPosition;
-bool FooterItemHeater::draw_zero_target = GuiDefaults::FooterHeaterDrawZero;
+#include "footer_eeprom.hpp"
 
 footer::ItemDrawType FooterItemHeater::GetDrawType() {
-    return draw_type;
+    return footer::eeprom::LoadItemDrawCnf().type;
 }
 
 void FooterItemHeater::SetDrawType(footer::ItemDrawType type) {
-    setDrawMode(type, draw_zero_target);
+    setDrawMode(type, footer::eeprom::LoadItemDrawCnf().zero);
 }
 
 bool FooterItemHeater::IsZeroTargetDrawn() {
-    return draw_zero_target;
+    return footer::eeprom::LoadItemDrawCnf().zero == footer::ItemDrawZero::yes ? true : false;
 }
 
 void FooterItemHeater::EnableDrawZeroTarget() {
-    setDrawMode(draw_type, true);
+    setDrawMode(FooterItemHeater::GetDrawType(), footer::ItemDrawZero::yes);
 }
 
 void FooterItemHeater::DisableDrawZeroTarget() {
-    setDrawMode(draw_type, false);
+    setDrawMode(FooterItemHeater::GetDrawType(), footer::ItemDrawZero::no);
 }
 
-void FooterItemHeater::setDrawMode(footer::ItemDrawType type, bool draw_zero) {
-    if ((draw_type == type) && (draw_zero_target == draw_zero)) {
+void FooterItemHeater::setDrawMode(footer::ItemDrawType type, footer::ItemDrawZero draw_zero) {
+    if ((GetDrawType() == type) && (footer::eeprom::LoadItemDrawCnf().zero == draw_zero)) {
         return;
     }
-    draw_type = type;
-    draw_zero_target = draw_zero;
+    footer::eeprom::Set(footer::ItemDrawCnf(type, draw_zero));
     // item type is ItemNozzle or ItemBed
     // sadly this is static method, so i can do this in children (FooterItemHeater should not need to know about ItemNozzle/ItemBed)
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::ItemNozzle));
@@ -62,17 +59,17 @@ string_view_utf8 FooterItemHeater::static_makeViewIntoBuff(int value, std::array
 
     int printed_chars;
 
-    if ((target_or_display == 0) && (!draw_zero_target)) {
-        const char *const str = (draw_type == footer::ItemDrawType::Static) ? const_size_str_no_0 : left_aligned_str_no_0;
+    if ((target_or_display == 0) && (!IsZeroTargetDrawn())) {
+        const char *const str = (GetDrawType() == footer::ItemDrawType::Static) ? const_size_str_no_0 : left_aligned_str_no_0;
         printed_chars = snprintf(buff.data(), buff.size(), str, current);
     } else {
-        const char *const str = (draw_type == footer::ItemDrawType::Static) ? const_size_str : left_aligned_str;
+        const char *const str = (GetDrawType() == footer::ItemDrawType::Static) ? const_size_str : left_aligned_str;
         printed_chars = snprintf(buff.data(), buff.size(), str, current, target_or_display);
     }
 
     if (printed_chars <= 0) {
         buff[0] = '\0';
-    } else if (draw_type == footer::ItemDrawType::StaticLeftAligned) {
+    } else if (GetDrawType() == footer::ItemDrawType::StaticLeftAligned) {
         //left_aligned print need to end with spaces ensure fixed size
         *(buff.end() - 1) = '\0';
         for (; size_t(printed_chars) < buff.size() - 1; ++printed_chars) {

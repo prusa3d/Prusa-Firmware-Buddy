@@ -5,14 +5,6 @@
 #include "align.hpp"
 #include "footer_def.hpp"
 
-namespace footer {
-enum class ItemDrawType {
-    Static,            // numbers at fixed positions
-    StaticLeftAligned, // numbers aligned to the left, but fix size
-    Dynamic            // numbers aligned to the left, dynamic size
-};
-};
-
 struct GuiDefaults {
     // Footer settings
     static constexpr size_t FooterItemsPerLine = FOOTER_ITEMS_PER_LINE__; //max items per line

@@ -11,7 +11,7 @@
 #include "footer_def.hpp"
 
 class FooterLine : public AddSuperWindow<window_frame_t> {
-    static constexpr size_t max_items = GuiDefaults::FooterItemsPerLine;
+    static constexpr size_t max_items = FOOTER_ITEMS_PER_LINE__;
     static constexpr size_t array_sz = max_items + 2; //can add 2 zero rects for centering
     using Rectangles = std::array<Rect16, max_items>;
     static size_t center_N_andFewer;

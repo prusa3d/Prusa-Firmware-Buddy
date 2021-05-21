@@ -35,4 +35,29 @@ enum class items : uint8_t { // stored in eeprom, must be small
 
 using record = std::array<items, FOOTER_ITEMS_PER_LINE__>;
 
+enum class ItemDrawType : uint8_t {
+    Static,            // numbers at fixed positions
+    StaticLeftAligned, // numbers aligned to the left, but fix size
+    Dynamic            // numbers aligned to the left, dynamic size
+};
+
+enum class ItemDrawZero : bool { no,
+    yes };
+
+struct ItemDrawCnf {
+    ItemDrawType type;
+    ItemDrawZero zero;
+
+    constexpr operator uint32_t() const {
+        return uint32_t(type) | (uint32_t(zero) << 8);
+    }
+    constexpr ItemDrawCnf(uint32_t data)
+        : type(ItemDrawType(data & 0xff))
+        , zero(ItemDrawZero((data >> 8) & 0xff)) {}
+    constexpr ItemDrawCnf(ItemDrawType type, ItemDrawZero zero)
+        : type(type)
+        , zero(zero) {}
+};
+
+static constexpr ItemDrawType DefaultDrawType = ItemDrawType::Dynamic;
 }
