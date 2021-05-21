@@ -36,5 +36,6 @@ exclude: |
     ^lib/TMCStepper/|
     ^lib/Middlewares/Third_Party/LwIP/|
     ^lib/jsmn/|
-    ^lib/Catch2/
+    ^lib/Catch2/|
+    ^lib/libsysbase/
   )
