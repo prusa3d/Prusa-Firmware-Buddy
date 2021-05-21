@@ -77,12 +77,13 @@ enum {
     EEVAR_SHEET_PROFILE6 = 0x26,
     EEVAR_SHEET_PROFILE7 = 0x27,
     EEVAR_FOOTER_SETTING = 0x28,
-    EEVAR_SELFTEST_RESULT = 0x29,     // uint32_t, two bits for each selftest part
-    EEVAR_DEVHASH_IN_QR = 0x2a,       // uint8_t on / off sending UID in QR
-    EEVAR_FAN_CHECK_ENABLED = 0x2b,   // uint8_t on / off fan check
-    EEVAR_FS_AUTOLOAD_ENABLED = 0x2c, // uint8_t on / off fs autoload
-    EEVAR__PADDING = 0x2d,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x2e,               // uint32_t crc32 for
+    EEVAR_FOOTER_DRAW_TYPE = 0x29,
+    EEVAR_SELFTEST_RESULT = 0x2a,     // uint32_t, two bits for each selftest part
+    EEVAR_DEVHASH_IN_QR = 0x2b,       // uint8_t on / off sending UID in QR
+    EEVAR_FAN_CHECK_ENABLED = 0x2c,   // uint8_t on / off fan check
+    EEVAR_FS_AUTOLOAD_ENABLED = 0x2d, // uint8_t on / off fs autoload
+    EEVAR__PADDING = 0x2e,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_CRC32 = 0x2f,               // uint32_t crc32 for
 };
 
 enum {

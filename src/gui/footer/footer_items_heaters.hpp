@@ -8,11 +8,10 @@
 #pragma once
 #include "ifooter_item.hpp"
 #include <array>
+#include "footer_def.hpp"
 
 class FooterItemHeater : public AddSuperWindow<FooterIconText_IntVal> {
-    static footer::ItemDrawType draw_type;
-    static bool draw_zero_target;
-    static void setDrawMode(footer::ItemDrawType type, bool draw_zero);
+    static void setDrawMode(footer::ItemDrawType type, footer::ItemDrawZero draw_zero);
 
 public:
     static footer::ItemDrawType GetDrawType();

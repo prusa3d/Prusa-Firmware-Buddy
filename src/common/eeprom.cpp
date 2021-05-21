@@ -89,6 +89,7 @@ typedef struct _eeprom_vars_t {
     Sheet SHEET_PROFILE6;
     Sheet SHEET_PROFILE7;
     uint32_t FOOTER_SETTING;
+    uint32_t FOOTER_DRAW_TYPE;
     uint32_t SELFTEST_RESULT;
     uint8_t DEVHASH_IN_QR;
     uint8_t FAN_CHECK_ENABLED;
@@ -145,6 +146,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SHEET_PROFILE6",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SHEET_PROFILE7",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "FOOTER_SETTING",  VARIANT8_UI32,  1, 0 }, // EEVAR_FOOTER_SETTING
+    { "FOOTER_DRAW_TP"  ,VARIANT8_UI32,  1, 0 }, // EEVAR_FOOTER_DRAW_TYPE
     { "SELFTEST_RESULT", VARIANT8_UI32,  1, 0 }, // EEVAR_SELFTEST_RESULT
     { "DEVHASH_IN_QR",   VARIANT8_UI8,   1, 0 }, // EEVAR_DEVHASH_IN_QR
     { "FAN_CHECK_ENA",   VARIANT8_UI8,   1, 0 }, // EEVAR_FAN_CHECK_ENABLED
@@ -203,6 +205,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     {"Custom3", FLT_MAX },
     {"Custom4", FLT_MAX },
     footer::eeprom::Encode(footer::eeprom::def), // EEVAR_FOOTER_SETTING
+    uint32_t(footer::DefaultDrawType), // EEVAR_FOOTER_DRAW_TYPE
     0,               // EEVAR_SELFTEST_RESULT
     1,               // EEVAR_DEVHASH_IN_QR
     1,               // EEVAR_FAN_CHECK_ENABLED
