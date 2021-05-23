@@ -16,7 +16,9 @@ footer::ItemDrawType FooterItemHeater::GetDrawType() {
 }
 
 void FooterItemHeater::SetDrawType(footer::ItemDrawType type) {
-    setDrawMode(type, footer::eeprom::LoadItemDrawCnf().zero);
+    footer::ItemDrawCnf cnf(footer::eeprom::LoadItemDrawCnf());
+    cnf.type = type;
+    setDrawMode(cnf);
 }
 
 bool FooterItemHeater::IsZeroTargetDrawn() {
@@ -24,18 +26,22 @@ bool FooterItemHeater::IsZeroTargetDrawn() {
 }
 
 void FooterItemHeater::EnableDrawZeroTarget() {
-    setDrawMode(FooterItemHeater::GetDrawType(), footer::ItemDrawZero::yes);
+    footer::ItemDrawCnf cnf(footer::eeprom::LoadItemDrawCnf());
+    cnf.zero = footer::ItemDrawZero::yes;
+    setDrawMode(cnf);
 }
 
 void FooterItemHeater::DisableDrawZeroTarget() {
-    setDrawMode(FooterItemHeater::GetDrawType(), footer::ItemDrawZero::no);
+    footer::ItemDrawCnf cnf(footer::eeprom::LoadItemDrawCnf());
+    cnf.zero = footer::ItemDrawZero::no;
+    setDrawMode(cnf);
 }
 
-void FooterItemHeater::setDrawMode(footer::ItemDrawType type, footer::ItemDrawZero draw_zero) {
-    if ((GetDrawType() == type) && (footer::eeprom::LoadItemDrawCnf().zero == draw_zero)) {
+void FooterItemHeater::setDrawMode(footer::ItemDrawCnf cnf) {
+    if (cnf == footer::eeprom::LoadItemDrawCnf()) {
         return;
     }
-    footer::eeprom::Set(footer::ItemDrawCnf(type, draw_zero));
+    footer::eeprom::Set(cnf);
     // item type is ItemNozzle or ItemBed
     // sadly this is static method, so i can do this in children (FooterItemHeater should not need to know about ItemNozzle/ItemBed)
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::ItemNozzle));

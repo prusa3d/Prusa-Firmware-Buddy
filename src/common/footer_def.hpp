@@ -41,23 +41,57 @@ enum class ItemDrawType : uint8_t {
     Dynamic            // numbers aligned to the left, dynamic size
 };
 
+static constexpr ItemDrawType DefaultDrawType = ItemDrawType::Dynamic;
+
+//ensure meaningfull value when flash is corrupted
+constexpr ItemDrawType Ui8ToItemDrawType(uint8_t data) {
+    switch (data) {
+    case uint8_t(ItemDrawType::Static):
+        return ItemDrawType::Static;
+    case uint8_t(ItemDrawType::StaticLeftAligned):
+        return ItemDrawType::StaticLeftAligned;
+    case uint8_t(ItemDrawType::Dynamic):
+        return ItemDrawType::Dynamic;
+    default:
+        return DefaultDrawType;
+    }
+}
+
 enum class ItemDrawZero : bool { no,
     yes };
 
 struct ItemDrawCnf {
     ItemDrawType type;
     ItemDrawZero zero;
+    uint8_t centerNAndFewer; // any value is safe, big numbers just disable center
 
     constexpr operator uint32_t() const {
-        return uint32_t(type) | (uint32_t(zero) << 8);
+        return uint32_t(type) | (uint32_t(zero) << 8) | (uint32_t(centerNAndFewer) << 16);
     }
     constexpr ItemDrawCnf(uint32_t data)
-        : type(ItemDrawType(data & 0xff))
-        , zero(ItemDrawZero((data >> 8) & 0xff)) {}
-    constexpr ItemDrawCnf(ItemDrawType type, ItemDrawZero zero)
+        : type(Ui8ToItemDrawType(data & 0xff))
+        , zero((((data >> 8) & 0xff) == 0) ? ItemDrawZero::no : ItemDrawZero::yes)
+        , centerNAndFewer((data >> 16) & 0xff) {}
+    constexpr ItemDrawCnf(ItemDrawType type, ItemDrawZero zero, uint8_t centerNAndFewer)
         : type(type)
-        , zero(zero) {}
+        , zero(zero)
+        , centerNAndFewer(centerNAndFewer) {}
 };
+static_assert(sizeof(ItemDrawCnf) <= 4, "invalid ctor - constexpr ItemDrawCnf(uint32_t data)");
 
-static constexpr ItemDrawType DefaultDrawType = ItemDrawType::Dynamic;
+//4B var, better pass by value
+constexpr bool operator==(ItemDrawCnf lhs, ItemDrawCnf rhs) {
+    if (lhs.type != rhs.type)
+        return false;
+    if (lhs.zero != rhs.zero)
+        return false;
+    if (lhs.centerNAndFewer != rhs.centerNAndFewer)
+        return false;
+    return true;
+}
+
+constexpr bool operator!=(ItemDrawCnf lhs, ItemDrawCnf rhs) {
+    return !(lhs == rhs);
+}
+
 }

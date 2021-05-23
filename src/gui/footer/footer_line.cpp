@@ -7,8 +7,7 @@
 #include "footer_line.hpp"
 #include "footer_positioning.hpp"
 #include "ScreenHandler.hpp"
-
-size_t FooterLine::center_N_andFewer = GuiDefaults::FooterItemsCenter_N_andFewer;
+#include "footer_eeprom.hpp"
 
 FooterLine::FooterLine(window_t *parent, size_t line_no)
     : AddSuperWindow<window_frame_t>(parent, footer::LineRect(line_no), positioning::relative) {
@@ -140,7 +139,7 @@ size_t FooterLine::split(Rectangles &returned_rects, const std::array<Rect16::Wi
 }
 
 bool FooterLine::try_split(Rectangles &returned_rects, const std::array<Rect16::Width_t, max_items> &widths, size_t count) const {
-    bool center = center_N_andFewer >= count;
+    bool center = GetCenterN() >= count;
     std::array<Rect16, array_sz> temp_rects;           //can have 2 extra empty rectangles
     std::array<Rect16::Width_t, array_sz> temp_widths; //can have 2 extra 0 valuses
     size_t count_with_borders = 0;
@@ -216,10 +215,14 @@ void FooterLine::unregister(size_t index) {
 }
 
 void FooterLine::SetCenterN(size_t n_and_fewer) {
-    center_N_andFewer = n_and_fewer;
+    footer::ItemDrawCnf cnf(footer::eeprom::LoadItemDrawCnf());
+    if (cnf.centerNAndFewer == n_and_fewer)
+        return;
+    cnf.centerNAndFewer = n_and_fewer;
+    footer::eeprom::Set(cnf);
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::count_));
 }
 
 size_t FooterLine::GetCenterN() {
-    return center_N_andFewer;
+    return footer::eeprom::LoadItemDrawCnf().centerNAndFewer;
 }
