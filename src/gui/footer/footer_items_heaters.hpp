@@ -11,7 +11,7 @@
 #include "footer_def.hpp"
 
 class FooterItemHeater : public AddSuperWindow<FooterIconText_IntVal> {
-    static void setDrawMode(footer::ItemDrawType type, footer::ItemDrawZero draw_zero);
+    static void setDrawMode(footer::ItemDrawCnf cnf);
 
 public:
     static footer::ItemDrawType GetDrawType();

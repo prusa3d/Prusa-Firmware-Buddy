@@ -14,7 +14,6 @@ class FooterLine : public AddSuperWindow<window_frame_t> {
     static constexpr size_t max_items = FOOTER_ITEMS_PER_LINE__;
     static constexpr size_t array_sz = max_items + 2; //can add 2 zero rects for centering
     using Rectangles = std::array<Rect16, max_items>;
-    static size_t center_N_andFewer;
     static std::array<Rect16::Width_t, array_sz> addBorderZeroWidths(const std::array<Rect16::Width_t, max_items> &source, size_t count);
     size_t storeWidths(std::array<Rect16::Width_t, max_items> &widths) const;                                             //returns count of stored widths
     size_t calculateItemRects(Rect16 *item_rects, Rect16::Width_t *widths, size_t count) const;                           //returns count of used rectangles
