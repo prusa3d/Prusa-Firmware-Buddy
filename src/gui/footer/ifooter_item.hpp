@@ -9,6 +9,8 @@
 #include "window_frame.hpp"
 #include "footer_icon.hpp"
 #include "footer_text.hpp"
+#include "changed.hpp"
+#include "resized.hpp"
 
 class IFooterItem : public AddSuperWindow<window_frame_t> {
     //uint16_t limits period to 65.5s but save 4B RAM
@@ -29,10 +31,6 @@ protected:
         changed,
         changed_and_resized
     };
-    enum class changed_t : bool { no,
-        yes };
-    enum class resized_t : bool { no,
-        yes };
 
     TickResult tick(); //called by event
 

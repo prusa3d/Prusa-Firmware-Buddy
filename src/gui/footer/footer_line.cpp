@@ -215,12 +215,9 @@ void FooterLine::unregister(size_t index) {
 }
 
 void FooterLine::SetCenterN(size_t n_and_fewer) {
-    footer::ItemDrawCnf cnf(footer::eeprom::LoadItemDrawCnf());
-    if (cnf.centerNAndFewer == n_and_fewer)
-        return;
-    cnf.centerNAndFewer = n_and_fewer;
-    footer::eeprom::Set(cnf);
-    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::count_));
+    if (footer::eeprom::SetCenterNAndFewer(n_and_fewer) == changed_t::yes) {
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::count_));
+    }
 }
 
 size_t FooterLine::GetCenterN() {

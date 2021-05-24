@@ -19,6 +19,8 @@
 #define FOOTER_ITEMS_PER_LINE__ 3
 
 namespace footer {
+static constexpr uint8_t DefaultCenterNAndFewer = 2;
+
 enum class items : uint8_t { // stored in eeprom, must be small
     ItemNozzle,
     ItemBed,
@@ -57,12 +59,13 @@ constexpr ItemDrawType Ui8ToItemDrawType(uint8_t data) {
     }
 }
 
-enum class ItemDrawZero : bool { no,
+enum class draw_zero_t : bool { no,
     yes };
+static constexpr draw_zero_t DefaultDrawZero = draw_zero_t::no;
 
 struct ItemDrawCnf {
     ItemDrawType type;
-    ItemDrawZero zero;
+    draw_zero_t zero;
     uint8_t centerNAndFewer; // any value is safe, big numbers just disable center
 
     constexpr operator uint32_t() const {
@@ -70,12 +73,20 @@ struct ItemDrawCnf {
     }
     constexpr ItemDrawCnf(uint32_t data)
         : type(Ui8ToItemDrawType(data & 0xff))
-        , zero((((data >> 8) & 0xff) == 0) ? ItemDrawZero::no : ItemDrawZero::yes)
-        , centerNAndFewer((data >> 16) & 0xff) {}
-    constexpr ItemDrawCnf(ItemDrawType type, ItemDrawZero zero, uint8_t centerNAndFewer)
+        , zero((((data >> 8) & 0xff) == 0) ? draw_zero_t::no : draw_zero_t::yes)
+        , centerNAndFewer((data >> 16) & 0xff) {
+        //data was invalid, set default
+        if (data != uint32_t(*this)) {
+            *this = Default();
+        }
+    }
+    constexpr ItemDrawCnf(ItemDrawType type, draw_zero_t zero, uint8_t centerNAndFewer)
         : type(type)
         , zero(zero)
         , centerNAndFewer(centerNAndFewer) {}
+    static constexpr ItemDrawCnf Default() {
+        return ItemDrawCnf(DefaultDrawType, DefaultDrawZero, DefaultCenterNAndFewer);
+    }
 };
 static_assert(sizeof(ItemDrawCnf) <= 4, "invalid ctor - constexpr ItemDrawCnf(uint32_t data)");
 

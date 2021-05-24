@@ -8,6 +8,7 @@
 #pragma once
 #include "footer_def.hpp"
 #include <cmath>
+#include "changed.hpp"
 
 namespace footer::eeprom {
 
@@ -39,16 +40,18 @@ record Load();
  * @brief save footer settings to eeprom
  *        and update local variable
  * @param rec
+ * @return changed_t::yes - value chaged - was stored
+ * @return changed_t::no - value already stored in eeprom - was not stored
  */
-void Store(record rec);
+changed_t Store(record rec);
 
 /**
  * @brief store single footer item ID to eeprom
  *        and update local variable
  * @param item footer item ID
  * @param index index in footer record (array)
- * @return true success
- * @return false failed (index >= count)
+ * @return true success, value changed
+ * @return false failed (index >= count) or value already stored in eeprom
  */
 bool Set(items item, size_t index);
 
@@ -64,21 +67,49 @@ ItemDrawCnf LoadItemDrawCnf();
  *        and update local variable
  * @param cnf
  */
-void Set(ItemDrawCnf cnf);
+changed_t Set(ItemDrawCnf cnf);
 
 /**
  * @brief save footer draw type to eeprom
  *        and update local variable
  * @param type
  */
-void Set(ItemDrawType type);
+changed_t Set(ItemDrawType type);
 
 /**
  * @brief save footer draw zero option to eeprom
  *        and update local variable
  * @param zero
  */
-void Set(ItemDrawZero zero);
+changed_t Set(draw_zero_t zero);
+
+/**
+ * @brief save footer centerNAndFewer option to eeprom
+ *        and update local variable
+ * @param zero
+ */
+changed_t SetCenterNAndFewer(uint8_t centerNAndFewer);
+
+/**
+ * @brief Get the Item Draw Type object
+ *
+ * @return ItemDrawType
+ */
+ItemDrawType GetItemDrawType();
+
+/**
+ * @brief Get the Item Draw Zero object
+ *
+ * @return draw_zero_t
+ */
+draw_zero_t GetItemDrawZero();
+
+/**
+ * @brief Get the Center N And Fewer value
+ *
+ * @return uint8_t
+ */
+uint8_t GetCenterNAndFewer();
 
 /**
  * @brief encodes footer setting to uint32_t
