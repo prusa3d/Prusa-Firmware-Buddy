@@ -314,9 +314,11 @@ int main(void) {
     osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
+#if HAS_GUI
     /* definition and creation of displayTask */
     osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 2048);
     displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
+#endif
 
 #ifdef BUDDY_ENABLE_WUI
     /* definition and creation of webServerTask */

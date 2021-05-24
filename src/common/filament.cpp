@@ -8,7 +8,15 @@
 #include "filament.hpp"
 #include <cstring>
 #include "i18n.h"
-#include "dialog_response.hpp"
+
+#if HAS_GUI
+    #include "dialog_response.hpp"
+#else
+class BtnTexts {
+public:
+    static constexpr const char *Get(Response resp) { return ""; };
+};
+#endif
 
 // only function used in filament.h
 extern "C" const char *get_selected_filament_name() {
