@@ -13,7 +13,7 @@
 #include "cmsis_os.h"
 #include "wui_config.h"
 
-#define BUDDY_WEB_STACK_SIZE 1024
+#define BUDDY_WEB_STACK_SIZE 2048
 
 #ifdef __cplusplus
 extern "C" {

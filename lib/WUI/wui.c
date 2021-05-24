@@ -28,7 +28,7 @@ static marlin_vars_t *wui_marlin_vars;
 wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
 
-extern void init_ssl();
+extern void StartsslTask();
 
 static void wui_marlin_client_init(void) {
     wui_marlin_vars = marlin_client_init(); // init the client
@@ -86,11 +86,10 @@ void StartWebServerTask(void const *argument) {
     wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
     // marlin client initialization for WUI
     wui_marlin_client_init();
-    // LwIP related initalizations
+    // LwIP related initializations
     MX_LWIP_Init(&wui_eth_config);
     httpd_init();
     sntp_client_init();
-    init_ssl();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
 
     for (;;) {

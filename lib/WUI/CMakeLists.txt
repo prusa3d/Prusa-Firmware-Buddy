@@ -17,7 +17,7 @@ target_sources(
             sntp/sntp.c
             ${CMAKE_CURRENT_SOURCE_DIR}/../SSL/prusa/hardware_rng.c
             ${CMAKE_CURRENT_SOURCE_DIR}/../SSL/prusa/net_sockets.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/../SSL/prusa/mbedtls_integration.c
+            # ${CMAKE_CURRENT_SOURCE_DIR}/../SSL/prusa/mbedtls_integration.c
             ${CMAKE_CURRENT_SOURCE_DIR}/../SSL/mbedtls/library/memory_buffer_alloc.c
   )
 
