@@ -12,7 +12,7 @@
 #include "footer_eeprom.hpp"
 
 footer::ItemDrawType FooterItemHeater::GetDrawType() {
-    return footer::eeprom::LoadItemDrawCnf().type;
+    return footer::eeprom::GetItemDrawType();
 }
 
 void FooterItemHeater::SetDrawType(footer::ItemDrawType type) {
@@ -22,30 +22,28 @@ void FooterItemHeater::SetDrawType(footer::ItemDrawType type) {
 }
 
 bool FooterItemHeater::IsZeroTargetDrawn() {
-    return footer::eeprom::LoadItemDrawCnf().zero == footer::ItemDrawZero::yes ? true : false;
+    return (footer::eeprom::GetItemDrawZero() == footer::draw_zero_t::yes) ? true : false;
 }
 
 void FooterItemHeater::EnableDrawZeroTarget() {
     footer::ItemDrawCnf cnf(footer::eeprom::LoadItemDrawCnf());
-    cnf.zero = footer::ItemDrawZero::yes;
+    cnf.zero = footer::draw_zero_t::yes;
     setDrawMode(cnf);
 }
 
 void FooterItemHeater::DisableDrawZeroTarget() {
     footer::ItemDrawCnf cnf(footer::eeprom::LoadItemDrawCnf());
-    cnf.zero = footer::ItemDrawZero::no;
+    cnf.zero = footer::draw_zero_t::no;
     setDrawMode(cnf);
 }
 
 void FooterItemHeater::setDrawMode(footer::ItemDrawCnf cnf) {
-    if (cnf == footer::eeprom::LoadItemDrawCnf()) {
-        return;
+    if (footer::eeprom::Set(cnf) == changed_t::yes) {
+        // item type is ItemNozzle or ItemBed
+        // sadly this is static method, so i can do this in children (FooterItemHeater should not need to know about ItemNozzle/ItemBed)
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::ItemNozzle));
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::ItemBed));
     }
-    footer::eeprom::Set(cnf);
-    // item type is ItemNozzle or ItemBed
-    // sadly this is static method, so i can do this in children (FooterItemHeater should not need to know about ItemNozzle/ItemBed)
-    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::ItemNozzle));
-    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::ItemBed));
 }
 
 FooterItemHeater::FooterItemHeater(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader)
@@ -103,7 +101,7 @@ FooterItemHeater::HeatState FooterItemHeater::getState(int current, int target, 
     return state;
 }
 
-IFooterItem::resized_t FooterItemHeater::updateState() {
+resized_t FooterItemHeater::updateState() {
     const StateAndTemps temps(value);
     text.SetBlinkColor(ColorFromState(temps.state));
     return super::updateState();

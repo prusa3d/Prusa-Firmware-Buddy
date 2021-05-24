@@ -85,7 +85,7 @@ Rect16::Width_t FooterIconText_IntVal::GetTotalWidth(uint16_t icon_id, string_vi
     return MeasureTextWidth(view) + Rect16::Width_t(icon_id != 0 ? GuiDefaults::FooterIconSize.w + GuiDefaults::FooterIconTextSpace : 0);
 }
 
-IFooterItem::changed_t FooterIconText_IntVal::updateValue() {
+changed_t FooterIconText_IntVal::updateValue() {
     changed_t ret = changed_t::no;
     if (value != readCurrentValue()) {
         value = readCurrentValue();
@@ -95,7 +95,7 @@ IFooterItem::changed_t FooterIconText_IntVal::updateValue() {
     return ret;
 }
 
-IFooterItem::resized_t FooterIconText_IntVal::updateState() {
+resized_t FooterIconText_IntVal::updateState() {
     string_view_utf8 current_view = makeView(value);
     text.SetText(current_view);
     text.Invalidate(); // text could change, without changing pointer to buffer, need manual invalidation

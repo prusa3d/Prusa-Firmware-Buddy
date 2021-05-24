@@ -205,7 +205,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     {"Custom3", FLT_MAX },
     {"Custom4", FLT_MAX },
     footer::eeprom::Encode(footer::eeprom::def), // EEVAR_FOOTER_SETTING
-    uint32_t(footer::DefaultDrawType), // EEVAR_FOOTER_DRAW_TYPE
+    uint32_t(footer::ItemDrawCnf::Default()), // EEVAR_FOOTER_DRAW_TYPE
     0,               // EEVAR_SELFTEST_RESULT
     1,               // EEVAR_DEVHASH_IN_QR
     1,               // EEVAR_FAN_CHECK_ENABLED
