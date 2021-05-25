@@ -1,7 +1,7 @@
-// dialog_response.cpp
+// client_response_texts.cpp
 // texts for all types of response any Dialog can return
 
-#include "dialog_response.hpp"
+#include "client_response_texts.hpp"
 #include "i18n.h"
 //todo make some automatic checks names vs enum
 //list of all button types

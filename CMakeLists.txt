@@ -547,6 +547,7 @@ target_sources(
           src/common/str_utils.cpp
           src/common/errors.cpp
           src/common/client_response.cpp
+          src/common/client_response_texts.cpp
           src/common/crc32.c
           src/common/crc32_zlib.c
           src/common/ini_handler.c
@@ -586,7 +587,6 @@ if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.cpp
-            src/gui/dialogs/dialog_response.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp

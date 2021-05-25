@@ -1,7 +1,7 @@
 #include "DialogG162.hpp"
 #include "gui.hpp" //resource_font
 #include "i18n.h"
-#include "dialog_response.hpp"
+#include "client_response_texts.hpp"
 
 /*****************************************************************************/
 // clang-format off

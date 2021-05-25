@@ -4,7 +4,7 @@
 #include "sound.hpp"
 #include <algorithm>
 #include "ScreenHandler.hpp"
-#include "dialog_response.hpp"
+#include "client_response_texts.hpp"
 #include "GuiDefaults.hpp"
 
 /*****************************************************************************/
