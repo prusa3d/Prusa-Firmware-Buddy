@@ -6,11 +6,9 @@
  */
 
 #pragma once
-#include "window_frame.hpp"
-#include "footer_line.hpp"
-#include "footer_item_union.hpp"
+#include "ifooter.hpp"
 
-class FooterDoubleLine : public AddSuperWindow<window_frame_t> {
+class FooterDoubleLine : public AddSuperWindow<IFooter> {
     FooterLine line_0;
     FooterLine line_1;
 
@@ -20,10 +18,7 @@ class FooterDoubleLine : public AddSuperWindow<window_frame_t> {
 public:
     FooterDoubleLine(window_t *parent);
 
-    //sets line 1, line 0 is const
     bool SetSlot(size_t slot_id, footer::items item);
-    static bool SetSlotInit(size_t slot_id, footer::items item);
-    static footer::items GetSlotInit(size_t slot_id);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

@@ -17,19 +17,6 @@ static constexpr size_t value_bit_size = floor(log2(size_t(items::count_))) + 1;
 static_assert(count * value_bit_size <= 32, "Encoded eeprom record is too big");
 
 /**
- * @brief default eeprom record
- */
-static constexpr record def = { { items::ItemSpeed,
-#if defined(FOOTER_HAS_LIVE_Z)
-    items::ItemLiveZ,
-#elif defined(FOOTER_HAS_SHEETS)
-    items::ItemSheets,
-#else
-    items::count_,
-#endif
-    items::ItemFilament } };
-
-/**
  * @brief On first call load footer settings from eeprom and store it than return stored value
  *        next calls just return stored value
  * @return record
@@ -138,7 +125,7 @@ constexpr record Decode(uint32_t encoded) {
     for (size_t i = 0; i < count; ++i) {
         uint32_t decoded = encoded & mask;
         if (decoded > size_t(items::count_))
-            return def; // data corrupted, return default setting
+            return footer::DefaultItems; // data corrupted, return default setting
         ret[i] = items(decoded);
         encoded >>= value_bit_size;
     }

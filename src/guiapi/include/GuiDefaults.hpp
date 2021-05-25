@@ -7,7 +7,7 @@
 
 struct GuiDefaults {
     // Footer settings
-    static constexpr size_t FooterLines = 2;
+    static constexpr size_t FooterLines = FOOTER_LINES__;
     static constexpr size_t FooterIconTextSpace = 3;                        //space between icon and text of footer item in px
     static constexpr padding_ui8_t FooterPadding = { 4, 4, 4, 4 };          //number of edge pixels that will remain black in all cases
     static constexpr size_t FooterLinesSpace = 8;                           //space between footer lines

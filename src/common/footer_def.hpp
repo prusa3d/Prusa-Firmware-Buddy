@@ -8,18 +8,19 @@
 #pragma once
 #include "printers.h"
 #include <cstddef> //size_t
+#include "guiconfig.h"
 #include <array>
 
-#if defined(PRINTER_TYPE) && PRINTER_TYPE == PRINTER_PRUSA_MINI
+//sadly this must be macros, it is used in preprocessor
+#if (defined(PRINTER_TYPE) && PRINTER_TYPE == PRINTER_PRUSA_MINI) || defined(USE_MOCK_DISPLAY)
     #define FOOTER_HAS_LIVE_Z
     #define FOOTER_HAS_SHEETS
+    #define FOOTER_LINES__          2
+    #define FOOTER_ITEMS_PER_LINE__ 3
 #endif
 
-//sadly this must be macro, it is used in preprocessor
-#define FOOTER_ITEMS_PER_LINE__ 3
-
 namespace footer {
-static constexpr uint8_t DefaultCenterNAndFewer = 2;
+static constexpr uint8_t DefaultCenterNAndFewer = FOOTER_ITEMS_PER_LINE__ - 1;
 
 enum class items : uint8_t { // stored in eeprom, must be small
     ItemNozzle,
@@ -37,12 +38,26 @@ enum class items : uint8_t { // stored in eeprom, must be small
 
 using record = std::array<items, FOOTER_ITEMS_PER_LINE__>;
 
+/**
+ * @brief default record
+ */
+#if FOOTER_LINES__ == 2 && FOOTER_ITEMS_PER_LINE__ == 3
+static constexpr record DefaultItems = { { items::ItemSpeed,
+    #if defined(FOOTER_HAS_LIVE_Z)
+    items::ItemLiveZ,
+    #elif defined(FOOTER_HAS_SHEETS)
+    items::ItemSheets,
+    #else
+    items::count_,
+    #endif
+    items::ItemFilament } };
+#endif // FOOTER_LINES__ == 2 && FOOTER_ITEMS_PER_LINE__ == 3
+
 enum class ItemDrawType : uint8_t {
     Static,            // numbers at fixed positions
     StaticLeftAligned, // numbers aligned to the left, but fix size
     Dynamic            // numbers aligned to the left, dynamic size
 };
-
 static constexpr ItemDrawType DefaultDrawType = ItemDrawType::Dynamic;
 
 //ensure meaningfull value when flash is corrupted
