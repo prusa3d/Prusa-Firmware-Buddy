@@ -2,7 +2,7 @@
 #include "gui.hpp" //resource_font
 #include "sound.hpp"
 #include "i18n.h"
-#include "dialog_response.hpp"
+#include "client_response_texts.hpp"
 
 /*****************************************************************************/
 // clang-format off

@@ -6,7 +6,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
-#include "dialog_response.hpp"
+#include "client_response_texts.hpp"
 
 const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Response::_none, Response::_none };
 

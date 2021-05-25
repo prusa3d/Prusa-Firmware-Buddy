@@ -1,4 +1,4 @@
-// dialog_response.hpp
+// client_response_texts.hpp
 // texts for all types of response any Dialog can return
 
 #pragma once
