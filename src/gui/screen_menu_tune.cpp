@@ -15,7 +15,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_LIVE_ADJUST_Z
 #ifdef _DEBUG
     MI_TEST,
 #endif //_DEBUG
-    MI_MESSAGES>;
+    MI_FOOTER_SETTINGS, MI_MESSAGES>;
 
 class ScreenMenuTune : public Screen {
 public:

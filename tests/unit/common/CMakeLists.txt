@@ -39,8 +39,16 @@ target_include_directories(
   PUBLIC ${CMAKE_SOURCE_DIR}/src/gui/wizard
   )
 
+add_executable(
+  gcode_filter_tests
+  ${CMAKE_CURRENT_SOURCE_DIR}/gcode_filter_test.cpp ${CMAKE_SOURCE_DIR}/src/common/gcode_filter.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode_filter.hpp
+  )
+target_include_directories(gcode_filter_tests PUBLIC ${CMAKE_SOURCE_DIR}/src)
+
 add_catch_test(support_utils_tests)
 add_catch_test(variant8_tests)
 add_catch_test(str_utils_tests)
 add_catch_test(fsm_types_test)
 add_catch_test(fsm_serializers_test)
+add_catch_test(gcode_filter_tests)

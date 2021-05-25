@@ -13,13 +13,13 @@
 #include "window_icon.hpp"
 #include "i18n.h"
 #include "window_header.hpp"
-#include "status_footer.h"
+#include "status_footer.hpp"
 
 //Singleton dialog for messages
 class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
 protected: // inherited by unit tests, must be protected
     window_header_t header;
-    status_footer_t footer;
+    StatusFooter footer;
 
     window_icon_t icon;
     window_text_t text;

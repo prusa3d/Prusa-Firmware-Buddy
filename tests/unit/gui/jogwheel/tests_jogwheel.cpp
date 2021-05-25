@@ -2,6 +2,7 @@
 
 #include "Jogwheel.hpp"
 #include "hwio_pindef.h"
+#include "gui_time.hpp" //  gui::GetTick
 
 extern "C" void _bsod(const char *fmt, const char *fine_name, int line_number, ...) {}
 
@@ -19,9 +20,6 @@ using buddy::hw::Pin;
 static bool irq_on = true;
 void __disable_irq() { irq_on = false; }
 void __enable_irq() { irq_on = true; }
-
-static uint32_t hal_tick = 0;
-uint32_t HAL_GetTick() { return hal_tick; }
 
 enum class phase_t {
     P0lo_P1lo,

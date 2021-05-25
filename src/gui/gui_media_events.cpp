@@ -7,7 +7,7 @@
 #include "gui_media_events.hpp"
 #include "marlin_client.h"
 #include "marlin_events.h"
-#include "stm32f4xx_hal.h" //HAL_GetTick()
+#include "gui_time.hpp" //gui::GetTick()
 
 GuiMediaEventsHandler &GuiMediaEventsHandler::Instance() {
     static GuiMediaEventsHandler ret;
@@ -15,7 +15,7 @@ GuiMediaEventsHandler &GuiMediaEventsHandler::Instance() {
 }
 
 GuiMediaEventsHandler::GuiMediaEventsHandler()
-    : start_time(HAL_GetTick())
+    : start_time(gui::GetTick())
     , is_starting(true)
     , one_click_printing(false)
     , state_sent(true)
@@ -28,7 +28,7 @@ void GuiMediaEventsHandler::Tick() {
 
 void GuiMediaEventsHandler::tick() {
     if (is_starting) {
-        if ((HAL_GetTick() - start_time) >= startup_finished_dellay) {
+        if ((gui::GetTick() - start_time) >= startup_finished_dellay) {
             marlin_event_clr(MARLIN_EVT_MediaRemoved);
             marlin_event_clr(MARLIN_EVT_MediaInserted);
             marlin_event_clr(MARLIN_EVT_MediaError);

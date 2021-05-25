@@ -5,13 +5,11 @@
  */
 
 #include "DialogTimed.hpp"
-//#include "stm32f4xx_hal.h" //HAL_GetTick
-#include "cmsis_os.h" //HAL_GetTick
 
 DialogTimed::DialogTimed(window_t *parent, Rect16 rect, uint32_t open_period)
     : AddSuperWindow<IDialog>(parent, rect)
     , open_period(open_period)
-    , time_of_last_action(HAL_GetTick()) {
+    , time_of_last_action(gui::GetTick()) {
     Hide(); //default behavior of this dialog is hidden
 }
 
@@ -22,7 +20,7 @@ void DialogTimed::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         return;
     }
 
-    uint32_t now = HAL_GetTick();
+    uint32_t now = gui::GetTick();
 
     // IsVisible would not work as expected when it is hidden behind dialog
     if (IsHiddenBehindDialog()) {

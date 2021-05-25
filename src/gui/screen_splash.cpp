@@ -7,7 +7,6 @@
 #include "version.h"
 #include "eeprom.h"
 
-#include "stm32f4xx_hal.h"
 #include "i18n.h"
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
@@ -84,7 +83,7 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t 
             Screens::Access()->Close();
         }
 #else
-    if (HAL_GetTick() > 3000) {
+    if (gui::GetTick() > 3000) {
         Screens::Access()->Close();
 #endif
     }

@@ -244,6 +244,57 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count,
     }
 }
 
+size_t Rect16::HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) const {
+    if (count == 0)
+        return 0;
+    if (IsEmpty())
+        return 0; // nothing can fit in this rectangle
+
+    size_t used_count = 0;
+    Width_t width_sum = Width_t(0);
+    const Width_t width_max = Width();
+
+    //calculate used width and used used_count of rectangles
+    for (; used_count < count; ++used_count) {
+        if (width_sum + widths[used_count] <= width_max) {
+            // next rect fits
+            width_sum = width_sum + widths[used_count];
+        } else {
+            // next rect does not fit
+            break;
+        }
+    }
+
+    horizontalSplit(splits, widths, used_count, width_sum, *this);
+    return used_count;
+}
+
+void Rect16::horizontalSplit(Rect16 *splits, Width_t *widths, size_t count, Width_t width_sum, Rect16 rect) {
+    //no checks, checks are in HorizontalSplit
+
+    Rect16 first = rect;
+    first = widths[0]; // width of first rect
+    (*splits) = first;
+
+    if (count > 1) {
+        Width_t width_sum_spaces = rect.Width() - width_sum;
+        Width_t width_space = width_sum_spaces / (count - 1);
+        Width_t width_diff = width_space + widths[0]; // new rec will be this smaller
+
+        //recalculate for recursive call
+        rect -= width_diff;         //rect is smaller
+        rect += Left_t(width_diff); //and cut from left side
+        width_sum = width_sum - widths[0];
+        --count;
+        widths++; //skip first
+        splits++; //skip first
+
+        //recursive call
+        horizontalSplit(splits, widths, count, width_sum, rect);
+        return;
+    }
+}
+
 Rect16 Rect16::LeftSubrect(Rect16 subtrahend) {
     Rect16 ret = *this;
     if (subtrahend.Left() < Left()) {

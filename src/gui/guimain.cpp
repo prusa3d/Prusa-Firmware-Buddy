@@ -1,7 +1,7 @@
 //guimain.cpp
 
 #include <stdio.h>
-#include "stm32f4xx_hal.h"
+#include "gui_time.hpp"
 #include "gui.hpp"
 #include "config.h"
 #include "marlin_client.h"
@@ -51,8 +51,6 @@ const st7789v_config_t st7789v_cfg = {
 };
 
 marlin_vars_t *gui_marlin_vars = 0;
-
-void update_firmware_screen(void);
 
 static void _gui_loop_cb() {
     marlin_client_loop();
@@ -107,9 +105,9 @@ static void Startup_cb(void) {
 }
 
 void client_gui_refresh() {
-    static uint32_t start = HAL_GetTick();
-    static uint32_t last_tick = HAL_GetTick();
-    uint32_t tick = HAL_GetTick();
+    static uint32_t start = gui::GetTick_ForceActualization();
+    static uint32_t last_tick = gui::GetTick_ForceActualization();
+    uint32_t tick = gui::GetTick_ForceActualization();
     if (last_tick != tick) {
         uint32_t percent = (tick - start) / (3000 / 100); //3000ms / 100%
         percent = ((percent < 99) ? percent : 99);
@@ -143,9 +141,7 @@ void gui_run(void) {
     GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
     GuiDefaults::FontMenuItems = resource_font(IDR_FNT_NORMAL);
     GuiDefaults::FontMenuSpecial = resource_font(IDR_FNT_SPECIAL);
-
-    if (!sys_fw_is_valid())
-        update_firmware_screen();
+    GuiDefaults::FooterFont = resource_font(IDR_FNT_SPECIAL);
 
     gui_marlin_vars = marlin_client_init();
     gui_marlin_vars->media_LFN = gui_media_LFN;
@@ -213,25 +209,9 @@ void gui_run(void) {
     uint32_t progr100 = 100;
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)progr100);
     while (1) {
+        gui::TickLoop();
         DialogHandler::Access().Loop();
         Screens::Access()->Loop();
         gui_loop();
-    }
-}
-
-void update_firmware_screen(void) {
-    font_t *font = resource_font(IDR_FNT_SPECIAL);
-    font_t *font1 = resource_font(IDR_FNT_NORMAL);
-    display::Clear(COLOR_BLACK);
-    render_icon_align(Rect16(70, 20, 100, 100), IDR_PNG_pepa_64px, COLOR_BLACK, Align_t::Center());
-    display::DrawText(Rect16(10, 115, 240, 60), _("Hi, this is your\nOriginal Prusa MINI."), font, COLOR_BLACK, COLOR_WHITE);
-    display::DrawText(Rect16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
-    render_text_align(Rect16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, { 2, 6, 2, 2 }, Align_t::Center());
-    BtnState_t btn_ev;
-    while (1) {
-        if (jogwheel.ConsumeButtonEvent(btn_ev) && btn_ev == BtnState_t::Held)
-            sys_reset();
-        osDelay(1);
-        wdt_iwdg_refresh();
     }
 }
