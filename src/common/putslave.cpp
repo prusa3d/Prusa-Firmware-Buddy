@@ -839,9 +839,8 @@ static void enter_put() {
 static int putslave_do_cmd_a_stop(uartslave_t *pslave) {
     if (marlin_server_processing()) {
         marlin_server_stop_processing();
-#if HAS_GUI
-        osThreadSuspend(displayTaskHandle);
-#endif
+        if (HAS_GUI)
+            osThreadSuspend(displayTaskHandle);
 #ifdef BUDDY_ENABLE_ETHERNET
         osThreadSuspend(webServerTaskHandle);
 #endif //BUDDY_ENABLE_ETHERNET

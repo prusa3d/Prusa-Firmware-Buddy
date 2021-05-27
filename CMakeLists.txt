@@ -729,7 +729,15 @@ set_property(
   )
 
 set_property(
-  SOURCE src/common/bsod.cpp src/common/appmain.cpp src/common/sys.cpp src/common/putslave.cpp
+  SOURCE src/main.cpp
+         src/common/bsod.cpp
+         src/common/appmain.cpp
+         src/common/sys.cpp
+         src/common/putslave.cpp
+         src/marlin_stubs/M50.cpp
+         src/marlin_stubs/gcode.cpp
+         src/common/hwio_a3ides_2209_02.cpp
+         src/gui/guimain.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )
