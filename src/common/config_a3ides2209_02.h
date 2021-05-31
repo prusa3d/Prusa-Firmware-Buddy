@@ -90,12 +90,19 @@ static const uint8_t FANCTL1_PWM_THR = 20;
 
 //Simulator configuration
 //#define SIM_HEATER
+//#define SIM_MOTION
 
 #ifdef SIM_HEATER
     #define ADC_SIM_MSK           0x0012 //simulated logical AD channels bit mask (1,4)
     #define SIM_HEATER_NOZZLE_ADC 4      //
     #define SIM_HEATER_BED_ADC    1      //
 #endif                                   //SIM_HEATER
+
+#ifdef SIM_MOTION
+//#define SIM_MOTION_TRACE_X
+//#define SIM_MOTION_TRACE_Y
+//#define SIM_MOTION_TRACE_Z
+#endif //SIM_MOTION
 
 //new pause settings
 static const uint8_t PAUSE_NOZZLE_TIMEOUT = 45; // nozzle "sleep" after 45s inside paused state

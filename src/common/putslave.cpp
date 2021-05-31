@@ -9,6 +9,7 @@
 #include "diag.h"
 #include "app.h"
 #include "marlin_server.h"
+#include "sim_motion.h"
 #include "otp.h"
 #ifdef BUDDY_ENABLE_ETHERNET
     #include "lwip.h"
@@ -638,6 +639,9 @@ int putslave_do_cmd_a_tst(uartslave_t *pslave, char *pstr) {
     eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(run_xyzcalib)); //
     eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(run_firstlay)); //
 #endif
+#ifdef SIM_MOTION
+//	sim_motion_print_buff();
+#endif //SIM_MOTION
     return UARTSLAVE_OK;
 }
 

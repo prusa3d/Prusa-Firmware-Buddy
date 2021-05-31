@@ -280,7 +280,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         constexpr uint8_t qr_size_px = 140;
         const Rect16 qr_rect = { 160 - qr_size_px / 2, 200 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
         window_qr_t win(nullptr, qr_rect);
-        win.SetRect(qr_rect);
+        win.rect = qr_rect;
         window_qr_t *window = &win;
         win.text = qr_text;
         win.bg_color = COLOR_WHITE;

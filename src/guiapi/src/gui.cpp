@@ -2,7 +2,7 @@
 #include "display.h"
 #include "gui.hpp"
 #include <stdlib.h>
-#include "gui_time.hpp" //gui::GetTick
+#include "stm32f4xx_hal.h"
 #include "ScreenHandler.hpp"
 #include "IDialog.hpp"
 #include "Jogwheel.hpp"
@@ -21,7 +21,6 @@ font_t *GuiDefaults::Font = nullptr;
 font_t *GuiDefaults::FontBig = nullptr;
 font_t *GuiDefaults::FontMenuItems = nullptr;
 font_t *GuiDefaults::FontMenuSpecial = nullptr;
-font_t *GuiDefaults::FooterFont = nullptr;
 
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
@@ -109,7 +108,7 @@ void gui_loop(void) {
     #endif //GUI_USE_RTOS
 
         gui_redraw();
-    tick = gui::GetTick();
+    tick = HAL_GetTick();
     if ((tick - gui_loop_tick) >= GUI_DELAY_LOOP) {
         if (gui_loop_cb)
             gui_loop_cb();

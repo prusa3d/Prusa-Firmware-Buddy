@@ -20,7 +20,7 @@ void window_numb_t::unconditionalDraw() {
         snprintf(text, WINDOW_NUMB_MAX_TEXT, format, (double)value);
     }
 
-    render_text_align(GetRect(),
+    render_text_align(rect,
         // this MakeRAM is safe - render_text finishes its work and the local string text[] is then no longer needed
         string_view_utf8::MakeRAM((const uint8_t *)text),
         font,

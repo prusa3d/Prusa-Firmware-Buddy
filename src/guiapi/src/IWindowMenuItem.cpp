@@ -19,8 +19,8 @@ IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extensi
     , focused(is_focused_t::no)
     , selected(is_selected_t::no)
     , id_icon(id_icon)
-    , extension_width(extension_width_)
-    , label_font(label_font) {
+    , label_font(label_font)
+    , extension_width(extension_width_) {
 }
 
 /*****************************************************************************/

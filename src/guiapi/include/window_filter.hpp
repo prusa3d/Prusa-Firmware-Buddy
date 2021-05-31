@@ -24,7 +24,7 @@ public:
     constexpr WinFilterContained(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return rect.Contain(win.GetRect());
+        return rect.Contain(win.rect);
     }
 };
 
@@ -41,7 +41,7 @@ public:
     constexpr WinFilterIntersectingPopUp(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return ((win.GetType() == win_type_t::popup) && rect.HasIntersection(win.GetRect()));
+        return ((win.GetType() == win_type_t::popup) && rect.HasIntersection(win.rect));
     };
 };
 
@@ -52,7 +52,7 @@ public:
     constexpr WinFilterIntersectingNonPopUp(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return ((win.GetType() != win_type_t::popup) && rect.HasIntersection(win.GetRect()));
+        return ((win.GetType() != win_type_t::popup) && rect.HasIntersection(win.rect));
     };
 };
 
@@ -75,7 +75,7 @@ public:
     constexpr WinFilterIntersectingDialog(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return (win.IsDialog() && rect.HasIntersection(win.GetRect()));
+        return (win.IsDialog() && rect.HasIntersection(win.rect));
     };
 };
 
@@ -104,7 +104,7 @@ public:
     constexpr WinFilterIntersectingVisible(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return (win.IsVisible() && rect.HasIntersection(win.GetRect()));
+        return (win.IsVisible() && rect.HasIntersection(win.rect));
     };
 };
 

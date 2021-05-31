@@ -21,7 +21,6 @@ typedef enum {
     media_print_state_NONE = 0,
     media_print_state_PRINTING = 1,
     media_print_state_PAUSED = 2,
-    media_print_state_PAUSING = 3,
 } media_print_state_t;
 
 #ifdef __cplusplus

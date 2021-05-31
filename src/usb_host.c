@@ -98,23 +98,25 @@ static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);
   */
 void MX_USB_HOST_Init(void) {
     /* USER CODE BEGIN USB_HOST_Init_PreTreatment */
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
-    HAL_Delay(200);
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);
-    /* USER CODE END USB_HOST_Init_PreTreatment */
+#if 0 //prevent cube to remove USBH_LL_ResetPort(&hUsbHostHS);
+  /* USER CODE END USB_HOST_Init_PreTreatment */
 
-    /* Init host Library, add supported class and start the library. */
-    if (USBH_Init(&hUsbHostHS, USBH_UserProcess, HOST_HS) != USBH_OK) {
-        Error_Handler();
-    }
-    if (USBH_RegisterClass(&hUsbHostHS, USBH_MSC_CLASS) != USBH_OK) {
-        Error_Handler();
-    }
-    if (USBH_Start(&hUsbHostHS) != USBH_OK) {
-        Error_Handler();
-    }
-    /* USER CODE BEGIN USB_HOST_Init_PostTreatment */
+  /* Init host Library, add supported class and start the library. */
+  USBH_Init(&hUsbHostHS, USBH_UserProcess, HOST_HS);
 
+  USBH_RegisterClass(&hUsbHostHS, USBH_MSC_CLASS);
+
+  USBH_Start(&hUsbHostHS);
+
+  /* USER CODE BEGIN USB_HOST_Init_PostTreatment */
+#endif
+    USBH_Init(&hUsbHostHS, USBH_UserProcess, HOST_HS);
+
+    USBH_RegisterClass(&hUsbHostHS, USBH_MSC_CLASS);
+
+    USBH_LL_ResetPort(&hUsbHostHS); // this must be done after USBH_RegisterClass and before USBH_Start
+
+    USBH_Start(&hUsbHostHS);
     /* USER CODE END USB_HOST_Init_PostTreatment */
 }
 

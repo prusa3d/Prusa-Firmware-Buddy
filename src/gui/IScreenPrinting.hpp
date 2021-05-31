@@ -3,13 +3,13 @@
 #include "gui.hpp"
 #include "screen.hpp"
 #include "window_header.hpp"
-#include "status_footer.hpp"
+#include "status_footer.h"
 #include "resource.h"
 
 class IScreenPrinting : public AddSuperWindow<screen_t> {
 protected:
     window_header_t header;
-    StatusFooter footer;
+    status_footer_t footer;
 
     static IScreenPrinting *ths;
     static void StopAction();

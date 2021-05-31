@@ -9,52 +9,22 @@
 /// With yet unknown reason for us the method Catch::getResultCapture() returns nullptr in case the
 /// benchmarks in CATCH2 are configured as enable. Please consider this issue when you'll decide to
 /// write benchmark tests.
-#define COMPARE_ARRAYS(lhs, rhs)                   compareArrays(Catch::getResultCapture().getCurrentTestName(), __LINE__, lhs, rhs)
-#define COMPARE_ARRAYS_SIZE_FROM_SMALLER(lhs, rhs) compareArraysGetSizeFromSmaller(Catch::getResultCapture().getCurrentTestName(), __LINE__, lhs, rhs)
-
-template <typename T>
-void compareVectors(const std::string &test, unsigned line, const std::vector<T> &lhs, const std::vector<T> &rhs) {
-    INFO("Test case [" << test << "] failed at line " << line); // Reported only if REQUIRE fails
-    CHECK(lhs == rhs);
-}
+#define COMPARE_ARRAYS(lhs, rhs) compareArrays(Catch::getResultCapture().getCurrentTestName(), __LINE__, lhs, rhs)
 
 template <typename T, size_t N>
-void compareArrays(const std::string &test, unsigned line, const std::array<T, N> &lhs, const std::array<T, N> &rhs) {
+void compareArrays(const std::string &test, unsigned line, std::array<T, N> lhs, std::array<T, N> rhs) {
     std::vector<T> lv(lhs.begin(), lhs.end());
     std::vector<T> rv(rhs.begin(), rhs.end());
-    compareVectors(test, line, lv, rv);
+    INFO("Test case [" << test << "] failed at line " << line); // Reported only if REQUIRE fails
+    CHECK(lv == rv);
 }
 
 template <typename T, size_t N>
-void compareArrays(const std::string &test, unsigned line, const T *lhs, const std::array<T, N> &rhs) {
+void compareArrays(const std::string &test, unsigned line, T *lhs, std::array<T, N> rhs) {
     std::vector<T> lv(lhs, lhs + N);
     std::vector<T> rv(rhs.begin(), rhs.end());
-    compareVectors(test, line, lv, rv);
-}
-
-template <typename T, size_t N>
-void compareArrays(const std::string &test, unsigned line, const std::vector<T> &lhs, const std::array<T, N> &rhs) {
-    std::vector<T> rv(rhs.begin(), rhs.end());
-    compareVectors(test, line, lhs, rv);
-}
-
-template <typename T>
-void compareArraysGetSizeFromSmaller(const std::string &test, unsigned line, const std::vector<T> &lhs, const std::vector<T> &rhs) {
-    size_t min_len = std::min(rhs.size(), lhs.size());
-    std::vector<T> lv(lhs.begin(), lhs.begin() + min_len);
-    std::vector<T> rv(rhs.begin(), rhs.begin() + min_len);
-    compareVectors(test, line, lv, rv);
-}
-
-template <typename T, size_t N>
-void compareArraysGetSizeFromSmaller(const std::string &test, unsigned line, const std::vector<T> &lhs, const std::array<T, N> &rhs) {
-    std::vector<T> rv(rhs.begin(), rhs.begin() + std::min(lhs.size(), N));
-    compareVectors(test, line, lhs, rv);
-}
-
-template <typename T, size_t N>
-void compareArraysGetSizeFromSmaller(const std::string &test, unsigned line, const std::array<T, N> &lhs, const std::vector<T> &rhs) {
-    compareArraysGetSizeFromSmaller(test, line, rhs, lhs);
+    INFO("Test case [" << test << "] failed at line " << line); // Reported only if REQUIRE fails
+    CHECK(lv == rv);
 }
 
 TEST_CASE("rectangle construc", "[rectangle]") {
@@ -346,167 +316,6 @@ TEST_CASE("rectangles is subrectangle", "[rectangle]") {
     CHECK(l.Contain(r) == expected);
 }
 
-TEST_CASE("rectangle point arithmetic", "[rectangle]") {
-    SECTION("operator=") {
-        point_i16_t point = GENERATE(point_i16_t({ 0, 0 }), point_i16_t({ 10, 10 }), point_i16_t({ -2, 8 }), point_i16_t({ -33, 0 }));
-        Rect16 r = GENERATE( //this operation does not have meaning on empty rect -  must not be empty
-            Rect16({ 0, 0, 1, 1 }),
-            Rect16({ 10, 10, 5, 8 }),
-            Rect16({ -2, 0, 3, 2 }));
-        r = point;
-        CHECK(r.TopLeft() == point);
-    }
-
-    SECTION("operator+") {
-        //it use internally +=
-        Rect16 r;
-        point_i16_t point, expected;
-        std::tie(r, point, expected) = GENERATE(
-            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ 0, 0, 30, 30 }, { 0, 2 }, { 0, 2 }),
-            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ 0, 20, 30, 30 }, { 6, -5 }, { 6, 15 }),
-            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ -5, 20, 30, 30 }, { -3, -30 }, { -8, -10 }),
-            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ -6, -1, 30, 30 }, { 20, 20 }, { 14, 19 }));
-        CHECK((r + point).TopLeft() == expected);
-    }
-
-    SECTION("operator-") {
-        //it use internally -=
-        Rect16 r;
-        point_i16_t point, expected;
-        std::tie(r, point, expected) = GENERATE(
-            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ 0, 0, 30, 30 }, { 0, 2 }, { 0, -2 }),
-            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ 0, 20, 30, 30 }, { 6, -5 }, { -6, 25 }),
-            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ -5, 20, 30, 30 }, { -3, -30 }, { -2, 50 }),
-            std::make_tuple<Rect16, point_i16_t, point_i16_t>({ -6, -1, 30, 30 }, { 20, 20 }, { -26, -21 }));
-        CHECK((r - point).TopLeft() == expected);
-    }
-
-    SECTION("operators == and !=") {
-        //it use internally -=
-        Rect16 r0, r1;
-        bool equal;
-
-        std::tie(r0, r1, equal) = GENERATE(
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 0 }, { 0, 0, 0, 0 }, true),
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 30 }, { 0, 0, 30, 30 }, true),
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { 0, 20, 30, 30 }, true),
-            std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 30, 30 }, { -5, 20, 30, 30 }, true),
-            std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 30, 30 }, { -6, -1, 30, 30 }, true),
-
-            //x is wrong
-            std::make_tuple<Rect16, Rect16, bool>({ 1, 0, 0, 0 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
-            std::make_tuple<Rect16, Rect16, bool>({ 22, 0, 30, 30 }, { 0, 0, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ 89, 20, 30, 30 }, { 0, 20, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { -5, 20, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ -4, -1, 30, 30 }, { -6, -1, 30, 30 }, false),
-
-            //y is wrong
-            std::make_tuple<Rect16, Rect16, bool>({ 0, -20, 0, 0 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { 0, 0, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 30 }, { 0, 20, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ -5, 0, 30, 30 }, { -5, 20, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ -6, -21, 30, 30 }, { -6, -1, 30, 30 }, false),
-
-            //w is wrong
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 10, 0 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 30 }, { 0, 0, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 10, 30 }, { 0, 20, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 300, 30 }, { -5, 20, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 0, 30 }, { -6, -1, 30, 30 }, false),
-
-            //h is wrong
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 110 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 0 }, { 0, 0, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 3 }, { 0, 20, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 30, 322 }, { -5, 20, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 30, 1 }, { -6, -1, 30, 30 }, false),
-
-            //multiple wrong values
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 3, 0 }, { 0, 0, 0, 1 }, true), // all empty rectangles are equal
-            std::make_tuple<Rect16, Rect16, bool>({ 1, 1, 1, 1 }, { 0, 0, 0, 0 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 3, 6 }, { 0, 0, 0, 0 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ -3, -3, 30, 30 }, { 0, 0, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 3, 3 }, { 0, 20, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ -5, 2, 3, 3 }, { -5, 20, 30, 30 }, false),
-            std::make_tuple<Rect16, Rect16, bool>({ -60, -10, 3, 30 }, { -6, -1, 30, 30 }, false));
-
-        CHECK((r0 == r1) == equal);
-        CHECK((r0 != r1) != equal);
-    }
-}
-
-TEST_CASE("rectangle LimitSize", "[rectangle]") {
-    SECTION("not empty") {
-        Rect16 r, expected;
-        size_ui16_t limit;
-        std::tie(r, limit, expected) = GENERATE(
-            std::make_tuple<Rect16, size_ui16_t, Rect16>({ 0, 0, 30, 30 }, { 2, 2 }, { 0, 0, 2, 2 }),
-            std::make_tuple<Rect16, size_ui16_t, Rect16>({ 0, 20, 80, 40 }, { 6, 1000 }, { 0, 20, 6, 40 }),
-            std::make_tuple<Rect16, size_ui16_t, Rect16>({ -5, 20, 20, 1 }, { 20, 1 }, { -5, 20, 20, 1 }),
-            std::make_tuple<Rect16, size_ui16_t, Rect16>({ -6, -1, 100, 3 }, { 99, 3 }, { -6, -1, 99, 3 }));
-
-        Rect16 r_sw = r;
-        size_ui16_t limit_sw = { limit.h, limit.w };
-        Rect16 expected_sw = expected;
-        r_sw.SwapXY();
-        expected_sw.SwapXY();
-
-        r.LimitSize(limit);
-        CHECK(r == expected);
-
-        r_sw.LimitSize(limit_sw);
-        CHECK(r_sw == expected_sw);
-    }
-    SECTION("empty") {
-        Rect16 r;
-        size_ui16_t limit;
-        std::tie(r, limit) = GENERATE(
-            std::make_tuple<Rect16, size_ui16_t>({ 0, 0, 0, 0 }, { 0, 0 }),
-            std::make_tuple<Rect16, size_ui16_t>({ 0, 0, 0, 30 }, { 2, 2 }),
-            std::make_tuple<Rect16, size_ui16_t>({ 0, 20, 80, 40 }, { 6, 0 }),
-            std::make_tuple<Rect16, size_ui16_t>({ -5, 20, 0, 0 }, { 20, 1 }),
-            std::make_tuple<Rect16, size_ui16_t>({ -6, -1, 100, 3 }, { 0, 0 }));
-
-        r.LimitSize(limit);
-        CHECK(r.IsEmpty());
-    }
-}
-
-TEST_CASE("rectangle Transform", "[rectangle]") {
-    SECTION("not empty") {
-        Rect16 r, target, expected;
-        std::tie(r, target, expected) = GENERATE(
-            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 30, 30 }),      //fits
-            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 2, 80, 40 }, { 1, 2, 5, 5 }, { 1, 4, 5, 3 }),            //does not fit
-            std::make_tuple<Rect16, Rect16, Rect16>({ 5, 20, 20, 1 }, { 20, -3, 6, 200 }, { 25, 17, 1, 1 }),      //width does not fit
-            std::make_tuple<Rect16, Rect16, Rect16>({ 10, 1, 100, 3 }, { -100, 3, 1000, 2 }, { -90, 4, 100, 1 }), //height does not fit
-            //rect with negative coords is cut
-            //data for X, Y is made by SwapXY
-            std::make_tuple<Rect16, Rect16, Rect16>({ -1, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 29, 30 }), //negative x
-            std::make_tuple<Rect16, Rect16, Rect16>({ -1, 8, 30, 30 }, { 2, 3, 10, 100 }, { 2, 11, 10, 30 }), //negative x, does not fit into target
-            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 4, 30, 30 }, { 2, 3, 10, 100 }, { 2, 7, 8, 30 }),  //negative x, would not fit into target, but fits after negative coord cut
-            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 2, 30, 30 }, { 2, 3, 1, 100 }, { 2, 5, 1, 30 }),   //negative x, would not fit into target, and still does not fit even after negative coord cut
-            //both X and Y negative
-            std::make_tuple<Rect16, Rect16, Rect16>({ -1, -1, 10, 6 }, { 2, 3, 100, 100 }, { 2, 3, 9, 5 }),
-            std::make_tuple<Rect16, Rect16, Rect16>({ -1, -4, 20, 7 }, { 2, 3, 10, 100 }, { 2, 3, 10, 3 }), //X does not fit into target
-            std::make_tuple<Rect16, Rect16, Rect16>({ -22, -2, 30, 8 }, { 2, 3, 10, 100 }, { 2, 3, 8, 6 })  //X would not fit into target, but fits after negative coord cut
-        );
-
-        Rect16 r_sw = r;
-        Rect16 target_sw = target;
-        Rect16 expected_sw = expected;
-        r_sw.SwapXY();
-        target_sw.SwapXY();
-        expected_sw.SwapXY();
-
-        r.Transform(target);
-        CHECK(r == expected);
-
-        r_sw.Transform(target_sw);
-        CHECK(r_sw == expected_sw);
-    }
-}
-
 TEST_CASE("rectangle union", "[rectangle]") {
     SECTION("single rectangle") {
         //it also tests operators + and += since Union use them
@@ -743,50 +552,6 @@ TEST_CASE("rectangle split", "[rectangle]") {
 
         COMPARE_ARRAYS(splits, expSplits);
         COMPARE_ARRAYS(spaces, expSpaces);
-    }
-
-    SECTION("horizontal - given widths 'footer style'") {
-
-        Rect16 r;
-        static constexpr size_t max_count = 4;
-        static constexpr size_t h = 10;
-
-        std::vector<Rect16> expSplits; //expected
-        std::array<Rect16, max_count> splits;
-        std::vector<Rect16::Width_t> widths;
-
-        std::tie(r, widths, expSplits) = GENERATE(
-            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
-                { 0, 0, 100, h }, { 1, 2 }, { { { 0, 0, 1, h }, { 98, 0, 2, h } } }),
-            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
-                { 0, 0, 7, h }, { 1, 1, 1, 1 }, { { { 0, 0, 1, h }, { 2, 0, 1, h }, { 4, 0, 1, h }, { 6, 0, 1, h } } }),
-            //last does not fit
-            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
-                { 0, 0, 12, h }, { 1, 2, 3, 40 }, { { { 0, 0, 1, h }, { 4, 0, 2, h }, { 9, 0, 3, h } } }),
-            //not exact space, last is bit further
-            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
-                { 0, 0, 8, h }, { 1, 1, 1, 1 }, { { { 0, 0, 1, h }, { 2, 0, 1, h }, { 4, 0, 1, h }, { 7, 0, 1, h } } }),
-            //only one fits
-            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
-                { 1, 2, 10, h }, { 5, 100, 1, 1 }, { { { 1, 2, 5, h } } }),
-            // 2 border empty rects .. any empty rects are equal
-            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
-                { 1, 2, 14, h }, { 0, 2, 3, 0 }, { { { 0, 0, 0, 0 }, { 4, 2, 2, h }, { 9, 2, 3, h }, { 0, 0, 0, 0 } } }),
-            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
-                { 0, 2, 9, h }, { 0, 5, 0 }, { { { 0, 0, 0, 0 }, { 2, 2, 5, h }, { 0, 0, 0, 0 } } }),
-            //empty
-            std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
-                { 1, 0, 10, h }, { 50, 10, 1, 1 }, std::vector<Rect16>()));
-
-        size_t expCount = expSplits.size();
-        size_t do_N_splits = widths.size();
-        CHECK(expCount <= max_count);
-        CHECK(do_N_splits <= max_count); // unnecessary, next check would find it too, but this will tell me exact reason of failure
-        CHECK(expCount <= do_N_splits);
-
-        size_t count = r.HorizontalSplit(&splits[0], &widths[0], do_N_splits);
-        CHECK(expCount == count);
-        COMPARE_ARRAYS_SIZE_FROM_SMALLER(splits, expSplits);
     }
 
     SECTION("horizontal - cuts") {

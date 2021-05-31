@@ -6,42 +6,17 @@
 #include "Rect16.h"
 #include "window_event.hpp"
 #include "align.hpp"
-#include "gui_time.hpp" // not needed here, but will save lot of includes
-                        // !!! all windows should use gui::GetTick() to access tick value!!!
 
 class window_t {
     window_t *parent;
     window_t *next;
-    Rect16 rect; // (8 bytes) display rectangle
+
 protected:
     WindowFlags flags;
-    color_t color_back;
 
 public:
-    Rect16 GetRect() const;
-    Rect16 GetRectWithoutTransformation() const;
-    void SetRect(Rect16 rc); // does not transform
-    void SetRectWithoutTransformation(Rect16 rc);
-    Rect16 TransformRect(Rect16 rc) const; // just transforms given rect, calls parrents transform if this window is relative
-
-    inline Rect16::Left_t Left() const { return GetRect().Left(); }
-    inline Rect16::Top_t Top() const { return GetRect().Top(); }
-    inline Rect16::Width_t Width() const { return GetRect().Width(); }
-    inline Rect16::Height_t Height() const { return GetRect().Height(); }
-
-    void Reposition(Rect16::Top_t top);
-    void Reposition(Rect16::Left_t left);
-    void Resize(Rect16::Height_t height);
-    void Resize(Rect16::Width_t width);
-
-    template <class T>
-    constexpr void operator+=(T val) {
-        SetRect(GetRect() += val);
-    }
-    template <class T>
-    constexpr void operator-=(T val) {
-        SetRect(GetRect() -= val);
-    }
+    Rect16 rect; // (8 bytes) display rectangle
+    color_t color_back;
 
     void SetNext(window_t *nxt);
     void SetParent(window_t *par);
@@ -85,7 +60,6 @@ public:
     virtual void ShowAfterDialog();
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
-    void SetRelativeSubwins() { flags.has_relative_subwins = true; }
 
     window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
