@@ -74,7 +74,7 @@ class ScreenMenuFwUpdate : public AddSuperWindow<screen_t> {
     window_menu_t menu;
     window_header_t header;
     window_text_t help;
-    StatusFooter footer;
+    status_footer_t footer;
 
 public:
     ScreenMenuFwUpdate();
@@ -86,7 +86,7 @@ protected:
 };
 
 ScreenMenuFwUpdate::ScreenMenuFwUpdate()
-    : AddSuperWindow<screen_t>(nullptr)
+    : AddSuperWindow<screen_t>(nullptr, GuiDefaults::RectScreen)
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectFooter.Top()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)

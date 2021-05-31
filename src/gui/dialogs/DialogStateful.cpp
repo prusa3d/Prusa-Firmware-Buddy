@@ -33,10 +33,10 @@ Rect16 get_label_rect(Rect16 rect) {
 //*****************************************************************************
 IDialogStateful::IDialogStateful(string_view_utf8 name)
     : IDialogMarlin()
-    , title(this, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, name)
-    , progress(this, get_progress_rect(GetRect()), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
-    , label(this, get_label_rect(GetRect()), is_multiline::yes)
-    , radio(this, get_radio_button_rect(GetRect()), nullptr, nullptr)
+    , title(this, get_title_rect(rect), is_multiline::no, is_closed_on_click_t::no, name)
+    , progress(this, get_progress_rect(rect), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
+    , label(this, get_label_rect(rect), is_multiline::yes)
+    , radio(this, get_radio_button_rect(rect), nullptr, nullptr)
     , phase(0) {
     title.font = GuiDefaults::FontBig;
     title.SetAlignment(Align_t::Center());

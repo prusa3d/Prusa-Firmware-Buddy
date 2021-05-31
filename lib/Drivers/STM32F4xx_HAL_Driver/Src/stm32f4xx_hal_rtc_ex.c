@@ -23,24 +23,24 @@
   *** RTC Wake-up configuration ***
   ================================
   [..]
-    (+) To configure the RTC Wake-up Clock source and Counter use the HAL_RTCEx_SetWakeUpTimer()
+    (+) To configure the RTC Wake-up Clock source and Counter use the HAL_RTC_SetWakeUpTimer()
         function. You can also configure the RTC Wake-up timer in interrupt mode
-        using the HAL_RTCEx_SetWakeUpTimer_IT() function.
-    (+) To read the RTC Wake-up Counter register, use the HAL_RTCEx_GetWakeUpTimer()
+        using the HAL_RTC_SetWakeUpTimer_IT() function.
+    (+) To read the RTC Wake-up Counter register, use the HAL_RTC_GetWakeUpTimer()
         function.
 
   *** TimeStamp configuration ***
   ===============================
   [..]
     (+) Configure the RTC_AFx trigger and enable the RTC TimeStamp using the
-        HAL_RTCEx_SetTimeStamp() function. You can also configure the RTC TimeStamp with
-        interrupt mode using the HAL_RTCEx_SetTimeStamp_IT() function.
-    (+) To read the RTC TimeStamp Time and Date register, use the HAL_RTCEx_GetTimeStamp()
+        HAL_RTC_SetTimeStamp() function. You can also configure the RTC TimeStamp with
+        interrupt mode using the HAL_RTC_SetTimeStamp_IT() function.
+    (+) To read the RTC TimeStamp Time and Date register, use the HAL_RTC_GetTimeStamp()
         function.
     (+) The TIMESTAMP alternate function can be mapped either to RTC_AF1 (PC13)
         or RTC_AF2 (PI8 or PA0 only for STM32F446xx devices) depending on the value of TSINSEL bit in
-        RTC_TAFCR register. The corresponding pin is also selected by HAL_RTCEx_SetTimeStamp()
-        or HAL_RTCEx_SetTimeStamp_IT() function.
+        RTC_TAFCR register. The corresponding pin is also selected by HAL_RTC_SetTimeStamp()
+        or HAL_RTC_SetTimeStamp_IT() function.
 
   *** Tamper configuration ***
   ============================
@@ -48,32 +48,48 @@
     (+) Enable the RTC Tamper and configure the Tamper filter count, trigger Edge
         or Level according to the Tamper filter (if equal to 0 Edge else Level)
         value, sampling frequency, precharge or discharge and Pull-UP using the
-        HAL_RTCEx_SetTamper() function. You can configure RTC Tamper in interrupt
-        mode using HAL_RTCEx_SetTamper_IT() function.
+        HAL_RTC_SetTamper() function. You can configure RTC Tamper in interrupt
+        mode using HAL_RTC_SetTamper_IT() function.
     (+) The TAMPER1 alternate function can be mapped either to RTC_AF1 (PC13)
         or RTC_AF2 (PI8 or PA0 only for STM32F446xx devices) depending on the value of TAMP1INSEL bit in
-        RTC_TAFCR register. The corresponding pin is also selected by HAL_RTCEx_SetTamper()
-        or HAL_RTCEx_SetTamper_IT() function.
+        RTC_TAFCR register. The corresponding pin is also selected by HAL_RTC_SetTamper()
+        or HAL_RTC_SetTamper_IT() function.
 
   *** Backup Data Registers configuration ***
   ===========================================
   [..]
-    (+) To write to the RTC Backup Data registers, use the HAL_RTCEx_BKUPWrite()
+    (+) To write to the RTC Backup Data registers, use the HAL_RTC_BKUPWrite()
         function.
-    (+) To read the RTC Backup Data registers, use the HAL_RTCEx_BKUPRead()
+    (+) To read the RTC Backup Data registers, use the HAL_RTC_BKUPRead()
         function.
 
    @endverbatim
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2017 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * Redistribution and use in source and binary forms, with or without modification,
+  * are permitted provided that the following conditions are met:
+  *   1. Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+  *   2. Redistributions in binary form must reproduce the above copyright notice,
+  *      this list of conditions and the following disclaimer in the documentation
+  *      and/or other materials provided with the distribution.
+  *   3. Neither the name of STMicroelectronics nor the names of its contributors
+  *      may be used to endorse or promote products derived from this software
+  *      without specific prior written permission.
+  *
+  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
   */
@@ -499,60 +515,46 @@ HAL_StatusTypeDef HAL_RTCEx_DeactivateTamper(RTC_HandleTypeDef *hrtc, uint32_t T
   */
 void HAL_RTCEx_TamperTimeStampIRQHandler(RTC_HandleTypeDef *hrtc)
 {
-  /* Get the TimeStamp interrupt source enable status */
-  if(__HAL_RTC_TIMESTAMP_GET_IT_SOURCE(hrtc, RTC_IT_TS) != (uint32_t)RESET)
+  if(__HAL_RTC_TIMESTAMP_GET_IT(hrtc, RTC_IT_TS))
   {
-    /* Get the pending status of the TIMESTAMP Interrupt */
-    if(__HAL_RTC_TIMESTAMP_GET_FLAG(hrtc, RTC_FLAG_TSF) != (uint32_t)RESET)
+    /* Get the status of the Interrupt */
+    if((uint32_t)(hrtc->Instance->CR & RTC_IT_TS) != (uint32_t)RESET)
     {
       /* TIMESTAMP callback */
-#if (USE_HAL_RTC_REGISTER_CALLBACKS == 1)
-      hrtc->TimeStampEventCallback(hrtc);
-#else
       HAL_RTCEx_TimeStampEventCallback(hrtc);
-#endif /* USE_HAL_RTC_REGISTER_CALLBACKS */
 
       /* Clear the TIMESTAMP interrupt pending bit */
       __HAL_RTC_TIMESTAMP_CLEAR_FLAG(hrtc,RTC_FLAG_TSF);
     }
   }
 
-  /* Get the Tamper1 interrupt source enable status */
-  if(__HAL_RTC_TAMPER_GET_IT_SOURCE(hrtc, RTC_IT_TAMP) != (uint32_t)RESET)
+  /* Get the status of the Interrupt */
+  if(__HAL_RTC_TAMPER_GET_IT(hrtc,RTC_IT_TAMP1))
   {
-    /* Get the pending status of the Tamper1 Interrupt */
-    if(__HAL_RTC_TAMPER_GET_FLAG(hrtc, RTC_FLAG_TAMP1F) != (uint32_t)RESET)
+    /* Get the TAMPER Interrupt enable bit and pending bit */
+    if(((hrtc->Instance->TAFCR & (RTC_TAFCR_TAMPIE))) != (uint32_t)RESET)
     {
       /* Tamper callback */
-#if (USE_HAL_RTC_REGISTER_CALLBACKS == 1)
-      hrtc->Tamper1EventCallback(hrtc);
-#else
       HAL_RTCEx_Tamper1EventCallback(hrtc);
-#endif /* USE_HAL_RTC_REGISTER_CALLBACKS */
 
       /* Clear the Tamper interrupt pending bit */
       __HAL_RTC_TAMPER_CLEAR_FLAG(hrtc,RTC_FLAG_TAMP1F);
     }
   }
 
-  /* Get the Tamper2 interrupt source enable status */
-  if(__HAL_RTC_TAMPER_GET_IT_SOURCE(hrtc, RTC_IT_TAMP) != (uint32_t)RESET)
+  /* Get the status of the Interrupt */
+  if(__HAL_RTC_TAMPER_GET_IT(hrtc, RTC_IT_TAMP2))
   {
-    /* Get the pending status of the Tamper2 Interrupt */
-    if(__HAL_RTC_TAMPER_GET_FLAG(hrtc, RTC_FLAG_TAMP2F) != (uint32_t)RESET)
+    /* Get the TAMPER Interrupt enable bit and pending bit */
+    if(((hrtc->Instance->TAFCR & RTC_TAFCR_TAMPIE)) != (uint32_t)RESET)
     {
       /* Tamper callback */
-#if (USE_HAL_RTC_REGISTER_CALLBACKS == 1)
-      hrtc->Tamper2EventCallback(hrtc);
-#else
       HAL_RTCEx_Tamper2EventCallback(hrtc);
-#endif /* USE_HAL_RTC_REGISTER_CALLBACKS */
 
       /* Clear the Tamper interrupt pending bit */
       __HAL_RTC_TAMPER_CLEAR_FLAG(hrtc, RTC_FLAG_TAMP2F);
     }
   }
-
   /* Clear the EXTI's Flag for RTC TimeStamp and Tamper */
   __HAL_RTC_TAMPER_TIMESTAMP_EXTI_CLEAR_FLAG();
 
@@ -1000,29 +1002,23 @@ uint32_t HAL_RTCEx_GetWakeUpTimer(RTC_HandleTypeDef *hrtc)
 
 /**
   * @brief  This function handles Wake Up Timer interrupt request.
-  * @note   Unlike alarm interrupt line (shared by AlarmA and AlarmB) and tamper
-  *         interrupt line (shared by timestamp and tampers) wakeup timer
-  *         interrupt line is exclusive to the wakeup timer.
-  *         There is no need in this case to check on the interrupt enable
-  *         status via __HAL_RTC_WAKEUPTIMER_GET_IT_SOURCE().
   * @param  hrtc pointer to a RTC_HandleTypeDef structure that contains
   *                the configuration information for RTC.
   * @retval None
   */
 void HAL_RTCEx_WakeUpTimerIRQHandler(RTC_HandleTypeDef *hrtc)
 {
-  /* Get the pending status of the WAKEUPTIMER Interrupt */
-  if(__HAL_RTC_WAKEUPTIMER_GET_FLAG(hrtc, RTC_FLAG_WUTF) != (uint32_t)RESET)
+  if(__HAL_RTC_WAKEUPTIMER_GET_IT(hrtc, RTC_IT_WUT))
   {
-    /* WAKEUPTIMER callback */
-#if (USE_HAL_RTC_REGISTER_CALLBACKS == 1)
-    hrtc->WakeUpTimerEventCallback(hrtc);
-#else
-    HAL_RTCEx_WakeUpTimerEventCallback(hrtc);
-#endif /* USE_HAL_RTC_REGISTER_CALLBACKS */
+    /* Get the status of the Interrupt */
+    if((uint32_t)(hrtc->Instance->CR & RTC_IT_WUT) != (uint32_t)RESET)
+    {
+      /* WAKEUPTIMER callback */
+      HAL_RTCEx_WakeUpTimerEventCallback(hrtc);
 
-    /* Clear the WAKEUPTIMER interrupt pending bit */
-    __HAL_RTC_WAKEUPTIMER_CLEAR_FLAG(hrtc, RTC_FLAG_WUTF);
+      /* Clear the WAKEUPTIMER interrupt pending bit */
+      __HAL_RTC_WAKEUPTIMER_CLEAR_FLAG(hrtc, RTC_FLAG_WUTF);
+    }
   }
 
   /* Clear the EXTI's line Flag for RTC WakeUpTimer */

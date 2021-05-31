@@ -102,12 +102,12 @@ Response RadioButton::Click() const {
 }
 
 void RadioButton::draw_0_btn() const {
-    display::FillRect(GetRect(), color_back);
+    display::FillRect(rect, color_back);
 }
 
 void RadioButton::draw_1_btn() const {
     if (texts)
-        button_draw(GetRect(), _((*texts)[0]), pfont, IsEnabled());
+        button_draw(rect, _((*texts)[0]), pfont, IsEnabled());
 }
 
 void RadioButton::draw_n_btns(const size_t btn_count) const {
@@ -125,7 +125,7 @@ void RadioButton::draw_n_btns(const size_t btn_count) const {
         string_view_utf8 txt = _((*texts)[index]);
         ratio[index] = static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
     }
-    GetRect().HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
+    rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
 
     for (size_t i = 0; i < btn_count; ++i) {
         string_view_utf8 drawn = _((*texts)[i]);

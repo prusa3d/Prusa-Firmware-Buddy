@@ -7,10 +7,6 @@ template <class T>
 struct point_t {
     T x;
     T y;
-    constexpr bool operator==(const point_t &rhs) const {
-        return (x == rhs.x) && (y == rhs.y);
-    }
-    constexpr bool operator!=(const point_t &rhs) const { return !((*this) == rhs); }
 };
 
 using point_i16_t = point_t<int16_t>;
@@ -19,10 +15,6 @@ using point_ui16_t = point_t<uint16_t>;
 struct size_ui16_t {
     uint16_t w;
     uint16_t h;
-    constexpr bool operator==(const size_ui16_t &rhs) {
-        return (w == rhs.w) && (h == rhs.h);
-    }
-    constexpr bool operator!=(const size_ui16_t &rhs) { return !((*this) == rhs); }
 };
 
 template <class T>
@@ -31,11 +23,6 @@ struct padding_t {
     T top;
     T right;
     T bottom;
-
-    constexpr bool operator==(const padding_t &rhs) {
-        return (left == rhs.left) && (top == rhs.top) && (right == rhs.right) && (bottom == rhs.bottom);
-    }
-    constexpr bool operator!=(const padding_t &rhs) { return !((*this) == rhs); }
 };
 
 using padding_ui8_t = padding_t<uint8_t>;

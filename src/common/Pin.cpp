@@ -5,8 +5,7 @@
  */
 
 #include "Pin.hpp"
-
-namespace buddy::hw {
+using namespace buddy::hw;
 
 void InputPin::configure(Pull pull) const {
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
@@ -32,4 +31,3 @@ void OutputInputPin::enableInput(Pull pull) const {
     GPIO_InitStruct.Pull = static_cast<uint32_t>(pull);
     HAL_GPIO_Init(getHalPort(), &GPIO_InitStruct);
 }
-} //namespace buddy::hw

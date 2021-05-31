@@ -77,10 +77,10 @@ screen_home_data_t::screen_home_data_t()
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
             const size_t i = row * 3 + col;
-            w_buttons[i].SetRect(Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64));
+            w_buttons[i].rect = Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
             w_buttons[i].SetIdRes(icons[i]);
 
-            w_labels[i].SetRect(Rect16(80 * col, 154 + (15 + 64) * row, 80, 14));
+            w_labels[i].rect = Rect16(80 * col, 154 + (15 + 64) * row, 80, 14);
             w_labels[i].font = resource_font(IDR_FNT_SMALL);
             w_labels[i].SetAlignment(Align_t::Center());
             w_labels[i].SetPadding({ 0, 0, 0, 0 });

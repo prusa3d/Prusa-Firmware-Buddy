@@ -3,7 +3,6 @@
 #include "esp/esp_input.h"
 #include "system/esp_ll.h"
 #include "lwesp_ll_buddy.h"
-#include "dbg.h"
 
 /*
  * UART and other pin configuration for ESP01 module
@@ -162,14 +161,14 @@ esp_ll_init(esp_ll_t *ll) {
         if (uartBufferMbox_id == NULL) {
             uartBufferMbox_id = osMessageCreate(osMessageQ(uartBufferMbox), NULL);
             if (uartBufferMbox_id == NULL) {
-                _dbg("error!");
+                printf("error!");
             }
         }
         if (UartBufferThread_id == NULL) {
             osThreadDef(UartBufferThread, StartUartBufferThread, osPriorityNormal, 0, 100);
             UartBufferThread_id = osThreadCreate(osThread(UartBufferThread), NULL);
             if (UartBufferThread_id == NULL) {
-                _dbg("error!");
+                printf("error!");
             }
         }
     }

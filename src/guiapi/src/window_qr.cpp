@@ -55,26 +55,26 @@ void draw_qr(uint8_t qrcode[], const window_qr_t *const window) {
     /// scale QR code
     if (window->scale) {
         const uint16_t size_w_bord = size + 2 * window->border;
-        ppm = std::max(1, (int)floor(std::min(uint16_t(window->Height()), uint16_t(window->Width())) / float(size_w_bord)));
+        ppm = std::max(1, (int)floor(std::min(uint16_t(window->rect.Height()), uint16_t(window->rect.Width())) / float(size_w_bord)));
     }
     const uint16_t px_size = get_qr_px_size(qrcode, window, ppm);
 
     /// alignment
     if (window->align.Horizontal() == Align_t::horizontal::center) {
-        x0 = std::max(0, (window->Width() - px_size)) / 2;
+        x0 = std::max(0, (window->rect.Width() - px_size)) / 2;
     } else if (window->align.Horizontal() == Align_t::horizontal::right) {
-        x0 = std::max(0, (window->Width() - px_size));
+        x0 = std::max(0, (window->rect.Width() - px_size));
     }
 
     if (window->align.Vertical() == Align_t::vertical::center) {
-        y0 = std::max(0, (window->Height() - px_size)) / 2;
+        y0 = std::max(0, (window->rect.Height() - px_size)) / 2;
     } else if (window->align.Vertical() == Align_t::vertical::bottom) {
-        y0 = std::max(0, (window->Height() - px_size));
+        y0 = std::max(0, (window->rect.Height() - px_size));
     }
 
     /// move to window location
-    x0 += window->Left() + window->border * ppm;
-    y0 += window->Top() + window->border * ppm;
+    x0 += window->rect.Left() + window->border * ppm;
+    y0 += window->rect.Top() + window->border * ppm;
 
     /// FIXME paint border at once (fill_between_rect) - it's faster
     /// paint QR code
@@ -96,3 +96,15 @@ window_qr_t::window_qr_t(window_t *parent, Rect16 rect)
 //    , px_color(COLOR_BLACK)
 {
 }
+
+/// window definition
+// const window_class_qr_t window_class_qr = {
+//     {
+//         WINDOW_CLS_QR,
+//         sizeof(window_qr_t),
+//         (window_init_t *)window_qr_init,
+//         0,
+//         (window_draw_t *)window_qr_draw,
+//         0,
+//     },
+// };

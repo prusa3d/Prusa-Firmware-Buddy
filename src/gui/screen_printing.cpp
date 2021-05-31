@@ -128,7 +128,7 @@ screen_printing_data_t::screen_printing_data_t()
     , stop_pressed(false)
     , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
-    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() }))) {
+    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.rect, w_time_value.rect, w_etime_label.rect, w_etime_value.rect }))) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
 
     marlin_vars_t *vars = marlin_vars();
@@ -178,8 +178,8 @@ extern uint32_t *pCommand;
 void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
-    if (gui::GetTick() - _last > 300) {
-        _last = gui::GetTick();
+    if (HAL_GetTick() - _last > 300) {
+        _last = HAL_GetTick();
 
         static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
         buff[1] = FS_instance().Get() + '0';                         // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled

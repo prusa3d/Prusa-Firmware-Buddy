@@ -305,11 +305,6 @@ if(CMAKE_CROSSCOMPILING)
   # disable exceptions and related metadata
   add_compile_options(-fno-exceptions -fno-unwind-tables)
   add_link_options(-Wl,--defsym,__exidx_start=0,--defsym,__exidx_end=0)
-
-  # use custom printf implementation instead of the one in newlib (see lib/printf)
-  add_link_options(
-    -Wl,--defsym=printf=printf_,--defsym=sprintf=sprintf_,--defsym=snprintf=snprintf_,--defsym=vprintf=vprintf_,--defsym=vsnprintf=vsnprintf_
-    )
 endif()
 
 # enable all warnings (well, not all, but some)
@@ -438,7 +433,6 @@ target_include_directories(
           src/common/include
           src/gui
           src/gui/dialogs
-          src/gui/footer
           src/gui/wizard
           src/guiapi/include
           src/guiconfig
@@ -468,7 +462,6 @@ target_link_libraries(
           jsmn::jsmn
           QR
           Buddy::Lang
-          printf::printf
   )
 
 target_sources(
@@ -491,16 +484,13 @@ target_sources(
           src/usbh_conf.c
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
-          src/common/non_file_printing_counter.cpp
-          src/common/print_processor.cpp
-          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
+          src/common/filament_sensor.cpp
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_photoeletric.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/hardware_serial.cpp
           src/common/diag.cpp
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
-          src/common/MarlinPin.cpp
           src/common/marlin_vars.c
           src/common/media.cpp
           src/common/Pin.cpp
@@ -535,10 +525,10 @@ target_sources(
           src/common/selftest/selftest_fan.cpp
           src/common/selftest/selftest_axis.cpp
           src/common/selftest/selftest_heater.cpp
+          src/common/sim_motion.cpp
           src/common/st25dv64k.c
           src/common/w25x.c
           src/common/gcode_file.cpp
-          src/common/gcode_filter.cpp
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
           src/common/base64_stream_decoder.cpp
@@ -606,24 +596,11 @@ if(GUI)
             src/gui/dialogs/window_dlg_preheat.cpp
             src/gui/dialogs/liveadjust_z.cpp
             src/gui/dialogs/window_dlg_calib_z.cpp
-            src/gui/footer/footer_icon.cpp
-            src/gui/footer/footer_text.cpp
-            src/gui/footer/ifooter_item.cpp
-            src/gui/footer/ifooter_string_item.cpp
-            src/gui/footer/footer_items_heaters.cpp
-            src/gui/footer/footer_item_filament.cpp
-            src/gui/footer/footer_item_sheet_profile.cpp
-            src/gui/footer/footer_item_printspeed.cpp
-            src/gui/footer/footer_item_live_z.cpp
-            src/gui/footer/footer_items_nozzle_bed.cpp
-            src/gui/footer/footer_line.cpp
-            $<$<STREQUAL:${PRINTER},MINI>:src/gui/footer/footer_doubleline.cpp>
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
             src/gui/gui_media_events.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
-            src/gui/gui_time.cpp
             src/gui/window_print_progress.cpp
             src/gui/window_file_list.cpp
             src/gui/window_temp_graph.cpp
@@ -650,7 +627,6 @@ if(GUI)
             src/gui/screen_qr_error.cpp
             src/gui/screen_menu_hw_setup.cpp
             src/gui/screen_menu_steel_sheets.cpp
-            src/gui/screen_menu_footer_settings.cpp
             src/gui/screen_sheet_rename.cpp
             src/gui/test/screen_test.cpp
             src/gui/test/screen_test_disp_mem.cpp
@@ -666,6 +642,7 @@ if(GUI)
             src/gui/wizard/xyzcalib.cpp
             src/gui/screen_home.cpp
             src/gui/screen_filebrowser.cpp
+            src/gui/status_footer.cpp
             src/gui/menu_vars.cpp
             src/gui/IScreenPrinting.cpp
             src/gui/ScreenFirstLayer.cpp

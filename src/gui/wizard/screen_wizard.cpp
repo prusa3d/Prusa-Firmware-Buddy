@@ -133,7 +133,7 @@ WizardState_t StateFnc_START() {
 #endif //_DEBUG
 
     //IDR_PNG_icon_pepa
-    switch (MsgBoxPepa(translatedText, resp, 0, GuiDefaults::RectScreenNoHeader)) {
+    switch (MsgBoxPepa(translatedText, resp)) {
 #ifdef _DEBUG
     case Response::Ignore:
         eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag

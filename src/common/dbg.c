@@ -1,6 +1,5 @@
 //dbg.c
 
-#include <stdio.h>
 #include "dbg.h"
 #include <stdarg.h>
 #include "stm32f4xx_hal.h"

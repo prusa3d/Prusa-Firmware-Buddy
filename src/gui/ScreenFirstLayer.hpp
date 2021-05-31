@@ -3,7 +3,7 @@
 #include "IScreenPrinting.hpp"
 #include "gui.hpp"
 #include "window_header.hpp"
-#include "status_footer.hpp"
+#include "status_footer.h"
 #include "resource.h"
 #include "window_print_progress.hpp"
 #include "liveadjust_z.hpp"

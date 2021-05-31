@@ -113,7 +113,7 @@ protected:
 
 /*****************************************************************************/
 //parent alias
-using Screen = ScreenMenu<EHeader::Off, EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
 class ScreenMenuLanguages : public Screen {
 public:
@@ -129,7 +129,7 @@ ScreenFactory::UniquePtr GetScreenMenuLanguages() {
 
 /*****************************************************************************/
 //parent alias
-using Screen_noReturn = ScreenMenu<EHeader::Off, EFooter::Off, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using Screen_noReturn = ScreenMenu<EHeader::Off, EFooter::On, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
 class ScreenMenuLanguagesNoRet : public Screen_noReturn {
 public:

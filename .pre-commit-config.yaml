@@ -29,7 +29,6 @@ repos:
 exclude: |
   (?x)(
     ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$|
-    ^lib/printf|
     ^lib/inih/|
     ^lib/Marlin/|
     ^lib/Prusa-Error-Codes/|

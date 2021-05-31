@@ -31,5 +31,5 @@ public:
     void SetFont(font_t *val);
     void SetProgressColor(color_t clr);
     void SetNumbColor(color_t clr);
-    void SetProgressHeight(Rect16::Height_t height);
+    void SetProgressHeight(uint16_t height);
 };
