@@ -33,8 +33,8 @@
 
 //Dependencies
 #include "os_port.h"
-#include "core/socket.h"
-#include "web_socket/web_socket.h"
+#include "buddy_socket.h"
+//#include "web_socket/web_socket.h"
 #include "http/http_common.h"
 
 //HTTP server support
@@ -167,6 +167,13 @@
    #define HTTP_SERVER_BUFFER_SIZE 1024
 #elif (HTTP_SERVER_BUFFER_SIZE < 128)
    #error HTTP_SERVER_BUFFER_SIZE parameter is not valid
+#endif
+
+//Size of buffer used for data from lwip socket
+#ifndef HTTP_SERVER_BIGBUFFER_SIZE
+   #define HTTP_SERVER_BIGBUFFER_SIZE 1024
+#elif (HTTP_SERVER_BIGBUFFER_SIZE < 128)
+   #error HTTP_SERVER_BIGBUFFER_SIZE parameter is not valid
 #endif
 
 //Maximum size of root directory
@@ -580,7 +587,7 @@ struct _HttpServerContext
    HttpServerSettings settings;                                  ///<User settings
    OsTask *taskHandle;                                           ///<Listener task handle
    OsSemaphore semaphore;                                        ///<Semaphore limiting the number of connections
-   Socket *socket;                                               ///<Listening socket
+   socket_t *socket;                                               ///<Listening socket
    HttpConnection *connections;                                  ///<Client connections
 #if (HTTP_SERVER_TLS_SUPPORT == ENABLED && TLS_TICKET_SUPPORT == ENABLED)
    TlsTicketContext tlsTicketContext;                            ///<TLS ticket encryption context
@@ -607,7 +614,7 @@ struct _HttpConnection
    OsTask *taskHandle;                                 ///<Client task handle
    OsEvent startEvent;
    bool_t running;
-   Socket *socket;                                     ///<Socket
+   socket_t *socket;                                     ///<Socket
 #if (HTTP_SERVER_TLS_SUPPORT == ENABLED)
    TlsContext *tlsContext;                             ///<TLS context
 #endif
@@ -617,6 +624,9 @@ struct _HttpConnection
    char_t cgiParam[HTTP_SERVER_CGI_PARAM_MAX_LEN + 1]; ///<CGI parameter
    uint32_t dummy;                                     ///<Force alignment of the buffer on 32-bit boundaries
    char_t buffer[HTTP_SERVER_BUFFER_SIZE];             ///<Memory buffer for input/output operations
+   char_t bigBuffer[HTTP_SERVER_BIGBUFFER_SIZE];
+   size_t totalReceived;                               ///<Total data received
+   size_t totalRead;                                   ///<Total data processed
 #if (NET_RTOS_SUPPORT == DISABLED)
    HttpConnState state;                                ///<Connection state
    systime_t timestamp;
@@ -661,9 +671,10 @@ bool_t httpCheckPassword(HttpConnection *connection,
    const char_t *password, HttpAuthMode mode);
 
 //WebSocket related functions
+#if 0
 bool_t httpCheckWebSocketHandshake(HttpConnection *connection);
 WebSocket *httpUpgradeToWebSocket(HttpConnection *connection);
-
+#endif
 //Miscellaneous functions
 error_t httpDecodePercentEncodedString(const char_t *input,
    char_t *output, size_t outputSize);

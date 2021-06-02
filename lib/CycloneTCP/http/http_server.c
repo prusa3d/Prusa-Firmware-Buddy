@@ -43,13 +43,13 @@
 
 //Dependencies
 #include <stdlib.h>
-#include "core/net.h"
+#include "net.h"
 #include "http/http_server.h"
 #include "http/http_server_auth.h"
 #include "http/http_server_misc.h"
 #include "http/mime.h"
 #include "http/ssi.h"
-#include "debug.h"
+#include "cyclone_debug.h"
 
 //Check TCP/IP stack configuration
 #if (HTTP_SERVER_SUPPORT == ENABLED)
@@ -109,7 +109,7 @@ void httpServerGetDefaultSettings(HttpServerSettings *settings)
 
 error_t httpServerInit(HttpServerContext *context, const HttpServerSettings *settings)
 {
-   error_t error;
+//   error_t error;
    uint_t i;
    HttpConnection *connection;
 
@@ -164,36 +164,52 @@ error_t httpServerInit(HttpServerContext *context, const HttpServerSettings *set
       return ERROR_OUT_OF_RESOURCES;
 #endif
 
-   //Open a TCP socket
-   context->socket = socketOpen(SOCKET_TYPE_STREAM, SOCKET_IP_PROTO_TCP);
+//   //Open a TCP socket
+//   context->socket = socketOpen(SOCKET_TYPE_STREAM, SOCKET_IP_PROTO_TCP);
+//   //Failed to open socket?
+//   if(context->socket == NULL)
+//      return ERROR_OPEN_FAILED;
+
+   uint8_t id = socket(AF_INET, SOCK_STREAM, 0);
+   context->socket = get_socket_from_id(id);
    //Failed to open socket?
    if(context->socket == NULL)
       return ERROR_OPEN_FAILED;
 
-   //Set timeout for blocking functions
-   error = socketSetTimeout(context->socket, INFINITE_DELAY);
-   //Any error to report?
-   if(error)
-      return error;
+//   //Set timeout for blocking functions
+//   error = socketSetTimeout(context->socket, INFINITE_DELAY);
+//   //Any error to report?
+//   if(error)
+//      return error;
 
    //Associate the socket with the relevant interface
-   error = socketBindToInterface(context->socket, settings->interface);
-   //Unable to bind the socket to the desired interface?
-   if(error)
-      return error;
+//   error = socketBindToInterface(context->socket, settings->interface);
+//   //Unable to bind the socket to the desired interface?
+//   if(error)
+//      return error;
 
-   //Bind newly created socket to port 80
-   error = socketBind(context->socket, &IP_ADDR_ANY, settings->port);
-   //Failed to bind socket to port 80?
-   if(error)
-      return error;
+//   //Bind newly created socket to port 80
+//   error = socketBind(context->socket, &IP_ADDR_ANY, settings->port);
+//   //Failed to bind socket to port 80?
+//   if(error)
+//      return error;
 
-   //Place socket in listening state
-   error = socketListen(context->socket, settings->backlog);
-   //Any failure to report?
-   if(error)
-      return error;
+   address_httpd.sin_family = AF_INET;
+   address_httpd.sin_port = htons(80);
+   address_httpd.sin_addr.s_addr = INADDR_ANY;
+   int ret = bind(context->socket->buddy_f_d, (struct sockaddr *)&address_httpd, sizeof (address_httpd));
+   if(-1 == ret)
+       return ERROR_INVALID_SOCKET;
 
+//   //Place socket in listening state
+//   error = socketListen(context->socket, settings->backlog);
+//   //Any failure to report?
+//   if(error)
+//      return error;
+
+   ret = listen(context->socket->buddy_f_d, 5);
+   if(-1 == ret)
+       return ERROR_INVALID_SOCKET;
    //Successful initialization
    return NO_ERROR;
 }
@@ -251,11 +267,10 @@ void httpListenerTask(void *param)
 {
    uint_t i;
    uint_t counter;
-   uint16_t clientPort;
-   IpAddr clientIpAddr;
+//   uint16_t clientPort;
    HttpServerContext *context;
    HttpConnection *connection;
-   Socket *socket;
+   socket_t *socket;
 
    //Task prologue
    osEnterTask();
@@ -282,14 +297,20 @@ void httpListenerTask(void *param)
          if(!connection->running)
          {
             //Accept an incoming connection
-            socket = socketAccept(context->socket, &clientIpAddr, &clientPort);
-
+//            socket = socketAccept(context->socket, &clientIpAddr, &clientPort);
+             int size = sizeof(remotehost);
+             int new_socket = accept(context->socket->buddy_f_d, (struct sockaddr *)&remotehost, (socklen_t *)&size);
+             if(-1 == new_socket)
+                 break;
+             else {
+                 socket = get_socket_from_id(new_socket);
+             }
             //Make sure the socket handle is valid
             if(socket != NULL)
             {
                //Debug message
-               TRACE_INFO("Connection #%u established with client %s port %" PRIu16 "...\r\n",
-                  counter, ipAddrToString(&clientIpAddr, NULL), clientPort);
+//               TRACE_INFO("Connection #%u established with client %s port %" PRIu16 "...\r\n",
+//                  counter, ipAddrToString(&clientIpAddr, NULL), clientPort);
 
                //Reference to the HTTP server settings
                connection->settings = &context->settings;
@@ -299,7 +320,7 @@ void httpListenerTask(void *param)
                connection->socket = socket;
 
                //Set timeout for blocking functions
-               socketSetTimeout(connection->socket, HTTP_SERVER_TIMEOUT);
+//               socketSetTimeout(connection->socket, HTTP_SERVER_TIMEOUT);
 
                //The client connection task is now running...
                connection->running = TRUE;
@@ -602,12 +623,12 @@ void httpConnectionTask(void *param)
          //Debug message
          TRACE_INFO("Graceful shutdown...\r\n");
          //Graceful shutdown
-         socketShutdown(connection->socket, SOCKET_SD_BOTH);
+//         socketShutdown(connection->socket, SOCKET_SD_BOTH);
 
          //Debug message
          TRACE_INFO("Closing socket...\r\n");
          //Close socket
-         socketClose(connection->socket);
+         close(connection->socket->file_descriptor);
       }
 
       //Ready to serve the next connection request...
@@ -1185,7 +1206,7 @@ error_t httpSendRedirectResponse(HttpConnection *connection,
    return error;
 }
 
-
+#if 0
 /**
  * @brief Check whether the client's handshake is valid
  * @param[in] connection Structure representing an HTTP connection
@@ -1294,6 +1315,6 @@ WebSocket *httpUpgradeToWebSocket(HttpConnection *connection)
    //Return a handle to the freshly created WebSocket
    return webSocket;
 }
-
+#endif
 
 #endif

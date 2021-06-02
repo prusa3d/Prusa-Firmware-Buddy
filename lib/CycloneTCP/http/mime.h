@@ -32,7 +32,7 @@
 #define _MIME_H
 
 //Dependencies
-#include "core/net.h"
+#include "net.h"
 
 //Custom MIME types
 #ifndef MIME_CUSTOM_TYPES

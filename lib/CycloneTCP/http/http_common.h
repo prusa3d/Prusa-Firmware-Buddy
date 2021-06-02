@@ -32,7 +32,7 @@
 #define _HTTP_COMMON_H
 
 //Dependencies
-#include "core/net.h"
+#include "net.h"
 
 //HTTP port number
 #define HTTP_PORT 80
