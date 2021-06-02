@@ -3,7 +3,7 @@
 #include <string.h>
 #include "metric_handlers.h"
 #include "stm32f4xx_hal.h"
-#include "sockets.h"
+#include "buddy_socket.h"
 
 #define MAC_ADDR_START            0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE             6
