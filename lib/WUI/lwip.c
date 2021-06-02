@@ -206,9 +206,3 @@ void MX_LWIP_Init(ETH_config_t *ethconfig) {
         netif_set_down(&eth0);
     }
 }
-
-/* MINI LwIP interface functions --------------------------------------------*/
-
-void http_server_init(void) {
-    httpd_init();
-}
