@@ -16,6 +16,7 @@ enum class Response : uint8_t {
     ASA,
     Back,
     Cancel,
+    Change,
     Continue,
     Cooldown,
     Filament_removed,
