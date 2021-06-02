@@ -9,7 +9,6 @@
 #ifndef _WUI_REST_API_H_
 #define _WUI_REST_API_H_
 
-#include "lwip/apps/fs.h"
 #include "marlin_vars.h"
 
 #include "cmsis_os.h"
