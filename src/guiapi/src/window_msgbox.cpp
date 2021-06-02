@@ -9,14 +9,16 @@
 
 /*****************************************************************************/
 // clang-format off
-const PhaseResponses Responses_NONE             = { Response::_none, Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_Next             = { Response::Next,  Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_Ok               = { Response::Ok,    Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_OkCancel         = { Response::Ok,    Response::Cancel, Response::_none,  Response::_none };
-const PhaseResponses Responses_AbortRetryIgnore = { Response::Abort, Response::Retry,  Response::Ignore, Response::_none };
-const PhaseResponses Responses_YesNo            = { Response::Yes,   Response::No,     Response::_none,  Response::_none };
-const PhaseResponses Responses_YesNoCancel      = { Response::Yes,   Response::No,     Response::Cancel, Response::_none };
-const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::Cancel, Response::_none,  Response::_none };
+const PhaseResponses Responses_NONE                 = { Response::_none,    Response::_none,  Response::_none,  Response::_none };
+const PhaseResponses Responses_Next                 = { Response::Next,     Response::_none,  Response::_none,  Response::_none };
+const PhaseResponses Responses_Ok                   = { Response::Ok,       Response::_none,  Response::_none,  Response::_none };
+const PhaseResponses Responses_OkCancel             = { Response::Ok,       Response::Cancel, Response::_none,  Response::_none };
+const PhaseResponses Responses_AbortRetryIgnore     = { Response::Abort,    Response::Retry,  Response::Ignore, Response::_none };
+const PhaseResponses Responses_YesNo                = { Response::Yes,      Response::No,     Response::_none,  Response::_none };
+const PhaseResponses Responses_YesNoCancel          = { Response::Yes,      Response::No,     Response::Cancel, Response::_none };
+const PhaseResponses Responses_RetryCancel          = { Response::Retry,    Response::Cancel, Response::_none,  Response::_none };
+const PhaseResponses Responses_ChangeIgnoreCancel   = { Response::Change,   Response::Ignore, Response::Cancel, Response::_none };
+
 // clang-format on
 /*****************************************************************************/
 

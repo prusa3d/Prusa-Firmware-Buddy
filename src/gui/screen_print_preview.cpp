@@ -16,7 +16,8 @@
 
 static const char *gcode_file_name = NULL;
 static const char *gcode_file_path = NULL;
-static bool valid_printer_settings = true;
+static bool valid_printer = true;
+static bool valid_filament = true;
 
 const uint16_t menu_icons[2] = {
     IDR_PNG_print_58px,
@@ -108,15 +109,19 @@ GCodeInfo::GCodeInfo() {
         } else if (name_equals("filament_type")) {
             snprintf(filament_type, sizeof(filament_type),
                 "%s", value_buffer);
+            const char *curr_filament = Filaments::Current().name;
+            if (strncmp(curr_filament, "---", 3) != 0) {                                 // Current filament is set
+                if (strncmp(curr_filament, filament_type, sizeof(curr_filament)) != 0) { // Gcode is set for another filament
+                    valid_filament = false;
+                }
+            }
         } else if (name_equals("filament used [mm]")) {
             sscanf(value_buffer, "%u", &filament_used_mm);
         } else if (name_equals("filament used [g]")) {
             sscanf(value_buffer, "%u", &filament_used_g);
         } else if (name_equals("printer_model")) {
-            if (strncmp(value_buffer, PRINTER_MODEL, sizeof(value_buffer)) == 0) {
-                valid_printer_settings = true; // GCODE settings suits Original Prusa MINI
-            } else {
-                valid_printer_settings = false; // GCODE settings suits another printer
+            if (strncmp(value_buffer, PRINTER_MODEL, sizeof(value_buffer)) != 0) {
+                valid_printer = false; // GCODE settings suits another printer
             }
         }
     }
@@ -145,9 +150,26 @@ GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame)
 
 static void print_button_press() {
     bool approved = true;
-    if (!valid_printer_settings) {
+    if (!valid_filament) {
+        switch (MsgBoxTitle(_("WARNING:"), _("This G-CODE was set up for another filament type."),
+            Responses_ChangeIgnoreCancel, 0, GuiDefaults::RectScreenBody)) {
+        case Response::Change:
+            // Change filament dialog
+            break;
+        case Response::Ignore:
+            break;
+        case Response::Cancel:
+            Sound_Play(eSOUND_TYPE::SingleBeep);
+            //Screens::Access()->Close();
+            approved = false;
+            break;
+        default:
+            break;
+        }
+    }
+    if (!valid_printer) {
         switch (MsgBoxTitle(_("WARNING:"), _("This G-CODE was set up for another printer type."),
-            Responses_OkCancel, 0, GuiDefaults::RectScreenBody)) {
+            Responses_, 0, GuiDefaults::RectScreenBody)) {
         case Response::Ok:
             break;
         case Response::Cancel:

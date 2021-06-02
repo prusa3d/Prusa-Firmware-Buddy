@@ -13,6 +13,7 @@ const std::array<const char *, static_cast<size_t>(Response::_last) + 1> BtnText
     "ASA",                // ASA filament, do not translate
     N_("BACK"),           // Back
     N_("CANCEL"),         // Cancel
+    N_("CHANGE"),         // Change
     N_("CONTINUE"),       // Continue
     N_("COOLDOWN"),       // Cooldown
     N_("DISABLE SENSOR"), // Filament_removed
