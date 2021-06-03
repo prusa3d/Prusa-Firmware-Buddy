@@ -241,7 +241,7 @@ void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, wi
             switch (MsgBoxTitle(_("WARNING:"), _("This G-CODE was set up for another filament type."),
                 Responses_ChangeIgnoreCancel, 0, GuiDefaults::RectScreenBody)) {
             case Response::Change:
-                PreheatStatus::Dialog(PreheatMode::Change_phase1, RetAndCool_t::Return);
+                PreheatStatus::DialogBlocking(PreheatMode::Change_phase1, RetAndCool_t::Return);
                 break;
             case Response::Ignore:
                 ignore_wrong_filament = true;
