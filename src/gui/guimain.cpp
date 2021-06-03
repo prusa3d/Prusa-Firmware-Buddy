@@ -34,7 +34,6 @@ int guimain_spi_test = 0;
 #include "gpio.h"
 #include "Jogwheel.hpp"
 #include "hwio.h"
-#include "diag.h"
 #include "sys.h"
 #include "dbg.h"
 #include "wdt.h"
@@ -118,9 +117,6 @@ void client_gui_refresh() {
 }
 
 void gui_run(void) {
-    if (diag_fastboot)
-        return;
-
     st7789v_config = st7789v_cfg;
 
     gui_init();

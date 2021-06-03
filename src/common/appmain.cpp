@@ -20,11 +20,9 @@
     #include "sim_heater.h"
 #endif //SIM_HEATER
 
-#include "uartslave.h"
 #include "marlin_server.h"
 #include "bsod.h"
 #include "eeprom.h"
-#include "diag.h"
 #include "safe_state.h"
 #include "crc32.h"
 #include "ff.h"
@@ -62,9 +60,6 @@ extern void reset_trinamic_drivers();
 
 extern "C" {
 
-extern uartrxbuff_t uart6rxbuff; // PUT rx buffer
-extern uartslave_t uart6slave;   // PUT slave
-
 #ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
 #endif                                 //BUDDY_ENABLE_ETHERNET
@@ -95,11 +90,6 @@ void app_idle(void) {
 void app_run(void) {
     DBG("app_run");
 
-#ifdef BUDDY_ENABLE_ETHERNET
-    if (diag_fastboot)
-        osThreadResume(webServerTaskHandle);
-#endif //BUDDY_ENABLE_ETHERNET
-
     LangEEPROM::getInstance();
 
     marlin_server_init();
@@ -112,21 +102,10 @@ void app_run(void) {
 #endif //SIM_HEATER
 
     //DBG("before setup (%ld ms)", HAL_GetTick());
-    if (diag_fastboot || (!sys_fw_is_valid())) {
-        if (!sys_fw_is_valid()) // following code will be done only with invalidated firmware
-        {
-            hwio_safe_state(); // safe states
-            for (int i = 0; i < hwio_fan_get_cnt(); ++i)
-                hwio_fan_set_pwm(i, 0); // disable fans
-        }
-        if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
-            init_tmc();
-        }
-        reset_trinamic_drivers();
-    } else {
-        app_setup();
-        marlin_server_start_processing();
-    }
+
+    app_setup();
+    marlin_server_start_processing();
+
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
     if (eeprom_get_init_status() == EEPROM_INIT_Defaults && marlin_server_processing()) {
@@ -137,7 +116,7 @@ void app_run(void) {
         if (marlin_server_processing()) {
             loop();
         }
-        uartslave_cycle(&uart6slave);
+
         marlin_server_loop();
         osDelay(0); // switch to other threads - without this is UI slow
 #ifdef JOGWHEEL_TRACE
