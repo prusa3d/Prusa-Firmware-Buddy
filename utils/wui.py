@@ -20,7 +20,7 @@ class WUI_Files:
 
         # start
         self.get_files()
-        self.gzip_files()
+        #self.gzip_files()
         self.generate_raw_data_file()
 
     """ store paths to static wui files in array for later use """
@@ -34,8 +34,7 @@ class WUI_Files:
             if for some reason gziped files is in root dir - we don't want them
             TODO: check for gziped files and delete them ?!
             """
-            if file.find('.gz') < 0:
-                self.wui_files.append(os.path.join(root, file))
+            self.wui_files.append(os.path.join(root, file))
 
     """ gzip wui static files in same directory """
 
@@ -116,8 +115,8 @@ class WUI_Files:
 
     def replace_origin(self):
         # remove gziped files
-        for file in self.wui_files:
-            os.remove(file + '.gz')
+        #        for file in self.wui_files:
+        #            os.remove(file + '.gz')
 
         # remove original file and rename tmp file
         os.replace(self.raw_data_file_tmp, self.raw_data_file)
@@ -179,7 +178,7 @@ class WUI_Files:
         data.append(hex_data)
 
         # hex file data
-        hex_data = self.get_hex(file + '.gz')
+        hex_data = self.get_hex(file)
         hex_data += ',\n'
         data.append(hex_data)
 
