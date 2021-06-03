@@ -239,7 +239,7 @@ void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, wi
         const char *curr_filament = Filaments::Current().name;
         if (!ignore_wrong_filament && strncmp(curr_filament, "---", 3) != 0 && strncmp(curr_filament, gcode.filament_type, sizeof(gcode.filament_type)) != 0) {
             switch (MsgBoxTitle(_("WARNING:"), _("This G-CODE was set up for another filament type."),
-                Responses_ChangeIgnoreCancel, 0, GuiDefaults::RectScreenBody)) {
+                Responses_ChangeIgnoreCancel, 0, GuiDefaults::RectScreen)) {
             case Response::Change:
                 PreheatStatus::DialogBlocking(PreheatMode::Change_phase1, RetAndCool_t::Return);
                 break;
