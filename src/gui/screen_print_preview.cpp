@@ -16,8 +16,7 @@
 
 static const char *gcode_file_name = NULL;
 static const char *gcode_file_path = NULL;
-static bool valid_printer = true;
-static bool valid_filament = true;
+static bool valid_printer_settings = true;
 
 const uint16_t menu_icons[2] = {
     IDR_PNG_print_58px,
@@ -109,19 +108,13 @@ GCodeInfo::GCodeInfo() {
         } else if (name_equals("filament_type")) {
             snprintf(filament_type, sizeof(filament_type),
                 "%s", value_buffer);
-            const char *curr_filament = Filaments::Current().name;
-            if (strncmp(curr_filament, "---", 3) != 0) {                                 // Current filament is set
-                if (strncmp(curr_filament, filament_type, sizeof(curr_filament)) != 0) { // Gcode is set for another filament
-                    valid_filament = false;
-                }
-            }
         } else if (name_equals("filament used [mm]")) {
             sscanf(value_buffer, "%u", &filament_used_mm);
         } else if (name_equals("filament used [g]")) {
             sscanf(value_buffer, "%u", &filament_used_g);
         } else if (name_equals("printer_model")) {
             if (strncmp(value_buffer, PRINTER_MODEL, sizeof(value_buffer)) != 0) {
-                valid_printer = false; // GCODE settings suits another printer
+                valid_printer_settings = false; // GCODE settings suits another printer
             }
         }
     }
@@ -150,26 +143,9 @@ GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame)
 
 static void print_button_press() {
     bool approved = true;
-    if (!valid_filament) {
-        switch (MsgBoxTitle(_("WARNING:"), _("This G-CODE was set up for another filament type."),
-            Responses_ChangeIgnoreCancel, 0, GuiDefaults::RectScreenBody)) {
-        case Response::Change:
-            // Change filament dialog
-            break;
-        case Response::Ignore:
-            break;
-        case Response::Cancel:
-            Sound_Play(eSOUND_TYPE::SingleBeep);
-            //Screens::Access()->Close();
-            approved = false;
-            break;
-        default:
-            break;
-        }
-    }
-    if (!valid_printer) {
+    if (!valid_printer_settings) {
         switch (MsgBoxTitle(_("WARNING:"), _("This G-CODE was set up for another printer type."),
-            Responses_, 0, GuiDefaults::RectScreenBody)) {
+            Responses_OkCancel, 0, GuiDefaults::RectScreenBody)) {
         case Response::Ok:
             break;
         case Response::Cancel:
@@ -193,7 +169,8 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     , back_button(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_back_32px, []() { Screens::Access()->Close(); })
     , back_label(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
     , gcode(this)
-    , redraw_thumbnail(gcode.has_thumbnail) {
+    , redraw_thumbnail(gcode.has_thumbnail)
+    , ignore_wrong_filament(false) {
     marlin_set_print_speed(100);
 
     suppress_draw = false;
@@ -236,26 +213,48 @@ void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, wi
         return;
     }
 
-    if (!suppress_draw && FS_instance().DidRunOut()) {
+    if (!suppress_draw) {
         suppress_draw = true;
-        Sound_Play(eSOUND_TYPE::SingleBeep);
-        const PhaseResponses btns = { Response::Yes, Response::No, Response::Ignore, Response::_none };
-        // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
-        switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name),
-            _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
-            btns, 0, GuiDefaults::RectScreenBody)) {
-        case Response::Yes: //YES - load
-            PreheatStatus::DialogBlocking(PreheatMode::Load, RetAndCool_t::Return);
-            break;
-        case Response::No: //NO - cancel
-            Screens::Access()->Close();
-            return;
-        case Response::Ignore: //IGNORE - disable
-            FS_instance().Disable();
-            break;
-        default:
-            break;
+        if (FS_instance().DidRunOut()) {
+            Sound_Play(eSOUND_TYPE::SingleBeep);
+            const PhaseResponses btns = { Response::Yes, Response::No, Response::Ignore, Response::_none };
+            // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
+            switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name),
+                _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
+                btns, 0, GuiDefaults::RectScreenBody)) {
+            case Response::Yes: //YES - load
+                PreheatStatus::DialogBlocking(PreheatMode::Load, RetAndCool_t::Return);
+                break;
+            case Response::No: //NO - cancel
+                Screens::Access()->Close();
+                return;
+            case Response::Ignore: //IGNORE - disable
+                FS_instance().Disable();
+                break;
+            default:
+                break;
+            }
         }
+
+        const char *curr_filament = Filaments::Current().name;
+        if (!ignore_wrong_filament && strncmp(curr_filament, "---", 3) != 0 && strncmp(curr_filament, gcode.filament_type, sizeof(gcode.filament_type)) != 0) {
+            switch (MsgBoxTitle(_("WARNING:"), _("This G-CODE was set up for another filament type."),
+                Responses_ChangeIgnoreCancel, 0, GuiDefaults::RectScreenBody)) {
+            case Response::Change:
+                PreheatStatus::Dialog(PreheatMode::Change_phase1, RetAndCool_t::Return);
+                break;
+            case Response::Ignore:
+                ignore_wrong_filament = true;
+                break;
+            case Response::Cancel:
+                Sound_Play(eSOUND_TYPE::SingleBeep);
+                Screens::Access()->Close();
+                break;
+            default:
+                break;
+            }
+        }
+
         suppress_draw = false;
         //window_draw(id);
     }
