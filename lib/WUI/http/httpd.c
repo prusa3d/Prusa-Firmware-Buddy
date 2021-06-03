@@ -39,9 +39,9 @@ void init_cyclone_httpd() {
     httpServerSettings.maxConnections = APP_HTTP_MAX_CONNECTIONS;
     httpServerSettings.connections = httpConnections;
     //Specify the server's root directory
-    strcpy(httpServerSettings.rootDirectory, "/www/");
+    strcpy(httpServerSettings.rootDirectory, "/");
     //Set default home page
-    strcpy(httpServerSettings.defaultDocument, "index.shtm");
+    strcpy(httpServerSettings.defaultDocument, "index.html");
     //Callback functions
     httpServerSettings.cgiCallback = httpServerCgiCallback;
     httpServerSettings.requestCallback = httpServerRequestCallback;
