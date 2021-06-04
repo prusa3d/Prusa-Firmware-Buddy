@@ -63,7 +63,7 @@ connect_to_preferred_access_point(uint8_t unlimited) {
                         _dbg("Connecting to \"%s\" network...\r\n", ap_list[j].ssid);
                         /* Try to join to access point */
                         if ((eres = lwesp_sta_join(ap_list[j].ssid, ap_list[j].pass, NULL, NULL, NULL, 1)) == lwespOK) {
-                            lwesp_ip_t ip;
+                            esp_ip_t ip;
                             uint8_t is_dhcp;
                             lwesp_sta_copy_ip(&ip, NULL, NULL, &is_dhcp);
 

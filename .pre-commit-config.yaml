@@ -37,5 +37,10 @@ exclude: |
     ^lib/jsmn/|
     ^lib/ESP/serial-flasher/|
     ^lib/ESP/lwesp/|
-    ^lib/ESP/prusa/src/serial-flasher/serial_comm.c
+    ^lib/ESP/prusa/src/serial-flasher/serial_comm.c|
+    ^lib/ESP/prusa/include/sockets/lwesp_netbuf.h|
+    ^lib/ESP/prusa/include/sockets/lwesp_sockets.h|
+    ^lib/ESP/prusa/include/sockets/lwesp_sockets_priv.h|
+    ^lib/ESP/prusa/src/sockets/lwesp_netbuf.c|
+    ^lib/ESP/prusa/src/sockets/lwesp_sockets.c
   )
