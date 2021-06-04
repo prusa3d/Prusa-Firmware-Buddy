@@ -191,11 +191,11 @@ void general_error(const char *error, const char *module) {
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     addFormatText(buffer, buffer_size, buffer_pos, "%s\n", module);
-    render_text_align(Rect16(PADDING, 60, 240, 260), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
+    render_text_align(Rect16(PADDING, 60, 240, 260), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
-        COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, Align_t::Center());
+        COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
 
     //questionable placement - where now, in almost every BSOD timers are
     //stopped and Sound class cannot update itself for timing sound signals.
@@ -261,10 +261,10 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// draw header & main text
         display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
         display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
-        render_text_align(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
+        render_text_align(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
 
         /// draw "Hand QR" icon
-        render_icon_align(Rect16(20, 165, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, Align_t::LeftTop());
+        render_icon_align(Rect16(20, 165, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, 0);
 
         /// draw QR
         char qr_text[MAX_LEN_4QR + 1];
@@ -280,7 +280,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         constexpr uint8_t qr_size_px = 140;
         const Rect16 qr_rect = { 160 - qr_size_px / 2, 200 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
         window_qr_t win(nullptr, qr_rect);
-        win.SetRect(qr_rect);
+        win.rect = qr_rect;
         window_qr_t *window = &win;
         win.text = qr_text;
         win.bg_color = COLOR_WHITE;
@@ -296,7 +296,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// draw short URL
         error_url_short(qr_text, sizeof(qr_text), error_code);
         // this MakeRAM is safe - qr_text is a local buffer on stack
-        render_text_align(Rect16(0, 270, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
+        render_text_align(Rect16(0, 270, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
 
         /// draw footer information
         /// fw version, hash, [apendix], [fw signed]
@@ -304,24 +304,24 @@ void draw_error_screen(const uint16_t error_code_short) {
         char fw_version[13]; // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
                              // snprintf will clamp the text if the input is too long
         snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
-        render_text_align(Rect16(6, 295, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
+        render_text_align(Rect16(6, 295, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         /// hash
         if (devhash_in_qr) {
             char p_code[9];
             printerCode(p_code);
-            render_text_align(Rect16(98, 295, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
+            render_text_align(Rect16(98, 295, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// [apendix, fw signed]
         /// TODO: fw signed is not available ATM
         /// signed fw
         if (0) {
             static const char signed_fw_str[4] = "[S]";
-            render_text_align(Rect16(160, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
+            render_text_align(Rect16(160, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
         /// apendix
         if (appendix_exist()) {
             static const char apendix_str[4] = "[A]";
-            render_text_align(Rect16(185, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
+            render_text_align(Rect16(185, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
         }
     }
 }
@@ -414,13 +414,14 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     #else
 
     display::Clear(COLOR_NAVY); ///< clear with dark blue color
-    const int COLS = 20;
-    const int ROWS = 16;
+    const int COLS = 32;
+    const int ROWS = 21;
     int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
     /// Buffer for text. PNG RAM cannot be used (font drawing).
     char buffer[buffer_size];
     int buffer_pos = 0; ///< position in buffer
-
+    buffer_pos += vsnprintf(&buffer[buffer_pos], std::max(0, buffer_size - buffer_pos), fmt, args);
+    addText(buffer, buffer_size, buffer_pos, "\n");
     if (file_name != nullptr) {
         //remove text before "/" and "\", to get filename without path
         const char *pc;
@@ -430,23 +431,19 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         pc = strrchr(file_name, '\\');
         if (pc != 0)
             file_name = pc + 1;
-
-        vsnprintf(&buffer[buffer_pos], std::max(0, buffer_size - buffer_pos), fmt, args);
-        addText(buffer, buffer_size, buffer_pos, "\n");
-
         if (file_name != nullptr)
-            addText(buffer, buffer_size, buffer_pos, file_name);
+            addFormatText(buffer, buffer_size, buffer_pos, "File: %s", file_name);
         if ((file_name != nullptr) && (line_number != -1))
-            addText(buffer, buffer_size, buffer_pos, " ");
+            addText(buffer, buffer_size, buffer_pos, "\n");
         if (line_number != -1)
-            addFormatNum(buffer, buffer_size, buffer_pos, "%d", line_number);
+            addFormatNum(buffer, buffer_size, buffer_pos, "Line: %d", line_number);
         if ((file_name != nullptr) || (line_number != -1))
             addText(buffer, buffer_size, buffer_pos, "\n");
     }
 
     addFormatText(buffer, buffer_size, buffer_pos, "TASK:%s\n", tskName);
-    addFormatNum(buffer, buffer_size, buffer_pos, "b:%x", (uint32_t)pBotOfStack);
-    addFormatNum(buffer, buffer_size, buffer_pos, "t:%x", (uint32_t)pTopOfStack);
+    addFormatNum(buffer, buffer_size, buffer_pos, "bot:0x%08x ", (uint32_t)pBotOfStack);
+    addFormatNum(buffer, buffer_size, buffer_pos, "top:0x%08x\n", (uint32_t)pTopOfStack);
 
     const int lines = str2multiline(buffer, buffer_size, COLS);
     const int lines_to_print = ROWS - lines - 1;
@@ -459,10 +456,10 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         lastAddr = pTopOfStack - 2 * lines_to_print;
 
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
-        addFormatNum(buffer, buffer_size, buffer_pos, "%08x  ", (uint32_t)*i);
+        addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x ", (uint32_t)*i);
     }
-    render_text_align(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
-    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
+    render_text_align(Rect16(8, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
+    display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 
     #endif
 
@@ -743,7 +740,7 @@ void ScreenHardFault(void) {
         addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x ", sp);
     }
 
-    render_text_align(Rect16(8, 10, 232, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
+    render_text_align(Rect16(8, 10, 232, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, RENDER_FLG_WORDB);
     display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 }
 
