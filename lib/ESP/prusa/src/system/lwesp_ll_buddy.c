@@ -165,7 +165,7 @@ esp_ll_init(esp_ll_t *ll) {
             }
         }
         if (UartBufferThread_id == NULL) {
-            osThreadDef(UartBufferThread, StartUartBufferThread, osPriorityNormal, 0, 100);
+            osThreadDef(UartBufferThread, StartUartBufferThread, osPriorityNormal, 0, 512);
             UartBufferThread_id = osThreadCreate(osThread(UartBufferThread), NULL);
             if (UartBufferThread_id == NULL) {
                 printf("error!");
