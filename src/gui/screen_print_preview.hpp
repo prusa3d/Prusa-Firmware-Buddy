@@ -39,6 +39,7 @@ struct GCodeInfo {
     bool has_thumbnail;
     char printing_time[16];
     char filament_type[8];
+    bool filament_described;
     unsigned filament_used_g;
     unsigned filament_used_mm;
     GCodeInfo();
