@@ -1,14 +1,12 @@
 /**
- * @file mime.h
- * @brief MIME (Multipurpose Internet Mail Extensions)
+ * @file debug.c
+ * @brief Debugging facilities
  *
  * @section License
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * Copyright (C) 2010-2021 Oryx Embedded SARL. All rights reserved.
- *
- * This file is part of CycloneTCP Open.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,40 +26,39 @@
  * @version 2.0.4
  **/
 
-#ifndef _MIME_H
-#define _MIME_H
-
 //Dependencies
-#include "net.h"
-
-//Custom MIME types
-#ifndef MIME_CUSTOM_TYPES
-   #define MIME_CUSTOM_TYPES
-#endif
-
-//C++ guard
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "cyclone_debug.h"
 
 
 /**
- * @brief MIME type
+ * @brief Display the contents of an array
+ * @param[in] stream Pointer to a FILE object that identifies an output stream
+ * @param[in] prepend String to prepend to the left of each line
+ * @param[in] data Pointer to the data array
+ * @param[in] length Number of bytes to display
  **/
 
-typedef struct
+void debugDisplayArray(FILE *stream,
+   const char_t *prepend, const void *data, size_t length)
 {
-   const char_t *extension;
-   const char_t *type;
-} MimeType;
+   uint_t i;
 
+   //Dump the contents of the array
+   for(i = 0; i < length; i++)
+   {
+      //Beginning of a new line?
+      if((i % 16) == 0)
+      {
+         TRACE_PRINTF("%s", prepend);
+      }
 
-//MIME related functions
-const char_t *mimeGetType(const char_t *filename);
+      //Display current data byte
+      TRACE_PRINTF("%02" PRIX8 " ", *((const uint8_t *) data + i));
 
-//C++ guard
-#ifdef __cplusplus
+      //End of current line?
+      if((i % 16) == 15 || i == (length - 1))
+      {
+         TRACE_PRINTF("\r\n");
+      }
+   }
 }
-#endif
-
-#endif

@@ -1,14 +1,12 @@
 /**
- * @file mime.h
- * @brief MIME (Multipurpose Internet Mail Extensions)
+ * @file path.h
+ * @brief Path manipulation helper functions
  *
  * @section License
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * Copyright (C) 2010-2021 Oryx Embedded SARL. All rights reserved.
- *
- * This file is part of CycloneTCP Open.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,36 +26,34 @@
  * @version 2.0.4
  **/
 
-#ifndef _MIME_H
-#define _MIME_H
+#ifndef _PATH_H
+#define _PATH_H
 
 //Dependencies
-#include "net.h"
-
-//Custom MIME types
-#ifndef MIME_CUSTOM_TYPES
-   #define MIME_CUSTOM_TYPES
-#endif
+#include "os_port.h"
 
 //C++ guard
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+//Path manipulation helper functions
+bool_t pathIsAbsolute(const char_t *path);
+bool_t pathIsRelative(const char_t *path);
 
-/**
- * @brief MIME type
- **/
+const char_t *pathGetFilename(const char_t *path);
+void pathRemoveFilename(char_t *path);
 
-typedef struct
-{
-   const char_t *extension;
-   const char_t *type;
-} MimeType;
+void pathCopy(char_t *dest, const char_t *src, size_t maxLen);
 
+void pathCanonicalize(char_t *path);
 
-//MIME related functions
-const char_t *mimeGetType(const char_t *filename);
+void pathAddSlash(char_t *path, size_t maxLen);
+void pathRemoveSlash(char_t *path);
+
+void pathCombine(char_t *path, const char_t *more, size_t maxLen);
+
+bool_t pathMatch(const char_t *path, const char_t *pattern);
 
 //C++ guard
 #ifdef __cplusplus

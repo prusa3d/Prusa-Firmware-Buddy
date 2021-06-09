@@ -128,16 +128,6 @@ void MX_LWIP_Init(ETH_config_t *ethconfig);
 
 /* MINI LwIP interface functions --------------------------------------------*/
 
-/*!****************************************************************************
-* \brief Interface function for initializing HTTP server.
-*
-* \param    void
-*
-* \return	void
-*
-*****************************************************************************/
-void http_server_init(void);
-
 #ifdef __cplusplus
 }
 #endif

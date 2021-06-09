@@ -149,6 +149,10 @@ extern "C" {
     #define LWIP_HTTPD_DYNAMIC_HEADERS 1
     #define LWIP_NETIF_HOSTNAME        1
     #define LWIP_HTTPD_SUPPORT_POST    1
+    #define LWIP_COMPAT_SOCKETS        0
+    #define MEMP_NUM_TCP_PCB           8
+    #define MEMP_NUM_TCP_PCB_LISTEN    10
+    #define MEMP_NUM_NETCONN           10
     #ifdef WUI_HOST_NAME
         #define HTTPD_SERVER_AGENT WUI_HOST_NAME
     #else

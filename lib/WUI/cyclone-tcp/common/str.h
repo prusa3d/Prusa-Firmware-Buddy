@@ -1,14 +1,12 @@
 /**
- * @file mime.h
- * @brief MIME (Multipurpose Internet Mail Extensions)
+ * @file str.h
+ * @brief String manipulation helper functions
  *
  * @section License
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * Copyright (C) 2010-2021 Oryx Embedded SARL. All rights reserved.
- *
- * This file is part of CycloneTCP Open.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,36 +26,25 @@
  * @version 2.0.4
  **/
 
-#ifndef _MIME_H
-#define _MIME_H
+#ifndef _STR_H
+#define _STR_H
 
 //Dependencies
-#include "net.h"
-
-//Custom MIME types
-#ifndef MIME_CUSTOM_TYPES
-   #define MIME_CUSTOM_TYPES
-#endif
+#include "os_port.h"
+#include "error.h"
 
 //C++ guard
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+//String manipulation helper functions
+char_t *strDuplicate(const char_t *s);
+char_t *strTrimWhitespace(char_t *s);
+void strRemoveTrailingSpace(char_t *s);
+void strReplaceChar(char_t *s, char_t oldChar, char_t newChar);
 
-/**
- * @brief MIME type
- **/
-
-typedef struct
-{
-   const char_t *extension;
-   const char_t *type;
-} MimeType;
-
-
-//MIME related functions
-const char_t *mimeGetType(const char_t *filename);
+error_t strSafeCopy(char_t *dest, const char_t *src, size_t destSize);
 
 //C++ guard
 #ifdef __cplusplus

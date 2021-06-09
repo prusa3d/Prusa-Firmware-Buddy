@@ -34,14 +34,14 @@
 //Dependencies
 #include <stdlib.h>
 #include <limits.h>
-#include "core/net.h"
+#include "net.h"
 #include "http/http_server.h"
 #include "http/http_server_auth.h"
 #include "http/http_server_misc.h"
 #include "http/mime.h"
 #include "str.h"
 #include "path.h"
-#include "debug.h"
+#include "cyclone_debug.h"
 
 //Check TCP/IP stack configuration
 #if (HTTP_SERVER_SUPPORT == ENABLED)
@@ -92,7 +92,10 @@ error_t httpReadRequestHeader(HttpConnection *connection)
    //Any error to report?
    if(error)
       return error;
-
+   // reset the buffers, counters
+   osMemset(connection->bigBuffer,  0, HTTP_SERVER_BIGBUFFER_SIZE);
+   connection->totalRead = 0;
+   connection->totalReceived = 0;
    //Read the first line of the request
    error = httpReceive(connection, connection->buffer,
       HTTP_SERVER_BUFFER_SIZE - 1, &length, SOCKET_FLAG_BREAK_CRLF);
@@ -126,53 +129,53 @@ error_t httpReadRequestHeader(HttpConnection *connection)
    osStrcpy(connection->request.clientKey, "");
 #endif
 
-   //HTTP 0.9 does not support Full-Request
-   if(connection->request.version >= HTTP_VERSION_1_0)
-   {
-      //Local variables
-      char_t firstChar;
-      char_t *separator;
-      char_t *name;
-      char_t *value;
-
-      //This variable is used to decode header fields that span multiple lines
-      firstChar = '\0';
-
-      //Parse the header fields of the HTTP request
-      while(1)
-      {
-         //Decode multiple-line header field
-         error = httpReadHeaderField(connection, connection->buffer,
-            HTTP_SERVER_BUFFER_SIZE, &firstChar);
-         //Any error to report?
-         if(error)
-            return error;
-
-         //Debug message
-         TRACE_DEBUG("%s", connection->buffer);
-
-         //An empty line indicates the end of the header fields
-         if(!osStrcmp(connection->buffer, "\r\n"))
-            break;
-
-         //Check whether a separator is present
-         separator = osStrchr(connection->buffer, ':');
-
-         //Separator found?
-         if(separator != NULL)
-         {
-            //Split the line
-            *separator = '\0';
-
-            //Trim whitespace characters
-            name = strTrimWhitespace(connection->buffer);
-            value = strTrimWhitespace(separator + 1);
-
-            //Parse HTTP header field
-            httpParseHeaderField(connection, name, value);
-         }
-      }
-   }
+//   //HTTP 0.9 does not support Full-Request
+//   if(connection->request.version >= HTTP_VERSION_1_0)
+//   {
+//      //Local variables
+//      char_t firstChar;
+//      char_t *separator;
+//      char_t *name;
+//      char_t *value;
+//
+//      //This variable is used to decode header fields that span multiple lines
+//      firstChar = '\0';
+//
+//      //Parse the header fields of the HTTP request
+//      while(1)
+//      {
+//         //Decode multiple-line header field
+//         error = httpReadHeaderField(connection, connection->buffer,
+//            HTTP_SERVER_BUFFER_SIZE, &firstChar);
+//         //Any error to report?
+//         if(error)
+//            return error;
+//
+//         //Debug message
+//         TRACE_DEBUG("%s", connection->buffer);
+//
+//         //An empty line indicates the end of the header fields
+//         if(!osStrcmp(connection->buffer, "\r\n"))
+//            break;
+//
+//         //Check whether a separator is present
+//         separator = osStrchr(connection->buffer, ':');
+//
+//         //Separator found?
+//         if(separator != NULL)
+//         {
+//            //Split the line
+//            *separator = '\0';
+//
+//            //Trim whitespace characters
+//            name = strTrimWhitespace(connection->buffer);
+//            value = strTrimWhitespace(separator + 1);
+//
+//            //Parse HTTP header field
+//            httpParseHeaderField(connection, name, value);
+//         }
+//      }
+//   }
 
    //Prepare to read the HTTP request body
    if(connection->request.chunkedEncoding)
@@ -962,7 +965,7 @@ error_t httpSend(HttpConnection *connection,
 #endif
    {
       //Transmit data to the client
-      error = socketSend(connection->socket, data, length, NULL, flags);
+      error = send(connection->socket->buddy_f_d, data, length, flags);
    }
 
    //Return status code
@@ -997,7 +1000,7 @@ error_t httpReceive(HttpConnection *connection,
    void *data, size_t size, size_t *received, uint_t flags)
 {
 #if (NET_RTOS_SUPPORT == ENABLED)
-   error_t error;
+   error_t error = NO_ERROR;
 
 #if (HTTP_SERVER_TLS_SUPPORT == ENABLED)
    //Check whether a secure connection is being used
@@ -1010,7 +1013,15 @@ error_t httpReceive(HttpConnection *connection,
 #endif
    {
       //Receive data from the client
-      error = socketReceive(connection->socket, data, size, received, flags);
+       ssize_t rec = recv(connection->socket->buddy_f_d, (connection->bigBuffer + connection->totalReceived),
+                                   HTTP_SERVER_BIGBUFFER_SIZE - connection->totalReceived, flags);
+      if(-1 == rec) {
+          error = ERROR_FAILURE;
+          *received = 0;
+      } else {
+          *received = rec;
+          error = strSafeCopy(data, connection->bigBuffer, *received);
+      }
    }
 
    //Return status code

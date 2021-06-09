@@ -33,12 +33,12 @@
 
 //Dependencies
 #include <stdlib.h>
-#include "core/net.h"
+#include "net.h"
 #include "http/http_server.h"
 #include "http/http_server_auth.h"
 #include "http/http_server_misc.h"
 #include "str.h"
-#include "debug.h"
+#include "cyclone_debug.h"
 
 //Check TCP/IP stack configuration
 #if (HTTP_SERVER_SUPPORT == ENABLED)

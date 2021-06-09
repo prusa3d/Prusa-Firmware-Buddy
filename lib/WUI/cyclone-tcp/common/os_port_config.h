@@ -1,14 +1,12 @@
 /**
- * @file mime.h
- * @brief MIME (Multipurpose Internet Mail Extensions)
+ * @file os_port_config.h
+ * @brief RTOS port configuration file
  *
  * @section License
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * Copyright (C) 2010-2021 Oryx Embedded SARL. All rights reserved.
- *
- * This file is part of CycloneTCP Open.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,40 +26,7 @@
  * @version 2.0.4
  **/
 
-#ifndef _MIME_H
-#define _MIME_H
+#pragma once
 
-//Dependencies
-#include "net.h"
-
-//Custom MIME types
-#ifndef MIME_CUSTOM_TYPES
-   #define MIME_CUSTOM_TYPES
-#endif
-
-//C++ guard
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-/**
- * @brief MIME type
- **/
-
-typedef struct
-{
-   const char_t *extension;
-   const char_t *type;
-} MimeType;
-
-
-//MIME related functions
-const char_t *mimeGetType(const char_t *filename);
-
-//C++ guard
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#define GPL_LICENSE_TERMS_ACCEPTED
+#define USE_FREERTOS

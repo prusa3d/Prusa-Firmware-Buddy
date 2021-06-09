@@ -32,9 +32,9 @@
 #define TRACE_LEVEL HTTP_TRACE_LEVEL
 
 //Dependencies
-#include "core/net.h"
+#include "net.h"
 #include "http/mime.h"
-#include "debug.h"
+#include "cyclone_debug.h"
 
 //MIME type list
 static const MimeType mimeTypeList[] =
