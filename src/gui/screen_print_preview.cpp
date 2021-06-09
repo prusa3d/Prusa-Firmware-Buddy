@@ -68,7 +68,7 @@ GCodeInfo::GCodeInfo() {
     memset(&file, 1, sizeof(FIL));
     file_opened = false;
     has_thumbnail = false;
-
+    filament_described = false;
     // try to open the file first
     if (!gcode_file_path || f_open(&file, gcode_file_path, FA_READ) != FR_OK) {
         return;
@@ -108,6 +108,7 @@ GCodeInfo::GCodeInfo() {
         } else if (name_equals("filament_type")) {
             snprintf(filament_type, sizeof(filament_type),
                 "%s", value_buffer);
+            filament_described = true;
         } else if (name_equals("filament used [mm]")) {
             sscanf(value_buffer, "%u", &filament_used_mm);
         } else if (name_equals("filament used [g]")) {
@@ -170,7 +171,7 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     , back_label(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
     , gcode(this)
     , redraw_thumbnail(gcode.has_thumbnail)
-    , ignore_wrong_filament(false) {
+    , ignore_wrong_filament(!gcode.filament_described) {
     marlin_set_print_speed(100);
 
     suppress_draw = false;
