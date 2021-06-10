@@ -7,6 +7,7 @@
 #include "dbg.h"
 #include "app.h"
 #include "bsod.h"
+#include "timing.h"
 #include "cmsis_os.h"
 #include <string.h> //strncmp
 #include <assert.h>
@@ -177,7 +178,7 @@ void print_fan_spd() {
     if (DEBUGGING(INFO)) {
         static int time = 0;
         static int last_prt = 0;
-        time = HAL_GetTick();
+        time = ticks_ms();
         int timediff = time - last_prt;
         if (timediff >= 1000) {
             serial_echopair_PGM("Tacho_FAN0 ", fanctl0.getActualRPM());
@@ -271,7 +272,7 @@ int marlin_server_cycle(void) {
     // update pqueue (planner queue)
     _server_update_pqueue();
     // update variables
-    tick = HAL_GetTick();
+    tick = ticks_ms();
     if ((tick - marlin_server.last_update) > MARLIN_UPDATE_PERIOD) {
         marlin_server.last_update = tick;
         changes = _server_update_vars(marlin_server.update_vars);
@@ -522,12 +523,12 @@ static void _server_print_loop(void) {
         break;
     case mpsPausing_ParkHead:
         if (planner.movesplanned() == 0) {
-            marlin_server.paused_ticks = HAL_GetTick(); //time when printing paused
+            marlin_server.paused_ticks = ticks_ms(); //time when printing paused
             marlin_server.print_state = mpsPaused;
         }
         break;
     case mpsPaused:
-        if ((marlin_server.vars.target_nozzle > 0) && (HAL_GetTick() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
+        if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
             thermalManager.setTargetHotend(0, 0);
         gcode.reset_stepper_timeout(); //prevent disable axis
         break;

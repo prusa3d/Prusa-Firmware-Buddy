@@ -488,7 +488,6 @@ target_sources(
           src/usb_host.c
           src/usbh_conf.c
           src/usbd_conf.c
-          src/stm32f4xx_hal_timebase_tim.c
           src/common/non_file_printing_counter.cpp
           src/common/print_processor.cpp
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
@@ -579,6 +578,8 @@ target_sources(
           src/common/filament.cpp
           src/common/fanctl.cpp
           src/common/trinamic.cpp
+          src/common/timing.c
+          src/common/timing_sys.c
   )
 
 if(GUI)
