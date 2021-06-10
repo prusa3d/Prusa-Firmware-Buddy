@@ -48,7 +48,6 @@
     HAS_LCD_MENU || \
     NUM_RUNOUT_SENSORS > 1 || \
     ENABLED(DUAL_X_CARRIAGE) || \
-    (!ENABLED(PREVENT_COLD_EXTRUSION)) || \
     ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE) || \
     BOTH(FILAMENT_UNLOAD_ALL_EXTRUDERS, MIXING_EXTRUDER) || \
     ENABLED(SDSUPPORT)
@@ -231,8 +230,10 @@ void Pause::do_e_move_notify_progress(const float &length, const feedRate_t &fr_
 }
 
 void Pause::do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
+#if ENABLED(PREVENT_COLD_EXTRUSION)
     AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
     thermalManager.allow_cold_extrude = true;
+#endif
     do_e_move_notify_progress(length, fr_mm_s, progress_min, progress_max);
 }
 
