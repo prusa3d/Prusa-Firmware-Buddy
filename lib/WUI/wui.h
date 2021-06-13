@@ -27,6 +27,8 @@ extern osMutexId wui_thread_mutex_id;
 *****************************************************************************/
 void StartWebServerTask(void const *argument);
 
+const char *wui_get_api_key();
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

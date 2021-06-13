@@ -130,6 +130,7 @@
 static char request_buf[POST_REQUEST_BUFFSIZE];
 static char response_body_buf[RESPONSE_BODY_SIZE];
 static httpd_post_status_t post_status;
+
 /***************************************************************/
 
 #if LWIP_TCP && LWIP_CALLBACK_API
@@ -994,6 +995,10 @@ get_http_headers(struct http_state *hs, const char *uri) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK_11];
     } else if (strstr(uri, "500")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_500];
+    } else if (strstr(uri, "401")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_401];
+    } else if (strstr(uri, "304")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_304];
     } else {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK];
     }
@@ -2702,16 +2707,6 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
         }
     }
 
-    /* check with the wui api */
-    if (file == NULL) {
-        if (0 == strncmp(uri, "/api/", WUI_API_ROOT_STR_LEN)) {
-            file = wui_api_main(uri);
-            if (NULL != file) {
-                strcat((char *)uri, ".json"); // http server adds header info (data type) based on the file extension
-            }
-        }
-    }
-
     if (file == NULL) {
         /* No - we've been asked for a specific file. */
         /* First, isolate the base URI (without any parameters) */
@@ -2727,6 +2722,37 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
         err = fs_open(&hs->file_handle, uri);
         if (err == ERR_OK) {
             file = &hs->file_handle;
+        }
+    }
+
+    /* check with the wui api */
+    if (file == NULL) {
+        const char *api_key_tag = "X-Api-Key:";
+        uint32_t api_key_tag_length = strlen(api_key_tag);
+        uint32_t index = pbuf_strstr(hs->req, api_key_tag);
+
+        api_file.len = 0;
+        api_file.data = NULL;
+        api_file.index = 0;
+        api_file.pextension = NULL;
+        api_file.flags = 0; // no flags for fs_open
+
+        if (index == UINT16_MAX) {
+            uri = "401";
+        } else {
+            const char *api_key = wui_get_api_key();
+            uint32_t token_length = strlen(api_key);
+            const char *auth_token = (((const char *)hs->req->payload) + index + api_key_tag_length + 1);
+            if (memcmp(api_key, auth_token, token_length) != 0) {
+                uri = "401";
+            }
+        }
+
+        if (0 == strncmp(uri, "/api/", WUI_API_ROOT_STR_LEN)) {
+            file = wui_api_main(uri);
+            if (NULL != file) {
+                strcat((char *)uri, ".json"); // http server adds header info (data type) based on the file extension
+            }
         }
     }
 
