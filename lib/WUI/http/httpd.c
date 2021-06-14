@@ -2634,9 +2634,9 @@ void http_set_cgi_handlers(const tCGI *cgis, int num_handlers) {
 
 static struct fs_file api_file; // for storing /api/* data
 
-static void wui_api_telemetry(struct fs_file *file) {
+static void wui_api_printer(struct fs_file *file) {
 
-    get_telemetry_for_local(response_body_buf, RESPONSE_BODY_SIZE);
+    get_printer(response_body_buf, RESPONSE_BODY_SIZE);
 
     uint16_t response_len = strlen(response_body_buf);
     file->len = response_len;
@@ -2644,23 +2644,6 @@ static void wui_api_telemetry(struct fs_file *file) {
     file->index = response_len;
     file->pextension = NULL;
     file->flags = 0; // no flags for fs_open
-}
-
-static struct fs_file *wui_api_main(const char *uri) {
-
-    api_file.len = 0;
-    api_file.data = NULL;
-    api_file.index = 0;
-    api_file.pextension = NULL;
-    api_file.flags = 0; // no flags for fs_open
-    char *t_string = "/api/telemetry";
-    uint32_t t_string_len = strlen(t_string);
-    memset(response_body_buf, 0, RESPONSE_BODY_SIZE);
-    if (!strncmp(uri, t_string, t_string_len) && (strlen(uri) == t_string_len)) {
-        wui_api_telemetry(&api_file);
-        return &api_file;
-    }
-    return NULL;
 }
 
 /** Try to find the file specified by uri and, if found, initialize hs
@@ -2748,11 +2731,9 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
             }
         }
 
-        if (0 == strncmp(uri, "/api/", WUI_API_ROOT_STR_LEN)) {
-            file = wui_api_main(uri);
-            if (NULL != file) {
-                strcat((char *)uri, ".json"); // http server adds header info (data type) based on the file extension
-            }
+        if (!strcmp(uri, "/api/printer")) {
+            wui_api_printer(&api_file);
+            file = &api_file;
         }
     }
 

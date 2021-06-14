@@ -12,30 +12,14 @@
 #include <string.h>
 #include "wui_vars.h"
 #include "eeprom.h"
+#include "marlin_vars.h"
 
 #define BDY_WUI_API_BUFFER_SIZE 512
 
 // for data exchange between wui thread and HTTP thread
 static wui_vars_t wui_vars_copy;
 
-static void print_dur_to_string(char *buffer, size_t buffer_len, uint32_t print_dur) {
-    int d = ((print_dur / 60) / 60) / 24,
-        h = ((print_dur / 60) / 60) % 24,
-        m = (print_dur / 60) % 60,
-        s = print_dur % 60;
-
-    if (d) {
-        snprintf(buffer, buffer_len, "%3id %2ih %2im", d, h, m);
-    } else if (h) {
-        snprintf(buffer, buffer_len, "     %2ih %2im", h, m);
-    } else if (m) {
-        snprintf(buffer, buffer_len, "     %2im %2is", m, s);
-    } else {
-        snprintf(buffer, buffer_len, "         %2is", s);
-    }
-}
-
-void get_telemetry_for_local(char *data, const uint32_t buf_len) {
+void get_printer(char *data, const uint32_t buf_len) {
 
     osStatus status = osMutexWait(wui_thread_mutex_id, osWaitForever);
     if (status == osOK) {
@@ -43,51 +27,102 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
     }
     osMutexRelease(wui_thread_mutex_id);
 
-    int32_t actual_nozzle = (int32_t)(wui_vars_copy.temp_nozzle);
-    int32_t actual_heatbed = (int32_t)(wui_vars_copy.temp_bed);
-    double z_pos_mm = (double)wui_vars_copy.pos[Z_AXIS_POS];
-    uint16_t print_speed = (uint16_t)(wui_vars_copy.print_speed);
-    uint16_t flow_factor = (uint16_t)(wui_vars_copy.flow_factor);
     const char *filament_material = get_selected_filament_name();
-    int8_t time_zone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
+    uint32_t operational = 1;
+    uint32_t paused = 0;
+    uint32_t printing = 0;
+    uint32_t cancelling = 0;
+    uint32_t pausing = 0;
+    uint32_t sd_ready = 1;
+    uint32_t error = 0;
+    uint32_t ready = 1;
+    uint32_t closed_on_error = 0;
+    uint32_t busy = 0;
 
-    if (!wui_vars_copy.sd_printing) {
-        snprintf(data, buf_len, "{"
-                                "\"temp_nozzle\":%ld,"
-                                "\"temp_bed\":%ld,"
-                                "\"material\":\"%s\","
-                                "\"pos_z_mm\":%.2f,"
-                                "\"printing_speed\":%d,"
-                                "\"flow_factor\":%d"
-                                "}",
-            actual_nozzle, actual_heatbed, filament_material,
-            z_pos_mm, print_speed, flow_factor);
-        return;
+    switch (wui_vars_copy.print_state) {
+    case mpsPrinting:
+        if (wui_vars_copy.time_to_end && wui_vars_copy.time_to_end != (-1UL)) {
+            printing = busy = 1;
+            ready = operational = 0;
+        }
+        break;
+    case mpsPausing_Begin:
+    case mpsPausing_WaitIdle:
+    case mpsPausing_ParkHead:
+        paused = busy = 1;
+        ready = operational = 0;
+        break;
+    case mpsPaused:
+        paused = 1;
+        break;
+    case mpsResuming_Begin:
+    case mpsResuming_Reheating:
+    case mpsResuming_UnparkHead:
+        ready = operational = 0;
+        busy = printing = 1;
+        break;
+    case mpsAborting_Begin:
+    case mpsAborting_WaitIdle:
+    case mpsAborting_ParkHead:
+        cancelling = busy = 1;
+        ready = operational = 0;
+        break;
+    case mpsFinishing_WaitIdle:
+    case mpsFinishing_ParkHead:
+        busy = 1;
+        ready = operational = 0;
+        break;
+    case mpsAborted:
+    case mpsFinished:
+    case mpsIdle:
+    default:
+        break;
     }
 
-    char print_time[15];
-    uint32_t time_to_end = wui_vars_copy.time_to_end;
-
-    if (wui_vars_copy.time_to_end == TIME_TO_END_INVALID) {
-        time_to_end = 0;
-    }
-
-    print_dur_to_string(print_time, sizeof(print_time), wui_vars_copy.print_dur);
-
-    snprintf(data, buf_len, "{"
-                            "\"temp_nozzle\":%ld,"
-                            "\"temp_bed\":%ld,"
-                            "\"material\":\"%s\","
-                            "\"pos_z_mm\":%.2f,"
-                            "\"printing_speed\":%d,"
-                            "\"flow_factor\":%d,"
-                            "\"progress\":%d,"
-                            "\"print_dur\":\"%s\","
-                            "\"time_est\":\"%lu\","
-                            "\"time_zone\":\"%d\","
-                            "\"project_name\":\"%s\""
-                            "}",
-        actual_nozzle, actual_heatbed, filament_material,
-        z_pos_mm, print_speed, flow_factor, wui_vars_copy.sd_precent_done,
-        print_time, time_to_end, time_zone, wui_vars_copy.gcode_name);
+    snprintf(data, buf_len,
+        "{"
+        "\"telemetry\": {"
+        "\"material\": \"%s\""
+        "},"
+        "\"temperature\": {"
+        "\"tool0\": {"
+        "\"actual\": %d.%.1d,"
+        "\"target\": 0,"
+        "\"offset\": 0"
+        "},"
+        "\"bed\": {"
+        "\"actual\": %d.%.1d,"
+        "\"target\": 0,"
+        "\"offset\": 0"
+        "},"
+        "\"chamber\": {"
+        "\"actual\": 0,"
+        "\"target\": 0,"
+        "\"offset\": 0"
+        "}"
+        "},"
+        "\"sd\": {"
+        "\"ready\": 1"
+        "},"
+        "\"state\": {"
+        "\"text\": \"Operational\","
+        "\"flags\": {"
+        "\"operational\": %ld,"
+        "\"paused\": %ld,"
+        "\"printing\": %ld,"
+        "\"cancelling\": %ld,"
+        "\"pausing\": %ld,"
+        "\"sdReady\": %ld,"
+        "\"error\": %ld,"
+        "\"ready\": %ld,"
+        "\"closedOrError\": %ld,"
+        "\"busy\": %ld"
+        "}"
+        "}"
+        "}",
+        filament_material,
+        (int)wui_vars_copy.temp_nozzle, (int)((wui_vars_copy.temp_nozzle - (int)wui_vars_copy.temp_nozzle) * 10),
+        (int)wui_vars_copy.temp_bed, (int)((wui_vars_copy.temp_bed - (int)wui_vars_copy.temp_bed) * 10),
+        operational, paused, printing, cancelling, pausing, sd_ready,
+        error, ready, closed_on_error, busy);
 }
