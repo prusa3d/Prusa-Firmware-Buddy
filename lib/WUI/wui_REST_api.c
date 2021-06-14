@@ -126,3 +126,13 @@ void get_printer(char *data, const uint32_t buf_len) {
         operational, paused, printing, cancelling, pausing, sd_ready,
         error, ready, closed_on_error, busy);
 }
+
+void get_version(char *data, const uint32_t buf_len) {
+    snprintf(data, buf_len,
+        "{"
+        "\"api\": \"0.1\","
+        "\"server\": \"2.0.0\","
+        "\"text\": \"Prusa Local MINI 2.0.0\","
+        "\"hostname\": \"prusa-mini\""
+        "}");
+}
