@@ -2646,6 +2646,18 @@ static void wui_api_printer(struct fs_file *file) {
     file->flags = 0; // no flags for fs_open
 }
 
+static void wui_api_job(struct fs_file *file) {
+
+    get_job(response_body_buf, RESPONSE_BODY_SIZE);
+
+    uint16_t response_len = strlen(response_body_buf);
+    file->len = response_len;
+    file->data = response_body_buf;
+    file->index = response_len;
+    file->pextension = NULL;
+    file->flags = 0; // no flags for fs_open
+}
+
 static void wui_api_version(struct fs_file *file) {
 
     get_version(response_body_buf, RESPONSE_BODY_SIZE);
@@ -2748,6 +2760,9 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
             file = &api_file;
         } else if (!strcmp(uri, "/api/version")) {
             wui_api_version(&api_file);
+            file = &api_file;
+        } else if (!strcmp(uri, "/api/job")) {
+            wui_api_job(&api_file);
             file = &api_file;
         }
     }

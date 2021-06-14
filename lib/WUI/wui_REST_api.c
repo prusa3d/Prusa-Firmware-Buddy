@@ -136,3 +136,45 @@ void get_version(char *data, const uint32_t buf_len) {
         "\"hostname\": \"prusa-mini\""
         "}");
 }
+
+void get_job(char *data, const uint32_t buf_len) {
+
+    osStatus status = osMutexWait(wui_thread_mutex_id, osWaitForever);
+    if (status == osOK) {
+        wui_vars_copy = wui_vars;
+    }
+    osMutexRelease(wui_thread_mutex_id);
+
+    snprintf(data, buf_len,
+        "{"
+        "\"job\":{"
+        "\"estimatedPrintTime\":%ld,"
+        "\"file\":{"
+        "\"date\":null,"
+        "\"name\":\"%s\","
+        "\"origin\":\"USB\","
+        "\"path\":\"%s\","
+        "\"size\":%ld"
+        "}"
+        "},"
+        "\"state\":\"Printing\","
+        "\"progress\":{"
+        "\"completion\":%d.%.2d,"
+        "\"filepos\":%ld,"
+        "\"printTime\":%ld,"
+        "\"printTimeLeft\":%ld,"
+        "\"pos_z_mm\":%d.%.3d,"
+        "\"printSpeed\":%d,"
+        "\"flow_factor\":%d,"
+        "\"filament_status\":3"
+        "},"
+        "\"filament\":{"
+        "\"length\":3,"
+        "\"volume\":5.333333333333333"
+        "}"
+        "}",
+        wui_vars_copy.time_to_end, wui_vars_copy.gcode_name, wui_vars_copy.gcode_name, 0UL,
+        (int)(wui_vars_copy.sd_precent_done == 100), (int)(wui_vars_copy.sd_precent_done % 100), 0UL, wui_vars_copy.print_dur, wui_vars_copy.time_to_end,
+        (int)wui_vars_copy.pos[Z_AXIS_POS], (int)((wui_vars_copy.pos[Z_AXIS_POS] - (int)wui_vars_copy.pos[Z_AXIS_POS]) * 1000),
+        wui_vars_copy.print_speed, wui_vars_copy.flow_factor);
+}
