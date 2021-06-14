@@ -50,6 +50,7 @@
 #include "http/mime.h"
 #include "http/ssi.h"
 #include "cyclone_debug.h"
+#include "cmsis_os.h"
 
 //Check TCP/IP stack configuration
 #if (HTTP_SERVER_SUPPORT == ENABLED)
@@ -633,6 +634,7 @@ void httpConnectionTask(void *param)
 
       //Ready to serve the next connection request...
       connection->running = FALSE;
+      osDelay(20);
       //Release semaphore
       osReleaseSemaphore(&connection->serverContext->semaphore);
    }
