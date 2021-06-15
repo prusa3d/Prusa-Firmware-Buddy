@@ -58,8 +58,6 @@ typedef struct {
 	int (*ftruncate_r)(struct _reent *r, void *fd, off_t len);
 	int (*fsync_r)(struct _reent *r, void *fd);
 
-	void *deviceData;
-
 	int (*chmod_r)(struct _reent *r, const char *path, mode_t mode);
 	int (*fchmod_r)(struct _reent *r, void *fd, mode_t mode);
 	int (*rmdir_r)(struct _reent *r, const char *name);

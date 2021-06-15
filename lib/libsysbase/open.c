@@ -31,8 +31,6 @@ int _open(struct _reent * r, const char *file, int flags, int mode) {
 			if ( -1 != fd ) {
 				handle = __get_handle(fd);
 
-				r->deviceData = devoptab_list[dev]->deviceData;
-
 				ret = devoptab_list[dev]->open_r(r, handle->fileStruct, file, flags, mode);
 
 				if ( ret == -1 ) {

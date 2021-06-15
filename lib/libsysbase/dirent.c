@@ -18,8 +18,6 @@ static DIR_ITER * __diropen (const char *path) {
 	if(dev!=-1) {
 		if(devoptab_list[dev]->diropen_r) {
 
-			r->deviceData = devoptab_list[dev]->deviceData;
-
 			handle = (DIR_ITER *)malloc( sizeof(DIR_ITER) + devoptab_list[dev]->dirStateSize );
 
 			if ( NULL != handle ) {
@@ -55,7 +53,6 @@ static int __dirreset (DIR_ITER *dirState) {
 		dev = dirState->device;
 
 		if(devoptab_list[dev]->dirreset_r) {
-			r->deviceData = devoptab_list[dev]->deviceData;
 			ret = devoptab_list[dev]->dirreset_r(r, dirState);
 		} else {
 			r->_errno = ENOSYS;
@@ -73,7 +70,6 @@ static int __dirnext (DIR_ITER *dirState, char *filename, struct stat *filestat)
 		dev = dirState->device;
 
 		if(devoptab_list[dev]->dirnext_r) {
-			r->deviceData = devoptab_list[dev]->deviceData;
 			ret = devoptab_list[dev]->dirnext_r(r, dirState, filename, filestat);
 		} else {
 			r->_errno = ENOSYS;
@@ -91,7 +87,6 @@ static int __dirclose (DIR_ITER *dirState) {
 		dev = dirState->device;
 
 		if (devoptab_list[dev]->dirclose_r) {
-			r->deviceData = devoptab_list[dev]->deviceData;
 			ret = devoptab_list[dev]->dirclose_r (r, dirState);
 		} else {
 			r->_errno = ENOSYS;

@@ -25,7 +25,6 @@ int ftruncate(int fileDesc, off_t   len) {
 	dev = handle->device;
 
 	if(devoptab_list[dev]->ftruncate_r) {
-		r->deviceData = devoptab_list[dev]->deviceData;
 		ret = devoptab_list[dev]->ftruncate_r(r, handle->fileStruct, len);
 	} else
 		r->_errno=ENOSYS;

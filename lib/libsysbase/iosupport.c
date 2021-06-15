@@ -44,7 +44,6 @@ const devoptab_t dotab_stdnull = {
 	NULL,		// device statvfs_r
 	NULL,		// device ftruncate_r
 	NULL,		// device fsync_r
-	NULL,		// deviceData
 	NULL,		// chmod_r
 	NULL,		// fchmod_r
 	NULL,		// rmdir_r

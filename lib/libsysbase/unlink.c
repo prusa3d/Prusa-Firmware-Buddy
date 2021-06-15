@@ -22,7 +22,6 @@ int _unlink_r(const char *name ) {
 		r->_errno = ENODEV;
 	} else {
 		if (devoptab_list[dev]->unlink_r) {
-			r->deviceData = devoptab_list[dev]->deviceData;
 			ret = devoptab_list[dev]->unlink_r(r,name);
 		} else {
 			r->_errno=ENOSYS;

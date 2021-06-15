@@ -12,8 +12,6 @@ int statvfs(const char *path, struct statvfs *buf) {
 	ret = -1;
 
 	if ( device != -1 && devoptab_list[device]->statvfs_r) {
-
-		r->deviceData = devoptab_list[device]->deviceData;
 		ret = devoptab_list[device]->statvfs_r(r, path, buf );
 
 	} else {

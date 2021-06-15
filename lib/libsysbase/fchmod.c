@@ -21,7 +21,6 @@ int fchmod(int fd, mode_t mode) {
 			dev = handle->device;
 
 			if(devoptab_list[dev]->fchmod_r) {
-				r->deviceData = devoptab_list[dev]->deviceData;
 				ret = devoptab_list[dev]->fchmod_r(r,handle->fileStruct,mode);
 			} else
 				r->_errno=ENOSYS;

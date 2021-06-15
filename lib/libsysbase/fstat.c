@@ -34,7 +34,6 @@ int _fstat(
 		dev = handle->device;
 
 		if(devoptab_list[dev]->fstat_r) {
-			r->deviceData = devoptab_list[dev]->deviceData;
 			ret = devoptab_list[dev]->fstat_r(r,handle->fileStruct,st);
 		} else {
 			r->_errno = ENOSYS;

@@ -25,7 +25,6 @@ int fsync(int   fileDesc ) {
 	dev = handle->device;
 
 	if(devoptab_list[dev]->fsync_r) {
-		r->deviceData = devoptab_list[dev]->deviceData;
 		ret = devoptab_list[dev]->fsync_r(r, handle->fileStruct);
 	} else
 		r->_errno=ENOSYS;

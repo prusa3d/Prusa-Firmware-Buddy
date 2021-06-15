@@ -20,7 +20,6 @@ int chmod(const char *path, mode_t mode) {
 		if (devoptab_list[dev]->chmod_r == NULL) {
 			r->_errno=ENOSYS;
 		} else {
-			r->deviceData = devoptab_list[dev]->deviceData;
 			ret = devoptab_list[dev]->chmod_r(r,path,mode);
 		}
 	}

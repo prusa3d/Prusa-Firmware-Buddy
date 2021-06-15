@@ -9,7 +9,6 @@ int mkdir (const char *path, mode_t mode) {
 	ret = -1;
 
 	if (devoptab_list[dev]->mkdir_r) {
-		r->deviceData = devoptab_list[dev]->deviceData;
 		ret = devoptab_list[dev]->mkdir_r(r, path, mode);
 	} else {
 		r->_errno = ENOSYS;

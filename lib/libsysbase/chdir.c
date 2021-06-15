@@ -153,8 +153,6 @@ int chdir (const char *path) {
 		return -1;
 	}
 
-	r->deviceData = devoptab_list[dev]->deviceData;
-
 	if ( devoptab_list[dev]->chdir_r == NULL) {
 		r->_errno = ENOSYS;
 		return -1;
