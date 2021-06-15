@@ -486,6 +486,9 @@ target_sources(
           src/stm32f4xx_hal_msp.c
           src/stm32f4xx_it.c
           src/fatfs.c
+          src/filesystem.c
+          src/filesystem_fatfs.c
+          src/libsysbase_syscalls.c
           src/usb_host.c
           src/usbh_conf.c
           src/usbd_conf.c

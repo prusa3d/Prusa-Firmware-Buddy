@@ -67,6 +67,7 @@
 #include "crc32.h"
 #include "w25x.h"
 #include "timing.h"
+#include "filesystem.h"
 
 #define USB_OVERC_Pin       GPIO_PIN_4
 #define USB_OVERC_GPIO_Port GPIOE
@@ -280,6 +281,8 @@ int main(void) {
     }
     if (irq == 0)
         __disable_irq();
+
+    filesystem_init();
 
     /* USER CODE END 2 */
 
