@@ -6,6 +6,7 @@
 #include <sys/iosupport.h>
 #include <errno.h>
 
+void keep_stat() {}
 
 #ifdef REENTRANT_SYSCALLS_PROVIDED
 //---------------------------------------------------------------------------------

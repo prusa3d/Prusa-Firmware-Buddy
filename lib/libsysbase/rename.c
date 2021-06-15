@@ -3,6 +3,8 @@
 #include <sys/iosupport.h>
 #include <errno.h>
 
+void keep_rename() {}
+
 #ifdef REENTRANT_SYSCALLS_PROVIDED
 int _rename_r(struct _reent *ptr, const char *existing, const char *newName)
 {

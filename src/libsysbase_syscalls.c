@@ -126,6 +126,18 @@ void lock_close_recursive(_LOCK_RECURSIVE_T *lock) {
     bsod("Not implemented");
 }
 
+// Linker optimize out objects with functions called only by newlib.
+// Added dummy functions and call them to keep those objects linked.
+void keep_fstat();
+void keep_link();
+void keep_lseek();
+void keep_open();
+void keep_read();
+void keep_rename();
+void keep_stat();
+void keep_unlink();
+void keep_write();
+
 void libsysbase_syscalls_init() {
     #if !defined(_RETARGETABLE_LOCKING)
     libsysbase_mutex_id = osMutexCreate(osMutex(libsysbase_mutex));
@@ -141,6 +153,16 @@ void libsysbase_syscalls_init() {
     __syscalls.lock_try_acquire_recursive = lock_try_acquire_recursive;
     __syscalls.lock_release_recursive = lock_release_recursive;
     __syscalls.lock_close_recursive = lock_close_recursive;
+
+    keep_fstat();
+    keep_link();
+    keep_lseek();
+    keep_open();
+    keep_read();
+    keep_rename();
+    keep_stat();
+    keep_unlink();
+    keep_write();
 }
 
 #endif

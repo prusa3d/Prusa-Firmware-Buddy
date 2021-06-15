@@ -5,6 +5,8 @@
 #include <errno.h>
 #include <sys/iosupport.h>
 
+void keep_link() {}
+
 #ifdef REENTRANT_SYSCALLS_PROVIDED
 int _link_r(struct _reent *r, const char *existing, const char *new) {
 #else
