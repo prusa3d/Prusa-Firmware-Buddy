@@ -24,7 +24,6 @@ int _stat(const char *file, struct stat *st) {
 
 	if(dev!=-1) {
 		if (devoptab_list[dev]->stat_r) {
-			r->deviceData = devoptab_list[dev]->deviceData;
 			ret = devoptab_list[dev]->stat_r(r,file,st);
 		} else {
 			r->_errno=ENOSYS;

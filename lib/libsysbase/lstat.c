@@ -17,7 +17,6 @@ int lstat (const char *__restrict __path, struct stat *__restrict __buf ) {
 
 	if(dev!=-1) {
 		if (devoptab_list[dev]->lstat_r) {
-			r->deviceData = devoptab_list[dev]->deviceData;
 			ret = devoptab_list[dev]->lstat_r(r,__path,__buf);
 		} else {
 			r->_errno=ENOSYS;

@@ -12,7 +12,6 @@ int	rmdir (const char *name) {
 	dev	= FindDevice(name);
 	if(dev!=-1) {
 		if(devoptab_list[dev]->rmdir_r) {
-			r->deviceData = devoptab_list[dev]->deviceData;
 			ret = devoptab_list[dev]->rmdir_r(r,name);
 		} else {
 			r->_errno = ENOSYS;

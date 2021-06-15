@@ -29,7 +29,6 @@ _ssize_t _write(int fileDesc, const void *ptr, size_t len) {
 		dev = handle->device;
 
 		if(devoptab_list[dev]->write_r) {
-			r->deviceData = devoptab_list[dev]->deviceData;
 			ret = devoptab_list[dev]->write_r(r,handle->fileStruct,ptr,len);
 		} else
 			r->_errno=ENOSYS;

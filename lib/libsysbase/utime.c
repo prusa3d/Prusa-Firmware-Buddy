@@ -15,7 +15,6 @@ int utimes(const char *filename, const struct timeval times[2])
 
         if(dev!=-1) {
                 if (devoptab_list[dev]->utimes_r) {
-                        r->deviceData = devoptab_list[dev]->deviceData;
                         ret = devoptab_list[dev]->utimes_r(r,filename,times);
                 } else {
                         r->_errno=ENOSYS;

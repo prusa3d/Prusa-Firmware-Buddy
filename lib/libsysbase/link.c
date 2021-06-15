@@ -19,7 +19,6 @@ int _link(const char *existing, const char *new) {
 
 	if ( sourceDev == destDev) {
 		if (devoptab_list[destDev]->link_r) {
-			r->deviceData = devoptab_list[destDev]->deviceData;
 			ret = devoptab_list[destDev]->link_r( r, existing, new);
 		} else {
 			r->_errno = ENOSYS;

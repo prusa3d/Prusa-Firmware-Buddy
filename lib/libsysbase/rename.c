@@ -21,7 +21,6 @@ int rename(const char *existing, const char *newName)
 
 	if ( sourceDev == destDev) {
 		if (devoptab_list[destDev]->rename_r) {
-			r->deviceData = devoptab_list[destDev]->deviceData;
 			ret = devoptab_list[destDev]->rename_r( r, existing, newName);
 		} else {
 			r->_errno = ENOSYS;

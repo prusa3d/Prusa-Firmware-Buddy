@@ -160,7 +160,6 @@ int dup2(int oldfd, int newfd) {
 
 			if ( devoptab_list[handle->device]->close_r ) {
 
-				_REENT->deviceData = devoptab_list[handle->device]->deviceData;
 				devoptab_list[handle->device]->close_r(_REENT,handle->fileStruct);
 
 			}
@@ -217,7 +216,6 @@ int _close(int fd) {
 
 		if ( devoptab_list[handle->device]->close_r ) {
 
-			ptr->deviceData = devoptab_list[handle->device]->deviceData;
 			ret = devoptab_list[handle->device]->close_r(ptr,handle->fileStruct);
 
 		}

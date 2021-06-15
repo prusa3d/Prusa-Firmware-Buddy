@@ -26,8 +26,6 @@ int truncate(const char *file, off_t len)
 		if ( -1 != fd ) {
 			handle = __get_handle(fd);
 
-			r->deviceData = devoptab_list[dev]->deviceData;
-
 			ret = devoptab_list[dev]->open_r(r, handle->fileStruct, file, O_WRONLY, 0);
 
 			if ( ret < 0 ) {
