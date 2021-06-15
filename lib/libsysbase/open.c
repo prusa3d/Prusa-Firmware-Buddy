@@ -8,6 +8,8 @@
 
 #include <sys/iosupport.h>
 
+void keep_open() {}
+
 #ifdef REENTRANT_SYSCALLS_PROVIDED
 //---------------------------------------------------------------------------------
 int _open_r(struct _reent * r, const char *file, int flags, int mode) {

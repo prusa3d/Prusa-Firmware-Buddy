@@ -6,6 +6,8 @@
 
 #include <sys/iosupport.h>
 
+void keep_read() {}
+
 #ifdef REENTRANT_SYSCALLS_PROVIDED
 //---------------------------------------------------------------------------------
 _ssize_t _read_r(struct _reent *r, int fileDesc, void *ptr, size_t len) {

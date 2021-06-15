@@ -6,6 +6,8 @@
 
 #include <sys/iosupport.h>
 
+void keep_write() {}
+
 #ifdef REENTRANT_SYSCALLS_PROVIDED
 //---------------------------------------------------------------------------------
 _ssize_t _write_r(struct _reent * r, int fileDesc, const void *ptr, size_t len) {

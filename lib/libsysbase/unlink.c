@@ -5,6 +5,8 @@
 #include <errno.h>
 #include <sys/iosupport.h>
 
+void keep_unlink() {}
+
 #ifdef REENTRANT_SYSCALLS_PROVIDED
 //---------------------------------------------------------------------------------
 int _unlink_r(struct _reent * r, const char *name ) {
