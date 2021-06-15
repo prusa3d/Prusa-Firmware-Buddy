@@ -7,7 +7,7 @@
 
 #include <sys/iosupport.h>
 
-#define MAX_HANDLES 1024
+#define MAX_HANDLES 16
 
 static __handle __stdin_handle  = {0, 1, NULL};
 static __handle __stdout_handle = {1, 1, NULL};
