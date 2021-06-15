@@ -39,7 +39,11 @@ enum {
     VARIANT8_ERR_OOFRNG,     // out of range (during conversion from bigger to lower range number)
 };
 
+#if INTPTR_MAX == INT32_MAX // 32 bit system
 typedef uint64_t variant8_t;
+#elif INTPTR_MAX == INT64_MAX // 64 bit system
+typedef unsigned __int128 variant8_t;
+#endif
 
 #ifdef __cplusplus
 

@@ -2,5 +2,4 @@
 
 TEST_CASE("type tests", "[system]") {
     REQUIRE(sizeof(uint64_t) == 8);
-    REQUIRE(sizeof(char *) == 4);
 }
