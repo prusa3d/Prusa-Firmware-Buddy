@@ -403,15 +403,15 @@ bool window_t::EventEncoder(int diff) {
     if (diff == 0)
         return false;
 
-    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::ENC_CHANGE, (void *)diff);
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::ENC_CHANGE, (void *)(intptr_t)diff);
 
     if (!capture_ptr)
         return false;
 
     if (diff > 0) {
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_UP, (void *)diff);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_UP, (void *)(intptr_t)diff);
     } else {
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_DN, (void *)-diff);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_DN, (void *)(intptr_t)-diff);
     }
 
     Screens::Access()->ResetTimeout();

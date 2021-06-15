@@ -58,7 +58,7 @@ void MakeLFNSFN(FILINFO *fno, const char *lfn, size_t fileindex) {
     assert(fno);
     strncpy(fno->fname, lfn, sizeof(fno->fname));
     if (strlen(lfn) >= FF_SFN_BUF) {
-        snprintf(fno->altname, sizeof(fno->altname), "%-.6s~%02u.GCO", lfn, fileindex);
+        snprintf(fno->altname, sizeof(fno->altname), "%-.6s~%02u.GCO", lfn, (unsigned)fileindex);
     } else {
         fno->altname[0] = 0;
     }
