@@ -10,7 +10,6 @@
 int ftruncate(int fileDesc, off_t   len) {
 	int ret = -1;
 	unsigned int dev = 0;
-	unsigned int fd = -1;
 	struct _reent *r = _REENT;
 
 	__handle * handle;

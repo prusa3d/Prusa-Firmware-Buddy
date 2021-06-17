@@ -13,6 +13,8 @@ int lstat (const char *__restrict __path, struct stat *__restrict __buf ) {
 	struct _reent *r = _REENT;
 	int dev,ret;
 
+	ret = -1;
+
 	dev = FindDevice(__path);
 
 	if(dev!=-1) {

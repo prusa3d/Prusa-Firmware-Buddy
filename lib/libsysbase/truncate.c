@@ -15,6 +15,8 @@ int truncate(const char *file, off_t len)
 
 	struct _reent * r = _REENT;
 
+	ret = -1;
+
 	dev = FindDevice(file);
 
 	if(dev!=-1 && devoptab_list[dev]->open_r && devoptab_list[dev]->close_r &&

@@ -34,7 +34,7 @@ scandir (const char *dirname,
 	struct dirent *de, **names = NULL, **tmp;
 	size_t cnt = 0, len = 0;
 
-	while (de = readdir(d)) {
+	while ((de = readdir(d))) {
 		if (filter && ! filter(de)) continue;
 		if (cnt >= len) {
 			len = 2*len+1;

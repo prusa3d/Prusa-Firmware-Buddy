@@ -10,12 +10,13 @@ int chmod(const char *path, mode_t mode) {
 	int	ret,dev;
 	struct _reent *r = _REENT;
 
+	ret = -1;
+
 	/* Get device from path name */
 	dev = FindDevice(path);
 
 	if (dev < 0) {
 		r->_errno = ENODEV;
-		ret = -1;
 	} else {
 		if (devoptab_list[dev]->chmod_r == NULL) {
 			r->_errno=ENOSYS;
