@@ -51,6 +51,7 @@ struct GuiDefaults {
     static constexpr Rect16 RectScreenNoFoot = { 0, 0, ScreenWidth, ScreenHeight - FooterHeight };              // screen body without footer location & size
     static constexpr Rect16 RectScreenNoHeader = { 0, HeaderHeight, ScreenWidth, ScreenHeight - HeaderHeight }; // screen body without header location & size
     static constexpr Rect16 RectFooter = { 0, ScreenHeight - FooterHeight, ScreenWidth, FooterHeight };         // default footer location & size
+    static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };                         // rect describing preview thumbnail
     static constexpr uint8_t ButtonHeight = 30;                                                                 // default button height
     static constexpr uint8_t ButtonSpacing = 6;                                                                 // default button spacing
     static constexpr uint8_t FrameWidth = 10;                                                                   // default frame padding

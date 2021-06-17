@@ -534,6 +534,7 @@ target_sources(
           src/common/w25x.c
           src/common/gcode_file.cpp
           src/common/gcode_filter.cpp
+          src/common/gcode_info.cpp
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
           src/common/base64_stream_decoder.cpp

@@ -61,6 +61,7 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no } }
+    , gcode(GCodeInfo::getInstance())
 
 {
     window_frame_t::ClrMenuTimeoutClose();
@@ -144,8 +145,8 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                     FILE_PATH_MAX_LEN,
                     vars->media_LFN,
                     FILE_NAME_MAX_LEN)) {
-                screen_print_preview_data_t::SetGcodeFilepath(vars->media_SFN_path);
-                screen_print_preview_data_t::SetGcodeFilename(vars->media_LFN);
+                gcode.SetGcodeFilepath(vars->media_SFN_path);
+                gcode.SetGcodeFilename(vars->media_LFN);
                 Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
             }
         }

@@ -4,6 +4,8 @@
 #include "ScreenHandler.hpp"
 #include "guitypes.hpp"
 #include "resource.h"
+#include "gcode_thumb_decoder.h"
+#include "gcode_file.h"
 
 void window_icon_t::SetIdRes(int16_t id) {
     id_res = id;
@@ -231,5 +233,33 @@ void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *send
             flags.custom0 = b;
             Invalidate();
         }
+    }
+}
+
+//-------------------------- Thumbnail --------------------------------------
+
+WindowThumbnail::WindowThumbnail(window_t *parent, Rect16 rect)
+    : AddSuperWindow<window_icon_t>(parent, rect, 0)
+    , gcode_info(GCodeInfo::getInstance()) {
+}
+
+//------------------------- Preview Thumbnail ------------------------------------
+
+WindowPreviewThumbnail::WindowPreviewThumbnail(window_t *parent, Rect16 rect)
+    : AddSuperWindow<WindowThumbnail>(parent, rect) {
+    gcode_info.initFile(GCodeInfo::GI_INIT_t::PREVIEW);
+}
+
+WindowPreviewThumbnail::~WindowPreviewThumbnail() {
+    gcode_info.deinitFile();
+}
+
+void WindowPreviewThumbnail::unconditionalDraw() {
+
+    FILE f = { 0 };
+    f_lseek(&gcode_info.file, 0);
+    if (f_gcode_thumb_open(&f, &gcode_info.file) == 0) {
+        display::DrawPng(point_ui16(Left(), Top()), &f);
+        f_gcode_thumb_close(&f);
     }
 }
