@@ -50,11 +50,10 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     , thumbnail(this, GuiDefaults::PreviewThumbnailRect)
     , gcode(GCodeInfo::getInstance())
     , ignore_wrong_filament(!gcode.filament_described)
+    , suppress_draw(false)
     , gcode_description(this, gcode) {
 
     marlin_set_print_speed(100);
-
-    suppress_draw = false;
 
     super::ClrMenuTimeoutClose();
     // Title

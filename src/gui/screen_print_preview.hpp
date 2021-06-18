@@ -20,10 +20,9 @@ struct screen_print_preview_data_t : public AddSuperWindow<screen_t> {
     WindowPreviewThumbnail thumbnail;
     GCodeInfo &gcode;
     bool ignore_wrong_filament;
+    bool suppress_draw;
 
     GCodeInfoWithDescription gcode_description; //cannot be first
-
-    bool suppress_draw;
 
 public:
     screen_print_preview_data_t();
