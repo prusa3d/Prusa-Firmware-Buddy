@@ -70,23 +70,25 @@ void GCodeInfo::initFile(GI_INIT_t init) {
         f_lseek(&file, filesize > search_last_x_bytes ? filesize - search_last_x_bytes : 0);
         char name_buffer[64];
         char value_buffer[32];
+        CStrEqual name_comparer(name_buffer, sizeof(name_buffer));
 
         while (f_gcode_get_next_comment_assignment(
             &file, name_buffer, sizeof(name_buffer), value_buffer, sizeof(value_buffer))) {
-#define name_equals(str) (!strncmp(name_buffer, str, sizeof(name_buffer)))
 
-            if (name_equals("estimated printing time (normal mode)")) {
+            if (name_comparer(gcode_info::time)) {
                 snprintf(printing_time, sizeof(printing_time), "%s", value_buffer);
-            } else if (name_equals("filament_type")) {
+            } else if (name_comparer(gcode_info::filament_type)) {
                 snprintf(filament_type, sizeof(filament_type), "%s", value_buffer);
                 filament_described = true;
-            } else if (name_equals("filament used [mm]")) {
+            } else if (name_comparer(gcode_info::filament_mm)) {
                 sscanf(value_buffer, "%u", &filament_used_mm);
-            } else if (name_equals("filament used [g]")) {
+            } else if (name_comparer(gcode_info::filament_g)) {
                 sscanf(value_buffer, "%u", &filament_used_g);
-            } else if (name_equals("printer_model")) {
-                if (strncmp(value_buffer, PRINTER_MODEL, sizeof(value_buffer)) != 0) {
-                    valid_printer_settings = false; // GCODE settings suits another printer
+            } else if (name_comparer(gcode_info::printer)) {
+                if (strncmp(value_buffer, PRINTER_MODEL, sizeof(value_buffer)) == 0) {
+                    valid_printer_settings = true; // GCODE settings suits this printer model
+                } else {
+                    valid_printer_settings = false; // GCODE is for another Prusa printer model
                 }
             }
         }
