@@ -1,7 +1,8 @@
 import socket
 import re
 import bisect
-from datetime import datetime, timedelta, timezone
+from datetime import timezone, datetime
+import time
 import aioserial
 import asyncio
 import click
@@ -100,7 +101,7 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
             self.msg_timestamps = []  # sorted tuples (msgid, timestamp)
 
         def register_received_message(self, msgid):
-            entry = (msgid, datetime.now().timestamp())
+            entry = (msgid, time.time_ns())
             idx = bisect.bisect_right(self.msg_timestamps, entry)
             for check_index in (idx - 1, idx, idx + 1):
                 if check_index >= 0 and check_index < len(
@@ -112,8 +113,8 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
                 self.msg_timestamps.insert(idx, entry)
 
         def create_report(self, interval=3.0):
-            range_end = datetime.now().timestamp()
-            range_start = range_end - interval
+            range_end = time.time_ns()
+            range_start = range_end - int(interval * 1_000_000_000)
 
             # drop older data
             while len(self.msg_timestamps
@@ -155,26 +156,32 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
             self.process_message(printer, headerdict, serialized_points)
 
     def process_message(self, printer, headerdict, serialized_points):
+        if int(headerdict.get('v', 1)) > 3:
+            # unsupported version (too new)
+            return
         if int(headerdict.get('v', 1)) < 2:
             points = list(self.parser_v1.parse(serialized_points))
         else:
             points = list(self.parser_v2.parse(serialized_points))
+        if int(headerdict.get('v', 1)) < 3:
+            timestamp_to_ns = lambda t: t * 1_000_000
+        else:
+            timestamp_to_ns = lambda t: t * 1_000
         msgid = int(headerdict['msg'])
         printer.register_received_message(msgid)
-        msgdelta = timedelta(milliseconds=int(headerdict['tm']))
+        msgdelta = int(headerdict['tm'])
+        msgdelta = timestamp_to_ns(int(headerdict['tm']))
         if printer.last_received_msgid is None:
-            printer.session_start_time = datetime.now(
-                tz=timezone.utc) - msgdelta
+            printer.session_start_time = time.time_ns() - msgdelta
             printer.last_received_msgid = msgid
         elif abs(printer.last_received_msgid - msgid) < 10:
             printer.last_received_msgid = msgid
         else:
-            printer.session_start_time = datetime.now(
-                tz=timezone.utc) - msgdelta
+            printer.session_start_time = time.time_ns() - msgdelta
             printer.last_received_msgid = msgid
         timestamp = printer.session_start_time + msgdelta
         for point in points:
-            timestamp += timedelta(milliseconds=point.timestamp)
+            timestamp += timestamp_to_ns(point.timestamp)
             point.timestamp = timestamp
             point.tags = dict(mac_address=printer.mac_address,
                               **point.tags,
@@ -207,8 +214,8 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
                     if not report:
                         continue
                     self.handle_fn(
-                        Point(datetime.now(tz=timezone.utc), 'udp_stats',
-                              report, dict(mac_address=printer.mac_address)))
+                        Point(time.time_ns(), 'udp_stats', report,
+                              dict(mac_address=printer.mac_address)))
                 except Exception as e:
                     print('failure when collection reports: %s' % e)
             await asyncio.sleep(1.0)
@@ -221,61 +228,10 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
                                             reuse_port=True)
 
 
-class SerialHandlerClient:
-    def __init__(self, port, handle_fn):
-        self.serial = aioserial.AioSerial(port, baudrate=115200)
-        self.handle_fn = handle_fn
-        self.tags = self.get_session_tags()
-        self.line_queue = asyncio.Queue()
-        self.parser = TextProtocolParser()
-        self.last_point_datetime = None
-
-    def get_session_tags(self):
-        return {
-            'handler': 'serial_port',
-            'hostname': socket.gethostname(),
-            'port': self.serial.port,
-            'session_start_time':
-            datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-        }
-
-    async def task_listen_on_serial(self):
-        while True:
-            try:
-                line = (await self.serial.readline_async()).decode('ascii')
-                await self.line_queue.put(line)
-            except UnicodeDecodeError as e:
-                print('serial: failed to decode line', str(e))
-
-    async def task_parse_lines(self):
-        while True:
-            try:
-                line = (await self.line_queue.get()).strip()
-                for point in self.parser.parse(line):
-                    if self.last_point_datetime is None:
-                        point.timestamp = datetime.utcnow()
-                    else:
-                        point.timestamp = self.last_point_datetime + timedelta(
-                            milliseconds=point.timediff)
-                    point.tags = dict(**point.tags, **self.tags)
-                    self.handle_fn(point)
-            except Exception as e:
-                print('serial: error when parsing line', str(e))
-
-    async def run(self):
-        await asyncio.gather(self.task_listen_on_serial(),
-                             self.task_parse_lines())
-
-
 class Application:
-    def __init__(self, influx, syslog_port=None, serial_port=None):
+    def __init__(self, influx, syslog_port=None):
         self.influx: aioinflux.InfluxDBClient = influx
         self.points = []
-        if serial_port:
-            self.uart_handler = SerialHandlerClient(serial_port,
-                                                    self.handle_point)
-        else:
-            self.uart_handler = None
         if syslog_port:
             self.syslog_handler = SyslogHandlerClient(syslog_port,
                                                       self.handle_point)
@@ -319,23 +275,19 @@ class Application:
 
     async def run(self):
         tasks = [self.task_write_points()]
-        if self.uart_handler:
-            tasks.append(self.uart_handler.run())
         if self.syslog_handler:
             tasks.append(self.syslog_handler.run())
         await asyncio.gather(*tasks)
 
 
-async def main(database, serial_port, syslog_port, database_password,
-               database_username, database_host):
+async def main(database, syslog_port, database_password, database_username,
+               database_host):
     async with aioinflux.InfluxDBClient(host=database_host,
                                         db=database,
                                         username=database_username,
                                         password=database_password) as influx:
         await influx.create_database(db=database)
-        app = Application(influx,
-                          serial_port=serial_port,
-                          syslog_port=syslog_port)
+        app = Application(influx, syslog_port=syslog_port)
         await app.run()
 
 
@@ -344,14 +296,12 @@ async def main(database, serial_port, syslog_port, database_password,
 @click.option('--database-host', default='localhost')
 @click.option('--database-username')
 @click.option('--database-password')
-@click.option('--serial')
 @click.option('--syslog-port', default=8500, type=int)
-def cmd(database, serial, syslog_port, database_username, database_password,
+def cmd(database, syslog_port, database_username, database_password,
         database_host):
     loop = asyncio.get_event_loop()
     asyncio.ensure_future(
         main(database=database,
-             serial_port=serial,
              syslog_port=syslog_port,
              database_username=database_username,
              database_password=database_password,

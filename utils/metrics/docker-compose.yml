@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   influxdb:
-    image: influxdb:latest
+    image: influxdb:1.8
     container_name: influxdb
     ports:
       - "8083:8083"

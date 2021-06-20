@@ -121,7 +121,7 @@ static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp)
     // https://tools.ietf.org/html/rfc5424
     return snprintf(
         buffer, buffer_len,
-        "<%i>1 - %s %s - - - msg=%i,tm=%lu,v=2 ",
+        "<%i>1 - %s %s - - - msg=%i,tm=%lu,v=3 ",
         facility * 8 + severity, hostname, appname, message_id++, timestamp);
 }
 

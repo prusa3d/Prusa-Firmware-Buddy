@@ -100,7 +100,7 @@ static metric_point_t *point_check_and_prepare(metric_t *metric, metric_value_ty
     }
     point->metric = metric;
     point->error = false;
-    point->timestamp = ticks_ms();
+    point->timestamp = ticks_us();
     return point;
 }
 
