@@ -61,8 +61,8 @@ dependencies = {
         }
     },
     'bootloader-mini': {
-        'version': '1.0.0',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-1.0.0.zip',
+        'version': '1.1.1',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-1.1.1.zip',
     },
 }
 pip_dependencies = ['ecdsa', 'polib']
