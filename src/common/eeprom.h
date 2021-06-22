@@ -138,8 +138,14 @@ extern void eeprom_defaults(void);
 // get variable value as variant8
 extern variant8_t eeprom_get_var(uint8_t id);
 
+// get pchar variable with given char* buffer
+void eeprom_get_pchar_var(uint8_t id, char *buff, uint8_t buff_len);
+
 // set variable value as variant8
 extern void eeprom_set_var(uint8_t id, variant8_t var);
+
+// set pchar variable to EEPROM
+extern void eeprom_set_pchar_var(uint8_t id, char *buff, uint8_t buff_len);
 
 // get number of variables
 extern uint8_t eeprom_get_var_count(void);
