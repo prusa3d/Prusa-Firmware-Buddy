@@ -2634,6 +2634,7 @@ FRESULT create_name (	/* FR_OK: successful, FR_INVALID_NAME: could not create */
 		if (w < ' ') break;				/* Break if end of the path name */
 		if (w == '/' || w == '\\') {	/* Break if a separator is found */
 			while (p[si] == '/' || p[si] == '\\') si++;	/* Skip duplicated separator if exist */
+			if (p[si] < ' ') w = p[si]; /* Mark end of path name */
 			break;
 		}
 		if (di >= _MAX_LFN) return FR_INVALID_NAME;	/* Reject too long name */
