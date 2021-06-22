@@ -35,12 +35,9 @@ int truncate(const char *file, off_t len)
 
 			ret = devoptab_list[dev]->ftruncate_r(r, handle->fileStruct, len);
 
-			if (ret >= 0) {
-				ret = devoptab_list[dev]->close_r(r, handle->fileStruct);
-			} else {
-				// Close it anyway, we don't want to leak memory
-				devoptab_list[dev]->close_r(r, handle->fileStruct);
-			}
+			// Always close file and release handle
+			devoptab_list[dev]->close_r(r, handle->fileStruct);
+			__release_handle(fd);
 		} else {
 			r->_errno = ENOSR;
 		}
