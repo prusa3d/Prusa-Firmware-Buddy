@@ -24,10 +24,6 @@ static const uint32_t PRINTER_VERSION_ADDR = 0x08020030; // 1 B
 
 static bool sntp_time_init = false;
 
-uint32_t load_ini_file(ETH_config_t *config) {
-    return ini_load_file(config);
-}
-
 uint32_t save_eth_params(ETH_config_t *ethconfig) {
 
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
@@ -36,6 +32,12 @@ uint32_t save_eth_params(ETH_config_t *ethconfig) {
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
         eeprom_set_var(EEVAR_LAN_IP4_ADDR, variant8_ui32(ethconfig->lan.addr_ip4.addr));
     }
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS1_IP4)) {
+        eeprom_set_var(EEVAR_LAN_IP4_DNS1, variant8_ui32(ethconfig->dns1_ip4.addr));
+    }
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS2_IP4)) {
+        eeprom_set_var(EEVAR_LAN_IP4_DNS2, variant8_ui32(ethconfig->dns2_ip4.addr));
+    }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_MSK_IP4)) {
         eeprom_set_var(EEVAR_LAN_IP4_MSK, variant8_ui32(ethconfig->lan.msk_ip4.addr));
     }
@@ -43,9 +45,7 @@ uint32_t save_eth_params(ETH_config_t *ethconfig) {
         eeprom_set_var(EEVAR_LAN_IP4_GW, variant8_ui32(ethconfig->lan.gw_ip4.addr));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
-        variant8_t hostname = variant8_pchar(ethconfig->hostname, 0, 0);
-        eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
-        //variant8_done() is not called, variant_pchar with init flag 0 doesnt hold its memory
+        eeprom_set_pchar_var(EEVAR_LAN_HOSTNAME, ethconfig->hostname, ETH_HOSTNAME_LEN + 1);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_TIMEZONE)) {
         eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(ethconfig->timezone));
@@ -62,6 +62,12 @@ uint32_t load_eth_params(ETH_config_t *ethconfig) {
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
         ethconfig->lan.addr_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_ADDR));
     }
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS1_IP4)) {
+        ethconfig->dns1_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_DNS1));
+    }
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS2_IP4)) {
+        ethconfig->dns2_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_DNS2));
+    }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_MSK_IP4)) {
         ethconfig->lan.msk_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_MSK));
     }
@@ -69,10 +75,7 @@ uint32_t load_eth_params(ETH_config_t *ethconfig) {
         ethconfig->lan.gw_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_GW));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
-        variant8_t hostname = eeprom_get_var(EEVAR_LAN_HOSTNAME);
-        variant8_t *pvar = &hostname;
-        strlcpy(ethconfig->hostname, variant8_get_pch(hostname), ETH_HOSTNAME_LEN + 1);
-        variant8_done(&pvar);
+        eeprom_get_pchar_var(EEVAR_LAN_HOSTNAME, ethconfig->hostname, ETH_HOSTNAME_LEN + 1);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_TIMEZONE)) {
         ethconfig->timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
