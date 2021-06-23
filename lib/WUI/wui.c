@@ -10,6 +10,7 @@
 #include "wui_vars.h"
 #include "marlin_client.h"
 #include "wui_api.h"
+#include "ini_handler.h"
 #include "lwip.h"
 #include "ethernetif.h"
 #include <string.h>
@@ -74,7 +75,7 @@ static void update_eth_changes(void) {
 void StartWebServerTask(void const *argument) {
     // get settings from ini file
     osDelay(1000);
-    if (load_ini_file(&wui_eth_config)) {
+    if (BUDDY_INI_OK == ini_load_file(&wui_eth_config)) {
         save_eth_params(&wui_eth_config);
     }
     wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);

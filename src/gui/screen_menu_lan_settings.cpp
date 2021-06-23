@@ -147,7 +147,7 @@ void Eth::LoadIni() {
         msg = Msg::NoUSB;
     } else {
         ETH_config_t ethconfig = {};
-        if (load_ini_file(&ethconfig)) {
+        if (BUDDY_INI_OK == ini_load_file(&ethconfig)) {
             save_eth_params(&ethconfig);
             set_eth_update_mask(ethconfig.var_mask);
             msg = Msg::LoadOK;
