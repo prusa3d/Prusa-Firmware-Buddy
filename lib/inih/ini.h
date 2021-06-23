@@ -36,6 +36,11 @@ typedef int (*ini_handler)(void* user, const char* section,
                            const char* name, const char* value);
 #endif
 
+char* rstrip(char* s);
+char* lskip(const char* s);
+char* find_chars_or_comment(const char* s, const char* chars);
+char* strncpy0(char* dest, const char* src, size_t size);
+
 /* Typedef for prototype of fgets-style reader function. */
 typedef char* (*ini_reader)(char* str, int num, void* stream);
 
@@ -95,7 +100,7 @@ int ini_parse_string(const char* string, ini_handler handler, void* user);
 #define INI_ALLOW_INLINE_COMMENTS 1
 #endif
 #ifndef INI_INLINE_COMMENT_PREFIXES
-#define INI_INLINE_COMMENT_PREFIXES ";"
+#define INI_INLINE_COMMENT_PREFIXES ";#"
 #endif
 
 /* Nonzero to use stack for line buffer, zero to use heap (malloc/free). */
