@@ -362,16 +362,21 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
     }
 }
 
-void eeprom_set_pchar_var(uint8_t id, char *buff, uint8_t buff_len) {
-    uint16_t addr;
-    uint16_t size;
+void eeprom_set_pchar_var(uint8_t id, char *buff, uint8_t data_len) {
+    uint16_t addr = eeprom_var_addr(id);
+    uint16_t size = eeprom_var_size(id);
+    uint16_t len = strlen(buff);
+    uint16_t copy_len = 0;
+
+    if (data_len > len)
+        copy_len = data_len;
+    else
+        copy_len = size;
     eeprom_lock();
-    size = eeprom_var_size(id);
-    if (size >= buff_len) {
-        addr = eeprom_var_addr(id);
-        st25dv64k_user_write_bytes(addr, buff, strlen(buff));
-        eeprom_update_crc32();
+    if (size >= copy_len) {
+        st25dv64k_user_write_bytes(addr, buff, copy_len);
     }
+    eeprom_update_crc32();
     eeprom_unlock();
 }
 

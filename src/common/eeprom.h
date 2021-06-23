@@ -145,7 +145,13 @@ void eeprom_get_pchar_var(uint8_t id, char *buff, uint8_t buff_len);
 extern void eeprom_set_var(uint8_t id, variant8_t var);
 
 // set pchar variable to EEPROM
-extern void eeprom_set_pchar_var(uint8_t id, char *buff, uint8_t buff_len);
+//
+// \param [in] id           id of the parameter (eg. host name).
+// \param [in] buff         pointer to char array containing the parameter (array must be of
+//                          same size as parameter max length.
+// \param [in] data_len     number of bytes to write from buffer irrelevant of string length
+//                          (to fill remaining bytes with zeros).
+extern void eeprom_set_pchar_var(uint8_t id, char *buff, uint8_t data_len);
 
 // get number of variables
 extern uint8_t eeprom_get_var_count(void);
