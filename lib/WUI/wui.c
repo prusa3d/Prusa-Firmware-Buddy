@@ -78,7 +78,7 @@ void StartWebServerTask(void const *argument) {
     if (BUDDY_INI_OK == ini_load_file(&wui_eth_config)) {
         save_eth_params(&wui_eth_config);
     }
-    wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    wui_eth_config.var_mask = ETHVAR_EEPROM_CONFIG;
     load_eth_params(&wui_eth_config);
     // mutex for passing marlin variables to tcp thread
     wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
