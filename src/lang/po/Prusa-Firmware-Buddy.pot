@@ -375,7 +375,7 @@ msgstr ""
 
 #: src/gui/screen_menu_lan_settings.cpp:292
 msgid ""
-"IP addresses or parameters are not valid or the file \"lan_settings.ini\" is "
+"IP addresses or parameters are not valid or the file \"prusa_printer_settings.ini\" is "
 "not in the root directory of the USB drive."
 msgstr ""
 
@@ -1008,7 +1008,7 @@ msgstr ""
 
 #: src/gui/screen_menu_lan_settings.cpp:283
 msgid ""
-"The settings have been saved successfully in the \"lan_settings.ini\" file."
+"The settings have been saved successfully in the \"prusa_printer_settings.ini\" file."
 msgstr ""
 
 #: src/gui/wizard/screen_wizard.cpp:170
@@ -1024,7 +1024,7 @@ msgstr ""
 
 #: src/gui/screen_menu_lan_settings.cpp:286
 msgid ""
-"There was an error saving the settings in the \"lan_settings.ini\" file."
+"There was an error saving the settings in the \"prusa_printer_settings.ini\" file."
 msgstr ""
 
 #: src/gui/screen_print_preview.cpp:149
