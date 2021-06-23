@@ -355,8 +355,8 @@ msgid "Inserting"
 msgstr "Insertion"
 
 #: src/gui/screen_menu_lan_settings.cpp:292
-msgid "IP addresses or parameters are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."
-msgstr "Les adresses IP ou les paramètres ne sont pas valides ou alors le fichier \"lan_settings.ini\" ne se trouve pas dans le répertoire racine de la clé USB."
+msgid "IP addresses or parameters are not valid or the file \"prusa_printer_settings.ini\" is not in the root directory of the USB drive."
+msgstr "Les adresses IP ou les paramètres ne sont pas valides ou alors le fichier \"prusa_printer_settings.ini\" ne se trouve pas dans le répertoire racine de la clé USB."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "Is color correct?"
@@ -924,8 +924,8 @@ msgid "The selftest failed to finish. Double-check the printer's wiring and axes
 msgstr "Le selftest pas pu aboutir. Vérifiez bien le câblage et les axes de l'imprimante. Puis relancez le selftest."
 
 #: src/gui/screen_menu_lan_settings.cpp:283
-msgid "The settings have been saved successfully in the \"lan_settings.ini\" file."
-msgstr "Les réglages ont été sauvegardés avec succès dans le fichier \"lan_settings.ini\"."
+msgid "The settings have been saved successfully in the \"prusa_printer_settings.ini\" file."
+msgstr "Les réglages ont été sauvegardés avec succès dans le fichier \"prusa_printer_settings.ini\"."
 
 #: src/gui/wizard/screen_wizard.cpp:170
 msgid "The status bar is at the bottom of the screen. It contains information about:\n- Nozzle temp.\n- Heatbed temp.\n- Printing speed\n- Z-axis height\n- Selected filament"
@@ -936,8 +936,8 @@ msgid "The XYZ calibration failed to finish. Double-check the printer's wiring a
 msgstr "La calibration XYZ n'a pas pu aboutir. Vérifiez bien le câblage et les axes de l'imprimante, puis relancez la calibration XYZ."
 
 #: src/gui/screen_menu_lan_settings.cpp:286
-msgid "There was an error saving the settings in the \"lan_settings.ini\" file."
-msgstr "Une erreur s'est produite au moment de sauvegarder les réglages dans le fichier \"lan_settings.ini\"."
+msgid "There was an error saving the settings in the \"prusa_printer_settings.ini\" file."
+msgstr "Une erreur s'est produite au moment de sauvegarder les réglages dans le fichier \"prusa_printer_settings.ini\"."
 
 #. r=1, c=19
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:54
