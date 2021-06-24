@@ -75,8 +75,8 @@ function(get_common_git_dir _git_parent_dir _git_dir)
   if(NOT res EQUAL 0)
     set(out "GITDIR-${res}-NOTFOUND")
   endif()
-  if(NOT IS_ABSOLUTE "${res}")
-    set(res "${_git_parent_dir}/${res}")
+  if(NOT IS_ABSOLUTE "${out}")
+    set(out "${_git_parent_dir}/${out}")
   endif()
 
   set(${_git_dir}
