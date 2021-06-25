@@ -22,26 +22,28 @@ int _concatenate_path (struct _reent *r, char *path, const char *extra, int maxL
 	const char *extraEnd;
 	int extraSize;
 
-	pathLength = strnlen (path, maxLength);
+	/* If the extra bit starts with a slash, start at root */
+	if (extra[0] == DIRECTORY_SEPARATOR_CHAR) {
+		path[0] = '/';
+		pathEnd = path + 1;
+		pathEnd[0] = '\0';
+		pathLength = 1;
+	} else {
+		pathLength = strnlen (path, maxLength);
 
-	/* assumes path ends in a directory separator */
-	if (pathLength >= maxLength) {
-		r->_errno = ENAMETOOLONG;
-		return -1;
-	}
-	pathEnd = path + pathLength;
-	if (pathEnd[-1] != DIRECTORY_SEPARATOR_CHAR) {
-		pathEnd[0] = DIRECTORY_SEPARATOR_CHAR;
-		pathEnd += 1;
+		/* assumes path ends in a directory separator */
+		if (pathLength >= maxLength) {
+			r->_errno = ENAMETOOLONG;
+			return -1;
+		}
+		pathEnd = path + pathLength;
+		if (pathEnd[-1] != DIRECTORY_SEPARATOR_CHAR) {
+			pathEnd[0] = DIRECTORY_SEPARATOR_CHAR;
+			pathEnd += 1;
+		}
 	}
 
 	extraEnd = extra;
-
-	/* If the extra bit starts with a slash, start at root */
-	if (extra[0] == DIRECTORY_SEPARATOR_CHAR) {
-		pathEnd = strchr (path, DIRECTORY_SEPARATOR_CHAR) + 1;
-		pathEnd[0] = '\0';
-	}
 	do {
 		/* Advance past any separators in extra */
 		while (extra[0] == DIRECTORY_SEPARATOR_CHAR) {
@@ -98,6 +100,10 @@ int _concatenate_path (struct _reent *r, char *path, const char *extra, int maxL
 	} while (extraSize != 0);
 
 	if (pathEnd[-1] != DIRECTORY_SEPARATOR_CHAR) {
+		if (pathLength + 1 >= maxLength) {
+			r->_errno = ENAMETOOLONG;
+			return -1;
+		}
 		pathEnd[0] = DIRECTORY_SEPARATOR_CHAR;
 		pathEnd[1] = 0;
 		pathEnd += 1;
@@ -110,43 +116,8 @@ int chdir (const char *path) {
 	struct _reent *r = _REENT;
 
 	int dev;
-	const char *pathPosition;
 
-	/* Make sure the path is short enough */
-	if (strnlen (path, PATH_MAX) >= PATH_MAX) {
-		r->_errno = ENAMETOOLONG;
-		return -1;
-	}
-
-	if (strchr (path, ':') != NULL) {
-		strncpy (temp_cwd, path, PATH_MAX);
-		/* Move path past device name */
-		path = strchr (path, ':') + 1;
-	} else {
-		strncpy (temp_cwd, _current_working_directory, PATH_MAX);
-	}
-
-	pathPosition = strchr (temp_cwd , ':');
-
-	if (pathPosition == NULL) {
-		pathPosition = temp_cwd;
-	} else {
-		pathPosition++;
-	}
-
-	/* Make sure the path starts in the root directory */
-	if (pathPosition[0] != DIRECTORY_SEPARATOR_CHAR) {
-		r->_errno = ENOENT;
-		return -1;
-	}
-
-	/* Concatenate the path to the CWD */
-	if (_concatenate_path (r, temp_cwd, path, PATH_MAX) == -1) {
-		return -1;
-	}
-
-	/* Get device from path name */
-	dev = FindDevice(temp_cwd);
+	dev = FindDevice(path);
 
 	if (dev < 0) {
 		r->_errno = ENODEV;
@@ -155,6 +126,14 @@ int chdir (const char *path) {
 
 	if ( devoptab_list[dev]->chdir_r == NULL) {
 		r->_errno = ENOSYS;
+		return -1;
+	}
+
+	/* Work with a copy of current working directory */
+	strncpy (temp_cwd, _current_working_directory, PATH_MAX);
+
+	/* Concatenate the path to the CWD */
+	if (_concatenate_path (r, temp_cwd, path, PATH_MAX) == -1) {
 		return -1;
 	}
 
@@ -174,6 +153,11 @@ char *getcwd(char *buf, size_t size) {
 
 	struct _reent *r = _REENT;
 
+	if (size < (strnlen (_current_working_directory, PATH_MAX) + 1)) {
+		r->_errno = ERANGE;
+		return NULL;
+	}
+
 	if (size == 0) {
 		if (buf != NULL) {
 			r->_errno = EINVAL;
@@ -185,11 +169,6 @@ char *getcwd(char *buf, size_t size) {
 
 	if (buf == NULL) {
 		r->_errno = EINVAL;
-		return NULL;
-	}
-
-	if ( size < (strnlen (_current_working_directory, PATH_MAX) + 1)) {
-		r->_errno = ERANGE;
 		return NULL;
 	}
 
