@@ -41,6 +41,8 @@
         return -1;            \
     }
 
+#define IS_EMPTY(s) (!s || !s[0])
+
 typedef struct {
     FIL fil;
     WORD flags;
@@ -50,6 +52,8 @@ typedef struct {
 } FIL_EX;
 
 static int device = -1;
+
+static const devoptab_t devoptab_fatfs;
 
 static int get_errno(FRESULT result) {
     switch (result) {
@@ -192,14 +196,31 @@ static FILINFO get_fatfs_time(
 }
 #endif
 
+static inline const char *process_path(const char *path) {
+    unsigned int dev_name_len = strlen(devoptab_fatfs.name);
+    const char *device_path = path;
+    while (*device_path == '/') {
+        // Skip leading space
+        device_path++;
+    }
+    if (strncmp(device_path, devoptab_fatfs.name, dev_name_len) == 0) {
+        // Skip device name
+        return device_path + dev_name_len;
+    }
+    // Device name not in the path, don't do any change
+    return path;
+}
+
 static int open_r(struct _reent *r, void *fileStruct, const char *path, int flags, int mode) {
     PREPARE_FIL_EX(f, fileStruct);
     FRESULT result;
 
-    if (!path || !path[0]) {
+    if (IS_EMPTY(path)) {
         r->_errno = EINVAL;
         return -1;
     }
+
+    path = process_path(path);
 
     int ff_mode = get_fatfs_mode(flags);
 
@@ -367,13 +388,20 @@ static off_t seek_r(struct _reent *r, void *fileStruct, off_t pos, int dir) {
     return ofs;
 }
 
-static int stat_r(struct _reent *r, const char *file, struct stat *st) {
+static int stat_r(struct _reent *r, const char *path, struct stat *st) {
     FRESULT result;
     FILINFO finfo;
     memset(&finfo, 0, sizeof(FILINFO));
     memset(st, 0, sizeof(struct stat));
 
-    result = f_stat(file, &finfo);
+    if (IS_EMPTY(path)) {
+        r->_errno = EINVAL;
+        return -1;
+    }
+
+    path = process_path(path);
+
+    result = f_stat(path, &finfo);
     if (result != FR_OK) {
         r->_errno = get_errno(result);
         return -1;
@@ -439,9 +467,17 @@ static int unlink_r(struct _reent *r, const char *name) {
     return -1;
 }
 
-static int chdir_r(struct _reent *r, const char *name) {
+static int chdir_r(struct _reent *r, const char *path) {
     FRESULT result;
-    result = f_chdir(name);
+
+    if (IS_EMPTY(path)) {
+        r->_errno = EINVAL;
+        return -1;
+    }
+
+    path = process_path(path);
+
+    result = f_chdir(path);
     r->_errno = get_errno(result);
 
     if (result != FR_OK) {
@@ -453,6 +489,15 @@ static int chdir_r(struct _reent *r, const char *name) {
 
 static int rename_r(struct _reent *r, const char *oldName, const char *newName) {
     FRESULT result;
+
+    if (IS_EMPTY(oldName) || IS_EMPTY(newName)) {
+        r->_errno = EINVAL;
+        return -1;
+    }
+
+    oldName = process_path(oldName);
+    newName = process_path(newName);
+
     result = f_rename(oldName, newName);
     r->_errno = get_errno(result);
 
@@ -469,6 +514,14 @@ static int chmod_r(struct _reent *r, const char *path, mode_t mode) {
     return -1;
 #else
     FRESULT result;
+
+    if (IS_EMPTY(path)) {
+        r->_errno = EINVAL;
+        return -1;
+    }
+
+    path = process_path(path);
+
     BYTE attr = (mode & IS_IWALL) ? 0 : AM_RDO; // Read only when no write enabled
     // Ignoring Archive, System and Hidden attributes
 
@@ -498,6 +551,13 @@ static int mkdir_r(struct _reent *r, const char *path, int mode) {
     FRESULT result;
     int errno;
 
+    if (IS_EMPTY(path)) {
+        r->_errno = EINVAL;
+        return -1;
+    }
+
+    path = process_path(path);
+
     result = f_mkdir(path);
     errno = get_errno(result);
     r->_errno = errno;
@@ -522,10 +582,12 @@ static int mkdir_r(struct _reent *r, const char *path, int mode) {
 static DIR_ITER *diropen_r(struct _reent *r, DIR_ITER *dirState, const char *path) {
     FRESULT result;
 
-    if (path == NULL || !path[0]) {
+    if (IS_EMPTY(path)) {
         r->_errno = EINVAL;
         return NULL;
     }
+
+    path = process_path(path);
 
     result = f_opendir(dirState->dirStruct, path);
     r->_errno = get_errno(result);
@@ -588,13 +650,21 @@ static int statvfs_r(struct _reent *r, const char *path, struct statvfs *buf) {
     FRESULT result;
     FATFS *ff;
     DWORD free_clst;
-    memset(buf, 0, sizeof(struct statvfs));
+
+    if (IS_EMPTY(path)) {
+        r->_errno = EINVAL;
+        return -1;
+    }
+
+    path = process_path(path);
 
     result = f_getfree(path, &free_clst, &ff);
     if (result != FR_OK) {
         r->_errno = get_errno(result);
         return -1;
     }
+
+    memset(buf, 0, sizeof(struct statvfs));
 
     buf->f_frsize = ff->csize;
 #if _MAX_SS != _MIN_SS
@@ -646,9 +716,17 @@ static int ftruncate_r(struct _reent *r, void *fileStruct, off_t len) {
     return 0;
 }
 
-static int rmdir_r(struct _reent *r, const char *name) {
+static int rmdir_r(struct _reent *r, const char *path) {
     FRESULT result;
-    result = f_unlink(name);
+
+    if (IS_EMPTY(path)) {
+        r->_errno = EINVAL;
+        return -1;
+    }
+
+    path = process_path(path);
+
+    result = f_unlink(path);
     r->_errno = get_errno(result);
 
     if (result != FR_OK) {
