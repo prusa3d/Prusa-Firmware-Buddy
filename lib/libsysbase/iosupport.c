@@ -66,20 +66,29 @@ int FindDevice(const char* name) {
 	int i = 0, namelen, dev_namelen, dev = -1;
 	char *separator;
 
-	separator = strchr(name, ':');
+	if (*name != '/') return defaultDevice;
 
-	if (separator == NULL) return defaultDevice;
+	while (*name == '/') {
+		// Skip all leading slashes
+		name++;
+	}
 
-	dev_namelen = separator - name;
+	// Find path separator after device name
+	separator = strchr(name, '/');
+
+	if (separator == NULL) {
+		// If no path separator found, we have only path to the root of a device
+		dev_namelen = strlen(name);
+	} else {
+		dev_namelen = separator - name;
+	}
 
 	while(i<STD_MAX) {
 		if(devoptab_list[i]) {
 			namelen = strlen(devoptab_list[i]->name);
 			if(dev_namelen == namelen && strncmp(devoptab_list[i]->name,name,namelen)==0 ) {
-				if ( name[namelen] == ':' || (isdigit(name[namelen]) && name[namelen+1] ==':' )) {
-					dev = i;
-					break;
-				}
+				dev = i;
+				break;
 			}
 		}
 		i++;
