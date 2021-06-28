@@ -146,6 +146,9 @@ int ini_parse_string(const char* string, ini_handler handler, void* user);
 #define INI_ALLOW_NO_VALUE 0
 #endif
 
+#define MAX_SECTION         50
+#define MAX_NAME            50
+
 #ifdef __cplusplus
 }
 #endif

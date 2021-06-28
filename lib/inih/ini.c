@@ -25,8 +25,6 @@ https://github.com/benhoyt/inih
 #include <stdlib.h>
 #endif
 
-#define MAX_SECTION 50
-#define MAX_NAME 50
 
 /* Used by ini_parse_string() to keep track of string parsing state. */
 typedef struct {

@@ -8,10 +8,6 @@
 extern "C" {
 #endif //__cplusplus
 
-#define BUDDY_INI_LINE_SIZE 200 // maximum allowed chars in a single line
-#define MAX_SECTION         50
-#define MAX_NAME            50
-
 typedef enum {
     BUDDY_INI_OK = 0,
     BUDDY_INI_ERROR,

@@ -97,7 +97,7 @@ buddy_ini_error ini_save_file(const char *ini_save_str) {
 buddy_ini_error ini_load_file(void *user) {
     FIL fileObject;
     buddy_ini_error error = BUDDY_INI_OK;
-    char line[BUDDY_INI_LINE_SIZE];
+    char line[INI_MAX_LINE];
     char *start;
     char *end;
     char *name;
@@ -117,7 +117,7 @@ buddy_ini_error ini_load_file(void *user) {
 
     /* Scan through stream line by line */
     while ((f_eof(&fileObject) == 0) && (f_error(&fileObject) == 0)) {
-        if (NULL == f_gets(line, BUDDY_INI_LINE_SIZE, &fileObject)) {
+        if (NULL == f_gets(line, INI_MAX_LINE, &fileObject)) {
             f_close(&fileObject);
             return BUDDY_INI_FILE_READ;
         }
