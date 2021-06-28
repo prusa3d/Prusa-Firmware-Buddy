@@ -71,7 +71,7 @@ uint8_t FATFS_LinkDriverEx(const Diskio_drvTypeDef *drv, char *path, uint8_t lun
   uint8_t ret = 1;
   uint8_t DiskNum = 0;
 
-  if(disk.nbr < _VOLUMES)
+  if(disk.nbr < FF_VOLUMES)
   {
     disk.is_initialized[disk.nbr] = 0;
     disk.drv[disk.nbr] = drv;

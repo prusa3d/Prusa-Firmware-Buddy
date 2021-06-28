@@ -1,6 +1,7 @@
 // dump.c
 
 #include "dump.h"
+#include <string.h>
 #include "ff.h"
 #include "w25x.h"
 
