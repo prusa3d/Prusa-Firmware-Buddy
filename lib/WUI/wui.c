@@ -18,8 +18,13 @@
 #include "dbg.h"
 #include "esp/esp.h"
 #include "stm32_port.h"
+#include "lwip/altcp_tcp.h"
+#include "esp_tcp.h"
 
 #include "esp.h"
+#include "esp/apps/esp_http_server.h"
+#include "esp/apps/esp_http_server_fs.h"
+
 osThreadId httpcTaskHandle;
 
 #define WUI_NETIF_SETUP_DELAY  1000
@@ -80,7 +85,7 @@ static void update_eth_changes(void) {
 extern void netconn_client_thread(void const *arg);
 
 void StartWebServerTask(void const *argument) {
-    ap_entry_t ap = { "SSID", "password" };
+    ap_entry_t ap = { "ssid", "password" };
     uint32_t res;
 
     // get settings from ini file
@@ -101,17 +106,19 @@ void StartWebServerTask(void const *argument) {
     sntp_client_init();
     osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
     // Initialize the thread for httpc
-    osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 512);
-    httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
-
+    // osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 512);
+    // httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
+    // http_server_init();
     // lwesp stuffs
     res = esp_initialize();
     _dbg("LwESP initialized with result = %ld", res);
     LWIP_UNUSED_ARG(res);
 
     if (!esp_connect_to_AP(&ap)) {
+
         _dbg("LwESP connect to AP %s!", ap.ssid);
-        esp_sys_thread_create(NULL, "netconn_client", (esp_sys_thread_fn)netconn_client_thread, NULL, 512, ESP_SYS_THREAD_PRIO);
+        esp_http_server_init(NULL, 80);
+        // esp_sys_thread_create(NULL, "netconn_client", (esp_sys_thread_fn)netconn_client_thread, NULL, 512, ESP_SYS_THREAD_PRIO);
     }
 
     for (;;) {
@@ -120,4 +127,12 @@ void StartWebServerTask(void const *argument) {
 
         osDelay(1000);
     }
+}
+
+struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {
+    if (netif_status == WUI_ETH_NETIF_UP)
+        return altcp_tcp_new_ip_type(ip_type);
+    else
+        return NULL;
+    // return altcp_esp_new_ip_type(ip_type);
 }

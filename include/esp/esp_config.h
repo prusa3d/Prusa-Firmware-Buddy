@@ -96,7 +96,7 @@
 #define ESP_CFG_RESTORE_ON_INIT   0
 #define ESP_CFG_MAX_SSID_LENGTH   25
 #define ESP_CFG_NETCONN           1
-
+#define ESP_ALTCP                 1
 /* After user configuration, call default config to merge config together */
 #include "esp/esp_config_default.h"
 
