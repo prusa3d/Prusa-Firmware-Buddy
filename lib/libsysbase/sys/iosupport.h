@@ -16,7 +16,7 @@ enum	{
 	STD_IN,
 	STD_OUT,
 	STD_ERR,
-	STD_MAX = 35
+	STD_MAX = 16
 };
 
 

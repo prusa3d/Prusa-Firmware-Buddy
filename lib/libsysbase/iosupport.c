@@ -52,13 +52,16 @@ const devoptab_t dotab_stdnull = {
 };
 
 //---------------------------------------------------------------------------------
-const devoptab_t *devoptab_list[STD_MAX] = {
+const devoptab_t *devoptab_list[] = {
 //---------------------------------------------------------------------------------
 	&dotab_stdnull, &dotab_stdnull, &dotab_stdnull, &dotab_stdnull,
 	&dotab_stdnull, &dotab_stdnull, &dotab_stdnull, &dotab_stdnull,
 	&dotab_stdnull, &dotab_stdnull, &dotab_stdnull, &dotab_stdnull,
 	&dotab_stdnull, &dotab_stdnull, &dotab_stdnull, &dotab_stdnull
 };
+
+
+_Static_assert((sizeof(devoptab_list) / sizeof(devoptab_list[0])) == STD_MAX, "Size of devoptab_list has to be same as STD_MAX");
 
 //---------------------------------------------------------------------------------
 int FindDevice(const char* name) {
