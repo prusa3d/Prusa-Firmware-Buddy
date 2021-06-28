@@ -34,10 +34,12 @@ target_sources(
             # lwesp/src/esp/esp_utils.c
             lwesp/src/esp/esp_wps.c
             # lwesp/src/system/esp_mem_lwmem.c
+            lwesp/src/apps/http_server/esp_http_server.c
+            lwesp/src/apps/http_server/esp_http_server_fs.c
             prusa/src/system/lwesp_sys_buddy.c
             prusa/src/system/lwesp_ll_buddy.c
             prusa/src/esp.c
-            # prusa/src/lwesp_sta.c
+            # prusa/src/system/esp_tcp.c
             prusa/snippets/client.c
             lwesp/src/api/esp_netconn.c
             prusa/src/sockets/lwesp_sockets.c
@@ -53,7 +55,6 @@ target_include_directories(
             ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS
             ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
             ${CMAKE_SOURCE_DIR}/include/freertos
-            lwesp/esp
             lwesp/snippets/include
             prusa/include
   )
