@@ -1,6 +1,6 @@
 #pragma once
 //#include "ffconf.h"
-#define _MAX_LFN 95
+#define FF_MAX_LFN 95
 
 /*
  * Using limits from marlin:
@@ -16,9 +16,9 @@
 #endif
 
 #ifndef MAXDIRNAMELENGTH
-    #define F_MAXDIRNAMELENGTH _MAX_LFN + 1
+    #define F_MAXDIRNAMELENGTH FF_MAX_LFN + 1
 #endif
 
 #ifndef MAXPATHNAMELENGTH
-    #define F_MAXPATHNAMELENGTH (1 + (F_MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + _MAX_LFN)
+    #define F_MAXPATHNAMELENGTH (1 + (F_MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + FF_MAX_LFN)
 #endif
