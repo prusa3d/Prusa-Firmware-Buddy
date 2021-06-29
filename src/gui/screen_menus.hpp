@@ -4,7 +4,6 @@
 
 ScreenFactory::UniquePtr GetScreenMenuInfo();
 ScreenFactory::UniquePtr GetScreenMenuSettings();
-ScreenFactory::UniquePtr GetScreenMenuPreheat();
 ScreenFactory::UniquePtr GetScreenMenuCalibration();
 ScreenFactory::UniquePtr GetScreenMenuFilament();
 ScreenFactory::UniquePtr GetScreenMenuTemperature();
@@ -21,3 +20,4 @@ ScreenFactory::UniquePtr GetScreenMenuLanguagesNoRet();
 ScreenFactory::UniquePtr GetScreenMenuHwSetup();
 ScreenFactory::UniquePtr GetScreenMenuSteelSheets();
 ScreenFactory::UniquePtr GetScreenEeprom();
+ScreenFactory::UniquePtr GetScreenMenuFooterSettings();

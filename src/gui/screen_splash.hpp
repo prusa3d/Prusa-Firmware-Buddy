@@ -18,7 +18,6 @@ struct screen_splash_data_t : public AddSuperWindow<screen_t> {
     screen_splash_data_t();
 
 private:
-    void timer(uint32_t mseconds);
     virtual void draw() override;
 
 protected:

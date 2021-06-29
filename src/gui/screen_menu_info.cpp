@@ -6,7 +6,7 @@
 #include "MItem_menus.hpp"
 #include "screen_menus.hpp"
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
+using Screen = ScreenMenu<EFooter::On, MI_RETURN,
 #ifdef _DEBUG
     MI_STATISTIC_disabled, MI_FAIL_STAT_disabled, MI_SUPPORT_disabled,
 #endif //_DEBUG

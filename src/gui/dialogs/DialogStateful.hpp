@@ -8,16 +8,19 @@
 #include "i18n.h"
 #include "window_text.hpp"
 #include "window_progress.hpp"
+#include "fsm_types.hpp"
 
 // function pointer for onEnter & onExit callbacks
 using change_state_cb_t = void (*)();
 
 class IDialogMarlin : public IDialog {
 protected:
-    virtual bool change(uint8_t phs, uint8_t progress_tot, uint8_t progress) = 0;
+    virtual bool change(uint8_t phase, fsm::PhaseData data) = 0;
 
 public:
-    bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress) { return change(phs, progress_tot, progress); }
+    bool Change(fsm::BaseData data) { return change(data.GetPhase(), data.GetData()); }
+    IDialogMarlin(Rect16 rc = GuiDefaults::RectScreenBody)
+        : IDialog(rc) {}
 };
 
 //abstract parent containing general code for any number of phases
@@ -49,7 +52,7 @@ protected:
     // must be virtual because of `states` list is in template protected
     virtual void phaseEnter() = 0;
     virtual void phaseExit() = 0;
-    virtual bool change(uint8_t phs, uint8_t progress_tot, uint8_t progress) override;
+    virtual bool change(uint8_t phase, fsm::PhaseData data) override;
 
 public:
     IDialogStateful(string_view_utf8 name);

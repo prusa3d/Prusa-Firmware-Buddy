@@ -22,8 +22,8 @@ size_t RadioButton::cnt_responses(const PhaseResponses *resp) {
 }
 
 size_t RadioButton::cnt_buttons(const PhaseTexts *labels, const PhaseResponses *resp) {
-    size_t lbls = cnt_labels(labels);
-    size_t cmds = cnt_responses(resp);
+    size_t lbls = std::min(cnt_labels(labels), max_buttons);
+    size_t cmds = std::min(cnt_responses(resp), max_buttons);
     return std::max(lbls, cmds);
 }
 /*****************************************************************************/
@@ -81,7 +81,8 @@ void RadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
 }
 
 void RadioButton::unconditionalDraw() {
-    switch (GetBtnCount()) {
+    const size_t cnt = GetBtnCount();
+    switch (cnt) {
     case 0:
         draw_0_btn(); //cannot use draw_n_btns, would div by 0
         break;
@@ -89,7 +90,7 @@ void RadioButton::unconditionalDraw() {
         draw_1_btn(); //could use draw_n_btns, but this is much faster
         break;
     default:
-        draw_n_btns(GetBtnCount());
+        draw_n_btns(cnt);
         break;
     }
 }
@@ -101,18 +102,18 @@ Response RadioButton::Click() const {
 }
 
 void RadioButton::draw_0_btn() const {
-    display::FillRect(rect, color_back);
+    display::FillRect(GetRect(), color_back);
 }
 
 void RadioButton::draw_1_btn() const {
     if (texts)
-        button_draw(rect, _((*texts)[0]), pfont, IsEnabled());
+        button_draw(GetRect(), _((*texts)[0]), pfont, IsEnabled());
 }
 
 void RadioButton::draw_n_btns(const size_t btn_count) const {
     if (!texts)
         return;
-
+    const uint32_t MAX_TEXT_BUFFER = 128;
     static_assert(sizeof(btn_count) <= GuiDefaults::MAX_DIALOG_BUTTON_COUNT, "Too many RadioButtons to draw.");
 
     /// fix size of dialog buttons - MAX_DIALOG_BUTTON_COUNT
@@ -124,10 +125,19 @@ void RadioButton::draw_n_btns(const size_t btn_count) const {
         string_view_utf8 txt = _((*texts)[index]);
         ratio[index] = static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
     }
-    rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
+    GetRect().HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
 
     for (size_t i = 0; i < btn_count; ++i) {
-        button_draw(splits[i], _((*texts)[i]), pfont, GetBtnIndex() == i && IsEnabled());
+        string_view_utf8 drawn = _((*texts)[i]);
+        char buffer[MAX_TEXT_BUFFER] = { 0 };
+        if ((pfont->w * ratio[i]) > splits[i].Width()) {
+            uint32_t max_btn_label_text = splits[i].Width() / pfont->w;
+            size_t length = std::min(max_btn_label_text, MAX_TEXT_BUFFER - 1);
+            length = drawn.copyToRAM(buffer, length);
+            buffer[length] = 0;
+            drawn = string_view_utf8::MakeRAM((const uint8_t *)buffer);
+        }
+        button_draw(splits[i], drawn, pfont, GetBtnIndex() == i && IsEnabled());
     }
     for (size_t i = 0; i < btn_count - 1; ++i) {
         display::FillRect(spaces[i], color_back);
@@ -137,7 +147,7 @@ void RadioButton::draw_n_btns(const size_t btn_count) const {
 void RadioButton::button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected) {
     color_t back_cl = is_selected ? COLOR_ORANGE : COLOR_GRAY;
     color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
-    render_text_align(rc_btn, text, pf, back_cl, text_cl, { 0, 0, 0, 0 }, ALIGN_CENTER);
+    render_text_align(rc_btn, text, pf, back_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
 }
 
 bool RadioButton::IsEnabled() const {

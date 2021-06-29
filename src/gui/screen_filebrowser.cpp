@@ -35,7 +35,8 @@ static char firstVisibleSFN[SFN_len] = "";
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : AddSuperWindow<screen_t>()
     , header(this)
-    , w_filelist(this, GuiDefaults::RectScreenBodyNoFoot) {
+    , w_filelist(this, GuiDefaults::RectScreenBody)
+    , gcode_info(GCodeInfo::getInstance()) {
     screen_filebrowser_sort = (WF_Sort_t)variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT));
 
     header.SetIcon(IDR_PNG_folder_full_16px);
@@ -66,8 +67,8 @@ static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
 void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     marlin_vars_t *vars = marlin_vars();
     if (event == GUI_event_t::MEDIA) {
-        GuiMediaEventsHandler::state_t media_state = GuiMediaEventsHandler::state_t(int(param));
-        if (media_state == GuiMediaEventsHandler::state_t::removed || media_state == GuiMediaEventsHandler::state_t::error) {
+        MediaState_t media_state = MediaState_t(int(param));
+        if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
             screen_filebrowser_clear_firstVisibleSFN(vars);
             Screens::Access()->Close();
         }
@@ -139,8 +140,8 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
             // save the top browser item
             strlcpy(firstVisibleSFN, w_filelist.TopItemSFN(), SFN_len);
 
-            screen_print_preview_data_t::SetGcodeFilepath(vars->media_SFN_path);
-            screen_print_preview_data_t::SetGcodeFilename(vars->media_LFN);
+            gcode_info.SetGcodeFilepath(vars->media_SFN_path);
+            gcode_info.SetGcodeFilename(vars->media_LFN);
             Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
 
             return;

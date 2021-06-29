@@ -125,6 +125,10 @@ extern float marlin_server_get_temp_nozzle(void);
 //
 extern void marlin_server_resuming_begin(void);
 
+extern uint32_t marlin_server_get_user_click_count(void);
+
+extern uint32_t marlin_server_get_user_move_count(void);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

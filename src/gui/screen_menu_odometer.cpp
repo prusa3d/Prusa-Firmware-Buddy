@@ -8,12 +8,12 @@
 #include "i18n.h"
 #include "odometer.hpp"
 
-static const constexpr HelperConfig HelpCfg = { 10, IDR_FNT_NORMAL };
+//static const constexpr HelperConfig HelpCfg = { 10, IDR_FNT_NORMAL };
 enum : int {
     TEXT_MAX_LENGTH = 150
 };
 
-using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpCfg, MI_RETURN>;
+using Screen = ScreenMenu<EFooter::On, /* HelpCfg,*/ MI_RETURN>;
 
 class ScreenMenuOdometer : public Screen {
     char text[TEXT_MAX_LENGTH];
@@ -62,7 +62,7 @@ ScreenMenuOdometer::ScreenMenuOdometer()
     snprintf(text + written, TEXT_MAX_LENGTH - written, " %d.%.1d m", (int)e, first_decimal(e));
 
     // this MakeRAM is safe
-    help.SetText(string_view_utf8::MakeRAM((const uint8_t *)text));
+    //help.SetText(string_view_utf8::MakeRAM((const uint8_t *)text));
 }
 
 ScreenFactory::UniquePtr GetScreenMenuOdometer() {

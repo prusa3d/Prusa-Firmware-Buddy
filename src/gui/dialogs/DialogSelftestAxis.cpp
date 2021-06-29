@@ -1,6 +1,12 @@
 #include "DialogSelftestAxis.hpp"
 #include "i18n.h"
 #include "wizard_config.hpp"
+#include "selftest_axis_type.hpp"
+
+static constexpr size_t X_AXIS_PERCENT = 33;
+static constexpr size_t Y_AXIS_PERCENT = 33;
+static constexpr size_t Z_AXIS_PERCENT = 34;
+//would be cleaner to calculate total progress in main thread, but cannot pass so much data
 
 static constexpr size_t col_0 = WizardDefaults::MarginLeft;
 static constexpr size_t col_1 = WizardDefaults::status_icon_X_pos;
@@ -32,21 +38,15 @@ DialogSelftestAxis::DialogSelftestAxis()
     , icon_z_axis(this, { col_1, row_4 }) {
 }
 
-bool DialogSelftestAxis::change(uint8_t phs, uint8_t progress_tot, uint8_t progress_state) {
-    PhasesSelftestAxis test = GetEnumFromPhaseIndex<PhasesSelftestAxis>(phs);
-    SelftestSubtestState_t test_state = SelftestSubtestState_t(progress_state);
+bool DialogSelftestAxis::change(uint8_t phase, fsm::PhaseData data) {
+    SelftestAxis_t dt(data);
 
-    switch (test) {
-    case PhasesSelftestAxis::Xaxis:
-        icon_x_axis.SetState(test_state);
-        break;
-    case PhasesSelftestAxis::Yaxis:
-        icon_y_axis.SetState(test_state);
-        break;
-    case PhasesSelftestAxis::Zaxis:
-        icon_z_axis.SetState(test_state);
-        break;
-    }
-    progress.SetProgressPercent(progress_tot);
+    icon_x_axis.SetState(dt.x_state);
+    icon_y_axis.SetState(dt.y_state);
+    icon_z_axis.SetState(dt.z_state);
+    progress.SetProgressPercent(
+        (
+            dt.x_progress * X_AXIS_PERCENT + dt.y_progress * Y_AXIS_PERCENT + dt.z_progress * Z_AXIS_PERCENT)
+        / 100);
     return true;
 };

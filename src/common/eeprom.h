@@ -76,16 +76,18 @@ enum {
     EEVAR_SHEET_PROFILE5 = 0x25,
     EEVAR_SHEET_PROFILE6 = 0x26,
     EEVAR_SHEET_PROFILE7 = 0x27,
-    EEVAR_SELFTEST_RESULT = 0x28,   // uint32_t, two bits for each selftest part
-    EEVAR_DEVHASH_IN_QR = 0x29,     // uint8_t on / off sending UID in QR
-    EEVAR_FAN_CHECK_ENABLED = 0x2a, // uint8_t on / off fan check
-    EEVAR_ODOMETER_X = 0x2b,        // float
-    EEVAR_ODOMETER_Y = 0x2c,        // float
-    EEVAR_ODOMETER_Z = 0x2d,        // float
-    EEVAR_ODOMETER_E = 0x2e,        // float
-
-    EEVAR__PADDING, // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32,    // uint32_t crc32 for
+    EEVAR_FOOTER_SETTING = 0x28,
+    EEVAR_FOOTER_DRAW_TYPE = 0x29,
+    EEVAR_SELFTEST_RESULT = 0x2a,     // uint32_t, two bits for each selftest part
+    EEVAR_DEVHASH_IN_QR = 0x2b,       // uint8_t on / off sending UID in QR
+    EEVAR_FAN_CHECK_ENABLED = 0x2c,   // uint8_t on / off fan check
+    EEVAR_FS_AUTOLOAD_ENABLED = 0x2d, // uint8_t on / off fs autoload
+    EEVAR_ODOMETER_X = 0x2e,          // float
+    EEVAR_ODOMETER_Y = 0x2f,          // float
+    EEVAR_ODOMETER_Z = 0x30,          // float
+    EEVAR_ODOMETER_E = 0x31,          // float
+    EEVAR__PADDING = 0x32,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_CRC32 = 0x33,               // uint32_t crc32 for
 };
 
 enum {

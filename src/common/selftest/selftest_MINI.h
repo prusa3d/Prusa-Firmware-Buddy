@@ -85,7 +85,7 @@ protected:
     void phaseStart();
     bool phaseFans(const selftest_fan_config_t &config_fan0, const selftest_fan_config_t &config_fan1);
     bool phaseHome();
-    bool phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase, uint8_t progress_add, uint8_t progress_mul);
+    bool phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPart_Axis **ppaxis);
     bool phaseHeaters(const selftest_heater_config_t &config_nozzle, const selftest_heater_config_t &config_bed, CFanCtl &fan0, CFanCtl &fan1);
     void phaseFinish();
     bool phaseWait();

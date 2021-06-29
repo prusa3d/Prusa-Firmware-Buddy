@@ -14,6 +14,7 @@
 #include "ScreenFactory.hpp"
 #include "screen_menus.hpp"
 #include "gui_media_events.hpp"
+#include "window_dlg_load_unload.hpp"
 
 #include "i18n.h"
 
@@ -40,6 +41,8 @@ const char *labels[7] = {
 };
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 
+bool screen_home_data_t::usbWasAlreadyInserted = false;
+
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<screen_t>()
     , usbInserted(marlin_vars()->media_inserted)
@@ -47,7 +50,7 @@ screen_home_data_t::screen_home_data_t()
     , footer(this)
     , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_prusa_printer_logo)
     , w_buttons { { this, Rect16(), 0, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuPreheat); } },
+        { this, Rect16(), 0, []() { PreheatStatus::Dialog(PreheatMode::None, RetAndCool_t::Both); } },
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
@@ -58,6 +61,7 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no } }
+    , gcode(GCodeInfo::getInstance())
 
 {
     window_frame_t::ClrMenuTimeoutClose();
@@ -74,12 +78,12 @@ screen_home_data_t::screen_home_data_t()
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
             const size_t i = row * 3 + col;
-            w_buttons[i].rect = Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
+            w_buttons[i].SetRect(Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64));
             w_buttons[i].SetIdRes(icons[i]);
 
-            w_labels[i].rect = Rect16(80 * col, 154 + (15 + 64) * row, 80, 14);
+            w_labels[i].SetRect(Rect16(80 * col, 154 + (15 + 64) * row, 80, 14));
             w_labels[i].font = resource_font(IDR_FNT_SMALL);
-            w_labels[i].SetAlignment(ALIGN_CENTER);
+            w_labels[i].SetAlignment(Align_t::Center());
             w_labels[i].SetPadding({ 0, 0, 0, 0 });
             w_labels[i].SetText(_(labels[i]));
         }
@@ -87,6 +91,8 @@ screen_home_data_t::screen_home_data_t()
 
     if (!usbInserted) {
         printBtnDis();
+    } else {
+        usbWasAlreadyInserted = true;
     }
 }
 
@@ -105,15 +111,19 @@ void screen_home_data_t::draw() {
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
     if (event == GUI_event_t::MEDIA) {
-        switch (GuiMediaEventsHandler::state_t(int(param))) {
-        case GuiMediaEventsHandler::state_t::inserted:
+        switch (MediaState_t(int(param))) {
+        case MediaState_t::inserted:
             if (!usbInserted) {
                 usbInserted = true;
                 printBtnEna();
+                if (!usbWasAlreadyInserted) {
+                    w_buttons[0].SetFocus(); //print button
+                    usbWasAlreadyInserted = true;
+                }
             }
             break;
-        case GuiMediaEventsHandler::state_t::removed:
-        case GuiMediaEventsHandler::state_t::error:
+        case MediaState_t::removed:
+        case MediaState_t::error:
             if (usbInserted) {
                 usbInserted = false;
                 printBtnDis();
@@ -135,8 +145,8 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                     FILE_PATH_MAX_LEN,
                     vars->media_LFN,
                     FILE_NAME_MAX_LEN)) {
-                screen_print_preview_data_t::SetGcodeFilepath(vars->media_SFN_path);
-                screen_print_preview_data_t::SetGcodeFilename(vars->media_LFN);
+                gcode.SetGcodeFilepath(vars->media_SFN_path);
+                gcode.SetGcodeFilename(vars->media_LFN);
                 Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
             }
         }
@@ -190,13 +200,13 @@ void screen_home_data_t::printBtnEna() {
 }
 
 void screen_home_data_t::printBtnDis() {
-    w_buttons[0].Shadow();
-    w_buttons[0].Disable(); // cant't be focused
-    w_buttons[0].Invalidate();
-    w_labels[0].SetText(_(labels[labelNoUSBId]));
-
     // move to preheat when Print is focused
     if (w_buttons[0].IsFocused()) {
         w_buttons[1].SetFocus();
     }
+
+    w_buttons[0].Shadow();
+    w_buttons[0].Disable(); // cant't be focused
+    w_buttons[0].Invalidate();
+    w_labels[0].SetText(_(labels[labelNoUSBId]));
 }

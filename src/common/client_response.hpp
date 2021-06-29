@@ -10,7 +10,7 @@
 #include <cstddef>
 #include <array>
 
-enum { RESPONSE_BITS = 2,                   //number of bits used to encode response
+enum { RESPONSE_BITS = 4,                   //number of bits used to encode response
     MAX_RESPONSES = (1 << RESPONSE_BITS) }; //maximum number of responses in one phase
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
@@ -46,9 +46,9 @@ enum class PhasesLoadUnload : uint16_t {
     Unloading,
     RemoveFilament,
     IsFilamentUnloaded,
+    FilamentNotInFS,
     ManualUnload,
     UserPush,
-    NozzleTimeout,
     MakeSureInserted,
     Inserting,
     IsFilamentInGear,
@@ -61,8 +61,14 @@ enum class PhasesLoadUnload : uint16_t {
     _last = Unparking
 };
 
-enum class PhasesG162 : uint16_t {
+enum class PhasesPreheat : uint16_t {
     _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
+    UserTempSelection,
+    _last = UserTempSelection
+};
+
+enum class PhasesG162 : uint16_t {
+    _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
     Parking,
     _last = Parking
 };
@@ -70,28 +76,22 @@ enum class PhasesG162 : uint16_t {
 //not bound to responses
 enum class PhasesSelftestFans : uint16_t {
     _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
-    TestFan0 = _first, //in this case is safe to have TestFan0 == _first
-    TestFan1,
-    _last = TestFan1
+    measure = _first, //in this case is safe to have measure == _first
+    _last = measure
 };
 
 //not bound to responses
 enum class PhasesSelftestAxis : uint16_t {
     _first = static_cast<uint16_t>(PhasesSelftestFans::_last) + 1,
-    Xaxis = _first, //in this case is safe to have Xaxis == _first
-    Yaxis,
-    Zaxis,
-    _last = Zaxis
+    measure = _first, //in this case is safe to have measure == _first
+    _last = measure
 };
 
 //not bound to responses
 enum class PhasesSelftestHeat : uint16_t {
     _first = static_cast<uint16_t>(PhasesSelftestAxis::_last) + 1,
-    noz_prep = _first, //in this case is safe to have Xaxis == _first
-    noz_heat,
-    bed_prep,
-    bed_heat,
-    _last = bed_heat
+    measure = _first, //in this case is safe to have measure == _first
+    _last = measure
 };
 
 //static class for work with fsm responses (like button click)
@@ -102,10 +102,12 @@ class ClientResponses {
 
     //declare 2d arrays of single buttons for radio buttons
     static const PhaseResponses LoadUnloadResponses[CountPhases<PhasesLoadUnload>()];
+    static const PhaseResponses PreheatResponses[CountPhases<PhasesPreheat>()];
     static const PhaseResponses G162Responses[CountPhases<PhasesG162>()];
 
     //methods to "bind" button array with enum type
     static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesG162 phase) { return G162Responses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesG162::_first)]; }
 
 protected:
@@ -124,7 +126,7 @@ protected:
     //get response from PhaseResponses by index
     template <class T>
     static Response GetResponse(T phase, uint8_t index) {
-        if (index > MAX_RESPONSES)
+        if (index >= MAX_RESPONSES)
             return Response::_none;
         const PhaseResponses &cmds = getResponsesInPhase(phase);
         return cmds[index];
@@ -136,6 +138,10 @@ public:
     static const PhaseResponses &GetResponses(T phase) {
         return getResponsesInPhase(phase);
     }
+    template <class T>
+    static bool HasButton(T phase) {
+        return GetResponse(phase, 0) != Response::_none; // this phase has no responses
+    }
 
     //encode phase and client response (in GUI radio button and clicked index) into int
     //use on client side
@@ -143,7 +149,7 @@ public:
     template <class T>
     static uint32_t Encode(T phase, Response response) {
         uint8_t clicked_index = GetIndex(phase, response);
-        if (clicked_index > MAX_RESPONSES)
+        if (clicked_index >= MAX_RESPONSES)
             return -1; // this phase does not have response with this index
         return ((static_cast<uint32_t>(phase)) << RESPONSE_BITS) + uint32_t(clicked_index);
     }

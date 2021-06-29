@@ -1,7 +1,7 @@
 //screen_mesh_bed_lv.hpp
 #pragma once
 #include "gui.hpp"
-#include "status_footer.h"
+#include "status_footer.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
 #include "window_term.hpp"

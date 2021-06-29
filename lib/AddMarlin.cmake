@@ -19,7 +19,6 @@ add_library(
   Marlin/Marlin/src/feature/host_actions.cpp
   Marlin/Marlin/src/feature/joystick.cpp
   Marlin/Marlin/src/feature/runout.cpp
-  Marlin/Marlin/src/feature/safety_timer.cpp
   Marlin/Marlin/src/feature/spindle_laser.cpp
   Marlin/Marlin/src/feature/tmc_util.cpp
   Marlin/Marlin/src/feature/touch/xpt2046.cpp
@@ -129,6 +128,7 @@ add_library(
   Marlin/Marlin/src/libs/buzzer.cpp
   Marlin/Marlin/src/libs/crc16.cpp
   Marlin/Marlin/src/libs/heatshrink/heatshrink_decoder.cpp
+  Marlin/Marlin/src/libs/hex_print_routines.cpp
   Marlin/Marlin/src/libs/least_squares_fit.cpp
   Marlin/Marlin/src/libs/nozzle.cpp
   Marlin/Marlin/src/libs/numtostr.cpp

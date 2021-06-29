@@ -10,9 +10,9 @@ const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoad
     {},                                                            //Unloading,
     { Response::Filament_removed },                                //RemoveFilament,
     { Response::Yes, Response::No },                               //IsFilamentUnloaded,
+    {},                                                            //FilamentNotInFS
     { Response::Continue },                                        //ManualUnload,
     { Response::Continue },                                        //UserPush,
-    { Response::Reheat },                                          //NozzleTimeout,
     {},                                                            //MakeSureInserted,
     {},                                                            //Inserting,
     { Response::Yes, Response::No },                               //IsFilamentInGear,
@@ -22,6 +22,11 @@ const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoad
     { Response::Continue, Response::Purge_more, Response::Retry }, //IsColor,
     { Response::Continue, Response::Purge_more },                  //IsColorPurge
     {},                                                            //Unparking,
+};
+
+const PhaseResponses ClientResponses::PreheatResponses[CountPhases<PhasesPreheat>()] = {
+    {},                                                                                                                                                               //_first
+    { Response::Abort, Response::Cooldown, Response::PLA, Response::PETG, Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP }, //UserTempSelection
 };
 
 const PhaseResponses ClientResponses::G162Responses[CountPhases<PhasesG162>()] = {

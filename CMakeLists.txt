@@ -26,6 +26,7 @@ endif()
 
 set(PRINTER_VALID_OPTS "MINI")
 set(MOTHERBOARD_VALID_OPTS "1823")
+set(MCU_VALID_OPTS "STM32F407VG" "STM32F429VI")
 set(BOOTLOADER_VALID_OPTS "NO" "EMPTY" "YES")
 
 set(PRINTER
@@ -43,6 +44,12 @@ set(MOTHERBOARD
     CACHE
       STRING
       "Select the motherboard for which you want to compile the project (valid values are ${MOTHERBOARD_VALID_OPTS})."
+    )
+set(MCU
+    "STM32F407VG"
+    CACHE
+      STRING
+      "Select the MCU for which you want to compile the project (valid values are ${MCU_VALID_OPTS})."
     )
 set(GENERATE_BBF
     "NO"
@@ -82,7 +89,7 @@ set(WUI
     )
 
 # Validate options
-foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
+foreach(OPTION "PRINTER" "MOTHERBOARD" "MCU" "BOOTLOADER")
   if(NOT ${OPTION} IN_LIST ${OPTION}_VALID_OPTS)
     message(FATAL_ERROR "Invalid ${OPTION} ${${OPTION}}: Valid values are ${${OPTION}_VALID_OPTS}")
   endif()
@@ -184,6 +191,7 @@ target_compile_definitions(
   A3idesHeaders
   INTERFACE
   MOTHERBOARD=${MOTHERBOARD}
+  MCU=${MCU}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
   BOARD_TYPE=${BOARD_TYPE}
   MARLIN_DISABLE_INFINITE_LOOP
@@ -272,10 +280,14 @@ add_compile_options(-g)
 
 # optimizations
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_compile_options(-Og)
-else()
+  if(MCU STREQUAL "STM32F429VI")
+    add_compile_options(-O0)
+  else() # != "STM32F429VI"
+    add_compile_options(-Og)
+  endif() # "STM32F429VI"
+else() # != "Debug"
   add_compile_options(-Os)
-endif()
+endif() # "Debug"
 
 if(CMAKE_CROSSCOMPILING)
   # mcu related settings
@@ -293,6 +305,11 @@ if(CMAKE_CROSSCOMPILING)
   # disable exceptions and related metadata
   add_compile_options(-fno-exceptions -fno-unwind-tables)
   add_link_options(-Wl,--defsym,__exidx_start=0,--defsym,__exidx_end=0)
+
+  # use custom printf implementation instead of the one in newlib (see lib/printf)
+  add_link_options(
+    -Wl,--defsym=printf=printf_,--defsym=sprintf=sprintf_,--defsym=snprintf=snprintf_,--defsym=vprintf=vprintf_,--defsym=vsnprintf=vsnprintf_
+    )
 endif()
 
 # enable all warnings (well, not all, but some)
@@ -316,9 +333,17 @@ endif()
 if(CMAKE_CROSSCOMPILING)
   # configure linker script
   if(BOOTLOADER)
-    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
+    if(MCU STREQUAL "STM32F429VI")
+      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F429VI_FLASH_boot.ld")
+    elseif(MCU STREQUAL "STM32F407VG")
+      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
+    endif()
   else(NOT BOOTLOADER)
-    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
+    if(MCU STREQUAL "STM32F429VI")
+      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F429VI_FLASH.ld")
+    elseif(MCU STREQUAL "STM32F407VG")
+      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
+    endif()
   endif()
   add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 endif()
@@ -410,10 +435,13 @@ target_include_directories(
   firmware
   PRIVATE include
           src/common
+          src/common/include
           src/gui
           src/gui/dialogs
+          src/gui/footer
           src/gui/wizard
           src/guiapi/include
+          src/guiconfig
           src/lang
           src/hw
   )
@@ -438,6 +466,7 @@ target_link_libraries(
           jsmn::jsmn
           QR
           Buddy::Lang
+          printf::printf
   )
 
 target_sources(
@@ -459,13 +488,15 @@ target_sources(
           src/usb_host.c
           src/usbh_conf.c
           src/usbd_conf.c
-          src/stm32f4xx_hal_timebase_tim.c
+          src/common/non_file_printing_counter.cpp
+          src/common/print_processor.cpp
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
+          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_photoeletric.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/hardware_serial.cpp
-          src/common/diag.cpp
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
+          src/common/MarlinPin.cpp
           src/common/marlin_vars.c
           src/common/media.cpp
           src/common/Pin.cpp
@@ -475,7 +506,6 @@ target_sources(
           src/common/sim_nozzle.c
           src/common/heap.c
           src/common/hwio_a3ides_2209_02.cpp
-          src/common/putslave.cpp
           src/common/safe_state.cpp
           src/common/variant8.cpp
           src/common/dbg.c
@@ -484,7 +514,6 @@ target_sources(
           src/common/marlin_client.c
           src/common/bsod.cpp
           src/common/adc.c
-          src/common/uartslave.c
           src/common/version.c
           src/common/marlin_events.c
           src/common/marlin_errors.c
@@ -495,14 +524,16 @@ target_sources(
           src/common/app_metrics.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
+          src/common/fsm_types.cpp
           src/common/selftest/selftest_MINI.cpp
           src/common/selftest/selftest_fan.cpp
           src/common/selftest/selftest_axis.cpp
           src/common/selftest/selftest_heater.cpp
-          src/common/sim_motion.cpp
           src/common/st25dv64k.c
           src/common/w25x.c
           src/common/gcode_file.cpp
+          src/common/gcode_filter.cpp
+          src/common/gcode_info.cpp
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
           src/common/base64_stream_decoder.cpp
@@ -513,6 +544,7 @@ target_sources(
           src/common/str_utils.cpp
           src/common/errors.cpp
           src/common/client_response.cpp
+          src/common/client_response_texts.cpp
           src/common/crc32.c
           src/common/crc32_zlib.c
           src/common/ini_handler.c
@@ -521,6 +553,7 @@ target_sources(
           src/common/z_calibration_fsm.cpp
           src/common/scratch_buffer.cpp
           src/common/odometer.cpp
+          src/common/footer_eeprom.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M330.cpp
@@ -530,6 +563,8 @@ target_sources(
           src/marlin_stubs/G26.cpp
           src/marlin_stubs/G162.cpp
           src/marlin_stubs/gcode.cpp
+          src/marlin_stubs/M997.cpp
+          src/marlin_stubs/M999.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           src/marlin_stubs/pause/M600.cpp
@@ -537,19 +572,21 @@ target_sources(
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
+          src/marlin_stubs/feature/safety_timer.cpp
           src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
           src/marlin_stubs/host/M115.cpp
           src/gui/guimain.cpp
           src/common/filament.cpp
           src/common/fanctl.cpp
           src/common/trinamic.cpp
+          src/common/timing.c
+          src/common/timing_sys.c
   )
 
 if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.cpp
-            src/gui/dialogs/dialog_response.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp
@@ -567,25 +604,40 @@ if(GUI)
             src/gui/dialogs/window_dlg_strong_warning.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
             src/gui/dialogs/liveadjust_z.cpp
+            src/gui/dialogs/window_dlg_calib_z.cpp
+            src/gui/footer/footer_icon.cpp
+            src/gui/footer/footer_text.cpp
+            src/gui/footer/ifooter_item.cpp
+            src/gui/footer/ifooter_string_item.cpp
+            src/gui/footer/footer_items_heaters.cpp
+            src/gui/footer/footer_item_filament.cpp
+            src/gui/footer/footer_item_sheet_profile.cpp
+            src/gui/footer/footer_item_printspeed.cpp
+            src/gui/footer/footer_item_live_z.cpp
+            src/gui/footer/footer_items_nozzle_bed.cpp
+            src/gui/footer/footer_line.cpp
+            src/gui/footer/ifooter.cpp
+            $<$<STREQUAL:${PRINTER},MINI>:src/gui/footer/footer_doubleline.cpp>
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
             src/gui/gui_media_events.cpp
-            src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
+            src/gui/gui_time.cpp
             src/gui/window_print_progress.cpp
             src/gui/window_file_list.cpp
             src/gui/window_temp_graph.cpp
             src/gui/screen_menu_settings.cpp
             src/gui/window_header.cpp
             src/gui/screen_sysinf.cpp
-            src/gui/screen_menu_version_info.cpp
+            src/gui/version_info_ST7789V.cpp
             src/gui/test_display.cpp
             src/gui/screen_splash.cpp
             src/gui/screen_menu_service.cpp
             src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp
             src/gui/screen_print_preview.cpp
+            src/gui/gcode_description.cpp
             src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.cpp
@@ -600,12 +652,14 @@ if(GUI)
             src/gui/screen_qr_error.cpp
             src/gui/screen_menu_hw_setup.cpp
             src/gui/screen_menu_steel_sheets.cpp
+            src/gui/screen_menu_footer_settings.cpp
             src/gui/screen_sheet_rename.cpp
             src/gui/test/screen_test.cpp
             src/gui/test/screen_test_disp_mem.cpp
             src/gui/test/screen_test_gui.cpp
             src/gui/test/screen_test_term.cpp
             src/gui/test/screen_test_msgbox.cpp
+            src/gui/test/screen_test_dlg.cpp
             src/gui/test/screen_test_wizard_icons.cpp
             src/gui/test/screen_test_graph.cpp
             src/gui/wizard/selftest.cpp
@@ -614,8 +668,6 @@ if(GUI)
             src/gui/wizard/xyzcalib.cpp
             src/gui/screen_home.cpp
             src/gui/screen_filebrowser.cpp
-            src/gui/screen_menu_preheat.cpp
-            src/gui/status_footer.cpp
             src/gui/menu_vars.cpp
             src/gui/IScreenPrinting.cpp
             src/gui/ScreenFirstLayer.cpp
@@ -641,7 +693,6 @@ if(GUI)
             src/guiapi/src/window_term.cpp
             src/guiapi/src/window_arrows.cpp
             src/guiapi/src/window_numb.cpp
-            src/guiapi/src/st7789v.c
             src/guiapi/src/st7789v.cpp
             src/guiapi/src/display_ex.cpp
             src/guiapi/src/window_icon.cpp
@@ -680,14 +731,21 @@ set_property(
   )
 
 set_property(
-  SOURCE src/common/bsod.cpp src/common/appmain.cpp src/common/sys.cpp src/common/putslave.cpp
+  SOURCE src/main.cpp
+         src/common/bsod.cpp
+         src/common/appmain.cpp
+         src/common/sys.cpp
+         src/marlin_stubs/M50.cpp
+         src/marlin_stubs/gcode.cpp
+         src/common/hwio_a3ides_2209_02.cpp
+         src/gui/guimain.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )
 
 set_property(
-  SOURCE src/common/appmain.cpp src/common/marlin_test.cpp src/common/putslave.cpp
-         src/common/thread_measurement.cpp src/common/trinamic.cpp
+  SOURCE src/common/appmain.cpp src/common/marlin_test.cpp src/common/thread_measurement.cpp
+         src/common/trinamic.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>

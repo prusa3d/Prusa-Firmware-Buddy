@@ -27,7 +27,7 @@ enum {
 #define CRC32_USE_RTOS
 
 //guiconfig.h included with config
-#include "guiconfig.h"
+#include "../guiconfig/guiconfig.h"
 
 //resource.h included with config
 #include "resource.h"

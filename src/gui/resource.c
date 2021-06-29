@@ -59,14 +59,15 @@
 
 #include "res/cc/png_pepa_140px.c" //IDR_PNG_pepa_140px
 
-#include "res/cc/png_usb_16px.c"          //IDR_PNG_usb_16px
-#include "res/cc/png_lan_16px.c"          //IDR_PNG_lan_16px
-#include "res/cc/png_wifi_16px.c"         //IDR_PNG_wifi_16px - unused
-#include "res/cc/png_info_16px.c"         //IDR_PNG_info_16px
-#include "res/cc/png_error_16px.c"        //IDR_PNG_error_16px
-#include "res/cc/png_warning_16px.c"      //IDR_PNG_warning_16px
-#include "res/cc/png_question_16px.c"     //IDR_PNG_question_16px
-#include "res/cc/png_nozzle_shape_48px.c" //IDR_PNG_nozzle_shape_48px
+#include "res/cc/png_usb_16px.c"            //IDR_PNG_usb_16px
+#include "res/cc/png_lan_16px.c"            //IDR_PNG_lan_16px
+#include "res/cc/png_wifi_16px.c"           //IDR_PNG_wifi_16px - unused
+#include "res/cc/png_info_16px.c"           //IDR_PNG_info_16px
+#include "res/cc/png_error_16px.c"          //IDR_PNG_error_16px
+#include "res/cc/png_warning_16px.c"        //IDR_PNG_warning_16px
+#include "res/cc/png_question_16px.c"       //IDR_PNG_question_16px
+#include "res/cc/png_sheets_profile_16px.c" //IDR_PNG_sheets_profile_16px
+#include "res/cc/png_nozzle_shape_48px.c"   //IDR_PNG_nozzle_shape_48px
 
 #include "res/cc/png_arrow_up_16px.c"         //IDR_PNG_arrow_up_16px
 #include "res/cc/png_arrow_down_16px.c"       //IDR_PNG_arrow_down_16px
@@ -77,10 +78,13 @@
 #include "res/cc/png_arrow_up_orange_8px.c"   //IDR_PNG_arrow_up_orange_8px
 #include "res/cc/png_arrow_down_orange_8px.c" //IDR_PNG_arrow_down_orange_8px
 
-#include "res/cc/png_serial_printing.c" //IDR_PNG_serial_printing
-#include "res/cc/png_switch_off_36px.c" //IDR_PNG_switch_off_36px
-#include "res/cc/png_switch_on_36px.c"  //IDR_PNG_switch_on_36px
-#include "res/cc/png_hand_qr.c"         //IDR_PNG_hand_qr
+#include "res/cc/png_serial_printing.c"     //IDR_PNG_serial_printing
+#include "res/cc/png_switch_off_36px.c"     //IDR_PNG_switch_off_36px
+#include "res/cc/png_switch_on_36px.c"      //IDR_PNG_switch_on_36px
+#include "res/cc/png_hand_qr.c"             //IDR_PNG_hand_qr
+#include "res/cc/png_exposure_times_48px.c" //IDR_PNG_exposure_times_48px
+#include "res/cc/png_usb_error.c"           //IDR_PNG_usb_error
+#include "res/cc/png_fan_error.c"           //IDR_PNG_fan_error
 
 #include "res/cc/png_flag_cs.c"
 #include "res/cc/png_flag_de.c"
@@ -90,7 +94,6 @@
 #include "res/cc/png_flag_it.c"
 #include "res/cc/png_flag_pl.c"
 
-#include "res/cc/png_sheets_profile_16px.c"
 RESOURCE_TABLE_BEGIN
 RESOURCE_ENTRY_NUL() //IDR_NULL
 //fonts
@@ -153,6 +156,7 @@ RESOURCE_ENTRY_PNG(png_info_16px)
 RESOURCE_ENTRY_PNG(png_error_16px)
 RESOURCE_ENTRY_PNG(png_warning_16px)
 RESOURCE_ENTRY_PNG(png_question_16px)
+RESOURCE_ENTRY_PNG(png_sheets_profile_16px)
 RESOURCE_ENTRY_PNG(png_nozzle_shape_48px)
 
 RESOURCE_ENTRY_PNG(png_arrow_up_16px)
@@ -170,6 +174,9 @@ RESOURCE_ENTRY_PNG(png_disconnect_48px)
 RESOURCE_ENTRY_PNG(png_switch_off_36px)
 RESOURCE_ENTRY_PNG(png_switch_on_36px)
 RESOURCE_ENTRY_PNG(png_hand_qr)
+RESOURCE_ENTRY_PNG(png_exposure_times_48px)
+RESOURCE_ENTRY_PNG(png_usb_error)
+RESOURCE_ENTRY_PNG(png_fan_error)
 
 RESOURCE_ENTRY_PNG(png_flag_cs)
 RESOURCE_ENTRY_PNG(png_flag_de)
@@ -178,5 +185,4 @@ RESOURCE_ENTRY_PNG(png_flag_es)
 RESOURCE_ENTRY_PNG(png_flag_fr)
 RESOURCE_ENTRY_PNG(png_flag_it)
 RESOURCE_ENTRY_PNG(png_flag_pl)
-RESOURCE_ENTRY_PNG(png_sheets_profile_16px)
 RESOURCE_TABLE_END

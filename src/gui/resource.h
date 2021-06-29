@@ -65,6 +65,7 @@ enum {
     IDR_PNG_error_16px,
     IDR_PNG_warning_16px,
     IDR_PNG_question_16px,
+    IDR_PNG_sheets_profile_16px,
     IDR_PNG_nozzle_shape_48px,
 
     IDR_PNG_arrow_up_16px,
@@ -82,6 +83,9 @@ enum {
     IDR_PNG_switch_off_36px,
     IDR_PNG_switch_on_36px,
     IDR_PNG_hand_qr,
+    IDR_PNG_exposure_times_48px,
+    IDR_PNG_usb_error,
+    IDR_PNG_fan_error,
 
     IDR_PNG_flag_cs,
     IDR_PNG_flag_de,
@@ -90,5 +94,4 @@ enum {
     IDR_PNG_flag_fr,
     IDR_PNG_flag_it,
     IDR_PNG_flag_pl,
-    IDR_PNG_sheet_profile,
 };

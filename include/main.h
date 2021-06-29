@@ -13,6 +13,8 @@ extern int HAL_PWM_Initialized;
 
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim12;
 extern RTC_HandleTypeDef hrtc;
 
 extern uartrxbuff_t uart1rxbuff;

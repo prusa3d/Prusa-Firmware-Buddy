@@ -1,6 +1,7 @@
 #include "DialogSelftestTemp.hpp"
 #include "i18n.h"
 #include "wizard_config.hpp"
+#include "selftest_heaters_type.hpp"
 
 static constexpr size_t icon_w = 20 + WizardDefaults::MarginRight;
 static constexpr size_t text_w = WizardDefaults::X_space - icon_w;
@@ -44,27 +45,16 @@ DialogSelftestTemp::DialogSelftestTemp()
     , icon_bed_heat(this, { col_1, row_bed_3 }) {
 }
 
-bool DialogSelftestTemp::change(uint8_t phs, uint8_t progress_tot, uint8_t progress_state) {
-    PhasesSelftestHeat test = GetEnumFromPhaseIndex<PhasesSelftestHeat>(phs);
-    SelftestSubtestState_t test_state = SelftestSubtestState_t(progress_state);
+bool DialogSelftestTemp::change(uint8_t phase, fsm::PhaseData data) {
+    SelftestHeaters_t dt(data);
 
-    switch (test) {
-    case PhasesSelftestHeat::noz_prep:
-        icon_noz_prep.SetState(test_state);
-        progress_noz.SetProgressPercent(progress_tot);
-        break;
-    case PhasesSelftestHeat::noz_heat:
-        icon_noz_heat.SetState(test_state);
-        progress_noz.SetProgressPercent(progress_tot);
-        break;
-    case PhasesSelftestHeat::bed_prep:
-        icon_bed_prep.SetState(test_state);
-        progress_bed.SetProgressPercent(progress_tot);
-        break;
-    case PhasesSelftestHeat::bed_heat:
-        icon_bed_heat.SetState(test_state);
-        progress_bed.SetProgressPercent(progress_tot);
-        break;
-    }
+    icon_noz_prep.SetState(dt.noz_prep_state);
+    icon_noz_heat.SetState(dt.noz_heat_state);
+    icon_bed_prep.SetState(dt.bed_prep_state);
+    icon_bed_heat.SetState(dt.bed_heat_state);
+
+    progress_noz.SetProgressPercent(dt.noz_progress);
+    progress_bed.SetProgressPercent(dt.bed_progress);
+
     return true;
 };

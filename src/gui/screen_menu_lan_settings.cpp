@@ -212,13 +212,11 @@ public:
 /*****************************************************************************/
 //parent alias
 using MenuContainer = WinMenuContainer<MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
-inline uint16_t get_help_h() {
-    //I have no clue why +1, should be + GuiDefaults::Padding.top + GuiDefaults::Padding.bottom
-    return 8 * (resource_font(IDR_FNT_SPECIAL)->h + 1);
-}
 
 class ScreenMenuLanSettings : public AddSuperWindow<screen_t> {
     constexpr static const char *label = N_("LAN SETTINGS");
+    static constexpr size_t helper_lines = 8;
+    static constexpr int helper_font = IDR_FNT_SPECIAL;
 
     MenuContainer container;
     window_menu_t menu;
@@ -235,15 +233,19 @@ public:
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
+    static inline uint16_t get_help_h() {
+        return helper_lines * (resource_font(helper_font)->h);
+    }
 };
 
 ScreenMenuLanSettings::ScreenMenuLanSettings()
-    : AddSuperWindow<screen_t>(nullptr, GuiDefaults::RectScreen, win_type_t::normal, is_closed_on_timeout_t::no)
-    , menu(this, GuiDefaults::RectScreenBodyNoFoot - Rect16::Height_t(get_help_h()), &container)
+    : AddSuperWindow<screen_t>(nullptr, win_type_t::normal, is_closed_on_timeout_t::no)
+    , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
-    , help(this, Rect16(GuiDefaults::RectScreen.Left(), GuiDefaults::RectScreen.Height() - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {
+    , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {
     header.SetText(_(label));
-    help.font = resource_font(IDR_FNT_SPECIAL);
+    help.font = resource_font(helper_font);
     menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);        // set capture to list
 

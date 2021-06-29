@@ -40,23 +40,21 @@ extern int marlin_client_id(void);
 extern void marlin_client_wait_for_start_processing(void);
 
 //sets dialog callback, returns 1 on success
-extern int marlin_client_set_fsm_create_cb(fsm_create_t cb);
-//sets dialog callback, returns 1 on success
-extern int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb);
-//sets dialog callback, returns 1 on success
-extern int marlin_client_set_fsm_change_cb(fsm_change_t cb);
+extern int marlin_client_set_fsm_cb(fsm_cb_t cb);
 //sets dialog message, returns 1 on success
 extern int marlin_client_set_message_cb(message_cb_t cb);
 //sets dialog message, returns 1 on success
 extern int marlin_client_set_warning_cb(warning_cb_t cb);
+//sets startup callback, returns 1 on success
+extern int marlin_client_set_startup_cb(startup_cb_t cb);
 // returns enabled status of loop processing
 extern int marlin_processing(void);
 
 //sets event notification mask
-extern void marlin_client_set_event_notify(uint64_t notify_events);
+extern void marlin_client_set_event_notify(uint64_t notify_events, void (*cb)());
 
 //sets variable change notification mask
-extern void marlin_client_set_change_notify(uint64_t notify_changes);
+extern void marlin_client_set_change_notify(uint64_t notify_changes, void (*cb)());
 
 // returns currently running command or MARLIN_CMD_NONE
 extern uint32_t marlin_command(void);
@@ -184,6 +182,10 @@ extern void marlin_print_pause(void);
 extern void marlin_print_resume(void);
 
 extern void marlin_park_head(void);
+
+extern void marlin_notify_server_about_encoder_move(void);
+
+extern void marlin_notify_server_about_knob_click(void);
 
 // returns 1 if reheating is in progress, otherwise 0
 extern int marlin_reheating(void);

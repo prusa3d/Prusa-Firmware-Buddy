@@ -29,16 +29,6 @@ void PrusaGcodeSuite::M50() {
     }
 
     {
-        FSM_Holder D(ClientFSM::SelftestFans, 0); //create dialog and destroy it at the end of scope
-        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, 0, uint8_t(SelftestSubtestState_t::running));
-        do_blocking_move_to_z(10, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, 30, uint8_t(SelftestSubtestState_t::ok));
-        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, 80, uint8_t(SelftestSubtestState_t::running));
-        do_blocking_move_to_z(0, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, 100, uint8_t(SelftestSubtestState_t::not_good));
-        do_blocking_move_to_z(10, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-    }
-    {
         FSM_Holder D(ClientFSM::SelftestAxis, 0);
         const float target_Z = 20;
         Z_Calib_FSM N(ClientFSM::SelftestAxis, GetPhaseIndex(PhasesG162::Parking), current_position.z, target_Z, 0, 100); //bind to variable and automatically notify progress

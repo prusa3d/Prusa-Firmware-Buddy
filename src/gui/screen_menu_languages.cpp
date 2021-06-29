@@ -26,8 +26,8 @@ protected:
     }
     virtual uint16_t LangCode() const = 0;
 
-    virtual void printIcon(Rect16 icon_rect, uint8_t swap, color_t color_back) const override {
-        render_unswapable_icon_align(icon_rect, id_icon, color_back, RENDER_FLG(ALIGN_CENTER, swap));
+    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const override {
+        render_unswapable_icon_align(icon_rect, id_icon, color_back, icon_flags(Align_t::Center(), raster_op));
     }
 };
 
@@ -113,7 +113,7 @@ protected:
 
 /*****************************************************************************/
 //parent alias
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using Screen = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
 class ScreenMenuLanguages : public Screen {
 public:
@@ -129,7 +129,7 @@ ScreenFactory::UniquePtr GetScreenMenuLanguages() {
 
 /*****************************************************************************/
 //parent alias
-using Screen_noReturn = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using Screen_noReturn = ScreenMenu<EFooter::Off, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
 class ScreenMenuLanguagesNoRet : public Screen_noReturn {
 public:
