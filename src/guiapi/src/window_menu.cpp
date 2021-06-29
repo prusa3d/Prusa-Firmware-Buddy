@@ -231,8 +231,7 @@ void window_menu_t::unconditionalDraw() {
         index = 0;
         top_index = 0;
         moveIndex = 0;
-        redrawWholeMenu();
-        return;
+        redrawAll = true;
     }
 
     if (redrawAll) {
