@@ -31,8 +31,8 @@ class ScreenMenuOdometer : public AddSuperWindow<screen_t> {
     window_numb_t e_val;
 
     static float getVal(int index) {
-        odometer_s.force_to_eeprom();
-        return odometer_s.get(index) * .001f;
+        Odometer_s::instance().force_to_eeprom();
+        return Odometer_s::instance().get(index) * .001f;
     }
 
 public:

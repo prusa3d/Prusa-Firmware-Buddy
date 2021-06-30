@@ -60,7 +60,7 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
         marlin_gcode("M104 S0 D0"); /// set temperatures to zero
         marlin_gcode("M140 S0");    /// set temperatures to zero
         marlin_gcode("M107");       /// print fan off.
-        odometer_s.force_to_eeprom();
+        Odometer_s::instance().force_to_eeprom();
         return;
     }
     if (connection == connection_state_t::disconnected) {

@@ -38,5 +38,3 @@ public:
 private:
     ~Odometer_s() {}
 };
-
-extern Odometer_s &odometer_s;

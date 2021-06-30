@@ -6,7 +6,6 @@
 #include "cmath_ext.h"
 #include "eeprom.h"
 
-Odometer_s &odometer_s(Odometer_s::instance());
 static const constexpr int E_AXIS = 3;
 
 void Odometer_s::force_to_eeprom() {
