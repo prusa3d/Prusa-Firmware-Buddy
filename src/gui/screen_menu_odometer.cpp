@@ -8,61 +8,54 @@
 #include "i18n.h"
 #include "odometer.hpp"
 
-//static const constexpr HelperConfig HelpCfg = { 10, IDR_FNT_NORMAL };
-enum : int {
-    TEXT_MAX_LENGTH = 150
-};
+using MenuContainer = WinMenuContainer<MI_RETURN>;
 
-using Screen = ScreenMenu<EFooter::On, /* HelpCfg,*/ MI_RETURN>;
+class ScreenMenuOdometer : public AddSuperWindow<screen_t> {
+    static constexpr const char *label = N_("ODOMETER");
+    static const constexpr char *x_text = N_("X axis");
+    static const constexpr char *y_text = N_("Y axis");
+    static const constexpr char *z_text = N_("Z axis");
+    static const constexpr char *e_text = N_("Filament");
+    static const constexpr char *val_format = "%0.1f m"; //do not translate
 
-class ScreenMenuOdometer : public Screen {
-    char text[TEXT_MAX_LENGTH];
+    MenuContainer container;
+    window_menu_t menu;
+    window_header_t header;
+    window_text_t x_txt;
+    window_text_t y_txt;
+    window_text_t z_txt;
+    window_text_t e_txt;
+    window_numb_t x_val;
+    window_numb_t y_val;
+    window_numb_t z_val;
+    window_numb_t e_val;
+
+    static float getVal(int index) {
+        odometer_s.force_to_eeprom();
+        return odometer_s.get(index) * .001f;
+    }
 
 public:
-    static const constexpr char *label = N_("ODOMETER");
     ScreenMenuOdometer();
 };
 
-int first_decimal(float f) {
-    return (int)(f * 10) % 10;
-}
-
 ScreenMenuOdometer::ScreenMenuOdometer()
-    : Screen(_(label)) {
-
+    : AddSuperWindow<screen_t>(nullptr, win_type_t::normal, is_closed_on_timeout_t::no)
+    , menu(this, Rect16(GuiDefaults::RectScreenBody) = Rect16::Height_t(30), &container)
+    , header(this)
+    , x_txt(this, Rect16(menu.Left(), menu.GetRect().EndPoint().y, menu.Width() / 2, resource_font(IDR_FNT_BIG)->h), is_multiline::no, is_closed_on_click_t::no, string_view_utf8(_(x_text)))
+    , y_txt(this, Rect16(x_txt.GetRect(), ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8(_(y_text)))
+    , z_txt(this, Rect16(y_txt.GetRect(), ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8(_(z_text)))
+    , e_txt(this, Rect16(z_txt.GetRect(), ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8(_(e_text)))
+    , x_val(this, Rect16(x_txt.GetRect(), ShiftDir_t::Right), getVal(0), val_format)
+    , y_val(this, Rect16(x_val.GetRect(), ShiftDir_t::Bottom), getVal(1), val_format)
+    , z_val(this, Rect16(y_val.GetRect(), ShiftDir_t::Bottom), getVal(2), val_format)
+    , e_val(this, Rect16(z_val.GetRect(), ShiftDir_t::Bottom), getVal(3), val_format) {
+    header.SetText(_(label));
     header.SetIcon(IDR_PNG_info_16px);
-    odometer_s.force_to_eeprom();
-    const float x = odometer_s.get(0) * .001f;
-    const float y = odometer_s.get(1) * .001f;
-    const float z = odometer_s.get(2) * .001f;
-    const float e = odometer_s.get(3) * .001f;
 
-    static const constexpr char *filament_text = N_("Filament");
-    string_view_utf8 filament_view = _(filament_text);
-    const constexpr int transl_size = 30;
-    char filament_text_translated[transl_size];
-    filament_view.copyToRAM(filament_text_translated, transl_size);
-    const int transl_length = filament_view.computeNumUtf8CharsAndRewind();
-
-    const int padding = 1 + transl_length;
-    char pad[30];
-    int i = 0;
-    for (; i < MIN(29, padding); ++i)
-        pad[i] = ' ';
-    pad[i] = 0;
-
-    int written = snprintf(text, TEXT_MAX_LENGTH, "X%s%d.%.1d m\n\nY%s%d.%.1d m\n\nZ%s%d.%.1d m\n\n", pad, (int)x, first_decimal(x), pad, (int)y, first_decimal(y), pad, (int)z, first_decimal(z));
-    if (written < 0)
-        return;
-
-    int written2 = snprintf(text + written, TEXT_MAX_LENGTH - written, "%s", filament_text_translated);
-    if (written2 < 0)
-        return;
-    written += written2;
-    snprintf(text + written, TEXT_MAX_LENGTH - written, " %d.%.1d m", (int)e, first_decimal(e));
-
-    // this MakeRAM is safe
-    //help.SetText(string_view_utf8::MakeRAM((const uint8_t *)text));
+    menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
+    CaptureNormalWindow(menu);        // set capture to list
 }
 
 ScreenFactory::UniquePtr GetScreenMenuOdometer() {
