@@ -28,6 +28,8 @@
 #include "driver/gpio.h"
 
 #include "netif/bridgeif.h"
+#include "driver/uart.h"
+
 
 
 /* The examples use WiFi configuration that you can set via project configuration menu
@@ -151,12 +153,15 @@ void wifi_init_sta(void) {
     /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
      * happened. */
     if (bits & WIFI_CONNECTED_BIT) {
+        printf("WIFI CONNECTED");
         ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
     } else if (bits & WIFI_FAIL_BIT) {
+        printf("WIFI FAILED TO CONNECT");
         ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
     } else {
+        printf("!!!! UNEXPECTED");
         ESP_LOGE(TAG, "UNEXPECTED EVENT");
     }
 
@@ -229,6 +234,21 @@ static err_t dummy_out(struct netif *netif, struct pbuf *p) {
 static void output_rx_thread(void *arg) {
     printf("RX THREAD ENTRY\n");
 
+        // Configure parameters of an UART driver,
+    // communication pins and install the driver
+    uart_config_t uart_config = {
+        .baud_rate = 9600,
+        .data_bits = UART_DATA_8_BITS,
+        .parity    = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
+    };
+    uart_param_config(UART_NUM_0, &uart_config);
+    uart_driver_install(UART_NUM_0, 1024 * 2, 0, 0, NULL, 0);
+
+
+    printf("UART REINITIALIZED");
+
     static char* CMD = "AT+OUTPUT:";
     static const int CMD_LEN = 10;
 
@@ -236,13 +256,16 @@ static void output_rx_thread(void *arg) {
 
     for(;;) {
         char c;
-        read(0, &c, 1);
+     //   read(0, &c, 1);
+        int read = uart_read_bytes(UART_NUM_0, (uint8_t*)&c, 1, 20 / portTICK_RATE_MS);
+     //   printf("READ: %c (%d), len: %d\n", c, (int)c, read);
+
 
         if(state < CMD_LEN) {
             if(CMD[state] == c) {
                 state++;
+      //          printf("S: %d, C: %c (%d)\n", state, c, (int)c);
                 if(state != CMD_LEN) {
-                    //printf("STATE: %d, CHAR: %c\n", state, c);
                     continue;
                 }
             } else {
@@ -258,34 +281,46 @@ static void output_rx_thread(void *arg) {
             char c = 0;
             uint len = 0;
 
+        //    printf("READING LEN\n");
+
             while(c != ',') {
-                read(0, &c, 1);
+                uart_read_bytes(UART_NUM_0, (uint8_t*)&c, 1, 20 / portTICK_RATE_MS);
                 if(c >= '0' && c <= '9') {
                     len = len * 10 + c - '0';
                 }
             }
 
-            //printf("READING PACKET LEN: %d\n", len);
+        //    printf("READING PACKET LEN: %d\n", len);
 
             char *buff = (char*)malloc(len);
 
-            /*
-            int rrr = read(0, buff, len);
+            
+            /*int rrr = read(0, buff, len);
             if(rrr != len) {
                 printf("FAILED TO READ ALL DATA: %d\n", rrr);
             }*/
-            for(uint i = 0 ;i < len; ++i) {
-                int rrr = read(0, &((char*)buff)[i], 1);
-                if(rrr != 1) {
-                    printf("FAILED TOR EAD SINGLE: %d\n", rrr);
-                }
+           
+           /* for(uint i = 0 ;i < len; ++i) {
+                int rrr = -1;
+                while(rrr == -1) {
+                    rrr = read(0, &((char*)buff)[i], 1);
+                    if(rrr != 1) {
+                        printf("FAILED TO READ SINGLE: %d\n", rrr);
+                    }
+                }                
+            }*/
+
+            int rrr = uart_read_bytes(UART_NUM_0, (uint8_t*)buff, len, 20 / portTICK_RATE_MS);
+            if(rrr < 0) {
+                printf("FAILED TO READ MESSAGE DATA\n");
             }
 
-          /*  printf("\nREAD: ");
+
+            printf("\nREAD: ");
             for(uint i = 0; i < len; ++i) {
                 printf("%d ", buff[i]);
             }
-            printf("\n");*/
+            printf("\n");
 
             if(out && wifi_net_if) {
                 struct pbuf *p = pbuf_alloc(PBUF_RAW_TX, len, PBUF_RAM);
@@ -325,5 +360,6 @@ void app_main() {
 #endif /* LWIP_NETIF_STATUS_CALLBACK */
 
 //     sys_thread_new("pppos_rx_thread", pppos_rx_thread, NULL, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
-	xTaskCreate(&output_rx_thread, "output_rx_thread", 2048, NULL, tskIDLE_PRIORITY, NULL);
+    printf("Creating RX thread");
+	xTaskCreate(&output_rx_thread, "output_rx_thread", 2048, NULL, tskIDLE_PRIORITY + 5, NULL);
 }

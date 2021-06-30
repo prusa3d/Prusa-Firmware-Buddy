@@ -24,7 +24,12 @@ ifr = struct.pack(b'16sH', iface, IFF_TAP | IFF_NO_PI)
 fcntl.ioctl(tap, TUNSETIFF, ifr)
 fcntl.ioctl(tap, TUNSETOWNER, 1000)
 
-ser = serial.Serial('/dev/ttyUSB0', 115200)
+
+os.system("ip link set tap0 address bc:dd:c2:6b:61:82")
+os.system("ip link set tap0 up")
+
+
+ser = serial.Serial('/dev/ttyUSB0', 9600)
 
 
 def serial_thread():
@@ -65,7 +70,7 @@ def serial_thread():
             # print(f"READING PACKET LEN: {len}\n")
 
             packet = ser.read(len)
-            print(f"SER READ PACKET: {packet.hex()}")
+            print(f"SIN : {packet.hex()}")
             try:
                 os.write(tap, packet)
             except IOError:
@@ -75,12 +80,13 @@ def serial_thread():
 
 Thread(target=serial_thread, daemon=True).start()
 
+print("Reading tap device")
 while True:
     packet = os.read(tap, 2048)
-    print(f"TAP READ PACKET: {packet.hex()}")
+    print(f"SOUT: {packet.hex()}")
 
     out = b"\nAT+OUTPUT:" + str(len(packet)).encode() + b"," + packet
-    print(f"SER WRITE MESSAGE: {out}")
+    # print(f"SOUT MESSAGE: {out}")
     ser.write(out)
 
     # os.write(tap.fileno(), b''.join(packet))
