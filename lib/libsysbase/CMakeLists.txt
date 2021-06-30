@@ -14,6 +14,7 @@ add_library(
   lstat.c
   mkdir.c
   open.c
+  path.c
   read.c
   rename.c
   rmdir.c
