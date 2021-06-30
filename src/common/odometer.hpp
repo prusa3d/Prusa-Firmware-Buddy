@@ -1,12 +1,18 @@
 // odometer.hpp
 
-enum {
-    ODOMETER_AXES = 4,
-};
-
 /// Singleton class that measures
 /// distance traveled and filament consumed
 class Odometer_s {
+public:
+    enum class axis_t {
+        X,
+        Y,
+        Z,
+        E,
+        count_
+    };
+    static constexpr size_t axis_count = size_t(axis_t::count_);
+
 private:
     Odometer_s() {}
 
@@ -14,7 +20,7 @@ private:
     /// extruder trip counts length of filament used (not moved)
     /// new values are stored to RAM (fast, unlimited writes)
     /// it should be stored to EEPROM after a while (slow, limited number of writes)
-    float trip_xyze[ODOMETER_AXES];
+    float trip_xyze[axis_count];
 
 public:
     /// saves values to EEPROM if they are not zero
@@ -22,9 +28,9 @@ public:
     /// save new movement
     void add_value(int axis, float value);
     /// read values from EEPROM
-    float get_from_eeprom(int axis);
+    float get_from_eeprom(axis_t axis);
     /// \returns a value of the specific axis
-    float get(int axis);
+    float get(axis_t axis);
 
     /// Mayer's singleton must have part
 public:
