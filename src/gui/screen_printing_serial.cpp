@@ -9,6 +9,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "screen_menus.hpp"
+#include "odometer.hpp"
 
 //octo icon
 static point_ui16_t pt_ico() { return icon_meas(resource_ptr(IDR_PNG_serial_printing)); }
@@ -62,6 +63,7 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
         marlin_gcode("M104 S0 D0"); /// set temperatures to zero
         marlin_gcode("M140 S0");    /// set temperatures to zero
         marlin_gcode("M107");       /// print fan off.
+        Odometer_s::instance().force_to_eeprom();
         return;
     }
     if (connection == connection_state_t::disconnected) {

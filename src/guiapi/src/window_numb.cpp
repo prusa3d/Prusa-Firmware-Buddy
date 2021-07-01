@@ -73,7 +73,7 @@ window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const c
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , value(value)
-    , format("%.0f")
+    , format(frmt == nullptr ? "%.0f" : frmt)
     , padding(GuiDefaults::Padding) {
     PrintAsFloat();
 }

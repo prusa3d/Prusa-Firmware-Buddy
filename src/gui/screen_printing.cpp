@@ -10,6 +10,7 @@
 #include "wui_api.h"
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"
+#include "odometer.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.hpp"
@@ -553,4 +554,6 @@ void screen_printing_data_t::change_print_state() {
         set_tune_icon_and_label();
         set_stop_icon_and_label();
     }
+    if (st == printing_state_t::PRINTED || st == printing_state_t::PAUSED)
+        Odometer_s::instance().force_to_eeprom();
 }
