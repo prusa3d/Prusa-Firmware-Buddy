@@ -552,6 +552,7 @@ target_sources(
           src/common/wui_api.c
           src/common/z_calibration_fsm.cpp
           src/common/scratch_buffer.cpp
+          src/common/odometer.cpp
           src/common/footer_eeprom.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
@@ -647,6 +648,7 @@ if(GUI)
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_menu_languages.cpp
             src/gui/screen_menu_sensor_info.cpp
+            src/gui/screen_menu_odometer.cpp
             src/gui/screen_qr_error.cpp
             src/gui/screen_menu_hw_setup.cpp
             src/gui/screen_menu_steel_sheets.cpp

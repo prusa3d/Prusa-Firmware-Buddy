@@ -25,6 +25,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_ODOMETER : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Odometer");
+
+public:
+    MI_ODOMETER();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_FILAMENT : public WI_LABEL_t {
     static constexpr const char *const label = N_("Filament");
 
