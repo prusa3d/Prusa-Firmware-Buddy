@@ -56,6 +56,7 @@
 #include "translator.hpp"
 
 /// Translate the surrounded text. Does not alter the content. Provides proper translation at the output.
+/// If translation not available, returns the same text.
 #define _(String) gettext(String)
 
 /// This just marks the text to be translated (extracted by gettext tools). Does not alter its content.
