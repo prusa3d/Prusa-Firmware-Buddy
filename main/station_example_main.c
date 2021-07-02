@@ -310,9 +310,15 @@ static void output_rx_thread(void *arg) {
                 }                
             }*/
 
-            int rrr = uart_read_bytes(UART_NUM_0, (uint8_t*)buff, len, 20 / portTICK_RATE_MS);
-            if(rrr < 0) {
+            int trr = 0;
+            while(trr < len) {
+                trr += uart_read_bytes(UART_NUM_0, ((uint8_t*)buff) + trr, len - trr, 20 / portTICK_RATE_MS);
+            }
+            if(trr < 0) {
                 printf("FAILED TO READ MESSAGE DATA\n");
+            }
+            if(trr != len) {
+                printf("READ %d != %d expected\n", trr, len);
             }
 
 

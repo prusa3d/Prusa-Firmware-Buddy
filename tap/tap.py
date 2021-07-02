@@ -88,14 +88,7 @@ while True:
     out = b"\nAT+OUTPUT:" + str(len(packet)).encode() + b"," + packet
     # print(f"SOUT MESSAGE: {out}")
     ser.write(out)
-
-    # os.write(tap.fileno(), b''.join(packet))
-    # tap.write(packet)
-
-
-#    tun.write("XXXXXXXXXXXXXXXXXX")
-    # os.write(tun.fileno(), b"XXXXXXXXXXXXXXXXXXXXXXXX")
-    # sleep(1)
+    ser.flush()
 
 tap.close()
 
