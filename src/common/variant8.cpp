@@ -97,13 +97,15 @@ variant8_t variant8_init(uint8_t type, uint16_t count, void const *pdata) {
     } else if ((count > 1) && (type & VARIANT8_PTR)) {
         size = variant8_type_size(type & ~VARIANT8_PTR) * count;
         var8 = _VARIANT8_TYPE(type, 0, .size = size, 0);
-        if (size && pdata) {
+        if (size) {
             var8.ptr = variant8_malloc(size);
             if (var8.ptr) {
-                memcpy(var8.ptr, pdata, size);
                 var8.type |= VARIANT8_PTR_OWNER;
             } else
                 return variant8_error(VARIANT8_ERR_MALLOC, 0, 0);
+        }
+        if (pdata) {
+            memcpy(var8.ptr, pdata, size);
         }
     } else
         return variant8_error(VARIANT8_ERR_UNSTYP, 0, 0);
