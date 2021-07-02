@@ -316,9 +316,9 @@ static void output_rx_thread(void *arg) {
             }
 
 
-            printf("\nREAD: ");
+            printf("\nREAD:  ");
             for(uint i = 0; i < len; ++i) {
-                printf("%d ", buff[i]);
+                printf("%02x", buff[i]);
             }
             printf("\n");
 
