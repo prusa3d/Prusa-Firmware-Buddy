@@ -457,6 +457,7 @@ target_link_libraries(
           Arduino::LiquidCrystal
           LwIP
           FatFs
+          littlefs
           lpng
           STM32::USBHost
           STM32::USBDevice
