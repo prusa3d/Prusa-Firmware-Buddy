@@ -109,25 +109,25 @@ extern "C" {
     /*----- Value in opt.h for LWIP_STATS: 1 -----*/
     #define LWIP_STATS 0
     /*----- Value in opt.h for CHECKSUM_GEN_IP: 1 -----*/
-    #define CHECKSUM_GEN_IP 0
+    #define CHECKSUM_GEN_IP 1
     /*----- Value in opt.h for CHECKSUM_GEN_UDP: 1 -----*/
-    #define CHECKSUM_GEN_UDP 0
+    #define CHECKSUM_GEN_UDP 1
     /*----- Value in opt.h for CHECKSUM_GEN_TCP: 1 -----*/
-    #define CHECKSUM_GEN_TCP 0
+    #define CHECKSUM_GEN_TCP 1
     /*----- Value in opt.h for CHECKSUM_GEN_ICMP: 1 -----*/
-    #define CHECKSUM_GEN_ICMP 0
+    #define CHECKSUM_GEN_ICMP 1
     /*----- Value in opt.h for CHECKSUM_GEN_ICMP6: 1 -----*/
-    #define CHECKSUM_GEN_ICMP6 0
+    #define CHECKSUM_GEN_ICMP6 1
     /*----- Value in opt.h for CHECKSUM_CHECK_IP: 1 -----*/
-    #define CHECKSUM_CHECK_IP 0
+    #define CHECKSUM_CHECK_IP 1
     /*----- Value in opt.h for CHECKSUM_CHECK_UDP: 1 -----*/
-    #define CHECKSUM_CHECK_UDP 0
+    #define CHECKSUM_CHECK_UDP 1
     /*----- Value in opt.h for CHECKSUM_CHECK_TCP: 1 -----*/
-    #define CHECKSUM_CHECK_TCP 0
+    #define CHECKSUM_CHECK_TCP 1
     /*----- Value in opt.h for CHECKSUM_CHECK_ICMP: 1 -----*/
-    #define CHECKSUM_CHECK_ICMP 0
+    #define CHECKSUM_CHECK_ICMP 1
     /*----- Value in opt.h for CHECKSUM_CHECK_ICMP6: 1 -----*/
-    #define CHECKSUM_CHECK_ICMP6 0
+    #define CHECKSUM_CHECK_ICMP6 1
     /*-----------------------------------------------------------------------------*/
     /* USER CODE BEGIN 1 */
     #define HTTPD_USE_CUSTOM_FSDATA 1 // uses the web resources from fsdata_custom.c (buddy web pages)
