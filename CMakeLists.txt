@@ -490,6 +490,7 @@ target_sources(
           src/littlefs.c
           src/filesystem.c
           src/filesystem_fatfs.c
+          src/filesystem_littlefs.c
           src/filesystem_root.c
           src/libsysbase_syscalls.c
           src/usb_host.c
