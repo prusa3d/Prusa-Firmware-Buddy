@@ -535,11 +535,42 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
             { // these vars must be destroyed before label _e_1
                 uint16_t w = png_get_image_width(pp, ppi);
                 uint16_t h = png_get_image_height(pp, ppi);
+
                 int rowsize = png_get_rowbytes(pp, ppi);
+                int pixsize = rowsize / w;
+
+                //check image type (indexed or other color type)
+                png_byte colorType = png_get_color_type(pp, ppi);
+
+                switch (colorType) {
+                case PNG_COLOR_TYPE_GRAY:
+                    //transform grayscale image to rgb 24 color depth
+                    png_set_gray_to_rgb(pp);
+                    //pixel size is 3 bytes
+                    pixsize = 3;
+                    //check if alpha chanell is present if yes then add it and increase pixelSize
+                    if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
+                        png_set_tRNS_to_alpha(pp);
+                        pixsize += 1;
+                    }
+                    break;
+                case PNG_COLOR_TYPE_PALETTE:
+                    //bit depth in palette is always 8 bits per sample (24 bits per color) so pixel size is 3 bytes
+                    pixsize = 3;
+                    png_set_palette_to_rgb(pp);
+                    //check if alpha chanell is present if yes then add it and increase pixelSize
+                    if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
+                        png_set_tRNS_to_alpha(pp);
+                        pixsize += 1;
+                    }
+                    break;
+                default:
+                    break;
+                }
+
                 //_dbg("display_ex_draw_png rowsize = %i", rowsize);
                 if (rowsize > ST7789V_COLS * 4)
                     goto _e_1;
-                int pixsize = rowsize / w;
                 //_dbg("display_ex_draw_png pixsize = %i", pixsize);
                 int i;
                 int j;
@@ -556,8 +587,12 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                 for (i = 0; i < h; i++) {
                     png_read_row(pp, st7789v_buff, NULL);
                     for (j = 0; j < w; j++) {
-                        uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
-                        uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
+                        uint16_t *ppx565;
+                        uint8_t *ppx888;
+
+                        ppx565 = (uint16_t *)(st7789v_buff + j * 2);
+                        ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
+
                         if (pixsize == 4) { //RGBA
                             *((uint32_t *)ppx888) = color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
                         }
