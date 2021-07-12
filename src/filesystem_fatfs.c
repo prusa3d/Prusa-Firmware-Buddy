@@ -196,21 +196,6 @@ static FILINFO get_fatfs_time(
 }
 #endif
 
-static inline const char *process_path(const char *path) {
-    unsigned int dev_name_len = strlen(devoptab_fatfs.name);
-    const char *device_path = path;
-    while (*device_path == '/') {
-        // Skip leading space
-        device_path++;
-    }
-    if (strncmp(device_path, devoptab_fatfs.name, dev_name_len) == 0) {
-        // Skip device name
-        return device_path + dev_name_len;
-    }
-    // Device name not in the path, don't do any change
-    return path;
-}
-
 static int open_r(struct _reent *r, void *fileStruct, const char *path, int flags, int mode) {
     PREPARE_FIL_EX(f, fileStruct);
     FRESULT result;
@@ -220,7 +205,7 @@ static int open_r(struct _reent *r, void *fileStruct, const char *path, int flag
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     int ff_mode = get_fatfs_mode(flags);
 
@@ -395,7 +380,7 @@ static int stat_r(struct _reent *r, const char *path, struct stat *st) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_stat(path, &finfo);
     if (result != FR_OK) {
@@ -465,7 +450,7 @@ static int unlink_r(struct _reent *r, const char *path) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_unlink(path);
     r->_errno = get_errno(result);
@@ -485,7 +470,7 @@ static int chdir_r(struct _reent *r, const char *path) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_chdir(path);
     r->_errno = get_errno(result);
@@ -505,8 +490,8 @@ static int rename_r(struct _reent *r, const char *oldName, const char *newName) 
         return -1;
     }
 
-    oldName = process_path(oldName);
-    newName = process_path(newName);
+    oldName = process_path(oldName, devoptab_fatfs.name);
+    newName = process_path(newName, devoptab_fatfs.name);
 
     result = f_rename(oldName, newName);
     r->_errno = get_errno(result);
@@ -530,7 +515,7 @@ static int chmod_r(struct _reent *r, const char *path, mode_t mode) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     BYTE attr = (mode & IS_IWALL) ? 0 : AM_RDO; // Read only when no write enabled
     // Ignoring Archive, System and Hidden attributes
@@ -566,7 +551,7 @@ static int mkdir_r(struct _reent *r, const char *path, int mode) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_mkdir(path);
     errno = get_errno(result);
@@ -597,7 +582,7 @@ static DIR_ITER *diropen_r(struct _reent *r, DIR_ITER *dirState, const char *pat
         return NULL;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_opendir(dirState->dirStruct, path);
     r->_errno = get_errno(result);
@@ -666,7 +651,7 @@ static int statvfs_r(struct _reent *r, const char *path, struct statvfs *buf) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_getfree(path, &free_clst, &ff);
     if (result != FR_OK) {
