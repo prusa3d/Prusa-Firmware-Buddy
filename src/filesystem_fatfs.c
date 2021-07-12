@@ -330,10 +330,6 @@ static ssize_t read_r(struct _reent *r, void *fileStruct, char *ptr, size_t len)
         return -1;
     }
 
-    if (f->flags & FLAG_SYNC) {
-        fsync_r(r, fileStruct);
-    }
-
     return bytes_read;
 }
 
