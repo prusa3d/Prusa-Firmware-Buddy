@@ -461,10 +461,24 @@ static int link_r(struct _reent *r, const char *existing, const char *newLink) {
     return -1;
 }
 
-static int unlink_r(struct _reent *r, const char *name) {
-    // Links are not supported on FAT
-    r->_errno = ENOTSUP;
-    return -1;
+static int unlink_r(struct _reent *r, const char *path) {
+    FRESULT result;
+
+    if (IS_EMPTY(path)) {
+        r->_errno = EINVAL;
+        return -1;
+    }
+
+    path = process_path(path, devoptab_fatfs.name);
+
+    result = f_unlink(path);
+    r->_errno = get_errno(result);
+
+    if (result != FR_OK) {
+        return -1;
+    }
+
+    return 0;
 }
 
 static int chdir_r(struct _reent *r, const char *path) {
@@ -717,23 +731,7 @@ static int ftruncate_r(struct _reent *r, void *fileStruct, off_t len) {
 }
 
 static int rmdir_r(struct _reent *r, const char *path) {
-    FRESULT result;
-
-    if (IS_EMPTY(path)) {
-        r->_errno = EINVAL;
-        return -1;
-    }
-
-    path = process_path(path);
-
-    result = f_unlink(path);
-    r->_errno = get_errno(result);
-
-    if (result != FR_OK) {
-        return -1;
-    }
-
-    return 0;
+    return unlink_r(r, path);
 }
 
 static int lstat_r(struct _reent *r, const char *file, struct stat *st) {
