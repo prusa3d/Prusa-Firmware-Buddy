@@ -465,7 +465,7 @@ static int unlink_r(struct _reent *r, const char *path) {
         return -1;
     }
 
-    path = process_path(path, devoptab_fatfs.name);
+    path = process_path(path);
 
     result = f_unlink(path);
     r->_errno = get_errno(result);

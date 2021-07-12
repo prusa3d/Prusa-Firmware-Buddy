@@ -487,6 +487,7 @@ target_sources(
           src/stm32f4xx_hal_msp.c
           src/stm32f4xx_it.c
           src/fatfs.c
+          src/littlefs.c
           src/filesystem.c
           src/filesystem_fatfs.c
           src/filesystem_root.c
