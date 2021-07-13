@@ -548,7 +548,7 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                     png_set_gray_to_rgb(pp);
                     //pixel size is 3 bytes
                     pixsize = 3;
-                    //check if alpha chanell is present if yes then add it and increase pixelSize
+                    //check if alpha chanel is present if yes then add it and increase pixelSize
                     if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
                         png_set_tRNS_to_alpha(pp);
                         pixsize += 1;
@@ -558,7 +558,7 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                     //bit depth in palette is always 8 bits per sample (24 bits per color) so pixel size is 3 bytes
                     pixsize = 3;
                     png_set_palette_to_rgb(pp);
-                    //check if alpha chanell is present if yes then add it and increase pixelSize
+                    //check if alpha chanel is present if yes then add it and increase pixelSize
                     if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
                         png_set_tRNS_to_alpha(pp);
                         pixsize += 1;
@@ -587,11 +587,9 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                 for (i = 0; i < h; i++) {
                     png_read_row(pp, st7789v_buff, NULL);
                     for (j = 0; j < w; j++) {
-                        uint16_t *ppx565;
-                        uint8_t *ppx888;
 
-                        ppx565 = (uint16_t *)(st7789v_buff + j * 2);
-                        ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
+                        uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
+                        uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
 
                         if (pixsize == 4) { //RGBA
                             *((uint32_t *)ppx888) = color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
