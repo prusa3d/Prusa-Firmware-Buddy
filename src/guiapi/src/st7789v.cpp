@@ -548,7 +548,7 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                     png_set_gray_to_rgb(pp);
                     //pixel size is 3 bytes
                     pixsize = 3;
-                    //check if alpha chanel is present if yes then add it and increase pixelSize
+                    //check if alpha channel is present if yes then add it and increase pixelSize
                     if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
                         png_set_tRNS_to_alpha(pp);
                         pixsize += 1;
@@ -558,7 +558,7 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                     //bit depth in palette is always 8 bits per sample (24 bits per color) so pixel size is 3 bytes
                     pixsize = 3;
                     png_set_palette_to_rgb(pp);
-                    //check if alpha chanel is present if yes then add it and increase pixelSize
+                    //check if alpha channel is present if yes then add it and increase pixelSize
                     if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
                         png_set_tRNS_to_alpha(pp);
                         pixsize += 1;
