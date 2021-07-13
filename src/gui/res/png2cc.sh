@@ -14,7 +14,7 @@ CC_DIR=$WRK_DIR/cc
 BIN2CC_PATH="../../../utils/bin2cc/bin2cc"
 
 
-#uses image magick tool to convert png from normal to indexed 
+#uses image magick tool to convert png from normal to indexed
 #insert your own path to magick as evniroment variable
 #exports MAGICK_PATH=
 
@@ -35,7 +35,7 @@ png2cc()
 
 stripFileType()
 {
-	ls ./"$PNG_DIR" -1 | sed 's/.png//' | tr '\n' ' ' 
+	ls ./"$PNG_DIR" -1 | sed 's/.png//' | tr '\n' ' '
 }
 
 convertToCC(){
@@ -55,7 +55,7 @@ png2indexed(){
 
 read input
 
-for image in $input 
+for image in $input
 do
 	echo "$PNG_DIR/$image.png to $PAL_DIR/$image.png"
 	$MAGICK_PATH "$PNG_DIR/$image.png" -type palette "$PAL_DIR/$image.png"
@@ -79,8 +79,7 @@ else
 	stripFileType | png2indexed
 	stripFileType | convertToCC
 
-
-	clang-format $CC_DIR/* -i
+	../../../.dependencies/clang-format-9.0.0-noext/clang-format $CC_DIR/* -i
 
 		rm -rf $PAL_DIR
 
