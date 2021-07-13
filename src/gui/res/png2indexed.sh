@@ -10,10 +10,10 @@ png2indexed(){
 
 read input
 
-for image in $input 
+for image in $input
 do
 	echo "$PNG_DIR/$image.png to $PAL_DIR/$image.png"
-	#uses image magick tool to convert png from normal to indexed 
+	#uses image magick tool to convert png from normal to indexed
 	magick "$PNG_DIR/$image.png" -type palette "$PAL_DIR/$image.png"
 done
 
@@ -26,7 +26,7 @@ done
 
 stripFileType()
 {
-	ls ./"$PNG_DIR" -1 | sed 's/.png//' | tr '\n' ' ' 
+	ls ./"$PNG_DIR" -1 | sed 's/.png//' | tr '\n' ' '
 }
 
 stripFileType | png2indexed
