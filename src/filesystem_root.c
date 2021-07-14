@@ -62,10 +62,11 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
 
     DIR_INDEX++;
 
+    r->_errno = 0;
     return 0;
 }
 
-static int dirclose_r(struct _reent *r, DIR_ITER *dirState) {
+static int dirclose_r(struct _reent *r, __attribute__((unused)) DIR_ITER *dirState) {
     r->_errno = 0;
     return 0;
 }
