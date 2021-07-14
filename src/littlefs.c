@@ -55,7 +55,7 @@ static const struct lfs_config cfg = {
 static int read(const struct lfs_config *c, lfs_block_t block,
     lfs_off_t off, void *buffer, lfs_size_t size) {
 
-    uint32_t addr = ADDR_OFFSET + block * BLOCK_SIZE + off;
+    uint32_t addr = ADDR_OFFSET + block * c->block_size + off;
     if (addr >= FLASH_SIZE) {
         return LFS_ERR_INVAL;
     }
@@ -67,7 +67,7 @@ static int read(const struct lfs_config *c, lfs_block_t block,
 static int prog(const struct lfs_config *c, lfs_block_t block,
     lfs_off_t off, const void *buffer, lfs_size_t size) {
 
-    uint32_t addr = ADDR_OFFSET + block * BLOCK_SIZE + off;
+    uint32_t addr = ADDR_OFFSET + block * c->block_size + off;
     if (addr >= FLASH_SIZE) {
         return LFS_ERR_INVAL;
     }
