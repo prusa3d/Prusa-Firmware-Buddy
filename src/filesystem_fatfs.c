@@ -103,17 +103,18 @@ static int get_errno(FRESULT result) {
 }
 
 static int get_fatfs_mode(int flags) {
-    int mode = 0;
+    int mode;
 
     switch (flags & O_ACCMODE) {
     case O_RDWR:
-        mode |= FA_READ;
+        mode = FA_READ | FA_WRITE;
+        break;
     case O_WRONLY:
-        mode |= FA_WRITE;
+        mode = FA_WRITE;
         break;
     case O_RDONLY:
     default:
-        mode |= FA_READ;
+        mode = FA_READ;
     }
 
     if (flags & O_APPEND) {
@@ -196,7 +197,7 @@ static FILINFO get_fatfs_time(
 }
 #endif
 
-static int open_r(struct _reent *r, void *fileStruct, const char *path, int flags, int mode) {
+static int open_r(struct _reent *r, void *fileStruct, const char *path, int flags, __attribute__((unused)) int mode) {
     PREPARE_FIL_EX(f, fileStruct);
     FRESULT result;
 
@@ -418,7 +419,7 @@ static int stat_r(struct _reent *r, const char *path, struct stat *st) {
     return 0;
 }
 
-static int fstat_r(struct _reent *r, void *fileStruct, struct stat *st) {
+static int fstat_r(struct _reent *r, __attribute__((unused)) void *fileStruct, __attribute__((unused)) struct stat *st) {
 #ifdef FATFS_FSTAT
     PREPARE_FIL_EX(f, fileStruct);
     if (f->path) {
@@ -436,7 +437,7 @@ static int fstat_r(struct _reent *r, void *fileStruct, struct stat *st) {
     return -1;
 }
 
-static int link_r(struct _reent *r, const char *existing, const char *newLink) {
+static int link_r(struct _reent *r, __attribute__((unused)) const char *existing, __attribute__((unused)) const char *newLink) {
     // Links are not supported on FAT
     r->_errno = ENOTSUP;
     return -1;
@@ -503,7 +504,7 @@ static int rename_r(struct _reent *r, const char *oldName, const char *newName) 
     return 0;
 }
 
-static int chmod_r(struct _reent *r, const char *path, mode_t mode) {
+static int chmod_r(struct _reent *r, __attribute__((unused)) const char *path, __attribute__((unused)) mode_t mode) {
 #if !_USE_CHMOD || _FS_READONLY
     r->_errno = ENOTSUP;
     return -1;
@@ -531,7 +532,7 @@ static int chmod_r(struct _reent *r, const char *path, mode_t mode) {
 #endif
 }
 
-static int fchmod_r(struct _reent *r, void *fileStruct, mode_t mode) {
+static int fchmod_r(struct _reent *r, __attribute__((unused)) void *fileStruct, __attribute__((unused)) mode_t mode) {
 #ifdef FATFS_FSTAT
     PREPARE_FIL_EX(f, fileStruct);
     if (f->path) {
@@ -720,7 +721,7 @@ static int lstat_r(struct _reent *r, const char *file, struct stat *st) {
     return stat_r(r, file, st);
 }
 
-static int utimes_r(struct _reent *r, const char *filename, const struct timeval times[2]) {
+static int utimes_r(struct _reent *r, __attribute__((unused)) const char *filename, __attribute__((unused)) const struct timeval times[2]) {
 #if !_USE_CHMOD || _FS_READONLY
     r->_errno = EPERM;
     return -1;

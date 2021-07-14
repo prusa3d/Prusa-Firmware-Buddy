@@ -73,17 +73,18 @@ static int get_errno(int result) {
 }
 
 static enum lfs_open_flags get_littlefs_flags(int flags) {
-    enum lfs_open_flags lfs_flags = 0;
+    enum lfs_open_flags lfs_flags;
 
     switch (flags & O_ACCMODE) {
     case O_RDWR:
-        lfs_flags |= LFS_O_RDWR;
+        lfs_flags = LFS_O_RDWR;
+        break;
     case O_WRONLY:
-        lfs_flags |= LFS_O_WRONLY;
+        lfs_flags = LFS_O_WRONLY;
         break;
     case O_RDONLY:
     default:
-        lfs_flags |= LFS_O_RDONLY;
+        lfs_flags = LFS_O_RDONLY;
     }
 
     if (flags & O_APPEND) {
@@ -312,7 +313,7 @@ static int unlink_r(struct _reent *r, const char *path) {
     return RESULT;
 }
 
-static int chdir_r(struct _reent *r, const char *path) {
+static int chdir_r(struct _reent *r, __attribute__((unused)) const char *path) {
     // chdir not implemented for littlefs
     r->_errno = ENOTSUP;
     return -1;
@@ -351,7 +352,7 @@ static int fchmod_r(struct _reent *r,
     return -1;
 }
 
-static int mkdir_r(struct _reent *r, const char *path, int mode) {
+static int mkdir_r(struct _reent *r, const char *path, __attribute__((unused)) int mode) {
     int result;
 
     if (IS_EMPTY(path)) {
@@ -484,7 +485,8 @@ static int utimes_r(struct _reent *r,
     __attribute__((unused)) const struct timeval times[2]) {
 
     // Timestamps not implemented for littlefs
-    return 0;
+    r->_errno = ENOTSUP;
+    return -1;
 }
 
 static const devoptab_t devoptab_littlefs = {

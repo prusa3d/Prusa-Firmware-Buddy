@@ -10,6 +10,8 @@ set_property(
             LFS_NO_ERROR=1
   )
 
+target_compile_options(littlefs PUBLIC -Wno-error=unused-function)
+
 target_include_directories(littlefs PUBLIC .)
 
 add_library(Middlewares::littlefs ALIAS littlefs)
