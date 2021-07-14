@@ -71,6 +71,8 @@ GcodeSuite gcode;
 
 #include "../MarlinCore.h" // for idle, kill
 
+#include "odometer.hpp"
+
 // Inactivity shutdown
 millis_t GcodeSuite::previous_move_ms = 0,
          GcodeSuite::max_inactive_time = 0;
@@ -192,6 +194,8 @@ void GcodeSuite::get_destination_from_command() {
     }
     else
       destination[i] = current_position[i];
+
+    Odometer_s::instance().add_value(i, destination[i] - current_position[i]);
   }
 
   #if HAS_EXTRUDERS
