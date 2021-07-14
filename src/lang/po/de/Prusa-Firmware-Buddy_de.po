@@ -25,7 +25,7 @@ msgstr "Abbruch"
 #. / title text
 #: src/gui/dialogs/liveadjust_z.cpp:205
 msgid "Adjust the nozzle height above the heatbed by turning the knob"
-msgstr "Stellen Sie die Düsenhöhe über dem Heizbett durch Drehen des Knopfes ein"
+msgstr "Stellen Sie die Düsenhöhe zum Heiz- bett durch drehen des Knopfes ein"
 
 #: src/gui/wizard/selftest.cpp:43
 msgid "All tests finished successfully!"
@@ -96,26 +96,26 @@ msgstr "Filament wechseln"
 #. r=5, c=20
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:44
 msgid "Check the heatbed heater & thermistor wiring for possible damage."
-msgstr "Die Verkabelung von\nHeizbettheizung und\nThermistor auf\nmögliche Schäden\nüberprüfen."
+msgstr "Die Verkabelung von Heizbettheizung und Thermistor auf mögliche Schäden überprüfen."
 
 #. r=5, c=20
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:56
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:68
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:80
 msgid "Check the heatbed thermistor wiring for possible damage."
-msgstr "Die Verkabelung des\nHeizbettthermistors\nauf mögliche Schäden\nprüfen."
+msgstr "Die Verkabelung des Heizbettthermistors auf mögliche Schäden prüfen."
 
 #. r=5, c=20
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:50
 msgid "Check the print head heater & thermistor wiring for possible damage."
-msgstr "Die Verkabelung der\nDruckkopfheizung und\ndes Thermistors auf\nmögliche Schäden\nüberprüfen."
+msgstr "Die Verkabelung der Druckkopfheizung und des Thermistors auf mögliche Schäden überprüfen."
 
 #. r=5, c=20
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:62
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:74
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:86
 msgid "Check the print head thermistor wiring for possible damage."
-msgstr "Die Verkabelung des\nDruckkopf-Thermistor\nauf mögliche Schäden\nüberprüfen."
+msgstr "Die Verkabelung des Druckkopf-Thermistor auf mögliche Schäden überprüfen."
 
 #: src/gui/dialogs/DialogSelftestResult.cpp:42
 #: src/gui/dialogs/DialogSelftestAxis.cpp:18
@@ -952,7 +952,7 @@ msgstr "Dieser G-Code ist für einen anderen Druckertyp."
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:185
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
-msgstr "Diese Operation kann\nnicht rückgängig ge-\nmacht werden und die\naktuelle Konfiguration\ngeht verloren!\nDen Drucker auf die\nWerkseinstellungen\nzurücksetzen?"
+msgstr "Diese Operation kann nicht rückgängig ge- macht werden und die aktuelle Konfiguration geht verloren! Den Drucker auf die Werkseinstellungen zurücksetzen?"
 
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:51

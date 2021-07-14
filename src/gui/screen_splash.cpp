@@ -7,7 +7,6 @@
 #include "version.h"
 #include "eeprom.h"
 
-#include "stm32f4xx_hal.h"
 #include "i18n.h"
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
@@ -35,11 +34,11 @@ screen_splash_data_t::screen_splash_data_t()
     }
 
     text_progress.font = resource_font(IDR_FNT_NORMAL);
-    text_progress.SetAlignment(ALIGN_CENTER_BOTTOM);
+    text_progress.SetAlignment(Align_t::CenterBottom());
     static const char loading[] = N_("Loading ...");
     text_progress.SetText(_(loading));
     progress.SetFont(resource_font(IDR_FNT_BIG));
-    text_version.SetAlignment(ALIGN_CENTER);
+    text_version.SetAlignment(Align_t::Center());
     snprintf(text_version_buffer, sizeof(text_version_buffer), "%s%s",
         project_version, project_version_suffix_short);
     // this MakeRAM is safe - text_version_buffer is globally allocated
@@ -84,7 +83,7 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t 
             Screens::Access()->Close();
         }
 #else
-    if (HAL_GetTick() > 3000) {
+    if (gui::GetTick() > 3000) {
         Screens::Access()->Close();
 #endif
     }

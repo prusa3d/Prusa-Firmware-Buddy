@@ -6,7 +6,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
-#include "dialog_response.hpp"
+#include "client_response_texts.hpp"
 
 const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Response::_none, Response::_none };
 
@@ -16,7 +16,7 @@ window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     , footer(this)
     , icon(this, IDR_PNG_exposure_times_48px, { 120 - 24, 48 })
     , text(this, { 0, 104, 240, 120 }, is_multiline::yes)
-    , button(this, get_radio_button_rect(rect) - Rect16::Top_t(64), &dlg_responses, &ph_txt_continue) {
+    , button(this, get_radio_button_rect(GetRect()) - Rect16::Top_t(64), &dlg_responses, &ph_txt_continue) {
 }
 
 void window_dlg_strong_warning_t::setIcon(int16_t resId) {
@@ -27,7 +27,7 @@ void window_dlg_strong_warning_t::show(string_view_utf8 txt) {
     if (!GetParent()) {
         window_t *parent = Screens::Access()->Get();
         if (parent) {
-            parent->RegisterSubWin(this);
+            parent->RegisterSubWin(*this);
             text.SetText(txt);
         }
     }
@@ -37,7 +37,7 @@ void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, wi
     if (!GetParent())
         return;
     if (event == GUI_event_t::CLICK) { //todo use timer
-        GetParent()->UnregisterSubWin(this);
+        GetParent()->UnregisterSubWin(*this);
     } else {
         SuperWindowEvent(sender, event, param);
     }

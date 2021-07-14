@@ -33,6 +33,18 @@
             "device": "STM32F407VG"
         },
         {
+            "name": "JLink 2MB",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
+            "toolchainPrefix": "arm-none-eabi",
+            "rtos": "FreeRTOS",
+            "device": "STM32F429VI"
+        },
+        {
             "name": "JLink attach",
             "cwd": "${workspaceRoot}",
             "executable": "${workspaceRoot}/build-vscode/firmware",
@@ -43,6 +55,29 @@
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
             "device": "STM32F407VG"
-        }
+        },
+        {
+            "name": "JLink attach 2MB",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
+            "toolchainPrefix": "arm-none-eabi",
+            "rtos": "FreeRTOS",
+            "device": "STM32F429VI"
+        },
+        {
+            "name": "GDB (QEMU)",
+            "type": "gdb",
+            "request": "attach",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "target": ":1234",
+            "remote": true,
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/arm-none-eabi-gdb",
+            "autorun": []
+        },
     ]
 }

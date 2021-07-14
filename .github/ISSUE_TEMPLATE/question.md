@@ -1,7 +1,7 @@
 ---
 name: Question
 about: What do you want to know?
-title: "[QUESTION]<Enter comprehensive title>"
+title: "[QUESTION] <Enter comprehensive title>"
 labels: question
 assignees: ''
 

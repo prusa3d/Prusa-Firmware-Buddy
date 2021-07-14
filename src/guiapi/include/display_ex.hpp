@@ -4,6 +4,7 @@
 
 #include "guitypes.hpp"
 #include "Rect16.h"
+#include "raster_opfn.hpp"
 
 void display_ex_clear(const color_t clr);
 
@@ -29,4 +30,4 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt);
 
 void display_ex_draw_png(point_ui16_t pt, FILE *pf);
 
-void display_ex_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);
+void display_ex_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, ropfn rop);

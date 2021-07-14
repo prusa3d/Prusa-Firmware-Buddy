@@ -60,11 +60,23 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     //timer is expired
     if (pBoundPause) {
         pBoundPause->NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed());
+        if (printingIsPaused()) {
+            thermalManager.disable_hotend();
+            set_warning(WarningType::NozzleTimeout);
+        } else {
+            thermalManager.disable_all_heaters();
+            set_warning(WarningType::HeatersTimeout);
+        }
+        return expired_t::yes;
     }
     if (printingIsPaused()) {
+        last_reset = now;
+        return expired_t::no;
+
+        // TODO something in marlin is turning heaters of, so following code cannot be used
         // disable only nozzle
-        thermalManager.disable_hotend();
-        set_warning(WarningType::NozzleTimeout);
+        // thermalManager.disable_hotend();
+        // set_warning(WarningType::NozzleTimeout);
     } else {
         // disable nozzle and bed
         thermalManager.disable_all_heaters();

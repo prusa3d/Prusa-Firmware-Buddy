@@ -7,6 +7,7 @@
 #include "dbg.h"
 #include "app.h"
 #include "bsod.h"
+#include "timing.h"
 #include "cmsis_os.h"
 #include <string.h> //strncmp
 #include <assert.h>
@@ -38,6 +39,7 @@
 #include "ff.h"
 #include "otp.h"
 #include "../marlin_stubs/G26.hpp"
+#include "fsm_types.hpp"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
@@ -73,9 +75,6 @@ typedef struct {
     float resume_pos[4];                             // resume position for unpark_head
     float resume_nozzle_temp;                        // resume nozzle temperature
     uint32_t paused_ticks;                           // tick count in moment when printing paused
-    uint32_t fsmCreate;                              // fsm create ui32 argument for resend
-    uint32_t fsmDestroy;                             // fsm destroy ui32 argument for resend
-    uint32_t fsmChange;                              // fsm change ui32 argument for resend
     uint32_t warning_type;
     int request_len;
     uint32_t last_update;   // last update tick count
@@ -93,6 +92,8 @@ typedef struct {
     uint8_t gqueue;           // copy of queue.length - number of commands in gcode queue
     uint8_t resume_fan_speed; // resume fan speed
 } marlin_server_t;
+
+fsm::Queue fsm_event_queues[MARLIN_MAX_CLIENTS];
 
 extern "C" {
 
@@ -173,6 +174,24 @@ void marlin_server_init(void) {
     marlin_server.vars.media_SFN_path = media_print_filepath();
 }
 
+void print_fan_spd() {
+    if (DEBUGGING(INFO)) {
+        static int time = 0;
+        static int last_prt = 0;
+        time = ticks_ms();
+        int timediff = time - last_prt;
+        if (timediff >= 1000) {
+            serial_echopair_PGM("Tacho_FAN0 ", fanctl0.getActualRPM());
+            serialprintPGM("rpm ");
+            SERIAL_EOL();
+            serial_echopair_PGM("Tacho_FAN1 ", fanctl1.getActualRPM());
+            serialprintPGM("rpm ");
+            SERIAL_EOL();
+            last_prt = time;
+        }
+    }
+}
+
 #ifdef MINDA_BROKEN_CABLE_DETECTION
 static void print_Z_probe_cnt() {
     if (DEBUGGING(INFO)) {
@@ -201,6 +220,8 @@ int marlin_server_cycle(void) {
         _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
 
     FSM_notifier::SendNotification();
+
+    print_fan_spd();
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
@@ -251,7 +272,7 @@ int marlin_server_cycle(void) {
     // update pqueue (planner queue)
     _server_update_pqueue();
     // update variables
-    tick = HAL_GetTick();
+    tick = ticks_ms();
     if ((tick - marlin_server.last_update) > MARLIN_UPDATE_PERIOD) {
         marlin_server.last_update = tick;
         changes = _server_update_vars(marlin_server.update_vars);
@@ -385,6 +406,7 @@ void marlin_server_settings_load(void) {
     thermalManager.updatePID();
 #endif
     marlin_server.vars.fan_check_enabled = variant_get_ui8(eeprom_get_var(EEVAR_FAN_CHECK_ENABLED));
+    marlin_server.vars.fs_autoload_enabled = variant_get_ui8(eeprom_get_var(EEVAR_FS_AUTOLOAD_ENABLED));
 }
 
 void marlin_server_settings_reset(void) {
@@ -473,6 +495,7 @@ static void _server_print_loop(void) {
     case mpsPrinting:
         switch (media_print_get_state()) {
         case media_print_state_PRINTING:
+        case media_print_state_PAUSING:
             break;
         case media_print_state_PAUSED:
             marlin_server.print_state = mpsPausing_Begin;
@@ -500,12 +523,12 @@ static void _server_print_loop(void) {
         break;
     case mpsPausing_ParkHead:
         if (planner.movesplanned() == 0) {
-            marlin_server.paused_ticks = HAL_GetTick(); //time when printing paused
+            marlin_server.paused_ticks = ticks_ms(); //time when printing paused
             marlin_server.print_state = mpsPaused;
         }
         break;
     case mpsPaused:
-        if ((marlin_server.vars.target_nozzle > 0) && (HAL_GetTick() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
+        if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
             thermalManager.setTargetHotend(0, 0);
         gcode.reset_stepper_timeout(); //prevent disable axis
         break;
@@ -581,7 +604,9 @@ static void _server_print_loop(void) {
         break;
     case mpsFinishing_WaitIdle:
         if ((planner.movesplanned() == 0) && (queue.length == 0)) {
+#ifdef PARK_HEAD_ON_PRINT_FINISH
             marlin_server_park_head();
+#endif
             marlin_server.print_state = mpsFinishing_ParkHead;
         }
         break;
@@ -719,13 +744,38 @@ static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 
 // send event notification to client (called from server thread)
 static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
-    variant8_t msg = evt_id == MARLIN_EVT_Message ? marlin_server.event_messages[client_id] : variant8_user(usr32, usr16, evt_id);
+    variant8_t msg;
+    switch (evt_id) {
+    case MARLIN_EVT_Message:
+        msg = marlin_server.event_messages[client_id];
+        break;
+    case MARLIN_EVT_FSM: {
+        fsm::variant_t variant = fsm_event_queues[client_id].Front();
+        if (variant.GetCommand() == ClientFSM_Command::none)
+            return true; // no event to send, return "sent" to erase send flag
+        msg = variant8_user(variant.u32, variant.u16, evt_id);
+    } break;
+    default:
+        msg = variant8_user(usr32, usr16, evt_id);
+    }
+
     bool ret = _send_notify_to_client(queue, msg);
 
-    // clear sent client message
-    if (evt_id == MARLIN_EVT_Message && ret) {
-        marlin_server.event_messages[client_id] = variant8_empty();
+    if (ret) {
+        switch (evt_id) {
+        case MARLIN_EVT_Message:
+            // clear sent client message
+            marlin_server.event_messages[client_id] = variant8_empty();
+            break;
+        case MARLIN_EVT_FSM:
+            //erase sent item from queue
+            fsm_event_queues[client_id].Pop();
+            break;
+        default:
+            break;
+        }
     }
+
     return ret;
 }
 
@@ -754,6 +804,7 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
             case MARLIN_EVT_StoreSettings:
             case MARLIN_EVT_StartProcessing:
             case MARLIN_EVT_StopProcessing:
+            case MARLIN_EVT_FSM: //arguments hanfled elswhere
             // StatusChanged event - one string argument
             case MARLIN_EVT_StatusChanged:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
@@ -803,19 +854,6 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
             case MARLIN_EVT_Reheat:
                 sent |= msk; // fake event sent for unused and forced events
                 break;
-            //resend open close dialog (fsm)
-            case MARLIN_EVT_FSM_Create:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.fsmCreate, 0))
-                    sent |= msk; // event sent, set bit
-                break;
-            case MARLIN_EVT_FSM_Destroy:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.fsmDestroy, 0))
-                    sent |= msk; // event sent, set bit
-                break;
-            case MARLIN_EVT_FSM_Change:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.fsmChange, 0))
-                    sent |= msk; // event sent, set bit
-                break;
             case MARLIN_EVT_Warning:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.warning_type, 0))
                     sent |= msk; // event sent, set bit
@@ -843,13 +881,7 @@ static uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t 
                     uint8_t index = x + marlin_server.mesh.xc * y; // index
                     uint64_t mask = ((uint64_t)1 << index);        // mask
                     marlin_server.mesh_point_notsent[client_id] |= mask;
-                } else if (evt_id == MARLIN_EVT_FSM_Create)
-                    marlin_server.fsmCreate = usr32;
-                else if (evt_id == MARLIN_EVT_FSM_Destroy)
-                    marlin_server.fsmDestroy = usr32;
-                else if (evt_id == MARLIN_EVT_FSM_Change)
-                    marlin_server.fsmChange = usr32;
-                else if (evt_id == MARLIN_EVT_Warning)
+                } else if (evt_id == MARLIN_EVT_Warning)
                     marlin_server.warning_type = usr32;
             } else
                 client_msk |= (1 << client_id);
@@ -1475,40 +1507,32 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 
 }
 
-//remember last event
-static uint32_t fsm_change_last_usr32 = -1;
-
-//must match fsm_create_t signature
 void fsm_create(ClientFSM type, uint8_t data) {
-    //erase info about last event
-    fsm_change_last_usr32 = -1;
+    DBG_FSM("fsm_create %d", int(type));
 
-    uint32_t usr32 = uint32_t(type) + (uint32_t(data) << 8);
-    DBG_FSM("fsm_create %d", usr32);
+    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
+        fsm_event_queues[i].PushCreate(type, data);
+    }
 
-    const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Create;
-    _send_notify_event(evt_id, usr32, 0);
+    _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
-//must match fsm_destroy_t signature
 void fsm_destroy(ClientFSM type) {
-    DBG_FSM("fsm_destroy %d", (int)type);
+    DBG_FSM("fsm_destroy %d", int(type));
 
-    const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Destroy;
-    _send_notify_event(evt_id, uint32_t(type), 0);
+    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
+        fsm_event_queues[i].PushDestroy(type);
+    }
+    _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
-//must match fsm_change_t signature
-void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    uint32_t usr32 = uint32_t(type) + (uint32_t(phase) << 8) + (uint32_t(progress_tot) << 16) + (uint32_t(progress) << 24);
-    if (usr32 == uint32_t(-1))
-        bsod("FATAL Invalid Event");
-    if (usr32 == fsm_change_last_usr32)
-        return;
-    fsm_change_last_usr32 = usr32;
-    DBG_FSM("fsm_change %d", usr32);
-    const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Change;
-    _send_notify_event(evt_id, usr32, 0);
+void _fsm_change(ClientFSM type, fsm::BaseData data) {
+    DBG_FSM("fsm_change %d %d", int(type), data.GetPhase());
+
+    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
+        fsm_event_queues[i].PushChange(type, data);
+    }
+    _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
 void set_warning(WarningType type) {
@@ -1565,7 +1589,8 @@ void FSM_notifier::SendNotification() {
     // after first sent, progress can only rise
     if ((s_data.last_progress_sent == uint8_t(-1)) || (progress > s_data.last_progress_sent)) {
         s_data.last_progress_sent = progress;
-        _fsm_change(s_data.type, s_data.phase, progress, 0);
+        ProgressSerializer serializer(progress);
+        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, serializer.Serialize()));
     }
     activeInstance->postSendNotification();
 }

@@ -31,9 +31,7 @@ typedef enum {
     MARLIN_EVT_Message,             //
     MARLIN_EVT_Warning,             // important messages like fan error or heater timeout
     MARLIN_EVT_Reheat,              //
-    MARLIN_EVT_FSM_Create,          // create finite state machine in client
-    MARLIN_EVT_FSM_Destroy,         // destroy finite state machine in client
-    MARLIN_EVT_FSM_Change,          // change phase/state/progress in client fsm
+    MARLIN_EVT_FSM,                 // create/destroy finite state machine or change phase/state/progress in client
     MARLIN_EVT_Acknowledge,         // onAcknowledge - lowest priority
 
     MARLIN_EVT_MAX = MARLIN_EVT_Acknowledge
@@ -44,7 +42,7 @@ typedef enum {
 #define MARLIN_EVT_MSK_ALL   ((MARLIN_EVT_MSK(MARLIN_EVT_MAX + 1) - (uint64_t)1))
 
 static const uint64_t MARLIN_EVT_MSK_DEF = MARLIN_EVT_MSK_ALL - (MARLIN_EVT_MSK(MARLIN_EVT_PrinterKilled));
-static const uint64_t MARLIN_EVT_MSK_FSM = MARLIN_EVT_MSK(MARLIN_EVT_FSM_Create) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Destroy) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Change);
+static const uint64_t MARLIN_EVT_MSK_FSM = MARLIN_EVT_MSK(MARLIN_EVT_FSM);
 
 // commands
 enum {

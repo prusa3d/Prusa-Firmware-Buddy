@@ -1,10 +1,6 @@
 //ScreenPrintingModel.cpp
 #include "ScreenPrintingModel.hpp"
 #include "config.h"
-#include "marlin_client.h"
-#include "marlin_server.h"
-#include "guitypes.hpp"    //font_meas_text
-#include "stm32f4xx_hal.h" //HAL_GetTick
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
@@ -20,7 +16,7 @@ ScreenPrintingModel::ScreenPrintingModel(string_view_utf8 caption)
 void ScreenPrintingModel::initBtnText(btn &ref_button) {
     ref_button.txt.font = resource_font(IDR_FNT_SMALL);
     ref_button.txt.SetPadding({ 0, 0, 0, 0 });
-    ref_button.txt.SetAlignment(ALIGN_CENTER);
+    ref_button.txt.SetAlignment(Align_t::Center());
 }
 
 void ScreenPrintingModel::setIconAndLabel(btn &ref_button, const btn_resource &res) {

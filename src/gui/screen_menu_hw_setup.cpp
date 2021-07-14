@@ -25,7 +25,7 @@ protected:
     }
 };
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_STEEL_SHEETS>;
+using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_STEEL_SHEETS>;
 
 class ScreenMenuHwSetup : public Screen {
 public:

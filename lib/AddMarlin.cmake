@@ -128,6 +128,7 @@ add_library(
   Marlin/Marlin/src/libs/buzzer.cpp
   Marlin/Marlin/src/libs/crc16.cpp
   Marlin/Marlin/src/libs/heatshrink/heatshrink_decoder.cpp
+  Marlin/Marlin/src/libs/hex_print_routines.cpp
   Marlin/Marlin/src/libs/least_squares_fit.cpp
   Marlin/Marlin/src/libs/nozzle.cpp
   Marlin/Marlin/src/libs/numtostr.cpp

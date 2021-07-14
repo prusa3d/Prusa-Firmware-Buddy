@@ -2,6 +2,7 @@
 #include "guitypes.hpp"
 #include "i18n.h"
 #include "resource.h" //IDR_FNT_BIG
+#include "fsm_progress_type.hpp"
 
 static const constexpr int PROGRESS_BAR_X_PAD = 10;
 static const constexpr int PROGRESS_BAR_Y_PAD = 30;
@@ -32,19 +33,19 @@ Rect16 get_label_rect(Rect16 rect) {
 //*****************************************************************************
 IDialogStateful::IDialogStateful(string_view_utf8 name)
     : IDialogMarlin()
-    , title(this, get_title_rect(rect), is_multiline::no, is_closed_on_click_t::no, name)
-    , progress(this, get_progress_rect(rect), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
-    , label(this, get_label_rect(rect), is_multiline::yes)
-    , radio(this, get_radio_button_rect(rect), nullptr, nullptr)
+    , title(this, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, name)
+    , progress(this, get_progress_rect(GetRect()), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
+    , label(this, get_label_rect(GetRect()), is_multiline::yes)
+    , radio(this, get_radio_button_rect(GetRect()), nullptr, nullptr)
     , phase(0) {
     title.font = GuiDefaults::FontBig;
-    title.SetAlignment(ALIGN_CENTER);
+    title.SetAlignment(Align_t::Center());
     progress.SetFont(resource_font(IDR_FNT_BIG));
     label.font = GuiDefaults::FontBig;
-    label.SetAlignment(ALIGN_CENTER_TOP);
+    label.SetAlignment(Align_t::CenterTop());
 }
 
-bool IDialogStateful::change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {
+bool IDialogStateful::change(uint8_t phs, fsm::PhaseData data) {
     if (!can_change(phs))
         return false;
     if (phase != phs) {
@@ -53,7 +54,8 @@ bool IDialogStateful::change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*
         phaseEnter();
     }
 
-    progress.SetValue(progress_tot <= 100 ? progress_tot : 0);
+    ProgressSerializer serializer(data);
+    progress.SetValue(serializer.progress);
     //Invalidate();
     return true;
 }

@@ -1,6 +1,9 @@
-#include "eeprom.h"
+// eeprom.cpp
+
 #include <string.h>
 #include <float.h>
+
+#include "eeprom.h"
 #include "st25dv64k.h"
 #include "dbg.h"
 #include "cmsis_os.h"
@@ -9,8 +12,9 @@
 #include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
 #include "cmath_ext.h"
+#include "footer_eeprom.hpp"
 
-static const constexpr uint8_t EEPROM__PADDING = 1;
+static const constexpr uint8_t EEPROM__PADDING = 4;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
 static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;         // maximum datasize
 static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
@@ -22,18 +26,16 @@ static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read
 //#define EEPROM_MEASURE_CRC_TIME
 
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-enum {
-    MAX_SHEETS = 8,
-    EEPROM_SHEET_SIZEOF = 12
-};
-
 typedef struct
 {
     char name[MAX_SHEET_NAME_LENGTH]; //!< Can be null terminated, doesn't need to be null terminated
     float z_offset;                   //!< Z_BABYSTEP_MIN .. Z_BABYSTEP_MAX = Z_BABYSTEP_MIN*2/1000 [mm] .. Z_BABYSTEP_MAX*2/1000 [mm]
 } Sheet;
 
-static_assert(sizeof(Sheet) == EEPROM_SHEET_SIZEOF, "Sizeof(Sheets) is not EEPROM_SHEETS_SIZEOF.");
+enum {
+    MAX_SHEETS = 8,
+    EEPROM_SHEET_SIZEOF = sizeof(Sheet)
+};
 
 #endif
 // this pragma pack must remain intact, the ordering of EEPROM variables is not alignment-friendly
@@ -91,7 +93,14 @@ typedef struct _eeprom_vars_t {
     Sheet SHEET_PROFILE7;
     uint32_t SELFTEST_RESULT;
     uint8_t DEVHASH_IN_QR;
+    uint32_t FOOTER_SETTING;
+    uint32_t FOOTER_DRAW_TYPE;
     uint8_t FAN_CHECK_ENABLED;
+    uint8_t FS_AUTOLOAD_ENABLED;
+    float EEVAR_ODOMETER_X;
+    float EEVAR_ODOMETER_Y;
+    float EEVAR_ODOMETER_Z;
+    float EEVAR_ODOMETER_E;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -145,7 +154,14 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SHEET_PROFILE7",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SELFTEST_RESULT", VARIANT8_UI32,  1, 0 }, // EEVAR_SELFTEST_RESULT
     { "DEVHASH_IN_QR",   VARIANT8_UI8,   1, 0 }, // EEVAR_DEVHASH_IN_QR
+    { "FOOTER_SETTING",  VARIANT8_UI32,  1, 0 }, // EEVAR_FOOTER_SETTING
+    { "FOOTER_DRAW_TP"  ,VARIANT8_UI32,  1, 0 }, // EEVAR_FOOTER_DRAW_TYPE
     { "FAN_CHECK_ENA",   VARIANT8_UI8,   1, 0 }, // EEVAR_FAN_CHECK_ENABLED
+    { "FS_AUTOL_ENA",    VARIANT8_UI8,   1, 0},  // EEVAR_FS_AUTOLOAD_ENABLED
+    { "ODOMETER_X",      VARIANT8_FLT,   1, 0 },
+    { "ODOMETER_Y",      VARIANT8_FLT,   1, 0 },
+    { "ODOMETER_Z",      VARIANT8_FLT,   1, 0 },
+    { "ODOMETER_E",      VARIANT8_FLT,   1, 0 },
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -201,7 +217,14 @@ static const eeprom_vars_t eeprom_var_defaults = {
     {"Custom4", FLT_MAX },
     0,               // EEVAR_SELFTEST_RESULT
     1,               // EEVAR_DEVHASH_IN_QR
+    footer::eeprom::Encode(footer::DefaultItems), // EEVAR_FOOTER_SETTING
+    uint32_t(footer::ItemDrawCnf::Default()), // EEVAR_FOOTER_DRAW_TYPE
     1,               // EEVAR_FAN_CHECK_ENABLED
+    0,               // EEVAR_FS_AUTOLOAD_ENABLED
+    0,               // EEVAR_ODOMETER_X
+    0,               // EEVAR_ODOMETER_Y
+    0,               // EEVAR_ODOMETER_Z
+    0,               // EEVAR_ODOMETER_E
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
@@ -527,6 +550,19 @@ static int eeprom_convert_from_v8(void) {
     return 1;
 }
 
+// conversion function for old version 9 (v 4.3.2)
+static int eeprom_convert_from_v9(void) {
+    eeprom_vars_t vars = eeprom_var_defaults;
+    eeprom_init_FW_identifiers(vars);
+
+    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_DEVHASH_IN_QR, &(vars.FILAMENT_TYPE));
+
+    eeprom_make_patches(vars);
+
+    eeprom_save_upgraded(vars);
+    return 1;
+}
+
 // conversion function for new version format (features, firmware version/build)
 static int eeprom_convert_from(uint16_t version, uint16_t features) {
     if (version == 2)
@@ -539,6 +575,8 @@ static int eeprom_convert_from(uint16_t version, uint16_t features) {
         return eeprom_convert_from_v7();
     if (version == 8)
         return eeprom_convert_from_v8();
+    if (version == 9)
+        return eeprom_convert_from_v9();
     return 0;
 }
 
@@ -598,6 +636,8 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
 
     for (i = 0; i < count; i++) {
         st25dv64k_user_write_bytes(EEPROM_ADDRESS + i * size, &line, size);
+        if ((i % 16) == 0)
+            wdt_iwdg_refresh();
     }
 
     int8_t res_flag = 1;
@@ -606,6 +646,8 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
         st25dv64k_user_read_bytes(EEPROM_ADDRESS + i * size, &line2, size);
         if (strcmp(line2, line))
             res_flag = 0;
+        if ((i % 16) == 0)
+            wdt_iwdg_refresh();
     }
     return res_flag;
 }
@@ -660,6 +702,7 @@ bool sheet_calibrate(uint32_t index) {
     if (index >= MAX_SHEETS)
         return false;
     uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
+
     st25dv64k_user_write(active_sheet_address, static_cast<uint8_t>(index));
     eeprom_update_crc32();
     return true;
@@ -675,6 +718,7 @@ bool sheet_reset(uint32_t index) {
     uint8_t active = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
     uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
     float z_offset = FLT_MAX;
+
     st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
         &z_offset, sizeof(float));
     eeprom_update_crc32();

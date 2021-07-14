@@ -1,6 +1,6 @@
 //screen_printing.hpp
 #pragma once
-#include "status_footer.h"
+#include "status_footer.hpp"
 #include "window_header.hpp"
 #include "window_roll_text.hpp"
 #include "window_icon.hpp"
@@ -45,6 +45,7 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
 
     window_roll_text_t w_filename;
     WindowPrintProgress w_progress;
+    WindowNumbPrintProgress w_progress_txt;
     window_text_t w_time_label;
     window_text_t w_time_value;
     window_text_t w_etime_label;

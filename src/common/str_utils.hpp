@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string.h>
 #include <array>
 #include <cstdint>
 
@@ -26,10 +27,35 @@ int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-/// Emulate font with the constant character width
+/// test c-string equality - for multiple tests against same string
+///
+class CStrEqual {
+    const char *buff_;
+    size_t sz_;
+
+public:
+    CStrEqual(const char *buff, size_t sz)
+        : buff_(buff)
+        , sz_(sz) {}
+    inline bool operator()(const char *str, size_t sz = std::string::npos) {
+        return !strncmp(buff_, str, std::min(sz_, sz));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Emulate font with the constant character width == 12
 ///
 struct monospace {
-    const uint32_t w = 12;
+    static constexpr uint32_t w = 12;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Emulate font with the constant character width == 1
+///
+struct font_emulation_w1 {
+    static constexpr size_t w = 1;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -100,6 +126,53 @@ struct ram_buffer {
 
 private:
     word_buffer *p_word_buffer_;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///
+/// numbers of characters in lines
+class RectTextLayout {
+public:
+    static constexpr size_t MaxLines = 31;
+    static constexpr uint8_t MaxCharInLine = 255;     //uint8_t
+    using Data_t = std::array<uint8_t, MaxLines + 1>; // last elem stores current line
+private:
+    Data_t data;
+    uint8_t currentLine() const { return data[MaxLines]; }
+
+public:
+    RectTextLayout() {
+        data.fill(0);
+    }
+
+    uint8_t LineCharacters(uint8_t line) const {
+        return data[line];
+    }
+
+    uint8_t CurrentLineCharacters() const {
+        return LineCharacters(currentLine());
+    }
+
+    uint8_t GetLineCount() const {
+        return CurrentLineCharacters() == 0 ? currentLine() : currentLine() + 1;
+    }
+
+    //increment number of lines
+    bool NewLine() {
+        if (currentLine() >= MaxLines)
+            return false;
+        data[MaxLines] += 1;
+        return true;
+    }
+
+    bool IncrementNumOfCharsUpTo(uint8_t max_val) {
+        if (currentLine() >= MaxLines)
+            return false;
+        if (CurrentLineCharacters() >= max_val)
+            return false;
+        data[currentLine()] += 1;
+        return true;
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////

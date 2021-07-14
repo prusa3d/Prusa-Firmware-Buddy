@@ -12,7 +12,7 @@
 
 void window_roll_text_t::unconditionalDraw() {
 
-    roll.RenderTextAlign(rect, text, font,
+    roll.RenderTextAlign(GetRect(), text, font,
         (IsFocused()) ? color_text : color_back,
         (IsFocused()) ? color_back : color_text,
         padding, GetAlignment());
@@ -27,8 +27,9 @@ void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     }
 }
 
-window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt)
+window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt, Align_t align)
     : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt) {
+    this->SetAlignment(align);
     rollInit();
 }
 

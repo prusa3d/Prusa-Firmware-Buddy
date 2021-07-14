@@ -253,11 +253,11 @@ msgstr "Version Firmware\n"
 #: src/gui/screen_menu_steel_sheets.cpp:46 src/gui/ScreenFirstLayer.hpp:12
 #: src/guiapi/include/MItem_tools.hpp:69
 msgid "First Layer Calibration"
-msgstr "Calibration\nPremière Couche"
+msgstr "Calibration Première Couche"
 
 #: src/gui/wizard/screen_wizard.cpp:31
 msgid "FIRST LAYER CALIBRATION"
-msgstr "CALIBRATION\nPREMIÈRE COUCHE"
+msgstr "CALIBRATION PREMIÈRE COUCHE"
 
 #: src/guiapi/include/MItem_print.hpp:40
 msgid "Flow Factor"
@@ -592,7 +592,7 @@ msgstr "Veuillez insérer la clé USB fournie avec votre MINI et redémarrez l'i
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:22
 msgid "Please open idler and remove filament manually"
-msgstr "Ouvrez l'idler et\nretirez le filament\nmanuellement"
+msgstr "Ouvrez l'idler et retirez le filament manuellement"
 
 #: src/gui/wizard/xyzcalib.cpp:85 src/gui/wizard/xyzcalib.cpp:273
 msgid "Please place steel sheet on heatbed."
@@ -778,7 +778,7 @@ msgstr "Sélectionner"
 
 #: src/gui/wizard/firstlay.cpp:71
 msgid "Select Filament Type"
-msgstr "Sélectionner\nle Type de Filament"
+msgstr "Sélectionner le Type de Filament"
 
 #: src/gui/screen_filebrowser.cpp:42
 msgid "SELECT FILE"

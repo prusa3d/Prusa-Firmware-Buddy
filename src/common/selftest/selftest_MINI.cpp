@@ -14,14 +14,14 @@
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/temperature.h"
 #include "eeprom.h"
+#include "selftest_fans_type.hpp"
+#include "selftest_axis_type.hpp"
+#include "selftest_heaters_type.hpp"
 
 static_assert(sizeof(SelftestResultEEprom_t) == 4, "Invalid size of SelftestResultEEprom_t (!= 4).");
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
 
-#define X_AXIS_PERCENT 33
-#define Y_AXIS_PERCENT 33
-#define Z_AXIS_PERCENT 34
 static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 /// These speeds create major chord
 /// https://en.wikipedia.org/wiki/Just_intonation
@@ -120,16 +120,23 @@ void CSelftest::Loop() {
         if (phaseHome())
             return;
         break;
-    case stsXAxis:
-        if (phaseAxis(Config_XAxis, &m_pXAxis, (uint16_t)PhasesSelftestAxis::Xaxis, 0, X_AXIS_PERCENT))
+    case stsXAxis: {
+        if (phaseAxis(Config_XAxis, &m_pXAxis))
             return;
+        SelftestResultEEprom_t eeres;
+        eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+        if (eeres.xaxis == SelftestResult_Failed) {
+            m_State = stsWait_axes;
+            return;
+        }
         break;
+    }
     case stsYAxis:
-        if (phaseAxis(Config_YAxis, &m_pYAxis, (uint16_t)PhasesSelftestAxis::Yaxis, X_AXIS_PERCENT, Y_AXIS_PERCENT))
+        if (phaseAxis(Config_YAxis, &m_pYAxis))
             return;
         break;
     case stsZAxis:
-        if (phaseAxis(Config_ZAxis, &m_pZAxis, (uint16_t)PhasesSelftestAxis::Zaxis, X_AXIS_PERCENT + Y_AXIS_PERCENT, Z_AXIS_PERCENT))
+        if (phaseAxis(Config_ZAxis, &m_pZAxis))
             return;
         break;
     case stsWait_axes:
@@ -206,15 +213,13 @@ bool CSelftest::phaseFans(const selftest_fan_config_t &config_fan0, const selfte
     m_pFan0->Loop();
     m_pFan1->Loop();
     if (m_pFan0->IsInProgress() || m_pFan1->IsInProgress()) {
-        int p0 = m_pFan0->GetProgress();
-        int p1 = m_pFan1->GetProgress();
-        int p = std::min(p0, p1);
-        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, p, m_pFan0->getFSMState());
-        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, p, m_pFan1->getFSMState());
+        SelftestFans_t result(m_pFan0->GetProgress(), m_pFan1->GetProgress(), std::min(m_pFan0->GetProgress(), m_pFan1->GetProgress()), SelftestSubtestState_t(m_pFan0->getFSMState()), SelftestSubtestState_t(m_pFan1->getFSMState()));
+        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::measure, result.Serialize());
         return true;
     }
-    fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, 100, m_pFan0->getFSMState());
-    fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, 100, m_pFan1->getFSMState());
+    SelftestFans_t result(100, 100, 100, SelftestSubtestState_t(m_pFan0->getFSMState()), SelftestSubtestState_t(m_pFan1->getFSMState()));
+    fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::measure, result.Serialize());
+
     SelftestResultEEprom_t eeres;
     eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
     eeres.fan0 = m_pFan0->GetResult();
@@ -244,17 +249,55 @@ bool CSelftest::phaseHome() {
     return false;
 }
 
-bool CSelftest::phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase, uint8_t progress_add, uint8_t progress_mul) {
+SelftestSubtestState_t is_eeres_ok(uint8_t axis_eeres) {
+    return axis_eeres == SelftestResult_Passed ? SelftestSubtestState_t::ok : SelftestSubtestState_t::not_good;
+}
+
+void send_axis_result(SelftestResultEEprom_t eeres, AxisEnum axis, uint8_t progress) {
+    SelftestAxis_t result;
+
+    //selftest does one axis at the time, bud dialog does not need to know that (this behavior can change)
+    switch (axis) {
+    case X_AXIS:
+        result.x_progress = progress;
+        result.x_state = SelftestSubtestState_t::running;
+        break;
+    case Y_AXIS: {
+        result.x_progress = 100;
+        result.x_state = is_eeres_ok(eeres.xaxis);
+
+        result.y_progress = progress;
+        result.y_state = SelftestSubtestState_t::running;
+    } break;
+    case Z_AXIS: {
+        result.x_progress = 100;
+        result.x_state = is_eeres_ok(eeres.xaxis);
+
+        result.y_progress = 100;
+        result.y_state = is_eeres_ok(eeres.yaxis);
+
+        result.z_progress = progress;
+        result.z_state = SelftestSubtestState_t::running;
+    } break;
+    default:
+        break;
+    }
+
+    fsm_change(ClientFSM::SelftestAxis, PhasesSelftestAxis::measure, result.Serialize());
+}
+
+bool CSelftest::phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPart_Axis **ppaxis) {
     m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestAxis, 0);
     *ppaxis = *ppaxis ? *ppaxis : new CSelftestPart_Axis(config_axis);
-    int p = progress_add + (*ppaxis)->GetProgress() * progress_mul / 100;
-    if ((*ppaxis)->Loop()) {
-        fsm_change(ClientFSM::SelftestAxis, (PhasesSelftestAxis)fsm_phase, p, (*ppaxis)->getFSMState());
-        return true;
-    }
-    fsm_change(ClientFSM::SelftestAxis, (PhasesSelftestAxis)fsm_phase, p, (*ppaxis)->getFSMState());
+
     SelftestResultEEprom_t eeres;
     eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+
+    if ((*ppaxis)->Loop()) {
+        send_axis_result(eeres, AxisEnum(config_axis.axis), (*ppaxis)->GetProgress());
+        return true;
+    }
+
     switch (config_axis.axis) {
     case X_AXIS:
         eeres.xaxis = (*ppaxis)->GetResult();
@@ -267,6 +310,10 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPa
         break;
     }
     eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
+
+    SelftestAxis_t result(100, 100, 100, is_eeres_ok(eeres.xaxis), is_eeres_ok(eeres.yaxis), is_eeres_ok(eeres.zaxis));
+    fsm_change(ClientFSM::SelftestAxis, PhasesSelftestAxis::measure, result.Serialize());
+
     delete *ppaxis;
     *ppaxis = nullptr;
     return false;
@@ -279,14 +326,18 @@ bool CSelftest::phaseHeaters(const selftest_heater_config_t &config_nozzle, cons
     m_pHeater_Nozzle->Loop();
     m_pHeater_Bed->Loop();
     if (m_pHeater_Nozzle->IsInProgress() || m_pHeater_Bed->IsInProgress()) {
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_prep, m_pHeater_Nozzle->GetProgress(), m_pHeater_Nozzle->getFSMState_prepare());
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_heat, m_pHeater_Nozzle->GetProgress(), m_pHeater_Nozzle->getFSMState_heat());
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_prep, m_pHeater_Bed->GetProgress(), m_pHeater_Bed->getFSMState_prepare());
-        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_heat, m_pHeater_Bed->GetProgress(), m_pHeater_Bed->getFSMState_heat());
+        SelftestHeaters_t result(m_pHeater_Nozzle->GetProgress(), m_pHeater_Bed->GetProgress(),
+            SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_prepare()), SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_heat()),
+            SelftestSubtestState_t(m_pHeater_Bed->getFSMState_prepare()), SelftestSubtestState_t(m_pHeater_Bed->getFSMState_heat()));
+        fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::measure, result.Serialize());
+
         return true;
     }
-    fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::noz_heat, 100, m_pHeater_Nozzle->getFSMState_heat());
-    fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::bed_heat, 100, m_pHeater_Bed->getFSMState_heat());
+    SelftestHeaters_t result(100, 100,
+        SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_prepare()), SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_heat()),
+        SelftestSubtestState_t(m_pHeater_Bed->getFSMState_prepare()), SelftestSubtestState_t(m_pHeater_Bed->getFSMState_heat()));
+    fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::measure, result.Serialize());
+
     SelftestResultEEprom_t eeres;
     eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
     eeres.nozzle = m_pHeater_Nozzle->GetResult();

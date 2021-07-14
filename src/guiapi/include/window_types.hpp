@@ -27,6 +27,8 @@ enum class is_closed_on_timeout_t : bool { no,
     yes };
 enum class is_closed_on_serial_t : bool { no,
     yes };
+enum class positioning : bool { absolute,
+    relative };
 
 //type of window
 //carefull if any states are added - flags and getter must be modified
@@ -45,21 +47,21 @@ enum class win_type_t : uint8_t {
 union WindowFlags {
     uint32_t data;
     struct {
-        uint8_t type : 2;                         // 00 .. 01 - type of window
-        bool visible : 1;                         // 02 - is visible
-        bool enabled : 1;                         // 03 - is enabled (can be focused)
-        bool invalid : 1;                         // 04 - content is invalid (draw)
-        bool checked : 1;                         // 05 - is checked/selected
-        bool timer : 1;                           // 06 - window has timers
-        is_closed_on_click_t close_on_click : 1;  // 07 - window id dialog
-        bool hidden_behind_dialog : 1;            // 08 - there is an dialog over this window
-        is_closed_on_timeout_t timeout_close : 1; // 09 - menu timeout flag - it's meant to be used in window_frame_t
-        is_closed_on_serial_t serial_close : 1;   // 0A - serial printing screen open close
-        bool shadow : 1;                          // 0B - darker colors
-        bool custom3 : 1;                         // 0C - this flag can be defined in parent
-        bool custom2 : 1;                         // 0D - this flag can be defined in parent
-        bool custom1 : 1;                         // 0E - this flag can be defined in parent
-        bool custom0 : 1;                         // 0F - this flag can be defined in parent
+        uint8_t type : 2;                          // 00 .. 01 - type of window
+        bool visible : 1;                          // 02 - is visible
+        bool enabled : 1;                          // 03 - is enabled (can be focused)
+        bool invalid : 1;                          // 04 - content is invalid (draw)
+        bool checked : 1;                          // 05 - is checked/selected
+        bool timer : 1;                            // 06 - window has timers
+        is_closed_on_click_t close_on_click : 1;   // 07 - window id dialog
+        bool hidden_behind_dialog : 1;             // 08 - there is an dialog over this window
+        is_closed_on_timeout_t timeout_close : 1;  // 09 - menu timeout flag - it's meant to be used in window_frame_t
+        is_closed_on_serial_t serial_close : 1;    // 0A - serial printing screen open close
+        bool shadow : 1;                           // 0B - darker colors
+        bool enforce_capture_when_not_visible : 1; // 0C - normally invisible / hidden_behind_dialog windows does not get capture
+        bool has_relative_subwins : 1;             // 0D - X Y coords of all children are relative to this, screen cannot have this flag because 1st level windows can be dialogs and they must not have relative coords
+        bool custom1 : 1;                          // 0E - this flag can be defined in parent
+        bool custom0 : 1;                          // 0F - this flag can be defined in parent
 
         // here would be 2 unused Bytes (structure data alignment),
         // make them accessible to be used in child to save RAM

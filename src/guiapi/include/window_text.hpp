@@ -3,10 +3,8 @@
 #pragma once
 
 #include "window.hpp"
+#include "display_helper.h" // is_multiline
 #include "../../lang/string_view_utf8.hpp"
-
-enum class is_multiline : bool { no,
-    yes };
 
 struct window_text_t : public AddSuperWindow<window_aligned_t> {
     color_t color_text;
@@ -18,7 +16,7 @@ struct window_text_t : public AddSuperWindow<window_aligned_t> {
     virtual void SetText(string_view_utf8 txt);
     void SetTextColor(color_t clr);
 
-    color_t GetTextColor() const { return color_text; }
+    constexpr color_t GetTextColor() const { return color_text; }
     void SetPadding(padding_ui8_t padd);
 
     window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
@@ -33,5 +31,26 @@ struct window_text_button_t : public AddSuperWindow<window_text_t> {
     window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, string_view_utf8 txt = string_view_utf8::MakeNULLSTR()); //default action is close screen
 
 protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+};
+
+class WindowBlinkingText : public AddSuperWindow<window_text_t> {
+    color_t color_blink;
+    uint16_t blink_step;
+    bool blink_enable;
+
+public:
+    constexpr void SetBlinkColor(color_t clr) {
+        color_blink = clr;
+        color_blink == GetTextColor() ? DisableBlink() : EnableBlink();
+    }
+    constexpr color_t GetBlinkColor() const { return color_blink; }
+    constexpr void EnableBlink() { blink_enable = true; }
+    constexpr void DisableBlink() { blink_enable = false; }
+
+    WindowBlinkingText(window_t *parent, Rect16 rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR(), uint16_t blink_step = 500);
+
+protected:
+    virtual void unconditionalDraw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

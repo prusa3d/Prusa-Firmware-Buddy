@@ -8,31 +8,26 @@
 
 #pragma once
 #include <cstdint>
+#include "media_state.hpp"
 
 class GuiMediaEventsHandler {
 public:
-    enum class state_t {
-        unknown,
-        inserted,
-        removed,
-        error
-    };
-
     GuiMediaEventsHandler();
     GuiMediaEventsHandler(const GuiMediaEventsHandler &) = default;
 
     static GuiMediaEventsHandler &Instance();
 
+private:
     static constexpr uint32_t startup_finished_dellay = 1000;
     uint32_t start_time;
     bool is_starting;
     bool one_click_printing;
     bool state_sent;
-    state_t media_state;
+    MediaState_t media_state;
 
     void tick();
     void clr() {
-        media_state = state_t::unknown;
+        media_state = MediaState_t::unknown;
         state_sent = true;
     }
 
@@ -40,6 +35,7 @@ public:
     static void Tick();
     static bool ConsumeOneClickPrinting();
     static bool IsStarting();
-    static void ClrMediaError();        //clear - update - clear again
-    static state_t ConsumeMediaState(); //update - remember - clear sent - return
+    static void ClrMediaError();                //clear - update - clear again
+    static bool ConsumeSent(MediaState_t &ret); //update - remember - set sent - return
+    static MediaState_t Get();
 };

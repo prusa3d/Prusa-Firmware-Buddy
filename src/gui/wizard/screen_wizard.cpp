@@ -6,7 +6,7 @@
 #include "stm32f4xx_hal.h"
 #include "marlin_client.h"
 #include "wizard_config.hpp"
-#include "filament.h"
+#include "filament.hpp"
 #include "eeprom.h"
 #include "filament_sensor.hpp"
 #include "i18n.h"
@@ -133,7 +133,7 @@ WizardState_t StateFnc_START() {
 #endif //_DEBUG
 
     //IDR_PNG_icon_pepa
-    switch (MsgBoxPepa(translatedText, resp)) {
+    switch (MsgBoxPepa(translatedText, resp, 0, GuiDefaults::RectScreenNoHeader)) {
 #ifdef _DEBUG
     case Response::Ignore:
         eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
@@ -151,10 +151,10 @@ WizardState_t StateFnc_START() {
 
 WizardState_t StateFnc_INIT() {
     //wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
-    if (fs_get_state() == fsensor_t::Disabled) {
-        fs_enable();
-        if (fs_wait_initialized() == fsensor_t::NotConnected)
-            fs_disable();
+    if (FS_instance().Get() == fsensor_t::Disabled) {
+        FS_instance().Enable();
+        if (FS_instance().WaitInitialized() == fsensor_t::NotConnected)
+            FS_instance().Disable();
     }
 
     //preheat for SELFTEST_TEMP, so selftest is quicker

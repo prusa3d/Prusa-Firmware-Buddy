@@ -55,7 +55,6 @@
 #include "app.h"
 #include "dbg.h"
 #include "wdt.h"
-#include "diag.h"
 #include "dump.h"
 #include "timer_defaults.h"
 #include "thread_measurement.h"
@@ -67,6 +66,8 @@
 #include "eeprom.h"
 #include "crc32.h"
 #include "w25x.h"
+#include "timing.h"
+#include "filesystem.h"
 
 #define USB_OVERC_Pin       GPIO_PIN_4
 #define USB_OVERC_GPIO_Port GPIOE
@@ -129,6 +130,8 @@ DMA_HandleTypeDef hdma_spi2_rx;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim12;
 TIM_HandleTypeDef htim14;
 
 static UART_HandleTypeDef huart1;
@@ -175,16 +178,12 @@ void iwdg_warning_cb(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#include "uartslave.h"
-#include "putslave.h"
 
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[200];
 
 uartrxbuff_t uart6rxbuff;
-uint8_t uart6rx_data[32];
-uartslave_t uart6slave;
-char uart6slave_line[32];
+uint8_t uart6rx_data[128];
 
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
@@ -235,8 +234,6 @@ int main(void) {
 
     /* USER CODE BEGIN SysInit */
 
-    diag_check_fastboot();
-
     /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
@@ -269,8 +266,6 @@ int main(void) {
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
     HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
     uartrxbuff_reset(&uart6rxbuff);
-    uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
-    putslave_init(&uart6slave);
     wdt_iwdg_warning_cb = iwdg_warning_cb;
 
     crc32_init();
@@ -286,6 +281,8 @@ int main(void) {
     }
     if (irq == 0)
         __disable_irq();
+
+    filesystem_init();
 
     /* USER CODE END 2 */
 
@@ -312,8 +309,16 @@ int main(void) {
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
     /* definition and creation of displayTask */
-    osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 2048);
-    displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
+    if (HAS_GUI) {
+        osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0,
+#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+            2048
+#else
+            1024
+#endif
+        );
+        displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
+    }
 
 #ifdef BUDDY_ENABLE_WUI
     /* definition and creation of webServerTask */
@@ -748,6 +753,74 @@ static void MX_TIM3_Init(void) {
     HAL_TIM_MspPostInit(&htim3);
 }
 
+HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
+    HAL_StatusTypeDef status;
+    //
+    // TIM12 - Slave
+    //
+    htim12.Instance = TIM12;
+    htim12.Init.Prescaler = 0;
+    htim12.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim12.Init.Period = 1000 - 1; // set the period to 1 ms
+    htim12.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    if ((status = HAL_TIM_Base_Init(&htim12)) != HAL_OK) {
+        return status;
+    }
+
+    TIM_SlaveConfigTypeDef slaveConfig = { 0 };
+    slaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+    slaveConfig.InputTrigger = TIM_TS_ITR0;
+    if ((status = HAL_TIM_SlaveConfigSynchronization(&htim12, &slaveConfig)) != HAL_OK) {
+        return status;
+    }
+
+    TIM_MasterConfigTypeDef masterConfig = { 0 };
+    masterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+    masterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+    if ((status = HAL_TIMEx_MasterConfigSynchronization(&htim12, &masterConfig)) != HAL_OK) {
+        return status;
+    }
+
+    HAL_TIM_Base_Start_IT(&htim12);
+
+    //
+    // TIM4 - Master
+    //
+    htim4.Instance = TIM4;
+    htim4.Init.Prescaler = 0; // no prescaler = we get full 84Mhz
+    htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim4.Init.Period = TIM_BASE_CLK_MHZ - 1; // set period to 1us
+    htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    if ((status = HAL_TIM_Base_Init(&htim4)) != HAL_OK) {
+        Error_Handler();
+    }
+
+    TIM_ClockConfigTypeDef clockSourceConfig = { 0 };
+    clockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    if ((status = HAL_TIM_ConfigClockSource(&htim4, &clockSourceConfig)) != HAL_OK) {
+        return status;
+    }
+
+    masterConfig = { 0 };
+    masterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+    masterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+
+    if ((status = HAL_TIMEx_MasterConfigSynchronization(&htim4, &masterConfig)) != HAL_OK) {
+        return status;
+    }
+
+    HAL_TIM_Base_Start(&htim4);
+    return HAL_OK;
+}
+
+void HAL_SuspendTick(void) {
+    __HAL_TIM_DISABLE_IT(&htim12, TIM_IT_UPDATE);
+}
+
+void HAL_ResumeTick(void) {
+    __HAL_TIM_ENABLE_IT(&htim12, TIM_IT_UPDATE);
+}
+
 /**
   * @brief TIM14 Initialization Function
   * @param None
@@ -1047,14 +1120,12 @@ void StartDisplayTask(void const *argument) {
   * @retval None
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    /* USER CODE BEGIN Callback 0 */
-    if (htim->Instance == TIM6) {
+    if (htim->Instance == TIM12) {
         wdt_tick_1ms();
-        HAL_IncTick();
+        tick_ms_irq();
     } else if (htim->Instance == TIM14) {
         app_tim14_tick();
     }
-    /* USER CODE END Callback 1 */
 }
 
 /**

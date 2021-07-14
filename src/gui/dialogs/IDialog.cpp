@@ -7,16 +7,23 @@ IDialog::IDialog(Rect16 rc, IsStrong strong)
     Enable();
 }
 
+IDialog::IDialog(window_t *parent, Rect16 rc)
+    : AddSuperWindow<window_frame_t>(parent, rc, win_type_t::dialog) {
+    Enable();
+}
+
 bool IDialog::consumeCloseFlag() const {
     return Screens::Access()->ConsumeClose();
 }
 
 void IDialog::guiLoop() const {
+    gui::TickLoop();
     gui_loop();
 }
 
 void create_blocking_dialog_from_normal_window(window_t &dlg) {
     while (!Screens::Access()->ConsumeClose()) {
+        gui::TickLoop();
         gui_loop();
     }
 }
