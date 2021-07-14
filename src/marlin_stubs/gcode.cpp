@@ -11,9 +11,13 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 50:
             PrusaGcodeSuite::M50(); //selftest
             return true;
+        case 117:
+            PrusaGcodeSuite::M117();
+            if (!no_ok)
+                queue.ok_to_send();
+            return true;
         case 300:
             PrusaGcodeSuite::M300();
-            return true;
 #if defined(_DEBUG)
         case 330:
             PrusaGcodeSuite::M330();

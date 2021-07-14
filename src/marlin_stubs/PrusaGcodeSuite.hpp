@@ -7,6 +7,8 @@ void G163(); /// measure length of axis
 
 void M50(); /// selftest
 
+void M117(); /// M117 LCD message (print status)
+
 void M300(); /// beep
 void M505(); /// set eeprom variable
 void M650();
@@ -29,5 +31,4 @@ void M1587(); /// Wi-Fi credentials
 void M1600(); /// Menu change filament. Prusa STM32 platform specific
 void M1700(); /// Preheat. Prusa STM32 platform specific
 void M1701(); /// Autoload. Prusa STM32 platform specific
-
 }
