@@ -2,8 +2,8 @@ TIM1 - hwio - FAN0 and FAN1 PWM
 TIM2 - hwio - BUZZER
 TIM3 - hwio - HEAT0 and BED_HEAT PWM
 TIM4 - SystemTimer (master of TIM12, ~12ns tick, 84MHz, 1us period)
-TIM5 - Marlin/Stepper
-TIM6 -
+TIM5 -
+TIM6 - Marlin/Stepper
 TIM7 - Marlin/Temperature
 TIM8 -  
 TIM9 -
