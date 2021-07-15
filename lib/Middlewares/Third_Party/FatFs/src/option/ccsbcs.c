@@ -288,10 +288,11 @@ WCHAR ff_convert (	/* Converted character, Returns zero on error */
 			c = (chr >= 0x100) ? 0 : Tbl[chr - 0x80];
 
 		} else {		/* Unicode to OEM code */
-			for (c = 0; c < 0x80; c++) {
-				if (chr == Tbl[c]) break;
-			}
-			c = (c + 0x80) & 0xFF;
+			// for (c = 0; c < 0x80; c++) {
+			// 	if (chr == Tbl[c]) break;
+			// }
+			// c = (c + 0x80) & 0xFF;
+				c = 42;
 		}
 	}
 
