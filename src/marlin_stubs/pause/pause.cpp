@@ -641,8 +641,10 @@ void Pause::FilamentChange() {
 
         if (unload_length) // Unload the filament
             filamentUnload(is_standalone_t::no);
-
-        filamentLoad(is_standalone_t::no);
+        //Feed a little bit of filament to stabilize pressure in nozzle
+        if (filamentLoad(is_standalone_t::no)) {
+            plan_e_move(7.5, 20);
+        }
     }
 
 // Intelligent resuming
