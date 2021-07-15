@@ -1,4 +1,6 @@
 // window_icon.c
+
+#include <unistd.h>
 #include "window_icon.hpp"
 #include "gui.hpp"
 #include "ScreenHandler.hpp"
