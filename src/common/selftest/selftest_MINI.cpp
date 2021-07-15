@@ -1,5 +1,8 @@
 // selftest.cpp
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "selftest_MINI.h"
 #include "selftest_fan.h"
 #include "selftest_axis.h"
@@ -10,7 +13,6 @@
 #include "hwio.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"
-#include "ff.h"
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/temperature.h"
 #include "eeprom.h"
@@ -402,7 +404,8 @@ void CSelftest::log_open() {
         snprintf(serial, sizeof(serial), "CZPX%.15s", serial_otp);
         snprintf(fname, sizeof(fname), "test_CZPX%.15s%s.txt", serial_otp, suffix);
     }
-    if (f_open(&m_fil, fname, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
+    m_fd = open(fname, O_WRONLY | O_CREAT);
+    if (m_fd >= 0) {
         m_filIsValid = true;
         log_printf("SELFTEST START\n");
         log_printf("printer serial: %s\n\n", serial);
@@ -413,7 +416,7 @@ void CSelftest::log_open() {
 void CSelftest::log_close() {
     if (m_filIsValid) {
         log_printf("SELFTEST END\n");
-        f_close(&m_fil);
+        close(m_fd);
         m_filIsValid = false;
     }
 }
@@ -425,8 +428,8 @@ int CSelftest::log_printf(const char *fmt, ...) {
     int len = vsnprintf(line, SELFTEST_MAX_LOG_PRINTF, fmt, va);
     va_end(va);
     if (m_filIsValid) {
-        f_puts(line, &m_fil);
-        f_sync(&m_fil);
+        write(m_fd, line, len);
+        fsync(m_fd);
     }
     return len;
 }

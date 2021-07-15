@@ -36,7 +36,6 @@
 #include "wdt.h"
 #include "fanctl.h"
 #include "trinamic.h"
-#include "ff.h"
 #include "otp.h"
 #include "../marlin_stubs/G26.hpp"
 #include "fsm_types.hpp"
