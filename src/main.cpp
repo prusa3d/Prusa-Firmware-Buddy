@@ -68,6 +68,7 @@
 #include "w25x.h"
 #include "timing.h"
 #include "filesystem.h"
+#include "adc.h"
 
 #define USB_OVERC_Pin       GPIO_PIN_4
 #define USB_OVERC_GPIO_Port GPIOE
@@ -77,8 +78,8 @@
 #define ESP_GPIO0_GPIO_Port GPIOE
 #define ESP_RST_Pin         GPIO_PIN_13
 #define ESP_RST_GPIO_Port   GPIOC
-#define BED_MON_Pin         GPIO_PIN_7
-#define BED_MON_GPIO_Port   GPIOE
+#define BED_MON_Pin         GPIO_PIN_3
+#define BED_MON_GPIO_Port   GPIOA
 #define FAN0_TACH_Pin       GPIO_PIN_10
 #define FAN0_TACH_GPIO_Port GPIOE
 #define FAN0_TACH_EXTI_IRQn EXTI15_10_IRQn
@@ -140,6 +141,7 @@ UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart6_rx;
+DMA_HandleTypeDef hdma_adc1;
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
@@ -150,6 +152,7 @@ int HAL_GPIO_Initialized = 0;
 int HAL_ADC_Initialized = 0;
 int HAL_PWM_Initialized = 0;
 int HAL_SPI_Initialized = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -240,7 +243,9 @@ int main(void) {
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_I2C1_Init();
+#ifndef SIM_HEATER
     MX_ADC1_Init();
+#endif
     MX_USART1_UART_Init();
     MX_TIM1_Init();
     MX_TIM3_Init();
@@ -284,6 +289,7 @@ int main(void) {
 
     filesystem_init();
 
+    adc_dma_init(&hadc1); //start ADC DMA conversion
     /* USER CODE END 2 */
 
     static metric_handler_t *handlers[] = {
@@ -416,28 +422,56 @@ static void MX_ADC1_Init(void) {
     /* USER CODE BEGIN ADC1_Init 1 */
 
     /* USER CODE END ADC1_Init 1 */
-    /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+    /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
     hadc1.Instance = ADC1;
     hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
-    hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-    hadc1.Init.ScanConvMode = DISABLE;
-    hadc1.Init.ContinuousConvMode = DISABLE;
+    hadc1.Init.Resolution = ADC_RESOLUTION_10B;
+    hadc1.Init.ScanConvMode = ENABLE;
+    hadc1.Init.ContinuousConvMode = ENABLE;
     hadc1.Init.DiscontinuousConvMode = DISABLE;
     hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
     hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
     hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-    hadc1.Init.NbrOfConversion = 1;
-    hadc1.Init.DMAContinuousRequests = DISABLE;
+    hadc1.Init.NbrOfConversion = 5;
+    hadc1.Init.DMAContinuousRequests = ENABLE;
     hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
     if (HAL_ADC_Init(&hadc1) != HAL_OK) {
         Error_Handler();
     }
-    /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+    sConfig.Channel = ADC_CHANNEL_10;
+    sConfig.Rank = 1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
+    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
     sConfig.Channel = ADC_CHANNEL_4;
-    sConfig.Rank = 1;
-    sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+    sConfig.Rank = 2;
+    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+    sConfig.Channel = ADC_CHANNEL_5;
+    sConfig.Rank = 3;
+    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+    sConfig.Channel = ADC_CHANNEL_6;
+    sConfig.Rank = 4;
+    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+    sConfig.Channel = ADC_CHANNEL_3;
+    sConfig.Rank = 5;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
@@ -956,6 +990,9 @@ static void MX_DMA_Init(void) {
     /* DMA2_Stream2_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+    /* DMA2_Stream0_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 }
 
 /**

@@ -498,6 +498,7 @@ target_sources(
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_photoeletric.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
+          src/common/adc.cpp
           src/common/hardware_serial.cpp
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
@@ -518,7 +519,6 @@ target_sources(
           src/common/dump.c
           src/common/marlin_client.c
           src/common/bsod.cpp
-          src/common/adc.c
           src/common/version.c
           src/common/marlin_events.c
           src/common/marlin_errors.c

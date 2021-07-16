@@ -36,27 +36,6 @@ enum {
 };
 
 /**
- * @brief analog input pins
- */
-const uint32_t _adc_pin32[] = {
-    MARLIN_PIN(HW_IDENTIFY),
-    MARLIN_PIN(TEMP_BED),
-    MARLIN_PIN(THERM2),
-    MARLIN_PIN(TEMP_HEATBREAK),
-    MARLIN_PIN(TEMP_0), // THERM0 (nozzle)
-};
-/**
- * @brief analog input maximum values
- */
-const int _adc_max[] = { 4095, 4095, 4095, 4095, 4095 };
-static const size_t _ADC_CNT = sizeof(_adc_pin32) / sizeof(uint32_t);
-
-/**
- * @brief sampled analog inputs
- */
-int _adc_val[] = { 0, 0, 0, 0, 0 };
-
-/**
  * @brief analog output pins
  */
 const uint32_t _dac_pin32[] = {};
@@ -159,6 +138,8 @@ int hwio_fan_control_enabled = 1;
 float hwio_beeper_vol = 1.0F;
 uint32_t hwio_beeper_del = 0;
 
+extern ADC_HandleTypeDef hadc1;
+
 /*****************************************************************************
  * private function declarations
  * */
@@ -168,23 +149,6 @@ void _hwio_pwm_set_val(int i_pwm, int val);
 uint32_t _pwm_get_chan(int i_pwm);
 TIM_HandleTypeDef *_pwm_get_htim(int i_pwm);
 int is_pwm_id_valid(int i_pwm);
-
-//--------------------------------------
-//analog input functions
-
-int hwio_adc_get_cnt(void) //number of analog inputs
-{ return _ADC_CNT; }
-
-int hwio_adc_get_max(int i_adc) //analog input maximum value
-{ return _adc_max[i_adc]; }
-
-int hwio_adc_get_val(ADC_t i_adc) //read analog input
-{
-    if ((i_adc >= 0) && (i_adc < _ADC_CNT))
-        return _adc_val[i_adc];
-    //else //TODO: check
-    return 0;
-}
 
 //--------------------------------------
 //analog output functions
@@ -489,24 +453,6 @@ void hwio_update_1ms(void) {
 }
 
 //--------------------------------------
-// ADC sampler
-
-// value ready callback
-void adc_ready(uint8_t index) {
-    _adc_val[index] = adc_val[index] >> 4;
-}
-
-// channel priority sequence callback
-const uint8_t adc_seq[18] = { 4, 1, 4, 1, 4, 0, 4, 1, 4, 1, 4, 2, 4, 1, 4, 1, 4, 3 };
-uint8_t adc_seq2idx(uint8_t seq) {
-    return adc_seq[seq];
-    //	return 2;
-    //	if ((seq % 3) != 2) return 2;
-    //	if (seq != 8) return 0;
-    //	return 1;
-}
-
-//--------------------------------------
 // Arduino digital/analog read/write error handler
 
 void hwio_arduino_error(int err, uint32_t pin32) {
@@ -612,19 +558,17 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
     switch (marlinPin) {
     case MARLIN_PIN(BED_HEAT):
 #ifdef SIM_HEATER_BED_ADC
-        if (adc_sim_msk & (1 << SIM_HEATER_BED_ADC))
-            sim_bed_set_power(ulVal ? 100 : 0);
-        else
-#endif //SIM_HEATER_BED_ADC
-            _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_BED] : 0);
+        sim_bed_set_power(ulVal ? 100 : 0);
+#else //SIM_HEATER_BED_ADC
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_BED] : 0);
+#endif
         return;
     case MARLIN_PIN(HEAT0):
 #ifdef SIM_HEATER_NOZZLE_ADC
-        if (adc_sim_msk & (1 << SIM_HEATER_NOZZLE_ADC))
-            sim_nozzle_set_power(ulVal ? 40 : 0);
-        else
-#endif //SIM_HEATER_NOZZLE_ADC
-            _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_0] : 0);
+        sim_nozzle_set_power(ulVal ? 40 : 0);
+#else //SIM_HEATER_NOZZLE_ADC
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_0] : 0);
+#endif
         return;
     case MARLIN_PIN(FAN1):
 #ifdef NEW_FANCTL
@@ -657,13 +601,13 @@ uint32_t analogRead(uint32_t ulPin) {
     if (HAL_ADC_Initialized) {
         switch (ulPin) {
         case MARLIN_PIN(TEMP_BED):
-            return hwio_adc_get_val(ADC_TEMP_BED);
+            return get_adc_channel_value(&hadc1, CHANNEL_BED);
         case MARLIN_PIN(TEMP_0):
-            return hwio_adc_get_val(ADC_TEMP_0);
+            return get_adc_channel_value(&hadc1, CHANNEL_NOZZLE);
         case MARLIN_PIN(TEMP_HEATBREAK):
-            return hwio_adc_get_val(ADC_TEMP_HEATBREAK);
+            return get_adc_channel_value(&hadc1, CHANNEL_PINDA);
         case MARLIN_PIN(THERM2):
-            return hwio_adc_get_val(ADC_TEMP_2);
+            return get_adc_channel_value(&hadc1, CHANNEL_TEMP_2);
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_RD, ulPin); //error: undefined pin analog read
         }

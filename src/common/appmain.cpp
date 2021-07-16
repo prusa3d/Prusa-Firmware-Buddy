@@ -95,8 +95,6 @@ void app_run(void) {
     marlin_server_init();
     marlin_server_idle_cb = app_idle;
 
-    adc_init();
-
 #ifdef SIM_HEATER
     sim_heater_init();
 #endif //SIM_HEATER
@@ -172,7 +170,6 @@ void app_cdc_rx(uint8_t *buffer, uint32_t length) {
 }
 
 void adc_tick_1ms(void) {
-    adc_cycle();
 #ifdef SIM_HEATER
     static uint8_t cnt_sim_heater = 0;
     if (++cnt_sim_heater >= 50) // sim_heater freq = 20Hz
