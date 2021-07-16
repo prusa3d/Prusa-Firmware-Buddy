@@ -37,5 +37,6 @@ exclude: |
     ^lib/Middlewares/Third_Party/LwIP/|
     ^lib/jsmn/|
     ^lib/Catch2/|
-    ^lib/libsysbase/
+    ^lib/libsysbase/|
+    ^lib/Middlewares/Third_Party/littlefs/
   )
