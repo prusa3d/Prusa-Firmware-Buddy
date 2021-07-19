@@ -128,11 +128,10 @@ SPI_HandleTypeDef hspi3;
 DMA_HandleTypeDef hdma_spi2_tx;
 DMA_HandleTypeDef hdma_spi2_rx;
 
+//described in timers.md
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim4;
-TIM_HandleTypeDef htim12;
 TIM_HandleTypeDef htim14;
 
 static UART_HandleTypeDef huart1;
@@ -198,8 +197,6 @@ uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
   * @retval int
   */
 int main(void) {
-    /* USER CODE BEGIN 1 */
-
     /*
     #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
     #define RCC_FLAG_BORRST                  ((uint8_t)0x79)
@@ -221,23 +218,13 @@ int main(void) {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST);
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
-    /* USER CODE END 1 */
-
     /* MCU Configuration--------------------------------------------------------*/
 
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
     HAL_Init();
 
-    /* USER CODE BEGIN Init */
-
-    /* USER CODE END Init */
-
     /* Configure the system clock */
     SystemClock_Config();
-
-    /* USER CODE BEGIN SysInit */
-
-    /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
@@ -787,74 +774,6 @@ static void MX_TIM3_Init(void) {
     HAL_TIM_MspPostInit(&htim3);
 }
 
-HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
-    HAL_StatusTypeDef status;
-    //
-    // TIM12 - Slave
-    //
-    htim12.Instance = TIM12;
-    htim12.Init.Prescaler = 0;
-    htim12.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim12.Init.Period = 1000 - 1; // set the period to 1 ms
-    htim12.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    if ((status = HAL_TIM_Base_Init(&htim12)) != HAL_OK) {
-        return status;
-    }
-
-    TIM_SlaveConfigTypeDef slaveConfig = { 0 };
-    slaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
-    slaveConfig.InputTrigger = TIM_TS_ITR0;
-    if ((status = HAL_TIM_SlaveConfigSynchronization(&htim12, &slaveConfig)) != HAL_OK) {
-        return status;
-    }
-
-    TIM_MasterConfigTypeDef masterConfig = { 0 };
-    masterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    masterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    if ((status = HAL_TIMEx_MasterConfigSynchronization(&htim12, &masterConfig)) != HAL_OK) {
-        return status;
-    }
-
-    HAL_TIM_Base_Start_IT(&htim12);
-
-    //
-    // TIM4 - Master
-    //
-    htim4.Instance = TIM4;
-    htim4.Init.Prescaler = 0; // no prescaler = we get full 84Mhz
-    htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim4.Init.Period = TIM_BASE_CLK_MHZ - 1; // set period to 1us
-    htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    if ((status = HAL_TIM_Base_Init(&htim4)) != HAL_OK) {
-        Error_Handler();
-    }
-
-    TIM_ClockConfigTypeDef clockSourceConfig = { 0 };
-    clockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-    if ((status = HAL_TIM_ConfigClockSource(&htim4, &clockSourceConfig)) != HAL_OK) {
-        return status;
-    }
-
-    masterConfig = { 0 };
-    masterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
-    masterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-
-    if ((status = HAL_TIMEx_MasterConfigSynchronization(&htim4, &masterConfig)) != HAL_OK) {
-        return status;
-    }
-
-    HAL_TIM_Base_Start(&htim4);
-    return HAL_OK;
-}
-
-void HAL_SuspendTick(void) {
-    __HAL_TIM_DISABLE_IT(&htim12, TIM_IT_UPDATE);
-}
-
-void HAL_ResumeTick(void) {
-    __HAL_TIM_ENABLE_IT(&htim12, TIM_IT_UPDATE);
-}
-
 /**
   * @brief TIM14 Initialization Function
   * @param None
@@ -1157,11 +1076,10 @@ void StartDisplayTask(void const *argument) {
   * @retval None
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    if (htim->Instance == TIM12) {
-        wdt_tick_1ms();
-        tick_ms_irq();
-    } else if (htim->Instance == TIM14) {
+    if (htim->Instance == TIM14) {
         app_tim14_tick();
+    } else if (htim->Instance == TICK_TIMER) {
+        TICK_TIMER_PeriodElapsedCallback();
     }
 }
 
