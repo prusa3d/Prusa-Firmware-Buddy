@@ -16,6 +16,13 @@
 #define TURN_FLAG_ON(flg)          (flg &= ~LAN_FLAG_ONOFF_POS) // flip lan switch flg to ON
 #define TURN_FLAG_OFF(flg)         (flg |= LAN_FLAG_ONOFF_POS)  // flip lan switch flg to OFF
 
+#define CHANGE_LAN_TO_STATIC()  eth_change_setting(LAN_FLAG_TYPE_POS, 1)  // flip lan type flg to STATIC
+#define CHANGE_LAN_TO_DHCP()    eth_change_setting(LAN_FLAG_TYPE_POS, 0)  // flip lan type flg to DHCP
+#define TURN_LAN_ON()           eth_change_setting(LAN_FLAG_ONOFF_POS, 0) // flip lan switch flg to ON
+#define TURN_LAN_OFF()          eth_change_setting(LAN_FLAG_ONOFF_POS, 1) // flip lan switch flg to OFF
+#define LAN_INTERFACE_ETH(flg)  (flg |= LAN_FLAG_INTERFACE_POS)           // flip lan interface to ETH
+#define LAN_INTERFACE_WIFI(flg) (flg &= ~LAN_FLAG_INTERFACE_POS)          // flip lan interface to WIFI
+
 #define ETH_HOSTNAME_LEN 20 // ethernet hostname MAX length
 
 typedef enum {

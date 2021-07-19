@@ -91,7 +91,7 @@ bool Eth::IsOn() {
 }
 
 bool Eth::IsLANETH() {
-    return IS_LAN_INTERFACE_ETH(GetFlag());
+    return true;
 }
 
 bool Eth::IsUpdated() {
@@ -120,8 +120,6 @@ bool Eth::SetLANETH() {
     ETH_config_t ethconfig = {};
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     LAN_INTERFACE_ETH(ethconfig.lan.flag);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
     return true;
 }
 
@@ -129,8 +127,6 @@ bool Eth::SetLANWiFi() {
     ETH_config_t ethconfig = {};
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     LAN_INTERFACE_WIFI(ethconfig.lan.flag);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
     return true;
 }
 
