@@ -4,6 +4,21 @@ extern "C" {
 #endif //__cplusplus
 #include <stdint.h>
 
+/// convert ticks to nano seconds
+///
+/// @return uint64_t nanoseconds, cannot overflow
+uint64_t ticks_to_ns(uint32_t cnt);
+
+/// converts miliseconds to ticks
+///
+/// @return uint64_t ticks, cannot overflow
+uint64_t ms_to_ticks(uint32_t ms);
+
+/// Ticks with second precision
+///
+/// Overflows every 136 years
+uint32_t ticks_s();
+
 /// Ticks with millisecond precision
 ///
 /// Overflows every 49 days
@@ -41,8 +56,9 @@ int32_t ticks_diff(uint32_t ticks_a, uint32_t ticks_b);
 /// Given the datatype, overflows every ~584 years
 uint64_t timestamp_ns();
 
-/// To be called every 1 ms from TIM12 IRQ
-void tick_ms_irq();
+/// Sys timer's overflow interrupt callback
+///
+void TICK_TIMER_PeriodElapsedCallback();
 
 #ifdef __cplusplus
 }
