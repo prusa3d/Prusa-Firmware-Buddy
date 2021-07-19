@@ -20,10 +20,10 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
 
     if (ini_string_match(section, "lan_ip4", name, "type")) {
         if (strncasecmp(value, "DHCP", 4) == 0) {
-            CHANGE_LAN_TO_DHCP(tmp_config->lan.flag);
+            CHANGE_FLAG_TO_DHCP(tmp_config->lan.flag);
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
         } else if (strncasecmp(value, "STATIC", 6) == 0) {
-            CHANGE_LAN_TO_STATIC(tmp_config->lan.flag);
+            CHANGE_FLAG_TO_STATIC(tmp_config->lan.flag);
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
         }
     } else if (ini_string_match(section, "lan_ip4", name, "hostname")) {
