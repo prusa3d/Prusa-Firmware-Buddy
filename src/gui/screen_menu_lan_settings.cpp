@@ -71,19 +71,11 @@ uint8_t Eth::saveIni() {
 }
 
 void Eth::Off() {
-    ETH_config_t ethconfig = {};
-    TURN_LAN_OFF(ethconfig.lan.flag);
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
+    TURN_LAN_OFF();
 }
 
 void Eth::On() {
-    ETH_config_t ethconfig = {};
-    TURN_LAN_ON(ethconfig.lan.flag);
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
+    TURN_LAN_ON();
 }
 
 bool Eth::IsStatic() {
@@ -115,19 +107,12 @@ bool Eth::SetStatic() {
         msg = Msg::StaicAddrErr;
         return false;
     }
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    CHANGE_LAN_TO_STATIC(ethconfig.lan.flag);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
+    CHANGE_LAN_TO_STATIC();
     return true;
 }
 
 bool Eth::SetDHCP() {
-    ETH_config_t ethconfig = {};
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    CHANGE_LAN_TO_DHCP(ethconfig.lan.flag);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
+    CHANGE_LAN_TO_DHCP();
     return true;
 }
 
@@ -135,8 +120,6 @@ bool Eth::SetLANETH() {
     ETH_config_t ethconfig = {};
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     LAN_INTERFACE_ETH(ethconfig.lan.flag);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
     return true;
 }
 
@@ -144,8 +127,6 @@ bool Eth::SetLANWiFi() {
     ETH_config_t ethconfig = {};
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     LAN_INTERFACE_WIFI(ethconfig.lan.flag);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
     return true;
 }
 
@@ -174,7 +155,6 @@ void Eth::LoadIni() {
         ETH_config_t ethconfig = {};
         if (load_ini_file(&ethconfig)) {
             save_eth_params(&ethconfig);
-            set_eth_update_mask(ethconfig.var_mask);
             msg = Msg::LoadOK;
         } else {
             msg = Msg::LoadNOK;

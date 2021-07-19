@@ -12,12 +12,17 @@
 #define IS_LAN_DHCP(flg)          ((flg & LAN_FLAG_TYPE_POS) == 0)  // returns true if flag is set to DHCP
 #define IS_LAN_INTERFACE_ETH(flg) (flg & LAN_FLAG_INTERFACE_POS)    // returns true if LAN interface is ETH
 
-#define CHANGE_LAN_TO_STATIC(flg) (flg |= LAN_FLAG_TYPE_POS)       // flip lan type flg to STATIC
-#define CHANGE_LAN_TO_DHCP(flg)   (flg &= ~LAN_FLAG_TYPE_POS)      // flip lan type flg to DHCP
-#define TURN_LAN_ON(flg)          (flg &= ~LAN_FLAG_ONOFF_POS)     // flip lan switch flg to ON
-#define TURN_LAN_OFF(flg)         (flg |= LAN_FLAG_ONOFF_POS)      // flip lan switch flg to OFF
-#define LAN_INTERFACE_ETH(flg)    (flg |= LAN_FLAG_INTERFACE_POS)  // flip lan interface to ETH
-#define LAN_INTERFACE_WIFI(flg)   (flg &= ~LAN_FLAG_INTERFACE_POS) // flip lan interface to WIFI
+#define CHANGE_FLAG_TO_STATIC(flg) (flg |= LAN_FLAG_TYPE_POS)   // flip lan type flg to STATIC
+#define CHANGE_FLAG_TO_DHCP(flg)   (flg &= ~LAN_FLAG_TYPE_POS)  // flip lan type flg to DHCP
+#define TURN_FLAG_ON(flg)          (flg &= ~LAN_FLAG_ONOFF_POS) // flip lan switch flg to ON
+#define TURN_FLAG_OFF(flg)         (flg |= LAN_FLAG_ONOFF_POS)  // flip lan switch flg to OFF
+
+#define CHANGE_LAN_TO_STATIC()  eth_change_setting(LAN_FLAG_TYPE_POS, 1)  // flip lan type flg to STATIC
+#define CHANGE_LAN_TO_DHCP()    eth_change_setting(LAN_FLAG_TYPE_POS, 0)  // flip lan type flg to DHCP
+#define TURN_LAN_ON()           eth_change_setting(LAN_FLAG_ONOFF_POS, 0) // flip lan switch flg to ON
+#define TURN_LAN_OFF()          eth_change_setting(LAN_FLAG_ONOFF_POS, 1) // flip lan switch flg to OFF
+#define LAN_INTERFACE_ETH(flg)  (flg |= LAN_FLAG_INTERFACE_POS)           // flip lan interface to ETH
+#define LAN_INTERFACE_WIFI(flg) (flg &= ~LAN_FLAG_INTERFACE_POS)          // flip lan interface to WIFI
 
 #define ETH_HOSTNAME_LEN 20 // ethernet hostname MAX length
 
@@ -58,9 +63,7 @@ typedef struct {
 extern "C" {
 #endif
 
-void set_eth_update_mask(uint32_t var_mask);
-void clear_eth_update_mask();
-uint32_t get_eth_update_mask();
+void eth_change_setting(uint16_t flag, uint16_t value);
 
 #ifdef __cplusplus
 }

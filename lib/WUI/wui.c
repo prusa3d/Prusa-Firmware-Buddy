@@ -10,7 +10,6 @@
 #include "wui_vars.h"
 #include "marlin_client.h"
 #include "wui_api.h"
-#include "lwip.h"
 #include "ethernetif.h"
 #include <string.h>
 #include "sntp_client.h"
@@ -20,15 +19,30 @@
 #include "stm32_port.h"
 #include "lwip/altcp_tcp.h"
 #include "esp_tcp.h"
-
 #include "esp.h"
 #include "esp/apps/esp_http_server.h"
 #include "esp/apps/esp_http_server_fs.h"
+#include "netifapi.h"
+#include "dns.h"
+#include "httpd.h"
 
-osThreadId httpcTaskHandle;
+typedef enum {
+    WUI_IP4_DHCP,
+    WUI_IP4_STATIC
+} WUI_IP4_TYPE;
 
-#define WUI_NETIF_SETUP_DELAY  1000
-#define WUI_COMMAND_QUEUE_SIZE WUI_WUI_MQ_CNT // maximal number of messages at once in WUI command messageQ
+#define DNS_1                       0
+#define DNS_2                       1
+#define create_evt_eth(flag, value) (((flag) << 16) | (value))
+
+#define EVT_ETH_INIT_FINISHED (0xFFFFFFFFUL)
+#define EVT_ETH_OFF           create_evt_eth(LAN_FLAG_ONOFF_POS, 1)
+#define EVT_ETH_ON            create_evt_eth(LAN_FLAG_ONOFF_POS, 0)
+#define EVT_ETH_STATIC        create_evt_eth(LAN_FLAG_TYPE_POS, 1)
+#define EVT_ETH_DHCP          create_evt_eth(LAN_FLAG_TYPE_POS, 0)
+
+osMessageQDef(networkMbox, 16, NULL);
+static osMessageQId networkMbox_id;
 
 // WUI thread mutex for updating marlin vars
 osMutexDef(wui_thread_mutex);
@@ -37,6 +51,9 @@ osMutexId(wui_thread_mutex_id);
 static marlin_vars_t *wui_marlin_vars;
 wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
+static uint32_t ip4_type = WUI_IP4_DHCP;
+struct netif eth0;           // network interface structure for ETH
+ETH_config_t wui_eth_config; // the active WUI configuration for ethernet, connect and server
 
 static void wui_marlin_client_init(void) {
     wui_marlin_vars = marlin_client_init(); // init the client
@@ -77,9 +94,60 @@ static void sync_with_marlin_server(void) {
     osMutexRelease(wui_thread_mutex_id);
 }
 
-static void update_eth_changes(void) {
-    wui_lwip_link_status(); // checks plug/unplug status and take action
-    wui_lwip_sync_gui_lan_settings();
+static void netif_link_callback(struct netif *eth) {
+    ethernetif_update_config(eth);
+}
+
+static void netif_status_callback(struct netif *eth) {
+    ethernetif_update_config(eth);
+}
+
+static void tcpip_init_done_callback(void *arg) {
+    ETH_config_t *ethconfig = (ETH_config_t *)arg;
+    uint32_t message = EVT_ETH_INIT_FINISHED;
+
+    if (IS_LAN_STATIC(ethconfig->lan.flag)) {
+        ip4_type = WUI_IP4_STATIC;
+        dns_setserver(DNS_1, &ethconfig->dns1_ip4);
+        dns_setserver(DNS_2, &ethconfig->dns2_ip4);
+    } else {
+        ip4_type = WUI_IP4_DHCP;
+        ethconfig->lan.addr_ip4.addr = 0;
+        ethconfig->lan.msk_ip4.addr = 0;
+        ethconfig->lan.gw_ip4.addr = 0;
+    }
+
+    /* add the network interface (IPv4/IPv6) with RTOS */
+    netif_add(&eth0, (const ip4_addr_t *)&(ethconfig->lan.addr_ip4.addr), (const ip4_addr_t *)&(ethconfig->lan.msk_ip4.addr), (const ip4_addr_t *)&(ethconfig->lan.gw_ip4.addr), NULL, &ethernetif_init, &tcpip_input);
+
+    // set the host name
+    eth0.hostname = ethconfig->hostname;
+    /* Setting necessary callbacks after initial setup */
+    netif_set_link_callback(&eth0, netif_link_callback);
+    netif_set_status_callback(&eth0, netif_status_callback);
+    osMessagePut(networkMbox_id, message, 0);
+}
+
+const ETH_STATUS_t get_eth_status(void) {
+    if (!ethernetif_link(&eth0)) {
+        return ETH_UNLINKED;
+    }
+    return !netif_is_link_up(&eth0) ? ETH_NETIF_DOWN : ETH_NETIF_UP;
+}
+
+uint8_t get_lan_flag(void) {
+    return wui_eth_config.lan.flag;
+}
+
+void get_eth_address(ETH_config_t *config) {
+    config->lan.addr_ip4.addr = netif_ip4_addr(&eth0)->addr;
+    config->lan.msk_ip4.addr = netif_ip4_netmask(&eth0)->addr;
+    config->lan.gw_ip4.addr = netif_ip4_gw(&eth0)->addr;
+}
+
+void eth_change_setting(uint16_t flag, uint16_t value) {
+    uint32_t message = create_evt_eth(flag, value);
+    osMessagePut(networkMbox_id, message, 0);
 }
 
 extern void netconn_client_thread(void const *arg);
@@ -91,6 +159,18 @@ void StartWebServerTask(void const *argument) {
     // get settings from ini file
     osDelay(1000);
     _dbg("wui starts");
+    networkMbox_id = osMessageCreate(osMessageQ(networkMbox), NULL);
+    if (networkMbox_id == NULL) {
+        _dbg("networkMbox was not created");
+        return;
+    }
+
+    // mutex for passing marlin variables to tcp thread
+    wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
+    if (wui_thread_mutex_id == NULL) {
+        _dbg("wui_thread_mutex was not created");
+        return;
+    }
 
     wui_eth_config.var_mask = ETHVAR_EEPROM_CONFIG;
     load_eth_params(&wui_eth_config);
@@ -99,21 +179,9 @@ void StartWebServerTask(void const *argument) {
     if (IS_LAN_ON(wui_eth_config.lan.flag) && load_ini_file(&wui_eth_config)) {
         save_eth_params(&wui_eth_config);
     }
-
-    // mutex for passing marlin variables to tcp thread
-    wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
     // marlin client initialization for WUI
     wui_marlin_client_init();
-    // LwIP related initalizations
-    MX_LWIP_Init(&wui_eth_config);
-    //    http_server_init();
-    sntp_client_init();
-    osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
-    // Initialize the thread for httpc
-    // osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 512);
-    // httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
-    // http_server_init();
-    // lwesp stuffs
+
     res = esp_initialize();
     _dbg("LwESP initialized with result = %ld", res);
     LWIP_UNUSED_ARG(res);
@@ -125,16 +193,75 @@ void StartWebServerTask(void const *argument) {
         // esp_sys_thread_create(NULL, "netconn_client", (esp_sys_thread_fn)netconn_client_thread, NULL, 512, ESP_SYS_THREAD_PRIO);
     }
 
-    for (;;) {
-        update_eth_changes();
-        sync_with_marlin_server();
+    // TcpIp related initalizations
+    tcpip_init(tcpip_init_done_callback, &wui_eth_config);
+    httpd_init();
+    sntp_client_init();
 
-        osDelay(1000);
+    for (;;) {
+        osEvent evt = osMessageGet(networkMbox_id, 500);
+        if (evt.status == osEventMessage) {
+            load_eth_params(&wui_eth_config);
+            switch (evt.value.v) {
+            case EVT_ETH_INIT_FINISHED:
+                /* Registers the default network interface */
+                netifapi_netif_set_default(&eth0);
+
+                if (IS_LAN_ON(wui_eth_config.lan.flag)) {
+                    /* When the netif is fully configured this function must be called */
+                    netifapi_netif_set_link_up(&eth0);
+                    netifapi_netif_set_up(&eth0);
+                    // start the DHCP if needed!
+                    if (!IS_LAN_STATIC(wui_eth_config.lan.flag)) {
+                        netifapi_dhcp_start(&eth0);
+                    } else {
+                        dns_setserver(DNS_1, &wui_eth_config.dns1_ip4);
+                        dns_setserver(DNS_2, &wui_eth_config.dns2_ip4);
+                        netifapi_netif_set_addr(&eth0, &wui_eth_config.lan.addr_ip4, &wui_eth_config.lan.msk_ip4, &wui_eth_config.lan.gw_ip4);
+                        netifapi_dhcp_inform(&eth0);
+                    }
+                } else {
+                    /* When the netif link is down this function must be called */
+                    netifapi_netif_set_link_down(&eth0);
+                    netifapi_netif_set_down(&eth0);
+                }
+                break;
+            case EVT_ETH_DHCP:
+                netifapi_dhcp_start(&eth0);
+                break;
+            case EVT_ETH_STATIC:
+                dns_setserver(DNS_1, &wui_eth_config.dns1_ip4);
+                dns_setserver(DNS_2, &wui_eth_config.dns2_ip4);
+                netifapi_netif_set_addr(&eth0, &wui_eth_config.lan.addr_ip4, &wui_eth_config.lan.msk_ip4, &wui_eth_config.lan.gw_ip4);
+                netifapi_dhcp_inform(&eth0);
+                break;
+            case EVT_ETH_ON:
+                netifapi_netif_set_link_up(&eth0);
+                netifapi_netif_set_up(&eth0);
+                // start the DHCP if needed!
+                if (!IS_LAN_STATIC(wui_eth_config.lan.flag)) {
+                    netifapi_dhcp_start(&eth0);
+                }
+                TURN_FLAG_ON(wui_eth_config.lan.flag);
+                break;
+            case EVT_ETH_OFF:
+                /* When the netif link is down this function must be called */
+                netifapi_netif_set_link_down(&eth0);
+                netifapi_netif_set_down(&eth0);
+                TURN_FLAG_OFF(wui_eth_config.lan.flag);
+                break;
+            default:
+                break;
+            }
+            save_eth_params(&wui_eth_config);
+        }
+
+        sync_with_marlin_server();
     }
 }
 
 struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {
-    if (netif_status == WUI_ETH_NETIF_UP)
+    if (get_eth_status() == ETH_NETIF_UP)
         return altcp_tcp_new_ip_type(ip_type);
     else
         return NULL;
