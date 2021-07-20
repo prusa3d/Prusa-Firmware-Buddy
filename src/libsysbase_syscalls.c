@@ -76,11 +76,12 @@ void __retarget_lock_release_recursive(_LOCK_T lock) {
 
 osMutexId(libsysbase_mutex_id);
 
-inline osMutexId getMutexId(_LOCK_T *lock) {
+static osMutexId getMutexId(_LOCK_T *lock) {
     // __LOCK_INIT sets _LOCK_T value to 1, use shared lock in that case.
     // Othervise we are expecting pointer of newly initialized lock to be set.
     return *lock == 1 ? libsysbase_mutex_id : (osMutexId)*lock;
 }
+
 void lock_init(_LOCK_T *lock) {
     *lock = (_LOCK_T)osMutexCreate(osMutex(libsysbase_mutex));
 }
