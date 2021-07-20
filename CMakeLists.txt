@@ -25,8 +25,8 @@ endif()
 # ~~~
 
 set(PRINTER_VALID_OPTS "MINI")
-set(MOTHERBOARD_VALID_OPTS "1823")
-set(MCU_VALID_OPTS "STM32F407VG" "STM32F429VI")
+set(BOARD_VALID_OPTS "<default>" "BUDDY")
+set(MCU_VALID_OPTS "<default>" "STM32F407VG" "STM32F429VI")
 set(BOOTLOADER_VALID_OPTS "NO" "EMPTY" "YES")
 
 set(PRINTER
@@ -39,14 +39,18 @@ set(BOOTLOADER
     "NO"
     CACHE STRING "Selects the bootloader mode (valid values are ${BOOTLOADER_VALID_OPTS})."
     )
-set(MOTHERBOARD
-    "1823"
+set(BOARD
+    "<default>"
     CACHE
       STRING
-      "Select the motherboard for which you want to compile the project (valid values are ${MOTHERBOARD_VALID_OPTS})."
+      "Select the board for which you want to compile the project (valid values are ${BOARD_VALID_OPTS})."
+    )
+set(BOARD_VERSION
+    "<default>"
+    CACHE STRING "Specify the version of the board to comiple the project for (e.g. 1.2.3)"
     )
 set(MCU
-    "STM32F407VG"
+    "<default>"
     CACHE
       STRING
       "Select the MCU for which you want to compile the project (valid values are ${MCU_VALID_OPTS})."
@@ -89,11 +93,40 @@ set(WUI
     )
 
 # Validate options
-foreach(OPTION "PRINTER" "MOTHERBOARD" "MCU" "BOOTLOADER")
+foreach(OPTION "PRINTER" "BOARD" "MCU" "BOOTLOADER")
   if(NOT ${OPTION} IN_LIST ${OPTION}_VALID_OPTS)
     message(FATAL_ERROR "Invalid ${OPTION} ${${OPTION}}: Valid values are ${${OPTION}_VALID_OPTS}")
   endif()
 endforeach()
+
+# set board to its default if not specified
+if(${BOARD} STREQUAL "<default>")
+  if(${PRINTER} STREQUAL "MINI")
+    set(BOARD "BUDDY")
+  else()
+    message(FATAL_ERROR "No default board set for printer ${PRINTER}")
+  endif()
+endif()
+
+# set board version to its default if not specified
+if(${BOARD_VERSION} STREQUAL "<default>")
+  if(${BOARD} STREQUAL "BUDDY")
+    set(BOARD_VERSION "1.0.0")
+  else()
+    message(FATAL_ERROR "No default board version set for board ${BOARD}")
+  endif()
+endif()
+
+# set MCU to its default if not specified
+if(${MCU} STREQUAL "<default>")
+  set(MCU "STM32F407VG")
+endif()
+
+# parse board version into its components
+string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" BOARD_VERSION_MATCH ${BOARD_VERSION})
+set(BOARD_VERSION_MAJOR ${CMAKE_MATCH_1})
+set(BOARD_VERSION_MINOR ${CMAKE_MATCH_2})
+set(BOARD_VERSION_PATCH ${CMAKE_MATCH_3})
 
 # in order to generate DFU file for bootloader, we need a BFU
 if(GENERATE_DFU AND BOOTLOADER)
@@ -128,6 +161,10 @@ message(
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
 message(STATUS "Printer: ${PRINTER}")
+message(STATUS "Board: ${BOARD}")
+message(
+  STATUS "Board Version: ${BOARD_VERSION_MAJOR}.${BOARD_VERSION_MINOR}.${BOARD_VERSION_PATCH}"
+  )
 message(STATUS "Web User Interface: ${WUI}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
@@ -146,10 +183,6 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
 else()
   set(FILAMENT_SENSOR NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_BUDDY)
-  set(BOARD_TYPE BUDDY_BOARD)
 endif()
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
@@ -190,10 +223,13 @@ target_link_libraries(A3idesHeaders INTERFACE STM32F4::HAL FreeRTOS::FreeRTOS)
 target_compile_definitions(
   A3idesHeaders
   INTERFACE
-  MOTHERBOARD=${MOTHERBOARD}
+  MOTHERBOARD=1823
   MCU=${MCU}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
-  BOARD_TYPE=${BOARD_TYPE}
+  BOARD=BOARD_${BOARD}
+  BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
+  BOARD_VERSION_MINOR=${BOARD_VERSION_MINOR}
+  BOARD_VERSION_PATCH=${BOARD_VERSION_PATCH}
   MARLIN_DISABLE_INFINITE_LOOP
   PROCESS_CUSTOM_GCODE
   STM32GENERIC
