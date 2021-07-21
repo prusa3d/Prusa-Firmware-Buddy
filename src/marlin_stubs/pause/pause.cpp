@@ -587,7 +587,7 @@ void Pause::unpark_nozzle_and_notify() {
 
     const float path_len = std::hypot(Y_len, X_len);
 
-    const float fil_per_mm = 0.05;
+    const float fil_per_mm = 0.01;
 
     const float fil_len = path_len * fil_per_mm;
 
