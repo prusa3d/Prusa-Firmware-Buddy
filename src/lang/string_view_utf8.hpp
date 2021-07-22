@@ -38,9 +38,10 @@ class string_view_utf8 {
         } cpuflash;
         /// interface for utf-8 string stored in a FILE - used for validation of the whole translation infrastructure
         struct FromFile {
-            ::FILE *f;         ///< shared FILE pointer with other instances accessing the same file
-                               ///< @@TODO beware - need some synchronization mechanism to prevent reading from another offset in the file when other instances read as well
-            uint32_t startOfs; ///< start offset in input file
+            ::FILE *f;          ///< shared FILE pointer with other instances accessing the same file
+                                ///< @@TODO beware - need some synchronization mechanism to prevent reading from another offset in the file when other instances read as well
+            uint16_t startOfs;  ///< start offset in input file
+            uint16_t currentOfs; ///<position of next byt to read TODO: implement in code
         } file;
         constexpr Attrs()
             : cpuflash() {}
