@@ -3,7 +3,7 @@
 #include "timer_defaults.h"
 #include "stm32f4xx_hal.h"
 #include "FreeRTOS.h"
-#include "stm32f4xx_hal_tim.h" //TIM_HandleTypeDef
+#include "tick_timer_api.h"
 #include "wdt.h"
 #define TICK_TIMER_CNT (h_tick_tim.Instance->CNT)
 
@@ -88,17 +88,27 @@ void HAL_ResumeTick() {
 }
 
 /**
+ * @brief shadow weak function in HAL
+ *        do nothing, SysTimer is owned by FreeRtos
+ *
+ * @param TickPriority
+ * @return HAL_StatusTypeDef::HAL_OK
+ */
+HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
+    return HAL_OK;
+}
+
+/**
  * @brief Must use 32 bit timer
  *        ~12ns tick, 84MHz, 1s period
  *
- * @param TickPriority
  * @return HAL_StatusTypeDef
  */
-HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
+HAL_StatusTypeDef tick_timer_init() {
     HAL_StatusTypeDef status;
 
     /*Configure the IRQ priority */
-    HAL_NVIC_SetPriority(TICK_TIMER_IRQ, TickPriority, 0);
+    HAL_NVIC_SetPriority(TICK_TIMER_IRQ, TICK_TIMER_Prior, 0);
 
     /* Enable the global Interrupt */
     HAL_NVIC_EnableIRQ(TICK_TIMER_IRQ);

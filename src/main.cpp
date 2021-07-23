@@ -57,6 +57,7 @@
 #include "wdt.h"
 #include "dump.h"
 #include "timer_defaults.h"
+#include "tick_timer_api.h"
 #include "thread_measurement.h"
 #include "metric_handlers.h"
 #include "Z_probe.h"
@@ -225,6 +226,7 @@ int main(void) {
 
     /* Configure the system clock */
     SystemClock_Config();
+    tick_timer_init();
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
