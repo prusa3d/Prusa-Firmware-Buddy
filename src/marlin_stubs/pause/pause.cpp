@@ -598,7 +598,7 @@ void Pause::unpark_nozzle_and_notify() {
 
     // Move Z_AXIS to saved position, scope for Notifier_POS_Z
 
-    plan_e_move(2.5, 2);
+    plan_e_move(3, 2);
     {
         Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, resume_pos.z, parkMoveXYPercent(Z_len, XY_len), 100); //from XY% to 100%
         do_blocking_move_to_z(resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
