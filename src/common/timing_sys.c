@@ -1,4 +1,5 @@
 #include "timing.h"
+#include "timing_private.h"
 #include "timer_defaults.h"
 #include "stm32f4xx_hal.h"
 #include "FreeRTOS.h"
@@ -42,7 +43,7 @@ uint64_t timestamp_ns() {
             // an overflow of the timer has happened, lets try again
             continue;
 
-        uint64_t ret = ticks_to_ns(lower_cnt);
+        uint64_t ret = clock_to_ns(lower_cnt);
         ret %= billion;                                    //remove seconds from nanosecond variable
         ret += (uint64_t)billion * (uint64_t)sec_1st_read; //convert seconds to nano seconds
 
@@ -67,14 +68,14 @@ uint32_t ticks_us() {
 }
 
 uint32_t ticks_ns() {
-    return ticks_to_ns(TICK_TIMER_CNT);
+    return clock_to_ns(TICK_TIMER_CNT);
 }
 
 void TICK_TIMER_IRQHandler() {
     HAL_TIM_IRQHandler(&h_tick_tim);
 }
 
-void TICK_TIMER_PeriodElapsedCallback() {
+void app_tick_timer_overflow() {
     ++tick_cnt_s;
 }
 

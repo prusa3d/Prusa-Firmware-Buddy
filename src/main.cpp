@@ -1079,7 +1079,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM14) {
         app_tim14_tick();
     } else if (htim->Instance == TICK_TIMER) {
-        TICK_TIMER_PeriodElapsedCallback();
+        app_tick_timer_overflow();
     }
 }
 
