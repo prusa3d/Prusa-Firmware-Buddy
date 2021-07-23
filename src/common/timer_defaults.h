@@ -8,6 +8,7 @@
 #define TICK_TIMER_CLK_ENABLE __HAL_RCC_TIM5_CLK_ENABLE
 #define TICK_TIMER_IRQ        TIM5_IRQn
 #define TICK_TIMER_IRQHandler TIM5_IRQHandler
+#define TICK_TIMER_Prior      0
 
 enum {
     TIM_BASE_CLK_MHZ = 84,
