@@ -587,7 +587,7 @@ void Pause::unpark_nozzle_and_notify() {
 
     const float path_len = std::hypot(Y_len, X_len);
 
-    const float fil_per_mm = 0.1;
+    const float fil_per_mm = 0.005;
 
     const float fil_len = path_len * fil_per_mm;
 
@@ -596,17 +596,17 @@ void Pause::unpark_nozzle_and_notify() {
     const float z = current_position.z;
     current_position = resume_pos;
     current_position.z = z;
-    current_position.e += fil_len / planner.e_factor[active_extruder];
+    current_position.e += fil_len;
 
     if (x_greater_than_y) {
         Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
         // plan_e_move(fil_len, fil_feed_rate);
-        planner.buffer_line(current_position, NOZZLE_PARK_XY_FEEDRATE / 3, active_extruder);
+        planner.buffer_line(current_position, NOZZLE_PARK_XY_FEEDRATE / 4, active_extruder);
 
         // do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
     } else {
         Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
-        planner.buffer_line(current_position, NOZZLE_PARK_XY_FEEDRATE / 3, active_extruder);
+        planner.buffer_line(current_position, NOZZLE_PARK_XY_FEEDRATE / 4, active_extruder);
         // planner.buffer_line(pos, NOZZLE_PARK_XY_FEEDRATE, active_extruder);
 
         // do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
