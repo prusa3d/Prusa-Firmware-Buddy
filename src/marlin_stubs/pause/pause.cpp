@@ -582,39 +582,23 @@ void Pause::unpark_nozzle_and_notify() {
     const float Z_len = current_position.z - resume_pos.z; // sign does not matter, does not check Z max val (unlike park_nozzle_and_notify)
     const float XY_len = begin_pos - end_pos;              // sign does not matter
 
-    const float X_len = std::abs(resume_pos.x - current_position.x);
-    const float Y_len = std::abs(resume_pos.y - current_position.y);
-
-    const float path_len = std::hypot(Y_len, X_len);
-
-    const float fil_per_mm = 0.005;
-
-    const float fil_len = path_len * fil_per_mm;
-
-    // const float fil_feed_rate = fil_len / (path_len / NOZZLE_PARK_XY_FEEDRATE);
-    // resume_pos.e += fil_len;
-    const float z = current_position.z;
-    current_position = resume_pos;
-    current_position.z = z;
-    current_position.e += fil_len;
+    plan_e_move(5, 2);
+    plan_e_move(-2, 3);
 
     if (x_greater_than_y) {
         Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
-        // plan_e_move(fil_len, fil_feed_rate);
-        planner.buffer_line(current_position, NOZZLE_PARK_XY_FEEDRATE / 4, active_extruder);
 
-        // do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+        do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
     } else {
         Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
-        planner.buffer_line(current_position, NOZZLE_PARK_XY_FEEDRATE / 4, active_extruder);
-        // planner.buffer_line(pos, NOZZLE_PARK_XY_FEEDRATE, active_extruder);
 
-        // do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+        do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
     }
     planner.synchronize();
 
     // Move Z_AXIS to saved position, scope for Notifier_POS_Z
 
+    plan_e_move(4, 2);
     {
         Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, resume_pos.z, parkMoveXYPercent(Z_len, XY_len), 100); //from XY% to 100%
         do_blocking_move_to_z(resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
