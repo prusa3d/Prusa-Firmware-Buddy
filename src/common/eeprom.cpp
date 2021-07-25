@@ -11,6 +11,8 @@
 #include "version.h"
 #include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
+#include "../include/marlin/Configuration.h"
+#include "../include/marlin/Configuration_adv.h"
 #include "cmath_ext.h"
 #include "footer_eeprom.hpp"
 
@@ -101,6 +103,19 @@ typedef struct _eeprom_vars_t {
     float EEVAR_ODOMETER_Y;
     float EEVAR_ODOMETER_Z;
     float EEVAR_ODOMETER_E;
+    float AXIS_STEPS_PER_UNIT_X;
+    float AXIS_STEPS_PER_UNIT_Y;
+    float AXIS_STEPS_PER_UNIT_Z;
+    float AXIS_STEPS_PER_UNIT_E;
+    uint16_t AXIS_MICROSTEPS_X;
+    uint16_t AXIS_MICROSTEPS_Y;
+    uint16_t AXIS_MICROSTEPS_Z;
+    uint16_t AXIS_MICROSTEPS_E;
+    uint16_t AXIS_RMS_CURRENT_MA_X;
+    uint16_t AXIS_RMS_CURRENT_MA_Y;
+    uint16_t AXIS_RMS_CURRENT_MA_Z;
+    uint16_t AXIS_RMS_CURRENT_MA_E;
+    float AXIS_Z_LEN_DIFF_MM;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -169,6 +184,8 @@ static const eeprom_entry_t eeprom_map[] = {
 static const constexpr uint32_t EEPROM_VARCOUNT = sizeof(eeprom_map) / sizeof(eeprom_entry_t);
 static const constexpr uint32_t EEPROM_DATASIZE = sizeof(eeprom_vars_t);
 
+static constexpr float default_axis_steps[4] = DEFAULT_AXIS_STEPS_PER_UNIT; //to be able to access macro values
+
 // eeprom variable defaults
 static const eeprom_vars_t eeprom_var_defaults = {
     EEPROM_VERSION,  // EEVAR_VERSION
@@ -225,8 +242,21 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_ODOMETER_Y
     0,               // EEVAR_ODOMETER_Z
     0,               // EEVAR_ODOMETER_E
-    "",              // EEVAR__PADDING
-    0xffffffff,      // EEVAR_CRC32
+    default_axis_steps[0],  // AXIS_STEPS_PER_UNIT_X
+    default_axis_steps[1],  // AXIS_STEPS_PER_UNIT_Y
+    default_axis_steps[2],  // AXIS_STEPS_PER_UNIT_Z
+    default_axis_steps[3],  // AXIS_STEPS_PER_UNIT_E
+    X_MICROSTEPS,           // AXIS_MICROSTEPS_X
+    Y_MICROSTEPS,           // AXIS_MICROSTEPS_Y
+    Z_MICROSTEPS,           // AXIS_MICROSTEPS_Z
+    E0_MICROSTEPS,          // AXIS_MICROSTEPS_E
+    X_CURRENT,              // AXIS_RMS_CURRENT_MA_X
+    Y_CURRENT,              // AXIS_RMS_CURRENT_MA_Y
+    Z_CURRENT,              // AXIS_RMS_CURRENT_MA_Z
+    E0_CURRENT,             // AXIS_RMS_CURRENT_MA_E
+    0,                      // AXIS_Z_LEN_DIFF_MM
+    "",                     // EEVAR__PADDING
+    0xffffffff,             // EEVAR_CRC32
 };
 
 // clang-format on

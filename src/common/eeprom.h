@@ -86,8 +86,21 @@ enum {
     EEVAR_ODOMETER_Y = 0x2f,          // float
     EEVAR_ODOMETER_Z = 0x30,          // float
     EEVAR_ODOMETER_E = 0x31,          // float
-    EEVAR__PADDING = 0x32,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x33,               // uint32_t crc32 for
+    AXIS_STEPS_PER_UNIT_X = 0x32,     // float
+    AXIS_STEPS_PER_UNIT_Y = 0x33,     // float
+    AXIS_STEPS_PER_UNIT_Z = 0x34,     // float
+    AXIS_STEPS_PER_UNIT_E = 0x35,     // float
+    AXIS_MICROSTEPS_X = 0x36,         // uint16_t
+    AXIS_MICROSTEPS_Y = 0x37,         // uint16_t
+    AXIS_MICROSTEPS_Z = 0x38,         // uint16_t
+    AXIS_MICROSTEPS_E = 0x39,         // uint16_t
+    AXIS_RMS_CURRENT_MA_X = 0x3a,     // uint16_t
+    AXIS_RMS_CURRENT_MA_Y = 0x3b,     // uint16_t
+    AXIS_RMS_CURRENT_MA_Z = 0x3c,     // uint16_t
+    AXIS_RMS_CURRENT_MA_E = 0x3d,     // uint16_t
+    AXIS_Z_LEN_DIFF_MM = 0x3e,        // float
+    EEVAR__PADDING = 0x3f,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_CRC32 = 0x40,               // uint32_t crc32 for
 };
 
 enum {
