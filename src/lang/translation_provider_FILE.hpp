@@ -10,40 +10,36 @@ extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
 
 class FILEtranslationProvider : public ITranslationProvider {
 
-private:
+public:
     bool findMessage(const char *key, FILE *file) const {
-        char messageBuffer[1024];
-        uint32_t numOfStrings = 0;
-        fseek(file, 8, SEEK_SET);
-        fread(&numOfStrings, 4, 1, file);
+        fseek(file, 12, SEEK_SET);
 
-        int32_t posInTable = 0;
-        int32_t transTable = 0;
-        fread(&posInTable, 4, 1, file);
-        fread(&transTable, 4, 1, file);
+        int32_t origTableOf = 0;
+        int32_t transTableOf = 0;
+        int32_t hashTableOf = 0;
+        uint32_t hashTableSize = 0;
 
-        for (uint32_t i = 0; i < numOfStrings; ++i, posInTable += 8) {
-            uint32_t len = 0;
-            int32_t pos = 0;
+        fread(&origTableOf, 4, 1, file);
+        fread(&transTableOf, 4, 1, file);
+        fread(&hashTableSize, 4, 1, file);
+        fread(&hashTableOf, 4, 1, file);
 
-            fseek(file, posInTable, SEEK_SET);
+        static gettext_hash_table hashTable(file, hashTableSize, hashTableOf, origTableOf);
 
-            //read len and pos of next string
-            fread(&len, 4, 1, file);
-            fread(&pos, 4, 1, file);
+        uint32_t index = hashTable.GetIndexOfKey(key);
 
-            fseek(file, pos, SEEK_SET);
-
-            fread(&messageBuffer, 1, len, file);
-
-            if (len != 0 && strncmp(messageBuffer, key, len) == 0) {
-                fseek(file, transTable + (i * 8) + 4, SEEK_SET);
-                fread(&pos, 4, 1, file);
-                fseek(file, pos, SEEK_SET);
-                return true;
-            }
+        //nothing is on index 0
+        if (index == 0) {
+            return false;
         }
-        return false;
+
+        //get to position of translated string
+        fseek(file, transTableOf + (8 * index) + 4, SEEK_SET);
+
+        int32_t posOfTrans = 0;
+        fread(&posOfTrans, 4, 1, file);
+        fseek(file, posOfTrans, SEEK_SET);
+        return true;
     }
 
     char m_Path[16];
@@ -51,7 +47,9 @@ private:
 
 public:
     FILEtranslationProvider(const char *path) {
-        strlcpy(m_Path, path, sizeof(m_Path));
+
+        strncpy(m_Path, path, sizeof(m_Path));
+        //        strlcpy(m_Path, path, sizeof(m_Path));
     }
 
     ~FILEtranslationProvider() override = default;
@@ -73,30 +71,8 @@ public:
 
     bool OpenFile() {
         m_File = fopen(m_Path, "rb");
-        return m_Path;
+        return m_File;
     }
 };
 
 extern FILEtranslationProvider fileProvider;
-
-//how does the hash table works
-/* This should be explained:
-     Each string has an associate hashing value V, computed by a fixed
-     function.  To locate the string we use open addressing with double
-     hashing.  The first index will be V % M, where M is the size of the
-     hashing table.  If no entry is found, iterating with a second,
-     independent hashing function takes place.  This second value will
-     be 1 + V % (M - 2).
-     The approximate number of probes will be
-
-       for unsuccessful search:  (1 - N / M) ^ -1
-       for successful search:    - (N / M) ^ -1 * ln (1 - N / M)
-
-     where N is the number of keys.
-
-     If we now choose M to be the next prime bigger than 4 / 3 * N,
-     we get the values
-                         4   and   1.85  resp.
-     Because unsuccessful searches are unlikely this is a good value.
-     Formulas: [Knuth, The Art of Computer Programming, Volume 3,
-                Sorting and Searching, 1973, Addison Wesley]  */
