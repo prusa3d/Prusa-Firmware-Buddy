@@ -6,6 +6,8 @@
 #include "screen_test.hpp"
 #include "screen_messages.hpp"
 #include "marlin_client.h"
+#include "translation_provider_FILE.hpp"
+#include "translator.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -217,4 +219,11 @@ MI_FOOTER_SETTINGS::MI_FOOTER_SETTINGS()
 
 void MI_FOOTER_SETTINGS::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenMenuFooterSettings);
+}
+
+MI_LANGUAGUE_TEST::MI_LANGUAGUE_TEST()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_LANGUAGUE_TEST::click(IWindowMenu &windowMenu) {
+    if (fileProvider.OpenFile())
+        ProviderRegistrator("ts", &fileProvider);
 }

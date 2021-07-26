@@ -215,3 +215,13 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_LANGUAGUE_TEST : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Load languagues from USB");
+
+public:
+    MI_LANGUAGUE_TEST();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
