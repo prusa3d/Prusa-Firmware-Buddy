@@ -110,11 +110,11 @@ typedef struct _eeprom_vars_t {
     uint16_t AXIS_MICROSTEPS_X;
     uint16_t AXIS_MICROSTEPS_Y;
     uint16_t AXIS_MICROSTEPS_Z;
-    uint16_t AXIS_MICROSTEPS_E;
+    uint16_t AXIS_MICROSTEPS_E0;
     uint16_t AXIS_RMS_CURRENT_MA_X;
     uint16_t AXIS_RMS_CURRENT_MA_Y;
     uint16_t AXIS_RMS_CURRENT_MA_Z;
-    uint16_t AXIS_RMS_CURRENT_MA_E;
+    uint16_t AXIS_RMS_CURRENT_MA_E0;
     float AXIS_Z_LEN_DIFF_MM;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
@@ -249,11 +249,11 @@ static const eeprom_vars_t eeprom_var_defaults = {
     X_MICROSTEPS,           // AXIS_MICROSTEPS_X
     Y_MICROSTEPS,           // AXIS_MICROSTEPS_Y
     Z_MICROSTEPS,           // AXIS_MICROSTEPS_Z
-    E0_MICROSTEPS,          // AXIS_MICROSTEPS_E
+    E0_MICROSTEPS,          // AXIS_MICROSTEPS_E0
     X_CURRENT,              // AXIS_RMS_CURRENT_MA_X
     Y_CURRENT,              // AXIS_RMS_CURRENT_MA_Y
     Z_CURRENT,              // AXIS_RMS_CURRENT_MA_Z
-    E0_CURRENT,             // AXIS_RMS_CURRENT_MA_E
+    E0_CURRENT,             // AXIS_RMS_CURRENT_MA_E0
     0,                      // AXIS_Z_LEN_DIFF_MM
     "",                     // EEVAR__PADDING
     0xffffffff,             // EEVAR_CRC32
