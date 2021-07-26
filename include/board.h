@@ -1,35 +1,36 @@
 #pragma once
-//
-// Macros to differentiate between our Buddy boards
-//
-// Usage:
-//
-//    #if BOARD_IS_BUDDY
-//       ... code ...
-//    #else
-//       #error Unsupported board
-//    #endif
-//
-//
-//    #if BOARD_IS_BUDDY && BOARD_VER_LOWER_OR_EQUAL_TO(1, 0, 0)
-//       ... code for Buddy 1.0.0 and lower
-//    #elif BOARD_IS_BUDDY
-//       ... code for the latest Buddy
-//    #else
-//       #error Unsupported board
-//    #endif
-//
-
-//
-// Macros to be defined when invoking the compiler
-// DO NOT USE those macros in your code (if you don't have a really good reason to).
-// USE the macros defined below instead.
-//
-// BOARD (e.g. BUDDY_BOARD)
-// BOARD_VERSION_MAJOR
-// BOARD_VERSION_MINOR
-// BOARD_VERSION_PATCH
-//
+///
+/// @file board.h
+///
+/// Macros to differentiate between our Buddy boards
+///
+/// Usage:
+///
+///    #if BOARD_IS_BUDDY
+///       ... code ...
+///    #else
+///       #error Unsupported board
+///    #endif
+///
+///
+///    #if BOARD_IS_BUDDY && BOARD_VER_LOWER_OR_EQUAL_TO(1, 0, 0)
+///       ... code for Buddy 1.0.0 and lower
+///    #elif BOARD_IS_BUDDY
+///       ... code for the latest Buddy
+///    #else
+///       #error Unsupported board
+///    #endif
+///
+///
+/// Macros to be defined when invoking the compiler
+/// DO NOT USE those macros in your code (if you don't have a really good reason to).
+/// USE the macros defined below instead.
+///
+/// BOARD (e.g. BUDDY_BOARD)
+/// BOARD_VERSION_MAJOR
+/// BOARD_VERSION_MINOR
+/// BOARD_VERSION_PATCH
+///
 
 #define BOARD_BUDDY 1
 
