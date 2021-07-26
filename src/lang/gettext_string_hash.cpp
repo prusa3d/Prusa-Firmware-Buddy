@@ -46,38 +46,24 @@ uint32_t gettext_hash_table::hash_string(const char *key) {
      Formulas: [Knuth, The Art of Computer Programming, Volume 3,
                 Sorting and Searching, 1973, Addison Wesley]  */
 
-uint32_t gettext_hash_table::IndexOfKey(const char *key) {
+uint32_t gettext_hash_table::GetIndexOfKey(const char *key) {
 
     uint32_t hashVal = hash_string(key);
     uint32_t posInHash = hashVal % m_TableSize;
 
     uint32_t index = getIndexOnPos(posInHash);
 
-    while (index != 0 && !checkString(index, key)) {
-        uint32_t incr = 1 + (hashVal % (m_TableSize - 2));
-
-        if (posInHash >= m_TableSize - incr) {
-            posInHash -= m_TableSize - incr;
-        } else {
-            posInHash += incr;
-        }
-        index = getIndexOnPos(posInHash);
-    }
-
-    //    if (!checkString(index, key)) {
+    //    while (index != 0 && !checkString(index, key)) {
     //        uint32_t incr = 1 + (hashVal % (m_TableSize - 2));
-    //        do {
-    //            size_t cnt = 0;
-    //            if (posInHash >= m_TableSize - incr) {
-    //                posInHash -= m_TableSize - incr;
-    //            } else {
-    //                posInHash += incr;
-    //            }
-    //            index = getIndexOnPos(posInHash);
-    //            cnt++;
-    //        } while (!checkString(index, key) && cnt > 3);
-    //        return 0;
+    //
+    //        if (posInHash >= m_TableSize - incr) {
+    //            posInHash -= m_TableSize - incr;
+    //        } else {
+    //            posInHash += incr;
+    //        }
+    //        index = getIndexOnPos(posInHash);
     //    }
+
     return index;
 }
 
@@ -98,20 +84,31 @@ uint32_t gettext_hash_table::getIndexOnPos(uint32_t pos) {
     return indexOfString - 1;
 }
 bool gettext_hash_table::checkString(uint32_t index, const char *key) {
-    char messageBuffer[m_BufferSize];
+    //    char messageBuffer[m_BufferSize];
     uint32_t len = 0;
     int32_t pos = 0;
 
     fseek(m_File, m_StringOffset + (index * 8), SEEK_SET);
-
+    char messageBuffer[m_BufferSize];
     //read len and pos of next string
     fread(&len, 4, 1, m_File);
     fread(&pos, 4, 1, m_File);
 
     fseek(m_File, pos, SEEK_SET);
+    if (len == 0) {
+        return false;
+    }
+
+    //    for (uint32_t i = 0; i < len; ++i) {
+    //        char c;
+    //        fread(&c, 1, 1, m_File);
+    //        if (c != key[i]) {
+    //            return false;
+    //        }
+    //    }
+    //    return true;
 
     fread(&messageBuffer, 1, len, m_File);
-
 
     if (len != 0 && strncmp(messageBuffer, key, std::min(len, m_BufferSize)) == 0) {
         return true;

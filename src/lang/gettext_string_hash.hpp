@@ -4,6 +4,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <stdint.h>
 
 #define HASHWORDBITS 32
 
@@ -16,7 +17,7 @@ public:
         , m_StringOffset(stringOffset) {};
 
     //returns position of string in hash table
-    uint32_t IndexOfKey(const char *key);
+    uint32_t GetIndexOfKey(const char *key);
 
     //returns next possible position for previous string
 
