@@ -18,7 +18,8 @@
 #include "text_roll.hpp"
 #include "WindowMenuItems.hpp"
 
-using LDV9 = LazyDirView<9>;
+static constexpr size_t LazyDirViewSize = 9; //cannot be calculated, font is not constexpr
+using LDV9 = LazyDirView<LazyDirViewSize>;
 
 // This enum value is stored to eeprom as file sort settings
 typedef enum {

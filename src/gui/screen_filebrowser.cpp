@@ -35,7 +35,7 @@ static char firstVisibleSFN[SFN_len] = "";
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : AddSuperWindow<screen_t>()
     , header(this)
-    , w_filelist(this, GuiDefaults::RectScreenBody)
+    , w_filelist(this, GuiDefaults::RectScreenNoHeader)
     , gcode_info(GCodeInfo::getInstance()) {
     screen_filebrowser_sort = (WF_Sort_t)variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT));
 
