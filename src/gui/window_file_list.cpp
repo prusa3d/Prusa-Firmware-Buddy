@@ -16,6 +16,9 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "cmath_ext.h"
+#if _DEBUG
+    #include "bsod.h"
+#endif
 
 bool window_file_list_t::IsPathRoot(const char *path) {
     return (path[0] == 0 || strcmp(path, "/") == 0);
@@ -85,7 +88,13 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
 
 void window_file_list_t::unconditionalDraw() {
     const Rect16::Height_t item_height = font->h + padding.top + padding.bottom;
-    const int visible_slots = Height() / item_height;
+    const int visible_slots = LazyDirViewSize;
+#if _DEBUG
+    //cannot use assert, font is not constexpr
+    if (LazyDirViewSize != Height() / item_height) {
+        bsod("Wrong LazyDirViewSize");
+    }
+#endif
     const int ldv_visible_files = ldv->VisibleFilesCount();
     const int maxi = std::min(count, std::min(visible_slots, ldv_visible_files));
 
