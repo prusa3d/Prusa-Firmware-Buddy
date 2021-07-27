@@ -28,9 +28,9 @@ osMessageQDef(uartBufferMbox, 16, NULL);
 static osMessageQId uartBufferMbox_id;
 
 //UART buffer stuffs
-#define RX_BUFFER_LEN 0x500
+#define RX_BUFFER_LEN 0x1000
 #if !defined(ESP_MEM_SIZE)
-    #define ESP_MEM_SIZE 0x500
+    #define ESP_MEM_SIZE 0x1000
 #endif /* !defined(ESP_MEM_SIZE) */
 
 static uint32_t esp_working_mode;
