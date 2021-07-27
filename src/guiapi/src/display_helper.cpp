@@ -257,6 +257,32 @@ void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, icon_flags flag
         display::FillRect(rc, opt_clr);
 }
 
+void render_icon_align(Rect16 rc, const char *path, color_t clr0, icon_flags flags) {
+    color_t opt_clr;
+
+    if (flags.HasSwappedBW() && flags.IsDisabled()) {
+        opt_clr = GuiDefaults::ColorDisabled;
+    } else if (flags.HasSwappedBW()) {
+        opt_clr = clr0 ^ 0xffffffff;
+    } else {
+        opt_clr = clr0;
+    }
+    FILE *file = fopen(path, "rb");
+    if (file) {
+        point_ui16_t wh_ico = icon_meas(file);
+        fseek(file, 0, SEEK_SET);
+        if (wh_ico.x && wh_ico.y) {
+            Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
+            rc_ico.Align(rc, flags.align);
+            rc_ico = rc_ico.Intersection(rc);
+            fill_between_rectangles(&rc, &rc_ico, opt_clr);
+            display::DrawIcon(point_ui16(rc_ico.Left(), rc_ico.Top()), path, clr0, flags.raster_flags);
+        } else
+            display::FillRect(rc, opt_clr);
+        fclose(file);
+    }
+}
+
 //todo rewrite
 void render_unswapable_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, icon_flags flags) {
     color_t opt_clr;

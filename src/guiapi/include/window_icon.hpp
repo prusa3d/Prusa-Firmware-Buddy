@@ -18,6 +18,27 @@ protected:
     virtual void unconditionalDraw() override;
 };
 
+struct window_icon_flash_t : public AddSuperWindow<window_aligned_t> {
+    const char *m_Path;
+    const char *GetPath() const { return m_Path; }
+    void SetIdRes(const char *path);
+
+    window_icon_flash_t(window_t *parent, Rect16 rect, const char *path, is_closed_on_click_t close = is_closed_on_click_t::no);
+    window_icon_flash_t(window_t *parent, const char *path, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
+
+    static size_ui16_t CalculateMinimalSize(const char *path); //works for center alignment
+protected:
+    virtual void unconditionalDraw() override;
+};
+
+struct window_icon_button_flash_t : public AddSuperWindow<window_icon_flash_t> {
+    ButtonCallback callback;
+
+    window_icon_button_flash_t(window_t *parent, Rect16 rect, const char *path, ButtonCallback cb);
+
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+};
 struct window_icon_button_t : public AddSuperWindow<window_icon_t> {
     ButtonCallback callback;
 

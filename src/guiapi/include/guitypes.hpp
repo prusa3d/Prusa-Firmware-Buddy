@@ -70,7 +70,9 @@ inline padding_ui8_t padding_ui8(uint8_t l, uint8_t t, uint8_t r, uint8_t b) {
 }
 
 point_ui16_t icon_meas(const uint8_t *pi);
+point_ui16_t icon_meas(FILE *file);
 size_ui16_t icon_size(const uint8_t *pi);
+size_ui16_t icon_size(FILE *file);
 
 const uint8_t *resource_ptr(uint16_t id);
 

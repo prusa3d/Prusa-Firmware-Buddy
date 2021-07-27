@@ -25,6 +25,7 @@ typedef void(display_fill_rect_t)(Rect16 rc, color_t clr);
 typedef bool(display_draw_char_t)(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef size_ui16_t(display_draw_text_t)(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef void(display_draw_icon_t)(point_ui16_t pt, uint16_t id_res, color_t clr0, ropfn rop);
+typedef void(display_draw_icon_path_t)(point_ui16_t pt, const char *path, color_t clr0, ropfn rop);
 typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
 
 // just to test the FW with fonts - will be refactored
@@ -46,7 +47,7 @@ template <
     ,
     display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK,
     display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR,
-    display_draw_text_t *DRAW_TEXT, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
+    display_draw_text_t *DRAW_TEXT, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG, display_draw_icon_path_t *DRAW_ICON_PATH>
 class Display {
     // sorted raw array of known utf8 character indices
 public:
@@ -101,6 +102,7 @@ public:
     /// \param rc rectangle where text will be placed
     static size_ui16_t DrawText(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
     constexpr static void DrawIcon(point_ui16_t pt, uint16_t id_res, color_t clr0, ropfn rop) { DRAW_ICON(pt, id_res, clr0, rop); }
+    constexpr static void DrawIcon(point_ui16_t pt, const char *path, color_t clr0, ropfn rop) { DRAW_ICON_PATH(pt, path, clr0, rop); }
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };
 
@@ -118,7 +120,8 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     display_ex_draw_charUnicode,
     render_text_singleline,
     display_ex_draw_icon,
-    display_ex_draw_png>;
+    display_ex_draw_png,
+    display_ex_draw_icon>;
 #endif
 
 #ifdef USE_MOCK_DISPLAY

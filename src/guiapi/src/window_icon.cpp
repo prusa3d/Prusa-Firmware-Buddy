@@ -55,7 +55,70 @@ size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
     ret = icon_size(p_icon);
     return ret;
 }
+/*****************************************************************************/
+//window_icon_flash_t
+void window_icon_flash_t::SetIdRes(const char *path) {
+    m_Path = path;
+    Invalidate();
+}
 
+window_icon_flash_t::window_icon_flash_t(window_t *parent, Rect16 rect, const char *path, is_closed_on_click_t close)
+    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
+    , m_Path(path) {
+    SetAlignment(Align_t::Center());
+}
+
+//Icon rect is increased by padding, icon is centered inside it
+window_icon_flash_t::window_icon_flash_t(window_t *parent, const char *path, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
+    : window_icon_flash_t(
+        parent,
+        [pt, path, padding] {
+            size_ui16_t sz = CalculateMinimalSize(path);
+            if (!(sz.h && sz.w))
+                return Rect16();
+            return Rect16(pt,
+                sz.w + padding.left + padding.right,
+                sz.h + padding.top + padding.bottom);
+        }(),
+        path, close) {
+}
+
+void window_icon_flash_t::unconditionalDraw() {
+    ropfn raster_op;
+    if (IsShadowed()) { // that could not be set, but what if
+        raster_op.disable = is_disabled::yes;
+    }
+    if (IsFocused()) {
+        raster_op.swap_bw = has_swapped_bw::yes;
+    }
+
+    render_icon_align(GetRect(), m_Path, color_back, icon_flags(GetAlignment(), raster_op));
+}
+
+size_ui16_t window_icon_flash_t::CalculateMinimalSize(const char *path) {
+    size_ui16_t ret = size_ui16(0, 0);
+    FILE *file = fopen(path, "rb");
+    if (!file)
+        return ret;
+    ret = icon_size(file);
+    fclose(file);
+    return ret;
+}
+/*****************************************************************************/
+//window_icon_button_flash_t
+window_icon_button_flash_t::window_icon_button_flash_t(window_t *parent, Rect16 rect, const char *path, ButtonCallback cb)
+    : AddSuperWindow<window_icon_flash_t>(parent, rect, path)
+    , callback(cb) {
+    Enable();
+}
+
+void window_icon_button_flash_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CLICK) {
+        callback();
+    } else {
+        SuperWindowEvent(sender, event, param);
+    }
+}
 /*****************************************************************************/
 //window_icon_button_t
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb)

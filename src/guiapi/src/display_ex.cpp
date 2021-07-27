@@ -381,6 +381,13 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt) {
 
 void display_ex_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, ropfn rop) {
     FILE *pf = resource_fopen(id_res, "rb");
+    //get path to resource and open it
+    draw_png_ex_C(pt.x, pt.y, pf, clr0, rop);
+    fclose(pf);
+}
+
+void display_ex_draw_icon(point_ui16_t pt, const char *path, color_t clr0, ropfn rop) {
+    FILE *pf = fopen(path, "rb");
     draw_png_ex_C(pt.x, pt.y, pf, clr0, rop);
     fclose(pf);
 }

@@ -25,9 +25,28 @@ point_ui16_t icon_meas(const uint8_t *pi) {
     return wh;
 }
 
+point_ui16_t icon_meas(FILE *file) {
+    point_ui16_t wh = { 0, 0 };
+    if (file) {
+        fseek(file, 18, SEEK_SET);
+        fread(&wh.x, 4, 1, file);
+        fread(&wh.y, 4, 1, file);
+    }
+    return wh;
+}
+
 size_ui16_t icon_size(const uint8_t *pi) {
     const point_ui16_t p = icon_meas(pi);
     const size_ui16_t size = { p.x, p.y };
+    return size;
+}
+
+size_ui16_t icon_size(FILE *file) {
+    size_ui16_t size = size_ui16(0, 0);
+    if (file) {
+        const point_ui16_t p = icon_meas(file);
+        size = size_ui16(p.x, p.y);
+    }
     return size;
 }
 
