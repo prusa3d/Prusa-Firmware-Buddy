@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "FreeRTOS.h"
 #include "bsod.h"
+#include "timing.h"
 
 using namespace buddy::hw;
 
@@ -68,7 +69,7 @@ size_t BufferedSerial::Read(char *buf, size_t len) {
         return 0;
 
     size_t read = 0;
-    auto tickStart = HAL_GetTick();
+    auto tickStart = ticks_ms();
 
     while (read != len) {
         int ch = uartrxbuff_getchar(&rxBuf);
@@ -76,7 +77,7 @@ size_t BufferedSerial::Read(char *buf, size_t len) {
         if (ch >= 0) {
             buf[read++] = (char)ch;
         } else {
-            int spentMs = HAL_GetTick() - tickStart;
+            int spentMs = ticks_diff(ticks_ms(), tickStart);
             int budgetMs = readTimeoutMs - spentMs;
             if (budgetMs <= 0) {
                 break;

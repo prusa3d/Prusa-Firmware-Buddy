@@ -91,11 +91,15 @@ void StartWebServerTask(void const *argument) {
     // get settings from ini file
     osDelay(1000);
     _dbg("wui starts");
-    if (load_ini_file(&wui_eth_config)) {
+
+    wui_eth_config.var_mask = ETHVAR_EEPROM_CONFIG;
+    load_eth_params(&wui_eth_config);
+
+    // get settings from ini file
+    if (IS_LAN_ON(wui_eth_config.lan.flag) && load_ini_file(&wui_eth_config)) {
         save_eth_params(&wui_eth_config);
     }
-    wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(&wui_eth_config);
+
     // mutex for passing marlin variables to tcp thread
     wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
     // marlin client initialization for WUI

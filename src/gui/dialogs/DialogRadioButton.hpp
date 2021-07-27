@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include "client_response.hpp"
-#include "dialog_response.hpp"
+#include "client_response_texts.hpp"
 #include "window.hpp"
 #include "../../lang/string_view_utf8.hpp"
 

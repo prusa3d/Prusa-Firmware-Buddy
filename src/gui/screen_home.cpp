@@ -61,6 +61,7 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no } }
+    , gcode(GCodeInfo::getInstance())
 
 {
     window_frame_t::ClrMenuTimeoutClose();
@@ -77,10 +78,10 @@ screen_home_data_t::screen_home_data_t()
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
             const size_t i = row * 3 + col;
-            w_buttons[i].rect = Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
+            w_buttons[i].SetRect(Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64));
             w_buttons[i].SetIdRes(icons[i]);
 
-            w_labels[i].rect = Rect16(80 * col, 154 + (15 + 64) * row, 80, 14);
+            w_labels[i].SetRect(Rect16(80 * col, 154 + (15 + 64) * row, 80, 14));
             w_labels[i].font = resource_font(IDR_FNT_SMALL);
             w_labels[i].SetAlignment(Align_t::Center());
             w_labels[i].SetPadding({ 0, 0, 0, 0 });
@@ -144,8 +145,8 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                     FILE_PATH_MAX_LEN,
                     vars->media_LFN,
                     FILE_NAME_MAX_LEN)) {
-                screen_print_preview_data_t::SetGcodeFilepath(vars->media_SFN_path);
-                screen_print_preview_data_t::SetGcodeFilename(vars->media_LFN);
+                gcode.SetGcodeFilepath(vars->media_SFN_path);
+                gcode.SetGcodeFilename(vars->media_LFN);
                 Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
             }
         }

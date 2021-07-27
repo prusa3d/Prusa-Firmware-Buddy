@@ -94,7 +94,7 @@ public:
     }
 };
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
+using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
 
 class ScreenMenuFilament : public Screen {
 public:

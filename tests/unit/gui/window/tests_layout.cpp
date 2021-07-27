@@ -2,7 +2,7 @@
 
 #include "sound_enum.h"
 #include "ScreenHandler.hpp"
-#include "cmsis_os.h" //HAL_GetTick
+#include "gui_time.hpp" //gui::GetTick
 #include "mock_windows.hpp"
 #include "mock_display.hpp"
 #include "GuiDefaults.hpp"
@@ -45,7 +45,9 @@ static TMockDisplay<8, 8, 256> MockDisp8x8;
 
 //stubbed header does not have C linkage .. to be simpler
 static uint32_t hal_tick = 0;
-uint32_t HAL_GetTick() { return hal_tick; }
+uint32_t gui::GetTick() { return hal_tick; }
+void gui::TickLoop() {}
+
 const uint8_t *resource_ptr(uint16_t id) {
     return 0;
 }
@@ -303,14 +305,14 @@ TEST_CASE("Visibility notifycation test", "[window]") {
     REQUIRE_FALSE(win.IsHiddenBehindDialog());
     REQUIRE_FALSE(win.IsCapturable());
     REQUIRE(frame.ChangedCounter == 1);
-    REQUIRE(frame.GetInvRect() == win.rect);
+    REQUIRE(frame.GetInvRect() == win.GetRect());
     frame.ChangedCounter = 0;
     frame.Draw(); //clears invalidation rect
 
     // unregistration must invalidate rect
     // mock does not increase counter
     frame.UnregisterSubWin(win);
-    REQUIRE(frame.GetInvRect() == win.rect);
+    REQUIRE(frame.GetInvRect() == win.GetRect());
     frame.Draw(); //clears invalidation rect
 
     // registration cannot invalidate rect
@@ -338,7 +340,7 @@ TEST_CASE("Visibility notifycation test", "[window]") {
     // unregistration must invalidate rect
     // mock does not increase counter
     frame.UnregisterSubWin(win);
-    REQUIRE(frame.GetInvRect() == win.rect);
+    REQUIRE(frame.GetInvRect() == win.GetRect());
     frame.Draw(); //clears invalidation rect
 }
 
@@ -391,7 +393,7 @@ TEST_CASE("Capturable test window in screen", "[window]") {
     REQUIRE_FALSE(win.HasEnforcedCapture());
     REQUIRE_FALSE(win.IsHiddenBehindDialog()); // screen cleared this flag, because of Hide notifycation
     REQUIRE_FALSE(win.IsCapturable());
-    REQUIRE(screen.GetInvRect() == win.rect);
+    REQUIRE(screen.GetInvRect() == win.GetRect());
     screen.Draw();
 
     win.SetEnforceCapture();
@@ -414,7 +416,8 @@ TEST_CASE("Timed dialog tests", "[window]") {
     REQUIRE(screen.GetCapturedWindow() == &screen);
 
     SECTION("Screen timed dialog test") {
-        Rect16 rc = GENERATE(GuiDefaults::RectScreen, Rect16(20, 20, 20, 20));
+        static constexpr Rect16 RC2(20, 20, 20, 20);
+        Rect16 rc = GENERATE(GuiDefaults::RectScreen, RC2);
         screen.Draw();
         screen.BasicCheck();
         REQUIRE(screen.GetCapturedWindow() == &screen);

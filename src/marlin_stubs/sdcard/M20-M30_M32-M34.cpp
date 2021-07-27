@@ -62,7 +62,7 @@ void GcodeSuite::M27() {
         SERIAL_ECHOPGM("Current file: ");
         SERIAL_ECHOLN(media_print_filepath());
     } else {
-        if ((media_print_get_state() == media_print_state_PRINTING) || (media_print_get_state() == media_print_state_PAUSED)) {
+        if (media_print_get_state() != media_print_state_NONE) {
             SERIAL_ECHOPGM(MSG_SD_PRINTING_BYTE);
             SERIAL_ECHO(media_print_get_position());
             SERIAL_CHAR('/');

@@ -20,7 +20,7 @@ version_t &boot_version = *(version_t *)(BOOTLOADER_VERSION_ADDRESS); // (addres
 volatile uint8_t *psys_fw_valid = (uint8_t *)0x080FFFFF; //last byte in the flash
 
 void sys_reset(void) {
-    _Static_assert(sizeof(data_exchange_t) == 16, "invalid sizeof(data_exchange_t)");
+    static_assert(sizeof(data_exchange_t) == 16, "invalid sizeof(data_exchange_t)");
 
     uint32_t aircr = SCB->AIRCR & 0x0000ffff; //read AIRCR, mask VECTKEY
     if (__get_PRIMASK() & 1)
@@ -268,30 +268,6 @@ extern void sys_fw_update_older_on_restart_enable(void) {
 
 void sys_fw_update_on_restart_disable(void) {
     ram_data_exchange.fw_update_flag = FW_UPDATE_DISABLE;
-}
-
-// returns 1 if last byte in the flash is nonzero
-int sys_fw_is_valid(void) {
-#ifdef _DEBUG
-    return true;
-#else
-    return (*psys_fw_valid != 0) ? 1 : 0;
-#endif
-}
-
-// write zero to last byte in the flash
-int sys_fw_invalidate(void) {
-    uint8_t zero = 0x00;
-    if (sys_flash_is_empty((void *)(psys_fw_valid), 1))
-        if (sys_flash_write((void *)(psys_fw_valid), &zero, 1) != 1)
-            return 0;
-    return (*psys_fw_valid == zero) ? 1 : 0;
-}
-
-// format last flash sector (128kB 0x)
-// for testing purposes only - not used in firmware
-int sys_fw_validate(void) {
-    return sys_flash_erase_sector(FLASH_SECTOR_11);
 }
 
 int sys_flash_is_empty(void *ptr, int size) {

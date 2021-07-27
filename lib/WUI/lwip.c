@@ -78,7 +78,7 @@ static uint32_t ip4_type = WUI_IP4_DHCP;
 static char eth_hostname[ETH_HOSTNAME_LEN + 1] = { 0 };
 
 static void wui_lwip_set_lan_static(ETH_config_t *ethconfig) {
-    ip4_type = WUI_IP4_DHCP;
+    ip4_type = WUI_IP4_STATIC;
     ipaddr.addr = ethconfig->lan.addr_ip4.addr;
     netmask.addr = ethconfig->lan.msk_ip4.addr;
     gw.addr = ethconfig->lan.gw_ip4.addr;

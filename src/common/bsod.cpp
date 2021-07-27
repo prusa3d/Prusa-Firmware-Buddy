@@ -280,7 +280,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         constexpr uint8_t qr_size_px = 140;
         const Rect16 qr_rect = { 160 - qr_size_px / 2, 200 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
         window_qr_t win(nullptr, qr_rect);
-        win.rect = qr_rect;
+        win.SetRect(qr_rect);
         window_qr_t *window = &win;
         win.text = qr_text;
         win.bg_color = COLOR_WHITE;
@@ -754,5 +754,5 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {}
 void general_error(const char *error, const char *module) {}
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {}
 void ScreenHardFault(void) {}
-void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {}
+extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {}
 #endif //HAS_GUI

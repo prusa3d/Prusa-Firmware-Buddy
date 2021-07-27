@@ -26,27 +26,6 @@
 //show filament sensor status in header
 //#define DEBUG_FSENSOR_IN_HEADER
 
-//--------------------------------------
-//ADC configuration
-//channels:
-// log pin  phy pri  function
-// 0   PA3  3   1    HW_IDENTIFY
-// 1   PA4  4   6    THERM1 (bed)
-// 2   PA5  5   1    THERM2
-// 3   PA6  6   1    THERM_PINDA
-// 4   PC0  10  9    THERM0 (nozzle)
-//--------------------------------------
-//  bit fedc ba98 7654 3210
-// mask 0000 0100 0111 1000 == 0x0478
-static const uint16_t ADC_CHAN_MSK = 0x0478; //used physical AD channels bit mask (3,4,5,6,10)
-enum {
-    ADC_CHAN_CNT = 5, //number of used channels
-};
-static const uint8_t ADC_OVRSAMPL = 4; //oversampling multiplier (common for all channels)
-static const uint8_t ADC_SEQ_LEN = 18; //sampling sequence length
-#define ADC_SEQ2IDX adc_seq2idx        //callback function (convert seq to channel index)
-#define ADC_READY   adc_ready          //callback function (value for any channel is ready)
-static const uint16_t ADC_VREF = 5010; //reference voltage [mV]
 //simulated values
 enum {
     ADC_SIM_VAL0 = 512 * 4, //HW_IDENTIFY
@@ -55,14 +34,6 @@ enum {
     ADC_SIM_VAL3 = 512 * 4, //THERM_PINDA
     ADC_SIM_VAL4 = 977 * 4, //THERM0 (nozzle)  means 25C
 };
-//
-//old seq for three channels (len = 12):
-//012345678901
-//220220221220
-//
-//new seq for five channels (len = 18):
-//012345678901234567
-//414140414142414143
 
 //--------------------------------------
 //FANCTL - new software pwm fan control with rpm measurement and closed loop
@@ -90,19 +61,12 @@ static const uint8_t FANCTL1_PWM_THR = 20;
 
 //Simulator configuration
 //#define SIM_HEATER
-//#define SIM_MOTION
 
 #ifdef SIM_HEATER
     #define ADC_SIM_MSK           0x0012 //simulated logical AD channels bit mask (1,4)
     #define SIM_HEATER_NOZZLE_ADC 4      //
     #define SIM_HEATER_BED_ADC    1      //
 #endif                                   //SIM_HEATER
-
-#ifdef SIM_MOTION
-//#define SIM_MOTION_TRACE_X
-//#define SIM_MOTION_TRACE_Y
-//#define SIM_MOTION_TRACE_Z
-#endif //SIM_MOTION
 
 //new pause settings
 static const uint8_t PAUSE_NOZZLE_TIMEOUT = 45; // nozzle "sleep" after 45s inside paused state

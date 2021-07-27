@@ -3,13 +3,24 @@
 #include "guitypes.hpp"
 #include "Rect16.h"
 #include "align.hpp"
+#include "footer_def.hpp"
 
 struct GuiDefaults {
+    // Footer settings
+    static constexpr size_t FooterLines = FOOTER_LINES__;
+    static constexpr size_t FooterIconTextSpace = 3;                        //space between icon and text of footer item in px
+    static constexpr padding_ui8_t FooterPadding = { 4, 4, 4, 4 };          //number of edge pixels that will remain black in all cases
+    static constexpr size_t FooterLinesSpace = 8;                           //space between footer lines
+    static constexpr Rect16::Height_t FooterItemHeight = 16;                //must match font and icon height
+    static constexpr size_ui16_t FooterIconSize = { 16, FooterItemHeight }; //DO NOT CHANGE HEIGHT!!! it must match item height (item height can be changed instead), real icon height can be smaller
+    static constexpr Rect16::Height_t FooterTextHeight = FooterItemHeight;  //DO NOT CHANGE!!!        it must match item height (item height can be changed instead), real text height can be smaller
+    static font_t *FooterFont;                                              //TODO constexpr, font_9x16, IT MUST MATCH OR BE SMALLER THAN FooterItemHeight!!!
+
     //display specific defaults
     //TODO bind this values
     static constexpr size_t ScreenWidth = 240;
     static constexpr size_t ScreenHeight = 320;
-    static constexpr size_t FooterHeight = 53;
+    static constexpr size_t FooterHeight = FooterLines * FooterItemHeight + (FooterLines - 1) * FooterLinesSpace + FooterPadding.top + FooterPadding.bottom;
     static constexpr size_t HeaderHeight = 32;
 
     // COMMON DEFAULTS
@@ -40,6 +51,7 @@ struct GuiDefaults {
     static constexpr Rect16 RectScreenNoFoot = { 0, 0, ScreenWidth, ScreenHeight - FooterHeight };              // screen body without footer location & size
     static constexpr Rect16 RectScreenNoHeader = { 0, HeaderHeight, ScreenWidth, ScreenHeight - HeaderHeight }; // screen body without header location & size
     static constexpr Rect16 RectFooter = { 0, ScreenHeight - FooterHeight, ScreenWidth, FooterHeight };         // default footer location & size
+    static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };                         // rect describing preview thumbnail
     static constexpr uint8_t ButtonHeight = 30;                                                                 // default button height
     static constexpr uint8_t ButtonSpacing = 6;                                                                 // default button spacing
     static constexpr uint8_t FrameWidth = 10;                                                                   // default frame padding

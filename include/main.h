@@ -20,6 +20,9 @@ extern UART_HandleTypeDef huart6;
 extern uartrxbuff_t uart1rxbuff;
 extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim1;
+
+extern ADC_HandleTypeDef hadc1;
+
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 void Error_Handler(void);
@@ -66,3 +69,6 @@ void Error_Handler(void);
 #define ESP_TX_GPIO_Port      GPIOC
 #define ESP_RX_Pin            GPIO_PIN_7
 #define ESP_RX_GPIO_Port      GPIOC
+
+#define BED_MON_Pin       GPIO_PIN_3
+#define BED_MON_GPIO_Port GPIOA

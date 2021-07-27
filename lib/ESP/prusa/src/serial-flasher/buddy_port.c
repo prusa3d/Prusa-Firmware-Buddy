@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include "stm32_port.h"
 #include "lwesp_ll_buddy.h"
+#include "dbg.h"
 
 // #define SERIAL_DEBUG_ENABLE
 
@@ -134,7 +135,7 @@ uint32_t loader_port_remaining_time(void) {
 }
 
 void loader_port_debug_print(const char *str) {
-    printf("DEBUG: %s", str);
+    _dbg("DEBUG: %s", str);
 }
 
 esp_loader_error_t loader_port_change_baudrate(uint32_t baudrate) {

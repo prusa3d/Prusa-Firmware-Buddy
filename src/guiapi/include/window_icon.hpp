@@ -3,6 +3,7 @@
 #pragma once
 
 #include "window.hpp"
+#include "gcode_info.hpp"
 
 struct window_icon_t : public AddSuperWindow<window_aligned_t> {
     uint16_t id_res;
@@ -58,4 +59,22 @@ public:
 protected:
     virtual void unconditionalDraw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+};
+
+class WindowThumbnail : public AddSuperWindow<window_icon_t> {
+public:
+    WindowThumbnail(window_t *parent, Rect16 rect);
+
+protected:
+    virtual void unconditionalDraw() = 0;
+    GCodeInfo &gcode_info; /**< information about current gcode (singleton)*/
+};
+
+class WindowPreviewThumbnail : public AddSuperWindow<WindowThumbnail> {
+public:
+    WindowPreviewThumbnail(window_t *parent, Rect16 rect);
+    ~WindowPreviewThumbnail();
+
+protected:
+    virtual void unconditionalDraw() override;
 };

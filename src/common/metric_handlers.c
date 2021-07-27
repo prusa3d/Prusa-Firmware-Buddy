@@ -3,11 +3,13 @@
 #include <string.h>
 #include "metric_handlers.h"
 #include "stm32f4xx_hal.h"
-#include "buddy_socket.h"
+#include "sockets.h"
+#include "timing.h"
 
 #define MAC_ADDR_START            0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE             6
 #define TEXTPROTOCOL_POINT_MAXLEN 63
+#define BUFFER_OLD_MS             1000 // after how many ms we flush the buffer
 
 static int textprotocol_append_escaped(char *buffer, int buffer_len, char *val) {
     int appended = 0;
@@ -166,7 +168,7 @@ static void syslog_handler(metric_point_t *point) {
     buffer_newest_timestamp = point->timestamp;
 
     bool buffer_full = buffer_used + TEXTPROTOCOL_POINT_MAXLEN > sizeof(buffer);
-    bool buffer_becoming_old = (HAL_GetTick() - buffer_oldest_timestamp) > 1000;
+    bool buffer_becoming_old = ticks_diff(ticks_ms(), buffer_oldest_timestamp) > BUFFER_OLD_MS;
 
     if (buffer_full || buffer_becoming_old) {
         syslog_message_send(buffer, buffer_used);

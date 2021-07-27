@@ -1,7 +1,7 @@
 //screen_mesh_bed_lv.hpp
 #pragma once
 #include "gui.hpp"
-#include "status_footer.h"
+#include "status_footer.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
 #include "window_term.hpp"
@@ -20,7 +20,7 @@ enum class mesh_state_t : uint8_t {
 };
 
 struct screen_mesh_bed_lv_data_t : public AddSuperWindow<screen_t> {
-    status_footer_t footer;
+    StatusFooter footer;
     window_text_t textMenuName;
     window_text_button_t btMesh;
     window_text_t text_mesh_state;

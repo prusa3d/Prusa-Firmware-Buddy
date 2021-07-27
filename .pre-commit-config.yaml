@@ -29,6 +29,7 @@ repos:
 exclude: |
   (?x)(
     ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$|
+    ^lib/printf|
     ^lib/inih/|
     ^lib/Marlin/|
     ^lib/Prusa-Error-Codes/|
@@ -42,5 +43,8 @@ exclude: |
     ^lib/ESP/prusa/include/sockets/lwesp_sockets.h|
     ^lib/ESP/prusa/include/sockets/lwesp_sockets_priv.h|
     ^lib/ESP/prusa/src/sockets/lwesp_netbuf.c|
-    ^lib/ESP/prusa/src/sockets/lwesp_sockets.c
+    ^lib/ESP/prusa/src/sockets/lwesp_sockets.c|
+    ^lib/Catch2/|
+    ^lib/libsysbase/|
+    ^lib/Middlewares/Third_Party/littlefs/
   )

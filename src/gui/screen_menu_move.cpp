@@ -37,7 +37,7 @@ using MI_AXIS_X = MI_AXIS<0>;
 using MI_AXIS_Y = MI_AXIS<1>;
 using MI_AXIS_Z = MI_AXIS<2>;
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E>;
+using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E>;
 
 class ScreenMenuMove : public Screen {
 public:

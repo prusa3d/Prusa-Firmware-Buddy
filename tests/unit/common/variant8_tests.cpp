@@ -2,6 +2,7 @@
 #include "catch2/catch.hpp"
 
 #include "common/variant8.h"
+#include <cstdint>
 #include <float.h>
 
 TEST_CASE("init & done", "[variant8]") {
@@ -162,7 +163,11 @@ TEST_CASE("size", "[variant8]") {
         CHECK(variant8_type_size(VARIANT8_UI32) == 4);
         CHECK(variant8_type_size(VARIANT8_I32) == 4);
         CHECK(variant8_type_size(VARIANT8_CHAR) == 1);
+#if INTPTR_MAX == INT32_MAX
         CHECK(variant8_type_size(VARIANT8_USER) == 7);
+#elif INTPTR_MAX == INT64_MAX
+        CHECK(variant8_type_size(VARIANT8_USER) == 15);
+#endif
         CHECK(variant8_type_size(VARIANT8_ERROR) == 0);
     };
 

@@ -67,6 +67,17 @@
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
             "device": "STM32F429VI"
-        }
+        },
+        {
+            "name": "GDB (QEMU)",
+            "type": "gdb",
+            "request": "attach",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "target": ":1234",
+            "remote": true,
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/arm-none-eabi-gdb",
+            "autorun": []
+        },
     ]
 }

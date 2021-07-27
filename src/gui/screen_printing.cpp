@@ -10,6 +10,7 @@
 #include "wui_api.h"
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"
+#include "odometer.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.hpp"
@@ -128,7 +129,7 @@ screen_printing_data_t::screen_printing_data_t()
     , stop_pressed(false)
     , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
-    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.rect, w_time_value.rect, w_etime_label.rect, w_etime_value.rect }))) {
+    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() }))) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
 
     marlin_vars_t *vars = marlin_vars();
@@ -178,8 +179,8 @@ extern uint32_t *pCommand;
 void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
-    if (HAL_GetTick() - _last > 300) {
-        _last = HAL_GetTick();
+    if (gui::GetTick() - _last > 300) {
+        _last = gui::GetTick();
 
         static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
         buff[1] = FS_instance().Get() + '0';                         // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
@@ -554,4 +555,6 @@ void screen_printing_data_t::change_print_state() {
         set_tune_icon_and_label();
         set_stop_icon_and_label();
     }
+    if (st == printing_state_t::PRINTED || st == printing_state_t::PAUSED)
+        Odometer_s::instance().force_to_eeprom();
 }
