@@ -39,6 +39,7 @@
  *
  */
 #define CONFIGURATION_H_VERSION 020000
+#define USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
 //===========================================================================
 //============================= Getting Started =============================
@@ -968,7 +969,20 @@
 #define Z_MIN_POS 0
 #define X_MAX_POS X_BED_SIZE
 #define Y_MAX_POS Y_BED_SIZE
+
+#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
+#define DEFAULT_Z_MAX_POS 185
+#define Z_MIN_LEN_LIMIT 1
+#define Z_MAX_LEN_LIMIT 10000
+#ifdef __cplusplus
+extern "C" float get_z_max_pos();
+#else
+extern float get_z_max_pos();
+#endif //__cplusplus
+#define Z_MAX_POS get_z_max_pos()
+#else
 #define Z_MAX_POS 185
+#endif
 
 /**
  * Software Endstops

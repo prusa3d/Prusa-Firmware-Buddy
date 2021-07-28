@@ -115,7 +115,7 @@ typedef struct _eeprom_vars_t {
     uint16_t AXIS_RMS_CURRENT_MA_Y;
     uint16_t AXIS_RMS_CURRENT_MA_Z;
     uint16_t AXIS_RMS_CURRENT_MA_E0;
-    float AXIS_Z_LEN_DIFF_MM;
+    float AXIS_Z_MAX_POS_MM;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -254,7 +254,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     Y_CURRENT,              // AXIS_RMS_CURRENT_MA_Y
     Z_CURRENT,              // AXIS_RMS_CURRENT_MA_Z
     E0_CURRENT,             // AXIS_RMS_CURRENT_MA_E0
-    0,                      // AXIS_Z_LEN_DIFF_MM
+    DEFAULT_Z_MAX_POS,      // AXIS_Z_MAX_POS_MM
     "",                     // EEVAR__PADDING
     0xffffffff,             // EEVAR_CRC32
 };
@@ -829,4 +829,11 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
 #else
     return 0;
 #endif
+}
+
+extern "C" float get_z_max_pos() {
+    float ret = variant8_get_flt(eeprom_get_var(AXIS_Z_MAX_POS_MM));
+    if ((ret > Z_MAX_LEN_LIMIT) || (ret < Z_MIN_LEN_LIMIT))
+        ret = DEFAULT_Z_MAX_POS;
+    return ret;
 }

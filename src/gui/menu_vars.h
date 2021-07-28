@@ -30,10 +30,9 @@ extern const char *const gcode_nozzle_park;
 
 #define z_offset_def nozzle_to_probe[2]
 
-//If used with - Z safe homing is applyed
+//Z is loaded from eeprom, cannot be used
 extern const char X_home_gcode[];
 extern const char Y_home_gcode[];
-extern const char Z_home_gcode[];
 
 extern const int32_t filament_change_slow_load_length;
 extern const int32_t filament_change_fast_load_length;
