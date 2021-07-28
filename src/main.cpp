@@ -965,7 +965,7 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pin = FLASH_CSN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     PIN_TABLE(CONFIGURE_PINS)

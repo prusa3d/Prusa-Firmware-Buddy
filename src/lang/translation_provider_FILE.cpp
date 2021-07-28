@@ -1,4 +1,4 @@
 
 #include "translation_provider_FILE.hpp"
 
-FILEtranslationProvider fileProvider("/usb/lang/cs.mo");
+FILEtranslationProvider fileProvider("/internal/res/lang/cs.mo");

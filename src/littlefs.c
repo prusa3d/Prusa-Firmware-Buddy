@@ -1,5 +1,6 @@
 #include "littlefs.h"
 #include "w25x.h"
+#include "main.h"
 
 #define BLOCK_SIZE  4096
 #define BLOCK_COUNT 2048
@@ -96,7 +97,9 @@ lfs_t *littlefs_init() {
     // reformat if we can't mount the filesystem
     // this should only happen on the first boot
     if (err) {
+        HAL_Delay(50);
         err = lfs_format(&lfs, &cfg);
+        HAL_Delay(50);
         if (err) {
             return NULL;
         }

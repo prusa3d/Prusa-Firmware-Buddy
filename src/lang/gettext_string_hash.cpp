@@ -5,8 +5,23 @@
 #include "gettext_string_hash.hpp"
 #include <string.h>
 #include <array>
+static volatile int32_t hash = 0;
+static volatile int32_t checkStringCnt = 0;
+static volatile int32_t IndexOnPos = 0;
+static volatile int32_t IndexOfKey = 0;
+
+CTracker::CTracker(volatile int32_t *duration)
+    : Duration(duration) {
+    start = ticks_ms();
+};
+CTracker::~CTracker() noexcept {
+
+    uint32_t end = ticks_ms();
+    *Duration += ticks_diff(end, start);
+}
 
 uint32_t gettext_hash_table::hash_string(const char *key) {
+    CTracker timer1(&hash);
     uint32_t hval, g;
     const char *str = key;
 
@@ -47,22 +62,31 @@ uint32_t gettext_hash_table::hash_string(const char *key) {
                 Sorting and Searching, 1973, Addison Wesley]  */
 
 uint32_t gettext_hash_table::GetIndexOfKey(const char *key) {
+    CTracker instance(&IndexOfKey);
 
     uint32_t hashVal = hash_string(key);
     uint32_t posInHash = hashVal % m_TableSize;
+    uint32_t incr = 1 + (hashVal % (m_TableSize - 2));
+    uint32_t index = 0;
 
-    uint32_t index = getIndexOnPos(posInHash);
+    for (index = getIndexOnPos(posInHash); index != 0; index = getIndexOnPos(posInHash)) {
 
-    //    while (index != 0 && !checkString(index, key)) {
-    //        uint32_t incr = 1 + (hashVal % (m_TableSize - 2));
-    //
-    //        if (posInHash >= m_TableSize - incr) {
-    //            posInHash -= m_TableSize - incr;
-    //        } else {
-    //            posInHash += incr;
-    //        }
-    //        index = getIndexOnPos(posInHash);
-    //    }
+        index--;
+
+        if (index > m_NumOfString) {
+            index -= m_NumOfString;
+        }
+
+        if (checkString(index, key)) {
+            return index;
+        }
+
+        if (posInHash >= m_TableSize - incr) {
+            posInHash -= m_TableSize - incr;
+        } else {
+            posInHash += incr;
+        }
+    }
 
     return index;
 }
@@ -73,45 +97,45 @@ uint32_t gettext_hash_table::GetIndexOfKey(const char *key) {
  * @return uint32 index from pos
  */
 uint32_t gettext_hash_table::getIndexOnPos(uint32_t pos) {
+    CTracker timer(&IndexOnPos);
+
     if (pos > m_TableSize) {
-        return false;
+        return 0;
     }
     fseek(m_File, m_HashOffset + 4 * pos, SEEK_SET);
 
     uint32_t indexOfString = 0;
     fread(&indexOfString, 4, 1, m_File);
 
-    return indexOfString - 1;
+    return indexOfString;
 }
 bool gettext_hash_table::checkString(uint32_t index, const char *key) {
-    //    char messageBuffer[m_BufferSize];
-    uint32_t len = 0;
+    CTracker timer1(&checkStringCnt);
+
+    uint32_t keyLen = strlen(key);
+
+    char messageBuffer[m_BufferSize];
+    uint32_t strLen = 0;
     int32_t pos = 0;
 
     fseek(m_File, m_StringOffset + (index * 8), SEEK_SET);
-    char messageBuffer[m_BufferSize];
     //read len and pos of next string
-    fread(&len, 4, 1, m_File);
+    fread(&strLen, 4, 1, m_File);
     fread(&pos, 4, 1, m_File);
 
     fseek(m_File, pos, SEEK_SET);
-    if (len == 0) {
+    if (strLen == 0 || strLen < keyLen) {
         return false;
     }
 
-    //    for (uint32_t i = 0; i < len; ++i) {
-    //        char c;
-    //        fread(&c, 1, 1, m_File);
-    //        if (c != key[i]) {
-    //            return false;
-    //        }
-    //    }
-    //    return true;
-
-    fread(&messageBuffer, 1, len, m_File);
-
-    if (len != 0 && strncmp(messageBuffer, key, std::min(len, m_BufferSize)) == 0) {
-        return true;
+    for (uint32_t i = 0; i < std::min(strLen, 16ul); ++i) {
+        char c;
+        fread(&c, 1, 1, m_File);
+        if (c != key[i]) {
+            return false;
+        }
     }
+    return true;
+
     return false;
 }

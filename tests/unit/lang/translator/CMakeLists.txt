@@ -15,9 +15,11 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/lang/translation_provider_CPUFLASH.cpp
   ${CMAKE_SOURCE_DIR}/src/lang/unaccent.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/test_main.cpp
+        ${CMAKE_SOURCE_DIR}/src/lang/gettext_string_hash.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/providerCPUFLASH.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/hash.cpp
-  )
+  ${CMAKE_CURRENT_SOURCE_DIR}/providerFILE.cpp
+)
 
 add_dependencies(translator_tests translations_pofiles_dump)
 

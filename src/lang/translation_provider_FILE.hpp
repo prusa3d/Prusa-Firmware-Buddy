@@ -12,19 +12,21 @@ class FILEtranslationProvider : public ITranslationProvider {
 
 public:
     bool findMessage(const char *key, FILE *file) const {
-        fseek(file, 12, SEEK_SET);
+        fseek(file, 8, SEEK_SET);
 
         int32_t origTableOf = 0;
         int32_t transTableOf = 0;
         int32_t hashTableOf = 0;
         uint32_t hashTableSize = 0;
+        uint32_t numOfStrings = 0;
 
+        fread(&numOfStrings, 4, 1, file);
         fread(&origTableOf, 4, 1, file);
         fread(&transTableOf, 4, 1, file);
         fread(&hashTableSize, 4, 1, file);
         fread(&hashTableOf, 4, 1, file);
 
-        static gettext_hash_table hashTable(file, hashTableSize, hashTableOf, origTableOf);
+        static gettext_hash_table hashTable(file, hashTableSize, hashTableOf, origTableOf, numOfStrings);
 
         uint32_t index = hashTable.GetIndexOfKey(key);
 

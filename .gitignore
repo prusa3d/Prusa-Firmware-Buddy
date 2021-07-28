@@ -13,3 +13,7 @@ compile_commands.json
 /.vscode/*.registers.state.json
 Makefile
 /doc/html/
+/cmake-*
+*.code-workspace
+*.jdebug
+*.jdebug.user

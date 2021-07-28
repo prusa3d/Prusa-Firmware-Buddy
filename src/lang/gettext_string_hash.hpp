@@ -5,16 +5,31 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "../common/timing.h"
 
 #define HASHWORDBITS 32
 
+//template <uint32_t TEST>
+class CTracker {
+public:
+    CTracker(volatile int32_t *duration);
+    ~CTracker();
+
+private:
+    volatile int32_t *Duration;
+    uint32_t start = 0;
+};
+//template <uint32_t TEST>
+//template <uint32_t TEST>
+
 class gettext_hash_table {
 public:
-    gettext_hash_table(FILE *file, uint32_t tableSize, int32_t hashOffset, int32_t stringOffset)
+    gettext_hash_table(FILE *file, uint32_t tableSize, int32_t hashOffset, int32_t stringOffset, uint32_t numOfString)
         : m_File(file)
         , m_TableSize(tableSize)
         , m_HashOffset(hashOffset)
-        , m_StringOffset(stringOffset) {};
+        , m_StringOffset(stringOffset)
+        , m_NumOfString(numOfString) {};
 
     //returns position of string in hash table
     uint32_t GetIndexOfKey(const char *key);
@@ -35,6 +50,7 @@ private:
     uint32_t m_TableSize;
     int32_t m_HashOffset;
     int32_t m_StringOffset;
+    uint32_t m_NumOfString;
 
     static constexpr uint32_t m_BufferSize = 512;
 };
