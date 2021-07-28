@@ -195,3 +195,13 @@ public:
     MI_DEVHASH_IN_QR();
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_EXPERIMENTAL_SETTINGS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Experimental Settings");
+
+public:
+    MI_EXPERIMENTAL_SETTINGS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
