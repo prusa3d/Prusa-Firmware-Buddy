@@ -129,25 +129,26 @@ typedef union _SelftestResultEEprom_t {
     uint32_t ui32;
 } SelftestResultEEprom_t;
 
-enum {
+typedef enum {
     EEPROM_INIT_Undefined = -1,
     EEPROM_INIT_Normal = 0,
     EEPROM_INIT_Defaults = 1,
-    EEPROM_INIT_Upgraded = 2
-};
+    EEPROM_INIT_Upgraded = 2,
+    EEPROM_INIT_in_progress = 3
+} eeprom_init_status_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
 
 /// initialize eeprom
-/// @returns 0 - normal init (eeprom data valid)
-///          1 - defaults loaded
-///          2 - eeprom upgraded successfully from a previous version
-extern uint8_t eeprom_init(void);
-
-// returns last result of eeprom_init() or EEPROM_INIT_Undefined
-extern uint8_t eeprom_get_init_status(void);
+/// can be called multiple times, non first call will just return status
+///
+/// @returns EEPROM_INIT_Normal - normal init (eeprom data valid)
+///          EEPROM_INIT_Defaults - defaults loaded
+///          EEPROM_INIT_Upgraded - eeprom upgraded successfully from a previous version
+///          EEPROM_INIT_Undefined or EEPROM_INIT_in_progress should never be returned
+extern eeprom_init_status_t eeprom_init(void);
 
 // write default values to all variables
 extern void eeprom_defaults(void);
@@ -255,6 +256,11 @@ extern uint32_t sheet_name(uint32_t, char *, uint32_t);
 ///        always less than MAX_SHEET_NAME_LENGTH
 extern uint32_t sheet_rename(uint32_t, char const *, uint32_t);
 
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Read max position of Z from eeprom
+///
+/// @return max position of Z
+extern float get_z_max_pos();
 #ifdef __cplusplus
 }
 #endif //__cplusplus

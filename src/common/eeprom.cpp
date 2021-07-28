@@ -273,7 +273,7 @@ static inline void eeprom_unlock(void) {
 }
 
 // result of eeprom_init (reset defaults, upgrade ...)
-static uint8_t eeprom_init_status = EEPROM_INIT_Undefined;
+static eeprom_init_status_t eeprom_init_status = EEPROM_INIT_Undefined;
 
 // forward declarations of private functions
 
@@ -289,14 +289,22 @@ static void eeprom_update_crc32();
 static uint16_t eeprom_fwversion_ui16(void);
 
 // public functions - described in header
+extern void main_preinit();
 
-uint8_t eeprom_init(void) {
+eeprom_init_status_t eeprom_init(void) {
+    //already initialized
+    if (eeprom_init_status != EEPROM_INIT_Undefined)
+        return eeprom_init_status;
+    main_preinit();
+
     uint16_t version;
     uint16_t features;
-    uint8_t status = EEPROM_INIT_Normal;
+    eeprom_init_status_t status = EEPROM_INIT_Normal;
     osSemaphoreDef(eepromSema);
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
+
+    eeprom_init_status = EEPROM_INIT_in_progress; // some methods called during init, require status != EEPROM_INIT_Undefined
 
     version = variant_get_ui16(eeprom_get_var(EEVAR_VERSION));
     features = (version >= 4) ? variant_get_ui16(eeprom_get_var(EEVAR_FEATURES)) : 0;
@@ -316,11 +324,8 @@ uint8_t eeprom_init(void) {
     return status;
 }
 
-uint8_t eeprom_get_init_status(void) {
-    return eeprom_init_status;
-}
-
 void eeprom_defaults(void) {
+    eeprom_init(); // if eeprom is not initialized, initialize it, otherwise do nothing
     eeprom_vars_t vars = eeprom_var_defaults;
     vars.FWBUILD = project_build_number;
     vars.FWVERSION = eeprom_fwversion_ui16();
@@ -333,6 +338,7 @@ void eeprom_defaults(void) {
 }
 
 variant8_t eeprom_get_var(uint8_t id) {
+    eeprom_init(); // if eeprom is not initialized, initialize it, otherwise do nothing
     uint16_t addr;
     uint16_t size;
     uint16_t data_size;
@@ -357,6 +363,7 @@ variant8_t eeprom_get_var(uint8_t id) {
 }
 
 void eeprom_set_var(uint8_t id, variant8_t var) {
+    eeprom_init(); // if eeprom is not initialized, initialize it, otherwise do nothing
     uint16_t addr;
     uint16_t size;
     uint16_t data_size;
