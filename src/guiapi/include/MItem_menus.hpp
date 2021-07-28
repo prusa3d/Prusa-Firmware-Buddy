@@ -215,3 +215,13 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_EXPERIMENTAL_SETTINGS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Experimental Settings");
+
+public:
+    MI_EXPERIMENTAL_SETTINGS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
