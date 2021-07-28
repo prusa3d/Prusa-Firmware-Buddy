@@ -199,3 +199,13 @@ void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
         eeprom_set_var(EEVAR_DEVHASH_IN_QR, variant8_ui8(0));
     }
 }
+
+/*****************************************************************************/
+//MI_EXPERIMENTAL_SETTINGS
+MI_EXPERIMENTAL_SETTINGS::MI_EXPERIMENTAL_SETTINGS()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_EXPERIMENTAL_SETTINGS::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuExperimentalSettings);
+}
