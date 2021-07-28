@@ -159,14 +159,8 @@ static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
 /* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void) {
-    /* USER CODE BEGIN 1 */
-
+static int irq = 0;
+void main_preinit() {
     /*
     #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
     #define RCC_FLAG_BORRST                  ((uint8_t)0x79)
@@ -245,10 +239,18 @@ int main(void) {
     crc32_init();
     w25x_init();
 
-    int irq = __get_PRIMASK() & 1;
+    irq = __get_PRIMASK() & 1;
     __enable_irq();
-    eeprom_init();
-    uint8_t status = eeprom_get_init_status();
+}
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void) {
+    // initialize eeprom, if it is not already done
+    // calls main_preinit()
+    eeprom_init_status_t status = eeprom_init();
     if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
         // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
         dump_in_xflash_reset();

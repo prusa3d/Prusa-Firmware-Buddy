@@ -129,25 +129,26 @@ typedef union _SelftestResultEEprom_t {
     uint32_t ui32;
 } SelftestResultEEprom_t;
 
-enum {
+typedef enum {
     EEPROM_INIT_Undefined = -1,
     EEPROM_INIT_Normal = 0,
     EEPROM_INIT_Defaults = 1,
-    EEPROM_INIT_Upgraded = 2
-};
+    EEPROM_INIT_Upgraded = 2,
+    EEPROM_INIT_in_progress = 3
+} eeprom_init_status_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
 
 /// initialize eeprom
-/// @returns 0 - normal init (eeprom data valid)
-///          1 - defaults loaded
-///          2 - eeprom upgraded successfully from a previous version
-extern uint8_t eeprom_init(void);
-
-// returns last result of eeprom_init() or EEPROM_INIT_Undefined
-extern uint8_t eeprom_get_init_status(void);
+/// can be called multiple times, non first call will just return status
+///
+/// @returns EEPROM_INIT_Normal - normal init (eeprom data valid)
+///          EEPROM_INIT_Defaults - defaults loaded
+///          EEPROM_INIT_Upgraded - eeprom upgraded successfully from a previous version
+///          EEPROM_INIT_Undefined or EEPROM_INIT_in_progress should never be returned
+extern eeprom_init_status_t eeprom_init(void);
 
 // write default values to all variables
 extern void eeprom_defaults(void);
