@@ -75,7 +75,7 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
 
     xyz_pos_t park_position = current_position;
     if (min_Z_pos > 0) {
-        static const float Z_max = get_z_max_pos();
+        static const float Z_max = get_z_max_pos_mm();
         park_position.z = std::min(std::max(current_position.z, float(min_Z_pos)), Z_max);
     }
 #ifdef DO_NOT_RESTORE_Z_AXIS

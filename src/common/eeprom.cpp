@@ -102,11 +102,11 @@ typedef struct _eeprom_vars_t {
     float EEVAR_ODOMETER_X;
     float EEVAR_ODOMETER_Y;
     float EEVAR_ODOMETER_Z;
-    float EEVAR_ODOMETER_E;
+    float EEVAR_ODOMETER_E0;
     float AXIS_STEPS_PER_UNIT_X;
     float AXIS_STEPS_PER_UNIT_Y;
     float AXIS_STEPS_PER_UNIT_Z;
-    float AXIS_STEPS_PER_UNIT_E;
+    float AXIS_STEPS_PER_UNIT_E0;
     uint16_t AXIS_MICROSTEPS_X;
     uint16_t AXIS_MICROSTEPS_Y;
     uint16_t AXIS_MICROSTEPS_Z;
@@ -173,10 +173,23 @@ static const eeprom_entry_t eeprom_map[] = {
     { "FOOTER_DRAW_TP"  ,VARIANT8_UI32,  1, 0 }, // EEVAR_FOOTER_DRAW_TYPE
     { "FAN_CHECK_ENA",   VARIANT8_UI8,   1, 0 }, // EEVAR_FAN_CHECK_ENABLED
     { "FS_AUTOL_ENA",    VARIANT8_UI8,   1, 0},  // EEVAR_FS_AUTOLOAD_ENABLED
-    { "ODOMETER_X",      VARIANT8_FLT,   1, 0 },
-    { "ODOMETER_Y",      VARIANT8_FLT,   1, 0 },
-    { "ODOMETER_Z",      VARIANT8_FLT,   1, 0 },
-    { "ODOMETER_E",      VARIANT8_FLT,   1, 0 },
+    { "ODOMETER_X",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_X
+    { "ODOMETER_Y",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_Y
+    { "ODOMETER_Z",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_Z
+    { "ODOMETER_E",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E0
+    { "STEPS_PR_UNIT_X", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_X
+    { "STEPS_PR_UNIT_Y", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_Y
+    { "STEPS_PR_UNIT_Z", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_Z
+    { "STEPS_PR_UNIT_E", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_E0
+    { "MICROSTEPS_X",    VARIANT8_UI16,  1, 0 }, // AXIS_MICROSTEPS_X
+    { "MICROSTEPS_Y",    VARIANT8_UI16,  1, 0 }, // AXIS_MICROSTEPS_Y
+    { "MICROSTEPS_Z",    VARIANT8_UI16,  1, 0 }, // AXIS_MICROSTEPS_Z
+    { "MICROSTEPS_E",    VARIANT8_UI16,  1, 0 }, // AXIS_MICROSTEPS_E0
+    { "RMS_CURR_MA_X",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_X
+    { "RMS_CURR_MA_Y",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_Y
+    { "RMS_CURR_MA_Z",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_Z
+    { "RMS_CURR_MA_E",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_E0
+    { "Z_MAX_POS_MM",    VARIANT8_FLT,   1, 0 }, // AXIS_Z_MAX_POS_MM
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -241,11 +254,11 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_ODOMETER_X
     0,               // EEVAR_ODOMETER_Y
     0,               // EEVAR_ODOMETER_Z
-    0,               // EEVAR_ODOMETER_E
+    0,               // EEVAR_ODOMETER_E0
     default_axis_steps[0],  // AXIS_STEPS_PER_UNIT_X
     default_axis_steps[1],  // AXIS_STEPS_PER_UNIT_Y
     default_axis_steps[2],  // AXIS_STEPS_PER_UNIT_Z
-    default_axis_steps[3],  // AXIS_STEPS_PER_UNIT_E
+    default_axis_steps[3],  // AXIS_STEPS_PER_UNIT_E0
     X_MICROSTEPS,           // AXIS_MICROSTEPS_X
     Y_MICROSTEPS,           // AXIS_MICROSTEPS_Y
     Z_MICROSTEPS,           // AXIS_MICROSTEPS_Z
@@ -831,9 +844,19 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
 #endif
 }
 
-extern "C" float get_z_max_pos() {
+extern "C" float get_z_max_pos_mm() {
     float ret = variant8_get_flt(eeprom_get_var(AXIS_Z_MAX_POS_MM));
     if ((ret > Z_MAX_LEN_LIMIT) || (ret < Z_MIN_LEN_LIMIT))
         ret = DEFAULT_Z_MAX_POS;
     return ret;
+}
+
+extern "C" uint16_t get_z_max_pos_mm_rounded() {
+    return static_cast<uint16_t>(std::lround(get_z_max_pos_mm()));
+}
+
+extern "C" void set_z_max_pos_mm(float max_pos) {
+    if ((max_pos >= Z_MAX_LEN_LIMIT) && (max_pos <= Z_MIN_LEN_LIMIT)) {
+        eeprom_set_var(AXIS_Z_MAX_POS_MM, variant8_flt(max_pos));
+    }
 }

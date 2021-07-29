@@ -12,6 +12,8 @@
     #error "Unknown PRINTER_TYPE."
 #endif
 
+#include "eeprom.h"
+
 const int x_axis_len = X_LEN;
 const int y_axis_len = Y_LEN;
 const int z_axis_len = Z_LEN;
@@ -72,7 +74,7 @@ constexpr const char Y_home_gcode[] = {
 
 const std::array<std::array<int16_t, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::axis_ranges = { { { X_MIN_POS, X_MAX_POS, 1 },
     { Y_MIN_POS, Y_MAX_POS, 1 },
-    { Z_MIN_POS, int16_t(get_z_max_pos()), 1 },
+    { Z_MIN_POS, static_cast<int16_t>(get_z_max_pos_mm_rounded()), 1 },
     { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH, 1 } } };
 const int16_t MenuVars::manual_feedrate[AXIS_CNT] = MANUAL_FEEDRATE;
 const char MenuVars::axis_letters[AXIS_CNT] = { 'X', 'Y', 'Z', 'E' };

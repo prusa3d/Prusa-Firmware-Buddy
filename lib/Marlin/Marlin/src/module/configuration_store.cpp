@@ -143,7 +143,7 @@ static float get_steps_per_unit(size_t index) {
       return variant8_get_flt(eeprom_get_var(AXIS_STEPS_PER_UNIT_Z));
     }
     //if index is bigger than max index, use max index - default marlin behavior
-    return variant8_get_flt(eeprom_get_var(AXIS_STEPS_PER_UNIT_E));
+    return variant8_get_flt(eeprom_get_var(AXIS_STEPS_PER_UNIT_E0));
 }
 #else
 static constexpr float get_steps_per_unit(size_t index) {

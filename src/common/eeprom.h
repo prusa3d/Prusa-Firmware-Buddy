@@ -85,20 +85,20 @@ enum {
     EEVAR_ODOMETER_X = 0x2e,          // float
     EEVAR_ODOMETER_Y = 0x2f,          // float
     EEVAR_ODOMETER_Z = 0x30,          // float
-    EEVAR_ODOMETER_E = 0x31,          // float
-    AXIS_STEPS_PER_UNIT_X = 0x32,     // float
-    AXIS_STEPS_PER_UNIT_Y = 0x33,     // float
-    AXIS_STEPS_PER_UNIT_Z = 0x34,     // float
-    AXIS_STEPS_PER_UNIT_E = 0x35,     // float
-    AXIS_MICROSTEPS_X = 0x36,         // uint16_t
-    AXIS_MICROSTEPS_Y = 0x37,         // uint16_t
-    AXIS_MICROSTEPS_Z = 0x38,         // uint16_t
-    AXIS_MICROSTEPS_E0 = 0x39,        // uint16_t, must contain "E0" to work with marlin macros
-    AXIS_RMS_CURRENT_MA_X = 0x3a,     // uint16_t
-    AXIS_RMS_CURRENT_MA_Y = 0x3b,     // uint16_t
-    AXIS_RMS_CURRENT_MA_Z = 0x3c,     // uint16_t
-    AXIS_RMS_CURRENT_MA_E0 = 0x3d,    // uint16_t, must contain "E0" to work with marlin macros
-    AXIS_Z_MAX_POS_MM = 0x3e,         // float
+    EEVAR_ODOMETER_E0 = 0x31,         // float
+    AXIS_STEPS_PER_UNIT_X = 0x32,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_STEPS_PER_UNIT_Y = 0x33,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_STEPS_PER_UNIT_Z = 0x34,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_STEPS_PER_UNIT_E0 = 0x35,    // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_MICROSTEPS_X = 0x36,         // uint16_t, used to initialize trinamic
+    AXIS_MICROSTEPS_Y = 0x37,         // uint16_t, used to initialize trinamic
+    AXIS_MICROSTEPS_Z = 0x38,         // uint16_t, used to initialize trinamic
+    AXIS_MICROSTEPS_E0 = 0x39,        // uint16_t, used to initialize trinamic, must contain "E0" to work with marlin macros
+    AXIS_RMS_CURRENT_MA_X = 0x3a,     // uint16_t, used to initialize trinamic
+    AXIS_RMS_CURRENT_MA_Y = 0x3b,     // uint16_t, used to initialize trinamic
+    AXIS_RMS_CURRENT_MA_Z = 0x3c,     // uint16_t, used to initialize trinamic
+    AXIS_RMS_CURRENT_MA_E0 = 0x3d,    // uint16_t, used to initialize trinamic, must contain "E0" to work with marlin macros
+    AXIS_Z_MAX_POS_MM = 0x3e,         // float, used in marlin Z_MAX_POS macro
     EEVAR__PADDING = 0x3f,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
     EEVAR_CRC32 = 0x40,               // uint32_t crc32 for
 };
@@ -260,7 +260,19 @@ extern uint32_t sheet_rename(uint32_t, char const *, uint32_t);
 /// @brief Read max position of Z from eeprom
 ///
 /// @return max position of Z
-extern float get_z_max_pos();
+extern float get_z_max_pos_mm();
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Read max position of Z from eeprom and round it
+///
+/// @return max position of Z rounded
+extern uint16_t get_z_max_pos_mm_rounded();
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Set new max position of Z to eeprom - if it is in acceptable range
+///
+/// @param[in]  max position of Z
+extern void set_z_max_pos_mm(float max_pos);
 #ifdef __cplusplus
 }
 #endif //__cplusplus

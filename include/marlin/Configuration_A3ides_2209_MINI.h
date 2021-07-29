@@ -975,11 +975,11 @@
 #define Z_MIN_LEN_LIMIT 1
 #define Z_MAX_LEN_LIMIT 10000
 #ifdef __cplusplus
-extern "C" float get_z_max_pos();
+extern "C" float get_z_max_pos_mm();
 #else
-extern float get_z_max_pos();
+extern float get_z_max_pos_mm();
 #endif //__cplusplus
-#define Z_MAX_POS get_z_max_pos()
+#define Z_MAX_POS (get_z_max_pos_mm())
 #else
 #define Z_MAX_POS 185
 #endif

@@ -11,7 +11,7 @@ static constexpr int eevars[] = {
     EEVAR_ODOMETER_X,
     EEVAR_ODOMETER_Y,
     EEVAR_ODOMETER_Z,
-    EEVAR_ODOMETER_E
+    EEVAR_ODOMETER_E0
 };
 
 static_assert(sizeof(eevars) / sizeof(eevars[0]) == Odometer_s::axis_count, "count of axis does not match eeprom");
