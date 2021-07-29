@@ -856,7 +856,7 @@ extern "C" uint16_t get_z_max_pos_mm_rounded() {
 }
 
 extern "C" void set_z_max_pos_mm(float max_pos) {
-    if ((max_pos >= Z_MAX_LEN_LIMIT) && (max_pos <= Z_MIN_LEN_LIMIT)) {
+    if ((max_pos >= Z_MIN_LEN_LIMIT) && (max_pos <= Z_MAX_LEN_LIMIT)) {
         eeprom_set_var(AXIS_Z_MAX_POS_MM, variant8_flt(max_pos));
     }
 }
