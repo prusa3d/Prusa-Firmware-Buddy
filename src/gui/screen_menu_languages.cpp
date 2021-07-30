@@ -124,7 +124,11 @@ protected:
 
 /*****************************************************************************/
 //parent alias
+#ifdef _DEBUG
 using Screen = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH,MI_TEST_LAN>;
+#else
+using Screen = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+#endif
 
 class ScreenMenuLanguages : public Screen {
 public:

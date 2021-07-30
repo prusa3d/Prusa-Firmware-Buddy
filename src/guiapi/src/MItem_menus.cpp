@@ -8,7 +8,6 @@
 #include "marlin_client.h"
 #include "translation_provider_FILE.hpp"
 #include "translator.hpp"
-#include "w25x.h"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -222,26 +221,37 @@ void MI_FOOTER_SETTINGS::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenMenuFooterSettings);
 }
 
-
-MI_LANGUAGUE_TEST::MI_LANGUAGUE_TEST()
+MI_LANGUAGUE_USB::MI_LANGUAGUE_USB()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
-void MI_LANGUAGUE_TEST::click(IWindowMenu &windowMenu) {
-    const char message[] = "Toto je testovaci message";
-    char resMessage[512];
-//    w25x_sector_erase(0xdf00);
-//    w25x_page_program(0xdf00, (uint8_t *)message, strlen(message));
-    w25x_rd_data(0xdf00, (uint8_t *)resMessage, strlen(message));
 
-        uint8_t buff[512];
+void MI_LANGUAGUE_USB::click(IWindowMenu &windowMenu) {
+    if (fileProviderUSB.OpenFile())
+        ProviderRegistrator("ts", &fileProviderUSB);
+}
 
-        FILE *srcDir = fopen("/usb/lang/cs.mo", "rb");
-        FILE *dstDir = fopen("/internal/cs.mo", "w+b");
-        if (dstDir && srcDir) {
-            for (size_t readBytes = fread(buff, 1, 512, srcDir); readBytes != 0; readBytes = fread(buff, 1, 512, srcDir)) {
-                fwrite(buff, 1, readBytes, dstDir);
-            }
+MI_LOAD_LANG::MI_LOAD_LANG()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_LOAD_LANG::click(IWindowMenu &windowMenu) {
+
+    uint8_t buff[512];
+
+    FILE *srcDir = fopen("/usb/lang/ts.mo", "rb");
+    FILE *dstDir = fopen("/internal/ts.mo", "wb");
+    //copy languague from usb to xflash
+    if (dstDir && srcDir) {
+        for (size_t readBytes = fread(buff, 1, 16, srcDir); readBytes != 0; readBytes = fread(buff, 1, 16, srcDir)) {
+            fwrite(buff, 1, readBytes, dstDir);
+            fflush(dstDir);
         }
+    }
+    fclose(dstDir);
+    fclose(srcDir);
+}
+MI_LANGUAGUE_XFLASH::MI_LANGUAGUE_XFLASH()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 
-        if (fileProvider.OpenFile())
-            ProviderRegistrator("ts", &fileProvider);
+void MI_LANGUAGUE_XFLASH::click(IWindowMenu &windowMenu) {
+    if (fileProviderInternal.OpenFile())
+        ProviderRegistrator("ts", &fileProviderInternal);
 }
