@@ -131,26 +131,6 @@ buddy_ini_error ini_load_file(void *user) {
             skip_next_read = 1;
         }
 
-#if INI_ALLOW_REALLOC && !INI_USE_STACK
-        offset = strlen(line);
-        while (offset == max_line - 1 && line[offset - 1] != '\n') {
-            max_line *= 2;
-            if (max_line > INI_MAX_LINE)
-                max_line = INI_MAX_LINE;
-            new_line = realloc(line, max_line);
-            if (!new_line) {
-                free(line);
-                return -2;
-            }
-            line = new_line;
-            if (reader(line + offset, (int)(max_line - offset), stream) == NULL)
-                break;
-            if (max_line >= INI_MAX_LINE)
-                break;
-            offset += strlen(line + offset);
-        }
-#endif
-
         lineno++;
 
         start = line;
