@@ -113,11 +113,11 @@ bool loadStrings(const char *fname, deque<string> &keys) {
     return true;
 }
 
-TEST_CASE("FILE", "[FILE]") {
+TEST_CASE("providerFILE::Translations test", "[translator]") {
     deque<string> stringKeys;
     deque<string> translatedStrings;
     CHECK(loadStrings("keys.txt", stringKeys));
-    FILEtranslationProvider fileProvider("messages.mo");
+    FILEtranslationProvider fileProvider("cs.mo");
     CHECK(loadStrings("cs.txt", translatedStrings));
 
     set<unichar> nonASCIICharacters;

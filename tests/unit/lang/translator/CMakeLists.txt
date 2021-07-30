@@ -18,7 +18,8 @@ add_executable(
         ${CMAKE_SOURCE_DIR}/src/lang/gettext_string_hash.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/providerCPUFLASH.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/hash.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/providerFILE.cpp
+#   we need to add mo file generation to test files
+#  ${CMAKE_CURRENT_SOURCE_DIR}/providerFILE.cpp
 )
 
 add_dependencies(translator_tests translations_pofiles_dump)
