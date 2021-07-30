@@ -123,7 +123,7 @@ TEST_CASE("string_view_utf8::CreateFromFILE test", "[string_view_utf8]") {
     FILE *f = fopen(fname, "rb"); // beware! the file must end with \0!
     REQUIRE(f);                   // without it it makes no sense to continue this test
 
-    string_view_utf8 sf = string_view_utf8::MakeFILE(f);
+    string_view_utf8 sf = string_view_utf8::MakeFILE(f, 0);
     // and now the fun begins - the string view shall return utf8 characters (deliberately typed into the file)
     REQUIRE(TheYellowHorse(sf));
     fclose(f);
