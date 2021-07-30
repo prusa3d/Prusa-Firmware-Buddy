@@ -210,12 +210,12 @@ public:
     }
 
     /// Construct string_view_utf8 to provide data from FILE
-    /// The FILE *f shall aready be positioned to the spot, where the string starts
-    static constexpr string_view_utf8 MakeFILE(::FILE *f) {
+    /// The FILE *f shall already be positioned to the spot, where the string starts
+    static constexpr string_view_utf8 MakeFILE(::FILE *f, uint16_t offset) {
         string_view_utf8 s;
         s.attrs.file.f = f;
         if (f) {
-            s.attrs.file.startOfs = ftell(f);
+            s.attrs.file.startOfs = offset;
             s.attrs.file.currentOfs = 0;
         }
         s.type = EType::FILE;
