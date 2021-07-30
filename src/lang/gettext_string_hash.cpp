@@ -4,9 +4,8 @@
 
 #include "gettext_string_hash.hpp"
 #include <string.h>
-#include <array>
 
-uint32_t gettext_hash_table::hash_string(const char *key) {
+uint32_t gettext_hash_table::hash_string(const char *key) const {
     uint32_t hval, g;
     const char *str = key;
 
@@ -46,24 +45,33 @@ uint32_t gettext_hash_table::hash_string(const char *key) {
      Formulas: [Knuth, The Art of Computer Programming, Volume 3,
                 Sorting and Searching, 1973, Addison Wesley]  */
 
-uint32_t gettext_hash_table::GetIndexOfKey(const char *key) {
+uint32_t gettext_hash_table::GetIndexOfKey(const char *key) const {
 
     uint32_t hashVal = hash_string(key);
     uint32_t posInHash = hashVal % m_TableSize;
+    uint32_t incr = 1 + (hashVal % (m_TableSize - 2));
+    uint32_t index = 0;
 
-    uint32_t index = getIndexOnPos(posInHash);
+    //get index from hash table
+    for (index = getIndexOnPos(posInHash); index != 0; index = getIndexOnPos(posInHash)) {
 
-    //    while (index != 0 && !checkString(index, key)) {
-    //        uint32_t incr = 1 + (hashVal % (m_TableSize - 2));
-    //
-    //        if (posInHash >= m_TableSize - incr) {
-    //            posInHash -= m_TableSize - incr;
-    //        } else {
-    //            posInHash += incr;
-    //        }
-    //        index = getIndexOnPos(posInHash);
-    //    }
+        uint32_t index = getIndexOnPos(posInHash);
 
+        if (index > m_NumOfString) {
+            index -= m_NumOfString;
+        }
+        //check string if it matches return the index
+        if (checkString(index, key)) {
+            return index;
+        }
+        //if not rehash the string and check it again
+        if (posInHash >= m_TableSize - incr) {
+            posInHash -= m_TableSize - incr;
+        } else {
+            posInHash += incr;
+        }
+    }
+    //return 0, only if no matching string is found
     return index;
 }
 
@@ -72,46 +80,62 @@ uint32_t gettext_hash_table::GetIndexOfKey(const char *key) {
  * @param pos where to get index
  * @return uint32 index from pos
  */
-uint32_t gettext_hash_table::getIndexOnPos(uint32_t pos) {
+uint32_t gettext_hash_table::getIndexOnPos(uint32_t pos) const {
+
     if (pos > m_TableSize) {
         return false;
     }
-    fseek(m_File, m_HashOffset + 4 * pos, SEEK_SET);
+    //move to position in hash table
+    if (fseek(m_File, m_HashOffset + 4 * pos, SEEK_SET) != 0) {
+        return 0;
+    }
 
+    //read index in position
     uint32_t indexOfString = 0;
     fread(&indexOfString, 4, 1, m_File);
 
     return indexOfString - 1;
 }
-bool gettext_hash_table::checkString(uint32_t index, const char *key) {
-    //    char messageBuffer[m_BufferSize];
-    uint32_t len = 0;
-    int32_t pos = 0;
+bool gettext_hash_table::checkString(uint32_t index, const char *key) const {
 
-    fseek(m_File, m_StringOffset + (index * 8), SEEK_SET);
-    char messageBuffer[m_BufferSize];
+    uint32_t strLen = 0;
+    int32_t pos = 0;
+    //move to position of length a nd offset of the string to check
+    if (fseek(m_File, m_StringOffset + (index * 8), SEEK_SET) != 0) {
+        return false;
+    }
+    //compute len of key
+    uint32_t keyLen = strlen(key);
+
     //read len and pos of next string
-    fread(&len, 4, 1, m_File);
+    fread(&strLen, 4, 1, m_File);
     fread(&pos, 4, 1, m_File);
 
-    fseek(m_File, pos, SEEK_SET);
-    if (len == 0) {
+    //check if the lengths are equal
+    if (strLen == 0 || strLen < keyLen) {
         return false;
     }
 
-    //    for (uint32_t i = 0; i < len; ++i) {
-    //        char c;
-    //        fread(&c, 1, 1, m_File);
-    //        if (c != key[i]) {
-    //            return false;
-    //        }
-    //    }
-    //    return true;
-
-    fread(&messageBuffer, 1, len, m_File);
-
-    if (len != 0 && strncmp(messageBuffer, key, std::min(len, m_BufferSize)) == 0) {
-        return true;
+    //move to position of string to check
+    if (fseek(m_File, pos, SEEK_SET)) {
+        return false;
     }
-    return false;
+
+    //check if the string matches
+    //@@TODO: add build procedure to check minimal number of chars to check if the string are the same
+    for (uint32_t i = 0; i < strLen; ++i) {
+        char c;
+        fread(&c, 1, 1, m_File);
+        if (c != key[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+void gettext_hash_table::init(FILE *file, uint32_t tableSize, uint32_t hashOffset, uint16_t stringOffset, uint32_t numOfString) {
+    m_File = file;
+    m_TableSize = tableSize;
+    m_HashOffset = hashOffset;
+    m_StringOffset = stringOffset;
+    m_NumOfString = numOfString;
 }
