@@ -116,7 +116,7 @@ class MI_TEST_LAN : public MI_LangBase {
 
 public:
     inline MI_TEST_LAN()
-        : MI_LangBase(label, IDR_PNG_flag_cs){}
+        : MI_LangBase(label, IDR_PNG_flag_cs) {}
 
 protected:
     virtual uint16_t LangCode() const override { return Translations::MakeLangCode("ts"); }
@@ -124,7 +124,11 @@ protected:
 
 /*****************************************************************************/
 //parent alias
-using Screen = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH,MI_TEST_LAN>;
+#ifdef _DEBUG
+using Screen = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH, MI_TEST_LAN>;
+#else
+using Screen = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+#endif
 
 class ScreenMenuLanguages : public Screen {
 public:

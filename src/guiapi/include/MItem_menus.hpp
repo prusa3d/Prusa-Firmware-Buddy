@@ -216,11 +216,31 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_LANGUAGUE_TEST : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Load languagues from USB");
+class MI_LANGUAGUE_USB : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Load lang from USB");
 
 public:
-    MI_LANGUAGUE_TEST();
+    MI_LANGUAGUE_USB();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_LOAD_LANG : public WI_LABEL_t {
+    static constexpr const char *const label = N_("load lang to XFLASH");
+
+public:
+    MI_LOAD_LANG();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_LANGUAGUE_XFLASH : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Load lang from XFLASH");
+
+public:
+    MI_LANGUAGUE_XFLASH();
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;
