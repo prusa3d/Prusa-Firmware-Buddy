@@ -4,24 +4,8 @@
 
 #include "gettext_string_hash.hpp"
 #include <string.h>
-#include <array>
-static volatile int32_t hash = 0;
-static volatile int32_t checkStringCnt = 0;
-static volatile int32_t IndexOnPos = 0;
-static volatile int32_t IndexOfKey = 0;
 
-CTracker::CTracker(volatile int32_t *duration)
-    : Duration(duration) {
-    start = ticks_ms();
-};
-CTracker::~CTracker() noexcept {
-
-    uint32_t end = ticks_ms();
-    *Duration += ticks_diff(end, start);
-}
-
-uint32_t gettext_hash_table::hash_string(const char *key) {
-    CTracker timer1(&hash);
+uint32_t gettext_hash_table::hash_string(const char *key) const {
     uint32_t hval, g;
     const char *str = key;
 
@@ -61,14 +45,14 @@ uint32_t gettext_hash_table::hash_string(const char *key) {
      Formulas: [Knuth, The Art of Computer Programming, Volume 3,
                 Sorting and Searching, 1973, Addison Wesley]  */
 
-uint32_t gettext_hash_table::GetIndexOfKey(const char *key) {
-    CTracker instance(&IndexOfKey);
+uint32_t gettext_hash_table::GetIndexOfKey(const char *key) const {
 
     uint32_t hashVal = hash_string(key);
     uint32_t posInHash = hashVal % m_TableSize;
     uint32_t incr = 1 + (hashVal % (m_TableSize - 2));
     uint32_t index = 0;
 
+    //get index from hash table
     for (index = getIndexOnPos(posInHash); index != 0; index = getIndexOnPos(posInHash)) {
 
         index--;
@@ -76,18 +60,18 @@ uint32_t gettext_hash_table::GetIndexOfKey(const char *key) {
         if (index > m_NumOfString) {
             index -= m_NumOfString;
         }
-
+        //check string if it matches return the index
         if (checkString(index, key)) {
             return index;
         }
-
+        //if not rehash the string and check it again
         if (posInHash >= m_TableSize - incr) {
             posInHash -= m_TableSize - incr;
         } else {
             posInHash += incr;
         }
     }
-
+    //return 0, only if no matching string is found
     return index;
 }
 
@@ -96,39 +80,50 @@ uint32_t gettext_hash_table::GetIndexOfKey(const char *key) {
  * @param pos where to get index
  * @return uint32 index from pos
  */
-uint32_t gettext_hash_table::getIndexOnPos(uint32_t pos) {
-    CTracker timer(&IndexOnPos);
+uint32_t gettext_hash_table::getIndexOnPos(uint32_t pos) const {
 
     if (pos > m_TableSize) {
         return 0;
     }
-    fseek(m_File, m_HashOffset + 4 * pos, SEEK_SET);
+    //move to position in hash table
+    if (fseek(m_File, m_HashOffset + 4 * pos, SEEK_SET) != 0) {
+        return 0;
+    }
 
+    //read index in position
     uint32_t indexOfString = 0;
     fread(&indexOfString, 4, 1, m_File);
 
     return indexOfString;
 }
-bool gettext_hash_table::checkString(uint32_t index, const char *key) {
-    CTracker timer1(&checkStringCnt);
+bool gettext_hash_table::checkString(uint32_t index, const char *key) const {
 
-    uint32_t keyLen = strlen(key);
-
-    char messageBuffer[m_BufferSize];
     uint32_t strLen = 0;
     int32_t pos = 0;
+    //move to position of length a nd offset of the string to check
+    if (fseek(m_File, m_StringOffset + (index * 8), SEEK_SET) != 0) {
+        return false;
+    }
+    //compute len of key
+    uint32_t keyLen = strlen(key);
 
-    fseek(m_File, m_StringOffset + (index * 8), SEEK_SET);
     //read len and pos of next string
     fread(&strLen, 4, 1, m_File);
     fread(&pos, 4, 1, m_File);
 
-    fseek(m_File, pos, SEEK_SET);
+    //check if the lengths are equal
     if (strLen == 0 || strLen < keyLen) {
         return false;
     }
 
-    for (uint32_t i = 0; i < std::min(strLen, 16ul); ++i) {
+    //move to position of string to check
+    if (fseek(m_File, pos, SEEK_SET)) {
+        return false;
+    }
+
+    //check if the string matches
+    //@@TODO: add build procedure to check minimal number of chars to check if the string are the same
+    for (uint32_t i = 0; i < strLen; ++i) {
         char c;
         fread(&c, 1, 1, m_File);
         if (c != key[i]) {
@@ -136,6 +131,11 @@ bool gettext_hash_table::checkString(uint32_t index, const char *key) {
         }
     }
     return true;
-
-    return false;
+}
+void gettext_hash_table::init(FILE *file, uint32_t tableSize, uint32_t hashOffset, uint16_t stringOffset, uint32_t numOfString) {
+    m_File = file;
+    m_TableSize = tableSize;
+    m_HashOffset = hashOffset;
+    m_StringOffset = stringOffset;
+    m_NumOfString = numOfString;
 }
