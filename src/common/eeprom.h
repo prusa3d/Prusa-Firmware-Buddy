@@ -257,22 +257,45 @@ extern uint32_t sheet_name(uint32_t, char *, uint32_t);
 extern uint32_t sheet_rename(uint32_t, char const *, uint32_t);
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Read max position of Z from eeprom
-///
-/// @return max position of Z
+/// @brief function set to read value from eeprom
 extern float get_z_max_pos_mm();
+extern float get_steps_per_unit_x();
+extern float get_steps_per_unit_y();
+extern float get_steps_per_unit_z();
+extern float get_steps_per_unit_e();
+extern uint16_t get_microsteps_x();
+extern uint16_t get_microsteps_y();
+extern uint16_t get_microsteps_z();
+extern uint16_t get_microsteps_e();
+extern uint16_t get_rms_current_ma_x();
+extern uint16_t get_rms_current_ma_y();
+extern uint16_t get_rms_current_ma_z();
+extern uint16_t get_rms_current_ma_e();
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Read max position of Z from eeprom and round it
-///
-/// @return max position of Z rounded
+/// @brief function set to read float value from eeprom and round it
 extern uint16_t get_z_max_pos_mm_rounded();
+extern uint16_t get_steps_per_unit_x_rounded();
+extern uint16_t get_steps_per_unit_y_rounded();
+extern uint16_t get_steps_per_unit_z_rounded();
+extern uint16_t get_steps_per_unit_e_rounded();
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Set new max position of Z to eeprom - if it is in acceptable range
-///
-/// @param[in]  max position of Z
+/// @brief function set to store value to eeprom
 extern void set_z_max_pos_mm(float max_pos);
+extern void set_steps_per_unit_x(float steps);
+extern void set_steps_per_unit_y(float steps);
+extern void set_steps_per_unit_z(float steps);
+extern void set_steps_per_unit_e(float steps);
+extern void set_microsteps_x(uint16_t microsteps);
+extern void set_microsteps_y(uint16_t microsteps);
+extern void set_microsteps_z(uint16_t microsteps);
+extern void set_microsteps_e(uint16_t microsteps);
+extern void set_rms_current_ma_x(uint16_t current);
+extern void set_rms_current_ma_y(uint16_t current);
+extern void set_rms_current_ma_z(uint16_t current);
+extern void set_rms_current_ma_e(uint16_t current);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

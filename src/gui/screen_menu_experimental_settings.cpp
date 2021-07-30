@@ -16,7 +16,7 @@
 #include "ScreenHandler.hpp"
 #include "window_msgbox.hpp"
 #include "sys.h"
-
+#include "string.h" // memcmp
 enum class ClickCommand : intptr_t { Return,
     Reset_Z };
 
@@ -67,12 +67,47 @@ using Screen = ScreenMenu<EFooter::On, MI_SAVE_AND_RETURN, MI_Z_AXIS_LEN, MI_DEF
 class ScreenMenuExperimentalSettings : public Screen {
     static constexpr const char *const save_and_reboot = N_("Do you want to save changes and reboot the printer?");
     constexpr static const char *label = N_("Experimental Settings");
-    int32_t start_z_len;
+    struct values_t {
+        values_t(ScreenMenuExperimentalSettings &parent)
+            : z_len(parent.Item<MI_Z_AXIS_LEN>().GetVal())
+            , steps_per_unit_x(0)
+            , steps_per_unit_y(0)
+            , steps_per_unit_z(0)
+            , steps_per_unit_e(0)
+            , microsteps_x(0)
+            , microsteps_y(0)
+            , microsteps_z(0)
+            , microsteps_e(0)
+            , rms_current_ma_x(0)
+            , rms_current_ma_y(0)
+            , rms_current_ma_z(0)
+            , rms_current_ma_e(0) {}
+
+        int32_t z_len;
+        int32_t steps_per_unit_x;
+        int32_t steps_per_unit_y;
+        int32_t steps_per_unit_z;
+        int32_t steps_per_unit_e;
+        int32_t microsteps_x;
+        int32_t microsteps_y;
+        int32_t microsteps_z;
+        int32_t microsteps_e;
+        int32_t rms_current_ma_x;
+        int32_t rms_current_ma_y;
+        int32_t rms_current_ma_z;
+        int32_t rms_current_ma_e;
+
+        // this is only safe as long as there are no gaps between variabes
+        // all variables re 32bi now, so it is safe
+        constexpr bool operator==(const values_t &other) const {
+            return memcmp(this, &other, sizeof(values_t)) == 0;
+        }
+    } initial;
 
     void return_clicked() {
-        int32_t new_z_len = Item<MI_Z_AXIS_LEN>().GetVal();
+        values_t current(*this); //ctor will handle load of values
         //unchanged
-        if (new_z_len == start_z_len) {
+        if (current == initial) {
             Screens::Access()->Close();
             return;
         }
@@ -92,7 +127,7 @@ class ScreenMenuExperimentalSettings : public Screen {
 public:
     ScreenMenuExperimentalSettings()
         : Screen(_(label))
-        , start_z_len(Item<MI_Z_AXIS_LEN>().GetVal()) {}
+        , initial(*this) {}
 
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t ev, void *param) override {
         if (ev != GUI_event_t::CHILD_CLICK) {
