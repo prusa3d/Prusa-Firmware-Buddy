@@ -7,7 +7,6 @@
 #ifndef LFS_UTIL_H
 #define LFS_UTIL_H
 
-#define LFS_YES_TRACE
 
 // Users can override lfs_util.h with their own configuration by defining
 // LFS_CONFIG as a header file to include (-DLFS_CONFIG=lfs_config.h).
@@ -54,8 +53,7 @@ extern "C"
 #ifndef LFS_TRACE
 #ifdef LFS_YES_TRACE
 #define LFS_TRACE_(fmt, ...) \
-_dbg("%s:%d:trace: " fmt "%s\n", __FILE__, __LINE__, __VA_ARGS__)
-  //    printf("%s:%d:trace: " fmt "%s\n", __FILE__, __LINE__, __VA_ARGS__)
+      printf("%s:%d:trace: " fmt "%s\n", __FILE__, __LINE__, __VA_ARGS__)
 #define LFS_TRACE(...) LFS_TRACE_(__VA_ARGS__, "")
 #else
 #define LFS_TRACE(...)
