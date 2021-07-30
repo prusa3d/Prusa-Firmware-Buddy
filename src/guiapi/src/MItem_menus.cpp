@@ -226,23 +226,24 @@ MI_LANGUAGUE_USB::MI_LANGUAGUE_USB()
 
 void MI_LANGUAGUE_USB::click(IWindowMenu &windowMenu) {
     if (fileProviderUSB.OpenFile())
-        ProviderRegistrator("ts", &fileProviderUSB);
+        Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderUSB);
 }
 
 MI_LOAD_LANG::MI_LOAD_LANG()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_LOAD_LANG::click(IWindowMenu &windowMenu) {
+    const uint8_t buffLen = 16;
 
-    uint8_t buff[512];
+    uint8_t buff[buffLen];
 
     FILE *srcDir = fopen("/usb/lang/ts.mo", "rb");
     FILE *dstDir = fopen("/internal/ts.mo", "wb");
     //copy languague from usb to xflash
     if (dstDir && srcDir) {
-        for (size_t readBytes = fread(buff, 1, 16, srcDir); readBytes != 0; readBytes = fread(buff, 1, 16, srcDir)) {
+        for (size_t readBytes = fread(buff, 1, buffLen, srcDir); readBytes != 0; readBytes = fread(buff, 1, buffLen, srcDir)) {
             fwrite(buff, 1, readBytes, dstDir);
-            fflush(dstDir);
+            //            fflush(dstDir);
         }
     }
     fclose(dstDir);
@@ -253,5 +254,5 @@ MI_LANGUAGUE_XFLASH::MI_LANGUAGUE_XFLASH()
 
 void MI_LANGUAGUE_XFLASH::click(IWindowMenu &windowMenu) {
     if (fileProviderInternal.OpenFile())
-        ProviderRegistrator("ts", &fileProviderInternal);
+        Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderInternal);
 }

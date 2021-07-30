@@ -8,17 +8,6 @@
 
 #define HASHWORDBITS 32
 
-//template <uint32_t TEST>
-class CTracker {
-public:
-    CTracker(volatile int32_t *duration);
-    ~CTracker();
-
-private:
-    volatile int32_t *Duration;
-    uint32_t start = 0;
-};
-
 class gettext_hash_table {
 public:
     gettext_hash_table() = default;
