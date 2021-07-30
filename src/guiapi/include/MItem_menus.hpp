@@ -217,7 +217,7 @@ protected:
 };
 
 class MI_LANGUAGUE_USB : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Load lang from USB");
+    static constexpr const char *const label = "Load lang from USB";
 
 public:
     MI_LANGUAGUE_USB();
@@ -227,7 +227,7 @@ protected:
 };
 
 class MI_LOAD_LANG : public WI_LABEL_t {
-    static constexpr const char *const label = N_("load lang to XFLASH");
+    static constexpr const char *const label = "load lang to XFLASH";
 
 public:
     MI_LOAD_LANG();
@@ -237,7 +237,7 @@ protected:
 };
 
 class MI_LANGUAGUE_XFLASH : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Load lang from XFLASH");
+    static constexpr const char *const label = "Load lang from XFLASH";
 
 public:
     MI_LANGUAGUE_XFLASH();
