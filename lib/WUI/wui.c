@@ -56,6 +56,7 @@ osMutexId(wui_thread_mutex_id);
 static marlin_vars_t *wui_marlin_vars;
 wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
+static uint32_t ip4_type = WUI_IP4_DHCP;
 
 struct netif eth0; // network interface structure for ETH
 
