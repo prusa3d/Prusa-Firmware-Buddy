@@ -10,18 +10,18 @@
 #include "menu_vars.h"
 
 struct SpinCnf {
-    static const SpinConfig_U16_t nozzle;
-    static const SpinConfig_U08_t bed;
-    static const SpinConfig_U08_t printfan;
-    static const SpinConfig_U16_t feedrate;
-    static const SpinConfig_U16_t flowfact;
-    static const SpinConfig_I08_t timezone_range;
-    static const SpinConfig_U08_t volume_range;
-    static const SpinConfig_I08_t sensor_range;
-    static const SpinConfig_U08_t footer_center_N_range;
-    static const SpinConfig_I32_t axis_z_max_range;                            // maximum Z range - to change current range
-    static const std::array<SpinConfig_I32_t, MenuVars::AXIS_CNT> axis_ranges; // current Z range
-    static const SpinConfig_I32_t steps_per_unit;
-    static const SpinConfig_I32_t microstep_exponential; // 2^0 - 2^8 .. 1, 2, 4, .. , 128, 256
-    static const SpinConfig_I32_t rms_current;
+    static const SpinConfigInt nozzle;
+    static const SpinConfigInt bed;
+    static const SpinConfigInt printfan;
+    static const SpinConfigInt feedrate;
+    static const SpinConfigInt flowfact;
+    static const SpinConfigInt timezone_range;
+    static const SpinConfigInt volume_range;
+    static const SpinConfigInt sensor_range;
+    static const SpinConfigInt footer_center_N_range;
+    static const SpinConfigInt axis_z_max_range;                            // maximum Z range - to change current range
+    static const std::array<SpinConfigInt, MenuVars::AXIS_CNT> axis_ranges; // current Z range
+    static const SpinConfigInt steps_per_unit;
+    static const SpinConfigInt microstep_exponential; // 2^0 - 2^8 .. 1, 2, 4, .. , 128, 256
+    static const SpinConfigInt rms_current;
 };
