@@ -4,6 +4,7 @@
 //#include "unicode.h"
 #include <string.h>
 #include <stdio.h>
+#include "assert.h"
 
 #define UTF8_IS_NONASCII(ch) ((ch)&0x80)
 #define UTF8_IS_CONT(ch)     (((ch)&0xC0) == 0x80)
@@ -220,5 +221,30 @@ public:
         string_view_utf8 s;
         s.type = EType::NULLSTR;
         return s;
+    }
+
+    /// string view has the same resource
+    bool operator==(const string_view_utf8 &other) const {
+        if (type != other.type)
+            return false; // type mismatch
+
+        switch (type) {
+        case EType::RAM:
+        case EType::CPUFLASH:
+            return attrs.cpuflash.utf8raw == other.attrs.cpuflash.utf8raw;
+        case EType::FILE:
+            return (attrs.file.f == other.attrs.file.f) && (attrs.file.startOfs == other.attrs.file.startOfs);
+        case EType::SPIFLASH:
+        case EType::USBFLASH:
+            assert(false); // ends program in debug
+            return false;
+        case EType::NULLSTR: // all null strings are equal
+            return true;
+        }
+        return false; // somehow out of enum range
+    }
+
+    bool operator!=(const string_view_utf8 &other) const {
+        return !((*this) == other);
     }
 };

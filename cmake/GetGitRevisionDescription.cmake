@@ -46,9 +46,48 @@ set(__get_git_revision_description YES)
 # module rather than the path to a calling list file
 get_filename_component(_gitdescmoddir ${CMAKE_CURRENT_LIST_FILE} PATH)
 
+function(get_git_dir _git_parent_dir _git_dir)
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse --absolute-git-dir
+    WORKING_DIRECTORY "${_git_parent_dir}"
+    RESULT_VARIABLE res
+    OUTPUT_VARIABLE out
+    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+  if(NOT res EQUAL 0)
+    set(out "GITDIR-${res}-NOTFOUND")
+  endif()
+
+  set(${_git_dir}
+      "${out}"
+      PARENT_SCOPE
+      )
+endfunction()
+
+function(get_common_git_dir _git_parent_dir _git_dir)
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse --git-common-dir
+    WORKING_DIRECTORY "${_git_parent_dir}"
+    RESULT_VARIABLE res
+    OUTPUT_VARIABLE out
+    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+  if(NOT res EQUAL 0)
+    set(out "GITDIR-${res}-NOTFOUND")
+  endif()
+  if(NOT IS_ABSOLUTE "${out}")
+    set(out "${_git_parent_dir}/${out}")
+  endif()
+
+  set(${_git_dir}
+      "${out}"
+      PARENT_SCOPE
+      )
+endfunction()
+
 function(get_git_head_revision _refspecvar _hashvar)
   set(GIT_PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-  set(GIT_DIR "${GIT_PARENT_DIR}/.git")
+  get_git_dir("${GIT_PARENT_DIR}" GIT_DIR)
   while(NOT EXISTS "${GIT_DIR}") # .git dir not found, search parent directories
     set(GIT_PREVIOUS_PARENT "${GIT_PARENT_DIR}")
     get_filename_component(GIT_PARENT_DIR ${GIT_PARENT_DIR} PATH)
@@ -64,8 +103,9 @@ function(get_git_head_revision _refspecvar _hashvar)
           )
       return()
     endif()
-    set(GIT_DIR "${GIT_PARENT_DIR}/.git")
+    get_git_dir("${GIT_PARENT_DIR}" GIT_DIR)
   endwhile()
+  get_common_git_dir("${GIT_PARENT_DIR}" GIT_COMMON_DIR)
   # check if this is a submodule
   if(NOT IS_DIRECTORY ${GIT_DIR})
     file(READ ${GIT_DIR} submodule)

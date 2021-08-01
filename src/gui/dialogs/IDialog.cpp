@@ -17,11 +17,13 @@ bool IDialog::consumeCloseFlag() const {
 }
 
 void IDialog::guiLoop() const {
+    gui::TickLoop();
     gui_loop();
 }
 
 void create_blocking_dialog_from_normal_window(window_t &dlg) {
     while (!Screens::Access()->ConsumeClose()) {
+        gui::TickLoop();
         gui_loop();
     }
 }

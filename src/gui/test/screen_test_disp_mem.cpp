@@ -435,10 +435,10 @@ void dispRamTest(size_t test_ID, size_t row) {
     static size_t col_pos = -1;
     static uint32_t start_time = 0;
 
-    start_time = HAL_GetTick();
+    start_time = gui::GetTick;
 
     //ttl check - to be responsive
-    while (start_time + ttl >= HAL_GetTick()) {
+    while (start_time + ttl >= gui::GetTick) {
         col_pos = dispRamTest_NextCol(col_pos, rect_w, rect_space, rect_count, border_w);
         size_t rect_index = _getRectIndex(col_pos, rect_w, rect_space, border_w);
 

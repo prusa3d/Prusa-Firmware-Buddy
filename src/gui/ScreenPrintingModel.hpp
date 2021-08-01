@@ -4,7 +4,7 @@
 #include "IScreenPrinting.hpp"
 #include "gui.hpp"
 #include "window_header.hpp"
-#include "status_footer.h"
+#include "status_footer.hpp"
 #include "resource.h"
 
 struct btn_resource {

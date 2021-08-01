@@ -18,6 +18,7 @@ struct screen_test_data_t : public AddSuperWindow<screen_t> {
     window_text_button_t tst_heat_err;
     window_text_button_t tst_disp_memory;
     window_text_button_t tst_stack_overflow;
+    window_text_button_t tst_stack_div0;
     int8_t id_tim;
     int8_t id_tim1;
 

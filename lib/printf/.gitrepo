@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:mpaland/printf.git
+	branch = master
+	commit = d3b984684bb8a8bdc48cc7a1abecb93ce59bbe3e
+	parent = 8b028edad5bbb7e614341f6a10ce9fc4ba8d365c
+	method = merge
+	cmdver = 0.4.3

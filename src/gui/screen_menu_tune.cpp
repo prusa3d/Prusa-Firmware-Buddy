@@ -10,12 +10,12 @@
 
 /*****************************************************************************/
 //parent alias
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, MI_RETURN, MI_LIVE_ADJUST_Z, MI_M600, MI_SPEED, MI_NOZZLE,
+using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_LIVE_ADJUST_Z, MI_M600, MI_SPEED, MI_NOZZLE,
     MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_FAN_CHECK, MI_LAN_SETTINGS, MI_TIMEZONE, MI_VERSION_INFO,
 #ifdef _DEBUG
     MI_TEST,
 #endif //_DEBUG
-    MI_MESSAGES>;
+    MI_FOOTER_SETTINGS, MI_MESSAGES>;
 
 class ScreenMenuTune : public Screen {
 public:

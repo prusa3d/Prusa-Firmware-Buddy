@@ -32,7 +32,7 @@ class ScreenMenuVersionInfo : public AddSuperWindow<screen_t> {
     window_menu_t menu;
     window_header_t header;
     window_text_t help;
-    status_footer_t footer;
+    StatusFooter footer;
 
 public:
     ScreenMenuVersionInfo();
@@ -44,7 +44,7 @@ protected:
 };
 
 ScreenMenuVersionInfo::ScreenMenuVersionInfo()
-    : AddSuperWindow<screen_t>(nullptr, GuiDefaults::RectScreen)
+    : AddSuperWindow<screen_t>(nullptr)
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectFooter.Top()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
@@ -109,7 +109,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
             serial_numbers);
     }
 
-    // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of ths
+    // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of this
     help.SetText(string_view_utf8::MakeRAM((const uint8_t *)version_info_str.data()));
 }
 

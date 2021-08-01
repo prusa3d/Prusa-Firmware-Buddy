@@ -20,7 +20,7 @@ void window_numb_t::unconditionalDraw() {
         snprintf(text, WINDOW_NUMB_MAX_TEXT, format, (double)value);
     }
 
-    render_text_align(rect,
+    render_text_align(GetRect(),
         // this MakeRAM is safe - render_text finishes its work and the local string text[] is then no longer needed
         string_view_utf8::MakeRAM((const uint8_t *)text),
         font,
@@ -56,12 +56,12 @@ void window_numb_t::SetColor(color_t clr) {
     }
 }
 
-window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value)
+window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const char *frmt)
     : window_aligned_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , value(value)
-    , format("%.0f")
+    , format(frmt == nullptr ? "%.0f" : frmt)
     , padding(GuiDefaults::Padding) {
     PrintAsFloat();
 }

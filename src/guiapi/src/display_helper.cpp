@@ -172,8 +172,8 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
 
     /// 1st pass reading the string_view_utf8 - font_meas_text also computes the number of utf8 characters (i.e. individual bitmaps) in the input string
     uint16_t strlen_text = 0;
-    const point_ui16_t txt_size = font_meas_text(font, &text, &strlen_text);
-    if (txt_size.x == 0 || txt_size.y == 0) {
+    const size_ui16_t txt_size = font_meas_text(font, &text, &strlen_text);
+    if (txt_size.w == 0 || txt_size.h == 0) {
         /// empty text => draw background rectangle only
         display::FillRect(rc, clr_bg);
         return;
@@ -181,10 +181,10 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
 
     /// single line, can modify rc pad
     if (font->h * 2 > rc_pad.Height()                              /// 2 lines would not fit
-        || (txt_size.y == font->h && txt_size.x <= rc_pad.Width()) /// text fits into a single line completely
+        || (txt_size.h == font->h && txt_size.w <= rc_pad.Width()) /// text fits into a single line completely
         || !flags.IsMultiline()) {                                 /// wrapping turned off
 
-        Rect16 rc_txt = Rect16(0, 0, txt_size.x, txt_size.y); /// set size
+        Rect16 rc_txt = Rect16(0, 0, txt_size.w, txt_size.h); /// set size
         rc_txt.Align(rc_pad, flags.align);                    /// position the rectangle
         rc_pad = rc_txt.Intersection(rc_pad);                 ///  set padding rect to new value, crop the rectangle if the text is too long
 
@@ -281,7 +281,7 @@ void render_unswapable_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, icon
         display::FillRect(rc, opt_clr);
 }
 
-point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *numOfUTF8Chars) {
+size_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *numOfUTF8Chars) {
     int x = 0;
     int y = 0;
     int w = 0;
@@ -302,5 +302,5 @@ point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *n
         h = y + char_h;
     }
     str->rewind();
-    return point_ui16((uint16_t)std::max(x, w), (uint16_t)h);
+    return { uint16_t(std::max(x, w)), uint16_t(h) };
 }

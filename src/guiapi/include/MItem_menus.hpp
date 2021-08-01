@@ -25,6 +25,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_ODOMETER : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Odometer");
+
+public:
+    MI_ODOMETER();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_FILAMENT : public WI_LABEL_t {
     static constexpr const char *const label = N_("Filament");
 
@@ -204,4 +214,14 @@ class MI_DEVHASH_IN_QR : public WI_SWITCH_OFF_ON_t {
 public:
     MI_DEVHASH_IN_QR();
     virtual void OnChange(size_t old_index) override;
+};
+
+class MI_FOOTER_SETTINGS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Footer Settings");
+
+public:
+    MI_FOOTER_SETTINGS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
 };

@@ -125,10 +125,10 @@ Rect16 txtroll_t::rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font
     Rect16 rc_pad = rc;
     rc_pad.CutPadding(padding);
     uint16_t numOfUTF8Chars;
-    point_ui16_t wh_txt = font_meas_text(font, &text, &numOfUTF8Chars);
+    size_ui16_t txt_size = font_meas_text(font, &text, &numOfUTF8Chars);
     Rect16 rc_txt = { 0, 0, 0, 0 };
-    if (wh_txt.x && wh_txt.y) {
-        rc_txt = Rect16(0, 0, wh_txt.x, wh_txt.y);
+    if (txt_size.w && txt_size.h) {
+        rc_txt = Rect16(0, 0, txt_size.w, txt_size.h);
         rc_txt.Align(rc_pad, alignment);
         rc_txt = rc_txt.Intersection(rc_pad);
     }

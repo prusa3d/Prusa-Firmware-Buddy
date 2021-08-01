@@ -365,6 +365,27 @@ public:
     void Align(Rect16, Align_t);
 
     ////////////////////////////////////////////////////////////////////////////
+    /// @brief Transform current rect into given one (relative coords calculation)
+    ///        changes X and Y coordinate and can cut size to fit
+    ///        result is empty when one or both rectangle are empty
+    ///
+    /// @param[in] rect Rectangle given to transform into
+    void Transform(Rect16 rect) {
+        this->operator+=(rect.TopLeft());
+        this->operator=(Intersection(rect));
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Limit size of current rect with given one
+    ///        when limiting width / height / both to zero or when limiting empty rect
+    ///             result just must be empty
+    /// @param[in] max_sz given size limit
+    constexpr void LimitSize(size_ui16_t max_sz) {
+        width_ = std::min(width_, max_sz.w);
+        height_ = std::min(height_, max_sz.h);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     /// @brief Check whether rectangle is empty
     ///
     /// @return Return true if the rectangle is empty
@@ -457,6 +478,27 @@ public:
         return lhs;
     }
 
+    constexpr Rect16 &operator+=(point_i16_t point) {
+        top_left_.x += X_t(point.x);
+        top_left_.y += Y_t(point.y);
+        return *this;
+    }
+    constexpr Rect16 &operator-=(point_i16_t point) {
+        return operator+=({ int16_t(-point.x), int16_t(-point.y) });
+    }
+    constexpr Rect16 &operator=(point_i16_t val) {
+        top_left_ = val;
+        return *this;
+    }
+    friend constexpr Rect16 operator+(Rect16 lhs, point_i16_t rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    friend constexpr Rect16 operator-(Rect16 lhs, point_i16_t rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Add pixels to given direction
     /// @details Such a method modify the original rectangle. The pixels will be
@@ -539,15 +581,23 @@ public:
         return i;
     }
 
-    /**
-		 * @brief Vertical split with spaces from parent Rect16
-		 * @param[out] splits[] buffer to fill of splitted Rect16
-		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
-		 * @param[in] count number of splits
-		 * @param[in] spacing with of spaces between rectangle's splits (optional = 0)
-		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
-		 */
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Horizontal split with spaces from parent Rect16
+    /// @param[out] splits[] buffer to fill of splitted Rect16
+    /// @param[out] spaces[] buffer to fill of spaces between Rect16 splits
+    /// @param[in] count number of splits
+    /// @param[in] spacing with of spaces between rectangle's splits (optional = 0)
+    /// @param[in] ratio[] ratio of wanted splits (optional = nullptr)
     void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Horizontal split with dynamic spaces from parent Rect16
+    ///   if splits would not fit, can decrease count (even to zero!!!)
+    /// @param[out] splits[] buffer to fill of splitted Rect16
+    /// @param[in] widths[] widths of wanted splits (optional = nullptr)
+    /// @param[in] count number of splits
+    /// @return Number of valid splits usually == count, but can be anything between 0 and count
+    size_t HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Split the current rectangle by given height and return such a
@@ -578,31 +628,36 @@ public:
         return i;
     }
 
-    /**
-		 * @brief Vertical split with spaces from parent Rect16
-		 * @param[out] splits[] buffer to fill of splitted Rect16
-		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
-		 * @param[in] count number of splits
-		 * @param[in] spacing with of spaces between rectangle's splits (optional = 0)
-		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
-		 */
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Vertical split with spaces from parent Rect16
+    /// @param[out] splits[] buffer to fill of splitted Rect16
+    /// @param[out] spaces[] buffer to fill of spaces between Rect16 splits
+    /// @param[in] count number of splits
+    /// @param[in] spacing with of spaces between rectangle's splits (optional = 0)
+    /// @param[in] ratio[] ratio of wanted splits (optional = nullptr)
     void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 
-    /**
-     * @brief Line operation substracts subtrahend
-     * Top and Height is ignored
-     * @param subtrahend the rect that is to be subtracted.
-     * @return Rect16 front part of original rect after substraction
-     */
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Line operation substracts subtrahend
+    /// Top and Height is ignored
+    /// @param subtrahend the rect that is to be subtracted.
+    /// @return Rect16 front part of original rect after substraction
     Rect16 LeftSubrect(Rect16 subtrahend);
 
-    /**
-     * @brief Line operation substracts subtrahend
-     * Top and Height is ignored
-     * @param subtrahend the rect that is to be subtracted.
-     * @return Rect16 tail part of original rect after substraction
-     */
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Line operation substracts subtrahend
+    /// Top and Height is ignored
+    /// @param subtrahend the rect that is to be subtracted.
+    /// @return Rect16 tail part of original rect after substraction
     Rect16 RightSubrect(Rect16 subtrahend);
+
+private:
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief horizontal split private version for internal use only. (no checks)
+    /// @param[out] splits* buffer to fill of splitted Rect16
+    /// @param[in] widths* widths of rectangles
+    /// @param[in] count number of splits
+    static void horizontalSplit(Rect16 *splits, Width_t *widths, size_t count, Width_t width_sum, Rect16 rect);
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -611,7 +666,9 @@ public:
 /// @param[in] rhs Rectangle to compare
 /// @return Return true when the rectangle perfectly match, false otherwise
 constexpr bool operator==(Rect16 const &lhs, Rect16 const &rhs) {
-    return lhs.TopLeft().x == rhs.TopLeft().x
+    if (lhs.IsEmpty() && rhs.IsEmpty()) //empty rects are equal
+        return true;
+    return lhs.TopLeft() == rhs.TopLeft()
         && lhs.Width() == rhs.Width()
         && lhs.Height() == rhs.Height();
 }

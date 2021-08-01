@@ -17,7 +17,7 @@ struct window_numb_t : public window_aligned_t {
     void SetFont(font_t *val);
     float GetValue() const { return value; }
     void SetColor(color_t clr);
-    window_numb_t(window_t *parent, Rect16 rect, float value = 0);
+    window_numb_t(window_t *parent, Rect16 rect, float value = 0, const char *frmt = nullptr);
 
     void PrintAsFloat();
     void PrintAsInt();
