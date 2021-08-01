@@ -4,7 +4,7 @@
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 
-class MI_NOZZLE : public WI_SPIN_U16_t {
+class MI_NOZZLE : public WI_SPIN_INT_t {
     constexpr static const char *label = N_("Nozzle");
 
 public:
@@ -12,7 +12,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_HEATBED : public WI_SPIN_U08_t {
+class MI_HEATBED : public WI_SPIN_INT_t {
     constexpr static const char *label = N_("Heatbed");
 
 public:
@@ -20,7 +20,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_PRINTFAN : public WI_SPIN_U08_t {
+class MI_PRINTFAN : public WI_SPIN_INT_t {
     constexpr static const char *label = N_("Print Fan");
 
 public:
@@ -28,7 +28,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_SPEED : public WI_SPIN_U16_t {
+class MI_SPEED : public WI_SPIN_INT_t {
     constexpr static const char *label = N_("Speed");
 
 public:
@@ -36,7 +36,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_FLOWFACT : public WI_SPIN_U16_t {
+class MI_FLOWFACT : public WI_SPIN_INT_t {
     constexpr static const char *label = N_("Flow Factor");
 
 public:

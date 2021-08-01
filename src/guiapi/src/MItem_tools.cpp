@@ -391,7 +391,7 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_SOUND_VOLUME
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
-    : WI_SPIN_U08_t(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SPIN_INT_t(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_SOUND_VOLUME::OnClick() {
     Sound_SetVolume(GetVal());
 }
@@ -413,7 +413,7 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_TIMEZONE
 MI_TIMEZONE::MI_TIMEZONE()
-    : WI_SPIN_I08_t(variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE)), SpinCnf::timezone_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SPIN_INT_t(variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE)), SpinCnf::timezone_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
     int8_t last_timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));

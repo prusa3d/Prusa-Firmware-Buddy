@@ -131,12 +131,12 @@ public:
     }
 };
 
-class MI_FOOTER_CENTER_N : public WI_SPIN_U08_t {
+class MI_FOOTER_CENTER_N : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Center N and fewer items");
 
 public:
     MI_FOOTER_CENTER_N()
-        : WI_SPIN_U08_t(uint8_t(FooterLine::GetCenterN()),
+        : WI_SPIN_INT_t(uint8_t(FooterLine::GetCenterN()),
             SpinCnf::footer_center_N_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void OnClick() override {
         FooterLine::SetCenterN(GetVal());

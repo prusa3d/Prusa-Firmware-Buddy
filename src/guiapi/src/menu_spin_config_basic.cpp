@@ -8,17 +8,17 @@
 #include "menu_spin_config.hpp"
 
 // SpinConfig_t == SpinConfig
-const SpinConfig_U16_t SpinCnf::nozzle = SpinConfig_U16_t(MenuVars::nozzle_range);
-const SpinConfig_U08_t SpinCnf::bed = SpinConfig_U08_t(MenuVars::bed_range);
-const SpinConfig_U08_t SpinCnf::printfan = SpinConfig_U08_t(MenuVars::printfan_range);
-const SpinConfig_U16_t SpinCnf::feedrate = SpinConfig_U16_t(MenuVars::feedrate_range);
-const SpinConfig_U16_t SpinCnf::flowfact = SpinConfig_U16_t(MenuVars::flowfact_range);
-const SpinConfig_I08_t SpinCnf::timezone_range = { { -12, 12, 1 } };
-const SpinConfig_U08_t SpinCnf::volume_range = { { 0, 11, 1 } }; //crank it up to 11
-const SpinConfig_U08_t SpinCnf::footer_center_N_range = { { 0, 3, 1 } };
-const SpinConfig_I32_t SpinCnf::axis_z_max_range = SpinConfig_I32_t(MenuVars::maximum_z_axis_range);
-const std::array<SpinConfig_I32_t, MenuVars::AXIS_CNT> SpinCnf::axis_ranges = { { SpinConfig_I32_t(MenuVars::axis_ranges[0]), SpinConfig_I32_t(MenuVars::axis_ranges[1]),
-    SpinConfig_I32_t(MenuVars::axis_ranges[2]), SpinConfig_I32_t(MenuVars::axis_ranges[3]) } };
-const SpinConfig_I32_t SpinCnf::steps_per_unit = SpinConfig_I32_t(MenuVars::steps_per_unit_range);
-const SpinConfig_I32_t SpinCnf::microstep_exponential = SpinConfig_I32_t(MenuVars::microstep_exponential_range);
-const SpinConfig_I32_t SpinCnf::rms_current = SpinConfig_I32_t(MenuVars::axis_rms_currents_range);
+const SpinConfigInt SpinCnf::nozzle = SpinConfigInt(MenuVars::nozzle_range);
+const SpinConfigInt SpinCnf::bed = SpinConfigInt(MenuVars::bed_range);
+const SpinConfigInt SpinCnf::printfan = SpinConfigInt(MenuVars::printfan_range);
+const SpinConfigInt SpinCnf::feedrate = SpinConfigInt(MenuVars::feedrate_range);
+const SpinConfigInt SpinCnf::flowfact = SpinConfigInt(MenuVars::flowfact_range);
+const SpinConfigInt SpinCnf::timezone_range = { { -12, 12, 1 } };
+const SpinConfigInt SpinCnf::volume_range = { { 0, 11, 1 } }; //crank it up to 11
+const SpinConfigInt SpinCnf::footer_center_N_range = { { 0, 3, 1 } };
+const SpinConfigInt SpinCnf::axis_z_max_range = SpinConfigInt(MenuVars::maximum_z_axis_range);
+const std::array<SpinConfigInt, MenuVars::AXIS_CNT> SpinCnf::axis_ranges = { { SpinConfigInt(MenuVars::axis_ranges[0]), SpinConfigInt(MenuVars::axis_ranges[1]),
+    SpinConfigInt(MenuVars::axis_ranges[2]), SpinConfigInt(MenuVars::axis_ranges[3]) } };
+const SpinConfigInt SpinCnf::steps_per_unit = SpinConfigInt(MenuVars::steps_per_unit_range);
+const SpinConfigInt SpinCnf::microstep_exponential = SpinConfigInt(MenuVars::microstep_exponential_range);
+const SpinConfigInt SpinCnf::rms_current = SpinConfigInt(MenuVars::axis_rms_currents_range);

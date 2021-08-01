@@ -25,12 +25,12 @@ enum class ClickCommand : intptr_t { Return,
 
 /*****************************************************************************/
 //MI_Z_AXIS_LEN
-class MI_Z_AXIS_LEN : public WI_SPIN_I32_t {
+class MI_Z_AXIS_LEN : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Z axis length");
 
 public:
     MI_Z_AXIS_LEN()
-        : WI_SPIN_I32_t(get_z_max_pos_mm_rounded(), SpinCnf::axis_z_max_range, _(label)) {}
+        : WI_SPIN_INT_t(get_z_max_pos_mm_rounded(), SpinCnf::axis_z_max_range, _(label)) {}
 };
 
 /*****************************************************************************/
@@ -50,39 +50,39 @@ protected:
 
 /*****************************************************************************/
 //MI_STEPS_PER_UNIT_X
-class MI_STEPS_PER_UNIT_X : public WI_SPIN_I32_t {
+class MI_STEPS_PER_UNIT_X : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("X axis steps per unit");
 
 public:
     MI_STEPS_PER_UNIT_X()
-        : WI_SPIN_I32_t(get_steps_per_unit_x_rounded(), SpinCnf::steps_per_unit, _(label)) {}
+        : WI_SPIN_INT_t(get_steps_per_unit_x_rounded(), SpinCnf::steps_per_unit, _(label)) {}
 };
 /*****************************************************************************/
 //MI_STEPS_PER_UNIT_Y
-class MI_STEPS_PER_UNIT_Y : public WI_SPIN_I32_t {
+class MI_STEPS_PER_UNIT_Y : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Y axis steps per unit");
 
 public:
     MI_STEPS_PER_UNIT_Y()
-        : WI_SPIN_I32_t(get_steps_per_unit_y_rounded(), SpinCnf::steps_per_unit, _(label)) {}
+        : WI_SPIN_INT_t(get_steps_per_unit_y_rounded(), SpinCnf::steps_per_unit, _(label)) {}
 };
 /*****************************************************************************/
 //MI_STEPS_PER_UNIT_Z
-class MI_STEPS_PER_UNIT_Z : public WI_SPIN_I32_t {
+class MI_STEPS_PER_UNIT_Z : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Z axis steps per unit");
 
 public:
     MI_STEPS_PER_UNIT_Z()
-        : WI_SPIN_I32_t(get_steps_per_unit_z_rounded(), SpinCnf::steps_per_unit, _(label)) {}
+        : WI_SPIN_INT_t(get_steps_per_unit_z_rounded(), SpinCnf::steps_per_unit, _(label)) {}
 };
 /*****************************************************************************/
 //MI_STEPS_PER_UNIT_E
-class MI_STEPS_PER_UNIT_E : public WI_SPIN_I32_t {
+class MI_STEPS_PER_UNIT_E : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Extruder steps per unit");
 
 public:
     MI_STEPS_PER_UNIT_E()
-        : WI_SPIN_I32_t(get_steps_per_unit_e_rounded(), SpinCnf::steps_per_unit, _(label)) {}
+        : WI_SPIN_INT_t(get_steps_per_unit_e_rounded(), SpinCnf::steps_per_unit, _(label)) {}
 };
 /*****************************************************************************/
 //MI_RESET_STEPS_PER_UNIT
@@ -101,39 +101,39 @@ protected:
 
 /*****************************************************************************/
 //MI_MICROSTEPS_X
-class MI_MICROSTEPS_X : public WI_SPIN_I32_t {
+class MI_MICROSTEPS_X : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("X axis microsteps");
 
 public:
     MI_MICROSTEPS_X()
-        : WI_SPIN_I32_t(get_microsteps_x(), SpinCnf::microstep_exponential, _(label)) {}
+        : WI_SPIN_INT_t(get_microsteps_x(), SpinCnf::microstep_exponential, _(label)) {}
 };
 /*****************************************************************************/
 //MI_MICROSTEPS_Y
-class MI_MICROSTEPS_Y : public WI_SPIN_I32_t {
+class MI_MICROSTEPS_Y : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Y axis microsteps");
 
 public:
     MI_MICROSTEPS_Y()
-        : WI_SPIN_I32_t(get_microsteps_y(), SpinCnf::microstep_exponential, _(label)) {}
+        : WI_SPIN_INT_t(get_microsteps_y(), SpinCnf::microstep_exponential, _(label)) {}
 };
 /*****************************************************************************/
 //MI_MICROSTEPS_Z
-class MI_MICROSTEPS_Z : public WI_SPIN_I32_t {
+class MI_MICROSTEPS_Z : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Z axis microsteps");
 
 public:
     MI_MICROSTEPS_Z()
-        : WI_SPIN_I32_t(get_microsteps_z(), SpinCnf::microstep_exponential, _(label)) {}
+        : WI_SPIN_INT_t(get_microsteps_z(), SpinCnf::microstep_exponential, _(label)) {}
 };
 /*****************************************************************************/
 //MI_MICROSTEPS_E
-class MI_MICROSTEPS_E : public WI_SPIN_I32_t {
+class MI_MICROSTEPS_E : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Extruder microsteps");
 
 public:
     MI_MICROSTEPS_E()
-        : WI_SPIN_I32_t(get_microsteps_e(), SpinCnf::microstep_exponential, _(label)) {}
+        : WI_SPIN_INT_t(get_microsteps_e(), SpinCnf::microstep_exponential, _(label)) {}
 };
 /*****************************************************************************/
 //MI_RESET_MICROSTEPS
@@ -152,39 +152,39 @@ protected:
 
 /*****************************************************************************/
 //MI_CURRENT_X
-class MI_CURRENT_X : public WI_SPIN_I32_t {
+class MI_CURRENT_X : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("X current");
 
 public:
     MI_CURRENT_X()
-        : WI_SPIN_I32_t(get_rms_current_ma_x(), SpinCnf::rms_current, _(label)) {}
+        : WI_SPIN_INT_t(get_rms_current_ma_x(), SpinCnf::rms_current, _(label)) {}
 };
 /*****************************************************************************/
 //MI_CURRENT_Y
-class MI_CURRENT_Y : public WI_SPIN_I32_t {
+class MI_CURRENT_Y : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Y current");
 
 public:
     MI_CURRENT_Y()
-        : WI_SPIN_I32_t(get_rms_current_ma_y(), SpinCnf::rms_current, _(label)) {}
+        : WI_SPIN_INT_t(get_rms_current_ma_y(), SpinCnf::rms_current, _(label)) {}
 };
 /*****************************************************************************/
 //MI_CURRENT_Z
-class MI_CURRENT_Z : public WI_SPIN_I32_t {
+class MI_CURRENT_Z : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Z current");
 
 public:
     MI_CURRENT_Z()
-        : WI_SPIN_I32_t(get_rms_current_ma_z(), SpinCnf::rms_current, _(label)) {}
+        : WI_SPIN_INT_t(get_rms_current_ma_z(), SpinCnf::rms_current, _(label)) {}
 };
 /*****************************************************************************/
 //MI_CURRENT_E
-class MI_CURRENT_E : public WI_SPIN_I32_t {
+class MI_CURRENT_E : public WI_SPIN_INT_t {
     constexpr static const char *const label = N_("Extruder current");
 
 public:
     MI_CURRENT_E()
-        : WI_SPIN_I32_t(get_rms_current_ma_e(), SpinCnf::rms_current, _(label)) {}
+        : WI_SPIN_INT_t(get_rms_current_ma_e(), SpinCnf::rms_current, _(label)) {}
 };
 /*****************************************************************************/
 //MI_RESET_CURRENTS
