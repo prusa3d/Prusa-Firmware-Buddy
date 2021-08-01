@@ -14,35 +14,15 @@
 
 union SpinType {
     float flt;
-    uint32_t u32;
-    int32_t i32;
-    uint16_t u16;
-    int16_t i16;
-    uint8_t u08;
-    int8_t i08;
+    int i;
 
     constexpr operator float() const { return flt; }
-    constexpr operator uint32_t() const { return u32; }
-    constexpr operator int32_t() const { return i32; }
-    constexpr operator uint16_t() const { return u16; }
-    constexpr operator int16_t() const { return i16; }
-    constexpr operator uint8_t() const { return u08; }
-    constexpr operator int8_t() const { return i08; }
+    constexpr operator int() const { return i; }
 
     constexpr SpinType(float x)
         : flt(x) {}
-    constexpr SpinType(uint32_t x)
-        : u32(x) {}
-    constexpr SpinType(int32_t x)
-        : i32(x) {}
-    constexpr SpinType(uint16_t x)
-        : u32(x) {} //meant to be 32 bit not a bug
-    constexpr SpinType(int16_t x)
-        : i32(x) {} //meant to be 32 bit not a bug
-    constexpr SpinType(uint8_t x)
-        : u32(x) {} //meant to be 32 bit not a bug
-    constexpr SpinType(int8_t x)
-        : i32(x) {} //meant to be 32 bit not a bug
+    constexpr SpinType(int x)
+        : i(x) {}
 };
 
 template <class T>
