@@ -16,6 +16,8 @@
 #include "window_msgbox.hpp"
 #include "sys.h"
 #include "string.h" // memcmp
+#include "WindowMenuSpinExponential.hpp"
+
 enum class ClickCommand : intptr_t { Return,
     Reset_Z,
     Reset_steps,
@@ -100,39 +102,39 @@ protected:
 
 /*****************************************************************************/
 //MI_MICROSTEPS_X
-class MI_MICROSTEPS_X : public WiSpinInt {
+class MI_MICROSTEPS_X : public WiSpinExp {
     constexpr static const char *const label = N_("X axis microsteps");
 
 public:
     MI_MICROSTEPS_X()
-        : WiSpinInt(get_microsteps_x(), SpinCnf::microstep_exponential, _(label)) {}
+        : WiSpinExp(get_microsteps_x(), SpinCnf::microstep_exponential, _(label)) {}
 };
 /*****************************************************************************/
 //MI_MICROSTEPS_Y
-class MI_MICROSTEPS_Y : public WiSpinInt {
+class MI_MICROSTEPS_Y : public WiSpinExp {
     constexpr static const char *const label = N_("Y axis microsteps");
 
 public:
     MI_MICROSTEPS_Y()
-        : WiSpinInt(get_microsteps_y(), SpinCnf::microstep_exponential, _(label)) {}
+        : WiSpinExp(get_microsteps_y(), SpinCnf::microstep_exponential, _(label)) {}
 };
 /*****************************************************************************/
 //MI_MICROSTEPS_Z
-class MI_MICROSTEPS_Z : public WiSpinInt {
+class MI_MICROSTEPS_Z : public WiSpinExp {
     constexpr static const char *const label = N_("Z axis microsteps");
 
 public:
     MI_MICROSTEPS_Z()
-        : WiSpinInt(get_microsteps_z(), SpinCnf::microstep_exponential, _(label)) {}
+        : WiSpinExp(get_microsteps_z(), SpinCnf::microstep_exponential, _(label)) {}
 };
 /*****************************************************************************/
 //MI_MICROSTEPS_E
-class MI_MICROSTEPS_E : public WiSpinInt {
+class MI_MICROSTEPS_E : public WiSpinExp {
     constexpr static const char *const label = N_("Extruder microsteps");
 
 public:
     MI_MICROSTEPS_E()
-        : WiSpinInt(get_microsteps_e(), SpinCnf::microstep_exponential, _(label)) {}
+        : WiSpinExp(get_microsteps_e(), SpinCnf::microstep_exponential, _(label)) {}
 };
 /*****************************************************************************/
 //MI_RESET_MICROSTEPS

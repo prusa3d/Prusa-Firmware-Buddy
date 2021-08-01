@@ -10,6 +10,8 @@ WiSpinExp::WiSpinExp(int val, const Config &cnf, string_view_utf8 label, uint16_
     : AddSuper<WiSpinInt>(val, cnf, label, id_icon, enabled, hidden) {}
 
 invalidate_t WiSpinExp::Change(int dif) {
+    if (dif == 0)
+        return super::Change(0); // parrent must handle it .. just invalidation and check of limits
     int val = GetVal();
 
     //I don't want to use pow(), because it works with floats
