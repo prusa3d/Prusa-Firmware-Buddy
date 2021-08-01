@@ -16,6 +16,8 @@ struct screen_home_data_t : public AddSuperWindow<screen_t> {
     window_icon_button_t w_buttons[6];
     window_text_t w_labels[6];
 
+    GCodeInfo &gcode;
+
     screen_home_data_t();
     virtual ~screen_home_data_t() override;
 

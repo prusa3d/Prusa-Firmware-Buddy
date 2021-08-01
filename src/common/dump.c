@@ -5,8 +5,8 @@
 #include "w25x.h"
 
 static const uint32_t DUMP_OFFSET = 0x00;
-static const uint32_t DUMP_PAGE_SIZE = 0x100;
-static const uint32_t DUMP_BUFF_SIZE = 0x100;
+static const uint16_t DUMP_PAGE_SIZE = 0x100;
+static const uint16_t DUMP_BUFF_SIZE = 0x100;
 
 static const uint32_t DUMP_XFLASH_SIZE = DUMP_RAM_SIZE + DUMP_CCRAM_SIZE;
 
@@ -31,22 +31,15 @@ void dump_to_xflash(void) {
     dump_regs_SCB();
     if (w25x_init()) {
         for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
-            w25x_wait_busy();
-            w25x_enable_wr();
             w25x_block64_erase(DUMP_OFFSET + addr);
         }
         for (addr = 0; addr < DUMP_RAM_SIZE; addr += DUMP_PAGE_SIZE) {
-            w25x_wait_busy();
-            w25x_enable_wr();
             w25x_page_program(DUMP_OFFSET + addr, (uint8_t *)(DUMP_RAM_ADDR + addr), DUMP_PAGE_SIZE);
         }
         for (addr = 0; addr < DUMP_CCRAM_SIZE; addr += DUMP_PAGE_SIZE) {
-            w25x_wait_busy();
-            w25x_enable_wr();
             w25x_page_program(DUMP_OFFSET + DUMP_RAM_SIZE + addr, (uint8_t *)(DUMP_CCRAM_ADDR + addr), DUMP_PAGE_SIZE);
         }
         w25x_wait_busy();
-        w25x_disable_wr();
     }
 }
 

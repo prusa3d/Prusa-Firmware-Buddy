@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string.h>
 #include <array>
 #include <cstdint>
 
@@ -23,6 +24,23 @@ int str2multiline(char *str, size_t max_size, const size_t line_width);
 int strshiftUnicode(uint32_t *str, size_t max_size, const size_t n = 1, const uint32_t default_char = ' ');
 int strinsUnicode(uint32_t *str, size_t max_size, const uint32_t *const ins, size_t times = 1);
 int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width);
+
+////////////////////////////////////////////////////////////////////////////////
+///
+/// test c-string equality - for multiple tests against same string
+///
+class CStrEqual {
+    const char *buff_;
+    size_t sz_;
+
+public:
+    CStrEqual(const char *buff, size_t sz)
+        : buff_(buff)
+        , sz_(sz) {}
+    inline bool operator()(const char *str, size_t sz = std::string::npos) {
+        return !strncmp(buff_, str, std::min(sz_, sz));
+    }
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 ///

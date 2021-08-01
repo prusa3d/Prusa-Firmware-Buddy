@@ -30,7 +30,7 @@
 // ------------------------
 
 #define NUM_HARDWARE_TIMERS 2
-#define STEP_TIMER_IRQ_ID TIM5_IRQn
+#define STEP_TIMER_IRQ_ID TIM6_DAC_IRQn
 #define TEMP_TIMER_IRQ_ID TIM7_IRQn
 
 // ------------------------
@@ -52,9 +52,9 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
                        temp_prescaler = TEMP_TIMER_PRESCALE - 1;
     switch (timer_num) {
       case STEP_TIMER_NUM:
-        // STEPPER TIMER TIM5 - use a 32bit timer
-        __HAL_RCC_TIM5_CLK_ENABLE();
-        TimerHandle[timer_num].handle.Instance            = TIM5;
+        // STEPPER TIMER TIM6 - 16bit timer. HAL_TIMER_TYPE_MAX == 0xFFFF
+        __HAL_RCC_TIM6_CLK_ENABLE();
+        TimerHandle[timer_num].handle.Instance            = TIM6;
         TimerHandle[timer_num].handle.Init.Prescaler      = step_prescaler;
         TimerHandle[timer_num].handle.Init.CounterMode    = TIM_COUNTERMODE_UP;
         TimerHandle[timer_num].handle.Init.ClockDivision  = TIM_CLOCKDIVISION_DIV1;
@@ -81,7 +81,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
     HAL_TIM_Base_Start_IT(&TimerHandle[timer_num].handle);
 }
 
-extern "C" void TIM5_IRQHandler() {
+extern "C" void TIM6_DAC_IRQHandler() {
   ((void(*)())TimerHandle[0].callback)();
 }
 extern "C" void TIM7_IRQHandler() {

@@ -95,7 +95,6 @@
 #include "lwip/apps/fs.h"
 #include "httpd_structs.h"
 #include "lwip/def.h"
-#include "lwip.h"
 
 #include "lwip/altcp.h"
 #include "lwip/altcp_tcp.h"
@@ -2552,6 +2551,10 @@ httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
  */
 void httpd_init(void) {
     struct altcp_pcb *pcb;
+    altcp_allocator_t allocator = {
+        .alloc = prusa_alloc,
+        .arg = NULL
+    };
 
     #if HTTPD_USE_MEM_POOL
     LWIP_MEMPOOL_INIT(HTTPD_STATE);
@@ -2563,7 +2566,7 @@ void httpd_init(void) {
 
     /* LWIP_ASSERT_CORE_LOCKED(); is checked by tcp_new() */
 
-    pcb = altcp_tcp_new_ip_type(IPADDR_TYPE_ANY);
+    pcb = altcp_new_ip_type(&allocator, IPADDR_TYPE_ANY);
     LWIP_ASSERT("httpd_init: tcp_new failed", pcb != NULL);
     httpd_init_pcb(pcb, HTTPD_SERVER_PORT);
 }

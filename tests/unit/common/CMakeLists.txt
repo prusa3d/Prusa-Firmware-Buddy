@@ -46,9 +46,13 @@ add_executable(
   )
 target_include_directories(gcode_filter_tests PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
+add_executable(timing_tests ${CMAKE_SOURCE_DIR}/src/common/timing.c timing_tests.cpp)
+target_include_directories(timing_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+
 add_catch_test(support_utils_tests)
 add_catch_test(variant8_tests)
 add_catch_test(str_utils_tests)
 add_catch_test(fsm_types_test)
 add_catch_test(fsm_serializers_test)
 add_catch_test(gcode_filter_tests)
+add_catch_test(timing_tests)

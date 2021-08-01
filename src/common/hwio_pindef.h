@@ -86,7 +86,7 @@
     #define MARLIN_PORT_Y_DIR   MARLIN_PORT_D
     #define MARLIN_PIN_NR_Y_DIR MARLIN_PIN_NR_12
 
-    #if (BOARD_TYPE == BUDDY_BOARD)
+    #if BOARD_IS_BUDDY
         #define MARLIN_PORT_Z_MIN     MARLIN_PORT_A
         #define MARLIN_PIN_NR_Z_MIN   MARLIN_PIN_NR_8
         #define MARLIN_PORT_Z_DIR     MARLIN_PORT_D
@@ -113,7 +113,7 @@
         #define MARLIN_PIN_NR_X_ENA   MARLIN_PIN_NR_3
     #else
         #error "Unknown board."
-    #endif //(BOARD_TYPE == BUDDY_BOARD)
+    #endif
 
     #define MARLIN_PORT_BED_HEAT   MARLIN_PORT_B
     #define MARLIN_PIN_NR_BED_HEAT MARLIN_PIN_NR_0
@@ -148,7 +148,7 @@
  * @{
  */
 
-    #if (BOARD_TYPE == BUDDY_BOARD)
+    #if BOARD_IS_BUDDY
         #define PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION)                                                                                                                     \
             MACRO_FUNCTION(buddy::hw::InputPin, zMin, BUDDY_PIN(Z_MIN), IMode::IT_faling COMMA Pull::up)                                                                     \
             MACRO_FUNCTION(buddy::hw::OutputPin, yEnable, BUDDY_PIN(Y_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)                                        \
@@ -159,7 +159,7 @@
             MACRO_FUNCTION(buddy::hw::InputPin, jogWheelEN2, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p13, IMode::input COMMA Pull::up)
     #else
         #error "Unknown board."
-    #endif // #if (BOARD_TYPE == BUDDY_BOARD)
+    #endif
 /**
  * @brief Define @p PIN_TABLE macro containing all physical pins used in project.
  *

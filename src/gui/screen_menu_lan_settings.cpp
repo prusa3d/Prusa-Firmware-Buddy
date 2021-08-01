@@ -48,6 +48,9 @@ public:
     static bool IsUpdated();
     static bool SetStatic();
     static bool SetDHCP();
+    static bool SetLANWiFi();
+    static bool SetLANETH();
+    static bool IsLANETH();
     static Msg ConsumeMsg();
 };
 
@@ -68,19 +71,11 @@ uint8_t Eth::saveIni() {
 }
 
 void Eth::Off() {
-    ETH_config_t ethconfig = {};
-    TURN_LAN_OFF(ethconfig.lan.flag);
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
+    TURN_LAN_OFF();
 }
 
 void Eth::On() {
-    ETH_config_t ethconfig = {};
-    TURN_LAN_ON(ethconfig.lan.flag);
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
+    TURN_LAN_ON();
 }
 
 bool Eth::IsStatic() {
@@ -93,6 +88,10 @@ bool Eth::IsDHCP() {
 
 bool Eth::IsOn() {
     return !IS_LAN_OFF(GetFlag());
+}
+
+bool Eth::IsLANETH() {
+    return true;
 }
 
 bool Eth::IsUpdated() {
@@ -108,19 +107,26 @@ bool Eth::SetStatic() {
         msg = Msg::StaicAddrErr;
         return false;
     }
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    CHANGE_LAN_TO_STATIC(ethconfig.lan.flag);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
+    CHANGE_LAN_TO_STATIC();
     return true;
 }
 
 bool Eth::SetDHCP() {
+    CHANGE_LAN_TO_DHCP();
+    return true;
+}
+
+bool Eth::SetLANETH() {
     ETH_config_t ethconfig = {};
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    CHANGE_LAN_TO_DHCP(ethconfig.lan.flag);
-    save_eth_params(&ethconfig);
-    set_eth_update_mask(ethconfig.var_mask);
+    LAN_INTERFACE_ETH(ethconfig.lan.flag);
+    return true;
+}
+
+bool Eth::SetLANWiFi() {
+    ETH_config_t ethconfig = {};
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    LAN_INTERFACE_WIFI(ethconfig.lan.flag);
     return true;
 }
 
@@ -149,7 +155,6 @@ void Eth::LoadIni() {
         ETH_config_t ethconfig = {};
         if (load_ini_file(&ethconfig)) {
             save_eth_params(&ethconfig);
-            set_eth_update_mask(ethconfig.var_mask);
             msg = Msg::LoadOK;
         } else {
             msg = Msg::LoadNOK;
@@ -167,6 +172,23 @@ public:
         : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::On() : Eth::Off();
+    }
+};
+
+class MI_LAN_INTERFACE_t : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = "LAN Interface"; //do not translate
+
+    constexpr static const char *str_eth = "ETH";   //do not translate
+    constexpr static const char *str_wifi = "WIFI"; //do not translate
+
+public:
+    MI_LAN_INTERFACE_t()
+        : WI_SWITCH_t(Eth::IsLANETH() ? 1 : 0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no,
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth)) {}
+    virtual void OnChange(size_t old_index) override {
+        bool success = old_index == 0 ? Eth::SetLANETH() : Eth::SetLANWiFi();
+        if (!success)
+            this->SetIndex(old_index);
     }
 };
 
@@ -211,7 +233,7 @@ public:
 
 /*****************************************************************************/
 //parent alias
-using MenuContainer = WinMenuContainer<MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
+using MenuContainer = WinMenuContainer<MI_RETURN, MI_LAN_ONOFF, MI_LAN_INTERFACE_t, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
 
 class ScreenMenuLanSettings : public AddSuperWindow<screen_t> {
     constexpr static const char *label = N_("LAN SETTINGS");

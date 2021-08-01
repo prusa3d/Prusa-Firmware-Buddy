@@ -2,7 +2,7 @@
 #include "gui_time.hpp"
 
 static uint32_t tick = 0;
-uint32_t HAL_GetTick() { return tick; }
+uint32_t ticks_ms() { return tick; }
 
 TEST_CASE("gui time test", "[gui_time]") {
 

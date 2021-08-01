@@ -7,8 +7,8 @@
 #include "app.h"
 #include "bsod.h"
 #include "cmsis_os.h"
-#include "stm32f4xx_hal.h"
 #include "ffconf.h"
+#include "timing.h"
 
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
@@ -273,8 +273,8 @@ int marlin_motion(void) {
 
 int marlin_wait_motion(uint32_t timeout) {
     marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
-    uint32_t tick = HAL_GetTick();
-    while ((vars->motion == 0) && ((HAL_GetTick() - tick) < timeout))
+    uint32_t tick = ticks_ms();
+    while ((vars->motion == 0) && ticks_diff(ticks_ms(), tick) > (int32_t)timeout)
         marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
     return (vars->motion) ? 1 : 0;
 }

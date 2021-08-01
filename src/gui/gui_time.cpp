@@ -1,11 +1,11 @@
 #include "gui_time.hpp"
-#include "stm32f4xx_hal.h" //HAL_GetTick
+#include "timing.h"
 
 static uint32_t current_tick = 0;
 static uint32_t current_tick_overflows = 0;
 
 void gui::TickLoop() {
-    uint32_t now = HAL_GetTick();
+    uint32_t now = ticks_ms();
     if (current_tick > now) { //overflow
         ++current_tick_overflows;
     }
@@ -24,7 +24,7 @@ uint64_t gui::GetTickU64() {
 }
 
 uint32_t gui::GetTick_IgnoreTickLoop() {
-    return HAL_GetTick();
+    return ticks_ms();
 }
 
 uint32_t gui::GetTick_ForceActualization() {

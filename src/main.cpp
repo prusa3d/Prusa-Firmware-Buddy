@@ -66,6 +66,9 @@
 #include "eeprom.h"
 #include "crc32.h"
 #include "w25x.h"
+#include "timing.h"
+#include "filesystem.h"
+#include "adc.h"
 
 #define USB_OVERC_Pin       GPIO_PIN_4
 #define USB_OVERC_GPIO_Port GPIOE
@@ -75,8 +78,8 @@
 #define ESP_GPIO0_GPIO_Port GPIOE
 #define ESP_RST_Pin         GPIO_PIN_13
 #define ESP_RST_GPIO_Port   GPIOC
-#define BED_MON_Pin         GPIO_PIN_7
-#define BED_MON_GPIO_Port   GPIOE
+#define BED_MON_Pin         GPIO_PIN_3
+#define BED_MON_GPIO_Port   GPIOA
 #define FAN0_TACH_Pin       GPIO_PIN_10
 #define FAN0_TACH_GPIO_Port GPIOE
 #define FAN0_TACH_EXTI_IRQn EXTI15_10_IRQn
@@ -125,6 +128,7 @@ SPI_HandleTypeDef hspi3;
 DMA_HandleTypeDef hdma_spi2_tx;
 DMA_HandleTypeDef hdma_spi2_rx;
 
+//described in timers.md
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -136,6 +140,7 @@ UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart6_rx;
+DMA_HandleTypeDef hdma_adc1;
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
@@ -146,6 +151,7 @@ int HAL_GPIO_Initialized = 0;
 int HAL_ADC_Initialized = 0;
 int HAL_PWM_Initialized = 0;
 int HAL_SPI_Initialized = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -166,6 +172,7 @@ static void MX_TIM14_Init(void);
 static void MX_RTC_Init(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
+void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
 /* USER CODE BEGIN PFP */
@@ -177,10 +184,12 @@ void iwdg_warning_cb(void);
 
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[200];
-
+#ifndef USE_ESP01_WITH_UART6
 uartrxbuff_t uart6rxbuff;
 uint8_t uart6rx_data[128];
-
+uartslave_t uart6slave;
+char uart6slave_line[32];
+#endif
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
@@ -191,8 +200,6 @@ uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
   * @retval int
   */
 int main(void) {
-    /* USER CODE BEGIN 1 */
-
     /*
     #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
     #define RCC_FLAG_BORRST                  ((uint8_t)0x79)
@@ -214,29 +221,21 @@ int main(void) {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST);
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
-    /* USER CODE END 1 */
-
     /* MCU Configuration--------------------------------------------------------*/
 
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
     HAL_Init();
 
-    /* USER CODE BEGIN Init */
-
-    /* USER CODE END Init */
-
     /* Configure the system clock */
     SystemClock_Config();
-
-    /* USER CODE BEGIN SysInit */
-
-    /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_I2C1_Init();
+#ifndef SIM_HEATER
     MX_ADC1_Init();
+#endif
     MX_USART1_UART_Init();
     MX_TIM1_Init();
     MX_TIM3_Init();
@@ -258,12 +257,14 @@ int main(void) {
     uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
     uartrxbuff_reset(&uart1rxbuff);
-
-    uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
-    HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
-    uartrxbuff_reset(&uart6rxbuff);
+#ifndef USE_ESP01_WITH_UART6
+    // uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
+    // HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
+    // uartrxbuff_reset(&uart6rxbuff);
+    // uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
+    // putslave_init(&uart6slave);
     wdt_iwdg_warning_cb = iwdg_warning_cb;
-
+#endif
     crc32_init();
     w25x_init();
 
@@ -278,6 +279,9 @@ int main(void) {
     if (irq == 0)
         __disable_irq();
 
+    filesystem_init();
+
+    adc_dma_init(&hadc1); //start ADC DMA conversion
     /* USER CODE END 2 */
 
     static metric_handler_t *handlers[] = {
@@ -410,28 +414,56 @@ static void MX_ADC1_Init(void) {
     /* USER CODE BEGIN ADC1_Init 1 */
 
     /* USER CODE END ADC1_Init 1 */
-    /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+    /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
     hadc1.Instance = ADC1;
     hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
-    hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-    hadc1.Init.ScanConvMode = DISABLE;
-    hadc1.Init.ContinuousConvMode = DISABLE;
+    hadc1.Init.Resolution = ADC_RESOLUTION_10B;
+    hadc1.Init.ScanConvMode = ENABLE;
+    hadc1.Init.ContinuousConvMode = ENABLE;
     hadc1.Init.DiscontinuousConvMode = DISABLE;
     hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
     hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
     hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-    hadc1.Init.NbrOfConversion = 1;
-    hadc1.Init.DMAContinuousRequests = DISABLE;
+    hadc1.Init.NbrOfConversion = 5;
+    hadc1.Init.DMAContinuousRequests = ENABLE;
     hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
     if (HAL_ADC_Init(&hadc1) != HAL_OK) {
         Error_Handler();
     }
-    /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+    sConfig.Channel = ADC_CHANNEL_10;
+    sConfig.Rank = 1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
+    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
     sConfig.Channel = ADC_CHANNEL_4;
-    sConfig.Rank = 1;
-    sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+    sConfig.Rank = 2;
+    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+    sConfig.Channel = ADC_CHANNEL_5;
+    sConfig.Rank = 3;
+    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+    sConfig.Channel = ADC_CHANNEL_6;
+    sConfig.Rank = 4;
+    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+    sConfig.Channel = ADC_CHANNEL_3;
+    sConfig.Rank = 5;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
@@ -882,6 +914,9 @@ static void MX_DMA_Init(void) {
     /* DMA2_Stream2_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+    /* DMA2_Stream0_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 }
 
 /**
@@ -904,9 +939,6 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
-
-    /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOD, FLASH_CSN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : USB_OVERC_Pin ESP_GPIO0_Pin
@@ -923,14 +955,30 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(USB_EN_GPIO_Port, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : ESP_RST_Pin LCD_RST_Pin LCD_CS_Pin */
+#ifdef USE_ESP01_WITH_UART6
+    /*Configure GPIO pins : ESP_RST_Pin */
     GPIO_InitStruct.Pin = ESP_RST_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
+    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+    /*Configure ESP GPIO0 (PROG, High for ESP module boot from Flash)*/
+    GPIO_InitStruct.Pin = GPIO_PIN_6;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
+#else
+    /*Configure GPIO pins : ESP_RST_Pin */
+    GPIO_InitStruct.Pin = ESP_RST_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
+#endif
     /*Configure GPIO pins : FLASH_CSN_Pin */
     GPIO_InitStruct.Pin = FLASH_CSN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -968,8 +1016,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *haurt) {
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
     if (huart == &huart2)
         buddy::hw::BufferedSerial::uart2.FirstHalfReachedISR();
+#if 0
     else if (huart == &huart6)
         uartrxbuff_rxhalf_cb(&uart6rxbuff);
+#endif
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
@@ -977,8 +1027,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         uartrxbuff_rxcplt_cb(&uart1rxbuff);
     else if (huart == &huart2)
         buddy::hw::BufferedSerial::uart2.SecondHalfReachedISR();
+#ifndef USE_ESP01_WITH_UART6
     else if (huart == &huart6)
         uartrxbuff_rxcplt_cb(&uart6rxbuff);
+#endif
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
@@ -1046,14 +1098,11 @@ void StartDisplayTask(void const *argument) {
   * @retval None
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    /* USER CODE BEGIN Callback 0 */
-    if (htim->Instance == TIM6) {
-        wdt_tick_1ms();
-        HAL_IncTick();
-    } else if (htim->Instance == TIM14) {
+    if (htim->Instance == TIM14) {
         app_tim14_tick();
+    } else if (htim->Instance == TICK_TIMER) {
+        TICK_TIMER_PeriodElapsedCallback();
     }
-    /* USER CODE END Callback 1 */
 }
 
 /**
