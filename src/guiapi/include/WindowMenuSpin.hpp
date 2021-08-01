@@ -36,10 +36,6 @@ protected:
 public:
     IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
     virtual void OnClick() {}
-    inline void ClrVal() {
-        value.i = 0;
-        Change(0);
-    }
     inline void SetVal(SpinType val) {
         value = val;
         Change(0);

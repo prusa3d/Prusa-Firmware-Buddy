@@ -28,7 +28,7 @@ public:
         marlin_gcode("G90");    // Set to Absolute Positioning
         marlin_gcode("M82");    // Set extruder to absolute mode
         marlin_gcode("G92 E0"); // Reset position before change
-        ClrVal();               // Reset spin before change
+        SetVal(0);              // Reset spin before change
         //original code erased invalid flag from menu. Why?
     }
 };
