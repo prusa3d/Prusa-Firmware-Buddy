@@ -14,6 +14,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "wui_api.h"
+#include "wui.h"
 #include "config.h"
 #include "RAII.hpp"
 #include "i18n.h"
@@ -71,11 +72,11 @@ uint8_t Eth::saveIni() {
 }
 
 void Eth::Off() {
-    TURN_LAN_OFF();
+    netdev_set_down(NETDEV_ETH_ID);
 }
 
 void Eth::On() {
-    TURN_LAN_ON();
+    netdev_set_up(NETDEV_ETH_ID);
 }
 
 bool Eth::IsStatic() {
@@ -91,7 +92,7 @@ bool Eth::IsOn() {
 }
 
 bool Eth::IsLANETH() {
-    return IS_LAN_INTERFACE_ETH(GetFlag());
+    return true;
 }
 
 bool Eth::IsUpdated() {
@@ -107,26 +108,20 @@ bool Eth::SetStatic() {
         msg = Msg::StaicAddrErr;
         return false;
     }
-    CHANGE_LAN_TO_STATIC();
+    netdev_set_static(NETDEV_ETH_ID);
     return true;
 }
 
 bool Eth::SetDHCP() {
-    CHANGE_LAN_TO_DHCP();
+    netdev_set_dhcp(NETDEV_ETH_ID);
     return true;
 }
 
 bool Eth::SetLANETH() {
-    ETH_config_t ethconfig = {};
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    LAN_INTERFACE_ETH(ethconfig.lan.flag);
     return true;
 }
 
 bool Eth::SetLANWiFi() {
-    ETH_config_t ethconfig = {};
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    LAN_INTERFACE_WIFI(ethconfig.lan.flag);
     return true;
 }
 

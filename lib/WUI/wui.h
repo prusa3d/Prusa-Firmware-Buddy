@@ -15,6 +15,9 @@
 
 #define BUDDY_WEB_STACK_SIZE 1024
 
+#define NETDEV_ETH_ID 0
+#define NETDEV_ESP_ID 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,6 +31,11 @@ extern osMutexId wui_thread_mutex_id;
 void StartWebServerTask(void const *argument);
 
 struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type);
+
+uint32_t netdev_set_dhcp(uint32_t netdev_id);
+uint32_t netdev_set_up(uint32_t netdev_id);
+uint32_t netdev_set_down(uint32_t netdev_id);
+uint32_t netdev_set_static(uint32_t netdev_id);
 
 #ifdef __cplusplus
 }

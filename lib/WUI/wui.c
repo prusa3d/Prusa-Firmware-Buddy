@@ -13,15 +13,11 @@
 #include "ethernetif.h"
 #include <string.h>
 #include "sntp_client.h"
-#include "httpc/httpc.h"
 #include "dbg.h"
 #include "esp/esp.h"
 #include "stm32_port.h"
 #include "lwip/altcp_tcp.h"
 #include "esp_tcp.h"
-#include "esp.h"
-#include "esp/apps/esp_http_server.h"
-#include "esp/apps/esp_http_server_fs.h"
 #include "netifapi.h"
 #include "dns.h"
 #include "httpd.h"
@@ -31,15 +27,15 @@ typedef enum {
     WUI_IP4_STATIC
 } WUI_IP4_TYPE;
 
-#define DNS_1                       0
-#define DNS_2                       1
-#define create_evt_eth(flag, value) (((flag) << 16) | (value))
+#define DNS_1 0
+#define DNS_2 1
 
-#define EVT_ETH_INIT_FINISHED (0xFFFFFFFFUL)
-#define EVT_ETH_OFF           create_evt_eth(LAN_FLAG_ONOFF_POS, 1)
-#define EVT_ETH_ON            create_evt_eth(LAN_FLAG_ONOFF_POS, 0)
-#define EVT_ETH_STATIC        create_evt_eth(LAN_FLAG_TYPE_POS, 1)
-#define EVT_ETH_DHCP          create_evt_eth(LAN_FLAG_TYPE_POS, 0)
+#define create_evt_eth(dev, flag, value) (((dev) << 28 | (flag) << 16) | (value))
+
+#define EVT_TCPIP_INIT_FINISHED              (0xFFFFFFFFUL)
+#define EVT_NETDEV_INIT_FINISHED(dev, value) create_evt_eth((dev), 0x0FFF, (value))
+// #define EVT_NETDEV_LINK_STATUS(dev, value)   create_evt_eth((dev), LAN_FLAG_TYPE_POS, (value))
+// #define EVT_NETDEV_DEVICE_STATUS(dev, value)   create_evt_eth((dev), LAN_FLAG_ONOFF_POS, (value))
 
 osMessageQDef(networkMbox, 16, NULL);
 static osMessageQId networkMbox_id;
@@ -51,9 +47,11 @@ osMutexId(wui_thread_mutex_id);
 static marlin_vars_t *wui_marlin_vars;
 wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
-static uint32_t ip4_type = WUI_IP4_DHCP;
-struct netif eth0;           // network interface structure for ETH
-ETH_config_t wui_eth_config; // the active WUI configuration for ethernet, connect and server
+
+struct netif eth0; // network interface structure for ETH
+
+ETH_config_t wui_eth_config;  // the active WUI configuration for ethernet, connect and server
+ETH_config_t wui_wifi_config; // the active WUI configuration for ethernet, connect and server
 
 static void wui_marlin_client_init(void) {
     wui_marlin_vars = marlin_client_init(); // init the client
@@ -96,6 +94,8 @@ static void sync_with_marlin_server(void) {
 
 static void netif_link_callback(struct netif *eth) {
     ethernetif_update_config(eth);
+    eth->hostname = wui_eth_config.hostname;
+    osMessagePut(networkMbox_id, EVT_NETDEV_INIT_FINISHED(NETDEV_ETH_ID, 0), 0);
 }
 
 static void netif_status_callback(struct netif *eth) {
@@ -103,36 +103,82 @@ static void netif_status_callback(struct netif *eth) {
 }
 
 static void tcpip_init_done_callback(void *arg) {
-    ETH_config_t *ethconfig = (ETH_config_t *)arg;
-    uint32_t message = EVT_ETH_INIT_FINISHED;
-
-    if (IS_LAN_STATIC(ethconfig->lan.flag)) {
-        ip4_type = WUI_IP4_STATIC;
-        dns_setserver(DNS_1, &ethconfig->dns1_ip4);
-        dns_setserver(DNS_2, &ethconfig->dns2_ip4);
-    } else {
-        ip4_type = WUI_IP4_DHCP;
-        ethconfig->lan.addr_ip4.addr = 0;
-        ethconfig->lan.msk_ip4.addr = 0;
-        ethconfig->lan.gw_ip4.addr = 0;
+    if (netif_add_noaddr(&eth0, NULL, ethernetif_init, tcpip_input)) {
+        netif_set_link_callback(&eth0, netif_link_callback);
+        netif_set_status_callback(&eth0, netif_status_callback);
     }
-
-    /* add the network interface (IPv4/IPv6) with RTOS */
-    netif_add(&eth0, (const ip4_addr_t *)&(ethconfig->lan.addr_ip4.addr), (const ip4_addr_t *)&(ethconfig->lan.msk_ip4.addr), (const ip4_addr_t *)&(ethconfig->lan.gw_ip4.addr), NULL, &ethernetif_init, &tcpip_input);
-
-    // set the host name
-    eth0.hostname = ethconfig->hostname;
-    /* Setting necessary callbacks after initial setup */
-    netif_set_link_callback(&eth0, netif_link_callback);
-    netif_set_status_callback(&eth0, netif_status_callback);
-    osMessagePut(networkMbox_id, message, 0);
+    osMessagePut(networkMbox_id, EVT_TCPIP_INIT_FINISHED, 0);
 }
 
-const ETH_STATUS_t get_eth_status(void) {
+ETH_STATUS_t get_eth_status(void) {
     if (!ethernetif_link(&eth0)) {
         return ETH_UNLINKED;
     }
     return !netif_is_link_up(&eth0) ? ETH_NETIF_DOWN : ETH_NETIF_UP;
+}
+
+uint32_t netdev_set_dhcp(uint32_t netdev_id) {
+    if (netdev_id == NETDEV_ETH_ID) {
+        err_t res;
+        res = netifapi_dhcp_start(&eth0);
+        CHANGE_FLAG_TO_DHCP(wui_eth_config.lan.flag);
+        wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+        save_eth_params(&wui_eth_config);
+        wui_eth_config.var_mask = 0;
+        return res;
+    } else {
+        return ERR_OK;
+    }
+}
+
+uint32_t netdev_set_up(uint32_t netdev_id) {
+    if (netdev_id == NETDEV_ETH_ID) {
+        err_t res;
+        netifapi_netif_set_link_up(&eth0);
+        res = netifapi_netif_set_up(&eth0);
+        TURN_FLAG_ON(wui_eth_config.lan.flag);
+        wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+        save_eth_params(&wui_eth_config);
+        wui_eth_config.var_mask = 0;
+        return res;
+    } else {
+        return ERR_OK;
+    }
+}
+
+uint32_t netdev_set_down(uint32_t netdev_id) {
+    if (netdev_id == NETDEV_ETH_ID) {
+        err_t res = netifapi_netif_set_link_down(&eth0);
+        res = netifapi_netif_set_down(&eth0);
+        TURN_FLAG_OFF(wui_eth_config.lan.flag);
+        wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+        save_eth_params(&wui_eth_config);
+        wui_eth_config.var_mask = 0;
+        return res;
+    } else {
+        return ERR_OK;
+    }
+}
+
+uint32_t netdev_set_static(uint32_t netdev_id) {
+    if (netdev_id == NETDEV_ETH_ID) {
+        err_t res;
+        dns_setserver(DNS_1, &wui_eth_config.dns1_ip4);
+        dns_setserver(DNS_2, &wui_eth_config.dns2_ip4);
+        res = netifapi_netif_set_addr(&eth0, &wui_eth_config.lan.addr_ip4, &wui_eth_config.lan.msk_ip4, &wui_eth_config.lan.gw_ip4);
+        res = netifapi_dhcp_inform(&eth0);
+        CHANGE_FLAG_TO_STATIC(wui_eth_config.lan.flag);
+        wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+        save_eth_params(&wui_eth_config);
+        wui_eth_config.var_mask = 0;
+        return res;
+    } else {
+        return ERR_OK;
+    }
+}
+
+ETH_STATUS_t get_wifi_status(void) {
+    return ETH_NETIF_UP;
 }
 
 uint8_t get_lan_flag(void) {
@@ -145,16 +191,59 @@ void get_eth_address(ETH_config_t *config) {
     config->lan.gw_ip4.addr = netif_ip4_gw(&eth0)->addr;
 }
 
-void eth_change_setting(uint16_t flag, uint16_t value) {
-    uint32_t message = create_evt_eth(flag, value);
-    osMessagePut(networkMbox_id, message, 0);
+/**
+ * \brief           Event callback function for ESP stack
+ * \param[in]       evt: Event information with data
+ * \return          \ref espOK on success, member of \ref espr_t otherwise
+ */
+static espr_t
+esp_callback_func(esp_evt_t *evt) {
+    switch (esp_evt_get_type(evt)) {
+    case ESP_EVT_AT_VERSION_NOT_SUPPORTED: {
+        esp_sw_version_t v_min, v_curr;
+
+        esp_get_min_at_fw_version(&v_min);
+        esp_get_current_at_fw_version(&v_curr);
+
+        _dbg("Current ESP8266 AT version is not supported by library!");
+        _dbg("Minimum required AT version is: %d.%d.%d", (int)v_min.major, (int)v_min.minor, (int)v_min.patch);
+        _dbg("Current AT version is: %d.%d.%d", (int)v_curr.major, (int)v_curr.minor, (int)v_curr.patch);
+        break;
+    }
+    case ESP_EVT_INIT_FINISH: {
+        _dbg("ESP_EVT_INIT_FINISH");
+        uint32_t message = EVT_NETDEV_INIT_FINISHED(NETDEV_ESP_ID, 0);
+        osMessagePut(networkMbox_id, message, 0);
+        break;
+    }
+    case ESP_EVT_RESET: {
+        _dbg("ESP_EVT_RESET");
+        break;
+    }
+    case ESP_EVT_RESET_DETECTED: {
+        _dbg("ESP_EVT_RESET_DETECTED");
+        break;
+    }
+    case ESP_EVT_WIFI_GOT_IP: {
+        _dbg("ESP_EVT_WIFI_GOT_IP");
+        esp_set_wifi_mode(ESP_MODE_STA, NULL, NULL, 0);
+        break;
+    }
+    case ESP_EVT_WIFI_CONNECTED: {
+        _dbg("ESP_EVT_WIFI_CONNECTED");
+        break;
+    }
+    case ESP_EVT_WIFI_DISCONNECTED: {
+        _dbg("ESP_EVT_WIFI_DISCONNECTED");
+        break;
+    }
+    default:
+        break;
+    }
+    return espOK;
 }
 
-extern void netconn_client_thread(void const *arg);
-
 void StartWebServerTask(void const *argument) {
-    ap_entry_t ap = { "ssid", "password" };
-    uint32_t res;
 
     // get settings from ini file
     osDelay(1000);
@@ -175,85 +264,49 @@ void StartWebServerTask(void const *argument) {
     wui_eth_config.var_mask = ETHVAR_EEPROM_CONFIG;
     load_eth_params(&wui_eth_config);
 
-    // get settings from ini file
-    if (IS_LAN_ON(wui_eth_config.lan.flag) && load_ini_file(&wui_eth_config)) {
-        save_eth_params(&wui_eth_config);
-    }
     // marlin client initialization for WUI
     wui_marlin_client_init();
 
-    res = esp_initialize();
-    _dbg("LwESP initialized with result = %ld", res);
-    LWIP_UNUSED_ARG(res);
+    // if(IS_LAN_ON(wui_eth_config.lan.flag)) {
+    // } else if (IS_LAN_ON(wui_wifi_config.lan.flag)) {
 
-    if (!esp_connect_to_AP(&ap)) {
+    //     ap_entry_t ap = { "ssid", "password" };
+    //     // if (!esp_connect_to_AP(&ap)) {
+    //     //     _dbg("LwESP connect to AP %s!", ap.ssid);
+    //     // }
+    // }
 
-        _dbg("LwESP connect to AP %s!", ap.ssid);
-        esp_http_server_init(NULL, 80);
-        // esp_sys_thread_create(NULL, "netconn_client", (esp_sys_thread_fn)netconn_client_thread, NULL, 512, ESP_SYS_THREAD_PRIO);
-    }
-
-    // TcpIp related initalizations
     tcpip_init(tcpip_init_done_callback, &wui_eth_config);
-    httpd_init();
-    sntp_client_init();
+    esp_init(esp_callback_func, 0);
+
+    // sntp_client_init();
 
     for (;;) {
         osEvent evt = osMessageGet(networkMbox_id, 500);
         if (evt.status == osEventMessage) {
-            load_eth_params(&wui_eth_config);
             switch (evt.value.v) {
-            case EVT_ETH_INIT_FINISHED:
-                /* Registers the default network interface */
+            case EVT_TCPIP_INIT_FINISHED:
                 netifapi_netif_set_default(&eth0);
-
                 if (IS_LAN_ON(wui_eth_config.lan.flag)) {
-                    /* When the netif is fully configured this function must be called */
-                    netifapi_netif_set_link_up(&eth0);
-                    netifapi_netif_set_up(&eth0);
-                    // start the DHCP if needed!
-                    if (!IS_LAN_STATIC(wui_eth_config.lan.flag)) {
-                        netifapi_dhcp_start(&eth0);
-                    } else {
-                        dns_setserver(DNS_1, &wui_eth_config.dns1_ip4);
-                        dns_setserver(DNS_2, &wui_eth_config.dns2_ip4);
-                        netifapi_netif_set_addr(&eth0, &wui_eth_config.lan.addr_ip4, &wui_eth_config.lan.msk_ip4, &wui_eth_config.lan.gw_ip4);
-                        netifapi_dhcp_inform(&eth0);
-                    }
-                } else {
-                    /* When the netif link is down this function must be called */
-                    netifapi_netif_set_link_down(&eth0);
-                    netifapi_netif_set_down(&eth0);
+                    netdev_set_up(NETDEV_ETH_ID);
                 }
                 break;
-            case EVT_ETH_DHCP:
-                netifapi_dhcp_start(&eth0);
-                break;
-            case EVT_ETH_STATIC:
-                dns_setserver(DNS_1, &wui_eth_config.dns1_ip4);
-                dns_setserver(DNS_2, &wui_eth_config.dns2_ip4);
-                netifapi_netif_set_addr(&eth0, &wui_eth_config.lan.addr_ip4, &wui_eth_config.lan.msk_ip4, &wui_eth_config.lan.gw_ip4);
-                netifapi_dhcp_inform(&eth0);
-                break;
-            case EVT_ETH_ON:
-                netifapi_netif_set_link_up(&eth0);
-                netifapi_netif_set_up(&eth0);
-                // start the DHCP if needed!
+            case EVT_NETDEV_INIT_FINISHED(NETDEV_ETH_ID, 0):
                 if (!IS_LAN_STATIC(wui_eth_config.lan.flag)) {
-                    netifapi_dhcp_start(&eth0);
+                    netdev_set_dhcp(NETDEV_ETH_ID);
+                } else {
+                    netifapi_netif_set_up(&eth0);
+                    netdev_set_static(NETDEV_ETH_ID);
                 }
-                TURN_FLAG_ON(wui_eth_config.lan.flag);
+                httpd_init();
                 break;
-            case EVT_ETH_OFF:
-                /* When the netif link is down this function must be called */
+            case EVT_NETDEV_INIT_FINISHED(NETDEV_ETH_ID, 1):
                 netifapi_netif_set_link_down(&eth0);
                 netifapi_netif_set_down(&eth0);
-                TURN_FLAG_OFF(wui_eth_config.lan.flag);
                 break;
             default:
                 break;
             }
-            save_eth_params(&wui_eth_config);
         }
 
         sync_with_marlin_server();
@@ -263,7 +316,10 @@ void StartWebServerTask(void const *argument) {
 struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {
     if (get_eth_status() == ETH_NETIF_UP)
         return altcp_tcp_new_ip_type(ip_type);
-    else
+    else if (get_wifi_status() == ETH_NETIF_UP) {
+        // return altcp_esp_new_ip_type(ip_type);
         return NULL;
-    // return altcp_esp_new_ip_type(ip_type);
+    } else {
+        return NULL;
+    }
 }
