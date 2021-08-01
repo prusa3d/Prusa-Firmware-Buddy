@@ -129,6 +129,7 @@
 static char request_buf[POST_REQUEST_BUFFSIZE];
 static char response_body_buf[RESPONSE_BODY_SIZE];
 static httpd_post_status_t post_status;
+
 /***************************************************************/
 
 #if LWIP_TCP && LWIP_CALLBACK_API
@@ -993,6 +994,10 @@ get_http_headers(struct http_state *hs, const char *uri) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK_11];
     } else if (strstr(uri, "500")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_500];
+    } else if (strstr(uri, "401")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_401];
+    } else if (strstr(uri, "304")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_304];
     } else {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK];
     }
@@ -2632,9 +2637,9 @@ void http_set_cgi_handlers(const tCGI *cgis, int num_handlers) {
 
 static struct fs_file api_file; // for storing /api/* data
 
-static void wui_api_telemetry(struct fs_file *file) {
+static void wui_api_printer(struct fs_file *file) {
 
-    get_telemetry_for_local(response_body_buf, RESPONSE_BODY_SIZE);
+    get_printer(response_body_buf, RESPONSE_BODY_SIZE);
 
     uint16_t response_len = strlen(response_body_buf);
     file->len = response_len;
@@ -2644,21 +2649,28 @@ static void wui_api_telemetry(struct fs_file *file) {
     file->flags = 0; // no flags for fs_open
 }
 
-static struct fs_file *wui_api_main(const char *uri) {
+static void wui_api_job(struct fs_file *file) {
 
-    api_file.len = 0;
-    api_file.data = NULL;
-    api_file.index = 0;
-    api_file.pextension = NULL;
-    api_file.flags = 0; // no flags for fs_open
-    char *t_string = "/api/telemetry";
-    uint32_t t_string_len = strlen(t_string);
-    memset(response_body_buf, 0, RESPONSE_BODY_SIZE);
-    if (!strncmp(uri, t_string, t_string_len) && (strlen(uri) == t_string_len)) {
-        wui_api_telemetry(&api_file);
-        return &api_file;
-    }
-    return NULL;
+    get_job(response_body_buf, RESPONSE_BODY_SIZE);
+
+    uint16_t response_len = strlen(response_body_buf);
+    file->len = response_len;
+    file->data = response_body_buf;
+    file->index = response_len;
+    file->pextension = NULL;
+    file->flags = 0; // no flags for fs_open
+}
+
+static void wui_api_version(struct fs_file *file) {
+
+    get_version(response_body_buf, RESPONSE_BODY_SIZE);
+
+    uint16_t response_len = strlen(response_body_buf);
+    file->len = response_len;
+    file->data = response_body_buf;
+    file->index = response_len;
+    file->pextension = NULL;
+    file->flags = 0; // no flags for fs_open
 }
 
 /** Try to find the file specified by uri and, if found, initialize hs
@@ -2705,16 +2717,6 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
         }
     }
 
-    /* check with the wui api */
-    if (file == NULL) {
-        if (0 == strncmp(uri, "/api/", WUI_API_ROOT_STR_LEN)) {
-            file = wui_api_main(uri);
-            if (NULL != file) {
-                strcat((char *)uri, ".json"); // http server adds header info (data type) based on the file extension
-            }
-        }
-    }
-
     if (file == NULL) {
         /* No - we've been asked for a specific file. */
         /* First, isolate the base URI (without any parameters) */
@@ -2730,6 +2732,41 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
         err = fs_open(&hs->file_handle, uri);
         if (err == ERR_OK) {
             file = &hs->file_handle;
+        }
+    }
+
+    /* check with the wui api */
+    if (file == NULL) {
+        const char *api_key_tag = "X-Api-Key:";
+        uint32_t api_key_tag_length = strlen(api_key_tag);
+        uint32_t index = pbuf_strstr(hs->req, api_key_tag);
+
+        api_file.len = 0;
+        api_file.data = NULL;
+        api_file.index = 0;
+        api_file.pextension = NULL;
+        api_file.flags = 0; // no flags for fs_open
+
+        if (index == UINT16_MAX) {
+            uri = "401";
+        } else {
+            const char *api_key = wui_get_api_key();
+            uint32_t token_length = strlen(api_key);
+            const char *auth_token = (((const char *)hs->req->payload) + index + api_key_tag_length + 1);
+            if (memcmp(api_key, auth_token, token_length) != 0) {
+                uri = "401";
+            }
+        }
+
+        if (!strcmp(uri, "/api/printer")) {
+            wui_api_printer(&api_file);
+            file = &api_file;
+        } else if (!strcmp(uri, "/api/version")) {
+            wui_api_version(&api_file);
+            file = &api_file;
+        } else if (!strcmp(uri, "/api/job")) {
+            wui_api_job(&api_file);
+            file = &api_file;
         }
     }
 
