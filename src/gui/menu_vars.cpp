@@ -73,10 +73,16 @@ constexpr const char Y_home_gcode[] = {
     nth_char(Y_home, 8)
 };
 
-const std::array<std::array<int16_t, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::axis_ranges = { { { X_MIN_POS, X_MAX_POS, 1 },
+const std::array<int32_t, MenuVars::AXIS_CNT> MenuVars::default_steps_per_unit = { DEFAULT_AXIS_STEPS_PER_UNIT };
+const std::array<int32_t, MenuVars::AXIS_CNT> MenuVars::default_microsteps = { { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, E0_MICROSTEPS } };
+const std::array<int32_t, MenuVars::AXIS_CNT> MenuVars::default_currents = { { X_CURRENT, Y_CURRENT, Z_CURRENT, E0_CURRENT } };
+
+const std::array<int32_t, MenuVars::RANGE_SZ> MenuVars::maximum_z_axis_range = { { Z_MIN_LEN_LIMIT, Z_MAX_LEN_LIMIT, 1 } };
+const std::array<std::array<int32_t, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::axis_ranges = { { { X_MIN_POS, X_MAX_POS, 1 },
     { Y_MIN_POS, Y_MAX_POS, 1 },
     { Z_MIN_POS, static_cast<int16_t>(get_z_max_pos_mm_rounded()), 1 },
     { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH, 1 } } };
+
 const int16_t MenuVars::manual_feedrate[AXIS_CNT] = MANUAL_FEEDRATE;
 const char MenuVars::axis_letters[AXIS_CNT] = { 'X', 'Y', 'Z', 'E' };
 const int16_t MenuVars::extrude_min_temp = EXTRUDE_MINTEMP;
