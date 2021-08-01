@@ -35,9 +35,9 @@ protected:
 public:
     IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
     virtual void OnClick() {}
-    inline void SetVal(SpinType val) {
+    inline invalidate_t SetVal(SpinType val) {
         value = val;
-        Change(0);
+        return Change(0);
     }
     /// don't define GetVal here since we don't know the return type yet
     /// and C++ does not allow return type overloading (yet)
