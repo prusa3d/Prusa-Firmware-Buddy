@@ -152,8 +152,6 @@ void eth_change_setting(uint16_t flag, uint16_t value) {
 extern void netconn_client_thread(void const *arg);
 
 void StartWebServerTask(void const *argument) {
-    ap_entry_t ap = { "ssid", "password" };
-    uint32_t res;
     _dbg("wui starts");
     networkMbox_id = osMessageCreate(osMessageQ(networkMbox), NULL);
     if (networkMbox_id == NULL) {
@@ -177,25 +175,9 @@ void StartWebServerTask(void const *argument) {
     }
     // marlin client initialization for WUI
     wui_marlin_client_init();
-    res = esp_initialize();
-    _dbg("LwESP initialized with result = %ld", res);
-    LWIP_UNUSED_ARG(res);
-
-    // TcpIp related initalizations
-    httpd_init();
-    sntp_client_init();
-
-    if (!esp_connect_to_AP(&ap)) {
-
-        _dbg("LwESP connect to AP %s!", ap.ssid);
-        esp_http_server_init(NULL, 80);
-        // esp_sys_thread_create(NULL, "netconn_client", (esp_sys_thread_fn)netconn_client_thread, NULL, 512, ESP_SYS_THREAD_PRIO);
-    }
 
     // TcpIp related initalizations
     tcpip_init(tcpip_init_done_callback, &wui_eth_config);
-    httpd_init();
-    sntp_client_init();
 
     for (;;) {
         osEvent evt = osMessageGet(networkMbox_id, 500);
@@ -219,6 +201,8 @@ void StartWebServerTask(void const *argument) {
                         netifapi_netif_set_addr(&eth0, &wui_eth_config.lan.addr_ip4, &wui_eth_config.lan.msk_ip4, &wui_eth_config.lan.gw_ip4);
                         netifapi_dhcp_inform(&eth0);
                     }
+                    httpd_init();
+                    sntp_client_init();
                 } else {
                     /* When the netif link is down this function must be called */
                     netifapi_netif_set_link_down(&eth0);

@@ -288,7 +288,7 @@ int main(void) {
         &metric_handler_syslog,
         NULL
     };
-    // metric_system_init(handlers);
+    metric_system_init(handlers);
     /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
     /* USER CODE END RTOS_MUTEX */
