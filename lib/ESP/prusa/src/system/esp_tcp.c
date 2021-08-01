@@ -64,16 +64,16 @@ static void altcp_esp_setup(struct altcp_pcb *conn, esp_netconn_p tpcb);
 /* callback functions for TCP */
 static err_t
 altcp_esp_accept(void *arg, esp_netconn_p new_tpcb, err_t err) {
-    struct altcp_pcb *listen_conn = (struct altcp_pcb *)arg;
-    if (listen_conn && listen_conn->accept) {
-        /* create a new altcp_conn to pass to the next 'accept' callback */
-        struct altcp_pcb *new_conn = altcp_alloc();
-        if (new_conn == NULL) {
-            return ERR_MEM;
-        }
-        altcp_esp_setup(new_conn, new_tpcb);
-        return listen_conn->accept(listen_conn->arg, new_conn, err);
-    }
+    // struct altcp_pcb *listen_conn = (struct altcp_pcb *)arg;
+    // if (listen_conn && listen_conn->accept) {
+    //     /* create a new altcp_conn to pass to the next 'accept' callback */
+    //     struct altcp_pcb *new_conn = altcp_alloc();
+    //     if (new_conn == NULL) {
+    //         return ERR_MEM;
+    //     }
+    //     altcp_esp_setup(new_conn, new_tpcb);
+    //     return listen_conn->accept(listen_conn->arg, new_conn, err);
+    // }
     return ERR_ARG;
 }
 
@@ -254,20 +254,20 @@ altcp_esp_connect(struct altcp_pcb *conn, const ip_addr_t *ipaddr, u16_t port, a
 
 static struct altcp_pcb *
 altcp_esp_listen(struct altcp_pcb *conn, u8_t backlog, err_t *err) {
-    esp_netconn_p pcb;
-    esp_netconn_p lpcb;
-    if (conn == NULL) {
-        return NULL;
-    }
+    // esp_netconn_p pcb;
+    // esp_netconn_p lpcb;
+    // if (conn == NULL) {
+    //     return NULL;
+    // }
 
-    pcb = (esp_netconn_p)conn->state;
-    lpcb = esp_netconn_listen(pcb);
-    if (lpcb != NULL) {
-        conn->state = lpcb;
-        esp_netconn_accept()
-            tcp_accept(lpcb, altcp_esp_accept);
-        return conn;
-    }
+    // pcb = (esp_netconn_p)conn->state;
+    // lpcb = esp_netconn_listen(pcb);
+    // if (lpcb != NULL) {
+    //     conn->state = lpcb;
+    //     esp_netconn_accept()
+    //         tcp_accept(lpcb, altcp_esp_accept);
+    //     return conn;
+    // }
     return NULL;
 }
 

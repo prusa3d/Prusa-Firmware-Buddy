@@ -27,6 +27,14 @@ typedef enum {
     WUI_IP4_STATIC
 } WUI_IP4_TYPE;
 
+/**
+ * \brief           Lookup table for preferred SSIDs with password for auto connect feature
+ */
+typedef struct {
+    const char *ssid;
+    const char *pass;
+} ap_entry_t;
+
 #define DNS_1 0
 #define DNS_2 1
 
@@ -34,8 +42,9 @@ typedef enum {
 
 #define EVT_TCPIP_INIT_FINISHED              (0xFFFFFFFFUL)
 #define EVT_NETDEV_INIT_FINISHED(dev, value) create_evt_eth((dev), 0x0FFF, (value))
-// #define EVT_NETDEV_LINK_STATUS(dev, value)   create_evt_eth((dev), LAN_FLAG_TYPE_POS, (value))
-// #define EVT_NETDEV_DEVICE_STATUS(dev, value)   create_evt_eth((dev), LAN_FLAG_ONOFF_POS, (value))
+
+#define LOOP_EVT_TIMEOUT           500UL
+#define IS_TIME_TO_CHECK_ESP(time) (((time) % 1000) == 0)
 
 osMessageQDef(networkMbox, 16, NULL);
 static osMessageQId networkMbox_id;
@@ -50,8 +59,11 @@ static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode fil
 
 struct netif eth0; // network interface structure for ETH
 
-ETH_config_t wui_eth_config;  // the active WUI configuration for ethernet, connect and server
-ETH_config_t wui_wifi_config; // the active WUI configuration for ethernet, connect and server
+static ETH_config_t wui_eth_config;  // the active WUI configuration for ethernet, connect and server
+static ETH_config_t wui_wifi_config; // the active WUI configuration for ethernet, connect and server
+
+static ap_entry_t ap = { "ssid", "password" };
+static ETH_STATUS_t esp_state = ETH_UNLINKED;
 
 static void wui_marlin_client_init(void) {
     wui_marlin_vars = marlin_client_init(); // init the client
@@ -178,7 +190,7 @@ uint32_t netdev_set_static(uint32_t netdev_id) {
 }
 
 ETH_STATUS_t get_wifi_status(void) {
-    return ETH_NETIF_UP;
+    return esp_state;
 }
 
 uint8_t get_lan_flag(void) {
@@ -211,9 +223,9 @@ esp_callback_func(esp_evt_t *evt) {
         break;
     }
     case ESP_EVT_INIT_FINISH: {
+        esp_set_wifi_mode(ESP_MODE_STA, NULL, NULL, 1);
+        esp_sta_join(ap.ssid, ap.pass, NULL, 0, NULL, NULL, 0);
         _dbg("ESP_EVT_INIT_FINISH");
-        uint32_t message = EVT_NETDEV_INIT_FINISHED(NETDEV_ESP_ID, 0);
-        osMessagePut(networkMbox_id, message, 0);
         break;
     }
     case ESP_EVT_RESET: {
@@ -226,15 +238,18 @@ esp_callback_func(esp_evt_t *evt) {
     }
     case ESP_EVT_WIFI_GOT_IP: {
         _dbg("ESP_EVT_WIFI_GOT_IP");
-        esp_set_wifi_mode(ESP_MODE_STA, NULL, NULL, 0);
+        esp_state = ETH_NETIF_UP;
         break;
     }
     case ESP_EVT_WIFI_CONNECTED: {
+        uint32_t message = EVT_NETDEV_INIT_FINISHED(NETDEV_ESP_ID, 0);
         _dbg("ESP_EVT_WIFI_CONNECTED");
+        osMessagePut(networkMbox_id, message, 0);
         break;
     }
     case ESP_EVT_WIFI_DISCONNECTED: {
         _dbg("ESP_EVT_WIFI_DISCONNECTED");
+        esp_state = ETH_NETIF_DOWN;
         break;
     }
     default:
@@ -244,9 +259,7 @@ esp_callback_func(esp_evt_t *evt) {
 }
 
 void StartWebServerTask(void const *argument) {
-
-    // get settings from ini file
-    osDelay(1000);
+    uint32_t esp_check_counter = 1;
     _dbg("wui starts");
     networkMbox_id = osMessageCreate(osMessageQ(networkMbox), NULL);
     if (networkMbox_id == NULL) {
@@ -264,25 +277,12 @@ void StartWebServerTask(void const *argument) {
     wui_eth_config.var_mask = ETHVAR_EEPROM_CONFIG;
     load_eth_params(&wui_eth_config);
 
-    // marlin client initialization for WUI
     wui_marlin_client_init();
-
-    // if(IS_LAN_ON(wui_eth_config.lan.flag)) {
-    // } else if (IS_LAN_ON(wui_wifi_config.lan.flag)) {
-
-    //     ap_entry_t ap = { "ssid", "password" };
-    //     // if (!esp_connect_to_AP(&ap)) {
-    //     //     _dbg("LwESP connect to AP %s!", ap.ssid);
-    //     // }
-    // }
-
-    tcpip_init(tcpip_init_done_callback, &wui_eth_config);
+    tcpip_init(tcpip_init_done_callback, NULL);
     esp_init(esp_callback_func, 0);
 
-    // sntp_client_init();
-
     for (;;) {
-        osEvent evt = osMessageGet(networkMbox_id, 500);
+        osEvent evt = osMessageGet(networkMbox_id, LOOP_EVT_TIMEOUT);
         if (evt.status == osEventMessage) {
             switch (evt.value.v) {
             case EVT_TCPIP_INIT_FINISHED:
@@ -299,14 +299,33 @@ void StartWebServerTask(void const *argument) {
                     netdev_set_static(NETDEV_ETH_ID);
                 }
                 httpd_init();
+                sntp_client_init();
                 break;
             case EVT_NETDEV_INIT_FINISHED(NETDEV_ETH_ID, 1):
                 netifapi_netif_set_link_down(&eth0);
                 netifapi_netif_set_down(&eth0);
                 break;
+            case EVT_NETDEV_INIT_FINISHED(NETDEV_ESP_ID, 0):
+                if (!IS_LAN_STATIC(wui_eth_config.lan.flag)) {
+                    netdev_set_dhcp(NETDEV_ETH_ID);
+                } else {
+                    netdev_set_static(NETDEV_ETH_ID);
+                }
+                httpd_init();
+                break;
             default:
                 break;
             }
+        }
+
+        if (esp_state == ETH_UNLINKED && IS_TIME_TO_CHECK_ESP(esp_check_counter * LOOP_EVT_TIMEOUT)) {
+            esp_sw_version_t version;
+            esp_check_counter = 0;
+            if (esp_get_current_at_fw_version(&version)) {
+                esp_state == ETH_NETIF_DOWN;
+            }
+        } else {
+            ++esp_check_counter;
         }
 
         sync_with_marlin_server();
@@ -317,8 +336,7 @@ struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {
     if (get_eth_status() == ETH_NETIF_UP)
         return altcp_tcp_new_ip_type(ip_type);
     else if (get_wifi_status() == ETH_NETIF_UP) {
-        // return altcp_esp_new_ip_type(ip_type);
-        return NULL;
+        return altcp_esp_new_ip_type(ip_type);
     } else {
         return NULL;
     }
