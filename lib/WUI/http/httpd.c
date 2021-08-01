@@ -95,7 +95,6 @@
 #include "lwip/apps/fs.h"
 #include "httpd_structs.h"
 #include "lwip/def.h"
-#include "lwip.h"
 
 #include "lwip/altcp.h"
 #include "lwip/altcp_tcp.h"
