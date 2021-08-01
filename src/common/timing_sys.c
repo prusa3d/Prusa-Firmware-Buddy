@@ -1,74 +1,118 @@
 #include "timing.h"
+#include "timer_defaults.h"
 #include "stm32f4xx_hal.h"
 #include "FreeRTOS.h"
-#include "main.h"
+#include "stm32f4xx_hal_tim.h" //TIM_HandleTypeDef
+#include "wdt.h"
+#define TICK_TIMER_CNT (h_tick_tim.Instance->CNT)
 
-#define TIMER_CURRENT_US        (htim12.Instance->CNT)
-#define TIMER_CURRENT_NS_DIV_12 (htim4.Instance->CNT)
+// cannot use digit separator 1'000'000'000 .. stupid C
+// so i used enum to not make mistake in zeroes count
+enum {
+    thousand = 1000,
+    million = thousand * thousand,
+    billion = million * thousand
+};
+static volatile uint32_t tick_cnt_s;
+static TIM_HandleTypeDef h_tick_tim = { 0 };
 
-static uint64_t timestamp_cnt_ns;
-static uint32_t tick_cnt_us;
-static uint32_t tick_cnt_ns;
-
-void tick_ms_irq() {
-    // ms resolution managed by STM's HAL
-    HAL_IncTick();
-    // us resolution
-    tick_cnt_us += 1000;
-    // ns resolution
-    tick_cnt_ns += 1000000;
-    timestamp_cnt_ns += 1000000;
+//rewrite weak function
+//no need to call HAL_IncTick(), binded variable is unused
+uint32_t HAL_GetTick(void) {
+    return ticks_ms();
 }
 
-uint32_t ticks_ms() {
-    return uwTick;
-}
+// macro xPortSysTickHandler in FreeRTOSConfig.h must be commented
+extern void xPortSysTickHandler(void);
 
-uint32_t ticks_us() {
-    while (true) {
-        uint32_t local_tick_cnt_us = tick_cnt_us;
-        uint32_t local_timer_current_us = TIMER_CURRENT_US;
-
-        if (local_tick_cnt_us != tick_cnt_us)
-            // a tick ISR has happened in between the reading of the timer counter and tick_cnt_us
-            // therefore, we have to read them again
-            continue;
-        return local_tick_cnt_us + local_timer_current_us;
-    }
-}
-
-uint32_t ticks_ns() {
-    while (true) {
-        uint32_t local_tick_cnt_ns = tick_cnt_ns;
-        uint32_t local_timer_current_us = TIMER_CURRENT_US;
-        uint32_t local_timer_current_ns_12 = TIMER_CURRENT_NS_DIV_12;
-
-        if (local_timer_current_us != TIMER_CURRENT_US)
-            // an overflow of the ns-res timer has happened, lets try again
-            continue;
-
-        if (local_tick_cnt_ns != tick_cnt_ns)
-            // a tick ISR has happened, lets try again
-            continue;
-
-        return local_tick_cnt_ns + (local_timer_current_us * 1000) + (local_timer_current_ns_12 * 12);
-    }
+//interrupt from ARM-CORE timer
+void SysTick_Handler(void) {
+    wdt_tick_1ms();
+    xPortSysTickHandler();
 }
 
 uint64_t timestamp_ns() {
-    while (true) {
-        uint64_t local_timestamp_cnt_ns = timestamp_cnt_ns;
-        uint32_t local_timer_current_us = TIMER_CURRENT_US;
-        uint32_t local_timer_current_ns_12 = TIMER_CURRENT_NS_DIV_12;
+    while (1) {
+        // could use 64 bit variable for seconds, but it would increase chance of overflow
+        volatile uint32_t sec_1st_read = tick_cnt_s;
+        volatile uint32_t lower_cnt = TICK_TIMER_CNT;
+        volatile uint32_t sec_2nd_read = tick_cnt_s;
 
-        if (local_timer_current_us != TIMER_CURRENT_US)
-            // an overflow of the ns-res timer has happened, lets try again
+        if (sec_1st_read != sec_2nd_read)
+            // an overflow of the timer has happened, lets try again
             continue;
 
-        if (local_timestamp_cnt_ns != timestamp_cnt_ns)
-            // a tick ISR has happened, lets try again
-            continue;
+        uint64_t ret = ticks_to_ns(lower_cnt);
+        ret %= billion;                                    //remove seconds from nanosecond variable
+        ret += (uint64_t)billion * (uint64_t)sec_1st_read; //convert seconds to nano seconds
 
-        return local_timestamp_cnt_ns + (local_timer_current_us * 1000) + (local_timer_current_ns_12 * 12);
+        return ret;
     }
+}
+
+uint32_t ticks_s() {
+    return tick_cnt_s;
+}
+
+uint32_t ticks_ms() {
+    uint64_t val = timestamp_ns();
+    val /= (uint64_t)million;
+    return (uint32_t)val;
+}
+
+uint32_t ticks_us() {
+    uint64_t ret = timestamp_ns();
+    ret /= (uint64_t)thousand;
+    return (uint32_t)ret;
+}
+
+uint32_t ticks_ns() {
+    return ticks_to_ns(TICK_TIMER_CNT);
+}
+
+void TICK_TIMER_IRQHandler() {
+    HAL_TIM_IRQHandler(&h_tick_tim);
+}
+
+void TICK_TIMER_PeriodElapsedCallback() {
+    ++tick_cnt_s;
+}
+
+void HAL_SuspendTick() {
+    __HAL_TIM_DISABLE_IT(&h_tick_tim, TIM_IT_UPDATE);
+}
+
+void HAL_ResumeTick() {
+    __HAL_TIM_ENABLE_IT(&h_tick_tim, TIM_IT_UPDATE);
+}
+
+/**
+ * @brief Must use 32 bit timer
+ *        ~12ns tick, 84MHz, 1s period
+ *
+ * @param TickPriority
+ * @return HAL_StatusTypeDef
+ */
+HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
+    HAL_StatusTypeDef status;
+
+    /*Configure the IRQ priority */
+    HAL_NVIC_SetPriority(TICK_TIMER_IRQ, TickPriority, 0);
+
+    /* Enable the global Interrupt */
+    HAL_NVIC_EnableIRQ(TICK_TIMER_IRQ);
+
+    /* Enable clock */
+    TICK_TIMER_CLK_ENABLE();
+
+    h_tick_tim.Instance = TICK_TIMER;
+    h_tick_tim.Init.Prescaler = 0; // no prescaler = we get full 84Mhz
+    h_tick_tim.Init.CounterMode = TIM_COUNTERMODE_UP;
+    h_tick_tim.Init.Period = (TIM_BASE_CLK_MHZ * million) - 1; // set period to 1s
+    h_tick_tim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    if ((status = HAL_TIM_Base_Init(&h_tick_tim)) == HAL_OK) {
+        return HAL_TIM_Base_Start_IT(&h_tick_tim);
+    }
+
+    return status;
 }

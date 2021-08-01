@@ -128,11 +128,10 @@ SPI_HandleTypeDef hspi3;
 DMA_HandleTypeDef hdma_spi2_tx;
 DMA_HandleTypeDef hdma_spi2_rx;
 
+//described in timers.md
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim4;
-TIM_HandleTypeDef htim12;
 TIM_HandleTypeDef htim14;
 
 static UART_HandleTypeDef huart1;
@@ -173,6 +172,7 @@ static void MX_TIM14_Init(void);
 static void MX_RTC_Init(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
+void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
 /* USER CODE BEGIN PFP */
@@ -184,10 +184,12 @@ void iwdg_warning_cb(void);
 
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[200];
-
+#ifndef USE_ESP01_WITH_UART6
 uartrxbuff_t uart6rxbuff;
 uint8_t uart6rx_data[128];
-
+uartslave_t uart6slave;
+char uart6slave_line[32];
+#endif
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
@@ -198,8 +200,6 @@ uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
   * @retval int
   */
 int main(void) {
-    /* USER CODE BEGIN 1 */
-
     /*
     #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
     #define RCC_FLAG_BORRST                  ((uint8_t)0x79)
@@ -221,23 +221,13 @@ int main(void) {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST);
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
-    /* USER CODE END 1 */
-
     /* MCU Configuration--------------------------------------------------------*/
 
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
     HAL_Init();
 
-    /* USER CODE BEGIN Init */
-
-    /* USER CODE END Init */
-
     /* Configure the system clock */
     SystemClock_Config();
-
-    /* USER CODE BEGIN SysInit */
-
-    /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
@@ -267,12 +257,14 @@ int main(void) {
     uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
     uartrxbuff_reset(&uart1rxbuff);
-
-    uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
-    HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
-    uartrxbuff_reset(&uart6rxbuff);
+#ifndef USE_ESP01_WITH_UART6
+    // uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
+    // HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
+    // uartrxbuff_reset(&uart6rxbuff);
+    // uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
+    // putslave_init(&uart6slave);
     wdt_iwdg_warning_cb = iwdg_warning_cb;
-
+#endif
     crc32_init();
     w25x_init();
 
@@ -787,74 +779,6 @@ static void MX_TIM3_Init(void) {
     HAL_TIM_MspPostInit(&htim3);
 }
 
-HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
-    HAL_StatusTypeDef status;
-    //
-    // TIM12 - Slave
-    //
-    htim12.Instance = TIM12;
-    htim12.Init.Prescaler = 0;
-    htim12.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim12.Init.Period = 1000 - 1; // set the period to 1 ms
-    htim12.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    if ((status = HAL_TIM_Base_Init(&htim12)) != HAL_OK) {
-        return status;
-    }
-
-    TIM_SlaveConfigTypeDef slaveConfig = { 0 };
-    slaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
-    slaveConfig.InputTrigger = TIM_TS_ITR0;
-    if ((status = HAL_TIM_SlaveConfigSynchronization(&htim12, &slaveConfig)) != HAL_OK) {
-        return status;
-    }
-
-    TIM_MasterConfigTypeDef masterConfig = { 0 };
-    masterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    masterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    if ((status = HAL_TIMEx_MasterConfigSynchronization(&htim12, &masterConfig)) != HAL_OK) {
-        return status;
-    }
-
-    HAL_TIM_Base_Start_IT(&htim12);
-
-    //
-    // TIM4 - Master
-    //
-    htim4.Instance = TIM4;
-    htim4.Init.Prescaler = 0; // no prescaler = we get full 84Mhz
-    htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim4.Init.Period = TIM_BASE_CLK_MHZ - 1; // set period to 1us
-    htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    if ((status = HAL_TIM_Base_Init(&htim4)) != HAL_OK) {
-        Error_Handler();
-    }
-
-    TIM_ClockConfigTypeDef clockSourceConfig = { 0 };
-    clockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-    if ((status = HAL_TIM_ConfigClockSource(&htim4, &clockSourceConfig)) != HAL_OK) {
-        return status;
-    }
-
-    masterConfig = { 0 };
-    masterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
-    masterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-
-    if ((status = HAL_TIMEx_MasterConfigSynchronization(&htim4, &masterConfig)) != HAL_OK) {
-        return status;
-    }
-
-    HAL_TIM_Base_Start(&htim4);
-    return HAL_OK;
-}
-
-void HAL_SuspendTick(void) {
-    __HAL_TIM_DISABLE_IT(&htim12, TIM_IT_UPDATE);
-}
-
-void HAL_ResumeTick(void) {
-    __HAL_TIM_ENABLE_IT(&htim12, TIM_IT_UPDATE);
-}
-
 /**
   * @brief TIM14 Initialization Function
   * @param None
@@ -1015,9 +939,6 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
-
-    /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOD, FLASH_CSN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : USB_OVERC_Pin ESP_GPIO0_Pin
@@ -1034,14 +955,30 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(USB_EN_GPIO_Port, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : ESP_RST_Pin LCD_RST_Pin LCD_CS_Pin */
+#ifdef USE_ESP01_WITH_UART6
+    /*Configure GPIO pins : ESP_RST_Pin */
     GPIO_InitStruct.Pin = ESP_RST_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
+    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+    /*Configure ESP GPIO0 (PROG, High for ESP module boot from Flash)*/
+    GPIO_InitStruct.Pin = GPIO_PIN_6;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
+#else
+    /*Configure GPIO pins : ESP_RST_Pin */
+    GPIO_InitStruct.Pin = ESP_RST_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
+#endif
     /*Configure GPIO pins : FLASH_CSN_Pin */
     GPIO_InitStruct.Pin = FLASH_CSN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -1079,8 +1016,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *haurt) {
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
     if (huart == &huart2)
         buddy::hw::BufferedSerial::uart2.FirstHalfReachedISR();
+#if 0
     else if (huart == &huart6)
         uartrxbuff_rxhalf_cb(&uart6rxbuff);
+#endif
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
@@ -1088,8 +1027,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         uartrxbuff_rxcplt_cb(&uart1rxbuff);
     else if (huart == &huart2)
         buddy::hw::BufferedSerial::uart2.SecondHalfReachedISR();
+#ifndef USE_ESP01_WITH_UART6
     else if (huart == &huart6)
         uartrxbuff_rxcplt_cb(&uart6rxbuff);
+#endif
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
@@ -1157,11 +1098,10 @@ void StartDisplayTask(void const *argument) {
   * @retval None
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    if (htim->Instance == TIM12) {
-        wdt_tick_1ms();
-        tick_ms_irq();
-    } else if (htim->Instance == TIM14) {
+    if (htim->Instance == TIM14) {
         app_tim14_tick();
+    } else if (htim->Instance == TICK_TIMER) {
+        TICK_TIMER_PeriodElapsedCallback();
     }
 }
 

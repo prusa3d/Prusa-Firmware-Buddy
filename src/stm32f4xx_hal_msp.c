@@ -492,12 +492,6 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base) {
         /* USER CODE BEGIN TIM3_MspInit 1 */
 
         /* USER CODE END TIM3_MspInit 1 */
-    } else if (htim_base->Instance == TIM4) {
-        __HAL_RCC_TIM4_CLK_ENABLE();
-    } else if (htim_base->Instance == TIM12) {
-        __HAL_RCC_TIM12_CLK_ENABLE();
-        HAL_NVIC_SetPriority(TIM8_BRK_TIM12_IRQn, 0, 0);
-        HAL_NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
     } else if (htim_base->Instance == TIM14) {
         /* USER CODE BEGIN TIM14_MspInit 0 */
 
@@ -815,6 +809,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart) {
 
         /* USART6 DMA DeInit */
         HAL_DMA_DeInit(huart->hdmarx);
+
+        /* USART6 interrupt DeInit */
+        HAL_NVIC_DisableIRQ(USART6_IRQn);
         /* USER CODE BEGIN USART6_MspDeInit 1 */
 
         /* USER CODE END USART6_MspDeInit 1 */

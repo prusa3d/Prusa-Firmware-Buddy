@@ -13,6 +13,6 @@ target_sources(
             sntp/sntp.c
   )
 
-target_include_directories(WUI INTERFACE ${CMAKE_CURRENT_LIST_DIR} http sntp resources)
+target_include_directories(WUI INTERFACE ${CMAKE_CURRENT_LIST_DIR} http sntp resources esp)
 
 target_link_libraries(WUI INTERFACE LwIP)

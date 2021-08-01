@@ -103,17 +103,18 @@ static int get_errno(FRESULT result) {
 }
 
 static int get_fatfs_mode(int flags) {
-    int mode = 0;
+    int mode;
 
     switch (flags & O_ACCMODE) {
     case O_RDWR:
-        mode |= FA_READ;
+        mode = FA_READ | FA_WRITE;
+        break;
     case O_WRONLY:
-        mode |= FA_WRITE;
+        mode = FA_WRITE;
         break;
     case O_RDONLY:
     default:
-        mode |= FA_READ;
+        mode = FA_READ;
     }
 
     if (flags & O_APPEND) {
@@ -196,22 +197,7 @@ static FILINFO get_fatfs_time(
 }
 #endif
 
-static inline const char *process_path(const char *path) {
-    unsigned int dev_name_len = strlen(devoptab_fatfs.name);
-    const char *device_path = path;
-    while (*device_path == '/') {
-        // Skip leading space
-        device_path++;
-    }
-    if (strncmp(device_path, devoptab_fatfs.name, dev_name_len) == 0) {
-        // Skip device name
-        return device_path + dev_name_len;
-    }
-    // Device name not in the path, don't do any change
-    return path;
-}
-
-static int open_r(struct _reent *r, void *fileStruct, const char *path, int flags, int mode) {
+static int open_r(struct _reent *r, void *fileStruct, const char *path, int flags, __attribute__((unused)) int mode) {
     PREPARE_FIL_EX(f, fileStruct);
     FRESULT result;
 
@@ -220,7 +206,7 @@ static int open_r(struct _reent *r, void *fileStruct, const char *path, int flag
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     int ff_mode = get_fatfs_mode(flags);
 
@@ -330,10 +316,6 @@ static ssize_t read_r(struct _reent *r, void *fileStruct, char *ptr, size_t len)
         return -1;
     }
 
-    if (f->flags & FLAG_SYNC) {
-        fsync_r(r, fileStruct);
-    }
-
     return bytes_read;
 }
 
@@ -399,7 +381,7 @@ static int stat_r(struct _reent *r, const char *path, struct stat *st) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_stat(path, &finfo);
     if (result != FR_OK) {
@@ -437,7 +419,7 @@ static int stat_r(struct _reent *r, const char *path, struct stat *st) {
     return 0;
 }
 
-static int fstat_r(struct _reent *r, void *fileStruct, struct stat *st) {
+static int fstat_r(struct _reent *r, __attribute__((unused)) void *fileStruct, __attribute__((unused)) struct stat *st) {
 #ifdef FATFS_FSTAT
     PREPARE_FIL_EX(f, fileStruct);
     if (f->path) {
@@ -455,16 +437,30 @@ static int fstat_r(struct _reent *r, void *fileStruct, struct stat *st) {
     return -1;
 }
 
-static int link_r(struct _reent *r, const char *existing, const char *newLink) {
+static int link_r(struct _reent *r, __attribute__((unused)) const char *existing, __attribute__((unused)) const char *newLink) {
     // Links are not supported on FAT
     r->_errno = ENOTSUP;
     return -1;
 }
 
-static int unlink_r(struct _reent *r, const char *name) {
-    // Links are not supported on FAT
-    r->_errno = ENOTSUP;
-    return -1;
+static int unlink_r(struct _reent *r, const char *path) {
+    FRESULT result;
+
+    if (IS_EMPTY(path)) {
+        r->_errno = EINVAL;
+        return -1;
+    }
+
+    path = process_path(path, devoptab_fatfs.name);
+
+    result = f_unlink(path);
+    r->_errno = get_errno(result);
+
+    if (result != FR_OK) {
+        return -1;
+    }
+
+    return 0;
 }
 
 static int chdir_r(struct _reent *r, const char *path) {
@@ -475,7 +471,7 @@ static int chdir_r(struct _reent *r, const char *path) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_chdir(path);
     r->_errno = get_errno(result);
@@ -495,8 +491,8 @@ static int rename_r(struct _reent *r, const char *oldName, const char *newName) 
         return -1;
     }
 
-    oldName = process_path(oldName);
-    newName = process_path(newName);
+    oldName = process_path(oldName, devoptab_fatfs.name);
+    newName = process_path(newName, devoptab_fatfs.name);
 
     result = f_rename(oldName, newName);
     r->_errno = get_errno(result);
@@ -508,7 +504,7 @@ static int rename_r(struct _reent *r, const char *oldName, const char *newName) 
     return 0;
 }
 
-static int chmod_r(struct _reent *r, const char *path, mode_t mode) {
+static int chmod_r(struct _reent *r, __attribute__((unused)) const char *path, __attribute__((unused)) mode_t mode) {
 #if !_USE_CHMOD || _FS_READONLY
     r->_errno = ENOTSUP;
     return -1;
@@ -520,7 +516,7 @@ static int chmod_r(struct _reent *r, const char *path, mode_t mode) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     BYTE attr = (mode & IS_IWALL) ? 0 : AM_RDO; // Read only when no write enabled
     // Ignoring Archive, System and Hidden attributes
@@ -536,7 +532,7 @@ static int chmod_r(struct _reent *r, const char *path, mode_t mode) {
 #endif
 }
 
-static int fchmod_r(struct _reent *r, void *fileStruct, mode_t mode) {
+static int fchmod_r(struct _reent *r, __attribute__((unused)) void *fileStruct, __attribute__((unused)) mode_t mode) {
 #ifdef FATFS_FSTAT
     PREPARE_FIL_EX(f, fileStruct);
     if (f->path) {
@@ -556,7 +552,7 @@ static int mkdir_r(struct _reent *r, const char *path, int mode) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_mkdir(path);
     errno = get_errno(result);
@@ -587,7 +583,7 @@ static DIR_ITER *diropen_r(struct _reent *r, DIR_ITER *dirState, const char *pat
         return NULL;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_opendir(dirState->dirStruct, path);
     r->_errno = get_errno(result);
@@ -656,7 +652,7 @@ static int statvfs_r(struct _reent *r, const char *path, struct statvfs *buf) {
         return -1;
     }
 
-    path = process_path(path);
+    path = process_path(path, devoptab_fatfs.name);
 
     result = f_getfree(path, &free_clst, &ff);
     if (result != FR_OK) {
@@ -717,23 +713,7 @@ static int ftruncate_r(struct _reent *r, void *fileStruct, off_t len) {
 }
 
 static int rmdir_r(struct _reent *r, const char *path) {
-    FRESULT result;
-
-    if (IS_EMPTY(path)) {
-        r->_errno = EINVAL;
-        return -1;
-    }
-
-    path = process_path(path);
-
-    result = f_unlink(path);
-    r->_errno = get_errno(result);
-
-    if (result != FR_OK) {
-        return -1;
-    }
-
-    return 0;
+    return unlink_r(r, path);
 }
 
 static int lstat_r(struct _reent *r, const char *file, struct stat *st) {
@@ -741,7 +721,7 @@ static int lstat_r(struct _reent *r, const char *file, struct stat *st) {
     return stat_r(r, file, st);
 }
 
-static int utimes_r(struct _reent *r, const char *filename, const struct timeval times[2]) {
+static int utimes_r(struct _reent *r, __attribute__((unused)) const char *filename, __attribute__((unused)) const struct timeval times[2]) {
 #if !_USE_CHMOD || _FS_READONLY
     r->_errno = EPERM;
     return -1;

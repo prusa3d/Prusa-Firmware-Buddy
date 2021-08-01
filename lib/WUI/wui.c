@@ -14,9 +14,14 @@
 #include <string.h>
 #include "sntp_client.h"
 #include "dbg.h"
+#include "esp/esp.h"
+#include "stm32_port.h"
+#include "lwip/altcp_tcp.h"
+#include "esp_tcp.h"
 #include "netifapi.h"
 #include "dns.h"
 #include "httpd.h"
+
 
 typedef enum {
     WUI_IP4_DHCP,
@@ -142,7 +147,12 @@ void eth_change_setting(uint16_t flag, uint16_t value) {
     osMessagePut(networkMbox_id, message, 0);
 }
 
+extern void netconn_client_thread(void const *arg);
+
 void StartWebServerTask(void const *argument) {
+    ap_entry_t ap = { "ssid", "password" };
+    uint32_t res;
+    _dbg("wui starts");
     networkMbox_id = osMessageCreate(osMessageQ(networkMbox), NULL);
     if (networkMbox_id == NULL) {
         _dbg("networkMbox was not created");
@@ -165,11 +175,31 @@ void StartWebServerTask(void const *argument) {
     }
     // marlin client initialization for WUI
     wui_marlin_client_init();
+    // LwIP related initalizations
+    MX_LWIP_Init(&wui_eth_config);
+    //    http_server_init();
+    sntp_client_init();
+    osDelay(WUI_NETIF_SETUP_DELAY); // wait for all settings to take effect
+    // Initialize the thread for httpc
+    // osThreadDef(httpcTask, StarthttpcTask, osPriorityNormal, 0, 512);
+    // httpcTaskHandle = osThreadCreate(osThread(httpcTask), NULL);
+    // http_server_init();
+    // lwesp stuffs
+    tcpip_init(tcpip_init_done_callback, &wui_eth_config);
+    res = esp_initialize();
+    _dbg("LwESP initialized with result = %ld", res);
+    LWIP_UNUSED_ARG(res);
 
     // TcpIp related initalizations
-    tcpip_init(tcpip_init_done_callback, &wui_eth_config);
     httpd_init();
     sntp_client_init();
+
+  if (!esp_connect_to_AP(&ap)) {
+
+        _dbg("LwESP connect to AP %s!", ap.ssid);
+        esp_http_server_init(NULL, 80);
+        // esp_sys_thread_create(NULL, "netconn_client", (esp_sys_thread_fn)netconn_client_thread, NULL, 512, ESP_SYS_THREAD_PRIO);
+    }
 
     for (;;) {
         osEvent evt = osMessageGet(networkMbox_id, 500);
@@ -231,4 +261,12 @@ void StartWebServerTask(void const *argument) {
 
         sync_with_marlin_server();
     }
+}
+
+struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {
+    if (netif_status == WUI_ETH_NETIF_UP)
+        return altcp_tcp_new_ip_type(ip_type);
+    else
+        return NULL;
+    // return altcp_esp_new_ip_type(ip_type);
 }
