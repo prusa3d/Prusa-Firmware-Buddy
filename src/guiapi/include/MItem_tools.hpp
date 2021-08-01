@@ -342,7 +342,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_SOUND_VOLUME : public WI_SPIN_INT_t {
+class MI_SOUND_VOLUME : public WiSpinInt {
     constexpr static const char *const label = N_("Sound Volume");
 
 public:
@@ -351,7 +351,7 @@ public:
     /* virtual void Change() override; */
 };
 
-class MI_TIMEZONE : public WI_SPIN_INT_t {
+class MI_TIMEZONE : public WiSpinInt {
     constexpr static const char *const label = "TZ UTC(+/-)"; // intentionally not translated
 
 public:

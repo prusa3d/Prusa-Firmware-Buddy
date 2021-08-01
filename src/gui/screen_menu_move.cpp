@@ -9,14 +9,14 @@
 #include "menu_spin_config.hpp"
 
 template <size_t INDEX>
-class MI_AXIS : public WI_SPIN_INT_t {
+class MI_AXIS : public WiSpinInt {
 
 public:
     MI_AXIS<INDEX>()
-        : WI_SPIN_INT_t(int32_t(marlin_vars()->pos[INDEX]),
+        : WiSpinInt(int32_t(marlin_vars()->pos[INDEX]),
             SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual invalidate_t Change(int dif) override {
-        invalidate_t ret = WI_SPIN_INT_t::Change(dif);
+        invalidate_t ret = WiSpinInt::Change(dif);
         marlin_gcode_printf("G0 %c%d F%d", MenuVars::axis_letters[INDEX], value, MenuVars::manual_feedrate[INDEX]);
         return ret;
     }

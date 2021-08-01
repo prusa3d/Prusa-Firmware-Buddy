@@ -102,5 +102,5 @@ inline void WI_SPIN_t<float>::printSpinToBuffer() {
     snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, static_cast<double>(value.flt));
 }
 
-using WI_SPIN_INT_t = WI_SPIN_t<int>;
-using WI_SPIN_FL_t = WI_SPIN_t<float>;
+using WiSpinInt = WI_SPIN_t<int>;
+using WiSpinFlt = WI_SPIN_t<float>;
