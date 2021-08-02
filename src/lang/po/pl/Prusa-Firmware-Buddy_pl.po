@@ -974,7 +974,7 @@ msgstr "Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby za�
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
 msgid "Today at"
-msgstr "Dziś o "
+msgstr "Dziś o"
 
 #. abbreviated Tuesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:47
