@@ -292,7 +292,7 @@ WCHAR ff_convert (	/* Converted character, Returns zero on error */
 			// 	if (chr == Tbl[c]) break;
 			// }
 			// c = (c + 0x80) & 0xFF;
-				c = 42;
+				c = '?';
 		}
 	}
 
