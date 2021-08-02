@@ -35,6 +35,67 @@ target_include_directories(
                           ${CMAKE_CURRENT_BINARY_DIR}
   )
 
+# add files for testing FILE provider
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/keys.txt ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/keys.txt
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/cs.txt ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/cs.txt
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/cs.mo ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/cs.mo
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/de.txt ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/de.txt
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/de.mo ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/de.mo
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/en.txt ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/en.txt
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/en.mo ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/en.mo
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/es.txt ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/es.txt
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/es.mo ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/es.mo
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/fr.mo ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/fr.mo
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/fr.txt ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/fr.txt
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/it.mo ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/it.mo
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/it.txt ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/it.txt
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/pl.mo ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/pl.mo
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/pl.txt ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/pl.txt
+  COPYONLY
+  )
 # define custom macros
 target_compile_definitions(translator_tests PUBLIC TRANSLATIONS_UNITTEST)
 

@@ -1,0 +1,253 @@
+\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s
+A crash dump report (file dump.bin) has been saved to the USB drive.
+ABORT
+Adjust the nozzle height above the heatbed by turning the knob
+All tests finished successfully!
+Always
+Are you sure to stop this printing?
+Assist
+Auto Home
+BACK
+Back
+Bed leveling failed. Try again?
+Calibrating Z
+Calibration
+CALIBRATION
+Calibration successful! Happy printing!
+Calibration XY
+CANCEL
+CHANGE FILAMENT
+Change Filament
+Check the heatbed heater & thermistor wiring for possible damage.
+Check the heatbed thermistor wiring for possible damage.
+Check the print head heater & thermistor wiring for possible damage.
+Check the print head thermistor wiring for possible damage.
+Checking axes
+Clean steel sheet.
+Congratulations! XYZ calibration is ok. XY axes are perpendicular.
+CONTINUE
+Cooldown
+CPU load
+Current Profile
+Device hash in QR
+DISABLE SENSOR
+Disable Steppers
+Disconnect
+Do you want to repeat the last step and readjust the distance between the nozzle and heatbed?
+Do you want to use the current value?\nCurrent: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)
+Ejecting
+Error
+Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again.
+Everything is alright. I will run XYZ calibration now. It will take approximately 12 minutes.
+EXIT
+Factory defaults loaded. The system will now restart.
+Factory Reset
+Fail Stats
+Fan Test
+Fan0 RPM
+Fan1 RPM
+FILAMENT
+Filament
+Filament appears to be already loaded, are you sure you want to load it anyway?
+Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.
+Filament Sensor
+Finishing buffered gcodes.
+Firmware Version\n
+First Layer Calibration
+FIRST LAYER CALIBRATION
+Flow Factor
+Fri
+FW UPDATE
+FW Update
+Heatbed
+Heatbed heater check
+Heater testing
+Heating disabled due to 30 minutes of inactivity.
+Heating...
+Hi, this is your\nOriginal Prusa MINI.
+HOME
+Home
+HOME TO MAX
+Hotend Fan
+Hotend fan not spinning. Check it for possible debris, then inspect the wiring.
+HW Setup
+IGNORE
+In the next step, use the knob to adjust the nozzle height. Check the pictures in the handbook for reference.
+INFO
+Info
+Information
+Inserting
+IP addresses or parameters are not valid or the file "lan_settings.ini" is not in the root directory of the USB drive.
+Is color correct?
+Is filament in extruder gear?
+Is steel sheet on heatbed?
+LAN SETTINGS
+Lan Settings
+Language
+LANGUAGES
+Live Adjust Z
+LOAD
+LOAD FILAMENT
+Load Filament
+Load Settings
+Loading ...
+Loading to nozzle
+Loud
+M.I.N.D.A.
+Make sure the filament is inserted through the sensor.
+Material
+MAXTEMP ERROR
+Measuring reference\nheight of calib.\npoints
+Menu Timeout
+Mesh Bed Leveling
+MESH BED LEVELING
+MESSAGES
+Messages
+MINTEMP ERROR
+Mon
+Move Axis
+MOVE AXIS
+Move E
+Move X
+Move Y
+Move Z
+Name
+NEXT
+NO
+No filament sensor detected. Verify that the sensor is connected and try again.
+No USB
+Now, let's calibrate the distance between the tip of the nozzle and the print sheet.
+Nozzle
+Nozzle and Heatbed
+Nozzle heater check
+Off
+OK
+On
+On Restart
+Once
+Once the printer starts extruding plastic, adjust the nozzle height by turning the knob until the filament sticks to the print sheet.
+Parking
+Pause
+Pausing...
+Place a sheet of paper under the nozzle during the calibration of first 4 points. If the nozzle catches the paper, power off printer immediately!
+Please clean the nozzle for calibration. Click NEXT when done.
+Please insert a USB drive and try again.
+Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware
+Please open idler and remove filament manually
+Please place steel sheet on heatbed.
+Please remove steel sheet from heatbed.
+Please wait
+PREHEAT
+Preheat
+PREHEAT ERROR
+PREHEAT for LOAD
+PREHEAT for UNLOAD
+Preparing
+Preparing to ram
+Press CONTINUE and push filament into the extruder.
+Press NEXT to run the Selftest, which checks for potential issues related to the assembly.
+Print
+Print Fan
+Print fan not spinning. Check it for possible debris, then inspect the wiring.
+Print Time
+Print will end
+PRINTING
+Printing time
+PURGE FILAMENT
+Purge Filament
+PURGE MORE
+Purging
+Question
+Ramming
+Really Disconnect?
+REHEAT
+Remaining Time
+RENAME
+Rename
+Reprint
+Reset
+RESET PRINTER
+Resume
+Resuming...
+RETRY
+Return
+Sat
+Save Crash Dump
+Save Settings
+Searching bed\ncalibration points
+Select
+Select Filament Type
+SELECT FILE
+SELECT LANGUAGE
+Select when you want to automatically flash updated firmware from USB flash disk.
+SelfTest
+SELFTEST
+SENSOR INFO
+Sensor Info
+SERIAL PRINTING
+Service
+Settings
+SETTINGS
+Settings successfully loaded
+Sheet Profile
+Show SelfTest result
+Silent
+Sort Files by
+Sound Mode
+Sound Volume
+Speed
+Static IPv4 addresses were not set.
+Statistic
+Steel Sheets
+STOP
+Stop
+Sun
+Support
+System Info
+TEMPERATURE
+Temperature
+Test
+Test FANs
+Test Heaters
+Test XYZ-Axis
+The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration.
+The selftest failed to finish. Double-check the printer's wiring and axes. Then restart the Selftest.
+The settings have been saved successfully in the "lan_settings.ini" file.
+The status bar is at the bottom of the screen. It contains information about:\n- Nozzle temp.\n- Heatbed temp.\n- Printing speed\n- Z-axis height\n- Selected filament
+The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration.
+There was an error saving the settings in the "lan_settings.ini" file.
+THERMAL RUNAWAY
+This G-CODE was set up for another printer type.
+This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?
+Thr
+Time
+To calibrate with currently loaded filament, press NEXT. To change filament, press UNLOAD.
+To calibrate with currently loaded filament, press NEXT. To load filament, press LOAD. To change filament, press UNLOAD.
+Today at
+Tue
+TUNE
+Tune
+UNLOAD
+UNLOAD FILAMENT
+Unload Filament
+Unloading
+Unparking
+USB drive error, the print is now paused. Reconnect the drive.
+Used Filament
+VERSION INFO
+Version Info
+Waiting for temperature
+Warning
+WARNING:
+Was filament unload successful?
+Wed
+Welcome to the Original Prusa MINI setup wizard. Would you like to continue?
+Wizard
+WIZARD
+WIZARD - OK
+X-axis
+XYZ CALIBRATION
+Y-axis
+YES
+Z height:
+Z-axis
