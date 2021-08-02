@@ -1,0 +1,253 @@
+\nWersja Bootloadera\n%d.%d.%d\n\nPłyta Buddy\n%d.%d.%d\n%s
+Raport zrzutu pamięci (plik dump.bin) został zapisany w pamięci USB.
+PRZERWIJ
+Ustaw dyszę w odpowiedniej odległości od stołu obracając pokrętłem.
+Wszystkie testy ukończono pomyślnie!
+Zawsze
+Czy na pewno chcesz przerwać wydruk?
+Wsparcie
+Auto bazowanie
+WSTECZ
+Wstecz
+Niepowodzenie poziomowania. Spróbować ponownie?
+Kalibuję Z
+Kalibracja
+KALIBRACJA
+Kalibracja wykonana pomyślnie! Udanego drukowania!
+Kalibracja XY
+ANULUJ
+ZMIANA FILAMENTU
+Zmiana filamentu
+Sprawdź czy przewody grzałki i termistora stołu nie są uszkodzone.
+Sprawdź czy przewody termistora stołu nie są uszkodzone.
+Sprawdź czy przewody grzałki i termistora hotendu nie są uszkodzone.
+Sprawdź czy przewody termistora hotendu nie są uszkodzone.
+Sprawdzanie osi
+Wyczyść płytę stalową.
+Gratulacje! Kalibracja XYZ została ukończona. Osie są prostopadłe do siebie.
+KONTYNUUJ
+Chłodzenie
+Obciążenie CPU
+Aktualny profil
+Identyfikator urządzenia w QR
+WYŁĄCZ CZUJNIK
+Wyłącz silniki
+Rozłącz
+Czy chcesz powtórzyć ostatni krok i poprawić kalibrację odległości dyszy od stołu?
+Czy na pewno chcesz użyć tych wartości:\nObecna: %0.3f.\nDomyślna: %0.3f.\nWciśnij NIE, aby użyć domyślnej (zalecane)
+Wysuwanie
+Błąd
+Błąd zapisywania zrzutu pamięci na nośniku USB. Odłącz i podłącz nośnik, następnie spróbuj ponownie.
+Zakończono pomyślnie. Teraz uruchomię kalibrację XYZ. Zajmie około 12 minut.
+WYJŚCIE
+Zresetowano do ustawień fabrycznych. System zostanie teraz zrestartowany.
+Ustawienia fabryczne
+Statystyki błędów
+Test wentylatorów
+RPM Went. 0
+RPM Went. 1
+FILAMENT
+Filament
+Wygląda na to, że filament jest już załadowany. Na pewno chcesz go załadować?
+Nie wykryto filamentu. Załadować? Wybierz NIE, aby anulować lub IGNORUJ, aby wyłączyć czujnik filamentu i kontynuować.
+Czujnik filamentu
+Opróżnianie bufora G-code.
+Wersja Firmware\n
+Kalibracja pierwszej warstwy
+KALIBRACJA PIERWSZEJ WARSTWY
+Przepływ
+Pt
+AKTUALIZACJA FW
+Aktualizacja FW
+Stół
+Test grzałki stołu
+Test grzałki
+Grzanie wyłączone po 30-minutowej bezczynności.
+Nagrzewanie...
+Cześć, jestem Twoją Original Prusa Mini
+EKRAN GŁÓWNY
+Ekran główny
+HOME TO MAX
+Wentylator hotendu
+Wentylator hotendu nie obraca się. Sprawdź, czy nie jest zablokowany przez zanieczyszczenia, następnie sprawdź przewody.
+Ustawienia HW
+IGNORUJ
+W kolejnym kroku użyj pokrętła, aby ustawić odległość dyszy od stołu. Możesz wspomóc się ilustracjami w Podręczniku.
+INFO
+Info
+Informacje
+Wsuwanie
+Adresy IP lub parametry są nieprawidłowe, albo plik "lan_settings.ini" nie znajduje się w katalogu głównym pamięci USB.
+Kolor prawidłowy?
+Czy filament sięga kół radełkowanych?
+Czy płyta znajduje się na stole?
+USTAWIENIA LAN
+Ustawienia LAN
+Języki
+JĘZYKI
+Live Adjust Z
+ZAŁADUJ
+ZAŁADUJ FILAMENT
+Załaduj filament
+Wczytaj ustawienia
+Wczytywanie ...
+Ładowanie do dyszy
+Głośno
+M.I.N.D.A.
+Upewnij się, że filament przechodzi przez czujnik filamentu.
+Materiał
+BŁĄD MAXTEMP
+Pomiar wysokości\npunktów\nkalibracyjnych
+Wył. czas. menu
+Poziomowanie stołu
+POZIOMOWANIE STOŁU
+KOMUNIKATY
+Komunikaty
+BŁĄD MINTEMP
+Pon
+Ruch osi
+RUCH OSI
+Ruch E
+Ruch X
+Ruch Y
+Ruch Z
+Nazwa
+DALEJ
+NIE
+Nie wykryto czujnika filamentu. Sprawdź, czy jest podłączony i spróbuj ponownie.
+Brak USB
+Teraz ustawimy odległość końcówki dyszy od powierzchni płyty.
+Dysza
+Dysza i stół
+Test grzałki hotendu
+Wył.
+OK
+Wł.
+Przy restarcie
+Pojedynczo
+Obracaj pokrętłem, gdy drukarka zacznie wytłaczać plastik, aby zbliżyć dyszę do powierzchni, aż materiał będzie dobrze przylegał.
+Parkowanie
+Pauza
+Pauzowanie
+Połóż kartkę papieru pod dyszą podczas kalibracji pierwszych 4 punktów. Wyłącz drukarkę natychmiast, jeśli dysza zahaczy o papier!
+Oczyść dyszę do kalibracji i naciśnij DALEJ.
+Podłącz pamięć USB i spróbuj ponownie.
+Podłącz pamięć USB dostarczoną z Twoją MINI i zresetuj drukarkę, aby wgrać firmware
+Otwórz docisk ekstrudera i wyciągnij filament ręcznie
+Połóż płytę stalową na stole.
+Zdejmij płytę stalową ze stołu.
+Proszę czekać
+NAGRZEWANIE
+Nagrzewanie
+BŁĄD GRZANIA
+NAGRZEWANIE do ŁADOWANIA
+NAGRZEWANIE do ROZŁADOWANIA
+Przygotowywanie
+Przygotowywanie do wyciskania
+Naciśnij KONTYNUUJ i wsuń filament do ekstrudera.
+Wciśnij DALEJ, aby uruchomić Selftest, który sprawdzi ewentualne błędy podczas montażu.
+Druk
+Went. wydruku
+Wentylator wydruku nie obraca się. Sprawdź, czy nie jest zablokowany przez zanieczyszczenia, następnie sprawdź przewody.
+Czas druku
+Druk zakończy się
+DRUKOWANIE
+Czas druku
+CZYSZCZENIE
+Czyszczenie
+CZYŚĆ PONOWNIE
+Czyszczenie
+Pytanie
+Wyciskanie
+Czy na pewno chcesz rozłączyć?
+PONOWNE NAGRZEWANIE
+Pozostały czas
+ZMIEN NAZWĘ
+Zmień nazwę
+Ponów druk
+Reset
+RESET DRUKARKI
+Wznów
+Wznawianie...
+PONÓW
+Powrót
+Sob
+Zapisz zrzut pamięci
+Zapisz ustawienia
+Szukam punktów\nkalibracyjnych stołu
+Wybierz
+Wybierz typ filamentu
+WYBIERZ PLIK
+WYBIERZ JĘZYK
+Wybierz, jeśli chcesz automatycznie wgrać zaktualizowane firmware z pamięci USB.
+Selftest
+SELFTEST
+INFO O SENSORACH
+Info o sensorach
+DRUK SZEREGOWY
+Serwis
+Ustawienia
+USTAWIENIA
+Ustawienia wczytane pomyślnie
+Profil płyty
+Pokaż wynik Selftestu
+Cicho
+Sortuj pliki wg
+Tryb dźwięku
+Głośność dźwięku
+Prędkość
+Nie ustawiono statycznych adresów IPv4.
+Statystyki
+Płyty stalowe
+STOP
+Stop
+Ndz
+Pomoc
+Info systemowe
+TEMPERATURA
+Temperatura
+Test
+Test wentylatorów
+Test grzałek
+Test osi XYZ
+Kalibracja pierwszej warstwy zakończona niepowodzeniem. Sprawdź okablowanie, dyszę oraz osie drukarki, następnie ponów kalibrację.
+Selftest zakończony niepowodzeniem. Sprawdź okablowanie drukarki oraz osie, następnie zrestartuj Selftest.
+Ustawienia zostały pomyślnie zapisane w pliku "lan_settings.ini".
+Pasek stanu znajduje się na spodzie ekranu. Zawiera informacje:\n- Temperatura dyszy\n- Temperatura stołu\n- Prędkość druku\n- Pozycja osi Z\n- Wybrany filament
+Kalibracja XYZ zakończona niepowodzeniem. Sprawdź okablowanie oraz osie drukarki, następnie uruchom kalibrację ponownie.
+Wystąpił błąd podczas zapisywania ustawień w pliku "lan_settings.ini".
+THERMAL RUNAWAY
+Ten G-code jest przygotowany dla innej drukarki.
+Tej czynności nie można cofnąć, a obecna konfiguracja zostanie utracona! Czy na pewno chcesz zresetować drukarkę do ustawień fabrycznych?
+Czw
+Czas
+Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby wymienić, wybierz ROZŁADUJ.
+Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby załadować, wybierz ZAŁADUJ. Aby wymienić, wybierz ROZŁADUJ.
+Dziś o
+Wt
+PARAMETRY
+Parametry
+ROZŁADUJ
+ROZŁADUJ FILAMENT
+Rozładuj filament
+Rozładowywanie
+Odparkowanie
+Błąd nośnika USB. Drukowanie zostało wstrzymane. Odłącz i ponownie podłącz nośnik.
+Użyty filament
+WERSJA
+Wersja
+Czekam na temp.
+Ostrzeżenie
+UWAGA:
+Czy udało się rozładować filament?
+Śr
+Witaj w Asystencie Konfiguracji Original Prusa MINI. Kontynuować?
+Asystent
+ASYSTENT
+ASYSTENT - OK
+Oś X
+KALIBRACJA XYZ
+Oś Y
+TAK
+Wysokość Z:
+Oś Z
