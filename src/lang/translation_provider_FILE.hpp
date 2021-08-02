@@ -43,11 +43,7 @@ class FILEtranslationProvider : public ITranslationProvider {
 
 public:
     FILEtranslationProvider(const char *path) {
-#ifdef TRANSLATIONS_UNITTEST
-        strncpy(m_Path, path, sizeof(m_Path));
-#else
         strlcpy(m_Path, path, sizeof(m_Path));
-#endif
     }
 
     ~FILEtranslationProvider() override = default;
