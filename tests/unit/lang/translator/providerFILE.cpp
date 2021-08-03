@@ -45,12 +45,12 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
             nonASCIICharacters.insert(c);
         }
     }
-    providerCS.EnsureFile();
-    providerCS.EnsureFile();
-    providerES.EnsureFile();
-    providerFR.EnsureFile();
-    providerIT.EnsureFile();
-    providerPL.EnsureFile();
+    REQUIRE(providerCS.EnsureFile());
+    REQUIRE(providerCS.EnsureFile());
+    REQUIRE(providerES.EnsureFile());
+    REQUIRE(providerFR.EnsureFile());
+    REQUIRE(providerIT.EnsureFile());
+    REQUIRE(providerPL.EnsureFile());
 
     REQUIRE(CheckAllTheStrings(stringKeys, csStrings, providerCS, nonASCIICharacters, "cs"));
     REQUIRE(CheckAllTheStrings(stringKeys, deStrings, providerDE, nonASCIICharacters, "de"));
@@ -61,4 +61,20 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
 
     CAPTURE(stringKeys.size());
     size_t i = 0;
+}
+
+TEST_CASE("providerFILE::bad files test", "[translator]") {
+    FILETranslationProvider nonExistingFile("nOnExIsTiNg.mo");
+    FILETranslationProvider shortFile("Mofiles/short.mo");
+    FILETranslationProvider badMagic("Mofiles/magic.mo");
+    FILETranslationProvider bigEnd("Mofiles/bigEnd.mo");
+
+    REQUIRE(!nonExistingFile.EnsureFile());
+    REQUIRE(shortFile.EnsureFile());
+    REQUIRE(!badMagic.EnsureFile());
+    REQUIRE(!bigEnd.EnsureFile());
+    char *key = "Language";
+    set<unichar> chars;
+    //the file is short and should return key string
+    REQUIRE(CompareStringViews(shortFile.GetText(key), string_view_utf8::MakeRAM((uint8_t *)key), chars, "ts"));
 }
