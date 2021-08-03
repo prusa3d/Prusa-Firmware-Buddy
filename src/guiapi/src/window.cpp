@@ -319,9 +319,9 @@ bool window_t::EventEncoder(int diff) {
         return false;
 
     if (diff > 0) {
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_UP, (void *)diff);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_UP, (void *)(intptr_t)diff);
     } else {
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_DN, (void *)-diff);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_DN, (void *)(intptr_t)-diff);
     }
 
     Screens::Access()->ResetTimeout();
@@ -329,23 +329,25 @@ bool window_t::EventEncoder(int diff) {
 }
 
 bool window_t::EventJogwheel(BtnState_t state) {
-    marlin_notify_server_about_konb_click();
+    static bool dont_click_on_next_release = false;
+    marlin_notify_server_about_knob_click();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
-    if (!capture_ptr)
-        return false;
 
     switch (state) {
     case BtnState_t::Pressed:
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::BTN_DN, 0);
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::BTN_DN, 0);
         break;
     case BtnState_t::Released:
         Sound_Play(eSOUND_TYPE::ButtonEcho);
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::BTN_UP, 0);
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::BTN_UP, 0);
+        if (!dont_click_on_next_release && capture_ptr)
+            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
+        dont_click_on_next_release = false;
         break;
     case BtnState_t::Held:
-        Sound_Play(eSOUND_TYPE::ButtonEcho);
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HOLD, 0);
+        dont_click_on_next_release = true;
+        if (capture_ptr)
+            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HOLD, 0);
         break;
     }
 
