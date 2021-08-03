@@ -10,12 +10,12 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     CHECK(LoadTranslatedStringsFile("Mofiles/keys.txt", &stringKeys));
 
     //initialize translation providers
-    FILEtranslationProvider providerCS("Mofiles/cs.mo");
-    FILEtranslationProvider providerDE("Mofiles/de.mo");
-    FILEtranslationProvider providerES("Mofiles/es.mo");
-    FILEtranslationProvider providerFR("Mofiles/fr.mo");
-    FILEtranslationProvider providerIT("Mofiles/it.mo");
-    FILEtranslationProvider providerPL("Mofiles/pl.mo");
+    FILETranslationProvider providerCS("Mofiles/cs.mo");
+    FILETranslationProvider providerDE("Mofiles/de.mo");
+    FILETranslationProvider providerES("Mofiles/es.mo");
+    FILETranslationProvider providerFR("Mofiles/fr.mo");
+    FILETranslationProvider providerIT("Mofiles/it.mo");
+    FILETranslationProvider providerPL("Mofiles/pl.mo");
 
     //load transtaled strings
     deque<string> csStrings, deStrings, esStrings, frStrings, itStrings, plStrings;
