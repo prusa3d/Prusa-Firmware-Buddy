@@ -25,6 +25,7 @@ void adc_dma_init(ADC_HandleTypeDef *adc) {
             std::get<channels_index_t::value>(_adcs)[CHANNEL_NOZZLE] = ADC_SIM_VAL4;
 #endif
             std::get<peripheral_index_t::value>(_adcs) = adc;
+            break;
         }
     }
 }
@@ -45,6 +46,7 @@ void adc_dma_deinit(ADC_HandleTypeDef *adc) {
             std::get<channels_index_t::value>(_adcs)[CHANNEL_NOZZLE] = 0;
 #endif
             std::get<peripheral_index_t::value>(_adcs) = nullptr;
+            break;
         }
     }
 }

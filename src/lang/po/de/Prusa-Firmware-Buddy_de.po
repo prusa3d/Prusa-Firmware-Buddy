@@ -364,7 +364,7 @@ msgstr "Farbe korrekt?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:26
 msgid "Is filament in extruder gear?"
-msgstr "Filament im Extruder Antrieb? "
+msgstr "Filament im Extruder Antrieb?"
 
 #: src/gui/wizard/xyzcalib.cpp:47 src/gui/wizard/xyzcalib.cpp:240
 msgid "Is steel sheet on heatbed?"

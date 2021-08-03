@@ -213,7 +213,7 @@ msgstr "Prueba del ventilador"
 
 #: src/gui/screen_sysinf.cpp:71
 msgid "Fan0 RPM"
-msgstr "RPM Ventilador0 "
+msgstr "RPM Ventilador0"
 
 #: src/gui/screen_sysinf.cpp:75
 msgid "Fan1 RPM"

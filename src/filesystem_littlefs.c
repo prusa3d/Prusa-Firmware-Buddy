@@ -106,7 +106,7 @@ static enum lfs_open_flags get_littlefs_flags(int flags) {
     return lfs_flags;
 }
 
-inline uint16_t crc32to16(uint32_t crc) {
+static inline uint16_t crc32to16(uint32_t crc) {
     uint16_t crc1 = crc << 16;
     uint16_t crc2 = crc & 0xFFFF;
     return crc1 ^ crc2;

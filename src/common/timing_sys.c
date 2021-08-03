@@ -1,8 +1,9 @@
 #include "timing.h"
+#include "timing_private.h"
 #include "timer_defaults.h"
 #include "stm32f4xx_hal.h"
 #include "FreeRTOS.h"
-#include "stm32f4xx_hal_tim.h" //TIM_HandleTypeDef
+#include "tick_timer_api.h"
 #include "wdt.h"
 #define TICK_TIMER_CNT (h_tick_tim.Instance->CNT)
 
@@ -42,7 +43,7 @@ uint64_t timestamp_ns() {
             // an overflow of the timer has happened, lets try again
             continue;
 
-        uint64_t ret = ticks_to_ns(lower_cnt);
+        uint64_t ret = clock_to_ns(lower_cnt);
         ret %= billion;                                    //remove seconds from nanosecond variable
         ret += (uint64_t)billion * (uint64_t)sec_1st_read; //convert seconds to nano seconds
 
@@ -67,14 +68,14 @@ uint32_t ticks_us() {
 }
 
 uint32_t ticks_ns() {
-    return ticks_to_ns(TICK_TIMER_CNT);
+    return clock_to_ns(TICK_TIMER_CNT);
 }
 
 void TICK_TIMER_IRQHandler() {
     HAL_TIM_IRQHandler(&h_tick_tim);
 }
 
-void TICK_TIMER_PeriodElapsedCallback() {
+void app_tick_timer_overflow() {
     ++tick_cnt_s;
 }
 
@@ -87,17 +88,27 @@ void HAL_ResumeTick() {
 }
 
 /**
+ * @brief shadow weak function in HAL
+ *        do nothing, SysTimer is owned by FreeRtos
+ *
+ * @param TickPriority
+ * @return HAL_StatusTypeDef::HAL_OK
+ */
+HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
+    return HAL_OK;
+}
+
+/**
  * @brief Must use 32 bit timer
  *        ~12ns tick, 84MHz, 1s period
  *
- * @param TickPriority
  * @return HAL_StatusTypeDef
  */
-HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
+HAL_StatusTypeDef tick_timer_init() {
     HAL_StatusTypeDef status;
 
     /*Configure the IRQ priority */
-    HAL_NVIC_SetPriority(TICK_TIMER_IRQ, TickPriority, 0);
+    HAL_NVIC_SetPriority(TICK_TIMER_IRQ, TICK_TIMER_Prior, 0);
 
     /* Enable the global Interrupt */
     HAL_NVIC_EnableIRQ(TICK_TIMER_IRQ);
