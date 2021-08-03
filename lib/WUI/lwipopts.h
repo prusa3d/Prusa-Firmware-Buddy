@@ -47,7 +47,6 @@
   *
   ******************************************************************************
   */
-#include "wui_config.h"
 
 /* Define to prevent recursive inclusion --------------------------------------*/
 #ifndef __LWIPOPTS__H__
@@ -155,12 +154,8 @@ extern "C" {
     #define LWIP_COMPAT_SOCKETS        0
     #define LWIP_ALTCP                 1
 
-    #ifdef WUI_HOST_NAME
-        #define HTTPD_SERVER_AGENT WUI_HOST_NAME
-    #else
-        #define HTTPD_SERVER_AGENT "Prusa Buddy"
-    #endif
-    #define LWIP_DNS 1
+    #define HTTPD_SERVER_AGENT "Prusa Mini"
+    #define LWIP_DNS           1
 
 /* USER CODE END 1 */
 

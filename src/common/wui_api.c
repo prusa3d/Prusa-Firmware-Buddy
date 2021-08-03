@@ -6,6 +6,7 @@
  *      Author: joshy <joshymjose[at]gmail.com>
  */
 #include "wui_api.h"
+#include "wui.h"
 #include "version.h"
 #include "otp.h"
 #include <string.h>
@@ -123,17 +124,12 @@ void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config) {
     mac_address_t mac;
     parse_MAC_address(&mac);
 
-    if (get_eth_status() == ETH_NETIF_UP) {
+    ip4addr_ntoa_r(&(config->lan.addr_ip4), addr, IP4_ADDR_STR_SIZE);
+    ip4addr_ntoa_r(&(config->lan.msk_ip4), msk, IP4_ADDR_STR_SIZE);
+    ip4addr_ntoa_r(&(config->lan.gw_ip4), gw, IP4_ADDR_STR_SIZE);
 
-        ip4addr_ntoa_r(&(config->lan.addr_ip4), addr, IP4_ADDR_STR_SIZE);
-        ip4addr_ntoa_r(&(config->lan.msk_ip4), msk, IP4_ADDR_STR_SIZE);
-        ip4addr_ntoa_r(&(config->lan.gw_ip4), gw, IP4_ADDR_STR_SIZE);
-
-        snprintf(*dest, LAN_DESCP_SIZE, "IPv4 Address:\n%s\nIPv4 Netmask:\n%s\nIPv4 Gateway:\n%s\nMAC Address:\n%s",
-            addr, msk, gw, mac);
-    } else {
-        snprintf(*dest, LAN_DESCP_SIZE, "NO CONNECTION\n\nMAC Address:\n%s", mac);
-    }
+    snprintf(*dest, LAN_DESCP_SIZE, "IPv4 Address:\n%s\nIPv4 Netmask:\n%s\nIPv4 Gateway:\n%s\nMAC Address:\n%s",
+        addr, msk, gw, mac);
 }
 
 time_t sntp_get_system_time(void) {

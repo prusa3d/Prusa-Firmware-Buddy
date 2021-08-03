@@ -62,20 +62,6 @@ typedef struct {
 } printer_info_t;
 
 /*!*************************************************************************************************
-* \brief Returns ethernet status
-*
-* \retval eth_status - Current status of the ethernet connection
-***************************************************************************************************/
-const ETH_STATUS_t get_eth_status(void);
-
-/*!*************************************************************************************************
-* \brief Returns LAN flag from WUI
-*
-* \retval uint8_t the lan_t.flag of WUI
-***************************************************************************************************/
-uint8_t get_lan_flag(void);
-
-/*!*************************************************************************************************
 * \brief saves the Ethernet specific parameters to non-volatile memory
 *
 * \param [in] ETH_config storage for parameters to set from static ethconfig to non-volatile memory
@@ -144,7 +130,7 @@ void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config);
 *
 * \param [in] config - structure that stores currnet ethernet configurations
 *****************************************************************************/
-void get_eth_address(ETH_config_t *config);
+void get_eth_address(uint32_t, ETH_config_t *);
 
 /*!*********************************************************************************************************************
 * \brief Parses time from device's time storage to seconds. MONTHS are from 0 and YEARS are from 1900

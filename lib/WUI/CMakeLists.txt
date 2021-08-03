@@ -4,6 +4,7 @@ target_sources(
   WUI
   INTERFACE wui.c
             wui_REST_api.c
+            netdev.c
             http/altcp_proxyconnect.c
             http/fs.c
             http/httpd.c

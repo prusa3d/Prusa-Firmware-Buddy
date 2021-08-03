@@ -17,22 +17,6 @@
 
 #define ETH_HOSTNAME_LEN 20 // ethernet hostname MAX length
 
-typedef enum {
-    ETH_UNLINKED,   // ETH cabel is unlinked
-    ETH_NETIF_DOWN, // ETH interface is DOWN
-    ETH_NETIF_UP,   // ETH interface is UP
-} ETH_STATUS_t;
-
-typedef enum {
-    WUI_ETH_LINK_DOWN, // ETH cable is unplugged
-    WUI_ETH_LINK_UP,   // ETH cable is plugged
-} WUI_ETH_LINK_STATUS_t;
-
-typedef enum {
-    WUI_ETH_NETIF_DOWN, // ETH interface is down
-    WUI_ETH_NETIF_UP,   // ETH interface is up
-} WUI_ETH_NETIF_STATUS_t;
-
 typedef struct {
     uint8_t flag;        // lan flags: pos0 = switch(ON=0, OFF=1), pos1 = type(DHCP=0, STATIC=1)
                          // pos2 = type(ETH=1, WIFI=0)

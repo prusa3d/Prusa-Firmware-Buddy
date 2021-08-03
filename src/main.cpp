@@ -284,11 +284,12 @@ int main(void) {
     adc_dma_init(&hadc1); //start ADC DMA conversion
     /* USER CODE END 2 */
 
-    static metric_handler_t *handlers[] = {
-        &metric_handler_syslog,
-        NULL
-    };
+    // static metric_handler_t *handlers[] = {
+    //     &metric_handler_syslog,
+    //     NULL
+    // };
     // metric_system_init(handlers);
+
     /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
     /* USER CODE END RTOS_MUTEX */
@@ -320,7 +321,7 @@ int main(void) {
 
 #ifdef BUDDY_ENABLE_WUI
     /* definition and creation of webServerTask */
-    osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, BUDDY_WEB_STACK_SIZE);
+    osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, 1024);
     webServerTaskHandle = osThreadCreate(osThread(webServerTask), NULL);
 #endif
 
