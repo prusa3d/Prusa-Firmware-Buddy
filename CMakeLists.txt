@@ -670,6 +670,7 @@ if(GUI)
             src/guiapi/src/MItem_menus.cpp
             src/guiapi/src/MItem_print.cpp
             src/guiapi/src/MItem_tools.cpp
+            src/guiapi/src/MItem_experimental_tools.cpp
             src/guiapi/src/Jogwheel.cpp
             src/guiapi/src/ScreenShot.cpp
             src/guiapi/src/menu_spin_config_types.cpp
