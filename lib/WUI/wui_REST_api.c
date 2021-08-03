@@ -121,8 +121,8 @@ void get_printer(char *data, const uint32_t buf_len) {
         "}"
         "}",
         filament_material,
-        (int)wui_vars_copy.temp_nozzle, (int)((wui_vars_copy.temp_nozzle - (int)wui_vars_copy.temp_nozzle) * 10),
-        (int)wui_vars_copy.temp_bed, (int)((wui_vars_copy.temp_bed - (int)wui_vars_copy.temp_bed) * 10),
+        (int)wui_vars_copy.temp_nozzle, (int)((abs(wui_vars_copy.temp_nozzle - (int)wui_vars_copy.temp_nozzle)) * 10),
+        (int)wui_vars_copy.temp_bed, (int)((abs(wui_vars_copy.temp_bed - (int)wui_vars_copy.temp_bed)) * 10),
         operational, paused, printing, cancelling, pausing, sd_ready,
         error, ready, closed_on_error, busy);
 }
