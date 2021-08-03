@@ -33,8 +33,9 @@ const float z_offset_max = Z_OFFSET_MAX;
 //must be in this file, need to access marlin
 constexpr const int park_points[3] = NOZZLE_PARK_POINT;
 
-//min int -2147483648 .. 8 digits + 1 for /0
+constexpr const uint32_t default_Z_max_pos = DEFAULT_Z_MAX_POS;
 
+//min int -2147483648 .. 8 digits + 1 for /0
 constexpr const int X_home = X_HOME_DIR > 0 ? X_MAX_POS : X_MIN_POS;
 constexpr const int Y_home = Y_HOME_DIR > 0 ? Y_MAX_POS : Y_MIN_POS;
 

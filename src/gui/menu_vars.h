@@ -30,6 +30,8 @@ extern const char *const gcode_nozzle_park;
 
 #define z_offset_def nozzle_to_probe[2]
 
+extern const uint32_t default_Z_max_pos;
+
 //Z is loaded from eeprom, cannot be used
 extern const char X_home_gcode[];
 extern const char Y_home_gcode[];
