@@ -19,4 +19,5 @@ struct SpinCnf {
     static const SpinConfig_U08_t volume_range;
     static const SpinConfig_I08_t sensor_range;
     static const std::array<SpinConfig_I16_t, MenuVars::AXIS_CNT> axis_ranges;
+    static const SpinConfig_I32_t axis_z_range;
 };
