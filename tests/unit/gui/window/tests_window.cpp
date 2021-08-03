@@ -12,7 +12,7 @@ EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_
 void Sound_Play(eSOUND_TYPE eSoundType) {}
 void gui_loop() {}
 extern "C" void marlin_notify_server_about_encoder_move() {}
-extern "C" void marlin_notify_server_about_konb_click() {}
+extern "C" void marlin_notify_server_about_knob_click() {}
 
 //stubbed header does not have C linkage .. to be simpler
 static uint32_t hal_tick = 0;
