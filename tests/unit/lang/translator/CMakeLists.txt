@@ -96,6 +96,20 @@ configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/pl.txt ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/pl.txt
   COPYONLY
   )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/magic.mo ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/magic.mo
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/short.mo ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/short.mo
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/MOfilesTesting/bigEnd.mo
+  ${CMAKE_CURRENT_BINARY_DIR}/Mofiles/bigEnd.mo COPYONLY
+  )
+
 # define custom macros
 target_compile_definitions(translator_tests PUBLIC TRANSLATIONS_UNITTEST)
 
