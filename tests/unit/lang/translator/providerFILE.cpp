@@ -45,12 +45,12 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
             nonASCIICharacters.insert(c);
         }
     }
-    providerCS.OpenFile();
-    providerCS.OpenFile();
-    providerES.OpenFile();
-    providerFR.OpenFile();
-    providerIT.OpenFile();
-    providerPL.OpenFile();
+    providerCS.EnsureFile();
+    providerCS.EnsureFile();
+    providerES.EnsureFile();
+    providerFR.EnsureFile();
+    providerIT.EnsureFile();
+    providerPL.EnsureFile();
 
     REQUIRE(CheckAllTheStrings(stringKeys, csStrings, providerCS, nonASCIICharacters, "cs"));
     REQUIRE(CheckAllTheStrings(stringKeys, deStrings, providerDE, nonASCIICharacters, "de"));
