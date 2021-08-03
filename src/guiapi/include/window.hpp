@@ -136,9 +136,9 @@ public:
 //all children of window_t and their children must use AddSuperWindow<parent_window> for inheritance
 template <class Base>
 struct AddSuperWindow : public Base {
-    template <class... T>
-    AddSuperWindow(T... args)
-        : Base(args...) {}
+    template <class... Args>
+    AddSuperWindow(Args &&... args)
+        : Base(std::forward<Args>(args)...) {}
 
 protected:
     typedef Base super;
