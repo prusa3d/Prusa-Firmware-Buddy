@@ -108,7 +108,7 @@ void st25dv64k_user_write(uint16_t address, uint8_t data) {
     st25dv64k_unlock(); // unlock must be here because other threads cannot access eeprom while writing/waiting
 }
 
-void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint8_t size) {
+void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint16_t size) {
     uint8_t _out[2] = { address >> 8, address & 0xff };
     st25dv64k_lock();
     HAL_I2C_Master_Transmit(&hi2c1, ADDR_WRITE, _out, 2, HAL_MAX_DELAY);
@@ -116,7 +116,7 @@ void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint8_t size) {
     st25dv64k_unlock();
 }
 
-void st25dv64k_user_write_bytes(uint16_t address, void const *pdata, uint8_t size) {
+void st25dv64k_user_write_bytes(uint16_t address, void const *pdata, uint16_t size) {
     uint8_t const *p = (uint8_t const *)pdata;
     uint8_t _out[6];
     uint8_t block_size;
