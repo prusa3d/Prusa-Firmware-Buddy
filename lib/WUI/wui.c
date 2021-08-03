@@ -19,8 +19,6 @@
 #include "lwip/altcp_tcp.h"
 #include "esp_tcp.h"
 #include "esp.h"
-#include "esp/apps/esp_http_server.h"
-#include "esp/apps/esp_http_server_fs.h"
 #include "netifapi.h"
 #include "dns.h"
 #include "httpd.h"
@@ -180,6 +178,17 @@ void StartWebServerTask(void const *argument) {
     // TcpIp related initalizations
     tcpip_init(tcpip_init_done_callback, &wui_eth_config);
 
+    // LwESP stuffs
+    /*
+    // TODO: Handle enable disable of ESP
+    _dbg("LwESP initialized with result = %ld", esp_initialize());
+    ap_entry_t ap = { "esptest", "lwesp8266" };
+    if (!esp_connect_to_AP(&ap)) {
+        _dbg("LwESP connect to AP %s!", ap.ssid);
+        httpd_init();
+    }
+    */
+
     for (;;) {
         osEvent evt = osMessageGet(networkMbox_id, 500);
         if (evt.status == osEventMessage) {
@@ -252,6 +261,5 @@ struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {
     if (get_eth_status() == ETH_NETIF_UP)
         return altcp_tcp_new_ip_type(ip_type);
     else
-        return NULL;
-    // return altcp_esp_new_ip_type(ip_type);
+        return altcp_esp_new_ip_type(ip_type);
 }
