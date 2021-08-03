@@ -269,7 +269,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     Y_CURRENT,              // AXIS_RMS_CURRENT_MA_Y
     Z_CURRENT,              // AXIS_RMS_CURRENT_MA_Z
     E0_CURRENT,             // AXIS_RMS_CURRENT_MA_E0
-    0,//DEFAULT_Z_MAX_POS,      // AXIS_Z_MAX_POS_MM
+    DEFAULT_Z_MAX_POS,      // AXIS_Z_MAX_POS_MM
     "",                     // EEVAR__PADDING
     0xffffffff,             // EEVAR_CRC32
 };
@@ -848,8 +848,21 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
 
 /*****************************************************************************/
 //AXIS_Z_MAX_POS_MM
+extern "C" float get_z_max_pos_mm() {
+    float ret = variant8_get_flt(eeprom_get_var(AXIS_Z_MAX_POS_MM));
+    if ((ret > Z_MAX_LEN_LIMIT) || (ret < Z_MIN_LEN_LIMIT))
+        ret = DEFAULT_Z_MAX_POS;
+    return ret;
+}
+
 extern "C" uint16_t get_z_max_pos_mm_rounded() {
     return static_cast<uint16_t>(std::lround(get_z_max_pos_mm()));
+}
+
+extern "C" void set_z_max_pos_mm(float max_pos) {
+    if ((max_pos >= Z_MIN_LEN_LIMIT) && (max_pos <= Z_MAX_LEN_LIMIT)) {
+        eeprom_set_var(AXIS_Z_MAX_POS_MM, variant8_flt(max_pos));
+    }
 }
 
 /*****************************************************************************/
