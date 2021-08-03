@@ -2,9 +2,9 @@
 //used in inheritance to be able to access direct base class via super
 template <class Base>
 struct AddSuper : public Base {
-    template <class... T>
-    AddSuper(T... args)
-        : Base(args...) {}
+    template <class... Args>
+    AddSuper(Args &&... args)
+        : Base(std::forward<Args>(args)...) {}
 
 protected:
     typedef Base super;
