@@ -14,6 +14,10 @@
 MI_Z_AXIS_LEN::MI_Z_AXIS_LEN()
     : WiSpinInt(get_z_max_pos_mm_rounded(), SpinCnf::axis_z_max_range, _(label)) {}
 
+void MI_Z_AXIS_LEN::Store() {
+    set_z_max_pos_mm(GetVal());
+}
+
 /*****************************************************************************/
 //MI_RESET_Z_AXIS_LEN
 MI_RESET_Z_AXIS_LEN::MI_RESET_Z_AXIS_LEN()
@@ -28,20 +32,36 @@ void MI_RESET_Z_AXIS_LEN::click(IWindowMenu &window_menu) {
 MI_STEPS_PER_UNIT_X::MI_STEPS_PER_UNIT_X()
     : WiSpinInt(get_steps_per_unit_x_rounded(), SpinCnf::steps_per_unit, _(label)) {}
 
+void MI_STEPS_PER_UNIT_X::Store() {
+    set_steps_per_unit_x(GetVal());
+}
+
 /*****************************************************************************/
 //MI_STEPS_PER_UNIT_Y
 MI_STEPS_PER_UNIT_Y::MI_STEPS_PER_UNIT_Y()
     : WiSpinInt(get_steps_per_unit_y_rounded(), SpinCnf::steps_per_unit, _(label)) {}
+
+void MI_STEPS_PER_UNIT_Y::Store() {
+    set_steps_per_unit_y(GetVal());
+}
 
 /*****************************************************************************/
 //MI_STEPS_PER_UNIT_Z
 MI_STEPS_PER_UNIT_Z::MI_STEPS_PER_UNIT_Z()
     : WiSpinInt(get_steps_per_unit_z_rounded(), SpinCnf::steps_per_unit, _(label)) {}
 
+void MI_STEPS_PER_UNIT_Z::Store() {
+    set_steps_per_unit_z(GetVal());
+}
+
 /*****************************************************************************/
 //MI_STEPS_PER_UNIT_E
 MI_STEPS_PER_UNIT_E::MI_STEPS_PER_UNIT_E()
     : WiSpinInt(get_steps_per_unit_e_rounded(), SpinCnf::steps_per_unit, _(label)) {}
+
+void MI_STEPS_PER_UNIT_E::Store() {
+    set_steps_per_unit_e(GetVal());
+}
 
 /*****************************************************************************/
 //MI_RESET_STEPS_PER_UNIT
@@ -57,20 +77,36 @@ void MI_RESET_STEPS_PER_UNIT::click(IWindowMenu &window_menu) {
 MI_MICROSTEPS_X::MI_MICROSTEPS_X()
     : WiSpinExp(get_microsteps_x(), SpinCnf::microstep_exponential, _(label)) {}
 
+void MI_MICROSTEPS_X::Store() {
+    set_microsteps_x(GetVal());
+}
+
 /*****************************************************************************/
 //MI_MICROSTEPS_Y
 MI_MICROSTEPS_Y::MI_MICROSTEPS_Y()
     : WiSpinExp(get_microsteps_y(), SpinCnf::microstep_exponential, _(label)) {}
+
+void MI_MICROSTEPS_Y::Store() {
+    set_microsteps_y(GetVal());
+}
 
 /*****************************************************************************/
 //MI_MICROSTEPS_Z
 MI_MICROSTEPS_Z::MI_MICROSTEPS_Z()
     : WiSpinExp(get_microsteps_z(), SpinCnf::microstep_exponential, _(label)) {}
 
+void MI_MICROSTEPS_Z::Store() {
+    set_microsteps_z(GetVal());
+}
+
 /*****************************************************************************/
 //MI_MICROSTEPS_E
 MI_MICROSTEPS_E::MI_MICROSTEPS_E()
     : WiSpinExp(get_microsteps_e(), SpinCnf::microstep_exponential, _(label)) {}
+
+void MI_MICROSTEPS_E::Store() {
+    set_microsteps_e(GetVal());
+}
 
 /*****************************************************************************/
 //MI_RESET_MICROSTEPS
@@ -86,20 +122,36 @@ void MI_RESET_MICROSTEPS::click(IWindowMenu &window_menu) {
 MI_CURRENT_X::MI_CURRENT_X()
     : WiSpinInt(get_rms_current_ma_x(), SpinCnf::rms_current, _(label)) {}
 
+void MI_CURRENT_X::Store() {
+    set_rms_current_ma_x(GetVal());
+}
+
 /*****************************************************************************/
 //MI_CURRENT_Y
 MI_CURRENT_Y::MI_CURRENT_Y()
     : WiSpinInt(get_rms_current_ma_y(), SpinCnf::rms_current, _(label)) {}
+
+void MI_CURRENT_Y::Store() {
+    set_rms_current_ma_y(GetVal());
+}
 
 /*****************************************************************************/
 //MI_CURRENT_Z
 MI_CURRENT_Z::MI_CURRENT_Z()
     : WiSpinInt(get_rms_current_ma_z(), SpinCnf::rms_current, _(label)) {}
 
+void MI_CURRENT_Z::Store() {
+    set_rms_current_ma_z(GetVal());
+}
+
 /*****************************************************************************/
 //MI_CURRENT_E
 MI_CURRENT_E::MI_CURRENT_E()
     : WiSpinInt(get_rms_current_ma_e(), SpinCnf::rms_current, _(label)) {}
+
+void MI_CURRENT_E::Store() {
+    set_rms_current_ma_e(GetVal());
+}
 
 /*****************************************************************************/
 //MI_RESET_CURRENTS

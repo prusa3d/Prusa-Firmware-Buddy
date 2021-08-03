@@ -165,6 +165,12 @@ else()
   set(INIT_TRINAMIC_FROM_MARLIN_ONLY NO)
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(DEBUG YES)
+else()
+  set(DEBUG NO)
+endif()
+
 # append custom C/C++ flags
 if(CUSTOM_COMPILE_OPTIONS)
   string(REPLACE " " ";" CUSTOM_COMPILE_OPTIONS "${CUSTOM_COMPILE_OPTIONS}")
@@ -279,7 +285,7 @@ add_compile_options(-DconfigUSE_NEWLIB_REENTRANT=1)
 add_compile_options(-g)
 
 # optimizations
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(DEBUG)
   if(MCU STREQUAL "STM32F429VI")
     add_compile_options(-O0)
   else() # != "STM32F429VI"
@@ -658,7 +664,6 @@ if(GUI)
             src/gui/screen_menu_hw_setup.cpp
             src/gui/screen_menu_steel_sheets.cpp
             src/gui/screen_menu_footer_settings.cpp
-            src/gui/screen_menu_experimental_settings.cpp
             src/gui/screen_sheet_rename.cpp
             src/gui/test/screen_test.cpp
             src/gui/test/screen_test_disp_mem.cpp
@@ -722,6 +727,12 @@ if(GUI)
             src/guiapi/src/menu_spin_config_types.cpp
             $<$<STREQUAL:${PRINTER},MINI>:src/guiapi/src/menu_spin_config_basic.cpp>
     )
+endif()
+
+if(GUI AND DEBUG) # gui and debug
+  target_sources(firmware PRIVATE src/gui/screen_menu_experimental_settings_debug.cpp)
+elseif(GUI) # gui, not debug
+  target_sources(firmware PRIVATE src/gui/screen_menu_experimental_settings_mini.cpp)
 endif()
 
 # Set fsdata filename for HTTPServer

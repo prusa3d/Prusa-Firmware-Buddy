@@ -21,6 +21,7 @@ class MI_Z_AXIS_LEN : public WiSpinInt {
 
 public:
     MI_Z_AXIS_LEN();
+    void Store();
 };
 
 class MI_RESET_Z_AXIS_LEN : public WI_LABEL_t {
@@ -38,6 +39,7 @@ class MI_STEPS_PER_UNIT_X : public WiSpinInt {
 
 public:
     MI_STEPS_PER_UNIT_X();
+    void Store();
 };
 
 class MI_STEPS_PER_UNIT_Y : public WiSpinInt {
@@ -45,6 +47,7 @@ class MI_STEPS_PER_UNIT_Y : public WiSpinInt {
 
 public:
     MI_STEPS_PER_UNIT_Y();
+    void Store();
 };
 
 class MI_STEPS_PER_UNIT_Z : public WiSpinInt {
@@ -52,6 +55,7 @@ class MI_STEPS_PER_UNIT_Z : public WiSpinInt {
 
 public:
     MI_STEPS_PER_UNIT_Z();
+    void Store();
 };
 
 class MI_STEPS_PER_UNIT_E : public WiSpinInt {
@@ -59,6 +63,7 @@ class MI_STEPS_PER_UNIT_E : public WiSpinInt {
 
 public:
     MI_STEPS_PER_UNIT_E();
+    void Store();
 };
 
 class MI_RESET_STEPS_PER_UNIT : public WI_LABEL_t {
@@ -76,6 +81,7 @@ class MI_MICROSTEPS_X : public WiSpinExp {
 
 public:
     MI_MICROSTEPS_X();
+    void Store();
 };
 
 class MI_MICROSTEPS_Y : public WiSpinExp {
@@ -83,6 +89,7 @@ class MI_MICROSTEPS_Y : public WiSpinExp {
 
 public:
     MI_MICROSTEPS_Y();
+    void Store();
 };
 
 class MI_MICROSTEPS_Z : public WiSpinExp {
@@ -90,6 +97,7 @@ class MI_MICROSTEPS_Z : public WiSpinExp {
 
 public:
     MI_MICROSTEPS_Z();
+    void Store();
 };
 
 class MI_MICROSTEPS_E : public WiSpinExp {
@@ -97,6 +105,7 @@ class MI_MICROSTEPS_E : public WiSpinExp {
 
 public:
     MI_MICROSTEPS_E();
+    void Store();
 };
 
 class MI_RESET_MICROSTEPS : public WI_LABEL_t {
@@ -114,6 +123,7 @@ class MI_CURRENT_X : public WiSpinInt {
 
 public:
     MI_CURRENT_X();
+    void Store();
 };
 
 class MI_CURRENT_Y : public WiSpinInt {
@@ -121,6 +131,7 @@ class MI_CURRENT_Y : public WiSpinInt {
 
 public:
     MI_CURRENT_Y();
+    void Store();
 };
 
 class MI_CURRENT_Z : public WiSpinInt {
@@ -128,6 +139,7 @@ class MI_CURRENT_Z : public WiSpinInt {
 
 public:
     MI_CURRENT_Z();
+    void Store();
 };
 
 class MI_CURRENT_E : public WiSpinInt {
@@ -135,6 +147,7 @@ class MI_CURRENT_E : public WiSpinInt {
 
 public:
     MI_CURRENT_E();
+    void Store();
 };
 
 class MI_RESET_CURRENTS : public WI_LABEL_t {
