@@ -1,7 +1,7 @@
 /**
- * @file screen_menu_experimental_settings.cpp
+ * @file screen_menu_experimental_settings_debug.cpp
  * @author Radek Vana
- * @brief experimental settings
+ * @brief experimental settings debug configuration
  * @date 2021-07-28
  */
 
@@ -73,7 +73,23 @@ class ScreenMenuExperimentalSettings : public Screen {
 
         switch (MsgBoxQuestion(_(save_and_reboot), Responses_YesNoCancel)) {
         case Response::Yes:
-            set_z_max_pos_mm(Item<MI_Z_AXIS_LEN>().GetVal());
+            Item<MI_Z_AXIS_LEN>().Store();
+
+            Item<MI_STEPS_PER_UNIT_X>().Store();
+            Item<MI_STEPS_PER_UNIT_Y>().Store();
+            Item<MI_STEPS_PER_UNIT_Z>().Store();
+            Item<MI_STEPS_PER_UNIT_E>().Store();
+
+            Item<MI_MICROSTEPS_X>().Store();
+            Item<MI_MICROSTEPS_Y>().Store();
+            Item<MI_MICROSTEPS_Z>().Store();
+            Item<MI_MICROSTEPS_E>().Store();
+
+            Item<MI_CURRENT_X>().Store();
+            Item<MI_CURRENT_Y>().Store();
+            Item<MI_CURRENT_Z>().Store();
+            Item<MI_CURRENT_E>().Store();
+
             sys_reset();
         case Response::No:
             Screens::Access()->Close();
@@ -111,7 +127,7 @@ public:
             break;
         case ClickCommand::Reset_microsteps:
             Item<MI_MICROSTEPS_X>().SetVal(MenuVars::default_microsteps[0]);
-            Item<MI_MICROSTEPS_Y>().SetVal(MenuVars::default_microsteps[4]);
+            Item<MI_MICROSTEPS_Y>().SetVal(MenuVars::default_microsteps[1]);
             Item<MI_MICROSTEPS_Z>().SetVal(MenuVars::default_microsteps[2]);
             Item<MI_MICROSTEPS_E>().SetVal(MenuVars::default_microsteps[3]);
             menu.Invalidate(); // its broken, does not work
