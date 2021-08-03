@@ -45,15 +45,15 @@ uint32_t gettext_hash_table::hash_string(const char *key) const {
      Formulas: [Knuth, The Art of Computer Programming, Volume 3,
                 Sorting and Searching, 1973, Addison Wesley]  */
 
-uint32_t gettext_hash_table::GetIndexOfKey(const char *key) const {
+int32_t gettext_hash_table::getIndexOfKey(const char *key) const {
 
     uint32_t hashVal = hash_string(key);
-    uint32_t posInHash = hashVal % m_TableSize;
-    uint32_t incr = 1 + (hashVal % (m_TableSize - 2));
+    uint32_t posInHash = hashVal % m_HashSize;
+    uint32_t incr = 1 + (hashVal % (m_HashSize - 2));
     uint32_t index = 0;
 
     //get index from hash table
-    for (index = getIndexOnPos(posInHash); index != 0; index = getIndexOnPos(posInHash)) {
+    for (index = getIndexOnPos(posInHash); index > 0; index = getIndexOnPos(posInHash)) {
 
         index--;
 
@@ -61,13 +61,14 @@ uint32_t gettext_hash_table::GetIndexOfKey(const char *key) const {
             index -= m_NumOfString;
         }
 
-        //check string if it matches return the index
-        if (checkString(index, key)) {
+        //check string if it matches or error with file occurred return comparison result
+        if (checkString(index, key) != 0) {
             return index;
         }
+
         //if not rehash the string and check it again
-        if (posInHash >= m_TableSize - incr) {
-            posInHash -= m_TableSize - incr;
+        if (posInHash >= m_HashSize - incr) {
+            posInHash -= m_HashSize - incr;
         } else {
             posInHash += incr;
         }
@@ -76,72 +77,126 @@ uint32_t gettext_hash_table::GetIndexOfKey(const char *key) const {
     return index;
 }
 
-/**
- * gets index from hash table from pos
- * @param pos where to get index
- * @return uint32 index from pos
- */
-uint32_t gettext_hash_table::getIndexOnPos(uint32_t pos) const {
+int32_t gettext_hash_table::getIndexOnPos(uint32_t pos) const {
 
-    if (pos > m_TableSize) {
+    if (pos > m_HashSize) {
         return 0;
     }
     //move to position in hash table
     if (fseek(m_File, m_HashOffset + 4 * pos, SEEK_SET) != 0) {
-        return 0;
+        return -1;
     }
 
     //read index in position
     uint32_t indexOfString = 0;
-    if (fread(&indexOfString, 4, 1, m_File) == 0) {
-        return 0;
+    if (fread(&indexOfString, 4, 1, m_File) != 1) {
+        return -1;
     }
 
     return indexOfString;
 }
-bool gettext_hash_table::checkString(uint32_t index, const char *key) const {
+int8_t gettext_hash_table::checkString(uint32_t index, const char *key) const {
 
     uint32_t strLen = 0;
     int32_t pos = 0;
     //move to position of length a nd offset of the string to check
-    if (fseek(m_File, m_StringOffset + (index * 8), SEEK_SET) != 0) {
-        return false;
+    if (fseek(m_File, m_OrigOffset + (index * 8), SEEK_SET) != 0) {
+        return -1;
     }
     //compute len of key
     uint32_t keyLen = strlen(key);
 
     //read len and pos of next string
-    if (fread(&strLen, 4, 1, m_File) == 0 || fread(&pos, 4, 1, m_File) == 0) {
-        return false;
+    if (fread(&strLen, 4, 1, m_File) != 1 || fread(&pos, 4, 1, m_File) != 1) {
+        return -1;
     }
 
     //check if the lengths are equal
     if (strLen == 0 || strLen < keyLen) {
-        return false;
+        return 0;
     }
 
     //move to position of string to check
-    if (fseek(m_File, pos, SEEK_SET)) {
-        return false;
+    if (fseek(m_File, pos, SEEK_SET) != 0) {
+        return -1;
     }
 
     //check if the string matches
     //@@TODO: add build procedure to check minimal number of chars to check if the string are the same
     for (uint32_t i = 0; i < strLen; ++i) {
         char c;
-        if (fread(&c, 1, 1, m_File) == 0) {
-            return false;
+        if (fread(&c, 1, 1, m_File) != 1) {
+            return -1;
         }
         if (c != key[i]) {
-            return false;
+            return 0;
         }
+    }
+    return 1;
+}
+bool gettext_hash_table::Init(FILE *file) {
+
+    m_File = file;
+
+    //check validity of MO file
+
+    //check magick number
+    uint32_t magicNumber = 0;
+    if (fread(&magicNumber, 4, 1, m_File) != 1) {
+        return false;
+    }
+
+    if (magicNumber != 0x950412de) {
+        return false;
+    }
+
+    //check revision
+    uint32_t revision = 1;
+    if (fread(&revision, 4, 1, m_File) != 1) {
+        return false;
+    }
+
+    if (revision != 0) {
+        return false;
+    }
+
+    if (fread(&m_NumOfString, 4, 1, m_File) != 1) {
+        return false;
+    }
+    if (fread(&m_OrigOffset, 4, 1, m_File) != 1) {
+        return false;
+    }
+    if (fread(&m_TransOffset, 4, 1, m_File) != 1) {
+        return false;
+    }
+    if (fread(&m_HashSize, 4, 1, m_File) != 1) {
+        return false;
+    }
+    if (fread(&m_HashOffset, 4, 1, m_File) != 1) {
+        return false;
     }
     return true;
 }
-void gettext_hash_table::init(FILE *file, uint32_t tableSize, uint32_t hashOffset, uint16_t stringOffset, uint32_t numOfString) {
-    m_File = file;
-    m_TableSize = tableSize;
-    m_HashOffset = hashOffset;
-    m_StringOffset = stringOffset;
-    m_NumOfString = numOfString;
+int32_t gettext_hash_table::GetOffset(const char *key) const {
+
+    int32_t index = getIndexOfKey(key);
+    if (index <= 0) {
+        //0 = string not found, -1=error while reading file
+        //shift it by -1, because we can have offset 0
+        return index - 1;
+    }
+
+    //get to position of translated string
+    if (fseek(m_File, m_TransOffset + (8 * index) + 4, SEEK_SET) != 0) {
+        return -2;
+    }
+
+    int32_t posOfTrans = 0;
+    if (fread(&posOfTrans, 4, 1, m_File) != 1) {
+        return -2;
+    }
+    if (fseek(m_File, posOfTrans, SEEK_SET) != 0) {
+        return -2;
+    }
+    return posOfTrans;
 }

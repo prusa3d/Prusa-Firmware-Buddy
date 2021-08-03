@@ -42,89 +42,57 @@ class FILEtranslationProvider : public ITranslationProvider {
     mutable uint32_t m_TransTableOff;
 
 public:
-    FILEtranslationProvider(const char *path) {
+    FILETranslationProvider(const char *path) {
         strlcpy(m_Path, path, sizeof(m_Path));
     }
 
-    ~FILEtranslationProvider() override = default;
+    ~FILETranslationProvider() override = default;
     /// translates key according to MO file
     /// \param key string to translate
     /// \return translated string in string view, If translation is not found returns string view with original string
     string_view_utf8 GetText(const char *key) const override {
 
         //check if file is valid, if not try to open it again
-        if (!m_File) {
-            if (!OpenFile()) {
-                return string_view_utf8::MakeCPUFLASH((const uint8_t *)key);
-            }
+        if (!EnsureFile()) {
+            return string_view_utf8::MakeCPUFLASH((const uint8_t *)key);
         }
+        FileRaii file(m_File);
 
         //find translation for key, if not found return the original string
-        uint16_t offset = 0;
-        if ((offset = findMessage(key, m_File)) != 0) {
+        int32_t offset = m_HashTable.GetOffset(key);
+        if (offset >= 0) {
+            file.Release();
             return string_view_utf8::MakeFILE(m_File, offset);
+        } else if (offset == -1) {
+            file.Release();
+            return string_view_utf8::MakeCPUFLASH((const uint8_t *)key);
         } else {
+            m_File = nullptr;
             return string_view_utf8::MakeCPUFLASH((const uint8_t *)key);
         }
     }
 
     /// tries to open the file added in constructor and also checks if it is valid MO file
     /// \return true if successfully opened and checked, false if anything fails
-    bool OpenFile() const {
-        m_File = fopen(m_Path, "rb");
+    bool EnsureFile() const {
+
+        //check if there is open file, if yes it must have been open with this function and is valid
         if (m_File) {
-            //            check validity of MO file
-            //check magick number
-            uint32_t magicNumber = 0;
-            if (fread(&magicNumber, 4, 1, m_File) == 0) {
+            return true;
+        }
+        m_File = fopen(m_Path, "rb");
+        FileRaii file(m_File); //now we know that the FILE* is valid
+        if (m_File) {
+            if (!m_HashTable.Init(m_File)) {
+                m_File = nullptr;
                 return false;
             }
-
-            if (magicNumber != 0x950412de) {
-                fclose(m_File);
-                return false;
-            }
-
-            //check revision
-            uint32_t revision = 1;
-            if (fread(&revision, 4, 1, m_File) == 0) {
-                return false;
-            }
-
-            if (revision != 0) {
-                fclose(m_File);
-                return false;
-            }
-
-            uint32_t origTableOf = 0;
-            uint32_t transTableOf = 0;
-            uint32_t hashTableOf = 0;
-            uint32_t hashTableSize = 0;
-            uint32_t numOfStrings = 0;
-
-            if (fread(&numOfStrings, 4, 1, m_File) == 0) {
-                return false;
-            }
-            if (fread(&origTableOf, 4, 1, m_File) == 0) {
-                return false;
-            }
-            if (fread(&transTableOf, 4, 1, m_File) == 0) {
-                return false;
-            }
-            if (fread(&hashTableSize, 4, 1, m_File) == 0) {
-                return false;
-            }
-            if (fread(&hashTableOf, 4, 1, m_File) == 0) {
-                return false;
-            }
-
-            m_TransTableOff = transTableOf;
-            m_HashTable.init(m_File, hashTableSize, hashTableOf, origTableOf, numOfStrings);
+            file.Release();
             return true;
         }
         return false;
     }
 };
 
-extern FILEtranslationProvider fileProviderUSB;
-extern FILEtranslationProvider fileProviderInternal;
+extern FILETranslationProvider fileProviderUSB;
+extern FILETranslationProvider fileProviderInternal;
