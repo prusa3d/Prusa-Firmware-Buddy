@@ -419,6 +419,7 @@ bool window_t::EventEncoder(int diff) {
 }
 
 bool window_t::EventJogwheel(BtnState_t state) {
+    static bool dont_click_on_next_release = false;
     marlin_notify_server_about_knob_click();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
 
@@ -429,10 +430,12 @@ bool window_t::EventJogwheel(BtnState_t state) {
     case BtnState_t::Released:
         Sound_Play(eSOUND_TYPE::ButtonEcho);
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::BTN_UP, 0);
-        if (capture_ptr)
+        if (!dont_click_on_next_release && capture_ptr)
             capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
+        dont_click_on_next_release = false;
         break;
     case BtnState_t::Held:
+        dont_click_on_next_release = true;
         if (capture_ptr)
             capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HOLD, 0);
         break;

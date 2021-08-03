@@ -6,6 +6,8 @@
 #include "app.h"
 #include "marlin_client.h"
 #include "screen_menu.hpp"
+#include "screen_menus.hpp"
+#include "ScreenHandler.hpp"
 #include "cmsis_os.h"
 #include "sys.h"
 #include "eeprom.h"
@@ -125,7 +127,12 @@ ScreenMenuSettings::ScreenMenuSettings()
 }
 
 void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::LOOP) {
+    if (event == GUI_event_t::HOLD) {
+        Screens::Access()->Open(GetScreenMenuExperimentalSettings);
+        return;
+    }
+
+    if (event == GUI_event_t::LOOP) { // dont return LOOP must be sent do parrent too
         Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
     }
 
