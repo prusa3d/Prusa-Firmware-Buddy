@@ -4,37 +4,12 @@
 #include <stdio.h>
 #include <string.h>
 #include "gettext_string_hash.hpp"
+#include "../common/file_raii.hpp"
 
 //TODO fix including from string.h
 extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
 
-class FILEtranslationProvider : public ITranslationProvider {
-
-    /// finds message with key in MO file
-    /// \param key string to translate
-    /// \param file file pointer to the file, does not matter to where
-    /// \return offset of the message in file and the file pointer will point to the start of the message. If not found returns 0
-    uint16_t findMessage(const char *key, FILE *file) const {
-
-        uint32_t index = m_HashTable.GetIndexOfKey(key);
-
-        //nothing is on index 0
-        if (index == 0) {
-            return 0;
-        }
-
-        //get to position of translated string
-        fseek(file, m_TransTableOff + (8 * index) + 4, SEEK_SET);
-
-        uint32_t posOfTrans = 0;
-        if (fread(&posOfTrans, 4, 1, file) == 0) {
-            return 0;
-        }
-        if (fseek(file, posOfTrans, SEEK_SET) != 0) {
-            return 0;
-        }
-        return posOfTrans;
-    }
+class FILETranslationProvider : public ITranslationProvider {
 
     char m_Path[16];
     mutable FILE *m_File = nullptr;
