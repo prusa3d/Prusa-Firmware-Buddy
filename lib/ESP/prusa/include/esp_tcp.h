@@ -44,6 +44,9 @@
 #define ESP_HDR_ALTCP_TCP_H
 
 #include "esp/esp_config.h"
+#include "sockets/lwesp_sockets_priv.h"
+
+#define EPCB_POOL_SIZE 10
 
 #if ESP_ALTCP /* don't build if not configured for use in lwipopts.h */
 
@@ -59,6 +62,15 @@ struct altcp_pcb *altcp_esp_new_ip_type(u8_t ip_type);
     #define altcp_esp_new_ip6() altcp_esp_new_ip_type(IPADDR_TYPE_V6)
 
 struct altcp_pcb *altcp_esp_alloc(void *arg, u8_t ip_type);
+
+typedef struct {
+    struct esp_conn *econn;   // ESP conn connection
+    struct altcp_pcb *alconn; // Application layer TCP connection
+    esp_port_t listen_port;
+    uint16_t conn_timeout;
+    size_t rcv_packets;            // Received packets
+    char host[IP4ADDR_STRLEN_MAX]; // Connect host
+} esp_pcb;
 
     #ifdef __cplusplus
 }
