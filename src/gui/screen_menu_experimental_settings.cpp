@@ -26,7 +26,7 @@ class MI_Z_AXIS_LEN : public WI_SPIN_I32_t {
 
 public:
     MI_Z_AXIS_LEN()
-        : WI_SPIN_I32_t(get_z_max_pos_mm(), SpinCnf::axis_z_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_SPIN_I32_t(get_z_max_pos_mm_rounded(), SpinCnf::axis_z_max_range, _(label)) {}
 };
 
 /*****************************************************************************/

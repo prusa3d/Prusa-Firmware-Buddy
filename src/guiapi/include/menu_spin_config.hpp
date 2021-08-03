@@ -18,6 +18,10 @@ struct SpinCnf {
     static const SpinConfig_I08_t timezone_range;
     static const SpinConfig_U08_t volume_range;
     static const SpinConfig_I08_t sensor_range;
-    static const std::array<SpinConfig_I16_t, MenuVars::AXIS_CNT> axis_ranges;
-    static const SpinConfig_I32_t axis_z_range;
+    static const SpinConfig_U08_t footer_center_N_range;
+    static const SpinConfig_I32_t axis_z_max_range;                            // maximum Z range - to change current range
+    static const std::array<SpinConfig_I32_t, MenuVars::AXIS_CNT> axis_ranges; // current Z range
+    static const SpinConfig_I32_t steps_per_unit;
+    static const SpinConfig_I32_t microstep_exponential; // 2^0 - 2^8 .. 1, 2, 4, .. , 128, 256
+    static const SpinConfig_I32_t rms_current;
 };
