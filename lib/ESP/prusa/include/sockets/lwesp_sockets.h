@@ -693,4 +693,22 @@ int lwesp_inet_pton(int af, const char *src, void *dst);
 
 #endif /* LWIP_SOCKET */
 
+static inline esp_ip_t esp_ip_from_in_addr(const in_addr_t addr) {
+  esp_ip_t espip;
+  espip.ip[0] = addr & 0xff;
+  espip.ip[1] = addr >> 8 & 0xff;
+  espip.ip[2] = addr >> 16 & 0xff;
+  espip.ip[3] = addr >> 24 & 0xff;
+  return espip;
+}
+
+static inline esp_ip_t esp_ip_from_ip_addr(const ip_addr_t addr) {
+  // TODO: This is not correct, what about ipv6 addrs
+  return esp_ip_from_in_addr(addr.addr);
+}
+
+static inline in_addr_t addr_from_esp_ip(const esp_ip_t espip) {
+  return *((in_addr_t*)espip.ip);
+}
+
 #endif /* LWESP_HDR_SOCKETS_H */

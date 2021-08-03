@@ -50,6 +50,7 @@
 
 #include "sockets/lwesp_netbuf.h"
 #include "lwip/memp.h"
+#include "esp/esp_private.h"
 
 #include <string.h>
 
@@ -67,6 +68,7 @@ lwesp_netbuf *lwesp_netbuf_new(void)
   struct lwesp_netbuf *buf;
 
   buf = (struct lwesp_netbuf *)memp_malloc(MEMP_NETBUF);
+
   if (buf != NULL) {
     memset(buf, 0, sizeof(struct lwesp_netbuf));
   }
@@ -153,7 +155,7 @@ lwesp_netbuf_free(struct lwesp_netbuf *buf)
  * @return ERR_OK if data is referenced
  *         ERR_MEM if data couldn't be referenced due to lack of memory
  */
-/*err_t
+err_t
 lwesp_netbuf_ref(struct lwesp_netbuf *buf, const void *dataptr, u16_t size)
 {
   LWIP_ERROR("netbuf_ref: invalid buf", (buf != NULL), return ERR_ARG;);
@@ -162,24 +164,21 @@ lwesp_netbuf_ref(struct lwesp_netbuf *buf, const void *dataptr, u16_t size)
   }
 
 //   buf->p = lwesp_pbuf_alloc(PBUF_TRANSPORT, 0, PBUF_REF);
-//   TODO: THis is not a direct equivalent
-  buf->p = lwesp_pbuf_new(0);
+//   TODO: This is not a direct equivalent
+  buf->p = esp_pbuf_new(0);
 
   if (buf->p == NULL) {
     buf->ptr = NULL;
     return ERR_MEM;
   }
-  ((struct pbuf_rom *)buf->p)->payload = dataptr;
+  // TODO: is this ok ?
+  buf->p->payload = ((void*)dataptr);
   
-  // TODO: is this ok
-  //   buf->p->len = buf->p->tot_len = size;
-  lwesp_pbuf_set_length(buf->p, size);
-  // lwesp does not support setting total length?
-  
+  buf->p->len = buf->p->tot_len = size;
   
   buf->ptr = buf->p;
   return ERR_OK;
-}*/
+}
 
 /**
  * @ingroup netbuf
