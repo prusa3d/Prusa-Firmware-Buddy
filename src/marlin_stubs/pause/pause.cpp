@@ -536,7 +536,7 @@ void Pause::park_nozzle_and_notify() {
     if (retract && thermalManager.hotEnoughToExtrude(active_extruder))
         do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
 
-    const float target_Z = std::min(park_pos.z, maximum_Z);
+    const float target_Z = std::min(park_pos.z, get_z_max_pos_mm());
     const bool x_greater_than_y = parkMoveXGreaterThanY(current_position, park_pos);
     const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
     const float &end_pos = x_greater_than_y ? park_pos.x : park_pos.y;

@@ -120,7 +120,6 @@ class Pause : public PausePrivatePhase {
     xyze_pos_t resume_pos;
 
 public:
-    static constexpr const float maximum_Z = Z_MAX_POS;
     static constexpr const float minimal_purge = 1;
     static Pause &Instance();
 

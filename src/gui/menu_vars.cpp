@@ -12,6 +12,8 @@
     #error "Unknown PRINTER_TYPE."
 #endif
 
+#include "eeprom.h"
+
 const int x_axis_len = X_LEN;
 const int y_axis_len = Y_LEN;
 const int z_axis_len = Z_LEN;
@@ -35,7 +37,6 @@ constexpr const int park_points[3] = NOZZLE_PARK_POINT;
 
 constexpr const int X_home = X_HOME_DIR > 0 ? X_MAX_POS : X_MIN_POS;
 constexpr const int Y_home = Y_HOME_DIR > 0 ? Y_MAX_POS : Y_MIN_POS;
-constexpr const int Z_home = Z_HOME_DIR > 0 ? Z_MAX_POS : Z_MIN_POS;
 
 constexpr const char X_home_gcode[] = {
     'G',
@@ -71,26 +72,9 @@ constexpr const char Y_home_gcode[] = {
     nth_char(Y_home, 8)
 };
 
-constexpr const char Z_home_gcode[] = {
-    'G',
-    '9',
-    '2',
-    ' ',
-    'Z',
-    nth_char(Z_home, 0),
-    nth_char(Z_home, 1),
-    nth_char(Z_home, 2),
-    nth_char(Z_home, 3),
-    nth_char(Z_home, 4),
-    nth_char(Z_home, 5),
-    nth_char(Z_home, 6),
-    nth_char(Z_home, 7),
-    nth_char(Z_home, 8)
-};
-
 const std::array<std::array<int16_t, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::axis_ranges = { { { X_MIN_POS, X_MAX_POS, 1 },
     { Y_MIN_POS, Y_MAX_POS, 1 },
-    { Z_MIN_POS, Z_MAX_POS, 1 },
+    { Z_MIN_POS, static_cast<int16_t>(get_z_max_pos_mm_rounded()), 1 },
     { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH, 1 } } };
 const int16_t MenuVars::manual_feedrate[AXIS_CNT] = MANUAL_FEEDRATE;
 const char MenuVars::axis_letters[AXIS_CNT] = { 'X', 'Y', 'Z', 'E' };
