@@ -288,7 +288,9 @@ static espr_t altcp_esp_evt(esp_evt_t *evt) {
             if (epcb != NULL) {
                 epcb->econn = conn;
                 esp_conn_set_arg(conn, epcb);
-                altcp_esp_accept(listen_api->alconn, epcb, 0);
+                if (altcp_esp_accept(listen_api->alconn, epcb, 0) != ERR_OK) {
+                    close = 1;
+                }
             } else {
                 _dbg("esp_pcb not created");
                 close = 1;
