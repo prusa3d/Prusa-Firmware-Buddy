@@ -119,6 +119,7 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     CaptureNormalWindow(menu);        // set capture to list
     help.SetText(_("- ESP not connected"));
     esp_set_operating_mode(ESP_FLASHING_MODE);
+    esp_reconfigure_uart(115200);
     loader_port_stm32_init(&loader_config);
 }
 

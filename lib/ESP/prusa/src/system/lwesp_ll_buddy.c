@@ -3,6 +3,7 @@
 #include "esp/esp_input.h"
 #include "system/esp_ll.h"
 #include "lwesp_ll_buddy.h"
+#include "main.h"
 #include "dbg.h"
 
 /*
@@ -93,15 +94,10 @@ void StartUartBufferThread(void const *arg) {
     }
 }
 
-uint8_t reset_device(uint8_t state) {
-    if (state) {
-        // pin sate to reset
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-    } else {
-        // pin sate to set
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-    }
-    return 1;
+void esp_hard_reset_device() {
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+    esp_delay(10);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
@@ -136,6 +132,23 @@ esp_transmit_data(const void *data, size_t len) {
     return len;
 }
 
+espr_t esp_reconfigure_uart(const uint32_t baudrate) {
+    huart6.Init.BaudRate = baudrate;
+    int hal_uart_res = HAL_UART_Init(&huart6);
+    if (hal_uart_res != HAL_OK) {
+        _dbg("ESP LL: HAL_UART_Init failed with: %d", hal_uart_res);
+        return espERR;
+    }
+
+    int hal_dma_res = HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
+    if (hal_dma_res != HAL_OK) {
+        _dbg("ESP LL: HAL_UART_Receive_DMA failed with: %d", hal_dma_res);
+        return espERR;
+    }
+
+    return espOK;
+}
+
 /**
  * \brief           Callback function called from initialization process
  */
@@ -153,27 +166,26 @@ esp_ll_init(esp_ll_t *ll) {
 #endif /* !ESP_CFG_MEM_CUSTOM */
     if (!initialized) {
         ll->send_fn = esp_transmit_data; /* Set callback function to send data */
-                                         //        ll->reset_fn = reset_device;     /* Set callback for hardware reset */
-        if (HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
-            Error_Handler();
-        }
 
         /* Create mbox and start thread */
         if (uartBufferMbox_id == NULL) {
             uartBufferMbox_id = osMessageCreate(osMessageQ(uartBufferMbox), NULL);
             if (uartBufferMbox_id == NULL) {
-                _dbg("error!");
+                _dbg("ESP LL: failed to create UART buffer mbox");
+                return espERR;
             }
         }
         if (UartBufferThread_id == NULL) {
             osThreadDef(UartBufferThread, StartUartBufferThread, osPriorityNormal, 0, 512);
             UartBufferThread_id = osThreadCreate(osThread(UartBufferThread), NULL);
             if (UartBufferThread_id == NULL) {
-                _dbg("error!");
+                _dbg("ESP LL: failed to start UART buffer thread");
+                return espERR;
             }
         }
     }
 
+    esp_reconfigure_uart(ll->uart.baudrate);
     esp_set_operating_mode(ESP_RUNNING_MODE);
     initialized = 1;
     return espOK;
