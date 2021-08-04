@@ -45,7 +45,6 @@
 
 #if LWIP_SOCKET /* don't build if not configured for use in lwipopts.h */
 
-#include "esp.h"
 #include "esp/esp_netconn.h"
 
 #include "sockets/lwesp_sockets_priv.h"

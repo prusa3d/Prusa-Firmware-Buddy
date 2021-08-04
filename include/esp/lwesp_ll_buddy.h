@@ -44,6 +44,12 @@ extern uint32_t esp_get_operating_mode(void);
 extern espr_t esp_reconfigure_uart(const uint32_t baudrate);
 
 ////////////////////////////////////////////////////////////////////////////
+/// @brief Set ESP communication baudrate
+/// @param[in] baudrate Desired baudrate
+/// @return ESP error code
+extern espr_t esp_set_baudrate(uint32_t baudrate);
+
+////////////////////////////////////////////////////////////////////////////
 /// @brief Hard reset ESP device using a reset pin
 extern void esp_hard_reset_device();
 

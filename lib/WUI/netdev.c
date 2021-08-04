@@ -19,6 +19,7 @@ typedef struct {
     const char *pass;
 } ap_entry_t;
 
+static const uint32_t esp_target_baudrate = 1000000;
 static netdev_status_t esp_state = NETDEV_NETIF_DOWN;
 static uint32_t active_netdev_id = NETDEV_NODEV_ID;
 static ETH_config_t wui_netdev_config[NETDEV_COUNT]; // the active WUI configuration for ethernet, connect and server
@@ -74,6 +75,22 @@ void get_eth_address(uint32_t netdev_id, ETH_config_t *config) {
 }
 
 /**
+ * \brief         Event callback function for ESP baurate change
+ * \param[in]     res: Baudrate change result
+ * \param[in]     arg: event data, new baudarate
+ */
+static void esp_baudrate_changed(espr_t res, void *arg) {
+    if (res != espOK) {
+        _dbg("ESP baudrate change failed !!!");
+        return;
+    }
+
+    uint32_t baudrate = (uint32_t)arg;
+    _dbg("ESP baudrate change success, reconfiguring UART for %d", baudrate);
+    esp_reconfigure_uart(baudrate);
+}
+
+/**
  * \brief           Event callback function for ESP stack
  * \param[in]       evt: Event information with data
  * \return          \ref espOK on success, member of \ref espr_t otherwise
@@ -100,10 +117,12 @@ esp_callback_func(esp_evt_t *evt) {
         break;
     }
     case ESP_EVT_RESET: {
+        esp_set_at_baudrate(esp_target_baudrate, esp_baudrate_changed, (void *)esp_target_baudrate, 0);
         _dbg("ESP_EVT_RESET");
         break;
     }
     case ESP_EVT_RESET_DETECTED: {
+        esp_reconfigure_uart(ESP_CFG_AT_PORT_BAUDRATE);
         _dbg("ESP_EVT_RESET_DETECTED");
         break;
     }
