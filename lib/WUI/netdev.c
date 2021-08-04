@@ -12,6 +12,8 @@
 #include "dbg.h"
 #include "wui_api.h"
 #include "alsockets.h"
+#include "lwesp_ll_buddy.h"
+
 
 typedef struct {
     const char *ssid;
@@ -134,6 +136,7 @@ uint32_t netdev_init() {
     active_netdev_id = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_NETDEV));
 
     tcpip_init(tcpip_init_done_callback, NULL);
+    esp_hard_reset_device();
     esp_init(esp_callback_func, 0);
     alsockets_funcs(netdev_get_sockets(active_netdev_id));
     return 0;
