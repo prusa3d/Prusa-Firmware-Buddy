@@ -6,8 +6,12 @@
 #include "usbh_core.h"
 #include "../Marlin/src/gcode/queue.h"
 #include <algorithm>
+#include <sys/stat.h>
+#include <sys/iosupport.h>
 #include "marlin_server.hpp"
 #include "gcode_filter.hpp"
+#include "stdio.h"
+#include <fcntl.h>
 
 #ifdef REENUMERATE_USB
 
@@ -61,7 +65,7 @@ char *media_print_filepath() {
 static media_state_t media_state = media_state_REMOVED;
 static media_error_t media_error = media_error_OK;
 static media_print_state_t media_print_state = media_print_state_NONE;
-static FIL media_print_fil;
+static FILE *media_print_file;
 static uint32_t media_print_size = 0;
 static uint32_t media_current_position = 0; // Current position in the file
 static uint32_t media_gcode_position = 0;   // Beginning of the current G-Code
@@ -118,71 +122,17 @@ void media_get_SFN_path(char *sfn, uint32_t sfn_size, char *filepath) {
     }
 }
 
-/// This is a workaround for a nasty edge case of FATfs's f_stat,
-/// which doesn't return a LFN when given a full SFN path.
-/// @@TODO may be an updated FATfs solves this
-/// The complexity of this code is comparable to original f_stat, may be a bit faster
-/// It just opens a directory, finds the right SFN and fills the fno structure with the LFN, which is what we want.
-/// Refactored from LazyDirView::F_DIR_RAII_Find_One
-class f_stat_LFN {
-public:
-    /// beware, this assumes a full path which includes at least one slash.
-    /// Also, the sfnPath must not be a const ptr, since we are abusing the complete path
-    /// to break it IN PLACE into the separate path and the separate filename.
-    /// This is fixed at the end of the function, so the sfnPath doesn't change from the outside perspective.
-    f_stat_LFN(char *sfnPath) {
-        char *sfn = strrchr(sfnPath, '/');
-        char *returnSlash = sfn;
-        *returnSlash = 0; //
-        ++sfn;
-        result = FR_NO_FILE;
-        if ((result = f_opendir(&dp, sfnPath)) == FR_OK) {
-            for (;;) {
-                result = f_readdir(&dp, &fno); // get a directory item
-                if (result != FR_OK || !fno.fname[0]) {
-                    result = FR_NO_FILE; // make sure we report some meaningful error (unlike FATfs)
-                    break;
-                }
-                // select appropriate file name
-                const char *fname = fno.altname[0] ? fno.altname : fno.fname;
-                if (!strcmp(sfn, fname)) {
-                    break; // found the SFN searched for
-                }
-            }
-        }
-        *returnSlash = '/';
-    }
-    ~f_stat_LFN() {
-        f_closedir(&dp);
-    }
-    /// @returns true if the search for the filename was successfull
-    inline bool Success() const { return result == FR_OK; }
-    /// @returns the file size of the searched for. It is only valid if the search was successful
-    inline unsigned int FSize() const { return fno.fsize; }
-    /// @returns pointer to the LFN of the file searched for.
-    /// It is only valid if the search was successful and while the f_stat_LFN exists.
-    inline const char *LFName() const { return fno.fname; }
-
-private:
-    DIR dp;
-    FILINFO fno;
-    int result;
-};
-
 void media_print_start(const char *sfnFilePath) {
     if (media_print_state == media_print_state_NONE) {
         if (sfnFilePath) // null sfnFilePath means use current filename media_print_SFN_path
             strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
-        // Beware - f_stat returns a SFN filename, when the input path is SFN
-        // which is a nasty surprise. Therefore there is an alternative way of looking
-        // for the file, which has the same results (and a bit lower code complexity)
-        // An updated version of FATfs may solve the problem, therefore the original line of code is left here as a comment
-        // if (f_stat(media_print_SFN_path, &filinfo) == FR_OK) {
-        f_stat_LFN fo(media_print_SFN_path);
-        if (fo.Success()) {
-            strlcpy(media_print_LFN, fo.LFName(), sizeof(media_print_LFN));
-            media_print_size = fo.FSize(); //filinfo.fsize;
-            if (f_open(&media_print_fil, media_print_SFN_path, FA_READ) == FR_OK) {
+        struct stat info = { 0 };
+        stat(sfnFilePath, &info);
+
+        if (stat(sfnFilePath, &info) == 0) {
+            media_print_size = info.st_size;
+
+            if ((media_print_file = fopen(sfnFilePath, "rb")) != nullptr) {
                 media_gcode_position = media_current_position = 0;
                 media_print_state = media_print_state_PRINTING;
             } else {
@@ -193,7 +143,8 @@ void media_print_start(const char *sfnFilePath) {
 }
 
 inline void close_file() {
-    f_close(&media_print_fil);
+    fclose(media_print_file);
+    media_print_file = nullptr;
     gcode_filter.reset();
 }
 
@@ -212,12 +163,13 @@ void media_print_pause(void) {
 
 void media_print_resume(void) {
     if (media_print_state == media_print_state_PAUSED) {
-        if (f_open(&media_print_fil, media_print_SFN_path, FA_READ) == FR_OK) {
-            if (f_lseek(&media_print_fil, media_current_position) == FR_OK)
+        if ((media_print_file = fopen(media_print_SFN_path, "rb")) != nullptr) {
+            if (fseek(media_print_file, media_current_position, SEEK_SET) == 0)
                 media_print_state = media_print_state_PRINTING;
             else {
                 set_warning(WarningType::USBFlashDiskError);
-                f_close(&media_print_fil);
+                fclose(media_print_file);
+                media_print_file = nullptr;
             }
         }
     }
@@ -257,13 +209,13 @@ char getByte(GCodeFilter::State *state) {
     }
 
     UINT bytes_read = 0;
-    FRESULT result = f_read(&media_print_fil, &byte, 1, &bytes_read);
+    bytes_read = fread(&byte, sizeof(byte), 1, media_print_file);
 
-    if (result == FR_OK && bytes_read == 1) {
+    if (bytes_read == 1) {
         *state = GCodeFilter::State::Ok;
         media_current_position++;
         media_loop_read++;
-    } else if (f_eof(&media_print_fil)) {
+    } else if (feof(media_print_file)) {
         *state = GCodeFilter::State::Eof;
     } else {
         *state = GCodeFilter::State::Error;
@@ -274,7 +226,7 @@ char getByte(GCodeFilter::State *state) {
 
 void media_loop(void) {
     if (media_print_state == media_print_state_PAUSING) {
-        f_close(&media_print_fil);
+        fclose(media_print_file);
         int index_r = queue.index_r;
         media_gcode_position = media_current_position = media_queue_position[index_r];
         queue.clear();

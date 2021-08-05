@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "gettext_string_hash.hpp"
-#include "../common/file_raii.hpp"
+#include "file_raii.hpp"
 
 class FILETranslationProvider : public ITranslationProvider {
 

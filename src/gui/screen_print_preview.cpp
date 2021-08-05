@@ -11,6 +11,7 @@
 #include "ScreenHandler.hpp"
 #include "print_utils.hpp"
 #include "printers.h"
+#include <dirent.h>
 
 #define DBG _dbg0
 
@@ -71,8 +72,8 @@ screen_print_preview_data_t::screen_print_preview_data_t()
 }
 
 bool screen_print_preview_data_t::gcode_file_exists() {
-    FILINFO finfo = { 0 };
-    return f_stat(gcode.GetGcodeFilepath(), &finfo) == FR_OK;
+    struct stat finfo = { 0 };
+    return stat(gcode.GetGcodeFilepath(), &finfo) != -1;
 }
 
 //FIXME simple solution not to brake functionality before release

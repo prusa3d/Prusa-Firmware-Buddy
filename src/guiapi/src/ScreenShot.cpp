@@ -2,7 +2,9 @@
 #include "st7789v.hpp"
 #include "display.h"
 #include <inttypes.h>
-#include "ff.h"
+#include <dirent.h>
+#include <stdio.h>
+#include <unistd.h>
 
 enum {
     BMP_FILE_HEADER_SIZE = 14,
