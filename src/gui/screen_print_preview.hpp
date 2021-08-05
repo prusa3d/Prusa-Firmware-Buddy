@@ -3,7 +3,6 @@
 #include "gui.hpp"
 #include "window_header.hpp"
 #include "window_roll_text.hpp"
-#include "ff.h"
 #include "screen.hpp"
 #include "display.h"
 #include "gcode_info.hpp"

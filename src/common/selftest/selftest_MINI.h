@@ -2,8 +2,8 @@
 #pragma once
 
 #include <inttypes.h>
-#include "ff.h"
 #include "eeprom.h"
+#include <stdio.h>
 
 #define SELFTEST_MAX_LOG_PRINTF 128
 #define SELFTEST_LOOP_PERIODE   50

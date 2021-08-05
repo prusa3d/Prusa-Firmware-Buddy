@@ -243,7 +243,6 @@ void MI_LOAD_LANG::click(IWindowMenu &windowMenu) {
     if (dstDir && srcDir) {
         for (size_t readBytes = fread(buff, 1, buffLen, srcDir); readBytes != 0; readBytes = fread(buff, 1, buffLen, srcDir)) {
             fwrite(buff, 1, readBytes, dstDir);
-            //            fflush(dstDir);
         }
     }
     fclose(dstDir);
