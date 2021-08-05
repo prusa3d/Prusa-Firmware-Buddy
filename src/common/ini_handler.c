@@ -2,9 +2,8 @@
 
 #include "ini_handler.h"
 #include "wui_api.h"
-#include "ff.h"
 #include "eeprom.h"
-#include "strings.h"
+#include "string.h"
 
 #define MAX_UINT16 65535
 
@@ -19,10 +18,10 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
     ETH_config_t *tmp_config = (ETH_config_t *)user;
 
     if (ini_string_match(section, "eth::ipv4", name, "type")) {
-        if (strncmp(value, "DHCP", 4) == 0) {
+        if ((strcmp(value, "DHCP") == 0) || (strcmp(value, "dhcp") == 0)) {
             CHANGE_LAN_TO_DHCP(tmp_config->lan.flag);
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        } else if (strncmp(value, "STATIC", 6) == 0) {
+        } else if ((strcmp(value, "STATIC") == 0) || (strcmp(value, "static") == 0)) {
             CHANGE_LAN_TO_STATIC(tmp_config->lan.flag);
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
         }
@@ -76,23 +75,31 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
 }
 
 uint8_t ini_save_file(const char *ini_save_str) {
+    uint8_t ret_val = 1; // returns 1 on success
+    size_t s_written = 0;
+    int err = -1;
+    size_t str_len = strlen(ini_save_str);
 
-    UINT ini_config_len = strlen(ini_save_str);
-    UINT written_bytes = 0;
-    FIL ini_file;
+    FILE *file = fopen(ini_file_name, "w");
 
-    f_unlink(ini_file_name);
+    if (NULL != file) {
+        s_written = fwrite(ini_save_str, 1, str_len, file);
+        err = fclose(file);
+        // check for errors
+        if ((s_written != str_len) || (0 != err)) {
+            ret_val = 0;
+        }
+    } else {
+        ret_val = 0;
+    }
 
-    uint8_t i = f_open(&ini_file, ini_file_name, FA_WRITE | FA_CREATE_NEW);
-    uint8_t w = f_write(&ini_file, ini_save_str, ini_config_len, &written_bytes);
-    uint8_t c = f_close(&ini_file);
-
-    if (i || w || c || written_bytes != ini_config_len)
-        return 0;
-
-    return 1;
+    return ret_val;
 }
 
 uint8_t ini_load_file(void *user_struct) {
-    return ini_parse(ini_file_name, ini_handler_func, user_struct);
+    if (0 == ini_parse(ini_file_name, ini_handler_func, user_struct)) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
