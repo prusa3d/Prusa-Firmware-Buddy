@@ -2,12 +2,12 @@
 
 #include <stdio.h>
 
-class FileRaii {
+class FileRAII {
 public:
-    FileRaii(FILE *file)
+    FileRAII(FILE *file)
         : m_File(file) {}
 
-    ~FileRaii() {
+    ~FileRAII() {
         if (m_File) {
             fclose(m_File);
         }

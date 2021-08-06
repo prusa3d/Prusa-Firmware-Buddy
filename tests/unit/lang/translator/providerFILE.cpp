@@ -7,24 +7,24 @@ using namespace std;
 
 TEST_CASE("providerFILE::Translations test", "[translator]") {
     deque<string> stringKeys;
-    CHECK(LoadTranslatedStringsFile("Mofiles/keys.txt", &stringKeys));
+    CHECK(LoadTranslatedStringsFile("MO/keys.txt", &stringKeys));
 
     //initialize translation providers
-    FILETranslationProvider providerCS("Mofiles/cs.mo");
-    FILETranslationProvider providerDE("Mofiles/de.mo");
-    FILETranslationProvider providerES("Mofiles/es.mo");
-    FILETranslationProvider providerFR("Mofiles/fr.mo");
-    FILETranslationProvider providerIT("Mofiles/it.mo");
-    FILETranslationProvider providerPL("Mofiles/pl.mo");
+    FILETranslationProvider providerCS("MO/cs.mo");
+    FILETranslationProvider providerDE("MO/de.mo");
+    FILETranslationProvider providerES("MO/es.mo");
+    FILETranslationProvider providerFR("MO/fr.mo");
+    FILETranslationProvider providerIT("MO/it.mo");
+    FILETranslationProvider providerPL("MO/pl.mo");
 
     //load transtaled strings
     deque<string> csStrings, deStrings, esStrings, frStrings, itStrings, plStrings;
-    REQUIRE(LoadTranslatedStringsFile("Mofiles/cs.txt", &csStrings));
-    REQUIRE(LoadTranslatedStringsFile("Mofiles/de.txt", &deStrings));
-    REQUIRE(LoadTranslatedStringsFile("Mofiles/es.txt", &esStrings));
-    REQUIRE(LoadTranslatedStringsFile("Mofiles/fr.txt", &frStrings));
-    REQUIRE(LoadTranslatedStringsFile("Mofiles/it.txt", &itStrings));
-    REQUIRE(LoadTranslatedStringsFile("Mofiles/pl.txt", &plStrings));
+    REQUIRE(LoadTranslatedStringsFile("MO/cs.txt", &csStrings));
+    REQUIRE(LoadTranslatedStringsFile("MO/de.txt", &deStrings));
+    REQUIRE(LoadTranslatedStringsFile("MO/es.txt", &esStrings));
+    REQUIRE(LoadTranslatedStringsFile("MO/fr.txt", &frStrings));
+    REQUIRE(LoadTranslatedStringsFile("MO/it.txt", &itStrings));
+    REQUIRE(LoadTranslatedStringsFile("MO/pl.txt", &plStrings));
 
     // need to have at least the same amount of translations like the keys (normally there will be an exact number of them)
     REQUIRE(stringKeys.size() <= csStrings.size());
@@ -60,20 +60,19 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     REQUIRE(CheckAllTheStrings(stringKeys, plStrings, providerPL, nonASCIICharacters, "pl"));
 
     CAPTURE(stringKeys.size());
-    size_t i = 0;
 }
 
 TEST_CASE("providerFILE::bad files test", "[translator]") {
     FILETranslationProvider nonExistingFile("nOnExIsTiNg.mo");
-    FILETranslationProvider shortFile("Mofiles/short.mo");
-    FILETranslationProvider badMagic("Mofiles/magic.mo");
-    FILETranslationProvider bigEnd("Mofiles/bigEnd.mo");
+    FILETranslationProvider shortFile("MO/short.mo");
+    FILETranslationProvider badMagic("MO/magic.mo");
+    FILETranslationProvider bigEnd("MO/bigEnd.mo");
 
     REQUIRE(!nonExistingFile.EnsureFile());
     REQUIRE(shortFile.EnsureFile());
     REQUIRE(!badMagic.EnsureFile());
     REQUIRE(!bigEnd.EnsureFile());
-    char *key = "Language";
+    static const char *key = "Language";
     set<unichar> chars;
     //the file is short and should return key string
     REQUIRE(CompareStringViews(shortFile.GetText(key), string_view_utf8::MakeRAM((uint8_t *)key), chars, "ts"));
