@@ -18,10 +18,10 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
     ETH_config_t *tmp_config = (ETH_config_t *)user;
 
     if (ini_string_match(section, "eth::ipv4", name, "type")) {
-        if ((strcmp(value, "DHCP") == 0) || (strcmp(value, "dhcp") == 0)) {
+        if (strncasecmp(value, "DHCP", 4) == 0) {
             CHANGE_LAN_TO_DHCP(tmp_config->lan.flag);
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        } else if ((strcmp(value, "STATIC") == 0) || (strcmp(value, "static") == 0)) {
+        } else if (strncasecmp(value, "STATIC", 6) == 0) {
             CHANGE_LAN_TO_STATIC(tmp_config->lan.flag);
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
         }
