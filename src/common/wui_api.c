@@ -36,6 +36,12 @@ uint32_t save_eth_params(ETH_config_t *ethconfig) {
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
         eeprom_set_var(EEVAR_LAN_IP4_ADDR, variant8_ui32(ethconfig->lan.addr_ip4.addr));
     }
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS1_IP4)) {
+        eeprom_set_var(EEVAR_LAN_IP4_DNS1, variant8_ui32(ethconfig->dns1_ip4.addr));
+    }
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS2_IP4)) {
+        eeprom_set_var(EEVAR_LAN_IP4_DNS2, variant8_ui32(ethconfig->dns2_ip4.addr));
+    }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_MSK_IP4)) {
         eeprom_set_var(EEVAR_LAN_IP4_MSK, variant8_ui32(ethconfig->lan.msk_ip4.addr));
     }
@@ -61,6 +67,12 @@ uint32_t load_eth_params(ETH_config_t *ethconfig) {
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
         ethconfig->lan.addr_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_ADDR));
+    }
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS1_IP4)) {
+        ethconfig->dns1_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_DNS1));
+    }
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS2_IP4)) {
+        ethconfig->dns2_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_DNS2));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_MSK_IP4)) {
         ethconfig->lan.msk_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_MSK));
@@ -107,15 +119,19 @@ void parse_MAC_address(mac_address_t *dest) {
 
 void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config) {
     char addr[IP4_ADDR_STR_SIZE], msk[IP4_ADDR_STR_SIZE], gw[IP4_ADDR_STR_SIZE];
+    char dns1[IP4_ADDR_STR_SIZE], dns2[IP4_ADDR_STR_SIZE];
 
     ip4addr_ntoa_r(&(config->lan.addr_ip4), addr, IP4_ADDR_STR_SIZE);
     ip4addr_ntoa_r(&(config->lan.msk_ip4), msk, IP4_ADDR_STR_SIZE);
     ip4addr_ntoa_r(&(config->lan.gw_ip4), gw, IP4_ADDR_STR_SIZE);
+    ip4addr_ntoa_r(&(config->dns1_ip4), dns1, IP4_ADDR_STR_SIZE);
+    ip4addr_ntoa_r(&(config->dns2_ip4), dns2, IP4_ADDR_STR_SIZE);
 
     snprintf(*dest, MAX_INI_SIZE,
-        "[lan_ip4]\ntype=%s\nhostname=%s\naddress=%s\nmask=%s\ngateway=%s\n",
-        IS_LAN_STATIC(config->lan.flag) ? "STATIC" : "DHCP", config->hostname,
-        addr, msk, gw);
+        "[eth::ipv4]\ntype=%s\naddr=%s\nmask=%s\ngw=%s\n\n"
+        "[network]\nhostname=%s\ndns4=%s;%s",
+        IS_LAN_STATIC(config->lan.flag) ? "STATIC" : "DHCP", addr, msk, gw,
+        config->hostname, dns1, dns2);
 }
 
 void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config) {

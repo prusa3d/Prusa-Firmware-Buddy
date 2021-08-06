@@ -380,9 +380,9 @@ TEST_CASE("multi-line", "[text_wrap]") {
             std::make_tuple<std::string, size_t, std::string>(
                 "In the next step, use the knob to adjust the nozzle height. Check the pictures in the handbook for reference.", 7, "In the next step,\nuse the knob to\nadjust the nozzle\nheight. Check the\npictures in the\nhandbook for\nreference."),
             std::make_tuple<std::string, size_t, std::string>(
-                "IP addresses are not valid or the file \\lan_settings.ini\\ is not in the root directory of the USB drive.", 6, "IP addresses are not\nvalid or the file\n\\lan_settings.ini\\\nis not in the root\ndirectory of the USB\ndrive."),
+                "IP addresses are not valid or the file \\prusa_printer_settings.ini\\ is not in the root directory of the USB drive.", 6, "IP addresses are not\nvalid or the file\n\\prusa_printer_settings.ini\\\nis not in the root\ndirectory of the USB\ndrive."),
             std::make_tuple<std::string, size_t, std::string>(
-                "IP addresses or parameters are not valid or the file \\lan_settings.ini\\ is not in the root directory of the USB drive.", 7, "IP addresses or\nparameters are not\nvalid or the file\n\\lan_settings.ini\\\nis not in the root\ndirectory of the USB\ndrive."),
+                "IP addresses or parameters are not valid or the file \\prusa_printer_settings.ini\\ is not in the root directory of the USB drive.", 7, "IP addresses or\nparameters are not\nvalid or the file\n\\prusa_printer_settings.ini\\\nis not in the root\ndirectory of the USB\ndrive."),
             std::make_tuple<std::string, size_t, std::string>(
                 "Is filament in extruder gear?", 2, "Is filament in\nextruder gear?"),
             std::make_tuple<std::string, size_t, std::string>(
@@ -430,13 +430,13 @@ TEST_CASE("multi-line", "[text_wrap]") {
             std::make_tuple<std::string, size_t, std::string>(
                 "The selftest failed to finish. Double-check the printer's wiring and axes. Then restart the Selftest.", 6, "The selftest failed\nto finish.\nDouble-check the\nprinter's wiring and\naxes. Then restart\nthe Selftest."),
             std::make_tuple<std::string, size_t, std::string>(
-                "The settings have been saved successfully in the \\lan_settings.ini\\ file.", 5, "The settings have\nbeen saved\nsuccessfully in the\n\\lan_settings.ini\\\nfile."),
+                "The settings have been saved successfully in the \\prusa_printer_settings.ini\\ file.", 5, "The settings have\nbeen saved\nsuccessfully in the\n\\prusa_printer_settings.ini\\\nfile."),
             std::make_tuple<std::string, size_t, std::string>(
                 "The status bar is at the bottom of the screen. It contains information about: - Nozzle temp. - Heatbed temp. - Printing speed - Z-axis height - Selected filament", 9, "The status bar is at\nthe bottom of the\nscreen. It contains\ninformation about: -\nNozzle temp. -\nHeatbed temp. -\nPrinting speed -\nZ-axis height -\nSelected filament"),
             std::make_tuple<std::string, size_t, std::string>(
                 "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration.", 6, "The XYZ calibration\nfailed to finish.\nDouble-check the\nprinter's wiring and\naxes, then restart\nthe XYZ calibration."),
             std::make_tuple<std::string, size_t, std::string>(
-                "There was an error saving the settings in the \\lan_settings.ini\\ file.", 5, "There was an error\nsaving the settings\nin the\n\\lan_settings.ini\\\nfile."),
+                "There was an error saving the settings in the \\prusa_printer_settings.ini\\ file.", 5, "There was an error\nsaving the settings\nin the\n\\prusa_printer_settings.ini\\\nfile."),
             std::make_tuple<std::string, size_t, std::string>(
                 "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?", 7, "This operation can't\nbe undone, current\nconfiguration will\nbe lost! Are you\nreally sure to reset\nprinter to factory\ndefaults?"),
             std::make_tuple<std::string, size_t, std::string>(
