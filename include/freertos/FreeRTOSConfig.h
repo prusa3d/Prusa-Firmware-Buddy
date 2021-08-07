@@ -86,12 +86,30 @@
 
 /* USER CODE BEGIN Includes */
 /* Section where include file can be added */
-#define traceTASK_SWITCHED_IN()         \
-    extern void StartIdleMonitor(void); \
-    StartIdleMonitor()
+#define traceTASK_SWITCHED_IN()                            \
+    extern void StartIdleMonitor(void);                    \
+    StartIdleMonitor();                                    \
+                                                           \
+    if (prvGetTCBFromHandle(NULL) == xIdleTaskHandle) {    \
+        SEGGER_SYSVIEW_OnIdle();                           \
+    } else {                                               \
+        SEGGER_SYSVIEW_OnTaskStartExec((U32)pxCurrentTCB); \
+    }
+
 #define traceTASK_SWITCHED_OUT()      \
     extern void EndIdleMonitor(void); \
     EndIdleMonitor()
+
+#define traceTASK_CREATE(tcb)                              \
+    if (tcb != NULL) {                                     \
+        SEGGER_SYSVIEW_OnTaskCreate((U32)tcb);             \
+        SYSVIEW_AddTask((U32)tcb,                          \
+            &(tcb->pcTaskName[0]),                         \
+            tcb->uxPriority,                               \
+            (U32)tcb->pxStack,                             \
+            ((U32)tcb->pxTopOfStack - (U32)tcb->pxStack)); \
+    }
+
 /* USER CODE END Includes */
 
 /* Ensure stdint is only used by the compiler, and not the assembler. */
@@ -188,5 +206,7 @@ standard names. */
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
 /* USER CODE END Defines */
+
+#include "SEGGER_SYSVIEW_FreeRTOS.h"
 
 #endif /* FREERTOS_CONFIG_H */
