@@ -188,11 +188,13 @@ void DebugMon_Handler(void) {
 /******************************************************************************/
 
 void USART2_IRQHandler() {
+    traceISR_ENTER();
     if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart2);
         uart2_idle_cb(&huart2);
     }
     HAL_UART_IRQHandler(&huart2);
+    traceISR_EXIT();
 }
 #ifdef USE_ESP01_WITH_UART6
 void USART6_IRQHandler(void) {
@@ -205,12 +207,13 @@ void USART6_IRQHandler(void) {
 }
 #else
 void USART6_IRQHandler() {
-    // Uart_isr(&huart6);
+    traceISR_ENTER();
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart6);
         uartrxbuff_idle_cb(&uart6rxbuff);
     }
     HAL_UART_IRQHandler(&huart6);
+    traceISR_EXIT();
 }
 #endif
 /**
@@ -218,11 +221,11 @@ void USART6_IRQHandler() {
   */
 void WWDG_IRQHandler(void) {
     /* USER CODE BEGIN WWDG_IRQn 0 */
-
+    traceISR_ENTER();
     /* USER CODE END WWDG_IRQn 0 */
     HAL_WWDG_IRQHandler(&hwwdg);
     /* USER CODE BEGIN WWDG_IRQn 1 */
-
+    traceISR_EXIT();
     /* USER CODE END WWDG_IRQn 1 */
 }
 
@@ -231,11 +234,11 @@ void WWDG_IRQHandler(void) {
  */
 void DMA1_Stream3_IRQHandler(void) {
     /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
-
+    traceISR_ENTER();
     /* USER CODE END DMA1_Stream3_IRQn 0 */
     HAL_DMA_IRQHandler(&hdma_spi2_rx);
     /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
-
+    traceISR_EXIT();
     /* USER CODE END DMA1_Stream3_IRQn 1 */
 }
 
@@ -244,11 +247,11 @@ void DMA1_Stream3_IRQHandler(void) {
   */
 void DMA1_Stream4_IRQHandler(void) {
     /* USER CODE BEGIN DMA1_Stream4_IRQn 0 */
-
+    traceISR_ENTER();
     /* USER CODE END DMA1_Stream4_IRQn 0 */
     HAL_DMA_IRQHandler(&hdma_spi2_tx);
     /* USER CODE BEGIN DMA1_Stream4_IRQn 1 */
-
+    traceISR_EXIT();
     /* USER CODE END DMA1_Stream4_IRQn 1 */
 }
 
@@ -257,11 +260,11 @@ void DMA1_Stream4_IRQHandler(void) {
   */
 void DMA1_Stream5_IRQHandler(void) {
     /* USER CODE BEGIN DMA1_Stream5_IRQn 0 */
-
+    traceISR_ENTER();
     /* USER CODE END DMA1_Stream5_IRQn 0 */
     HAL_DMA_IRQHandler(&hdma_usart2_rx);
     /* USER CODE BEGIN DMA1_Stream5_IRQn 1 */
-
+    traceISR_EXIT();
     /* USER CODE END DMA1_Stream5_IRQn 1 */
 }
 
@@ -270,11 +273,11 @@ void DMA1_Stream5_IRQHandler(void) {
   */
 void TIM8_TRG_COM_TIM14_IRQHandler(void) {
     /* USER CODE BEGIN TIM8_TRG_COM_TIM14_IRQn 0 */
-
+    traceISR_ENTER();
     /* USER CODE END TIM8_TRG_COM_TIM14_IRQn 0 */
     HAL_TIM_IRQHandler(&htim14);
     /* USER CODE BEGIN TIM8_TRG_COM_TIM14_IRQn 1 */
-
+    traceISR_EXIT();
     /* USER CODE END TIM8_TRG_COM_TIM14_IRQn 1 */
 }
 
@@ -283,13 +286,14 @@ void TIM8_TRG_COM_TIM14_IRQHandler(void) {
   */
 void DMA2_Stream1_IRQHandler(void) {
     /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
+    traceISR_ENTER();
     if (__HAL_DMA_GET_IT_SOURCE(&hdma_usart6_rx, DMA_IT_HT) != RESET || __HAL_DMA_GET_IT_SOURCE(&hdma_usart6_rx, DMA_IT_TC) != RESET) {
         esp_receive_data(&huart6);
     }
     /* USER CODE END DMA2_Stream1_IRQn 0 */
     HAL_DMA_IRQHandler(&hdma_usart6_rx);
     /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
-
+    traceISR_EXIT();
     /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
 
@@ -299,11 +303,11 @@ void DMA2_Stream1_IRQHandler(void) {
   */
 void DMA2_Stream2_IRQHandler(void) {
     /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
-
+    traceISR_ENTER();
     /* USER CODE END DMA2_Stream2_IRQn 0 */
     HAL_DMA_IRQHandler(&hdma_usart1_rx);
     /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
-
+    traceISR_EXIT();
     /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
 #endif
@@ -312,11 +316,11 @@ void DMA2_Stream2_IRQHandler(void) {
   */
 void DMA2_Stream0_IRQHandler(void) {
     /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
-
+    //traceISR_ENTER();
     /* USER CODE END DMA2_Stream0_IRQn 0 */
     HAL_DMA_IRQHandler(&hdma_adc1);
     /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
-
+    //traceISR_EXIT();
     /* USER CODE END DMA2_Stream0_IRQn 1 */
 }
 
@@ -325,11 +329,11 @@ void DMA2_Stream0_IRQHandler(void) {
   */
 void ETH_IRQHandler(void) {
     /* USER CODE BEGIN ETH_IRQn 0 */
-
+    traceISR_ENTER();
     /* USER CODE END ETH_IRQn 0 */
     HAL_ETH_IRQHandler(&heth);
     /* USER CODE BEGIN ETH_IRQn 1 */
-
+    traceISR_EXIT();
     /* USER CODE END ETH_IRQn 1 */
 }
 
@@ -338,11 +342,11 @@ void ETH_IRQHandler(void) {
   */
 void OTG_FS_IRQHandler(void) {
     /* USER CODE BEGIN OTG_FS_IRQn 0 */
-
+    traceISR_ENTER();
     /* USER CODE END OTG_FS_IRQn 0 */
     HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
     /* USER CODE BEGIN OTG_FS_IRQn 1 */
-
+    traceISR_EXIT();
     /* USER CODE END OTG_FS_IRQn 1 */
 }
 
@@ -351,11 +355,11 @@ void OTG_FS_IRQHandler(void) {
   */
 void OTG_HS_IRQHandler(void) {
     /* USER CODE BEGIN OTG_HS_IRQn 0 */
-
+    traceISR_ENTER();
     /* USER CODE END OTG_HS_IRQn 0 */
     HAL_HCD_IRQHandler(&hhcd_USB_OTG_HS);
     /* USER CODE BEGIN OTG_HS_IRQn 1 */
-
+    traceISR_EXIT();
     /* USER CODE END OTG_HS_IRQn 1 */
 }
 

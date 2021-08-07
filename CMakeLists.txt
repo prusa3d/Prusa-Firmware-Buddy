@@ -288,12 +288,18 @@ add_library(STM32_USBDevice_Config ALIAS BuddyHeaders)
 add_library(STM32_Utilities_CPU_Config ALIAS BuddyHeaders)
 
 #
+# Configure SEGGER
+#
+add_library(Segger_Config INTERFACE)
+target_include_directories(Segger_Config INTERFACE include/segger src/segger)
+
+#
 # Configure FreeRTOS
 #
 
 add_library(FreeRTOS_Config INTERFACE)
 target_include_directories(FreeRTOS_Config INTERFACE include/freertos)
-target_link_libraries(FreeRTOS_Config INTERFACE STM32::CPU)
+target_link_libraries(FreeRTOS_Config INTERFACE Segger STM32::CPU)
 
 #
 # Configure LwIP
@@ -497,6 +503,7 @@ target_include_directories(
           src/guiconfig
           src/lang
           src/hw
+          src/segger
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -524,6 +531,7 @@ target_link_libraries(
           Buddy::Lang
           printf::printf
           sysbase
+          Segger
   )
 
 target_sources(
@@ -648,6 +656,8 @@ target_sources(
           src/common/trinamic.cpp
           src/common/timing.c
           src/common/timing_sys.c
+          src/segger/SEGGER_SYSVIEW_FreeRTOS.c
+          src/segger/SEGGER_SYSVIEW_Config_FreeRTOS.c
   )
 
 if(GUI)

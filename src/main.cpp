@@ -69,6 +69,7 @@
 #include "timing.h"
 #include "filesystem.h"
 #include "adc.hpp"
+#include "SEGGER_SYSVIEW.h"
 
 #define USB_OVERC_Pin               GPIO_PIN_4
 #define USB_OVERC_GPIO_Port         GPIOE
@@ -218,6 +219,8 @@ extern "C" void EepromSystemInit() {
 
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
     HAL_Init(); //it is low level enough to be run in startup script
+
+    SEGGER_SYSVIEW_Conf();
     /* Configure the system clock */
     SystemClock_Config();
 

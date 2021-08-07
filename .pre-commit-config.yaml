@@ -54,5 +54,6 @@ exclude: |
     ^lib/ESP/prusa/src/sockets/lwesp_sockets.c|
     ^lib/Catch2/|
     ^lib/libsysbase/|
+    ^lib/Segger|
     ^lib/Middlewares/Third_Party/littlefs/
   )

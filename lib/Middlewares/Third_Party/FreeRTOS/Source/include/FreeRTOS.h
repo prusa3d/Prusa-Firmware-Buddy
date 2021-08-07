@@ -175,7 +175,7 @@ extern "C" {
 #endif
 
 #ifndef INCLUDE_xTaskGetIdleTaskHandle
-	#define INCLUDE_xTaskGetIdleTaskHandle 0
+	#define INCLUDE_xTaskGetIdleTaskHandle 1
 #endif
 
 #ifndef INCLUDE_xTaskAbortDelay
