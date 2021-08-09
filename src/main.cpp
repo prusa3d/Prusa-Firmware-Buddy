@@ -470,7 +470,7 @@ static void MX_ADC1_Init(void) {
         Error_Handler();
     }
     /* USER CODE BEGIN ADC1_Init 2 */
-
+    HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn); //Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
     /* USER CODE END ADC1_Init 2 */
 }
 
