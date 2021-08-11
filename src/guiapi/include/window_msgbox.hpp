@@ -67,6 +67,7 @@ public:
 protected:
     //some methods to help with construction
     Rect16 getIconnedTextRect(); // icon and title must be initialized
+    Rect16 getIconRect();        // compute icon rect
 };
 
 //todo enum default button
