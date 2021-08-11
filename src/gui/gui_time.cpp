@@ -3,6 +3,7 @@
 
 static uint32_t current_tick = 0;
 static uint32_t current_tick_overflows = 0;
+static uint32_t current_loop_counter = 0;
 
 void gui::TickLoop() {
     uint32_t now = ticks_ms();
@@ -10,6 +11,11 @@ void gui::TickLoop() {
         ++current_tick_overflows;
     }
     current_tick = now;
+    current_loop_counter += 1;
+}
+
+uint32_t gui::GetLoopCounter() {
+    return current_loop_counter;
 }
 
 uint32_t gui::GetTick() {
