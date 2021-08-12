@@ -3,7 +3,7 @@
 #include "shared_config.h"
 #include "stm32f4xx_hal.h"
 #include "st25dv64k.h"
-#include "dbg.h"
+#include "log.h"
 
 //firmware update flag
 static const constexpr uint16_t FW_UPDATE_FLAG_ADDRESS = 0x040B;
@@ -135,9 +135,9 @@ void sys_sscg_disable(void) {
     sys_pll_disable();
     RCC->SSCGR = sscgr;
     sys_pll_enable();
-    _dbg0("written SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
+    log_debug(Buddy, "written SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
     sscgr = RCC->SSCGR;
-    _dbg0("readback SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
+    log_debug(Buddy, "readback SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
     __enable_irq();
 }
 
@@ -154,9 +154,9 @@ void sys_sscg_enable(void) {
     sys_pll_disable();
     RCC->SSCGR = sscgr;
     sys_pll_enable();
-    _dbg0("written SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
+    log_debug(Buddy, "written SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
     sscgr = RCC->SSCGR;
-    _dbg0("readback SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
+    log_debug(Buddy, "readback SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
     __enable_irq();
 }
 
@@ -169,11 +169,11 @@ void sys_sscg_set_config(int freq, int depth) {
     uint32_t incstep = ((sscgr & RCC_SSCGR_INCSTEP_Msk) >> RCC_SSCGR_INCSTEP_Pos);
     uint32_t spreadsel = ((sscgr & RCC_SSCGR_SPREADSEL_Msk) >> RCC_SSCGR_SPREADSEL_Pos);
     uint32_t sscgen = ((sscgr & RCC_SSCGR_SSCGEN_Msk) >> RCC_SSCGR_SSCGEN_Pos);
-    _dbg0("SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
-    _dbg0(" MODPER    = 0x%08lx (%lu)", modper, modper);
-    _dbg0(" INCSTEP   = 0x%08lx (%lu)", incstep, incstep);
-    _dbg0(" SPREADSEL = 0x%08lx (%lu)", spreadsel, spreadsel);
-    _dbg0(" SSCGEN    = 0x%08lx (%lu)", sscgen, sscgen);
+    log_debug(Buddy, "SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
+    log_debug(Buddy, " MODPER    = 0x%08lx (%lu)", modper, modper);
+    log_debug(Buddy, " INCSTEP   = 0x%08lx (%lu)", incstep, incstep);
+    log_debug(Buddy, " SPREADSEL = 0x%08lx (%lu)", spreadsel, spreadsel);
+    log_debug(Buddy, " SSCGEN    = 0x%08lx (%lu)", sscgen, sscgen);
     HAL_RCC_GetOscConfig(&RCC_OscInitStruct); //read Osc config
     plln = RCC_OscInitStruct.PLL.PLLN;
     //modulation frequency = freq
@@ -192,17 +192,17 @@ void sys_sscg_set_config(int freq, int depth) {
     sys_pll_disable();
     RCC->SSCGR = sscgr;
     sys_pll_enable();
-    _dbg0("written SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
+    log_debug(Buddy, "written SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
     sscgr = RCC->SSCGR;
     modper = ((sscgr & RCC_SSCGR_MODPER_Msk) >> RCC_SSCGR_MODPER_Pos);
     incstep = ((sscgr & RCC_SSCGR_INCSTEP_Msk) >> RCC_SSCGR_INCSTEP_Pos);
     spreadsel = ((sscgr & RCC_SSCGR_SPREADSEL_Msk) >> RCC_SSCGR_SPREADSEL_Pos);
     sscgen = ((sscgr & RCC_SSCGR_SSCGEN_Msk) >> RCC_SSCGR_SSCGEN_Pos);
-    _dbg0("readback SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
-    _dbg0(" MODPER    = 0x%08lx (%lu)", modper, modper);
-    _dbg0(" INCSTEP   = 0x%08lx (%lu)", incstep, incstep);
-    _dbg0(" SPREADSEL = 0x%08lx (%lu)", spreadsel, spreadsel);
-    _dbg0(" SSCGEN    = 0x%08lx (%lu)", sscgen, sscgen);
+    log_debug(Buddy, "readback SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
+    log_debug(Buddy, " MODPER    = 0x%08lx (%lu)", modper, modper);
+    log_debug(Buddy, " INCSTEP   = 0x%08lx (%lu)", incstep, incstep);
+    log_debug(Buddy, " SPREADSEL = 0x%08lx (%lu)", spreadsel, spreadsel);
+    log_debug(Buddy, " SSCGEN    = 0x%08lx (%lu)", sscgen, sscgen);
 }
 
 int sys_sscg_get_config(float *pfreq, float *pdepth) {
