@@ -155,6 +155,12 @@ metric_t *metric_get_linked_list();
 /// Return null-terminated list of handlers
 metric_handler_t **metric_get_handlers();
 
+/// Enable metric for given handler
+void metric_enable_for_handler(metric_t *metric, metric_handler_t *handler);
+
+/// Disable metric for given handler
+void metric_disable_for_handler(metric_t *metric, metric_handler_t *handler);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

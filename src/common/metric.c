@@ -187,3 +187,11 @@ void metric_record_error(metric_t *metric, const char *fmt, ...) {
     va_end(args);
     point_enqueue(recording);
 }
+
+void metric_enable_for_handler(metric_t *metric, metric_handler_t *handler) {
+    metric->enabled_handlers |= (1 << handler->identifier);
+}
+
+void metric_disable_for_handler(metric_t *metric, metric_handler_t *handler) {
+    metric->enabled_handlers &= ~(1 << handler->identifier);
+}
