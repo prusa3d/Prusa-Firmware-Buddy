@@ -6,6 +6,10 @@
 #include "filesystem_root.h"
 #include "libsysbase_syscalls.h"
 
+#include "log.h"
+
+LOG_COMPONENT_DEF(FileSystem, SEVERITY_INFO);
+
 void filesystem_init() {
 #if !defined(_RETARGETABLE_LOCKING)
     libsysbase_syscalls_init();
