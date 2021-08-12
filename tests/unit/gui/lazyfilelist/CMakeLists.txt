@@ -1,6 +1,5 @@
-
 # define the test executable
-add_executable(lazyfilelist_tests tests.cpp fatfs.cpp strlcpy.c)
+add_executable(lazyfilelist_tests ourPosix.cpp strlcpy.c tests.cpp)
 
 # define required search paths
 target_include_directories(lazyfilelist_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/gui)
