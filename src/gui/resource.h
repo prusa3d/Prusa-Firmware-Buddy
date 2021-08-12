@@ -37,6 +37,10 @@ enum {
     IDR_PNG_stop_58px,
     IDR_PNG_resume_48px,
     IDR_PNG_home_58px,
+    IDR_PNG_info_48px,
+    IDR_PNG_error_white_48px,
+    IDR_PNG_warning_48px,
+    IDR_PNG_question_48px,
 
     IDR_PNG_home_full_16px,
     IDR_PNG_folder_full_16px,
