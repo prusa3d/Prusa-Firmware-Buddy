@@ -789,5 +789,11 @@ int filesystem_fatfs_init() {
 
     device = AddDevice(&devoptab_fatfs);
 
+    if (device == -1) {
+        log_error(FileSystem, "Failed to initialize FatFS");
+    } else {
+        log_info(FileSystem, "FatFS successfully initialized (device %i)", device);
+    }
+
     return device;
 }

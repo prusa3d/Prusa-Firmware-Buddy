@@ -535,5 +535,11 @@ int filesystem_littlefs_init() {
 
     device = AddDevice(&devoptab_littlefs);
 
+    if (device == -1) {
+        log_error(FileSystem, "Failed to initialize LittleFS");
+    } else {
+        log_info(FileSystem, "LittleFS successfully initialized (device %i)", device);
+    }
+
     return device;
 }
