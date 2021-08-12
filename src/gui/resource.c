@@ -25,19 +25,23 @@
 #include "res/cc/png_home_shape_16px.c" //IDR_PNG_home_shape_16px
 #include "res/cc/png_print_16px.c"      //IDR_PNG_print_16px
 
-#include "res/cc/png_print_58px.c"      //IDR_PNG_print_58px
-#include "res/cc/png_preheat_58px.c"    //IDR_PNG_preheat_58px
-#include "res/cc/png_spool_58px.c"      //IDR_PNG_spool_58px
-#include "res/cc/png_reprint_48px.c"    //IDR_PNG_reprint_48px
-#include "res/cc/png_calibrate_58px.c"  //IDR_PNG_calibrate_58px
-#include "res/cc/png_settings_58px.c"   //IDR_PNG_settings_58px
-#include "res/cc/png_info_58px.c"       //IDR_PNG_info_58px
-#include "res/cc/png_pause_58px.c"      //IDR_PNG_pause_58px
-#include "res/cc/png_stop_58px.c"       //IDR_PNG_stop_58px
-#include "res/cc/png_resume_48px.c"     //IDR_PNG_resume_48px
-#include "res/cc/png_home_58px.c"       //IDR_PNG_home_58px
-#include "res/cc/png_back_32px.c"       //IDR_PNG_back_32px
-#include "res/cc/png_disconnect_48px.c" //IDR_PNG_disconnect_48px
+#include "res/cc/png_print_58px.c"       //IDR_PNG_print_58px
+#include "res/cc/png_preheat_58px.c"     //IDR_PNG_preheat_58px
+#include "res/cc/png_spool_58px.c"       //IDR_PNG_spool_58px
+#include "res/cc/png_reprint_48px.c"     //IDR_PNG_reprint_48px
+#include "res/cc/png_calibrate_58px.c"   //IDR_PNG_calibrate_58px
+#include "res/cc/png_settings_58px.c"    //IDR_PNG_settings_58px
+#include "res/cc/png_info_58px.c"        //IDR_PNG_info_58px
+#include "res/cc/png_pause_58px.c"       //IDR_PNG_pause_58px
+#include "res/cc/png_stop_58px.c"        //IDR_PNG_stop_58px
+#include "res/cc/png_resume_48px.c"      //IDR_PNG_resume_48px
+#include "res/cc/png_home_58px.c"        //IDR_PNG_home_58px
+#include "res/cc/png_back_32px.c"        //IDR_PNG_back_32px
+#include "res/cc/png_disconnect_48px.c"  //IDR_PNG_disconnect_48px
+#include "res/cc/png_info_48px.c"        //IDR_PNG_info_48px
+#include "res/cc/png_error_white_48px.c" //IDR_PNG_error_white_48px
+#include "res/cc/png_warning_48px.c"     //IDR_PNG_warning_48px
+#include "res/cc/png_question_48px.c"    //IDR_PNG_question_48px
 
 #include "res/cc/png_home_full_16px.c"    //IDR_PNG_home_full_16px
 #include "res/cc/png_folder_full_16px.c"  //IDR_PNG_folder_full_16px
@@ -128,6 +132,10 @@ RESOURCE_ENTRY_PNG(png_pause_58px)
 RESOURCE_ENTRY_PNG(png_stop_58px)
 RESOURCE_ENTRY_PNG(png_resume_48px)
 RESOURCE_ENTRY_PNG(png_home_58px)
+RESOURCE_ENTRY_PNG(png_info_48px)
+RESOURCE_ENTRY_PNG(png_error_white_48px)
+RESOURCE_ENTRY_PNG(png_warning_48px)
+RESOURCE_ENTRY_PNG(png_question_48px)
 
 RESOURCE_ENTRY_PNG(png_home_full_16px)
 RESOURCE_ENTRY_PNG(png_folder_full_16px)
