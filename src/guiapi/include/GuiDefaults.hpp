@@ -81,4 +81,5 @@ struct GuiDefaults {
 
     // New msgbox
     static constexpr Rect16 MsgBoxLayoutRect = { 0, 0, 0, 0 }; // TODO: Connect with dialogs
+    static constexpr Rect16 MsgBoxFrameRect = RectScreenBody;
 };

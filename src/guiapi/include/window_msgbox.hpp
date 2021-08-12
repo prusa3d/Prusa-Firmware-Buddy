@@ -72,11 +72,11 @@ protected:
 
 //todo enum default button
 //todo enum for size?
-Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::RectScreenBody, is_multiline multiline = is_multiline::yes);
-Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::RectScreenBody, is_multiline multiline = is_multiline::yes);
-Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::RectScreenBody, is_multiline multiline = is_multiline::yes);
-Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::RectScreenBody, is_multiline multiline = is_multiline::yes);
-Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::RectScreenBody, is_multiline multiline = is_multiline::yes);
+Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::MsgBoxFrameRect, is_multiline multiline = is_multiline::yes);
+Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::MsgBoxFrameRect, is_multiline multiline = is_multiline::yes);
+Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::MsgBoxFrameRect, is_multiline multiline = is_multiline::yes);
+Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::MsgBoxFrameRect, is_multiline multiline = is_multiline::yes);
+Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::MsgBoxFrameRect, is_multiline multiline = is_multiline::yes);
 Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, uint16_t icon_id = 0, is_multiline multiline = is_multiline::yes);
-Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::RectScreenBody, is_multiline multiline = is_multiline::yes);
-Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::RectScreenBody, is_multiline multiline = is_multiline::yes);
+Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::MsgBoxFrameRect, is_multiline multiline = is_multiline::yes);
+Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::MsgBoxFrameRect, is_multiline multiline = is_multiline::yes);
