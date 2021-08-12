@@ -4,9 +4,6 @@
 #include "../../lcd/ultralcd.h"
 #include "../../sd/cardreader.h"
 
-//-//
-#include "dbg.h"
-
 #include "M73_PE.h"
 #include "../Marlin/src/libs/stopwatch.h"
 extern Stopwatch print_job_timer;
@@ -93,23 +90,15 @@ if(parser.seen('P'))
 	      {
           oProgressData.oPercentDone.mSetValue((uint32_t)nValue,nTimeNow);
           oProgressData.oTime2End.mSetValue((uint32_t)(parser.value_ulong()*60),nTimeNow); // [min] -> [s]
-//_dbg("### M73pe / P :: %d t0: %d\r",oProgressData.oPercentDone.mGetValue(),nTimeNow);
-//_dbg("### M73pe / R :: %d t0: %d\r",oProgressData.oTime2End.mGetValue(),nTimeNow);
 	      }
 	 else {
           oProgressData.oPercentDirectControl.mSetValue((uint32_t)nValue,nTimeNow);
-//_dbg("### M73pe / p :: %d t0: %d\r",oProgressData.oPercentDirectControl.mGetValue(),nTimeNow);
           }
      }
 
 if(parser.seen('T'))
      {
      oProgressData.oTime2Pause.mSetValue((uint32_t)(parser.value_ulong()*60),nTimeNow); // [min] -> [s]
-//_dbg("### M73pe / T :: %d t0: %d\r",oProgressData.oTime2Pause.mGetValue(),nTimeNow);
      }
-
-// musi byt 'nastaven' "LCD_SET_PROGRESS_MANUALLY"
-//    ui.set_progress(parser.value_byte());
-//.//_dbg("### M73pe :: P: %d R: %d T: %d",nP,nR,nT);
 }
 #endif
