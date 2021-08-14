@@ -5,10 +5,10 @@
 #include <algorithm>
 
 #include "cmsis_os.h"
-#include "dbg.h"
 #include "gui.hpp"
 #include "resource.h"
 #include "display_helper.h"
+#include "log.h"
 
 typedef void(test_display_t)(uint16_t cnt);
 
@@ -34,14 +34,14 @@ void do_test(test_display_t *func, int cnt, const char *name, const char *unit) 
 #if (DBG_LEVEL >= 3)
     tim = _microseconds() - tim;
     float spd = (float)cnt * 1000000 / tim;
-    _dbg3(" %-20.20s %5u %5.5ss/sec  %5uus/%-5.5s", name, (uint32_t)spd, unit, tim / cnt, unit);
+    log_info(Buddy, " %-20.20s %5u %5.5ss/sec  %5uus/%-5.5s", name, (uint32_t)spd, unit, tim / cnt, unit);
 #endif
     osDelay(1000);
 }
 
 void test_display(void) {
     while (1) {
-        _dbg3("test_display start");
+        log_info(Buddy, "test_display start");
         do_test(test_display_random_dots, 20000, "random_dots", "dot");
         do_test(test_display_random_lines, 500, "random_lines", "line");
         do_test(test_display_random_rects, 500, "random_rects", "rect");
@@ -53,7 +53,7 @@ void test_display(void) {
         do_test(test_display_fade, 32, "fade", "frame");
         do_test(test_display_rgbcolors, 20, "rgbcolors", "frame");
         do_test(test_display_spectrum, 20, "spectrum", "frame");
-        _dbg3("test_display end\n");
+        log_info(Buddy, "test_display end\n");
     }
 }
 
@@ -293,7 +293,7 @@ void test_display2(void) {
 		tim = _microseconds();
 		display::Clear(COLOR_BLACK);
 		tim = _microseconds() - tim;
-		_dbg3("display_clear %u", tim);
+		_log_info(Buddy, "display_clear %u", tim);
 #endif
 
 #if 0
@@ -302,14 +302,14 @@ void test_display2(void) {
 		test_display_random_png_64x64(100);
 		tim = _microseconds() - tim;
 		spd = 100 * 1000000 / tim;
-		_dbg3("test_random_png_64x64 %u (%u icons/sec)", tim, spd);
+		_log_info(Buddy, "test_random_png_64x64 %u (%u icons/sec)", tim, spd);
 		osDelay(1000);
 #endif
 
         /*		tim = _microseconds();
 		display::FillRect(64, 64, 128, 128, CLR565_BLUE);
 		tim = _microseconds() - tim;
-		_dbg3("fill_rect %u", tim);
+		_log_info(Buddy, "fill_rect %u", tim);
 		osDelay(1000);*/
 
         //	  	st7789v_draw_pict(10, 10, 83, 63, (uint16_t*)png_buddy_logo);
@@ -321,7 +321,7 @@ void test_display2(void) {
         //		tim = _microseconds();
         //		display::DrawPng(0, 0, pf1);
         //		tim = _microseconds() - tim;
-        //		_dbg3("draw_png %u", tim);
+        //		_log_info(Buddy, "draw_png %u", tim);
         //		osDelay(1000);
         //	  	display_ex_draw_png(0, 0, pf2);
         //	  	osDelay(2000);

@@ -777,6 +777,7 @@ if(GUI)
             src/gui/screen_menu_eeprom.cpp
             src/gui/footer/footer_item_axis.cpp
             src/gui/footer/footer_item_fans.cpp
+            src/gui/logger.c
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp

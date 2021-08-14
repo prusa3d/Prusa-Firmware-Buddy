@@ -1,0 +1,3 @@
+#include "log.h"
+
+LOG_COMPONENT_DEF(GUI, SEVERITY_DEBUG);

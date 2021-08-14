@@ -1,5 +1,4 @@
 #include "screen_filebrowser.hpp"
-#include "dbg.h"
 
 #include "config.h"
 #include "stdlib.h"
@@ -12,6 +11,7 @@
 #include "eeprom.h"
 #include "i18n.h"
 #include "gui_media_events.hpp"
+#include "log.h"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
@@ -20,8 +20,6 @@
 #ifndef MAXPATHNAMELENGTH
     #define MAXPATHNAMELENGTH F_MAXPATHNAMELENGTH
 #endif
-
-#define LOG_ERROR(...) _dbg3("FILEBROWSER ERROR: " __VA_ARGS__)
 
 // Default value could be rewritten by eeprom settings
 WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
@@ -98,7 +96,7 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
 
     size_t sfnPathLen = strlen(w_filelist.sfn_path);
     if ((sfnPathLen + strlen(currentSFN) + 1) >= MAXPATHNAMELENGTH) {
-        LOG_ERROR("path too long");
+        log_error(GUI, "Path too long");
         SuperWindowEvent(sender, event, param);
         return;
     }
@@ -132,7 +130,7 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
             //@@TODO:check for "/" on last place of path and if yes do not add "/"
             written = snprintf(vars->media_SFN_path, FILE_PATH_BUFFER_LEN, "%s/%s", w_filelist.sfn_path, currentSFN);
             if (written < 0 || written >= (int)FILE_PATH_BUFFER_LEN) {
-                LOG_ERROR("failed to prepare file path for print");
+                log_error(GUI, "Failed to prepare file path for print");
                 SuperWindowEvent(sender, event, param);
                 return;
             }

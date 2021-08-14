@@ -10,7 +10,6 @@
 #include "window_file_list.hpp"
 #include "gui.hpp"
 #include "config.h"
-#include "dbg.h"
 #include "sound.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"

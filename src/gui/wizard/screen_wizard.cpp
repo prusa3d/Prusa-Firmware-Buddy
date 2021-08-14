@@ -1,7 +1,6 @@
 // screen_wizard.cpp
 
 #include "screen_wizard.hpp"
-#include "dbg.h"
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include "marlin_client.h"

@@ -8,8 +8,8 @@
 #include "eeprom.h"
 #include "screen_sheet_rename.hpp"
 #include "wizard/screen_wizard.hpp"
-#include "dbg.h"
 #include "marlin_client.h"
+#include "log.h"
 
 class ScreenMenuSteelSheets;
 
@@ -104,7 +104,7 @@ public:
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t ev, void *param) override {
-        _dbg("SheetProfile::event");
+        log_debug(GUI, "SheetProfile::event");
         if (ev != GUI_event_t::CHILD_CLICK) {
             SuperWindowEvent(sender, ev, param);
             return;
@@ -115,22 +115,22 @@ protected:
             if (sheet_reset(Index::value)) {
                 Item<MI_SHEET_RESET>().Disable();
                 Item<MI_SHEET_SELECT>().Disable();
-                _dbg("MI_SHEET_RESET OK");
+                log_debug(GUI, "MI_SHEET_RESET OK");
             } else
-                _dbg("MI_SHEET_RESET FAIL!");
+                log_error(GUI, "MI_SHEET_RESET FAIL!");
             break;
         case profile_action::Select:
-            _dbg("MI_SHEET_SELECT");
+            log_debug(GUI, "MI_SHEET_SELECT");
             sheet_select(Index::value);
             marlin_set_z_offset(variant8_get_flt(eeprom_get_var(EEVAR_ZOFFSET)));
             break;
         case profile_action::Calibrate:
-            _dbg("MI_SHEET_CALIBRATE");
+            log_debug(GUI, "MI_SHEET_CALIBRATE");
             sheet_calibrate(Index::value);
             ScreenWizard::Run(wizard_run_type_t::firstlay);
             break;
         case profile_action::Rename:
-            _dbg("MI_SHEET_RENAME");
+            log_debug(GUI, "MI_SHEET_RENAME");
 #if _DEBUG //todo remove #if _DEBUG after rename is finished
             Screens::Access()->Open([]() {
                 screen_sheet_rename_t::index(Index::value);
@@ -139,7 +139,7 @@ protected:
 #endif // _DEBUG
             break;
         default:
-            _dbg("Click: %d\n", static_cast<uint32_t>(action));
+            log_debug(GUI, "Click: %d\n", static_cast<uint32_t>(action));
             break;
         }
     }
