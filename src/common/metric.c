@@ -1,7 +1,7 @@
 #include "metric.h"
 #include "cmsis_os.h"
-#include "dbg.h"
 #include "timing.h"
+#include "log.h"
 #include "stm32f4xx_hal.h"
 #include <stdarg.h>
 #include <stdbool.h>
@@ -23,6 +23,9 @@ static metric_handler_t **metric_system_handlers;
 static bool metric_system_initialized = false;
 static uint16_t dropped_points_count = 0;
 static metric_t *metric_linked_list_root = NULL;
+
+// logging component
+LOG_COMPONENT_DEF(Metrics, SEVERITY_INFO);
 
 // internal metrics
 metric_t metric_dropped_points = METRIC("points_dropped", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
@@ -87,6 +90,7 @@ static metric_point_t *point_check_and_prepare(metric_t *metric, metric_value_ty
     if (!check_min_interval(metric))
         return NULL;
     if (metric->type != type) {
+        log_error(Metrics, "Attempt to record an invalid value type for metric %s", metric->name);
         metric_record_error(metric, "invalid type");
         return NULL;
     }
