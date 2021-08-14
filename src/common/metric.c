@@ -144,7 +144,7 @@ void metric_record_string(metric_t *metric, const char *fmt, ...) {
         return;
     va_list args;
     va_start(args, fmt);
-    vsnprintf_P(recording->value_str, sizeof(recording->value_str), fmt, args);
+    vsnprintf(recording->value_str, sizeof(recording->value_str), fmt, args);
     va_end(args);
     point_enqueue(recording);
 }
@@ -155,7 +155,7 @@ void metric_record_custom(metric_t *metric, const char *fmt, ...) {
         return;
     va_list args;
     va_start(args, fmt);
-    vsnprintf_P(recording->value_custom, sizeof(recording->value_custom), fmt, args);
+    vsnprintf(recording->value_custom, sizeof(recording->value_custom), fmt, args);
     va_end(args);
     point_enqueue(recording);
 }
@@ -183,7 +183,7 @@ void metric_record_error(metric_t *metric, const char *fmt, ...) {
     recording->error = true;
     va_list args;
     va_start(args, fmt);
-    vsnprintf_P(recording->error_msg, sizeof(recording->error_msg), fmt, args);
+    vsnprintf(recording->error_msg, sizeof(recording->error_msg), fmt, args);
     va_end(args);
     point_enqueue(recording);
 }
