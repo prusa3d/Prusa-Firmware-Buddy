@@ -120,7 +120,7 @@
 
 /*******   Customization ***************************************/
 
-#include "dbg.h"
+#include "log.h"
 #define WUI_API_ROOT_STR_LEN 5
 
 #define POST_REQUEST_BUFFSIZE  600
