@@ -24,7 +24,10 @@ void Buddy::Metrics::RecordRuntimeStats() {
         int count = uxTaskGetSystemState(task_statuses, sizeof(task_statuses) / sizeof(task_statuses[1]), NULL);
         for (int idx = 0; idx < count; idx++) {
             size_t s = malloc_usable_size(task_statuses[idx].pxStackBase);
-            metric_record_custom(&stack, ",n=%.7s t=%i,m=%hu", task_statuses[idx].pcTaskName, s, task_statuses[idx].usStackHighWaterMark);
+            const char *task_name = task_statuses[idx].pcTaskName;
+            if (strcmp(task_name, "Tmr Svc") == 0)
+                task_name = "TmrSvc";
+            metric_record_custom(&stack, ",n=%.7s t=%i,m=%hu", task_name, s, task_statuses[idx].usStackHighWaterMark);
         }
         last_recorded_ticks = ticks_ms();
     }
