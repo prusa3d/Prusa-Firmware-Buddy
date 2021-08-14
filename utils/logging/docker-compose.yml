@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  influxdb:
+    image: influxdb:2.0
+    container_name: influxdb
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+      - "8090:8090"
+    volumes:
+      - ./data_influxdb:/var/lib/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: alan
+      DOCKER_INFLUXDB_INIT_PASSWORD: heslicko
+      DOCKER_INFLUXDB_INIT_ORG: prusa
+      DOCKER_INFLUXDB_INIT_BUCKET: buddy
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: token

@@ -1,0 +1,28 @@
+#include <stddef.h>
+
+#include "logging.h"
+
+#include "log.h"
+#include "log_dest_swo.h"
+#include "log_dest_syslog.h"
+#include "log_dest_shared.h"
+
+void logging_init() {
+    static log_destination_t log_destination_swo = {
+        .name = "SWO",
+        .lowest_severity = SEVERITY_DEBUG,
+        .log_event_fn = swo_log_event,
+        .log_format_fn = log_format_simple,
+        .next = NULL,
+    };
+    log_destination_register(&log_destination_swo);
+
+    static log_destination_t log_destination_syslog = {
+        .name = "SYSLOG",
+        .lowest_severity = SEVERITY_DEBUG,
+        .log_event_fn = syslog_log_event,
+        .log_format_fn = syslog_format_event,
+        .next = NULL,
+    };
+    log_destination_register(&log_destination_syslog);
+}

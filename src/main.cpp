@@ -70,6 +70,7 @@
 #include "filesystem.h"
 #include "adc.hpp"
 #include "SEGGER_SYSVIEW.h"
+#include "logging.h"
 
 #define USB_OVERC_Pin               GPIO_PIN_4
 #define USB_OVERC_GPIO_Port         GPIOE
@@ -211,10 +212,6 @@ extern "C" void EepromSystemInit() {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST);
     if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
         HAL_IWDG_Reset = 1;
-    //__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST);
-    //__HAL_RCC_GET_FLAG(RCC_FLAG_PORRST);
-    //__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST);
-    //__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST);
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -246,6 +243,8 @@ extern "C" void EepromSystemInit() {
 int main(void) {
     /* Trap on division by Zero */
     SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
+
+    logging_init();
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();

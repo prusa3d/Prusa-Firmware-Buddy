@@ -133,6 +133,11 @@ SECTIONS
   {
     . = ALIGN(4);
     _sdata = .;        /* create a global symbol at data start */
+
+    PROVIDE_HIDDEN (__start_log_components = .);
+    KEEP(*(.data.log_components))
+    PROVIDE_HIDDEN (__end_log_components = .);
+
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
 
