@@ -4,7 +4,6 @@
 #include "marlin_server.hpp"
 #include <stdarg.h>
 #include <stdio.h>
-#include "dbg.h"
 #include "app.h"
 #include "bsod.h"
 #include "timing.h"
@@ -49,18 +48,6 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
 #include "selftest_MINI.h"
 
-#define DBG _dbg1 //enabled level 1
-//#define DBG(...)
-
-//#define DBG_XUI DBG //trace ExtUI events
-#define DBG_XUI(...) //disable trace
-
-//#define DBG_REQ DBG //trace requests
-#define DBG_REQ(...) //disable trace
-
-//#define DBG_FSM DBG //trace fsm
-#define DBG_FSM(...) //disable trace
-
 typedef struct {
     marlin_vars_t vars;                              // cached variables
     marlin_mesh_t mesh;                              // meshbed leveling
@@ -96,6 +83,8 @@ typedef struct {
 fsm::Queue fsm_event_queues[MARLIN_MAX_CLIENTS];
 
 extern "C" {
+
+LOG_COMPONENT_DEF(MarlinServer, SEVERITY_DEBUG);
 
 //-----------------------------------------------------------------------------
 // variables
@@ -301,7 +290,7 @@ static const uint8_t MARLIN_IDLE_CNT_BUSY = 1;
 int marlin_server_loop(void) {
     if (marlin_server.idle_cnt >= MARLIN_IDLE_CNT_BUSY)
         if (marlin_server.flags & MARLIN_SFLG_BUSY) {
-            //_dbg("SVR: READY");
+            log_debug(MarlinServer, "State: Ready");
             marlin_server.flags &= ~MARLIN_SFLG_BUSY;
             if ((marlin_server.command != MARLIN_CMD_NONE) && (marlin_server.command != MARLIN_CMD_M600)) {
                 _send_notify_event(MARLIN_EVT_CommandEnd, marlin_server.command, 0);
@@ -317,7 +306,8 @@ int marlin_server_idle(void) {
     if (marlin_server.idle_cnt < MARLIN_IDLE_CNT_BUSY)
         marlin_server.idle_cnt++;
     else if ((marlin_server.flags & MARLIN_SFLG_BUSY) == 0) {
-        //_dbg("SVR: BUSY");
+
+        log_debug(MarlinServer, "State: Busy");
         marlin_server.flags |= MARLIN_SFLG_BUSY;
         if (parser.command_letter == 'G')
             switch (parser.codenum) {
@@ -1198,7 +1188,7 @@ static int _process_server_request(const char *request) {
     int client_id = *(request++) - '0';
     if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS))
         return 1;
-    DBG_REQ("SRV: REQ %c%s", '0' + client_id, request);
+    log_debug(MarlinServer, "Processing %s (from %u)", request, client_id);
     if (strncmp("!g ", request, 3) == 0) {
         //@TODO return value depending on success of enqueueing gcode
         processed = marlin_server_enqueue_gcode(request + 3);
@@ -1385,7 +1375,7 @@ int _is_in_M600_flg = 0;
 namespace ExtUI {
 
 void onStartup() {
-    DBG_XUI("XUI: onStartup");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onStartup");
     _send_notify_event(MARLIN_EVT_Startup, 0, 0);
 }
 
@@ -1423,7 +1413,7 @@ int _is_thermal_error(PGM_P const msg) {
 }
 
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
-    //_dbg("onPrinterKilled %s", msg);
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Printer killed: %s", msg);
     if (!(SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk))
         taskENTER_CRITICAL();     //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
     wdt_iwdg_refresh();           //watchdog reset
@@ -1436,54 +1426,54 @@ void onPrinterKilled(PGM_P const msg, PGM_P const component) {
 }
 
 void onMediaInserted() {
-    DBG_XUI("XUI: onMediaInserted");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onMediaInserted");
     _send_notify_event(MARLIN_EVT_MediaInserted, 0, 0);
 }
 
 void onMediaError() {
-    DBG_XUI("XUI: onMediaError");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onMediaError");
     _send_notify_event(MARLIN_EVT_MediaError, 0, 0);
 }
 
 void onMediaRemoved() {
-    DBG_XUI("XUI: onMediaRemoved");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onMediaRemoved");
     _send_notify_event(MARLIN_EVT_MediaRemoved, 0, 0);
 }
 
 void onPlayTone(const uint16_t frequency, const uint16_t duration) {
-    DBG_XUI("XUI: onPlayTone");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPlayTone");
     _send_notify_event(MARLIN_EVT_PlayTone, frequency, duration);
 }
 
 void onPrintTimerStarted() {
-    DBG_XUI("XUI: onPrintTimerStarted");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPrintTimerStarted");
     _send_notify_event(MARLIN_EVT_PrintTimerStarted, 0, 0);
 }
 
 void onPrintTimerPaused() {
-    DBG_XUI("XUI: onPrintTimerPaused");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPrintTimerPaused");
     _send_notify_event(MARLIN_EVT_PrintTimerPaused, 0, 0);
 }
 
 void onPrintTimerStopped() {
-    DBG_XUI("XUI: onPrintTimerStopped");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPrintTimerStopped");
     _send_notify_event(MARLIN_EVT_PrintTimerStopped, 0, 0);
 }
 
 void onFilamentRunout(const extruder_t extruder) {
-    DBG_XUI("XUI: onFilamentRunout");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onFilamentRunout");
     _send_notify_event(MARLIN_EVT_FilamentRunout, 0, 0);
 }
 
 void onUserConfirmRequired(const char *const msg) {
-    DBG_XUI("XUI: onUserConfirmRequired: %s", msg);
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onUserConfirmRequired: %s", msg);
     _send_notify_event(MARLIN_EVT_UserConfirmRequired, 0, 0);
 }
 
 void onStatusChanged(const char *const msg) {
     static bool pending_err_msg = false;
 
-    DBG_XUI("XUI: onStatusChanged: %s", msg);
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onStatusChanged: %s", msg);
     _send_notify_event(MARLIN_EVT_StatusChanged, 0, 0);
     if (msg != nullptr && strcmp(msg, "Prusa-mini Ready.") == 0) {
     } //TODO
@@ -1508,30 +1498,30 @@ void onStatusChanged(const char *const msg) {
 }
 
 void onFactoryReset() {
-    DBG_XUI("XUI: onFactoryReset");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onFactoryReset");
     _send_notify_event(MARLIN_EVT_FactoryReset, 0, 0);
 }
 
 void onLoadSettings(char const *) {
-    DBG_XUI("XUI: onLoadSettings");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onLoadSettings");
     _send_notify_event(MARLIN_EVT_LoadSettings, 0, 0);
 }
 
 void onStoreSettings(char *) {
-    DBG_XUI("XUI: onStoreSettings");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onStoreSettings");
     _send_notify_event(MARLIN_EVT_StoreSettings, 0, 0);
 }
 
 void onConfigurationStoreWritten(bool success) {
-    DBG_XUI("XUI: onConfigurationStoreWritten");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onConfigurationStoreWritten");
 }
 
 void onConfigurationStoreRead(bool success) {
-    DBG_XUI("XUI: onConfigurationStoreRead");
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onConfigurationStoreRead");
 }
 
 void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
-    DBG_XUI("XUI: onMeshUpdate x: %u, y: %u, z: %.2f", xpos, ypos, (double)zval);
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onMeshUpdate x: %u, y: %u, z: %.2f", xpos, ypos, (double)zval);
     uint8_t index = xpos + marlin_server.mesh.xc * ypos;
     uint32_t usr32 = variant8_get_ui32(variant8_flt(zval));
     uint16_t usr16 = xpos | ((uint16_t)ypos << 8);
@@ -1542,7 +1532,7 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 }
 
 void fsm_create(ClientFSM type, uint8_t data) {
-    DBG_FSM("fsm_create %d", int(type));
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "fsm_create %d", int(type));
 
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         fsm_event_queues[i].PushCreate(type, data);
@@ -1552,7 +1542,7 @@ void fsm_create(ClientFSM type, uint8_t data) {
 }
 
 void fsm_destroy(ClientFSM type) {
-    DBG_FSM("fsm_destroy %d", int(type));
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "fsm_destroy %d", int(type));
 
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         fsm_event_queues[i].PushDestroy(type);
@@ -1561,7 +1551,7 @@ void fsm_destroy(ClientFSM type) {
 }
 
 void _fsm_change(ClientFSM type, fsm::BaseData data) {
-    DBG_FSM("fsm_change %d %d", int(type), data.GetPhase());
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "fsm_change %d %d", int(type), data.GetPhase());
 
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         fsm_event_queues[i].PushChange(type, data);
@@ -1570,7 +1560,7 @@ void _fsm_change(ClientFSM type, fsm::BaseData data) {
 }
 
 void set_warning(WarningType type) {
-    DBG_FSM("warning type %d set", (int)type);
+    _log_event(SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "warning type %d set", (int)type);
 
     const MARLIN_EVT_t evt_id = MARLIN_EVT_Warning;
     _send_notify_event(evt_id, uint32_t(type), 0);
