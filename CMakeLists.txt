@@ -548,6 +548,7 @@ target_sources(
           src/usb_device.c
           src/freertos.c
           src/freertos_openocd.c
+          src/lwip.c
           src/usbh_diskio.c
           src/main.cpp
           src/usbd_desc.c
