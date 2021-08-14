@@ -7,7 +7,8 @@
 #include "eeprom.h"
 #include "eeprom_function_api.h"
 #include "st25dv64k.h"
-#include "dbg.h"
+#include "log.h"
+#include "timing.h"
 #include "cmsis_os.h"
 #include "crc32.h"
 #include "version.h"
@@ -17,6 +18,8 @@
 #include "footer_eeprom.hpp"
 #include <bitset>
 
+LOG_COMPONENT_DEF(EEPROM, SEVERITY_INFO);
+
 static const constexpr uint8_t EEPROM__PADDING = 2;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
 static const constexpr uint16_t EEPROM_MAX_DATASIZE = 512;         // maximum datasize
@@ -24,9 +27,6 @@ static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eepr
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
 static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read only
-
-// measure time needed to update crc
-//#define EEPROM_MEASURE_CRC_TIME
 
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
 typedef struct
@@ -415,8 +415,8 @@ variant8_t eeprom_get_var(enum eevar_id id) {
             data_ptr = variant8_data_ptr(&var);
             st25dv64k_user_read_bytes(addr, data_ptr, size);
         } else {
-            _dbg("error");
             //TODO:error
+            log_error(EEPROM, "eeprom_get_var: invalid data size");
         }
         eeprom_unlock();
     }
@@ -742,10 +742,8 @@ static int eeprom_check_crc32(void) {
 }
 
 static void eeprom_update_crc32() {
-#ifdef EEPROM_MEASURE_CRC_TIME
-    uint32_t time = _microseconds();
-#endif
-#if 1 //simple method
+    uint32_t time = ticks_us();
+
     eeprom_vars_t vars;
     // read eeprom data
     st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
@@ -753,12 +751,8 @@ static void eeprom_update_crc32() {
     vars.CRC32 = crc32_eeprom((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
     // write crc to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
-#else //
-#endif
-#ifdef EEPROM_MEASURE_CRC_TIME
-    time = _microseconds() - time;
-    _dbg("crc update %u us", time);
-#endif
+
+    log_info(EEPROM, "CRC update took %u us", ticks_diff(ticks_us(), time));
 }
 
 static uint16_t eeprom_fwversion_ui16(void) {
