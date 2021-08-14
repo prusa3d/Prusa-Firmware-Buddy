@@ -30,3 +30,6 @@ enum {
 };
 
 #define otp_lock_sector0 (*((uint8_t *)OTP_LOCK_BLOCK_ADDR))
+
+/// Returns MAC address formatted as "XX:XX:XX:XX:XX:XX" string
+const char *otp_get_mac_address_str();

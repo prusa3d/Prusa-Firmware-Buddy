@@ -254,6 +254,10 @@ target_compile_definitions(
   _EXTUI
   )
 
+add_library(BuddyLogging INTERFACE)
+target_include_directories(BuddyLogging INTERFACE src/logging)
+target_link_libraries(BuddyHeaders INTERFACE BuddyLogging)
+
 #
 # Configure Arduino Core
 #
@@ -306,14 +310,14 @@ target_link_libraries(FreeRTOS_Config INTERFACE Segger STM32::CPU)
 #
 
 add_library(LwIP_Config INTERFACE)
-target_link_libraries(LwIP_Config INTERFACE BuddyHeaders)
+target_link_libraries(LwIP_Config INTERFACE BuddyHeaders BuddyLogging)
 
 #
 # Configure FatFs
 #
 
 add_library(FatFs_Config INTERFACE)
-target_link_libraries(FatFs_Config INTERFACE BuddyHeaders STM32::USBHost)
+target_link_libraries(FatFs_Config INTERFACE BuddyHeaders BuddyLogging STM32::USBHost)
 
 #
 # Configure Marlin
@@ -504,6 +508,8 @@ target_include_directories(
           src/lang
           src/hw
           src/segger
+          src/logging
+          src/syslog
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -573,6 +579,7 @@ target_sources(
           src/common/MarlinPin.cpp
           src/common/marlin_vars.c
           src/common/media.cpp
+          src/common/otp.c
           src/common/Pin.cpp
           src/common/PinsCheck.cpp
           src/common/sim_bed.c
@@ -658,6 +665,13 @@ target_sources(
           src/common/timing_sys.c
           src/segger/SEGGER_SYSVIEW_FreeRTOS.c
           src/segger/SEGGER_SYSVIEW_Config_FreeRTOS.c
+          src/syslog/syslog.c
+          src/logging.c
+          src/logging/log.c
+          src/logging/log_platform.c
+          src/logging/log_dest_swo.c
+          src/logging/log_dest_shared.c
+          src/logging/log_dest_syslog.c
   )
 
 if(GUI)

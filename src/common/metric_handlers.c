@@ -1,13 +1,14 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
+#include "log.h"
 #include "metric_handlers.h"
 #include "stm32f4xx_hal.h"
 #include "alsockets.h"
 #include "timing.h"
+#include "syslog.h"
+#include "otp.h"
 
-#define MAC_ADDR_START            0x1FFF781A //MM:MM:MM:SS:SS:SS
-#define MAC_ADDR_SIZE             6
 #define TEXTPROTOCOL_POINT_MAXLEN 63
 #define BUFFER_OLD_MS             1000 // after how many ms we flush the buffer
 
@@ -100,6 +101,7 @@ metric_handler_t metric_handler_uart = {
 
 static char syslog_server_ipaddr[16] = "";
 static int syslog_server_port = 8500;
+static syslog_transport_t syslog_transport;
 
 static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp) {
     static int message_id = 0;
@@ -107,45 +109,12 @@ static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp)
     const int severity = 6; // informational
     const char *appname = "buddy";
 
-    // load mac addr and use it as hostname
-    char hostname[18];
-    {
-        volatile uint8_t mac[MAC_ADDR_SIZE];
-        for (uint8_t i = 0; i < MAC_ADDR_SIZE; i++)
-            mac[i] = *((volatile uint8_t *)(MAC_ADDR_START + i));
-        snprintf(hostname, sizeof(hostname),
-            "%x:%x:%x:%x:%x:%x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    }
-
     // What the.. format? Checkout RFC5425 (The Syslog Protocol)
     // https://tools.ietf.org/html/rfc5424
     return snprintf(
         buffer, buffer_len,
         "<%i>1 - %s %s - - - msg=%i,tm=%lu,v=2 ",
-        facility * 8 + severity, hostname, appname, message_id++, timestamp);
-}
-
-static void syslog_message_send(char *buffer, int buffer_len) {
-    if (strlen(syslog_server_ipaddr) == 0)
-        return;
-    if (netif_default == NULL)
-        return;
-
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0)
-        return;
-
-    struct sockaddr_in addr = { 0 };
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = inet_addr(syslog_server_ipaddr);
-    addr.sin_port = htons(syslog_server_port);
-
-    if (sendto(sock, buffer, buffer_len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        close(sock);
-        return;
-    }
-
-    close(sock);
+        facility * 8 + severity, otp_get_mac_address_str(), appname, message_id++, timestamp);
 }
 
 static void syslog_handler(metric_point_t *point) {
@@ -170,8 +139,20 @@ static void syslog_handler(metric_point_t *point) {
     bool buffer_full = buffer_used + TEXTPROTOCOL_POINT_MAXLEN > sizeof(buffer);
     bool buffer_becoming_old = ticks_diff(ticks_ms(), buffer_oldest_timestamp) > BUFFER_OLD_MS;
 
+    // send the buffer if it's full or old enough
     if (buffer_full || buffer_becoming_old) {
-        syslog_message_send(buffer, buffer_used);
+        // is the socket ready?
+        bool open = syslog_transport_check_is_open(&syslog_transport);
+        // if not, try to open the socket
+        if (!open)
+            open = syslog_transport_open(&syslog_transport, syslog_server_ipaddr, syslog_server_port);
+        // try to send the message if we have an open socket
+        if (open) {
+            bool sent = syslog_transport_send(&syslog_transport, buffer, buffer_used);
+            if (!sent)
+                syslog_transport_close(&syslog_transport);
+        }
+
         buffer_used = 0;
         buffer_has_header = false;
     }
