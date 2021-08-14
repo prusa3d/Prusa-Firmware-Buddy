@@ -1,4 +1,3 @@
-#include "dbg.h"
 #include "screen_printing_serial.hpp"
 #include "config.h"
 #include "marlin_client.h"

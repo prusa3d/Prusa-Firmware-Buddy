@@ -2,7 +2,6 @@
 
 #include "screen_test.hpp"
 #include "config.h"
-#include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "bsod.h"
 #include "ScreenHandler.hpp"

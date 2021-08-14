@@ -1,7 +1,7 @@
 //window_event.cpp
 
 #include "window_event.hpp"
-#include "dbg.h"
+#include "log.h"
 
 EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {
     bool print = false;
@@ -14,6 +14,6 @@ EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_
     // clang-format on
 
     if (print) {
-        _dbg("%s ptr: %p, event %s\n", event_method_name, sender, GUI_event_prt(event));
+        log_debug(GUI, "%s ptr: %p, event %s", event_method_name, sender, GUI_event_prt(event));
     }
 } //ctor must be private

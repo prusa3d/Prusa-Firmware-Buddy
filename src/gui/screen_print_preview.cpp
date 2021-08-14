@@ -1,7 +1,7 @@
 #include <unistd.h>
 
 #include "screen_print_preview.hpp"
-#include "dbg.h"
+#include "log.h"
 #include "gcode_file.h"
 #include "marlin_client.h"
 #include "resource.h"
@@ -13,8 +13,6 @@
 #include "ScreenHandler.hpp"
 #include "print_utils.hpp"
 #include "printers.h"
-
-#define DBG _dbg0
 
 const uint16_t menu_icons[2] = {
     IDR_PNG_print_58px,

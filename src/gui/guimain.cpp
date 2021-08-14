@@ -35,7 +35,6 @@ int guimain_spi_test = 0;
 #include "Jogwheel.hpp"
 #include "hwio.h"
 #include "sys.h"
-#include "dbg.h"
 #include "wdt.h"
 #include "dump.h"
 #include "gui_media_events.hpp"

@@ -1,5 +1,3 @@
-// screen_printing.cpp
-#include "dbg.h"
 #include "screen_printing.hpp"
 #include "marlin_client.h"
 #include "print_utils.hpp"
