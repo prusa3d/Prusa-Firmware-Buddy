@@ -16,7 +16,7 @@
 #include "stm32f4xx_hal.h"
 
 #include "sntp_client.h"
-#include "dbg.h"
+#include "log.h"
 
 #include <lwip/ip.h>
 #include <lwip/tcp.h>
@@ -26,6 +26,9 @@
 #include "main.h"
 
 #include "netdev.h"
+
+LOG_COMPONENT_DEF(WUI, SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(Network, SEVERITY_INFO);
 
 #include <string.h>
 #include "eeprom.h"
@@ -68,11 +71,10 @@ void wui_store_api_key(char *api_key, uint32_t length) {
 
 void StartWebServerTask(void const *argument) {
     uint32_t esp_check_counter = 1;
-    _dbg("wui starts");
 
     networkMbox_id = osMessageCreate(osMessageQ(networkMbox), NULL);
     if (networkMbox_id == NULL) {
-        _dbg("networkMbox was not created");
+        //_dbg("networkMbox was not created");
         return;
     }
 
