@@ -52,6 +52,9 @@
 
 /* USER CODE BEGIN Includes */
 #include "main.h"
+#include "log.h"
+
+LOG_COMPONENT_DEF(USBHost, SEVERITY_INFO);
 
 /* USER CODE END Includes */
 
