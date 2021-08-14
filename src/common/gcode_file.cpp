@@ -1,8 +1,6 @@
 #include "gcode_file.h"
-#include "dbg.h"
+#include "log.h"
 #include "gcode_thumb_decoder.h"
-
-#define DBG _dbg0
 
 static FILE *gcode_thumb_fp = nullptr;
 
@@ -28,7 +26,7 @@ static _fpos_t seek(struct _reent *_r, void *pv, _fpos_t fpos, int ipos) {
 
 extern "C" int f_gcode_thumb_open(FILE *fp, FILE *gcode_fp) {
     if (gcode_thumb_fp) {
-        DBG("a gcode png file is already open");
+        log_error(Core, "a gcode png file is already open");
         return 1;
     }
     gcode_thumb_fp = gcode_fp;

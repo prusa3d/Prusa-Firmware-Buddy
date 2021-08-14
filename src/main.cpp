@@ -1060,13 +1060,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
   */
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const *argument) {
-    /* init code for USB_DEVICE */
+    log_info(Buddy, "marlin task is starting");
+
     MX_USB_DEVICE_Init();
 
-    /* init code for USB_HOST */
     MX_USB_HOST_Init();
 
-    /* init code for FATFS */
     MX_FATFS_Init();
 
     /* init code for LWIP */

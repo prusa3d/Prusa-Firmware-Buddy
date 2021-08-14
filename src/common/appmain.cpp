@@ -3,15 +3,15 @@
 #include "appmain.hpp"
 #include "app.h"
 #include "app_metrics.h"
-#include "dbg.h"
+#include "log.h"
 #include "cmsis_os.h"
 #include "config.h"
-#include "dbg.h"
 #include "adc.hpp"
 #include "Jogwheel.hpp"
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
+#include "metric.h"
 #include "print_utils.hpp"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
@@ -50,8 +50,9 @@ CFanCtl fanCtlHeatBreak = CFanCtl(
     is_autofan_t::yes);
 #endif //NEW_FANCTL
 
-#define DBG _dbg0 //debug level 0
-//#define DBG(...)  //disable debug
+LOG_COMPONENT_DEF(Marlin, SEVERITY_INFO);
+LOG_COMPONENT_DEF(Buddy, SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(Core, SEVERITY_INFO);
 
 extern void USBSerial_put_rx_data(uint8_t *buffer, uint32_t length);
 extern void app_cdc_rx(uint8_t *buffer, uint32_t length);
@@ -81,7 +82,6 @@ void app_setup(void) {
     setup();
 
     marlin_server_settings_load(); // load marlin variables from eeprom
-    //DBG("after init_tmc (%ld ms)", HAL_GetTick());
 }
 
 void app_idle(void) {
@@ -92,8 +92,10 @@ void app_idle(void) {
     osDelay(0); // switch to other threads - without this is UI slow during printing
 }
 
+void app_setup_marlin_logging();
+
 void app_run(void) {
-    DBG("app_run");
+    app_setup_marlin_logging();
 
     LangEEPROM::getInstance();
 
@@ -104,12 +106,13 @@ void app_run(void) {
     sim_heater_init();
 #endif //SIM_HEATER
 
-    //DBG("before setup (%ld ms)", HAL_GetTick());
+    log_info(Marlin, "Starting setup");
 
     app_setup();
+
     marlin_server_start_processing();
 
-    //DBG("after setup (%ld ms)", HAL_GetTick());
+    log_info(Marlin, "Setup complete");
 
     if (eeprom_init() == EEPROM_INIT_Defaults && marlin_server_processing()) {
         settings.reset();
@@ -140,7 +143,6 @@ void app_run(void) {
         if ((rpm0_tmp != rpm0) || (rpm1_tmp != rpm1)) {
             rpm0_tmp = rpm0;
             rpm1_tmp = rpm1;
-            _dbg("rpm0: %-5u rpm1: %-5u", rpm0, rpm1);
         }
 #else //defined(FANCTLPRINT_TRACE) && defined(FANCTLPRINT_TRACE)
     #ifdef FANCTLPRINT_TRACE
@@ -176,6 +178,63 @@ void app_cdc_rx(uint8_t *buffer, uint32_t length) {
         USBSerial_put_rx_data(buffer, length);
 }
 
+void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
+    while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r'))
+        size--;
+    log_severity_t severity = SEVERITY_INFO;
+    if (size == 2 && memcmp("ok", buffer, 2) == 0) {
+        // Do not log "ok" messages
+        return;
+    } else if (size >= 5 && memcmp("echo:", buffer, 5) == 0) {
+        buffer = buffer + 5;
+        size -= 5;
+    }
+    if (size >= 6 && memcmp("Error:", buffer, 6) == 0) {
+        buffer = buffer + 6;
+        size -= 6;
+        severity = SEVERITY_ERROR;
+    }
+    log_event(severity, Marlin, "%.*s", size, buffer);
+}
+
+void app_setup_marlin_logging() {
+    SerialUSB.flushBufferHook = app_marlin_serial_output_write_hook;
+}
+
+#ifdef NEW_FANCTL
+static void record_fanctl_metrics() {
+    static metric_t metric = METRIC("fan", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+    static uint32_t last_update = 0;
+
+    auto record = [](CFanCtl &fanctl, const char *fan_name) {
+        auto fanStateToInt = [](CFanCtl::FanState state) {
+            switch (state) {
+            case CFanCtl::FanState::idle:
+                return 0;
+            case CFanCtl::FanState::starting:
+                return 1;
+            case CFanCtl::FanState::running:
+                return 2;
+            default:
+                return -1;
+            }
+        };
+        int state = fanStateToInt(fanctl.getState());
+        float pwm = static_cast<float>(fanctl.getPWM()) / static_cast<float>(fanctl.getMaxPWM());
+        float measured = static_cast<float>(fanctl.getActualRPM()) / static_cast<float>(fanctl.getMaxRPM());
+
+        metric_record_custom(&metric, ",fan=%s state=%i,pwm=%i,measured=%i",
+            fan_name, state, (int)(pwm * 100.0f), (int)(measured * 100.0f));
+    };
+
+    if (HAL_GetTick() - last_update > 987) {
+        record(fanCtlPrint, "print");
+        record(fanCtlHeatBreak, "heatbreak");
+        last_update = HAL_GetTick();
+    }
+}
+#endif
+
 void adc_tick_1ms(void) {
 #ifdef SIM_HEATER
     static uint8_t cnt_sim_heater = 0;
@@ -190,6 +249,7 @@ void adc_tick_1ms(void) {
 void app_tim14_tick(void) {
 #ifdef NEW_FANCTL
     fanctl_tick();
+    record_fanctl_metrics();
 #endif //NEW_FANCTL
 #ifndef HAS_GUI
     #error "HAS_GUI not defined."

@@ -42,6 +42,8 @@ void usb_cdc_tx_buffer(void) {
             }
         }
     }
+    if (SerialUSB.flushBufferHook)
+        SerialUSB.flushBufferHook(obuff, obufc);
     obufc = 0;
 }
 }
