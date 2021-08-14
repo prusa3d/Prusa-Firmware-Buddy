@@ -47,7 +47,6 @@ static const uint8_t FANCTLPRINT_PWM_MAX = 50;
 static const uint16_t FANCTLPRINT_RPM_MIN = 500;
 static const uint16_t FANCTLPRINT_RPM_MAX = 5000;
 static const uint8_t FANCTLPRINT_PWM_THR = 20;
-    #define FANCTLPRINT_TRACE
 //FANCTLHEATBREAK - heatbreak fan
 //static const uint8_t FANCTLHEATBREAK_PWM_MIN = 12;
 static const uint8_t FANCTLHEATBREAK_PWM_MIN = 0;
@@ -55,7 +54,6 @@ static const uint8_t FANCTLHEATBREAK_PWM_MAX = 50;
 static const uint16_t FANCTLHEATBREAK_RPM_MIN = 1000;
 static const uint16_t FANCTLHEATBREAK_RPM_MAX = 8000;
 static const uint8_t FANCTLHEATBREAK_PWM_THR = 20;
-    #define FANCTLHEATBREAK_TRACE
 
 #endif //NEW_FANCTL
 

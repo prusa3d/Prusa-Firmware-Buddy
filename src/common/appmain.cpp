@@ -127,41 +127,6 @@ void app_run(void) {
 #endif
         marlin_server_loop();
         osDelay(0); // switch to other threads - without this is UI slow
-#ifdef JOGWHEEL_TRACE
-        static int signals = jogwheel_signals;
-        if (signals != jogwheel_signals) {
-            signals = jogwheel_signals;
-            DBG("%d %d", signals, jogwheel_encoder);
-        }
-#endif //JOGWHEEL_TRACE
-
-#if defined(FANCTLPRINT_TRACE) && defined(FANCTLPRINT_TRACE)
-        static uint16_t rpm0_tmp = 0;
-        static uint16_t rpm1_tmp = 0;
-        uint16_t rpm0 = fanCtlPrint.getActualRPM();
-        uint16_t rpm1 = fanCtlHeatBreak.getActualRPM();
-        if ((rpm0_tmp != rpm0) || (rpm1_tmp != rpm1)) {
-            rpm0_tmp = rpm0;
-            rpm1_tmp = rpm1;
-        }
-#else //defined(FANCTLPRINT_TRACE) && defined(FANCTLPRINT_TRACE)
-    #ifdef FANCTLPRINT_TRACE
-        static uint16_t rpm0_tmp = 0;
-        uint16_t rpm0 = fanCtlPrint.getActualRPM();
-        if (rpm0_tmp != rpm0) {
-            rpm0_tmp = rpm0;
-            _dbg("rpm0: %u", rpm0);
-        }
-    #endif //FANCTLPRINT_TRACE
-    #ifdef FANCTLHEATBREAK_TRACE
-        static uint16_t rpm1_tmp = 0;
-        uint16_t rpm1 = fanCtlHeatBreak.getActualRPM();
-        if (rpm1_tmp != rpm1) {
-            rpm1_tmp = rpm1;
-            _dbg("rpm1: %u", rpm1);
-        }
-    #endif //FANCTLHEATBREAK_TRACE
-#endif     //defined(FANCTLPRINT_TRACE) && defined(FANCTLPRINT_TRACE)
     }
 }
 
