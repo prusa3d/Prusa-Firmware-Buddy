@@ -5,26 +5,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "dbg.h"
+#include "config.h"
 #include "app.h"
 #include "bsod.h"
 #include "cmsis_os.h"
 #include "ffconf.h"
 #include "timing.h"
+#include "log.h"
 
-#define DBG _dbg1 //enabled level 1
-//#define DBG(...)
-
-//#define DBG_REQ  DBG    //trace requests (client side)
-#define DBG_REQ(...) //disable trace
-
-//trace event notification (client side), to disable trace undef DBG_EVT_MSK
-//#define DBG_EVT DBG
-//#define DBG_EVT_MSK (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
-
-//trace variable change notifications (client side), to disable trace undef DBG_VAR_MSK
-//#define DBG_VAR     DBG
-//#define DBG_VAR_MSK (MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK_TEMP_ALL)
+LOG_COMPONENT_DEF(MarlinClient, SEVERITY_INFO);
 
 //maximum string length for DBG_VAR
 enum {
@@ -738,8 +727,7 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
         }
     }
     osSemaphoreRelease(marlin_server_sema); // unlock
-    DBG_REQ("CL%c: REQ %s", '0' + client_id, request);
-    //return ret;
+    log_info(MarlinClient, "Request (client %u): %s", client_id, request);
 }
 
 // wait for ack event, blocking - used for synchronization, called typicaly at end of client request functions
