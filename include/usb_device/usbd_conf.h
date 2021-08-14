@@ -62,6 +62,7 @@ extern "C" {
     #include "main.h"
     #include "stm32f4xx.h"
     #include "stm32f4xx_hal.h"
+    #include "log.h"
 
     /* USER CODE BEGIN INCLUDE */
 
@@ -139,32 +140,9 @@ extern "C" {
 
 /* DEBUG macros */
 
-    #if (USBD_DEBUG_LEVEL > 0)
-        #define USBD_UsrLog(...) \
-            printf(__VA_ARGS__); \
-            printf("\n");
-    #else
-        #define USBD_UsrLog(...)
-    #endif
-
-    #if (USBD_DEBUG_LEVEL > 1)
-
-        #define USBD_ErrLog(...) \
-            printf("ERROR: ");   \
-            printf(__VA_ARGS__); \
-            printf("\n");
-    #else
-        #define USBD_ErrLog(...)
-    #endif
-
-    #if (USBD_DEBUG_LEVEL > 2)
-        #define USBD_DbgLog(...) \
-            printf("DEBUG : ");  \
-            printf(__VA_ARGS__); \
-            printf("\n");
-    #else
-        #define USBD_DbgLog(...)
-    #endif
+    #define USBD_UsrLog(...) log_info(USBDevice, __VA_ARGS__)
+    #define USBD_ErrLog(...) log_error(USBDevice, __VA_ARGS__)
+    #define USBD_DbgLog(...) log_debug(USBDevice, __VA_ARGS__)
 
 /**
   * @}

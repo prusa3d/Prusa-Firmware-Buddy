@@ -52,6 +52,9 @@
 #include "stm32f4xx_hal.h"
 #include "usbd_def.h"
 #include "usbd_core.h"
+#include "log.h"
+
+LOG_COMPONENT_DEF(USBDevice, SEVERITY_INFO);
 
 /* USER CODE BEGIN Includes */
 

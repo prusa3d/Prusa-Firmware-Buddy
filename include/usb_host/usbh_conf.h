@@ -33,6 +33,8 @@ extern "C" {
     #include "stm32f4xx.h"
     #include "stm32f4xx_hal.h"
 
+    #include "log.h"
+
     /* USER CODE BEGIN INCLUDE */
 
     /* USER CODE END INCLUDE */
@@ -88,10 +90,8 @@ extern "C" {
     #define USBH_MAX_DATA_BUFFER 512
 
     /*----------   -----------*/
-    #define USBH_DEBUG_LEVEL 0
+    #define USBH_USE_OS 1
 
-    /*----------   -----------*/
-    #define USBH_USE_OS                    1
     #define USE_HAL_HCD_REGISTER_CALLBACKS 1U
 
     /****************************************/
@@ -102,7 +102,7 @@ extern "C" {
     #if (USBH_USE_OS == 1)
         #include "cmsis_os.h"
         #define USBH_PROCESS_PRIO       osPriorityNormal
-        #define USBH_PROCESS_STACK_SIZE ((uint16_t)128)
+        #define USBH_PROCESS_STACK_SIZE ((uint16_t)320)
     #endif /* (USBH_USE_OS == 1) */
 
     /**
@@ -130,32 +130,9 @@ extern "C" {
 
 /* DEBUG macros */
 
-    #if (USBH_DEBUG_LEVEL > 0)
-        #define USBH_UsrLog(...) \
-            printf(__VA_ARGS__); \
-            printf("\n");
-    #else
-        #define USBH_UsrLog(...)
-    #endif
-
-    #if (USBH_DEBUG_LEVEL > 1)
-
-        #define USBH_ErrLog(...) \
-            printf("ERROR: ");   \
-            printf(__VA_ARGS__); \
-            printf("\n");
-    #else
-        #define USBH_ErrLog(...)
-    #endif
-
-    #if (USBH_DEBUG_LEVEL > 2)
-        #define USBH_DbgLog(...) \
-            printf("DEBUG : ");  \
-            printf(__VA_ARGS__); \
-            printf("\n");
-    #else
-        #define USBH_DbgLog(...)
-    #endif
+    #define USBH_UsrLog(...) log_info(USBHost, __VA_ARGS__)
+    #define USBH_ErrLog(...) log_error(USBHost, __VA_ARGS__)
+    #define USBH_DbgLog(...) log_debug(USBHost, __VA_ARGS__)
 
 /**
   * @}

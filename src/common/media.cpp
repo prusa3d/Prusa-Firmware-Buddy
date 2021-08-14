@@ -1,7 +1,7 @@
 // media.cpp
 
 #include "media.h"
-#include "dbg.h"
+#include "log.h"
 #include "ff.h"
 #include "usbh_core.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -33,8 +33,8 @@ static void _usbhost_reenum(void) {
         if ((timer) && (hUsbHostHS.gState == HOST_ENUMERATION) && (hUsbHostHS.EnumState == ENUM_IDLE)) {
             // longer than 500ms
             if ((tick - timer) > USBHOST_REENUM_TIMEOUT) {
-                _dbg("USB host reenumerating"); // trace
-                USBH_ReEnumerate(&hUsbHostHS);  // re-enumerate UsbHost
+                log_info(USBHost, "USB host reenumerating"); // trace
+                USBH_ReEnumerate(&hUsbHostHS);               // re-enumerate UsbHost
             }
         } else // otherwise update timer
             timer = tick;
@@ -112,7 +112,6 @@ void media_get_SFN_path(char *sfn, uint32_t sfn_size, char *filepath) {
             // we got folder || end file info -> process
             // FATFS flag for valid 8.3 fname - used instead of altname
             const char *fname = (fi.altname[0] == 0 && fi.fname[0] != 0) ? fi.fname : fi.altname;
-            _dbg(fname);
             uint32_t chars_added = strlcpy(sfn, fname, std::min(sfn_size, uint32_t(12)));
             sfn += chars_added;
             sfn_size -= chars_added;
