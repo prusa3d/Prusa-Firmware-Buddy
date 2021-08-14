@@ -18,6 +18,8 @@ public:
     virtual size_t write(uint8_t);
     virtual size_t write(const uint8_t *buffer, size_t size);
     operator bool(void);
+
+    void (*flushBufferHook)(const uint8_t *buf, int len);
 };
 
 extern USBSerial SerialUSB;
