@@ -33,6 +33,7 @@
 #define __CC_H__
 
 #include "cpu.h"
+#include "log.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -80,9 +81,36 @@ typedef int sys_prot_t;
 
 #endif
 
-// TODO: Implement proper implementation
-#define LWIP_PLATFORM_ASSERT(x) do { \
-    } while(0)
+#define DEPAREN(X) ESC(ISH X)
+#define ISH(...) ISH __VA_ARGS__
+#define ESC(...) ESC_(__VA_ARGS__)
+#define ESC_(...) VAN ## __VA_ARGS__
+#define VANISH
+
+#define LWIP_PLATFORM_DIAG(x) log_info(Network, DEPAREN(x))
+
+#ifdef _DEBUG
+#define LWIP_PLATFORM_ASSERT(x)                                             \
+    do {                                                                    \
+        extern void lwip_platform_assert(const char*, const char*, int);    \
+        lwip_platform_assert(x, __FILE__, __LINE__);                        \
+    } while (0)
+#else
+#define LWIP_PLATFORM_ASSERT(x)                                             \
+    do {                                                                    \
+        extern void lwip_platform_assert(const char*, const char*, int);    \
+        lwip_platform_assert(x, "<unknown>", 0);                            \
+    } while (0)
+#endif
+
+
+#define LWIP_ERROR(message, expression, handler) \
+    do {                                         \
+        if (!(expression)) {                     \
+            log_error(Network, "%s", message);   \
+            handler;                             \
+        }                                        \
+    } while (0)
 
 /* Define random number generator function */
 #define LWIP_RAND() ((u32_t)rand())
