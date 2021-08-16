@@ -27,6 +27,12 @@ repos:
       pass_filenames: false
       language: python
       language_version: python3
+    - id: generate-log-components-overview
+      name: log-components-doc-generate
+      description: This hook generate an overview of currently defined Log Components.
+      entry: python utils/logging/generate_overview.py
+      language: python
+      language_version: python3
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: 'v2.4.0'
   hooks:
