@@ -1,4 +1,4 @@
-/**
+﻿/**
   ******************************************************************************
   * @file    stm32f4xx_hal_wwdg.c
   * @author  MCD Application Team
@@ -33,7 +33,7 @@
         (++) max time (mS) = 1000 * (Counter - 0x40) / WWDG clock
     (+) Typical values:
         (++) Counter min (T[5;0] = 0x00) @42MHz (PCLK1) with zero prescaler:
-             max timeout before reset: approximately 97.52�s
+             max timeout before reset: approximately 97.52µs
         (++) Counter max (T[5;0] = 0x3F) @42MHz (PCLK1) with prescaler dividing by 8:
              max timeout before reset: approximately 49.93ms
 
