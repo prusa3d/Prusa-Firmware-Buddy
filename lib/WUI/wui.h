@@ -27,7 +27,6 @@ extern osMutexId wui_thread_mutex_id;
 *****************************************************************************/
 void StartWebServerTask(void const *argument);
 
-const char *wui_get_api_key();
 struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type);
 
 #ifdef __cplusplus

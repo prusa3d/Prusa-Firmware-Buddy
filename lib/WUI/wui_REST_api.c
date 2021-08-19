@@ -6,18 +6,20 @@
  */
 
 #include "wui_REST_api.h"
-#include "wui_api.h"
 #include "wui.h"
 #include "filament.h" //get_selected_filament_name
 #include <string.h>
 #include "wui_vars.h"
-#include "eeprom.h"
 #include "marlin_vars.h"
+#include "ff.h"
 
-#define BDY_WUI_API_BUFFER_SIZE 512
+#include "print_utils.hpp"
 
 // for data exchange between wui thread and HTTP thread
 static wui_vars_t wui_vars_copy;
+static FIL upload_file;
+static uint32_t start_print = 0;
+static char filename[FILE_NAME_MAX_LEN];
 
 void get_printer(char *data, const uint32_t buf_len) {
 
@@ -132,7 +134,7 @@ void get_version(char *data, const uint32_t buf_len) {
         "{"
         "\"api\": \"0.1\","
         "\"server\": \"2.0.0\","
-        "\"text\": \"Prusa Local MINI 2.0.0\","
+        "\"text\": \"OctoPrint 1.1.1\","
         "\"hostname\": \"prusa-mini\""
         "}");
 }
@@ -177,4 +179,54 @@ void get_job(char *data, const uint32_t buf_len) {
         (int)(wui_vars_copy.sd_precent_done == 100), (int)(wui_vars_copy.sd_precent_done % 100), 0UL, wui_vars_copy.print_dur, wui_vars_copy.time_to_end,
         (int)wui_vars_copy.pos[Z_AXIS_POS], (int)((wui_vars_copy.pos[Z_AXIS_POS] - (int)wui_vars_copy.pos[Z_AXIS_POS]) * 1000),
         wui_vars_copy.print_speed, wui_vars_copy.flow_factor);
+}
+
+void get_files(char *data, const uint32_t buf_len) {
+
+    snprintf(data, buf_len,
+        "{"
+        "\"files\": {"
+        "\"local\": {"
+        "\"name\": \"%s\","
+        "\"origin\": \"local\","
+        "}"
+        "},"
+        "\"done\": %ld"
+        "}",
+        filename, (uint32_t)!start_print);
+}
+
+uint32_t wui_upload_begin(const char *filename) {
+    return f_open(&upload_file, filename, FA_WRITE | FA_CREATE_ALWAYS);
+}
+
+uint32_t wui_upload_data(const char *data, uint32_t length) {
+    UINT written;
+    f_write(&upload_file, data, length, &written);
+    return written;
+}
+
+uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, uint32_t start) {
+    f_close(&upload_file);
+
+    if (!strstr(new_filename, "gcode")) {
+        f_unlink(old_filename);
+        return 415;
+    }
+
+    if (f_rename(old_filename, new_filename) != FR_OK) {
+        f_unlink(old_filename);
+        return 409;
+    } else {
+        strcpy(filename, new_filename);
+    }
+
+    if (wui_vars.sd_printing && start) {
+        return 409;
+    } else {
+        start_print = start;
+        print_begin(new_filename);
+    }
+
+    return 200;
 }

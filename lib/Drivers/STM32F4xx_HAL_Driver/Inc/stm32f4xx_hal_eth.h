@@ -675,13 +675,13 @@ typedef  void (*pETH_CallbackTypeDef)(ETH_HandleTypeDef * heth); /*!< pointer to
 /** @defgroup ETH_Buffers_setting ETH Buffers setting
   * @{
   */
-#define ETH_MAX_PACKET_SIZE       1524U    /*!< ETH_HEADER + ETH_EXTRA + ETH_VLAN_TAG + ETH_MAX_ETH_PAYLOAD + ETH_CRC */
+#define ETH_MAX_PACKET_SIZE       560U    /*!< ETH_HEADER + ETH_EXTRA + ETH_VLAN_TAG + ETH_MAX_ETH_PAYLOAD + ETH_CRC */
 #define ETH_HEADER                14U      /*!< 6 byte Dest addr, 6 byte Src addr, 2 byte length/type */
 #define ETH_CRC                   4U       /*!< Ethernet CRC */
 #define ETH_EXTRA                 2U       /*!< Extra bytes in some cases */
 #define ETH_VLAN_TAG              4U       /*!< optional 802.1q VLAN Tag */
 #define ETH_MIN_ETH_PAYLOAD       46U      /*!< Minimum Ethernet payload size */
-#define ETH_MAX_ETH_PAYLOAD       1500U    /*!< Maximum Ethernet payload size */
+#define ETH_MAX_ETH_PAYLOAD       536U    /*!< Maximum Ethernet payload size */
 #define ETH_JUMBO_FRAME_PAYLOAD   9000U    /*!< Jumbo frame payload size */
 
  /* Ethernet driver receive buffers are organized in a chained linked-list, when

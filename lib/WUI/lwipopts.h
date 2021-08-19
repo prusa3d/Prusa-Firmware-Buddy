@@ -92,12 +92,11 @@ extern "C" {
     #define TCP_SNDLOWAT 1071
     /*----- Value in opt.h for TCP_SNDQUEUELOWAT: LWIP_MAX(TCP_SND_QUEUELEN)/2, 5) -*/
     #define TCP_SNDQUEUELOWAT 5
-    /*----- Value in opt.h for TCP_WND_UPDATE_THRESHOLD: LWIP_MIN(TCP_WND/4, TCP_MSS*4) -----*/
-    #define TCP_WND_UPDATE_THRESHOLD 536
     /*----- Value in opt.h for TCPIP_THREAD_STACKSIZE: 0 -----*/
     #define TCPIP_THREAD_STACKSIZE 1024
     /*----- Value in opt.h for TCPIP_THREAD_PRIO: 1 -----*/
-    #define TCPIP_THREAD_PRIO 3
+    #define TCP_MSS 536
+    #define TCP_WND (4 * TCP_MSS)
     /*----- Value in opt.h for TCPIP_MBOX_SIZE: 0 -----*/
     #define TCPIP_MBOX_SIZE 6
     /*----- Value in opt.h for SLIPIF_THREAD_STACKSIZE: 0 -----*/
