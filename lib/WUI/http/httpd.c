@@ -115,20 +115,18 @@
 
 /*******   Customization ***************************************/
 #include "wui_REST_api.h"
-#include "marlin_client.h"
-#include "httpd_parser.h"
+#include "wui_api.h"
 #include "wui.h"
+
 #include "dbg.h"
 #define WUI_API_ROOT_STR_LEN 5
 
-#define POST_REQUEST_BUFFSIZE  1500
+#define POST_REQUEST_BUFFSIZE  600
 #define RESPONSE_BODY_SIZE     512
 #define MAX_MARLIN_REQUEST_LEN 100
 #define POST_URL_STR_MAX_LEN   50
 
-static char request_buf[POST_REQUEST_BUFFSIZE];
 static char response_body_buf[RESPONSE_BODY_SIZE];
-static httpd_post_status_t post_status;
 
 /***************************************************************/
 
@@ -354,112 +352,6 @@ const struct http_ssi_tag_description http_ssi_tag_desc[] = {
 };
 
     #endif /* LWIP_HTTPD_SSI */
-
-    //------------------------------OUR-CODE---------------------------
-    #if LWIP_HTTPD_SUPPORT_POST
-err_t httpd_post_begin(void *connection, const char *uri, const char *http_request,
-    u16_t http_request_len, int content_len, char *response_uri,
-    u16_t response_uri_len, u8_t *post_auto_wnd) {
-
-    LWIP_UNUSED_ARG(post_auto_wnd); // default is 1 (httpd handles window updates automatically)
-
-    struct http_state *hs = (struct http_state *)connection;
-
-    _dbg("HTTP post begin");
-    _dbg("http_request_len: %d", http_request_len);
-    _dbg("content length: %d", content_len);
-    memset(request_buf, 0, POST_REQUEST_BUFFSIZE); // reset receive buffer
-    post_status.post_data_len = content_len;
-    post_status.post_type = POST_UNKNOWN;
-    post_status.post_vald = false;
-    post_status.bytes_copied = 0;
-
-    if (hs != NULL) {
-        if (!memcmp(uri, "/api/g-code", 11)) {
-            post_status.post_type = POST_API_GCODE;
-        } else if (!memcmp(uri, "/admin.html", 11)) {
-            post_status.post_type = POST_ADMIN;
-        } else if (!memcmp(uri, "/FileUpload", 11)) {
-            post_status.post_type = POST_FILE_UPLOAD;
-        }
-    }
-    // validate the post request
-    if (POST_UNKNOWN != post_status.post_type) {
-        if ((POST_REQUEST_BUFFSIZE > post_status.post_data_len) && (POST_FILE_UPLOAD != post_status.post_type)) {
-            post_status.post_vald = true;
-            return ERR_OK;
-        } else if (POST_FILE_UPLOAD == post_status.post_type) {
-            post_status.post_vald = true;
-            return ERR_OK;
-        }
-    }
-
-    // unsupported if reached here
-    snprintf(response_uri, 10, "POST404");
-    return ERR_VAL;
-}
-
-err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
-    err_enum_t ret_code = ERR_VAL;
-    struct http_state *hs = (struct http_state *)connection;
-
-    _dbg("packet");
-    if (hs != NULL && p != NULL) {
-        _dbg("receive data total length: %d", p->tot_len);
-        _dbg("receive data current pbuf length: %d", p->len);
-        if (NULL != p->payload) {
-            request_buf[0] = 0;
-            u16_t ret = pbuf_copy_partial(p, request_buf, p->len, 0);
-            post_status.bytes_copied = post_status.bytes_copied + ret;
-            if (p->len == ret) {
-                ret_code = ERR_OK;
-                post_status.post_vald = true;
-            } else {
-                ret_code = ERR_VAL;
-                post_status.post_vald = false;
-            }
-        }
-
-    } else {
-        post_status.post_vald = false;
-    }
-
-    if (p != NULL) {
-        pbuf_free(p);
-    }
-    return ret_code;
-}
-
-void httpd_post_finished(void *connection, char *response_uri,
-    u16_t response_uri_len) {
-    _dbg("post finished callback");
-    _dbg("received data length: %d", post_status.bytes_copied);
-    _dbg("response uri length: %d", response_uri_len);
-
-    if (true == post_status.post_vald) {
-        if (POST_FILE_UPLOAD == post_status.post_type) {
-            // ignored now
-        } else {
-            if ((post_status.bytes_copied == post_status.post_data_len) && (post_status.bytes_copied < POST_REQUEST_BUFFSIZE)) {
-                request_buf[post_status.bytes_copied] = 0; // end of line placed
-                if (httpd_json_parser(request_buf, strlen(request_buf))) {
-                    strlcpy(response_uri, "POST200", response_uri_len); // OK
-                } else {
-                    strlcpy(response_uri, "POST400", response_uri_len); // Bad Request
-                }
-                request_buf[0] = 0;
-
-            } else {
-                strlcpy(response_uri, "POST500", response_uri_len);
-            }
-        }
-    } else {
-        strlcpy(response_uri, "POST400", response_uri_len); // bad request
-    }
-}
-
-    //------------------------------------------------------------------------------------
-    #endif
 
     #if LWIP_HTTPD_CGI
 /* CGI handler information */
@@ -998,6 +890,10 @@ get_http_headers(struct http_state *hs, const char *uri) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_401];
     } else if (strstr(uri, "304")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_304];
+    } else if (strstr(uri, "409")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_409];
+    } else if (strstr(uri, "415")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_415];
     } else {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK];
     }
@@ -1890,7 +1786,7 @@ http_post_request(struct pbuf *inp, struct http_state *hs,
             /* search for "Content-Length: " */
         #define HTTP_HDR_CONTENT_LEN               "Content-Length: "
         #define HTTP_HDR_CONTENT_LEN_LEN           16
-        #define HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN 10
+        #define HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN 11
         char *scontent_len = lwip_strnstr(uri_end + 1, HTTP_HDR_CONTENT_LEN, crlfcrlf - (uri_end + 1));
         if (scontent_len != NULL) {
             char *scontent_len_end = lwip_strnstr(scontent_len + HTTP_HDR_CONTENT_LEN_LEN, CRLF, HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN);
@@ -2673,6 +2569,36 @@ static void wui_api_version(struct fs_file *file) {
     file->flags = 0; // no flags for fs_open
 }
 
+static void wui_api_files(struct fs_file *file) {
+
+    get_files(response_body_buf, RESPONSE_BODY_SIZE);
+
+    uint16_t response_len = strlen(response_body_buf);
+    file->len = response_len;
+    file->data = response_body_buf;
+    file->index = response_len;
+    file->pextension = NULL;
+    file->flags = 0; // no flags for fs_open
+}
+
+uint32_t authorize_request(struct pbuf *req) {
+    const char *api_key_tag = "X-Api-Key:";
+    uint32_t api_key_tag_length = strlen(api_key_tag);
+    uint32_t index = pbuf_strstr(req, api_key_tag);
+
+    if (index == UINT16_MAX) {
+        return 0;
+    } else {
+        const char *api_key = wui_get_api_key();
+        uint32_t token_length = strlen(api_key);
+        const char *auth_token = (((const char *)req->payload) + index + api_key_tag_length + 1);
+        if (memcmp(api_key, auth_token, token_length) != 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 /** Try to find the file specified by uri and, if found, initialize hs
  * accordingly.
  *
@@ -2685,13 +2611,13 @@ static void wui_api_version(struct fs_file *file) {
  * Note! this is custom implementation!
  */
 static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
-    size_t loop;
     struct fs_file *file = NULL;
-    char *params = NULL;
-    err_t err;
 
-    /* By default, assume we will not be processing server-side-includes tags */
-    u8_t tag_check = 0;
+    api_file.len = 0;
+    api_file.data = NULL;
+    api_file.index = 0;
+    api_file.pextension = NULL;
+    api_file.flags = 0; // no flags for fs_open
 
     LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opening %s\n", uri));
 
@@ -2700,8 +2626,8 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
 
         /* Try each of the configured default filenames until we find one
        that exists. */
-        for (loop = 0; loop < NUM_DEFAULT_FILENAMES; loop++) {
-
+        for (uint32_t loop = 0; loop < NUM_DEFAULT_FILENAMES; loop++) {
+            err_t err;
             const char *file_name;
             file_name = httpd_default_filenames[loop].name;
 
@@ -2712,77 +2638,48 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
                 file = &hs->file_handle;
                 LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opened.\n"));
 
-                break;
+                goto process_file;
             }
         }
     }
 
-    if (file == NULL) {
-        /* No - we've been asked for a specific file. */
-        /* First, isolate the base URI (without any parameters) */
-        params = (char *)strchr(uri, '?');
-        if (params != NULL) {
-            /* URI contains parameters. NULL-terminate the base URI */
-            *params = '\0';
-            params++;
-        }
+    LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opening %s\n", uri));
 
-        LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opening %s\n", uri));
-
-        err = fs_open(&hs->file_handle, uri);
-        if (err == ERR_OK) {
-            file = &hs->file_handle;
-        }
+    /* No - we've been asked for a specific file. */
+    /* First, isolate the base URI (without any parameters) */
+    if (fs_open(&hs->file_handle, uri) == ERR_OK) {
+        file = &hs->file_handle;
+        goto process_file;
     }
 
-    /* check with the wui api */
-    if (file == NULL) {
-        const char *api_key_tag = "X-Api-Key:";
-        uint32_t api_key_tag_length = strlen(api_key_tag);
-        uint32_t index = pbuf_strstr(hs->req, api_key_tag);
-
-        api_file.len = 0;
-        api_file.data = NULL;
-        api_file.index = 0;
-        api_file.pextension = NULL;
-        api_file.flags = 0; // no flags for fs_open
-
-        if (index == UINT16_MAX) {
-            uri = "401";
-        } else {
-            const char *api_key = wui_get_api_key();
-            uint32_t token_length = strlen(api_key);
-            const char *auth_token = (((const char *)hs->req->payload) + index + api_key_tag_length + 1);
-            if (memcmp(api_key, auth_token, token_length) != 0) {
-                uri = "401";
-            }
-        }
-
-        if (!strcmp(uri, "/api/printer")) {
+    if (!strcmp(uri, "/api/printer")) {
+        if (authorize_request(hs->req)) {
             wui_api_printer(&api_file);
             file = &api_file;
-        } else if (!strcmp(uri, "/api/version")) {
+        } else {
+            uri = "401\0";
+        }
+    } else if (!strcmp(uri, "/api/version")) {
+        if (authorize_request(hs->req)) {
             wui_api_version(&api_file);
             file = &api_file;
-        } else if (!strcmp(uri, "/api/job")) {
+        } else {
+            uri = "401\0";
+        }
+    } else if (!strcmp(uri, "/api/job")) {
+        if (authorize_request(hs->req)) {
             wui_api_job(&api_file);
             file = &api_file;
-        }
-    }
-
-    if (file == NULL) {
-        // check if this is for POST response
-        const char *post_prefix = "POST";
-    #define RESP_CODE_BUFF_LEN 4 // Buff len including null char
-        char post_response_code[RESP_CODE_BUFF_LEN];
-        if (0 == strncmp(uri, post_prefix, strnlen(post_prefix, RESP_CODE_BUFF_LEN))) { // POST response
-            strlcpy(post_response_code, uri + RESP_CODE_BUFF_LEN, RESP_CODE_BUFF_LEN);
         } else {
-            strlcpy((char *)uri, "404", LWIP_HTTPD_URI_BUF_LEN); // really file not found
+            uri = "401\0";
         }
+    } else if (!strncmp(uri, "/api/files", 10)) {
+        wui_api_files(&api_file);
+        file = &api_file;
     }
 
-    return http_init_file(hs, file, is_09, uri, tag_check, params);
+process_file:
+    return http_init_file(hs, file, is_09, uri, 0, NULL);
 }
 
 #endif /* LWIP_TCP && LWIP_CALLBACK_API */

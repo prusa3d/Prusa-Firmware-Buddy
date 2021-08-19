@@ -31,6 +31,8 @@ static const char *const g_psHTTPHeaderStrings[] = {
     "HTTP/1.0 500 Internal Server Error\r\n",
     "HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: ApiKey realm=\"401\"",
     "HTTP/1.0 304 Not Modified\r\n"
+    "HTTP/1.0 409 Conflict \r\n"
+    "HTTP/1.0 415 Unsupported Media Type\r\n"
     #if LWIP_HTTPD_SUPPORT_11_KEEPALIVE
     ,
     "Connection: keep-alive\r\nContent-Length: 77\r\n\r\n<html><body><h2>404: The requested file cannot be found.</h2></body></html>\r\n"
@@ -56,8 +58,10 @@ static const char *const g_psHTTPHeaderStrings[] = {
     #define HTTP_HDR_500            14 /* Server generic error message */
     #define HTTP_HDR_401            15 /* 401 Unauthorized */
     #define HTTP_HDR_304            16 /* 304 Not Modified */
+    #define HTTP_HDR_409            17 /* 304 Not Modified */
+    #define HTTP_HDR_415            18 /* 304 Not Modified */
     #if LWIP_HTTPD_SUPPORT_11_KEEPALIVE
-        #define DEFAULT_404_HTML_PERSISTENT 17 /* default 404 body, but including Connection: keep-alive */
+        #define DEFAULT_404_HTML_PERSISTENT 19 /* default 404 body, but including Connection: keep-alive */
     #endif
 
     #define HTTP_CONTENT_TYPE(contenttype)                    "Content-Type: " contenttype "\r\n\r\n"
