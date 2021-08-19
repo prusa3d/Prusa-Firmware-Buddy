@@ -13,7 +13,7 @@
 #include "timing.h"
 #include "log.h"
 
-LOG_COMPONENT_DEF(MarlinClient, SEVERITY_INFO);
+LOG_COMPONENT_DEF(MarlinClient, LOG_SEVERITY_INFO);
 
 //maximum string length for DBG_VAR
 enum {

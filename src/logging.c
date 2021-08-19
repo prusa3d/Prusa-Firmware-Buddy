@@ -11,7 +11,7 @@
 void logging_init() {
     static log_destination_t log_destination_rtt = {
         .name = "RTT",
-        .lowest_severity = SEVERITY_DEBUG,
+        .lowest_severity = LOG_SEVERITY_DEBUG,
         .log_event_fn = rtt_log_event,
         .log_format_fn = log_format_simple,
         .next = NULL,
@@ -20,7 +20,7 @@ void logging_init() {
 
     static log_destination_t log_destination_swo = {
         .name = "SWO",
-        .lowest_severity = SEVERITY_DEBUG,
+        .lowest_severity = LOG_SEVERITY_DEBUG,
         .log_event_fn = swo_log_event,
         .log_format_fn = log_format_simple,
         .next = NULL,
@@ -29,7 +29,7 @@ void logging_init() {
 
     static log_destination_t log_destination_syslog = {
         .name = "SYSLOG",
-        .lowest_severity = SEVERITY_DEBUG,
+        .lowest_severity = LOG_SEVERITY_DEBUG,
         .log_event_fn = syslog_log_event,
         .log_format_fn = syslog_format_event,
         .next = NULL,

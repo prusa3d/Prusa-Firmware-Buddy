@@ -8,7 +8,7 @@
 
 #include "log.h"
 
-LOG_COMPONENT_DEF(FileSystem, SEVERITY_INFO);
+LOG_COMPONENT_DEF(FileSystem, LOG_SEVERITY_INFO);
 
 void filesystem_init() {
 #if !defined(_RETARGETABLE_LOCKING)

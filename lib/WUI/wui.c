@@ -27,8 +27,8 @@
 
 #include "netdev.h"
 
-LOG_COMPONENT_DEF(WUI, SEVERITY_DEBUG);
-LOG_COMPONENT_DEF(Network, SEVERITY_INFO);
+LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
 
 #include <string.h>
 #include "eeprom.h"

@@ -17,15 +17,15 @@ static syslog_transport_t syslog_transport = { 0 };
 
 static int log_severity_to_syslog_severity(log_severity_t severity) {
     switch (severity) {
-    case SEVERITY_DEBUG:
+    case LOG_SEVERITY_DEBUG:
         return 7;
-    case SEVERITY_INFO:
+    case LOG_SEVERITY_INFO:
         return 6;
-    case SEVERITY_WARNING:
+    case LOG_SEVERITY_WARNING:
         return 4;
-    case SEVERITY_ERROR:
+    case LOG_SEVERITY_ERROR:
         return 3;
-    case SEVERITY_CRITICAL:
+    case LOG_SEVERITY_CRITICAL:
     default:
         return 2;
     }

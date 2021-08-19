@@ -8,15 +8,15 @@
 
 static const char *log_severity_to_str(log_severity_t severity) {
     switch (severity) {
-    case SEVERITY_DEBUG:
+    case LOG_SEVERITY_DEBUG:
         return "DEBUG";
-    case SEVERITY_INFO:
+    case LOG_SEVERITY_INFO:
         return "INFO ";
-    case SEVERITY_WARNING:
+    case LOG_SEVERITY_WARNING:
         return "WARN ";
-    case SEVERITY_ERROR:
+    case LOG_SEVERITY_ERROR:
         return "ERROR";
-    case SEVERITY_CRITICAL:
+    case LOG_SEVERITY_CRITICAL:
         return "CRITI";
     default:
         return "?????";

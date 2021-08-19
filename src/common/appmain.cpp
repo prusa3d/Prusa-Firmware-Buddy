@@ -50,9 +50,9 @@ CFanCtl fanCtlHeatBreak = CFanCtl(
     is_autofan_t::yes);
 #endif //NEW_FANCTL
 
-LOG_COMPONENT_DEF(Marlin, SEVERITY_INFO);
-LOG_COMPONENT_DEF(Buddy, SEVERITY_DEBUG);
-LOG_COMPONENT_DEF(Core, SEVERITY_INFO);
+LOG_COMPONENT_DEF(Marlin, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
 
 extern void USBSerial_put_rx_data(uint8_t *buffer, uint32_t length);
 extern void app_cdc_rx(uint8_t *buffer, uint32_t length);
@@ -146,7 +146,7 @@ void app_cdc_rx(uint8_t *buffer, uint32_t length) {
 void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r'))
         size--;
-    log_severity_t severity = SEVERITY_INFO;
+    log_severity_t severity = LOG_SEVERITY_INFO;
     if (size == 2 && memcmp("ok", buffer, 2) == 0) {
         // Do not log "ok" messages
         return;
@@ -157,7 +157,7 @@ void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     if (size >= 6 && memcmp("Error:", buffer, 6) == 0) {
         buffer = buffer + 6;
         size -= 6;
-        severity = SEVERITY_ERROR;
+        severity = LOG_SEVERITY_ERROR;
     }
     log_event(severity, Marlin, "%.*s", size, buffer);
 }
