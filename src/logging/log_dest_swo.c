@@ -37,12 +37,11 @@ void swo_log_event(log_destination_t *destination, log_event_t *event) {
     if (!swo_is_enabled())
         return;
 
-    bool is_within_isr = xPortIsInsideInterrupt();
-    bool lock_initialized = initialize_swo_lock();
+    const bool lock_initialized = initialize_swo_lock();
     bool lock_acquired = false;
 
     // acquire the lock
-    if (lock_initialized && !is_within_isr) {
+    if (lock_initialized && xTaskGetSchedulerState() == taskSCHEDULER_RUNNING && !xPortIsInsideInterrupt()) {
         xSemaphoreTake(swo_lock, portMAX_DELAY);
         lock_acquired = true;
     }
