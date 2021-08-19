@@ -18,7 +18,7 @@
 #include "footer_eeprom.hpp"
 #include <bitset>
 
-LOG_COMPONENT_DEF(EEPROM, SEVERITY_INFO);
+LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
 static const constexpr uint8_t EEPROM__PADDING = 2;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')

@@ -2,7 +2,7 @@
 #include "log.h"
 #include "utils.hpp"
 
-LOG_COMPONENT_DEF(comp, SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(comp, LOG_SEVERITY_DEBUG);
 
 // This test has defined LOG_LOWEST_SEVERITY as WARNING, so all INFO and DEBUG events should be compiled out
 //

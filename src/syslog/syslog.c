@@ -2,7 +2,7 @@
 #include "syslog.h"
 #include "log.h"
 
-LOG_COMPONENT_DEF(Syslog, SEVERITY_INFO);
+LOG_COMPONENT_DEF(Syslog, LOG_SEVERITY_INFO);
 
 bool syslog_transport_open(syslog_transport_t *transport, const char *ip_address, int port) {
     transport->sock = -1;

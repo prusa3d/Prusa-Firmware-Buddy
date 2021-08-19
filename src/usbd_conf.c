@@ -54,7 +54,7 @@
 #include "usbd_core.h"
 #include "log.h"
 
-LOG_COMPONENT_DEF(USBDevice, SEVERITY_INFO);
+LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
 /* USER CODE BEGIN Includes */
 

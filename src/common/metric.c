@@ -25,7 +25,7 @@ static uint16_t dropped_points_count = 0;
 static metric_t *metric_linked_list_root = NULL;
 
 // logging component
-LOG_COMPONENT_DEF(Metrics, SEVERITY_INFO);
+LOG_COMPONENT_DEF(Metrics, LOG_SEVERITY_INFO);
 
 // internal metrics
 metric_t metric_dropped_points = METRIC("points_dropped", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);

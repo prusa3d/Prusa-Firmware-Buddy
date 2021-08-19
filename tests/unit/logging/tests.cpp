@@ -2,8 +2,8 @@
 #include "log.h"
 #include "utils.hpp"
 
-LOG_COMPONENT_DEF(comp_01, SEVERITY_DEBUG);
-LOG_COMPONENT_DEF(comp_02, SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(comp_01, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(comp_02, LOG_SEVERITY_DEBUG);
 
 TEST_CASE("once defined, component can be discovered", "[logging]") {
     REQUIRE(&__log_component_comp_01 == log_component_find("comp_01"));
@@ -27,7 +27,7 @@ TEST_CASE("log event has proper properties", "[logging]") {
         auto captured_log = in_memory_log.logs.front();
         in_memory_log.logs.pop_front();
         REQUIRE(captured_log.message == "test event");
-        REQUIRE(captured_log.severity == SEVERITY_DEBUG);
+        REQUIRE(captured_log.severity == LOG_SEVERITY_DEBUG);
     }
 
     SECTION("timestamp") {
@@ -72,12 +72,12 @@ TEST_CASE("log event has proper properties", "[logging]") {
     }
 }
 
-LOG_COMPONENT_DEF(comp_filter, SEVERITY_WARNING);
+LOG_COMPONENT_DEF(comp_filter, LOG_SEVERITY_WARNING);
 
 TEST_CASE("log destination filtering", "[logging]") {
     ScopedInMemoryLog in_memory_log;
 
-    for (int severity = SEVERITY_DEBUG; severity <= SEVERITY_CRITICAL; severity++) {
+    for (int severity = LOG_SEVERITY_DEBUG; severity <= LOG_SEVERITY_CRITICAL; severity++) {
         LOG_COMPONENT(comp_filter).lowest_severity = (log_severity_t)severity;
 
         log_debug(comp_filter, "debug");
@@ -86,7 +86,7 @@ TEST_CASE("log destination filtering", "[logging]") {
         log_error(comp_filter, "error");
         log_critical(comp_filter, "critical");
 
-        REQUIRE(in_memory_log.logs.size() == size_t((SEVERITY_CRITICAL + SEVERITY_DEBUG) - severity));
+        REQUIRE(in_memory_log.logs.size() == size_t((LOG_SEVERITY_CRITICAL + LOG_SEVERITY_DEBUG) - severity));
         in_memory_log.logs.clear();
     }
 }

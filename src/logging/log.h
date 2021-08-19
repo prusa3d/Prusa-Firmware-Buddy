@@ -15,11 +15,11 @@ typedef int log_task_id_t;
 
 /// Severity of a log event
 typedef enum {
-    SEVERITY_DEBUG = 1,
-    SEVERITY_INFO = 2,
-    SEVERITY_WARNING = 3,
-    SEVERITY_ERROR = 4,
-    SEVERITY_CRITICAL = 5
+    LOG_SEVERITY_DEBUG = 1,
+    LOG_SEVERITY_INFO = 2,
+    LOG_SEVERITY_WARNING = 3,
+    LOG_SEVERITY_ERROR = 4,
+    LOG_SEVERITY_CRITICAL = 5
 } log_severity_t;
 
 /// Log Component representing a source for log events
@@ -131,7 +131,7 @@ void log_destination_unregister(log_destination_t *destination);
 ///
 /// Usage:
 ///
-///    LOG_COMPONENT_DEF(MyComponent, SEVERITY_WARNING);
+///    LOG_COMPONENT_DEF(MyComponent, LOG_SEVERITY_WARNING);
 ///
 #define LOG_COMPONENT_DEF(name, default_severity) \
     log_component_t LOG_COMPONENT(name) _LOG_COMPONENT_ATTRS = { #name, default_severity }
@@ -154,7 +154,7 @@ void log_destination_unregister(log_destination_t *destination);
 /// \def log_debug(component, fmt, ...)
 /// Record a log event with `debug` severity.
 #if LOG_LOWEST_SEVERITY <= 1
-    #define log_debug(component, fmt, ...) log_event(SEVERITY_DEBUG, component, fmt, ##__VA_ARGS__)
+    #define log_debug(component, fmt, ...) log_event(LOG_SEVERITY_DEBUG, component, fmt, ##__VA_ARGS__)
 #else
     #define log_debug(component, fmt, ...)
 #endif
@@ -162,7 +162,7 @@ void log_destination_unregister(log_destination_t *destination);
 /// \def log_info(component, fmt, ...)
 /// Record a log event with `info` severity.
 #if LOG_LOWEST_SEVERITY <= 2
-    #define log_info(component, fmt, ...) log_event(SEVERITY_INFO, component, fmt, ##__VA_ARGS__)
+    #define log_info(component, fmt, ...) log_event(LOG_SEVERITY_INFO, component, fmt, ##__VA_ARGS__)
 #else
     #define log_info(component, fmt, ...)
 #endif
@@ -170,7 +170,7 @@ void log_destination_unregister(log_destination_t *destination);
 /// \def log_warning(component, fmt, ...)
 /// Record a log event with `warning` severity.
 #if LOG_LOWEST_SEVERITY <= 3
-    #define log_warning(component, fmt, ...) log_event(SEVERITY_WARNING, component, fmt, ##__VA_ARGS__)
+    #define log_warning(component, fmt, ...) log_event(LOG_SEVERITY_WARNING, component, fmt, ##__VA_ARGS__)
 #else
     #define log_warning(component, fmt, ...)
 #endif
@@ -178,7 +178,7 @@ void log_destination_unregister(log_destination_t *destination);
 /// \def log_error(component, fmt, ...)
 /// Record a log event with `error` severity.
 #if LOG_LOWEST_SEVERITY <= 4
-    #define log_error(component, fmt, ...) log_event(SEVERITY_ERROR, component, fmt, ##__VA_ARGS__)
+    #define log_error(component, fmt, ...) log_event(LOG_SEVERITY_ERROR, component, fmt, ##__VA_ARGS__)
 #else
     #define log_error(component, fmt, ...)
 #endif
@@ -186,7 +186,7 @@ void log_destination_unregister(log_destination_t *destination);
 /// \def log_critical(component, fmt, ...)
 /// Record a log event with `critical` severity.
 #if LOG_LOWEST_SEVERITY <= 5
-    #define log_critical(component, fmt, ...) log_event(SEVERITY_CRITICAL, component, fmt, ##__VA_ARGS__)
+    #define log_critical(component, fmt, ...) log_event(LOG_SEVERITY_CRITICAL, component, fmt, ##__VA_ARGS__)
 #else
     #define log_critical(component, fmt, ...)
 #endif
