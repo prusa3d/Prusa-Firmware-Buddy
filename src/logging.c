@@ -6,8 +6,18 @@
 #include "log_dest_swo.h"
 #include "log_dest_syslog.h"
 #include "log_dest_shared.h"
+#include "log_dest_rtt.h"
 
 void logging_init() {
+    static log_destination_t log_destination_rtt = {
+        .name = "RTT",
+        .lowest_severity = SEVERITY_DEBUG,
+        .log_event_fn = rtt_log_event,
+        .log_format_fn = log_format_simple,
+        .next = NULL,
+    };
+    log_destination_register(&log_destination_rtt);
+
     static log_destination_t log_destination_swo = {
         .name = "SWO",
         .lowest_severity = SEVERITY_DEBUG,

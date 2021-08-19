@@ -671,6 +671,7 @@ target_sources(
           src/logging/log.c
           src/logging/log_platform.c
           src/logging/log_dest_swo.c
+          src/logging/log_dest_rtt.c
           src/logging/log_dest_shared.c
           src/logging/log_dest_syslog.c
   )
