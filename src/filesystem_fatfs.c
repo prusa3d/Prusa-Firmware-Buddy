@@ -612,13 +612,15 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
         r->_errno = EINVAL;
         return -1;
     }
+    do {
+        result = f_readdir(dirState->dirStruct, &fno);
+        r->_errno = get_errno(result);
 
-    result = f_readdir(dirState->dirStruct, &fno);
-    r->_errno = get_errno(result);
+        if (result != FR_OK) {
+            return -1;
+        }
 
-    if (result != FR_OK) {
-        return -1;
-    }
+    } while (fno.fattrib & (AM_SYS | AM_HID));
 
     if (!fno.fname[0]) {
         // Empty filename means end of directory
