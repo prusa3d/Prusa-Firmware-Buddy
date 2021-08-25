@@ -13,7 +13,7 @@
 namespace footer::eeprom {
 
 static constexpr size_t count = FOOTER_ITEMS_PER_LINE__;
-static constexpr size_t value_bit_size = floor(log2(size_t(items::count_))) + 1; // minimum bits needed to store variable
+static const size_t value_bit_size = floor(log2(size_t(items::count_))) + 1; // minimum bits needed to store variable
 static_assert(count * value_bit_size <= 32, "Encoded eeprom record is too big");
 
 /**
