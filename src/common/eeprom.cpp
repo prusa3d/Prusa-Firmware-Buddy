@@ -101,7 +101,8 @@ typedef struct _eeprom_vars_t {
     float EEVAR_ODOMETER_Y;
     float EEVAR_ODOMETER_Z;
     float EEVAR_ODOMETER_E;
-    char _PADDING[EEPROM__PADDING];
+    uint32_t ODOMETER_TIME;
+    //    char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
 
@@ -162,7 +163,8 @@ static const eeprom_entry_t eeprom_map[] = {
     { "ODOMETER_Y",      VARIANT8_FLT,   1, 0 },
     { "ODOMETER_Z",      VARIANT8_FLT,   1, 0 },
     { "ODOMETER_E",      VARIANT8_FLT,   1, 0 },
-    { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
+    { "ODOMETER_TIME",    VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_ODOMETER_TIME
+//    { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
 
@@ -225,10 +227,10 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_ODOMETER_Y
     0,               // EEVAR_ODOMETER_Z
     0,               // EEVAR_ODOMETER_E
-    "",              // EEVAR__PADDING
+    0,               // EEVAR_ODOMETER_TIME
+//    "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
-
 // clang-format on
 
 // semaphore handle (lock/unlock)
@@ -249,7 +251,7 @@ static uint8_t eeprom_init_status = EEPROM_INIT_Undefined;
 
 static uint16_t eeprom_var_size(uint8_t id);
 static uint16_t eeprom_var_addr(uint8_t id);
-//static void eeprom_print_vars(void);
+// static void eeprom_print_vars(void);
 static int eeprom_convert_from_v2(void);
 static int eeprom_convert_from(uint16_t version, uint16_t features);
 
@@ -281,7 +283,7 @@ uint8_t eeprom_init(void) {
     }
     if (status == EEPROM_INIT_Defaults)
         eeprom_defaults();
-    //eeprom_print_vars(); this is not possible here because it hangs - init is now done in main.cpp, not in defaultThread
+    // eeprom_print_vars(); this is not possible here because it hangs - init is now done in main.cpp, not in defaultThread
     eeprom_init_status = status;
     return status;
 }
@@ -319,7 +321,7 @@ variant8_t eeprom_get_var(uint8_t id) {
             st25dv64k_user_read_bytes(addr, data_ptr, size);
         } else {
             _dbg("error");
-            //TODO:error
+            // TODO:error
         }
         eeprom_unlock();
     }
@@ -382,7 +384,7 @@ int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var) 
         n = snprintf(str, size, "%u.%u.%u.%u", variant8_get_uia(var, 0), variant8_get_uia(var, 1),
             variant8_get_uia(var, 2), variant8_get_uia(var, 3));
     } break;
-    default: //use default conversion
+    default: // use default conversion
         n = variant8_snprintf(str, size, 0, &var);
         break;
     }
@@ -588,7 +590,7 @@ static int eeprom_check_crc32(void) {
     if (datasize > EEPROM_MAX_DATASIZE)
         return 0;
     st25dv64k_user_read_bytes(EEPROM_ADDRESS + datasize - 4, &crc, 4);
-#if 1 //simple method
+#if 1 // simple method
     uint8_t data[EEPROM_MAX_DATASIZE];
     uint32_t crc2;
     st25dv64k_user_read_bytes(EEPROM_ADDRESS, data, datasize);
@@ -602,7 +604,7 @@ static void eeprom_update_crc32() {
 #ifdef EEPROM_MEASURE_CRC_TIME
     uint32_t time = _microseconds();
 #endif
-#if 1 //simple method
+#if 1 // simple method
     eeprom_vars_t vars;
     // read eeprom data
     st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);

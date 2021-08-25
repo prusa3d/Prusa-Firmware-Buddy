@@ -86,7 +86,8 @@ enum {
     EEVAR_ODOMETER_Y = 0x2f,          // float
     EEVAR_ODOMETER_Z = 0x30,          // float
     EEVAR_ODOMETER_E = 0x31,          // float
-    EEVAR__PADDING = 0x32,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_ODOMETER_TIME = 0x32,       //uin32_t total print duration
+                                      //    EEVAR__PADDING = 0x32,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
     EEVAR_CRC32 = 0x33,               // uint32_t crc32 for
 };
 
