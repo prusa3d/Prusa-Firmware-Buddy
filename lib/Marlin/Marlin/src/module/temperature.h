@@ -830,7 +830,12 @@ public:
 
     static void checkExtruderAutoFans();
 
-    static float get_pid_output_hotend(const uint8_t e);
+    static float get_pid_output_hotend(
+#if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
+            float &feed_forward ,
+#endif
+            const uint8_t e
+      );
     static float get_model_output_hotend(float &last_target, float &expected, const uint8_t e);
 
     #if ENABLED(PIDTEMPBED)
@@ -867,6 +872,7 @@ public:
       #endif
 
       static void thermal_runaway_protection(tr_state_machine_t &state, const float &current, const float &target, const heater_ind_t heater_id, const uint16_t period_seconds, const uint16_t hysteresis_degc);
+      static void thermal_model_protection(const float &pid_output, const float &feed_forward, const uint8_t e);
 
     #endif // HAS_THERMAL_PROTECTION
 };

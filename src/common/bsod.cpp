@@ -167,6 +167,7 @@ void addText(char *buffer, const int size, int &position, const char *text) {
 //! Known possible reasons.
 //! @n MSG_INVALID_EXTRUDER_NUM
 //! @n MSG_T_THERMAL_RUNAWAY
+//! @n MSG_T_TEMPERATURE_SENSOR_STUCK
 //! @n MSG_T_HEATING_FAILED
 //! @n MSG_T_MAXTEMP
 //! @n MSG_T_MINTEMP
@@ -234,6 +235,7 @@ void general_error_run() {
 
 //! Known possible reasons.
 //! @n MSG_T_THERMAL_RUNAWAY
+//! @n MSG_T_TEMPERATURE_SENSOR_STUCK
 //! @n MSG_T_HEATING_FAILED
 //! @n MSG_T_MAXTEMP
 //! @n MSG_T_MINTEMP
@@ -338,6 +340,7 @@ char nth_char(const char str[], uint16_t nth) {
 
 //! Known possible reasons.
 //! @n MSG_T_THERMAL_RUNAWAY
+//! @n MSG_T_TEMPERATURE_SENSOR_STUCK
 //! @n MSG_T_HEATING_FAILED
 //! @n MSG_T_MAXTEMP
 //! @n MSG_T_MINTEMP
