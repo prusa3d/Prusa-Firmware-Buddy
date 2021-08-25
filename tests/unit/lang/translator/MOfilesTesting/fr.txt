@@ -1,0 +1,253 @@
+\nBootloader Version\n %d.%d.%d\n\nBuddy Board\n%d.%d.%d\n %s
+Un rapport de vidage de mémoire suite à une panne (file dump.bin) a été sauvegardé sur la clé USB.
+STOPPER
+Ajustez la hauteur de la buse au dessus du plateau en tournant le bouton
+Tous les tests ont été passés avec succès !
+Toujours
+Êtes-vous certain de vouloir stopper cette impression ?
+Aider
+Repositionner Auto
+ARRIÈRE
+Retour
+Échec nivelage plateau. Réessayer ?
+Calibration Z
+Calibration
+CALIBRATION
+Calibration réussie!\nBonnes impressions!
+Calibration XY
+ANNULER
+CHANGER LE FILAMENT
+Changer le Filament
+Vérifier dommages possibles sur câbles bloc de chauffe et thermistance du plateau chauf.
+Vérifier dommages possibles sur câbles de thermistance du plateau chauf.
+Vérifier dommages possibles sur câbles du bloc de chauf. & thermistance de tête d'extr.
+Vérifier dommages possibles sur câbles de thermistance de tête d'extr.
+Vérification axes
+Nettoyez la plaque d'acier.
+Félicitations ! La calibration XYZ est bonne. Les axes XY sont perpendiculaires.
+CONTINUER
+Refroidissement
+Charge CPU
+Profil Actuel
+ID de l'appareil dans QR
+DÉSACTIVER CAPTEUR
+Désactiver Moteurs
+Déconnecter
+Répéter la dernière étape et réajuster la distance entre la buse et le plateau chauffant ?
+Voulez-vous utiliser les valeurs actuelles ?\nActuelles : %0.3f.\nDéfaut : %0.3f.\nCliquez sur NON pour utiliser la valeur par défaut (recommandé)
+Éjection
+Erreur
+Erreur au cours de la sauvegarde du rapport de vidage mémoire suite à une panne sur la clé USB. Veuillez réinsérer la clé USB et réessayer.
+Tout va bien. Je vais à présent lancer la calibration XYZ. Cela va prendre environ 12 minutes.
+SORTIR
+Réglages d'usine chargés. Le système va redémarrer.
+Réinitalisation d'Usine
+Statistiques Échec
+Test Ventilateur
+RPM Vent0
+RPM Vent1
+FILAMENT
+Filament
+Le filament semble être déjà chargé, êtes-vous certain de vouloir le charger malgré cela ?
+Filament non détecté. Charger filament maintenant ? Sélectionnez NON pour annuler, ou IGNORER pour désactiver le capteur de filament et continuer.
+Capteur de Filament
+Finalisation G-Codes en mémoire tampon.
+Version Firmware\n
+Calibration Première Couche
+CALIBRATION PREMIÈRE COUCHE
+Facteur de Débit
+ven
+MISE À JOUR FW
+Mise à jour FW
+Plateau Chauffant
+Test chauf. plateau
+Test chauf.
+Chauffe désactivée du fait d'une inactivité de plus de 30 minutes.
+En chauffe...
+Bonjour, voici votre\nOriginal Prusa MINI.
+ACCUEIL
+Accueil
+HOME TO MAX
+Vent. hotend
+Le ventilateur de hotend ne tourne pas. Vérifiez s'il n'y a pas de débris, puis inspectez le câblage.
+Réglage Matériel
+IGNORER
+Au cours de la prochaine étape, utilisez le bouton pour ajuster la hauteur de la buse. Consultez les photos dans le manuel comme référence.
+INFO
+Info
+Information
+Insertion
+Les adresses IP ou les paramètres ne sont pas valides ou alors le fichier "lan_settings.ini" ne se trouve pas dans le répertoire racine de la clé USB.
+La couleur est-elle correcte ?
+Le filament est-il dans l'extrudeur ?
+La plaque d'acier est-elle sur le plateau chauffant ?
+RÉGLAGES LAN
+Réglages Lan
+Langue
+LANGUES
+Live Adjust Z
+CHARGER
+CHARGER FILAMENT
+Charger le Filament
+Charger les Réglages
+Chargement...
+Chargement de la buse
+Fort
+M.I.N.D.A.
+Vérifiez que le filament est bien inséré dans le capteur.
+Matériau
+ERREUR MAXTEMP
+Mesure des hauteurs\ndé référence des\npoints de calib.
+Timeout Menu
+Mesh Bed Level.
+MESH BED LEVEL.
+MESSAGES
+Messages
+ERREUR MINTEMP
+lun
+Déplacer l'Axe
+DÉPLACER AXE
+Déplacer E
+Déplacer X
+Déplacer Y
+Déplacer Z
+Nom
+SUIVANT
+NON
+Aucun capteur de filament n'a été détecté. Vérifiez que le capteur est bien branché et réessayez.
+Pas d'USB
+À présent calibrons la distance entre l'extrémité de la buse et la plaque d'impression.
+Buse
+Buse et Plateau
+Test chauf. buse
+Off
+OK
+On
+En Redémarrage
+Une fois
+Lorsque l'imprimante commence à extruder le plastique ajustez la hauteur de buse en faisant tourner le bouton jusqu'à ce que le filament adhère à la plaque d'impression.
+Parking
+Pause
+Mise en pause...
+Positionnez une feuille de papier sous la buse pendant la calibration des quatre premiers points. Si la buse accroche le papier, éteignez immédiatement l'imprimante !
+Veuillez nettoyer la buse en vue de la calibration. Cliquez sur NEXT une fois cela fait.
+Veuillez insérer une clé USB et réessayer.
+Veuillez insérer la clé USB fournie avec votre MINI et redémarrez l'imprimante pour flasher le firmware
+Ouvrez l'idler et retirez le filament manuellement
+Veuillez positionner la feuille d'acier sur le plateau chauffant.
+Veuillez retirer la feuille d'impression du plateau.
+Veuillez patienter
+PRÉCHAUFFER
+Préchauffage
+ERREUR DE PRÉCHAUFFAGE
+PRÉCHAUF. av. CHARG.
+PRÉCHAUFFER pour DÉCHARGER
+En préparation
+Expulsion en préparation
+Appuyez sur CONTINUER et insérez le filament dans l'extrudeur.
+Appuyez sur SUIVANT pour lancer le Selftest détectant les éventuels problèmes liés à l'assemblage.
+Impression
+Ventil. d'impression
+Le ventilateur d'impression ne tourne pas. Vérifiez s'il n'y a pas de débris, puis inspectez le câblage.
+Temps d'Impression
+L'impression va s'arrêter
+IMPRESSION
+Temps d'impression
+PURGER LE FILAMENT
+Purger le Filament
+PURGER PLUS
+Purge
+Question
+Expulsion
+Valider Déconnexion?
+RE-CHAUFFER
+Temps restant
+RENOMMER
+Renommer
+Ré-imprimer
+Réinitialiser
+REDÉMARRER L'IMPR.
+Relancer
+Relance...
+RÉESSAYER
+Retour
+sam
+Sauv. Vidage Mémoire
+Sauvegarder Réglages
+Recherche des points\nde calib. du plateau
+Sélectionner
+Sélectionner le Type de Filament
+SÉLECTIONNER FICHIER
+SÉLECTIONNER LANGUE
+Sélectionnez quand vous voulez flasher automatiquement une version mise à jour du firmware depuis une clé USB.
+SelfTest
+SELFTEST
+INFO CAPTEUR
+Info Capteur
+IMPRESSION SÉRIE
+Maintenance
+Réglages
+RÉGLAGES
+Chargement des réglages réussi
+Profil de Feuille
+Voir bilan SelfTest
+Silencieux
+Trier Fichiers selon
+Mode Sonore
+Volume Sonore
+Vitesse
+Adresses IPv4 statiques non définies.
+Statistique
+Feuilles d'Acier
+STOP
+Stop
+dim
+Assistance
+Infos Système
+TEMPÉRATURE
+Température
+Test
+Test VENTILATEURs
+Tester Chauffe
+Test XYZ-Axis
+La calibration de première couche n'a pu aboutir. Vérifiez bien le câblage de l'imprimante, la buse et les axes, puis relancez la calibration.
+Le selftest pas pu aboutir. Vérifiez bien le câblage et les axes de l'imprimante. Puis relancez le selftest.
+Les réglages ont été sauvegardés avec succès dans le fichier "lan_settings.ini".
+La barre de statut se trouve dans le bas de l'écran. Elle contient des infos concernant :\n-La temp. de la buse\n-La temp. du plateau\n-La vitesse d'impr.\n-La hauteur Z-axis\n-Le fil. sélectionné
+La calibration XYZ n'a pas pu aboutir. Vérifiez bien le câblage et les axes de l'imprimante, puis relancez la calibration XYZ.
+Une erreur s'est produite au moment de sauvegarder les réglages dans le fichier "lan_settings.ini".
+EMBAL. THERMIQUE
+Ce G-CODEa été paramétré pour un autre type d'imprimante.
+Cette action est Irréversible, la configuration actuelle sera perdue ! Êtes-vous certain de vouloir réinitialiser les paramètres d'usine pour l'imprimante ?
+jeu
+Temps
+Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour changer le filament, appuyez sur DÉCHARGER.
+Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour charger un filament, appuyez sur CHARGER. Pour changer de filament, appuyez sur DÉCHARGER.
+Auj. à
+mar
+RÉGLER
+Régler
+DÉCHARGER
+DÉCHARGER FILAMENT
+Décharger Filament
+Déchargement
+Unparking
+Erreur de clé USB, l'impression est actuellement mise en pause. Rebranchez la clé USB.
+Filament Utilisé
+INFOS VERSION
+Infos Version
+En attente de temp.
+Avertissement
+ATTENTION :
+Le filament a-t-il été bien chargé ?
+mer
+Bienvenue sur l'assistant de configuration de l'Original Prusa MINI. Voulez-vous continuer ?
+Assistant
+ASSISTANT
+ASSISTANT - OK
+Axe X
+CALIBRATION XYZ
+Axe Y
+OUI
+Hauteur Z :
+Axe Z

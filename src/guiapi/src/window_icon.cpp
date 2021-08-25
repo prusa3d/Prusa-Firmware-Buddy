@@ -1,4 +1,6 @@
 // window_icon.c
+
+#include <unistd.h>
 #include "window_icon.hpp"
 #include "gui.hpp"
 #include "ScreenHandler.hpp"
@@ -257,8 +259,8 @@ WindowPreviewThumbnail::~WindowPreviewThumbnail() {
 void WindowPreviewThumbnail::unconditionalDraw() {
 
     FILE f = { 0 };
-    f_lseek(&gcode_info.file, 0);
-    if (f_gcode_thumb_open(&f, &gcode_info.file) == 0) {
+    fseek(gcode_info.file, 0, SEEK_SET);
+    if (f_gcode_thumb_open(&f, gcode_info.file) == 0) {
         display::DrawPng(point_ui16(Left(), Top()), &f);
         f_gcode_thumb_close(&f);
     }

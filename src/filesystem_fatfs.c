@@ -612,13 +612,15 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
         r->_errno = EINVAL;
         return -1;
     }
+    do {
+        result = f_readdir(dirState->dirStruct, &fno);
+        r->_errno = get_errno(result);
 
-    result = f_readdir(dirState->dirStruct, &fno);
-    r->_errno = get_errno(result);
+        if (result != FR_OK) {
+            return -1;
+        }
 
-    if (result != FR_OK) {
-        return -1;
-    }
+    } while (fno.fattrib & (AM_SYS | AM_HID));
 
     if (!fno.fname[0]) {
         // Empty filename means end of directory
@@ -626,9 +628,17 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
         return -1;
     }
 
-    strncpy(filename, fno.fname, NAME_MAX);
+    if (fno.altname[0] != 0) {
+        strncpy(filename, fno.altname, NAME_MAX);
+        uint8_t len = strnlen(filename, NAME_MAX);
+        // filename is 256 chars long (NAME_MAX) so 13 + 105 chars is shorter, and it will fit inside
+        strncpy(filename + len + 1, fno.fname, NAME_MAX - len - 1);
+    } else {
+        strncpy(filename, fno.fname, NAME_MAX);
+    }
 
     filestat->st_mode = fno.fattrib & AM_DIR ? S_IFDIR : S_IFREG;
+    filestat->st_mtime = get_posix_time(fno.fdate, fno.ftime);
 
     return 0;
 }

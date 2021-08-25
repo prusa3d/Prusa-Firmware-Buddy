@@ -14,11 +14,12 @@ class RadioButton : public AddSuperWindow<window_t> {
     font_t *pfont;
     const PhaseResponses *responses;
     const PhaseTexts *texts;
+    color_t background_clr;
 
     void SetBtnCount(uint8_t cnt) { flags.mem_array_u08[0] = cnt & ((1 << RESPONSE_BITS) - 1); }
     const uint8_t GetBtnCount() const { return flags.mem_array_u08[0]; }
 
-    static void button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected);
+    static void button_draw(Rect16 rc_btn, color_t bg_clr, string_view_utf8 text, const font_t *pf, bool is_selected);
 
     void draw_0_btn() const;
     void draw_1_btn() const;
@@ -42,6 +43,8 @@ public:
 
     void SetBtnIndex(uint8_t index) { flags.mem_array_u08[1] = index < flags.mem_array_u08[0] ? index : 0; }
     uint8_t GetBtnIndex() const { return flags.mem_array_u08[1]; }
+    void SetBackgroundColor(color_t color) { background_clr = color; }  // Set up background color of focused button
+    const color_t GetBackgroundColor() const { return background_clr; } // Get background color of focused button
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

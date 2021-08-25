@@ -221,7 +221,10 @@ static off_t seek_r(struct _reent *r, void *fileStruct, off_t pos, int dir) {
     result = lfs_file_seek(lfs, &(f->fil), pos, dir);
     r->_errno = get_errno(result);
 
-    return RESULT;
+    //this function is called from lseek not fseek.
+    // fseek returns 0 on successful move and lseek returns offset, where it moved.
+    // Thus we need to return offset not 0 on successful move
+    return result;
 }
 
 static int stat_r(struct _reent *r, const char *path, struct stat *st) {

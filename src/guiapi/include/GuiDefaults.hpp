@@ -78,4 +78,8 @@ struct GuiDefaults {
     static constexpr size_t MenuScrollbarWidth = 2;
     static constexpr padding_ui8_t MenuItemDelimiterPadding = padding_ui8_t({ 6, 0, 6, 0 });
     static constexpr size_t MenuItemDelimeterHeight = MenuLinesBetweenItems ? 1 : 0;
+
+    // New msgbox
+    static constexpr Rect16 MsgBoxLayoutRect = { 0, 0, 0, 0 }; // TODO: Connect with dialogs
+    static constexpr Rect16 MsgBoxFrameRect = RectScreenBody;
 };

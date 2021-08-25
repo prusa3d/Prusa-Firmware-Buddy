@@ -132,6 +132,10 @@ Rect16 MsgBoxIconned::getIconnedTextRect() {
     return text_rect;
 }
 
+Rect16 MsgBoxIconned::getIconRect() {
+    return Rect16(GuiDefaults::MsgBoxLayoutRect.Left(), GuiDefaults::MsgBoxLayoutRect.Top(), 0, 0);
+}
+
 /*****************************************************************************/
 //MsgBoxBase variadic template methods
 //to be used as blocking functions

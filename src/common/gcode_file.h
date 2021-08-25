@@ -1,5 +1,4 @@
 #pragma once
-#include "ff.h"
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -7,7 +6,7 @@
 extern "C" {
 #endif //__cplusplus
 
-int f_gcode_thumb_open(FILE *fp, FIL *real_file);
+int f_gcode_thumb_open(FILE *fp, FILE *gcode_fp);
 int f_gcode_thumb_close(FILE *fp);
 
 /// Parse comment line in given file
@@ -16,7 +15,7 @@ int f_gcode_thumb_close(FILE *fp);
 /// Example:
 /// Read line: ` ; infill extrusion width = 0.40mm\n`
 /// Ouptut: name = "infill extrusion width", value = "0.40mm"
-bool f_gcode_get_next_comment_assignment(FIL *fp, char *name_buffer,
+bool f_gcode_get_next_comment_assignment(FILE *fp, char *name_buffer,
     int name_buffer_len,
     char *value_buffer,
     int value_buffer_len);

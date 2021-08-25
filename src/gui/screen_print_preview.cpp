@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include "screen_print_preview.hpp"
 #include "dbg.h"
 #include "gcode_file.h"
@@ -71,8 +73,7 @@ screen_print_preview_data_t::screen_print_preview_data_t()
 }
 
 bool screen_print_preview_data_t::gcode_file_exists() {
-    FILINFO finfo = { 0 };
-    return f_stat(gcode.GetGcodeFilepath(), &finfo) == FR_OK;
+    return access(gcode.GetGcodeFilepath(), F_OK) == 0;
 }
 
 //FIXME simple solution not to brake functionality before release

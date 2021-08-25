@@ -196,7 +196,7 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 }
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
-    if (dump_save_to_usb("dump.bin"))
+    if (dump_save_to_usb("/usb/dump.bin"))
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     else
         MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
@@ -249,7 +249,7 @@ MI_EE_LOAD_400::MI_EE_LOAD_400()
 }
 
 void MI_EE_LOAD_400::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.0-final+1965.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.0-final+1965.bin");
     sys_reset();
 }
 
@@ -260,7 +260,7 @@ MI_EE_LOAD_401::MI_EE_LOAD_401()
 }
 
 void MI_EE_LOAD_401::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.1-final+1974.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.1-final+1974.bin");
     sys_reset();
 }
 
@@ -271,7 +271,7 @@ MI_EE_LOAD_402::MI_EE_LOAD_402()
 }
 
 void MI_EE_LOAD_402::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.2-final+1977.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.2-final+1977.bin");
     sys_reset();
 }
 
@@ -282,7 +282,7 @@ MI_EE_LOAD_403RC1::MI_EE_LOAD_403RC1()
 }
 
 void MI_EE_LOAD_403RC1::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
     sys_reset();
 }
 
@@ -293,7 +293,7 @@ MI_EE_LOAD_403::MI_EE_LOAD_403()
 }
 
 void MI_EE_LOAD_403::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.3-final+258.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.3-final+258.bin");
     sys_reset();
 }
 
@@ -304,7 +304,7 @@ MI_EE_LOAD::MI_EE_LOAD()
 }
 
 void MI_EE_LOAD::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom.bin");
     sys_reset();
 }
 
@@ -315,7 +315,7 @@ MI_EE_SAVE::MI_EE_SAVE()
 }
 
 void MI_EE_SAVE::click(IWindowMenu & /*window_menu*/) {
-    eeprom_save_bin_to_usb("eeprom.bin");
+    eeprom_save_bin_to_usb("/usb/eeprom.bin");
 }
 
 /*****************************************************************************/
@@ -325,7 +325,7 @@ MI_EE_SAVEXML::MI_EE_SAVEXML()
 }
 
 void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
-    eeprom_save_xml_to_usb("eeprom.xml");
+    eeprom_save_xml_to_usb("/usb/eeprom.xml");
 }
 
 /*****************************************************************************/

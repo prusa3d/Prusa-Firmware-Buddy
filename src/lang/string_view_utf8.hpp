@@ -38,9 +38,9 @@ class string_view_utf8 {
         } cpuflash;
         /// interface for utf-8 string stored in a FILE - used for validation of the whole translation infrastructure
         struct FromFile {
-            ::FILE *f;         ///< shared FILE pointer with other instances accessing the same file
-                               ///< @@TODO beware - need some synchronization mechanism to prevent reading from another offset in the file when other instances read as well
-            uint32_t startOfs; ///< start offset in input file
+            ::FILE *f;           ///< shared FILE pointer with other instances accessing the same file
+            uint16_t startOfs;   ///< start offset in input file
+            uint16_t currentOfs; ///<position of next byt to read
         } file;
         constexpr Attrs()
             : cpuflash() {}
@@ -71,12 +71,17 @@ class string_view_utf8 {
 
     static uint8_t FILE_getbyte(Attrs &attrs) {
         uint8_t c;
+        //sync among multiple reads from the sameMO file
+        if (ftell(attrs.file.f) != attrs.file.currentOfs)
+            fseek(attrs.file.f, attrs.file.currentOfs, SEEK_SET);
+        attrs.file.currentOfs++;
         fread(&c, 1, 1, attrs.file.f);
         return c;
     }
     static void FILE_rewind(Attrs &attrs) {
         if (attrs.file.f) {
             fseek(attrs.file.f, attrs.file.startOfs, SEEK_SET);
+            attrs.file.currentOfs = attrs.file.startOfs;
         }
     }
 
@@ -205,12 +210,13 @@ public:
     }
 
     /// Construct string_view_utf8 to provide data from FILE
-    /// The FILE *f shall aready be positioned to the spot, where the string starts
-    static constexpr string_view_utf8 MakeFILE(::FILE *f) {
+    /// The FILE *f shall already be positioned to the spot, where the string starts
+    static constexpr string_view_utf8 MakeFILE(::FILE *f, uint16_t offset) {
         string_view_utf8 s;
         s.attrs.file.f = f;
         if (f) {
-            s.attrs.file.startOfs = ftell(f);
+            s.attrs.file.startOfs = offset;
+            s.attrs.file.currentOfs = offset;
         }
         s.type = EType::FILE;
         return s;

@@ -1,0 +1,253 @@
+\nVer. de bootloader\n%d.%d.%d\n\nPlaca Buddy\n%d.%d.%d\n %s
+Se ha guardado un informe con detalles del error (dump.bin) en la unidad USB.
+ABORTAR
+Ajusta la altura de la boquilla sobre la base girando el dial
+¡Todas las pruebas terminaron con éxito!
+Siempre
+¿Estás seguro de detener esta impresión?
+Asistir
+Homing automático
+ATRÁS
+Atrás
+Falló la nivelación. ¿Reintentar?
+Calibrando Z
+Calibración
+CALIBRACIÓN
+¡Calibrada con éxito!\n¡Felices impresiones!
+Calibración XY
+CANCELAR
+CAMBIAR FILAMENTO
+Cambiar Filamento
+Revisa el cableado del termistor y el calentador de la base para detectar posibles daños.
+Revisa el cableado del termistor de la base calefactada buscando posibles daños.
+Revisa el cableado del termistor y del calentador del fusor para ver si hay daños.
+Revisa el cableado del termistor del fusor para ver si hay daños.
+Comprobando ejes
+Limpia la superficie de la lámina de acero.
+¡Felicidades! La calibración XYZ finalizó correctamente. Los ejes XY son perpendiculares.
+CONTINUAR
+Enfriando
+Carga del procesador
+Perfil Actual
+Identificar unidad en QR
+DESACTIVAR SENSOR
+Desactivar motores
+Desconectar
+¿Quieres repetir el último paso y reajustar la distancia entre la boquilla y base?
+¿Quiere utilizar el valor actual?\nActual: %0.3f.\nPor defecto: %0.3f.\nHaz clic en NO para usar el valor por defecto (recomendado)
+Extrayendo
+Error
+Error al guardar los detalles del error de memoria en la unidad USB. Vuelve a insertar la unidad USB e intentalo otra vez.
+Todo está bien. Ejecutaré la calibración XYZ ahora. Me llevará aproximadamente 12 minutos.
+SALIDA
+Valores predefinidos de fábrica cargados. Reiniciando el sistema.
+Restaurar valores de fábrica
+Registro de errores
+Prueba del ventilador
+RPM Ventilador0
+RPM Ventilador1
+FILAMENTO
+Filamento
+El filamento parece estar cargado, ¿estás seguro de volver a cargarlo?
+No se ha detectado filamento. ¿Cargar filamento ahora? Seleccione NO para cancelar, o IGNORAR para desactivar el sensor de filamento y continuar.
+Sensor fil.
+Finalizando Cod. G en memoria.
+Ver. de Firmware\n
+Cal. Primera Capa
+CALIBRACIÓN PRIMERA CAPA
+Factor de flujo
+Vie
+ACTUALIZAR FW
+Actualizar FW
+Base Calefactora
+Comp. calor base
+Probando Calent.
+Calentamiento deshabilitado debido a 30 minutos de inactividad.
+Calentando...
+Hola, esta es tu Original Prusa MINI.
+INICIO
+Inicio
+HOME TO MAX
+Vent. del fusor
+El ventilador del fusor no gira. Comprueba que no hay residuos, luego inspecciona el cableado.
+Ajuste de HW
+IGNORAR
+En el siguiente paso usa el dial para ajustar la altura de la boquilla. Mira las fotos en el manual como referencia.
+INFO
+Info
+Información
+Cargando
+Las direcciones IP o los parámetros no son válidos o el archivo "lan_settings.ini" no está en el directorio raíz de la unidad USB.
+¿Está bien el color?
+¿Está el filamento en los engranajes del extrusor?
+¿Está la lámina de acero en la base?
+AJUSTES DE RED
+Ajustes de Red
+Idioma
+IDIOMAS
+Ajuste en Vivo de Z
+CARGAR
+CARGAR FILAMENTO
+Cargar filamento
+Cargar configuración
+Cargando...
+Cargando a la boquilla
+Alto
+M.I.N.D.A.
+Asegúrate que filamento está insertado a través del sensor.
+Material
+ERROR MAXTEMP
+Midiendo referencia\naltura de calibra.\npuntos
+Timeout Menú
+Nivelado mediante Malla
+NIVELADO MEDIANTE MALLA
+MENSAJES
+Mensajes
+ERROR MINTEMP
+Lun
+Mover Ejes
+MOVER EJE
+Mover E
+Mover X
+Mover Y
+Mover Z
+Nombre
+SIGUIENTE
+NO
+No se detectó sensor de filamento. Verifica que el sensor esté conectado e intente nuevamente.
+No hay USB
+Ahora, calibremos la distancia entre la punta de la boquilla y la lámina de impresión.
+Boquilla
+Base y Boquilla
+Comp. calor boquilla
+Off
+OK
+On
+En el Reinicio
+Una vez
+Una vez que la impresora comienza a extruir plástico, ajusta la altura de la boquilla girando el dial hasta que el filamento se adhiera a la lámina.
+Parking
+Pausa
+Pausando...
+Coloca una hoja de papel debajo de la boquilla durante la calibración de los primeros 4 puntos. Si la boquilla atrapa el papel, apaga la impresora inmediatamente!
+Limpie la boquilla para la calibración. Haga clic en SIGUIENTE cuando haya terminado.
+Inserta una unidad USB e intenta nuevamente.
+Por favor inserte la unidad USB que vino con tu MINI y reinicia la impresora para flashear el firmware
+Abre el tensor y retira el filamento manualmente
+Coloca la lámina en la base.
+Retira la lámina de la base.
+Por favor espere
+PRECALENTAR
+Precalentar
+ERROR DE PRECALENTAMIENTO
+PRECALENTAR para CARGAR
+PRECALENTAR para DESCARGAR
+Preparando
+Preparando para expulsar
+Presiona CONTINUAR y empuja el filamento en el extrusor.
+Pulsa SIGUIENTE para ejecutar el Selftest, que comprueba potenciales problemas  con el montaje.
+Imprimir
+Vent. de impresión
+El ventilador de impresión no gira. Comprueba que no hay residuos, luego inspecciona el cableado.
+Duración de la impresión
+La impresión finalizará
+IMPRIMIENDO
+Tiempo de impresión
+PURGAR FILAMENTO
+Purgar filamento
+PURGAR MÁS
+Purgando
+Pregunta
+Ramming
+¿Seguro desconectar?
+RECALENTAR
+Tiempo Restante
+RENOMBRAR
+Renombrar
+Volver a imprimir
+Reset
+RESET IMPRESORA
+Continuar
+Continuando...
+REINTENTAR
+Volver
+Sab
+Guardar arch. de errores
+Guardar ajustes
+Buscando la base\npuntos de calibración
+Seleccionar
+Selecc. tipo de filamento
+SELECC. ARCHIVO
+SELECC. IDIOMA
+Selecciona donde quieres flashear automáticamente el firmware actualizado desde una memoria USB.
+SelfTest
+SELFTEST
+INFO SENSOR
+Info Sensor
+IMPRESIÓN SERIE
+Mantenimiento
+Ajustes
+AJUSTES
+Configuración cargada correctamente
+Ajustes Lámina
+Mostrar resultado SelfTest
+Silenciosa
+Ordenar archivos por
+Modo Sonido
+Volumen sonido
+Velocidad
+Las direcciones IPv4 estáticas no se configuraron.
+Estadística
+Lámina Acero
+PARAR
+Parar
+Dom
+Soporte
+Info Sistema
+TEMPERATURA
+Temperatura
+Test
+Test VENTS
+Test Calentadores
+Test Ejes XYZ
+La calibración de la primera capa no pudo finalizar. Vuelva a verificar el cableado, la boquilla y los ejes de la impresora, luego reinicia la calibración.
+El selftest falló al terminar. Verifica dos veces el cableado de la impresora y los ejes. Luego reinicie el Selftest.
+La configuración se ha guardado correctamente en el archivo "lan_settings.ini".
+La barra de estado está en el fondo de la pantalla. Contiene Información sobre:\n- Temp. de la boquilla\n- Temp. de la base\n- Vel. de impresión\n- Alt. del eje Z\n- Fil. seleccionado
+La calibración XYZ no pudo finalizar. Vuelva a verificar el cableado y los ejes de la impresora, luego reinicia la calibración XYZ.
+Se produjo un error al guardar la configuración en el archivo "lan_settings.ini".
+DERIVA TÉRMICA
+Este G-CODE se configuró para otro tipo de impresora.
+Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Seguro que quieres restaurar la impresora a los valores de fábrica?
+Jue
+Tiempo
+Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Para cambiarlo, pulsa DESCARGAR.
+Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Para cargar filamento, pulsa CARGAR. Para cambiarlo, pulsa DESCARGAR.
+Hoy a las
+Mar
+AJUSTES
+Ajustes
+DESCARGAR
+DESCARGAR FILAMENTO
+Descargar filamento
+Descargando
+Unparking
+Error de la unidad USB, la impresión ahora está en pausa. Vuelve a conectar la unidad.
+Filamento Consumido
+INFO VERSION
+Info versión
+Esperando temp.
+Cuidado
+CUIDADO:
+¿Se descargó el filamento con éxito?
+Mie
+Bienvenido al asistente de configuración de la Original Prusa MINI. ¿Te gustaria continuar?
+Asistente
+ASISTENTE
+ASISTENTE - OK
+Eje X
+CALIBRACIÓN XYZ
+Eje Y
+SÍ
+Altura en Z:
+Eje Z

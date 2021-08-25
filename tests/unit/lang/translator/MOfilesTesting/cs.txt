@@ -1,0 +1,253 @@
+\nVerze bootloaderu\n%d.%d.%d\n\nBuddy deska\n%d.%d.%d\n%s
+Výpis chyb (soubor dump.bin) byl zapsán na USB disk.
+ZRUŠIT
+K doladění výšky trysky nad podložkou otáčejte ovládacím tlačítkem.
+Testy úspěšně dokončeny!
+Vždy
+Chcete zrušit tisk?
+Assist
+Auto Home
+ZPĚT
+Zpět
+Mesh Bed L. selhal. Opakovat?
+Kalibrace Z
+Kalibrace
+KALIBRACE
+Kalibrace dokončena! Tisku zdar!
+Kalibrace XY
+ZRUŠIT
+VYMĚNIT FILAMENT
+Vyměnit filament
+Zkontrolujte, zda nejsou poškozeny kabely vyhřívané podložky a termistoru.
+Zkontrolujte, zda není poškozen kabel termistoru vyhřívané podložky.
+Zkontrolujte, zda nejsou poškozené kabely od topného bloku a termistoru tiskové hlavy.
+Zkontrolujte, zda není poškozen kabel termistoru tiskové hlavy.
+Kontrola os
+Očistěte podložku.
+Gratulujeme! XYZ kalibrace v pořádku, všechny osy kolmé.
+POKRAČOVAT
+Zchladit
+CPU vyt.
+Zvolený profil
+Hash zařízení v QR
+VYPNOUT SENZOR
+Vypnout motory
+Odpojit
+Chcete zopakovat poslední krok a upravit nastavení vzdálenosti mezi tryskou a podložkou?
+Chcete použít aktuální hodnotu?\nAktuální: %0.3f.\nVýchozí: %0.3f.\nZvolením NE vyberete výchozí hodnotu (doporučeno)
+Vysouvání
+Chyba
+Chyba při ukládání výpisu chyb na USB. Vložte USB znovu a opakujte akci.
+Vše v pořádku. Nyní se spustí XYZ kalibrace, která trvá cca 12 minut.
+KONEC
+Nahrány výchozí hodnoty. Systém se restartuje.
+Tovární nastavení
+Stat. chyb
+Test ventilátorů
+Vent0 RPM
+Vent1 RPM
+FILAMENT
+Filament
+Zdá se, že filament je už zaveden. Chcete jej přesto zavést znovu?
+Filament nebyl detekován. Zavést filament nyní? Vyberte NE pro zrušení tisku, nebo IGNOROVAT pro vypnutí senzoru a pokračování.
+Filament senzor
+Dokončování načtených Gcodů.
+Verze firmwaru\n
+Kalibrace první vrstvy
+KALIBRACE PRVNÍ VRSTVY
+Průtok
+Pá
+AKTUALIZACE FW
+Aktualizace FW
+Podložka
+Výhřev podložky
+Testování výhřevu
+Vyhřívání vypnuto po 30 minutách neaktivity.
+Zahřívání...
+Vítá vás\nOriginal Prusa MINI!
+MENU
+Domů
+HOME TO MAX
+Vent. hotendu
+Ventilátor hotendu se netočí. Zkontrolujte, zda není blokován. Pak zkontrolujte zapojení.
+HW nastavení
+IGNOROVAT
+V dalším kroku použijte ovládací tlačítko a nastavte výšku trysky. V příručce naleznete detailní instrukce a ilustrace.
+INFO
+Info
+Informace
+Zavádění
+Nesprávné IP adresy nebo parametry, nebo soubor "lan_settings.ini" není v kořenovém adresáři USB disku.
+Je barva správná?
+Je filament v podávacím soukolí extruderu?
+Je na podložce tiskový plát?
+NASTAVENÍ LAN
+Nastavení LAN
+Jazyk
+JAZYKY
+Doladit Z
+ZAVÉST
+ZAVÉST FILAMENT
+Zavést filament
+Nahrát nastavení
+Nahrává se...
+Zavádění do trysky
+Hlasitý
+M.I.N.D.A.
+Ujistěte se, že je filament vložen skrz fil. senzor.
+Materiál
+CHYBA MAXTEMP
+Měření referenční\nvýšky kalibračních\nbodů
+Automatický návrat do menu
+Mesh Bed Leveling
+MESH BED LEVELING
+ZPRÁVY
+Zprávy
+CHYBA MINTEMP
+Po
+Pohyb osy
+POHYB OSY
+Osa E
+Osa X
+Osa Y
+Osa Z
+Název
+DALŠÍ
+NE
+Senzor filamentu nenalezen. Ujistěte se, že je správně zapojen a opakujte akci.
+Vložte USB
+Nyní zkalibrujeme vzdálenost mezi tryskou a tiskovým plátem.
+Tryska
+Tryska a podložka
+Výhřev trysky
+Vyp.
+OK
+Zap
+Při restartu
+Jednou
+Až začne MINI vytlačovat plast, nastav výšku trysky otáčením ovládacího tlačítka. Filament musí být správně přitlačen k podložce.
+Parkování
+Pauza
+Pozastavení...
+Pro kalibraci prvních 4 bodů vložte pod trysku list papíru. Pokud tryska o papír zavadí, okamžitě tiskárnu vypněte!
+Nyní je nutné očistit trysku. Až bude hotovo, zvolte DALŠÍ.
+Vložte USB disk a opakujte akci.
+Vložte USB disk\ndodávaný k tiskárně\na restartujte MINI.\nTím zahájíte proces\naktualizace FW.
+Otevřete idler a vyjměte filament ručně
+Vložte tiskový plát na vyhřívanou podložku.
+Odstraňte tiskový plát z vyhřívané podložky.
+Vyčkejte
+PŘEDEHŘEV
+Předehřev
+CHYBA PŘEDEHŘEVU
+PŘEDEHŘÁT pro ZAVEDENÍ
+PŘEDEHŘÁT pro VYSUNUTÍ
+Příprava
+Příprava na ramming
+Zvolte POKRAČOVAT a zasuňte filament do extruderu.
+Zvolte DALŠÍ pro spuštění Selftestu, který ověří, zda je tiskárna správně sestavena.
+Tisk
+Tisk. vent.
+Tiskový ventilátor se netočí. Zkontrolujte, zda není blokován. Pak zkontrolujte zapojení.
+Doba tisku
+Konec tisku:
+TISK
+Čas tisku
+ČISTIT TRYSKU
+Čistit trysku
+ČISTIT VÍCE
+Čištění
+Otázka
+Ramming
+Opravdu odpojit?
+OPAK. NAHŘÁTÍ
+Zbývající čas
+PŘEJMENOVAT
+Přejmenovat
+Tisk. znovu
+Reset
+RESET ZAŘÍZENÍ
+Pokračovat
+Opětovné spuštění...
+ZNOVU
+Zpět
+So
+Uložit výpis chyb
+Uložit nastavení
+Hledání kalibračních\nbodů na podložce
+Vybrat
+Zvolte typ filamentu
+VÝBĚR SOUBORU
+VÝBĚR JAZYKA
+Zvolte, kdy má dojít k automatické aktualizaci nového firmwaru z USB disku.
+Selftest
+SELFTEST
+STAV SENZORU
+Stav senzoru
+TISK - SÉRIOVÝ PORT
+Služba
+Nastavení
+NASTAVENÍ
+Nastavení načteno
+Profil plátu
+Zobrazit výsledek Selftestu
+Tichý
+Seřadit dle
+Zvuk
+Hlasitost
+Rychlost
+Statické IPv4 adresy nenastaveny.
+Statistika
+Tiskové pláty
+STOP
+Stop
+Ne
+Podpora
+Systém. info
+TEPLOTA
+Teplota
+Test
+Test ventilátorů
+Test vyhřívání
+Test os XYZ
+Selhala kalibrace první vrstvy. Zkontrolujte zapojení el. částí tiskárny, trysku a jednotlivé osy, pak restartujte kalibraci.
+Selftest selhal. Zkontrolujte zapojení el. částí i všechny osy. Pak Selftest spusťte znovu.
+Nastavení úspěšně uloženo do souboru "lan_settings.ini"
+Stavový řádek je ve spodní části LCD. Obsahuje informace o:\n- Teplotě trysky\n- Teplotě podložky\n- Rychlosti tisku\n- Výšce osy Z\n- Filamentu
+Selhala kalibrace os XYZ. Zkontrolujte zapojení el. součástí i jednotlivé osy, pak restartuje kalibraci XYZ.
+Při ukládání souboru "lan_settings.ini" došlo k chybě.
+THERMAL RUNAWAY
+Tento G-CODE je určen pro jiný typ tiskárny.
+Tuto operaci nelze vrátit, současná konfigurace bude ztracena! Skutečně chcete obnovit tovární nastavení?
+Čt
+Čas
+Pro kalibraci s aktuálně zavedeným filamentem zvolte DALŠÍ. Pro výměnu zvolte VYJMOUT.
+Pro kalibraci s aktuálně zavedeným filamentem zvolte DALŠÍ. Pro výměnu zvolte VYJMOUT.
+Dnes v
+Út
+LADIT
+Ladit
+VYJM.
+VYJMOUT FILAMENT
+Vyjmout filament
+Vysouvání
+Odparkování
+Chyba USB úložiště. Tisk pozastaven. Disk vyjměte a znovu vložte.
+Množství filamentu
+INFO O VERZI
+Info o verzi
+Nastavování provozních teplot
+Varování
+VAROVÁNÍ:
+Proběhlo vyjmutí filamentu správně?
+St
+Vítejte v průvodci pro Original Prusa MINI. Přejete si pokračovat?
+Průvodce
+PRŮVODCE
+PRŮVODCE - OK
+Osa X
+KALIBRACE XYZ
+Osa Y
+ANO
+Výška Z:
+Osa Z

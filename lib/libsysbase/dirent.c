@@ -104,6 +104,9 @@ DIR* opendir (const char *dirname) {
 		return NULL;
 	}
 
+	// null the whole structure, because of implementation of long file name from FAT FS
+	// more information in struct dirent in dirent.h
+	memset(dirp, 0, sizeof(DIR));
 	dirp->dirData = __diropen (dirname);
 	if (!dirp->dirData) {
 		free (dirp);
@@ -162,9 +165,18 @@ struct dirent* readdir (DIR *dirp) {
 		return NULL;
 	}
 
-	strncpy (dirp->fileData.d_name, filename, sizeof(dirp->fileData.d_name));
+	// copy the whole buffer, because there can be lfn after the first string
+	memcpy(dirp->fileData.d_name, filename, NAME_MAX);
+	size_t len = strnlen(dirp->fileData.d_name, NAME_MAX);
+	if (dirp->fileData.d_name[len + 1] != '\0') {
+		dirp->fileData.lfn = dirp->fileData.d_name + len + 1;
+	} else {
+		dirp->fileData.lfn = dirp->fileData.d_name;
+	}
+
 	dirp->fileData.d_ino = st.st_ino;
 	dirp->fileData.d_type = S_ISDIR(st.st_mode)?DT_DIR:DT_REG;
+	dirp->fileData.time = st.st_mtime;
 
 	return &(dirp->fileData);
 }
