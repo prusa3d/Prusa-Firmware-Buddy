@@ -131,7 +131,7 @@ void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *s
         return;
     }
 
-    if (event == GUI_event_t::LOOP) { // dont return LOOP must be sent do parrent too
+    if (event == GUI_event_t::LOOP) { // don't return LOOP must be sent to parrent too
         Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
     }
 

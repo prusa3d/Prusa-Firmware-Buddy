@@ -73,27 +73,22 @@ constexpr const char Y_home_gcode[] = {
     nth_char(Y_home, 8)
 };
 
-const std::array<int, MenuVars::AXIS_CNT> MenuVars::default_steps_per_unit = { DEFAULT_AXIS_STEPS_PER_UNIT };
-const std::array<int, MenuVars::AXIS_CNT> MenuVars::default_microsteps = { { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, E0_MICROSTEPS } };
-const std::array<int, MenuVars::AXIS_CNT> MenuVars::default_currents = { { X_CURRENT, Y_CURRENT, Z_CURRENT, E0_CURRENT } };
+const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultStepsPerUnit() { return { DEFAULT_AXIS_STEPS_PER_UNIT }; };
+const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultMicrosteps() { return { { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, E0_MICROSTEPS } }; };
+const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultCurrents() { return { { X_CURRENT, Y_CURRENT, Z_CURRENT, E0_CURRENT } }; };
 
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::maximum_z_axis_range = { { Z_MIN_LEN_LIMIT, Z_MAX_LEN_LIMIT, 1 } };
-const std::array<std::array<int, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::axis_ranges = { { { X_MIN_POS, X_MAX_POS, 1 },
+const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetMaximumZRange() { return { { Z_MIN_LEN_LIMIT, Z_MAX_LEN_LIMIT, 1 } }; };
+const std::array<std::array<int, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::GetAxisRanges() { return { { { X_MIN_POS, X_MAX_POS, 1 },
     { Y_MIN_POS, Y_MAX_POS, 1 },
     { Z_MIN_POS, static_cast<int16_t>(get_z_max_pos_mm_rounded()), 1 },
-    { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH, 1 } } };
+    { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH, 1 } } }; };
 
-const int16_t MenuVars::manual_feedrate[AXIS_CNT] = MANUAL_FEEDRATE;
-const char MenuVars::axis_letters[AXIS_CNT] = { 'X', 'Y', 'Z', 'E' };
-const int16_t MenuVars::extrude_min_temp = EXTRUDE_MINTEMP;
+const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetManualFeedrate() { return { MANUAL_FEEDRATE }; };
+const std::array<char, MenuVars::AXIS_CNT> MenuVars::GetAxisLetters() { return { 'X', 'Y', 'Z', 'E' }; };
+const int MenuVars::GetExtrudeMinTemp() { return EXTRUDE_MINTEMP; };
 
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::nozzle_range = { 0, (HEATER_0_MAXTEMP - 15), 1 };
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::bed_range = { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 };
-const std::array<float, MenuVars::RANGE_SZ> MenuVars::zoffset_fl_range = { z_offset_min, z_offset_max, z_offset_step };
-
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::printfan_range;
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::flowfact_range;
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::feedrate_range;
+const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetNozzleRange() { return { 0, (HEATER_0_MAXTEMP - 15), 1 }; };
+const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetBedRange() { return { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 }; };
 
 constexpr const int filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
 constexpr const int filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;

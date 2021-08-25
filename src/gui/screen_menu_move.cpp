@@ -17,7 +17,7 @@ public:
             SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual invalidate_t Change(int dif) override {
         invalidate_t ret = WiSpinInt::Change(dif);
-        marlin_gcode_printf("G0 %c%d F%d", MenuVars::axis_letters[INDEX], value, MenuVars::manual_feedrate[INDEX]);
+        marlin_gcode_printf("G0 %c%d F%d", MenuVars::GetAxisLetters()[INDEX], value, MenuVars::GetManualFeedrate()[INDEX]);
         return ret;
     }
 };
@@ -52,7 +52,7 @@ protected:
 void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
 
-        bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::extrude_min_temp);
+        bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::GetExtrudeMinTemp());
         IWindowMenuItem *pAxis_E = &Item<MI_AXIS_E>();
         if (temp_ok && (!pAxis_E->IsEnabled()))
             pAxis_E->Enable();

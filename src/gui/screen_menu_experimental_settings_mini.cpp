@@ -33,10 +33,10 @@ class ScreenMenuExperimentalSettings : public Screen {
 
         // this is only safe as long as there are no gaps between variabes
         // all variables re 32bit now, so it is safe
-        constexpr bool operator==(const values_t &other) const {
+        bool operator==(const values_t &other) const {
             return memcmp(this, &other, sizeof(values_t)) == 0;
         }
-        constexpr bool operator!=(const values_t &other) const {
+        bool operator!=(const values_t &other) const {
             return !(*this == other);
         }
     } initial;
@@ -83,7 +83,7 @@ public:
             menu.Invalidate(); // its broken, does not work
             break;
         case ClickCommand::Reset_steps:
-            Item<MI_STEPS_PER_UNIT_E>().SetVal(MenuVars::default_steps_per_unit[3]);
+            Item<MI_STEPS_PER_UNIT_E>().SetVal(MenuVars::GetDefaultStepsPerUnit()[3]);
             menu.Invalidate(); // its broken, does not work
             break;
         default:

@@ -55,10 +55,10 @@ class ScreenMenuExperimentalSettings : public Screen {
 
         // this is only safe as long as there are no gaps between variabes
         // all variables re 32bit now, so it is safe
-        constexpr bool operator==(const values_t &other) const {
+        bool operator==(const values_t &other) const {
             return memcmp(this, &other, sizeof(values_t)) == 0;
         }
-        constexpr bool operator!=(const values_t &other) const {
+        bool operator!=(const values_t &other) const {
             return !(*this == other);
         }
     } initial;
@@ -119,24 +119,24 @@ public:
             menu.Invalidate(); // its broken, does not work
             break;
         case ClickCommand::Reset_steps:
-            Item<MI_STEPS_PER_UNIT_X>().SetVal(MenuVars::default_steps_per_unit[0]);
-            Item<MI_STEPS_PER_UNIT_Y>().SetVal(MenuVars::default_steps_per_unit[1]);
-            Item<MI_STEPS_PER_UNIT_Z>().SetVal(MenuVars::default_steps_per_unit[2]);
-            Item<MI_STEPS_PER_UNIT_E>().SetVal(MenuVars::default_steps_per_unit[3]);
+            Item<MI_STEPS_PER_UNIT_X>().SetVal(MenuVars::GetDefaultStepsPerUnit()[0]);
+            Item<MI_STEPS_PER_UNIT_Y>().SetVal(MenuVars::GetDefaultStepsPerUnit()[1]);
+            Item<MI_STEPS_PER_UNIT_Z>().SetVal(MenuVars::GetDefaultStepsPerUnit()[2]);
+            Item<MI_STEPS_PER_UNIT_E>().SetVal(MenuVars::GetDefaultStepsPerUnit()[3]);
             menu.Invalidate(); // its broken, does not work
             break;
         case ClickCommand::Reset_microsteps:
-            Item<MI_MICROSTEPS_X>().SetVal(MenuVars::default_microsteps[0]);
-            Item<MI_MICROSTEPS_Y>().SetVal(MenuVars::default_microsteps[1]);
-            Item<MI_MICROSTEPS_Z>().SetVal(MenuVars::default_microsteps[2]);
-            Item<MI_MICROSTEPS_E>().SetVal(MenuVars::default_microsteps[3]);
+            Item<MI_MICROSTEPS_X>().SetVal(MenuVars::GetDefaultMicrosteps()[0]);
+            Item<MI_MICROSTEPS_Y>().SetVal(MenuVars::GetDefaultMicrosteps()[1]);
+            Item<MI_MICROSTEPS_Z>().SetVal(MenuVars::GetDefaultMicrosteps()[2]);
+            Item<MI_MICROSTEPS_E>().SetVal(MenuVars::GetDefaultMicrosteps()[3]);
             menu.Invalidate(); // its broken, does not work
             break;
         case ClickCommand::Reset_currents:
-            Item<MI_CURRENT_X>().SetVal(MenuVars::default_currents[0]);
-            Item<MI_CURRENT_Y>().SetVal(MenuVars::default_currents[1]);
-            Item<MI_CURRENT_Z>().SetVal(MenuVars::default_currents[2]);
-            Item<MI_CURRENT_E>().SetVal(MenuVars::default_currents[3]);
+            Item<MI_CURRENT_X>().SetVal(MenuVars::GetDefaultCurrents()[0]);
+            Item<MI_CURRENT_Y>().SetVal(MenuVars::GetDefaultCurrents()[1]);
+            Item<MI_CURRENT_Z>().SetVal(MenuVars::GetDefaultCurrents()[2]);
+            Item<MI_CURRENT_E>().SetVal(MenuVars::GetDefaultCurrents()[3]);
             menu.Invalidate(); // its broken, does not work
             break;
         }
