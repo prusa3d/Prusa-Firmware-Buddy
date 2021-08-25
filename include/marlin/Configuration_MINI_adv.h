@@ -78,6 +78,14 @@
 #if ENABLED(THERMAL_PROTECTION_HOTENDS)
     #define THERMAL_PROTECTION_PERIOD 20        // Seconds
     #define THERMAL_PROTECTION_HYSTERESIS 6 //4     // Degrees Celsius
+    #if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
+        /**
+         * Do not allow hotend PWM value to be THERMAL_PROTECTION_MODEL_DISCREPANCY
+         * above PWM expected by the model for more than THERMAL_PROTECTION_MODEL_PERIOD seconds
+         */
+        #define THERMAL_PROTECTION_MODEL_PERIOD 40
+        #define THERMAL_PROTECTION_MODEL_DISCREPANCY 76 //30% of PWM max. It can never trigger at 100% fan if the temperature set is above 272degC and at 290degC if fan is above 75%.
+    #endif
 
     //#define ADAPTIVE_FAN_SLOWING              // Slow part cooling fan if temperature drops
     #if BOTH(ADAPTIVE_FAN_SLOWING, PIDTEMP)
@@ -142,7 +150,6 @@
     #endif
     // this adds an experimental additional term to the heating power, regulation constants are hard coded for PRUSA MINI printer
     // there is no sense to enable it for any else printer
-    #define MODEL_BASED_HOTEND_REGULATOR
 #endif
 
 /**

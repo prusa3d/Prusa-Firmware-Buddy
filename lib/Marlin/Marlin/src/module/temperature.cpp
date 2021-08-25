@@ -931,7 +931,12 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
       return hotend_pwm;
     }
 
-    float Temperature::get_pid_output_hotend(const uint8_t E_NAME) {
+    float Temperature::get_pid_output_hotend(
+#if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
+            float &feed_forward ,
+#endif
+            const uint8_t E_NAME
+            ) {
       const uint8_t ee = HOTEND_INDEX;
       #if ENABLED(PIDTEMP)
         #if DISABLED(PID_OPENLOOP)
@@ -964,7 +969,10 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
               expected_temp = temp_hotend[ee].celsius;
               pid_reset[ee] = false;
             }
-            const float feed_forward = get_model_output_hotend(target_temp, expected_temp, ee);
+            #if DISABLED(MODEL_DETECT_STUCK_THERMISTOR)
+            const float
+            #endif
+            feed_forward = get_model_output_hotend(target_temp, expected_temp, ee);
             #if ENABLED(PID_DEBUG)
             feed_forward_debug = feed_forward;
             #endif
@@ -990,7 +998,12 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
 
                 work_pid[ee].Kc = e_pos_diff * planner.mm_per_step[E_AXIS] * distance_to_volume_per_second * (temp_hotend[ee].celsius - ambient_temp) * PID_PARAM(Kc, ee);
                 if (extrusion_scaling_enabled)
+                if (extrusion_scaling_enabled) {
                   pid_output += work_pid[ee].Kc;
+              #if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
+                  feed_forward += work_pid[ee].Kc;
+              #endif
+                }
               }
             #endif // PID_EXTRUSION_SCALING
 
@@ -1311,7 +1324,23 @@ void Temperature::manage_heater() {
         thermal_runaway_protection(tr_state_machine[e], temp_hotend[e].celsius, temp_hotend[e].target, (heater_ind_t)e, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
       #endif
 
-      temp_hotend[e].soft_pwm_amount = (temp_hotend[e].celsius > temp_range[e].mintemp || is_preheating(e)) && temp_hotend[e].celsius < temp_range[e].maxtemp ? (int)get_pid_output_hotend(e) >> 1 : 0;
+        {
+      #if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
+          float pid_output = .0f;
+          float feed_forward = .0f;
+      #endif
+
+          temp_hotend[e].soft_pwm_amount = (temp_hotend[e].celsius > temp_range[e].mintemp || is_preheating(e)) && temp_hotend[e].celsius < temp_range[e].maxtemp ?
+      #if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
+              (int)(pid_output = get_pid_output_hotend(feed_forward, e))
+      #else
+              (int)(get_pid_output_hotend(e))
+      #endif
+                >> 1 : 0;
+      #if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
+          thermal_model_protection(pid_output, feed_forward, e);
+      #endif
+        }
 
       #if WATCH_HOTENDS
         if (hotend_idle[e].timed_out) 
@@ -2249,6 +2278,50 @@ void Temperature::init() {
           _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY));
     }
   }
+
+  #if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
+  /**
+   * @brief Detect discrepancy between expected heating based on model and actual heating
+   *
+   * PWM output is checked once per 1 second. Each time it is THERMAL_PROTECTION_MODEL_DISCREPANCY
+   * over feed_forward value failed_cycles are incremented. Each time it is under it is decremented.
+   * Once failed_cycles reaches over THERMAL_PROTECTION_MODEL_PERIOD, temperature error is announced.
+   *
+   * @param pid_output heater PWM output
+   * @param feed_forward part of the heater PWM output not affected by temperature readings
+   * @param e hotend index
+   */
+  void Temperature::thermal_model_protection(const float& pid_output, const float& feed_forward, const uint8_t E_NAME) {
+    const uint8_t ee = HOTEND_INDEX;
+
+    // Zero initialize timers. Zero means not started.
+    static millis_t timer[HOTENDS] = {};
+
+    // Start the timer if already not started. In case millis() == 0 it will not start the timer.
+    // But it will do no harm, as it will be started in the next call to this function.
+    if(!timer[ee]) timer[ee] = millis();
+
+    //Each 1 second
+    if (ELAPSED(millis(), timer[ee]))
+    {
+      timer[ee] = millis() + 1000UL;
+
+      static int_least8_t failed_cycles[HOTENDS] = {};
+      static_assert(THERMAL_PROTECTION_MODEL_PERIOD < INT_LEAST8_MAX, "THERMAL_PROTECTION_MODEL_PERIOD doesn't fit int_least8_t.");
+
+      float work_feed_forward = feed_forward;
+      // Ignore extreme model forecasts caused by extrusion
+      // scaling during un/retractions.
+      LIMIT(work_feed_forward, 0, PID_MAX);
+      const float model_discrepancy = pid_output - work_feed_forward;
+      if (model_discrepancy > THERMAL_PROTECTION_MODEL_DISCREPANCY) ++failed_cycles[ee];
+      else --failed_cycles[ee];
+
+      if (failed_cycles[ee] < 0) failed_cycles[ee] = 0;
+      if (failed_cycles[ee] > THERMAL_PROTECTION_MODEL_PERIOD) _temp_error(static_cast<heater_ind_t>(ee), PSTR(MSG_T_TEMPERATURE_SENSOR_STUCK), GET_TEXT(MSG_TEMPERATURE_SENSOR_STUCK));
+    }
+  }
+  #endif
 
 #endif // HAS_THERMAL_PROTECTION
 
