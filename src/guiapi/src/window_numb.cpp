@@ -1,6 +1,7 @@
 // window_numb.cpp
 #include "window_numb.hpp"
 #include "gui.hpp"
+#include <ctime>
 
 // @@TODO Beware - keep this big enough as long as the SetFormat is being abused to print
 // long utf8 text messages in selftest_cool.cpp (and probably in other places too)
@@ -14,10 +15,19 @@ void window_numb_t::unconditionalDraw() {
     if (IsShadowed())
         clr_text = COLOR_GRAY;
     char text[WINDOW_NUMB_MAX_TEXT];
-    if (IsPrintingAsInt()) {
+    switch (printAs) {
+    case printType::asInt:
         snprintf(text, WINDOW_NUMB_MAX_TEXT, format, (int)(value));
-    } else {
+        break;
+    case printType::asFloat:
         snprintf(text, WINDOW_NUMB_MAX_TEXT, format, (double)value);
+        break;
+    case printType::asUint32:
+        snprintf(text, WINDOW_NUMB_MAX_TEXT, format, (uint32_t)value);
+        break;
+    case printType::asTime:
+        PrintTime(text);
+        break;
     }
 
     render_text_align(GetRect(),
@@ -67,13 +77,32 @@ window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const c
 }
 
 void window_numb_t::PrintAsFloat() {
-    flags.custom0 = false;
+    printAs = printType::asFloat;
 }
 
 void window_numb_t::PrintAsInt() {
-    flags.custom0 = true;
+    printAs = printType::asInt;
 }
 
+void window_numb_t::PrintAsUint() {
+    printAs = printType::asUint32;
+}
 bool window_numb_t::IsPrintingAsInt() const {
-    return flags.custom0;
+    return printAs == printType::asInt;
+}
+void window_numb_t::PrintAsTime() {
+    printAs = printType::asTime;
+}
+void window_numb_t::PrintTime(char *buffer) {
+    time_t time = (time_t)value;
+    const struct tm *timeinfo = localtime(&time);
+    if (timeinfo->tm_yday) {
+        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+    } else if (timeinfo->tm_hour) {
+        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+    } else if (timeinfo->tm_min) {
+        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+    } else {
+        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%is", timeinfo->tm_sec);
+    }
 }
