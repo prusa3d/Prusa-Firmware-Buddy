@@ -39,6 +39,7 @@
 #include "otp.h"
 #include "../marlin_stubs/G26.hpp"
 #include "fsm_types.hpp"
+#include "odometer.hpp"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
@@ -48,17 +49,17 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
 #include "selftest_MINI.h"
 
-#define DBG _dbg1 //enabled level 1
+#define DBG _dbg1 // enabled level 1
 //#define DBG(...)
 
 //#define DBG_XUI DBG //trace ExtUI events
-#define DBG_XUI(...) //disable trace
+#define DBG_XUI(...) // disable trace
 
 //#define DBG_REQ DBG //trace requests
-#define DBG_REQ(...) //disable trace
+#define DBG_REQ(...) // disable trace
 
 //#define DBG_FSM DBG //trace fsm
-#define DBG_FSM(...) //disable trace
+#define DBG_FSM(...) // disable trace
 
 typedef struct {
     marlin_vars_t vars;                              // cached variables
@@ -113,13 +114,13 @@ static bool hotend_fan_error_dialog_show = false;
 static bool print_fan_error_dialog_show = false;
 
 void _add_status_msg(const char *const popup_msg) {
-    //I could check client mask here
+    // I could check client mask here
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         variant8_t *pvar = &(marlin_server.event_messages[i]);
         variant8_set_type(pvar, VARIANT8_PCHAR);
-        variant8_done(&pvar);                                                      //destroy unsent message - free dynamic memory
-        marlin_server.event_messages[i] = variant8_pchar((char *)popup_msg, 0, 1); //variant malloc - detached on send
-        variant8_set_type(&(marlin_server.event_messages[i]), VARIANT8_USER);      //set user type so client can recognize it as event
+        variant8_done(&pvar);                                                      // destroy unsent message - free dynamic memory
+        marlin_server.event_messages[i] = variant8_pchar((char *)popup_msg, 0, 1); // variant malloc - detached on send
+        variant8_set_type(&(marlin_server.event_messages[i]), VARIANT8_USER);      // set user type so client can recognize it as event
         variant8_set_usr8(&(marlin_server.event_messages[i]), MARLIN_EVT_Message);
     }
 }
@@ -253,7 +254,7 @@ int marlin_server_cycle(void) {
             if (marlin_server.request_len < MARLIN_MAX_REQUEST)
                 marlin_server.request[marlin_server.request_len++] = ch;
             else {
-                //TODO: request too long
+                // TODO: request too long
                 marlin_server.request_len = 0;
             }
             if ((ch == 0) && (marlin_server.request_len > 1)) {
@@ -330,7 +331,7 @@ int marlin_server_idle(void) {
             case 109:
             case 190:
             case 303:
-            //case 600: // hacked in gcode (_force_M600_notify)
+            // case 600: // hacked in gcode (_force_M600_notify)
             case 701:
             case 702:
                 marlin_server.command = MARLIN_CMD_M + parser.codenum;
@@ -356,7 +357,7 @@ void marlin_server_start_processing(void) {
 
 void marlin_server_stop_processing(void) {
     marlin_server.flags &= ~MARLIN_SFLG_PROCESS;
-    //TODO: disable heaters and safe state
+    // TODO: disable heaters and safe state
     _send_notify_event(MARLIN_EVT_StopProcessing, 0, 0);
 }
 
@@ -507,10 +508,10 @@ static void _server_print_loop(void) {
     case mpsPausing_Begin:
         media_print_pause();
         print_job_timer.pause();
-        marlin_server.resume_nozzle_temp = marlin_server.vars.target_nozzle; //save nozzle target temp
-        marlin_server.resume_fan_speed = marlin_server.vars.fan_speed;       //save fan speed
+        marlin_server.resume_nozzle_temp = marlin_server.vars.target_nozzle; // save nozzle target temp
+        marlin_server.resume_fan_speed = marlin_server.vars.fan_speed;       // save fan speed
 #if FAN_COUNT > 0
-        thermalManager.set_fan_speed(0, 0); //disable print fan
+        thermalManager.set_fan_speed(0, 0); // disable print fan
 #endif
         marlin_server.print_state = mpsPausing_WaitIdle;
         break;
@@ -522,14 +523,14 @@ static void _server_print_loop(void) {
         break;
     case mpsPausing_ParkHead:
         if (planner.movesplanned() == 0) {
-            marlin_server.paused_ticks = ticks_ms(); //time when printing paused
+            marlin_server.paused_ticks = ticks_ms(); // time when printing paused
             marlin_server.print_state = mpsPaused;
         }
         break;
     case mpsPaused:
         if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
             thermalManager.setTargetHotend(0, 0);
-        gcode.reset_stepper_timeout(); //prevent disable axis
+        gcode.reset_stepper_timeout(); // prevent disable axis
         break;
     case mpsResuming_Begin:
         marlin_server_resuming_begin();
@@ -595,9 +596,10 @@ static void _server_print_loop(void) {
             disable_Y();
 #ifndef Z_ALWAYS_ON
             disable_Z();
-#endif //Z_ALWAYS_ON
+#endif // Z_ALWAYS_ON
             disable_e_steppers();
             marlin_server.print_state = mpsAborted;
+            Odometer_s::instance().add_time(marlin_server.vars.print_duration);
             fsm_destroy(ClientFSM::Printing);
         }
         break;
@@ -612,6 +614,7 @@ static void _server_print_loop(void) {
     case mpsFinishing_ParkHead:
         if (planner.movesplanned() == 0) {
             marlin_server.print_state = mpsFinished;
+            Odometer_s::instance().add_time(marlin_server.vars.print_duration);
             fsm_destroy(ClientFSM::Printing);
         }
         break;
@@ -657,7 +660,7 @@ void marlin_server_resuming_begin(void) {
 void marlin_server_park_head(void) {
     constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
     constexpr xyz_pos_t park = NOZZLE_PARK_POINT;
-    //homed check
+    // homed check
     if (all_axes_homed() && all_axes_known()) {
         planner.synchronize();
         marlin_server.resume_pos[0] = current_position.x;
@@ -708,7 +711,7 @@ void marlin_server_set_exclusive_mode(int exclusive) {
 
 void marlin_server_set_temp_to_display(float value) {
     marlin_server.vars.display_nozzle = value;
-    _set_notify_change(MARLIN_VAR_DTEM_NOZ); //set change flag
+    _set_notify_change(MARLIN_VAR_DTEM_NOZ); // set change flag
 }
 float marlin_server_get_temp_to_display(void) {
     return marlin_server.vars.display_nozzle;
@@ -731,7 +734,7 @@ extern uint32_t marlin_server_get_user_move_count(void) {
 
 // send notify message (variant8_t) to client queue (called from server thread)
 static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
-    //synchronization not necessary because only server thread can write to this queue
+    // synchronization not necessary because only server thread can write to this queue
     if (queue == 0)
         return 0;
     if (osMessageAvailableSpace(queue) < 2)
@@ -767,7 +770,7 @@ static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLI
             marlin_server.event_messages[client_id] = variant8_empty();
             break;
         case MARLIN_EVT_FSM:
-            //erase sent item from queue
+            // erase sent item from queue
             fsm_event_queues[client_id].Pop();
             break;
         default:
@@ -803,7 +806,7 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
             case MARLIN_EVT_StoreSettings:
             case MARLIN_EVT_StartProcessing:
             case MARLIN_EVT_StopProcessing:
-            case MARLIN_EVT_FSM: //arguments hanfled elswhere
+            case MARLIN_EVT_FSM: // arguments hanfled elswhere
             // StatusChanged event - one string argument
             case MARLIN_EVT_StatusChanged:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
@@ -843,7 +846,7 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
                     sent |= msk; // event sent, set bit
                 break;
-            //unused events
+            // unused events
             case MARLIN_EVT_PrinterKilled:
             case MARLIN_EVT_Error:
             case MARLIN_EVT_PlayTone:
@@ -859,7 +862,7 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
                 break;
             }
             if ((sent & msk) == 0)
-                break; //skip sending if queue is full
+                break; // skip sending if queue is full
         }
         msk <<= 1;
     }
@@ -906,7 +909,7 @@ static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue
                 if (_send_notify_change_to_client(queue, var_id, var))
                     sent |= msk;
                 else
-                    break; //skip sending if queue is full
+                    break; // skip sending if queue is full
             }
         }
         msk <<= 1;
@@ -1224,7 +1227,7 @@ static int _process_server_request(const char *request) {
     } else if (strcmp("!kclick", request) == 0) {
         ++marlin_server.knob_click_counter;
         processed = 1;
-    } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
+    } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { // finit state machine response
         ClientResponseHandler::SetResponse(ival);
         processed = 1;
     } else if (sscanf(request, "!event_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
@@ -1240,14 +1243,14 @@ static int _process_server_request(const char *request) {
         marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         marlin_server.client_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         processed = 1;
-    } else if (sscanf(request, "!exc %d", &ival) == 1) { //set exclusive mode
+    } else if (sscanf(request, "!exc %d", &ival) == 1) { // set exclusive mode
         if (ival) {
             marlin_server.flags |= MARLIN_SFLG_EXCMODE;
             queue.clear();
         } else
             marlin_server.flags &= ~MARLIN_SFLG_EXCMODE;
         processed = 1;
-    } else if (sscanf(request, "!test %d", &ival) == 1) { //start selftest
+    } else if (sscanf(request, "!test %d", &ival) == 1) { // start selftest
         marlin_server_test_start(ival);
         processed = 1;
     } else if (strcmp("!tabort", request) == 0) {
@@ -1285,7 +1288,7 @@ static int _server_set_var(const char *const name_val_str) {
 #if HAS_BED_PROBE
                 changed = (probe_offset.z != marlin_server.vars.z_offset);
                 probe_offset.z = marlin_server.vars.z_offset;
-#endif //HAS_BED_PROBE
+#endif // HAS_BED_PROBE
                 break;
             case MARLIN_VAR_FANSPEED:
 #if FAN_COUNT > 0
@@ -1360,7 +1363,7 @@ void onIdle() {
         marlin_server_idle_cb();
 }
 
-//todo remove me after new thermal manager
+// todo remove me after new thermal manager
 int _is_thermal_error(PGM_P const msg) {
     if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD)))
         return 1;
@@ -1390,9 +1393,9 @@ int _is_thermal_error(PGM_P const msg) {
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
     if (!(SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk))
-        taskENTER_CRITICAL();     //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
-    wdt_iwdg_refresh();           //watchdog reset
-    if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
+        taskENTER_CRITICAL();     // never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+    wdt_iwdg_refresh();           // watchdog reset
+    if (_is_thermal_error(msg)) { // todo remove me after new thermal manager
         const marlin_vars_t &vars = marlin_server.vars;
         temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
     } else {
@@ -1451,7 +1454,7 @@ void onStatusChanged(const char *const msg) {
     DBG_XUI("XUI: onStatusChanged: %s", msg);
     _send_notify_event(MARLIN_EVT_StatusChanged, 0, 0);
     if (msg != nullptr && strcmp(msg, "Prusa-mini Ready.") == 0) {
-    } //TODO
+    } // TODO
     else if (msg != nullptr && strcmp(msg, "TMC CONNECTION ERROR") == 0)
         _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_TMCDriverError, 0);
     else {
@@ -1464,7 +1467,7 @@ void onStatusChanged(const char *const msg) {
                 pending_err_msg = true;
             }
 
-            if (msg != nullptr && msg[0] != 0) { //empty message filter
+            if (msg != nullptr && msg[0] != 0) { // empty message filter
                 _add_status_msg(msg);
                 _send_notify_event(MARLIN_EVT_Message, 0, 0);
             }
@@ -1542,7 +1545,7 @@ void set_warning(WarningType type) {
 }
 
 /*****************************************************************************/
-//FSM_notifier
+// FSM_notifier
 FSM_notifier::data FSM_notifier::s_data;
 FSM_notifier *FSM_notifier::activeInstance = nullptr;
 
@@ -1560,14 +1563,14 @@ FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, variant8_t min, varian
     activeInstance = this;
 }
 
-//static method
-//notifies clients about progress rise
-//scales "bound" variable via following formula to calculate progress
-//x = (actual - s_data.min) * s_data.scale + s_data.progress_min;
-//x = actual * s_data.scale - s_data.min * s_data.scale + s_data.progress_min;
-//s_data.offset == -s_data.min * s_data.scale + s_data.progress_min
-//simplified formula
-//x = actual * s_data.scale + s_data.offset;
+// static method
+// notifies clients about progress rise
+// scales "bound" variable via following formula to calculate progress
+// x = (actual - s_data.min) * s_data.scale + s_data.progress_min;
+// x = actual * s_data.scale - s_data.min * s_data.scale + s_data.progress_min;
+// s_data.offset == -s_data.min * s_data.scale + s_data.progress_min
+// simplified formula
+// x = actual * s_data.scale + s_data.offset;
 void FSM_notifier::SendNotification() {
     if (!activeInstance)
         return;
@@ -1579,7 +1582,7 @@ void FSM_notifier::SendNotification() {
     float actual = variant8_get_flt(temp);
     actual = actual * s_data.scale + s_data.offset;
 
-    int progress = static_cast<int>(actual); //int - must be signed
+    int progress = static_cast<int>(actual); // int - must be signed
     if (progress < s_data.progress_min)
         progress = s_data.progress_min;
     if (progress > s_data.progress_max)
@@ -1600,8 +1603,8 @@ FSM_notifier::~FSM_notifier() {
 }
 
 /*****************************************************************************/
-//ClientResponseHandler
-//define static member
+// ClientResponseHandler
+// define static member
 //-1 (maxval) is used as no response from client
 uint32_t ClientResponseHandler::server_side_encoded_response = -1;
 

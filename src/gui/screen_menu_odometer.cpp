@@ -16,7 +16,9 @@ class ScreenMenuOdometer : public AddSuperWindow<screen_t> {
     static const constexpr char *y_text = N_("Y axis");
     static const constexpr char *z_text = N_("Z axis");
     static const constexpr char *e_text = N_("Filament");
-    static const constexpr char *val_format = "%0.1f m"; //do not translate
+    static const constexpr char *t_text = N_("Print time");
+    static const constexpr char *val_format = "%0.1f m"; // do not translate
+    static const constexpr char *time_format = "%u s";   // do not translate
 
     MenuContainer container;
     window_menu_t menu;
@@ -25,14 +27,20 @@ class ScreenMenuOdometer : public AddSuperWindow<screen_t> {
     window_text_t y_txt;
     window_text_t z_txt;
     window_text_t e_txt;
+    window_text_t t_txt;
     window_numb_t x_val;
     window_numb_t y_val;
     window_numb_t z_val;
     window_numb_t e_val;
+    window_numb_t t_val;
 
     static float getVal(Odometer_s::axis_t axis) {
         Odometer_s::instance().force_to_eeprom();
         return Odometer_s::instance().get(axis) * .001f;
+    }
+    static uint32_t getTime() {
+        Odometer_s::instance().force_to_eeprom();
+        return Odometer_s::instance().get_time();
     }
 
 public:
@@ -47,10 +55,15 @@ ScreenMenuOdometer::ScreenMenuOdometer()
     , y_txt(this, Rect16(x_txt.GetRect(), ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8(_(y_text)))
     , z_txt(this, Rect16(y_txt.GetRect(), ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8(_(z_text)))
     , e_txt(this, Rect16(z_txt.GetRect(), ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8(_(e_text)))
+    , t_txt(this, Rect16(e_txt.GetRect(), ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8(_(t_text)))
     , x_val(this, Rect16(x_txt.GetRect(), ShiftDir_t::Right), getVal(Odometer_s::axis_t::X), val_format)
     , y_val(this, Rect16(x_val.GetRect(), ShiftDir_t::Bottom), getVal(Odometer_s::axis_t::Y), val_format)
     , z_val(this, Rect16(y_val.GetRect(), ShiftDir_t::Bottom), getVal(Odometer_s::axis_t::Z), val_format)
-    , e_val(this, Rect16(z_val.GetRect(), ShiftDir_t::Bottom), getVal(Odometer_s::axis_t::E), val_format) {
+    , e_val(this, Rect16(z_val.GetRect(), ShiftDir_t::Bottom), getVal(Odometer_s::axis_t::E), val_format)
+    , t_val(this, Rect16(e_val.GetRect(), ShiftDir_t::Bottom), getTime(), time_format) {
+
+    t_val.PrintAsTime();
+
     header.SetText(_(label));
     header.SetIcon(IDR_PNG_info_16px);
 
