@@ -574,10 +574,10 @@ void Pause::unpark_nozzle_and_notify() {
 
     if (x_greater_than_y) {
         Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
-        do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+        do_blocking_move_to_xy(resume_pos, NOZZLE_UNPARK_XY_FEEDRATE);
     } else {
         Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
-        do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+        do_blocking_move_to_xy(resume_pos, NOZZLE_UNPARK_XY_FEEDRATE);
     }
 
     // Move Z_AXIS to saved position, scope for Notifier_POS_Z
@@ -634,9 +634,11 @@ void Pause::FilamentChange() {
 
         if (unload_length) // Unload the filament
             filamentUnload(is_standalone_t::no);
-        //Feed a little bit of filament to stabilize pressure in nozzle
+        // Feed a little bit of filament to stabilize pressure in nozzle
         if (filamentLoad(is_standalone_t::no)) {
-            plan_e_move(7.5, 20);
+            plan_e_move(5, 10);
+            planner.synchronize();
+            delay(500);
         }
     }
 
