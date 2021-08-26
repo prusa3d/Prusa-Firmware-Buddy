@@ -130,6 +130,9 @@ typedef union _SelftestResultEEprom_t {
     };
     uint32_t ui32;
 } SelftestResultEEprom_t;
+#ifdef __cplusplus
+static_assert(sizeof(SelftestResultEEprom_t) == sizeof(uint32_t), "Incorrect SelftestResultEEprom_t size");
+#endif //__cplusplus
 
 typedef enum {
     EEPROM_INIT_Undefined = -1,
