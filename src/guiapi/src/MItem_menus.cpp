@@ -209,3 +209,11 @@ MI_EXPERIMENTAL_SETTINGS::MI_EXPERIMENTAL_SETTINGS()
 void MI_EXPERIMENTAL_SETTINGS::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenMenuExperimentalSettings);
 }
+/*****************************************************************************/
+// MI_ODOMETER
+MI_ODOMETR::MI_ODOMETR()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_ODOMETR::click(IWindowMenu &window_menu) {
+    Screens::Access()->Open(GetScreenMenuOdometer);
+}

@@ -99,8 +99,10 @@ enum {
     AXIS_RMS_CURRENT_MA_Z = 0x3c,     // uint16_t, used to initialize trinamic
     AXIS_RMS_CURRENT_MA_E0 = 0x3d,    // uint16_t, used to initialize trinamic, must contain "E0" to work with marlin macros
     AXIS_Z_MAX_POS_MM = 0x3e,         // float, used in marlin Z_MAX_POS macro
-    EEVAR__PADDING = 0x3f,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x40,               // uint32_t crc32 for
+    EEVAR_ODOMETER_TIME = 0x3f,       //uin32_t total print duration
+    EEVAR__PADDING = 0x40,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+
+    EEVAR_CRC32 = 0x41, // uint32_t crc32 for
 };
 
 enum {

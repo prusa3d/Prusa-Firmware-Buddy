@@ -509,6 +509,7 @@ target_sources(
           src/common/app_metrics.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
+          src/common/odometer.cpp
           src/common/selftest/selftest_MINI.cpp
           src/common/selftest/selftest_fan.cpp
           src/common/selftest/selftest_axis.cpp
@@ -598,6 +599,7 @@ if(GUI)
             src/gui/screen_menu_version_info.cpp
             src/gui/test_display.cpp
             src/gui/screen_splash.cpp
+            src/gui/screen_menu_odometer.cpp
             src/gui/screen_menu_service.cpp
             src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp

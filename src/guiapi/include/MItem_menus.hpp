@@ -205,3 +205,13 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_ODOMETR : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Odometr");
+
+public:
+    MI_ODOMETR();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};

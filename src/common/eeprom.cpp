@@ -117,6 +117,7 @@ typedef struct _eeprom_vars_t {
     uint16_t AXIS_RMS_CURRENT_MA_Z;
     uint16_t AXIS_RMS_CURRENT_MA_E0;
     float AXIS_Z_MAX_POS_MM;
+    uint32_t ODOMETER_TIME;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -191,6 +192,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "RMS_CURR_MA_Z",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_Z
     { "RMS_CURR_MA_E",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_E0
     { "Z_MAX_POS_MM",    VARIANT8_FLT,   1, 0 }, // AXIS_Z_MAX_POS_MM
+    { "ODOMETER_TIME",   VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_ODOMETER_TIME
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -270,10 +272,10 @@ static const eeprom_vars_t eeprom_var_defaults = {
     Z_CURRENT,              // AXIS_RMS_CURRENT_MA_Z
     E0_CURRENT,             // AXIS_RMS_CURRENT_MA_E0
     DEFAULT_Z_MAX_POS,      // AXIS_Z_MAX_POS_MM
+    0,               // EEVAR_ODOMETER_TIME
     "",                     // EEVAR__PADDING
     0xffffffff,             // EEVAR_CRC32
 };
-
 // clang-format on
 
 // semaphore handle (lock/unlock)
