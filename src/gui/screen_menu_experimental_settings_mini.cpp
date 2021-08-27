@@ -18,21 +18,21 @@
 
 /*****************************************************************************/
 //Screen
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_SAVE_AND_RETURN, MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN, MI_STEPS_PER_UNIT_E, MI_RESET_STEPS_PER_UNIT>;
-
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_SAVE_AND_RETURN,
+    MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN, MI_STEPS_PER_UNIT_E, MI_RESET_STEPS_PER_UNIT, MI_DIRECTION_E, MI_RESET_DIRECTION>;
 class ScreenMenuExperimentalSettings : public Screen {
     static constexpr const char *const save_and_reboot = N_("Do you want to save changes and reboot the printer?");
     constexpr static const char *label = N_("Experimental Settings");
     struct values_t {
         values_t(ScreenMenuExperimentalSettings &parent)
             : z_len(parent.Item<MI_Z_AXIS_LEN>().GetVal())
-            , steps_per_unit_e(parent.Item<MI_STEPS_PER_UNIT_E>().GetVal()) {}
+            , steps_per_unit_e(parent.Item<MI_STEPS_PER_UNIT_E>().GetVal() * ((parent.Item<MI_DIRECTION_E>().GetIndex() == 1) ? -1 : 1)) {}
 
         int32_t z_len;
-        int32_t steps_per_unit_e;
+        int32_t steps_per_unit_e; //has stored both index and polarity
 
         // this is only safe as long as there are no gaps between variabes
-        // all variables re 32bit now, so it is safe
+        // all variables are 32bit now, so it is safe
         bool operator==(const values_t &other) const {
             return memcmp(this, &other, sizeof(values_t)) == 0;
         }
@@ -53,6 +53,7 @@ class ScreenMenuExperimentalSettings : public Screen {
         case Response::Yes:
             Item<MI_Z_AXIS_LEN>().Store();
             Item<MI_STEPS_PER_UNIT_E>().Store();
+            Item<MI_DIRECTION_E>().Store();
 
             sys_reset();
         case Response::No:
@@ -84,6 +85,10 @@ public:
             break;
         case ClickCommand::Reset_steps:
             Item<MI_STEPS_PER_UNIT_E>().SetVal(MenuVars::GetDefaultStepsPerUnit()[3]);
+            menu.Invalidate(); // its broken, does not work
+            break;
+        case ClickCommand::Reset_directions:
+            Item<MI_DIRECTION_E>().SetIndex(MenuVars::GetDefaultAxisDirections()[3]);
             menu.Invalidate(); // its broken, does not work
             break;
         default:
