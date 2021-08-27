@@ -4,6 +4,7 @@
 #include <float.h>
 
 #include "eeprom.h"
+#include "eeprom_function_api.h"
 #include "st25dv64k.h"
 #include "dbg.h"
 #include "cmsis_os.h"
@@ -259,10 +260,10 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_ODOMETER_Y
     0,               // EEVAR_ODOMETER_Z
     0,               // EEVAR_ODOMETER_E0
-    default_axis_steps_flt[0],  // AXIS_STEPS_PER_UNIT_X
-    default_axis_steps_flt[1],  // AXIS_STEPS_PER_UNIT_Y
-    default_axis_steps_flt[2],  // AXIS_STEPS_PER_UNIT_Z
-    default_axis_steps_flt[3],  // AXIS_STEPS_PER_UNIT_E0
+    default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_X
+    default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_Y
+    default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_Z
+    default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_E0
     X_MICROSTEPS,           // AXIS_MICROSTEPS_X
     Y_MICROSTEPS,           // AXIS_MICROSTEPS_Y
     Z_MICROSTEPS,           // AXIS_MICROSTEPS_Z
@@ -869,24 +870,43 @@ extern "C" void set_z_max_pos_mm(float max_pos) {
 
 /*****************************************************************************/
 //AXIS_STEPS_PER_UNIT
-template <int ENUM, int DEF_VAL>
+template <int ENUM>
 float get_steps_per_unit() {
-    float ret = variant8_get_flt(eeprom_get_var(ENUM));
-    if (ret <= 0.f)
-        ret = DEF_VAL;
-    return ret;
+    return std::abs(variant8_get_flt(eeprom_get_var(ENUM)));
 }
+
 extern "C" float get_steps_per_unit_x() {
-    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_X, default_axis_steps_int[0]>();
+    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_X>();
 }
 extern "C" float get_steps_per_unit_y() {
-    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_Y, default_axis_steps_int[1]>();
+    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_Y>();
 }
 extern "C" float get_steps_per_unit_z() {
-    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_Z, default_axis_steps_int[2]>();
+    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_Z>();
 }
 extern "C" float get_steps_per_unit_e() {
-    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_E0, default_axis_steps_int[3]>();
+    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_E0>();
+}
+
+template <int ENUM>
+float has_inverted_axis() {
+    return std::signbit(variant8_get_flt(eeprom_get_var(ENUM)));
+}
+
+extern "C" bool has_inverted_x() {
+    return has_inverted_axis<AXIS_STEPS_PER_UNIT_X>();
+}
+
+extern "C" bool has_inverted_y() {
+    return has_inverted_axis<AXIS_STEPS_PER_UNIT_Y>();
+}
+
+extern "C" bool has_inverted_z() {
+    return has_inverted_axis<AXIS_STEPS_PER_UNIT_Z>();
+}
+
+extern "C" bool has_inverted_e() {
+    return has_inverted_axis<AXIS_STEPS_PER_UNIT_E0>();
 }
 
 extern "C" uint16_t get_steps_per_unit_x_rounded() {
@@ -905,7 +925,8 @@ extern "C" uint16_t get_steps_per_unit_e_rounded() {
 template <int ENUM>
 void set_steps_per_unit(float steps) {
     if (steps > 0) {
-        eeprom_set_var(ENUM, variant8_flt(steps));
+        bool negative_direction = has_inverted_axis<ENUM>();
+        eeprom_set_var(ENUM, variant8_flt(negative_direction ? -steps : steps));
     }
 }
 
@@ -922,6 +943,43 @@ extern "C" void set_steps_per_unit_e(float steps) {
     set_steps_per_unit<AXIS_STEPS_PER_UNIT_E0>(steps);
 }
 
+template <int ENUM>
+void set_axis_positive_direction() {
+    float steps = get_steps_per_unit<ENUM>();
+    eeprom_set_var(ENUM, variant8_flt(steps));
+}
+
+extern "C" void set_positive_direction_x() {
+    set_axis_positive_direction<AXIS_STEPS_PER_UNIT_X>();
+}
+extern "C" void set_positive_direction_y() {
+    set_axis_positive_direction<AXIS_STEPS_PER_UNIT_Y>();
+}
+extern "C" void set_positive_direction_z() {
+    set_axis_positive_direction<AXIS_STEPS_PER_UNIT_Z>();
+}
+extern "C" void set_positive_direction_e() {
+    set_axis_positive_direction<AXIS_STEPS_PER_UNIT_E0>();
+}
+
+template <int ENUM>
+void set_axis_negative_direction() {
+    float steps = get_steps_per_unit<ENUM>();
+    eeprom_set_var(ENUM, variant8_flt(-steps));
+}
+
+extern "C" void set_negative_direction_x() {
+    set_axis_negative_direction<AXIS_STEPS_PER_UNIT_X>();
+}
+extern "C" void set_negative_direction_y() {
+    set_axis_negative_direction<AXIS_STEPS_PER_UNIT_Y>();
+}
+extern "C" void set_negative_direction_z() {
+    set_axis_negative_direction<AXIS_STEPS_PER_UNIT_Z>();
+}
+extern "C" void set_negative_direction_e() {
+    set_axis_negative_direction<AXIS_STEPS_PER_UNIT_E0>();
+}
 /*****************************************************************************/
 //AXIS_MICROSTEPS
 bool is_microstep_value_valid(uint16_t microsteps) {

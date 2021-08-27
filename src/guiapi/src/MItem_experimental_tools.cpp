@@ -73,6 +73,58 @@ void MI_RESET_STEPS_PER_UNIT::click(IWindowMenu &window_menu) {
 }
 
 /*****************************************************************************/
+//WiSwitchDirection
+WiSwitchDirection::WiSwitchDirection(bool current_direction_negative, string_view_utf8 label_view)
+    : WI_SWITCH_t<2>(current_direction_negative, label_view, 0, is_enabled_t::yes, is_hidden_t::no,
+        _(str_pos), _(str_neg)) {
+}
+
+/*****************************************************************************/
+//MI_DIRECTION_X
+MI_DIRECTION_X::MI_DIRECTION_X()
+    : WiSwitchDirection(has_inverted_x(), _(label)) {}
+
+void MI_DIRECTION_X::Store() {
+    index == 1 ? set_negative_direction_x() : set_positive_direction_x();
+}
+
+/*****************************************************************************/
+//MI_DIRECTION_Y
+MI_DIRECTION_Y::MI_DIRECTION_Y()
+    : WiSwitchDirection(has_inverted_y(), _(label)) {}
+
+void MI_DIRECTION_Y::Store() {
+    index == 1 ? set_negative_direction_y() : set_positive_direction_y();
+}
+
+/*****************************************************************************/
+//MI_DIRECTION_Z
+MI_DIRECTION_Z::MI_DIRECTION_Z()
+    : WiSwitchDirection(has_inverted_z(), _(label)) {}
+
+void MI_DIRECTION_Z::Store() {
+    index == 1 ? set_negative_direction_z() : set_positive_direction_z();
+}
+
+/*****************************************************************************/
+//MI_DIRECTION_E
+MI_DIRECTION_E::MI_DIRECTION_E()
+    : WiSwitchDirection(has_inverted_e(), _(label)) {}
+
+void MI_DIRECTION_E::Store() {
+    index == 1 ? set_negative_direction_e() : set_positive_direction_e();
+}
+
+/*****************************************************************************/
+//MI_RESET_DIRECTION
+MI_RESET_DIRECTION::MI_RESET_DIRECTION()
+    : WI_LABEL_t(_(label)) {}
+
+void MI_RESET_DIRECTION::click(IWindowMenu &window_menu) {
+    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_directions);
+}
+
+/*****************************************************************************/
 //MI_MICROSTEPS_X
 MI_MICROSTEPS_X::MI_MICROSTEPS_X()
     : WiSpinExp(get_microsteps_x(), SpinCnf::microstep_exponential, _(label)) {}

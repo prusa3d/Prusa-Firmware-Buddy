@@ -74,6 +74,7 @@ constexpr const char Y_home_gcode[] = {
 };
 
 const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultStepsPerUnit() { return { DEFAULT_AXIS_STEPS_PER_UNIT }; };
+const std::array<bool, MenuVars::AXIS_CNT> MenuVars::GetDefaultAxisDirections() { return { DEFAULT_INVERT_X_DIR, DEFAULT_INVERT_Y_DIR, DEFAULT_INVERT_Z_DIR, DEFAULT_INVERT_E0_DIR }; }
 const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultMicrosteps() { return { { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, E0_MICROSTEPS } }; };
 const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultCurrents() { return { { X_CURRENT, Y_CURRENT, Z_CURRENT, E0_CURRENT } }; };
 

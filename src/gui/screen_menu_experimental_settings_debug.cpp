@@ -18,7 +18,11 @@
 
 /*****************************************************************************/
 //Screen
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_SAVE_AND_RETURN, MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN, MI_STEPS_PER_UNIT_X, MI_STEPS_PER_UNIT_Y, MI_STEPS_PER_UNIT_Z, MI_STEPS_PER_UNIT_E, MI_RESET_STEPS_PER_UNIT, MI_MICROSTEPS_X, MI_MICROSTEPS_Y, MI_MICROSTEPS_Z, MI_MICROSTEPS_E, MI_RESET_MICROSTEPS, MI_CURRENT_X, MI_CURRENT_Y, MI_CURRENT_Z, MI_CURRENT_E, MI_RESET_CURRENTS>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_SAVE_AND_RETURN, MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN,
+    MI_STEPS_PER_UNIT_X, MI_STEPS_PER_UNIT_Y, MI_STEPS_PER_UNIT_Z, MI_STEPS_PER_UNIT_E, MI_RESET_STEPS_PER_UNIT,
+    MI_DIRECTION_X, MI_DIRECTION_Y, MI_DIRECTION_Z, MI_DIRECTION_E, MI_RESET_DIRECTION,
+    MI_MICROSTEPS_X, MI_MICROSTEPS_Y, MI_MICROSTEPS_Z, MI_MICROSTEPS_E, MI_RESET_MICROSTEPS,
+    MI_CURRENT_X, MI_CURRENT_Y, MI_CURRENT_Z, MI_CURRENT_E, MI_RESET_CURRENTS>;
 
 class ScreenMenuExperimentalSettings : public Screen {
     static constexpr const char *const save_and_reboot = N_("Do you want to save changes and reboot the printer?");
@@ -26,10 +30,10 @@ class ScreenMenuExperimentalSettings : public Screen {
     struct values_t {
         values_t(ScreenMenuExperimentalSettings &parent)
             : z_len(parent.Item<MI_Z_AXIS_LEN>().GetVal())
-            , steps_per_unit_x(parent.Item<MI_STEPS_PER_UNIT_X>().GetVal())
-            , steps_per_unit_y(parent.Item<MI_STEPS_PER_UNIT_Y>().GetVal())
-            , steps_per_unit_z(parent.Item<MI_STEPS_PER_UNIT_Z>().GetVal())
-            , steps_per_unit_e(parent.Item<MI_STEPS_PER_UNIT_E>().GetVal())
+            , steps_per_unit_x(parent.Item<MI_STEPS_PER_UNIT_X>().GetVal() * ((parent.Item<MI_DIRECTION_X>().GetIndex() == 1) ? -1 : 1))
+            , steps_per_unit_y(parent.Item<MI_STEPS_PER_UNIT_Y>().GetVal() * ((parent.Item<MI_DIRECTION_Y>().GetIndex() == 1) ? -1 : 1))
+            , steps_per_unit_z(parent.Item<MI_STEPS_PER_UNIT_Z>().GetVal() * ((parent.Item<MI_DIRECTION_Z>().GetIndex() == 1) ? -1 : 1))
+            , steps_per_unit_e(parent.Item<MI_STEPS_PER_UNIT_E>().GetVal() * ((parent.Item<MI_DIRECTION_E>().GetIndex() == 1) ? -1 : 1))
             , microsteps_x(parent.Item<MI_MICROSTEPS_X>().GetVal())
             , microsteps_y(parent.Item<MI_MICROSTEPS_Y>().GetVal())
             , microsteps_z(parent.Item<MI_MICROSTEPS_Z>().GetVal())
@@ -80,6 +84,11 @@ class ScreenMenuExperimentalSettings : public Screen {
             Item<MI_STEPS_PER_UNIT_Z>().Store();
             Item<MI_STEPS_PER_UNIT_E>().Store();
 
+            Item<MI_DIRECTION_X>().Store();
+            Item<MI_DIRECTION_Y>().Store();
+            Item<MI_DIRECTION_Z>().Store();
+            Item<MI_DIRECTION_E>().Store();
+
             Item<MI_MICROSTEPS_X>().Store();
             Item<MI_MICROSTEPS_Y>().Store();
             Item<MI_MICROSTEPS_Z>().Store();
@@ -123,6 +132,13 @@ public:
             Item<MI_STEPS_PER_UNIT_Y>().SetVal(MenuVars::GetDefaultStepsPerUnit()[1]);
             Item<MI_STEPS_PER_UNIT_Z>().SetVal(MenuVars::GetDefaultStepsPerUnit()[2]);
             Item<MI_STEPS_PER_UNIT_E>().SetVal(MenuVars::GetDefaultStepsPerUnit()[3]);
+            menu.Invalidate(); // its broken, does not work
+            break;
+        case ClickCommand::Reset_directions:
+            Item<MI_DIRECTION_X>().SetIndex(MenuVars::GetDefaultAxisDirections()[0]);
+            Item<MI_DIRECTION_Y>().SetIndex(MenuVars::GetDefaultAxisDirections()[1]);
+            Item<MI_DIRECTION_Z>().SetIndex(MenuVars::GetDefaultAxisDirections()[2]);
+            Item<MI_DIRECTION_E>().SetIndex(MenuVars::GetDefaultAxisDirections()[3]);
             menu.Invalidate(); // its broken, does not work
             break;
         case ClickCommand::Reset_microsteps:
