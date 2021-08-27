@@ -38,7 +38,7 @@ target_sources(
             lwesp/src/apps/http_server/esp_http_server_fs.c
             prusa/src/system/lwesp_sys_buddy.c
             prusa/src/system/lwesp_ll_buddy.c
-            prusa/src/esp.c
+            # prusa/src/esp.c
             prusa/src/system/esp_tcp.c
             prusa/snippets/client.c
             lwesp/src/api/esp_netconn.c
