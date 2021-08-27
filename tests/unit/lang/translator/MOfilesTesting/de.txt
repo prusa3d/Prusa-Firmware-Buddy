@@ -1,0 +1,253 @@
+\nBootloader Version\n %d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s
+Ein Crash-Dump-Bericht (Datei dump.bin) wurde auf dem USB-Laufwerk gespeichert.
+Abbruch
+Stellen Sie die Düsenhöhe zum Heiz- bett durch drehen des Knopfes ein
+Alle Tests wurden erfolgreich abgeschlossen!
+Immer
+Druck wirklich beenden?
+Assist
+Auto Home
+zurück
+zurück
+Bettnivellierung fehlgeschlagen. Nochmals versuchen?
+Kalibriere Z
+Kalibrieren
+Kalibrieren
+Kalibrierung erfolgreich!\nFrohes Drucken!
+Kalibriere XY
+Abbruch
+Filamentwechsel
+Filament wechseln
+Die Verkabelung von Heizbettheizung und Thermistor auf mögliche Schäden überprüfen.
+Die Verkabelung des Heizbettthermistors auf mögliche Schäden prüfen.
+Die Verkabelung der Druckkopfheizung und des Thermistors auf mögliche Schäden überprüfen.
+Die Verkabelung des Druckkopf-Thermistor auf mögliche Schäden überprüfen.
+Prüfe Achsen
+Stahlblech reinigen.
+Glückwunsch! Die XYZ-Kalibrierung ist in Ordnung. Die XY-Achsen sind senkrecht zueinander.
+weiter
+Abkühlen
+CPU Auslastung
+Aktuelles Profil
+Gerätehash in QR
+Sensor aus
+Motoren abschalten
+Trennen
+Möchten Sie den letzten Schritt wiederholen und den Abstand, zwischen Düse und Heizbett, neu einstellen?
+Wollen Sie den aktuellen Wert verwenden?\nAktuell: %0.3f.\nStandard: %0.3f.\nKlicken Sie auf NEIN, um den Standardwert zu verwenden (empfohlen)
+Auswerfen
+Fehler
+Fehler beim Speichern des Crash-Dump-Berichts auf das USB-Laufwerk. Bitte stecken Sie das USB-Laufwerk wieder an und versuchen Sie es erneut.
+Es ist alles in Ordnung. Ich werde jetzt die XYZ-Kalibrierung durchführen. Es wird ungefähr 12 Minuten dauern.
+Ende
+Werkeinstellung geladen. Das System wird nun neu gestartet.
+Werkseinstellung
+Fehlerstat.
+Lüftertest
+Fan0 UPM
+Fan1 UPM
+Filament
+Filament
+Das Filament scheint bereits geladen zu sein, sind Sie sicher, dass Sie es trotzdem laden möchten?
+Filament nicht erkannt. Filament jetzt laden? Wählen Sie NEIN, um abzubrechen, oder IGNORIEREN, um den Filament-Sensor zu deaktivieren und fortzufahren.
+Filament-Sensor
+Beende gepufferten gcode.
+Firmware Version\n
+Erste-Schicht-Kalibrierung
+ERSTE-SCHICHT-KALIBRIERUNG
+Flussfaktor
+Fr.
+FW UPDATE
+FW Update
+Heizbett
+Heizbettheizung prüfen
+Heizungsprüfung
+Heizung wurde wegen 30 Minuten Inaktivität deaktiviert.
+Aufheizen...
+Hallo, hier ist Ihr\nOriginal Prusa MINI.
+HOME
+Home
+HOME TO MAX
+Hotend Lüfter
+Lüfter am Hotend dreht sich nicht. Überprüfen Sie ihn auf mögliche Verschmutzungen und dann die Verkabelung.
+HW Setup
+ignorieren
+Im nächsten Schritt, den Knopf verwenden, um die Höhe der Düse einzustellen. Siehe Bilder im Handbuch als Referenz.
+Info
+Info
+Informationen
+Einführen
+IP-Adressen oder Parameter sind nicht gültig oder die Datei "lan_settings.ini" befindet sich nicht im Stammverzeichnis des USB-Laufwerks.
+Farbe korrekt?
+Filament im Extruder Antrieb?
+Ist das Stahlblech auf dem Heizbett?
+LAN Einstellungen
+LAN Einstellungen
+Sprache
+Sprachen
+Live Z Anpassen
+Laden
+Filament laden
+Filament laden
+Ladeeinstellungen
+Lade ...
+Zur Düse laden
+Laut
+M.I.N.D.A.
+Sicherstellen, dass das Filament durch den Sensor  geführt wird.
+Material
+MAXTEMP FEHLER
+Messe Referenz-\nHöhe der Kalibr.\nPunkte
+Menü Timeout
+Bettnivellieren
+BETTNIVELLIEREN
+MELDUNGEN
+Meldungen
+MINTEMP FEHLER
+Mo.
+Achsen Bewegen
+ACHSEN BEWEGEN
+Bewege E
+Bewege X
+Bewege Y
+Bewege Z
+Name
+Weiter
+Nein
+Kein Filamentsensor erkannt. Überprüfen Sie, ob der Sensor angeschlossen ist, und versuchen Sie es erneut.
+Kein USB
+Jetzt kalibrieren wir die Entfernung zwischen der Spitze der Düse und dem Druckblech.
+Düse
+Düse und Heizbett
+Düsenheizung prüfen
+Aus
+OK
+An
+Beim Neustart
+Einmal
+Sobald der Drucker beginnt, Kunststoff zu extrudieren, die Höhe der Düse durch Knopfdrehen einstellen, bis Filament am Druckblech haftet.
+Parke
+Pause
+Pausiert...
+Legen Sie während der Kalibrierung der ersten 4 Punkte ein Blatt Papier unter die Düse. Wenn die Düse das Papier berührt, schalten Sie den Drucker sofort aus!
+Bitte reinigen Sie die Düse zur Kalibrierung. Klicken Sie auf WEITER, wenn Sie fertig sind.
+Bitte schließen Sie ein USB-Laufwerk an und versuchen Sie es erneut.
+Bitte schließen Sie den USB-Stick an, der mit Ihrem MINI geliefert wurde und resetten Sie den Drucker zum Firmwareflashen
+Bitte Leerlaufrad öffnen und das Filament manuell entfernen
+Bitte legen Sie das Stahlblech auf das Heizbett.
+Bitte entfernen Sie Stahlblech vom Heizbett.
+Bitte warten
+VORHEIZEN
+Vorheizen
+Vorheizfehler
+VORHEIZEN zum LADEN
+VORHEIZEN zum ENTLADEN
+Vorbereiten
+Bereite Rammen vor
+WEITER drücken und das Filament in den Extruder schieben.
+WEITER drücken, um den Selbsttest auszuführen, der potenzielle Probleme der Montage überprüft.
+Drucken
+Drucklüfter
+Drucklüfter dreht sich nicht. Überprüfen Sie ihn auf mögliche Verschmutzungen und dann die Verkabelung.
+Druckzeit
+Druckende
+DRUCKEN
+Druckzeit
+FILAMENT REINIGEN
+Filament reinigen
+MEHR REINIGEN
+Reinigen
+Frage
+Ramme
+Wirklich Trennen?
+erneut Heizen
+Restzeit
+UMBENENNEN
+Umbenennen
+Druck wiederholen
+Reset
+Reset Drucker
+Fortsetzen
+Fortfahren...
+Wiederholen
+Zurück
+Sa.
+Crash Dump speichern
+Einstellung sichern
+Suche Bett-\nKalibrierpunkte
+Wählen
+Filamenttyp wählen
+Datei wählen
+Sprache wählen
+Aktivieren, wenn Sie automatisch aktualisierte Firmware von einem USB-Laufwerk installieren möchten.
+Selbsttest
+Selbsttest
+SENSOR INFO
+Sensor Info
+SERIELLE SCHNITTSTELLE
+Service
+Einstellen
+Einstellen
+Einstellungen erfolgreich geladen
+Blechprofil
+Selbsttestergebnis
+Leise
+Dateien sortieren
+Ton Modus
+Lautstärke
+Geschwindigkeit
+Statische IPv4-Adressen wurden nicht festgelegt.
+Statistik
+Stahlbleche
+STOP
+Stop
+So.
+Support
+System Info
+Temperatur
+Temperatur
+Test
+Lüftertest
+Test Heizungen
+Test XYZ-Achse
+Die Kalibrierung der ersten Schicht konnte nicht abgeschlossen werden. Bitte Verkabelung, Düse und Achsen des Druckers überprüfen und starten Sie dann die Kalibrierung erneut.
+Der Selbsttest wurde nicht beendet. Überprüfen Sie die Verkabelung und die Achsen des Druckers. Starten Sie dann den Selbsttest erneut.
+Die Einstellungen wurden erfolgreich in der Datei "lan_settings.ini" gespeichert.
+Die Statusleiste am unteren Rand des Bildschirms enthält Informationen über:\n- Düsentemp.\n- Heizbett-Temp.\n- Drucktempo\n- Z-Achsenhöhe\n- Filamenttyp
+Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Bitte Verkabelung und Achsen des Druckers überprüfen und starten Sie dann die XYZ-Kalibrierung erneut.
+Es gab einen Fehler beim Speichern der Einstellungen in der Datei "lan_settings.ini".
+THERMAL RUNAWAY
+Dieser G-Code ist für einen anderen Druckertyp.
+Diese Operation kann nicht rückgängig ge- macht werden und die aktuelle Konfiguration geht verloren! Den Drucker auf die Werkseinstellungen zurücksetzen?
+Do.
+Zeit
+Zum Kalibrieren mit dem derzeit geladenem Filament, drücken Sie WEITER. Zum Filamentwechsel drücken Sie ENTLADEN
+Zum Kalibrieren mit dem derzeit geladenem Filament, drücken Sie WEITER. Zum Filamentladen, drücken Sie LADEN. Zum Filamentwechsel drücken Sie ENTLADEN
+Heute um
+Di.
+Tunen
+Tunen
+Entladen
+Filament entladen
+Filament entladen
+Entlade
+Ausparken
+USB-Laufwerksfehler, der Druck wurde jetzt angehalten. Schließen Sie das USB-Laufwerk wieder an.
+Genutztes Filament
+VERSION INFO
+Version Info
+Warte auf Temperatur
+Warnung
+WARNUNG:
+Filamententladen erfolgreich?
+Mi.
+Willkommen beim Original Prusa MINI Einrichtungsassistenten. Möchten Sie fortfahren?
+Assistent
+Assistent
+Assistent - OK
+X-Achse
+XYZ KALIBRIERUNG
+Y-Achse
+Ja
+Z Höhe:
+Z-Achse

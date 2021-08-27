@@ -355,8 +355,8 @@ msgid "Inserting"
 msgstr "Einführen"
 
 #: src/gui/screen_menu_lan_settings.cpp:292
-msgid "IP addresses or parameters are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."
-msgstr "IP-Adressen oder Parameter sind nicht gültig oder die Datei \"lan_settings.ini\" befindet sich nicht im Stammverzeichnis des USB-Laufwerks."
+msgid "IP addresses or parameters are not valid or the file \"prusa_printer_settings.ini\" is not in the root directory of the USB drive."
+msgstr "IP-Adressen oder Parameter sind nicht gültig oder die Datei \"prusa_printer_settings.ini\" befindet sich nicht im Stammverzeichnis des USB-Laufwerks."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "Is color correct?"
@@ -364,7 +364,7 @@ msgstr "Farbe korrekt?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:26
 msgid "Is filament in extruder gear?"
-msgstr "Filament im Extruder Antrieb? "
+msgstr "Filament im Extruder Antrieb?"
 
 #: src/gui/wizard/xyzcalib.cpp:47 src/gui/wizard/xyzcalib.cpp:240
 msgid "Is steel sheet on heatbed?"
@@ -924,8 +924,8 @@ msgid "The selftest failed to finish. Double-check the printer's wiring and axes
 msgstr "Der Selbsttest wurde nicht beendet. Überprüfen Sie die Verkabelung und die Achsen des Druckers. Starten Sie dann den Selbsttest erneut."
 
 #: src/gui/screen_menu_lan_settings.cpp:283
-msgid "The settings have been saved successfully in the \"lan_settings.ini\" file."
-msgstr "Die Einstellungen wurden erfolgreich in der Datei \"lan_settings.ini\" gespeichert."
+msgid "The settings have been saved successfully in the \"prusa_printer_settings.ini\" file."
+msgstr "Die Einstellungen wurden erfolgreich in der Datei \"prusa_printer_settings.ini\" gespeichert."
 
 #: src/gui/wizard/screen_wizard.cpp:170
 msgid "The status bar is at the bottom of the screen. It contains information about:\n- Nozzle temp.\n- Heatbed temp.\n- Printing speed\n- Z-axis height\n- Selected filament"
@@ -936,8 +936,8 @@ msgid "The XYZ calibration failed to finish. Double-check the printer's wiring a
 msgstr "Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Bitte Verkabelung und Achsen des Druckers überprüfen und starten Sie dann die XYZ-Kalibrierung erneut."
 
 #: src/gui/screen_menu_lan_settings.cpp:286
-msgid "There was an error saving the settings in the \"lan_settings.ini\" file."
-msgstr "Es gab einen Fehler beim Speichern der Einstellungen in der Datei \"lan_settings.ini\"."
+msgid "There was an error saving the settings in the \"prusa_printer_settings.ini\" file."
+msgstr "Es gab einen Fehler beim Speichern der Einstellungen in der Datei \"prusa_printer_settings.ini\"."
 
 #. r=1, c=19
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:54

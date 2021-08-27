@@ -10,15 +10,19 @@
 #include "window_file_list.hpp"
 #include "gui.hpp"
 #include "config.h"
-#include "fatfs.h"
 #include "dbg.h"
 #include "sound.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "cmath_ext.h"
+#if _DEBUG
+    #include "bsod.h"
+#endif
+
+char *window_file_list_t::root = nullptr;
 
 bool window_file_list_t::IsPathRoot(const char *path) {
-    return (path[0] == 0 || strcmp(path, "/") == 0);
+    return (path[0] == 0 || (root && strcmp(path, root) == 0));
 }
 
 void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
@@ -80,12 +84,18 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
     , activeItem(string_view_utf8(), IDR_NULL) {
     SetAlignment(Align_t::LeftCenter());
     Enable();
-    strlcpy(sfn_path, "/", FILE_PATH_MAX_LEN);
+    strlcpy(sfn_path, "/usb", FILE_PATH_MAX_LEN);
 }
 
 void window_file_list_t::unconditionalDraw() {
     const Rect16::Height_t item_height = font->h + padding.top + padding.bottom;
-    const int visible_slots = Height() / item_height;
+    const int visible_slots = LazyDirViewSize;
+#if _DEBUG
+    //cannot use assert, font is not constexpr
+    if (LazyDirViewSize != Height() / item_height) {
+        bsod("Wrong LazyDirViewSize");
+    }
+#endif
     const int ldv_visible_files = ldv->VisibleFilesCount();
     const int maxi = std::min(count, std::min(visible_slots, ldv_visible_files));
 
@@ -208,4 +218,7 @@ void window_file_list_t::inc(int dif) {
     // cursor moved => rolling will be elsewhere
     activeItem.ClrFocus();
     Invalidate();
+}
+void window_file_list_t::SetRoot(char *rootPath) {
+    root = rootPath;
 }

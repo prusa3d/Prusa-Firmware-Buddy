@@ -21,11 +21,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+	// lfn is long file name used in FAT FS.
+	// d_name and lfn has to be null terminated.
+	// if lfn != d_name then leon of d_name + lfn is up to NAME_MAX - 1,
+	// because they share the same buffer.
 	struct dirent {
 		ino_t	d_ino;
 		unsigned char  d_type;
 		char	d_name[NAME_MAX+1];
+		char   * lfn;
+		time_t  time;
 	};
 
 	typedef struct {

@@ -6,7 +6,6 @@
  */
 #pragma once
 
-#include "ff.h"
 #include "guitypes.hpp"
 #include "i18n.h"
 
@@ -29,7 +28,7 @@ class GCodeInfo {
      *  @param[in] size - thumbnail wanted size
      *  @return True - if has thumbnail with those size parameters
      */
-    bool hasThumbnail(FIL &file, size_ui16_t size);
+    bool hasThumbnail(FILE *file, size_ui16_t size);
     GCodeInfo();
     GCodeInfo(const GCodeInfo &) = delete;
 
@@ -38,7 +37,7 @@ public:
         PREVIEW,
     };
 
-    FIL file;                   /**< gcode file */
+    FILE *file;                 /**< gcode file */
     bool file_opened;           /**< stores if file is opened */
     char printing_time[16];     /**< stores string representation of printing time left */
     char filament_type[8];      /**< stores string representation of filament type */

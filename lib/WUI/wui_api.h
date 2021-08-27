@@ -158,6 +158,40 @@ void sntp_set_system_time(uint32_t sec, int8_t last_timezone);
 * \param [in,out] timestamp - system time aquired from device's time storage/clock
 **********************************************************************************/
 void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Authorization key for PrusaLink
+///
+/// @return Return an x-api-key
+const char *wui_get_api_key();
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Prepare file descriptor to upload the file
+///
+/// @param[in] filename Name of the file to start uploading
+/// @return Return 0 if success otherwise the error code
+uint32_t wui_upload_begin(const char *);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Writting received data on already prepared file descriptor
+///
+/// @param[in] buffer Received file data
+/// @param[in] length Size of the buffer
+/// @return Return 0 if success otherwise the error code
+uint32_t wui_upload_data(const char *, uint32_t);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Finalize upload of the file
+///
+/// @param[in] oldFilename Temporary file name
+/// @param[in] newFilename Regular file name
+/// @param[in] startPrint 1 if print should start after upload, 0 otherwise
+/// @return Return status code for http response
+///                 200 OK
+///                 409 Conflict
+///                 415 Unsupported Media Type
+uint32_t wui_upload_finish(const char *, const char *, uint32_t);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

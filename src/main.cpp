@@ -57,6 +57,7 @@
 #include "wdt.h"
 #include "dump.h"
 #include "timer_defaults.h"
+#include "tick_timer_api.h"
 #include "thread_measurement.h"
 #include "metric_handlers.h"
 #include "Z_probe.h"
@@ -228,6 +229,7 @@ int main(void) {
 
     /* Configure the system clock */
     SystemClock_Config();
+    tick_timer_init();
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
@@ -284,12 +286,11 @@ int main(void) {
     adc_dma_init(&hadc1); //start ADC DMA conversion
     /* USER CODE END 2 */
 
-    // static metric_handler_t *handlers[] = {
-    //     &metric_handler_syslog,
-    //     NULL
-    // };
-    // metric_system_init(handlers);
-
+    static metric_handler_t *handlers[] = {
+        &metric_handler_syslog,
+        NULL
+    };
+    metric_system_init(handlers);
     /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
     /* USER CODE END RTOS_MUTEX */
@@ -469,7 +470,7 @@ static void MX_ADC1_Init(void) {
         Error_Handler();
     }
     /* USER CODE BEGIN ADC1_Init 2 */
-
+    HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn); //Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
     /* USER CODE END ADC1_Init 2 */
 }
 
@@ -1102,7 +1103,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM14) {
         app_tim14_tick();
     } else if (htim->Instance == TICK_TIMER) {
-        TICK_TIMER_PeriodElapsedCallback();
+        app_tick_timer_overflow();
     }
 }
 

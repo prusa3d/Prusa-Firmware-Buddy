@@ -73,11 +73,11 @@ class GCodeThumbDecoder {
     TBytesQueue bytesQ;
 
     // tohle nacte jeden bajt z fajlu
-    bool ReadByte(FIL *f, uint8_t &byte);
+    bool ReadByte(FILE *f, uint8_t &byte);
 
     // @return false, pokud se doslo na konec fajlu
     // pritom muze byt neco v line nactene, to je normalni
-    bool ReadLine(FIL *f, SLine &line);
+    bool ReadLine(FILE *f, SLine &line);
 
     bool AppendBase64Chars(const char *src, TBytesQueue &bytesQ);
 
@@ -150,7 +150,7 @@ public:
     // normalni search automat, kterej proste ve fajlu najde spravnou uvodni
     // sekvenci
 
-    int Read(FIL *f, char *pc, int n);
+    int Read(FILE *f, char *pc, int n);
 
     void Reset() {
         // opakovani pokusu - cteni po vice bajtech

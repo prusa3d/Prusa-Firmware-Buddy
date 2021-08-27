@@ -564,7 +564,12 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                         pixsize += 1;
                     }
                     break;
-                default:
+                case PNG_COLOR_TYPE_GRAY_ALPHA:
+                    png_set_gray_to_rgb(pp);
+                    pixsize = 4;
+                    break;
+                case PNG_COLOR_TYPE_RGB_ALPHA:
+                    pixsize = 4;
                     break;
                 }
 

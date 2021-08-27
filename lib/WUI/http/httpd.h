@@ -253,6 +253,21 @@ err_t httpd_post_receive_data(void *connection, struct pbuf *p);
  */
 void httpd_post_finished(void *connection, char *response_uri, u16_t response_uri_len);
 
+/** Find the boundary value in the Content-Type line.
+ * This value is used to determine how to separate the keys/value pairs.
+ * Looking for boundary=
+ *
+ * @param content_type Content-Type string that contains the boundary.
+ */
+const char *find_boundary(const char *content_type);
+
+/** Find the key name in the header of a form value.
+ * Looking for name=
+ *
+ * @param header Header string that contains the name.
+ */
+const char *find_header_name(const char *header);
+
     #if LWIP_HTTPD_POST_MANUAL_WND
 void httpd_post_data_recved(void *connection, u16_t recved_len);
     #endif /* LWIP_HTTPD_POST_MANUAL_WND */

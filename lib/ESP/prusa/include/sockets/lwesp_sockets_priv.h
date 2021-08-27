@@ -47,6 +47,9 @@
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 
+#include "esp/esp.h"
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

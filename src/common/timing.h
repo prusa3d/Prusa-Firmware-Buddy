@@ -1,18 +1,10 @@
 #pragma once
+
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
-#include <stdint.h>
-
-/// convert ticks to nano seconds
-///
-/// @return uint64_t nanoseconds, cannot overflow
-uint64_t ticks_to_ns(uint32_t cnt);
-
-/// converts miliseconds to ticks
-///
-/// @return uint64_t ticks, cannot overflow
-uint64_t ms_to_ticks(uint32_t ms);
 
 /// Ticks with second precision
 ///
@@ -58,7 +50,7 @@ uint64_t timestamp_ns();
 
 /// Sys timer's overflow interrupt callback
 ///
-void TICK_TIMER_PeriodElapsedCallback();
+void app_tick_timer_overflow();
 
 #ifdef __cplusplus
 }

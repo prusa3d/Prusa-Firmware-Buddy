@@ -152,7 +152,7 @@ conn_get_val_id(esp_conn_p conn) {
  * \param[in]       blocking: Status whether command should be blocking or not
  * \return          \ref espOK on success, member of \ref espr_t enumeration otherwise
  */
-static espr_t
+espr_t
 conn_send(esp_conn_p conn, const esp_ip_t* const ip, esp_port_t port, const void* data,
             size_t btw, size_t* const bw, uint8_t fau, const uint32_t blocking) {
     ESP_MSG_VAR_DEFINE(msg);

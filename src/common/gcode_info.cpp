@@ -29,11 +29,11 @@ const char *GCodeInfo::GetGcodeFilepath() {
     return gcode_file_path;
 }
 
-bool GCodeInfo::hasThumbnail(FIL &file, size_ui16_t size) {
+bool GCodeInfo::hasThumbnail(FILE *file, size_ui16_t size) {
     FILE f = { 0 };
     char buffer;
     bool thumbnail_valid = false;
-    if (f_gcode_thumb_open(&f, &file) == 0) {
+    if (f_gcode_thumb_open(&f, file) == 0) {
         thumbnail_valid = fread((void *)&buffer, 1, 1, &f) > 0;
         f_gcode_thumb_close(&f);
     }
@@ -55,8 +55,7 @@ GCodeInfo::GCodeInfo()
 
 void GCodeInfo::initFile(GI_INIT_t init) {
     deinitFile();
-    memset(&file, 1, sizeof(FIL));
-    if (!gcode_file_path || f_open(&file, gcode_file_path, FA_READ) != FR_OK) {
+    if (!gcode_file_path || (file = fopen(gcode_file_path, "r")) == nullptr) {
         return;
     }
     file_opened = true;
@@ -64,16 +63,17 @@ void GCodeInfo::initFile(GI_INIT_t init) {
     has_preview_thumbnail = hasThumbnail(file, { 0, 0 });
 
     if (init == GI_INIT_t::PREVIEW) {
-        //TODO read this value from comment, if it does not contain it, it must be added!!!
-        const unsigned search_last_x_bytes = 14000; // With increasing size of the comment section, this will have to be increased either
-        FSIZE_t filesize = f_size(&file);
-        f_lseek(&file, filesize > search_last_x_bytes ? filesize - search_last_x_bytes : 0);
+        // TODO read this value from comment, if it does not contain it, it must be added!!!
+        const int search_last_x_bytes = 14000; // With increasing size of the comment section, this will have to be increased either
+        if (fseek(file, -search_last_x_bytes, SEEK_END) != 0) {
+            fseek(file, 0, SEEK_SET);
+        }
         char name_buffer[64];
         char value_buffer[32];
         CStrEqual name_comparer(name_buffer, sizeof(name_buffer));
 
         while (f_gcode_get_next_comment_assignment(
-            &file, name_buffer, sizeof(name_buffer), value_buffer, sizeof(value_buffer))) {
+            file, name_buffer, sizeof(name_buffer), value_buffer, sizeof(value_buffer))) {
 
             if (name_comparer(gcode_info::time)) {
                 snprintf(printing_time, sizeof(printing_time), "%s", value_buffer);
@@ -97,7 +97,7 @@ void GCodeInfo::initFile(GI_INIT_t init) {
 
 void GCodeInfo::deinitFile() {
     if (file_opened) {
-        f_close(&file);
+        fclose(file);
         file_opened = false;
         has_preview_thumbnail = false;
     }

@@ -11,7 +11,7 @@ cd $WRK_DIR
 PNG_DIR=$WRK_DIR/png
 PAL_DIR=$WRK_DIR/palette
 CC_DIR=$WRK_DIR/cc
-BIN2CC_PATH="../../../utils/bin2cc/bin2cc"
+BIN2CC_PATH="../../../bin2cc"
 
 
 #uses image magick tool to convert png from normal to indexed
@@ -58,7 +58,7 @@ read input
 for image in $input
 do
 	echo "$PNG_DIR/$image.png to $PAL_DIR/$image.png"
-	$MAGICK_PATH "$PNG_DIR/$image.png" -type palette "$PAL_DIR/$image.png"
+	$MAGICK_PATH "$PNG_DIR/$image.png" -type paletteAlpha -define PNG:bit-depth=8 "$PAL_DIR/$image.png"
 done
 
 for image in $input
@@ -69,7 +69,7 @@ done
 }
 
 if [ ! -x $MAGICK_PATH ]; then
-	echo "Please deifne path to image magick as eviroment variable"
+	echo "Please deifine path to image magick as eviroment variable"
 	exit 1
 else if [ ! -x $BIN2CC_PATH ]; then
 		echo "please compile BIN2CC utility and set correct path to the binary"

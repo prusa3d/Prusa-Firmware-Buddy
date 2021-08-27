@@ -355,8 +355,8 @@ msgid "Inserting"
 msgstr "Wsuwanie"
 
 #: src/gui/screen_menu_lan_settings.cpp:292
-msgid "IP addresses or parameters are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."
-msgstr "Adresy IP lub parametry są nieprawidłowe, albo plik \"lan_settings.ini\" nie znajduje się w katalogu głównym pamięci USB."
+msgid "IP addresses or parameters are not valid or the file \"prusa_printer_settings.ini\" is not in the root directory of the USB drive."
+msgstr "Adresy IP lub parametry są nieprawidłowe, albo plik \"prusa_printer_settings.ini\" nie znajduje się w katalogu głównym pamięci USB."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "Is color correct?"
@@ -924,8 +924,8 @@ msgid "The selftest failed to finish. Double-check the printer's wiring and axes
 msgstr "Selftest zakończony niepowodzeniem. Sprawdź okablowanie drukarki oraz osie, następnie zrestartuj Selftest."
 
 #: src/gui/screen_menu_lan_settings.cpp:283
-msgid "The settings have been saved successfully in the \"lan_settings.ini\" file."
-msgstr "Ustawienia zostały pomyślnie zapisane w pliku \"lan_settings.ini\"."
+msgid "The settings have been saved successfully in the \"prusa_printer_settings.ini\" file."
+msgstr "Ustawienia zostały pomyślnie zapisane w pliku \"prusa_printer_settings.ini\"."
 
 #: src/gui/wizard/screen_wizard.cpp:170
 msgid "The status bar is at the bottom of the screen. It contains information about:\n- Nozzle temp.\n- Heatbed temp.\n- Printing speed\n- Z-axis height\n- Selected filament"
@@ -936,8 +936,8 @@ msgid "The XYZ calibration failed to finish. Double-check the printer's wiring a
 msgstr "Kalibracja XYZ zakończona niepowodzeniem. Sprawdź okablowanie oraz osie drukarki, następnie uruchom kalibrację ponownie."
 
 #: src/gui/screen_menu_lan_settings.cpp:286
-msgid "There was an error saving the settings in the \"lan_settings.ini\" file."
-msgstr "Wystąpił błąd podczas zapisywania ustawień w pliku \"lan_settings.ini\"."
+msgid "There was an error saving the settings in the \"prusa_printer_settings.ini\" file."
+msgstr "Wystąpił błąd podczas zapisywania ustawień w pliku \"prusa_printer_settings.ini\"."
 
 #. r=1, c=19
 #: lib/Prusa-Error-Codes/12_MINI/errors_list.h:54
@@ -974,7 +974,7 @@ msgstr "Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby za�
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
 msgid "Today at"
-msgstr "Dziś o "
+msgstr "Dziś o"
 
 #. abbreviated Tuesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:47

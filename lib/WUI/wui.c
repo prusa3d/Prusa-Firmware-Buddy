@@ -36,6 +36,7 @@ osMutexId(wui_thread_mutex_id);
 static marlin_vars_t *wui_marlin_vars;
 wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
+static char *api_key = "miniPL-apikey";
 
 static void wui_marlin_client_init(void) {
     wui_marlin_vars = marlin_client_init(); // init the client
@@ -134,6 +135,10 @@ void StartWebServerTask(void const *argument) {
 
         sync_with_marlin_server();
     }
+}
+
+const char *wui_get_api_key() {
+    return api_key;
 }
 
 struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {
