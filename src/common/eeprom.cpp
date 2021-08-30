@@ -290,9 +290,6 @@ static inline void eeprom_unlock(void) {
     osSemaphoreRelease(eeprom_sema);
 }
 
-// result of eeprom_init (reset defaults, upgrade ...)
-static eeprom_init_status_t eeprom_init_status = EEPROM_INIT_Undefined;
-
 // forward declarations of private functions
 
 static uint16_t eeprom_var_size(uint8_t id);
@@ -310,6 +307,7 @@ static uint16_t eeprom_fwversion_ui16(void);
 extern void main_preinit();
 
 eeprom_init_status_t eeprom_init(void) {
+    static eeprom_init_status_t eeprom_init_status = EEPROM_INIT_Undefined;
     //already initialized
     if (eeprom_init_status != EEPROM_INIT_Undefined)
         return eeprom_init_status;
