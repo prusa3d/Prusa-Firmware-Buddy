@@ -16,6 +16,8 @@ extern "C" {
 #include "stm32_port.h"
 #include "esp_loader.h"
 #include "lwesp_ll_buddy.h"
+#include "netdev.h"
+#include "httpd.h"
 
 #ifdef __cplusplus
 }
@@ -96,7 +98,7 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
-    , firmware_set({ { //          { .address = BOOT_ADDRESS, .filename = "/boot_v1.7.bin", .size = 0 },
+    , firmware_set({ { //          { .address = BOOT_ADDRESS, .filename = "/boot_v1.7_with_flash_params.bin", .size = 0 },
           { .address = USER_ADDRESS, .filename = "/user1.1024.new.2.bin", .size = 0 },
           { .address = BLANK1_ADDRESS, .filename = "/blank.bin", .size = 0 },
           { .address = BLANK2_ADDRESS, .filename = "/blank.bin", .size = 0 },
@@ -118,9 +120,7 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);        // set capture to list
     help.SetText(_("- ESP not connected"));
-    esp_set_operating_mode(ESP_FLASHING_MODE);
-    esp_reconfigure_uart(115200);
-    loader_port_stm32_init(&loader_config);
+    esp_flash_initialize();
 }
 
 ScreenFactory::UniquePtr GetScreenMenuESPUpdate() {
@@ -210,8 +210,11 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             break;
         }
         case esp_upload_action::Reset:
+            _dbg("ESP finished flahing");
             esp_loader_flash_finish(true);
             esp_set_operating_mode(ESP_RUNNING_MODE);
+            netdev_init_esp();
+            httpd_reinit();
             progress_state = esp_upload_action::Initial;
             current_file = firmware_set.begin();
             readCount = 0;

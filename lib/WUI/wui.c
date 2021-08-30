@@ -19,6 +19,7 @@
 #include "lwip/altcp_tcp.h"
 #include "esp_tcp.h"
 #include "httpd.h"
+#include "main.h"
 
 #include "netdev.h"
 
@@ -108,6 +109,7 @@ void wui_store_api_key(char *api_key, uint32_t length) {
 void StartWebServerTask(void const *argument) {
     uint32_t esp_check_counter = 1;
     _dbg("wui starts");
+
     networkMbox_id = osMessageCreate(osMessageQ(networkMbox), NULL);
     if (networkMbox_id == NULL) {
         _dbg("networkMbox was not created");

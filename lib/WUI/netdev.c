@@ -154,6 +154,11 @@ uint32_t netdev_init() {
     active_netdev_id = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_NETDEV));
 
     tcpip_init(tcpip_init_done_callback, NULL);
+    netdev_init_esp();
+    return 0;
+}
+
+uint32_t netdev_init_esp() {
     esp_hard_reset_device();
     esp_init(esp_callback_func, 0);
     alsockets_funcs(netdev_get_sockets(active_netdev_id));
