@@ -78,8 +78,8 @@ protected:
 };
 
 class WiSwitchDirection : public WI_SWITCH_t<2> {
-    constexpr static const char *const str_neg = N_("Prusa");
-    constexpr static const char *const str_pos = N_("Wrong");
+    constexpr static const char *const str_prusa = N_("Prusa");
+    constexpr static const char *const str_wrong = N_("Wrong");
 
 public:
     WiSwitchDirection(bool current_direction_negative, string_view_utf8 label_view);

@@ -921,6 +921,22 @@ extern "C" bool has_inverted_e() {
     return std::signbit(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_E0);
 }
 
+extern "C" bool has_wrong_x() {
+    return has_inverted_x() != DEFAULT_INVERT_X_DIR;
+}
+
+extern "C" bool has_wrong_y() {
+    return has_inverted_y() != DEFAULT_INVERT_Y_DIR;
+}
+
+extern "C" bool has_wrong_z() {
+    return has_inverted_z() != DEFAULT_INVERT_Z_DIR;
+}
+
+extern "C" bool has_wrong_e() {
+    return has_inverted_e() != DEFAULT_INVERT_E0_DIR;
+}
+
 extern "C" uint16_t get_steps_per_unit_x_rounded() {
     return static_cast<uint16_t>(std::lround(get_steps_per_unit_x()));
 }
@@ -1004,6 +1020,32 @@ extern "C" void set_negative_direction_z() {
 extern "C" void set_negative_direction_e() {
     set_axis_negative_direction<AXIS_STEPS_PER_UNIT_E0>();
 }
+
+extern "C" void set_wrong_direction_x() {
+    (!DEFAULT_INVERT_X_DIR) ? set_negative_direction_x() : set_positive_direction_x();
+}
+extern "C" void set_wrong_direction_y() {
+    (!DEFAULT_INVERT_Y_DIR) ? set_negative_direction_y() : set_positive_direction_y();
+}
+extern "C" void set_wrong_direction_z() {
+    (!DEFAULT_INVERT_Z_DIR) ? set_negative_direction_z() : set_positive_direction_z();
+}
+extern "C" void set_wrong_direction_e() {
+    (!DEFAULT_INVERT_E0_DIR) ? set_negative_direction_e() : set_positive_direction_e();
+}
+extern "C" void set_PRUSA_direction_x() {
+    DEFAULT_INVERT_X_DIR ? set_negative_direction_x() : set_positive_direction_x();
+}
+extern "C" void set_PRUSA_direction_y() {
+    DEFAULT_INVERT_Y_DIR ? set_negative_direction_y() : set_positive_direction_y();
+}
+extern "C" void set_PRUSA_direction_z() {
+    DEFAULT_INVERT_Z_DIR ? set_negative_direction_z() : set_positive_direction_z();
+}
+extern "C" void set_PRUSA_direction_e() {
+    DEFAULT_INVERT_E0_DIR ? set_negative_direction_e() : set_positive_direction_e();
+}
+
 /*****************************************************************************/
 //AXIS_MICROSTEPS
 bool is_microstep_value_valid(uint16_t microsteps) {

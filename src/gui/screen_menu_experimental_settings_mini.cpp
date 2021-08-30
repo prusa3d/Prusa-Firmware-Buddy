@@ -88,7 +88,7 @@ public:
             menu.Invalidate(); // its broken, does not work
             break;
         case ClickCommand::Reset_directions:
-            Item<MI_DIRECTION_E>().SetIndex(MenuVars::GetDefaultAxisDirections()[3]);
+            Item<MI_DIRECTION_E>().SetIndex(0);
             menu.Invalidate(); // its broken, does not work
             break;
         default:

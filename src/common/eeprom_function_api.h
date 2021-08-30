@@ -34,6 +34,11 @@ bool has_inverted_x();
 bool has_inverted_y();
 bool has_inverted_z();
 bool has_inverted_e();
+//wrong motor direction != Prusa default
+bool has_wrong_x();
+bool has_wrong_y();
+bool has_wrong_z();
+bool has_wrong_e();
 
 /**
  * @brief function set to read float value from eeprom and round it
@@ -60,6 +65,15 @@ void set_negative_direction_x();
 void set_negative_direction_y();
 void set_negative_direction_z();
 void set_negative_direction_e();
+//wrong motor direction != Prusa default
+void set_wrong_direction_x();
+void set_wrong_direction_y();
+void set_wrong_direction_z();
+void set_wrong_direction_e();
+void set_PRUSA_direction_x();
+void set_PRUSA_direction_y();
+void set_PRUSA_direction_z();
+void set_PRUSA_direction_e();
 void set_microsteps_x(uint16_t microsteps);
 void set_microsteps_y(uint16_t microsteps);
 void set_microsteps_z(uint16_t microsteps);

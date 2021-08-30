@@ -61,7 +61,6 @@ struct MenuVars {
     static const int GetExtrudeMinTemp();
 
     static const std::array<int, AXIS_CNT> GetDefaultStepsPerUnit();
-    static const std::array<bool, AXIS_CNT> GetDefaultAxisDirections();
     static const std::array<int, AXIS_CNT> GetDefaultMicrosteps();
     static const std::array<int, AXIS_CNT> GetDefaultCurrents();
     static const std::array<int, AXIS_CNT> GetManualFeedrate();
