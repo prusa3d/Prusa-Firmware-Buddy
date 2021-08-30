@@ -78,30 +78,44 @@ esp_loader_error_t loader_port_serial_write(const uint8_t *data, uint16_t size, 
     }
 }
 
+static uint32_t uart_dma_position = 0;
+
 esp_loader_error_t loader_port_serial_read(uint8_t *data, uint16_t size, uint32_t timeout) {
     memset(data, 0x22, size);
 
-    HAL_StatusTypeDef err = HAL_UART_Receive(uart, data, size, timeout);
+    // Wait for enough data in read buffer
+    for (;;) {
+        const uint32_t pos = sizeof(dma_buffer_rx) - __HAL_DMA_GET_COUNTER(uart->hdmarx);
+        if (pos - uart_dma_position >= size) {
+            break;
+        }
+
+        if (timeout-- == 0) {
+            return ESP_LOADER_ERROR_TIMEOUT;
+        }
+
+        vTaskDelay(1 / portTICK_PERIOD_MS);
+    }
+
+    // Copy data from DMA buffer to output
+    for (uint i = 0; i < size; ++i) {
+        data[i] = dma_buffer_rx[uart_dma_position];
+        // move to new DMA buffer position (wrap at the end of the buffer)
+        uart_dma_position = (uart_dma_position + 1) % sizeof(dma_buffer_rx);
+    }
 
     serial_debug_print(data, size, false);
 
-    if (err == HAL_OK) {
-        return ESP_LOADER_SUCCESS;
-    } else if (err == HAL_TIMEOUT) {
-        return ESP_LOADER_ERROR_TIMEOUT;
-    } else {
-        return ESP_LOADER_ERROR_FAIL;
-    }
+    return ESP_LOADER_SUCCESS;
 }
 
-void loader_port_stm32_init(loader_stm32_config_t *config)
-
-{
+void loader_port_stm32_init(loader_stm32_config_t *config) {
     uart = config->huart;
     gpio_port_io0 = config->port_io0;
     gpio_port_rst = config->port_rst;
     gpio_num_io0 = config->pin_num_io0;
     gpio_num_rst = config->pin_num_rst;
+    uart_dma_position = 0;
 }
 
 // Set GPIO0 LOW, then

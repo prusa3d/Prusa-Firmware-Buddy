@@ -47,6 +47,14 @@ extern espr_t esp_reconfigure_uart(const uint32_t baudrate);
 /// @brief Hard reset ESP device using a reset pin
 extern void esp_hard_reset_device();
 
+// UART buffer stuff
+#define RX_BUFFER_LEN 0x1000
+#if !defined(ESP_MEM_SIZE)
+    #define ESP_MEM_SIZE 0x1000
+#endif /* !defined(ESP_MEM_SIZE) */
+
+extern uint8_t dma_buffer_rx[RX_BUFFER_LEN];
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
