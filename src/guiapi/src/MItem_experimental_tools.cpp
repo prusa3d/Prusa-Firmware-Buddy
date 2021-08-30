@@ -74,45 +74,45 @@ void MI_RESET_STEPS_PER_UNIT::click(IWindowMenu &window_menu) {
 
 /*****************************************************************************/
 //WiSwitchDirection
-WiSwitchDirection::WiSwitchDirection(bool current_direction_negative, string_view_utf8 label_view)
-    : WI_SWITCH_t<2>(current_direction_negative, label_view, 0, is_enabled_t::yes, is_hidden_t::no,
-        _(str_pos), _(str_neg)) {
+WiSwitchDirection::WiSwitchDirection(bool current_direction_wrong, string_view_utf8 label_view)
+    : WI_SWITCH_t<2>(current_direction_wrong, label_view, 0, is_enabled_t::yes, is_hidden_t::no,
+        _(str_prusa), _(str_wrong)) {
 }
 
 /*****************************************************************************/
 //MI_DIRECTION_X
 MI_DIRECTION_X::MI_DIRECTION_X()
-    : WiSwitchDirection(has_inverted_x(), _(label)) {}
+    : WiSwitchDirection(has_wrong_x(), _(label)) {}
 
 void MI_DIRECTION_X::Store() {
-    index == 1 ? set_negative_direction_x() : set_positive_direction_x();
+    index == 1 ? set_wrong_direction_x() : set_PRUSA_direction_x();
 }
 
 /*****************************************************************************/
 //MI_DIRECTION_Y
 MI_DIRECTION_Y::MI_DIRECTION_Y()
-    : WiSwitchDirection(has_inverted_y(), _(label)) {}
+    : WiSwitchDirection(has_wrong_y(), _(label)) {}
 
 void MI_DIRECTION_Y::Store() {
-    index == 1 ? set_negative_direction_y() : set_positive_direction_y();
+    index == 1 ? set_wrong_direction_y() : set_PRUSA_direction_y();
 }
 
 /*****************************************************************************/
 //MI_DIRECTION_Z
 MI_DIRECTION_Z::MI_DIRECTION_Z()
-    : WiSwitchDirection(has_inverted_z(), _(label)) {}
+    : WiSwitchDirection(has_wrong_z(), _(label)) {}
 
 void MI_DIRECTION_Z::Store() {
-    index == 1 ? set_negative_direction_z() : set_positive_direction_z();
+    index == 1 ? set_wrong_direction_z() : set_PRUSA_direction_z();
 }
 
 /*****************************************************************************/
 //MI_DIRECTION_E
 MI_DIRECTION_E::MI_DIRECTION_E()
-    : WiSwitchDirection(has_inverted_e(), _(label)) {}
+    : WiSwitchDirection(has_wrong_e(), _(label)) {}
 
 void MI_DIRECTION_E::Store() {
-    index == 1 ? set_negative_direction_e() : set_positive_direction_e();
+    index == 1 ? set_wrong_direction_e() : set_PRUSA_direction_e();
 }
 
 /*****************************************************************************/

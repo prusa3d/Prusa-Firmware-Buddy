@@ -135,10 +135,11 @@ public:
             menu.Invalidate(); // its broken, does not work
             break;
         case ClickCommand::Reset_directions:
-            Item<MI_DIRECTION_X>().SetIndex(MenuVars::GetDefaultAxisDirections()[0]);
-            Item<MI_DIRECTION_Y>().SetIndex(MenuVars::GetDefaultAxisDirections()[1]);
-            Item<MI_DIRECTION_Z>().SetIndex(MenuVars::GetDefaultAxisDirections()[2]);
-            Item<MI_DIRECTION_E>().SetIndex(MenuVars::GetDefaultAxisDirections()[3]);
+            //set index to Prusa
+            Item<MI_DIRECTION_X>().SetIndex(0);
+            Item<MI_DIRECTION_Y>().SetIndex(0);
+            Item<MI_DIRECTION_Z>().SetIndex(0);
+            Item<MI_DIRECTION_E>().SetIndex(0);
             menu.Invalidate(); // its broken, does not work
             break;
         case ClickCommand::Reset_microsteps:
