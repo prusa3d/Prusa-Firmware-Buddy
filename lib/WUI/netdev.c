@@ -14,7 +14,6 @@
 #include "alsockets.h"
 #include "lwesp_ll_buddy.h"
 
-
 typedef struct {
     const char *ssid;
     const char *pass;

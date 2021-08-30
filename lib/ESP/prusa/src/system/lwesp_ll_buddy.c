@@ -28,23 +28,12 @@ static osThreadId UartBufferThread_id;
 osMessageQDef(uartBufferMbox, 16, NULL);
 static osMessageQId uartBufferMbox_id;
 
-//UART buffer stuffs
-#define RX_BUFFER_LEN 0x1000
-#if !defined(ESP_MEM_SIZE)
-    #define ESP_MEM_SIZE 0x1000
-#endif /* !defined(ESP_MEM_SIZE) */
-
 static uint32_t esp_working_mode;
 static uint32_t initialized;
 
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 
 void esp_set_operating_mode(uint32_t mode) {
-    if (mode == ESP_RUNNING_MODE) {
-        __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
-    } else if (mode == ESP_FLASHING_MODE) {
-        __HAL_UART_DISABLE_IT(&huart6, UART_IT_IDLE);
-    }
     esp_working_mode = mode;
 }
 
