@@ -58,8 +58,8 @@
 #define EEPROM_OFFSET 100
 #endif
 
-#if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES) 
-#include "eeprom.h"
+#if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+    #include "eeprom_function_api.h"
 #endif // USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
 #if EITHER(EEPROM_SETTINGS, SD_FIRMWARE_UPDATE)
@@ -136,14 +136,14 @@ static const uint32_t   _DMA[] PROGMEM = DEFAULT_MAX_ACCELERATION;
 static float get_steps_per_unit(size_t index) {
     switch (index) {
     case 0:
-      return variant8_get_flt(eeprom_get_var(AXIS_STEPS_PER_UNIT_X));
+      return get_steps_per_unit_x();
     case 1:
-      return variant8_get_flt(eeprom_get_var(AXIS_STEPS_PER_UNIT_Y));
+      return get_steps_per_unit_y();
     case 2:
-      return variant8_get_flt(eeprom_get_var(AXIS_STEPS_PER_UNIT_Z));
+      return get_steps_per_unit_z();
     }
     //if index is bigger than max index, use max index - default marlin behavior
-    return variant8_get_flt(eeprom_get_var(AXIS_STEPS_PER_UNIT_E0));
+    return get_steps_per_unit_e();
 }
 #else
 static constexpr float get_steps_per_unit(size_t index) {
