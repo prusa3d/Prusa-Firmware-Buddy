@@ -53,6 +53,14 @@ extern espr_t esp_set_baudrate(uint32_t baudrate);
 /// @brief Hard reset ESP device using a reset pin
 extern void esp_hard_reset_device();
 
+////////////////////////////////////////////////////////////////////////////
+/// @brief Deinitialize ESP low level
+extern espr_t esp_ll_deinit(esp_ll_t *ll);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Initialize ESP for flash write
+extern espr_t esp_flash_initialize();
+
 // UART buffer stuff
 #define RX_BUFFER_LEN 0x1000
 #if !defined(ESP_MEM_SIZE)

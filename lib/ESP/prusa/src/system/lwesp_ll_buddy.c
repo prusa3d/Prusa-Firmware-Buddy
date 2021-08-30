@@ -4,7 +4,9 @@
 #include "system/esp_ll.h"
 #include "lwesp_ll_buddy.h"
 #include "main.h"
+#include "stm32_port.h"
 #include "dbg.h"
+#include "ff.h"
 
 /*
  * UART and other pin configuration for ESP01 module
@@ -211,5 +213,23 @@ esp_ll_deinit(esp_ll_t *ll) {
     }
     initialized = 0;
     ESP_UNUSED(ll);
+    return espOK;
+}
+
+espr_t esp_flash_initialize() {
+    espr_t err = esp_ll_deinit(NULL);
+    if (err != espOK) {
+        return err;
+    }
+    esp_set_operating_mode(ESP_FLASHING_MODE);
+    esp_reconfigure_uart(115200);
+    loader_stm32_config_t loader_config = {
+        .huart = &huart6,
+        .port_io0 = GPIOE,
+        .pin_num_io0 = GPIO_PIN_6,
+        .port_rst = GPIOC,
+        .pin_num_rst = GPIO_PIN_13,
+    };
+    loader_port_stm32_init(&loader_config);
     return espOK;
 }

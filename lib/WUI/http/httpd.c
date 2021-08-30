@@ -2443,10 +2443,15 @@ httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
 
 /**
  * @ingroup httpd
+ * Current ALTCP PCB used by httpd for accepting incomming connections.
+ */
+static struct altcp_pcb *httpd_pcb = NULL;
+
+/**
+ * @ingroup httpd
  * Initialize the httpd: set up a listening PCB and bind it to the defined port
  */
 void httpd_init(void) {
-    struct altcp_pcb *pcb;
     altcp_allocator_t allocator = {
         .alloc = prusa_alloc,
         .arg = NULL
@@ -2462,9 +2467,18 @@ void httpd_init(void) {
 
     /* LWIP_ASSERT_CORE_LOCKED(); is checked by tcp_new() */
 
-    pcb = altcp_new_ip_type(&allocator, IPADDR_TYPE_ANY);
-    LWIP_ASSERT("httpd_init: tcp_new failed", pcb != NULL);
-    httpd_init_pcb(pcb, HTTPD_SERVER_PORT);
+    httpd_pcb = altcp_new_ip_type(&allocator, IPADDR_TYPE_ANY);
+    LWIP_ASSERT("httpd_init: tcp_new failed", httpd_pcb != NULL);
+    httpd_reinit();
+}
+
+void httpd_reinit() {
+    if (httpd_pcb == NULL) {
+        _dbg("Cannot reinitialize httpd server as the main PCB is not initialized.");
+        return;
+    }
+
+    httpd_init_pcb(httpd_pcb, HTTPD_SERVER_PORT);
 }
 
     #if HTTPD_ENABLE_HTTPS
