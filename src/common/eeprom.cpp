@@ -305,6 +305,7 @@ static uint16_t eeprom_fwversion_ui16(void);
 
 // public functions - described in header
 extern void main_preinit();
+static eeprom_vars_t &initialize_eeprom_startup_vars();
 
 eeprom_init_status_t eeprom_init(void) {
     static eeprom_init_status_t eeprom_init_status = EEPROM_INIT_Undefined;
@@ -337,6 +338,7 @@ eeprom_init_status_t eeprom_init(void) {
         eeprom_defaults();
     //eeprom_print_vars(); this is not possible here because it hangs - init is now done in main.cpp, not in defaultThread
     eeprom_init_status = status;
+    initialize_eeprom_startup_vars(); //initialize internal static variable
     return status;
 }
 
@@ -351,6 +353,28 @@ void eeprom_defaults(void) {
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
     eeprom_unlock();
+}
+
+static eeprom_vars_t eeprom_read_vars() {
+    eeprom_vars_t ret;
+    eeprom_lock();
+    st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&ret, sizeof(ret));
+    eeprom_unlock();
+
+    return ret;
+}
+
+static eeprom_vars_t &initialize_eeprom_startup_vars() {
+    static eeprom_vars_t ret = eeprom_read_vars();
+    return ret;
+}
+
+//this is called in initialization of static variables
+//so eeprom is not initialized yet
+static eeprom_vars_t &eeprom_startup_vars() {
+    eeprom_init();                                                // if eeprom is not initialized, initialize it, otherwise do nothing
+    static eeprom_vars_t &ret = initialize_eeprom_startup_vars(); //initialize was alerady called by eeprom_init, so just refer to its value
+    return ret;
 }
 
 variant8_t eeprom_get_var(uint8_t id) {
@@ -850,7 +874,7 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
 /*****************************************************************************/
 //AXIS_Z_MAX_POS_MM
 extern "C" float get_z_max_pos_mm() {
-    float ret = variant8_get_flt(eeprom_get_var(AXIS_Z_MAX_POS_MM));
+    float ret = eeprom_startup_vars().AXIS_Z_MAX_POS_MM;
     if ((ret > Z_MAX_LEN_LIMIT) || (ret < Z_MIN_LEN_LIMIT))
         ret = DEFAULT_Z_MAX_POS;
     return ret;
@@ -868,43 +892,33 @@ extern "C" void set_z_max_pos_mm(float max_pos) {
 
 /*****************************************************************************/
 //AXIS_STEPS_PER_UNIT
-template <int ENUM>
-float get_steps_per_unit() {
-    return std::abs(variant8_get_flt(eeprom_get_var(ENUM)));
-}
-
 extern "C" float get_steps_per_unit_x() {
-    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_X>();
+    return std::abs(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_X);
 }
 extern "C" float get_steps_per_unit_y() {
-    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_Y>();
+    return std::abs(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_Y);
 }
 extern "C" float get_steps_per_unit_z() {
-    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_Z>();
+    return std::abs(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_Z);
 }
 extern "C" float get_steps_per_unit_e() {
-    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_E0>();
-}
-
-template <int ENUM>
-float has_inverted_axis() {
-    return std::signbit(variant8_get_flt(eeprom_get_var(ENUM)));
+    return std::abs(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_E0);
 }
 
 extern "C" bool has_inverted_x() {
-    return has_inverted_axis<AXIS_STEPS_PER_UNIT_X>();
+    return std::signbit(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_X);
 }
 
 extern "C" bool has_inverted_y() {
-    return has_inverted_axis<AXIS_STEPS_PER_UNIT_Y>();
+    return std::signbit(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_Y);
 }
 
 extern "C" bool has_inverted_z() {
-    return has_inverted_axis<AXIS_STEPS_PER_UNIT_Z>();
+    return std::signbit(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_Z);
 }
 
 extern "C" bool has_inverted_e() {
-    return has_inverted_axis<AXIS_STEPS_PER_UNIT_E0>();
+    return std::signbit(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_E0);
 }
 
 extern "C" uint16_t get_steps_per_unit_x_rounded() {
@@ -920,10 +934,16 @@ extern "C" uint16_t get_steps_per_unit_e_rounded() {
     return static_cast<uint16_t>(std::lround(get_steps_per_unit_e()));
 }
 
+//by write functions, cannot read startup variables, must read current value from eeprom
+template <int ENUM>
+bool is_current_axis_value_inverted() {
+    return std::signbit(variant8_get_flt(eeprom_get_var(ENUM)));
+}
+
 template <int ENUM>
 void set_steps_per_unit(float steps) {
     if (steps > 0) {
-        bool negative_direction = has_inverted_axis<ENUM>();
+        bool negative_direction = is_current_axis_value_inverted<ENUM>();
         eeprom_set_var(ENUM, variant8_flt(negative_direction ? -steps : steps));
     }
 }
@@ -941,9 +961,15 @@ extern "C" void set_steps_per_unit_e(float steps) {
     set_steps_per_unit<AXIS_STEPS_PER_UNIT_E0>(steps);
 }
 
+//by write functions, cannot read startup variables, must read current value from eeprom
+template <int ENUM>
+float get_current_steps_per_unit() {
+    return std::abs(variant8_get_flt(eeprom_get_var(ENUM)));
+}
+
 template <int ENUM>
 void set_axis_positive_direction() {
-    float steps = get_steps_per_unit<ENUM>();
+    float steps = get_current_steps_per_unit<ENUM>();
     eeprom_set_var(ENUM, variant8_flt(steps));
 }
 
@@ -962,7 +988,7 @@ extern "C" void set_positive_direction_e() {
 
 template <int ENUM>
 void set_axis_negative_direction() {
-    float steps = get_steps_per_unit<ENUM>();
+    float steps = get_current_steps_per_unit<ENUM>();
     eeprom_set_var(ENUM, variant8_flt(-steps));
 }
 
@@ -985,24 +1011,22 @@ bool is_microstep_value_valid(uint16_t microsteps) {
     return bs.count() == 1; // 1,2,4,8...
 }
 
-template <int ENUM, int DEF_VAL>
-uint16_t get_microsteps() {
-    uint16_t ret = variant_get_ui16(eeprom_get_var(ENUM));
-    if (!is_microstep_value_valid(ret))
-        ret = DEF_VAL;
-    return ret;
-}
+//return default value if eeprom value is invalid
 extern "C" uint16_t get_microsteps_x() {
-    return get_microsteps<AXIS_MICROSTEPS_X, X_MICROSTEPS>();
+    uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_X;
+    return is_microstep_value_valid(ret) ? ret : X_MICROSTEPS;
 }
 extern "C" uint16_t get_microsteps_y() {
-    return get_microsteps<AXIS_MICROSTEPS_Y, Y_MICROSTEPS>();
+    uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_Y;
+    return is_microstep_value_valid(ret) ? ret : Y_MICROSTEPS;
 }
 extern "C" uint16_t get_microsteps_z() {
-    return get_microsteps<AXIS_MICROSTEPS_Z, Z_MICROSTEPS>();
+    uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_Z;
+    return is_microstep_value_valid(ret) ? ret : Z_MICROSTEPS;
 }
 extern "C" uint16_t get_microsteps_e() {
-    return get_microsteps<AXIS_MICROSTEPS_E0, E0_MICROSTEPS>();
+    uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_E0;
+    return is_microstep_value_valid(ret) ? ret : E0_MICROSTEPS;
 }
 
 template <int ENUM>
@@ -1027,24 +1051,22 @@ extern "C" void set_microsteps_e(uint16_t microsteps) {
 
 /*****************************************************************************/
 //AXIS_RMS_CURRENT_MA_X
-template <int ENUM, int DEF_VAL>
-uint16_t get_rms_current_ma() {
-    uint16_t ret = variant_get_ui16(eeprom_get_var(ENUM));
-    if (ret <= 0)
-        ret = DEF_VAL;
-    return ret;
-}
+//current must be > 0, return default value if it is not
 extern "C" uint16_t get_rms_current_ma_x() {
-    return get_rms_current_ma<AXIS_RMS_CURRENT_MA_X, X_CURRENT>();
+    uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_X;
+    return (ret > 0) ? ret : X_CURRENT;
 }
 extern "C" uint16_t get_rms_current_ma_y() {
-    return get_rms_current_ma<AXIS_RMS_CURRENT_MA_Y, Y_CURRENT>();
+    uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_Y;
+    return (ret > 0) ? ret : Y_CURRENT;
 }
 extern "C" uint16_t get_rms_current_ma_z() {
-    return get_rms_current_ma<AXIS_RMS_CURRENT_MA_Z, Z_CURRENT>();
+    uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_Z;
+    return (ret > 0) ? ret : Z_CURRENT;
 }
 extern "C" uint16_t get_rms_current_ma_e() {
-    return get_rms_current_ma<AXIS_RMS_CURRENT_MA_E0, E0_CURRENT>();
+    uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_E0;
+    return (ret > 0) ? ret : E0_CURRENT;
 }
 
 template <int ENUM>
