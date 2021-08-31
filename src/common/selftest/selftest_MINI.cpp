@@ -54,7 +54,7 @@ static const selftest_axis_config_t Config_XAxis = { .partname = "X-Axis", .leng
 
 static const selftest_axis_config_t Config_YAxis = { .partname = "Y-Axis", .length = 185, .fr_table = XYfr_table, .length_min = 179, .length_max = 189, .axis = Y_AXIS, .steps = 4, .dir = 1 };
 
-static const selftest_axis_config_t Config_ZAxis = { .partname = "Z-Axis", .length = 185, .fr_table = Zfr_table, .length_min = 181, .length_max = 191, .axis = Z_AXIS, .steps = 1, .dir = 1 };
+static const selftest_axis_config_t Config_ZAxis = { .partname = "Z-Axis", .length = get_z_max_pos_mm(), .fr_table = Zfr_table, .length_min = get_z_max_pos_mm() - 4, .length_max = get_z_max_pos_mm() + 6, .axis = Z_AXIS, .steps = 1, .dir = 1 };
 
 static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzle", .heat_time_ms = 42000, .start_temp = 40, .undercool_temp = 37, .target_temp = 290, .heat_min_temp = 130, .heat_max_temp = 190, .heater = 0 };
 
