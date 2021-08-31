@@ -11,6 +11,7 @@
 #include "netif_settings.h"
 #include "dbg.h"
 #include "wui_api.h"
+#include "alsockets.h"
 
 typedef struct {
     const char *ssid;
@@ -25,7 +26,11 @@ struct netif eth0; // network interface structure for ETH
 static ap_entry_t ap = { "ssid", "password" };
 
 extern osMessageQId networkMbox_id;
-;
+extern struct alsockets_s *alsockets_eth();
+extern struct alsockets_s *alsockets_esp();
+
+static struct alsockets_s *netdev_get_sockets(uint32_t);
+
 #define ETH_CONFIG() wui_netdev_config[NETDEV_ETH_ID]
 
 #define DNS_1 0
@@ -130,6 +135,7 @@ uint32_t netdev_init() {
 
     tcpip_init(tcpip_init_done_callback, NULL);
     esp_init(esp_callback_func, 0);
+    alsockets_funcs(netdev_get_sockets(active_netdev_id));
     return 0;
 }
 
@@ -235,4 +241,14 @@ uint32_t netdev_check_link(uint32_t dev_id) {
         }
     }
     return 0;
+}
+
+static struct alsockets_s *netdev_get_sockets(uint32_t active_id) {
+    if (active_id == NETDEV_ETH_ID)
+        return alsockets_eth();
+    else if (active_id == NETDEV_ESP_ID) {
+        return alsockets_esp();
+    } else {
+        return NULL;
+    }
 }
