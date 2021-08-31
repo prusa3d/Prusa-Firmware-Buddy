@@ -14,7 +14,7 @@
 #include "cmath_ext.h"
 #include "footer_eeprom.hpp"
 
-static const constexpr uint8_t EEPROM__PADDING = 4;
+static const constexpr uint8_t EEPROM__PADDING = 3;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
 static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;         // maximum datasize
 static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
@@ -101,6 +101,7 @@ typedef struct _eeprom_vars_t {
     float EEVAR_ODOMETER_Y;
     float EEVAR_ODOMETER_Z;
     float EEVAR_ODOMETER_E;
+    uint8_t EEVAR_ACTIVE_NETDEV;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -162,6 +163,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "ODOMETER_Y",      VARIANT8_FLT,   1, 0 },
     { "ODOMETER_Z",      VARIANT8_FLT,   1, 0 },
     { "ODOMETER_E",      VARIANT8_FLT,   1, 0 },
+    { "ACTIVE_NETDEV",   VARIANT8_UI8,   1, 0 },
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -225,6 +227,9 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_ODOMETER_Y
     0,               // EEVAR_ODOMETER_Z
     0,               // EEVAR_ODOMETER_E
+    0,               // EEVAR_ACTIVE_NETDEV
+    // "",              // EEVAR_WIFI_SSID
+    // "",              // EEVAR_WIFI_PASSWORD
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };

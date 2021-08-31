@@ -47,7 +47,6 @@
   *
   ******************************************************************************
   */
-#include "wui_config.h"
 
 /* Define to prevent recursive inclusion --------------------------------------*/
 #ifndef __LWIPOPTS__H__
@@ -98,6 +97,8 @@ extern "C" {
     #define TCP_MSS 536
     #define TCP_WND (4 * TCP_MSS)
     /*----- Value in opt.h for TCPIP_MBOX_SIZE: 0 -----*/
+    #define TCP_MSS 536
+
     #define TCPIP_MBOX_SIZE 6
     /*----- Value in opt.h for SLIPIF_THREAD_STACKSIZE: 0 -----*/
     #define SLIPIF_THREAD_STACKSIZE 1024
@@ -146,18 +147,15 @@ extern "C" {
     #define LWIP_NETIF_LINK_CALLBACK     1 // Support a callback function from an interface whenever the link changes (i.e., link down)
     #define LWIP_NETIF_STATUS_CALLBACK   1 // Support a callback function whenever an interface changes its up/down status (i.e., due to DHCP IP acquisition)
     #define LWIP_HTTPD_DYNAMIC_HEADERS   1
+    #define LWIP_SINGLE_NETIF            1
     #define LWIP_NETIF_HOSTNAME          1
     #define LWIP_HTTPD_SUPPORT_POST      1
     #define LWIP_COMPAT_SOCKETS          2
     #define LWIP_ALTCP                   1
     #define LWIP_HTTPD_DYNAMIC_FILE_READ 1
 
-    #ifdef WUI_HOST_NAME
-        #define HTTPD_SERVER_AGENT WUI_HOST_NAME
-    #else
-        #define HTTPD_SERVER_AGENT "Prusa Buddy"
-    #endif
-    #define LWIP_DNS 1
+    #define HTTPD_SERVER_AGENT "Prusa Mini"
+    #define LWIP_DNS           1
 
 /* USER CODE END 1 */
 

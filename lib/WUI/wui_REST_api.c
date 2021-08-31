@@ -15,6 +15,8 @@
 
 #include "print_utils.hpp"
 
+extern osMutexId wui_thread_mutex_id;
+
 // for data exchange between wui thread and HTTP thread
 static wui_vars_t wui_vars_copy;
 static FIL upload_file;

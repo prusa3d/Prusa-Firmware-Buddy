@@ -322,7 +322,7 @@ int main(void) {
 
 #ifdef BUDDY_ENABLE_WUI
     /* definition and creation of webServerTask */
-    osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, BUDDY_WEB_STACK_SIZE);
+    osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, 1024);
     webServerTaskHandle = osThreadCreate(osThread(webServerTask), NULL);
 #endif
 
