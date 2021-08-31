@@ -5,6 +5,7 @@ target_sources(
   INTERFACE wui.c
             wui_REST_api.c
             netdev.c
+            alsockets.c
             http/fs.c
             http/httpd.c
             http/httpd_post.c

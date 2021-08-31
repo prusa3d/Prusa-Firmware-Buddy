@@ -59,6 +59,8 @@
 #include "lwip/netif.h"
 #include "lwip/priv/tcpip_priv.h"
 #include "lwip/mld6.h"
+#include "alsockets_priv.h"
+
 #if LWIP_CHECKSUM_ON_COPY
 #include "lwip/inet_chksum.h"
 #endif
@@ -4372,5 +4374,22 @@ lwip_socket_drop_registered_mld6_memberships(int s)
   done_socket(sock);
 }
 #endif /* LWIP_IPV6_MLD */
+
+const struct alsockets_s esp_sockets = {
+    .socket  = lwesp_socket,
+    .listen  = lwesp_listen,
+    .bind    = lwesp_bind,
+    .accept  = lwesp_accept,
+    .connect = lwesp_connect,
+    .read    = lwesp_read,
+    .write   = lwesp_write,
+    .close   = lwesp_close,
+    .recvfrom= lwesp_recvfrom,
+    .sendto  = lwesp_sendto
+};
+
+const struct alsockets_s* alsockets_esp() {
+    return &esp_sockets;
+}
 
 #endif /* LWIP_SOCKET */
