@@ -958,20 +958,25 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(USB_EN_GPIO_Port, &GPIO_InitStruct);
 #ifdef USE_ESP01_WITH_UART6
-    /*Configure GPIO pins : ESP_RST_Pin */
-    GPIO_InitStruct.Pin = ESP_RST_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
-    /*Configure ESP GPIO0 (PROG, High for ESP module boot from Flash)*/
+    /* NOTE: Configuring GPIO causes a short drop of pin output to low. This is
+       avoided by first setting the pin and then initilizing the GPIO. In case
+       this does not work we first initilize ESP GPIO0 to avoid reset low
+       followed by ESP GPIO low as this sequence can switch esp to boot mode */
+
+    /* Configure ESP GPIO0 (PROG, High for ESP module boot from Flash) */
     GPIO_InitStruct.Pin = GPIO_PIN_6;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
+    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+    /* Configure GPIO pins : ESP_RST_Pin */
+    GPIO_InitStruct.Pin = ESP_RST_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 #else
     /*Configure GPIO pins : ESP_RST_Pin */
     GPIO_InitStruct.Pin = ESP_RST_Pin;
