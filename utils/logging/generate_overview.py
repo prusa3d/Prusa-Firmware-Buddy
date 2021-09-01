@@ -51,7 +51,8 @@ if __name__ == "__main__":
         '',
     ]
     for component in sorted(components, key=lambda c: c.component_name):
-        component_def_path = component.file_path.relative_to(project_root)
+        component_def_path = component.file_path.relative_to(
+            project_root).as_posix()
         doc += [
             f'- {component.component_name}: {component.lowest_severity}, {component_def_path}'
         ]
