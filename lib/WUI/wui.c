@@ -11,6 +11,7 @@
 #include "marlin_client.h"
 #include "wui_api.h"
 #include "ethernetif.h"
+#include "stm32f4xx_hal.h"
 
 #include "sntp_client.h"
 #include "dbg.h"
@@ -22,9 +23,13 @@
 #include "netdev.h"
 
 #include <string.h>
+#include "eeprom.h"
+#include "variant8.h"
 
 #define LOOP_EVT_TIMEOUT           500UL
 #define IS_TIME_TO_CHECK_ESP(time) (((time) % 1000) == 0)
+
+extern RNG_HandleTypeDef hrng;
 
 osMessageQDef(networkMbox, 16, NULL);
 osMessageQId networkMbox_id;
@@ -36,7 +41,7 @@ osMutexId(wui_thread_mutex_id);
 static marlin_vars_t *wui_marlin_vars;
 wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
-static char *api_key = "miniPL-apikey";
+static variant8_t prusa_link_api_key;
 
 static void wui_marlin_client_init(void) {
     wui_marlin_vars = marlin_client_init(); // init the client
@@ -77,6 +82,22 @@ static void sync_with_marlin_server(void) {
     osMutexRelease(wui_thread_mutex_id);
 }
 
+const char *wui_generate_api_key(char *api_key, uint32_t length) {
+    static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
+    const uint32_t charset_length = sizeof(charset) / sizeof(char);
+    uint32_t i = 0;
+
+    while (i < length - 1) {
+        uint32_t random = 0;
+        HAL_StatusTypeDef status = HAL_RNG_GenerateRandomNumber(&hrng, &random);
+        if (HAL_OK == status) {
+            api_key[i++] = charset[random % charset_length];
+        }
+    }
+    api_key[i] = 0;
+    return api_key;
+}
+
 void StartWebServerTask(void const *argument) {
     uint32_t esp_check_counter = 1;
     _dbg("wui starts");
@@ -95,7 +116,16 @@ void StartWebServerTask(void const *argument) {
 
     wui_marlin_client_init();
     netdev_init();
-    httpd_init();
+
+    if (variant8_get_ui8(eeprom_get_var(EEVAR_PL_RUN)) == 1) {
+        prusa_link_api_key = eeprom_get_var(EEVAR_PL_API_KEY);
+        if (!strcmp(variant8_get_pch(prusa_link_api_key), "")) {
+            char api_key[PL_API_KEY_SIZE] = { 0 };
+            prusa_link_api_key = variant8_init(VARIANT8_PCHAR, PL_API_KEY_SIZE, wui_generate_api_key(api_key, PL_API_KEY_SIZE));
+            eeprom_set_var(EEVAR_PL_API_KEY, prusa_link_api_key);
+        }
+        httpd_init();
+    }
 
     for (;;) {
         osEvent evt = osMessageGet(networkMbox_id, LOOP_EVT_TIMEOUT);
@@ -138,7 +168,7 @@ void StartWebServerTask(void const *argument) {
 }
 
 const char *wui_get_api_key() {
-    return api_key;
+    return variant8_get_pch(prusa_link_api_key);
 }
 
 struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {

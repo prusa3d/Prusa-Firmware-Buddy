@@ -399,7 +399,7 @@ void MI_SOUND_VOLUME::OnClick() {
 /*****************************************************************************/
 //MI_SORT_FILES
 MI_SORT_FILES::MI_SORT_FILES()
-    : WI_SWITCH_t<2>(variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT)), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
+    : WI_SWITCH_t<2>(variant8_get_ui8(eeprom_get_var(EEVAR_FILE_SORT)), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
     if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
         eeprom_set_var(EEVAR_FILE_SORT, variant8_ui8((uint8_t)WF_SORT_BY_NAME));
@@ -474,7 +474,7 @@ bool MI_MINDA::StateChanged() {
 /*****************************************************************************/
 //MI_FAN_CHECK
 MI_FAN_CHECK::MI_FAN_CHECK()
-    : WI_SWITCH_OFF_ON_t(variant_get_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SWITCH_OFF_ON_t(variant8_get_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_FAN_CHECK::OnChange(size_t old_index) {
     if (!old_index) {
         marlin_set_var(MARLIN_VAR_FAN_CHECK_ENABLED, variant8_ui8(1));
@@ -491,7 +491,7 @@ is_hidden_t hide_autoload_item() {
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
-    : WI_SWITCH_OFF_ON_t(variant_get_ui8(marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED)), _(label), 0, is_enabled_t::yes, hide_autoload_item()) {}
+    : WI_SWITCH_OFF_ON_t(variant8_get_ui8(marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED)), _(label), 0, is_enabled_t::yes, hide_autoload_item()) {}
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
     if (!old_index) {
         marlin_set_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED, variant8_ui8(1));

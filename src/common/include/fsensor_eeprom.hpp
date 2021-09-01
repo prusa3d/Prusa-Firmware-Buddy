@@ -15,5 +15,5 @@ class FSensorEEPROM {
 public:
     inline static void Set() { eeprom_set_var(EEVAR_FSENSOR_ENABLED, variant8_ui8(1)); }
     inline static void Clr() { eeprom_set_var(EEVAR_FSENSOR_ENABLED, variant8_ui8(0)); }
-    inline static bool Get() { return variant_get_ui8(eeprom_get_var(EEVAR_FSENSOR_ENABLED)) ? true : false; }
+    inline static bool Get() { return variant8_get_ui8(eeprom_get_var(EEVAR_FSENSOR_ENABLED)) ? true : false; }
 };

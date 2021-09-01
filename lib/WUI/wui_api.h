@@ -166,6 +166,14 @@ void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp);
 const char *wui_get_api_key();
 
 ////////////////////////////////////////////////////////////////////////////
+/// @brief Generate authorization key for PrusaLink
+///
+/// @param[out] buffer api key buffer
+/// @param[in] length Size of the buffer
+/// @return Return an x-api-key
+const char *wui_generate_api_key(char *, uint32_t);
+
+////////////////////////////////////////////////////////////////////////////
 /// @brief Prepare file descriptor to upload the file
 ///
 /// @param[in] filename Name of the file to start uploading
