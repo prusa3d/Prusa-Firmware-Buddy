@@ -32,8 +32,8 @@ RadioButton::RadioButton(window_t *parent, Rect16 rect, const PhaseResponses *re
     : AddSuperWindow<window_t>(parent, rect)
     , pfont(resource_font(IDR_FNT_BIG))
     , responses(resp)
-    , texts(labels)
-    , background_clr(COLOR_ORANGE) {
+    , texts(labels) {
+    SetBackColor(COLOR_ORANGE);
     SetBtnCount(cnt_buttons(labels, resp));
     SetBtnIndex(0);
     Enable();
@@ -108,7 +108,7 @@ void RadioButton::draw_0_btn() const {
 
 void RadioButton::draw_1_btn() const {
     if (texts)
-        button_draw(GetRect(), background_clr, _((*texts)[0]), pfont, IsEnabled());
+        button_draw(GetRect(), color_back, _((*texts)[0]), pfont, IsEnabled());
 }
 
 void RadioButton::draw_n_btns(const size_t btn_count) const {
@@ -138,17 +138,18 @@ void RadioButton::draw_n_btns(const size_t btn_count) const {
             buffer[length] = 0;
             drawn = string_view_utf8::MakeRAM((const uint8_t *)buffer);
         }
-        button_draw(splits[i], background_clr, drawn, pfont, GetBtnIndex() == i && IsEnabled());
+        button_draw(splits[i], color_back, drawn, pfont, GetBtnIndex() == i && IsEnabled());
     }
+    color_t spaces_clr = color_back == COLOR_ORANGE ? COLOR_BLACK : COLOR_ORANGE;
     for (size_t i = 0; i < btn_count - 1; ++i) {
-        display::FillRect(spaces[i], color_back);
+        display::FillRect(spaces[i], spaces_clr);
     }
 }
 
-void RadioButton::button_draw(Rect16 rc_btn, color_t bg_clr, string_view_utf8 text, const font_t *pf, bool is_selected) {
-    color_t back_cl = is_selected ? bg_clr : COLOR_GRAY;
+void RadioButton::button_draw(Rect16 rc_btn, color_t back_color, string_view_utf8 text, const font_t *pf, bool is_selected) {
+    color_t button_cl = is_selected ? back_color : COLOR_GRAY;
     color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
-    render_text_align(rc_btn, text, pf, back_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
+    render_text_align(rc_btn, text, pf, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
 }
 
 bool RadioButton::IsEnabled() const {

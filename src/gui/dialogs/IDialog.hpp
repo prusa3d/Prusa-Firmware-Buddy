@@ -15,8 +15,8 @@ class IDialog : public AddSuperWindow<window_frame_t> {
 public:
     enum class IsStrong : bool { no,
         yes };
-    IDialog(Rect16 rc = GuiDefaults::RectScreenBody, IsStrong strong = IsStrong::no);
-    IDialog(window_t *parent, Rect16 rc = GuiDefaults::RectScreenBody);
+    IDialog(Rect16 rc = GuiDefaults::DialogFrameRect, IsStrong strong = IsStrong::no);
+    IDialog(window_t *parent, Rect16 rc = GuiDefaults::DialogFrameRect);
 
     static constexpr Rect16 get_radio_button_rect(Rect16 rc_frame) {
         return Rect16(
