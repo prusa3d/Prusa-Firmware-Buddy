@@ -39,7 +39,7 @@ enum {
  * @brief analog output pins
  */
 const uint32_t _dac_pin32[] = {};
-// a3ides analog output maximum values
+// buddy analog output maximum values
 const int _dac_max[] = { 0 };
 static const size_t _DAC_CNT = sizeof(_dac_pin32) / sizeof(uint32_t);
 
@@ -59,7 +59,7 @@ static const int _HEATER_CNT = _HEATER_ID_MAX - _HEATER_ID_MIN + 1;
 int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);
 int _tim3_period_us = GEN_PERIOD_US(TIM3_default_Prescaler, TIM3_default_Period);
 
-// a3ides pwm output pins
+// buddy pwm output pins
 const uint32_t _pwm_pin32[] = {
     MARLIN_PIN(HEAT0),
     MARLIN_PIN(BED_HEAT),
@@ -88,7 +88,7 @@ int *const _pwm_period_us[] = {
     &_tim1_period_us, //_PWM_FAN
 };
 
-// a3ides pwm output maximum values
+// buddy pwm output maximum values
 const int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_Period, TIM1_default_Period }; //{42000, 42000, 42000, 42000};
 enum {
     _PWM_CNT = (sizeof(_pwm_pin32) / sizeof(uint32_t))
@@ -104,32 +104,32 @@ const TIM_OC_InitTypeDef sConfigOC_default = {
     TIM_OCNIDLESTATE_RESET //OCNIdleState
 };
 
-// a3ides pwm output maximum values  as arduino analogWrite
+// buddy pwm output maximum values  as arduino analogWrite
 const int _pwm_analogWrite_max[_PWM_CNT] = { 0xff, 0xff, 0xff, 0xff };
-// a3ides fan output values  as arduino analogWrite
+// buddy fan output values  as arduino analogWrite
 int _pwm_analogWrite_val[_PWM_CNT] = { 0, 0, 0, 0 };
 
-// a3ides fan output maximum values as arduino analogWrite
+// buddy fan output maximum values as arduino analogWrite
 const int *_fan_max = &_pwm_analogWrite_max[_FAN_ID_MIN];
-// a3ides fan output values as arduino analogWrite
+// buddy fan output values as arduino analogWrite
 int *_fan_val = &_pwm_analogWrite_val[_FAN_ID_MIN];
 
-// a3ides heater output maximum values
+// buddy heater output maximum values
 const int *_heater_max = &_pwm_analogWrite_max[_HEATER_ID_MIN];
-// a3ides heater output values
+// buddy heater output values
 int *_heater_val = &_pwm_analogWrite_val[_HEATER_ID_MIN];
 
 /*
 
-// a3ides fan output maximum values
+// buddy fan output maximum values
 const int _fan_max[] = {255, 255};
-// a3ides fan output values
+// buddy fan output values
 int _fan_val[] = {0, 0};
 
 
-// a3ides heater output maximum values
+// buddy heater output maximum values
 const int _heater_max[] = {255, 255};
-// a3ides heater output values
+// buddy heater output values
 int _heater_val[] = {0, 0};
 */
 int hwio_jogwheel_enabled = 0;

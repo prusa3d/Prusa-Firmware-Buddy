@@ -1,4 +1,4 @@
-//USBSerial.h - A3ides/STM32
+//USBSerial.h - Buddy/STM32
 #ifndef _USBSERIAL_H
 #define _USBSERIAL_H
 

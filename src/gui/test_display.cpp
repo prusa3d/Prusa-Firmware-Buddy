@@ -229,7 +229,7 @@ void test_display_spectrum(uint16_t cnt) {
 }
 
 //extern uint8_t png_data[];
-//extern const uint8_t png_a3ides_logo[];
+//extern const uint8_t png_buddy_logo[];
 //extern const uint8_t png_splash_screen[];
 //extern const uint8_t png_status_screen[];
 //extern const uint8_t png_main_menu[];
@@ -258,7 +258,7 @@ int __write(struct _reent *_r, void *pv, const char *pc, int n) {
 }
 
 void test_display2(void) {
-    //	FILE* pf = fmemopen(png_a3ides_logo, 2889, "rb");
+    //	FILE* pf = fmemopen(png_buddy_logo, 2889, "rb");
     //	FILE* pf0 = fmemopen(png_splash_screen, 10318, "rb");
     //	FILE* pf1 = fmemopen((void*)png_status_screen, 11438, "rb");
     //	FILE* pf2 = fmemopen(png_main_menu, 4907, "rb");
@@ -312,7 +312,7 @@ void test_display2(void) {
 		_dbg3("fill_rect %u", tim);
 		osDelay(1000);*/
 
-        //	  	st7789v_draw_pict(10, 10, 83, 63, (uint16_t*)png_a3ides_logo);
+        //	  	st7789v_draw_pict(10, 10, 83, 63, (uint16_t*)png_buddy_logo);
         //	  	display_ex_draw_png(10, 10, pf);
         //	  	osDelay(1000);
         //	  	display_ex_draw_png(0, 0, pf0);

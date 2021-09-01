@@ -1,4 +1,4 @@
-//HardwareSerial.cpp - A3ides/STM32
+//HardwareSerial.cpp - Buddy/STM32
 #include <Arduino.h>
 #include "buffered_serial.hpp"
 #include "cmsis_os.h"

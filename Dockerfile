@@ -1,6 +1,6 @@
 FROM python:3.8
 
-WORKDIR /a3ides
+WORKDIR /buddy
 
-COPY ./utils/bootstrap.py /a3ides/utils/bootstrap.py
-RUN python /a3ides/utils/bootstrap.py
+COPY ./utils/bootstrap.py /buddy/utils/bootstrap.py
+RUN python /buddy/utils/bootstrap.py
