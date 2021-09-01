@@ -8,8 +8,8 @@ if(NOT ARDUINO_CORE_VARIANT IN_LIST ARDUINO_CORE_VARIANTS)
 endif()
 
 add_library(
-  CoreA3ides
-  $<$<STREQUAL:${ARDUINO_CORE_VARIANT},2209>:${CMAKE_CURRENT_SOURCE_DIR}/variants/A3IDES_F407VET6_2209/variant.cpp>
+  CoreBuddy
+  $<$<STREQUAL:${ARDUINO_CORE_VARIANT},2209>:${CMAKE_CURRENT_SOURCE_DIR}/variants/BUDDY_F407VET6_2209/variant.cpp>
   cores/arduino/Print.cpp
   cores/arduino/Stream.cpp
   cores/arduino/USBSerial.cpp
@@ -19,16 +19,15 @@ add_library(
   )
 
 target_include_directories(
-  CoreA3ides
+  CoreBuddy
   PUBLIC
-    $<$<STREQUAL:${ARDUINO_CORE_VARIANT},2209>:${CMAKE_CURRENT_SOURCE_DIR}/variants/A3IDES_F407VET6_2209>
-    $<$<STREQUAL:${ARDUINO_CORE_VARIANT},2130>:${CMAKE_CURRENT_SOURCE_DIR}/variants/A3IDES_F407VET6_2130>
+    $<$<STREQUAL:${ARDUINO_CORE_VARIANT},2209>:${CMAKE_CURRENT_SOURCE_DIR}/variants/BUDDY_F407VET6_2209>
     cores/arduino/stm32
     cores/arduino
   )
 
 target_compile_definitions(
-  CoreA3ides
+  CoreBuddy
   PUBLIC
   ARDUINO=187
   $<$<STREQUAL:${ARDUINO_CORE_TARGET},STM32F4xx>:STM32F4xx>
@@ -38,8 +37,8 @@ target_compile_definitions(
   )
 
 target_link_libraries(
-  CoreA3ides PUBLIC STM32F4::HAL STM32::USBDevice STM32::USBHost FreeRTOS::FreeRTOS
+  CoreBuddy PUBLIC STM32F4::HAL STM32::USBDevice STM32::USBHost FreeRTOS::FreeRTOS
   )
 
-add_library(Arduino::CoreA3ides ALIAS CoreA3ides)
-add_library(Arduino::Core ALIAS CoreA3ides)
+add_library(Arduino::CoreBuddy ALIAS CoreBuddy)
+add_library(Arduino::Core ALIAS CoreBuddy)
