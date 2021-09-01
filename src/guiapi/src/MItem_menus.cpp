@@ -210,7 +210,7 @@ void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_DEVHASH_IN_QR
 MI_DEVHASH_IN_QR::MI_DEVHASH_IN_QR()
-    : WI_SWITCH_OFF_ON_t(variant_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SWITCH_OFF_ON_t(variant8_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
     if (!old_index) {
         /// enable
@@ -264,4 +264,14 @@ MI_LANGUAGUE_XFLASH::MI_LANGUAGUE_XFLASH()
 void MI_LANGUAGUE_XFLASH::click(IWindowMenu &windowMenu) {
     if (fileProviderInternal.EnsureFile())
         Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderInternal);
+}
+
+/*****************************************************************************/
+//MI_PRUSALINK
+MI_PRUSALINK::MI_PRUSALINK()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_PRUSALINK::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenPrusaLink);
 }

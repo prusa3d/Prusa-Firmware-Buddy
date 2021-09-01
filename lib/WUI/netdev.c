@@ -132,7 +132,7 @@ esp_callback_func(esp_evt_t *evt) {
 uint32_t netdev_init() {
     ETH_CONFIG().var_mask = ETHVAR_EEPROM_CONFIG;
     load_eth_params(&ETH_CONFIG());
-    active_netdev_id = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_NETDEV));
+    active_netdev_id = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_NETDEV));
 
     tcpip_init(tcpip_init_done_callback, NULL);
     esp_hard_reset_device();
