@@ -64,7 +64,7 @@ uint32_t save_eth_params(ETH_config_t *ethconfig) {
 uint32_t load_eth_params(ETH_config_t *ethconfig) {
 
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
-        ethconfig->lan.flag = variant_get_ui8(eeprom_get_var(EEVAR_LAN_FLAG));
+        ethconfig->lan.flag = variant8_get_ui8(eeprom_get_var(EEVAR_LAN_FLAG));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
         ethconfig->lan.addr_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_ADDR));

@@ -270,7 +270,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         char qr_text[MAX_LEN_4QR + 1];
 
         /// switch for sending UID of printer or not
-        bool devhash_in_qr = variant_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR));
+        bool devhash_in_qr = variant8_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR));
         if (devhash_in_qr) {
             error_url_long(qr_text, sizeof(qr_text), error_code);
         } else {

@@ -483,7 +483,7 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
 }
 
 uint8_t marlin_get_gqueue(void) {
-    return variant_get_ui8(marlin_get_var(MARLIN_VAR_GQUEUE));
+    return variant8_get_ui8(marlin_get_var(MARLIN_VAR_GQUEUE));
 }
 
 uint8_t marlin_get_gqueue_max(void) {
@@ -493,7 +493,7 @@ uint8_t marlin_get_gqueue_max(void) {
 }
 
 uint8_t marlin_get_pqueue(void) {
-    return variant_get_ui8(marlin_get_var(MARLIN_VAR_PQUEUE));
+    return variant8_get_ui8(marlin_get_var(MARLIN_VAR_PQUEUE));
 }
 
 uint8_t marlin_get_pqueue_max(void) {
@@ -519,23 +519,23 @@ float marlin_set_z_offset(float val) {
 }
 
 uint8_t marlin_set_fan_speed(uint8_t val) {
-    return variant_get_ui8(marlin_set_var(MARLIN_VAR_FANSPEED, variant8_ui8(val)));
+    return variant8_get_ui8(marlin_set_var(MARLIN_VAR_FANSPEED, variant8_ui8(val)));
 }
 
 uint16_t marlin_set_print_speed(uint16_t val) {
-    return variant_get_ui16(marlin_set_var(MARLIN_VAR_PRNSPEED, variant8_ui16(val)));
+    return variant8_get_ui16(marlin_set_var(MARLIN_VAR_PRNSPEED, variant8_ui16(val)));
 }
 
 uint16_t marlin_set_flow_factor(uint16_t val) {
-    return variant_get_ui16(marlin_set_var(MARLIN_VAR_FLOWFACT, variant8_ui16(val)));
+    return variant8_get_ui16(marlin_set_var(MARLIN_VAR_FLOWFACT, variant8_ui16(val)));
 }
 
 uint8_t marlin_set_wait_heat(uint8_t val) {
-    return variant_get_ui8(marlin_set_var(MARLIN_VAR_WAITHEAT, variant8_ui8(val)));
+    return variant8_get_ui8(marlin_set_var(MARLIN_VAR_WAITHEAT, variant8_ui8(val)));
 }
 
 uint8_t marlin_set_wait_user(uint8_t val) {
-    return variant_get_ui8(marlin_set_var(MARLIN_VAR_WAITUSER, variant8_ui8(val)));
+    return variant8_get_ui8(marlin_set_var(MARLIN_VAR_WAITUSER, variant8_ui8(val)));
 }
 
 void marlin_do_babysteps_Z(float offs) {

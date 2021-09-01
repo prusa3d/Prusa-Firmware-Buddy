@@ -142,6 +142,7 @@ DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart6_rx;
 DMA_HandleTypeDef hdma_adc1;
+RNG_HandleTypeDef hrng;
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
@@ -171,6 +172,8 @@ static void MX_SPI3_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM14_Init(void);
 static void MX_RTC_Init(void);
+static void MX_RNG_Init(void);
+
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
 void StartESPTask(void const *argument);
@@ -248,6 +251,8 @@ int main(void) {
     MX_TIM2_Init();
     MX_TIM14_Init();
     MX_RTC_Init();
+    MX_RNG_Init();
+
     /* USER CODE BEGIN 2 */
     HAL_GPIO_Initialized = 1;
     HAL_ADC_Initialized = 1;
@@ -1007,6 +1012,29 @@ static void MX_GPIO_Init(void) {
 
     HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+}
+
+/**
+  * @brief RNG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RNG_Init(void) {
+
+    /* USER CODE BEGIN RNG_Init 0 */
+
+    /* USER CODE END RNG_Init 0 */
+
+    /* USER CODE BEGIN RNG_Init 1 */
+
+    /* USER CODE END RNG_Init 1 */
+    hrng.Instance = RNG;
+    if (HAL_RNG_Init(&hrng) != HAL_OK) {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN RNG_Init 2 */
+
+    /* USER CODE END RNG_Init 2 */
 }
 
 /* USER CODE BEGIN 4 */

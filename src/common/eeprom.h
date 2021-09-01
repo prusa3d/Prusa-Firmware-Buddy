@@ -87,13 +87,16 @@ enum {
     EEVAR_ODOMETER_Z = 0x30,          // float
     EEVAR_ODOMETER_E = 0x31,          // float
     EEVAR_ACTIVE_NETDEV = 0x32,       // active network device
-    EEVAR__PADDING = 0x33,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x34,               // uint32_t crc32 for
+    EEVAR_PL_RUN = 0x33,              // active network device
+    EEVAR_PL_API_KEY = 0x34,          // active network device
+    EEVAR__PADDING = 0x35,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_CRC32 = 0x36,               // uint32_t crc32 for
 };
 
 enum {
     LAN_HOSTNAME_MAX_LEN = 20,
     CONNECT_TOKEN_SIZE = 20,
+    PL_API_KEY_SIZE = 16,
     LAN_EEFLG_ONOFF = 1, //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
     LAN_EEFLG_TYPE = 2,  //EEPROM flag for user-defined settings (Switch between dhcp and static)
 };
