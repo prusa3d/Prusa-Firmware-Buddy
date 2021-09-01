@@ -1,4 +1,4 @@
-//config_a3ides2209.h - configuration file for 2209 variant (rev02)
+//config_buddy_2209_02.h - configuration file for 2209 variant (rev02)
 #pragma once
 #include <stdint.h>
 

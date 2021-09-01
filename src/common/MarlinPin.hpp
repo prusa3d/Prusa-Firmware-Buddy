@@ -39,7 +39,7 @@
 /**
  * @brief Virtual port not associated with any physical pin
  *
- * Mapping of virtual pin needs to be implemented in hwio_a3ides_2209_02.cpp
+ * Mapping of virtual pin needs to be implemented in hwio_buddy_2209_02.cpp
  *
  */
 #define MARLIN_PORT_V 7
