@@ -24,11 +24,11 @@
 #include "hwio_pindef.h"
 
 #if !defined(STM32F4) && !defined(STM32F4xx)
-  #error "Oops! Select an A3ides board in 'Tools > Board.'"
+  #error "Oops! Select a Buddy board in 'Tools > Board.'"
 #endif
 
 #define DEFAULT_MACHINE_NAME "Prusa-mini"
-#define BOARD_NAME "A3ides Board"
+#define BOARD_NAME "Buddy Board"
 
 #define I2C_EEPROM
 
@@ -36,7 +36,7 @@
 
 
 #if HOTENDS > 1 || E_STEPPERS > 2
-  #error "A3ides supports up to 1 hotends / E-steppers."
+  #error "Buddy supports up to 1 hotends / E-steppers."
 #endif
 
 //
