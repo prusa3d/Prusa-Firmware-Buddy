@@ -657,8 +657,8 @@
   #include "stm32f4/pins_LERDGE_S.h"            // STM32F4                                env:LERDGES env:LERDGES_usb_flash_drive
 #elif MB(LERDGE_X)
   #include "stm32f4/pins_LERDGE_X.h"            // STM32F4                                env:LERDGEX env:LERDGEX_usb_flash_drive
-#elif MB(A3IDES_2209_02)
-  #include "stm32/pins_A3IDES_2209_02.h"        // STM32F4                                env:STM32F4
+#elif MB(BUDDY_2209_02)
+  #include "stm32/pins_BUDDY_2209_02.h"         // STM32F4                                env:STM32F4
 #elif MB(VAKE403D)
   #include "stm32f4/pins_VAKE403D.h"            // STM32F4
 #elif MB(FYSETC_S6)
