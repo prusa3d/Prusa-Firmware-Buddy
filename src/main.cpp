@@ -63,7 +63,7 @@
 #include "Z_probe.h"
 #include "hwio_pindef.h"
 #include "gui.hpp"
-#include "config_a3ides2209_02.h"
+#include "config_buddy_2209_02.h"
 #include "eeprom.h"
 #include "crc32.h"
 #include "w25x.h"

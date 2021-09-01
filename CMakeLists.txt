@@ -550,7 +550,7 @@ target_sources(
           src/common/sys.cpp
           src/common/sim_nozzle.c
           src/common/heap.c
-          src/common/hwio_a3ides_2209_02.cpp
+          src/common/hwio_buddy_2209_02.cpp
           src/common/safe_state.cpp
           src/common/variant8.cpp
           src/common/dbg.c
@@ -781,7 +781,7 @@ set_property(
          src/common/sys.cpp
          src/marlin_stubs/M50.cpp
          src/marlin_stubs/gcode.cpp
-         src/common/hwio_a3ides_2209_02.cpp
+         src/common/hwio_buddy_2209_02.cpp
          src/gui/guimain.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>

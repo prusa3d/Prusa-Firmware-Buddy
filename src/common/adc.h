@@ -2,7 +2,7 @@
 
 #include "inttypes.h"
 #include "stm32f4xx_hal.h"
-#include "config_a3ides2209_02.h"
+#include "config_buddy_2209_02.h"
 
 const uint8_t CHANNEL_NOZZLE = 0;
 const uint8_t CHANNEL_BED = 1;

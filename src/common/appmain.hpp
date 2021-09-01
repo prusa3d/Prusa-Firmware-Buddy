@@ -5,7 +5,7 @@
  */
 
 #pragma once
-#include "config_a3ides2209_02.h"
+#include "config_buddy_2209_02.h"
 #ifdef NEW_FANCTL
     #include "fanctl.h"
 extern CFanCtl fanctl0;
