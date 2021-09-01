@@ -1,4 +1,4 @@
-//Wire.cpp - A3ides/STM32
+//Wire.cpp - Buddy/STM32
 
 #include "Wire.h"
 #include "cmsis_os.h"

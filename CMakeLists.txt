@@ -205,23 +205,23 @@ if(CUSTOM_COMPILE_OPTIONS)
 endif()
 
 #
-# A3idesHeaders
+# BuddyHeaders
 #
 # This library provides headers in the /include directory. When a library requires a configuration
 # header, e.g. STM32::USBHost requires usbh_conf.h, we can just place the header to /include and
-# then add A3idesHeaders as a dependency to STM32::USBHost.
+# then add BuddyHeaders as a dependency to STM32::USBHost.
 #
 # TODO: Refactor this to make it clear what header files are associated with which targets.
 #
 
-add_library(A3idesHeaders INTERFACE)
+add_library(BuddyHeaders INTERFACE)
 target_include_directories(
-  A3idesHeaders INTERFACE include include/stm32f4_hal include/usb_host include/usb_device
-                          include/marlin include/freertos
+  BuddyHeaders INTERFACE include include/stm32f4_hal include/usb_host include/usb_device
+                         include/marlin include/freertos
   )
-target_link_libraries(A3idesHeaders INTERFACE STM32F4::HAL FreeRTOS::FreeRTOS)
+target_link_libraries(BuddyHeaders INTERFACE STM32F4::HAL FreeRTOS::FreeRTOS)
 target_compile_definitions(
-  A3idesHeaders
+  BuddyHeaders
   INTERFACE
   MOTHERBOARD=1823
   MCU=${MCU}
@@ -262,13 +262,13 @@ add_library(STM32F4_HAL_Config INTERFACE)
 target_include_directories(STM32F4_HAL_Config INTERFACE include/stm32f4_hal)
 
 # STM32::USBHost
-add_library(STM32_USBHost_Config ALIAS A3idesHeaders)
+add_library(STM32_USBHost_Config ALIAS BuddyHeaders)
 
 # STM32::USBDevice
-add_library(STM32_USBDevice_Config ALIAS A3idesHeaders)
+add_library(STM32_USBDevice_Config ALIAS BuddyHeaders)
 
 # STM32::Utilities::CPU
-add_library(STM32_Utilities_CPU_Config ALIAS A3idesHeaders)
+add_library(STM32_Utilities_CPU_Config ALIAS BuddyHeaders)
 
 #
 # Configure FreeRTOS
@@ -283,14 +283,14 @@ target_link_libraries(FreeRTOS_Config INTERFACE STM32::CPU)
 #
 
 add_library(LwIP_Config INTERFACE)
-target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
+target_link_libraries(LwIP_Config INTERFACE BuddyHeaders)
 
 #
 # Configure FatFs
 #
 
 add_library(FatFs_Config INTERFACE)
-target_link_libraries(FatFs_Config INTERFACE A3idesHeaders STM32::USBHost)
+target_link_libraries(FatFs_Config INTERFACE BuddyHeaders STM32::USBHost)
 
 #
 # Configure Marlin
@@ -302,7 +302,7 @@ target_include_directories(
   Marlin_Config INTERFACE include/marlin src/common src/common/selftest src/gui
                           src/marlin_stubs/include
   )
-target_link_libraries(Marlin_Config INTERFACE A3idesHeaders FreeRTOS::FreeRTOS)
+target_link_libraries(Marlin_Config INTERFACE BuddyHeaders FreeRTOS::FreeRTOS)
 
 #
 # Global Compiler & Linker Configuration
@@ -391,7 +391,7 @@ endif()
 add_subdirectory(lib)
 
 #
-# A3ides firmware
+# Buddy firmware
 #
 
 add_executable(firmware)
@@ -486,7 +486,7 @@ target_compile_options(firmware PRIVATE -Wdouble-promotion)
 
 target_link_libraries(
   firmware
-  PRIVATE A3idesHeaders
+  PRIVATE BuddyHeaders
           Marlin
           Arduino::Core
           Arduino::TMCStepper

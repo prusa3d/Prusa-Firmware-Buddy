@@ -1,4 +1,4 @@
-//wiring_analog.h - A3ides/STM32
+//wiring_analog.h - Buddy/STM32
 #ifndef _WIRING_ANALOG_H
 #define _WIRING_ANALOG_H
 

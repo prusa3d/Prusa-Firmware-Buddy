@@ -1,4 +1,4 @@
-//USBSerial.cpp - A3ides/STM32
+//USBSerial.cpp - Buddy/STM32
 
 #include "USBSerial.h"
 #include "stm32f4xx_hal.h"
