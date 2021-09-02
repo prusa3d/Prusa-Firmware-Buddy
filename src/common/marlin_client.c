@@ -727,7 +727,11 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
         }
     }
     osSemaphoreRelease(marlin_server_sema); // unlock
-    log_info(MarlinClient, "Request (client %u): %s", client_id, request);
+
+    // Log everything except !update
+    if (!!strncmp(request, "!update", strlen("!update"))) {
+        log_info(MarlinClient, "Request (client %u): %s", client_id, request);
+    }
 }
 
 // wait for ack event, blocking - used for synchronization, called typicaly at end of client request functions
