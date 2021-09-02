@@ -39,7 +39,7 @@ int guimain_spi_test = 0;
 #include "wdt.h"
 #include "dump.h"
 #include "gui_media_events.hpp"
-
+#include "main.h"
 extern void blockISR(); // do not want to include marlin temperature
 
 const st7789v_config_t st7789v_cfg = {

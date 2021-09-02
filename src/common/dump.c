@@ -4,6 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 #include "dump.h"
+#include <string.h>
+#include "ff.h"
 #include "w25x.h"
 
 static const uint32_t DUMP_OFFSET = 0x00;
