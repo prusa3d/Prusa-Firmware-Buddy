@@ -1188,7 +1188,12 @@ static int _process_server_request(const char *request) {
     int client_id = *(request++) - '0';
     if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS))
         return 1;
-    log_info(MarlinServer, "Processing %s (from %u)", request, client_id);
+
+    // Log everything except !update
+    if (!!strncmp(request, "!update", strlen("!update"))) {
+        log_info(MarlinServer, "Processing %s (from %u)", request, client_id);
+    }
+
     if (strncmp("!g ", request, 3) == 0) {
         //@TODO return value depending on success of enqueueing gcode
         processed = marlin_server_enqueue_gcode(request + 3);
