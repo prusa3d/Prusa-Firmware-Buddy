@@ -2700,10 +2700,13 @@ static void get_fileinfo (
 	fno->fname[di] = 0;		/* Terminate the SFN */
 #endif
 
-	fno->fattrib = dp->dir[DIR_Attr] & AM_MASK;			/* Attribute */
-	fno->fsize = ld_dword(dp->dir + DIR_FileSize);		/* Size */
-	fno->ftime = ld_word(dp->dir + DIR_ModTime + 0);	/* Time */
-	fno->fdate = ld_word(dp->dir + DIR_ModTime + 2);	/* Date */
+    fno->fattrib = dp->dir[DIR_Attr] & AM_MASK;           /* Attribute */
+    fno->fsize = ld_dword(dp->dir + DIR_FileSize);        /* Size */
+    DWORD modified = ld_dword(dp->dir + DIR_ModTime + 0); /* Modified date and time */
+    DWORD created = ld_dword(dp->dir + DIR_CrtTime + 0);  /* Created date and time */
+    int offset = (modified > created) ? DIR_ModTime : DIR_CrtTime;
+    fno->ftime = ld_word(dp->dir + offset + 0);	          /* Time */
+    fno->fdate = ld_word(dp->dir + offset + 2);	          /* Date */
 }
 
 #endif /* FF_FS_MINIMIZE <= 1 || FF_FS_RPATH >= 2 */
