@@ -31,43 +31,43 @@ public:
     Response GetResult();
 
 protected:
-    Rect16 getTextRect();
+    virtual Rect16 getTextRect();
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-};
-
-/*****************************************************************************/
-//MsgBoxTitled
-class MsgBoxTitled : public AddSuperWindow<MsgBoxBase> {
-    window_icon_t title_icon;
-    window_text_t title;
-
-public:
-    MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, uint16_t title_icon_id_res);
-
-protected:
-    virtual void unconditionalDraw() override;
-
-    //some methods to help with construction
-    font_t *getTitleFont();
-    padding_ui8_t getTitlePadding();
-    Rect16 getTitleRect();      // icon must be initialized
-    Rect16 getTitledTextRect(); // icon and title must be initialized
 };
 
 /*****************************************************************************/
 //MsgBoxIconned
 class MsgBoxIconned : public AddSuperWindow<MsgBoxBase> {
-    window_icon_t icon;
 
 public:
     MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline, uint16_t icon_id_res);
 
 protected:
+    window_icon_t icon;
     //some methods to help with construction
-    Rect16 getIconnedTextRect(); // icon and title must be initialized
-    Rect16 getIconRect();        // compute icon rect
+    virtual Rect16 getIconRect(); // compute icon rect
+    virtual Rect16 getTextRect() override;
+};
+
+/*****************************************************************************/
+//MsgBoxTitled
+class MsgBoxTitled : public AddSuperWindow<MsgBoxIconned> {
+public:
+    MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels,
+        string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, uint16_t title_icon_id_res);
+
+protected:
+    window_text_t title;
+
+    virtual void unconditionalDraw() override;
+    virtual Rect16 getTextRect() override;
+    virtual Rect16 getIconRect() override;
+    virtual Rect16 getTitleRect(); // icon must be initialized
+private:
+    //some methods to help with construction
+    font_t *getTitleFont();
+    padding_ui8_t getTitlePadding();
 };
 
 //todo enum default button
