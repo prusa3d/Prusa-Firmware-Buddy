@@ -230,6 +230,14 @@ extern "C" void EepromSystemInit() {
 
     irq = __get_PRIMASK() & 1;
     __enable_irq();
+
+    eeprom_init_status_t status = eeprom_init();
+    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
+        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
+        dump_in_xflash_reset();
+    }
+    if (irq == 0)
+        __disable_irq();
 }
 
 /**
@@ -238,13 +246,6 @@ extern "C" void EepromSystemInit() {
   */
 int main(void) {
     // initialize eeprom, if it is not already done
-    eeprom_init_status_t status = eeprom_init();
-    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
-        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
-        dump_in_xflash_reset();
-    }
-    if (irq == 0)
-        __disable_irq();
 
     buddy::hw::BufferedSerial::uart2.Open();
 

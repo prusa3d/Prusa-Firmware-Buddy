@@ -302,23 +302,18 @@ static int eeprom_check_crc32(void);
 static void eeprom_update_crc32();
 
 static uint16_t eeprom_fwversion_ui16(void);
-
-static eeprom_vars_t &initialize_eeprom_startup_vars();
+static eeprom_vars_t &eeprom_startup_vars();
 
 eeprom_init_status_t eeprom_init(void) {
-    static eeprom_init_status_t eeprom_init_status = EEPROM_INIT_Undefined;
-    //already initialized
-    if (eeprom_init_status != EEPROM_INIT_Undefined)
-        return eeprom_init_status;
-
+    static eeprom_init_status_t status = EEPROM_INIT_Undefined;
+    if (status != EEPROM_INIT_Undefined)
+        return status; //already initialized
     uint16_t version;
     uint16_t features;
-    eeprom_init_status_t status = EEPROM_INIT_Normal;
+    status = EEPROM_INIT_Normal;
     osSemaphoreDef(eepromSema);
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
-
-    eeprom_init_status = EEPROM_INIT_in_progress; // some methods called during init, require status != EEPROM_INIT_Undefined
 
     version = variant_get_ui16(eeprom_get_var(EEVAR_VERSION));
     features = (version >= 4) ? variant_get_ui16(eeprom_get_var(EEVAR_FEATURES)) : 0;
@@ -334,13 +329,11 @@ eeprom_init_status_t eeprom_init(void) {
     if (status == EEPROM_INIT_Defaults)
         eeprom_defaults();
     //eeprom_print_vars(); this is not possible here because it hangs - init is now done in main.cpp, not in defaultThread
-    eeprom_init_status = status;
-    initialize_eeprom_startup_vars(); //initialize internal static variable
+    eeprom_startup_vars(); //initialize internal static variable, first call must be done now - to ensure interrupt is enabled
     return status;
 }
 
 void eeprom_defaults(void) {
-    eeprom_init(); // if eeprom is not initialized, initialize it, otherwise do nothing
     eeprom_vars_t vars = eeprom_var_defaults;
     vars.FWBUILD = project_build_number;
     vars.FWVERSION = eeprom_fwversion_ui16();
@@ -361,21 +354,12 @@ static eeprom_vars_t eeprom_read_vars() {
     return ret;
 }
 
-static eeprom_vars_t &initialize_eeprom_startup_vars() {
+static eeprom_vars_t &eeprom_startup_vars() {
     static eeprom_vars_t ret = eeprom_read_vars();
     return ret;
 }
 
-//this is called in initialization of static variables
-//so eeprom is not initialized yet
-static eeprom_vars_t &eeprom_startup_vars() {
-    eeprom_init();                                                // if eeprom is not initialized, initialize it, otherwise do nothing
-    static eeprom_vars_t &ret = initialize_eeprom_startup_vars(); //initialize was alerady called by eeprom_init, so just refer to its value
-    return ret;
-}
-
 variant8_t eeprom_get_var(uint8_t id) {
-    eeprom_init(); // if eeprom is not initialized, initialize it, otherwise do nothing
     uint16_t addr;
     uint16_t size;
     uint16_t data_size;
@@ -400,7 +384,6 @@ variant8_t eeprom_get_var(uint8_t id) {
 }
 
 void eeprom_set_var(uint8_t id, variant8_t var) {
-    eeprom_init(); // if eeprom is not initialized, initialize it, otherwise do nothing
     uint16_t addr;
     uint16_t size;
     uint16_t data_size;
