@@ -11,8 +11,11 @@
 #include "version.h"
 #include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
+#include "../include/marlin/Configuration.h"
+#include "../include/marlin/Configuration_adv.h"
 #include "cmath_ext.h"
 #include "footer_eeprom.hpp"
+#include <bitset>
 
 static const constexpr uint8_t EEPROM__PADDING = 4;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
@@ -100,7 +103,20 @@ typedef struct _eeprom_vars_t {
     float EEVAR_ODOMETER_X;
     float EEVAR_ODOMETER_Y;
     float EEVAR_ODOMETER_Z;
-    float EEVAR_ODOMETER_E;
+    float EEVAR_ODOMETER_E0;
+    float AXIS_STEPS_PER_UNIT_X;
+    float AXIS_STEPS_PER_UNIT_Y;
+    float AXIS_STEPS_PER_UNIT_Z;
+    float AXIS_STEPS_PER_UNIT_E0;
+    uint16_t AXIS_MICROSTEPS_X;
+    uint16_t AXIS_MICROSTEPS_Y;
+    uint16_t AXIS_MICROSTEPS_Z;
+    uint16_t AXIS_MICROSTEPS_E0;
+    uint16_t AXIS_RMS_CURRENT_MA_X;
+    uint16_t AXIS_RMS_CURRENT_MA_Y;
+    uint16_t AXIS_RMS_CURRENT_MA_Z;
+    uint16_t AXIS_RMS_CURRENT_MA_E0;
+    float AXIS_Z_MAX_POS_MM;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -158,16 +174,32 @@ static const eeprom_entry_t eeprom_map[] = {
     { "FOOTER_DRAW_TP"  ,VARIANT8_UI32,  1, 0 }, // EEVAR_FOOTER_DRAW_TYPE
     { "FAN_CHECK_ENA",   VARIANT8_UI8,   1, 0 }, // EEVAR_FAN_CHECK_ENABLED
     { "FS_AUTOL_ENA",    VARIANT8_UI8,   1, 0},  // EEVAR_FS_AUTOLOAD_ENABLED
-    { "ODOMETER_X",      VARIANT8_FLT,   1, 0 },
-    { "ODOMETER_Y",      VARIANT8_FLT,   1, 0 },
-    { "ODOMETER_Z",      VARIANT8_FLT,   1, 0 },
-    { "ODOMETER_E",      VARIANT8_FLT,   1, 0 },
+    { "ODOMETER_X",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_X
+    { "ODOMETER_Y",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_Y
+    { "ODOMETER_Z",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_Z
+    { "ODOMETER_E",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E0
+    { "STEPS_PR_UNIT_X", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_X
+    { "STEPS_PR_UNIT_Y", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_Y
+    { "STEPS_PR_UNIT_Z", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_Z
+    { "STEPS_PR_UNIT_E", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_E0
+    { "MICROSTEPS_X",    VARIANT8_UI16,  1, 0 }, // AXIS_MICROSTEPS_X
+    { "MICROSTEPS_Y",    VARIANT8_UI16,  1, 0 }, // AXIS_MICROSTEPS_Y
+    { "MICROSTEPS_Z",    VARIANT8_UI16,  1, 0 }, // AXIS_MICROSTEPS_Z
+    { "MICROSTEPS_E",    VARIANT8_UI16,  1, 0 }, // AXIS_MICROSTEPS_E0
+    { "RMS_CURR_MA_X",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_X
+    { "RMS_CURR_MA_Y",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_Y
+    { "RMS_CURR_MA_Z",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_Z
+    { "RMS_CURR_MA_E",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_E0
+    { "Z_MAX_POS_MM",    VARIANT8_FLT,   1, 0 }, // AXIS_Z_MAX_POS_MM
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
 
 static const constexpr uint32_t EEPROM_VARCOUNT = sizeof(eeprom_map) / sizeof(eeprom_entry_t);
 static const constexpr uint32_t EEPROM_DATASIZE = sizeof(eeprom_vars_t);
+
+static constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT; //to be able to access macro values
+static constexpr int default_axis_steps_int[4] = DEFAULT_AXIS_STEPS_PER_UNIT; //to be able to access macro values
 
 // eeprom variable defaults
 static const eeprom_vars_t eeprom_var_defaults = {
@@ -224,9 +256,22 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_ODOMETER_X
     0,               // EEVAR_ODOMETER_Y
     0,               // EEVAR_ODOMETER_Z
-    0,               // EEVAR_ODOMETER_E
-    "",              // EEVAR__PADDING
-    0xffffffff,      // EEVAR_CRC32
+    0,               // EEVAR_ODOMETER_E0
+    default_axis_steps_flt[0],  // AXIS_STEPS_PER_UNIT_X
+    default_axis_steps_flt[1],  // AXIS_STEPS_PER_UNIT_Y
+    default_axis_steps_flt[2],  // AXIS_STEPS_PER_UNIT_Z
+    default_axis_steps_flt[3],  // AXIS_STEPS_PER_UNIT_E0
+    X_MICROSTEPS,           // AXIS_MICROSTEPS_X
+    Y_MICROSTEPS,           // AXIS_MICROSTEPS_Y
+    Z_MICROSTEPS,           // AXIS_MICROSTEPS_Z
+    E0_MICROSTEPS,          // AXIS_MICROSTEPS_E0
+    X_CURRENT,              // AXIS_RMS_CURRENT_MA_X
+    Y_CURRENT,              // AXIS_RMS_CURRENT_MA_Y
+    Z_CURRENT,              // AXIS_RMS_CURRENT_MA_Z
+    E0_CURRENT,             // AXIS_RMS_CURRENT_MA_E0
+    0,//DEFAULT_Z_MAX_POS,      // AXIS_Z_MAX_POS_MM
+    "",                     // EEVAR__PADDING
+    0xffffffff,             // EEVAR_CRC32
 };
 
 // clang-format on
@@ -792,4 +837,154 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
 #else
     return 0;
 #endif
+}
+
+/*****************************************************************************/
+//AXIS_Z_MAX_POS_MM
+extern "C" uint16_t get_z_max_pos_mm_rounded() {
+    return static_cast<uint16_t>(std::lround(get_z_max_pos_mm()));
+}
+
+/*****************************************************************************/
+//AXIS_STEPS_PER_UNIT
+template <int ENUM, int DEF_VAL>
+float get_steps_per_unit() {
+    float ret = variant8_get_flt(eeprom_get_var(ENUM));
+    if (ret <= 0.f)
+        ret = DEF_VAL;
+    return ret;
+}
+extern "C" float get_steps_per_unit_x() {
+    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_X, default_axis_steps_int[0]>();
+}
+extern "C" float get_steps_per_unit_y() {
+    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_Y, default_axis_steps_int[1]>();
+}
+extern "C" float get_steps_per_unit_z() {
+    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_Z, default_axis_steps_int[2]>();
+}
+extern "C" float get_steps_per_unit_e() {
+    return get_steps_per_unit<AXIS_STEPS_PER_UNIT_E0, default_axis_steps_int[3]>();
+}
+
+extern "C" uint16_t get_steps_per_unit_x_rounded() {
+    return static_cast<uint16_t>(std::lround(get_steps_per_unit_x()));
+}
+extern "C" uint16_t get_steps_per_unit_y_rounded() {
+    return static_cast<uint16_t>(std::lround(get_steps_per_unit_y()));
+}
+extern "C" uint16_t get_steps_per_unit_z_rounded() {
+    return static_cast<uint16_t>(std::lround(get_steps_per_unit_z()));
+}
+extern "C" uint16_t get_steps_per_unit_e_rounded() {
+    return static_cast<uint16_t>(std::lround(get_steps_per_unit_e()));
+}
+
+template <int ENUM>
+void set_steps_per_unit(float steps) {
+    if (steps > 0) {
+        eeprom_set_var(ENUM, variant8_flt(steps));
+    }
+}
+
+extern "C" void set_steps_per_unit_x(float steps) {
+    set_steps_per_unit<AXIS_STEPS_PER_UNIT_X>(steps);
+}
+extern "C" void set_steps_per_unit_y(float steps) {
+    set_steps_per_unit<AXIS_STEPS_PER_UNIT_Y>(steps);
+}
+extern "C" void set_steps_per_unit_z(float steps) {
+    set_steps_per_unit<AXIS_STEPS_PER_UNIT_Z>(steps);
+}
+extern "C" void set_steps_per_unit_e(float steps) {
+    set_steps_per_unit<AXIS_STEPS_PER_UNIT_E0>(steps);
+}
+
+/*****************************************************************************/
+//AXIS_MICROSTEPS
+bool is_microstep_value_valid(uint16_t microsteps) {
+    std::bitset<16> bs(microsteps);
+    return bs.count() == 1; // 1,2,4,8...
+}
+
+template <int ENUM, int DEF_VAL>
+uint16_t get_microsteps() {
+    uint16_t ret = variant_get_ui16(eeprom_get_var(ENUM));
+    if (!is_microstep_value_valid(ret))
+        ret = DEF_VAL;
+    return ret;
+}
+extern "C" uint16_t get_microsteps_x() {
+    return get_microsteps<AXIS_MICROSTEPS_X, X_MICROSTEPS>();
+}
+extern "C" uint16_t get_microsteps_y() {
+    return get_microsteps<AXIS_MICROSTEPS_Y, Y_MICROSTEPS>();
+}
+extern "C" uint16_t get_microsteps_z() {
+    return get_microsteps<AXIS_MICROSTEPS_Z, Z_MICROSTEPS>();
+}
+extern "C" uint16_t get_microsteps_e() {
+    return get_microsteps<AXIS_MICROSTEPS_E0, E0_MICROSTEPS>();
+}
+
+template <int ENUM>
+void set_microsteps(uint16_t microsteps) {
+    if (is_microstep_value_valid(microsteps)) {
+        eeprom_set_var(ENUM, variant8_ui16(microsteps));
+    }
+}
+
+extern "C" void set_microsteps_x(uint16_t microsteps) {
+    set_microsteps<AXIS_MICROSTEPS_X>(microsteps);
+}
+extern "C" void set_microsteps_y(uint16_t microsteps) {
+    set_microsteps<AXIS_MICROSTEPS_Y>(microsteps);
+}
+extern "C" void set_microsteps_z(uint16_t microsteps) {
+    set_microsteps<AXIS_MICROSTEPS_Z>(microsteps);
+}
+extern "C" void set_microsteps_e(uint16_t microsteps) {
+    set_microsteps<AXIS_MICROSTEPS_E0>(microsteps);
+}
+
+/*****************************************************************************/
+//AXIS_RMS_CURRENT_MA_X
+template <int ENUM, int DEF_VAL>
+uint16_t get_rms_current_ma() {
+    uint16_t ret = variant_get_ui16(eeprom_get_var(ENUM));
+    if (ret <= 0)
+        ret = DEF_VAL;
+    return ret;
+}
+extern "C" uint16_t get_rms_current_ma_x() {
+    return get_rms_current_ma<AXIS_RMS_CURRENT_MA_X, X_CURRENT>();
+}
+extern "C" uint16_t get_rms_current_ma_y() {
+    return get_rms_current_ma<AXIS_RMS_CURRENT_MA_Y, Y_CURRENT>();
+}
+extern "C" uint16_t get_rms_current_ma_z() {
+    return get_rms_current_ma<AXIS_RMS_CURRENT_MA_Z, Z_CURRENT>();
+}
+extern "C" uint16_t get_rms_current_ma_e() {
+    return get_rms_current_ma<AXIS_RMS_CURRENT_MA_E0, E0_CURRENT>();
+}
+
+template <int ENUM>
+void set_rms_current_ma(uint16_t current) {
+    if (current > 0) {
+        eeprom_set_var(ENUM, variant8_ui16(current));
+    }
+}
+
+extern "C" void set_rms_current_ma_x(uint16_t current) {
+    set_rms_current_ma<AXIS_RMS_CURRENT_MA_X>(current);
+}
+extern "C" void set_rms_current_ma_y(uint16_t current) {
+    set_rms_current_ma<AXIS_RMS_CURRENT_MA_Y>(current);
+}
+extern "C" void set_rms_current_ma_z(uint16_t current) {
+    set_rms_current_ma<AXIS_RMS_CURRENT_MA_Z>(current);
+}
+extern "C" void set_rms_current_ma_e(uint16_t current) {
+    set_rms_current_ma<AXIS_RMS_CURRENT_MA_E0>(current);
 }

@@ -57,7 +57,7 @@ public:
     MI_RETURN();
 
 protected:
-    virtual void click(IWindowMenu &window_menu);
+    virtual void click(IWindowMenu &window_menu) override;
 };
 
 class MI_TEST_DISABLED_RETURN : public WI_LABEL_t {
@@ -67,5 +67,5 @@ public:
     MI_TEST_DISABLED_RETURN();
 
 protected:
-    virtual void click(IWindowMenu &window_menu);
+    virtual void click(IWindowMenu &window_menu) override;
 };
