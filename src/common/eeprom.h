@@ -85,9 +85,22 @@ enum {
     EEVAR_ODOMETER_X = 0x2e,          // float
     EEVAR_ODOMETER_Y = 0x2f,          // float
     EEVAR_ODOMETER_Z = 0x30,          // float
-    EEVAR_ODOMETER_E = 0x31,          // float
-    EEVAR__PADDING = 0x32,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x33,               // uint32_t crc32 for
+    EEVAR_ODOMETER_E0 = 0x31,         // float
+    AXIS_STEPS_PER_UNIT_X = 0x32,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_STEPS_PER_UNIT_Y = 0x33,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_STEPS_PER_UNIT_Z = 0x34,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_STEPS_PER_UNIT_E0 = 0x35,    // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_MICROSTEPS_X = 0x36,         // uint16_t, used to initialize trinamic
+    AXIS_MICROSTEPS_Y = 0x37,         // uint16_t, used to initialize trinamic
+    AXIS_MICROSTEPS_Z = 0x38,         // uint16_t, used to initialize trinamic
+    AXIS_MICROSTEPS_E0 = 0x39,        // uint16_t, used to initialize trinamic, must contain "E0" to work with marlin macros
+    AXIS_RMS_CURRENT_MA_X = 0x3a,     // uint16_t, used to initialize trinamic
+    AXIS_RMS_CURRENT_MA_Y = 0x3b,     // uint16_t, used to initialize trinamic
+    AXIS_RMS_CURRENT_MA_Z = 0x3c,     // uint16_t, used to initialize trinamic
+    AXIS_RMS_CURRENT_MA_E0 = 0x3d,    // uint16_t, used to initialize trinamic, must contain "E0" to work with marlin macros
+    AXIS_Z_MAX_POS_MM = 0x3e,         // float, used in marlin Z_MAX_POS macro
+    EEVAR__PADDING = 0x3f,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_CRC32 = 0x40,               // uint32_t crc32 for
 };
 
 enum {
@@ -241,6 +254,46 @@ extern uint32_t sheet_name(uint32_t, char *, uint32_t);
 /// @return Number of characters written to the buffer. Number will be
 ///        always less than MAX_SHEET_NAME_LENGTH
 extern uint32_t sheet_rename(uint32_t, char const *, uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief function set to read value from eeprom
+extern float get_z_max_pos_mm();
+extern float get_steps_per_unit_x();
+extern float get_steps_per_unit_y();
+extern float get_steps_per_unit_z();
+extern float get_steps_per_unit_e();
+extern uint16_t get_microsteps_x();
+extern uint16_t get_microsteps_y();
+extern uint16_t get_microsteps_z();
+extern uint16_t get_microsteps_e();
+extern uint16_t get_rms_current_ma_x();
+extern uint16_t get_rms_current_ma_y();
+extern uint16_t get_rms_current_ma_z();
+extern uint16_t get_rms_current_ma_e();
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief function set to read float value from eeprom and round it
+extern uint16_t get_z_max_pos_mm_rounded();
+extern uint16_t get_steps_per_unit_x_rounded();
+extern uint16_t get_steps_per_unit_y_rounded();
+extern uint16_t get_steps_per_unit_z_rounded();
+extern uint16_t get_steps_per_unit_e_rounded();
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief function set to store value to eeprom
+extern void set_z_max_pos_mm(float max_pos);
+extern void set_steps_per_unit_x(float steps);
+extern void set_steps_per_unit_y(float steps);
+extern void set_steps_per_unit_z(float steps);
+extern void set_steps_per_unit_e(float steps);
+extern void set_microsteps_x(uint16_t microsteps);
+extern void set_microsteps_y(uint16_t microsteps);
+extern void set_microsteps_z(uint16_t microsteps);
+extern void set_microsteps_e(uint16_t microsteps);
+extern void set_rms_current_ma_x(uint16_t current);
+extern void set_rms_current_ma_y(uint16_t current);
+extern void set_rms_current_ma_z(uint16_t current);
+extern void set_rms_current_ma_e(uint16_t current);
 
 #ifdef __cplusplus
 }
