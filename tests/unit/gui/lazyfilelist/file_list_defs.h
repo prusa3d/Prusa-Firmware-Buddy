@@ -1,5 +1,7 @@
 #pragma once
 
+#define FF_MAX_LFN 95
+
 /*
  * Using limits from marlin:
  * FILENAME_LENGTH				13
@@ -14,11 +16,11 @@
 #endif
 
 #ifndef MAXDIRNAMELENGTH
-    #define F_MAXDIRNAMELENGTH _MAX_LFN + 1
+    #define F_MAXDIRNAMELENGTH FF_MAX_LFN + 1
 #endif
 
 #ifndef MAXPATHNAMELENGTH
-    #define F_MAXPATHNAMELENGTH (1 + (F_MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + _MAX_LFN)
+    #define F_MAXPATHNAMELENGTH (1 + (F_MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + FF_MAX_LFN)
 #endif
 #ifndef NAME_MAX
     #define NAME_MAX 255

@@ -414,13 +414,14 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     #else
 
     display::Clear(COLOR_NAVY); ///< clear with dark blue color
-    const int COLS = 20;
-    const int ROWS = 16;
+    const int COLS = 32;
+    const int ROWS = 21;
     int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
     /// Buffer for text. PNG RAM cannot be used (font drawing).
     char buffer[buffer_size];
     int buffer_pos = 0; ///< position in buffer
-
+    buffer_pos += vsnprintf(&buffer[buffer_pos], std::max(0, buffer_size - buffer_pos), fmt, args);
+    addText(buffer, buffer_size, buffer_pos, "\n");
     if (file_name != nullptr) {
         //remove text before "/" and "\", to get filename without path
         const char *pc;
@@ -430,23 +431,19 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         pc = strrchr(file_name, '\\');
         if (pc != 0)
             file_name = pc + 1;
-
-        vsnprintf(&buffer[buffer_pos], std::max(0, buffer_size - buffer_pos), fmt, args);
-        addText(buffer, buffer_size, buffer_pos, "\n");
-
         if (file_name != nullptr)
-            addText(buffer, buffer_size, buffer_pos, file_name);
+            addFormatText(buffer, buffer_size, buffer_pos, "File: %s", file_name);
         if ((file_name != nullptr) && (line_number != -1))
-            addText(buffer, buffer_size, buffer_pos, " ");
+            addText(buffer, buffer_size, buffer_pos, "\n");
         if (line_number != -1)
-            addFormatNum(buffer, buffer_size, buffer_pos, "%d", line_number);
+            addFormatNum(buffer, buffer_size, buffer_pos, "Line: %d", line_number);
         if ((file_name != nullptr) || (line_number != -1))
             addText(buffer, buffer_size, buffer_pos, "\n");
     }
 
     addFormatText(buffer, buffer_size, buffer_pos, "TASK:%s\n", tskName);
-    addFormatNum(buffer, buffer_size, buffer_pos, "b:%x", (uint32_t)pBotOfStack);
-    addFormatNum(buffer, buffer_size, buffer_pos, "t:%x", (uint32_t)pTopOfStack);
+    addFormatNum(buffer, buffer_size, buffer_pos, "bot:0x%08x ", (uint32_t)pBotOfStack);
+    addFormatNum(buffer, buffer_size, buffer_pos, "top:0x%08x\n", (uint32_t)pTopOfStack);
 
     const int lines = str2multiline(buffer, buffer_size, COLS);
     const int lines_to_print = ROWS - lines - 1;
@@ -459,10 +456,10 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         lastAddr = pTopOfStack - 2 * lines_to_print;
 
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
-        addFormatNum(buffer, buffer_size, buffer_pos, "%08x  ", (uint32_t)*i);
+        addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x ", (uint32_t)*i);
     }
-    render_text_align(Rect16(10, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
-    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
+    render_text_align(Rect16(8, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
+    display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
 
     #endif
 
