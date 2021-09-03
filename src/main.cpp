@@ -160,7 +160,7 @@ uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
 /* USER CODE END 0 */
 static int irq = 0;
-void main_preinit() {
+extern "C" void EepromSystemInit() {
     /*
     #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
     #define RCC_FLAG_BORRST                  ((uint8_t)0x79)
@@ -238,7 +238,6 @@ void main_preinit() {
   */
 int main(void) {
     // initialize eeprom, if it is not already done
-    // calls main_preinit()
     eeprom_init_status_t status = eeprom_init();
     if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
         // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore

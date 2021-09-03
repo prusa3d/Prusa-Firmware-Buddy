@@ -303,8 +303,6 @@ static void eeprom_update_crc32();
 
 static uint16_t eeprom_fwversion_ui16(void);
 
-// public functions - described in header
-extern void main_preinit();
 static eeprom_vars_t &initialize_eeprom_startup_vars();
 
 eeprom_init_status_t eeprom_init(void) {
@@ -312,7 +310,6 @@ eeprom_init_status_t eeprom_init(void) {
     //already initialized
     if (eeprom_init_status != EEPROM_INIT_Undefined)
         return eeprom_init_status;
-    main_preinit();
 
     uint16_t version;
     uint16_t features;
