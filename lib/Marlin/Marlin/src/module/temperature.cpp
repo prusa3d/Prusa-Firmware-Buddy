@@ -2286,6 +2286,9 @@ void Temperature::init() {
 
     // Zero initialize timers. Zero means not started.
     static millis_t timer[HOTENDS] = {};
+    // Expected interval is 1000 ms. min_interval_ms set to 100 ms, so it will be visible in samples collected if
+    // expected interval doesn't hold.
+    static metric_t heating_model_discrepancy = METRIC("heating_model_discrepancy", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
 
     // Start the timer if already not started. In case millis() == 0 it will not start the timer.
     // But it will do no harm, as it will be started in the next call to this function.
@@ -2304,6 +2307,8 @@ void Temperature::init() {
       // scaling during un/retractions.
       LIMIT(work_feed_forward, 0, PID_MAX);
       const float model_discrepancy = pid_output - work_feed_forward;
+      metric_record_integer(&heating_model_discrepancy, static_cast<int>(model_discrepancy));
+
       if (model_discrepancy > THERMAL_PROTECTION_MODEL_DISCREPANCY) ++failed_cycles[ee];
       else --failed_cycles[ee];
 
