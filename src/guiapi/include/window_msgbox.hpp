@@ -32,8 +32,6 @@ public:
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-
-private:
     Rect16 getTextRect();
 };
 
@@ -47,10 +45,9 @@ public:
 
 protected:
     window_icon_t icon;
-
-private:
-    //some methods to help with construction
-    Rect16 getIconRect(); // compute icon rect
+    // some methods to help with construction, so they can't be virtual
+    // some derived classes use them too, don't change visibility
+    Rect16 getIconRect();
     Rect16 getTextRect();
 };
 
