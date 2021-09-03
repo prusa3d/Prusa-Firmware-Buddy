@@ -31,8 +31,10 @@ public:
     Response GetResult();
 
 protected:
-    virtual Rect16 getTextRect();
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
+private:
+    Rect16 getTextRect();
 };
 
 /*****************************************************************************/
@@ -45,9 +47,11 @@ public:
 
 protected:
     window_icon_t icon;
+
+private:
     //some methods to help with construction
-    virtual Rect16 getIconRect(); // compute icon rect
-    virtual Rect16 getTextRect() override;
+    Rect16 getIconRect(); // compute icon rect
+    Rect16 getTextRect();
 };
 
 /*****************************************************************************/
@@ -59,13 +63,13 @@ public:
 
 protected:
     window_text_t title;
-
     virtual void unconditionalDraw() override;
-    virtual Rect16 getTextRect() override;
-    virtual Rect16 getIconRect() override;
-    virtual Rect16 getTitleRect(); // icon must be initialized
+
 private:
     //some methods to help with construction
+    Rect16 getTextRect();
+    Rect16 getIconRect();
+    Rect16 getTitleRect(); // icon must be initialized
     font_t *getTitleFont();
     padding_ui8_t getTitlePadding();
 };
