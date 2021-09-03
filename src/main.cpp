@@ -158,8 +158,6 @@ char uart6slave_line[32];
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
-/* USER CODE END 0 */
-static int irq = 0;
 extern "C" void EepromSystemInit() {
     /*
     #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
@@ -182,25 +180,13 @@ extern "C" void EepromSystemInit() {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST);
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
-    /* USER CODE END 1 */
-
-    /* MCU Configuration--------------------------------------------------------*/
-
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
     HAL_Init();
-
-    /* USER CODE BEGIN Init */
-
-    /* USER CODE END Init */
 
     /* Configure the system clock */
     SystemClock_Config();
 
-    /* USER CODE BEGIN SysInit */
-
     diag_check_fastboot();
-
-    /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
@@ -217,7 +203,7 @@ extern "C" void EepromSystemInit() {
     MX_TIM2_Init();
     MX_TIM14_Init();
     MX_RTC_Init();
-    /* USER CODE BEGIN 2 */
+
     HAL_GPIO_Initialized = 1;
     HAL_ADC_Initialized = 1;
     HAL_PWM_Initialized = 1;
@@ -228,7 +214,7 @@ extern "C" void EepromSystemInit() {
     crc32_init();
     w25x_init();
 
-    irq = __get_PRIMASK() & 1;
+    int irq = __get_PRIMASK() & 1;
     __enable_irq();
 
     eeprom_init_status_t status = eeprom_init();
