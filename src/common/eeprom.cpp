@@ -280,6 +280,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
 // clang-format on
 
 // semaphore handle (lock/unlock)
+// zero initialized variable is fine even during initialization called from startup script
 static osSemaphoreId eeprom_sema = 0;
 
 static inline void eeprom_lock(void) {

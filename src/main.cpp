@@ -158,8 +158,7 @@ char uart6slave_line[32];
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
-extern "C" void EepromSystemInit() {
-    /*
+/*
     #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
     #define RCC_FLAG_BORRST                  ((uint8_t)0x79)
     #define RCC_FLAG_PINRST                  ((uint8_t)0x7A)
@@ -170,6 +169,13 @@ extern "C" void EepromSystemInit() {
     #define RCC_FLAG_LPWRRST                 ((uint8_t)0x7F)
     */
 
+/**
+ * @brief initialization of eeprom and prerequisites, to be able to use
+ *        it to initialize static variables and objects
+ * This is called during startup before main and before initialization
+ *        of static variables but after setting them to 0
+ */
+extern "C" void EepromSystemInit() {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST);
     //__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST);
     if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
@@ -181,17 +187,37 @@ extern "C" void EepromSystemInit() {
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-    HAL_Init();
-
+    HAL_Init(); //it is low level enought to be run in startup script
     /* Configure the system clock */
     SystemClock_Config();
 
     diag_check_fastboot();
 
+    MX_I2C1_Init();
+    crc32_init();
+
+    int irq = __get_PRIMASK() & 1;
+    __enable_irq();
+
+    eeprom_init_status_t status = eeprom_init();
+    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
+        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
+        dump_in_xflash_reset();
+    }
+    if (irq == 0)
+        __disable_irq();
+}
+
+/**
+  * @brief  The application entry point.
+  *   There is EepromSystemInit function called before main
+  *   which is alowing early access to eeprom
+  * @retval int
+  */
+int main(void) {
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
-    MX_I2C1_Init();
     MX_ADC1_Init();
     MX_USART1_UART_Init();
     MX_TIM1_Init();
@@ -209,29 +235,9 @@ extern "C" void EepromSystemInit() {
     HAL_PWM_Initialized = 1;
     HAL_SPI_Initialized = 1;
 
+    w25x_init(); //SPI flash
+
     wdt_iwdg_warning_cb = iwdg_warning_cb;
-
-    crc32_init();
-    w25x_init();
-
-    int irq = __get_PRIMASK() & 1;
-    __enable_irq();
-
-    eeprom_init_status_t status = eeprom_init();
-    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
-        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
-        dump_in_xflash_reset();
-    }
-    if (irq == 0)
-        __disable_irq();
-}
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void) {
-    // initialize eeprom, if it is not already done
 
     buddy::hw::BufferedSerial::uart2.Open();
 
