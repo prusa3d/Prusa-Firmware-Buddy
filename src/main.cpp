@@ -199,11 +199,8 @@ extern "C" void EepromSystemInit() {
     int irq = __get_PRIMASK() & 1;
     __enable_irq();
 
-    eeprom_init_status_t status = eeprom_init();
-    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
-        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
-        dump_in_xflash_reset();
-    }
+    eeprom_init();
+
     if (irq == 0)
         __disable_irq();
 }
@@ -236,6 +233,11 @@ int main(void) {
     HAL_SPI_Initialized = 1;
 
     w25x_init(); //SPI flash
+    eeprom_init_status_t status = eeprom_init();
+    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
+        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
+        dump_in_xflash_reset();
+    }
 
     wdt_iwdg_warning_cb = iwdg_warning_cb;
 
