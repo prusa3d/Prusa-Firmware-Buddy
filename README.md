@@ -53,6 +53,15 @@ python utils/build.py --printer mini --toolchain cmake/AnyGccArmNoneEabi.cmake -
 If you have python installed and in your PATH but still getting cmake error `Python3 not found.` Try running python and python3 from cmd. If one of it opens Microsoft Store instead of either opening python interpreter or complaining `'python3' is not recognized as an internal or external command,
 operable program or batch file.` Open `manage app execution aliases` and disable `App Installer` association with `python.exe` and `python3.exe`.
 
+#### Python environment
+
+The `build.py` script wants to install some python packages. If you prefer not to have your system modified, it is possible to use `virtualenv` or a similar tool.
+
+```bash
+virtualnev venv
+. venv/bin/activate
+```
+
 ### Development
 
 The build process of this project is driven by CMake and `build.py` is just a high-level wrapper around it. As most modern IDEs support some kind of CMake integration, it should be possible to use almost any editor for development. Below are some documents describing how to setup some popular text editors.
@@ -71,6 +80,16 @@ All the source code in this repository is automatically formatted:
 - and CMake files using [cmake-format](https://github.com/cheshirekow/cmake_format).
 
 If you want to contribute, make sure to install [pre-commit](https://pre-commit.com) and libtinfo5 and then run `pre-commit install` within the repository. This makes sure that all your future commits will be formatted appropriately. Our build server automatically rejects improperly formatted pull requests.
+
+#### Running tests
+
+```bash
+mkdir build-tests
+cd build-tests
+cmake ..
+make tests
+ctest .
+```
 
 ## Flashing Custom Firmware
 
