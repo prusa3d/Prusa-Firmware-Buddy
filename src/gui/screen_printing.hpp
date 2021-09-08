@@ -56,7 +56,7 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
 
     std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur;
     std::array<char, MAX_END_TIMESTAMP_SIZE> text_etime;
-    //std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end" // nope, if you have only 2 static const strings, you can swap pointers
+    //std::array<char, 15> label_etime;  // "Remaining" or "Print will end" // nope, if you have only 2 static const strings, you can swap pointers
     string_view_utf8 label_etime;      // not sure if we really must keep this in memory
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
     uint32_t message_timer;

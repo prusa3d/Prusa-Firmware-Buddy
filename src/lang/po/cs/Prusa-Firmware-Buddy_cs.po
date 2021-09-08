@@ -675,7 +675,7 @@ msgid "PRINTING"
 msgstr "TISK"
 
 #: src/gui/screen_printing.cpp:158
-msgid "Printing time"
+msgid "Elapsed"
 msgstr "Čas tisku"
 
 #: src/gui/dialogs/DialogFactory.cpp:15 src/gui/screen_menu_filament.cpp:110
@@ -715,7 +715,7 @@ msgstr "OPAK. NAHŘÁTÍ"
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
 #: src/gui/screen_printing.cpp:147 src/gui/screen_printing.cpp:226
 #: src/gui/screen_printing.cpp:355
-msgid "Remaining Time"
+msgid "Remaining"
 msgstr "Zbývající čas"
 
 #: src/gui/screen_sheet_rename.cpp:22
