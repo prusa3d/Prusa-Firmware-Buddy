@@ -146,7 +146,7 @@ screen_printing_data_t::screen_printing_data_t()
     w_etime_label.font = resource_font(IDR_FNT_SMALL);
     w_etime_label.SetAlignment(Align_t::RightBottom());
     w_etime_label.SetPadding({ 0, 2, 0, 2 });
-    w_etime_label.SetText(_("Remaining Time"));
+    w_etime_label.SetText(_("Remaining"));
 
     w_etime_value.font = resource_font(IDR_FNT_SMALL);
     w_etime_value.SetAlignment(Align_t::RightBottom());
@@ -157,7 +157,7 @@ screen_printing_data_t::screen_printing_data_t()
     w_time_label.font = resource_font(IDR_FNT_SMALL);
     w_time_label.SetAlignment(Align_t::RightBottom());
     w_time_label.SetPadding({ 0, 2, 0, 2 });
-    w_time_label.SetText(_("Printing time"));
+    w_time_label.SetText(_("Elapsed"));
 
     w_time_value.font = resource_font(IDR_FNT_SMALL);
     w_time_value.SetAlignment(Align_t::RightBottom());
@@ -245,7 +245,7 @@ void screen_printing_data_t::change_etime() {
         update_end_timestamp(sec, marlin_vars()->print_speed);
     } else {
         // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-        w_etime_label.SetText(label_etime = _("Remaining Time"));
+        w_etime_label.SetText(label_etime = _("Remaining"));
         update_remaining_time(marlin_vars()->time_to_end, marlin_vars()->print_speed);
     }
     last_time_to_end = marlin_vars()->time_to_end;
@@ -362,7 +362,7 @@ void screen_printing_data_t::update_print_duration(time_t rawtime) {
 
 void screen_printing_data_t::screen_printing_reprint() {
     print_begin(marlin_vars()->media_SFN_path);
-    w_etime_label.SetText(_("Remaining Time"));
+    w_etime_label.SetText(_("Remaining"));
     btn_stop.txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[static_cast<size_t>(item_id_t::stop)]));
     btn_stop.ico.SetIdRes(printing_icons[static_cast<size_t>(item_id_t::stop)]);
 

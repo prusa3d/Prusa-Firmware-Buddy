@@ -675,8 +675,8 @@ msgid "PRINTING"
 msgstr "PRINTING"
 
 #: src/gui/screen_printing.cpp:158
-msgid "Printing time"
-msgstr "Printing time"
+msgid "Elapsed"
+msgstr "Elapsed"
 
 #: src/gui/dialogs/DialogFactory.cpp:15 src/gui/screen_menu_filament.cpp:110
 msgid "PURGE FILAMENT"
@@ -715,8 +715,8 @@ msgstr "REHEAT"
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
 #: src/gui/screen_printing.cpp:147 src/gui/screen_printing.cpp:226
 #: src/gui/screen_printing.cpp:355
-msgid "Remaining Time"
-msgstr "Remaining Time"
+msgid "Remaining"
+msgstr "Remaining"
 
 #: src/gui/screen_sheet_rename.cpp:22
 msgid "RENAME"

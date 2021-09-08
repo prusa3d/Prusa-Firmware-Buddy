@@ -793,7 +793,7 @@ msgid "Print will end"
 msgstr ""
 
 #: src/gui/screen_printing.cpp:160
-msgid "Printing time"
+msgid "Elapsed"
 msgstr ""
 
 #: src/gui/screen_menu_filament.cpp:86
@@ -837,7 +837,7 @@ msgstr ""
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
 #: src/gui/screen_printing.cpp:149 src/gui/screen_printing.cpp:248
 #: src/gui/screen_printing.cpp:365
-msgid "Remaining Time"
+msgid "Remaining"
 msgstr ""
 
 #: src/gui/screen_menu_steel_sheets.cpp:59
