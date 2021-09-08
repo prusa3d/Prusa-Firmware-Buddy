@@ -22,7 +22,7 @@
  * ~#define X_STEP_PIN             MARLIN_PIN(X_STEP)
  * end note
  *
- * file "src/common/hwio_BUDDY_2209_02.cpp" as hwio
+ * file "src/common/hwio_buddy_2209_02.cpp" as hwio
  * note right
  * digitalWrite()
  * end note
