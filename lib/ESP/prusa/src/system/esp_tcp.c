@@ -293,7 +293,7 @@ static espr_t altcp_esp_evt(esp_evt_t *evt) {
             _dbg("ESP_EVT_CONN_ACTIVE - SERVER");
             epcb = esp_new_ip_type(0);
             ESP_DEBUGW(ESP_DBG_TYPE_TRACE | ESP_DBG_LVL_WARNING,
-                nc == NULL, "[ESPTCP] Cannot create new structure for incoming server connection!\r\n");
+                epcb == NULL, "[ESPTCP] Cannot create new structure for incoming server connection!\r\n");
 
             if (epcb != NULL) {
                 epcb->econn = conn;

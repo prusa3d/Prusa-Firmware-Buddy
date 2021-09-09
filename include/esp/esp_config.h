@@ -98,6 +98,17 @@
 #define ESP_CFG_NETCONN            1
 #define ESP_ALTCP                  1
 #define ESP_CFG_CONN_POLL_INTERVAL 2000
+
+#define ESP_CFG_DBG          ESP_DBG_OFF
+#define ESP_CFG_DBG_MEM      ESP_DBG_ON
+#define ESP_CFG_DBG_THREAD   ESP_DBG_ON
+#define ESP_CFG_DBG_IPD      ESP_DBG_ON
+#define ESP_CFG_DBG_SERVER   0
+#define ESP_CFG_DBG_TYPES_ON (ESP_DBG_TYPE_STATE | ESP_DBG_TYPE_TRACE)
+
+#include "dbg.h"
+#define ESP_CFG_DBG_OUT(fmt, ...) _dbg(fmt, ##__VA_ARGS__)
+
 /* After user configuration, call default config to merge config together */
 #include "esp/esp_config_default.h"
 
