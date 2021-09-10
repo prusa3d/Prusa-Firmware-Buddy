@@ -51,37 +51,39 @@ void esp_receive_data(UART_HandleTypeDef *huart) {
     }
 }
 
+static size_t old_dma_pos = 0;
+
 /**
  * \brief           USART data processing
  */
 void StartUartBufferThread(void const *arg) {
-    size_t old_pos = 0;
     size_t pos = 0;
 
     ESP_UNUSED(arg);
 
     while (1) {
         /* Wait for the event message from DMA or USART */
-        osMessageGet(uartBufferMbox_id, osWaitForever);
+        /* There is 100ms max wait time to ensure some small standalone message
+           does not get stuck in DMA buffer for too long. */
+        osMessageGet(uartBufferMbox_id, 100);
 
         /* Read data */
         uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(huart6.hdmarx); // no. of bytes left for buffer full
         pos = sizeof(dma_buffer_rx) - dma_bytes_left;
-        if (pos != old_pos && esp_get_operating_mode() == ESP_RUNNING_MODE) {
-            if (pos > old_pos) {
-                esp_input_process(&dma_buffer_rx[old_pos], pos - old_pos);
+        if (pos != old_dma_pos && esp_get_operating_mode() == ESP_RUNNING_MODE) {
+            if (pos > old_dma_pos) {
+                esp_input_process(&dma_buffer_rx[old_dma_pos], pos - old_dma_pos);
             } else {
-                esp_input_process(&dma_buffer_rx[old_pos], sizeof(dma_buffer_rx) - old_pos);
+                esp_input_process(&dma_buffer_rx[old_dma_pos], sizeof(dma_buffer_rx) - old_dma_pos);
                 if (pos > 0) {
                     esp_input_process(&dma_buffer_rx[0], pos);
                 }
             }
-            old_pos = pos;
-            if (old_pos == sizeof(dma_buffer_rx)) {
-                old_pos = 0;
+            old_dma_pos = pos;
+            if (old_dma_pos == sizeof(dma_buffer_rx)) {
+                old_dma_pos = 0;
             }
         }
-        HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
     }
 }
 
@@ -95,6 +97,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART6 && (huart->ErrorCode & HAL_UART_ERROR_NE || huart->ErrorCode & HAL_UART_ERROR_FE)) {
         __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);
         HAL_UART_DeInit(huart);
+        old_dma_pos = 0;
         if (HAL_UART_Init(huart) != HAL_OK) {
             Error_Handler();
         }
