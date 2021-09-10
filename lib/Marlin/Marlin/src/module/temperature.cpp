@@ -209,7 +209,8 @@ Temperature thermalManager;
   #ifdef BOARD_MAXTEMP
     int16_t Temperature::maxtemp_raw_BOARD = BOARD_RAW_HI_TEMP;
   #endif
-#endif      
+
+#endif
 
 #if HAS_HEATED_BED
   bed_info_t Temperature::temp_bed; // = { 0 }
@@ -1533,7 +1534,7 @@ void Temperature::manage_heater() {
       #endif
       #if ENABLED(BOARD_USER_THERMISTOR)
         { true, 0, 0, BOARD_PULLUP_RESISTOR_OHMS, BOARD_RESISTANCE_25C_OHMS, 0, 0, BOARD_BETA, 0 }
-      #endif  
+      #endif
     };
     COPY(thermalManager.user_thermistor, user_thermistor);
   }
@@ -1581,7 +1582,7 @@ void Temperature::manage_heater() {
       #endif
       #if ENABLED(BOARD_USER_THERMISTOR)
         t_index == CTI_BOARD ? PSTR("BOARD") :
-      #endif  
+      #endif
       nullptr
     );
     SERIAL_EOL();
@@ -1808,7 +1809,7 @@ void Temperature::updateTemperaturesFromRawValues() {
   #endif
   #if HAS_TEMP_BOARD
     temp_board.celsius = analog_to_celsius_board(temp_board.raw);
-  #endif  
+  #endif
 
   // Reset the watchdog on good temperature measurement
   watchdog_refresh();
@@ -2099,7 +2100,7 @@ void Temperature::init() {
     #ifdef BOARD_MAXTEMP
       while (analog_to_celsius_board(maxtemp_raw_BOARD) > BOARD_MAXTEMP) maxtemp_raw_BOARD -= TEMPDIRBOARD * (OVERSAMPLENR);
     #endif
-  #endif 
+  #endif
 
   #if ENABLED(PROBING_HEATERS_OFF)
     paused = false;
@@ -2503,8 +2504,8 @@ void Temperature::set_current_temp_raw() {
 
   #if HAS_TEMP_BOARD
     temp_board.update();
-  #endif  
-  
+  #endif
+
   #if HAS_JOY_ADC_X
     joystick.x.update();
   #endif
@@ -2545,7 +2546,7 @@ void Temperature::readings_ready() {
 
   #if HAS_TEMP_BOARD
     temp_board.reset();
-  #endif 
+  #endif
 
   #if HAS_JOY_ADC_X
     joystick.x.reset();
@@ -2643,7 +2644,7 @@ void Temperature::readings_ready() {
     #else
       #define BOARDCMP(A,B) ((A)>=(B))
     #endif
-  #endif  
+  #endif
 
 }
 
@@ -3177,7 +3178,7 @@ void Temperature::isr() {
       #endif
       #if HAS_TEMP_BOARD
         case H_BOARD: k = 'A'; break;
-      #endif  
+      #endif
     }
     SERIAL_CHAR(' ');
     SERIAL_CHAR(k);
@@ -3244,7 +3245,7 @@ void Temperature::isr() {
         #endif
         , H_BOARD
       );
-    #endif // HAS_TEMP_BOARD 
+    #endif // HAS_TEMP_BOARD
 
     #if HOTENDS > 1
       HOTEND_LOOP() print_heater_state(degHotend(e), degTargetHotend(e)
