@@ -56,7 +56,7 @@ typedef osPriority                  esp_sys_thread_prio_t;
 #define ESP_SYS_MUTEX_NULL          (osMutexId)0
 #define ESP_SYS_TIMEOUT             ((uint32_t)osWaitForever)
 #define ESP_SYS_THREAD_PRIO         (osPriorityNormal)
-#define ESP_SYS_THREAD_SS           (256)
+#define ESP_SYS_THREAD_SS           (512)
 
 #endif /* ESP_CFG_OS && !__DOXYGEN__ */
 
