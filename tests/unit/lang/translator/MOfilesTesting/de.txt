@@ -77,7 +77,7 @@ Info
 Info
 Informationen
 Einführen
-IP-Adressen oder Parameter sind nicht gültig oder die Datei "lan_settings.ini" befindet sich nicht im Stammverzeichnis des USB-Laufwerks.
+IP-Adressen oder Parameter sind nicht gültig oder die Datei "prusa_printer_settings.ini" befindet sich nicht im Stammverzeichnis des USB-Laufwerks.
 Farbe korrekt?
 Filament im Extruder Antrieb?
 Ist das Stahlblech auf dem Heizbett?
@@ -212,10 +212,10 @@ Test Heizungen
 Test XYZ-Achse
 Die Kalibrierung der ersten Schicht konnte nicht abgeschlossen werden. Bitte Verkabelung, Düse und Achsen des Druckers überprüfen und starten Sie dann die Kalibrierung erneut.
 Der Selbsttest wurde nicht beendet. Überprüfen Sie die Verkabelung und die Achsen des Druckers. Starten Sie dann den Selbsttest erneut.
-Die Einstellungen wurden erfolgreich in der Datei "lan_settings.ini" gespeichert.
+Die Einstellungen wurden erfolgreich in der Datei "prusa_printer_settings.ini" gespeichert.
 Die Statusleiste am unteren Rand des Bildschirms enthält Informationen über:\n- Düsentemp.\n- Heizbett-Temp.\n- Drucktempo\n- Z-Achsenhöhe\n- Filamenttyp
 Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Bitte Verkabelung und Achsen des Druckers überprüfen und starten Sie dann die XYZ-Kalibrierung erneut.
-Es gab einen Fehler beim Speichern der Einstellungen in der Datei "lan_settings.ini".
+Es gab einen Fehler beim Speichern der Einstellungen in der Datei "prusa_printer_settings.ini".
 THERMAL RUNAWAY
 Dieser G-Code ist für einen anderen Druckertyp.
 Diese Operation kann nicht rückgängig ge- macht werden und die aktuelle Konfiguration geht verloren! Den Drucker auf die Werkseinstellungen zurücksetzen?

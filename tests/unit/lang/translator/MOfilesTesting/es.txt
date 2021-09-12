@@ -77,7 +77,7 @@ INFO
 Info
 Información
 Cargando
-Las direcciones IP o los parámetros no son válidos o el archivo "lan_settings.ini" no está en el directorio raíz de la unidad USB.
+Las direcciones IP o los parámetros no son válidos o el archivo "prusa_printer_settings.ini" no está en el directorio raíz de la unidad USB.
 ¿Está bien el color?
 ¿Está el filamento en los engranajes del extrusor?
 ¿Está la lámina de acero en la base?
@@ -212,10 +212,10 @@ Test Calentadores
 Test Ejes XYZ
 La calibración de la primera capa no pudo finalizar. Vuelva a verificar el cableado, la boquilla y los ejes de la impresora, luego reinicia la calibración.
 El selftest falló al terminar. Verifica dos veces el cableado de la impresora y los ejes. Luego reinicie el Selftest.
-La configuración se ha guardado correctamente en el archivo "lan_settings.ini".
+La configuración se ha guardado correctamente en el archivo "prusa_printer_settings.ini".
 La barra de estado está en el fondo de la pantalla. Contiene Información sobre:\n- Temp. de la boquilla\n- Temp. de la base\n- Vel. de impresión\n- Alt. del eje Z\n- Fil. seleccionado
 La calibración XYZ no pudo finalizar. Vuelva a verificar el cableado y los ejes de la impresora, luego reinicia la calibración XYZ.
-Se produjo un error al guardar la configuración en el archivo "lan_settings.ini".
+Se produjo un error al guardar la configuración en el archivo "prusa_printer_settings.ini".
 DERIVA TÉRMICA
 Este G-CODE se configuró para otro tipo de impresora.
 Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Seguro que quieres restaurar la impresora a los valores de fábrica?

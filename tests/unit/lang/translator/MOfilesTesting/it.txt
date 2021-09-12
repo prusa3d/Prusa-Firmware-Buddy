@@ -77,7 +77,7 @@ INFO
 Info
 Informazioni
 Inserimento
-Indirizzi IP o parametri non validi o il file "lan_settings.ini" non presente nella directory principale del drive USB.
+Indirizzi IP o parametri non validi o il file "prusa_printer_settings.ini" non presente nella directory principale del drive USB.
 Il colore è corretto?
 Il filamento è nell'ingranaggio dell'estrusore?
 La piastra d'acciaio è sul piano riscaldato?
@@ -212,10 +212,10 @@ Test riscald.
 Test Assi XYZ
 Calib. primo layer non riuscita. Ricontrolla il cablaggio, assi e ugello, quindi ripeti la calibrazione.
 Autotest non completato. Ricontrolla gli assi e il cablaggio della stampante. Poi riavvia l'Autotest.
-Impostazioni salvate correttamente nel file "lan_settings.ini".
+Impostazioni salvate correttamente nel file "prusa_printer_settings.ini".
 La barra di stato è in basso. Contiene informazioni su:\n - Temp. Ugello\n - Temp. Piano\n - Vel. di stampa\n - Altezza asse Z\n - Fil. selezionato
 Calibrazione XYZ non riuscita. Ricontrolla il cablaggio e gli assi, quindi ripeti la calibrazione XYZ.
-Errore nel salvataggio delle impostazioni nel file "lan_settings.ini".
+Errore nel salvataggio delle impostazioni nel file "prusa_printer_settings.ini".
 THERMAL RUNAWAY
 Questo G-CODE è stato creato per un altro tipo di stampante.
 Questa operazione non può essere annullata, la configurazione attuale andrà persa! Sei sicuro di voler ripristinare le impostazioni di fabbrica?

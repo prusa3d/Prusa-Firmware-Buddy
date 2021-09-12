@@ -77,7 +77,7 @@ INFO
 Info
 Informace
 Zavádění
-Nesprávné IP adresy nebo parametry, nebo soubor "lan_settings.ini" není v kořenovém adresáři USB disku.
+Nesprávné IP adresy nebo parametry, nebo soubor "prusa_printer_settings.ini" není v kořenovém adresáři USB disku.
 Je barva správná?
 Je filament v podávacím soukolí extruderu?
 Je na podložce tiskový plát?
@@ -212,10 +212,10 @@ Test vyhřívání
 Test os XYZ
 Selhala kalibrace první vrstvy. Zkontrolujte zapojení el. částí tiskárny, trysku a jednotlivé osy, pak restartujte kalibraci.
 Selftest selhal. Zkontrolujte zapojení el. částí i všechny osy. Pak Selftest spusťte znovu.
-Nastavení úspěšně uloženo do souboru "lan_settings.ini"
+Nastavení úspěšně uloženo do souboru "prusa_printer_settings.ini"
 Stavový řádek je ve spodní části LCD. Obsahuje informace o:\n- Teplotě trysky\n- Teplotě podložky\n- Rychlosti tisku\n- Výšce osy Z\n- Filamentu
 Selhala kalibrace os XYZ. Zkontrolujte zapojení el. součástí i jednotlivé osy, pak restartuje kalibraci XYZ.
-Při ukládání souboru "lan_settings.ini" došlo k chybě.
+Při ukládání souboru "prusa_printer_settings.ini" došlo k chybě.
 THERMAL RUNAWAY
 Tento G-CODE je určen pro jiný typ tiskárny.
 Tuto operaci nelze vrátit, současná konfigurace bude ztracena! Skutečně chcete obnovit tovární nastavení?

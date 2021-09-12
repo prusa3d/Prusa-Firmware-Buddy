@@ -77,7 +77,7 @@ INFO
 Info
 Informacje
 Wsuwanie
-Adresy IP lub parametry są nieprawidłowe, albo plik "lan_settings.ini" nie znajduje się w katalogu głównym pamięci USB.
+Adresy IP lub parametry są nieprawidłowe, albo plik "prusa_printer_settings.ini" nie znajduje się w katalogu głównym pamięci USB.
 Kolor prawidłowy?
 Czy filament sięga kół radełkowanych?
 Czy płyta znajduje się na stole?
@@ -212,10 +212,10 @@ Test grzałek
 Test osi XYZ
 Kalibracja pierwszej warstwy zakończona niepowodzeniem. Sprawdź okablowanie, dyszę oraz osie drukarki, następnie ponów kalibrację.
 Selftest zakończony niepowodzeniem. Sprawdź okablowanie drukarki oraz osie, następnie zrestartuj Selftest.
-Ustawienia zostały pomyślnie zapisane w pliku "lan_settings.ini".
+Ustawienia zostały pomyślnie zapisane w pliku "prusa_printer_settings.ini".
 Pasek stanu znajduje się na spodzie ekranu. Zawiera informacje:\n- Temperatura dyszy\n- Temperatura stołu\n- Prędkość druku\n- Pozycja osi Z\n- Wybrany filament
 Kalibracja XYZ zakończona niepowodzeniem. Sprawdź okablowanie oraz osie drukarki, następnie uruchom kalibrację ponownie.
-Wystąpił błąd podczas zapisywania ustawień w pliku "lan_settings.ini".
+Wystąpił błąd podczas zapisywania ustawień w pliku "prusa_printer_settings.ini".
 THERMAL RUNAWAY
 Ten G-code jest przygotowany dla innej drukarki.
 Tej czynności nie można cofnąć, a obecna konfiguracja zostanie utracona! Czy na pewno chcesz zresetować drukarkę do ustawień fabrycznych?

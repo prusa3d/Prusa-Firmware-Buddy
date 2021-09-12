@@ -77,7 +77,7 @@ INFO
 Info
 Information
 Inserting
-IP addresses or parameters are not valid or the file "lan_settings.ini" is not in the root directory of the USB drive.
+IP addresses or parameters are not valid or the file "prusa_printer_settings.ini" is not in the root directory of the USB drive.
 Is color correct?
 Is filament in extruder gear?
 Is steel sheet on heatbed?
@@ -212,10 +212,10 @@ Test Heaters
 Test XYZ-Axis
 The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration.
 The selftest failed to finish. Double-check the printer's wiring and axes. Then restart the Selftest.
-The settings have been saved successfully in the "lan_settings.ini" file.
+The settings have been saved successfully in the "prusa_printer_settings.ini" file.
 The status bar is at the bottom of the screen. It contains information about:\n- Nozzle temp.\n- Heatbed temp.\n- Printing speed\n- Z-axis height\n- Selected filament
 The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration.
-There was an error saving the settings in the "lan_settings.ini" file.
+There was an error saving the settings in the "prusa_printer_settings.ini" file.
 THERMAL RUNAWAY
 This G-CODE was set up for another printer type.
 This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?

@@ -77,7 +77,7 @@ INFO
 Info
 Information
 Insertion
-Les adresses IP ou les paramètres ne sont pas valides ou alors le fichier "lan_settings.ini" ne se trouve pas dans le répertoire racine de la clé USB.
+Les adresses IP ou les paramètres ne sont pas valides ou alors le fichier "prusa_printer_settings.ini" ne se trouve pas dans le répertoire racine de la clé USB.
 La couleur est-elle correcte ?
 Le filament est-il dans l'extrudeur ?
 La plaque d'acier est-elle sur le plateau chauffant ?
@@ -212,10 +212,10 @@ Tester Chauffe
 Test XYZ-Axis
 La calibration de première couche n'a pu aboutir. Vérifiez bien le câblage de l'imprimante, la buse et les axes, puis relancez la calibration.
 Le selftest pas pu aboutir. Vérifiez bien le câblage et les axes de l'imprimante. Puis relancez le selftest.
-Les réglages ont été sauvegardés avec succès dans le fichier "lan_settings.ini".
+Les réglages ont été sauvegardés avec succès dans le fichier "prusa_printer_settings.ini".
 La barre de statut se trouve dans le bas de l'écran. Elle contient des infos concernant :\n-La temp. de la buse\n-La temp. du plateau\n-La vitesse d'impr.\n-La hauteur Z-axis\n-Le fil. sélectionné
 La calibration XYZ n'a pas pu aboutir. Vérifiez bien le câblage et les axes de l'imprimante, puis relancez la calibration XYZ.
-Une erreur s'est produite au moment de sauvegarder les réglages dans le fichier "lan_settings.ini".
+Une erreur s'est produite au moment de sauvegarder les réglages dans le fichier "prusa_printer_settings.ini".
 EMBAL. THERMIQUE
 Ce G-CODEa été paramétré pour un autre type d'imprimante.
 Cette action est Irréversible, la configuration actuelle sera perdue ! Êtes-vous certain de vouloir réinitialiser les paramètres d'usine pour l'imprimante ?
