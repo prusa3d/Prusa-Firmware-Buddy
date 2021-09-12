@@ -15,6 +15,7 @@ static const color_t COLOR_RED = 0x000000ffL;
 static const color_t COLOR_RED_ALERT = 0x002646e7L;
 static const color_t COLOR_LIME = 0x0000ff00L;
 static const color_t COLOR_BLUE = 0x00ff0000L;
+static const color_t COLOR_AZURE = 0x00ff9d12L;
 static const color_t COLOR_YELLOW = 0x0000ffffL;
 static const color_t COLOR_CYAN = 0x00ffff00L;
 static const color_t COLOR_MAGENTA = 0x00ff00ffL;
