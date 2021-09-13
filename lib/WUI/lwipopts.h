@@ -157,6 +157,12 @@ extern "C" {
     #define HTTPD_SERVER_AGENT "Prusa Mini"
     #define LWIP_DNS           1
 
+    // #define LWIP_DEBUG  1
+    #define PBUF_DEBUG  LWIP_DBG_ON
+    #define MEM_DEBUG   LWIP_DBG_ON
+    #define MEMP_DEBUG  LWIP_DBG_ON
+    #define HTTPD_DEBUG LWIP_DBG_ON
+
 /* USER CODE END 1 */
 
     #ifdef __cplusplus

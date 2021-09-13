@@ -1177,4 +1177,12 @@ void assert_failed(uint8_t *file, uint32_t line) {
 }
 #endif /* USE_FULL_ASSERT */
 
+extern "C" {
+// Direct standard out to SWO
+int _putchar(const char c) {
+    ITM_SendChar(c);
+    return 0;
+}
+}
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

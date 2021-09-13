@@ -93,7 +93,7 @@ static upload_process_t upload = {
 /* Header which contains the Key with the name */
 int read_header_name(multipart_parser *p, const char *at, size_t length) {
 #ifdef HTTPD_DEBUG
-    _dbg("read_header_name: %.*s: \n", length, at);
+    LWIP_DEBUGF(HTTPD_DEBUG, ("read_header_name: %.*s: \n", length, at));
 #endif
 
     /* Parse the Header Value */
@@ -101,7 +101,7 @@ int read_header_name(multipart_parser *p, const char *at, size_t length) {
     const char *key_name = find_header_name(at);
 
 #ifdef HTTPD_DEBUG
-    _dbg("Key Name: %s\n", key_name);
+    LWIP_DEBUGF(HTTPD_DEBUG, ("Key Name: %s\n", key_name));
 #endif
     if (strncmp(key_name, "print", 5) == 0) {
         upload.phase = UPLOAD_PROCESS_PRINT;
@@ -119,7 +119,7 @@ int read_header_name(multipart_parser *p, const char *at, size_t length) {
 
 int read_header_value(multipart_parser *p, const char *at, size_t length) {
 #ifdef HTTPD_DEBUG
-    _dbg("read_header_value: %.*s\n", length, at);
+    LWIP_DEBUGF(HTTPD_DEBUG, ("read_header_value: %.*s\n", length, at));
 #endif
     return 0;
 }
@@ -129,7 +129,7 @@ int read_header_value(multipart_parser *p, const char *at, size_t length) {
 /* Wait until part_end for the complete file. */
 int read_part_data(multipart_parser *p, const char *at, size_t length) {
 #ifdef HTTPD_DEBUG
-    _dbg("read_part_data: %.*s\n", length, at);
+    LWIP_DEBUGF(HTTPD_DEBUG, ("read_part_data: %.*s\n", length, at));
 #endif
     switch (upload.phase) {
     case UPLOAD_PROCESS_PRINT:
@@ -151,7 +151,7 @@ int read_part_data(multipart_parser *p, const char *at, size_t length) {
 /* Beginning of a key and value */
 int read_on_part_data_begin(multipart_parser *p) {
 #ifdef HTTPD_DEBUG
-    _dbg("read_on_part_data_begin:\n");
+    LWIP_DEBUGF(HTTPD_DEBUG, ("read_on_part_data_begin:\n"));
 #endif
     return 0;
 }
@@ -159,7 +159,7 @@ int read_on_part_data_begin(multipart_parser *p) {
 /* End of header which contains the key */
 int read_on_headers_complete(multipart_parser *p) {
 #ifdef HTTPD_DEBUG
-    _dbg("read_on_headers_complete:\n");
+    LWIP_DEBUGF(HTTPD_DEBUG, ("read_on_headers_complete:\n"));
 #endif
     return 0;
 }
@@ -169,7 +169,7 @@ int read_on_headers_complete(multipart_parser *p) {
 /* If this is a value, then the value is complete. */
 int read_on_part_data_end(multipart_parser *p) {
 #ifdef HTTPD_DEBUG
-    _dbg("read_on_part_data_end:\n");
+    LWIP_DEBUGF(HTTPD_DEBUG, ("read_on_part_data_end:\n"));
 #endif
     return 0;
 }
@@ -177,7 +177,7 @@ int read_on_part_data_end(multipart_parser *p) {
 /* End of the entire form */
 int read_on_body_end(multipart_parser *p) {
 #ifdef HTTPD_DEBUG
-    _dbg("read_on_body_end:\n");
+    LWIP_DEBUGF(HTTPD_DEBUG, ("read_on_body_end:\n"));
 #endif
     return 0;
 }
@@ -185,7 +185,7 @@ int read_on_body_end(multipart_parser *p) {
 static err_t
 http_parse_post(char *data, uint32_t length) {
 #ifdef HTTPD_DEBUG
-    _dbg("http_parse_post POST data: %s\n", data);
+    LWIP_DEBUGF(HTTPD_DEBUG, ("http_parse_post POST data: %s\n", data));
 #endif
 
     /* Parse the data */
@@ -254,7 +254,7 @@ err_t httpd_post_begin(void *connection,
             http_post_content_len = content_len;
 
 #ifdef HTTPD_DEBUG
-            _dbg("httpd_post_begin: Post Content: %s\n", http_request);
+            LWIP_DEBUGF(HTTPD_DEBUG, ("httpd_post_begin: Post Content: %s\n", http_request));
 #endif
 
             memset(&callbacks, 0, sizeof(multipart_parser_settings));
@@ -356,7 +356,7 @@ find_boundary(const char *content_type) {
         char *boundary_begin = strstr(content_type, BOUNDARY_TITLE); // Find Boundary= in Content-Type
         char *boundary = boundary_begin + BOUNDARY_TITLE_LEN;        // Remove the Boundary=
 #ifdef HTTPD_DEBUG
-        _dbg("POST multipart Boundary found: %s\n", boundary);
+        LWIP_DEBUGF(HTTPD_DEBUG, ("POST multipart Boundary found: %s\n", boundary));
 #endif
 
         return boundary;
@@ -376,7 +376,7 @@ find_header_name(const char *header) {
         char *header_name = strtok(header_name_begin, "\"");         // Find the first "
         header_name = strtok(NULL, "\"");                            // Go to the last "
 #ifdef HTTPD_DEBUG
-        _dbg("POST multipart Header Key found: %s\n", header_name);
+        LWIP_DEBUGF(HTTPD_DEBUG, ("POST multipart Header Key found: %s\n", header_name));
 #endif
 
         return header_name;

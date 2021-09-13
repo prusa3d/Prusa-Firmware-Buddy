@@ -378,7 +378,7 @@ static espr_t altcp_esp_evt(esp_evt_t *evt) {
         _dbg("ESP_EVT_CONN_POLL");
         epcb = esp_conn_get_arg(conn);
         if (epcb == NULL) {
-            _dbg("epcb is NULL !!!");
+            _dbg("epcb is NULL !!! -> closing connection");
             break;
         }
         altcp_esp_poll(epcb->alconn, epcb);
