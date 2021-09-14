@@ -543,7 +543,7 @@ void Pause::park_nozzle_and_notify() {
     if (retract && thermalManager.hotEnoughToExtrude(active_extruder))
         do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
 
-    const float target_Z = std::min(park_pos.z, maximum_Z);
+    const float target_Z = std::min(park_pos.z, get_z_max_pos_mm());
     const bool x_greater_than_y = parkMoveXGreaterThanY(current_position, park_pos);
     const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
     const float &end_pos = x_greater_than_y ? park_pos.x : park_pos.y;
@@ -581,10 +581,10 @@ void Pause::unpark_nozzle_and_notify() {
 
     if (x_greater_than_y) {
         Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
-        do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+        do_blocking_move_to_xy(resume_pos, NOZZLE_UNPARK_XY_FEEDRATE);
     } else {
         Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
-        do_blocking_move_to_xy(resume_pos, NOZZLE_PARK_XY_FEEDRATE);
+        do_blocking_move_to_xy(resume_pos, NOZZLE_UNPARK_XY_FEEDRATE);
     }
 
     // Move Z_AXIS to saved position, scope for Notifier_POS_Z
@@ -641,8 +641,12 @@ void Pause::FilamentChange() {
 
         if (unload_length) // Unload the filament
             filamentUnload(is_standalone_t::no);
-
-        filamentLoad(is_standalone_t::no);
+        // Feed a little bit of filament to stabilize pressure in nozzle
+        if (filamentLoad(is_standalone_t::no)) {
+            plan_e_move(5, 10);
+            planner.synchronize();
+            delay(500);
+        }
     }
 
 // Intelligent resuming

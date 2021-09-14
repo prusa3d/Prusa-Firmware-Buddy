@@ -12,6 +12,8 @@
     #error "Unknown PRINTER_TYPE."
 #endif
 
+#include "eeprom.h"
+
 const int x_axis_len = X_LEN;
 const int y_axis_len = Y_LEN;
 const int z_axis_len = Z_LEN;
@@ -31,11 +33,11 @@ const float z_offset_max = Z_OFFSET_MAX;
 //must be in this file, need to access marlin
 constexpr const int park_points[3] = NOZZLE_PARK_POINT;
 
-//min int -2147483648 .. 8 digits + 1 for /0
+constexpr const int default_Z_max_pos = DEFAULT_Z_MAX_POS;
 
+//min int -2147483648 .. 8 digits + 1 for /0
 constexpr const int X_home = X_HOME_DIR > 0 ? X_MAX_POS : X_MIN_POS;
 constexpr const int Y_home = Y_HOME_DIR > 0 ? Y_MAX_POS : Y_MIN_POS;
-constexpr const int Z_home = Z_HOME_DIR > 0 ? Z_MAX_POS : Z_MIN_POS;
 
 constexpr const char X_home_gcode[] = {
     'G',
@@ -71,43 +73,27 @@ constexpr const char Y_home_gcode[] = {
     nth_char(Y_home, 8)
 };
 
-constexpr const char Z_home_gcode[] = {
-    'G',
-    '9',
-    '2',
-    ' ',
-    'Z',
-    nth_char(Z_home, 0),
-    nth_char(Z_home, 1),
-    nth_char(Z_home, 2),
-    nth_char(Z_home, 3),
-    nth_char(Z_home, 4),
-    nth_char(Z_home, 5),
-    nth_char(Z_home, 6),
-    nth_char(Z_home, 7),
-    nth_char(Z_home, 8)
-};
+const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultStepsPerUnit() { return { DEFAULT_AXIS_STEPS_PER_UNIT }; };
+const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultMicrosteps() { return { { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, E0_MICROSTEPS } }; };
+const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultCurrents() { return { { X_CURRENT, Y_CURRENT, Z_CURRENT, E0_CURRENT } }; };
 
-const std::array<std::array<int16_t, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::axis_ranges = { { { X_MIN_POS, X_MAX_POS, 1 },
+const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetMaximumZRange() { return { { Z_MIN_LEN_LIMIT, Z_MAX_LEN_LIMIT, 1 } }; };
+const std::array<std::array<int, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::GetAxisRanges() { return { { { X_MIN_POS, X_MAX_POS, 1 },
     { Y_MIN_POS, Y_MAX_POS, 1 },
-    { Z_MIN_POS, Z_MAX_POS, 1 },
-    { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH, 1 } } };
-const int16_t MenuVars::manual_feedrate[AXIS_CNT] = MANUAL_FEEDRATE;
-const char MenuVars::axis_letters[AXIS_CNT] = { 'X', 'Y', 'Z', 'E' };
-const int16_t MenuVars::extrude_min_temp = EXTRUDE_MINTEMP;
+    { Z_MIN_POS, static_cast<int16_t>(get_z_max_pos_mm_rounded()), 1 },
+    { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH, 1 } } }; };
 
-const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::nozzle_range = { 0, (HEATER_0_MAXTEMP - 15), 1 };
-const std::array<uint8_t, MenuVars::RANGE_SZ> MenuVars::bed_range = { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 };
-const std::array<float, MenuVars::RANGE_SZ> MenuVars::zoffset_fl_range = { z_offset_min, z_offset_max, z_offset_step };
+const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetManualFeedrate() { return { MANUAL_FEEDRATE }; };
+const std::array<char, MenuVars::AXIS_CNT> MenuVars::GetAxisLetters() { return { 'X', 'Y', 'Z', 'E' }; };
+const int MenuVars::GetExtrudeMinTemp() { return EXTRUDE_MINTEMP; };
 
-const std::array<uint8_t, MenuVars::RANGE_SZ> MenuVars::printfan_range;
-const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::flowfact_range;
-const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::feedrate_range;
+const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetNozzleRange() { return { 0, (HEATER_0_MAXTEMP - 15), 1 }; };
+const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetBedRange() { return { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 }; };
 
-constexpr const int32_t filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
-constexpr const int32_t filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
-constexpr const int32_t filament_change_slow_purge_length = 40;
+constexpr const int filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
+constexpr const int filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
+constexpr const int filament_change_slow_purge_length = 40;
 constexpr const float filament_unload_mini_length = 392.0F;
 
-constexpr const int32_t filament_change_full_load_length = filament_change_fast_load_length + filament_change_slow_load_length;
-constexpr const int32_t filament_change_full_purge_load_length = filament_change_full_load_length + filament_change_slow_purge_length;
+constexpr const int filament_change_full_load_length = filament_change_fast_load_length + filament_change_slow_load_length;
+constexpr const int filament_change_full_purge_load_length = filament_change_full_load_length + filament_change_slow_purge_length;

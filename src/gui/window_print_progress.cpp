@@ -28,7 +28,7 @@ WindowNumbPrintProgress::WindowNumbPrintProgress(window_t *parent, Rect16 rect)
     , last_sd_percent_done(-1) {
     font = resource_font(IDR_FNT_BIG);
     SetAlignment(Align_t::Center());
-    PrintAsInt();
+    PrintAsInt32();
     SetFormat("%d%%");
 }
 

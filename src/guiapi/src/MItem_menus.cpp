@@ -255,3 +255,13 @@ void MI_LANGUAGUE_XFLASH::click(IWindowMenu &windowMenu) {
     if (fileProviderInternal.EnsureFile())
         Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderInternal);
 }
+
+/*****************************************************************************/
+//MI_EXPERIMENTAL_SETTINGS
+MI_EXPERIMENTAL_SETTINGS::MI_EXPERIMENTAL_SETTINGS()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_EXPERIMENTAL_SETTINGS::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuExperimentalSettings);
+}

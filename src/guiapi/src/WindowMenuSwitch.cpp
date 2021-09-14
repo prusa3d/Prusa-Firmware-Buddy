@@ -39,6 +39,10 @@ bool IWiSwitch::SetIndex(size_t idx) {
     }
 }
 
+size_t IWiSwitch::GetIndex() const {
+    return index;
+}
+
 Rect16 IWiSwitch::getSwitchRect(Rect16 extension_rect) const {
     if (!has_brackets)
         return extension_rect;
