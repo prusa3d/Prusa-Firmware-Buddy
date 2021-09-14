@@ -7,6 +7,10 @@
 #include "catch2/catch.hpp"
 #include "path.h"
 
+#ifndef PATH_MAX
+    #define PATH_MAX 1024
+#endif // PATH_MAX
+
 using Catch::Matchers::Equals;
 
 TEST_CASE("path_update", "") {

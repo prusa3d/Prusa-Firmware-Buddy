@@ -2,6 +2,7 @@
 #pragma once
 
 #include "variant8.h"
+#include "../../src/gui/file_list_defs.h"
 
 // Marlin variables
 enum {
@@ -89,10 +90,6 @@ static const uint8_t MARLIN_VAR_MOTION_MSK_Y = 1 << MARLIN_VAR_INDEX_Y;
 static const uint8_t MARLIN_VAR_MOTION_MSK_Z = 1 << MARLIN_VAR_INDEX_Z;
 static const uint8_t MARLIN_VAR_MOTION_MSK_E = 1 << MARLIN_VAR_INDEX_E;
 
-enum {
-    FILE_NAME_MAX_LEN = 96 + 1 + 5 + 1,
-    FILE_PATH_MAX_LEN = 96 + 1 + 5 + 1,
-};
 static const uint32_t TIME_TO_END_INVALID = (uint32_t)-1;
 
 typedef enum {

@@ -103,7 +103,7 @@
 */
 
 #define FF_USE_LFN 2
-#define FF_MAX_LFN (96 + 1 + 5 + 1)
+#include "../src/gui/file_list_defs.h"
 /* The FF_USE_LFN switches the support for LFN (long file name).
 /
 /   0: Disable LFN. FF_MAX_LFN has no effect.

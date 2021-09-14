@@ -20,8 +20,6 @@
 #include "selftest_axis_type.hpp"
 #include "selftest_heaters_type.hpp"
 
-static_assert(sizeof(SelftestResultEEprom_t) == 4, "Invalid size of SelftestResultEEprom_t (!= 4).");
-
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
 
 static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
