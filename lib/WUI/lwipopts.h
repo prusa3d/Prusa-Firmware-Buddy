@@ -156,6 +156,7 @@ extern "C" {
 
     #define HTTPD_SERVER_AGENT "Prusa Mini"
     #define LWIP_DNS           1
+    #define MEMP_NUM_TCP_PCB   6
 
 /* USER CODE END 1 */
 
