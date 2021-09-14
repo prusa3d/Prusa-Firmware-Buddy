@@ -121,7 +121,7 @@
 /  memory for the working buffer, memory management functions, ff_memalloc() and
 /  ff_memfree() exemplified in ffsystem.c, need to be added to the project. */
 
-#define FF_LFN_UNICODE 0
+#define FF_LFN_UNICODE 2
 /* This option switches the character encoding on the API when LFN is enabled.
 /
 /   0: ANSI/OEM in current CP (TCHAR = char)
