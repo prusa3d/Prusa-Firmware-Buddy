@@ -35,10 +35,6 @@
  *       either sets a Sane Default, or results in No Change to the existing value.
  */
 
-// Change EEPROM version if the structure changes
-#define EEPROM_VERSION "V86"
-#define EEPROM_OFFSET 100
-
 // Check the integrity of data offsets.
 // Can be disabled for production build.
 //#define DEBUG_EEPROM_READWRITE
@@ -54,6 +50,17 @@
 #include "../libs/vector_3.h"   // for matrix_3x3
 #include "../gcode/gcode.h"
 #include "../MarlinCore.h"
+
+// Change EEPROM version if the structure changes
+#if ENABLED(EEPROM_SETTINGS)
+#define EEPROM_VERSION "V86"
+#define EEPROM_OFFSET 100
+#endif
+
+#if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+    #include "eeprom_function_api.h"
+#endif // USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
+
 
 #if EITHER(EEPROM_SETTINGS, SD_FIRMWARE_UPDATE)
   #include "../HAL/shared/eeprom_api.h"
@@ -191,7 +198,25 @@ typedef struct {     bool NUM_AXIS_LIST(X:1, Y:1, Z:1, I:1, J:1, K:1, U:1, V:1, 
 
 // Defaults for reset / fill in on load
 static const uint32_t   _DMA[] PROGMEM = DEFAULT_MAX_ACCELERATION;
-static const float     _DASU[] PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT;
+#if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES) 
+static float get_steps_per_unit(size_t index) {
+    switch (index) {
+    case 0:
+      return get_steps_per_unit_x();
+    case 1:
+      return get_steps_per_unit_y();
+    case 2:
+      return get_steps_per_unit_z();
+    }
+    //if index is bigger than max index, use max index - default marlin behavior
+    return get_steps_per_unit_e();
+}
+#else
+static constexpr float get_steps_per_unit(size_t index) {
+  constexpr float _DASU[] = DEFAULT_AXIS_STEPS_PER_UNIT;
+  return pgm_read_float(&_DASU[ALIM(index, _DASU)]);
+}
+#endif // USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 static const feedRate_t _DMF[] PROGMEM = DEFAULT_MAX_FEEDRATE;
 
 /**
@@ -1700,7 +1725,7 @@ void MarlinSettings::postprocess() {
         if (!validating) LOOP_DISTINCT_AXES(i) {
           const bool in = (i < e_factors + NUM_AXES);
           planner.settings.max_acceleration_mm_per_s2[i] = in ? tmp1[i] : pgm_read_dword(&_DMA[ALIM(i, _DMA)]);
-          planner.settings.axis_steps_per_mm[i]          = in ? tmp2[i] : pgm_read_float(&_DASU[ALIM(i, _DASU)]);
+          planner.settings.axis_steps_per_mm[i]          = in ? tmp2[i] : get_steps_per_unit(i);
           planner.settings.max_feedrate_mm_s[i]          = in ? tmp3[i] : pgm_read_float(&_DMF[ALIM(i, _DMF)]);
         }
 
@@ -2812,7 +2837,7 @@ void MarlinSettings::postprocess() {
 void MarlinSettings::reset() {
   LOOP_DISTINCT_AXES(i) {
     planner.settings.max_acceleration_mm_per_s2[i] = pgm_read_dword(&_DMA[ALIM(i, _DMA)]);
-    planner.settings.axis_steps_per_mm[i] = pgm_read_float(&_DASU[ALIM(i, _DASU)]);
+    planner.settings.axis_steps_per_mm[i]          = get_steps_per_unit(i);
     planner.settings.max_feedrate_mm_s[i] = pgm_read_float(&_DMF[ALIM(i, _DMF)]);
   }
 

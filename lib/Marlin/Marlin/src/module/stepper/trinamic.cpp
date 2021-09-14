@@ -31,6 +31,7 @@
 
 #include "trinamic.h"
 #include "../stepper.h"
+#include "eeprom.h"
 
 #include <HardwareSerial.h>
 
@@ -38,7 +39,7 @@
 enum StealthIndex : uint8_t {
   LOGICAL_AXIS_LIST(STEALTH_AXIS_E, STEALTH_AXIS_X, STEALTH_AXIS_Y, STEALTH_AXIS_Z, STEALTH_AXIS_I, STEALTH_AXIS_J, STEALTH_AXIS_K, STEALTH_AXIS_U, STEALTH_AXIS_V, STEALTH_AXIS_W)
 };
-#define TMC_INIT(ST, STEALTH_INDEX) tmc_init(stepper##ST, ST##_CURRENT, ST##_MICROSTEPS, ST##_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_INDEX], chopper_timing_##ST, ST##_INTERPOLATE, ST##_HOLD_MULTIPLIER)
+#define TMC_INIT(ST, STEALTH_INDEX) tmc_init(stepper##ST, variant_get_ui16(eeprom_get_var(AXIS_RMS_CURRENT_MA_##ST)), variant_get_ui16(eeprom_get_var(AXIS_MICROSTEPS_##ST)), ST##_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_INDEX], chopper_timing_##ST, ST##_INTERPOLATE, ST##_HOLD_MULTIPLIER)
 
 //   IC = TMC model number
 //   ST = Stepper object letter
