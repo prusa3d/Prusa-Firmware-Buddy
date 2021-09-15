@@ -69,6 +69,7 @@ typedef struct {
     esp_port_t listen_port;
     uint16_t conn_timeout;
     size_t rcv_packets;            // Received packets
+    size_t rcv_bytes;              // Received bytes
     char host[IP4ADDR_STRLEN_MAX]; // Connect host
 } esp_pcb;
 

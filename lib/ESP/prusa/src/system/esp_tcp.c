@@ -58,6 +58,7 @@
     #include "lwip/tcp.h"
 
     #include "esp_tcp.h"
+    #include "esp/esp_mem.h"
 
 /* Variable prototype, the actual declaration is at the end of this file
    since it contains pointers to static functions declared here */
@@ -152,7 +153,9 @@ altcp_esp_accept(void *arg, esp_pcb *new_epcb, err_t err) {
         return ERR_MEM;
     }
     altcp_esp_setup(new_conn, new_epcb);
-    return listen_conn->accept(listen_conn->arg, new_conn, err);
+    ALTCP_TCP_ASSERT_CONN_PCB(new_conn, new_epcb);
+    err_t ret = listen_conn->accept(listen_conn->arg, new_conn, err);
+    return ret;
 }
 
 static err_t
@@ -199,15 +202,11 @@ altcp_esp_sent(void *arg, esp_pcb *epcb, u16_t len) {
 static err_t
 altcp_esp_poll(void *arg, esp_pcb *epcb) {
     _dbg("altcp_esp_poll");
-    _dbg("arg: %x, esp_pcb: %x", arg, epcb);
     struct altcp_pcb *conn = (struct altcp_pcb *)arg;
     if (conn) {
         ALTCP_TCP_ASSERT_CONN_PCB(conn, epcb);
         if (conn->poll) {
-
-            _dbg("CALLING POL FUNC %x, arg: %x", conn->poll, conn->arg);
             err_t ret = conn->poll(conn->arg, conn);
-            _dbg("POLL FUNC RETURNED");
             return ret;
         }
     }
@@ -235,7 +234,6 @@ altcp_esp_setup(struct altcp_pcb *conn, esp_pcb *epcb) {
     conn->state = epcb;
     conn->fns = &altcp_esp_functions;
     epcb->alconn = conn;
-    _dbg("Setup epcb: %x, alcon: %x", epcb, epcb->alconn);
 }
 
 LWIP_MEMPOOL_DECLARE(EPCB_POOL, EPCB_POOL_SIZE, sizeof(esp_pcb), "ESP PCB pool");
@@ -249,15 +247,27 @@ static esp_pcb *esp_new_ip_type(u8_t ip_type) {
     }
 
     esp_pcb *pcb = (esp_pcb *)LWIP_MEMPOOL_ALLOC(EPCB_POOL);
-    memset(pcb, 0, sizeof(esp_pcb));
+    if (pcb) {
+        memset(pcb, 0, sizeof(esp_pcb));
+    }
     return pcb;
 }
 
 static void esp_ip_free(esp_pcb *epcb) {
-    LWIP_MEMPOOL_FREE(EPCB_POOL, epcb);
+    if (epcb) {
+        LWIP_MEMPOOL_FREE(EPCB_POOL, epcb);
+    }
 }
 
 static esp_pcb *listen_api;
+
+static void custom_pbuf_free(struct pbuf *p) {
+    // This actually holds reference to esp pbuf backing this ones pbuf data
+    esp_pbuf_free((esp_pbuf_p)p->next);
+
+    // Free this custom pbuf (as first member the address is also usable to free whole custom pbuf)
+    esp_mem_free((struct esp_pbuf_custom *)p);
+}
 
 static espr_t altcp_esp_evt(esp_evt_t *evt) {
     esp_conn_p conn;
@@ -307,6 +317,9 @@ static espr_t altcp_esp_evt(esp_evt_t *evt) {
             if (epcb != NULL) {
                 _dbg("Closing conn %d", esp_conn_getnum(conn));
                 esp_conn_set_arg(conn, NULL); /* Reset argument */
+                if (epcb->alconn != NULL) {
+                    altcp_free(epcb->alconn);
+                }
                 esp_ip_free(epcb);
             }
             esp_conn_close(conn, 0); /* Close the connection */
@@ -325,26 +338,36 @@ static espr_t altcp_esp_evt(esp_evt_t *evt) {
 
         epcb = esp_conn_get_arg(conn);          /* Get API from connection */
         pbuf = esp_evt_conn_recv_get_buff(evt); /* Get received buff */
-
+        if (!epcb) {
+            if (pbuf) {
+                esp_pbuf_free(pbuf);
+            }
+            return espERR;
+        }
         esp_conn_recved(conn, pbuf); /* Notify stack about received data */
         epcb->rcv_packets++;         /* Increase number of received packets */
+        epcb->rcv_bytes += esp_pbuf_length(pbuf, 0);
+        _dbg("Received %ld packets, %ld bytes", epcb->rcv_packets, epcb->rcv_bytes);
 
-        esp_pbuf_ref(pbuf); /* Increase reference counter */
-        if (!epcb) {
-            esp_pbuf_free(pbuf);
+        if (esp_pbuf_length(pbuf, 0) != esp_pbuf_length(pbuf, 1)) {
+            _dbg("!!! rcv pbuf has multiple parts, this is not supported !!!!");
         }
 
-        // Copy pbuf data pbuf to pbuf
-        struct pbuf *lwip_pbuf = pbuf_alloc(PBUF_TRANSPORT, esp_pbuf_length(pbuf, 0), PBUF_RAM);
-        esp_pbuf_copy(pbuf, lwip_pbuf->payload, esp_pbuf_length(pbuf, 0), 0);
-        esp_pbuf_free(pbuf);
+        struct pbuf_custom *custom_pbuf = esp_mem_alloc(sizeof(struct pbuf_custom));
+        custom_pbuf->custom_free_function = custom_pbuf_free;
+        const size_t recv_len = esp_pbuf_length(pbuf, 0);
+        struct pbuf *lwip_pbuf = pbuf_alloced_custom(PBUF_RAW, recv_len, PBUF_REF, custom_pbuf, (char *)esp_pbuf_data(pbuf), recv_len);
+        if (!lwip_pbuf) {
+            _dbg("Failed to obtain custom LwIP pbuf, len: %ld", recv_len);
+            esp_pbuf_free(pbuf);
+            esp_mem_free(custom_pbuf);
+            return espERR;
+        }
+        lwip_pbuf->next = (struct pbuf *)pbuf; // Abuse next to hold reference to underlying ESP pbuf
 
-        struct altcp_pcb *pcb = epcb->alconn;
-        altcp_esp_recv(pcb, epcb, lwip_pbuf, 0);
+        // Run the recv callback with lwip pbuf
+        altcp_esp_recv(epcb->alconn, epcb, lwip_pbuf, 0);
 
-        ESP_DEBUGF(ESP_DBG_TYPE_TRACE,
-            "[ESPTCP] Written %d bytes to receive mbox\r\n",
-            (int)esp_pbuf_length(pbuf, 0));
         break;
     }
 
@@ -379,7 +402,8 @@ static espr_t altcp_esp_evt(esp_evt_t *evt) {
         epcb = esp_conn_get_arg(conn);
         if (epcb == NULL) {
             _dbg("epcb is NULL !!!");
-            break;
+            esp_conn_close(conn, 0);
+            return espERR;
         }
         altcp_esp_poll(epcb->alconn, epcb);
         break;
@@ -434,7 +458,7 @@ altcp_esp_set_poll(struct altcp_pcb *conn, u8_t interval) {
 
 static void
 altcp_esp_recved(struct altcp_pcb *conn, u16_t len) {
-    _dbg("altcp_esp_recved - NOT IMPLEMENTED");
+    // ESP has already acknowedged the data, nothing to do here.
 }
 
 static err_t
@@ -495,10 +519,11 @@ altcp_esp_close(struct altcp_pcb *conn) {
 
     esp_pcb *epcb = (esp_pcb *)conn->state;
     if (epcb) {
-        _dbg("CLosing connections: %d", esp_conn_getnum(epcb->econn));
+        _dbg("Closing connection: %d, total %ld packets, %ld bytes", esp_conn_getnum(epcb->econn), epcb->rcv_packets, epcb->rcv_bytes);
         espr_t err = esp_conn_close(epcb->econn, 0);
 
         if (err != espOK) {
+            _dbg("Failed to close connection: %d", err);
             return espr_t2err_t(err);
         }
     }
