@@ -82,3 +82,25 @@ protected:
 public:
     FooterIconText_IntVal(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader);
 };
+class FooterIconText_FloatVal : public AddSuperWindow<IFooterIconText> {
+public:
+    using view_maker_cb = string_view_utf8 (*)(float val);
+    using reader_cb = float (*)();
+
+protected:
+    // make view in child can contain static char array (buffer) !!! it is a good thing !!!
+    // because all those items can be selected and
+    // !!! this only makes best case memory consumption equal to worst case !!!
+    // which is great - we should not have memory isues based on combination of selected items
+    view_maker_cb makeView;
+    reader_cb readCurrentValue;
+
+    float value;
+
+    virtual changed_t updateValue() override;
+    virtual resized_t updateState() override;
+    static Rect16::Width_t GetTotalWidth(uint16_t icon_id, string_view_utf8 view);
+
+public:
+    FooterIconText_FloatVal(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader);
+};
