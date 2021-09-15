@@ -9,7 +9,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-using Screen = ScreenMenu<EFooter::On, HelpLines_None, MI_RETURN,
+using Screen = ScreenMenu<EFooter::On, MI_RETURN,
     MI_Filament<FILAMENT_PLA>,
     MI_Filament<FILAMENT_PETG>,
     MI_Filament<FILAMENT_ASA>,

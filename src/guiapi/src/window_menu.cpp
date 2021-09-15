@@ -198,6 +198,11 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         if (item->Roll() == invalidate_t::yes)
             Invalidate();
         break;
+    case GUI_event_t::HOLD:
+        // resent hold to parrent (usually screen)
+        if (GetParent())
+            GetParent()->WindowEvent(sender, event, param);
+        break;
     default:
         break;
     }

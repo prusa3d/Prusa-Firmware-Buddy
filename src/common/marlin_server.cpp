@@ -39,6 +39,7 @@
 #include "otp.h"
 #include "../marlin_stubs/G26.hpp"
 #include "fsm_types.hpp"
+#include "odometer.hpp"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
@@ -595,9 +596,10 @@ static void _server_print_loop(void) {
             disable_Y();
 #ifndef Z_ALWAYS_ON
             disable_Z();
-#endif //Z_ALWAYS_ON
+#endif // Z_ALWAYS_ON
             disable_e_steppers();
             marlin_server.print_state = mpsAborted;
+            Odometer_s::instance().add_time(marlin_server.vars.print_duration);
             fsm_destroy(ClientFSM::Printing);
         }
         break;
@@ -605,13 +607,16 @@ static void _server_print_loop(void) {
         if ((planner.movesplanned() == 0) && (queue.length == 0)) {
 #ifdef PARK_HEAD_ON_PRINT_FINISH
             marlin_server_park_head();
-#endif
+#endif // PARK_HEAD_ON_PRINT_FINISH
+            if (print_job_timer.isRunning())
+                print_job_timer.stop();
             marlin_server.print_state = mpsFinishing_ParkHead;
         }
         break;
     case mpsFinishing_ParkHead:
         if (planner.movesplanned() == 0) {
             marlin_server.print_state = mpsFinished;
+            Odometer_s::instance().add_time(marlin_server.vars.print_duration);
             fsm_destroy(ClientFSM::Printing);
         }
         break;

@@ -191,14 +191,7 @@ uint8_t uart6rx_data[128];
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void) {
-    /*
+/*
     #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
     #define RCC_FLAG_BORRST                  ((uint8_t)0x79)
     #define RCC_FLAG_PINRST                  ((uint8_t)0x7A)
@@ -209,6 +202,13 @@ int main(void) {
     #define RCC_FLAG_LPWRRST                 ((uint8_t)0x7F)
     */
 
+/**
+ * @brief initialization of eeprom and prerequisites, to be able to use
+ *        it to initialize static variables and objects
+ * This is called during startup before main and before initialization
+ *        of static variables but after setting them to 0
+ */
+extern "C" void EepromSystemInit() {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST);
     //__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST);
     if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
@@ -219,19 +219,35 @@ int main(void) {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST);
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
-    /* MCU Configuration--------------------------------------------------------*/
-
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-    HAL_Init();
-
+    HAL_Init(); //it is low level enough to be run in startup script
     /* Configure the system clock */
     SystemClock_Config();
+
+    MX_I2C1_Init();
+    crc32_init();
+
+    int irq = __get_PRIMASK() & 1;
+    __enable_irq();
+
+    eeprom_init();
+
+    if (irq == 0)
+        __disable_irq();
+}
+
+/**
+  * @brief  The application entry point.
+  *   There is EepromSystemInit function called before main
+  *   which is alowing early access to eeprom
+  * @retval int
+  */
+int main(void) {
     tick_timer_init();
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
-    MX_I2C1_Init();
 #ifndef SIM_HEATER
     MX_ADC1_Init();
 #endif
@@ -245,11 +261,20 @@ int main(void) {
     MX_TIM2_Init();
     MX_TIM14_Init();
     MX_RTC_Init();
-    /* USER CODE BEGIN 2 */
+
     HAL_GPIO_Initialized = 1;
     HAL_ADC_Initialized = 1;
     HAL_PWM_Initialized = 1;
     HAL_SPI_Initialized = 1;
+
+    w25x_init(); //SPI flash
+    eeprom_init_status_t status = eeprom_init();
+    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
+        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
+        dump_in_xflash_reset();
+    }
+
+    wdt_iwdg_warning_cb = iwdg_warning_cb;
 
     buddy::hw::BufferedSerial::uart2.Open();
 
@@ -260,21 +285,6 @@ int main(void) {
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
     HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
     uartrxbuff_reset(&uart6rxbuff);
-    wdt_iwdg_warning_cb = iwdg_warning_cb;
-
-    crc32_init();
-    w25x_init();
-
-    int irq = __get_PRIMASK() & 1;
-    __enable_irq();
-    eeprom_init();
-    uint8_t status = eeprom_get_init_status();
-    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
-        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
-        dump_in_xflash_reset();
-    }
-    if (irq == 0)
-        __disable_irq();
 
     filesystem_init();
 

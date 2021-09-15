@@ -198,6 +198,12 @@ else()
   set(INIT_TRINAMIC_FROM_MARLIN_ONLY NO)
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(DEBUG YES)
+else()
+  set(DEBUG NO)
+endif()
+
 # append custom C/C++ flags
 if(CUSTOM_COMPILE_OPTIONS)
   string(REPLACE " " ";" CUSTOM_COMPILE_OPTIONS "${CUSTOM_COMPILE_OPTIONS}")
@@ -677,6 +683,7 @@ if(GUI)
             src/gui/version_info_ST7789V.cpp
             src/gui/test_display.cpp
             src/gui/screen_splash.cpp
+            src/gui/screen_menu_odometer.cpp
             src/gui/screen_menu_service.cpp
             src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp
@@ -749,15 +756,23 @@ if(GUI)
             src/guiapi/src/IWindowMenuItem.cpp
             src/guiapi/src/WindowMenuSwitch.cpp
             src/guiapi/src/WindowMenuSpin.cpp
+            src/guiapi/src/WindowMenuSpinExponential.cpp
             src/guiapi/src/WindowMenuItems.cpp
             src/guiapi/src/MItem_menus.cpp
             src/guiapi/src/MItem_print.cpp
             src/guiapi/src/MItem_tools.cpp
+            src/guiapi/src/MItem_experimental_tools.cpp
             src/guiapi/src/Jogwheel.cpp
             src/guiapi/src/ScreenShot.cpp
             src/guiapi/src/menu_spin_config_types.cpp
             $<$<STREQUAL:${PRINTER},MINI>:src/guiapi/src/menu_spin_config_basic.cpp>
     )
+endif()
+
+if(GUI AND DEBUG) # gui and debug
+  target_sources(firmware PRIVATE src/gui/screen_menu_experimental_settings_debug.cpp)
+elseif(GUI) # gui, not debug
+  target_sources(firmware PRIVATE src/gui/screen_menu_experimental_settings_mini.cpp)
 endif()
 
 # Set fsdata filename for HTTPServer

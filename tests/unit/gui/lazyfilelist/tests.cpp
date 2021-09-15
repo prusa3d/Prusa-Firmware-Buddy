@@ -11,6 +11,7 @@
 // In the POSIX locale, strcasecmp() and strncasecmp() shall behave as if the strings had been converted to
 // lowercase and then a byte comparison performed. The results are unspecified in other locales.
 // portable solution consider that round trips the letter (to upper then to lower) to cope with non 1-to-1 mappings:
+#ifndef _STRINGS_H
 extern "C" __attribute__((weak)) int strcasecmp(const char *a, const char *b) {
     int ca, cb;
     do {
@@ -21,6 +22,7 @@ extern "C" __attribute__((weak)) int strcasecmp(const char *a, const char *b) {
     } while (ca == cb && ca != '\0');
     return ca - cb;
 }
+#endif // _STRINGS_H
 
 using namespace std;
 
@@ -31,12 +33,14 @@ bool CheckFilesSeq(const LDV &ldv, std::vector<std::string> expectedSeq) {
         == std::make_pair(ldv.files.end(), expectedSeq.end());
 }
 
+static char txt_old[] = "old"; // cannot be const char
+
 TEST_CASE("LazyDirView::Entries test", "[LazyDirView]") {
     using LDV = LazyDirView<9>;
     {
         LDV::Entry e = { false, "\xff\xff\xff\xff\xff", "", LONG_MAX };
         LDV::Entry e1 = { false, "nold", "", 1 };
-        dirent f = { DT_DIR, "old", "old", 1 };
+        dirent f = { DT_DIR, "old", txt_old, 1 };
 
         CHECK(LDV::LessByTimeEF(e, &f));
         CHECK(LDV::LessByTimeFE(&f, e1));
