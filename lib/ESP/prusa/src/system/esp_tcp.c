@@ -246,17 +246,8 @@ altcp_esp_setup(struct altcp_pcb *conn, esp_pcb *epcb) {
     epcb->alconn = conn;
 }
 
-LWIP_MEMPOOL_DECLARE(EPCB_POOL, EPCB_POOL_SIZE, sizeof(esp_pcb), "ESP PCB pool");
-
-static int memp_initialized = 0;
-
 static esp_pcb *esp_new_ip_type(u8_t ip_type) {
-    if (!memp_initialized) {
-        memp_initialized = 1;
-        LWIP_MEMPOOL_INIT(EPCB_POOL);
-    }
-
-    esp_pcb *pcb = (esp_pcb *)LWIP_MEMPOOL_ALLOC(EPCB_POOL);
+    esp_pcb *pcb = (esp_pcb *)esp_mem_alloc(sizeof(esp_pcb));
     if (pcb) {
         memset(pcb, 0, sizeof(esp_pcb));
     }
@@ -265,7 +256,7 @@ static esp_pcb *esp_new_ip_type(u8_t ip_type) {
 
 static void esp_ip_free(esp_pcb *epcb) {
     if (epcb) {
-        LWIP_MEMPOOL_FREE(EPCB_POOL, epcb);
+        esp_mem_free(epcb);
     }
 }
 
