@@ -11,6 +11,7 @@ This file is generated automatically so don't edit it directly
 - MarlinServer: LOG_SEVERITY_INFO, src/common/marlin_server.cpp
 - Metrics: LOG_SEVERITY_INFO, src/common/metric.c
 - Network: LOG_SEVERITY_INFO, lib/WUI/wui.c
+- Selftest: LOG_SEVERITY_DEBUG, src/common/selftest/selftest_MINI.cpp
 - Syslog: LOG_SEVERITY_INFO, src/syslog/syslog.c
 - USBDevice: LOG_SEVERITY_INFO, src/usbd_conf.c
 - USBHost: LOG_SEVERITY_INFO, src/usbh_conf.c
