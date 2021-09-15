@@ -270,149 +270,165 @@ static void custom_pbuf_free(struct pbuf *p) {
     esp_mem_free((struct esp_pbuf_custom *)p);
 }
 
+static espr_t esp_evt_conn_active(esp_conn_p conn) {
+    uint8_t close = 0;
+    esp_pcb *epcb = NULL;
+
+    if (esp_conn_is_client(conn)) {
+        _dbg("ESP_EVT_CONN_ACTIVE - CLIENT");
+        epcb = esp_conn_get_arg(conn);
+        if (epcb != NULL) {
+            epcb->econn = conn;
+            altcp_esp_connected(epcb->alconn, epcb, 0);
+        } else {
+            _dbg("ACTIVE CLIENT WITHOUT EPCB POINTER !!!!");
+            close = 1;
+        }
+    } else if (esp_conn_is_server(conn) && listen_api != NULL) {
+        _dbg("ESP_EVT_CONN_ACTIVE - SERVER");
+        epcb = esp_new_ip_type(0);
+        ESP_DEBUGW(ESP_DBG_TYPE_TRACE | ESP_DBG_LVL_WARNING,
+            epcb == NULL, "[ESPTCP] Cannot create new structure for incoming server connection!\r\n");
+
+        if (epcb != NULL) {
+            epcb->econn = conn;
+            esp_conn_set_arg(conn, epcb);
+            if (altcp_esp_accept(listen_api->alconn, epcb, 0) != ERR_OK) {
+                close = 1;
+            }
+        } else {
+            _dbg("esp_pcb not created");
+            close = 1;
+        }
+    } else {
+        _dbg("ESP_EVT_CONN_ACTIVE - OTHER");
+        ESP_DEBUGW(ESP_DBG_TYPE_TRACE | ESP_DBG_LVL_WARNING, listen_api == NULL,
+            "[ESPTCP] Closing connection as there is no listening API in ESP PCB!\r\n");
+        close = 1; /* Close the connection at this point */
+    }
+
+    /* Decide if some events want to close the connection */
+    if (close) {
+        if (epcb != NULL) {
+            _dbg("Closing conn %d", esp_conn_getnum(conn));
+            esp_conn_set_arg(conn, NULL); /* Reset argument */
+            if (epcb->alconn != NULL) {
+                altcp_free(epcb->alconn);
+            }
+            esp_ip_free(epcb);
+        }
+        esp_conn_close(conn, 0); /* Close the connection */
+        return espERR;
+    }
+    return espOK;
+}
+
+static espr_t esp_evt_conn_recv(esp_conn_p conn, esp_evt_t *evt) {
+    esp_pcb *epcb = esp_conn_get_arg(conn);            /* Get API from connection */
+    esp_pbuf_p pbuf = esp_evt_conn_recv_get_buff(evt); /* Get received buff */
+    if (!epcb) {
+        if (pbuf) {
+            esp_pbuf_free(pbuf);
+        }
+        return espERR;
+    }
+    esp_conn_recved(conn, pbuf); /* Notify stack about received data */
+    epcb->rcv_packets++;         /* Increase number of received packets */
+    epcb->rcv_bytes += esp_pbuf_length(pbuf, 0);
+    _dbg("Received %ld packets, %ld bytes", epcb->rcv_packets, epcb->rcv_bytes);
+
+    if (esp_pbuf_length(pbuf, 0) != esp_pbuf_length(pbuf, 1)) {
+        _dbg("!!! rcv pbuf has multiple parts, this is not supported !!!!");
+    }
+
+    struct pbuf_custom *custom_pbuf = esp_mem_alloc(sizeof(struct pbuf_custom));
+    custom_pbuf->custom_free_function = custom_pbuf_free;
+    const size_t recv_len = esp_pbuf_length(pbuf, 0);
+    struct pbuf *lwip_pbuf = pbuf_alloced_custom(PBUF_RAW, recv_len, PBUF_REF, custom_pbuf, (char *)esp_pbuf_data(pbuf), recv_len);
+    if (!lwip_pbuf) {
+        _dbg("Failed to obtain custom LwIP pbuf, len: %ld", recv_len);
+        esp_pbuf_free(pbuf);
+        esp_mem_free(custom_pbuf);
+        return espERR;
+    }
+    lwip_pbuf->next = (struct pbuf *)pbuf; // Abuse next to hold reference to underlying ESP pbuf
+
+    // Run the recv callback with lwip pbuf
+    return altcp_esp_recv(epcb->alconn, epcb, lwip_pbuf, 0);
+}
+
+static espr_t esp_evt_conn_closed(esp_conn_p conn) {
+    esp_pcb *epcb = esp_conn_get_arg(conn); /* Get API from connection */
+    esp_conn_set_arg(conn, NULL);
+
+    if (epcb) {
+        _dbg("Connection closed and epcb not NULL -> free, err");
+        struct altcp_pcb *pcb = epcb->alconn;
+        if (pcb) {
+            altcp_esp_err(pcb, ERR_CLSD);
+        }
+        esp_ip_free(epcb);
+    }
+    return espOK;
+}
+
+static espr_t esp_evt_conn_send(esp_conn_p conn, esp_evt_t *evt) {
+    esp_pcb *epcb = esp_conn_get_arg(conn);
+    if (!epcb) {
+        return espERR;
+    }
+
+    struct altcp_pcb *pcb = epcb->alconn;
+    const size_t sent = esp_evt_conn_send_get_length(evt);
+    altcp_esp_sent(pcb, epcb, sent);
+    return espOK;
+}
+
+static espr_t esp_evt_conn_poll(esp_conn_p conn) {
+    esp_pcb *epcb = esp_conn_get_arg(conn);
+    if (epcb == NULL) {
+        _dbg("epcb is NULL !!! -> closing connection");
+        esp_conn_close(conn, 0);
+        return espERR;
+    }
+
+    return altcp_esp_poll(epcb->alconn, epcb);
+}
+
 static espr_t altcp_esp_evt(esp_evt_t *evt) {
     esp_conn_p conn;
-    esp_pcb *epcb = NULL;
-    uint8_t close = 0;
 
     conn = esp_conn_get_from_evt(evt);
     _dbg("Event from conn %d", esp_conn_getnum(conn));
     switch (esp_evt_get_type(evt)) {
-    case ESP_EVT_CONN_ACTIVE: {
+    case ESP_EVT_CONN_ACTIVE:
         _dbg("ESP_EVT_CONN_ACTIVE");
-        if (esp_conn_is_client(conn)) {
-            _dbg("ESP_EVT_CONN_ACTIVE - CLIENT");
-            epcb = esp_conn_get_arg(conn);
-            if (epcb != NULL) {
-                epcb->econn = conn;
-                altcp_esp_connected(epcb->alconn, epcb, 0);
-            } else {
-                _dbg("ACTIVE CLIENT WITHOUT EPCB POINTER !!!!");
-                close = 1;
-            }
-        } else if (esp_conn_is_server(conn) && listen_api != NULL) {
-            _dbg("ESP_EVT_CONN_ACTIVE - SERVER");
-            epcb = esp_new_ip_type(0);
-            ESP_DEBUGW(ESP_DBG_TYPE_TRACE | ESP_DBG_LVL_WARNING,
-                epcb == NULL, "[ESPTCP] Cannot create new structure for incoming server connection!\r\n");
-
-            if (epcb != NULL) {
-                epcb->econn = conn;
-                esp_conn_set_arg(conn, epcb);
-                if (altcp_esp_accept(listen_api->alconn, epcb, 0) != ERR_OK) {
-                    close = 1;
-                }
-            } else {
-                _dbg("esp_pcb not created");
-                close = 1;
-            }
-        } else {
-            _dbg("ESP_EVT_CONN_ACTIVE - OTHER");
-            ESP_DEBUGW(ESP_DBG_TYPE_TRACE | ESP_DBG_LVL_WARNING, listen_api == NULL,
-                "[ESPTCP] Closing connection as there is no listening API in ESP PCB!\r\n");
-            close = 1; /* Close the connection at this point */
-        }
-
-        /* Decide if some events want to close the connection */
-        if (close) {
-            if (epcb != NULL) {
-                _dbg("Closing conn %d", esp_conn_getnum(conn));
-                esp_conn_set_arg(conn, NULL); /* Reset argument */
-                if (epcb->alconn != NULL) {
-                    altcp_free(epcb->alconn);
-                }
-                esp_ip_free(epcb);
-            }
-            esp_conn_close(conn, 0); /* Close the connection */
-            close = 0;
-        }
-        break;
-    }
+        return esp_evt_conn_active(conn);
 
     /*
-         * We have a new data received which
-         * should have esp pcb structure as argument
-         */
-    case ESP_EVT_CONN_RECV: {
+     * We have a new data received which
+     * should have esp pcb structure as argument
+     */
+    case ESP_EVT_CONN_RECV:
         _dbg("ESP_EVT_CONN_RECV");
-        esp_pbuf_p pbuf;
-
-        epcb = esp_conn_get_arg(conn);          /* Get API from connection */
-        pbuf = esp_evt_conn_recv_get_buff(evt); /* Get received buff */
-        if (!epcb) {
-            if (pbuf) {
-                esp_pbuf_free(pbuf);
-            }
-            return espERR;
-        }
-        esp_conn_recved(conn, pbuf); /* Notify stack about received data */
-        epcb->rcv_packets++;         /* Increase number of received packets */
-        epcb->rcv_bytes += esp_pbuf_length(pbuf, 0);
-        _dbg("Received %ld packets, %ld bytes", epcb->rcv_packets, epcb->rcv_bytes);
-
-        if (esp_pbuf_length(pbuf, 0) != esp_pbuf_length(pbuf, 1)) {
-            _dbg("!!! rcv pbuf has multiple parts, this is not supported !!!!");
-        }
-
-        struct pbuf_custom *custom_pbuf = esp_mem_alloc(sizeof(struct pbuf_custom));
-        custom_pbuf->custom_free_function = custom_pbuf_free;
-        const size_t recv_len = esp_pbuf_length(pbuf, 0);
-        struct pbuf *lwip_pbuf = pbuf_alloced_custom(PBUF_RAW, recv_len, PBUF_REF, custom_pbuf, (char *)esp_pbuf_data(pbuf), recv_len);
-        if (!lwip_pbuf) {
-            _dbg("Failed to obtain custom LwIP pbuf, len: %ld", recv_len);
-            esp_pbuf_free(pbuf);
-            esp_mem_free(custom_pbuf);
-            return espERR;
-        }
-        lwip_pbuf->next = (struct pbuf *)pbuf; // Abuse next to hold reference to underlying ESP pbuf
-
-        // Run the recv callback with lwip pbuf
-        altcp_esp_recv(epcb->alconn, epcb, lwip_pbuf, 0);
-
-        break;
-    }
+        return esp_evt_conn_recv(conn, evt);
 
     /* Connection was just closed */
-    case ESP_EVT_CONN_CLOSED: {
+    case ESP_EVT_CONN_CLOSED:
         _dbg("ESP_EVT_CONN_CLOSED");
-        epcb = esp_conn_get_arg(conn); /* Get API from connection */
+        return esp_evt_conn_closed(conn);
 
-        if (epcb) {
-            _dbg("Connection closed and epcb not NULL -> free, err");
-            struct altcp_pcb *pcb = epcb->alconn;
-            esp_conn_set_arg(conn, NULL);
-            esp_ip_free(epcb);
-            altcp_esp_err(pcb, ERR_CLSD);
-        }
-
-        break;
-    }
     case ESP_EVT_CONN_SEND:
         _dbg("ESP_EVT_CONN_SEND");
-        epcb = esp_conn_get_arg(conn);
-        if (epcb) {
-            struct altcp_pcb *pcb = epcb->alconn;
-            const size_t sent = esp_evt_conn_send_get_length(evt);
-            altcp_esp_sent(pcb, epcb, sent);
-        }
-
-        break;
+        return esp_evt_conn_send(conn, evt);
 
     case ESP_EVT_CONN_POLL:
         _dbg("ESP_EVT_CONN_POLL");
-        epcb = esp_conn_get_arg(conn);
-        if (epcb == NULL) {
-            _dbg("epcb is NULL !!!");
-            esp_conn_close(conn, 0);
-            return espERR;
-        }
-        altcp_esp_poll(epcb->alconn, epcb);
-        break;
+        return esp_evt_conn_poll(conn);
     default:
         _dbg("Unknown event type: %d", esp_evt_get_type(evt));
         return espERR;
     }
-    return espOK;
 }
 
 struct altcp_pcb *
