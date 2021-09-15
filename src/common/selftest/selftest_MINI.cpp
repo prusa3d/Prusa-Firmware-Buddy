@@ -20,6 +20,8 @@
 #include "selftest_axis_type.hpp"
 #include "selftest_heaters_type.hpp"
 
+LOG_COMPONENT_DEF(Selftest, LOG_SEVERITY_DEBUG);
+
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
 
 static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
