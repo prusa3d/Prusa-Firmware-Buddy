@@ -176,7 +176,17 @@ altcp_esp_recv(void *arg, esp_pcb *epcb, struct pbuf *p, err_t err) {
     if (conn) {
         ALTCP_TCP_ASSERT_CONN_PCB(conn, epcb);
         if (conn->recv) {
-            return conn->recv(conn->arg, conn, p, err);
+            // TODO: This takes ~500ms to execute.
+            // Unfortunately UART buffer overflows in the meantime.
+    #if (DBG_LEVEL > 0)
+            const long start = xTaskGetTickCount();
+    #endif
+            err_t ret = conn->recv(conn->arg, conn, p, err);
+    #if (DBG_LEVEL > 0)
+            const long end = xTaskGetTickCount();
+            _dbg("recv callback in %ld ms", (end - start) / portTICK_RATE_MS);
+    #endif
+            return ret;
         }
     }
     if (p != NULL) {
@@ -259,7 +269,7 @@ static void esp_ip_free(esp_pcb *epcb) {
     }
 }
 
-static esp_pcb *listen_api;
+static esp_pcb *listen_api = NULL;
 
 static void custom_pbuf_free(struct pbuf *p) {
     // This actually holds reference to esp pbuf backing this ones pbuf data
