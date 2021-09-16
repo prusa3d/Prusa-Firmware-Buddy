@@ -29,11 +29,11 @@ public:
     ScreenOdometer()
         : OdometerScreen(_(label)) {
         Odometer_s::instance().force_to_eeprom();
-        Item<1>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::X));
-        Item<2>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::Y));
-        Item<3>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::Z));
-        Item<4>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::E));
-        Item<5>().UpdateValue(Odometer_s::instance().get_time());
+        Item<MI_ODOMETER_DIST_X>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::X));
+        Item<MI_ODOMETER_DIST_Y>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::Y));
+        Item<MI_ODOMETER_DIST_Z>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::Z));
+        Item<MI_ODOMETER_DIST_E>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::E));
+        Item<MI_ODOMETER_TIME>().UpdateValue(Odometer_s::instance().get_time());
     }
 };
 
