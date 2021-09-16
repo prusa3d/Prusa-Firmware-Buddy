@@ -1,7 +1,9 @@
 #pragma once
 #include "printers.h"
+#include "board.h"
 #include "stm32f4xx_hal.h"
 #include "../src/common/uartrxbuff.h"
+#include "../src/common/config_buddy_2209_02.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,19 +13,33 @@ extern int HAL_GPIO_Initialized;
 extern int HAL_ADC_Initialized;
 extern int HAL_PWM_Initialized;
 
-extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim3;
 extern RTC_HandleTypeDef hrtc;
-
-extern uartrxbuff_t uart1rxbuff;
-extern SPI_HandleTypeDef hspi2;
-extern TIM_HandleTypeDef htim1;
-
 extern ADC_HandleTypeDef hadc1;
+#if (BOARD_IS_BUDDY)
+    #if HAS_GUI
+extern TIM_HandleTypeDef htim2; //TIM2 is used to generate buzzer PWM. Not needed without display.
+extern SPI_HandleTypeDef hspi2; //SPI2 is used to drive display. Not needed without GUI.
+        #define LCD_SPI hspi2
+    #endif
+extern I2C_HandleTypeDef hi2c1;
+    #define EEPROM_I2C hi2c1
+    #define LCD_I2C    hi2c1
+extern SPI_HandleTypeDef hspi3;
+    #define EXT_FLASH_SPI hspi3
+#else
+    #error "Unknown board."
+#endif
+
+#if (1)
+extern uartrxbuff_t uart1rxbuff;
+#endif
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-
 void Error_Handler(void);
+
+void spi_set_prescaler(SPI_HandleTypeDef *hspi, int prescaler_num);
 
 #ifdef __cplusplus
 }

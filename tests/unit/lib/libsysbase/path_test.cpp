@@ -7,9 +7,10 @@
 #include "catch2/catch.hpp"
 #include "path.h"
 
+/// PATH_MAX is not defined in MinGW32 with __STRICT_ANSI__ defined
 #ifndef PATH_MAX
-    #define PATH_MAX 1024
-#endif // PATH_MAX
+    #define PATH_MAX 4096
+#endif
 
 using Catch::Matchers::Equals;
 

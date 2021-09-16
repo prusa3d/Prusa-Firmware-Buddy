@@ -4,7 +4,7 @@
 #include <string.h>
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
-
+#include "main.h"
 //
 #define ST25DV64K_RTOS
 
@@ -36,8 +36,6 @@ static const uint8_t BLOCK_DELAY = 5; // block delay [ms]
 static const uint8_t BLOCK_BYTES = 4; // bytes per block
 
 #define DELAY HAL_Delay
-
-extern I2C_HandleTypeDef hi2c1;
 
 uint8_t st25dv64k_initialised = 0;
 
@@ -94,8 +92,8 @@ uint8_t st25dv64k_user_read(uint16_t address) {
     uint8_t _out[2] = { address >> 8, address & 0xff };
     uint8_t data;
     st25dv64k_lock();
-    HAL_I2C_Master_Transmit(&hi2c1, ADDR_WRITE, _out, 2, HAL_MAX_DELAY);
-    HAL_I2C_Master_Receive(&hi2c1, ADDR_READ, &data, 1, HAL_MAX_DELAY);
+    HAL_I2C_Master_Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 2, HAL_MAX_DELAY);
+    HAL_I2C_Master_Receive(&EEPROM_I2C, ADDR_READ, &data, 1, HAL_MAX_DELAY);
     st25dv64k_unlock();
     return data;
 }
@@ -103,7 +101,7 @@ uint8_t st25dv64k_user_read(uint16_t address) {
 void st25dv64k_user_write(uint16_t address, uint8_t data) {
     uint8_t _out[3] = { address >> 8, address & 0xff, data };
     st25dv64k_lock();
-    HAL_I2C_Master_Transmit(&hi2c1, ADDR_WRITE, _out, 3, HAL_MAX_DELAY);
+    HAL_I2C_Master_Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 3, HAL_MAX_DELAY);
     DELAY(BLOCK_DELAY);
     st25dv64k_unlock(); // unlock must be here because other threads cannot access eeprom while writing/waiting
 }
@@ -111,8 +109,8 @@ void st25dv64k_user_write(uint16_t address, uint8_t data) {
 void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint16_t size) {
     uint8_t _out[2] = { address >> 8, address & 0xff };
     st25dv64k_lock();
-    HAL_I2C_Master_Transmit(&hi2c1, ADDR_WRITE, _out, 2, HAL_MAX_DELAY);
-    HAL_I2C_Master_Receive(&hi2c1, ADDR_READ, pdata, size, HAL_MAX_DELAY);
+    HAL_I2C_Master_Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 2, HAL_MAX_DELAY);
+    HAL_I2C_Master_Receive(&EEPROM_I2C, ADDR_READ, pdata, size, HAL_MAX_DELAY);
     st25dv64k_unlock();
 }
 
@@ -128,7 +126,7 @@ void st25dv64k_user_write_bytes(uint16_t address, void const *pdata, uint16_t si
         _out[0] = address >> 8;
         _out[1] = address & 0xff;
         memcpy(_out + 2, p, block_size);
-        HAL_I2C_Master_Transmit(&hi2c1, ADDR_WRITE, _out, 2 + block_size, HAL_MAX_DELAY);
+        HAL_I2C_Master_Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 2 + block_size, HAL_MAX_DELAY);
         DELAY(BLOCK_DELAY);
         size -= block_size;
         address += block_size;
@@ -141,8 +139,8 @@ uint8_t st25dv64k_rd_cfg(uint16_t address) {
     uint8_t _out[2] = { address >> 8, address & 0xff };
     uint8_t data;
     st25dv64k_lock();
-    HAL_I2C_Master_Transmit(&hi2c1, ADDR_WRITE_SYS, _out, 2, HAL_MAX_DELAY);
-    HAL_I2C_Master_Receive(&hi2c1, ADDR_READ_SYS, &data, 1, HAL_MAX_DELAY);
+    HAL_I2C_Master_Transmit(&EEPROM_I2C, ADDR_WRITE_SYS, _out, 2, HAL_MAX_DELAY);
+    HAL_I2C_Master_Receive(&EEPROM_I2C, ADDR_READ_SYS, &data, 1, HAL_MAX_DELAY);
     st25dv64k_unlock();
     return data;
 }
@@ -150,7 +148,7 @@ uint8_t st25dv64k_rd_cfg(uint16_t address) {
 void st25dv64k_wr_cfg(uint16_t address, uint8_t data) {
     uint8_t _out[3] = { address >> 8, address & 0xff, data };
     st25dv64k_lock();
-    HAL_I2C_Master_Transmit(&hi2c1, ADDR_WRITE_SYS, _out, 3, HAL_MAX_DELAY);
+    HAL_I2C_Master_Transmit(&EEPROM_I2C, ADDR_WRITE_SYS, _out, 3, HAL_MAX_DELAY);
     DELAY(BLOCK_DELAY);
     st25dv64k_unlock(); // unlock must be here because other threads cannot access eeprom while writing/waiting
 }
@@ -162,6 +160,6 @@ void st25dv64k_present_pwd(uint8_t *pwd) {
         memcpy(_out + 11, pwd, 8);
     }
     st25dv64k_lock();
-    HAL_I2C_Master_Transmit(&hi2c1, ADDR_WRITE_SYS, _out, 19, HAL_MAX_DELAY);
+    HAL_I2C_Master_Transmit(&EEPROM_I2C, ADDR_WRITE_SYS, _out, 19, HAL_MAX_DELAY);
     st25dv64k_unlock();
 }

@@ -260,10 +260,14 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_ODOMETER_Y
     0,               // EEVAR_ODOMETER_Z
     0,               // EEVAR_ODOMETER_E0
+#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_X
     default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_Y
     default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_Z
     default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_E0
+#else
+    0,0,0,0,
+#endif
     X_MICROSTEPS,           // AXIS_MICROSTEPS_X
     Y_MICROSTEPS,           // AXIS_MICROSTEPS_Y
     Z_MICROSTEPS,           // AXIS_MICROSTEPS_Z
@@ -855,10 +859,14 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
 /*****************************************************************************/
 //AXIS_Z_MAX_POS_MM
 extern "C" float get_z_max_pos_mm() {
+#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     float ret = eeprom_startup_vars().AXIS_Z_MAX_POS_MM;
     if ((ret > Z_MAX_LEN_LIMIT) || (ret < Z_MIN_LEN_LIMIT))
         ret = DEFAULT_Z_MAX_POS;
     return ret;
+#else
+    return 0.F;
+#endif
 }
 
 extern "C" uint16_t get_z_max_pos_mm_rounded() {
@@ -866,9 +874,11 @@ extern "C" uint16_t get_z_max_pos_mm_rounded() {
 }
 
 extern "C" void set_z_max_pos_mm(float max_pos) {
+#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     if ((max_pos >= Z_MIN_LEN_LIMIT) && (max_pos <= Z_MAX_LEN_LIMIT)) {
         eeprom_set_var(AXIS_Z_MAX_POS_MM, variant8_flt(max_pos));
     }
+#endif
 }
 
 /*****************************************************************************/
@@ -902,6 +912,7 @@ extern "C" bool has_inverted_e() {
     return std::signbit(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_E0);
 }
 
+#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 extern "C" bool has_wrong_x() {
     return has_inverted_x() != DEFAULT_INVERT_X_DIR;
 }
@@ -917,6 +928,12 @@ extern "C" bool has_wrong_z() {
 extern "C" bool has_wrong_e() {
     return has_inverted_e() != DEFAULT_INVERT_E0_DIR;
 }
+#else
+extern "C" bool has_wrong_x() { return false; }
+extern "C" bool has_wrong_y() { return false; }
+extern "C" bool has_wrong_z() { return false; }
+extern "C" bool has_wrong_e() { return false; }
+#endif
 
 extern "C" uint16_t get_steps_per_unit_x_rounded() {
     return static_cast<uint16_t>(std::lround(get_steps_per_unit_x()));
@@ -1002,6 +1019,7 @@ extern "C" void set_negative_direction_e() {
     set_axis_negative_direction<AXIS_STEPS_PER_UNIT_E0>();
 }
 
+#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 extern "C" void set_wrong_direction_x() {
     (!DEFAULT_INVERT_X_DIR) ? set_negative_direction_x() : set_positive_direction_x();
 }
@@ -1026,6 +1044,16 @@ extern "C" void set_PRUSA_direction_z() {
 extern "C" void set_PRUSA_direction_e() {
     DEFAULT_INVERT_E0_DIR ? set_negative_direction_e() : set_positive_direction_e();
 }
+#else
+extern "C" void set_wrong_direction_x() {}
+extern "C" void set_wrong_direction_y() {}
+extern "C" void set_wrong_direction_z() {}
+extern "C" void set_wrong_direction_e() {}
+extern "C" void set_PRUSA_direction_x() {}
+extern "C" void set_PRUSA_direction_y() {}
+extern "C" void set_PRUSA_direction_z() {}
+extern "C" void set_PRUSA_direction_e() {}
+#endif
 
 /*****************************************************************************/
 //AXIS_MICROSTEPS
