@@ -16,6 +16,8 @@
 #define TURN_FLAG_OFF(flg)         (flg |= LAN_FLAG_ONOFF_POS)  // flip lan switch flg to OFF
 
 #define ETH_HOSTNAME_LEN 20 // ethernet hostname MAX length
+#define SSID_MAX_LEN     32 // https://en.wikipedia.org/wiki/Service_set_(802.11_network)#SSID
+#define WIFI_PSK_MAX     64
 
 typedef struct {
     uint8_t flag;        // lan flags: pos0 = switch(ON=0, OFF=1), pos1 = type(DHCP=0, STATIC=1)
@@ -33,6 +35,18 @@ typedef struct {
     lan_t lan;                           // user defined LAN configurations
     uint32_t var_mask;                   // mask for setting ethvars
 } ETH_config_t;
+
+enum ap_sec_t {
+    AP_SEC_NONE,
+    AP_SEC_WEP,
+    AP_SEC_WPA,
+};
+
+typedef struct {
+    char ssid[SSID_MAX_LEN + 1];
+    char pass[WIFI_PSK_MAX + 1];
+    enum ap_sec_t security;
+} ap_entry_t;
 
 #ifdef __cplusplus
 extern "C" {

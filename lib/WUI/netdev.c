@@ -31,11 +31,6 @@
 #include "alsockets.h"
 #include "lwesp_ll_buddy.h"
 
-typedef struct {
-    const char *ssid;
-    const char *pass;
-} ap_entry_t;
-
 static const uint32_t esp_target_baudrate = 500000;
 static netdev_status_t esp_state = NETDEV_NETIF_DOWN;
 static uint32_t active_netdev_id = NETDEV_NODEV_ID;
@@ -160,8 +155,10 @@ esp_callback_func(esp_evt_t *evt) {
         esp_state = NETDEV_UNLINKED;
         break;
     }
-    default:
+    default: {
+        _dbg("Unknown ESP message: %d", (int)esp_evt_get_type(evt));
         break;
+    }
     }
     return espOK;
 }
@@ -170,6 +167,17 @@ uint32_t netdev_init() {
     ETH_CONFIG().var_mask = ETHVAR_EEPROM_CONFIG;
     load_eth_params(&ETH_CONFIG());
     active_netdev_id = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_NETDEV));
+
+    // FIXME: This is here just temporarily. We should load from EEPROM here
+    // and call this thing from a menu item on user request.
+    if (load_ini_file_wifi(&wui_netdev_config[NETDEV_ESP_ID], &ap)) {
+        _dbg("Wifi settings: %s/%s", ap.ssid, ap.pass);
+    } else {
+        // TODO: This is probably not correct, is there a better error code? It
+        // probably doesn't matter, as this is temporary.
+        _dbg("Failed to read config from ini file");
+        // Not setting anything and hoping wifi is not going to be used this time
+    }
 
     tcpip_init(tcpip_init_done_callback, NULL);
     netdev_init_esp();
