@@ -23,6 +23,7 @@
 #include "hwio_pindef.h"
 #include "menu_spin_config.hpp"
 #include "DialogSelftestResult.hpp"
+#include <time.h>
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -499,4 +500,45 @@ void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
         marlin_set_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED, variant8_ui8(0));
     }
     eeprom_set_var(EEVAR_FS_AUTOLOAD_ENABLED, variant8_ui8(marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED)));
+}
+MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
+    : WI_FORMATABLE_LABEL_t<float>(label, id_icon, enabled, hidden, initVal, [&](char *buffer) {
+        float value_m = value / 1000; // change the unit from mm to m
+        if (value_m > 999) {
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%.1f km", (double)(value_m / 1000));
+        } else {
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%.1f m", (double)value_m);
+        }
+    }) {
+}
+
+MI_ODOMETER_DIST_X::MI_ODOMETER_DIST_X()
+    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+}
+MI_ODOMETER_DIST_Y::MI_ODOMETER_DIST_Y()
+    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+}
+MI_ODOMETER_DIST_Z::MI_ODOMETER_DIST_Z()
+    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+}
+MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
+    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+}
+MI_ODOMETER_TIME::MI_ODOMETER_TIME()
+    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), 0, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
+        time_t time = (time_t)value;
+        constexpr static uint32_t secPerDay = 24 * 60 * 60;
+        const struct tm *timeinfo = localtime(&time);
+        if (timeinfo->tm_yday) {
+            //days are recalculated, because timeinfo shows number of days in year and we want more days than 365
+            uint16_t days = value / secPerDay;
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%ud %uh", days, timeinfo->tm_hour);
+        } else if (timeinfo->tm_hour) {
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+        } else if (timeinfo->tm_min) {
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+        } else {
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%is", timeinfo->tm_sec);
+        }
+    }) {
 }
