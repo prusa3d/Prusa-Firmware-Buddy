@@ -40,7 +40,11 @@ const char *__var_name[] = {
     "FAN0_RPM",
     "FAN1_RPM",
     "FAN_CHECK_ENABLED",
-    "FS_AUTOLOAD_ENABLED"
+    "FS_AUTOLOAD_ENABLED",
+    "CURR_POS_X",
+    "CURR_POS_Y",
+    "CURR_POS_Z",
+    "CURR_POS_E"
 };
 
 static_assert((sizeof(__var_name) / sizeof(char *)) == (MARLIN_VAR_MAX + 1), "Invalid number of elements in __var_name");
@@ -131,6 +135,14 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
         return variant8_ui8(vars->fan_check_enabled);
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
         return variant8_ui8(vars->fs_autoload_enabled);
+    case MARLIN_VAR_CURR_POS_X:
+        return variant8_flt(vars->curr_pos[0]);
+    case MARLIN_VAR_CURR_POS_Y:
+        return variant8_flt(vars->curr_pos[1]);
+    case MARLIN_VAR_CURR_POS_Z:
+        return variant8_flt(vars->curr_pos[2]);
+    case MARLIN_VAR_CURR_POS_E:
+        return variant8_flt(vars->curr_pos[3]);
     }
     return variant8_empty();
 }
@@ -172,6 +184,18 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         break;
     case MARLIN_VAR_POS_E:
         vars->pos[3] = variant8_get_flt(var);
+        break;
+    case MARLIN_VAR_CURR_POS_X:
+        vars->curr_pos[0] = variant8_get_flt(var);
+        break;
+    case MARLIN_VAR_CURR_POS_Y:
+        vars->curr_pos[1] = variant8_get_flt(var);
+        break;
+    case MARLIN_VAR_CURR_POS_Z:
+        vars->curr_pos[2] = variant8_get_flt(var);
+        break;
+    case MARLIN_VAR_CURR_POS_E:
+        vars->curr_pos[3] = variant8_get_flt(var);
         break;
     case MARLIN_VAR_TEMP_NOZ:
         vars->temp_nozzle = variant8_get_flt(var);

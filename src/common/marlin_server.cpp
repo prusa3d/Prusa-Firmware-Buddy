@@ -998,6 +998,16 @@ static uint64_t _server_update_vars(uint64_t update) {
                 }
             }
     }
+    if (update & MARLIN_VAR_MSK_CURR_POS_XYZE) {
+        for (i = 0; i < 4; i++)
+            if (update & MARLIN_VAR_MSK(MARLIN_VAR_CURR_POS_X + i)) {
+                float pos_mm = current_position[i];
+                if (marlin_server.vars.curr_pos[i] != pos_mm) {
+                    marlin_server.vars.curr_pos[i] = pos_mm;
+                    changes |= MARLIN_VAR_MSK(MARLIN_VAR_CURR_POS_X + i);
+                }
+            }
+    }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ)) {
         float temp = thermalManager.temp_hotend[0].celsius;

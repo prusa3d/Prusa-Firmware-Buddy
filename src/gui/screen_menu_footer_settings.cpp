@@ -59,6 +59,7 @@ static constexpr std::array<const char *, size_t(footer::items::count_) + 1> ite
     N_("Bed"),      //ItemBed
     N_("Filament"), //ItemFilament
     N_("Speed"),    //ItemSpeed
+    N_("Z Heigth"), // ItemZHeigth
 #if defined(FOOTER_HAS_LIVE_Z)
     N_("LiveZ"), //ItemLiveZ
 #endif           // FOOTER_HAS_LIVE_Z
@@ -80,14 +81,15 @@ public:
             string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[1]),
             string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[2]),
             string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[3]),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[4])
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[4]),
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[5])
 #if defined(FOOTER_HAS_LIVE_Z) || defined(FOOTER_HAS_SHEETS)
                 ,
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[5])
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[6])
 #endif // FOOTER_HAS_LIVE_Z || FOOTER_HAS_SHEETS
 #if defined(FOOTER_HAS_LIVE_Z) && defined(FOOTER_HAS_SHEETS)
                 ,
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[6])
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[7])
 #endif // FOOTER_HAS_LIVE_Z && FOOTER_HAS_SHEETS
         ) {
     }

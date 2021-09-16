@@ -109,3 +109,40 @@ resized_t FooterIconText_IntVal::updateState() {
     }
     return resized_t::no;
 }
+FooterIconText_FloatVal::FooterIconText_FloatVal(window_t *parent, uint16_t icon_id,
+    view_maker_cb view_maker, reader_cb value_reader)
+    : AddSuperWindow<IFooterIconText>(parent, icon_id, GetTotalWidth(icon_id, view_maker(value_reader())))
+    , makeView(view_maker)
+    , readCurrentValue(value_reader)
+    , value(value_reader()) {
+    text.SetText(makeView(value));
+}
+
+Rect16::Width_t FooterIconText_FloatVal::GetTotalWidth(uint16_t icon_id, string_view_utf8 view) {
+    return MeasureTextWidth(view) + Rect16::Width_t(icon_id != 0 ? GuiDefaults::FooterIconSize.w + GuiDefaults::FooterIconTextSpace : 0);
+}
+
+changed_t FooterIconText_FloatVal::updateValue() {
+    changed_t ret = changed_t::no;
+    if (value != readCurrentValue()) {
+        value = readCurrentValue();
+        ret = changed_t::yes;
+    }
+
+    return ret;
+}
+
+resized_t FooterIconText_FloatVal::updateState() {
+    string_view_utf8 current_view = makeView(value);
+    text.SetText(current_view);
+    text.Invalidate(); // text could change, without changing pointer to buffer, need manual invalidation
+    // value changed so text is ivalid, this will not cause unnecessary redraw
+
+    Rect16::Width_t current_width = GetTotalWidth(icon.GetIdRes(), current_view);
+    if (current_width != Width()) {
+        Resize(current_width);
+        text.Resize(MeasureTextWidth(current_view));
+        return resized_t::yes;
+    }
+    return resized_t::no;
+}

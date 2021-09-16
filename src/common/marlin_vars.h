@@ -38,9 +38,13 @@ enum {
     MARLIN_VAR_TIMTOEND = 0x1d,            // R:  uint32, oProgressData.oTime2End.mGetValue() or -1 if not valid
     MARLIN_VAR_FAN0_RPM = 0x1e,            // R:  uint16, fanctl0.getActualRPM()
     MARLIN_VAR_FAN1_RPM = 0x1f,            // R:  uint16, fanctl1.getActualRPM()
-    MARLIN_VAR_FAN_CHECK_ENABLED = 0x20,   //RW: uintt8, fan_check
-    MARLIN_VAR_FS_AUTOLOAD_ENABLED = 0x21, //RW: uint8_t fs_autoload
-    MARLIN_VAR_MAX = MARLIN_VAR_FS_AUTOLOAD_ENABLED
+    MARLIN_VAR_FAN_CHECK_ENABLED = 0x20,   // RW: uintt8, fan_check
+    MARLIN_VAR_FS_AUTOLOAD_ENABLED = 0x21, // RW: uint8_t fs_autoload
+    MARLIN_VAR_CURR_POS_X = 0x22,          // R: float current_position
+    MARLIN_VAR_CURR_POS_Y = 0x23,          // R: ==||==
+    MARLIN_VAR_CURR_POS_Z = 0x24,          // R: ==||==
+    MARLIN_VAR_CURR_POS_E = 0x25,          // R: ==||==
+    MARLIN_VAR_MAX = MARLIN_VAR_CURR_POS_E
 };
 
 // variable masks
@@ -56,6 +60,8 @@ enum {
 #endif
 
 #define MARLIN_VAR_MSK_IPOS_XYZE (MARLIN_VAR_MSK(MARLIN_VAR_IPOS_X) | MARLIN_VAR_MSK(MARLIN_VAR_IPOS_Y) | MARLIN_VAR_MSK(MARLIN_VAR_IPOS_Z) | MARLIN_VAR_MSK(MARLIN_VAR_IPOS_E))
+
+#define MARLIN_VAR_MSK_CURR_POS_XYZE (MARLIN_VAR_MSK(MARLIN_VAR_CURR_POS_X) | MARLIN_VAR_MSK(MARLIN_VAR_CURR_POS_Y) | MARLIN_VAR_MSK(MARLIN_VAR_CURR_POS_Z) | MARLIN_VAR_MSK(MARLIN_VAR_CURR_POS_E))
 
 static const uint64_t MARLIN_VAR_MSK_POS_XYZE = MARLIN_VAR_MSK(MARLIN_VAR_POS_X) | MARLIN_VAR_MSK(MARLIN_VAR_POS_Y) | MARLIN_VAR_MSK(MARLIN_VAR_POS_Z) | MARLIN_VAR_MSK(MARLIN_VAR_POS_E);
 
@@ -117,6 +123,7 @@ typedef struct _marlin_vars_t {
     // 4B base types
     float pos[4];                     // position XYZE [mm]
     int32_t ipos[4];                  // integer position XYZE [steps]
+    float curr_pos[4];                // current position XYZE according to G-code [mm]
     float temp_nozzle;                // nozzle temperature [C]
     float temp_bed;                   // bed temperature [C]
     float target_nozzle;              // nozzle target temperature [C]
