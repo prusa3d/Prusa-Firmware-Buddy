@@ -11,8 +11,9 @@ typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
 //to be safe, ctor has this 2 bool parameters, can't switch them
-enum class is_hidden_t : bool { no,
-    yes };
+enum class is_hidden_t : uint8_t { no,
+    yes,
+    dev };
 enum class is_enabled_t : bool { no,
     yes };
 enum class is_focused_t : bool { no,

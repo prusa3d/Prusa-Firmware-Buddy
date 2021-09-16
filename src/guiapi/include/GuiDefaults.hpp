@@ -37,6 +37,7 @@ struct GuiDefaults {
     static constexpr color_t MenuColorBack = ColorBack;
     static constexpr color_t MenuColorText = ColorText;
     static constexpr color_t MenuColorDisabled = ColorDisabled;
+    static constexpr color_t MenuColorDevelopment = COLOR_PURPLE;
 
     // Text settings
     static constexpr padding_ui8_t Padding = { 2, 2, 2, 2 };
@@ -73,6 +74,7 @@ struct GuiDefaults {
     static constexpr bool MenuSwitchHasBrackets = false; // draw brackets around switch values in menus
     static constexpr bool MenuSpinHasUnits = false;      // draw units behind spin
     static constexpr bool MenuHasScrollbar = false;
+    static constexpr bool ShowDevelopmentTools = true; // Show menu items for development
 
     // New menu feature settings
     static constexpr size_t MenuUseFixedUnitWidth = 28; // 0 == calculate in runtime
