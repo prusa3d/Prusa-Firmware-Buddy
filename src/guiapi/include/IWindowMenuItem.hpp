@@ -44,7 +44,7 @@ private:
     string_view_utf8 label;
     txtroll_t roll;
 
-    is_hidden_t hidden : 1;
+    uint8_t hidden : 2;
     is_enabled_t enabled : 1;
     is_focused_t focused : 1;
 
@@ -78,9 +78,10 @@ public:
     void Disable() { enabled = is_enabled_t::no; }
     bool IsEnabled() const { return enabled == is_enabled_t::yes; }
     bool IsSelected() const { return selected == is_selected_t::yes; }
-    void Hide() { hidden = is_hidden_t::yes; }
-    void Show() { hidden = is_hidden_t::no; }
-    bool IsHidden() const { return hidden == is_hidden_t::yes; }
+    void Hide() { hidden = (uint8_t)is_hidden_t::yes; }
+    void Show() { hidden = (uint8_t)is_hidden_t::no; }
+    void ShowDevOnly() { hidden = (uint8_t)is_hidden_t::dev; }
+    bool IsHidden() const;
     void SetFocus();
     void ClrFocus();
     bool IsFocused() const { return focused == is_focused_t::yes; }
