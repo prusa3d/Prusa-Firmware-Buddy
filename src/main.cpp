@@ -225,6 +225,7 @@ extern "C" void EepromSystemInit() {
     SystemClock_Config();
 
     MX_I2C1_Init();
+    tick_timer_init();
     crc32_init();
 
     int irq = __get_PRIMASK() & 1;
@@ -243,8 +244,6 @@ extern "C" void EepromSystemInit() {
   * @retval int
   */
 int main(void) {
-    tick_timer_init();
-
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
