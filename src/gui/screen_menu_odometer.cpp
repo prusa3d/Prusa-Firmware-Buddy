@@ -12,12 +12,12 @@
 using MenuContainer = WinMenuContainer<MI_RETURN>;
 
 class ScreenMenuOdometer : public AddSuperWindow<screen_t> {
-    static constexpr const char *label = N_("ODOMETER");
-    static const constexpr char *x_text = N_("X axis");
-    static const constexpr char *y_text = N_("Y axis");
-    static const constexpr char *z_text = N_("Z axis");
+    static constexpr const char *label = N_("STATISTICS");
+    static const constexpr char *x_text = N_("X-axis");
+    static const constexpr char *y_text = N_("Y-axis");
+    static const constexpr char *z_text = N_("Z-axis");
     static const constexpr char *e_text = N_("Filament");
-    static const constexpr char *t_text = N_("Print time");
+    static const constexpr char *t_text = N_("Print Time");
     static const constexpr char *val_format = "%0.1f m"; // do not translate
     static const constexpr char *time_format = "%u s";   // do not translate
 

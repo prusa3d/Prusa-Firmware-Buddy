@@ -26,7 +26,7 @@ protected:
 };
 
 class MI_ODOMETER : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Odometer");
+    static constexpr const char *const label = N_("Statistics");
 
 public:
     MI_ODOMETER();
@@ -56,7 +56,7 @@ protected:
 };
 
 class MI_STATISTIC_disabled : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Statistic");
+    static constexpr const char *const label = "Statistic";
 
 public:
     MI_STATISTIC_disabled();
@@ -207,7 +207,7 @@ public:
 };
 
 class MI_EXPERIMENTAL_SETTINGS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Experimental Settings");
+    static constexpr const char *const label = "Experimental Settings";
 
 public:
     MI_EXPERIMENTAL_SETTINGS();
