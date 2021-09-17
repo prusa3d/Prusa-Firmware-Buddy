@@ -44,7 +44,14 @@
 
 #include "esp/esp_config.h"
 
-#include "dbg.h"
+// #define ALTCP_ESP_DEBUG 1
+
+#ifdef ALTCP_ESP_DEBUG
+    #include "dbg.h"
+    #define ALTCP_ESP_DEBUG_FN(fmt, ...) _dbg(fmt, ##__VA_ARGS__)
+#else
+    #define ALTCP_ESP_DEBUG_FN(fmt, ...)
+#endif
 
 #if ESP_ALTCP /* don't build if not configured for use in espopts.h */
 
@@ -66,36 +73,37 @@ extern const struct altcp_functions altcp_esp_functions;
 
 static void altcp_esp_setup(struct altcp_pcb *conn, esp_pcb *epcb);
 
+/* Translate ESP errors into LwIP errors */
 static err_t espr_t2err_t(const espr_t err) {
     switch (err) {
     case espOK:
         return ERR_OK;    /*!< Function succeeded */
     case espOKIGNOREMORE: /*!< Function succedded, should continue as espOK but ignore sending more data. This result is possible on connection data receive callback */
-        _dbg("espOKIGNOREMORE - pretending all ok");
+        ALTCP_ESP_DEBUG_FN("espOKIGNOREMORE - pretending all ok");
         return ERR_OK;
     case espERR:
-        _dbg("Generic ESP err");
+        ALTCP_ESP_DEBUG_FN("Generic ESP err");
         return ERR_IF;
     case espERRCONNTIMEOUT: /*!< Timeout received when connection to access point */
-        _dbg("espERRCONNTIMEOUT");
+        ALTCP_ESP_DEBUG_FN("espERRCONNTIMEOUT");
         return ERR_IF;
     case espERRPASS: /*!< Invalid password for access point */
-        _dbg("espERRPASS");
+        ALTCP_ESP_DEBUG_FN("espERRPASS");
         return ERR_IF;
     case espERRNOAP: /*!< No access point found with specific SSID and MAC address */
-        _dbg("espERRNOAP");
+        ALTCP_ESP_DEBUG_FN("espERRNOAP");
         return ERR_IF;
     case espERRCONNFAIL: /*!< Connection failed to access point */
-        _dbg("espERRCONNFAIL");
+        ALTCP_ESP_DEBUG_FN("espERRCONNFAIL");
         return ERR_IF;
     case espERRWIFINOTCONNECTED: /*!< Wifi not connected to access point */
-        _dbg("espERRWIFINOTCONNECTED");
+        ALTCP_ESP_DEBUG_FN("espERRWIFINOTCONNECTED");
         return ERR_IF;
     case espERRNODEVICE: /*!< Device is not present */
-        _dbg("espERRNODEVICE");
+        ALTCP_ESP_DEBUG_FN("espERRNODEVICE");
         return ERR_IF;
     case espCONT:
-        _dbg("espCONT"); /*!< There is still some command to be processed in current command */
+        ALTCP_ESP_DEBUG_FN("espCONT"); /*!< There is still some command to be processed in current command */
         return ERR_IF;
     case espPARERR:
         return ERR_VAL;    /*!< Wrong parameters on function call */
@@ -113,43 +121,43 @@ static err_t espr_t2err_t(const espr_t err) {
     case espERRBLOCKING:
         return ERR_WOULDBLOCK;
     default:
-        _dbg("Unknown ESP err");
+        ALTCP_ESP_DEBUG_FN("Unknown ESP err");
         return -1;
     }
 }
 
+/* Check ALTCP and ESP PCB connection consistency */
 static void ALTCP_TCP_ASSERT_CONN_PCB(struct altcp_pcb *conn, esp_pcb *epcb) {
     if (!conn) {
-        _dbg("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !conn");
+        ALTCP_ESP_DEBUG_FN("ESP connection pointer is NULL when is thould be set !!!");
     }
 
     if (!epcb) {
-        _dbg("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !epcb");
+        ALTCP_ESP_DEBUG_FN("ESP PCB pointer is NULL when it should be set !!!!");
     }
 
     if (conn->state != epcb) {
-        _dbg("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! conn->state: %x != epcb: %x", conn->state, epcb);
+        ALTCP_ESP_DEBUG_FN("ESP connection - ESP PCB mismatch conn->state: %x != epcb: %x !!!", conn->state, epcb);
     }
 
     if (epcb->alconn != conn) {
-        _dbg("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! epcb->alconn: %x != conn: %x", epcb->alconn, conn);
+        ALTCP_ESP_DEBUG_FN("ESP PCB - ALTCP connection mismatch epcb->alconn: %x != conn: %x !!!", epcb->alconn, conn);
     }
 }
 
 /* callback functions for TCP */
-static err_t
-altcp_esp_accept(void *arg, esp_pcb *new_epcb, err_t err) {
-    _dbg("altcp_esp_accept");
+static err_t altcp_esp_accept(void *arg, esp_pcb *new_epcb, err_t err) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_accept");
     struct altcp_pcb *listen_conn = (struct altcp_pcb *)arg;
     if (!listen_conn || !listen_conn->accept) {
-        _dbg("!!! listen connection not set properly !!!");
+        ALTCP_ESP_DEBUG_FN("!!! listen connection not set properly !!!");
         return ERR_ARG;
     }
 
     /* create a new altcp_conn to pass to the next 'accept' callback */
     struct altcp_pcb *new_conn = altcp_alloc();
     if (new_conn == NULL) {
-        _dbg("No mem to alloc altcp !!!");
+        ALTCP_ESP_DEBUG_FN("No mem to alloc altcp !!!");
         return ERR_MEM;
     }
     altcp_esp_setup(new_conn, new_epcb);
@@ -158,9 +166,8 @@ altcp_esp_accept(void *arg, esp_pcb *new_epcb, err_t err) {
     return ret;
 }
 
-static err_t
-altcp_esp_connected(void *arg, esp_pcb *epcb, err_t err) {
-    _dbg("altcp_esp_connected");
+static err_t altcp_esp_connected(void *arg, esp_pcb *epcb, err_t err) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_connected");
     struct altcp_pcb *conn = (struct altcp_pcb *)arg;
     if (epcb->alconn && epcb->alconn->connected) {
         epcb->alconn->connected(conn->arg, conn, 0);
@@ -168,9 +175,8 @@ altcp_esp_connected(void *arg, esp_pcb *epcb, err_t err) {
     return ERR_OK;
 }
 
-static err_t
-altcp_esp_recv(void *arg, esp_pcb *epcb, struct pbuf *p, err_t err) {
-    _dbg("altcp_esp_recv");
+static err_t altcp_esp_recv(void *arg, esp_pcb *epcb, struct pbuf *p, err_t err) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_recv");
     struct altcp_pcb *conn = (struct altcp_pcb *)arg;
 
     if (conn) {
@@ -178,13 +184,13 @@ altcp_esp_recv(void *arg, esp_pcb *epcb, struct pbuf *p, err_t err) {
         if (conn->recv) {
             // TODO: This takes ~500ms to execute.
             // Unfortunately UART buffer overflows in the meantime.
-    #if (DBG_LEVEL > 0)
+    #ifdef ALTCP_ESP_DEBUG
             const long start = xTaskGetTickCount();
     #endif
             err_t ret = conn->recv(conn->arg, conn, p, err);
-    #if (DBG_LEVEL > 0)
+    #ifdef ALTCP_ESP_DEBUG
             const long end = xTaskGetTickCount();
-            _dbg("recv callback in %ld ms", (end - start) / portTICK_RATE_MS);
+            ALTCP_ESP_DEBUG_FN("recv callback in %ld ms", (end - start) / portTICK_RATE_MS);
     #endif
             return ret;
         }
@@ -196,9 +202,8 @@ altcp_esp_recv(void *arg, esp_pcb *epcb, struct pbuf *p, err_t err) {
     return ERR_OK;
 }
 
-static err_t
-altcp_esp_sent(void *arg, esp_pcb *epcb, u16_t len) {
-    _dbg("altcp_esp_sent");
+static err_t altcp_esp_sent(void *arg, esp_pcb *epcb, u16_t len) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_sent");
     struct altcp_pcb *conn = (struct altcp_pcb *)arg;
     if (conn) {
         ALTCP_TCP_ASSERT_CONN_PCB(conn, epcb);
@@ -209,9 +214,8 @@ altcp_esp_sent(void *arg, esp_pcb *epcb, u16_t len) {
     return ERR_OK;
 }
 
-static err_t
-altcp_esp_poll(void *arg, esp_pcb *epcb) {
-    _dbg("altcp_esp_poll");
+static err_t altcp_esp_poll(void *arg, esp_pcb *epcb) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_poll");
     struct altcp_pcb *conn = (struct altcp_pcb *)arg;
     if (conn) {
         ALTCP_TCP_ASSERT_CONN_PCB(conn, epcb);
@@ -223,9 +227,8 @@ altcp_esp_poll(void *arg, esp_pcb *epcb) {
     return ERR_OK;
 }
 
-static void
-altcp_esp_err(void *arg, err_t err) {
-    _dbg("altcp_esp_err");
+static void altcp_esp_err(void *arg, err_t err) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_err");
     struct altcp_pcb *conn = (struct altcp_pcb *)arg;
     if (conn) {
         conn->state = NULL; /* already freed */
@@ -238,9 +241,8 @@ altcp_esp_err(void *arg, err_t err) {
 
 /* setup functions */
 
-static void
-altcp_esp_setup(struct altcp_pcb *conn, esp_pcb *epcb) {
-    _dbg("altcp_esp_setup");
+static void altcp_esp_setup(struct altcp_pcb *conn, esp_pcb *epcb) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_setup");
     conn->state = epcb;
     conn->fns = &altcp_esp_functions;
     epcb->alconn = conn;
@@ -275,17 +277,17 @@ static espr_t esp_evt_conn_active(esp_conn_p conn) {
     esp_pcb *epcb = NULL;
 
     if (esp_conn_is_client(conn)) {
-        _dbg("ESP_EVT_CONN_ACTIVE - CLIENT");
+        ALTCP_ESP_DEBUG_FN("ESP_EVT_CONN_ACTIVE - CLIENT");
         epcb = esp_conn_get_arg(conn);
         if (epcb != NULL) {
             epcb->econn = conn;
             altcp_esp_connected(epcb->alconn, epcb, 0);
         } else {
-            _dbg("ACTIVE CLIENT WITHOUT EPCB POINTER !!!!");
+            ALTCP_ESP_DEBUG_FN("ACTIVE CLIENT WITHOUT EPCB POINTER !!!!");
             close = 1;
         }
     } else if (esp_conn_is_server(conn) && listen_api != NULL) {
-        _dbg("ESP_EVT_CONN_ACTIVE - SERVER");
+        ALTCP_ESP_DEBUG_FN("ESP_EVT_CONN_ACTIVE - SERVER");
         epcb = esp_new_ip_type(0);
         ESP_DEBUGW(ESP_DBG_TYPE_TRACE | ESP_DBG_LVL_WARNING,
             epcb == NULL, "[ESPTCP] Cannot create new structure for incoming server connection!\r\n");
@@ -297,11 +299,11 @@ static espr_t esp_evt_conn_active(esp_conn_p conn) {
                 close = 1;
             }
         } else {
-            _dbg("esp_pcb not created");
+            ALTCP_ESP_DEBUG_FN("esp_pcb not created");
             close = 1;
         }
     } else {
-        _dbg("ESP_EVT_CONN_ACTIVE - OTHER");
+        ALTCP_ESP_DEBUG_FN("ESP_EVT_CONN_ACTIVE - OTHER");
         ESP_DEBUGW(ESP_DBG_TYPE_TRACE | ESP_DBG_LVL_WARNING, listen_api == NULL,
             "[ESPTCP] Closing connection as there is no listening API in ESP PCB!\r\n");
         close = 1; /* Close the connection at this point */
@@ -310,7 +312,7 @@ static espr_t esp_evt_conn_active(esp_conn_p conn) {
     /* Decide if some events want to close the connection */
     if (close) {
         if (epcb != NULL) {
-            _dbg("Closing conn %d", esp_conn_getnum(conn));
+            ALTCP_ESP_DEBUG_FN("Closing conn %d", esp_conn_getnum(conn));
             esp_conn_set_arg(conn, NULL); /* Reset argument */
             if (epcb->alconn != NULL) {
                 altcp_free(epcb->alconn);
@@ -335,10 +337,10 @@ static espr_t esp_evt_conn_recv(esp_conn_p conn, esp_evt_t *evt) {
     esp_conn_recved(conn, pbuf); /* Notify stack about received data */
     epcb->rcv_packets++;         /* Increase number of received packets */
     epcb->rcv_bytes += esp_pbuf_length(pbuf, 0);
-    _dbg("Received %ld packets, %ld bytes", epcb->rcv_packets, epcb->rcv_bytes);
+    ALTCP_ESP_DEBUG_FN("Received %ld packets, %ld bytes", epcb->rcv_packets, epcb->rcv_bytes);
 
     if (esp_pbuf_length(pbuf, 0) != esp_pbuf_length(pbuf, 1)) {
-        _dbg("!!! rcv pbuf has multiple parts, this is not supported !!!!");
+        ALTCP_ESP_DEBUG_FN("!!! rcv pbuf has multiple parts, this is not supported !!!!");
     }
 
     struct pbuf_custom *custom_pbuf = esp_mem_alloc(sizeof(struct pbuf_custom));
@@ -346,7 +348,7 @@ static espr_t esp_evt_conn_recv(esp_conn_p conn, esp_evt_t *evt) {
     const size_t recv_len = esp_pbuf_length(pbuf, 0);
     struct pbuf *lwip_pbuf = pbuf_alloced_custom(PBUF_RAW, recv_len, PBUF_REF, custom_pbuf, (char *)esp_pbuf_data(pbuf), recv_len);
     if (!lwip_pbuf) {
-        _dbg("Failed to obtain custom LwIP pbuf, len: %ld", recv_len);
+        ALTCP_ESP_DEBUG_FN("Failed to obtain custom LwIP pbuf, len: %ld", recv_len);
         esp_pbuf_free(pbuf);
         esp_mem_free(custom_pbuf);
         return espERR;
@@ -362,7 +364,7 @@ static espr_t esp_evt_conn_closed(esp_conn_p conn) {
     esp_conn_set_arg(conn, NULL);
 
     if (epcb) {
-        _dbg("Connection closed and epcb not NULL -> free, err");
+        ALTCP_ESP_DEBUG_FN("Connection closed and epcb not NULL -> free, err");
         struct altcp_pcb *pcb = epcb->alconn;
         if (pcb) {
             altcp_esp_err(pcb, ERR_CLSD);
@@ -387,7 +389,7 @@ static espr_t esp_evt_conn_send(esp_conn_p conn, esp_evt_t *evt) {
 static espr_t esp_evt_conn_poll(esp_conn_p conn) {
     esp_pcb *epcb = esp_conn_get_arg(conn);
     if (epcb == NULL) {
-        _dbg("epcb is NULL !!! -> closing connection");
+        ALTCP_ESP_DEBUG_FN("epcb is NULL !!! -> closing connection");
         esp_conn_close(conn, 0);
         return espERR;
     }
@@ -399,10 +401,10 @@ static espr_t altcp_esp_evt(esp_evt_t *evt) {
     esp_conn_p conn;
 
     conn = esp_conn_get_from_evt(evt);
-    _dbg("Event from conn %d", esp_conn_getnum(conn));
+    ALTCP_ESP_DEBUG_FN("Event from conn %d", esp_conn_getnum(conn));
     switch (esp_evt_get_type(evt)) {
     case ESP_EVT_CONN_ACTIVE:
-        _dbg("ESP_EVT_CONN_ACTIVE");
+        ALTCP_ESP_DEBUG_FN("ESP_EVT_CONN_ACTIVE");
         return esp_evt_conn_active(conn);
 
     /*
@@ -410,30 +412,29 @@ static espr_t altcp_esp_evt(esp_evt_t *evt) {
      * should have esp pcb structure as argument
      */
     case ESP_EVT_CONN_RECV:
-        _dbg("ESP_EVT_CONN_RECV");
+        ALTCP_ESP_DEBUG_FN("ESP_EVT_CONN_RECV");
         return esp_evt_conn_recv(conn, evt);
 
     /* Connection was just closed */
     case ESP_EVT_CONN_CLOSED:
-        _dbg("ESP_EVT_CONN_CLOSED");
+        ALTCP_ESP_DEBUG_FN("ESP_EVT_CONN_CLOSED");
         return esp_evt_conn_closed(conn);
 
     case ESP_EVT_CONN_SEND:
-        _dbg("ESP_EVT_CONN_SEND");
+        ALTCP_ESP_DEBUG_FN("ESP_EVT_CONN_SEND");
         return esp_evt_conn_send(conn, evt);
 
     case ESP_EVT_CONN_POLL:
-        _dbg("ESP_EVT_CONN_POLL");
+        ALTCP_ESP_DEBUG_FN("ESP_EVT_CONN_POLL");
         return esp_evt_conn_poll(conn);
     default:
-        _dbg("Unknown event type: %d", esp_evt_get_type(evt));
+        ALTCP_ESP_DEBUG_FN("Unknown event type: %d", esp_evt_get_type(evt));
         return espERR;
     }
 }
 
-struct altcp_pcb *
-altcp_esp_new_ip_type(u8_t ip_type) {
-    _dbg("altcp_esp_new_ip_type");
+struct altcp_pcb *altcp_esp_new_ip_type(u8_t ip_type) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_new_ip_type");
     /* Allocate the tcp pcb first to invoke the priority handling code
      if we're out of pcbs */
     esp_pcb *epcb = esp_new_ip_type(ip_type);
@@ -454,33 +455,28 @@ altcp_esp_new_ip_type(u8_t ip_type) {
 *
 * arg pointer is not used for TCP.
 */
-struct altcp_pcb *
-altcp_esp_alloc(void *arg, u8_t ip_type) {
-    _dbg("altcp_esp_alloc");
+struct altcp_pcb *altcp_esp_alloc(void *arg, u8_t ip_type) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_alloc");
     LWIP_UNUSED_ARG(arg);
     return altcp_esp_new_ip_type(ip_type);
 }
 
-struct altcp_pcb *
-altcp_esp_wrap(struct tcp_pcb *tpcb) {
-    _dbg("altcp_esp_wrap - NOT IMPLEMENTED");
+struct altcp_pcb *altcp_esp_wrap(struct tcp_pcb *tpcb) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_wrap - NOT IMPLEMENTED");
     return NULL;
 }
 
 /* "virtual" functions calling into tcp */
-static void
-altcp_esp_set_poll(struct altcp_pcb *conn, u8_t interval) {
-    _dbg("altcp_esp_set_poll - NOT IMPLEMENTED");
+static void altcp_esp_set_poll(struct altcp_pcb *conn, u8_t interval) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_set_poll - NOT IMPLEMENTED");
 }
 
-static void
-altcp_esp_recved(struct altcp_pcb *conn, u16_t len) {
+static void altcp_esp_recved(struct altcp_pcb *conn, u16_t len) {
     // ESP has already acknowedged the data, nothing to do here.
 }
 
-static err_t
-altcp_esp_bind(struct altcp_pcb *conn, const ip_addr_t *ipaddr, u16_t port) {
-    _dbg("altcp_esp_bind");
+static err_t altcp_esp_bind(struct altcp_pcb *conn, const ip_addr_t *ipaddr, u16_t port) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_bind");
     if (conn == NULL) {
         return ERR_VAL;
     }
@@ -490,9 +486,8 @@ altcp_esp_bind(struct altcp_pcb *conn, const ip_addr_t *ipaddr, u16_t port) {
     return ERR_OK;
 }
 
-static err_t
-altcp_esp_connect(struct altcp_pcb *conn, const ip_addr_t *ipaddr, u16_t port, altcp_connected_fn connected) {
-    _dbg("altcp_esp_connect"); // TODO: Not properly tested
+static err_t altcp_esp_connect(struct altcp_pcb *conn, const ip_addr_t *ipaddr, u16_t port, altcp_connected_fn connected) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_connect"); // TODO: Not properly tested
     if (conn == NULL) {
         return ERR_VAL;
     }
@@ -504,9 +499,8 @@ altcp_esp_connect(struct altcp_pcb *conn, const ip_addr_t *ipaddr, u16_t port, a
     return espr_t2err_t(ret);
 }
 
-static struct altcp_pcb *
-altcp_esp_listen(struct altcp_pcb *conn, u8_t backlog, err_t *err) {
-    _dbg("altcp_esp_listen");
+static struct altcp_pcb *altcp_esp_listen(struct altcp_pcb *conn, u8_t backlog, err_t *err) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_listen");
     if (conn == NULL) {
         return NULL;
     }
@@ -515,20 +509,18 @@ altcp_esp_listen(struct altcp_pcb *conn, u8_t backlog, err_t *err) {
 
     // Enable server on port and set default altcp callback
     if (esp_set_server(1, epcb->listen_port, ESP_U16(ESP_MIN(backlog, ESP_CFG_MAX_CONNS)), epcb->conn_timeout, altcp_esp_evt, NULL, NULL, 1) != espOK) {
-        _dbg("Failed to set connection to server mode");
+        ALTCP_ESP_DEBUG_FN("Failed to set connection to server mode");
     }
     listen_api = epcb;
     return conn;
 }
 
-static void
-altcp_esp_abort(struct altcp_pcb *conn) {
-    _dbg("altcp_esp_abort - NOT IMPLEMENTED");
+static void altcp_esp_abort(struct altcp_pcb *conn) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_abort - NOT IMPLEMENTED");
 }
 
-static err_t
-altcp_esp_close(struct altcp_pcb *conn) {
-    _dbg("altcp_esp_close");
+static err_t altcp_esp_close(struct altcp_pcb *conn) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_close");
 
     if (conn == NULL) {
         return ERR_VAL;
@@ -536,11 +528,11 @@ altcp_esp_close(struct altcp_pcb *conn) {
 
     esp_pcb *epcb = (esp_pcb *)conn->state;
     if (epcb) {
-        _dbg("Closing connection: %d, total %ld packets, %ld bytes", esp_conn_getnum(epcb->econn), epcb->rcv_packets, epcb->rcv_bytes);
+        ALTCP_ESP_DEBUG_FN("Closing connection: %d, total %ld packets, %ld bytes", esp_conn_getnum(epcb->econn), epcb->rcv_packets, epcb->rcv_bytes);
         espr_t err = esp_conn_close(epcb->econn, 0);
 
         if (err != espOK) {
-            _dbg("Failed to close connection: %d", err);
+            ALTCP_ESP_DEBUG_FN("Failed to close connection: %d", err);
             return espr_t2err_t(err);
         }
     }
@@ -548,15 +540,13 @@ altcp_esp_close(struct altcp_pcb *conn) {
     return ERR_OK;
 }
 
-static err_t
-altcp_esp_shutdown(struct altcp_pcb *conn, int shut_rx, int shut_tx) {
-    _dbg("altcp_esp_shutdown - NOT IMPLEMENTED");
+static err_t altcp_esp_shutdown(struct altcp_pcb *conn, int shut_rx, int shut_tx) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_shutdown - NOT IMPLEMENTED");
     return ERR_VAL;
 }
 
-static err_t
-altcp_esp_write(struct altcp_pcb *conn, const void *dataptr, u16_t len, u8_t apiflags) {
-    _dbg("altcp_esp_write");
+static err_t altcp_esp_write(struct altcp_pcb *conn, const void *dataptr, u16_t len, u8_t apiflags) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_write");
     if (conn == NULL) {
         return ERR_VAL;
     }
@@ -566,56 +556,47 @@ altcp_esp_write(struct altcp_pcb *conn, const void *dataptr, u16_t len, u8_t api
     }
     size_t written = 0;
     espr_t err = esp_conn_send(epcb->econn, dataptr, len, &written, 0); // TODO: Flags ignored, we could only set blocking
-    _dbg("esp writen: %d commited, err: %d", len, err);
+    ALTCP_ESP_DEBUG_FN("esp writen: %d commited, err: %d", len, err);
     return espr_t2err_t(err);
 }
 
-static err_t
-altcp_esp_output(struct altcp_pcb *conn) {
-    _dbg("altcp_esp_output - NOT IMPLEMENTED");
+static err_t altcp_esp_output(struct altcp_pcb *conn) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_output - NOT IMPLEMENTED");
     return ERR_VAL;
 }
 
-static u16_t
-altcp_esp_mss(struct altcp_pcb *conn) {
+static u16_t altcp_esp_mss(struct altcp_pcb *conn) {
     return 536; // Minimal required MSS, TODO: Implement properly
 }
 
-static u16_t
-altcp_esp_sndbuf(struct altcp_pcb *conn) {
+static u16_t altcp_esp_sndbuf(struct altcp_pcb *conn) {
     return 536 / 2; // TODO: Some reasoneable size. Reading from ESP would be better
 }
 
-static u16_t
-altcp_esp_sndqueuelen(struct altcp_pcb *conn) {
-    _dbg("altcp_esp_sndqueuelen");
+static u16_t altcp_esp_sndqueuelen(struct altcp_pcb *conn) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_sndqueuelen");
     return 0; // TODO: Implement properly
 }
 
-static void
-altcp_esp_nagle_disable(struct altcp_pcb *conn) {
-    _dbg("altcp_esp_nagle_disable - NOT IMPLEMENTED");
+static void altcp_esp_nagle_disable(struct altcp_pcb *conn) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_nagle_disable - NOT IMPLEMENTED");
 }
 
-static void
-altcp_esp_nagle_enable(struct altcp_pcb *conn) {
-    _dbg("altcp_esp_nagle_ensable - NOT IMPLEMENTED");
+static void altcp_esp_nagle_enable(struct altcp_pcb *conn) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_nagle_ensable - NOT IMPLEMENTED");
 }
 
-static int
-altcp_esp_nagle_disabled(struct altcp_pcb *conn) {
-    _dbg("altcp_esp_nagle_disabled - NOT IMPLEMENTED");
+static int altcp_esp_nagle_disabled(struct altcp_pcb *conn) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_nagle_disabled - NOT IMPLEMENTED");
     return 0;
 }
 
-static void
-altcp_esp_setprio(struct altcp_pcb *conn, u8_t prio) {
-    _dbg("altcp_esp_setprio - NOT IMPLEMENTED");
+static void altcp_esp_setprio(struct altcp_pcb *conn, u8_t prio) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_setprio - NOT IMPLEMENTED");
 }
 
-static void
-altcp_esp_dealloc(struct altcp_pcb *conn) {
-    _dbg("altcp_esp_dealloc");
+static void altcp_esp_dealloc(struct altcp_pcb *conn) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_dealloc");
     esp_pcb *epcb = conn->state;
     if (epcb) {
         esp_ip_free(epcb);
@@ -623,21 +604,18 @@ altcp_esp_dealloc(struct altcp_pcb *conn) {
     }
 }
 
-static err_t
-altcp_esp_get_tcp_addrinfo(struct altcp_pcb *conn, int local, ip_addr_t *addr, u16_t *port) {
-    _dbg("altcp_esp_get_tcp_addrinfo - NOT IMPLEMENTED");
+static err_t altcp_esp_get_tcp_addrinfo(struct altcp_pcb *conn, int local, ip_addr_t *addr, u16_t *port) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_get_tcp_addrinfo - NOT IMPLEMENTED");
     return ERR_VAL;
 }
 
-static ip_addr_t *
-altcp_esp_get_ip(struct altcp_pcb *conn, int local) {
-    _dbg("altcp_esp_get_ip - NOT IMPLEMENTED");
+static ip_addr_t *altcp_esp_get_ip(struct altcp_pcb *conn, int local) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_get_ip - NOT IMPLEMENTED");
     return NULL;
 }
 
-static u16_t
-altcp_esp_get_port(struct altcp_pcb *conn, int local) {
-    _dbg("altcp_esp_get_port - NOT IMPLEMENTED");
+static u16_t altcp_esp_get_port(struct altcp_pcb *conn, int local) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_get_port - NOT IMPLEMENTED");
     return 0;
 }
 
