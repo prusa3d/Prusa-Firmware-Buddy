@@ -248,18 +248,15 @@ static void lwip_socket_drop_registered_memberships(int s);
 
 
 
-
-
-
 // TODO: This is slow and insecure implementaiton of netconn to socket mapping
-#define NETCONN_SOCKET_MAPPING_MAX 10
+#define NETCONN_SOCKET_MAPPING_MAX 5
 
 struct netconn_socket_record {
 	esp_netconn_t *conn;
 	int socket;
 };
 
-struct netconn_socket_record netconn_socket_mapping[NETCONN_SOCKET_MAPPING_MAX] = {{0,-1},{0,-1},{0,-1},{0,-1},{0,-1},{0,-1},{0,-1},{0,-1},{0,-1},{0,-1}};
+struct netconn_socket_record netconn_socket_mapping[NETCONN_SOCKET_MAPPING_MAX];
 
 static int get_netconn_socket(esp_netconn_t *conn) {
 	for(uint i = 0; i < NETCONN_SOCKET_MAPPING_MAX; i++) {
