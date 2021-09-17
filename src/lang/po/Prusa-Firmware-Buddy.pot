@@ -1,14 +1,14 @@
 # Prusa-Firmware-Buddy
-# Copyright (C) 2020 Prusa Research
+# Copyright (C) 2021 Prusa Research
 # This file is distributed under the same license as the Prusa-Firmware-Buddy package.
-# Prusa Research <info@prusa3d.com>, 2020
+# Prusa Research <info@prusa3d.com>, 2021
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-12-18 18:54+0100\n"
+"POT-Creation-Date: 2021-09-17 10:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -40,7 +40,7 @@ msgid "ABORT"
 msgstr ""
 
 #. / title text
-#: src/gui/dialogs/liveadjust_z.cpp:205
+#: src/gui/dialogs/liveadjust_z.cpp:207
 msgid "Adjust the nozzle height above the heatbed by turning the knob"
 msgstr ""
 
@@ -52,7 +52,7 @@ msgstr ""
 msgid "Always"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:103
+#: src/gui/screen_printing.cpp:104
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
@@ -73,7 +73,7 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:205
+#: src/gui/screen_printing.cpp:207
 msgid "Bed leveling failed. Try again?"
 msgstr ""
 
@@ -86,7 +86,7 @@ msgstr ""
 msgid "CANCEL"
 msgstr ""
 
-#: src/gui/dialogs/DialogFactory.cpp:12 src/gui/screen_menu_filament.cpp:90
+#: src/gui/dialogs/DialogFactory.cpp:20 src/gui/screen_menu_filament.cpp:90
 msgid "CHANGE FILAMENT"
 msgstr ""
 
@@ -148,7 +148,7 @@ msgstr ""
 msgid "Checking axes"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:168
+#: src/gui/wizard/firstlay.cpp:169
 msgid "Clean steel sheet."
 msgstr ""
 
@@ -156,11 +156,11 @@ msgstr ""
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
 msgstr ""
 
-#: src/common/filament.cpp:13 src/gui/screen_menu_temperature.cpp:12
+#: src/common/filament.cpp:25 src/gui/screen_menu_temperature.cpp:12
 msgid "Cooldown"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:169
+#: src/guiapi/include/MItem_menus.hpp:179
 msgid "Current Profile"
 msgstr ""
 
@@ -169,7 +169,7 @@ msgstr ""
 msgid "DISABLE SENSOR"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:192
+#: src/guiapi/include/MItem_menus.hpp:202
 msgid "Device hash in QR"
 msgstr ""
 
@@ -177,17 +177,17 @@ msgstr ""
 msgid "Disable Steppers"
 msgstr ""
 
-#: src/gui/screen_printing_serial.hpp:10
+#: src/gui/screen_printing_serial.hpp:11
 msgid "Disconnect"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:160
+#: src/gui/wizard/firstlay.cpp:161
 msgid ""
 "Do you want to repeat the last step and readjust the distance between the "
 "nozzle and heatbed?"
 msgstr ""
 
-#. c=20 r=6
+#. c=21 r=9
 #: src/gui/wizard/firstlay.cpp:112
 #, c-format
 msgid ""
@@ -233,7 +233,7 @@ msgstr ""
 msgid "FW UPDATE"
 msgstr ""
 
-#: src/gui/screen_menu_fw_update.cpp:17 src/guiapi/include/MItem_menus.hpp:119
+#: src/gui/screen_menu_fw_update.cpp:17 src/guiapi/include/MItem_menus.hpp:129
 msgid "FW Update"
 msgstr ""
 
@@ -245,7 +245,7 @@ msgstr ""
 msgid "Factory defaults loaded. The system will now restart."
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:59
+#: src/guiapi/include/MItem_menus.hpp:69
 msgid "Fail Stats"
 msgstr ""
 
@@ -262,11 +262,12 @@ msgstr ""
 msgid "Fan1 RPM"
 msgstr ""
 
-#: src/gui/screen_home.cpp:35 src/guiapi/include/MItem_menus.hpp:29
+#: src/gui/screen_menu_odometer.cpp:19 src/gui/screen_home.cpp:35
+#: src/guiapi/include/MItem_menus.hpp:39
 msgid "Filament"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:25 src/guiapi/include/MItem_tools.hpp:384
+#: src/gui/screen_menu_settings.cpp:27 src/guiapi/include/MItem_tools.hpp:384
 msgid "Filament Sensor"
 msgstr ""
 
@@ -307,15 +308,15 @@ msgstr ""
 msgid "Fri"
 msgstr ""
 
-#: src/gui/screen_home.cpp:68
+#: src/gui/screen_home.cpp:70
 msgid "HOME"
 msgstr ""
 
-#: src/gui/dialogs/DialogFactory.cpp:40
+#: src/gui/dialogs/DialogFactory.cpp:48
 msgid "HOME TO MAX"
 msgstr ""
 
-#: src/gui/screen_menu_hw_setup.cpp:32 src/guiapi/include/MItem_menus.hpp:159
+#: src/gui/screen_menu_hw_setup.cpp:32 src/guiapi/include/MItem_menus.hpp:169
 msgid "HW Setup"
 msgstr ""
 
@@ -336,11 +337,11 @@ msgstr ""
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr ""
 
-#: src/gui/screen_printing.cpp:43
+#: src/gui/screen_printing.cpp:44
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/guimain.cpp:223
+#: src/gui/guimain.cpp:228
 msgid ""
 "Hi, this is your\n"
 "Original Prusa MINI."
@@ -348,7 +349,7 @@ msgstr ""
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
-#: src/gui/window_file_list.cpp:104 src/gui/screen_printing.cpp:45
+#: src/gui/window_file_list.cpp:104 src/gui/screen_printing.cpp:46
 msgid "Home"
 msgstr ""
 
@@ -423,15 +424,15 @@ msgstr ""
 msgid "LOAD"
 msgstr ""
 
-#: src/gui/dialogs/DialogFactory.cpp:13 src/gui/screen_menu_filament.cpp:52
+#: src/gui/dialogs/DialogFactory.cpp:21 src/gui/screen_menu_filament.cpp:52
 msgid "LOAD FILAMENT"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:129
+#: src/guiapi/include/MItem_menus.hpp:139
 msgid "Lan Settings"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:149
+#: src/guiapi/include/MItem_menus.hpp:159
 msgid "Language"
 msgstr ""
 
@@ -511,7 +512,7 @@ msgstr ""
 msgid "Mesh Bed Leveling"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:139
+#: src/guiapi/include/MItem_menus.hpp:149
 msgid "Messages"
 msgstr ""
 
@@ -520,7 +521,7 @@ msgstr ""
 msgid "Mon"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:89
+#: src/guiapi/include/MItem_menus.hpp:99
 msgid "Move Axis"
 msgstr ""
 
@@ -558,7 +559,7 @@ msgstr ""
 msgid "No USB"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:42
+#: src/gui/screen_menu_settings.cpp:44
 msgid ""
 "No filament sensor detected. Verify that the sensor is connected and try "
 "again."
@@ -611,7 +612,7 @@ msgid ""
 "turning the knob until the filament sticks to the print sheet."
 msgstr ""
 
-#: src/gui/screen_menu_preheat.cpp:25 src/gui/screen_menu_preheat.cpp:47
+#: src/gui/screen_menu_preheat.cpp:26 src/gui/screen_menu_preheat.cpp:49
 msgid "PREHEAT"
 msgstr ""
 
@@ -630,11 +631,11 @@ msgstr ""
 msgid "PREHEAT for UNLOAD"
 msgstr ""
 
-#: src/gui/screen_printing.hpp:44 src/gui/screen_printing.cpp:360
+#: src/gui/screen_printing.hpp:44 src/gui/screen_printing.cpp:369
 msgid "PRINTING"
 msgstr ""
 
-#: src/gui/dialogs/DialogFactory.cpp:15 src/gui/screen_menu_filament.cpp:110
+#: src/gui/dialogs/DialogFactory.cpp:23 src/gui/screen_menu_filament.cpp:110
 msgid "PURGE FILAMENT"
 msgstr ""
 
@@ -647,11 +648,11 @@ msgstr ""
 msgid "Parking"
 msgstr ""
 
-#: src/gui/ScreenPrintingModel.hpp:16 src/gui/screen_printing.cpp:38
+#: src/gui/ScreenPrintingModel.hpp:16 src/gui/screen_printing.cpp:39
 msgid "Pause"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:39
+#: src/gui/screen_printing.cpp:40
 msgid "Pausing..."
 msgstr ""
 
@@ -669,7 +670,7 @@ msgstr ""
 msgid "Please insert a USB drive and try again."
 msgstr ""
 
-#: src/gui/guimain.cpp:224
+#: src/gui/guimain.cpp:229
 msgid ""
 "Please insert the USB\n"
 "drive that came with\n"
@@ -726,7 +727,7 @@ msgstr ""
 msgid "Print Fan"
 msgstr ""
 
-#: src/gui/screen_print_preview.cpp:127
+#: src/gui/screen_menu_odometer.cpp:20 src/gui/screen_print_preview.cpp:127
 msgid "Print Time"
 msgstr ""
 
@@ -738,11 +739,11 @@ msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
 #. theoretically it can be removed completely in case the string is constant for the whole run of the screen
-#: src/gui/screen_printing.cpp:222
+#: src/gui/screen_printing.cpp:243
 msgid "Print will end"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:158
+#: src/gui/screen_printing.cpp:159
 msgid "Printing time"
 msgstr ""
 
@@ -767,7 +768,7 @@ msgstr ""
 msgid "RENAME"
 msgstr ""
 
-#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:225
+#: src/common/MindaRedscreen.cpp:175 src/gui/guimain.cpp:230
 msgid "RESET PRINTER"
 msgstr ""
 
@@ -780,13 +781,13 @@ msgstr ""
 msgid "Ramming"
 msgstr ""
 
-#: src/gui/screen_printing_serial.cpp:45
+#: src/gui/screen_printing_serial.cpp:46
 msgid "Really Disconnect?"
 msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-#: src/gui/screen_printing.cpp:147 src/gui/screen_printing.cpp:226
-#: src/gui/screen_printing.cpp:355
+#: src/gui/screen_printing.cpp:148 src/gui/screen_printing.cpp:247
+#: src/gui/screen_printing.cpp:364
 msgid "Remaining Time"
 msgstr ""
 
@@ -794,7 +795,7 @@ msgstr ""
 msgid "Rename"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:44
+#: src/gui/screen_printing.cpp:45
 msgid "Reprint"
 msgstr ""
 
@@ -802,11 +803,11 @@ msgstr ""
 msgid "Reset"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:41
+#: src/gui/screen_printing.cpp:42
 msgid "Resume"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:42
+#: src/gui/screen_printing.cpp:43
 msgid "Resuming..."
 msgstr ""
 
@@ -830,12 +831,17 @@ msgstr ""
 msgid "SENSOR INFO"
 msgstr ""
 
-#: src/gui/screen_printing_serial.hpp:13
+#. filament sensor will think printer is in printing state
+#: src/gui/screen_printing_serial.hpp:15
 msgid "SERIAL PRINTING"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:107
+#: src/gui/screen_menu_settings.cpp:109
 msgid "SETTINGS"
+msgstr ""
+
+#: src/gui/screen_menu_odometer.cpp:15
+msgid "STATISTICS"
 msgstr ""
 
 #. Retry
@@ -884,7 +890,7 @@ msgstr ""
 msgid "Sensor Info"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:99
+#: src/guiapi/include/MItem_menus.hpp:109
 msgid "Service"
 msgstr ""
 
@@ -928,15 +934,15 @@ msgstr ""
 msgid "Static IPv4 addresses were not set."
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:49
-msgid "Statistic"
+#: src/guiapi/include/MItem_menus.hpp:29
+msgid "Statistics"
 msgstr ""
 
 #: src/gui/screen_menu_steel_sheets.cpp:176 src/gui/screen_menu_hw_setup.cpp:16
 msgid "Steel Sheets"
 msgstr ""
 
-#: src/gui/ScreenPrintingModel.hpp:17 src/gui/screen_printing.cpp:40
+#: src/gui/ScreenPrintingModel.hpp:17 src/gui/screen_printing.cpp:41
 msgid "Stop"
 msgstr ""
 
@@ -945,11 +951,11 @@ msgstr ""
 msgid "Sun"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:69
+#: src/guiapi/include/MItem_menus.hpp:79
 msgid "Support"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:39
+#: src/guiapi/include/MItem_menus.hpp:49
 msgid "System Info"
 msgstr ""
 
@@ -967,11 +973,11 @@ msgstr ""
 msgid "TUNE"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:79
+#: src/guiapi/include/MItem_menus.hpp:89
 msgid "Temperature"
 msgstr ""
 
-#: src/guiapi/include/MItem_menus.hpp:109
+#: src/guiapi/include/MItem_menus.hpp:119
 msgid "Test"
 msgstr ""
 
@@ -994,7 +1000,7 @@ msgid ""
 msgstr ""
 
 #. save eeprom flag
-#: src/gui/wizard/firstlay.cpp:184
+#: src/gui/wizard/firstlay.cpp:185
 msgid ""
 "The first layer calibration failed to finish. Double-check the printer's "
 "wiring, nozzle and axes, then restart the calibration."
@@ -1069,7 +1075,7 @@ msgstr ""
 msgid "Tue"
 msgstr ""
 
-#: src/gui/ScreenPrintingModel.hpp:15 src/gui/screen_printing.cpp:37
+#: src/gui/ScreenPrintingModel.hpp:15 src/gui/screen_printing.cpp:38
 msgid "Tune"
 msgstr ""
 
@@ -1078,7 +1084,7 @@ msgstr ""
 msgid "UNLOAD"
 msgstr ""
 
-#: src/gui/dialogs/DialogFactory.cpp:14 src/gui/screen_menu_filament.cpp:72
+#: src/gui/dialogs/DialogFactory.cpp:22 src/gui/screen_menu_filament.cpp:72
 msgid "UNLOAD FILAMENT"
 msgstr ""
 
@@ -1148,6 +1154,7 @@ msgstr ""
 msgid "Wizard"
 msgstr ""
 
+#: src/gui/screen_menu_odometer.cpp:16
 #: src/gui/dialogs/DialogSelftestResult.cpp:43
 #: src/gui/dialogs/DialogSelftestAxis.cpp:19
 msgid "X-axis"
@@ -1157,6 +1164,7 @@ msgstr ""
 msgid "XYZ CALIBRATION"
 msgstr ""
 
+#: src/gui/screen_menu_odometer.cpp:17
 #: src/gui/dialogs/DialogSelftestResult.cpp:44
 #: src/gui/dialogs/DialogSelftestAxis.cpp:20
 msgid "Y-axis"
@@ -1171,6 +1179,7 @@ msgstr ""
 msgid "Z height:"
 msgstr ""
 
+#: src/gui/screen_menu_odometer.cpp:18
 #: src/gui/dialogs/DialogSelftestResult.cpp:45
 #: src/gui/dialogs/DialogSelftestAxis.cpp:21
 msgid "Z-axis"
