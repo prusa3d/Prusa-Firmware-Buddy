@@ -112,4 +112,56 @@
 /* After user configuration, call default config to merge config together */
 #include "esp/esp_config_default.h"
 
+/**
+ * This configures LwESP, a library that talks to stock Espressif AT firmware
+ * using UART providing TCP connection abstraction. This seems to work,
+ * somehow, but there are some downsides.
+ *
+ * 1) There is no flow control (either HW or SW) used on the UART. Provided we
+ * can only buffer limited amount of data this requires us to process (write
+ * to flash) any incoming data in limited time. This requires us to keep HTTP
+ * request handling a bounded time algorithm. Also this forces us to keep UART
+ * baudrate low to avoid buffer overlow in worst case scenario.
+ *
+ * 2) We need to provide BSD sockets wrapper on top of LwESP provided Netconn
+ * API. First, the current implementation is rather a draft than a seriously
+ * implemented and tested piece of code. Second, the LwESP provided Netconn API
+ * does not allow to implement all BSD sockets functionality. Moreover, some
+ * functionality can only be provided at cost of both runtime and coding
+ * overhead.
+ *
+ * 3) We run LwIP HTTP web server to handle both ESP(Wifi) and LwIP(Ethernet)
+ * requests. We provide a LwESP wrapper implementing ALTCP API of the LwIP to
+ * let the HTTP request from Wifi through. Yet, we cannot handle both Ethernet
+ * and Wifi requests simulatenously using a single HTTP server instance. This
+ * limits possible future simulataneous operation of both Ethernet and Wifi.
+ *
+ * 4) Even when it can be worked out, currently we keep separate network
+ * buffers for complete LwIP network stack and the part of ESP network stack
+ * that is not offloaded to ESP. As LwESP uses custom heap alocator and LwIP
+ * uses mempoll allocator the memory regions are not easy to share. Such a
+ * change would require chnages to the codebase of the libraries.
+ *
+ * 4) Last thing to mention is code overhead. Even when we use LwESP library,
+ * still we are supposed to provide BSD socket and ALTCP API wrappers. This,
+ * together with maintenance of 2019 LwESP codebase (we cannot use up to date
+ * code due to flash limitation of our module) forces us to manage quite some
+ * code that, of course, contains bugs. We might end up in a situation were
+ * somefeatures will work only on Wifi while other will be working correcly on
+ * Ethernet exclusively.
+ *
+ * There is a Plan B approach to ESP integration. It turned out quite easy to
+ * implement a custom ESP firmware that just forwards received and accepts
+ * packets to be sent by LwIP. This allows to implement simple alternative LwIP
+ * network device. This way both Wifi and Ethernet are managed by the same
+ * network stack and the same HTTP server (and the same client/server we would
+ * possibly use in the future). Apart from the fact the network device
+ * switching works out of the box this also solves flow control issue as the
+ * packets not processed are not acknowledged. Also this reduces our code
+ * complexity and simply drops both LwESP code and its network buffers. All
+ * this comes at the cost of custom ESP firmware and keeping ESP processing
+ * power and memory buffers unused (these are unused also when Ethernet is
+ * operating).
+ */
+
 #endif /* ESP_HDR_CONFIG_H */
