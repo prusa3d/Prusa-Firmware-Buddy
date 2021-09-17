@@ -595,7 +595,6 @@ target_sources(
           src/common/crc32_zlib.c
           src/common/ini_handler.c
           src/common/sha256.c
-          src/common/wui_api.c
           src/common/z_calibration_fsm.cpp
           src/common/scratch_buffer.cpp
           src/common/odometer.cpp

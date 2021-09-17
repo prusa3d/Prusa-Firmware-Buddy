@@ -1,3 +1,20 @@
+/*
+ * This file is part of the Prusa Firmware Buddy distribution (https://github.com/prusa3d/Prusa-Firmware-Buddy ).
+ * Copyright (c) 2021 Marek Mosna.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "netdev.h"
 
 #include "eeprom.h"
@@ -53,6 +70,7 @@ static void tcpip_init_done_callback(void *arg) {
         netif_set_link_callback(&eth0, netif_link_callback);
         netif_set_status_callback(&eth0, netif_status_callback);
     }
+    wui_marlin_client_init();
     osMessagePut(networkMbox_id, EVT_TCPIP_INIT_FINISHED, 0);
 }
 

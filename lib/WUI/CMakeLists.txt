@@ -6,6 +6,7 @@ target_sources(
             wui_REST_api.c
             netdev.c
             alsockets.c
+            wui_api.c
             http/fs.c
             http/httpd.c
             http/httpd_post.c

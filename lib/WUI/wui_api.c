@@ -4,26 +4,47 @@
  *
  *  Created on: April 22, 2020
  *      Author: joshy <joshymjose[at]gmail.com>
+  *  Modify on 09/17/2021
+ *      Author: Marek Mosna <marek.mosna[at]prusa3d.cz>
  */
+
 #include "wui_api.h"
-#include "wui.h"
 #include "version.h"
 #include "otp.h"
-#include <string.h>
-#include <stdio.h>
 #include "ini_handler.h"
 #include "eeprom.h"
-#include "string.h"
-#include <stdbool.h>
-#include <time.h>
-#include "main.h"
 #include "stm32f4xx_hal.h"
+#include "print_utils.hpp"
+#include "marlin_client.h"
 
-// static const uint16_t MAX_UINT16 = 65535;
+#include <time.h>
+#include <string.h>
+#include <stdio.h>
+
+#define USB_MOUNT_POINT        "/usb/"
+#define USB_MOUNT_POINT_LENGTH 5
+
+extern RTC_HandleTypeDef hrtc;
+
+uint32_t start_print = 0;
+char filename[FILE_NAME_MAX_LEN];
+
+static FILE *upload_file = NULL;
+static char tmp_filename[FILE_NAME_MAX_LEN];
 static const uint32_t PRINTER_TYPE_ADDR = 0x0802002F;    // 1 B
 static const uint32_t PRINTER_VERSION_ADDR = 0x08020030; // 1 B
-
 static bool sntp_time_init = false;
+static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
+
+void wui_marlin_client_init(void) {
+    marlin_vars_t *vars = marlin_client_init(); // init the client
+    // force update variables when starts
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM, NULL);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
+    if (vars) {
+        vars->media_LFN = wui_media_LFN;
+    }
+}
 
 uint32_t load_ini_file(ETH_config_t *config) {
     return ini_load_file(config);
@@ -208,4 +229,60 @@ void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp) {
     time_t secs_from_epoch_start = mktime(timestamp);
     time_t current_time = secs_from_epoch_start + secs_to_add;
     localtime_r(&current_time, timestamp);
+}
+
+uint32_t wui_upload_begin(const char *fname) {
+    uint32_t fname_length = strlen(fname);
+    if ((fname_length + USB_MOUNT_POINT_LENGTH) < FILE_NAME_MAX_LEN) {
+        strcpy(tmp_filename, USB_MOUNT_POINT);
+        strcpy(tmp_filename + USB_MOUNT_POINT_LENGTH, fname);
+        upload_file = fopen(tmp_filename, "w");
+    }
+    return upload_file == NULL;
+}
+
+uint32_t wui_upload_data(const char *data, uint32_t length) {
+    return fwrite(data, sizeof(char), length, upload_file);
+}
+
+uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, uint32_t start) {
+    uint32_t fname_length = strlen(new_filename);
+    uint32_t error_code = 200;
+
+    fclose(upload_file);
+
+    if (!strstr(new_filename, "gcode")) {
+        error_code = 415;
+        goto clean_temp_file;
+    }
+
+    if ((fname_length + USB_MOUNT_POINT_LENGTH) >= FILE_NAME_MAX_LEN) {
+        error_code = 409;
+        goto clean_temp_file;
+    } else {
+        strlcpy(filename, USB_MOUNT_POINT, USB_MOUNT_POINT_LENGTH + 1);
+        strlcat(filename, new_filename, FILE_PATH_MAX_LEN - USB_MOUNT_POINT_LENGTH);
+    }
+
+    if (rename(tmp_filename, filename) != 0) {
+        error_code = 409;
+        goto clean_temp_file;
+    }
+
+    if (marlin_vars()->sd_printing && start) {
+        error_code = 409;
+        goto return_error_code;
+    } else {
+        if (start) {
+            strlcpy(marlin_vars()->media_LFN, new_filename, FILE_PATH_MAX_LEN);
+            print_begin(filename);
+        }
+        start_print = start;
+        goto return_error_code;
+    }
+
+clean_temp_file:
+    remove(tmp_filename);
+return_error_code:
+    return error_code;
 }
