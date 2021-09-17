@@ -3,35 +3,25 @@
  *
  *  Created on: Jan 24, 2020
  *      Author: joshy <joshymjose[at]gmail.com>
+ *  Modify on 09/17/2021
+ *      Author: Marek Mosna <marek.mosna[at]prusa3d.cz>
  */
 
 #include "wui_REST_api.h"
-#include "wui.h"
+#include "wui_api.h"
 #include "filament.h" //get_selected_filament_name
+#include "marlin_client.h"
+
 #include <string.h>
-#include "wui_vars.h"
-#include "marlin_vars.h"
-#include "ff.h"
+#include <stdio.h>
 
-#include "print_utils.hpp"
-
-extern osMutexId wui_thread_mutex_id;
-
-// for data exchange between wui thread and HTTP thread
-static wui_vars_t wui_vars_copy;
-static FIL upload_file;
-static uint32_t start_print = 0;
-static char filename[FILE_NAME_MAX_LEN];
+extern uint32_t start_print;
+extern char *filename;
 
 void get_printer(char *data, const uint32_t buf_len) {
-
-    osStatus status = osMutexWait(wui_thread_mutex_id, osWaitForever);
-    if (status == osOK) {
-        wui_vars_copy = wui_vars;
-    }
-    osMutexRelease(wui_thread_mutex_id);
-
+    marlin_vars_t *vars = marlin_vars();
     const char *filament_material = get_selected_filament_name();
+
     uint32_t operational = 1;
     uint32_t paused = 0;
     uint32_t printing = 0;
@@ -43,9 +33,11 @@ void get_printer(char *data, const uint32_t buf_len) {
     uint32_t closed_on_error = 0;
     uint32_t busy = 0;
 
-    switch (wui_vars_copy.print_state) {
+    marlin_client_loop();
+
+    switch (vars->print_state) {
     case mpsPrinting:
-        if (wui_vars_copy.time_to_end && wui_vars_copy.time_to_end != (-1UL)) {
+        if (vars->time_to_end && vars->time_to_end != (-1UL)) {
             printing = busy = 1;
             ready = operational = 0;
         }
@@ -125,8 +117,8 @@ void get_printer(char *data, const uint32_t buf_len) {
         "}"
         "}",
         filament_material,
-        (int)wui_vars_copy.temp_nozzle, (int)((abs(wui_vars_copy.temp_nozzle - (int)wui_vars_copy.temp_nozzle)) * 10),
-        (int)wui_vars_copy.temp_bed, (int)((abs(wui_vars_copy.temp_bed - (int)wui_vars_copy.temp_bed)) * 10),
+        (int)vars->temp_nozzle, (int)((abs(vars->temp_nozzle - (int)vars->temp_nozzle)) * 10),
+        (int)vars->temp_bed, (int)((abs(vars->temp_bed - (int)vars->temp_bed)) * 10),
         operational, paused, printing, cancelling, pausing, sd_ready,
         error, ready, closed_on_error, busy);
 }
@@ -142,12 +134,9 @@ void get_version(char *data, const uint32_t buf_len) {
 }
 
 void get_job(char *data, const uint32_t buf_len) {
+    marlin_vars_t *vars = marlin_vars();
 
-    osStatus status = osMutexWait(wui_thread_mutex_id, osWaitForever);
-    if (status == osOK) {
-        wui_vars_copy = wui_vars;
-    }
-    osMutexRelease(wui_thread_mutex_id);
+    marlin_client_loop();
 
     snprintf(data, buf_len,
         "{"
@@ -177,10 +166,10 @@ void get_job(char *data, const uint32_t buf_len) {
         "\"volume\":5.333333333333333"
         "}"
         "}",
-        wui_vars_copy.time_to_end, wui_vars_copy.gcode_name, wui_vars_copy.gcode_name, 0UL,
-        (int)(wui_vars_copy.sd_precent_done == 100), (int)(wui_vars_copy.sd_precent_done % 100), 0UL, wui_vars_copy.print_dur, wui_vars_copy.time_to_end,
-        (int)wui_vars_copy.pos[Z_AXIS_POS], (int)((wui_vars_copy.pos[Z_AXIS_POS] - (int)wui_vars_copy.pos[Z_AXIS_POS]) * 1000),
-        wui_vars_copy.print_speed, wui_vars_copy.flow_factor);
+        vars->time_to_end, vars->media_LFN, vars->media_LFN, 0UL,
+        (int)(vars->sd_percent_done == 100), (int)(vars->sd_percent_done % 100), 0UL, vars->print_duration, vars->time_to_end,
+        (int)vars->pos[MARLIN_VAR_INDEX_Z], (int)((vars->pos[MARLIN_VAR_INDEX_Z] - (int)vars->pos[MARLIN_VAR_INDEX_Z]) * 1000),
+        vars->print_speed, vars->flow_factor);
 }
 
 void get_files(char *data, const uint32_t buf_len) {
@@ -196,39 +185,4 @@ void get_files(char *data, const uint32_t buf_len) {
         "\"done\": %ld"
         "}",
         filename, (uint32_t)!start_print);
-}
-
-uint32_t wui_upload_begin(const char *filename) {
-    return f_open(&upload_file, filename, FA_WRITE | FA_CREATE_ALWAYS);
-}
-
-uint32_t wui_upload_data(const char *data, uint32_t length) {
-    UINT written;
-    f_write(&upload_file, data, length, &written);
-    return written;
-}
-
-uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, uint32_t start) {
-    f_close(&upload_file);
-
-    if (!strstr(new_filename, "gcode")) {
-        f_unlink(old_filename);
-        return 415;
-    }
-
-    if (f_rename(old_filename, new_filename) != FR_OK) {
-        f_unlink(old_filename);
-        return 409;
-    } else {
-        strcpy(filename, new_filename);
-    }
-
-    if (wui_vars.sd_printing && start) {
-        return 409;
-    } else {
-        start_print = start;
-        print_begin(new_filename);
-    }
-
-    return 200;
 }

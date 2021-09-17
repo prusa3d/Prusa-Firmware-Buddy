@@ -31,7 +31,9 @@
  * email:        joakim.myrland@LDA.as
  * project:      https://github.com/Lindem-Data-Acquisition-AS/iot_lib/
  *
- */
+ *  Modify on 09/17/2021
+ *      Author: Marek Mosna <marek.mosna[at]prusa3d.cz>
+*/
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -42,7 +44,6 @@
 #include "lwip/def.h"
 
 #include "wui_api.h"
-#include "wui.h"
 #include "dbg.h"
 #include "marlin_vars.h"
 
@@ -274,7 +275,10 @@ err_t httpd_post_begin(void *connection,
             const char *boundary = find_boundary(http_request);
             if (boundary != NULL) {
                 _parser = multipart_parser_init(boundary, &callbacks);
-                wui_upload_begin(DEFAULT_UPLOAD_FILENAME);
+                if (wui_upload_begin(DEFAULT_UPLOAD_FILENAME) != 0) {
+                    uri = "/500\0";
+                    goto invalid;
+                }
             }
 
             return ERR_OK;

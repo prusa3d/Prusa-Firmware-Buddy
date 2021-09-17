@@ -4,10 +4,12 @@
  *
  *  Created on: Dec 12, 2019
  *      Author: joshy
- */
+  *  Modify on 09/17/2021
+ *      Author: Marek Mosna <marek.mosna[at]prusa3d.cz>
+*/
 
 #include "wui.h"
-#include "wui_vars.h"
+
 #include "marlin_client.h"
 #include "wui_api.h"
 #include "ethernetif.h"
@@ -35,53 +37,7 @@ extern RNG_HandleTypeDef hrng;
 osMessageQDef(networkMbox, 16, NULL);
 osMessageQId networkMbox_id;
 
-// WUI thread mutex for updating marlin vars
-osMutexDef(wui_thread_mutex);
-osMutexId(wui_thread_mutex_id);
-
-static marlin_vars_t *wui_marlin_vars;
-wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
-static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
 static variant8_t prusa_link_api_key;
-
-static void wui_marlin_client_init(void) {
-    wui_marlin_vars = marlin_client_init(); // init the client
-    // force update variables when starts
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM, NULL);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
-    if (wui_marlin_vars) {
-        wui_marlin_vars->media_LFN = wui_media_LFN;
-    }
-}
-
-static void sync_with_marlin_server(void) {
-    if (wui_marlin_vars) {
-        marlin_client_loop();
-    } else {
-        return;
-    }
-    osMutexWait(wui_thread_mutex_id, osWaitForever);
-    for (int i = 0; i < 4; i++) {
-        wui_vars.pos[i] = wui_marlin_vars->pos[i];
-    }
-    wui_vars.temp_nozzle = wui_marlin_vars->temp_nozzle;
-    wui_vars.temp_bed = wui_marlin_vars->temp_bed;
-    wui_vars.target_nozzle = wui_marlin_vars->target_nozzle;
-    wui_vars.target_bed = wui_marlin_vars->target_bed;
-    wui_vars.fan_speed = wui_marlin_vars->fan_speed;
-    wui_vars.print_speed = wui_marlin_vars->print_speed;
-    wui_vars.flow_factor = wui_marlin_vars->flow_factor;
-    wui_vars.print_dur = wui_marlin_vars->print_duration;
-    wui_vars.sd_precent_done = wui_marlin_vars->sd_percent_done;
-    wui_vars.sd_printing = wui_marlin_vars->sd_printing;
-    wui_vars.time_to_end = wui_marlin_vars->time_to_end;
-    wui_vars.print_state = wui_marlin_vars->print_state;
-    if (marlin_change_clr(MARLIN_VAR_FILENAME)) {
-        strlcpy(wui_vars.gcode_name, wui_marlin_vars->media_LFN, FILE_NAME_MAX_LEN);
-    }
-
-    osMutexRelease(wui_thread_mutex_id);
-}
 
 const char *wui_generate_api_key(char *api_key, uint32_t length) {
     static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
@@ -116,14 +72,6 @@ void StartWebServerTask(void const *argument) {
         return;
     }
 
-    // mutex for passing marlin variables to tcp thread
-    wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
-    if (wui_thread_mutex_id == NULL) {
-        _dbg("wui_thread_mutex was not created");
-        return;
-    }
-
-    wui_marlin_client_init();
     netdev_init();
 
     prusa_link_api_key = eeprom_get_var(EEVAR_PL_API_KEY);
@@ -172,8 +120,6 @@ void StartWebServerTask(void const *argument) {
         } else {
             ++esp_check_counter;
         }
-
-        sync_with_marlin_server();
     }
 }
 

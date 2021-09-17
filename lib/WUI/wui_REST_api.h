@@ -4,19 +4,18 @@
  *
  *  Created on: Jan 24, 2020
  *      Author: joshy <joshymjose[at]gmail.com>
+ *  Modify on 09/17/2021
+ *      Author: Marek Mosna <marek.mosna[at]prusa3d.cz>
  */
 
 #ifndef _WUI_REST_API_H_
 #define _WUI_REST_API_H_
 
-#include "cmsis_os.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-// for data exchange between wui thread and HTTP thread
-extern osMutexId wui_web_mutex_id;
 
 void get_printer(char *data, const uint32_t buf_len);
 void get_version(char *data, const uint32_t buf_len);

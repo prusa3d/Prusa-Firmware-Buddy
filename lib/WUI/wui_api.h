@@ -4,14 +4,17 @@
  *
  *  Created on: April 22, 2020
  *      Author: joshy <joshymjose[at]gmail.com>
+ *  Modify on 09/17/2021
+ *      Author: Marek Mosna <marek.mosna[at]prusa3d.cz>
  */
 
 #ifndef _WUI_API_H_
 #define _WUI_API_H_
 
 #include <stdint.h>
-#include <stdbool.h>
+
 #include "netif_settings.h"
+#include "marlin_vars.h"
 
 #define FW_VER_STR_LEN    32  // length of full Firmware version string
 #define MAC_ADDR_STR_LEN  18  // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
@@ -206,6 +209,11 @@ uint32_t wui_upload_data(const char *, uint32_t);
 ///                 409 Conflict
 ///                 415 Unsupported Media Type
 uint32_t wui_upload_finish(const char *, const char *, uint32_t);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief initialize marlin client for tcpip thread
+///
+void wui_marlin_client_init(void);
 
 #ifdef __cplusplus
 }
