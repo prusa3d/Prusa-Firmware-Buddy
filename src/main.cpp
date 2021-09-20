@@ -69,7 +69,7 @@
 #include "w25x.h"
 #include "timing.h"
 #include "filesystem.h"
-#include "adc.h"
+#include "adc.hpp"
 
 #define USB_OVERC_Pin       GPIO_PIN_4
 #define USB_OVERC_GPIO_Port GPIOE
@@ -287,7 +287,7 @@ int main(void) {
 
     filesystem_init();
 
-    adc_dma_init(&hadc1); //start ADC DMA conversion
+    adcDma1.init();
     /* USER CODE END 2 */
 
     static metric_handler_t *handlers[] = {

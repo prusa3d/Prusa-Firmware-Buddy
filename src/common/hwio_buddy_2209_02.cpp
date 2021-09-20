@@ -10,7 +10,7 @@
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 #include "gpio.h"
-#include "adc.h"
+#include "adc.hpp"
 #include "sim_nozzle.h"
 #include "sim_bed.h"
 #include "Arduino.h"
@@ -601,13 +601,13 @@ uint32_t analogRead(uint32_t ulPin) {
     if (HAL_ADC_Initialized) {
         switch (ulPin) {
         case MARLIN_PIN(TEMP_BED):
-            return get_adc_channel_value(&hadc1, CHANNEL_BED);
+            return AdcGet::bed();
         case MARLIN_PIN(TEMP_0):
-            return get_adc_channel_value(&hadc1, CHANNEL_NOZZLE);
+            return AdcGet::nozzle();
         case MARLIN_PIN(TEMP_HEATBREAK):
-            return get_adc_channel_value(&hadc1, CHANNEL_PINDA);
+            return AdcGet::temp2();
         case MARLIN_PIN(THERM2):
-            return get_adc_channel_value(&hadc1, CHANNEL_TEMP_2);
+            return AdcGet::pinda();
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_RD, ulPin); //error: undefined pin analog read
         }
