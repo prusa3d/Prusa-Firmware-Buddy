@@ -124,11 +124,12 @@ void get_printer(char *data, const uint32_t buf_len) {
 }
 
 void get_version(char *data, const uint32_t buf_len) {
+
     snprintf(data, buf_len,
         "{"
         "\"api\": \"0.1\","
         "\"server\": \"2.0.0\","
-        "\"text\": \"OctoPrint 1.1.1\","
+        "\"text\": \"PrusaLink MINI\","
         "\"hostname\": \"prusa-mini\""
         "}");
 }
