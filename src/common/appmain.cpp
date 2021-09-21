@@ -7,7 +7,7 @@
 #include "cmsis_os.h"
 #include "config.h"
 #include "dbg.h"
-#include "adc.h"
+#include "adc.hpp"
 #include "Jogwheel.hpp"
 #include "hwio.h"
 #include "sys.h"
