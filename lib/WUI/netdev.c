@@ -304,3 +304,7 @@ static struct alsockets_s *netdev_get_sockets(uint32_t active_id) {
         return NULL;
     }
 }
+
+const char *netdev_get_hostname(uint32_t active_id) {
+    return wui_netdev_config[active_id].hostname;
+}

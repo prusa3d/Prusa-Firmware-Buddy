@@ -17,6 +17,17 @@
 extern "C" {
 #endif
 
+#define PL_VERSION_MAJOR    2
+#define PL_VERSION_MINOR    0
+#define PL_VERSION_REVISION 0
+
+#define PL_VERSTR2(x) #x
+#define PL_VERSTR(x)  PL_VERSTR2(x)
+
+#define PL_VERSION_STRING       \
+    PL_VERSTR(PL_VERSION_MAJOR) \
+    "." PL_VERSTR(PL_VERSION_MINOR) "." PL_VERSTR(PL_VERSION_REVISION)
+
 void get_printer(char *data, const uint32_t buf_len);
 void get_version(char *data, const uint32_t buf_len);
 void get_job(char *data, const uint32_t buf_len);

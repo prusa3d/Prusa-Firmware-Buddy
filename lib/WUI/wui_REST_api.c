@@ -11,6 +11,8 @@
 #include "wui_api.h"
 #include "filament.h" //get_selected_filament_name
 #include "marlin_client.h"
+#include "lwip/init.h"
+#include "netdev.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -127,11 +129,12 @@ void get_version(char *data, const uint32_t buf_len) {
 
     snprintf(data, buf_len,
         "{"
-        "\"api\": \"0.1\","
-        "\"server\": \"2.0.0\","
+        "\"api\": \"%s\","
+        "\"server\": \"%s\","
         "\"text\": \"PrusaLink MINI\","
-        "\"hostname\": \"prusa-mini\""
-        "}");
+        "\"hostname\": \"%s\""
+        "}",
+        PL_VERSION_STRING, LWIP_VERSION_STRING, netdev_get_hostname(netdev_get_active_id()));
 }
 
 void get_job(char *data, const uint32_t buf_len) {
@@ -164,7 +167,7 @@ void get_job(char *data, const uint32_t buf_len) {
         "},"
         "\"filament\":{"
         "\"length\":3,"
-        "\"volume\":5.333333333333333"
+        "\"volume\":5.33"
         "}"
         "}",
         vars->time_to_end, vars->media_LFN, vars->media_LFN, 0UL,
