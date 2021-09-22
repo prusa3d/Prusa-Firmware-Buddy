@@ -757,11 +757,13 @@ if(GUI)
             src/guiapi/src/IWindowMenuItem.cpp
             src/guiapi/src/WindowMenuSwitch.cpp
             src/guiapi/src/WindowMenuSpin.cpp
+            src/guiapi/src/WindowMenuInfo.cpp
             src/guiapi/src/WindowMenuSpinExponential.cpp
             src/guiapi/src/WindowMenuItems.cpp
             src/guiapi/src/MItem_menus.cpp
             src/guiapi/src/MItem_print.cpp
             src/guiapi/src/MItem_tools.cpp
+            src/guiapi/src/MItem_eeprom.cpp
             src/guiapi/src/MItem_experimental_tools.cpp
             src/guiapi/src/Jogwheel.cpp
             src/guiapi/src/ScreenShot.cpp
