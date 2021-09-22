@@ -37,8 +37,8 @@ struct GuiDefaults {
     static constexpr color_t MenuColorBack = ColorBack;
     static constexpr color_t MenuColorText = ColorText;
     static constexpr color_t MenuColorDisabled = ColorDisabled;
-    static constexpr color_t MenuColorDevelopment = COLOR_GREEN;
-    static constexpr color_t MenuColorDevelopmentDisabled = COLOR_PURPLE;
+    static constexpr color_t MenuColorDevelopment = COLOR_LIGHT_GREEN;
+    static constexpr color_t MenuColorDevelopmentDisabled = COLOR_DARK_GREEN;
 
     // Text settings
     static constexpr padding_ui8_t Padding = { 2, 2, 2, 2 };
