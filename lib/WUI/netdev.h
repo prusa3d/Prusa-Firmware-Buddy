@@ -49,28 +49,41 @@ uint32_t netdev_init_esp();
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Turn up given network device
 ///
-/// @param[in] dev_id device ID
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+///             - #NETDEV_NODEV_ID
+
 /// @return 0 on success; error otherwise
 uint32_t netdev_set_up(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Turn down given network device
 ///
-/// @param[in] dev_id device ID
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+///             - #NETDEV_NODEV_ID
 /// @return 0 on success; error otherwise
 uint32_t netdev_set_down(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Obtaining ip from DHCP server
 ///
-/// @param[in] dev_id device ID
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+///             - #NETDEV_NODEV_ID
 /// @return 0 on success; error otherwise
 uint32_t netdev_set_dhcp(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Obtaining static ip
 ///
-/// @param[in] dev_id device ID
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+///             - #NETDEV_NODEV_ID
 /// @return 0 on success; error otherwise
 uint32_t netdev_set_static(uint32_t);
 
@@ -83,21 +96,30 @@ uint32_t netdev_get_active_id();
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Set network device for communication
 ///
-/// @param[in] dev_id device ID
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+///             - #NETDEV_NODEV_ID
 /// @return 0 on success; error otherwise
 uint32_t netdev_set_active_id(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Set the the given network device state if is plugged or unplugged
 ///
-/// @param[in] dev_id device ID
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+///             - #NETDEV_NODEV_ID
 /// @return 0
 uint32_t netdev_check_link(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Retrive status of the given network device
 ///
-/// @param[in] dev_id device ID
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+///             - #NETDEV_NODEV_ID
 /// @return device status
 netdev_status_t netdev_get_status(uint32_t);
 
@@ -106,6 +128,16 @@ netdev_status_t netdev_get_status(uint32_t);
 ///
 /// @return ip obtaining method type
 netdev_ip_obtained_t netdev_get_ip_obtained_type();
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Retrive hostname of active device
+///
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+///             - #NETDEV_NODEV_ID
+/// @return hostname
+const char *netdev_get_hostname(uint32_t);
 
 #ifdef __cplusplus
 }
