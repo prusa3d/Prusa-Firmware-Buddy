@@ -120,7 +120,6 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);        // set capture to list
     help.SetText(_("- ESP not connected"));
-    esp_flash_initialize();
 }
 
 ScreenFactory::UniquePtr GetScreenMenuESPUpdate() {
@@ -142,6 +141,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
     if (event == GUI_event_t::CHILD_CLICK) {
         esp_upload_action action = static_cast<esp_upload_action>((uint32_t)param);
         if (action == esp_upload_action::Start_flash) {
+            esp_flash_initialize();
             for (esp_entry *chunk = firmware_set.begin();
                  chunk != firmware_set.end(); ++chunk) {
                 if (f_open(&file_descriptor, chunk->filename, FA_READ) != FR_OK) {
