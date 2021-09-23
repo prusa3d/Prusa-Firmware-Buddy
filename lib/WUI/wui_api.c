@@ -46,8 +46,112 @@ void wui_marlin_client_init(void) {
     }
 }
 
-uint32_t load_ini_file(ETH_config_t *config) {
-    return ini_load_file(config);
+struct ini_load_def {
+    // eth::ipv4 or wifi::ipv4
+    const char *ip_section;
+    // The config to store to (must not be NULL).
+    ETH_config_t *config;
+    // The wifi AP definition. May be NULL (in which case it isn't loaded).
+    ap_entry_t *ap;
+};
+
+static bool ini_string_match(const char *section, const char *section_var, const char *name, const char *name_var) {
+    return strcmp(section_var, section) == 0 && strcmp(name_var, name) == 0;
+}
+
+static int ini_handler_func(void *user, const char *section, const char *name, const char *value) {
+    struct ini_load_def *def = user;
+
+    ETH_config_t *tmp_config = def->config;
+
+    if (ini_string_match(section, def->ip_section, name, "type")) {
+        if (strncasecmp(value, "DHCP", 4) == 0) {
+            CHANGE_FLAG_TO_DHCP(tmp_config->lan.flag);
+            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+        } else if (strncasecmp(value, "STATIC", 6) == 0) {
+            CHANGE_FLAG_TO_STATIC(tmp_config->lan.flag);
+            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+        }
+    } else if (ini_string_match(section, "network", name, "hostname")) {
+        strlcpy(tmp_config->hostname, value, ETH_HOSTNAME_LEN + 1);
+        tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_HOSTNAME);
+    } else if (ini_string_match(section, def->ip_section, name, "addr")) {
+        if (ip4addr_aton(value, &tmp_config->lan.addr_ip4)) {
+            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
+        }
+    } else if (ini_string_match(section, def->ip_section, name, "mask")) {
+        if (ip4addr_aton(value, &tmp_config->lan.msk_ip4)) {
+            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_MSK_IP4);
+        }
+    } else if (ini_string_match(section, def->ip_section, name, "gw")) {
+        if (ip4addr_aton(value, &tmp_config->lan.gw_ip4)) {
+            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_GW_IP4);
+        }
+    } else if (ini_string_match(section, "network", name, "dns4")) {
+
+        if (NULL != strchr(value, ';')) {
+            char *token;
+            char *rest = (char *)value;
+            for (int i = 0; i < 2; i++) {
+                token = strtok_r(rest, ";", &rest);
+                if (NULL != token) {
+                    switch (i) {
+                    case 0:
+                        if (ip4addr_aton(token, &tmp_config->dns1_ip4)) {
+                            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_DNS1_IP4);
+                        }
+                        break;
+                    case 1:
+                        if (ip4addr_aton(token, &tmp_config->dns2_ip4)) {
+                            tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_DNS2_IP4);
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+        } else {
+            if (ip4addr_aton(value, &tmp_config->dns1_ip4)) {
+                tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_DNS1_IP4);
+            }
+        }
+    }
+
+    if (def->ap) {
+        // FIXME: Do we follow the ticket or the doc/network.ini?
+        if (ini_string_match(section, "wifi", name, "key_mgmt")) {
+            if (strcasecmp("WPA", value) == 0) {
+                def->ap->security = AP_SEC_WPA;
+            } else if (strcasecmp("WEP", value) == 0) {
+                def->ap->security = AP_SEC_WEP;
+            } else if (strcasecmp("NONE", value) == 0) {
+                def->ap->security = AP_SEC_NONE;
+            }
+            // TODO: else -> ??? Any way to tell the user?
+        } else if (ini_string_match(section, "wifi", name, "ssid")) {
+            strlcpy(def->ap->ssid, value, SSID_MAX_LEN + 1);
+        } else if (ini_string_match(section, "wifi", name, "psk")) {
+            strlcpy(def->ap->pass, value, WIFI_PSK_MAX + 1);
+        }
+    }
+
+    return 1;
+}
+
+uint32_t load_ini_file_eth(ETH_config_t *config) {
+    return ini_load_file(ini_handler_func, &(struct ini_load_def) {
+                                               .config = config,
+                                               .ip_section = "eth::ipv4",
+                                           });
+}
+
+uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap) {
+    return ini_load_file(ini_handler_func, &(struct ini_load_def) {
+                                               .config = config,
+                                               .ip_section = "wifi::ipv4",
+                                               .ap = ap,
+                                           });
 }
 
 uint32_t save_eth_params(ETH_config_t *ethconfig) {

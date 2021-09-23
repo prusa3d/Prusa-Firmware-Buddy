@@ -95,7 +95,19 @@ uint32_t load_eth_params(ETH_config_t *ethconfig);
 *
 * \retval   1 if successful
 *****************************************************************************/
-uint32_t load_ini_file(ETH_config_t *config);
+uint32_t load_ini_file_eth(ETH_config_t *config);
+
+/*!****************************************************************************
+* \brief load from ini file Wifi specific parameters
+*
+* \param    [out] config - storage for loaded ethernet configurations
+* \param    [out] ap - storage for loaded accesspoint parameters
+*
+* \return   uint32_t    error value
+*
+* \retval   1 if successful
+*****************************************************************************/
+uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
 
 /*!****************************************************************************
 * \brief access user defined addresses in memory and aquire vital printer info
