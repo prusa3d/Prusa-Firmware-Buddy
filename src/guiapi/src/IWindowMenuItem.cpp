@@ -14,7 +14,7 @@ IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, is_en
 
 IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, font_t *label_font)
     : label(label)
-    , hidden(hidden)
+    , hidden((uint8_t)hidden)
     , enabled(enabled)
     , focused(is_focused_t::no)
     , selected(is_selected_t::no)
@@ -51,12 +51,19 @@ Rect16 IWindowMenuItem::getExtensionRect(Rect16 rect) const {
 
 void IWindowMenuItem::Print(Rect16 rect) const {
     color_t color_text = IsEnabled() ? GuiDefaults::MenuColorText : GuiDefaults::MenuColorDisabled;
+    if (hidden == (uint8_t)is_hidden_t::dev) {
+        color_text = IsEnabled() ? GuiDefaults::MenuColorDevelopment : GuiDefaults::MenuColorDevelopmentDisabled;
+    }
     color_t color_back = GuiDefaults::MenuColorBack;
     ropfn raster_op;
     raster_op.disable = IsEnabled() ? is_disabled::no : is_disabled::yes;
 
     if (IsFocused()) {
-        SWAP(color_text, color_back);
+        if (hidden == (uint8_t)is_hidden_t::dev) {
+            color_back = IsEnabled() ? GuiDefaults::MenuColorText : GuiDefaults::MenuColorDisabled;
+        } else {
+            SWAP(color_text, color_back);
+        }
         raster_op.swap_bw = has_swapped_bw::yes;
     }
 
@@ -102,4 +109,8 @@ void IWindowMenuItem::reInitRoll(Rect16 rect) {
     if (roll.NeedInit()) {
         roll.Init(rect, GetLabel(), label_font, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
     }
+}
+
+bool IWindowMenuItem::IsHidden() const {
+    return (hidden == (uint8_t)is_hidden_t::yes) || (hidden == (uint8_t)is_hidden_t::dev && !GuiDefaults::ShowDevelopmentTools);
 }

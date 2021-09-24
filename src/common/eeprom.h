@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include "variant8.h"
+#include "eeprom_function_api.h"
 
 enum {
     EEPROM_ADDRESS = 0x0500, // uint16_t
@@ -85,12 +86,27 @@ enum {
     EEVAR_ODOMETER_X = 0x2e,          // float
     EEVAR_ODOMETER_Y = 0x2f,          // float
     EEVAR_ODOMETER_Z = 0x30,          // float
-    EEVAR_ODOMETER_E = 0x31,          // float
-    EEVAR_ACTIVE_NETDEV = 0x32,       // active network device
-    EEVAR_PL_RUN = 0x33,              // active network device
-    EEVAR_PL_API_KEY = 0x34,          // active network device
-    EEVAR__PADDING = 0x35,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x36,               // uint32_t crc32 for
+    EEVAR_ODOMETER_E0 = 0x31,         // float
+    AXIS_STEPS_PER_UNIT_X = 0x32,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_STEPS_PER_UNIT_Y = 0x33,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_STEPS_PER_UNIT_Z = 0x34,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_STEPS_PER_UNIT_E0 = 0x35,    // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
+    AXIS_MICROSTEPS_X = 0x36,         // uint16_t, used to initialize trinamic
+    AXIS_MICROSTEPS_Y = 0x37,         // uint16_t, used to initialize trinamic
+    AXIS_MICROSTEPS_Z = 0x38,         // uint16_t, used to initialize trinamic
+    AXIS_MICROSTEPS_E0 = 0x39,        // uint16_t, used to initialize trinamic, must contain "E0" to work with marlin macros
+    AXIS_RMS_CURRENT_MA_X = 0x3a,     // uint16_t, used to initialize trinamic
+    AXIS_RMS_CURRENT_MA_Y = 0x3b,     // uint16_t, used to initialize trinamic
+    AXIS_RMS_CURRENT_MA_Z = 0x3c,     // uint16_t, used to initialize trinamic
+    AXIS_RMS_CURRENT_MA_E0 = 0x3d,    // uint16_t, used to initialize trinamic, must contain "E0" to work with marlin macros
+    AXIS_Z_MAX_POS_MM = 0x3e,         // float, used in marlin Z_MAX_POS macro
+    EEVAR_ODOMETER_TIME = 0x3f,       //uin32_t total print duration
+    EEVAR_ACTIVE_NETDEV = 0x40,       // active network device
+    EEVAR_PL_RUN = 0x41,              // active network device
+    EEVAR_PL_API_KEY = 0x42,          // active network device
+    EEVAR__PADDING = 0x43,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+
+    EEVAR_CRC32 = 0x44, // uint32_t crc32 for
 };
 
 enum {
@@ -108,37 +124,45 @@ enum {
 
 typedef union _SelftestResultEEprom_t {
     struct {
-        uint8_t fan0 : 2;       // bit 0-1
-        uint8_t fan1 : 2;       // bit 2-3
-        uint8_t xaxis : 2;      // bit 4-5
-        uint8_t yaxis : 2;      // bit 6-7
-        uint8_t zaxis : 2;      // bit 8-9
-        uint8_t nozzle : 2;     // bit 10-11
-        uint8_t bed : 2;        // bit 12-13
-        uint32_t reserved : 18; // bit 14-31
+        uint8_t fan0 : 2;      // bit 0-1
+        uint8_t fan1 : 2;      // bit 2-3
+        uint8_t xaxis : 2;     // bit 4-5
+        uint8_t yaxis : 2;     // bit 6-7
+        uint8_t zaxis : 2;     // bit 8-9
+        uint8_t nozzle : 2;    // bit 10-11
+        uint8_t bed : 2;       // bit 12-13
+        uint8_t reserved0 : 2; // bit 14-15
+        uint16_t reserved1;    // bit 16-31
     };
     uint32_t ui32;
 } SelftestResultEEprom_t;
+//if I use uint32_t reserved : 18 for bits 14 - 31, size on 64bit system is 8, I don't know why
+#ifdef __cplusplus
+static_assert(sizeof(SelftestResultEEprom_t) == sizeof(uint32_t), "Incorrect SelftestResultEEprom_t size");
+#endif //__cplusplus
 
-enum {
+typedef enum {
     EEPROM_INIT_Undefined = -1,
     EEPROM_INIT_Normal = 0,
     EEPROM_INIT_Defaults = 1,
-    EEPROM_INIT_Upgraded = 2
-};
+    EEPROM_INIT_Upgraded = 2,
+    EEPROM_INIT_in_progress = 3
+} eeprom_init_status_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
 
 /// initialize eeprom
-/// @returns 0 - normal init (eeprom data valid)
-///          1 - defaults loaded
-///          2 - eeprom upgraded successfully from a previous version
-extern uint8_t eeprom_init(void);
-
-// returns last result of eeprom_init() or EEPROM_INIT_Undefined
-extern uint8_t eeprom_get_init_status(void);
+/// can be called multiple times, non first call will just return status
+/// cannot have function to just return static variable,
+///          because this code is called before inicialization of static variables
+///
+/// @returns EEPROM_INIT_Normal - normal init (eeprom data valid)
+///          EEPROM_INIT_Defaults - defaults loaded
+///          EEPROM_INIT_Upgraded - eeprom upgraded successfully from a previous version
+///          EEPROM_INIT_Undefined or EEPROM_INIT_in_progress should never be returned
+extern eeprom_init_status_t eeprom_init(void);
 
 // write default values to all variables
 extern void eeprom_defaults(void);
@@ -247,5 +271,5 @@ extern uint32_t sheet_name(uint32_t, char *, uint32_t);
 extern uint32_t sheet_rename(uint32_t, char const *, uint32_t);
 
 #ifdef __cplusplus
-}
+} // extern "C"
 #endif //__cplusplus

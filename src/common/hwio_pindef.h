@@ -17,12 +17,12 @@
  * MACRO_FUNCTION(buddy::hw::OutputPin, xStep, BUDDY_PIN(X_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low)
  * end note
  *
- * file "lib/Marlin/Marlin/src/pins/stm32/pins_A3IDES_2209_02.h" as pins
+ * file "lib/Marlin/Marlin/src/pins/stm32/pins_BUDDY_2209_02.h" as pins
  * note right
  * ~#define X_STEP_PIN             MARLIN_PIN(X_STEP)
  * end note
  *
- * file "src/common/hwio_a3ides_2209_02.cpp" as hwio
+ * file "src/common/hwio_buddy_2209_02.cpp" as hwio
  * note right
  * digitalWrite()
  * end note

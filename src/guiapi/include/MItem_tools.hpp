@@ -4,6 +4,7 @@
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 #include "filament.hpp"
+#include "WindowItemFormatableLabel.hpp"
 
 class MI_WIZARD : public WI_LABEL_t {
     static constexpr const char *const label = N_("Wizard");
@@ -342,7 +343,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_SOUND_VOLUME : public WI_SPIN_U08_t {
+class MI_SOUND_VOLUME : public WiSpinInt {
     constexpr static const char *const label = N_("Sound Volume");
 
 public:
@@ -351,7 +352,7 @@ public:
     /* virtual void Change() override; */
 };
 
-class MI_TIMEZONE : public WI_SPIN_I08_t {
+class MI_TIMEZONE : public WiSpinInt {
     constexpr static const char *const label = "TZ UTC(+/-)"; // intentionally not translated
 
 public:
@@ -414,4 +415,39 @@ class MI_FS_AUTOLOAD : public WI_SWITCH_OFF_ON_t {
 public:
     MI_FS_AUTOLOAD();
     virtual void OnChange(size_t old_index) override;
+};
+class MI_ODOMETER_DIST : public WI_FORMATABLE_LABEL_t<float> {
+public:
+    MI_ODOMETER_DIST(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
+};
+
+class MI_ODOMETER_DIST_X : public MI_ODOMETER_DIST {
+    constexpr static const char *const label = N_("X axis");
+
+public:
+    MI_ODOMETER_DIST_X();
+};
+class MI_ODOMETER_DIST_Y : public MI_ODOMETER_DIST {
+    constexpr static const char *const label = N_("Y axis");
+
+public:
+    MI_ODOMETER_DIST_Y();
+};
+class MI_ODOMETER_DIST_Z : public MI_ODOMETER_DIST {
+    constexpr static const char *const label = N_("Z axis");
+
+public:
+    MI_ODOMETER_DIST_Z();
+};
+class MI_ODOMETER_DIST_E : public MI_ODOMETER_DIST {
+    constexpr static const char *const label = N_("Filament");
+
+public:
+    MI_ODOMETER_DIST_E();
+};
+class MI_ODOMETER_TIME : public WI_FORMATABLE_LABEL_t<uint32_t> {
+    constexpr static const char *const label = N_("Print time");
+
+public:
+    MI_ODOMETER_TIME();
 };

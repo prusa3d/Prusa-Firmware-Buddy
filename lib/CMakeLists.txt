@@ -1,6 +1,6 @@
 add_subdirectory(Drivers)
 add_subdirectory(Middlewares)
-add_subdirectory(Arduino_Core_A3ides)
+add_subdirectory(Arduino_Core_Buddy)
 add_subdirectory(LiquidCrystal_I2C)
 add_subdirectory(QR)
 add_subdirectory(WUI)

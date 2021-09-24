@@ -412,7 +412,7 @@ static int stat_r(struct _reent *r, const char *path, struct stat *st) {
 
     st->st_dev = device;
     st->st_size = finfo.fsize;
-    st->st_blksize = _MAX_SS;
+    st->st_blksize = FF_MAX_SS;
     st->st_blocks = 1;
     st->st_mtime = get_posix_time(finfo.fdate, finfo.ftime);
 
@@ -673,17 +673,17 @@ static int statvfs_r(struct _reent *r, const char *path, struct statvfs *buf) {
     memset(buf, 0, sizeof(struct statvfs));
 
     buf->f_frsize = ff->csize;
-#if _MAX_SS != _MIN_SS
+#if FF_MAX_SS != FF_MIN_SS
     buf->f_frsize = ff.ssize;
 #else
-    buf->f_frsize = _MAX_SS;
+    buf->f_frsize = FF_MAX_SS;
 #endif
     buf->f_bfree = free_clst;
     buf->f_bavail = buf->f_bfree;
     buf->f_files = 0; // TODO: Count all inodes
     buf->f_ffree = FAT_MAX_FILES - buf->f_files;
     buf->f_favail = buf->f_ffree;
-    buf->f_fsid = (device & 0xFFFF) | (ff->drv << 16); // 16b for filesystems, 16b for driver per filesystem
+    buf->f_fsid = (device & 0xFFFF) | (((uint32_t)(ff->pdrv)) << 16); // 16b for filesystems, 16b for driver per filesystem
     buf->f_flag = ST_NOSUID;
 #ifdef _USE_LFN
     buf->f_namemax = _MAX_LFN;

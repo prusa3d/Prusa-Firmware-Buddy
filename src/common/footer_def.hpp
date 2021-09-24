@@ -27,6 +27,7 @@ enum class items : uint8_t { // stored in eeprom, must be small
     ItemBed,
     ItemFilament,
     ItemSpeed,
+    ItemZHeigth,
 #if defined(FOOTER_HAS_LIVE_Z)
     ItemLiveZ,
 #endif

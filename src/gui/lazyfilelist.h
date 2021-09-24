@@ -8,12 +8,8 @@
 #include <stdio.h>
 #include <dirent.h>
 #include "file_raii.hpp"
-#ifndef LAZYFILELIST_UNITTEST
-    #include "file_list_defs.h"
-    #include "../common/marlin_vars.h" // for FILE_PATH_MAX_LEN
-#else
-    #define _MAX_LFN          103
-    #define FILE_PATH_MAX_LEN 103
+#include "../../src/gui/file_list_defs.h"
+#ifdef LAZYFILELIST_UNITTEST
 extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
 extern "C" int strcasecmp(const char *a, const char *b); // strcasecmp defined weakly in unit tests to be able to compile them on windows
 #endif
@@ -211,7 +207,7 @@ private:
     static constexpr size_t MAX_SFN = 13;
     struct Entry {
         bool isFile;
-        char lfn[_MAX_LFN];
+        char lfn[FF_MAX_LFN];
         char sfn[LazyDirView::MAX_SFN]; // cache the short filenames too, since they will be used in communication with Marlin
         uint64_t time;
         void Clear() {

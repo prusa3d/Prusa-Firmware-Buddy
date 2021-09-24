@@ -7,7 +7,7 @@
 #include "cmsis_os.h"
 #include "config.h"
 #include "dbg.h"
-#include "adc.h"
+#include "adc.hpp"
 #include "Jogwheel.hpp"
 #include "hwio.h"
 #include "sys.h"
@@ -109,7 +109,7 @@ void app_run(void) {
 
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
-    if (eeprom_get_init_status() == EEPROM_INIT_Defaults && marlin_server_processing()) {
+    if (eeprom_init() == EEPROM_INIT_Defaults && marlin_server_processing()) {
         settings.reset();
     }
 

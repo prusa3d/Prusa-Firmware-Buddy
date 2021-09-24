@@ -6,7 +6,7 @@
 
     #include "sim_heater.h"
     #include <inttypes.h>
-    #include "adc.h"
+    #include "adc.hpp"
     #include "sim_nozzle.h"
     #include "sim_bed.h"
     #include "main.h"
@@ -120,13 +120,13 @@ void sim_heater_cycle(void) {
     #ifdef SIM_HEATER_NOZZLE_ADC
     temp = sim_nozzle_cycle(SIM_HEATER_MULTI * SIM_HEATER_DELAY) - 273.15F;
     val = (sim_heater_temp2val(temp));
-    set_adc_channel_value(&hadc1, CHANNEL_NOZZLE, val);
+    AdcSet::nozzle(val);
     #endif //SIM_HEATER_NOZZLE_ADC
 
     #ifdef SIM_HEATER_BED_ADC
     temp = sim_bed_cycle(SIM_HEATER_MULTI * SIM_HEATER_DELAY) - 273.15F;
     val = (sim_heater_temp2val(temp));
-    set_adc_channel_value(&hadc1, CHANNEL_BED, val);
+    AdcSet::bed(val);
     #endif //SIM_HEATER_BED_ADC
 }
 

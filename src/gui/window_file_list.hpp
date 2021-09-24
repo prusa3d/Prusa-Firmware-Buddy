@@ -10,9 +10,7 @@
 #include <stdbool.h>
 
 #include "window.hpp"
-#include "file_list_defs.h"
 #include "display_helper.h"
-#include "../common/marlin_vars.h" // for FILE_PATH_MAX_LEN
 #include "lazyfilelist.h"
 #include "text_roll.hpp"
 #include "WindowMenuItems.hpp"

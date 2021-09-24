@@ -9,7 +9,7 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
-            "configFiles": ["${workspaceRoot}/utils/cproject/A3ides-Debug-OpenOCD.cfg"],
+            "configFiles": ["${workspaceRoot}/utils/cproject/Buddy-Debug-OpenOCD.cfg"],
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
             "swoConfig": {
@@ -30,7 +30,14 @@
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
-            "device": "STM32F407VG"
+            "device": "STM32F407VG",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 168000000,
+                "swoFrequency": 4000000,
+                "source": "socket",
+                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+            }
         },
         {
             "name": "JLink 2MB",
@@ -42,7 +49,14 @@
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
-            "device": "STM32F429VI"
+            "device": "STM32F429VI",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 168000000,
+                "swoFrequency": 4000000,
+                "source": "socket",
+                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+            }
         },
         {
             "name": "JLink attach",
@@ -54,7 +68,14 @@
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
-            "device": "STM32F407VG"
+            "device": "STM32F407VG",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 168000000,
+                "swoFrequency": 4000000,
+                "source": "socket",
+                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+            }
         },
         {
             "name": "JLink attach 2MB",
@@ -66,7 +87,14 @@
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
-            "device": "STM32F429VI"
+            "device": "STM32F429VI",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 168000000,
+                "swoFrequency": 4000000,
+                "source": "socket",
+                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+            }
         },
         {
             "name": "GDB (QEMU)",

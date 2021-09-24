@@ -192,7 +192,7 @@
 // Prusa Research
 //
 
-#define BOARD_A3IDES_2209_02          1823  // Prusa A3ides (STM32F407VET6, TMC2209, rev02)
+#define BOARD_BUDDY_2209_02           1823  // Prusa Buddy (STM32F407VET6, TMC2209, rev02)
 
 //
 // LPC1768 ARM Cortex M3

@@ -23,3 +23,4 @@ ScreenFactory::UniquePtr GetScreenMenuSteelSheets();
 ScreenFactory::UniquePtr GetScreenEeprom();
 ScreenFactory::UniquePtr GetScreenMenuFooterSettings();
 ScreenFactory::UniquePtr GetScreenPrusaLink();
+ScreenFactory::UniquePtr GetScreenMenuExperimentalSettings();

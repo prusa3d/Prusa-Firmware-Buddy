@@ -63,13 +63,13 @@
 #include "Z_probe.h"
 #include "hwio_pindef.h"
 #include "gui.hpp"
-#include "config_a3ides2209_02.h"
+#include "config_buddy_2209_02.h"
 #include "eeprom.h"
 #include "crc32.h"
 #include "w25x.h"
 #include "timing.h"
 #include "filesystem.h"
-#include "adc.h"
+#include "adc.hpp"
 
 #define USB_OVERC_Pin       GPIO_PIN_4
 #define USB_OVERC_GPIO_Port GPIOE
@@ -197,14 +197,7 @@ char uart6slave_line[32];
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void) {
-    /*
+/*
     #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
     #define RCC_FLAG_BORRST                  ((uint8_t)0x79)
     #define RCC_FLAG_PINRST                  ((uint8_t)0x7A)
@@ -215,6 +208,13 @@ int main(void) {
     #define RCC_FLAG_LPWRRST                 ((uint8_t)0x7F)
     */
 
+/**
+ * @brief initialization of eeprom and prerequisites, to be able to use
+ *        it to initialize static variables and objects
+ * This is called during startup before main and before initialization
+ *        of static variables but after setting them to 0
+ */
+extern "C" void EepromSystemInit() {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST);
     //__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST);
     if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
@@ -225,19 +225,34 @@ int main(void) {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST);
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
-    /* MCU Configuration--------------------------------------------------------*/
-
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-    HAL_Init();
-
+    HAL_Init(); //it is low level enough to be run in startup script
     /* Configure the system clock */
     SystemClock_Config();
-    tick_timer_init();
 
+    MX_I2C1_Init();
+    tick_timer_init();
+    crc32_init();
+
+    int irq = __get_PRIMASK() & 1;
+    __enable_irq();
+
+    eeprom_init();
+
+    if (irq == 0)
+        __disable_irq();
+}
+
+/**
+  * @brief  The application entry point.
+  *   There is EepromSystemInit function called before main
+  *   which is alowing early access to eeprom
+  * @retval int
+  */
+int main(void) {
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
-    MX_I2C1_Init();
 #ifndef SIM_HEATER
     MX_ADC1_Init();
 #endif
@@ -259,36 +274,24 @@ int main(void) {
     HAL_PWM_Initialized = 1;
     HAL_SPI_Initialized = 1;
 
+    w25x_init(); //SPI flash
+    eeprom_init_status_t status = eeprom_init();
+    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
+        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
+        dump_in_xflash_reset();
+    }
+
+    wdt_iwdg_warning_cb = iwdg_warning_cb;
+
     buddy::hw::BufferedSerial::uart2.Open();
 
     uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
     uartrxbuff_reset(&uart1rxbuff);
-#ifndef USE_ESP01_WITH_UART6
-    // uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
-    // HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
-    // uartrxbuff_reset(&uart6rxbuff);
-    // uartslave_init(&uart6slave, &uart6rxbuff, &huart6, sizeof(uart6slave_line), uart6slave_line);
-    // putslave_init(&uart6slave);
-    wdt_iwdg_warning_cb = iwdg_warning_cb;
-#endif
-    crc32_init();
-    w25x_init();
-
-    int irq = __get_PRIMASK() & 1;
-    __enable_irq();
-    eeprom_init();
-    uint8_t status = eeprom_get_init_status();
-    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
-        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
-        dump_in_xflash_reset();
-    }
-    if (irq == 0)
-        __disable_irq();
 
     filesystem_init();
 
-    adc_dma_init(&hadc1); //start ADC DMA conversion
+    adcDma1.init();
     /* USER CODE END 2 */
 
     static metric_handler_t *handlers[] = {

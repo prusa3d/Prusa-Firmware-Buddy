@@ -12,10 +12,10 @@ int main(int argc, char **argv) {
 }
 
 int bin2cc(char *src_filename, char *dst_filename, char *var_name) {
-    //	src_filename = "D:/Projects/Prusa3D/STM32/Marlin_A3ides/Gui/Res/png/icon_pepa.png";
-    //	dst_filename = "D:/Projects/Prusa3D/STM32/Marlin_A3ides/Gui/Res/cc/icon_pepa.png";
-    //	src_filename = "D:\\Projects\\Prusa3D\\STM32\\Marlin_A3ides\\Gui\\Res\\png\\icon_pepa.png";
-    //	dst_filename = "D:\\Projects\\Prusa3D\\STM32\\Marlin_A3ides\\Gui\\Res\\cc\\png_icon_pepa.c";
+    //	src_filename = "D:/Projects/Prusa3D/STM32/Marlin_Buddy/Gui/Res/png/icon_pepa.png";
+    //	dst_filename = "D:/Projects/Prusa3D/STM32/Marlin_Buddy/Gui/Res/cc/icon_pepa.png";
+    //	src_filename = "D:\\Projects\\Prusa3D\\STM32\\Marlin_Buddy\\Gui\\Res\\png\\icon_pepa.png";
+    //	dst_filename = "D:\\Projects\\Prusa3D\\STM32\\Marlin_Buddy\\Gui\\Res\\cc\\png_icon_pepa.c";
     FILE *src = fopen(src_filename, "rb");
     FILE *dst = fopen(dst_filename, "w+");
     if ((!src) || (!dst))

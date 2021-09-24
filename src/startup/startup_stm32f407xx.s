@@ -108,6 +108,8 @@ LoopFillZerobss:
 
 /* Call the clock system intitialization function.*/
   bl  SystemInit
+/* Initialize necessary minimum for eeprom.*/
+  bl  EepromSystemInit
 /* Call static constructors */
     bl __libc_init_array
 /* Call the application's entry point.*/

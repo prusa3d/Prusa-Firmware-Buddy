@@ -36,13 +36,9 @@ protected:
 public:
     IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
     virtual void OnClick() {}
-    inline void ClrVal() {
-        value.u32 = 0;
-        Change(0);
-    }
-    inline void SetVal(SpinType val) {
+    inline invalidate_t SetVal(SpinType val) {
         value = val;
-        Change(0);
+        return Change(0);
     }
     /// don't define GetVal here since we don't know the return type yet
     /// and C++ does not allow return type overloading (yet)
@@ -106,10 +102,5 @@ inline void WI_SPIN_t<float>::printSpinToBuffer() {
     snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, static_cast<double>(value.flt));
 }
 
-using WI_SPIN_I08_t = WI_SPIN_t<int8_t>;
-using WI_SPIN_I16_t = WI_SPIN_t<int16_t>;
-using WI_SPIN_I32_t = WI_SPIN_t<int32_t>;
-using WI_SPIN_U08_t = WI_SPIN_t<uint8_t>;
-using WI_SPIN_U16_t = WI_SPIN_t<uint16_t>;
-using WI_SPIN_U32_t = WI_SPIN_t<uint32_t>;
-using WI_SPIN_FL_t = WI_SPIN_t<float>;
+using WiSpinInt = WI_SPIN_t<int>;
+using WiSpinFlt = WI_SPIN_t<float>;

@@ -198,6 +198,12 @@ else()
   set(INIT_TRINAMIC_FROM_MARLIN_ONLY NO)
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(DEBUG YES)
+else()
+  set(DEBUG NO)
+endif()
+
 # append custom C/C++ flags
 if(CUSTOM_COMPILE_OPTIONS)
   string(REPLACE " " ";" CUSTOM_COMPILE_OPTIONS "${CUSTOM_COMPILE_OPTIONS}")
@@ -205,23 +211,23 @@ if(CUSTOM_COMPILE_OPTIONS)
 endif()
 
 #
-# A3idesHeaders
+# BuddyHeaders
 #
 # This library provides headers in the /include directory. When a library requires a configuration
 # header, e.g. STM32::USBHost requires usbh_conf.h, we can just place the header to /include and
-# then add A3idesHeaders as a dependency to STM32::USBHost.
+# then add BuddyHeaders as a dependency to STM32::USBHost.
 #
 # TODO: Refactor this to make it clear what header files are associated with which targets.
 #
 
-add_library(A3idesHeaders INTERFACE)
+add_library(BuddyHeaders INTERFACE)
 target_include_directories(
-  A3idesHeaders INTERFACE include include/stm32f4_hal include/usb_host include/usb_device
-                          include/marlin include/freertos
+  BuddyHeaders INTERFACE include include/stm32f4_hal include/usb_host include/usb_device
+                         include/marlin include/freertos
   )
-target_link_libraries(A3idesHeaders INTERFACE STM32F4::HAL FreeRTOS::FreeRTOS)
+target_link_libraries(BuddyHeaders INTERFACE STM32F4::HAL FreeRTOS::FreeRTOS)
 target_compile_definitions(
-  A3idesHeaders
+  BuddyHeaders
   INTERFACE
   MOTHERBOARD=1823
   MCU=${MCU}
@@ -262,13 +268,13 @@ add_library(STM32F4_HAL_Config INTERFACE)
 target_include_directories(STM32F4_HAL_Config INTERFACE include/stm32f4_hal)
 
 # STM32::USBHost
-add_library(STM32_USBHost_Config ALIAS A3idesHeaders)
+add_library(STM32_USBHost_Config ALIAS BuddyHeaders)
 
 # STM32::USBDevice
-add_library(STM32_USBDevice_Config ALIAS A3idesHeaders)
+add_library(STM32_USBDevice_Config ALIAS BuddyHeaders)
 
 # STM32::Utilities::CPU
-add_library(STM32_Utilities_CPU_Config ALIAS A3idesHeaders)
+add_library(STM32_Utilities_CPU_Config ALIAS BuddyHeaders)
 
 #
 # Configure FreeRTOS
@@ -283,14 +289,14 @@ target_link_libraries(FreeRTOS_Config INTERFACE STM32::CPU)
 #
 
 add_library(LwIP_Config INTERFACE)
-target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
+target_link_libraries(LwIP_Config INTERFACE BuddyHeaders)
 
 #
 # Configure FatFs
 #
 
 add_library(FatFs_Config INTERFACE)
-target_link_libraries(FatFs_Config INTERFACE A3idesHeaders STM32::USBHost)
+target_link_libraries(FatFs_Config INTERFACE BuddyHeaders STM32::USBHost)
 
 #
 # Configure Marlin
@@ -302,7 +308,7 @@ target_include_directories(
   Marlin_Config INTERFACE include/marlin src/common src/common/selftest src/gui
                           src/marlin_stubs/include
   )
-target_link_libraries(Marlin_Config INTERFACE A3idesHeaders FreeRTOS::FreeRTOS)
+target_link_libraries(Marlin_Config INTERFACE BuddyHeaders FreeRTOS::FreeRTOS)
 
 #
 # Global Compiler & Linker Configuration
@@ -391,7 +397,7 @@ endif()
 add_subdirectory(lib)
 
 #
-# A3ides firmware
+# Buddy firmware
 #
 
 add_executable(firmware)
@@ -486,7 +492,7 @@ target_compile_options(firmware PRIVATE -Wdouble-promotion)
 
 target_link_libraries(
   firmware
-  PRIVATE A3idesHeaders
+  PRIVATE BuddyHeaders
           Marlin
           Arduino::Core
           Arduino::TMCStepper
@@ -552,7 +558,7 @@ target_sources(
           src/common/sys.cpp
           src/common/sim_nozzle.c
           src/common/heap.c
-          src/common/hwio_a3ides_2209_02.cpp
+          src/common/hwio_buddy_2209_02.cpp
           src/common/safe_state.cpp
           src/common/variant8.cpp
           src/common/dbg.c
@@ -678,6 +684,7 @@ if(GUI)
             src/gui/version_info_ST7789V.cpp
             src/gui/test_display.cpp
             src/gui/screen_splash.cpp
+            src/gui/screen_menu_odometer.cpp
             src/gui/screen_menu_service.cpp
             src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp
@@ -726,6 +733,7 @@ if(GUI)
             src/gui/test/screen_menu_test_temperature.cpp
             src/gui/test/screen_mesh_bed_lv.cpp
             src/gui/screen_menu_eeprom.cpp
+            src/gui/footer/footer_item_z_heigth.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp
@@ -752,15 +760,25 @@ if(GUI)
             src/guiapi/src/IWindowMenuItem.cpp
             src/guiapi/src/WindowMenuSwitch.cpp
             src/guiapi/src/WindowMenuSpin.cpp
+            src/guiapi/src/WindowMenuInfo.cpp
+            src/guiapi/src/WindowMenuSpinExponential.cpp
             src/guiapi/src/WindowMenuItems.cpp
             src/guiapi/src/MItem_menus.cpp
             src/guiapi/src/MItem_print.cpp
             src/guiapi/src/MItem_tools.cpp
+            src/guiapi/src/MItem_eeprom.cpp
+            src/guiapi/src/MItem_experimental_tools.cpp
             src/guiapi/src/Jogwheel.cpp
             src/guiapi/src/ScreenShot.cpp
             src/guiapi/src/menu_spin_config_types.cpp
             $<$<STREQUAL:${PRINTER},MINI>:src/guiapi/src/menu_spin_config_basic.cpp>
     )
+endif()
+
+if(GUI AND DEBUG) # gui and debug
+  target_sources(firmware PRIVATE src/gui/screen_menu_experimental_settings_debug.cpp)
+elseif(GUI) # gui, not debug
+  target_sources(firmware PRIVATE src/gui/screen_menu_experimental_settings_mini.cpp)
 endif()
 
 # Set fsdata filename for HTTPServer
@@ -784,7 +802,7 @@ set_property(
          src/common/sys.cpp
          src/marlin_stubs/M50.cpp
          src/marlin_stubs/gcode.cpp
-         src/common/hwio_a3ides_2209_02.cpp
+         src/common/hwio_buddy_2209_02.cpp
          src/gui/guimain.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>

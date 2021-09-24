@@ -15,6 +15,7 @@ struct GuiDefaults {
     static constexpr size_ui16_t FooterIconSize = { 16, FooterItemHeight }; //DO NOT CHANGE HEIGHT!!! it must match item height (item height can be changed instead), real icon height can be smaller
     static constexpr Rect16::Height_t FooterTextHeight = FooterItemHeight;  //DO NOT CHANGE!!!        it must match item height (item height can be changed instead), real text height can be smaller
     static font_t *FooterFont;                                              //TODO constexpr, font_9x16, IT MUST MATCH OR BE SMALLER THAN FooterItemHeight!!!
+    static constexpr size_t infoMaxLen = 10;                                //includes null
 
     //display specific defaults
     //TODO bind this values
@@ -36,6 +37,8 @@ struct GuiDefaults {
     static constexpr color_t MenuColorBack = ColorBack;
     static constexpr color_t MenuColorText = ColorText;
     static constexpr color_t MenuColorDisabled = ColorDisabled;
+    static constexpr color_t MenuColorDevelopment = COLOR_LIGHT_GREEN;
+    static constexpr color_t MenuColorDevelopmentDisabled = COLOR_DARK_GREEN;
 
     // Text settings
     static constexpr padding_ui8_t Padding = { 2, 2, 2, 2 };
@@ -72,6 +75,7 @@ struct GuiDefaults {
     static constexpr bool MenuSwitchHasBrackets = false; // draw brackets around switch values in menus
     static constexpr bool MenuSpinHasUnits = false;      // draw units behind spin
     static constexpr bool MenuHasScrollbar = false;
+    static constexpr bool ShowDevelopmentTools = true; // Show menu items for development
 
     // New menu feature settings
     static constexpr size_t MenuUseFixedUnitWidth = 28; // 0 == calculate in runtime
@@ -81,5 +85,6 @@ struct GuiDefaults {
 
     // New msgbox
     static constexpr Rect16 MsgBoxLayoutRect = { 0, 0, 0, 0 }; // TODO: Connect with dialogs
-    static constexpr Rect16 MsgBoxFrameRect = RectScreenBody;
+    static constexpr Rect16 DialogFrameRect = RectScreenBody;
+    static constexpr uint16_t RadioButtonCornerRadius = 0;
 };
