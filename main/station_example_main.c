@@ -15,20 +15,43 @@
 #include "esp_netif.h"
 #include "esp_event.h"
 #include "esp_wifi.h"
+#include "esp_aio.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
-
-#include "netif/ppp/ppp.h"
-#include "netif/ppp/pppos.h"
-#include "lwip/sio.h"
+#include "lwip/pbuf.h"
+#include "lwip/netif.h"
 
 #include "driver/gpio.h"
-
-#include "netif/bridgeif.h"
 #include "driver/uart.h"
+
+// INTRON
+// 0 as uint8_t
+// hw addr LEN as uint8_t
+// hw addr data bytes
+#define MSG_DEVINFO 0
+
+// INTRON
+// 1 as uint8_t
+// link up as bool (uint8_t)
+#define MSG_LINK 1
+
+// INTRON
+// 2 as uint8_t
+// ssid size as uint8_t
+// ssid bytes
+// pass size as uint8_t
+// pass bytes
+#define MSG_CLIENTCONFIG 2
+
+// INTRON
+// 3 as uint8_t
+// LEN as uint32_t
+// DATA
+#define MSG_PACKET 3
+
 
 
 
@@ -37,8 +60,8 @@
    If you'd rather not, just change the below entries to strings with
    the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
 */
-#define EXAMPLE_ESP_WIFI_SSID      "esptest"
-#define EXAMPLE_ESP_WIFI_PASS      "lwesp8266"
+// #define EXAMPLE_ESP_WIFI_SSID      "esptest"
+// #define EXAMPLE_ESP_WIFI_PASS      "lwesp8266"
 #define EXAMPLE_ESP_MAXIMUM_RETRY  CONFIG_ESP_MAXIMUM_RETRY
 
 /* FreeRTOS event group to signal when we are connected*/
@@ -54,43 +77,13 @@ static const char *TAG = "wifi station";
 
 static int s_retry_num = 0;
 
+static void sendLink(uint8_t up);
 
-
-
-
-#define GPIO_OUTPUT_IO_2    GPIO_NUM_2
-#define GPIO_OUTPUT_PIN_SEL   ((1ULL<<GPIO_OUTPUT_IO_2))
-
-void debug_c(const char c) {
-	static const int DELAY_US = 1000000 / 115200;
-
-	// Start bit
-	ESP_ERROR_CHECK(gpio_set_level(GPIO_OUTPUT_IO_2, 0));
-	ets_delay_us(DELAY_US);
-
-	for(int i = 0; i < 8; ++i) {
-		ESP_ERROR_CHECK(gpio_set_level(GPIO_OUTPUT_IO_2, ((int)c) >> i & 1));
-		ets_delay_us(DELAY_US);
-	}
-
-	// Stop bit
-	ESP_ERROR_CHECK(gpio_set_level(GPIO_OUTPUT_IO_2, 1));
-	ets_delay_us(DELAY_US);
-}
-
-void debug_s(const char* data) {
-	while(*data) {
-		debug_c(*data);
-		data++;
-	}
-}
-
-static void event_handler(void* arg, esp_event_base_t event_base,
-                                int32_t event_id, void* event_data)
-{
+static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        sendLink(0);
         if (s_retry_num < EXAMPLE_ESP_MAXIMUM_RETRY) {
             esp_wifi_connect();
             s_retry_num++;
@@ -99,6 +92,8 @@ static void event_handler(void* arg, esp_event_base_t event_base,
             xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
         }
         ESP_LOGI(TAG,"connect to the AP fail");
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
+        sendLink(1);
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "got ip:%s",
@@ -121,53 +116,53 @@ void wifi_init_sta(void) {
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL));
 
-    wifi_config_t wifi_config = {
-        .sta = {
-            .ssid = EXAMPLE_ESP_WIFI_SSID,
-            .password = EXAMPLE_ESP_WIFI_PASS
-        },
-    };
+    // wifi_config_t wifi_config = {
+    //     .sta = {
+    //         .ssid = EXAMPLE_ESP_WIFI_SSID,
+    //         .password = EXAMPLE_ESP_WIFI_PASS
+    //     },
+    // };
 
-    /* Setting a password implies station will connect to all security modes including WEP/WPA.
-        * However these modes are deprecated and not advisable to be used. Incase your Access point
-        * doesn't support WPA2, these mode can be enabled by commenting below line */
+    // /* Setting a password implies station will connect to all security modes including WEP/WPA.
+    //     * However these modes are deprecated and not advisable to be used. Incase your Access point
+    //     * doesn't support WPA2, these mode can be enabled by commenting below line */
 
-    if (strlen((char *)wifi_config.sta.password)) {
-        wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
-    }
+    // if (strlen((char *)wifi_config.sta.password)) {
+    //     wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+    // }
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
+    // ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start() );
 
-    ESP_LOGI(TAG, "wifi_init_sta finished.");
+    // ESP_LOGI(TAG, "wifi_init_sta finished.");
 
     /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
      * number of re-tries (WIFI_FAIL_BIT). The bits are set by event_handler() (see above) */
-    EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
-            WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
-            pdFALSE,
-            pdFALSE,
-            portMAX_DELAY);
+    // EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
+    //         WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
+    //         pdFALSE,
+    //         pdFALSE,
+    //         portMAX_DELAY);
 
-    /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
-     * happened. */
-    if (bits & WIFI_CONNECTED_BIT) {
-        printf("WIFI CONNECTED");
-        ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
-                 EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
-    } else if (bits & WIFI_FAIL_BIT) {
-        printf("WIFI FAILED TO CONNECT");
-        ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
-                 EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
-    } else {
-        printf("!!!! UNEXPECTED");
-        ESP_LOGE(TAG, "UNEXPECTED EVENT");
-    }
-
-    ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler));
-    ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler));
-    vEventGroupDelete(s_wifi_event_group);
+    // /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
+    //  * happened. */
+    // if (bits & WIFI_CONNECTED_BIT) {
+    //     printf("WIFI CONNECTED");
+    //     // ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
+    //     //          EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+    // } else if (bits & WIFI_FAIL_BIT) {
+    //     printf("WIFI FAILED TO CONNECT");
+    //     // ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
+    //     //          EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+    // } else {
+    //     printf("!!!! UNEXPECTED");
+    //     ESP_LOGE(TAG, "UNEXPECTED EVENT");
+    // }
+ 
+    // ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler));
+    // ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler));
+    // vEventGroupDelete(s_wifi_event_group);
 }
 
 #if LWIP_NETIF_STATUS_CALLBACK
@@ -188,159 +183,208 @@ static void netif_status_callback(struct netif *nif) {
 }
 #endif /* LWIP_NETIF_STATUS_CALLBACK */
 
-void debug_setup() {	
-	gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_OUTPUT;
-    io_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL;
-    io_conf.pull_down_en = 0;
-    io_conf.pull_up_en = 0;
-    ESP_ERROR_CHECK(gpio_config(&io_conf));
-}
+static const char INTRON[] = {'U', 'N', 'U'};
 
 err_t wifi_input(struct pbuf *p, struct netif *inp) {
-    //print("PBUF FLAGS");
-
-  /*  printf("PRINTING PBUF AT: %d, len: %d\n", (int)p, p->len);
-    for(uint i = 0; i < p->len; ++i) {
-        printf("Char at %d: | %d | %c\n", i, ((char*)p->payload)[i], ((char*)p->payload)[i]);
-    }*/
-
-    printf("\nAT+INPUT:%d,", p->tot_len);
-    do {
-        //printf("%.*s", p->len, (char*)p->payload);
-        fflush(0);
-       /* for(uint i = 0; i < p->len; ++i) {
-            write(0, &((char*)p->payload)[i], 1);
-        }*/
-        write(0, p->payload, p->len);
-
-        fflush(0);
-        //printf("ABOUT TO SWITCH TO NEXT\n");
-        p = p->next;
-    } while(p);
-    //printf("ABOUT TO RETURN\n");
-	return 0;
+    // printf("Printing packet to UART\n\r");
+    uart_write_bytes(UART_NUM_0, INTRON, sizeof(INTRON));
+    const uint8_t t = MSG_PACKET;
+    const uint32_t l = p->len;
+    uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
+    uart_write_bytes(UART_NUM_0, (const char*)&l, sizeof(uint32_t));
+    uart_write_bytes(UART_NUM_0, (const char*)p->payload, p->len);
+    // printf("Packet UART out done\n\r");
+    pbuf_free(p);
+    return 0;
 }
 
 err_t (*out)(struct netif *netif, struct pbuf *p) = 0;
 struct netif *wifi_net_if = 0;
 
 static err_t dummy_out(struct netif *netif, struct pbuf *p) {
-    printf("DUMMY OUT\n");
+    // printf("DUMMY OUT\n\r");
     return 0;
 }
 
-static void output_rx_thread(void *arg) {
-    printf("RX THREAD ENTRY\n");
 
-        // Configure parameters of an UART driver,
-    // communication pins and install the driver
-    uart_config_t uart_config = {
-        .baud_rate = 9600,
-        .data_bits = UART_DATA_8_BITS,
-        .parity    = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
-    };
-    uart_param_config(UART_NUM_0, &uart_config);
-    uart_driver_install(UART_NUM_0, 1024 * 2, 0, 0, NULL, 0);
+static void sendDeviceInfo() {
+    if(!wifi_net_if) {
+        printf("Net if not available !!!\n\r");
+        return;
+    }
+
+    printf("Sending device info\n\r");
+    uart_write_bytes(UART_NUM_0, INTRON, sizeof(INTRON));
+    const uint8_t t = MSG_DEVINFO;
+    uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
+    uart_write_bytes(UART_NUM_0, (const char*)&wifi_net_if->hwaddr_len, sizeof(uint8_t));
+    uart_write_bytes(UART_NUM_0, (const char*)&wifi_net_if->hwaddr, wifi_net_if->hwaddr_len);
+}
+
+static void sendLink(uint8_t up) {
+    printf("Sending link status: %d\n\r", up);
+    uart_write_bytes(UART_NUM_0, INTRON, sizeof(INTRON));
+    const uint8_t t = MSG_LINK;
+    uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
+    uart_write_bytes(UART_NUM_0, (const char*)&up, sizeof(uint8_t));
+}
 
 
-    printf("UART REINITIALIZED");
 
-    static char* CMD = "AT+OUTPUT:";
-    static const int CMD_LEN = 10;
-
-    int state = 0;
-
-    for(;;) {
+static void waitForIntron() {
+    // printf("Waiting for intron\n\r");
+    uint pos = 0;
+    while(pos < sizeof(INTRON)) {
         char c;
-     //   read(0, &c, 1);
-        int read = uart_read_bytes(UART_NUM_0, (uint8_t*)&c, 1, 20 / portTICK_RATE_MS);
-     //   printf("READ: %c (%d), len: %d\n", c, (int)c, read);
-
-
-        if(state < CMD_LEN) {
-            if(CMD[state] == c) {
-                state++;
-      //          printf("S: %d, C: %c (%d)\n", state, c, (int)c);
-                if(state != CMD_LEN) {
-                    continue;
-                }
+        int read = uart_read_bytes(UART_NUM_0, (uint8_t*)&c, 1, portMAX_DELAY);
+        if(read == 1) {
+            if (c == INTRON[pos]) {
+                pos++;
             } else {
-                if(CMD[0] == c) {
-                    state = 1;
-                } else {
-                    state = 0;
-                }
+                printf("Invalid: %c, val: %d\n", c, (int)c);
+                pos = 0;
             }
+        } else {
+            printf("Timeout!!!\n\r");
         }
+    }
+    // printf("Intron found\n\r");
+}
 
-        if(state == CMD_LEN) {
-            char c = 0;
-            uint len = 0;
+static size_t readUART(uint8_t *buff, size_t len) {
+    size_t trr = 0;
+    while(trr < len) {
+        int read = uart_read_bytes(UART_NUM_0, ((uint8_t*)buff) + trr, len - trr, portMAX_DELAY);
+        if(read < 0) {
+            printf("FAILED TO READ UART DATA\n\r");
 
-        //    printf("READING LEN\n");
-
-            while(c != ',') {
-                uart_read_bytes(UART_NUM_0, (uint8_t*)&c, 1, 20 / portTICK_RATE_MS);
-                if(c >= '0' && c <= '9') {
-                    len = len * 10 + c - '0';
-                }
-            }
-
-        //    printf("READING PACKET LEN: %d\n", len);
-
-            char *buff = (char*)malloc(len);
-
-            
-            /*int rrr = read(0, buff, len);
-            if(rrr != len) {
-                printf("FAILED TO READ ALL DATA: %d\n", rrr);
-            }*/
-           
-           /* for(uint i = 0 ;i < len; ++i) {
-                int rrr = -1;
-                while(rrr == -1) {
-                    rrr = read(0, &((char*)buff)[i], 1);
-                    if(rrr != 1) {
-                        printf("FAILED TO READ SINGLE: %d\n", rrr);
-                    }
-                }                
-            }*/
-
-            int trr = 0;
-            while(trr < len) {
-                trr += uart_read_bytes(UART_NUM_0, ((uint8_t*)buff) + trr, len - trr, 20 / portTICK_RATE_MS);
-            }
-            if(trr < 0) {
-                printf("FAILED TO READ MESSAGE DATA\n");
-            }
-            if(trr != len) {
+            if(read != len) {
                 printf("READ %d != %d expected\n", trr, len);
             }
-
-
-            printf("\nREAD:  ");
-            for(uint i = 0; i < len; ++i) {
-                printf("%02x", buff[i]);
-            }
-            printf("\n");
-
-            if(out && wifi_net_if) {
-                struct pbuf *p = pbuf_alloc(PBUF_RAW_TX, len, PBUF_RAM);
-                memcpy(p->payload, buff, len);
-                out(wifi_net_if, p);
-                pbuf_free(p);
-            }
-
-            free(buff);
-
-
-            state = 0;
         }
+        trr += read;
+    }
+    return trr;
+}
 
+// static int send_cb(struct esp_aio *aio) {
+//     free((void*)aio->pbuf);
+//     free(aio);
+//     return 0;
+// }
+
+// int ieee80211_output_pbuf(esp_aio_t *aio);
+
+
+// static uint8_t dummy_buff[2048];
+
+static void readPacket() {
+    // printf("Reading packet\n\r");
+    uint32_t size = 0;
+    readUART((uint8_t*)&size, sizeof(uint32_t));
+    // printf("Receiving packet size: %d\n\r", size);
+
+    if(!out || !wifi_net_if) {
+        printf("Not ready to output packets !!!\n\r");
+        return;
+    }
+
+    // printf("Allocating pbuf size: %d, free heap: %d\n\r", size, esp_get_free_heap_size());
+    struct pbuf *p = pbuf_alloc(PBUF_RAW_TX, size, PBUF_POOL);
+    if(!p) {
+        printf("Out of mem for packet size: %d!!!\n\r", size);
+        return;
+    }
+
+    readUART(p->payload, p->len);
+    err_t ret = out(wifi_net_if, p);
+    if(ret != ERR_OK) {
+        printf("Failed to send packet !!!\n\r");
+    }
+    pbuf_free(p);
+    
+
+    // esp_aio_t *aio = (esp_aio_t*)malloc(sizeof(esp_aio_t));
+    // if(!aio) {
+    //     printf("OUt of mem allocing aio !!!\n\r");
+    //     return;
+    // }
+    // memset(aio, 0, sizeof(esp_aio_t));
+    // aio->pbuf = (char*)malloc(size);
+    // if(!aio->pbuf) {
+    //     printf("Out of mem allocing aio data !!!\n\r");
+    //     return;
+    // }
+    // aio->len = size;
+    // aio->cb = send_cb;
+
+    // readUART(aio->pbuf, aio->len);
+
+    // err_t err = ieee80211_output_pbuf(aio);
+    // if (err != ERR_OK) {
+    //     printf("Failed to send wifi data\n\r");
+    //     free((void*)aio->pbuf);
+    //     free(aio);
+    // }
+}
+
+static void readWifiClient() {
+    wifi_config_t wifi_config;
+    memset(&wifi_config, 0, sizeof(wifi_config_t));
+
+    uint8_t ssid_len = 0;
+    readUART(&ssid_len, 1);
+    printf("Reading SSID len: %d\n\r", ssid_len);
+    readUART(wifi_config.sta.ssid, ssid_len);
+
+    uint8_t pass_len = 0;
+    readUART(&pass_len, 1);
+    printf("Reading PASS len: %d\n\r", pass_len);
+    readUART(wifi_config.sta.password, pass_len);
+
+    printf("Reconfiguring wifi\n\r");
+
+    /* Setting a password implies station will connect to all security modes including WEP/WPA.
+        * However these modes are deprecated and not advisable to be used. Incase your Access point
+        * doesn't support WPA2, these mode can be enabled by commenting below line */
+    if (strlen((char *)wifi_config.sta.password)) {
+        wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+    }
+
+    ESP_ERROR_CHECK(esp_wifi_stop());
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
+    ESP_ERROR_CHECK(esp_wifi_start());
+
+    sendDeviceInfo();
+}
+
+static void readMessage() {
+    waitForIntron();
+
+    uint8_t type = 0;
+    size_t read = uart_read_bytes(UART_NUM_0, (uint8_t*)&type, 1, portMAX_DELAY);
+    if(read != 1) {
+        printf("Cannot read message type\n\r");
+        return;
+    }
+    
+    // printf("Detected message type: %d\n\r", type);
+    if(type == MSG_PACKET) {
+        readPacket();
+    } else if (type == MSG_CLIENTCONFIG) {
+        readWifiClient();
+    } else {
+        printf("Unknown message type: %d !!!\n\r", type);
+    }
+}
+
+
+static void output_rx_thread(void *arg) {
+    printf("RX THREAD ENTRY\n\r");
+
+    for(;;) {
+        readMessage();
     }
 }
 
@@ -353,6 +397,21 @@ void app_main() {
 	
 	//debug_setup();
 
+     // Configure parameters of an UART driver,
+    // communication pins and install the driver
+    uart_config_t uart_config = {
+        .baud_rate = 500000,
+        .data_bits = UART_DATA_8_BITS,
+        .parity    = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
+    };
+    uart_param_config(UART_NUM_0, &uart_config);
+    uart_driver_install(UART_NUM_0, 1024 * 2, 0, 0, NULL, 0);
+
+
+    printf("UART RE-INITIALIZED\n\r");
+
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
 		
@@ -360,6 +419,8 @@ void app_main() {
 	wifi_net_if->input = &wifi_input;
     out = wifi_net_if->linkoutput;
     wifi_net_if->linkoutput = &dummy_out;
+
+    sendDeviceInfo();
 	
 #if LWIP_NETIF_STATUS_CALLBACK
     netif_set_status_callback(&pppos_netif, netif_status_callback);
@@ -367,5 +428,5 @@ void app_main() {
 
 //     sys_thread_new("pppos_rx_thread", pppos_rx_thread, NULL, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
     printf("Creating RX thread");
-	xTaskCreate(&output_rx_thread, "output_rx_thread", 2048, NULL, tskIDLE_PRIORITY + 5, NULL);
+	xTaskCreate(&output_rx_thread, "output_rx_thread", 2048, NULL, tskIDLE_PRIORITY, NULL);
 }
