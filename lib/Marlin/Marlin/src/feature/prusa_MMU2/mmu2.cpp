@@ -532,10 +532,10 @@ void MMU2::command(const uint8_t mmu_cmd) {
  * Wait for response from MMU
  */
 bool MMU2::get_response() {
-  while (cmd != MMU_CMD_NONE) idle();
+  while (cmd != MMU_CMD_NONE) idle(true);
 
   while (!ready) {
-    idle();
+    idle(true);
     if (state != 3) break;
   }
 
@@ -714,7 +714,7 @@ void MMU2::filament_runout() {
       #if ENABLED(EXTENSIBLE_UI)
         ExtUI::onUserConfirmRequired_P(PSTR("MMU2 Eject Recover"));
       #endif
-      while (wait_for_user) idle();
+      while (wait_for_user) idle(true);
       BUZZ(200, 404);
       BUZZ(200, 404);
 

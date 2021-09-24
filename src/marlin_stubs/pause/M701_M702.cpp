@@ -163,7 +163,7 @@ static PreheatStatus::Result M1400_no_parser(uint32_t val) {
     } else {
         FSM_Holder H(ClientFSM::Preheat, uint8_t(val)); //this must remain inside scope
         while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
-            idle(true);
+            idle(true, true);
         }
     }
 

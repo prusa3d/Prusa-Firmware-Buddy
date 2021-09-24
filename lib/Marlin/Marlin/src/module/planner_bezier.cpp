@@ -129,7 +129,7 @@ void cubic_b_spline(
     millis_t now = millis();
     if (ELAPSED(now, next_idle_ms)) {
       next_idle_ms = now + 200UL;
-      idle();
+      idle(false);
     }
 
     // First try to reduce the step in order to make it sufficiently

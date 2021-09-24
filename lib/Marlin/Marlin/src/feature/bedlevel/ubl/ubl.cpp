@@ -212,7 +212,7 @@
         if (human) SERIAL_CHAR(is_current ? ']' : ' ');
 
         SERIAL_FLUSHTX();
-        idle();
+        idle(false);
       }
       if (!lcd) SERIAL_EOL();
 

@@ -325,7 +325,7 @@
       }
       else {
         while (g29_repetition_cnt--) {
-          if (cnt > 20) { cnt = 0; idle(); }
+          if (cnt > 20) { cnt = 0; idle(false); }
           const mesh_index_pair closest = find_closest_mesh_point_of_type(REAL, g29_pos);
           const xy_int8_t &cpos = closest.pos;
           if (cpos.x < 0) {
@@ -819,7 +819,7 @@
         ui.quick_feedback(false);                // Preserve button state for click-and-hold
         const millis_t nxt = millis() + 1500UL;
         while (ui.button_pressed()) {                // Loop while the encoder is pressed. Uses hardware flag!
-          idle();                                 // idle, of course
+          idle(true);                             // idle, of course
           if (ELAPSED(millis(), nxt)) {           // After 1.5 seconds
             ui.quick_feedback();
             if (func) (*func)();
@@ -835,7 +835,7 @@
     void unified_bed_leveling::move_z_with_encoder(const float &multiplier) {
       ui.wait_for_release();
       while (!ui.button_pressed()) {
-        idle();
+        idle(true);
         gcode.reset_stepper_timeout(); // Keep steppers powered
         if (encoder_diff) {
           do_blocking_move_to_z(current_position.z + float(encoder_diff) * multiplier);
@@ -1036,7 +1036,7 @@
           #if ENABLED(UBL_MESH_EDIT_MOVES_Z)
             do_blocking_move_to_z(h_offset + new_z);        // Move the nozzle as the point is edited
           #endif
-          idle();
+          idle(true);
           SERIAL_FLUSH();                                   // Prevent host M105 buffer overrun.
         } while (!ui.button_pressed());
 
@@ -1695,7 +1695,7 @@
             #if ENABLED(EXTENSIBLE_UI)
               ExtUI::onMeshUpdate(ix, iy, z_values[ix][iy]);
             #endif
-            idle(); // housekeeping
+            idle(false); // housekeeping
           }
         }
       }
@@ -1794,7 +1794,7 @@
       SERIAL_ECHO_MSG("EEPROM Dump:");
       persistentStore.access_start();
       for (uint16_t i = 0; i < persistentStore.capacity(); i += 16) {
-        if (!(i & 0x3)) idle();
+        if (!(i & 0x3)) idle(false);
         print_hex_word(i);
         SERIAL_ECHOPGM(": ");
         for (uint16_t j = 0; j < 16; j++) {

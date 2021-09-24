@@ -211,7 +211,7 @@ void GCodeQueue::inject_P(PGM_P const pgcode) { injected_commands_P = pgcode; }
  * Enqueue and return only when commands are actually enqueued.
  * Never call this from a G-code handler!
  */
-void GCodeQueue::enqueue_one_now(const char* cmd) { while (!enqueue_one(cmd)) idle(); }
+void GCodeQueue::enqueue_one_now(const char* cmd) { while (!enqueue_one(cmd)) idle(true); }
 
 /**
  * Enqueue from program memory and return only when commands are actually enqueued
@@ -617,7 +617,10 @@ void GCodeQueue::advance() {
   if (process_injected_command()) return;
 
   // Return if the G-code buffer is empty
-  if (!length) return;
+  if (!length) {
+    delay(1);
+    return;
+  }
 
   #if ENABLED(SDSUPPORT)
 

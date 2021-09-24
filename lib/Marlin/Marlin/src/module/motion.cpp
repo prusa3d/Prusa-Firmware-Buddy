@@ -738,7 +738,7 @@ void restore_feedrate_and_scaling() {
       thermalManager.manage_heater();  // This returns immediately if not really needed.
       if (ELAPSED(millis(), next_idle_ms)) {
         next_idle_ms = millis() + 200UL;
-        idle();
+        idle(false);
       }
 
       raw += segment_distance;
@@ -816,7 +816,7 @@ void restore_feedrate_and_scaling() {
         thermalManager.manage_heater();  // This returns immediately if not really needed.
         if (ELAPSED(millis(), next_idle_ms)) {
           next_idle_ms = millis() + 200UL;
-          idle();
+          idle(false);
         }
         raw += segment_distance;
         if (!planner.buffer_line(raw, fr_mm_s, active_extruder, cartesian_segment_mm
