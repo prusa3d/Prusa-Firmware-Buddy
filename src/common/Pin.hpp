@@ -130,7 +130,7 @@ public:
 enum class IMode {
     input = GPIO_MODE_INPUT,
     IT_rising = GPIO_MODE_IT_RISING,
-    IT_faling = GPIO_MODE_IT_FALLING,
+    IT_falling = GPIO_MODE_IT_FALLING,
 };
 
 enum class Pull : uint8_t {
