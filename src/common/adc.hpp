@@ -42,7 +42,7 @@ class AdcGet {
 public:
     static uint16_t nozzle() { return adcDma1.m_data[0]; };
     static uint16_t bed() { return adcDma1.m_data[1]; };
-    static uint16_t temp2() { return adcDma1.m_data[2]; };
+    static uint16_t boardTemp() { return adcDma1.m_data[2]; };
     static uint16_t pinda() { return adcDma1.m_data[3]; };
     static uint16_t bedMon() { return adcDma1.m_data[4]; };
 };
