@@ -150,7 +150,7 @@
 
     #if BOARD_IS_BUDDY
         #define PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION)                                                                                                                     \
-            MACRO_FUNCTION(buddy::hw::InputPin, zMin, BUDDY_PIN(Z_MIN), IMode::IT_faling COMMA Pull::up)                                                                     \
+            MACRO_FUNCTION(buddy::hw::InputPin, zMin, BUDDY_PIN(Z_MIN), IMode::IT_falling COMMA Pull::up)                                                                    \
             MACRO_FUNCTION(buddy::hw::OutputPin, yEnable, BUDDY_PIN(Y_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low)                                        \
             MACRO_FUNCTION(buddy::hw::OutputPin, displayCs, buddy::hw::IoPort::C COMMA buddy::hw::IoPin::p9, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high)      \
             MACRO_FUNCTION(buddy::hw::OutputPin, displayRs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p11, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high)     \
