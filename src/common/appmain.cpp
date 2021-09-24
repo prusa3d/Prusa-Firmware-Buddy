@@ -126,7 +126,6 @@ void app_run(void) {
         uartslave_cycle(&uart6slave);
 #endif
         marlin_server_loop();
-        osDelay(0); // switch to other threads - without this is UI slow
     }
 }
 

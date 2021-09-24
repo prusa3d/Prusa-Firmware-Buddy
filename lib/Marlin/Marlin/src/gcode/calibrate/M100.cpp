@@ -173,7 +173,7 @@ inline int32_t count_test_bytes(const char * const start_free_memory) {
       SERIAL_EOL();
       start_free_memory += 16;
       serial_delay(25);
-      idle();
+      idle(false);
     }
   }
 

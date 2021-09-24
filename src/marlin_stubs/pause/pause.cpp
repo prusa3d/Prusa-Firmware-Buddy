@@ -355,7 +355,7 @@ bool Pause::loadLoop(is_standalone_t standalone) {
         set(LoadPhases_t::_finish);
     }
 
-    idle(true); // idle loop to prevet wdt and manage heaters etc, true == do not shutdown steppers
+    idle(true, true); // idle loop to prevet wdt and manage heaters etc, true == do not shutdown steppers
     return ret;
 }
 
@@ -471,7 +471,7 @@ void Pause::unloadLoop(is_standalone_t standalone) {
         set(UnloadPhases_t::_finish);
     }
 
-    idle(true);
+    idle(true, true);
 }
 
 bool Pause::FilamentUnload() {

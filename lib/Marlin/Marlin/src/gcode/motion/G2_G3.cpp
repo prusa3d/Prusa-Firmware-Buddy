@@ -163,7 +163,7 @@ void plan_arc(
     thermalManager.manage_heater();
     if (ELAPSED(millis(), next_idle_ms)) {
       next_idle_ms = millis() + 200UL;
-      idle();
+      idle(false);
     }
 
     #if N_ARC_CORRECTION > 1

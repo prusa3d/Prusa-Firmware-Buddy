@@ -618,10 +618,16 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
 
 /**
  * Standard idle routine keeps the machine alive
+ *
+ * @param waiting
+ *   @par @c true Caller is waiting for some event, release CPU to other tasks.
+ *   @par @c false Caller has more data to process, do not release CPU.
+ * @param no_stepper_sleep
  */
 void idle(
+    bool waiting
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    bool no_stepper_sleep/*=false*/
+    , bool no_stepper_sleep/*=false*/
   #endif
 ) {
   #if ENABLED(POWER_LOSS_RECOVERY) && PIN_EXISTS(POWER_LOSS)
@@ -702,6 +708,7 @@ void idle(
   #if ENABLED(POLL_JOG)
     joystick.inject_jog_moves();
   #endif
+  if (waiting) delay(1);
 }
 
 /**
@@ -1125,7 +1132,7 @@ void loop() {
   for (;;) {
   #endif
 
-    idle(); // Do an idle first so boot is slightly faster
+    idle(false); // Do an idle first so boot is slightly faster
 
     #if ENABLED(SDSUPPORT)
 

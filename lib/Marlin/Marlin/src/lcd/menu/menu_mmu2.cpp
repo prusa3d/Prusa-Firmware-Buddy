@@ -175,14 +175,14 @@ void mmu2_M600() {
   ui.defer_status_screen();
   ui.goto_screen(menu_mmu2_pause);
   mmuMenuWait = true;
-  while (mmuMenuWait) idle();
+  while (mmuMenuWait) idle(true);
 }
 
 uint8_t mmu2_choose_filament() {
   ui.defer_status_screen();
   ui.goto_screen(menu_mmu2_choose_filament);
   mmuMenuWait = true;
-  while (mmuMenuWait) idle();
+  while (mmuMenuWait) idle(true);
   ui.return_to_status();
   return currentTool;
 }

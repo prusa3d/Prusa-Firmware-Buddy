@@ -62,7 +62,7 @@ void _man_probe_pt(const xy_pos_t &xy) {
     #if ENABLED(EXTENSIBLE_UI)
       ExtUI::onUserConfirmRequired_P(PSTR("Delta Calibration in progress"));
     #endif
-    while (wait_for_user) idle();
+    while (wait_for_user) idle(true);
     ui.goto_previous_screen_no_defer();
     return current_position.z;
   }

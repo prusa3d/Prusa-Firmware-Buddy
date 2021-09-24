@@ -154,7 +154,7 @@ void GcodeSuite::get_destination_from_command() {
  */
 void GcodeSuite::dwell(millis_t time) {
   time += millis();
-  while (PENDING(millis(), time)) idle();
+  while (PENDING(millis(), time)) idle(true);
 }
 
 /**
