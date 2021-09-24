@@ -29,9 +29,8 @@
 
 void stop();
 
-// Pass true to keep steppers from timing out
-void idle(bool no_stepper_sleep=false);
-inline void idle_no_sleep() { idle(true); }
+void idle(bool waiting, bool no_stepper_sleep=false);
+inline void idle_no_sleep(bool waiting) { idle(waiting, true); }
 
 #if ENABLED(G38_PROBE_TARGET)
   extern uint8_t G38_move;          // Flag to tell the ISR that G38 is in progress, and the type

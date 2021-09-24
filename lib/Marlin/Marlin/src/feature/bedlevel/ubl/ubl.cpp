@@ -222,7 +222,7 @@ void unified_bed_leveling::display_map(const uint8_t map_type) {
       if (human) SERIAL_CHAR(is_current ? ']' : ' ');
 
       SERIAL_FLUSHTX();
-      idle_no_sleep();
+      idle_no_sleep(false);
     }
     if (!lcd) SERIAL_EOL();
 

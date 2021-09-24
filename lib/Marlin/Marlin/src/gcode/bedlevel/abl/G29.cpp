@@ -736,7 +736,7 @@ G29_TYPE GcodeSuite::G29() {
           #endif
 
           abl.reenable = false; // Don't re-enable after modifying the mesh
-          idle_no_sleep();
+          idle_no_sleep(false);
 
         } // inner
       } // outer

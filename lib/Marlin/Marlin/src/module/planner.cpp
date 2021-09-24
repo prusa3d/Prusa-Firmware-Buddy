@@ -1729,7 +1729,7 @@ float Planner::triggered_position_mm(const AxisEnum axis) {
 }
 
 void Planner::finish_and_disable() {
-  while (has_blocks_queued() || cleaning_buffer_counter) idle();
+  while (has_blocks_queued() || cleaning_buffer_counter) idle(true);
   stepper.disable_all_steppers();
 }
 
@@ -1789,7 +1789,7 @@ float Planner::get_axis_position_mm(const AxisEnum axis) {
 /**
  * Block until the planner is finished processing
  */
-void Planner::synchronize() { while (busy()) idle(); }
+void Planner::synchronize() { while (busy()) idle(true); }
 
 /**
  * @brief Add a new linear movement to the planner queue (in terms of steps).

@@ -155,14 +155,14 @@ void mmu2_M600() {
   ui.defer_status_screen();
   ui.goto_screen(menu_mmu2_pause);
   wait_for_mmu_menu = true;
-  while (wait_for_mmu_menu) idle();
+  while (wait_for_mmu_menu) idle(true);
 }
 
 uint8_t mmu2_choose_filament() {
   ui.defer_status_screen();
   ui.goto_screen(menu_mmu2_choose_filament);
   wait_for_mmu_menu = true;
-  while (wait_for_mmu_menu) idle();
+  while (wait_for_mmu_menu) idle(true);
   ui.return_to_status();
   return feeder_index;
 }

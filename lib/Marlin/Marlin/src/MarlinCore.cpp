@@ -263,7 +263,7 @@ bool wait_for_heatup = true;
     wait_for_user = true;
     if (ms) ms += millis(); // expire time
     while (wait_for_user && !(ms && ELAPSED(millis(), ms)))
-      idle(TERN_(ADVANCED_PAUSE_FEATURE, no_sleep));
+      idle(true, TERN_(ADVANCED_PAUSE_FEATURE, no_sleep));
     wait_for_user = false;
     while (ui.button_pressed()) safe_delay(50);
   }
@@ -789,8 +789,15 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
  *  - Auto-report Temperatures / SD Status
  *  - Update the Průša MMU2
  *  - Handle Joystick jogging
+ * 
+ * @param waiting
+ *   @par @c true Caller is waiting for some event, release CPU to other tasks.
+ *   @par @c false Caller has more data to process, do not release CPU.
+ * @param no_stepper_sleep
+ *   @par @c true Keep steppers from timing out
+ *   @par @c false Allow steppers time out
  */
-void idle(bool no_stepper_sleep/*=false*/) {
+void idle(bool waiting, bool no_stepper_sleep/*=false*/) {
   #ifdef MAX7219_DEBUG_PROFILE
     CodeProfiler idle_profiler;
   #endif
@@ -895,6 +902,7 @@ void idle(bool no_stepper_sleep/*=false*/) {
 
   IDLE_DONE:
   TERN_(MARLIN_DEV_MODE, idle_depth--);
+  if (waiting) delay(1);
   return;
 }
 
@@ -1673,7 +1681,7 @@ void setup() {
  */
 void loop() {
   do {
-    idle();
+    idle(false);
 
     #if ENABLED(SDSUPPORT)
       if (card.flag.abort_sd_printing) abortSDPrinting();
