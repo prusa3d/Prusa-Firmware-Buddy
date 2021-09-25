@@ -104,7 +104,7 @@ void HAL_MspInit(void) {
 
     /* System interrupt init*/
     /* PendSV_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
+    HAL_NVIC_SetPriority(PendSV_IRQn, configLIBRARY_LOWEST_INTERRUPT_PRIORITY, 0);
 
     /* USER CODE BEGIN MspInit 1 */
 
@@ -499,7 +499,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base) {
         /* Peripheral clock enable */
         __HAL_RCC_TIM14_CLK_ENABLE();
         /* TIM14 interrupt Init */
-        HAL_NVIC_SetPriority(TIM8_TRG_COM_TIM14_IRQn, 5, 0);
+        HAL_NVIC_SetPriority(TIM8_TRG_COM_TIM14_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
         HAL_NVIC_EnableIRQ(TIM8_TRG_COM_TIM14_IRQn);
         /* USER CODE BEGIN TIM14_MspInit 1 */
 
@@ -695,7 +695,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
         __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_TC);
 
         // Enable the ISR
-        HAL_NVIC_SetPriority(USART2_IRQn, 5, 0);
+        HAL_NVIC_SetPriority(USART2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
         HAL_NVIC_EnableIRQ(USART2_IRQn);
 
     } else if (huart->Instance == USART6) {
@@ -744,7 +744,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
         __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_TC);
 
         // Enable the ISR
-        HAL_NVIC_SetPriority(USART6_IRQn, 5, 0);
+        HAL_NVIC_SetPriority(USART6_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
         HAL_NVIC_EnableIRQ(USART6_IRQn);
     }
 }
