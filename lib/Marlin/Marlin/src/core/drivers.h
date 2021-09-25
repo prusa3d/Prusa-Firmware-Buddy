@@ -25,7 +25,6 @@
 // Included by MarlinConfigPre.h ahead of Configuration_adv.h.
 // Don't use #if in this file for anything not defined early!
 //
-
 #define _A4988              0x4988
 #define _A5984              0x5984
 #define _DRV8825            0x8825
