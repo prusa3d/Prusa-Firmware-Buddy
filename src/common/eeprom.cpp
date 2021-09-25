@@ -12,8 +12,6 @@
 #include "version.h"
 #include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
-#include "../include/marlin/Configuration.h"
-#include "../include/marlin/Configuration_adv.h"
 #include "cmath_ext.h"
 #include "footer_eeprom.hpp"
 #include <bitset>
