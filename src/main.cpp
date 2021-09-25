@@ -909,19 +909,19 @@ static void MX_DMA_Init(void) {
 
     /* DMA interrupt init */
     /* DMA1_Stream4_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
     /* DMA1_Stream5_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
     /* DMA2_Stream1_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
     /* DMA2_Stream2_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
     /* DMA2_Stream0_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 }
 
@@ -991,7 +991,7 @@ static void MX_GPIO_Init(void) {
     HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
-    HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(EXTI15_10_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
