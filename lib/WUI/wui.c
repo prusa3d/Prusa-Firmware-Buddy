@@ -34,6 +34,11 @@ LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
 #include "eeprom.h"
 #include "variant8.h"
 
+#include "lwip/netif.h"
+#include "lwip/tcpip.h"
+
+#define _dbg(...)
+
 #define LOOP_EVT_TIMEOUT           500UL
 #define IS_TIME_TO_CHECK_ESP(time) (((time) % 1000) == 0)
 
@@ -97,8 +102,7 @@ void StartWebServerTask(void const *argument) {
             switch (evt.value.v) {
             case EVT_TCPIP_INIT_FINISHED:
                 netdev_set_up(NETDEV_ETH_ID);
-                break;
-            case EVT_LWESP_INIT_FINISHED:
+                netdev_join_ap();
                 netdev_set_up(NETDEV_ESP_ID);
                 break;
             case EVT_NETDEV_INIT_FINISHED(NETDEV_ETH_ID, 0):
@@ -109,7 +113,9 @@ void StartWebServerTask(void const *argument) {
                 }
                 break;
             case EVT_NETDEV_INIT_FINISHED(NETDEV_ESP_ID, 0):
-                if (netdev_get_ip_obtained_type(NETDEV_ESP_ID) == NETDEV_STATIC) {
+                if (netdev_get_ip_obtained_type(NETDEV_ESP_ID) == NETDEV_DHCP) {
+                    netdev_set_dhcp(NETDEV_ESP_ID);
+                } else {
                     netdev_set_static(NETDEV_ESP_ID);
                 }
                 break;
@@ -134,7 +140,7 @@ const char *wui_get_api_key() {
 
 struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {
     uint32_t active_device_id = netdev_get_active_id();
-    if (active_device_id == NETDEV_ETH_ID) {
+    if (active_device_id == NETDEV_ETH_ID || active_device_id == NETDEV_ESP_ID) {
         struct altcp_pcb *result = altcp_tcp_new_ip_type(ip_type);
         /*
          * Hack:
@@ -153,8 +159,6 @@ struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {
             ip_set_option((struct tcp_pcb *)result->state, SOF_REUSEADDR);
         }
         return result;
-    } else if (active_device_id == NETDEV_ESP_ID) {
-        return altcp_esp_new_ip_type(ip_type);
     } else {
         return NULL;
     }

@@ -4,6 +4,7 @@ This file is generated automatically so don't edit it directly
 - Buddy: LOG_SEVERITY_DEBUG, src/common/appmain.cpp
 - Core: LOG_SEVERITY_INFO, src/common/appmain.cpp
 - EEPROM: LOG_SEVERITY_INFO, src/common/eeprom.cpp
+- ESPIF: LOG_SEVERITY_INFO, lib/WUI/espif.cpp
 - FileSystem: LOG_SEVERITY_INFO, src/filesystem.c
 - GUI: LOG_SEVERITY_DEBUG, src/gui/logger.c
 - Marlin: LOG_SEVERITY_INFO, src/common/appmain.cpp

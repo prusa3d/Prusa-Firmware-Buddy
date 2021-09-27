@@ -60,12 +60,6 @@ extern "C" {
 uint32_t netdev_init();
 
 ////////////////////////////////////////////////////////////////////////////
-/// @brief Initialize ESP network layer
-///
-/// @return 0 on success; error otherwise
-uint32_t netdev_init_esp();
-
-////////////////////////////////////////////////////////////////////////////
 /// @brief Turn up given network device
 ///
 /// @param[in] dev_id device ID. One of
@@ -197,6 +191,8 @@ void netdev_get_MAC_address(uint32_t, uint8_t[6]);
 ///
 /// @return If it was successful.
 bool netdev_load_ini_to_eeprom();
+
+void netdev_join_ap();
 
 #ifdef __cplusplus
 }
