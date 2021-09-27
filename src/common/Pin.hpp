@@ -159,7 +159,7 @@ public:
 private:
     void configure(Pull pull) const;
 
-public:
+protected:
     IMode m_mode;
     Pull m_pull;
 };
