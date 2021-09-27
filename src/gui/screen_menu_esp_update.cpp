@@ -16,7 +16,7 @@ extern "C" {
 
 #include <stm32_port.h>
 #include <esp_loader.h>
-#include <lwesp_ll_buddy.h>
+#include <espif.h>
 #include <netdev.h>
 #include <http_lifetime.h>
 
@@ -175,7 +175,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
     if (event == GUI_event_t::CHILD_CLICK) {
         esp_upload_action action = static_cast<esp_upload_action>((uint32_t)param);
         if (action == esp_upload_action::Start_flash) {
-            esp_flash_initialize();
+            espif_flash_initialize();
             for (esp_entry *chunk = firmware_set.begin();
                  chunk != firmware_set.end(); ++chunk) {
                 if (f_open(&file_descriptor, chunk->filename, FA_READ) != FR_OK) {
@@ -225,6 +225,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
                 break;
             } else {
                 progress_state = esp_upload_action::Write_data;
+                readCount = 0;
             }
             break;
         case esp_upload_action::Write_data: {
@@ -263,8 +264,8 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             log_info(Network, "ESP finished flashing");
             help.SetText(_("ESP succesfully flashed. \nWiFI initiation started."));
             esp_loader_flash_finish(true);
-            esp_set_operating_mode(ESP_RUNNING_MODE);
-            netdev_init_esp();
+            espif_flash_deinitialize();
+            netdev_join_ap();
             httpd_reinit();
             progress_state = esp_upload_action::Initial;
             current_file = firmware_set.begin();

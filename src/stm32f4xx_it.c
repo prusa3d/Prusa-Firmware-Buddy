@@ -44,7 +44,9 @@
 #include "dump.h"
 #include "sys.h"
 #include "buffered_serial.hpp"
-#include "lwesp_ll_buddy.h"
+#ifdef BUDDY_ENABLE_WUI
+    #include "espif.h"
+#endif
 #include "tusb.h"
 /* USER CODE END Includes */
 
@@ -203,11 +205,13 @@ void USART6_IRQHandler(void) {
 
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart6);
-        esp_receive_data(&huart6);
+    #ifdef BUDDY_ENABLE_WUI
+        espif_receive_data(&huart6);
+    #endif // BUDDY_ENABLE_WUI
     }
     HAL_UART_IRQHandler(&huart6);
 }
-#else
+#else  // USE_ESP01_WITH_UART6
 void USART6_IRQHandler() {
     traceISR_ENTER();
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
@@ -217,7 +221,7 @@ void USART6_IRQHandler() {
     HAL_UART_IRQHandler(&huart6);
     traceISR_EXIT();
 }
-#endif
+#endif // USE_ESP01_WITH_UART6
 /**
   * @brief This function handles Window watchdog interrupt.
   */
@@ -315,9 +319,11 @@ void TIM8_TRG_COM_TIM14_IRQHandler(void) {
 void DMA2_Stream1_IRQHandler(void) {
     /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
     traceISR_ENTER();
+#ifdef BUDDY_ENABLE_WUI
     if (__HAL_DMA_GET_IT_SOURCE(&hdma_usart6_rx, DMA_IT_HT) != RESET || __HAL_DMA_GET_IT_SOURCE(&hdma_usart6_rx, DMA_IT_TC) != RESET) {
-        esp_receive_data(&huart6);
+        espif_receive_data(&huart6);
     }
+#endif
     /* USER CODE END DMA2_Stream1_IRQn 0 */
     HAL_DMA_IRQHandler(&hdma_usart6_rx);
     /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */

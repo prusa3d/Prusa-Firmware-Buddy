@@ -35,6 +35,7 @@ public:
         // FIXME: How do we _activate_ the new settings?
         // TODO: Loading other things than just network
         netdev_load_ini_to_eeprom();
+        netdev_join_ap();
     }
 };
 

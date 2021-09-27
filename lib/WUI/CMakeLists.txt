@@ -13,6 +13,7 @@ target_sources(
             nhttp/multipart_parser.c
             nhttp/upload_state.cpp
             ethernetif.c
+            espif.cpp
             sntp/sntp_client.c
             sntp/sntp.c
             automata/core.cpp

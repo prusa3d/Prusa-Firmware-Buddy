@@ -23,19 +23,16 @@
 #include "netifapi.h"
 #include "ethernetif.h"
 
-#include "esp/esp.h"
 #include "netifapi.h"
 #include "dns.h"
 #include "netif_settings.h"
 #include "wui_api.h"
 #include "alsockets.h"
-#include "lwesp_ll_buddy.h"
+#include "espif.h"
 #include "otp.h"
 
 #define _dbg(...)
 
-static const uint32_t esp_target_baudrate = 4600000;
-static netdev_status_t esp_state = NETDEV_NETIF_DOWN;
 static uint32_t active_netdev_id = NETDEV_NODEV_ID;
 /*
  * Desired configuration for each interface.
@@ -49,12 +46,12 @@ static ETH_config_t wui_netdev_config[NETDEV_COUNT] = {
 static ETH_config_t wui_netdev_config[NETDEV_COUNT] = {};
 #endif
 
-struct netif eth0; // network interface structure for ETH
+struct netif eth0;  // network interface structure for ETH
+struct netif wlan0; // network interface structure for ESP Wifi
 static ap_entry_t ap = { "", "" };
 
 extern osMessageQId networkMbox_id;
 extern struct alsockets_s *alsockets_eth();
-extern struct alsockets_s *alsockets_esp();
 
 static struct alsockets_s *netdev_get_sockets(uint32_t);
 
@@ -67,7 +64,12 @@ static struct alsockets_s *netdev_get_sockets(uint32_t);
 static void netif_link_callback(struct netif *eth) {
     ethernetif_update_config(eth);
     eth->hostname = ETH_CONFIG().hostname;
-    osMessagePut(networkMbox_id, EVT_NETDEV_INIT_FINISHED(NETDEV_ETH_ID, 0), 0);
+    if (eth == &eth0) {
+        osMessagePut(networkMbox_id, EVT_NETDEV_INIT_FINISHED(NETDEV_ETH_ID, 0), 0);
+    }
+    if (eth == &wlan0) {
+        osMessagePut(networkMbox_id, EVT_NETDEV_INIT_FINISHED(NETDEV_ESP_ID, 0), 0);
+    }
 }
 
 static void netif_status_callback(struct netif *eth) {
@@ -79,136 +81,51 @@ static void tcpip_init_done_callback(void *arg) {
         netif_set_link_callback(&eth0, netif_link_callback);
         netif_set_status_callback(&eth0, netif_status_callback);
     }
+    if (netif_add_noaddr(&wlan0, NULL, espif_init, tcpip_input)) {
+        netif_set_link_callback(&wlan0, netif_link_callback);
+        netif_set_status_callback(&wlan0, netif_status_callback);
+    }
     wui_marlin_client_init();
     osMessagePut(networkMbox_id, EVT_TCPIP_INIT_FINISHED, 0);
 }
 
+static struct netif *get_netif_by_id(uint32_t netdev_id) {
+    switch (netdev_id) {
+    case NETDEV_ETH_ID:
+        return &eth0;
+    case NETDEV_ESP_ID:
+        return &wlan0;
+    default:
+        return NULL;
+    }
+}
+
 void netdev_get_ipv4_addresses(uint32_t netdev_id, lan_t *config) {
-    if (netdev_id == NETDEV_ETH_ID) {
-        config->addr_ip4.addr = netif_ip4_addr(&eth0)->addr;
-        config->msk_ip4.addr = netif_ip4_netmask(&eth0)->addr;
-        config->gw_ip4.addr = netif_ip4_gw(&eth0)->addr;
-    } else if (netdev_id == NETDEV_ESP_ID) {
-        esp_ip_t ip, mask, gw;
-        esp_sta_getip(&ip, &gw, &mask, NULL, NULL, 1);
-        config->addr_ip4.addr = *(uint32_t *)ip.ip;
-        config->msk_ip4.addr = *(uint32_t *)mask.ip;
-        config->gw_ip4.addr = *(uint32_t *)gw.ip;
-    } else {
+    struct netif *dev = get_netif_by_id(netdev_id);
+    if (!dev) {
         config->addr_ip4.addr = 0;
         config->msk_ip4.addr = 0;
         config->gw_ip4.addr = 0;
+        return;
     }
+    config->addr_ip4.addr = netif_ip4_addr(dev)->addr;
+    config->msk_ip4.addr = netif_ip4_netmask(dev)->addr;
+    config->gw_ip4.addr = netif_ip4_gw(dev)->addr;
 }
 
 void netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE]) {
     if (netdev_id == NETDEV_ETH_ID) {
+        // TODO: Why not to copy address from netif?
         memcpy(mac, (void *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
     } else if (netdev_id == NETDEV_ESP_ID) {
-        esp_mac_t tmp;
-        esp_sta_getmac(&tmp, NULL, NULL, 1);
-        memcpy(mac, (void *)&tmp, OTP_MAC_ADDRESS_SIZE);
+        memcpy(mac, wlan0.hwaddr, wlan0.hwaddr_len);
     } else {
         memset(mac, 0, OTP_MAC_ADDRESS_SIZE);
     }
 }
 
-/**
- * \brief         Event callback function for ESP baurate change
- * \param[in]     res: Baudrate change result
- * \param[in]     arg: event data, new baudarate
- */
-static void esp_baudrate_changed(espr_t res, void *arg) {
-    if (res != espOK) {
-        _dbg("ESP baudrate change failed !!!");
-        return;
-    }
-
-    _dbg("ESP baudrate change success, reconfiguring UART for %" PRIu32, esp_target_baudrate);
-    esp_reconfigure_uart(esp_target_baudrate);
-}
-
-/**
- * \brief           Event callback function for ESP stack
- * \param[in]       evt: Event information with data
- * \return          \ref espOK on success, member of \ref espr_t otherwise
- */
-static espr_t
-esp_callback_func(esp_evt_t *evt) {
-    switch (esp_evt_get_type(evt)) {
-    case ESP_EVT_AT_VERSION_NOT_SUPPORTED: {
-        esp_sw_version_t v_min, v_curr;
-
-        esp_get_min_at_fw_version(&v_min);
-        esp_get_current_at_fw_version(&v_curr);
-
-        _dbg("Current ESP8266 AT version is not supported by library!");
-        _dbg("Minimum required AT version is: %d.%d.%d", (int)v_min.major, (int)v_min.minor, (int)v_min.patch);
-        _dbg("Current AT version is: %d.%d.%d", (int)v_curr.major, (int)v_curr.minor, (int)v_curr.patch);
-        break;
-    }
-    case ESP_EVT_INIT_FINISH: {
-        esp_set_wifi_mode(ESP_MODE_STA, NULL, NULL, 1);
-        esp_state = NETDEV_UNLINKED;
-        osMessagePut(networkMbox_id, EVT_LWESP_INIT_FINISHED, 0);
-        _dbg("ESP_EVT_INIT_FINISH");
-        break;
-    }
-    case ESP_EVT_RESET: {
-        esp_set_at_baudrate(esp_target_baudrate, esp_baudrate_changed, NULL, 0);
-        _dbg("ESP_EVT_RESET");
-        break;
-    }
-    case ESP_EVT_RESTORE: {
-        _dbg("ESP_EVT_RESTORE");
-        break;
-    }
-    case ESP_EVT_RESET_DETECTED: {
-        esp_reconfigure_uart(ESP_CFG_AT_PORT_BAUDRATE);
-        _dbg("ESP_EVT_RESET_DETECTED");
-        break;
-    }
-    case ESP_EVT_WIFI_GOT_IP: {
-        _dbg("ESP_EVT_WIFI_GOT_IP");
-        esp_state = NETDEV_NETIF_UP;
-        break;
-    }
-    case ESP_EVT_WIFI_CONNECTED: {
-        uint32_t message = EVT_NETDEV_INIT_FINISHED(NETDEV_ESP_ID, 0);
-        _dbg("ESP_EVT_WIFI_CONNECTED");
-        osMessagePut(networkMbox_id, message, 0);
-        break;
-    }
-    case ESP_EVT_WIFI_DISCONNECTED: {
-        _dbg("ESP_EVT_WIFI_DISCONNECTED");
-        esp_state = NETDEV_UNLINKED;
-        break;
-    }
-    case ESP_EVT_SERVER: {
-        _dbg("ESP_EVT_SERVER");
-        break;
-    }
-    case ESP_EVT_WIFI_IP_ACQUIRED: {
-        _dbg("ESP_EVT_WIFI_IP_ACQUIRED");
-        break;
-    }
-    case ESP_EVT_STA_JOIN_AP: {
-        _dbg("ESP_EVT_STA_JOIN_AP");
-        break;
-    }
-    case ESP_EVT_CMD_TIMEOUT: {
-        _dbg("ESP_EVT_CMD_TIMEOUT");
-        break;
-    }
-    default: {
-        _dbg("Unknown ESP message: %d", (int)esp_evt_get_type(evt));
-        break;
-    }
-    }
-    return espOK;
-}
-
 static void alsockets_adjust() {
+    // TODO: Drop alternative sockets
     alsockets_funcs(netdev_get_sockets(active_netdev_id));
 }
 
@@ -220,14 +137,8 @@ uint32_t netdev_init() {
     active_netdev_id = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_NETDEV));
 
     tcpip_init(tcpip_init_done_callback, NULL);
-    netdev_init_esp();
 
     alsockets_adjust();
-    return 0;
-}
-
-uint32_t netdev_init_esp() {
-    esp_init(esp_callback_func, 0);
     return 0;
 }
 
@@ -269,17 +180,22 @@ bool netdev_get_current_ipv4(uint8_t *dest) {
     }
 }
 
+static uint32_t netif_link(struct netif *dev) {
+    if (dev == &eth0) {
+        return ethernetif_link(dev);
+    }
+    if (dev == &wlan0) {
+        return espif_link(dev);
+    }
+    return 0;
+}
+
 netdev_status_t netdev_get_status(uint32_t netdev_id) {
-    if (netdev_id == NETDEV_ETH_ID) {
-        if (!netif_is_link_up(&eth0)) {
-            return NETDEV_NETIF_DOWN;
-        }
-        return !ethernetif_link(&eth0) ? NETDEV_UNLINKED : NETDEV_NETIF_UP;
-    } else if (netdev_id == NETDEV_ESP_ID) {
-        return esp_state;
-    } else {
+    struct netif *dev = get_netif_by_id(netdev_id);
+    if (!dev || !netif_is_link_up(dev)) {
         return NETDEV_NETIF_DOWN;
     }
+    return netif_link(dev) ? NETDEV_NETIF_UP : NETDEV_UNLINKED;
 }
 
 netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t netdev_id) {
@@ -294,18 +210,11 @@ uint32_t netdev_set_dhcp(uint32_t netdev_id) {
     ETH_config_t *pConfig = NULL;
     err_t res = ERR_OK;
 
-    if (netdev_id == NETDEV_ETH_ID) {
-        res = netifapi_dhcp_start(&eth0);
-        pConfig = &wui_netdev_config[netdev_id];
-    } else if (netdev_id == NETDEV_ESP_ID) {
-        // ESP automaticaly obtain IP address from DHCP server after it joins
-        // to the network therefore we use such a feature during the switch between
-        // static and dynamic IP because there is no API call to invoke DHCP client.
-        esp_sta_quit(NULL, NULL, 1);
-        res = netdev_set_up(NETDEV_ESP_ID);
+    struct netif *dev = get_netif_by_id(netdev_id);
+    if (dev) {
+        res = netifapi_dhcp_start(dev);
         pConfig = &wui_netdev_config[netdev_id];
     }
-
     if (pConfig != NULL) {
         CHANGE_FLAG_TO_DHCP(pConfig->lan.flag);
         pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
@@ -320,31 +229,13 @@ uint32_t netdev_set_dhcp(uint32_t netdev_id) {
 }
 
 uint32_t netdev_set_up(uint32_t netdev_id) {
-
-    if (netdev_id == NETDEV_ETH_ID) {
-        netifapi_netif_set_default(&eth0);
-        netifapi_netif_set_link_up(&eth0);
-        return netifapi_netif_set_up(&eth0);
-    } else if (netdev_id == NETDEV_ESP_ID) {
-        const char *passwd;
-        switch (ap.security) {
-        case AP_SEC_NONE:
-            passwd = NULL;
-            break;
-        case AP_SEC_WEP:
-        case AP_SEC_WPA:
-            passwd = ap.pass;
-            break;
-        default:
-            assert(0 /* Unhandled AP_SEC_* value*/);
-            return ERR_ARG;
-        }
-        esp_hostname_set(wui_netdev_config[NETDEV_ESP_ID].hostname, NULL, NULL, 0);
-        esp_sta_join(ap.ssid, passwd, NULL, NULL, NULL, 0);
-        return ERR_OK;
-    } else {
+    struct netif *dev = get_netif_by_id(netdev_id);
+    if (!dev) {
         return ERR_IF;
     }
+    netifapi_netif_set_default(dev);
+    netifapi_netif_set_link_up(dev);
+    return netifapi_netif_set_up(dev);
 }
 
 bool netdev_load_ini_to_eeprom() {
@@ -361,33 +252,26 @@ bool netdev_load_ini_to_eeprom() {
 }
 
 uint32_t netdev_set_down(uint32_t netdev_id) {
-
-    if (netdev_id == NETDEV_ETH_ID) {
-        netifapi_netif_set_link_down(&eth0);
-        return netifapi_netif_set_down(&eth0);
-    } else if (netdev_id == NETDEV_ESP_ID) {
-        esp_sta_quit(NULL, NULL, 0);
-        return ERR_OK;
-    } else {
+    struct netif *dev = get_netif_by_id(netdev_id);
+    if (!dev) {
         return ERR_IF;
     }
+    netifapi_netif_set_link_down(dev);
+    return netifapi_netif_set_down(dev);
 }
 
 uint32_t netdev_set_static(uint32_t netdev_id) {
     ETH_config_t *pConfig = NULL;
     err_t res = ERR_OK;
 
-    if (netdev_id == NETDEV_ETH_ID) {
+    struct netif *dev = get_netif_by_id(netdev_id);
+    if (dev) {
         pConfig = &wui_netdev_config[netdev_id];
-        netifapi_netif_set_up(&eth0);
+        netifapi_netif_set_up(dev);
         dns_setserver(DNS_1, &pConfig->dns1_ip4);
         dns_setserver(DNS_2, &pConfig->dns2_ip4);
-        res = netifapi_netif_set_addr(&eth0, &pConfig->lan.addr_ip4, &pConfig->lan.msk_ip4, &pConfig->lan.gw_ip4);
-        res = netifapi_dhcp_inform(&eth0);
-    } else if (netdev_id == NETDEV_ESP_ID) {
-        pConfig = &wui_netdev_config[netdev_id];
-        esp_sta_setip((esp_ip_t *)&pConfig->lan.addr_ip4, (esp_ip_t *)&pConfig->lan.gw_ip4, (esp_ip_t *)&pConfig->lan.msk_ip4, NULL, NULL, 1);
-        res = ERR_OK;
+        res = netifapi_netif_set_addr(dev, &pConfig->lan.addr_ip4, &pConfig->lan.msk_ip4, &pConfig->lan.gw_ip4);
+        res = netifapi_dhcp_inform(dev);
     }
 
     if (pConfig != NULL) {
@@ -404,23 +288,13 @@ uint32_t netdev_set_static(uint32_t netdev_id) {
 }
 
 uint32_t netdev_check_link(uint32_t dev_id) {
-    if (dev_id == NETDEV_ESP_ID) {
-        esp_sw_version_t version;
-        if (esp_get_current_at_fw_version(&version)) {
-            esp_state = NETDEV_UNLINKED;
-        }
-    }
+    // TODO: This needs some implementation or removal
     return 0;
 }
 
 static struct alsockets_s *netdev_get_sockets(uint32_t active_id) {
-    if (active_id == NETDEV_ETH_ID)
-        return alsockets_eth();
-    else if (active_id == NETDEV_ESP_ID) {
-        return alsockets_esp();
-    } else {
-        return NULL;
-    }
+    // TODO: Drop alternative sockets
+    return alsockets_eth();
 }
 
 const char *netdev_get_hostname(uint32_t active_id) {
@@ -429,4 +303,21 @@ const char *netdev_get_hostname(uint32_t active_id) {
     } else {
         return "";
     }
+}
+
+void netdev_join_ap() {
+    const char *passwd;
+    switch (ap.security) {
+    case AP_SEC_NONE:
+        passwd = NULL;
+        break;
+    case AP_SEC_WEP:
+    case AP_SEC_WPA:
+        passwd = ap.pass;
+        break;
+    default:
+        assert(0 /* Unhandled AP_SEC_* value*/);
+        return;
+    }
+    espif_join_ap(ap.ssid, passwd);
 }
