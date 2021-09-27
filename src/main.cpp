@@ -87,10 +87,6 @@
 #define FAN1_TACH_Pin       GPIO_PIN_14
 #define FAN1_TACH_GPIO_Port GPIOE
 #define FAN1_TACH_EXTI_IRQn EXTI15_10_IRQn
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #define Z_MIN_Pin       GPIO_PIN_8
-    #define Z_MIN_EXTI_IRQn EXTI9_5_IRQn
-#endif
 #define SWDIO_Pin           GPIO_PIN_13
 #define SWDIO_GPIO_Port     GPIOA
 #define SWCLK_Pin           GPIO_PIN_14
@@ -1024,7 +1020,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     switch (GPIO_Pin) {
-    case Z_MIN_Pin:
+    case buddy::hw::zMin.m_halPin:
         ++minda_falling_edges;
         break;
     }
