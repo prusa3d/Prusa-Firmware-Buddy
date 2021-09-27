@@ -164,6 +164,21 @@ protected:
     Pull m_pull;
 };
 
+/**
+ * InterruptPin exposes hal pin/IRQ numbers necessary for interrupt configuration and efficient
+ * dispatch. It doesn't attempt to do any interrupt configuration by itself (yet).
+ */
+class InterruptPin : public InputPin {
+public:
+    constexpr InterruptPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, IRQn_Type IRQn)
+        : InputPin(ioPort, ioPin, iMode, pull)
+        , m_halIRQn(IRQn) {}
+
+public:
+    using InputPin::m_halPin;
+    const IRQn_Type m_halIRQn;
+};
+
 enum class OMode : uint8_t {
     pushPull = GPIO_MODE_OUTPUT_PP,
     openDrain = GPIO_MODE_OUTPUT_OD,
