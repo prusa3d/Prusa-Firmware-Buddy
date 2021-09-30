@@ -63,11 +63,12 @@ void window_numb_t::setValue(float val) {
     value = val;
 }
 
-window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const char *frmt)
+window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const char *frmt, font_t *font)
     : AddSuperWindow<IWindowText>(parent, rect)
     , value(value)
     , format(frmt == nullptr ? "%.0f" : frmt) {
     PrintAsFloat();
+    SetFont(font);
 }
 
 void window_numb_t::PrintAsFloat() {

@@ -13,6 +13,9 @@ enum class GUI_event_t {
     ENC_UP,        //encoder plus               ... captured window only
     CLICK,         //clicked (tag > 0)          ... captured window only
     HOLD,          //held button                ... captured window only
+    HELD_LEFT,     // held and moved left        ... captured window only
+    HELD_RIGTH,    // held and moved rigth      ... captured window only
+    HELD_RELEASED, // held and moved rigth      ... captured window only
     CHILD_CLICK,   //click at the child screen
     FOCUS0,        //focus lost
     FOCUS1,        //focus set
@@ -89,6 +92,12 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
         return "clicked";
     case GUI_event_t::HOLD:
         return "held button";
+    case GUI_event_t::HELD_LEFT:
+        return "held and left";
+    case GUI_event_t::HELD_RIGTH:
+        return "held and rigth";
+    case GUI_event_t::HELD_RELEASED:
+        return "held and released";
     case GUI_event_t::CHILD_CLICK:
         return "child click";
     case GUI_event_t::FOCUS0:
