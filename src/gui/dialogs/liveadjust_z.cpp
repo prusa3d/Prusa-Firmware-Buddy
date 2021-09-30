@@ -10,10 +10,9 @@
 #include "eeprom.h"
 #include "display_helper.h"
 
-#include "../Marlin/src/inc/MarlinConfig.h"
+#include "config_features.h"
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     #include "gui_config_mini.h"
-    #include "Configuration_MINI_adv.h"
 #else
     #error "Unknown PRINTER_TYPE."
 #endif
