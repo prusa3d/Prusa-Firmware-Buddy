@@ -16,6 +16,7 @@
 #include "screen_menus.hpp"
 #include "gui_media_events.hpp"
 #include "window_dlg_load_unload.hpp"
+#include "DialogMoveZ.hpp"
 
 #include "i18n.h"
 
@@ -152,6 +153,10 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                 Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
             }
         }
+    }
+    if (event == GUI_event_t::HELD_RELEASED) {
+        DialogMoveZ::Show();
+        return;
     }
 
     SuperWindowEvent(sender, event, param);

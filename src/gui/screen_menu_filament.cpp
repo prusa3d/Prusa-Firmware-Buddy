@@ -135,9 +135,10 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
             item->Do();               //do action (load filament ...)
             header.SetText(_(label)); //restore label
         }
-    } else {
-        SuperWindowEvent(sender, event, param);
+        return;
     }
+
+    SuperWindowEvent(sender, event, param);
 }
 
 /*****************************************************************************/
