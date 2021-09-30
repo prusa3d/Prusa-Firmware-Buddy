@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../../lib/Marlin/Marlin/src/inc/MarlinConfigPre.h"
+#include "config_features.h"
 
 // clang-format off
 #if (!ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)) || \

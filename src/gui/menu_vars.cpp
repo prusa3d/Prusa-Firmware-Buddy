@@ -2,12 +2,10 @@
 #include "config.h"
 #include "int_to_cstr.h"
 
-#include "../Marlin/src/inc/MarlinConfig.h"
 #include "../Marlin/src/module/temperature.h"
 
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     #include "gui_config_mini.h"
-    #include "Configuration_MINI_adv.h"
 #else
     #error "Unknown PRINTER_TYPE."
 #endif
