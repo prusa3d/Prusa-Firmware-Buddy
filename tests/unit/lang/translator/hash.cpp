@@ -184,20 +184,22 @@ bool CheckHashClass() {
     return true;
 }
 
+using TPBSH = CPUFLASHTranslationProviderBase::SHashTable;
+
 TEST_CASE("string_hash_table::make_hash_table_256_buckets", "[translator]") {
-    REQUIRE(CheckHashClass<hash_djb2, 256, 256>());
+    REQUIRE(CheckHashClass<hash_djb2, 256, TPBSH::MaxStrings()>());
 }
 TEST_CASE("string_hash_table::make_hash_table_128_buckets", "[translator]") {
-    REQUIRE(CheckHashClass<hash_djb2, 128, 256>());
+    REQUIRE(CheckHashClass<hash_djb2, 128, TPBSH::MaxStrings()>());
 }
 TEST_CASE("string_hash_table::make_hash_table_100_buckets", "[translator]") {
-    REQUIRE(CheckHashClass<hash_djb2, 100, 256>());
+    REQUIRE(CheckHashClass<hash_djb2, 100, TPBSH::MaxStrings()>());
 }
 TEST_CASE("string_hash_table::make_hash_table_96_buckets", "[translator]") {
-    REQUIRE(CheckHashClass<hash_djb2, 96, 256>());
+    REQUIRE(CheckHashClass<hash_djb2, 96, TPBSH::MaxStrings()>());
 }
 TEST_CASE("string_hash_table::make_hash_table_64_buckets", "[translator]") {
-    REQUIRE(CheckHashClass<hash_djb2, 64, 256>());
+    REQUIRE(CheckHashClass<hash_djb2, 64, TPBSH::MaxStrings()>());
 }
 
 // intentional creation of hash collision and handling it
