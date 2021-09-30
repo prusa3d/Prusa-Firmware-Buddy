@@ -697,6 +697,7 @@ if(GUI)
             src/gui/screen_hardfault.cpp
             src/gui/screen_temperror.cpp
             src/gui/screen_menu_move.cpp
+            src/gui/dialogs/DialogMoveZ.cpp
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_menu_languages.cpp
             src/gui/screen_menu_sensor_info.cpp

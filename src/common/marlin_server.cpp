@@ -370,6 +370,13 @@ void marlin_server_do_babystep_Z(float offs) {
     babystep.task();
 }
 
+extern void marlin_server_move_axis(float pos, float feedrate, size_t axis) {
+    xyze_float_t position = current_position;
+    position[axis] = pos;
+    current_position[axis] = pos;
+    line_to_current_position(feedrate);
+}
+
 int marlin_server_enqueue_gcode(const char *gcode) {
     return queue.enqueue_one(gcode) ? 1 : 0;
 }
@@ -1177,13 +1184,16 @@ static int _process_server_request(const char *request) {
         return 0;
     int processed = 0;
     uint32_t msk32[2];
+    unsigned int uival;
     float offs;
+    float fval;
     int ival;
     int client_id = *(request++) - '0';
     if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS))
         return 1;
     DBG_REQ("SRV: REQ %c%s", '0' + client_id, request);
     if (strncmp("!g ", request, 3) == 0) {
+        //@TODO return value depending on success of enqueueing gcode
         processed = marlin_server_enqueue_gcode(request + 3);
     } else if (strncmp("!ig ", request, sizeof("!ig ") / sizeof(char) - 1) == 0) {
         unsigned long int iptr = strtoul(request + sizeof("!ig ") / sizeof(char) - 1, NULL, 0);
@@ -1267,6 +1277,9 @@ static int _process_server_request(const char *request) {
         processed = 1;
     } else if (strcmp("!tabort", request) == 0) {
         marlin_server_test_abort();
+        processed = 1;
+    } else if (sscanf(request, "!move %f %f %u", &offs, &fval, &uival) == 3) {
+        marlin_server_move_axis(offs, fval, uival);
         processed = 1;
     } else {
         bsod("Unknown request %s", request);

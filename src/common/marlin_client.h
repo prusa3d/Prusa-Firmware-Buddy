@@ -159,6 +159,8 @@ extern uint8_t marlin_set_wait_user(uint8_t val);
 
 extern void marlin_do_babysteps_Z(float offs);
 
+extern void marlin_move_axis(float pos, float feedrate, uint8_t axis);
+
 extern void marlin_settings_save(void);
 
 extern void marlin_settings_load(void);

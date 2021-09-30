@@ -549,6 +549,18 @@ void marlin_do_babysteps_Z(float offs) {
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
+extern void marlin_move_axis(float pos, float feedrate, uint8_t axis) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    // check axis
+    if (axis < 4) {
+        snprintf(request, MARLIN_MAX_REQUEST, "!move %.4f %.4f %u", (double)pos, (double)feedrate, axis);
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+    }
+}
 
 void marlin_settings_save(void) {
     marlin_client_t *client = _client_ptr();
