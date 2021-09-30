@@ -87,10 +87,11 @@ void StartUartBufferThread(void const *arg) {
     }
 }
 
-void esp_hard_reset_device() {
+uint8_t esp_hard_reset_device(uint8_t state) {
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
     esp_delay(10);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+    return espOK;
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
@@ -172,7 +173,8 @@ esp_ll_init(esp_ll_t *ll) {
     }
 #endif /* !ESP_CFG_MEM_CUSTOM */
     if (!initialized) {
-        ll->send_fn = esp_transmit_data; /* Set callback function to send data */
+        ll->send_fn = esp_transmit_data;      /* Set callback function to send data */
+        ll->reset_fn = esp_hard_reset_device; /* Set callback function to reset device */
 
         /* Create mbox and start thread */
         if (uartBufferMbox_id == NULL) {
