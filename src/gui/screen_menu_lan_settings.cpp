@@ -55,7 +55,7 @@ public:
 public:
     MI_NET_IP_t()
         : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_DHCP), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_static)) {
-        this->index = netdev_get_ip_obtained_type() == NETDEV_STATIC
+        this->index = netdev_get_ip_obtained_type(netdev_get_active_id()) == NETDEV_DHCP
             ? 0
             : 1;
     }
@@ -147,6 +147,11 @@ void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t
             netdev_set_up(action);
             break;
         case MI_NET_IP_t::EventMask::value:
+            if (action == NETDEV_STATIC) {
+                netdev_set_static(netdev_get_active_id());
+            } else {
+                netdev_set_dhcp(netdev_get_active_id());
+            }
             break;
         default:
             break;

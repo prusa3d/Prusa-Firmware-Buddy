@@ -96,16 +96,14 @@ void StartWebServerTask(void const *argument) {
                 netdev_set_up(NETDEV_ESP_ID);
                 break;
             case EVT_NETDEV_INIT_FINISHED(NETDEV_ETH_ID, 0):
-                if (netdev_get_ip_obtained_type() == NETDEV_DHCP) {
+                if (netdev_get_ip_obtained_type(NETDEV_ETH_ID) == NETDEV_DHCP) {
                     netdev_set_dhcp(NETDEV_ETH_ID);
                 } else {
                     netdev_set_static(NETDEV_ETH_ID);
                 }
                 break;
             case EVT_NETDEV_INIT_FINISHED(NETDEV_ESP_ID, 0):
-                if (netdev_get_ip_obtained_type() == NETDEV_DHCP) {
-                    netdev_set_dhcp(NETDEV_ESP_ID);
-                } else {
+                if (netdev_get_ip_obtained_type(NETDEV_ESP_ID) == NETDEV_STATIC) {
                     netdev_set_static(NETDEV_ESP_ID);
                 }
                 break;

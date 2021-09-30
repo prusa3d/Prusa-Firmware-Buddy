@@ -222,22 +222,34 @@ netdev_status_t netdev_get_status(uint32_t netdev_id) {
     }
 }
 
-netdev_ip_obtained_t netdev_get_ip_obtained_type() {
-    return IS_LAN_STATIC(ETH_CONFIG().lan.flag) ? NETDEV_STATIC : NETDEV_DHCP;
+netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t netdev_id) {
+    return IS_LAN_STATIC(wui_netdev_config[netdev_id].lan.flag) ? NETDEV_STATIC : NETDEV_DHCP;
 }
 
 uint32_t netdev_set_dhcp(uint32_t netdev_id) {
+    ETH_config_t *pConfig = NULL;
+    err_t res = ERR_OK;
+
     if (netdev_id == NETDEV_ETH_ID) {
-        err_t res;
         res = netifapi_dhcp_start(&eth0);
-        CHANGE_FLAG_TO_DHCP(wui_netdev_config[netdev_id].lan.flag);
-        wui_netdev_config[netdev_id].var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        save_eth_params(&wui_netdev_config[netdev_id]);
-        wui_netdev_config[netdev_id].var_mask = 0;
-        return res;
-    } else {
-        return ERR_OK;
+        pConfig = &wui_netdev_config[netdev_id];
+    } else if (netdev_id == NETDEV_ESP_ID) {
+        esp_sta_quit(NULL, NULL, 1);
+        esp_sta_join(ap.ssid, ap.pass, NULL, 0, NULL, NULL, 0);
+        pConfig = &wui_netdev_config[netdev_id];
+        res = ERR_OK;
     }
+
+    if (pConfig) {
+        CHANGE_FLAG_TO_DHCP(pConfig->lan.flag);
+        pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+        save_eth_params(pConfig);
+        pConfig->var_mask = 0;
+    } else {
+        res = ERR_IF;
+    }
+
+    return res;
 }
 
 uint32_t netdev_set_up(uint32_t netdev_id) {
@@ -268,21 +280,32 @@ uint32_t netdev_set_down(uint32_t netdev_id) {
 }
 
 uint32_t netdev_set_static(uint32_t netdev_id) {
+    ETH_config_t *pConfig = NULL;
+    err_t res = ERR_OK;
+
     if (netdev_id == NETDEV_ETH_ID) {
-        err_t res;
+        pConfig = &wui_netdev_config[netdev_id];
         netifapi_netif_set_up(&eth0);
-        dns_setserver(DNS_1, &wui_netdev_config[netdev_id].dns1_ip4);
-        dns_setserver(DNS_2, &wui_netdev_config[netdev_id].dns2_ip4);
-        res = netifapi_netif_set_addr(&eth0, &wui_netdev_config[netdev_id].lan.addr_ip4, &wui_netdev_config[netdev_id].lan.msk_ip4, &wui_netdev_config[netdev_id].lan.gw_ip4);
+        dns_setserver(DNS_1, &pConfig->dns1_ip4);
+        dns_setserver(DNS_2, &pConfig->dns2_ip4);
+        res = netifapi_netif_set_addr(&eth0, &pConfig->lan.addr_ip4, &pConfig->lan.msk_ip4, &pConfig->lan.gw_ip4);
         res = netifapi_dhcp_inform(&eth0);
-        CHANGE_FLAG_TO_STATIC(wui_netdev_config[netdev_id].lan.flag);
-        wui_netdev_config[netdev_id].var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        save_eth_params(&wui_netdev_config[netdev_id]);
-        wui_netdev_config[netdev_id].var_mask = 0;
-        return res;
-    } else {
-        return ERR_OK;
+    } else if (netdev_id == NETDEV_ESP_ID) {
+        pConfig = &wui_netdev_config[netdev_id];
+        esp_sta_setip((esp_ip_t *)&pConfig->lan.addr_ip4, (esp_ip_t *)&pConfig->lan.gw_ip4, (esp_ip_t *)&pConfig->lan.msk_ip4, 1, NULL, NULL, 1);
+        res = ERR_OK;
     }
+
+    if (pConfig) {
+        CHANGE_FLAG_TO_STATIC(pConfig->lan.flag);
+        pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+        save_eth_params(pConfig);
+        pConfig->var_mask = 0;
+    } else {
+        res = ERR_IF;
+    }
+
+    return res;
 }
 
 uint32_t netdev_check_link(uint32_t dev_id) {

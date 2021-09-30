@@ -126,8 +126,12 @@ netdev_status_t netdev_get_status(uint32_t);
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Retrive method used to obtain ip address on active network device
 ///
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+///             - #NETDEV_NODEV_ID
 /// @return ip obtaining method type
-netdev_ip_obtained_t netdev_get_ip_obtained_type();
+netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Retrive hostname of active device
