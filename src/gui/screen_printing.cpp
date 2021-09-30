@@ -1,4 +1,4 @@
-//screen_printing.cpp
+// screen_printing.cpp
 #include "dbg.h"
 #include "screen_printing.hpp"
 #include "marlin_client.h"
@@ -11,6 +11,8 @@
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"
 #include "odometer.hpp"
+#include "liveadjust_z.hpp"
+#include "DialogMoveZ.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.hpp"
@@ -232,6 +234,14 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (event == GUI_event_t::MEDIA) {
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
+    }
+    if (event == GUI_event_t::HELD_RELEASED) {
+        if (marlin_vars()->curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
+            LiveAdjustZ::Show();
+        } else if (p_state == printing_state_t::PRINTED) {
+            DialogMoveZ::Show();
+        }
+        return;
     }
 
     SuperWindowEvent(sender, event, param);

@@ -6,6 +6,7 @@
 #include "MItem_menus.hpp"
 #include "screen_menus.hpp"
 #include "MItem_eeprom.hpp"
+#include "DialogMoveZ.hpp"
 
 using Screen = ScreenMenu<EFooter::On, MI_RETURN,
     MI_I2C_TRANSMIT_RESULTS_HAL_OK,
@@ -27,6 +28,15 @@ using Screen = ScreenMenu<EFooter::On, MI_RETURN,
 //cannot move it to header - 'ScreenMenuInfo' has a field 'ScreenMenuInfo::<anonymous>' whose type uses the anonymous namespace [-Wsubobject-linkage]
 
 class ScreenMenuInfo : public Screen {
+    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+        if (event == GUI_event_t::HELD_RELEASED) {
+            DialogMoveZ::Show();
+            return;
+        }
+
+        SuperWindowEvent(sender, event, param);
+    }
+
 public:
     constexpr static const char *label = N_("INFO");
     ScreenMenuInfo()

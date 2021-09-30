@@ -8,6 +8,7 @@
 #include "i18n.h"
 #include "odometer.hpp"
 #include "MItem_tools.hpp"
+#include "DialogMoveZ.hpp"
 
 using MenuContainer = WinMenuContainer<MI_RETURN>;
 
@@ -23,6 +24,15 @@ class ScreenOdometer : public OdometerScreen {
     static uint32_t getTime() {
         Odometer_s::instance().force_to_eeprom();
         return Odometer_s::instance().get_time();
+    }
+
+    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+        if (event == GUI_event_t::HELD_RELEASED) {
+            DialogMoveZ::Show();
+            return;
+        }
+
+        SuperWindowEvent(sender, event, param);
     }
 
 public:

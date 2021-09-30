@@ -5,6 +5,7 @@
 #include "ScreenHandler.hpp"
 #include "MItem_tools.hpp"
 #include "window_menu.hpp"
+#include "DialogMoveZ.hpp"
 
 #include "IWinMenuContainer.hpp"
 #include <tuple>
@@ -34,6 +35,11 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
         if (Item<MI_MINDA>().StateChanged()) {
             unconditionalDrawItem(2);
         }
+    }
+
+    if (event == GUI_event_t::HELD_RELEASED) {
+        DialogMoveZ::Show();
+        return;
     }
 
     Screen::SuperWindowEvent(sender, event, param);
