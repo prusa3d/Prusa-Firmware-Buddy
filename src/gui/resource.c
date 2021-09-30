@@ -1,4 +1,4 @@
-//resource.c - generated file - do not edit!
+// resource.c - generated file - do not edit!
 
 #include "config.h"
 #include "guitypes.h"
@@ -89,6 +89,7 @@
 #include "res/cc/png_exposure_times_48px.c" //IDR_PNG_exposure_times_48px
 #include "res/cc/png_usb_error.c"           //IDR_PNG_usb_error
 #include "res/cc/png_fan_error.c"           //IDR_PNG_fan_error
+#include "res/cc/png_turn_knob.c"           //IDR_PNG_turn_knob
 
 #include "res/cc/png_flag_cs.c"
 #include "res/cc/png_flag_de.c"
@@ -185,6 +186,7 @@ RESOURCE_ENTRY_PNG(png_hand_qr)
 RESOURCE_ENTRY_PNG(png_exposure_times_48px)
 RESOURCE_ENTRY_PNG(png_usb_error)
 RESOURCE_ENTRY_PNG(png_fan_error)
+RESOURCE_ENTRY_PNG(png_turn_knob)
 
 RESOURCE_ENTRY_PNG(png_flag_cs)
 RESOURCE_ENTRY_PNG(png_flag_de)
