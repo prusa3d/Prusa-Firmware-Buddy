@@ -76,7 +76,7 @@ void get_eth_address(uint32_t netdev_id, ETH_config_t *config) {
         config->lan.gw_ip4.addr = netif_ip4_gw(&eth0)->addr;
     } else if (netdev_id == NETDEV_ESP_ID) {
         esp_ip_t ip, mask, gw;
-        esp_sta_getip(&ip, &gw, &mask, 0, NULL, NULL, 1);
+        esp_sta_getip(&ip, &gw, &mask, NULL, NULL, 1);
         config->lan.addr_ip4.addr = *(uint32_t *)ip.ip;
         config->lan.msk_ip4.addr = *(uint32_t *)mask.ip;
         config->lan.gw_ip4.addr = *(uint32_t *)gw.ip;
@@ -154,6 +154,22 @@ esp_callback_func(esp_evt_t *evt) {
         esp_state = NETDEV_UNLINKED;
         break;
     }
+    case ESP_EVT_SERVER: {
+        _dbg("ESP_EVT_SERVER");
+        break;
+    }
+    case ESP_EVT_WIFI_IP_ACQUIRED: {
+        _dbg("ESP_EVT_WIFI_IP_ACQUIRED");
+        break;
+    }
+    case ESP_EVT_STA_JOIN_AP: {
+        _dbg("ESP_EVT_STA_JOIN_AP");
+        break;
+    }
+    case ESP_EVT_CMD_TIMEOUT: {
+        _dbg("ESP_EVT_CMD_TIMEOUT");
+        break;
+    }
     default: {
         _dbg("Unknown ESP message: %d", (int)esp_evt_get_type(evt));
         break;
@@ -184,7 +200,7 @@ uint32_t netdev_init() {
 }
 
 uint32_t netdev_init_esp() {
-    esp_hard_reset_device();
+    // esp_hard_reset_device();
     esp_init(esp_callback_func, 0);
     alsockets_funcs(netdev_get_sockets(active_netdev_id));
     return 0;
@@ -241,7 +257,7 @@ uint32_t netdev_set_dhcp(uint32_t netdev_id) {
         // to the network therefore we use such a feature during the switch between
         // static and dynamic IP because there is no API call to invoke DHCP client.
         esp_sta_quit(NULL, NULL, 1);
-        esp_sta_join(ap.ssid, ap.pass, NULL, 0, NULL, NULL, 0);
+        esp_sta_join(ap.ssid, ap.pass, NULL, NULL, NULL, 0);
         pConfig = &wui_netdev_config[netdev_id];
         res = ERR_OK;
     }
@@ -265,7 +281,7 @@ uint32_t netdev_set_up(uint32_t netdev_id) {
         netifapi_netif_set_link_up(&eth0);
         return netifapi_netif_set_up(&eth0);
     } else if (netdev_id == NETDEV_ESP_ID) {
-        esp_sta_join(ap.ssid, ap.pass, NULL, 0, NULL, NULL, 0);
+        esp_sta_join(ap.ssid, ap.pass, NULL, NULL, NULL, 0);
         return ERR_OK;
     } else {
         return ERR_IF;
@@ -298,7 +314,7 @@ uint32_t netdev_set_static(uint32_t netdev_id) {
         res = netifapi_dhcp_inform(&eth0);
     } else if (netdev_id == NETDEV_ESP_ID) {
         pConfig = &wui_netdev_config[netdev_id];
-        esp_sta_setip((esp_ip_t *)&pConfig->lan.addr_ip4, (esp_ip_t *)&pConfig->lan.gw_ip4, (esp_ip_t *)&pConfig->lan.msk_ip4, 1, NULL, NULL, 1);
+        esp_sta_setip((esp_ip_t *)&pConfig->lan.addr_ip4, (esp_ip_t *)&pConfig->lan.gw_ip4, (esp_ip_t *)&pConfig->lan.msk_ip4, NULL, NULL, 1);
         res = ERR_OK;
     }
 

@@ -51,7 +51,7 @@ extern espr_t esp_set_baudrate(uint32_t baudrate);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Hard reset ESP device using a reset pin
-extern void esp_hard_reset_device();
+extern uint8_t esp_hard_reset_device(uint8_t state);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Deinitialize ESP low level

@@ -249,7 +249,7 @@ static void altcp_esp_setup(struct altcp_pcb *conn, esp_pcb *epcb) {
 }
 
 static esp_pcb *esp_new_ip_type(u8_t ip_type) {
-    esp_pcb *pcb = (esp_pcb *)esp_mem_alloc(sizeof(esp_pcb));
+    esp_pcb *pcb = (esp_pcb *)esp_mem_malloc(sizeof(esp_pcb));
     if (pcb) {
         memset(pcb, 0, sizeof(esp_pcb));
     }
@@ -343,7 +343,7 @@ static espr_t esp_evt_conn_recv(esp_conn_p conn, esp_evt_t *evt) {
         ALTCP_ESP_DEBUG_FN("!!! rcv pbuf has multiple parts, this is not supported !!!!");
     }
 
-    struct pbuf_custom *custom_pbuf = esp_mem_alloc(sizeof(struct pbuf_custom));
+    struct pbuf_custom *custom_pbuf = esp_mem_malloc(sizeof(struct pbuf_custom));
     custom_pbuf->custom_free_function = custom_pbuf_free;
     const size_t recv_len = esp_pbuf_length(pbuf, 0);
     struct pbuf *lwip_pbuf = pbuf_alloced_custom(PBUF_RAW, recv_len, PBUF_REF, custom_pbuf, (char *)esp_pbuf_data(pbuf), recv_len);
