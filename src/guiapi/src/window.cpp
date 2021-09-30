@@ -451,10 +451,22 @@ bool window_t::EventJogwheel(BtnState_t state) {
         dont_click_on_next_release = false;
         break;
     case BtnState_t::Held:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        break;
+    case BtnState_t::HeldAndRigth:
         dont_click_on_next_release = true;
         if (capture_ptr)
-            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HOLD, 0);
+            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HELD_RIGTH, 0);
         break;
+    case BtnState_t::HeldAndLeft:
+        dont_click_on_next_release = true;
+        // want to send only to current screen and not send it to all subwindows
+        Screens::Access()->WindowEvent(GUI_event_t::HELD_LEFT, 0);
+        break;
+    case BtnState_t::HeldAndReleased:
+        dont_click_on_next_release = true;
+        // want to send only to current screen and not send it to all subwindows
+        Screens::Access()->WindowEvent(GUI_event_t::HELD_RELEASED, 0);
     }
 
     Screens::Access()->ResetTimeout();

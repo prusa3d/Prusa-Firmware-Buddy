@@ -88,7 +88,10 @@ union WindowFlags {
 enum class BtnState_t : uint8_t {
     Released,
     Pressed,
-    Held
+    Held,
+    HeldAndLeft,
+    HeldAndRigth,
+    HeldAndReleased
 };
 
 static_assert(sizeof(WindowFlags) == sizeof(WindowFlags::data), "WindowFlags structure invalid");
