@@ -71,6 +71,8 @@ typedef struct {
     size_t rcv_packets;            // Received packets
     size_t rcv_bytes;              // Received bytes
     char host[IP4ADDR_STRLEN_MAX]; // Connect host
+    uint8_t closed;
+    uint8_t closing;
 } esp_pcb;
 
     #ifdef __cplusplus
