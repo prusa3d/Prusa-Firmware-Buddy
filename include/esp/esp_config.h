@@ -91,13 +91,18 @@
 
 /* Rename this file to "esp_config.h" for your application */
 
-#define ESP_CFG_INPUT_USE_PROCESS  1
-#define ESP_CFG_RESET_ON_INIT      1
-#define ESP_CFG_RESTORE_ON_INIT    0
-#define ESP_CFG_MAX_SSID_LENGTH    32
-#define ESP_CFG_NETCONN            1
-#define ESP_ALTCP                  1
-#define ESP_CFG_CONN_POLL_INTERVAL 2000
+#define ESP_CFG_INPUT_USE_PROCESS       1
+#define ESP_CFG_RESET_ON_INIT           1
+#define ESP_CFG_RESTORE_ON_INIT         0
+#define ESP_CFG_MAX_SSID_LENGTH         32
+#define ESP_CFG_NETCONN                 1
+#define ESP_ALTCP                       1
+#define ESP_CFG_CONN_POLL_INTERVAL      2000
+#define ESP_CFG_CONN_MANUAL_TCP_RECEIVE 1
+// This is a bit hacky, we had to adjust LwESP config processing to be able to
+// set this one. Extended stack is necessary to start print from ESP event.
+// It would be better to start print from different thread on signal.
+#define ESP_SYS_THREAD_SS 512
 
 #define ESP_CFG_DBG          ESP_DBG_OFF
 #define ESP_CFG_DBG_MEM      ESP_DBG_ON
@@ -117,11 +122,10 @@
  * using UART providing TCP connection abstraction. This seems to work,
  * somehow, but there are some downsides.
  *
- * 1) There is no flow control (either HW or SW) used on the UART. Provided we
- * can only buffer limited amount of data this requires us to process (write
- * to flash) any incoming data in limited time. This requires us to keep HTTP
- * request handling a bounded time algorithm. Also this forces us to keep UART
- * baudrate low to avoid buffer overlow in worst case scenario.
+ * 1) There is only a custom flow controll based on sending TCP packet data
+ * on explicit request. Still, in theory, the lack of HW flow controll can
+ * cause receive DMA buffer overlow in case of combination of incomming
+ * packets and commands from ESP.
  *
  * 2) We need to provide BSD sockets wrapper on top of LwESP provided Netconn
  * API. First, the current implementation is rather a draft than a seriously
