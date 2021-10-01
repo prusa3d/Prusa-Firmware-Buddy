@@ -204,7 +204,7 @@ public:
 #ifndef LAZYFILELIST_UNITTEST
 private:
 #endif
-    static constexpr size_t MAX_SFN = 13;
+    static constexpr size_t MAX_SFN = FF_MAX_LFN;
     struct Entry {
         bool isFile;
         char lfn[FF_MAX_LFN];
