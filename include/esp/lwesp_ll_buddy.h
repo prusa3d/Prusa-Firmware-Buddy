@@ -62,6 +62,10 @@ extern espr_t esp_ll_deinit(esp_ll_t *ll);
 extern espr_t esp_flash_initialize();
 
 // UART buffer stuff
+// Buffer size should be >= ESP mem size. As LwESP requests data from ESP
+// based on its available mem. The data received should fit into the buffer.
+// Or, some guaratees has to be provided to ensure the excessive data can
+// be copied from the RX buffer to ESP mem before the buffer overflows.
 #define RX_BUFFER_LEN 0x1000
 #if !defined(ESP_MEM_SIZE)
     #define ESP_MEM_SIZE 0x1000
