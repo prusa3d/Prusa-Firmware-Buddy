@@ -57,12 +57,6 @@ void MI_SYS_INFO::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_STATISTIC_disabled
-MI_STATISTIC_disabled::MI_STATISTIC_disabled()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::no, is_hidden_t::no) {
-}
-
-/*****************************************************************************/
 //MI_FAIL_STAT_disabled
 MI_FAIL_STAT_disabled::MI_FAIL_STAT_disabled()
     : WI_LABEL_t(_(label), 0, is_enabled_t::no, is_hidden_t::no) {
