@@ -31,10 +31,14 @@
 #include "alsockets.h"
 #include "lwesp_ll_buddy.h"
 
+typedef struct netdev_device_s {
+    ETH_config_t config;
+    netdev_status_t status;
+} netdev_device_t;
+
 static const uint32_t esp_target_baudrate = 4600000;
-static netdev_status_t esp_state = NETDEV_NETIF_DOWN;
 static uint32_t active_netdev_id = NETDEV_NODEV_ID;
-static ETH_config_t wui_netdev_config[NETDEV_COUNT]; // the active WUI configuration for ethernet, connect and server
+static netdev_device_t netdev_devices[NETDEV_COUNT];
 
 struct netif eth0; // network interface structure for ETH
 static ap_entry_t ap = { "ssid", "password" };
@@ -45,19 +49,21 @@ extern struct alsockets_s *alsockets_esp();
 
 static struct alsockets_s *netdev_get_sockets(uint32_t);
 
-#define ETH_CONFIG() wui_netdev_config[NETDEV_ETH_ID]
+#define ETH_DEV (netdev_devices[NETDEV_ETH_ID])
+#define ESP_DEV (netdev_devices[NETDEV_ESP_ID])
 
 #define DNS_1 0
 #define DNS_2 1
 
 static void netif_link_callback(struct netif *eth) {
     ethernetif_update_config(eth);
-    eth->hostname = ETH_CONFIG().hostname;
+    eth->hostname = ETH_DEV.config.hostname;
     osMessagePut(networkMbox_id, EVT_NETDEV_INIT_FINISHED(NETDEV_ETH_ID, 0), 0);
 }
 
 static void netif_status_callback(struct netif *eth) {
     ethernetif_update_config(eth);
+    ETH_DEV.status = !ethernetif_link(&eth0) ? NETDEV_UNLINKED : NETDEV_NETIF_UP;
 }
 
 static void tcpip_init_done_callback(void *arg) {
@@ -123,7 +129,7 @@ esp_callback_func(esp_evt_t *evt) {
     }
     case ESP_EVT_INIT_FINISH: {
         esp_set_wifi_mode(ESP_MODE_STA, NULL, NULL, 1);
-        esp_state = NETDEV_UNLINKED;
+        ESP_DEV.status = NETDEV_UNLINKED;
         osMessagePut(networkMbox_id, EVT_LWESP_INIT_FINISHED, 0);
         _dbg("ESP_EVT_INIT_FINISH");
         break;
@@ -140,7 +146,7 @@ esp_callback_func(esp_evt_t *evt) {
     }
     case ESP_EVT_WIFI_GOT_IP: {
         _dbg("ESP_EVT_WIFI_GOT_IP");
-        esp_state = NETDEV_NETIF_UP;
+        ESP_DEV.status = NETDEV_NETIF_UP;
         break;
     }
     case ESP_EVT_WIFI_CONNECTED: {
@@ -151,7 +157,7 @@ esp_callback_func(esp_evt_t *evt) {
     }
     case ESP_EVT_WIFI_DISCONNECTED: {
         _dbg("ESP_EVT_WIFI_DISCONNECTED");
-        esp_state = NETDEV_UNLINKED;
+        ESP_DEV.status = NETDEV_UNLINKED;
         break;
     }
     case ESP_EVT_SERVER: {
@@ -179,13 +185,13 @@ esp_callback_func(esp_evt_t *evt) {
 }
 
 uint32_t netdev_init() {
-    ETH_CONFIG().var_mask = ETHVAR_EEPROM_CONFIG;
-    load_eth_params(&ETH_CONFIG());
+    ETH_DEV.config.var_mask = ETHVAR_EEPROM_CONFIG;
+    load_eth_params(&ETH_DEV.config);
     active_netdev_id = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_NETDEV));
 
     // FIXME: This is here just temporarily. We should load from EEPROM here
     // and call this thing from a menu item on user request.
-    if (load_ini_file_wifi(&wui_netdev_config[NETDEV_ESP_ID], &ap)) {
+    if (load_ini_file_wifi(&ESP_DEV.config, &ap)) {
         _dbg("Wifi settings: %s/%s", ap.ssid, ap.pass);
     } else {
         // TODO: This is probably not correct, is there a better error code? It
@@ -225,13 +231,11 @@ uint32_t netdev_set_active_id(uint32_t netdev_id) {
 }
 
 netdev_status_t netdev_get_status(uint32_t netdev_id) {
-    if (netdev_id == NETDEV_ETH_ID) {
-        if (!netif_is_link_up(&eth0)) {
-            return NETDEV_NETIF_DOWN;
+    if (netdev_id < NETDEV_NODEV_ID) {
+        if (netdev_id == NETDEV_ETH_ID) {
+            ETH_DEV.status = !ethernetif_link(&eth0) ? NETDEV_UNLINKED : NETDEV_NETIF_UP;
         }
-        return !ethernetif_link(&eth0) ? NETDEV_UNLINKED : NETDEV_NETIF_UP;
-    } else if (netdev_id == NETDEV_ESP_ID) {
-        return esp_state;
+        return netdev_devices[netdev_id].status;
     } else {
         return NETDEV_NETIF_DOWN;
     }
@@ -239,7 +243,7 @@ netdev_status_t netdev_get_status(uint32_t netdev_id) {
 
 netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t netdev_id) {
     if (netdev_id < NETDEV_COUNT) {
-        return IS_LAN_STATIC(wui_netdev_config[netdev_id].lan.flag) ? NETDEV_STATIC : NETDEV_DHCP;
+        return IS_LAN_STATIC(netdev_devices[netdev_id].config.lan.flag) ? NETDEV_STATIC : NETDEV_DHCP;
     } else {
         return NETDEV_DHCP;
     }
@@ -250,15 +254,16 @@ uint32_t netdev_set_dhcp(uint32_t netdev_id) {
     err_t res = ERR_OK;
 
     if (netdev_id == NETDEV_ETH_ID) {
+        netdev_devices[netdev_id].status = NETDEV_UNLINKED;
         res = netifapi_dhcp_start(&eth0);
-        pConfig = &wui_netdev_config[netdev_id];
+        pConfig = &netdev_devices[netdev_id].config;
     } else if (netdev_id == NETDEV_ESP_ID) {
         // ESP automaticaly obtain IP address from DHCP server after it joins
         // to the network therefore we use such a feature during the switch between
         // static and dynamic IP because there is no API call to invoke DHCP client.
         esp_sta_quit(NULL, NULL, 1);
         esp_sta_join(ap.ssid, ap.pass, NULL, NULL, NULL, 0);
-        pConfig = &wui_netdev_config[netdev_id];
+        pConfig = &netdev_devices[netdev_id].config;
         res = ERR_OK;
     }
 
@@ -306,14 +311,14 @@ uint32_t netdev_set_static(uint32_t netdev_id) {
     err_t res = ERR_OK;
 
     if (netdev_id == NETDEV_ETH_ID) {
-        pConfig = &wui_netdev_config[netdev_id];
+        pConfig = &netdev_devices[netdev_id].config;
         netifapi_netif_set_up(&eth0);
         dns_setserver(DNS_1, &pConfig->dns1_ip4);
         dns_setserver(DNS_2, &pConfig->dns2_ip4);
         res = netifapi_netif_set_addr(&eth0, &pConfig->lan.addr_ip4, &pConfig->lan.msk_ip4, &pConfig->lan.gw_ip4);
         res = netifapi_dhcp_inform(&eth0);
     } else if (netdev_id == NETDEV_ESP_ID) {
-        pConfig = &wui_netdev_config[netdev_id];
+        pConfig = &netdev_devices[netdev_id].config;
         esp_sta_setip((esp_ip_t *)&pConfig->lan.addr_ip4, (esp_ip_t *)&pConfig->lan.gw_ip4, (esp_ip_t *)&pConfig->lan.msk_ip4, NULL, NULL, 1);
         res = ERR_OK;
     }
@@ -334,7 +339,7 @@ uint32_t netdev_check_link(uint32_t dev_id) {
     if (dev_id == NETDEV_ESP_ID) {
         esp_sw_version_t version;
         if (esp_get_current_at_fw_version(&version)) {
-            esp_state = NETDEV_UNLINKED;
+            ESP_DEV.status = NETDEV_UNLINKED;
         }
     }
     return 0;
@@ -352,7 +357,7 @@ static struct alsockets_s *netdev_get_sockets(uint32_t active_id) {
 
 const char *netdev_get_hostname(uint32_t active_id) {
     if (active_id < NETDEV_COUNT) {
-        return wui_netdev_config[active_id].hostname;
+        return netdev_devices[active_id].config.hostname;
     } else {
         return "";
     }

@@ -78,11 +78,10 @@ class ScreenMenuLanSettings : public AddSuperWindow<screen_t> {
     window_menu_t menu;
     window_header_t header;
     window_text_t help;
+    mutable netdev_status_t cached_network_status;
 
     lan_descp_str_t plan_str; //todo not initialized in constructor
-    bool msg_shown;           //todo not initialized in constructor
-    void refresh_addresses();
-    void show_msg();
+    void refresh_addresses(uint32_t netdev_id);
 
 public:
     ScreenMenuLanSettings();
@@ -99,65 +98,64 @@ ScreenMenuLanSettings::ScreenMenuLanSettings()
     : AddSuperWindow<screen_t>(nullptr, win_type_t::normal, is_closed_on_timeout_t::no)
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
-    , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {
+    , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
+    , cached_network_status(NETDEV_UNLINKED) {
     header.SetText(_(label));
     help.font = resource_font(helper_font);
     menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);        // set capture to list
-
-    refresh_addresses();
-    msg_shown = false;
 }
 
 /*****************************************************************************/
 //non static member function definition
-void ScreenMenuLanSettings::refresh_addresses() {
-    if (netdev_get_status(netdev_get_active_id()) == NETDEV_NETIF_UP) {
+void ScreenMenuLanSettings::refresh_addresses(uint32_t netdev_id) {
+    netdev_status_t status = netdev_get_status(netdev_id);
+    if (status == cached_network_status) {
+        return;
+    }
+
+    if (status == NETDEV_NETIF_UP) {
         ETH_config_t ethconfig = {};
         get_eth_address(netdev_get_active_id(), &ethconfig);
         stringify_eth_for_screen(&plan_str, &ethconfig);
     } else {
         snprintf(plan_str, LAN_DESCP_SIZE, "NO CONNECTION\n");
     }
+
     help.text = string_view_utf8::MakeRAM((const uint8_t *)plan_str);
     help.Invalidate();
     gui_invalidate();
+    cached_network_status = status;
 }
 
 ScreenFactory::UniquePtr GetScreenMenuLanSettings() {
     return ScreenFactory::Screen<ScreenMenuLanSettings>();
 }
 
-void ScreenMenuLanSettings::show_msg() {
-    if (msg_shown)
-        return;
-    AutoRestore<bool> AR(msg_shown);
-    msg_shown = true;
-    MsgBoxError(_("Static IPv4 addresses were not set."), Responses_Ok);
-}
-
 void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    uint32_t active_dev = netdev_get_active_id();
     if (event == GUI_event_t::CHILD_CLICK) {
         uint32_t action = ((uint32_t)param) & 0xFFFF;
         uint32_t type = ((uint32_t)param) & 0xFFFF0000;
         switch (type) {
         case MI_NET_INTERFACE_t::EventMask::value:
-            netdev_set_down(netdev_get_active_id());
+            netdev_set_down(active_dev);
             netdev_set_active_id(action);
             netdev_set_up(action);
             break;
         case MI_NET_IP_t::EventMask::value:
+            refresh_addresses(NETDEV_NETIF_DOWN);
             if (action == NETDEV_STATIC) {
-                netdev_set_static(netdev_get_active_id());
+                netdev_set_static(active_dev);
             } else {
-                netdev_set_dhcp(netdev_get_active_id());
+                netdev_set_dhcp(active_dev);
             }
             break;
         default:
             break;
         }
     } else if (event == GUI_event_t::LOOP) {
-        refresh_addresses();
+        refresh_addresses(active_dev);
     } else {
         SuperWindowEvent(sender, event, param);
     }
