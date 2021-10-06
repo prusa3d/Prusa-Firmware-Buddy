@@ -18,4 +18,7 @@ public:
 
 protected:
     virtual void unconditionalDraw() override;
+
+private:
+    State_t state;
 };
