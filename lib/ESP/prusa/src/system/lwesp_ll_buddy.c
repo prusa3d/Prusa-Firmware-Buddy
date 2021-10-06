@@ -120,9 +120,8 @@ esp_transmit_data(const void *data, size_t len) {
         return 0;
     }
 
-    for (size_t i = 0; i < len; ++i) {
-        HAL_UART_Transmit(&huart6, (uint8_t *)(data + i), 1, 10);
-    }
+    HAL_UART_Transmit(&huart6, (uint8_t *)data, len, 10 * len);
+
     return len;
 }
 
