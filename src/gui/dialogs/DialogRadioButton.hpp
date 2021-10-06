@@ -15,8 +15,8 @@ class RadioButton : public AddSuperWindow<window_t> {
     const PhaseResponses *responses;
     const PhaseTexts *texts;
 
-    void SetBtnCount(uint8_t cnt) { flags.mem_array_u08[0] = cnt & ((1 << RESPONSE_BITS) - 1); }
-    const uint8_t GetBtnCount() const { return flags.mem_array_u08[0]; }
+    void SetBtnCount(uint8_t cnt) { flags.button_count = cnt & ((1 << RESPONSE_BITS) - 1); }
+    const uint8_t GetBtnCount() const { return flags.button_count; }
 
     static void button_draw(Rect16 rc_btn, color_t back_color, string_view_utf8 text, const font_t *pf, bool is_selected);
 
@@ -40,8 +40,8 @@ public:
     bool IsEnabled() const;
     void Change(const PhaseResponses *responses, const PhaseTexts *texts);
 
-    void SetBtnIndex(uint8_t index) { flags.mem_array_u08[1] = index < flags.mem_array_u08[0] ? index : 0; }
-    uint8_t GetBtnIndex() const { return flags.mem_array_u08[1]; }
+    void SetBtnIndex(uint8_t index) { flags.button_index = (index < GetBtnCount()) ? index : 0; }
+    uint8_t GetBtnIndex() const { return flags.button_index; }
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

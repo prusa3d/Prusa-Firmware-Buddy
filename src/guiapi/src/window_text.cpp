@@ -66,13 +66,13 @@ WindowBlinkingText::WindowBlinkingText(window_t *parent, Rect16 rect, string_vie
 void WindowBlinkingText::unconditionalDraw() {
     // blink_enable handled in event (better invalidation)
     color_t backup_clr = GetTextColor();
-    if (flags.custom0) {
+    if (flags.blink) {
         SetTextColor(color_blink);
     }
 
     super::unconditionalDraw();
 
-    if (flags.custom0) {
+    if (flags.blink) {
         SetTextColor(backup_clr);
     }
 }
@@ -80,13 +80,13 @@ void WindowBlinkingText::unconditionalDraw() {
 void WindowBlinkingText::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (blink_enable && blink_step) {
         bool b = (gui::GetTick() / uint32_t(blink_step)) & 0x01;
-        if (flags.custom0 != b) {
-            flags.custom0 = b;
+        if (flags.blink != b) {
+            flags.blink = b;
             Invalidate();
         }
     } else {
-        if (flags.custom0) {
-            flags.custom0 = false;
+        if (flags.blink) {
+            flags.blink = false;
             Invalidate();
         }
     }

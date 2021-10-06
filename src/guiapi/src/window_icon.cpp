@@ -191,19 +191,17 @@ WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubte
             return Rect16(pt,
                 sz.w + padding.left + padding.right,
                 sz.h + padding.top + padding.bottom);
-        }()) {
-    SetState(state);
+        }())
+    , state(state) {
 }
 
 SelftestSubtestState_t WindowIcon_OkNg::GetState() const {
-    return static_cast<SelftestSubtestState_t>(flags.mem_array_u08[1]);
+    return state;
 }
 
-//there is a free space in window_t flags, store state in it
 void WindowIcon_OkNg::SetState(SelftestSubtestState_t s) {
-    const uint8_t state = static_cast<uint8_t>(s);
-    if (state != flags.mem_array_u08[1]) {
-        flags.mem_array_u08[1] = state;
+    if (s != state) {
+        state = s;
         Invalidate();
     }
 }
@@ -221,7 +219,7 @@ void WindowIcon_OkNg::unconditionalDraw() {
         id_res = id_res_na;
         break;
     case SelftestSubtestState_t::running:
-        id_res = flags.custom0 ? id_res_ip1 : id_res_ip0;
+        id_res = flags.blink ? id_res_ip1 : id_res_ip0;
         break;
     }
 
@@ -231,8 +229,8 @@ void WindowIcon_OkNg::unconditionalDraw() {
 void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (GetState() == SelftestSubtestState_t::running) {
         bool b = (gui::GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0x01;
-        if (flags.custom0 != b) {
-            flags.custom0 = b;
+        if (flags.blink != b) {
+            flags.blink = b;
             Invalidate();
         }
     }
