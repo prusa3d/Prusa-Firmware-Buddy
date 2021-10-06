@@ -31,7 +31,7 @@
 #include "alsockets.h"
 #include "lwesp_ll_buddy.h"
 
-static const uint32_t esp_target_baudrate = 500000;
+static const uint32_t esp_target_baudrate = 4600000;
 static netdev_status_t esp_state = NETDEV_NETIF_DOWN;
 static uint32_t active_netdev_id = NETDEV_NODEV_ID;
 static ETH_config_t wui_netdev_config[NETDEV_COUNT]; // the active WUI configuration for ethernet, connect and server
