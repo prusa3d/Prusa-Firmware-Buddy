@@ -102,16 +102,16 @@ Response RadioButton::Click() const {
     return (*responses)[GetBtnIndex()];
 }
 
-void RadioButton::draw_0_btn() const {
-    display::FillRect(GetRect(), color_back);
+void RadioButton::draw_0_btn() {
+    super::unconditionalDraw();
 }
 
-void RadioButton::draw_1_btn() const {
+void RadioButton::draw_1_btn() {
     if (texts)
-        button_draw(GetRect(), color_back, _((*texts)[0]), pfont, IsEnabled());
+        button_draw(GetRect(), GetBackColor(), _((*texts)[0]), pfont, IsEnabled());
 }
 
-void RadioButton::draw_n_btns(const size_t btn_count) const {
+void RadioButton::draw_n_btns(const size_t btn_count) {
     if (!texts)
         return;
     const uint32_t MAX_TEXT_BUFFER = 128;
@@ -138,9 +138,9 @@ void RadioButton::draw_n_btns(const size_t btn_count) const {
             buffer[length] = 0;
             drawn = string_view_utf8::MakeRAM((const uint8_t *)buffer);
         }
-        button_draw(splits[i], color_back, drawn, pfont, GetBtnIndex() == i && IsEnabled());
+        button_draw(splits[i], GetBackColor(), drawn, pfont, GetBtnIndex() == i && IsEnabled());
     }
-    color_t spaces_clr = color_back == COLOR_ORANGE ? COLOR_BLACK : COLOR_ORANGE;
+    color_t spaces_clr = (GetBackColor() == COLOR_ORANGE) ? COLOR_BLACK : COLOR_ORANGE;
     for (size_t i = 0; i < btn_count - 1; ++i) {
         display::FillRect(spaces[i], spaces_clr);
     }

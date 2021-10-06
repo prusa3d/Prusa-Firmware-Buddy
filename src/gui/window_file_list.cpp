@@ -149,7 +149,7 @@ void window_file_list_t::unconditionalDraw() {
     if (rc_win.Height() <= 0)
         return;
     rc_win += Rect16::Top_t(menu_h);
-    display::FillRect(rc_win, this->color_back);
+    display::FillRect(rc_win, this->GetBackColor());
 }
 
 void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

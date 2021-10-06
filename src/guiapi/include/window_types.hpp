@@ -52,7 +52,7 @@ union WindowFlags {
         bool visible : 1;                          // 02 - is visible
         bool enabled : 1;                          // 03 - is enabled (can be focused)
         bool invalid : 1;                          // 04 - content is invalid (draw)
-        bool checked : 1;                          // 05 - is checked/selected
+        bool color_scheme_background : 1;          // 05 - is checked/selected
         bool timer : 1;                            // 06 - window has timers
         is_closed_on_click_t close_on_click : 1;   // 07 - window id dialog
         bool hidden_behind_dialog : 1;             // 08 - there is an dialog over this window

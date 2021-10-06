@@ -142,10 +142,22 @@ void window_t::Unshadow() {
     }
 }
 
-color_t window_t::GetBackColor() const { return color_back; }
+color_t window_t::GetBackColor() const {
+    if (flags.color_scheme_background && pBackColorScheme) {
+        return pBackColorScheme->Get(IsFocused(), IsShadowed());
+    }
+    return color_back;
+}
 
 void window_t::SetBackColor(color_t clr) {
     color_back = clr;
+    flags.color_scheme_background = false;
+    Invalidate();
+}
+
+void window_t::SetBackColor(const color_scheme &clr) {
+    pBackColorScheme = &clr;
+    flags.color_scheme_background = true;
     Invalidate();
 }
 
@@ -338,7 +350,7 @@ void window_t::addInvalidationRect(Rect16 rc) {
 }
 
 void window_t::unconditionalDraw() {
-    display::FillRect(GetRect(), color_back);
+    display::FillRect(GetRect(), GetBackColor());
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {

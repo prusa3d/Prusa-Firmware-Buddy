@@ -35,8 +35,8 @@ window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multili
 
 void window_text_t::unconditionalDraw() {
     render_text_align(GetRect(), text, font,
-        (IsFocused()) ? color_text : color_back,
-        (IsFocused()) ? color_back : color_text,
+        (IsFocused()) ? color_text : GetBackColor(),
+        (IsFocused()) ? GetBackColor() : color_text,
         padding, { GetAlignment(), is_multiline(flags.custom0) });
 }
 

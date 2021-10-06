@@ -57,6 +57,6 @@ void WindowArrows::unconditionalDraw() {
         id_res2 = id_res_grey_down;
         break;
     }
-    render_icon_align(GetRect(), id_res1, color_back, GetAlignment());
-    render_icon_align(GetRect() + Rect16::Top_t(12), id_res2, color_back, GetAlignment());
+    render_icon_align(GetRect(), id_res1, GetBackColor(), GetAlignment());
+    render_icon_align(GetRect() + Rect16::Top_t(12), id_res2, GetBackColor(), GetAlignment());
 }

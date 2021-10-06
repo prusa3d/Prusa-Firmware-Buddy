@@ -265,7 +265,7 @@ void window_menu_t::unconditionalDraw() {
 void window_menu_t::printScrollBar(size_t available_count, uint16_t visible_count) {
     uint16_t scroll_item_height = Height() / available_count;
     uint16_t sb_y_start = Top() + top_index * scroll_item_height;
-    display::DrawRect(Rect16(int16_t(Left() + Width() - GuiDefaults::MenuScrollbarWidth), Top(), GuiDefaults::MenuScrollbarWidth, Height()), color_back);
+    display::DrawRect(Rect16(int16_t(Left() + Width() - GuiDefaults::MenuScrollbarWidth), Top(), GuiDefaults::MenuScrollbarWidth, Height()), GetBackColor());
     display::DrawRect(Rect16(int16_t(Left() + Width() - GuiDefaults::MenuScrollbarWidth), sb_y_start, GuiDefaults::MenuScrollbarWidth, visible_count * scroll_item_height), COLOR_SILVER);
 }
 
@@ -304,7 +304,7 @@ void window_menu_t::redrawWholeMenu() {
     if (rc_win.Height() <= 0)
         return;
     rc_win += Rect16::Top_t(menu_h);
-    display::FillRect(rc_win, color_back);
+    display::FillRect(rc_win, GetBackColor());
 }
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {

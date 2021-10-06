@@ -20,10 +20,10 @@ class RadioButton : public AddSuperWindow<window_t> {
 
     static void button_draw(Rect16 rc_btn, color_t back_color, string_view_utf8 text, const font_t *pf, bool is_selected);
 
-    void draw_0_btn() const;
-    void draw_1_btn() const;
+    void draw_0_btn();
+    void draw_1_btn();
     /// btn_count cannot exceed MAX_DIALOG_BUTTON_COUNT
-    void draw_n_btns(const size_t btn_count) const;
+    void draw_n_btns(const size_t btn_count);
 
     static size_t cnt_labels(const PhaseTexts *labels);
     static size_t cnt_responses(const PhaseResponses *resp);
