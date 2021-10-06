@@ -3,7 +3,7 @@
 #pragma once
 #include "window.hpp"
 
-struct window_temp_graph_t : public window_t {
+struct window_temp_graph_t : public AddSuperWindow<window_t> {
     color_t color_extruder_t;
     color_t color_bed_t;
     color_t color_extruder_c;

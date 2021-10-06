@@ -44,7 +44,7 @@ void window_icon_t::unconditionalDraw() {
         raster_op.swap_bw = has_swapped_bw::yes;
     }
 
-    render_icon_align(GetRect(), id_res, color_back, icon_flags(GetAlignment(), raster_op));
+    render_icon_align(GetRect(), id_res, GetBackColor(), icon_flags(GetAlignment(), raster_op));
 }
 
 size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
@@ -225,7 +225,7 @@ void WindowIcon_OkNg::unconditionalDraw() {
         break;
     }
 
-    render_icon_align(GetRect(), id_res, color_back, GetAlignment());
+    render_icon_align(GetRect(), id_res, GetBackColor(), GetAlignment());
 }
 
 void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

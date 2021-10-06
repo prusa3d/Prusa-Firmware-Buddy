@@ -11,7 +11,7 @@ window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rec
     : AddSuperWindow<window_t>(parent, rect)
     , color_progress(cl_progress) {
     SetProgressInPixels(0);
-    color_back = cl_back;
+    SetBackColor(cl_back);
 }
 
 void window_numberless_progress_t::SetProgressInPixels(uint16_t px) {
@@ -45,7 +45,7 @@ void window_numberless_progress_t::unconditionalDraw() {
     rc += Rect16::Left_t(progress_w);
     rc -= Rect16::Width_t(progress_w);
     if (rc.Width())
-        display::FillRect(rc, color_back);
+        display::FillRect(rc, GetBackColor());
     rc = Left();
     rc = Rect16::Width_t(progress_w);
     if (rc.Width())

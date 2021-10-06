@@ -10,8 +10,8 @@ static const constexpr uint8_t WINDOW_NUMB_MAX_TEXT = 30;
 static_assert(sizeof(uint32_t) == sizeof(float), "size of uint32 does not match float");
 
 void window_numb_t::unconditionalDraw() {
-    color_t clr_back = (IsFocused()) ? color_text : color_back;
-    color_t clr_text = (IsFocused()) ? color_back : color_text;
+    color_t clr_back = (IsFocused()) ? color_text : GetBackColor();
+    color_t clr_text = (IsFocused()) ? GetBackColor() : color_text;
     if (IsCaptured())
         clr_text = COLOR_ORANGE;
     if (IsShadowed())
