@@ -1,3 +1,20 @@
+/*
+ * This file is part of the Prusa Firmware Buddy distribution (https://github.com/prusa3d/Prusa-Firmware-Buddy ).
+ * Copyright (c) 2021 Marek Mosna.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -52,8 +69,6 @@ uint32_t netdev_init_esp();
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-///             - #NETDEV_NODEV_ID
-
 /// @return 0 on success; error otherwise
 uint32_t netdev_set_up(uint32_t);
 
@@ -63,7 +78,6 @@ uint32_t netdev_set_up(uint32_t);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-///             - #NETDEV_NODEV_ID
 /// @return 0 on success; error otherwise
 uint32_t netdev_set_down(uint32_t);
 
@@ -73,7 +87,6 @@ uint32_t netdev_set_down(uint32_t);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-///             - #NETDEV_NODEV_ID
 /// @return 0 on success; error otherwise
 uint32_t netdev_set_dhcp(uint32_t);
 
@@ -83,7 +96,6 @@ uint32_t netdev_set_dhcp(uint32_t);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-///             - #NETDEV_NODEV_ID
 /// @return 0 on success; error otherwise
 uint32_t netdev_set_static(uint32_t);
 
@@ -99,7 +111,6 @@ uint32_t netdev_get_active_id();
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-///             - #NETDEV_NODEV_ID
 /// @return 0 on success; error otherwise
 uint32_t netdev_set_active_id(uint32_t);
 
@@ -109,7 +120,6 @@ uint32_t netdev_set_active_id(uint32_t);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-///             - #NETDEV_NODEV_ID
 /// @return 0
 uint32_t netdev_check_link(uint32_t);
 
@@ -119,7 +129,6 @@ uint32_t netdev_check_link(uint32_t);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-///             - #NETDEV_NODEV_ID
 /// @return device status
 netdev_status_t netdev_get_status(uint32_t);
 
@@ -129,7 +138,6 @@ netdev_status_t netdev_get_status(uint32_t);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-///             - #NETDEV_NODEV_ID
 /// @return ip obtaining method type
 netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t);
 
@@ -139,7 +147,6 @@ netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-///             - #NETDEV_NODEV_ID
 /// @return hostname
 const char *netdev_get_hostname(uint32_t);
 

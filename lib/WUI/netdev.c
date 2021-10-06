@@ -223,7 +223,11 @@ netdev_status_t netdev_get_status(uint32_t netdev_id) {
 }
 
 netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t netdev_id) {
-    return IS_LAN_STATIC(wui_netdev_config[netdev_id].lan.flag) ? NETDEV_STATIC : NETDEV_DHCP;
+    if (netdev_id < NETDEV_COUNT) {
+        return IS_LAN_STATIC(wui_netdev_config[netdev_id].lan.flag) ? NETDEV_STATIC : NETDEV_DHCP;
+    } else {
+        return NETDEV_DHCP;
+    }
 }
 
 uint32_t netdev_set_dhcp(uint32_t netdev_id) {
@@ -234,13 +238,16 @@ uint32_t netdev_set_dhcp(uint32_t netdev_id) {
         res = netifapi_dhcp_start(&eth0);
         pConfig = &wui_netdev_config[netdev_id];
     } else if (netdev_id == NETDEV_ESP_ID) {
+        // ESP automaticaly obtain IP address from DHCP server after it joins
+        // to the network therefore we use such a feature during the switch between
+        // static and dynamic IP because there is no API call to invoke DHCP client.
         esp_sta_quit(NULL, NULL, 1);
         esp_sta_join(ap.ssid, ap.pass, NULL, 0, NULL, NULL, 0);
         pConfig = &wui_netdev_config[netdev_id];
         res = ERR_OK;
     }
 
-    if (pConfig) {
+    if (pConfig != NULL) {
         CHANGE_FLAG_TO_DHCP(pConfig->lan.flag);
         pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
         save_eth_params(pConfig);
@@ -296,7 +303,7 @@ uint32_t netdev_set_static(uint32_t netdev_id) {
         res = ERR_OK;
     }
 
-    if (pConfig) {
+    if (pConfig != NULL) {
         CHANGE_FLAG_TO_STATIC(pConfig->lan.flag);
         pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
         save_eth_params(pConfig);
