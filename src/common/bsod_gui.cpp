@@ -1,4 +1,4 @@
-// bsod.c - blue screen of death
+// bsod_gui.cpp - blue screen of death
 #include "bsod.h"
 #include "wdt.h"
 #include "dump.h"

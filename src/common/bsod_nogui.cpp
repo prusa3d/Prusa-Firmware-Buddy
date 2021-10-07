@@ -1,11 +1,11 @@
-// bsod.c - blue screen of death
+// bsod_nogui.cpp - blue screen of death
 #include "bsod.h"
 #include "safe_state.h"
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     hwio_safe_state();
 
-    // busy wait for wdr
+    // busy wait for wdt
     while (1) {
     }
 }
