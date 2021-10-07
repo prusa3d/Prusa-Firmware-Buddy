@@ -109,22 +109,6 @@ uint32_t load_ini_file_eth(ETH_config_t *config);
 *****************************************************************************/
 uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
 
-/*!****************************************************************************
-* \brief access user defined addresses in memory and aquire vital printer info
-*
-* \param [out] printer_info* pointer to struct with storage for printer info
-*
-* \retval   0 if successful
-*****************************************************************************/
-void get_printer_info(printer_info_t *printer_info);
-
-/*!****************************************************************************
-* \brief parses MAC address from device's memory to static string
-*
-* \param [out] dest - static MAC address null-terminated string
-******************************************************************************/
-void parse_MAC_address(mac_address_t *dest);
-
 /*!*****************************************************************************************
 * \brief Parses all vital eth information in destination string according to ini file format
 *
@@ -132,20 +116,6 @@ void parse_MAC_address(mac_address_t *dest);
 * \param [in] config - storage for ethernet configurations
 *******************************************************************************************/
 void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config);
-/*!*****************************************************************************************
-* \brief Parses all vital eth information in destination string according to screen format
-*
-* \param [out] destination null-terminated string
-* \param [in] config - storage for ethernet configurations
-*******************************************************************************************/
-void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config);
-
-/*!***************************************************************************
-* \brief Returns the ethernet addresses
-*
-* \param [in] config - structure that stores currnet ethernet configurations
-*****************************************************************************/
-void get_eth_address(uint32_t, ETH_config_t *);
 
 /*!*********************************************************************************************************************
 * \brief Parses time from device's time storage to seconds. MONTHS are from 0 and YEARS are from 1900

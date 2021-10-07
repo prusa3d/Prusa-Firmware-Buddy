@@ -18,6 +18,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "netif_settings.h"
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Possible states of the network device
@@ -149,6 +150,24 @@ netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t);
 ///             - #NETDEV_ESP_ID
 /// @return hostname
 const char *netdev_get_hostname(uint32_t);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Retrive IPv4 configuration. IP address, network mask, gateway address
+///
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+/// @param[out] ipv4_configuration Structure to store IPv4 configuration
+void netdev_get_ipv4_addresses(uint32_t, lan_t *);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Retrive MAC address
+///
+/// @param[in] dev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+/// @param[out] mac_address Six bytes of MAC address
+void netdev_get_MAC_address(uint32_t, uint8_t[6]);
 
 #ifdef __cplusplus
 }

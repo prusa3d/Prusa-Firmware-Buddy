@@ -30,6 +30,7 @@
 #include "wui_api.h"
 #include "alsockets.h"
 #include "lwesp_ll_buddy.h"
+#include "otp.h"
 
 static const uint32_t esp_target_baudrate = 4600000;
 static netdev_status_t esp_state = NETDEV_NETIF_DOWN;
@@ -69,21 +70,34 @@ static void tcpip_init_done_callback(void *arg) {
     osMessagePut(networkMbox_id, EVT_TCPIP_INIT_FINISHED, 0);
 }
 
-void get_eth_address(uint32_t netdev_id, ETH_config_t *config) {
+void netdev_get_ipv4_addresses(uint32_t netdev_id, lan_t *config) {
     if (netdev_id == NETDEV_ETH_ID) {
-        config->lan.addr_ip4.addr = netif_ip4_addr(&eth0)->addr;
-        config->lan.msk_ip4.addr = netif_ip4_netmask(&eth0)->addr;
-        config->lan.gw_ip4.addr = netif_ip4_gw(&eth0)->addr;
+        config->addr_ip4.addr = netif_ip4_addr(&eth0)->addr;
+        config->msk_ip4.addr = netif_ip4_netmask(&eth0)->addr;
+        config->gw_ip4.addr = netif_ip4_gw(&eth0)->addr;
     } else if (netdev_id == NETDEV_ESP_ID) {
         esp_ip_t ip, mask, gw;
         esp_sta_getip(&ip, &gw, &mask, NULL, NULL, 1);
-        config->lan.addr_ip4.addr = *(uint32_t *)ip.ip;
-        config->lan.msk_ip4.addr = *(uint32_t *)mask.ip;
-        config->lan.gw_ip4.addr = *(uint32_t *)gw.ip;
+        config->addr_ip4.addr = *(uint32_t *)ip.ip;
+        config->msk_ip4.addr = *(uint32_t *)mask.ip;
+        config->gw_ip4.addr = *(uint32_t *)gw.ip;
     } else {
-        config->lan.addr_ip4.addr = 0;
-        config->lan.msk_ip4.addr = 0;
-        config->lan.gw_ip4.addr = 0;
+        config->addr_ip4.addr = 0;
+        config->msk_ip4.addr = 0;
+        config->gw_ip4.addr = 0;
+    }
+}
+
+void netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[6]) {
+    if (netdev_id == NETDEV_ETH_ID) {
+        memcpy(mac, (void *)OTP_MAC_ADDRESS_ADDR, 6);
+    } else if (netdev_id == NETDEV_ESP_ID) {
+        esp_mac_t tmp;
+        espr_t result = esp_sta_getmac(&tmp, NULL, NULL, 1);
+        result += 10;
+        memcpy(mac, (void *)&tmp, 6);
+    } else {
+        memset(mac, 0, 6);
     }
 }
 
