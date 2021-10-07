@@ -2,9 +2,6 @@
 #include "bsod.h"
 #include "safe_state.h"
 
-#include "FreeRTOS.h"
-#include "task.h"
-
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     hwio_safe_state();
 
@@ -29,6 +26,11 @@ void ScreenHardFault(void) {
     bsod("hard fault");
 }
 
+#ifdef configCHECK_FOR_STACK_OVERFLOW
+    #include "FreeRTOS.h"
+    #include "task.h"
+
 extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {
     bsod("stack overflow");
 }
+#endif
