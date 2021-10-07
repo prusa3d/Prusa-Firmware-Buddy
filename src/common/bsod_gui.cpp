@@ -7,43 +7,39 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#ifndef HAS_GUI
-    #error "HAS_GUI not defined"
-#elif HAS_GUI
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+#include <inttypes.h>
 
-    #include <stdio.h>
-    #include <stdarg.h>
-    #include <stdlib.h>
-    #include <string.h>
-    #include <inttypes.h>
+#include <algorithm>
 
-    #include <algorithm>
+#include "sound.hpp"
+#include "Rect16.h"
+#include "stm32f4xx_hal.h"
+#include "config.h"
+#include "gui.hpp"
+#include "term.h"
+#include "window_term.hpp"
+#include "Jogwheel.hpp"
+#include "gpio.h"
+#include "sys.h"
+#include "hwio.h"
+#include "version.h"
+#include "window_qr.hpp"
+#include "support_utils.h"
+#include "str_utils.hpp"
+#include "guitypes.h"
+#include "i18n.h"
+#include "../../lib/Prusa-Error-Codes/12_MINI/errors_list.h"
+#include "../../lib/Marlin/Marlin/src/core/language.h"
+#include "../../lib/Marlin/Marlin/src/lcd/language/language_en.h"
+#include "scratch_buffer.hpp"
+#include "eeprom.h"
 
-    #include "sound.hpp"
-    #include "Rect16.h"
-    #include "stm32f4xx_hal.h"
-    #include "config.h"
-    #include "gui.hpp"
-    #include "term.h"
-    #include "window_term.hpp"
-    #include "Jogwheel.hpp"
-    #include "gpio.h"
-    #include "sys.h"
-    #include "hwio.h"
-    #include "version.h"
-    #include "window_qr.hpp"
-    #include "support_utils.h"
-    #include "str_utils.hpp"
-    #include "guitypes.h"
-    #include "i18n.h"
-    #include "../../lib/Prusa-Error-Codes/12_MINI/errors_list.h"
-    #include "../../lib/Marlin/Marlin/src/core/language.h"
-    #include "../../lib/Marlin/Marlin/src/lcd/language/language_en.h"
-    #include "scratch_buffer.hpp"
-    #include "eeprom.h"
-
-    /* FreeRTOS includes. */
-    #include "StackMacros.h"
+/* FreeRTOS includes. */
+#include "StackMacros.h"
 
 //this is private struct definition from FreeRTOS
 /*
@@ -54,9 +50,9 @@
 typedef struct tskTaskControlBlock {
     volatile StackType_t *pxTopOfStack; /*< Points to the location of the last item placed on the tasks stack.  THIS MUST BE THE FIRST MEMBER OF THE TCB STRUCT. */
 
-    #if (portUSING_MPU_WRAPPERS == 1)
-    xMPU_SETTINGS xMPUSettings;         /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
-    #endif
+#if (portUSING_MPU_WRAPPERS == 1)
+    xMPU_SETTINGS xMPUSettings; /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
+#endif
 
     ListItem_t xStateListItem;                /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
     ListItem_t xEventListItem;                /*< Used to reference a task from an event list. */
@@ -65,37 +61,37 @@ typedef struct tskTaskControlBlock {
     char pcTaskName[configMAX_TASK_NAME_LEN]; /*< Descriptive name given to the task when created.  Facilitates debugging only. */
     /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
 
-    #if (portSTACK_GROWTH > 0)
-    StackType_t *pxEndOfStack;     /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
-    #endif
+#if (portSTACK_GROWTH > 0)
+    StackType_t *pxEndOfStack; /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
+#endif
 
-    #if (portCRITICAL_NESTING_IN_TCB == 1)
+#if (portCRITICAL_NESTING_IN_TCB == 1)
     UBaseType_t uxCriticalNesting; /*< Holds the critical section nesting depth for ports that do not maintain their own count in the port layer. */
-    #endif
+#endif
 
-    #if (configUSE_TRACE_FACILITY == 1)
-    UBaseType_t uxTCBNumber;       /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
-    UBaseType_t uxTaskNumber;      /*< Stores a number specifically for use by third party trace code. */
-    #endif
+#if (configUSE_TRACE_FACILITY == 1)
+    UBaseType_t uxTCBNumber;  /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
+    UBaseType_t uxTaskNumber; /*< Stores a number specifically for use by third party trace code. */
+#endif
 
-    #if (configUSE_MUTEXES == 1)
-    UBaseType_t uxBasePriority;    /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
+#if (configUSE_MUTEXES == 1)
+    UBaseType_t uxBasePriority; /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
     UBaseType_t uxMutexesHeld;
-    #endif
+#endif
 
-    #if (configUSE_APPLICATION_TASK_TAG == 1)
+#if (configUSE_APPLICATION_TASK_TAG == 1)
     TaskHookFunction_t pxTaskTag;
-    #endif
+#endif
 
-    #if (configNUM_THREAD_LOCAL_STORAGE_POINTERS > 0)
+#if (configNUM_THREAD_LOCAL_STORAGE_POINTERS > 0)
     void *pvThreadLocalStoragePointers[configNUM_THREAD_LOCAL_STORAGE_POINTERS];
-    #endif
+#endif
 
-    #if (configGENERATE_RUN_TIME_STATS == 1)
+#if (configGENERATE_RUN_TIME_STATS == 1)
     uint32_t ulRunTimeCounter; /*< Stores the amount of time the task has spent in the Running state. */
-    #endif
+#endif
 
-    #if (configUSE_NEWLIB_REENTRANT == 1)
+#if (configUSE_NEWLIB_REENTRANT == 1)
     /* Allocate a Newlib reent structure that is specific to this task.
 		Note Newlib support has been included by popular demand, but is not
 		used by the FreeRTOS maintainers themselves.  FreeRTOS is not
@@ -104,22 +100,22 @@ typedef struct tskTaskControlBlock {
 		stubs. Be warned that (at the time of writing) the current newlib design
 		implements a system-wide malloc() that must be provided with locks. */
     struct _reent xNewLib_reent;
-    #endif
+#endif
 
-    #if (configUSE_TASK_NOTIFICATIONS == 1)
+#if (configUSE_TASK_NOTIFICATIONS == 1)
     volatile uint32_t ulNotifiedValue;
     volatile uint8_t ucNotifyState;
-    #endif
+#endif
 
-    /* See the comments above the definition of
+/* See the comments above the definition of
 	tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE. */
-    #if (tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE != 0)
+#if (tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE != 0)
     uint8_t ucStaticallyAllocated; /*< Set to pdTRUE if the task is a statically allocated to ensure no attempt is made to free the memory. */
-    #endif
+#endif
 
-    #if (INCLUDE_xTaskAbortDelay == 1)
+#if (INCLUDE_xTaskAbortDelay == 1)
     uint8_t ucDelayAborted;
-    #endif
+#endif
 
 } tskTCB;
 
@@ -404,14 +400,14 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
     stop_common();
 
-    #ifdef PSOD_BSOD
+#ifdef PSOD_BSOD
 
     display::Clear(COLOR_BLACK); //clear with black color
     //display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_64px, COLOR_BLACK, 0);
     display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_140px, COLOR_BLACK, 0);
     display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
 
-    #else
+#else
 
     display::Clear(COLOR_NAVY); ///< clear with dark blue color
     const int COLS = 32;
@@ -461,7 +457,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     render_text_align(Rect16(8, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
     display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
 
-    #endif
+#endif
 
     while (1) //endless loop
     {
@@ -473,7 +469,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     va_end(args);
 }
 
-    #ifdef configCHECK_FOR_STACK_OVERFLOW
+#ifdef configCHECK_FOR_STACK_OVERFLOW
 
 static TaskHandle_t tsk_hndl = 0;
 static signed char *tsk_name = 0;
@@ -487,9 +483,9 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *p
         _bsod("STACK OVERFLOW\nHANDLE %p\nTaskname ERROR", 0, 0, xTask);
 }
 
-    #endif //configCHECK_FOR_STACK_OVERFLOW
+#endif //configCHECK_FOR_STACK_OVERFLOW
 
-    #ifndef PSOD_BSOD
+#ifndef PSOD_BSOD
 //https://www.freertos.org/Debugging-Hard-Faults-On-Cortex-M-Microcontrollers.html
 
 /*
@@ -744,30 +740,4 @@ void ScreenHardFault(void) {
     display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 }
 
-    #endif //PSOD_BSOD
-
-#else  //HAS_GUI
-void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
-    hwio_safe_state();
-
-    // busy wait for wdr
-    while (1) {
-    }
-}
-
-void general_error(const char *error, const char *module) {
-    bsod(error);
-}
-
-void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-    bsod(error);
-}
-
-void ScreenHardFault(void) {
-    bsod("hard fault");
-}
-
-extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {
-    bsod("stack overflow");
-}
-#endif //HAS_GUI
+#endif //PSOD_BSOD

@@ -563,7 +563,8 @@ target_sources(
           src/common/wdt.cpp
           src/common/dump.c
           src/common/marlin_client.c
-          src/common/bsod.cpp
+          $<$<BOOL:${GUI}>:src/common/bsod_gui.cpp>
+          $<$<NOT:$<BOOL:${GUI}>>:src/common/bsod_nogui.cpp>
           src/common/version.c
           src/common/marlin_events.c
           src/common/marlin_errors.c
@@ -794,7 +795,6 @@ set_property(
 
 set_property(
   SOURCE src/main.cpp
-         src/common/bsod.cpp
          src/common/appmain.cpp
          src/common/sys.cpp
          src/marlin_stubs/M50.cpp
