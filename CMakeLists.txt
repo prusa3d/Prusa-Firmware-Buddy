@@ -749,6 +749,7 @@ if(GUI)
             src/guiapi/src/st7789v.cpp
             src/guiapi/src/display_ex.cpp
             src/guiapi/src/window_icon.cpp
+            src/guiapi/src/i_window_text.cpp
             src/guiapi/src/window_text.cpp
             src/guiapi/src/window_roll_text.cpp
             src/guiapi/src/window_msgbox.cpp

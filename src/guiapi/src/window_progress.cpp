@@ -80,7 +80,7 @@ void window_progress_t::SetProgressColor(color_t clr) {
 }
 
 void window_progress_t::SetNumbColor(color_t clr) {
-    numb.SetColor(clr);
+    numb.SetTextColor(clr);
 }
 
 void window_progress_t::SetProgressHeight(Rect16::Height_t height) {

@@ -6,6 +6,7 @@
 
 #include "ifooter_item.hpp"
 #include "cmath_ext.h"
+#include "display_helper.h"
 
 IFooterItem::IFooterItem(window_t *parent, Rect16::W_t width)
     : AddSuperWindow<window_frame_t>(parent, Rect16(0, 0 /* item_top*/, width, item_h))

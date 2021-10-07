@@ -37,11 +37,14 @@ window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_i16_t pt, 
 
 void window_icon_t::unconditionalDraw() {
     ropfn raster_op;
-    if (IsShadowed()) { // that could not be set, but what if
-        raster_op.disable = is_disabled::yes;
-    }
-    if (IsFocused()) {
-        raster_op.swap_bw = has_swapped_bw::yes;
+    //TODO remove this if statement (its body too)
+    if (!(flags.color_scheme_background || flags.color_scheme_foreground)) {
+        if (IsShadowed()) { // that could not be set, but what if
+            raster_op.disable = is_disabled::yes;
+        }
+        if (IsFocused()) {
+            raster_op.swap_bw = has_swapped_bw::yes;
+        }
     }
 
     render_icon_align(GetRect(), id_res, GetBackColor(), icon_flags(GetAlignment(), raster_op));
