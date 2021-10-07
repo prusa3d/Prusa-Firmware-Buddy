@@ -264,12 +264,17 @@ static void esp_ip_free(esp_pcb *epcb) {
 
 static esp_pcb *listen_api = NULL;
 
-static void custom_pbuf_free(struct pbuf *p) {
-    // This actually holds reference to esp pbuf backing this ones pbuf data
-    esp_pbuf_free((esp_pbuf_p)p->next);
+typedef struct {
+    struct pbuf_custom custom_lwip_pbuf;
+    esp_pbuf_p esp_pbuf;
+} lwip_esp_pbuf_custom;
 
-    // Free this custom pbuf (as first member the address is also usable to free whole custom pbuf)
-    esp_mem_free((struct esp_pbuf_custom *)p);
+static void custom_pbuf_free(struct pbuf *p) {
+    // pbuf is first member of custom lwip[ esp wrapper
+    lwip_esp_pbuf_custom *custom = (lwip_esp_pbuf_custom *)p;
+
+    esp_pbuf_free(custom->esp_pbuf);
+    esp_mem_free(custom);
 }
 
 static espr_t esp_evt_conn_active(esp_conn_p conn) {
@@ -335,27 +340,33 @@ static espr_t esp_evt_conn_recv(esp_conn_p conn, esp_evt_t *evt) {
         return espERR;
     }
     esp_conn_recved(conn, pbuf); /* Notify stack about received data */
-    epcb->rcv_packets++;         /* Increase number of received packets */
-    epcb->rcv_bytes += esp_pbuf_length(pbuf, 0);
-    ALTCP_ESP_DEBUG_FN("Received %ld packets, %ld bytes", epcb->rcv_packets, epcb->rcv_bytes);
+    epcb->rcv_packets++; // Increase number of received packets
+    const size_t recv_len = esp_pbuf_length(pbuf, 0);
+    epcb->rcv_bytes += recv_len;
+    ALTCP_ESP_DEBUG_FN("Received %ld, total %ld packets, %ld bytes", recv_len,
+        epcb->rcv_packets, epcb->rcv_bytes);
 
     if (esp_pbuf_length(pbuf, 0) != esp_pbuf_length(pbuf, 1)) {
         ALTCP_ESP_DEBUG_FN("!!! rcv pbuf has multiple parts, this is not supported !!!!");
     }
 
-    struct pbuf_custom *custom_pbuf = esp_mem_malloc(sizeof(struct pbuf_custom));
-    custom_pbuf->custom_free_function = custom_pbuf_free;
+    /** This does a bit tricky zero copy LwESP PBUF to LwIP PBUF conversion
+     * Custom pbuf wrapper holds custom LwIP PBUF together with original LwESP
+     * PBUF in order to dealocate the later one at the same time as the first one */
+    lwip_esp_pbuf_custom *custom_pbuf_wrapper = esp_mem_malloc(sizeof(lwip_esp_pbuf_custom));
+    memset(custom_pbuf_wrapper, 0, sizeof(lwip_esp_pbuf_custom));
+    custom_pbuf_wrapper->custom_lwip_pbuf.custom_free_function = custom_pbuf_free;
     const size_t recv_len = esp_pbuf_length(pbuf, 0);
-    struct pbuf *lwip_pbuf = pbuf_alloced_custom(PBUF_RAW, recv_len, PBUF_REF, custom_pbuf, (char *)esp_pbuf_data(pbuf), recv_len);
+    struct pbuf *lwip_pbuf = pbuf_alloced_custom(PBUF_RAW, recv_len, PBUF_REF,
+        &custom_pbuf_wrapper->custom_lwip_pbuf, (char *)esp_pbuf_data(pbuf), recv_len);
     if (!lwip_pbuf) {
         ALTCP_ESP_DEBUG_FN("Failed to obtain custom LwIP pbuf, len: %ld", recv_len);
         esp_pbuf_free(pbuf);
-        esp_mem_free(custom_pbuf);
+        esp_mem_free(custom_pbuf_wrapper);
         return espERR;
     }
-    lwip_pbuf->next = (struct pbuf *)pbuf; // Abuse next to hold reference to underlying ESP pbuf
+    custom_pbuf_wrapper->esp_pbuf = pbuf;
 
-    // Run the recv callback with lwip pbuf
     return altcp_esp_recv(epcb->alconn, epcb, lwip_pbuf, 0);
 }
 
