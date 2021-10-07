@@ -1,13 +1,11 @@
 // bsod.c - blue screen of death
-#include <algorithm>
-#include <cmath>
-
 #include "bsod.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "sound.hpp"
 #include "wdt.h"
 #include "dump.h"
+#include "safe_state.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
 
 #ifndef HAS_GUI
     #error "HAS_GUI not defined"
@@ -19,8 +17,10 @@
     #include <string.h>
     #include <inttypes.h>
 
+    #include <algorithm>
+
+    #include "sound.hpp"
     #include "Rect16.h"
-    #include "safe_state.h"
     #include "stm32f4xx_hal.h"
     #include "config.h"
     #include "gui.hpp"
@@ -747,9 +747,27 @@ void ScreenHardFault(void) {
     #endif //PSOD_BSOD
 
 #else  //HAS_GUI
-void _bsod(const char *fmt, const char *file_name, int line_number, ...) {}
-void general_error(const char *error, const char *module) {}
-void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {}
-void ScreenHardFault(void) {}
-extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {}
+void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
+    hwio_safe_state();
+
+    // busy wait for wdr
+    while (1) {
+    }
+}
+
+void general_error(const char *error, const char *module) {
+    bsod(error);
+}
+
+void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
+    bsod(error);
+}
+
+void ScreenHardFault(void) {
+    bsod("hard fault");
+}
+
+extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {
+    bsod("stack overflow");
+}
 #endif //HAS_GUI
