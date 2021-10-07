@@ -2,22 +2,16 @@
 
 #pragma once
 
-#include "window.hpp"
-#include "display_helper.h" // is_multiline
+#include "i_window_text.hpp"
+#include "font_flags.hpp" // is_multiline
 #include "../../lang/string_view_utf8.hpp"
 
-struct window_text_t : public AddSuperWindow<window_aligned_t> {
-    color_t color_text;
-    font_t *font;
+class window_text_t : public AddSuperWindow<IWindowText> {
+public:
     string_view_utf8 text;
-    padding_ui8_t padding;
 
     string_view_utf8 GetText() const { return text; }
     virtual void SetText(string_view_utf8 txt);
-    void SetTextColor(color_t clr);
-
-    constexpr color_t GetTextColor() const { return color_text; }
-    void SetPadding(padding_ui8_t padd);
 
     window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
 
@@ -40,7 +34,7 @@ class WindowBlinkingText : public AddSuperWindow<window_text_t> {
     bool blink_enable;
 
 public:
-    constexpr void SetBlinkColor(color_t clr) {
+    void SetBlinkColor(color_t clr) {
         color_blink = clr;
         color_blink == GetTextColor() ? DisableBlink() : EnableBlink();
     }

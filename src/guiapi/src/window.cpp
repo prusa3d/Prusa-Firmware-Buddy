@@ -150,15 +150,19 @@ color_t window_t::GetBackColor() const {
 }
 
 void window_t::SetBackColor(color_t clr) {
-    color_back = clr;
-    flags.color_scheme_background = false;
-    Invalidate();
+    if (flags.color_scheme_background || color_back != clr) {
+        color_back = clr;
+        flags.color_scheme_background = false;
+        Invalidate();
+    }
 }
 
 void window_t::SetBackColor(const color_scheme &clr) {
-    pBackColorScheme = &clr;
-    flags.color_scheme_background = true;
-    Invalidate();
+    if ((!flags.color_scheme_background) || (!pBackColorScheme) || ((*pBackColorScheme) != clr)) {
+        flags.color_scheme_background = true;
+        Invalidate();
+    }
+    pBackColorScheme = &clr; // rewrite even when value is same, because address might be different
 }
 
 window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)

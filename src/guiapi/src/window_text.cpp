@@ -10,34 +10,24 @@ void window_text_t::SetText(string_view_utf8 txt) {
     Invalidate();
 }
 
-void window_text_t::SetTextColor(color_t clr) {
-    if (color_text != clr) {
-        color_text = clr;
-        Invalidate();
-    }
-}
-
-void window_text_t::SetPadding(padding_ui8_t padd) {
-    if (padding != padd) {
-        padding = padd;
-        Invalidate();
-    }
-}
-
 window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close, string_view_utf8 txt)
-    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
-    , color_text(GuiDefaults::ColorText)
-    , font(GuiDefaults::Font)
-    , text(txt)
-    , padding(GuiDefaults::Padding) {
-    flags.custom0 = bool(multiline);
+    : AddSuperWindow<IWindowText>(parent, rect, close)
+    , text(txt) {
+    flags.multiline = bool(multiline);
 }
 
 void window_text_t::unconditionalDraw() {
-    render_text_align(GetRect(), text, font,
-        (IsFocused()) ? color_text : GetBackColor(),
-        (IsFocused()) ? GetBackColor() : color_text,
-        padding, { GetAlignment(), is_multiline(flags.custom0) });
+    if (flags.color_scheme_background || flags.color_scheme_foreground) {
+        //TODO keep only folowing 3 lines in function body, remove rest
+        super::unconditionalDraw();
+        render_text_align(GetRect(), text, font, GetBackColor(), GetTextColor(),
+            padding, { GetAlignment(), is_multiline(flags.multiline) });
+    } else {
+        render_text_align(GetRect(), text, font,
+            (IsFocused()) ? GetTextColor() : GetBackColor(),
+            (IsFocused()) ? GetBackColor() : GetTextColor(),
+            padding, { GetAlignment(), is_multiline(flags.multiline) });
+    }
 }
 
 /*****************************************************************************/
