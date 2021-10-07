@@ -66,6 +66,7 @@ size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb)
     : AddSuperWindow<window_icon_t>(parent, rect, id_res)
     , callback(cb) {
+    SetBackColor(GuiDefaults::ClickableIconColorScheme);
     Enable();
 }
 
