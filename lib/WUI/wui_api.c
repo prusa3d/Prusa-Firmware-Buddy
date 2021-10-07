@@ -31,8 +31,6 @@ char filename[FILE_NAME_MAX_LEN];
 
 static FILE *upload_file = NULL;
 static char tmp_filename[FILE_NAME_MAX_LEN];
-static const uint32_t PRINTER_TYPE_ADDR = 0x0802002F;    // 1 B
-static const uint32_t PRINTER_VERSION_ADDR = 0x08020030; // 1 B
 static bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
 
@@ -219,30 +217,6 @@ uint32_t load_eth_params(ETH_config_t *ethconfig) {
     return 0;
 }
 
-void get_printer_info(printer_info_t *printer_info) {
-    // FIRMWARE VERSION
-    strlcpy(printer_info->firmware_version, project_version_full, FW_VER_STR_LEN);
-    // PRINTER TYPE
-    printer_info->printer_type = *(volatile uint8_t *)PRINTER_TYPE_ADDR;
-    // PRINTER_VERSION
-    printer_info->printer_version = *(volatile uint8_t *)PRINTER_VERSION_ADDR;
-    // MAC ADDRESS
-    parse_MAC_address(&printer_info->mac_address);
-    // SERIAL NUMBER
-    for (int i = 0; i < OTP_SERIAL_NUMBER_SIZE; i++) {
-        printer_info->serial_number[i] = *(volatile char *)(OTP_SERIAL_NUMBER_ADDR + i);
-    }
-    // UUID - 96 bits
-    volatile uint32_t *uuid_ptr = (volatile uint32_t *)OTP_STM32_UUID_ADDR;
-    snprintf(printer_info->mcu_uuid, UUID_STR_LEN, "%08lx-%08lx-%08lx", *uuid_ptr, *(uuid_ptr + 1), *(uuid_ptr + 2));
-}
-
-void parse_MAC_address(mac_address_t *dest) {
-    volatile uint8_t *mac_ptr = (volatile uint8_t *)OTP_MAC_ADDRESS_ADDR;
-    snprintf(*dest, MAC_ADDR_STR_LEN, "%02x:%02x:%02x:%02x:%02x:%02x",
-        *mac_ptr, *(mac_ptr + 1), *(mac_ptr + 2), *(mac_ptr + 3), *(mac_ptr + 4), *(mac_ptr + 5));
-}
-
 void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config) {
     char addr[IP4_ADDR_STR_SIZE], msk[IP4_ADDR_STR_SIZE], gw[IP4_ADDR_STR_SIZE];
     char dns1[IP4_ADDR_STR_SIZE], dns2[IP4_ADDR_STR_SIZE];
@@ -258,19 +232,6 @@ void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config) {
         "[network]\nhostname=%s\ndns4=%s;%s",
         IS_LAN_STATIC(config->lan.flag) ? "STATIC" : "DHCP", addr, msk, gw,
         config->hostname, dns1, dns2);
-}
-
-void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config) {
-    char addr[IP4_ADDR_STR_SIZE], msk[IP4_ADDR_STR_SIZE], gw[IP4_ADDR_STR_SIZE];
-    mac_address_t mac;
-    parse_MAC_address(&mac);
-
-    ip4addr_ntoa_r(&(config->lan.addr_ip4), addr, IP4_ADDR_STR_SIZE);
-    ip4addr_ntoa_r(&(config->lan.msk_ip4), msk, IP4_ADDR_STR_SIZE);
-    ip4addr_ntoa_r(&(config->lan.gw_ip4), gw, IP4_ADDR_STR_SIZE);
-
-    snprintf(*dest, LAN_DESCP_SIZE, "IPv4 Address:\n%s\nIPv4 Netmask:\n%s\nIPv4 Gateway:\n%s\nMAC Address:\n%s",
-        addr, msk, gw, mac);
 }
 
 time_t sntp_get_system_time(void) {
