@@ -613,7 +613,8 @@ static int eeprom_convert_from_v9(void) {
     eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_init_FW_identifiers(vars);
 
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_DEVHASH_IN_QR, &(vars.FILAMENT_TYPE));
+    // start addres of imported data block (FILAMENT_TYPE..EEVAR_DEVHASH_IN_QR)
+    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_FOOTER_SETTING, &(vars.FILAMENT_TYPE));
 
     eeprom_make_patches(vars);
 
