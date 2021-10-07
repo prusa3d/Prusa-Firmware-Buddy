@@ -7,7 +7,7 @@
 #include "screen_menus.hpp"
 
 #ifdef _DEBUG
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_STATISTIC_disabled, MI_SYS_INFO, MI_FAIL_STAT_disabled,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SYS_INFO, MI_FAIL_STAT_disabled,
     MI_SUPPORT_disabled, MI_SENSOR_INFO, MI_VERSION_INFO, MI_ODOMETER>;
 #else
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SYS_INFO, MI_SENSOR_INFO, MI_VERSION_INFO, MI_ODOMETER>;
