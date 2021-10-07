@@ -7,39 +7,19 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include <stdio.h>
 #include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <inttypes.h>
-
-#include <algorithm>
 
 #include "sound.hpp"
-#include "Rect16.h"
-#include "stm32f4xx_hal.h"
-#include "config.h"
 #include "gui.hpp"
-#include "term.h"
-#include "window_term.hpp"
 #include "Jogwheel.hpp"
-#include "gpio.h"
 #include "sys.h"
 #include "hwio.h"
 #include "version.h"
-#include "window_qr.hpp"
 #include "support_utils.h"
 #include "str_utils.hpp"
-#include "guitypes.h"
-#include "i18n.h"
 #include "../../lib/Prusa-Error-Codes/12_MINI/errors_list.h"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
-#include "../../lib/Marlin/Marlin/src/lcd/language/language_en.h"
 #include "scratch_buffer.hpp"
-#include "eeprom.h"
-
-/* FreeRTOS includes. */
-#include "StackMacros.h"
 
 //this is private struct definition from FreeRTOS
 /*
