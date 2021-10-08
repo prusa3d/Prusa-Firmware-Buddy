@@ -773,9 +773,7 @@ static void vPortEnableVFP( void )
 		scheduler.  Note however that some vendor specific peripheral libraries
 		assume a non-zero priority group setting, in which cases using a value
 		of zero will result in unpredicable behaviour. */
-
-		// Buddy FW is using NVIC_PRIORITYGROUP_3 (3:1) - disable this check
-		//configASSERT( ( portAIRCR_REG & portPRIORITY_GROUP_MASK ) <= ulMaxPRIGROUPValue );
+		configASSERT( ( portAIRCR_REG & portPRIORITY_GROUP_MASK ) <= ulMaxPRIGROUPValue );
 	}
 
 #endif /* configASSERT_DEFINED */
