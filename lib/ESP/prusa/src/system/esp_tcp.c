@@ -127,8 +127,8 @@ static err_t espr_t2err_t(const espr_t err) {
 }
 
 /* Check ALTCP and ESP PCB connection consistency */
-static void ALTCP_TCP_ASSERT_CONN_PCB(struct altcp_pcb *conn, esp_pcb *epcb) {
-    if (!conn) {
+static void ALTCP_TCP_ASSERT_CONN_PCB(struct altcp_pcb *alconn, esp_pcb *epcb) {
+    if (!alconn) {
         ALTCP_ESP_DEBUG_FN("ESP connection pointer is NULL when is thould be set !!!");
     }
 
@@ -136,12 +136,12 @@ static void ALTCP_TCP_ASSERT_CONN_PCB(struct altcp_pcb *conn, esp_pcb *epcb) {
         ALTCP_ESP_DEBUG_FN("ESP PCB pointer is NULL when it should be set !!!!");
     }
 
-    if (conn->state != epcb) {
-        ALTCP_ESP_DEBUG_FN("ESP connection - ESP PCB mismatch conn->state: %x != epcb: %x !!!", conn->state, epcb);
+    if (alconn->state != epcb) {
+        ALTCP_ESP_DEBUG_FN("ESP connection - ESP PCB mismatch conn->state: %x != epcb: %x !!!", alconn->state, epcb);
     }
 
-    if (epcb->alconn != conn) {
-        ALTCP_ESP_DEBUG_FN("ESP PCB - ALTCP connection mismatch epcb->alconn: %x != conn: %x !!!", epcb->alconn, conn);
+    if (epcb->alconn != alconn) {
+        ALTCP_ESP_DEBUG_FN("ESP PCB - ALTCP connection mismatch epcb->alconn: %x != conn: %x !!!", epcb->alconn, alconn);
     }
 }
 
@@ -247,7 +247,6 @@ static void altcp_esp_err(void *arg, err_t err) {
         ALTCP_ESP_DEBUG_FN("esp err - > no conn !!!");
         return;
     }
-    conn->state = NULL; /* already freed */
     if (conn->err) {
         conn->err(conn->arg, err);
     }
@@ -265,9 +264,11 @@ static void altcp_esp_setup(struct altcp_pcb *conn, esp_pcb *epcb) {
 
 static esp_pcb *esp_new_ip_type(u8_t ip_type) {
     esp_pcb *epcb = (esp_pcb *)esp_mem_malloc(sizeof(esp_pcb));
-    if (epcb) {
-        memset(epcb, 0, sizeof(esp_pcb));
+    if (!epcb) {
+        return NULL;
     }
+
+    memset(epcb, 0, sizeof(esp_pcb));
     return epcb;
 }
 
@@ -403,9 +404,9 @@ static espr_t esp_evt_conn_closed(esp_conn_p conn) {
         ALTCP_ESP_DEBUG_FN("Connection closed and ALPCB already NULL");
         return espERR;
     }
+    ALTCP_TCP_ASSERT_CONN_PCB(alpcb, epcb);
 
     altcp_esp_err(alpcb, ERR_CLSD);
-    esp_mem_free(epcb);
     return espOK;
 }
 
@@ -729,10 +730,12 @@ static void altcp_esp_setprio(struct altcp_pcb *conn, u8_t prio) {
 static void altcp_esp_dealloc(struct altcp_pcb *conn) {
     ALTCP_ESP_DEBUG_FN("altcp_esp_dealloc");
     esp_pcb *epcb = conn->state;
-    if (epcb) {
-        esp_mem_free(epcb);
-        conn->state = NULL;
+    if (!epcb) {
+        return;
     }
+
+    esp_mem_free(epcb);
+    conn->state = NULL;
 }
 
 static err_t altcp_esp_get_tcp_addrinfo(struct altcp_pcb *conn, int local, ip_addr_t *addr, u16_t *port) {
