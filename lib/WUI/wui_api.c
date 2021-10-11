@@ -9,6 +9,7 @@
  */
 
 #include "wui_api.h"
+#include "netdev.h"
 #include "version.h"
 #include "otp.h"
 #include "ini_handler.h"
@@ -17,6 +18,7 @@
 #include "print_utils.hpp"
 #include "marlin_client.h"
 
+#include <assert.h>
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
@@ -119,7 +121,6 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
     }
 
     if (def->ap) {
-        // FIXME: Do we follow the ticket or the doc/network.ini?
         if (ini_string_match(section, "wifi", name, "key_mgmt")) {
             if (strcasecmp("WPA", value) == 0) {
                 def->ap->security = AP_SEC_WPA;
@@ -129,10 +130,13 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
                 def->ap->security = AP_SEC_NONE;
             }
             // TODO: else -> ??? Any way to tell the user?
+            tmp_config->var_mask |= ETHVAR_MSK(APVAR_SECURITY);
         } else if (ini_string_match(section, "wifi", name, "ssid")) {
             strlcpy(def->ap->ssid, value, SSID_MAX_LEN + 1);
+            tmp_config->var_mask |= ETHVAR_MSK(APVAR_SSID);
         } else if (ini_string_match(section, "wifi", name, "psk")) {
             strlcpy(def->ap->pass, value, WIFI_PSK_MAX + 1);
+            tmp_config->var_mask |= ETHVAR_MSK(APVAR_PASS);
         }
     }
 
@@ -154,66 +158,122 @@ uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap) {
                                            });
 }
 
-uint32_t save_eth_params(ETH_config_t *ethconfig) {
+// Pick the right variable depending on the net device we use.
+// Note this abuses the fact that both EEVAR_ETH and EEVAR_WIFI blocks have the same order.
+static enum eevar_id vid(enum eevar_id id, uint32_t net_id) {
+    uint8_t offset = 0;
+    switch (net_id) {
+    case NETDEV_ETH_ID:
+        // offset = 0
+        break;
+    case NETDEV_ESP_ID:
+        offset = EEVAR_WIFI_FLAG - EEVAR_LAN_FLAG;
+        break;
+    default:
+        assert(0 /* Unknown net device */);
+    }
 
-    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
-        eeprom_set_var(EEVAR_LAN_FLAG, variant8_ui8(ethconfig->lan.flag));
+    return id + offset;
+}
+
+uint32_t save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
+    if (ethconfig->var_mask & (ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(APVAR_SECURITY))) {
+        uint8_t flags = ethconfig->lan.flag;
+        if (ap != NULL) {
+            flags |= ap->security;
+        }
+        eeprom_set_var(vid(EEVAR_LAN_FLAG, netdev_id), variant8_ui8(ethconfig->lan.flag));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
-        eeprom_set_var(EEVAR_LAN_IP4_ADDR, variant8_ui32(ethconfig->lan.addr_ip4.addr));
+        eeprom_set_var(vid(EEVAR_LAN_IP4_ADDR, netdev_id), variant8_ui32(ethconfig->lan.addr_ip4.addr));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS1_IP4)) {
-        eeprom_set_var(EEVAR_LAN_IP4_DNS1, variant8_ui32(ethconfig->dns1_ip4.addr));
+        eeprom_set_var(vid(EEVAR_LAN_IP4_DNS1, netdev_id), variant8_ui32(ethconfig->dns1_ip4.addr));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS2_IP4)) {
-        eeprom_set_var(EEVAR_LAN_IP4_DNS2, variant8_ui32(ethconfig->dns2_ip4.addr));
+        eeprom_set_var(vid(EEVAR_LAN_IP4_DNS2, netdev_id), variant8_ui32(ethconfig->dns2_ip4.addr));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_MSK_IP4)) {
-        eeprom_set_var(EEVAR_LAN_IP4_MSK, variant8_ui32(ethconfig->lan.msk_ip4.addr));
+        eeprom_set_var(vid(EEVAR_LAN_IP4_MSK, netdev_id), variant8_ui32(ethconfig->lan.msk_ip4.addr));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_GW_IP4)) {
-        eeprom_set_var(EEVAR_LAN_IP4_GW, variant8_ui32(ethconfig->lan.gw_ip4.addr));
+        eeprom_set_var(vid(EEVAR_LAN_IP4_GW, netdev_id), variant8_ui32(ethconfig->lan.gw_ip4.addr));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
         variant8_t hostname = variant8_pchar(ethconfig->hostname, 0, 0);
-        eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
+        eeprom_set_var(vid(EEVAR_LAN_HOSTNAME, netdev_id), hostname);
         //variant8_done() is not called, variant_pchar with init flag 0 doesnt hold its memory
     }
-    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_TIMEZONE)) {
-        eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(ethconfig->timezone));
+
+    if (ap != NULL) {
+        assert(netdev_id == NETDEV_ESP_ID);
+        // For technical reasons, we have this limit in two places. Check they match.
+        //
+        // Any chance of static_assert in plain old C? :-( The compiler will
+        // optimize it out as always-true if OK, but it'd fail at runtime in
+        // instead of compile-time, harder to debug and fix.
+        assert(SSID_MAX_LEN == WIFI_MAX_SSID_LEN);
+        assert(WIFI_PSK_MAX == WIFI_MAX_PASSWD_LEN);
+
+        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_SSID)) {
+            eeprom_set_var(EEVAR_WIFI_AP_SSID, variant8_pchar(ap->ssid, 0, 0));
+            //variant8_done() is not called, variant_pchar with init flag 0 doesnt hold its memory
+        }
+        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_PASS)) {
+            eeprom_set_var(EEVAR_WIFI_AP_PASSWD, variant8_pchar(ap->pass, 0, 0));
+            //variant8_done() is not called, variant_pchar with init flag 0 doesnt hold its memory
+        }
     }
 
     return 0;
 }
 
-uint32_t load_eth_params(ETH_config_t *ethconfig) {
+// Extract a fixed-sized string from EEPROM to provided buffer.
+//
+// maxlen is the length of the buffer, including the byte for \0.
+static void strextract(char *into, size_t maxlen, enum eevar_id var) {
+    variant8_t tmp = eeprom_get_var(var);
+    strlcpy(into, variant8_get_pch(tmp), maxlen);
+    variant8_t *ptmp = &tmp;
+    variant8_done(&ptmp);
+}
 
+uint32_t load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
-        ethconfig->lan.flag = variant8_get_ui8(eeprom_get_var(EEVAR_LAN_FLAG));
+        // Just the flags, without (possibly) the wifi secutiry
+        ethconfig->lan.flag = variant8_get_ui8(eeprom_get_var(vid(EEVAR_LAN_FLAG, netdev_id))) & ~APSEC_MASK;
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
-        ethconfig->lan.addr_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_ADDR));
+        ethconfig->lan.addr_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_ADDR, netdev_id)));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS1_IP4)) {
-        ethconfig->dns1_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_DNS1));
+        ethconfig->dns1_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_DNS1, netdev_id)));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS2_IP4)) {
-        ethconfig->dns2_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_DNS2));
+        ethconfig->dns2_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_DNS2, netdev_id)));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_MSK_IP4)) {
-        ethconfig->lan.msk_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_MSK));
+        ethconfig->lan.msk_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_MSK, netdev_id)));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_GW_IP4)) {
-        ethconfig->lan.gw_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_GW));
+        ethconfig->lan.gw_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_GW, netdev_id)));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
-        variant8_t hostname = eeprom_get_var(EEVAR_LAN_HOSTNAME);
-        variant8_t *pvar = &hostname;
-        strlcpy(ethconfig->hostname, variant8_get_pch(hostname), ETH_HOSTNAME_LEN + 1);
-        variant8_done(&pvar);
+        strextract(ethconfig->hostname, ETH_HOSTNAME_LEN + 1, vid(EEVAR_LAN_HOSTNAME, netdev_id));
     }
-    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_TIMEZONE)) {
-        ethconfig->timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
+
+    if (ap != NULL) {
+        assert(netdev_id == NETDEV_ESP_ID);
+
+        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_SECURITY)) {
+            ap->security = eeprom_get_var(EEVAR_WIFI_FLAG) & APSEC_MASK;
+        }
+        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_SSID)) {
+            strextract(ap->ssid, SSID_MAX_LEN + 1, EEVAR_WIFI_AP_SSID);
+        }
+        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_PASS)) {
+            strextract(ap->pass, WIFI_PSK_MAX + 1, EEVAR_WIFI_AP_PASSWD);
+        }
     }
 
     return 0;
@@ -298,15 +358,14 @@ time_t sntp_get_system_time(void) {
 }
 
 void sntp_set_system_time(uint32_t sec, int8_t last_timezone) {
-    ETH_config_t config = {};
-    config.var_mask = ETHVAR_MSK(ETHVAR_TIMEZONE);
-    load_eth_params(&config);
+
+    int8_t config_timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
 
     RTC_TimeTypeDef currTime;
     RTC_DateTypeDef currDate;
 
     struct tm current_time_val;
-    int8_t diff = config.timezone - last_timezone;
+    int8_t diff = config_timezone - last_timezone;
     time_t current_time = (time_t)sec + (diff * 3600);
 
     localtime_r(&current_time, &current_time_val);

@@ -35,6 +35,9 @@
 #define ETHVAR_EEPROM_CONFIG \
     (ETHVAR_STATIC_LAN_ADDRS | ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_HOSTNAME) | ETHVAR_MSK(ETHVAR_DNS1_IP4) | ETHVAR_MSK(ETHVAR_DNS2_IP4))
 
+#define APVAR_EEPROM_CONFIG \
+    (ETHVAR_MSK(APVAR_SSID) | ETHVAR_MSK(APVAR_PASS) | ETHVAR_MSK(APVAR_SECURITY))
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,9 +48,13 @@ typedef enum {
     ETHVAR_LAN_ADDR_IP4, // ip4_addr_t, lan.addr_ip4
     ETHVAR_LAN_MSK_IP4,  // ip4_addr_t, lan.msk_ip4
     ETHVAR_LAN_GW_IP4,   // ip4_addr_t, lan.gw_ip4
-    ETHVAR_TIMEZONE,     // int8_t, timezone
     ETHVAR_DNS1_IP4,     // ip_addr_t, dns1_ip4
     ETHVAR_DNS2_IP4,     // ip_addr_t, dns2_ip4
+
+    // Is it too much abuse to include the flags for the AP in the var_mask of related ETH_config_t?
+    APVAR_SECURITY, // ap_entry_t::security, saved together in the same byte as LAN_FLAGS
+    APVAR_SSID,     // char[32 + 1], ap_entry_t::ssid
+    APVAR_PASS,     // char[64 + 1], ap_entry_t::pass
 } ETHVAR_t;
 
 typedef char mac_address_t[MAC_ADDR_STR_LEN];
@@ -65,26 +72,30 @@ typedef struct {
 } printer_info_t;
 
 /*!*************************************************************************************************
-* \brief saves the Ethernet specific parameters to non-volatile memory
+* \brief saves the network parameters to non-volatile memory
 *
-* \param [in] ETH_config storage for parameters to set from static ethconfig to non-volatile memory
+* \param [in] ethconfig storage for parameters to set from static ethconfig to non-volatile memory
+* \param [in] ap_config storage for AP parameters. May be NULL. Non-null is valid only with NETDEV_ESP_ID.
+* \param [in] netdev_id which slots to use in the eeprom. Either NETDEV_ETH_ID or NETDEV_ESP_ID.
 *
 * \return   uint32_t    error value
 *
 * \retval   0 if successful
 ***************************************************************************************************/
-uint32_t save_eth_params(ETH_config_t *ethconfig);
+uint32_t save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
 
 /*!**********************************************************************************************
-* \brief loads the Ethernet specific parameters from non-volatile memory
+* \brief loads the network parameters from non-volatile memory
 *
-* \param [out] ETH_config storage for parameters to get from memory to static ethconfig structure
+* \param [out] ethconfig storage for parameters to get from memory to static ethconfig structure
+* \param [out] ap_config storage for parameters about connecting to a WIFI AP. May be NULL. Non-null is valid only with NETDEV_ESP_ID.
+* \param [in] netdev_id which slots in the eeprom to use. Either NETDEV_ETH_ID or NETDEV_ESP_ID.
 *
 * \return   uint32_t    error value
 *
 * \retval   0 if successful
 ************************************************************************************************/
-uint32_t load_eth_params(ETH_config_t *ethconfig);
+uint32_t load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
 
 /*!****************************************************************************
 * \brief load from ini file Ethernet specific parameters

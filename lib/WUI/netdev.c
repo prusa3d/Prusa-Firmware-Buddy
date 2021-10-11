@@ -46,6 +46,7 @@ extern struct alsockets_s *alsockets_esp();
 static struct alsockets_s *netdev_get_sockets(uint32_t);
 
 #define ETH_CONFIG() wui_netdev_config[NETDEV_ETH_ID]
+#define ESP_CONFIG() wui_netdev_config[NETDEV_ESP_ID]
 
 #define DNS_1 0
 #define DNS_2 1
@@ -180,19 +181,10 @@ esp_callback_func(esp_evt_t *evt) {
 
 uint32_t netdev_init() {
     ETH_CONFIG().var_mask = ETHVAR_EEPROM_CONFIG;
-    load_eth_params(&ETH_CONFIG());
+    load_net_params(&ETH_CONFIG(), NULL, NETDEV_ETH_ID);
+    ESP_CONFIG().var_mask = ETHVAR_EEPROM_CONFIG | APVAR_EEPROM_CONFIG;
+    load_net_params(&ESP_CONFIG(), &ap, NETDEV_ESP_ID);
     active_netdev_id = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_NETDEV));
-
-    // FIXME: This is here just temporarily. We should load from EEPROM here
-    // and call this thing from a menu item on user request.
-    if (load_ini_file_wifi(&wui_netdev_config[NETDEV_ESP_ID], &ap)) {
-        _dbg("Wifi settings: %s/%s", ap.ssid, ap.pass);
-    } else {
-        // TODO: This is probably not correct, is there a better error code? It
-        // probably doesn't matter, as this is temporary.
-        _dbg("Failed to read config from ini file");
-        // Not setting anything and hoping wifi is not going to be used this time
-    }
 
     tcpip_init(tcpip_init_done_callback, NULL);
     netdev_init_esp();
@@ -265,8 +257,9 @@ uint32_t netdev_set_dhcp(uint32_t netdev_id) {
     if (pConfig != NULL) {
         CHANGE_FLAG_TO_DHCP(pConfig->lan.flag);
         pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        save_eth_params(pConfig);
+        save_net_params(pConfig, NULL, netdev_id);
         pConfig->var_mask = 0;
+        return res;
     } else {
         res = ERR_IF;
     }
@@ -321,8 +314,9 @@ uint32_t netdev_set_static(uint32_t netdev_id) {
     if (pConfig != NULL) {
         CHANGE_FLAG_TO_STATIC(pConfig->lan.flag);
         pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        save_eth_params(pConfig);
+        save_net_params(pConfig, NULL, netdev_id);
         pConfig->var_mask = 0;
+        return res;
     } else {
         res = ERR_IF;
     }

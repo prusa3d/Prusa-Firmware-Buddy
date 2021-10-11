@@ -1,5 +1,6 @@
 // eeprom.cpp
 
+#include <cassert>
 #include <string.h>
 #include <float.h>
 
@@ -453,6 +454,8 @@ void eeprom_set_var(enum eevar_id id, variant8_t var) {
             // TODO: error
         }
         eeprom_unlock();
+    } else {
+        assert(0 /* EEProm var Id out of range */);
     }
 }
 
