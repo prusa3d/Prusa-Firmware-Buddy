@@ -352,6 +352,7 @@ uint32_t wui_upload_data(const char *data, uint32_t length) {
 uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, uint32_t start) {
     uint32_t fname_length = strlen(new_filename);
     uint32_t error_code = 200;
+    int result = 0;
 
     fclose(upload_file);
 
@@ -368,7 +369,8 @@ uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, u
         strlcat(filename, new_filename, FILE_PATH_MAX_LEN - USB_MOUNT_POINT_LENGTH);
     }
 
-    if (rename(tmp_filename, filename) != 0) {
+    result = rename(tmp_filename, filename);
+    if (result != 0) {
         error_code = 409;
         goto clean_temp_file;
     }
