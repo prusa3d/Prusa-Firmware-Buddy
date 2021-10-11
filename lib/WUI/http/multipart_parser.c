@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include "lwip/def.h"
 
 //#define DEBUG_MULTIPART 1
 
@@ -80,13 +81,14 @@ enum state {
 
 multipart_parser *multipart_parser_init(const char *boundary, const multipart_parser_settings *settings) {
 
+    uint32_t endstring_length = strlen(boundary);
     char *endline_begin = strstr(boundary, "\r\n");
-
-    multipart_parser *p = malloc(sizeof(multipart_parser) + (endline_begin - boundary) + (endline_begin - boundary) + 9 + 2); // Add 2 because the boundary is missing 2 --
+    int32_t boundary_length = LWIP_MIN(endstring_length, (uint32_t)(endline_begin - boundary));
+    multipart_parser *p = malloc(sizeof(multipart_parser) + boundary_length + boundary_length + 9 + 2); // Add 2 because the boundary is missing 2 --
 
     strcpy(p->multipart_boundary, "--");     // Boundary seems to be missing the first 2 --, so add them here (Tested on Chrome and Firefox)
     strcat(p->multipart_boundary, boundary); // Copy the boundary to parser
-    p->boundary_length = (endline_begin - boundary) + 2;
+    p->boundary_length = boundary_length + 2;
 
     p->lookbehind = (p->multipart_boundary + p->boundary_length + 1);
 

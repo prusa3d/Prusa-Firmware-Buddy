@@ -66,7 +66,7 @@ typedef struct {
 static uint8_t http_post_uri_file_index = 0;
 static uint32_t http_post_content_len = 0;
 #define HTTP_POST_URI_NUM 2
-const char *a[HTTP_POST_URI_NUM] = {
+const char *endpoints[HTTP_POST_URI_NUM] = {
     "/api/files/sdcard",
     "/api/files/local"
 };
@@ -104,11 +104,11 @@ int read_header_name(multipart_parser *p, const char *at, size_t length) {
 #ifdef HTTPD_DEBUG
     _dbg("Key Name: %s\n", key_name);
 #endif
-    if (strncmp(key_name, "print", 5) == 0) {
+    if (lwip_strnicmp(key_name, "print", 5) == 0) {
         upload.phase = UPLOAD_PROCESS_PRINT;
-    } else if (strncmp(key_name, "path", 4) == 0) {
+    } else if (lwip_strnicmp(key_name, "path", 4) == 0) {
         upload.phase = UPLOAD_PROCESS_PATH;
-    } else if (strncmp(key_name, "file", 4) == 0) {
+    } else if (lwip_strnicmp(key_name, "file", 4) == 0) {
         upload.phase = UPLOAD_PROCESS_FILE;
         char *filename = strstr(key_name + 4 + 3, "filename");
         const char *end_filename = strtok(filename + 8 + 2, "\"");
@@ -134,7 +134,7 @@ int read_part_data(multipart_parser *p, const char *at, size_t length) {
 #endif
     switch (upload.phase) {
     case UPLOAD_PROCESS_PRINT:
-        if (strncmp(at, "true", 4) == 0) {
+        if (lwip_strnicmp(at, "true", 4) == 0) {
             upload.start_print = 1;
         }
         break;
@@ -229,27 +229,33 @@ err_t httpd_post_begin(void *connection,
     uint32_t api_key_tag_length = strlen(API_KEY_TAG);
     char *api_key_start = lwip_strnstr(http_request, API_KEY_TAG, http_request_len);
 
+    if (upload.phase != UPLOAD_PROCESS_NONE) {
+        uri = "/503";
+        goto invalid;
+    }
+
     if (api_key_start == NULL) {
-        uri = "/401\0";
+        uri = "/401";
         goto invalid;
     } else {
         const char *api_key = wui_get_api_key();
         uint32_t token_length = strlen(api_key);
+
         if (memcmp(api_key, api_key_start + api_key_tag_length, token_length) != 0) {
-            uri = "/401\0";
+            uri = "/401";
             goto invalid;
         }
     }
 
     char *content_type_tag = lwip_strnstr(http_request, CONTENT_TYPE, http_request_len);
     if (content_type_tag == NULL) {
-        uri = "/400\0";
+        uri = "/400";
         goto invalid;
     }
 
     // Check the URI given with the list
     for (uint8_t i = 0; i < HTTP_POST_URI_NUM; i++) {
-        if (strcmp(uri, a[i]) == 0) {
+        if (lwip_stricmp(uri, endpoints[i]) == 0) {
 
             http_post_uri_file_index = i;
             http_post_content_len = content_len;
@@ -276,7 +282,7 @@ err_t httpd_post_begin(void *connection,
             if (boundary != NULL) {
                 _parser = multipart_parser_init(boundary, &callbacks);
                 if (wui_upload_begin(DEFAULT_UPLOAD_FILENAME) != 0) {
-                    uri = "/500\0";
+                    uri = "/500";
                     goto invalid;
                 }
             }
@@ -339,7 +345,7 @@ void httpd_post_finished(void *connection,
     status_code = wui_upload_finish(DEFAULT_UPLOAD_FILENAME, upload.filename, upload.start_print);
 
     if (hs != NULL && status_code == 200) {
-        strncpy(response_uri, a[http_post_uri_file_index], response_uri_len);
+        strncpy(response_uri, endpoints[http_post_uri_file_index], response_uri_len);
     } else {
         snprintf(response_uri, response_uri_len, "/%ld", status_code);
     }

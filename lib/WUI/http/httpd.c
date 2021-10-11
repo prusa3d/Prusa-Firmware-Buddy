@@ -894,6 +894,8 @@ get_http_headers(struct http_state *hs, const char *uri) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_409];
     } else if (strstr(uri, "415")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_415];
+    } else if (strstr(uri, "503")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_503];
     } else {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK];
     }
@@ -2606,7 +2608,7 @@ uint32_t authorize_request(struct pbuf *req) {
         const char *api_key = wui_get_api_key();
         uint32_t token_length = strlen(api_key);
         const char *auth_token = (((const char *)req->payload) + index + api_key_tag_length + 1);
-        if (memcmp(api_key, auth_token, token_length) != 0) {
+        if (!pbuf_get_at(req, index + api_key_tag_length + 1) || memcmp(api_key, auth_token, token_length) != 0) {
             return 0;
         }
     }
@@ -2671,21 +2673,21 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
             wui_api_printer(&api_file);
             file = &api_file;
         } else {
-            uri = "401\0";
+            uri = "401";
         }
     } else if (!strcmp(uri, "/api/version")) {
         if (authorize_request(hs->req)) {
             wui_api_version(&api_file);
             file = &api_file;
         } else {
-            uri = "401\0";
+            uri = "401";
         }
     } else if (!strcmp(uri, "/api/job")) {
         if (authorize_request(hs->req)) {
             wui_api_job(&api_file);
             file = &api_file;
         } else {
-            uri = "401\0";
+            uri = "401";
         }
     } else if (!strncmp(uri, "/api/files", 10)) {
         wui_api_files(&api_file);
