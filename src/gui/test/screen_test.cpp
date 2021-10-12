@@ -39,7 +39,6 @@ screen_test_data_t::screen_test_data_t()
         static volatile int i = 0;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdiv-by-zero"
-        SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
         i = i / 0;
 #pragma GCC diagnostic pop
     })

@@ -240,6 +240,9 @@ extern "C" void EepromSystemInit() {
   * @retval int
   */
 int main(void) {
+    /* Trap on division by Zero */
+    SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
+
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
