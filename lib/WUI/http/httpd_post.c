@@ -362,17 +362,19 @@ void httpd_post_finished(void *connection,
 const char *
 find_boundary(const char *content_type) {
 
-#define BOUNDARY_TITLE     "boundary="
-#define BOUNDARY_TITLE_LEN 9
+#define BOUNDARY_TITLE "boundary="
+    static const size_t boundary_title_len = strlen(BOUNDARY_TITLE);
 
     if (content_type != NULL) {
-        char *boundary_begin = strstr(content_type, BOUNDARY_TITLE); // Find Boundary= in Content-Type
-        char *boundary = boundary_begin + BOUNDARY_TITLE_LEN;        // Remove the Boundary=
+        const char *boundary_begin = strstr(content_type, BOUNDARY_TITLE); // Find Boundary= in Content-Type
+        if (boundary_begin != NULL) {
+            const char *boundary = boundary_begin + boundary_title_len; // Remove the Boundary=
 #ifdef HTTPD_DEBUG
-        _dbg("POST multipart Boundary found: %s\n", boundary);
+            _dbg("POST multipart Boundary found: %s\n", boundary);
 #endif
 
-        return boundary;
+            return boundary;
+        }
     }
     return NULL;
 }
@@ -381,18 +383,30 @@ find_boundary(const char *content_type) {
 const char *
 find_header_name(const char *header) {
 
-#define HEADER_NAME_TITLE     "name="
-#define HEADER_NAME_TITLE_LEN 5
+#define HEADER_NAME_TITLE "name="
 
-    if (header != NULL) {
-        char *header_name_begin = strstr(header, HEADER_NAME_TITLE); // Find name= in Header
-        char *header_name = strtok(header_name_begin, "\"");         // Find the first "
-        header_name = strtok(NULL, "\"");                            // Go to the last "
-#ifdef HTTPD_DEBUG
-        _dbg("POST multipart Header Key found: %s\n", header_name);
-#endif
-
-        return header_name;
+    if (header == NULL) {
+        return NULL;
     }
-    return NULL;
+
+    // FIXME: This is wrong, as it un-constifies the parameter.
+    //
+    // It's even worse, because the `const char *header` below is actually
+    // modified by putting the `\0` delimiters in there by strtok!
+    char *header_name_begin = strstr(header, HEADER_NAME_TITLE); // Find name= in Header
+    if (header_name_begin == NULL) {
+        return NULL;
+    }
+    char *saveptr = NULL;
+    char *header_name = strtok_r(header_name_begin, "\"", &saveptr); // Find the first "
+    if (header_name == NULL) {
+        return NULL;
+    }
+    header_name = strtok_r(NULL, "\"", &saveptr); // Go to the last "
+#ifdef HTTPD_DEBUG
+    if (header_name != NULL) {
+        _dbg("POST multipart Header Key found: %s\n", header_name);
+    }
+#endif
+    return header_name;
 }
