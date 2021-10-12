@@ -271,3 +271,7 @@ size_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *nu
     str->rewind();
     return { uint16_t(std::max(x, w)), uint16_t(h) };
 }
+
+void render_rect(Rect16 rc, color_t clr) {
+    display::FillRect(rc, clr);
+}

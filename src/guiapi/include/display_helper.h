@@ -15,3 +15,5 @@ extern void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr_back, icon
 extern size_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *numOfUTF8Chars); // rewinds text to begin
 //extern int font_line_chars(const font_t *pf, string_view_utf8 str, uint16_t line_width);
 extern void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t color);
+
+extern void render_rect(Rect16 rc, color_t clr); // to prevent dirrect access to display

@@ -57,6 +57,9 @@ void IWindowMenuItem::Print(Rect16 rect) const {
     color_t mi_color_back = GetBackColor();
     color_t mi_color_text = GetTextColor();
 
+    //print background
+    render_rect(rect, mi_color_back);
+
     printIcon(getIconRect(rect), raster_op, GuiDefaults::MenuColorBack); // background color has to stay default, because raster_operations take care of swap if focused
     roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
     if (extension_width)
