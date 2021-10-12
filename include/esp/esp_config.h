@@ -94,7 +94,7 @@
 #define ESP_CFG_INPUT_USE_PROCESS  1
 #define ESP_CFG_RESET_ON_INIT      1
 #define ESP_CFG_RESTORE_ON_INIT    0
-#define ESP_CFG_MAX_SSID_LENGTH    25
+#define ESP_CFG_MAX_SSID_LENGTH    32
 #define ESP_CFG_NETCONN            1
 #define ESP_ALTCP                  1
 #define ESP_CFG_CONN_POLL_INTERVAL 2000
