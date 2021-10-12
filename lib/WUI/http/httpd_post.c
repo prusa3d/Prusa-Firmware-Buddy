@@ -195,6 +195,21 @@ http_parse_post(char *data, uint32_t length) {
     return ERR_OK;
 }
 
+static bool authenticate_post(const char *http_request, uint16_t http_request_len) {
+    /*
+     * Create a "fake" pbuf for reusing the authorize_request. We will not
+     * allocate it the usual way and we will not free it. But the helper
+     * functions to search it will work.
+     */
+    struct pbuf buf = {
+        .payload = (char *)http_request, // FIXME: Dropping const is Bad (tm). It won't be modified in practice, but...
+        .len = http_request_len,
+        .tot_len = http_request_len,
+    };
+    return authorize_request(&buf);
+    // No need to free anything related to the buf.
+}
+
 /** Called when a POST request has been received. The application can decide
  * whether to accept it or not.
  *
@@ -223,28 +238,16 @@ err_t httpd_post_begin(void *connection,
     u16_t response_uri_len,
     u8_t *post_auto_wnd) {
 
-#define API_KEY_TAG  "X-Api-Key: "
 #define CONTENT_TYPE "Content-Type: multipart/form-data"
-
-    uint32_t api_key_tag_length = strlen(API_KEY_TAG);
-    char *api_key_start = lwip_strnstr(http_request, API_KEY_TAG, http_request_len);
 
     if (upload.phase != UPLOAD_PROCESS_NONE) {
         uri = "/503";
         goto invalid;
     }
 
-    if (api_key_start == NULL) {
+    if (!authenticate_post(http_request, http_request_len)) {
         uri = "/401";
         goto invalid;
-    } else {
-        const char *api_key = wui_get_api_key();
-        uint32_t token_length = strlen(api_key);
-
-        if (memcmp(api_key, api_key_start + api_key_tag_length, token_length) != 0) {
-            uri = "/401";
-            goto invalid;
-        }
     }
 
     char *content_type_tag = lwip_strnstr(http_request, CONTENT_TYPE, http_request_len);
@@ -292,7 +295,7 @@ err_t httpd_post_begin(void *connection,
     }
 
 invalid:
-    snprintf(response_uri, 5, uri);
+    snprintf(response_uri, response_uri_len, uri);
     //returns /404.html when response_uri is empty
     return ERR_VAL;
 
