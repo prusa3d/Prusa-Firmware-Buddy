@@ -37,6 +37,7 @@ struct GuiDefaults {
     static constexpr color_scheme ClickableIconColorScheme = { ColorBack, COLOR_SILVER, ColorBack, ColorDisabled };
     // Menu color settings
     static constexpr color_t MenuColorBack = ColorBack;
+    static constexpr color_t MenuColorFocusedBack = COLOR_WHITE;
     static constexpr color_t MenuColorText = ColorText;
     static constexpr color_t MenuColorDisabled = ColorDisabled;
     static constexpr color_t MenuColorDevelopment = COLOR_LIGHT_GREEN;
