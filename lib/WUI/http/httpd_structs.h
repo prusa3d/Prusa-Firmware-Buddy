@@ -29,7 +29,7 @@ static const char *const g_psHTTPHeaderStrings[] = {
     "Server: " HTTPD_SERVER_AGENT "\r\n",
     "\r\n<html><body><h2>404: The requested file cannot be found.</h2></body></html>\r\n",
     "HTTP/1.0 500 Internal Server Error\r\n",
-    "HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: ApiKey realm=\"401\"",
+    "HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: ApiKey realm=\"Printer API\"\r\n",
     "HTTP/1.0 304 Not Modified\r\n",
     "HTTP/1.0 409 Conflict\r\n",
     "HTTP/1.0 415 Unsupported Media Type\r\n",
