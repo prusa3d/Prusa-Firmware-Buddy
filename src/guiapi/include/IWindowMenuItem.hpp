@@ -59,9 +59,7 @@ protected:
     Rect16 getLabelRect(Rect16 rect) const;
     Rect16 getExtensionRect(Rect16 rect) const;
 
-    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const; //must be virtual, because pictures of flags are drawn differently
-    void printLabel(Rect16 label_rect, color_t color_text, color_t color_back) const;
-
+    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const;                               //must be virtual, because pictures of flags are drawn differently
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; //things behind rect
     virtual void click(IWindowMenu &window_menu) = 0;
 
@@ -69,6 +67,8 @@ protected:
     font_t *getLabelFont() const { return label_font; }
 
     void reInitRoll(Rect16 rect);
+    color_t GetTextColor() const;
+    color_t GetBackColor() const;
 
 public:
     IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
