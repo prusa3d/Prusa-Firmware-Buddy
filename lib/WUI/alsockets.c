@@ -78,7 +78,7 @@ ssize_t recvfrom(int s, void *mem, size_t len, int flags,
     if (alsockets) {
         return alsockets->recvfrom(s, mem, len, flags, from, fromlen);
     } else {
-        return 0;
+        return -1;
     }
 }
 
@@ -87,7 +87,7 @@ ssize_t sendto(int s, const void *dataptr, size_t size, int flags,
     if (alsockets) {
         return alsockets->sendto(s, dataptr, size, flags, to, tolen);
     } else {
-        return 0;
+        return -1;
     }
 }
 
