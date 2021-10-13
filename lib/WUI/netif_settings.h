@@ -52,8 +52,6 @@ typedef struct {
 extern "C" {
 #endif
 
-void eth_change_setting(uint16_t flag, uint16_t value);
-
 #ifdef __cplusplus
 }
 #endif
