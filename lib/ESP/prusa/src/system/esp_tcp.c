@@ -66,6 +66,7 @@
 
     #include "esp_tcp.h"
     #include "esp/esp_mem.h"
+    #include "esp/esp_private.h"
 
 /* Variable prototype, the actual declaration is at the end of this file
    since it contains pointers to static functions declared here */
@@ -352,14 +353,13 @@ static espr_t esp_evt_conn_recv(esp_conn_p conn, esp_evt_t *evt) {
         goto cleanup_pbuf;
     }
 
-    esp_conn_recved(conn, pbuf); /* Notify stack about received data */
     epcb->rcv_packets++; // Increase number of received packets
     const size_t recv_len = esp_pbuf_length(pbuf, 0);
     epcb->rcv_bytes += recv_len;
     ALTCP_ESP_DEBUG_FN("Received %ld, total %ld packets, %ld bytes", recv_len,
         epcb->rcv_packets, epcb->rcv_bytes);
 
-    if (esp_pbuf_length(pbuf, 0) != esp_pbuf_length(pbuf, 1)) {
+    if (recv_len != esp_pbuf_length(pbuf, 1)) {
         ALTCP_ESP_DEBUG_FN("!!! rcv pbuf has multiple parts, this is not supported !!!!");
         goto cleanup_pbuf;
     }
@@ -370,7 +370,6 @@ static espr_t esp_evt_conn_recv(esp_conn_p conn, esp_evt_t *evt) {
     lwip_esp_pbuf_custom *custom_pbuf_wrapper = esp_mem_malloc(sizeof(lwip_esp_pbuf_custom));
     memset(custom_pbuf_wrapper, 0, sizeof(lwip_esp_pbuf_custom));
     custom_pbuf_wrapper->custom_lwip_pbuf.custom_free_function = custom_pbuf_free;
-    const size_t recv_len = esp_pbuf_length(pbuf, 0);
     struct pbuf *lwip_pbuf = pbuf_alloced_custom(PBUF_RAW, recv_len, PBUF_REF,
         &custom_pbuf_wrapper->custom_lwip_pbuf, (char *)esp_pbuf_data(pbuf), recv_len);
     if (!lwip_pbuf) {
@@ -557,7 +556,21 @@ static void altcp_esp_set_poll(struct altcp_pcb *conn, u8_t interval) {
 }
 
 static void altcp_esp_recved(struct altcp_pcb *conn, u16_t len) {
-    // ESP has already acknowedged the data, nothing to do here.
+    if (conn == NULL) {
+        return;
+    }
+    esp_pcb *epcb = (esp_pcb *)conn->state;
+    if (!epcb) {
+        ALTCP_ESP_DEBUG_FN("epcb is NULL !!! -> closing connection");
+        esp_conn_close(epcb->econn, 0);
+        return;
+    }
+
+    // Notify stack about received data
+    // This passes fake pbuf containing only total length, this may be problem in future.
+    esp_pbuf_t pbuf;
+    pbuf.tot_len = len;
+    esp_conn_recved(epcb->econn, &pbuf);
 }
 
 static err_t altcp_esp_bind(struct altcp_pcb *conn, const ip_addr_t *ipaddr, u16_t port) {
