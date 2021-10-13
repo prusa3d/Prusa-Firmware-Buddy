@@ -335,5 +335,9 @@ static struct alsockets_s *netdev_get_sockets(uint32_t active_id) {
 }
 
 const char *netdev_get_hostname(uint32_t active_id) {
-    return wui_netdev_config[active_id].hostname;
+    if (active_id < NETDEV_COUNT) {
+        return wui_netdev_config[active_id].hostname;
+    } else {
+        return "";
+    }
 }
