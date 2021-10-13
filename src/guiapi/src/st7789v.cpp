@@ -488,7 +488,7 @@ void _pngfree(png_structp pp, png_voidp mem) {
         }
 }
 
-void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
+void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr_back, uint8_t rop) {
     static const png_byte unused_chunks[] = {
         98, 75, 71, 68, '\0',   /* bKGD */
         99, 72, 82, 77, '\0',   /* cHRM */
@@ -585,10 +585,7 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                 st7789v_cmd_caset(point_x, point_x + w - 1);
                 st7789v_cmd_raset(point_y, point_y + h - 1);
                 st7789v_cmd_ramwr(0, 0);
-                switch (rop) {
-                    //case ROPFN_INVERT: rop_rgb888_invert((uint8_t*)&clr0); break;
-                    //case ROPFN_SWAPBW: rop_rgb888_swapbw((uint8_t*)&clr0); break;
-                }
+
                 for (i = 0; i < h; i++) {
                     png_read_row(pp, st7789v_buff, NULL);
                     for (j = 0; j < w; j++) {
@@ -596,10 +593,10 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                         uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
                         uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
 
-                        if (pixsize == 4) { //RGBA
-                            *((uint32_t *)ppx888) = color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
-                        }
                         switch (rop) {
+                        case ROPFN_SWAPBW | ROPFN_DISABLE:
+                            // TODO
+                            break;
                         case ROPFN_INVERT:
                             rop_rgb888_invert(ppx888);
                             break;
@@ -609,6 +606,10 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                         case ROPFN_DISABLE:
                             rop_rgb888_disabled(ppx888);
                             break;
+                        }
+
+                        if (pixsize == 4) { // Mix pixel after rast operations with background
+                            *((uint32_t *)ppx888) = color_alpha(clr_back, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
                         }
                         *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
                     }
@@ -711,7 +712,7 @@ void st7789v_ctrl_set(uint8_t ctrl) {
 
 #else //ST7789V_PNG_SUPPORT
 
-void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {}
+void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr_back, uint8_t rop) {}
 
 #endif //ST7789V_PNG_SUPPORT
 
