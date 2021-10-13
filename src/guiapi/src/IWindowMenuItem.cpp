@@ -60,7 +60,7 @@ void IWindowMenuItem::Print(Rect16 rect) const {
     //print background
     render_rect(rect, mi_color_back);
 
-    printIcon(getIconRect(rect), raster_op, GuiDefaults::MenuColorBack); // background color has to stay default, because raster_operations take care of swap if focused
+    printIcon(getIconRect(rect), raster_op, mi_color_back);
     roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
     if (extension_width)
         printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
@@ -108,7 +108,7 @@ void IWindowMenuItem::printIcon(Rect16 icon_rect, ropfn raster_op, color_t color
 }
 
 void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
-    render_icon_align(extension_rect, IDR_PNG_arrow_right_16px, GuiDefaults::MenuColorBack, icon_flags(Align_t::Center(), raster_op));
+    render_icon_align(extension_rect, IDR_PNG_arrow_right_16px, color_back, icon_flags(Align_t::Center(), raster_op));
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
