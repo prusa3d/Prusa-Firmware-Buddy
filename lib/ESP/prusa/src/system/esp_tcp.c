@@ -699,9 +699,10 @@ static err_t altcp_esp_write(struct altcp_pcb *conn, const void *dataptr, u16_t 
         return espERR;
     }
 
-    size_t written = 0;
-    espr_t err = esp_conn_send(epcb->econn, dataptr, len, &written, 0); // TODO: Flags ignored, we could only set blocking
-    ALTCP_ESP_DEBUG_FN("esp writen: %d commited, err: %d", len, err);
+    // TODO: Flags ignored, we could only set blocking
+    // WARNING: avoid passing pointers to local variables as bw, the call is asynchronous
+    espr_t err = esp_conn_send(epcb->econn, dataptr, len, NULL, 0);
+    ALTCP_ESP_DEBUG_FN("esp write/send, len: %ld, err: %d", len, err);
     return espr_t2err_t(err);
 }
 
