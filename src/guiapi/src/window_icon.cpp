@@ -40,6 +40,8 @@ void window_icon_t::unconditionalDraw() {
     raster_op.disable = IsEnabled() ? is_disabled::no : is_disabled::yes;
     raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
 
+    super::unconditionalDraw();
+
     render_icon_align(GetRect(), id_res, GetBackColor(), icon_flags(GetAlignment(), raster_op));
 }
 
