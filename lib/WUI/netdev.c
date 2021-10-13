@@ -98,9 +98,8 @@ static void esp_baudrate_changed(espr_t res, void *arg) {
         return;
     }
 
-    uint32_t baudrate = (uint32_t)arg;
-    _dbg("ESP baudrate change success, reconfiguring UART for %d", baudrate);
-    esp_reconfigure_uart(baudrate);
+    _dbg("ESP baudrate change success, reconfiguring UART for %" PRIu32, esp_target_baudrate);
+    esp_reconfigure_uart(esp_target_baudrate);
 }
 
 /**
@@ -130,7 +129,7 @@ esp_callback_func(esp_evt_t *evt) {
         break;
     }
     case ESP_EVT_RESET: {
-        esp_set_at_baudrate(esp_target_baudrate, esp_baudrate_changed, (void *)esp_target_baudrate, 0);
+        esp_set_at_baudrate(esp_target_baudrate, esp_baudrate_changed, NULL, 0);
         _dbg("ESP_EVT_RESET");
         break;
     }
