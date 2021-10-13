@@ -50,7 +50,7 @@ extern void st7789v_done(void);
 extern void st7789v_clear(uint16_t clr565);
 extern void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565);
 
-extern void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop);
+extern void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr_back, uint8_t rop);
 
 extern void st7789v_inversion_on(void);
 extern void st7789v_inversion_off(void);
