@@ -105,22 +105,22 @@ void get_printer(char *data, const uint32_t buf_len) {
         "\"state\": {"
         "\"text\": \"Operational\","
         "\"flags\": {"
-        "\"operational\": %ld,"
-        "\"paused\": %ld,"
-        "\"printing\": %ld,"
-        "\"cancelling\": %ld,"
-        "\"pausing\": %ld,"
-        "\"sdReady\": %ld,"
-        "\"error\": %ld,"
-        "\"ready\": %ld,"
-        "\"closedOrError\": %ld,"
-        "\"busy\": %ld"
+        "\"operational\": %" PRIu32 ","
+        "\"paused\": %" PRIu32 ","
+        "\"printing\": %" PRIu32 ","
+        "\"cancelling\": %" PRIu32 ","
+        "\"pausing\": %" PRIu32 ","
+        "\"sdReady\": %" PRIu32 ","
+        "\"error\": %" PRIu32 ","
+        "\"ready\": %" PRIu32 ","
+        "\"closedOrError\": %" PRIu32 ","
+        "\"busy\": %" PRIu32
         "}"
         "}"
         "}",
         filament_material,
-        (int)vars->temp_nozzle, (int)((abs(vars->temp_nozzle - (int)vars->temp_nozzle)) * 10),
-        (int)vars->temp_bed, (int)((abs(vars->temp_bed - (int)vars->temp_bed)) * 10),
+        (int)vars->temp_nozzle, (int)(vars->temp_nozzle * 10) % 10,
+        (int)vars->temp_bed, (int)(vars->temp_bed * 10) % 10,
         operational, paused, printing, cancelling, pausing, sd_ready,
         error, ready, closed_on_error, busy);
 }
@@ -145,7 +145,7 @@ void get_job(char *data, const uint32_t buf_len) {
     snprintf(data, buf_len,
         "{"
         "\"job\":{"
-        "\"estimatedPrintTime\":%ld,"
+        "\"estimatedPrintTime\":%" PRIu32 ","
         "\"file\":{"
         "\"date\":null,"
         "\"name\":\"%s\","
@@ -158,11 +158,11 @@ void get_job(char *data, const uint32_t buf_len) {
         "\"progress\":{"
         "\"completion\":%d.%.2d,"
         "\"filepos\":%ld,"
-        "\"printTime\":%ld,"
-        "\"printTimeLeft\":%ld,"
+        "\"printTime\":%" PRIu32 ","
+        "\"printTimeLeft\":%" PRIu32 ","
         "\"pos_z_mm\":%d.%.3d,"
-        "\"printSpeed\":%d,"
-        "\"flow_factor\":%d,"
+        "\"printSpeed\":%" PRIu16 ","
+        "\"flow_factor\":%" PRIu16 ","
         "\"filament_status\":3"
         "},"
         "\"filament\":{"
@@ -186,7 +186,7 @@ void get_files(char *data, const uint32_t buf_len) {
         "\"origin\": \"local\","
         "}"
         "},"
-        "\"done\": %ld"
+        "\"done\": %d"
         "}",
-        filename, (uint32_t)!start_print);
+        filename, (int)!start_print);
 }
