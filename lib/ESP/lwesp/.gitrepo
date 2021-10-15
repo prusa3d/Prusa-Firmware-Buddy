@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/MaJerle/lwesp.git
-	branch = v0.5.0
-	commit = 4dd5399fabebedf601042d5dad4c29f9e6c24abe
-	parent = 04f8547400d0f5493dbd8f690b24146b5d144999
+	remote = https://github.com/vladamatena/lwesp.git
+	branch = manual_receive_backport
+	commit = c7b7502af9b640a89e2d3ac91c02b1296061c3d6
+	parent = 1947e3f80c09a3679ab4a7eab6a758f2b28868f2
 	method = merge
 	cmdver = 0.4.3
