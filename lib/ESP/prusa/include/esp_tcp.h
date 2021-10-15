@@ -46,7 +46,8 @@
 #include "esp/esp_config.h"
 #include "sockets/lwesp_sockets_priv.h"
 
-#define EPCB_POOL_SIZE 10
+// It would be better to obtain this from ESP but there seems to be no way
+#define ESP_TCP_MSS 536
 
 #if ESP_ALTCP /* don't build if not configured for use in lwipopts.h */
 

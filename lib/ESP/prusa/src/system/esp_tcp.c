@@ -712,11 +712,11 @@ static err_t altcp_esp_output(struct altcp_pcb *conn) {
 }
 
 static u16_t altcp_esp_mss(struct altcp_pcb *conn) {
-    return 536; // Minimal required MSS, TODO: Implement properly
+    return ESP_TCP_MSS;
 }
 
 static u16_t altcp_esp_sndbuf(struct altcp_pcb *conn) {
-    return 536 / 2; // TODO: Some reasoneable size. Reading from ESP would be better
+    return ESP_TCP_MSS; // There seems to be no way reading the tx buffer size from ESP
 }
 
 static u16_t altcp_esp_sndqueuelen(struct altcp_pcb *conn) {
