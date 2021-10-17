@@ -31,7 +31,7 @@ public:
     FooterLine(window_t *parent, size_t line_no);
 
     bool Create(footer::items item, size_t index);
-    void Create(const IdArray &ids);
+    void Create(const IdArray &ids, size_t count = FOOTER_ITEMS_PER_LINE__);
     void Erase(size_t index);                 // index >= max_items erases all
     window_t *SlotAccess(size_t index) const; // footer event might need to acces this method, so it must be public
     footer::items SlotUsedBy(size_t index);   //meant to be compared with footer::DecodeItemFromEvent in events

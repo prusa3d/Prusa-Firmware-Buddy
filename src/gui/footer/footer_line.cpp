@@ -78,8 +78,9 @@ bool FooterLine::Create(footer::items item_id, size_t index) {
     return true;
 }
 
-void FooterLine::Create(const IdArray &ids) {
-    for (size_t i = 0; i < ids.size(); ++i) {
+void FooterLine::Create(const IdArray &ids, size_t count) {
+    count = std::min(count, ids.size());
+    for (size_t i = 0; i < count; ++i) {
         Create(ids[i], i);
     }
 }
