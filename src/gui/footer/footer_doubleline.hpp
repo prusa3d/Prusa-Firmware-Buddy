@@ -17,6 +17,12 @@ class FooterDoubleLine : public AddSuperWindow<IFooter> {
 
 public:
     FooterDoubleLine(window_t *parent);
+    template <class... T>
+    FooterDoubleLine(window_t *parent, T... args)
+        : AddSuperWindow<IFooter>(parent)
+        , line_1(this, 0) {
+        line_1.Create({ { args... } }, sizeof...(T)); // footer line takes array of footer::items
+    }
 
     bool SetSlot(size_t slot_id, footer::items item);
 
