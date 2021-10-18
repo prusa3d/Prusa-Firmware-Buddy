@@ -20,7 +20,9 @@ public:
     template <class... T>
     FooterDoubleLine(window_t *parent, T... args)
         : AddSuperWindow<IFooter>(parent)
+        , line_0(this, 0)
         , line_1(this, 0) {
+        line_0.Create(line0_defaults);
         line_1.Create({ { args... } }, sizeof...(T)); // footer line takes array of footer::items
     }
 
