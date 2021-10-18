@@ -87,10 +87,6 @@
 #define FAN1_TACH_Pin       GPIO_PIN_14
 #define FAN1_TACH_GPIO_Port GPIOE
 #define FAN1_TACH_EXTI_IRQn EXTI15_10_IRQn
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #define Z_MIN_Pin       GPIO_PIN_8
-    #define Z_MIN_EXTI_IRQn EXTI9_5_IRQn
-#endif
 #define SWDIO_Pin           GPIO_PIN_13
 #define SWDIO_GPIO_Port     GPIOA
 #define SWCLK_Pin           GPIO_PIN_14
@@ -250,6 +246,9 @@ extern "C" void EepromSystemInit() {
   * @retval int
   */
 int main(void) {
+    /* Trap on division by Zero */
+    SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
+
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
@@ -913,19 +912,19 @@ static void MX_DMA_Init(void) {
 
     /* DMA interrupt init */
     /* DMA1_Stream4_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
     /* DMA1_Stream5_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
     /* DMA2_Stream1_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
     /* DMA2_Stream2_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
     /* DMA2_Stream0_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 }
 
@@ -1013,7 +1012,7 @@ static void MX_GPIO_Init(void) {
     HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
-    HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(EXTI15_10_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
@@ -1073,7 +1072,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     switch (GPIO_Pin) {
-    case Z_MIN_Pin:
+    case buddy::hw::zMin.m_halPin:
         ++minda_falling_edges;
         break;
     }

@@ -565,7 +565,8 @@ target_sources(
           src/common/wdt.cpp
           src/common/dump.c
           src/common/marlin_client.c
-          src/common/bsod.cpp
+          $<$<BOOL:${GUI}>:src/common/bsod_gui.cpp>
+          $<$<NOT:$<BOOL:${GUI}>>:src/common/bsod_nogui.cpp>
           src/common/version.c
           src/common/marlin_events.c
           src/common/marlin_errors.c
@@ -697,6 +698,7 @@ if(GUI)
             src/gui/screen_hardfault.cpp
             src/gui/screen_temperror.cpp
             src/gui/screen_menu_move.cpp
+            src/gui/dialogs/DialogMoveZ.cpp
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_menu_languages.cpp
             src/gui/screen_menu_sensor_info.cpp
@@ -751,6 +753,7 @@ if(GUI)
             src/guiapi/src/st7789v.cpp
             src/guiapi/src/display_ex.cpp
             src/guiapi/src/window_icon.cpp
+            src/guiapi/src/i_window_text.cpp
             src/guiapi/src/window_text.cpp
             src/guiapi/src/window_roll_text.cpp
             src/guiapi/src/window_msgbox.cpp
@@ -797,7 +800,6 @@ set_property(
 
 set_property(
   SOURCE src/main.cpp
-         src/common/bsod.cpp
          src/common/appmain.cpp
          src/common/sys.cpp
          src/marlin_stubs/M50.cpp

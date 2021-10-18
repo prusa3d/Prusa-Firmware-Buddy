@@ -11,12 +11,12 @@ window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rec
     : AddSuperWindow<window_t>(parent, rect)
     , color_progress(cl_progress) {
     SetProgressInPixels(0);
-    color_back = cl_back;
+    SetBackColor(cl_back);
 }
 
 void window_numberless_progress_t::SetProgressInPixels(uint16_t px) {
-    if (px != flags.mem_space_u16) {
-        flags.mem_space_u16 = px;
+    if (px != progress_in_pixels) {
+        progress_in_pixels = px;
         Invalidate();
     }
 }
@@ -29,7 +29,7 @@ void window_numberless_progress_t::SetProgressPercent(float val) {
 }
 
 uint16_t window_numberless_progress_t::GetProgressPixels() const {
-    return flags.mem_space_u16;
+    return progress_in_pixels;
 }
 
 void window_numberless_progress_t::SetColor(color_t clr) {
@@ -45,7 +45,7 @@ void window_numberless_progress_t::unconditionalDraw() {
     rc += Rect16::Left_t(progress_w);
     rc -= Rect16::Width_t(progress_w);
     if (rc.Width())
-        display::FillRect(rc, color_back);
+        display::FillRect(rc, GetBackColor());
     rc = Left();
     rc = Rect16::Width_t(progress_w);
     if (rc.Width())
@@ -80,7 +80,7 @@ void window_progress_t::SetProgressColor(color_t clr) {
 }
 
 void window_progress_t::SetNumbColor(color_t clr) {
-    numb.SetColor(clr);
+    numb.SetTextColor(clr);
 }
 
 void window_progress_t::SetProgressHeight(Rect16::Height_t height) {

@@ -142,11 +142,27 @@ void window_t::Unshadow() {
     }
 }
 
-color_t window_t::GetBackColor() const { return color_back; }
+color_t window_t::GetBackColor() const {
+    if (flags.color_scheme_background && pBackColorScheme) {
+        return pBackColorScheme->Get(IsFocused(), IsShadowed());
+    }
+    return color_back;
+}
 
 void window_t::SetBackColor(color_t clr) {
-    color_back = clr;
-    Invalidate();
+    if (flags.color_scheme_background || color_back != clr) {
+        color_back = clr;
+        flags.color_scheme_background = false;
+        Invalidate();
+    }
+}
+
+void window_t::SetBackColor(const color_scheme &clr) {
+    if ((!flags.color_scheme_background) || (!pBackColorScheme) || ((*pBackColorScheme) != clr)) {
+        flags.color_scheme_background = true;
+        Invalidate();
+    }
+    pBackColorScheme = &clr; // rewrite even when value is same, because address might be different
 }
 
 window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
@@ -338,7 +354,7 @@ void window_t::addInvalidationRect(Rect16 rc) {
 }
 
 void window_t::unconditionalDraw() {
-    display::FillRect(GetRect(), color_back);
+    display::FillRect(GetRect(), GetBackColor());
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
@@ -435,10 +451,22 @@ bool window_t::EventJogwheel(BtnState_t state) {
         dont_click_on_next_release = false;
         break;
     case BtnState_t::Held:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        break;
+    case BtnState_t::HeldAndRigth:
         dont_click_on_next_release = true;
         if (capture_ptr)
-            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HOLD, 0);
+            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HELD_RIGTH, 0);
         break;
+    case BtnState_t::HeldAndLeft:
+        dont_click_on_next_release = true;
+        // want to send only to current screen and not send it to all subwindows
+        Screens::Access()->WindowEvent(GUI_event_t::HELD_LEFT, 0);
+        break;
+    case BtnState_t::HeldAndReleased:
+        dont_click_on_next_release = true;
+        // want to send only to current screen and not send it to all subwindows
+        Screens::Access()->WindowEvent(GUI_event_t::HELD_RELEASED, 0);
     }
 
     Screens::Access()->ResetTimeout();
@@ -454,10 +482,10 @@ window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, win_type_t typ
 }
 
 Align_t window_aligned_t::GetAlignment() const {
-    return (Align_t &)(flags.mem_array_u08[0]); //retype to Align_t reference, to avoid using private ctor
+    return (Align_t &)(flags.align_data); //retype to Align_t reference, to avoid using private ctor
 }
 
 void window_aligned_t::SetAlignment(Align_t alignment) {
-    flags.mem_array_u08[0] = (uint8_t &)(alignment);
+    flags.align_data = (uint8_t &)(alignment);
     Invalidate();
 }

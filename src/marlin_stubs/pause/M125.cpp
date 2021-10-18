@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
+#include "config_features.h"
 
 #if ENABLED(PARK_HEAD_ON_PAUSE)
 

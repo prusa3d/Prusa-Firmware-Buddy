@@ -21,8 +21,6 @@
  */
 #pragma once
 
-#include "../inc/MarlinConfigPre.h"
-
 #define _A4988              0x001
 #define _A5984              0x002
 #define _DRV8825            0x003

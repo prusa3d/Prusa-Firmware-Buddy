@@ -6,8 +6,6 @@
  * @date 2020-12-18
  */
 
-#include "../../lib/Marlin/Marlin/src/inc/MarlinConfigPre.h"
-
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../lib/Marlin/Marlin/src/module/motion.h"

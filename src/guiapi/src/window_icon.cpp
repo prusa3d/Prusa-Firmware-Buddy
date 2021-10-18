@@ -37,14 +37,12 @@ window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_i16_t pt, 
 
 void window_icon_t::unconditionalDraw() {
     ropfn raster_op;
-    if (IsShadowed()) { // that could not be set, but what if
-        raster_op.disable = is_disabled::yes;
-    }
-    if (IsFocused()) {
-        raster_op.swap_bw = has_swapped_bw::yes;
-    }
+    raster_op.disable = IsEnabled() ? is_disabled::no : is_disabled::yes;
+    raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
 
-    render_icon_align(GetRect(), id_res, color_back, icon_flags(GetAlignment(), raster_op));
+    super::unconditionalDraw();
+
+    render_icon_align(GetRect(), id_res, GetBackColor(), icon_flags(GetAlignment(), raster_op));
 }
 
 size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
@@ -63,6 +61,7 @@ size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb)
     : AddSuperWindow<window_icon_t>(parent, rect, id_res)
     , callback(cb) {
+    SetBackColor(GuiDefaults::ClickableIconColorScheme);
     Enable();
 }
 
@@ -191,19 +190,17 @@ WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubte
             return Rect16(pt,
                 sz.w + padding.left + padding.right,
                 sz.h + padding.top + padding.bottom);
-        }()) {
-    SetState(state);
+        }())
+    , state(state) {
 }
 
 SelftestSubtestState_t WindowIcon_OkNg::GetState() const {
-    return static_cast<SelftestSubtestState_t>(flags.mem_array_u08[1]);
+    return state;
 }
 
-//there is a free space in window_t flags, store state in it
 void WindowIcon_OkNg::SetState(SelftestSubtestState_t s) {
-    const uint8_t state = static_cast<uint8_t>(s);
-    if (state != flags.mem_array_u08[1]) {
-        flags.mem_array_u08[1] = state;
+    if (s != state) {
+        state = s;
         Invalidate();
     }
 }
@@ -221,18 +218,18 @@ void WindowIcon_OkNg::unconditionalDraw() {
         id_res = id_res_na;
         break;
     case SelftestSubtestState_t::running:
-        id_res = flags.custom0 ? id_res_ip1 : id_res_ip0;
+        id_res = flags.blink ? id_res_ip1 : id_res_ip0;
         break;
     }
 
-    render_icon_align(GetRect(), id_res, color_back, GetAlignment());
+    render_icon_align(GetRect(), id_res, GetBackColor(), GetAlignment());
 }
 
 void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (GetState() == SelftestSubtestState_t::running) {
         bool b = (gui::GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0x01;
-        if (flags.custom0 != b) {
-            flags.custom0 = b;
+        if (flags.blink != b) {
+            flags.blink = b;
             Invalidate();
         }
     }

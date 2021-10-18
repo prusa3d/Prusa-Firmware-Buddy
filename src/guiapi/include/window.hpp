@@ -6,6 +6,7 @@
 #include "Rect16.h"
 #include "window_event.hpp"
 #include "align.hpp"
+#include "color_scheme.hpp"
 #include "gui_time.hpp" // not needed here, but will save lot of includes
                         // !!! all windows should use gui::GetTick() to access tick value!!!
 
@@ -15,7 +16,15 @@ class window_t {
     Rect16 rect; // (8 bytes) display rectangle
 protected:
     WindowFlags flags;
-    color_t color_back;
+
+private:
+    // depends on color_scheme_background flag
+    // if enabled and set != nullptr
+    //   window automatically draws differently when selected or shadowed
+    union {
+        color_t color_back;
+        const color_scheme *pBackColorScheme;
+    };
 
 public:
     Rect16 GetRect() const;
@@ -84,6 +93,7 @@ public:
     void HideBehindDialog();
     virtual void ShowAfterDialog();
     void SetBackColor(color_t clr);
+    void SetBackColor(const color_scheme &clr);
     color_t GetBackColor() const;
     void SetRelativeSubwins() { flags.has_relative_subwins = true; }
 
@@ -150,7 +160,7 @@ protected:
 
 /*****************************************************************************/
 //window_aligned_t
-//uses window_t  mem_array_u08[0] to store alignment (saves RAM)
+//uses window_t flags to store alignment (saves RAM)
 struct window_aligned_t : public AddSuperWindow<window_t> {
     window_aligned_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     /// alignment constants are in guitypes.h

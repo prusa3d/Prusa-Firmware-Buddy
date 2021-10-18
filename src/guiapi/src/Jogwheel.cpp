@@ -154,9 +154,29 @@ void Jogwheel::UpdateButtonActionFromISR() {
         break;
     case BtnState_t::Held:
         if (!IsBtnPressed()) {
+            ChangeStateFromISR(BtnState_t::HeldAndReleased);
+            // we want to set the state to released and send that the button was released after long hold
+        } else {
+            encoder_t temp_enc;
+            temp_enc.data = threadsafe_enc.data;
+            int32_t diff = CalculateEncoderDiff(temp_enc);
+            if (diff > 0) {
+                ChangeStateFromISR(BtnState_t::HeldAndLeft);
+            } else if (diff < 0) {
+                ChangeStateFromISR(BtnState_t::HeldAndRigth);
+            }
+        }
+        break;
+    case BtnState_t::HeldAndLeft:
+    case BtnState_t::HeldAndRigth:
+        if (!IsBtnPressed()) {
             ChangeStateFromISR(BtnState_t::Released);
         }
         break;
+    case BtnState_t::HeldAndReleased:
+        if (!IsBtnPressed()) {
+            ChangeStateFromISR(BtnState_t::Released);
+        }
     }
 }
 

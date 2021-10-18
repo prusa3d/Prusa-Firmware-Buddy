@@ -11,11 +11,17 @@
 #include "display.h"
 
 void window_roll_text_t::unconditionalDraw() {
-
-    roll.RenderTextAlign(GetRect(), text, font,
-        (IsFocused()) ? color_text : color_back,
-        (IsFocused()) ? color_back : color_text,
-        padding, GetAlignment());
+    if (flags.color_scheme_background || flags.color_scheme_foreground) {
+        //TODO keep only folowing 3 lines in function body, remove rest
+        super::unconditionalDraw();
+        roll.RenderTextAlign(GetRect(), text, font,
+            GetBackColor(), GetTextColor(), padding, GetAlignment());
+    } else {
+        roll.RenderTextAlign(GetRect(), text, font,
+            (IsFocused()) ? GetTextColor() : GetBackColor(),
+            (IsFocused()) ? GetBackColor() : GetTextColor(),
+            padding, GetAlignment());
+    }
 }
 
 void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

@@ -50,40 +50,65 @@ Rect16 IWindowMenuItem::getExtensionRect(Rect16 rect) const {
 }
 
 void IWindowMenuItem::Print(Rect16 rect) const {
-    color_t color_text = IsEnabled() ? GuiDefaults::MenuColorText : GuiDefaults::MenuColorDisabled;
-    if (hidden == (uint8_t)is_hidden_t::dev) {
-        color_text = IsEnabled() ? GuiDefaults::MenuColorDevelopment : GuiDefaults::MenuColorDevelopmentDisabled;
-    }
-    color_t color_back = GuiDefaults::MenuColorBack;
     ropfn raster_op;
     raster_op.disable = IsEnabled() ? is_disabled::no : is_disabled::yes;
+    raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
 
-    if (IsFocused()) {
-        if (hidden == (uint8_t)is_hidden_t::dev) {
-            color_back = IsEnabled() ? GuiDefaults::MenuColorText : GuiDefaults::MenuColorDisabled;
-        } else {
-            SWAP(color_text, color_back);
-        }
-        raster_op.swap_bw = has_swapped_bw::yes;
-    }
+    color_t mi_color_back = GetBackColor();
+    color_t mi_color_text = GetTextColor();
 
-    printIcon(getIconRect(rect), raster_op, GuiDefaults::MenuColorBack);
-    printLabel(getLabelRect(rect), color_text, color_back);
+    //print background
+    render_rect(rect, mi_color_back);
+
+    printIcon(getIconRect(rect), raster_op, mi_color_back);
+    roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
     if (extension_width)
-        printExtension(getExtensionRect(rect), color_text, color_back, raster_op);
+        printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
+}
+
+/*  color               options: |enabled|focused|dev_only|
+*   MenuColorDevelopment         | 101 or 111
+*   MenuColorDevelopmentDisabled | 001 or 011
+*   MenuColorBack                | 110 or 010
+*   MenuColorText                | 100
+*   MenuColorDisabled            | 000
+*/
+color_t IWindowMenuItem::GetTextColor() const {
+    color_t ret;
+    if (IsEnabled() && hidden == (uint8_t)is_hidden_t::dev) {
+        ret = GuiDefaults::MenuColorDevelopment;
+    } else if (hidden == (uint8_t)is_hidden_t::dev) {
+        ret = GuiDefaults::MenuColorDevelopmentDisabled;
+    } else if (IsFocused()) {
+        ret = GuiDefaults::MenuColorBack;
+    } else if (IsEnabled()) {
+        ret = GuiDefaults::MenuColorText;
+    } else {
+        ret = GuiDefaults::MenuColorDisabled;
+    }
+    return ret;
+}
+
+/*  color               options: |enabled|focused|
+*   MenuColorBack                | 10 or 00
+*   MenuColorFocusedBack         | 11
+*   MenuColorDisabled            | 01
+*/
+color_t IWindowMenuItem::GetBackColor() const {
+    color_t ret = GuiDefaults::MenuColorBack;
+    if (IsFocused()) {
+        ret = IsEnabled() ? GuiDefaults::MenuColorFocusedBack : GuiDefaults::MenuColorDisabled;
+    }
+    return ret;
 }
 
 void IWindowMenuItem::printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const {
     //do not check id. id == 0 will render as black, it is needed
-    render_icon_align(icon_rect, id_icon, color_back, { Align_t::Center(), raster_op });
-}
-
-void IWindowMenuItem::printLabel(Rect16 label_rect, color_t color_text, color_t color_back) const {
-    roll.RenderTextAlign(label_rect, GetLabel(), label_font, color_back, color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
+    render_icon_align(icon_rect, id_icon, color_back, icon_flags(Align_t::Center(), raster_op));
 }
 
 void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
-    render_icon_align(extension_rect, IDR_PNG_arrow_right_16px, GuiDefaults::MenuColorBack, { Align_t::Center(), raster_op });
+    render_icon_align(extension_rect, IDR_PNG_arrow_right_16px, color_back, icon_flags(Align_t::Center(), raster_op));
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {

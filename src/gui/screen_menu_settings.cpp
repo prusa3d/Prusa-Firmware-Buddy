@@ -20,6 +20,7 @@
 #include "MItem_tools.hpp"
 #include "i18n.h"
 #include "Marlin/src/core/serial.h"
+#include "DialogMoveZ.hpp"
 
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
@@ -127,8 +128,8 @@ ScreenMenuSettings::ScreenMenuSettings()
 }
 
 void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::HOLD) {
-        Screens::Access()->Open(GetScreenMenuExperimentalSettings);
+    if (event == GUI_event_t::HELD_RELEASED) {
+        DialogMoveZ::Show();
         return;
     }
 

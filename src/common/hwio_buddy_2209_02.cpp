@@ -605,7 +605,7 @@ uint32_t analogRead(uint32_t ulPin) {
         case MARLIN_PIN(TEMP_0):
             return AdcGet::nozzle();
         case MARLIN_PIN(TEMP_HEATBREAK):
-            return AdcGet::temp2();
+            return AdcGet::boardTemp();
         case MARLIN_PIN(THERM2):
             return AdcGet::pinda();
         default:

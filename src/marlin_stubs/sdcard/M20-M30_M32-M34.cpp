@@ -1,6 +1,5 @@
 #include <dirent.h>
 
-#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "marlin_server.h"
 #include "media.h"

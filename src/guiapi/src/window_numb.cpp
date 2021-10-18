@@ -10,12 +10,19 @@ static const constexpr uint8_t WINDOW_NUMB_MAX_TEXT = 30;
 static_assert(sizeof(uint32_t) == sizeof(float), "size of uint32 does not match float");
 
 void window_numb_t::unconditionalDraw() {
-    color_t clr_back = (IsFocused()) ? color_text : color_back;
-    color_t clr_text = (IsFocused()) ? color_back : color_text;
-    if (IsCaptured())
+    color_t clr_back = GetBackColor();
+    color_t clr_text = GetTextColor();
+    //TODO remove this if statement (its body too)
+    if (!(flags.color_scheme_background || flags.color_scheme_foreground)) {
+        clr_back = (IsFocused()) ? GetTextColor() : GetBackColor();
+        clr_text = (IsFocused()) ? GetBackColor() : GetTextColor();
+        if (IsShadowed())
+            clr_text = COLOR_GRAY;
+    }
+
+    if (IsCaptured()) //capture color could be part of color scheme, but currently it is used only here
         clr_text = COLOR_ORANGE;
-    if (IsShadowed())
-        clr_text = COLOR_GRAY;
+
     char text[WINDOW_NUMB_MAX_TEXT];
     switch (printAs) {
     case printType::asInt32:
@@ -56,26 +63,12 @@ void window_numb_t::setValue(float val) {
     value = val;
 }
 
-void window_numb_t::SetFont(font_t *val) {
-    font = val;
-    Invalidate();
-}
-
-void window_numb_t::SetColor(color_t clr) {
-    if (clr != color_text) {
-        color_text = clr;
-        Invalidate();
-    }
-}
-
-window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const char *frmt)
-    : window_aligned_t(parent, rect)
-    , color_text(GuiDefaults::ColorText)
-    , font(GuiDefaults::Font)
+window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const char *frmt, font_t *font)
+    : AddSuperWindow<IWindowText>(parent, rect)
     , value(value)
-    , format(frmt == nullptr ? "%.0f" : frmt)
-    , padding(GuiDefaults::Padding) {
+    , format(frmt == nullptr ? "%.0f" : frmt) {
     PrintAsFloat();
+    SetFont(font);
 }
 
 void window_numb_t::PrintAsFloat() {

@@ -37,8 +37,8 @@ void display_ex_clear(const color_t clr) {
     st7789v_clear(color_to_native(clr));
 }
 
-static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, ropfn rop) {
-    st7789v_draw_png_ex(point_x, point_y, pf, clr0, rop.ConvertToC());
+static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr_back, ropfn rop) {
+    st7789v_draw_png_ex(point_x, point_y, pf, clr_back, rop.ConvertToC());
 }
 
 static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {

@@ -19,7 +19,7 @@ struct term_buff_t {
 
 //todo, why is this using 2nd class term_t?
 //to be sizeable?
-class window_term_t : public window_t {
+class window_term_t : public AddSuperWindow<window_t> {
 public:
     color_t color_text;
     font_t *font;

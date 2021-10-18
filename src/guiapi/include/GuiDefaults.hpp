@@ -4,6 +4,7 @@
 #include "Rect16.h"
 #include "align.hpp"
 #include "footer_def.hpp"
+#include "color_scheme.hpp"
 
 struct GuiDefaults {
     // Footer settings
@@ -33,8 +34,10 @@ struct GuiDefaults {
     static constexpr color_t ColorSelected = COLOR_ORANGE;
     static constexpr color_t COLOR_VALUE_VALID = COLOR_WHITE;
     static constexpr color_t COLOR_VALUE_INVALID = COLOR_WHITE; //COLOR_YELLOW
+    static constexpr color_scheme ClickableIconColorScheme = { COLOR_DARK_GRAY, COLOR_WHITE, ColorBack, ColorDisabled };
     // Menu color settings
     static constexpr color_t MenuColorBack = ColorBack;
+    static constexpr color_t MenuColorFocusedBack = COLOR_WHITE;
     static constexpr color_t MenuColorText = ColorText;
     static constexpr color_t MenuColorDisabled = ColorDisabled;
     static constexpr color_t MenuColorDevelopment = COLOR_LIGHT_GREEN;

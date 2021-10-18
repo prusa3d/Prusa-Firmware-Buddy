@@ -21,7 +21,6 @@
  */
 
 #include "../gcode.h"
-#include "../../inc/MarlinConfig.h"
 
 #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
 static void cap_line(PGM_P const name, bool ena = false) {

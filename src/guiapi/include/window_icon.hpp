@@ -59,6 +59,9 @@ public:
 protected:
     virtual void unconditionalDraw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
+private:
+    SelftestSubtestState_t state;
 };
 
 class WindowThumbnail : public AddSuperWindow<window_icon_t> {

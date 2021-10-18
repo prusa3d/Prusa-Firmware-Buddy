@@ -22,7 +22,7 @@ extern void w25x_disable_wr(void);
 extern uint8_t w25x_rd_status_reg(void);
 extern void w25x_wr_status_reg(uint8_t val);
 extern void w25x_rd_data(uint32_t addr, uint8_t *data, uint16_t cnt);
-extern void w25x_page_program(uint32_t addr, uint8_t *data, uint16_t cnt);
+extern void w25x_page_program(uint32_t addr, const uint8_t *data, uint16_t cnt);
 extern void w25x_sector_erase(uint32_t addr);
 extern void w25x_block32_erase(uint32_t addr);
 extern void w25x_block64_erase(uint32_t addr);

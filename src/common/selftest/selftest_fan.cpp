@@ -3,8 +3,8 @@
 #include "selftest_fan.h"
 #include "wizard_config.hpp"
 #include "fanctl.h"
-#include "../../../lib/Marlin/Marlin/src/inc/MarlinConfigPre.h" //EXTRUDER_AUTO_FAN_TEMPERATURE
-#include "marlin_server.h"                                      //marlin_server_get_temp_nozzle()
+#include "config_features.h" //EXTRUDER_AUTO_FAN_TEMPERATURE
+#include "marlin_server.h"   //marlin_server_get_temp_nozzle()
 
 #define FANTEST_STOP_DELAY    2000
 #define FANTEST_WAIT_DELAY    2500

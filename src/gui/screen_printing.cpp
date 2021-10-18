@@ -1,4 +1,4 @@
-//screen_printing.cpp
+// screen_printing.cpp
 #include "dbg.h"
 #include "screen_printing.hpp"
 #include "marlin_client.h"
@@ -11,6 +11,8 @@
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"
 #include "odometer.hpp"
+#include "liveadjust_z.hpp"
+#include "DialogMoveZ.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.hpp"
@@ -143,6 +145,7 @@ screen_printing_data_t::screen_printing_data_t()
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
     w_filename.SetText(vars->media_LFN ? string_view_utf8::MakeRAM((const uint8_t *)vars->media_LFN) : string_view_utf8::MakeNULLSTR());
 
+    // we could use shadow flag and color scheme for labels and values to be more clear
     w_etime_label.font = resource_font(IDR_FNT_SMALL);
     w_etime_label.SetAlignment(Align_t::RightBottom());
     w_etime_label.SetPadding({ 0, 2, 0, 2 });
@@ -232,6 +235,14 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
     }
+    if (event == GUI_event_t::HELD_RELEASED) {
+        if (marlin_vars()->curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
+            LiveAdjustZ::Show();
+        } else if (p_state == printing_state_t::PRINTED) {
+            DialogMoveZ::Show();
+        }
+        return;
+    }
 
     SuperWindowEvent(sender, event, param);
 }
@@ -270,7 +281,7 @@ void screen_printing_data_t::enable_tune_button() {
 
 void screen_printing_data_t::update_remaining_time(uint32_t sec, uint16_t print_speed) {
     bool is_time_valid = sec < (60 * 60 * 24 * 365); // basic check, check of year in tm struct, does not work
-    w_etime_value.color_text = is_time_valid ? GuiDefaults::COLOR_VALUE_VALID : GuiDefaults::COLOR_VALUE_INVALID;
+    w_etime_value.SetTextColor(is_time_valid ? GuiDefaults::COLOR_VALUE_VALID : GuiDefaults::COLOR_VALUE_INVALID);
     if (is_time_valid) {
         time_t rawtime = time_t(sec);
         if (print_speed != 100) {
@@ -301,10 +312,10 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
 
     bool time_invalid = false;
     if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
-        w_etime_value.color_text = GuiDefaults::COLOR_VALUE_INVALID;
+        w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
         time_invalid = true;
     } else {
-        w_etime_value.color_text = GuiDefaults::COLOR_VALUE_VALID;
+        w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
     }
 
     static const uint32_t full_day_in_seconds = 86400;
@@ -345,7 +356,7 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
     w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));
 }
 void screen_printing_data_t::update_print_duration(time_t rawtime) {
-    w_time_value.color_text = GuiDefaults::COLOR_VALUE_VALID;
+    w_time_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
     const struct tm *timeinfo = localtime(&rawtime);
     if (timeinfo->tm_yday) {
         snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
