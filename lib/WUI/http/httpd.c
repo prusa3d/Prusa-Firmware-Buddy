@@ -2597,22 +2597,26 @@ static void wui_api_files(struct fs_file *file) {
     file->flags = 0; // no flags for fs_open
 }
 
-uint32_t authorize_request(struct pbuf *req) {
+bool authorize_request(const struct pbuf *req) {
     const char *api_key_tag = "X-Api-Key:";
     uint32_t api_key_tag_length = strlen(api_key_tag);
     uint32_t index = pbuf_strstr(req, api_key_tag);
 
     if (index == UINT16_MAX) {
-        return 0;
+        return false;
     } else {
         const char *api_key = wui_get_api_key();
         uint32_t token_length = strlen(api_key);
-        const char *auth_token = (((const char *)req->payload) + index + api_key_tag_length + 1);
-        if (!pbuf_get_at(req, index + api_key_tag_length + 1) || memcmp(api_key, auth_token, token_length) != 0) {
-            return 0;
+        uint32_t token_start = index + api_key_tag_length + 1;
+        uint32_t token_end = token_start + token_length;
+        uint8_t at_end = pbuf_get_at(req, token_end); // Returns 0 if out of bounds.
+        // There's a termination after the token (eg. the user provided token is not longer than ours).
+        bool term_char = (at_end == ' ') || (at_end == '\n') || (at_end == '\r') || (at_end == '\0');
+        if (!term_char || (pbuf_memcmp(req, token_start, api_key, token_length) != 0)) {
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 /** Try to find the file specified by uri and, if found, initialize hs

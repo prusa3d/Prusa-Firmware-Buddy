@@ -282,6 +282,16 @@ struct altcp_tls_config;
 void httpd_inits(struct altcp_tls_config *conf);
 #endif
 
+/**
+ * Check if the request can perform privileged operations.
+ *
+ * Currently it checks if the HTTP request contains the right X-Api-Key header.
+ *
+ * @param req The request, in form of the pbuf.
+ * @return If it is allowed to proceed.
+ */
+bool authorize_request(const struct pbuf *req);
+
 #ifdef __cplusplus
 }
 #endif
