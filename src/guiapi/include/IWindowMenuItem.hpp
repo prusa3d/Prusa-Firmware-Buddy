@@ -76,7 +76,7 @@ public:
     virtual ~IWindowMenuItem() = default;
     void Enable() { enabled = is_enabled_t::yes; }
     void Disable() { enabled = is_enabled_t::no; }
-    bool IsEnabled() const { return enabled == is_enabled_t::yes; }
+    bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     bool IsSelected() const { return selected == is_selected_t::yes; }
     void Hide() { hidden = (uint8_t)is_hidden_t::yes; }
     void Show() { hidden = (uint8_t)is_hidden_t::no; }

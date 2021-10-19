@@ -37,7 +37,7 @@ window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_i16_t pt, 
 
 void window_icon_t::unconditionalDraw() {
     ropfn raster_op;
-    raster_op.disable = IsEnabled() ? is_disabled::no : is_disabled::yes;
+    raster_op.shadow = IsShadowed() ? is_shadowed::yes : is_shadowed::no;
     raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
 
     super::unconditionalDraw();
