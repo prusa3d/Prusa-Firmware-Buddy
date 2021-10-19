@@ -59,7 +59,7 @@ union WindowFlags {
         bool hidden_behind_dialog : 1;             // 09 - there is an dialog over this window
         is_closed_on_timeout_t timeout_close : 1;  // 0A - menu timeout flag - it's meant to be used in window_frame_t
         is_closed_on_serial_t serial_close : 1;    // 0B - serial printing screen open close
-        bool shadow : 1;                           // 0C - darker colors
+        bool shadow : 1;                           // 0C - executable (causes darker colors)
         bool enforce_capture_when_not_visible : 1; // 0D - normally invisible / hidden_behind_dialog windows does not get capture
         bool has_relative_subwins : 1;             // 0E - X Y coords of all children are relative to this, screen cannot have this flag because 1st level windows can be dialogs and they must not have relative coords
         bool multiline : 1;                        // 0F - multiline text affect window_text_t anf its children

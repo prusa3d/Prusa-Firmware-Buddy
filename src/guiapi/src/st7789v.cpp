@@ -594,7 +594,7 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                         uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
 
                         switch (rop) {
-                        case ROPFN_SWAPBW | ROPFN_DISABLE:
+                        case ROPFN_SWAPBW | ROPFN_SHADOW:
                             // TODO
                             break;
                         case ROPFN_INVERT:
@@ -603,7 +603,7 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                         case ROPFN_SWAPBW:
                             rop_rgb888_swapbw(ppx888);
                             break;
-                        case ROPFN_DISABLE:
+                        case ROPFN_SHADOW:
                             rop_rgb888_disabled(ppx888);
                             break;
                         }
