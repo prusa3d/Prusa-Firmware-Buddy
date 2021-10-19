@@ -9,23 +9,19 @@
 #ifndef SRC_WUI_WUI_H_
 #define SRC_WUI_WUI_H_
 
-#include <marlin_vars.h>
-#include "cmsis_os.h"
-#include "wui_config.h"
-
-#define BUDDY_WEB_STACK_SIZE 1024
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-extern osMutexId wui_thread_mutex_id;
 
 /*!****************************************************************************
 * \brief Webserver thread function
 *
 *****************************************************************************/
 void StartWebServerTask(void const *argument);
+
+struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type);
 
 #ifdef __cplusplus
 }

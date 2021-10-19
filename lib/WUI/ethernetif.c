@@ -230,7 +230,6 @@ uint32_t ethernetif_link(const void *arg) {
  */
 static void low_level_init(struct netif *netif) {
     uint32_t regvalue = 0;
-    HAL_StatusTypeDef hal_eth_init_status;
 
     /* Init ETH */
 
@@ -247,12 +246,8 @@ static void low_level_init(struct netif *netif) {
 
     /* USER CODE END MACADDRESS */
 
-    hal_eth_init_status = HAL_ETH_Init(&heth);
+    HAL_ETH_Init(&heth);
 
-    if (hal_eth_init_status == HAL_OK) {
-        /* Set netif link flag */
-        netif->flags |= NETIF_FLAG_LINK_UP;
-    }
     /* Initialize Tx Descriptors list: Chain Mode */
     HAL_ETH_DMATxDescListInit(&heth, DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
 
@@ -676,8 +671,7 @@ void ethernetif_update_config(struct netif *netif) {
         HAL_ETH_Start(&heth);
     } else {
         /* Stop MAC interface */
-        //TODO:After a few ETH_Stop, device don't want to start ?
-        // HAL_ETH_Stop(&heth);
+        HAL_ETH_Stop(&heth);
     }
 
     ethernetif_notify_conn_changed(netif);

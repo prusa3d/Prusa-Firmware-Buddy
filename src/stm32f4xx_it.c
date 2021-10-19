@@ -39,10 +39,12 @@
 #include "cmsis_os.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "config.h"
 #include "bsod.h"
 #include "dump.h"
 #include "sys.h"
 #include "buffered_serial.hpp"
+#include "lwesp_ll_buddy.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -192,15 +194,25 @@ void USART2_IRQHandler() {
     }
     HAL_UART_IRQHandler(&huart2);
 }
+#ifdef USE_ESP01_WITH_UART6
+void USART6_IRQHandler(void) {
 
+    if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
+        __HAL_UART_CLEAR_IDLEFLAG(&huart6);
+        esp_receive_data(&huart6);
+    }
+    HAL_UART_IRQHandler(&huart6);
+}
+#else
 void USART6_IRQHandler() {
+    // Uart_isr(&huart6);
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart6);
         uartrxbuff_idle_cb(&uart6rxbuff);
     }
     HAL_UART_IRQHandler(&huart6);
 }
-
+#endif
 /**
   * @brief This function handles Window watchdog interrupt.
   */
@@ -298,7 +310,9 @@ void TIM8_TRG_COM_TIM14_IRQHandler(void) {
   */
 void DMA2_Stream1_IRQHandler(void) {
     /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
-
+    if (__HAL_DMA_GET_IT_SOURCE(&hdma_usart6_rx, DMA_IT_HT) != RESET || __HAL_DMA_GET_IT_SOURCE(&hdma_usart6_rx, DMA_IT_TC) != RESET) {
+        esp_receive_data(&huart6);
+    }
     /* USER CODE END DMA2_Stream1_IRQn 0 */
     HAL_DMA_IRQHandler(&hdma_usart6_rx);
     /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
@@ -306,6 +320,7 @@ void DMA2_Stream1_IRQHandler(void) {
     /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
 
+#ifndef USE_ESP01_WITH_UART6
 /**
   * @brief This function handles DMA2 stream2 global interrupt.
   */
@@ -318,7 +333,7 @@ void DMA2_Stream2_IRQHandler(void) {
 
     /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
-
+#endif
 /**
   * @brief This function handles DMA2 stream0 global interrupt.
   */

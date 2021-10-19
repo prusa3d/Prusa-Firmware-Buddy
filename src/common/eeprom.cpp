@@ -16,7 +16,7 @@
 #include "footer_eeprom.hpp"
 #include <bitset>
 
-static const constexpr uint8_t EEPROM__PADDING = 4;
+static const constexpr uint8_t EEPROM__PADDING = 2;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
 static const constexpr uint16_t EEPROM_MAX_DATASIZE = 512;         // maximum datasize
 static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
@@ -117,6 +117,9 @@ typedef struct _eeprom_vars_t {
     uint16_t AXIS_RMS_CURRENT_MA_E0;
     float AXIS_Z_MAX_POS_MM;
     uint32_t ODOMETER_TIME;
+    uint8_t EEVAR_ACTIVE_NETDEV;
+    uint8_t EEVAR_PL_RUN;
+    char EEVAR_PL_API_KEY[PL_API_KEY_SIZE];
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -192,6 +195,9 @@ static const eeprom_entry_t eeprom_map[] = {
     { "RMS_CURR_MA_E",   VARIANT8_UI16,  1, 0 }, // AXIS_RMS_CURRENT_MA_E0
     { "Z_MAX_POS_MM",    VARIANT8_FLT,   1, 0 }, // AXIS_Z_MAX_POS_MM
     { "ODOMETER_TIME",   VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_ODOMETER_TIME
+    { "ACTIVE_NETDEV",   VARIANT8_UI8,   1, 0 },
+    { "PL_RUN",          VARIANT8_UI8,   1, 0 },    // EEVAR_PL_RUN
+    { "PL_API_KEY",      VARIANT8_PCHAR, PL_API_KEY_SIZE, 0 }, // EEVAR_PL_API_KEY
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -276,6 +282,9 @@ static const eeprom_vars_t eeprom_var_defaults = {
     E0_CURRENT,             // AXIS_RMS_CURRENT_MA_E0
     DEFAULT_Z_MAX_POS,      // AXIS_Z_MAX_POS_MM
     0,               // EEVAR_ODOMETER_TIME
+    0,               // EEVAR_ACTIVE_NETDEV
+    1,               // EEVAR_PL_RUN
+    "",               // EEVAR_PL_API_KEY
     "",                     // EEVAR__PADDING
     0xffffffff,             // EEVAR_CRC32
 };
@@ -318,8 +327,8 @@ eeprom_init_status_t eeprom_init(void) {
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
 
-    version = variant_get_ui16(eeprom_get_var(EEVAR_VERSION));
-    features = (version >= 4) ? variant_get_ui16(eeprom_get_var(EEVAR_FEATURES)) : 0;
+    version = variant8_get_ui16(eeprom_get_var(EEVAR_VERSION));
+    features = (version >= 4) ? variant8_get_ui16(eeprom_get_var(EEVAR_FEATURES)) : 0;
     if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32())
         status = EEPROM_INIT_Defaults;
     else if ((version != EEPROM_VERSION) || (features != EEPROM_FEATURES)) {
@@ -395,7 +404,7 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
         if (id == EEVAR_ZOFFSET && variant8_get_type(var) == VARIANT8_FLT) {
             variant8_t recent_sheet = eeprom_get_var(EEVAR_ACTIVE_SHEET);
-            uint8_t index = variant_get_ui8(recent_sheet);
+            uint8_t index = variant8_get_ui8(recent_sheet);
             uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
             float z_offset = variant8_get_flt(var);
             st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH, &z_offset, sizeof(float));
@@ -644,7 +653,7 @@ static int eeprom_convert_from(uint16_t version, uint16_t features) {
 static int eeprom_check_crc32(void) {
     uint16_t datasize;
     uint32_t crc;
-    datasize = variant_get_ui16(eeprom_get_var(EEVAR_DATASIZE));
+    datasize = variant8_get_ui16(eeprom_get_var(EEVAR_DATASIZE));
     if (datasize > EEPROM_MAX_DATASIZE)
         return 0;
     st25dv64k_user_read_bytes(EEPROM_ADDRESS + datasize - 4, &crc, 4);
@@ -716,7 +725,7 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
 /// Sheets profile methods
 uint32_t sheet_next_calibrated() {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
 
     for (int8_t i = 1; i < MAX_SHEETS; ++i) {
         if (sheet_select((index + i) % MAX_SHEETS))
@@ -775,7 +784,7 @@ bool sheet_reset(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     if (index >= MAX_SHEETS)
         return false;
-    uint8_t active = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    uint8_t active = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
     uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
     float z_offset = FLT_MAX;
 
@@ -807,7 +816,7 @@ uint32_t sheet_active_name(char *buffer, uint32_t length) {
     if (!buffer || !length)
         return 0;
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
     return sheet_name(index, buffer, length);
 #else
     memcpy(buffer, "DEFAULT", MAX_SHEET_NAME_LENGTH - 1);

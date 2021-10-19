@@ -56,6 +56,8 @@ extern DMA_HandleTypeDef hdma_usart6_rx;
 
 extern DMA_HandleTypeDef hdma_adc1;
 
+extern RNG_HandleTypeDef hrng;
+
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
 
@@ -809,9 +811,50 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart) {
 
         /* USART6 DMA DeInit */
         HAL_DMA_DeInit(huart->hdmarx);
+
+        /* USART6 interrupt DeInit */
+        HAL_NVIC_DisableIRQ(USART6_IRQn);
         /* USER CODE BEGIN USART6_MspDeInit 1 */
 
         /* USER CODE END USART6_MspDeInit 1 */
+    }
+}
+
+/**
+* @brief RNG MSP Initialization
+* This function configures the hardware resources used in this example
+* @param hrng: RNG handle pointer
+* @retval None
+*/
+void HAL_RNG_MspInit(RNG_HandleTypeDef *hrng) {
+    if (hrng->Instance == RNG) {
+        /* USER CODE BEGIN RNG_MspInit 0 */
+
+        /* USER CODE END RNG_MspInit 0 */
+        /* Peripheral clock enable */
+        __HAL_RCC_RNG_CLK_ENABLE();
+        /* USER CODE BEGIN RNG_MspInit 1 */
+
+        /* USER CODE END RNG_MspInit 1 */
+    }
+}
+
+/**
+* @brief RNG MSP De-Initialization
+* This function freeze the hardware resources used in this example
+* @param hrng: RNG handle pointer
+* @retval None
+*/
+void HAL_RNG_MspDeInit(RNG_HandleTypeDef *hrng) {
+    if (hrng->Instance == RNG) {
+        /* USER CODE BEGIN RNG_MspDeInit 0 */
+
+        /* USER CODE END RNG_MspDeInit 0 */
+        /* Peripheral clock disable */
+        __HAL_RCC_RNG_CLK_DISABLE();
+        /* USER CODE BEGIN RNG_MspDeInit 1 */
+
+        /* USER CODE END RNG_MspDeInit 1 */
     }
 }
 

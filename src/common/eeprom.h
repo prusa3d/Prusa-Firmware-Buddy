@@ -101,14 +101,18 @@ enum {
     AXIS_RMS_CURRENT_MA_E0 = 0x3d,    // uint16_t, used to initialize trinamic, must contain "E0" to work with marlin macros
     AXIS_Z_MAX_POS_MM = 0x3e,         // float, used in marlin Z_MAX_POS macro
     EEVAR_ODOMETER_TIME = 0x3f,       //uin32_t total print duration
-    EEVAR__PADDING = 0x40,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_ACTIVE_NETDEV = 0x40,       // active network device
+    EEVAR_PL_RUN = 0x41,              // active network device
+    EEVAR_PL_API_KEY = 0x42,          // active network device
+    EEVAR__PADDING = 0x43,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
-    EEVAR_CRC32 = 0x41, // uint32_t crc32 for
+    EEVAR_CRC32 = 0x44, // uint32_t crc32 for
 };
 
 enum {
     LAN_HOSTNAME_MAX_LEN = 20,
     CONNECT_TOKEN_SIZE = 20,
+    PL_API_KEY_SIZE = 16,
     LAN_EEFLG_ONOFF = 1, //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
     LAN_EEFLG_TYPE = 2,  //EEPROM flag for user-defined settings (Switch between dhcp and static)
 };

@@ -26,6 +26,9 @@ enum {
 #define CRC32_USE_HW
 #define CRC32_USE_RTOS
 
+// ESP configs
+#define USE_ESP01_WITH_UART6
+
 //guiconfig.h included with config
 #include "../guiconfig/guiconfig.h"
 

@@ -69,9 +69,9 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t 
         Screens::Access()->Close();
         */
 
-            const bool run_selftest = variant_get_ui8(eeprom_get_var(EEVAR_RUN_SELFTEST)) ? 1 : 0;
-            const bool run_xyzcalib = variant_get_ui8(eeprom_get_var(EEVAR_RUN_XYZCALIB)) ? 1 : 0;
-            const bool run_firstlay = variant_get_ui8(eeprom_get_var(EEVAR_RUN_FIRSTLAY)) ? 1 : 0;
+            const bool run_selftest = variant8_get_ui8(eeprom_get_var(EEVAR_RUN_SELFTEST)) ? 1 : 0;
+            const bool run_xyzcalib = variant8_get_ui8(eeprom_get_var(EEVAR_RUN_XYZCALIB)) ? 1 : 0;
+            const bool run_firstlay = variant8_get_ui8(eeprom_get_var(EEVAR_RUN_FIRSTLAY)) ? 1 : 0;
             const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
             const bool run_lang = !LangEEPROM::getInstance().IsValid();
 

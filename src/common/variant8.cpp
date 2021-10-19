@@ -323,10 +323,10 @@ uint32_t variant8_get_ui32(variant8_t v) { return unpack(&v)->ui32; }
 int32_t variant8_get_i32(variant8_t v) { return unpack(&v)->i32; }
 
 // returns variant8_t ui16
-uint16_t variant_get_ui16(variant8_t v) { return unpack(&v)->ui16; }
+uint16_t variant8_get_ui16(variant8_t v) { return unpack(&v)->ui16; }
 
 // returns variant8_t ui8
-uint8_t variant_get_ui8(variant8_t v) { return unpack(&v)->ui8; }
+uint8_t variant8_get_ui8(variant8_t v) { return unpack(&v)->ui8; }
 
 // returns variant8_t i8
 int8_t variant8_get_i8(variant8_t v) { return unpack(&v)->i8; }

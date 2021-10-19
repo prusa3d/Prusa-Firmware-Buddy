@@ -138,6 +138,7 @@ DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart6_rx;
 DMA_HandleTypeDef hdma_adc1;
+RNG_HandleTypeDef hrng;
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
@@ -167,8 +168,11 @@ static void MX_SPI3_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM14_Init(void);
 static void MX_RTC_Init(void);
+static void MX_RNG_Init(void);
+
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
+void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
 /* USER CODE BEGIN PFP */
@@ -180,10 +184,12 @@ void iwdg_warning_cb(void);
 
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[200];
-
+#ifndef USE_ESP01_WITH_UART6
 uartrxbuff_t uart6rxbuff;
 uint8_t uart6rx_data[128];
-
+uartslave_t uart6slave;
+char uart6slave_line[32];
+#endif
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
@@ -259,7 +265,9 @@ int main(void) {
     MX_TIM2_Init();
     MX_TIM14_Init();
     MX_RTC_Init();
+    MX_RNG_Init();
 
+    /* USER CODE BEGIN 2 */
     HAL_GPIO_Initialized = 1;
     HAL_ADC_Initialized = 1;
     HAL_PWM_Initialized = 1;
@@ -279,10 +287,6 @@ int main(void) {
     uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
     uartrxbuff_reset(&uart1rxbuff);
-
-    uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
-    HAL_UART_Receive_DMA(&huart6, uart6rxbuff.buffer, uart6rxbuff.buffer_size);
-    uartrxbuff_reset(&uart6rxbuff);
 
     filesystem_init();
 
@@ -325,7 +329,7 @@ int main(void) {
 
 #ifdef BUDDY_ENABLE_WUI
     /* definition and creation of webServerTask */
-    osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, BUDDY_WEB_STACK_SIZE);
+    osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, 1024);
     webServerTaskHandle = osThreadCreate(osThread(webServerTask), NULL);
 #endif
 
@@ -944,9 +948,6 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
-
-    /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOD, FLASH_CSN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : USB_OVERC_Pin ESP_GPIO0_Pin
@@ -963,14 +964,35 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(USB_EN_GPIO_Port, &GPIO_InitStruct);
+#ifdef USE_ESP01_WITH_UART6
+    /* NOTE: Configuring GPIO causes a short drop of pin output to low. This is
+       avoided by first setting the pin and then initilizing the GPIO. In case
+       this does not work we first initilize ESP GPIO0 to avoid reset low
+       followed by ESP GPIO low as this sequence can switch esp to boot mode */
 
-    /*Configure GPIO pins : ESP_RST_Pin LCD_RST_Pin LCD_CS_Pin */
+    /* Configure ESP GPIO0 (PROG, High for ESP module boot from Flash) */
+    GPIO_InitStruct.Pin = GPIO_PIN_6;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
+    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+    /* Configure GPIO pins : ESP_RST_Pin */
+    GPIO_InitStruct.Pin = ESP_RST_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+#else
+    /*Configure GPIO pins : ESP_RST_Pin */
     GPIO_InitStruct.Pin = ESP_RST_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
+    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
+#endif
     /*Configure GPIO pins : FLASH_CSN_Pin */
     GPIO_InitStruct.Pin = FLASH_CSN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -994,6 +1016,29 @@ static void MX_GPIO_Init(void) {
     HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
+/**
+  * @brief RNG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RNG_Init(void) {
+
+    /* USER CODE BEGIN RNG_Init 0 */
+
+    /* USER CODE END RNG_Init 0 */
+
+    /* USER CODE BEGIN RNG_Init 1 */
+
+    /* USER CODE END RNG_Init 1 */
+    hrng.Instance = RNG;
+    if (HAL_RNG_Init(&hrng) != HAL_OK) {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN RNG_Init 2 */
+
+    /* USER CODE END RNG_Init 2 */
+}
+
 /* USER CODE BEGIN 4 */
 extern void st7789v_spi_tx_complete(void);
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
@@ -1008,8 +1053,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *haurt) {
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
     if (huart == &huart2)
         buddy::hw::BufferedSerial::uart2.FirstHalfReachedISR();
+#if 0
     else if (huart == &huart6)
         uartrxbuff_rxhalf_cb(&uart6rxbuff);
+#endif
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
@@ -1017,8 +1064,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         uartrxbuff_rxcplt_cb(&uart1rxbuff);
     else if (huart == &huart2)
         buddy::hw::BufferedSerial::uart2.SecondHalfReachedISR();
+#ifndef USE_ESP01_WITH_UART6
     else if (huart == &huart6)
         uartrxbuff_rxcplt_cb(&uart6rxbuff);
+#endif
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {

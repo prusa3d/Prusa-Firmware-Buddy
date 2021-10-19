@@ -96,11 +96,11 @@ Sound::Sound()
  * [soundInit] sets global variable [SOUND_INIT] for safe update method([soundUpdate1ms]) because tim14 tick update method is called before [eeprom.c] is initialized.
  */
 void Sound::init() {
-    eSoundMode = static_cast<eSOUND_MODE>(variant_get_ui8(eeprom_get_var(EEVAR_SOUND_MODE)));
+    eSoundMode = static_cast<eSOUND_MODE>(variant8_get_ui8(eeprom_get_var(EEVAR_SOUND_MODE)));
     if (eSoundMode == eSOUND_MODE::UNDEF) {
         setMode(eSOUND_MODE::DEFAULT);
     }
-    varVolume = variant_get_ui8(eeprom_get_var(EEVAR_SOUND_VOLUME));
+    varVolume = variant8_get_ui8(eeprom_get_var(EEVAR_SOUND_VOLUME));
     varVolume = varVolume == 11 ? varVolume : varVolume / 10.F;
     /// GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = true;

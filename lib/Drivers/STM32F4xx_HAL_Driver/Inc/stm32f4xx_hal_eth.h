@@ -681,7 +681,7 @@ typedef  void (*pETH_CallbackTypeDef)(ETH_HandleTypeDef * heth); /*!< pointer to
 #define ETH_EXTRA                 2U       /*!< Extra bytes in some cases */
 #define ETH_VLAN_TAG              4U       /*!< optional 802.1q VLAN Tag */
 #define ETH_MIN_ETH_PAYLOAD       46U      /*!< Minimum Ethernet payload size */
-#define ETH_MAX_ETH_PAYLOAD       1500U    /*!< Maximum Ethernet payload size */
+#define ETH_MAX_ETH_PAYLOAD       536U    /*!< Maximum Ethernet payload size */
 #define ETH_JUMBO_FRAME_PAYLOAD   9000U    /*!< Jumbo frame payload size */
 
  /* Ethernet driver receive buffers are organized in a chained linked-list, when

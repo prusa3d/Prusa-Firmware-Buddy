@@ -4,14 +4,17 @@
  *
  *  Created on: April 22, 2020
  *      Author: joshy <joshymjose[at]gmail.com>
+ *  Modify on 09/17/2021
+ *      Author: Marek Mosna <marek.mosna[at]prusa3d.cz>
  */
 
 #ifndef _WUI_API_H_
 #define _WUI_API_H_
 
 #include <stdint.h>
-#include <stdbool.h>
+
 #include "netif_settings.h"
+#include "marlin_vars.h"
 
 #define FW_VER_STR_LEN    32  // length of full Firmware version string
 #define MAC_ADDR_STR_LEN  18  // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
@@ -62,20 +65,6 @@ typedef struct {
 } printer_info_t;
 
 /*!*************************************************************************************************
-* \brief Returns ethernet status
-*
-* \retval eth_status - Current status of the ethernet connection
-***************************************************************************************************/
-const ETH_STATUS_t get_eth_status(void);
-
-/*!*************************************************************************************************
-* \brief Returns LAN flag from WUI
-*
-* \retval uint8_t the lan_t.flag of WUI
-***************************************************************************************************/
-uint8_t get_lan_flag(void);
-
-/*!*************************************************************************************************
 * \brief saves the Ethernet specific parameters to non-volatile memory
 *
 * \param [in] ETH_config storage for parameters to set from static ethconfig to non-volatile memory
@@ -106,7 +95,19 @@ uint32_t load_eth_params(ETH_config_t *ethconfig);
 *
 * \retval   1 if successful
 *****************************************************************************/
-uint32_t load_ini_file(ETH_config_t *config);
+uint32_t load_ini_file_eth(ETH_config_t *config);
+
+/*!****************************************************************************
+* \brief load from ini file Wifi specific parameters
+*
+* \param    [out] config - storage for loaded ethernet configurations
+* \param    [out] ap - storage for loaded accesspoint parameters
+*
+* \return   uint32_t    error value
+*
+* \retval   1 if successful
+*****************************************************************************/
+uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
 
 /*!****************************************************************************
 * \brief access user defined addresses in memory and aquire vital printer info
@@ -144,7 +145,7 @@ void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config);
 *
 * \param [in] config - structure that stores currnet ethernet configurations
 *****************************************************************************/
-void get_eth_address(ETH_config_t *config);
+void get_eth_address(uint32_t, ETH_config_t *);
 
 /*!*********************************************************************************************************************
 * \brief Parses time from device's time storage to seconds. MONTHS are from 0 and YEARS are from 1900
@@ -172,6 +173,60 @@ void sntp_set_system_time(uint32_t sec, int8_t last_timezone);
 * \param [in,out] timestamp - system time aquired from device's time storage/clock
 **********************************************************************************/
 void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Authorization key for PrusaLink
+///
+/// @return Return an x-api-key
+const char *wui_get_api_key();
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Generate authorization key for PrusaLink
+///
+/// @param[out] buffer api key buffer
+/// @param[in] length Size of the buffer
+/// @return Return an x-api-key
+const char *wui_generate_api_key(char *, uint32_t);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Generate authorization key for PrusaLink
+///
+/// @param[out] api_key api key buffer
+/// @param[in] length Size of the buffer
+void wui_store_api_key(char *, uint32_t);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Prepare file descriptor to upload the file
+///
+/// @param[in] filename Name of the file to start uploading
+/// @return Return 0 if success otherwise the error code
+uint32_t wui_upload_begin(const char *);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Writting received data on already prepared file descriptor
+///
+/// @param[in] buffer Received file data
+/// @param[in] length Size of the buffer
+/// @return Return 0 if success otherwise the error code
+uint32_t wui_upload_data(const char *, uint32_t);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Finalize upload of the file
+///
+/// @param[in] oldFilename Temporary file name
+/// @param[in] newFilename Regular file name
+/// @param[in] startPrint 1 if print should start after upload, 0 otherwise
+/// @return Return status code for http response
+///                 200 OK
+///                 409 Conflict
+///                 415 Unsupported Media Type
+uint32_t wui_upload_finish(const char *, const char *, uint32_t);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief initialize marlin client for tcpip thread
+///
+void wui_marlin_client_init(void);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

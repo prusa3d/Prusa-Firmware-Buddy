@@ -32,6 +32,8 @@ extern SPI_HandleTypeDef hspi3;
     #error "Unknown board."
 #endif
 
+extern UART_HandleTypeDef huart6;
+
 #if (1)
 extern uartrxbuff_t uart1rxbuff;
 #endif

@@ -59,6 +59,10 @@ extern void reset_trinamic_drivers();
 
 extern "C" {
 
+#ifndef USE_ESP01_WITH_UART6
+extern uartslave_t uart6slave; // PUT slave
+#endif
+
 #ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
 #endif                                 //BUDDY_ENABLE_ETHERNET
@@ -113,7 +117,9 @@ void app_run(void) {
         if (marlin_server_processing()) {
             loop();
         }
-
+#ifndef USE_ESP01_WITH_UART6
+        uartslave_cycle(&uart6slave);
+#endif
         marlin_server_loop();
         osDelay(0); // switch to other threads - without this is UI slow
 #ifdef JOGWHEEL_TRACE

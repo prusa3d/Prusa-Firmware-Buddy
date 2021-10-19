@@ -135,6 +135,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_ESP_UPDATE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("ESP Update");
+
+public:
+    MI_ESP_UPDATE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_LAN_SETTINGS : public WI_LABEL_t {
     static constexpr const char *const label = N_("Lan Settings");
 
@@ -251,6 +261,16 @@ class MI_LANGUAGUE_XFLASH : public WI_LABEL_t {
 
 public:
     MI_LANGUAGUE_XFLASH();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_PRUSALINK : public WI_LABEL_t {
+    static constexpr const char *const label = "Prusa Link";
+
+public:
+    MI_PRUSALINK();
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;

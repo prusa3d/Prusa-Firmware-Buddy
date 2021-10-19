@@ -499,6 +499,8 @@ target_link_libraries(
           Arduino::LiquidCrystal
           LwIP
           FatFs
+          lwesp
+          flasher
           littlefs
           lpng
           STM32::USBHost
@@ -600,7 +602,6 @@ target_sources(
           src/common/crc32_zlib.c
           src/common/ini_handler.c
           src/common/sha256.c
-          src/common/wui_api.c
           src/common/z_calibration_fsm.cpp
           src/common/scratch_buffer.cpp
           src/common/odometer.cpp
@@ -707,6 +708,7 @@ if(GUI)
             src/gui/screen_menu_steel_sheets.cpp
             src/gui/screen_menu_footer_settings.cpp
             src/gui/screen_sheet_rename.cpp
+            src/gui/screen_prusa_link.cpp
             src/gui/test/screen_test.cpp
             src/gui/test/screen_test_disp_mem.cpp
             src/gui/test/screen_test_gui.cpp
@@ -729,6 +731,7 @@ if(GUI)
             src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
             src/gui/screen_menu_fw_update.cpp
+            src/gui/screen_menu_esp_update.cpp
             src/gui/test/screen_menu_test_temperature.cpp
             src/gui/test/screen_mesh_bed_lv.cpp
             src/gui/screen_menu_eeprom.cpp
