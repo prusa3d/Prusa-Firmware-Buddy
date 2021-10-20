@@ -37,7 +37,7 @@ static uint32_t active_netdev_id = NETDEV_NODEV_ID;
 static ETH_config_t wui_netdev_config[NETDEV_COUNT]; // the active WUI configuration for ethernet, connect and server
 
 struct netif eth0; // network interface structure for ETH
-static ap_entry_t ap = { "ssid", "password" };
+static ap_entry_t ap = { "", "" };
 
 extern osMessageQId networkMbox_id;
 extern struct alsockets_s *alsockets_eth();
