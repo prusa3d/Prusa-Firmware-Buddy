@@ -281,6 +281,19 @@ uint32_t netdev_set_up(uint32_t netdev_id) {
     }
 }
 
+bool netdev_load_ini_to_eeprom() {
+    if ((load_ini_file_eth(&wui_netdev_config[NETDEV_ETH_ID]) != 1) || (load_ini_file_wifi(&wui_netdev_config[NETDEV_ESP_ID], &ap) != 1)) {
+        return false;
+    }
+
+    // Yes, indeed, the load functions return 1 on success, these save return 0 on success...
+    if ((save_net_params(&wui_netdev_config[NETDEV_ETH_ID], NULL, NETDEV_ETH_ID) != 0) || (save_net_params(&wui_netdev_config[NETDEV_ESP_ID], &ap, NETDEV_ESP_ID))) {
+        return false;
+    }
+
+    return true;
+}
+
 uint32_t netdev_set_down(uint32_t netdev_id) {
 
     if (netdev_id == NETDEV_ETH_ID) {

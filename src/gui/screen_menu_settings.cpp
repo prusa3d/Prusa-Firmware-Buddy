@@ -21,6 +21,7 @@
 #include "i18n.h"
 #include "Marlin/src/core/serial.h"
 #include "DialogMoveZ.hpp"
+#include <wui_api.h>
 
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
@@ -85,12 +86,27 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
 
 bool MI_FILAMENT_SENSOR::fs_not_connected = false;
 
+class MI_LOAD_SETTINGS : public WI_LABEL_t {
+    constexpr static const char *const label = N_("Load Settings from file");
+
+public:
+    MI_LOAD_SETTINGS()
+        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    virtual void click(IWindowMenu & /*window_menu*/) override {
+        // FIXME: Some error reporting
+        // FIXME: How do we _activate_ the new settings?
+        // TODO: Loading other things than just network
+        net_load_ini_to_eeprom();
+    }
+};
+
 #ifdef _DEBUG
 using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FOOTER_SETTINGS, MI_FACTORY_DEFAULTS, MI_SERVICE, MI_HW_SETUP, MI_TEST, MI_FW_UPDATE, MI_ESP_UPDATE, MI_FILAMENT_SENSOR, MI_FS_AUTOLOAD, MI_TIMEOUT, MI_FAN_CHECK,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
+    MI_LOAD_SETTINGS,
     #endif // BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_PRUSALINK,
     MI_DEVHASH_IN_QR, MI_LANGUAGE, MI_LANGUAGUE_USB, MI_LANGUAGUE_XFLASH, MI_LOAD_LANG, MI_SORT_FILES,
@@ -102,6 +118,7 @@ using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PRO
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
+    MI_LOAD_SETTINGS,
     #endif //BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_PRUSALINK, MI_DEVHASH_IN_QR, MI_LANGUAGE>;
 #endif

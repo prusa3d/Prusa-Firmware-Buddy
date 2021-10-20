@@ -11,6 +11,7 @@
 #ifndef _WUI_API_H_
 #define _WUI_API_H_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "netif_settings.h"
@@ -119,6 +120,14 @@ uint32_t load_ini_file_eth(ETH_config_t *config);
 * \retval   1 if successful
 *****************************************************************************/
 uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
+
+/**
+ * Load the settings file and store the data both to run-time configuration and
+ * to the eeprom.
+ *
+ * \return if the load was successful.
+ */
+bool net_load_ini_to_eeprom();
 
 /*!****************************************************************************
 * \brief access user defined addresses in memory and aquire vital printer info

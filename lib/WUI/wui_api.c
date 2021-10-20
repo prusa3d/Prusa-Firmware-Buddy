@@ -279,6 +279,10 @@ uint32_t load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netde
     return 0;
 }
 
+bool net_load_ini_to_eeprom() {
+    return netdev_load_ini_to_eeprom();
+}
+
 void get_printer_info(printer_info_t *printer_info) {
     // FIRMWARE VERSION
     strlcpy(printer_info->firmware_version, project_version_full, FW_VER_STR_LEN);

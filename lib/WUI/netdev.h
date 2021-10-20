@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 
 ////////////////////////////////////////////////////////////////////////////
@@ -149,6 +150,11 @@ netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t);
 ///             - #NETDEV_ESP_ID
 /// @return hostname
 const char *netdev_get_hostname(uint32_t);
+
+/// Load ini file to both runtime and eeprom configuration.
+///
+/// @return If it was successful.
+bool netdev_load_ini_to_eeprom();
 
 #ifdef __cplusplus
 }
