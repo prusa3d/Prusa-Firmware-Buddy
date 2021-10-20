@@ -88,16 +88,15 @@ void netdev_get_ipv4_addresses(uint32_t netdev_id, lan_t *config) {
     }
 }
 
-void netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[6]) {
+void netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE]) {
     if (netdev_id == NETDEV_ETH_ID) {
-        memcpy(mac, (void *)OTP_MAC_ADDRESS_ADDR, 6);
+        memcpy(mac, (void *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
     } else if (netdev_id == NETDEV_ESP_ID) {
         esp_mac_t tmp;
-        espr_t result = esp_sta_getmac(&tmp, NULL, NULL, 1);
-        result += 10;
-        memcpy(mac, (void *)&tmp, 6);
+        esp_sta_getmac(&tmp, NULL, NULL, 1);
+        memcpy(mac, (void *)&tmp, OTP_MAC_ADDRESS_SIZE);
     } else {
-        memset(mac, 0, 6);
+        memset(mac, 0, OTP_MAC_ADDRESS_SIZE);
     }
 }
 

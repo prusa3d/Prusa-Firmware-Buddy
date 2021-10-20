@@ -116,6 +116,7 @@ uint32_t ScreenMenuLanSettings::StringifyNetworkDevice(uint32_t netdev_id, lan_d
     char addr[IP4_ADDR_STR_SIZE], msk[IP4_ADDR_STR_SIZE], gw[IP4_ADDR_STR_SIZE];
     mac_address_t mac_str;
     uint8_t mac[6];
+    int written = 0;
 
     netdev_get_ipv4_addresses(netdev_id, &config);
     netdev_get_MAC_address(netdev_id, mac);
@@ -125,10 +126,11 @@ uint32_t ScreenMenuLanSettings::StringifyNetworkDevice(uint32_t netdev_id, lan_d
     ip4addr_ntoa_r(&(config.gw_ip4), gw, IP4_ADDR_STR_SIZE);
 
     snprintf(mac_str, MAC_ADDR_STR_LEN, "%02x:%02x:%02x:%02x:%02x:%02x",
-        *mac, *(mac + 1), *(mac + 2), *(mac + 3), *(mac + 4), *(mac + 5));
+        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-    return snprintf(buffer, LAN_DESCP_SIZE, "IPv4 Address:\n%s\nIPv4 Netmask:\n%s\nIPv4 Gateway:\n%s\nMAC Address:\n%s",
+    written = snprintf(buffer, LAN_DESCP_SIZE, "IPv4 Address:\n%s\nIPv4 Netmask:\n%s\nIPv4 Gateway:\n%s\nMAC Address:\n%s",
         addr, msk, gw, mac_str);
+    return written > 0 ? written : 0;
 }
 /*****************************************************************************/
 //non static member function definition
