@@ -104,17 +104,35 @@ enum eevar_id {
     EEVAR_ACTIVE_NETDEV = 0x40,       // active network device
     EEVAR_PL_RUN = 0x41,              // active network device
     EEVAR_PL_API_KEY = 0x42,          // active network device
-    EEVAR__PADDING = 0x43,            // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
-    EEVAR_CRC32 = 0x44, // uint32_t crc32 for
+// wifi variables (comes under the same feature flag as eth LAN)
+// FIXME: EEPROM_FEATURE_LAN probably can't be turned off, the .cpp file won't work then.
+#if (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
+    EEVAR_WIFI_FLAG = 0x43,      // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1, lan_flag & 0b1100 -> ap_sec_t security
+    EEVAR_WIFI_IP4_ADDR = 0x44,  // X.X.X.X address encoded in uint32
+    EEVAR_WIFI_IP4_MSK = 0x45,   // X.X.X.X address encoded in uint32
+    EEVAR_WIFI_IP4_GW = 0x46,    // X.X.X.X address encoded in uint32
+    EEVAR_WIFI_IP4_DNS1 = 0x47,  // X.X.X.X address encoded in uint32
+    EEVAR_WIFI_IP4_DNS2 = 0x48,  // X.X.X.X address encoded in uint32
+    EEVAR_WIFI_HOSTNAME = 0x49,  // 20char string
+    EEVAR_WIFI_AP_SSID = 0x4a,   // 32char string
+    EEVAR_WIFI_AP_PASSWD = 0x4b, // 64char string
+#endif                           // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
+
+    EEVAR__PADDING = 0x4c, // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+
+    EEVAR_CRC32 = 0x4d, // uint32_t crc32 for
 };
 
 enum {
     LAN_HOSTNAME_MAX_LEN = 20,
     CONNECT_TOKEN_SIZE = 20,
     PL_API_KEY_SIZE = 16,
-    LAN_EEFLG_ONOFF = 1, //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
-    LAN_EEFLG_TYPE = 2,  //EEPROM flag for user-defined settings (Switch between dhcp and static)
+    LAN_EEFLG_ONOFF = 1,     //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
+    LAN_EEFLG_TYPE = 2,      //EEPROM flag for user-defined settings (Switch between dhcp and static)
+    WIFI_EEFLG_SEC = 0b1100, // Wifi security (ap_sec_t).
+    WIFI_MAX_SSID_LEN = 32,
+    WIFI_MAX_PASSWD_LEN = 64,
 };
 
 #define SelftestResult_Unknown 0

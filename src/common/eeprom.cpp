@@ -1,5 +1,6 @@
 // eeprom.cpp
 
+#include <cassert>
 #include <string.h>
 #include <float.h>
 
@@ -51,7 +52,7 @@ typedef struct _eeprom_entry_t {
     uint16_t flags; // flags
 } eeprom_entry_t;
 
-// eeprom vars structure (used for defaults)
+// eeprom vars structure (used for defaults, packed - see above pragma)
 typedef struct _eeprom_vars_t {
     uint16_t VERSION;
     uint16_t FEATURES;
@@ -120,12 +121,21 @@ typedef struct _eeprom_vars_t {
     uint8_t EEVAR_ACTIVE_NETDEV;
     uint8_t EEVAR_PL_RUN;
     char EEVAR_PL_API_KEY[PL_API_KEY_SIZE];
+    uint8_t WIFI_FLAG;
+    uint32_t WIFI_IP4_ADDR;
+    uint32_t WIFI_IP4_MSK;
+    uint32_t WIFI_IP4_GW;
+    uint32_t WIFI_IP4_DNS1;
+    uint32_t WIFI_IP4_DNS2;
+    char WIFI_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
+    char WIFI_AP_SSID[WIFI_MAX_SSID_LEN + 1];
+    char WIFI_AP_PASSWD[WIFI_MAX_PASSWD_LEN + 1];
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
 
 static_assert(sizeof(eeprom_vars_t) % 4 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
-#pragma pack(pop)
+#pragma pack(pop) // pack
 
 // clang-format off
 
@@ -198,6 +208,15 @@ static const eeprom_entry_t eeprom_map[] = {
     { "ACTIVE_NETDEV",   VARIANT8_UI8,   1, 0 },
     { "PL_RUN",          VARIANT8_UI8,   1, 0 },    // EEVAR_PL_RUN
     { "PL_API_KEY",      VARIANT8_PCHAR, PL_API_KEY_SIZE, 0 }, // EEVAR_PL_API_KEY
+    { "WIFI_FLAG",       VARIANT8_UI8,   1, 0 }, // EEVAR_WIFI_FLAG
+    { "WIFI_IP4_ADDR",   VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_ADDR
+    { "WIFI_IP4_MSK",    VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_MSK
+    { "WIFI_IP4_GW",     VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_GW
+    { "WIFI_IP4_DNS1",   VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_DNS1
+    { "WIFI_IP4_DNS2",   VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_DNS2
+    { "WIFI_HOSTNAME",   VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
+    { "WIFI_AP_SSID",    VARIANT8_PCHAR, WIFI_MAX_SSID_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
+    { "WIFI_AP_PASSWD",  VARIANT8_PCHAR, WIFI_MAX_PASSWD_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -284,9 +303,18 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_ODOMETER_TIME
     0,               // EEVAR_ACTIVE_NETDEV
     1,               // EEVAR_PL_RUN
-    "",               // EEVAR_PL_API_KEY
-    "",                     // EEVAR__PADDING
-    0xffffffff,             // EEVAR_CRC32
+    "",              // EEVAR_PL_API_KEY
+    0,               // EEVAR_WIFI_FLAG
+    0,               // EEVAR_WIFI_IP4_ADDR
+    0,               // EEVAR_WIFI_IP4_MSK
+    0,               // EEVAR_WIFI_IP4_GW
+    0,               // EEVAR_WIFI_IP4_DNS1
+    0,               // EEVAR_WIFI_IP4_DNS2
+    "PrusaMINI",     // EEVAR_WIFI_HOSTNAME
+    "",              // EEVAR_WIFI_AP_SSID
+    "",              // EEVAR_WIFI_AP_PASSWD
+    "",              // EEVAR__PADDING
+    0xffffffff,      // EEVAR_CRC32
 };
 // clang-format on
 
@@ -426,6 +454,8 @@ void eeprom_set_var(enum eevar_id id, variant8_t var) {
             // TODO: error
         }
         eeprom_unlock();
+    } else {
+        assert(0 /* EEProm var Id out of range */);
     }
 }
 
@@ -447,10 +477,16 @@ int eeprom_var_format(char *str, unsigned int size, enum eevar_id id, variant8_t
     case EEVAR_LAN_IP4_MSK:
     case EEVAR_LAN_IP4_GW:
     case EEVAR_LAN_IP4_DNS1:
-    case EEVAR_LAN_IP4_DNS2: {
+    case EEVAR_LAN_IP4_DNS2:
+    case EEVAR_WIFI_IP4_ADDR:
+    case EEVAR_WIFI_IP4_MSK:
+    case EEVAR_WIFI_IP4_GW:
+    case EEVAR_WIFI_IP4_DNS1:
+    case EEVAR_WIFI_IP4_DNS2: {
         n = snprintf(str, size, "%u.%u.%u.%u", variant8_get_uia(var, 0), variant8_get_uia(var, 1),
             variant8_get_uia(var, 2), variant8_get_uia(var, 3));
-    } break;
+        break;
+    }
     default: //use default conversion
         n = variant8_snprintf(str, size, 0, &var);
         break;
