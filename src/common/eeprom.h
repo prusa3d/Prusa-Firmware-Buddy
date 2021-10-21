@@ -21,7 +21,7 @@ enum {
     MAX_SHEET_NAME_LENGTH = 8,
 };
 
-enum {
+enum eevar_id {
     // basic variables
     EEVAR_VERSION = 0x00,         // uint16_t eeprom version
     EEVAR_FEATURES = 0x01,        // uint16_t feature mask
@@ -168,19 +168,19 @@ extern eeprom_init_status_t eeprom_init(void);
 extern void eeprom_defaults(void);
 
 // get variable value as variant8
-extern variant8_t eeprom_get_var(uint8_t id);
+extern variant8_t eeprom_get_var(enum eevar_id id);
 
 // set variable value as variant8
-extern void eeprom_set_var(uint8_t id, variant8_t var);
+extern void eeprom_set_var(enum eevar_id id, variant8_t var);
 
 // get number of variables
 extern uint8_t eeprom_get_var_count(void);
 
 // get variable name
-extern const char *eeprom_get_var_name(uint8_t id);
+extern const char *eeprom_get_var_name(enum eevar_id id);
 
 // format variable value to string (some variables can have specific formating)
-extern int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var);
+extern int eeprom_var_format(char *str, unsigned int size, enum eevar_id id, variant8_t var);
 
 // fill range 0x0000..0x0800 with 0xff
 extern void eeprom_clear(void);

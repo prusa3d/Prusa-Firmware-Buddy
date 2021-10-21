@@ -7,7 +7,7 @@
 #include "eeprom.h"
 
 // translation table to get eevar from axis index
-static constexpr int eevars[] = {
+static constexpr enum eevar_id eevars[] = {
     EEVAR_ODOMETER_X,
     EEVAR_ODOMETER_Y,
     EEVAR_ODOMETER_Z,
