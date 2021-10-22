@@ -22,8 +22,7 @@ pipeline {
                 script {
                     // required configurations
                     def configurations = [
-                        [printer: "mini", build_type: "release", bootloader: "no"],
-                        [printer: "mini", build_type: "release", bootloader: "yes"],
+                        [preset: "mini", build_type: "release", bootloader: "yes"],
                     ]
 
                     // prepare version suffix
@@ -54,12 +53,12 @@ pipeline {
 
                     // create the build stages
                     configurations.each { config ->
-                        stage("Build - ${config.printer},${config.build_type},${config.bootloader}boot") {
+                        stage("Build - ${config.preset},${config.build_type},${config.bootloader}boot") {
                             catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                 sh """
                                     ln -fs /.dependencies
                                     python3 utils/build.py \
-                                        --printer ${config.printer} \
+                                        --preset ${config.preset} \
                                         --build-type ${config.build_type} \
                                         --bootloader ${config.bootloader} \
                                         --generate-bbf \

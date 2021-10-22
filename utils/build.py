@@ -1,26 +1,28 @@
 #!/usr/bin/env python3
 import argparse
 import os
+import json
 import platform
-import random
 import re
 import shutil
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod, abstractproperty
+from collections import namedtuple
 from copy import deepcopy
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from uuid import uuid4
 
 project_root = Path(__file__).resolve().parent.parent
 dependencies_dir = project_root / '.dependencies'
+presets_dir = project_root / 'utils' / 'presets'
 
 
-def bootstrap(*args, interactive=False, check=False):
+def bootstrap(*args, interactive=False):
     """Run the bootstrap script."""
     bootstrap_py = project_root / 'utils' / 'bootstrap.py'
     result = subprocess.run([sys.executable, str(bootstrap_py)] + list(args),
@@ -37,11 +39,14 @@ def project_version():
         return f.read().strip()
 
 
+Preset = namedtuple('Preset', ['name', 'description', 'cache_variables'])
+
+
 @lru_cache()
 def get_dependency(name):
+    """Return an installation path of a dependency."""
     install_dir = Path(
-        bootstrap('--print-dependency-directory', name,
-                  check=True).stdout.strip())
+        bootstrap('--print-dependency-directory', name).stdout.strip())
     suffix = '.exe' if platform.system() == 'Windows' else ''
     if name == 'ninja':
         return install_dir / ('ninja' + suffix)
@@ -51,39 +56,41 @@ def get_dependency(name):
         return install_dir
 
 
-class Printer(Enum):
-    """Represents the -DPRINTER CMake option."""
+class CaseInsensitiveEnum(Enum):
+    @classmethod
+    def _missing_(cls, name):
+        for member in cls:
+            if member.name.lower() == name.lower():
+                return member
 
-    MINI = 'MINI'
 
-
-class Bootloader(Enum):
+class Bootloader(CaseInsensitiveEnum):
     """Represents the -DBOOTLOADER CMake option."""
 
-    NO = 'NO'
-    EMPTY = 'EMPTY'
-    YES = 'YES'
+    NO = 'no'
+    EMPTY = 'empty'
+    YES = 'yes'
 
     @property
     def file_component(self):
         if self == Bootloader.NO:
-            return 'NOBOOT'
+            return 'noboot'
         elif self == Bootloader.EMPTY:
-            return 'EMPTYBOOT'
+            return 'emptyboot'
         elif self == Bootloader.YES:
-            return 'BOOT'
+            return 'boot'
         else:
             raise NotImplementedError
 
 
-class BuildType(Enum):
+class BuildType(CaseInsensitiveEnum):
     """Represents the -DCONFIG CMake option."""
 
-    DEBUG = 'DEBUG'
-    RELEASE = 'RELEASE'
+    DEBUG = 'debug'
+    RELEASE = 'release'
 
 
-class HostTool(Enum):
+class HostTool(CaseInsensitiveEnum):
     """Known host tools."""
 
     png2font = "png2font"
@@ -94,16 +101,16 @@ class HostTool(Enum):
 
 class BuildConfiguration(ABC):
     @abstractmethod
-    def get_cmake_cache_entries(self):
+    def get_cmake_cache_entries(self) -> List[Tuple[str, str, str]]:
         """Convert the build configuration to CMake cache entries."""
 
     @abstractmethod
     def get_cmake_flags(self, build_dir: Path) -> List[str]:
         """Return all CMake command-line flags required to build this configuration."""
 
-    @abstractproperty
-    def name(self):
-        """Name of the configuration."""
+    name: str  # Name of the configuration.
+    build_type: BuildType  # Build type of the configuration.
+    generator: str
 
     def __hash__(self):
         return hash(self.name)
@@ -111,20 +118,21 @@ class BuildConfiguration(ABC):
 
 class FirmwareBuildConfiguration(BuildConfiguration):
     def __init__(self,
-                 printer: Printer,
+                 *,
+                 preset: Preset,
                  bootloader: Bootloader,
                  build_type: BuildType,
                  toolchain: Path = None,
-                 generator: str = None,
+                 generator: str = 'Ninja',
                  generate_dfu: bool = False,
                  generate_bbf: bool = False,
                  signing_key: Path = None,
                  version_suffix: str = None,
                  version_suffix_short: str = None,
                  custom_entries: List[str] = None):
-        self.printer = printer
-        self.bootloader = bootloader
+        self.preset = preset
         self.build_type = build_type
+        self.bootloader = bootloader
         self.toolchain = toolchain or FirmwareBuildConfiguration.default_toolchain(
         )
         self.generator = generator
@@ -149,13 +157,26 @@ class FirmwareBuildConfiguration(BuildConfiguration):
             generate_bbf = False
             signing_key_flg = ''
         entries = []
+
+        # set ninja executable if used as a generator
         if self.generator.lower() == 'ninja':
             entries.append(('CMAKE_MAKE_PROGRAM', 'FILEPATH',
                             str(get_dependency('ninja'))))
+
+        # set preset's cache variables
+        for name, value in self.preset.cache_variables.items():
+            if isinstance(value, bool):
+                entries.append((name, 'BOOL', 'YES' if value else 'NO'))
+            elif isinstance(value, str):
+                entries.append((name, 'STRING', value))
+            elif isinstance(value, dict):
+                entries.append((name, value['type'], value['value']))
+            else:
+                assert False, 'unexpected preset\'s value type'
+
+        # set general entries
         entries.extend([
-            ('CMAKE_MAKE_PROGRAM', 'FILEPATH', str(get_dependency('ninja'))),
-            ('PRINTER', 'STRING', self.printer.value),
-            ('BOOTLOADER', 'STRING', self.bootloader.value),
+            ('BOOTLOADER', 'STRING', self.bootloader.value.upper()),
             ('GENERATE_BBF', 'STRING', str(generate_bbf).upper()),
             ('GENERATE_DFU', 'BOOL', 'ON' if self.generate_dfu else 'OFF'),
             ('SIGNING_KEY', 'FILEPATH', str(signing_key_flg)),
@@ -165,21 +186,33 @@ class FirmwareBuildConfiguration(BuildConfiguration):
             ('PROJECT_VERSION_SUFFIX_SHORT', 'STRING',
              self.version_suffix_short or ''),
         ])
+
+        # set custom entries
         entries.extend(self.custom_entries)
         return entries
 
     def get_cmake_flags(self, build_dir: Path) -> List[str]:
+        # set cache entries
         cache_entries = self.get_cmake_cache_entries()
         flags = ['-D{}:{}={}'.format(*entry) for entry in cache_entries]
-        flags += ['-G', self.generator or 'Ninja']
+        # unset cache entries
+        flags += [
+            '-U{}'.format(name)
+            for name, value in self.preset.cache_variables.items()
+            if value is None
+        ]
+        # set generator
+        flags += ['-G', self.generator]
+        # set root source directory
         flags += ['-S', str(Path(__file__).resolve().parent.parent)]
+        # set build directory
         flags += ['-B', str(build_dir)]
         return flags
 
     @property
     def name(self):
         components = [
-            self.printer.name,
+            self.preset.name,
             self.build_type.value,
             self.bootloader.file_component,
         ]
@@ -190,7 +223,7 @@ class HostToolBuildConfiguration(BuildConfiguration):
     def __init__(self,
                  build_type: BuildType,
                  tool: HostTool,
-                 generator: str = None):
+                 generator: str = 'Ninja'):
         self.build_type = build_type
         self.tool = tool
         self.generator = generator
@@ -222,7 +255,8 @@ class BuildResult:
     """Represents a result of an attempt to build the project."""
 
     def __init__(self, config_returncode: int, build_returncode: Optional[int],
-                 stdout: Path, stderr: Path, products: List[Path]):
+                 stdout: Optional[Path], stderr: Optional[Path],
+                 products: List[Path]):
         self.config_returncode = config_returncode
         self.build_returncode = build_returncode
         self.stdout = stdout
@@ -305,7 +339,7 @@ def build(configuration: BuildConfiguration,
 
 class CProjectGenerator:
     @staticmethod
-    def create_cmake_def(name, value_type, value) -> ET:
+    def create_cmake_def(name, value_type, value) -> ET.Element:
         definition = ET.Element('def')
         definition.attrib['name'] = name
         definition.attrib['type'] = value_type
@@ -319,7 +353,7 @@ class CProjectGenerator:
                             'template_language_settings.xml')
         project = settings.getroot()
         template = project.find('./configuration')
-        project.remove(template)
+        assert template is not None, 'invalid template'
 
         # create a `configuration` element for each `cconfiguration` in .cproject
         for cconfiguration in cconfigurations:
@@ -356,8 +390,16 @@ class CProjectGenerator:
         print('generated: .project')
 
     @staticmethod
-    def generate_cconfiguration(template: ET,
-                                configuration: BuildConfiguration) -> ET:
+    def get_element(source: ET.Element, path: str) -> ET.Element:
+        result = source.find(path)
+        assert result is not None
+        return result
+
+    @staticmethod
+    def generate_cconfiguration(template: ET.Element,
+                                configuration: BuildConfiguration
+                                ) -> ET.Element:
+        get_element = CProjectGenerator.get_element
         cconfiguration = deepcopy(template)
         cache_entries = configuration.get_cmake_cache_entries()
         cmake_defines = [
@@ -376,39 +418,43 @@ class CProjectGenerator:
         cconfiguration.attrib['id'] = identifier
 
         # update name and identifier in configurationDataProvider
-        managedbuilder_config = cconfiguration.find(
-            './storageModule[@buildSystemId="org.eclipse.cdt'
+        managedbuilder_config = get_element(
+            cconfiguration, './storageModule[@buildSystemId="org.eclipse.cdt'
             '.managedbuilder.core.configurationDataProvider"]')
         managedbuilder_config.attrib['id'] = identifier
         managedbuilder_config.attrib['name'] = name
 
-        cdt_build_system = cconfiguration.find(
-            './storageModule[@moduleId="cdtBuildSystem"]')
-        build_config = cdt_build_system.find('configuration')
+        cdt_build_system = get_element(
+            cconfiguration, './storageModule[@moduleId="cdtBuildSystem"]')
+        build_config = get_element(cdt_build_system, 'configuration')
         build_config.attrib['name'] = name
         build_config.attrib['id'] = identifier
-        folder_info = build_config.find('folderInfo')
+        folder_info = get_element(build_config, 'folderInfo')
         folder_info.attrib['id'] = identifier + '.'
-        builder = folder_info.find('toolChain').find('builder')
+        builder = get_element(get_element(folder_info, 'toolChain'), 'builder')
         builder.attrib['buildPath'] = '/build/' + build_subdir
 
-        cmake_config = cconfiguration.find(
+        cmake_config = get_element(
+            cconfiguration,
             './storageModule[@moduleId="de.marw.cdt.cmake.core.settings"]')
         cmake_config.attrib['buildDir'] = 'build/' + build_subdir
-        cmake_config.find('defs').extend(cmake_defines)
+        get_element(cmake_config, 'defs').extend(cmake_defines)
         # set our cmake from .dependencies
         cmake_path = str(get_dependency('cmake'))
         for platform_name in ('linux', 'win32'):
-            cmake_config.find(platform_name).attrib['command'] = cmake_path
+            get_element(cmake_config,
+                        platform_name).attrib['command'] = cmake_path
         return cconfiguration
 
     @staticmethod
     def generate(configurations: List[BuildConfiguration]):
         """Generate a .cproject and .project with given configurations."""
+        get_element = CProjectGenerator.get_element
         template = ET.parse(project_root / 'utils' / 'cproject' /
                             'template_cproject.xml')
         cproject = template.getroot()
-        coresettings = cproject.find(
+        coresettings = get_element(
+            cproject,
             './storageModule[@moduleId="org.eclipse.cdt.core.settings"]')
         cconfiguration_all = coresettings.findall('cconfiguration')
         assert len(cconfiguration_all) == 1
@@ -430,15 +476,66 @@ class CProjectGenerator:
         CProjectGenerator.generate_core_settings()
 
 
+class CMakePresetsGenerator:
+    @staticmethod
+    def normalize_cache_value(value, value_type):
+        if value_type.lower() == 'filepath':
+            return '${sourceDir}/' + str(
+                Path(os.path.abspath(value)).relative_to(project_root))
+        else:
+            return value
+
+    @staticmethod
+    def generate_cmake_preset(configuration: BuildConfiguration):
+        build_dir = 'build-vscode' if isinstance(
+            configuration, FirmwareBuildConfiguration) else 'build-vscode-host'
+        return {
+            'name': configuration.name,
+            'generator': configuration.generator,
+            'binaryDir': build_dir,
+            'cacheVariables': {
+                key: {
+                    'type':
+                    value_type,
+                    'value':
+                    CMakePresetsGenerator.normalize_cache_value(
+                        value, value_type)
+                }
+                for key, value_type, value in
+                configuration.get_cmake_cache_entries()
+            }
+        }
+
+    @staticmethod
+    def generate(configurations: List[BuildConfiguration]):
+        """Generate CMakePresets.json file."""
+        cmake_presets = {
+            'version':
+            3,
+            'cmakeMinimumRequired': {
+                'major': 3,
+                'minor': 21,
+                'patch': 0,
+            },
+            'configurePresets': [
+                CMakePresetsGenerator.generate_cmake_preset(configuration)
+                for configuration in configurations
+            ]
+        }
+        with open(project_root / 'CMakePresets.json', 'w') as f:
+            json.dump(cmake_presets, f, indent=4)
+            # add a new line at the end of the file to make pre-commit's
+            # end-of-file-fixer happy
+            f.write('\n')
+
+
 def store_products(products: List[Path], build_config: BuildConfiguration,
                    products_dir: Path):
     """Copy build products to a shared products directory."""
     products_dir.mkdir(parents=True, exist_ok=True)
     for product in products:
-        is_firmware = isinstance(build_config, FirmwareBuildConfiguration)
-        has_custom_suffix = is_firmware and (build_config.version_suffix !=
-                                             '<auto>')
-        if has_custom_suffix:
+        if isinstance(build_config, FirmwareBuildConfiguration
+                      ) and build_config.version_suffix != '<auto>':
             version = project_version()
             name = build_config.name.lower(
             ) + '_' + version + build_config.version_suffix
@@ -448,19 +545,31 @@ def store_products(products: List[Path], build_config: BuildConfiguration,
         shutil.copy(product, destination)
 
 
-def list_of(EnumType):
-    """Create an argument-parser for comma-separated list of values of some Enum subclass."""
+def load_presets() -> List[Preset]:
+    presets_file_path: Path = presets_dir / 'presets.json'
+    with open(presets_file_path, 'r') as f:
+        data = json.load(f)
+    return [
+        Preset(name=preset_data['name'],
+               description=preset_data['description'],
+               cache_variables=preset_data['cacheVariables'])
+        for preset_data in data['presets']
+    ]
+
+
+def list_of(value_type, *, all_values, name):
+    """Create an argument-parser for comma-separated list of values."""
 
     def convert(val):
         if val == '':
             return []
         values = [p.lower() for p in val.split(',')]
         if 'all' in values:
-            return list(EnumType)
+            return all_values
         else:
-            return [EnumType(v.upper()) for v in values]
+            return [value_type(v) for v in values]
 
-    convert.__name__ = EnumType.__name__
+    convert.__name__ = name
     return convert
 
 
@@ -472,24 +581,25 @@ def cmake_cache_entry(arg):
 
 
 def main():
+    all_presets = load_presets()
     parser = argparse.ArgumentParser()
     # yapf: disable
     parser.add_argument(
-        '--printer',
-        type=list_of(Printer),
-        default=list(Printer),
-        help='Printer type (default: {default}).'.format(
-            default=','.join(str(p.value.lower()) for p in Printer)))
+        '--preset',
+        type=list_of(str, all_values=[preset.name for preset in all_presets], name='Variant'),
+        default='all',
+        help='Presets of the firmware to build (default: {default})'.format(
+            default=','.join(preset.name for preset in all_presets)))
     parser.add_argument(
         '--build-type',
-        type=list_of(BuildType),
+        type=list_of(BuildType, all_values=list(BuildType), name='BuildType'),
         default='release',
         help=('Build type (debug or release; default: release; '
               'default for --generate-cproject: debug,release).'))
     parser.add_argument(
         '--bootloader',
-        type=list_of(Bootloader),
-        default='all',
+        type=list_of(Bootloader, all_values=list(Bootloader), name='Bootloader'),
+        default='yes,no',
         help='What bootloader mode to use ("yes", "no" or "empty"; default: "empty").')
     parser.add_argument(
         '--signing-key',
@@ -527,11 +637,6 @@ def main():
         type=Path,
         help='Path to a CMake toolchain file to be used.')
     parser.add_argument(
-        '--generate-cproject',
-        action='store_true',
-        help='Generate .cproject and .project files and exit without building.',
-    )
-    parser.add_argument(
         '--generate-bbf',
         action='store_true',
         help=('Generate .bbf versions of the firmware.'
@@ -541,6 +646,16 @@ def main():
         '--generate-dfu',
         action='store_true',
         help='Generate .dfu versions of the firmware.'
+    )
+    parser.add_argument(
+        '--generate-cproject',
+        action='store_true',
+        help='Generate .cproject and .project files and exit without building.',
+    )
+    parser.add_argument(
+        '--generate-cmake-presets',
+        action='store_true',
+        help='Generate CMakePresets.json and exit without building.',
     )
     parser.add_argument(
         '--host-tools',
@@ -583,20 +698,29 @@ def main():
         args.version_suffix = ''
         args.version_suffix_short = ''
 
-    if args.generate_cproject:
+    if args.generate_cproject or args.generate_cmake_presets:
         args.build_type = list(BuildType)
         args.host_tools = True
         args.no_build = True
 
-    # Check all dependencis are installed
+    # check all dependencis are installed
     if bootstrap(interactive=True).returncode != 0:
         print('bootstrap.py failed.')
         sys.exit(1)
 
+    # parse what presets are selected by the user
+    selected_preset_names = [
+        preset_name.lower() for preset_name in args.preset
+    ]
+    selected_presets = [
+        preset for preset in all_presets
+        if preset.name.lower() in selected_preset_names
+    ]
+
     # prepare configurations
-    configurations = [
+    configurations: List[BuildConfiguration] = [
         FirmwareBuildConfiguration(
-            printer=printer,
+            preset=preset,
             bootloader=bootloader,
             build_type=build_type,
             generate_dfu=args.generate_dfu,
@@ -605,7 +729,7 @@ def main():
             version_suffix=args.version_suffix,
             version_suffix_short=args.version_suffix_short,
             generator=args.generator,
-            custom_entries=args.cmake_def) for printer in args.printer
+            custom_entries=args.cmake_def) for preset in selected_presets
         for build_type in args.build_type for bootloader in args.bootloader
     ]
     if args.host_tools:
@@ -619,6 +743,11 @@ def main():
     # generate .cproject if requested
     if args.generate_cproject:
         CProjectGenerator.generate(configurations)
+        sys.exit(0)
+
+    # generate CMakePresets.json if requestes
+    if args.generate_cmake_presets:
+        CMakePresetsGenerator.generate(configurations)
         sys.exit(0)
 
     # build everything

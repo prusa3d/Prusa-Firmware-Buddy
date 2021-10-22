@@ -1,0 +1,14 @@
+{
+    "$schema": "./presets_schema.json",
+    "presets": [
+        {
+            "name": "mini",
+            "description": "Original Prusa MINI",
+            "cacheVariables": {
+                "PRINTER": "MINI",
+                "BOARD_VERSION": "<default>",
+                "PRESET_COMPILE_OPTIONS": ""
+            }
+        }
+    ]
+}
