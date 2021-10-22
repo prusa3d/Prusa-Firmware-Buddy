@@ -1,0 +1,81 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "http://prusa3d.com/schemas/buddy/build_preset.json",
+    "type": "object",
+    "properties": {
+        "presets": {
+            "type": "array",
+            "items": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "A required string representing the machine-friendly name of the preset. This identifier is used in the --preset argument. There must not be two presets in the union of CMakePresets.json and CMakeUserPresets.json in the same directory with the same name.",
+                            "minLength": 1
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "An optional string with a human-friendly description of the preset."
+                        },
+                        "cacheVariables": {
+                            "type": "object",
+                            "description": "An optional map of cache variables. The key is the variable name (which must not be an empty string). Cache variables are inherited through the inherits field, and the preset's variables will be the union of its own cacheVariables and the cacheVariables from all its parents. If multiple presets in this union define the same variable, the standard rules of inherits are applied.",
+                            "properties": {},
+                            "additionalProperties": {
+                                "anyOf": [
+                                    {
+                                        "type": "null",
+                                        "description": "Setting a variable to null causes it to not be set, even if a value was inherited from another preset."
+                                    },
+                                    {
+                                        "type": "boolean",
+                                        "description": "A boolean representing the value of the variable. Equivalent to \"TRUE\" or \"FALSE\"."
+                                    },
+                                    {
+                                        "type": "string",
+                                        "description": "A string representing the value of the variable (which supports macro expansion)."
+                                    },
+                                    {
+                                        "type": "object",
+                                        "description": "An object representing the type and value of the variable.",
+                                        "properties": {
+                                            "type": {
+                                                "type": "string",
+                                                "description": "An optional string representing the type of the variable. It should be BOOL, FILEPATH, PATH, STRING, or INTERNAL."
+                                            },
+                                            "value": {
+                                                "anyOf": [
+                                                    {
+                                                        "type": "boolean",
+                                                        "description": "A required boolean representing the value of the variable. Equivalent to \"TRUE\" or \"FALSE\"."
+                                                    },
+                                                    {
+                                                        "type": "string",
+                                                        "description": "A required string representing the value of the variable. This field supports macro expansion."
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "required": [
+                                            "value"
+                                        ],
+                                        "additionalProperties": false
+                                    }
+                                ]
+                            },
+                            "propertyNames": {
+                                "pattern": "^.+$"
+                            }
+                        }
+                    },
+                    "required": [
+                        "cacheVariables",
+                        "name",
+                        "description"
+                    ]
+                }
+            ]
+        }
+    }
+}

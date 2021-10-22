@@ -16,7 +16,7 @@
         "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/../lib/gcc/arm-none-eabi/7.3.1/include-fixed",
         "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/include"
     ],
-    "cmake.buildDirectory": "${workspaceFolder}/build-${variant:VARIANTNAME}",
+    "cmake.buildDirectory": "${workspaceFolder}/build-vscode",
     "cmake.cmakePath": "${workspaceFolder}/.dependencies/cmake-3.21.3/bin/cmake",
     "cmake.generator": "Ninja",
     "files.insertFinalNewline": true
