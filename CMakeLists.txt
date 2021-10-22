@@ -693,6 +693,7 @@ if(GUI)
             src/gui/gcode_description.cpp
             src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
+            src/gui/screen_menu_eeprom_diagnostics.cpp
             src/gui/screen_watchdog.cpp
             src/gui/screen_reset_error.cpp
             src/gui/screen_hardfault.cpp
