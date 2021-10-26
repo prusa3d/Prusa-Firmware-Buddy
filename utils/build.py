@@ -481,7 +481,8 @@ class CMakePresetsGenerator:
     def normalize_cache_value(value, value_type):
         if value_type.lower() == 'filepath':
             return '${sourceDir}/' + str(
-                Path(os.path.abspath(value)).relative_to(project_root))
+                Path(os.path.abspath(value)).relative_to(
+                    project_root).as_posix())
         else:
             return value
 
