@@ -176,8 +176,7 @@ void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, window
 const uint16_t WindowIcon_OkNg::id_res_na = IDR_PNG_dash_18px;
 const uint16_t WindowIcon_OkNg::id_res_ok = IDR_PNG_ok_color_18px;
 const uint16_t WindowIcon_OkNg::id_res_ng = IDR_PNG_nok_color_18px;
-const uint16_t WindowIcon_OkNg::id_res_ip0 = IDR_PNG_loading1_18px;
-const uint16_t WindowIcon_OkNg::id_res_ip1 = IDR_PNG_loading2_18px;
+const std::array<uint16_t, 4> WindowIcon_OkNg::id_res_ip = { { IDR_PNG_spinner1_16px, IDR_PNG_spinner2_16px, IDR_PNG_spinner3_16px, IDR_PNG_spinner4_16px } };
 
 //Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
@@ -192,6 +191,7 @@ WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubte
                 sz.h + padding.top + padding.bottom);
         }())
     , state(state) {
+    SetAlignment(Align_t::Center());
 }
 
 SelftestSubtestState_t WindowIcon_OkNg::GetState() const {
@@ -217,9 +217,10 @@ void WindowIcon_OkNg::unconditionalDraw() {
     case SelftestSubtestState_t::undef:
         id_res = id_res_na;
         break;
-    case SelftestSubtestState_t::running:
-        id_res = flags.blink ? id_res_ip1 : id_res_ip0;
-        break;
+    case SelftestSubtestState_t::running: {
+        const size_t blink_state = (flags.blink1 << 1) | flags.blink0; //sets 2 lowest bits guaranted to be 0 .. 3
+        id_res = id_res_ip[blink_state];                               // no need to check index out of array range
+    } break;
     }
 
     render_icon_align(GetRect(), id_res, GetBackColor(), GetAlignment());
@@ -227,9 +228,11 @@ void WindowIcon_OkNg::unconditionalDraw() {
 
 void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (GetState() == SelftestSubtestState_t::running) {
-        bool b = (gui::GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0x01;
-        if (flags.blink != b) {
-            flags.blink = b;
+        bool b0 = (gui::GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0b01;
+        bool b1 = (gui::GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0b10;
+        if (flags.blink0 != b0 || flags.blink1 != b1) {
+            flags.blink0 = b0;
+            flags.blink1 = b1;
             Invalidate();
         }
     }
