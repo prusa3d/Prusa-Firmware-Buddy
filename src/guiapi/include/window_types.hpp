@@ -63,8 +63,8 @@ union WindowFlags {
         bool enforce_capture_when_not_visible : 1; // 0D - normally invisible / hidden_behind_dialog windows does not get capture
         bool has_relative_subwins : 1;             // 0E - X Y coords of all children are relative to this, screen cannot have this flag because 1st level windows can be dialogs and they must not have relative coords
         bool multiline : 1;                        // 0F - multiline text affect window_text_t anf its children
-        bool blink : 1;                            // 10 - for 2 state blinking
-        bool custom6 : 1;                          // 11 - this flag can be defined in child class
+        bool blink0 : 1;                           // 10 - for 2 state blinking
+        bool blink1 : 1;                           // 11 - for 4 state blinking
         bool custom5 : 1;                          // 12 - this flag can be defined in child class
         bool custom4 : 1;                          // 13 - this flag can be defined in child class
         bool custom3 : 1;                          // 14 - this flag can be defined in child class

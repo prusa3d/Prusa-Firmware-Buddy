@@ -54,8 +54,10 @@
 #include "res/cc/png_dash_18px.c"            //IDR_PNG_dash_18px
 #include "res/cc/png_ok_color_18px.c"        //IDR_PNG_ok_color_18px
 #include "res/cc/png_nok_color_18px.c"       //IDR_PNG_nok_color_18px
-#include "res/cc/png_loading1_18px.c"        //IDR_PNG_loading1_18px
-#include "res/cc/png_loading2_18px.c"        //IDR_PNG_loading2_18px
+#include "res/cc/png_spinner1_16px.c"        //IDR_PNG_spinner1_16px
+#include "res/cc/png_spinner2_16px.c"        //IDR_PNG_spinner2_16px
+#include "res/cc/png_spinner3_16px.c"        //IDR_PNG_spinner3_16px
+#include "res/cc/png_spinner4_16px.c"        //IDR_PNG_spinner4_16px
 #include "res/cc/png_hourglass_39px.c"       //IDR_PNG_hourglass_39px
 #include "res/cc/png_wizard_icon_autohome.c" //IDR_PNG_wizard_icon_autohome
 #include "res/cc/png_wizard_icon_search.c"   //IDR_PNG_wizard_icon_search
@@ -149,8 +151,10 @@ RESOURCE_ENTRY_PNG(png_pepa_64px)
 RESOURCE_ENTRY_PNG(png_dash_18px)
 RESOURCE_ENTRY_PNG(png_ok_color_18px)
 RESOURCE_ENTRY_PNG(png_nok_color_18px)
-RESOURCE_ENTRY_PNG(png_loading1_18px)
-RESOURCE_ENTRY_PNG(png_loading2_18px)
+RESOURCE_ENTRY_PNG(png_spinner1_16px)
+RESOURCE_ENTRY_PNG(png_spinner2_16px)
+RESOURCE_ENTRY_PNG(png_spinner3_16px)
+RESOURCE_ENTRY_PNG(png_spinner4_16px)
 RESOURCE_ENTRY_PNG(png_hourglass_39px)
 RESOURCE_ENTRY_PNG(png_wizard_icon_autohome)
 RESOURCE_ENTRY_PNG(png_wizard_icon_search)
