@@ -40,7 +40,7 @@ python utils/build.py --preset mini --build-type debug
 Build _final_ version for all printers and create signed `.bbf` versions:
 
 ```bash
-python utils/build.py --final --generate-bbf --signing-key <path-to-private-key>
+python utils/build.py --final --generate-bbf --signing-key <path-to-ecdsa-private-key>
 ```
 
 Build the firmware for MINI using a custom version of gcc-arm-none-eabi (available in `$PATH`) and use `Make` instead of `Ninja` (not recommended):
