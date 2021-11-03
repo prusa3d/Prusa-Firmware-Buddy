@@ -179,6 +179,10 @@ esp_callback_func(esp_evt_t *evt) {
     return espOK;
 }
 
+static void alsockets_adjust() {
+    alsockets_funcs(netdev_get_sockets(active_netdev_id));
+}
+
 uint32_t netdev_init() {
     ETH_CONFIG().var_mask = ETHVAR_EEPROM_CONFIG;
     load_net_params(&ETH_CONFIG(), NULL, NETDEV_ETH_ID);
@@ -188,13 +192,13 @@ uint32_t netdev_init() {
 
     tcpip_init(tcpip_init_done_callback, NULL);
     netdev_init_esp();
+
+    alsockets_adjust();
     return 0;
 }
 
 uint32_t netdev_init_esp() {
-    // esp_hard_reset_device();
     esp_init(esp_callback_func, 0);
-    alsockets_funcs(netdev_get_sockets(active_netdev_id));
     return 0;
 }
 
@@ -213,6 +217,8 @@ uint32_t netdev_set_active_id(uint32_t netdev_id) {
 
     active_netdev_id = netdev_id;
     eeprom_set_var(EEVAR_ACTIVE_NETDEV, variant8_ui8((uint8_t)(netdev_id & 0xFF)));
+
+    alsockets_adjust();
     return 0;
 }
 
