@@ -15,6 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include "netdev.h"
 
 #include "eeprom.h"
@@ -255,9 +256,8 @@ uint32_t netdev_set_dhcp(uint32_t netdev_id) {
         // to the network therefore we use such a feature during the switch between
         // static and dynamic IP because there is no API call to invoke DHCP client.
         esp_sta_quit(NULL, NULL, 1);
-        esp_sta_join(ap.ssid, ap.pass, NULL, NULL, NULL, 0);
+        res = netdev_set_up(NETDEV_ESP_ID);
         pConfig = &wui_netdev_config[netdev_id];
-        res = ERR_OK;
     }
 
     if (pConfig != NULL) {
@@ -280,7 +280,20 @@ uint32_t netdev_set_up(uint32_t netdev_id) {
         netifapi_netif_set_link_up(&eth0);
         return netifapi_netif_set_up(&eth0);
     } else if (netdev_id == NETDEV_ESP_ID) {
-        esp_sta_join(ap.ssid, ap.pass, NULL, NULL, NULL, 0);
+        const char *passwd;
+        switch (ap.security) {
+        case AP_SEC_NONE:
+            passwd = NULL;
+            break;
+        case AP_SEC_WEP:
+        case AP_SEC_WPA:
+            passwd = ap.pass;
+            break;
+        default:
+            assert(0 /* Unhandled AP_SEC_* value*/);
+            return ERR_ARG;
+        }
+        esp_sta_join(ap.ssid, passwd, NULL, NULL, NULL, 0);
         return ERR_OK;
     } else {
         return ERR_IF;
