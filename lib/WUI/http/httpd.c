@@ -2638,7 +2638,7 @@ static void wui_api_files(struct fs_file *file) {
 }
 
 bool authorize_request(const struct pbuf *req) {
-    const char *api_key_tag = "X-Api-Key:";
+    const char *api_key_tag = CRLF "X-Api-Key:";
     uint32_t api_key_tag_length = strlen(api_key_tag);
     uint32_t index = pbuf_strstr(req, api_key_tag);
 
