@@ -91,7 +91,7 @@ GCodeInfo::GCodeInfo() {
     filament_used_mm = 0;
     filament_used_g = 0;
     valid_printer_settings = true;
-    const unsigned search_last_x_bytes = 10000;
+    const unsigned search_last_x_bytes = 20000;
     FSIZE_t filesize = f_size(&file);
     f_lseek(&file, filesize > search_last_x_bytes ? filesize - search_last_x_bytes : 0);
     char name_buffer[64];
