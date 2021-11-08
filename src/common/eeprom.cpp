@@ -246,10 +246,10 @@ static const eeprom_vars_t eeprom_var_defaults = {
     {"Smooth2", FLT_MAX },
     {"Textur1", FLT_MAX },
     {"Textur2", FLT_MAX },
+    {"Satin1", FLT_MAX },
+    {"Satin2", FLT_MAX },
     {"Custom1", FLT_MAX },
     {"Custom2", FLT_MAX },
-    {"Custom3", FLT_MAX },
-    {"Custom4", FLT_MAX },
     0,               // EEVAR_SELFTEST_RESULT
     1,               // EEVAR_DEVHASH_IN_QR
     footer::eeprom::Encode(footer::DefaultItems), // EEVAR_FOOTER_SETTING
