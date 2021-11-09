@@ -6,6 +6,7 @@
 .dependencies
 .DS_Store
 /CMakeLists.txt.user
+CMakeUserPresets.json
 .ccls-cache
 .idea
 compile_commands.json

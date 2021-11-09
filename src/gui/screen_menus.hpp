@@ -24,3 +24,4 @@ ScreenFactory::UniquePtr GetScreenEeprom();
 ScreenFactory::UniquePtr GetScreenMenuFooterSettings();
 ScreenFactory::UniquePtr GetScreenPrusaLink();
 ScreenFactory::UniquePtr GetScreenMenuExperimentalSettings();
+ScreenFactory::UniquePtr GetScreenMenuEepromDiagnostics();

@@ -1,9 +1,0 @@
-[
-    {
-        "name": "Local gcc-arm-none-eabi",
-        "toolchainFile": "${workspaceFolder}/cmake/GccArmNoneEabi.cmake",
-        "cmakeSettings": {
-            "CMAKE_MAKE_PROGRAM": "${workspaceFolder}/.dependencies/ninja-1.9.0/ninja"
-        }
-    }
-]

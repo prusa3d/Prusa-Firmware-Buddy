@@ -51,7 +51,7 @@ Rect16 IWindowMenuItem::getExtensionRect(Rect16 rect) const {
 
 void IWindowMenuItem::Print(Rect16 rect) const {
     ropfn raster_op;
-    raster_op.disable = IsEnabled() ? is_disabled::no : is_disabled::yes;
+    raster_op.shadow = IsEnabled() ? is_shadowed::no : is_shadowed::yes;
     raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
 
     color_t mi_color_back = GetBackColor();
