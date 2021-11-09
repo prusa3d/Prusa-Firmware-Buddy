@@ -2736,6 +2736,8 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
     } else if (!strncmp(uri, "/api/files", 10)) {
         wui_api_files(&api_file);
         file = &api_file;
+    } else {
+        uri = "404";
     }
 
 process_file:
