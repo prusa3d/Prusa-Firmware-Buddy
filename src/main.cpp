@@ -60,7 +60,6 @@
 #include "tick_timer_api.h"
 #include "thread_measurement.h"
 #include "metric_handlers.h"
-#include "Z_probe.h"
 #include "hwio_pindef.h"
 #include "gui.hpp"
 #include "config_buddy_2209_02.h"
@@ -190,8 +189,6 @@ uint8_t uart6rx_data[128];
 uartslave_t uart6slave;
 char uart6slave_line[32];
 #endif
-static volatile uint32_t minda_falling_edges = 0;
-uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
 /*
     #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
@@ -1002,18 +999,11 @@ static void MX_GPIO_Init(void) {
 
     PIN_TABLE(CONFIGURE_PINS)
 
-    /*Configure GPIO pins : FIL_SENSOR_Pin WP2_Pin */
+    /*Configure GPIO pins : WP2_Pin */
     GPIO_InitStruct.Pin = WP2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    /* EXTI interrupt init*/
-    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-
-    HAL_NVIC_SetPriority(EXTI15_10_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
-    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
 /**
@@ -1068,14 +1058,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     else if (huart == &huart6)
         uartrxbuff_rxcplt_cb(&uart6rxbuff);
 #endif
-}
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-    switch (GPIO_Pin) {
-    case buddy::hw::zMin.m_halPin:
-        ++minda_falling_edges;
-        break;
-    }
 }
 
 /* USER CODE END 4 */

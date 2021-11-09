@@ -5,6 +5,9 @@
 #include "../src/common/uartrxbuff.h"
 #include "../src/common/config_buddy_2209_02.h"
 
+// Do not use HAL external interrupt handlers, use PIN_TABLE to setup and handle external interrupts instead
+#pragma GCC poison HAL_GPIO_EXTI_IRQHandler HAL_GPIO_EXTI_Callback
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus

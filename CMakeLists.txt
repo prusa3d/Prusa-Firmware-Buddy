@@ -560,6 +560,7 @@ target_sources(
           src/common/hardware_serial.cpp
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
+          src/common/ExtInterruptHandler.cpp
           src/common/MarlinPin.cpp
           src/common/marlin_vars.c
           src/common/media.cpp
@@ -619,6 +620,7 @@ target_sources(
           src/common/footer_eeprom.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
+          src/common/Z_probe.cpp
           src/marlin_stubs/M330.cpp
           src/marlin_stubs/M50.cpp
           src/hw/buffered_serial.cpp

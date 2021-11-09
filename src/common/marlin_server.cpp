@@ -44,7 +44,7 @@
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
-    #include "Z_probe.h" //get_Z_probe_endstop_hits
+    #include "Z_probe.hpp" //get_Z_probe_endstop_hits
 #endif
 
 #include "selftest_MINI.h"
