@@ -1,5 +1,6 @@
 // eeprom.cpp
 
+#include <cassert>
 #include <string.h>
 #include <float.h>
 
@@ -51,7 +52,7 @@ typedef struct _eeprom_entry_t {
     uint16_t flags; // flags
 } eeprom_entry_t;
 
-// eeprom vars structure (used for defaults)
+// eeprom vars structure (used for defaults, packed - see above pragma)
 typedef struct _eeprom_vars_t {
     uint16_t VERSION;
     uint16_t FEATURES;
@@ -120,12 +121,21 @@ typedef struct _eeprom_vars_t {
     uint8_t EEVAR_ACTIVE_NETDEV;
     uint8_t EEVAR_PL_RUN;
     char EEVAR_PL_API_KEY[PL_API_KEY_SIZE];
+    uint8_t WIFI_FLAG;
+    uint32_t WIFI_IP4_ADDR;
+    uint32_t WIFI_IP4_MSK;
+    uint32_t WIFI_IP4_GW;
+    uint32_t WIFI_IP4_DNS1;
+    uint32_t WIFI_IP4_DNS2;
+    char WIFI_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
+    char WIFI_AP_SSID[WIFI_MAX_SSID_LEN + 1];
+    char WIFI_AP_PASSWD[WIFI_MAX_PASSWD_LEN + 1];
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
 
 static_assert(sizeof(eeprom_vars_t) % 4 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
-#pragma pack(pop)
+#pragma pack(pop) // pack
 
 // clang-format off
 
@@ -198,6 +208,15 @@ static const eeprom_entry_t eeprom_map[] = {
     { "ACTIVE_NETDEV",   VARIANT8_UI8,   1, 0 },
     { "PL_RUN",          VARIANT8_UI8,   1, 0 },    // EEVAR_PL_RUN
     { "PL_API_KEY",      VARIANT8_PCHAR, PL_API_KEY_SIZE, 0 }, // EEVAR_PL_API_KEY
+    { "WIFI_FLAG",       VARIANT8_UI8,   1, 0 }, // EEVAR_WIFI_FLAG
+    { "WIFI_IP4_ADDR",   VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_ADDR
+    { "WIFI_IP4_MSK",    VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_MSK
+    { "WIFI_IP4_GW",     VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_GW
+    { "WIFI_IP4_DNS1",   VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_DNS1
+    { "WIFI_IP4_DNS2",   VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_DNS2
+    { "WIFI_HOSTNAME",   VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
+    { "WIFI_AP_SSID",    VARIANT8_PCHAR, WIFI_MAX_SSID_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
+    { "WIFI_AP_PASSWD",  VARIANT8_PCHAR, WIFI_MAX_PASSWD_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -284,9 +303,18 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_ODOMETER_TIME
     0,               // EEVAR_ACTIVE_NETDEV
     1,               // EEVAR_PL_RUN
-    "",               // EEVAR_PL_API_KEY
-    "",                     // EEVAR__PADDING
-    0xffffffff,             // EEVAR_CRC32
+    "",              // EEVAR_PL_API_KEY
+    0,               // EEVAR_WIFI_FLAG
+    0,               // EEVAR_WIFI_IP4_ADDR
+    0,               // EEVAR_WIFI_IP4_MSK
+    0,               // EEVAR_WIFI_IP4_GW
+    0,               // EEVAR_WIFI_IP4_DNS1
+    0,               // EEVAR_WIFI_IP4_DNS2
+    "PrusaMINI",     // EEVAR_WIFI_HOSTNAME
+    "",              // EEVAR_WIFI_AP_SSID
+    "",              // EEVAR_WIFI_AP_PASSWD
+    "",              // EEVAR__PADDING
+    0xffffffff,      // EEVAR_CRC32
 };
 // clang-format on
 
@@ -304,8 +332,8 @@ static inline void eeprom_unlock(void) {
 
 // forward declarations of private functions
 
-static uint16_t eeprom_var_size(uint8_t id);
-static uint16_t eeprom_var_addr(uint8_t id);
+static uint16_t eeprom_var_size(enum eevar_id id);
+static uint16_t eeprom_var_addr(enum eevar_id id);
 //static void eeprom_print_vars(void);
 static int eeprom_convert_from_v2(void);
 static int eeprom_convert_from(uint16_t version, uint16_t features);
@@ -371,7 +399,7 @@ static eeprom_vars_t &eeprom_startup_vars() {
     return ret;
 }
 
-variant8_t eeprom_get_var(uint8_t id) {
+variant8_t eeprom_get_var(enum eevar_id id) {
     uint16_t addr;
     uint16_t size;
     uint16_t data_size;
@@ -395,7 +423,7 @@ variant8_t eeprom_get_var(uint8_t id) {
     return var;
 }
 
-void eeprom_set_var(uint8_t id, variant8_t var) {
+void eeprom_set_var(enum eevar_id id, variant8_t var) {
     uint16_t addr;
     uint16_t size;
     uint16_t data_size;
@@ -405,7 +433,7 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
         if (id == EEVAR_ZOFFSET && variant8_get_type(var) == VARIANT8_FLT) {
             variant8_t recent_sheet = eeprom_get_var(EEVAR_ACTIVE_SHEET);
             uint8_t index = variant8_get_ui8(recent_sheet);
-            uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+            uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
             float z_offset = variant8_get_flt(var);
             st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH, &z_offset, sizeof(float));
         }
@@ -426,6 +454,8 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
             // TODO: error
         }
         eeprom_unlock();
+    } else {
+        assert(0 /* EEProm var Id out of range */);
     }
 }
 
@@ -433,13 +463,13 @@ uint8_t eeprom_get_var_count(void) {
     return EEPROM_VARCOUNT;
 }
 
-const char *eeprom_get_var_name(uint8_t id) {
+const char *eeprom_get_var_name(enum eevar_id id) {
     if (id < EEPROM_VARCOUNT)
         return eeprom_map[id].name;
     return "???";
 }
 
-int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var) {
+int eeprom_var_format(char *str, unsigned int size, enum eevar_id id, variant8_t var) {
     int n = 0;
     switch (id) {
     // ip addresses
@@ -447,10 +477,16 @@ int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var) 
     case EEVAR_LAN_IP4_MSK:
     case EEVAR_LAN_IP4_GW:
     case EEVAR_LAN_IP4_DNS1:
-    case EEVAR_LAN_IP4_DNS2: {
+    case EEVAR_LAN_IP4_DNS2:
+    case EEVAR_WIFI_IP4_ADDR:
+    case EEVAR_WIFI_IP4_MSK:
+    case EEVAR_WIFI_IP4_GW:
+    case EEVAR_WIFI_IP4_DNS1:
+    case EEVAR_WIFI_IP4_DNS2: {
         n = snprintf(str, size, "%u.%u.%u.%u", variant8_get_uia(var, 0), variant8_get_uia(var, 1),
             variant8_get_uia(var, 2), variant8_get_uia(var, 3));
-    } break;
+        break;
+    }
     default: //use default conversion
         n = variant8_snprintf(str, size, 0, &var);
         break;
@@ -472,16 +508,17 @@ void eeprom_clear(void) {
 
 // private functions
 
-static uint16_t eeprom_var_size(uint8_t id) {
+static uint16_t eeprom_var_size(enum eevar_id id) {
     if (id < EEPROM_VARCOUNT)
         return variant8_type_size(eeprom_map[id].type & ~VARIANT8_PTR) * eeprom_map[id].count;
     return 0;
 }
 
-static uint16_t eeprom_var_addr(uint8_t id) {
+static uint16_t eeprom_var_addr(enum eevar_id id) {
     uint16_t addr = EEPROM_ADDRESS;
-    while (id)
-        addr += eeprom_var_size(--id);
+    uint8_t id_idx = id;
+    while (id_idx > 0)
+        addr += eeprom_var_size(static_cast<enum eevar_id>(--id_idx));
     return addr;
 }
 
@@ -512,7 +549,7 @@ static void eeprom_save_upgraded(eeprom_vars_t &vars) {
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
 }
 
-static void eeprom_import_block(uint8_t begin, uint8_t end, void *dst) {
+static void eeprom_import_block(enum eevar_id begin, enum eevar_id end, void *dst) {
     // start addres of imported data block
     uint16_t addr_start = eeprom_var_addr(begin);
     // end addres of imported data - end means the next first eeprom var we do NOT want to copy
@@ -737,7 +774,7 @@ uint32_t sheet_next_calibrated() {
 
 bool sheet_is_calibrated(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
     float z_offset = FLT_MAX;
     st25dv64k_user_read_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
         &z_offset, sizeof(float));
@@ -752,7 +789,7 @@ bool sheet_select(uint32_t index) {
     if (index >= MAX_SHEETS || !sheet_is_calibrated(index))
         return false;
     uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
-    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
     uint16_t z_offset_address = eeprom_var_addr(EEVAR_ZOFFSET);
     float z_offset = FLT_MAX;
     st25dv64k_user_read_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
@@ -785,7 +822,7 @@ bool sheet_reset(uint32_t index) {
     if (index >= MAX_SHEETS)
         return false;
     uint8_t active = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
-    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
     float z_offset = FLT_MAX;
 
     st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
@@ -828,7 +865,7 @@ uint32_t sheet_name(uint32_t index, char *buffer, uint32_t length) {
     if (index >= MAX_SHEETS || !buffer || !length)
         return 0;
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
     uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
         ? length
         : MAX_SHEET_NAME_LENGTH - 1;
@@ -849,7 +886,7 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
     if (index >= MAX_SHEETS || !name || !length)
         return false;
     char eeprom_name[MAX_SHEET_NAME_LENGTH];
-    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
     uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
         ? length
         : MAX_SHEET_NAME_LENGTH - 1;
@@ -956,12 +993,12 @@ extern "C" uint16_t get_steps_per_unit_e_rounded() {
 }
 
 //by write functions, cannot read startup variables, must read current value from eeprom
-template <int ENUM>
+template <enum eevar_id ENUM>
 bool is_current_axis_value_inverted() {
     return std::signbit(variant8_get_flt(eeprom_get_var(ENUM)));
 }
 
-template <int ENUM>
+template <enum eevar_id ENUM>
 void set_steps_per_unit(float steps) {
     if (steps > 0) {
         bool negative_direction = is_current_axis_value_inverted<ENUM>();
@@ -983,12 +1020,12 @@ extern "C" void set_steps_per_unit_e(float steps) {
 }
 
 //by write functions, cannot read startup variables, must read current value from eeprom
-template <int ENUM>
+template <enum eevar_id ENUM>
 float get_current_steps_per_unit() {
     return std::abs(variant8_get_flt(eeprom_get_var(ENUM)));
 }
 
-template <int ENUM>
+template <enum eevar_id ENUM>
 void set_axis_positive_direction() {
     float steps = get_current_steps_per_unit<ENUM>();
     eeprom_set_var(ENUM, variant8_flt(steps));
@@ -1007,7 +1044,7 @@ extern "C" void set_positive_direction_e() {
     set_axis_positive_direction<AXIS_STEPS_PER_UNIT_E0>();
 }
 
-template <int ENUM>
+template <enum eevar_id ENUM>
 void set_axis_negative_direction() {
     float steps = get_current_steps_per_unit<ENUM>();
     eeprom_set_var(ENUM, variant8_flt(-steps));
@@ -1087,7 +1124,7 @@ extern "C" uint16_t get_microsteps_e() {
     return is_microstep_value_valid(ret) ? ret : E0_MICROSTEPS;
 }
 
-template <int ENUM>
+template <enum eevar_id ENUM>
 void set_microsteps(uint16_t microsteps) {
     if (is_microstep_value_valid(microsteps)) {
         eeprom_set_var(ENUM, variant8_ui16(microsteps));
@@ -1127,7 +1164,7 @@ extern "C" uint16_t get_rms_current_ma_e() {
     return (ret > 0) ? ret : E0_CURRENT;
 }
 
-template <int ENUM>
+template <enum eevar_id ENUM>
 void set_rms_current_ma(uint16_t current) {
     if (current > 0) {
         eeprom_set_var(ENUM, variant8_ui16(current));

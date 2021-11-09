@@ -29,18 +29,23 @@ typedef struct {
 
 typedef struct {
     char hostname[ETH_HOSTNAME_LEN + 1]; // ETH hostname: MAX 20 chars
-    int8_t timezone;                     // user defined difference to UTC
     ip_addr_t dns1_ip4;                  // user defined DNS #1
     ip_addr_t dns2_ip4;                  // user defined DNS #2
     lan_t lan;                           // user defined LAN configurations
     uint32_t var_mask;                   // mask for setting ethvars
 } ETH_config_t;
 
+// The security of the AP.
+//
+// We store this into the eeprom as part of the device flags, on bits 2 and 3.
+// Therefore the specific values. (0b1100 is free for future uses).
 enum ap_sec_t {
-    AP_SEC_NONE,
-    AP_SEC_WEP,
-    AP_SEC_WPA,
+    AP_SEC_NONE = 0b0000,
+    AP_SEC_WEP = 0b0100,
+    AP_SEC_WPA = 0b1000,
 };
+
+#define APSEC_MASK 0b1100
 
 typedef struct {
     char ssid[SSID_MAX_LEN + 1];

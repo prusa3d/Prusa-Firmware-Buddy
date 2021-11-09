@@ -47,6 +47,7 @@ protected:
 
     volatile fsensor_t state;
     volatile fsensor_t last_state;
+    uint8_t meas_cycle;
 
     uint32_t event_lock; // 0 == unlocked
 
@@ -59,9 +60,11 @@ protected:
     event generateEvent(fsensor_t last_state_before_cycle) const;
     void evaluateEventConditions(event ev);
 
-    virtual void enable() = 0;
-    virtual void disable() = 0;
-    virtual void cycle() = 0;
+    void enable();
+    void disable();
+    void cycle();
+    void cycle0();
+    void cycle1();
 
     inline bool isEvLocked() { return event_lock > 0; }
 
@@ -99,5 +102,5 @@ public:
     FSensor();
 };
 
-//singleton defined in childs cpp file
+//singleton
 FSensor &FS_instance();
