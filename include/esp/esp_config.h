@@ -114,6 +114,8 @@
 #include "dbg.h"
 #define ESP_CFG_DBG_OUT(fmt, ...) _dbg(fmt, ##__VA_ARGS__)
 
+#define ESP_CFG_MODE_ACCESS_POINT 0
+
 /* After user configuration, call default config to merge config together */
 #include "esp/esp_config_default.h"
 
