@@ -20,6 +20,8 @@
 extern uint32_t start_print;
 extern char *filename;
 
+static marlin_print_state_t cached_state = mpsIdle;
+
 void get_printer(char *data, const uint32_t buf_len) {
     marlin_vars_t *vars = marlin_vars();
     const char *filament_material = get_selected_filament_name();
@@ -39,41 +41,51 @@ void get_printer(char *data, const uint32_t buf_len) {
 
     switch (vars->print_state) {
     case mpsPrinting:
-        if (vars->time_to_end && vars->time_to_end != (-1UL)) {
+        if (vars->time_to_end != (-1UL)) {
             printing = busy = 1;
             ready = operational = 0;
         }
+        cached_state = vars->print_state;
         break;
     case mpsPausing_Begin:
     case mpsPausing_WaitIdle:
     case mpsPausing_ParkHead:
         paused = busy = 1;
         ready = operational = 0;
+        cached_state = vars->print_state;
         break;
     case mpsPaused:
         paused = 1;
+        cached_state = vars->print_state;
         break;
     case mpsResuming_Begin:
     case mpsResuming_Reheating:
     case mpsResuming_UnparkHead:
         ready = operational = 0;
         busy = printing = 1;
+        cached_state = vars->print_state;
         break;
     case mpsAborting_Begin:
     case mpsAborting_WaitIdle:
     case mpsAborting_ParkHead:
         cancelling = busy = 1;
         ready = operational = 0;
+        cached_state = vars->print_state;
         break;
     case mpsFinishing_WaitIdle:
     case mpsFinishing_ParkHead:
         busy = 1;
         ready = operational = 0;
+        cached_state = vars->print_state;
         break;
     case mpsAborted:
     case mpsFinished:
     case mpsIdle:
     default:
+        if (cached_state != vars->print_state) {
+            busy = 1;
+            ready = operational = 0;
+        }
         break;
     }
 
@@ -119,8 +131,8 @@ void get_printer(char *data, const uint32_t buf_len) {
         "}"
         "}",
         filament_material,
-        (int)vars->temp_nozzle, (int)(vars->temp_nozzle * 10) % 10,
-        (int)vars->temp_bed, (int)(vars->temp_bed * 10) % 10,
+        (int)vars->temp_nozzle, abs((int)(vars->temp_nozzle * 10) % 10),
+        (int)vars->temp_bed, abs((int)(vars->temp_bed * 10) % 10),
         operational, paused, printing, cancelling, pausing, sd_ready,
         error, ready, closed_on_error, busy);
 }
@@ -174,6 +186,9 @@ void get_job(char *data, const uint32_t buf_len) {
         (int)(vars->sd_percent_done == 100), (int)(vars->sd_percent_done % 100), 0UL, vars->print_duration, vars->time_to_end,
         (int)vars->pos[MARLIN_VAR_INDEX_Z], (int)((vars->pos[MARLIN_VAR_INDEX_Z] - (int)vars->pos[MARLIN_VAR_INDEX_Z]) * 1000),
         vars->print_speed, vars->flow_factor);
+    if (vars->sd_percent_done == 100) {
+        cached_state = mpsFinished;
+    }
 }
 
 void get_files(char *data, const uint32_t buf_len) {
