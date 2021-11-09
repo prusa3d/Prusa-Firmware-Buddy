@@ -1677,7 +1677,7 @@ void homeaxis(const AxisEnum axis) {
     // retrace by the amount specified in delta_endstop_adj + additional dist in order to have minimum steps
     if (delta_endstop_adj[axis] * Z_HOME_DIR <= 0) {
       if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("delta_endstop_adj:");
-      do_homing_move(axis, delta_endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * planner.steps_to_mm[axis] * Z_HOME_DIR);
+      do_homing_move(axis, delta_endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * planner.mm_per_step[axis] * Z_HOME_DIR);
     }
 
   #else // CARTESIAN / CORE

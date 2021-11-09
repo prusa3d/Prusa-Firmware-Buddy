@@ -690,7 +690,7 @@ namespace ExtUI {
      * what nozzle is printing.
      */
     void smartAdjustAxis_steps(const int16_t steps, const axis_t axis, bool linked_nozzles) {
-      const float mm = steps * planner.steps_to_mm[axis];
+      const float mm = steps * planner.mm_per_step[axis];
 
       if (!babystepAxis_steps(steps, axis)) return;
 
@@ -731,7 +731,7 @@ namespace ExtUI {
      * steps that is at least mm long.
      */
     int16_t mmToWholeSteps(const float mm, const axis_t axis) {
-      const float steps = mm / planner.steps_to_mm[axis];
+      const float steps = mm / planner.mm_per_step[axis];
       return steps > 0 ? ceil(steps) : floor(steps);
     }
   #endif
