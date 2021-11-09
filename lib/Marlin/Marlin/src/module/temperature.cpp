@@ -988,7 +988,7 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
                 const int32_t e_pos_diff = e_position - last_e_position;
                 last_e_position = e_position;
 
-                work_pid[ee].Kc = e_pos_diff * planner.steps_to_mm[E_AXIS] * distance_to_volume_per_second * (temp_hotend[ee].celsius - ambient_temp) * PID_PARAM(Kc, ee);
+                work_pid[ee].Kc = e_pos_diff * planner.mm_per_step[E_AXIS] * distance_to_volume_per_second * (temp_hotend[ee].celsius - ambient_temp) * PID_PARAM(Kc, ee);
                 if (extrusion_scaling_enabled)
                   pid_output += work_pid[ee].Kc;
               }
@@ -1117,7 +1117,7 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
                 const int32_t e_pos_diff = e_position - last_e_position;
                 last_e_position = e_position;
 
-                work_pid[ee].Kc = e_pos_diff * planner.steps_to_mm[E_AXIS] * distance_to_volume_per_second * (temp_hotend[ee].celsius - ambient_temp) * PID_PARAM(Kc, ee);
+                work_pid[ee].Kc = e_pos_diff * planner.mm_per_step[E_AXIS] * distance_to_volume_per_second * (temp_hotend[ee].celsius - ambient_temp) * PID_PARAM(Kc, ee);
                 if (extrusion_scaling_enabled)
                   pid_output += work_pid[ee].Kc;
               }

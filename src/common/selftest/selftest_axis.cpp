@@ -115,7 +115,7 @@ bool CSelftestPart_Axis::phaseWait(int8_t dir) {
     sg_sampling_disable();
     int32_t endPos_usteps = stepper.position((AxisEnum)m_config.axis);
     int32_t length_usteps = dir * (endPos_usteps - m_StartPos_usteps);
-    float length_mm = (length_usteps * planner.steps_to_mm[(AxisEnum)m_config.axis]);
+    float length_mm = (length_usteps * planner.mm_per_step[(AxisEnum)m_config.axis]);
     Selftest.log_printf(" length = %f mm\n", (double)length_mm);
     if ((length_mm < m_config.length_min) || (length_mm > m_config.length_max)) {
         m_Result = sprFailed;

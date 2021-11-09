@@ -928,7 +928,7 @@
         serialprintPGM(parser.seen('B') ? GET_TEXT(MSG_UBL_BC_INSERT) : GET_TEXT(MSG_UBL_BC_INSERT2));
 
         const float z_step = 0.01f;                         // existing behavior: 0.01mm per click, occasionally step
-        //const float z_step = planner.steps_to_mm[Z_AXIS]; // approx one step each click
+        //const float z_step = planner.mm_per_step[Z_AXIS]; // approx one step each click
 
         move_z_with_encoder(z_step);
 

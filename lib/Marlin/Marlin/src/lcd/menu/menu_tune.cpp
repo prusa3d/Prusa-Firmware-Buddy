@@ -59,7 +59,7 @@
       babystep.add_steps(axis, steps);
     }
     if (ui.should_draw()) {
-      const float spm = planner.steps_to_mm[axis];
+      const float spm = planner.mm_per_step[axis];
       draw_edit_screen(msg, ftostr54sign(spm * babystep.accum));
       #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
         const bool in_view = (true
