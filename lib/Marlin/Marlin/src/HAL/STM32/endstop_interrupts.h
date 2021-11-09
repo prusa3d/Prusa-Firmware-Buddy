@@ -22,12 +22,14 @@
  */
 #pragma once
 
+#include "endstop_ISR.h"
 #include "../../module/endstops.h"
+#include "../../../../../../src/common/ArduinoInterrupt.hpp"
 
 // One ISR for all EXT-Interrupts
 void endstop_ISR() { endstops.update(); }
 
-void setup_endstop_interrupts() {
+static void setup_endstop_interrupts() {
   #define _ATTACH(P) attachInterrupt(P, endstop_ISR, CHANGE)
   TERN_(HAS_X_MAX, _ATTACH(X_MAX_PIN));
   TERN_(HAS_X_MIN, _ATTACH(X_MIN_PIN));
