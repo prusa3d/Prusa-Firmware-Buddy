@@ -25,6 +25,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_ODOMETER : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Odometer");
+
+public:
+    MI_ODOMETER();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_FILAMENT : public WI_LABEL_t {
     static constexpr const char *const label = N_("Filament");
 
@@ -125,6 +135,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_ESP_UPDATE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("ESP Update");
+
+public:
+    MI_ESP_UPDATE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_LAN_SETTINGS : public WI_LABEL_t {
     static constexpr const char *const label = N_("Lan Settings");
 
@@ -188,10 +208,80 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_QR_PRIVACY : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Anonymized QR");
+class MI_DEVHASH_IN_QR : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Device hash in QR");
 
 public:
-    MI_QR_PRIVACY();
+    MI_DEVHASH_IN_QR();
     virtual void OnChange(size_t old_index) override;
+};
+
+class MI_FOOTER_SETTINGS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Footer Settings");
+
+public:
+    MI_FOOTER_SETTINGS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_EXPERIMENTAL_SETTINGS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Experimental Settings");
+
+public:
+    MI_EXPERIMENTAL_SETTINGS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_EEPROM_DIAGNOSTICS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Experimental Settings");
+
+public:
+    MI_EEPROM_DIAGNOSTICS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_LANGUAGUE_USB : public WI_LABEL_t {
+    static constexpr const char *const label = "Load lang from USB";
+
+public:
+    MI_LANGUAGUE_USB();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_LOAD_LANG : public WI_LABEL_t {
+    static constexpr const char *const label = "load lang to XFLASH";
+
+public:
+    MI_LOAD_LANG();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_LANGUAGUE_XFLASH : public WI_LABEL_t {
+    static constexpr const char *const label = "Load lang from XFLASH";
+
+public:
+    MI_LANGUAGUE_XFLASH();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_PRUSALINK : public WI_LABEL_t {
+    static constexpr const char *const label = "Prusa Link";
+
+public:
+    MI_PRUSALINK();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
 };

@@ -44,39 +44,44 @@ private:
     string_view_utf8 label;
     txtroll_t roll;
 
-    is_hidden_t hidden : 1;
+    uint8_t hidden : 2;
     is_enabled_t enabled : 1;
     is_focused_t focused : 1;
 
 protected:
     is_selected_t selected : 1; // should be in IWiSpin, but is here because of size optimization
     uint16_t id_icon : 10;
-    Rect16::Width_t extension_width;
+    Rect16::Width_t extension_width; // must be behind bitfields to save 4B RAM per item
+    font_t *label_font;
 
     static Rect16 getCustomRect(Rect16 base_rect, uint16_t custom_rect_width); // general method Returns custom width Rectangle, aligned intersection on the right of the base_rect
     Rect16 getIconRect(Rect16 rect) const;
     Rect16 getLabelRect(Rect16 rect) const;
     Rect16 getExtensionRect(Rect16 rect) const;
 
-    virtual void printIcon(Rect16 icon_rect, uint8_t swap, color_t color_back) const; //must be virtual, because pictures of flags are drawn differently
-    void printLabel(Rect16 label_rect, color_t color_text, color_t color_back) const;
-
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const; //things behind rect
+    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const;                               //must be virtual, because pictures of flags are drawn differently
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; //things behind rect
     virtual void click(IWindowMenu &window_menu) = 0;
 
+    void setLabelFont(font_t *src) { label_font = src; }
+    font_t *getLabelFont() const { return label_font; }
+
     void reInitRoll(Rect16 rect);
+    color_t GetTextColor() const;
+    color_t GetBackColor() const;
 
 public:
-    IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no);
-    IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
+    IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
     virtual ~IWindowMenuItem() = default;
     void Enable() { enabled = is_enabled_t::yes; }
     void Disable() { enabled = is_enabled_t::no; }
-    bool IsEnabled() const { return enabled == is_enabled_t::yes; }
+    bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     bool IsSelected() const { return selected == is_selected_t::yes; }
-    void Hide() { hidden = is_hidden_t::yes; }
-    void Show() { hidden = is_hidden_t::no; }
-    bool IsHidden() const { return hidden == is_hidden_t::yes; }
+    void Hide() { hidden = (uint8_t)is_hidden_t::yes; }
+    void Show() { hidden = (uint8_t)is_hidden_t::no; }
+    void ShowDevOnly() { hidden = (uint8_t)is_hidden_t::dev; }
+    bool IsHidden() const;
     void SetFocus();
     void ClrFocus();
     bool IsFocused() const { return focused == is_focused_t::yes; }

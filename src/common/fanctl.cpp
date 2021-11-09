@@ -125,10 +125,11 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
 // CFanCtl implementation
 
 CFanCtl::CFanCtl(const OutputPin &pinOut, const InputPin &pinTach,
-    uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM)
+    uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan)
     : m_MinRPM(minRPM)
     , m_MaxRPM(maxRPM)
     , m_State(idle)
+    , is_autofan(autofan)
     , m_pwm(pinOut, minPWM, maxPWM, thrPWM)
     , m_tach(pinTach) {
     m_PWMValue = 0;
@@ -176,7 +177,7 @@ void CFanCtl::tick() {
             m_pwm.set_PWM(m_PWMValue);
             if (m_Ticks < FANCTL_RPM_DELAY)
                 m_Ticks++;
-            else if (!rpm_is_ok())
+            else if (!getRPMIsOk())
                 m_State = error_running;
         }
         break;
@@ -185,7 +186,7 @@ void CFanCtl::tick() {
             m_State = idle;
         else {
             m_pwm.set_PWM(m_PWMValue);
-            if (rpm_is_ok())
+            if (getRPMIsOk())
                 m_State = running;
         }
         break;
@@ -243,7 +244,7 @@ void CFanCtl::safeState() {
     m_pwm.safeState();
 }
 
-bool CFanCtl::rpm_is_ok() {
+bool CFanCtl::getRPMIsOk() {
     if (m_PWMValue && (getActualRPM() < m_MinRPM))
         return false;
     return true;

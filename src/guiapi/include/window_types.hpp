@@ -11,8 +11,9 @@ typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
 //to be safe, ctor has this 2 bool parameters, can't switch them
-enum class is_hidden_t : bool { no,
-    yes };
+enum class is_hidden_t : uint8_t { no,
+    yes,
+    dev };
 enum class is_enabled_t : bool { no,
     yes };
 enum class is_focused_t : bool { no,
@@ -27,48 +28,55 @@ enum class is_closed_on_timeout_t : bool { no,
     yes };
 enum class is_closed_on_serial_t : bool { no,
     yes };
+enum class positioning : bool { absolute,
+    relative };
 
 //type of window
 //carefull if any states are added - flags and getter must be modified
 enum class win_type_t : uint8_t {
-    normal,       // normal window, registered in ctor, registration must succedd, does not unregister
-    dialog,       // child of IDialog - modal window - multiple supported
-    popup,        // similar to dialog, but does not claim capture, cannot overlap or be overlapped
+    normal,       // single normal window in screen can have capture, registered in ctor, registration must succedd
+    dialog,       // can have capture, child of IDialog - modal window - multiple supported
+    popup,        // can't have capture, similar to dialog, but does not claim capture, cannot overlap or be overlapped
                   //   by dialog (not registered / auto destroyed).
                   // destroyed when any window tries to overlap it
-    strong_dialog // child of IDialog - stays on absolute top (normal dialog can open under it, but
+    strong_dialog // can have capture, stays on absolute top (normal dialog can open under it, but
                   //   will not get capture), only user can close it
-                  // behavior of multipre strong dialogs is undefined for now
-                  //   will be defined later - after we have multiple strong dialogs
+                  // last open strong dialog is on top
 };
 
 //todo add can capture flag (needed in frame event and SetCapture)
 union WindowFlags {
     uint32_t data;
     struct {
-        uint8_t type : 2;                         // 00 .. 01 - type of window
-        bool visible : 1;                         // 02 - is visible
-        bool enabled : 1;                         // 03 - is enabled (can be focused)
-        bool invalid : 1;                         // 04 - content is invalid (draw)
-        bool checked : 1;                         // 05 - is checked/selected
-        bool timer : 1;                           // 06 - window has timers
-        is_closed_on_click_t close_on_click : 1;  // 07 - window id dialog
-        bool hidden_behind_dialog : 1;            // 08 - there is an dialog over this window
-        is_closed_on_timeout_t timeout_close : 1; // 09 - menu timeout flag - it's meant to be used in window_frame_t
-        is_closed_on_serial_t serial_close : 1;   // 0A - serial printing screen open close
-        bool shadow : 1;                          // 0B - this flag can be defined in parent
-        bool custom0 : 1;                         // 0C - this flag can be defined in parent
-        bool custom1 : 1;                         // 0D - this flag can be defined in parent
-        bool custom2 : 1;                         // 0E - this flag can be defined in parent
-        bool custom3 : 1;                         // 0F - this flag can be defined in parent
-
-        // here would be 2 unused Bytes (structure data alignment),
-        // make them accessible to be used in child to save RAM
-        union {
-            uint16_t mem_space_u16;
-            int16_t mem_space_s16;
-            std::array<uint8_t, 2> mem_array_u08;
-            std::array<int8_t, 2> mem_array_s08;
+        uint8_t type : 2;                          // 00 .. 01 - type of window
+        bool visible : 1;                          // 02 - is visible
+        bool enabled : 1;                          // 03 - is enabled (can be focused)
+        bool invalid : 1;                          // 04 - content is invalid (draw)
+        bool color_scheme_background : 1;          // 05 - select between color and pointer to color_scheme, for background color
+        bool color_scheme_foreground : 1;          // 06 - select between color and pointer to color_scheme, for foreground color
+        bool timer : 1;                            // 07 - window has timers
+        is_closed_on_click_t close_on_click : 1;   // 08 - window id dialog
+        bool hidden_behind_dialog : 1;             // 09 - there is an dialog over this window
+        is_closed_on_timeout_t timeout_close : 1;  // 0A - menu timeout flag - it's meant to be used in window_frame_t
+        is_closed_on_serial_t serial_close : 1;    // 0B - serial printing screen open close
+        bool shadow : 1;                           // 0C - executable (causes darker colors)
+        bool enforce_capture_when_not_visible : 1; // 0D - normally invisible / hidden_behind_dialog windows does not get capture
+        bool has_relative_subwins : 1;             // 0E - X Y coords of all children are relative to this, screen cannot have this flag because 1st level windows can be dialogs and they must not have relative coords
+        bool multiline : 1;                        // 0F - multiline text affect window_text_t anf its children
+        bool blink0 : 1;                           // 10 - for 2 state blinking
+        bool blink1 : 1;                           // 11 - for 4 state blinking
+        bool custom5 : 1;                          // 12 - this flag can be defined in child class
+        bool custom4 : 1;                          // 13 - this flag can be defined in child class
+        bool custom3 : 1;                          // 14 - this flag can be defined in child class
+        bool custom2 : 1;                          // 15 - this flag can be defined in child class
+        bool custom1 : 1;                          // 16 - this flag can be defined in child class
+        bool custom0 : 1;                          // 17 - this flag can be defined in child class
+        union {                                    // 18 .. 1F - 8bit variable used in child classes
+            uint8_t align_data;                    // used in window_aligned_t
+            struct {
+                uint8_t button_count : 4; // used in RadioButton
+                uint8_t button_index : 4; // used in RadioButton
+            };
         };
     };
 
@@ -80,7 +88,10 @@ union WindowFlags {
 enum class BtnState_t : uint8_t {
     Released,
     Pressed,
-    Held
+    Held,
+    HeldAndLeft,
+    HeldAndRigth,
+    HeldAndReleased
 };
 
 static_assert(sizeof(WindowFlags) == sizeof(WindowFlags::data), "WindowFlags structure invalid");

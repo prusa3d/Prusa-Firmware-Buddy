@@ -4,6 +4,7 @@
 //#include "unicode.h"
 #include <string.h>
 #include <stdio.h>
+#include "assert.h"
 
 #define UTF8_IS_NONASCII(ch) ((ch)&0x80)
 #define UTF8_IS_CONT(ch)     (((ch)&0xC0) == 0x80)
@@ -37,9 +38,9 @@ class string_view_utf8 {
         } cpuflash;
         /// interface for utf-8 string stored in a FILE - used for validation of the whole translation infrastructure
         struct FromFile {
-            ::FILE *f;         ///< shared FILE pointer with other instances accessing the same file
-                               ///< @@TODO beware - need some synchronization mechanism to prevent reading from another offset in the file when other instances read as well
-            uint32_t startOfs; ///< start offset in input file
+            ::FILE *f;           ///< shared FILE pointer with other instances accessing the same file
+            uint16_t startOfs;   ///< start offset in input file
+            uint16_t currentOfs; ///<position of next byt to read
         } file;
         constexpr Attrs()
             : cpuflash() {}
@@ -70,12 +71,17 @@ class string_view_utf8 {
 
     static uint8_t FILE_getbyte(Attrs &attrs) {
         uint8_t c;
+        //sync among multiple reads from the sameMO file
+        if (ftell(attrs.file.f) != attrs.file.currentOfs)
+            fseek(attrs.file.f, attrs.file.currentOfs, SEEK_SET);
+        attrs.file.currentOfs++;
         fread(&c, 1, 1, attrs.file.f);
         return c;
     }
     static void FILE_rewind(Attrs &attrs) {
         if (attrs.file.f) {
             fseek(attrs.file.f, attrs.file.startOfs, SEEK_SET);
+            attrs.file.currentOfs = attrs.file.startOfs;
         }
     }
 
@@ -204,12 +210,13 @@ public:
     }
 
     /// Construct string_view_utf8 to provide data from FILE
-    /// The FILE *f shall aready be positioned to the spot, where the string starts
-    static constexpr string_view_utf8 MakeFILE(::FILE *f) {
+    /// The FILE *f shall already be positioned to the spot, where the string starts
+    static constexpr string_view_utf8 MakeFILE(::FILE *f, uint16_t offset) {
         string_view_utf8 s;
         s.attrs.file.f = f;
         if (f) {
-            s.attrs.file.startOfs = ftell(f);
+            s.attrs.file.startOfs = offset;
+            s.attrs.file.currentOfs = offset;
         }
         s.type = EType::FILE;
         return s;
@@ -220,5 +227,30 @@ public:
         string_view_utf8 s;
         s.type = EType::NULLSTR;
         return s;
+    }
+
+    /// string view has the same resource
+    bool operator==(const string_view_utf8 &other) const {
+        if (type != other.type)
+            return false; // type mismatch
+
+        switch (type) {
+        case EType::RAM:
+        case EType::CPUFLASH:
+            return attrs.cpuflash.utf8raw == other.attrs.cpuflash.utf8raw;
+        case EType::FILE:
+            return (attrs.file.f == other.attrs.file.f) && (attrs.file.startOfs == other.attrs.file.startOfs);
+        case EType::SPIFLASH:
+        case EType::USBFLASH:
+            assert(false); // ends program in debug
+            return false;
+        case EType::NULLSTR: // all null strings are equal
+            return true;
+        }
+        return false; // somehow out of enum range
+    }
+
+    bool operator!=(const string_view_utf8 &other) const {
+        return !((*this) == other);
     }
 };

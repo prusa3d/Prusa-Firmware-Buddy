@@ -12,6 +12,7 @@
 #include "language_eeprom.hpp"
 #include "sha256.h"
 #include "crc32.h"
+#include "stm32f4xx_hal_gpio.h"
 
 #include "qrcodegen.h"
 #include "support_utils_lib.hpp"
@@ -67,7 +68,7 @@ void printerCode(char *str) {
     }
 
     /// appendix state
-    if (ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) {
+    if (appendix_exist()) {
         setBit((uint8_t *)hash, 6);
         //setBit(str[0], 6);
     }
@@ -105,7 +106,7 @@ void error_url_long(char *str, const uint32_t str_size, const int error_code) {
         printerCode(eofstr(str));
 
     /// FW version
-    snprintf(eofstr(str), str_size - strlen(str), "/%d", variant_get_ui16(eeprom_get_var(EEVAR_FW_VERSION)));
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", variant8_get_ui16(eeprom_get_var(EEVAR_FW_VERSION)));
 
     //snprintf(eofstr(str), str_size - strlen(str), "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     //snprintf(eofstr(str), str_size - strlen(str), "/%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
@@ -163,4 +164,29 @@ void create_path_info_4service(char *str, const uint32_t str_size) {
     block2hex(str, str_size, (uint8_t *)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
     append_crc(str, str_size);
 #endif //0
+}
+
+bool appendix_exist() {
+    const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
+
+    if (bootloader->major >= 1 && bootloader->minor >= 1) {
+        return !(ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK);
+    } else {
+        GPIO_PinState pinState = GPIO_PIN_SET;
+#ifndef _DEBUG //Secure backward compatibility
+        GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+        GPIO_InitStruct.Pin = GPIO_PIN_13;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+        HAL_Delay(50);
+        pinState = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_13);
+#else //In debug version the appendix status has to be tested by bootloader version greater or equal than 1.1
+        pinState = ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK
+            ? GPIO_PIN_SET
+            : GPIO_PIN_RESET;
+#endif
+        return pinState == GPIO_PIN_RESET;
+    }
 }

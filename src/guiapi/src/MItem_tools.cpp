@@ -22,6 +22,8 @@
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "menu_spin_config.hpp"
+#include "DialogSelftestResult.hpp"
+#include <time.h>
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -30,7 +32,7 @@ MI_WIZARD::MI_WIZARD()
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunAll();
+    ScreenWizard::Run(wizard_run_type_t::all);
 }
 
 /*****************************************************************************/
@@ -85,7 +87,19 @@ MI_SELFTEST::MI_SELFTEST()
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunSelfTest();
+    ScreenWizard::Run(wizard_run_type_t::selftest);
+}
+
+/*****************************************************************************/
+//MI_SELFTEST_RESULT
+MI_SELFTEST_RESULT::MI_SELFTEST_RESULT()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
+    SelftestResultEEprom_t result;
+    result.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    DialogSelftestResult::Show(result);
 }
 
 /*****************************************************************************/
@@ -95,7 +109,7 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::RunFirstLay();
+    ScreenWizard::Run(wizard_run_type_t::firstlay);
 }
 
 /*****************************************************************************/
@@ -106,7 +120,7 @@ MI_TEST_FANS::MI_TEST_FANS()
 
 void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmFans);
-    DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
+    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestFans, 0);
 }
 
 /*****************************************************************************/
@@ -117,7 +131,7 @@ MI_TEST_XYZ::MI_TEST_XYZ()
 
 void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmXYZAxis);
-    DialogHandler::WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
 }
 
 /*****************************************************************************/
@@ -128,7 +142,7 @@ MI_TEST_HEAT::MI_TEST_HEAT()
 
 void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmHeaters);
-    DialogHandler::WaitUntilClosed(ClientFSM::SelftestHeat, 0);
+    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestHeat, 0);
 }
 
 /*****************************************************************************/
@@ -139,7 +153,7 @@ MI_ADVANCED_FAN_TEST::MI_ADVANCED_FAN_TEST()
 
 void MI_ADVANCED_FAN_TEST::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmFans_fine);
-    DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
+    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestFans, 0);
 }
 
 /*****************************************************************************/
@@ -183,7 +197,7 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 }
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
-    if (dump_save_to_usb("dump.bin"))
+    if (dump_save_to_usb("/usb/dump.bin"))
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     else
         MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
@@ -236,7 +250,7 @@ MI_EE_LOAD_400::MI_EE_LOAD_400()
 }
 
 void MI_EE_LOAD_400::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.0-final+1965.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.0-final+1965.bin");
     sys_reset();
 }
 
@@ -247,7 +261,7 @@ MI_EE_LOAD_401::MI_EE_LOAD_401()
 }
 
 void MI_EE_LOAD_401::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.1-final+1974.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.1-final+1974.bin");
     sys_reset();
 }
 
@@ -258,7 +272,7 @@ MI_EE_LOAD_402::MI_EE_LOAD_402()
 }
 
 void MI_EE_LOAD_402::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.2-final+1977.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.2-final+1977.bin");
     sys_reset();
 }
 
@@ -269,7 +283,7 @@ MI_EE_LOAD_403RC1::MI_EE_LOAD_403RC1()
 }
 
 void MI_EE_LOAD_403RC1::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
     sys_reset();
 }
 
@@ -280,7 +294,7 @@ MI_EE_LOAD_403::MI_EE_LOAD_403()
 }
 
 void MI_EE_LOAD_403::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.3-final+258.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.3-final+258.bin");
     sys_reset();
 }
 
@@ -291,7 +305,7 @@ MI_EE_LOAD::MI_EE_LOAD()
 }
 
 void MI_EE_LOAD::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("eeprom.bin");
+    eeprom_load_bin_from_usb("/usb/eeprom.bin");
     sys_reset();
 }
 
@@ -302,7 +316,7 @@ MI_EE_SAVE::MI_EE_SAVE()
 }
 
 void MI_EE_SAVE::click(IWindowMenu & /*window_menu*/) {
-    eeprom_save_bin_to_usb("eeprom.bin");
+    eeprom_save_bin_to_usb("/usb/eeprom.bin");
 }
 
 /*****************************************************************************/
@@ -312,7 +326,7 @@ MI_EE_SAVEXML::MI_EE_SAVEXML()
 }
 
 void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
-    eeprom_save_xml_to_usb("eeprom.xml");
+    eeprom_save_xml_to_usb("/usb/eeprom.xml");
 }
 
 /*****************************************************************************/
@@ -378,7 +392,7 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_SOUND_VOLUME
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
-    : WI_SPIN_U08_t(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_SOUND_VOLUME::OnClick() {
     Sound_SetVolume(GetVal());
 }
@@ -386,7 +400,7 @@ void MI_SOUND_VOLUME::OnClick() {
 /*****************************************************************************/
 //MI_SORT_FILES
 MI_SORT_FILES::MI_SORT_FILES()
-    : WI_SWITCH_t<2>(variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT)), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
+    : WI_SWITCH_t<2>(variant8_get_ui8(eeprom_get_var(EEVAR_FILE_SORT)), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
     if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
         eeprom_set_var(EEVAR_FILE_SORT, variant8_ui8((uint8_t)WF_SORT_BY_NAME));
@@ -400,7 +414,7 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_TIMEZONE
 MI_TIMEZONE::MI_TIMEZONE()
-    : WI_SPIN_I08_t(variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE)), SpinCnf::timezone_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE)), SpinCnf::timezone_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
     int8_t last_timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
@@ -413,26 +427,25 @@ void MI_TIMEZONE::OnClick() {
 
 /*****************************************************************************/
 //I_MI_Filament
-void I_MI_Filament::click_at(FILAMENT_t filament_index) {
-    const filament_t filament = filaments[filament_index];
-    marlin_gcode("M86 S1800"); // enable safety timer
+void I_MI_Filament::click_at(filament_t filament_index) {
+    const Filament filament = Filaments::Get(filament_index);
     /// don't use preheat temp for cooldown
-    if (PREHEAT_TEMP >= filament.nozzle) {
+    if (Filaments::PreheatTemp >= filament.nozzle) {
         marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
     } else {
-        marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
+        marlin_gcode_printf("M104 S%d D%d", (int)Filaments::PreheatTemp, (int)filament.nozzle);
     }
     marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
-    set_last_preheated_filament(filament_index);
+    Filaments::SetLastPreheated(filament_index);
     Screens::Access()->Close(); // skip this screen everytime
 }
 
 MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
-    : WI_SWITCH_0_1_NA_t(get_state(), _(label), 0, is_enabled_t::no, is_hidden_t::no) {
+    : WI_SWITCH_0_1_NA_t(get_state(), _(label), IDR_NULL, is_enabled_t::no, is_hidden_t::no) {
 }
 
 MI_FILAMENT_SENSOR_STATE::state_t MI_FILAMENT_SENSOR_STATE::get_state() {
-    fsensor_t fs = fs_wait_initialized();
+    fsensor_t fs = FS_instance().WaitInitialized();
     switch (fs) {
     case fsensor_t::HasFilament:
         return state_t::high;
@@ -448,7 +461,7 @@ bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
 }
 
 MI_MINDA::MI_MINDA()
-    : WI_SWITCH_0_1_NA_t(get_state(), _(label), 0, is_enabled_t::no, is_hidden_t::no) {
+    : WI_SWITCH_0_1_NA_t(get_state(), _(label), IDR_NULL, is_enabled_t::no, is_hidden_t::no) {
 }
 
 MI_MINDA::state_t MI_MINDA::get_state() {
@@ -457,4 +470,75 @@ MI_MINDA::state_t MI_MINDA::get_state() {
 
 bool MI_MINDA::StateChanged() {
     return SetIndex((size_t)get_state());
+}
+
+/*****************************************************************************/
+//MI_FAN_CHECK
+MI_FAN_CHECK::MI_FAN_CHECK()
+    : WI_SWITCH_OFF_ON_t(variant8_get_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_FAN_CHECK::OnChange(size_t old_index) {
+    if (!old_index) {
+        marlin_set_var(MARLIN_VAR_FAN_CHECK_ENABLED, variant8_ui8(1));
+    } else {
+        marlin_set_var(MARLIN_VAR_FAN_CHECK_ENABLED, variant8_ui8(0));
+    }
+    eeprom_set_var(EEVAR_FAN_CHECK_ENABLED, variant8_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED)));
+}
+
+/*****************************************************************************/
+//MI_FS_AUTOLOAD
+is_hidden_t hide_autoload_item() {
+    return FS_instance().Get() == fsensor_t::Disabled ? is_hidden_t::yes : is_hidden_t::no;
+}
+
+MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
+    : WI_SWITCH_OFF_ON_t(variant8_get_ui8(marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED)), _(label), 0, is_enabled_t::yes, hide_autoload_item()) {}
+void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
+    if (!old_index) {
+        marlin_set_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED, variant8_ui8(1));
+    } else {
+        marlin_set_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED, variant8_ui8(0));
+    }
+    eeprom_set_var(EEVAR_FS_AUTOLOAD_ENABLED, variant8_ui8(marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED)));
+}
+MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
+    : WI_FORMATABLE_LABEL_t<float>(label, id_icon, enabled, hidden, initVal, [&](char *buffer) {
+        float value_m = value / 1000; // change the unit from mm to m
+        if (value_m > 999) {
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%.1f km", (double)(value_m / 1000));
+        } else {
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%.1f m", (double)value_m);
+        }
+    }) {
+}
+
+MI_ODOMETER_DIST_X::MI_ODOMETER_DIST_X()
+    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+}
+MI_ODOMETER_DIST_Y::MI_ODOMETER_DIST_Y()
+    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+}
+MI_ODOMETER_DIST_Z::MI_ODOMETER_DIST_Z()
+    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+}
+MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
+    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+}
+MI_ODOMETER_TIME::MI_ODOMETER_TIME()
+    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), 0, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
+        time_t time = (time_t)value;
+        constexpr static uint32_t secPerDay = 24 * 60 * 60;
+        const struct tm *timeinfo = localtime(&time);
+        if (timeinfo->tm_yday) {
+            //days are recalculated, because timeinfo shows number of days in year and we want more days than 365
+            uint16_t days = value / secPerDay;
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%ud %uh", days, timeinfo->tm_hour);
+        } else if (timeinfo->tm_hour) {
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+        } else if (timeinfo->tm_min) {
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+        } else {
+            snprintf(buffer, GuiDefaults::infoMaxLen, "%is", timeinfo->tm_sec);
+        }
+    }) {
 }

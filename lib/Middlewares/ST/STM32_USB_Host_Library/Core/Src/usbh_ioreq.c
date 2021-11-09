@@ -2,30 +2,22 @@
   ******************************************************************************
   * @file    usbh_ioreq.c
   * @author  MCD Application Team
-  * @version V3.2.2
-  * @date    07-July-2015
   * @brief   This file handles the issuing of the USB transactions
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
+  * <h2><center>&copy; Copyright (c) 2015 STMicroelectronics.
+  * All rights reserved.</center></h2>
   *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                      www.st.com/SLA0044
   *
   ******************************************************************************
   */
-/* Includes ------------------------------------------------------------------*/
 
+/* Includes ------------------------------------------------------------------*/
 #include "usbh_ioreq.h"
 
 /** @addtogroup USBH_LIB
@@ -97,19 +89,19 @@
   * @param  pipe_num: Pipe Number
   * @retval USBH Status
   */
-USBH_StatusTypeDef USBH_CtlSendSetup (USBH_HandleTypeDef *phost,
-                                uint8_t *buff,
-                                uint8_t pipe_num)
+USBH_StatusTypeDef USBH_CtlSendSetup(USBH_HandleTypeDef *phost,
+                                     uint8_t *buff,
+                                     uint8_t pipe_num)
 {
 
-  USBH_LL_SubmitURB (phost,                     /* Driver handle    */
-                          pipe_num,             /* Pipe index       */
-                          0,                    /* Direction : OUT  */
-                          USBH_EP_CONTROL,      /* EP type          */
-                          USBH_PID_SETUP,       /* Type setup       */
-                          buff,                 /* data buffer      */
-                          USBH_SETUP_PKT_SIZE,  /* data length      */
-                          0);
+  USBH_LL_SubmitURB(phost,                      /* Driver handle    */
+                    pipe_num,             /* Pipe index       */
+                    0U,                    /* Direction : OUT  */
+                    USBH_EP_CONTROL,      /* EP type          */
+                    USBH_PID_SETUP,       /* Type setup       */
+                    buff,                 /* data buffer      */
+                    USBH_SETUP_PKT_SIZE,  /* data length      */
+                    0U);
   return USBH_OK;
 }
 
@@ -123,25 +115,25 @@ USBH_StatusTypeDef USBH_CtlSendSetup (USBH_HandleTypeDef *phost,
   * @param  pipe_num: Pipe Number
   * @retval USBH Status
   */
-USBH_StatusTypeDef USBH_CtlSendData (USBH_HandleTypeDef *phost,
-                                uint8_t *buff,
-                                uint16_t length,
-                                uint8_t pipe_num,
-                                uint8_t do_ping )
+USBH_StatusTypeDef USBH_CtlSendData(USBH_HandleTypeDef *phost,
+                                    uint8_t *buff,
+                                    uint16_t length,
+                                    uint8_t pipe_num,
+                                    uint8_t do_ping)
 {
-  if(phost->device.speed != USBH_SPEED_HIGH)
+  if (phost->device.speed != USBH_SPEED_HIGH)
   {
-    do_ping = 0;
+    do_ping = 0U;
   }
 
-  USBH_LL_SubmitURB (phost,                     /* Driver handle    */
-                          pipe_num,             /* Pipe index       */
-                          0,                    /* Direction : OUT  */
-                          USBH_EP_CONTROL,      /* EP type          */
-                          USBH_PID_DATA,        /* Type Data        */
-                          buff,                 /* data buffer      */
-                          length,               /* data length      */
-                          do_ping);             /* do ping (HS Only)*/
+  USBH_LL_SubmitURB(phost,                      /* Driver handle    */
+                    pipe_num,             /* Pipe index       */
+                    0U,                   /* Direction : OUT  */
+                    USBH_EP_CONTROL,      /* EP type          */
+                    USBH_PID_DATA,        /* Type Data        */
+                    buff,                 /* data buffer      */
+                    length,               /* data length      */
+                    do_ping);             /* do ping (HS Only)*/
 
   return USBH_OK;
 }
@@ -157,18 +149,18 @@ USBH_StatusTypeDef USBH_CtlSendData (USBH_HandleTypeDef *phost,
   * @retval USBH Status.
   */
 USBH_StatusTypeDef USBH_CtlReceiveData(USBH_HandleTypeDef *phost,
-                                uint8_t* buff,
-                                uint16_t length,
-                                uint8_t pipe_num)
+                                       uint8_t *buff,
+                                       uint16_t length,
+                                       uint8_t pipe_num)
 {
-  USBH_LL_SubmitURB (phost,                     /* Driver handle    */
-                          pipe_num,             /* Pipe index       */
-                          1,                    /* Direction : IN   */
-                          USBH_EP_CONTROL,      /* EP type          */
-                          USBH_PID_DATA,        /* Type Data        */
-                          buff,                 /* data buffer      */
-                          length,               /* data length      */
-                          0);
+  USBH_LL_SubmitURB(phost,                      /* Driver handle    */
+                    pipe_num,             /* Pipe index       */
+                    1U,                    /* Direction : IN   */
+                    USBH_EP_CONTROL,      /* EP type          */
+                    USBH_PID_DATA,        /* Type Data        */
+                    buff,                 /* data buffer      */
+                    length,               /* data length      */
+                    0U);
   return USBH_OK;
 
 }
@@ -183,25 +175,25 @@ USBH_StatusTypeDef USBH_CtlReceiveData(USBH_HandleTypeDef *phost,
   * @param  pipe_num: Pipe Number
   * @retval USBH Status
   */
-USBH_StatusTypeDef USBH_BulkSendData (USBH_HandleTypeDef *phost,
-                                uint8_t *buff,
-                                uint16_t length,
-                                uint8_t pipe_num,
-                                uint8_t do_ping )
+USBH_StatusTypeDef USBH_BulkSendData(USBH_HandleTypeDef *phost,
+                                     uint8_t *buff,
+                                     uint16_t length,
+                                     uint8_t pipe_num,
+                                     uint8_t do_ping)
 {
-  if(phost->device.speed != USBH_SPEED_HIGH)
+  if (phost->device.speed != USBH_SPEED_HIGH)
   {
-    do_ping = 0;
+    do_ping = 0U;
   }
 
-  USBH_LL_SubmitURB (phost,                     /* Driver handle    */
-                          pipe_num,             /* Pipe index       */
-                          0,                    /* Direction : IN   */
-                          USBH_EP_BULK,         /* EP type          */
-                          USBH_PID_DATA,        /* Type Data        */
-                          buff,                 /* data buffer      */
-                          length,               /* data length      */
-                          do_ping);             /* do ping (HS Only)*/
+  USBH_LL_SubmitURB(phost,                      /* Driver handle    */
+                    pipe_num,             /* Pipe index       */
+                    0U,                    /* Direction : IN   */
+                    USBH_EP_BULK,         /* EP type          */
+                    USBH_PID_DATA,        /* Type Data        */
+                    buff,                 /* data buffer      */
+                    length,               /* data length      */
+                    do_ping);             /* do ping (HS Only)*/
   return USBH_OK;
 }
 
@@ -216,18 +208,18 @@ USBH_StatusTypeDef USBH_BulkSendData (USBH_HandleTypeDef *phost,
   * @retval USBH Status.
   */
 USBH_StatusTypeDef USBH_BulkReceiveData(USBH_HandleTypeDef *phost,
-                                uint8_t *buff,
-                                uint16_t length,
-                                uint8_t pipe_num)
+                                        uint8_t *buff,
+                                        uint16_t length,
+                                        uint8_t pipe_num)
 {
-  USBH_LL_SubmitURB (phost,                     /* Driver handle    */
-                          pipe_num,             /* Pipe index       */
-                          1,                    /* Direction : IN   */
-                          USBH_EP_BULK,         /* EP type          */
-                          USBH_PID_DATA,        /* Type Data        */
-                          buff,                 /* data buffer      */
-                          length,               /* data length      */
-                          0);
+  USBH_LL_SubmitURB(phost,                      /* Driver handle    */
+                    pipe_num,             /* Pipe index       */
+                    1U,                    /* Direction : IN   */
+                    USBH_EP_BULK,         /* EP type          */
+                    USBH_PID_DATA,        /* Type Data        */
+                    buff,                 /* data buffer      */
+                    length,               /* data length      */
+                    0U);
   return USBH_OK;
 }
 
@@ -242,18 +234,18 @@ USBH_StatusTypeDef USBH_BulkReceiveData(USBH_HandleTypeDef *phost,
   * @retval USBH Status.
   */
 USBH_StatusTypeDef USBH_InterruptReceiveData(USBH_HandleTypeDef *phost,
-                                uint8_t *buff,
-                                uint8_t length,
-                                uint8_t pipe_num)
+                                             uint8_t *buff,
+                                             uint8_t length,
+                                             uint8_t pipe_num)
 {
-  USBH_LL_SubmitURB (phost,                     /* Driver handle    */
-                          pipe_num,             /* Pipe index       */
-                          1,                    /* Direction : IN   */
-                          USBH_EP_INTERRUPT,    /* EP type          */
-                          USBH_PID_DATA,        /* Type Data        */
-                          buff,                 /* data buffer      */
-                          length,               /* data length      */
-                          0);
+  USBH_LL_SubmitURB(phost,                      /* Driver handle    */
+                    pipe_num,             /* Pipe index       */
+                    1U,                   /* Direction : IN   */
+                    USBH_EP_INTERRUPT,    /* EP type          */
+                    USBH_PID_DATA,        /* Type Data        */
+                    buff,                 /* data buffer      */
+                    (uint16_t)length,     /* data length      */
+                    0U);
 
   return USBH_OK;
 }
@@ -268,18 +260,18 @@ USBH_StatusTypeDef USBH_InterruptReceiveData(USBH_HandleTypeDef *phost,
   * @retval USBH Status.
   */
 USBH_StatusTypeDef USBH_InterruptSendData(USBH_HandleTypeDef *phost,
-                                uint8_t *buff,
-                                uint8_t length,
-                                uint8_t pipe_num)
+                                          uint8_t *buff,
+                                          uint8_t length,
+                                          uint8_t pipe_num)
 {
-  USBH_LL_SubmitURB (phost,                     /* Driver handle    */
-                          pipe_num,             /* Pipe index       */
-                          0,                    /* Direction : OUT   */
-                          USBH_EP_INTERRUPT,    /* EP type          */
-                          USBH_PID_DATA,        /* Type Data        */
-                          buff,                 /* data buffer      */
-                          length,               /* data length      */
-                          0);
+  USBH_LL_SubmitURB(phost,                      /* Driver handle    */
+                    pipe_num,             /* Pipe index       */
+                    0U,                   /* Direction : OUT   */
+                    USBH_EP_INTERRUPT,    /* EP type          */
+                    USBH_PID_DATA,        /* Type Data        */
+                    buff,                 /* data buffer      */
+                    (uint16_t)length,     /* data length      */
+                    0U);
 
   return USBH_OK;
 }
@@ -294,18 +286,18 @@ USBH_StatusTypeDef USBH_InterruptSendData(USBH_HandleTypeDef *phost,
   * @retval USBH Status.
   */
 USBH_StatusTypeDef USBH_IsocReceiveData(USBH_HandleTypeDef *phost,
-                                uint8_t *buff,
-                                uint32_t length,
-                                uint8_t pipe_num)
+                                        uint8_t *buff,
+                                        uint32_t length,
+                                        uint8_t pipe_num)
 {
-  USBH_LL_SubmitURB (phost,                     /* Driver handle    */
-                          pipe_num,             /* Pipe index       */
-                          1,                    /* Direction : IN   */
-                          USBH_EP_ISO,          /* EP type          */
-                          USBH_PID_DATA,        /* Type Data        */
-                          buff,                 /* data buffer      */
-                          length,               /* data length      */
-                          0);
+  USBH_LL_SubmitURB(phost,                      /* Driver handle    */
+                    pipe_num,             /* Pipe index       */
+                    1U,                   /* Direction : IN   */
+                    USBH_EP_ISO,          /* EP type          */
+                    USBH_PID_DATA,        /* Type Data        */
+                    buff,                 /* data buffer      */
+                    (uint16_t)length,     /* data length      */
+                    0U);
 
 
   return USBH_OK;
@@ -321,18 +313,18 @@ USBH_StatusTypeDef USBH_IsocReceiveData(USBH_HandleTypeDef *phost,
   * @retval USBH Status.
   */
 USBH_StatusTypeDef USBH_IsocSendData(USBH_HandleTypeDef *phost,
-                                uint8_t *buff,
-                                uint32_t length,
-                                uint8_t pipe_num)
+                                     uint8_t *buff,
+                                     uint32_t length,
+                                     uint8_t pipe_num)
 {
-  USBH_LL_SubmitURB (phost,                     /* Driver handle    */
-                          pipe_num,             /* Pipe index       */
-                          0,                    /* Direction : OUT   */
-                          USBH_EP_ISO,          /* EP type          */
-                          USBH_PID_DATA,        /* Type Data        */
-                          buff,                 /* data buffer      */
-                          length,               /* data length      */
-                          0);
+  USBH_LL_SubmitURB(phost,                      /* Driver handle    */
+                    pipe_num,             /* Pipe index       */
+                    0U,                   /* Direction : OUT   */
+                    USBH_EP_ISO,          /* EP type          */
+                    USBH_PID_DATA,        /* Type Data        */
+                    buff,                 /* data buffer      */
+                    (uint16_t)length,     /* data length      */
+                    0U);
 
   return USBH_OK;
 }

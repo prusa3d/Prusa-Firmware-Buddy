@@ -10,15 +10,19 @@
 #include "window_file_list.hpp"
 #include "gui.hpp"
 #include "config.h"
-#include "fatfs.h"
 #include "dbg.h"
 #include "sound.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "cmath_ext.h"
+#if _DEBUG
+    #include "bsod.h"
+#endif
+
+char *window_file_list_t::root = nullptr;
 
 bool window_file_list_t::IsPathRoot(const char *path) {
-    return (path[0] == 0 || strcmp(path, "/") == 0);
+    return (path[0] == 0 || (root && strcmp(path, root) == 0));
 }
 
 void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
@@ -78,14 +82,20 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
     , padding({ 2, 6, 2, 6 })
     , ldv(LDV_Get())
     , activeItem(string_view_utf8(), IDR_NULL) {
-    SetAlignment(ALIGN_LEFT_CENTER);
+    SetAlignment(Align_t::LeftCenter());
     Enable();
-    strlcpy(sfn_path, "/", FILE_PATH_MAX_LEN);
+    strlcpy(sfn_path, "/usb", FILE_PATH_MAX_LEN);
 }
 
 void window_file_list_t::unconditionalDraw() {
-    const int item_height = font->h + padding.top + padding.bottom;
-    const int visible_slots = rect.Height() / item_height;
+    const Rect16::Height_t item_height = font->h + padding.top + padding.bottom;
+    const int visible_slots = LazyDirViewSize;
+#if _DEBUG
+    //cannot use assert, font is not constexpr
+    if (LazyDirViewSize != Height() / item_height) {
+        bsod("Wrong LazyDirViewSize");
+    }
+#endif
     const int ldv_visible_files = ldv->VisibleFilesCount();
     const int maxi = std::min(count, std::min(visible_slots, ldv_visible_files));
 
@@ -113,8 +123,8 @@ void window_file_list_t::unconditionalDraw() {
         }
 
         const Rect16 rc
-            = { rect.Left(), int16_t(rect.Top() + i * item_height), rect.Width(), uint16_t(item_height) };
-        if (!rect.Contain(rc))
+            = { Left(), Rect16::Top_t(Top() + i * item_height), Width(), item_height };
+        if (!GetRect().Contain(rc))
             continue;
 
         if (IsFocused() && index == i) {
@@ -134,12 +144,12 @@ void window_file_list_t::unconditionalDraw() {
 
     /// fill the rest of the window with background
     const int menu_h = i * item_height;
-    Rect16 rc_win = rect;
+    Rect16 rc_win = GetRect();
     rc_win -= Rect16::Height_t(menu_h);
     if (rc_win.Height() <= 0)
         return;
     rc_win += Rect16::Top_t(menu_h);
-    display::FillRect(rc_win, this->color_back);
+    display::FillRect(rc_win, this->GetBackColor());
 }
 
 void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -208,4 +218,7 @@ void window_file_list_t::inc(int dif) {
     // cursor moved => rolling will be elsewhere
     activeItem.ClrFocus();
     Invalidate();
+}
+void window_file_list_t::SetRoot(char *rootPath) {
+    root = rootPath;
 }

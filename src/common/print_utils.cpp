@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 #include "marlin_client.h"
+#include "timing.h"
 #include "guiconfig.h" // GUI_WINDOW_SUPPORT
 
 #ifdef GUI_WINDOW_SUPPORT

@@ -9,7 +9,7 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
-            "configFiles": ["${workspaceRoot}/utils/cproject/A3ides-Debug-OpenOCD.cfg"],
+            "configFiles": ["${workspaceRoot}/utils/cproject/Buddy-Debug-OpenOCD.cfg"],
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
             "swoConfig": {
@@ -30,7 +30,33 @@
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
-            "device": "STM32F407VG"
+            "device": "STM32F407VG",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 168000000,
+                "swoFrequency": 4000000,
+                "source": "socket",
+                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+            }
+        },
+        {
+            "name": "JLink 2MB",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
+            "toolchainPrefix": "arm-none-eabi",
+            "rtos": "FreeRTOS",
+            "device": "STM32F429VI",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 168000000,
+                "swoFrequency": 4000000,
+                "source": "socket",
+                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+            }
         },
         {
             "name": "JLink attach",
@@ -42,7 +68,44 @@
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
-            "device": "STM32F407VG"
-        }
+            "device": "STM32F407VG",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 168000000,
+                "swoFrequency": 4000000,
+                "source": "socket",
+                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+            }
+        },
+        {
+            "name": "JLink attach 2MB",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
+            "toolchainPrefix": "arm-none-eabi",
+            "rtos": "FreeRTOS",
+            "device": "STM32F429VI",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 168000000,
+                "swoFrequency": 4000000,
+                "source": "socket",
+                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+            }
+        },
+        {
+            "name": "GDB (QEMU)",
+            "type": "gdb",
+            "request": "attach",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "target": ":1234",
+            "remote": true,
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/arm-none-eabi-gdb",
+            "autorun": []
+        },
     ]
 }

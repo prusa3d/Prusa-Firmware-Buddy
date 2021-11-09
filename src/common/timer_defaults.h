@@ -2,6 +2,14 @@
 // timer_defaults.h - default values for timers
 #pragma once
 
+//macros defining tick timer
+//must be 32bit timer !!!
+#define TICK_TIMER            TIM5
+#define TICK_TIMER_CLK_ENABLE __HAL_RCC_TIM5_CLK_ENABLE
+#define TICK_TIMER_IRQ        TIM5_IRQn
+#define TICK_TIMER_IRQHandler TIM5_IRQHandler
+#define TICK_TIMER_Prior      0
+
 enum {
     TIM_BASE_CLK_MHZ = 84,
 

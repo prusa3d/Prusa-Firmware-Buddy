@@ -19,6 +19,14 @@ repos:
       language: script
       files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
       args: ['-i', '-style=file']
+    - id: generate-cmake-presets
+      name: generate-cmake-presets
+      description: This hook generates CMakePresets.json file based on utils/presets/presets.json
+      entry: python utils/build.py --generate-cmake-presets
+      files: (.*.json)
+      pass_filenames: false
+      language: python
+      language_version: python3
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: 'v2.4.0'
   hooks:
@@ -29,11 +37,22 @@ repos:
 exclude: |
   (?x)(
     ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$|
+    ^lib/printf|
     ^lib/inih/|
     ^lib/Marlin/|
     ^lib/Prusa-Error-Codes/|
     ^lib/TMCStepper/|
     ^lib/Middlewares/Third_Party/LwIP/|
     ^lib/jsmn/|
-    ^lib/Catch2/
+    ^lib/ESP/serial-flasher/|
+    ^lib/ESP/lwesp/|
+    ^lib/ESP/prusa/src/serial-flasher/serial_comm.c|
+    ^lib/ESP/prusa/include/sockets/lwesp_netbuf.h|
+    ^lib/ESP/prusa/include/sockets/lwesp_sockets.h|
+    ^lib/ESP/prusa/include/sockets/lwesp_sockets_priv.h|
+    ^lib/ESP/prusa/src/sockets/lwesp_netbuf.c|
+    ^lib/ESP/prusa/src/sockets/lwesp_sockets.c|
+    ^lib/Catch2/|
+    ^lib/libsysbase/|
+    ^lib/Middlewares/Third_Party/littlefs/
   )

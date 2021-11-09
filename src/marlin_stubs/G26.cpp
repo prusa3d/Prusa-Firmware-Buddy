@@ -1,11 +1,6 @@
 #include <algorithm>
 
-#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
-#include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
-#include "../../lib/Marlin/Marlin/src/feature/safety_timer.h"
-#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../lib/Marlin/Marlin/src/module/motion.h"
-#include "../../lib/Marlin/Marlin/src/Marlin.h"
+#include "../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "marlin_server.hpp"
 #include "client_fsm_types.h"
 #include "PrusaGcodeSuite.hpp"
@@ -295,6 +290,10 @@ void FirstLayer::print_shape_1() {
 }
 
 void FirstLayer::print_shape_2() {
+    enable_all_steppers();
+    //M221 S100 ; reset flow
+    planner.flow_percentage[0] = 100;
+    planner.refresh_e_factor(0);
     /// fixed lines - constant to show 100% at the end + calibration pattern
     total_lines = 8 - 3 + ARRAY_SIZE(snake2);
     current_line = 0;
@@ -311,9 +310,25 @@ void FirstLayer::print_shape_2() {
     print_snake(snake2, ARRAY_SIZE(snake2), 1000.f);
 
     /// finish printing
-    go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
-    go_to_destination(178.f, 180.f, 10.f, NAN, 3000.f);
+    //go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
+    //go_to_destination(178.f, 180.f, 10.f, NAN, 3000.f);
 
+    //TYPE:Custom
+    // Filament-specific end gcode
+    //TODO setprecent? ////M73 P94 R0
+    go_to_destination(NAN, NAN, NAN, -1.f, 2100.f);    // G1 E-1 F2100 ; retract
+    go_to_destination(NAN, NAN, 2.2f, NAN, 720.f);     // G1 Z2.2 F720 ; Move print head up
+    go_to_destination(178.f, 178.f, NAN, NAN, 4200.f); // G1 X178 Y178 F4200 ; park print head
+    //TODO setprecent? ////M73 P96 R0
+    go_to_destination(NAN, NAN, 30.2f, NAN, 720.f); // G1 Z30.2 F720 ; Move print head further up
+    planner.synchronize();                          // G4 ; wait .. finish moves == M400
+    thermalManager.setTargetHotend(0, 0);           // M104 S0 ; turn off temperature
+    thermalManager.setTargetBed(0);                 // M140 S0 ; turn off heatbed
+    thermalManager.set_fan_speed(0, 0);             //M107 ; turn off fan
+
+    //no need lro reset linear advance, was not set // M900 K0 ; reset LA
+    planner.finish_and_disable(); // M84 ; disable motors
+    //TODO setprecent? // M73 P100 R0
     finish_printing();
 }
 

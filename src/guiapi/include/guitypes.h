@@ -6,43 +6,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-//alignment constants
-enum {
-    ALIGN_LEFT = 0x00,
-    ALIGN_HCENTER = 0x01,
-    ALIGN_RIGHT = 0x02,
-    ALIGN_HMASK = 0x03,
-    ALIGN_TOP = 0x00,
-    ALIGN_VCENTER = 0x10,
-    ALIGN_BOTTOM = 0x20,
-    ALIGN_VMASK = 0x30,
-    ALIGN_MASK = 0x33,
-
-    ALIGN_CENTER = ALIGN_HCENTER | ALIGN_VCENTER,
-    ALIGN_LEFT_TOP = ALIGN_LEFT | ALIGN_TOP,
-    ALIGN_LEFT_CENTER = ALIGN_LEFT | ALIGN_VCENTER,
-    ALIGN_LEFT_BOTTOM = ALIGN_LEFT | ALIGN_BOTTOM,
-    ALIGN_RIGHT_TOP = ALIGN_RIGHT | ALIGN_TOP,
-    ALIGN_RIGHT_CENTER = ALIGN_RIGHT | ALIGN_VCENTER,
-    ALIGN_RIGHT_BOTTOM = ALIGN_RIGHT | ALIGN_BOTTOM,
-    ALIGN_CENTER_TOP = ALIGN_HCENTER | ALIGN_TOP,
-    ALIGN_CENTER_BOTTOM = ALIGN_HCENTER | ALIGN_BOTTOM,
-};
-
-//raster operation function constants
-enum {
-    ROPFN_COPY = 0x00,    //copy (no operation)
-    ROPFN_INVERT = 0x01,  //invert
-    ROPFN_SWAPBW = 0x02,  //swap black-white
-    ROPFN_DISABLE = 0x04, //disables (darker colors)
-};
-
-//font flags
-enum {
-    FONT_FLG_SWAP = 0x00000001, // swap low/high byte
-    FONT_FLG_LSBF = 0x02,       // LSB first
-};
-
 typedef uint32_t color_t;
 
 //color constants
@@ -52,6 +15,7 @@ static const color_t COLOR_RED = 0x000000ffL;
 static const color_t COLOR_RED_ALERT = 0x002646e7L;
 static const color_t COLOR_LIME = 0x0000ff00L;
 static const color_t COLOR_BLUE = 0x00ff0000L;
+static const color_t COLOR_AZURE = 0x00ff9d12L;
 static const color_t COLOR_YELLOW = 0x0000ffffL;
 static const color_t COLOR_CYAN = 0x00ffff00L;
 static const color_t COLOR_MAGENTA = 0x00ff00ffL;
@@ -61,6 +25,8 @@ static const color_t COLOR_DARK_GRAY = 0x005B5B5BL;
 static const color_t COLOR_MAROON = 0x00000080L;
 static const color_t COLOR_OLIVE = 0x00008080L;
 static const color_t COLOR_GREEN = 0x00008000L;
+static const color_t COLOR_DARK_GREEN = 0x00006000L;
+static const color_t COLOR_LIGHT_GREEN = 0x0040b040L;
 static const color_t COLOR_PURPLE = 0x00800080L;
 static const color_t COLOR_TEAL = 0x00808000L;
 static const color_t COLOR_NAVY = 0x00800000L;

@@ -4,7 +4,7 @@
 
 #define DBG _dbg0
 
-static FIL *gcode_thumb_fp = nullptr;
+static FILE *gcode_thumb_fp = nullptr;
 
 static int read(struct _reent *_r, void *pv, char *pc, int n) {
     int count = GCodeThumbDecoder::Instance().Read(gcode_thumb_fp, pc, n);
@@ -26,7 +26,7 @@ static _fpos_t seek(struct _reent *_r, void *pv, _fpos_t fpos, int ipos) {
     return 0;
 }
 
-extern "C" int f_gcode_thumb_open(FILE *fp, FIL *gcode_fp) {
+extern "C" int f_gcode_thumb_open(FILE *fp, FILE *gcode_fp) {
     if (gcode_thumb_fp) {
         DBG("a gcode png file is already open");
         return 1;
@@ -57,14 +57,13 @@ extern "C" int f_gcode_thumb_close(FILE *fp) {
     return 0;
 }
 
-static bool read_line(FIL *fp, SLine &line) {
+static bool read_line(FILE *fp, SLine &line) {
     uint8_t byte;
-    UINT bytes_read;
     line.Reset();
     for (;;) {
-        if (f_eof(fp))
+        if (feof(fp))
             return line.size > 0;
-        if (f_read(fp, &byte, 1, &bytes_read) != FR_OK || bytes_read != 1)
+        if (fread(&byte, 1, 1, fp) == 0)
             return false;
         if (byte == '\n')
             break;
@@ -91,7 +90,7 @@ static char *str_trim(char *str) {
     return str;
 }
 
-bool f_gcode_get_next_comment_assignment(FIL *fp, char *name_buffer,
+bool f_gcode_get_next_comment_assignment(FILE *fp, char *name_buffer,
     int name_buffer_len,
     char *value_buffer,
     int value_buffer_len) {

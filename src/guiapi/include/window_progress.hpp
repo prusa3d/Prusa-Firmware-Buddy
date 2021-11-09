@@ -7,6 +7,7 @@
 
 class window_numberless_progress_t : public AddSuperWindow<window_t> {
     color_t color_progress;
+    uint16_t progress_in_pixels;
     virtual void unconditionalDraw() override;
 
 public:
@@ -31,5 +32,5 @@ public:
     void SetFont(font_t *val);
     void SetProgressColor(color_t clr);
     void SetNumbColor(color_t clr);
-    void SetProgressHeight(uint16_t height);
+    void SetProgressHeight(Rect16::Height_t height);
 };

@@ -4,19 +4,21 @@
 #include "sound.hpp"
 #include <algorithm>
 #include "ScreenHandler.hpp"
-#include "dialog_response.hpp"
+#include "client_response_texts.hpp"
 #include "GuiDefaults.hpp"
 
 /*****************************************************************************/
 // clang-format off
-const PhaseResponses Responses_NONE             = { Response::_none, Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_Next             = { Response::Next,  Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_Ok               = { Response::Ok,    Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_OkCancel         = { Response::Ok,    Response::Cancel, Response::_none,  Response::_none };
-const PhaseResponses Responses_AbortRetryIgnore = { Response::Abort, Response::Retry,  Response::Ignore, Response::_none };
-const PhaseResponses Responses_YesNo            = { Response::Yes,   Response::No,     Response::_none,  Response::_none };
-const PhaseResponses Responses_YesNoCancel      = { Response::Yes,   Response::No,     Response::Cancel, Response::_none };
-const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::Cancel, Response::_none,  Response::_none };
+const PhaseResponses Responses_NONE                 = { Response::_none,    Response::_none,  Response::_none,  Response::_none };
+const PhaseResponses Responses_Next                 = { Response::Next,     Response::_none,  Response::_none,  Response::_none };
+const PhaseResponses Responses_Ok                   = { Response::Ok,       Response::_none,  Response::_none,  Response::_none };
+const PhaseResponses Responses_OkCancel             = { Response::Ok,       Response::Cancel, Response::_none,  Response::_none };
+const PhaseResponses Responses_AbortRetryIgnore     = { Response::Abort,    Response::Retry,  Response::Ignore, Response::_none };
+const PhaseResponses Responses_YesNo                = { Response::Yes,      Response::No,     Response::_none,  Response::_none };
+const PhaseResponses Responses_YesNoCancel          = { Response::Yes,      Response::No,     Response::Cancel, Response::_none };
+const PhaseResponses Responses_RetryCancel          = { Response::Retry,    Response::Cancel, Response::_none,  Response::_none };
+const PhaseResponses Responses_ChangeIgnoreCancel   = { Response::Change,   Response::Ignore, Response::Cancel, Response::_none };
+
 // clang-format on
 /*****************************************************************************/
 
@@ -28,12 +30,12 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, 
     , buttons(this, get_radio_button_rect(rect), resp, labels)
     , result(Response::_none) {
     buttons.SetBtnIndex(def_btn);
-    //text.SetAlignment(ALIGN_CENTER);
+    //text.SetAlignment(Align_t::Center());
     //buttons.SetCapture(); //todo make this work
 }
 
 Rect16 MsgBoxBase::getTextRect() {
-    return rect - get_radio_button_rect(rect).Height();
+    return GetRect() - get_radio_button_rect(GetRect()).Height();
 }
 
 Response MsgBoxBase::GetResult() {
@@ -64,37 +66,40 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 //MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, uint16_t title_icon_id_res)
-    : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline)
-    , title_icon(this, title_icon_id_res, { rect.Left(), rect.Top() }, GuiDefaults::Padding)
+    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon_id_res)
     , title(this, getTitleRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
-    text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
+    text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
     title.font = getTitleFont();
     title.SetPadding({ 0, 0, 0, 0 });
 }
 
 Rect16 MsgBoxTitled::getTitleRect() {
     Rect16 title_rect;
-    if (!title_icon.rect.IsEmpty()) {
-        title_rect = title_icon.rect;                          // Y, H is valid
-        title_rect += Rect16::Left_t(title_icon.rect.Width()); // fix X
+    if (!icon.GetRect().IsEmpty()) {
+        title_rect = icon.GetRect();                // Y, H is valid
+        title_rect += Rect16::Left_t(icon.Width()); // fix X
     } else {
-        title_rect = rect;                                // X, Y is valid
+        title_rect = GetRect();                           // X, Y is valid
         title_rect = Rect16::Height_t(getTitleFont()->h); // fix H
     }
     //now just need to calculate W
-    title_rect = Rect16::Width_t(rect.Left() + rect.Width() - title_rect.Left());
+    title_rect = Rect16::Width_t(Left() + Width() - title_rect.Left());
     return title_rect;
 }
 
-Rect16 MsgBoxTitled::getTitledTextRect() {
-    Rect16 text_rect = rect;
+Rect16 MsgBoxTitled::getTextRect() {
+    Rect16 text_rect = GetRect();
     text_rect -= getTitleRect().Height();
     text_rect -= Rect16::Height_t(4); // atleast 1px red line and 1px space after red line
-    text_rect -= get_radio_button_rect(rect).Height();
+    text_rect -= get_radio_button_rect(GetRect()).Height();
 
     text_rect += Rect16::Top_t(getTitleRect().Height());
     text_rect += Rect16::Top_t(4); // atleast 1px red line and 1px space after red line
     return text_rect;
+}
+
+Rect16 MsgBoxTitled::getIconRect() {
+    return Rect16(GetRect().Left(), GetRect().Top(), 16, 16);
 }
 
 font_t *MsgBoxTitled::getTitleFont() {
@@ -103,7 +108,7 @@ font_t *MsgBoxTitled::getTitleFont() {
 
 void MsgBoxTitled::unconditionalDraw() {
     MsgBoxBase::unconditionalDraw();
-    Rect16 rc = getTitledTextRect();
+    Rect16 rc = getTextRect();
 
     display::DrawLine(point_ui16(rc.Left() + title.padding.left, rc.Top() - 1),
         point_ui16(rc.Width() - 2 * (title.padding.left + title.padding.right), rc.Top() - 1),
@@ -116,18 +121,22 @@ MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, size_t def
     string_view_utf8 txt, is_multiline multiline, uint16_t icon_id_res)
     : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline)
     , icon(this, icon_id_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
-    text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
-    icon.rect -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
-    icon.rect += Rect16::Left_t((rect.Width() / 2) - (icon.rect.Width() / 2)); // center icon
+    text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
+    icon -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
+    icon += Rect16::Left_t((Width() / 2) - (icon.Width() / 2)); // center icon
 }
 
-Rect16 MsgBoxIconned::getIconnedTextRect() {
-    Rect16 text_rect = rect;
-    text_rect -= icon.rect.Height();
-    text_rect -= get_radio_button_rect(rect).Height();
+Rect16 MsgBoxIconned::getTextRect() {
+    Rect16 text_rect = GetRect();
+    text_rect -= icon.Height();
+    text_rect -= get_radio_button_rect(GetRect()).Height();
 
-    text_rect += Rect16::Top_t(icon.rect.Height());
+    text_rect += Rect16::Top_t(icon.Height());
     return text_rect;
+}
+
+Rect16 MsgBoxIconned::getIconRect() {
+    return Rect16(GuiDefaults::MsgBoxLayoutRect.Left(), GuiDefaults::MsgBoxLayoutRect.Top(), 0, 0);
 }
 
 /*****************************************************************************/
@@ -148,20 +157,17 @@ Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn
 
 Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Error");
-    const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_error_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), IDR_PNG_error_16px);
 }
 
 Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Question");
-    const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_question_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), IDR_PNG_question_16px);
 }
 
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Warning");
-    const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_warning_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), IDR_PNG_warning_16px);
 }
 
 Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, uint16_t icon_id, is_multiline multiline) {
@@ -170,8 +176,7 @@ Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseRe
 
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Information");
-    const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, label_view, IDR_PNG_info_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), IDR_PNG_info_16px);
 }
 
 Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {

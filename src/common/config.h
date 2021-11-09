@@ -3,7 +3,7 @@
 
 #include "printers.h"
 #include <avr/pgmspace.h>
-#include "config_a3ides2209_02.h"
+#include "config_buddy_2209_02.h"
 
 //--------------------------------------
 //BUDDY_ENABLE_ETHERNET configuration
@@ -13,7 +13,7 @@
 //--------------------------------------
 //marlin api config
 enum {
-    MARLIN_MAX_CLIENTS = 3,    // maximum number of clients registered in same time
+    MARLIN_MAX_CLIENTS = 5,    // maximum number of clients registered in same time
     MARLIN_MAX_REQUEST = 100,  // maximum request length in chars
     MARLIN_SERVER_QUEUE = 128, // size of marlin server input character queue (number of characters)
     MARLIN_CLIENT_QUEUE = 16,  // size of marlin client input message queue (number of messages)
@@ -26,8 +26,11 @@ enum {
 #define CRC32_USE_HW
 #define CRC32_USE_RTOS
 
+// ESP configs
+#define USE_ESP01_WITH_UART6
+
 //guiconfig.h included with config
-#include "guiconfig.h"
+#include "../guiconfig/guiconfig.h"
 
 //resource.h included with config
 #include "resource.h"

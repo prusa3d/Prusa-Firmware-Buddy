@@ -8,12 +8,17 @@
 #include "menu_spin_config.hpp"
 
 // SpinConfig_t == SpinConfig
-const SpinConfig_U16_t SpinCnf::nozzle = SpinConfig_U16_t(MenuVars::nozzle_range);
-const SpinConfig_U08_t SpinCnf::bed = SpinConfig_U08_t(MenuVars::bed_range);
-const SpinConfig_U08_t SpinCnf::printfan = SpinConfig_U08_t(MenuVars::printfan_range);
-const SpinConfig_U16_t SpinCnf::feedrate = SpinConfig_U16_t(MenuVars::feedrate_range);
-const SpinConfig_U16_t SpinCnf::flowfact = SpinConfig_U16_t(MenuVars::flowfact_range);
-const SpinConfig_I08_t SpinCnf::timezone_range = { { -12, 12, 1 } };
-const SpinConfig_U08_t SpinCnf::volume_range = { { 0, 11, 1 } }; //crank it up to 11
-const std::array<SpinConfig_I16_t, MenuVars::AXIS_CNT> SpinCnf::axis_ranges = { { SpinConfig_I16_t(MenuVars::axis_ranges[0]), SpinConfig_I16_t(MenuVars::axis_ranges[1]),
-    SpinConfig_I16_t(MenuVars::axis_ranges[2]), SpinConfig_I16_t(MenuVars::axis_ranges[3]) } };
+const SpinConfigInt SpinCnf::nozzle = SpinConfigInt(MenuVars::GetNozzleRange());
+const SpinConfigInt SpinCnf::bed = SpinConfigInt(MenuVars::GetBedRange());
+const SpinConfigInt SpinCnf::printfan = SpinConfigInt(MenuVars::printfan_range);
+const SpinConfigInt SpinCnf::feedrate = SpinConfigInt(MenuVars::feedrate_range);
+const SpinConfigInt SpinCnf::flowfact = SpinConfigInt(MenuVars::flowfact_range);
+const SpinConfigInt SpinCnf::timezone_range = { { -12, 12, 1 } };
+const SpinConfigInt SpinCnf::volume_range = { { 0, 11, 1 } }; //crank it up to 11
+const SpinConfigInt SpinCnf::footer_center_N_range = { { 0, 3, 1 } };
+const SpinConfigInt SpinCnf::axis_z_max_range = SpinConfigInt(MenuVars::GetMaximumZRange());
+const std::array<SpinConfigInt, MenuVars::AXIS_CNT> SpinCnf::axis_ranges = { { SpinConfigInt(MenuVars::GetAxisRanges()[0]), SpinConfigInt(MenuVars::GetAxisRanges()[1]),
+    SpinConfigInt(MenuVars::GetAxisRanges()[2]), SpinConfigInt(MenuVars::GetAxisRanges()[3]) } };
+const SpinConfigInt SpinCnf::steps_per_unit = SpinConfigInt(MenuVars::steps_per_unit_range);
+const SpinConfigInt SpinCnf::microstep_exponential = SpinConfigInt(MenuVars::microstep_exponential_range);
+const SpinConfigInt SpinCnf::rms_current = SpinConfigInt(MenuVars::axis_rms_currents_range);

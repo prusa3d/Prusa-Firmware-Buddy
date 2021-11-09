@@ -6,37 +6,32 @@
 #include "window_filter.hpp"
 
 class window_frame_t : public AddSuperWindow<window_t> {
-    window_t *first;
-    window_t *last;
+    window_t *captured_normal_window; //might need to move it in window frame after menu refactoring
 
-    virtual void invalidate(Rect16 validation_rect = Rect16()) override;
-    virtual void validate(Rect16 validation_rect = Rect16()) override;
+    // stored rect to print in draw method (exept when enetire screen is invalid)
+    // hiding, or unregistration of window sets it
+    Rect16 invalid_area;
 
-    // these methods do not check rect or window type of win
-    // public methods RegisterSubWin/UnregisterSubWin does
-    // reference is used so nullptr test can be skipped
-    void unregisterConflictingPopUps(Rect16 rect, window_t *last_strong);
-    void registerSubWin(window_t &win, window_t &predecessor, window_t *pSuccessor);
+protected:
+    window_t *first_normal;
+    window_t *last_normal;
 
-    bool canRegisterPopup(window_t &win, window_t &last_strong); // return last non strong_dialog window
-    void unregisterNormal(window_t &win);                        // normal unregistration
-    void unregisterDialog(window_t &win);                        // normal unregistration, manage hidden behind dialog flags
-    void unregisterStrongDialog(window_t &win);                  // normal unregistration, todo what if there is more than one strong dialog?
-    void unregisterPopUp(window_t &win);                         // just notify popup about unregistration, it will unregister itself
+    window_t *getFirstNormal() const;
+    window_t *getLastNormal() const;
+
+    void registerAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast);
+    void unregisterAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast);
 
     void colorConflictBackgroundToRed(window_t &win);
     void clearAllHiddenBehindDialogFlags();
-    void hideSubwinsBehindDialogs();
 
-    virtual bool registerSubWin(window_t &win) override;
-    virtual void unregisterSubWin(window_t &win) override;
+    Rect16 getInvalidationRect() const;
 
 public:
-    window_t *GetFirst() const;
-    window_t *GetLast() const;
     bool HasDialogOrPopup();
 
     window_frame_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_serial_t serial = is_closed_on_serial_t::yes);
+    window_frame_t(window_t *parent, Rect16 rect, positioning sub_win_pos);
     virtual ~window_frame_t() override;
     window_t *GetNextSubWin(window_t *win) const;
     window_t *GetPrevSubWin(window_t *win) const;
@@ -53,7 +48,6 @@ public:
     window_t *GetPrevEnabledSubWin(window_t *win, Rect16 intersection_rect) const;
     window_t *GetFirstEnabledSubWin(Rect16 intersection_rect) const;
 
-    bool IsChildCaptured();
     bool IsChildFocused();
 
     void SetMenuTimeoutClose();
@@ -64,12 +58,26 @@ public:
 
     Rect16 GenerateRect(ShiftDir_t direction);
     virtual void Shift(ShiftDir_t direction, uint16_t distance) override;
+    virtual void ChildVisibilityChanged(window_t &child) override;
 
 protected:
     virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     virtual void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
+    virtual void invalidate(Rect16 validation_rect = Rect16()) override;
+    virtual void validate(Rect16 validation_rect = Rect16()) override;
+    virtual bool registerSubWin(window_t &win) override;
+    virtual void unregisterSubWin(window_t &win) override;
+    virtual void addInvalidationRect(Rect16 rc) override;
 
     window_t *findFirst(window_t *begin, window_t *end, const WinFilter &filter) const;
     window_t *findLast(window_t *begin, window_t *end, const WinFilter &filter) const;
+
+    window_t *getCapturedNormalWin() const;
+
+public:
+    bool IsChildCaptured() const;
+    bool CaptureNormalWindow(window_t &win);
+    void ReleaseCaptureOfNormalWindow();
+    virtual window_t *GetCapturedWindow() override;
 };

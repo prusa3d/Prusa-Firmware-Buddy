@@ -2,7 +2,7 @@
 #include "display.h"
 #include "gui.hpp"
 #include <stdlib.h>
-#include "stm32f4xx_hal.h"
+#include "gui_time.hpp" //gui::GetTick
 #include "ScreenHandler.hpp"
 #include "IDialog.hpp"
 #include "Jogwheel.hpp"
@@ -21,12 +21,14 @@ font_t *GuiDefaults::Font = nullptr;
 font_t *GuiDefaults::FontBig = nullptr;
 font_t *GuiDefaults::FontMenuItems = nullptr;
 font_t *GuiDefaults::FontMenuSpecial = nullptr;
+font_t *GuiDefaults::FooterFont = nullptr;
 
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
 constexpr Rect16 GuiDefaults::RectScreenBody;
-constexpr Rect16 GuiDefaults::RectScreenBodyNoFoot;
 constexpr Rect16 GuiDefaults::RectScreen;
+constexpr Rect16 GuiDefaults::RectScreenNoFoot;
+constexpr Rect16 GuiDefaults::RectScreenNoHeader;
 constexpr Rect16 GuiDefaults::RectFooter;
 
 gui_loop_cb_t *gui_loop_cb = nullptr;
@@ -83,15 +85,17 @@ void gui_loop(void) {
     }
     #endif //GUI_JOGWHEEL_SUPPORT
 
-    GuiMediaEventsHandler::state_t media_state = GuiMediaEventsHandler::ConsumeMediaState();
-    switch (media_state) {
-    case GuiMediaEventsHandler::state_t::inserted:
-    case GuiMediaEventsHandler::state_t::removed:
-    case GuiMediaEventsHandler::state_t::error:
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::MEDIA, (void *)int(media_state));
-        break;
-    default:
-        break;
+    MediaState_t media_state = MediaState_t::unknown;
+    if (GuiMediaEventsHandler::ConsumeSent(media_state)) {
+        switch (media_state) {
+        case MediaState_t::inserted:
+        case MediaState_t::removed:
+        case MediaState_t::error:
+            Screens::Access()->ScreenEvent(nullptr, GUI_event_t::MEDIA, (void *)int(media_state));
+            break;
+        default:
+            break;
+        }
     }
 
     delay = gui_timers_cycle();
@@ -105,7 +109,7 @@ void gui_loop(void) {
     #endif //GUI_USE_RTOS
 
         gui_redraw();
-    tick = HAL_GetTick();
+    tick = gui::GetTick();
     if ((tick - gui_loop_tick) >= GUI_DELAY_LOOP) {
         if (gui_loop_cb)
             gui_loop_cb();

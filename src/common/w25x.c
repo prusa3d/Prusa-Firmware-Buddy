@@ -10,6 +10,8 @@
 #include <w25x.h>
 #include "main.h"
 
+static const uint16_t _PAGE_SIZE = 256;
+
 static const uint8_t _MFRID = 0xEF;
 static const uint8_t _DEVID = 0x13;
 static const uint8_t _DEVID_NEW = 0x16;
@@ -91,6 +93,7 @@ void w25x_wr_status_reg(uint8_t val) {
 }
 
 void w25x_rd_data(uint32_t addr, uint8_t *data, uint16_t cnt) {
+    w25x_wait_busy();
     _CS_LOW();
     _SPI_TX(_CMD_RD_DATA);          // send command 0x03
     _SPI_TX(((uint8_t *)&addr)[2]); // send addr bits 16..23
@@ -101,7 +104,9 @@ void w25x_rd_data(uint32_t addr, uint8_t *data, uint16_t cnt) {
     _CS_HIGH();
 }
 
-void w25x_page_program(uint32_t addr, uint8_t *data, uint16_t cnt) {
+void w25x_page_program_single(uint32_t addr, const uint8_t *data, uint16_t cnt) {
+    w25x_wait_busy();
+    w25x_enable_wr();
     _CS_LOW();
     _SPI_TX(_CMD_PAGE_PROGRAM);     // send command 0x02
     _SPI_TX(((uint8_t *)&addr)[2]); // send addr bits 16..23
@@ -112,7 +117,41 @@ void w25x_page_program(uint32_t addr, uint8_t *data, uint16_t cnt) {
     _CS_HIGH();
 }
 
+void w25x_page_program(uint32_t addr, const uint8_t *data, uint16_t cnt) {
+    // The Page Program instruction allows from one byte
+    // to 256 bytes (a page) of data to be programmed
+
+    // Write unaligned part first
+    uint32_t addr_align = addr % _PAGE_SIZE;
+    if (addr_align != 0) {
+        int cnt_align = _PAGE_SIZE - addr_align;
+        if (cnt_align >= cnt) {
+            w25x_page_program_single(addr, data, cnt);
+            return;
+        }
+        w25x_page_program_single(addr, data, cnt_align);
+        addr += cnt_align;
+        data += cnt_align;
+        cnt -= cnt_align;
+    }
+
+    // Write all full pages
+    while (cnt >= _PAGE_SIZE) {
+        w25x_page_program_single(addr, data, _PAGE_SIZE);
+        addr += _PAGE_SIZE;
+        data += _PAGE_SIZE;
+        cnt -= _PAGE_SIZE;
+    }
+
+    // Write the remaining data
+    if (cnt > 0) {
+        w25x_page_program_single(addr, data, cnt);
+    }
+}
+
 void w25x_erase(uint8_t cmd, uint32_t addr) {
+    w25x_wait_busy();
+    w25x_enable_wr();
     _CS_LOW();
     _SPI_TX(cmd);                   // send command 0x20
     _SPI_TX(((uint8_t *)&addr)[2]); // send addr bits 16..23
@@ -134,12 +173,15 @@ void w25x_block64_erase(uint32_t addr) {
 }
 
 void w25x_chip_erase(void) {
+    w25x_wait_busy();
+    w25x_enable_wr();
     _CS_LOW();
     _SPI_TX(_CMD_CHIP_ERASE); // send command 0xc7
     _CS_HIGH();
 }
 
 void w25x_rd_uid(uint8_t *uid) {
+    w25x_wait_busy();
     _CS_LOW();
     _SPI_TX(_CMD_RD_UID); // send command 0x4b
     uint8_t cnt = 4;      // 4 dummy bytes
@@ -152,6 +194,7 @@ void w25x_rd_uid(uint8_t *uid) {
 }
 
 int w25x_mfrid_devid(void) {
+    w25x_wait_busy();
     _CS_LOW();
     _SPI_TX(_CMD_MFRID_DEVID); // send command 0x90
     uint8_t cnt = 3;           // 3 address bytes

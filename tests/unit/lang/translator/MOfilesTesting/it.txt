@@ -1,0 +1,253 @@
+\nVers. Bootloader\n%d.%d.%d\n\nScheda Buddy\n%d.%d.%d\n%s
+Un rapporto di crash dump (file dump.bin) è stato salvato sul drive USB.
+INTERROMPI
+Regola l'altezza ugello sopra il piano ruotando la manopola
+Tutti i test completati correttamente!
+Sempre
+Vuoi interrompere la stampa?
+Assistenza
+Auto Home
+INDIETRO
+Indietro
+Livellamento del piano non riuscito. Riprovare?
+Calibrazione Z
+Calibraz.
+CALIBRAZIONE
+Calibrazione completa! Buona stampa!
+Calibrazione XY
+ANNULLA
+CAMBIO FILAMENTO
+Cambio filamento
+Controllare eventuali danni sui cavi del piano riscaldato e del termistore.
+Controllare eventuali danni sul cavo del termistore del piano riscaldato.
+Controllare eventuali danni sui cavi del hotend e del termistore.
+Controllare eventuali danni sul cavo del termistore del hotend.
+Controllo assi
+Pulire lastra d'acciaio.
+Congratulazioni! Calibrazione XYZ ok. Assi XY sono perpendicolari.
+CONTINUA
+Raffreddamento
+Carico CPU
+Profilo corrente
+Info stampante in QR
+DISATTIVA SENSORE
+Disabilita motori
+Disconnetti
+Vuoi ripetere l'ultimo passo e regolare ancora la distanza tra ugello e piano riscaldato?
+Vuoi usare il valore attuale?\nAttuale: %0.3f.\nDefault: %0.3f.\nFare clic su NO per utilizzare il valore predefinito (consigliato)
+Espulsione
+Errore
+Errore salvando il rapporto di crash dump sul drive USB. Reinserire la chiavetta USB e riprovare.
+Tutto funzionante. Eseguirò adesso la calibrazione XYZ. Richiederà circa 12 minuti.
+FINE
+Valori predefiniti di fabbrica caricati. Adeesso il sistema verrà riavviato.
+Ripristino impostazioni di fabbrica
+Stat. fallimenti
+Test ventola
+RPM Fan0
+RPM Fan1
+FILAMENTO
+Filamento
+Il filamento sembra essere già caricato, sei sicuro di volerlo caricare comunque?
+Filamento non rilevato. Caricare il filamento ora? Selezionare NO per annullare o IGNORA per disabilitare il sensore del filamento e continuare.
+Sensore filamento
+Completamento gcode bufferizzati.
+Vers. firmware\n
+Calibrazione primo layer
+CALIBRAZIONE PRIMO LAYER
+Fattore di flusso
+Ve
+AGGIORNAMENTO FW
+Aggiornamento FW
+Piano riscaldato
+Contr. risc. Piano
+Test riscald.
+Riscaldamento disattivato dopo 30 minuti di inattività.
+Riscaldamento...
+Ciao, questa è la tua Original Prusa MINI.
+HOME
+Home
+HOME TO MAX
+Ventola hotend
+La ventola dell'hotend non gira. Verifica la presenza di eventuali detriti, quindi ispeziona il cablaggio.
+Installazione HW
+IGNORA
+Nel prossimo passo, usa la manopola per regolare l'altezza ugello. Controlla le immagini sul manuale per rifer.
+INFO
+Info
+Informazioni
+Inserimento
+Indirizzi IP o parametri non validi o il file "lan_settings.ini" non presente nella directory principale del drive USB.
+Il colore è corretto?
+Il filamento è nell'ingranaggio dell'estrusore?
+La piastra d'acciaio è sul piano riscaldato?
+IMPOSTAZIONI LAN
+Impostazioni Lan
+Lingua
+LINGUE
+Live Adjust Z
+CARICA
+CARICA FILAMENTO
+Carica filamento
+Carica impostazioni
+Caricamento...
+Caricamento ugello
+Forte
+M.I.N.D.A.
+Accertati che il filamento attraversi il sensore.
+Materiale
+MAXTEMP ERROR
+Misurazione altezza\ndi riferimento dei\npunti di calibrazione
+Timeout Menù
+Mesh Bed Leveling
+MESH BED LEVELING
+MESSAGGI
+Messaggi
+MINTEMP ERROR
+Lu
+Sposta asse
+SPOSTA ASSE
+Sposta E
+Sposta X
+Sposta Y
+Sposta Z
+Nome
+SUCCESSIVO
+NO
+Sensore filamento non rilevato. Verificare il collegamento e riprovare.
+No USB
+Ora, calibriamo la distanza tra la punta dell'ugello e il piano di stampa.
+Ugello
+Ugello e Piano risc.
+Contr. risc. Ugello
+Off
+OK
+On
+In ripresa
+Una volta
+Appena la stampante inizia ad estrudere plastica, regola l'altezza ugello ruotando la manopola finché il filamento non si attacchi alla superficie di stampa.
+Parking
+Pausa
+In pausa...
+Posiziona un foglio di carta sotto l'ugello durante la calib. dei primi 4 punti. Se l'ugello prende la carta, spegni la stampante immediatamente!
+Pure l'ugello per calibrare. Poi premi su SUCCESSIVO.
+Inserire un drive USB e riprovare.
+Inserisci il drive USB fornito con la MINI e reimposta la stampante per aggiornare il firmware
+Apri l'idler e rimuovi il filamento manualmente
+Posiziona la piastra sul piano riscaldato.
+Rimuovi la lastra d'acciaio dal piano riscaldato.
+Attendere
+PRERISCALDA
+Preriscalda
+ERRORE PREHEAT
+PRERIS. per CARICARE
+PRERISCALDA per SCARICARE
+Preparazione
+Preparazione al ram
+Premi CONTINUA e spingi il filamento nell'estrusore.
+Premi SUCCESSIVO per avviare l'autotest, per controllare eventuali problemi legati al montaggio.
+Stampa
+Ventola di stampa
+La ventola di stampa non gira. Verifica la presenza di eventuali detriti, quindi ispeziona il cablaggio.
+Tempo di stampa
+La stampa terminerà
+STAMPA
+Tempo di stampa
+SPURGA FILAMENTO
+Spurgo filamento
+PULISCI DI PIÙ
+Spurgo
+Domanda
+Ramming
+Vuoi davvero disconnettere?
+RISCALDA
+Tempo Rimanente
+RINOMINA
+Rinomina
+Ristampa
+Reset
+RESET STAMPANTE
+Riprendi
+Ripresa...
+RIPROVA
+Ritorna
+Sa
+Salvare Crash Dump
+Salva impostazioni
+Ricerca punti\ndi calibrazione piano
+Seleziona
+Seleziona tipo filamento
+SELEZIONA FILE
+SELEZIONA LINGUA
+Seleziona quando vuoi aggiornare automaticamente il nuovo firmware da mem. USB.
+AutoTest
+AUTOTEST
+INFO SENSORE
+Info sensore
+STAMPA SERIALE
+Assistenza
+Impost.
+IMPOSTAZIONI
+Impostazioni caricate correttamente
+Profilo piastra
+Mostra risultato Autotest
+Silenzioso
+Ordina per
+Modo suono
+Volume suono
+Velocità
+Indirizzo statico IPv4 non impostato.
+Statistiche
+Piastre d'acciaio
+STOP
+Stop
+Do
+Supporto
+Info di sistema
+TEMPERATURA
+Temperatura
+Test
+Test VENTOLE
+Test riscald.
+Test Assi XYZ
+Calib. primo layer non riuscita. Ricontrolla il cablaggio, assi e ugello, quindi ripeti la calibrazione.
+Autotest non completato. Ricontrolla gli assi e il cablaggio della stampante. Poi riavvia l'Autotest.
+Impostazioni salvate correttamente nel file "lan_settings.ini".
+La barra di stato è in basso. Contiene informazioni su:\n - Temp. Ugello\n - Temp. Piano\n - Vel. di stampa\n - Altezza asse Z\n - Fil. selezionato
+Calibrazione XYZ non riuscita. Ricontrolla il cablaggio e gli assi, quindi ripeti la calibrazione XYZ.
+Errore nel salvataggio delle impostazioni nel file "lan_settings.ini".
+THERMAL RUNAWAY
+Questo G-CODE è stato creato per un altro tipo di stampante.
+Questa operazione non può essere annullata, la configurazione attuale andrà persa! Sei sicuro di voler ripristinare le impostazioni di fabbrica?
+Gi
+Data
+Per calibrare con il filamento attualmente caricato, premere AVANTI. Per cambiare filamento, premere SCARICA.
+Per calibrare con il filamento attualmente caricato, premere AVANTI. Per caricare il filamento, premere CARICA. Per cambiare filamento, premere SCARICA.
+Oggi alle
+Ma
+REGOLA
+Regola
+SCARICA
+SCARICA FILAMENTO
+Scarica filamento
+Scaricamento
+Unparking
+Errore unità USB, la stampa è ora in pausa. Ricollegare l'unità.
+Filamento usato
+INFO VERSIONE
+Info versione
+In attesa della temperatura
+Attenzione
+ATTENZIONE:
+Filamento scaricato correttamente?
+Me
+Benvenuto nella configurazione guidata Original Prusa MINI. Vuoi continuare?
+Configurazione guidata
+WIZARD
+WIZARD - OK
+Asse X
+CALIBRAZIONE XYZ
+Asse Y
+SI
+Altezza Z:
+Asse Z

@@ -1,26 +1,35 @@
 #include "window_header.hpp"
 #include "config.h"
-#include "marlin_client.h"
 #include "i18n.h"
-#include "marlin_events.h"
 #include "gui_media_events.hpp"
+#include "netdev.h"
 
-#ifdef BUDDY_ENABLE_ETHERNET
-    #include "wui_api.h"
-#endif //BUDDY_ENABLE_ETHERNET
+void window_header_t::updateNetwork(uint32_t netdev_id, bool force) {
+    bool invalidate = false;
+    uint32_t netdev_status = netdev_get_status(netdev_id);
 
-void window_header_t::update_ETH_icon() {
-#ifdef BUDDY_ENABLE_ETHERNET
-    if (get_eth_status() == ETH_UNLINKED) {
-        LAN_Off();
-    } else if (get_eth_status() == ETH_NETIF_DOWN) {
-        LAN_On();
-    } else {
-        LAN_Activate();
+    if (netdev_id != active_netdev_id) {
+        icon_network.SetIdRes(window_header_t::networkIcon(netdev_id));
+        invalidate = true;
+        active_netdev_id = netdev_id;
     }
-#else
-    LAN_Off();
-#endif // BUDDY_ENABLE_ETHERNET
+
+    if ((active_netdev_id != NETDEV_NODEV_ID
+            && active_netdev_status != netdev_status)
+        || force) {
+        if (netdev_status == NETDEV_NETIF_DOWN) {
+            invalidate = true;
+        } else if (netdev_status == NETDEV_UNLINKED) {
+            icon_network.Shadow();
+        } else {
+            icon_network.Unshadow();
+        }
+        active_netdev_status = netdev_status;
+    }
+
+    if (invalidate) {
+        Invalidate();
+    }
 }
 
 void window_header_t::SetIcon(int16_t id_res) {
@@ -41,17 +50,16 @@ static const Rect16::Width_t icon_base_width(40);
 
 window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectHeader)
-    , icon_base(this, Rect16(rect.TopLeft(), icon_base_width, rect.Height() - 5), 0)
-    , label(this, rect - Rect16::Width_t(icons_width + span + icon_base_width) + Rect16::Left_t(icon_base_width), txt)
-    , icon_usb(this, (rect + Rect16::Left_t(rect.Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_usb_16px)
-    , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_lan_16px) {
-    /// label and icon aligmnent and offset
-    label.SetAlignment(ALIGN_LEFT_BOTTOM);
-    icon_base.SetAlignment(ALIGN_CENTER_BOTTOM);
+    , icon_base(this, Rect16(GetRect().TopLeft(), icon_base_width, Height() - 5), 0)
+    , label(this, GetRect() - Rect16::Width_t(icons_width + span + icon_base_width) + Rect16::Left_t(icon_base_width), txt, Align_t::LeftBottom())
+    , icon_usb(this, (GetRect() + Rect16::Left_t(Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_usb_16px)
+    , icon_network(this, (GetRect() + Rect16::Left_t(Width() - icons_width)) = icon_lan_width, window_header_t::networkIcon(netdev_get_active_id()))
+    , active_netdev_id(netdev_get_active_id())
+    , active_netdev_status(netdev_get_status(active_netdev_id)) {
+    icon_base.SetAlignment(Align_t::CenterBottom());
 
-    marlin_vars()->media_inserted ? USB_Activate() : USB_On();
-
-    update_ETH_icon();
+    updateMedia(GuiMediaEventsHandler::Get());
+    updateNetwork(active_netdev_id, true);
     Disable();
 }
 
@@ -64,47 +72,48 @@ void window_header_t::USB_Activate() {
     icon_usb.Show();
     icon_usb.Unshadow();
 }
-void window_header_t::LAN_Off() { icon_lan.Hide(); }
-void window_header_t::LAN_On() {
-    icon_lan.Show();
-    icon_lan.Shadow();
-}
-void window_header_t::LAN_Activate() {
-    icon_lan.Show();
-    icon_lan.Unshadow();
-}
-
-window_header_t::header_states_t window_header_t::GetStateUSB() const {
-    if (!icon_usb.IsVisible())
-        return header_states_t::OFF;
-    return icon_usb.IsEnabled() ? header_states_t::ACTIVE : header_states_t::ON;
-}
-window_header_t::header_states_t window_header_t::GetStateLAN() const {
-    if (!icon_lan.IsVisible())
-        return header_states_t::OFF;
-    return icon_lan.IsEnabled() ? header_states_t::ACTIVE : header_states_t::ON;
-}
 
 void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
     if (event == GUI_event_t::MEDIA) {
-        switch (GuiMediaEventsHandler::state_t(int(param))) {
-        case GuiMediaEventsHandler::state_t::inserted:
-            USB_Activate();
-            break;
-        case GuiMediaEventsHandler::state_t::removed:
-            USB_On();
-            break;
-        case GuiMediaEventsHandler::state_t::error:
-            USB_Off();
-            break;
-        default:
-            break;
-        }
+        updateMedia(MediaState_t(int(param)));
     }
+#ifdef BUDDY_ENABLE_ETHERNET
     if (event == GUI_event_t::LOOP) {
-        update_ETH_icon();
+        updateNetwork(netdev_get_active_id());
+    }
+#endif
+    SuperWindowEvent(sender, event, param);
+}
+
+void window_header_t::updateMedia(MediaState_t state) {
+    switch (state) {
+    case MediaState_t::inserted:
+        USB_Activate();
+        break;
+    case MediaState_t::removed:
+        USB_On();
+        break;
+    case MediaState_t::error:
+    default:
+        USB_Off();
+        break;
+    }
+};
+
+uint32_t window_header_t::networkIcon(uint32_t netdev_id) {
+    uint32_t res_id = IDR_NULL;
+
+    switch (netdev_id) {
+    case NETDEV_ETH_ID:
+        res_id = IDR_PNG_lan_16px;
+        break;
+    case NETDEV_ESP_ID:
+        res_id = IDR_PNG_wifi_16px;
+        break;
+    default:
+        break;
     }
 
-    SuperWindowEvent(sender, event, param);
+    return res_id;
 }

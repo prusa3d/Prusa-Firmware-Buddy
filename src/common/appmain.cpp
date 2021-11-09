@@ -7,30 +7,24 @@
 #include "cmsis_os.h"
 #include "config.h"
 #include "dbg.h"
-#include "adc.h"
+#include "adc.hpp"
 #include "Jogwheel.hpp"
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
+#include "usbd_cdc_if.h"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"
 #endif //SIM_HEATER
 
-#ifdef SIM_MOTION
-    #include "sim_motion.h"
-#endif //SIM_MOTION
-
-#include "uartslave.h"
 #include "marlin_server.h"
 #include "bsod.h"
 #include "eeprom.h"
-#include "diag.h"
 #include "safe_state.h"
 #include "crc32.h"
-#include "ff.h"
 #include "dump.h"
 
 #include <Arduino.h>
@@ -44,26 +38,30 @@ CFanCtl fanctl0 = CFanCtl(
     buddy::hw::fan0tach,
     FANCTL0_PWM_MIN, FANCTL0_PWM_MAX,
     FANCTL0_RPM_MIN, FANCTL0_RPM_MAX,
-    FANCTL0_PWM_THR);
+    FANCTL0_PWM_THR,
+    is_autofan_t::no);
 CFanCtl fanctl1 = CFanCtl(
     buddy::hw::fan1pwm,
     buddy::hw::fan1tach,
     FANCTL1_PWM_MIN, FANCTL1_PWM_MAX,
     FANCTL1_RPM_MIN, FANCTL1_RPM_MAX,
-    FANCTL1_PWM_THR);
+    FANCTL1_PWM_THR,
+    is_autofan_t::yes);
 #endif //NEW_FANCTL
 
 #define DBG _dbg0 //debug level 0
 //#define DBG(...)  //disable debug
 
 extern void USBSerial_put_rx_data(uint8_t *buffer, uint32_t length);
+extern void app_cdc_rx(uint8_t *buffer, uint32_t length);
 
 extern void reset_trinamic_drivers();
 
 extern "C" {
 
-extern uartrxbuff_t uart6rxbuff; // PUT rx buffer
-extern uartslave_t uart6slave;   // PUT slave
+#ifndef USE_ESP01_WITH_UART6
+extern uartslave_t uart6slave; // PUT slave
+#endif
 
 #ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
@@ -75,6 +73,9 @@ void app_setup(void) {
     } else {
         init_tmc_bare_minimum();
     }
+
+    // enable cdc
+    usbd_cdc_register_receive_fn(app_cdc_rx);
 
     setup();
 
@@ -92,48 +93,23 @@ void app_idle(void) {
 void app_run(void) {
     DBG("app_run");
 
-#ifdef BUDDY_ENABLE_ETHERNET
-    if (diag_fastboot)
-        osThreadResume(webServerTaskHandle);
-#endif //BUDDY_ENABLE_ETHERNET
-
-    crc32_init();
-
-    uint8_t eeprom_init_status = eeprom_init();
-    if (eeprom_init_status == EEPROM_INIT_Defaults || eeprom_init_status == EEPROM_INIT_Upgraded) {
-        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
-        dump_in_xflash_reset();
-    }
     LangEEPROM::getInstance();
 
     marlin_server_init();
     marlin_server_idle_cb = app_idle;
-
-    adc_init();
 
 #ifdef SIM_HEATER
     sim_heater_init();
 #endif //SIM_HEATER
 
     //DBG("before setup (%ld ms)", HAL_GetTick());
-    if (diag_fastboot || (!sys_fw_is_valid())) {
-        if (!sys_fw_is_valid()) // following code will be done only with invalidated firmware
-        {
-            hwio_safe_state(); // safe states
-            for (int i = 0; i < hwio_fan_get_cnt(); ++i)
-                hwio_fan_set_pwm(i, 0); // disable fans
-        }
-        reset_trinamic_drivers();
-        if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
-            init_tmc();
-        }
-    } else {
-        app_setup();
-        marlin_server_start_processing();
-    }
+
+    app_setup();
+    marlin_server_start_processing();
+
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
-    if (eeprom_init_status == EEPROM_INIT_Defaults && marlin_server_processing()) {
+    if (eeprom_init() == EEPROM_INIT_Defaults && marlin_server_processing()) {
         settings.reset();
     }
 
@@ -141,7 +117,9 @@ void app_run(void) {
         if (marlin_server_processing()) {
             loop();
         }
+#ifndef USE_ESP01_WITH_UART6
         uartslave_cycle(&uart6slave);
+#endif
         marlin_server_loop();
         osDelay(0); // switch to other threads - without this is UI slow
 #ifdef JOGWHEEL_TRACE
@@ -151,27 +129,7 @@ void app_run(void) {
             DBG("%d %d", signals, jogwheel_encoder);
         }
 #endif //JOGWHEEL_TRACE
-#ifdef SIM_MOTION_TRACE_X
-        static int32_t x = sim_motion_pos[0];
-        if (x != sim_motion_pos[0]) {
-            x = sim_motion_pos[0];
-            DBG("X:%li", x);
-        }
-#endif //SIM_MOTION_TRACE_X
-#ifdef SIM_MOTION_TRACE_Y
-        static int32_t y = sim_motion_pos[1];
-        if (y != sim_motion_pos[1]) {
-            y = sim_motion_pos[1];
-            DBG("Y:%li", y);
-        }
-#endif //SIM_MOTION_TRACE_Y
-#ifdef SIM_MOTION_TRACE_Z
-        static int32_t z = sim_motion_pos[2];
-        if (z != sim_motion_pos[2]) {
-            z = sim_motion_pos[2];
-            DBG("Z:%li", z);
-        }
-#endif //SIM_MOTION_TRACE_Z
+
 #if defined(FANCTL0_TRACE) && defined(FANCTL0_TRACE)
         static uint16_t rpm0_tmp = 0;
         static uint16_t rpm1_tmp = 0;
@@ -217,7 +175,6 @@ void app_cdc_rx(uint8_t *buffer, uint32_t length) {
 }
 
 void adc_tick_1ms(void) {
-    adc_cycle();
 #ifdef SIM_HEATER
     static uint8_t cnt_sim_heater = 0;
     if (++cnt_sim_heater >= 50) // sim_heater freq = 20Hz
@@ -226,10 +183,6 @@ void adc_tick_1ms(void) {
         cnt_sim_heater = 0;
     }
 #endif //SIM_HEATER
-
-#ifdef SIM_MOTION
-    sim_motion_cycle();
-#endif //SIM_MOTION
 }
 
 void app_tim14_tick(void) {

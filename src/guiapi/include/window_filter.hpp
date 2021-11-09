@@ -24,7 +24,7 @@ public:
     constexpr WinFilterContained(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return rect.Contain(win.rect);
+        return rect.Contain(win.GetRect());
     }
 };
 
@@ -41,7 +41,7 @@ public:
     constexpr WinFilterIntersectingPopUp(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return ((win.GetType() == win_type_t::popup) && rect.HasIntersection(win.rect));
+        return ((win.GetType() == win_type_t::popup) && rect.HasIntersection(win.GetRect()));
     };
 };
 
@@ -52,7 +52,7 @@ public:
     constexpr WinFilterIntersectingNonPopUp(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return ((win.GetType() != win_type_t::popup) && rect.HasIntersection(win.rect));
+        return ((win.GetType() != win_type_t::popup) && rect.HasIntersection(win.GetRect()));
     };
 };
 
@@ -62,6 +62,12 @@ public:
     virtual bool operator()(const window_t &win) const override { return win.IsDialog(); };
 };
 
+//filter dialog windows
+class WinFilterDialogNonStrong : public WinFilter {
+public:
+    virtual bool operator()(const window_t &win) const override { return win.GetType() == win_type_t::dialog; };
+};
+
 class WinFilterIntersectingDialog : public WinFilter {
     Rect16 rect;
 
@@ -69,7 +75,7 @@ public:
     constexpr WinFilterIntersectingDialog(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return (win.IsDialog() && rect.HasIntersection(win.rect));
+        return (win.IsDialog() && rect.HasIntersection(win.GetRect()));
     };
 };
 
@@ -98,8 +104,13 @@ public:
     constexpr WinFilterIntersectingVisible(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return (win.IsVisible() && rect.HasIntersection(win.rect));
+        return (win.IsVisible() && rect.HasIntersection(win.GetRect()));
     };
+};
+
+class WinFilterCapturable : public WinFilter {
+public:
+    virtual bool operator()(const window_t &win) const override { return win.IsCapturable(); };
 };
 
 //filter dialog or popup windows

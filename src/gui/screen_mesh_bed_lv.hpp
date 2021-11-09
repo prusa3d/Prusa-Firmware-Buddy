@@ -1,13 +1,12 @@
 //screen_mesh_bed_lv.hpp
 #pragma once
 #include "gui.hpp"
-#include "status_footer.h"
+#include "status_footer.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
-#include "window_spin.hpp"
-#include "window_list.hpp"
 #include "window_term.hpp"
 #include "window_progress.hpp"
+#include "screen.hpp"
 
 enum class mesh_state_t : uint8_t {
     idle,
@@ -20,8 +19,8 @@ enum class mesh_state_t : uint8_t {
     meshed
 };
 
-struct screen_mesh_bed_lv_data_t : public AddSuperWindow<window_frame_t> {
-    status_footer_t footer;
+struct screen_mesh_bed_lv_data_t : public AddSuperWindow<screen_t> {
+    StatusFooter footer;
     window_text_t textMenuName;
     window_text_button_t btMesh;
     window_text_t text_mesh_state;

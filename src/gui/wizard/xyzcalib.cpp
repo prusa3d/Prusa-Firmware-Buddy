@@ -132,18 +132,18 @@ void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, x
         pWin->Show();
     }
     uint16_t y = 40;
-    uint16_t x = WIZARD_MARGIN_LEFT;
+    uint16_t x = WizardDefaults::MarginLeft;
 
-    window_create_ptr(WINDOW_CLS_TEXT, id_body, Rect16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_state));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, Rect16(x, y, WizardDefaults::X_space, 22), &(p_screen->text_state));
     p_screen->text_state.SetText(_("Auto home"));
 
     y += 22;
 
-    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, Rect16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, Rect16(x, y, WizardDefaults::X_space, 8), &(p_screen->progress));
 
     y += 12;
 
-    window_create_ptr(WINDOW_CLS_TEXT, id_body, Rect16(x, y, WIZARD_X_SPACE, 66), &(p_screen->text_search));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, Rect16(x, y, WizardDefaults::X_space, 66), &(p_screen->text_search));
     p_screen->text_search.SetText(string_view_utf8::MakeNULLSTR());
 
     y += 66;

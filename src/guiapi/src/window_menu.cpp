@@ -11,9 +11,11 @@
 
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
+    , moveIndex(0)
+    , redrawAll(true)
+    , clicked(false)
     , pContainer(pContainer) {
     setIndex(index);
-    moveIndex = 0;
     top_index = 0;
     updateTopIndex();
 }
@@ -135,7 +137,7 @@ bool window_menu_t::updateTopIndex() {
         return false;
 
     const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
-    const int visible_available = rect.Height() / item_height;
+    const int visible_available = Height() / item_height;
 
     const int visible_index = visibleIndex(index);
 
@@ -172,6 +174,7 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
     case GUI_event_t::CLICK:
 
         item->Click(*this);
+        clicked = true;
         //Invalidate(); //called inside click
         break;
     case GUI_event_t::ENC_DN:
@@ -206,18 +209,19 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
     if (item == nullptr)
         return;
 
-    uint16_t rc_w = rect.Width() - (GuiDefaults::MenuHasScrollbar ? GuiDefaults::MenuScrollbarWidth : 0);
-    Rect16 rc = { rect.Left(), int16_t(rect.Top() + visible_count * item_height),
-        rc_w, uint16_t(item_height - 1) }; // 1 pixel height for menu item delimeter
+    uint16_t rc_w = Width() - (GuiDefaults::MenuHasScrollbar ? GuiDefaults::MenuScrollbarWidth : 0);
+    Rect16 rc = { Left(), int16_t(Top() + visible_count * (item_height + GuiDefaults::MenuItemDelimeterHeight)),
+        rc_w, uint16_t(item_height) };
 
-    if (rect.Contain(rc)) {
+    if (GetRect().Contain(rc)) {
 
         //only place I know rectangle to be able to reinit roll, ugly to do it in print
         item->InitRollIfNeeded(rc);
 
         item->Print(rc);
         if (GuiDefaults::MenuLinesBetweenItems)
-            display::DrawLine(point_ui16(rc.Left() + GuiDefaults::MenuItemDelimiterPadding, rc.Top() + rc.Height()), point_ui16(rc.Left() + rc.Width() - 2 * GuiDefaults::MenuItemDelimiterPadding, rc.Top() + rc.Height()), COLOR_SILVER);
+            display::DrawLine(point_ui16(Left() + GuiDefaults::MenuItemDelimiterPadding.left, rc.Top() + rc.Height()),
+                point_ui16(Left() + Width() - GuiDefaults::MenuItemDelimiterPadding.right, rc.Top() + rc.Height()), COLOR_DARK_GRAY);
     }
 }
 
@@ -227,16 +231,16 @@ void window_menu_t::unconditionalDraw() {
         index = 0;
         top_index = 0;
         moveIndex = 0;
-        redrawWholeMenu();
-        return;
+        redrawAll = true;
     }
 
-    if (moveIndex == 0) { /// startup or single item change
-        if (item->IsSelected()) {
-            unconditionalDrawItem(index);
-        } else {
-            redrawWholeMenu();
-        }
+    if (redrawAll) {
+        redrawAll = false;
+        redrawWholeMenu();
+        return;
+    } else if (item->IsSelected() || clicked) {
+        clicked = false;
+        unconditionalDrawItem(index);
         return;
     }
 
@@ -246,21 +250,23 @@ void window_menu_t::unconditionalDraw() {
     if (updateTopIndex()) {
         redrawWholeMenu(); /// whole menu moved, redraw everything
     } else {
-        unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
-        unconditionalDrawItem(index);
+        if (old_index != index) {
+            unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
+            unconditionalDrawItem(index);
+        }
     }
 }
 
 void window_menu_t::printScrollBar(size_t available_count, uint16_t visible_count) {
-    uint16_t scroll_item_height = rect.Height() / available_count;
-    uint16_t sb_y_start = rect.Top() + top_index * scroll_item_height;
-    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - GuiDefaults::MenuScrollbarWidth), rect.Top(), GuiDefaults::MenuScrollbarWidth, rect.Height()), color_back);
-    display::DrawRect(Rect16(int16_t(rect.Left() + rect.Width() - GuiDefaults::MenuScrollbarWidth), sb_y_start, GuiDefaults::MenuScrollbarWidth, visible_count * scroll_item_height), COLOR_SILVER);
+    uint16_t scroll_item_height = Height() / available_count;
+    uint16_t sb_y_start = Top() + top_index * scroll_item_height;
+    display::DrawRect(Rect16(int16_t(Left() + Width() - GuiDefaults::MenuScrollbarWidth), Top(), GuiDefaults::MenuScrollbarWidth, Height()), GetBackColor());
+    display::DrawRect(Rect16(int16_t(Left() + Width() - GuiDefaults::MenuScrollbarWidth), sb_y_start, GuiDefaults::MenuScrollbarWidth, visible_count * scroll_item_height), COLOR_SILVER);
 }
 
 void window_menu_t::redrawWholeMenu() {
     const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
-    const size_t visible_available = rect.Height() / item_height;
+    const size_t visible_available = Height() / item_height;
     size_t visible_count = 0, available_invisible_count = 0;
     IWindowMenuItem *item;
     for (size_t i = 0; i < GetCount(); ++i) {
@@ -288,17 +294,17 @@ void window_menu_t::redrawWholeMenu() {
 
     /// fill the rest of the window by background
     const int menu_h = visible_count * item_height;
-    Rect16 rc_win = rect;
+    Rect16 rc_win = GetRect();
     rc_win -= Rect16::Height_t(menu_h);
     if (rc_win.Height() <= 0)
         return;
     rc_win += Rect16::Top_t(menu_h);
-    display::FillRect(rc_win, color_back);
+    display::FillRect(rc_win, GetBackColor());
 }
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {
     const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
-    const size_t visible_available = rect.Height() / item_height;
+    const size_t visible_available = Height() / item_height;
     size_t visible_count = 0;
     IWindowMenuItem *item = nullptr;
     for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
@@ -312,5 +318,14 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
             break;
         }
         ++visible_count;
+    }
+}
+
+void window_menu_t::ShowAfterDialog() {
+    if (flags.hidden_behind_dialog) {
+        flags.hidden_behind_dialog = false;
+        //must invalidate even when is not visible
+        redrawAll = true;
+        Invalidate();
     }
 }

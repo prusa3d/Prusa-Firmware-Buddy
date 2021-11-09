@@ -47,7 +47,6 @@
   *
   ******************************************************************************
   */
-#include "wui_config.h"
 
 /* Define to prevent recursive inclusion --------------------------------------*/
 #ifndef __LWIPOPTS__H__
@@ -86,34 +85,21 @@ extern "C" {
     #define LWIP_ETHERNET 1
     /*----- Value in opt.h for LWIP_DNS_SECURE: (LWIP_DNS_SECURE_RAND_XID | LWIP_DNS_SECURE_NO_MULTIPLE_OUTSTANDING | LWIP_DNS_SECURE_RAND_SRC_PORT) -*/
     #define LWIP_DNS_SECURE 7
+
+    #define TCP_MSS 536
+    #define TCP_WND (2 * TCP_MSS)
     /*----- Value in opt.h for TCP_SND_QUEUELEN: (4*TCP_SND_BUF + (TCP_MSS - 1))/TCP_MSS -----*/
-    #define TCP_SND_QUEUELEN 9
-    /*----- Value in opt.h for TCP_SNDLOWAT: LWIP_MIN(LWIP_MAX(((TCP_SND_BUF)/2), (2 * TCP_MSS) + 1), (TCP_SND_BUF) - 1) -*/
-    #define TCP_SNDLOWAT 1071
-    /*----- Value in opt.h for TCP_SNDQUEUELOWAT: LWIP_MAX(TCP_SND_QUEUELEN)/2, 5) -*/
-    #define TCP_SNDQUEUELOWAT 5
-    /*----- Value in opt.h for TCP_WND_UPDATE_THRESHOLD: LWIP_MIN(TCP_WND/4, TCP_MSS*4) -----*/
-    #define TCP_WND_UPDATE_THRESHOLD 536
     /*----- Value in opt.h for TCPIP_THREAD_STACKSIZE: 0 -----*/
-    #define TCPIP_THREAD_STACKSIZE 1024
-    /*----- Value in opt.h for TCPIP_THREAD_PRIO: 1 -----*/
-    #define TCPIP_THREAD_PRIO 3
-    /*----- Value in opt.h for TCPIP_MBOX_SIZE: 0 -----*/
+    #define TCPIP_THREAD_STACKSIZE 2048
+
     #define TCPIP_MBOX_SIZE 6
-    /*----- Value in opt.h for SLIPIF_THREAD_STACKSIZE: 0 -----*/
-    #define SLIPIF_THREAD_STACKSIZE 1024
-    /*----- Value in opt.h for SLIPIF_THREAD_PRIO: 1 -----*/
-    #define SLIPIF_THREAD_PRIO 3
-    /*----- Value in opt.h for DEFAULT_THREAD_STACKSIZE: 0 -----*/
-    #define DEFAULT_THREAD_STACKSIZE 1024
-    /*----- Value in opt.h for DEFAULT_THREAD_PRIO: 1 -----*/
-    #define DEFAULT_THREAD_PRIO 3
+
     /*----- Value in opt.h for DEFAULT_UDP_RECVMBOX_SIZE: 0 -----*/
-    #define DEFAULT_UDP_RECVMBOX_SIZE 6
+    #define DEFAULT_UDP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
     /*----- Value in opt.h for DEFAULT_TCP_RECVMBOX_SIZE: 0 -----*/
-    #define DEFAULT_TCP_RECVMBOX_SIZE 6
+    #define DEFAULT_TCP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
     /*----- Value in opt.h for DEFAULT_ACCEPTMBOX_SIZE: 0 -----*/
-    #define DEFAULT_ACCEPTMBOX_SIZE 6
+    #define DEFAULT_ACCEPTMBOX_SIZE TCPIP_MBOX_SIZE
     /*----- Value in opt.h for RECV_BUFSIZE_DEFAULT: INT_MAX -----*/
     #define RECV_BUFSIZE_DEFAULT 2000000000
     /*----- Default Value for LWIP_HTTPD: 0 ---*/
@@ -142,19 +128,22 @@ extern "C" {
     #define CHECKSUM_CHECK_ICMP6 0
     /*-----------------------------------------------------------------------------*/
     /* USER CODE BEGIN 1 */
-    #define HTTPD_USE_CUSTOM_FSDATA    1 // uses the web resources from fsdata_custom.c (buddy web pages)
-    #define LWIP_NETIF_API             1 // enable LWIP_NETIF_API==1: Support netif api (in netifapi.c)
-    #define LWIP_NETIF_LINK_CALLBACK   1 // Support a callback function from an interface whenever the link changes (i.e., link down)
-    #define LWIP_NETIF_STATUS_CALLBACK 1 // Support a callback function whenever an interface changes its up/down status (i.e., due to DHCP IP acquisition)
-    #define LWIP_HTTPD_DYNAMIC_HEADERS 1
-    #define LWIP_NETIF_HOSTNAME        1
-    #define LWIP_HTTPD_SUPPORT_POST    1
-    #ifdef WUI_HOST_NAME
-        #define HTTPD_SERVER_AGENT WUI_HOST_NAME
-    #else
-        #define HTTPD_SERVER_AGENT "Prusa Buddy"
-    #endif
-    #define LWIP_DNS 1
+    #define HTTPD_USE_CUSTOM_FSDATA      1 // uses the web resources from fsdata_custom.c (buddy web pages)
+    #define LWIP_NETIF_API               1 // enable LWIP_NETIF_API==1: Support netif api (in netifapi.c)
+    #define LWIP_NETIF_LINK_CALLBACK     1 // Support a callback function from an interface whenever the link changes (i.e., link down)
+    #define LWIP_NETIF_STATUS_CALLBACK   1 // Support a callback function whenever an interface changes its up/down status (i.e., due to DHCP IP acquisition)
+    #define LWIP_HTTPD_DYNAMIC_HEADERS   1
+    #define LWIP_SINGLE_NETIF            1
+    #define LWIP_NETIF_HOSTNAME          1
+    #define LWIP_HTTPD_SUPPORT_POST      1
+    #define LWIP_COMPAT_SOCKETS          0
+    #define LWIP_ALTCP                   1
+    #define LWIP_HTTPD_DYNAMIC_FILE_READ 1
+
+    #define HTTPD_SERVER_AGENT "Prusa Mini"
+    #define LWIP_DNS           1
+    #define MEMP_NUM_TCP_PCB   6
+    #define SO_REUSE           1 // Allow SOF_REUSEADDR to do something useful.
 
 /* USER CODE END 1 */
 

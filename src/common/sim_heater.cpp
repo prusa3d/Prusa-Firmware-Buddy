@@ -6,9 +6,10 @@
 
     #include "sim_heater.h"
     #include <inttypes.h>
-    #include "adc.h"
+    #include "adc.hpp"
     #include "sim_nozzle.h"
     #include "sim_bed.h"
+    #include "main.h"
 
 static const constexpr uint8_t SIM_HEATER_MULTI = 5;   // time multiply
 static const constexpr float SIM_HEATER_DELAY = 0.05F; // cycle delay in ms
@@ -117,19 +118,15 @@ void sim_heater_cycle(void) {
     int val;
 
     #ifdef SIM_HEATER_NOZZLE_ADC
-    if (adc_sim_msk & (1 << SIM_HEATER_NOZZLE_ADC)) {
-        temp = sim_nozzle_cycle(SIM_HEATER_MULTI * SIM_HEATER_DELAY) - 273.15F;
-        val = (4 * sim_heater_temp2val(temp));
-        adc_sim_val[SIM_HEATER_NOZZLE_ADC] = val;
-    }
+    temp = sim_nozzle_cycle(SIM_HEATER_MULTI * SIM_HEATER_DELAY) - 273.15F;
+    val = (sim_heater_temp2val(temp));
+    AdcSet::nozzle(val);
     #endif //SIM_HEATER_NOZZLE_ADC
 
     #ifdef SIM_HEATER_BED_ADC
-    if (adc_sim_msk & (1 << SIM_HEATER_BED_ADC)) {
-        temp = sim_bed_cycle(SIM_HEATER_MULTI * SIM_HEATER_DELAY) - 273.15F;
-        val = (4 * sim_heater_temp2val(temp));
-        adc_sim_val[SIM_HEATER_BED_ADC] = val;
-    }
+    temp = sim_bed_cycle(SIM_HEATER_MULTI * SIM_HEATER_DELAY) - 273.15F;
+    val = (sim_heater_temp2val(temp));
+    AdcSet::bed(val);
     #endif //SIM_HEATER_BED_ADC
 }
 

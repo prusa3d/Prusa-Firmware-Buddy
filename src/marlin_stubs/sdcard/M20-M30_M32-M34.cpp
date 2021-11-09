@@ -1,23 +1,21 @@
-#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
+#include <dirent.h>
+
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "marlin_server.h"
 #include "media.h"
-#include "ff.h"
 
 // M20 - List SD card
 void GcodeSuite::M20() {
     SERIAL_ECHOLNPGM(MSG_BEGIN_FILE_LIST);
-    DIR dir = { 0 };
-    FRESULT result = f_opendir(&dir, "/");
-    if (result == FR_OK) {
-        FILINFO current_finfo = { 0 };
-        result = f_findfirst(&dir, &current_finfo, "", "*.gco*");
-        while (result == FR_OK && current_finfo.fname[0]) {
-            SERIAL_ECHOLN(current_finfo.altname);
-            result = f_findnext(&dir, &current_finfo);
+    DIR *dir;
+    dir = opendir("/usb/");
+    if (dir != NULL) {
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != NULL && entry->d_name[0]) {
+            SERIAL_ECHOLN(entry->d_name);
         }
+        closedir(dir);
     }
-    f_closedir(&dir);
     SERIAL_ECHOLNPGM(MSG_END_FILE_LIST);
 }
 
@@ -62,7 +60,7 @@ void GcodeSuite::M27() {
         SERIAL_ECHOPGM("Current file: ");
         SERIAL_ECHOLN(media_print_filepath());
     } else {
-        if ((media_print_get_state() == media_print_state_PRINTING) || (media_print_get_state() == media_print_state_PAUSED)) {
+        if (media_print_get_state() != media_print_state_NONE) {
             SERIAL_ECHOPGM(MSG_SD_PRINTING_BYTE);
             SERIAL_ECHO(media_print_get_position());
             SERIAL_CHAR('/');

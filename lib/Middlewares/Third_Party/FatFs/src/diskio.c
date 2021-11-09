@@ -51,7 +51,8 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "diskio.h"
+#include "ff.h"			/* Obtains integer types */
+#include "diskio.h"		/* Declarations of disk functions */
 #include "ff_gen_drv.h"
 
 #if defined ( __GNUC__ )
@@ -131,7 +132,7 @@ DRESULT disk_read (
   * @param  count: Number of sectors to write (1..128)
   * @retval DRESULT: Operation result
   */
-#if _USE_WRITE == 1
+#if FF_FS_READONLY == 0
 DRESULT disk_write (
 	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
 	const BYTE *buff,	/* Data to be written */
@@ -144,7 +145,7 @@ DRESULT disk_write (
   res = disk.drv[pdrv]->disk_write(disk.lun[pdrv], buff, sector, count);
   return res;
 }
-#endif /* _USE_WRITE == 1 */
+#endif /* FF_FS_READONLY == 0 */
 
 /**
   * @brief  I/O control operation
@@ -153,7 +154,7 @@ DRESULT disk_write (
   * @param  *buff: Buffer to send/receive control data
   * @retval DRESULT: Operation result
   */
-#if _USE_IOCTL == 1
+#if FF_FS_READONLY == 0
 DRESULT disk_ioctl (
 	BYTE pdrv,		/* Physical drive nmuber (0..) */
 	BYTE cmd,		/* Control code */
@@ -165,7 +166,7 @@ DRESULT disk_ioctl (
   res = disk.drv[pdrv]->disk_ioctl(disk.lun[pdrv], cmd, buff);
   return res;
 }
-#endif /* _USE_IOCTL == 1 */
+#endif /* FF_FS_READONLY == 0 */
 
 /**
   * @brief  Gets Time from RTC

@@ -11,12 +11,12 @@ window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rec
     : AddSuperWindow<window_t>(parent, rect)
     , color_progress(cl_progress) {
     SetProgressInPixels(0);
-    color_back = cl_back;
+    SetBackColor(cl_back);
 }
 
 void window_numberless_progress_t::SetProgressInPixels(uint16_t px) {
-    if (px != flags.mem_space_u16) {
-        flags.mem_space_u16 = px;
+    if (px != progress_in_pixels) {
+        progress_in_pixels = px;
         Invalidate();
     }
 }
@@ -25,11 +25,11 @@ void window_numberless_progress_t::SetProgressPercent(float val) {
     const float min = 0;
     const float max = 100;
     const float value = std::max(min, std::min(val, max));
-    SetProgressInPixels((value * rect.Width()) / max);
+    SetProgressInPixels((value * Width()) / max);
 }
 
 uint16_t window_numberless_progress_t::GetProgressPixels() const {
-    return flags.mem_space_u16;
+    return progress_in_pixels;
 }
 
 void window_numberless_progress_t::SetColor(color_t clr) {
@@ -40,13 +40,13 @@ void window_numberless_progress_t::SetColor(color_t clr) {
 }
 
 void window_numberless_progress_t::unconditionalDraw() {
-    Rect16 rc = rect;
+    Rect16 rc = GetRect();
     const uint16_t progress_w = std::min(GetProgressPixels(), uint16_t(rc.Width()));
     rc += Rect16::Left_t(progress_w);
     rc -= Rect16::Width_t(progress_w);
     if (rc.Width())
-        display::FillRect(rc, color_back);
-    rc = rect.Left();
+        display::FillRect(rc, GetBackColor());
+    rc = Left();
     rc = Rect16::Width_t(progress_w);
     if (rc.Width())
         display::FillRect(rc, color_progress);
@@ -68,7 +68,7 @@ window_progress_t::window_progress_t(window_t *parent, Rect16 rect, uint16_t h_p
     , max(100) {
     Disable();
     numb.format = "%.0f%%";
-    numb.SetAlignment(ALIGN_CENTER);
+    numb.SetAlignment(Align_t::Center());
 }
 
 void window_progress_t::SetFont(font_t *val) {
@@ -80,15 +80,14 @@ void window_progress_t::SetProgressColor(color_t clr) {
 }
 
 void window_progress_t::SetNumbColor(color_t clr) {
-    numb.SetColor(clr);
+    numb.SetTextColor(clr);
 }
 
-void window_progress_t::SetProgressHeight(uint16_t height) {
-    if (progr.rect.Height() != height) {
-        const Rect16::Height_t h(height);
-        progr.rect = h;
+void window_progress_t::SetProgressHeight(Rect16::Height_t height) {
+    if (progr.Height() != height) {
+        progr.Resize(height);
         progr.Invalidate();
-        numb.rect = (rect - h).Height();
+        numb -= height;
         numb.Invalidate();
     }
 }

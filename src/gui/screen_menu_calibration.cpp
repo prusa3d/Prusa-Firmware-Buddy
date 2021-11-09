@@ -8,20 +8,13 @@
 #include "MItem_print.hpp"
 #include "printers.h"
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_WIZARD, MI_LIVE_ADJUST_Z, MI_AUTO_HOME, MI_MESH_BED,
-    MI_SELFTEST, MI_CALIB_FIRST, MI_TEST_FANS, MI_TEST_XYZ, MI_TEST_HEAT
+using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_WIZARD, MI_LIVE_ADJUST_Z, MI_AUTO_HOME, MI_MESH_BED,
+    MI_SELFTEST, MI_CALIB_FIRST, MI_TEST_FANS, MI_TEST_XYZ, MI_TEST_HEAT,
 #ifdef _DEBUG
-    ,
-    MI_ADVANCED_FAN_TEST, MI_TEST_ABORT
+    MI_ADVANCED_FAN_TEST, MI_TEST_ABORT,
 #endif
-    >;
-/*
-static void init(screen_t *screen) {
-    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
-    constexpr static const char *label = N_("CALIBRATION");
-    Screen::Create(screen, _(label));
-}
-*/
+    MI_SELFTEST_RESULT>;
+
 class ScreenMenuCalibration : public Screen {
 public:
     constexpr static const char *label = N_("CALIBRATION");

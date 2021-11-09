@@ -11,21 +11,6 @@
 /**
  * @name Use these macros only for pins used from Marlin.
  *
- * Obey naming convention MARLIN_PORT_\<PIN_NAME\> MARLIN_PIN_NR_\<PIN_NAME\>
- * @par Example
- * @code
- * //inside hwio_pindef_\<printer\>.h
- * #define MARLIN_PORT_E0_DIR   MARLIN_PORT_B
- * #define MARLIN_PIN_NR_E0_DIR MARLIN_PIN_NR_8
- * //inside PIN_TABLE
- * F(OutputPin, e0Dir, BUDDY_PIN(E0_DIR), InitState::reset COMMA OMode::pushPull COMMA OSpeed::low)
- *
- * //inside hwio_\<board>\.cpp
- * case MARLIN_PIN(E0_DIR):
- *
- * //inside Marlin/pins/\<architecture\>/pins_\<board\>.h
- * #define E0_DIR_PIN             MARLIN_PIN(E0_DIR)
- * @endcode
  * @{
  */
 #define MARLIN_PIN_NR_0  0
@@ -51,6 +36,13 @@
 #define MARLIN_PORT_D 3
 #define MARLIN_PORT_E 4
 #define MARLIN_PORT_F 5
+/**
+ * @brief Virtual port not associated with any physical pin
+ *
+ * Mapping of virtual pin needs to be implemented in hwio_buddy_2209_02.cpp
+ *
+ */
+#define MARLIN_PORT_V 7
 
 #define MARLIN_PORT_PIN(port, pin) ((16 * (port)) + (pin))
 
@@ -67,3 +59,8 @@ static_assert(buddy::hw::IoPort::F == static_cast<buddy::hw::IoPort>(MARLIN_PORT
 static_assert(buddy::hw::IoPin::p0 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_0), "Marlin pin doesn't match Buddy IoPin.");
 static_assert(buddy::hw::IoPin::p1 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_1), "Marlin pin doesn't match Buddy IoPin.");
 static_assert(buddy::hw::IoPin::p15 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_15), "Marlin pin doesn't match Buddy IoPin.");
+
+namespace buddy::hw {
+bool physicalPinExist(uint32_t marlinPin);
+bool isOutputPin(uint32_t marlinPin);
+}

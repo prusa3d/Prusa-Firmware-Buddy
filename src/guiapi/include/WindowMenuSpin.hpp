@@ -18,6 +18,7 @@ protected:
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPadding;
     static constexpr size_t unit__half_space_padding = 6;
     static constexpr bool has_unit = GuiDefaults::MenuSpinHasUnits;
+    static constexpr const char *const off_opt = N_("Off");
 
     using SpinTextArray = std::array<char, 10>;
     SpinTextArray spin_text_buff; //temporary buffer to print value for text measurements
@@ -30,18 +31,14 @@ protected:
     Rect16 getUnitRect(Rect16 extension_rect) const;
 
     virtual void click(IWindowMenu &window_menu) final;
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
 
 public:
     IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
     virtual void OnClick() {}
-    inline void ClrVal() {
-        value.u32 = 0;
-        Change(0);
-    }
-    inline void SetVal(SpinType val) {
+    inline invalidate_t SetVal(SpinType val) {
         value = val;
-        Change(0);
+        return Change(0);
     }
     /// don't define GetVal here since we don't know the return type yet
     /// and C++ does not allow return type overloading (yet)
@@ -71,7 +68,8 @@ public:
 //WI_SPIN_t
 template <class T>
 WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : AddSuper<IWiSpin>(val, label, id_icon, enabled, hidden, cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), calculateExtensionWidth(cnf.Unit(), cnf.calculateMaxDigits()))
+    : AddSuper<IWiSpin>(std::clamp(T(val), cnf.Min(), cnf.Max()), label, id_icon, enabled, hidden,
+        cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), calculateExtensionWidth(cnf.Unit(), cnf.calculateMaxDigits()))
     , config(cnf) {
     printSpinToBuffer();
 }
@@ -82,8 +80,7 @@ invalidate_t WI_SPIN_t<T>::Change(int dif) {
     T old = val;
     val += (T)dif * config.Step();
     val = dif >= 0 ? std::max(val, old) : std::min(val, old); //check overflow/underflow
-    val = std::min(val, config.Max());
-    val = std::max(val, config.Min());
+    val = std::clamp(val, config.Min(), config.Max());
     value = val;
     invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; //0 dif forces redraw
     if (invalid == invalidate_t::yes)
@@ -93,7 +90,11 @@ invalidate_t WI_SPIN_t<T>::Change(int dif) {
 
 template <class T>
 void WI_SPIN_t<T>::printSpinToBuffer() {
-    snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, (T)(value));
+    if (config.IsOffOptionEnabled() && (T)(value) == 0) {
+        strncpy(spin_text_buff.data(), off_opt, strlen(off_opt) + 1);
+    } else {
+        snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, (T)(value));
+    }
 }
 
 template <>
@@ -101,10 +102,5 @@ inline void WI_SPIN_t<float>::printSpinToBuffer() {
     snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, static_cast<double>(value.flt));
 }
 
-using WI_SPIN_I08_t = WI_SPIN_t<int8_t>;
-using WI_SPIN_I16_t = WI_SPIN_t<int16_t>;
-using WI_SPIN_I32_t = WI_SPIN_t<int32_t>;
-using WI_SPIN_U08_t = WI_SPIN_t<uint8_t>;
-using WI_SPIN_U16_t = WI_SPIN_t<uint16_t>;
-using WI_SPIN_U32_t = WI_SPIN_t<uint32_t>;
-using WI_SPIN_FL_t = WI_SPIN_t<float>;
+using WiSpinInt = WI_SPIN_t<int>;
+using WiSpinFlt = WI_SPIN_t<float>;

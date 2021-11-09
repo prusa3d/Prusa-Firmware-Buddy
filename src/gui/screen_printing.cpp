@@ -1,4 +1,4 @@
-//screen_printing.cpp
+// screen_printing.cpp
 #include "dbg.h"
 #include "screen_printing.hpp"
 #include "marlin_client.h"
@@ -10,6 +10,9 @@
 #include "wui_api.h"
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"
+#include "odometer.hpp"
+#include "liveadjust_z.hpp"
+#include "DialogMoveZ.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.hpp"
@@ -116,7 +119,8 @@ void screen_printing_data_t::stopAction() {
 screen_printing_data_t::screen_printing_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
     , w_filename(this, Rect16(10, 33, 220, 29))
-    , w_progress(this, { 10, 70 }, HasNumber_t::yes)
+    , w_progress(this, Rect16(10, 70, GuiDefaults::RectScreen.Width() - 2 * 10, 16))
+    , w_progress_txt(this, Rect16(10, 86, GuiDefaults::RectScreen.Width() - 2 * 10, 30))
     , w_time_label(this, Rect16(10, 128, 101, 20), is_multiline::no)
     , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)
     , w_etime_label(this, Rect16(130, 128, 101, 20), is_multiline::no)
@@ -127,7 +131,7 @@ screen_printing_data_t::screen_printing_data_t()
     , stop_pressed(false)
     , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
-    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.rect, w_time_value.rect, w_etime_label.rect, w_etime_value.rect }))) {
+    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() }))) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
 
     marlin_vars_t *vars = marlin_vars();
@@ -137,28 +141,29 @@ screen_printing_data_t::screen_printing_data_t()
 
     w_filename.font = resource_font(IDR_FNT_BIG);
     w_filename.SetPadding({ 0, 0, 0, 0 });
-    w_filename.SetAlignment(ALIGN_LEFT_BOTTOM);
+    w_filename.SetAlignment(Align_t::LeftBottom());
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
     w_filename.SetText(vars->media_LFN ? string_view_utf8::MakeRAM((const uint8_t *)vars->media_LFN) : string_view_utf8::MakeNULLSTR());
 
+    // we could use shadow flag and color scheme for labels and values to be more clear
     w_etime_label.font = resource_font(IDR_FNT_SMALL);
-    w_etime_label.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    w_etime_label.SetAlignment(Align_t::RightBottom());
     w_etime_label.SetPadding({ 0, 2, 0, 2 });
     w_etime_label.SetText(_("Remaining Time"));
 
     w_etime_value.font = resource_font(IDR_FNT_SMALL);
-    w_etime_value.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    w_etime_value.SetAlignment(Align_t::RightBottom());
     w_etime_value.SetPadding({ 0, 2, 0, 2 });
     // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
     w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));
 
     w_time_label.font = resource_font(IDR_FNT_SMALL);
-    w_time_label.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    w_time_label.SetAlignment(Align_t::RightBottom());
     w_time_label.SetPadding({ 0, 2, 0, 2 });
     w_time_label.SetText(_("Printing time"));
 
     w_time_value.font = resource_font(IDR_FNT_SMALL);
-    w_time_value.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    w_time_value.SetAlignment(Align_t::RightBottom());
     w_time_value.SetPadding({ 0, 2, 0, 2 });
     // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
@@ -166,6 +171,7 @@ screen_printing_data_t::screen_printing_data_t()
     initAndSetIconAndLabel(btn_tune, res_tune);
     initAndSetIconAndLabel(btn_pause, res_pause);
     initAndSetIconAndLabel(btn_stop, res_stop);
+    change_etime();
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -176,13 +182,13 @@ extern uint32_t *pCommand;
 void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
-    if (HAL_GetTick() - _last > 300) {
-        _last = HAL_GetTick();
+    if (gui::GetTick() - _last > 300) {
+        _last = gui::GetTick();
 
         static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
-        buff[1] = fs_get_state() + '0';                              // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
-        buff[4] = fs_get_send_M600_on();                             // Me edge, Ml level, Mn never, Mx undefined
-        buff[6] = fs_was_M600_send() ? 's' : 'n';                    // s == send, n== not send
+        buff[1] = FS_instance().Get() + '0';                         // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
+        buff[4] = FS_instance().GetM600_send_on();                   // Me edge, Ml level, Mn never, Mx undefined
+        buff[6] = FS_instance().WasM600_send() ? 's' : 'n';          // s == send, n== not send
         buff[8] = _is_in_M600_flg ? 'M' : '0';                       // M == marlin is doing M600
         buff[9] = marlin_event(MARLIN_EVT_CommandBegin) ? 'B' : '0'; // B == Event begin
         buff[10] = marlin_command() == MARLIN_CMD_M600 ? 'C' : '0';  // C == Command M600
@@ -215,18 +221,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (marlin_vars()->print_duration != last_print_duration)
         update_print_duration(marlin_vars()->print_duration);
     if (marlin_vars()->time_to_end != last_time_to_end) {
-        time_t sec = sntp_get_system_time();
-        if (sec != 0) {
-            // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-            // theoretically it can be removed completely in case the string is constant for the whole run of the screen
-            w_etime_label.SetText(label_etime = _("Print will end"));
-            update_end_timestamp(sec, marlin_vars()->print_speed);
-        } else {
-            // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-            w_etime_label.SetText(label_etime = _("Remaining Time"));
-            update_remaining_time(marlin_vars()->time_to_end, marlin_vars()->print_speed);
-        }
-        last_time_to_end = marlin_vars()->time_to_end;
+        change_etime();
     }
 
     /// -- close screen when print is done / stopped and USB media is removed
@@ -240,8 +235,31 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
     }
+    if (event == GUI_event_t::HELD_RELEASED) {
+        if (marlin_vars()->curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
+            LiveAdjustZ::Show();
+        } else if (p_state == printing_state_t::PRINTED) {
+            DialogMoveZ::Show();
+        }
+        return;
+    }
 
     SuperWindowEvent(sender, event, param);
+}
+
+void screen_printing_data_t::change_etime() {
+    time_t sec = sntp_get_system_time();
+    if (sec != 0) {
+        // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
+        // theoretically it can be removed completely in case the string is constant for the whole run of the screen
+        w_etime_label.SetText(label_etime = _("Print will end"));
+        update_end_timestamp(sec, marlin_vars()->print_speed);
+    } else {
+        // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
+        w_etime_label.SetText(label_etime = _("Remaining Time"));
+        update_remaining_time(marlin_vars()->time_to_end, marlin_vars()->print_speed);
+    }
+    last_time_to_end = marlin_vars()->time_to_end;
 }
 
 void screen_printing_data_t::disable_tune_button() {
@@ -261,12 +279,15 @@ void screen_printing_data_t::enable_tune_button() {
     btn_tune.ico.Invalidate();
 }
 
-void screen_printing_data_t::update_remaining_time(time_t rawtime, uint16_t print_speed) {
-    w_etime_value.color_text = rawtime != time_t(-1) ? GuiDefaults::COLOR_VALUE_VALID : GuiDefaults::COLOR_VALUE_INVALID;
-    if (rawtime != time_t(-1)) {
-        if (print_speed != 100)
+void screen_printing_data_t::update_remaining_time(uint32_t sec, uint16_t print_speed) {
+    bool is_time_valid = sec < (60 * 60 * 24 * 365); // basic check, check of year in tm struct, does not work
+    w_etime_value.SetTextColor(is_time_valid ? GuiDefaults::COLOR_VALUE_VALID : GuiDefaults::COLOR_VALUE_INVALID);
+    if (is_time_valid) {
+        time_t rawtime = time_t(sec);
+        if (print_speed != 100) {
             // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
             rawtime = (rawtime * 100) / print_speed;
+        }
         const struct tm *timeinfo = localtime(&rawtime);
         //standard would be:
         //strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
@@ -291,10 +312,10 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
 
     bool time_invalid = false;
     if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
-        w_etime_value.color_text = GuiDefaults::COLOR_VALUE_INVALID;
+        w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
         time_invalid = true;
     } else {
-        w_etime_value.color_text = GuiDefaults::COLOR_VALUE_VALID;
+        w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
     }
 
     static const uint32_t full_day_in_seconds = 86400;
@@ -335,7 +356,7 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
     w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));
 }
 void screen_printing_data_t::update_print_duration(time_t rawtime) {
-    w_time_value.color_text = GuiDefaults::COLOR_VALUE_VALID;
+    w_time_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
     const struct tm *timeinfo = localtime(&rawtime);
     if (timeinfo->tm_yday) {
         snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
@@ -545,4 +566,6 @@ void screen_printing_data_t::change_print_state() {
         set_tune_icon_and_label();
         set_stop_icon_and_label();
     }
+    if (st == printing_state_t::PRINTED || st == printing_state_t::PAUSED)
+        Odometer_s::instance().force_to_eeprom();
 }

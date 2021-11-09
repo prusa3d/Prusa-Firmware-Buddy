@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 window_temp_graph_t::window_temp_graph_t(window_t *parent, Rect16 rect)
-    : window_t(parent, rect)
+    : AddSuperWindow<window_t>(parent, rect)
     , color_extruder_t(COLOR_LIME)
     , color_bed_t(COLOR_CYAN)
     , color_extruder_c(COLOR_ORANGE)
@@ -37,13 +37,13 @@ void window_temp_graph_t::redraw_last_point(uint16_t x, uint16_t y0, uint16_t y1
 }
 
 void window_temp_graph_t::draw_axes(bool wipe_before_draw, bool xy_only) {
-    const uint16_t x = rect.Left();
-    const uint16_t y = rect.Top();
-    const uint16_t w = rect.Width();
-    const uint16_t h = rect.Height();
+    const uint16_t x = Left();
+    const uint16_t y = Top();
+    const uint16_t w = Width();
+    const uint16_t h = Height();
 
     if (wipe_before_draw)
-        display::FillRect(rect, color_back);
+        super::unconditionalDraw();
     display::DrawLine(point_ui16(x, y - 1), point_ui16(x, y + h - 1), COLOR_WHITE);             //y
     display::DrawLine(point_ui16(x, y + h - 1), point_ui16(x + w - 1, y + h - 1), COLOR_WHITE); //x
 
@@ -81,34 +81,34 @@ void window_temp_graph_t::unconditionalDraw() {
         uint8_t ync = y_nozzle_c[0];
         uint8_t ybc = y_bed_c[0];
 
-        const uint16_t x = rect.Left();
-        const uint16_t y = rect.Top();
+        const uint16_t x = Left();
+        const uint16_t y = Top();
 
         for (i = 0; i < 178; i++) {
-            redraw_point(x + i + 1, y, &y_nozzle_t[i], color_back, color_extruder_t);
+            redraw_point(x + i + 1, y, &y_nozzle_t[i], GetBackColor(), color_extruder_t);
             y_nozzle_t[i] = y_nozzle_t[i + 1];
 
-            redraw_point(x + i + 1, y, &y_bed_t[i], color_back, color_bed_t);
+            redraw_point(x + i + 1, y, &y_bed_t[i], GetBackColor(), color_bed_t);
             y_bed_t[i] = y_bed_t[i + 1];
 
-            redraw_point(x + i + 1, y, &y_nozzle_c[i], color_back, color_extruder_c);
+            redraw_point(x + i + 1, y, &y_nozzle_c[i], GetBackColor(), color_extruder_c);
             y_nozzle_c[i] = y_nozzle_c[i + 1];
 
-            redraw_point(x + i + 1, y, &y_bed_c[i], color_back, color_bed_c);
+            redraw_point(x + i + 1, y, &y_bed_c[i], GetBackColor(), color_bed_c);
             y_bed_c[i] = y_bed_c[i + 1];
         }
 
         //FIXME leaves trace in the graph but bed temp. does not do it
-        redraw_last_point(x + i + 1, y + y_nozzle_t[i], y + ynt, color_back, color_extruder_t);
+        redraw_last_point(x + i + 1, y + y_nozzle_t[i], y + ynt, GetBackColor(), color_extruder_t);
         y_nozzle_t[i] = ynt;
 
-        redraw_last_point(x + i + 1, y + y_bed_t[i], y + ybt, color_back, color_bed_t);
+        redraw_last_point(x + i + 1, y + y_bed_t[i], y + ybt, GetBackColor(), color_bed_t);
         y_bed_t[i] = ybt;
 
-        redraw_last_point(x + i + 1, y + y_nozzle_c[i], y + ync, color_back, color_extruder_c);
+        redraw_last_point(x + i + 1, y + y_nozzle_c[i], y + ync, GetBackColor(), color_extruder_c);
         y_nozzle_c[i] = ync;
 
-        redraw_last_point(x + i + 1, y + y_bed_c[i], y + ybc, color_back, color_bed_c);
+        redraw_last_point(x + i + 1, y + y_bed_c[i], y + ybc, GetBackColor(), color_bed_c);
         y_bed_c[i] = ybc;
 
         draw_axes(false, true); //hides 0 values

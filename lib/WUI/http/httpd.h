@@ -253,18 +253,72 @@ err_t httpd_post_receive_data(void *connection, struct pbuf *p);
  */
 void httpd_post_finished(void *connection, char *response_uri, u16_t response_uri_len);
 
+/** Find the boundary value in the Content-Type line.
+ * This value is used to determine how to separate the keys/value pairs.
+ * Looking for boundary=
+ *
+ * @param content_type Content-Type string that contains the boundary.
+ */
+const char *find_boundary(const char *content_type);
+
+/** Find the key name in the header of a form value.
+ * Looking for name=
+ *
+ * @param header Header string that contains the name.
+ */
+const char *find_header_name(const char *header);
+
     #if LWIP_HTTPD_POST_MANUAL_WND
 void httpd_post_data_recved(void *connection, u16_t recved_len);
     #endif /* LWIP_HTTPD_POST_MANUAL_WND */
 
 #endif /* LWIP_HTTPD_SUPPORT_POST */
 
+/**
+ * Initial set up of the httpd server.
+ *
+ * This may be called just once during the lifetime of the application. If the
+ * networking is up at that point, it also starts to listen to incoming
+ * connections.
+ *
+ * For further re-binds/re-initializations, see @c httpd_reinit.
+ */
 void httpd_init(void);
+/**
+ * Re-create the httpd listening socket, with current network settings.
+ *
+ * In case networking is down (netdev_get_active_id() == NETDEV_NODEV_ID), it stops listening.
+ *
+ * Existing connections are left intact by this (though if the network
+ * configuration changed, they would likely die on their own anyway).
+ *
+ * Thread safe.
+ */
+void httpd_reinit(void);
+
+/**
+ * Stop listening with the httpd server.
+ *
+ * This will shut down the listening socket, but leave the other connections (if any) intact.
+ *
+ * It can be re-enabled with @c httpd_reinit.
+ */
+void httpd_close(void);
 
 #if HTTPD_ENABLE_HTTPS
 struct altcp_tls_config;
 void httpd_inits(struct altcp_tls_config *conf);
 #endif
+
+/**
+ * Check if the request can perform privileged operations.
+ *
+ * Currently it checks if the HTTP request contains the right X-Api-Key header.
+ *
+ * @param req The request, in form of the pbuf.
+ * @return If it is allowed to proceed.
+ */
+bool authorize_request(const struct pbuf *req);
 
 #ifdef __cplusplus
 }

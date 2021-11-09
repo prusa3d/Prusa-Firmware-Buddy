@@ -30,9 +30,7 @@ const char *__evt_name[] = {
     "Message",
     "Warning",
     "Reheat",
-    "DialogOpen",
-    "DialogClose",
-    "DialogChange",
+    "DialogOpenCloseChange",
     "Acknowledge",
 };
 

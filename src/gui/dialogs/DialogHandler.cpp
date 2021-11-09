@@ -28,10 +28,11 @@ static void OpenPrintScreen(ClientFSM dialog) {
 
 //*****************************************************************************
 //method definitions
-void DialogHandler::open(ClientFSM dialog, uint8_t data) {
+void DialogHandler::open(fsm::create_t o) {
     if (ptr)
         return; //the dialog is already openned
 
+    const ClientFSM dialog = o.type.GetType();
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
     switch (dialog) {
@@ -46,11 +47,13 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
         }
         break;
     default:
-        ptr = dialog_ctors[size_t(dialog)](data);
+        ptr = dialog_ctors[size_t(dialog)](o.data);
     }
 }
 
-void DialogHandler::close(ClientFSM dialog) {
+void DialogHandler::close(fsm::destroy_t o) {
+    const ClientFSM dialog = o.type.GetType();
+
     if (waiting_closed == dialog) {
         waiting_closed = ClientFSM::_none;
     } else {
@@ -73,16 +76,9 @@ void DialogHandler::close(ClientFSM dialog) {
     ptr = nullptr; //destroy current dialog
 }
 
-void DialogHandler::change(ClientFSM /*dialog*/, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+void DialogHandler::change(fsm::change_t o) {
     if (ptr)
-        ptr->Change(phase, progress_tot, progress);
-}
-
-void DialogHandler::wait_until_closed(ClientFSM dialog, uint8_t data) {
-    open(dialog, data);
-    waiting_closed = dialog;
-    while (waiting_closed == dialog)
-        gui_loop();
+        ptr->Change(o.data);
 }
 
 //*****************************************************************************
@@ -92,15 +88,53 @@ DialogHandler &DialogHandler::Access() {
     return ret;
 }
 
-void DialogHandler::Open(ClientFSM dialog, uint8_t data) {
-    Access().open(dialog, data);
+void DialogHandler::Command(uint32_t u32, uint16_t u16) {
+    fsm::variant_t variant(u32, u16);
+
+    // not sure about buffering ClientFSM_Command::change, it could work without it
+    // but it is buffered too to be simpler
+    Access().command_queue.Push(variant);
 }
-void DialogHandler::Close(ClientFSM dialog) {
-    Access().close(dialog);
+
+void DialogHandler::command(fsm::variant_t variant) {
+    switch (variant.GetCommand()) {
+    case ClientFSM_Command::create:
+        open(variant.create);
+        break;
+    case ClientFSM_Command::destroy:
+        close(variant.destroy);
+        break;
+    case ClientFSM_Command::change:
+        change(variant.change);
+        break;
+    default:
+        break;
+    }
 }
-void DialogHandler::Change(ClientFSM dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    Access().change(dialog, phase, progress_tot, progress);
-}
+
 void DialogHandler::WaitUntilClosed(ClientFSM dialog, uint8_t data) {
-    Access().wait_until_closed(dialog, data);
+    PreOpen(dialog, data);
+    waiting_closed = dialog;
+    while (waiting_closed == dialog) {
+        gui::TickLoop();
+        Loop();
+        gui_loop();
+    }
+}
+
+void DialogHandler::PreOpen(ClientFSM dialog, uint8_t data) {
+    const fsm::variant_t var(fsm::create_t(dialog, data));
+    Command(var.u32, var.u16);
+}
+
+void DialogHandler::Loop() {
+    fsm::variant_t variant = command_queue.Front();
+
+    // execute all commands - fewer redraws
+    while (variant.GetCommand() != ClientFSM_Command::none) {
+        command(variant);
+        command_queue.Pop(); //erase item from queue
+
+        variant = command_queue.Front();
+    }
 }

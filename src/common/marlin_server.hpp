@@ -3,22 +3,24 @@
 
 #include "marlin_server.h"
 #include "client_response.hpp"
+#include "fsm_types.hpp"
+#include "fsm_progress_type.hpp"
 
 /*****************************************************************************/
 //C++ only features
 
 //todo ensure signature match
-//notify all clients to create finit statemachine, must match fsm_create_t signature
+//notify all clients to create finit statemachine
 void fsm_create(ClientFSM type, uint8_t data = 0);
 //notify all clients to destroy finit statemachine, must match fsm_destroy_t signature
 void fsm_destroy(ClientFSM type);
 //notify all clients to change state of finit statemachine, must match fsm_change_t signature
 //can be called inside while, notification is send only when is different from previous one
-void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
+void _fsm_change(ClientFSM type, fsm::BaseData data);
 
 template <class T>
-void fsm_change(ClientFSM type, T phase, uint8_t progress_tot, uint8_t progress) {
-    _fsm_change(type, GetPhaseIndex(phase), progress_tot, progress);
+void fsm_change(ClientFSM type, T phase, fsm::PhaseData data) {
+    _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), data));
 }
 
 //inherited class for server side to be able to work with server_side_encoded_response
@@ -136,8 +138,9 @@ public:
     }
 
     template <class T>
-    void Change(T phase, uint8_t progress_tot, uint8_t progress) const {
-        fsm_change(dialog, phase, progress_tot, progress);
+    void Change(T phase, uint8_t progress) const {
+        ProgressSerializer serializer(progress);
+        fsm_change(dialog, phase, serializer.Serialize());
     }
 
     ~FSM_Holder() {

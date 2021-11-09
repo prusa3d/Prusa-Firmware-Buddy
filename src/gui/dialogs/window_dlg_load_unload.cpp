@@ -1,59 +1,31 @@
-// window_dlg_load_unload.cpp
+/**
+ * @file window_dlg_load_unload.cpp
+ * @author Radek Vana
+ * @date 2021-01-24
+ */
 
-#include "window_dlg_load_unload.h"
+#include "window_dlg_load_unload.hpp"
 #include "marlin_client.h"
-#include "window_dlg_preheat.hpp"
-#include "filament.h"
+#include "gui.hpp" // gui_loop
 #include "DialogHandler.hpp"
-#include "i18n.h"
 
-dlg_result_t gui_dlg_load(void) {
-    //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    FILAMENT_t filament = gui_dlg_preheat(string_view_utf8::MakeNULLSTR());
-    if (filament == FILAMENT_NONE) {
-        return DLG_ABORTED;
+namespace PreheatStatus {
+
+void Dialog(PreheatMode mode, RetAndCool_t retAndCool) {
+    const PreheatData preheatData(mode, retAndCool);
+    marlin_gcode_printf("M1400 S%d", preheatData.Data());
+}
+
+Result DialogBlocking(PreheatMode mode, RetAndCool_t retAndCool) {
+    PreheatStatus::ConsumeResult(); // clear result
+    Dialog(mode, retAndCool);
+    PreheatStatus::Result ret;
+    while ((ret = PreheatStatus::ConsumeResult()) == PreheatStatus::Result::DidNotFinish) {
+        gui::TickLoop();
+        DialogHandler::Access().Loop(); // fsm events .. to be able to change state
+        gui_loop();
     }
-    marlin_gcode_printf("M701 S\"%s\"", filaments[filament].name);
-    DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load));
-    return DLG_OK;
+    return ret;
 }
 
-dlg_result_t gui_dlg_purge(void) {
-    //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    FILAMENT_t filament = gui_dlg_preheat_autoselect_if_able(string_view_utf8::MakeNULLSTR());
-    if (filament == FILAMENT_NONE)
-        return DLG_ABORTED;
-
-    marlin_gcode("M701 L0");
-    DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Purge));
-    return DLG_OK;
-}
-
-dlg_result_t gui_dlg_load_forced(void) {
-    //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    FILAMENT_t filament = gui_dlg_preheat_forced(_("PREHEAT for LOAD"));
-    if (filament == FILAMENT_NONE) {
-        return DLG_ABORTED; //DLG_ABORTED should not happen
-    }
-    marlin_gcode_printf("M701 S\"%s\"", filaments[filament].name);
-    DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load));
-    return DLG_OK;
-}
-
-dlg_result_t gui_dlg_unload(void) {
-    //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    if (gui_dlg_preheat_autoselect_if_able(string_view_utf8::MakeNULLSTR()) == FILAMENT_NONE)
-        return DLG_ABORTED; //user can choose "RETURN"
-    marlin_gcode("M702");
-    DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload));
-    return DLG_OK;
-}
-
-dlg_result_t gui_dlg_unload_forced(void) {
-    //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    if (gui_dlg_preheat_autoselect_if_able_forced(_("PREHEAT for UNLOAD")) == FILAMENT_NONE)
-        return DLG_ABORTED; //LD_ABORTED should not happen
-    marlin_gcode("M702");
-    DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload));
-    return DLG_OK;
 }

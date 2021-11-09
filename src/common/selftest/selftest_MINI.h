@@ -2,8 +2,8 @@
 #pragma once
 
 #include <inttypes.h>
-#include "ff.h"
 #include "eeprom.h"
+#include <stdio.h>
 
 #define SELFTEST_MAX_LOG_PRINTF 128
 #define SELFTEST_LOOP_PERIODE   50
@@ -14,10 +14,11 @@ class CSelftestPart_Fan;
 class CSelftestPart_Axis;
 class CSelftestPart_Heater;
 class FSM_Holder;
+class CFanCtl;
 
-typedef struct _selftest_fan_config_t selftest_fan_config_t;
-typedef struct _selftest_axis_config_t selftest_axis_config_t;
-typedef struct _selftest_heater_config_t selftest_heater_config_t;
+struct selftest_fan_config_t;
+struct selftest_axis_config_t;
+struct selftest_heater_config_t;
 
 typedef enum {
     stsIdle,
@@ -82,10 +83,10 @@ public:
 
 protected:
     void phaseStart();
-    bool phaseFans(const selftest_fan_config_t *pconfig_fan0, const selftest_fan_config_t *pconfig_fan1);
+    bool phaseFans(const selftest_fan_config_t &config_fan0, const selftest_fan_config_t &config_fan1);
     bool phaseHome();
-    bool phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase, uint8_t progress_add, uint8_t progress_mul);
-    bool phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, const selftest_heater_config_t *pconfig_bed);
+    bool phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPart_Axis **ppaxis);
+    bool phaseHeaters(const selftest_heater_config_t &config_nozzle, const selftest_heater_config_t &config_bed, CFanCtl &fan0, CFanCtl &fan1);
     void phaseFinish();
     bool phaseWait();
 
@@ -108,7 +109,7 @@ protected:
     CSelftestPart_Heater *m_pHeater_Nozzle;
     CSelftestPart_Heater *m_pHeater_Bed;
     FSM_Holder *m_pFSM;
-    FIL m_fil;
+    int m_fd;
     bool m_filIsValid;
     SelftestHomeState_t m_HomeState;
 };
@@ -134,7 +135,7 @@ public:
     virtual bool Abort() = 0;
 
 public:
-    float GetProgress() const;
+    virtual float GetProgress();
     TestResult_t GetResult() const { return m_Result; };
 
 protected:

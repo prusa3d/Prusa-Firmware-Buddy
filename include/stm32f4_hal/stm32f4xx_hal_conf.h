@@ -68,7 +68,7 @@ extern "C" {
     /* #define HAL_I2S_MODULE_ENABLED   */
     #define HAL_IWDG_MODULE_ENABLED
     /* #define HAL_LTDC_MODULE_ENABLED   */
-    /* #define HAL_RNG_MODULE_ENABLED   */
+    #define HAL_RNG_MODULE_ENABLED
     #define HAL_RTC_MODULE_ENABLED
     /* #define HAL_SAI_MODULE_ENABLED   */
     /* #define HAL_SD_MODULE_ENABLED   */
@@ -197,7 +197,7 @@ extern "C" {
     /* PHY Configuration delay */
     #define PHY_CONFIG_DELAY ((uint32_t)0x00000FFFU)
 
-    #define PHY_READ_TO  ((uint32_t)0x0000FFFFU)
+    #define PHY_READ_TO  ((uint32_t)0x0000001FU)
     #define PHY_WRITE_TO ((uint32_t)0x0000FFFFU)
 
 /* Section 3: Common PHY Registers */

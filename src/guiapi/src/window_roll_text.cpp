@@ -11,11 +11,17 @@
 #include "display.h"
 
 void window_roll_text_t::unconditionalDraw() {
-
-    roll.RenderTextAlign(rect, text, font,
-        (IsFocused()) ? color_text : color_back,
-        (IsFocused()) ? color_back : color_text,
-        padding, GetAlignment());
+    if (flags.color_scheme_background || flags.color_scheme_foreground) {
+        //TODO keep only folowing 3 lines in function body, remove rest
+        super::unconditionalDraw();
+        roll.RenderTextAlign(GetRect(), text, font,
+            GetBackColor(), GetTextColor(), padding, GetAlignment());
+    } else {
+        roll.RenderTextAlign(GetRect(), text, font,
+            (IsFocused()) ? GetTextColor() : GetBackColor(),
+            (IsFocused()) ? GetBackColor() : GetTextColor(),
+            padding, GetAlignment());
+    }
 }
 
 void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -27,8 +33,9 @@ void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     }
 }
 
-window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt)
+window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt, Align_t align)
     : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt) {
+    this->SetAlignment(align);
     rollInit();
 }
 

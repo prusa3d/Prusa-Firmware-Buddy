@@ -4,13 +4,14 @@ target_sources(
   WUI
   INTERFACE wui.c
             wui_REST_api.c
-            http/altcp_proxyconnect.c
+            netdev.c
+            alsockets.c
+            wui_api.c
             http/fs.c
             http/httpd.c
-            http/httpd_parser.c
-            lwip.c
+            http/httpd_post.c
+            http/multipart_parser.c
             ethernetif.c
-            netif_settings.c
             sntp/sntp_client.c
             sntp/sntp.c
   )

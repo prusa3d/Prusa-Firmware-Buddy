@@ -6,6 +6,8 @@
 #include "screen_test.hpp"
 #include "screen_messages.hpp"
 #include "marlin_client.h"
+#include "translation_provider_FILE.hpp"
+#include "translator.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -25,6 +27,15 @@ MI_SENSOR_INFO::MI_SENSOR_INFO()
 
 void MI_SENSOR_INFO::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenMenuSensorInfo);
+}
+
+/*****************************************************************************/
+MI_ODOMETER::MI_ODOMETER()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_ODOMETER::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuOdometer);
 }
 
 /*****************************************************************************/
@@ -116,6 +127,16 @@ void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+//MI_ESp_UPDATE
+MI_ESP_UPDATE::MI_ESP_UPDATE()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_ESP_UPDATE::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuESPUpdate);
+}
+
+/*****************************************************************************/
 //MI_LAN_SETTINGS
 MI_LAN_SETTINGS::MI_LAN_SETTINGS()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
@@ -187,15 +208,89 @@ void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_QR_PRIVACY
-MI_QR_PRIVACY::MI_QR_PRIVACY()
-    : WI_SWITCH_OFF_ON_t(variant_get_ui8(eeprom_get_var(EEVAR_QR_PRIVACY)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
-void MI_QR_PRIVACY::OnChange(size_t old_index) {
+//MI_DEVHASH_IN_QR
+MI_DEVHASH_IN_QR::MI_DEVHASH_IN_QR()
+    : WI_SWITCH_OFF_ON_t(variant8_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
     if (!old_index) {
         /// enable
-        eeprom_set_var(EEVAR_QR_PRIVACY, variant8_ui8(1));
+        eeprom_set_var(EEVAR_DEVHASH_IN_QR, variant8_ui8(1));
     } else {
         /// disable
-        eeprom_set_var(EEVAR_QR_PRIVACY, variant8_ui8(0));
+        eeprom_set_var(EEVAR_DEVHASH_IN_QR, variant8_ui8(0));
     }
+}
+
+/*****************************************************************************/
+//MI_FOOTER_SETTINGS
+MI_FOOTER_SETTINGS::MI_FOOTER_SETTINGS()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_FOOTER_SETTINGS::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuFooterSettings);
+}
+
+MI_LANGUAGUE_USB::MI_LANGUAGUE_USB()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_LANGUAGUE_USB::click(IWindowMenu &windowMenu) {
+    if (fileProviderUSB.EnsureFile())
+        Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderUSB);
+}
+
+MI_LOAD_LANG::MI_LOAD_LANG()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_LOAD_LANG::click(IWindowMenu &windowMenu) {
+    const uint8_t buffLen = 16;
+
+    uint8_t buff[buffLen];
+
+    FILE *srcDir = fopen("/usb/lang/ts.mo", "rb");
+    FILE *dstDir = fopen("/internal/ts.mo", "wb");
+    //copy languague from usb to xflash
+    if (dstDir && srcDir) {
+        for (size_t readBytes = fread(buff, 1, buffLen, srcDir); readBytes != 0; readBytes = fread(buff, 1, buffLen, srcDir)) {
+            fwrite(buff, 1, readBytes, dstDir);
+        }
+    }
+    fclose(dstDir);
+    fclose(srcDir);
+}
+MI_LANGUAGUE_XFLASH::MI_LANGUAGUE_XFLASH()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_LANGUAGUE_XFLASH::click(IWindowMenu &windowMenu) {
+    if (fileProviderInternal.EnsureFile())
+        Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderInternal);
+}
+
+/*****************************************************************************/
+//MI_PRUSALINK
+MI_PRUSALINK::MI_PRUSALINK()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_PRUSALINK::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenPrusaLink);
+}
+
+//MI_EXPERIMENTAL_SETTINGS
+MI_EXPERIMENTAL_SETTINGS::MI_EXPERIMENTAL_SETTINGS()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_EXPERIMENTAL_SETTINGS::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuExperimentalSettings);
+}
+
+/**********************************************************************************************/
+// MI_EEPROM_DIAGNOSTICS
+MI_EEPROM_DIAGNOSTICS::MI_EEPROM_DIAGNOSTICS()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+}
+
+void MI_EEPROM_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuEepromDiagnostics);
 }

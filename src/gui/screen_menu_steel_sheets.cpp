@@ -81,7 +81,7 @@ protected:
     }
 };
 
-using SheetProfileMenuScreen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SHEET_SELECT, MI_SHEET_CALIBRATE,
+using SheetProfileMenuScreen = ScreenMenu<EFooter::On, MI_RETURN, MI_SHEET_SELECT, MI_SHEET_CALIBRATE,
 #if _DEBUG //todo remove #if _DEBUG after rename is finished
     MI_SHEET_RENAME,
 #endif // _DEBUG
@@ -127,7 +127,7 @@ protected:
         case profile_action::Calibrate:
             _dbg("MI_SHEET_CALIBRATE");
             sheet_calibrate(Index::value);
-            ScreenWizard::RunFirstLay();
+            ScreenWizard::Run(wizard_run_type_t::firstlay);
             break;
         case profile_action::Rename:
             _dbg("MI_SHEET_RENAME");
@@ -164,7 +164,7 @@ protected:
     }
 };
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN
+using Screen = ScreenMenu<EFooter::On, MI_RETURN
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     ,
     profile_record_t<sheet_index_0>, profile_record_t<sheet_index_1>, profile_record_t<sheet_index_2>, profile_record_t<sheet_index_3>, profile_record_t<sheet_index_4>, profile_record_t<sheet_index_5>, profile_record_t<sheet_index_6>, profile_record_t<sheet_index_7>

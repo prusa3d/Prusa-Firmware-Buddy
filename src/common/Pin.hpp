@@ -11,33 +11,6 @@
 /**
  * @name Macros manipulating PIN_TABLE macro
  *
- * Define @p PIN_TABLE macro containing all physical pins used in project.
- * When defining @p PIN_TABLE use @p COMMA macro to separate parameters inside sections PORTPIN and PARAMETERS,
- * use ordinary comma (,) to separate sections (TYPE, NAME, PORTPIN, PARAMETERS).
- * @par Sections:
- * @n @p TYPE pin type e.g. InputPin, OutputPin, OutputInputPin, ...
- * @n @p NAME Name used to access pin. E.g. fastBoot, later accessed as e.g. fastboot.read()
- * @n @p PORTPIN Physical location of pin. E.g. IoPort::C COMMA IoPin::p7 or BUDDY_PIN(E0_DIR) for pin defined for MARLIN earlier.
- * @n @p PARAMETERS Parameters passed to pin constructor. Number and type of parameters varies between Pins @p TYPE
- *
- * @par Example usage:
- * @code
- * #define PIN_TABLE(F) \
- *      F(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), InitState::reset COMMA OMode::pushPull COMMA OSpeed::low) \
- *      F(buddy::hw::InputPin, fastBoot, IoPort::C COMMA IoPin::p7, IMode::input COMMA Pull::up)
- *
- * namespace buddy::hw {
- * DECLARE_PINS(PIN_TABLE)
- * }
- *
- * CONFIGURE_PINS(PIN_TABLE)
- *
- * constexpr PinChecker pinsToCheck[] = {
- *   PINS_TO_CHECK(PIN_TABLE)
- * };
- *
- * @endcode
- *
  * @{
  */
 /**
@@ -157,7 +130,7 @@ public:
 enum class IMode {
     input = GPIO_MODE_INPUT,
     IT_rising = GPIO_MODE_IT_RISING,
-    IT_faling = GPIO_MODE_IT_FALLING,
+    IT_falling = GPIO_MODE_IT_FALLING,
 };
 
 enum class Pull : uint8_t {
@@ -186,9 +159,24 @@ public:
 private:
     void configure(Pull pull) const;
 
-public:
+protected:
     IMode m_mode;
     Pull m_pull;
+};
+
+/**
+ * InterruptPin exposes hal pin/IRQ numbers necessary for interrupt configuration and efficient
+ * dispatch. It doesn't attempt to do any interrupt configuration by itself (yet).
+ */
+class InterruptPin : public InputPin {
+public:
+    constexpr InterruptPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, IRQn_Type IRQn)
+        : InputPin(ioPort, ioPin, iMode, pull)
+        , m_halIRQn(IRQn) {}
+
+public:
+    using InputPin::m_halPin;
+    const IRQn_Type m_halIRQn;
 };
 
 enum class OMode : uint8_t {
@@ -288,4 +276,5 @@ public:
 private:
     const OutputInputPin &m_outputInputPin;
 };
+
 } // namespace buddy::hw

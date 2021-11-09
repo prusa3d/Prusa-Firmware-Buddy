@@ -1,6 +1,7 @@
 #include "metric.h"
 #include "cmsis_os.h"
 #include "dbg.h"
+#include "timing.h"
 #include "stm32f4xx_hal.h"
 #include <stdarg.h>
 #include <stdbool.h>
@@ -69,13 +70,13 @@ static void metric_system_task_run() {
 
 static bool check_min_interval(metric_t *metric) {
     if (metric->min_interval_ms)
-        return (HAL_GetTick() - metric->_last_update_timestamp) >= metric->min_interval_ms;
+        return ticks_diff(ticks_ms(), metric->_last_update_timestamp) >= (int32_t)metric->min_interval_ms;
     else
         return true;
 }
 
 static void update_min_interval(metric_t *metric) {
-    metric->_last_update_timestamp = HAL_GetTick();
+    metric->_last_update_timestamp = ticks_ms();
 }
 
 static metric_point_t *point_check_and_prepare(metric_t *metric, metric_value_type_t type) {
@@ -99,7 +100,7 @@ static metric_point_t *point_check_and_prepare(metric_t *metric, metric_value_ty
     }
     point->metric = metric;
     point->error = false;
-    point->timestamp = HAL_GetTick();
+    point->timestamp = ticks_ms();
     return point;
 }
 

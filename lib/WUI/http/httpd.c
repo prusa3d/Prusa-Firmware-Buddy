@@ -95,7 +95,6 @@
 #include "lwip/apps/fs.h"
 #include "httpd_structs.h"
 #include "lwip/def.h"
-#include "lwip.h"
 
 #include "lwip/altcp.h"
 #include "lwip/altcp_tcp.h"
@@ -112,24 +111,26 @@
 #include <string.h> /* memset */
 #include <stdlib.h> /* atoi */
 #include <stdio.h>
-#include "stdbool.h"
+#include <stdbool.h>
+#include <FreeRTOS.h>
+#include <semphr.h>
 
 /*******   Customization ***************************************/
 #include "wui_REST_api.h"
-#include "marlin_client.h"
-#include "httpd_parser.h"
+#include "wui_api.h"
 #include "wui.h"
+#include <netdev.h>
+
 #include "dbg.h"
 #define WUI_API_ROOT_STR_LEN 5
 
-#define POST_REQUEST_BUFFSIZE  1500
+#define POST_REQUEST_BUFFSIZE  600
 #define RESPONSE_BODY_SIZE     512
 #define MAX_MARLIN_REQUEST_LEN 100
 #define POST_URL_STR_MAX_LEN   50
 
-static char request_buf[POST_REQUEST_BUFFSIZE];
 static char response_body_buf[RESPONSE_BODY_SIZE];
-static httpd_post_status_t post_status;
+
 /***************************************************************/
 
 #if LWIP_TCP && LWIP_CALLBACK_API
@@ -354,112 +355,6 @@ const struct http_ssi_tag_description http_ssi_tag_desc[] = {
 };
 
     #endif /* LWIP_HTTPD_SSI */
-
-    //------------------------------OUR-CODE---------------------------
-    #if LWIP_HTTPD_SUPPORT_POST
-err_t httpd_post_begin(void *connection, const char *uri, const char *http_request,
-    u16_t http_request_len, int content_len, char *response_uri,
-    u16_t response_uri_len, u8_t *post_auto_wnd) {
-
-    LWIP_UNUSED_ARG(post_auto_wnd); // default is 1 (httpd handles window updates automatically)
-
-    struct http_state *hs = (struct http_state *)connection;
-
-    _dbg("HTTP post begin");
-    _dbg("http_request_len: %d", http_request_len);
-    _dbg("content length: %d", content_len);
-    memset(request_buf, 0, POST_REQUEST_BUFFSIZE); // reset receive buffer
-    post_status.post_data_len = content_len;
-    post_status.post_type = POST_UNKNOWN;
-    post_status.post_vald = false;
-    post_status.bytes_copied = 0;
-
-    if (hs != NULL) {
-        if (!memcmp(uri, "/api/g-code", 11)) {
-            post_status.post_type = POST_API_GCODE;
-        } else if (!memcmp(uri, "/admin.html", 11)) {
-            post_status.post_type = POST_ADMIN;
-        } else if (!memcmp(uri, "/FileUpload", 11)) {
-            post_status.post_type = POST_FILE_UPLOAD;
-        }
-    }
-    // validate the post request
-    if (POST_UNKNOWN != post_status.post_type) {
-        if ((POST_REQUEST_BUFFSIZE > post_status.post_data_len) && (POST_FILE_UPLOAD != post_status.post_type)) {
-            post_status.post_vald = true;
-            return ERR_OK;
-        } else if (POST_FILE_UPLOAD == post_status.post_type) {
-            post_status.post_vald = true;
-            return ERR_OK;
-        }
-    }
-
-    // unsupported if reached here
-    snprintf(response_uri, 10, "POST404");
-    return ERR_VAL;
-}
-
-err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
-    err_enum_t ret_code = ERR_VAL;
-    struct http_state *hs = (struct http_state *)connection;
-
-    _dbg("packet");
-    if (hs != NULL && p != NULL) {
-        _dbg("receive data total length: %d", p->tot_len);
-        _dbg("receive data current pbuf length: %d", p->len);
-        if (NULL != p->payload) {
-            request_buf[0] = 0;
-            u16_t ret = pbuf_copy_partial(p, request_buf, p->len, 0);
-            post_status.bytes_copied = post_status.bytes_copied + ret;
-            if (p->len == ret) {
-                ret_code = ERR_OK;
-                post_status.post_vald = true;
-            } else {
-                ret_code = ERR_VAL;
-                post_status.post_vald = false;
-            }
-        }
-
-    } else {
-        post_status.post_vald = false;
-    }
-
-    if (p != NULL) {
-        pbuf_free(p);
-    }
-    return ret_code;
-}
-
-void httpd_post_finished(void *connection, char *response_uri,
-    u16_t response_uri_len) {
-    _dbg("post finished callback");
-    _dbg("received data length: %d", post_status.bytes_copied);
-    _dbg("response uri length: %d", response_uri_len);
-
-    if (true == post_status.post_vald) {
-        if (POST_FILE_UPLOAD == post_status.post_type) {
-            // ignored now
-        } else {
-            if ((post_status.bytes_copied == post_status.post_data_len) && (post_status.bytes_copied < POST_REQUEST_BUFFSIZE)) {
-                request_buf[post_status.bytes_copied] = 0; // end of line placed
-                if (httpd_json_parser(request_buf, strlen(request_buf))) {
-                    strlcpy(response_uri, "POST200", response_uri_len); // OK
-                } else {
-                    strlcpy(response_uri, "POST400", response_uri_len); // Bad Request
-                }
-                request_buf[0] = 0;
-
-            } else {
-                strlcpy(response_uri, "POST500", response_uri_len);
-            }
-        }
-    } else {
-        strlcpy(response_uri, "POST400", response_uri_len); // bad request
-    }
-}
-
-    //------------------------------------------------------------------------------------
-    #endif
 
     #if LWIP_HTTPD_CGI
 /* CGI handler information */
@@ -994,6 +889,16 @@ get_http_headers(struct http_state *hs, const char *uri) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK_11];
     } else if (strstr(uri, "500")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_500];
+    } else if (strstr(uri, "401")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_401];
+    } else if (strstr(uri, "304")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_304];
+    } else if (strstr(uri, "409")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_409];
+    } else if (strstr(uri, "415")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_415];
+    } else if (strstr(uri, "503")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_503];
     } else {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK];
     }
@@ -1886,7 +1791,7 @@ http_post_request(struct pbuf *inp, struct http_state *hs,
             /* search for "Content-Length: " */
         #define HTTP_HDR_CONTENT_LEN               "Content-Length: "
         #define HTTP_HDR_CONTENT_LEN_LEN           16
-        #define HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN 10
+        #define HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN 11
         char *scontent_len = lwip_strnstr(uri_end + 1, HTTP_HDR_CONTENT_LEN, crlfcrlf - (uri_end + 1));
         if (scontent_len != NULL) {
             char *scontent_len_end = lwip_strnstr(scontent_len + HTTP_HDR_CONTENT_LEN_LEN, CRLF, HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN);
@@ -2525,13 +2430,14 @@ http_accept(void *arg, struct altcp_pcb *pcb, err_t err) {
     return ERR_OK;
 }
 
-static void
-httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
+static struct altcp_pcb *httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
     err_t err;
 
     if (pcb) {
         altcp_setprio(pcb, HTTPD_TCP_PRIO);
-        /* set SOF_REUSEADDR here to explicitly bind httpd to multiple interfaces */
+        /* set SOF_REUSEADDR to explicitly bind httpd to multiple
+         * interfaces and to allow re-binding after enabling & disabling
+         * ethernet. This is set in the prusa_alloc. */
         err = altcp_bind(pcb, IP_ANY_TYPE, port);
         LWIP_UNUSED_ARG(err); /* in case of LWIP_NOASSERT */
         LWIP_ASSERT("httpd_init: tcp_bind failed", err == ERR_OK);
@@ -2539,14 +2445,26 @@ httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
         LWIP_ASSERT("httpd_init: tcp_listen failed", pcb != NULL);
         altcp_accept(pcb, http_accept);
     }
+
+    return pcb;
 }
+
+/**
+ * @ingroup httpd
+ * Current ALTCP PCB used by httpd for accepting incomming connections.
+ */
+static struct altcp_pcb *httpd_pcb = NULL;
+// Protection of the httpd_pcb
+static SemaphoreHandle_t httpd_pcb_mutex = NULL;
 
 /**
  * @ingroup httpd
  * Initialize the httpd: set up a listening PCB and bind it to the defined port
  */
 void httpd_init(void) {
-    struct altcp_pcb *pcb;
+    LWIP_ASSERT("httpd_init called multiple times", httpd_pcb_mutex == NULL);
+    httpd_pcb_mutex = xSemaphoreCreateMutex();
+    LWIP_ASSERT("Couldn't create mutex to protect http listening socket", httpd_pcb_mutex != NULL);
 
     #if HTTPD_USE_MEM_POOL
     LWIP_MEMPOOL_INIT(HTTPD_STATE);
@@ -2556,11 +2474,53 @@ void httpd_init(void) {
     #endif
     LWIP_DEBUGF(HTTPD_DEBUG, ("httpd_init\n"));
 
-    /* LWIP_ASSERT_CORE_LOCKED(); is checked by tcp_new() */
+    httpd_reinit();
+}
 
-    pcb = altcp_tcp_new_ip_type(IPADDR_TYPE_ANY);
-    LWIP_ASSERT("httpd_init: tcp_new failed", pcb != NULL);
-    httpd_init_pcb(pcb, HTTPD_SERVER_PORT);
+// The inner part of httpd_close. Assumes the mutex is already locked.
+static void httpd_close_locked() {
+    // According to docs, the close can fail in case there's not enough memory.
+    // That's likely because usual sockets still wait for some more data to
+    // arrive (?). Hopefully this is not the case for listening sockets.
+    //
+    // Using altcp_abort would be better in theory (as it just wipes it and
+    // can't fail), but:
+    // * It crashes on ethernet for no known reason.
+    // * It is not currently implemented in ESP.
+    err_t err = altcp_close(httpd_pcb);
+    LWIP_ASSERT("Couldn't close listening socket", err == ERR_OK);
+    httpd_pcb = NULL;
+}
+
+void httpd_close() {
+    xSemaphoreTake(httpd_pcb_mutex, portMAX_DELAY);
+
+    httpd_close_locked();
+
+    xSemaphoreGive(httpd_pcb_mutex);
+}
+
+void httpd_reinit() {
+    xSemaphoreTake(httpd_pcb_mutex, portMAX_DELAY);
+
+    if (httpd_pcb != NULL) {
+        httpd_close_locked();
+    }
+
+    if (netdev_get_active_id() != NETDEV_NODEV_ID) {
+        altcp_allocator_t allocator = {
+            .alloc = prusa_alloc,
+            .arg = NULL
+        };
+        /* LWIP_ASSERT_CORE_LOCKED(); is checked by tcp_new() */
+
+        httpd_pcb = altcp_new_ip_type(&allocator, IPADDR_TYPE_ANY);
+        LWIP_ASSERT("httpd_init: tcp_new failed", httpd_pcb != NULL);
+
+        httpd_pcb = httpd_init_pcb(httpd_pcb, HTTPD_SERVER_PORT);
+    }
+
+    xSemaphoreGive(httpd_pcb_mutex);
 }
 
     #if HTTPD_ENABLE_HTTPS
@@ -2629,9 +2589,9 @@ void http_set_cgi_handlers(const tCGI *cgis, int num_handlers) {
 
 static struct fs_file api_file; // for storing /api/* data
 
-static void wui_api_telemetry(struct fs_file *file) {
+static void wui_api_printer(struct fs_file *file) {
 
-    get_telemetry_for_local(response_body_buf, RESPONSE_BODY_SIZE);
+    get_printer(response_body_buf, RESPONSE_BODY_SIZE);
 
     uint16_t response_len = strlen(response_body_buf);
     file->len = response_len;
@@ -2641,21 +2601,62 @@ static void wui_api_telemetry(struct fs_file *file) {
     file->flags = 0; // no flags for fs_open
 }
 
-static struct fs_file *wui_api_main(const char *uri) {
+static void wui_api_job(struct fs_file *file) {
 
-    api_file.len = 0;
-    api_file.data = NULL;
-    api_file.index = 0;
-    api_file.pextension = NULL;
-    api_file.flags = 0; // no flags for fs_open
-    char *t_string = "/api/telemetry";
-    uint32_t t_string_len = strlen(t_string);
-    memset(response_body_buf, 0, RESPONSE_BODY_SIZE);
-    if (!strncmp(uri, t_string, t_string_len) && (strlen(uri) == t_string_len)) {
-        wui_api_telemetry(&api_file);
-        return &api_file;
+    get_job(response_body_buf, RESPONSE_BODY_SIZE);
+
+    uint16_t response_len = strlen(response_body_buf);
+    file->len = response_len;
+    file->data = response_body_buf;
+    file->index = response_len;
+    file->pextension = NULL;
+    file->flags = 0; // no flags for fs_open
+}
+
+static void wui_api_version(struct fs_file *file) {
+
+    get_version(response_body_buf, RESPONSE_BODY_SIZE);
+
+    uint16_t response_len = strlen(response_body_buf);
+    file->len = response_len;
+    file->data = response_body_buf;
+    file->index = response_len;
+    file->pextension = NULL;
+    file->flags = 0; // no flags for fs_open
+}
+
+static void wui_api_files(struct fs_file *file) {
+
+    get_files(response_body_buf, RESPONSE_BODY_SIZE);
+
+    uint16_t response_len = strlen(response_body_buf);
+    file->len = response_len;
+    file->data = response_body_buf;
+    file->index = response_len;
+    file->pextension = NULL;
+    file->flags = 0; // no flags for fs_open
+}
+
+bool authorize_request(const struct pbuf *req) {
+    const char *api_key_tag = CRLF "X-Api-Key:";
+    uint32_t api_key_tag_length = strlen(api_key_tag);
+    uint32_t index = pbuf_strstr(req, api_key_tag);
+
+    if (index == UINT16_MAX) {
+        return false;
+    } else {
+        const char *api_key = wui_get_api_key();
+        uint32_t token_length = strlen(api_key);
+        uint32_t token_start = index + api_key_tag_length + 1;
+        uint32_t token_end = token_start + token_length;
+        uint8_t at_end = pbuf_get_at(req, token_end); // Returns 0 if out of bounds.
+        // There's a termination after the token (eg. the user provided token is not longer than ours).
+        bool term_char = (at_end == ' ') || (at_end == '\n') || (at_end == '\r') || (at_end == '\0');
+        if (!term_char || (pbuf_memcmp(req, token_start, api_key, token_length) != 0)) {
+            return false;
+        }
     }
-    return NULL;
+    return true;
 }
 
 /** Try to find the file specified by uri and, if found, initialize hs
@@ -2670,13 +2671,13 @@ static struct fs_file *wui_api_main(const char *uri) {
  * Note! this is custom implementation!
  */
 static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
-    size_t loop;
     struct fs_file *file = NULL;
-    char *params = NULL;
-    err_t err;
 
-    /* By default, assume we will not be processing server-side-includes tags */
-    u8_t tag_check = 0;
+    api_file.len = 0;
+    api_file.data = NULL;
+    api_file.index = 0;
+    api_file.pextension = NULL;
+    api_file.flags = 0; // no flags for fs_open
 
     LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opening %s\n", uri));
 
@@ -2685,8 +2686,8 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
 
         /* Try each of the configured default filenames until we find one
        that exists. */
-        for (loop = 0; loop < NUM_DEFAULT_FILENAMES; loop++) {
-
+        for (uint32_t loop = 0; loop < NUM_DEFAULT_FILENAMES; loop++) {
+            err_t err;
             const char *file_name;
             file_name = httpd_default_filenames[loop].name;
 
@@ -2697,52 +2698,48 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
                 file = &hs->file_handle;
                 LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opened.\n"));
 
-                break;
+                goto process_file;
             }
         }
     }
 
-    /* check with the wui api */
-    if (file == NULL) {
-        if (0 == strncmp(uri, "/api/", WUI_API_ROOT_STR_LEN)) {
-            file = wui_api_main(uri);
-            if (NULL != file) {
-                strcat((char *)uri, ".json"); // http server adds header info (data type) based on the file extension
-            }
-        }
+    LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opening %s\n", uri));
+
+    /* No - we've been asked for a specific file. */
+    /* First, isolate the base URI (without any parameters) */
+    if (fs_open(&hs->file_handle, uri) == ERR_OK) {
+        file = &hs->file_handle;
+        goto process_file;
     }
 
-    if (file == NULL) {
-        /* No - we've been asked for a specific file. */
-        /* First, isolate the base URI (without any parameters) */
-        params = (char *)strchr(uri, '?');
-        if (params != NULL) {
-            /* URI contains parameters. NULL-terminate the base URI */
-            *params = '\0';
-            params++;
-        }
-
-        LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opening %s\n", uri));
-
-        err = fs_open(&hs->file_handle, uri);
-        if (err == ERR_OK) {
-            file = &hs->file_handle;
-        }
-    }
-
-    if (file == NULL) {
-        // check if this is for POST response
-        const char *post_prefix = "POST";
-    #define RESP_CODE_BUFF_LEN 4 // Buff len including null char
-        char post_response_code[RESP_CODE_BUFF_LEN];
-        if (0 == strncmp(uri, post_prefix, strnlen(post_prefix, RESP_CODE_BUFF_LEN))) { // POST response
-            strlcpy(post_response_code, uri + RESP_CODE_BUFF_LEN, RESP_CODE_BUFF_LEN);
+    if (!strcmp(uri, "/api/printer")) {
+        if (authorize_request(hs->req)) {
+            wui_api_printer(&api_file);
+            file = &api_file;
         } else {
-            strlcpy((char *)uri, "404", LWIP_HTTPD_URI_BUF_LEN); // really file not found
+            uri = "401";
         }
+    } else if (!strcmp(uri, "/api/version")) {
+        if (authorize_request(hs->req)) {
+            wui_api_version(&api_file);
+            file = &api_file;
+        } else {
+            uri = "401";
+        }
+    } else if (!strcmp(uri, "/api/job")) {
+        if (authorize_request(hs->req)) {
+            wui_api_job(&api_file);
+            file = &api_file;
+        } else {
+            uri = "401";
+        }
+    } else if (!strncmp(uri, "/api/files", 10)) {
+        wui_api_files(&api_file);
+        file = &api_file;
     }
 
-    return http_init_file(hs, file, is_09, uri, tag_check, params);
+process_file:
+    return http_init_file(hs, file, is_09, uri, 0, NULL);
 }
 
 #endif /* LWIP_TCP && LWIP_CALLBACK_API */

@@ -3,14 +3,15 @@
 #include <iostream>
 #include <assert.h>
 
+#include "ourPosix.hpp"
 #include "lazyfilelist.h"
-#include "fatfs.h"
 #include <string.h>
 
 // to be able to compile under Windows
 // In the POSIX locale, strcasecmp() and strncasecmp() shall behave as if the strings had been converted to
 // lowercase and then a byte comparison performed. The results are unspecified in other locales.
 // portable solution consider that round trips the letter (to upper then to lower) to cope with non 1-to-1 mappings:
+#ifndef _STRINGS_H
 extern "C" __attribute__((weak)) int strcasecmp(const char *a, const char *b) {
     int ca, cb;
     do {
@@ -21,6 +22,7 @@ extern "C" __attribute__((weak)) int strcasecmp(const char *a, const char *b) {
     } while (ca == cb && ca != '\0');
     return ca - cb;
 }
+#endif // _STRINGS_H
 
 using namespace std;
 
@@ -31,18 +33,20 @@ bool CheckFilesSeq(const LDV &ldv, std::vector<std::string> expectedSeq) {
         == std::make_pair(ldv.files.end(), expectedSeq.end());
 }
 
+static char txt_old[] = "old"; // cannot be const char
+
 TEST_CASE("LazyDirView::Entries test", "[LazyDirView]") {
     using LDV = LazyDirView<9>;
     {
-        LDV::Entry e = { false, "\xff\xff\xff\xff\xff", "", 0xffff, 0xffff };
-        LDV::Entry e1 = { false, "nold", "", 1, 1 };
-        FILINFO f = { 0, 1, 1, AM_DIR, "old", "old" };
+        LDV::Entry e = { false, "\xff\xff\xff\xff\xff", "", LONG_MAX };
+        LDV::Entry e1 = { false, "nold", "", 1 };
+        dirent f = { DT_DIR, "old", txt_old, 1 };
 
-        CHECK(LDV::LessByTimeEF(e, f));
-        CHECK(LDV::LessByTimeFE(f, e1));
+        CHECK(LDV::LessByTimeEF(e, &f));
+        CHECK(LDV::LessByTimeFE(&f, e1));
 
-        CHECK(!LDV::LessByFNameEF(e, f));
-        CHECK(!LDV::LessByFNameFE(f, e1));
+        CHECK(!LDV::LessByFNameEF(e, &f));
+        CHECK(!LDV::LessByFNameFE(&f, e1));
     }
 }
 
@@ -50,21 +54,21 @@ TEST_CASE("LazyDirView::SortByName test", "[LazyDirView]") {
     using LDV = LazyDirView<9>;
 
     testFiles0 = {
-        { "old", 2, 0, true },
-        { "fw", 3, 0, true },
-        { "png-decode", 1, 0, true },
-        { "01.g", 1, 0, false },
-        { "02.g", 1, 0, false },
-        { "03.g", 1, 0, false },
-        { "04.g", 1, 0, false },
-        { "05.g", 1, 0, false },
-        { "06.g", 1, 0, false },
-        { "07.g", 8, 0, false },
-        { "08.g", 7, 0, false },
-        { "09.g", 9, 0, false },
-        { "10.g", 10, 0, false },
-        { "11.g", 11, 0, false },
-        { "12.g", 10, 1, false }
+        { "old", UINT_LEAST64_MAX, true },
+        { "fw", 3, true },
+        { "png-decode", 1, true },
+        { "01.g", 1, false },
+        { "02.g", 1, false },
+        { "03.g", 1, false },
+        { "04.g", 1, false },
+        { "05.g", 1, false },
+        { "06.g", 1, false },
+        { "07.g", 8, false },
+        { "08.g", 7, false },
+        { "09.g", 9, false },
+        { "10.g", 10, false },
+        { "11.g", 11, false },
+        { "12.g", UINT_LEAST64_MAX, false }
     };
 
     for (size_t i = 0; i < 20; ++i) {
@@ -114,21 +118,21 @@ TEST_CASE("LazyDirView::SortByCrModDateTime test", "[LazyDirView]") {
     using LDV = LazyDirView<9>;
 
     testFiles0 = {
-        { "old", 1, 0, true },
-        { "fw", 2, 0, true },
-        { "png-decode", 3, 0, true },
-        { "01.g", 1, 0, false },
-        { "02.g", 1, 0, false },
-        { "03.g", 1, 0, false },
-        { "04.g", 1, 0, false },
-        { "05.g", 1, 0, false },
-        { "06.g", 1, 0, false },
-        { "07.g", 8, 0, false },
-        { "08.g", 7, 0, false },
-        { "09.g", 9, 0, false },
-        { "10.g", 10, 0, false },
-        { "11.g", 11, 0, false },
-        { "12.g", 10, 1, false }
+        { "old", 1, true },
+        { "fw", 2, true },
+        { "png-decode", UINT_LEAST64_MAX - 2, true },
+        { "01.g", 1, false },
+        { "02.g", 1, false },
+        { "03.g", 1, false },
+        { "04.g", 1, false },
+        { "05.g", 1, false },
+        { "06.g", 1, false },
+        { "07.g", 8, false },
+        { "08.g", 7, false },
+        { "09.g", 9, false },
+        { "10.g", 10, false },
+        { "11.g", 11, false },
+        { "12.g", 10, false }
     };
 
     for (size_t i = 0; i < 20; ++i) {
@@ -137,6 +141,7 @@ TEST_CASE("LazyDirView::SortByCrModDateTime test", "[LazyDirView]") {
         ldv.ChangeDirectory("path",
             LDV::SortPolicy::BY_CRMOD_DATETIME,
             nullptr);
+        CHECK(ldv.MoveUp() == false); // no more files
         CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
         CHECK(ldv.MoveDown());
         CHECK(CheckFilesSeq(ldv, { "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g" }));
@@ -173,6 +178,8 @@ TEST_CASE("LazyDirView::SortByCrModDateTime test", "[LazyDirView]") {
         CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
         CHECK(ldv.MoveUp() == false); // no more files
         CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv.MoveUp() == false); // no more files
+        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
     }
 }
 
@@ -180,21 +187,21 @@ TEST_CASE("LazyDirView::StartWithDir test", "[LazyDirView]") {
     using LDV = LazyDirView<9>;
 
     testFiles0 = {
-        { "old", 1, 0, true },
-        { "fw", 2, 0, true },
-        { "png-decode", 3, 0, true },
-        { "01.g", 1, 0, false },
-        { "02.g", 1, 0, false },
-        { "03.g", 1, 0, false },
-        { "04.g", 1, 0, false },
-        { "05.g", 1, 0, false },
-        { "06.g", 1, 0, false },
-        { "07.g", 8, 0, false },
-        { "08.g", 7, 0, false },
-        { "09.g", 9, 0, false },
-        { "10.g", 10, 0, false },
-        { "11.g", 11, 0, false },
-        { "12.g", 10, 1, false }
+        { "old", 1, true },
+        { "fw", 2, true },
+        { "png-decode", 3, true },
+        { "01.g", 1, false },
+        { "02.g", 1, false },
+        { "03.g", 1, false },
+        { "04.g", 1, false },
+        { "05.g", 1, false },
+        { "06.g", 1, false },
+        { "07.g", 8, false },
+        { "08.g", 7, false },
+        { "09.g", 9, false },
+        { "10.g", 10, false },
+        { "11.g", 11, false },
+        { "12.g", 10, false }
     };
 
     for (size_t i = 0; i < 20; ++i) {
@@ -231,6 +238,8 @@ TEST_CASE("LazyDirView::StartWithDir test", "[LazyDirView]") {
         CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
         CHECK(ldv.MoveUp() == false); // no more files
         CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv.MoveUp() == false); // no more files
+        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
     }
 }
 
@@ -238,23 +247,23 @@ TEST_CASE("LazyDirView::StartWithFile test", "[LazyDirView]") {
     using LDV = LazyDirView<9>;
 
     testFiles0 = {
-        { "old", 1, 0, true },
-        { "fw", 2, 0, true },
-        { "png-decode", 3, 0, true },
-        { "01.g", 1, 0, false },
-        { "02.g", 1, 0, false },
-        { "03.g", 1, 0, false },
-        { "04.g", 1, 0, false },
-        { "05.g", 1, 0, false },
-        { "06.g", 1, 0, false },
-        { "07.g", 8, 0, false },
-        { "08.g", 7, 0, false },
-        { "09.g", 9, 0, false },
-        { "10.g", 10, 0, false },
-        { "11.g", 11, 0, false },
-        { "12.g", 10, 1, false }
-    };
 
+        { "old", 1, true },
+        { "fw", 2, true },
+        { "png-decode", 3, true },
+        { "01.g", 1, false },
+        { "02.g", 1, false },
+        { "03.g", 1, false },
+        { "04.g", 1, false },
+        { "05.g", 1, false },
+        { "06.g", 1, false },
+        { "07.g", 8, false },
+        { "08.g", 7, false },
+        { "09.g", 9, false },
+        { "10.g", 10, false },
+        { "11.g", 11, false },
+        { "12.g", 10, false }
+    };
     for (size_t i = 0; i < 20; ++i) {
         std::random_shuffle(testFiles0.begin(), testFiles0.end());
         LDV ldv;
@@ -289,8 +298,8 @@ TEST_CASE("LazyDirView::StartWithFile2 test", "[LazyDirView]") {
     using LDV = LazyDirView<9>;
 
     testFiles0 = {
-        { "3", 1, 0, true },
-        { "tr.g", 2, 0, false },
+        { "3", 1, true },
+        { "tr.g", 2, false },
     };
 
     LDV ldv;
@@ -315,8 +324,8 @@ TEST_CASE("LazyDirView::ExtremelyLongFileName test", "[LazyDirView][!shouldfail]
     char truncatedLFN[FF_LFN_BUF + 1];
     strlcpy(truncatedLFN, extremeLFN, sizeof(truncatedLFN)); // prepare the truncated string
     testFiles0 = {
-        { "3", 1, 0, true },
-        { extremeLFN, 2, 0, false },
+        { "3", 1, true },
+        { extremeLFN, 2, false },
     };
 
     LDV ldv;

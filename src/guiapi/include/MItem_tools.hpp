@@ -3,7 +3,8 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
-#include "filament.h"
+#include "filament.hpp"
+#include "WindowItemFormatableLabel.hpp"
 
 class MI_WIZARD : public WI_LABEL_t {
     static constexpr const char *const label = N_("Wizard");
@@ -50,6 +51,16 @@ class MI_SELFTEST : public WI_LABEL_t {
 
 public:
     MI_SELFTEST();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_SELFTEST_RESULT : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Show SelfTest result");
+
+public:
+    MI_SELFTEST_RESULT();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -332,7 +343,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_SOUND_VOLUME : public WI_SPIN_U08_t {
+class MI_SOUND_VOLUME : public WiSpinInt {
     constexpr static const char *const label = N_("Sound Volume");
 
 public:
@@ -341,7 +352,7 @@ public:
     /* virtual void Change() override; */
 };
 
-class MI_TIMEZONE : public WI_SPIN_I08_t {
+class MI_TIMEZONE : public WiSpinInt {
     constexpr static const char *const label = "TZ UTC(+/-)"; // intentionally not translated
 
 public:
@@ -355,14 +366,14 @@ public:
         : WI_LABEL_t(long_name, 0, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
-    void click_at(FILAMENT_t filament_index);
+    void click_at(filament_t filament_index);
 };
 
-template <FILAMENT_t T>
+template <filament_t T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[T].long_name)) {}
+        : I_MI_Filament(_(Filaments::Get(T).long_name)) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
@@ -388,4 +399,55 @@ public:
     MI_MINDA();
     bool StateChanged();
     virtual void OnChange(size_t old_index) override {}
+};
+
+class MI_FAN_CHECK : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Fan check");
+
+public:
+    MI_FAN_CHECK();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_FS_AUTOLOAD : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("FS autoload");
+
+public:
+    MI_FS_AUTOLOAD();
+    virtual void OnChange(size_t old_index) override;
+};
+class MI_ODOMETER_DIST : public WI_FORMATABLE_LABEL_t<float> {
+public:
+    MI_ODOMETER_DIST(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
+};
+
+class MI_ODOMETER_DIST_X : public MI_ODOMETER_DIST {
+    constexpr static const char *const label = N_("X axis");
+
+public:
+    MI_ODOMETER_DIST_X();
+};
+class MI_ODOMETER_DIST_Y : public MI_ODOMETER_DIST {
+    constexpr static const char *const label = N_("Y axis");
+
+public:
+    MI_ODOMETER_DIST_Y();
+};
+class MI_ODOMETER_DIST_Z : public MI_ODOMETER_DIST {
+    constexpr static const char *const label = N_("Z axis");
+
+public:
+    MI_ODOMETER_DIST_Z();
+};
+class MI_ODOMETER_DIST_E : public MI_ODOMETER_DIST {
+    constexpr static const char *const label = N_("Filament");
+
+public:
+    MI_ODOMETER_DIST_E();
+};
+class MI_ODOMETER_TIME : public WI_FORMATABLE_LABEL_t<uint32_t> {
+    constexpr static const char *const label = N_("Print time");
+
+public:
+    MI_ODOMETER_TIME();
 };

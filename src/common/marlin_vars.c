@@ -39,6 +39,12 @@ const char *__var_name[] = {
     "TIMTOEND",
     "FAN0_RPM",
     "FAN1_RPM",
+    "FAN_CHECK_ENABLED",
+    "FS_AUTOLOAD_ENABLED",
+    "CURR_POS_X",
+    "CURR_POS_Y",
+    "CURR_POS_Z",
+    "CURR_POS_E"
 };
 
 static_assert((sizeof(__var_name) / sizeof(char *)) == (MARLIN_VAR_MAX + 1), "Invalid number of elements in __var_name");
@@ -125,6 +131,18 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
         return variant8_ui16(vars->fan0_rpm);
     case MARLIN_VAR_FAN1_RPM:
         return variant8_ui16(vars->fan1_rpm);
+    case MARLIN_VAR_FAN_CHECK_ENABLED:
+        return variant8_ui8(vars->fan_check_enabled);
+    case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
+        return variant8_ui8(vars->fs_autoload_enabled);
+    case MARLIN_VAR_CURR_POS_X:
+        return variant8_flt(vars->curr_pos[0]);
+    case MARLIN_VAR_CURR_POS_Y:
+        return variant8_flt(vars->curr_pos[1]);
+    case MARLIN_VAR_CURR_POS_Z:
+        return variant8_flt(vars->curr_pos[2]);
+    case MARLIN_VAR_CURR_POS_E:
+        return variant8_flt(vars->curr_pos[3]);
     }
     return variant8_empty();
 }
@@ -135,13 +153,13 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
 
     switch (var_id) {
     case MARLIN_VAR_MOTION:
-        vars->motion = variant_get_ui8(var);
+        vars->motion = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_GQUEUE:
-        vars->gqueue = variant_get_ui8(var);
+        vars->gqueue = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_PQUEUE:
-        vars->pqueue = variant_get_ui8(var);
+        vars->pqueue = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_IPOS_X:
         vars->ipos[0] = variant8_get_i32(var);
@@ -167,6 +185,18 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
     case MARLIN_VAR_POS_E:
         vars->pos[3] = variant8_get_flt(var);
         break;
+    case MARLIN_VAR_CURR_POS_X:
+        vars->curr_pos[0] = variant8_get_flt(var);
+        break;
+    case MARLIN_VAR_CURR_POS_Y:
+        vars->curr_pos[1] = variant8_get_flt(var);
+        break;
+    case MARLIN_VAR_CURR_POS_Z:
+        vars->curr_pos[2] = variant8_get_flt(var);
+        break;
+    case MARLIN_VAR_CURR_POS_E:
+        vars->curr_pos[3] = variant8_get_flt(var);
+        break;
     case MARLIN_VAR_TEMP_NOZ:
         vars->temp_nozzle = variant8_get_flt(var);
         break;
@@ -183,34 +213,34 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         vars->z_offset = variant8_get_flt(var);
         break;
     case MARLIN_VAR_FANSPEED:
-        vars->fan_speed = variant_get_ui8(var);
+        vars->fan_speed = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_PRNSPEED:
-        vars->print_speed = variant_get_ui16(var);
+        vars->print_speed = variant8_get_ui16(var);
         break;
     case MARLIN_VAR_FLOWFACT:
-        vars->flow_factor = variant_get_ui16(var);
+        vars->flow_factor = variant8_get_ui16(var);
         break;
     case MARLIN_VAR_WAITHEAT:
-        vars->wait_heat = variant_get_ui8(var);
+        vars->wait_heat = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_WAITUSER:
-        vars->wait_user = variant_get_ui8(var);
+        vars->wait_user = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_SD_PRINT:
-        vars->sd_printing = variant_get_ui8(var);
+        vars->sd_printing = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_SD_PDONE:
-        vars->sd_percent_done = variant_get_ui8(var);
+        vars->sd_percent_done = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_DURATION:
         vars->print_duration = variant8_get_ui32(var);
         break;
     case MARLIN_VAR_MEDIAINS:
-        vars->media_inserted = variant_get_ui8(var);
+        vars->media_inserted = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_PRNSTATE:
-        vars->print_state = variant_get_ui8(var);
+        vars->print_state = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_FILENAME:
         if (vars->media_LFN)
@@ -235,10 +265,16 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         vars->time_to_end = variant8_get_ui32(var);
         break;
     case MARLIN_VAR_FAN0_RPM:
-        vars->fan0_rpm = variant_get_ui16(var);
+        vars->fan0_rpm = variant8_get_ui16(var);
         break;
     case MARLIN_VAR_FAN1_RPM:
-        vars->fan1_rpm = variant_get_ui16(var);
+        vars->fan1_rpm = variant8_get_ui16(var);
+        break;
+    case MARLIN_VAR_FAN_CHECK_ENABLED:
+        vars->fan_check_enabled = variant8_get_ui8(var);
+        break;
+    case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
+        vars->fs_autoload_enabled = variant8_get_ui8(var);
         break;
     }
 }
@@ -306,6 +342,10 @@ int marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, uns
         return snprintf(str, size, "%u", (unsigned int)(vars->fan0_rpm));
     case MARLIN_VAR_FAN1_RPM:
         return snprintf(str, size, "%u", (unsigned int)(vars->fan1_rpm));
+    case MARLIN_VAR_FAN_CHECK_ENABLED:
+        return snprintf(str, size, "%u", (unsigned int)(vars->fan_check_enabled));
+    case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
+        return snprintf(str, size, "%u", (unsigned int)(vars->fs_autoload_enabled));
     default:
         return snprintf(str, size, "???");
     }
@@ -375,6 +415,10 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
         return sscanf(str, "%hu", &(vars->fan0_rpm));
     case MARLIN_VAR_FAN1_RPM:
         return sscanf(str, "%hu", &(vars->fan1_rpm));
+    case MARLIN_VAR_FAN_CHECK_ENABLED:
+        return sscanf(str, "%hhu", &(vars->fan_check_enabled));
+    case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
+        return sscanf(str, "%hhu", &(vars->fs_autoload_enabled));
     }
     return 0;
 }

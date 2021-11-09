@@ -41,15 +41,30 @@ Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
     return ret;
 }
 
-void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, uint8_t swap) const {
+void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
+
+    string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
+    const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
+    const Align_t align = Align_t::RightTop();
+
+    // If there is spin_off_opt::yes set in SpinConfig (with units), it prints "Off" instead of "0"
+    if (spin_txt.getUtf8Char() == 'O') {
+        spin_txt.rewind();
+        uint16_t curr_width = extension_rect.Width();
+        uint16_t off_opt_width = Font->w * spin_txt.computeNumUtf8CharsAndRewind() + Padding.left + Padding.right;
+        if (curr_width < off_opt_width) {
+            extension_rect -= Rect16::Left_t(off_opt_width - curr_width);
+            extension_rect = Rect16::Width_t(off_opt_width);
+        }
+        render_text_align(extension_rect, spin_txt, Font, color_back, cl_txt, Padding, align); //render spin number
+        return;
+    }
+
+    spin_txt.rewind();
     const Rect16 spin_rc = getSpinRect(extension_rect);
     const Rect16 unit_rc = getUnitRect(extension_rect);
-
-    const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
-    string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
-    const uint8_t align = ALIGN_RIGHT_TOP;
-
     render_text_align(spin_rc, spin_txt, Font, color_back, cl_txt, Padding, align); //render spin number
+
     if (has_unit) {
         string_view_utf8 un = units; //local var because of const
         un.rewind();

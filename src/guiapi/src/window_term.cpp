@@ -8,7 +8,7 @@ window_term_t::window_term_t(window_t *parent, point_i16_t pt, uint8_t *buff, si
 }
 
 window_term_t::window_term_t(window_t *parent, point_i16_t pt, uint8_t *buff, size_t cols, size_t rows, font_t *fnt)
-    : window_t(parent, Rect16(pt, fnt->w * cols, fnt->h * rows))
+    : AddSuperWindow<window_t>(parent, Rect16(pt, fnt->w * cols, fnt->h * rows))
     , color_text(GuiDefaults::ColorText)
     , font(fnt) {
     term_init(&term, cols, rows, buff);
@@ -16,9 +16,9 @@ window_term_t::window_term_t(window_t *parent, point_i16_t pt, uint8_t *buff, si
 
 void window_term_t::unconditionalDraw() {
     if (term.flg & TERM_FLG_CHANGED) {
-        render_term(&term, rect.Left(), rect.Top(), font, color_back, color_text);
+        render_term(&term, Left(), Top(), font, GetBackColor(), color_text);
     } else
-        display::FillRect(rect, color_back);
+        super::unconditionalDraw();
 }
 
 int window_term_t::Printf(const char *fmt, ...) {

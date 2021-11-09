@@ -34,9 +34,10 @@
     $ mkdir build-vim
     $ cd build-vim
     $ cmake .. \
+        --preset mini \
         -G Ninja \
         -DCMAKE_TOOLCHAIN_FILE=../cmake/GccArmNoneEabi.cmake \
-        -DPRINTER=MINI ... and other cmake flags
+        -DGENERATE_BBF=YES ... and other cmake flags
     $ ninja
     ```
 5. Locate a `compile_commands.json` file (which was produced as part of the build) for `ccls`. By default, `ccls` searches in project's root directory, but `ninja` produces it in the build folder. There are two options:

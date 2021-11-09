@@ -1,7 +1,7 @@
 //guimain.cpp
 
 #include <stdio.h>
-#include "stm32f4xx_hal.h"
+#include "gui_time.hpp"
 #include "gui.hpp"
 #include "config.h"
 #include "marlin_client.h"
@@ -34,12 +34,13 @@ int guimain_spi_test = 0;
 #include "gpio.h"
 #include "Jogwheel.hpp"
 #include "hwio.h"
-#include "diag.h"
 #include "sys.h"
 #include "dbg.h"
 #include "wdt.h"
 #include "dump.h"
 #include "gui_media_events.hpp"
+#include "main.h"
+extern void blockISR(); // do not want to include marlin temperature
 
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
@@ -49,8 +50,6 @@ const st7789v_config_t st7789v_cfg = {
 };
 
 marlin_vars_t *gui_marlin_vars = 0;
-
-void update_firmware_screen(void);
 
 static void _gui_loop_cb() {
     marlin_client_loop();
@@ -89,8 +88,9 @@ void Warning_cb(WarningType type) {
     case WarningType::PrintFanError:
         window_dlg_strong_warning_t::ShowPrintFan();
         break;
-    case WarningType::HeaterTimeout:
-        window_dlg_strong_warning_t::ShowHeaterTimeout();
+    case WarningType::HeatersTimeout:
+    case WarningType::NozzleTimeout:
+        window_dlg_strong_warning_t::ShowHeatersTimeout();
         break;
     case WarningType::USBFlashDiskError:
         window_dlg_strong_warning_t::ShowUSBFlashDisk();
@@ -100,10 +100,23 @@ void Warning_cb(WarningType type) {
     }
 }
 
-void gui_run(void) {
-    if (diag_fastboot)
-        return;
+static void Startup_cb(void) {
+}
 
+void client_gui_refresh() {
+    static uint32_t start = gui::GetTick_ForceActualization();
+    static uint32_t last_tick = gui::GetTick_ForceActualization();
+    uint32_t tick = gui::GetTick_ForceActualization();
+    if (last_tick != tick) {
+        uint32_t percent = (tick - start) / (3000 / 100); //3000ms / 100%
+        percent = ((percent < 99) ? percent : 99);
+        Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)percent);
+        last_tick = tick;
+        gui_redraw();
+    }
+}
+
+void gui_run(void) {
     st7789v_config = st7789v_cfg;
 
     gui_init();
@@ -124,34 +137,31 @@ void gui_run(void) {
     GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
     GuiDefaults::FontMenuItems = resource_font(IDR_FNT_NORMAL);
     GuiDefaults::FontMenuSpecial = resource_font(IDR_FNT_SPECIAL);
-
-    if (!sys_fw_is_valid())
-        update_firmware_screen();
+    GuiDefaults::FooterFont = resource_font(IDR_FNT_SPECIAL);
 
     gui_marlin_vars = marlin_client_init();
     gui_marlin_vars->media_LFN = gui_media_LFN;
     gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
 
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
-
     DialogHandler::Access(); //to create class NOW, not at first call of one of callback
-    marlin_client_set_fsm_create_cb(DialogHandler::Open);
-    marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
-    marlin_client_set_fsm_change_cb(DialogHandler::Change);
+    marlin_client_set_fsm_cb(DialogHandler::Command);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
     marlin_client_set_warning_cb(Warning_cb);
+    marlin_client_set_startup_cb(Startup_cb);
 
     Sound_Play(eSOUND_TYPE::Start);
 
     ScreenFactory::Creator error_screen = nullptr;
     if (w25x_init()) {
         if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
+            blockISR(); //TODO delete blockISR() on this line to enable start after click
             switch (dump_in_xflash_get_type()) {
             case DUMP_HARDFAULT:
                 error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
                 break;
             case DUMP_TEMPERROR:
+                //TODO uncomment to enable start after click
+                //blockISR();
                 error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
                 break;
 #ifndef _DEBUG
@@ -180,32 +190,24 @@ void gui_run(void) {
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
     //TIMEOUT variable getting value from EEPROM when EEPROM interface is inicialized
-    if (variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT)) != 0) {
+    if (variant8_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT)) != 0) {
         Screens::Access()->EnableMenuTimeout();
     } else {
         Screens::Access()->DisableMenuTimeout();
     }
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
+
+    Screens::Access()->Loop();
+
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, client_gui_refresh);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF, client_gui_refresh);
+    uint32_t progr100 = 100;
+    Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)progr100);
     while (1) {
+        gui::TickLoop();
+        DialogHandler::Access().Loop();
         Screens::Access()->Loop();
         gui_loop();
-    }
-}
-
-void update_firmware_screen(void) {
-    font_t *font = resource_font(IDR_FNT_SPECIAL);
-    font_t *font1 = resource_font(IDR_FNT_NORMAL);
-    display::Clear(COLOR_BLACK);
-    render_icon_align(Rect16(70, 20, 100, 100), IDR_PNG_pepa_64px, COLOR_BLACK, RENDER_FLG(ALIGN_CENTER, 0));
-    display::DrawText(Rect16(10, 115, 240, 60), _("Hi, this is your\nOriginal Prusa MINI."), font, COLOR_BLACK, COLOR_WHITE);
-    display::DrawText(Rect16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
-    render_text_align(Rect16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, { 2, 6, 2, 2 }, ALIGN_CENTER);
-    BtnState_t btn_ev;
-    while (1) {
-        if (jogwheel.ConsumeButtonEvent(btn_ev) && btn_ev == BtnState_t::Held)
-            sys_reset();
-        osDelay(1);
-        wdt_iwdg_refresh();
     }
 }

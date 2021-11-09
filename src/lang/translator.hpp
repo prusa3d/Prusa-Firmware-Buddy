@@ -16,7 +16,7 @@ class Translations {
         const ITranslationProvider *provider;
         uint16_t langCode;
     };
-    static const size_t maxTranslations = 7;
+    static const size_t maxTranslations = 8;
     std::array<TranRec, maxTranslations> translations; // record of translations
     Translations();
     const ITranslationProvider *currentProvider;

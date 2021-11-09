@@ -97,9 +97,6 @@ typedef struct _marlin_server_t {
     float resume_nozzle_temp;                        // resume nozzle temperature
     uint8_t resume_fan_speed;                        // resume fan speed
     uint32_t paused_ticks;                           // tick count in moment when printing paused
-    uint32_t fsmCreate;                              // fsm create ui32 argument for resend
-    uint32_t fsmDestroy;                             // fsm destroy ui32 argument for resend
-    uint32_t fsmChange;                              // fsm change ui32 argument for resend
 } marlin_server_t;
 
 typedef struct _marlin_client_t {
@@ -111,12 +108,10 @@ typedef struct _marlin_client_t {
     uint32_t ack;        // cached ack value from last Acknowledge event
     uint16_t last_count; // number of messages received in last client loop
     uint64_t errors;
-    marlin_mesh_t mesh;      // meshbed leveling
-    uint32_t command;        // processed command (G28,G29,M701,M702,M600)
-    uint8_t reheating;       // reheating in progress
-    uint32_t fsm_create_cb;  // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
-    uint32_t fsm_destroy_cb; // to register callback for screen destruction
-    uint32_t fsm_change_cb;  // to register callback for change of state
+    marlin_mesh_t mesh; // meshbed leveling
+    uint32_t command;   // processed command (G28,G29,M701,M702,M600)
+    uint8_t reheating;  // reheating in progress
+    uint32_t fsm_cb;    // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
 } marlin_client_t;
 
 #pragma pack(pop)

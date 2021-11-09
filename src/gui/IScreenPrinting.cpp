@@ -1,14 +1,10 @@
 #include "IScreenPrinting.hpp"
 #include "config.h"
-#include "marlin_client.h"
-#include "marlin_server.h"
-#include "guitypes.hpp"    //font_meas_text
-#include "stm32f4xx_hal.h" //HAL_GetTick
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
 IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
-    : AddSuperWindow<window_frame_t>()
+    : AddSuperWindow<screen_t>()
     , header(this)
     , footer(this) {
     IScreenPrinting::ClrMenuTimeoutClose(); // don't close on menu timeout

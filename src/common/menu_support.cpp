@@ -11,7 +11,7 @@ void menu_support() {
     //                 01234567890123456789
     //	STATIC_ITEM_P("");
     #if (MOTHERBOARD == 1823)
-    STATIC_ITEM_P("Marlin-A3ides 2209-2");
+    STATIC_ITEM_P("Marlin-Buddy 2209-2");
     #else
         #error "Unknown MOTHERBOARD."
     #endif

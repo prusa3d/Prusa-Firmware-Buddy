@@ -2,10 +2,11 @@
 
 #include "DialogStateful.hpp"
 #include "window_icon.hpp"
+#include "window_wizard_progress.hpp"
 
 class DialogSelftestAxis : public IDialogMarlin {
     window_text_t text_checking_axis;
-    window_numberless_progress_t progress;
+    window_wizard_progress_t progress;
     window_text_t text_x_axis;
     WindowIcon_OkNg icon_x_axis;
     window_text_t text_y_axis;
@@ -14,7 +15,7 @@ class DialogSelftestAxis : public IDialogMarlin {
     WindowIcon_OkNg icon_z_axis;
 
 protected:
-    virtual bool change(uint8_t phs, uint8_t progress_tot, uint8_t progress) override;
+    virtual bool change(uint8_t phase, fsm::PhaseData data) override;
 
 public:
     DialogSelftestAxis();

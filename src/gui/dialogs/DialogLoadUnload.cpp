@@ -2,7 +2,7 @@
 #include "gui.hpp" //resource_font
 #include "sound.hpp"
 #include "i18n.h"
-#include "dialog_response.hpp"
+#include "client_response_texts.hpp"
 
 /*****************************************************************************/
 // clang-format off
@@ -19,6 +19,7 @@ static const char *txt_prep_ram           = N_("Preparing to ram");
 static const char *txt_ram                = N_("Ramming");
 static const char *txt_unload             = N_("Unloading");
 static const char *txt_unload_confirm     = N_("Was filament unload successful?");
+static const char *txt_filament_not_in_fs = N_("Please remove filament from filament sensor.");
 static const char *txt_manual_unload      = N_("Please open idler and remove filament manually");
 static const char *txt_push_fil           = N_("Press CONTINUE and push filament into the extruder.");
 static const char *txt_make_sure_inserted = N_("Make sure the filament is inserted through the sensor.");
@@ -28,7 +29,6 @@ static const char *txt_ejecting           = N_("Ejecting");
 static const char *txt_loading            = N_("Loading to nozzle");
 static const char *txt_purging            = N_("Purging");
 static const char *txt_is_color           = N_("Is color correct?");
-static const char *txt_nozzle_cold        = N_("Nozzle is too cold.");
 
 /// indicator for M600 or filament runout phases
 /// because this sound should be beeping only for those parts (M600 & runout)
@@ -44,9 +44,9 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_unload,               ClientResponses::GetResponses(PhasesLoadUnload::Unloading),             ph_txt_stop },
         DialogLoadUnload::State { txt_unload,               ClientResponses::GetResponses(PhasesLoadUnload::RemoveFilament),        ph_txt_stop },
         DialogLoadUnload::State { txt_unload_confirm,       ClientResponses::GetResponses(PhasesLoadUnload::IsFilamentUnloaded),    ph_txt_yesno, DialogLoadUnload::phaseWaitSound },
+        DialogLoadUnload::State { txt_filament_not_in_fs,   ClientResponses::GetResponses(PhasesLoadUnload::FilamentNotInFS),       ph_txt_none, DialogLoadUnload::phaseAlertSound},
         DialogLoadUnload::State { txt_manual_unload,        ClientResponses::GetResponses(PhasesLoadUnload::ManualUnload),          ph_txt_continue, DialogLoadUnload::phaseStopSound },
         DialogLoadUnload::State { txt_push_fil,             ClientResponses::GetResponses(PhasesLoadUnload::UserPush),              ph_txt_continue, DialogLoadUnload::phaseAlertSound },
-        DialogLoadUnload::State { txt_nozzle_cold,          ClientResponses::GetResponses(PhasesLoadUnload::NozzleTimeout),         ph_txt_reheat },
         DialogLoadUnload::State { txt_make_sure_inserted,   ClientResponses::GetResponses(PhasesLoadUnload::MakeSureInserted),      ph_txt_continue, DialogLoadUnload::phaseAlertSound },
         DialogLoadUnload::State { txt_inserting,            ClientResponses::GetResponses(PhasesLoadUnload::Inserting),             ph_txt_stop },
         DialogLoadUnload::State { txt_is_filament_in_gear,  ClientResponses::GetResponses(PhasesLoadUnload::IsFilamentInGear),      ph_txt_yesno },

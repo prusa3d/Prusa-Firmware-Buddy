@@ -6,18 +6,21 @@
 #include "gui_timer.h"
 #include "display.h"
 #include "sound.hpp"
+#include "marlin_client.h"
 
 bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }
+bool window_t::HasVisibleFlag() const { return flags.visible; };
 bool window_t::IsHiddenBehindDialog() const { return flags.hidden_behind_dialog; }
 bool window_t::IsEnabled() const { return flags.enabled; }
 bool window_t::IsInvalid() const { return flags.invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
-bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return flags.timer; }
 win_type_t window_t::GetType() const { return win_type_t(flags.type); }
 bool window_t::IsDialog() const { return GetType() == win_type_t::dialog || GetType() == win_type_t::strong_dialog; }
 bool window_t::ClosedOnTimeout() const { return flags.timeout_close == is_closed_on_timeout_t::yes; }
 bool window_t::ClosedOnSerialPrint() const { return flags.serial_close == is_closed_on_serial_t::yes; }
+bool window_t::HasEnforcedCapture() const { return flags.enforce_capture_when_not_visible; }
+bool window_t::IsCapturable() const { return IsVisible() || HasEnforcedCapture(); }
 
 void window_t::Validate(Rect16 validation_rect) {
     if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
@@ -26,26 +29,35 @@ void window_t::Validate(Rect16 validation_rect) {
     }
 }
 
-void window_t::Invalidate(Rect16 validation_rect) {
-    if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
-        flags.invalid = true;
-        invalidate(validation_rect);
+void window_t::Invalidate(Rect16 invalidation_rect) {
+    if (invalidation_rect.IsEmpty() || rect.HasIntersection(invalidation_rect)) {
+        invalidate(invalidation_rect);
         gui_invalidate();
     }
 }
 
 //frame will invalidate children
 void window_t::invalidate(Rect16 validation_rect) {
+    flags.invalid = true;
 }
 
 //frame will validate children
 void window_t::validate(Rect16 validation_rect) {
 }
 
+// "IsCapturable() ? this : nullptr" does not work because of popup,
+// popup does not claim capture, but can hide window
+// At this point we are sure no dialog has capture, so we check only visible flag
+window_t *window_t::GetCapturedWindow() {
+    return HasVisibleFlag() ? this : nullptr;
+}
+
 void window_t::SetHasTimer() { flags.timer = true; }
 void window_t::ClrHasTimer() { flags.timer = false; }
 void window_t::Enable() { flags.enabled = true; }
 void window_t::Disable() { flags.enabled = false; }
+void window_t::SetEnforceCapture() { flags.enforce_capture_when_not_visible = true; }
+void window_t::ClrEnforceCapture() { flags.enforce_capture_when_not_visible = false; }
 
 void window_t::SetFocus() {
     if (!IsVisible() || !flags.enabled)
@@ -63,25 +75,14 @@ void window_t::SetFocus() {
     gui_invalidate();
 }
 
-void window_t::SetCapture() {
-    // do not check IsVisible()
-    // window hidden by dialog can get capture
-    if (flags.visible && flags.enabled) {
-        if (capture_ptr) {
-            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
-        }
-        capture_ptr = this;
-        WindowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
-        gui_invalidate();
-    }
-}
-
 void window_t::Show() {
     if (!flags.visible) {
         flags.visible = true;
         //cannot invalidate when is hidden by dialog - could flicker
         if (!flags.hidden_behind_dialog)
             Invalidate();
+
+        notifyVisibilityChange();
     }
 }
 
@@ -91,7 +92,18 @@ void window_t::Hide() {
         //cannot invalidate when is hidden by dialog - could flicker
         if (!flags.hidden_behind_dialog)
             Invalidate();
+
+        notifyVisibilityChange();
     }
+}
+
+void window_t::notifyVisibilityChange() {
+    if (GetParent())
+        GetParent()->ChildVisibilityChanged(*this);
+}
+
+//do nothing screen/frame will do something ...
+void window_t::ChildVisibilityChanged(window_t &child) {
 }
 
 void window_t::ShowAfterDialog() {
@@ -130,40 +142,109 @@ void window_t::Unshadow() {
     }
 }
 
-color_t window_t::GetBackColor() const { return color_back; }
+color_t window_t::GetBackColor() const {
+    if (flags.color_scheme_background && pBackColorScheme) {
+        return pBackColorScheme->Get(IsFocused(), IsShadowed());
+    }
+    return color_back;
+}
 
 void window_t::SetBackColor(color_t clr) {
-    color_back = clr;
-    Invalidate();
+    if (flags.color_scheme_background || color_back != clr) {
+        color_back = clr;
+        flags.color_scheme_background = false;
+        Invalidate();
+    }
+}
+
+void window_t::SetBackColor(const color_scheme &clr) {
+    if ((!flags.color_scheme_background) || (!pBackColorScheme) || ((*pBackColorScheme) != clr)) {
+        flags.color_scheme_background = true;
+        Invalidate();
+    }
+    pBackColorScheme = &clr; // rewrite even when value is same, because address might be different
 }
 
 window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
     : parent(parent)
     , next(nullptr)
-    , flags(0)
     , rect(rect)
+    , flags(0)
     , color_back(GuiDefaults::ColorBack) {
     flags.type = uint8_t(type);
     flags.close_on_click = close;
     close == is_closed_on_click_t::yes ? Enable() : Disable();
-    Show();
+    flags.visible = true; // do not call show, it needs parent to be registered
     Invalidate();
     if (parent)
-        parent->RegisterSubWin(this);
+        parent->RegisterSubWin(*this);
 }
 
 window_t::~window_t() {
     gui_timers_delete_by_window(this);
     if (GetFocusedWindow() == this)
         focused_ptr = nullptr;
-    if (GetCapturedWindow() == this)
-        capture_ptr = nullptr;
+
+    // if this window has captured, than it will be passed automaticaly to previous one
+    // because last window in screen has it, no code needed
 
     //win_type_t::normal must be unregistered so ~window_frame_t can has functional linked list
     if (GetParent())
-        GetParent()->UnregisterSubWin(this);
+        GetParent()->UnregisterSubWin(*this);
 
     Screens::Access()->ResetTimeout();
+}
+
+Rect16 window_t::GetRect() const {
+    if (GetParent()) {
+        return GetParent()->TransformRect(rect); // do not use GetRect() - would be recursive
+    }
+
+    return rect;
+}
+
+Rect16 window_t::GetRectWithoutTransformation() const {
+    return rect;
+}
+
+void window_t::SetRect(Rect16 rc) {
+    if (GetParent()) {
+        rect = GetParent()->TransformRect(rc); // do not use SetRect() - would be recursive
+        return;
+    }
+
+    rect = rc;
+}
+
+void window_t::SetRectWithoutTransformation(Rect16 rc) {
+    rect = rc;
+}
+
+//TransformRect calls GetRect which calls TransformRect on parrent level ...
+Rect16 window_t::TransformRect(Rect16 rc) const {
+    Rect16 this_rect = GetRect();
+    if (flags.has_relative_subwins) {
+        rc.Transform(this_rect);
+    } else {
+        rc = rc.Intersection(this_rect);
+    }
+    return rc;
+}
+
+void window_t::Reposition(Rect16::Top_t top) {
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = top);
+}
+
+void window_t::Reposition(Rect16::Left_t left) {
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = left);
+}
+
+void window_t::Resize(Rect16::Height_t height) {
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = height);
+}
+
+void window_t::Resize(Rect16::Width_t width) {
+    SetRectWithoutTransformation(GetRectWithoutTransformation() = width);
 }
 
 void window_t::SetNext(window_t *nxt) {
@@ -237,15 +318,24 @@ void window_t::draw() {
 }
 
 //window does not support subwindow elements, but window_frame does
-bool window_t::RegisterSubWin(window_t *win) {
-    return win ? registerSubWin(*win) : false;
+bool window_t::RegisterSubWin(window_t &win) {
+    //window must fit inside frame
+    if (!GetRect().Contain(win.GetRect())) //could speed this up, but prefer smaller codesize
+        return false;
+    //parrent has relative subwins, child must have them too
+    if (flags.has_relative_subwins)
+        win.SetRelativeSubwins();
+
     Screens::Access()->ResetTimeout();
+
+    return registerSubWin(win);
 }
 
-void window_t::UnregisterSubWin(window_t *win) {
-    if ((!win) || (win->GetParent() != this))
+void window_t::UnregisterSubWin(window_t &win) {
+    if (win.GetParent() != this)
         return;
-    unregisterSubWin(*win);
+    addInvalidationRect(win.GetRect());
+    unregisterSubWin(win);
     Screens::Access()->ResetTimeout();
 }
 
@@ -256,8 +346,15 @@ bool window_t::registerSubWin(window_t &win) {
 void window_t::unregisterSubWin(window_t &win) {
 }
 
+//cannot add rect, it is stored in frame, so must incalidate entire window
+void window_t::addInvalidationRect(Rect16 rc) {
+    if (!rect.IsEmpty()) {
+        Invalidate();
+    }
+}
+
 void window_t::unconditionalDraw() {
-    display::FillRect(rect, color_back);
+    display::FillRect(GetRect(), GetBackColor());
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
@@ -303,32 +400,34 @@ void window_t::Shift(ShiftDir_t direction, uint16_t distance) {
 //static
 
 window_t *window_t::focused_ptr = nullptr;
-window_t *window_t::capture_ptr = nullptr;
 
 window_t *window_t::GetFocusedWindow() {
     return focused_ptr;
-}
-
-window_t *window_t::GetCapturedWindow() {
-    return capture_ptr;
-}
-
-void window_t::ResetCapturedWindow() {
-    capture_ptr = nullptr;
 }
 
 void window_t::ResetFocusedWindow() {
     focused_ptr = nullptr;
 }
 
+/*****************************************************************************/
+//capture
+bool window_t::IsCaptured() const { return Screens::Access()->Get()->GetCapturedWindow() == this; }
+
 bool window_t::EventEncoder(int diff) {
-    if ((!capture_ptr) || (diff == 0))
+    marlin_notify_server_about_encoder_move();
+    window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
+    if (diff == 0)
+        return false;
+
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::ENC_CHANGE, (void *)(intptr_t)diff);
+
+    if (!capture_ptr)
         return false;
 
     if (diff > 0) {
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_UP, (void *)diff);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_UP, (void *)(intptr_t)diff);
     } else {
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_DN, (void *)-diff);
+        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_DN, (void *)(intptr_t)-diff);
     }
 
     Screens::Access()->ResetTimeout();
@@ -336,22 +435,38 @@ bool window_t::EventEncoder(int diff) {
 }
 
 bool window_t::EventJogwheel(BtnState_t state) {
-    if (!capture_ptr)
-        return false;
+    static bool dont_click_on_next_release = false;
+    marlin_notify_server_about_knob_click();
+    window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
 
     switch (state) {
     case BtnState_t::Pressed:
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::BTN_DN, 0);
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::BTN_DN, 0);
         break;
     case BtnState_t::Released:
         Sound_Play(eSOUND_TYPE::ButtonEcho);
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::BTN_UP, 0);
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::BTN_UP, 0);
+        if (!dont_click_on_next_release && capture_ptr)
+            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
+        dont_click_on_next_release = false;
         break;
     case BtnState_t::Held:
         Sound_Play(eSOUND_TYPE::ButtonEcho);
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HOLD, 0);
         break;
+    case BtnState_t::HeldAndRigth:
+        dont_click_on_next_release = true;
+        if (capture_ptr)
+            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HELD_RIGTH, 0);
+        break;
+    case BtnState_t::HeldAndLeft:
+        dont_click_on_next_release = true;
+        // want to send only to current screen and not send it to all subwindows
+        Screens::Access()->WindowEvent(GUI_event_t::HELD_LEFT, 0);
+        break;
+    case BtnState_t::HeldAndReleased:
+        dont_click_on_next_release = true;
+        // want to send only to current screen and not send it to all subwindows
+        Screens::Access()->WindowEvent(GUI_event_t::HELD_RELEASED, 0);
     }
 
     Screens::Access()->ResetTimeout();
@@ -363,14 +478,14 @@ bool window_t::EventJogwheel(BtnState_t state) {
 
 window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
     : AddSuperWindow<window_t>(parent, rect, type, close) {
-    SetAlignment(GuiDefaults::Alignment);
+    SetAlignment(GuiDefaults::Align());
 }
 
-uint8_t window_aligned_t::GetAlignment() const {
-    return flags.mem_array_u08[0];
+Align_t window_aligned_t::GetAlignment() const {
+    return (Align_t &)(flags.align_data); //retype to Align_t reference, to avoid using private ctor
 }
 
-void window_aligned_t::SetAlignment(uint8_t alignment) {
-    flags.mem_array_u08[0] = alignment;
+void window_aligned_t::SetAlignment(Align_t alignment) {
+    flags.align_data = (uint8_t &)(alignment);
     Invalidate();
 }

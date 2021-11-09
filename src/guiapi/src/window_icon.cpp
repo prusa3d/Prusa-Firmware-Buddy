@@ -1,9 +1,13 @@
 // window_icon.c
+
+#include <unistd.h>
 #include "window_icon.hpp"
 #include "gui.hpp"
 #include "ScreenHandler.hpp"
 #include "guitypes.hpp"
 #include "resource.h"
+#include "gcode_thumb_decoder.h"
+#include "gcode_file.h"
 
 void window_icon_t::SetIdRes(int16_t id) {
     id_res = id;
@@ -13,7 +17,7 @@ void window_icon_t::SetIdRes(int16_t id) {
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, uint16_t id_res, is_closed_on_click_t close)
     : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
     , id_res(id_res) {
-    SetAlignment(ALIGN_CENTER);
+    SetAlignment(Align_t::Center());
 }
 
 //Icon rect is increased by padding, icon is centered inside it
@@ -32,15 +36,13 @@ window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_i16_t pt, 
 }
 
 void window_icon_t::unconditionalDraw() {
-    uint8_t ropfn = 0;
-    if (IsShadowed()) { // that could not be set, but what if
-        ropfn |= ROPFN_DISABLE;
-    }
-    if (IsFocused()) {
-        ropfn |= ROPFN_SWAPBW;
-    }
+    ropfn raster_op;
+    raster_op.shadow = IsShadowed() ? is_shadowed::yes : is_shadowed::no;
+    raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
 
-    render_icon_align(rect, id_res, color_back, RENDER_FLG(GetAlignment(), ropfn));
+    super::unconditionalDraw();
+
+    render_icon_align(GetRect(), id_res, GetBackColor(), icon_flags(GetAlignment(), raster_op));
 }
 
 size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
@@ -59,6 +61,7 @@ size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb)
     : AddSuperWindow<window_icon_t>(parent, rect, id_res)
     , callback(cb) {
+    SetBackColor(GuiDefaults::ClickableIconColorScheme);
     Enable();
 }
 
@@ -74,7 +77,7 @@ void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t 
 //window_icon_hourglass_t
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : AddSuperWindow<window_icon_t>(parent, IDR_PNG_hourglass_39px, pt, padding, close)
-    , start_time(HAL_GetTick())
+    , start_time(gui::GetTick())
     , animation_color(COLOR_ORANGE)
     , phase(0) {
 }
@@ -153,12 +156,12 @@ void window_icon_hourglass_t::unconditionalDraw() {
     }
 
     for (auto it = begin; it != end; ++it) {
-        display::DrawLine(point_ui16(rect.Left() + it->first.x, rect.Top() + it->first.y), point_ui16(rect.Left() + it->last.x, rect.Top() + it->last.y), it->color);
+        display::DrawLine(point_ui16(Left() + it->first.x, Top() + it->first.y), point_ui16(Left() + it->last.x, Top() + it->last.y), it->color);
     }
 }
 
 void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    uint8_t phs = ((HAL_GetTick() - start_time) / ANIMATION_STEP_MS);
+    uint8_t phs = ((gui::GetTick() - start_time) / ANIMATION_STEP_MS);
     phs %= ANIMATION_STEPS;
     if (phase != phs) {
         phase = phs;
@@ -173,11 +176,10 @@ void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, window
 const uint16_t WindowIcon_OkNg::id_res_na = IDR_PNG_dash_18px;
 const uint16_t WindowIcon_OkNg::id_res_ok = IDR_PNG_ok_color_18px;
 const uint16_t WindowIcon_OkNg::id_res_ng = IDR_PNG_nok_color_18px;
-const uint16_t WindowIcon_OkNg::id_res_ip0 = IDR_PNG_loading1_18px;
-const uint16_t WindowIcon_OkNg::id_res_ip1 = IDR_PNG_loading2_18px;
+const std::array<uint16_t, 4> WindowIcon_OkNg::id_res_ip = { { IDR_PNG_spinner1_16px, IDR_PNG_spinner2_16px, IDR_PNG_spinner3_16px, IDR_PNG_spinner4_16px } };
 
 //Icon rect is increased by padding, icon is centered inside it
-WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t padding)
+WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
     : AddSuperWindow<window_aligned_t>(
         parent,
         [pt, padding] {
@@ -187,19 +189,18 @@ WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t
             return Rect16(pt,
                 sz.w + padding.left + padding.right,
                 sz.h + padding.top + padding.bottom);
-        }()) {
-    SetState(SelftestSubtestState_t::undef);
+        }())
+    , state(state) {
+    SetAlignment(Align_t::Center());
 }
 
 SelftestSubtestState_t WindowIcon_OkNg::GetState() const {
-    return static_cast<SelftestSubtestState_t>(flags.mem_array_u08[1]);
+    return state;
 }
 
-//there is a free space in window_t flags, store state in it
 void WindowIcon_OkNg::SetState(SelftestSubtestState_t s) {
-    const uint8_t state = static_cast<uint8_t>(s);
-    if (state != flags.mem_array_u08[1]) {
-        flags.mem_array_u08[1] = state;
+    if (s != state) {
+        state = s;
         Invalidate();
     }
 }
@@ -216,20 +217,51 @@ void WindowIcon_OkNg::unconditionalDraw() {
     case SelftestSubtestState_t::undef:
         id_res = id_res_na;
         break;
-    case SelftestSubtestState_t::running:
-        id_res = flags.custom0 ? id_res_ip1 : id_res_ip0;
-        break;
+    case SelftestSubtestState_t::running: {
+        const size_t blink_state = (flags.blink1 << 1) | flags.blink0; //sets 2 lowest bits guaranted to be 0 .. 3
+        id_res = id_res_ip[blink_state];                               // no need to check index out of array range
+    } break;
     }
 
-    render_icon_align(rect, id_res, color_back, GetAlignment());
+    render_icon_align(GetRect(), id_res, GetBackColor(), GetAlignment());
 }
 
 void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (GetState() == SelftestSubtestState_t::running) {
-        bool b = (HAL_GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0x01;
-        if (flags.custom0 != b) {
-            flags.custom0 = b;
+        bool b0 = (gui::GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0b01;
+        bool b1 = (gui::GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0b10;
+        if (flags.blink0 != b0 || flags.blink1 != b1) {
+            flags.blink0 = b0;
+            flags.blink1 = b1;
             Invalidate();
         }
+    }
+}
+
+//-------------------------- Thumbnail --------------------------------------
+
+WindowThumbnail::WindowThumbnail(window_t *parent, Rect16 rect)
+    : AddSuperWindow<window_icon_t>(parent, rect, 0)
+    , gcode_info(GCodeInfo::getInstance()) {
+}
+
+//------------------------- Preview Thumbnail ------------------------------------
+
+WindowPreviewThumbnail::WindowPreviewThumbnail(window_t *parent, Rect16 rect)
+    : AddSuperWindow<WindowThumbnail>(parent, rect) {
+    gcode_info.initFile(GCodeInfo::GI_INIT_t::PREVIEW);
+}
+
+WindowPreviewThumbnail::~WindowPreviewThumbnail() {
+    gcode_info.deinitFile();
+}
+
+void WindowPreviewThumbnail::unconditionalDraw() {
+
+    FILE f = { 0 };
+    fseek(gcode_info.file, 0, SEEK_SET);
+    if (f_gcode_thumb_open(&f, gcode_info.file) == 0) {
+        display::DrawPng(point_ui16(Left(), Top()), &f);
+        f_gcode_thumb_close(&f);
     }
 }
