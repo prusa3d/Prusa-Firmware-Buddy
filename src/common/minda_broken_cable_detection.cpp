@@ -1,9 +1,9 @@
 #include "minda_broken_cable_detection.h"
-#include "Z_probe.h"
 #include "bsod.h"
 #include "FreeRTOS.h"
 #include "task.h"   //taskENTER_CRITICAL
 #include <string.h> //memset
+#include "Z_probe.hpp"
 #include "MindaRedscreen.h"
 #include "wdt.h"
 #include "gpio.h"

@@ -61,6 +61,5 @@ static_assert(buddy::hw::IoPin::p1 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_N
 static_assert(buddy::hw::IoPin::p15 == static_cast<buddy::hw::IoPin>(MARLIN_PIN_NR_15), "Marlin pin doesn't match Buddy IoPin.");
 
 namespace buddy::hw {
-bool physicalPinExist(uint32_t marlinPin);
 bool isOutputPin(uint32_t marlinPin);
 }

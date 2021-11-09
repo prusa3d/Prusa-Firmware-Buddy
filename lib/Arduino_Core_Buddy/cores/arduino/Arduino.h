@@ -17,57 +17,27 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Arduino_h
-    #define Arduino_h
+#pragma once
 
-    //#include "variant.h"
-    //#include "spi_com.h"
-    //#include "wiring_constants.h"
-    //#include "wiring_time.h"
-    //#include "wiring_digital.h"
-    #include "wiring.h"
-    #include "variant.h"
-
+//#include "variant.h"
+//#include "spi_com.h"
+//#include "wiring_constants.h"
+//#include "wiring_time.h"
+//#include "wiring_digital.h"
+#include "wiring.h"
+#include "variant.h"
 //#include "HardwareSerial.h"
 //#include "binary.h"
 
 //typedef uint8_t byte;
 
-    #ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-    #endif // __cplusplus
+#endif // __cplusplus
 extern void setup(void);
 extern void loop(void);
 
 void yield(void);
-    #ifdef __cplusplus
+#ifdef __cplusplus
 } // extern "C"
-    #endif // __cplusplus
-
-#else
-
-    #ifndef GCC_VERSION
-        #define GCC_VERSION (__GNUC__ * 10000 \
-            + __GNUC_MINOR__ * 100            \
-            + __GNUC_PATCHLEVEL__)
-    #endif
-    #if GCC_VERSION < 60300
-        #error "GCC version 6.3 or higher is required"
-    #endif
-
-//#include "wiring.h"
-
-/* sketch */
-
-    #ifdef __cplusplus
-extern "C" {
-    #endif // __cplusplus
-extern void setup(void);
-extern void loop(void);
-
-void yield(void);
-    #ifdef __cplusplus
-} // extern "C"
-    #endif // __cplusplus
-
-#endif // Arduino_h
+#endif // __cplusplus

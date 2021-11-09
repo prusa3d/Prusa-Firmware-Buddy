@@ -48,6 +48,10 @@
   #include "../feature/joystick.h"
 #endif
 
+#ifdef MINDA_BROKEN_CABLE_DETECTION
+  #include "Z_probe.hpp"
+#endif
+
 Endstops endstops;
 
 // private:
@@ -494,6 +498,10 @@ void _O2 Endstops::M119() {
 
 // Check endstops - Could be called from Temperature ISR!
 void Endstops::update() {
+
+  #ifdef MINDA_BROKEN_CABLE_DETECTION
+    buddy::hw::Z_probe_interrupt_handler();
+  #endif
 
   #if !ENDSTOP_NOISE_THRESHOLD
     if (!abort_enabled()) return;

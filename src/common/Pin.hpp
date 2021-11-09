@@ -24,7 +24,7 @@
  * DECLARE_PINS(PIN_TABLE)
  * @endcode
  */
-#define DECLARE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) inline constexpr TYPE NAME(PORTPIN, PARAMETERS);
+#define DECLARE_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) inline constexpr TYPE NAME(PORTPIN, PARAMETERS);
 /**
  * @brief Configure all pins supplied in PIN_TABLE parameter
  * @par Usage:
@@ -32,7 +32,7 @@
  * CONFIGURE_PINS(PIN_TABLE)
  * @endcode
  */
-#define CONFIGURE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) buddy::hw::NAME.configure();
+#define CONFIGURE_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) buddy::hw::NAME.configure();
 /**
  * @brief Generate array of physical location of all pins supplied in PIN_TABLE parameter
  * @par Usage:
@@ -42,10 +42,13 @@
  * };
  * @endcode
  */
-#define PINS_TO_CHECK(TYPE, NAME, PORTPIN, PARAMETERS) { PORTPIN },
+#define PINS_TO_CHECK(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) { PORTPIN },
 /**@}*/
 
 namespace buddy::hw {
+
+inline void noHandler() {
+}
 
 enum class IoPort : uint8_t {
     A = 0,
@@ -86,6 +89,10 @@ public:
         high = GPIO_PinState::GPIO_PIN_SET,
     };
 
+    static constexpr uint16_t IoPinToHal(IoPin ioPin) {
+        return (0x1U << static_cast<uint16_t>(ioPin));
+    }
+
 protected:
     constexpr Pin(IoPort ioPort, IoPin ioPin)
         : m_halPortBase(IoPortToHalBase(ioPort))
@@ -99,10 +106,6 @@ private:
     static constexpr uint32_t IoPortToHalBase(IoPort ioPort) {
         return (GPIOA_BASE + (static_cast<uint32_t>(ioPort) * (GPIOB_BASE - GPIOA_BASE)));
     }
-    static constexpr uint16_t IoPinToHal(IoPin ioPin) {
-        return (0x1U << static_cast<uint16_t>(ioPin));
-    }
-
     const uint32_t m_halPortBase;
 
 protected:
@@ -131,6 +134,7 @@ enum class IMode {
     input = GPIO_MODE_INPUT,
     IT_rising = GPIO_MODE_IT_RISING,
     IT_falling = GPIO_MODE_IT_FALLING,
+    IT_rising_falling = GPIO_MODE_IT_RISING_FALLING,
 };
 
 enum class Pull : uint8_t {
@@ -165,18 +169,22 @@ protected:
 };
 
 /**
- * InterruptPin exposes hal pin/IRQ numbers necessary for interrupt configuration and efficient
- * dispatch. It doesn't attempt to do any interrupt configuration by itself (yet).
+ *
  */
 class InterruptPin : public InputPin {
 public:
-    constexpr InterruptPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, IRQn_Type IRQn)
+    constexpr InterruptPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, uint8_t preemptPriority, uint8_t subPriority)
         : InputPin(ioPort, ioPin, iMode, pull)
-        , m_halIRQn(IRQn) {}
+        , m_priority { preemptPriority, subPriority } {}
+    void configure() const;
 
-public:
-    using InputPin::m_halPin;
-    const IRQn_Type m_halIRQn;
+private:
+    struct Priority {
+        uint8_t preemptPriority : 4;
+        uint8_t subPriority : 4;
+    };
+    IRQn_Type getIRQn() const;
+    Priority m_priority;
 };
 
 enum class OMode : uint8_t {
