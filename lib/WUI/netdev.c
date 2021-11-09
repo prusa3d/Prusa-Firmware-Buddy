@@ -223,6 +223,30 @@ uint32_t netdev_set_active_id(uint32_t netdev_id) {
     return 0;
 }
 
+bool get_current_ipv4(uint8_t *dest) {
+    /*
+     * FIXME: We currently don't have synchronization of network-related
+     * variables solved. This probably goes to
+     * https://dev.prusa3d.com/browse/BFW-2198.
+     *
+     * Technically, this is UB (a data race), but on the current architecture,
+     * this will likely not end up in anything worse than outdated info in some
+     * rare cases. So we dare to postpone this for the above ticket.
+     */
+    uint32_t id = netdev_get_active_id();
+    switch (id) {
+    case NETDEV_ETH_ID:
+    case NETDEV_ESP_ID:
+        memcpy(dest, &wui_netdev_config[id].lan.addr_ip4, 4);
+        return true;
+    case NETDEV_NODEV_ID:
+        return false;
+    default:
+        assert(0 /* Unhandled/invalid active_netdev_id */);
+        return false;
+    }
+}
+
 netdev_status_t netdev_get_status(uint32_t netdev_id) {
     if (netdev_id == NETDEV_ETH_ID) {
         if (!netif_is_link_up(&eth0)) {
