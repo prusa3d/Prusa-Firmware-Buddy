@@ -245,7 +245,6 @@ void draw_error_screen(const uint16_t error_code_short) {
         constexpr uint8_t qr_size_px = 140;
         const Rect16 qr_rect = { 160 - qr_size_px / 2, 200 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
         window_qr_t win(nullptr, qr_rect, error_code);
-
         win.Draw();
 
         char qr_text[MAX_LEN_4QR + 1];

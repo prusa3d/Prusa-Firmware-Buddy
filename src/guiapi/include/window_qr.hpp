@@ -20,7 +20,6 @@ class window_qr_t : public AddSuperWindow<window_t> {
 
 public:
     window_qr_t(window_t *parent, Rect16 rect, uint16_t err_num);
-    void Draw();
 
 protected:
     virtual void unconditionalDraw() override;

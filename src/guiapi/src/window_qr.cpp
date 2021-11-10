@@ -8,9 +8,26 @@
 #include "qrcodegen.h"
 #include "scratch_buffer.hpp"
 
-/// Draw QR code to the screen.
-void window_qr_t::Draw() {
+/// QR Window
+window_qr_t::window_qr_t(window_t *parent, Rect16 rect, uint16_t err_num)
+    : AddSuperWindow<window_t>(parent, rect)
+    // , version(9)
+    // , ecc_level(qrcodegen_Ecc_HIGH)
+    // , mode(qrcodegen_Mode_ALPHANUMERIC)
+    , border(4)
+    , px_per_module(2)
+    , align(Align_t::Center())
+    , scale(true) {
 
+    bool devhash_in_qr = variant8_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR));
+    if (devhash_in_qr) {
+        error_url_long(text, sizeof(text), err_num);
+    } else {
+        error_url_short(text, sizeof(text), err_num);
+    }
+}
+
+void window_qr_t::unconditionalDraw() {
     uint8_t *qrcode = scratch_buffer;
     uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
 
@@ -52,27 +69,4 @@ void window_qr_t::Draw() {
     for (int y = -border; y < (size + border); ++y)
         for (int x = -border; x < (size + border); ++x)
             display::FillRect(Rect16(x0 + x * ppm, y0 + y * ppm, ppm, ppm), ((qrcodegen_getModule(qrcode, x, y) ? COLOR_BLACK : COLOR_WHITE)));
-}
-
-/// QR Window
-window_qr_t::window_qr_t(window_t *parent, Rect16 rect, uint16_t err_num)
-    : AddSuperWindow<window_t>(parent, rect)
-    // , version(9)
-    // , ecc_level(qrcodegen_Ecc_HIGH)
-    // , mode(qrcodegen_Mode_ALPHANUMERIC)
-    , border(4)
-    , px_per_module(2)
-    , align(Align_t::Center())
-    , scale(true) {
-
-    bool devhash_in_qr = variant8_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR));
-    if (devhash_in_qr) {
-        error_url_long(text, sizeof(text), err_num);
-    } else {
-        error_url_short(text, sizeof(text), err_num);
-    }
-}
-
-void window_qr_t::unconditionalDraw() {
-    Draw();
 }
