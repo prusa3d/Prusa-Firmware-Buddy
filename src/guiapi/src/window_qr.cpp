@@ -33,6 +33,7 @@ void window_qr_t::SetQRHeader(uint16_t err_num) {
     } else {
         error_url_short(text, sizeof(text), err_num);
     }
+    Invalidate();
 }
 
 void window_qr_t::unconditionalDraw() {
