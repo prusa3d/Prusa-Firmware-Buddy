@@ -7,6 +7,7 @@
 #include "display.h"
 #include "qrcodegen.h"
 #include "scratch_buffer.hpp"
+#include "support_utils.h"
 
 /// QR Window
 window_qr_t::window_qr_t(window_t *parent, Rect16 rect, uint16_t err_num)

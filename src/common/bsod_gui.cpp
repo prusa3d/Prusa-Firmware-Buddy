@@ -247,7 +247,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         window_qr_t win(nullptr, qr_rect, error_code);
         win.Draw();
 
-        char qr_text[MAX_LEN_4QR + 1];
+        char qr_text[window_qr_t::MAX_LEN_4QR + 1];
         /// draw short URL
         error_url_short(qr_text, sizeof(qr_text), error_code);
         // this MakeRAM is safe - qr_text is a local buffer on stack
