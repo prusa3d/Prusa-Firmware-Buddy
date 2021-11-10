@@ -2,10 +2,6 @@
 
 #include "qrcodegen.h"
 
-enum {
-    MAX_LEN_4QR = 256 //143
-};
-
 #ifdef __cplusplus
 extern "C" {
 #endif
