@@ -6,8 +6,11 @@
 
 class window_qr_t : public AddSuperWindow<window_t> {
 public:
-    window_qr_t(window_t *parent, Rect16 rect, uint16_t err_num);
+    window_qr_t(window_t *parent, Rect16 rect, uint16_t error_num);
+    window_qr_t(window_t *parent, Rect16 rect);
+
     static constexpr uint16_t MAX_LEN_4QR = 256;
+    void SetQRHeader(uint16_t err_num);
 
 private:
     /// Defines maximal size of QR code and buffers needed for generating. Keep it low.
