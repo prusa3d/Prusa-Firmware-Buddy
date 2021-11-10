@@ -242,33 +242,13 @@ void draw_error_screen(const uint16_t error_code_short) {
         /// draw "Hand QR" icon
         render_icon_align(Rect16(20, 165, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, Align_t::LeftTop());
 
-        /// draw QR
-        char qr_text[MAX_LEN_4QR + 1];
-
-        /// switch for sending UID of printer or not
-        bool devhash_in_qr = variant8_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR));
-        if (devhash_in_qr) {
-            error_url_long(qr_text, sizeof(qr_text), error_code);
-        } else {
-            error_url_short(qr_text, sizeof(qr_text), error_code);
-        }
-
         constexpr uint8_t qr_size_px = 140;
         const Rect16 qr_rect = { 160 - qr_size_px / 2, 200 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
-        window_qr_t win(nullptr, qr_rect);
-        win.SetRect(qr_rect);
-        window_qr_t *window = &win;
-        win.text = qr_text;
-        win.bg_color = COLOR_WHITE;
+        window_qr_t win(nullptr, qr_rect, error_code);
 
-        /// use PNG RAM for QR code image
-        uint8_t *qrcode = scratch_buffer;
-        uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
+        win.Draw();
 
-        if (generate_qr(qr_text, qrcode, qr_buff)) {
-            draw_qr(qrcode, window);
-        }
-
+        char qr_text[MAX_LEN_4QR + 1];
         /// draw short URL
         error_url_short(qr_text, sizeof(qr_text), error_code);
         // this MakeRAM is safe - qr_text is a local buffer on stack
@@ -282,7 +262,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
         render_text_align(Rect16(6, 295, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
         /// hash
-        if (devhash_in_qr) {
+        if (variant8_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR))) {
             char p_code[9];
             printerCode(p_code);
             render_text_align(Rect16(98, 295, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
