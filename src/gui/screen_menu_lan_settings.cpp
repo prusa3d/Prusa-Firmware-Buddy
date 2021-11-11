@@ -72,7 +72,7 @@ using MenuContainer = WinMenuContainer<MI_RETURN, MI_NET_INTERFACE_t, MI_NET_IP_
 
 class ScreenMenuLanSettings : public AddSuperWindow<screen_t> {
     constexpr static const char *label = N_("LAN SETTINGS");
-    static constexpr size_t helper_lines = 8;
+    static constexpr size_t helper_lines = 9;
     static constexpr int helper_font = IDR_FNT_SPECIAL;
 
     MenuContainer container;
