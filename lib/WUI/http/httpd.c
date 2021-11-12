@@ -2729,6 +2729,8 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
         if (authorize_request(hs->req)) {
             handler(&api_file);
             file = &api_file;
+            static const char name[] = "response.json";
+            uri = &name[0];
         } else {
             uri = "401";
         }
