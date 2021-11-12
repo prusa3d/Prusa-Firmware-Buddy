@@ -35,7 +35,10 @@
 static const uint32_t esp_target_baudrate = 4600000;
 static netdev_status_t esp_state = NETDEV_NETIF_DOWN;
 static uint32_t active_netdev_id = NETDEV_NODEV_ID;
-static ETH_config_t wui_netdev_config[NETDEV_COUNT]; // the active WUI configuration for ethernet, connect and server
+/*
+ * Desired configuration for each interface.
+ */
+static ETH_config_t wui_netdev_config[NETDEV_COUNT];
 
 struct netif eth0; // network interface structure for ETH
 static ap_entry_t ap = { "", "" };
@@ -71,7 +74,7 @@ static void tcpip_init_done_callback(void *arg) {
     osMessagePut(networkMbox_id, EVT_TCPIP_INIT_FINISHED, 0);
 }
 
-void get_eth_address(uint32_t netdev_id, ETH_config_t *config) {
+void netdev_get_eth_address(uint32_t netdev_id, ETH_config_t *config) {
     if (netdev_id == NETDEV_ETH_ID) {
         config->lan.addr_ip4.addr = netif_ip4_addr(&eth0)->addr;
         config->lan.msk_ip4.addr = netif_ip4_netmask(&eth0)->addr;
@@ -223,22 +226,16 @@ uint32_t netdev_set_active_id(uint32_t netdev_id) {
     return 0;
 }
 
-bool get_current_ipv4(uint8_t *dest) {
-    /*
-     * FIXME: We currently don't have synchronization of network-related
-     * variables solved. This probably goes to
-     * https://dev.prusa3d.com/browse/BFW-2198.
-     *
-     * Technically, this is UB (a data race), but on the current architecture,
-     * this will likely not end up in anything worse than outdated info in some
-     * rare cases. So we dare to postpone this for the above ticket.
-     */
+bool netdev_get_current_ipv4(uint8_t *dest) {
     uint32_t id = netdev_get_active_id();
     switch (id) {
     case NETDEV_ETH_ID:
-    case NETDEV_ESP_ID:
-        memcpy(dest, &wui_netdev_config[id].lan.addr_ip4, 4);
+    case NETDEV_ESP_ID: {
+        ETH_config_t result = {};
+        netdev_get_eth_address(id, &result);
+        memcpy(dest, &result.lan.addr_ip4, 4);
         return true;
+    }
     case NETDEV_NODEV_ID:
         return false;
     default:
