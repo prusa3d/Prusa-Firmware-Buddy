@@ -127,7 +127,7 @@ uint32_t netdev_get_active_id();
  * \param [out] dest - an 4-element array to put the IP into, in network order.
  * \return If any address was filled in (false in case it failed).
  */
-bool get_current_ipv4(uint8_t *dest);
+bool netdev_get_current_ipv4(uint8_t *dest);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Set network device for communication

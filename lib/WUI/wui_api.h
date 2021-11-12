@@ -165,7 +165,7 @@ void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config);
 *
 * \param [in] config - structure that stores currnet ethernet configurations
 *****************************************************************************/
-void get_eth_address(uint32_t, ETH_config_t *);
+void netdev_get_eth_address(uint32_t, ETH_config_t *);
 
 /*!*********************************************************************************************************************
 * \brief Parses time from device's time storage to seconds. MONTHS are from 0 and YEARS are from 1900

@@ -115,7 +115,7 @@ ScreenMenuLanSettings::ScreenMenuLanSettings()
 void ScreenMenuLanSettings::refresh_addresses() {
     if (netdev_get_status(netdev_get_active_id()) == NETDEV_NETIF_UP) {
         ETH_config_t ethconfig = {};
-        get_eth_address(netdev_get_active_id(), &ethconfig);
+        netdev_get_eth_address(netdev_get_active_id(), &ethconfig);
         stringify_eth_for_screen(&plan_str, &ethconfig);
     } else {
         snprintf(plan_str, LAN_DESCP_SIZE, "NO CONNECTION\n");
