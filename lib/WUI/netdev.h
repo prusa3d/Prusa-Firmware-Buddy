@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 #include "netif_settings.h"
 
@@ -168,6 +169,11 @@ void netdev_get_ipv4_addresses(uint32_t, lan_t *);
 ///             - #NETDEV_ESP_ID
 /// @param[out] mac_address Six bytes of MAC address
 void netdev_get_MAC_address(uint32_t, uint8_t[6]);
+
+/// Load ini file to both runtime and eeprom configuration.
+///
+/// @return If it was successful.
+bool netdev_load_ini_to_eeprom();
 
 #ifdef __cplusplus
 }

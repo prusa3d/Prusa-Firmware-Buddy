@@ -44,12 +44,11 @@ protected:
 
 #include "wizard_config.hpp"
 class WindowIcon_OkNg : public AddSuperWindow<window_aligned_t> {
-    static const uint16_t id_res_na;  // not available
-    static const uint16_t id_res_ok;  // ok
-    static const uint16_t id_res_ng;  // not good
-    static const uint16_t id_res_ip0; // in progress - 1st part of animation
-    static const uint16_t id_res_ip1; // in progress - 2nd part of animation
-    enum { ANIMATION_STEP_MS = 500 };
+    static const uint16_t id_res_na;                // not available
+    static const uint16_t id_res_ok;                // ok
+    static const uint16_t id_res_ng;                // not good
+    static const std::array<uint16_t, 4> id_res_ip; // in progress - 4 state animation
+    enum { ANIMATION_STEP_MS = 128 };
 
 public:
     WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state = SelftestSubtestState_t::undef, padding_ui8_t padding = { 0, 0, 0, 0 });

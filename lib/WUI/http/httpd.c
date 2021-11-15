@@ -111,12 +111,15 @@
 #include <string.h> /* memset */
 #include <stdlib.h> /* atoi */
 #include <stdio.h>
-#include "stdbool.h"
+#include <stdbool.h>
+#include <FreeRTOS.h>
+#include <semphr.h>
 
 /*******   Customization ***************************************/
 #include "wui_REST_api.h"
 #include "wui_api.h"
 #include "wui.h"
+#include <netdev.h>
 
 #include "dbg.h"
 #define WUI_API_ROOT_STR_LEN 5
@@ -2427,13 +2430,14 @@ http_accept(void *arg, struct altcp_pcb *pcb, err_t err) {
     return ERR_OK;
 }
 
-static void
-httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
+static struct altcp_pcb *httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
     err_t err;
 
     if (pcb) {
         altcp_setprio(pcb, HTTPD_TCP_PRIO);
-        /* set SOF_REUSEADDR here to explicitly bind httpd to multiple interfaces */
+        /* set SOF_REUSEADDR to explicitly bind httpd to multiple
+         * interfaces and to allow re-binding after enabling & disabling
+         * ethernet. This is set in the prusa_alloc. */
         err = altcp_bind(pcb, IP_ANY_TYPE, port);
         LWIP_UNUSED_ARG(err); /* in case of LWIP_NOASSERT */
         LWIP_ASSERT("httpd_init: tcp_bind failed", err == ERR_OK);
@@ -2441,6 +2445,8 @@ httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
         LWIP_ASSERT("httpd_init: tcp_listen failed", pcb != NULL);
         altcp_accept(pcb, http_accept);
     }
+
+    return pcb;
 }
 
 /**
@@ -2448,16 +2454,17 @@ httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
  * Current ALTCP PCB used by httpd for accepting incomming connections.
  */
 static struct altcp_pcb *httpd_pcb = NULL;
+// Protection of the httpd_pcb
+static SemaphoreHandle_t httpd_pcb_mutex = NULL;
 
 /**
  * @ingroup httpd
  * Initialize the httpd: set up a listening PCB and bind it to the defined port
  */
 void httpd_init(void) {
-    altcp_allocator_t allocator = {
-        .alloc = prusa_alloc,
-        .arg = NULL
-    };
+    LWIP_ASSERT("httpd_init called multiple times", httpd_pcb_mutex == NULL);
+    httpd_pcb_mutex = xSemaphoreCreateMutex();
+    LWIP_ASSERT("Couldn't create mutex to protect http listening socket", httpd_pcb_mutex != NULL);
 
     #if HTTPD_USE_MEM_POOL
     LWIP_MEMPOOL_INIT(HTTPD_STATE);
@@ -2467,20 +2474,53 @@ void httpd_init(void) {
     #endif
     LWIP_DEBUGF(HTTPD_DEBUG, ("httpd_init\n"));
 
-    /* LWIP_ASSERT_CORE_LOCKED(); is checked by tcp_new() */
-
-    httpd_pcb = altcp_new_ip_type(&allocator, IPADDR_TYPE_ANY);
-    LWIP_ASSERT("httpd_init: tcp_new failed", httpd_pcb != NULL);
     httpd_reinit();
 }
 
+// The inner part of httpd_close. Assumes the mutex is already locked.
+static void httpd_close_locked() {
+    // According to docs, the close can fail in case there's not enough memory.
+    // That's likely because usual sockets still wait for some more data to
+    // arrive (?). Hopefully this is not the case for listening sockets.
+    //
+    // Using altcp_abort would be better in theory (as it just wipes it and
+    // can't fail), but:
+    // * It crashes on ethernet for no known reason.
+    // * It is not currently implemented in ESP.
+    err_t err = altcp_close(httpd_pcb);
+    LWIP_ASSERT("Couldn't close listening socket", err == ERR_OK);
+    httpd_pcb = NULL;
+}
+
+void httpd_close() {
+    xSemaphoreTake(httpd_pcb_mutex, portMAX_DELAY);
+
+    httpd_close_locked();
+
+    xSemaphoreGive(httpd_pcb_mutex);
+}
+
 void httpd_reinit() {
-    if (httpd_pcb == NULL) {
-        _dbg("Cannot reinitialize httpd server as the main PCB is not initialized.");
-        return;
+    xSemaphoreTake(httpd_pcb_mutex, portMAX_DELAY);
+
+    if (httpd_pcb != NULL) {
+        httpd_close_locked();
     }
 
-    httpd_init_pcb(httpd_pcb, HTTPD_SERVER_PORT);
+    if (netdev_get_active_id() != NETDEV_NODEV_ID) {
+        altcp_allocator_t allocator = {
+            .alloc = prusa_alloc,
+            .arg = NULL
+        };
+        /* LWIP_ASSERT_CORE_LOCKED(); is checked by tcp_new() */
+
+        httpd_pcb = altcp_new_ip_type(&allocator, IPADDR_TYPE_ANY);
+        LWIP_ASSERT("httpd_init: tcp_new failed", httpd_pcb != NULL);
+
+        httpd_pcb = httpd_init_pcb(httpd_pcb, HTTPD_SERVER_PORT);
+    }
+
+    xSemaphoreGive(httpd_pcb_mutex);
 }
 
     #if HTTPD_ENABLE_HTTPS
@@ -2598,7 +2638,7 @@ static void wui_api_files(struct fs_file *file) {
 }
 
 bool authorize_request(const struct pbuf *req) {
-    const char *api_key_tag = "X-Api-Key:";
+    const char *api_key_tag = CRLF "X-Api-Key:";
     uint32_t api_key_tag_length = strlen(api_key_tag);
     uint32_t index = pbuf_strstr(req, api_key_tag);
 

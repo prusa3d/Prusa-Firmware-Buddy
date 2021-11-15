@@ -15,6 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include "netdev.h"
 
 #include "eeprom.h"
@@ -45,7 +46,7 @@ static ETH_config_t wui_netdev_config[NETDEV_COUNT] = { 0 };
 #endif
 
 struct netif eth0; // network interface structure for ETH
-static ap_entry_t ap = { "ssid", "password" };
+static ap_entry_t ap = { "", "" };
 
 extern osMessageQId networkMbox_id;
 extern struct alsockets_s *alsockets_eth();
@@ -54,6 +55,7 @@ extern struct alsockets_s *alsockets_esp();
 static struct alsockets_s *netdev_get_sockets(uint32_t);
 
 #define ETH_CONFIG() wui_netdev_config[NETDEV_ETH_ID]
+#define ESP_CONFIG() wui_netdev_config[NETDEV_ESP_ID]
 
 #define DNS_1 0
 #define DNS_2 1
@@ -198,31 +200,26 @@ esp_callback_func(esp_evt_t *evt) {
     return espOK;
 }
 
+static void alsockets_adjust() {
+    alsockets_funcs(netdev_get_sockets(active_netdev_id));
+}
+
 uint32_t netdev_init() {
     ETH_CONFIG().var_mask = ETHVAR_EEPROM_CONFIG;
-    load_eth_params(&ETH_CONFIG());
+    load_net_params(&ETH_CONFIG(), NULL, NETDEV_ETH_ID);
+    ESP_CONFIG().var_mask = ETHVAR_EEPROM_CONFIG | APVAR_EEPROM_CONFIG;
+    load_net_params(&ESP_CONFIG(), &ap, NETDEV_ESP_ID);
     active_netdev_id = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_NETDEV));
-
-    // FIXME: This is here just temporarily. We should load from EEPROM here
-    // and call this thing from a menu item on user request.
-    if (load_ini_file_wifi(&wui_netdev_config[NETDEV_ESP_ID], &ap)) {
-        _dbg("Wifi settings: %s/%s", ap.ssid, ap.pass);
-    } else {
-        // TODO: This is probably not correct, is there a better error code? It
-        // probably doesn't matter, as this is temporary.
-        _dbg("Failed to read config from ini file");
-        // Not setting anything and hoping wifi is not going to be used this time
-    }
 
     tcpip_init(tcpip_init_done_callback, NULL);
     netdev_init_esp();
+
+    alsockets_adjust();
     return 0;
 }
 
 uint32_t netdev_init_esp() {
-    // esp_hard_reset_device();
     esp_init(esp_callback_func, 0);
-    alsockets_funcs(netdev_get_sockets(active_netdev_id));
     return 0;
 }
 
@@ -241,6 +238,8 @@ uint32_t netdev_set_active_id(uint32_t netdev_id) {
 
     active_netdev_id = netdev_id;
     eeprom_set_var(EEVAR_ACTIVE_NETDEV, variant8_ui8((uint8_t)(netdev_id & 0xFF)));
+
+    alsockets_adjust();
     return 0;
 }
 
@@ -277,16 +276,16 @@ uint32_t netdev_set_dhcp(uint32_t netdev_id) {
         // to the network therefore we use such a feature during the switch between
         // static and dynamic IP because there is no API call to invoke DHCP client.
         esp_sta_quit(NULL, NULL, 1);
-        esp_sta_join(ap.ssid, ap.pass, NULL, NULL, NULL, 0);
+        res = netdev_set_up(NETDEV_ESP_ID);
         pConfig = &wui_netdev_config[netdev_id];
-        res = ERR_OK;
     }
 
     if (pConfig != NULL) {
         CHANGE_FLAG_TO_DHCP(pConfig->lan.flag);
         pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        save_eth_params(pConfig);
+        save_net_params(pConfig, NULL, netdev_id);
         pConfig->var_mask = 0;
+        return res;
     } else {
         res = ERR_IF;
     }
@@ -301,12 +300,38 @@ uint32_t netdev_set_up(uint32_t netdev_id) {
         netifapi_netif_set_link_up(&eth0);
         return netifapi_netif_set_up(&eth0);
     } else if (netdev_id == NETDEV_ESP_ID) {
+        const char *passwd;
+        switch (ap.security) {
+        case AP_SEC_NONE:
+            passwd = NULL;
+            break;
+        case AP_SEC_WEP:
+        case AP_SEC_WPA:
+            passwd = ap.pass;
+            break;
+        default:
+            assert(0 /* Unhandled AP_SEC_* value*/);
+            return ERR_ARG;
+        }
         esp_hostname_set(wui_netdev_config[NETDEV_ESP_ID].hostname, NULL, NULL, 0);
-        esp_sta_join(ap.ssid, ap.pass, NULL, NULL, NULL, 0);
+        esp_sta_join(ap.ssid, passwd, NULL, NULL, NULL, 0);
         return ERR_OK;
     } else {
         return ERR_IF;
     }
+}
+
+bool netdev_load_ini_to_eeprom() {
+    if ((load_ini_file_eth(&wui_netdev_config[NETDEV_ETH_ID]) != 1) || (load_ini_file_wifi(&wui_netdev_config[NETDEV_ESP_ID], &ap) != 1)) {
+        return false;
+    }
+
+    // Yes, indeed, the load functions return 1 on success, these save return 0 on success...
+    if ((save_net_params(&wui_netdev_config[NETDEV_ETH_ID], NULL, NETDEV_ETH_ID) != 0) || (save_net_params(&wui_netdev_config[NETDEV_ESP_ID], &ap, NETDEV_ESP_ID))) {
+        return false;
+    }
+
+    return true;
 }
 
 uint32_t netdev_set_down(uint32_t netdev_id) {
@@ -342,8 +367,9 @@ uint32_t netdev_set_static(uint32_t netdev_id) {
     if (pConfig != NULL) {
         CHANGE_FLAG_TO_STATIC(pConfig->lan.flag);
         pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        save_eth_params(pConfig);
+        save_net_params(pConfig, NULL, netdev_id);
         pConfig->var_mask = 0;
+        return res;
     } else {
         res = ERR_IF;
     }
