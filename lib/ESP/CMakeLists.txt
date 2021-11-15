@@ -17,7 +17,7 @@ target_sources(
             lwesp/esp_at_lib/src/esp/esp_conn.c
             # lwesp/esp_at_lib/src/esp/esp_dhcp.c lwesp/src/esp/esp_dns.c
             lwesp/esp_at_lib/src/esp/esp_evt.c
-            # lwesp/esp_at_lib/src/esp/esp_hostname.c
+            lwesp/esp_at_lib/src/esp/esp_hostname.c
             lwesp/esp_at_lib/src/esp/esp_input.c
             lwesp/esp_at_lib/src/esp/esp_int.c
             lwesp/esp_at_lib/src/esp/esp_mdns.c
