@@ -2637,6 +2637,8 @@ static void wui_api_files(struct fs_file *file) {
     file->flags = 0; // no flags for fs_open
 }
 
+typedef void (*wui_get_handler)(struct fs_file *);
+
 bool authorize_request(const struct pbuf *req) {
     const char *api_key_tag = CRLF "X-Api-Key:";
     uint32_t api_key_tag_length = strlen(api_key_tag);
@@ -2712,30 +2714,24 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
         goto process_file;
     }
 
+    wui_get_handler handler = NULL;
     if (!strcmp(uri, "/api/printer")) {
-        if (authorize_request(hs->req)) {
-            wui_api_printer(&api_file);
-            file = &api_file;
-        } else {
-            uri = "401";
-        }
+        handler = wui_api_printer;
     } else if (!strcmp(uri, "/api/version")) {
-        if (authorize_request(hs->req)) {
-            wui_api_version(&api_file);
-            file = &api_file;
-        } else {
-            uri = "401";
-        }
+        handler = wui_api_version;
     } else if (!strcmp(uri, "/api/job")) {
+        handler = wui_api_job;
+    } else if (!strncmp(uri, "/api/files", 10)) {
+        handler = wui_api_files;
+    }
+
+    if (handler != NULL) {
         if (authorize_request(hs->req)) {
-            wui_api_job(&api_file);
+            handler(&api_file);
             file = &api_file;
         } else {
             uri = "401";
         }
-    } else if (!strncmp(uri, "/api/files", 10)) {
-        wui_api_files(&api_file);
-        file = &api_file;
     }
 
 process_file:
