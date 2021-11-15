@@ -87,6 +87,10 @@ set(CUSTOM_COMPILE_OPTIONS
     ""
     CACHE STRING "Allows adding custom C/C++ flags"
     )
+set(PRESET_COMPILE_OPTIONS
+    ""
+    CACHE STRING "Allows adding custom C/C++ flags. To be used from preset files."
+    )
 set(WUI
     "YES"
     CACHE BOOL "Enable Web User Interface"
@@ -165,6 +169,9 @@ message(STATUS "Board: ${BOARD}")
 message(
   STATUS "Board Version: ${BOARD_VERSION_MAJOR}.${BOARD_VERSION_MINOR}.${BOARD_VERSION_PATCH}"
   )
+message(STATUS "MCU: ${MCU}")
+message(STATUS "Custom Compile Options (C/C++ flags): ${CUSTOM_COMPILE_OPTIONS}")
+message(STATUS "Preset Compile Options (C/C++ flags): ${PRESET_COMPILE_OPTIONS}")
 message(STATUS "Web User Interface: ${WUI}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
@@ -190,7 +197,7 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
 else()
   set(GUI NO)
 endif()
-message(STATUS "GUI: ${GUI}")
+message(STATUS "Graphical User Interface: ${GUI}")
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
   set(INIT_TRINAMIC_FROM_MARLIN_ONLY YES)
@@ -208,6 +215,10 @@ endif()
 if(CUSTOM_COMPILE_OPTIONS)
   string(REPLACE " " ";" CUSTOM_COMPILE_OPTIONS "${CUSTOM_COMPILE_OPTIONS}")
   add_compile_options(${CUSTOM_COMPILE_OPTIONS})
+endif()
+if(PRESET_COMPILE_OPTIONS)
+  string(REPLACE " " ";" PRESET_COMPILE_OPTIONS "${PRESET_COMPILE_OPTIONS}")
+  add_compile_options(${PRESET_COMPILE_OPTIONS})
 endif()
 
 #
@@ -693,6 +704,7 @@ if(GUI)
             src/gui/gcode_description.cpp
             src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
+            src/gui/screen_menu_eeprom_diagnostics.cpp
             src/gui/screen_watchdog.cpp
             src/gui/screen_reset_error.cpp
             src/gui/screen_hardfault.cpp

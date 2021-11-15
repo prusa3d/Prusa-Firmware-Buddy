@@ -251,7 +251,7 @@ class Planner {
     static planner_settings_t settings;
 
     static uint32_t max_acceleration_steps_per_s2[XYZE_N]; // (steps/s^2) Derived from mm_per_s2
-    static float steps_to_mm[XYZE_N];           // Millimeters per step
+    static float mm_per_step[XYZE_N];           // Millimeters per step
 
     #if DISABLED(CLASSIC_JERK)
       static float junction_deviation_mm;       // (mm) M205 J

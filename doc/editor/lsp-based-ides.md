@@ -5,11 +5,10 @@
 3. Invoke CMake directly with your configuration, for example:
 
     ```bash
-    cmake .. -G Ninja \
-             -DCMAKE_TOOLCHAIN_FILE=../cmake/GccArmNoneEabi.cmake \
+    cmake .. --preset mini \
+             -G Ninja \
              -DCMAKE_EXPORT_COMPILE_COMMANDS=YES \
              -DBOOTLOADER=YES \
-             -DPRINTER=MINI \
              -DCMAKE_BUILD_TYPE=Debug
     ```
 

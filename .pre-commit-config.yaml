@@ -19,6 +19,14 @@ repos:
       language: script
       files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
       args: ['-i', '-style=file']
+    - id: generate-cmake-presets
+      name: generate-cmake-presets
+      description: This hook generates CMakePresets.json file based on utils/presets/presets.json
+      entry: python utils/build.py --generate-cmake-presets
+      files: (.*.json)
+      pass_filenames: false
+      language: python
+      language_version: python3
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: 'v2.4.0'
   hooks:

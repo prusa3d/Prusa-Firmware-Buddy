@@ -22,8 +22,7 @@ pipeline {
                 script {
                     // required configurations
                     def configurations = [
-                        [printer: "mini", build_type: "release", bootloader: "no"],
-                        [printer: "mini", build_type: "release", bootloader: "yes"],
+                        [preset: "mini", build_type: "release", bootloader: "yes"],
                     ]
 
                     // prepare version suffix
@@ -54,12 +53,12 @@ pipeline {
 
                     // create the build stages
                     configurations.each { config ->
-                        stage("Build - ${config.printer},${config.build_type},${config.bootloader}boot") {
+                        stage("Build - ${config.preset},${config.build_type},${config.bootloader}boot") {
                             catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                 sh """
                                     ln -fs /.dependencies
                                     python3 utils/build.py \
-                                        --printer ${config.printer} \
+                                        --preset ${config.preset} \
                                         --build-type ${config.build_type} \
                                         --bootloader ${config.bootloader} \
                                         --generate-bbf \
@@ -97,10 +96,10 @@ pipeline {
             steps {
                 sh """
                 python3 utils/bootstrap.py
-                export PATH=\$PWD/.dependencies/cmake-3.15.5/bin:\$PWD/.dependencies/ninja-1.9.0:\$PATH
+                export PATH=\$PWD/.dependencies/cmake-3.21.3/bin:\$PWD/.dependencies/ninja-1.10.2:\$PATH
                 mkdir -p build-test
-                LD_LIBRARY_PATH=/usr/local/lib32 \$PWD/.dependencies/cmake-3.15.5/bin/ctest --build-and-test . build-test \
-                    -DCMAKE_MAKE_PROGRAM=\$PWD/.dependencies/ninja-1.9.0/ninja \
+                LD_LIBRARY_PATH=/usr/local/lib32 \$PWD/.dependencies/cmake-3.21.3/bin/ctest --build-and-test . build-test \
+                    -DCMAKE_MAKE_PROGRAM=\$PWD/.dependencies/ninja-1.10.2/ninja \
                     --build-generator Ninja \
                     --build-target tests \
                     --test-command ctest

@@ -236,6 +236,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_EEPROM_DIAGNOSTICS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Experimental Settings");
+
+public:
+    MI_EEPROM_DIAGNOSTICS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_LANGUAGUE_USB : public WI_LABEL_t {
     static constexpr const char *const label = "Load lang from USB";
 

@@ -10,7 +10,7 @@ screen_qr_error_data_t::screen_qr_error_data_t()
     , errText(this, Rect16(8, 0, 224, 25), is_multiline::no)
     , errDescription(this, Rect16(8, 30, 224, 95), is_multiline::yes)
     , info(this, Rect16(8, 275, 224, 20), is_multiline::no)
-    , qr(this, Rect16(59, 140, 224, 95))
+    , qr(this, Rect16(59, 140, 224, 95), 1) // Shouldn't it be square?
     , first_run_flag(true) {
     errText.SetBackColor(COLOR_RED_ALERT);
     errText.font = resource_font(IDR_FNT_BIG);
@@ -23,10 +23,6 @@ screen_qr_error_data_t::screen_qr_error_data_t()
     info.SetAlignment(Align_t::Center());
     static const char hlp[] = "help.prusa3d.com";
     info.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)hlp));
-
-    qr.px_per_module = 2;
-    error_url_long(qr_text.data(), qr_text.size(), 1);
-    qr.text = qr_text.data();
 }
 
 void screen_qr_error_data_t::unconditionalDraw() {

@@ -9,9 +9,16 @@
 #include "fsensor_eeprom.hpp"
 #include "rtos_api.hpp"
 
+//singleton
+FSensor &FS_instance() {
+    static FSensor ret;
+    return ret;
+}
+
 FSensor::FSensor()
     : state(fsensor_t::NotInitialized)
     , last_state(fsensor_t::NotInitialized)
+    , meas_cycle(0)
     , event_lock(0) {
     PrintProcessor::Init();
 }

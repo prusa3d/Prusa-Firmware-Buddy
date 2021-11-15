@@ -426,7 +426,7 @@ void MarlinSettings::postprocess() {
     planner.recalculate_max_e_jerk();
   #endif
 
-  // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
+  // Refresh mm_per_step with the reciprocal of axis_steps_per_mm
   // and init stepper.count[], planner.position[] with current_position
   planner.refresh_positioning();
 

@@ -1,0 +1,446 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "mini_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/."
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/."
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/."
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/."
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "png2font_debug",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-host",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PNG2FONT_ENABLE": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "BIN2CC_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "HEX2DFU_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                }
+            }
+        },
+        {
+            "name": "png2font_release",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-host",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PNG2FONT_ENABLE": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "BIN2CC_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "HEX2DFU_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                }
+            }
+        },
+        {
+            "name": "bin2cc_debug",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-host",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PNG2FONT_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "BIN2CC_ENABLE": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "HEX2DFU_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                }
+            }
+        },
+        {
+            "name": "bin2cc_release",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-host",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PNG2FONT_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "BIN2CC_ENABLE": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "HEX2DFU_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                }
+            }
+        },
+        {
+            "name": "hex2dfu_debug",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-host",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PNG2FONT_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "BIN2CC_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "HEX2DFU_ENABLE": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                }
+            }
+        },
+        {
+            "name": "hex2dfu_release",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-host",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PNG2FONT_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "BIN2CC_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "HEX2DFU_ENABLE": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                }
+            }
+        },
+        {
+            "name": "makefsdata_debug",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-host",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PNG2FONT_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "BIN2CC_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "HEX2DFU_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "YES"
+                }
+            }
+        },
+        {
+            "name": "makefsdata_release",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-host",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PNG2FONT_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "BIN2CC_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "HEX2DFU_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "YES"
+                }
+            }
+        }
+    ]
+}

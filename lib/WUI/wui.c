@@ -18,7 +18,9 @@
 #include "sntp_client.h"
 #include "dbg.h"
 
-#include "lwip/altcp_tcp.h"
+#include <lwip/ip.h>
+#include <lwip/tcp.h>
+#include <lwip/altcp_tcp.h>
 #include "esp_tcp.h"
 #include "httpd.h"
 #include "main.h"
@@ -127,9 +129,26 @@ const char *wui_get_api_key() {
 
 struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type) {
     uint32_t active_device_id = netdev_get_active_id();
-    if (active_device_id == NETDEV_ETH_ID)
-        return altcp_tcp_new_ip_type(ip_type);
-    else if (active_device_id == NETDEV_ESP_ID) {
+    if (active_device_id == NETDEV_ETH_ID) {
+        struct altcp_pcb *result = altcp_tcp_new_ip_type(ip_type);
+        /*
+         * Hack:
+         * We need the option for listening sockets, because it otherwise
+         * breaks if we turn the interface down and up again (and therefore
+         * close and open a listening socket on the same port). Apparently,
+         * setting interface down does not kill/wipe all its connections/puts
+         * them into TCP_WAIT state.
+         *
+         * This should do nothing for connecting sockets, so it's fine to set.
+         *
+         * This is the wrong place to do it, but there's no other as other
+         * places can't know for sure the actide device didn't change.
+         */
+        if (result != NULL) {
+            ip_set_option((struct tcp_pcb *)result->state, SOF_REUSEADDR);
+        }
+        return result;
+    } else if (active_device_id == NETDEV_ESP_ID) {
         return altcp_esp_new_ip_type(ip_type);
     } else {
         return NULL;

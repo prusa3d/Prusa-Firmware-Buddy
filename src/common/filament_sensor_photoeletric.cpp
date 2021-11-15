@@ -17,7 +17,7 @@
 #include "filament_sensor_photoeletric.hpp"
 #include "fsensor_pins.hpp"
 
-void FSensorPhotoElectric::cycle0() {
+void FSensor::cycle0() {
     if (FSensorPins::Get()) {
         FSensorPins::pullDown();
         meas_cycle = 1; //next cycle shall be 1
@@ -27,14 +27,14 @@ void FSensorPhotoElectric::cycle0() {
     }
 }
 
-void FSensorPhotoElectric::cycle1() {
+void FSensor::cycle1() {
     //pulldown was set in cycle 0
     set_state(FSensorPins::Get() ? fsensor_t::HasFilament : fsensor_t::NotConnected);
     FSensorPins::pullUp();
     meas_cycle = 0; //next cycle shall be 0
 }
 
-void FSensorPhotoElectric::cycle() {
+void FSensor::cycle() {
     if (meas_cycle == 0) {
         cycle0();
     } else {
@@ -42,21 +42,15 @@ void FSensorPhotoElectric::cycle() {
     }
 }
 
-void FSensorPhotoElectric::enable() {
+void FSensor::enable() {
     FSensorPins::pullUp();
     state = fsensor_t::NotInitialized;
     last_state = fsensor_t::NotInitialized;
     meas_cycle = 0;
 }
 
-void FSensorPhotoElectric::disable() {
+void FSensor::disable() {
     state = fsensor_t::Disabled;
     last_state = fsensor_t::Disabled;
     meas_cycle = 0;
-}
-
-//singleton
-FSensor &FS_instance() {
-    static FSensorPhotoElectric ret;
-    return ret;
 }
