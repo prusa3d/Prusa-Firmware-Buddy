@@ -12,7 +12,6 @@
 #include "sys.h"
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
-#include "filament_sensor.hpp"
 #include "dump.h"
 #include "sound.hpp"
 #include "WindowMenuItems.hpp"
@@ -24,67 +23,6 @@
 #include <wui_api.h>
 
 /*****************************************************************************/
-//MI_FILAMENT_SENSOR
-class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Filament Sensor");
-    static bool fs_not_connected;
-    static bool consumeNotConnected();
-    void no_sensor_msg() const;
-
-    bool init_index() const;
-
-public:
-    MI_FILAMENT_SENSOR()
-        : WI_SWITCH_OFF_ON_t(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
-    void CheckDisconnected();
-
-protected:
-    virtual void OnChange(size_t old_index) override;
-};
-
-void MI_FILAMENT_SENSOR::no_sensor_msg() const {
-    MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
-}
-
-bool MI_FILAMENT_SENSOR::init_index() const {
-    fsensor_t fs = FS_instance().WaitInitialized();
-    fs_not_connected = fs == fsensor_t::NotConnected;
-    if (fs_not_connected) //tried to enable but there is no sensor
-    {
-        FS_instance().Disable();
-        fs_not_connected = true;
-        fs = fsensor_t::Disabled;
-    }
-    return fs == fsensor_t::Disabled ? 0 : 1;
-}
-
-void MI_FILAMENT_SENSOR::CheckDisconnected() {
-    if (consumeNotConnected() || FS_instance().WaitInitialized() == fsensor_t::NotConnected) {
-        FS_instance().Disable();
-        index = 0;
-        no_sensor_msg();
-    }
-}
-
-bool MI_FILAMENT_SENSOR::consumeNotConnected() {
-    bool ret = fs_not_connected;
-    fs_not_connected = false;
-    return ret;
-}
-
-void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
-    old_index == 1 ? FS_instance().Disable() : FS_instance().Enable();
-
-    fsensor_t fs = FS_instance().WaitInitialized();
-    if (fs == fsensor_t::NotConnected) //tried to enable but there is no sensor
-    {
-        FS_instance().Disable();
-        index = old_index;
-        fs_not_connected = true;
-    }
-}
-
-bool MI_FILAMENT_SENSOR::fs_not_connected = false;
 
 class MI_LOAD_SETTINGS : public WI_LABEL_t {
     constexpr static const char *const label = N_("Load Settings from file");
