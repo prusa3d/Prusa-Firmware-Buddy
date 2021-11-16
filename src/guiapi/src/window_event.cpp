@@ -23,6 +23,6 @@ EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_
 
         if (event != GUI_event_t::LOOP && event != GUI_event_t::TEXT_ROLL
             && event != GUI_event_t::GUI_STARTUP && event != GUI_event_t::TIMER)
-            log_info(GUI, "Distributing event %s", GUI_event_prt(event));
+            log_debug(GUI, "Distributing event %s", GUI_event_prt(event));
     }
 } //ctor must be private
