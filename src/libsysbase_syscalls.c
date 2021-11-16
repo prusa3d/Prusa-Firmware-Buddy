@@ -11,6 +11,7 @@ osMutexDef(libsysbase_mutex);
 
 #if defined(_RETARGETABLE_LOCKING)
 // This part is not yet tested
+// FIXME: _LOCK_T should be __lock
 
 struct __lock {
     osMutexId mutexId;
@@ -23,6 +24,7 @@ __attribute__((constructor)) static void init_retarget_locks(void) {
 }
 
 void __retarget_lock_init(_LOCK_T *lock_ptr) {
+    // FIXME: check size of _LOCK_T and __lock for size equality
     *lock_ptr = (_LOCK_T)malloc(sizeof(struct __lock));
     (*lock_ptr)->mutexId = osMutexCreate(osMutex(libsysbase_mutex));
 }
