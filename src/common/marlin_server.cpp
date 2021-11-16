@@ -290,7 +290,7 @@ static const uint8_t MARLIN_IDLE_CNT_BUSY = 1;
 int marlin_server_loop(void) {
     if (marlin_server.idle_cnt >= MARLIN_IDLE_CNT_BUSY)
         if (marlin_server.flags & MARLIN_SFLG_BUSY) {
-            log_info(MarlinServer, "State: Ready");
+            log_debug(MarlinServer, "State: Ready");
             marlin_server.flags &= ~MARLIN_SFLG_BUSY;
             if ((marlin_server.command != MARLIN_CMD_NONE) && (marlin_server.command != MARLIN_CMD_M600)) {
                 _send_notify_event(MARLIN_EVT_CommandEnd, marlin_server.command, 0);
@@ -307,7 +307,7 @@ int marlin_server_idle(void) {
         marlin_server.idle_cnt++;
     else if ((marlin_server.flags & MARLIN_SFLG_BUSY) == 0) {
 
-        log_info(MarlinServer, "State: Busy");
+        log_debug(MarlinServer, "State: Busy");
         marlin_server.flags |= MARLIN_SFLG_BUSY;
         if (parser.command_letter == 'G')
             switch (parser.codenum) {
