@@ -394,7 +394,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
       const int16_t babystep_increment = int16_t(ui.encoderPosition) * (BABYSTEP_MULTIPLICATOR);
       ui.encoderPosition = 0;
 
-      const float diff = planner.steps_to_mm[Z_AXIS] * babystep_increment,
+      const float diff = planner.mm_per_step[Z_AXIS] * babystep_increment,
                   new_probe_offset = probe_offset.z + diff,
                   new_offs =
                     #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)

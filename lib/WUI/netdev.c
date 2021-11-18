@@ -36,13 +36,16 @@
 static const uint32_t esp_target_baudrate = 4600000;
 static netdev_status_t esp_state = NETDEV_NETIF_DOWN;
 static uint32_t active_netdev_id = NETDEV_NODEV_ID;
+/*
+ * Desired configuration for each interface.
+ */
 #ifdef _DEBUG
 static ETH_config_t wui_netdev_config[NETDEV_COUNT] = {
     { .hostname = "debug-eth-MINI" },
     { .hostname = "debug-esp-MINI" }
 }; // the active WUI configuration for ethernet, connect and server
 #else
-static ETH_config_t wui_netdev_config[NETDEV_COUNT] = { 0 };
+static ETH_config_t wui_netdev_config[NETDEV_COUNT] = {};
 #endif
 
 struct netif eth0; // network interface structure for ETH
@@ -241,6 +244,24 @@ uint32_t netdev_set_active_id(uint32_t netdev_id) {
 
     alsockets_adjust();
     return 0;
+}
+
+bool netdev_get_current_ipv4(uint8_t *dest) {
+    uint32_t id = netdev_get_active_id();
+    switch (id) {
+    case NETDEV_ETH_ID:
+    case NETDEV_ESP_ID: {
+        lan_t result = {};
+        netdev_get_ipv4_addresses(id, &result);
+        memcpy(dest, &result.addr_ip4, 4);
+        return true;
+    }
+    case NETDEV_NODEV_ID:
+        return false;
+    default:
+        assert(0 /* Unhandled/invalid active_netdev_id */);
+        return false;
+    }
 }
 
 netdev_status_t netdev_get_status(uint32_t netdev_id) {

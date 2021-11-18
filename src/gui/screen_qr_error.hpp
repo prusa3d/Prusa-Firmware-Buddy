@@ -2,7 +2,6 @@
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"
-#include "support_utils.h" //MAX_LEN_4QR
 #include <array>
 #include "screen.hpp"
 
@@ -11,7 +10,6 @@ struct screen_qr_error_data_t : public AddSuperWindow<screen_t> {
     window_text_t errDescription;
     window_text_t info;
     window_qr_t qr;
-    std::array<char, MAX_LEN_4QR + 1> qr_text;
     bool first_run_flag;
 
 public:

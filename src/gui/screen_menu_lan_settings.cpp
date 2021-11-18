@@ -88,7 +88,7 @@ class ScreenMenuLanSettings : public AddSuperWindow<screen_t> {
 public:
     ScreenMenuLanSettings();
 
-    uint32_t StringifyNetworkDevice(uint32_t, lan_descp_str_t);
+    uint32_t StringifyNetworkDevice(uint32_t netdev_id, lan_descp_str_t out_buffer);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
@@ -136,7 +136,7 @@ uint32_t ScreenMenuLanSettings::StringifyNetworkDevice(uint32_t netdev_id, lan_d
 /*****************************************************************************/
 //non static member function definition
 void ScreenMenuLanSettings::refresh_addresses() {
-    uint32_t active_netdev_id = netdev_get_active_id();
+    const uint32_t active_netdev_id = netdev_get_active_id();
     if (netdev_get_status(active_netdev_id) == NETDEV_NETIF_UP) {
         StringifyNetworkDevice(active_netdev_id, plan_str);
     } else {

@@ -7,6 +7,7 @@
 #include "screen_messages.hpp"
 #include "marlin_client.h"
 #include "translation_provider_FILE.hpp"
+#include "filament_sensor.hpp"
 #include "translator.hpp"
 
 /*****************************************************************************/
@@ -265,6 +266,52 @@ void MI_LANGUAGUE_XFLASH::click(IWindowMenu &windowMenu) {
     if (fileProviderInternal.EnsureFile())
         Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderInternal);
 }
+
+/**********************************************************************************************/
+//MI_FILAMENT_SENSOR
+void MI_FILAMENT_SENSOR::no_sensor_msg() const {
+    MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
+}
+
+bool MI_FILAMENT_SENSOR::init_index() const {
+    fsensor_t fs = FS_instance().WaitInitialized();
+    fs_not_connected = fs == fsensor_t::NotConnected;
+    if (fs_not_connected) //tried to enable but there is no sensor
+    {
+        FS_instance().Disable();
+        fs_not_connected = true;
+        fs = fsensor_t::Disabled;
+    }
+    return fs == fsensor_t::Disabled ? 0 : 1;
+}
+
+void MI_FILAMENT_SENSOR::CheckDisconnected() {
+    if (consumeNotConnected() || FS_instance().WaitInitialized() == fsensor_t::NotConnected) {
+        FS_instance().Disable();
+        index = 0;
+        no_sensor_msg();
+    }
+}
+
+bool MI_FILAMENT_SENSOR::consumeNotConnected() {
+    bool ret = fs_not_connected;
+    fs_not_connected = false;
+    return ret;
+}
+
+void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
+    old_index == 1 ? FS_instance().Disable() : FS_instance().Enable();
+
+    fsensor_t fs = FS_instance().WaitInitialized();
+    if (fs == fsensor_t::NotConnected) //tried to enable but there is no sensor
+    {
+        FS_instance().Disable();
+        index = old_index;
+        fs_not_connected = true;
+    }
+}
+
+bool MI_FILAMENT_SENSOR::fs_not_connected = false;
 
 /*****************************************************************************/
 //MI_PRUSALINK

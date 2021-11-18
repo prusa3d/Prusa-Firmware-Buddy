@@ -122,7 +122,7 @@ uint32_t load_ini_file_eth(ETH_config_t *config);
 uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
 
 /*!*****************************************************************************************
-* \brief Parses all vital eth information in destination string according to ini file format
+* \brief Formats all vital eth information in destination string according to ini file format
 *
 * \param [out] destination null-terminated string
 * \param [in] config - storage for ethernet configurations

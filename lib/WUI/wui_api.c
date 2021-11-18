@@ -180,7 +180,7 @@ uint32_t save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netde
         if (ap != NULL) {
             flags |= ap->security;
         }
-        eeprom_set_var(vid(EEVAR_LAN_FLAG, netdev_id), variant8_ui8(ethconfig->lan.flag));
+        eeprom_set_var(vid(EEVAR_LAN_FLAG, netdev_id), variant8_ui8(flags));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
         eeprom_set_var(vid(EEVAR_LAN_IP4_ADDR, netdev_id), variant8_ui32(ethconfig->lan.addr_ip4.addr));
