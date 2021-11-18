@@ -980,6 +980,7 @@
 // The size of the print bed
 #define X_BED_SIZE 180
 #define Y_BED_SIZE 180
+#define Z_SIZE 185
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
 #define X_MIN_POS -2
@@ -987,7 +988,6 @@
 #define Z_MIN_POS 0
 #define X_MAX_POS X_BED_SIZE
 #define Y_MAX_POS Y_BED_SIZE
-
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     #define DEFAULT_Z_MAX_POS 185
     #define Z_MIN_LEN_LIMIT 1
@@ -996,6 +996,16 @@
 #else
     #define Z_MAX_POS 185
 #endif
+
+/// Distance between start of the axis to the position where ordinary movement is allowed
+#define X_HOME_GAP 0
+#define Y_HOME_GAP 0
+#define Z_HOME_GAP 0
+
+/// Space after allowed end of axis where axis should end
+#define X_END_GAP 10
+#define Y_END_GAP 10
+#define Z_END_GAP 10
 
 /**
  * Software Endstops

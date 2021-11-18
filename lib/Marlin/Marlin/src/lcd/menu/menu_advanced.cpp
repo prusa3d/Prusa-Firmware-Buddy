@@ -402,7 +402,7 @@ void menu_backlash();
       if (e == active_extruder)
         planner.refresh_positioning();
       else
-        planner.steps_to_mm[E_AXIS_N(e)] = 1.0f / planner.settings.axis_steps_per_mm[E_AXIS_N(e)];
+        planner.mm_per_step[E_AXIS_N(e)] = 1.0f / planner.settings.axis_steps_per_mm[E_AXIS_N(e)];
     }
   #endif
 
