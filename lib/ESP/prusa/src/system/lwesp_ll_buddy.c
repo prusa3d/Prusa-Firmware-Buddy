@@ -7,6 +7,7 @@
 #include "stm32_port.h"
 #include "dbg.h"
 #include "ff.h"
+#include "wui_api.h"
 
 /*
  * UART and other pin configuration for ESP01 module
@@ -60,7 +61,7 @@ void StartUartBufferThread(void const *arg) {
     size_t pos = 0;
 
     ESP_UNUSED(arg);
-
+    wui_marlin_client_init();
     while (1) {
         /* Wait for the event message from DMA or USART */
         /* There is 100ms max wait time to ensure some small standalone message

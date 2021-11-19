@@ -2734,6 +2734,8 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
         } else {
             uri = "401";
         }
+    } else {
+        uri = "404";
     }
 
 process_file:
