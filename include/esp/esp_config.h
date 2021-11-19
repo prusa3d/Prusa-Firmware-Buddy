@@ -103,6 +103,7 @@
 // set this one. Extended stack is necessary to start print from ESP event.
 // It would be better to start print from different thread on signal.
 #define ESP_SYS_THREAD_SS 512
+#define ESP_CFG_HOSTNAME  1
 
 #define ESP_CFG_DBG          ESP_DBG_OFF
 #define ESP_CFG_DBG_MEM      ESP_DBG_ON
@@ -113,6 +114,8 @@
 
 #include "dbg.h"
 #define ESP_CFG_DBG_OUT(fmt, ...) _dbg(fmt, ##__VA_ARGS__)
+
+#define ESP_CFG_MODE_ACCESS_POINT 0
 
 /* After user configuration, call default config to merge config together */
 #include "esp/esp_config_default.h"

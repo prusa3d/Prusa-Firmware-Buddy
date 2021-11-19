@@ -88,6 +88,8 @@ class ScreenMenuLanSettings : public AddSuperWindow<screen_t> {
 public:
     ScreenMenuLanSettings();
 
+    uint32_t StringifyNetworkDevice(uint32_t netdev_id, lan_descp_str_t out_buffer);
+
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
@@ -110,13 +112,33 @@ ScreenMenuLanSettings::ScreenMenuLanSettings()
     msg_shown = false;
 }
 
+uint32_t ScreenMenuLanSettings::StringifyNetworkDevice(uint32_t netdev_id, lan_descp_str_t buffer) {
+    lan_t config = { 0 };
+    char addr[IP4_ADDR_STR_SIZE], msk[IP4_ADDR_STR_SIZE], gw[IP4_ADDR_STR_SIZE];
+    mac_address_t mac_str;
+    uint8_t mac[6];
+    int written = 0;
+
+    netdev_get_ipv4_addresses(netdev_id, &config);
+    netdev_get_MAC_address(netdev_id, mac);
+
+    ip4addr_ntoa_r(&(config.addr_ip4), addr, IP4_ADDR_STR_SIZE);
+    ip4addr_ntoa_r(&(config.msk_ip4), msk, IP4_ADDR_STR_SIZE);
+    ip4addr_ntoa_r(&(config.gw_ip4), gw, IP4_ADDR_STR_SIZE);
+
+    snprintf(mac_str, MAC_ADDR_STR_LEN, "%02x:%02x:%02x:%02x:%02x:%02x",
+        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+    written = snprintf(buffer, LAN_DESCP_SIZE, "IPv4 Address:\n%s\nIPv4 Netmask:\n%s\nIPv4 Gateway:\n%s\nMAC Address:\n%s",
+        addr, msk, gw, mac_str);
+    return written > 0 ? written : 0;
+}
 /*****************************************************************************/
 //non static member function definition
 void ScreenMenuLanSettings::refresh_addresses() {
-    if (netdev_get_status(netdev_get_active_id()) == NETDEV_NETIF_UP) {
-        ETH_config_t ethconfig = {};
-        netdev_get_eth_address(netdev_get_active_id(), &ethconfig);
-        stringify_eth_for_screen(&plan_str, &ethconfig);
+    const uint32_t active_netdev_id = netdev_get_active_id();
+    if (netdev_get_status(active_netdev_id) == NETDEV_NETIF_UP) {
+        StringifyNetworkDevice(active_netdev_id, plan_str);
     } else {
         snprintf(plan_str, LAN_DESCP_SIZE, "NO CONNECTION\n");
     }

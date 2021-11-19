@@ -20,7 +20,7 @@
 #include "i18n.h"
 #include "Marlin/src/core/serial.h"
 #include "DialogMoveZ.hpp"
-#include <wui_api.h>
+#include "netdev.h"
 
 /*****************************************************************************/
 
@@ -34,7 +34,7 @@ public:
         // FIXME: Some error reporting
         // FIXME: How do we _activate_ the new settings?
         // TODO: Loading other things than just network
-        net_load_ini_to_eeprom();
+        netdev_load_ini_to_eeprom();
     }
 };
 
