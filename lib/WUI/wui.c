@@ -84,7 +84,7 @@ void StartWebServerTask(void const *argument) {
     }
 
     if (variant8_get_ui8(eeprom_get_var(EEVAR_PL_RUN)) == 1) {
-        httpd_init();
+        httpd_init(&default_http_handlers);
     }
 
     for (;;) {

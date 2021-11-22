@@ -169,7 +169,7 @@ void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t
             netdev_set_down(netdev_get_active_id());
             netdev_set_active_id(action);
             netdev_set_up(action);
-            httpd_reinit();
+            httpd_reinit(&default_http_handlers);
             break;
         case MI_NET_IP_t::EventMask::value:
             httpd_close();
@@ -178,7 +178,7 @@ void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t
             } else {
                 netdev_set_dhcp(netdev_get_active_id());
             }
-            httpd_reinit();
+            httpd_reinit(&default_http_handlers);
             break;
         default:
             break;

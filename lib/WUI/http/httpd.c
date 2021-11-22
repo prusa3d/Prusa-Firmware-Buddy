@@ -90,12 +90,14 @@
  * about an unknown extension, make sure to add it (and its doctype) to
  * the 'g_psHTTPHeaders' list.
  */
-#include "lwip/init.h"
+
 #include "httpd.h"
+#include "httpd_structs.h"
+
+#include "lwip/init.h"
 #include "lwip/debug.h"
 #include "lwip/stats.h"
 #include "lwip/apps/fs.h"
-#include "httpd_structs.h"
 #include "lwip/def.h"
 
 #include "lwip/altcp.h"
@@ -118,8 +120,6 @@
 #include <semphr.h>
 
 /*******   Customization ***************************************/
-#include "wui_REST_api.h"
-#include "wui_api.h"
 #include "wui.h"
 #include <netdev.h>
 
@@ -264,6 +264,7 @@ struct http_ssi_tag_description {
     #endif /* LWIP_HTTPD_SSI */
 
 struct http_state {
+    struct HttpHandlers *handlers;
     #if LWIP_HTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
     struct http_state *next;
     #endif /* LWIP_HTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED */
@@ -2400,8 +2401,8 @@ http_recv(void *arg, struct altcp_pcb *pcb, struct pbuf *p, err_t err) {
  */
 static err_t
 http_accept(void *arg, struct altcp_pcb *pcb, err_t err) {
+    struct HttpHandlers *handlers = arg;
     struct http_state *hs;
-    LWIP_UNUSED_ARG(err);
     LWIP_UNUSED_ARG(arg);
     LWIP_DEBUGF(HTTPD_DEBUG, ("http_accept %p / %p\n", (void *)pcb, arg));
 
@@ -2420,6 +2421,7 @@ http_accept(void *arg, struct altcp_pcb *pcb, err_t err) {
         return ERR_MEM;
     }
     hs->pcb = pcb;
+    hs->handlers = handlers;
 
     /* Tell TCP that this is the structure we wish to be passed for our
      callbacks. */
@@ -2434,7 +2436,7 @@ http_accept(void *arg, struct altcp_pcb *pcb, err_t err) {
     return ERR_OK;
 }
 
-static struct altcp_pcb *httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
+static struct altcp_pcb *httpd_init_pcb(struct altcp_pcb *pcb, u16_t port, struct HttpHandlers *handlers) {
     err_t err;
 
     if (pcb) {
@@ -2446,6 +2448,7 @@ static struct altcp_pcb *httpd_init_pcb(struct altcp_pcb *pcb, u16_t port) {
         LWIP_UNUSED_ARG(err); /* in case of LWIP_NOASSERT */
         LWIP_ASSERT("httpd_init: tcp_bind failed", err == ERR_OK);
         pcb = altcp_listen(pcb);
+        altcp_arg(pcb, handlers);
         LWIP_ASSERT("httpd_init: tcp_listen failed", pcb != NULL);
         altcp_accept(pcb, http_accept);
     }
@@ -2465,7 +2468,7 @@ static SemaphoreHandle_t httpd_pcb_mutex = NULL;
  * @ingroup httpd
  * Initialize the httpd: set up a listening PCB and bind it to the defined port
  */
-void httpd_init(void) {
+void httpd_init(struct HttpHandlers *handlers) {
     LWIP_ASSERT("httpd_init called multiple times", httpd_pcb_mutex == NULL);
     httpd_pcb_mutex = xSemaphoreCreateMutex();
     LWIP_ASSERT("Couldn't create mutex to protect http listening socket", httpd_pcb_mutex != NULL);
@@ -2478,7 +2481,7 @@ void httpd_init(void) {
     #endif
     LWIP_DEBUGF(HTTPD_DEBUG, ("httpd_init\n"));
 
-    httpd_reinit();
+    httpd_reinit(handlers);
 }
 
 // The inner part of httpd_close. Assumes the mutex is already locked.
@@ -2504,7 +2507,7 @@ void httpd_close() {
     xSemaphoreGive(httpd_pcb_mutex);
 }
 
-void httpd_reinit() {
+void httpd_reinit(struct HttpHandlers *handlers) {
     xSemaphoreTake(httpd_pcb_mutex, portMAX_DELAY);
 
     if (httpd_pcb != NULL) {
@@ -2521,7 +2524,7 @@ void httpd_reinit() {
         httpd_pcb = altcp_new_ip_type(&allocator, IPADDR_TYPE_ANY);
         LWIP_ASSERT("httpd_init: tcp_new failed", httpd_pcb != NULL);
 
-        httpd_pcb = httpd_init_pcb(httpd_pcb, HTTPD_SERVER_PORT);
+        httpd_pcb = httpd_init_pcb(httpd_pcb, HTTPD_SERVER_PORT, handlers);
     }
 
     xSemaphoreGive(httpd_pcb_mutex);
@@ -2593,57 +2596,7 @@ void http_set_cgi_handlers(const tCGI *cgis, int num_handlers) {
 
 static struct fs_file api_file; // for storing /api/* data
 
-static void wui_api_printer(struct fs_file *file) {
-
-    get_printer(response_body_buf, RESPONSE_BODY_SIZE);
-
-    uint16_t response_len = strlen(response_body_buf);
-    file->len = response_len;
-    file->data = response_body_buf;
-    file->index = response_len;
-    file->pextension = NULL;
-    file->flags = 0; // no flags for fs_open
-}
-
-static void wui_api_job(struct fs_file *file) {
-
-    get_job(response_body_buf, RESPONSE_BODY_SIZE);
-
-    uint16_t response_len = strlen(response_body_buf);
-    file->len = response_len;
-    file->data = response_body_buf;
-    file->index = response_len;
-    file->pextension = NULL;
-    file->flags = 0; // no flags for fs_open
-}
-
-static void wui_api_version(struct fs_file *file) {
-
-    get_version(response_body_buf, RESPONSE_BODY_SIZE);
-
-    uint16_t response_len = strlen(response_body_buf);
-    file->len = response_len;
-    file->data = response_body_buf;
-    file->index = response_len;
-    file->pextension = NULL;
-    file->flags = 0; // no flags for fs_open
-}
-
-static void wui_api_files(struct fs_file *file) {
-
-    get_files(response_body_buf, RESPONSE_BODY_SIZE);
-
-    uint16_t response_len = strlen(response_body_buf);
-    file->len = response_len;
-    file->data = response_body_buf;
-    file->index = response_len;
-    file->pextension = NULL;
-    file->flags = 0; // no flags for fs_open
-}
-
-typedef void (*wui_get_handler)(struct fs_file *);
-
-bool authorize_request(const struct pbuf *req) {
+bool authorize_request(const struct HttpHandlers *handlers, const struct pbuf *req) {
     const char *api_key_tag = CRLF "X-Api-Key:";
     uint32_t api_key_tag_length = strlen(api_key_tag);
     uint32_t index = pbuf_strstr(req, api_key_tag);
@@ -2651,7 +2604,10 @@ bool authorize_request(const struct pbuf *req) {
     if (index == UINT16_MAX) {
         return false;
     } else {
-        const char *api_key = wui_get_api_key();
+        const char *api_key = handlers->api_key();
+        if (api_key == NULL) {
+            return false;
+        }
         uint32_t token_length = strlen(api_key);
         uint32_t token_start = index + api_key_tag_length + 1;
         uint32_t token_end = token_start + token_length;
@@ -2679,6 +2635,10 @@ bool authorize_request(const struct pbuf *req) {
 static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
     struct fs_file *file = NULL;
 
+    /*
+     * FIXME:
+     * https://dev.prusa3d.com/browse/BFW-2234
+     */
     api_file.len = 0;
     api_file.data = NULL;
     api_file.index = 0;
@@ -2718,28 +2678,32 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
         goto process_file;
     }
 
-    wui_get_handler handler = NULL;
-    if (!strcmp(uri, "/api/printer")) {
-        handler = wui_api_printer;
-    } else if (!strcmp(uri, "/api/version")) {
-        handler = wui_api_version;
-    } else if (!strcmp(uri, "/api/job")) {
-        handler = wui_api_job;
-    } else if (!strncmp(uri, "/api/files", 10)) {
-        handler = wui_api_files;
-    }
+    const struct GetDescriptor *get_handler = http_handlers_find_get(hs->handlers, uri);
 
-    if (handler != NULL) {
-        if (hs->authenticated || authorize_request(hs->req)) {
-            handler(&api_file);
-            file = &api_file;
-            static const char name[] = "response.json";
-            uri = &name[0];
-        } else {
-            uri = "401";
-        }
-    } else {
+    if (get_handler == NULL) {
         uri = "404";
+    } else if (!get_handler->anonymous && !hs->authenticated && !authorize_request(hs->handlers, hs->req)) {
+        uri = "401";
+    } else {
+        // FIXME: The abuse of global response_body_buf is an UB, or at least
+        // can mangle the data in case some other request still didn't manage
+        // to send everything out.
+        //
+        // https://dev.prusa3d.com/browse/BFW-2234
+        //
+        // (We may even be using the wrong place to plug ourselves in, it's
+        // named `http_find_file`...)
+        (get_handler->handler)(hs->handlers, response_body_buf, RESPONSE_BODY_SIZE);
+
+        uint16_t response_len = strlen(response_body_buf);
+        file = &api_file;
+        file->len = response_len;
+        file->data = response_body_buf;
+        file->index = response_len;
+        file->pextension = NULL;
+        file->flags = 0; // no flags for fs_open
+        static const char name[] = "response.json";
+        uri = &name[0];
     }
 
 process_file:

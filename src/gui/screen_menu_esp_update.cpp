@@ -214,7 +214,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             esp_loader_flash_finish(true);
             esp_set_operating_mode(ESP_RUNNING_MODE);
             netdev_init_esp();
-            httpd_reinit();
+            httpd_reinit(&default_http_handlers);
             progress_state = esp_upload_action::Initial;
             current_file = firmware_set.begin();
             readCount = 0;
