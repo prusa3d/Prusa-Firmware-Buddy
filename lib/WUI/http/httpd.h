@@ -42,9 +42,11 @@
 #define LWIP_HDR_APPS_HTTPD_H
 
 #include "httpd_opts.h"
-#include "lwip/err.h"
-#include "lwip/pbuf.h"
-#include "stdbool.h"
+#include "handler.h"
+
+#include <lwip/err.h>
+#include <lwip/pbuf.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -283,7 +285,7 @@ void httpd_post_data_recved(void *connection, u16_t recved_len);
  *
  * For further re-binds/re-initializations, see @c httpd_reinit.
  */
-void httpd_init(void);
+void httpd_init(struct HttpHandlers *handlers);
 /**
  * Re-create the httpd listening socket, with current network settings.
  *
@@ -294,7 +296,7 @@ void httpd_init(void);
  *
  * Thread safe.
  */
-void httpd_reinit(void);
+void httpd_reinit(struct HttpHandlers *handlers);
 
 /**
  * Stop listening with the httpd server.
@@ -315,10 +317,11 @@ void httpd_inits(struct altcp_tls_config *conf);
  *
  * Currently it checks if the HTTP request contains the right X-Api-Key header.
  *
+ * @param handlers The http handlers defining the content (and how to get the API key in this case).
  * @param req The request, in form of the pbuf.
  * @return If it is allowed to proceed.
  */
-bool authorize_request(const struct pbuf *req);
+bool authorize_request(const struct HttpHandlers *handlers, const struct pbuf *req);
 
 #ifdef __cplusplus
 }

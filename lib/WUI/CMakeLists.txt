@@ -8,6 +8,8 @@ target_sources(
             alsockets.c
             wui_api.c
             http/fs.c
+            http/handler.c
+            http/handler_defaults.c
             http/httpd.c
             http/httpd_post.c
             http/multipart_parser.c

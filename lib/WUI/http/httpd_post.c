@@ -206,7 +206,8 @@ static bool authenticate_post(const char *http_request, uint16_t http_request_le
         .len = http_request_len,
         .tot_len = http_request_len,
     };
-    return authorize_request(&buf);
+    // XXX: Pass this through
+    return authorize_request(&default_http_handlers, &buf);
     // No need to free anything related to the buf.
 }
 
