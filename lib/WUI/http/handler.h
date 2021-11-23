@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <lwip/altcp.h>
+
 /*
  * The http handlers.
  *
@@ -79,6 +81,15 @@ struct HttpHandlers {
     const struct GetDescriptor *gets;
 
     get_api_key *api_key;
+
+    /**
+     * Allocator used for getting the listening socket.
+     *
+     * This ties us into specific server implementation for now. This hopefully
+     * will go away once we have proper socket abstraction and a proper HTTP
+     * server.
+     */
+    altcp_allocator_t listener_alloc;
 };
 
 /**

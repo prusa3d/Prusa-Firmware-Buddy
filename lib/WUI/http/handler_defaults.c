@@ -2,6 +2,7 @@
 
 #include "../wui_REST_api.h"
 #include "../wui_api.h"
+#include "../wui.h"
 
 // The get_* functions we use do exactly what we need, except they take fewer
 // params. Generate the wrappers to throw them out without too much
@@ -41,4 +42,7 @@ static const struct GetDescriptor get_handlers[] = {
 struct HttpHandlers default_http_handlers = {
     .gets = get_handlers,
     .api_key = wui_get_api_key,
+    .listener_alloc = {
+        .alloc = prusa_alloc,
+    }
 };
