@@ -120,8 +120,6 @@
 #include <semphr.h>
 
 /*******   Customization ***************************************/
-#include "wui.h"
-#include <netdev.h>
 
 #include "dbg.h"
 #define WUI_API_ROOT_STR_LEN 5
@@ -2514,16 +2512,20 @@ void httpd_reinit(struct HttpHandlers *handlers) {
         httpd_close_locked();
     }
 
-    if (netdev_get_active_id() != NETDEV_NODEV_ID) {
-        altcp_allocator_t allocator = {
-            .alloc = prusa_alloc,
-            .arg = NULL
-        };
-        /* LWIP_ASSERT_CORE_LOCKED(); is checked by tcp_new() */
+    /* LWIP_ASSERT_CORE_LOCKED(); is checked by tcp_new() */
 
-        httpd_pcb = altcp_new_ip_type(&allocator, IPADDR_TYPE_ANY);
-        LWIP_ASSERT("httpd_init: tcp_new failed", httpd_pcb != NULL);
+    /*
+     * This may legitimately fail (return NULL) in case we have networking
+     * turned off (netdev_get_active_id == NETDEV_NODEV_ID).
+     *
+     * Handle that gracefully.
+     *
+     * FIXME: If this failed for other reasons (OOM?), we would not have the
+     * server running :-(. Solve once we have a Real HTTP Server (tm)?
+     */
+    httpd_pcb = altcp_new_ip_type(&handlers->listener_alloc, IPADDR_TYPE_ANY);
 
+    if (httpd_pcb != NULL) {
         httpd_pcb = httpd_init_pcb(httpd_pcb, HTTPD_SERVER_PORT, handlers);
     }
 
