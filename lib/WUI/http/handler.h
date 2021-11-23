@@ -43,6 +43,26 @@ struct HttpHandlers;
 typedef void get_handler(struct HttpHandlers *self, char *buffer, size_t buffer_size);
 
 /**
+ * Handlers of the GCODE upload.
+ *
+ * Few notes:
+ *
+ * * This is the wrong level of abstraction, but for now, we are following the
+ *   current code. Eventually, we'll have to come up with some kind of generic
+ *   post handling callback, so the fact we have some GCODE upload endpoint
+ *   doesn't leak into the HTTP server. This will hopefully follow from
+ *   replacement of the HTTP server implementation.
+ * * The API does _not_ currently support multiple parallel uploads. The HTTP
+ *   server currently refuses attempts to do so.
+ * * The return values are a bit unclear. Current code's implementation and
+ *   documentation doesn't match. Research or replacement is needed.
+ */
+typedef uint32_t gcode_handler_start(struct HttpHandlers *self, const char *filename);
+// FIXME: const char *data is probably wrong, it should be const uint8_t * as arbitrary data; but everything around rigth now uses char :-(
+typedef uint32_t gcode_handler_data(struct HttpHandlers *self, const char *data, size_t len);
+typedef uint32_t gcode_handler_finish(struct HttpHandlers *self, const char *tmp_filename, const char *final_filename, bool start_print);
+
+/**
  * Function to return current API key.
  *
  * In case it returns NULL, no authentication is possible and all access is denied.
@@ -90,6 +110,10 @@ struct HttpHandlers {
      * server.
      */
     altcp_allocator_t listener_alloc;
+
+    gcode_handler_start *gcode_start;
+    gcode_handler_data *gcode_data;
+    gcode_handler_finish *gcode_finish;
 };
 
 /**
