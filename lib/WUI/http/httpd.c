@@ -2712,4 +2712,9 @@ process_file:
     return http_init_file(hs, file, is_09, uri, 0, NULL);
 }
 
+struct HttpHandlers *extract_http_handlers(void *connection) {
+    struct http_state *state = connection;
+    return state->handlers;
+}
+
 #endif /* LWIP_TCP && LWIP_CALLBACK_API */

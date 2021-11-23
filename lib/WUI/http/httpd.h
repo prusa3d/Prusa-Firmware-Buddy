@@ -323,6 +323,18 @@ void httpd_inits(struct altcp_tls_config *conf);
  */
 bool authorize_request(const struct HttpHandlers *handlers, const struct pbuf *req);
 
+/**
+ * Extract the relevant handlers out of a POST connection.
+ *
+ * The connection parameter passed to the post "callbacks" is opaque. We don't
+ * want to share the internals, but we provide this function to extract the
+ * associated HttpHandlers structure.
+ *
+ * This may be used only inside the `httpd_post_*` callbacks, on the provided
+ * connection parameter.
+ */
+struct HttpHandlers *extract_http_handlers(void *connection);
+
 #ifdef __cplusplus
 }
 #endif

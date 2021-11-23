@@ -39,13 +39,12 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <file_list_defs.h> // FILE_NAME_MAX_LEN - but why do we take one from GUI???
+#include <dbg.h>
+
 #include "httpd.h"
 #include "multipart_parser.h"
 #include "lwip/def.h"
-
-#include "wui_api.h"
-#include "dbg.h"
-#include "marlin_vars.h"
 
 #define DEFAULT_UPLOAD_FILENAME "tmp.gcode"
 
@@ -92,7 +91,7 @@ static upload_process_t upload = {
 };
 
 /* Header which contains the Key with the name */
-int read_header_name(multipart_parser *p, const char *at, size_t length) {
+static int read_header_name(multipart_parser *p, const char *at, size_t length) {
 #ifdef HTTPD_DEBUG
     _dbg("read_header_name: %.*s: \n", length, at);
 #endif
@@ -118,7 +117,7 @@ int read_header_name(multipart_parser *p, const char *at, size_t length) {
     return 0;
 }
 
-int read_header_value(multipart_parser *p, const char *at, size_t length) {
+static int read_header_value(multipart_parser *p, const char *at, size_t length) {
 #ifdef HTTPD_DEBUG
     _dbg("read_header_value: %.*s\n", length, at);
 #endif
@@ -128,7 +127,7 @@ int read_header_value(multipart_parser *p, const char *at, size_t length) {
 /* Value for the latest key */
 /* If this is a file, this may be called multiple times. */
 /* Wait until part_end for the complete file. */
-int read_part_data(multipart_parser *p, const char *at, size_t length) {
+static int read_part_data(multipart_parser *p, const char *at, size_t length) {
 #ifdef HTTPD_DEBUG
     _dbg("read_part_data: %.*s\n", length, at);
 #endif
@@ -141,8 +140,10 @@ int read_part_data(multipart_parser *p, const char *at, size_t length) {
     case UPLOAD_PROCESS_PATH:
         //ignored for now => everything in the root folder
         break;
-    case UPLOAD_PROCESS_FILE:
-        return wui_upload_data(at, length);
+    case UPLOAD_PROCESS_FILE: {
+        struct HttpHandlers *handlers = multipart_parser_get_data(p);
+        return handlers->gcode_data(handlers, at, length);
+    }
     default:
         break;
     }
@@ -150,7 +151,7 @@ int read_part_data(multipart_parser *p, const char *at, size_t length) {
 }
 
 /* Beginning of a key and value */
-int read_on_part_data_begin(multipart_parser *p) {
+static int read_on_part_data_begin(multipart_parser *p) {
 #ifdef HTTPD_DEBUG
     _dbg("read_on_part_data_begin:\n");
 #endif
@@ -158,7 +159,7 @@ int read_on_part_data_begin(multipart_parser *p) {
 }
 
 /* End of header which contains the key */
-int read_on_headers_complete(multipart_parser *p) {
+static int read_on_headers_complete(multipart_parser *p) {
 #ifdef HTTPD_DEBUG
     _dbg("read_on_headers_complete:\n");
 #endif
@@ -168,7 +169,7 @@ int read_on_headers_complete(multipart_parser *p) {
 /** End of the key and value */
 /* If this is a file, the file is complete. */
 /* If this is a value, then the value is complete. */
-int read_on_part_data_end(multipart_parser *p) {
+static int read_on_part_data_end(multipart_parser *p) {
 #ifdef HTTPD_DEBUG
     _dbg("read_on_part_data_end:\n");
 #endif
@@ -176,7 +177,7 @@ int read_on_part_data_end(multipart_parser *p) {
 }
 
 /* End of the entire form */
-int read_on_body_end(multipart_parser *p) {
+static int read_on_body_end(multipart_parser *p) {
 #ifdef HTTPD_DEBUG
     _dbg("read_on_body_end:\n");
 #endif
@@ -195,7 +196,7 @@ http_parse_post(char *data, uint32_t length) {
     return ERR_OK;
 }
 
-static bool authenticate_post(const char *http_request, uint16_t http_request_len) {
+static bool authenticate_post(struct HttpHandlers *handlers, const char *http_request, uint16_t http_request_len) {
     /*
      * Create a "fake" pbuf for reusing the authorize_request. We will not
      * allocate it the usual way and we will not free it. But the helper
@@ -206,8 +207,8 @@ static bool authenticate_post(const char *http_request, uint16_t http_request_le
         .len = http_request_len,
         .tot_len = http_request_len,
     };
-    // XXX: Pass this through
-    return authorize_request(&default_http_handlers, &buf);
+
+    return authorize_request(handlers, &buf);
     // No need to free anything related to the buf.
 }
 
@@ -246,7 +247,9 @@ err_t httpd_post_begin(void *connection,
         goto invalid;
     }
 
-    if (!authenticate_post(http_request, http_request_len)) {
+    struct HttpHandlers *handlers = extract_http_handlers(connection);
+
+    if (!authenticate_post(handlers, http_request, http_request_len)) {
         uri = "/401";
         goto invalid;
     }
@@ -285,7 +288,8 @@ err_t httpd_post_begin(void *connection,
             const char *boundary = find_boundary(http_request);
             if (boundary != NULL) {
                 _parser = multipart_parser_init(boundary, &callbacks);
-                if (wui_upload_begin(DEFAULT_UPLOAD_FILENAME) != 0) {
+                multipart_parser_set_data(_parser, handlers);
+                if (handlers->gcode_start(handlers, DEFAULT_UPLOAD_FILENAME) != 0) {
                     uri = "/500";
                     goto invalid;
                 }
@@ -317,8 +321,7 @@ err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
     char *data;
     err_t ret_val = ERR_ARG;
 
-    struct http_state *hs = (struct http_state *)connection;
-    if (hs != NULL && p != NULL) {
+    if (connection != NULL && p != NULL) {
         data = p->payload;
         ret_val = http_parse_post(data, p->len);
     }
@@ -343,12 +346,12 @@ void httpd_post_finished(void *connection,
     char *response_uri,
     u16_t response_uri_len) {
 
-    struct http_state *hs = (struct http_state *)connection;
     uint32_t status_code = 200;
 
-    status_code = wui_upload_finish(DEFAULT_UPLOAD_FILENAME, upload.filename, upload.start_print);
+    struct HttpHandlers *handlers = extract_http_handlers(connection);
+    status_code = handlers->gcode_finish(handlers, DEFAULT_UPLOAD_FILENAME, upload.filename, upload.start_print);
 
-    if (hs != NULL && status_code == 200) {
+    if (connection != NULL && status_code == 200) {
         strncpy(response_uri, endpoints[http_post_uri_file_index], response_uri_len);
     } else {
         snprintf(response_uri, response_uri_len, "/%ld", status_code);

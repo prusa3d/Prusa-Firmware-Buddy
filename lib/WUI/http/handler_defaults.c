@@ -4,9 +4,6 @@
 #include "../wui_api.h"
 #include "../wui.h"
 
-// The get_* functions we use do exactly what we need, except they take fewer
-// params. Generate the wrappers to throw them out without too much
-// copy-pasting.
 #define GET_WRAPPER(NAME)                                                                       \
     static void handler_##NAME(struct HttpHandlers *unused, char *buffer, size_t buffer_size) { \
         (void)unused;                                                                           \
@@ -17,6 +14,18 @@ GET_WRAPPER(get_version);
 GET_WRAPPER(get_job);
 GET_WRAPPER(get_files);
 #undef GET_WRAPPER
+
+static uint32_t post_start(struct HttpHandlers *unused, const char *filename) {
+    return wui_upload_begin(filename);
+}
+
+static uint32_t post_data(struct HttpHandlers *unused, const char *data, size_t len) {
+    return wui_upload_data(data, len);
+}
+
+static uint32_t post_finish(struct HttpHandlers *unused, const char *tmp_filename, const char *final_filename, bool start) {
+    return wui_upload_finish(tmp_filename, final_filename, start);
+}
 
 static const struct GetDescriptor get_handlers[] = {
     {
@@ -44,5 +53,8 @@ struct HttpHandlers default_http_handlers = {
     .api_key = wui_get_api_key,
     .listener_alloc = {
         .alloc = prusa_alloc,
-    }
+    },
+    .gcode_start = post_start,
+    .gcode_data = post_data,
+    .gcode_finish = post_finish,
 };
