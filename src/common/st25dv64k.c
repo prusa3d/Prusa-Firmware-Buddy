@@ -7,6 +7,8 @@
 #include "main.h"
 #include "bsod.h"
 
+#define EEPROM_MAX_RETRIES 10
+
 volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_OK = 0;
 volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_ERROR = 0;
 volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_BUSY = 0;
@@ -15,9 +17,9 @@ volatile uint32_t I2C_TRANSMIT_RESULTS_UNDEF = 0;
 
 static void Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
 
-    int retries = 10;
+    int retries = EEPROM_MAX_RETRIES;
     HAL_StatusTypeDef result;
-    while (retries) {
+    while (--retries) {
         result = HAL_I2C_Master_Transmit(hi2c, DevAddress, pData, Size, Timeout);
         if (result != HAL_BUSY)
             break;
@@ -54,9 +56,9 @@ volatile uint32_t I2C_RECEIVE_RESULTS_UNDEF = 0;
 
 static void Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
 
-    int retries = 10;
+    int retries = EEPROM_MAX_RETRIES;
     HAL_StatusTypeDef result;
-    while (retries) {
+    while (--retries) {
         result = HAL_I2C_Master_Receive(hi2c, DevAddress, pData, Size, Timeout);
         if (result != HAL_BUSY)
             break;
