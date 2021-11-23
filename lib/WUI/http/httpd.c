@@ -34,6 +34,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *         Simon Goldschmidt
  *
+ * Modified: 11/23/2021 Marek Mosna <marek.mosna@prusa3d.cz>
+ *          Added flag into struct http_state for POST support about authentication state
  */
 
 /**
@@ -307,7 +309,8 @@ struct http_state {
     u8_t no_auto_wnd;
     u8_t post_finished;
         #endif /* LWIP_HTTPD_POST_MANUAL_WND */
-    #endif     /* LWIP_HTTPD_SUPPORT_POST*/
+    u8_t authenticated;
+    #endif /* LWIP_HTTPD_SUPPORT_POST*/
 };
 
     #if HTTPD_USE_MEM_POOL
@@ -1712,6 +1715,7 @@ http_handle_post_finished(struct http_state *hs) {
     /* application error or POST finished */
     /* NULL-terminate the buffer */
     http_uri_buf[0] = 0;
+    hs->authenticated = 1;
     httpd_post_finished(hs, http_uri_buf, LWIP_HTTPD_URI_BUF_LEN);
     return http_find_file(hs, http_uri_buf, 0);
 }
@@ -2726,7 +2730,7 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
     }
 
     if (handler != NULL) {
-        if (authorize_request(hs->req)) {
+        if (hs->authenticated || authorize_request(hs->req)) {
             handler(&api_file);
             file = &api_file;
             static const char name[] = "response.json";
