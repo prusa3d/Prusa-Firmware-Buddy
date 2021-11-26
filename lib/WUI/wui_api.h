@@ -205,6 +205,15 @@ uint32_t wui_upload_data(const char *, uint32_t);
 uint32_t wui_upload_finish(const char *, const char *, uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
+/// @brief Return the number of gcodes uploaded since boot.
+///
+/// May be used to check if a file was uploaded since last check.
+/// Guaranteed to start at 0, but may wrap around (unlikely).
+///
+/// Thread safe.
+uint32_t wui_gcodes_uploaded();
+
+////////////////////////////////////////////////////////////////////////////
 /// @brief initialize marlin client for tcpip thread
 ///
 void wui_marlin_client_init(void);

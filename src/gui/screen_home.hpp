@@ -7,6 +7,7 @@
 
 struct screen_home_data_t : public AddSuperWindow<screen_t> {
     static bool usbWasAlreadyInserted; // usb inserted at least once
+    static uint32_t lastUploadCount;
     bool usbInserted;
 
     window_header_t header;
@@ -29,4 +30,5 @@ private:
 
     void printBtnEna();
     void printBtnDis();
+    bool moreGcodesUploaded();
 };
