@@ -22,7 +22,8 @@
 #include <lwip/tcp.h>
 #include <lwip/altcp_tcp.h>
 #include "esp_tcp.h"
-#include "httpd.h"
+#include "http/httpd.h"
+#include "http_handler_default.h"
 #include "main.h"
 
 #include "netdev.h"

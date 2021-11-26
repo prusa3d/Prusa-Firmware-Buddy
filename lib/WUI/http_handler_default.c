@@ -1,8 +1,7 @@
-#include "handler.h"
-
-#include "../wui_REST_api.h"
-#include "../wui_api.h"
-#include "../wui.h"
+#include "http_handler_default.h"
+#include "wui_REST_api.h"
+#include "wui_api.h"
+#include "wui.h"
 
 #define GET_WRAPPER(NAME)                                                                       \
     static void handler_##NAME(struct HttpHandlers *unused, char *buffer, size_t buffer_size) { \

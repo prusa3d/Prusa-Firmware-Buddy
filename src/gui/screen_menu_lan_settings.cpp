@@ -13,7 +13,8 @@
 #include "RAII.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
-#include <httpd.h>
+#include <http/httpd.h>
+#include <http_handler_default.h>
 
 /*****************************************************************************/
 class MI_NET_INTERFACE_t : public WI_SWITCH_t<3> {

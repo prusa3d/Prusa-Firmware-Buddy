@@ -116,14 +116,6 @@ struct HttpHandlers {
     gcode_handler_finish *gcode_finish;
 };
 
-/**
- * The default handlers that can be used for the real application.
- *
- * Tests may use their own mock set. Also note that the implementation lives in
- * a different file (handler_defaults.c).
- */
-extern struct HttpHandlers default_http_handlers;
-
 // TODO: Eventually turn this thing into C++, so they live "inside" the HttpHandlers.
 
 /**

@@ -13,11 +13,12 @@ extern "C" {
 #include "dbg.h"
 #include "ff.h"
 
-#include "stm32_port.h"
-#include "esp_loader.h"
-#include "lwesp_ll_buddy.h"
-#include "netdev.h"
-#include "httpd.h"
+#include <stm32_port.h>
+#include <esp_loader.h>
+#include <lwesp_ll_buddy.h>
+#include <netdev.h>
+#include <http/httpd.h>
+#include <http_handler_default.h>
 
 #ifdef __cplusplus
 }
