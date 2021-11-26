@@ -74,6 +74,7 @@ typedef struct {
     char host[IP4ADDR_STRLEN_MAX]; // Connect host
     uint8_t closed;
     uint8_t closing;
+    size_t buff_avail;
 } esp_pcb;
 
     #ifdef __cplusplus
