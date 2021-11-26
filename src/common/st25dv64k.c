@@ -1,91 +1,10 @@
 // st25dv64k.c
 
 #include "st25dv64k.h"
+#include "i2c.h"
 #include <string.h>
 #include "cmsis_os.h"
-#include "stm32f4xx_hal.h"
 #include "main.h"
-#include "bsod.h"
-
-#define EEPROM_MAX_RETRIES 10
-
-volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_OK = 0;
-volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_ERROR = 0;
-volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_BUSY = 0;
-volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_TIMEOUT = 0;
-volatile uint32_t I2C_TRANSMIT_RESULTS_UNDEF = 0;
-
-static void Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
-
-    int retries = EEPROM_MAX_RETRIES;
-    HAL_StatusTypeDef result;
-    while (--retries) {
-        result = HAL_I2C_Master_Transmit(hi2c, DevAddress, pData, Size, Timeout);
-        if (result != HAL_BUSY)
-            break;
-    }
-
-    switch (result) {
-    case HAL_OK:
-        ++I2C_TRANSMIT_RESULTS_HAL_OK;
-        break;
-    case HAL_ERROR:
-        ++I2C_TRANSMIT_RESULTS_HAL_ERROR;
-        general_error("EEPROM Transmit", "I2C error");
-        break;
-    case HAL_BUSY:
-        ++I2C_TRANSMIT_RESULTS_HAL_BUSY;
-        general_error("EEPROM Transmit", "I2C busy");
-        break;
-    case HAL_TIMEOUT:
-        ++I2C_TRANSMIT_RESULTS_HAL_TIMEOUT;
-        general_error("EEPROM Transmit", "I2C timeout");
-        break;
-    default:
-        ++I2C_TRANSMIT_RESULTS_UNDEF;
-        general_error("EEPROM Transmit", "I2C undefined error");
-        break;
-    }
-}
-
-volatile uint32_t I2C_RECEIVE_RESULTS_HAL_OK = 0;
-volatile uint32_t I2C_RECEIVE_RESULTS_HAL_ERROR = 0;
-volatile uint32_t I2C_RECEIVE_RESULTS_HAL_BUSY = 0;
-volatile uint32_t I2C_RECEIVE_RESULTS_HAL_TIMEOUT = 0;
-volatile uint32_t I2C_RECEIVE_RESULTS_UNDEF = 0;
-
-static void Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
-
-    int retries = EEPROM_MAX_RETRIES;
-    HAL_StatusTypeDef result;
-    while (--retries) {
-        result = HAL_I2C_Master_Receive(hi2c, DevAddress, pData, Size, Timeout);
-        if (result != HAL_BUSY)
-            break;
-    }
-
-    switch (result) {
-    case HAL_OK:
-        ++I2C_RECEIVE_RESULTS_HAL_OK;
-        break;
-    case HAL_ERROR:
-        ++I2C_RECEIVE_RESULTS_HAL_ERROR;
-        general_error("EEPROM Receive", "I2C error");
-        break;
-    case HAL_BUSY:
-        ++I2C_RECEIVE_RESULTS_HAL_BUSY;
-        general_error("EEPROM Receive", "I2C busy");
-        break;
-    case HAL_TIMEOUT:
-        ++I2C_RECEIVE_RESULTS_HAL_TIMEOUT;
-        general_error("EEPROM Receive", "I2C timeout");
-        break;
-    default:
-        ++I2C_RECEIVE_RESULTS_UNDEF;
-        general_error("EEPROM Receive", "I2C undefined error");
-        break;
-    }
-}
 
 #define ST25DV64K_RTOS
 
@@ -173,8 +92,8 @@ uint8_t st25dv64k_user_read(uint16_t address) {
     uint8_t _out[2] = { address >> 8, address & 0xff };
     uint8_t data;
     st25dv64k_lock();
-    Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 2, HAL_MAX_DELAY);
-    Receive(&EEPROM_I2C, ADDR_READ, &data, 1, HAL_MAX_DELAY);
+    I2C_Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 2, HAL_MAX_DELAY);
+    I2C_Receive(&EEPROM_I2C, ADDR_READ, &data, 1, HAL_MAX_DELAY);
     st25dv64k_unlock();
     return data;
 }
@@ -182,7 +101,7 @@ uint8_t st25dv64k_user_read(uint16_t address) {
 void st25dv64k_user_write(uint16_t address, uint8_t data) {
     uint8_t _out[3] = { address >> 8, address & 0xff, data };
     st25dv64k_lock();
-    Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 3, HAL_MAX_DELAY);
+    I2C_Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 3, HAL_MAX_DELAY);
     DELAY(BLOCK_DELAY);
     st25dv64k_unlock(); // unlock must be here because other threads cannot access eeprom while writing/waiting
 }
@@ -190,8 +109,8 @@ void st25dv64k_user_write(uint16_t address, uint8_t data) {
 void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint16_t size) {
     uint8_t _out[2] = { address >> 8, address & 0xff };
     st25dv64k_lock();
-    Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 2, HAL_MAX_DELAY);
-    Receive(&EEPROM_I2C, ADDR_READ, pdata, size, HAL_MAX_DELAY);
+    I2C_Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 2, HAL_MAX_DELAY);
+    I2C_Receive(&EEPROM_I2C, ADDR_READ, pdata, size, HAL_MAX_DELAY);
     st25dv64k_unlock();
 }
 
@@ -207,7 +126,7 @@ void st25dv64k_user_write_bytes(uint16_t address, void const *pdata, uint16_t si
         _out[0] = address >> 8;
         _out[1] = address & 0xff;
         memcpy(_out + 2, p, block_size);
-        Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 2 + block_size, HAL_MAX_DELAY);
+        I2C_Transmit(&EEPROM_I2C, ADDR_WRITE, _out, 2 + block_size, HAL_MAX_DELAY);
         DELAY(BLOCK_DELAY);
         size -= block_size;
         address += block_size;
@@ -220,8 +139,8 @@ uint8_t st25dv64k_rd_cfg(uint16_t address) {
     uint8_t _out[2] = { address >> 8, address & 0xff };
     uint8_t data;
     st25dv64k_lock();
-    Transmit(&EEPROM_I2C, ADDR_WRITE_SYS, _out, 2, HAL_MAX_DELAY);
-    Receive(&EEPROM_I2C, ADDR_READ_SYS, &data, 1, HAL_MAX_DELAY);
+    I2C_Transmit(&EEPROM_I2C, ADDR_WRITE_SYS, _out, 2, HAL_MAX_DELAY);
+    I2C_Receive(&EEPROM_I2C, ADDR_READ_SYS, &data, 1, HAL_MAX_DELAY);
     st25dv64k_unlock();
     return data;
 }
@@ -229,7 +148,7 @@ uint8_t st25dv64k_rd_cfg(uint16_t address) {
 void st25dv64k_wr_cfg(uint16_t address, uint8_t data) {
     uint8_t _out[3] = { address >> 8, address & 0xff, data };
     st25dv64k_lock();
-    Transmit(&EEPROM_I2C, ADDR_WRITE_SYS, _out, 3, HAL_MAX_DELAY);
+    I2C_Transmit(&EEPROM_I2C, ADDR_WRITE_SYS, _out, 3, HAL_MAX_DELAY);
     DELAY(BLOCK_DELAY);
     st25dv64k_unlock(); // unlock must be here because other threads cannot access eeprom while writing/waiting
 }
@@ -241,6 +160,6 @@ void st25dv64k_present_pwd(uint8_t *pwd) {
         memcpy(_out + 11, pwd, 8);
     }
     st25dv64k_lock();
-    Transmit(&EEPROM_I2C, ADDR_WRITE_SYS, _out, 19, HAL_MAX_DELAY);
+    I2C_Transmit(&EEPROM_I2C, ADDR_WRITE_SYS, _out, 19, HAL_MAX_DELAY);
     st25dv64k_unlock();
 }

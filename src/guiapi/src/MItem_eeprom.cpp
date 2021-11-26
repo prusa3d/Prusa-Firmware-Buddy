@@ -4,6 +4,7 @@
  * @date 2021-09-22
  */
 #include "MItem_eeprom.hpp"
+#include "i2c.h"
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
 #include "GuiDefaults.hpp"
@@ -26,52 +27,42 @@ constexpr static const char *label_RECEIVE_UNDEF = (use_long_text) ? "RECEIVE_UN
 // uint32_t will be most likely atomic, if it is not it will not break anything because it is "read only"
 // meant to be used in dev mode
 
-extern volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_OK;
 MI_I2C_TRANSMIT_RESULTS_HAL_OK::MI_I2C_TRANSMIT_RESULTS_HAL_OK()
     : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_HAL_OK, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_OK)) {
 }
 
-extern volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_ERROR;
 MI_I2C_TRANSMIT_RESULTS_HAL_ERROR::MI_I2C_TRANSMIT_RESULTS_HAL_ERROR()
     : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_HAL_ERROR, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_ERROR)) {
 }
 
-extern volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_BUSY;
 MI_I2C_TRANSMIT_RESULTS_HAL_BUSY::MI_I2C_TRANSMIT_RESULTS_HAL_BUSY()
     : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_HAL_BUSY, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_BUSY)) {
 }
 
-extern volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_TIMEOUT;
 MI_I2C_TRANSMIT_RESULTS_HAL_TIMEOUT::MI_I2C_TRANSMIT_RESULTS_HAL_TIMEOUT()
     : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_HAL_TIMEOUT, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_TIMEOUT)) {
 }
 
-extern volatile uint32_t I2C_TRANSMIT_RESULTS_UNDEF;
 MI_I2C_TRANSMIT_RESULTS_UNDEF::MI_I2C_TRANSMIT_RESULTS_UNDEF()
     : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_UNDEF, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_UNDEF)) {
 }
 
-extern volatile uint32_t I2C_RECEIVE_RESULTS_HAL_OK;
 MI_I2C_RECEIVE_RESULTS_HAL_OK::MI_I2C_RECEIVE_RESULTS_HAL_OK()
     : WI_INFO_DEV_t(I2C_RECEIVE_RESULTS_HAL_OK, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_RECEIVE_OK)) {
 }
 
-extern volatile uint32_t I2C_RECEIVE_RESULTS_HAL_ERROR;
 MI_I2C_RECEIVE_RESULTS_HAL_ERROR::MI_I2C_RECEIVE_RESULTS_HAL_ERROR()
     : WI_INFO_DEV_t(I2C_RECEIVE_RESULTS_HAL_ERROR, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_RECEIVE_ERROR)) {
 }
 
-extern volatile uint32_t I2C_RECEIVE_RESULTS_HAL_BUSY;
 MI_I2C_RECEIVE_RESULTS_HAL_BUSY::MI_I2C_RECEIVE_RESULTS_HAL_BUSY()
     : WI_INFO_DEV_t(I2C_RECEIVE_RESULTS_HAL_BUSY, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_RECEIVE_BUSY)) {
 }
 
-extern volatile uint32_t I2C_RECEIVE_RESULTS_HAL_TIMEOUT;
 MI_I2C_RECEIVE_RESULTS_HAL_TIMEOUT::MI_I2C_RECEIVE_RESULTS_HAL_TIMEOUT()
     : WI_INFO_DEV_t(I2C_RECEIVE_RESULTS_HAL_TIMEOUT, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_RECEIVE_TIMEOUT)) {
 }
 
-extern volatile uint32_t I2C_RECEIVE_RESULTS_UNDEF;
 MI_I2C_RECEIVE_RESULTS_UNDEF::MI_I2C_RECEIVE_RESULTS_UNDEF()
     : WI_INFO_DEV_t(I2C_RECEIVE_RESULTS_UNDEF, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_RECEIVE_UNDEF)) {
 }
