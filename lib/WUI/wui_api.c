@@ -22,6 +22,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdatomic.h>
 
 #define USB_MOUNT_POINT        "/usb/"
 #define USB_MOUNT_POINT_LENGTH 5
@@ -35,6 +36,7 @@ static FILE *upload_file = NULL;
 static char tmp_filename[FILE_NAME_MAX_LEN];
 static bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
+static atomic_int_least32_t uploaded_gcodes;
 
 void wui_marlin_client_init(void) {
     marlin_vars_t *vars = marlin_client_init(); // init the client
@@ -404,6 +406,9 @@ uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, u
         goto clean_temp_file;
     }
 
+    // We have it in place, success!
+    uploaded_gcodes++;
+
     if (marlin_vars()->sd_printing && start) {
         error_code = 409;
         goto return_error_code;
@@ -420,4 +425,8 @@ clean_temp_file:
     remove(tmp_filename);
 return_error_code:
     return error_code;
+}
+
+uint32_t wui_gcodes_uploaded() {
+    return uploaded_gcodes;
 }
