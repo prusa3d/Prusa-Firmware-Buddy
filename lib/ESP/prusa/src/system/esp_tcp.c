@@ -368,6 +368,10 @@ static espr_t esp_evt_conn_recv(esp_conn_p conn, esp_evt_t *evt) {
      * Custom pbuf wrapper holds custom LwIP PBUF together with original LwESP
      * PBUF in order to dealocate the later one at the same time as the first one */
     lwip_esp_pbuf_custom *custom_pbuf_wrapper = esp_mem_malloc(sizeof(lwip_esp_pbuf_custom));
+    if (!custom_pbuf_wrapper) {
+        ALTCP_ESP_DEBUG_FN("Failed to alloc custom pbuf wrapper");
+        goto cleanup_pbuf;
+    }
     memset(custom_pbuf_wrapper, 0, sizeof(lwip_esp_pbuf_custom));
     custom_pbuf_wrapper->custom_lwip_pbuf.custom_free_function = custom_pbuf_free;
     struct pbuf *lwip_pbuf = pbuf_alloced_custom(PBUF_RAW, recv_len, PBUF_REF,
