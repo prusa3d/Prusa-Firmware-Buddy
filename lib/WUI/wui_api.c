@@ -370,6 +370,15 @@ uint32_t wui_upload_data(const char *data, uint32_t length) {
 }
 
 uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, uint32_t start) {
+    /*
+     * TODO: Starting print of the just-uploaded file is temporarily disabled.
+     *
+     * See https://dev.prusa3d.com/browse/BFW-2300.
+     *
+     * Once we have time to deal with all the corner-cases, race conditions and
+     * collisions caused by that possibility, we will re-enable.
+     */
+    start = 0;
     uint32_t fname_length = strlen(new_filename);
     uint32_t error_code = 200;
     int result = 0;
