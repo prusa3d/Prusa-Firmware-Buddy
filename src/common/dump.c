@@ -1,11 +1,8 @@
 // dump.c
 
-#include <fcntl.h>
 #include <string.h>
-#include <unistd.h>
 #include "dump.h"
-#include <string.h>
-#include "ff.h"
+#include <stdio.h>
 #include "w25x.h"
 
 static const uint32_t DUMP_OFFSET = 0x00;
@@ -154,19 +151,19 @@ void dump_in_xflash_delete(void) {
 }
 
 int dump_save_to_usb(const char *fn) {
-    int fd;
+    FILE *fd;
     uint32_t addr;
     uint8_t buff[DUMP_BUFF_SIZE];
     int bw;
     int bw_total = 0;
     if (w25x_init()) {
-        fd = open(fn, O_WRONLY | O_TRUNC);
-        if (fd >= 0) {
+        fd = fopen(fn, "w");
+        if (fd != NULL) {
             //save dumped RAM and CCRAM from xflash
             for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += DUMP_BUFF_SIZE) {
                 memset(buff, 0, DUMP_BUFF_SIZE);
                 w25x_rd_data(addr, buff, DUMP_BUFF_SIZE);
-                bw = write(fd, buff, DUMP_BUFF_SIZE);
+                bw = fwrite(buff, 1, DUMP_BUFF_SIZE, fd);
                 if (bw <= 0) {
                     break;
                 }
@@ -174,7 +171,7 @@ int dump_save_to_usb(const char *fn) {
             }
             //save OTP
             for (addr = 0; addr < DUMP_OTP_SIZE; addr += DUMP_BUFF_SIZE) {
-                bw = write(fd, (uint8_t *)(DUMP_OTP_ADDR + addr), DUMP_BUFF_SIZE);
+                bw = fwrite((void *)(DUMP_OTP_ADDR + addr), 1, DUMP_BUFF_SIZE, fd);
                 if (bw <= 0) {
                     break;
                 }
@@ -182,13 +179,13 @@ int dump_save_to_usb(const char *fn) {
             }
             //save FLASH
             for (addr = 0; addr < DUMP_FLASH_SIZE; addr += DUMP_BUFF_SIZE) {
-                bw = write(fd, (uint8_t *)(DUMP_FLASH_ADDR + addr), DUMP_BUFF_SIZE);
+                bw = fwrite((void *)(DUMP_FLASH_ADDR + addr), 1, DUMP_BUFF_SIZE, fd);
                 if (bw <= 0) {
                     break;
                 }
                 bw_total += bw;
             }
-            close(fd);
+            fclose(fd);
             if (bw_total != (DUMP_XFLASH_SIZE + DUMP_OTP_SIZE + DUMP_FLASH_SIZE)) {
                 return 0;
             }
