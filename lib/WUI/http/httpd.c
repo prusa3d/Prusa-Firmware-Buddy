@@ -116,8 +116,6 @@
 #include <stdlib.h> /* atoi */
 #include <stdio.h>
 #include <stdbool.h>
-#include <FreeRTOS.h>
-#include <semphr.h>
 
 /*******   Customization ***************************************/
 
@@ -2454,23 +2452,7 @@ static struct altcp_pcb *httpd_init_pcb(struct altcp_pcb *pcb, u16_t port, struc
     return pcb;
 }
 
-/**
- * @ingroup httpd
- * Current ALTCP PCB used by httpd for accepting incomming connections.
- */
-static struct altcp_pcb *httpd_pcb = NULL;
-// Protection of the httpd_pcb
-static SemaphoreHandle_t httpd_pcb_mutex = NULL;
-
-/**
- * @ingroup httpd
- * Initialize the httpd: set up a listening PCB and bind it to the defined port
- */
-void httpd_init(struct HttpHandlers *handlers) {
-    LWIP_ASSERT("httpd_init called multiple times", httpd_pcb_mutex == NULL);
-    httpd_pcb_mutex = xSemaphoreCreateMutex();
-    LWIP_ASSERT("Couldn't create mutex to protect http listening socket", httpd_pcb_mutex != NULL);
-
+void httpd_init_pools() {
     #if HTTPD_USE_MEM_POOL
     LWIP_MEMPOOL_INIT(HTTPD_STATE);
         #if LWIP_HTTPD_SSI
@@ -2478,12 +2460,19 @@ void httpd_init(struct HttpHandlers *handlers) {
         #endif
     #endif
     LWIP_DEBUGF(HTTPD_DEBUG, ("httpd_init\n"));
-
-    httpd_reinit(handlers);
 }
 
-// The inner part of httpd_close. Assumes the mutex is already locked.
-static void httpd_close_locked() {
+struct altcp_pcb *httpd_new(struct HttpHandlers *handlers, u16_t port) {
+    struct altcp_pcb *httpd_pcb = altcp_new_ip_type(&handlers->listener_alloc, IPADDR_TYPE_ANY);
+
+    if (httpd_pcb != NULL) {
+        httpd_pcb = httpd_init_pcb(httpd_pcb, HTTPD_SERVER_PORT, handlers);
+    }
+
+    return httpd_pcb;
+}
+
+void httpd_free(struct altcp_pcb *httpd) {
     // According to docs, the close can fail in case there's not enough memory.
     // That's likely because usual sockets still wait for some more data to
     // arrive (?). Hopefully this is not the case for listening sockets.
@@ -2492,62 +2481,9 @@ static void httpd_close_locked() {
     // can't fail), but:
     // * It crashes on ethernet for no known reason.
     // * It is not currently implemented in ESP.
-    err_t err = altcp_close(httpd_pcb);
+    err_t err = altcp_close(httpd);
     LWIP_ASSERT("Couldn't close listening socket", err == ERR_OK);
-    httpd_pcb = NULL;
 }
-
-void httpd_close() {
-    xSemaphoreTake(httpd_pcb_mutex, portMAX_DELAY);
-
-    httpd_close_locked();
-
-    xSemaphoreGive(httpd_pcb_mutex);
-}
-
-void httpd_reinit(struct HttpHandlers *handlers) {
-    xSemaphoreTake(httpd_pcb_mutex, portMAX_DELAY);
-
-    if (httpd_pcb != NULL) {
-        httpd_close_locked();
-    }
-
-    /* LWIP_ASSERT_CORE_LOCKED(); is checked by tcp_new() */
-
-    /*
-     * This may legitimately fail (return NULL) in case we have networking
-     * turned off (netdev_get_active_id == NETDEV_NODEV_ID).
-     *
-     * Handle that gracefully.
-     *
-     * FIXME: If this failed for other reasons (OOM?), we would not have the
-     * server running :-(. Solve once we have a Real HTTP Server (tm)?
-     */
-    httpd_pcb = altcp_new_ip_type(&handlers->listener_alloc, IPADDR_TYPE_ANY);
-
-    if (httpd_pcb != NULL) {
-        httpd_pcb = httpd_init_pcb(httpd_pcb, HTTPD_SERVER_PORT, handlers);
-    }
-
-    xSemaphoreGive(httpd_pcb_mutex);
-}
-
-    #if HTTPD_ENABLE_HTTPS
-/**
- * @ingroup httpd
- * Initialize the httpd: set up a listening PCB and bind it to the defined port.
- * Also set up TLS connection handling (HTTPS).
- */
-void httpd_inits(struct altcp_tls_config *conf) {
-        #if LWIP_ALTCP_TLS
-    struct altcp_pcb *pcb_tls = altcp_tls_new(conf, IPADDR_TYPE_ANY);
-    LWIP_ASSERT("httpd_init: altcp_tls_new failed", pcb_tls != NULL);
-    httpd_init_pcb(pcb_tls, HTTPD_SERVER_PORT_HTTPS);
-        #else  /* LWIP_ALTCP_TLS */
-    LWIP_UNUSED_ARG(conf);
-        #endif /* LWIP_ALTCP_TLS */
-}
-    #endif /* HTTPD_ENABLE_HTTPS */
 
     #if LWIP_HTTPD_SSI
 /**

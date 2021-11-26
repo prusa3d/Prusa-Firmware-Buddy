@@ -13,8 +13,7 @@
 #include "RAII.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
-#include <http/httpd.h>
-#include <http_handler_default.h>
+#include <http_lifetime.h>
 
 /*****************************************************************************/
 class MI_NET_INTERFACE_t : public WI_SWITCH_t<3> {
@@ -170,7 +169,7 @@ void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t
             netdev_set_down(netdev_get_active_id());
             netdev_set_active_id(action);
             netdev_set_up(action);
-            httpd_reinit(&default_http_handlers);
+            httpd_reinit();
             break;
         case MI_NET_IP_t::EventMask::value:
             httpd_close();
@@ -179,7 +178,7 @@ void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t
             } else {
                 netdev_set_dhcp(netdev_get_active_id());
             }
-            httpd_reinit(&default_http_handlers);
+            httpd_reinit();
             break;
         default:
             break;

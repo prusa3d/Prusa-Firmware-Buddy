@@ -354,7 +354,7 @@ void httpd_post_finished(void *connection,
     if (connection != NULL && status_code == 200) {
         strncpy(response_uri, endpoints[http_post_uri_file_index], response_uri_len);
     } else {
-        snprintf(response_uri, response_uri_len, "/%ld", status_code);
+        snprintf(response_uri, response_uri_len, "/%" PRIu32, status_code);
     }
 
     /* End the parser */

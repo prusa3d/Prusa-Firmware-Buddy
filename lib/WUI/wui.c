@@ -22,8 +22,7 @@
 #include <lwip/tcp.h>
 #include <lwip/altcp_tcp.h>
 #include "esp_tcp.h"
-#include "http/httpd.h"
-#include "http_handler_default.h"
+#include "http_lifetime.h"
 #include "main.h"
 
 #include "netdev.h"
@@ -85,7 +84,7 @@ void StartWebServerTask(void const *argument) {
     }
 
     if (variant8_get_ui8(eeprom_get_var(EEVAR_PL_RUN)) == 1) {
-        httpd_init(&default_http_handlers);
+        httpd_init();
     }
 
     for (;;) {

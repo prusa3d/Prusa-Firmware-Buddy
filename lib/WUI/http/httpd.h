@@ -41,6 +41,8 @@
 #ifndef LWIP_HDR_APPS_HTTPD_H
 #define LWIP_HDR_APPS_HTTPD_H
 
+#include <stdint.h> // Otherwise we get errors somewhere deep from within the other includes
+
 #include "httpd_opts.h"
 #include "handler.h"
 
@@ -276,41 +278,11 @@ void httpd_post_data_recved(void *connection, u16_t recved_len);
 
 #endif /* LWIP_HTTPD_SUPPORT_POST */
 
-/**
- * Initial set up of the httpd server.
- *
- * This may be called just once during the lifetime of the application. If the
- * networking is up at that point, it also starts to listen to incoming
- * connections.
- *
- * For further re-binds/re-initializations, see @c httpd_reinit.
- */
-void httpd_init(struct HttpHandlers *handlers);
-/**
- * Re-create the httpd listening socket, with current network settings.
- *
- * In case networking is down (netdev_get_active_id() == NETDEV_NODEV_ID), it stops listening.
- *
- * Existing connections are left intact by this (though if the network
- * configuration changed, they would likely die on their own anyway).
- *
- * Thread safe.
- */
-void httpd_reinit(struct HttpHandlers *handlers);
+struct altcp_pcb *httpd_new(struct HttpHandlers *handlers, u16_t port);
 
-/**
- * Stop listening with the httpd server.
- *
- * This will shut down the listening socket, but leave the other connections (if any) intact.
- *
- * It can be re-enabled with @c httpd_reinit.
- */
-void httpd_close(void);
+void httpd_free(struct altcp_pcb *httpd);
 
-#if HTTPD_ENABLE_HTTPS
-struct altcp_tls_config;
-void httpd_inits(struct altcp_tls_config *conf);
-#endif
+void httpd_init_pools(void);
 
 /**
  * Check if the request can perform privileged operations.
