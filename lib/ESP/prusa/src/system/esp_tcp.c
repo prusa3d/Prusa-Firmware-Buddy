@@ -461,13 +461,9 @@ static espr_t esp_evt_conn_poll(esp_conn_p conn) {
         return espCLOSED;
     }
 
-    if (epcb->closing) {
-        ALTCP_ESP_DEBUG_FN("EPCB says connection closing !!!");
-        return espCLOSED;
-    }
-
     if (!epcb->alconn) {
         ALTCP_ESP_DEBUG_FN("ALCONN is NULL !!!");
+        esp_conn_close(conn, 0);
         return espERR;
     }
 
