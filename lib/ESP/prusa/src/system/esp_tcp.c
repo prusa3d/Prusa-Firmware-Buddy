@@ -270,6 +270,7 @@ static esp_pcb *esp_new_ip_type(u8_t ip_type) {
     }
 
     memset(epcb, 0, sizeof(esp_pcb));
+    epcb->buff_avail = ESP_CFG_CONN_MAX_DATA_LEN;
     return epcb;
 }
 
@@ -711,16 +712,33 @@ static err_t altcp_esp_write(struct altcp_pcb *conn, const void *dataptr, u16_t 
         return espERR;
     }
 
-    // TODO: Flags ignored, we could only set blocking
-    // WARNING: avoid passing pointers to local variables as bw, the call is asynchronous
-    espr_t err = esp_conn_send(epcb->econn, dataptr, len, NULL, 0);
-    ALTCP_ESP_DEBUG_FN("esp write/send, len: %ld, err: %d", len, err);
+    espr_t err = esp_conn_write(epcb->econn, dataptr, len, 0, &epcb->buff_avail);
+    if (err != espOK) {
+        ALTCP_ESP_DEBUG_FN("esp write, err: %d", err);
+    }
     return espr_t2err_t(err);
 }
 
 static err_t altcp_esp_output(struct altcp_pcb *conn) {
-    ALTCP_ESP_DEBUG_FN("altcp_esp_output - NOT IMPLEMENTED");
-    return ERR_VAL;
+    ALTCP_ESP_DEBUG_FN("altcp_esp_output");
+    if (!conn) {
+        ALTCP_ESP_DEBUG_FN("CONN is NULL !!!");
+        return ERR_VAL;
+    }
+    esp_pcb *epcb = conn->state;
+    if (!epcb) {
+        ALTCP_ESP_DEBUG_FN("EPCB is NULL !!!");
+        return ERR_VAL;
+    }
+    // TODO: This is not perfect, write does something else than just flush.
+    // If also deallocates send buffer if there is nothing to send, bug?
+    espr_t err = esp_conn_write(epcb->econn, NULL, 0, 1, &epcb->buff_avail);
+    if (!epcb->buff_avail) {
+        // Possibly there was nothing to write, flush dealocated the buffer
+        // and reports 0 as there is no buffer allocated yet.
+        epcb->buff_avail = ESP_CFG_CONN_MAX_DATA_LEN;
+    }
+    return espr_t2err_t(err);
 }
 
 static u16_t altcp_esp_mss(struct altcp_pcb *conn) {
@@ -728,12 +746,25 @@ static u16_t altcp_esp_mss(struct altcp_pcb *conn) {
 }
 
 static u16_t altcp_esp_sndbuf(struct altcp_pcb *conn) {
-    return ESP_TCP_MSS; // There seems to be no way reading the tx buffer size from ESP
+    if (!conn) {
+        ALTCP_ESP_DEBUG_FN("CONN is NULL !!!");
+        return ERR_VAL;
+    }
+    esp_pcb *epcb = conn->state;
+    if (!epcb) {
+        ALTCP_ESP_DEBUG_FN("EPCB is NULL !!!");
+        return ERR_VAL;
+    }
+
+    ALTCP_ESP_DEBUG_FN("altcp_esp_sndbuf: %d", epcb->buff_avail);
+    return epcb->buff_avail;
 }
 
 static u16_t altcp_esp_sndqueuelen(struct altcp_pcb *conn) {
-    ALTCP_ESP_DEBUG_FN("altcp_esp_sndqueuelen");
-    return 0; // TODO: Implement properly
+    // TODO: Can we do better?
+    uint16_t len = ESP_CFG_CONN_MAX_DATA_LEN - altcp_esp_sndbuf(conn);
+    ALTCP_ESP_DEBUG_FN("altcp_esp_sndqueuelen: %d", len);
+    return len;
 }
 
 static void altcp_esp_nagle_disable(struct altcp_pcb *conn) {
