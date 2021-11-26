@@ -37,12 +37,14 @@ add_executable(
   )
 
 # define required search paths
-target_include_directories(window_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include)
-target_include_directories(window_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/common)
-target_include_directories(window_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/gui/dialogs)
-target_include_directories(layout_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include)
-target_include_directories(layout_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/common)
-target_include_directories(layout_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/gui/dialogs)
+target_include_directories(
+  window_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_SOURCE_DIR}/src/common
+                      ${CMAKE_SOURCE_DIR}/src/gui/dialogs ${CMAKE_SOURCE_DIR}/tests/stubs
+  )
+target_include_directories(
+  layout_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_SOURCE_DIR}/src/common
+                      ${CMAKE_SOURCE_DIR}/src/gui/dialogs ${CMAKE_SOURCE_DIR}/tests/stubs
+  )
 
 # tell build system about the test case
 add_catch_test(window_tests)
