@@ -44,17 +44,9 @@
 
 #include "esp/esp_config.h"
 
-// #define ALTCP_ESP_DEBUG 1
-
-#ifdef ALTCP_ESP_DEBUG
-    #include "dbg.h"
-    #define ALTCP_ESP_DEBUG_FN(fmt, ...) _dbg(fmt, ##__VA_ARGS__)
-#else
-    #define ALTCP_ESP_DEBUG_FN(fmt, ...)
-#endif
-
 #if ESP_ALTCP /* don't build if not configured for use in espopts.h */
 
+    #include <assert.h>
     #include "esp/esp.h"
     #include <string.h>
     #include "lwip/altcp.h"
@@ -67,6 +59,19 @@
     #include "esp_tcp.h"
     #include "esp/esp_mem.h"
     #include "esp/esp_private.h"
+
+    #ifdef ALTCP_ESP_DEBUG
+        #include "dbg.h"
+        #define ALTCP_ESP_DEBUG_FN(fmt, ...) _dbg(fmt, ##__VA_ARGS__)
+        #define ALTCP_ESP_DEBUG_ASSERT(cond, ...) \
+            if (!(cond)) {                        \
+                ALTCP_ESP_DEBUG_FN(__VA_ARGS__);  \
+                assert(0);                        \
+            }
+    #else
+        #define ALTCP_ESP_DEBUG_FN(fmt, ...)
+        #define ALTCP_ESP_DEBUG_ASSERT(cond, ...)
+    #endif
 
 /* Variable prototype, the actual declaration is at the end of this file
    since it contains pointers to static functions declared here */
@@ -127,23 +132,41 @@ static err_t espr_t2err_t(const espr_t err) {
     }
 }
 
+static void ASSERT_EPCB_VALID(esp_pcb *epcb) {
+    #ifdef ALTCP_ESP_DEBUG
+    ALTCP_ESP_DEBUG_ASSERT(epcb->magic_start == ALTCP_ESP_EPCB_MAGIC, "Corrupted EPCB magic");
+    ALTCP_ESP_DEBUG_ASSERT(epcb->magic_end == ALTCP_ESP_EPCB_MAGIC, "Corrupted EPCB magic");
+    #endif
+
+    assert(epcb);
+}
+
+static void ASSERT_EPCB(esp_pcb *epcb) {
+    ASSERT_EPCB_VALID(epcb);
+    ALTCP_ESP_DEBUG_ASSERT(epcb->alconn->state == epcb, "Failed: CORRUPTED EPCB ALCONN LINK: %x != %x", epcb->alconn->state, epcb);
+    #ifdef ALTCP_ESP_DEBUG
+    esp_pcb *econn_link = esp_conn_get_arg(epcb->econn);
+    #endif
+    ALTCP_ESP_DEBUG_ASSERT(econn_link == epcb, "Failed: CORRUPTED EPCB ECONN LINK: %x != %x", econn_link, epcb);
+}
+
 /* Check ALTCP and ESP PCB connection consistency */
 static void ALTCP_TCP_ASSERT_CONN_PCB(struct altcp_pcb *alconn, esp_pcb *epcb) {
-    if (!alconn) {
-        ALTCP_ESP_DEBUG_FN("ESP connection pointer is NULL when is thould be set !!!");
-    }
+    ALTCP_ESP_DEBUG_ASSERT(alconn, "Failed: ESP connection pointer is NULL when it should be set !!!");
+    ALTCP_ESP_DEBUG_ASSERT(epcb, "Failed: ESP PCB pointer is NULL when it should be set !!!!");
+    ALTCP_ESP_DEBUG_ASSERT(alconn->state == epcb, "Failed: ESP connection - ESP PCB mismatch conn->state: %x != epcb: %x !!!", alconn->state, epcb);
+    ALTCP_ESP_DEBUG_ASSERT(epcb->alconn == alconn, "Failed: ESP PCB - ALTCP connection mismatch epcb->alconn: %x != conn: %x !!!", epcb->alconn, alconn);
+}
 
+static esp_pcb *get_epcb(esp_conn_p conn) {
+    esp_pcb *epcb = esp_conn_get_arg(conn);
+    #ifdef ALTCP_ESP_DEBUG
     if (!epcb) {
-        ALTCP_ESP_DEBUG_FN("ESP PCB pointer is NULL when it should be set !!!!");
+        ALTCP_ESP_DEBUG_FN("Failed: EPCB for ECONN: %x is NULL", conn);
     }
-
-    if (alconn->state != epcb) {
-        ALTCP_ESP_DEBUG_FN("ESP connection - ESP PCB mismatch conn->state: %x != epcb: %x !!!", alconn->state, epcb);
-    }
-
-    if (epcb->alconn != alconn) {
-        ALTCP_ESP_DEBUG_FN("ESP PCB - ALTCP connection mismatch epcb->alconn: %x != conn: %x !!!", epcb->alconn, alconn);
-    }
+    ASSERT_EPCB(epcb);
+    #endif
+    return epcb;
 }
 
 /* callback functions for TCP */
@@ -163,6 +186,7 @@ static err_t altcp_esp_accept(void *arg, esp_pcb *new_epcb, err_t err) {
     }
     altcp_esp_setup(new_conn, new_epcb);
     ALTCP_TCP_ASSERT_CONN_PCB(new_conn, new_epcb);
+    ASSERT_EPCB(new_epcb);
     err_t ret = listen_conn->accept(listen_conn->arg, new_conn, err);
     return ret;
 }
@@ -191,6 +215,7 @@ static err_t altcp_esp_recv(void *arg, esp_pcb *epcb, struct pbuf *p, err_t err)
     }
 
     ALTCP_TCP_ASSERT_CONN_PCB(conn, epcb);
+    ASSERT_EPCB(epcb);
     if (!conn->recv) {
         ALTCP_ESP_DEBUG_FN("Recv - no recv !!!");
         goto cleanup_pbuf;
@@ -221,6 +246,7 @@ static err_t altcp_esp_sent(void *arg, esp_pcb *epcb, u16_t len) {
         ALTCP_ESP_DEBUG_FN("esp sent - no conn !!!");
     }
     ALTCP_TCP_ASSERT_CONN_PCB(conn, epcb);
+    ASSERT_EPCB(epcb);
     if (conn->sent) {
         return conn->sent(conn->arg, conn, len);
     }
@@ -235,6 +261,7 @@ static err_t altcp_esp_poll(void *arg, esp_pcb *epcb) {
         return ERR_VAL;
     }
     ALTCP_TCP_ASSERT_CONN_PCB(conn, epcb);
+    ASSERT_EPCB(epcb);
     if (conn->poll) {
         return conn->poll(conn->arg, conn);
     }
@@ -271,6 +298,10 @@ static esp_pcb *esp_new_ip_type(u8_t ip_type) {
 
     memset(epcb, 0, sizeof(esp_pcb));
     epcb->buff_avail = ESP_CFG_CONN_MAX_DATA_LEN;
+    #ifdef ALTCP_ESP_DEBUG
+    epcb->magic_start = ALTCP_ESP_EPCB_MAGIC;
+    epcb->magic_end = ALTCP_ESP_EPCB_MAGIC;
+    #endif
     return epcb;
 }
 
@@ -282,7 +313,7 @@ typedef struct {
 } lwip_esp_pbuf_custom;
 
 static void custom_pbuf_free(struct pbuf *p) {
-    // pbuf is first member of custom lwip[ esp wrapper
+    // pbuf is first member of custom lwip esp wrapper
     lwip_esp_pbuf_custom *custom = (lwip_esp_pbuf_custom *)p;
 
     esp_pbuf_free(custom->esp_pbuf);
@@ -295,7 +326,7 @@ static espr_t esp_evt_conn_active(esp_conn_p conn) {
 
     if (esp_conn_is_client(conn)) {
         ALTCP_ESP_DEBUG_FN("ESP_EVT_CONN_ACTIVE - CLIENT");
-        epcb = esp_conn_get_arg(conn);
+        epcb = get_epcb(conn);
         if (epcb != NULL) {
             epcb->econn = conn;
             altcp_esp_connected(epcb->alconn, epcb, 0);
@@ -336,7 +367,7 @@ static espr_t esp_evt_conn_active(esp_conn_p conn) {
 }
 
 static espr_t esp_evt_conn_recv(esp_conn_p conn, esp_evt_t *evt) {
-    esp_pcb *epcb = esp_conn_get_arg(conn);            /* Get API from connection */
+    esp_pcb *epcb = get_epcb(conn);                    /* Get API from connection */
     esp_pbuf_p pbuf = esp_evt_conn_recv_get_buff(evt); /* Get received buff */
 
     if (!pbuf) {
@@ -345,7 +376,6 @@ static espr_t esp_evt_conn_recv(esp_conn_p conn, esp_evt_t *evt) {
     }
 
     if (!epcb) {
-        ALTCP_ESP_DEBUG_FN("EPCB is NULL!!!");
         goto cleanup_pbuf;
     }
 
@@ -394,9 +424,8 @@ error:
 }
 
 static espr_t esp_evt_conn_closed(esp_conn_p conn) {
-    esp_pcb *epcb = esp_conn_get_arg(conn); /* Get API from connection */
+    esp_pcb *epcb = get_epcb(conn); /* Get API from connection */
     if (!epcb) {
-        ALTCP_ESP_DEBUG_FN("Closed - no EPCB !!!");
         return espERR;
     }
 
@@ -421,9 +450,8 @@ static espr_t esp_evt_conn_send(esp_conn_p conn, esp_evt_t *evt) {
         return espCLOSED;
     }
 
-    esp_pcb *epcb = esp_conn_get_arg(conn);
+    esp_pcb *epcb = get_epcb(conn);
     if (!epcb) {
-        ALTCP_ESP_DEBUG_FN("EPCB is NULL !!!");
         return espERR;
     }
 
@@ -450,9 +478,8 @@ static espr_t esp_evt_conn_send(esp_conn_p conn, esp_evt_t *evt) {
 }
 
 static espr_t esp_evt_conn_poll(esp_conn_p conn) {
-    esp_pcb *epcb = esp_conn_get_arg(conn);
+    esp_pcb *epcb = get_epcb(conn);
     if (!epcb) {
-        ALTCP_ESP_DEBUG_FN("epcb is NULL !!! -> closing connection");
         esp_conn_close(conn, 0);
         return espERR;
     }
@@ -566,6 +593,7 @@ static void altcp_esp_recved(struct altcp_pcb *conn, u16_t len) {
         esp_conn_close(epcb->econn, 0);
         return;
     }
+    ASSERT_EPCB(epcb);
 
     // Notify stack about received data
     // This passes fake pbuf containing only total length, this may be problem in future.
@@ -584,6 +612,7 @@ static err_t altcp_esp_bind(struct altcp_pcb *conn, const ip_addr_t *ipaddr, u16
         ALTCP_ESP_DEBUG_FN("epcb is NULL !!!");
         return espERR;
     }
+    ASSERT_EPCB_VALID(epcb);
 
     // ESP does not support listening on IP
     epcb->listen_port = port;
@@ -619,11 +648,13 @@ static struct altcp_pcb *altcp_esp_listen(struct altcp_pcb *conn, u8_t backlog, 
         ALTCP_ESP_DEBUG_FN("epcb is NULL !!!");
         return NULL;
     }
+    ASSERT_EPCB_VALID(epcb);
 
     // Enable server on port and set default altcp callback
     if (esp_set_server(1, epcb->listen_port, ESP_U16(ESP_MIN(backlog, ESP_CFG_MAX_CONNS)), epcb->conn_timeout, altcp_esp_evt, NULL, NULL, 1) != espOK) {
         ALTCP_ESP_DEBUG_FN("Failed to set connection to server mode");
     }
+    ASSERT_EPCB_VALID(epcb);
     listen_api = epcb;
     return conn;
 }
@@ -640,6 +671,7 @@ static err_t altcp_esp_close(struct altcp_pcb *conn) {
         ALTCP_ESP_DEBUG_FN("epcb is NULL !!!");
         return espERR;
     }
+    ASSERT_EPCB(epcb);
 
     ALTCP_ESP_DEBUG_FN("Closing connection: %d, total %ld packets, %ld bytes", esp_conn_getnum(epcb->econn), epcb->rcv_packets, epcb->rcv_bytes);
     espr_t err = esp_conn_close(epcb->econn, 0);
@@ -686,6 +718,7 @@ static err_t altcp_esp_write(struct altcp_pcb *conn, const void *dataptr, u16_t 
         ALTCP_ESP_DEBUG_FN("EPCB is NULL !!!");
         return ERR_VAL;
     }
+    ASSERT_EPCB(epcb);
 
     if (epcb->closed) {
         ALTCP_ESP_DEBUG_FN("EPCB says connection closed !!!");
@@ -730,6 +763,7 @@ static err_t altcp_esp_output(struct altcp_pcb *conn) {
         ALTCP_ESP_DEBUG_FN("EPCB is NULL !!!");
         return ERR_VAL;
     }
+    ASSERT_EPCB(epcb);
     // TODO: This is not perfect, write does something else than just flush.
     // If also deallocates send buffer if there is nothing to send, bug?
     espr_t err = esp_conn_write(epcb->econn, NULL, 0, 1, &epcb->buff_avail);
@@ -755,6 +789,7 @@ static u16_t altcp_esp_sndbuf(struct altcp_pcb *conn) {
         ALTCP_ESP_DEBUG_FN("EPCB is NULL !!!");
         return ERR_VAL;
     }
+    ASSERT_EPCB(epcb);
 
     ALTCP_ESP_DEBUG_FN("altcp_esp_sndbuf: %d", epcb->buff_avail);
     return epcb->buff_avail;

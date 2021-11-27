@@ -49,6 +49,9 @@
 // It would be better to obtain this from ESP but there seems to be no way
 #define ESP_TCP_MSS 536
 
+// #define ALTCP_ESP_DEBUG      1
+#define ALTCP_ESP_EPCB_MAGIC 0xdeadf00d
+
 #if ESP_ALTCP /* don't build if not configured for use in lwipopts.h */
 
     #include "lwip/altcp.h"
@@ -65,6 +68,9 @@ struct altcp_pcb *altcp_esp_new_ip_type(u8_t ip_type);
 struct altcp_pcb *altcp_esp_alloc(void *arg, u8_t ip_type);
 
 typedef struct {
+    #ifdef ALTCP_ESP_DEBUG
+    uint32_t magic_start;
+    #endif
     struct esp_conn *econn;   // ESP conn connection
     struct altcp_pcb *alconn; // Application layer TCP connection
     esp_port_t listen_port;
@@ -75,6 +81,9 @@ typedef struct {
     uint8_t closed;
     uint8_t closing;
     size_t buff_avail;
+    #ifdef ALTCP_ESP_DEBUG
+    uint32_t magic_end;
+    #endif
 } esp_pcb;
 
     #ifdef __cplusplus
