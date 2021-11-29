@@ -3,13 +3,13 @@
 
 #define EEPROM_MAX_RETRIES 10
 
-volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_OK = 0;
-volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_ERROR = 0;
-volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_BUSY = 0;
-volatile uint32_t I2C_TRANSMIT_RESULTS_HAL_TIMEOUT = 0;
-volatile uint32_t I2C_TRANSMIT_RESULTS_UNDEF = 0;
+volatile std::atomic<uint32_t> I2C_TRANSMIT_RESULTS_HAL_OK = 0;
+volatile std::atomic<uint32_t> I2C_TRANSMIT_RESULTS_HAL_ERROR = 0;
+volatile std::atomic<uint32_t> I2C_TRANSMIT_RESULTS_HAL_BUSY = 0;
+volatile std::atomic<uint32_t> I2C_TRANSMIT_RESULTS_HAL_TIMEOUT = 0;
+volatile std::atomic<uint32_t> I2C_TRANSMIT_RESULTS_UNDEF = 0;
 
-void I2C_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
+extern "C" void I2C_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
 
     int retries = EEPROM_MAX_RETRIES;
     HAL_StatusTypeDef result;
@@ -42,13 +42,13 @@ void I2C_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, 
     }
 }
 
-volatile uint32_t I2C_RECEIVE_RESULTS_HAL_OK = 0;
-volatile uint32_t I2C_RECEIVE_RESULTS_HAL_ERROR = 0;
-volatile uint32_t I2C_RECEIVE_RESULTS_HAL_BUSY = 0;
-volatile uint32_t I2C_RECEIVE_RESULTS_HAL_TIMEOUT = 0;
-volatile uint32_t I2C_RECEIVE_RESULTS_UNDEF = 0;
+volatile std::atomic<uint32_t> I2C_RECEIVE_RESULTS_HAL_OK = 0;
+volatile std::atomic<uint32_t> I2C_RECEIVE_RESULTS_HAL_ERROR = 0;
+volatile std::atomic<uint32_t> I2C_RECEIVE_RESULTS_HAL_BUSY = 0;
+volatile std::atomic<uint32_t> I2C_RECEIVE_RESULTS_HAL_TIMEOUT = 0;
+volatile std::atomic<uint32_t> I2C_RECEIVE_RESULTS_UNDEF = 0;
 
-void I2C_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
+extern "C" void I2C_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
 
     int retries = EEPROM_MAX_RETRIES;
     HAL_StatusTypeDef result;
