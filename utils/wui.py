@@ -18,22 +18,11 @@ class WUI_Files:
         self.raw_data_file_tmp = os.path.join(output_folder,
                                               f'{self.main_file_name}.tmp')
 
-        # start
-        self.get_files()
-        #self.gzip_files()
-        self.generate_raw_data_file()
-
     """ store paths to static wui files in array for later use """
 
     def get_files(self):
-        os.chdir(self.wui_path)
         root, dirs, files = next(os.walk(self.wui_path))
         for file in files:
-            """
-            *.gz files is ignored
-            if for some reason gziped files is in root dir - we don't want them
-            TODO: check for gziped files and delete them ?!
-            """
             self.wui_files.append(os.path.join(root, file))
 
     """ gzip wui static files in same directory """
@@ -45,26 +34,13 @@ class WUI_Files:
                     shutil.copyfileobj(f_in, f_out)
 
     """
-    get hex from file
-    arg[0] file_path
-    return string of raw hex data
+    Get content of file, compress it using gzip and return as raw hex data.
     """
 
     def get_hex(self, file_path):
-
-        # read file as binary because
-        # we are using gziped files
         with open(file_path, 'rb') as file:
-            hex_data = []
-            while True:
-                hd = file.read(1).hex()
-                if len(hd) == 0:
-                    break
-                hex_data.append('0x' + hd)
-            hex_data.append('0x00')
-
-        ret = ','.join(hex_data)
-        return ret
+            data = file.read()
+        return ','.join(map(lambda b: hex(b), gzip.compress(data)))
 
     """ finish script - replace tmp generated file for origin & delete it """
 
@@ -239,3 +215,5 @@ args = parser.parse_args()
 
 # start instance
 wf = WUI_Files(args.input_folder, args.output_folder, args.filename)
+wf.get_files()
+wf.generate_raw_data_file()
