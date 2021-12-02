@@ -43,8 +43,10 @@ osMessageQId networkMbox_id;
 static variant8_t prusa_link_api_key;
 
 const char *wui_generate_api_key(char *api_key, uint32_t length) {
-    static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
-    const uint32_t charset_length = sizeof(charset) / sizeof(char);
+    // Avoid confusing character pairs ‒ 1/l/I, 0/O.
+    static char charset[] = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    // One less, as the above contains '\0' at the end which we _do not_ want to generate.
+    const uint32_t charset_length = sizeof(charset) / sizeof(char) - 1;
     uint32_t i = 0;
 
     while (i < length - 1) {
