@@ -29,13 +29,13 @@ static const float XYfr_table[] = { 50, 62.5f, 75, 100 };
 
 static const float Zfr_table[] = { 10 };
 
-static const uint16_t Fan0min_rpm_table[] = { 10, 10, 10, 10, 10 };
+static const uint16_t printFanMin_rpm_table[] = { 10, 10, 10, 10, 10 };
 
-static const uint16_t Fan0max_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
+static const uint16_t printFanMax_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
 
-static const uint16_t Fan1min_rpm_table[] = { 10, 10, 10, 10, 10 };
+static const uint16_t heatBreakFanMin_rpm_table[] = { 10, 10, 10, 10, 10 };
 
-static const uint16_t Fan1max_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
+static const uint16_t heatBreakFanMax_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
 
 //use this?
 /*
@@ -48,9 +48,9 @@ static const uint16_t Fan1min_rpm_table[] = { 2350, 4750, 5950, 6850, 7650 };
 static const uint16_t Fan1max_rpm_table[] = { 3750, 5850, 7050, 8050, 8950 };
 */
 
-static const selftest_fan_config_t Config_Fan0 = { .partname = "Fan0", .fanctl = fanctl0, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan0min_rpm_table, .rpm_max_table = Fan0max_rpm_table, .steps = 5 };
+static const selftest_fan_config_t Config_PrintFan = { .partname = "Fan0", .fanctl = fanCtlPrint, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = printFanMin_rpm_table, .rpm_max_table = printFanMax_rpm_table, .steps = 5 };
 
-static const selftest_fan_config_t Config_Fan1 = { .partname = "Fan1", .fanctl = fanctl1, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = Fan1min_rpm_table, .rpm_max_table = Fan1max_rpm_table, .steps = 5 };
+static const selftest_fan_config_t Config_HeatBreakFan = { .partname = "Fan1", .fanctl = fanCtlHeatBreak, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = heatBreakFanMin_rpm_table, .rpm_max_table = heatBreakFanMax_rpm_table, .steps = 5 };
 
 static const selftest_axis_config_t Config_XAxis = { .partname = "X-Axis", .length = 186, .fr_table = XYfr_table, .length_min = 178, .length_max = 188, .axis = X_AXIS, .steps = 4, .dir = -1 };
 
@@ -62,16 +62,16 @@ static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzl
 
 static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heat_time_ms = 60000, .start_temp = 40, .undercool_temp = 39, .target_temp = 110, .heat_min_temp = 50, .heat_max_temp = 65, .heater = 0xff };
 
-static const selftest_fan_config_t Config_Fan0_fine = { .partname = "Fan0", .fanctl = fanctl0, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
+static const selftest_fan_config_t Config_PrintFan_fine = { .partname = "Fan0", .fanctl = fanCtlPrint, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
 
-static const selftest_fan_config_t Config_Fan1_fine = { .partname = "Fan1", .fanctl = fanctl1, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
+static const selftest_fan_config_t Config_HeatBreakFan_fine = { .partname = "Fan1", .fanctl = fanCtlHeatBreak, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
 
 CSelftest::CSelftest()
     : m_State(stsIdle)
     , m_Mask(stmNone)
     , m_Time(0)
-    , m_pFan0(nullptr)
-    , m_pFan1(nullptr)
+    , m_pFanPrint(nullptr)
+    , m_pFanHeatBreak(nullptr)
     , m_pXAxis(nullptr)
     , m_pYAxis(nullptr)
     , m_pZAxis(nullptr)
@@ -109,7 +109,7 @@ void CSelftest::Loop() {
         phaseStart();
         break;
     case stsFans:
-        if (phaseFans(Config_Fan0, Config_Fan1))
+        if (phaseFans(Config_PrintFan, Config_HeatBreakFan))
             return;
         break;
     case stsWait_fans:
@@ -144,7 +144,7 @@ void CSelftest::Loop() {
             return;
         break;
     case stsHeaters:
-        if (phaseHeaters(Config_HeaterNozzle, Config_HeaterBed, fanctl0, fanctl1))
+        if (phaseHeaters(Config_HeaterNozzle, Config_HeaterBed, fanCtlPrint, fanCtlHeatBreak))
             return;
         break;
     case stsWait_heaters:
@@ -152,7 +152,7 @@ void CSelftest::Loop() {
             return;
         break;
     case stsFans_fine:
-        if (phaseFans(Config_Fan0_fine, Config_Fan1_fine))
+        if (phaseFans(Config_PrintFan_fine, Config_HeatBreakFan_fine))
             return;
         break;
     case stsFinish:
@@ -168,8 +168,8 @@ void CSelftest::Loop() {
 bool CSelftest::Abort() {
     if (!IsInProgress())
         return false;
-    abort_part((CSelftestPart **)&m_pFan0);
-    abort_part((CSelftestPart **)&m_pFan1);
+    abort_part((CSelftestPart **)&m_pFanPrint);
+    abort_part((CSelftestPart **)&m_pFanHeatBreak);
     abort_part((CSelftestPart **)&m_pXAxis);
     abort_part((CSelftestPart **)&m_pYAxis);
     abort_part((CSelftestPart **)&m_pZAxis);
@@ -190,8 +190,8 @@ void CSelftest::phaseStart() {
     eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
 
     if (m_Mask & stmFans) {
-        eeres.fan0 = 0;
-        eeres.fan1 = 0;
+        eeres.printFan = 0;
+        eeres.heatBreakFan = 0;
     }
     if (m_Mask & stmXAxis)
         eeres.xaxis = 0;
@@ -206,29 +206,29 @@ void CSelftest::phaseStart() {
     eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32)); // reset status for all selftest parts in eeprom
 }
 
-bool CSelftest::phaseFans(const selftest_fan_config_t &config_fan0, const selftest_fan_config_t &config_fan1) {
+bool CSelftest::phaseFans(const selftest_fan_config_t &config_print_fan, const selftest_fan_config_t &config_heatbreak_fan) {
     m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestFans, 0);
-    m_pFan0 = m_pFan0 ? m_pFan0 : new CSelftestPart_Fan(config_fan0);
-    m_pFan1 = m_pFan1 ? m_pFan1 : new CSelftestPart_Fan(config_fan1);
-    m_pFan0->Loop();
-    m_pFan1->Loop();
-    if (m_pFan0->IsInProgress() || m_pFan1->IsInProgress()) {
-        SelftestFans_t result(m_pFan0->GetProgress(), m_pFan1->GetProgress(), std::min(m_pFan0->GetProgress(), m_pFan1->GetProgress()), SelftestSubtestState_t(m_pFan0->getFSMState()), SelftestSubtestState_t(m_pFan1->getFSMState()));
+    m_pFanPrint = m_pFanPrint ? m_pFanPrint : new CSelftestPart_Fan(config_print_fan);
+    m_pFanHeatBreak = m_pFanHeatBreak ? m_pFanHeatBreak : new CSelftestPart_Fan(config_heatbreak_fan);
+    m_pFanPrint->Loop();
+    m_pFanHeatBreak->Loop();
+    if (m_pFanPrint->IsInProgress() || m_pFanHeatBreak->IsInProgress()) {
+        SelftestFans_t result(m_pFanPrint->GetProgress(), m_pFanHeatBreak->GetProgress(), std::min(m_pFanPrint->GetProgress(), m_pFanHeatBreak->GetProgress()), SelftestSubtestState_t(m_pFanPrint->getFSMState()), SelftestSubtestState_t(m_pFanHeatBreak->getFSMState()));
         fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::measure, result.Serialize());
         return true;
     }
-    SelftestFans_t result(100, 100, 100, SelftestSubtestState_t(m_pFan0->getFSMState()), SelftestSubtestState_t(m_pFan1->getFSMState()));
+    SelftestFans_t result(100, 100, 100, SelftestSubtestState_t(m_pFanPrint->getFSMState()), SelftestSubtestState_t(m_pFanHeatBreak->getFSMState()));
     fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::measure, result.Serialize());
 
     SelftestResultEEprom_t eeres;
     eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
-    eeres.fan0 = m_pFan0->GetResult();
-    eeres.fan1 = m_pFan1->GetResult();
+    eeres.printFan = m_pFanPrint->GetResult();
+    eeres.heatBreakFan = m_pFanHeatBreak->GetResult();
     eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
-    delete m_pFan0;
-    m_pFan0 = nullptr;
-    delete m_pFan1;
-    m_pFan1 = nullptr;
+    delete m_pFanPrint;
+    m_pFanPrint = nullptr;
+    delete m_pFanHeatBreak;
+    m_pFanHeatBreak = nullptr;
     return false;
 }
 
@@ -319,9 +319,9 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPa
     return false;
 }
 
-bool CSelftest::phaseHeaters(const selftest_heater_config_t &config_nozzle, const selftest_heater_config_t &config_bedconst, CFanCtl &fan0, CFanCtl &fan1) {
+bool CSelftest::phaseHeaters(const selftest_heater_config_t &config_nozzle, const selftest_heater_config_t &config_bedconst, CFanCtl &printFan, CFanCtl &heatBreakfan) {
     m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestHeat, 0);
-    m_pHeater_Nozzle = m_pHeater_Nozzle ? m_pHeater_Nozzle : new CSelftestPart_HeaterHotend(Config_HeaterNozzle, Temperature::temp_hotend[0].pid, fan0, fan1);
+    m_pHeater_Nozzle = m_pHeater_Nozzle ? m_pHeater_Nozzle : new CSelftestPart_HeaterHotend(Config_HeaterNozzle, Temperature::temp_hotend[0].pid, printFan, heatBreakfan);
     m_pHeater_Bed = m_pHeater_Bed ? m_pHeater_Bed : new CSelftestPart_Heater(Config_HeaterBed, Temperature::temp_bed.pid);
     m_pHeater_Nozzle->Loop();
     m_pHeater_Bed->Loop();

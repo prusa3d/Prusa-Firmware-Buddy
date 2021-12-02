@@ -21,10 +21,10 @@ struct screen_sysinfo_data_t : public AddSuperWindow<screen_t> {
 #ifdef DEBUG_NTP
     window_text_t textDateTime;
 #endif
-    window_text_t textFan0_RPM;
-    window_numb_t textFan0_RPM_val;
-    window_text_t textFan1_RPM;
-    window_numb_t textFan1_RPM_val;
+    window_text_t textPrintFan_RPM;
+    window_numb_t textPrintFan_RPM_val;
+    window_text_t textHeatBreakFan_RPM;
+    window_numb_t textHeatBreakFan_RPM_val;
     window_text_t textExit;
 
 public:

@@ -33,7 +33,7 @@ bool DialogSelftestFans::change(uint8_t phase, fsm::PhaseData data) {
     SelftestFans_t dt(data);
 
     icon_print_fan.SetState(dt.print_fan_state);
-    icon_hotend_fan.SetState(dt.nozzle_fan_state);
+    icon_hotend_fan.SetState(dt.heatbreak_fan_state);
     progress.SetProgressPercent(dt.tot_progress);
     return true;
 };

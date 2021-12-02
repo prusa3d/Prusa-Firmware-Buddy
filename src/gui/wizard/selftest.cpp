@@ -50,7 +50,7 @@ WizardState_t StateFnc_SELFTEST_RESULT() {
     SelftestResultEEprom_t result;
     result.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
 
-    if (result.fan0 == SelftestResult_Passed && result.fan1 == SelftestResult_Passed && result.xaxis == SelftestResult_Passed && result.yaxis == SelftestResult_Passed && result.zaxis == SelftestResult_Passed && result.nozzle == SelftestResult_Passed && result.bed == SelftestResult_Passed) {
+    if (result.printFan == SelftestResult_Passed && result.heatBreakFan == SelftestResult_Passed && result.xaxis == SelftestResult_Passed && result.yaxis == SelftestResult_Passed && result.zaxis == SelftestResult_Passed && result.nozzle == SelftestResult_Passed && result.bed == SelftestResult_Passed) {
         eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
         MsgBoxPepa(IsStateInWizardMask(WizardState_t::XYZCALIB_first, ScreenWizard::GetMask()) ? translated_xyz : translated_ok, Responses_Next);
         return WizardState_t::next;

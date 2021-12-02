@@ -25,7 +25,7 @@ void MI_HEATBED::OnClick() {
 /*****************************************************************************/
 //MI_PRINTFAN
 MI_PRINTFAN::MI_PRINTFAN()
-    : WiSpinInt(uint8_t(marlin_vars()->fan_speed),
+    : WiSpinInt(uint8_t(marlin_vars()->print_fan_speed),
         SpinCnf::printfan, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_PRINTFAN::OnClick() {
     marlin_set_fan_speed(GetVal());

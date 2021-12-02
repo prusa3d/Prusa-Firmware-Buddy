@@ -47,7 +47,7 @@ typedef struct _marlin_vars_t {
     float target_nozzle;              // nozzle target temperature [C]
     float target_bed;                 // bed target temperature [C]
     float z_offset;                   // probe z-offset [mm]
-    uint8_t fan_speed;                // print fan0 speed [0..255]
+    uint8_t print_fan_speed;          // print fan speed [0..255]
     uint16_t print_speed;             // printing speed factor [%]
     uint16_t flow_factor;             // flow factor [%]
     uint8_t wait_heat;                // wait_for_heatup

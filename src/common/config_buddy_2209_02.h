@@ -1,4 +1,4 @@
-//config_buddy_2209_02.h - configuration file for 2209 variant (rev02)
+﻿//config_buddy_2209_02.h - configuration file for 2209 variant (rev02)
 #pragma once
 #include <stdint.h>
 
@@ -40,22 +40,22 @@ enum {
 #define NEW_FANCTL
 #ifdef NEW_FANCTL
 
-//FANCTL0 - printing fan
-//static const uint8_t FANCTL0_PWM_MIN = 15;
-static const uint8_t FANCTL0_PWM_MIN = 10;
-static const uint8_t FANCTL0_PWM_MAX = 50;
-static const uint16_t FANCTL0_RPM_MIN = 500;
-static const uint16_t FANCTL0_RPM_MAX = 5000;
-static const uint8_t FANCTL0_PWM_THR = 20;
-    #define FANCTL0_TRACE
-//FANCTL1 - heatbreak fan
-//static const uint8_t FANCTL1_PWM_MIN = 12;
-static const uint8_t FANCTL1_PWM_MIN = 0;
-static const uint8_t FANCTL1_PWM_MAX = 50;
-static const uint16_t FANCTL1_RPM_MIN = 1000;
-static const uint16_t FANCTL1_RPM_MAX = 8000;
-static const uint8_t FANCTL1_PWM_THR = 20;
-    #define FANCTL1_TRACE
+//FANCTLPRINT - printing fan
+//static const uint8_t FANCTLPRINT_PWM_MIN = 15;
+static const uint8_t FANCTLPRINT_PWM_MIN = 10;
+static const uint8_t FANCTLPRINT_PWM_MAX = 50;
+static const uint16_t FANCTLPRINT_RPM_MIN = 500;
+static const uint16_t FANCTLPRINT_RPM_MAX = 5000;
+static const uint8_t FANCTLPRINT_PWM_THR = 20;
+    #define FANCTLPRINT_TRACE
+//FANCTLHEATBREAK - heatbreak fan
+//static const uint8_t FANCTLHEATBREAK_PWM_MIN = 12;
+static const uint8_t FANCTLHEATBREAK_PWM_MIN = 0;
+static const uint8_t FANCTLHEATBREAK_PWM_MAX = 50;
+static const uint16_t FANCTLHEATBREAK_RPM_MIN = 1000;
+static const uint16_t FANCTLHEATBREAK_RPM_MAX = 8000;
+static const uint8_t FANCTLHEATBREAK_PWM_THR = 20;
+    #define FANCTLHEATBREAK_TRACE
 
 #endif //NEW_FANCTL
 
