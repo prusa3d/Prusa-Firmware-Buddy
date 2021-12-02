@@ -140,24 +140,24 @@ void app_run(void) {
             rpm1_tmp = rpm1;
             _dbg("rpm0: %-5u rpm1: %-5u", rpm0, rpm1);
         }
-#else //defined(FANCTL0_TRACE) && defined(FANCTL0_TRACE)
+#else //defined(FANCTLPRINT_TRACE) && defined(FANCTLPRINT_TRACE)
     #ifdef FANCTLPRINT_TRACE
         static uint16_t rpm0_tmp = 0;
-        uint16_t rpm0 = fanctl0.getActualRPM();
+        uint16_t rpm0 = fanCtlPrint.getActualRPM();
         if (rpm0_tmp != rpm0) {
             rpm0_tmp = rpm0;
             _dbg("rpm0: %u", rpm0);
         }
-    #endif //FANCTL0_TRACE
+    #endif //FANCTLPRINT_TRACE
     #ifdef FANCTLHEATBREAK_TRACE
         static uint16_t rpm1_tmp = 0;
-        uint16_t rpm1 = fanctl1.getActualRPM();
+        uint16_t rpm1 = fanCtlHeatBreak.getActualRPM();
         if (rpm1_tmp != rpm1) {
             rpm1_tmp = rpm1;
             _dbg("rpm1: %u", rpm1);
         }
-    #endif //FANCTL1_TRACE
-#endif     //defined(FANCTL0_TRACE) && defined(FANCTL0_TRACE)
+    #endif //FANCTLHEATBREAK_TRACE
+#endif     //defined(FANCTLPRINT_TRACE) && defined(FANCTLPRINT_TRACE)
     }
 }
 
