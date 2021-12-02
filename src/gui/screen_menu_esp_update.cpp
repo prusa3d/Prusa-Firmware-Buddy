@@ -100,11 +100,11 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
     , firmware_set({ { { .address = BOOT_ADDRESS, .filename = "/ESP/boot_v1.7.bin", .size = 0 },
-          { .address = USER_ADDRESS, .filename = "/ESP//user1.1024.new.2.bin", .size = 0 },
-          { .address = BLANK1_ADDRESS, .filename = "/ESP//blank.bin", .size = 0 },
-          { .address = BLANK2_ADDRESS, .filename = "/ESP//blank.bin", .size = 0 },
-          { .address = INIT_DATA_ADDRESS, .filename = "/ESP//esp_init_data_default_v08.bin", .size = 0 },
-          { .address = BLANK3_ADDRESS, .filename = "/ESP//blank.bin", .size = 0 } } })
+          { .address = USER_ADDRESS, .filename = "/ESP/user1.1024.new.2.bin", .size = 0 },
+          { .address = BLANK1_ADDRESS, .filename = "/ESP/blank.bin", .size = 0 },
+          { .address = BLANK2_ADDRESS, .filename = "/ESP/blank.bin", .size = 0 },
+          { .address = INIT_DATA_ADDRESS, .filename = "/ESP/esp_init_data_default_v08.bin", .size = 0 },
+          { .address = BLANK3_ADDRESS, .filename = "/ESP/blank.bin", .size = 0 } } })
     , loopInProgress(false)
     , file_descriptor({ 0 })
     , progress_state(esp_upload_action::Initial)
@@ -160,7 +160,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
             _dbg("ESP boot connect");
             if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
-                help.SetText(_("Successfully connected to ESP. Do not switch the Printer off nor remove the Flash disk."));
+                help.SetText(_("Successfully connected to ESP. \nDo not switch the Printer off nor remove the Flash disk."));
                 progress_state = esp_upload_action::Start_flash;
             } else {
                 help.SetText(_("Connecting with ESP module failed."));
@@ -212,7 +212,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
         }
         case esp_upload_action::Reset:
             _dbg("ESP finished flahing");
-            help.SetText(_("ESP succesfully flashed, WiFI initiation started."));
+            help.SetText(_("ESP succesfully flashed. \nWiFI initiation started."));
             esp_loader_flash_finish(true);
             esp_set_operating_mode(ESP_RUNNING_MODE);
             netdev_init_esp();
