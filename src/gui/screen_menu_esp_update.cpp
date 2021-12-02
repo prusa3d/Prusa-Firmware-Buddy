@@ -76,7 +76,7 @@ class ScreenMenuESPUpdate : public AddSuperWindow<screen_t> {
     window_menu_t menu;
     window_header_t header;
     window_text_t help;
-    std::array<esp_entry, 5> firmware_set;
+    std::array<esp_entry, 6> firmware_set;
     bool loopInProgress;
     FIL file_descriptor;
     esp_upload_action progress_state;
@@ -99,12 +99,13 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
-    , firmware_set({ { //          { .address = BOOT_ADDRESS, .filename = "/boot_v1.7_with_flash_params.bin", .size = 0 },
-          { .address = USER_ADDRESS, .filename = "/user1.1024.new.2.bin", .size = 0 },
-          { .address = BLANK1_ADDRESS, .filename = "/blank.bin", .size = 0 },
-          { .address = BLANK2_ADDRESS, .filename = "/blank.bin", .size = 0 },
-          { .address = INIT_DATA_ADDRESS, .filename = "/esp_init_data_default_v08.bin", .size = 0 },
-          { .address = BLANK3_ADDRESS, .filename = "/blank.bin", .size = 0 } } })
+    , firmware_set({ {
+          { .address = BOOT_ADDRESS, .filename = "/ESP/boot_v1.7.bin", .size = 0 },
+          { .address = USER_ADDRESS, .filename = "/ESP//user1.1024.new.2.bin", .size = 0 },
+          { .address = BLANK1_ADDRESS, .filename = "/ESP//blank.bin", .size = 0 },
+          { .address = BLANK2_ADDRESS, .filename = "/ESP//blank.bin", .size = 0 },
+          { .address = INIT_DATA_ADDRESS, .filename = "/ESP//esp_init_data_default_v08.bin", .size = 0 },
+          { .address = BLANK3_ADDRESS, .filename = "/ESP//blank.bin", .size = 0 } } })
     , loopInProgress(false)
     , file_descriptor({ 0 })
     , progress_state(esp_upload_action::Initial)
@@ -160,7 +161,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
             _dbg("ESP boot connect");
             if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
-                help.SetText(_("Successfully connected to ESP module and switched into UART bootloader."));
+                help.SetText(_("Successfully connected to ESP, do not swith the Printer off nor remove the Flash disk."));
                 progress_state = esp_upload_action::Start_flash;
             } else {
                 help.SetText(_("Connecting with ESP module failed."));
@@ -212,6 +213,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
         }
         case esp_upload_action::Reset:
             _dbg("ESP finished flahing");
+            help.SetText(_("ESP succesfully flash, WiFI initiation started."));
             esp_loader_flash_finish(true);
             esp_set_operating_mode(ESP_RUNNING_MODE);
             netdev_init_esp();
