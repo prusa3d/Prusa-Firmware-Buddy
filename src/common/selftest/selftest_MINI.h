@@ -83,10 +83,10 @@ public:
 
 protected:
     void phaseStart();
-    bool phaseFans(const selftest_fan_config_t &config_fan0, const selftest_fan_config_t &config_fan1);
+    bool phaseFans(const selftest_fan_config_t &config_print_fan, const selftest_fan_config_t &config_heatbreak_fan);
     bool phaseHome();
     bool phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPart_Axis **ppaxis);
-    bool phaseHeaters(const selftest_heater_config_t &config_nozzle, const selftest_heater_config_t &config_bed, CFanCtl &fan0, CFanCtl &fan1);
+    bool phaseHeaters(const selftest_heater_config_t &config_nozzle, const selftest_heater_config_t &config_bed, CFanCtl &printFan, CFanCtl &heatBreakfan);
     void phaseFinish();
     bool phaseWait();
 
@@ -101,8 +101,8 @@ protected:
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
     uint32_t m_Time;
-    CSelftestPart_Fan *m_pFan0;
-    CSelftestPart_Fan *m_pFan1;
+    CSelftestPart_Fan *m_pFanPrint;
+    CSelftestPart_Fan *m_pFanHeatBreak;
     CSelftestPart_Axis *m_pXAxis;
     CSelftestPart_Axis *m_pYAxis;
     CSelftestPart_Axis *m_pZAxis;

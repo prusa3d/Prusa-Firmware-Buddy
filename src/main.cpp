@@ -70,32 +70,32 @@
 #include "filesystem.h"
 #include "adc.hpp"
 
-#define USB_OVERC_Pin       GPIO_PIN_4
-#define USB_OVERC_GPIO_Port GPIOE
-#define USB_EN_Pin          GPIO_PIN_5
-#define USB_EN_GPIO_Port    GPIOE
-#define ESP_GPIO0_Pin       GPIO_PIN_6
-#define ESP_GPIO0_GPIO_Port GPIOE
-#define ESP_RST_Pin         GPIO_PIN_13
-#define ESP_RST_GPIO_Port   GPIOC
-#define BED_MON_Pin         GPIO_PIN_3
-#define BED_MON_GPIO_Port   GPIOA
-#define FAN0_TACH_Pin       GPIO_PIN_10
-#define FAN0_TACH_GPIO_Port GPIOE
-#define FAN0_TACH_EXTI_IRQn EXTI15_10_IRQn
-#define FAN1_TACH_Pin       GPIO_PIN_14
-#define FAN1_TACH_GPIO_Port GPIOE
-#define FAN1_TACH_EXTI_IRQn EXTI15_10_IRQn
-#define SWDIO_Pin           GPIO_PIN_13
-#define SWDIO_GPIO_Port     GPIOA
-#define SWCLK_Pin           GPIO_PIN_14
-#define SWCLK_GPIO_Port     GPIOA
-#define FLASH_CSN_Pin       GPIO_PIN_7
-#define FLASH_CSN_GPIO_Port GPIOD
-#define WP2_Pin             GPIO_PIN_5
-#define WP2_GPIO_Port       GPIOB
-#define WP1_Pin             GPIO_PIN_0
-#define WP1_GPIO_Port       GPIOE
+#define USB_OVERC_Pin               GPIO_PIN_4
+#define USB_OVERC_GPIO_Port         GPIOE
+#define USB_EN_Pin                  GPIO_PIN_5
+#define USB_EN_GPIO_Port            GPIOE
+#define ESP_GPIO0_Pin               GPIO_PIN_6
+#define ESP_GPIO0_GPIO_Port         GPIOE
+#define ESP_RST_Pin                 GPIO_PIN_13
+#define ESP_RST_GPIO_Port           GPIOC
+#define BED_MON_Pin                 GPIO_PIN_3
+#define BED_MON_GPIO_Port           GPIOA
+#define FANPRINT_TACH_Pin           GPIO_PIN_10
+#define FANPRINT_TACH_GPIO_Port     GPIOE
+#define FANPRINT_TACH_EXTI_IRQn     EXTI15_10_IRQn
+#define FANHEATBREAK_TACH_Pin       GPIO_PIN_14
+#define FANHEATBREAK_TACH_GPIO_Port GPIOE
+#define FANHEATBREAK_TACH_EXTI_IRQn EXTI15_10_IRQn
+#define SWDIO_Pin                   GPIO_PIN_13
+#define SWDIO_GPIO_Port             GPIOA
+#define SWCLK_Pin                   GPIO_PIN_14
+#define SWCLK_GPIO_Port             GPIOA
+#define FLASH_CSN_Pin               GPIO_PIN_7
+#define FLASH_CSN_GPIO_Port         GPIOD
+#define WP2_Pin                     GPIO_PIN_5
+#define WP2_GPIO_Port               GPIOB
+#define WP1_Pin                     GPIO_PIN_0
+#define WP1_GPIO_Port               GPIOE
 
 /* USER CODE END Includes */
 

@@ -7,8 +7,8 @@
 
     #include "fanctl.h"
 
-extern CFanCtl fanctl0;
-extern CFanCtl fanctl1;
+extern CFanCtl fanCtlPrint;
+extern CFanCtl fanCtlHeatBreak;
 
 extern "C" {
 

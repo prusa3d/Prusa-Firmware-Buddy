@@ -142,15 +142,15 @@ enum {
 
 typedef union _SelftestResultEEprom_t {
     struct {
-        uint8_t fan0 : 2;      // bit 0-1
-        uint8_t fan1 : 2;      // bit 2-3
-        uint8_t xaxis : 2;     // bit 4-5
-        uint8_t yaxis : 2;     // bit 6-7
-        uint8_t zaxis : 2;     // bit 8-9
-        uint8_t nozzle : 2;    // bit 10-11
-        uint8_t bed : 2;       // bit 12-13
-        uint8_t reserved0 : 2; // bit 14-15
-        uint16_t reserved1;    // bit 16-31
+        uint8_t printFan : 2;     // bit 0-1
+        uint8_t heatBreakFan : 2; // bit 2-3
+        uint8_t xaxis : 2;        // bit 4-5
+        uint8_t yaxis : 2;        // bit 6-7
+        uint8_t zaxis : 2;        // bit 8-9
+        uint8_t nozzle : 2;       // bit 10-11
+        uint8_t bed : 2;          // bit 12-13
+        uint8_t reserved0 : 2;    // bit 14-15
+        uint16_t reserved1;       // bit 16-31
     };
     uint32_t ui32;
 } SelftestResultEEprom_t;
