@@ -112,6 +112,7 @@
     #include "lwip/sys.h"
 #endif /* LWIP_HTTPD_TIMING */
 
+#include <assert.h>
 #include <string.h> /* memset */
 #include <stdlib.h> /* atoi */
 #include <stdio.h>
@@ -889,6 +890,8 @@ get_http_headers(struct http_state *hs, const char *uri) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_NOT_IMPL];
     } else if (strstr(uri, "200")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK_11];
+    } else if (strstr(uri, "204")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_NO_CONTENT];
     } else if (strstr(uri, "500")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_500];
     } else if (strstr(uri, "401")) {
@@ -2695,17 +2698,36 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
         //
         // (We may even be using the wrong place to plug ourselves in, it's
         // named `http_find_file`...)
-        (get_handler->handler)(hs->handlers, response_body_buf, RESPONSE_BODY_SIZE);
+        uint16_t status = (get_handler->handler)(hs->handlers, response_body_buf, RESPONSE_BODY_SIZE);
 
         uint16_t response_len = strlen(response_body_buf);
-        file = &api_file;
-        file->len = response_len;
-        file->data = response_body_buf;
-        file->index = response_len;
-        file->pextension = NULL;
-        file->flags = 0; // no flags for fs_open
-        static const char name[] = "response.json";
-        uri = &name[0];
+        if (response_len > 0) {
+            file = &api_file;
+            file->len = response_len;
+            file->data = response_body_buf;
+            file->index = response_len;
+            file->pextension = NULL;
+            file->flags = 0; // no flags for fs_open
+        }
+        // We need to pass the status code to the HTTP server. It is done in a
+        // really awkward way, to re-assigning a special "url". Therefore, we switch across the ones we use.
+        // Extend as needed (until we get a proper HTTP server implementation)
+        switch (status) {
+        case 200: {
+            static const char name[] = "response.json";
+            uri = &name[0];
+            break;
+        }
+        case 204: { // No content
+            static const char special[] = "204";
+            uri = &special[0];
+            break;
+        }
+        default: {
+            // Unknown/unhandled status code.
+            assert(0);
+        }
+        }
     }
 
 process_file:

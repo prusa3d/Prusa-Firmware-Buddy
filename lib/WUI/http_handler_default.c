@@ -3,16 +3,29 @@
 #include "wui_api.h"
 #include "wui.h"
 
-#define GET_WRAPPER(NAME)                                                                       \
-    static void handler_##NAME(struct HttpHandlers *unused, char *buffer, size_t buffer_size) { \
-        (void)unused;                                                                           \
-        NAME(buffer, buffer_size);                                                              \
+#define GET_WRAPPER(NAME)                                                                           \
+    static uint16_t handler_##NAME(struct HttpHandlers *unused, char *buffer, size_t buffer_size) { \
+        (void)unused;                                                                               \
+        NAME(buffer, buffer_size);                                                                  \
+        return 200;                                                                                 \
     }
 GET_WRAPPER(get_printer);
 GET_WRAPPER(get_version);
 GET_WRAPPER(get_job);
 GET_WRAPPER(get_files);
 #undef GET_WRAPPER
+
+static uint16_t no_content(struct HttpHandlers *unused, char *buffer, size_t buffer_size) {
+    if (buffer_size > 0) {
+        *buffer = '\0';
+    }
+    return 204;
+}
+
+static uint16_t settings_stub(struct HttpHandlers *unused, char *buffer, size_t buffer_size) {
+    snprintf(buffer, buffer_size, "{\"printer\": {}}");
+    return 200;
+}
 
 static uint32_t post_start(struct HttpHandlers *unused, const char *filename) {
     return wui_upload_begin(filename);
@@ -43,6 +56,25 @@ static const struct GetDescriptor get_handlers[] = {
         .uri = "/api/files",
         .handler = handler_get_files,
         .prefix = true, // Any uri starting with /api/files is fine (for now).
+    },
+    {
+        /*
+         * We don't support downloading GCODE from an url (at least not yet).
+         * But the PrusaLink page is insistent on asking about it. Stub it out,
+         * this basically means "we are not downloading anything right now".
+         *
+         * Which is correct.
+         */
+        .uri = "/api/download",
+        .handler = no_content,
+        .prefix = true,
+    },
+    {
+        /*
+         * Settings are stubbed out too, for now.
+         */
+        .uri = "/api/settings",
+        .handler = settings_stub,
     },
     {}, // Sentinel
 };
