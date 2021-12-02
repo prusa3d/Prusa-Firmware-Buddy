@@ -99,12 +99,7 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
-<<<<<<< HEAD
     , firmware_set({ { { .address = BOOT_ADDRESS, .filename = "/ESP/boot_v1.7.bin", .size = 0 },
-=======
-    , firmware_set({ {
-          { .address = BOOT_ADDRESS, .filename = "/ESP/boot_v1.7.bin", .size = 0 },
->>>>>>> bb37aece45cd172b56946cc5d1ddb360077a3ead
           { .address = USER_ADDRESS, .filename = "/ESP//user1.1024.new.2.bin", .size = 0 },
           { .address = BLANK1_ADDRESS, .filename = "/ESP//blank.bin", .size = 0 },
           { .address = BLANK2_ADDRESS, .filename = "/ESP//blank.bin", .size = 0 },
