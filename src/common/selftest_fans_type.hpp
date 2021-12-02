@@ -11,20 +11,20 @@
 #include "selftest_sub_state.hpp"
 
 struct SelftestFans_t {
-    uint8_t print_fan_progress;     // print fan
-    uint8_t heatbreak_fan_progress; // heatbreak fan
+    uint8_t print_fan_progress;
+    uint8_t heatbreak_fan_progress;
     uint8_t tot_progress;
     SelftestSubtestState_t print_fan_state;
     SelftestSubtestState_t heatbreak_fan_state;
 
-    constexpr SelftestFans_t(uint8_t prt_fan_prog = 0, uint8_t noz_fan_prog = 0, uint8_t tot_prog = 0,
+    constexpr SelftestFans_t(uint8_t prt_fan_prog = 0, uint8_t hb_fan_prog = 0, uint8_t tot_prog = 0,
         SelftestSubtestState_t prt_fan_st = SelftestSubtestState_t::undef,
-        SelftestSubtestState_t noz_fan_st = SelftestSubtestState_t::undef)
+        SelftestSubtestState_t hb_fan_st = SelftestSubtestState_t::undef)
         : print_fan_progress(prt_fan_prog)
-        , heatbreak_fan_progress(noz_fan_prog)
+        , heatbreak_fan_progress(hb_fan_prog)
         , tot_progress(tot_prog)
         , print_fan_state(prt_fan_st)
-        , heatbreak_fan_state(noz_fan_st) {}
+        , heatbreak_fan_state(hb_fan_st) {}
 
     constexpr SelftestFans_t(fsm::PhaseData new_data)
         : SelftestFans_t() {
