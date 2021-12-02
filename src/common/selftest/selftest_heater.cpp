@@ -252,18 +252,18 @@ bool CSelftestPart_Heater::can_enable_fan_control = true;
 /*****************************************************************************/
 //CSelftestPart_HeaterHotend
 
-CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, PID_t &pid, CFanCtl &fanctl0, CFanCtl &fanctl1)
+CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, PID_t &pid, CFanCtl &fanCtlPrint, CFanCtl &fanCtlHeatBreak)
     : CSelftestPart_Heater(config, pid)
-    , m_fanctl0(fanctl0)
-    , m_fanctl1(fanctl1)
+    , m_fanCtlPrint(fanCtlPrint)
+    , m_fanCtlHeatBreak(fanCtlHeatBreak)
     , stored_can_enable_fan_control(can_enable_fan_control) {
     can_enable_fan_control = false;
 }
 
-CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, PIDC_t &pid, CFanCtl &fanctl0, CFanCtl &fanctl1)
+CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, PIDC_t &pid, CFanCtl &fanCtlPrint, CFanCtl &fanCtlHeatBreak)
     : CSelftestPart_Heater(config, pid)
-    , m_fanctl0(fanctl0)
-    , m_fanctl1(fanctl1)
+    , m_fanCtlPrint(fanCtlPrint)
+    , m_fanCtlHeatBreak(fanCtlHeatBreak)
     , stored_can_enable_fan_control(can_enable_fan_control) {
     can_enable_fan_control = false;
 }
@@ -272,8 +272,8 @@ void CSelftestPart_HeaterHotend::stateStart() {
     CSelftestPart_Heater::stateStart();
     if (enable_cooldown) {
         hwio_fan_control_disable();
-        m_fanctl0.setPWM(255); //marlin will restore it automatically
-        m_fanctl1.setPWM(255); //marlin will restore it automatically
+        m_fanCtlPrint.setPWM(255);     //marlin will restore it automatically
+        m_fanCtlHeatBreak.setPWM(255); //marlin will restore it automatically
     }
 }
 

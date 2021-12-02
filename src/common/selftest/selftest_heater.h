@@ -83,8 +83,8 @@ protected:
 
 //extra fan control
 class CSelftestPart_HeaterHotend : public CSelftestPart_Heater {
-    CFanCtl &m_fanctl0;
-    CFanCtl &m_fanctl1;
+    CFanCtl &m_fanCtlPrint;
+    CFanCtl &m_fanCtlHeatBreak;
     uint8_t print_fan_initial_pwm;
     uint8_t heatbreak_fan_initial_pwm;
     bool stored_can_enable_fan_control;
@@ -94,6 +94,6 @@ protected:
     virtual void stateTargetTemp() override;
 
 public:
-    CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, PID_t &pid, CFanCtl &fanctl0, CFanCtl &fanctl1);
-    CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, PIDC_t &pid, CFanCtl &fanctl0, CFanCtl &fanctl1);
+    CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, PID_t &pid, CFanCtl &fanCtlPrint, CFanCtl &fanCtlHeatBreak);
+    CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, PIDC_t &pid, CFanCtl &fanCtlPrint, CFanCtl &fanCtlHeatBreak);
 };
