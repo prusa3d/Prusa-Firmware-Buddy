@@ -24,6 +24,13 @@
 #include "res/cc/png_z_axis_16px.c"     //IDR_PNG_z_axis_16px
 #include "res/cc/png_home_shape_16px.c" //IDR_PNG_home_shape_16px
 #include "res/cc/png_print_16px.c"      //IDR_PNG_print_16px
+#include "res/cc/png_x_axis_16x16.c"    //IDR_PNG_x_axis_16x16,
+#include "res/cc/png_y_axis_16x16.c"    //IDR_PNG_y_axis_16x16,
+#include "res/cc/png_z_axis_16x16.c"    //IDR_PNG_z_axis_16x16,
+#include "res/cc/png_turbine_16x16.c"   //IDR_PNG_turbine_16x16,
+#include "res/cc/png_fan_16x16.c"       //IDR_PNG_fan_16x16,
+#include "res/cc/png_selftest_16x16.c"  //IDR_PNG_selftest_16x16,
+#include "res/cc/png_wizard_16x17.c"    //IDR_PNG_wizard_16x17,
 
 #include "res/cc/png_print_58px.c"       //IDR_PNG_print_58px
 #include "res/cc/png_preheat_58px.c"     //IDR_PNG_preheat_58px
@@ -62,6 +69,8 @@
 #include "res/cc/png_wizard_icon_autohome.c" //IDR_PNG_wizard_icon_autohome
 #include "res/cc/png_wizard_icon_search.c"   //IDR_PNG_wizard_icon_search
 #include "res/cc/png_wizard_icon_measure.c"  //IDR_PNG_wizard_icon_measure
+#include "res/cc/png_hand_154x65.c"          //IDR_PNG_hand_154x65,
+#include "res/cc/png_nozzle_34x32.c"         //IDR_PNG_nozzle_34x32,
 
 #include "res/cc/png_pepa_140px.c" //IDR_PNG_pepa_140px
 
@@ -123,6 +132,13 @@ RESOURCE_ENTRY_PNG(png_spool_16px)
 RESOURCE_ENTRY_PNG(png_z_axis_16px)
 RESOURCE_ENTRY_PNG(png_home_shape_16px)
 RESOURCE_ENTRY_PNG(png_print_16px)
+RESOURCE_ENTRY_PNG(png_x_axis_16x16)
+RESOURCE_ENTRY_PNG(png_y_axis_16x16)
+RESOURCE_ENTRY_PNG(png_z_axis_16x16)
+RESOURCE_ENTRY_PNG(png_turbine_16x16)
+RESOURCE_ENTRY_PNG(png_fan_16x16)
+RESOURCE_ENTRY_PNG(png_selftest_16x16)
+RESOURCE_ENTRY_PNG(png_wizard_16x17)
 
 RESOURCE_ENTRY_PNG(png_print_58px)
 RESOURCE_ENTRY_PNG(png_preheat_58px)
@@ -159,6 +175,8 @@ RESOURCE_ENTRY_PNG(png_hourglass_39px)
 RESOURCE_ENTRY_PNG(png_wizard_icon_autohome)
 RESOURCE_ENTRY_PNG(png_wizard_icon_search)
 RESOURCE_ENTRY_PNG(png_wizard_icon_measure)
+RESOURCE_ENTRY_PNG(png_hand_154x65)
+RESOURCE_ENTRY_PNG(png_nozzle_34x32)
 
 RESOURCE_ENTRY_PNG(png_pepa_140px)
 

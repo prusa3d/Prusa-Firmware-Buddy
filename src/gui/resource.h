@@ -25,6 +25,13 @@ enum {
     IDR_PNG_z_axis_16px,
     IDR_PNG_home_shape_16px,
     IDR_PNG_print_16px,
+    IDR_PNG_x_axis_16x16,
+    IDR_PNG_y_axis_16x16,
+    IDR_PNG_z_axis_16x16,
+    IDR_PNG_turbine_16x16,
+    IDR_PNG_fan_16x16,
+    IDR_PNG_selftest_16x16,
+    IDR_PNG_wizard_16x17,
 
     IDR_PNG_print_58px,
     IDR_PNG_preheat_58px,
@@ -61,6 +68,8 @@ enum {
     IDR_PNG_wizard_icon_autohome,
     IDR_PNG_wizard_icon_search,
     IDR_PNG_wizard_icon_measure,
+    IDR_PNG_hand_154x65,
+    IDR_PNG_nozzle_34x32,
 
     IDR_PNG_pepa_140px,
 
