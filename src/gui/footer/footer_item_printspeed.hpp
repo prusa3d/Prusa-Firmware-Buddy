@@ -14,5 +14,6 @@ class FooterItemSpeed : public AddSuperWindow<FooterIconText_IntVal> {
     static int static_readValue();
 
 public:
+    static string_view_utf8 GetName() { return _("Speed"); }
     FooterItemSpeed(window_t *parent);
 };
