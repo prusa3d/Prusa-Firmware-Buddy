@@ -120,7 +120,7 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     header.SetText(_(label));
     menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);        // set capture to list
-    help.SetText(_("- ESP not connected"));
+    help.SetText(_("- ESP not connected. Make sure the files are in the ESP folder of the flash disk"));
 }
 
 ScreenFactory::UniquePtr GetScreenMenuESPUpdate() {
@@ -212,7 +212,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
         }
         case esp_upload_action::Reset:
             _dbg("ESP finished flahing");
-            help.SetText(_("ESP succesfully flash, WiFI initiation started."));
+            help.SetText(_("ESP succesfully flashed, WiFI initiation started."));
             esp_loader_flash_finish(true);
             esp_set_operating_mode(ESP_RUNNING_MODE);
             netdev_init_esp();
