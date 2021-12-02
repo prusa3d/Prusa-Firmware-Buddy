@@ -160,7 +160,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
             _dbg("ESP boot connect");
             if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
-                help.SetText(_("Successfully connected to ESP, do not swith the Printer off nor remove the Flash disk."));
+                help.SetText(_("Successfully connected to ESP. Do not switch the Printer off nor remove the Flash disk."));
                 progress_state = esp_upload_action::Start_flash;
             } else {
                 help.SetText(_("Connecting with ESP module failed."));
