@@ -32,8 +32,8 @@
                     "value": "YES"
                 },
                 "GENERATE_BBF": {
-                    "type": "STRING",
-                    "value": "FALSE"
+                    "type": "BOOL",
+                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -87,7 +87,7 @@
                     "value": "NO"
                 },
                 "GENERATE_BBF": {
-                    "type": "STRING",
+                    "type": "BOOL",
                     "value": "FALSE"
                 },
                 "GENERATE_DFU": {
@@ -142,8 +142,8 @@
                     "value": "YES"
                 },
                 "GENERATE_BBF": {
-                    "type": "STRING",
-                    "value": "FALSE"
+                    "type": "BOOL",
+                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -197,7 +197,7 @@
                     "value": "NO"
                 },
                 "GENERATE_BBF": {
-                    "type": "STRING",
+                    "type": "BOOL",
                     "value": "FALSE"
                 },
                 "GENERATE_DFU": {
