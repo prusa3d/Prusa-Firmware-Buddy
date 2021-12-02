@@ -123,6 +123,7 @@ void StartWebServerTask(void const *argument) {
         } else {
             ++esp_check_counter;
         }
+        sntp_client_step();
     }
 }
 
