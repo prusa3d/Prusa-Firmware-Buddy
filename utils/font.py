@@ -68,7 +68,8 @@ def cmd_create_font_png(non_ascii_chars_path: Path, src_png_path: Path,
                                           (x + 1) * char_width,
                                           (y + 1) * char_height))
                 file.write("{")
-                file.write(" {}, {}, {}".format(hex(char_int), x, y))
+                file.write(" {}, {}, {}".format(
+                    hex(int.from_bytes(char_bytes, "little")), x, y))
                 file.write("}\n")
 
                 x += 1
