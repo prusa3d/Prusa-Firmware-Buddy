@@ -56,8 +56,23 @@ bool FooterLine::Create(footer::items item_id, size_t index) {
     case footer::items::ItemSpeed:
         new (&items[index]) FooterItemSpeed(this);
         break;
+    case footer::items::ItemAxisX:
+        new (&items[index]) FooterItemAxisX(this);
+        break;
+    case footer::items::ItemAxisY:
+        new (&items[index]) FooterItemAxisY(this);
+        break;
+    case footer::items::ItemAxisZ:
+        new (&items[index]) FooterItemAxisZ(this);
+        break;
     case footer::items::ItemZHeigth:
         new (&items[index]) FooterItemZHeigth(this);
+        break;
+    case footer::items::ItemPrintFan:
+        new (&items[index]) FooterItemPrintFan(this);
+        break;
+    case footer::items::ItemHeatbreakFan:
+        new (&items[index]) FooterItemHeatBreakFan(this);
         break;
 #if defined(FOOTER_HAS_LIVE_Z)
     case footer::items::ItemLiveZ:

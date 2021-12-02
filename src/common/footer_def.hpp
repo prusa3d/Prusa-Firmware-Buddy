@@ -22,12 +22,24 @@
 namespace footer {
 static constexpr uint8_t DefaultCenterNAndFewer = FOOTER_ITEMS_PER_LINE__ - 1;
 
+/**
+ * @brief enum enlisting all footer items
+ * if item is added other modifications must be made:
+ * - IMiFooter          in src/gui/screen_menu_footer_settings.cpp
+ * - ItemUnion          in src/gui/footer/footer_item_union.hpp
+ * - FooterLine::Create in src/gui/footer/footer_line.cpp
+ */
 enum class items : uint8_t { // stored in eeprom, must be small
     ItemNozzle,
     ItemBed,
     ItemFilament,
     ItemSpeed,
+    ItemAxisX,
+    ItemAxisY,
+    ItemAxisZ,
     ItemZHeigth,
+    ItemPrintFan,
+    ItemHeatbreakFan,
 #if defined(FOOTER_HAS_LIVE_Z)
     ItemLiveZ,
 #endif
