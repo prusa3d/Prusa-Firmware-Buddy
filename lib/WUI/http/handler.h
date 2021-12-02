@@ -39,8 +39,10 @@ struct HttpHandlers;
  * response; if not, the data shall be truncated. This is wrong, and we need
  * some way to stream large data without putting it all into RAM, but that's
  * going to happen in the future.
+ *
+ * @return Numeric HTTP status code (eg. 200).
  */
-typedef void get_handler(struct HttpHandlers *self, char *buffer, size_t buffer_size);
+typedef uint16_t get_handler(struct HttpHandlers *self, char *buffer, size_t buffer_size);
 
 /**
  * Handlers of the GCODE upload.

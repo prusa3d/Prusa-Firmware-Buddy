@@ -33,7 +33,8 @@ static const char *const g_psHTTPHeaderStrings[] = {
     "HTTP/1.0 304 Not Modified\r\n",
     "HTTP/1.0 409 Conflict\r\n",
     "HTTP/1.0 415 Unsupported Media Type\r\n",
-    "HTTP/1.0 503 Service Temporarily Unavailable\r\n"
+    "HTTP/1.0 503 Service Temporarily Unavailable\r\n",
+    "HTTP/1.0 204 No Content\r\n"
     #if LWIP_HTTPD_SUPPORT_11_KEEPALIVE
     ,
     "Connection: keep-alive\r\nContent-Length: 77\r\n\r\n<html><body><h2>404: The requested file cannot be found.</h2></body></html>\r\n"
@@ -62,8 +63,9 @@ static const char *const g_psHTTPHeaderStrings[] = {
     #define HTTP_HDR_409            17 /* 409 Conflict */
     #define HTTP_HDR_415            18 /* 415 Unsupported Media Type */
     #define HTTP_HDR_503            19 /* 503 Service Temporarily Unavailable */
+    #define HTTP_HDR_NO_CONTENT     20 /* 204 No Content */
     #if LWIP_HTTPD_SUPPORT_11_KEEPALIVE
-        #define DEFAULT_404_HTML_PERSISTENT 20 /* default 404 body, but including Connection: keep-alive */
+        #define DEFAULT_404_HTML_PERSISTENT 21 /* default 404 body, but including Connection: keep-alive */
     #endif
 
     #define HTTP_CONTENT_TYPE(contenttype)                    "Content-Type: " contenttype "\r\n\r\n"
