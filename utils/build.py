@@ -149,7 +149,7 @@ class FirmwareBuildConfiguration(BuildConfiguration):
             __file__).resolve().parent.parent / 'cmake/GccArmNoneEabi.cmake'
 
     def get_cmake_cache_entries(self):
-        if self.generate_bbf and self.bootloader == Bootloader.EMPTY:
+        if self.generate_bbf and self.bootloader != Bootloader.NO:
             generate_bbf = True
             signing_key_flg = self.signing_key.resolve(
             ) if self.signing_key else ''
@@ -177,7 +177,7 @@ class FirmwareBuildConfiguration(BuildConfiguration):
         # set general entries
         entries.extend([
             ('BOOTLOADER', 'STRING', self.bootloader.value.upper()),
-            ('GENERATE_BBF', 'STRING', str(generate_bbf).upper()),
+            ('GENERATE_BBF', 'BOOL', str(generate_bbf).upper()),
             ('GENERATE_DFU', 'BOOL', 'ON' if self.generate_dfu else 'OFF'),
             ('SIGNING_KEY', 'FILEPATH', str(signing_key_flg)),
             ('CMAKE_TOOLCHAIN_FILE', 'FILEPATH', str(self.toolchain)),
