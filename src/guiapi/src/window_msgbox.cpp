@@ -27,7 +27,7 @@ const PhaseResponses Responses_ChangeIgnoreCancel   = { Response::Change,   Resp
 MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline)
     : AddSuperWindow<IDialog>(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
-    , buttons(this, get_radio_button_rect(rect), resp, labels)
+    , buttons(this, GuiDefaults::GetButtonRect(rect), resp, labels)
     , result(Response::_none) {
     buttons.SetBtnIndex(def_btn);
     //text.SetAlignment(Align_t::Center());
@@ -35,7 +35,7 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, 
 }
 
 Rect16 MsgBoxBase::getTextRect() {
-    return GetRect() - get_radio_button_rect(GetRect()).Height();
+    return GetRect() - GuiDefaults::GetButtonRect(GetRect()).Height();
 }
 
 Response MsgBoxBase::GetResult() {
@@ -91,7 +91,7 @@ Rect16 MsgBoxTitled::getTextRect() {
     Rect16 text_rect = GetRect();
     text_rect -= getTitleRect().Height();
     text_rect -= Rect16::Height_t(4); // atleast 1px red line and 1px space after red line
-    text_rect -= get_radio_button_rect(GetRect()).Height();
+    text_rect -= GuiDefaults::GetButtonRect(GetRect()).Height();
 
     text_rect += Rect16::Top_t(getTitleRect().Height());
     text_rect += Rect16::Top_t(4); // atleast 1px red line and 1px space after red line
@@ -129,7 +129,7 @@ MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, size_t def
 Rect16 MsgBoxIconned::getTextRect() {
     Rect16 text_rect = GetRect();
     text_rect -= icon.Height();
-    text_rect -= get_radio_button_rect(GetRect()).Height();
+    text_rect -= GuiDefaults::GetButtonRect(GetRect()).Height();
 
     text_rect += Rect16::Top_t(icon.Height());
     return text_rect;
