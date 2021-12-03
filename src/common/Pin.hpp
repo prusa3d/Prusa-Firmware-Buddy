@@ -177,13 +177,13 @@ public:
         : InputPin(ioPort, ioPin, iMode, pull)
         , m_priority { preemptPriority, subPriority } {}
     void configure() const;
+    IRQn_Type getIRQn() const;
 
 private:
     struct Priority {
         uint8_t preemptPriority : 4;
         uint8_t subPriority : 4;
     };
-    IRQn_Type getIRQn() const;
     Priority m_priority;
 };
 
