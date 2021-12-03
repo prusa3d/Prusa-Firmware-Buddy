@@ -4,7 +4,6 @@
  * @author Marek Bel
  */
 #include "Z_probe.hpp"
-#include "../lib/Marlin/Marlin/src/module/endstops.h"
 #include "hwio_pindef.h"
 
 static volatile uint32_t minda_falling_edges = 0;
@@ -23,6 +22,4 @@ void buddy::hw::Z_probe_interrupt_handler() {
     }
 
     previousState = currentState;
-
-    endstops.poll();
 }
