@@ -10,8 +10,12 @@
 #include <cmath>
 #include "menu_vars.h"
 
-string_view_utf8 IFooterItemAxis::static_makeView(float value) {
-    static std::array<char, 7> buff; // the buffer must be static, because string_view does not copy data inside itself
+//static variables
+IFooterItemAxis::buffer_t FooterItemAxisX::buffer;
+IFooterItemAxis::buffer_t FooterItemAxisY::buffer;
+IFooterItemAxis::buffer_t FooterItemAxisZ::buffer;
+
+string_view_utf8 IFooterItemAxis::static_makeViewIntoBuff(float value, buffer_t &buff) {
     float value_clamped = std::clamp((float)value, (float)MenuVars::GetMaximumZRange()[0], (float)MenuVars::GetMaximumZRange()[1]);
     int printed_chars = snprintf(buff.data(), buff.size(), "%.2f", (double)value_clamped);
 
@@ -25,26 +29,26 @@ string_view_utf8 IFooterItemAxis::static_makeView(float value) {
     return string_view_utf8::MakeRAM((const uint8_t *)buff.data());
 }
 
-IFooterItemAxis::IFooterItemAxis(window_t *parent, uint16_t icon_id, reader_cb value_reader)
-    : AddSuperWindow<FooterIconText_FloatVal>(parent, icon_id, static_makeView, value_reader) {
+IFooterItemAxis::IFooterItemAxis(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader)
+    : AddSuperWindow<FooterIconText_FloatVal>(parent, icon_id, view_maker, value_reader) {
 }
 
 FooterItemAxisX::FooterItemAxisX(window_t *parent)
-    : AddSuperWindow<IFooterItemAxis>(parent, IDR_PNG_x_axis_16x16, static_readValue) {
+    : AddSuperWindow<IFooterItemAxis>(parent, IDR_PNG_x_axis_16x16, static_makeView, static_readValue) {
 }
 float FooterItemAxisX::static_readValue() {
     return marlin_vars()->pos[0];
 }
 
 FooterItemAxisY::FooterItemAxisY(window_t *parent)
-    : AddSuperWindow<IFooterItemAxis>(parent, IDR_PNG_x_axis_16x16, static_readValue) {
+    : AddSuperWindow<IFooterItemAxis>(parent, IDR_PNG_x_axis_16x16, static_makeView, static_readValue) {
 }
 float FooterItemAxisY::static_readValue() {
     return marlin_vars()->pos[1];
 }
 
 FooterItemAxisZ::FooterItemAxisZ(window_t *parent)
-    : AddSuperWindow<IFooterItemAxis>(parent, IDR_PNG_x_axis_16x16, static_readValue) {
+    : AddSuperWindow<IFooterItemAxis>(parent, IDR_PNG_x_axis_16x16, static_makeView, static_readValue) {
 }
 float FooterItemAxisZ::static_readValue() {
     return marlin_vars()->pos[2];
