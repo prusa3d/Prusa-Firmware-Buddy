@@ -32,7 +32,7 @@ public:
     Sound &operator=(const Sound &) = delete;
 
     eSOUND_MODE getMode() const;
-    int getVolume();
+    int getVolume() { return displayed_volume(varVolume); }
 
     void setMode(eSOUND_MODE eSMode);
     void setVolume(int vol);
@@ -52,15 +52,16 @@ private:
     void _sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f);
     void _singleSound(float frq, int16_t dur, float vol);
     void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int8_t repeats[], const int16_t durations[], const int16_t delays[], unsigned size);
-
     void nextRepeat();
+    float real_volume(int displayed_volume);     ///< converts displayed / saved volume to volume used by beeper
+    uint8_t displayed_volume(float real_volume); ///< converts beeper volume to displayed / saved one
 
     int16_t duration_active; ///< live variable used for meassure
     int16_t duration_set;    ///< added variable to set duration_ for repeating
     int repeat;              ///< how many times is sound played
     float frequency;         ///< frequency of sound signal (0-1000)
     float volume;            ///< volume of sound signal (0-1)
-    float varVolume;         ///< variable volume set from user (0-10)
+    float varVolume;         ///< varVolume is float 0-1 if it's not on One Louder (then it's 11)
     int16_t delay_active;    ///< live variable used for delay measure
     int16_t delay_set;       ///< added variable for delay betwen beeps
 
