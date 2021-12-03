@@ -72,8 +72,6 @@
 
 #define USB_OVERC_Pin               GPIO_PIN_4
 #define USB_OVERC_GPIO_Port         GPIOE
-#define USB_EN_Pin                  GPIO_PIN_5
-#define USB_EN_GPIO_Port            GPIOE
 #define ESP_GPIO0_Pin               GPIO_PIN_6
 #define ESP_GPIO0_GPIO_Port         GPIOE
 #define ESP_RST_Pin                 GPIO_PIN_13
@@ -942,9 +940,6 @@ static void MX_GPIO_Init(void) {
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
-
-    /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOD, FLASH_CSN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : USB_OVERC_Pin ESP_GPIO0_Pin
@@ -955,18 +950,11 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-    /*Configure GPIO pin : USB_EN_Pin */
-    GPIO_InitStruct.Pin = USB_EN_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(USB_EN_GPIO_Port, &GPIO_InitStruct);
 #ifdef USE_ESP01_WITH_UART6
     /* NOTE: Configuring GPIO causes a short drop of pin output to low. This is
        avoided by first setting the pin and then initilizing the GPIO. In case
        this does not work we first initilize ESP GPIO0 to avoid reset low
        followed by ESP GPIO low as this sequence can switch esp to boot mode */
-
     /* Configure ESP GPIO0 (PROG, High for ESP module boot from Flash) */
     GPIO_InitStruct.Pin = GPIO_PIN_6;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
