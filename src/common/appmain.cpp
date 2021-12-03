@@ -12,6 +12,7 @@
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
+#include "print_utils.hpp"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
 #include "usbd_cdc_if.h"
@@ -87,6 +88,7 @@ void app_idle(void) {
     Buddy::Metrics::RecordMarlinVariables();
     Buddy::Metrics::RecordRuntimeStats();
     Buddy::Metrics::RecordPrintFilename();
+    print_utils_loop();
     osDelay(0); // switch to other threads - without this is UI slow during printing
 }
 

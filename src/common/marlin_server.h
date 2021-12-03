@@ -70,6 +70,9 @@ extern void marlin_server_manage_heater(void);
 // direct call of planner.quick_stop()
 extern void marlin_server_quick_stop(void);
 
+// direct print file with SFM format
+void marlin_server_print_start(const char *filename);
+
 //
 extern uint32_t marlin_server_get_command(void);
 
@@ -96,6 +99,9 @@ extern void marlin_server_print_reheat_start(void);
 
 //
 extern int marlin_server_print_reheat_ready(void);
+
+// return true if the printer is not moving (idle, paused, aborted or finished)
+extern bool marlin_server_printer_idle();
 
 //
 extern void marlin_server_park_head(void);

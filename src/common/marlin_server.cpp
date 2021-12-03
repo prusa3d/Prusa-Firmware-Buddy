@@ -448,6 +448,13 @@ void marlin_server_test_abort(void) {
     }
 }
 
+bool marlin_server_printer_idle() {
+    return marlin_server.print_state == mpsIdle
+        || marlin_server.print_state == mpsPaused
+        || marlin_server.print_state == mpsAborted
+        || marlin_server.print_state == mpsFinished;
+}
+
 void marlin_server_print_start(const char *filename) {
     if (Selftest.IsInProgress())
         return;
