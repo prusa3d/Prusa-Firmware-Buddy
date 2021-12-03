@@ -627,10 +627,6 @@ static struct altcp_pcb *altcp_esp_listen(struct altcp_pcb *conn, u8_t backlog, 
     return conn;
 }
 
-static void altcp_esp_abort(struct altcp_pcb *conn) {
-    ALTCP_ESP_DEBUG_FN("altcp_esp_abort - NOT IMPLEMENTED");
-}
-
 static err_t altcp_esp_close(struct altcp_pcb *conn) {
     ALTCP_ESP_DEBUG_FN("altcp_esp_close");
 
@@ -657,6 +653,22 @@ static err_t altcp_esp_close(struct altcp_pcb *conn) {
     return ERR_OK;
 }
 
+static void altcp_esp_abort(struct altcp_pcb *conn) {
+    ALTCP_ESP_DEBUG_FN("altcp_esp_abort - Best effort implementation");
+    /*
+     * FIXME:
+     * ESP doesn't seem to have a way to forcefully abort (though it closes
+     * through connection reset anyway). And it's close function may fail, for
+     * example if it runs out of memory, which is bad. But at least _trying_ is
+     * better than nothing, so let's do our best attempt...
+     *
+     * But we need some better architectural solution (or at least have some
+     * kind of memory reserve for closing things).
+     */
+    altcp_esp_close(conn);
+}
+
+// Fortunately not used in our code at all.
 static err_t altcp_esp_shutdown(struct altcp_pcb *conn, int shut_rx, int shut_tx) {
     ALTCP_ESP_DEBUG_FN("altcp_esp_shutdown - NOT IMPLEMENTED");
     return ERR_VAL;
