@@ -18,14 +18,6 @@ public:
     IDialog(Rect16 rc = GuiDefaults::DialogFrameRect, IsStrong strong = IsStrong::no);
     IDialog(window_t *parent, Rect16 rc = GuiDefaults::DialogFrameRect);
 
-    static constexpr Rect16 get_radio_button_rect(Rect16 rc_frame) {
-        return Rect16(
-            rc_frame.Left() + GuiDefaults::ButtonSpacing,
-            rc_frame.Top() + (rc_frame.Height() - GuiDefaults::ButtonHeight - GuiDefaults::FrameWidth),
-            rc_frame.Width() - 2 * GuiDefaults::ButtonSpacing,
-            GuiDefaults::ButtonHeight);
-    }
-
     template <class... Args>
     void MakeBlocking(
         std::function<void(Args...)> action = [](Args...) {}, Args... args) const { //could be static, but I want it to be usable only from dialog

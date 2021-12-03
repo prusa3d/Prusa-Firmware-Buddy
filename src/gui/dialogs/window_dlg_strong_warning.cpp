@@ -16,7 +16,7 @@ window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     , footer(this)
     , icon(this, IDR_PNG_exposure_times_48px, { 120 - 24, 48 })
     , text(this, { 0, 104, 240, 120 }, is_multiline::yes)
-    , button(this, get_radio_button_rect(GetRect()) - Rect16::Top_t(64), &dlg_responses, &ph_txt_continue) {
+    , button(this, GuiDefaults::GetButtonRect(GetRect()) - Rect16::Top_t(64), &dlg_responses, &ph_txt_continue) {
 }
 
 void window_dlg_strong_warning_t::setIcon(int16_t resId) {

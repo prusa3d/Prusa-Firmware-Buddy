@@ -60,8 +60,11 @@ struct GuiDefaults {
     static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };                         // rect describing preview thumbnail
     static constexpr uint8_t ButtonHeight = 30;                                                                 // default button height
     static constexpr uint8_t ButtonSpacing = 6;                                                                 // default button spacing
-    static constexpr uint8_t FrameWidth = 10;                                                                   // default frame padding
-    static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4;                                                          // maximum number of radio buttons
+    static constexpr Rect16 GetButtonRect(Rect16 rc_frame) { return Rect16(rc_frame.Left() + ButtonSpacing,
+        rc_frame.Top() + (rc_frame.Height() - ButtonHeight - FrameWidth), rc_frame.Width() - 2 * ButtonSpacing, ButtonHeight); }
+
+    static constexpr uint8_t FrameWidth = 10;          // default frame padding
+    static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4; // maximum number of radio buttons
 
     // Menu settings
     static constexpr size_t MenuIconWidth = 25;
