@@ -25,6 +25,16 @@
  * @endcode
  */
 #define DECLARE_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) inline constexpr TYPE NAME(PORTPIN, PARAMETERS);
+
+/**
+ * @brief Declare all pins supplied in VIRTUAL_PIN_TABLE parameter
+ * @par Usage:
+ * @code
+ * DECLARE_VIRTUAL_PINS(VIRTUAL_PIN_TABLE)
+ * @endcode
+ */
+#define DECLARE_VIRTUAL_PINS(TYPE, READ_FN, ISR_FN, NAME, PORTPIN, PARAMETERS) inline constexpr TYPE<READ_FN, ISR_FN> NAME(PARAMETERS);
+
 /**
  * @brief Configure all pins supplied in PIN_TABLE parameter
  * @par Usage:
@@ -185,6 +195,18 @@ private:
         uint8_t subPriority : 4;
     };
     Priority m_priority;
+};
+
+typedef Pin::State (*ReadFunction)();
+typedef void (*InterruptRoutine)();
+
+template <ReadFunction readFunction, InterruptRoutine interruptRoutine>
+class VirtualInterruptPin {
+public:
+    constexpr VirtualInterruptPin(IMode) {}
+    void configure() const {}
+    Pin::State read() const { return readFunction(); }
+    void isr() const { interruptRoutine(); }
 };
 
 enum class OMode : uint8_t {
