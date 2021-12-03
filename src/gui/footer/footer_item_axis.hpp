@@ -11,10 +11,12 @@
  * @brief parent for X, Y, Z footer items
  */
 class IFooterItemAxis : public AddSuperWindow<FooterIconText_FloatVal> {
-    static string_view_utf8 static_makeView(float value);
+protected:
+    using buffer_t = std::array<char, 7>;
+    static string_view_utf8 static_makeViewIntoBuff(float value, buffer_t &buff);
 
 public:
-    IFooterItemAxis(window_t *parent, uint16_t icon_id, reader_cb value_reader);
+    IFooterItemAxis(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader);
 };
 
 /**
@@ -22,6 +24,10 @@ public:
  */
 class FooterItemAxisX : public AddSuperWindow<IFooterItemAxis> {
     static float static_readValue();
+    static buffer_t buffer;
+    static string_view_utf8 static_makeView(float value) {
+        return static_makeViewIntoBuff(value, buffer);
+    }
 
 public:
     static string_view_utf8 GetName() { return _("X Axis"); }
@@ -33,6 +39,10 @@ public:
  */
 class FooterItemAxisY : public AddSuperWindow<IFooterItemAxis> {
     static float static_readValue();
+    static buffer_t buffer;
+    static string_view_utf8 static_makeView(float value) {
+        return static_makeViewIntoBuff(value, buffer);
+    }
 
 public:
     static string_view_utf8 GetName() { return _("Y Axis"); }
@@ -44,6 +54,10 @@ public:
  */
 class FooterItemAxisZ : public AddSuperWindow<IFooterItemAxis> {
     static float static_readValue();
+    static buffer_t buffer;
+    static string_view_utf8 static_makeView(float value) {
+        return static_makeViewIntoBuff(value, buffer);
+    }
 
 public:
     static string_view_utf8 GetName() { return _("Z Axis"); }
