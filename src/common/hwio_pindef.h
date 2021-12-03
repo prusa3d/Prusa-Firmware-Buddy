@@ -39,6 +39,8 @@
 #pragma once
 #include "printers.h"
 #include "board.h"
+#include "MarlinPin.hpp"
+#include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
 #include <type_traits>
 
 #if (!defined(PRINTER_PRUSA_MINI))
@@ -46,7 +48,6 @@
 #endif
 #if 0
 #else
-    #include "MarlinPin.hpp"
 
 /**
  * @name Define pins to be accessed from Marlin
@@ -183,7 +184,7 @@
  * @n @p INTERRUPT_HANDLER Name of the function to be called on pin interrupt with no non-default parameters.
  *           Return value is ignored. Use buddy::hw::noHandler if this is not InterruptPin.
  *           Symbol used here must be visible in ExtInterruptHandler.cpp. So include needed header file in
- *           ExtInterruptHandler.hpp.
+ *           ExtInterruptHandler.cpp.
  *
  *           @warning @p INTERRUPT_HANDLER might be called more often than expected.
  *           There are less interrupt lines than number of all pins so one line can be shared between more pins.
@@ -235,10 +236,43 @@
         MACRO_FUNCTION(buddy::hw::OutputPin, fanPrintPwm, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p11, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
         MACRO_FUNCTION(buddy::hw::OutputPin, fanHeatBreakPwm, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p9, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)
 #endif
+/**
+ * @brief Define @p VIRTUAL_PIN_TABLE macro containing all virtual pins
+ *
+ * When defining @p VIRTUAL_PIN_TABLE use COMMA macro to separate parameters inside sections PORTPIN and PARAMETERS,
+ * use ordinary comma (,) to separate sections (TYPE, READ_FN, ISR_FN, NAME, PORTPIN, PARAMETERS).
+ *
+ * Virtual pins (MARLIN_PORT_V) accessed by Marlin needs to be repeated here, use BUDDY_PIN() macro to convert Marlin pin into Buddy Pin.
+ *
+ * @par Sections:
+ * @n @p TYPE pin type. At this moment only VirtualInterruptPin is possible option.
+ *       @note If implementing new type of the pin, make sure isVirtualInterruptPin() and getInterruptHandler() is adjusted accordingly.
+ * @n @p READ_FN Supplied function to read the virtual pin
+ * @n @p ISR_FN Supplied function to emulate interrupt routine service call.
+ * @n @p NAME Name used to access pin. E.g. zMin, later accessed as e.g. zMin.read()
+ * @n @p PORTPIN Virtual location of pin. E.g. BUDDY_PIN(Z_MIN) for virtual pin defined for Marlin earlier.
+ * @n @p PARAMETERS Parameters passed to pin constructor.
+ *
+ * @par Example usage:
+ * @code
+ * #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION) \
+ *          MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::zMinReadFn, endstop_ISR, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling)
+ *
+ * namespace buddy::hw {
+ * DECLARE_VIRTUAL_PINS(VIRTUAL_PIN_TABLE)
+ * }
+ *
+ * };
+ *
+ * @endcode
+ *
+ */
+#define VIRTUAL_PIN_TABLE(MACRO_FUNCTION)
 
 /** @}*/
 namespace buddy::hw {
 PIN_TABLE(DECLARE_PINS)
+VIRTUAL_PIN_TABLE(DECLARE_VIRTUAL_PINS)
 
 /**
  * @brief Convert IoPort and IoPin pair into marlinPin (uint32_t)
@@ -270,6 +304,24 @@ constexpr bool physicalPinExist(uint32_t marlinPin) {
 }
 
 /**
+ * @brief Exist mapping between marlinPin and virtual Buddy Pin?
+ *
+ * @param marlinPin
+ * @retval true marlinPin exists in VIRTUAL_PIN_TABLE
+ * @retval false marlinPin does not exists in VIRTUAL_PIN_TABLE
+ */
+constexpr bool virtualPinExist(uint32_t marlinPin) {
+#define ALL_VIRTUAL_PINS(TYPE, READ_FN, ISR_FN, NAME, PORTPIN, PARAMETERS) case toMarlinPin(PORTPIN):
+    switch (marlinPin) {
+        VIRTUAL_PIN_TABLE(ALL_VIRTUAL_PINS)
+        return true;
+    default:
+        return false;
+    }
+#undef ALL_VIRTUAL_PINS
+}
+
+/**
  * @brief Exist mapping between marlinPin and physical Buddy InterruptPin?
  *
  * @param marlinPin
@@ -289,4 +341,15 @@ constexpr bool isInterruptPin(uint32_t marlinPin) {
 #undef ALL_INTERRUPT_PINS
 }
 
+/**
+ * @brief Exist mapping between marlinPin and VirtualInterruptPin?
+ *
+ * @param marlinPin
+ * @retval true marlinPin is VirtualInterruptPin in VIRTUAL_PIN_TABLE
+ * @retval false marlinPin is not VirtualInterruptPin in VIRTUAL_PIN_TABLE
+ */
+constexpr bool isVirtualInterruptPin(uint32_t marlinPin) {
+    return virtualPinExist(marlinPin);
 }
+
+} // namespace buddy::hw
