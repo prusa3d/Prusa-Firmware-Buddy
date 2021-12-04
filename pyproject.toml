@@ -1,0 +1,5 @@
+[tool.pyright]
+executionEnvironments = [
+  { root = "tests/integration", extraPaths = ["utils"]},
+  { root = "utils"},
+]
