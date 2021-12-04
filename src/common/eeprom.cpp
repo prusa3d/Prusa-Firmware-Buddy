@@ -518,9 +518,12 @@ variant8_t eeprom_var_parse(enum eevar_id id, char *str) {
     case EEVAR_WIFI_IP4_DNS1:
     case EEVAR_WIFI_IP4_DNS2: {
         uint8_t bytes[4];
-        sscanf(str, "%hhu.%hhu.%hhu.%hhu", &bytes[0], &bytes[1],
+        int read = sscanf(str, "%hhu.%hhu.%hhu.%hhu", &bytes[0], &bytes[1],
             &bytes[2], &bytes[3]);
-        return variant8_ui32(*((uint32_t *)bytes));
+        if (read == 4)
+            return variant8_ui32(*((uint32_t *)bytes));
+        else
+            return variant8_error(VARIANT8_ERR_INVFMT, 0, 0);
     }
     default: //use default conversion
         return variant8_from_str(eeprom_map[id].type, str);
