@@ -197,8 +197,14 @@ extern uint8_t eeprom_get_var_count(void);
 // get variable name
 extern const char *eeprom_get_var_name(enum eevar_id id);
 
+// find variables eevar_id based on its name (without the EEPROM_ prefix); return true on success
+extern bool eeprom_find_var_by_name(const char *name, enum eevar_id *var_id_out);
+
 // format variable value to string (some variables can have specific formating)
 extern int eeprom_var_format(char *str, unsigned int size, enum eevar_id id, variant8_t var);
+
+// parse variant8_t from a string previously formatted by eeprom_var_format
+extern variant8_t eeprom_var_parse(enum eevar_id id, char *str);
 
 // fill range 0x0000..0x0800 with 0xff
 extern void eeprom_clear(void);

@@ -469,6 +469,16 @@ const char *eeprom_get_var_name(enum eevar_id id) {
     return "???";
 }
 
+bool eeprom_find_var_by_name(const char *name, enum eevar_id *var_id_out) {
+    for (int i = 0; i < (int)EEPROM_VARCOUNT; i++) {
+        if (strcmp(eeprom_map[i].name, name) == 0) {
+            *var_id_out = (enum eevar_id)i;
+            return true;
+        }
+    }
+    return false;
+}
+
 int eeprom_var_format(char *str, unsigned int size, enum eevar_id id, variant8_t var) {
     int n = 0;
     switch (id) {
@@ -492,6 +502,30 @@ int eeprom_var_format(char *str, unsigned int size, enum eevar_id id, variant8_t
         break;
     }
     return n;
+}
+
+variant8_t eeprom_var_parse(enum eevar_id id, char *str) {
+    switch (id) {
+    // ip addresses
+    case EEVAR_LAN_IP4_ADDR:
+    case EEVAR_LAN_IP4_MSK:
+    case EEVAR_LAN_IP4_GW:
+    case EEVAR_LAN_IP4_DNS1:
+    case EEVAR_LAN_IP4_DNS2:
+    case EEVAR_WIFI_IP4_ADDR:
+    case EEVAR_WIFI_IP4_MSK:
+    case EEVAR_WIFI_IP4_GW:
+    case EEVAR_WIFI_IP4_DNS1:
+    case EEVAR_WIFI_IP4_DNS2: {
+        uint8_t bytes[4];
+        sscanf(str, "%hhu.%hhu.%hhu.%hhu", &bytes[0], &bytes[1],
+            &bytes[2], &bytes[3]);
+        return variant8_ui32(*((uint32_t *)bytes));
+    }
+    default: //use default conversion
+        return variant8_from_str(eeprom_map[id].type, str);
+    }
+    return variant8_error(VARIANT8_ERR_UNSCON, 0, 0);
 }
 
 void eeprom_clear(void) {
