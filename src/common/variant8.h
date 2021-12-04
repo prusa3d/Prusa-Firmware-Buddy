@@ -107,6 +107,9 @@ extern variant8_t variant8_pui32(uint32_t *pui32, uint16_t count, int init);
 // returns VARIANT8_PFLT
 extern variant8_t variant8_pflt(float *pflt, uint16_t count, int init);
 
+// returns VARIANT8_ERROR
+extern variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8);
+
 // returns variant8_t type
 extern uint8_t variant8_get_type(variant8_t v);
 // returns variant8_t usr8
@@ -169,7 +172,7 @@ extern int variant8_snprintf(char *str, unsigned int size, const char *fmt, vari
 extern char *variant8_to_str(variant8_t *pvar8, const char *fmt);
 
 // returns variant8 with desired type parsed from string with sscanf
-extern variant8_t variant8_from_str(uint8_t type, char *str, const char *fmt);
+extern variant8_t variant8_from_str(uint8_t type, char *str);
 
 // variant8 realloc function
 extern void *variant8_realloc(void *ptr, uint16_t size);

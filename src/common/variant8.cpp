@@ -61,9 +61,6 @@ static void *variant8_malloc(uint16_t size);
 // variant8 free function
 static void variant8_free(void *ptr);
 
-// returns VARIANT8_ERROR
-static variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8);
-
 //macros for variant8 structure constants
 variant8_t variant8_init(uint8_t type, uint16_t count, void const *pdata) {
     _variant8_t var8;
@@ -282,7 +279,7 @@ variant8_t variant8_user(uint32_t usr32, uint16_t usr16, uint8_t usr8) {
     return *pack(&v);
 }
 
-static variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8) {
+variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8) {
     _variant8_t v = _VARIANT8_TYPE(VARIANT8_ERROR, err8, .err16 = err16, .err32 = err32);
     return *pack(&v);
 }
@@ -500,89 +497,81 @@ variant8_to_str(variant8_t *pvar8, const char *fmt) {
         strlcpy(str, buff, n);
     return str;
 }
+#endif
 
-variant8_t variant8_from_str(uint8_t type, char *str, const char *fmt) {
-    variant8_t var8 = _VARIANT8_TYPE(type, 0, 0, 0);
-    int n = 0;
-    int i;
-    unsigned int ui;
+variant8_t variant8_from_str(uint8_t type, char *str) {
     switch (type) {
     case VARIANT8_EMPTY:
-        break;
+        return variant8_empty();
     case VARIANT8_I8:
     case VARIANT8_I16:
-    case VARIANT8_I32:
-        n = sscanf(str, fmt ? fmt : "%i", &i);
-        if (n > 0)
+    case VARIANT8_I32: {
+        int i;
+        if (sscanf(str, "%i", &i))
             switch (type) {
             case VARIANT8_I8:
                 if ((i >= INT8_MIN) && (i <= INT8_MAX))
-                    var8.i8 = (int8_t)i;
+                    return variant8_i8(i);
                 else
-                    var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
-                break;
+                    return variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
             case VARIANT8_I16:
                 if ((i >= INT16_MIN) && (i <= INT16_MAX))
-                    var8.i16 = (int16_t)i;
+                    return variant8_i16(i);
                 else
-                    var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
-                break;
+                    return variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
             case VARIANT8_I32:
-                var8.i32 = (int32_t)i;
-                break;
+                return variant8_i32(i);
             }
         break;
+    }
     case VARIANT8_UI8:
     case VARIANT8_UI16:
-    case VARIANT8_UI32:
-        n = sscanf(str, fmt ? fmt : "%u", &ui);
-        if (n > 0)
+    case VARIANT8_UI32: {
+        unsigned ui;
+        if (sscanf(str, "%u", &ui)) {
             switch (type) {
             case VARIANT8_UI8:
                 if (ui <= UINT8_MAX)
-                    var8.ui8 = (uint8_t)ui;
+                    return variant8_ui8(ui);
                 else
-                    var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
+                    return variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
                 break;
             case VARIANT8_UI16:
                 if (ui <= UINT16_MAX)
-                    var8.ui16 = (uint16_t)ui;
+                    return variant8_ui16(ui);
                 else
-                    var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
-                break;
+                    return variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
             case VARIANT8_UI32:
-                var8.ui32 = (uint32_t)ui;
-                break;
+                return variant8_ui32(ui);
             }
-        break;
-    case VARIANT8_FLT:
-        n = sscanf(str, fmt ? fmt : "%f", &(var8.flt));
-        break;
-    case VARIANT8_CHAR:
-        n = sscanf(str, fmt ? fmt : "%c", &(var8.ch));
-        break;
-    case VARIANT8_USER:
-        n = sscanf(str, fmt ? fmt : "%u %hu %u", (unsigned int *)&(var8.usr32), (unsigned short int *)&(var8.usr16), &ui);
-        if (n >= 3)
-            var8.usr8 = ui;
-        break;
+        }
+    }
+    case VARIANT8_FLT: {
+        float f;
+        if (sscanf(str, "%f", &f)) {
+            return variant8_flt(f);
+        }
+    }
+    case VARIANT8_CHAR: {
+        char c;
+        if (sscanf(str, "%c", &(c))) {
+            _variant8_t v = _VARIANT8_TYPE(VARIANT8_CHAR, 0, 0, .ch = c);
+            return *pack(&v);
+        }
+    }
+    case VARIANT8_USER: {
+        uint32_t usr32;
+        uint16_t usr16;
+        uint8_t usr8;
+        int n = sscanf(str, "%lu %hu %hhu", &usr32, &usr16, &usr8);
+        if (n == 3)
+            return variant8_user(usr32, usr16, usr8);
+    }
     case VARIANT8_PCHAR:
-        var8 = variant8_pchar(0, strlen(str) + 1, 1);
-        n = sscanf(str, fmt ? fmt : "%s", var8.pch);
-        break;
-    default:
-        var8.type = VARIANT8_ERROR;
-        var8.err32 = VARIANT8_ERR_UNSCON;
-        break;
+        return variant8_pchar(str, 0, 1);
     }
-    if (n <= 0) {
-        variant8_done(&var8);
-        var8.type = VARIANT8_ERROR;
-        var8.err32 = VARIANT8_ERR_INVFMT;
-    }
-    return var8;
+    return variant8_error(VARIANT8_ERR_UNSCON, 0, 0);
 }
-#endif
 
 #ifdef VARIANT8_DBG_MALLOC
 uint32_t variant8_total_malloc_size = 0;

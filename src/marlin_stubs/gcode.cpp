@@ -29,7 +29,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M334();
             return true;
 #endif // _DEBUG
-
+        case 505:
+            PrusaGcodeSuite::M505();
+            return true;
         case 997:
             PrusaGcodeSuite::M997();
             return true;
