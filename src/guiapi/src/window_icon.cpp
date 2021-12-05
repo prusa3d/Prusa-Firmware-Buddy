@@ -10,8 +10,10 @@
 #include "gcode_file.h"
 
 void window_icon_t::SetIdRes(int16_t id) {
-    id_res = id;
-    Invalidate();
+    if (id_res != id) {
+        id_res = id;
+        Invalidate();
+    }
 }
 
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, uint16_t id_res, is_closed_on_click_t close)
