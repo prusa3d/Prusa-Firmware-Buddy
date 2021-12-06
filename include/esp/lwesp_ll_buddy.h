@@ -68,7 +68,7 @@ extern espr_t esp_flash_initialize();
 // be copied from the RX buffer to ESP mem before the buffer overflows.
 #define RX_BUFFER_LEN 0x1000
 #if !defined(ESP_MEM_SIZE)
-    #define ESP_MEM_SIZE 0x1000
+    #define ESP_MEM_SIZE 0x2000
 #endif /* !defined(ESP_MEM_SIZE) */
 
 extern uint8_t dma_buffer_rx[RX_BUFFER_LEN];
