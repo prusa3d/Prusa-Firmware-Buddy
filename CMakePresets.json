@@ -41,7 +41,7 @@
                 },
                 "SIGNING_KEY": {
                     "type": "FILEPATH",
-                    "value": "${sourceDir}/."
+                    "value": ""
                 },
                 "CMAKE_TOOLCHAIN_FILE": {
                     "type": "FILEPATH",
@@ -96,7 +96,7 @@
                 },
                 "SIGNING_KEY": {
                     "type": "FILEPATH",
-                    "value": "${sourceDir}/."
+                    "value": ""
                 },
                 "CMAKE_TOOLCHAIN_FILE": {
                     "type": "FILEPATH",
@@ -151,7 +151,7 @@
                 },
                 "SIGNING_KEY": {
                     "type": "FILEPATH",
-                    "value": "${sourceDir}/."
+                    "value": ""
                 },
                 "CMAKE_TOOLCHAIN_FILE": {
                     "type": "FILEPATH",
@@ -206,7 +206,7 @@
                 },
                 "SIGNING_KEY": {
                     "type": "FILEPATH",
-                    "value": "${sourceDir}/."
+                    "value": ""
                 },
                 "CMAKE_TOOLCHAIN_FILE": {
                     "type": "FILEPATH",
