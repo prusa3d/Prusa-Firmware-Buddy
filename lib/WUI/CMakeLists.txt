@@ -24,10 +24,9 @@ file(GLOB WEB_FILES ${PROJECT_ROOT_DIR}/lib/WUI/resources/src_local/*.*)
 add_custom_target(
   wui-genfile
   DEPENDS ${WEB_FILES}
-  COMMAND
-    ${Python3_EXECUTABLE} ${PROJECT_ROOT_DIR}/utils/wui.py --input-folder
-    ${CMAKE_SOURCE_DIR}/lib/WUI/resources/src_local --output-folder ${CMAKE_BINARY_DIR} ${WEB_FILE}
-  COMMENT "Generating fsdata_wui_local raw data from WUI resources." USES_TERMINAL
+  COMMAND ${Python3_EXECUTABLE} ${PROJECT_ROOT_DIR}/utils/wui.py ${WEB_FILES} >
+          ${CMAKE_BINARY_DIR}/${WEB_FILE}
+  COMMENT "Generating fsdata_wui_local raw data from WUI resources."
   )
 
 add_dependencies(WUI wui-genfile)
