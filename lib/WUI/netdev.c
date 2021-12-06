@@ -158,6 +158,10 @@ esp_callback_func(esp_evt_t *evt) {
         _dbg("ESP_EVT_RESET");
         break;
     }
+    case ESP_EVT_RESTORE: {
+        _dbg("ESP_EVT_RESTORE");
+        break;
+    }
     case ESP_EVT_RESET_DETECTED: {
         esp_reconfigure_uart(ESP_CFG_AT_PORT_BAUDRATE);
         _dbg("ESP_EVT_RESET_DETECTED");
