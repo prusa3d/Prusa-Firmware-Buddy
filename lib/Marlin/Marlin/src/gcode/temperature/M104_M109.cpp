@@ -148,7 +148,7 @@ void GcodeSuite::M109() {
   #endif
 
   if (set_temp)
-    (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling);
+    (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling, parser.seen('F'));
 }
 
 #endif // EXTRUDERS
