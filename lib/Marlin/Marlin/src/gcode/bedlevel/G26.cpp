@@ -397,7 +397,7 @@ inline bool turn_on_heaters() {
   thermalManager.setTargetHotend(g26_hotend_temp, active_extruder);
 
   // Wait for the temperature to stabilize
-  if (!thermalManager.wait_for_hotend(active_extruder, true
+  if (!thermalManager.wait_for_hotend(active_extruder, true, false
       #if G26_CLICK_CAN_CANCEL
         , true
       #endif
