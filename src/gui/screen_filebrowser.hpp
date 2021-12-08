@@ -11,7 +11,7 @@ class screen_filebrowser_data_t : public AddSuperWindow<screen_t> {
     window_file_list_t w_filelist;
     GCodeInfo &gcode_info;
     static void clear_firstVisibleSFN(marlin_vars_t *vars);
-    static char root[FILE_PATH_MAX_LEN]; // we can have only one screen_filebrowser at time, so this variable can be static
+    static char root[FILE_PATH_BUFFER_LEN]; // we can have only one screen_filebrowser at time, so this variable can be static
 
 public:
     screen_filebrowser_data_t();

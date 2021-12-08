@@ -251,7 +251,7 @@ private:
     size_t totalFiles;                    ///< total number of entries in the directory
     int windowStartingFrom;               ///< from which entry index the window starts (e.g. from the 3rd file in dir).
                                           ///< intentionally int, because -1 means ".."
-    char sfnPath[FILE_PATH_MAX_LEN];      ///< current directory path - @@TODO this may not be enough - needs checking
+    char sfnPath[FILE_PATH_BUFFER_LEN];   ///< current directory path - @@TODO this may not be enough - needs checking
     SortPolicy sortPolicy;                ///< sort policy set in ChangeDirectory - @@TODO probably not needed at runtime
 
     /// Current selected sort policy compare functions

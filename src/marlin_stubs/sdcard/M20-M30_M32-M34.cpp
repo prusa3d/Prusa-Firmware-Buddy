@@ -35,7 +35,7 @@ void GcodeSuite::M23() {
     for (char *fn = parser.string_arg; *fn; ++fn)
         if (*fn == ' ')
             *fn = '\0';
-    strlcpy(media_print_filepath(), parser.string_arg, MEDIA_PRINT_FILEPATH_SIZE);
+    strlcpy(media_print_filepath(), parser.string_arg, FILE_PATH_BUFFER_LEN);
 }
 
 // M24 - Start/resume SD print

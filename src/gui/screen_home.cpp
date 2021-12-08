@@ -147,9 +147,9 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
             if (find_latest_gcode(
                     vars->media_SFN_path,
-                    FILE_PATH_MAX_LEN,
+                    FILE_PATH_BUFFER_LEN,
                     vars->media_LFN,
-                    FILE_NAME_MAX_LEN)) {
+                    FILE_NAME_BUFFER_LEN)) {
                 gcode.SetGcodeFilepath(vars->media_SFN_path);
                 gcode.SetGcodeFilename(vars->media_LFN);
                 Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
