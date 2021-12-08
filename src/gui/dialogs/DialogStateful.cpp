@@ -36,7 +36,7 @@ IDialogStateful::IDialogStateful(string_view_utf8 name)
     , title(this, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, name)
     , progress(this, get_progress_rect(GetRect()), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
     , label(this, get_label_rect(GetRect()), is_multiline::yes)
-    , radio(this, get_radio_button_rect(GetRect()), nullptr, nullptr)
+    , radio(this, GuiDefaults::GetButtonRect(GetRect()), nullptr, nullptr)
     , phase(0) {
     title.font = GuiDefaults::FontBig;
     title.SetAlignment(Align_t::Center());

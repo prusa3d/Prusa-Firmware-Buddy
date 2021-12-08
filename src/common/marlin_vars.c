@@ -37,8 +37,8 @@ const char *__var_name[] = {
     "FILEPATH",
     "DTEM_NOZ",
     "TIMTOEND",
-    "FAN0_RPM",
-    "FAN1_RPM",
+    "FANPR_RPM",
+    "FANHB_RPM",
     "FAN_CHECK_ENABLED",
     "FS_AUTOLOAD_ENABLED",
     "CURR_POS_X",
@@ -100,7 +100,7 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
     case MARLIN_VAR_Z_OFFSET:
         return variant8_flt(vars->z_offset);
     case MARLIN_VAR_FANSPEED:
-        return variant8_ui8(vars->fan_speed);
+        return variant8_ui8(vars->print_fan_speed);
     case MARLIN_VAR_PRNSPEED:
         return variant8_ui16(vars->print_speed);
     case MARLIN_VAR_FLOWFACT:
@@ -127,10 +127,10 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
         return variant8_flt(vars->display_nozzle);
     case MARLIN_VAR_TIMTOEND:
         return variant8_ui32(vars->time_to_end);
-    case MARLIN_VAR_FAN0_RPM:
-        return variant8_ui16(vars->fan0_rpm);
-    case MARLIN_VAR_FAN1_RPM:
-        return variant8_ui16(vars->fan1_rpm);
+    case MARLIN_VAR_PRINT_FAN_RPM:
+        return variant8_ui16(vars->print_fan_rpm);
+    case MARLIN_VAR_HEATBREAK_FAN_RPM:
+        return variant8_ui16(vars->heatbreak_fan_rpm);
     case MARLIN_VAR_FAN_CHECK_ENABLED:
         return variant8_ui8(vars->fan_check_enabled);
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
@@ -213,7 +213,7 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         vars->z_offset = variant8_get_flt(var);
         break;
     case MARLIN_VAR_FANSPEED:
-        vars->fan_speed = variant8_get_ui8(var);
+        vars->print_fan_speed = variant8_get_ui8(var);
         break;
     case MARLIN_VAR_PRNSPEED:
         vars->print_speed = variant8_get_ui16(var);
@@ -246,16 +246,16 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         if (vars->media_LFN)
             if (variant8_get_type(var) == VARIANT8_PCHAR) {
                 char *filename = variant8_get_pch(var);
-                memset(vars->media_LFN, '\0', sizeof(vars->media_LFN) * sizeof(char)); // set to zeros to be on the safe side
-                strlcpy(vars->media_LFN, filename, FILE_NAME_MAX_LEN);
+                memset(vars->media_LFN, '\0', FILE_NAME_BUFFER_LEN * sizeof(char)); // set to zeros to be on the safe side
+                strlcpy(vars->media_LFN, filename, FILE_NAME_BUFFER_LEN);
             }
         break;
     case MARLIN_VAR_FILEPATH:
         if (vars->media_SFN_path)
             if (variant8_get_type(var) == VARIANT8_PCHAR) {
                 char *filepath = variant8_get_pch(var);
-                memset(vars->media_SFN_path, '\0', sizeof(vars->media_SFN_path) * sizeof(char)); // set to zeros to be on the safe side
-                strlcpy(vars->media_SFN_path, filepath, FILE_PATH_MAX_LEN);
+                memset(vars->media_SFN_path, '\0', FILE_PATH_BUFFER_LEN * sizeof(char)); // set to zeros to be on the safe side
+                strlcpy(vars->media_SFN_path, filepath, FILE_PATH_BUFFER_LEN);
             }
         break;
     case MARLIN_VAR_DTEM_NOZ:
@@ -264,11 +264,11 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
     case MARLIN_VAR_TIMTOEND:
         vars->time_to_end = variant8_get_ui32(var);
         break;
-    case MARLIN_VAR_FAN0_RPM:
-        vars->fan0_rpm = variant8_get_ui16(var);
+    case MARLIN_VAR_PRINT_FAN_RPM:
+        vars->print_fan_rpm = variant8_get_ui16(var);
         break;
-    case MARLIN_VAR_FAN1_RPM:
-        vars->fan1_rpm = variant8_get_ui16(var);
+    case MARLIN_VAR_HEATBREAK_FAN_RPM:
+        vars->heatbreak_fan_rpm = variant8_get_ui16(var);
         break;
     case MARLIN_VAR_FAN_CHECK_ENABLED:
         vars->fan_check_enabled = variant8_get_ui8(var);
@@ -311,7 +311,7 @@ int marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, uns
     case MARLIN_VAR_Z_OFFSET:
         return snprintf(str, size, "%.4f", (double)(vars->z_offset));
     case MARLIN_VAR_FANSPEED:
-        return snprintf(str, size, "%u", (unsigned int)(vars->fan_speed));
+        return snprintf(str, size, "%u", (unsigned int)(vars->print_fan_speed));
     case MARLIN_VAR_PRNSPEED:
         return snprintf(str, size, "%u", (unsigned int)(vars->print_speed));
     case MARLIN_VAR_FLOWFACT:
@@ -338,10 +338,10 @@ int marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, uns
         return snprintf(str, size, "%.1f", (double)(vars->display_nozzle));
     case MARLIN_VAR_TIMTOEND:
         return snprintf(str, size, "%lu", (long unsigned int)(vars->time_to_end));
-    case MARLIN_VAR_FAN0_RPM:
-        return snprintf(str, size, "%u", (unsigned int)(vars->fan0_rpm));
-    case MARLIN_VAR_FAN1_RPM:
-        return snprintf(str, size, "%u", (unsigned int)(vars->fan1_rpm));
+    case MARLIN_VAR_PRINT_FAN_RPM:
+        return snprintf(str, size, "%u", (unsigned int)(vars->print_fan_rpm));
+    case MARLIN_VAR_HEATBREAK_FAN_RPM:
+        return snprintf(str, size, "%u", (unsigned int)(vars->heatbreak_fan_rpm));
     case MARLIN_VAR_FAN_CHECK_ENABLED:
         return snprintf(str, size, "%u", (unsigned int)(vars->fan_check_enabled));
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
@@ -384,7 +384,7 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
     case MARLIN_VAR_Z_OFFSET:
         return sscanf(str, "%f", &(vars->z_offset));
     case MARLIN_VAR_FANSPEED:
-        return sscanf(str, "%hhu", &(vars->fan_speed));
+        return sscanf(str, "%hhu", &(vars->print_fan_speed));
     case MARLIN_VAR_PRNSPEED:
         return sscanf(str, "%hu", (unsigned short *)&(vars->print_speed));
     case MARLIN_VAR_FLOWFACT:
@@ -411,10 +411,10 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
         return sscanf(str, "%f", &(vars->display_nozzle));
     case MARLIN_VAR_TIMTOEND:
         return sscanf(str, "%lu", &(vars->time_to_end));
-    case MARLIN_VAR_FAN0_RPM:
-        return sscanf(str, "%hu", &(vars->fan0_rpm));
-    case MARLIN_VAR_FAN1_RPM:
-        return sscanf(str, "%hu", &(vars->fan1_rpm));
+    case MARLIN_VAR_PRINT_FAN_RPM:
+        return sscanf(str, "%hu", &(vars->print_fan_rpm));
+    case MARLIN_VAR_HEATBREAK_FAN_RPM:
+        return sscanf(str, "%hu", &(vars->heatbreak_fan_rpm));
     case MARLIN_VAR_FAN_CHECK_ENABLED:
         return sscanf(str, "%hhu", &(vars->fan_check_enabled));
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:

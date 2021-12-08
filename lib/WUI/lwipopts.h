@@ -65,6 +65,8 @@
 extern "C" {
     #endif
 
+    #include <stdint.h>
+
     /* STM32CubeMX Specific Parameters (not defined in opt.h) ---------------------*/
     /* Parameters set in STM32CubeMX LwIP Configuration GUI -*/
     /*----- WITH_RTOS enabled (Since FREERTOS is set) -----*/

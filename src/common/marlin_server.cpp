@@ -181,10 +181,10 @@ void print_fan_spd() {
         time = ticks_ms();
         int timediff = time - last_prt;
         if (timediff >= 1000) {
-            serial_echopair_PGM("Tacho_FAN0 ", fanctl0.getActualRPM());
+            serial_echopair_PGM("Tacho_FANPR ", fanCtlPrint.getActualRPM());
             serialprintPGM("rpm ");
             SERIAL_EOL();
-            serial_echopair_PGM("Tacho_FAN1 ", fanctl1.getActualRPM());
+            serial_echopair_PGM("Tacho_FANHB ", fanCtlHeatBreak.getActualRPM());
             serialprintPGM("rpm ");
             SERIAL_EOL();
             last_prt = time;
@@ -448,6 +448,13 @@ void marlin_server_test_abort(void) {
     }
 }
 
+bool marlin_server_printer_idle() {
+    return marlin_server.print_state == mpsIdle
+        || marlin_server.print_state == mpsPaused
+        || marlin_server.print_state == mpsAborted
+        || marlin_server.print_state == mpsFinished;
+}
+
 void marlin_server_print_start(const char *filename) {
     if (Selftest.IsInProgress())
         return;
@@ -516,7 +523,7 @@ static void _server_print_loop(void) {
         media_print_pause();
         print_job_timer.pause();
         marlin_server.resume_nozzle_temp = marlin_server.vars.target_nozzle; //save nozzle target temp
-        marlin_server.resume_fan_speed = marlin_server.vars.fan_speed;       //save fan speed
+        marlin_server.resume_fan_speed = marlin_server.vars.print_fan_speed; //save fan speed
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0); //disable print fan
 #endif
@@ -545,7 +552,7 @@ static void _server_print_loop(void) {
     case mpsResuming_Reheating:
         if (marlin_server_print_reheat_ready()) {
             if (marlin_server.vars.fan_check_enabled) {
-                if (fanctl1.getRPMIsOk()) {
+                if (fanCtlHeatBreak.getRPMIsOk()) {
                     hotend_fan_error_dialog_show = false;
                     marlin_server_unpark_head();
                     marlin_server.print_state = mpsResuming_UnparkHead;
@@ -632,13 +639,13 @@ static void _server_print_loop(void) {
     }
 
     if (marlin_server.vars.fan_check_enabled) {
-        _server_fan_check_error(WarningType::HotendFanError, fanctl1, hotend_fan_error_dialog_show);
-        _server_fan_check_error(WarningType::PrintFanError, fanctl0, print_fan_error_dialog_show);
+        _server_fan_check_error(WarningType::HotendFanError, fanCtlHeatBreak, hotend_fan_error_dialog_show);
+        _server_fan_check_error(WarningType::PrintFanError, fanCtlPrint, print_fan_error_dialog_show);
     }
 
-    if (fanctl1.getRPMIsOk() && hotend_fan_error_dialog_show == true) {
+    if (fanCtlHeatBreak.getRPMIsOk() && hotend_fan_error_dialog_show == true) {
         hotend_fan_error_dialog_show = false;
-    } else if (fanctl0.getRPMIsOk() && print_fan_error_dialog_show == true) {
+    } else if (fanCtlPrint.getRPMIsOk() && print_fan_error_dialog_show == true) {
         print_fan_error_dialog_show = false;
     }
 }
@@ -1061,8 +1068,8 @@ static uint64_t _server_update_vars(uint64_t update) {
 #if FAN_COUNT > 0
         speed = thermalManager.fan_speed[0];
 #endif
-        if (marlin_server.vars.fan_speed != speed) {
-            marlin_server.vars.fan_speed = speed;
+        if (marlin_server.vars.print_fan_speed != speed) {
+            marlin_server.vars.print_fan_speed = speed;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED);
         }
     }
@@ -1159,19 +1166,19 @@ static uint64_t _server_update_vars(uint64_t update) {
         }
     }
 
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM)) {
+    if (update & MARLIN_VAR_MSK(MARLIN_VAR_PRINT_FAN_RPM)) {
         uint16_t rpm = fanctl_get_rpm(0);
-        if (marlin_server.vars.fan0_rpm != rpm) {
-            marlin_server.vars.fan0_rpm = rpm;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM);
+        if (marlin_server.vars.print_fan_rpm != rpm) {
+            marlin_server.vars.print_fan_rpm = rpm;
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_PRINT_FAN_RPM);
         }
     }
 
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_FAN1_RPM)) {
+    if (update & MARLIN_VAR_MSK(MARLIN_VAR_HEATBREAK_FAN_RPM)) {
         uint16_t rpm = fanctl_get_rpm(1);
-        if (marlin_server.vars.fan1_rpm != rpm) {
-            marlin_server.vars.fan1_rpm = rpm;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_FAN1_RPM);
+        if (marlin_server.vars.heatbreak_fan_rpm != rpm) {
+            marlin_server.vars.heatbreak_fan_rpm = rpm;
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_HEATBREAK_FAN_RPM);
         }
     }
 
@@ -1317,8 +1324,8 @@ static int _server_set_var(const char *const name_val_str) {
                 break;
             case MARLIN_VAR_FANSPEED:
 #if FAN_COUNT > 0
-                changed = (thermalManager.fan_speed[0] != marlin_server.vars.fan_speed);
-                thermalManager.set_fan_speed(0, marlin_server.vars.fan_speed);
+                changed = (thermalManager.fan_speed[0] != marlin_server.vars.print_fan_speed);
+                thermalManager.set_fan_speed(0, marlin_server.vars.print_fan_speed);
 #endif
                 break;
             case MARLIN_VAR_PRNSPEED:

@@ -98,10 +98,10 @@ TEST_CASE("SelftestFans_t", "[fsm]") {
         print_fan_state[cycle], nozzle_fan_state[cycle]);
 
     REQUIRE(cl.print_fan_progress == print_fan_progress[cycle]);
-    REQUIRE(cl.nozzle_fan_progress == nozzle_fan_progress[cycle]);
+    REQUIRE(cl.heatbreak_fan_progress == nozzle_fan_progress[cycle]);
     REQUIRE(cl.tot_progress == tot_progress[cycle]);
     REQUIRE(cl.print_fan_state == print_fan_state[cycle]);
-    REQUIRE(cl.nozzle_fan_state == nozzle_fan_state[cycle]);
+    REQUIRE(cl.heatbreak_fan_state == nozzle_fan_state[cycle]);
 
     serialize_deserialize(cl);
 

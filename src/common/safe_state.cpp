@@ -15,8 +15,8 @@ using namespace buddy::hw;
 void hwio_safe_state(void) {
     // enable fans
 #ifdef NEW_FANCTL
-    fanctl0.safeState();
-    fanctl1.safeState();
+    fanCtlPrint.safeState();
+    fanCtlHeatBreak.safeState();
 #else
     gpio_init(MARLIN_PIN(FAN), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
     gpio_init(MARLIN_PIN(FAN1), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);

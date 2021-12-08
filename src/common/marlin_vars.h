@@ -36,8 +36,8 @@ enum {
     MARLIN_VAR_FILEPATH = 0x1b,            // R:  char*,
     MARLIN_VAR_DTEM_NOZ = 0x1c,            // R:  float, nozzle temperature to display
     MARLIN_VAR_TIMTOEND = 0x1d,            // R:  uint32, oProgressData.oTime2End.mGetValue() or -1 if not valid
-    MARLIN_VAR_FAN0_RPM = 0x1e,            // R:  uint16, fanctl0.getActualRPM()
-    MARLIN_VAR_FAN1_RPM = 0x1f,            // R:  uint16, fanctl1.getActualRPM()
+    MARLIN_VAR_PRINT_FAN_RPM = 0x1e,       // R:  uint16, fanCtlPrint.getActualRPM()
+    MARLIN_VAR_HEATBREAK_FAN_RPM = 0x1f,   // R:  uint16, fanCtlHeatBreak.getActualRPM()
     MARLIN_VAR_FAN_CHECK_ENABLED = 0x20,   // RW: uintt8, fan_check
     MARLIN_VAR_FS_AUTOLOAD_ENABLED = 0x21, // RW: uint8_t fs_autoload
     MARLIN_VAR_CURR_POS_X = 0x22,          // R: float current_position
@@ -70,7 +70,7 @@ static const uint64_t MARLIN_VAR_MSK_POS_XYZE = MARLIN_VAR_MSK(MARLIN_VAR_POS_X)
 static const uint64_t MARLIN_VAR_MSK_TEMP_TARG = MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED);
 
 static const uint64_t MARLIN_VAR_MSK_TEMP_ALL
-    = MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM) | MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM);
+    = MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_PRINT_FAN_RPM) | MARLIN_VAR_MSK(MARLIN_VAR_HEATBREAK_FAN_RPM);
 
 // variables defined in this mask are automaticaly updated every 100ms in _server_update_vars
 static const uint64_t MARLIN_VAR_MSK_DEF = MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE) & ~MARLIN_VAR_MSK_IPOS_XYZE & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) & ~MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH);
@@ -137,16 +137,16 @@ typedef struct _marlin_vars_t {
     marlin_print_state_t print_state; // marlin_server.print_state
 
     // 2B base types
-    uint16_t print_speed; // printing speed factor [%]
-    uint16_t flow_factor; // flow factor [%]
-    uint16_t fan0_rpm;    // fanctl0.getActualRPM() [1/min]
-    uint16_t fan1_rpm;    // fanctl1.getActualRPM() [1/min]
+    uint16_t print_speed;       // printing speed factor [%]
+    uint16_t flow_factor;       // flow factor [%]
+    uint16_t print_fan_rpm;     // fanCtlPrint.getActualRPM() [1/min]
+    uint16_t heatbreak_fan_rpm; // fanCtlHeatBreak.getActualRPM() [1/min]
 
     // 1B base types
     uint8_t motion;              // motion (bit0-X, bit1-Y, bit2-Z, bit3-E)
     uint8_t gqueue;              // number of commands in gcode queue
     uint8_t pqueue;              // number of commands in planner queue
-    uint8_t fan_speed;           // print fan0 speed [0..255]
+    uint8_t print_fan_speed;     // print fan speed [0..255]
     uint8_t wait_heat;           // wait_for_heatup
     uint8_t wait_user;           // wait_for_user
     uint8_t sd_printing;         // card.flag.sdprinting

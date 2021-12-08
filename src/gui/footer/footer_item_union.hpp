@@ -13,10 +13,13 @@
 #include "footer_item_live_z.hpp"
 #include "footer_item_sheet_profile.hpp"
 #include "footer_def.hpp"
-#include "footer_item_z_heigth.hpp"
+#include "footer_item_axis.hpp"
+#include "footer_item_fans.hpp"
 
 namespace footer {
-using ItemUnion = std::aligned_union<0, FooterItemNozzle, FooterItemBed, FooterItemFilament, FooterItemSpeed, FooterItemZHeigth
+using ItemUnion = std::aligned_union<0, FooterItemNozzle, FooterItemBed, FooterItemFilament, FooterItemSpeed,
+    FooterItemAxisX, FooterItemAxisY, FooterItemAxisZ, FooterItemZHeigth,
+    FooterItemPrintFan, FooterItemHeatBreakFan
 #if defined(FOOTER_HAS_LIVE_Z)
     ,
     FooterItemLiveZ

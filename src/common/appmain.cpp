@@ -12,6 +12,7 @@
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
+#include "print_utils.hpp"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
 #include "usbd_cdc_if.h"
@@ -33,19 +34,19 @@
 
 #ifdef NEW_FANCTL
     #include "fanctl.h"
-CFanCtl fanctl0 = CFanCtl(
-    buddy::hw::fan0pwm,
-    buddy::hw::fan0tach,
-    FANCTL0_PWM_MIN, FANCTL0_PWM_MAX,
-    FANCTL0_RPM_MIN, FANCTL0_RPM_MAX,
-    FANCTL0_PWM_THR,
+CFanCtl fanCtlPrint = CFanCtl(
+    buddy::hw::fanPrintPwm,
+    buddy::hw::fanPrintTach,
+    FANCTLPRINT_PWM_MIN, FANCTLPRINT_PWM_MAX,
+    FANCTLPRINT_RPM_MIN, FANCTLPRINT_RPM_MAX,
+    FANCTLPRINT_PWM_THR,
     is_autofan_t::no);
-CFanCtl fanctl1 = CFanCtl(
-    buddy::hw::fan1pwm,
-    buddy::hw::fan1tach,
-    FANCTL1_PWM_MIN, FANCTL1_PWM_MAX,
-    FANCTL1_RPM_MIN, FANCTL1_RPM_MAX,
-    FANCTL1_PWM_THR,
+CFanCtl fanCtlHeatBreak = CFanCtl(
+    buddy::hw::fanHeatBreakPwm,
+    buddy::hw::fanHeatBreakTach,
+    FANCTLHEATBREAK_PWM_MIN, FANCTLHEATBREAK_PWM_MAX,
+    FANCTLHEATBREAK_RPM_MIN, FANCTLHEATBREAK_RPM_MAX,
+    FANCTLHEATBREAK_PWM_THR,
     is_autofan_t::yes);
 #endif //NEW_FANCTL
 
@@ -87,6 +88,7 @@ void app_idle(void) {
     Buddy::Metrics::RecordMarlinVariables();
     Buddy::Metrics::RecordRuntimeStats();
     Buddy::Metrics::RecordPrintFilename();
+    print_utils_loop();
     osDelay(0); // switch to other threads - without this is UI slow during printing
 }
 
@@ -130,34 +132,34 @@ void app_run(void) {
         }
 #endif //JOGWHEEL_TRACE
 
-#if defined(FANCTL0_TRACE) && defined(FANCTL0_TRACE)
+#if defined(FANCTLPRINT_TRACE) && defined(FANCTLPRINT_TRACE)
         static uint16_t rpm0_tmp = 0;
         static uint16_t rpm1_tmp = 0;
-        uint16_t rpm0 = fanctl0.getActualRPM();
-        uint16_t rpm1 = fanctl1.getActualRPM();
+        uint16_t rpm0 = fanCtlPrint.getActualRPM();
+        uint16_t rpm1 = fanCtlHeatBreak.getActualRPM();
         if ((rpm0_tmp != rpm0) || (rpm1_tmp != rpm1)) {
             rpm0_tmp = rpm0;
             rpm1_tmp = rpm1;
             _dbg("rpm0: %-5u rpm1: %-5u", rpm0, rpm1);
         }
-#else //defined(FANCTL0_TRACE) && defined(FANCTL0_TRACE)
-    #ifdef FANCTL0_TRACE
+#else //defined(FANCTLPRINT_TRACE) && defined(FANCTLPRINT_TRACE)
+    #ifdef FANCTLPRINT_TRACE
         static uint16_t rpm0_tmp = 0;
-        uint16_t rpm0 = fanctl0.getActualRPM();
+        uint16_t rpm0 = fanCtlPrint.getActualRPM();
         if (rpm0_tmp != rpm0) {
             rpm0_tmp = rpm0;
             _dbg("rpm0: %u", rpm0);
         }
-    #endif //FANCTL0_TRACE
-    #ifdef FANCTL1_TRACE
+    #endif //FANCTLPRINT_TRACE
+    #ifdef FANCTLHEATBREAK_TRACE
         static uint16_t rpm1_tmp = 0;
-        uint16_t rpm1 = fanctl1.getActualRPM();
+        uint16_t rpm1 = fanCtlHeatBreak.getActualRPM();
         if (rpm1_tmp != rpm1) {
             rpm1_tmp = rpm1;
             _dbg("rpm1: %u", rpm1);
         }
-    #endif //FANCTL1_TRACE
-#endif     //defined(FANCTL0_TRACE) && defined(FANCTL0_TRACE)
+    #endif //FANCTLHEATBREAK_TRACE
+#endif     //defined(FANCTLPRINT_TRACE) && defined(FANCTLPRINT_TRACE)
     }
 }
 

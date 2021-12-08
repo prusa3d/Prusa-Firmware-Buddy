@@ -13,6 +13,7 @@ class FooterItemNozzle : public AddSuperWindow<FooterItemHeater> {
     static int static_readValue();
 
 public:
+    static string_view_utf8 GetName() { return _("Nozzle"); }
     FooterItemNozzle(window_t *parent);
 };
 
@@ -21,5 +22,6 @@ class FooterItemBed : public AddSuperWindow<FooterItemHeater> {
     static int static_readValue();
 
 public:
+    static string_view_utf8 GetName() { return _("Bed"); }
     FooterItemBed(window_t *parent);
 };

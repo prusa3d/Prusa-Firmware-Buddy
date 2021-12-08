@@ -14,6 +14,8 @@
 #include "status_footer.hpp"
 #include "menu_spin_config.hpp"
 #include "footer_eeprom.hpp"
+#include "DialogMoveZ.hpp"
+#include "footer_def.hpp"
 
 static constexpr std::array<const char *, FOOTER_ITEMS_PER_LINE__> labels = { { N_("Item 0")
 #if FOOTER_ITEMS_PER_LINE__ > 1
@@ -54,21 +56,6 @@ static constexpr std::array<const char *, FOOTER_ITEMS_PER_LINE__> labels = { { 
 #endif
 } };
 
-static constexpr std::array<const char *, size_t(footer::items::count_) + 1> item_labels = { {
-    N_("Nozzle"),   //ItemNozzle
-    N_("Bed"),      //ItemBed
-    N_("Filament"), //ItemFilament
-    N_("Speed"),    //ItemSpeed
-    N_("Z Heigth"), // ItemZHeigth
-#if defined(FOOTER_HAS_LIVE_Z)
-    N_("LiveZ"), //ItemLiveZ
-#endif           // FOOTER_HAS_LIVE_Z
-#if defined(FOOTER_HAS_SHEETS)
-    N_("Sheets"), //ItemSheets
-#endif            // FOOTER_HAS_SHEETS
-    N_("none")    //count_ == erase
-} };
-
 template <size_t INDEX>
 class IMiFooter : public WI_SWITCH_t<size_t(footer::items::count_) + 1> {
 
@@ -77,26 +64,30 @@ public:
         : WI_SWITCH_t(size_t(StatusFooter::GetSlotInit(INDEX)),
             string_view_utf8::MakeCPUFLASH((const uint8_t *)labels[INDEX]),
             0, is_enabled_t::yes, is_hidden_t::no,
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[0]),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[1]),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[2]),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[3]),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[4]),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[5])
-#if defined(FOOTER_HAS_LIVE_Z) || defined(FOOTER_HAS_SHEETS)
-                ,
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[6])
-#endif // FOOTER_HAS_LIVE_Z || FOOTER_HAS_SHEETS
-#if defined(FOOTER_HAS_LIVE_Z) && defined(FOOTER_HAS_SHEETS)
-                ,
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)item_labels[7])
-#endif // FOOTER_HAS_LIVE_Z && FOOTER_HAS_SHEETS
-        ) {
+            // TODO modify ctor to accept an array
+            FooterItemNozzle::GetName(),
+            FooterItemBed::GetName(),
+            FooterItemFilament::GetName(),
+            FooterItemSpeed::GetName(),
+            FooterItemAxisX::GetName(),
+            FooterItemAxisY::GetName(),
+            FooterItemAxisZ::GetName(),
+            FooterItemZHeigth::GetName(),
+            FooterItemPrintFan::GetName(),
+            FooterItemHeatBreakFan::GetName(),
+#if defined(FOOTER_HAS_LIVE_Z)
+            FooterItemLiveZ::GetName(),
+#endif // FOOTER_HAS_LIVE_Z
+#if defined(FOOTER_HAS_SHEETS)
+            FooterItemSheets::GetName(),
+#endif // FOOTER_HAS_SHEETS
+
+            _("none")) {
     }
 
     virtual void OnChange(size_t old_index) override {
         if (index > size_t(footer::items::count_))
-            return; //should not happen
+            return; // should not happen
         StatusFooter::SetSlotInit(INDEX, footer::items(index));
     }
 };
@@ -185,10 +176,20 @@ using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_AL
     >;
 
 class ScreenMenuFooterSettings : public Screen {
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
+        if (event == GUI_event_t::HELD_RELEASED) {
+            DialogMoveZ::Show();
+            return;
+        }
+
+        SuperWindowEvent(sender, event, param);
+    }
+
 public:
     constexpr static const char *label = N_("FOOTER");
     ScreenMenuFooterSettings()
-        : Screen(_(label)) {}
+        : Screen(_(label)) {
+    }
 };
 
 ScreenFactory::UniquePtr GetScreenMenuFooterSettings() {

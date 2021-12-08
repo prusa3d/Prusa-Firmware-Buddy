@@ -4,7 +4,8 @@
  * @author Marek Bel
  */
 
-#include "ExtInterruptHandler.hpp"
+#include "inc/MarlinConfig.h"
+#include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
 #include <type_traits>
 
 static constexpr uint16_t getIoHalPin(buddy::hw::IoPort, buddy::hw::IoPin ioPin) {

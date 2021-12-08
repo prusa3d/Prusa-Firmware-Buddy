@@ -91,19 +91,26 @@
 
 /* Rename this file to "esp_config.h" for your application */
 
-#define ESP_CFG_INPUT_USE_PROCESS       1
-#define ESP_CFG_RESET_ON_INIT           1
-#define ESP_CFG_RESTORE_ON_INIT         0
-#define ESP_CFG_MAX_SSID_LENGTH         32
-#define ESP_CFG_NETCONN                 1
-#define ESP_ALTCP                       1
-#define ESP_CFG_CONN_POLL_INTERVAL      2000
+#define ESP_CFG_INPUT_USE_PROCESS  1
+#define ESP_CFG_RESET_ON_INIT      1
+#define ESP_CFG_RESTORE_ON_INIT    1
+#define ESP_CFG_MAX_SSID_LENGTH    32
+#define ESP_CFG_NETCONN            1
+#define ESP_ALTCP                  1
+#define ESP_CFG_CONN_POLL_INTERVAL 2000
+// Manual receive is necessary to control data flow. Otherwise we cannot
+// guarantee the receive buffer does not overflow.
 #define ESP_CFG_CONN_MANUAL_TCP_RECEIVE 1
 // This is a bit hacky, we had to adjust LwESP config processing to be able to
 // set this one. Extended stack is necessary to start print from ESP event.
 // It would be better to start print from different thread on signal.
 #define ESP_SYS_THREAD_SS 512
 #define ESP_CFG_HOSTNAME  1
+// We have 4K receive buffer and up to 5 concurrent conenctions. This seems to
+// be safe value that guarantees even when 5 data chunks are in progress the
+// buffer will not overflow. Keep in mind there is some overhead in the
+// communication + some non data commands might be in progress.
+#define ESP_CFG_CONN_MAX_DATA_LEN 512
 
 #define ESP_CFG_DBG          ESP_DBG_OFF
 #define ESP_CFG_DBG_MEM      ESP_DBG_ON

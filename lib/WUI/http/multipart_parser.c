@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include "lwip/opt.h"
 #include "lwip/def.h"
 
 //#define DEBUG_MULTIPART 1

@@ -39,7 +39,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <file_list_defs.h> // FILE_NAME_MAX_LEN - but why do we take one from GUI???
+#include <file_list_defs.h>
 #include <dbg.h>
 
 #include "httpd.h"
@@ -56,7 +56,7 @@ typedef enum {
 } upload_process_phase_t;
 
 typedef struct {
-    char filename[FILE_NAME_MAX_LEN];
+    char filename[FILE_NAME_BUFFER_LEN];
     uint8_t start_print;
     upload_process_phase_t phase;
 } upload_process_t;
@@ -354,7 +354,7 @@ void httpd_post_finished(void *connection,
     if (connection != NULL && status_code == 200) {
         strncpy(response_uri, endpoints[http_post_uri_file_index], response_uri_len);
     } else {
-        snprintf(response_uri, response_uri_len, "/%ld", status_code);
+        snprintf(response_uri, response_uri_len, "/%" PRIu32, status_code);
     }
 
     /* End the parser */

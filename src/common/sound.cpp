@@ -91,7 +91,7 @@ Sound::Sound()
 }
 
 /*!
- * Inicialization of Singleton Class needs to be AFTER eeprom inicialization.
+ * Initialization of Singleton Class needs to be AFTER eeprom initialization.
  * [soundInit] is getting stored EEPROM value of his sound mode.
  * [soundInit] sets global variable [SOUND_INIT] for safe update method([soundUpdate1ms]) because tim14 tick update method is called before [eeprom.c] is initialized.
  */
@@ -100,8 +100,7 @@ void Sound::init() {
     if (eSoundMode == eSOUND_MODE::UNDEF) {
         setMode(eSOUND_MODE::DEFAULT);
     }
-    varVolume = variant8_get_ui8(eeprom_get_var(EEVAR_SOUND_VOLUME));
-    varVolume = varVolume == 11 ? varVolume : varVolume / 10.F;
+    varVolume = real_volume(variant8_get_ui8(eeprom_get_var(EEVAR_SOUND_VOLUME)));
     /// GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = true;
 }
@@ -110,22 +109,13 @@ eSOUND_MODE Sound::getMode() const {
     return eSoundMode;
 }
 
-int Sound::getVolume() {
-    /// varVolume is float 0-1 if it's not on One Louder (then it's 11)
-    /// getVolume is called in MI_SOUND_VOLUME just getting uint8_t value
-    /// value bigger then 1 means it's set on One Louder (11)
-    int retval = varVolume == 11 ? varVolume : (varVolume * 10.F);
-    return retval;
-}
-
 void Sound::setMode(eSOUND_MODE eSMode) {
     eSoundMode = eSMode;
     saveMode();
 }
 
 void Sound::setVolume(int vol) {
-    /// let's add one little push over the cliff - just a one more
-    varVolume = vol == 11 ? vol : static_cast<uint8_t>(vol) / 10.F;
+    varVolume = real_volume(vol);
     saveVolume();
 }
 
@@ -136,8 +126,7 @@ void Sound::saveMode() {
 
 /// Store new Sound VOLUME value into a EEPROM.
 void Sound::saveVolume() {
-    uint8_t tmpVol = varVolume > 1 ? varVolume : varVolume * 10.F;
-    eeprom_set_var(EEVAR_SOUND_VOLUME, variant8_ui8(tmpVol));
+    eeprom_set_var(EEVAR_SOUND_VOLUME, variant8_ui8(displayed_volume(varVolume)));
 }
 
 /// [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
@@ -232,6 +221,14 @@ void Sound::nextRepeat() {
         delay_active = delay_set;
         hwio_beeper_tone2(frequency, duration_set, volume);
     }
+}
+
+float Sound::real_volume(int displayed_volume) {
+    return displayed_volume == 11 ? displayed_volume : displayed_volume / 10.F;
+}
+
+uint8_t Sound::displayed_volume(float real_volume) {
+    return real_volume > 1.1F ? real_volume : real_volume * 10.F;
 }
 
 /// starts single sound when it's not playing another

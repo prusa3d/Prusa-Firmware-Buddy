@@ -3,6 +3,6 @@
 
 void PrusaGcodeSuite::M999() {
     queue.ok_to_send();
-    HAL_Delay(10);
+    osDelay(1000);
     NVIC_SystemReset();
 }

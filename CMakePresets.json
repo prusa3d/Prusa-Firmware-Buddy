@@ -32,8 +32,8 @@
                     "value": "YES"
                 },
                 "GENERATE_BBF": {
-                    "type": "STRING",
-                    "value": "FALSE"
+                    "type": "BOOL",
+                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -41,7 +41,7 @@
                 },
                 "SIGNING_KEY": {
                     "type": "FILEPATH",
-                    "value": "${sourceDir}/."
+                    "value": ""
                 },
                 "CMAKE_TOOLCHAIN_FILE": {
                     "type": "FILEPATH",
@@ -87,7 +87,7 @@
                     "value": "NO"
                 },
                 "GENERATE_BBF": {
-                    "type": "STRING",
+                    "type": "BOOL",
                     "value": "FALSE"
                 },
                 "GENERATE_DFU": {
@@ -96,7 +96,7 @@
                 },
                 "SIGNING_KEY": {
                     "type": "FILEPATH",
-                    "value": "${sourceDir}/."
+                    "value": ""
                 },
                 "CMAKE_TOOLCHAIN_FILE": {
                     "type": "FILEPATH",
@@ -142,8 +142,8 @@
                     "value": "YES"
                 },
                 "GENERATE_BBF": {
-                    "type": "STRING",
-                    "value": "FALSE"
+                    "type": "BOOL",
+                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -151,7 +151,7 @@
                 },
                 "SIGNING_KEY": {
                     "type": "FILEPATH",
-                    "value": "${sourceDir}/."
+                    "value": ""
                 },
                 "CMAKE_TOOLCHAIN_FILE": {
                     "type": "FILEPATH",
@@ -197,7 +197,7 @@
                     "value": "NO"
                 },
                 "GENERATE_BBF": {
-                    "type": "STRING",
+                    "type": "BOOL",
                     "value": "FALSE"
                 },
                 "GENERATE_DFU": {
@@ -206,7 +206,7 @@
                 },
                 "SIGNING_KEY": {
                     "type": "FILEPATH",
-                    "value": "${sourceDir}/."
+                    "value": ""
                 },
                 "CMAKE_TOOLCHAIN_FILE": {
                     "type": "FILEPATH",

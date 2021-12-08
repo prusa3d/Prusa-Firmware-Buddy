@@ -47,12 +47,12 @@ static void _usbhost_reenum(void) {};
 extern "C" {
 
 /// File name (Long-File-Name) of the file being printed
-static char media_print_LFN[MEDIA_PRINT_FILENAME_SIZE] = { 0 };
+static char media_print_LFN[FILE_NAME_BUFFER_LEN] = { 0 };
 
 /// Absolute path to the file being printed.
 /// MUST be in Short-File-Name (DOS 8.3) notation, since
 /// the transfer buffer is ~120B long (LFN paths would run out of space easily)
-static char media_print_SFN_path[MEDIA_PRINT_FILEPATH_SIZE] = { 0 };
+static char media_print_SFN_path[FILE_PATH_BUFFER_LEN] = { 0 };
 
 char *media_print_filename() {
     return media_print_LFN;

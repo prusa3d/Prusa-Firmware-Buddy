@@ -46,11 +46,11 @@ struct window_file_list_t : public window_aligned_t {
     font_t *font;
     padding_ui8_t padding;
     txtroll_t roll;
-    int count;                        // total number of files/entries in a dir
-    int index;                        // selected index - cursor position within the visible items
-    LDV9 *ldv;                        // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
-    char sfn_path[FILE_PATH_MAX_LEN]; // this is a Short-File-Name path where we start the file dialog
-    static char *root;                // this is a Short-File-Name path to the root of the dialog
+    int count;                           // total number of files/entries in a dir
+    int index;                           // selected index - cursor position within the visible items
+    LDV9 *ldv;                           // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
+    char sfn_path[FILE_PATH_BUFFER_LEN]; // this is a Short-File-Name path where we start the file dialog
+    static char *root;                   // this is a Short-File-Name path to the root of the dialog
     window_file_list_t(window_t *parent, Rect16 rect);
     void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
 

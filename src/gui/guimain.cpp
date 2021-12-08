@@ -56,8 +56,8 @@ static void _gui_loop_cb() {
     GuiMediaEventsHandler::Tick();
 }
 
-char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
-char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
+char gui_media_LFN[FILE_NAME_BUFFER_LEN];
+char gui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 
 #ifdef GUI_JOGWHEEL_SUPPORT
 Jogwheel jogwheel;

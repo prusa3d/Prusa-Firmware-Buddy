@@ -16,6 +16,7 @@ enum {
     ST7789V_BYTES_PER_PIXEL = 2, // R(5b) + G(6b) + B(5b) = 16b = 2B
     BMP_FILE_SIZE = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL,
     SCREENSHOT_FILE_NAME_MAX_LEN = 30,
+    SCREENSHOT_FILE_NAME_BUFFER_LEN = SCREENSHOT_FILE_NAME_MAX_LEN + 1,
 };
 
 static const char screenshot_name[] = "/usb/screenshot";
@@ -67,17 +68,17 @@ static void mirror_buffer(uint8_t *buffer) {
 
 bool TakeAScreenshot() {
     int fd;
-    char file_name[SCREENSHOT_FILE_NAME_MAX_LEN + 1];
+    char file_name[SCREENSHOT_FILE_NAME_BUFFER_LEN];
 
     bool success;
 
     // TODO: add written bytes check if needed
 
     uint32_t inc = 1;
-    snprintf(file_name, SCREENSHOT_FILE_NAME_MAX_LEN + 1, "%s_%lu%s", screenshot_name, inc, screenshot_format);
+    snprintf(file_name, SCREENSHOT_FILE_NAME_BUFFER_LEN, "%s_%lu%s", screenshot_name, inc, screenshot_format);
     while ((access(file_name, F_OK)) == 0) {
         inc++;
-        snprintf(file_name, SCREENSHOT_FILE_NAME_MAX_LEN + 1, "%s_%lu%s", screenshot_name, inc, screenshot_format);
+        snprintf(file_name, SCREENSHOT_FILE_NAME_BUFFER_LEN, "%s_%lu%s", screenshot_name, inc, screenshot_format);
     }
 
     fd = open(file_name, O_WRONLY | O_APPEND | O_CREAT);
