@@ -84,7 +84,7 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
     , activeItem(string_view_utf8(), IDR_NULL) {
     SetAlignment(Align_t::LeftCenter());
     Enable();
-    strlcpy(sfn_path, "/usb", FILE_PATH_MAX_LEN);
+    strlcpy(sfn_path, "/usb", FILE_PATH_BUFFER_LEN);
 }
 
 void window_file_list_t::unconditionalDraw() {

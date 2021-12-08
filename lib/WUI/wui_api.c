@@ -30,12 +30,12 @@
 extern RTC_HandleTypeDef hrtc;
 
 uint32_t start_print = 0;
-char filename[FILE_NAME_MAX_LEN];
+char filename[FILE_NAME_BUFFER_LEN];
 
 static FILE *upload_file = NULL;
-static char tmp_filename[FILE_NAME_MAX_LEN];
+static char tmp_filename[FILE_NAME_BUFFER_LEN];
 static bool sntp_time_init = false;
-static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
+static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static atomic_int_least32_t uploaded_gcodes;
 
 void wui_marlin_client_init(void) {
@@ -359,7 +359,7 @@ void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp) {
 
 uint32_t wui_upload_begin(const char *fname) {
     uint32_t fname_length = strlen(fname);
-    if ((fname_length + USB_MOUNT_POINT_LENGTH) < FILE_NAME_MAX_LEN) {
+    if ((fname_length + USB_MOUNT_POINT_LENGTH) < sizeof(tmp_filename)) {
         strcpy(tmp_filename, USB_MOUNT_POINT);
         strcpy(tmp_filename + USB_MOUNT_POINT_LENGTH, fname);
         upload_file = fopen(tmp_filename, "w");
@@ -392,12 +392,12 @@ uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, u
         goto clean_temp_file;
     }
 
-    if ((fname_length + USB_MOUNT_POINT_LENGTH) >= FILE_NAME_MAX_LEN) {
+    if ((fname_length + USB_MOUNT_POINT_LENGTH) >= sizeof(filename)) {
         error_code = 409;
         goto clean_temp_file;
     } else {
         strlcpy(filename, USB_MOUNT_POINT, USB_MOUNT_POINT_LENGTH + 1);
-        strlcat(filename, new_filename, FILE_PATH_MAX_LEN - USB_MOUNT_POINT_LENGTH);
+        strlcat(filename, new_filename, FILE_PATH_BUFFER_LEN - USB_MOUNT_POINT_LENGTH);
     }
 
     result = rename(tmp_filename, filename);
@@ -414,7 +414,7 @@ uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, u
         goto return_error_code;
     } else {
         if (start) {
-            strlcpy(marlin_vars()->media_LFN, new_filename, FILE_PATH_MAX_LEN);
+            strlcpy(marlin_vars()->media_LFN, new_filename, FILE_PATH_BUFFER_LEN);
             print_begin(filename);
         }
         start_print = start;

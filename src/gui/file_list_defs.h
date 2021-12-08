@@ -2,7 +2,9 @@
 #define FF_MAX_LFN (96 + 1 + 5 + 1)
 enum {
     FILE_NAME_MAX_LEN = 96 + 1 + 5 + 1,
+    FILE_NAME_BUFFER_LEN = FILE_NAME_MAX_LEN + 1,
     FILE_PATH_MAX_LEN = 96 + 1 + 5 + 1,
+    FILE_PATH_BUFFER_LEN = FILE_PATH_MAX_LEN + 1,
 };
 
 /*

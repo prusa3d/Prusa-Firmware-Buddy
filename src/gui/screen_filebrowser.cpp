@@ -31,7 +31,7 @@ WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
 /// This is used to restore the content of the browser into previous state including the layout
 constexpr unsigned int SFN_len = 13;
 static char firstVisibleSFN[SFN_len];
-char screen_filebrowser_data_t::root[FILE_PATH_MAX_LEN] = "/usb";
+char screen_filebrowser_data_t::root[FILE_PATH_BUFFER_LEN] = "/usb";
 
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : AddSuperWindow<screen_t>()
@@ -57,7 +57,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     *c = 0; // even if we didn't find the '/', c will point to valid memory
     //check if we are at least in the root directory, if not move to root directory
     if (strstr(w_filelist.sfn_path, root) != w_filelist.sfn_path) {
-        strlcpy(w_filelist.sfn_path, root, FILE_PATH_MAX_LEN);
+        strlcpy(w_filelist.sfn_path, root, FILE_PATH_BUFFER_LEN);
     }
     // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
     w_filelist.Load(screen_filebrowser_sort, c + 1, firstVisibleSFN);
@@ -66,7 +66,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
 }
 
 void screen_filebrowser_data_t::clear_firstVisibleSFN(marlin_vars_t *vars) {
-    strlcpy(vars->media_SFN_path, root, FILE_PATH_MAX_LEN);
+    strlcpy(vars->media_SFN_path, root, FILE_PATH_BUFFER_LEN);
 }
 
 void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -108,7 +108,7 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
             if (w_filelist.sfn_path[sfnPathLen - 1] != slash) {
                 w_filelist.sfn_path[sfnPathLen++] = slash;
             }
-            strlcpy(w_filelist.sfn_path + sfnPathLen, currentSFN, FILE_PATH_MAX_LEN - sfnPathLen);
+            strlcpy(w_filelist.sfn_path + sfnPathLen, currentSFN, FILE_PATH_BUFFER_LEN - sfnPathLen);
         } else {
             char *last = strrchr(w_filelist.sfn_path, slash);
             if (last == w_filelist.sfn_path) {
@@ -130,15 +130,15 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
         if (vars->media_LFN && vars->media_SFN_path) {
             int written;
             //@@TODO:check for "/" on last place of path and if yes do not add "/"
-            written = snprintf(vars->media_SFN_path, FILE_PATH_MAX_LEN, "%s/%s", w_filelist.sfn_path, currentSFN);
-            if (written < 0 || written >= (int)FILE_PATH_MAX_LEN) {
+            written = snprintf(vars->media_SFN_path, FILE_PATH_BUFFER_LEN, "%s/%s", w_filelist.sfn_path, currentSFN);
+            if (written < 0 || written >= (int)FILE_PATH_BUFFER_LEN) {
                 LOG_ERROR("failed to prepare file path for print");
                 SuperWindowEvent(sender, event, param);
                 return;
             }
 
             // displayed text - can be a 8.3 DOS name or a LFN
-            strlcpy(vars->media_LFN, w_filelist.CurrentLFN(&currentIsFile), FILE_NAME_MAX_LEN);
+            strlcpy(vars->media_LFN, w_filelist.CurrentLFN(&currentIsFile), FILE_NAME_BUFFER_LEN);
             // save the top browser item
             strlcpy(firstVisibleSFN, w_filelist.TopItemSFN(), SFN_len);
 
@@ -151,5 +151,5 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
     }
 }
 void screen_filebrowser_data_t::SetRoot(const char *path) {
-    strlcpy(root, path, FILE_PATH_MAX_LEN);
+    strlcpy(root, path, FILE_PATH_BUFFER_LEN);
 }

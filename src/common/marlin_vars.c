@@ -246,16 +246,16 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         if (vars->media_LFN)
             if (variant8_get_type(var) == VARIANT8_PCHAR) {
                 char *filename = variant8_get_pch(var);
-                memset(vars->media_LFN, '\0', sizeof(vars->media_LFN) * sizeof(char)); // set to zeros to be on the safe side
-                strlcpy(vars->media_LFN, filename, FILE_NAME_MAX_LEN);
+                memset(vars->media_LFN, '\0', FILE_NAME_BUFFER_LEN * sizeof(char)); // set to zeros to be on the safe side
+                strlcpy(vars->media_LFN, filename, FILE_NAME_BUFFER_LEN);
             }
         break;
     case MARLIN_VAR_FILEPATH:
         if (vars->media_SFN_path)
             if (variant8_get_type(var) == VARIANT8_PCHAR) {
                 char *filepath = variant8_get_pch(var);
-                memset(vars->media_SFN_path, '\0', sizeof(vars->media_SFN_path) * sizeof(char)); // set to zeros to be on the safe side
-                strlcpy(vars->media_SFN_path, filepath, FILE_PATH_MAX_LEN);
+                memset(vars->media_SFN_path, '\0', FILE_PATH_BUFFER_LEN * sizeof(char)); // set to zeros to be on the safe side
+                strlcpy(vars->media_SFN_path, filepath, FILE_PATH_BUFFER_LEN);
             }
         break;
     case MARLIN_VAR_DTEM_NOZ:
