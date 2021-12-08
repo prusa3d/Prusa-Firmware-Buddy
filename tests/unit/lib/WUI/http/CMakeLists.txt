@@ -41,7 +41,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/netif.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/netif/ethernet.c
   )
-target_compile_definitions(http_tests PRIVATE -DHTTPD_FSDATA_FILE="resources/fsdata_wui_local.c")
+target_compile_definitions(http_tests PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
 target_include_directories(
   http_tests
   PRIVATE .
