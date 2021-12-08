@@ -77,7 +77,8 @@ def get_language_code(lang):
 def eeprom_variables():
     return {
         'LANGUAGE': get_language_code('en'),  # default lang for tests
-        'RUN_SELFTEST': 0  # skip wizard
+        'RUN_SELFTEST': 0,  # skip wizard
+        'PL_API_KEY': "0123456789",
     }
 
 
