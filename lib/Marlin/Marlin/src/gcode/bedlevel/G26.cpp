@@ -348,7 +348,7 @@ typedef struct {
     thermalManager.setTargetHotend(hotend_temp, active_extruder);
 
     // Wait for the temperature to stabilize
-    if (!thermalManager.wait_for_hotend(active_extruder, true OPTARG(G26_CLICK_CAN_CANCEL, true)))
+    if (!thermalManager.wait_for_hotend(active_extruder, true, false OPTARG(G26_CLICK_CAN_CANCEL, true)))
       return G26_ERR;
 
     #if HAS_WIRED_LCD

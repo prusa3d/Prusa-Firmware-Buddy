@@ -3972,7 +3972,7 @@ void Temperature::isr() {
       #define MIN_COOLING_SLOPE_TIME 60
     #endif
 
-    bool Temperature::wait_for_hotend(const uint8_t target_extruder, const bool no_wait_for_cooling/*=true*/
+    bool Temperature::wait_for_hotend(const uint8_t target_extruder, const bool no_wait_for_cooling/*=true*/, bool fan_cooling/*=false*/
       OPTARG(G26_CLICK_CAN_CANCEL, const bool click_to_cancel/*=false*/)
     ) {
       #if ENABLED(AUTOTEMP)
@@ -4002,6 +4002,14 @@ void Temperature::isr() {
       celsius_float_t target_temp = -1.0, old_temp = 9999.0;
       millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
       wait_for_heatup = true;
+      uint8_t fan_speed_at_start = fan_speed[target_extruder];
+      bool fan_cools = false;
+
+      if (isCoolingHotend(target_extruder) && fan_cooling) {
+        fan_cools = true;
+        thermalManager.set_fan_speed(target_extruder, 255);
+      }
+
       do {
         // Target temperature might be changed during the loop
         if (target_temp != degTargetHotend(target_extruder)) {
@@ -4010,6 +4018,8 @@ void Temperature::isr() {
 
           // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
           if (no_wait_for_cooling && wants_to_cool) break;
+          if (!wants_to_cool && fan_cools) // Nozzle too cold now
+            thermalManager.set_fan_speed(target_extruder, fan_speed_at_start);
         }
 
         now = millis();
@@ -4073,6 +4083,10 @@ void Temperature::isr() {
         #endif
 
       } while (wait_for_heatup && TEMP_CONDITIONS);
+
+      /// reset fan speed
+      if (fan_cools)
+        thermalManager.set_fan_speed(target_extruder, fan_speed_at_start);
 
       if (wait_for_heatup) {
         wait_for_heatup = false;

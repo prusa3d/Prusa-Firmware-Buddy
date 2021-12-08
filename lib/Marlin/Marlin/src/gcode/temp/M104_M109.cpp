@@ -140,7 +140,7 @@ void GcodeSuite::M104_M109(const bool isM109) {
   TERN_(AUTOTEMP, planner.autotemp_M104_M109());
 
   if (isM109 && got_temp)
-    (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling);
+    (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling, parser.seen('F'));
 }
 
 #endif // EXTRUDERS

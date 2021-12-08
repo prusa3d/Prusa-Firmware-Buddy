@@ -783,7 +783,7 @@ class Temperature {
       }
 
       #if HAS_TEMP_HOTEND
-        static bool wait_for_hotend(const uint8_t target_extruder, const bool no_wait_for_cooling=true
+        static bool wait_for_hotend(const uint8_t target_extruder, const bool no_wait_for_cooling=true, bool fan_cooling=false
           OPTARG(G26_CLICK_CAN_CANCEL, const bool click_to_cancel=false)
         );
 
