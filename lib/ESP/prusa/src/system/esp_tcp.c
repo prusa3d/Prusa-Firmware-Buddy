@@ -142,12 +142,15 @@ static void ASSERT_EPCB_VALID(esp_pcb *epcb) {
 }
 
 static void ASSERT_EPCB(esp_pcb *epcb) {
+    #ifdef ALTCP_ESP_DEBUG
     ASSERT_EPCB_VALID(epcb);
     ALTCP_ESP_DEBUG_ASSERT(epcb->alconn->state == epcb, "Failed: CORRUPTED EPCB ALCONN LINK: %x != %x", epcb->alconn->state, epcb);
-    #ifdef ALTCP_ESP_DEBUG
-    esp_pcb *econn_link = esp_conn_get_arg(epcb->econn);
+    if (epcb->listen_port == 0) {
+        // Do not check this for listening EPCBs, there is no ESP connection for listening.
+        esp_pcb *econn_link = esp_conn_get_arg(epcb->econn);
+        ALTCP_ESP_DEBUG_ASSERT(econn_link == epcb, "Failed: CORRUPTED EPCB ECONN LINK: %x != %x", econn_link, epcb);
+    }
     #endif
-    ALTCP_ESP_DEBUG_ASSERT(econn_link == epcb, "Failed: CORRUPTED EPCB ECONN LINK: %x != %x", econn_link, epcb);
 }
 
 /* Check ALTCP and ESP PCB connection consistency */
@@ -651,11 +654,36 @@ static struct altcp_pcb *altcp_esp_listen(struct altcp_pcb *conn, u8_t backlog, 
 
     // Enable server on port and set default altcp callback
     if (esp_set_server(1, epcb->listen_port, ESP_U16(ESP_MIN(backlog, ESP_CFG_MAX_CONNS)), epcb->conn_timeout, altcp_esp_evt, NULL, NULL, 1) != espOK) {
-        ALTCP_ESP_DEBUG_FN("Failed to set connection to server mode");
+        ALTCP_ESP_DEBUG_FN("Failed to enable ESP server mode");
     }
-    ASSERT_EPCB_VALID(epcb);
+    ASSERT_EPCB(epcb);
     listen_api = epcb;
     return conn;
+}
+
+static err_t close_normal_mode(esp_pcb *epcb) {
+    ALTCP_ESP_DEBUG_FN("Closing connection: %d, total %ld packets, %ld bytes", esp_conn_getnum(epcb->econn), epcb->rcv_packets, epcb->rcv_bytes);
+    espr_t err = esp_conn_close(epcb->econn, 0);
+
+    if (err != espOK) {
+        ALTCP_ESP_DEBUG_FN("Failed to close connection: %d", err);
+        return espr_t2err_t(err);
+    }
+
+    epcb->closing = 1;
+
+    return ERR_OK;
+}
+
+static err_t close_listen_mode(esp_pcb *epcb) {
+    ALTCP_ESP_DEBUG_FN("Disabling listen on port: %d", epcb->listen_port);
+    // Listening "connections" are note real ESP connections, there is noting to close.
+    // This just disables server
+    if (esp_set_server(0, epcb->listen_port, 0, 0, NULL, NULL, NULL, 1) != espOK) {
+        ALTCP_ESP_DEBUG_FN("Failed to disable ESP server mode");
+        return ERR_IF;
+    }
+    return ERR_OK;
 }
 
 static err_t altcp_esp_close(struct altcp_pcb *conn) {
@@ -668,21 +696,15 @@ static err_t altcp_esp_close(struct altcp_pcb *conn) {
     esp_pcb *epcb = (esp_pcb *)conn->state;
     if (!epcb) {
         ALTCP_ESP_DEBUG_FN("epcb is NULL !!!");
-        return espERR;
+        return ERR_VAL;
     }
     ASSERT_EPCB(epcb);
 
-    ALTCP_ESP_DEBUG_FN("Closing connection: %d, total %ld packets, %ld bytes", esp_conn_getnum(epcb->econn), epcb->rcv_packets, epcb->rcv_bytes);
-    espr_t err = esp_conn_close(epcb->econn, 0);
-
-    if (err != espOK) {
-        ALTCP_ESP_DEBUG_FN("Failed to close connection: %d", err);
-        return espr_t2err_t(err);
+    if (epcb->listen_port) {
+        return close_listen_mode(epcb);
+    } else {
+        return close_normal_mode(epcb);
     }
-
-    epcb->closing = 1;
-
-    return ERR_OK;
 }
 
 static void altcp_esp_abort(struct altcp_pcb *conn) {
