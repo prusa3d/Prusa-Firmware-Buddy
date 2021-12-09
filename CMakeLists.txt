@@ -800,9 +800,6 @@ elseif(GUI) # gui, not debug
   target_sources(firmware PRIVATE src/gui/screen_menu_experimental_settings_mini.cpp)
 endif()
 
-# Set fsdata filename for HTTPServer
-target_compile_definitions(firmware PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
-
 set_property(
   SOURCE src/common/version.c
   APPEND
