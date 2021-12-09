@@ -4,6 +4,13 @@
 
 LOG_COMPONENT_DEF(Syslog, LOG_SEVERITY_INFO);
 
+static void report_error(syslog_transport_t *transport, const char *message_prefix, int error) {
+    if (transport->last_errno != error) {
+        log_warning(Syslog, "%s: %i", message_prefix, error);
+        transport->last_errno = error;
+    }
+}
+
 bool syslog_transport_open(syslog_transport_t *transport, const char *ip_address, int port) {
     transport->sock = -1;
     transport->is_open = false;
@@ -16,7 +23,7 @@ bool syslog_transport_open(syslog_transport_t *transport, const char *ip_address
     // open udp socket
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
-        log_info(Syslog, "socket: error %i", errno);
+        report_error(transport, "socket: error", errno);
         return false;
     }
     transport->sock = sock;
@@ -43,8 +50,7 @@ bool syslog_transport_send(syslog_transport_t *transport, const char *message, i
     int retval = sendto(transport->sock, message, message_len, 0, (struct sockaddr *)&transport->addr, sizeof(transport->addr));
 
     if (retval < 0) {
-        if (errno != EHOSTUNREACH)
-            log_info(Syslog, "sendto: error %i", errno);
+        report_error(transport, "sendto: error", errno);
         return false;
     } else {
         return true;
