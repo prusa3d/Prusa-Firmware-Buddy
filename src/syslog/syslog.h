@@ -20,6 +20,9 @@ typedef struct {
 
     /// The remote address to send the syslog messages to.
     struct sockaddr_in addr;
+
+    /// Last reported errno
+    int last_errno;
 } syslog_transport_t;
 
 /// Prepare a syslog udp transport.
