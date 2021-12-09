@@ -63,7 +63,9 @@ def cmd_create_font_png(non_ascii_chars_path: Path, src_png_path: Path,
             file.write("{\n")
             for char in char_set:
                 char_bytes = char.encode("utf-32", "little")
-                char_bytes = char_bytes.strip(codecs.BOM_UTF32)
+                if char_bytes.startswith(codecs.BOM_UTF32):
+                    char_bytes = char_bytes[len(codecs.BOM_UTF32):]
+                # char_bytes = char_bytes.removeprefix(codecs.BOM_UTF32) # New in version 3.9.
                 char_int = int.from_bytes(char_bytes, "little")
                 if char_int < 128:
                     continue
