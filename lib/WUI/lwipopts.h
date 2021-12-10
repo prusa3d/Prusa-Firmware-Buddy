@@ -130,7 +130,28 @@ extern "C" {
     #define CHECKSUM_CHECK_ICMP6 0
     /*-----------------------------------------------------------------------------*/
     /* USER CODE BEGIN 1 */
-    #define HTTPD_USE_CUSTOM_FSDATA      1 // uses the web resources from fsdata_custom.c (buddy web pages)
+    #define HTTPD_USE_CUSTOM_FSDATA 1 // uses the web resources from fsdata_custom.c (buddy web pages)
+    /*
+     * FIXME:
+     * Workaround:
+     *
+     * We observed a very weird bug where, while sending a "file", the packets
+     * either got reordered (1, 3, 2), which makes a mess of all the TCP
+     * congestion algorithms or, when the other side ACKs twice the first
+     * packet (to hint that the second one is missing while seeing the third)
+     * before the second one goes out, we never actually send the second one.
+     * Finding the real cause in either LwIP or our integration of that will be
+     * *fun*.
+     *
+     * As a temporary workaround to deliver the damn file and not require F5 3
+     * times to get the pages working, we make sure to send only a single
+     * packet at a time. That way it won't reorder. This gives us slight
+     * performance degradation, but that doesn't matter with the small web page
+     * and makes it actually usable.
+     *
+     * #BFW-2357
+     */
+    #define HTTPD_MAX_WRITE_LEN(pcb)     ((u16_t)(altcp_mss(pcb)))
     #define LWIP_NETIF_API               1 // enable LWIP_NETIF_API==1: Support netif api (in netifapi.c)
     #define LWIP_NETIF_LINK_CALLBACK     1 // Support a callback function from an interface whenever the link changes (i.e., link down)
     #define LWIP_NETIF_STATUS_CALLBACK   1 // Support a callback function whenever an interface changes its up/down status (i.e., due to DHCP IP acquisition)
@@ -142,7 +163,7 @@ extern "C" {
     #define LWIP_ALTCP                   1
     #define LWIP_HTTPD_DYNAMIC_FILE_READ 1
 
-    #define HTTPD_SERVER_AGENT "Prusa Mini"
+    #define HTTPD_SERVER_AGENT "PrusaLink"
     #define LWIP_DNS           1
     #define MEMP_NUM_TCP_PCB   6
     #define SO_REUSE           1 // Allow SOF_REUSEADDR to do something useful.
