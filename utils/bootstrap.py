@@ -64,6 +64,14 @@ dependencies = {
         'version': '1.1.1',
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-1.1.1.zip',
     },
+    'mini404': {
+        'version': '0.9.3',
+        'url': {
+            'Linux': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.3/Mini404-v0.9.3-linux.tar.bz2',
+            'Windows': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.3/Mini404-v0.9.3-w64.zip',
+            'Darwin': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.3/Mini404-v0.9.3-macos.tar.bz2',
+        }
+    },
 }
 pip_dependencies = ['ecdsa', 'polib']
 # yapf: enable
@@ -145,6 +153,15 @@ def install_dependency(dependency):
     fix_executable_permissions(dependency, installation_directory)
 
 
+def get_dependency_version(dependency):
+    return dependencies[dependency]['version']
+
+
+def get_dependency_directory(dependency) -> Path:
+    version = dependencies[dependency]['version']
+    return Path(directory_for_dependency(dependency, version))
+
+
 def main() -> int:
     parser = ArgumentParser()
     # yapf: disable
@@ -159,8 +176,7 @@ def main() -> int:
 
     if args.print_dependency_version:
         try:
-            version = dependencies[args.print_dependency_version]['version']
-            print(version)
+            print(get_dependency_version(args.print_dependency_version))
             return 0
         except KeyError:
             print('Unknown dependency "%s"' % args.print_dependency_version)
@@ -168,10 +184,7 @@ def main() -> int:
 
     if args.print_dependency_directory:
         try:
-            dependency = args.print_dependency_directory
-            version = dependencies[dependency]['version']
-            install_dir = directory_for_dependency(dependency, version)
-            print(install_dir)
+            print(get_dependency_directory(args.print_dependency_directory))
             return 0
         except KeyError:
             print('Unknown dependency "%s"' % args.print_dependency_directory)
