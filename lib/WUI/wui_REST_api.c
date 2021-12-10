@@ -20,55 +20,71 @@
 extern uint32_t start_print;
 extern char *filename;
 
+// FIXME: We really need a proper JSON library. This is broken on many different levels.
+
+const char *json_bool(bool value) {
+    static const char json_true[] = "true";
+    static const char json_false[] = "false";
+    if (value) {
+        return json_true;
+    } else {
+        return json_false;
+    }
+}
+
+const char *basename(const char *path) {
+    const char *last_slash = rindex(path, '/');
+    if (last_slash != NULL) {
+        return last_slash + 1;
+    } else {
+        return path;
+    }
+}
+
 void get_printer(char *data, const uint32_t buf_len) {
     marlin_vars_t *vars = marlin_vars();
     const char *filament_material = get_selected_filament_name();
 
-    uint32_t operational = 1;
-    uint32_t paused = 0;
-    uint32_t printing = 0;
-    uint32_t cancelling = 0;
-    uint32_t pausing = 0;
-    uint32_t sd_ready = 1;
-    uint32_t error = 0;
-    uint32_t ready = 1;
-    uint32_t closed_on_error = 0;
-    uint32_t busy = 0;
+    bool operational = true;
+    bool paused = false;
+    bool printing = false;
+    bool cancelling = false;
+    bool pausing = false;
+    bool ready = true;
+    bool busy = false;
 
     marlin_client_loop();
 
     switch (vars->print_state) {
     case mpsPrinting:
-        if (vars->time_to_end && vars->time_to_end != (-1UL)) {
-            printing = busy = 1;
-            ready = operational = 0;
-        }
+        printing = busy = true;
+        ready = operational = false;
         break;
     case mpsPausing_Begin:
     case mpsPausing_WaitIdle:
     case mpsPausing_ParkHead:
-        paused = busy = 1;
-        ready = operational = 0;
+        pausing = paused = busy = true;
+        ready = operational = false;
         break;
     case mpsPaused:
-        paused = 1;
+        paused = true;
         break;
     case mpsResuming_Begin:
     case mpsResuming_Reheating:
     case mpsResuming_UnparkHead:
-        ready = operational = 0;
-        busy = printing = 1;
+        ready = operational = false;
+        busy = printing = true;
         break;
     case mpsAborting_Begin:
     case mpsAborting_WaitIdle:
     case mpsAborting_ParkHead:
-        cancelling = busy = 1;
-        ready = operational = 0;
+        cancelling = busy = true;
+        ready = operational = false;
         break;
     case mpsFinishing_WaitIdle:
     case mpsFinishing_ParkHead:
-        busy = 1;
-        ready = operational = 0;
+        busy = true;
+        ready = operational = false;
         break;
     case mpsAborted:
     case mpsFinished:
@@ -79,41 +95,42 @@ void get_printer(char *data, const uint32_t buf_len) {
 
     snprintf(data, buf_len,
         "{"
-        "\"telemetry\": {"
-        "\"temp-bed\": %.1f,"
-        "\"temp-nozzle\": %.1f,"
-        "\"print-speed\": %d,"
-        "\"z-height\": %.1f,"
-        "\"material\": \"%s\""
+        "\"telemetry\":{"
+        "\"temp-bed\":%.1f,"
+        "\"temp-nozzle\":%.1f,"
+        "\"print-speed\":%d,"
+        "\"z-height\":%.1f,"
+        "\"material\":\"%s\""
         "},"
-        "\"temperature\": {"
-        "\"tool0\": {"
-        "\"actual\": %.1f,"
-        "\"target\": %.1f,"
-        "\"offset\": 0"
+        "\"temperature\":{"
+        "\"tool0\":{"
+        "\"actual\":%.1f,"
+        "\"target\":%.1f,"
+        // Note: our own extension, because our printers sometimes display
+        // different "target" temperature than what they heat towards.
+        "\"display\":%.1f,"
+        "\"offset\":0"
         "},"
-        "\"bed\": {"
-        "\"actual\": %.1f,"
-        "\"target\": %.1f,"
-        "\"offset\": 0"
+        "\"bed\":{"
+        "\"actual\":%.1f,"
+        "\"target\":%.1f,"
+        "\"offset\":0"
         "}"
         "},"
-        "\"sd\": {"
-        "\"ready\": 1"
-        "},"
-        "\"state\": {"
-        "\"text\": \"Operational\","
-        "\"flags\": {"
-        "\"operational\": %" PRIu32 ","
-        "\"paused\": %" PRIu32 ","
-        "\"printing\": %" PRIu32 ","
-        "\"cancelling\": %" PRIu32 ","
-        "\"pausing\": %" PRIu32 ","
-        "\"sdReady\": %" PRIu32 ","
-        "\"error\": %" PRIu32 ","
-        "\"ready\": %" PRIu32 ","
-        "\"closedOrError\": %" PRIu32 ","
-        "\"busy\": %" PRIu32
+        "\"state\":{"
+        "\"text\":\"%s\","
+        "\"flags\":{"
+        "\"operational\":%s,"
+        "\"paused\":%s,"
+        "\"printing\":%s,"
+        "\"cancelling\":%s,"
+        "\"pausing\":%s,"
+        // We don't have an SD card.
+        "\"sdReady\":false,"
+        "\"error\":false,"
+        "\"ready\":%s,"
+        "\"closedOrError\":false,"
+        "\"busy\":%s"
         "}"
         "}"
         "}",
@@ -123,25 +140,25 @@ void get_printer(char *data, const uint32_t buf_len) {
         (double)vars->pos[2], // XYZE, mm
         filament_material,
         (double)vars->temp_nozzle,
-        // Sometimes, the GUI lies about the target temperature (eg. when
-        // preheating). Let's keep the company and lie too..
+        (double)vars->target_nozzle,
         (double)vars->display_nozzle,
         (double)vars->temp_bed,
         (double)vars->target_bed,
 
-        // TODO: Format as bools to be according to the spec
-        operational, paused, printing, cancelling, pausing, sd_ready,
-        error, ready, closed_on_error, busy);
+        printing ? "Printing" : "Operational",
+
+        json_bool(operational), json_bool(paused), json_bool(printing), json_bool(cancelling), json_bool(pausing),
+        json_bool(ready), json_bool(busy));
 }
 
 void get_version(char *data, const uint32_t buf_len) {
 
     snprintf(data, buf_len,
         "{"
-        "\"api\": \"%s\","
-        "\"server\": \"%s\","
-        "\"text\": \"PrusaLink MINI\","
-        "\"hostname\": \"%s\""
+        "\"api\":\"%s\","
+        "\"server\":\"%s\","
+        "\"text\":\"PrusaLink MINI\","
+        "\"hostname\":\"%s\""
         "}",
         PL_VERSION_STRING, LWIP_VERSION_STRING, netdev_get_hostname(netdev_get_active_id()));
 }
@@ -151,38 +168,82 @@ void get_job(char *data, const uint32_t buf_len) {
 
     marlin_client_loop();
 
-    snprintf(data, buf_len,
-        "{"
-        "\"job\":{"
-        "\"estimatedPrintTime\":%" PRIu32 ","
-        "\"file\":{"
-        "\"date\":null,"
-        "\"name\":\"%s\","
-        "\"origin\":\"USB\","
-        "\"path\":\"%s\","
-        "\"size\":%ld"
-        "}"
-        "},"
-        "\"state\":\"Printing\","
-        "\"progress\":{"
-        "\"completion\":%d.%.2d,"
-        "\"filepos\":%ld,"
-        "\"printTime\":%" PRIu32 ","
-        "\"printTimeLeft\":%" PRIu32 ","
-        "\"pos_z_mm\":%d.%.3d,"
-        "\"printSpeed\":%" PRIu16 ","
-        "\"flow_factor\":%" PRIu16 ","
-        "\"filament_status\":3"
-        "},"
-        "\"filament\":{"
-        "\"length\":3,"
-        "\"volume\":5.33"
-        "}"
-        "}",
-        vars->time_to_end, vars->media_LFN, vars->media_LFN, 0UL,
-        (int)(vars->sd_percent_done == 100), (int)(vars->sd_percent_done % 100), 0UL, vars->print_duration, vars->time_to_end,
-        (int)vars->pos[MARLIN_VAR_INDEX_Z], (int)((vars->pos[MARLIN_VAR_INDEX_Z] - (int)vars->pos[MARLIN_VAR_INDEX_Z]) * 1000),
-        vars->print_speed, vars->flow_factor);
+    bool has_job = false;
+    const char *state = "Unknown";
+
+    switch (vars->print_state) {
+    case mpsFinishing_WaitIdle:
+    case mpsFinishing_ParkHead:
+    case mpsPrinting:
+        has_job = true;
+        state = "Printing";
+        break;
+    case mpsPausing_Begin:
+    case mpsPausing_WaitIdle:
+    case mpsPausing_ParkHead:
+        has_job = true;
+        state = "Pausing";
+        break;
+    case mpsPaused:
+        has_job = true;
+        state = "Paused";
+        break;
+    case mpsResuming_Begin:
+    case mpsResuming_Reheating:
+    case mpsResuming_UnparkHead:
+        has_job = true;
+        state = "Resuming";
+        break;
+    case mpsAborting_Begin:
+    case mpsAborting_WaitIdle:
+    case mpsAborting_ParkHead:
+        has_job = true;
+        state = "Cancelling";
+        break;
+    case mpsAborted:
+    case mpsFinished:
+    case mpsIdle:
+        state = "Operational";
+        break;
+    }
+
+    if (has_job) {
+        snprintf(data, buf_len,
+            "{"
+            "\"state\":\"%s\","
+            "\"job\":{"
+            "\"estimatedPrintTime\":%" PRIu32 ","
+            "\"file\":{\"name\":\"%s\",\"path\":\"%s\"}"
+            "}," // } job
+            "\"progress\":{"
+            "\"completion\":%f,"
+            "\"printTime\":%" PRIu32 ","
+            "\"printTimeLeft\":%" PRIu32 ""
+            "}" // } progress
+            "}",
+            state,
+
+            vars->print_duration + vars->time_to_end, basename(vars->media_LFN), vars->media_LFN,
+            ((double)vars->sd_percent_done / 100.0), // We might want to have better resolution that whole percents.
+            vars->print_duration, vars->time_to_end);
+    } else {
+        /*
+         * If we do not have any job, we don't really have much meaningful info
+         * to provide. Unfortunately, the octoprint API docs don't mention the
+         * situation.
+         *
+         * Examining their source code it seems they are returning nulls in
+         * such case, though if this is by choice or accidental is unclear.
+         * Let's do the same.
+         */
+        snprintf(data, buf_len,
+            "{"
+            "\"state\": \"%s\","
+            "\"job\": null,"
+            "\"progress\": null"
+            "}",
+            state);
+    }
 }
 
 void get_files(char *data, const uint32_t buf_len) {

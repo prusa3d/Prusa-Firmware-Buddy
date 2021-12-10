@@ -1,4 +1,6 @@
 import aiohttp
+import asyncio
+import logging
 import pytest
 
 from .actions import encoder, screen, temperature, network
@@ -7,14 +9,14 @@ from simulator import MachineType, Thermistor, Printer
 pytestmark = pytest.mark.asyncio
 
 
-@pytest.fixture
 def wui_base_url(printer):
     return f'http://localhost:{network.proxy_http_port_get(printer)}'
 
 
 @pytest.fixture
-async def wui_client(wui_base_url):
-    async with aiohttp.ClientSession(base_url=wui_base_url) as session:
+async def wui_client(printer):
+    async with aiohttp.ClientSession(
+            base_url=wui_base_url(printer)) as session:
         yield session
 
 
@@ -65,6 +67,91 @@ async def test_auth(printer: Printer, wui_client: aiohttp.ClientSession):
         assert response.ok
         assert response.headers["CONTENT-TYPE"] == 'application/json'
         await response.json()  # Tries to parse and throws if fails decoding
+
+
+async def test_status_responses(printer_factory, printer_flash_dir, data_dir):
+    gcode_name = 'box.gcode'
+    gcode = (data_dir / gcode_name).read_bytes()
+    (printer_flash_dir / gcode_name).write(gcode)
+
+    async with printer_factory() as printer:
+        printer: Printer
+
+        client = aiohttp.ClientSession(base_url=wui_base_url(printer))
+        await screen.wait_for_text(printer, 'HOME')
+        # For the flash drive to be read
+        await screen.wait_for_text(printer, 'Print')
+        version_r = await client.get('/api/version', headers=valid_headers())
+        version = await version_r.json()
+        for exp in ["text", "hostname", "api", "server"]:
+            assert exp in version
+
+        printer_r = await client.get('/api/printer', headers=valid_headers())
+        printer_j = await printer_r.json()
+        tele = printer_j["telemetry"]
+        assert tele["material"] == "---"
+        assert tele["print-speed"] == 100
+        temp = printer_j["temperature"]
+        assert temp["tool0"]["target"] == 0
+        assert temp["bed"]["target"] == 0
+        assert printer_j["state"]["text"] == "Operational"
+        assert not printer_j["state"]["flags"]["printing"]
+
+        job_r = await client.get('/api/job', headers=valid_headers())
+        job = await job_r.json()
+        assert job["state"] == "Operational"
+        assert job["job"] is None
+        assert job["progress"] is None
+
+        # "Preheat" the printer
+        await temperature.set(printer, Thermistor.BED, 60)
+        await temperature.set(printer, Thermistor.NOZZLE, 170)
+
+        # Start a print
+        await screen.wait_for_text(printer, 'Print')
+        await encoder.click(printer)
+        # For some reason, box.gcode is not discovered, the OCR places a space
+        # in there.
+        await screen.wait_for_text(printer, 'gcode')
+        await encoder.click(printer)
+        await screen.wait_for_text(printer, 'Print')
+        await encoder.click(printer)
+        await screen.wait_for_text(printer, 'Tune')
+
+        # It may take a bit of time before the printer gets to the set
+        # temperature instructions
+        for attempt in range(1, 10):
+            printer_r = await client.get('/api/printer',
+                                         headers=valid_headers())
+            printer_j = await printer_r.json()
+            if printer_j["temperature"]["bed"]["target"] > 0 and printer_j[
+                    "state"]["flags"]["printing"]:
+                break
+            logging.info("Didn't start print yet? " + str(printer_j))
+            await asyncio.sleep(0.3)
+        else:
+            assert False  # Didn't reach the part where there's a temperature set
+
+        assert printer_j["temperature"]["bed"]["target"] == 60
+        assert printer_j["temperature"]["tool0"]["target"] == 170
+        assert printer_j["temperature"]["tool0"]["display"] == 170
+        assert printer_j["telemetry"]["temp-bed"] > 40
+        assert printer_j["telemetry"]["temp-bed"] == printer_j["temperature"][
+            "bed"]["actual"]
+
+        job_r = await client.get('/api/job', headers=valid_headers())
+        job = await job_r.json()
+        logging.info("Received job info " + str(job))
+        assert job["state"] == "Printing"
+        # Hopefully the test won't take that long
+        assert job["progress"]["printTime"] < 300
+        # FIXME: Fails. #BFW-2332
+        # assert job["job"]["file"]["name"] == gcode_name
+        # It's something around 25 minutes...
+        assert job["progress"]["printTimeLeft"] > 1000
+        assert job["job"]["estimatedPrintTime"] > 1000
+        assert job["job"]["estimatedPrintTime"] == job["progress"][
+            "printTime"] + job["progress"]["printTimeLeft"]
 
 
 # See below, needs investigation

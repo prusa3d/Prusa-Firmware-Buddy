@@ -54,6 +54,11 @@ def simulator_path(pytestconfig) -> Path:
 
 
 @pytest.fixture
+def data_dir(pytestconfig) -> Path:
+    return pytestconfig.rootpath / 'tests' / 'integration' / 'data'
+
+
+@pytest.fixture
 def firmware_path(pytestconfig):
     return Path(pytestconfig.getoption('--firmware'))
 
