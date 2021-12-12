@@ -2,6 +2,7 @@
 
 #include "marlin_server.h"
 #include "marlin_server.hpp"
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include "app.h"
@@ -1543,8 +1544,13 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 
 }
 
+/// Array of the last phase per fsm
+/// Used for better logging experience in fsm_change
+static int fsm_last_phase[int(ClientFSM::_count)];
+
 void fsm_create(ClientFSM type, uint8_t data) {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Creating state machine [%d]", int(type));
+    fsm_last_phase[static_cast<int>(type)] = -1;
 
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         fsm_event_queues[i].PushCreate(type, data);
@@ -1563,15 +1569,9 @@ void fsm_destroy(ClientFSM type) {
 }
 
 void _fsm_change(ClientFSM type, fsm::BaseData data) {
-    {
-        static std::optional<int> previous_type;
-        static std::optional<int> previous_phase;
-        // no value: comparison returns true
-        if (previous_type != static_cast<int>(type) || previous_phase != static_cast<int>(data.GetPhase())) {
-            _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Change state of [%d] to %d", int(type), data.GetPhase());
-            previous_type = static_cast<int>(type);
-            previous_phase = static_cast<int>(data.GetPhase());
-        }
+    if (fsm_last_phase[static_cast<int>(type)] != static_cast<int>(data.GetPhase())) {
+        _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Change state of [%i] to %" PRIu8, static_cast<int>(type), data.GetPhase());
+        fsm_last_phase[static_cast<int>(type)] = static_cast<int>(data.GetPhase());
     }
 
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
