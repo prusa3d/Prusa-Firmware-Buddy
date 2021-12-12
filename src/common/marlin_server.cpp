@@ -1537,7 +1537,7 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 }
 
 void fsm_create(ClientFSM type, uint8_t data) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "fsm_create %d", int(type));
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Creating state machine [%d]", int(type));
 
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         fsm_event_queues[i].PushCreate(type, data);
@@ -1547,7 +1547,7 @@ void fsm_create(ClientFSM type, uint8_t data) {
 }
 
 void fsm_destroy(ClientFSM type) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "fsm_destroy %d", int(type));
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Destroying state machine [%d]", int(type));
 
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         fsm_event_queues[i].PushDestroy(type);
@@ -1556,7 +1556,15 @@ void fsm_destroy(ClientFSM type) {
 }
 
 void _fsm_change(ClientFSM type, fsm::BaseData data) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "fsm_change %d %d", int(type), data.GetPhase());
+    {
+        static int previous_type = -1;
+        static int previous_phase = -1;
+        if (previous_type != static_cast<int>(type) || previous_phase != static_cast<int>(data.GetPhase())) {
+            _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Change state of [%d] to %d", int(type), data.GetPhase());
+            previous_type = static_cast<int>(type);
+            previous_phase = static_cast<int>(data.GetPhase());
+        }
+    }
 
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         fsm_event_queues[i].PushChange(type, data);
@@ -1565,7 +1573,7 @@ void _fsm_change(ClientFSM type, fsm::BaseData data) {
 }
 
 void set_warning(WarningType type) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "warning type %d set", (int)type);
+    _log_event(LOG_SEVERITY_WARNING, &LOG_COMPONENT(MarlinServer), "Warning type %d set", (int)type);
 
     const MARLIN_EVT_t evt_id = MARLIN_EVT_Warning;
     _send_notify_event(evt_id, uint32_t(type), 0);
