@@ -29,7 +29,7 @@ void logging_init() {
 
     static log_destination_t log_destination_syslog = {
         .name = "SYSLOG",
-        .lowest_severity = LOG_SEVERITY_DEBUG,
+        .lowest_severity = LOG_SEVERITY_INFO,
         .log_event_fn = syslog_log_event,
         .log_format_fn = syslog_format_event,
         .next = NULL,
