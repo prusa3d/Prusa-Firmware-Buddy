@@ -22,16 +22,16 @@ MSG_PACKET = 3
 
 INTRON = b"UNU"
 INTERFACE = "tap0"
-BAUD_RATE = 500000
-SSID = "esptest"
-PASS = "lwesp8266"
+BAUD_RATE = 927600
+SSID = "ssid"
+PASS = "pass"
 
 # tap = Path('/dev/net/tun').open('r+b')
 tap = os.open("/dev/net/tun", 0x2)
 
 ifr = struct.pack(b"16sH", INTERFACE.encode("ascii"), IFF_TAP | IFF_NO_PI)
 fcntl.ioctl(tap, TUNSETIFF, ifr)
-fcntl.ioctl(tap, TUNSETOWNER, 1000)
+fcntl.ioctl(tap, TUNSETOWNER, os.getuid())
 
 
 ser = serial.Serial("/dev/ttyUSB0", BAUD_RATE)
