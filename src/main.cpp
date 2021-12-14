@@ -53,7 +53,7 @@
 /* USER CODE BEGIN Includes */
 #include "sys.h"
 #include "app.h"
-#include "dbg.h"
+#include "config.h"
 #include "wdt.h"
 #include "dump.h"
 #include "timer_defaults.h"

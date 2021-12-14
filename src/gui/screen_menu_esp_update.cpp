@@ -10,7 +10,6 @@ extern "C" {
 #endif
 
 #include "i18n.h"
-#include "dbg.h"
 #include "ff.h"
 
 #include <stm32_port.h>
@@ -22,6 +21,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "log.h"
 
 #include <array>
 
@@ -157,7 +158,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
         switch (progress_state) {
         case esp_upload_action::Connect: {
             esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
-            _dbg("ESP boot connect");
+            log_info(Network, "ESP boot connect");
             if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
                 help.SetText(_("Successfully connected to ESP. \nDo not switch the Printer off nor remove the Flash disk."));
                 progress_state = esp_upload_action::Start_flash;
@@ -167,9 +168,9 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             break;
         }
         case esp_upload_action::Start_flash:
-            _dbg("ESP Start flash %s", current_file->filename);
+            log_info(Network, "ESP Start flash %s", current_file->filename);
             if (f_open(&file_descriptor, current_file->filename, FA_READ) != FR_OK) {
-                _dbg("ESP flash: Unable to open file %s", current_file->filename);
+                log_error(Network, "ESP flash: Unable to open file %s", current_file->filename);
                 break;
             }
 
@@ -178,7 +179,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
                     current_file->size,
                     buffer_length)
                 != ESP_LOADER_SUCCESS) {
-                _dbg("ESP flash: Unable to start flash on address %0xld", current_file->address);
+                log_error(Network, "ESP flash: Unable to start flash on address %0xld", current_file->address);
                 f_close(&file_descriptor);
                 break;
             } else {
@@ -191,14 +192,14 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
 
             FRESULT res = f_read(&file_descriptor, buffer, sizeof(buffer), &readBytes);
             readCount += readBytes;
-            _dbg("ESP read data %ld", readCount);
+            log_info(Network, "ESP read data %ld", readCount);
             if (res != FR_OK) {
-                _dbg("ESP flash: Unable to read file %s", current_file->filename);
+                log_error(Network, "ESP flash: Unable to read file %s", current_file->filename);
                 readBytes = 0;
             }
             if (readBytes > 0) {
                 if (esp_loader_flash_write(buffer, readBytes) != ESP_LOADER_SUCCESS) {
-                    _dbg("ESP flash write FAIL");
+                    log_error(Network, "ESP flash write FAIL");
                 }
             } else {
                 f_close(&file_descriptor);
@@ -210,7 +211,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             break;
         }
         case esp_upload_action::Reset:
-            _dbg("ESP finished flahing");
+            log_info(Network, "ESP finished flahing");
             help.SetText(_("ESP succesfully flashed. \nWiFI initiation started."));
             esp_loader_flash_finish(true);
             esp_set_operating_mode(ESP_RUNNING_MODE);

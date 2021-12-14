@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include "config.h"
 #include "st25dv64k.h"
-#include "dbg.h"
 #include "cmsis_os.h"
 #include "crc32.h"
 

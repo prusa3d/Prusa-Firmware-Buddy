@@ -1,15 +1,11 @@
 // trinamic.cpp
 #include "trinamic.h"
-#include "dbg.h"
 #include "config.h"
 #include "TMCStepper.h"
 #include "gpio.h"
 #include "hwio_pindef.h"
 #include "../Marlin/src/module/stepper.h"
 #include "bsod.h"
-
-#define DBG _dbg3 //debug level 3
-//#define DBG(...)  //disable debug
 
 #if ((MOTHERBOARD == 1823))
 

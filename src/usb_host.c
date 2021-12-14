@@ -55,7 +55,6 @@
 
 /* USER CODE BEGIN Includes */
 #include "fatfs.h"
-#include "dbg.h"
 #include "media.h"
 /* USER CODE END Includes */
 

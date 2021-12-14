@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include "stm32_port.h"
 #include "lwesp_ll_buddy.h"
-#include "dbg.h"
 
+#define _dbg(...)
 // #define SERIAL_DEBUG_ENABLE
 
 static UART_HandleTypeDef *uart;

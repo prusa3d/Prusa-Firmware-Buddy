@@ -27,11 +27,12 @@
 #include "netifapi.h"
 #include "dns.h"
 #include "netif_settings.h"
-#include "dbg.h"
 #include "wui_api.h"
 #include "alsockets.h"
 #include "lwesp_ll_buddy.h"
 #include "otp.h"
+
+#define _dbg(...)
 
 static const uint32_t esp_target_baudrate = 4600000;
 static netdev_status_t esp_state = NETDEV_NETIF_DOWN;

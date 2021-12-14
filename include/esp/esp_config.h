@@ -119,8 +119,7 @@
 #define ESP_CFG_DBG_SERVER   0
 #define ESP_CFG_DBG_TYPES_ON (ESP_DBG_TYPE_STATE | ESP_DBG_TYPE_TRACE)
 
-#include "dbg.h"
-#define ESP_CFG_DBG_OUT(fmt, ...) _dbg(fmt, ##__VA_ARGS__)
+#define ESP_CFG_DBG_OUT(fmt, ...)
 
 #define ESP_CFG_MODE_ACCESS_POINT 0
 

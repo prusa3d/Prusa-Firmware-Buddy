@@ -40,11 +40,12 @@
 #include <string.h>
 
 #include <file_list_defs.h>
-#include <dbg.h>
 
 #include "httpd.h"
 #include "multipart_parser.h"
 #include "lwip/def.h"
+
+#define _dbg(...)
 
 #define DEFAULT_UPLOAD_FILENAME "tmp.gcode"
 
