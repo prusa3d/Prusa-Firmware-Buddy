@@ -95,6 +95,7 @@ void app_idle(void) {
     Buddy::Metrics::RecordPrintFilename();
     osDelay(0); // switch to other threads - without this is UI slow during printing
 }
+// a dummy comment just to bump the build nr. one higher to avoid user confusion
 
 void app_run(void) {
     DBG("app_run");
