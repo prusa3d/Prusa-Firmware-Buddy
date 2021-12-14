@@ -39,9 +39,9 @@
  *
  */
 
-#include "dbg.h"
-
 #include "lwip/opt.h"
+
+#define _dbg(...)
 
 #if LWIP_SOCKET /* don't build if not configured for use in lwipopts.h */
 

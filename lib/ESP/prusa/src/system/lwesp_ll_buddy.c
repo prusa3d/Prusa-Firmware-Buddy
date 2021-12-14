@@ -5,9 +5,10 @@
 #include "lwesp_ll_buddy.h"
 #include "main.h"
 #include "stm32_port.h"
-#include "dbg.h"
 #include "ff.h"
 #include "wui_api.h"
+
+#define _dbg(...)
 
 /*
  * UART and other pin configuration for ESP01 module

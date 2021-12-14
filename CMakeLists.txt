@@ -590,7 +590,6 @@ target_sources(
           src/common/hwio_buddy_2209_02.cpp
           src/common/safe_state.cpp
           src/common/variant8.cpp
-          src/common/dbg.c
           src/common/wdt.cpp
           src/common/dump.c
           src/common/marlin_client.c

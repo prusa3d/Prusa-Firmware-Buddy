@@ -52,7 +52,7 @@
 #include "lwip/mem.h"
 
 #include <string.h>
-#include "dbg.h"
+#define _dbg(...)
 
 #define ALTCP_TCP_ASSERT_CONN(conn) do { \
   LWIP_ASSERT("conn->inner_conn == NULL", (conn)->inner_conn == NULL); \

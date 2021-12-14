@@ -1,6 +1,6 @@
 #include "esp/esp.h"
 #include "esp/esp_netconn.h"
-#include "dbg.h"
+#define _dbg(...)
 
 /**
  * \brief           Host and port settings
