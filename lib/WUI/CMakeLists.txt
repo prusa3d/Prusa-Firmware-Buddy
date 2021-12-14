@@ -14,6 +14,7 @@ target_sources(
             http/httpd.c
             http/httpd_post.c
             http/multipart_parser.c
+            http/upload_state.cpp
             ethernetif.c
             sntp/sntp_client.c
             sntp/sntp.c
