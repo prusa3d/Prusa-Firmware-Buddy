@@ -888,8 +888,11 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
           state = Ramp::Up;
         }
         //! Target for less than full power, so regulator can catch
-        //! with generated temperature curve in less than ideal conditions
-        constexpr float target_heater_pwm = PID_MAX - 10;
+        //! with generated temperature curve at minimum voltage
+        //! (rated - 5%) = 22.8 V and maximum heater resistance
+        //! of 15.1 Ohm. P = 22.8/15.1*22.8 = 34.43 W
+        //! = 86% P(rated)
+        constexpr float target_heater_pwm = PID_MAX * 0.8607f;
         const float temp_diff = deg_per_cycle * pid_max_inv
             * (target_heater_pwm - steady_state_hotend(last_target, fan_speed[0] * pid_max_inv));
         last_target += temp_diff;
