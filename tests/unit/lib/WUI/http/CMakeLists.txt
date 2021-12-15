@@ -2,6 +2,7 @@ add_executable(
   http_tests
   # Test files
   ${CMAKE_CURRENT_SOURCE_DIR}/http_tests.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/multipart_upload.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.c
   # Tested files
   ${CMAKE_SOURCE_DIR}/lib/WUI/http/handler.c
@@ -9,6 +10,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/http/httpd_post.c
   ${CMAKE_SOURCE_DIR}/lib/WUI/http/fs.c
   ${CMAKE_SOURCE_DIR}/lib/WUI/http/multipart_parser.c
+  ${CMAKE_SOURCE_DIR}/lib/WUI/http/upload_state.cpp
   # Dependencies.
   # It seems it's not possible to just link the damn LwIP library:
   # * Somehow, the target_link_libraries directive poisons include

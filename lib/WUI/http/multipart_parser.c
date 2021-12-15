@@ -174,6 +174,16 @@ size_t multipart_parser_execute(multipart_parser *p, const char *buf, size_t len
             }
 
             cl = tolower(c);
+            /*
+             * FIXME: This one is probably wrong. The multipart/form-data
+             * derives from multipart/ * content types from RFC1341. That one
+             * derives the individual bodies from the email RFC822 where in the
+             * 3.2 section the definition of header name is:
+             *
+             * field-name  =  1*<any CHAR, excluding CTLs, SPACE, and ":">
+             *
+             * But ignoring it for now...
+             */
             if ((c != '-') && (cl < 'a' || cl > 'z')) {
                 multipart_log("invalid character in header name");
                 return i;
