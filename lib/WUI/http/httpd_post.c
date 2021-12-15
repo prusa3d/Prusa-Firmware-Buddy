@@ -321,9 +321,15 @@ err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
     char *data;
     err_t ret_val = ERR_ARG;
 
-    if (connection != NULL && p != NULL) {
-        data = p->payload;
+    struct pbuf *current = p;
+
+    while (connection != NULL && current != NULL) {
+        data = current->payload;
         ret_val = http_parse_post(data, p->len);
+        current = current->next;
+        if (ret_val != ERR_OK) {
+            break;
+        }
     }
 
     if (p != NULL) {
