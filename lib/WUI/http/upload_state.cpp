@@ -17,7 +17,7 @@ using std::unique_ptr;
 
 namespace {
 
-constexpr const char *const CDISP = "content-disposition:";
+constexpr const char *const CDISP = "content-disposition";
 constexpr const char *const HEADER_SEP = "=\"";
 constexpr const char *const NAME = "name";
 constexpr const char *const FILENAME = "filename";
@@ -53,7 +53,7 @@ public:
         this->len = 0;
     }
     Lookup feed(char c) {
-        memmove(buffer.begin() + 1, buffer.begin(), buffer.size() - 1);
+        memmove(buffer.begin(), buffer.begin() + 1, buffer.size() - 1);
         if (!sensitive) {
             c = tolower(c);
         }
@@ -92,6 +92,7 @@ private:
         NoToken,
         HeaderField,
         HeaderValue,
+        Data,
     };
 
     enum class State {
@@ -131,12 +132,11 @@ private:
         if (type != TokenType::HeaderField) { // Start this token
             type = TokenType::HeaderField;
             state = State::CheckHeaderIsCDisp;
-            part = Part::Unknown;
             accumulator.start(CDISP, false);
         }
 
         for (const char c : payload) {
-            if (state == State::CheckHeaderIsCDisp) {
+            if (state == State::CheckHeaderIsCDisp || state == State::CDispHeader) {
                 if (!isspace(c)) {
                     switch (accumulator.feed(c)) {
                     case Accumulator::Lookup::Found:
@@ -194,18 +194,21 @@ private:
     }
 
     int header_value(const string_view &payload) {
-        // In case we just came from the header_field, it may have unfinished bussiness here.
+        if (type != TokenType::HeaderValue) { // Start this token
+            type = TokenType::HeaderValue;
+            accumulator.start(HEADER_SEP, true);
+        }
+
+        /*
+         * In case we just came from the header_field, it may have unfinished
+         * bussiness here. So far it didn't find what it was looking for.
+         */
         if (state == State::CheckHeaderIsCDisp) {
             state = State::IgnoredHeader;
         }
 
-        if (state == State::IgnoredHeader) { // Finish previous token
+        if (state == State::IgnoredHeader) {
             return 0;
-        }
-
-        if (type != TokenType::HeaderValue) { // Start this token
-            type = TokenType::HeaderValue;
-            accumulator.start(HEADER_SEP, true);
         }
 
         for (const char c : payload) {
@@ -218,8 +221,7 @@ private:
                          * reset the buffer and start fresh.
                          */
                     accumulator.start(HEADER_SEP, true);
-                }
-                if (!isspace(c)) {
+                } else if (!isspace(c)) {
                     if (accumulator.feed(c) == Accumulator::Lookup::Found) {
                         handle_disp_field();
                     }
@@ -274,6 +276,7 @@ private:
     }
 
     int headers_complete() {
+        type = TokenType::Data;
         if (part == Part::File) {
             if (filename[0] != '\0') {
                 // Make sure this is not overwritten next time.
@@ -294,10 +297,6 @@ private:
         }
         state = State::Data;
 
-        return 0;
-    }
-
-    int part_data_begin() {
         switch (part) {
         case Part::File:
             if (!init_done) {
@@ -348,6 +347,11 @@ private:
         return 0;
     }
 
+    int part_data_end() {
+        part = Part::Unknown;
+        return 0;
+    }
+
     int body_end() {
         if (init_done) {
             // TODO: Handle return code
@@ -372,16 +376,17 @@ private:
         return me->NAME();                                                  \
     }
     NOTIF(headers_complete);
-    NOTIF(part_data_begin);
+    NOTIF(part_data_end);
     NOTIF(body_end);
+#undef NOTIF
 
     static const constexpr struct multipart_parser_settings parser_settings = {
         header_field_raw,
         header_value_raw,
         part_data_raw,
-        part_data_begin_raw,
+        nullptr, // part_data_begin
         headers_complete_raw,
-        nullptr, // part_data_end
+        part_data_end_raw,
         body_end_raw,
     };
 
