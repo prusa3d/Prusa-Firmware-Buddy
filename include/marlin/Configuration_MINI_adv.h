@@ -84,7 +84,14 @@
          * above PWM expected by the model for more than THERMAL_PROTECTION_MODEL_PERIOD seconds
          */
         #define THERMAL_PROTECTION_MODEL_PERIOD 40
-        #define THERMAL_PROTECTION_MODEL_DISCREPANCY 76 //30% of PWM max. It can never trigger at 100% fan if the temperature set is above 272degC and at 290degC if fan is above 75%.
+        /**
+         * 26.6% of PWM max.
+         * 14% is needed to cover minimum heater power at minimum supply voltage.
+         * 12.6% is real reserve.
+         * It can never trigger at 100% fan if the temperature set is above 215degC
+         * and at 290degC if fan is above 26%.
+         */
+        #define THERMAL_PROTECTION_MODEL_DISCREPANCY 68
     #endif
 
     //#define ADAPTIVE_FAN_SLOWING              // Slow part cooling fan if temperature drops
