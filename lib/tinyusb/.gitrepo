@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:hathach/tinyusb.git
+	branch = master
+	commit = cadfcd153e8fce804f38f0e19997c13bf6931a49
+	parent = a5025542f6d8e068ee886c1c97dcf665eeaf881e
+	method = merge
+	cmdver = 0.4.3
