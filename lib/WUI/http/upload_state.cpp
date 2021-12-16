@@ -84,13 +84,15 @@ const constexpr size_t MAX_SUBTOKEN = 19;
  */
 class Accumulator {
 private:
-    size_t len = 0;
     string_view looking_for;
-    bool sensitive = true;
+    uint8_t len : 7;
+    bool sensitive : 1;
     array<char, MAX_SUBTOKEN> buffer;
 
 public:
-    Accumulator() {
+    Accumulator()
+        : len(0)
+        , sensitive(true) {
         // Initialize to avoid UB due to reading/moving uninit values.
         memset(buffer.begin(), 0, buffer.size());
     }
@@ -135,7 +137,7 @@ public:
             len += 1;
         }
 
-        const size_t suffix_len = std::min(len, looking_for.size());
+        const size_t suffix_len = std::min(static_cast<size_t>(len), looking_for.size());
         string_view suffix(buffer.end() - suffix_len, suffix_len);
 
         if (suffix == looking_for) {
@@ -186,17 +188,20 @@ private:
      * This helps tracking if we start a new token or if this is a continuation
      * of the same one.
      */
-    enum class TokenType {
+    // Note: Use of 'enum class' generates a warning at the place of the
+    // bitfield usage below, even though it is big enough.
+    enum TokenType {
         NoToken,
         HeaderField,
         HeaderValue,
-        Data,
+        DataToken,
+        // Warning: Check the bitfield sizes if adding values.
     };
 
     /*
      * The states of the automaton.
      */
-    enum class State {
+    enum State {
         NoState,
         CheckHeaderIsCDisp,
         IgnoredHeader,
@@ -205,6 +210,7 @@ private:
         ReadPartName,
         Data,
         Done,
+        // Warning: Check the bitfield sizes if adding values.
     };
 
     /*
@@ -213,20 +219,23 @@ private:
      * Anything unknown or before finding the name, it is Unknown and just
      * ignored.
      */
-    enum class Part {
+    enum Part {
         Unknown,
         Print,
         File,
         // Possibly others in the future
+        // Warning: Check the bitfield sizes if adding values.
     };
 
-    // TODO: Compact them a bit
-    TokenType type = TokenType::NoToken;
-    State state = State::NoState;
-    Part part = Part::Unknown;
-    uint16_t error = 0;
-    // A buffer for accumulating strings. See above.
-    Accumulator accumulator;
+    /**
+     * The handlers.
+     *
+     * Not owned by us.
+     */
+    HttpHandlers *handlers;
+
+    unique_ptr<multipart_parser, void (*)(multipart_parser *)> multiparter;
+
     /*
      * When reading a string separated by quotes, this points to the current
      * poisition and an end of a buffer to store it. This makes it possible to
@@ -243,8 +252,26 @@ private:
     char *string_dst_pos = nullptr;
     const char *string_dst_end = nullptr;
 
-    array<char, FILE_NAME_BUFFER_LEN> filename;
-    bool have_valid_filename = false;
+    /*
+     * A buffer for accumulating strings. See above.
+     *
+     * Warning/TODO: From time to time, its internal buffer is abused for other
+     * purposes. This is a hack to save some memory and we are careful not to
+     * use both at the same time (and to call a new .start after being molested
+     * in this way). We hope the tests would catch anything if we mess up. If
+     * you have a more elegant solution that isn't heavy-weight, proposals are
+     * welcome.
+     *
+     * So far we tried to use std::variant and that turned a bit heavy. Using a
+     * RAII object to „lock“ would mean having to store it somewhere, which is
+     * also heavy-weight.
+     */
+    Accumulator accumulator;
+
+    TokenType type : 2;
+    State state : 3;
+    Part part : 2;
+    bool have_valid_filename : 1;
     /*
      * The gcode_start hook has been called and we need to eventually call the finish hook too.
      *
@@ -252,15 +279,15 @@ private:
      * when there's an error from hook (the hooks should know they erorred out
      * and clean up their state as needed).
      */
-    bool init_done = false;
+    bool init_done : 1;
 
     // The data ask us to start the print.
-    bool start_print = false;
+    bool start_print : 1;
 
-    HttpHandlers *handlers;
+    // The values are >512, but <1024.
+    uint16_t error : 10;
 
-    unique_ptr<multipart_parser, void (*)(multipart_parser *)> multiparter;
-
+    array<char, FILE_NAME_BUFFER_LEN> filename;
     int header_field(const string_view &payload) {
         if (type != TokenType::HeaderField) { // Start this token
             type = TokenType::HeaderField;
@@ -414,7 +441,7 @@ private:
     }
 
     int headers_complete() {
-        type = TokenType::Data;
+        type = TokenType::DataToken;
         if (part == Part::File) {
             if (filename[0] != '\0') {
                 // Make sure this is not overwritten next time.
@@ -537,7 +564,14 @@ private:
 public:
     UploadState(const char *boundary, HttpHandlers *handlers)
         : handlers(handlers)
-        , multiparter(multipart_parser_init(boundary, &parser_settings), multipart_parser_free) {
+        , multiparter(multipart_parser_init(boundary, &parser_settings), multipart_parser_free)
+        , type(TokenType::NoToken)
+        , state(State::NoState)
+        , part(Part::Unknown)
+        , have_valid_filename(false)
+        , init_done(false)
+        , start_print(false)
+        , error(0) {
         memset(filename.begin(), 0, filename.size());
         if (multiparter) {
             multipart_parser_set_data(multiparter.get(), this);
