@@ -27,7 +27,7 @@ struct Start {
 
 struct Finish {
     string tmp_filename;
-    string final_filename;
+    optional<string> final_filename;
     bool print;
 };
 
@@ -39,6 +39,7 @@ struct Log {
     void gcode_start(const char *filename) {
         REQUIRE_FALSE(start.has_value());
         REQUIRE_FALSE(finish.has_value());
+        REQUIRE(data.size() == 0);
         start = Start { string(filename) };
     }
 
@@ -53,7 +54,7 @@ struct Log {
         REQUIRE_FALSE(finish.has_value());
         finish = Finish {
             string(tmp_filename),
-            string(final_filename),
+            (final_filename != nullptr) ? make_optional(string(final_filename)) : nullopt,
             print
         };
     }
@@ -61,15 +62,15 @@ struct Log {
 
 class FakeHandlers : public HttpHandlers {
 private:
-    static uint32_t start(struct HttpHandlers *self, const char *filename) {
+    static uint16_t start(struct HttpHandlers *self, const char *filename) {
         static_cast<FakeHandlers *>(self)->log.gcode_start(filename);
         return 0;
     }
-    static uint32_t data(struct HttpHandlers *self, const char *data, size_t len) {
+    static uint16_t data(struct HttpHandlers *self, const char *data, size_t len) {
         static_cast<FakeHandlers *>(self)->log.gcode_data(data, len);
         return 0;
     }
-    static uint32_t finish(struct HttpHandlers *self, const char *tmp_filename, const char *final_filename, bool print) {
+    static uint16_t finish(struct HttpHandlers *self, const char *tmp_filename, const char *final_filename, bool print) {
         static_cast<FakeHandlers *>(self)->log.gcode_finish(tmp_filename, final_filename, print);
         return 0;
     }
@@ -85,6 +86,11 @@ public:
         gcode_finish = finish;
     }
 };
+
+uint16_t broken_data(struct HttpHandlers *, const char *, size_t) {
+    // The error answer to The Life, Universe and Everything
+    return 542;
+}
 
 class Test {
 public:
@@ -102,6 +108,10 @@ public:
 
     void feed(const string_view &data) {
         uploader_feed(uploader.get(), data.begin(), data.size());
+    }
+
+    uint16_t error() {
+        return uploader_error(uploader.get());
     }
 };
 
@@ -128,8 +138,7 @@ constexpr const char *const OK_FORM =
 "Content-Disposition: form-data; name=\"file\"; filename=\"test.gcode\"" CRLF
 CRLF
 GCODE_LINE1 CRLF
-"--" BOUNDARY "--" CRLF
-;
+"--" BOUNDARY "--" CRLF;
 
 constexpr const char *const DO_PRINT =
 "--" BOUNDARY CRLF
@@ -152,6 +161,8 @@ CRLF
 "Content-Disposition-Trap: name=\"file\"; filename=\"whatever-else\"" CRLF
 "Content-Disposition: form-data; filename=\"test.gcode\"; whatever=\"else\"; name=\"file\"" CRLF
 "Content-Disposition-Another-Trap: name=\"file\"; filename=\"whatever-else\"" CRLF
+// FIXME: Numbers in header names are (wrongly) refused by the multipart-parser.
+// "Content-Disposition-2: name=\"file\"; filename=\"whatever-else\"" CRLF
 "Disposition: name=\"file\"; filename=\"whatever-else\"" CRLF
 CRLF
 GCODE_LINE1 CRLF
@@ -171,11 +182,43 @@ GCODE_LINE1 CRLF
 CRLF
 "false" CRLF
 "--" BOUNDARY "--" CRLF;
+
+constexpr const char *const EXTRA_SPACES =
+"--" BOUNDARY CRLF
+// FIXME: The multipart parser doesn't accept space before the colon even
+// though it probably should.
+"Content-Disposition: form-data ; name = \"file\" ; filename =  \"test.gcode\"  " CRLF
+CRLF
+GCODE_LINE1 CRLF
+"--" BOUNDARY "--" CRLF;
+
+constexpr const char *const NO_FILENAME =
+"--" BOUNDARY CRLF
+"Content-Disposition: form-data; name=\"file\"" CRLF
+CRLF
+GCODE_LINE1 CRLF
+"--" BOUNDARY "--" CRLF;
+
+constexpr const char *const INCOMPLETE =
+"--" BOUNDARY CRLF
+"Content-Disposition: form-data; name=\"file\"; filename=\"test.gcode\"" CRLF
+CRLF
+GCODE_LINE1 CRLF;
+
+constexpr const char *const MALFORMED =
+"--" BOUNDARY CRLF
+"--" BOUNDARY CRLF
+": form-data; name=\"file\"; filename=\"test.gcode\"" CRLF
+"--" BOUNDARY CRLF
+GCODE_LINE1 CRLF;
+
 // clang-format on
 
 TEST_CASE("One Big Chunk") {
     Test test;
     test.feed(OK_FORM);
+
+    REQUIRE(test.error() == 0);
 
     SECTION("With close") {
         test.finish();
@@ -222,6 +265,7 @@ TEST_CASE("Handling multiple parts") {
     REQUIRE(log.finish->tmp_filename == "tmp.gcode");
     REQUIRE(log.finish->final_filename == "test.gcode");
     REQUIRE(log.finish->print == expect_start);
+    REQUIRE(test.error() == 0);
 }
 
 // Chunk it into small parts. Go as far as single characters to go to the
@@ -246,11 +290,93 @@ TEST_CASE("Chunked") {
     REQUIRE(log.finish->tmp_filename == "tmp.gcode");
     REQUIRE(log.finish->final_filename == "test.gcode");
     REQUIRE(log.finish->print);
+    REQUIRE(test.error() == 0);
 }
 
-// TODO: Malformed
-// TODO: Missing filename
-// TODO: Incomplete (drop early)
+TEST_CASE("Extra spaces") {
+    Test test;
+    test.feed(EXTRA_SPACES);
+
+    const auto &log = test.log();
+    REQUIRE(log.start.has_value());
+    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE(log.data.size() == 1);
+    REQUIRE(log.data[0] == GCODE_LINE1);
+    REQUIRE(log.finish.has_value());
+    REQUIRE(log.finish->tmp_filename == "tmp.gcode");
+    REQUIRE(log.finish->final_filename == "test.gcode");
+    REQUIRE_FALSE(log.finish->print);
+    REQUIRE(test.error() == 0);
+}
+
+TEST_CASE("Prolog and epilogue") {
+    Test test;
+
+    // FIXME: The multipart parser doesn't properly handle prologues.
+    // Testing at least the epilogue.
+    const auto all = string() + OK_FORM + "Some epilogue";
+    test.feed(all);
+
+    const auto &log = test.log();
+    REQUIRE(log.start.has_value());
+    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE(log.data.size() == 1);
+    REQUIRE(log.data[0] == GCODE_LINE1);
+    REQUIRE(log.finish.has_value());
+    REQUIRE(log.finish->tmp_filename == "tmp.gcode");
+    REQUIRE(log.finish->final_filename == "test.gcode");
+    REQUIRE_FALSE(log.finish->print);
+    REQUIRE(test.error() == 0);
+}
+
+TEST_CASE("No filename") {
+    Test test;
+    test.feed(NO_FILENAME);
+
+    const auto &log = test.log();
+    REQUIRE_FALSE(log.start.has_value());
+    REQUIRE_FALSE(log.finish.has_value());
+    REQUIRE(log.data.size() == 0);
+    REQUIRE(test.error() == 400);
+}
+
+TEST_CASE("Incomplete upload") {
+    Test test;
+    test.feed(INCOMPLETE);
+    REQUIRE(test.error() == 0);
+    test.finish();
+
+    const auto &log = test.log();
+    REQUIRE(log.start.has_value());
+    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE(log.data.size() == 1);
+    REQUIRE(log.data[0] == GCODE_LINE1);
+    REQUIRE(log.finish.has_value());
+    REQUIRE_FALSE(log.finish->final_filename.has_value());
+}
+
+TEST_CASE("Malformed") {
+    Test test;
+    test.feed(MALFORMED);
+
+    const auto &log = test.log();
+    REQUIRE_FALSE(log.start.has_value());
+    REQUIRE(log.data.size() == 0);
+    REQUIRE_FALSE(log.finish.has_value());
+    REQUIRE(test.error() == 400);
+}
+
+TEST_CASE("Propagate errors from hooks") {
+    Test test;
+    test.handlers.gcode_data = broken_data;
+    test.feed(OK_FORM);
+
+    REQUIRE(test.error() == 542);
+
+    const auto &log = test.log();
+    REQUIRE(log.start.has_value());
+    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE_FALSE(log.finish.has_value());
+}
+
 // TODO: Parallel uploads
-// TODO: Extra spaces
-// TODO: Preamble and epilogue

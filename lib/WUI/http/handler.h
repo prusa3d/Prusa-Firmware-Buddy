@@ -56,13 +56,15 @@ typedef uint16_t get_handler(struct HttpHandlers *self, char *buffer, size_t buf
  *   replacement of the HTTP server implementation.
  * * The API does _not_ currently support multiple parallel uploads. The HTTP
  *   server currently refuses attempts to do so.
- * * The return values are a bit unclear. Current code's implementation and
- *   documentation doesn't match. Research or replacement is needed.
+ * * Return HTTP error codes for error and 0 for success.
+ * * The finish may be called without a filename (final_filename = NULL) as an
+ *   indication of an aborted upload. The data did not finish and shall not be
+ *   stored.
  */
-typedef uint32_t gcode_handler_start(struct HttpHandlers *self, const char *filename);
+typedef uint16_t gcode_handler_start(struct HttpHandlers *self, const char *filename);
 // FIXME: const char *data is probably wrong, it should be const uint8_t * as arbitrary data; but everything around rigth now uses char :-(
-typedef uint32_t gcode_handler_data(struct HttpHandlers *self, const char *data, size_t len);
-typedef uint32_t gcode_handler_finish(struct HttpHandlers *self, const char *tmp_filename, const char *final_filename, bool start_print);
+typedef uint16_t gcode_handler_data(struct HttpHandlers *self, const char *data, size_t len);
+typedef uint16_t gcode_handler_finish(struct HttpHandlers *self, const char *tmp_filename, const char *final_filename, bool start_print);
 
 /**
  * Function to return current API key.

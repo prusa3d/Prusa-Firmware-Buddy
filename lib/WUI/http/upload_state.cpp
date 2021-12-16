@@ -103,6 +103,7 @@ private:
         ReadString,
         ReadPartName,
         Data,
+        Done,
     };
 
     enum class Part {
@@ -116,6 +117,7 @@ private:
     TokenType type = TokenType::NoToken;
     State state = State::NoState;
     Part part = Part::Unknown;
+    uint16_t error = 0;
     Accumulator accumulator;
     char *string_dst_pos = nullptr;
     const char *string_dst_end = nullptr;
@@ -230,12 +232,12 @@ private:
             case State::ReadString:
             case State::ReadPartName:
                 /*
-                     * FIXME: In reality, this is a bit more involved and
-                     * complex. It can be escaped/otherwise encoded, since the
-                     * string also can contain special characters...
-                     *
-                     * For now we just assume trivial case here.
-                     */
+                 * FIXME: In reality, this is a bit more involved and
+                 * complex. It can be escaped/otherwise encoded, since the
+                 * string also can contain special characters...
+                 *
+                 * For now we just assume trivial case here.
+                 */
                 if (c == '"') {
                     if (state == State::ReadPartName) {
                         const char *start = accumulator.borrow_buf().begin();
@@ -256,17 +258,18 @@ private:
                     *(string_dst_pos++) = c;
                 }
                 /*
-                     * else:
-                     * If both are null, then we just throw the string away.
-                     * Otherwise we have filled the string to the brim. What
-                     * do we do with it now? Should we use the shorter one or
-                     * error?
-                     */
+                 * else:
+                 * If both are null, then we just throw the string away.
+                 * Otherwise we have filled the string to the brim. What
+                 * do we do with it now? Should we use the shorter one or
+                 * error?
+                 */
                 break;
             case State::NoState:
             case State::CheckHeaderIsCDisp:
             case State::IgnoredHeader:
             case State::Data:
+            case State::Done:
                 assert(0); // Unreachable
                 break;
             }
@@ -282,7 +285,8 @@ private:
                 // Make sure this is not overwritten next time.
                 have_valid_filename = true;
             } else {
-                // TODO: Error. We have a file part without a filename.
+                error = 400;
+                return 1;
             }
         } else {
             /*
@@ -300,9 +304,12 @@ private:
         switch (part) {
         case Part::File:
             if (!init_done) {
+                const auto err = handlers->gcode_start(handlers, DEFAULT_UPLOAD_FILENAME);
+                if (err != 0) {
+                    error = err;
+                    return 1;
+                }
                 init_done = true;
-                // TODO: Handle return code
-                handlers->gcode_start(handlers, DEFAULT_UPLOAD_FILENAME);
             }
             break;
         case Part::Print:
@@ -318,8 +325,12 @@ private:
     }
 
     int file_part(const string_view &payload) {
-        // TODO: Handle return code
-        handlers->gcode_data(handlers, payload.begin(), payload.size());
+        const auto err = handlers->gcode_data(handlers, payload.begin(), payload.size());
+        if (err != 0) {
+            error = err;
+            init_done = false;
+            return 1;
+        }
         return 0;
     }
 
@@ -354,9 +365,13 @@ private:
 
     int body_end() {
         if (init_done) {
-            // TODO: Handle return code
-            handlers->gcode_finish(handlers, DEFAULT_UPLOAD_FILENAME, filename.begin(), start_print);
+            const auto err = handlers->gcode_finish(handlers, DEFAULT_UPLOAD_FILENAME, filename.begin(), start_print);
             init_done = false;
+            if (err != 0) {
+                error = err;
+                return 1;
+            }
+            state = State::Done;
         }
         return 0;
     }
@@ -395,11 +410,16 @@ public:
         : handlers(handlers)
         , multiparter(multipart_parser_init(boundary, &parser_settings), multipart_parser_free) {
         memset(filename.begin(), 0, filename.size());
-        multipart_parser_set_data(multiparter.get(), this);
+        if (multiparter) {
+            multipart_parser_set_data(multiparter.get(), this);
+        } else {
+            error = 500;
+        }
     }
     ~UploadState() {
         if (init_done) {
-            // TODO: Call some kind of abort thing on the upload
+            // Something aborted, try to propagate and let the callbacks know they shall free resources.
+            handlers->gcode_finish(handlers, DEFAULT_UPLOAD_FILENAME, NULL, false);
         }
     }
     // A good reason why we don't want these is because this is a
@@ -412,8 +432,24 @@ public:
     UploadState &operator=(UploadState &&other) = delete;
 
     void feed(const string_view &data) {
-        // TODO: Error handling
-        multipart_parser_execute(multiparter.get(), data.begin(), data.size());
+        if (error != 0) {
+            return;
+        }
+
+        if (state == State::Done) {
+            return;
+        }
+
+        const size_t processed = multipart_parser_execute(multiparter.get(), data.begin(), data.size());
+
+        if (processed < data.size() && state != State::Done && error == 0) {
+            // Malformed -> Bad Request
+            error = 400;
+        }
+    }
+
+    uint16_t get_error() {
+        return error;
     }
 };
 
@@ -438,13 +474,13 @@ void uploader_feed(struct Uploader *uploader, const char *data, size_t len) {
 void uploader_finish(struct Uploader *uploader) {
     delete uploader;
 }
+
+uint16_t uploader_error(struct Uploader *uploader) {
+    return uploader->state.get_error();
+}
 }
 
 /*
  * TODO: Missing parts:
- * * Handle allocation failures. Or even better, figure out a way to get rid of
- *   allocations.
- * * Format/request error handling.
- * * Propagating errors from the handler callbacks.
  * * Make sure there may be multiple instances (create new file name for each?).
  */

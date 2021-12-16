@@ -181,28 +181,31 @@ void wui_store_api_key(char *, uint32_t);
 /// @brief Prepare file descriptor to upload the file
 ///
 /// @param[in] filename Name of the file to start uploading
-/// @return Return 0 if success otherwise the error code
-uint32_t wui_upload_begin(const char *);
+/// @return
+///   - 0 For success
+///   - Otherwise a http error code to use.
+uint16_t wui_upload_begin(const char *);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Writting received data on already prepared file descriptor
 ///
 /// @param[in] buffer Received file data
 /// @param[in] length Size of the buffer
-/// @return Return 0 if success otherwise the error code
-uint32_t wui_upload_data(const char *, uint32_t);
+/// @return
+///    - 0 for success
+///    - http error code to use.
+uint16_t wui_upload_data(const char *, uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Finalize upload of the file
 ///
 /// @param[in] oldFilename Temporary file name
 /// @param[in] newFilename Regular file name
-/// @param[in] startPrint 1 if print should start after upload, 0 otherwise
-/// @return Return status code for http response
-///                 200 OK
-///                 409 Conflict
-///                 415 Unsupported Media Type
-uint32_t wui_upload_finish(const char *, const char *, uint32_t);
+/// @param[in] startPrint true if print shall start after upload
+/// @return
+///     - 0 for success
+///     - http error code to use
+uint16_t wui_upload_finish(const char *, const char *, bool);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Return the number of gcodes uploaded since boot.
