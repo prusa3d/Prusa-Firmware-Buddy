@@ -265,13 +265,6 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
  */
 const char *find_boundary(const char *content_type);
 
-/** Find the key name in the header of a form value.
- * Looking for name=
- *
- * @param header Header string that contains the name.
- */
-const char *find_header_name(const char *header);
-
     #if LWIP_HTTPD_POST_MANUAL_WND
 void httpd_post_data_recved(void *connection, u16_t recved_len);
     #endif /* LWIP_HTTPD_POST_MANUAL_WND */

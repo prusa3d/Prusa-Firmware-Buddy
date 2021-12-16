@@ -876,32 +876,47 @@ get_http_headers(struct http_state *hs, const char *uri) {
         hs->hdr_pos = 0;
         return;
     }
-    /* We are dealing with a particular filename. Look for one other
-      special case.  We assume that any filename with "404" in it must be
-      indicative of a 404 server error whereas all other files require
-      the 200 OK header. */
-    if (strstr(uri, "404")) {
+    /*
+     * FIXME: A hack.
+     *
+     * The server currently uses "special file names" to pass on status codes.
+     * We minimise the chance of collision with real file name by at least
+     * prepending /error there.
+     *
+     * These still come out with empty body (which is also wrong).
+     *
+     * This shall be solved by replacing this abomination of a http server.
+     */
+    if (strstr(uri, "/error/404")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_NOT_FOUND];
-    } else if (strstr(uri, "400")) {
+    } else if (strstr(uri, "/error/400")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_BAD_REQUEST];
-    } else if (strstr(uri, "501")) {
+    } else if (strstr(uri, "/error/501")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_NOT_IMPL];
-    } else if (strstr(uri, "200")) {
+    } else if (strstr(uri, "/error/200")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK_11];
-    } else if (strstr(uri, "204")) {
+    } else if (strstr(uri, "/error/204")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_NO_CONTENT];
-    } else if (strstr(uri, "500")) {
+    } else if (strstr(uri, "/error/500")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_500];
-    } else if (strstr(uri, "401")) {
+    } else if (strstr(uri, "/error/401")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_401];
-    } else if (strstr(uri, "304")) {
+    } else if (strstr(uri, "/error/304")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_304];
-    } else if (strstr(uri, "409")) {
+    } else if (strstr(uri, "/error/409")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_409];
-    } else if (strstr(uri, "415")) {
+    } else if (strstr(uri, "/error/415")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_415];
-    } else if (strstr(uri, "503")) {
+    } else if (strstr(uri, "/error/503")) {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_503];
+    } else if (strstr(uri, "/error/418")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_418];
+    } else if (strstr(uri, "/error/422")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_422];
+    } else if (strstr(uri, "/error/431")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_431];
+    } else if (strstr(uri, "/error/507")) {
+        hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_507];
     } else {
         hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK];
     }
@@ -1641,14 +1656,14 @@ http_find_error_file(struct http_state *hs, u16_t error_nr) {
     const char *uri, *uri1, *uri2, *uri3;
 
     if (error_nr == 501) {
-        uri1 = "/501.html";
-        uri2 = "/501.htm";
-        uri3 = "/501.shtml";
+        uri1 = "/error/501.html";
+        uri2 = "/error/501.htm";
+        uri3 = "/error/501.shtml";
     } else {
         /* 400 (bad request is the default) */
-        uri1 = "/400.html";
-        uri2 = "/400.htm";
-        uri3 = "/400.shtml";
+        uri1 = "/error/400.html";
+        uri2 = "/error/400.htm";
+        uri3 = "/error/400.shtml";
     }
     if (fs_open(&hs->file_handle, uri1) == ERR_OK) {
         uri = uri1;
@@ -2621,10 +2636,15 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
 
     const struct GetDescriptor *get_handler = http_handlers_find_get(hs->handlers, uri);
 
-    if (get_handler == NULL) {
-        uri = "404";
+    if (get_handler == NULL && strncmp(uri, "/error/", 7) == 0) {
+        /*
+         * It already _is_ an error (caused by an internal "redirect" from
+         * post). Keep it, even though we don't have the actual "file" for it.
+         */
+    } else if (get_handler == NULL) {
+        uri = "/error/404";
     } else if (!get_handler->anonymous && !hs->authenticated && !authorize_request(hs->handlers, hs->req)) {
-        uri = "401";
+        uri = "/error/401";
     } else {
         // FIXME: The abuse of global response_body_buf is an UB, or at least
         // can mangle the data in case some other request still didn't manage
@@ -2647,22 +2667,14 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
         }
         // We need to pass the status code to the HTTP server. It is done in a
         // really awkward way, to re-assigning a special "url". Therefore, we switch across the ones we use.
-        // Extend as needed (until we get a proper HTTP server implementation)
-        switch (status) {
-        case 200: {
+        if (status == 200) {
             static const char name[] = "response.json";
             uri = &name[0];
-            break;
-        }
-        case 204: { // No content
-            static const char special[] = "204";
-            uri = &special[0];
-            break;
-        }
-        default: {
-            // Unknown/unhandled status code.
-            assert(0);
-        }
+        } else {
+            const char *lookup_uri = hs->handlers->code_lookup(hs->handlers, status);
+            if (lookup_uri != NULL) {
+                uri = lookup_uri;
+            }
         }
     }
 
