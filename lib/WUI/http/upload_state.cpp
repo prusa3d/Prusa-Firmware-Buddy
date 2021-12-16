@@ -1,3 +1,43 @@
+/*
+ * Little high-level overview of what happens in here.
+ *
+ * # Quirks of the interface
+ *
+ * We expose a C-style API for the functionality here (see the header), but
+ * internally use C++ to have access to more functionality. Therefore, we have
+ * certain amount of boilerplate here to translate between the idioms. We might
+ * switch the interface to C++ eventually, once the consumers migrate too.
+ *
+ * Furthermore, we keep the classes here in anonymous namespace. This is in
+ * hope the compiler will use the information to prove the data and types never
+ * escape the current compilation unit and allow it to do much more aggressive
+ * optimizations - specifically, reordering or eliminating member variables in
+ * the classes, or making them smaller.
+ *
+ * # Motivation
+ *
+ * We use the "multipart_parser.h" thing (that one is also in C, so more
+ * boilerplate). That thing mostly handles the multipart/ * content types, with
+ * some missing flexibility and calls callbacks on "tokens" in there, without
+ * keeping anything around. It can be fed by multiple chunks (as they come
+ * split into packets). As a result, it can also report a single token by
+ * multiple calls.
+ *
+ * This file is responsible for tracking the tokens, parsing them further (eg.
+ * finding and parsing the Content-Disposition header) and making sense of them
+ * to implement the actual storing of the files.
+ *
+ * # Design
+ *
+ * Due to the splitting at arbitrary place, this just splits it further to
+ * individual chars and handles them as an automaton with states.
+ *
+ * If any kind of longer string needs to be compared, it accumulates it in a
+ * (short, we know max lengths of the interesting ones) buffer.
+ *
+ * The only exception to the dribbling by characters is the "bulk" of the data
+ * payload, which is forwarded in whole chunks for performance reasons.
+ */
 #include "upload_state.h"
 #include "multipart_parser.h"
 
@@ -28,6 +68,20 @@ constexpr const char *const DEFAULT_UPLOAD_FILENAME = "tmp.gcode";
 
 const constexpr size_t MAX_SUBTOKEN = 19;
 
+/*
+ * A helper class that acts like a sliding window buffer. It is used to find
+ * the right parts in stream of incoming characters.
+ *
+ * This is done by moving the whole buffer by a single character each time. It
+ * is not exactly _optimal_ solution, but:
+ * * This happens very seldom.
+ * * The buffer is rather short.
+ *
+ * Therefore, we prefer simplicity over CPU performance. The alternative would
+ * be something like a Aho-Corasick automaton built at compile time and
+ * tracking only the ID of the state (which would make it faster and smaller in
+ * RAM), but it is also a complex thing.
+ */
 class Accumulator {
 private:
     size_t len = 0;
@@ -45,6 +99,13 @@ public:
         NotYet,
         Overflow,
     };
+    /*
+     * Starts looking for specific substring.
+     *
+     * * Reset the buffer to be "empty".
+     * * Start looking for the given string.
+     * * Sensitive means if it should be case sensitive or not.
+     */
     void start(const char *looking_for, bool sensitive) {
         const size_t len = strlen(looking_for);
         assert(len <= buffer.size());
@@ -52,6 +113,17 @@ public:
         this->sensitive = sensitive;
         this->len = 0;
     }
+    /*
+     * Puts another character into the buffer.
+     *
+     * This potentially pushes the oldest one out in case the buffer is full.
+     *
+     * Returns if the substring has been found at this position or not. It may
+     * return Overflow, which means the string already fed in here doesn't
+     * match from the beginning. Depending on if you're looking for an
+     * exact/full match or substring anywhere, you may take this as a "No
+     * match" or "Keep looking".
+     */
     Lookup feed(char c) {
         memmove(buffer.begin(), buffer.begin() + 1, buffer.size() - 1);
         if (!sensitive) {
@@ -74,13 +146,35 @@ public:
             return Lookup::NotYet;
         }
     }
+    // Is the buffer empty?
     bool empty() const {
         return len == 0;
     }
+    /*
+     * Returns the part of buffer before the looking-for string (as much of it as fits).
+     *
+     * If the looking-for string is considered a separator, the thing before it
+     * is left in the buffer and can be accessed with this.
+     *
+     * The returned prefix can be shorter than whatever was fed into it before
+     * the looking-for separator (in case oldest chars no longer fit). This is
+     * OK in our use, as the buffer - separator is longer (due to other
+     * reasons) than the constant strings we look for before the separator, so
+     * in case something fell off the left side of the buffer, it would no
+     * longer match anyway.
+     */
     string_view prefix() const {
         assert(len >= looking_for.size());
         return string_view(buffer.end() - len, len - looking_for.size());
     }
+    /*
+     * Access the internal buffer.
+     *
+     * This can be used to recycle the buffer for different purposes (to save
+     * memory) while not being in used. The buffer or the functionality of
+     * looking for something are mutually exclusive (use one or the other, not
+     * both at the same time).
+     */
     array<char, MAX_SUBTOKEN> &borrow_buf() {
         return buffer;
     }
@@ -88,6 +182,10 @@ public:
 
 class UploadState {
 private:
+    /*
+     * This helps tracking if we start a new token or if this is a continuation
+     * of the same one.
+     */
     enum class TokenType {
         NoToken,
         HeaderField,
@@ -95,6 +193,9 @@ private:
         Data,
     };
 
+    /*
+     * The states of the automaton.
+     */
     enum class State {
         NoState,
         CheckHeaderIsCDisp,
@@ -106,6 +207,12 @@ private:
         Done,
     };
 
+    /*
+     * Whenever we found a part of a known name, we record it by this.
+     *
+     * Anything unknown or before finding the name, it is Unknown and just
+     * ignored.
+     */
     enum class Part {
         Unknown,
         Print,
@@ -118,12 +225,36 @@ private:
     State state = State::NoState;
     Part part = Part::Unknown;
     uint16_t error = 0;
+    // A buffer for accumulating strings. See above.
     Accumulator accumulator;
+    /*
+     * When reading a string separated by quotes, this points to the current
+     * poisition and an end of a buffer to store it. This makes it possible to
+     * point the reading of characters to different buffers depending on what
+     * the string means.
+     *
+     * Relevant for the ReadString and ReadPartName states.
+     *
+     * When both are pointing to the same location, no more characters are read
+     * and they are simply thrown away. The special-case of both pointing to
+     * NULL is a /dev/null buffer for skipping until the end of a string that's
+     * of no interest to us.
+     */
     char *string_dst_pos = nullptr;
     const char *string_dst_end = nullptr;
+
     array<char, FILE_NAME_BUFFER_LEN> filename;
     bool have_valid_filename = false;
+    /*
+     * The gcode_start hook has been called and we need to eventually call the finish hook too.
+     *
+     * This may get reset back to false in case the finish hook is called or
+     * when there's an error from hook (the hooks should know they erorred out
+     * and clean up their state as needed).
+     */
     bool init_done = false;
+
+    // The data ask us to start the print.
     bool start_print = false;
 
     HttpHandlers *handlers;
@@ -159,6 +290,10 @@ private:
         return 0;
     }
 
+    /*
+     * The prefix of the accumulator contains the name of a field in the
+     * content-disposition header. Decide what to do with it.
+     */
     void handle_disp_field() {
         /*
          * The accumulator contains the name of the field before the separator.
@@ -369,6 +504,7 @@ private:
         return 0;
     }
 
+    // This part is just boilerplate/adaptor code for callbacks from the multipart parser.
 #define DATA(NAME)                                                              \
     static int NAME##_raw(multipart_parser *p, const char *at, size_t length) { \
         auto me = static_cast<UploadState *>(multipart_parser_get_data(p));     \
