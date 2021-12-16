@@ -34,7 +34,11 @@ static const char *const g_psHTTPHeaderStrings[] = {
     "HTTP/1.0 409 Conflict\r\n",
     "HTTP/1.0 415 Unsupported Media Type\r\n",
     "HTTP/1.0 503 Service Temporarily Unavailable\r\n",
-    "HTTP/1.0 204 No Content\r\n"
+    "HTTP/1.0 204 No Content\r\n",
+    "HTTP/1.0 418 I'm a Teapot Printer\r\n",
+    "HTTP/1.0 422 Unprocessable Entity\r\n",
+    "HTTP/1.0 431 Request Header Fields Too Large\r\n",
+    "HTTP/1.0 507 Insufficient Storage\r\n"
     #if LWIP_HTTPD_SUPPORT_11_KEEPALIVE
     ,
     "Connection: keep-alive\r\nContent-Length: 77\r\n\r\n<html><body><h2>404: The requested file cannot be found.</h2></body></html>\r\n"
@@ -64,8 +68,12 @@ static const char *const g_psHTTPHeaderStrings[] = {
     #define HTTP_HDR_415            18 /* 415 Unsupported Media Type */
     #define HTTP_HDR_503            19 /* 503 Service Temporarily Unavailable */
     #define HTTP_HDR_NO_CONTENT     20 /* 204 No Content */
+    #define HTTP_HDR_418            21 /* 418 I'm a Teapot */
+    #define HTTP_HDR_422            22 /* 422 Unprocessable Entity */
+    #define HTTP_HDR_431            23 /* 431 Request Header Fields Too Large */
+    #define HTTP_HDR_507            24 /* 431 Request Header Fields Too Large */
     #if LWIP_HTTPD_SUPPORT_11_KEEPALIVE
-        #define DEFAULT_404_HTML_PERSISTENT 21 /* default 404 body, but including Connection: keep-alive */
+        #define DEFAULT_404_HTML_PERSISTENT 25 /* default 404 body, but including Connection: keep-alive */
     #endif
 
     #define HTTP_CONTENT_TYPE(contenttype)                    "Content-Type: " contenttype "\r\n\r\n"

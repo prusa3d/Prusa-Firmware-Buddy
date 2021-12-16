@@ -95,11 +95,12 @@ uint16_t broken_data(struct HttpHandlers *, const char *, size_t) {
 class Test {
 public:
     FakeHandlers handlers;
-    unique_ptr<Uploader, void (*)(Uploader *)> uploader;
+    unique_ptr<Uploader, bool (*)(Uploader *)> uploader;
     Test()
         : uploader(uploader_init(BOUNDARY, &handlers), uploader_finish) {}
-    void finish() {
-        uploader.reset();
+    bool finish() {
+        auto ptr = uploader.release();
+        return uploader_finish(ptr);
     }
 
     const Log &log() const {
@@ -120,9 +121,10 @@ public:
 // This simply creates and destroyes the parsers and checks that nothing "happens"
 TEST_CASE("Unused") {
     Test test;
-    test.finish();
-    REQUIRE_FALSE(test.log().start.has_value());
-    REQUIRE_FALSE(test.log().finish.has_value());
+    REQUIRE_FALSE(test.finish());
+    REQUIRE(test.log().start.has_value());
+    REQUIRE(test.log().finish.has_value());
+    REQUIRE_FALSE(test.log().finish->final_filename.has_value());
     REQUIRE(test.log().data.empty());
 }
 
@@ -221,7 +223,7 @@ TEST_CASE("One Big Chunk") {
     REQUIRE(test.error() == 0);
 
     SECTION("With close") {
-        test.finish();
+        REQUIRE(test.finish());
     }
 
     SECTION("Without close") {}
@@ -332,12 +334,14 @@ TEST_CASE("Prolog and epilogue") {
 TEST_CASE("No filename") {
     Test test;
     test.feed(NO_FILENAME);
+    REQUIRE(test.error() == 400);
+    REQUIRE_FALSE(test.finish());
 
     const auto &log = test.log();
-    REQUIRE_FALSE(log.start.has_value());
-    REQUIRE_FALSE(log.finish.has_value());
+    REQUIRE(log.start.has_value());
+    REQUIRE(log.finish.has_value());
+    REQUIRE_FALSE(log.finish->final_filename.has_value());
     REQUIRE(log.data.size() == 0);
-    REQUIRE(test.error() == 400);
 }
 
 TEST_CASE("Incomplete upload") {
@@ -360,10 +364,13 @@ TEST_CASE("Malformed") {
     test.feed(MALFORMED);
 
     const auto &log = test.log();
-    REQUIRE_FALSE(log.start.has_value());
+    REQUIRE(log.start.has_value());
     REQUIRE(log.data.size() == 0);
     REQUIRE_FALSE(log.finish.has_value());
     REQUIRE(test.error() == 400);
+    REQUIRE_FALSE(test.finish());
+    REQUIRE(log.finish.has_value());
+    REQUIRE_FALSE(log.finish->final_filename.has_value());
 }
 
 TEST_CASE("Propagate errors from hooks") {

@@ -3,6 +3,8 @@
 #include "wui_api.h"
 #include "wui.h"
 
+#include <assert.h>
+
 #define GET_WRAPPER(NAME)                                                                           \
     static uint16_t handler_##NAME(struct HttpHandlers *unused, char *buffer, size_t buffer_size) { \
         (void)unused;                                                                               \
@@ -37,6 +39,33 @@ static uint16_t post_data(struct HttpHandlers *unused, const char *data, size_t 
 
 static uint16_t post_finish(struct HttpHandlers *unused, const char *tmp_filename, const char *final_filename, bool start) {
     return wui_upload_finish(tmp_filename, final_filename, start);
+}
+
+static const char *code_lookup(struct HttpHandlers *unused, uint16_t code) {
+    switch (code) {
+    case 200:
+        return NULL;
+#define S(S)                                        \
+    case S: {                                       \
+        static const char special[] = "/error/" #S; \
+        return special;                             \
+    }
+        S(204);
+        S(400);
+        S(409);
+        S(415);
+        S(422);
+        S(431);
+        S(500);
+        S(501);
+        S(503);
+        S(507);
+#undef S
+    default:
+        assert(0);
+        static const char special[] = "/error/418";
+        return special;
+    }
 }
 
 static const struct GetDescriptor get_handlers[] = {
@@ -88,4 +117,5 @@ struct HttpHandlers default_http_handlers = {
     .gcode_start = post_start,
     .gcode_data = post_data,
     .gcode_finish = post_finish,
+    .code_lookup = code_lookup,
 };

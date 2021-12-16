@@ -74,6 +74,17 @@ typedef uint16_t gcode_handler_finish(struct HttpHandlers *self, const char *tmp
 typedef const char *get_api_key();
 
 /**
+ * Function to look up a corresponding file/uri/handler page for given error
+ * code.
+ *
+ * This is a hack, as the current http server has very weird handling of error
+ * codes.
+ *
+ * The result needs to point to static memory (not get deallocated).
+ */
+typedef const char *code_to_uri(struct HttpHandlers *self, uint16_t code);
+
+/**
  * Descriptor of single GET endpoint.
  */
 struct GetDescriptor {
@@ -118,6 +129,8 @@ struct HttpHandlers {
     gcode_handler_start *gcode_start;
     gcode_handler_data *gcode_data;
     gcode_handler_finish *gcode_finish;
+
+    code_to_uri *code_lookup;
 };
 
 // TODO: Eventually turn this thing into C++, so they live "inside" the HttpHandlers.

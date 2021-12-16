@@ -303,14 +303,7 @@ private:
 
         switch (part) {
         case Part::File:
-            if (!init_done) {
-                const auto err = handlers->gcode_start(handlers, DEFAULT_UPLOAD_FILENAME);
-                if (err != 0) {
-                    error = err;
-                    return 1;
-                }
-                init_done = true;
-            }
+            // Already prepared as part of the constructor.
             break;
         case Part::Print:
             // Prepare a storage for the true/false
@@ -412,8 +405,15 @@ public:
         memset(filename.begin(), 0, filename.size());
         if (multiparter) {
             multipart_parser_set_data(multiparter.get(), this);
+
+            const auto err = handlers->gcode_start(handlers, DEFAULT_UPLOAD_FILENAME);
+            if (err != 0) {
+                error = err;
+                return;
+            }
+            init_done = true;
         } else {
-            error = 500;
+            error = 503;
         }
     }
     ~UploadState() {
@@ -448,8 +448,12 @@ public:
         }
     }
 
-    uint16_t get_error() {
+    uint16_t get_error() const {
         return error;
+    }
+
+    bool done() const {
+        return state == State::Done;
     }
 };
 
@@ -471,11 +475,13 @@ void uploader_feed(struct Uploader *uploader, const char *data, size_t len) {
     uploader->state.feed(string_view(data, len));
 }
 
-void uploader_finish(struct Uploader *uploader) {
+bool uploader_finish(struct Uploader *uploader) {
+    const bool done = uploader->state.done();
     delete uploader;
+    return done;
 }
 
-uint16_t uploader_error(struct Uploader *uploader) {
+uint16_t uploader_error(const struct Uploader *uploader) {
     return uploader->state.get_error();
 }
 }

@@ -86,12 +86,10 @@ async def test_upload(printer: Printer, wui_client: aiohttp.ClientSession):
     # TODO: Turn off printer and see that the file appeared on the flash drive.
 
 
-# Known issue: Returns 404 instead of 401
-@pytest.mark.skip()
 async def test_upload_notauth(printer: Printer,
                               wui_client: aiohttp.ClientSession):
     await screen.wait_for_text(printer, 'HOME')
     data = aiohttp.FormData()
     data.add_field('file', b'', filename='empty.gcode')
     response = await wui_client.post('/api/files/sdcard', data=data)
-    assert response == 401
+    assert response.status == 401
