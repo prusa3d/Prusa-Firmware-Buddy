@@ -61,5 +61,6 @@ exclude: |
     ^lib/Catch2/|
     ^lib/libsysbase/|
     ^lib/Segger|
+    ^lib/tinyusb|
     ^lib/Middlewares/Third_Party/littlefs/
   )
