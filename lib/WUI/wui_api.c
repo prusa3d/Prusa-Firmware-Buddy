@@ -29,11 +29,13 @@
 
 extern RTC_HandleTypeDef hrtc;
 
+// FIXME: These need to go and get wrapped into something
+// For parallel uploads
 uint32_t start_print = 0;
 char filename[FILE_NAME_BUFFER_LEN];
-
 static FILE *upload_file = NULL;
 static char tmp_filename[FILE_NAME_BUFFER_LEN];
+
 static bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static atomic_int_least32_t uploaded_gcodes;
@@ -357,21 +359,46 @@ void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp) {
     localtime_r(&current_time, timestamp);
 }
 
-uint32_t wui_upload_begin(const char *fname) {
-    uint32_t fname_length = strlen(fname);
+uint16_t wui_upload_begin(const char *fname) {
+    // FIXME: We should start a new, independent download instead of using globals.
+    // Reset to a new upload.
+    upload_file = NULL;
+    const size_t fname_length = strlen(fname);
+
     if ((fname_length + USB_MOUNT_POINT_LENGTH) < sizeof(tmp_filename)) {
         strcpy(tmp_filename, USB_MOUNT_POINT);
         strcpy(tmp_filename + USB_MOUNT_POINT_LENGTH, fname);
         upload_file = fopen(tmp_filename, "w");
+        if (upload_file == NULL) {
+            // Missing USB -> Insufficient storage.
+            return 507;
+        } else {
+            return 0;
+        }
+    } else {
+        assert(0);
+        // Our own screwup, too long temp file name.
+        return 500;
     }
-    return upload_file == NULL;
 }
 
-uint32_t wui_upload_data(const char *data, uint32_t length) {
-    return fwrite(data, sizeof(char), length, upload_file);
+uint16_t wui_upload_data(const char *data, uint32_t length) {
+    assert(upload_file);
+    const size_t written = fwrite(data, sizeof(char), length, upload_file);
+    if (written < length) {
+        // Data won't fit into the flash drive -> Insufficient stogare.
+        fclose(upload_file);
+        upload_file = NULL;
+        remove(tmp_filename);
+        memset(tmp_filename, 0, sizeof(tmp_filename));
+        return 507;
+    } else {
+        return 0;
+    }
 }
 
-uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, uint32_t start) {
+uint16_t wui_upload_finish(const char *old_filename, const char *new_filename, bool start) {
+    uint16_t error_code = 0;
     /*
      * TODO: Starting print of the just-uploaded file is temporarily disabled.
      *
@@ -380,12 +407,23 @@ uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, u
      * Once we have time to deal with all the corner-cases, race conditions and
      * collisions caused by that possibility, we will re-enable.
      */
-    start = 0;
-    uint32_t fname_length = strlen(new_filename);
-    uint32_t error_code = 200;
+    if (start) {
+        // We don't implement starting a print yet. Sorry.
+        error_code = 501;
+        start = 0;
+    }
+    const uint32_t fname_length = strlen(new_filename);
     int result = 0;
 
     fclose(upload_file);
+    upload_file = NULL;
+
+    if (new_filename == NULL) {
+        // Client aborted the upload/it ended in the middle. Clean up things only.
+        // The error doesn't particularly matter, because the connection is dead anyway.
+        error_code = 400;
+        goto clean_temp_file;
+    }
 
     if (!strstr(new_filename, "gcode")) {
         error_code = 415;
@@ -393,7 +431,8 @@ uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, u
     }
 
     if ((fname_length + USB_MOUNT_POINT_LENGTH) >= sizeof(filename)) {
-        error_code = 409;
+        // The Request header fields too large is a bit of a stretch...
+        error_code = 431;
         goto clean_temp_file;
     } else {
         strlcpy(filename, USB_MOUNT_POINT, USB_MOUNT_POINT_LENGTH + 1);
@@ -402,7 +441,8 @@ uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, u
 
     result = rename(tmp_filename, filename);
     if (result != 0) {
-        error_code = 409;
+        // Likely a bad file name. Unprocessable Entity is somewhat close...
+        error_code = 422;
         goto clean_temp_file;
     }
 
@@ -423,6 +463,7 @@ uint32_t wui_upload_finish(const char *old_filename, const char *new_filename, u
 
 clean_temp_file:
     remove(tmp_filename);
+    memset(tmp_filename, 0, sizeof(tmp_filename));
 return_error_code:
     return error_code;
 }

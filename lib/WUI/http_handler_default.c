@@ -27,15 +27,15 @@ static uint16_t settings_stub(struct HttpHandlers *unused, char *buffer, size_t 
     return 200;
 }
 
-static uint32_t post_start(struct HttpHandlers *unused, const char *filename) {
+static uint16_t post_start(struct HttpHandlers *unused, const char *filename) {
     return wui_upload_begin(filename);
 }
 
-static uint32_t post_data(struct HttpHandlers *unused, const char *data, size_t len) {
+static uint16_t post_data(struct HttpHandlers *unused, const char *data, size_t len) {
     return wui_upload_data(data, len);
 }
 
-static uint32_t post_finish(struct HttpHandlers *unused, const char *tmp_filename, const char *final_filename, bool start) {
+static uint16_t post_finish(struct HttpHandlers *unused, const char *tmp_filename, const char *final_filename, bool start) {
     return wui_upload_finish(tmp_filename, final_filename, start);
 }
 
