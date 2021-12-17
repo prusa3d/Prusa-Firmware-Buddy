@@ -1,6 +1,7 @@
 #include <errno.h>
 #include "syslog.h"
 #include "log.h"
+#include "dns.h"
 
 LOG_COMPONENT_DEF(Syslog, LOG_SEVERITY_INFO);
 
@@ -11,12 +12,10 @@ static void report_error(syslog_transport_t *transport, const char *message_pref
     }
 }
 
-bool syslog_transport_open(syslog_transport_t *transport, const char *ip_address, int port) {
+static bool syslog_transport_open_ip4(syslog_transport_t *transport, ip_addr_t ip_address, int port) {
     transport->sock = -1;
     transport->is_open = false;
 
-    if (strlen(ip_address) == 0)
-        return false;
     if (netif_default == NULL)
         return false;
 
@@ -31,7 +30,7 @@ bool syslog_transport_open(syslog_transport_t *transport, const char *ip_address
     // prepare remote address
     memset(&transport->addr, 0, sizeof(transport->addr));
     transport->addr.sin_family = AF_INET;
-    transport->addr.sin_addr.s_addr = inet_addr(ip_address);
+    transport->addr.sin_addr.s_addr = ip_address.addr;
     transport->addr.sin_port = htons(port);
 
     transport->is_open = true;
@@ -63,4 +62,29 @@ void syslog_transport_close(syslog_transport_t *transport) {
         transport->sock = -1;
     }
     transport->is_open = false;
+}
+
+bool syslog_transport_open(syslog_transport_t *transport, const char *host, int port) {
+    ip_addr_t addr;
+    err_t res = dns_gethostbyname(host, &addr, NULL, NULL);
+    if (res == ERR_OK) {
+        // ip address already cached or the name was valid ip address
+        if (transport->last_resolve_state != Resolved) {
+            char ip_addres[16];
+            ip4addr_ntoa_r(&addr, ip_addres, 16);
+            log_info(Syslog, "Host name %s resolved to this ip: %s", host, ip_addres);
+            transport->last_resolve_state = Resolved;
+        }
+        return syslog_transport_open_ip4(transport, addr, port);
+    }
+    if (res == ERR_INPROGRESS) {
+        // dns lookup queued, wait for it to finish
+        log_info(Syslog, "DNS resolving for host %s was enqueued", host);
+        transport->last_resolve_state = Progress;
+        return false;
+    }
+    // failed return false
+    log_error(Syslog, "DNS resolving failed with value %s", host);
+    transport->last_resolve_state = Error;
+    return false;
 }

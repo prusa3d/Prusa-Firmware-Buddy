@@ -5,6 +5,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
+enum last_resolve_state_t {
+    None = 0,
+    Error,
+    Resolved,
+    Progress
+};
 
 /// Syslog UDP transport
 ///
@@ -23,13 +29,16 @@ typedef struct {
 
     /// Last reported errno
     int last_errno;
+
+    /// Last logged info
+    enum last_resolve_state_t last_resolve_state;
 } syslog_transport_t;
 
 /// Prepare a syslog udp transport.
 ///
 /// Returns true on success. In such case, it is the responsibility of the user to call
 /// `syslog_transport_close` to free system resources.
-bool syslog_transport_open(syslog_transport_t *transport, const char *ip_address, int port);
+bool syslog_transport_open(syslog_transport_t *transport, const char *host, int port);
 
 /// Get the open state of the transport.
 bool syslog_transport_check_is_open(syslog_transport_t *transport);
