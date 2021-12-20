@@ -15,8 +15,11 @@ extern const PhaseResponses Responses_OkCancel;
 extern const PhaseResponses Responses_AbortRetryIgnore;
 extern const PhaseResponses Responses_YesNo;
 extern const PhaseResponses Responses_YesNoCancel;
+extern const PhaseResponses Responses_YesNoIgnore;
 extern const PhaseResponses Responses_RetryCancel;
 extern const PhaseResponses Responses_ChangeIgnoreCancel;
+extern const PhaseResponses Responses_ChangeIgnoreAbort;
+extern const PhaseResponses Responses_IgnoreAbort;
 
 /*****************************************************************************/
 //MsgBoxBase
