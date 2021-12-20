@@ -16,8 +16,11 @@ const PhaseResponses Responses_OkCancel             = { Response::Ok,       Resp
 const PhaseResponses Responses_AbortRetryIgnore     = { Response::Abort,    Response::Retry,  Response::Ignore, Response::_none };
 const PhaseResponses Responses_YesNo                = { Response::Yes,      Response::No,     Response::_none,  Response::_none };
 const PhaseResponses Responses_YesNoCancel          = { Response::Yes,      Response::No,     Response::Cancel, Response::_none };
+const PhaseResponses Responses_YesNoIgnore          = { Response::Yes,      Response::No,     Response::Ignore, Response::_none };
 const PhaseResponses Responses_RetryCancel          = { Response::Retry,    Response::Cancel, Response::_none,  Response::_none };
 const PhaseResponses Responses_ChangeIgnoreCancel   = { Response::Change,   Response::Ignore, Response::Cancel, Response::_none };
+const PhaseResponses Responses_ChangeIgnoreAbort    = { Response::Change,   Response::Ignore, Response::Abort,  Response::_none };
+const PhaseResponses Responses_IgnoreAbort          = { Response::Ignore,   Response::Abort,  Response::_none,  Response::_none };
 
 // clang-format on
 /*****************************************************************************/

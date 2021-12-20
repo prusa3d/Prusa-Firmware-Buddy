@@ -18,7 +18,6 @@ struct screen_print_preview_data_t : public AddSuperWindow<screen_t> {
     window_text_t back_label;
     WindowPreviewThumbnail thumbnail;
     GCodeInfo &gcode;
-    bool ignore_wrong_filament;
     bool suppress_draw;
 
     GCodeInfoWithDescription gcode_description; //cannot be first
