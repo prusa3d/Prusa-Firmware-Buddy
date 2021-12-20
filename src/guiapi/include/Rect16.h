@@ -586,9 +586,9 @@ public:
     /// @param[out] splits[] buffer to fill of splitted Rect16
     /// @param[out] spaces[] buffer to fill of spaces between Rect16 splits
     /// @param[in] count number of splits
-    /// @param[in] spacing with of spaces between rectangle's splits (optional = 0)
-    /// @param[in] ratio[] ratio of wanted splits (optional = nullptr)
-    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
+    /// @param[in] spacing width of spaces between rectangle's splits (optional = 0)
+    /// @param[in] text_width[] width of texts (optional = nullptr)
+    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t text_width[] = nullptr) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Horizontal split with dynamic spaces from parent Rect16
@@ -634,8 +634,8 @@ public:
     /// @param[out] spaces[] buffer to fill of spaces between Rect16 splits
     /// @param[in] count number of splits
     /// @param[in] spacing with of spaces between rectangle's splits (optional = 0)
-    /// @param[in] ratio[] ratio of wanted splits (optional = nullptr)
-    void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
+    /// @param[in] text_width[] text_width of wanted splits (optional = nullptr)
+    void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t text_width[] = nullptr) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Line operation substracts subtrahend

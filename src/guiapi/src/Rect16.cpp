@@ -174,7 +174,7 @@ void Rect16::Align(Rect16 rc, Align_t align) {
     }
 }
 
-void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, uint8_t ratio[]) const {
+void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, uint8_t text_width[]) const {
     if (count == 0)
         return;
     if (count == 1) {
@@ -182,17 +182,22 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t coun
         return;
     }
 
-    size_t index, ratio_sum = 0;
+    size_t index;
     const uint16_t usable_width = Width() - (spacing * (count - 1));
     uint16_t width = usable_width / count;
     uint16_t final_width = 0;
-    if (ratio != nullptr) {
-        ratio_sum = std::accumulate(ratio, ratio + count, ratio_sum);
+    int space_in_btn;
+    if (text_width != nullptr) {
+        int text_sum = std::accumulate(text_width, text_width + count, 0);
+        if (text_sum > usable_width)
+            text_sum = usable_width;
+        /// unused space around text will be the same in all buttons
+        space_in_btn = (usable_width - text_sum) / count;
     }
+
     for (index = 0; index < count; index++) {
-        if (ratio != nullptr) {
-            width = usable_width * ((float)ratio[index] / (float)ratio_sum) + .5F;
-        }
+        if (text_width != nullptr)
+            width = text_width[index] + space_in_btn;
         const int16_t left = index == 0 ? (int16_t)Left() : splits[index - 1].EndPoint().x + spacing;
         /// rect split
         splits[index] = Rect16({ left, Top() }, width, Height());
@@ -203,12 +208,13 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t coun
             final_width += spacing;
         }
     }
-    /// add not used pixels due to rounding to the last split width
+    /// add not used pixels due to rounding to the middle split width
     if (final_width < Width()) {
-        splits[count - 1].width_ += Width() - final_width;
+        splits[count / 2].width_ += Width() - final_width;
     }
 }
 
+/// TODO: this is not used, should share the code with HorizontalSplit
 void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, uint8_t ratio[]) const {
     if (count == 0)
         return;

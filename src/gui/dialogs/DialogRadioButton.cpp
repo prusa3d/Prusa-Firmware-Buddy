@@ -120,18 +120,18 @@ void RadioButton::draw_n_btns(const size_t btn_count) {
     /// fix size of dialog buttons - MAX_DIALOG_BUTTON_COUNT
     Rect16 splits[GuiDefaults::MAX_DIALOG_BUTTON_COUNT];
     Rect16 spaces[GuiDefaults::MAX_DIALOG_BUTTON_COUNT - 1];
-    uint8_t ratio[GuiDefaults::MAX_DIALOG_BUTTON_COUNT];
+    uint8_t text_width[GuiDefaults::MAX_DIALOG_BUTTON_COUNT];
 
     for (size_t index = 0; index < btn_count; index++) {
         string_view_utf8 txt = _((*texts)[index]);
-        ratio[index] = static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
+        text_width[index] = pfont->w * static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
     }
-    GetRect().HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
+    GetRect().HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, text_width);
 
     for (size_t i = 0; i < btn_count; ++i) {
         string_view_utf8 drawn = _((*texts)[i]);
         char buffer[MAX_TEXT_BUFFER] = { 0 };
-        if ((pfont->w * ratio[i]) > splits[i].Width()) {
+        if (text_width[i] > splits[i].Width()) {
             uint32_t max_btn_label_text = splits[i].Width() / pfont->w;
             size_t length = std::min(max_btn_label_text, MAX_TEXT_BUFFER - 1);
             length = drawn.copyToRAM(buffer, length);
