@@ -735,9 +735,9 @@ TEST_CASE("rectangle split", "[rectangle]") {
 
         std::tie(r, count, spacing, ratio, expSplits, expSpaces) = GENERATE(
             std::make_tuple<Rect16, size_t, uint16_t, Ratio, Sequence, Sequence>(
-                { 0, 0, 100, 100 }, 2, 0, { { 1, 1 } }, { { { 0, 0, 50, 100 }, { 50, 0, 50, 100 } } }, { { { 50, 0, 0, 100 } } }),
+                { 0, 0, 100, 100 }, 2, 0, { { 20, 20 } }, { { { 0, 0, 50, 100 }, { 50, 0, 50, 100 } } }, { { { 50, 0, 0, 100 } } }),
             std::make_tuple<Rect16, size_t, uint16_t, Ratio, Sequence, Sequence>(
-                { 0, 0, 120, 100 }, 4, 10, { { 1, 2, 2, 1 } }, { { { 0, 0, 15, 100 }, { 25, 0, 30, 100 }, { 65, 0, 30, 100 }, { 105, 0, 15, 100 } } }, { { { 15, 0, 10, 100 }, { 55, 0, 10, 100 }, { 95, 0, 10, 100 } } }));
+                { 0, 0, 120, 100 }, 4, 10, { { 10, 15, 15, 10 } }, { { { 0, 0, 20, 100 }, { 30, 0, 25, 100 }, { 65, 0, 25, 100 }, { 100, 0, 20, 100 } } }, { { { 20, 0, 10, 100 }, { 55, 0, 10, 100 }, { 90, 0, 10, 100 } } }));
 
         r.HorizontalSplit(splits, spaces, count, spacing, ratio.data());
 
