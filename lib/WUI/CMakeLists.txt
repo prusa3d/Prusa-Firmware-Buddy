@@ -19,6 +19,7 @@ target_sources(
             ethernetif.c
             sntp/sntp_client.c
             sntp/sntp.c
+            automata/core.cpp
   )
 
 set(WEB_FILE "fsdata_wui_local.c")
