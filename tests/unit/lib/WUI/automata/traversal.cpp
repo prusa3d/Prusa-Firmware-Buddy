@@ -1,9 +1,7 @@
-#include <automata/core.h>
+#include "test_execution.h"
 
 #include <catch2/catch.hpp>
-#include <vector>
 
-using std::vector;
 using namespace automata;
 
 namespace {
@@ -72,19 +70,6 @@ enum NamedStates {
 };
 
 const Automaton test_automaton(paths, transitions, states);
-
-class TestExecution : public Execution {
-protected:
-    virtual ExecutionControl event(Event event) override {
-        events.push_back(event);
-        return ExecutionControl::Continue;
-    }
-
-public:
-    vector<Event> events;
-    TestExecution(const Automaton &automaton)
-        : Execution(automaton) {}
-};
 
 }
 
