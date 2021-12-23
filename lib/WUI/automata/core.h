@@ -100,6 +100,10 @@ enum SpecialLabel : uint8_t {
     All = 0,
     /// Accepts all whitespaces.
     Whitespace = 1,
+    /// Horizontal whitespace (space or tab)
+    HorizWhitespace = 2,
+    /// 0-9
+    Digit = 3,
 };
 
 /**
@@ -156,6 +160,8 @@ struct Transition {
      * * One of the SpecialLabel values to pick a function.
      */
     uint8_t label : 7;
+    // Do not consume the character, offer it to the next state too.
+    bool fallthrough : 1;
     /// Checks a match with the given byte.
     bool matches(uint8_t byte) const;
 };
@@ -208,6 +214,12 @@ struct Event {
 struct TransitionResult {
     ActiveState new_state;
     std::optional<Event> emit_event;
+    /*
+     * The caller is responsible for feeding the character into the
+     * automaton once more. There was a transition, possibly with an
+     * event generated, but the character was not consumed.
+     */
+    bool re_feed;
 };
 
 struct StrPath {
@@ -310,10 +322,20 @@ public:
      * \brief Feed multiple bytes, one by one.
      *
      * The only difference here is that the feeding is stopped if the inner
-     * char-feeding returns anything but Continue. Even they, you could still
+     * char-feeding returns anything but Continue. Even then, you could still
      * feed something to in the future.
      */
     ExecutionControl feed(std::string_view data);
+
+    /**
+     * \brief Feed as many bytes as possible, indicating how much was
+     * consumed.
+     *
+     * Same as feed, but with indication of where the parsing stopped
+     * (either by no transition or by explicit request to stop by the
+     * callback).
+     */
+    std::tuple<ExecutionControl, size_t> consume(std::string_view data);
 };
 
 }

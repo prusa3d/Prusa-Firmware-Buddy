@@ -50,6 +50,7 @@ class Compiled:
         self.__paths = paths
         self.__transitions = transitions
         self.__states = states
+        # TODO: Check limits (unlikely to hit, but...)
 
     def cpp_header(self):
         return f"""
@@ -143,12 +144,42 @@ class Automaton:
         self.__states.append(state)
         return state
 
-    def compress(self):
-        pass  # TODO
+    def join(self, state, another):
+        """
+        Connects this automaton with another by identifying the given state
+        with the start state of the another.
+
+        Transitions from state and from the start state of the another are
+        concatenated.
+
+        This does a shallow copy of the content of another. All the
+        ramifications of joining with one automaton multiple times or using the
+        another after it has been joined are not thought through and would
+        probably be surprising.
+
+        It is however supported to keep links to states from both automata
+        except the start of the another (the identity of the newly joined state
+        is `state`).
+        """
+        start = another.start()
+        for trans in another.transitions_to(start):
+            trans.set_target(state)
+        self.__states.extend(another.__states[1:])
+        state.join(start)
+
+    def join_transition(self, state, another):
+        """
+        Similar to join, but doesn't identify the given states. It
+        places a fallback non-consuming transition between them.
+
+        This produces a slightly bigger automaton, but keeps the
+        transitions of the states separate (also names, events, etc).
+        """
+        start = another.start()
+        self.__states.extend(another.__states)
+        state.add_transition("All", LabelType.Special, start)
 
     def compile(self, namespace):
-        self.compress()
-
         for (i, state) in enumerate(self.__states):
             state.set_id(i)
 
@@ -164,14 +195,17 @@ class Automaton:
             has_path = False
             (path, path_nocase) = state.path()
             if path:
-                # TODO: Try finding existing one
-                path_idx = len(paths)
-                paths.append(path)
+                try:
+                    path_idx = paths.index(path)
+                except ValueError:
+                    path_idx = len(paths)
+                    paths.append(path)
                 has_path = True
             for transition in state.transitions():
                 target = transition.target_state_number()
                 (label, label_type) = transition.label()
-                transitions.append((target, label_type, label))
+                fallthrough = transition.fallthrough()
+                transitions.append((target, label_type, label, fallthrough))
             name = state.name()
             if name:
                 assert name not in names
@@ -181,6 +215,12 @@ class Automaton:
         states.append((len(transitions), False, False, 0, False, False))
 
         return Compiled(namespace, names, paths, transitions, states)
+
+    def transitions_to(self, target):
+        for state in self.__states:
+            for trans in state.transitions():
+                if target == trans.target_state():
+                    yield trans
 
 
 class State:
@@ -193,10 +233,13 @@ class State:
         self.__path = None
         self.__path_nocase = False
 
-    def add_transition(self, label, label_type, target):
-        transition = Transition(label, label_type, target)
+    def add_transition(self, label, label_type, target, fallthrough=False):
+        transition = Transition(label, label_type, target, fallthrough)
         self.__transitions.append(transition)
         return transition
+
+    def add_fallback(self, target, fallthrough=False):
+        self.add_transition("All", LabelType.Special, target, fallthrough)
 
     def transitions(self):
         return self.__transitions
@@ -222,11 +265,53 @@ class State:
     def name(self):
         return self.__name
 
+    def set_name(self, name):
+        self.__name = name
+
+    def set_path(self, path, nocase):
+        self.__path = path
+        self.__path_nocase = nocase
+
+    def find_next_state(self, label):
+        """
+        Finds a Char or CharNoCase transition with the given label or None if
+        it doesn't exist. Returns the state it leads to.
+        """
+        for t in self.__transitions:
+            (l, lt) = t.label()
+            if lt == LabelType.Char and l == label:
+                return t.target_state()
+            elif lt == LabelType.CharNoCase and l == label.lower():
+                return t.target_state()
+        else:
+            return None
+
+    def loop(self, label, label_type):
+        self.add_transition(label, label_type, self)
+
+    def loop_fallback(self):
+        self.loop("All", LabelType.Special)
+
+    def join(self, another):
+        if not self.__path and another.__path:
+            self.__path = another.__path
+            self.__path_nocase = another.__path_nocase
+        self.__emit_enter |= another.__emit_enter
+        self.__emit_leave |= another.__emit_leave
+        self.__name = self.__name or another.__name
+        self.__transitions.extend(another.__transitions)
+
 
 class Transition:
-    def __init__(self, label, label_type, target):
+    def __init__(self, label, label_type, target, fallthrough=False):
+        if label_type == LabelType.CharNoCase:
+            label = label.lower()
         self.__label = label
         self.__label_type = label_type
+        self.__target_state = target
+        self.__fallthrough = fallthrough
+
+    def set_target(self, target):
         self.__target_state = target
 
     def target_state(self):
@@ -237,3 +322,6 @@ class Transition:
 
     def label(self):
         return (self.__label, self.__label_type)
+
+    def fallthrough(self):
+        return self.__fallthrough
