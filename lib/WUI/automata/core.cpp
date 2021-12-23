@@ -18,9 +18,19 @@ bool whitespace(uint8_t byte) {
     return isspace(byte);
 }
 
+bool horiz_space(uint8_t byte) {
+    return byte == ' ' or byte == '\t';
+}
+
+bool digit(uint8_t byte) {
+    return isdigit(byte);
+}
+
 SpecialCheck specials[] = {
     anything,
     whitespace,
+    horiz_space,
+    digit,
 };
 
 }
@@ -70,10 +80,11 @@ std::optional<TransitionResult> Automaton::transition(ActiveState old, uint8_t b
                 ActiveState new_state(old.state + 1);
                 return TransitionResult {
                     new_state,
-                    gen_event(old.state, new_state.state, byte)
+                    gen_event(old.state, new_state.state, byte),
+                    false,
                 };
             } else {
-                return TransitionResult { old.path_step(), nullopt };
+                return TransitionResult { old.path_step(), nullopt, false };
             }
         }
     }
@@ -82,7 +93,7 @@ std::optional<TransitionResult> Automaton::transition(ActiveState old, uint8_t b
     for (TransIdx i = state.first_transition; i < sentinel.first_transition; i++) {
         if (transitions[i].matches(byte)) {
             const auto new_state = transitions[i].target_state;
-            return TransitionResult { new_state, gen_event(old.state, new_state, byte) };
+            return TransitionResult { new_state, gen_event(old.state, new_state, byte), transitions[i].fallthrough };
         }
     }
 
@@ -97,23 +108,36 @@ ExecutionControl Execution::feed(uint8_t byte) {
     if (new_state.has_value()) {
         current_state = new_state->new_state;
         if (new_state->emit_event.has_value()) {
-            return event(*new_state->emit_event);
+            const auto result = event(*new_state->emit_event);
+            if (result != ExecutionControl::Continue) {
+                return result;
+            }
         }
-        return ExecutionControl::Continue;
+        if (new_state->re_feed) {
+            return feed(byte);
+        } else {
+            return ExecutionControl::Continue;
+        }
     } else {
         return ExecutionControl::NoTransition;
     }
 }
 
-ExecutionControl Execution::feed(std::string_view data) {
+std::tuple<ExecutionControl, size_t> Execution::consume(std::string_view data) {
+    size_t consumed = 0;
     for (const uint8_t b : data) {
         const ExecutionControl control = feed(b);
         if (control != ExecutionControl::Continue) {
-            return control;
+            return std::make_tuple(control, consumed);
         }
+        consumed++;
     }
 
-    return ExecutionControl::Continue;
+    return std::make_tuple(ExecutionControl::Continue, consumed);
+}
+
+ExecutionControl Execution::feed(std::string_view data) {
+    return std::get<0>(consume(data));
 }
 
 }
