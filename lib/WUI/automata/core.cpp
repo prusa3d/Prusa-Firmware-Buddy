@@ -100,10 +100,8 @@ std::optional<TransitionResult> Automaton::transition(ActiveState old, uint8_t b
     return nullopt;
 }
 
-Execution::~Execution() {}
-
 ExecutionControl Execution::feed(uint8_t byte) {
-    const auto new_state = automaton.transition(current_state, byte);
+    const auto new_state = automaton->transition(current_state, byte);
 
     if (new_state.has_value()) {
         current_state = new_state->new_state;

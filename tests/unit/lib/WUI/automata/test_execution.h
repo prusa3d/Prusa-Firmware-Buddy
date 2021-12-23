@@ -17,7 +17,7 @@ protected:
 public:
     std::vector<automata::Event> events;
     TestExecution(const automata::Automaton &automaton)
-        : Execution(automaton) {}
+        : Execution(&automaton) {}
     std::string collect_entered(automata::StateIdx desired) {
         std::string result;
         for (const auto &event : events) {
