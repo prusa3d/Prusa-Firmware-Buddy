@@ -130,3 +130,16 @@ def request(interested):
     line.join_transition(line_end, head)
 
     return line, body
+
+
+if __name__ == "__main__":
+    want_headers = {
+        'X-Api-Key': read_header_value('XApiKey'),
+        'Content-Length': read_header_value('ContentLength'),
+    }
+    http, final = request(want_headers)
+    compiled = http.compile("nhttp::parser::request")
+    with open("http_req_automaton.h", "w") as header:
+        header.write(compiled.cpp_header())
+    with open("http_req_automaton.cpp", "w") as file:
+        file.write(compiled.cpp_file())

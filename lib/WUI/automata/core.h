@@ -189,6 +189,13 @@ struct State {
     bool emit_enter : 1;
     // Emit an event when leaving.
     bool emit_leave : 1;
+    /*
+     * FIXME: Paths probably belong to transitions instead.
+     *
+     * They may more sense there. And adding transition offset (u8) to the
+     * state won't make it bigger and we can afford to add few bits into
+     * transition. But it'll make it a bit more complicated to match.
+     */
     /**
      * \brief Description of a path.
      *
@@ -303,10 +310,18 @@ protected:
     virtual ExecutionControl event(Event event) = 0;
 
 public:
-    Execution(const Automaton &automaton)
+    Execution(const Automaton *automaton)
         : automaton(automaton)
-        , current_state(automaton.start()) {}
-    virtual ~Execution();
+        , current_state(automaton->start()) {}
+    Execution(const Execution &other)
+        : automaton(other.automaton)
+        , current_state(other.current_state) {}
+    Execution &operator=(const Execution &other) {
+        automaton = other.automaton;
+        current_state = other.current_state;
+        return *this;
+    }
+    virtual ~Execution() = default;
     /**
      * \brief Feed a single byte.
      *
