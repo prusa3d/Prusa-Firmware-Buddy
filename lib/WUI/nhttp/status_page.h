@@ -6,8 +6,6 @@
 
 namespace nhttp::handler {
 
-size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length = std::nullopt, const char **extra_hdrs = nullptr);
-
 class StatusPage {
 private:
     const char *extra_content;
