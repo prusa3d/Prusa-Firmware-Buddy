@@ -167,17 +167,18 @@ class Automaton:
         self.__states.extend(another.__states[1:])
         state.join(start)
 
-    def join_transition(self, state, another):
+    def join_transition(self, state, another, fallthrough=False):
         """
         Similar to join, but doesn't identify the given states. It
-        places a fallback non-consuming transition between them.
+        places catch-all transition between them. Optionally, it can be a
+        fallthrough one.
 
         This produces a slightly bigger automaton, but keeps the
         transitions of the states separate (also names, events, etc).
         """
         start = another.start()
         self.__states.extend(another.__states)
-        state.add_transition("All", LabelType.Special, start)
+        state.add_transition("All", LabelType.Special, start, fallthrough)
 
     def compile(self, namespace):
         for (i, state) in enumerate(self.__states):

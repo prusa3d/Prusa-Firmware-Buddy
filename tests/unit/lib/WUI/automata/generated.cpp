@@ -148,3 +148,16 @@ TEST_CASE("Whole request - fuzzy") {
 
     REQUIRE(request.substr(consumed) == "Body");
 }
+
+TEST_CASE("X-Api-Key first") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    const string_view request = string_view("GET /api/version HTTP/1.1\r\nX-Api-Key: 12345678\r\nAccept: */*\r\nHost: 1.2.3.4\r\n\r\n");
+    const auto [result, consumed] = ex.consume(request);
+
+    REQUIRE(ex.events[0].leaving_state == Names::MethodGet);
+    REQUIRE(ex.collect_entered(Names::Url) == "/api/version");
+    REQUIRE(ex.collect_entered(Names::Version) == "1.1");
+    REQUIRE(ex.collect_entered(Names::XApiKey) == "12345678");
+    REQUIRE(ex.events.back().entering_state == Names::Body);
+}
