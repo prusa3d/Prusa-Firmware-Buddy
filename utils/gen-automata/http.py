@@ -127,7 +127,7 @@ def request(interested):
     """
     line, line_end = req_line()
     head, body = headers(interested)
-    line.join_transition(line_end, head)
+    line.join_transition(line_end, head, fallthrough=True)
 
     return line, body
 
