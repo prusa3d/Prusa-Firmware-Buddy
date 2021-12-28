@@ -34,7 +34,7 @@ class Idle {
 public:
     bool want_read() const { return false; }
     bool want_write() const { return false; }
-    Step step(std::string_view input, uint8_t *output, size_t output_size);
+    Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
 };
 
 // Marker for last state of connection, just closing a request and then transitioning to idle.
@@ -42,7 +42,7 @@ struct Terminating {
     Done how;
     bool want_read() const { return false; }
     bool want_write() const { return false; }
-    Step step(std::string_view input, uint8_t *output, size_t output_size);
+    Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
     static Terminating for_handling(ConnectionHandling handling) {
         return Terminating { handling == ConnectionHandling::Close ? Done::Close : Done::KeepAlive };
     }

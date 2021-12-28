@@ -11,7 +11,7 @@ target_sources(
             http/fs.c
             http/handler.c
             http_handler_default.c
-            http_lifetime.c
+            http_lifetime.cpp
             http/httpd.c
             http/httpd_post.c
             http/multipart_parser.c

@@ -16,6 +16,8 @@ using std::get_if;
 using std::holds_alternative;
 using std::string_view;
 
+ServerDefs::~ServerDefs() {};
+
 Server::Slot::Slot()
     : partial(nullptr, &pbuf_free) {}
 
@@ -27,6 +29,7 @@ void Server::Slot::release_buffer() {
 }
 
 void Server::Slot::release_partial() {
+    altcp_recved(conn, partial->tot_len);
     partial.reset();
     partial_consumed = 0;
 }
@@ -58,7 +61,9 @@ bool Server::Slot::close() {
      * if that happens.
      */
     altcp_arg(conn, &server->idle_slot);
+    altcp_recv(conn, nullptr);
     if (altcp_close(conn) == ERR_OK) {
+        release();
         return true;
     } else {
         altcp_arg(conn, this);
@@ -67,10 +72,10 @@ bool Server::Slot::close() {
 }
 
 void Server::Slot::release() {
-    state = Idle();
-    conn = nullptr;
     release_buffer();
     release_partial();
+    state = Idle();
+    conn = nullptr;
 }
 
 bool Server::Slot::is_empty() const {
@@ -79,7 +84,7 @@ bool Server::Slot::is_empty() const {
 
 void Server::Slot::step(string_view input, uint8_t *output, size_t out_buff) {
     Step s = std::visit([this, input, output, out_buff](auto &phase) -> Step {
-        return phase.step(input, output, out_buff);
+        return phase.step(input, client_closed && input.empty() && output == nullptr, output, out_buff);
     },
         state);
 
@@ -115,40 +120,50 @@ bool Server::Slot::step() {
         return close();
     }
 
-    if (buffer) {
-        if (buffer->acked == buffer->write_len) {
-            release_buffer();
-            return true;
-        }
-    }
-
     if (partial && partial->tot_len == partial_consumed) {
         release_partial();
         return true;
     }
 
-    /*
-     * Try to advance in/out buffers as much as possible. This'll get us closer
-     * to releasing resources.
-     */
     if (buffer) {
+        if (buffer->acked == buffer->write_len) {
+            release_buffer();
+            return true;
+        }
+
+        /*
+         * Try to advance in/out buffers as much as possible. This'll get us closer
+         * to releasing resources.
+         */
         assert(buffer->write_pos <= buffer->write_len);
         const auto to_send = std::min(static_cast<uint16_t>(buffer->write_len - buffer->write_pos), send_space());
         const auto flags = (to_send < (buffer->write_len - buffer->write_pos)) ? TCP_WRITE_FLAG_MORE : 0;
-        if (to_send > 0) {
-            if (altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, flags) == ERR_OK) {
-                buffer->write_pos += to_send;
-                altcp_output(conn);
-                return true;
-            }
+        if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, flags) == ERR_OK) {
+            buffer->write_pos += to_send;
+            altcp_output(conn);
+            return true;
+        } else {
+            /*
+             * Couldn't send more (no space? Nothing to send?), but we are
+             * still waiting for some acks. Keep waiting, don't do anything
+             * else until we get rid of that data.
+             *
+             * (We could probably still try consuming more input, but being
+             * able to and having it would be rare and would complicate things.)
+             */
+            return false;
         }
     }
 
+    /*
+     * No more sending or receiving, do some processing.
+     */
     const bool re = want_read();
     const bool wr = want_write();
     string_view input = "";
     uint8_t *output = nullptr;
     size_t output_size = 0;
+    const bool invoke_client_close = re && client_closed;
 
     if (re && partial) {
         // The input pbuf is a linked list with disjoint blocks. Find the right
@@ -177,7 +192,7 @@ bool Server::Slot::step() {
         }
     }
 
-    if (!input.empty() || output) {
+    if (!input.empty() || invoke_client_close || output) {
         step(input, output, output_size);
         return true;
     }
@@ -192,7 +207,12 @@ bool Server::Slot::step() {
             altcp_arg(conn, &server->idle_slot);
             switch (t->how) {
             case Done::KeepAlive:
-                release();
+                if (partial) {
+                    // We still have some data to process. Pipelining?
+                    state.emplace<handler::RequestParser>(*server);
+                } else {
+                    release();
+                }
                 return true;
             case Done::Close:
                 if (close()) {
@@ -268,17 +288,16 @@ err_t Server::accept(altcp_pcb *new_conn, err_t err) {
 }
 
 void Server::lost_conn_wrap(void *slot, err_t) {
-    if (slot != nullptr) {
+    if (is_active_slot(slot)) {
         static_cast<Slot *>(slot)->release();
     }
 }
 
 err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
-    if (slot != nullptr) {
-        static_cast<Slot *>(slot)->release();
-    }
+    lost_conn_wrap(slot, ERR_OK);
     if (conn != nullptr) {
         altcp_arg(conn, nullptr);
+        altcp_recv(conn, nullptr);
         /*
          * Technically, we probably should produce the 408 Request Timeout
          * here, at least in some cases. But this is hard for us, since we
@@ -295,23 +314,24 @@ err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
 }
 
 err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, err_t err) {
-    if (data == nullptr) {
-        // TODO: Find out if this is _shutdown_ by other end or outright close. Should we also close the connection?
-        lost_conn_wrap(raw_slot, err);
-        // Abort just in case, to really free the connection.
-        altcp_abort(conn);
-        return ERR_ABRT;
-    }
-
     assert(raw_slot != nullptr);
     assert(conn != nullptr);
 
-    Slot *slot = static_cast<Slot *>(raw_slot);
-    if (slot == &slot->server->idle_slot) {
+    BaseSlot *base_slot = static_cast<BaseSlot *>(raw_slot);
+    if (base_slot == &base_slot->server->idle_slot) {
+        if (data == nullptr) {
+            // Closing an idle connection.
+            if (altcp_close(conn) == ERR_OK) {
+                return ERR_OK;
+            } else {
+                altcp_abort(conn);
+                return ERR_ABRT;
+            }
+        }
         /*
          * The connection was not yet active. Find a slot for it and activate it.
          */
-        if (Slot *active_slot = slot->server->find_empty_slot(); active_slot != nullptr) {
+        if (Slot *active_slot = base_slot->server->find_empty_slot(); active_slot != nullptr) {
             assert(!active_slot->partial);
             assert(active_slot->partial_consumed == 0);
             assert(!active_slot->buffer);
@@ -320,7 +340,7 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
             active_slot->state.emplace<handler::RequestParser>(*active_slot->server);
             active_slot->conn = conn;
             altcp_arg(conn, active_slot);
-            slot = active_slot;
+            base_slot = active_slot;
 
             altcp_poll(conn, idle_conn_wrap, ACTIVE_POLL_TIME);
         } else {
@@ -335,6 +355,9 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
         }
     }
 
+    assert(is_active_slot(base_slot));
+    Slot *slot = static_cast<Slot *>(base_slot);
+
     if (slot->partial) {
         /*
          * We are still in the middle of the previous buffer. We don't want
@@ -346,7 +369,12 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
     }
 
     assert(slot->partial_consumed == 0);
-    slot->partial.reset(data);
+    // data = null - other side did shutdown.
+    if (data) {
+        slot->partial.reset(data);
+    } else {
+        slot->client_closed = true;
+    }
 
     /*
      * Will send data, consume data, free pbufs, release buffers and close
@@ -361,10 +389,13 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
 }
 
 err_t Server::sent_wrap(void *raw_slot, altcp_pcb *conn, uint16_t len) {
-    Slot *slot = static_cast<Slot *>(raw_slot);
+    if (is_active_slot(raw_slot)) {
+        Slot *slot = static_cast<Slot *>(raw_slot);
 
-    assert(!holds_alternative<Idle>(slot->state));
-    slot->server->sent(slot, len);
+        assert(!holds_alternative<Idle>(slot->state));
+        slot->server->sent(slot, len);
+    }
+
     return ERR_OK;
 }
 
@@ -394,6 +425,15 @@ void Server::step() {
             sleeping_slots += 1;
         }
     }
+}
+
+bool Server::is_active_slot(void *slot) {
+    if (!slot) {
+        return false;
+    }
+
+    BaseSlot *s = static_cast<BaseSlot *>(slot);
+    return s != &s->server->idle_slot;
 }
 
 Server::Slot *Server::find_empty_slot() {
