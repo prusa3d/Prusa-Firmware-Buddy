@@ -92,6 +92,10 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
         pos += snprintf(buf + pos, buffer_len - pos, "Content-Length: %" PRIu64 "\r\n", *content_length);
         pos = std::min(buffer_len, pos);
     }
+    if (handling == ConnectionHandling::ChunkedKeep) {
+        pos += snprintf(buf + pos, buffer_len - pos, "Transfer-Encoding: chunked\r\n");
+        pos = std::min(buffer_len, pos);
+    }
     for (; extra_hdrs && *extra_hdrs; extra_hdrs++) {
         size_t copy = std::min(buffer_len - pos, strlen(*extra_hdrs));
         memcpy(buf + pos, *extra_hdrs, copy);

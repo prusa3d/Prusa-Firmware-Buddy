@@ -4,6 +4,7 @@
 #include "nhttp/static_mem.h"
 #include "wui.h"
 #include "wui_api.h"
+#include "wui_REST_api.h"
 
 #include <FreeRTOS.h>
 #include <semphr.h>
@@ -69,7 +70,61 @@ public:
 
 const StaticFsFile static_fs_file;
 
-const handler::Selector *selectors_array[] = { &validate_request, &static_fs_file, &unknown_request };
+#define GET_WRAPPER(NAME)                                               \
+    static size_t handler_##NAME(uint8_t *buffer, size_t buffer_size) { \
+        char *b = reinterpret_cast<char *>(buffer);                     \
+        NAME(b, buffer_size);                                           \
+        return strlen(b);                                               \
+    }
+GET_WRAPPER(get_printer);
+GET_WRAPPER(get_version);
+GET_WRAPPER(get_job);
+#undef GET_WRAPPER
+
+class PrusaLinkApi final : public Selector {
+    virtual optional<ConnectionState> accept(const RequestParser &parser) const override {
+        const string_view uri = parser.uri();
+
+        // Claim the whole /api prefix.
+        const string_view prefix("/api/");
+        if (uri.size() < prefix.size() || uri.substr(0, prefix.size()) != prefix) {
+            return nullopt;
+        }
+
+        if (!parser.authenticated()) {
+            return StatusPage(Status::Unauthorized, parser.can_keep_alive());
+        }
+
+        const string_view suffix = uri.substr(prefix.size());
+
+        const auto get_only = [parser](ConnectionState state) -> ConnectionState {
+            if (parser.method == Method::Get) {
+                return state;
+            } else {
+                return StatusPage(Status::MethodNotAllowerd, parser.can_keep_alive());
+            }
+        };
+
+        // Some stubs for now, to make more clients (including the web page) happier.
+        if (suffix == "download") {
+            return get_only(StatusPage(Status::NoContent, parser.can_keep_alive()));
+        } else if (suffix == "settings") {
+            return get_only(SendStaticMemory("{\"printer\": {}}", ContentType::ApplicationJson, parser.can_keep_alive()));
+        } else if (suffix == "version") {
+            return get_only(GenOnce(handler_get_version, ContentType::ApplicationJson, parser.can_keep_alive()));
+        } else if (suffix == "job") {
+            return get_only(GenOnce(handler_get_job, ContentType::ApplicationJson, parser.can_keep_alive()));
+        } else if (suffix == "printer") {
+            return get_only(GenOnce(handler_get_printer, ContentType::ApplicationJson, parser.can_keep_alive()));
+        } else {
+            return StatusPage(Status::NotFound, parser.can_keep_alive());
+        }
+    }
+};
+
+const PrusaLinkApi prusa_link_api;
+
+const handler::Selector *selectors_array[] = { &validate_request, &static_fs_file, &prusa_link_api, &unknown_request };
 
 const altcp_allocator_t altcp_alloc = { prusa_alloc };
 

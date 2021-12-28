@@ -122,6 +122,10 @@ public:
     const handler::Selector **selectors() const {
         return defs.selectors();
     }
+
+    const char *get_api_key() const {
+        return defs.get_api_key();
+    }
 };
 
 }

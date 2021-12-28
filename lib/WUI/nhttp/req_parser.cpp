@@ -11,6 +11,10 @@
 
 using namespace automata;
 using nhttp::parser::request::Names;
+using std::get;
+using std::get_if;
+using std::holds_alternative;
+using std::monostate;
 using std::string_view;
 
 namespace {
@@ -57,7 +61,25 @@ ExecutionControl RequestParser::event(Event event) {
             return ExecutionControl::Continue;
         }
     case Names::XApiKey:
-        // TODO
+        // No API key -> can't authenticate.
+        if (!api_key) {
+            auth_status = false;
+            return ExecutionControl::Continue;
+        }
+        // The first character, just starting.
+        if (holds_alternative<monostate>(auth_status)) {
+            auth_status = static_cast<uint8_t>(0);
+        }
+        if (uint8_t *idx = get_if<uint8_t>(&auth_status); idx != nullptr) {
+            const size_t key_len = strlen(api_key);
+            if (*idx >= key_len || api_key[*idx] != event.payload) {
+                auth_status = false;
+            } else if (++*idx == key_len) {
+                auth_status = true;
+            }
+        } else {
+            auth_status = false;
+        }
         return ExecutionControl::Continue;
     case Names::ContentLength:
         if (!content_length.has_value()) {
@@ -89,7 +111,9 @@ Step RequestParser::step(string_view input, bool terminated_by_client, uint8_t *
         return Step { 0, 0, Continue() };
     }
 
+    api_key = server->get_api_key();
     const auto [result, consumed] = consume(input);
+    api_key = nullptr;
 
     if (!done && result == ExecutionControl::NoTransition) {
         // Malformed request
@@ -134,6 +158,10 @@ bool RequestParser::uri_filename(char *buffer, size_t buffer_size) const {
     } else {
         return false;
     }
+}
+
+bool RequestParser::authenticated() const {
+    return (holds_alternative<bool>(auth_status) && get<bool>(auth_status));
 }
 
 }

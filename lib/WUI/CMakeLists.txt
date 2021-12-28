@@ -21,6 +21,7 @@ target_sources(
             sntp/sntp.c
             automata/core.cpp
             nhttp/common_selectors.cpp
+            nhttp/gen_once.cpp
             nhttp/handler.cpp
             nhttp/headers.cpp
             nhttp/req_parser.cpp
