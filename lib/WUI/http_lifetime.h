@@ -35,11 +35,6 @@ void httpd_reinit(void);
  */
 void httpd_close(void);
 
-#if HTTPD_ENABLE_HTTPS
-struct altcp_tls_config;
-void httpd_inits(struct altcp_tls_config *conf);
-#endif
-
 #ifdef __cplusplus
 }
 #endif

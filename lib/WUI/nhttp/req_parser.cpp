@@ -58,25 +58,45 @@ ExecutionControl RequestParser::event(Event event) {
         // TODO
         return ExecutionControl::Continue;
     case Names::ContentLength:
-        content_length = 10 * content_length + (event.payload - '0');
+        if (!content_length.has_value()) {
+            content_length = 0;
+        }
+        *content_length = 10 * *content_length + (event.payload - '0');
         return ExecutionControl::Continue;
+    case Names::Version:
+        switch (event.payload) {
+        case '.':
+            version_major = version_minor;
+            version_minor = 0;
+            return ExecutionControl::Continue;
+        case '0' ... '9':
+            version_minor = 10 * version_minor + (event.payload - '0');
+            return ExecutionControl::Continue;
+        }
     case Names::Body:
         done = true;
-        return ExecutionControl::Stop;
+        // Yes, really don't stop. Eath the \n too!
+        return ExecutionControl::Continue;
     }
 
     return ExecutionControl::Continue;
 }
 
-Step RequestParser::step(string_view input, uint8_t *, size_t) {
+Step RequestParser::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
     if (done) {
         return Step { 0, 0, Continue() };
     }
 
     const auto [result, consumed] = consume(input);
 
-    if (result == ExecutionControl::NoTransition) {
+    if (!done && result == ExecutionControl::NoTransition) {
         // Malformed request
+        error_code = Status::BadRequest;
+        done = true;
+    }
+
+    if (!done && terminated_by_client) {
+        // Incomplete request
         error_code = Status::BadRequest;
         done = true;
     }
@@ -94,6 +114,10 @@ Step RequestParser::step(string_view input, uint8_t *, size_t) {
     } else {
         return Step { consumed, 0, Continue() };
     }
+}
+
+bool RequestParser::can_keep_alive() const {
+    return (connection == Connection::KeepAlive) || (version_major == 1 && version_minor >= 1 && connection != Connection::Close);
 }
 
 }

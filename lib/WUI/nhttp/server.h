@@ -25,8 +25,8 @@ public:
 class Server {
 private:
     // TODO: Tune the values.
-    static const size_t ACTIVE_CONNS = 5;
-    static const size_t BUFF_SIZE = 256;
+    static const size_t ACTIVE_CONNS = 3;
+    static const size_t BUFF_SIZE = TCP_MSS;
     static const size_t BUFF_CNT = 2;
     // 30 half-seconds... weird units of LwIP
     static const uint8_t IDLE_POLL_TIME = 30;
@@ -37,14 +37,19 @@ private:
 
     struct Buffer;
 
-    class Slot {
+    class BaseSlot {
+    public:
+        Server *server = nullptr;
+    };
+
+    class Slot : public BaseSlot {
     private:
         void release_buffer();
         void release_partial();
         uint16_t send_space() const;
         bool want_read() const;
         bool want_write() const;
-        void step(std::string_view input, uint8_t *output, size_t output_size); // XXX
+        void step(std::string_view input, uint8_t *output, size_t output_size);
         // Close whole connection and release
         bool close();
 
@@ -57,6 +62,7 @@ private:
         // Do we have a partially processed pbuf, with data left for later?
         std::unique_ptr<pbuf, typeof(&pbuf_free)> partial;
         size_t partial_consumed = 0;
+        bool client_closed = false;
 
         void release();
         bool is_empty() const;
@@ -64,8 +70,13 @@ private:
         Slot();
     };
 
-    Slot idle_slot;
+    BaseSlot idle_slot;
     std::array<Slot, ACTIVE_CONNS> active_slots;
+    /*
+     * Rotating finger to the last slot that did something. Next time we start
+     * with the next one in a row to avoid starving connections.
+     */
+    uint8_t last_active_slot = 0;
 
     struct Buffer {
         // Yet unwritten data.
@@ -96,12 +107,7 @@ private:
     static err_t received_wrap(void *slot, altcp_pcb *conn, pbuf *data, err_t err);
     static err_t sent_wrap(void *slot, altcp_pcb *conn, uint16_t len);
     void sent(Slot *slot, uint16_t len);
-
-    /*
-     * Rotating finger to the last slot that did something. Next time we start
-     * with the next one in a row to avoid starving connections.
-     */
-    uint8_t last_active_slot = 0;
+    static bool is_active_slot(void *slot);
 
 public:
     Server(const ServerDefs &defs);

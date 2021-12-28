@@ -21,7 +21,7 @@ public:
         , can_keep_alive(can_keep_alive) {}
     bool want_read() const { return false; }
     bool want_write() const { return true; }
-    Step step(std::string_view input, uint8_t *output, size_t output_size);
+    Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
 };
 
 }
