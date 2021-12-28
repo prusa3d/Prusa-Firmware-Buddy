@@ -26,6 +26,7 @@ struct RequestParser final : public automata::Execution {
      */
     uint8_t version_major = 0;
     uint8_t version_minor = 0;
+    // FIXME: Parse these!
     enum class Connection {
         Unknown,
         KeepAlive,
@@ -50,6 +51,8 @@ struct RequestParser final : public automata::Execution {
      * * Connection header, if present.
      */
     bool can_keep_alive() const;
+
+    bool uri_filename(char *buffer, size_t buffer_len) const;
 };
 
 }

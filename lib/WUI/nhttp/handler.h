@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include "req_parser.h"
+#include "static_mem.h"
 #include "status_page.h"
 
 #include <optional>
@@ -52,6 +53,7 @@ using ConnectionState = std::variant<
     Idle,
     RequestParser,
     StatusPage,
+    SendStaticMemory,
     // TODO: Some other generators/consumers
     // TODO: Some generic generators/consumers
     Terminating>;

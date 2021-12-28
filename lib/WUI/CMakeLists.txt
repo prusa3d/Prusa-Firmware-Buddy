@@ -22,8 +22,10 @@ target_sources(
             automata/core.cpp
             nhttp/common_selectors.cpp
             nhttp/handler.cpp
+            nhttp/headers.cpp
             nhttp/req_parser.cpp
             nhttp/server.cpp
+            nhttp/static_mem.cpp
             nhttp/status_page.cpp
             ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )

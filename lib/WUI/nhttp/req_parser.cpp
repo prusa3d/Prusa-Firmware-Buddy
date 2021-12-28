@@ -7,6 +7,8 @@
  */
 #include <http_req_automaton.h>
 
+#include <cstring>
+
 using namespace automata;
 using nhttp::parser::request::Names;
 using std::string_view;
@@ -118,6 +120,20 @@ Step RequestParser::step(string_view input, bool terminated_by_client, uint8_t *
 
 bool RequestParser::can_keep_alive() const {
     return (connection == Connection::KeepAlive) || (version_major == 1 && version_minor >= 1 && connection != Connection::Close);
+}
+
+bool RequestParser::uri_filename(char *buffer, size_t buffer_size) const {
+    // FIXME: Parsing and _validation_ of the URL:
+    // * Stop at any `&`
+    // * Make sure there are no `..` or such in there.
+    // * Demangling?
+    if (buffer_size > url_size) {
+        memcpy(buffer, url.begin(), url_size);
+        buffer[url_size] = '\0';
+        return true;
+    } else {
+        return false;
+    }
 }
 
 }
