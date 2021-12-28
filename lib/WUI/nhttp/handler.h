@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "gen_once.h"
 #include "req_parser.h"
 #include "static_mem.h"
 #include "status_page.h"
@@ -54,6 +55,7 @@ using ConnectionState = std::variant<
     RequestParser,
     StatusPage,
     SendStaticMemory,
+    GenOnce,
     // TODO: Some other generators/consumers
     // TODO: Some generic generators/consumers
     Terminating>;

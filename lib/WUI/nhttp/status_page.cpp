@@ -19,7 +19,11 @@ Step StatusPage::step(std::string_view, bool, uint8_t *output, size_t output_siz
     const StatusText &text = StatusText::find(status);
 
     char content_buffer[128];
-    snprintf(content_buffer, sizeof(content_buffer), "<html><body><h1>%u: %s</h1><p>%s", static_cast<unsigned>(status), text.text, extra_content);
+    if (status == Status::NoContent) {
+        content_buffer[0] = 0;
+    } else {
+        snprintf(content_buffer, sizeof(content_buffer), "<html><body><h1>%u: %s</h1><p>%s", static_cast<unsigned>(status), text.text, extra_content);
+    }
 
     ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ContentLengthKeep : ConnectionHandling::Close;
 

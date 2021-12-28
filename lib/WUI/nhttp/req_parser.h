@@ -34,6 +34,9 @@ struct RequestParser final : public automata::Execution {
     };
     Connection connection = Connection::Unknown;
 
+    const char *api_key = nullptr;
+    std::variant<std::monostate, uint8_t, bool> auth_status;
+
     virtual automata::ExecutionControl event(automata::Event event) override;
 
     bool want_write() const { return false; }
@@ -51,8 +54,10 @@ struct RequestParser final : public automata::Execution {
      * * Connection header, if present.
      */
     bool can_keep_alive() const;
+    bool authenticated() const;
 
     bool uri_filename(char *buffer, size_t buffer_len) const;
+    std::string_view uri() const { return std::string_view(url.begin(), url_size); }
 };
 
 }
