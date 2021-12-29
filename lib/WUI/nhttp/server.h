@@ -28,9 +28,16 @@ private:
     static const size_t ACTIVE_CONNS = 3;
     static const size_t BUFF_SIZE = TCP_MSS;
     static const size_t BUFF_CNT = 2;
-    // 30 half-seconds... weird units of LwIP
-    static const uint8_t IDLE_POLL_TIME = 30;
+    // 10 half-seconds... weird units of LwIP
+    static const uint8_t IDLE_POLL_TIME = 10;
     static const uint8_t ACTIVE_POLL_TIME = 4;
+    /*
+     * Priorities of active vs idle connections. Decides which connections are
+     * killed if there's too many of them.
+     */
+    static const uint8_t IDLE_PRIO = TCP_PRIO_MIN;
+    // -1 -> allow other connections to be created, don't hog all of them.
+    static const uint8_t ACTIVE_PRIO = TCP_PRIO_NORMAL - 1;
 
     const ServerDefs &defs;
     struct IdleConn {};
@@ -47,8 +54,6 @@ private:
         void release_buffer();
         void release_partial();
         uint16_t send_space() const;
-        bool want_read() const;
-        bool want_write() const;
         void step(std::string_view input, uint8_t *output, size_t output_size);
         // Close whole connection and release
         bool close();
@@ -67,6 +72,8 @@ private:
         void release();
         bool is_empty() const;
         bool step();
+        bool want_read() const;
+        bool want_write() const;
         Slot();
     };
 
@@ -108,6 +115,8 @@ private:
     static err_t sent_wrap(void *slot, altcp_pcb *conn, uint16_t len);
     void sent(Slot *slot, uint16_t len);
     static bool is_active_slot(void *slot);
+    static void remove_callbacks(altcp_pcb *conn);
+    static void set_callbacks(altcp_pcb *conn, BaseSlot *slot);
 
 public:
     Server(const ServerDefs &defs);
