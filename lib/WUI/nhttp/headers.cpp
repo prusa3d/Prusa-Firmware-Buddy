@@ -115,17 +115,17 @@ ContentType guess_content_by_ext(const char *filename) {
 
     const char *ext = last_dot + 1;
 
-    if (strcasecmp(ext, "html") == 0 || strcasecmp(ext, "htm")) {
+    if (strcasecmp(ext, "html") == 0 || strcasecmp(ext, "htm") == 0) {
         return ContentType::TextHtml;
     } else if (strcasecmp(ext, "css") == 0) {
         return ContentType::TextCss;
     } else if (strcasecmp(ext, "js") == 0) {
         return ContentType::ApplicationJavascript;
-    } else if (strcasecmp(ext, "ico")) {
+    } else if (strcasecmp(ext, "ico") == 0) {
         return ContentType::ImageIco;
-    } else if (strcasecmp(ext, "png")) {
+    } else if (strcasecmp(ext, "png") == 0) {
         return ContentType::ImagePng;
-    } else if (strcasecmp(ext, "svg")) {
+    } else if (strcasecmp(ext, "svg") == 0) {
         return ContentType::ImageSvg;
     }
 
