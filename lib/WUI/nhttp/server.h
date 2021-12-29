@@ -64,6 +64,7 @@ private:
         handler::ConnectionState state;
         // Owning a buffer?
         Buffer *buffer = nullptr;
+        bool seen_activity = false;
         // Do we have a partially processed pbuf, with data left for later?
         std::unique_ptr<pbuf, typeof(&pbuf_free)> partial;
         size_t partial_consumed = 0;

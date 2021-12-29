@@ -60,6 +60,14 @@ ExecutionControl RequestParser::event(Event event) {
             error_code = Status::UriTooLong;
             return ExecutionControl::Continue;
         }
+    case Names::Boundary:
+        if (boundary_size < boundary_buff.size()) {
+            boundary_buff[boundary_size++] = event.payload;
+            return ExecutionControl::Continue;
+        } else {
+            error_code = Status::RequestHeaderFieldsTooLarge;
+            return ExecutionControl::Continue;
+        }
     case Names::XApiKey:
         // No API key -> can't authenticate.
         if (!api_key) {

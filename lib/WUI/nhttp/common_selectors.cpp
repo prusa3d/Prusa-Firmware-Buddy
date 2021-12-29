@@ -7,7 +7,7 @@ namespace nhttp::handler::selectors {
 
 optional<ConnectionState> ValidateRequest::accept(const RequestParser &request) const {
     if (request.method == Method::Unknown) {
-        return StatusPage(Status::MethodNotAllowerd, request.can_keep_alive(), "Unrecognized method");
+        return StatusPage(Status::MethodNotAllowed, request.can_keep_alive(), "Unrecognized method");
     }
 
     if (request.error_code != Status::Unknown) {

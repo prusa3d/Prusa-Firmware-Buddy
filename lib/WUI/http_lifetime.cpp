@@ -2,6 +2,7 @@
 #include "nhttp/common_selectors.h"
 #include "nhttp/headers.h"
 #include "nhttp/static_mem.h"
+#include "nhttp/gcode_upload.h"
 #include "wui.h"
 #include "wui_api.h"
 #include "wui_REST_api.h"
@@ -19,6 +20,7 @@ using std::string_view;
 using namespace nhttp;
 using namespace nhttp::handler;
 using namespace nhttp::handler::selectors;
+using nhttp::printer::GcodeUpload;
 
 namespace {
 
@@ -70,11 +72,11 @@ public:
 
 const StaticFsFile static_fs_file;
 
-#define GET_WRAPPER(NAME)                                               \
-    static size_t handler_##NAME(uint8_t *buffer, size_t buffer_size) { \
-        char *b = reinterpret_cast<char *>(buffer);                     \
-        NAME(b, buffer_size);                                           \
-        return strlen(b);                                               \
+#define GET_WRAPPER(NAME)                                        \
+    size_t handler_##NAME(uint8_t *buffer, size_t buffer_size) { \
+        char *b = reinterpret_cast<char *>(buffer);              \
+        NAME(b, buffer_size);                                    \
+        return strlen(b);                                        \
     }
 GET_WRAPPER(get_printer);
 GET_WRAPPER(get_version);
@@ -109,7 +111,7 @@ class PrusaLinkApi final : public Selector {
             if (parser.method == Method::Get) {
                 return state;
             } else {
-                return StatusPage(Status::MethodNotAllowerd, parser.can_keep_alive());
+                return StatusPage(Status::MethodNotAllowed, parser.can_keep_alive());
             }
         };
 
@@ -119,7 +121,22 @@ class PrusaLinkApi final : public Selector {
         } else if (suffix == "settings") {
             return get_only(SendStaticMemory("{\"printer\": {}}", ContentType::ApplicationJson, parser.can_keep_alive()));
         } else if (remove_prefix(suffix, "files").has_value()) {
-            return StatusPage(Status::NotImplemented, parser.can_keep_alive(), "List of files is not available yet");
+            if (parser.method == Method::Post) {
+                auto upload = GcodeUpload::start(parser);
+                /*
+                 * So, we have a "smaller" variant (eg. variant<A, B, C>) and
+                 * want a "bigger" variant<A, B, C, D, E>. C++ templates can't
+                 * do the "upgrade" automatically. But it can upgrade A into
+                 * the bigger one, it can upgrade B into the bigger one and can
+                 * upgrade C...
+                 *
+                 * Therefore we use the visit to take the first one apart and
+                 * then convert each type separately into the bigger one.
+                 */
+                return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
+            } else {
+                return StatusPage(Status::NotImplemented, parser.can_keep_alive(), "List of files is not available yet");
+            }
             // The real API endpoints
         } else if (suffix == "version") {
             return get_only(GenOnce(handler_get_version, ContentType::ApplicationJson, parser.can_keep_alive()));

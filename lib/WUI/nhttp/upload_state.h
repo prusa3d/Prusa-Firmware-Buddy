@@ -24,11 +24,46 @@
  * The data fed to it may be split arbitrarily.
  */
 
-#include "handler.h"
+/*
+ * FIXME: Imported from the old C-style http server. We want to C++-ify it and
+ * somehow reasonably "inject" into the current server.
+ */
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * Handlers of the GCODE upload.
+ *
+ * Few notes:
+ *
+ * * This is the wrong level of abstraction, but for now, we are following the
+ *   current code. Eventually, we'll have to come up with some kind of generic
+ *   post handling callback, so the fact we have some GCODE upload endpoint
+ *   doesn't leak into the HTTP server. This will hopefully follow from
+ *   replacement of the HTTP server implementation.
+ * * The API does _not_ currently support multiple parallel uploads. The HTTP
+ *   server currently refuses attempts to do so.
+ * * Return HTTP error codes for error and 0 for success.
+ * * The finish may be called without a filename (final_filename = NULL) as an
+ *   indication of an aborted upload. The data did not finish and shall not be
+ *   stored.
+ */
+typedef uint16_t upload_start(const char *filename);
+// FIXME: const char *data is probably wrong, it should be const uint8_t * as arbitrary data; but everything around right now uses char :-(
+typedef uint16_t upload_data(const char *data, size_t len);
+typedef uint16_t upload_finish(const char *tmp_filename, const char *final_filename, bool start_print);
+
+struct UploadHandlers {
+    upload_start *start;
+    upload_data *data;
+    upload_finish *finish;
+};
 
 /// A handle to the upload state.
 struct Uploader;
@@ -46,7 +81,7 @@ struct Uploader;
  *     be in an error state and it might be worth checking for errors.
  *   - NULL in case of allocation errors.
  */
-struct Uploader *uploader_init(const char *boundary, struct HttpHandlers *handlers);
+struct Uploader *uploader_init(const char *boundary, const struct UploadHandlers *handlers);
 
 /**
  * \brief Inserts more data into the tracker.

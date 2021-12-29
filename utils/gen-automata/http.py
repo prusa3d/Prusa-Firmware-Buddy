@@ -68,6 +68,82 @@ def read_header_value(event_name):
     return auto, end
 
 
+# TODO: We should really come up with a way to replace one state of one
+# automata with another whole automata, so we don't have to deal with the
+# continuations, etc.
+#
+# Due to that, we simplify a bit and won't allow split header in the middle of
+# the boundary or similar place.
+
+# TODO: Generalize for a list of keywords, possibly with values, separated by
+# _something_?
+
+
+# TODO: This one might want to get more readable :-(
+def read_boundary():
+    """
+    Read a boundary=value from a header.
+
+    This is meant for content type header (we ignore the actual content type)
+    """
+
+    # States:
+    # * We linger in read_until_colon first, then transition to waiting_word.
+    # * The waiting_word is responsible to find the 'boundary=' word
+    # * Then in_boundary accumulates the actual boundary
+    # If we leave it, it means it is somehow unknown and we loop back to
+    # waiting for another colon.
+    #
+    # And then to complicate things, there might be a newline that either means
+    # end of the header or it may be a header continuation. In the latter case,
+    # we need to distinguish the state of somewhere before or after colon.
+    auto = Automaton()
+    line, end = newline()
+
+    read_until_colon = auto.start()
+
+    waiting_word = auto.add_state()
+    # Target od waiting_word's path
+    equals = auto.add_state()
+
+    in_boundary = auto.add_state("Boundary")
+    equals.add_fallback(in_boundary)
+    in_boundary.mark_enter()
+    # Including newlines, yes - they'll be handled later.
+    in_boundary.add_transition("Whitespace",
+                               LabelType.Special,
+                               read_until_colon,
+                               fallthrough=True)
+    in_boundary.add_transition(';',
+                               LabelType.Char,
+                               read_until_colon,
+                               fallthrough=True)
+    in_boundary.loop_fallback()
+    waiting_word.set_path("boundary=", True)
+    waiting_word.loop("HorizWhitespace", LabelType.Special)
+    waiting_line, waiting_end = newline()
+    auto.join(waiting_word, waiting_line)
+    waiting_continuation = auto.add_state()
+    waiting_continuation.loop("HorizWhitespace", LabelType.Special)
+    waiting_continuation.add_fallback(waiting_word, fallthrough=True)
+    waiting_word.add_fallback(read_until_colon, fallthrough=True)
+    waiting_end.add_transition("HorizWhitespace", LabelType.Special,
+                               waiting_continuation)
+    waiting_end.add_fallback(end, fallthrough=True)
+
+    read_until_colon.add_transition(';', LabelType.Char, waiting_word)
+
+    auto.join(read_until_colon, line)
+    continuation = auto.add_state()
+    continuation.loop("HorizWhitespace", LabelType.Special)
+    continuation.add_fallback(read_until_colon, fallthrough=True)
+    end.add_transition("HorizWhitespace", LabelType.Special, continuation)
+
+    read_until_colon.loop_fallback()
+
+    return auto, end
+
+
 def headers(interested):
     """
     Automaton to read all the headers in a request followed by a transition to
@@ -136,6 +212,7 @@ if __name__ == "__main__":
     want_headers = {
         'X-Api-Key': read_header_value('XApiKey'),
         'Content-Length': read_header_value('ContentLength'),
+        'Content-Type': read_boundary(),
     }
     http, final = request(want_headers)
     compiled = http.compile("nhttp::parser::request")

@@ -194,7 +194,7 @@ uint16_t wui_upload_begin(const char *);
 /// @return
 ///    - 0 for success
 ///    - http error code to use.
-uint16_t wui_upload_data(const char *, uint32_t);
+uint16_t wui_upload_data(const char *, size_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Finalize upload of the file
