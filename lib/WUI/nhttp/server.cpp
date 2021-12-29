@@ -60,13 +60,12 @@ bool Server::Slot::close() {
      * On the other hand, close can also fail. So return it to previous state
      * if that happens.
      */
-    altcp_arg(conn, &server->idle_slot);
-    altcp_recv(conn, nullptr);
+    Server::remove_callbacks(conn);
     if (altcp_close(conn) == ERR_OK) {
         release();
         return true;
     } else {
-        altcp_arg(conn, this);
+        Server::set_callbacks(conn, this);
         return false;
     }
 }
@@ -137,7 +136,7 @@ bool Server::Slot::step() {
          */
         assert(buffer->write_pos <= buffer->write_len);
         const auto to_send = std::min(static_cast<uint16_t>(buffer->write_len - buffer->write_pos), send_space());
-        const auto flags = (to_send < (buffer->write_len - buffer->write_pos)) ? TCP_WRITE_FLAG_MORE : 0;
+        const auto flags = (to_send < (buffer->write_len - buffer->write_pos) || want_write()) ? TCP_WRITE_FLAG_MORE : 0;
         if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, flags) == ERR_OK) {
             buffer->write_pos += to_send;
             altcp_output(conn);
@@ -204,6 +203,7 @@ bool Server::Slot::step() {
          */
         if (const Terminating *t = get_if<Terminating>(&state)) {
             altcp_poll(conn, Server::idle_conn_wrap, Server::IDLE_POLL_TIME);
+            altcp_setprio(conn, Server::IDLE_PRIO);
             altcp_arg(conn, &server->idle_slot);
             switch (t->how) {
             case Done::KeepAlive:
@@ -273,18 +273,35 @@ err_t Server::accept(altcp_pcb *new_conn, err_t err) {
      *
      * Let LwIP handle the memory for the connection itself, though.
      */
-    altcp_arg(new_conn, &idle_slot);
+    set_callbacks(new_conn, &idle_slot);
+
+    /*
+     * We are willing to throw idle connections overboard to have more active ones.
+     */
+    altcp_setprio(new_conn, IDLE_PRIO);
     /*
      * Don't wait with sending more data. We are going to keep sending small
      * chunks anyway.
      */
     altcp_nagle_disable(new_conn);
-    altcp_err(new_conn, lost_conn_wrap);
-    altcp_poll(new_conn, idle_conn_wrap, IDLE_POLL_TIME);
-    altcp_recv(new_conn, received_wrap);
-    altcp_sent(new_conn, sent_wrap);
 
     return ERR_OK;
+}
+
+void Server::set_callbacks(altcp_pcb *conn, BaseSlot *slot) {
+    altcp_err(conn, lost_conn_wrap);
+    altcp_poll(conn, idle_conn_wrap, IDLE_POLL_TIME);
+    altcp_recv(conn, received_wrap);
+    altcp_sent(conn, sent_wrap);
+    altcp_arg(conn, slot);
+}
+
+void Server::remove_callbacks(altcp_pcb *conn) {
+    altcp_err(conn, nullptr);
+    altcp_poll(conn, nullptr, 0);
+    altcp_recv(conn, nullptr);
+    altcp_sent(conn, nullptr);
+    altcp_arg(conn, nullptr);
 }
 
 void Server::lost_conn_wrap(void *slot, err_t) {
@@ -294,16 +311,22 @@ void Server::lost_conn_wrap(void *slot, err_t) {
 }
 
 err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
+    bool send_goodbye = (!is_active_slot(slot) || static_cast<Slot *>(slot)->want_read());
     lost_conn_wrap(slot, ERR_OK);
     if (conn != nullptr) {
-        altcp_arg(conn, nullptr);
-        altcp_recv(conn, nullptr);
+        if (send_goodbye) {
+            /*
+             * This is a bit best-effort. We don't stress over this failing or whatever.
+             */
+            static const char goodbye[] = "408 Request Timeout\r\n\r\n";
+            altcp_write(conn, goodbye, sizeof(goodbye), 0);
+            altcp_output(conn);
+        }
         /*
-         * Technically, we probably should produce the 408 Request Timeout
-         * here, at least in some cases. But this is hard for us, since we
-         * probably don't have allocated buffers for that and we use this thing
-         * to _free_ resources, not to consume them.
+         * We don't know if connection-in-close can still generate callbacks
+         * but we sure don't want them.
          */
+        remove_callbacks(conn);
         if (altcp_close(conn) != ERR_OK) {
             altcp_abort(conn);
             return ERR_ABRT;
@@ -321,6 +344,7 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
     if (base_slot == &base_slot->server->idle_slot) {
         if (data == nullptr) {
             // Closing an idle connection.
+            remove_callbacks(conn);
             if (altcp_close(conn) == ERR_OK) {
                 return ERR_OK;
             } else {
@@ -343,6 +367,7 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
             base_slot = active_slot;
 
             altcp_poll(conn, idle_conn_wrap, ACTIVE_POLL_TIME);
+            altcp_setprio(conn, ACTIVE_PRIO);
         } else {
             /*
              * No slot available. Refuse the pbuf now (it'll be given to us
