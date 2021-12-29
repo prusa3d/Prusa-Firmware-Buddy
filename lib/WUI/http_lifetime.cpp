@@ -81,21 +81,29 @@ GET_WRAPPER(get_version);
 GET_WRAPPER(get_job);
 #undef GET_WRAPPER
 
+optional<string_view> remove_prefix(string_view input, string_view prefix) {
+    if (input.size() < prefix.size() || input.substr(0, prefix.size()) != prefix) {
+        return nullopt;
+    }
+
+    return input.substr(prefix.size());
+}
+
 class PrusaLinkApi final : public Selector {
     virtual optional<ConnectionState> accept(const RequestParser &parser) const override {
         const string_view uri = parser.uri();
 
         // Claim the whole /api prefix.
-        const string_view prefix("/api/");
-        if (uri.size() < prefix.size() || uri.substr(0, prefix.size()) != prefix) {
+        const auto suffix_opt = remove_prefix(uri, "/api/");
+        if (!suffix_opt.has_value()) {
             return nullopt;
         }
+
+        const auto suffix = *suffix_opt;
 
         if (!parser.authenticated()) {
             return StatusPage(Status::Unauthorized, parser.can_keep_alive());
         }
-
-        const string_view suffix = uri.substr(prefix.size());
 
         const auto get_only = [parser](ConnectionState state) -> ConnectionState {
             if (parser.method == Method::Get) {
@@ -110,6 +118,9 @@ class PrusaLinkApi final : public Selector {
             return get_only(StatusPage(Status::NoContent, parser.can_keep_alive()));
         } else if (suffix == "settings") {
             return get_only(SendStaticMemory("{\"printer\": {}}", ContentType::ApplicationJson, parser.can_keep_alive()));
+        } else if (remove_prefix(suffix, "files").has_value()) {
+            return StatusPage(Status::NotImplemented, parser.can_keep_alive(), "List of files is not available yet");
+            // The real API endpoints
         } else if (suffix == "version") {
             return get_only(GenOnce(handler_get_version, ContentType::ApplicationJson, parser.can_keep_alive()));
         } else if (suffix == "job") {
