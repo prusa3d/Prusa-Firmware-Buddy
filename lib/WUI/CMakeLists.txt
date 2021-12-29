@@ -9,18 +9,15 @@ target_sources(
             alsockets.c
             wui_api.c
             http/fs.c
-            http/handler.c
-            http_handler_default.c
             http_lifetime.cpp
-            http/httpd.c
-            http/httpd_post.c
-            http/multipart_parser.c
-            http/upload_state.cpp
+            nhttp/multipart_parser.c
+            nhttp/upload_state.cpp
             ethernetif.c
             sntp/sntp_client.c
             sntp/sntp.c
             automata/core.cpp
             nhttp/common_selectors.cpp
+            nhttp/gcode_upload.cpp
             nhttp/gen_once.cpp
             nhttp/handler.cpp
             nhttp/headers.cpp

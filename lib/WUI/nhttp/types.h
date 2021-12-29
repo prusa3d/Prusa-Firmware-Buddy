@@ -40,8 +40,9 @@ enum Status : uint16_t {
     BadRequest = 400,
     Unauthorized = 401,
     NotFound = 404,
-    MethodNotAllowerd = 405,
+    MethodNotAllowed = 405,
     Conflict = 409,
+    LengthRequired = 411,
     UriTooLong = 414,
     UnsupportedMediaType = 415,
     IMATeaPot = 418,
@@ -56,6 +57,10 @@ enum Status : uint16_t {
 // TODO: Replace stringy URLs with tokens/enums.
 static const size_t MAX_URL_LEN = 64;
 using Url = std::array<char, MAX_URL_LEN>;
+
+// Max len of boundary. section 7.2.1 of RFC 1341
+static const size_t MAX_BOUNDARY_LEN = 70;
+using Boundary = std::array<char, MAX_BOUNDARY_LEN>;
 
 class Server;
 

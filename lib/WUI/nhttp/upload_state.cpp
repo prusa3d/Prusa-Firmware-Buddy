@@ -232,7 +232,7 @@ private:
      *
      * Not owned by us.
      */
-    HttpHandlers *handlers;
+    const UploadHandlers *handlers;
 
     unique_ptr<multipart_parser, void (*)(multipart_parser *)> multiparter;
 
@@ -480,7 +480,7 @@ private:
     }
 
     int file_part(const string_view &payload) {
-        const auto err = handlers->gcode_data(handlers, payload.begin(), payload.size());
+        const auto err = handlers->data(payload.begin(), payload.size());
         if (err != 0) {
             error = err;
             init_done = false;
@@ -520,7 +520,7 @@ private:
 
     int body_end() {
         if (init_done) {
-            const auto err = handlers->gcode_finish(handlers, DEFAULT_UPLOAD_FILENAME, filename.begin(), start_print);
+            const auto err = handlers->finish(DEFAULT_UPLOAD_FILENAME, filename.begin(), start_print);
             init_done = false;
             if (err != 0) {
                 error = err;
@@ -562,7 +562,7 @@ private:
     };
 
 public:
-    UploadState(const char *boundary, HttpHandlers *handlers)
+    UploadState(const char *boundary, const UploadHandlers *handlers)
         : handlers(handlers)
         , multiparter(multipart_parser_init(boundary, &parser_settings), multipart_parser_free)
         , type(TokenType::NoToken)
@@ -576,7 +576,7 @@ public:
         if (multiparter) {
             multipart_parser_set_data(multiparter.get(), this);
 
-            const auto err = handlers->gcode_start(handlers, DEFAULT_UPLOAD_FILENAME);
+            const auto err = handlers->start(DEFAULT_UPLOAD_FILENAME);
             if (err != 0) {
                 error = err;
                 return;
@@ -589,7 +589,7 @@ public:
     ~UploadState() {
         if (init_done) {
             // Something aborted, try to propagate and let the callbacks know they shall free resources.
-            handlers->gcode_finish(handlers, DEFAULT_UPLOAD_FILENAME, NULL, false);
+            handlers->finish(DEFAULT_UPLOAD_FILENAME, NULL, false);
         }
     }
     // A good reason why we don't want these is because this is a
@@ -633,11 +633,11 @@ extern "C" {
 
 struct Uploader {
     UploadState state;
-    Uploader(const char *boundary, HttpHandlers *handlers)
+    Uploader(const char *boundary, const UploadHandlers *handlers)
         : state(boundary, handlers) {}
 };
 
-struct Uploader *uploader_init(const char *boundary, HttpHandlers *handlers) {
+struct Uploader *uploader_init(const char *boundary, const UploadHandlers *handlers) {
     return new Uploader(boundary, handlers);
 }
 

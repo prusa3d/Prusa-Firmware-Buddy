@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include "gen_once.h"
+#include "gcode_upload.h"
 #include "req_parser.h"
 #include "static_mem.h"
 #include "status_page.h"
@@ -56,6 +57,7 @@ using ConnectionState = std::variant<
     StatusPage,
     SendStaticMemory,
     GenOnce,
+    printer::GcodeUpload,
     // TODO: Some other generators/consumers
     // TODO: Some generic generators/consumers
     Terminating>;

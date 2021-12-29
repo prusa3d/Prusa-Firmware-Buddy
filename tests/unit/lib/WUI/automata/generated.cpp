@@ -8,6 +8,7 @@
 #include <string_view>
 
 using namespace automata;
+using std::string;
 using std::string_view;
 
 namespace {
@@ -155,9 +156,50 @@ TEST_CASE("X-Api-Key first") {
     const string_view request = string_view("GET /api/version HTTP/1.1\r\nX-Api-Key: 12345678\r\nAccept: */*\r\nHost: 1.2.3.4\r\n\r\n");
     const auto [result, consumed] = ex.consume(request);
 
+    REQUIRE(result == ExecutionControl::Continue);
     REQUIRE(ex.events[0].leaving_state == Names::MethodGet);
     REQUIRE(ex.collect_entered(Names::Url) == "/api/version");
     REQUIRE(ex.collect_entered(Names::Version) == "1.1");
     REQUIRE(ex.collect_entered(Names::XApiKey) == "12345678");
     REQUIRE(ex.events.back().entering_state == Names::Body);
+}
+
+TEST_CASE("Extract boundary") {
+    using test::http::Names;
+    const char *boundary = nullptr;
+
+    SECTION("Common") {
+        boundary = "mutlipart/mixed; boundary=hello";
+    }
+
+    SECTION("Extra before") {
+        boundary = "mutlipart/mixed; charset=utf8; boundary=hello";
+    }
+
+    SECTION("Extra after") {
+        boundary = "mutlipart/mixed; boundary=hello; whatever";
+    }
+
+    SECTION("Nospaces") {
+        boundary = "mutlipart/mixed; boundary=hello";
+    }
+
+    SECTION(" Extra  spaces ") {
+        boundary = "mutlipart/mixed ; boundary=hello ";
+    }
+
+    SECTION("Split before colon") {
+        boundary = "mutlipart/mixed\r\n\t; boundary=hello";
+    }
+
+    SECTION("Split after colon") {
+        boundary = "mutlipart/mixed;\r\n\t boundary=hello";
+    }
+
+    const string request = string("GET / HTTP/1.1\r\nContent-Type: ") + boundary + "\r\n" + "Content-Length: 42" + "\r\n\r\n";
+
+    TestExecution ex(http_request);
+    ex.feed(request);
+    REQUIRE(ex.collect_entered(Names::ContentLength) == "42");
+    REQUIRE(ex.collect_entered(Names::Boundary) == "hello");
 }

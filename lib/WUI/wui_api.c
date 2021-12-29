@@ -392,7 +392,7 @@ uint16_t wui_upload_begin(const char *fname) {
     }
 }
 
-uint16_t wui_upload_data(const char *data, uint32_t length) {
+uint16_t wui_upload_data(const char *data, size_t length) {
     assert(upload_file);
     const size_t written = fwrite(data, sizeof(char), length, upload_file);
     if (written < length) {

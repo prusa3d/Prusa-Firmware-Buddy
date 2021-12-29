@@ -140,6 +140,7 @@ bool Server::Slot::step() {
         if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, flags) == ERR_OK) {
             buffer->write_pos += to_send;
             altcp_output(conn);
+            seen_activity = true;
             return true;
         } else {
             /*
@@ -192,6 +193,7 @@ bool Server::Slot::step() {
     }
 
     if (!input.empty() || invoke_client_close || output) {
+        seen_activity = true;
         step(input, output, output_size);
         return true;
     }
@@ -311,6 +313,18 @@ void Server::lost_conn_wrap(void *slot, err_t) {
 }
 
 err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
+    if (is_active_slot(slot)) {
+        /*
+         * LwIP seems to be invoking the poll timer from time to time, not when
+         * inactive as documented. So track if we are or are not active.
+         */
+        Slot *s = static_cast<Slot *>(slot);
+        if (s->seen_activity) {
+            s->seen_activity = false;
+            return ERR_OK;
+        }
+    }
+
     bool send_goodbye = (!is_active_slot(slot) || static_cast<Slot *>(slot)->want_read());
     lost_conn_wrap(slot, ERR_OK);
     if (conn != nullptr) {
@@ -318,7 +332,7 @@ err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
             /*
              * This is a bit best-effort. We don't stress over this failing or whatever.
              */
-            static const char goodbye[] = "408 Request Timeout\r\n\r\n";
+            static const char goodbye[] = "HTTP/1.1 408 Request Timeout\r\n\r\n";
             altcp_write(conn, goodbye, sizeof(goodbye), 0);
             altcp_output(conn);
         }
@@ -364,9 +378,9 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
             active_slot->state.emplace<handler::RequestParser>(*active_slot->server);
             active_slot->conn = conn;
             altcp_arg(conn, active_slot);
+            altcp_poll(conn, idle_conn_wrap, ACTIVE_POLL_TIME);
             base_slot = active_slot;
 
-            altcp_poll(conn, idle_conn_wrap, ACTIVE_POLL_TIME);
             altcp_setprio(conn, ACTIVE_PRIO);
         } else {
             /*
@@ -382,6 +396,7 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
 
     assert(is_active_slot(base_slot));
     Slot *slot = static_cast<Slot *>(base_slot);
+    slot->seen_activity = true;
 
     if (slot->partial) {
         /*
@@ -419,6 +434,7 @@ err_t Server::sent_wrap(void *raw_slot, altcp_pcb *conn, uint16_t len) {
 
         assert(!holds_alternative<Idle>(slot->state));
         slot->server->sent(slot, len);
+        slot->seen_activity = true;
     }
 
     return ERR_OK;
