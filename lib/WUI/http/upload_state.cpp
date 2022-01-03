@@ -64,7 +64,7 @@ constexpr const char *const FILENAME = "filename";
 constexpr const char *const FILE = "file";
 constexpr const char *const PRINT = "print";
 // FIXME: Have a separate one for parallel uploads
-constexpr const char *const DEFAULT_UPLOAD_FILENAME = "tmp.gcode";
+constexpr const char *const DEFAULT_UPLOAD_FILENAME = "upload.tmp";
 
 const constexpr size_t MAX_SUBTOKEN = 19;
 

@@ -230,11 +230,11 @@ TEST_CASE("One Big Chunk") {
 
     const auto &log = test.log();
     REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE(log.start->filename == "upload.tmp");
     REQUIRE(log.data.size() == 1);
     REQUIRE(log.data[0] == GCODE_LINE1);
     REQUIRE(log.finish.has_value());
-    REQUIRE(log.finish->tmp_filename == "tmp.gcode");
+    REQUIRE(log.finish->tmp_filename == "upload.tmp");
     REQUIRE(log.finish->final_filename == "test.gcode");
     REQUIRE_FALSE(log.finish->print);
 }
@@ -260,11 +260,11 @@ TEST_CASE("Handling multiple parts") {
 
     const auto &log = test.log();
     REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE(log.start->filename == "upload.tmp");
     REQUIRE(log.data.size() == 1);
     REQUIRE(log.data[0] == GCODE_LINE1);
     REQUIRE(log.finish.has_value());
-    REQUIRE(log.finish->tmp_filename == "tmp.gcode");
+    REQUIRE(log.finish->tmp_filename == "upload.tmp");
     REQUIRE(log.finish->final_filename == "test.gcode");
     REQUIRE(log.finish->print == expect_start);
     REQUIRE(test.error() == 0);
@@ -282,14 +282,14 @@ TEST_CASE("Chunked") {
 
     const auto &log = test.log();
     REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE(log.start->filename == "upload.tmp");
     string result;
     for (const auto &chunk : log.data) {
         result += chunk;
     }
     REQUIRE(result == GCODE_LINE1);
     REQUIRE(log.finish.has_value());
-    REQUIRE(log.finish->tmp_filename == "tmp.gcode");
+    REQUIRE(log.finish->tmp_filename == "upload.tmp");
     REQUIRE(log.finish->final_filename == "test.gcode");
     REQUIRE(log.finish->print);
     REQUIRE(test.error() == 0);
@@ -301,11 +301,11 @@ TEST_CASE("Extra spaces") {
 
     const auto &log = test.log();
     REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE(log.start->filename == "upload.tmp");
     REQUIRE(log.data.size() == 1);
     REQUIRE(log.data[0] == GCODE_LINE1);
     REQUIRE(log.finish.has_value());
-    REQUIRE(log.finish->tmp_filename == "tmp.gcode");
+    REQUIRE(log.finish->tmp_filename == "upload.tmp");
     REQUIRE(log.finish->final_filename == "test.gcode");
     REQUIRE_FALSE(log.finish->print);
     REQUIRE(test.error() == 0);
@@ -321,11 +321,11 @@ TEST_CASE("Prolog and epilogue") {
 
     const auto &log = test.log();
     REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE(log.start->filename == "upload.tmp");
     REQUIRE(log.data.size() == 1);
     REQUIRE(log.data[0] == GCODE_LINE1);
     REQUIRE(log.finish.has_value());
-    REQUIRE(log.finish->tmp_filename == "tmp.gcode");
+    REQUIRE(log.finish->tmp_filename == "upload.tmp");
     REQUIRE(log.finish->final_filename == "test.gcode");
     REQUIRE_FALSE(log.finish->print);
     REQUIRE(test.error() == 0);
@@ -352,7 +352,7 @@ TEST_CASE("Incomplete upload") {
 
     const auto &log = test.log();
     REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE(log.start->filename == "upload.tmp");
     REQUIRE(log.data.size() == 1);
     REQUIRE(log.data[0] == GCODE_LINE1);
     REQUIRE(log.finish.has_value());
@@ -382,7 +382,7 @@ TEST_CASE("Propagate errors from hooks") {
 
     const auto &log = test.log();
     REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "tmp.gcode");
+    REQUIRE(log.start->filename == "upload.tmp");
     REQUIRE_FALSE(log.finish.has_value());
 }
 
