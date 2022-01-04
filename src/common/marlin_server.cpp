@@ -1145,11 +1145,9 @@ static uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND)) {
-        uint32_t progress = 0;
+        uint32_t progress = -1;
         if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
             progress = oProgressData.oTime2End.mGetValue();
-        else
-            progress = -1;
         if (marlin_server.vars.time_to_end != progress) {
             marlin_server.vars.time_to_end = progress;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND);
@@ -1557,8 +1555,9 @@ void fsm_destroy(ClientFSM type) {
 
 void _fsm_change(ClientFSM type, fsm::BaseData data) {
     {
-        static int previous_type = -1;
-        static int previous_phase = -1;
+        static std::optional<int> previous_type;
+        static std::optional<int> previous_phase;
+        // no value: comparison returns true
         if (previous_type != static_cast<int>(type) || previous_phase != static_cast<int>(data.GetPhase())) {
             _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Change state of [%d] to %d", int(type), data.GetPhase());
             previous_type = static_cast<int>(type);
@@ -1594,7 +1593,7 @@ FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, variant8_t min, varian
     s_data.progress_min = progress_min;
     s_data.progress_max = progress_max;
     s_data.var_id = var_id;
-    s_data.last_progress_sent = -1;
+    s_data.last_progress_sent = std::nullopt;
     activeInstance = this;
 }
 
@@ -1624,7 +1623,8 @@ void FSM_notifier::SendNotification() {
         progress = s_data.progress_max;
 
     // after first sent, progress can only rise
-    if ((s_data.last_progress_sent == uint8_t(-1)) || (progress > s_data.last_progress_sent)) {
+    // no value: comparison returns true
+    if (progress > s_data.last_progress_sent) {
         s_data.last_progress_sent = progress;
         ProgressSerializer serializer(progress);
         _fsm_change(s_data.type, fsm::BaseData(s_data.phase, serializer.Serialize()));
@@ -1640,8 +1640,8 @@ FSM_notifier::~FSM_notifier() {
 /*****************************************************************************/
 //ClientResponseHandler
 //define static member
-//-1 (maxval) is used as no response from client
-uint32_t ClientResponseHandler::server_side_encoded_response = -1;
+//no value is used as no response from client
+std::optional<uint32_t> ClientResponseHandler::server_side_encoded_response;
 
 uint8_t get_var_sd_percent_done() {
     return marlin_server.vars.sd_percent_done;
