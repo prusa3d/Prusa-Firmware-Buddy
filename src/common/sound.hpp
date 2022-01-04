@@ -40,6 +40,7 @@ public:
     void play(eSOUND_TYPE eSoundType);
     void stop();
     void update1ms();
+    void singleSound(float frq, int16_t dur, float vol);
 
 private:
     Sound();
@@ -50,7 +51,6 @@ private:
     void saveMode();
     void saveVolume(); // + one louder
     void _sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f);
-    void _singleSound(float frq, int16_t dur, float vol);
     void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int8_t repeats[], const int16_t durations[], const int16_t delays[], unsigned size);
     void nextRepeat();
     float real_volume(int displayed_volume);     ///< converts displayed / saved volume to volume used by beeper
