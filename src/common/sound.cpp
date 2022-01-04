@@ -188,7 +188,7 @@ void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool
         tmpVol = f ? 0.3F : (vol * varVolume) * 0.3F;
     }
     if (rep == 1) {
-        _singleSound(frq, dur, tmpVol);
+        singleSound(frq, dur, tmpVol);
     } else {
         /// if sound is already playing, then don't interrupt
         if (repeat == -1 || repeat > 1) {
@@ -233,7 +233,7 @@ uint8_t Sound::displayed_volume(float real_volume) {
 
 /// starts single sound when it's not playing another
 /// this is usable when some infinitely repeating sound is playing.
-void Sound::_singleSound(float frq, int16_t dur, float vol) {
+void Sound::singleSound(float frq, int16_t dur, float vol) {
     if (duration_active <= 0) {
         hwio_beeper_set_pwm(0, 0);
         hwio_beeper_tone2(frq, dur, vol);

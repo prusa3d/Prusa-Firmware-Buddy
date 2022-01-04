@@ -637,6 +637,7 @@ target_sources(
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/common/Z_probe.cpp
+          src/marlin_stubs/M300.cpp
           src/marlin_stubs/M330.cpp
           src/marlin_stubs/M50.cpp
           src/marlin_stubs/M505.cpp
