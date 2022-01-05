@@ -12,10 +12,10 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 50:
             PrusaGcodeSuite::M50(); //selftest
             return true;
-#if defined(_DEBUG)
         case 300:
             PrusaGcodeSuite::M300();
             return true;
+#if defined(_DEBUG)
         case 330:
             PrusaGcodeSuite::M330();
             return true;
