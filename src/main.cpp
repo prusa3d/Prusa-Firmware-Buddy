@@ -270,7 +270,27 @@ int main(void) {
     HAL_PWM_Initialized = 1;
     HAL_SPI_Initialized = 1;
 
-    w25x_init(); //SPI flash
+    bool block_networking = false;
+    if (w25x_init()) { //SPI flash
+        /*
+         * Checking this first, before starting the GUI thread. The GUI thread
+         * resets/consumes the dump as a side effect.
+         */
+
+        if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
+            int dump_type = dump_in_xflash_get_type();
+            if (dump_type == DUMP_HARDFAULT || dump_type == DUMP_TEMPERROR) {
+                /*
+                 * This corresponds to booting into a bluescreen or serious
+                 * redscreen. In such case, the GUI is blocked. Similar logic
+                 * should apply to any network communication ‒ one probably shall
+                 * not eg. start a print from there.
+                 */
+                block_networking = true;
+            }
+        }
+    }
+
     eeprom_init_status_t status = eeprom_init();
     if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
         // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
@@ -325,9 +345,14 @@ int main(void) {
     }
 
 #ifdef BUDDY_ENABLE_WUI
-    /* definition and creation of webServerTask */
-    osThreadDef(webServerTask, StartWebServerTask, osPriorityBelowNormal, 0, 1024);
-    webServerTaskHandle = osThreadCreate(osThread(webServerTask), NULL);
+    if (!block_networking) {
+        /* definition and creation of webServerTask */
+        osThreadDef(webServerTask, StartWebServerTask, osPriorityBelowNormal, 0, 1024);
+        webServerTaskHandle = osThreadCreate(osThread(webServerTask), NULL);
+    }
+#else
+    // Avoid unused warning.
+    (void)block_networking;
 #endif
 
     /* USER CODE BEGIN RTOS_THREADS */
