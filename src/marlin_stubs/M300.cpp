@@ -1,8 +1,6 @@
-#ifdef _DEBUG
-
-    #include "../common/sound.hpp"
-    #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
-    #include "PrusaGcodeSuite.hpp"
+#include "../common/sound.hpp"
+#include "PrusaGcodeSuite.hpp"
+#include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 
 /**
  * M300: Play beep sound S<frequency Hz> P<duration ms> V<volume>
@@ -16,5 +14,3 @@ void PrusaGcodeSuite::M300() {
     NOMORE(duration, 5000U);
     Sound::getInstance().singleSound(frequency, duration, volume);
 }
-
-#endif
