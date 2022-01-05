@@ -8,7 +8,7 @@ enum class eSOUND_MODE : uint8_t {
     ASSIST,
     DEBUG,
     UNDEF = 0xFF,
-    DEFAULT = LOUD
+    DEFAULT_SOUND = LOUD
 };
 
 enum eSOUND_TYPE : uint8_t {

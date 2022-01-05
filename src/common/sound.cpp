@@ -98,7 +98,7 @@ Sound::Sound()
 void Sound::init() {
     eSoundMode = static_cast<eSOUND_MODE>(variant8_get_ui8(eeprom_get_var(EEVAR_SOUND_MODE)));
     if (eSoundMode == eSOUND_MODE::UNDEF) {
-        setMode(eSOUND_MODE::DEFAULT);
+        setMode(eSOUND_MODE::DEFAULT_SOUND);
     }
     varVolume = real_volume(variant8_get_ui8(eeprom_get_var(EEVAR_SOUND_VOLUME)));
     /// GLOBAL FLAG set on demand when first sound method is called

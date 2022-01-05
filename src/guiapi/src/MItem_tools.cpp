@@ -355,7 +355,7 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
 //MI_SOUND_MODE
 size_t MI_SOUND_MODE::init_index() const {
     eSOUND_MODE sound_mode = Sound_GetMode();
-    return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT : sound_mode);
+    return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT_SOUND : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
     : WI_SWITCH_t<MI_SOUND_MODE_COUNT>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no,
