@@ -60,9 +60,8 @@ void printerCode(char *str) {
         str[i] = to32((uint8_t *)hash, i * 5);
     }
 
-    /// set first 2 bits (sign, appendix)
-    /// TODO FW sign
-    if (0) {
+    /// set signature state
+    if (signature_exist()) {
         setBit((uint8_t *)hash, 7);
         // setBit(str[0], 7);
     }
@@ -189,4 +188,11 @@ bool appendix_exist() {
 #endif
         return pinState == GPIO_PIN_RESET;
     }
+}
+
+bool signature_exist() {
+    const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
+    if (bootloader->major >= 1 && bootloader->minor >= 2)
+        return ram_data_exchange.fw_signature;
+    return false;
 }
