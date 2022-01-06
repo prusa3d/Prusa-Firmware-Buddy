@@ -441,8 +441,16 @@ uint16_t wui_upload_finish(const char *old_filename, const char *new_filename, b
 
     result = rename(tmp_filename, filename);
     if (result != 0) {
-        // Likely a bad file name. Unprocessable Entity is somewhat close...
-        error_code = 422;
+        // Most likely the file name already exists and rename refuses to overwrite (409 conflict).
+        // It could _also_ be weird file name/forbidden chars that contain (422 Unprocessable Entity).
+        // Try to guess which one.
+        FILE *attempt = fopen(filename, "r");
+        if (attempt) {
+            fclose(attempt);
+            error_code = 409;
+        } else {
+            error_code = 422;
+        }
         goto clean_temp_file;
     }
 
