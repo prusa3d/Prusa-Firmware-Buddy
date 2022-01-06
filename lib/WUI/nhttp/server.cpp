@@ -75,6 +75,7 @@ void Server::Slot::release() {
     release_partial();
     state = Idle();
     conn = nullptr;
+    client_closed = false;
 }
 
 bool Server::Slot::is_empty() const {
