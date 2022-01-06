@@ -38,6 +38,7 @@ enum class esp_upload_action : uint32_t {
     Connect = 1,
     Start_flash = 2,
     Write_data = 3,
+    ESP_error = 4,
     Reset = 8,
 };
 
@@ -68,7 +69,7 @@ using MenuContainer = WinMenuContainer<MI_RETURN, MI_ESP_FLASH_ESP_AT>;
 
 class ScreenMenuESPUpdate : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("ESP FLASH");
-    static constexpr size_t helper_lines = 8;
+    static constexpr size_t helper_lines = 10;
     static constexpr int helper_font = IDR_FNT_SPECIAL;
     static constexpr size_t buffer_length = 512;
 
@@ -160,18 +161,23 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
             log_info(Network, "ESP boot connect");
             if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
-                help.SetText(_("Successfully connected to ESP. \nDo not switch the Printer off nor remove the Flash disk."));
+                help.SetText(_("Successfully connected to ESP. Do not switch the Printer off nor remove the Flash disk."));
                 progress_state = esp_upload_action::Start_flash;
             } else {
-                help.SetText(_("Connecting with ESP module failed."));
+                help.SetText(_("Connection to ESP failed. Check the ESP board and start again"));
+                progress_state = esp_upload_action::ESP_error;
             }
             break;
         }
         case esp_upload_action::Start_flash:
-            log_info(Network, "ESP Start flash %s", current_file->filename);
             if (f_open(&file_descriptor, current_file->filename, FA_READ) != FR_OK) {
                 log_error(Network, "ESP flash: Unable to open file %s", current_file->filename);
+                help.SetText(_("Unable to open files. Chek the flash drive and start again"));
+                progress_state = esp_upload_action::ESP_error;
                 break;
+            } else {
+                log_info(Network, "ESP Start flash %s", current_file->filename);
+                help.SetText(_(current_file->filename));
             }
 
             if (esp_loader_flash_start(
@@ -180,6 +186,8 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
                     buffer_length)
                 != ESP_LOADER_SUCCESS) {
                 log_error(Network, "ESP flash: Unable to start flash on address %0xld", current_file->address);
+                help.SetText(_("Unable to start flashing. Check the Flash disk and start again"));
+                progress_state = esp_upload_action::ESP_error;
                 f_close(&file_descriptor);
                 break;
             } else {
@@ -192,14 +200,20 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
 
             FRESULT res = f_read(&file_descriptor, buffer, sizeof(buffer), &readBytes);
             readCount += readBytes;
-            log_info(Network, "ESP read data %ld", readCount);
+            log_debug(Network, "ESP read data %ld", readCount);
             if (res != FR_OK) {
                 log_error(Network, "ESP flash: Unable to read file %s", current_file->filename);
+                help.SetText(_("Unable to read files. Chek the flash disk and start again"));
                 readBytes = 0;
+                progress_state = esp_upload_action::ESP_error;
+                break;
             }
             if (readBytes > 0) {
                 if (esp_loader_flash_write(buffer, readBytes) != ESP_LOADER_SUCCESS) {
                     log_error(Network, "ESP flash write FAIL");
+                    help.SetText(_("Unable to write data. Check the ESP Board and start again."));
+                    progress_state = esp_upload_action::ESP_error;
+                    break;
                 }
             } else {
                 f_close(&file_descriptor);
@@ -211,7 +225,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             break;
         }
         case esp_upload_action::Reset:
-            log_info(Network, "ESP finished flahing");
+            log_info(Network, "ESP finished flashing");
             help.SetText(_("ESP succesfully flashed. \nWiFI initiation started."));
             esp_loader_flash_finish(true);
             esp_set_operating_mode(ESP_RUNNING_MODE);
@@ -221,6 +235,11 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             current_file = firmware_set.begin();
             readCount = 0;
             break;
+        case esp_upload_action::ESP_error: {
+            progress_state = esp_upload_action::Initial;
+            f_close(&file_descriptor);
+            break;
+        }
         default:
             break;
         }
