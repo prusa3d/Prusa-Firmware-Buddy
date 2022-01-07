@@ -480,16 +480,25 @@ void marlin_server_print_resume(void) {
 }
 
 void marlin_server_print_reheat_start(void) {
-    if ((marlin_server.print_state == mpsPaused) && (marlin_server_print_reheat_ready() == 0)) {
+    if ((marlin_server.print_state == mpsPaused) && marlin_server_print_reheat_ready()) {
         thermalManager.setTargetHotend(marlin_server.resume_nozzle_temp, 0);
+        // No need to set bed temperature because we keep it on all the time.
     }
 }
 
-int marlin_server_print_reheat_ready(void) {
-    if (marlin_server.vars.target_nozzle == marlin_server.resume_nozzle_temp)
-        if (marlin_server.vars.temp_nozzle >= (marlin_server.vars.target_nozzle - 5))
-            return 1;
-    return 0;
+// Fast temperature recheck.
+// Does not check stability of the temperature.
+bool marlin_server_print_reheat_ready() {
+    // check nozzle
+    if (marlin_server.vars.target_nozzle != marlin_server.resume_nozzle_temp
+        || marlin_server.vars.temp_nozzle < (marlin_server.vars.target_nozzle - TEMP_HYSTERESIS)) {
+        return false;
+    }
+    // check bed
+    if (marlin_server.vars.temp_bed < (marlin_server.vars.target_bed - TEMP_BED_HYSTERESIS))
+        return false;
+
+    return true;
 }
 
 static void _server_print_loop(void) {
