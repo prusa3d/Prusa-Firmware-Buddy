@@ -159,7 +159,6 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
         switch (progress_state) {
         case esp_upload_action::Connect: {
             esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
-           
             if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
                 log_info(Network, "ESP boot connect OK");
                 help.SetText(_("Successfully connected to ESP. Do not switch the Printer off nor remove the Flash disk."));
