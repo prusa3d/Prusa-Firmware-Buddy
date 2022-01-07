@@ -159,11 +159,13 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
         switch (progress_state) {
         case esp_upload_action::Connect: {
             esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
-            log_info(Network, "ESP boot connect");
+           
             if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
+                log_info(Network, "ESP boot connect OK");
                 help.SetText(_("Successfully connected to ESP. Do not switch the Printer off nor remove the Flash disk."));
                 progress_state = esp_upload_action::Start_flash;
             } else {
+                log_debug(Network, "ESP boot failedK");
                 help.SetText(_("Connection to ESP failed. Check the ESP board and start again"));
                 progress_state = esp_upload_action::ESP_error;
             }
@@ -186,7 +188,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
                     buffer_length)
                 != ESP_LOADER_SUCCESS) {
                 log_error(Network, "ESP flash: Unable to start flash on address %0xld", current_file->address);
-                help.SetText(_("Unable to start flashing. Check the Flash disk and start again"));
+                help.SetText(_("ESP initial write failed. Please check the ESP board"));
                 progress_state = esp_upload_action::ESP_error;
                 f_close(&file_descriptor);
                 break;
