@@ -98,7 +98,7 @@ extern void marlin_server_print_resume(void);
 extern void marlin_server_print_reheat_start(void);
 
 //
-extern int marlin_server_print_reheat_ready(void);
+extern bool marlin_server_print_reheat_ready();
 
 // return true if the printer is not moving (idle, paused, aborted or finished)
 extern bool marlin_server_printer_idle();
