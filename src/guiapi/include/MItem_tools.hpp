@@ -5,6 +5,7 @@
 #include "i18n.h"
 #include "filament.hpp"
 #include "WindowItemFormatableLabel.hpp"
+#include "config.h"
 
 class MI_WIZARD : public WI_LABEL_t {
     static constexpr const char *const label = N_("Wizard");
@@ -145,6 +146,18 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+#ifdef BUDDY_ENABLE_DFU_ENTRY
+class MI_ENTER_DFU : public WI_LABEL_t {
+    static constexpr const char *const label = "Enter DFU";
+
+public:
+    MI_ENTER_DFU();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+#endif
 
 class MI_SAVE_DUMP : public WI_LABEL_t {
     static constexpr const char *const label = N_("Save Crash Dump");

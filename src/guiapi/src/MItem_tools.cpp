@@ -24,6 +24,7 @@
 #include "menu_spin_config.hpp"
 #include "DialogSelftestResult.hpp"
 #include <time.h>
+#include "sys.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -189,6 +190,18 @@ void MI_FACTORY_DEFAULTS::click(IWindowMenu & /*window_menu*/) {
         sys_reset();
     }
 }
+
+/*****************************************************************************/
+// MI_ENTER_DFU
+#ifdef BUDDY_ENABLE_DFU_ENTRY
+MI_ENTER_DFU::MI_ENTER_DFU()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::dev) {
+}
+
+void MI_ENTER_DFU::click(IWindowMenu &) {
+    sys_dfu_request_and_reset();
+}
+#endif
 
 /*****************************************************************************/
 //MI_SAVE_DUMP

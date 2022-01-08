@@ -13,9 +13,13 @@ extern "C" {
 
 extern volatile data_exchange_t ram_data_exchange;
 
-extern void sys_reset(void);
+extern void sys_reset(void) __attribute__((noreturn));
 
-extern void sys_dfu_boot(void);
+extern void sys_dfu_request_and_reset(void) __attribute__((noreturn));
+
+extern bool sys_dfu_requested(void);
+
+extern void sys_dfu_boot_enter(void) __attribute__((noreturn));
 
 extern int sys_pll_is_enabled(void);
 
