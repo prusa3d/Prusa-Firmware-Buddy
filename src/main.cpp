@@ -214,12 +214,26 @@ extern "C" void EepromSystemInit() {
         HAL_IWDG_Reset = 1;
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
+    // enable backup domain of the CPU
+    // this allows us to use the RTC->BKPXX registers
+    __HAL_RCC_PWR_CLK_ENABLE();
+    HAL_PWR_EnableBkUpAccess();
+
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
     HAL_Init(); //it is low level enough to be run in startup script
 
     SEGGER_SYSVIEW_Conf();
     /* Configure the system clock */
     SystemClock_Config();
+
+#ifdef BUDDY_ENABLE_DFU_ENTRY
+    // check whether user requested to enter the DFU mode
+    // this has to be checked after having
+    //  1) initialized access to the backup domain
+    //  2) having initialized related clocks (SystemClock_Config)
+    if (sys_dfu_requested())
+        sys_dfu_boot_enter();
+#endif
 
     MX_I2C1_Init();
     tick_timer_init();

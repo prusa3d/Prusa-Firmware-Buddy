@@ -19,6 +19,10 @@ enum {
     MARLIN_CLIENT_QUEUE = 16,  // size of marlin client input message queue (number of messages)
 };
 
+#if defined(_DEBUG)
+    #define BUDDY_ENABLE_DFU_ENTRY
+#endif
+
 //display PSOD instead of BSOD
 //#define PSOD_BSOD
 

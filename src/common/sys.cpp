@@ -1,9 +1,15 @@
 // sys.cpp - system functions
+#include <stdlib.h>
 #include "sys.h"
 #include "shared_config.h"
 #include "stm32f4xx_hal.h"
 #include "st25dv64k.h"
 #include "log.h"
+
+#define DFU_REQUEST_RTC_BKP_REGISTER RTC->BKP0R
+
+// magic value of RTC->BKP0R for requesting DFU bootloader entry
+static const constexpr uint32_t DFU_REQUESTED_MAGIC_VALUE = 0xF1E2D3C5;
 
 //firmware update flag
 static const constexpr uint16_t FW_UPDATE_FLAG_ADDRESS = 0x040B;
@@ -32,7 +38,35 @@ void sys_reset(void) {
         ; //endless loop
 }
 
-void sys_dfu_boot(void) {
+void sys_dfu_request_and_reset(void) {
+    DFU_REQUEST_RTC_BKP_REGISTER = DFU_REQUESTED_MAGIC_VALUE;
+    NVIC_SystemReset();
+}
+
+bool sys_dfu_requested(void) {
+    return DFU_REQUEST_RTC_BKP_REGISTER == DFU_REQUESTED_MAGIC_VALUE;
+}
+
+void sys_dfu_boot_enter(void) {
+    // clear the flag
+    DFU_REQUEST_RTC_BKP_REGISTER = 0;
+
+    // disable systick
+    SysTick->CTRL = 0;
+    SysTick->LOAD = 0;
+    SysTick->VAL = 0;
+
+    // remap memory
+    SYSCFG->MEMRMP = 0x01;
+
+    // enter the bootloader
+    volatile uintptr_t system_addr_start = 0x1FFF0000;
+    auto system_bootloader_start = (void (*)(void))(*(uint32_t *)(system_addr_start + 4));
+    __set_MSP(*(uint32_t *)system_addr_start); // prepare stack pointer
+    system_bootloader_start();                 // jump into the bootloader
+
+    // we should never reach this
+    abort();
 }
 
 int sys_calc_flash_latency(int freq) {
