@@ -8,6 +8,7 @@
 #include "Jogwheel.hpp"
 #include "ScreenShot.hpp"
 #include "gui_media_events.hpp"
+#include "gui_invalidate.hpp"
 
 static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
 

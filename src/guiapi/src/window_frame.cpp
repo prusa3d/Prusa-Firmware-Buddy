@@ -1,5 +1,6 @@
 // window_frame.cpp
 #include "window_frame.hpp"
+#include "gui_invalidate.hpp"
 #include "sound.hpp"
 #include "display.h"
 

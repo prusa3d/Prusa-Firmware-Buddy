@@ -182,5 +182,3 @@ public:
         enforce ? ths.SetEnforceCapture() : ths.ClrEnforceCapture();
     }
 };
-
-void gui_invalidate(void);

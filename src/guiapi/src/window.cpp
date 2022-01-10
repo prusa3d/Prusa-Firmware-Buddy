@@ -1,6 +1,7 @@
 //window.cpp
 
 #include "window.hpp"
+#include "gui_invalidate.hpp"
 #include <algorithm> // std::find
 #include "ScreenHandler.hpp"
 #include "gui_timer.h"
