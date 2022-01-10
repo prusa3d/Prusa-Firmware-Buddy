@@ -572,6 +572,7 @@ target_sources(
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_photoeletric.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/adc.cpp
+          src/common/basename.c
           src/common/i2c.cpp
           src/common/hardware_serial.cpp
           src/common/eeprom.cpp

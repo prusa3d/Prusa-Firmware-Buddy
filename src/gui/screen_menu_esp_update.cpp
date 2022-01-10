@@ -5,6 +5,8 @@
 #include "ScreenHandler.hpp"
 #include "RAII.hpp"
 
+#include <basename.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -68,10 +70,27 @@ public:
 using MenuContainer = WinMenuContainer<MI_RETURN, MI_ESP_FLASH_ESP_AT>;
 
 class ScreenMenuESPUpdate : public AddSuperWindow<screen_t> {
+private:
     constexpr static const char *const label = N_("ESP FLASH");
     static constexpr size_t helper_lines = 10;
     static constexpr int helper_font = IDR_FNT_SPECIAL;
     static constexpr size_t buffer_length = 512;
+    /*
+     * Additional size for the progress text:
+     * * newline (1)
+     * * numbers - assume the sizes won't be more than megabytes, so 7 digits is enough (2 * 7)
+     * * slash (1)
+     * * \0 (1)
+     */
+    static constexpr size_t progress_buffer_extra = 1 + 2 * 7 + 1 + 1;
+    /*
+     * Space for the progress buffer message.
+     *
+     * Based on the longest file name. Checked in the constructor to be enough.
+     *
+     * Make sure to update in case the file names change.
+     */
+    static constexpr size_t progress_buffer_len = 31 + progress_buffer_extra;
 
     MenuContainer container;
     window_menu_t menu;
@@ -84,6 +103,9 @@ class ScreenMenuESPUpdate : public AddSuperWindow<screen_t> {
     esp_entry *current_file;
     uint32_t readCount;
     loader_stm32_config_t loader_config;
+    std::array<char, progress_buffer_len> progress_buffer;
+
+    void updateProgress();
 
 public:
     ScreenMenuESPUpdate();
@@ -118,14 +140,30 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
           .port_rst = GPIOC,
           .pin_num_rst = GPIO_PIN_13,
       }) {
+    // Make sure the buffer is large enough.
+    for (const auto &file : firmware_set) {
+        (void)file; // Prevent unused warning in release build
+        assert(strlen(basename(file.filename)) + progress_buffer_extra <= progress_buffer.size());
+    }
     header.SetText(_(label));
     menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);        // set capture to list
-    help.SetText(_("- ESP not connected. Make sure the files are in the ESP folder of the flash disk"));
+    help.SetText(_("- Make sure the files are in the ESP folder of the flash disk and the ESP is connected."));
+    /*
+     * Timeout while flashing is bad, the flashing would stop in the middle.
+     */
+    flags.timeout_close = is_closed_on_timeout_t::no;
 }
 
 ScreenFactory::UniquePtr GetScreenMenuESPUpdate() {
     return ScreenFactory::Screen<ScreenMenuESPUpdate>();
+}
+
+void ScreenMenuESPUpdate::updateProgress() {
+    const char *name = basename(current_file->filename);
+    snprintf(progress_buffer.begin(), progress_buffer.size(), "%s\n%" PRIu32 "/%" PRIu32, name, readCount, current_file->size);
+    help.SetText(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(progress_buffer.begin())));
+    help.Invalidate();
 }
 
 void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -178,7 +216,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
                 break;
             } else {
                 log_info(Network, "ESP Start flash %s", current_file->filename);
-                help.SetText(_(current_file->filename));
+                updateProgress();
             }
 
             if (esp_loader_flash_start(
@@ -215,6 +253,8 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
                     help.SetText(_("Unable to write data. Check the ESP Board and start again."));
                     progress_state = esp_upload_action::ESP_error;
                     break;
+                } else {
+                    updateProgress();
                 }
             } else {
                 f_close(&file_descriptor);
@@ -237,7 +277,10 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             readCount = 0;
             break;
         case esp_upload_action::ESP_error: {
+            esp_loader_flash_finish(false);
             progress_state = esp_upload_action::Initial;
+            current_file = firmware_set.begin();
+            readCount = 0;
             f_close(&file_descriptor);
             break;
         }

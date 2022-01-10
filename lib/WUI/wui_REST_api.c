@@ -14,6 +14,8 @@
 #include "lwip/init.h"
 #include "netdev.h"
 
+#include <basename.h>
+
 #include <string.h>
 #include <stdio.h>
 
@@ -29,15 +31,6 @@ const char *json_bool(bool value) {
         return json_true;
     } else {
         return json_false;
-    }
-}
-
-const char *basename(const char *path) {
-    const char *last_slash = rindex(path, '/');
-    if (last_slash != NULL) {
-        return last_slash + 1;
-    } else {
-        return path;
     }
 }
 
