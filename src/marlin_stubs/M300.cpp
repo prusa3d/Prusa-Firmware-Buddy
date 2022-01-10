@@ -1,8 +1,8 @@
 #ifdef _DEBUG
 
+    #include "../common/sound.hpp"
     #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
     #include "PrusaGcodeSuite.hpp"
-    #include "../common/sound.hpp"
 
 /**
  * M300: Play beep sound S<frequency Hz> P<duration ms> V<volume>
