@@ -137,13 +137,11 @@ void WindowLiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *se
         Change(1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         arrows.SetState(WindowArrows::State_t::up);
-        gui_invalidate();
         break;
     case GUI_event_t::ENC_DN:
         Change(-1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         arrows.SetState(WindowArrows::State_t::down);
-        gui_invalidate();
         break;
     default:
         SuperWindowEvent(sender, event, param);
@@ -241,7 +239,6 @@ void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         adjuster.WindowEvent(sender, event, param);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         moveNozzle();
-        gui_invalidate();
         break;
     case GUI_event_t::CLICK:
         /// has set is_closed_on_click_t

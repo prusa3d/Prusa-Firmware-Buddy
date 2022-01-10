@@ -144,7 +144,6 @@ void ScreenMenuLanSettings::refresh_addresses() {
     }
     help.text = string_view_utf8::MakeRAM((const uint8_t *)plan_str);
     help.Invalidate();
-    gui_invalidate();
 }
 
 ScreenFactory::UniquePtr GetScreenMenuLanSettings() {

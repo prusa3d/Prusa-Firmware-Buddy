@@ -54,11 +54,9 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
         break;
     case GUI_event_t::ENC_UP:
         ++buttons;
-        gui_invalidate();
         break;
     case GUI_event_t::ENC_DN:
         --buttons;
-        gui_invalidate();
         break;
     default:
         SuperWindowEvent(sender, event, param);

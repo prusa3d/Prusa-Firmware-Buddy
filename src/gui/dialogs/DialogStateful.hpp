@@ -108,11 +108,9 @@ void DialogStateful<T>::windowEvent(EventLock /*has private ctor*/, window_t * /
     }
     case GUI_event_t::ENC_UP:
         ++radio;
-        gui_invalidate();
         break;
     case GUI_event_t::ENC_DN:
         --radio;
-        gui_invalidate();
         break;
     default:
         break;
