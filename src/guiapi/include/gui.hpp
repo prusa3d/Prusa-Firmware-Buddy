@@ -16,8 +16,6 @@ extern void gui_run(void);
 
 extern void gui_init(void);
 
-extern void gui_invalidate(void);
-
 extern void gui_redraw(void);
 
 #ifdef GUI_USE_RTOS
