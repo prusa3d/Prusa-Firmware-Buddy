@@ -260,6 +260,5 @@ void Screens::InnerLoop() {
             }
         }
         creator = nullptr;
-        gui_invalidate();
     }
 }
