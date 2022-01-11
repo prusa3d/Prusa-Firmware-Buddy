@@ -331,14 +331,12 @@ static inline void eeprom_unlock(void) {
 }
 
 // forward declarations of private functions
-
+static void eeprom_write_vars(eeprom_vars_t &vars);
 static uint16_t eeprom_var_size(enum eevar_id id);
-static uint16_t eeprom_var_addr(enum eevar_id id);
-//static void eeprom_print_vars(void);
-static int eeprom_convert_from_v2(void);
-static int eeprom_convert_from(uint16_t version, uint16_t features);
+static uint16_t eeprom_var_addr(enum eevar_id id, uint16_t addr = EEPROM_ADDRESS);
+static bool eeprom_convert_from(eeprom_vars_t &eevars);
 
-static int eeprom_check_crc32(void);
+static bool eeprom_check_crc32(const eeprom_vars_t &eevars);
 static void eeprom_update_crc32();
 
 static uint16_t eeprom_fwversion_ui16(void);
@@ -348,41 +346,51 @@ eeprom_init_status_t eeprom_init(void) {
     static eeprom_init_status_t status = EEPROM_INIT_Undefined;
     if (status != EEPROM_INIT_Undefined)
         return status; //already initialized
-    uint16_t version;
-    uint16_t features;
     status = EEPROM_INIT_Normal;
     osSemaphoreDef(eepromSema);
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
 
-    version = variant8_get_ui16(eeprom_get_var(EEVAR_VERSION));
-    features = (version >= 4) ? variant8_get_ui16(eeprom_get_var(EEVAR_FEATURES)) : 0;
-    if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32())
+    eeprom_vars_t &eevars = eeprom_startup_vars();
+
+    const uint16_t version = eevars.VERSION;
+    const uint16_t features = (version >= 4) ? eevars.FEATURES : 0;
+    if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32(eevars))
         status = EEPROM_INIT_Defaults;
     else if ((version != EEPROM_VERSION) || (features != EEPROM_FEATURES)) {
-        if (eeprom_convert_from(version, features) == 0) {
+        if (eeprom_convert_from(eevars) == 0) {
             status = EEPROM_INIT_Defaults;
         } else {
             status = EEPROM_INIT_Upgraded;
         }
     }
-    if (status == EEPROM_INIT_Defaults)
+    switch (status) {
+    case EEPROM_INIT_Defaults:
         eeprom_defaults();
-    //eeprom_print_vars(); this is not possible here because it hangs - init is now done in main.cpp, not in defaultThread
-    eeprom_startup_vars(); //initialize internal static variable, first call must be done now - to ensure interrupt is enabled
+        break;
+    case EEPROM_INIT_Upgraded:
+        eeprom_write_vars(eevars);
+        break;
+    default:
+        break;
+    }
+
     return status;
+}
+
+static void eeprom_write_vars(eeprom_vars_t &vars) {
+    eeprom_lock();
+    vars.CRC32 = crc32_eeprom((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    // write data to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+    eeprom_unlock();
 }
 
 void eeprom_defaults(void) {
     eeprom_vars_t vars = eeprom_var_defaults;
     vars.FWBUILD = project_build_number;
     vars.FWVERSION = eeprom_fwversion_ui16();
-    eeprom_lock();
-    // calculate crc32
-    vars.CRC32 = crc32_eeprom((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
-    // write data to eeprom
-    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
-    eeprom_unlock();
+    eeprom_write_vars(vars);
 }
 
 static eeprom_vars_t eeprom_read_vars() {
@@ -394,6 +402,11 @@ static eeprom_vars_t eeprom_read_vars() {
     return ret;
 }
 
+/**
+ * @brief initialize internal static variable holding eeprom struct in RAM
+ *
+ * @return eeprom_vars_t& reference to eeprom struct
+ */
 static eeprom_vars_t &eeprom_startup_vars() {
     static eeprom_vars_t ret = eeprom_read_vars();
     return ret;
@@ -551,26 +564,20 @@ static uint16_t eeprom_var_size(enum eevar_id id) {
     return 0;
 }
 
-static uint16_t eeprom_var_addr(enum eevar_id id) {
-    uint16_t addr = EEPROM_ADDRESS;
+/**
+ * @brief calculates address offset of given variable inside eeprom struct
+ *
+ * @param id variable
+ * @param addr address offset in eeprom, default value EEPROM_ADDRESS
+ * if struct is not in eeprom use 0
+ * @return uint16_t address offset of given variable
+ */
+static uint16_t eeprom_var_addr(enum eevar_id id, uint16_t addr) {
     uint8_t id_idx = id;
     while (id_idx > 0)
         addr += eeprom_var_size(static_cast<enum eevar_id>(--id_idx));
     return addr;
 }
-
-/*static void eeprom_print_vars(void) {
-    uint8_t id;
-    char text[128];
-    variant8_t var8;
-    variant8_t *pvar = &var8;
-    for (id = 0; id < EEPROM_VARCOUNT; id++) {
-        var8 = eeprom_get_var(id);
-        eeprom_var_format(text, sizeof(text), id, var8);
-        _dbg("%s=%s", eeprom_map[id].name, text);
-        variant8_done(&pvar);
-    }
-}*/
 
 static const constexpr uint16_t ADDR_V2_FILAMENT_TYPE = 0x0400;
 static const constexpr uint16_t ADDR_V2_FILAMENT_COLOR = EEPROM_ADDRESS + 3;
@@ -579,20 +586,24 @@ static const constexpr uint16_t ADDR_V2_ZOFFSET = 0x010e;
 static const constexpr uint16_t ADDR_V2_PID_NOZ_P = 0x019d;
 static const constexpr uint16_t ADDR_V2_PID_BED_P = 0x01af;
 
-static void eeprom_save_upgraded(eeprom_vars_t &vars) {
-    // calculate crc32
-    vars.CRC32 = crc32_eeprom((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
-    // write data to eeprom
-    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
-}
+/**
+ * @brief copy part od eeprom structure to another eeprom structure
+ *
+ * @param begin first record to copy
+ * @param end first entry after last element to copy
+ * @param dst structure to write in
+ * @param src structure to read from
+ */
+static void eeprom_import_block(enum eevar_id begin, enum eevar_id end, eeprom_vars_t &dst, const eeprom_vars_t &src) {
+    // start address of imported data block
+    const int32_t addr_start_offset = eeprom_var_addr(begin, 0);
+    // end address of imported data
+    const int32_t addr_end_offset = eeprom_var_addr(end, 0);
+    const int32_t bytes_to_copy = addr_end_offset - addr_start_offset;
 
-static void eeprom_import_block(enum eevar_id begin, enum eevar_id end, void *dst) {
-    // start addres of imported data block
-    uint16_t addr_start = eeprom_var_addr(begin);
-    // end addres of imported data - end means the next first eeprom var we do NOT want to copy
-    uint16_t addr_end = eeprom_var_addr(end);
-    // read first block
-    st25dv64k_user_read_bytes(addr_start, dst, addr_end - addr_start);
+    if (bytes_to_copy > 0) {
+        memcpy(((uint8_t *)&dst) + addr_start_offset, ((uint8_t *)&src) + addr_start_offset, bytes_to_copy);
+    }
 }
 
 static void eeprom_init_FW_identifiers(eeprom_vars_t &vars) {
@@ -607,8 +618,12 @@ static void eeprom_make_patches(eeprom_vars_t &vars) {
     vars.SHEET_PROFILE0.z_offset = vars.ZOFFSET;
 }
 
-// conversion function for old version 2 format (marlin eeprom)
-static int eeprom_convert_from_v2(void) {
+/**
+ * @brief conversion function for old version 2 format (marlin eeprom)
+ * only conversion function that reads from eeprom directly
+ * @param eevars output eeprom struct
+ */
+static void eeprom_convert_from_v2(eeprom_vars_t &eevars) {
     eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_init_FW_identifiers(vars);
     // read FILAMENT_TYPE (uint8_t)
@@ -623,120 +638,127 @@ static int eeprom_convert_from_v2(void) {
     // read ZOFFSET (float)
     st25dv64k_user_read_bytes(ADDR_V2_ZOFFSET, &(vars.ZOFFSET), sizeof(float));
     // check ZOFFSET valid range, cancel conversion if not of valid range (defaults will be loaded)
-    if ((vars.ZOFFSET < -2) || (vars.ZOFFSET > 0))
-        return 0;
-
-    eeprom_make_patches(vars);
-
-    eeprom_save_upgraded(vars);
-    return 1;
+    if ((vars.ZOFFSET < -2) || (vars.ZOFFSET > 0)) {
+        eevars = eeprom_var_defaults;
+    } else {
+        eevars = vars;
+    }
 }
 
-// conversion function for old version 4 (v 4.0.5)
-static int eeprom_convert_from_v4(void) {
+/**
+ * @brief conversion function for old version 4 (v 4.0.5)
+ *
+ * @param eevars input/output eeprom struct
+ */
+static void eeprom_convert_from_v4(eeprom_vars_t &eevars) {
     eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_init_FW_identifiers(vars);
 
-    // start addres of imported data first block (FILAMENT_TYPE..EEVAR_ZOFFSET)
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_PID_NOZ_P, &(vars.FILAMENT_TYPE));
+    // start address of imported data first block (FILAMENT_TYPE..EEVAR_ZOFFSET)
+    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_PID_NOZ_P, vars, eevars);
 
-    // start addres of imported data second block (EEVAR_LAN_FLAG..EEVAR_LAN_IP4_DNS2)
-    eeprom_import_block(EEVAR_LAN_FLAG, EEVAR_LAN_HOSTNAME, &(vars.LAN_FLAG));
+    // start address of imported data second block (EEVAR_LAN_FLAG..EEVAR_LAN_IP4_DNS2)
+    eeprom_import_block(EEVAR_LAN_FLAG, EEVAR_LAN_HOSTNAME, vars, eevars);
 
     // TODO: keep LAN host name (?)
-
-    eeprom_make_patches(vars);
-
-    eeprom_save_upgraded(vars);
-    return 1;
+    eevars = vars;
 }
 
-// conversion function for old version 6 (v 4.1.0)
-static int eeprom_convert_from_v6(void) {
+/**
+ * @brief conversion function for old version 6 (v 4.1.0)
+ *
+ * @param eevars input/output eeprom struct
+ */
+static void eeprom_convert_from_v6(eeprom_vars_t &eevars) {
     eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_init_FW_identifiers(vars);
 
-    // start addres of imported data block (FILAMENT_TYPE..EEVAR_SOUND_MODE)
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_SOUND_VOLUME, &(vars.FILAMENT_TYPE));
-
-    eeprom_make_patches(vars);
-
-    eeprom_save_upgraded(vars);
-    return 1;
+    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_SOUND_VOLUME, vars, eevars);
+    eevars = vars;
 }
 
-// conversion function for old version 8 (v 4.2.x)
-static int eeprom_convert_from_v7(void) {
+/**
+ * @brief conversion function for old version 8 (v 4.2.x)
+ *
+ * @param eevars input/output eeprom struct
+ */
+static void eeprom_convert_from_v7(eeprom_vars_t &eevars) {
     eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_init_FW_identifiers(vars);
 
-    // start addres of imported data block (FILAMENT_TYPE..EEVAR_LANGUAGE)
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_FILE_SORT, &(vars.FILAMENT_TYPE));
-
-    eeprom_make_patches(vars);
-
-    eeprom_save_upgraded(vars);
-    return 1;
+    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_FILE_SORT, vars, eevars);
+    eevars = vars;
 }
 
-// conversion function for old version 8 (v 4.3.RC)
-static int eeprom_convert_from_v8(void) {
+/**
+ * @brief conversion function for old version 8 (v 4.3.RC)
+ *
+ * @param eevars input/output eeprom struct
+ */
+static void eeprom_convert_from_v8(eeprom_vars_t &eevars) {
     eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_init_FW_identifiers(vars);
 
-    // start addres of imported data block (FILAMENT_TYPE..EEVAR_SOUND_MODE)
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_MENU_TIMEOUT, &(vars.FILAMENT_TYPE));
-
-    eeprom_make_patches(vars);
-
-    eeprom_save_upgraded(vars);
-    return 1;
+    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_MENU_TIMEOUT, vars, eevars);
+    eevars = vars;
 }
 
-// conversion function for old version 9 (v 4.3.2)
-static int eeprom_convert_from_v9(void) {
+/**
+ * @brief conversion function for old version 9 (v 4.3.2)
+ *
+ * @param eevars input/output eeprom struct
+ */
+static void eeprom_convert_from_v9(eeprom_vars_t &eevars) {
     eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_init_FW_identifiers(vars);
 
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_DEVHASH_IN_QR, &(vars.FILAMENT_TYPE));
-
-    eeprom_make_patches(vars);
-
-    eeprom_save_upgraded(vars);
-    return 1;
+    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_DEVHASH_IN_QR, vars, eevars);
+    eevars = vars;
 }
 
-// conversion function for new version format (features, firmware version/build)
-static int eeprom_convert_from(uint16_t version, uint16_t features) {
-    if (version == 2)
-        return eeprom_convert_from_v2();
-    if (version == 4)
-        return eeprom_convert_from_v4();
-    if (version == 6)
-        return eeprom_convert_from_v6();
-    if (version == 7)
-        return eeprom_convert_from_v7();
-    if (version == 8)
-        return eeprom_convert_from_v8();
-    if (version == 9)
-        return eeprom_convert_from_v9();
-    return 0;
+/**
+ * @brief conversion function for new version format (features, firmware version/build)
+ * does not change crc, it is changed automatically by write function
+ *
+ * @param eevars eeprom struct in RAM
+ * @return true updated (changed)
+ * @return false not changed
+ */
+static bool eeprom_convert_from(eeprom_vars_t &eevars) {
+    switch (eevars.VERSION) {
+    case 2:
+        eeprom_convert_from_v2(eevars);
+        break;
+    case 4:
+        eeprom_convert_from_v4(eevars);
+        break;
+    case 6:
+        eeprom_convert_from_v6(eevars);
+        break;
+    case 7:
+        eeprom_convert_from_v7(eevars);
+        break;
+    case 8:
+        eeprom_convert_from_v8(eevars);
+        break;
+    case 9:
+        eeprom_convert_from_v9(eevars);
+        break;
+    default:
+        return false;
+    }
+
+    eeprom_make_patches(eevars);
+    return true;
 }
 
 // version independent crc32 check
-static int eeprom_check_crc32(void) {
-    uint16_t datasize;
-    uint32_t crc;
-    datasize = variant8_get_ui16(eeprom_get_var(EEVAR_DATASIZE));
-    if (datasize > EEPROM_MAX_DATASIZE)
-        return 0;
-    st25dv64k_user_read_bytes(EEPROM_ADDRESS + datasize - 4, &crc, 4);
+static bool eeprom_check_crc32(const eeprom_vars_t &eevars) {
+    if (eevars.DATASIZE > EEPROM_MAX_DATASIZE)
+        return false;
 #if 1 //simple method
-    uint8_t data[EEPROM_MAX_DATASIZE];
-    uint32_t crc2;
-    st25dv64k_user_read_bytes(EEPROM_ADDRESS, data, datasize);
-    crc2 = crc32_eeprom((uint32_t *)data, (datasize - 4) / 4);
-    return (crc == crc2) ? 1 : 0;
+    uint32_t crc = crc32_eeprom((uint32_t *)(&eevars), (eevars.DATASIZE - 4) / 4);
+    return eevars.CRC32 == crc;
 #else //
 #endif
 }
