@@ -21,9 +21,8 @@
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
 static const constexpr uint8_t EEPROM__PADDING = 2;
-static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
-static const constexpr uint16_t EEPROM_MAX_DATASIZE = 512;         // maximum datasize
-static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
+static const constexpr uint8_t EEPROM_MAX_NAME = 16;       // maximum name length (with '\0')
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 512; // maximum datasize
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
 static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read only
@@ -353,11 +352,9 @@ eeprom_init_status_t eeprom_init(void) {
 
     eeprom_vars_t &eevars = eeprom_startup_vars();
 
-    const uint16_t version = eevars.VERSION;
-    const uint16_t features = (version >= 4) ? eevars.FEATURES : 0;
-    if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32(eevars))
+    if (!eeprom_check_crc32(eevars))
         status = EEPROM_INIT_Defaults;
-    else if ((version != EEPROM_VERSION) || (features != EEPROM_FEATURES)) {
+    else if ((eevars.VERSION != EEPROM_VERSION) || (eevars.FEATURES != EEPROM_FEATURES)) {
         if (eeprom_convert_from(eevars) == 0) {
             status = EEPROM_INIT_Defaults;
         } else {
@@ -579,13 +576,6 @@ static uint16_t eeprom_var_addr(enum eevar_id id, uint16_t addr) {
     return addr;
 }
 
-static const constexpr uint16_t ADDR_V2_FILAMENT_TYPE = 0x0400;
-static const constexpr uint16_t ADDR_V2_FILAMENT_COLOR = EEPROM_ADDRESS + 3;
-static const constexpr uint16_t ADDR_V2_RUN_SELFTEST = EEPROM_ADDRESS + 19;
-static const constexpr uint16_t ADDR_V2_ZOFFSET = 0x010e;
-static const constexpr uint16_t ADDR_V2_PID_NOZ_P = 0x019d;
-static const constexpr uint16_t ADDR_V2_PID_BED_P = 0x01af;
-
 /**
  * @brief copy part od eeprom structure to another eeprom structure
  *
@@ -616,33 +606,6 @@ static void eeprom_make_patches(eeprom_vars_t &vars) {
     // patch active sheet profile's live-z value
     // copying the ZOFFSET var directly is safe, it has been in the eeprom at least from v2
     vars.SHEET_PROFILE0.z_offset = vars.ZOFFSET;
-}
-
-/**
- * @brief conversion function for old version 2 format (marlin eeprom)
- * only conversion function that reads from eeprom directly
- * @param eevars output eeprom struct
- */
-static void eeprom_convert_from_v2(eeprom_vars_t &eevars) {
-    eeprom_vars_t vars = eeprom_var_defaults;
-    eeprom_init_FW_identifiers(vars);
-    // read FILAMENT_TYPE (uint8_t)
-    st25dv64k_user_read_bytes(ADDR_V2_FILAMENT_TYPE, &(vars.FILAMENT_TYPE), sizeof(uint8_t));
-    // initialize to zero, maybe not necessary
-    if (vars.FILAMENT_TYPE == 0xff)
-        vars.FILAMENT_TYPE = 0;
-    // read FILAMENT_COLOR (uint32_t)
-    st25dv64k_user_read_bytes(ADDR_V2_FILAMENT_COLOR, &(vars.FILAMENT_COLOR), sizeof(uint32_t));
-    // read RUN_SELFTEST & RUN_XYZCALIB & RUN_FIRSTLAY & FSENSOR_ENABLED (4x uint8_t)
-    st25dv64k_user_read_bytes(ADDR_V2_RUN_SELFTEST, &(vars.RUN_SELFTEST), 4 * sizeof(uint8_t));
-    // read ZOFFSET (float)
-    st25dv64k_user_read_bytes(ADDR_V2_ZOFFSET, &(vars.ZOFFSET), sizeof(float));
-    // check ZOFFSET valid range, cancel conversion if not of valid range (defaults will be loaded)
-    if ((vars.ZOFFSET < -2) || (vars.ZOFFSET > 0)) {
-        eevars = eeprom_var_defaults;
-    } else {
-        eevars = vars;
-    }
 }
 
 /**
@@ -726,9 +689,6 @@ static void eeprom_convert_from_v9(eeprom_vars_t &eevars) {
  */
 static bool eeprom_convert_from(eeprom_vars_t &eevars) {
     switch (eevars.VERSION) {
-    case 2:
-        eeprom_convert_from_v2(eevars);
-        break;
     case 4:
         eeprom_convert_from_v4(eevars);
         break;
