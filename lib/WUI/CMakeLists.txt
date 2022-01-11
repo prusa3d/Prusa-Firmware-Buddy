@@ -5,6 +5,7 @@ target_sources(
   INTERFACE wui.c
             wui_REST_api.c
             netdev.c
+            json_encode.c
             alsockets.c
             wui_api.c
             http/fs.c
