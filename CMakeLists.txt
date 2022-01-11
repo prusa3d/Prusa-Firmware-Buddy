@@ -752,14 +752,6 @@ if(GUI)
             src/gui/screen_menu_footer_settings.cpp
             src/gui/screen_sheet_rename.cpp
             src/gui/screen_prusa_link.cpp
-            src/gui/test/screen_test.cpp
-            src/gui/test/screen_test_disp_mem.cpp
-            src/gui/test/screen_test_gui.cpp
-            src/gui/test/screen_test_term.cpp
-            src/gui/test/screen_test_msgbox.cpp
-            src/gui/test/screen_test_dlg.cpp
-            src/gui/test/screen_test_wizard_icons.cpp
-            src/gui/test/screen_test_graph.cpp
             src/gui/wizard/selftest.cpp
             src/gui/wizard/firstlay.cpp
             src/gui/wizard/screen_wizard.cpp
@@ -775,8 +767,6 @@ if(GUI)
             src/gui/screen_menu_tune.cpp
             src/gui/screen_menu_fw_update.cpp
             src/gui/screen_menu_esp_update.cpp
-            src/gui/test/screen_menu_test_temperature.cpp
-            src/gui/test/screen_mesh_bed_lv.cpp
             src/gui/screen_menu_eeprom.cpp
             src/gui/footer/footer_item_axis.cpp
             src/gui/footer/footer_item_fans.cpp
@@ -824,7 +814,21 @@ if(GUI)
 endif()
 
 if(GUI AND DEBUG) # gui and debug
-  target_sources(firmware PRIVATE src/gui/screen_menu_experimental_settings_debug.cpp)
+  target_sources(
+    firmware
+    PRIVATE src/gui/screen_menu_experimental_settings_debug.cpp
+            src/gui/test/screen_test.cpp
+            src/gui/test/screen_test_disp_mem.cpp
+            src/gui/test/screen_test_gui.cpp
+            src/gui/test/screen_test_term.cpp
+            src/gui/test/screen_test_msgbox.cpp
+            src/gui/test/screen_test_dlg.cpp
+            src/gui/test/screen_test_wizard_icons.cpp
+            src/gui/test/screen_test_graph.cpp
+            src/gui/test/screen_menu_eeprom_test.cpp
+            src/gui/test/screen_menu_test_temperature.cpp
+            src/gui/test/screen_mesh_bed_lv.cpp
+    )
 elseif(GUI) # gui, not debug
   target_sources(firmware PRIVATE src/gui/screen_menu_experimental_settings_mini.cpp)
 endif()
