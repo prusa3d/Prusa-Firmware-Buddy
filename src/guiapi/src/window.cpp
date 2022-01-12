@@ -454,10 +454,10 @@ bool window_t::EventJogwheel(BtnState_t state) {
     case BtnState_t::Held:
         Sound_Play(eSOUND_TYPE::ButtonEcho);
         break;
-    case BtnState_t::HeldAndRigth:
+    case BtnState_t::HeldAndRight:
         dont_click_on_next_release = true;
         if (capture_ptr)
-            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HELD_RIGTH, 0);
+            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HELD_RIGHT, 0);
         break;
     case BtnState_t::HeldAndLeft:
         dont_click_on_next_release = true;

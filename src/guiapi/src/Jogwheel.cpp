@@ -163,12 +163,12 @@ void Jogwheel::UpdateButtonActionFromISR() {
             if (diff > 0) {
                 ChangeStateFromISR(BtnState_t::HeldAndLeft);
             } else if (diff < 0) {
-                ChangeStateFromISR(BtnState_t::HeldAndRigth);
+                ChangeStateFromISR(BtnState_t::HeldAndRight);
             }
         }
         break;
     case BtnState_t::HeldAndLeft:
-    case BtnState_t::HeldAndRigth:
+    case BtnState_t::HeldAndRight:
         if (!IsBtnPressed()) {
             ChangeStateFromISR(BtnState_t::Released);
         }
