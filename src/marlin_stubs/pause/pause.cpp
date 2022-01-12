@@ -567,6 +567,8 @@ void Pause::park_nozzle_and_notify() {
 }
 
 void Pause::unpark_nozzle_and_notify() {
+    if (resume_pos.x == NAN || resume_pos.y == NAN || resume_pos.z == NAN)
+        return;
 
     setPhase(PhasesLoadUnload::Unparking);
     // Move XY to starting position, then Z
@@ -703,7 +705,7 @@ Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
 
     const float min_layer_h = 0.05f;
     //do not unpark and wait for temp if not homed or z park len is 0
-    if (!axes_need_homing() && std::abs(current_position.z - pause.resume_pos.z) >= min_layer_h) {
+    if (!axes_need_homing() && pause.resume_pos.z != NAN && std::abs(current_position.z - pause.resume_pos.z) >= min_layer_h) {
         pause.ensureSafeTemperatureNotifyProgress(0, 100);
         pause.unpark_nozzle_and_notify();
     }

@@ -83,6 +83,7 @@ void GcodeSuite::M600() {
 #endif
 
     park_point.z += current_position.z;
+    static const xyze_float_t no_return = { NAN, NAN, NAN, current_position.e };
     Pause &pause = Pause::Instance();
 
     //NAN == default
@@ -91,7 +92,7 @@ void GcodeSuite::M600() {
     pause.SetFastLoadLength(parser.seen('L') ? parser.value_axis_units(E_AXIS) : NAN);
     pause.SetPurgeLength(NAN);
     pause.SetParkPoint(park_point);
-    pause.SetResumePoint(current_position);
+    pause.SetResumePoint(parser.seen('N') ? no_return : current_position);
     pause.SetRetractLength(std::abs(parser.seen('E') ? parser.value_axis_units(E_AXIS) : NAN)); // Initial retract before move to filament change position
 
     float disp_temp = marlin_server_get_temp_to_display();
