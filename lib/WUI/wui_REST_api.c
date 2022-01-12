@@ -39,7 +39,7 @@ void get_printer(char *data, const uint32_t buf_len) {
 
     switch (vars->print_state) {
     case mpsPrinting:
-        printing = busy = true;
+        printing = true;
         ready = operational = false;
         break;
     case mpsPausing_Begin:
