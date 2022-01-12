@@ -734,7 +734,7 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
     }
 }
 
-// wait for ack event, blocking - used for synchronization, called typicaly at end of client request functions
+// wait for ack event, blocking - used for synchronization, called typically at end of client request functions
 static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)()) {
     while ((marlin_client[client_id].events & MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge)) == 0) {
         marlin_client_loop();

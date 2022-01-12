@@ -415,11 +415,11 @@ void window_t::ResetFocusedWindow() {
 bool window_t::IsCaptured() const { return Screens::Access()->Get()->GetCapturedWindow() == this; }
 
 bool window_t::EventEncoder(int diff) {
-    marlin_notify_server_about_encoder_move();
-    window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
     if (diff == 0)
         return false;
 
+    marlin_notify_server_about_encoder_move();
+    window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::ENC_CHANGE, (void *)(intptr_t)diff);
 
     if (!capture_ptr)
