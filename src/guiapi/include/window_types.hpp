@@ -90,7 +90,7 @@ enum class BtnState_t : uint8_t {
     Pressed,
     Held,
     HeldAndLeft,
-    HeldAndRigth,
+    HeldAndRight,
     HeldAndReleased
 };
 

@@ -5,29 +5,29 @@
 
 //window events
 enum class GUI_event_t {
-    LOOP = 1,      //gui loop (every 50ms)
-    BTN_DN,        //button down                ... all windows - not only captured
-    BTN_UP,        //button up                  ... all windows - not only captured
-    ENC_CHANGE,    //value/index encoder change ... all windows - not only captured
-    ENC_DN,        //encoder minus              ... captured window only
-    ENC_UP,        //encoder plus               ... captured window only
-    CLICK,         //clicked (tag > 0)          ... captured window only
-    HOLD,          //held button                ... captured window only
+    LOOP = 1,      // gui loop (every 50ms)
+    BTN_DN,        // button down                ... all windows - not only captured
+    BTN_UP,        // button up                  ... all windows - not only captured
+    ENC_CHANGE,    // value/index encoder change ... all windows - not only captured
+    ENC_DN,        // encoder minus              ... captured window only
+    ENC_UP,        // encoder plus               ... captured window only
+    CLICK,         // clicked (tag > 0)          ... captured window only
+    HOLD,          // held button                ... captured window only
     HELD_LEFT,     // held and moved left        ... captured window only
-    HELD_RIGTH,    // held and moved rigth      ... captured window only
-    HELD_RELEASED, // held and moved rigth      ... captured window only
-    CHILD_CLICK,   //click at the child screen
-    FOCUS0,        //focus lost
-    FOCUS1,        //focus set
-    CAPT_0,        //capture lost
-    CAPT_1,        //capture set
-    TIMER,         //gui timer
-    TEXT_ROLL,     //tick for text rolling classes
-    MESSAGE,       //onStatusChange() message notification
-    MEDIA,         //marlin media change
-    GUI_STARTUP,   //finish splash screen => initialization finish
-    CHILD_CHANGED, //notify parent about child window change, bahavior depends on implementation
-    REINIT_FOOTER  //forces reinitialization of all footers in GUI
+    HELD_RIGHT,    // held and moved right       ... captured window only
+    HELD_RELEASED, // held and released          ... captured window only
+    CHILD_CLICK,   // click at the child screen
+    FOCUS0,        // focus lost
+    FOCUS1,        // focus set
+    CAPT_0,        // capture lost
+    CAPT_1,        // capture set
+    TIMER,         // gui timer
+    TEXT_ROLL,     // tick for text rolling classes
+    MESSAGE,       // onStatusChange() message notification
+    MEDIA,         // marlin media change
+    GUI_STARTUP,   // finish splash screen => initialization finish
+    CHILD_CHANGED, // notify parent about child window change, bahavior depends on implementation
+    REINIT_FOOTER  // forces reinitialization of all footers in GUI
 };
 
 // lower lever knob events
@@ -94,8 +94,8 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
         return "held button";
     case GUI_event_t::HELD_LEFT:
         return "held and left";
-    case GUI_event_t::HELD_RIGTH:
-        return "held and rigth";
+    case GUI_event_t::HELD_RIGHT:
+        return "held and right";
     case GUI_event_t::HELD_RELEASED:
         return "held and released";
     case GUI_event_t::CHILD_CLICK:

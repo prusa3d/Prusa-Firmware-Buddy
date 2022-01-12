@@ -62,7 +62,7 @@ typedef uint16_t get_handler(struct HttpHandlers *self, char *buffer, size_t buf
  *   stored.
  */
 typedef uint16_t gcode_handler_start(struct HttpHandlers *self, const char *filename);
-// FIXME: const char *data is probably wrong, it should be const uint8_t * as arbitrary data; but everything around rigth now uses char :-(
+// FIXME: const char *data is probably wrong, it should be const uint8_t * as arbitrary data; but everything around right now uses char :-(
 typedef uint16_t gcode_handler_data(struct HttpHandlers *self, const char *data, size_t len);
 typedef uint16_t gcode_handler_finish(struct HttpHandlers *self, const char *tmp_filename, const char *final_filename, bool start_print);
 
