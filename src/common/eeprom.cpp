@@ -716,11 +716,8 @@ static bool eeprom_convert_from(eeprom_vars_t &eevars) {
 static bool eeprom_check_crc32(const eeprom_vars_t &eevars) {
     if (eevars.DATASIZE > EEPROM_MAX_DATASIZE)
         return false;
-#if 1 //simple method
     uint32_t crc = crc32_eeprom((uint32_t *)(&eevars), (eevars.DATASIZE - 4) / 4);
     return eevars.CRC32 == crc;
-#else //
-#endif
 }
 
 static void eeprom_update_crc32() {
