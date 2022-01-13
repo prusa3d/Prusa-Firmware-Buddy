@@ -1,16 +1,13 @@
 add_executable(
-  http_tests
+  nhttp_tests
   # Test files
-  ${CMAKE_CURRENT_SOURCE_DIR}/http_tests.cpp
+  # ${CMAKE_CURRENT_SOURCE_DIR}/http_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/multipart_upload.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.c
   # Tested files
-  ${CMAKE_SOURCE_DIR}/lib/WUI/http/handler.c
-  ${CMAKE_SOURCE_DIR}/lib/WUI/http/httpd.c
-  ${CMAKE_SOURCE_DIR}/lib/WUI/http/httpd_post.c
   ${CMAKE_SOURCE_DIR}/lib/WUI/http/fs.c
-  ${CMAKE_SOURCE_DIR}/lib/WUI/http/multipart_parser.c
-  ${CMAKE_SOURCE_DIR}/lib/WUI/http/upload_state.cpp
+  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/multipart_parser.c
+  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/upload_state.cpp
   # Dependencies.
   # It seems it's not possible to just link the damn LwIP library:
   # * Somehow, the target_link_libraries directive poisons include
@@ -44,17 +41,18 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/netif/ethernet.c
   ${CMAKE_SOURCE_DIR}/src/lwip.c
   )
-target_compile_definitions(http_tests PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
+target_compile_definitions(nhttp_tests PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
 target_include_directories(
-  http_tests
+  nhttp_tests
   PRIVATE .
           ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/lib/WUI
           ${CMAKE_SOURCE_DIR}/lib/WUI/http
+          ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system
   )
 # target_link_libraries(http_tests LwIP)
 
-add_catch_test(http_tests)
+add_catch_test(nhttp_tests)
