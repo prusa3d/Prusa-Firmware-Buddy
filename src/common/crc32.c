@@ -78,7 +78,7 @@ uint32_t crc32_eeprom(const uint32_t *buffer, uint32_t length) {
     return result;
 }
 
-static uint32_t crc32_soft(const uint8_t *buffer, uint32_t length, uint32_t crc) {
+static uint32_t crc32_sw(const uint8_t *buffer, uint32_t length, uint32_t crc) {
     uint32_t value = crc ^ 0xFFFFFFFF;
     while (length--) {
         value ^= (uint32_t)*buffer++;
@@ -103,8 +103,8 @@ extern uint32_t crc32_calc_ex(uint32_t crc, const uint8_t *data, uint32_t count)
     data += (word_count * 4);
 #endif //CRC32_USE_HW
 
-    // use the soft implementation to calculate the rest
-    crc = crc32_soft(data, count, crc);
+    // use the software implementation to calculate the rest
+    crc = crc32_sw(data, count, crc);
 
     return crc;
 }

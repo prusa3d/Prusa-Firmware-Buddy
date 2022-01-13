@@ -134,7 +134,7 @@ typedef struct _eeprom_vars_t {
 } eeprom_vars_t;
 
 static_assert(sizeof(eeprom_vars_t) % 4 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
-#pragma pack(pop) // pack
+#pragma pack(pop)
 
 // clang-format off
 
@@ -317,6 +317,8 @@ static const eeprom_vars_t eeprom_var_defaults = {
 };
 // clang-format on
 
+static_assert(EEPROM_DATASIZE < EEPROM_MAX_DATASIZE, "eeprom datasize is bigger then EEPROM_MAX_DATASIZE");
+
 // semaphore handle (lock/unlock)
 // zero initialized variable is fine even during initialization called from startup script
 static osSemaphoreId eeprom_sema = 0;
@@ -377,7 +379,11 @@ eeprom_init_status_t eeprom_init(void) {
 
 static void eeprom_write_vars(eeprom_vars_t &vars) {
     eeprom_lock();
-    vars.CRC32 = crc32_eeprom((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    if (vars.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
+        vars.CRC32 = crc32_eeprom((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    } else {
+        vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
+    }
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
     eeprom_unlock();
@@ -426,7 +432,7 @@ variant8_t eeprom_get_var(enum eevar_id id) {
             st25dv64k_user_read_bytes(addr, data_ptr, size);
         } else {
             //TODO:error
-            log_error(EEPROM, "eeprom_get_var: invalid data size");
+            log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
         }
         eeprom_unlock();
     }
@@ -459,9 +465,11 @@ void eeprom_set_var(enum eevar_id id, variant8_t var) {
                 eeprom_update_crc32();
             } else {
                 // TODO: error
+                log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
             }
         } else {
             // TODO: error
+            log_error(EEPROM, "%s: variant type missmatch on id: %x", __FUNCTION__, id);
         }
         eeprom_unlock();
     } else {
@@ -476,6 +484,7 @@ uint8_t eeprom_get_var_count(void) {
 const char *eeprom_get_var_name(enum eevar_id id) {
     if (id < EEPROM_VARCOUNT)
         return eeprom_map[id].name;
+    log_error(EEPROM, "%s: could not evaluate id: %x", __PRETTY_FUNCTION__, id);
     return "???";
 }
 
@@ -558,6 +567,7 @@ void eeprom_clear(void) {
 static uint16_t eeprom_var_size(enum eevar_id id) {
     if (id < EEPROM_VARCOUNT)
         return variant8_type_size(eeprom_map[id].type & ~VARIANT8_PTR) * eeprom_map[id].count;
+    log_error(EEPROM, "%s: could not evaluate id: %x", __PRETTY_FUNCTION__, id);
     return 0;
 }
 
@@ -716,7 +726,15 @@ static bool eeprom_convert_from(eeprom_vars_t &eevars) {
 static bool eeprom_check_crc32(const eeprom_vars_t &eevars) {
     if (eevars.DATASIZE > EEPROM_MAX_DATASIZE)
         return false;
-    uint32_t crc = crc32_eeprom((uint32_t *)(&eevars), (eevars.DATASIZE - 4) / 4);
+
+    uint32_t crc;
+    if (eevars.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
+        crc = crc32_eeprom((uint32_t *)(&eevars), (EEPROM_DATASIZE - 4) / 4);
+    } else {
+        uint8_t data[EEPROM_MAX_DATASIZE];
+        st25dv64k_user_read_bytes(EEPROM_ADDRESS, data, eevars.DATASIZE);
+        crc = crc32_calc((uint8_t *)(&eevars), EEPROM_DATASIZE - 4);
+    }
     return eevars.CRC32 == crc;
 }
 
@@ -727,7 +745,11 @@ static void eeprom_update_crc32() {
     // read eeprom data
     st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
     // calculate crc32
-    vars.CRC32 = crc32_eeprom((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    if (vars.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
+        vars.CRC32 = crc32_eeprom((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    } else {
+        vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
+    }
     // write crc to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
 
@@ -778,6 +800,8 @@ uint32_t sheet_next_calibrated() {
         if (sheet_select((index + i) % MAX_SHEETS))
             return (index + i) % MAX_SHEETS;
     }
+#else
+    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
 #endif
     return 0;
 }
@@ -790,6 +814,7 @@ bool sheet_is_calibrated(uint32_t index) {
         &z_offset, sizeof(float));
     return !nearlyEqual(z_offset, FLT_MAX, 0.001f);
 #else
+    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
     return index == 0;
 #endif
 }
@@ -809,6 +834,7 @@ bool sheet_select(uint32_t index) {
     eeprom_update_crc32();
     return true;
 #else
+    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
     return index == 0;
 #endif
 }
@@ -823,6 +849,7 @@ bool sheet_calibrate(uint32_t index) {
     eeprom_update_crc32();
     return true;
 #else
+    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
     return index == 0;
 #endif
 }
@@ -842,6 +869,7 @@ bool sheet_reset(uint32_t index) {
         sheet_next_calibrated();
     return true;
 #else
+    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
     return false;
 #endif
 }
@@ -855,6 +883,7 @@ uint32_t sheet_number_of_calibrated() {
     }
     return count;
 #else
+    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
     return 1;
 #endif
 }
@@ -866,6 +895,7 @@ uint32_t sheet_active_name(char *buffer, uint32_t length) {
     uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
     return sheet_name(index, buffer, length);
 #else
+    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
     memcpy(buffer, "DEFAULT", MAX_SHEET_NAME_LENGTH - 1);
     return MAX_SHEET_NAME_LENGTH - 1;
 #endif
@@ -885,6 +915,7 @@ uint32_t sheet_name(uint32_t index, char *buffer, uint32_t length) {
         --l;
     return l;
 #else
+    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
     static const char def[] = "DEFAULT";
     memcpy(buffer, def, MAX_SHEET_NAME_LENGTH - 1);
     return MAX_SHEET_NAME_LENGTH - 1;
@@ -906,6 +937,7 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
     eeprom_update_crc32();
     return l;
 #else
+    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
     return 0;
 #endif
 }
@@ -913,14 +945,16 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
 /*****************************************************************************/
 //AXIS_Z_MAX_POS_MM
 extern "C" float get_z_max_pos_mm() {
+    float ret = 0.F;
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    float ret = eeprom_startup_vars().AXIS_Z_MAX_POS_MM;
+    ret = eeprom_startup_vars().AXIS_Z_MAX_POS_MM;
     if ((ret > Z_MAX_LEN_LIMIT) || (ret < Z_MIN_LEN_LIMIT))
         ret = DEFAULT_Z_MAX_POS;
-    return ret;
+    log_debug(EEPROM, "%s returned %f", __PRETTY_FUNCTION__, double(ret));
 #else
-    return 0.F;
+    log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
 #endif
+    return ret;
 }
 
 extern "C" uint16_t get_z_max_pos_mm_rounded() {
@@ -932,6 +966,9 @@ extern "C" void set_z_max_pos_mm(float max_pos) {
     if ((max_pos >= Z_MIN_LEN_LIMIT) && (max_pos <= Z_MAX_LEN_LIMIT)) {
         eeprom_set_var(AXIS_Z_MAX_POS_MM, variant8_flt(max_pos));
     }
+    log_debug(EEPROM, "%s set %f", __PRETTY_FUNCTION__, double(max_pos));
+#else
+    log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
 #endif
 }
 
@@ -983,10 +1020,22 @@ extern "C" bool has_wrong_e() {
     return has_inverted_e() != DEFAULT_INVERT_E0_DIR;
 }
 #else
-extern "C" bool has_wrong_x() { return false; }
-extern "C" bool has_wrong_y() { return false; }
-extern "C" bool has_wrong_z() { return false; }
-extern "C" bool has_wrong_e() { return false; }
+extern "C" bool has_wrong_x() {
+    log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
+    return false;
+}
+extern "C" bool has_wrong_y() {
+    log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
+    return false;
+}
+extern "C" bool has_wrong_z() {
+    log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
+    return false;
+}
+extern "C" bool has_wrong_e() {
+    log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
+    return false;
+}
 #endif
 
 extern "C" uint16_t get_steps_per_unit_x_rounded() {
@@ -1099,14 +1148,14 @@ extern "C" void set_PRUSA_direction_e() {
     DEFAULT_INVERT_E0_DIR ? set_negative_direction_e() : set_positive_direction_e();
 }
 #else
-extern "C" void set_wrong_direction_x() {}
-extern "C" void set_wrong_direction_y() {}
-extern "C" void set_wrong_direction_z() {}
-extern "C" void set_wrong_direction_e() {}
-extern "C" void set_PRUSA_direction_x() {}
-extern "C" void set_PRUSA_direction_y() {}
-extern "C" void set_PRUSA_direction_z() {}
-extern "C" void set_PRUSA_direction_e() {}
+extern "C" void set_wrong_direction_x() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
+extern "C" void set_wrong_direction_y() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
+extern "C" void set_wrong_direction_z() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
+extern "C" void set_wrong_direction_e() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
+extern "C" void set_PRUSA_direction_x() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
+extern "C" void set_PRUSA_direction_y() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
+extern "C" void set_PRUSA_direction_z() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
+extern "C" void set_PRUSA_direction_e() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
 #endif
 
 /*****************************************************************************/
@@ -1119,25 +1168,44 @@ bool is_microstep_value_valid(uint16_t microsteps) {
 //return default value if eeprom value is invalid
 extern "C" uint16_t get_microsteps_x() {
     uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_X;
-    return is_microstep_value_valid(ret) ? ret : X_MICROSTEPS;
+    if (!is_microstep_value_valid(ret)) {
+        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        ret = X_MICROSTEPS;
+    }
+    return ret;
 }
 extern "C" uint16_t get_microsteps_y() {
     uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_Y;
-    return is_microstep_value_valid(ret) ? ret : Y_MICROSTEPS;
+    if (!is_microstep_value_valid(ret)) {
+        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        ret = Y_MICROSTEPS;
+    }
+    return ret;
 }
 extern "C" uint16_t get_microsteps_z() {
     uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_Z;
-    return is_microstep_value_valid(ret) ? ret : Z_MICROSTEPS;
+    if (!is_microstep_value_valid(ret)) {
+        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        ret = Z_MICROSTEPS;
+    }
+    return ret;
 }
 extern "C" uint16_t get_microsteps_e() {
     uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_E0;
-    return is_microstep_value_valid(ret) ? ret : E0_MICROSTEPS;
+    if (!is_microstep_value_valid(ret)) {
+        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        ret = E0_MICROSTEPS;
+    }
+    return ret;
 }
 
 template <enum eevar_id ENUM>
 void set_microsteps(uint16_t microsteps) {
     if (is_microstep_value_valid(microsteps)) {
         eeprom_set_var(ENUM, variant8_ui16(microsteps));
+        log_debug(EEPROM, "%s: microsteps %d ", __PRETTY_FUNCTION__, microsteps);
+    } else {
+        log_error(EEPROM, "%s: microsteps %d not set", __PRETTY_FUNCTION__, microsteps);
     }
 }
 
@@ -1159,25 +1227,48 @@ extern "C" void set_microsteps_e(uint16_t microsteps) {
 //current must be > 0, return default value if it is not
 extern "C" uint16_t get_rms_current_ma_x() {
     uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_X;
-    return (ret > 0) ? ret : X_CURRENT;
+    if (ret == 0) {
+        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        ret = X_CURRENT;
+    }
+    log_debug(EEPROM, "%s: returned %d ", __PRETTY_FUNCTION__, ret);
+    return ret;
 }
 extern "C" uint16_t get_rms_current_ma_y() {
     uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_Y;
-    return (ret > 0) ? ret : Y_CURRENT;
+    if (ret == 0) {
+        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        ret = Y_CURRENT;
+    }
+    log_debug(EEPROM, "%s: returned %d ", __PRETTY_FUNCTION__, ret);
+    return ret;
 }
 extern "C" uint16_t get_rms_current_ma_z() {
     uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_Z;
-    return (ret > 0) ? ret : Z_CURRENT;
+    if (ret == 0) {
+        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        ret = Z_CURRENT;
+    }
+    log_debug(EEPROM, "%s: returned %d ", __PRETTY_FUNCTION__, ret);
+    return ret;
 }
 extern "C" uint16_t get_rms_current_ma_e() {
     uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_E0;
-    return (ret > 0) ? ret : E0_CURRENT;
+    if (ret == 0) {
+        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        ret = E0_CURRENT;
+    }
+    log_debug(EEPROM, "%s: returned %d ", __PRETTY_FUNCTION__, ret);
+    return ret;
 }
 
 template <enum eevar_id ENUM>
 void set_rms_current_ma(uint16_t current) {
     if (current > 0) {
         eeprom_set_var(ENUM, variant8_ui16(current));
+        log_debug(EEPROM, "%s: current %d ", __PRETTY_FUNCTION__, current);
+    } else {
+        log_error(EEPROM, "%s: current must be greater than 0", __PRETTY_FUNCTION__);
     }
 }
 
