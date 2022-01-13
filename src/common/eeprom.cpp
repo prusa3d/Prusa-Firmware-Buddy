@@ -20,7 +20,6 @@
 
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
-static const constexpr uint8_t EEPROM__PADDING = 2;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;       // maximum name length (with '\0')
 static const constexpr uint16_t EEPROM_MAX_DATASIZE = 512; // maximum datasize
 
@@ -129,11 +128,8 @@ typedef struct _eeprom_vars_t {
     char WIFI_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
     char WIFI_AP_SSID[WIFI_MAX_SSID_LEN + 1];
     char WIFI_AP_PASSWD[WIFI_MAX_PASSWD_LEN + 1];
-    char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
-
-static_assert(sizeof(eeprom_vars_t) % 4 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
 #pragma pack(pop)
 
 // clang-format off
@@ -216,7 +212,6 @@ static const eeprom_entry_t eeprom_map[] = {
     { "WIFI_HOSTNAME",   VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
     { "WIFI_AP_SSID",    VARIANT8_PCHAR, WIFI_MAX_SSID_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
     { "WIFI_AP_PASSWD",  VARIANT8_PCHAR, WIFI_MAX_PASSWD_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
-    { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
 
@@ -312,7 +307,6 @@ static const eeprom_vars_t eeprom_var_defaults = {
     "PrusaMINI",     // EEVAR_WIFI_HOSTNAME
     "",              // EEVAR_WIFI_AP_SSID
     "",              // EEVAR_WIFI_AP_PASSWD
-    "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
 // clang-format on
@@ -690,6 +684,19 @@ static void eeprom_convert_from_v9(eeprom_vars_t &eevars) {
 }
 
 /**
+ * @brief conversion function for old version 10 (v 4.3.4)
+ *
+ * @param eevars input/output eeprom struct
+ */
+static void eeprom_convert_from_v10(eeprom_vars_t &eevars) {
+    eeprom_vars_t vars = eeprom_var_defaults;
+    eeprom_init_FW_identifiers(vars);
+
+    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_CRC32, vars, eevars);
+    eevars = vars;
+}
+
+/**
  * @brief conversion function for new version format (features, firmware version/build)
  * does not change crc, it is changed automatically by write function
  *
@@ -713,6 +720,9 @@ static bool eeprom_convert_from(eeprom_vars_t &eevars) {
         break;
     case 9:
         eeprom_convert_from_v9(eevars);
+        break;
+    case 10:
+        eeprom_convert_from_v10(eevars);
         break;
     default:
         return false;

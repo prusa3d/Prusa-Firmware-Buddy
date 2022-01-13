@@ -8,7 +8,7 @@
 
 enum {
     EEPROM_ADDRESS = 0x0500, // uint16_t
-    EEPROM_VERSION = 10,     // uint16_t
+    EEPROM_VERSION = 11,     // uint16_t
 };
 
 #define EEPROM_LAST_VERSION_WITH_OLD_CRC 10
@@ -120,8 +120,6 @@ enum eevar_id {
     EEVAR_WIFI_AP_SSID = 0x4a,   // 32char string
     EEVAR_WIFI_AP_PASSWD = 0x4b, // 64char string
 #endif                           // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
-
-    EEVAR__PADDING = 0x4c, // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
     EEVAR_CRC32 = 0x4d, // uint32_t crc32 for
 };
