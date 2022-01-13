@@ -60,51 +60,68 @@ struct Log {
     }
 };
 
-class FakeHandlers : public HttpHandlers {
+/*
+ * For now, this is a singleton. Ugly, but that'll change once we support
+ * multiple parallel uploads.
+ */
+class FakeHandlers {
 private:
-    static uint16_t start(struct HttpHandlers *self, const char *filename) {
-        static_cast<FakeHandlers *>(self)->log.gcode_start(filename);
+    FakeHandlers() {}
+    static FakeHandlers instance;
+    static uint16_t start(const char *filename) {
+        instance.log.gcode_start(filename);
         return 0;
     }
-    static uint16_t data(struct HttpHandlers *self, const char *data, size_t len) {
-        static_cast<FakeHandlers *>(self)->log.gcode_data(data, len);
+    static uint16_t data(const char *data, size_t len) {
+        instance.log.gcode_data(data, len);
         return 0;
     }
-    static uint16_t finish(struct HttpHandlers *self, const char *tmp_filename, const char *final_filename, bool print) {
-        static_cast<FakeHandlers *>(self)->log.gcode_finish(tmp_filename, final_filename, print);
+    static uint16_t finish(const char *tmp_filename, const char *final_filename, bool print) {
+        instance.log.gcode_finish(tmp_filename, final_filename, print);
         return 0;
     }
 
 public:
+    static const constexpr UploadHandlers handlers = {
+        start, data, finish
+    };
+    static FakeHandlers &get() {
+        return instance;
+    }
     Log log;
-    FakeHandlers() {
-        // Initialize/zero the C-originating parent
-        HttpHandlers *handlers = this;
-        memset(handlers, 0, sizeof(*handlers));
-        gcode_start = start;
-        gcode_data = data;
-        gcode_finish = finish;
+    void clear() {
+        log = Log();
     }
 };
 
-uint16_t broken_data(struct HttpHandlers *, const char *, size_t) {
+FakeHandlers FakeHandlers::instance;
+
+uint16_t broken_data(const char *, size_t) {
     // The error answer to The Life, Universe and Everything
     return 542;
 }
 
 class Test {
 public:
-    FakeHandlers handlers;
     unique_ptr<Uploader, bool (*)(Uploader *)> uploader;
     Test()
-        : uploader(uploader_init(BOUNDARY, &handlers), uploader_finish) {}
+        : uploader(nullptr, uploader_finish) {
+        reinit_handlers(&FakeHandlers::handlers);
+    }
+
+    void reinit_handlers(const UploadHandlers *handlers) {
+        // Get rid of the old one (if any) first, so it doesn't log to the new log.
+        uploader.reset();
+        FakeHandlers::get().clear();
+        uploader.reset(uploader_init(BOUNDARY, handlers));
+    }
     bool finish() {
         auto ptr = uploader.release();
         return uploader_finish(ptr);
     }
 
     const Log &log() const {
-        return handlers.log;
+        return FakeHandlers::get().log;
     }
 
     void feed(const string_view &data) {
@@ -375,7 +392,9 @@ TEST_CASE("Malformed") {
 
 TEST_CASE("Propagate errors from hooks") {
     Test test;
-    test.handlers.gcode_data = broken_data;
+    UploadHandlers with_broken = FakeHandlers::handlers;
+    with_broken.data = broken_data;
+    test.reinit_handlers(&with_broken);
     test.feed(OK_FORM);
 
     REQUIRE(test.error() == 542);
