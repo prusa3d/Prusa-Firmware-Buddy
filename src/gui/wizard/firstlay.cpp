@@ -12,6 +12,7 @@
 #include "DialogHandler.hpp"
 #include <algorithm>         // std::max
 #include "screen_wizard.hpp" // ChangeStartState
+#include "bsod.h"
 
 enum {
     FKNOWN = 0x01,      //filament is known
@@ -119,8 +120,10 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_USEVAL() {
         }
         // this MakeRAM is safe - buff is allocated in RAM for the lifetime of MsgBox
         if (MsgBox(string_view_utf8::MakeRAM((const uint8_t *)buff), Responses_YesNo) == Response::No) {
-            marlin_set_z_offset(z_offset_def);
-            eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_offset_def));
+            eeprom_set_z_offset(z_offset_def);
+            if (!eeprom_set_z_offset(z_offset_def)) {
+                bsod("Z offset write failed");
+            }
         }
     }
 

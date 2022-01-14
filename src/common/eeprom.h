@@ -25,18 +25,20 @@ enum {
 
 enum eevar_id {
     // basic variables
-    EEVAR_VERSION = 0x00,         // uint16_t eeprom version
-    EEVAR_FEATURES = 0x01,        // uint16_t feature mask
-    EEVAR_DATASIZE = 0x02,        // uint16_t eeprom data size
-    EEVAR_FW_VERSION = 0x03,      // uint16_t encoded firmware version (e.g. 403 for 4.0.3)
-    EEVAR_FW_BUILD = 0x04,        // uint16_t firmware build number
-    EEVAR_FILAMENT_TYPE = 0x05,   // uint8_t  filament type
-    EEVAR_FILAMENT_COLOR = 0x06,  // uint32_t filament color (rgb)
-    EEVAR_RUN_SELFTEST = 0x07,    // uint8_t  selftest flag
-    EEVAR_RUN_XYZCALIB = 0x08,    // uint8_t  xyz calibration flag
-    EEVAR_RUN_FIRSTLAY = 0x09,    // uint8_t  first layer calibration flag
-    EEVAR_FSENSOR_ENABLED = 0x0a, // uint8_t  fsensor state
-    EEVAR_ZOFFSET = 0x0b,         // float    zoffset
+    EEVAR_VERSION = 0x00,                     // uint16_t eeprom version
+    EEVAR_FEATURES = 0x01,                    // uint16_t feature mask
+    EEVAR_DATASIZE = 0x02,                    // uint16_t eeprom data size
+    EEVAR_FW_VERSION = 0x03,                  // uint16_t encoded firmware version (e.g. 403 for 4.0.3)
+    EEVAR_FW_BUILD = 0x04,                    // uint16_t firmware build number
+    EEVAR_FILAMENT_TYPE = 0x05,               // uint8_t  filament type
+    EEVAR_FILAMENT_COLOR = 0x06,              // uint32_t filament color (rgb)
+    EEVAR_RUN_SELFTEST = 0x07,                // uint8_t  selftest flag
+    EEVAR_RUN_XYZCALIB = 0x08,                // uint8_t  xyz calibration flag
+    EEVAR_RUN_FIRSTLAY = 0x09,                // uint8_t  first layer calibration flag
+    EEVAR_FSENSOR_ENABLED = 0x0a,             // uint8_t  fsensor state
+    EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY = 0x0b, // float zoffset
+// use float eeprom_get_z_offset() / bool eeprom_set_z_offset(float value) instead
+// because EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY is unused in case sheets are enabled
 
 // nozzle PID variables
 #if (EEPROM_FEATURES & EEPROM_FEATURE_PID_NOZ)
@@ -211,6 +213,25 @@ extern void eeprom_clear(void);
 
 // PUT test
 int8_t eeprom_test_PUT(const unsigned int);
+
+/**
+ * @brief reads Z offset, directly or from current sheet if sheets are enabled
+ *
+ * @return float Z offset
+ */
+float eeprom_get_z_offset();
+
+/**
+ * @brief writes Z offset, directly or to current sheet if sheets are enabled
+ *
+ * @param value value to set
+ * @return true successfully set
+ * @return false sheet index stored in eeprom corrupted
+ */
+bool eeprom_set_z_offset(float value);
+
+// TODO sheet accesing functions should not be part of eeprom
+// eeprom should not have knowledge about how sheet calibration process
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Iterate across the profiles and switch to the next calibrated.

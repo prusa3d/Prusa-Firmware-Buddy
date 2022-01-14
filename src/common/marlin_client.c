@@ -505,10 +505,6 @@ float marlin_set_target_bed(float val) {
     return variant8_get_flt(marlin_set_var(MARLIN_VAR_TTEM_BED, variant8_flt(val)));
 }
 
-float marlin_set_z_offset(float val) {
-    return variant8_get_flt(marlin_set_var(MARLIN_VAR_Z_OFFSET, variant8_flt(val)));
-}
-
 uint8_t marlin_set_fan_speed(uint8_t val) {
     return variant8_get_ui8(marlin_set_var(MARLIN_VAR_FANSPEED, variant8_ui8(val)));
 }

@@ -108,7 +108,10 @@ WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
 void WindowLiveAdjustZ::Save() {
     /// store new z offset value into a marlin_vars & EEPROM
     variant8_t var = variant8_flt(number.GetValue());
-    eeprom_set_var(EEVAR_ZOFFSET, var);
+    if (!eeprom_set_z_offset(number.GetValue())) {
+        // could be during print, better not cause BSOD, just freeze in debug
+        assert(0 /* Z offset write failed */);
+    }
     marlin_set_var(MARLIN_VAR_Z_OFFSET, var);
     /// force update marlin vars
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));

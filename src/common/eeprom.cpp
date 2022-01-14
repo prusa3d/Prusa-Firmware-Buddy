@@ -147,7 +147,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "RUN_XYZCALIB",    VARIANT8_UI8,   1, 0 }, // EEVAR_RUN_XYZCALIB
     { "RUN_FIRSTLAY",    VARIANT8_UI8,   1, 0 }, // EEVAR_RUN_FIRSTLAY
     { "FSENSOR_ENABLED", VARIANT8_UI8,   1, 0 }, // EEVAR_FSENSOR_ENABLED
-    { "ZOFFSET",         VARIANT8_FLT,   1, 0 }, // EEVAR_ZOFFSET
+    { "ZOFFSET",         VARIANT8_FLT,   1, 0 }, // EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY
     { "PID_NOZ_P",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_P
     { "PID_NOZ_I",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_I
     { "PID_NOZ_D",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_D
@@ -234,7 +234,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     1,               // EEVAR_RUN_XYZCALIB
     1,               // EEVAR_RUN_FIRSTLAY
     1,               // EEVAR_FSENSOR_ENABLED
-    0,               // EEVAR_ZOFFSET
+    0,               // EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY
 #if ENABLED(PIDTEMP)
     DEFAULT_Kp,      // EEVAR_PID_NOZ_P
     scalePID_i(DEFAULT_Ki),      // EEVAR_PID_NOZ_I
@@ -485,38 +485,16 @@ void eeprom_set_var(enum eevar_id id, variant8_t var) {
  * @param var_size size of variable
  */
 static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size) {
-    eevar_id sheet_id = static_cast<enum eevar_id>(0);
     eeprom_vars_t &vars = eeprom_startup_vars();
     uint16_t var_eeprom_addr;
-    uint16_t sheet_eeprom_addr;
     void *var_ram_addr;
-    void *sheet_ram_addr;
     if (id < EEPROM_VARCOUNT) {
-        // Z offset is written to currnet sheet too
-        //TODO remove EEVAR_ZOFFSET to store it only once
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-        if (id == EEVAR_ZOFFSET) {
-            variant8_t recent_sheet = eeprom_get_var(EEVAR_ACTIVE_SHEET);
-            uint8_t index = variant8_get_ui8(recent_sheet);
-            sheet_id = static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index);
-            //eeprom area
-            sheet_eeprom_addr = eeprom_var_addr(sheet_id);
-
-            //RAM area
-            sheet_ram_addr = eeprom_var_ptr(sheet_id, vars);
-        }
-#endif
         size_t size = eeprom_var_size(id);
-        if (var_size <= size) {
+        if (var_size == size) {
             var_eeprom_addr = eeprom_var_addr(id);
             var_ram_addr = eeprom_var_ptr(id, vars);
             //critical section
             eeprom_lock();
-            if (sheet_id != static_cast<enum eevar_id>(0)) {
-                memcpy(sheet_ram_addr, var_ptr, var_size);
-                //store value just after name
-                st25dv64k_user_write_bytes(sheet_eeprom_addr + MAX_SHEET_NAME_LENGTH, var_ptr, var_size);
-            }
             memcpy(var_ram_addr, var_ptr, var_size);
             st25dv64k_user_write_bytes(var_eeprom_addr, var_ptr, var_size);
             update_crc32_both_ram_eeprom(vars);
@@ -696,7 +674,7 @@ static void eeprom_convert_from_v4(eeprom_vars_t &eevars) {
     eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_init_FW_identifiers(vars);
 
-    // start address of imported data first block (FILAMENT_TYPE..EEVAR_ZOFFSET)
+    // start address of imported data first block (FILAMENT_TYPE..EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY)
     eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_PID_NOZ_P, vars, eevars);
 
     // start address of imported data second block (EEVAR_LAN_FLAG..EEVAR_LAN_IP4_DNS2)
@@ -878,6 +856,47 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Sheets profile methods
+static const float Z_OFFSET_MIN = -2.0F;
+static const float Z_OFFSET_MAX = 0.0F;
+
+float eeprom_get_z_offset() {
+    uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    if (index >= MAX_SHEETS)
+        return 0.F;
+
+    float value;
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    Sheet sheet;
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
+    value = sheet.z_offset;
+#else
+    eeprom_get_var(EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY, &value, sizeof(value));
+#endif
+    if (!isfinite(value))
+        return 0.F;
+    return std::clamp(value, Z_OFFSET_MIN, Z_OFFSET_MAX);
+}
+
+bool eeprom_set_z_offset(float value) {
+    if (!isfinite(value))
+        value = 0.F;
+    value = std::clamp(value, Z_OFFSET_MIN, Z_OFFSET_MAX);
+
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    if (index >= MAX_SHEETS)
+        return false;
+
+    Sheet sheet;
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
+    sheet.z_offset = value;
+    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
+#else
+    eeprom_set_var(EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY, &value, sizeof(value));
+#endif
+    return true;
+}
+
 uint32_t sheet_next_calibrated() {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
@@ -894,9 +913,9 @@ uint32_t sheet_next_calibrated() {
 
 bool sheet_is_calibrated(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    float z_offset = FLT_MAX;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &z_offset, sizeof(z_offset));
-    return !nearlyEqual(z_offset, FLT_MAX, 0.001f);
+    Sheet sheet;
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
+    return !nearlyEqual(sheet.z_offset, FLT_MAX, 0.001f);
 #else
     log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
     return index == 0;
@@ -907,12 +926,9 @@ bool sheet_profile_select(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     if (index >= MAX_SHEETS)
         return false;
-    float z_offset = FLT_MAX;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &z_offset, sizeof(z_offset));
 
     uint8_t index_ui8 = index;
     eeprom_set_var(EEVAR_ACTIVE_SHEET, &index_ui8, sizeof(index_ui8));
-    eeprom_set_var(EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY, &z_offset, sizeof(float));
     return true;
 #else
     log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
@@ -925,9 +941,12 @@ bool sheet_reset(uint32_t index) {
     if (index >= MAX_SHEETS)
         return false;
     uint8_t active = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
-    float z_offset = FLT_MAX;
+    float value = FLT_MAX;
 
-    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &z_offset, sizeof(float));
+    Sheet sheet;
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
+    sheet.z_offset = value;
+    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
     if (active == index)
         sheet_next_calibrated();
     return true;
@@ -971,7 +990,9 @@ uint32_t sheet_name(uint32_t index, char *buffer, uint32_t length) {
     uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
         ? length
         : MAX_SHEET_NAME_LENGTH - 1;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), buffer, l);
+    Sheet sheet;
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
+    memcpy(buffer, sheet.name, l);
     while (l > 0 && !buffer[l - 1])
         --l;
     return l;
@@ -987,13 +1008,15 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     if (index >= MAX_SHEETS || !name || !length)
         return false;
-    char eeprom_name[MAX_SHEET_NAME_LENGTH];
+
+    Sheet sheet;
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
     uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
         ? length
         : MAX_SHEET_NAME_LENGTH - 1;
-    memset(eeprom_name, 0, MAX_SHEET_NAME_LENGTH);
-    memcpy(eeprom_name, name, l);
-    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), eeprom_name, MAX_SHEET_NAME_LENGTH);
+    memset(sheet.name, 0, MAX_SHEET_NAME_LENGTH);
+    memcpy(sheet.name, name, l);
+    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
     return l;
 #else
     log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
