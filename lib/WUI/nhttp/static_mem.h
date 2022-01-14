@@ -1,3 +1,6 @@
+/**
+ * \file
+ */
 #pragma once
 
 #include "types.h"
@@ -6,6 +9,14 @@
 
 namespace nhttp::handler {
 
+/**
+ * \brief Handler to send a body from static memory.
+ *
+ * This sends a complete response where the body is provided as a constant. The
+ * data provided is not copied anywhere and it is assumed the data is alive for
+ * the whole lifetime of the handler (usually a constant in the program). This
+ * allows "embedding" small/static resources directly into the program.
+ */
 class SendStaticMemory {
 private:
     std::string_view data;

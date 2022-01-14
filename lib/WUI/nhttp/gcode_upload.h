@@ -1,3 +1,8 @@
+/**
+ * \file
+ *
+ * Support for uploading gcode.
+ */
 #pragma once
 
 #include "req_parser.h"
@@ -10,18 +15,23 @@ struct Uploader;
 
 namespace nhttp::printer {
 
-/*
- * FIXME:
+/**
+ * \brief A handler to accept incoming gcodes.
  *
- * This adapts the old gcode upload hack to the new server. This is not exactly right way to do it, though, we want to:
+ * This will take a POST request with valid form containing gcode and store it
+ * onto the USB drive.
+ *
+ * Note that this adapts the old gcode upload hack to the new server. There are
+ * many things that should be improved or refactored, this was just the fastest
+ * way to glue the old code in. Specifically, we want to:
  * * Support multiple simultaneous uploads.
  * * Figure a way to not inject printer-specific types into the generic server (even though it's just by listing the handler somewhere).
- * * Generalize uploading files for whatever reason.
+ * * Generalize uploading files for whatever reason (may go hand in hand with the above?).
  * * Not go C->C++->C->C++…
  * * Not having several dynamic allocation layers on the way and somehow flatten it.
  * * Propagate error _reasons_ out of the upload state.
  *
- * Flattening this one and the Uploader together might be a good idea.
+ * Flattening the Uploader in here might go part of the way.
  */
 class GcodeUpload {
 private:

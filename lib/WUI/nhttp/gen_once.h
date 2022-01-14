@@ -1,3 +1,8 @@
+/**
+ * \file
+ *
+ * \brief Handler to generate a small response that fits into a single packet.
+ */
 #pragma once
 
 #include "types.h"
@@ -6,6 +11,17 @@
 
 namespace nhttp::handler {
 
+/**
+ * \brief Handler to generate a response into a single buffer.
+ *
+ * This calls the provided generator function and poppulates a response with it. This assumes:
+ * * There's no state to be passed to the generator. That is, the response
+ *   generated might be dynamic (taking data out of the printer), but doesn't
+ *   depend on the request.
+ * * The content of the response fits into single buffer and it is generated in
+ *   one go (eg. not listing all the files in the SD card).
+ * * The request was already validated and the generation of response can't fail.
+ */
 class GenOnce {
 public:
     typedef size_t (*Generator)(uint8_t *buffer, size_t buffer_size);
