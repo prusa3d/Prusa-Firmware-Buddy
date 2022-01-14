@@ -1,3 +1,9 @@
+/**
+ * \brief Utilities for generating headers.
+ *
+ * This is where the low-level routines for generating headers are stored. Note
+ * that many handlers already integrate these.
+ */
 #pragma once
 
 #include "types.h"
@@ -7,16 +13,55 @@
 
 namespace nhttp {
 
+/**
+ * \brief Lookup of the text corresponding for a status code.
+ */
 struct StatusText {
+    /// The status.
     Status status;
+    /// Text acompanied for the status.
     const char *text;
+    /**
+     * \brief Recommended extra headers for that status.
+     *
+     * Most have an empty list.
+     */
     const char **extra_hdrs = nullptr;
 
+    /**
+     * \brief Performs a lookup of the text.
+     *
+     * Note that this always returns _something_ even if the status is not
+     * known. Such behaviour is valid, as in HTTP the text is not significant,
+     * client is supposed to use the numeric code, but as it provides some
+     * guidance to humans, it is still better to extend the lookup table.
+     */
     static const StatusText &find(Status status);
 };
 
+/**
+ * \brief Renders the response headers into a buffer.
+ *
+ * This renders the header part of a HTTP response (including the status line).
+ * An array of extra headers that are simply copied into the output can be
+ * provided. Such array shall be terminated by a null.
+ *
+ * This assumes the buffer is large enough to accomodate the output. In case it
+ * isn't, the size constraint will still be respected (it won't overwrite
+ * memory past the buffer), but the output is silently truncated.
+ *
+ * The body separator (two lines) is included.
+ */
 size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length = std::nullopt, const char **extra_hdrs = nullptr);
 
+/**
+ * \brief Makes a guess about a content type based on a file extension.
+ *
+ * Given a filename (not just the extension), this'll make a best-effort guess
+ * about the content type.
+ *
+ * If it is not recognized, application/octet-stream is used as fallback.
+ */
 ContentType guess_content_by_ext(const char *fname);
 
 }

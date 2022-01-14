@@ -1,3 +1,7 @@
+/**
+ * \file
+ * \brief The HTTP server.
+ */
 #pragma once
 
 #include "handler.h"
@@ -12,16 +16,74 @@
 
 namespace nhttp {
 
+/**
+ * \brief Server definitions.
+ *
+ * This is how one plugs an actual content into the Server. This is an abstract
+ * base class, an application would provide a specialization.
+ */
 class ServerDefs {
 public:
     virtual ~ServerDefs();
+    /**
+     * \brief List of selectors.
+     *
+     * The selectors are responsible for choosing the right handlers for a
+     * parsed request. This is where "routing" of requests happens.
+     *
+     * This should be a pointer to an array of selectors (each one is an
+     * implementation of the Selector abstract base class). The server assumes
+     * every request will be handled by one of the provided selectors, it
+     * doesn't check for "falling off" the end of the array. For that reason,
+     * it is recommended to have some kind of wildcard selector.
+     *
+     * Also note that the parsed request may contain an invalid request of some form.
+     *
+     * For both of these reasons, some useful selectors are provided in
+     * common_selectors.h.
+     */
     virtual const handler::Selector *const *selectors() const = 0;
+    /**
+     * \brief Looks up an API key.
+     *
+     * Provides the API key. If this is null, all access to restricted
+     * resources is denied.
+     *
+     * FIXME: there are (probably) thread synchronization issues:
+     *
+     * * If the API key changes in the middle of parsing of the one provided in
+     *   the headers, half of it is checked against the old one and half against
+     *   the new one. We probably can live with that (it'll likely result in
+     *   refusing the request; if someone can guess where the change happens
+     *   and knows both old and new one, then they probably know enough to be
+     *   considered authorized).
+     * * The key is not copied, not locked, etc. It is just _used_. Therefore,
+     *   changing the content of the memory pointed to or (worse) the address and
+     *   deleting the old one is a data race/UB. We need to find a solution,
+     *   but for now, changing the key is very rare and happens in-place.
+     */
     virtual const char *get_api_key() const = 0;
     // TODO: Have our own abstraction layer for tests vs lwIP? This one is ugly and brings a lot of deps in.
     virtual altcp_allocator_t listener_alloc() const = 0;
     virtual uint16_t port() const = 0;
 };
 
+/**
+ * \brief The HTTP server itself.
+ *
+ * This is the entrypoint, it manages the requests, etc. Content is plugged
+ * into it by the ServerDefs class.
+ *
+ * Not much functionality is exposed by this class directly, most of the
+ * interaction with it is done by providing it with selectors and handlers.
+ *
+ * In the big picture, this is responsible mostly for juggling connections and
+ * buffers, but (almost) doesn't understand HTTP; it delegates that to the
+ * relevant handlers.
+ *
+ * The server _is not_ thread safe. It must be assured by the user that all the
+ * callbacks from the connections are executed in the same thread.
+ */
 class Server {
 private:
     class PbufDeleter {
@@ -140,13 +202,56 @@ private:
     static void set_callbacks(altcp_pcb *conn, BaseSlot *slot);
 
 public:
+    /**
+     * \brief Constructor
+     *
+     * Passes the server definitions to the server.
+     *
+     * The defs must be alive for the whole life of the server.
+     *
+     * Note that destruction of the server _is not solved_. Not even stopping
+     * closes all active connections (at least not now, we don't seem to need
+     * that) and the connection point inside the server. Destroying the server
+     * could lead to access of the returned memory by one of those connections.
+     *
+     * So one either needs to ensure there are no connections alive at that
+     * point (tests) or that the server is never destroyed.
+     */
     Server(const ServerDefs &defs);
+    /*
+     * Don't ever think about moving the server between addresses.
+     *
+     * We put pointers inside ourselves into the LwIP connections. Moving
+     * somewhere else would just mess everything.
+     */
     Server(const Server &) = delete;
     Server(Server &&) = delete;
     Server &operator=(const Server &) = delete;
     Server &operator=(Server &&) = delete;
 
+    /**
+     * \brief Start the server.
+     *
+     * This (attempts to) allocates the listening socket and starts serving
+     * requests, according to the defs provided to constructor.
+     *
+     * It is invalid to start an already started server (one must first stop it).
+     *
+     * Success is provided by the return value. The reason for failure is not
+     * (yet) specified.
+     *
+     * FIXME: Currently, we call start/stop from a different thread than the
+     * callbacks. Is that OK? It actually might be, as this manipulates only
+     * the listening socket and that kind of manipulation might be fine, but
+     * this should be checked.
+     */
     bool start();
+    /**
+     * \brief Closes the listening socket.
+     *
+     * This stops the server, it'll no longer accept any more connections. It
+     * however does _not_ close the existing connections.
+     */
     void stop();
 
     const handler::Selector *const *selectors() const {
