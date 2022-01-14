@@ -17,6 +17,8 @@
 #include "cmath_ext.h"
 #include "footer_eeprom.hpp"
 #include <bitset>
+#include "eeprom_v11.hpp"
+using namespace eeprom::v11;
 
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
@@ -26,111 +28,58 @@ static const constexpr uint16_t EEPROM_MAX_DATASIZE = 512; // maximum datasize
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
 static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read only
 
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-typedef struct
-{
-    char name[MAX_SHEET_NAME_LENGTH]; //!< Can be null terminated, doesn't need to be null terminated
-    float z_offset;                   //!< Z_BABYSTEP_MIN .. Z_BABYSTEP_MAX = Z_BABYSTEP_MIN*2/1000 [mm] .. Z_BABYSTEP_MAX*2/1000 [mm]
-} Sheet;
-
-enum {
-    MAX_SHEETS = 8,
-    EEPROM_SHEET_SIZEOF = sizeof(Sheet)
-};
-
-#endif
 // this pragma pack must remain intact, the ordering of EEPROM variables is not alignment-friendly
 #pragma pack(push, 1)
 
 // eeprom map entry structure
-typedef struct _eeprom_entry_t {
+struct eeprom_entry_t {
     const char name[EEPROM_MAX_NAME];
     uint8_t type;   // variant8 data type
     uint8_t count;  // number of elements
     uint16_t flags; // flags
-} eeprom_entry_t;
+};
 
-// eeprom vars structure (used for defaults, packed - see above pragma)
-typedef struct _eeprom_vars_t {
+struct eeprom_head_t {
     uint16_t VERSION;
     uint16_t FEATURES;
     uint16_t DATASIZE;
     uint16_t FWVERSION;
     uint16_t FWBUILD;
-    uint8_t FILAMENT_TYPE;
-    uint32_t FILAMENT_COLOR;
-    uint8_t RUN_SELFTEST;
-    uint8_t RUN_XYZCALIB;
-    uint8_t RUN_FIRSTLAY;
-    uint8_t FSENSOR_ENABLED;
-    float ZOFFSET;
-    float PID_NOZ_P;
-    float PID_NOZ_I;
-    float PID_NOZ_D;
-    float PID_BED_P;
-    float PID_BED_I;
-    float PID_BED_D;
-    uint8_t LAN_FLAG;
-    uint32_t LAN_IP4_ADDR;
-    uint32_t LAN_IP4_MSK;
-    uint32_t LAN_IP4_GW;
-    uint32_t LAN_IP4_DNS1;
-    uint32_t LAN_IP4_DNS2;
-    char LAN_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
-    int8_t TIMEZONE;
-    uint8_t SOUND_MODE;
-    uint8_t SOUND_VOLUME;
-    uint16_t LANGUAGE;
-    uint8_t FILE_SORT;
-    uint8_t MENU_TIMEOUT;
-    uint8_t ACTIVE_SHEET;
-    Sheet SHEET_PROFILE0;
-    Sheet SHEET_PROFILE1;
-    Sheet SHEET_PROFILE2;
-    Sheet SHEET_PROFILE3;
-    Sheet SHEET_PROFILE4;
-    Sheet SHEET_PROFILE5;
-    Sheet SHEET_PROFILE6;
-    Sheet SHEET_PROFILE7;
-    uint32_t SELFTEST_RESULT;
-    uint8_t DEVHASH_IN_QR;
-    uint32_t FOOTER_SETTING;
-    uint32_t FOOTER_DRAW_TYPE;
-    uint8_t FAN_CHECK_ENABLED;
-    uint8_t FS_AUTOLOAD_ENABLED;
-    float EEVAR_ODOMETER_X;
-    float EEVAR_ODOMETER_Y;
-    float EEVAR_ODOMETER_Z;
-    float EEVAR_ODOMETER_E0;
-    float AXIS_STEPS_PER_UNIT_X;
-    float AXIS_STEPS_PER_UNIT_Y;
-    float AXIS_STEPS_PER_UNIT_Z;
-    float AXIS_STEPS_PER_UNIT_E0;
-    uint16_t AXIS_MICROSTEPS_X;
-    uint16_t AXIS_MICROSTEPS_Y;
-    uint16_t AXIS_MICROSTEPS_Z;
-    uint16_t AXIS_MICROSTEPS_E0;
-    uint16_t AXIS_RMS_CURRENT_MA_X;
-    uint16_t AXIS_RMS_CURRENT_MA_Y;
-    uint16_t AXIS_RMS_CURRENT_MA_Z;
-    uint16_t AXIS_RMS_CURRENT_MA_E0;
-    float AXIS_Z_MAX_POS_MM;
-    uint32_t ODOMETER_TIME;
-    uint8_t EEVAR_ACTIVE_NETDEV;
-    uint8_t EEVAR_PL_RUN;
-    char EEVAR_PL_API_KEY[PL_API_KEY_SIZE];
-    uint8_t WIFI_FLAG;
-    uint32_t WIFI_IP4_ADDR;
-    uint32_t WIFI_IP4_MSK;
-    uint32_t WIFI_IP4_GW;
-    uint32_t WIFI_IP4_DNS1;
-    uint32_t WIFI_IP4_DNS2;
-    char WIFI_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
-    char WIFI_AP_SSID[WIFI_MAX_SSID_LEN + 1];
-    char WIFI_AP_PASSWD[WIFI_MAX_PASSWD_LEN + 1];
+};
+
+// eeprom vars structure (used for defaults, packed - see above pragma)
+struct eeprom_vars_t {
+    eeprom_head_t head;
+    vars_body_t body;
     uint32_t CRC32;
-} eeprom_vars_t;
+};
+
+/**
+ * @brief union containing eeprom struct and entire eeprom area
+ * area (data) is needed for old eeprom version update and crc verification
+ * because old eeprom could be bigger then current
+ */
+union eeprom_data {
+    uint8_t data[EEPROM_MAX_DATASIZE];
+    eeprom_vars_t vars;
+    struct {
+        eeprom_head_t head;
+        union {
+            eeprom::v4::vars_body_t v4;
+            eeprom::v6::vars_body_t v6;
+            eeprom::v7::vars_body_t v7;
+            eeprom::v9::vars_body_t v9;
+            eeprom::v10::vars_body_t v10;
+            eeprom::v11::vars_body_t v11;
+        };
+    };
+};
 #pragma pack(pop)
+
+static_assert(sizeof(eeprom_vars_t) == sizeof(eeprom_head_t) + sizeof(vars_body_t) + sizeof(uint32_t), "Wrong size of eeprom. Missing pragma pack? ");
+
+// uncomment to check eeprom size .. will cause error
+// char (*__eeprom_size_check)[sizeof( eeprom_vars_t )] = 1;
 
 // clang-format off
 
@@ -218,95 +167,18 @@ static const eeprom_entry_t eeprom_map[] = {
 static const constexpr uint32_t EEPROM_VARCOUNT = sizeof(eeprom_map) / sizeof(eeprom_entry_t);
 static const constexpr uint32_t EEPROM_DATASIZE = sizeof(eeprom_vars_t);
 
-static constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT; //to be able to access macro values
-static constexpr int default_axis_steps_int[4] = DEFAULT_AXIS_STEPS_PER_UNIT; //to be able to access macro values
-
-// eeprom variable defaults
-static const eeprom_vars_t eeprom_var_defaults = {
+static constexpr eeprom_head_t eeprom_head_defaults = {
     EEPROM_VERSION,  // EEVAR_VERSION
     EEPROM_FEATURES, // EEVAR_FEATURES
     EEPROM_DATASIZE, // EEVAR_DATASIZE
     0,               // EEVAR_FW_VERSION
     0,               // EEVAR_FW_BUILD
-    0,               // EEVAR_FILAMENT_TYPE
-    0,               // EEVAR_FILAMENT_COLOR
-    1,               // EEVAR_RUN_SELFTEST
-    1,               // EEVAR_RUN_XYZCALIB
-    1,               // EEVAR_RUN_FIRSTLAY
-    1,               // EEVAR_FSENSOR_ENABLED
-    0,               // EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY
-#if ENABLED(PIDTEMP)
-    DEFAULT_Kp,      // EEVAR_PID_NOZ_P
-    scalePID_i(DEFAULT_Ki),      // EEVAR_PID_NOZ_I
-    scalePID_d(DEFAULT_Kd),      // EEVAR_PID_NOZ_D
-#else
-    0, 0, 0,
-#endif
-    DEFAULT_bedKp,   // EEVAR_PID_BED_P
-    scalePID_i(DEFAULT_bedKi),   // EEVAR_PID_BED_I
-    scalePID_d(DEFAULT_bedKd),   // EEVAR_PID_BED_D
-    0,               // EEVAR_LAN_FLAG
-    0,               // EEVAR_LAN_IP4_ADDR
-    0,               // EEVAR_LAN_IP4_MSK
-    0,               // EEVAR_LAN_IP4_GW
-    0,               // EEVAR_LAN_IP4_DNS1
-    0,               // EEVAR_LAN_IP4_DNS2
-    "PrusaMINI",     // EEVAR_LAN_HOSTNAME
-    0,               // EEVAR_TIMEZONE
-    0xff,            // EEVAR_SOUND_MODE
-    5,               // EEVAR_SOUND_VOLUME
-    0xffff,          // EEVAR_LANGUAGE
-    0,               // EEVAR_FILE_SORT
-    1,               // EEVAR_MENU_TIMEOUT
-    0,               // EEVAR_ACTIVE_SHEET
-    {"Smooth1", 0.0f },
-    {"Smooth2", FLT_MAX },
-    {"Textur1", FLT_MAX },
-    {"Textur2", FLT_MAX },
-    {"Custom1", FLT_MAX },
-    {"Custom2", FLT_MAX },
-    {"Custom3", FLT_MAX },
-    {"Custom4", FLT_MAX },
-    0,               // EEVAR_SELFTEST_RESULT
-    1,               // EEVAR_DEVHASH_IN_QR
-    footer::eeprom::Encode(footer::DefaultItems), // EEVAR_FOOTER_SETTING
-    uint32_t(footer::ItemDrawCnf::Default()), // EEVAR_FOOTER_DRAW_TYPE
-    1,               // EEVAR_FAN_CHECK_ENABLED
-    0,               // EEVAR_FS_AUTOLOAD_ENABLED
-    0,               // EEVAR_ODOMETER_X
-    0,               // EEVAR_ODOMETER_Y
-    0,               // EEVAR_ODOMETER_Z
-    0,               // EEVAR_ODOMETER_E0
-#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_X
-    default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_Y
-    default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_Z
-    default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_E0
-#else
-    0,0,0,0,
-#endif
-    X_MICROSTEPS,           // AXIS_MICROSTEPS_X
-    Y_MICROSTEPS,           // AXIS_MICROSTEPS_Y
-    Z_MICROSTEPS,           // AXIS_MICROSTEPS_Z
-    E0_MICROSTEPS,          // AXIS_MICROSTEPS_E0
-    X_CURRENT,              // AXIS_RMS_CURRENT_MA_X
-    Y_CURRENT,              // AXIS_RMS_CURRENT_MA_Y
-    Z_CURRENT,              // AXIS_RMS_CURRENT_MA_Z
-    E0_CURRENT,             // AXIS_RMS_CURRENT_MA_E0
-    DEFAULT_Z_MAX_POS,      // AXIS_Z_MAX_POS_MM
-    0,               // EEVAR_ODOMETER_TIME
-    0,               // EEVAR_ACTIVE_NETDEV
-    1,               // EEVAR_PL_RUN
-    "",              // EEVAR_PL_API_KEY
-    0,               // EEVAR_WIFI_FLAG
-    0,               // EEVAR_WIFI_IP4_ADDR
-    0,               // EEVAR_WIFI_IP4_MSK
-    0,               // EEVAR_WIFI_IP4_GW
-    0,               // EEVAR_WIFI_IP4_DNS1
-    0,               // EEVAR_WIFI_IP4_DNS2
-    "PrusaMINI",     // EEVAR_WIFI_HOSTNAME
-    "",              // EEVAR_WIFI_AP_SSID
-    "",              // EEVAR_WIFI_AP_PASSWD
+};
+
+// eeprom variable defaults
+static const eeprom_vars_t eeprom_var_defaults = {
+    eeprom_head_defaults,
+    body_defaults,
     0xffffffff,      // EEVAR_CRC32
 };
 // clang-format on
@@ -325,6 +197,23 @@ static inline void eeprom_unlock(void) {
     osSemaphoreRelease(eeprom_sema);
 }
 
+static eeprom_data eeprom_ram_mirror; //must be zero initialized
+
+static void eeprom_init_ram_mirror() {
+    eeprom_lock();
+    st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&eeprom_ram_mirror, sizeof(eeprom_ram_mirror));
+    eeprom_unlock();
+}
+
+/**
+ * @brief function returning reference to eeprom struct in RAM
+ *
+ * @return eeprom_vars_t& reference to eeprom struct
+ */
+static constexpr eeprom_vars_t &eeprom_startup_vars() {
+    return eeprom_ram_mirror.vars;
+}
+
 // forward declarations of private functions
 static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size);
 static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size);
@@ -332,14 +221,13 @@ static void eeprom_write_vars(eeprom_vars_t &vars);
 static uint16_t eeprom_var_size(enum eevar_id id);
 static uint16_t eeprom_var_addr(enum eevar_id id, uint16_t addr = EEPROM_ADDRESS);
 static void *eeprom_var_ptr(enum eevar_id id, eeprom_vars_t &pVars);
-static bool eeprom_convert_from(eeprom_vars_t &eevars);
+static bool eeprom_convert_from(eeprom_data &data);
 
-static bool eeprom_check_crc32(const eeprom_vars_t &eevars);
+static bool eeprom_check_crc32();
 static void update_crc32_both_ram_eeprom(eeprom_vars_t &eevars);
 static void update_crc32_in_ram(eeprom_vars_t &eevars);
 
 static uint16_t eeprom_fwversion_ui16(void);
-static eeprom_vars_t &eeprom_startup_vars();
 
 eeprom_init_status_t eeprom_init(void) {
     static eeprom_init_status_t status = EEPROM_INIT_Undefined;
@@ -350,12 +238,13 @@ eeprom_init_status_t eeprom_init(void) {
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
 
+    eeprom_init_ram_mirror();
     eeprom_vars_t &eevars = eeprom_startup_vars();
 
-    if (!eeprom_check_crc32(eevars))
+    if (!eeprom_check_crc32())
         status = EEPROM_INIT_Defaults;
-    else if ((eevars.VERSION != EEPROM_VERSION) || (eevars.FEATURES != EEPROM_FEATURES)) {
-        if (eeprom_convert_from(eevars) == 0) {
+    else if ((eevars.head.VERSION != EEPROM_VERSION) || (eevars.head.FEATURES != EEPROM_FEATURES)) {
+        if (eeprom_convert_from(eeprom_ram_mirror) == 0) {
             status = EEPROM_INIT_Defaults;
         } else {
             status = EEPROM_INIT_Upgraded;
@@ -377,11 +266,7 @@ eeprom_init_status_t eeprom_init(void) {
 
 static void eeprom_write_vars(eeprom_vars_t &vars) {
     eeprom_lock();
-    if (vars.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
-        vars.CRC32 = crc32_eeprom((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
-    } else {
-        vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
-    }
+    vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
     eeprom_unlock();
@@ -389,28 +274,9 @@ static void eeprom_write_vars(eeprom_vars_t &vars) {
 
 void eeprom_defaults(void) {
     eeprom_vars_t vars = eeprom_var_defaults;
-    vars.FWBUILD = project_build_number;
-    vars.FWVERSION = eeprom_fwversion_ui16();
+    vars.head.FWBUILD = project_build_number;
+    vars.head.FWVERSION = eeprom_fwversion_ui16();
     eeprom_write_vars(vars);
-}
-
-static eeprom_vars_t eeprom_read_vars() {
-    eeprom_vars_t ret;
-    eeprom_lock();
-    st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&ret, sizeof(ret));
-    eeprom_unlock();
-
-    return ret;
-}
-
-/**
- * @brief initialize internal static variable holding eeprom struct in RAM
- *
- * @return eeprom_vars_t& reference to eeprom struct
- */
-static eeprom_vars_t &eeprom_startup_vars() {
-    static eeprom_vars_t ret = eeprom_read_vars();
-    return ret;
 }
 
 /**
@@ -634,171 +500,64 @@ static void *eeprom_var_ptr(enum eevar_id id, eeprom_vars_t &vars) {
 }
 
 /**
- * @brief copy part od eeprom structure to another eeprom structure
- *
- * @param begin first record to copy
- * @param end first entry after last element to copy
- * @param dst structure to write in
- * @param src structure to read from
- */
-static void eeprom_import_block(enum eevar_id begin, enum eevar_id end, eeprom_vars_t &dst, const eeprom_vars_t &src) {
-    // start address of imported data block
-    const int32_t addr_start_offset = eeprom_var_addr(begin, 0);
-    // end address of imported data
-    const int32_t addr_end_offset = eeprom_var_addr(end, 0);
-    const int32_t bytes_to_copy = addr_end_offset - addr_start_offset;
-
-    if (bytes_to_copy > 0) {
-        memcpy(((uint8_t *)&dst) + addr_start_offset, ((uint8_t *)&src) + addr_start_offset, bytes_to_copy);
-    }
-}
-
-static void eeprom_init_FW_identifiers(eeprom_vars_t &vars) {
-    // these variables are intentionally not initialised in eeprom_var_defaults
-    vars.FWBUILD = project_build_number;
-    vars.FWVERSION = eeprom_fwversion_ui16();
-}
-
-static void eeprom_make_patches(eeprom_vars_t &vars) {
-    // patch active sheet profile's live-z value
-    // copying the ZOFFSET var directly is safe, it has been in the eeprom at least from v2
-    vars.SHEET_PROFILE0.z_offset = vars.ZOFFSET;
-}
-
-/**
- * @brief conversion function for old version 4 (v 4.0.5)
- *
- * @param eevars input/output eeprom struct
- */
-static void eeprom_convert_from_v4(eeprom_vars_t &eevars) {
-    eeprom_vars_t vars = eeprom_var_defaults;
-    eeprom_init_FW_identifiers(vars);
-
-    // start address of imported data first block (FILAMENT_TYPE..EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY)
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_PID_NOZ_P, vars, eevars);
-
-    // start address of imported data second block (EEVAR_LAN_FLAG..EEVAR_LAN_IP4_DNS2)
-    eeprom_import_block(EEVAR_LAN_FLAG, EEVAR_LAN_HOSTNAME, vars, eevars);
-
-    // TODO: keep LAN host name (?)
-    eevars = vars;
-}
-
-/**
- * @brief conversion function for old version 6 (v 4.1.0)
- *
- * @param eevars input/output eeprom struct
- */
-static void eeprom_convert_from_v6(eeprom_vars_t &eevars) {
-    eeprom_vars_t vars = eeprom_var_defaults;
-    eeprom_init_FW_identifiers(vars);
-
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_SOUND_VOLUME, vars, eevars);
-    eevars = vars;
-}
-
-/**
- * @brief conversion function for old version 8 (v 4.2.x)
- *
- * @param eevars input/output eeprom struct
- */
-static void eeprom_convert_from_v7(eeprom_vars_t &eevars) {
-    eeprom_vars_t vars = eeprom_var_defaults;
-    eeprom_init_FW_identifiers(vars);
-
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_FILE_SORT, vars, eevars);
-    eevars = vars;
-}
-
-/**
- * @brief conversion function for old version 8 (v 4.3.RC)
- *
- * @param eevars input/output eeprom struct
- */
-static void eeprom_convert_from_v8(eeprom_vars_t &eevars) {
-    eeprom_vars_t vars = eeprom_var_defaults;
-    eeprom_init_FW_identifiers(vars);
-
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_MENU_TIMEOUT, vars, eevars);
-    eevars = vars;
-}
-
-/**
- * @brief conversion function for old version 9 (v 4.3.2)
- *
- * @param eevars input/output eeprom struct
- */
-static void eeprom_convert_from_v9(eeprom_vars_t &eevars) {
-    eeprom_vars_t vars = eeprom_var_defaults;
-    eeprom_init_FW_identifiers(vars);
-
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_DEVHASH_IN_QR, vars, eevars);
-    eevars = vars;
-}
-
-/**
- * @brief conversion function for old version 10 (v 4.3.4)
- *
- * @param eevars input/output eeprom struct
- */
-static void eeprom_convert_from_v10(eeprom_vars_t &eevars) {
-    eeprom_vars_t vars = eeprom_var_defaults;
-    eeprom_init_FW_identifiers(vars);
-
-    eeprom_import_block(EEVAR_FILAMENT_TYPE, EEVAR_CRC32, vars, eevars);
-    eevars = vars;
-}
-
-/**
  * @brief conversion function for new version format (features, firmware version/build)
  * does not change crc, it is changed automatically by write function
  *
  * @param eevars eeprom struct in RAM
  * @return true updated (changed)
- * @return false not changed
+ * @return false not changed, need reset to defaults
  */
-static bool eeprom_convert_from(eeprom_vars_t &eevars) {
-    switch (eevars.VERSION) {
-    case 4:
-        eeprom_convert_from_v4(eevars);
-        break;
-    case 6:
-        eeprom_convert_from_v6(eevars);
-        break;
-    case 7:
-        eeprom_convert_from_v7(eevars);
-        break;
-    case 8:
-        eeprom_convert_from_v8(eevars);
-        break;
-    case 9:
-        eeprom_convert_from_v9(eevars);
-        break;
-    case 10:
-        eeprom_convert_from_v10(eevars);
-        break;
-    default:
-        return false;
+static bool eeprom_convert_from(eeprom_data &data) {
+    uint16_t version = data.head.VERSION;
+    if (version == 4) {
+        data.v6 = eeprom::v6::convert(data.v4);
+        version = 6;
     }
 
-    eeprom_make_patches(eevars);
-    return true;
+    if (version == 6) {
+        data.v7 = eeprom::v7::convert(data.v6);
+        version = 7;
+    }
+
+    if (version == 7) {
+        data.v9 = eeprom::v9::convert(data.v7);
+        version = 9;
+    }
+
+    if (version == 9) {
+        data.v10 = eeprom::v10::convert(data.v9);
+        version = 10;
+    }
+
+    if (version == 10) {
+        data.v11 = eeprom::v11::convert(data.v10);
+        version = 11;
+    }
+
+    // after body was actualize can actualize head
+    // don't do it before body, would lost version info
+    data.head = eeprom_head_defaults;
+    data.head.FWBUILD = project_build_number;
+    data.head.FWVERSION = eeprom_fwversion_ui16();
+
+    // if update was successful, version will be current
+    return version == eeprom_fwversion_ui16();
 }
 
 // version independent crc32 check
-static bool eeprom_check_crc32(const eeprom_vars_t &eevars) {
-    if (eevars.DATASIZE > EEPROM_MAX_DATASIZE)
+static bool eeprom_check_crc32() {
+    if (eeprom_ram_mirror.vars.head.DATASIZE > EEPROM_MAX_DATASIZE)
         return false;
 
     uint32_t crc;
-    if (eevars.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
-        crc = crc32_eeprom((uint32_t *)(&eevars), (eevars.DATASIZE - 4) / 4);
+    if (eeprom_ram_mirror.vars.head.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
+        crc = crc32_eeprom((uint32_t *)(&eeprom_ram_mirror), (eeprom_ram_mirror.vars.head.DATASIZE - 4) / 4);
     } else {
-        uint8_t data[EEPROM_MAX_DATASIZE];
-        st25dv64k_user_read_bytes(EEPROM_ADDRESS, data, eevars.DATASIZE);
-        crc = crc32_calc((uint8_t *)(&eevars), eevars.DATASIZE - 4);
+        crc = crc32_calc((uint8_t *)(&eeprom_ram_mirror), eeprom_ram_mirror.vars.head.DATASIZE - 4);
     }
-    return eevars.CRC32 == crc;
+    uint32_t crc_from_eeprom;
+    memcpy(&crc_from_eeprom, eeprom_ram_mirror.data + eeprom_ram_mirror.vars.head.DATASIZE - 4, sizeof(crc_from_eeprom));
+    return crc_from_eeprom == crc;
 }
 
 static void update_crc32_both_ram_eeprom(eeprom_vars_t &eevars) {
@@ -813,7 +572,7 @@ static void update_crc32_both_ram_eeprom(eeprom_vars_t &eevars) {
 
 static void update_crc32_in_ram(eeprom_vars_t &eevars) {
     // calculate crc32
-    if (eevars.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
+    if (eevars.head.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
         eevars.CRC32 = crc32_eeprom((uint32_t *)(&eevars), (EEPROM_DATASIZE - 4) / 4);
     } else {
         eevars.CRC32 = crc32_calc((uint8_t *)(&eevars), EEPROM_DATASIZE - 4);
@@ -1029,7 +788,7 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
 extern "C" float get_z_max_pos_mm() {
     float ret = 0.F;
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    ret = eeprom_startup_vars().AXIS_Z_MAX_POS_MM;
+    ret = eeprom_startup_vars().body.AXIS_Z_MAX_POS_MM;
     if ((ret > Z_MAX_LEN_LIMIT) || (ret < Z_MIN_LEN_LIMIT))
         ret = DEFAULT_Z_MAX_POS;
     log_debug(EEPROM, "%s returned %f", __PRETTY_FUNCTION__, double(ret));
@@ -1057,32 +816,32 @@ extern "C" void set_z_max_pos_mm(float max_pos) {
 /*****************************************************************************/
 //AXIS_STEPS_PER_UNIT
 extern "C" float get_steps_per_unit_x() {
-    return std::abs(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_X);
+    return std::abs(eeprom_startup_vars().body.AXIS_STEPS_PER_UNIT_X);
 }
 extern "C" float get_steps_per_unit_y() {
-    return std::abs(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_Y);
+    return std::abs(eeprom_startup_vars().body.AXIS_STEPS_PER_UNIT_Y);
 }
 extern "C" float get_steps_per_unit_z() {
-    return std::abs(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_Z);
+    return std::abs(eeprom_startup_vars().body.AXIS_STEPS_PER_UNIT_Z);
 }
 extern "C" float get_steps_per_unit_e() {
-    return std::abs(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_E0);
+    return std::abs(eeprom_startup_vars().body.AXIS_STEPS_PER_UNIT_E0);
 }
 
 extern "C" bool has_inverted_x() {
-    return std::signbit(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_X);
+    return std::signbit(eeprom_startup_vars().body.AXIS_STEPS_PER_UNIT_X);
 }
 
 extern "C" bool has_inverted_y() {
-    return std::signbit(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_Y);
+    return std::signbit(eeprom_startup_vars().body.AXIS_STEPS_PER_UNIT_Y);
 }
 
 extern "C" bool has_inverted_z() {
-    return std::signbit(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_Z);
+    return std::signbit(eeprom_startup_vars().body.AXIS_STEPS_PER_UNIT_Z);
 }
 
 extern "C" bool has_inverted_e() {
-    return std::signbit(eeprom_startup_vars().AXIS_STEPS_PER_UNIT_E0);
+    return std::signbit(eeprom_startup_vars().body.AXIS_STEPS_PER_UNIT_E0);
 }
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
@@ -1249,7 +1008,7 @@ bool is_microstep_value_valid(uint16_t microsteps) {
 
 //return default value if eeprom value is invalid
 extern "C" uint16_t get_microsteps_x() {
-    uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_X;
+    uint16_t ret = eeprom_startup_vars().body.AXIS_MICROSTEPS_X;
     if (!is_microstep_value_valid(ret)) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = X_MICROSTEPS;
@@ -1257,7 +1016,7 @@ extern "C" uint16_t get_microsteps_x() {
     return ret;
 }
 extern "C" uint16_t get_microsteps_y() {
-    uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_Y;
+    uint16_t ret = eeprom_startup_vars().body.AXIS_MICROSTEPS_Y;
     if (!is_microstep_value_valid(ret)) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = Y_MICROSTEPS;
@@ -1265,7 +1024,7 @@ extern "C" uint16_t get_microsteps_y() {
     return ret;
 }
 extern "C" uint16_t get_microsteps_z() {
-    uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_Z;
+    uint16_t ret = eeprom_startup_vars().body.AXIS_MICROSTEPS_Z;
     if (!is_microstep_value_valid(ret)) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = Z_MICROSTEPS;
@@ -1273,7 +1032,7 @@ extern "C" uint16_t get_microsteps_z() {
     return ret;
 }
 extern "C" uint16_t get_microsteps_e() {
-    uint16_t ret = eeprom_startup_vars().AXIS_MICROSTEPS_E0;
+    uint16_t ret = eeprom_startup_vars().body.AXIS_MICROSTEPS_E0;
     if (!is_microstep_value_valid(ret)) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = E0_MICROSTEPS;
@@ -1308,7 +1067,7 @@ extern "C" void set_microsteps_e(uint16_t microsteps) {
 //AXIS_RMS_CURRENT_MA_X
 //current must be > 0, return default value if it is not
 extern "C" uint16_t get_rms_current_ma_x() {
-    uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_X;
+    uint16_t ret = eeprom_startup_vars().body.AXIS_RMS_CURRENT_MA_X;
     if (ret == 0) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = X_CURRENT;
@@ -1317,7 +1076,7 @@ extern "C" uint16_t get_rms_current_ma_x() {
     return ret;
 }
 extern "C" uint16_t get_rms_current_ma_y() {
-    uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_Y;
+    uint16_t ret = eeprom_startup_vars().body.AXIS_RMS_CURRENT_MA_Y;
     if (ret == 0) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = Y_CURRENT;
@@ -1326,7 +1085,7 @@ extern "C" uint16_t get_rms_current_ma_y() {
     return ret;
 }
 extern "C" uint16_t get_rms_current_ma_z() {
-    uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_Z;
+    uint16_t ret = eeprom_startup_vars().body.AXIS_RMS_CURRENT_MA_Z;
     if (ret == 0) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = Z_CURRENT;
@@ -1335,7 +1094,7 @@ extern "C" uint16_t get_rms_current_ma_z() {
     return ret;
 }
 extern "C" uint16_t get_rms_current_ma_e() {
-    uint16_t ret = eeprom_startup_vars().AXIS_RMS_CURRENT_MA_E0;
+    uint16_t ret = eeprom_startup_vars().body.AXIS_RMS_CURRENT_MA_E0;
     if (ret == 0) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = E0_CURRENT;
