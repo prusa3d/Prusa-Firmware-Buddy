@@ -3,6 +3,7 @@
 #include "types.h"
 
 #include <optional>
+#include <string_view>
 
 namespace nhttp::handler {
 

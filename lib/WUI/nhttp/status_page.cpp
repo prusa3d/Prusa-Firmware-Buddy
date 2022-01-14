@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+#include <cstdio>
 
 namespace nhttp::handler {
 

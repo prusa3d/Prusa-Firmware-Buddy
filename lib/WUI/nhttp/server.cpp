@@ -18,9 +18,6 @@ using std::string_view;
 
 ServerDefs::~ServerDefs() {};
 
-Server::Slot::Slot()
-    : partial(nullptr, &pbuf_free) {}
-
 void Server::Slot::release_buffer() {
     if (buffer) {
         buffer->reset();
@@ -29,8 +26,10 @@ void Server::Slot::release_buffer() {
 }
 
 void Server::Slot::release_partial() {
-    altcp_recved(conn, partial->tot_len);
-    partial.reset();
+    if (partial) {
+        altcp_recved(conn, partial->tot_len);
+        partial.reset();
+    }
     partial_consumed = 0;
 }
 
@@ -245,16 +244,7 @@ void Server::Buffer::reset() {
 }
 
 Server::Server(const ServerDefs &defs)
-    : defs(defs)
-    ,
-    /*
-     * Note: According to docs, the altcp_close _can fail_. Nevertheless:
-     *
-     * * Using altcp_abort on listening connection doesn't work.
-     * * It is assumed to be able to fail due to eg. inability to send a
-     *   FIN packet. This is not the case for a listening socket.
-     */
-    listener(nullptr, &altcp_close) {
+    : defs(defs) {
     idle_slot.server = this;
     for (auto &slot : active_slots) {
         slot.server = this;

@@ -14,6 +14,8 @@ add_executable(
 
 target_include_directories(automata_tests PRIVATE . ${CMAKE_SOURCE_DIR}/lib/WUI ${CMAKE_BINARY_DIR})
 
+file(GLOB TEST_AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
+
 # Parts of the tests are generated (to test the generator)
 add_custom_command(
   OUTPUT ${CMAKE_BINARY_DIR}/until_comma.cpp
@@ -24,7 +26,7 @@ add_custom_command(
          ${CMAKE_BINARY_DIR}/http_method.h
          ${CMAKE_BINARY_DIR}/http_req.cpp
          ${CMAKE_BINARY_DIR}/http_req.h
-  DEPENDS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py
+  DEPENDS ${TEST_AUTOMATA_GENERATORS}
   COMMAND ${Python3_EXECUTABLE} ${PROJECT_ROOT_DIR}/utils/gen-automata/tests.py
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   COMMENT "Generating test automata"

@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include <string_view>
+
 namespace nhttp::handler {
 
 class GenOnce {

@@ -11,8 +11,8 @@
  * called during the runtime, or, in case of the thread synchronization, won't
  * be needed because we have just one thread.
  *
- * But yes, this is ugly and hopefully won't be needed once we get some better
- * http server thing.
+ * Ideas for better testing fixture are welcome, but for now we have built our
+ * server on top of altcp, so we have to bring LwIP in.
  */
 #include <stdlib.h>
 #include <stdint.h>

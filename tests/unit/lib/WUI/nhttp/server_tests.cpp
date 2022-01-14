@@ -1,29 +1,24 @@
 /*
- * Few tests for the http server.
+ * Tests for the HTTP server layer.
  *
- * While the http server is 3rd-party code, it is:
- * * exposed to the outer world, parts of it without authentication.
- * * modified by us (what exact modifications happened is unclear, as the big
- *   bulk comes in one huge commit that clearly contains already modified code).
- * * scary. Seriously scary.
- * * doesn't have upstream tests we could borrow.
+ * These are mostly meant as tests for the "server" layer, that it all
+ * works together. For example the tets for the request parser are
+ * done in the automata tests (and we probably should have some for
+ * the ReqParser handler too).
  *
- * Therefore, we opt to have our own to cover it a bit.
+ * This unfortunately calls for quite a lot of mocking, both on the
+ * networking side and on the application/content side.
  *
- * As we would like to replace the HTTP code eventually, the tests are done as
- * fast as reasonable ‒ the code here contains certain ugly shortcuts, stubs
- * out a lot of things, etc. The future version might not need these things (as
- * it probably won't be tied deeply into LwIP).
- *
- * As more tests are added, the stubs may be turned into mocks.
- *
- * Also, as we plan to have fuzzing for the server, we may want to extract the
- * mocks/stubs into a common file used by both the tests and the fuzzing.
+ * It also brings in a lot of/most of the code _around_ the server; we
+ * may want to find some way to separate them better.
  */
+
 #include <cstdint>
 #include <cstring>
 #include <cerrno>
-#include <http/httpd.h>
+#include <nhttp/server.h>
+#include <nhttp/common_selectors.h>
+#include <nhttp/headers.h>
 #include <lwip/altcp.h>
 #include <lwip/priv/altcp_priv.h>
 
@@ -31,10 +26,15 @@
 #include <memory>
 #include <vector>
 
+using std::nullopt;
+using std::optional;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
 using std::vector;
+using namespace nhttp;
+using namespace nhttp::handler;
+using namespace nhttp::handler::selectors;
 
 namespace {
 
@@ -163,37 +163,96 @@ public:
     }
 };
 
-class MockHandler : public HttpHandlers {
+// Sends a fake index page, for testing purposes.
+class FakeIndex final : public Selector {
 public:
-    vector<shared_ptr<ConnInfo>> infos;
+    virtual optional<ConnectionState> accept(const RequestParser &parser) const override {
+        char filename[MAX_URL_LEN + 1];
 
+        if (!parser.uri_filename(filename, sizeof(filename))) {
+            return nullopt;
+        }
+
+        if (strcmp(filename, "/") == 0) {
+            strncpy(filename, "/index.html", MAX_URL_LEN);
+        }
+
+        if (strcmp(filename, "/index.html") == 0) {
+            static const char *extra_hdrs[] = { "Fake: YesOfCourse\r\n", nullptr };
+            return SendStaticMemory("<h1>Hello world</h1>", guess_content_by_ext(filename), parser.can_keep_alive(), extra_hdrs);
+        }
+
+        return nullopt;
+    }
+};
+
+const FakeIndex fake_index;
+
+class FakeApi final : public Selector {
+public:
+    virtual optional<ConnectionState> accept(const RequestParser &parser) const override {
+        char filename[MAX_URL_LEN + 1];
+
+        if (!parser.uri_filename(filename, sizeof(filename))) {
+            return nullopt;
+        }
+
+        if (strcmp(filename, "/secret.html") == 0) {
+            if (parser.authenticated()) {
+                static const char *extra_hdrs[] = { "Fake: YesOfCourse\r\n", nullptr };
+                return SendStaticMemory("<html><body><h1>Don't tell anyone!</h1>", guess_content_by_ext(filename), parser.can_keep_alive(), extra_hdrs);
+            } else {
+                return StatusPage(Status::Unauthorized, parser.can_keep_alive());
+            }
+        }
+
+        return nullopt;
+    }
+};
+
+const FakeApi fake_api;
+
+class MockServerDefs final : public ServerDefs {
 private:
     friend class MockServer;
+    vector<shared_ptr<ConnInfo>> &infos;
+    static const constexpr Selector *selectors_array[] = { &validate_request, &fake_index, &fake_api, &unknown_request };
     altcp_pcb *mock_alloc_inner() {
         MockConn *conn = new MockConn;
         infos.push_back(conn->info);
         return conn;
     }
     static altcp_pcb *mock_alloc(void *arg, uint8_t ip_type) {
-        return static_cast<MockHandler *>(arg)->mock_alloc_inner();
+        return static_cast<MockServerDefs *>(arg)->mock_alloc_inner();
     }
+    string api_key;
 
 public:
-    MockHandler() {
-        listener_alloc.alloc = mock_alloc;
-        listener_alloc.arg = this;
+    MockServerDefs(vector<shared_ptr<ConnInfo>> &conn_infos)
+        : infos(conn_infos) {}
+    virtual const Selector *const *selectors() const override { return selectors_array; }
+    virtual const char *get_api_key() const override { return api_key.c_str(); }
+    virtual altcp_allocator_t listener_alloc() const override {
+        altcp_allocator_t alloc = {
+            mock_alloc,
+            (void *)this,
+        };
+        return alloc;
     }
+    virtual uint16_t port() const override { return 80; }
 };
 
 class MockServer {
 private:
-    unique_ptr<MockHandler> handlers;
-    unique_ptr<struct altcp_pcb, decltype(&httpd_free)> server;
+    vector<shared_ptr<ConnInfo>> infos;
+    MockServerDefs server_defs;
+    Server server;
 
 public:
     MockServer()
-        : handlers(new MockHandler())
-        , server(httpd_new(handlers.get(), 666), httpd_free) {
+        : server_defs(infos)
+        , server(server_defs) {
+        server.start();
     }
 
     /*
@@ -203,9 +262,9 @@ public:
      */
     size_t new_conn() {
         // We assume the 0th connection is the server's listening one.
-        auto conn = handlers->mock_alloc_inner();
-        const size_t idx = handlers->infos.size() - 1;
-        auto listener = handlers->infos[0];
+        auto conn = server_defs.mock_alloc_inner();
+        const size_t idx = server_defs.infos.size() - 1;
+        auto listener = server_defs.infos[0];
         REQUIRE(listener->listening);
         REQUIRE(listener->conn != nullptr);
         auto listener_conn = listener->conn;
@@ -214,8 +273,8 @@ public:
     }
 
     void send(size_t conn_idx, const string &data) {
-        REQUIRE(conn_idx < handlers->infos.size());
-        auto &info = handlers->infos[conn_idx];
+        REQUIRE(conn_idx < infos.size());
+        auto &info = infos[conn_idx];
         REQUIRE(info->alive);
         auto conn = info->conn;
         REQUIRE(conn != nullptr);
@@ -240,8 +299,8 @@ public:
 
     // Read as much as the server is willing to produce now.
     string recv_all(size_t conn_idx) {
-        REQUIRE(conn_idx < handlers->infos.size());
-        auto &info = handlers->infos[conn_idx];
+        REQUIRE(conn_idx < infos.size());
+        auto &info = infos[conn_idx];
         // Note: we do _not_ check alive here - it's OK for the connection to
         // be already closed.
         auto conn = info->conn;
@@ -257,17 +316,30 @@ public:
 
         return result;
     }
+
+    void set_api_key(string key) {
+        server_defs.api_key = std::move(key);
+    }
 };
 
-const constexpr char *GET_INDEX = "GET / HTTP/1.1r\r\n\r\n";
+const constexpr char *GET_INDEX = "GET / HTTP/1.1\r\n\r\n";
 
 void check_index(const string &response) {
+    INFO("Have response: " + response);
     // Optimally, we would actually parse the response. But for now the tests
     // only peek into it if it looks more or less OK and we do it in dirty way.
-    REQUIRE(response.find("HTTP/1.0 200 OK") == 0);
+    REQUIRE(response.find("HTTP/1.1 200 OK") == 0);
     REQUIRE(response.find("Content-Type: text/html") != string::npos);
-    // Body separator + gzip magic number
-    REQUIRE(response.find("\r\n\r\n\x1F\x8B") != string::npos);
+    // Body separator + our fake body
+    REQUIRE(response.find("\r\n\r\n<h1>Hello world</h1>") != string::npos);
+}
+
+void check_unauth(const string &response) {
+    INFO("Response: " + response);
+    REQUIRE(response.find("HTTP/1.1 401 Unauthorized\r\n") == 0);
+    REQUIRE(response.find("Content-Type: text/html") != string::npos);
+    REQUIRE(response.find("WWW-Authenticate: ApiKey") != string::npos);
+    REQUIRE(response.find("\r\n\r\n<html>") != string::npos);
 }
 
 }
@@ -281,9 +353,6 @@ TEST_CASE("Get index") {
     check_index(response);
 }
 
-/*
- * Connect more than one client and send requests on them out of order.
- */
 TEST_CASE("Multiple conns") {
     MockServer server;
     const size_t cl1 = server.new_conn();
@@ -304,6 +373,92 @@ TEST_CASE("Multiple conns") {
     check_index(server.recv_all(cl1));
 }
 
+TEST_CASE("Not found") {
+    MockServer server;
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+    server.send(client_conn, "GET /not-here HTTP/1.1\r\n\r\n");
+    const auto response = server.recv_all(client_conn);
+    INFO("Response: " + response);
+    REQUIRE(response.find("HTTP/1.1 404 Not Found\r\n") == 0);
+    REQUIRE(response.find("Content-Type: text/html") != string::npos);
+    REQUIRE(response.find("\r\n\r\n<html>") != string::npos);
+}
+
+TEST_CASE("Authenticated") {
+    MockServer server;
+    server.set_api_key("SECRET");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+    server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: SECRET\r\n\r\n");
+    const auto response = server.recv_all(client_conn);
+    INFO("Response: " + response);
+    REQUIRE(response.find("HTTP/1.1 200 OK\r\n") == 0);
+    REQUIRE(response.find("Content-Type: text/html") != string::npos);
+    REQUIRE(response.find("\r\n\r\n<html>") != string::npos);
+}
+
+TEST_CASE("Not authenticated") {
+    MockServer server;
+    server.set_api_key("SECRET");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("No key") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\n\r\n");
+    }
+
+    SECTION("Empty key") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: \r\n\r\n");
+    }
+
+    SECTION("Wrong key") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: Password!\r\n\r\n");
+    }
+
+    SECTION("Wrong case") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: Secret\r\n\r\n");
+    }
+
+    SECTION("Extra") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: SECRET.\r\n\r\n");
+    }
+
+    SECTION("Missing") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: SECRE\r\n\r\n");
+    }
+
+    const auto response = server.recv_all(client_conn);
+    check_unauth(response);
+}
+
+// If the server doesn't have an API key set, no combination of
+// missing key, empty key, etc, will let us in (actually, nothing will
+// let us in).
+TEST_CASE("No Api Key configured") {
+    MockServer server;
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("No key") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\n\r\n");
+    }
+
+    SECTION("Empty key") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: \r\n\r\n");
+    }
+
+    SECTION("Wrong key") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: Password!\r\n\r\n");
+    }
+
+    const auto response = server.recv_all(client_conn);
+    check_unauth(response);
+}
+
 /*
  * TODO: Further test ideas (non-exhaustive)
  *
@@ -314,9 +469,7 @@ TEST_CASE("Multiple conns") {
  * * Request sent by multiple packets.
  * * Multiple instances of the same header.
  * * Keep-alive connections.
- * * Authentication (positive and negative).
  * * Custom generated responses.
- * * Not-found.
  *
  * * Posts… these are kind of chapter of its own.
  */
