@@ -108,7 +108,7 @@ WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
 void WindowLiveAdjustZ::Save() {
     /// store new z offset value into a marlin_vars & EEPROM
     variant8_t var = variant8_flt(number.GetValue());
-    eeprom_set_var(EEVAR_ZOFFSET, var);
+    eeprom_set_z_offset(number.GetValue());
     marlin_set_var(MARLIN_VAR_Z_OFFSET, var);
     /// force update marlin vars
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
