@@ -27,6 +27,14 @@ public:
         }
         return result;
     }
+    bool contains_enter(automata::StateIdx desired) {
+        for (const auto &event : events) {
+            if (event.entering_state == desired) {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 }

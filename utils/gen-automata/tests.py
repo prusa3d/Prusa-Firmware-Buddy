@@ -39,6 +39,7 @@ want_headers = {
     'X-Api-Key': read_header_value('XApiKey'),
     'Content-Length': read_header_value('ContentLength'),
     'Content-Type': read_boundary(),
+    'Connection': connection_header(),
 }
 http, final = request(want_headers)
 output("http", http)
