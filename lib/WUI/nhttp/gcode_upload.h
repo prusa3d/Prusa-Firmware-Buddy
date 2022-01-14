@@ -25,13 +25,17 @@ namespace nhttp::printer {
  */
 class GcodeUpload {
 private:
+    class UploaderDeleter {
+    public:
+        void operator()(Uploader *uploader);
+    };
     /*
      * Currently, we are limited to just one instance of gcode upload,
      * otherwise Bad Things would happen. This is a temporary "lock" for them.
      */
     static bool have_instance;
     bool holds_instance = true;
-    using UploaderPtr = std::unique_ptr<Uploader, bool (*)(Uploader *)>;
+    using UploaderPtr = std::unique_ptr<Uploader, UploaderDeleter>;
     UploaderPtr uploader;
     size_t size_rest;
     GcodeUpload(UploaderPtr uploader, size_t size_rest);

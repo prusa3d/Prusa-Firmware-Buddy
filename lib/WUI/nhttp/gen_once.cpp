@@ -3,6 +3,8 @@
 #include "headers.h"
 
 #include <cassert>
+#include <cstdlib>
+#include <cstdio>
 #include <cstring>
 
 namespace nhttp::handler {

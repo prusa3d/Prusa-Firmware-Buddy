@@ -152,15 +152,16 @@ class PrusaLinkApi final : public Selector {
 
 const PrusaLinkApi prusa_link_api;
 
-const handler::Selector *selectors_array[] = { &validate_request, &static_fs_file, &prusa_link_api, &unknown_request };
-
-const altcp_allocator_t altcp_alloc = { prusa_alloc };
-
 class DefaultServerDefs final : public ServerDefs {
-    virtual const Selector **selectors() const { return selectors_array; }
-    virtual const char *get_api_key() const { return wui_get_api_key(); }
-    virtual altcp_allocator_t listener_alloc() const { return altcp_alloc; }
-    virtual uint16_t port() const { return 80; }
+private:
+    static const constexpr handler::Selector *const selectors_array[] = { &validate_request, &static_fs_file, &prusa_link_api, &unknown_request };
+    static const constexpr altcp_allocator_t altcp_alloc = { prusa_alloc };
+
+public:
+    virtual const Selector *const *selectors() const override { return selectors_array; }
+    virtual const char *get_api_key() const override { return wui_get_api_key(); }
+    virtual altcp_allocator_t listener_alloc() const override { return altcp_alloc; }
+    virtual uint16_t port() const override { return 80; }
 };
 
 const DefaultServerDefs server_defs;

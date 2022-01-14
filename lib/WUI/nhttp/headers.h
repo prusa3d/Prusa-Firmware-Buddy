@@ -2,6 +2,7 @@
 
 #include "types.h"
 
+#include <cstdint>
 #include <optional>
 
 namespace nhttp {

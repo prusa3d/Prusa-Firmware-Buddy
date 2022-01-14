@@ -184,6 +184,12 @@ public:
 
 class UploadState {
 private:
+    class MultiparserDeleter {
+    public:
+        void operator()(multipart_parser *parser) {
+            multipart_parser_free(parser);
+        }
+    };
     /*
      * This helps tracking if we start a new token or if this is a continuation
      * of the same one.
@@ -234,7 +240,7 @@ private:
      */
     const UploadHandlers *handlers;
 
-    unique_ptr<multipart_parser, void (*)(multipart_parser *)> multiparter;
+    unique_ptr<multipart_parser, MultiparserDeleter> multiparter;
 
     /*
      * When reading a string separated by quotes, this points to the current
@@ -564,7 +570,7 @@ private:
 public:
     UploadState(const char *boundary, const UploadHandlers *handlers)
         : handlers(handlers)
-        , multiparter(multipart_parser_init(boundary, &parser_settings), multipart_parser_free)
+        , multiparter(multipart_parser_init(boundary, &parser_settings))
         , type(TokenType::NoToken)
         , state(State::NoState)
         , part(Part::Unknown)

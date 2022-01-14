@@ -33,7 +33,7 @@ enum class ConnectionHandling {
 };
 
 // Note: Not exhaustive! Therefore not enum class, just enum.
-enum Status : uint16_t {
+enum Status {
     Unknown = 0,
     Ok = 200,
     NoContent = 204,

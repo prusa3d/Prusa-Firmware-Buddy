@@ -15,7 +15,7 @@ namespace nhttp {
 class ServerDefs {
 public:
     virtual ~ServerDefs();
-    virtual const handler::Selector **selectors() const = 0;
+    virtual const handler::Selector *const *selectors() const = 0;
     virtual const char *get_api_key() const = 0;
     // TODO: Have our own abstraction layer for tests vs lwIP? This one is ugly and brings a lot of deps in.
     virtual altcp_allocator_t listener_alloc() const = 0;
@@ -24,6 +24,27 @@ public:
 
 class Server {
 private:
+    class PbufDeleter {
+    public:
+        void operator()(pbuf *buff) {
+            pbuf_free(buff);
+        }
+    };
+
+    class ListenerDeleter {
+    public:
+        void operator()(altcp_pcb *conn) {
+            /*
+             * Note: According to docs, the altcp_close _can fail_. Nevertheless:
+             *
+             * * Using altcp_abort on listening connection doesn't work.
+             * * It is assumed to be able to fail due to eg. inability to send a
+             *   FIN packet. This is not the case for a listening socket.
+             */
+            altcp_close(conn);
+        }
+    };
+
     // TODO: Tune the values.
     static const size_t ACTIVE_CONNS = 3;
     static const size_t BUFF_SIZE = TCP_MSS;
@@ -66,7 +87,7 @@ private:
         Buffer *buffer = nullptr;
         bool seen_activity = false;
         // Do we have a partially processed pbuf, with data left for later?
-        std::unique_ptr<pbuf, typeof(&pbuf_free)> partial;
+        std::unique_ptr<pbuf, PbufDeleter> partial;
         size_t partial_consumed = 0;
         bool client_closed = false;
 
@@ -75,7 +96,6 @@ private:
         bool step();
         bool want_read() const;
         bool want_write() const;
-        Slot();
     };
 
     BaseSlot idle_slot;
@@ -102,7 +122,7 @@ private:
     // TODO: Alternative: some small and some big buffers?
     std::array<Buffer, BUFF_CNT> buffers;
 
-    std::unique_ptr<altcp_pcb, typeof(&altcp_close)> listener;
+    std::unique_ptr<altcp_pcb, ListenerDeleter> listener;
 
     Slot *find_empty_slot();
     Buffer *find_empty_buffer();
@@ -129,7 +149,7 @@ public:
     bool start();
     void stop();
 
-    const handler::Selector **selectors() const {
+    const handler::Selector *const *selectors() const {
         return defs.selectors();
     }
 

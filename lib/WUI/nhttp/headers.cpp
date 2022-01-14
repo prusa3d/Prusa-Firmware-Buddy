@@ -1,6 +1,9 @@
 #include "headers.h"
 
 #include <cassert>
+#include <cinttypes>
+#include <cstdlib>
+#include <cstdio>
 #include <cstring>
 
 namespace nhttp {

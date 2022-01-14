@@ -36,6 +36,10 @@ namespace {
 
 bool GcodeUpload::have_instance = false;
 
+void GcodeUpload::UploaderDeleter::operator()(Uploader *uploader) {
+    uploader_finish(uploader);
+}
+
 GcodeUpload::GcodeUpload(UploaderPtr uploader, size_t length)
     : uploader(std::move(uploader))
     , size_rest(length) {
@@ -84,7 +88,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser) {
     char boundary_cstr[boundary.size() + 1];
     memcpy(boundary_cstr, boundary.begin(), boundary.size());
     boundary_cstr[boundary.size()] = '\0';
-    UploaderPtr uploader(uploader_init(boundary_cstr, &handlers), &uploader_finish);
+    UploaderPtr uploader(uploader_init(boundary_cstr, &handlers));
 
     if (!uploader) {
         return StatusPage(Status::ServiceTemporarilyUnavailable, false, "Out of memory");
