@@ -18,9 +18,21 @@ enum {
 #define EEPROM_FEATURE_LAN     0x0004
 #define EEPROM_FEATURE_SHEETS  0x0008
 #define EEPROM_FEATURES        (EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN | EEPROM_FEATURE_SHEETS)
-
+#define DEFAULT_HOST_NAME      "PrusaMINI"
 enum {
     MAX_SHEET_NAME_LENGTH = 8,
+};
+
+// sheets must be defined even when they are not used, to be able to import data from old eeprom
+typedef struct
+{
+    char name[MAX_SHEET_NAME_LENGTH]; //!< Can be null terminated, doesn't need to be null terminated
+    float z_offset;                   //!< Z_BABYSTEP_MIN .. Z_BABYSTEP_MAX = Z_BABYSTEP_MIN*2/1000 [mm] .. Z_BABYSTEP_MAX*2/1000 [mm]
+} Sheet;
+
+enum {
+    MAX_SHEETS = 8,
+    EEPROM_SHEET_SIZEOF = sizeof(Sheet)
 };
 
 enum eevar_id {
