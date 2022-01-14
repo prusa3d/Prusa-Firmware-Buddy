@@ -326,13 +326,17 @@ static inline void eeprom_unlock(void) {
 }
 
 // forward declarations of private functions
+static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size);
+static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size);
 static void eeprom_write_vars(eeprom_vars_t &vars);
 static uint16_t eeprom_var_size(enum eevar_id id);
 static uint16_t eeprom_var_addr(enum eevar_id id, uint16_t addr = EEPROM_ADDRESS);
+static void *eeprom_var_ptr(enum eevar_id id, eeprom_vars_t &pVars);
 static bool eeprom_convert_from(eeprom_vars_t &eevars);
 
 static bool eeprom_check_crc32(const eeprom_vars_t &eevars);
-static void eeprom_update_crc32();
+static void update_crc32_both_ram_eeprom(eeprom_vars_t &eevars);
+static void update_crc32_in_ram(eeprom_vars_t &eevars);
 
 static uint16_t eeprom_fwversion_ui16(void);
 static eeprom_vars_t &eeprom_startup_vars();
@@ -409,63 +413,119 @@ static eeprom_vars_t &eeprom_startup_vars() {
     return ret;
 }
 
+/**
+ * @brief reads eeprom record from RAM structure into variant variable
+ *
+ * @param id eeprom record index
+ * @return variant8_t eeprom record
+ */
 variant8_t eeprom_get_var(enum eevar_id id) {
-    uint16_t addr;
-    uint16_t size;
-    uint16_t data_size;
-    void *data_ptr;
     variant8_t var = variant8_empty();
     if (id < EEPROM_VARCOUNT) {
-        eeprom_lock();
         var = variant8_init(eeprom_map[id].type, eeprom_map[id].count, 0);
-        size = eeprom_var_size(id);
-        data_size = variant8_data_size(&var);
-        if (size == data_size) {
-            addr = eeprom_var_addr(id);
-            data_ptr = variant8_data_ptr(&var);
-            st25dv64k_user_read_bytes(addr, data_ptr, size);
-        } else {
-            //TODO:error
-            log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
-        }
-        eeprom_unlock();
+        eeprom_get_var(id, variant8_data_ptr(&var), variant8_data_size(&var));
+    } else {
+        assert(0 /* EEProm var Id out of range */);
     }
     return var;
 }
 
-void eeprom_set_var(enum eevar_id id, variant8_t var) {
-    uint16_t addr;
-    uint16_t size;
-    uint16_t data_size;
-    void *data_ptr;
+/**
+ * @brief reads eeprom record from RAM structure
+ *
+ * @param id eeprom record index
+ * @param var_ptr pointer to variable to be read
+ * @param var_size size of variable
+ */
+static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size) {
     if (id < EEPROM_VARCOUNT) {
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-        if (id == EEVAR_ZOFFSET && variant8_get_type(var) == VARIANT8_FLT) {
-            variant8_t recent_sheet = eeprom_get_var(EEVAR_ACTIVE_SHEET);
-            uint8_t index = variant8_get_ui8(recent_sheet);
-            uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
-            float z_offset = variant8_get_flt(var);
-            st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH, &z_offset, sizeof(float));
+        size_t size = eeprom_var_size(id);
+        if (size == var_size) {
+            eeprom_vars_t &vars = eeprom_startup_vars();
+            const void *var_addr = eeprom_var_ptr(id, vars);
+            // need to lock even if it is not accesing eeprom
+            // because RAM structure changes during write also
+            eeprom_lock();
+            memcpy(var_ptr, var_addr, size);
+            eeprom_unlock();
+        } else {
+            //TODO:error
+            log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
         }
-#endif
-        eeprom_lock();
+    } else {
+        assert(0 /* EEProm var Id out of range */);
+    }
+}
+
+/**
+ * @brief function that writes variant8_t to eeprom, also actualizes crc and RAM structure
+ *
+ * @param id eeprom record index
+ * @param var variant variable holding data to be written
+ */
+void eeprom_set_var(enum eevar_id id, variant8_t var) {
+    if (id < EEPROM_VARCOUNT) {
         if (variant8_get_type(var) == eeprom_map[id].type) {
-            size = eeprom_var_size(id);
-            data_size = variant8_data_size(&var);
-            if ((size == data_size) || ((variant8_get_type(var) == VARIANT8_PCHAR) && (data_size <= size))) {
-                addr = eeprom_var_addr(id);
-                data_ptr = variant8_data_ptr(&var);
-                st25dv64k_user_write_bytes(addr, data_ptr, data_size);
-                eeprom_update_crc32();
-            } else {
-                // TODO: error
-                log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
-            }
+            eeprom_set_var(id, variant8_data_ptr(&var), eeprom_var_size(id));
         } else {
             // TODO: error
             log_error(EEPROM, "%s: variant type missmatch on id: %x", __FUNCTION__, id);
         }
-        eeprom_unlock();
+
+    } else {
+        assert(0 /* EEProm var Id out of range */);
+    }
+}
+
+/**
+ * @brief function that writes data to eeprom, also actualizes crc and RAM structure
+ *
+ * @param id eeprom record index
+ * @param var_ptr pointer to variable to be written
+ * @param var_size size of variable
+ */
+static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size) {
+    eevar_id sheet_id = static_cast<enum eevar_id>(0);
+    eeprom_vars_t &vars = eeprom_startup_vars();
+    uint16_t var_eeprom_addr;
+    uint16_t sheet_eeprom_addr;
+    void *var_ram_addr;
+    void *sheet_ram_addr;
+    if (id < EEPROM_VARCOUNT) {
+        // Z offset is written to currnet sheet too
+        //TODO remove EEVAR_ZOFFSET to store it only once
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+        if (id == EEVAR_ZOFFSET) {
+            variant8_t recent_sheet = eeprom_get_var(EEVAR_ACTIVE_SHEET);
+            uint8_t index = variant8_get_ui8(recent_sheet);
+            sheet_id = static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index);
+            //eeprom area
+            sheet_eeprom_addr = eeprom_var_addr(sheet_id);
+
+            //RAM area
+            sheet_ram_addr = eeprom_var_ptr(sheet_id, vars);
+        }
+#endif
+        size_t size = eeprom_var_size(id);
+        if (var_size <= size) {
+            var_eeprom_addr = eeprom_var_addr(id);
+            var_ram_addr = eeprom_var_ptr(id, vars);
+            //critical section
+            eeprom_lock();
+            if (sheet_id != static_cast<enum eevar_id>(0)) {
+                memcpy(sheet_ram_addr, var_ptr, var_size);
+                //store value just after name
+                st25dv64k_user_write_bytes(sheet_eeprom_addr + MAX_SHEET_NAME_LENGTH, var_ptr, var_size);
+            }
+            memcpy(var_ram_addr, var_ptr, var_size);
+            st25dv64k_user_write_bytes(var_eeprom_addr, var_ptr, var_size);
+            update_crc32_both_ram_eeprom(vars);
+            eeprom_unlock();
+        } else {
+            // TODO: error
+            log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
+        }
+
     } else {
         assert(0 /* EEProm var Id out of range */);
     }
@@ -574,6 +634,21 @@ static uint16_t eeprom_var_size(enum eevar_id id) {
  * @return uint16_t address offset of given variable
  */
 static uint16_t eeprom_var_addr(enum eevar_id id, uint16_t addr) {
+    uint8_t id_idx = id;
+    while (id_idx > 0)
+        addr += eeprom_var_size(static_cast<enum eevar_id>(--id_idx));
+    return addr;
+}
+
+/**
+ * @brief return pointer to variable in given eeprom_vars_t structure
+ *
+ * @param id variable id
+ * @param vars structure af all variables
+ * @return void* pointer to wanted variable
+ */
+static void *eeprom_var_ptr(enum eevar_id id, eeprom_vars_t &vars) {
+    uint8_t *addr = reinterpret_cast<uint8_t *>(&vars);
     uint8_t id_idx = id;
     while (id_idx > 0)
         addr += eeprom_var_size(static_cast<enum eevar_id>(--id_idx));
@@ -739,31 +814,32 @@ static bool eeprom_check_crc32(const eeprom_vars_t &eevars) {
 
     uint32_t crc;
     if (eevars.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
-        crc = crc32_eeprom((uint32_t *)(&eevars), (EEPROM_DATASIZE - 4) / 4);
+        crc = crc32_eeprom((uint32_t *)(&eevars), (eevars.DATASIZE - 4) / 4);
     } else {
         uint8_t data[EEPROM_MAX_DATASIZE];
         st25dv64k_user_read_bytes(EEPROM_ADDRESS, data, eevars.DATASIZE);
-        crc = crc32_calc((uint8_t *)(&eevars), EEPROM_DATASIZE - 4);
+        crc = crc32_calc((uint8_t *)(&eevars), eevars.DATASIZE - 4);
     }
     return eevars.CRC32 == crc;
 }
 
-static void eeprom_update_crc32() {
+static void update_crc32_both_ram_eeprom(eeprom_vars_t &eevars) {
     uint32_t time = ticks_us();
 
-    eeprom_vars_t vars;
-    // read eeprom data
-    st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
-    // calculate crc32
-    if (vars.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
-        vars.CRC32 = crc32_eeprom((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
-    } else {
-        vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
-    }
+    update_crc32_in_ram(eevars);
     // write crc to eeprom
-    st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(eevars.CRC32), 4);
 
     log_info(EEPROM, "CRC update took %u us", ticks_diff(ticks_us(), time));
+}
+
+static void update_crc32_in_ram(eeprom_vars_t &eevars) {
+    // calculate crc32
+    if (eevars.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
+        eevars.CRC32 = crc32_eeprom((uint32_t *)(&eevars), (EEPROM_DATASIZE - 4) / 4);
+    } else {
+        eevars.CRC32 = crc32_calc((uint8_t *)(&eevars), EEPROM_DATASIZE - 4);
+    }
 }
 
 static uint16_t eeprom_fwversion_ui16(void) {
@@ -818,10 +894,8 @@ uint32_t sheet_next_calibrated() {
 
 bool sheet_is_calibrated(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
     float z_offset = FLT_MAX;
-    st25dv64k_user_read_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
-        &z_offset, sizeof(float));
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &z_offset, sizeof(z_offset));
     return !nearlyEqual(z_offset, FLT_MAX, 0.001f);
 #else
     log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
@@ -833,15 +907,12 @@ bool sheet_select(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     if (index >= MAX_SHEETS || !sheet_is_calibrated(index))
         return false;
-    uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
-    uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
-    uint16_t z_offset_address = eeprom_var_addr(EEVAR_ZOFFSET);
     float z_offset = FLT_MAX;
-    st25dv64k_user_read_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
-        &z_offset, sizeof(float));
-    st25dv64k_user_write(active_sheet_address, static_cast<uint8_t>(index));
-    st25dv64k_user_write_bytes(z_offset_address, &z_offset, sizeof(float));
-    eeprom_update_crc32();
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &z_offset, sizeof(z_offset));
+
+    uint8_t index_ui8 = index;
+    eeprom_set_var(EEVAR_ACTIVE_SHEET, &index_ui8, sizeof(index_ui8));
+    eeprom_set_var(EEVAR_ZOFFSET, &z_offset, sizeof(float));
     return true;
 #else
     log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
@@ -853,10 +924,7 @@ bool sheet_calibrate(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     if (index >= MAX_SHEETS)
         return false;
-    uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
-
-    st25dv64k_user_write(active_sheet_address, static_cast<uint8_t>(index));
-    eeprom_update_crc32();
+    eeprom_set_var(EEVAR_ACTIVE_SHEET, &index, sizeof(index));
     return true;
 #else
     log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
@@ -869,12 +937,9 @@ bool sheet_reset(uint32_t index) {
     if (index >= MAX_SHEETS)
         return false;
     uint8_t active = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
-    uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
     float z_offset = FLT_MAX;
 
-    st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
-        &z_offset, sizeof(float));
-    eeprom_update_crc32();
+    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &z_offset, sizeof(float));
     if (active == index)
         sheet_next_calibrated();
     return true;
@@ -915,12 +980,10 @@ uint32_t sheet_name(uint32_t index, char *buffer, uint32_t length) {
     if (index >= MAX_SHEETS || !buffer || !length)
         return 0;
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
     uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
         ? length
         : MAX_SHEET_NAME_LENGTH - 1;
-    st25dv64k_user_read_bytes(profile_address,
-        buffer, l);
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), buffer, l);
     while (l > 0 && !buffer[l - 1])
         --l;
     return l;
@@ -937,14 +1000,12 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
     if (index >= MAX_SHEETS || !name || !length)
         return false;
     char eeprom_name[MAX_SHEET_NAME_LENGTH];
-    uint16_t profile_address = eeprom_var_addr(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index));
     uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
         ? length
         : MAX_SHEET_NAME_LENGTH - 1;
     memset(eeprom_name, 0, MAX_SHEET_NAME_LENGTH);
     memcpy(eeprom_name, name, l);
-    st25dv64k_user_write_bytes(profile_address, eeprom_name, MAX_SHEET_NAME_LENGTH);
-    eeprom_update_crc32();
+    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), eeprom_name, MAX_SHEET_NAME_LENGTH);
     return l;
 #else
     log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
