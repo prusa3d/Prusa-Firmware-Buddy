@@ -203,3 +203,27 @@ TEST_CASE("Extract boundary") {
     REQUIRE(ex.collect_entered(Names::ContentLength) == "42");
     REQUIRE(ex.collect_entered(Names::Boundary) == "hello");
 }
+
+TEST_CASE("Connection close") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.feed("GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::ConnectionClose));
+    REQUIRE_FALSE(ex.contains_enter(Names::ConnectionKeepAlive));
+}
+
+TEST_CASE("Connection keep alive") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.feed("GET / HTTP/1.1\r\nConnection: Keep-Alive\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::ConnectionKeepAlive));
+    REQUIRE_FALSE(ex.contains_enter(Names::ConnectionClose));
+}
+
+TEST_CASE("No connection") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.feed("GET / HTTP/1.1\r\n\r\n");
+    REQUIRE_FALSE(ex.contains_enter(Names::ConnectionKeepAlive));
+    REQUIRE_FALSE(ex.contains_enter(Names::ConnectionClose));
+}

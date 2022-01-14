@@ -65,7 +65,7 @@ def read_header_value(event_name):
     continuation.loop("HorizWhitespace", LabelType.Special)
     continuation.add_fallback(start)
     end.add_transition("HorizWhitespace", LabelType.Special, continuation)
-    return auto, end
+    return auto, end, False
 
 
 # TODO: We should really come up with a way to replace one state of one
@@ -141,7 +141,49 @@ def read_boundary():
 
     read_until_colon.loop_fallback()
 
-    return auto, end
+    return auto, end, False
+
+
+def connection_header():
+    """
+    Parse a connection header.
+
+    We want to recognize the Connection: close and Connection: keep-alive. In
+    theory, the header may contain other things, but in practice it mostly
+    doesn't happen. Doing it properly would be complicated (until we improve
+    our automata-handling utilities) with very little gain, so we cheat a
+    little bit.
+    """
+    auto = Automaton()
+    start = auto.start()
+    start.loop('HorizWhitespace', LabelType.Special)
+
+    # Detect the two nice tokens. We cheat by the fact they differ by their
+    # first letter.
+    close_start = auto.add_state()
+    close_start.mark_enter()
+    start.add_transition('c', LabelType.CharNoCase, close_start)
+    close_start.set_path('lose', nocase=True)  # Will lead to the next state
+    close_end = auto.add_state("ConnectionClose")
+    close_end.mark_enter()
+
+    keep_start = auto.add_state()
+    start.add_transition('k', LabelType.CharNoCase, keep_start)
+    keep_start.set_path('eep-alive', nocase=True)
+    keep_end = auto.add_state("ConnectionKeepAlive")
+    keep_end.mark_enter()
+
+    # Now handle all the rest by a header-parsing automaton that doesn't emit
+    # any events.
+    other, other_end, _ = read_header_value(None)
+    fallback = other.start()
+    auto.join_transition(start, other, fallthrough=True)
+    # Whenever leaving any of our states, just move to the dummy header
+    # collector that handles all the header continuations, header ends, etc.
+    for state in [close_start, close_end, keep_start, keep_end]:
+        state.add_fallback(fallback, fallthrough=True)
+
+    return auto, other_end, True
 
 
 def headers(interested):
@@ -175,8 +217,8 @@ def headers(interested):
         separator = auto.add_state()
         separator.loop("HorizWhitespace", LabelType.Special)
         term.add_transition(':', LabelType.Char, separator)
-        read_header, read_header_end = interested[header]
-        auto.join_transition(separator, read_header)
+        read_header, read_header_end, fallthrough = interested[header]
+        auto.join_transition(separator, read_header, fallthrough=fallthrough)
         read_header_end.add_fallback(start, fallthrough=True)
 
     # Handling of unknown headers. We ignore few spaces, see a colon,
@@ -190,7 +232,7 @@ def headers(interested):
     unknown.add_transition(':', LabelType.Char, after_unknown)
     unknown.loop_fallback()
     after_unknown.loop("HorizWhitespace", LabelType.Special)
-    ignore_unknown_header, iuh_end = read_header_value(None)
+    ignore_unknown_header, iuh_end, _ = read_header_value(None)
     auto.join_transition(after_unknown, ignore_unknown_header)
     iuh_end.add_fallback(start, fallthrough=True)
 
@@ -213,6 +255,7 @@ if __name__ == "__main__":
         'X-Api-Key': read_header_value('XApiKey'),
         'Content-Length': read_header_value('ContentLength'),
         'Content-Type': read_boundary(),
+        'Connection': connection_header(),
     }
     http, final = request(want_headers)
     compiled = http.compile("nhttp::parser::request")

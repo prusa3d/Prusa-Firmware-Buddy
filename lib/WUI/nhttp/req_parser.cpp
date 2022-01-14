@@ -105,6 +105,12 @@ ExecutionControl RequestParser::event(Event event) {
             version_minor = 10 * version_minor + (event.payload - '0');
             return ExecutionControl::Continue;
         }
+    case Names::ConnectionClose:
+        connection = Connection::Close;
+        break;
+    case Names::ConnectionKeepAlive:
+        connection = Connection::KeepAlive;
+        break;
     case Names::Body:
         done = true;
         // Yes, really don't stop. Eath the \n too!
