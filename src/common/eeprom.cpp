@@ -912,19 +912,7 @@ bool sheet_profile_select(uint32_t index) {
 
     uint8_t index_ui8 = index;
     eeprom_set_var(EEVAR_ACTIVE_SHEET, &index_ui8, sizeof(index_ui8));
-    eeprom_set_var(EEVAR_ZOFFSET, &z_offset, sizeof(float));
-    return true;
-#else
-    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
-    return index == 0;
-#endif
-}
-
-bool sheet_calibrate(uint32_t index) {
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    if (index >= MAX_SHEETS)
-        return false;
-    eeprom_set_var(EEVAR_ACTIVE_SHEET, &index, sizeof(index));
+    eeprom_set_var(EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY, &z_offset, sizeof(float));
     return true;
 #else
     log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);

@@ -126,7 +126,7 @@ protected:
             break;
         case profile_action::Calibrate:
             log_debug(GUI, "MI_SHEET_CALIBRATE");
-            sheet_calibrate(Index::value);
+            sheet_profile_select(Index::value);
             ScreenWizard::Run(wizard_run_type_t::firstlay);
             break;
         case profile_action::Rename:

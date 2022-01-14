@@ -234,19 +234,10 @@ extern bool sheet_is_calibrated(uint32_t);
 /// @brief Select the given print sheet profile as an active for the printer.
 ///
 /// In case the index of the given print sheet profile is bigger than the
-/// MAX_SHEETS or sheet is not calibrated method return false.
+/// MAX_SHEETS return false.
 /// @param[in] index Index of the sheet profile
 /// @return True when the profile can be selected, False othewise.
 extern bool sheet_profile_select(uint32_t);
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Calibrate the given print sheet profile as an active for the printer.
-///
-/// In case the index of the given print sheet profile is bigger than the
-/// MAX_SHEETS method return false.
-/// @param[in] index Index of the sheet profile
-/// @return True when the profile can be selected, False othewise.
-extern bool sheet_calibrate(uint32_t);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Reset the given print sheet profile to the uncalibrated state.
