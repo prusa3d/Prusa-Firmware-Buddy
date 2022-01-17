@@ -19,44 +19,7 @@ namespace eeprom::v10 {
  * @brief body od eeprom v10
  * without head, padding and crc
  */
-struct vars_body_t {
-    uint8_t FILAMENT_TYPE;
-    uint32_t FILAMENT_COLOR;
-    uint8_t RUN_SELFTEST;
-    uint8_t RUN_XYZCALIB;
-    uint8_t RUN_FIRSTLAY;
-    uint8_t FSENSOR_ENABLED;
-    float ZOFFSET;
-    float PID_NOZ_P;
-    float PID_NOZ_I;
-    float PID_NOZ_D;
-    float PID_BED_P;
-    float PID_BED_I;
-    float PID_BED_D;
-    uint8_t LAN_FLAG;
-    uint32_t LAN_IP4_ADDR;
-    uint32_t LAN_IP4_MSK;
-    uint32_t LAN_IP4_GW;
-    uint32_t LAN_IP4_DNS1;
-    uint32_t LAN_IP4_DNS2;
-    char LAN_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
-    int8_t TIMEZONE;
-    uint8_t SOUND_MODE;
-    uint8_t SOUND_VOLUME;
-    uint16_t LANGUAGE;
-    uint8_t FILE_SORT;
-    uint8_t MENU_TIMEOUT;
-    uint8_t ACTIVE_SHEET;
-    Sheet SHEET_PROFILE0;
-    Sheet SHEET_PROFILE1;
-    Sheet SHEET_PROFILE2;
-    Sheet SHEET_PROFILE3;
-    Sheet SHEET_PROFILE4;
-    Sheet SHEET_PROFILE5;
-    Sheet SHEET_PROFILE6;
-    Sheet SHEET_PROFILE7;
-    uint32_t SELFTEST_RESULT;
-    uint8_t DEVHASH_IN_QR;
+struct vars_body_t : public eeprom::v9::vars_body_t {
     uint32_t FOOTER_SETTING;
     uint32_t FOOTER_DRAW_TYPE;
     uint8_t FAN_CHECK_ENABLED;
@@ -83,46 +46,12 @@ struct vars_body_t {
 
 #pragma pack(pop)
 
+static_assert(sizeof(vars_body_t) == sizeof(eeprom::v9::vars_body_t) + sizeof(uint32_t) * 3 + sizeof(uint8_t) * 2 + sizeof(float) * 9 + sizeof(uint16_t) * 8, "eeprom body size does not match");
+
 static constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
 constexpr vars_body_t body_defaults = {
-    0,                         // EEVAR_FILAMENT_TYPE
-    0,                         // EEVAR_FILAMENT_COLOR
-    1,                         // EEVAR_RUN_SELFTEST
-    1,                         // EEVAR_RUN_XYZCALIB
-    1,                         // EEVAR_RUN_FIRSTLAY
-    1,                         // EEVAR_FSENSOR_ENABLED
-    0,                         // EEVAR_ZOFFSET
-    DEFAULT_Kp,                // EEVAR_PID_NOZ_P
-    scalePID_i(DEFAULT_Ki),    // EEVAR_PID_NOZ_I
-    scalePID_d(DEFAULT_Kd),    // EEVAR_PID_NOZ_D
-    DEFAULT_bedKp,             // EEVAR_PID_BED_P
-    scalePID_i(DEFAULT_bedKi), // EEVAR_PID_BED_I
-    scalePID_d(DEFAULT_bedKd), // EEVAR_PID_BED_D
-    0,                         // EEVAR_LAN_FLAG
-    0,                         // EEVAR_LAN_IP4_ADDR
-    0,                         // EEVAR_LAN_IP4_MSK
-    0,                         // EEVAR_LAN_IP4_GW
-    0,                         // EEVAR_LAN_IP4_DNS1
-    0,                         // EEVAR_LAN_IP4_DNS2
-    DEFAULT_HOST_NAME,         // EEVAR_LAN_HOSTNAME
-    0,                         // EEVAR_TIMEZONE
-    0xff,                      // EEVAR_SOUND_MODE
-    5,                         // EEVAR_SOUND_VOLUME
-    0xffff,                    // EEVAR_LANGUAGE
-    0,                         // EEVAR_FILE_SORT
-    1,                         // EEVAR_MENU_TIMEOUT
-    0,                         // EEVAR_ACTIVE_SHEET
-    { "Smooth1", 0.0f },
-    { "Smooth2", FLT_MAX },
-    { "Textur1", FLT_MAX },
-    { "Textur2", FLT_MAX },
-    { "Custom1", FLT_MAX },
-    { "Custom2", FLT_MAX },
-    { "Custom3", FLT_MAX },
-    { "Custom4", FLT_MAX },
-    0,                                                                          // EEVAR_SELFTEST_RESULT
-    1,                                                                          // EEVAR_DEVHASH_IN_QR
+    eeprom::v9::body_defaults,
     footer::eeprom::Encode(footer::DefaultItems),                               // EEVAR_FOOTER_SETTING
     uint32_t(footer::ItemDrawCnf::Default()),                                   // EEVAR_FOOTER_DRAW_TYPE
     1,                                                                          // EEVAR_FAN_CHECK_ENABLED
