@@ -107,13 +107,28 @@ private:
         }
     };
 
+    class InactivityTimeout {
+    private:
+        uint32_t scheduled = 0;
+
+    public:
+        void schedule(uint32_t after);
+        bool past() const;
+    };
+
     // TODO: Tune the values.
     static const size_t ACTIVE_CONNS = 3;
     static const size_t BUFF_SIZE = TCP_MSS;
     static const size_t BUFF_CNT = 2;
-    // 10 half-seconds... weird units of LwIP
-    static const uint8_t IDLE_POLL_TIME = 10;
-    static const uint8_t ACTIVE_POLL_TIME = 4;
+    // half-seconds... weird units of LwIP
+    static const uint8_t POLL_TIME = 1;
+    // Idle connections time out after 10 seconds.
+    static const uint32_t IDLE_TIMEOUT = 10 * 1000;
+    /*
+     * Active connections are more expensive to keep around and they are
+     * expected to be active, so time them out sooner.
+     */
+    static const uint32_t ACTIVE_TIMEOUT = 4 * 1000;
     /*
      * Priorities of active vs idle connections. Decides which connections are
      * killed if there's too many of them.
@@ -123,14 +138,34 @@ private:
     static const uint8_t ACTIVE_PRIO = TCP_PRIO_NORMAL - 1;
 
     const ServerDefs &defs;
-    struct IdleConn {};
 
     struct Buffer;
 
     class BaseSlot {
     public:
         Server *server = nullptr;
+        InactivityTimeout timeout;
     };
+
+    /*
+     * We want to be able to keep arbitrary number of idle connections around.
+     * That means we don't give each its own slot.
+     *
+     * This poses a little difficulty with timeouts on them. The altcp_poll
+     * doesn't seem to work reliably (it does not set the timeout to that time,
+     * it sets the interval but it can trigger early; the ESP variant doesn't
+     * set the time value at all).
+     *
+     * So we have three slots and alternatingly (based on time) put the
+     * connection in either one. That is, one is gathering connections while
+     * the other is only timing out. This way the connection might time out a
+     * bit later, but eventually it will (because the slot stays inactive for 2
+     * iterations).
+     *
+     * Active connections can afford to have each their own timeout, so they
+     * don't do these crazy dances.
+     */
+    std::array<BaseSlot, 3> idle_slots;
 
     class Slot : public BaseSlot {
     private:
@@ -142,12 +177,10 @@ private:
         bool close();
 
     public:
-        Server *server = nullptr;
         altcp_pcb *conn = nullptr;
         handler::ConnectionState state;
         // Owning a buffer?
         Buffer *buffer = nullptr;
-        bool seen_activity = false;
         // Do we have a partially processed pbuf, with data left for later?
         std::unique_ptr<pbuf, PbufDeleter> partial;
         size_t partial_consumed = 0;
@@ -160,13 +193,17 @@ private:
         bool want_write() const;
     };
 
-    BaseSlot idle_slot;
     std::array<Slot, ACTIVE_CONNS> active_slots;
     /*
      * Rotating finger to the last slot that did something. Next time we start
      * with the next one in a row to avoid starving connections.
      */
     uint8_t last_active_slot = 0;
+
+    /*
+     * There's an activity on the given connection. Reset appropriate timeouts.
+     */
+    void activity(altcp_pcb *conn, BaseSlot *slot);
 
     struct Buffer {
         // Yet unwritten data.

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <lwip/sys.h>
 
 namespace nhttp {
 
@@ -15,6 +16,21 @@ using std::get;
 using std::get_if;
 using std::holds_alternative;
 using std::string_view;
+
+void Server::InactivityTimeout::schedule(uint32_t after) {
+    scheduled = sys_now() + after;
+}
+
+bool Server::InactivityTimeout::past() const {
+    uint32_t diff = sys_now() - scheduled;
+    /*
+     * Wrap-around comparing - if sys_now is smaller, then it underflows.
+     *
+     * If sys_now already overflown and scheduled didn't (it's very large), the
+     * diff is something small because it almost underflows.
+     */
+    return (diff >= 0 && diff < UINT32_MAX / 2);
+}
 
 ServerDefs::~ServerDefs() {};
 
@@ -140,7 +156,7 @@ bool Server::Slot::step() {
         if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, flags) == ERR_OK) {
             buffer->write_pos += to_send;
             altcp_output(conn);
-            seen_activity = true;
+            server->activity(conn, this);
             return true;
         } else {
             /*
@@ -193,7 +209,7 @@ bool Server::Slot::step() {
     }
 
     if (!input.empty() || invoke_client_close || output) {
-        seen_activity = true;
+        server->activity(conn, this);
         step(input, output, output_size);
         return true;
     }
@@ -204,9 +220,9 @@ bool Server::Slot::step() {
          * cases.
          */
         if (const Terminating *t = get_if<Terminating>(&state)) {
-            altcp_poll(conn, Server::idle_conn_wrap, Server::IDLE_POLL_TIME);
             altcp_setprio(conn, Server::IDLE_PRIO);
-            altcp_arg(conn, &server->idle_slot);
+            altcp_arg(conn, server->idle_slots.begin());
+            server->activity(conn, server->idle_slots.begin());
             switch (t->how) {
             case Done::KeepAlive:
                 if (partial) {
@@ -245,7 +261,9 @@ void Server::Buffer::reset() {
 
 Server::Server(const ServerDefs &defs)
     : defs(defs) {
-    idle_slot.server = this;
+    for (auto &slot : idle_slots) {
+        slot.server = this;
+    }
     for (auto &slot : active_slots) {
         slot.server = this;
     }
@@ -266,7 +284,7 @@ err_t Server::accept(altcp_pcb *new_conn, err_t err) {
      *
      * Let LwIP handle the memory for the connection itself, though.
      */
-    set_callbacks(new_conn, &idle_slot);
+    set_callbacks(new_conn, idle_slots.begin());
 
     /*
      * We are willing to throw idle connections overboard to have more active ones.
@@ -283,10 +301,11 @@ err_t Server::accept(altcp_pcb *new_conn, err_t err) {
 
 void Server::set_callbacks(altcp_pcb *conn, BaseSlot *slot) {
     altcp_err(conn, lost_conn_wrap);
-    altcp_poll(conn, idle_conn_wrap, IDLE_POLL_TIME);
+    altcp_poll(conn, idle_conn_wrap, POLL_TIME);
     altcp_recv(conn, received_wrap);
     altcp_sent(conn, sent_wrap);
     altcp_arg(conn, slot);
+    slot->server->activity(conn, slot);
 }
 
 void Server::remove_callbacks(altcp_pcb *conn) {
@@ -304,16 +323,13 @@ void Server::lost_conn_wrap(void *slot, err_t) {
 }
 
 err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
-    if (is_active_slot(slot)) {
-        /*
-         * LwIP seems to be invoking the poll timer from time to time, not when
-         * inactive as documented. So track if we are or are not active.
-         */
-        Slot *s = static_cast<Slot *>(slot);
-        if (s->seen_activity) {
-            s->seen_activity = false;
-            return ERR_OK;
-        }
+    /*
+     * LwIP seems to be invoking the poll timer from time to time, not when
+     * inactive as documented. So track if we are or are not active on our side.
+     */
+    BaseSlot *s = static_cast<BaseSlot *>(slot);
+    if (!s->timeout.past()) {
+        return ERR_OK;
     }
 
     bool send_goodbye = (!is_active_slot(slot) || static_cast<Slot *>(slot)->want_read());
@@ -346,7 +362,7 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
     assert(conn != nullptr);
 
     BaseSlot *base_slot = static_cast<BaseSlot *>(raw_slot);
-    if (base_slot == &base_slot->server->idle_slot) {
+    if (!is_active_slot(base_slot)) {
         if (data == nullptr) {
             // Closing an idle connection.
             remove_callbacks(conn);
@@ -369,8 +385,8 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
             active_slot->state.emplace<handler::RequestParser>(*active_slot->server);
             active_slot->conn = conn;
             altcp_arg(conn, active_slot);
-            altcp_poll(conn, idle_conn_wrap, ACTIVE_POLL_TIME);
             base_slot = active_slot;
+            // Activity set below
 
             altcp_setprio(conn, ACTIVE_PRIO);
         } else {
@@ -387,7 +403,7 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
 
     assert(is_active_slot(base_slot));
     Slot *slot = static_cast<Slot *>(base_slot);
-    slot->seen_activity = true;
+    slot->server->activity(conn, slot);
 
     if (slot->partial) {
         /*
@@ -425,7 +441,7 @@ err_t Server::sent_wrap(void *raw_slot, altcp_pcb *conn, uint16_t len) {
 
         assert(!holds_alternative<Idle>(slot->state));
         slot->server->sent(slot, len);
-        slot->seen_activity = true;
+        slot->server->activity(conn, slot);
     }
 
     return ERR_OK;
@@ -436,6 +452,7 @@ void Server::sent(Slot *slot, uint16_t len) {
     assert(buffer->write_pos >= buffer->acked);
     const uint16_t unacked = buffer->write_pos - buffer->acked;
     assert(len <= unacked);
+    (void)unacked; // No warnings on release
     buffer->acked += len;
 
     step();
@@ -465,7 +482,23 @@ bool Server::is_active_slot(void *slot) {
     }
 
     BaseSlot *s = static_cast<BaseSlot *>(slot);
-    return s != &s->server->idle_slot;
+    return ((s >= s->server->active_slots.begin()) && (s < s->server->active_slots.end()));
+}
+
+void Server::activity(altcp_pcb *conn, BaseSlot *slot) {
+    if (is_active_slot(slot)) {
+        slot->timeout.schedule(ACTIVE_TIMEOUT);
+    } else {
+        /*
+         * Trick to share timeouts for arbitrary number of connections. See the
+         * comment in the header file for details how (and why) it works.
+         */
+        const uint32_t now = sys_now();
+        const size_t slot_id = (now / IDLE_TIMEOUT) % slot->server->idle_slots.size();
+        slot = &slot->server->idle_slots[slot_id];
+        slot->timeout.schedule(IDLE_TIMEOUT);
+        altcp_arg(conn, slot);
+    }
 }
 
 Server::Slot *Server::find_empty_slot() {
