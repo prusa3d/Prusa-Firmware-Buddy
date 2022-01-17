@@ -37,14 +37,23 @@ async def test_web_interface_is_accessible(wui_client: aiohttp.ClientSession):
 
 
 async def test_not_found(wui_client: aiohttp.ClientSession):
-    for non_existent in ['/nonsense', '/api/not']:
+    for non_existent in ['/nonsense', '/whatever/not']:
         response = await wui_client.get(non_existent)
         assert response.status == 404
+
+    # The whole /api is behind an authentication and _doesn't_ show even what
+    # exists and what doesn't.
+    response = await wui_client.get('/api/not')
+    assert response.status == 401
+
+    # But when authenticated, it prefers the 404 error for non-existing bits.
+    response = await wui_client.get('/api/not', headers=valid_headers())
+    assert response.status == 404
 
 
 async def test_auth(wui_client: aiohttp.ClientSession):
     # Not getting in when no X-Api-Kep is present.
-    all_endpoints = ['version', 'printer', 'job', 'files']
+    all_endpoints = ['version', 'printer', 'job']
     for endpoint in all_endpoints:
         response = await wui_client.get('/api/' + endpoint)
         assert response.status == 401
