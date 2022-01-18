@@ -332,7 +332,7 @@ err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
         return ERR_OK;
     }
 
-    bool send_goodbye = (!is_active_slot(slot) || static_cast<Slot *>(slot)->want_read());
+    bool send_goodbye = (is_active_slot(slot) && static_cast<Slot *>(slot)->want_read());
     lost_conn_wrap(slot, ERR_OK);
     if (conn != nullptr) {
         if (send_goodbye) {
