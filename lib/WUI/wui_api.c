@@ -37,7 +37,6 @@ static FILE *upload_file = NULL;
 static char tmp_filename[FILE_NAME_BUFFER_LEN];
 
 static bool sntp_time_init = false;
-static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static atomic_int_least32_t uploaded_gcodes;
 
 void wui_marlin_client_init(void) {
@@ -45,8 +44,12 @@ void wui_marlin_client_init(void) {
     // force update variables when starts
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM, NULL);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
+#define MAX_MARLIN_CLIENTS 2
+    static char wui_media_LFN[MAX_MARLIN_CLIENTS][FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
+    static uint8_t init_cnt = 0;
     if (vars) {
-        vars->media_LFN = wui_media_LFN;
+        assert(init_cnt < MAX_MARLIN_CLIENTS);
+        vars->media_LFN = wui_media_LFN[init_cnt++];
     }
 }
 
