@@ -11,6 +11,9 @@
 #include "marlin_client.h"
 #include "log.h"
 
+// TODO there is nowhere displayed currently selected sheet
+// entire menu is confusing
+
 class ScreenMenuSteelSheets;
 
 enum class profile_action : uint32_t {
@@ -87,18 +90,20 @@ using SheetProfileMenuScreen = ScreenMenu<EFooter::On, MI_RETURN, MI_SHEET_SELEC
 #endif // _DEBUG
     MI_SHEET_RESET>;
 
-template <typename Index>
-class SheetProfileMenuScreenT : public SheetProfileMenuScreen {
+// TODO there is no way to tell which sheet I am currently calibrating
+class ISheetProfileMenuScreen : public SheetProfileMenuScreen {
+    uint32_t value;
+
 public:
     constexpr static const char *label = N_("Sheet Profile");
-    using index_type = Index;
-    SheetProfileMenuScreenT()
-        : SheetProfileMenuScreen(_(label)) {
-        if (sheet_is_calibrated(Index::value)) {
+    ISheetProfileMenuScreen(uint32_t value)
+        : SheetProfileMenuScreen(_(label))
+        , value(value) {
+        if (sheet_is_calibrated(value)) {
             Item<MI_SHEET_SELECT>().Enable();
             Item<MI_SHEET_RESET>().Enable();
         }
-        if (Index::value == 0)
+        if (value == 0)
             Item<MI_SHEET_RESET>().Disable();
     }
 
@@ -112,7 +117,7 @@ protected:
         profile_action action = static_cast<profile_action>((uint32_t)param);
         switch (action) {
         case profile_action::Reset:
-            if (sheet_reset(Index::value)) {
+            if (sheet_reset(value)) {
                 Item<MI_SHEET_RESET>().Disable();
                 Item<MI_SHEET_SELECT>().Disable();
                 log_debug(GUI, "MI_SHEET_RESET OK");
@@ -121,20 +126,18 @@ protected:
             break;
         case profile_action::Select:
             log_debug(GUI, "MI_SHEET_SELECT");
-            sheet_profile_select(Index::value);
+            sheet_profile_select(value);
             break;
         case profile_action::Calibrate:
             log_debug(GUI, "MI_SHEET_CALIBRATE");
-            sheet_profile_select(Index::value);
+            sheet_profile_select(value);
             ScreenWizard::Run(wizard_run_type_t::firstlay);
             break;
         case profile_action::Rename:
             log_debug(GUI, "MI_SHEET_RENAME");
 #if _DEBUG //todo remove #if _DEBUG after rename is finished
-            Screens::Access()->Open([]() {
-                screen_sheet_rename_t::index(Index::value);
-                return ScreenFactory::Screen<screen_sheet_rename_t>();
-            });
+            screen_sheet_rename_t::index(value);
+            Screens::Access()->Open([]() { return ScreenFactory::Screen<screen_sheet_rename_t>(); });
 #endif // _DEBUG
             break;
         default:
@@ -145,13 +148,22 @@ protected:
 };
 
 template <typename Index>
-struct profile_record_t : public WI_LABEL_t {
+class SheetProfileMenuScreenT : public ISheetProfileMenuScreen {
+public:
+    using index_type = Index;
+    SheetProfileMenuScreenT()
+        : ISheetProfileMenuScreen(Index::value) {
+    }
+};
+
+template <typename Index>
+struct ProfileRecord : public WI_LABEL_t {
     char name[MAX_SHEET_NAME_LENGTH];
-    profile_record_t()
+    ProfileRecord()
         : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), 0, is_enabled_t::yes, is_hidden_t::no) {
         memset(name, 0, MAX_SHEET_NAME_LENGTH);
         sheet_name(Index::value, name, MAX_SHEET_NAME_LENGTH);
-        // string_view_utf8::MakeRAM is safe. "name" is member var, exists until profile_record_t is destroyed
+        // string_view_utf8::MakeRAM is safe. "name" is member var, exists until ProfileRecord is destroyed
         SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
     };
 
@@ -166,7 +178,7 @@ protected:
 using Screen = ScreenMenu<EFooter::On, MI_RETURN
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     ,
-    profile_record_t<sheet_index_0>, profile_record_t<sheet_index_1>, profile_record_t<sheet_index_2>, profile_record_t<sheet_index_3>, profile_record_t<sheet_index_4>, profile_record_t<sheet_index_5>, profile_record_t<sheet_index_6>, profile_record_t<sheet_index_7>
+    ProfileRecord<sheet_index_0>, ProfileRecord<sheet_index_1>, ProfileRecord<sheet_index_2>, ProfileRecord<sheet_index_3>, ProfileRecord<sheet_index_4>, ProfileRecord<sheet_index_5>, ProfileRecord<sheet_index_6>, ProfileRecord<sheet_index_7>
 #endif
     >;
 
