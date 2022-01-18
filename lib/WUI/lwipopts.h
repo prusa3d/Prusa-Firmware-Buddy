@@ -166,8 +166,20 @@ extern "C" {
 
     #define HTTPD_SERVER_AGENT "PrusaLink"
     #define LWIP_DNS           1
-    #define MEMP_NUM_TCP_PCB   6
-    #define SO_REUSE           1 // Allow SOF_REUSEADDR to do something useful.
+    /*
+     * We have a HTTP server (PrusaLink). The browsers tend to keep few
+     * connections at ready and take up the slots. In general it works better
+     * if we have more slots available - if there are too few of them, it
+     * sometimes tends to refuse connections, which leads to user pressing the
+     * F5, ...
+     *
+     * We pay about 200B per slot, so this can be tuned as needed.
+     *
+     * Note that this doesn't currently include what Wifi does, there's a
+     * hardcoded limit to 5 connections in ESP :-(.
+     */
+    #define MEMP_NUM_TCP_PCB 12
+    #define SO_REUSE         1 // Allow SOF_REUSEADDR to do something useful.
 
 /* USER CODE END 1 */
 
