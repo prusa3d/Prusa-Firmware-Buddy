@@ -34,6 +34,7 @@ protected:
     };
 
     struct status_t {
+        // TODO use std::atomic
         bool M600_sent;
         bool Autoload_sent;
         inject_t send_event_on;

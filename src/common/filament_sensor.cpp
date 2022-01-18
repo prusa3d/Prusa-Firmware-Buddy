@@ -26,6 +26,7 @@ FSensor::FSensor()
 /*---------------------------------------------------------------------------*/
 //debug functions
 bool FSensor::WasM600_send() {
+    CriticalSection C;
     return status.M600_sent;
 }
 
@@ -165,59 +166,50 @@ void FSensor::InitNever() {
 //M600_on_level == inject on NoFilament
 //M600_never == do not inject
 void FSensor::evaluateEventConditions(event ev) {
-    if (!isEvLocked()) {
-        if (PrintProcessor::IsPrinting()) {
-            //M600
-            if (!status.M600_sent) {
-                if ((status.send_event_on == inject_t::on_edge && ev == event::EdgeFilamentRemoved) || (status.send_event_on == inject_t::on_level && ev == event::NoFilament)) {
-                    PrintProcessor::InjectGcode("M600"); //change filament
-                    status.M600_sent = true;
-                }
-            }
-        } else {
-            //autoload
-            if (PrintProcessor::IsAutoloadEnabled() && (!status.Autoload_sent)) {
-                if ((status.send_event_on == inject_t::on_edge && ev == event::EdgeFilamentInserted) || (status.send_event_on == inject_t::on_level && ev == event::HasFilament)) {
-                    PrintProcessor::InjectGcode("M1400 S65"); //load with return option
-                    status.Autoload_sent = true;
-                }
-            }
-        }
+    if (isEvLocked())
+        return;
+
+    //M600
+    if (((status.send_event_on == inject_t::on_edge && ev == event::EdgeFilamentRemoved)
+            || (status.send_event_on == inject_t::on_level && ev == event::NoFilament))
+        && !status.M600_sent
+        && PrintProcessor::IsPrinting()) {
+
+        status.M600_sent = true;
+        PrintProcessor::InjectGcode("M600"); //change filament
+    }
+
+    //autoload
+    if (((status.send_event_on == inject_t::on_edge && ev == event::EdgeFilamentInserted)
+            || (status.send_event_on == inject_t::on_level && ev == event::HasFilament))
+        && (!status.Autoload_sent)
+        && PrintProcessor::IsAutoloadEnabled()
+        && !PrintProcessor::IsPrinting()) {
+
+        status.Autoload_sent = true;
+        PrintProcessor::InjectGcode("M1400 S65"); //load with return option
     }
 }
 
-FSensor::event FSensor::generateEvent(fsensor_t last_state_before_cycle) const {
-    bool has_filament = state == fsensor_t::HasFilament;
-    if (last_state_before_cycle == fsensor_t::HasFilament) {
-        if (has_filament) {
-            //had && has
-            return event::HasFilament;
-        } else {
-            //had && !has
-            return event::EdgeFilamentRemoved;
-        }
-    } else if (last_state_before_cycle == fsensor_t::NoFilament) {
-        if (has_filament) {
-            //!had && has
-            return event::EdgeFilamentInserted;
-        } else {
-            //!had && !has
-            return event::NoFilament;
-        }
-    }
-
-    return has_filament ? event::HasFilament : event::NoFilament; // state changed, but NO edge detected, most likely change from init state
+FSensor::event FSensor::generateEvent(fsensor_t previous_state) const {
+    const bool has_filament = fsensor_t::HasFilament == state;
+    const bool had_filament = fsensor_t::HasFilament == previous_state;
+    if (has_filament == had_filament)
+        return has_filament ? event::HasFilament : event::NoFilament;
+    /// state has changed
+    if (has_filament)
+        return event::EdgeFilamentInserted; //has && !had
+    return event::EdgeFilamentRemoved;      //!has && had
 }
 
 //delay between calls must be 1us or longer
 void FSensor::Cycle() {
+    volatile const fsensor_t last_state_before_cycle = state;
+
     //sensor is disabled (only init can enable it)
-    if (state == fsensor_t::Disabled)
+    if (last_state_before_cycle == fsensor_t::Disabled) {
         return;
-
-    PrintProcessor::Update();
-
-    fsensor_t last_state_before_cycle = state;
+    }
 
     cycle();
 

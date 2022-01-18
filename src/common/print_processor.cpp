@@ -27,9 +27,14 @@ void PrintProcessor::fsm_cb(uint32_t u32, uint16_t u16) {
 
 void PrintProcessor::Update() { marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_FS_AUTOLOAD_ENABLED)); }
 void PrintProcessor::InjectGcode(const char *str) { marlin_gcode_push_front(str); }
-bool PrintProcessor::IsPrinting() { return marlin_vars()->sd_printing || NonFilePrintingCounter::IsPrinting(); }
-bool PrintProcessor::IsAutoloadEnabled() { return marlin_vars()->fs_autoload_enabled; }
-
+bool PrintProcessor::IsPrinting() {
+    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
+    return marlin_vars()->sd_printing || NonFilePrintingCounter::IsPrinting();
+}
+bool PrintProcessor::IsAutoloadEnabled() {
+    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FS_AUTOLOAD_ENABLED));
+    return marlin_vars()->fs_autoload_enabled;
+}
 void PrintProcessor::Init() {
     marlin_client_set_fsm_cb(fsm_cb);
 }
