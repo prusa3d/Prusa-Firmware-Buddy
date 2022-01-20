@@ -883,7 +883,7 @@ uint32_t sheet_next_calibrated() {
     uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
 
     for (int8_t i = 1; i < MAX_SHEETS; ++i) {
-        if (sheet_select((index + i) % MAX_SHEETS))
+        if (sheet_profile_select((index + i) % MAX_SHEETS))
             return (index + i) % MAX_SHEETS;
     }
 #else
@@ -903,9 +903,9 @@ bool sheet_is_calibrated(uint32_t index) {
 #endif
 }
 
-bool sheet_select(uint32_t index) {
+bool sheet_profile_select(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    if (index >= MAX_SHEETS || !sheet_is_calibrated(index))
+    if (index >= MAX_SHEETS)
         return false;
     float z_offset = FLT_MAX;
     eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &z_offset, sizeof(z_offset));
