@@ -1,0 +1,65 @@
+/**
+ * @file eeprom_v11.hpp
+ * @author Radek Vana
+ * @brief old version of eeprom, to be able to import it
+ * version 11 from TODO add after released
+ * without padding and crc since they are not imported and would not match anyway
+ * @date 2022-01-17
+ */
+
+#include "eeprom_v10.hpp"
+
+namespace eeprom::v11 {
+
+#pragma once
+#pragma pack(push)
+#pragma pack(1)
+
+/**
+ * @brief body od eeprom v10
+ * without head, padding and crc
+ */
+struct vars_body_t : public eeprom::v10::vars_body_t {
+    constexpr vars_body_t()
+        : EEVAR_ACTIVE_NETDEV(0)
+        , EEVAR_PL_RUN(1)
+        , EEVAR_PL_API_KEY("")
+        , WIFI_FLAG(0)
+        , WIFI_IP4_ADDR(0)
+        , WIFI_IP4_MSK(0)
+        , WIFI_IP4_GW(0)
+        , WIFI_IP4_DNS1(0)
+        , WIFI_IP4_DNS2(0)
+        , WIFI_HOSTNAME(DEFAULT_HOST_NAME)
+        , WIFI_AP_SSID("")
+        , WIFI_AP_PASSWD("") {}
+    uint8_t EEVAR_ACTIVE_NETDEV;
+    uint8_t EEVAR_PL_RUN;
+    char EEVAR_PL_API_KEY[PL_API_KEY_SIZE];
+    uint8_t WIFI_FLAG;
+    uint32_t WIFI_IP4_ADDR;
+    uint32_t WIFI_IP4_MSK;
+    uint32_t WIFI_IP4_GW;
+    uint32_t WIFI_IP4_DNS1;
+    uint32_t WIFI_IP4_DNS2;
+    char WIFI_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
+    char WIFI_AP_SSID[WIFI_MAX_SSID_LEN + 1];
+    char WIFI_AP_PASSWD[WIFI_MAX_PASSWD_LEN + 1];
+};
+
+#pragma pack(pop)
+
+static_assert(sizeof(vars_body_t) == sizeof(eeprom::v10::vars_body_t) + sizeof(uint8_t) * 3 + PL_API_KEY_SIZE + LAN_HOSTNAME_MAX_LEN + 1 + WIFI_MAX_SSID_LEN + 1 + WIFI_MAX_PASSWD_LEN + 1 + sizeof(uint32_t) * 5, "eeprom body size does not match");
+
+constexpr vars_body_t body_defaults = vars_body_t(); // TODO remove me, I might consume FLASH
+
+static vars_body_t convert(const eeprom::v10::vars_body_t &src) {
+    vars_body_t ret = vars_body_t();
+
+    // copy entire v9 struct
+    memcpy(&ret, &src, sizeof(eeprom::v10::vars_body_t));
+
+    return ret;
+}
+
+} // namespace

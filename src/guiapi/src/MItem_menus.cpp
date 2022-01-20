@@ -186,7 +186,7 @@ MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
 void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
     sheet_next_calibrated();
     UpdateLabel();
-    marlin_set_z_offset(variant8_get_flt(eeprom_get_var(EEVAR_ZOFFSET)));
+    marlin_set_z_offset(variant8_get_flt(eeprom_get_z_offset()));
 }
 
 void MI_CURRENT_PROFILE::UpdateLabel() {
