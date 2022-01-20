@@ -206,9 +206,17 @@ void get_job(char *data, const uint32_t buf_len) {
     }
 
     if (has_job) {
-        const char *filename = basename(vars->media_LFN);
+        /*
+         * The file names. We probably don't work with anything that's unicode
+         * anyway. So we can use the long one for both name and display.
+         *
+         * The path is available only in the short version, unfortunately, but
+         * that's for internal uses of things anyway, so it probably doesn't
+         * matter.
+         */
+        const char *filename = vars->media_LFN;
         JSONIFY_STR(filename);
-        const char *path = vars->media_LFN;
+        const char *path = vars->media_SFN_path;
         JSONIFY_STR(path);
 
         snprintf(data, buf_len,
@@ -216,7 +224,7 @@ void get_job(char *data, const uint32_t buf_len) {
             "\"state\":\"%s\","
             "\"job\":{"
             "\"estimatedPrintTime\":%" PRIu32 ","
-            "\"file\":{\"name\":\"%s\",\"path\":\"%s\"}"
+            "\"file\":{\"name\":\"%s\",\"path\":\"%s\",\"display\":\"%s\"}"
             "}," // } job
             "\"progress\":{"
             "\"completion\":%f,"
@@ -226,7 +234,7 @@ void get_job(char *data, const uint32_t buf_len) {
             "}",
             state,
 
-            vars->print_duration + vars->time_to_end, filename_escaped, path_escaped,
+            vars->print_duration + vars->time_to_end, filename_escaped, path_escaped, filename_escaped,
             ((double)vars->sd_percent_done / 100.0), // We might want to have better resolution that whole percents.
             vars->print_duration, vars->time_to_end);
     } else {

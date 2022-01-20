@@ -38,6 +38,7 @@ static char tmp_filename[FILE_NAME_BUFFER_LEN];
 
 static bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
+static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 static atomic_int_least32_t uploaded_gcodes;
 
 void wui_marlin_client_init(void) {
@@ -46,7 +47,16 @@ void wui_marlin_client_init(void) {
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM, NULL);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
     if (vars) {
+        /*
+         * Note about synchronizing access to these buffers.
+         *
+         * A marlin client is tied to a thread and we may access it from one or
+         * another (depending on if the PrusaLink runs over wifi or over
+         * ethernet). So we need two. But we can afford to share the buffers,
+         * because only one of them is active at a time.
+         */
         vars->media_LFN = wui_media_LFN;
+        vars->media_SFN_path = wui_media_SFN_path;
     }
 }
 

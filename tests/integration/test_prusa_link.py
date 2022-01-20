@@ -164,8 +164,9 @@ async def test_printing_job(running_printer_client):
     assert job["state"] == "Printing"
     # Hopefully the test won't take that long
     assert job["progress"]["printTime"] < 300
-    # FIXME: Fails. #BFW-2332
-    # assert job["job"]["file"]["name"] == gcode_name
+    assert job["job"]["file"]["name"] == "box.gcode"
+    assert job["job"]["file"]["display"] == "box.gcode"
+    assert job["job"]["file"]["path"] == "/usb/BOX~1.GCO"
     # It's something around 25 minutes...
     # FIXME: The following sometimes fail too. It seems marlin_vars are not
     # always properly updated?

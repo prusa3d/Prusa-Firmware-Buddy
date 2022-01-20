@@ -2,6 +2,7 @@
 
 #include "media.h"
 #include "log.h"
+#include "lfn.h"
 #include "ff.h"
 #include "usbh_core.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -122,22 +123,28 @@ void media_get_SFN_path(char *sfn, uint32_t sfn_size, char *filepath) {
 }
 
 void media_print_start(const char *sfnFilePath) {
-    if (media_print_state == media_print_state_NONE) {
-        if (sfnFilePath) // null sfnFilePath means use current filename media_print_SFN_path
-            strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
-        struct stat info = { 0 };
-        stat(sfnFilePath, &info);
+    if (media_print_state != media_print_state_NONE) {
+        return;
+    }
 
-        if (stat(sfnFilePath, &info) == 0) {
-            media_print_size = info.st_size;
+    if (sfnFilePath) { // null sfnFilePath means use current filename media_print_SFN_path
+        strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
+        get_LFN(media_print_LFN, sizeof(media_print_LFN), media_print_SFN_path);
+    }
+    struct stat info = { 0 };
+    int result = stat(sfnFilePath, &info);
 
-            if ((media_print_file = fopen(sfnFilePath, "rb")) != nullptr) {
-                media_gcode_position = media_current_position = 0;
-                media_print_state = media_print_state_PRINTING;
-            } else {
-                set_warning(WarningType::USBFlashDiskError);
-            }
-        }
+    if (result != 0) {
+        return;
+    }
+
+    media_print_size = info.st_size;
+
+    if ((media_print_file = fopen(sfnFilePath, "rb")) != nullptr) {
+        media_gcode_position = media_current_position = 0;
+        media_print_state = media_print_state_PRINTING;
+    } else {
+        set_warning(WarningType::USBFlashDiskError);
     }
 }
 
