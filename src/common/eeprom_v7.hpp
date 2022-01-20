@@ -20,6 +20,9 @@ namespace eeprom::v7 {
  * without head, padding and crc
  */
 struct vars_body_t : public eeprom::v6::vars_body_t {
+    constexpr vars_body_t()
+        : SOUND_VOLUME(5)
+        , LANGUAGE(0xffff) {}
     uint8_t SOUND_VOLUME;
     uint16_t LANGUAGE;
 };
@@ -27,14 +30,8 @@ struct vars_body_t : public eeprom::v6::vars_body_t {
 
 static_assert(sizeof(vars_body_t) == sizeof(eeprom::v6::vars_body_t) + sizeof(vars_body_t::SOUND_VOLUME) + sizeof(vars_body_t::LANGUAGE), "eeprom body size does not match");
 
-constexpr vars_body_t body_defaults = {
-    eeprom::v6::body_defaults,
-    5,      // EEVAR_SOUND_VOLUME
-    0xffff, // EEVAR_LANGUAGE
-};
-
-inline vars_body_t convert(const eeprom::v6::vars_body_t &src) {
-    vars_body_t ret = body_defaults;
+static vars_body_t convert(const eeprom::v6::vars_body_t &src) {
+    vars_body_t ret = vars_body_t();
 
     // copy entire v6 struct
     memcpy(&ret, &src, sizeof(eeprom::v6::vars_body_t));

@@ -20,6 +20,29 @@ namespace eeprom::v6 {
  * without head, padding and crc
  */
 struct vars_body_t {
+    constexpr vars_body_t()
+        : FILAMENT_TYPE(0)
+        , FILAMENT_COLOR(0)
+        , RUN_SELFTEST(1)
+        , RUN_XYZCALIB(1)
+        , RUN_FIRSTLAY(1)
+        , FSENSOR_ENABLED(1)
+        , ZOFFSET(0)
+        , PID_NOZ_P(DEFAULT_Kp)
+        , PID_NOZ_I(scalePID_i(DEFAULT_Ki))
+        , PID_NOZ_D(scalePID_d(DEFAULT_Kd))
+        , PID_BED_P(DEFAULT_bedKp)
+        , PID_BED_I(scalePID_i(DEFAULT_bedKi))
+        , PID_BED_D(0)
+        , LAN_FLAG(0)
+        , LAN_IP4_ADDR(0)
+        , LAN_IP4_MSK(0)
+        , LAN_IP4_GW(0)
+        , LAN_IP4_DNS1(0)
+        , LAN_IP4_DNS2(0)
+        , LAN_HOSTNAME(DEFAULT_HOST_NAME)
+        , TIMEZONE(0)
+        , SOUND_MODE(0xff) {}
     uint8_t FILAMENT_TYPE;
     uint32_t FILAMENT_COLOR;
     uint8_t RUN_SELFTEST;
@@ -46,33 +69,8 @@ struct vars_body_t {
 
 #pragma pack(pop)
 
-constexpr vars_body_t body_defaults = {
-    0,                         // EEVAR_FILAMENT_TYPE
-    0,                         // EEVAR_FILAMENT_COLOR
-    1,                         // EEVAR_RUN_SELFTEST
-    1,                         // EEVAR_RUN_XYZCALIB
-    1,                         // EEVAR_RUN_FIRSTLAY
-    1,                         // EEVAR_FSENSOR_ENABLED
-    0,                         // EEVAR_ZOFFSET
-    DEFAULT_Kp,                // EEVAR_PID_NOZ_P
-    scalePID_i(DEFAULT_Ki),    // EEVAR_PID_NOZ_I
-    scalePID_d(DEFAULT_Kd),    // EEVAR_PID_NOZ_D
-    DEFAULT_bedKp,             // EEVAR_PID_BED_P
-    scalePID_i(DEFAULT_bedKi), // EEVAR_PID_BED_I
-    scalePID_d(DEFAULT_bedKd), // EEVAR_PID_BED_D
-    0,                         // EEVAR_LAN_FLAG
-    0,                         // EEVAR_LAN_IP4_ADDR
-    0,                         // EEVAR_LAN_IP4_MSK
-    0,                         // EEVAR_LAN_IP4_GW
-    0,                         // EEVAR_LAN_IP4_DNS1
-    0,                         // EEVAR_LAN_IP4_DNS2
-    DEFAULT_HOST_NAME,         // EEVAR_LAN_HOSTNAME
-    0,                         // EEVAR_TIMEZONE
-    0xff,                      // EEVAR_SOUND_MODE
-};
-
-inline vars_body_t convert(const eeprom::v4::vars_body_t &src) {
-    vars_body_t ret = body_defaults;
+static vars_body_t convert(const eeprom::v4::vars_body_t &src) {
+    vars_body_t ret = vars_body_t();
 
     // copy range from FILAMENT_TYPE to LAN_IP4_DNS2
     size_t sz = ((uint8_t *)&src.CONNECT_IP4_ADDR) - ((uint8_t *)&src.FILAMENT_TYPE);

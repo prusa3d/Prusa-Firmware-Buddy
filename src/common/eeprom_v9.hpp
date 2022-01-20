@@ -20,6 +20,20 @@ namespace eeprom::v9 {
  * without head, padding and crc
  */
 struct vars_body_t : public eeprom::v7::vars_body_t {
+    constexpr vars_body_t()
+        : FILE_SORT(0)
+        , MENU_TIMEOUT(1)
+        , ACTIVE_SHEET(0)
+        , SHEET_PROFILE0 { "Smooth1", 0.0f }
+        , SHEET_PROFILE1 { "Smooth2", FLT_MAX }
+        , SHEET_PROFILE2 { "Textur1", FLT_MAX }
+        , SHEET_PROFILE3 { "Textur2", FLT_MAX }
+        , SHEET_PROFILE4 { "Custom1", FLT_MAX }
+        , SHEET_PROFILE5 { "Custom2", FLT_MAX }
+        , SHEET_PROFILE6 { "Custom3", FLT_MAX }
+        , SHEET_PROFILE7 { "Custom4", FLT_MAX }
+        , SELFTEST_RESULT(0)
+        , DEVHASH_IN_QR(1) {}
     uint8_t FILE_SORT;
     uint8_t MENU_TIMEOUT;
     uint8_t ACTIVE_SHEET;
@@ -39,25 +53,8 @@ struct vars_body_t : public eeprom::v7::vars_body_t {
 
 static_assert(sizeof(vars_body_t) == sizeof(eeprom::v7::vars_body_t) + sizeof(vars_body_t::FILE_SORT) + sizeof(vars_body_t::MENU_TIMEOUT) + sizeof(vars_body_t::ACTIVE_SHEET) + 8 * sizeof(Sheet) + sizeof(vars_body_t::SELFTEST_RESULT) + sizeof(vars_body_t::DEVHASH_IN_QR), "eeprom body size does not match");
 
-constexpr vars_body_t body_defaults = {
-    eeprom::v7::body_defaults,
-    0, // EEVAR_FILE_SORT
-    1, // EEVAR_MENU_TIMEOUT
-    0, // EEVAR_ACTIVE_SHEET
-    { "Smooth1", 0.0f },
-    { "Smooth2", FLT_MAX },
-    { "Textur1", FLT_MAX },
-    { "Textur2", FLT_MAX },
-    { "Custom1", FLT_MAX },
-    { "Custom2", FLT_MAX },
-    { "Custom3", FLT_MAX },
-    { "Custom4", FLT_MAX },
-    0, // EEVAR_SELFTEST_RESULT
-    1, // EEVAR_DEVHASH_IN_QR
-};
-
-inline vars_body_t convert(const eeprom::v7::vars_body_t &src) {
-    vars_body_t ret = body_defaults;
+static vars_body_t convert(const eeprom::v7::vars_body_t &src) {
+    vars_body_t ret = vars_body_t();
 
     // copy entire v7 struct
     memcpy(&ret, &src, sizeof(eeprom::v7::vars_body_t));
