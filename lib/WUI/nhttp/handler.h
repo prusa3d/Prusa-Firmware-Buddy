@@ -33,6 +33,7 @@
 #include "gcode_upload.h"
 #include "job_command.h"
 #include "req_parser.h"
+#include "send_file.h"
 #include "static_mem.h"
 #include "status_page.h"
 
@@ -114,6 +115,7 @@ using ConnectionState = std::variant<
     RequestParser,
     StatusPage,
     SendStaticMemory,
+    SendFile,
     GenOnce,
     printer::GcodeUpload,
     printer::JobCommand,

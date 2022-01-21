@@ -24,6 +24,7 @@ target_sources(
             nhttp/job_command.cpp
             nhttp/job_command_marlin.cpp
             nhttp/req_parser.cpp
+            nhttp/send_file.cpp
             nhttp/server.cpp
             nhttp/static_mem.cpp
             nhttp/status_page.cpp
