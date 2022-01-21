@@ -177,12 +177,30 @@ bool RequestParser::can_keep_alive() const {
 }
 
 bool RequestParser::uri_filename(char *buffer, size_t buffer_size) const {
+    // Only up to &, which are query params
+    size_t len = url_size;
+    if (const char *amp = static_cast<const char *>(memchr(url.begin(), '&', url_size)); amp) {
+        len = amp - url.begin();
+    }
+
+    // Make sure the user is not able to "escape" from directory.
+    string_view fname(url.begin(), len);
+    if (len >= 3 && (fname.substr(0, 3) == "../" || fname.substr(len - 3) == "/..")) {
+        return false;
+    }
+
+    // It seems looking for a substring in a non-null-terminated string in C++
+    // is kind of painful.
+    for (size_t i = 0; i + 4 < len; i++) {
+        if (fname.substr(i, 4) == "/../") {
+            return false;
+        }
+    }
+
     // FIXME: Parsing and _validation_ of the URL:
-    // * Stop at any `&`
-    // * Make sure there are no `..` or such in there.
     // * Demangling?
-    if (buffer_size > url_size) {
-        strlcpy(buffer, url.begin(), url_size + 1);
+    if (buffer_size > len) {
+        strlcpy(buffer, url.begin(), len + 1);
         return true;
     } else {
         return false;

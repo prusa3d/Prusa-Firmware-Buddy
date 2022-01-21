@@ -29,6 +29,7 @@ target_sources(
             nhttp/static_mem.cpp
             nhttp/status_page.cpp
             link_content/prusa_link_api.cpp
+            link_content/static_file.cpp
             link_content/static_fs_file.cpp
             ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
