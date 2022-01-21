@@ -31,6 +31,7 @@ target_sources(
             link_content/prusa_link_api.cpp
             link_content/static_file.cpp
             link_content/static_fs_file.cpp
+            link_content/usb_files.cpp
             ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
 
