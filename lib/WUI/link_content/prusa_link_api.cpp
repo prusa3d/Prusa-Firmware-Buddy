@@ -1,0 +1,97 @@
+#include "prusa_link_api.h"
+#include "../nhttp/gcode_upload.h"
+#include "../wui_REST_api.h"
+
+#include <cstring>
+
+namespace nhttp::link_content {
+
+using std::nullopt;
+using std::optional;
+using std::string_view;
+using namespace handler;
+using nhttp::printer::GcodeUpload;
+
+namespace {
+
+#define GET_WRAPPER(NAME)                                        \
+    size_t handler_##NAME(uint8_t *buffer, size_t buffer_size) { \
+        char *b = reinterpret_cast<char *>(buffer);              \
+        NAME(b, buffer_size);                                    \
+        return strlen(b);                                        \
+    }
+    GET_WRAPPER(get_printer);
+    GET_WRAPPER(get_version);
+    GET_WRAPPER(get_job);
+#undef GET_WRAPPER
+
+    optional<string_view> remove_prefix(string_view input, string_view prefix) {
+        if (input.size() < prefix.size() || input.substr(0, prefix.size()) != prefix) {
+            return nullopt;
+        }
+
+        return input.substr(prefix.size());
+    }
+
+}
+
+optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) const {
+    const string_view uri = parser.uri();
+
+    // Claim the whole /api prefix.
+    const auto suffix_opt = remove_prefix(uri, "/api/");
+    if (!suffix_opt.has_value()) {
+        return nullopt;
+    }
+
+    const auto suffix = *suffix_opt;
+
+    if (!parser.authenticated()) {
+        return StatusPage(Status::Unauthorized, parser.can_keep_alive());
+    }
+
+    const auto get_only = [parser](ConnectionState state) -> ConnectionState {
+        if (parser.method == Method::Get) {
+            return state;
+        } else {
+            return StatusPage(Status::MethodNotAllowed, parser.can_keep_alive());
+        }
+    };
+
+    // Some stubs for now, to make more clients (including the web page) happier.
+    if (suffix == "download") {
+        return get_only(StatusPage(Status::NoContent, parser.can_keep_alive()));
+    } else if (suffix == "settings") {
+        return get_only(SendStaticMemory("{\"printer\": {}}", ContentType::ApplicationJson, parser.can_keep_alive()));
+    } else if (remove_prefix(suffix, "files").has_value()) {
+        if (parser.method == Method::Post) {
+            auto upload = GcodeUpload::start(parser);
+            /*
+             * So, we have a "smaller" variant (eg. variant<A, B, C>) and
+             * want a "bigger" variant<A, B, C, D, E>. C++ templates can't
+             * do the "upgrade" automatically. But it can upgrade A into
+             * the bigger one, it can upgrade B into the bigger one and can
+             * upgrade C...
+             *
+             * Therefore we use the visit to take the first one apart and
+             * then convert each type separately into the bigger one.
+             */
+            return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
+        } else {
+            return StatusPage(Status::NotImplemented, parser.can_keep_alive(), "List of files is not available yet");
+        }
+        // The real API endpoints
+    } else if (suffix == "version") {
+        return get_only(GenOnce(handler_get_version, ContentType::ApplicationJson, parser.can_keep_alive()));
+    } else if (suffix == "job") {
+        return get_only(GenOnce(handler_get_job, ContentType::ApplicationJson, parser.can_keep_alive()));
+    } else if (suffix == "printer") {
+        return get_only(GenOnce(handler_get_printer, ContentType::ApplicationJson, parser.can_keep_alive()));
+    } else {
+        return StatusPage(Status::NotFound, parser.can_keep_alive());
+    }
+}
+
+const PrusaLinkApi prusa_link_api;
+
+}
