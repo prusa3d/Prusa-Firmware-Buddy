@@ -185,6 +185,24 @@ async def test_printing_job(running_printer_client):
         "printTime"] + job["progress"]["printTimeLeft"]
 
 
+# Using the running printer, because it has the has the files in it and it
+# waits for the USB to mount.
+async def test_download_gcode(running_printer_client, data_dir):
+    """
+    Test downloading the gcode from the printer.
+
+    Test both human readable and "short" file names (the latter are used within
+    the job API so they are the ones the client may discover on its own).
+    """
+    gcode = (data_dir / 'box.gcode').read_bytes()
+    for fname in ['BOX~1.GCO', 'box.gcode']:
+        download_r = await running_printer_client.get('/usb/' + fname,
+                                                      headers=valid_headers())
+        assert download_r.status == 200
+        download = await download_r.read()
+        assert download == gcode
+
+
 # See below, needs investigation
 @pytest.mark.skip()
 async def test_upload(wui_client: aiohttp.ClientSession):

@@ -1,4 +1,5 @@
 #include "prusa_link_api.h"
+#include "../nhttp/headers.h"
 #include "../nhttp/gcode_upload.h"
 #include "../nhttp/job_command.h"
 #include "../wui_REST_api.h"
