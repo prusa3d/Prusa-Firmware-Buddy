@@ -18,6 +18,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/server.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/job_command.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/static_mem.cpp
+  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/send_file.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/headers.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/status_page.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/req_parser.cpp
