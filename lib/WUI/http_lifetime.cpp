@@ -1,6 +1,7 @@
 #include "nhttp/server.h"
 #include "nhttp/common_selectors.h"
 #include "link_content/static_fs_file.h"
+#include "link_content/static_file.h"
 #include "link_content/prusa_link_api.h"
 #include "wui.h"
 #include "wui_api.h"
@@ -26,7 +27,7 @@ SemaphoreHandle_t httpd_mutex = NULL;
 
 class DefaultServerDefs final : public ServerDefs {
 private:
-    static const constexpr handler::Selector *const selectors_array[] = { &validate_request, &static_fs_file, &prusa_link_api, &unknown_request };
+    static const constexpr handler::Selector *const selectors_array[] = { &validate_request, &static_file, &static_fs_file, &prusa_link_api, &unknown_request };
     static const constexpr altcp_allocator_t altcp_alloc = { prusa_alloc };
 
 public:
