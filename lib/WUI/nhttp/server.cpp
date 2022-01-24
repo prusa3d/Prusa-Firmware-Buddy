@@ -152,8 +152,7 @@ bool Server::Slot::step() {
          */
         assert(buffer->write_pos <= buffer->write_len);
         const auto to_send = std::min(static_cast<uint16_t>(buffer->write_len - buffer->write_pos), send_space());
-        const auto flags = (to_send < (buffer->write_len - buffer->write_pos) || want_write()) ? TCP_WRITE_FLAG_MORE : 0;
-        if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, flags) == ERR_OK) {
+        if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, 0) == ERR_OK) {
             buffer->write_pos += to_send;
             altcp_output(conn);
             server->activity(conn, this);
