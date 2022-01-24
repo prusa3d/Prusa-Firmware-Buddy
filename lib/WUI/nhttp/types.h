@@ -5,13 +5,13 @@
 
 namespace nhttp {
 
-enum class Method {
+enum Method {
     Head,
     Get,
     Post,
     Put,
     Delete,
-    Unknown,
+    UnknownMethod,
 };
 
 enum class ContentType {
@@ -34,7 +34,7 @@ enum class ConnectionHandling {
 
 // Note: Not exhaustive! Therefore not enum class, just enum.
 enum Status {
-    Unknown = 0,
+    UnknownStatus = 0,
     Ok = 200,
     NoContent = 204,
     BadRequest = 400,
@@ -55,12 +55,13 @@ enum Status {
 };
 
 // TODO: Replace stringy URLs with tokens/enums.
-static const size_t MAX_URL_LEN = 64;
+// Note: The same buffer is also reused for the boundary. We can do that because:
+// * We need the boundary only for short URLs.
+// * The URL must come first, so we know how much space there's after that.
+//
+// That saves quite some space compared with having two buffers.
+static const size_t MAX_URL_LEN = 100;
 using Url = std::array<char, MAX_URL_LEN>;
-
-// Max len of boundary. section 7.2.1 of RFC 1341
-static const size_t MAX_BOUNDARY_LEN = 70;
-using Boundary = std::array<char, MAX_BOUNDARY_LEN>;
 
 class Server;
 

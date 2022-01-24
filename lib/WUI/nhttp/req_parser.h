@@ -44,27 +44,34 @@ class RequestParser final : public automata::Execution {
 private:
     const Server *server;
     const char *api_key = nullptr;
-    bool done = false;
+
+public:
+    /*************   These are the parsed variables that can be used by the selector *******/
+    std::optional<size_t> content_length;
+    Method method : 4;
+    Status error_code : 10;
+
+private:
+    bool done : 1;
     /*
      * HTTP version.
      */
-    uint8_t version_major = 0;
-    uint8_t version_minor = 0;
+    uint8_t version_major : 2;
+    uint8_t version_minor : 4;
     // FIXME: Parse these!
-    enum class Connection {
+    enum Connection {
         Unknown,
         KeepAlive,
         Close,
     };
-    Connection connection = Connection::Unknown;
+    Connection connection : 2;
     std::variant<std::monostate, uint8_t, bool> auth_status;
 
     // TODO: Eventually get rid of stringy URLs and replace by enums/tokens as much as possible
+    // Note: The same buffer is also reused for boundary, that lives just behind it.
     Url url = {};
-    size_t url_size = 0;
-    // TODO: Could we not have the boundary always?
-    Boundary boundary_buff = {};
-    size_t boundary_size = 0;
+    uint8_t url_size = 0;
+    uint8_t boundary_size = 0;
 
 public:
     /*************   This part makes it a valid Handler and is used by the Server ***********/
@@ -76,11 +83,6 @@ public:
     Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
 
     RequestParser(const Server &server);
-
-    /*************   These are the parsed variables that can be used by the selector *******/
-    Method method = Method::Get;
-    std::optional<size_t> content_length;
-    Status error_code = Status::Unknown;
 
     /*
      * Are we allowed to keep the connection?
@@ -99,7 +101,7 @@ public:
     std::string_view uri() const { return std::string_view(url.begin(), url_size); }
 
     /// Multipart boundary (or empty string if not present)
-    std::string_view boundary() const { return std::string_view(boundary_buff.begin(), boundary_size); }
+    std::string_view boundary() const { return std::string_view(url.begin() + url_size, boundary_size); }
 };
 
 }
