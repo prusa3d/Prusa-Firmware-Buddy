@@ -6,11 +6,11 @@ using std::optional;
 namespace nhttp::handler::selectors {
 
 optional<ConnectionState> ValidateRequest::accept(const RequestParser &request) const {
-    if (request.method == Method::Unknown) {
+    if (request.method == Method::UnknownMethod) {
         return StatusPage(Status::MethodNotAllowed, request.can_keep_alive(), "Unrecognized method");
     }
 
-    if (request.error_code != Status::Unknown) {
+    if (request.error_code != Status::UnknownStatus) {
         /*
          * BadRequest may mean badly formed/unparsed request. Always close in
          * that case since there might be leftovers of the unrecognized request

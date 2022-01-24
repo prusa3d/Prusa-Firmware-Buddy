@@ -7,6 +7,7 @@
  */
 #include <http_req_automaton.h>
 
+#include <cassert>
 #include <cstring>
 
 extern "C" {
@@ -33,7 +34,15 @@ namespace nhttp::handler {
 
 RequestParser::RequestParser(const Server &server)
     : Execution(&http_request)
-    , server(&server) {}
+    , server(&server)
+    ,
+
+    method(Method::UnknownMethod)
+    , error_code(Status::UnknownStatus)
+    , done(false)
+    , version_major(0)
+    , version_minor(0)
+    , connection(Connection::Unknown) {}
 
 ExecutionControl RequestParser::event(Event event) {
     switch (event.leaving_state) {
@@ -53,12 +62,13 @@ ExecutionControl RequestParser::event(Event event) {
         method = Method::Put;
         return ExecutionControl::Continue;
     case Names::MethodUnknown:
-        method = Method::Unknown;
+        method = Method::UnknownMethod;
         return ExecutionControl::Continue;
     }
 
     switch (event.entering_state) {
     case Names::Url:
+        assert(boundary_size == 0);
         if (url_size < url.size()) {
             url[url_size++] = event.payload;
             return ExecutionControl::Continue;
@@ -67,8 +77,8 @@ ExecutionControl RequestParser::event(Event event) {
             return ExecutionControl::Continue;
         }
     case Names::Boundary:
-        if (boundary_size < boundary_buff.size()) {
-            boundary_buff[boundary_size++] = event.payload;
+        if (boundary_size + url_size < url.size()) {
+            url[url_size + boundary_size++] = event.payload;
             return ExecutionControl::Continue;
         } else {
             error_code = Status::RequestHeaderFieldsTooLarge;
