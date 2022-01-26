@@ -3,6 +3,7 @@
 #include <catch2/catch.hpp>
 
 using namespace automata;
+using std::get;
 
 namespace {
 
@@ -76,7 +77,7 @@ const Automaton test_automaton(paths, transitions, states);
 TEST_CASE("Raw Hello") {
     TestExecution ex(test_automaton);
 
-    REQUIRE(ex.feed("Hell") == ExecutionControl::Continue);
+    REQUIRE(get<0>(ex.consume("Hell")) == ExecutionControl::Continue);
     REQUIRE(ex.events.empty());
     REQUIRE(ex.feed('o') == ExecutionControl::Continue);
     REQUIRE(ex.events.size() == 1);
@@ -88,18 +89,18 @@ TEST_CASE("Raw Hello") {
     REQUIRE(ev.payload == 'o');
 
     // Won't move further
-    REQUIRE(ex.feed("o") == ExecutionControl::NoTransition);
+    REQUIRE(ex.feed('o') == ExecutionControl::NoTransition);
     REQUIRE(ex.events.size() == 1);
 }
 
 TEST_CASE("Xs and Zs") {
     TestExecution ex(test_automaton);
 
-    REQUIRE(ex.feed("XXxXXXZZxxXX") == ExecutionControl::Continue);
+    REQUIRE(get<0>(ex.consume("XXxXXXZZxxXX")) == ExecutionControl::Continue);
     REQUIRE(ex.events.empty());
 
     // Accepts only the first Y
-    REQUIRE(ex.feed("YY") == ExecutionControl::NoTransition);
+    REQUIRE(get<0>(ex.consume("YY")) == ExecutionControl::NoTransition);
     REQUIRE(ex.events.size() == 1);
     const auto &ev = ex.events[0];
     REQUIRE(ev.leaving_state == NamedStates::Letters);
@@ -112,14 +113,14 @@ TEST_CASE("Xs and Zs") {
 TEST_CASE("Case & Nocase") {
     TestExecution ex(test_automaton);
 
-    REQUIRE(ex.feed("x") == ExecutionControl::Continue);
-    REQUIRE(ex.feed("X") == ExecutionControl::Continue);
-    REQUIRE(ex.feed("Z") == ExecutionControl::Continue);
-    REQUIRE(ex.feed("z") == ExecutionControl::NoTransition);
+    REQUIRE(ex.feed('x') == ExecutionControl::Continue);
+    REQUIRE(ex.feed('X') == ExecutionControl::Continue);
+    REQUIRE(ex.feed('Z') == ExecutionControl::Continue);
+    REQUIRE(ex.feed('z') == ExecutionControl::NoTransition);
     REQUIRE(ex.events.empty());
 
     // It can "recover" from a "wrong" letter
-    REQUIRE(ex.feed("Y") == ExecutionControl::Continue);
+    REQUIRE(ex.feed('Y') == ExecutionControl::Continue);
     REQUIRE(ex.events.size() == 1);
     const auto &ev = ex.events[0];
     REQUIRE(ev.leaving_state == NamedStates::Letters);
@@ -132,7 +133,7 @@ TEST_CASE("Case & Nocase") {
 TEST_CASE("Fallbacks and collons") {
     TestExecution ex(test_automaton);
 
-    REQUIRE(ex.feed("ABCDEFgh   sht") == ExecutionControl::Continue);
+    REQUIRE(get<0>(ex.consume("ABCDEFgh   sht")) == ExecutionControl::Continue);
     REQUIRE(ex.events.empty());
 
     REQUIRE(ex.feed(':') == ExecutionControl::Continue);

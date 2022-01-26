@@ -125,17 +125,15 @@ std::tuple<ExecutionControl, size_t> Execution::consume(std::string_view data) {
     size_t consumed = 0;
     for (const uint8_t b : data) {
         const ExecutionControl control = feed(b);
+        if (control != ExecutionControl::NoTransition) {
+            consumed++;
+        }
         if (control != ExecutionControl::Continue) {
             return std::make_tuple(control, consumed);
         }
-        consumed++;
     }
 
     return std::make_tuple(ExecutionControl::Continue, consumed);
-}
-
-ExecutionControl Execution::feed(std::string_view data) {
-    return std::get<0>(consume(data));
 }
 
 }
