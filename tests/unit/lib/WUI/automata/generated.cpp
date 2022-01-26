@@ -8,6 +8,7 @@
 #include <string_view>
 
 using namespace automata;
+using std::get;
 using std::string;
 using std::string_view;
 
@@ -31,9 +32,9 @@ const Automaton http_request(test::http::paths, test::http::transitions, test::h
 TEST_CASE("Until comma") {
     TestExecution ex(until_comma);
 
-    REQUIRE(ex.feed("Hello world") == ExecutionControl::Continue);
+    REQUIRE(get<0>(ex.consume("Hello world")) == ExecutionControl::Continue);
     REQUIRE(ex.events.empty());
-    REQUIRE(ex.feed("xp,") == ExecutionControl::Continue);
+    REQUIRE(get<0>(ex.consume("xp,")) == ExecutionControl::Continue);
     REQUIRE(ex.events.size() == 1);
     REQUIRE(ex.events[0].leaving_state == 0);
     REQUIRE(ex.events[0].entering_state == test::until_comma::Names::Comma);
@@ -61,7 +62,7 @@ TEST_CASE("Method") {
         expected = Names::MethodPut;
     }
 
-    REQUIRE(ex.feed(text) == ExecutionControl::Continue);
+    REQUIRE(get<0>(ex.consume(text)) == ExecutionControl::Continue);
     REQUIRE(ex.events.size() == 1);
     REQUIRE(ex.events[0].leaving_state == expected);
 }
@@ -69,7 +70,7 @@ TEST_CASE("Method") {
 TEST_CASE("Method no-case") {
     TestExecution ex(method);
 
-    REQUIRE(ex.feed("get ") == ExecutionControl::Continue);
+    REQUIRE(get<0>(ex.consume("get ")) == ExecutionControl::Continue);
     REQUIRE(ex.events.size() == 1);
     REQUIRE(ex.events[0].leaving_state == test::http_method::Names::MethodGet);
 }
@@ -77,7 +78,7 @@ TEST_CASE("Method no-case") {
 TEST_CASE("Unknown method") {
     TestExecution ex(method);
 
-    REQUIRE(ex.feed("XIMADETHISUP ") == ExecutionControl::Continue);
+    REQUIRE(get<0>(ex.consume("XIMADETHISUP ")) == ExecutionControl::Continue);
     REQUIRE(ex.events.size() == 1);
     REQUIRE(ex.events[0].leaving_state == test::http_method::Names::MethodUnknown);
 }
@@ -86,7 +87,7 @@ TEST_CASE("Request line") {
     using test::http_req::Names;
     TestExecution ex(req_line);
 
-    REQUIRE(ex.feed("GET /index.html HTTP/1.1") == ExecutionControl::Continue);
+    REQUIRE(get<0>(ex.consume("GET /index.html HTTP/1.1")) == ExecutionControl::Continue);
     REQUIRE(ex.events.size() > 3);
     REQUIRE(ex.events[0].leaving_state == Names::MethodGet);
     REQUIRE(ex.collect_entered(Names::Url) == "/index.html");
@@ -97,7 +98,7 @@ TEST_CASE("Request fuzzy") {
     using test::http_req::Names;
     TestExecution ex(req_line);
 
-    REQUIRE(ex.feed("GeT \t/index.html    HttP/1.15\n") == ExecutionControl::Continue);
+    REQUIRE(get<0>(ex.consume("GeT \t/index.html    HttP/1.15\n")) == ExecutionControl::Continue);
     REQUIRE(ex.events.size() > 3);
     REQUIRE(ex.events[0].leaving_state == Names::MethodGet);
     REQUIRE(ex.collect_entered(Names::Url) == "/index.html");
@@ -199,7 +200,7 @@ TEST_CASE("Extract boundary") {
     const string request = string("GET / HTTP/1.1\r\nContent-Type: ") + boundary + "\r\n" + "Content-Length: 42" + "\r\n\r\n";
 
     TestExecution ex(http_request);
-    ex.feed(request);
+    ex.consume(request);
     REQUIRE(ex.collect_entered(Names::ContentLength) == "42");
     REQUIRE(ex.collect_entered(Names::Boundary) == "hello");
 }
@@ -207,7 +208,7 @@ TEST_CASE("Extract boundary") {
 TEST_CASE("Connection close") {
     using test::http::Names;
     TestExecution ex(http_request);
-    ex.feed("GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
+    ex.consume("GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
     REQUIRE(ex.contains_enter(Names::ConnectionClose));
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionKeepAlive));
 }
@@ -215,7 +216,7 @@ TEST_CASE("Connection close") {
 TEST_CASE("Connection keep alive") {
     using test::http::Names;
     TestExecution ex(http_request);
-    ex.feed("GET / HTTP/1.1\r\nConnection: Keep-Alive\r\n\r\n");
+    ex.consume("GET / HTTP/1.1\r\nConnection: Keep-Alive\r\n\r\n");
     REQUIRE(ex.contains_enter(Names::ConnectionKeepAlive));
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionClose));
 }
@@ -223,7 +224,7 @@ TEST_CASE("Connection keep alive") {
 TEST_CASE("No connection") {
     using test::http::Names;
     TestExecution ex(http_request);
-    ex.feed("GET / HTTP/1.1\r\n\r\n");
+    ex.consume("GET / HTTP/1.1\r\n\r\n");
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionKeepAlive));
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionClose));
 }

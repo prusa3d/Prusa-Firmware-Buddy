@@ -334,21 +334,12 @@ public:
     ExecutionControl feed(uint8_t byte);
 
     /**
-     * \brief Feed multiple bytes, one by one.
-     *
-     * The only difference here is that the feeding is stopped if the inner
-     * char-feeding returns anything but Continue. Even then, you could still
-     * feed something to in the future.
-     */
-    ExecutionControl feed(std::string_view data);
-
-    /**
      * \brief Feed as many bytes as possible, indicating how much was
      * consumed.
      *
-     * Same as feed, but with indication of where the parsing stopped
-     * (either by no transition or by explicit request to stop by the
-     * callback).
+     * Same as feed, but feeding everything it can. Feeding is stopped early if
+     * there's no transition or if the inner event returns anything but
+     * Continue.
      */
     std::tuple<ExecutionControl, size_t> consume(std::string_view data);
 };
