@@ -504,6 +504,11 @@ bool marlin_server_print_reheat_ready() {
     return true;
 }
 
+void marlin_server_nozzle_timeout_loop() {
+    if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
+        thermalManager.setTargetHotend(0, 0);
+}
+
 static void _server_print_loop(void) {
     switch (marlin_server.print_state) {
     case mpsIdle:
@@ -544,8 +549,7 @@ static void _server_print_loop(void) {
         }
         break;
     case mpsPaused:
-        if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
-            thermalManager.setTargetHotend(0, 0);
+        marlin_server_nozzle_timeout_loop();
         gcode.reset_stepper_timeout(); //prevent disable axis
         break;
     case mpsResuming_Begin:
