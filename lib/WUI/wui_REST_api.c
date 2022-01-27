@@ -15,13 +15,10 @@
 #include "lwip/init.h"
 #include "netdev.h"
 
-#include <basename.h>
-
 #include <string.h>
 #include <stdio.h>
 
 extern uint32_t start_print;
-extern char *filename;
 
 void get_printer(char *data, const uint32_t buf_len) {
     marlin_vars_t *vars = marlin_vars();
@@ -256,32 +253,4 @@ void get_job(char *data, const uint32_t buf_len) {
             "}",
             state);
     }
-}
-
-void get_files(char *data, const uint32_t buf_len) {
-
-    /*
-     * Warning: This is a hack/stub.
-     *
-     * * This is being used both to answer /api/files _and_ as the content of the post GCODE.
-     * * We don't have a way to stream the body (eg. generate on the fly as we
-     *   are iterating through the files on the flash drive).
-     * * This is missing a lot of fields in the files.
-     *
-     * This probably depends on first getting an actual HTTP server.
-     */
-
-    JSONIFY_STR(filename);
-
-    snprintf(data, buf_len,
-        "{"
-        "\"files\": [{"
-        "\"local\": {"
-        "\"name\": \"%s\","
-        "\"origin\": \"local\""
-        "}"
-        "}],"
-        "\"done\": %d"
-        "}",
-        filename_escaped, (int)!start_print);
 }

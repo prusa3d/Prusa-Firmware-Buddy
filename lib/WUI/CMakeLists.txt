@@ -17,6 +17,7 @@ target_sources(
             sntp/sntp.c
             automata/core.cpp
             nhttp/common_selectors.cpp
+            nhttp/file_info.cpp
             nhttp/gcode_upload.cpp
             nhttp/gen_once.cpp
             nhttp/handler.cpp

@@ -1,7 +1,7 @@
 #include "lfn.h"
 
 #include <string.h>
-#include <sys/dirent.h>
+#include <dirent.h>
 
 void get_LFN(char *lfn, size_t lfn_size, char *path) {
     /*

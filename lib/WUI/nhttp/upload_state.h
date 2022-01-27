@@ -127,6 +127,16 @@ bool uploader_finish(struct Uploader *uploader);
  */
 uint16_t uploader_error(const struct Uploader *uploader);
 
+/**
+ * \brief Temporary hack to get filename.
+ *
+ * Eventually, we'll fold these things together and won't need to extract it.
+ * Therefore, we don't bother with nicer interface for now.
+ *
+ * Buffer must be FILE_NAME_BUFFER_LEN large.
+ */
+void uploader_get_filename(const struct Uploader *uploader, char *buffer);
+
 #ifdef __cplusplus
 }
 #endif

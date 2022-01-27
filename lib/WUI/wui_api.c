@@ -32,7 +32,6 @@ extern RTC_HandleTypeDef hrtc;
 // FIXME: These need to go and get wrapped into something
 // For parallel uploads
 uint32_t start_print = 0;
-char filename[FILE_NAME_BUFFER_LEN];
 static FILE *upload_file = NULL;
 static char tmp_filename[FILE_NAME_BUFFER_LEN];
 
@@ -440,6 +439,7 @@ uint16_t wui_upload_finish(const char *old_filename, const char *new_filename, b
         goto clean_temp_file;
     }
 
+    char filename[FILE_NAME_BUFFER_LEN];
     if ((fname_length + USB_MOUNT_POINT_LENGTH) >= sizeof(filename)) {
         // The Request header fields too large is a bit of a stretch...
         error_code = 431;
