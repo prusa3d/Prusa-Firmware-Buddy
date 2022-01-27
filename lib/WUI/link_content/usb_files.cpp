@@ -39,7 +39,7 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
              * protected by the API key and it's the user's files, so
              * that's probably fine.
              */
-            return SendFile(f, guess_content_by_ext(fname), parser.can_keep_alive());
+            return SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive());
         }
 
         return StatusPage(Status::NotFound, parser.can_keep_alive());

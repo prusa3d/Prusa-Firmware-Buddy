@@ -3,7 +3,28 @@
 #include "handler.h"
 #include "headers.h"
 
+#include <sys/stat.h>
+
 namespace nhttp::handler {
+
+SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive)
+    : file(file)
+    , content_type(content_type)
+    , can_keep_alive(can_keep_alive) {
+    struct stat finfo;
+    if (stat(path, &finfo) == 0) {
+        if (can_keep_alive) {
+            connection_handling = ConnectionHandling::ContentLengthKeep;
+        } else {
+            connection_handling = ConnectionHandling::Close;
+        }
+        content_length = finfo.st_size;
+    } else if (can_keep_alive) {
+        connection_handling = ConnectionHandling::ChunkedKeep;
+    } else {
+        connection_handling = ConnectionHandling::Close;
+    }
+}
 
 Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size) {
     if (!buffer) {
@@ -14,7 +35,7 @@ Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size)
 
     ConnectionHandling connection_handling = can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close;
     if (!headers_sent) {
-        written = write_headers(buffer, buffer_size, Status::Ok, content_type, connection_handling);
+        written = write_headers(buffer, buffer_size, Status::Ok, content_type, connection_handling, content_length);
         headers_sent = true;
 
         if (written + MIN_CHUNK_SIZE >= buffer_size) {
