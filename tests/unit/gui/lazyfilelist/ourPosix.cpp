@@ -1,7 +1,11 @@
 #include "ourPosix.hpp"
-#include "strlcpy.c"
 
 std::vector<FileEntry> testFiles0;
+
+extern "C" {
+
+size_t strlcpy(char *, const char *, size_t);
+}
 
 void MakeLFNSFN(dirent *fno, const char *lfn, size_t fileindex) {
     if (strlen(lfn) >= 13) {
@@ -9,7 +13,7 @@ void MakeLFNSFN(dirent *fno, const char *lfn, size_t fileindex) {
         strlcpy(fno->d_name + charsWritten + 1, lfn, sizeof(fno->d_name) - charsWritten - 1);
         fno->lfn = fno->d_name + charsWritten + 1;
     } else {
-        uint8_t charsWritten = strlcpy(fno->d_name, lfn, sizeof(fno->d_name));
+        strlcpy(fno->d_name, lfn, sizeof(fno->d_name));
         fno->lfn = fno->d_name;
     }
 }

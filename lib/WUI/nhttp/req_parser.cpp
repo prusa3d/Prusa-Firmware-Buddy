@@ -9,6 +9,12 @@
 
 #include <cstring>
 
+extern "C" {
+
+// Inject for tests, which are compiled on systems without it in the header.
+size_t strlcpy(char *, const char *, size_t);
+}
+
 using namespace automata;
 using nhttp::parser::request::Names;
 using std::get;
@@ -166,8 +172,7 @@ bool RequestParser::uri_filename(char *buffer, size_t buffer_size) const {
     // * Make sure there are no `..` or such in there.
     // * Demangling?
     if (buffer_size > url_size) {
-        memcpy(buffer, url.begin(), url_size);
-        buffer[url_size] = '\0';
+        strlcpy(buffer, url.begin(), url_size + 1);
         return true;
     } else {
         return false;

@@ -22,7 +22,7 @@ add_executable(
   # we need to add mo file generation to test files
   ${CMAKE_CURRENT_SOURCE_DIR}/providerFILE.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/provider.cpp
-  ${CMAKE_SOURCE_DIR}/tests/unit/gui/lazyfilelist/strlcpy.c
+  ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   )
 
 add_dependencies(translator_tests translations_pofiles_dump)
