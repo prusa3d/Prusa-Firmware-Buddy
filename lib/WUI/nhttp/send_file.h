@@ -8,6 +8,7 @@
 #include <string_view>
 #include <cstdio>
 #include <memory>
+#include <optional>
 
 namespace nhttp::handler {
 
@@ -30,14 +31,13 @@ private:
 
     std::unique_ptr<FILE, FileDeleter> file;
     ContentType content_type;
+    ConnectionHandling connection_handling = ConnectionHandling::Close;
     bool can_keep_alive;
     bool headers_sent = false;
+    std::optional<size_t> content_length;
 
 public:
-    SendFile(FILE *file, ContentType content_type, bool can_keep_alive)
-        : file(file)
-        , content_type(content_type)
-        , can_keep_alive(can_keep_alive) {}
+    SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive);
     Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
     bool want_write() const { return bool(file); }
     bool want_read() const { return false; }
