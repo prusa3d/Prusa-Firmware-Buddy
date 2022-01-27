@@ -29,6 +29,7 @@
 #pragma once
 
 #include "types.h"
+#include "file_info.h"
 #include "gen_once.h"
 #include "gcode_upload.h"
 #include "job_command.h"
@@ -119,6 +120,7 @@ using ConnectionState = std::variant<
     GenOnce,
     printer::GcodeUpload,
     printer::JobCommand,
+    printer::FileInfo,
     // TODO: Some other generators/consumers
     // TODO: Some generic generators/consumers
     Terminating>;

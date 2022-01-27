@@ -33,7 +33,6 @@ Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size)
 
     size_t written = 0;
 
-    ConnectionHandling connection_handling = can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close;
     if (!headers_sent) {
         written = write_headers(buffer, buffer_size, Status::Ok, content_type, connection_handling, content_length);
         headers_sent = true;

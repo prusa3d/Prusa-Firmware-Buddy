@@ -13,6 +13,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/http/fs.c
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/common_selectors.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/multipart_parser.c
+  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/file_info.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/gen_once.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/upload_state.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/server.cpp
@@ -24,6 +25,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/req_parser.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/handler.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/automata/core.cpp
+  ${CMAKE_SOURCE_DIR}/lib/WUI/json_encode.c
   # Dependencies.
   # It seems it's not possible to just link the damn LwIP library:
   # * Somehow, the target_link_libraries directive poisons include

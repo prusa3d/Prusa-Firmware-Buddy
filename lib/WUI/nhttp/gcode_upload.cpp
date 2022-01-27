@@ -1,9 +1,9 @@
 #include "gcode_upload.h"
 #include "upload_state.h"
+#include "file_info.h"
 #include "handler.h"
 #include "gen_once.h"
 
-#include "../wui_REST_api.h"
 #include "../wui_api.h"
 
 #include <cassert>
@@ -25,12 +25,6 @@ namespace {
         wui_upload_data,
         wui_upload_finish,
     };
-
-    size_t handler_get_file(uint8_t *buffer, size_t buffer_size) {
-        char *b = reinterpret_cast<char *>(buffer);
-        get_files(b, buffer_size);
-        return strlen(b);
-    }
 
 }
 
@@ -115,6 +109,12 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
         return { read, 0, StatusPage(static_cast<Status>(err), false) };
     }
 
+    // Hack: Eventually, we'll fold the uploader into here, so we won't have to
+    // throw the filename here and there all the time.
+    char filename[FILE_NAME_BUFFER_LEN + 5];
+    strcpy(filename, "/usb/");
+    uploader_get_filename(uploader.get(), filename + 5);
+
     if (size_rest == 0) {
         // Note: We do connection-close here. We are lazy to pass the
         // can-keep-alive flag around and it's unlikely one would want to reuse
@@ -125,7 +125,7 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
              * flatten the Uploader into this class and have access to the file
              * name there and generate the response ourselves.
              */
-            return { read, 0, GenOnce(handler_get_file, ContentType::ApplicationJson, false) };
+            return { read, 0, FileInfo(filename, false, true) };
         } else {
             return { read, 0, StatusPage(Status::BadRequest, false, "Missing file") };
         }

@@ -31,7 +31,6 @@ extern "C" {
 void get_printer(char *data, const uint32_t buf_len);
 void get_version(char *data, const uint32_t buf_len);
 void get_job(char *data, const uint32_t buf_len);
-void get_files(char *data, const uint32_t buf_len);
 
 #ifdef __cplusplus
 }

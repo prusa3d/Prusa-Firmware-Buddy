@@ -51,6 +51,12 @@
 #include <memory>
 #include <string_view>
 
+extern "C" {
+
+// Inject for tests, which are compiled on systems without it in the header.
+size_t strlcpy(char *, const char *, size_t);
+}
+
 using std::array;
 using std::string_view;
 using std::unique_ptr;
@@ -631,6 +637,10 @@ public:
     bool done() const {
         return state == State::Done;
     }
+
+    const char *get_filename() const {
+        return filename.begin();
+    }
 };
 
 }
@@ -659,6 +669,10 @@ bool uploader_finish(struct Uploader *uploader) {
 
 uint16_t uploader_error(const struct Uploader *uploader) {
     return uploader->state.get_error();
+}
+
+void uploader_get_filename(const struct Uploader *uploader, char *buffer) {
+    strlcpy(buffer, uploader->state.get_filename(), FILE_NAME_BUFFER_LEN);
 }
 }
 

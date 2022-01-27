@@ -1,4 +1,5 @@
 #include "prusa_link_api.h"
+#include "../nhttp/file_info.h"
 #include "../nhttp/headers.h"
 #include "../nhttp/gcode_upload.h"
 #include "../nhttp/job_command.h"
@@ -12,6 +13,7 @@ using std::nullopt;
 using std::optional;
 using std::string_view;
 using namespace handler;
+using nhttp::printer::FileInfo;
 using nhttp::printer::GcodeUpload;
 using nhttp::printer::JobCommand;
 
@@ -82,7 +84,29 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
              */
             return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
         } else {
-            return StatusPage(Status::NotImplemented, parser.can_keep_alive(), "List of files is not available yet");
+            /*
+             * We do *not* use the uri with prefix removed. We need the safe
+             * transformation into a file name (removal of query params,
+             * forbidding of '..', etc).
+             */
+            static const auto prefix = "/api/files";
+            static const size_t prefix_len = strlen(prefix);
+            char fname[FILE_PATH_BUFFER_LEN + prefix_len];
+            if (parser.uri_filename(fname, sizeof fname)) {
+                size_t len = strlen(fname);
+                const char *fname_real;
+                if (prefix_len > len) {
+                    return StatusPage(Status::NotFound, parser.can_keep_alive());
+                } else if (prefix_len == len) {
+                    fname_real = "/";
+                } else {
+                    fname_real = fname + prefix_len;
+                }
+
+                return get_only(FileInfo(fname_real, parser.can_keep_alive(), false));
+            } else {
+                return StatusPage(Status::NotFound, parser.can_keep_alive());
+            }
         }
         // The real API endpoints
     } else if (suffix == "version") {

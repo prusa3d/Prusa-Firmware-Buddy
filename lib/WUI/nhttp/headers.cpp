@@ -18,6 +18,7 @@ namespace {
     const constexpr StatusText texts[] = {
         { Status::UnknownStatus, "???" },
         { Status::Ok, "OK" },
+        { Status::Created, "Created" },
         { Status::NoContent, "No Content" },
         { Status::BadRequest, "Bad Request" },
         { Status::Unauthorized, "Unauthorized", authenticate_hdrs },

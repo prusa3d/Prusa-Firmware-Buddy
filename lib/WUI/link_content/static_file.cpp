@@ -3,7 +3,7 @@
 #include "../nhttp/headers.h"
 
 // Why does FILE_PATH_BUFFER_LEN lives in *gui*!?
-#include <../../src/gui/file_list_defs.h>
+#include "../../src/gui/file_list_defs.h"
 
 #include <cstring>
 
