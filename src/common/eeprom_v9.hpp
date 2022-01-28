@@ -16,7 +16,7 @@ namespace eeprom::v9 {
 #pragma pack(1)
 
 /**
- * @brief body od eeprom v9
+ * @brief body of eeprom v9
  * without head, padding and crc
  */
 struct vars_body_t : public eeprom::v7::vars_body_t {
