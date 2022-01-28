@@ -72,8 +72,12 @@ constexpr vars_body_t body_defaults = {
     Y_CURRENT,                                                                  // AXIS_RMS_CURRENT_MA_Y
     Z_CURRENT,                                                                  // AXIS_RMS_CURRENT_MA_Z
     E0_CURRENT,                                                                 // AXIS_RMS_CURRENT_MA_E0
-    DEFAULT_Z_MAX_POS,                                                          // AXIS_Z_MAX_POS_MM
-    0,                                                                          // EEVAR_ODOMETER_TIME
+#ifdef DEFAULT_Z_MAX_POS
+    DEFAULT_Z_MAX_POS, // AXIS_Z_MAX_POS_MM
+#else
+    0,
+#endif
+    0, // EEVAR_ODOMETER_TIME
 };
 
 inline vars_body_t convert(const eeprom::v9::vars_body_t &src) {
