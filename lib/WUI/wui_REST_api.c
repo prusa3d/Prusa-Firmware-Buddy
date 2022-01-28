@@ -45,11 +45,12 @@ void get_printer(char *data, const uint32_t buf_len) {
     case mpsPausing_Begin:
     case mpsPausing_WaitIdle:
     case mpsPausing_ParkHead:
-        pausing = paused = busy = true;
+        printing = pausing = paused = busy = true;
         ready = operational = false;
         break;
     case mpsPaused:
-        paused = true;
+        printing = paused = true;
+        ready = operational = false;
         break;
     case mpsResuming_Begin:
     case mpsResuming_Reheating:
