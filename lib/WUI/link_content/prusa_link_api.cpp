@@ -1,5 +1,6 @@
 #include "prusa_link_api.h"
 #include "../nhttp/gcode_upload.h"
+#include "../nhttp/job_command.h"
 #include "../wui_REST_api.h"
 
 #include <cstring>
@@ -11,6 +12,7 @@ using std::optional;
 using std::string_view;
 using namespace handler;
 using nhttp::printer::GcodeUpload;
+using nhttp::printer::JobCommand;
 
 namespace {
 
@@ -54,7 +56,8 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
         if (parser.method == Method::Get) {
             return state;
         } else {
-            return StatusPage(Status::MethodNotAllowed, parser.can_keep_alive());
+            // Drop the connection in fear there might be a body we don't know about.
+            return StatusPage(Status::MethodNotAllowed, false);
         }
     };
 
@@ -84,7 +87,20 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
     } else if (suffix == "version") {
         return get_only(GenOnce(handler_get_version, ContentType::ApplicationJson, parser.can_keep_alive()));
     } else if (suffix == "job") {
-        return get_only(GenOnce(handler_get_job, ContentType::ApplicationJson, parser.can_keep_alive()));
+        switch (parser.method) {
+        case Method::Get:
+            return GenOnce(handler_get_job, ContentType::ApplicationJson, parser.can_keep_alive());
+        case Method::Post: {
+            if (parser.content_length.has_value()) {
+                return JobCommand(*parser.content_length, parser.can_keep_alive());
+            } else {
+                // Drop the connection (and the body there).
+                return StatusPage(Status::LengthRequired, false);
+            }
+        }
+        default:
+            return StatusPage(Status::MethodNotAllowed, false);
+        }
     } else if (suffix == "printer") {
         return get_only(GenOnce(handler_get_printer, ContentType::ApplicationJson, parser.can_keep_alive()));
     } else {
