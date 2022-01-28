@@ -27,6 +27,7 @@ namespace {
         { Status::LengthRequired, "Length Required" },
         { Status::UnsupportedMediaType, "Unsupported Media Type" },
         { Status::IMATeaPot, "I'm a Teapot Printer" },
+        { Status::PayloadTooLarge, "Payload Too Large" },
         { Status::UriTooLong, "URI Too Long" },
         { Status::UnprocessableEntity, "Unprocessable Entity" },
         { Status::RequestHeaderFieldsTooLarge, "Request Header Fields Too Large" },

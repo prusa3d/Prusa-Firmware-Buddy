@@ -608,6 +608,7 @@ target_sources(
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
           src/common/fsm_types.cpp
+          src/common/jsmn.c
           src/common/selftest/selftest_MINI.cpp
           src/common/selftest/selftest_fan.cpp
           src/common/selftest/selftest_axis.cpp

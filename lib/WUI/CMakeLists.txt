@@ -21,6 +21,8 @@ target_sources(
             nhttp/gen_once.cpp
             nhttp/handler.cpp
             nhttp/headers.cpp
+            nhttp/job_command.cpp
+            nhttp/job_command_marlin.cpp
             nhttp/req_parser.cpp
             nhttp/server.cpp
             nhttp/static_mem.cpp

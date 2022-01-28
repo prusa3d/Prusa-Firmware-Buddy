@@ -43,6 +43,7 @@ enum Status {
     MethodNotAllowed = 405,
     Conflict = 409,
     LengthRequired = 411,
+    PayloadTooLarge = 413,
     UriTooLong = 414,
     UnsupportedMediaType = 415,
     IMATeaPot = 418,
