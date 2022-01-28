@@ -47,28 +47,52 @@ struct vars_body_t {
 #pragma pack(pop)
 
 constexpr vars_body_t body_defaults = {
-    0,                         // EEVAR_FILAMENT_TYPE
-    0,                         // EEVAR_FILAMENT_COLOR
-    1,                         // EEVAR_RUN_SELFTEST
-    1,                         // EEVAR_RUN_XYZCALIB
-    1,                         // EEVAR_RUN_FIRSTLAY
-    1,                         // EEVAR_FSENSOR_ENABLED
-    0,                         // EEVAR_ZOFFSET
-    DEFAULT_Kp,                // EEVAR_PID_NOZ_P
-    scalePID_i(DEFAULT_Ki),    // EEVAR_PID_NOZ_I
-    scalePID_d(DEFAULT_Kd),    // EEVAR_PID_NOZ_D
-    DEFAULT_bedKp,             // EEVAR_PID_BED_P
+    0, // EEVAR_FILAMENT_TYPE
+    0, // EEVAR_FILAMENT_COLOR
+    1, // EEVAR_RUN_SELFTEST
+    1, // EEVAR_RUN_XYZCALIB
+    1, // EEVAR_RUN_FIRSTLAY
+    1, // EEVAR_FSENSOR_ENABLED
+    0, // EEVAR_ZOFFSET
+#ifdef DEFAULT_Kp
+    DEFAULT_Kp, // EEVAR_PID_NOZ_P
+#else
+    0,
+#endif
+#ifdef DEFAULT_Ki
+    scalePID_i(DEFAULT_Ki), // EEVAR_PID_NOZ_I
+#else
+    0,
+#endif
+#ifdef DEFAULT_Kd
+    scalePID_d(DEFAULT_Kd), // EEVAR_PID_NOZ_D
+#else
+    0,
+#endif
+#ifdef DEFAULT_bedKp
+    DEFAULT_bedKp, // EEVAR_PID_BED_P
+#else
+    0,
+#endif
+#ifdef DEFAULT_bedKi
     scalePID_i(DEFAULT_bedKi), // EEVAR_PID_BED_I
+#else
+    0,
+#endif
+#ifdef DEFAULT_bedKd
     scalePID_d(DEFAULT_bedKd), // EEVAR_PID_BED_D
-    0,                         // EEVAR_LAN_FLAG
-    0,                         // EEVAR_LAN_IP4_ADDR
-    0,                         // EEVAR_LAN_IP4_MSK
-    0,                         // EEVAR_LAN_IP4_GW
-    0,                         // EEVAR_LAN_IP4_DNS1
-    0,                         // EEVAR_LAN_IP4_DNS2
-    DEFAULT_HOST_NAME,         // EEVAR_LAN_HOSTNAME
-    0,                         // EEVAR_TIMEZONE
-    0xff,                      // EEVAR_SOUND_MODE
+#else
+    0,
+#endif
+    0,                 // EEVAR_LAN_FLAG
+    0,                 // EEVAR_LAN_IP4_ADDR
+    0,                 // EEVAR_LAN_IP4_MSK
+    0,                 // EEVAR_LAN_IP4_GW
+    0,                 // EEVAR_LAN_IP4_DNS1
+    0,                 // EEVAR_LAN_IP4_DNS2
+    DEFAULT_HOST_NAME, // EEVAR_LAN_HOSTNAME
+    0,                 // EEVAR_TIMEZONE
+    0xff,              // EEVAR_SOUND_MODE
 };
 
 inline vars_body_t convert(const eeprom::v4::vars_body_t &src) {
