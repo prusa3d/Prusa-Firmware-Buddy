@@ -1,22 +1,21 @@
 /**
- * @file eeprom_v11.hpp
+ * @file eeprom_current.hpp
  * @author Radek Vana
- * @brief old version of eeprom, to be able to import it
- * version 11 from TODO add after released
+ * @brief current version of eeprom
  * without padding and crc since they are not imported and would not match anyway
  * @date 2022-01-17
  */
 
 #include "eeprom_v10.hpp"
 
-namespace eeprom::v11 {
+namespace eeprom::current {
 
 #pragma once
 #pragma pack(push)
 #pragma pack(1)
 
 /**
- * @brief body od eeprom v10
+ * @brief body of eeprom v10
  * without head, padding and crc
  */
 struct vars_body_t : public eeprom::v10::vars_body_t {
@@ -57,7 +56,7 @@ constexpr vars_body_t body_defaults = {
 inline vars_body_t convert(const eeprom::v10::vars_body_t &src) {
     vars_body_t ret = body_defaults;
 
-    // copy entire v9 struct
+    // copy entire v10 struct
     memcpy(&ret, &src, sizeof(eeprom::v10::vars_body_t));
 
     return ret;

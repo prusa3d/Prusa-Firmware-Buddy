@@ -17,8 +17,8 @@
 #include "cmath_ext.h"
 #include "footer_eeprom.hpp"
 #include <bitset>
-#include "eeprom_v11.hpp"
-using namespace eeprom::v11;
+#include "eeprom_current.hpp"
+using namespace eeprom::current;
 
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
@@ -70,7 +70,7 @@ union eeprom_data {
             eeprom::v7::vars_body_t v7;
             eeprom::v9::vars_body_t v9;
             eeprom::v10::vars_body_t v10;
-            eeprom::v11::vars_body_t v11;
+            eeprom::current::vars_body_t current;
         };
     };
 };
@@ -530,7 +530,7 @@ static bool eeprom_convert_from(eeprom_data &data) {
     }
 
     if (version == 10) {
-        data.v11 = eeprom::v11::convert(data.v10);
+        data.current = eeprom::current::convert(data.v10);
         version = 11;
     }
 
