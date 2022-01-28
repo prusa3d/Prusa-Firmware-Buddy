@@ -216,7 +216,7 @@ static constexpr eeprom_vars_t &eeprom_startup_vars() {
 
 static constexpr bool is_version_supported(uint16_t version) {
 #ifdef NO_EEPROM_UPGRADES
-    return eeprom_ram_mirror.vars.head.VERSION == EEPROM_VERSION;
+    return version == EEPROM_VERSION;
 #else
     // supported versions are 4,6,7,9,10 .. current
     if (version > EEPROM_VERSION)
