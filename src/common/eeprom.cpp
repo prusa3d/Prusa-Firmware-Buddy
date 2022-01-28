@@ -214,6 +214,23 @@ static constexpr eeprom_vars_t &eeprom_startup_vars() {
     return eeprom_ram_mirror.vars;
 }
 
+static constexpr bool is_version_supported(uint16_t version) {
+#ifdef NO_EEPROM_UPGRADES
+    return eeprom_ram_mirror.vars.head.VERSION == EEPROM_VERSION;
+#else
+    // supported versions are 4,6,7,9,10 .. current
+    if (version > EEPROM_VERSION)
+        return false;
+    if (version == 4)
+        return true;
+    if (version == 6)
+        return true;
+    if (version == 7)
+        return true;
+    return version >= 9;
+#endif
+};
+
 // forward declarations of private functions
 static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size);
 static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size);
@@ -547,6 +564,10 @@ static bool eeprom_convert_from(eeprom_data &data) {
 // version independent crc32 check
 static bool eeprom_check_crc32() {
     if (eeprom_ram_mirror.vars.head.DATASIZE > EEPROM_MAX_DATASIZE)
+        return false;
+    if (eeprom_ram_mirror.vars.head.DATASIZE == 0)
+        return false;
+    if (!is_version_supported(eeprom_ram_mirror.vars.head.VERSION))
         return false;
 
     uint32_t crc;
