@@ -67,7 +67,7 @@ bool GCodeThumbDecoder::AppendBase64Chars(
     return true;
 }
 
-int GCodeThumbDecoder::Read(FILE *f, char *pc, int n) {
+int GCodeThumbDecoder::Read(char *pc, int n) {
     static const size_t MAX_READ_LINES = 2048; // treba 2K radek
     switch (state) {
     case States::Searching: {

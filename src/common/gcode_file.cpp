@@ -1,11 +1,9 @@
 #include "gcode_file.h"
 #include "log.h"
-#include "gcode_thumb_decoder.h"
-
-static FILE *gcode_thumb_fp = nullptr;
 
 static int read(struct _reent *_r, void *pv, char *pc, int n) {
-    int count = GCodeThumbDecoder::Instance().Read(gcode_thumb_fp, pc, n);
+    GCodeThumbDecoder *gd = reinterpret_cast<GCodeThumbDecoder *>(pv);
+    int count = gd->Read(pc, n);
     if (count < 0) {
         return 0;
     }
@@ -24,20 +22,14 @@ static _fpos_t seek(struct _reent *_r, void *pv, _fpos_t fpos, int ipos) {
     return 0;
 }
 
-extern "C" int f_gcode_thumb_open(FILE *fp, FILE *gcode_fp) {
-    if (gcode_thumb_fp) {
-        log_error(Core, "a gcode png file is already open");
-        return 1;
-    }
-    gcode_thumb_fp = gcode_fp;
-
-    GCodeThumbDecoder::Instance().Reset();
-
+int f_gcode_thumb_open(GCodeThumbDecoder *gd, FILE *fp) {
     memset(fp, 0, sizeof(FILE));
     fp->_read = read;
     fp->_write = write;
     fp->_close = close;
     fp->_seek = seek;
+    // we can use the cookie to pass any user-defined pointer/context to all of the I/O routines
+    fp->_cookie = reinterpret_cast<void *>(gd);
     fp->_file = -1;
     fp->_flags = __SRD;
     fp->_lbfsize = 512;
@@ -47,11 +39,10 @@ extern "C" int f_gcode_thumb_open(FILE *fp, FILE *gcode_fp) {
     return 0;
 }
 
-extern "C" int f_gcode_thumb_close(FILE *fp) {
+int f_gcode_thumb_close(FILE *fp) {
     if (fp && fp->_bf._base) {
         free(fp->_bf._base);
     }
-    gcode_thumb_fp = nullptr;
     return 0;
 }
 
