@@ -14,7 +14,7 @@
 // byla funkce ConsumeChar, ktera by vracela true/false jako mam bajt/nemam bajt
 class Base64StreamDecoder {
 public:
-    inline Base64StreamDecoder()
+    constexpr inline Base64StreamDecoder()
         : state(States::AwaitingFirst) {
     }
 

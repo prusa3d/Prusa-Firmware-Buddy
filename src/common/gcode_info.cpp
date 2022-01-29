@@ -31,9 +31,10 @@ const char *GCodeInfo::GetGcodeFilepath() {
 
 bool GCodeInfo::hasThumbnail(FILE *file, size_ui16_t size) {
     FILE f = { 0 };
-    char buffer;
     bool thumbnail_valid = false;
-    if (f_gcode_thumb_open(&f, file) == 0) {
+    GCodeThumbDecoder gd(file, size.w, size.h);
+    if (f_gcode_thumb_open(&gd, &f) == 0) {
+        char buffer;
         thumbnail_valid = fread((void *)&buffer, 1, 1, &f) > 0;
         f_gcode_thumb_close(&f);
     }

@@ -1,12 +1,9 @@
 #pragma once
 #include <stdbool.h>
 #include <stdio.h>
+#include "gcode_thumb_decoder.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
-int f_gcode_thumb_open(FILE *fp, FILE *gcode_fp);
+int f_gcode_thumb_open(GCodeThumbDecoder *gd, FILE *fp);
 int f_gcode_thumb_close(FILE *fp);
 
 /// Parse comment line in given file
@@ -19,7 +16,3 @@ bool f_gcode_get_next_comment_assignment(FILE *fp, char *name_buffer,
     int name_buffer_len,
     char *value_buffer,
     int value_buffer_len);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
