@@ -66,6 +66,8 @@ void syslog_transport_close(syslog_transport_t *transport) {
 
 bool syslog_transport_open(syslog_transport_t *transport, const char *host, int port) {
     ip_addr_t addr;
+    if (strlen(host) == 0)
+        return false;
     err_t res = dns_gethostbyname(host, &addr, NULL, NULL);
     if (res == ERR_OK) {
         // ip address already cached or the name was valid ip address
