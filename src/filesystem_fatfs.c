@@ -619,7 +619,9 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
         if (result != FR_OK) {
             return -1;
         }
-
+        if (fno.fname[0] == 0) {
+            break;
+        }
     } while (fno.fattrib & (AM_SYS | AM_HID));
 
     if (!fno.fname[0]) {
