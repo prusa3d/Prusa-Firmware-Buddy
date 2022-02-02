@@ -20,3 +20,5 @@ This file is generated automatically so don't edit it directly
 - USBMSC: LOG_SEVERITY_DEBUG, src/usb_device_msc.c
 - W25X: LOG_SEVERITY_DEBUG, src/common/w25x.c
 - WUI: LOG_SEVERITY_DEBUG, lib/WUI/wui.cpp
+- connect: LOG_SEVERITY_DEBUG, src/Connect/connect.cpp
+- httpc: LOG_SEVERITY_DEBUG, src/Connect/httpc.cpp

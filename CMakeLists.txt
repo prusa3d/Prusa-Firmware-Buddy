@@ -101,6 +101,10 @@ set(RESOURCES
     CACHE BOOL "Enable resources (managed files on external flash)"
     )
 
+set(CONNECT
+    "YES"
+    CACHE BOOL "Enable Connect client"
+    )
 # Validate options
 foreach(OPTION "PRINTER" "BOARD" "MCU" "BOOTLOADER")
   if(NOT ${OPTION} IN_LIST ${OPTION}_VALID_OPTS)
@@ -182,6 +186,7 @@ message(STATUS "Custom Compile Options (C/C++ flags): ${CUSTOM_COMPILE_OPTIONS}"
 message(STATUS "Preset Compile Options (C/C++ flags): ${PRESET_COMPILE_OPTIONS}")
 message(STATUS "Web User Interface: ${WUI}")
 message(STATUS "Resources: ${RESOURCES}")
+message(STATUS "Connect client: ${CONNECT}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
@@ -192,6 +197,8 @@ set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
 set(PRINTERS_WITH_ADVANCED_PAUSE "MINI")
 set(PRINTERS_WITH_BOWDEN_EXTRUDER "MINI")
+set(WUI YES)
+set(CONNECT YES)
 
 # Set GUI settings
 set(PRINTERS_WITH_GUI "MINI")
@@ -479,6 +486,21 @@ set_target_properties(firmware PROPERTIES CXX_STANDARD 17)
 
 if(WUI)
   target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
+endif()
+
+if(CONNECT)
+  if(WUI)
+    target_sources(
+      firmware
+      PRIVATE src/Connect/connect.cpp src/Connect/httpc.cpp src/Connect/httpc.cpp
+              src/Connect/tls/tls.cpp src/Connect/tls/net_sockets.c src/Connect/tls/hardware_rng.c
+      )
+    target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_CONNECT)
+    # target_link_libraries(firmware PRIVATE Connect)
+    target_include_directories(firmware PRIVATE src/Connect src/Connect/tls)
+  else()
+    message(STATUS "Connect needs WUI!")
+  endif()
 endif()
 
 # generate firmware.bin file

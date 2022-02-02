@@ -5,6 +5,8 @@
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod.h"
+#include "connect.hpp"
+
 #include "sys.h"
 #include "app.h"
 #include "config.h"
@@ -79,6 +81,7 @@ RNG_HandleTypeDef hrng;
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
+osThreadId connectTaskHandle;
 
 int HAL_IWDG_Reset = 0;
 int HAL_GPIO_Initialized = 0;
@@ -104,6 +107,7 @@ static void MX_RNG_Init(void);
 
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
+void StartConnectTask(void const *argument);
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
@@ -275,6 +279,12 @@ int main(void) {
 #else
     // Avoid unused warning.
     (void)block_networking;
+#endif
+
+#ifdef BUDDY_ENABLE_CONNECT
+    /* definition and creation of connectTask */
+    osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2048);
+    connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif
 
     /* definition and creation of measurementTask */
@@ -725,6 +735,15 @@ void StartDefaultTask(void const *argument) {
 
 void StartDisplayTask(void const *argument) {
     gui_run();
+    for (;;) {
+        osDelay(1);
+    }
+}
+
+void StartConnectTask(void const *argument) {
+    connect client;
+    client.run();
+    /* Infinite loop */
     for (;;) {
         osDelay(1);
     }
