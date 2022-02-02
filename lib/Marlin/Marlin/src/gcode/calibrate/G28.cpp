@@ -80,10 +80,9 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
       #endif
     ;
 
-    const float mlx = max_length(X_AXIS),
-                mly = max_length(Y_AXIS),
-                mlratio = mlx > mly ? mly / mlx : mlx / mly,
-                fr_mm_s = _MIN(homing_feedrate(X_AXIS), homing_feedrate(Y_AXIS)) * SQRT(sq(mlratio) + 1.0);
+    const float mlx = ((max_length(X_AXIS) / max_length(Y_AXIS)) < (homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS))) ? (max_length(Y_AXIS) * homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS)) : (max_length(X_AXIS));
+    const float mly = ((max_length(X_AXIS) / max_length(Y_AXIS)) < (homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS))) ? (max_length(Y_AXIS)) : (max_length(X_AXIS) * homing_feedrate(Y_AXIS) / homing_feedrate(X_AXIS));
+    const float fr_mm_s = SQRT(sq(homing_feedrate(X_AXIS)) + sq(homing_feedrate(Y_AXIS)));
 
     #if ENABLED(SENSORLESS_HOMING)
       sensorless_t stealth_states {
