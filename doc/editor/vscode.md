@@ -5,7 +5,7 @@
 1. In Visual Studio Code, install the following extensions:
     - `CMake Tools` (handles configuring and building the project, requires CMake to be installed),
     - `Cortex-Debug` and `Cortex-Debug: Device Support Pack - STM32F4` (support for debugging of the firmware),
-        - The most recent and working `Cortex-Debug` is `1.1.0`
+        - The most recent and working `Cortex-Debug` for `ST-LINK` is `1.1.0`
     - `ccls` extension, which provides autocompletion and code navigation.
     - `Code Spell Checker` (streetsidesoftware.code-spell-checker) extension, which provides spell checking and correction suggestions.
 2. Install [ccls](https://github.com/MaskRay/ccls) on your system
