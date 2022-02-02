@@ -48,19 +48,17 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
                 handling, output + written, output_size - written - last_chunk_len, [&](uint8_t *output, size_t output_size) {
                     return snprintf(reinterpret_cast<char *>(output), output_size,
                         "{"
-                        "\"files\":{"
-                        "\"local\":{"
                         "\"name\":\"%s\","
                         "\"origin\":\"local\","
                         "\"size\":%zu,"
                         "\"refs\":{"
                         "\"resource\":\"/api/files%s\","
+                        "\"thumbnailSmall\":\"/thumb/s%s\","
+                        "\"thumbnailBig\":\"/thumb/l%s\","
                         "\"download\":\"%s\""
                         "}"
-                        "}"
-                        "}"
                         "}",
-                        long_name_escaped, (size_t)finfo.st_size, filename_escaped, filename_escaped);
+                        long_name_escaped, (size_t)finfo.st_size, filename_escaped, filename_escaped, filename_escaped, filename_escaped);
                 });
 
             assert(written + last_chunk_len <= output_size);

@@ -203,6 +203,21 @@ async def test_download_gcode(running_printer_client, data_dir):
         assert download == gcode
 
 
+async def test_thumbnails(running_printer_client):
+    metadata_r = await running_printer_client.get('/api/files/usb/BOX~1.GCO',
+                                                  headers=valid_headers())
+    assert metadata_r.status == 200
+    metadata = await metadata_r.json()
+    refs = metadata["refs"]
+    for thumb in (refs["thumbnailSmall"], refs["thumbnailBig"]):
+        thumb_r = await running_printer_client.get(thumb,
+                                                   headers=valid_headers())
+        assert thumb_r.status == 200
+        data = await thumb_r.read()
+        # Check PNG "file magic"
+        assert data[1:4] == b"PNG"
+
+
 # See below, needs investigation
 @pytest.mark.skip()
 async def test_upload(wui_client: aiohttp.ClientSession):
