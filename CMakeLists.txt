@@ -575,6 +575,7 @@ target_include_directories(
           src/segger
           src/logging
           src/syslog
+          include/mbedtls
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -603,6 +604,7 @@ target_link_libraries(
           Segger
           tinyusb::tinyusb
           $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
+          mbedTLS
   )
 
 target_sources(
@@ -707,7 +709,6 @@ target_sources(
           src/common/crc32.c
           src/common/crc32_zlib.c
           src/common/ini_handler.c
-          src/common/sha256.c
           src/common/z_calibration_fsm.cpp
           src/common/scratch_buffer.cpp
           src/common/odometer.cpp

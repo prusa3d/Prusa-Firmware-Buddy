@@ -9,7 +9,7 @@
 #include "string.h"
 #include "version.h"
 #include "language_eeprom.hpp"
-#include "sha256.h"
+#include "mbedtls/sha256.h"
 #include "crc32.h"
 #include "stm32f4xx_hal_gpio.h"
 
@@ -47,7 +47,7 @@ void printerCode(char *str) {
 
     uint32_t hash[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; /// 256 bits
     /// get hash;
-    mbedtls_sha256_ret_256(toHash, sizeof(toHash), (unsigned char *)hash);
+    mbedtls_sha256_ret(toHash, sizeof(toHash), (unsigned char *)hash, false);
 
     /// shift hash by 2 bits
     hash[7] >>= 2;

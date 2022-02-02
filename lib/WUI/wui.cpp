@@ -6,6 +6,8 @@
 #include "ethernetif.h"
 #include "espif.h"
 #include "stm32f4xx_hal.h"
+#include <otp.h>
+#include <mbedtls/sha256.h>
 
 #include "sntp_client.h"
 #include "log.h"
@@ -34,7 +36,6 @@ LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
 // FIXME: " " vs <>
 #include "eeprom.h"
 #include "variant8.h"
-#include "otp.h"
 
 using std::unique_lock;
 
