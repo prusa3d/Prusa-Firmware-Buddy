@@ -72,9 +72,9 @@
 
     const int x_axis_home_dir = TOOL_X_HOME_DIR(active_extruder);
 
-    // Use a higher diagonal feedrate so axes move at homing speed
-    const float minfr = _MIN(homing_feedrate(X_AXIS), homing_feedrate(Y_AXIS)),
-                fr_mm_s = HYPOT(minfr, minfr);
+    const float mlx = ((max_length(X_AXIS) / max_length(Y_AXIS)) < (homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS))) ? (max_length(Y_AXIS) * homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS)) : (max_length(X_AXIS));
+    const float mly = ((max_length(X_AXIS) / max_length(Y_AXIS)) < (homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS))) ? (max_length(Y_AXIS)) : (max_length(X_AXIS) * homing_feedrate(Y_AXIS) / homing_feedrate(X_AXIS));
+    const float fr_mm_s = SQRT(sq(homing_feedrate(X_AXIS)) + sq(homing_feedrate(Y_AXIS)));
 
     #if ENABLED(SENSORLESS_HOMING)
       sensorless_t stealth_states {
@@ -88,7 +88,7 @@
       };
     #endif
 
-    do_blocking_move_to_xy(1.5 * max_length(X_AXIS) * x_axis_home_dir, 1.5 * max_length(Y_AXIS) * Y_HOME_DIR, fr_mm_s);
+    do_blocking_move_to_xy(1.5 * mlx * x_axis_home_dir, 1.5 * mly * Y_HOME_DIR, fr_mm_s);
 
     endstops.validate_homing_move();
 
