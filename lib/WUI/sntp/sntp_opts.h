@@ -53,7 +53,7 @@
  * NTP timestamps instead.
  */
 #if !defined SNTP_SET_SYSTEM_TIME || defined __DOXYGEN__
-    #define SNTP_SET_SYSTEM_TIME(sec) sntp_set_system_time(sec, 0)
+    #define SNTP_SET_SYSTEM_TIME(sec) sntp_set_system_time(sec)
 #endif
 
 /** The maximum number of SNTP servers that can be set */

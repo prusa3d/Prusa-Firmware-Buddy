@@ -430,11 +430,10 @@ MI_TIMEZONE::MI_TIMEZONE()
     : WiSpinInt(variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE)), SpinCnf::timezone_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
-    int8_t last_timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
     eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(timezone));
-    time_t seconds = 0;
-    if ((seconds = sntp_get_system_time())) {
-        sntp_set_system_time(seconds, last_timezone);
+    time_t seconds = sntp_get_system_time();
+    if (seconds != (time_t)-1) {
+        sntp_set_system_time(seconds);
     }
 }
 
