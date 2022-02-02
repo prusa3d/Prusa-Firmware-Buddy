@@ -20,6 +20,7 @@ extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim3;
 extern RTC_HandleTypeDef hrtc;
 #if (BOARD_IS_BUDDY)
+extern RNG_HandleTypeDef hrng;
     #if HAS_GUI
 extern TIM_HandleTypeDef htim2; //TIM2 is used to generate buzzer PWM. Not needed without display.
 extern SPI_HandleTypeDef hspi2; //SPI2 is used to drive display. Not needed without GUI.
