@@ -12,13 +12,11 @@
 // chci ten prostredni) Navic jsem nucen pouzivat ten hnusnej FILE interface,
 // protoze na Mini asi nic jinyho nebude
 
-#include "../Marlin/src/libs/circularqueue.h"
+#include "../../lib/Marlin/Marlin/src/libs/circularqueue.h"
 #include "base64_stream_decoder.h"
 #include <algorithm>
 #include <stdio.h>
 #include <string.h>
-
-#include "ff.h"
 
 // jeste budu asi potrebovat nacitac cele radky, pricemz musim dat pozor, aby se
 // precetlo max 80 znaku a vse ostatni az do \n se zahodilo

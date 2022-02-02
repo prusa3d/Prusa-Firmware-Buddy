@@ -32,6 +32,7 @@
 #include "file_info.h"
 #include "gen_once.h"
 #include "gcode_upload.h"
+#include "gcode_preview.h"
 #include "job_command.h"
 #include "req_parser.h"
 #include "send_file.h"
@@ -119,6 +120,7 @@ using ConnectionState = std::variant<
     SendFile,
     GenOnce,
     printer::GcodeUpload,
+    printer::GCodePreview,
     printer::JobCommand,
     printer::FileInfo,
     // TODO: Some other generators/consumers

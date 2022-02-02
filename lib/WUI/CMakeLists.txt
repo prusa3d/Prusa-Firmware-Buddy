@@ -19,6 +19,7 @@ target_sources(
             nhttp/common_selectors.cpp
             nhttp/file_info.cpp
             nhttp/gcode_upload.cpp
+            nhttp/gcode_preview.cpp
             nhttp/gen_once.cpp
             nhttp/handler.cpp
             nhttp/headers.cpp
@@ -33,6 +34,7 @@ target_sources(
             link_content/static_file.cpp
             link_content/static_fs_file.cpp
             link_content/usb_files.cpp
+            link_content/previews.cpp
             ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
 
