@@ -555,6 +555,16 @@ void Pause::park_nozzle_and_notify() {
         do_blocking_move_to_z(target_Z, NOZZLE_PARK_Z_FEEDRATE);
     }
     // move to (x_pos, y_pos)
+
+    //home the X or Y axis if it is not homed and we want to move it
+    //homing is after Z move to be clear of all obstacles
+    //Should not affect other operations than Load/Unload/Change filament run from home screen without homing. We are homed during print
+    if ((axis_homed & _BV(X_AXIS)) == 0 && current_position.x - park_pos.x != 0) {
+        homeaxis(X_AXIS);
+    }
+    if ((axis_homed & _BV(Y_AXIS)) == 0 && current_position.y - park_pos.y != 0) {
+        homeaxis(Y_AXIS);
+    }
     if (x_greater_than_y) {
         Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
         do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
@@ -579,6 +589,14 @@ void Pause::unpark_nozzle_and_notify() {
     const float Z_len = current_position.z - resume_pos.z; // sign does not matter, does not check Z max val (unlike park_nozzle_and_notify)
     const float XY_len = begin_pos - end_pos;              // sign does not matter
 
+    //home the axis if it is not homed
+    // we can move only one axis during parking and not home the other one and then unpark and move the not homed one, so we need to home it
+    if ((axis_homed & _BV(X_AXIS)) == 0 && current_position.x - park_pos.x != 0) {
+        homeaxis(X_AXIS);
+    }
+    if ((axis_homed & _BV(Y_AXIS)) == 0 && current_position.y - park_pos.y != 0) {
+        homeaxis(Y_AXIS);
+    }
     if (x_greater_than_y) {
         Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len));
         do_blocking_move_to_xy(resume_pos, NOZZLE_UNPARK_XY_FEEDRATE);

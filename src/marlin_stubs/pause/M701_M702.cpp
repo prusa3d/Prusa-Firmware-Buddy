@@ -49,8 +49,11 @@
 #include "fs_event_autolock.hpp"
 
 #define DO_NOT_RESTORE_Z_AXIS
-static const constexpr uint8_t Z_AXIS_LOAD_POS = 40;
-static const constexpr uint8_t Z_AXIS_UNLOAD_POS = 20;
+static const constexpr size_t Z_AXIS_LOAD_POS = 40;
+static const constexpr size_t Z_AXIS_UNLOAD_POS = 20;
+static const constexpr size_t PARK_POINT[] = NOZZLE_PARK_POINT_M600;
+static const constexpr size_t X_AXIS_LOAD_POS = PARK_POINT[0];
+static const constexpr size_t X_AXIS_UNLOAD_POS = PARK_POINT[0];
 
 using Func = bool (Pause::*)(); //member fnc pointer
 static Pause &pause = Pause::Instance();
@@ -58,7 +61,7 @@ static Pause &pause = Pause::Instance();
 /**
  * Shared code for load/unload filament
  */
-static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_pos) {
+static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_pos, uint32_t X_pos) {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
@@ -78,6 +81,10 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
         static const float Z_max = get_z_max_pos_mm();
         park_position.z = std::min(std::max(current_position.z, float(min_Z_pos)), Z_max);
     }
+
+    // This is there to move the nozzle further away from side of printer to ease the strain on the PTFE tube while loading or unloading
+    park_position.x = std::clamp(float(X_pos), float(X_MIN_POS), float(X_MAX_POS));
+
 #ifdef DO_NOT_RESTORE_Z_AXIS
     xyze_pos_t resume_position = park_position;
 #else
@@ -101,7 +108,7 @@ void M701_no_parser(filament_t filament_to_be_laded, float fast_load_length) {
     pause.SetFastLoadLength(fast_load_length);
     pause.SetRetractLength(0.f);
 
-    load_unload(fast_load_length != 0.f ? LoadUnloadMode::Load : LoadUnloadMode::Purge, &Pause::FilamentLoad, Z_AXIS_LOAD_POS);
+    load_unload(fast_load_length != 0.f ? LoadUnloadMode::Load : LoadUnloadMode::Purge, &Pause::FilamentLoad, Z_AXIS_LOAD_POS, X_AXIS_LOAD_POS);
 }
 
 /**
@@ -120,7 +127,7 @@ void GcodeSuite::M701() {
     if (parser.seen('S')) {
         text_begin = strchr(parser.string_arg, '"');
         if (text_begin) {
-            ++text_begin; //move pointer from '"' to first letter
+            ++text_begin; // move pointer from '"' to first letter
             const char *text_end = strchr(text_begin, '"');
             if (text_end) {
                 filament_t filament = Filaments::FindByName(text_begin, text_end - text_begin);
@@ -149,7 +156,7 @@ void GcodeSuite::M701() {
 void GcodeSuite::M702() {
     Pause::Instance().SetUnloadLength(parser.seen('U') ? parser.value_axis_units(E_AXIS) : NAN);
     load_unload(
-        LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS);
+        LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
 }
 
 static PreheatStatus::Result M1400_no_parser(uint32_t val) {
@@ -161,7 +168,7 @@ static PreheatStatus::Result M1400_no_parser(uint32_t val) {
         //do not preheat
         ret = Filaments::Current().response; //fake response
     } else {
-        FSM_Holder H(ClientFSM::Preheat, uint8_t(val)); //this must remain inside scope
+        FSM_Holder H(ClientFSM::Preheat, uint8_t(val)); // this must remain inside scope
         while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
             idle(true, true);
         }
@@ -180,7 +187,7 @@ static PreheatStatus::Result M1400_no_parser(uint32_t val) {
         }
     }
 
-    // filament != filament_t::NONE
+    //filament != filament_t::NONE
     const Filament &fil_cnf = Filaments::Get(filament);
     thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
     thermalManager.setTargetBed(fil_cnf.heatbed);
@@ -199,7 +206,7 @@ static PreheatStatus::Result M1400_no_parser(uint32_t val) {
     case PreheatMode::Unload:
     case PreheatMode::Change_phase1:
         Pause::Instance().SetUnloadLength(NAN);
-        load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS);
+        load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
 
         if (data.Mode() == PreheatMode::Change_phase1) {
             //2nd preheat, recursion
@@ -272,7 +279,7 @@ void PrusaGcodeSuite::M1400() {
         break; //do not alter temp
     }
 
-    // store result, so other threads can see it
+    //store result, so other threads can see it
     PreheatStatus::setResult(res);
 
     FS_instance().ClrAutoloadSent();
