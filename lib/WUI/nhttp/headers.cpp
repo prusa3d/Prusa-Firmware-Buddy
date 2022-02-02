@@ -1,5 +1,4 @@
 #include "headers.h"
-#include "../../src/common/sha256.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -8,6 +7,7 @@
 
 #include <sys/stat.h>
 #include <inttypes.h> // PRIu* macros (not available in <cinttypes>)
+#include <sha256.h>
 
 namespace nhttp {
 
