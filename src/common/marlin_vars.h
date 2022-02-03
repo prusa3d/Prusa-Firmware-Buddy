@@ -44,7 +44,8 @@ enum {
     MARLIN_VAR_CURR_POS_Y = 0x23,          // R: ==||==
     MARLIN_VAR_CURR_POS_Z = 0x24,          // R: ==||==
     MARLIN_VAR_CURR_POS_E = 0x25,          // R: ==||==
-    MARLIN_VAR_MAX = MARLIN_VAR_CURR_POS_E
+    MARLIN_VAR_TRAVEL_ACCEL = 0x26,        // R: float travel_acceleration
+    MARLIN_VAR_MAX = MARLIN_VAR_TRAVEL_ACCEL
 };
 
 // variable masks
@@ -135,6 +136,7 @@ typedef struct _marlin_vars_t {
     float target_bed;                 // bed target temperature [C]
     float z_offset;                   // probe z-offset [mm]
     float display_nozzle;             // nozzle temperature to display [C]
+    float travel_acceleration;        // travel acceleration from planner
     uint32_t print_duration;          // print_job_timer.duration() [ms]
     uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [s]
     char *media_LFN;                  // Long-File-Name of the currently selected file - a pointer to a global static buffer

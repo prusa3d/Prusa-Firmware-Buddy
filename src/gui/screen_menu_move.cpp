@@ -1,20 +1,15 @@
 // screen_menu_move.cpp
 
-#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "screen_menus.hpp"
 #include "marlin_client.h"
-#include "menu_vars.h"
 #include "WindowMenuItems.hpp"
 #include "menu_spin_config.hpp"
-#include "timing.h"
 
 template <size_t INDEX, int8_t LONG_SEG, uint8_t BUFFER_LEN>
 class MI_AXIS : public WiSpinInt {
+protected:
     int32_t lastQueuedPos;
-    uint32_t lastMovementOfKnob = 0;
-    int32_t durationOfPause = 0;
-    bool firstMove = true;
 
 public:
     MI_AXIS<INDEX, LONG_SEG, BUFFER_LEN>()
@@ -24,8 +19,6 @@ public:
 
     invalidate_t Change(int diff) override {
         auto res = WiSpinInt::Change(diff);
-        durationOfPause = ticks_diff(ticks_ms(), lastMovementOfKnob);
-        lastMovementOfKnob = ticks_ms();
         return res;
     }
 
@@ -34,9 +27,7 @@ public:
         if (marlin_vars()->pqueue <= BUFFER_LEN) {
             int difference = (int)value - lastQueuedPos;
             if (difference != 0) {
-                float feedrate = 0;
-
-                feedrate = MenuVars::GetManualFeedrate()[INDEX];
+                float feedrate = MenuVars::GetManualFeedrate()[INDEX];
                 uint8_t freeSlots = BUFFER_LEN - marlin_vars()->pqueue;
                 // move up and queue steps
                 for (uint8_t i = 0; i < freeSlots && lastQueuedPos != (int)value; i++) {
@@ -53,26 +44,36 @@ public:
                         lastQueuedPos--;
                         difference++;
                     }
+                    marlin_move_axis(lastQueuedPos, feedrate, INDEX);
                 }
-                marlin_move_axis(lastQueuedPos, feedrate, INDEX);
             }
         }
     }
-
-    virtual void OnClick() override {
-        firstMove = true;
-        lastMovementOfKnob = 0;
-    }
 };
 
-class MI_AXIS_E : public MI_AXIS<3, 1, 1> {
+class MI_AXIS_E : public MI_AXIS<3, 5, 8> {
+
 public:
+    MI_AXIS_E()
+        : MI_AXIS<3, 5, 8>() {}
+
     virtual void OnClick() override {
         marlin_gcode("G90");    // Set to Absolute Positioning
         marlin_gcode("M82");    // Set extruder to absolute mode
         marlin_gcode("G92 E0"); // Reset position before change
         SetVal(0);              // Reset spin before change
-        // original code erased invalid flag from menu. Why?
+        lastQueuedPos = 0;      // zero it out so we wont go back when we exit the spinner
+    }
+    void CheckNozzleTemp() {
+        bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::GetExtrudeMinTemp());
+        if (temp_ok) {
+            if (!IsEnabled()) {
+                Enable();
+            }
+        } else {
+            if (IsEnabled())
+                Disable();
+        }
     }
 };
 
@@ -83,36 +84,35 @@ using MI_AXIS_Z = MI_AXIS<2, 1, 4>;
 using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E>;
 
 class ScreenMenuMove : public Screen {
+    float prev_accel;
+
 public:
     constexpr static const char *label = N_("MOVE AXIS");
     ScreenMenuMove()
-        : Screen(_(label)) {}
+        : Screen(_(label)) {
+        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
+        prev_accel = marlin_vars()->travel_acceleration;
+        marlin_gcode("M204 T200");
+    }
+    ~ScreenMenuMove() {
+        char msg[20];
+        snprintf(msg, sizeof(msg), "M204 T%f", (double)prev_accel);
+        marlin_gcode(msg);
+    }
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-
-private:
-    uint8_t enque = 0;
 };
 
 void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-
-        bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::GetExtrudeMinTemp());
-        IWindowMenuItem *pAxis_E = &Item<MI_AXIS_E>();
-        if (temp_ok && (!pAxis_E->IsEnabled()))
-            pAxis_E->Enable();
-        if ((!temp_ok) && pAxis_E->IsEnabled())
-            pAxis_E->Disable();
-
         // enqueue next moves according to value of spinners;
-        ++enque;
-        if (enque == 1) {
-            Item<MI_AXIS_X>().EnqueueNextMove();
-            Item<MI_AXIS_Y>().EnqueueNextMove();
-            Item<MI_AXIS_Z>().EnqueueNextMove();
-            enque = 0;
-        }
+        Item<MI_AXIS_X>().EnqueueNextMove();
+        Item<MI_AXIS_Y>().EnqueueNextMove();
+        Item<MI_AXIS_Z>().EnqueueNextMove();
+        Item<MI_AXIS_E>().EnqueueNextMove();
+
+        Item<MI_AXIS_E>().CheckNozzleTemp();
     }
 
     SuperWindowEvent(sender, event, param);
