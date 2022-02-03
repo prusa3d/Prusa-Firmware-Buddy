@@ -36,6 +36,7 @@ char filename[FILE_NAME_BUFFER_LEN];
 static FILE *upload_file = NULL;
 static char tmp_filename[FILE_NAME_BUFFER_LEN];
 
+static bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 static atomic_int_least32_t uploaded_gcodes;
@@ -309,11 +310,13 @@ void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config) {
 
 time_t sntp_get_system_time(void) {
 
+    if (!sntp_time_init)
+        return (time_t)-1;
+
     RTC_TimeTypeDef currTime;
     RTC_DateTypeDef currDate;
     HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
     HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
-    time_t secs;
     struct tm system_time;
     system_time.tm_isdst = -1; // Is DST on? 1 = yes, 0 = no, -1 = unknown
     system_time.tm_hour = currTime.Hours;
@@ -323,12 +326,7 @@ time_t sntp_get_system_time(void) {
     system_time.tm_mon = currDate.Month;
     system_time.tm_year = currDate.Year;
     system_time.tm_wday = currDate.WeekDay;
-    if (system_time.tm_year == 0) {
-        secs = (time_t)-1;
-    } else {
-        secs = mktime(&system_time);
-    }
-    return secs;
+    return mktime(&system_time);
 }
 
 void sntp_set_system_time(uint32_t sec) {
@@ -351,6 +349,8 @@ void sntp_set_system_time(uint32_t sec) {
 
     HAL_RTC_SetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
     HAL_RTC_SetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
+
+    sntp_time_init = true;
 }
 
 void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp) {
