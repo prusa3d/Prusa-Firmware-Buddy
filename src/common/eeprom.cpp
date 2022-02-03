@@ -234,7 +234,7 @@ static constexpr bool is_version_supported(uint16_t version) {
 // forward declarations of private functions
 static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size);
 static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size);
-static void eeprom_write_vars(eeprom_vars_t &vars);
+static void eeprom_write_vars();
 static uint16_t eeprom_var_size(enum eevar_id id);
 static uint16_t eeprom_var_addr(enum eevar_id id, uint16_t addr = EEPROM_ADDRESS);
 static void *eeprom_var_ptr(enum eevar_id id, eeprom_vars_t &pVars);
@@ -272,7 +272,7 @@ eeprom_init_status_t eeprom_init(void) {
         eeprom_defaults();
         break;
     case EEPROM_INIT_Upgraded:
-        eeprom_write_vars(eevars);
+        eeprom_write_vars();
         break;
     default:
         break;
@@ -281,7 +281,8 @@ eeprom_init_status_t eeprom_init(void) {
     return status;
 }
 
-static void eeprom_write_vars(eeprom_vars_t &vars) {
+static void eeprom_write_vars() {
+    eeprom_vars_t &vars = eeprom_startup_vars();
     eeprom_lock();
     vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
@@ -289,11 +290,16 @@ static void eeprom_write_vars(eeprom_vars_t &vars) {
     eeprom_unlock();
 }
 
-void eeprom_defaults(void) {
-    eeprom_vars_t vars = eeprom_var_defaults;
+void eeprom_defaults_RAM() {
+    eeprom_vars_t &vars = eeprom_startup_vars();
+    vars = eeprom_var_defaults;
     vars.head.FWBUILD = project_build_number;
     vars.head.FWVERSION = eeprom_fwversion_ui16();
-    eeprom_write_vars(vars);
+}
+
+void eeprom_defaults() {
+    eeprom_defaults_RAM();
+    eeprom_write_vars();
 }
 
 /**
