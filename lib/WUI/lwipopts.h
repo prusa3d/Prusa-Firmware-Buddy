@@ -156,7 +156,7 @@ extern "C" {
     #define LWIP_NETIF_LINK_CALLBACK     1 // Support a callback function from an interface whenever the link changes (i.e., link down)
     #define LWIP_NETIF_STATUS_CALLBACK   1 // Support a callback function whenever an interface changes its up/down status (i.e., due to DHCP IP acquisition)
     #define LWIP_HTTPD_DYNAMIC_HEADERS   1
-    #define LWIP_SINGLE_NETIF            1
+    #define LWIP_SINGLE_NETIF            0
     #define LWIP_NETIF_HOSTNAME          1
     #define LWIP_HTTPD_SUPPORT_POST      1
     #define LWIP_COMPAT_SOCKETS          0
