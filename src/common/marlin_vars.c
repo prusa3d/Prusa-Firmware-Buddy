@@ -44,7 +44,8 @@ const char *__var_name[] = {
     "CURR_POS_X",
     "CURR_POS_Y",
     "CURR_POS_Z",
-    "CURR_POS_E"
+    "CURR_POS_E",
+    "TRAVEL_ACCEL"
 };
 
 static_assert((sizeof(__var_name) / sizeof(char *)) == (MARLIN_VAR_MAX + 1), "Invalid number of elements in __var_name");
@@ -143,6 +144,8 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
         return variant8_flt(vars->curr_pos[2]);
     case MARLIN_VAR_CURR_POS_E:
         return variant8_flt(vars->curr_pos[3]);
+    case MARLIN_VAR_TRAVEL_ACCEL:
+        return variant8_flt(vars->travel_acceleration);
     }
     return variant8_empty();
 }
@@ -276,6 +279,8 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
         vars->fs_autoload_enabled = variant8_get_ui8(var);
         break;
+    case MARLIN_VAR_TRAVEL_ACCEL:
+        vars->travel_acceleration = variant8_get_flt(var);
     }
 }
 
@@ -346,6 +351,8 @@ int marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, uns
         return snprintf(str, size, "%u", (unsigned int)(vars->fan_check_enabled));
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
         return snprintf(str, size, "%u", (unsigned int)(vars->fs_autoload_enabled));
+    case MARLIN_VAR_TRAVEL_ACCEL:
+        return snprintf(str, size, "%f", (double)(vars->travel_acceleration));
     default:
         return snprintf(str, size, "???");
     }
@@ -419,6 +426,9 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
         return sscanf(str, "%hhu", &(vars->fan_check_enabled));
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
         return sscanf(str, "%hhu", &(vars->fs_autoload_enabled));
+    case MARLIN_VAR_TRAVEL_ACCEL:
+        return sscanf(str, "%f", &(vars->travel_acceleration));
     }
+
     return 0;
 }
