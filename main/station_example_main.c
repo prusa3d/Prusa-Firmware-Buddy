@@ -184,9 +184,9 @@ void wifi_init_sta(void) {
     //     wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     // }
 
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
+    // ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     // ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
-    ESP_ERROR_CHECK(esp_wifi_start() );
+    // ESP_ERROR_CHECK(esp_wifi_start() );
 
     // ESP_LOGI(TAG, "wifi_init_sta finished.");
 
@@ -349,7 +349,7 @@ static void readWifiClient() {
         wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     }
 
-    ESP_ERROR_CHECK(esp_wifi_stop());
+    // ESP_ERROR_CHECK(esp_wifi_stop());
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start());
@@ -463,6 +463,9 @@ static void uart_tx_thread(void *arg) {
 
 static void steal() {
     wifi_net_if = netif_find("en1");
+    if(!wifi_net_if) {
+        return;
+    }
 	wifi_net_if->input = &wifi_input;
     if(wifi_net_if->linkoutput != &dummy_out) {
         out = wifi_net_if->linkoutput;
