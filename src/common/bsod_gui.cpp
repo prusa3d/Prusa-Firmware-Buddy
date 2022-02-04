@@ -162,16 +162,15 @@ void general_error(const char *error, const char *module) {
     char buffer[buffer_size];
     int buffer_pos = 0; ///< position in buffer
 
-    display::DrawText(Rect16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
+    display::DrawText(Rect16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), resource_font(IDR_FNT_NORMAL), //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     addFormatText(buffer, buffer_size, buffer_pos, "%s\n", module);
-    render_text_align(Rect16(PADDING, 60, 240, 260), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
+    render_text_align(Rect16(PADDING, 60, 240, 260), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_NORMAL), COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
-    render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
-        COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, Align_t::Center());
+    render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), resource_font(IDR_FNT_NORMAL), COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, Align_t::Center());
 
     //questionable placement - where now, in almost every BSOD timers are
     //stopped and Sound class cannot update itself for timing sound signals.
@@ -235,9 +234,9 @@ void draw_error_screen(const uint16_t error_code_short) {
         text_body = error_list[i].err_text;
 
         /// draw header & main text
-        display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+        display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), resource_font(IDR_FNT_NORMAL), COLOR_RED_ALERT, COLOR_WHITE);
         display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
-        render_text_align(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
+        render_text_align(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), resource_font(IDR_FNT_NORMAL), COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
 
         /// draw "Hand QR" icon
         render_icon_align(Rect16(20, 165, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, Align_t::LeftTop());
