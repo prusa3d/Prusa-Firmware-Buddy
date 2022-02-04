@@ -18,7 +18,6 @@ struct GuiDefaults {
     static constexpr size_ui16_t FooterIconSize = { 16, FooterItemHeight }; //DO NOT CHANGE HEIGHT!!! it must match item height (item height can be changed instead), real icon height can be smaller
     static constexpr Rect16::Height_t FooterTextHeight = FooterItemHeight;  //DO NOT CHANGE!!!        it must match item height (item height can be changed instead), real text height can be smaller
     static font_t *FooterFont;                                              //TODO constexpr, font_9x16, IT MUST MATCH OR BE SMALLER THAN FooterItemHeight!!!
-    static constexpr size_t infoMaxLen = 10;                                //includes null
 
     //display specific defaults
     //TODO bind this values
@@ -26,6 +25,11 @@ struct GuiDefaults {
     static constexpr size_t ScreenHeight = 320;
     static constexpr size_t FooterHeight = FooterLines * FooterItemHeight + (FooterLines - 1) * FooterLinesSpace + FooterPadding.top + FooterPadding.bottom;
     static constexpr size_t HeaderHeight = 32;
+    static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };
+    static constexpr Rect16 ProgressThumbnailRect = { 0, 0, 200, 240 };
+    static constexpr size_t infoMaxLen = 10;    // null included
+    static constexpr uint8_t ButtonHeight = 30; // default button height
+    static constexpr uint8_t ButtonSpacing = 6; // default button spacing
 
     // COMMON DEFAULTS
 
@@ -59,15 +63,12 @@ struct GuiDefaults {
     static constexpr Rect16 RectScreenNoFoot = { 0, 0, ScreenWidth, ScreenHeight - FooterHeight };              // screen body without footer location & size
     static constexpr Rect16 RectScreenNoHeader = { 0, HeaderHeight, ScreenWidth, ScreenHeight - HeaderHeight }; // screen body without header location & size
     static constexpr Rect16 RectFooter = { 0, ScreenHeight - FooterHeight, ScreenWidth, FooterHeight };         // default footer location & size
-    static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };                         // rect describing preview thumbnail
-    static constexpr Rect16 RectDefaultDialog = RectScreenBody;                                                 // default dialog rectangle
-    static constexpr uint8_t ButtonHeight = 30;                                                                 // default button height
-    static constexpr uint8_t ButtonSpacing = 6;                                                                 // default button spacing
+
     static constexpr Rect16 GetButtonRect(Rect16 rc_frame) { return Rect16(rc_frame.Left() + ButtonSpacing,
         rc_frame.Top() + (rc_frame.Height() - ButtonHeight - FrameWidth), rc_frame.Width() - 2 * ButtonSpacing, ButtonHeight); }
     static constexpr Rect16 GetDialogRect(std::optional<has_footer> footer) {
         if (!footer) {
-            return RectDefaultDialog;
+            return DialogFrameRect;
         }
         if ((*footer) == has_footer::no)
             return RectScreenBody;

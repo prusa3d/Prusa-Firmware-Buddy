@@ -8,7 +8,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 IDialogMarlin::IDialogMarlin(std::optional<Rect16> rc)
-    : IDialog(rc ? (*rc) : GuiDefaults::RectDefaultDialog) {}
+    : IDialog(rc ? (*rc) : GuiDefaults::DialogFrameRect) {}
 #pragma GCC diagnostic pop
 
 static const constexpr int PROGRESS_BAR_X_PAD = 10;
