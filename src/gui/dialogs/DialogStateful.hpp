@@ -2,6 +2,7 @@
 
 #include "IDialog.hpp"
 #include <array>
+#include <optional>
 #include "DialogRadioButton.hpp"
 #include "marlin_client.hpp"
 #include "client_response.hpp"
@@ -19,8 +20,9 @@ protected:
 
 public:
     bool Change(fsm::BaseData data) { return change(data.GetPhase(), data.GetData()); }
-    IDialogMarlin(Rect16 rc = GuiDefaults::RectScreenBody)
+    IDialogMarlin(Rect16 rc)
         : IDialog(rc) {}
+    IDialogMarlin(std::optional<Rect16> rc = std::nullopt);
 };
 
 //abstract parent containing general code for any number of phases
@@ -55,7 +57,7 @@ protected:
     virtual bool change(uint8_t phase, fsm::PhaseData data) override;
 
 public:
-    IDialogStateful(string_view_utf8 name);
+    IDialogStateful(string_view_utf8 name, std::optional<has_footer> child_has_footer = std::nullopt);
 };
 
 /*****************************************************************************/
@@ -70,8 +72,8 @@ public:
 protected:
     States states; //phase text and radiobutton + onEnter & onExit cb
 public:
-    DialogStateful(string_view_utf8 name, States st)
-        : IDialogStateful(name)
+    DialogStateful(string_view_utf8 name, States st, std::optional<has_footer> child_has_footer = std::nullopt)
+        : IDialogStateful(name, child_has_footer)
         , states(st) {};
 
 protected:
