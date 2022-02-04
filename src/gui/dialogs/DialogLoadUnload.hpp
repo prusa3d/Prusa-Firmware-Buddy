@@ -1,9 +1,12 @@
 #pragma once
 
 #include "DialogStateful.hpp"
+#include "status_footer.hpp"
 
 //load unload and change filament dialog
 class DialogLoadUnload : public DialogStateful<PhasesLoadUnload> {
+    StatusFooter footer;
+
 public:
     DialogLoadUnload(string_view_utf8 name);
 

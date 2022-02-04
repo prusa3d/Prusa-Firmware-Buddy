@@ -4,6 +4,13 @@
 #include "resource.h" //IDR_FNT_BIG
 #include "fsm_progress_type.hpp"
 
+//suppress warning, gcc bug 80635
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+IDialogMarlin::IDialogMarlin(std::optional<Rect16> rc)
+    : IDialog(rc ? (*rc) : GuiDefaults::RectDefaultDialog) {}
+#pragma GCC diagnostic pop
+
 static const constexpr int PROGRESS_BAR_X_PAD = 10;
 static const constexpr int PROGRESS_BAR_Y_PAD = 30;
 static const constexpr int PROGRESS_BAR_H = 16;
@@ -31,12 +38,12 @@ Rect16 get_label_rect(Rect16 rect) {
 }
 
 //*****************************************************************************
-IDialogStateful::IDialogStateful(string_view_utf8 name)
-    : IDialogMarlin()
+IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer> child_has_footer)
+    : IDialogMarlin(GuiDefaults::GetDialogRect(child_has_footer))
     , title(this, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, name)
     , progress(this, get_progress_rect(GetRect()), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
     , label(this, get_label_rect(GetRect()), is_multiline::yes)
-    , radio(this, GuiDefaults::GetButtonRect(GetRect()), nullptr, nullptr)
+    , radio(this, (child_has_footer == has_footer::yes) ? GuiDefaults::GetButtonRect_AvoidFooter(GetRect()) : GuiDefaults::GetButtonRect(GetRect()), nullptr, nullptr)
     , phase(0) {
     title.font = GuiDefaults::FontBig;
     title.SetAlignment(Align_t::Center());

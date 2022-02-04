@@ -5,6 +5,8 @@
 #include "align.hpp"
 #include "footer_def.hpp"
 #include "color_scheme.hpp"
+#include "window_types.hpp"
+#include <optional>
 
 struct GuiDefaults {
     // Footer settings
@@ -58,10 +60,23 @@ struct GuiDefaults {
     static constexpr Rect16 RectScreenNoHeader = { 0, HeaderHeight, ScreenWidth, ScreenHeight - HeaderHeight }; // screen body without header location & size
     static constexpr Rect16 RectFooter = { 0, ScreenHeight - FooterHeight, ScreenWidth, FooterHeight };         // default footer location & size
     static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };                         // rect describing preview thumbnail
+    static constexpr Rect16 RectDefaultDialog = RectScreenBody;                                                 // default dialog rectangle
     static constexpr uint8_t ButtonHeight = 30;                                                                 // default button height
     static constexpr uint8_t ButtonSpacing = 6;                                                                 // default button spacing
     static constexpr Rect16 GetButtonRect(Rect16 rc_frame) { return Rect16(rc_frame.Left() + ButtonSpacing,
         rc_frame.Top() + (rc_frame.Height() - ButtonHeight - FrameWidth), rc_frame.Width() - 2 * ButtonSpacing, ButtonHeight); }
+    static constexpr Rect16 GetDialogRect(std::optional<has_footer> footer) {
+        if (!footer) {
+            return RectDefaultDialog;
+        }
+        if ((*footer) == has_footer::no)
+            return RectScreenBody;
+        // has_footer::yes
+        return RectScreenNoHeader;
+    }
+    static constexpr Rect16 GetIconnedButtonRect(Rect16 rc_frame) { return Rect16(rc_frame.Left() + ButtonSpacing,
+        227, rc_frame.Width() - 2 * ButtonSpacing, 70 + 22); } //TODO calculate
+    static constexpr Rect16 GetButtonRect_AvoidFooter(Rect16 rc_frame) { return GetButtonRect(rc_frame - Rect16::Height_t(FooterHeight)); }
 
     static constexpr uint8_t FrameWidth = 10;          // default frame padding
     static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4; // maximum number of radio buttons

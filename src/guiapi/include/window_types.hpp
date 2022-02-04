@@ -28,6 +28,8 @@ enum class is_closed_on_timeout_t : bool { no,
     yes };
 enum class is_closed_on_serial_t : bool { no,
     yes };
+enum class has_footer : bool { no,
+    yes };
 enum class positioning : bool { absolute,
     relative };
 

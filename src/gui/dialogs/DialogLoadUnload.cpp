@@ -63,7 +63,8 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 /*****************************************************************************/
 
 DialogLoadUnload::DialogLoadUnload(string_view_utf8 name)
-    : DialogStateful<PhasesLoadUnload>(name, LoadUnloadFactory()) {}
+    : DialogStateful<PhasesLoadUnload>(name, LoadUnloadFactory(), has_footer::yes)
+    , footer(this) {}
 
 // Phase callbacks to play a sound in specific moment at the start/end of
 // specified phase
