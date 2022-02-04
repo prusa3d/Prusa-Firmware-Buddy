@@ -504,8 +504,6 @@ void app_main() {
 
     steal();
 
-    sendDeviceInfo();
-
 #if LWIP_NETIF_STATUS_CALLBACK
     netif_set_status_callback(&pppos_netif, netif_status_callback);
 #endif /* LWIP_NETIF_STATUS_CALLBACK */
@@ -517,4 +515,8 @@ void app_main() {
     xTaskCreate(&wifi_egress_thread, "wifi_egress_thread", 2048, NULL, 12 /*tskIDLE_PRIORITY*/, NULL);
     printf("Creating TX thread");
     xTaskCreate(&uart_tx_thread, "uart_tx_thread", 2048, NULL, 14 /*tskIDLE_PRIORITY*/, NULL);
+    printf("Waiting 1s before sending device info\n\r");
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    sendDeviceInfo();
 }
