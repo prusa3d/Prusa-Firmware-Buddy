@@ -126,7 +126,10 @@ static err_t dummy_out(struct netif *netif, struct pbuf *p) {
     return 0;
 }
 
+static void steal();
+
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+    steal();
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
@@ -458,6 +461,15 @@ static void uart_tx_thread(void *arg) {
     }
 }
 
+static void steal() {
+    wifi_net_if = netif_find("en1");
+	wifi_net_if->input = &wifi_input;
+    if(wifi_net_if->linkoutput != &dummy_out) {
+        out = wifi_net_if->linkoutput;
+        wifi_net_if->linkoutput = &dummy_out;
+    }
+}
+
 void app_main() {
     printf("APP MAIN ENTRY\n");
 
@@ -489,10 +501,8 @@ void app_main() {
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
-    wifi_net_if = netif_find("en1");
-    wifi_net_if->input = &wifi_input;
-    out = wifi_net_if->linkoutput;
-    wifi_net_if->linkoutput = &dummy_out;
+
+    steal();
 
     sendDeviceInfo();
 
