@@ -57,12 +57,12 @@ class FSM_notifier {
         float offset = 0; //offset from lowest value
         uint8_t progress_min = 0;
         uint8_t progress_max = 100;
-        uint8_t var_id;
+        marlin_var_id_t var_id;
         std::optional<uint8_t> last_progress_sent;
         data()
             : type(ClientFSM::_none)
             , phase(0)
-            , var_id(0) {}
+            , var_id(static_cast<marlin_var_id_t>(0)) {}
     };
     //static members
     //there can be only one active instance of FSM_notifier, which use this data
@@ -75,7 +75,7 @@ class FSM_notifier {
 
 protected:
     //protected ctor so this instance cannot be created
-    FSM_notifier(ClientFSM type, uint8_t phase, variant8_t min, variant8_t max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
+    FSM_notifier(ClientFSM type, uint8_t phase, variant8_t min, variant8_t max, uint8_t progress_min, uint8_t progress_max, marlin_var_id_t var_id);
     FSM_notifier(const FSM_notifier &) = delete;
     virtual void preSendNotification() {}
     virtual void postSendNotification() {}
@@ -86,14 +86,14 @@ public:
 };
 
 //template used by using statement
-template <int VAR_ID, class T>
+template <marlin_var_id_t VAR_ID, class T>
 class Notifier : public FSM_notifier {
 public:
     Notifier(ClientFSM type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max) {};
     //        : FSM_notifier(type, phase, min, max, progress_min, progress_max, VAR_ID) {}
 };
 
-template <int VAR_ID>
+template <marlin_var_id_t VAR_ID>
 class Notifier<VAR_ID, float> : public FSM_notifier {
 public:
     Notifier(ClientFSM type, uint8_t phase, float min, float max, uint8_t progress_min, uint8_t progress_max)
