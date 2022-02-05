@@ -381,6 +381,11 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, marlin_var_id_t var_id, const 
     case MARLIN_VAR_POS_Z:
     case MARLIN_VAR_POS_E:
         return sscanf(str, "%f", &(vars->pos[var_id - MARLIN_VAR_POS_X]));
+    case MARLIN_VAR_CURR_POS_X:
+    case MARLIN_VAR_CURR_POS_Y:
+    case MARLIN_VAR_CURR_POS_Z:
+    case MARLIN_VAR_CURR_POS_E:
+        return sscanf(str, "%f", &(vars->curr_pos[var_id - MARLIN_VAR_CURR_POS_X]));
     case MARLIN_VAR_TEMP_NOZ:
         return sscanf(str, "%f", &(vars->temp_nozzle));
     case MARLIN_VAR_TEMP_BED:
