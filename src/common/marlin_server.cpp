@@ -924,9 +924,9 @@ static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue
     variant8_t var;
     uint64_t sent = 0;
     uint64_t msk = 1;
-    for (uint8_t var_id = 0; var_id < 64; var_id++) {
+    for (int var_id = 0; var_id <= MARLIN_VAR_MAX; var_id++) {
         if (msk & var_msk) {
-            var = marlin_vars_get_var(&(marlin_server.vars), var_id);
+            var = marlin_vars_get_var(&(marlin_server.vars), (marlin_var_id_t)var_id);
             if (variant8_get_type(var) != VARIANT8_EMPTY) {
                 if (_send_notify_change_to_client(queue, var_id, var))
                     sent |= msk;
@@ -1310,7 +1310,7 @@ static int _process_server_request(const char *request) {
 static int _server_set_var(const char *const name_val_str) {
     if (name_val_str == nullptr)
         return 0;
-    int var_id;
+    marlin_var_id_t var_id;
     bool changed = false;
     char *val_str = strchr(name_val_str, ' ');
     *(val_str++) = 0;
@@ -1354,6 +1354,9 @@ static int _server_set_var(const char *const name_val_str) {
                 changed = true;
                 wait_for_user = marlin_server.vars.wait_user ? true : false;
                 break;
+            default:
+                log_error(MarlinServer, "unimplemented _server_set_var for var_id %i", (int)var_id);
+                break;
             }
             if (changed) {
                 int client_id;
@@ -1361,6 +1364,8 @@ static int _server_set_var(const char *const name_val_str) {
                 for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
                     marlin_server.client_changes[client_id] |= (var_msk & marlin_server.notify_changes[client_id]);
             }
+        } else {
+            log_error(MarlinServer, "Unable to parse var-value pair %s", val_str);
         }
     }
     //	_dbg("_server_set_var %d %s %s", var_id, name_val_str, val_str);
@@ -1599,7 +1604,7 @@ FSM_notifier::data FSM_notifier::s_data;
 FSM_notifier *FSM_notifier::activeInstance = nullptr;
 
 FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, variant8_t min, variant8_t max,
-    uint8_t progress_min, uint8_t progress_max, uint8_t var_id)
+    uint8_t progress_min, uint8_t progress_max, marlin_var_id_t var_id)
     : temp_data(s_data) {
     s_data.type = type;
     s_data.phase = phase;

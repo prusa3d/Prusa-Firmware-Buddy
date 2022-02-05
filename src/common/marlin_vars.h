@@ -5,7 +5,7 @@
 #include "../../src/gui/file_list_defs.h"
 
 // Marlin variables
-enum {
+typedef enum {
     MARLIN_VAR_MOTION = 0x00,              // R:  uint8, method stepper.axis_is_moving
     MARLIN_VAR_GQUEUE = 0x01,              // R:  uint8, method queue.length
     MARLIN_VAR_PQUEUE = 0x02,              // R:  uint8, variables planner.block_buffer_head/tail
@@ -46,7 +46,7 @@ enum {
     MARLIN_VAR_CURR_POS_E = 0x25,          // R: ==||==
     MARLIN_VAR_TRAVEL_ACCEL = 0x26,        // R: float travel_acceleration
     MARLIN_VAR_MAX = MARLIN_VAR_TRAVEL_ACCEL
-};
+} marlin_var_id_t;
 
 // variable masks
 #define MARLIN_VAR_MSK(v_id)                               (((uint64_t)1) << (uint8_t)(v_id))
@@ -172,22 +172,22 @@ inline int is_abort_state(marlin_print_state_t st) {
 }
 
 // returns variable name
-extern const char *marlin_vars_get_name(uint8_t var_id);
+extern const char *marlin_vars_get_name(marlin_var_id_t var_id);
 
 // returns variable id by name or -1 if not match
-extern int marlin_vars_get_id_by_name(const char *var_name);
+extern marlin_var_id_t marlin_vars_get_id_by_name(const char *var_name);
 
 // get variable value as variant8 directly from vars structure
-extern variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id);
+extern variant8_t marlin_vars_get_var(marlin_vars_t *vars, marlin_var_id_t var_id);
 
 // set variable value as variant8 directly in vars structure
-extern void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var);
+extern void marlin_vars_set_var(marlin_vars_t *vars, marlin_var_id_t var_id, variant8_t var);
 
 // format variable to string
-extern int marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, unsigned int size);
+extern int marlin_vars_value_to_str(marlin_vars_t *vars, marlin_var_id_t var_id, char *str, unsigned int size);
 
 // parse variable from string, returns sscanf result (1 = ok)
-extern int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *str);
+extern int marlin_vars_str_to_value(marlin_vars_t *vars, marlin_var_id_t var_id, const char *str);
 
 #ifdef __cplusplus
 }
