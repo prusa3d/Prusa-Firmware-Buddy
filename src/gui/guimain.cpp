@@ -179,7 +179,7 @@ void gui_run(void) {
 //        HAL_IWDG_Reset ? ScreenFactory::Screen<screen_watchdog_data_t> : nullptr, // wdt
 #endif
 
-    ScreenFactory::Creator screen_initializer[] {
+    screen_node screen_initializer[] {
         error_screen,
         ScreenFactory::Screen<screen_splash_data_t>, // splash
         ScreenFactory::Screen<screen_home_data_t>    // home

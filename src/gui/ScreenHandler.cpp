@@ -3,31 +3,30 @@
 
 Screens *Screens::instance = nullptr;
 
-Screens::Screens(const ScreenFactory::Creator screen_creator)
-    : stack({ { nullptr } })
-    , stack_iterator(stack.begin())
+Screens::Screens(screen_node screen_creator)
+    : stack_iterator(stack.begin())
     , current(nullptr)
-    , creator(screen_creator)
+    , creator_node(screen_creator)
     , close(false)
     , close_all(false)
     , close_serial(false)
     , timeout_tick(0) {
 }
 
-void Screens::Init(const ScreenFactory::Creator screen_creator) {
+void Screens::Init(screen_node screen_creator) {
     static Screens s(screen_creator);
     instance = &s;
 }
 
 Screens::iter Screens::find_enabled_node(iter begin, iter end) {
-    return std::find_if(begin, end, [](const ScreenFactory::Creator &node) { return node != nullptr; });
+    return std::find_if(begin, end, [](const screen_node &node) { return node.creator != nullptr; });
 }
 
 Screens::r_iter Screens::rfind_enabled_node(r_iter begin, r_iter end) {
-    return std::find_if(r_iter(end), r_iter(begin), [](const ScreenFactory::Creator &node) { return node != nullptr; });
+    return std::find_if(r_iter(end), r_iter(begin), [](const screen_node &node) { return node.creator != nullptr; });
 }
 
-void Screens::Init(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end) {
+void Screens::Init(const screen_node *begin, const screen_node *end) {
     if (size_t(end - begin) > MAX_SCREENS)
         return;
     if (begin == end)
@@ -45,7 +44,7 @@ void Screens::Init(const ScreenFactory::Creator *begin, const ScreenFactory::Cre
     Access()->PushBeforeCurrent(node + 1, end); //node + 1 excludes node
 }
 
-void Screens::RInit(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end) {
+void Screens::RInit(const screen_node *begin, const screen_node *end) {
     if (size_t(end - begin) > MAX_SCREENS)
         return;
     if (begin == end)
@@ -78,7 +77,7 @@ bool Screens::GetMenuTimeout() { return menu_timeout_enabled; }
 
 // Push enabled creators on stack - in reverted order
 // not a bug non reverting method must use reverse iterators
-void Screens::PushBeforeCurrent(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end) {
+void Screens::PushBeforeCurrent(const screen_node *begin, const screen_node *end) {
     if (size_t(end - begin) > MAX_SCREENS)
         return;
     if (begin == end)
@@ -99,7 +98,7 @@ void Screens::PushBeforeCurrent(const ScreenFactory::Creator *begin, const Scree
 
 // Push enabled creators on stack - in non reverted order
 // not a bug reverting method must use normal iterators
-void Screens::RPushBeforeCurrent(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end) {
+void Screens::RPushBeforeCurrent(const screen_node *begin, const screen_node *end) {
     if (size_t(end - begin) > MAX_SCREENS)
         return;
     if (begin == end)
@@ -148,8 +147,12 @@ screen_t *Screens::Get() const {
     return current.get();
 }
 
+void Screens::Open(screen_node screen_creator) {
+    creator_node = screen_creator;
+}
+
 void Screens::Open(const ScreenFactory::Creator screen_creator) {
-    creator = screen_creator;
+    Open(screen_node(screen_creator));
 }
 
 void Screens::Close() {
@@ -177,7 +180,7 @@ bool Screens::ConsumeClose() {
     return ret;
 }
 
-void Screens::PushBeforeCurrent(const ScreenFactory::Creator screen_creator) {
+void Screens::PushBeforeCurrent(screen_node screen_creator) {
     if (stack_iterator != stack.end()) {
         (*(stack_iterator + 1)) = *stack_iterator; // copy current creator
         (*stack_iterator) = screen_creator;        // save new screen creator before current
@@ -210,9 +213,10 @@ void Screens::Loop() {
 }
 
 void Screens::InnerLoop() {
+    screen_init_variant screen_state;
     if (close_all) {
         if (current) {                              // is there something to close?
-            if (creator) {                          // have creator, have to emulate opening
+            if (creator_node.creator) {             // have creator, have to emulate opening
                 stack_iterator = stack.begin();     // point to screen[0], (screen[0] is home)
                 close = false;                      // clr close flag, creator will be pushed into screen[1] position
             } else {                                // do not have creator, have to emulate closing
@@ -224,21 +228,23 @@ void Screens::InnerLoop() {
     }
 
     //open new screen
-    if (creator || close) {
+    if (creator_node.creator || close) {
         if (current) {
-            current.reset(); //without a reset screens do not behave correctly, I do not know why
+            screen_state = current->GetCurrentState();
+            current.reset(); //without a reset screens do not behave correctly, because they occupy the same memory space as the new screen to be created
             if (close) {
                 if (stack_iterator != stack.begin()) {
-                    --stack_iterator;          // point to previous screen - will become "behind last creator"
-                    creator = *stack_iterator; // use previous screen as current creator
+                    --stack_iterator;               // point to previous screen - will become "behind last creator"
+                    creator_node = *stack_iterator; // use previous screen as current creator
                     close = false;
                 } else {
                     bsod("Screen stack underflow");
                 }
             } else {
                 if (stack_iterator != stack.end() && (stack_iterator + 1) != stack.end()) {
-                    ++stack_iterator;            // point behind last creator
-                    (*stack_iterator) = creator; // save future creator on top of the stack
+                    stack_iterator->init_data = screen_state; // store current init data
+                    ++stack_iterator;                         // point behind last creator
+                    (*stack_iterator) = creator_node;         // save future creator on top of the stack
                 } else {
                     bsod("Screen stack overflow");
                 }
@@ -249,7 +255,7 @@ void Screens::InnerLoop() {
         /// screen ctor can change those pointers
         /// screen was destroyed by unique_ptr.release()
         window_t::ResetFocusedWindow();
-        current = creator();
+        current = creator_node.creator();
         /// need to be reset also focused ptr
         if (!current->IsFocused() && !current->IsChildFocused()) {
             window_t *child = current->GetFirstEnabledSubWin();
@@ -259,6 +265,7 @@ void Screens::InnerLoop() {
                 current->SetFocus();
             }
         }
-        creator = nullptr;
+        current->InitState(creator_node.init_data);
+        creator_node = nullptr;
     }
 }
