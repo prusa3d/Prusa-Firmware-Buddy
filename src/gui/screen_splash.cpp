@@ -75,9 +75,9 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t 
             const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
             const bool run_lang = !LangEEPROM::getInstance().IsValid();
 
-            const ScreenFactory::Creator screens[] {
-                run_lang ? GetScreenMenuLanguagesNoRet : nullptr,          // lang
-                run_wizard ? ScreenFactory::Screen<ScreenWizard> : nullptr // wizard
+            const screen_node screens[] {
+                { run_lang ? GetScreenMenuLanguagesNoRet : nullptr },          // lang
+                { run_wizard ? ScreenFactory::Screen<ScreenWizard> : nullptr } // wizard
             };
             Screens::Access()->PushBeforeCurrent(screens, screens + (sizeof(screens) / sizeof(screens[0])));
             Screens::Access()->Close();
