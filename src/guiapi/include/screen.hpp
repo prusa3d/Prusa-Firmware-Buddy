@@ -8,6 +8,7 @@
 #pragma once
 
 #include "window_frame.hpp"
+#include "screen_init_variant.hpp"
 
 // DO NOT SET has_relative_subwins flag !!!
 // screen must have rect == GuiDefaults::RectScreen
@@ -35,6 +36,9 @@ public:
 
     virtual window_t *GetFirstPopUp() const override;
     virtual window_t *GetLastPopUp() const override;
+
+    virtual void InitState(screen_init_variant var) {}
+    virtual screen_init_variant GetCurrentState() const { return screen_init_variant(); }
 
 protected:
     virtual bool registerSubWin(window_t &win) override;
