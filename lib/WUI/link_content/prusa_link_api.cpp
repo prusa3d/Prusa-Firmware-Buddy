@@ -89,18 +89,52 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
              * transformation into a file name (removal of query params,
              * forbidding of '..', etc).
              */
+            /*
+             * TODO:
+             * We currently don't read the URI parameters. That is, we don't
+             * understand "?recursive=true" and therefore don't do recursive.
+             *
+             * The FileInfo handler doesn't know recursive yet either.
+             */
             static const auto prefix = "/api/files";
             static const size_t prefix_len = strlen(prefix);
             char fname[FILE_PATH_BUFFER_LEN + prefix_len];
             if (parser.uri_filename(fname, sizeof fname)) {
                 size_t len = strlen(fname);
-                const char *fname_real;
                 if (prefix_len > len) {
                     return StatusPage(Status::NotFound, parser.can_keep_alive());
-                } else if (prefix_len == len) {
-                    fname_real = "/";
-                } else {
-                    fname_real = fname + prefix_len;
+                }
+
+                const char *fname_real = fname + prefix_len;
+
+                /*
+                 * The octoprint API gives special meaning to /local and
+                 * /sdcard. For us, everything lives in the USB (/usb). We
+                 * remap these. Nevertheless, we never _generate_ these /local
+                 * or such URIs, so we don't remap anything else but the "root".
+                 */
+                static const char *const roots[] = {
+                    "",
+                    "/",
+                    "/local",
+                    "/local/",
+                    "/sdcard",
+                    "/sdcard/",
+                };
+
+                for (size_t i = 0; i < sizeof roots / sizeof roots[0]; i++) {
+                    if (strcmp(fname_real, roots[i]) == 0) {
+                        fname_real = "/usb/";
+                        break;
+                    }
+                }
+
+                /*
+                 * Now, we make 100% sure the user won't get a file that's not
+                 * on the USB drive (eg. our xflash).
+                 */
+                if (strncmp(fname_real, "/usb/", 5) != 0) {
+                    StatusPage(Status::Forbidden, parser.can_keep_alive());
                 }
 
                 return get_only(FileInfo(fname_real, parser.can_keep_alive(), false));

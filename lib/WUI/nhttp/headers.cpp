@@ -21,6 +21,7 @@ namespace {
         { Status::Created, "Created" },
         { Status::NoContent, "No Content" },
         { Status::BadRequest, "Bad Request" },
+        { Status::Forbidden, "Forbidden" },
         { Status::Unauthorized, "Unauthorized", authenticate_hdrs },
         { Status::NotFound, "Not Found" },
         { Status::MethodNotAllowed, "Method Not Allowed" },
