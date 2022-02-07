@@ -80,8 +80,13 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
       #endif
     ;
 
-    const float mlx = ((max_length(X_AXIS) / max_length(Y_AXIS)) < (homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS))) ? (max_length(Y_AXIS) * homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS)) : (max_length(X_AXIS));
-    const float mly = ((max_length(X_AXIS) / max_length(Y_AXIS)) < (homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS))) ? (max_length(Y_AXIS)) : (max_length(X_AXIS) * homing_feedrate(Y_AXIS) / homing_feedrate(X_AXIS));
+    const float speed_ratio = homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS);
+    const float speed_ratio_inv = homing_feedrate(Y_AXIS) / homing_feedrate(X_AXIS);
+    const float length_ratio = max_length(X_AXIS) / max_length(Y_AXIS);
+    const bool length_r_less_than_speed_r = length_ratio < speed_ratio;
+
+    const float mlx = length_r_less_than_speed_r ? (max_length(Y_AXIS) * speed_ratio) : (max_length(X_AXIS));
+    const float mly = length_r_less_than_speed_r ? (max_length(Y_AXIS)) : (max_length(X_AXIS) * speed_ratio_inv);
     const float fr_mm_s = SQRT(sq(homing_feedrate(X_AXIS)) + sq(homing_feedrate(Y_AXIS)));
 
     #if ENABLED(SENSORLESS_HOMING)
