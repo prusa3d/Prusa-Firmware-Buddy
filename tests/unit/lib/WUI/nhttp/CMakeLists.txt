@@ -97,4 +97,6 @@ add_dependencies(nhttp_tests generate-http-automata-tests)
 # target_link_libraries(http_tests LwIP)
 set_target_properties(nhttp_tests PROPERTIES CXX_STANDARD 17)
 
+add_definitions(-DUNITTESTS)
+
 add_catch_test(nhttp_tests)

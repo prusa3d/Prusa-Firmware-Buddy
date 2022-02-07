@@ -177,9 +177,9 @@ bool RequestParser::can_keep_alive() const {
 }
 
 bool RequestParser::uri_filename(char *buffer, size_t buffer_size) const {
-    // Only up to &, which are query params
+    // Only up to ?, which are query params
     size_t len = url_size;
-    if (const char *amp = static_cast<const char *>(memchr(url.begin(), '&', url_size)); amp) {
+    if (const char *amp = static_cast<const char *>(memchr(url.begin(), '?', url_size)); amp) {
         len = amp - url.begin();
     }
 
