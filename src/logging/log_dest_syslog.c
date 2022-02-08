@@ -82,9 +82,9 @@ void syslog_log_event(log_destination_t *destination, log_event_t *event) {
 
     // prevent (infinite) recursion within the syslog
     // handler (for example, the syslog_transport might try to log something)
-    if ((intptr_t)pvTaskGetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_LOGGING_IDX) == 1)
+    if ((intptr_t)pvTaskGetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX) == 1)
         return;
-    vTaskSetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_LOGGING_IDX, (void *)1);
+    vTaskSetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX, (void *)1);
 
     // is the transport ready?
     bool open = syslog_transport_check_is_open(&syslog_transport);
@@ -113,5 +113,5 @@ void syslog_log_event(log_destination_t *destination, log_event_t *event) {
 
     osMutexRelease(syslog_buffer_lock_id);
 cleanup_and_return:
-    vTaskSetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_LOGGING_IDX, (void *)0);
+    vTaskSetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX, (void *)0);
 }

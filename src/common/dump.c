@@ -40,7 +40,6 @@ void dump_to_xflash(void) {
         for (addr = 0; addr < DUMP_CCRAM_SIZE; addr += DUMP_PAGE_SIZE) {
             w25x_page_program(DUMP_OFFSET + DUMP_RAM_SIZE + addr, (uint8_t *)(DUMP_CCRAM_ADDR + addr), DUMP_PAGE_SIZE);
         }
-        w25x_wait_busy();
     }
 }
 
@@ -86,11 +85,7 @@ void dump_in_xflash_clear_flag(uint8_t flag) {
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, &dumpinfo_type, 1);
     if (dumpinfo_type & flag) {
         dumpinfo_type &= ~flag;
-        w25x_wait_busy();
-        w25x_enable_wr();
         w25x_page_program(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo_type), 1);
-        w25x_wait_busy();
-        w25x_disable_wr();
     }
 }
 
@@ -129,24 +124,16 @@ unsigned int dump_in_xflash_read_regs_GEN(void *pRegsGEN, unsigned int size) {
 void dump_in_xflash_reset(void) {
     if (w25x_init()) {
         for (uint32_t addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
-            w25x_wait_busy();
-            w25x_enable_wr();
             w25x_block64_erase(DUMP_OFFSET + addr);
         }
-        w25x_wait_busy();
-        w25x_disable_wr();
     }
 }
 
 void dump_in_xflash_delete(void) {
     if (w25x_init()) {
         for (uint32_t addr = 0; addr < 0x800000; addr += 0x10000) {
-            w25x_wait_busy();
-            w25x_enable_wr();
             w25x_block64_erase(DUMP_OFFSET + addr);
         }
-        w25x_wait_busy();
-        w25x_disable_wr();
     }
 }
 

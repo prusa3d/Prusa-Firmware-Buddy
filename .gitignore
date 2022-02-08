@@ -15,3 +15,4 @@ compile_commands.json
 Makefile
 /doc/html/
 __pycache__
+.benchmarks

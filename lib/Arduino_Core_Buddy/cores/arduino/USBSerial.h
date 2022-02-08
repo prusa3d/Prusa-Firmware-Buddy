@@ -1,27 +1,39 @@
-//USBSerial.h - Buddy/STM32
-#ifndef _USBSERIAL_H
-#define _USBSERIAL_H
+#pragma once
 
 #include "Arduino.h"
 #include "Stream.h"
+#include <array>
 
 class USBSerial : public Stream {
+private:
+    bool enabled;
+    bool isWriteOnly;
+    std::array<uint8_t, 32> lineBuffer;
+    decltype(lineBuffer)::size_type lineBufferUsed;
+
+    void LineBufferAppend(char character);
+
 public:
-    void begin(uint32_t);
+    USBSerial()
+        : enabled(false)
+        , isWriteOnly(false)
+        , lineBuffer()
+        , lineBufferUsed(0) {}
+
+    void enable();
+    void disable();
+    void setIsWriteOnly(bool writeOnly);
+    void begin(uint32_t) {}
     virtual int available(void);
-    virtual int availableForWrite(void);
     virtual int peek(void);
     virtual int read(void);
-    virtual size_t readBytes(char *buffer, size_t length);                       // read chars from stream into buffer
-    virtual size_t readBytesUntil(char terminator, char *buffer, size_t length); // as readBytes with terminator character
+    virtual size_t readBytes(char *buffer, size_t length);
     virtual void flush(void);
     virtual size_t write(uint8_t);
     virtual size_t write(const uint8_t *buffer, size_t size);
     operator bool(void);
 
-    void (*flushBufferHook)(const uint8_t *buf, int len);
+    void (*lineBufferHook)(const uint8_t *buf, int len);
 };
 
 extern USBSerial SerialUSB;
-
-#endif //_USBSERIAL_H

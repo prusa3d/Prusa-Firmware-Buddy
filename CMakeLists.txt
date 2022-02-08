@@ -285,9 +285,6 @@ target_include_directories(STM32F4_HAL_Config INTERFACE include/stm32f4_hal)
 # STM32::USBHost
 add_library(STM32_USBHost_Config ALIAS BuddyHeaders)
 
-# STM32::USBDevice
-add_library(STM32_USBDevice_Config ALIAS BuddyHeaders)
-
 # STM32::Utilities::CPU
 add_library(STM32_Utilities_CPU_Config ALIAS BuddyHeaders)
 
@@ -330,6 +327,13 @@ target_include_directories(
                           src/marlin_stubs/include
   )
 target_link_libraries(Marlin_Config INTERFACE BuddyHeaders FreeRTOS::FreeRTOS)
+
+#
+# Configure tinyusb
+#
+add_library(tinyusb_dependencies INTERFACE)
+target_include_directories(tinyusb_dependencies INTERFACE include/tinyusb)
+target_link_libraries(tinyusb_dependencies INTERFACE FreeRTOS::FreeRTOS)
 
 #
 # Global Compiler & Linker Configuration
@@ -528,7 +532,6 @@ target_link_libraries(
           littlefs
           lpng
           STM32::USBHost
-          STM32::USBDevice
           CPU
           inih::inih
           $<$<BOOL:${WUI}>:WUI>
@@ -538,20 +541,21 @@ target_link_libraries(
           printf::printf
           sysbase
           Segger
+          tinyusb::tinyusb
   )
 
 target_sources(
   firmware
   PRIVATE $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/startup/startup_stm32f407xx_boot.s>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/startup/startup_stm32f407xx.s>
-          src/usbd_cdc_if.c
           src/usb_device.c
+          src/usb_device_cdc.cpp
+          src/usb_device_msc.c
           src/freertos.c
           src/freertos_openocd.c
           src/lwip.c
           src/usbh_diskio.c
           src/main.cpp
-          src/usbd_desc.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>
           src/stm32f4xx_hal_msp.c
@@ -565,7 +569,6 @@ target_sources(
           src/libsysbase_syscalls.c
           src/usb_host.c
           src/usbh_conf.c
-          src/usbd_conf.c
           src/common/non_file_printing_counter.cpp
           src/common/print_processor.cpp
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
@@ -615,6 +618,7 @@ target_sources(
           src/common/selftest/selftest_heater.cpp
           src/common/st25dv64k.c
           src/common/w25x.c
+          src/common/w25x_communication.cpp
           src/common/gcode_file.cpp
           src/common/gcode_filter.cpp
           src/common/gcode_info.cpp
@@ -677,6 +681,7 @@ target_sources(
           src/logging/log_dest_rtt.c
           src/logging/log_dest_shared.c
           src/logging/log_dest_syslog.c
+          src/logging/log_dest_usb.c
   )
 
 if(GUI)

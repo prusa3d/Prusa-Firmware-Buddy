@@ -116,7 +116,7 @@ enum eevar_id {
     AXIS_RMS_CURRENT_MA_Z = 0x3c,     // uint16_t, used to initialize trinamic
     AXIS_RMS_CURRENT_MA_E0 = 0x3d,    // uint16_t, used to initialize trinamic, must contain "E0" to work with marlin macros
     AXIS_Z_MAX_POS_MM = 0x3e,         // float, used in marlin Z_MAX_POS macro
-    EEVAR_ODOMETER_TIME = 0x3f,       //uin32_t total print duration
+    EEVAR_ODOMETER_TIME = 0x3f,       // uin32_t total print duration
     EEVAR_ACTIVE_NETDEV = 0x40,       // active network device
     EEVAR_PL_RUN = 0x41,              // active network device
     EEVAR_PL_API_KEY = 0x42,          // active network device
@@ -134,6 +134,8 @@ enum eevar_id {
     EEVAR_WIFI_AP_SSID = 0x4a,   // 32char string
     EEVAR_WIFI_AP_PASSWD = 0x4b, // 64char string
 #endif                           // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
+
+    EEVAR_USB_MSC_ENABLED = 0x4c, // uint8_t, on/off
 
     EEVAR_CRC32 = 0x4d, // uint32_t crc32 for
 };

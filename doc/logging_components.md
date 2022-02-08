@@ -13,6 +13,8 @@ This file is generated automatically so don't edit it directly
 - Network: LOG_SEVERITY_INFO, lib/WUI/wui.c
 - Selftest: LOG_SEVERITY_DEBUG, src/common/selftest/selftest_MINI.cpp
 - Syslog: LOG_SEVERITY_INFO, src/syslog/syslog.c
-- USBDevice: LOG_SEVERITY_INFO, src/usbd_conf.c
+- USBDevice: LOG_SEVERITY_INFO, src/usb_device.c
 - USBHost: LOG_SEVERITY_INFO, src/usbh_conf.c
+- USBMSC: LOG_SEVERITY_DEBUG, src/usb_device_msc.c
+- W25X: LOG_SEVERITY_DEBUG, src/common/w25x.c
 - WUI: LOG_SEVERITY_DEBUG, lib/WUI/wui.c

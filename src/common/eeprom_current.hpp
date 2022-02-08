@@ -31,11 +31,12 @@ struct vars_body_t : public eeprom::v10::vars_body_t {
     char WIFI_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
     char WIFI_AP_SSID[WIFI_MAX_SSID_LEN + 1];
     char WIFI_AP_PASSWD[WIFI_MAX_PASSWD_LEN + 1];
+    uint8_t USB_MSC_ENABLED;
 };
 
 #pragma pack(pop)
 
-static_assert(sizeof(vars_body_t) == sizeof(eeprom::v10::vars_body_t) + sizeof(uint8_t) * 3 + PL_API_KEY_SIZE + LAN_HOSTNAME_MAX_LEN + 1 + WIFI_MAX_SSID_LEN + 1 + WIFI_MAX_PASSWD_LEN + 1 + sizeof(uint32_t) * 5, "eeprom body size does not match");
+static_assert(sizeof(vars_body_t) == sizeof(eeprom::v10::vars_body_t) + sizeof(uint8_t) * 3 + PL_API_KEY_SIZE + LAN_HOSTNAME_MAX_LEN + 1 + WIFI_MAX_SSID_LEN + 1 + WIFI_MAX_PASSWD_LEN + 1 + 1 + sizeof(uint32_t) * 5, "eeprom body size does not match");
 
 constexpr vars_body_t body_defaults = {
     eeprom::v10::body_defaults,
@@ -51,6 +52,7 @@ constexpr vars_body_t body_defaults = {
     DEFAULT_HOST_NAME, // EEVAR_WIFI_HOSTNAME
     "",                // EEVAR_WIFI_AP_SSID
     "",                // EEVAR_WIFI_AP_PASSWD
+    0,                 // EEVAR_USB_MSC_ENABLED
 };
 
 inline vars_body_t convert(const eeprom::v10::vars_body_t &src) {
