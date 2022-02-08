@@ -21,3 +21,15 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTE
 void IScreenMenu::unconditionalDrawItem(uint8_t index) {
     menu.unconditionalDrawItem(index);
 }
+
+void IScreenMenu::InitState(screen_init_variant var) {
+    if (!var.GetMenuPosition())
+        return;
+    menu.InitState(*(var.GetMenuPosition()));
+}
+
+screen_init_variant IScreenMenu::GetCurrentState() const {
+    screen_init_variant ret;
+    ret.SetMenuPosition(menu.GetCurrentState());
+    return ret;
+}
