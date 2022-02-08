@@ -26,6 +26,9 @@ protected:
 public:
     IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTER);
     void unconditionalDrawItem(uint8_t index);
+
+    virtual void InitState(screen_init_variant var) override;
+    virtual screen_init_variant GetCurrentState() const override;
 };
 
 template <EFooter FOOTER, class... T>

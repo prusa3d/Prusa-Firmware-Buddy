@@ -329,3 +329,13 @@ void window_menu_t::ShowAfterDialog() {
         Invalidate();
     }
 }
+
+void window_menu_t::InitState(screen_init_variant::menu_t var) {
+    SetIndex(var.index);
+    top_index = var.top_index;
+    updateTopIndex();
+}
+
+screen_init_variant::menu_t window_menu_t::GetCurrentState() const {
+    return { index, top_index };
+}
