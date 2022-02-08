@@ -178,6 +178,7 @@ extern const char *marlin_vars_get_name(marlin_var_id_t var_id);
 extern marlin_var_id_t marlin_vars_get_id_by_name(const char *var_name);
 
 // get variable value as variant8 directly from vars structure
+// \returns empty variant if the variable is not readable
 extern variant8_t marlin_vars_get_var(marlin_vars_t *vars, marlin_var_id_t var_id);
 
 // set variable value as variant8 directly in vars structure

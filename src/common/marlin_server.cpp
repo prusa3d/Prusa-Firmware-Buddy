@@ -52,10 +52,10 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 typedef struct {
     marlin_vars_t vars;                              // cached variables
     marlin_mesh_t mesh;                              // meshbed leveling
-    uint64_t notify_events[MARLIN_MAX_CLIENTS];      // event notification mask
-    uint64_t notify_changes[MARLIN_MAX_CLIENTS];     // variable change notification mask
-    uint64_t client_events[MARLIN_MAX_CLIENTS];      // client event mask
-    uint64_t client_changes[MARLIN_MAX_CLIENTS];     // client variable change mask
+    uint64_t notify_events[MARLIN_MAX_CLIENTS];      // event notification mask - message filter
+    uint64_t notify_changes[MARLIN_MAX_CLIENTS];     // variable change notification mask - message filter
+    uint64_t client_events[MARLIN_MAX_CLIENTS];      // client event mask - unsent messages
+    uint64_t client_changes[MARLIN_MAX_CLIENTS];     // client variable change mask - unsent messages
     uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
     variant8_t event_messages[MARLIN_MAX_CLIENTS];   // last MARLIN_EVT_Message for clients, cannot use cvariant, desctructor would free memory
     uint64_t update_vars;                            // variable update mask
@@ -275,7 +275,8 @@ int marlin_server_cycle(void) {
             // send change notifications, clear bits for successful sent notification
             if ((msk = marlin_server.client_changes[client_id]) != 0)
                 marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, msk);
-            // send events to client only when all changes already sent, clear bits for successful sent notification
+            // send events to client only if all variables were sent already, otherwise, the message buffer is full
+            // clear bits for successful sent notification
             if ((marlin_server.client_changes[client_id]) == 0)
                 if ((msk = marlin_server.client_events[client_id]) != 0)
                     marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
@@ -817,7 +818,8 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
         MARLIN_EVT_t evt_id = (MARLIN_EVT_t)evt_int;
         if (msk & evt_msk) {
             switch ((MARLIN_EVT_t)evt_id) {
-            // Events without arguments
+                // Events without arguments
+                // TODO: send all these in a single message as a bitfield
             case MARLIN_EVT_Startup:
             case MARLIN_EVT_MediaInserted:
             case MARLIN_EVT_MediaError:
@@ -930,6 +932,7 @@ static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue
     for (int var_id = 0; var_id <= MARLIN_VAR_MAX; var_id++) {
         if (msk & var_msk) {
             var = marlin_vars_get_var(&(marlin_server.vars), (marlin_var_id_t)var_id);
+            // if the variable is readable then send else try next time
             if (variant8_get_type(var) != VARIANT8_EMPTY) {
                 if (_send_notify_change_to_client(queue, var_id, var))
                     sent |= msk;
@@ -1305,7 +1308,8 @@ static int _process_server_request(const char *request) {
     }
     if (processed)
         if (!_send_notify_event_to_client(client_id, marlin_client_queue[client_id], MARLIN_EVT_Acknowledge, 0, 0))
-            marlin_server.notify_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge); // set bit if notification not sent
+            // FIXME: Take care of resending process elsewhere.
+            marlin_server.client_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge); // set bit if notification not sent immediately
     return processed;
 }
 
