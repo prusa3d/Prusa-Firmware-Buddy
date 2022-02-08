@@ -175,8 +175,7 @@ extern "C" {
      *
      * We pay about 200B per slot, so this can be tuned as needed.
      *
-     * Note that this doesn't currently include what Wifi does, there's a
-     * hardcoded limit to 5 connections in ESP :-(.
+     * Note, these are shared among ethernet and wifi connectins.
      */
     #define MEMP_NUM_TCP_PCB 12
     #define SO_REUSE         1 // Allow SOF_REUSEADDR to do something useful.

@@ -527,7 +527,6 @@ target_link_libraries(
           Arduino::LiquidCrystal
           LwIP
           FatFs
-          lwesp
           flasher
           littlefs
           lpng

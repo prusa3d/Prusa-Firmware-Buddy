@@ -21,7 +21,6 @@
 #include <lwip/ip.h>
 #include <lwip/tcp.h>
 #include <lwip/altcp_tcp.h>
-#include "esp_tcp.h"
 #include "http_lifetime.h"
 #include "main.h"
 
