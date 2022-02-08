@@ -2,10 +2,11 @@
 
 import struct
 from time import sleep
+import datetime
 import fcntl
 import serial
 import os
-from threading import Thread
+from threading import Thread, Lock
 
 from pathlib import Path
 
@@ -17,14 +18,15 @@ IFF_NO_PI = 0x1000
 
 MSG_DEVINFO = 0
 MSG_LINK = 1
-MSG_CLIENTCONFIG = 2
-MSG_PACKET = 3
+MSG_GET_LINK = 2
+MSG_CLIENTCONFIG = 3
+MSG_PACKET = 4
 
-INTRON = b"UNU"
+INTRON = b"UNU\x01"
 INTERFACE = "tap0"
-BAUD_RATE = 927600
-SSID = "ssid"
-PASS = "pass"
+BAUD_RATE = 1500000 #921600
+SSID = "free_porn"
+PASS = "BensonHedges"
 
 # tap = Path('/dev/net/tun').open('r+b')
 tap = os.open("/dev/net/tun", 0x2)
@@ -34,8 +36,9 @@ fcntl.ioctl(tap, TUNSETIFF, ifr)
 fcntl.ioctl(tap, TUNSETOWNER, os.getuid())
 
 
-ser = serial.Serial("/dev/ttyUSB0", BAUD_RATE)
-
+ser = serial.Serial("/dev/ttyUSB0", baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
+last_in = datetime.datetime.now()
+lock = Lock()
 
 def safe(b: bytes):
     try:
@@ -52,13 +55,16 @@ def wait_for_intron():
         if c == INTRON[pos]:
             pos = pos + 1
             # print(f"TAP: INTRON: pos: {pos}, byte: {bytes([c])}")
+            #print("I", end="", flush=True)
         else:
-            print(f"{safe(bytes([c]))}", end="")
+            #print(f"{safe(bytes([c]))}", end="")
             pos = 0
+            #print("X", end="", flush=True)
     # print("TAP: intron found")
 
 
 def recv_packet():
+    global last_in
     len_data = ser.read(4)
     len = int.from_bytes(len_data, "little", signed=False)
     # print(f"TAP: packet len: {len}, data: {len_data.hex()}")
@@ -66,6 +72,8 @@ def recv_packet():
     # print(f"SIN : {packet.hex()}")
     try:
         os.write(tap, packet)
+        with lock:
+            last_in = datetime.datetime.now()
     except IOError:
         print("TAP: FAILED TO WRITE")
 
@@ -120,7 +128,10 @@ def recv_message():
 
 def serial_thread():
     while True:
-        recv_message()
+        try:
+            recv_message()
+        except:
+            pass
 
 
 Thread(target=serial_thread, daemon=True).start()
@@ -129,6 +140,7 @@ Thread(target=serial_thread, daemon=True).start()
 print("TAP: Configuring wifi")
 send_wifi_client()
 
+i = 0;
 print("TAP: Reading tap device")
 while True:
     packet = os.read(tap, 2048)
@@ -146,5 +158,22 @@ while True:
     # print(f"TAP: SOUT MESSAGE: {out}")
     ser.write(out)
     ser.flush()
+    #print("O", end="", flush=True)
+    with lock:
+        if (datetime.datetime.now() - last_in).total_seconds() > 5:
+            print("UART reset")
+            ser.close()
+            ser = serial.Serial("/dev/ttyUSB0", baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
+
+    #i += 1
+    if i == 100:
+        i = 0
+        out = (
+            INTRON
+            + MSG_GET_LINK.to_bytes(1, "little")
+        )
+        ser.write(out)
+        ser.flush()
+
 
 tap.close()
