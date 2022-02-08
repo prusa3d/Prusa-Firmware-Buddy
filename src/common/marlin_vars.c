@@ -65,6 +65,8 @@ marlin_var_id_t marlin_vars_get_id_by_name(const char *var_name) {
 
 variant8_t marlin_vars_get_var(marlin_vars_t *vars, marlin_var_id_t var_id) {
     if (!vars)
+        // FIXME: send no variant (needs new variant type) instead of empty one.
+        // Empty variant is a usable / sendable variant.
         return variant8_empty();
 
     switch (var_id) {
