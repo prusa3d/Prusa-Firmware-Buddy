@@ -6,10 +6,20 @@ import argparse
 import logging
 from PIL import Image
 import math
+import numpy as np
 
 logger = logging.getLogger('font.py')
 chars_per_row = 16
 rows_to_copy = 6
+
+
+def remove_red_dots(image: np.array) -> np.array:
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            if image[i, j, 0] == 255 and image[i, j, 1] == 0 and image[i, j,
+                                                                       2] == 0:
+                image[i, j] = np.array([255, 255, 255])
+    return image
 
 
 def cmd_create_font_png(non_ascii_chars_path: Path, src_png_path: Path,
@@ -76,8 +86,11 @@ def cmd_create_font_png(non_ascii_chars_path: Path, src_png_path: Path,
                 if (x >= chars_per_row):
                     x = 0
                     y += 1
-            output_image.save(dst_png_path.resolve())
             file.write("};\n")
+
+        image = remove_red_dots(np.asarray(output_image, dtype=np.uint8))
+        output_image = Image.fromarray(image, "RGB")
+        output_image.save(dst_png_path.resolve())
 
 
 def main():
