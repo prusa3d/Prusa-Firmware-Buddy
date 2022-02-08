@@ -19,6 +19,7 @@
 #include "../common/otp.h"
 
 static const constexpr uint8_t VERSION_INFO_STR_MAXLEN = 150;
+static const constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string
 
 using MenuContainer = WinMenuContainer<MI_RETURN>;
 
@@ -39,7 +40,7 @@ public:
 
 protected:
     static inline uint16_t get_help_h() {
-        return helper_lines * (resource_font(helper_font)->h);
+        return helper_lines * (resource_font(helper_font)->h + 1); // +1 for line paddings
     }
 };
 
@@ -47,7 +48,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     : AddSuperWindow<screen_t>(nullptr)
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
-    , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectFooter.Top()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
+    , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectFooter.Top()) - get_help_h() - blank_space_h, GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
     , footer(this) {
     header.SetText(_(label));
     help.font = resource_font(helper_font);
