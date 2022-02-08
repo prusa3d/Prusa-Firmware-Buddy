@@ -303,3 +303,11 @@ public:
 protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
+
+class MI_USB_MSC_ENABLE : public WI_SWITCH_OFF_ON_t {
+    constexpr static char const *label = "USB MSC";
+
+public:
+    MI_USB_MSC_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};

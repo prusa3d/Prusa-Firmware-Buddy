@@ -45,6 +45,7 @@
 #include "sys.h"
 #include "buffered_serial.hpp"
 #include "lwesp_ll_buddy.h"
+#include "tusb.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -79,10 +80,11 @@
 
 /* External variables --------------------------------------------------------*/
 extern ETH_HandleTypeDef heth;
-extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 extern HCD_HandleTypeDef hhcd_USB_OTG_HS;
 extern DMA_HandleTypeDef hdma_spi2_tx;
 extern DMA_HandleTypeDef hdma_spi2_rx;
+extern DMA_HandleTypeDef hdma_spi3_tx;
+extern DMA_HandleTypeDef hdma_spi3_rx;
 extern TIM_HandleTypeDef htim14;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart2_rx;
@@ -230,6 +232,19 @@ void WWDG_IRQHandler(void) {
 }
 
 /**
+ * @brief This function handles DMA1 stream0 global interrupt.
+ */
+void DMA1_Stream0_IRQHandler(void) {
+    /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
+    traceISR_ENTER();
+    /* USER CODE END DMA1_Stream3_IRQn 0 */
+    HAL_DMA_IRQHandler(&hdma_spi3_rx);
+    /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
+    traceISR_EXIT();
+    /* USER CODE END DMA1_Stream3_IRQn 1 */
+}
+
+/**
  * @brief This function handles DMA1 stream3 global interrupt.
  */
 void DMA1_Stream3_IRQHandler(void) {
@@ -266,6 +281,19 @@ void DMA1_Stream5_IRQHandler(void) {
     /* USER CODE BEGIN DMA1_Stream5_IRQn 1 */
     traceISR_EXIT();
     /* USER CODE END DMA1_Stream5_IRQn 1 */
+}
+
+/**
+ * @brief This function handles DMA1 stream7 global interrupt.
+ */
+void DMA1_Stream7_IRQHandler(void) {
+    /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
+    traceISR_ENTER();
+    /* USER CODE END DMA1_Stream7_IRQn 0 */
+    HAL_DMA_IRQHandler(&hdma_spi3_tx);
+    /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
+    traceISR_EXIT();
+    /* USER CODE END DMA1_Stream3_IRQn 1 */
 }
 
 /**
@@ -344,7 +372,7 @@ void OTG_FS_IRQHandler(void) {
     /* USER CODE BEGIN OTG_FS_IRQn 0 */
     traceISR_ENTER();
     /* USER CODE END OTG_FS_IRQn 0 */
-    HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
+    tud_int_handler(0);
     /* USER CODE BEGIN OTG_FS_IRQn 1 */
     traceISR_EXIT();
     /* USER CODE END OTG_FS_IRQn 1 */

@@ -121,7 +121,7 @@ extern uint32_t SystemCoreClock;
 #endif
 
 #define configUSE_PREEMPTION             1
-#define configSUPPORT_STATIC_ALLOCATION  0
+#define configSUPPORT_STATIC_ALLOCATION  1
 #define configSUPPORT_DYNAMIC_ALLOCATION 1
 #define configUSE_IDLE_HOOK              1
 #define configUSE_TICK_HOOK              1
@@ -132,8 +132,9 @@ extern uint32_t SystemCoreClock;
 #define configTOTAL_HEAP_SIZE            ((size_t)49152)
 #define configUSE_MALLOC_FAILED_HOOK     1
 
-#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 1
-#define THREAD_LOCAL_STORAGE_LOGGING_IDX        0
+#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 2
+#define THREAD_LOCAL_STORAGE_SYSLOG_IDX         1
+#define THREAD_LOCAL_STORAGE_USB_LOGGING_IDX    2
 
 #define configMAX_TASK_NAME_LEN                 (16)
 #define configUSE_16_BIT_TICKS                  0

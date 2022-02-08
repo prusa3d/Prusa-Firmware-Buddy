@@ -37,7 +37,7 @@ target_compile_definitions(
   )
 
 target_link_libraries(
-  CoreBuddy PUBLIC STM32F4::HAL STM32::USBDevice STM32::USBHost FreeRTOS::FreeRTOS
+  CoreBuddy PUBLIC STM32F4::HAL STM32::USBHost FreeRTOS::FreeRTOS tinyusb::tinyusb
   )
 
 add_library(Arduino::CoreBuddy ALIAS CoreBuddy)

@@ -22,8 +22,6 @@ extern void app_error(void);
 
 extern void app_assert(uint8_t *file, uint32_t line);
 
-extern void app_cdc_rx(uint8_t *buffer, uint32_t length);
-
 extern void app_tim6_tick(void);
 
 extern void app_tim14_tick(void);

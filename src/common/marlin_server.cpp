@@ -725,10 +725,13 @@ int marlin_server_get_exclusive_mode(void) {
 }
 
 void marlin_server_set_exclusive_mode(int exclusive) {
-    if (exclusive)
+    if (exclusive) {
+        SerialUSB.setIsWriteOnly(true);
         marlin_server.flags |= MARLIN_SFLG_EXCMODE; // enter exclusive mode
-    else
+    } else {
         marlin_server.flags &= ~MARLIN_SFLG_EXCMODE; // exit exclusive mode
+        SerialUSB.setIsWriteOnly(false);
+    }
 }
 
 void marlin_server_set_temp_to_display(float value) {

@@ -15,7 +15,6 @@
 #include "print_utils.hpp"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
-#include "usbd_cdc_if.h"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"
@@ -54,9 +53,6 @@ LOG_COMPONENT_DEF(Marlin, LOG_SEVERITY_INFO);
 LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
 
-extern void USBSerial_put_rx_data(uint8_t *buffer, uint32_t length);
-extern void app_cdc_rx(uint8_t *buffer, uint32_t length);
-
 extern void reset_trinamic_drivers();
 
 extern "C" {
@@ -75,9 +71,6 @@ void app_setup(void) {
     } else {
         init_tmc_bare_minimum();
     }
-
-    // enable cdc
-    usbd_cdc_register_receive_fn(app_cdc_rx);
 
     setup();
 
@@ -137,11 +130,6 @@ void app_assert(uint8_t *file, uint32_t line) {
     bsod("app_assert");
 }
 
-void app_cdc_rx(uint8_t *buffer, uint32_t length) {
-    if (!marlin_server_get_exclusive_mode()) // serial line is disabled in exclusive mode
-        USBSerial_put_rx_data(buffer, length);
-}
-
 void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r'))
         size--;
@@ -162,7 +150,7 @@ void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
 }
 
 void app_setup_marlin_logging() {
-    SerialUSB.flushBufferHook = app_marlin_serial_output_write_hook;
+    SerialUSB.lineBufferHook = app_marlin_serial_output_write_hook;
 }
 
 #ifdef NEW_FANCTL

@@ -48,6 +48,7 @@
 #include "usb_device.h"
 #include "usb_host.h"
 #include "buffered_serial.hpp"
+#include "bsod.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -90,8 +91,6 @@
 #define SWDIO_GPIO_Port             GPIOA
 #define SWCLK_Pin                   GPIO_PIN_14
 #define SWCLK_GPIO_Port             GPIOA
-#define FLASH_CSN_Pin               GPIO_PIN_7
-#define FLASH_CSN_GPIO_Port         GPIOD
 #define WP2_Pin                     GPIO_PIN_5
 #define WP2_GPIO_Port               GPIOB
 #define WP1_Pin                     GPIO_PIN_0
@@ -123,6 +122,8 @@ SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 DMA_HandleTypeDef hdma_spi2_tx;
 DMA_HandleTypeDef hdma_spi2_rx;
+DMA_HandleTypeDef hdma_spi3_tx;
+DMA_HandleTypeDef hdma_spi3_rx;
 
 //described in timers.md
 TIM_HandleTypeDef htim1;
@@ -278,6 +279,17 @@ int main(void) {
     MX_RTC_Init();
     MX_RNG_Init();
 
+    // initialize SPI flash
+    w25x_spi_assign(&hspi3);
+    if (!w25x_init())
+        bsod("failed to initialize ext flash");
+
+    MX_USB_HOST_Init();
+
+    MX_FATFS_Init();
+
+    usb_device_init();
+
     /* USER CODE BEGIN 2 */
     HAL_GPIO_Initialized = 1;
     HAL_ADC_Initialized = 1;
@@ -285,23 +297,20 @@ int main(void) {
     HAL_SPI_Initialized = 1;
 
     bool block_networking = false;
-    if (w25x_init()) { //SPI flash
-        /*
-         * Checking this first, before starting the GUI thread. The GUI thread
-         * resets/consumes the dump as a side effect.
-         */
-
-        if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
-            int dump_type = dump_in_xflash_get_type();
-            if (dump_type == DUMP_HARDFAULT || dump_type == DUMP_TEMPERROR) {
-                /*
-                 * This corresponds to booting into a bluescreen or serious
-                 * redscreen. In such case, the GUI is blocked. Similar logic
-                 * should apply to any network communication ‒ one probably shall
-                 * not eg. start a print from there.
-                 */
-                block_networking = true;
-            }
+    /*
+     * Checking this first, before starting the GUI thread. The GUI thread
+     * resets/consumes the dump as a side effect.
+     */
+    if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
+        int dump_type = dump_in_xflash_get_type();
+        if (dump_type == DUMP_HARDFAULT || dump_type == DUMP_TEMPERROR) {
+            /*
+             * This corresponds to booting into a bluescreen or serious
+             * redscreen. In such case, the GUI is blocked. Similar logic
+             * should apply to any network communication ‒ one probably shall
+             * not eg. start a print from there.
+             */
+            block_networking = true;
         }
     }
 
@@ -947,12 +956,18 @@ static void MX_DMA_Init(void) {
     __HAL_RCC_DMA2_CLK_ENABLE();
 
     /* DMA interrupt init */
+    /* DMA1_Stream0_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
     /* DMA1_Stream4_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
     /* DMA1_Stream5_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+    /* DMA1_Stream7_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
     /* DMA2_Stream1_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
@@ -979,9 +994,6 @@ static void MX_GPIO_Init(void) {
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
-
-    /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOD, FLASH_CSN_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : USB_OVERC_Pin ESP_GPIO0_Pin
                            BED_MON_Pin WP1_Pin */
@@ -1019,12 +1031,6 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
     HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
 #endif
-    /*Configure GPIO pins : FLASH_CSN_Pin */
-    GPIO_InitStruct.Pin = FLASH_CSN_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     PIN_TABLE(CONFIGURE_PINS)
 
@@ -1061,7 +1067,17 @@ static void MX_RNG_Init(void) {
 /* USER CODE BEGIN 4 */
 extern void st7789v_spi_tx_complete(void);
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
-    st7789v_spi_tx_complete();
+    if (hspi == st7789v_config.phspi) {
+        st7789v_spi_tx_complete();
+    } else if (hspi == &hspi3) {
+        w25x_spi_transfer_complete_callback();
+    }
+}
+
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
+    if (hspi == &hspi3) {
+        w25x_spi_receive_complete_callback();
+    }
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *haurt) {
@@ -1100,12 +1116,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const *argument) {
     log_info(Buddy, "marlin task is starting");
-
-    MX_USB_DEVICE_Init();
-
-    MX_USB_HOST_Init();
-
-    MX_FATFS_Init();
 
     /* init code for LWIP */
     //MX_LWIP_Init();

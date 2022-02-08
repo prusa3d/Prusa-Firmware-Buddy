@@ -1,35 +1,69 @@
-//w25x.h
+///
+/// \file
+///
+/// Driver for the W25xxx family of SPI flash memories.
+///
+/// The driver is split into two parts.
+/// The `w25x_communication.h/c` handles communication with the chip and this part is considered private to the w25x module.
+/// The `w25x.h/c` handles the high-level operations with the chip (read, erase, write, etc)
+///
 #pragma once
-
 #include <inttypes.h>
-
-static const uint8_t W25X_STATUS_BUSY = 0x01;
-static const uint8_t W25X_STATUS_WEL = 0x02;
-static const uint8_t W25X_STATUS_BP0 = 0x04;
-static const uint8_t W25X_STATUS_BP1 = 0x08;
-static const uint8_t W25X_STATUS_TB = 0x20;
-static const uint8_t W25X_STATUS_SRP = 0x80;
-
-#define W25X_SPI_ENTER() // spi_setup(W25X20CL_SPCR, W25X20CL_SPSR)
+#include <stdbool.h>
+#include "stm32f4xx_hal.h"
 
 #if defined(__cplusplus)
 extern "C" {
-#endif //defined(__cplusplus)
+#endif // defined(__cplusplus)
 
-extern int8_t w25x_init(void);
-extern void w25x_enable_wr(void);
-extern void w25x_disable_wr(void);
-extern uint8_t w25x_rd_status_reg(void);
-extern void w25x_wr_status_reg(uint8_t val);
+/// Initialize the w25x module
+///
+/// This has to be called after the underlying SPI has been initialized
+/// and assigned using w25x_spi_assign.
+///
+/// Returns true on success, false otherwise.
+extern bool w25x_init();
+
+/// Return the number of available sectors
+extern uint32_t w25x_get_sector_count();
+
+/// Read data from the flash.
+/// Errors can be checked (and cleared) using w25x_fetch_error()
 extern void w25x_rd_data(uint32_t addr, uint8_t *data, uint16_t cnt);
+
+/// Write data to the flash (the sector has to be erased first)
+/// Errors can be checked (and cleared) using w25x_fetch_error()
 extern void w25x_page_program(uint32_t addr, const uint8_t *data, uint16_t cnt);
+
+/// Erase single sector of the flash
+/// Errors can be checked (and cleared) using w25x_fetch_error()
 extern void w25x_sector_erase(uint32_t addr);
+
+/// Erase block of 32 kB of the flash
+/// Errors can be checked (and cleared) using w25x_fetch_error()
 extern void w25x_block32_erase(uint32_t addr);
+
+/// Erase block of 64 kB of the flash
+/// Errors can be checked (and cleared) using w25x_fetch_error()
 extern void w25x_block64_erase(uint32_t addr);
+
+/// Erase the whole flash memory
+/// Errors can be checked (and cleared) using w25x_fetch_error()
 extern void w25x_chip_erase(void);
-extern void w25x_rd_uid(uint8_t *uid);
-extern void w25x_wait_busy(void);
+
+/// Fetch and clear error of a previous operation.
+/// Returns 0 if there hasn't been any error
+extern int w25x_fetch_error(void);
+
+/// Assign handle of configured and ready-to-use SPI handle
+extern void w25x_spi_assign(SPI_HandleTypeDef *spi_handle);
+
+/// This should be called when the underlying SPI's DMA finishes DMA transfer (send)
+extern void w25x_spi_transfer_complete_callback(void);
+
+/// This should be called when the underlying SPI's DMA finishes DMA transfer (receive)
+extern void w25x_spi_receive_complete_callback(void);
 
 #if defined(__cplusplus)
 }
-#endif //defined(__cplusplus)
+#endif // defined(__cplusplus)

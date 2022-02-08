@@ -163,7 +163,8 @@
             MACRO_FUNCTION(buddy::hw::OutputPin, hsUSBEnable, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p5, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)      \
             MACRO_FUNCTION(buddy::hw::InputPin, jogWheelENC, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p12, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                  \
             MACRO_FUNCTION(buddy::hw::InputPin, fanPrintTach, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p10, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                 \
-            MACRO_FUNCTION(buddy::hw::InputPin, fanHeatBreakTach, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p14, IMode::input COMMA Pull::up, buddy::hw::noHandler)
+            MACRO_FUNCTION(buddy::hw::InputPin, fanHeatBreakTach, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p14, IMode::input COMMA Pull::up, buddy::hw::noHandler)                             \
+            MACRO_FUNCTION(buddy::hw::OutputPin, extFlashCs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)
     #else
         #error "Unknown board."
     #endif
