@@ -42,7 +42,7 @@ protected:
     ValueType value;
     ValueType oldVal;
 
-    virtual void click(IWindowMenu &window_menu) final {}
+    virtual void click(IWindowMenu &window_menu) {}
 
 public:
     WI_FORMATABLE_LABEL_t(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, std::function<void(char *)> printAs)

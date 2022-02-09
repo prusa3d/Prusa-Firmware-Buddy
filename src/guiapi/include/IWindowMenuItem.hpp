@@ -80,6 +80,7 @@ public:
     bool IsSelected() const { return selected == is_selected_t::yes; }
     void Hide() { hidden = (uint8_t)is_hidden_t::yes; }
     void Show() { hidden = (uint8_t)is_hidden_t::no; }
+    void SetVisibility(bool visible) { hidden = (uint8_t)!visible; }
     void ShowDevOnly() { hidden = (uint8_t)is_hidden_t::dev; }
     bool IsHidden() const;
     void SetFocus();

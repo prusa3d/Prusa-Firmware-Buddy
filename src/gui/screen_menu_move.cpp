@@ -5,6 +5,8 @@
 #include "marlin_client.h"
 #include "WindowMenuItems.hpp"
 #include "menu_spin_config.hpp"
+#include "WindowItemFormatableLabel.hpp"
+#include "window_dlg_load_unload.hpp"
 
 template <size_t INDEX, int8_t LONG_SEG, uint8_t BUFFER_LEN>
 class MI_AXIS : public WiSpinInt {
@@ -64,27 +66,40 @@ public:
         SetVal(0);              // Reset spin before change
         lastQueuedPos = 0;      // zero it out so we wont go back when we exit the spinner
     }
-    void CheckNozzleTemp() {
-        bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::GetExtrudeMinTemp());
-        if (temp_ok) {
-            if (!IsEnabled()) {
-                Enable();
-            }
-        } else {
-            if (IsEnabled())
-                Disable();
-        }
+};
+
+class DUMMY_AXIS_E : public WI_FORMATABLE_LABEL_t<int> {
+    virtual void click(IWindowMenu &window_menu) override {
+        PreheatStatus::Dialog(PreheatMode::None, RetAndCool_t::Both);
     }
+
+public:
+    DUMMY_AXIS_E()
+        : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), 0, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
+            if (marlin_vars()->target_nozzle < MenuVars::GetExtrudeMinTemp()) {
+                snprintf(buffer, GuiDefaults::infoMaxLen, "Low temp");
+            } else {
+                snprintf(buffer, GuiDefaults::infoMaxLen, "Heating");
+            }
+        }) {}
 };
 
 using MI_AXIS_X = MI_AXIS<0, 5, 8>;
 using MI_AXIS_Y = MI_AXIS<1, 5, 8>;
 using MI_AXIS_Z = MI_AXIS<2, 1, 4>;
 
-using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E>;
+using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E, DUMMY_AXIS_E>;
 
 class ScreenMenuMove : public Screen {
     float prev_accel;
+
+    void CheckNozzleTemp() {
+        MI_AXIS_E *spinner = &Item<MI_AXIS_E>();
+        DUMMY_AXIS_E *dummy = &Item<DUMMY_AXIS_E>();
+        bool temp_ok = (marlin_vars()->temp_nozzle > MenuVars::GetExtrudeMinTemp());
+        spinner->SetVisibility(temp_ok);
+        dummy->SetVisibility(!temp_ok);
+    }
 
 public:
     constexpr static const char *label = N_("MOVE AXIS");
@@ -93,6 +108,7 @@ public:
         marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
         prev_accel = marlin_vars()->travel_acceleration;
         marlin_gcode("M204 T200");
+        CheckNozzleTemp();
     }
     ~ScreenMenuMove() {
         char msg[20];
@@ -112,7 +128,7 @@ void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sende
         Item<MI_AXIS_Z>().EnqueueNextMove();
         Item<MI_AXIS_E>().EnqueueNextMove();
 
-        Item<MI_AXIS_E>().CheckNozzleTemp();
+        CheckNozzleTemp();
     }
 
     SuperWindowEvent(sender, event, param);
