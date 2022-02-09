@@ -240,8 +240,23 @@ static const char INTRON[] = {'U', 'N', 'U', '\x01'};
 
 
 static void sendDeviceInfo() {
-    if(!wifi_net_if || !uart_mtx) {
-        printf("Net is not available !!!\n\r");
+    if(!uart_mtx) {
+        printf("UART mutex not available !!!\n\r");
+        return;
+    }
+    if(!wifi_net_if) {
+        printf("Sending fake device info\n\r");
+        // TODO: This is a problem. Host waits for us to send device info so that it can setup is NIC. We are waiting
+        // for client info to start out Wifi. The clinet info is send once NIC is initialized (this makes sense).
+        // This break the cycle by sending fake MAC (would be much better to obtain MAC before starting wifi, or
+        // being able to restart wifi, or change associated AP)
+        //xSemaphoreTakeFromISR(uart_mtx, portMAX_DELAY);
+        uart_write_bytes(UART_NUM_0, INTRON, sizeof(INTRON));
+        const uint8_t t = MSG_DEVINFO;
+        uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
+        const uint8_t zero_len = 0;
+        uart_write_bytes(UART_NUM_0, (const char*)&zero_len, sizeof(zero_len));
+        // xSemaphoreGive(uart_mtx);
         return;
     }
 
@@ -519,7 +534,6 @@ void app_main() {
     printf("Creating TX thread");
     xTaskCreate(&uart_tx_thread, "uart_tx_thread", 2048, NULL, 14 /*tskIDLE_PRIORITY*/, NULL);
     printf("Waiting 1s before sending device info\n\r");
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-
+    // Send initial device info to let master know ESP is ready
     sendDeviceInfo();
 }
