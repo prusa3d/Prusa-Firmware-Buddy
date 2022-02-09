@@ -257,7 +257,7 @@ void Pause::plan_e_move_notify_progress(const float &length, const feedRate_t &f
     }
 }
 
-bool Pause::loadLoop(is_standalone_t standalone) {
+bool Pause::loadLoop(load_mode_t mode) {
     bool ret = true;
     const float purge_ln = std::max(purge_length, minimal_purge);
 
@@ -361,7 +361,7 @@ bool Pause::loadLoop(is_standalone_t standalone) {
 
 bool Pause::FilamentLoad() {
     FSM_HolderLoadUnload H(*this, fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge);
-    return filamentLoad(is_standalone_t::yes);
+    return filamentLoad(load_mode_t::standalone);
 }
 
 /**
@@ -376,7 +376,7 @@ bool Pause::FilamentLoad() {
  *
  * Returns 'true' if load was completed, 'false' for abort
  */
-bool Pause::filamentLoad(is_standalone_t standalone) {
+bool Pause::filamentLoad(load_mode_t mode) {
 
     // actual temperature does not matter, only target
     if (!is_target_temperature_safe())
@@ -392,7 +392,7 @@ bool Pause::filamentLoad(is_standalone_t standalone) {
 
     bool ret = true;
     do {
-        ret = loadLoop(standalone);
+        ret = loadLoop(mode);
     } while (getLoadPhase() != LoadPhases_t::_finish);
 
 #if ENABLED(PID_EXTRUSION_SCALING)
@@ -402,7 +402,7 @@ bool Pause::filamentLoad(is_standalone_t standalone) {
     return ret;
 }
 
-void Pause::unloadLoop(is_standalone_t standalone) {
+void Pause::unloadLoop(unload_mode_t mode) {
     static const RamUnloadSeqItem ramUnloadSeq[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
     decltype(RamUnloadSeqItem::e) ramUnloadLength = 0; //Sum of ramming distances starting from first retraction
 
@@ -442,11 +442,11 @@ void Pause::unloadLoop(is_standalone_t standalone) {
 
         Filaments::Set(filament_t::NONE);
         setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
-        set(standalone == is_standalone_t::yes ? UnloadPhases_t::_finish : UnloadPhases_t::unloaded__ask);
+        set(mode == unload_mode_t::standalone ? UnloadPhases_t::_finish : UnloadPhases_t::unloaded__ask);
     } break;
     case UnloadPhases_t::unloaded__ask: {
         if (response == Response::Yes) {
-            set(UnloadPhases_t::filament_not_in_fs);
+            set(mode == unload_mode_t::change_filament ? UnloadPhases_t::filament_not_in_fs : UnloadPhases_t::_finish);
         }
         if (response == Response::No) {
             setPhase(PhasesLoadUnload::ManualUnload, 100);
@@ -464,7 +464,7 @@ void Pause::unloadLoop(is_standalone_t standalone) {
     case UnloadPhases_t::manual_unload: {
         if (response == Response::Continue) {
             enable_e_steppers();
-            set(UnloadPhases_t::filament_not_in_fs);
+            set(mode == unload_mode_t::change_filament ? UnloadPhases_t::filament_not_in_fs : UnloadPhases_t::_finish);
         }
     } break;
     default:
@@ -476,7 +476,12 @@ void Pause::unloadLoop(is_standalone_t standalone) {
 
 bool Pause::FilamentUnload() {
     FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
-    return filamentUnload(is_standalone_t::yes);
+    return filamentUnload(unload_mode_t::standalone);
+}
+
+bool Pause::FilamentUnload_AskUnloaded() {
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    return filamentUnload(unload_mode_t::ask_unloaded);
 }
 
 /**
@@ -489,7 +494,7 @@ bool Pause::FilamentUnload() {
  *
  * Returns 'true' if unload was completed, 'false' for abort
  */
-bool Pause::filamentUnload(is_standalone_t standalone) {
+bool Pause::filamentUnload(unload_mode_t mode) {
     if (!ensureSafeTemperatureNotifyProgress(0, 50)) {
         return false;
     }
@@ -502,7 +507,7 @@ bool Pause::filamentUnload(is_standalone_t standalone) {
     set(UnloadPhases_t::_init);
 
     do {
-        unloadLoop(standalone);
+        unloadLoop(mode);
     } while (getUnloadPhase() != UnloadPhases_t::_finish);
 
 #if ENABLED(PID_EXTRUSION_SCALING)
@@ -658,9 +663,9 @@ void Pause::FilamentChange() {
         FSM_HolderLoadUnload H(*this, LoadUnloadMode::Change);
 
         if (unload_length) // Unload the filament
-            filamentUnload(is_standalone_t::no);
+            filamentUnload(unload_mode_t::change_filament);
         // Feed a little bit of filament to stabilize pressure in nozzle
-        if (filamentLoad(is_standalone_t::no)) {
+        if (filamentLoad(load_mode_t::change_filament)) {
             plan_e_move(5, 10);
             planner.synchronize();
             delay(500);
