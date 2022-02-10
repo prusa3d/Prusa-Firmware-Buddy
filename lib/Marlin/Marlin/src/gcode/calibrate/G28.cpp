@@ -218,26 +218,6 @@ void GcodeSuite::G28(const bool always_home_all) {
     }
   #endif
 
-  #ifdef PRINTER_PRUSA_MINI
-    // -- X & Y coords default position
-    current_position.set(X_HOME_POS, Y_HOME_POS);
-    constexpr const int X_home = X_HOME_DIR > 0 ? X_MAX_POS : X_MIN_POS;
-    constexpr const int Y_home = Y_HOME_DIR > 0 ? Y_MAX_POS : Y_MIN_POS;
-
-    float d;
-    d = (LOGICAL_TO_NATIVE(X_home, X_AXIS) - current_position[X_AXIS]);
-    if (!NEAR_ZERO(d)) {
-      position_shift[X_AXIS] += d;
-      update_workspace_offset(X_AXIS);
-    }
-    d = (LOGICAL_TO_NATIVE(Y_home, Y_AXIS) - current_position[Y_AXIS]);
-    if (!NEAR_ZERO(d)) {
-      position_shift[Y_AXIS] += d;
-      update_workspace_offset(Y_AXIS);
-    }
-    sync_plan_position();
-  #endif
-
   if (!homing_needed() && parser.boolval('O')) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip\n<<< G28");
     return;
