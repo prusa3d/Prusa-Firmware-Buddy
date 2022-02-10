@@ -55,7 +55,7 @@ static const constexpr size_t PARK_POINT[] = NOZZLE_PARK_POINT_M600;
 static const constexpr size_t X_AXIS_LOAD_POS = PARK_POINT[0];
 static const constexpr size_t X_AXIS_UNLOAD_POS = PARK_POINT[0];
 
-using Func = bool (Pause::*)(); //member fnc pointer
+using Func = bool (Pause::*)(); // member fnc pointer
 static Pause &pause = Pause::Instance();
 
 /**
@@ -179,37 +179,56 @@ void GcodeSuite::M702() {
  */
 static PreheatStatus::Result M1400_no_parser(uint32_t val) {
     const PreheatData data(val);
+    // check if we are executing operation which can know temperature from the printer state
+    bool tempKnownWithoutUser = data.Mode() == PreheatMode::Unload || data.Mode() == PreheatMode::Purge || data.Mode() == PreheatMode::Change_phase1 || data.Mode() == PreheatMode::Unload_askUnloaded;
 
-    Response ret;
-    // preheat part
-    if ((data.Mode() == PreheatMode::Unload || data.Mode() == PreheatMode::Change_phase1) && Filaments::CurrentIndex() != filament_t::NONE) {
-        //do not preheat
-        ret = Filaments::Current().response; //fake response
+    filament_t filament = filament_t::NONE;
+
+    // Check if we are using operation which can get temp from printer and check if it can get the temp from available info (inserted filament or set temperature in temperature menu and no filament inserted)
+    if (tempKnownWithoutUser && ((Filaments::CurrentIndex() != filament_t::NONE) || (Filaments::CurrentIndex() == filament_t::NONE && !thermalManager.targetTooColdToExtrude(0)))) {
+        // We can get temperature without user telling us
+
+        // get the filament temps if we have any filament
+        Response ret = Filaments::Current().response;
+        filament = Filaments::Find(ret);
+        const Filament &fil_cnf = Filaments::Get(filament);
+
+        // change set temp only if it is lower than currently loaded filament
+        if (thermalManager.degTargetHotend(0) < fil_cnf.nozzle) {
+            thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
+            marlin_server_set_temp_to_display(fil_cnf.nozzle);
+            thermalManager.setTargetBed(fil_cnf.heatbed);
+        }
+
     } else {
+        // we need to ask the user for temperature
+
+        Response ret;
         FSM_Holder H(ClientFSM::Preheat, uint8_t(val)); // this must remain inside scope
         while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
             idle(true, true);
         }
-    }
 
-    filament_t filament = Filaments::Find(ret);
+        filament = Filaments::Find(ret);
 
-    if (filament == filament_t::NONE) {
-        switch (ret) {
-        case Response::Abort:
-            return PreheatStatus::Result::Aborted;
-        case Response::Cooldown:
-            return PreheatStatus::Result::CooledDown;
-        default: //should not happen
-            return PreheatStatus::Result::Error;
+        // No filament selected or selected cooldown when it is possible
+        if (filament == filament_t::NONE) {
+            switch (ret) {
+            case Response::Abort:
+                return PreheatStatus::Result::Aborted;
+            case Response::Cooldown:
+                return PreheatStatus::Result::CooledDown;
+            default: // should not happen
+                return PreheatStatus::Result::Error;
+            }
         }
-    }
 
-    //filament != filament_t::NONE
-    const Filament &fil_cnf = Filaments::Get(filament);
-    thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
-    thermalManager.setTargetBed(fil_cnf.heatbed);
-    marlin_server_set_temp_to_display(fil_cnf.nozzle);
+        //filament != filament_t::NONE
+        const Filament &fil_cnf = Filaments::Get(filament);
+        thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
+        thermalManager.setTargetBed(fil_cnf.heatbed);
+        marlin_server_set_temp_to_display(fil_cnf.nozzle);
+    }
 
     switch (data.Mode()) {
     case PreheatMode::None:
@@ -223,7 +242,7 @@ static PreheatStatus::Result M1400_no_parser(uint32_t val) {
         return PreheatStatus::Result::DoneHasFilament;
     case PreheatMode::Unload:
         Pause::Instance().SetUnloadLength(NAN);
-        load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS,X_AXIS_UNLOAD_POS);
+        load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
         return PreheatStatus::Result::DoneNoFilament;
     case PreheatMode::Change_phase1:
         Pause::Instance().SetUnloadLength(NAN);
@@ -237,7 +256,7 @@ static PreheatStatus::Result M1400_no_parser(uint32_t val) {
         }
     case PreheatMode::Unload_askUnloaded:
         Pause::Instance().SetUnloadLength(NAN);
-        load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload_AskUnloaded, Z_AXIS_UNLOAD_POS,X_AXIS_UNLOAD_POS);
+        load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload_AskUnloaded, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
         return PreheatStatus::Result::DoneNoFilament;
     default:
         return PreheatStatus::Result::Error;
@@ -281,7 +300,7 @@ void PrusaGcodeSuite::M1400() {
         thermalManager.setTargetHotend(Filaments::PreheatTemp, 0);
         break;
     case PreheatStatus::Result::CooledDown:
-        //set temperatures to zero
+        // set temperatures to zero
         thermalManager.setTargetHotend(0, 0);
         thermalManager.setTargetBed(0);
         marlin_server_set_temp_to_display(0);
@@ -289,9 +308,9 @@ void PrusaGcodeSuite::M1400() {
     case PreheatStatus::Result::DoneNoFilament:
     case PreheatStatus::Result::Aborted:
     case PreheatStatus::Result::Error:
-    case PreheatStatus::Result::DidNotFinish: //cannot happen
+    case PreheatStatus::Result::DidNotFinish: // cannot happen
     default:
-        break; //do not alter temp
+        break; // do not alter temp
     }
 
     //store result, so other threads can see it
