@@ -109,6 +109,16 @@ class Pause : public PausePrivatePhase {
     enum class is_standalone_t : bool { no,
         yes };
 
+    enum class unload_mode_t {
+        standalone,
+        change_filament,
+        ask_unloaded
+    };
+    enum class load_mode_t {
+        standalone,
+        change_filament
+    };
+
     static constexpr const float heating_phase_min_hotend_diff = 5.0F;
 
     //this values must be set before every load/unload
@@ -141,6 +151,7 @@ public:
     void SetResumePoint(const xyze_pos_t &resume_point);
 
     bool FilamentUnload();
+    bool FilamentUnload_AskUnloaded();
     bool FilamentLoad();
     void FilamentChange();
 
@@ -150,10 +161,10 @@ private:
     uint32_t parkMoveXYPercent(float z_move_len, float xy_move_len) const;
     bool parkMoveXGreaterThanY(const xyz_pos_t &pos0, const xyz_pos_t &pos1) const;
 
-    bool filamentUnload(is_standalone_t standalone); // does not create FSM_HolderLoadUnload
-    bool filamentLoad(is_standalone_t standalone);   // does not create FSM_HolderLoadUnload
-    bool loadLoop(is_standalone_t standalone);
-    void unloadLoop(is_standalone_t standalone);
+    bool filamentUnload(unload_mode_t mode); // does not create FSM_HolderLoadUnload
+    bool filamentLoad(load_mode_t mode);     // does not create FSM_HolderLoadUnload
+    bool loadLoop(load_mode_t mode);
+    void unloadLoop(unload_mode_t mode);
     void unpark_nozzle_and_notify();
     void park_nozzle_and_notify();
     bool is_target_temperature_safe();

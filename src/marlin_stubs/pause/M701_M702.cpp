@@ -159,6 +159,24 @@ void GcodeSuite::M702() {
         LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
 }
 
+/**
+ * @brief parser independed code of M1400
+ *
+ * @param val
+ * [0 - 2] PreheatMode - 0 None
+ *                     - 1 Load
+ *                     - 2 Unload
+ *                     - 3 Purge
+ *                     - 4 Change_phase1 == unload + recursively call Change_phase2
+ *                     - 5 Change_phase2 (internal use only, do load)
+ *                     - 6 Unload, with unloaded check
+ * [3 - 5] reserved
+ * [6] has return option
+ * [7] has cooldown option, PreheatMode must be PreheatMode::None, othervise ignored
+ * [8 - 31] reserved
+ *
+ * @return PreheatStatus::Result
+ */
 static PreheatStatus::Result M1400_no_parser(uint32_t val) {
     const PreheatData data(val);
 
@@ -204,6 +222,9 @@ static PreheatStatus::Result M1400_no_parser(uint32_t val) {
         M701_no_parser(filament, pause.GetDefaultFastLoadLength());
         return PreheatStatus::Result::DoneHasFilament;
     case PreheatMode::Unload:
+        Pause::Instance().SetUnloadLength(NAN);
+        load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS,X_AXIS_UNLOAD_POS);
+        return PreheatStatus::Result::DoneNoFilament;
     case PreheatMode::Change_phase1:
         Pause::Instance().SetUnloadLength(NAN);
         load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
@@ -214,6 +235,10 @@ static PreheatStatus::Result M1400_no_parser(uint32_t val) {
         } else {
             return PreheatStatus::Result::DoneNoFilament;
         }
+    case PreheatMode::Unload_askUnloaded:
+        Pause::Instance().SetUnloadLength(NAN);
+        load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload_AskUnloaded, Z_AXIS_UNLOAD_POS,X_AXIS_UNLOAD_POS);
+        return PreheatStatus::Result::DoneNoFilament;
     default:
         return PreheatStatus::Result::Error;
     }
@@ -242,17 +267,7 @@ static void setResult(Result res) {
  * M1400: Preheat
  * not meant to be used during print
  *
- *  S<bit fields value> - [0 - 2] PreheatMode - 0 None
- *                                            - 1 Load
- *                                            - 2 Unload
- *                                            - 3 Purge
- *                                            - 4 Change_phase1 == unload + recursively call Change_phase2
- *                                            - 5 Change_phase2 (internal use only, do load)
- *                      - [3 - 5] reserved
- *                      - [6] has return option
- *                      - [7] has cooldown option, PreheatMode must be PreheatMode::None, othervise ignored
- *                      - [8 - 31] reserved
- *
+ *  S<bit fields value> check M1400_no_parser
  *  Default value S0
  */
 void PrusaGcodeSuite::M1400() {
