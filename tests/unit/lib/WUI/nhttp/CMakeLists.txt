@@ -5,7 +5,6 @@ add_executable(
   # Not really tests, just stuffings to satisfy the linker.
   ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.c
   # Some handlers are stubbed out.
-  ${CMAKE_CURRENT_SOURCE_DIR}/mock_handlers.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/server_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/jsmn_impl.c
   ${CMAKE_CURRENT_SOURCE_DIR}/job_command_tests.cpp
@@ -15,6 +14,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/multipart_parser.c
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/file_info.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/gen_once.cpp
+  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/gcode_upload.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/upload_state.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/gcode_preview.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/server.cpp

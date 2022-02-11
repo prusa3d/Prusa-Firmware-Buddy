@@ -4,6 +4,7 @@
 #include "../nhttp/gcode_upload.h"
 #include "../nhttp/job_command.h"
 #include "../wui_REST_api.h"
+#include "../wui_api.h"
 
 #include <cstring>
 #include <cstdio>
@@ -73,7 +74,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
         return get_only(SendStaticMemory("{\"printer\": {}}", ContentType::ApplicationJson, parser.can_keep_alive()));
     } else if (remove_prefix(suffix, "files").has_value()) {
         if (parser.method == Method::Post) {
-            auto upload = GcodeUpload::start(parser);
+            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode);
             /*
              * So, we have a "smaller" variant (eg. variant<A, B, C>) and
              * want a "bigger" variant<A, B, C, D, E>. C++ templates can't
