@@ -178,34 +178,11 @@ const char *wui_generate_api_key(char *, uint32_t);
 void wui_store_api_key(char *, uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
-/// @brief Prepare file descriptor to upload the file
+/// @brief A new gcode was uploaded, take appropriate actions
 ///
-/// @param[in] filename Name of the file to start uploading
-/// @return
-///   - 0 For success
-///   - Otherwise a http error code to use.
-uint16_t wui_upload_begin(const char *);
-
-////////////////////////////////////////////////////////////////////////////
-/// @brief Writting received data on already prepared file descriptor
-///
-/// @param[in] buffer Received file data
-/// @param[in] length Size of the buffer
-/// @return
-///    - 0 for success
-///    - http error code to use.
-uint16_t wui_upload_data(const char *, size_t);
-
-////////////////////////////////////////////////////////////////////////////
-/// @brief Finalize upload of the file
-///
-/// @param[in] oldFilename Temporary file name
-/// @param[in] newFilename Regular file name
-/// @param[in] startPrint true if print shall start after upload
-/// @return
-///     - 0 for success
-///     - http error code to use
-uint16_t wui_upload_finish(const char *, const char *, bool);
+/// @param[in] path Path to the gcode file
+/// @param[in] start_print Should the print be started right away (if possible)?
+void wui_uploaded_gcode(const char *path, bool start_print);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Return the number of gcodes uploaded since boot.

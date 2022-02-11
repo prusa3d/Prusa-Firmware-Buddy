@@ -17,7 +17,6 @@
 #include "stm32f4xx_hal.h"
 #include "print_utils.hpp"
 #include "marlin_client.h"
-#include "../../src/common/gcode_filename.h"
 
 #include <assert.h>
 #include <time.h>
@@ -29,12 +28,6 @@
 #define USB_MOUNT_POINT_LENGTH 5
 
 extern RTC_HandleTypeDef hrtc;
-
-// FIXME: These need to go and get wrapped into something
-// For parallel uploads
-uint32_t start_print = 0;
-static FILE *upload_file = NULL;
-static char tmp_filename[FILE_NAME_BUFFER_LEN];
 
 static bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
@@ -365,46 +358,15 @@ void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp) {
     localtime_r(&current_time, timestamp);
 }
 
-uint16_t wui_upload_begin(const char *fname) {
-    // FIXME: We should start a new, independent download instead of using globals.
-    // Reset to a new upload.
-    upload_file = NULL;
-    const size_t fname_length = strlen(fname);
-
-    if ((fname_length + USB_MOUNT_POINT_LENGTH) < sizeof(tmp_filename)) {
-        strcpy(tmp_filename, USB_MOUNT_POINT);
-        strcpy(tmp_filename + USB_MOUNT_POINT_LENGTH, fname);
-        upload_file = fopen(tmp_filename, "w");
-        if (upload_file == NULL) {
-            // Missing USB -> Insufficient storage.
-            return 507;
-        } else {
-            return 0;
-        }
-    } else {
-        assert(0);
-        // Our own screwup, too long temp file name.
-        return 500;
-    }
+uint32_t wui_gcodes_uploaded() {
+    return uploaded_gcodes;
 }
 
-uint16_t wui_upload_data(const char *data, size_t length) {
-    assert(upload_file);
-    const size_t written = fwrite(data, sizeof(char), length, upload_file);
-    if (written < length) {
-        // Data won't fit into the flash drive -> Insufficient stogare.
-        fclose(upload_file);
-        upload_file = NULL;
-        remove(tmp_filename);
-        memset(tmp_filename, 0, sizeof(tmp_filename));
-        return 507;
-    } else {
-        return 0;
-    }
-}
+void wui_uploaded_gcode(const char *filename, bool start_print) {
+    uploaded_gcodes++;
 
-uint16_t wui_upload_finish(const char *old_filename, const char *new_filename, bool start) {
-    uint16_t error_code = 0;
+    (void)filename;
+    (void)start_print;
     /*
      * TODO: Starting print of the just-uploaded file is temporarily disabled.
      *
@@ -413,57 +375,7 @@ uint16_t wui_upload_finish(const char *old_filename, const char *new_filename, b
      * Once we have time to deal with all the corner-cases, race conditions and
      * collisions caused by that possibility, we will re-enable.
      */
-    if (start) {
-        // We don't implement starting a print yet. Sorry.
-        error_code = 501;
-        start = 0;
-    }
-    const uint32_t fname_length = strlen(new_filename);
-    int result = 0;
-
-    fclose(upload_file);
-    upload_file = NULL;
-
-    if (new_filename == NULL) {
-        // Client aborted the upload/it ended in the middle. Clean up things only.
-        // The error doesn't particularly matter, because the connection is dead anyway.
-        error_code = 400;
-        goto clean_temp_file;
-    }
-
-    if (!filename_is_gcode(new_filename)) {
-        error_code = 415;
-        goto clean_temp_file;
-    }
-
-    char filename[FILE_NAME_BUFFER_LEN];
-    if ((fname_length + USB_MOUNT_POINT_LENGTH) >= sizeof(filename)) {
-        // The Request header fields too large is a bit of a stretch...
-        error_code = 431;
-        goto clean_temp_file;
-    } else {
-        strlcpy(filename, USB_MOUNT_POINT, USB_MOUNT_POINT_LENGTH + 1);
-        strlcat(filename, new_filename, FILE_PATH_BUFFER_LEN - USB_MOUNT_POINT_LENGTH);
-    }
-
-    result = rename(tmp_filename, filename);
-    if (result != 0) {
-        // Most likely the file name already exists and rename refuses to overwrite (409 conflict).
-        // It could _also_ be weird file name/forbidden chars that contain (422 Unprocessable Entity).
-        // Try to guess which one.
-        FILE *attempt = fopen(filename, "r");
-        if (attempt) {
-            fclose(attempt);
-            error_code = 409;
-        } else {
-            error_code = 422;
-        }
-        goto clean_temp_file;
-    }
-
-    // We have it in place, success!
-    uploaded_gcodes++;
-
+#if 0
     if (marlin_vars()->sd_printing && start) {
         error_code = 409;
         goto return_error_code;
@@ -475,14 +387,5 @@ uint16_t wui_upload_finish(const char *old_filename, const char *new_filename, b
         start_print = start;
         goto return_error_code;
     }
-
-clean_temp_file:
-    remove(tmp_filename);
-    memset(tmp_filename, 0, sizeof(tmp_filename));
-return_error_code:
-    return error_code;
-}
-
-uint32_t wui_gcodes_uploaded() {
-    return uploaded_gcodes;
+#endif
 }

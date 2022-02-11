@@ -8,6 +8,9 @@
 #include <optional>
 #include <vector>
 
+using nhttp::Status;
+using std::get;
+using std::make_tuple;
 using std::nullopt;
 using std::optional;
 using std::string;
@@ -21,115 +24,69 @@ namespace {
 #define CRLF        "\r\n"
 #define GCODE_LINE1 "G1 X0 Y0 Z0 E0 F0"
 
-struct Start {
-    string filename;
-};
-
 struct Finish {
-    string tmp_filename;
-    optional<string> final_filename;
+    string final_filename;
     bool print;
 };
 
-struct Log {
-    optional<Start> start = nullopt;
-    optional<Finish> finish = nullopt;
-    vector<string> data;
-
-    void gcode_start(const char *filename) {
-        REQUIRE_FALSE(start.has_value());
-        REQUIRE_FALSE(finish.has_value());
-        REQUIRE(data.size() == 0);
-        start = Start { string(filename) };
-    }
-
-    void gcode_data(const char *data, size_t len) {
-        REQUIRE(start.has_value());
-        REQUIRE_FALSE(finish.has_value());
-        this->data.push_back(string(data, len));
-    }
-
-    void gcode_finish(const char *tmp_filename, const char *final_filename, bool print) {
-        REQUIRE(start.has_value());
-        REQUIRE_FALSE(finish.has_value());
-        finish = Finish {
-            string(tmp_filename),
-            (final_filename != nullptr) ? make_optional(string(final_filename)) : nullopt,
-            print
-        };
-    }
-};
-
-/*
- * For now, this is a singleton. Ugly, but that'll change once we support
- * multiple parallel uploads.
- */
-class FakeHandlers {
-private:
-    FakeHandlers() {}
-    static FakeHandlers instance;
-    static uint16_t start(const char *filename) {
-        instance.log.gcode_start(filename);
-        return 0;
-    }
-    static uint16_t data(const char *data, size_t len) {
-        instance.log.gcode_data(data, len);
-        return 0;
-    }
-    static uint16_t finish(const char *tmp_filename, const char *final_filename, bool print) {
-        instance.log.gcode_finish(tmp_filename, final_filename, print);
-        return 0;
-    }
-
+class Log : public nhttp::printer::UploadHooks {
 public:
-    static const constexpr UploadHandlers handlers = {
-        start, data, finish
-    };
-    static FakeHandlers &get() {
-        return instance;
+    optional<Finish> termination = nullopt;
+    vector<string> chunks;
+
+    virtual Result data(string_view data) override {
+        REQUIRE_FALSE(termination.has_value());
+        chunks.push_back(string(data));
+        return make_tuple(Status::Ok, nullptr);
     }
-    Log log;
-    void clear() {
-        log = Log();
+
+    virtual Result finish(const char *final_filename, bool start_print) override {
+        REQUIRE_FALSE(termination.has_value());
+        termination = Finish {
+            string(final_filename),
+            start_print
+        };
+        return make_tuple(Status::Ok, nullptr);
     }
 };
 
-FakeHandlers FakeHandlers::instance;
-
-uint16_t broken_data(const char *, size_t) {
-    // The error answer to The Life, Universe and Everything
-    return 542;
-}
+class BrokenData : public Log {
+public:
+    virtual Result data(string_view data) override {
+        Log::data(data);
+        return make_tuple(Status::IMATeaPot, "Bheeeeee");
+    }
+};
 
 class Test {
 public:
-    unique_ptr<Uploader, bool (*)(Uploader *)> uploader;
+    unique_ptr<Log> log_hooks;
+    nhttp::printer::UploadState uploader;
     Test()
-        : uploader(nullptr, uploader_finish) {
-        reinit_handlers(&FakeHandlers::handlers);
+        : log_hooks(new Log())
+        , uploader(BOUNDARY) {
+        uploader.setup(log_hooks.get());
     }
 
-    void reinit_handlers(const UploadHandlers *handlers) {
-        // Get rid of the old one (if any) first, so it doesn't log to the new log.
-        uploader.reset();
-        FakeHandlers::get().clear();
-        uploader.reset(uploader_init(BOUNDARY, handlers));
+    void change_hooks(Log *l) {
+        log_hooks.reset(l);
+        uploader.setup(log_hooks.get());
     }
-    bool finish() {
-        auto ptr = uploader.release();
-        return uploader_finish(ptr);
+
+    bool done() {
+        return uploader.done();
     }
 
     const Log &log() const {
-        return FakeHandlers::get().log;
+        return *log_hooks.get();
     }
 
     void feed(const string_view &data) {
-        uploader_feed(uploader.get(), data.begin(), data.size());
+        uploader.feed(data);
     }
 
-    uint16_t error() {
-        return uploader_error(uploader.get());
+    Status error() {
+        return get<0>(uploader.get_error());
     }
 };
 
@@ -138,11 +95,9 @@ public:
 // This simply creates and destroyes the parsers and checks that nothing "happens"
 TEST_CASE("Unused") {
     Test test;
-    REQUIRE_FALSE(test.finish());
-    REQUIRE(test.log().start.has_value());
-    REQUIRE(test.log().finish.has_value());
-    REQUIRE_FALSE(test.log().finish->final_filename.has_value());
-    REQUIRE(test.log().data.empty());
+    REQUIRE_FALSE(test.done());
+    REQUIRE_FALSE(test.log().termination.has_value());
+    REQUIRE(test.log().chunks.empty());
 }
 
 /*
@@ -237,23 +192,14 @@ TEST_CASE("One Big Chunk") {
     Test test;
     test.feed(OK_FORM);
 
-    REQUIRE(test.error() == 0);
-
-    SECTION("With close") {
-        REQUIRE(test.finish());
-    }
-
-    SECTION("Without close") {}
+    REQUIRE(test.error() == Status::Ok);
 
     const auto &log = test.log();
-    REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "upload.tmp");
-    REQUIRE(log.data.size() == 1);
-    REQUIRE(log.data[0] == GCODE_LINE1);
-    REQUIRE(log.finish.has_value());
-    REQUIRE(log.finish->tmp_filename == "upload.tmp");
-    REQUIRE(log.finish->final_filename == "test.gcode");
-    REQUIRE_FALSE(log.finish->print);
+    REQUIRE(log.chunks.size() == 1);
+    REQUIRE(log.chunks[0] == GCODE_LINE1);
+    REQUIRE(log.termination.has_value());
+    REQUIRE(log.termination->final_filename == "test.gcode");
+    REQUIRE_FALSE(log.termination->print);
 }
 
 TEST_CASE("Handling multiple parts") {
@@ -276,15 +222,12 @@ TEST_CASE("Handling multiple parts") {
     }
 
     const auto &log = test.log();
-    REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "upload.tmp");
-    REQUIRE(log.data.size() == 1);
-    REQUIRE(log.data[0] == GCODE_LINE1);
-    REQUIRE(log.finish.has_value());
-    REQUIRE(log.finish->tmp_filename == "upload.tmp");
-    REQUIRE(log.finish->final_filename == "test.gcode");
-    REQUIRE(log.finish->print == expect_start);
-    REQUIRE(test.error() == 0);
+    REQUIRE(log.chunks.size() == 1);
+    REQUIRE(log.chunks[0] == GCODE_LINE1);
+    REQUIRE(log.termination.has_value());
+    REQUIRE(log.termination->final_filename == "test.gcode");
+    REQUIRE(log.termination->print == expect_start);
+    REQUIRE(test.error() == Status::Ok);
 }
 
 // Chunk it into small parts. Go as far as single characters to go to the
@@ -298,18 +241,15 @@ TEST_CASE("Chunked") {
     }
 
     const auto &log = test.log();
-    REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "upload.tmp");
     string result;
-    for (const auto &chunk : log.data) {
+    for (const auto &chunk : log.chunks) {
         result += chunk;
     }
     REQUIRE(result == GCODE_LINE1);
-    REQUIRE(log.finish.has_value());
-    REQUIRE(log.finish->tmp_filename == "upload.tmp");
-    REQUIRE(log.finish->final_filename == "test.gcode");
-    REQUIRE(log.finish->print);
-    REQUIRE(test.error() == 0);
+    REQUIRE(log.termination.has_value());
+    REQUIRE(log.termination->final_filename == "test.gcode");
+    REQUIRE(log.termination->print);
+    REQUIRE(test.error() == Status::Ok);
 }
 
 TEST_CASE("Extra spaces") {
@@ -317,15 +257,12 @@ TEST_CASE("Extra spaces") {
     test.feed(EXTRA_SPACES);
 
     const auto &log = test.log();
-    REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "upload.tmp");
-    REQUIRE(log.data.size() == 1);
-    REQUIRE(log.data[0] == GCODE_LINE1);
-    REQUIRE(log.finish.has_value());
-    REQUIRE(log.finish->tmp_filename == "upload.tmp");
-    REQUIRE(log.finish->final_filename == "test.gcode");
-    REQUIRE_FALSE(log.finish->print);
-    REQUIRE(test.error() == 0);
+    REQUIRE(log.chunks.size() == 1);
+    REQUIRE(log.chunks[0] == GCODE_LINE1);
+    REQUIRE(log.termination.has_value());
+    REQUIRE(log.termination->final_filename == "test.gcode");
+    REQUIRE_FALSE(log.termination->print);
+    REQUIRE(test.error() == Status::Ok);
 }
 
 TEST_CASE("Prolog and epilogue") {
@@ -337,43 +274,34 @@ TEST_CASE("Prolog and epilogue") {
     test.feed(all);
 
     const auto &log = test.log();
-    REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "upload.tmp");
-    REQUIRE(log.data.size() == 1);
-    REQUIRE(log.data[0] == GCODE_LINE1);
-    REQUIRE(log.finish.has_value());
-    REQUIRE(log.finish->tmp_filename == "upload.tmp");
-    REQUIRE(log.finish->final_filename == "test.gcode");
-    REQUIRE_FALSE(log.finish->print);
-    REQUIRE(test.error() == 0);
+    REQUIRE(log.chunks.size() == 1);
+    REQUIRE(log.chunks[0] == GCODE_LINE1);
+    REQUIRE(log.termination.has_value());
+    REQUIRE(log.termination->final_filename == "test.gcode");
+    REQUIRE_FALSE(log.termination->print);
+    REQUIRE(test.error() == Status::Ok);
 }
 
 TEST_CASE("No filename") {
     Test test;
     test.feed(NO_FILENAME);
-    REQUIRE(test.error() == 400);
-    REQUIRE_FALSE(test.finish());
+    REQUIRE(test.error() == Status::BadRequest);
+    REQUIRE_FALSE(test.done());
 
     const auto &log = test.log();
-    REQUIRE(log.start.has_value());
-    REQUIRE(log.finish.has_value());
-    REQUIRE_FALSE(log.finish->final_filename.has_value());
-    REQUIRE(log.data.size() == 0);
+    REQUIRE_FALSE(log.termination.has_value());
+    REQUIRE(log.chunks.size() == 0);
 }
 
 TEST_CASE("Incomplete upload") {
     Test test;
     test.feed(INCOMPLETE);
-    REQUIRE(test.error() == 0);
-    test.finish();
+    REQUIRE(test.error() == 200);
 
     const auto &log = test.log();
-    REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "upload.tmp");
-    REQUIRE(log.data.size() == 1);
-    REQUIRE(log.data[0] == GCODE_LINE1);
-    REQUIRE(log.finish.has_value());
-    REQUIRE_FALSE(log.finish->final_filename.has_value());
+    REQUIRE(log.chunks.size() == 1);
+    REQUIRE(log.chunks[0] == GCODE_LINE1);
+    REQUIRE_FALSE(log.termination.has_value());
 }
 
 TEST_CASE("Malformed") {
@@ -381,28 +309,53 @@ TEST_CASE("Malformed") {
     test.feed(MALFORMED);
 
     const auto &log = test.log();
-    REQUIRE(log.start.has_value());
-    REQUIRE(log.data.size() == 0);
-    REQUIRE_FALSE(log.finish.has_value());
-    REQUIRE(test.error() == 400);
-    REQUIRE_FALSE(test.finish());
-    REQUIRE(log.finish.has_value());
-    REQUIRE_FALSE(log.finish->final_filename.has_value());
+    REQUIRE(log.chunks.size() == 0);
+    REQUIRE_FALSE(log.termination.has_value());
+    REQUIRE(test.error() == Status::BadRequest);
+    REQUIRE_FALSE(test.done());
+    REQUIRE(!log.termination.has_value());
 }
 
 TEST_CASE("Propagate errors from hooks") {
     Test test;
-    UploadHandlers with_broken = FakeHandlers::handlers;
-    with_broken.data = broken_data;
-    test.reinit_handlers(&with_broken);
+    test.change_hooks(new BrokenData);
     test.feed(OK_FORM);
 
-    REQUIRE(test.error() == 542);
+    REQUIRE(test.error() == Status::IMATeaPot);
 
     const auto &log = test.log();
-    REQUIRE(log.start.has_value());
-    REQUIRE(log.start->filename == "upload.tmp");
-    REQUIRE_FALSE(log.finish.has_value());
+    REQUIRE_FALSE(log.termination.has_value());
 }
 
-// TODO: Parallel uploads
+TEST_CASE("Multiple uploads") {
+    Test test1;
+    Test test2;
+
+    const auto data = string_view(DO_PRINT);
+    for (const char *c = data.begin(); c != data.end(); c++) {
+        test1.feed(string_view(c, 1));
+        test2.feed(string_view(c, 1));
+    }
+
+    const auto &log1 = test1.log();
+    string result;
+    for (const auto &chunk : log1.chunks) {
+        result += chunk;
+    }
+    REQUIRE(result == GCODE_LINE1);
+    REQUIRE(log1.termination.has_value());
+    REQUIRE(log1.termination->final_filename == "test.gcode");
+    REQUIRE(log1.termination->print);
+
+    const auto &log2 = test1.log();
+    result.clear();
+    for (const auto &chunk : log2.chunks) {
+        result += chunk;
+    }
+    REQUIRE(result == GCODE_LINE1);
+    REQUIRE(log2.termination.has_value());
+    REQUIRE(log2.termination->final_filename == "test.gcode");
+    REQUIRE(log2.termination->print);
+    REQUIRE(test2.error() == Status::Ok);
+    REQUIRE(test2.error() == Status::Ok);
+}
