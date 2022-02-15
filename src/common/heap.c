@@ -100,3 +100,7 @@ void __malloc_unlock(struct _reent *r) {
     if (malloc_lock_counter == 0)
         EXIT_CRITICAL_SECTION(malloc_saved_interrupt_status);
 };
+
+uint32_t mem_is_heap_allocated(const void *ptr) {
+    return (ptr >= (void *)&__HeapBase && ptr < (void *)&__HeapLimit);
+}

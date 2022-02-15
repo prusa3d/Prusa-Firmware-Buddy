@@ -23,7 +23,11 @@ void Buddy::Metrics::RecordRuntimeStats() {
     if (ticks_diff(ticks_ms(), last_recorded_ticks) > 3000) {
         int count = uxTaskGetSystemState(task_statuses, sizeof(task_statuses) / sizeof(task_statuses[1]), NULL);
         for (int idx = 0; idx < count; idx++) {
-            size_t s = malloc_usable_size(task_statuses[idx].pxStackBase);
+            const char *stack_base = (char *)task_statuses[idx].pxStackBase;
+            size_t s = 0;
+            /* We can only report free stack space for heap-allocated stack frames. */
+            if (mem_is_heap_allocated(stack_base))
+                s = malloc_usable_size((void *)stack_base);
             const char *task_name = task_statuses[idx].pcTaskName;
             if (strcmp(task_name, "Tmr Svc") == 0)
                 task_name = "TmrSvc";
