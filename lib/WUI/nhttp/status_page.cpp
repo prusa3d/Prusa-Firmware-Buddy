@@ -23,12 +23,19 @@ Step StatusPage::step(std::string_view, bool, uint8_t *output, size_t output_siz
     if (status == Status::NoContent) {
         content_buffer[0] = 0;
     } else {
-        snprintf(content_buffer, sizeof(content_buffer), "<html><body><h1>%u: %s</h1><p>%s", static_cast<unsigned>(status), text.text, extra_content);
+        snprintf(content_buffer, sizeof(content_buffer), "%u: %s\n\n%s\n", static_cast<unsigned>(status), text.text, extra_content);
     }
 
     ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ContentLengthKeep : ConnectionHandling::Close;
 
-    size_t used_up = write_headers(output, output_size, status, ContentType::TextHtml, handling, strlen(content_buffer), text.extra_hdrs);
+    /*
+     * TODO: We might also want to include the Content-Location header with a
+     * link to html version of the error. How to pass the extra text needs to
+     * be solved.
+     *
+     * https://dev.prusa3d.com/browse/BFW-2451
+     */
+    size_t used_up = write_headers(output, output_size, status, ContentType::TextPlain, handling, strlen(content_buffer), text.extra_hdrs);
     size_t rest = output_size - used_up;
     size_t write = std::min(strlen(content_buffer), rest);
     // If we use up the whole buffer, there's no \0 at the end. We are fine
