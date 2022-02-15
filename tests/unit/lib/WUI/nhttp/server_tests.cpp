@@ -337,9 +337,9 @@ void check_index(const string &response) {
 void check_unauth(const string &response) {
     INFO("Response: " + response);
     REQUIRE(response.find("HTTP/1.1 401 Unauthorized\r\n") == 0);
-    REQUIRE(response.find("Content-Type: text/html") != string::npos);
+    REQUIRE(response.find("Content-Type: text/plain") != string::npos);
     REQUIRE(response.find("WWW-Authenticate: ApiKey") != string::npos);
-    REQUIRE(response.find("\r\n\r\n<html>") != string::npos);
+    REQUIRE(response.find("\r\n\r\n401: Unauthorized") != string::npos);
 }
 
 }
@@ -381,8 +381,8 @@ TEST_CASE("Not found") {
     const auto response = server.recv_all(client_conn);
     INFO("Response: " + response);
     REQUIRE(response.find("HTTP/1.1 404 Not Found\r\n") == 0);
-    REQUIRE(response.find("Content-Type: text/html") != string::npos);
-    REQUIRE(response.find("\r\n\r\n<html>") != string::npos);
+    REQUIRE(response.find("Content-Type: text/plain") != string::npos);
+    REQUIRE(response.find("\r\n\r\n404: Not Found") != string::npos);
 }
 
 TEST_CASE("Authenticated") {
