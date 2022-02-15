@@ -51,7 +51,11 @@
 #define DO_NOT_RESTORE_Z_AXIS
 static const constexpr size_t Z_AXIS_LOAD_POS = 40;
 static const constexpr size_t Z_AXIS_UNLOAD_POS = 20;
+#ifdef NOZZLE_PARK_POINT_M600
 static const constexpr size_t PARK_POINT[] = NOZZLE_PARK_POINT_M600;
+#else
+static const constexpr size_t PARK_POINT[] = NOZZLE_PARK_POINT;
+#endif
 static const constexpr size_t X_AXIS_LOAD_POS = PARK_POINT[0];
 static const constexpr size_t X_AXIS_UNLOAD_POS = PARK_POINT[0];
 
