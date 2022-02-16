@@ -17,6 +17,7 @@
 #include "stm32f4xx_hal.h"
 #include "print_utils.hpp"
 #include "marlin_client.h"
+#include "../../src/common/gcode_filename.h"
 
 #include <assert.h>
 #include <time.h>
@@ -434,7 +435,7 @@ uint16_t wui_upload_finish(const char *old_filename, const char *new_filename, b
         goto clean_temp_file;
     }
 
-    if (!strstr(new_filename, "gcode")) {
+    if (!filename_is_gcode(new_filename)) {
         error_code = 415;
         goto clean_temp_file;
     }

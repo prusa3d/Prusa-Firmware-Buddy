@@ -5,6 +5,7 @@
 #include "status_page.h"
 #include "../json_encode.h"
 #include "../../src/common/lfn.h"
+#include "../../src/common/gcode_filename.h"
 
 #include <cstring>
 #include <sys/stat.h>
@@ -51,11 +52,7 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
         struct dirent *ent;
         while ((ent = readdir(dir.get()))) {
             // Check this is GCODE, not some other thing. Skip the others.
-            const char *last_dot = strrchr(ent->d_name, '.');
-            if (last_dot == nullptr) {
-                continue;
-            }
-            if (strcasecmp(last_dot, ".gcode") != 0 && strcasecmp(last_dot, ".gco") != 0) {
+            if (!filename_is_gcode(ent->d_name)) {
                 continue;
             }
 
