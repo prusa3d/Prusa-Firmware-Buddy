@@ -147,6 +147,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             wifi_net_if->input = &wifi_input;
         }
         sendLink(1);
+        s_retry_num = 0;
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "got ip:%s",
