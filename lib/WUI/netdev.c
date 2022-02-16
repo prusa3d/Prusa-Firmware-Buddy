@@ -309,7 +309,7 @@ uint32_t netdev_set_dhcp(uint32_t netdev_id) {
     if (pConfig != NULL) {
         CHANGE_FLAG_TO_DHCP(pConfig->lan.flag);
         pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        save_net_params(pConfig, NULL, netdev_id);
+        save_net_params(pConfig, netdev_id == NETDEV_ESP_ID ? &ap : NULL, netdev_id);
         pConfig->var_mask = 0;
         return res;
     } else {
@@ -393,7 +393,7 @@ uint32_t netdev_set_static(uint32_t netdev_id) {
     if (pConfig != NULL) {
         CHANGE_FLAG_TO_STATIC(pConfig->lan.flag);
         pConfig->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        save_net_params(pConfig, NULL, netdev_id);
+        save_net_params(pConfig, netdev_id == NETDEV_ESP_ID ? &ap : NULL, netdev_id);
         pConfig->var_mask = 0;
         return res;
     } else {
