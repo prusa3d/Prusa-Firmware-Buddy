@@ -620,6 +620,7 @@ target_sources(
           src/common/w25x.c
           src/common/w25x_communication.cpp
           src/common/gcode_file.cpp
+          src/common/gcode_filename.cpp
           src/common/gcode_filter.cpp
           src/common/gcode_info.cpp
           src/common/gcode_thumb_decoder.cpp

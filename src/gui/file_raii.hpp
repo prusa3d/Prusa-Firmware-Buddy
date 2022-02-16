@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../common/gcode_filename.h"
 #include <stdio.h>
 #include "dirent.h"
 #include <strings.h>
@@ -27,24 +28,6 @@ struct F_DIR_RAII_Iterator {
         }
     }
 
-    static bool FnameMatchesPattern(const char *fname) {
-        size_t len = strlen(fname);
-        static const char gcode[] = ".gcode";
-        static const char gc[] = ".gc";
-        static const char g[] = ".g";
-        static const char gco[] = ".gco";
-
-        if (!strcasecmp(fname + len - sizeof(gcode) + 1, gcode))
-            return true;
-        if (!strcasecmp(fname + len - sizeof(gc) + 1, gc))
-            return true;
-        if (!strcasecmp(fname + len - sizeof(g) + 1, g))
-            return true;
-        if (!strcasecmp(fname + len - sizeof(gco) + 1, gco))
-            return true;
-        return false;
-    }
-
     /// @return true if a file/entry matching the requirements was found
     ///         false if there are no more files or an error iterating over a dir occured
     bool FindNext() {
@@ -62,7 +45,7 @@ struct F_DIR_RAII_Iterator {
             return true; // all normal directories are accepted
         }
         // files are being filtered by their extension
-        return FnameMatchesPattern(fno->d_name);
+        return filename_is_gcode(fno->d_name);
     }
 
     ~F_DIR_RAII_Iterator() {
