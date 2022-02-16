@@ -126,7 +126,10 @@ static err_t dummy_out(struct netif *netif, struct pbuf *p) {
     return 0;
 }
 
+static void steal();
+
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+    steal();
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
@@ -144,6 +147,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             wifi_net_if->input = &wifi_input;
         }
         sendLink(1);
+        s_retry_num = 0;
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "got ip:%s",
@@ -181,9 +185,9 @@ void wifi_init_sta(void) {
     //     wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     // }
 
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
+    // ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     // ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
-    ESP_ERROR_CHECK(esp_wifi_start() );
+    // ESP_ERROR_CHECK(esp_wifi_start() );
 
     // ESP_LOGI(TAG, "wifi_init_sta finished.");
 
@@ -237,8 +241,23 @@ static const char INTRON[] = {'U', 'N', 'U', '\x01'};
 
 
 static void sendDeviceInfo() {
-    if(!wifi_net_if || !uart_mtx) {
-        printf("Net is not available !!!\n\r");
+    if(!uart_mtx) {
+        printf("UART mutex not available !!!\n\r");
+        return;
+    }
+    if(!wifi_net_if) {
+        printf("Sending fake device info\n\r");
+        // TODO: This is a problem. Host waits for us to send device info so that it can setup is NIC. We are waiting
+        // for client info to start out Wifi. The clinet info is send once NIC is initialized (this makes sense).
+        // This break the cycle by sending fake MAC (would be much better to obtain MAC before starting wifi, or
+        // being able to restart wifi, or change associated AP)
+        //xSemaphoreTakeFromISR(uart_mtx, portMAX_DELAY);
+        uart_write_bytes(UART_NUM_0, INTRON, sizeof(INTRON));
+        const uint8_t t = MSG_DEVINFO;
+        uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
+        const uint8_t zero_len = 0;
+        uart_write_bytes(UART_NUM_0, (const char*)&zero_len, sizeof(zero_len));
+        // xSemaphoreGive(uart_mtx);
         return;
     }
 
@@ -346,7 +365,7 @@ static void readWifiClient() {
         wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     }
 
-    ESP_ERROR_CHECK(esp_wifi_stop());
+    // ESP_ERROR_CHECK(esp_wifi_stop());
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start());
@@ -458,6 +477,18 @@ static void uart_tx_thread(void *arg) {
     }
 }
 
+static void steal() {
+    wifi_net_if = netif_find("en1");
+    if(!wifi_net_if) {
+        return;
+    }
+	wifi_net_if->input = &wifi_input;
+    if(wifi_net_if->linkoutput != &dummy_out) {
+        out = wifi_net_if->linkoutput;
+        wifi_net_if->linkoutput = &dummy_out;
+    }
+}
+
 void app_main() {
     printf("APP MAIN ENTRY\n");
 
@@ -470,7 +501,7 @@ void app_main() {
     // Configure parameters of an UART driver,
     // communication pins and install the driver
     uart_config_t uart_config = {
-        .baud_rate = 1500000, //921600,
+        .baud_rate = 1000000, //1500000, //921600,
         .data_bits = UART_DATA_8_BITS,
         .parity    = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
@@ -489,12 +520,8 @@ void app_main() {
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
-    wifi_net_if = netif_find("en1");
-    wifi_net_if->input = &wifi_input;
-    out = wifi_net_if->linkoutput;
-    wifi_net_if->linkoutput = &dummy_out;
 
-    sendDeviceInfo();
+    steal();
 
 #if LWIP_NETIF_STATUS_CALLBACK
     netif_set_status_callback(&pppos_netif, netif_status_callback);
@@ -507,4 +534,7 @@ void app_main() {
     xTaskCreate(&wifi_egress_thread, "wifi_egress_thread", 2048, NULL, 12 /*tskIDLE_PRIORITY*/, NULL);
     printf("Creating TX thread");
     xTaskCreate(&uart_tx_thread, "uart_tx_thread", 2048, NULL, 14 /*tskIDLE_PRIORITY*/, NULL);
+    printf("Waiting 1s before sending device info\n\r");
+    // Send initial device info to let master know ESP is ready
+    sendDeviceInfo();
 }
