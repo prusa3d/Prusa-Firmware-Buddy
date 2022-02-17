@@ -121,6 +121,15 @@ ExecutionControl RequestParser::event(Event event) {
             version_minor = 10 * version_minor + (event.payload - '0');
             return ExecutionControl::Continue;
         }
+    case Names::IfNoneMatch:
+        /*
+         * We use numeric etags. If we get anything else, it's probably bogus
+         * and won't match anyway... so let's just ignore it.
+         */
+        if (event.payload >= '0' && event.payload <= '9') {
+            if_none_match = 10 * if_none_match + (event.payload - '0');
+        }
+        return ExecutionControl::Continue;
     case Names::ConnectionClose:
         connection = Connection::Close;
         break;
