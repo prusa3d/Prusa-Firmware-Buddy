@@ -30,6 +30,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/gcode_thumb_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode_filename.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/sha256.c
   # Dependencies.
   # It seems it's not possible to just link the damn LwIP library:
   # * Somehow, the target_link_libraries directive poisons include

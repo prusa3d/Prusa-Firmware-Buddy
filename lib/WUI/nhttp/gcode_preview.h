@@ -18,12 +18,14 @@ private:
         }
     };
     std::unique_ptr<FILE, FileDeleter> gcode;
+    std::optional<uint32_t> etag;
     GCodeThumbDecoder decoder;
     bool headers_sent = false;
     bool can_keep_alive;
+    bool etag_matches = false;
 
 public:
-    GCodePreview(FILE *f, bool can_keep_alive, uint16_t width, uint16_t height);
+    GCodePreview(FILE *f, const char *path, bool can_keep_alive, uint16_t width, uint16_t height, uint32_t if_none_match);
     bool want_read() const { return false; }
     bool want_write() const { return true; }
     handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);

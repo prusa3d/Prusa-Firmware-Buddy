@@ -18,7 +18,7 @@ Step SendStaticMemory::step(string_view, bool, uint8_t *buffer, size_t buff_len)
         ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ContentLengthKeep : ConnectionHandling::Close;
         if (!headers_sent) {
 
-            sent = write_headers(buffer, buff_len, Status::Ok, content_type, handling, data.size(), extra_hdrs);
+            sent = write_headers(buffer, buff_len, Status::Ok, content_type, handling, data.size(), std::nullopt, extra_hdrs);
 
             headers_sent = true;
         }

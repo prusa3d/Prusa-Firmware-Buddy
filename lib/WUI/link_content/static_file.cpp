@@ -27,7 +27,7 @@ optional<ConnectionState> StaticFile::accept(const RequestParser &parser) const 
 
     FILE *f = fopen(fname, "rb");
     if (f) {
-        return SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive());
+        return SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.if_none_match);
     }
 
     return nullopt;
