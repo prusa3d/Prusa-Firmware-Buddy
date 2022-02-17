@@ -20,7 +20,7 @@ Step StatusPage::step(std::string_view, bool, uint8_t *output, size_t output_siz
     const StatusText &text = StatusText::find(status);
 
     char content_buffer[128];
-    if (status == Status::NoContent) {
+    if (status == Status::NoContent || status == Status::NotModified) {
         content_buffer[0] = 0;
     } else {
         snprintf(content_buffer, sizeof(content_buffer), "%u: %s\n\n%s\n", static_cast<unsigned>(status), text.text, extra_content);
@@ -35,7 +35,7 @@ Step StatusPage::step(std::string_view, bool, uint8_t *output, size_t output_siz
      *
      * https://dev.prusa3d.com/browse/BFW-2451
      */
-    size_t used_up = write_headers(output, output_size, status, ContentType::TextPlain, handling, strlen(content_buffer), text.extra_hdrs);
+    size_t used_up = write_headers(output, output_size, status, ContentType::TextPlain, handling, strlen(content_buffer), std::nullopt, text.extra_hdrs);
     size_t rest = output_size - used_up;
     size_t write = std::min(strlen(content_buffer), rest);
     // If we use up the whole buffer, there's no \0 at the end. We are fine

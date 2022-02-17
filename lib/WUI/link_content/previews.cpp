@@ -52,7 +52,7 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
     FILE *f = fopen(fname, "rb");
 
     if (f) {
-        return GCodePreview(f, parser.can_keep_alive(), width, height);
+        return GCodePreview(f, fname, parser.can_keep_alive(), width, height, parser.if_none_match);
     } else {
         return StatusPage(Status::NotFound, parser.can_keep_alive());
     }

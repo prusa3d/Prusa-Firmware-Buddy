@@ -106,6 +106,7 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
             memcpy(output + written, LAST_CHUNK, last_chunk_len);
             written += last_chunk_len;
         }
+        dir.reset();
         return Step { 0, written, Terminating::for_handling(handling) };
     }
 

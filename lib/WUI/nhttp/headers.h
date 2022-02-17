@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <optional>
 
+struct stat;
+
 namespace nhttp {
 
 /**
@@ -52,7 +54,7 @@ struct StatusText {
  *
  * The body separator (two lines) is included.
  */
-size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length = std::nullopt, const char **extra_hdrs = nullptr);
+size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length = std::nullopt, std::optional<uint32_t> etag = std::nullopt, const char **extra_hdrs = nullptr);
 
 /**
  * \brief Makes a guess about a content type based on a file extension.
@@ -63,5 +65,10 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
  * If it is not recognized, application/octet-stream is used as fallback.
  */
 ContentType guess_content_by_ext(const char *fname);
+
+/**
+ * \brief Compute an etag for the given file.
+ */
+uint32_t compute_etag(const struct stat &stat);
 
 }

@@ -34,10 +34,12 @@ private:
     ConnectionHandling connection_handling = ConnectionHandling::Close;
     bool can_keep_alive;
     bool headers_sent = false;
+    bool etag_matches = false;
     std::optional<size_t> content_length;
+    std::optional<uint32_t> etag;
 
 public:
-    SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive);
+    SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, uint32_t if_none_match);
     Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
     bool want_write() const { return bool(file); }
     bool want_read() const { return false; }

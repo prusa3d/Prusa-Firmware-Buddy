@@ -1,10 +1,13 @@
 #include "headers.h"
+#include "../../src/common/sha256.h"
 
 #include <cassert>
 #include <cinttypes>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+
+#include <sys/stat.h>
 
 namespace nhttp {
 
@@ -20,6 +23,7 @@ namespace {
         { Status::Ok, "OK" },
         { Status::Created, "Created" },
         { Status::NoContent, "No Content" },
+        { Status::NotModified, "Not Modified" },
         { Status::BadRequest, "Bad Request" },
         { Status::Forbidden, "Forbidden" },
         { Status::Unauthorized, "Unauthorized", authenticate_hdrs },
@@ -78,7 +82,7 @@ const StatusText &StatusText::find(Status status) {
     return *texts;
 }
 
-size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length, const char **extra_hdrs) {
+size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length, std::optional<uint32_t> etag, const char **extra_hdrs) {
     // Always leave space for the body-newline separator
     assert(buffer_len > 2);
     buffer_len -= 2;
@@ -101,6 +105,10 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
     }
     if (handling == ConnectionHandling::ChunkedKeep) {
         pos += snprintf(buf + pos, buffer_len - pos, "Transfer-Encoding: chunked\r\n");
+        pos = std::min(buffer_len, pos);
+    }
+    if (etag.has_value()) {
+        pos += snprintf(buf + pos, buffer_len - pos, "ETag: \"%" PRIu32 "\"\r\n", *etag);
         pos = std::min(buffer_len, pos);
     }
     for (; extra_hdrs && *extra_hdrs; extra_hdrs++) {
@@ -137,6 +145,36 @@ ContentType guess_content_by_ext(const char *filename) {
     }
 
     return ContentType::ApplicationOctetStream;
+}
+
+uint32_t compute_etag(const struct stat &stat) {
+    /*
+     * We need something that hopefully changes whenever someone replaces a
+     * file with a different file but the same name. Hashing a bit of metadata
+     * seems like a good candidate.
+     */
+    mbedtls_sha256_context ctx;
+    mbedtls_sha256_init(&ctx);
+    mbedtls_sha256_starts_ret(&ctx, false);
+    mbedtls_sha256_update_ret(&ctx, (const uint8_t *)&stat.st_ino, sizeof stat.st_ino);
+    mbedtls_sha256_update_ret(&ctx, (const uint8_t *)&stat.st_size, sizeof stat.st_size);
+    mbedtls_sha256_update_ret(&ctx, (const uint8_t *)&stat.st_mtime, sizeof stat.st_mtime);
+    mbedtls_sha256_update_ret(&ctx, (const uint8_t *)&stat.st_ctime, sizeof stat.st_ctime);
+    uint8_t hash[32];
+    mbedtls_sha256_finish_ret(&ctx, hash);
+    mbedtls_sha256_free(&ctx);
+
+    /*
+     * Use memcpy to deal with alignment issues and such.
+     *
+     * We don't care about endians or such, the result will be the same each
+     * time and we don't care what _exactly_ it'll be.
+     */
+    uint32_t result;
+    static_assert(sizeof result <= sizeof hash);
+    memcpy((uint8_t *)&result, hash, sizeof result);
+
+    return result;
 }
 
 }

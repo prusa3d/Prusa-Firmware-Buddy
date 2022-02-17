@@ -275,6 +275,25 @@ async def test_list_files(printer_with_files):
     assert download.status == 200
 
 
+async def test_caching(printer_with_files):
+    for path in ['/thumb/s/usb/BOX~1.GCO', '/usb/BOX~1.GCO']:
+        h = valid_headers()
+        get1 = await printer_with_files.get(path, headers=h)
+        assert get1.status == 200
+        print(dict(get1.headers))
+        etag = get1.headers['ETag']
+
+        # Match
+        h['If-None-Match'] = etag
+        get2 = await printer_with_files.get(path, headers=h)
+        assert get2.status == 304  # Not Modified
+
+        # Cache miss
+        h['If-None-Match'] = "hello-123"
+        get3 = await printer_with_files.get(path, headers=h)
+        assert get3.status == 200
+
+
 # See below, needs investigation
 @pytest.mark.skip()
 async def test_upload(wui_client: aiohttp.ClientSession):

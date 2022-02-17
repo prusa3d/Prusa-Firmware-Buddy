@@ -64,7 +64,7 @@ public:
      * hurts mostly the client, not us ‒ so they deserve it for the
      * misbehaviour.
      */
-    uint32_t if_none_match;
+    uint32_t if_none_match = 0;
     Method method : 4;
     Status error_code : 10;
 
