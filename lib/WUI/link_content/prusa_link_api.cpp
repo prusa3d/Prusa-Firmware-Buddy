@@ -6,6 +6,8 @@
 #include "../wui_REST_api.h"
 
 #include <cstring>
+#include <cstdio>
+#include <cerrno>
 
 namespace nhttp::link_content {
 
@@ -137,7 +139,26 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                     StatusPage(Status::Forbidden, parser.can_keep_alive());
                 }
 
-                return get_only(FileInfo(fname_real, parser.can_keep_alive(), false));
+                switch (parser.method) {
+                case Method::Get:
+                    return FileInfo(fname_real, parser.can_keep_alive(), false);
+                case Method::Delete: {
+                    int result = remove(fname_real);
+                    if (result == -1) {
+                        switch (errno) {
+                        case EBUSY:
+                            return StatusPage(Status::Conflict, parser.can_keep_alive(), "File is busy");
+                        default:
+                            return StatusPage(Status::NotFound, parser.can_keep_alive());
+                        }
+                    } else {
+                        return StatusPage(Status::NoContent, parser.can_keep_alive());
+                    }
+                }
+                default:
+                    // Drop the connection in fear there might be a body we don't know about.
+                    return StatusPage(Status::MethodNotAllowed, false);
+                }
             } else {
                 return StatusPage(Status::NotFound, parser.can_keep_alive());
             }

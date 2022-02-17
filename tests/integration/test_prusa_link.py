@@ -105,6 +105,24 @@ async def test_idle_job(wui_client: aiohttp.ClientSession):
 
 
 @pytest.fixture
+async def printer_with_files(printer_factory, printer_flash_dir, data_dir):
+    gcode_name = 'box.gcode'
+    gcode = (data_dir / gcode_name).read_bytes()
+    (printer_flash_dir / gcode_name).write(gcode)
+
+    async with printer_factory() as printer:
+        printer: Printer
+        # Wait for boot
+        await screen.wait_for_text(printer, 'HOME')
+        # Wait for mounting of the USB
+        await screen.wait_for_text(printer, 'Print')
+
+        client = aiohttp.ClientSession(base_url=wui_base_url(printer))
+
+        yield client
+
+
+@pytest.fixture
 async def running_printer_client(printer_factory, printer_flash_dir, data_dir):
     gcode_name = 'box.gcode'
     gcode = (data_dir / gcode_name).read_bytes()
@@ -185,9 +203,7 @@ async def test_printing_job(running_printer_client):
         "printTime"] + job["progress"]["printTimeLeft"]
 
 
-# Using the running printer, because it has the has the files in it and it
-# waits for the USB to mount.
-async def test_download_gcode(running_printer_client, data_dir):
+async def test_download_gcode(printer_with_files, data_dir):
     """
     Test downloading the gcode from the printer.
 
@@ -196,31 +212,57 @@ async def test_download_gcode(running_printer_client, data_dir):
     """
     gcode = (data_dir / 'box.gcode').read_bytes()
     for fname in ['BOX~1.GCO', 'box.gcode']:
-        download_r = await running_printer_client.get('/usb/' + fname,
-                                                      headers=valid_headers())
+        download_r = await printer_with_files.get('/usb/' + fname,
+                                                  headers=valid_headers())
         assert download_r.status == 200
         download = await download_r.read()
         assert download == gcode
 
 
-async def test_thumbnails(running_printer_client):
-    metadata_r = await running_printer_client.get('/api/files/usb/BOX~1.GCO',
-                                                  headers=valid_headers())
+async def test_thumbnails(printer_with_files):
+    metadata_r = await printer_with_files.get('/api/files/usb/BOX~1.GCO',
+                                              headers=valid_headers())
     assert metadata_r.status == 200
     metadata = await metadata_r.json()
     refs = metadata["refs"]
     for thumb in (refs["thumbnailSmall"], refs["thumbnailBig"]):
-        thumb_r = await running_printer_client.get(thumb,
-                                                   headers=valid_headers())
+        thumb_r = await printer_with_files.get(thumb, headers=valid_headers())
         assert thumb_r.status == 200
         data = await thumb_r.read()
         # Check PNG "file magic"
         assert data[1:4] == b"PNG"
 
 
-async def test_list_files(running_printer_client):
-    listing_r = await running_printer_client.get('/api/files',
-                                                 headers=valid_headers())
+async def test_delete_project_printing(running_printer_client):
+    fname = '/api/files/usb/BOX~1.GCO'
+    heads = valid_headers()
+    # We are printing the file right now
+    printing_attempt = await running_printer_client.delete(fname,
+                                                           headers=heads)
+    assert printing_attempt.status == 409
+
+    stop = await running_printer_client.post('/api/job',
+                                             headers=heads,
+                                             data='{"command":"cancel"}')
+    assert stop.status == 204
+
+
+async def test_delete_project(printer_with_files):
+    fname = '/api/files/usb/BOX~1.GCO'
+    heads = valid_headers()
+    idle_attempt = await printer_with_files.delete(fname, headers=heads)
+    assert idle_attempt.status == 204
+
+    # The file actually disappeared
+    listing_r = await printer_with_files.get('/api/files', headers=heads)
+    assert listing_r.status == 200
+    listing = await listing_r.json()
+    assert listing["files"] == []
+
+
+async def test_list_files(printer_with_files):
+    listing_r = await printer_with_files.get('/api/files',
+                                             headers=valid_headers())
     assert listing_r.status == 200
     listing = await listing_r.json()
     file = listing["files"][0]
@@ -228,8 +270,8 @@ async def test_list_files(running_printer_client):
     assert file["display"] == "box.gcode"
     refs = file["refs"]
     assert refs["thumbnailSmall"] == "/thumb/s/usb/BOX~1.GCO"
-    download = await running_printer_client.get(refs["download"],
-                                                headers=valid_headers())
+    download = await printer_with_files.get(refs["download"],
+                                            headers=valid_headers())
     assert download.status == 200
 
 
