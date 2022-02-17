@@ -254,6 +254,7 @@ if __name__ == "__main__":
     want_headers = {
         'X-Api-Key': read_header_value('XApiKey'),
         'Content-Length': read_header_value('ContentLength'),
+        'If-None-Match': read_header_value('IfNoneMatch'),
         'Content-Type': read_boundary(),
         'Connection': connection_header(),
     }

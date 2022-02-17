@@ -48,6 +48,23 @@ private:
 public:
     /*************   These are the parsed variables that can be used by the selector *******/
     std::optional<size_t> content_length;
+    /**
+     * \brief Decoded etag.
+     *
+     * We want the browser to cache things ‒ static files, gcode downloads,
+     * gcode thumbnails, etc. For that reason, we give the client an etag based
+     * on the file metadata. To save space, we use a numeric representation
+     * (part of a hash). The chance of the file having the same name, same FS
+     * metadata and a different content is pretty low, same as the chance of
+     * collision on that 32-bit value and the damage would be small.
+     *
+     * As we produce the etag in the first place, we can decode it when
+     * receiving. A client can give us a wrong one, which would produce garbage
+     * ‒ but that can lead only to either false hit or false miss and that
+     * hurts mostly the client, not us ‒ so they deserve it for the
+     * misbehaviour.
+     */
+    uint32_t if_none_match;
     Method method : 4;
     Status error_code : 10;
 
