@@ -13,7 +13,7 @@ void config_adc_ch(ADC_HandleTypeDef *hadc, uint32_t Channel, uint32_t Rank) {
 }
 
 void config_adc(ADC_HandleTypeDef *hadc, ADC_TypeDef *ADC_NUM, uint32_t NbrOfConversion) {
-    hadc->Instance = ADC1;
+    hadc->Instance = ADC_NUM;
     hadc->Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
     hadc->Init.Resolution = ADC_RESOLUTION_10B;
     hadc->Init.ScanConvMode = ENABLE;
