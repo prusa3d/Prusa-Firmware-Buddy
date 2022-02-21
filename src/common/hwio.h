@@ -57,8 +57,6 @@ extern int hwio_fan_get_cnt(void); //number of fans
 extern void hwio_fan_set_pwm(int i_fan, int val);
 
 //heaters
-extern int hwio_heater_get_cnt(void);                   //number of heaters
-extern void hwio_heater_set_pwm(int i_heater, int val); //pwm output maximum value
 
 //--------------------------------------
 // misc I/O functions

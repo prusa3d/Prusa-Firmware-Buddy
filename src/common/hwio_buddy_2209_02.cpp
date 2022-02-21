@@ -49,12 +49,6 @@ enum {
 };
 static const int _FAN_CNT = _FAN_ID_MAX - _FAN_ID_MIN + 1;
 
-enum {
-    _HEATER_ID_MIN = HWIO_PWM_HEATER_BED,
-    _HEATER_ID_MAX = HWIO_PWM_HEATER_0,
-};
-static const int _HEATER_CNT = _HEATER_ID_MAX - _HEATER_ID_MIN + 1;
-
 //this value is compared to new value (to avoid rounding errors)
 int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);
 int _tim3_period_us = GEN_PERIOD_US(TIM3_default_Prescaler, TIM3_default_Period);
@@ -114,11 +108,6 @@ const int *_fan_max = &_pwm_analogWrite_max[_FAN_ID_MIN];
 // buddy fan output values as arduino analogWrite
 int *_fan_val = &_pwm_analogWrite_val[_FAN_ID_MIN];
 
-// buddy heater output maximum values
-const int *_heater_max = &_pwm_analogWrite_max[_HEATER_ID_MIN];
-// buddy heater output values
-int *_heater_val = &_pwm_analogWrite_val[_HEATER_ID_MIN];
-
 /*
 
 // buddy fan output maximum values
@@ -126,11 +115,6 @@ const int _fan_max[] = {255, 255};
 // buddy fan output values
 int _fan_val[] = {0, 0};
 
-
-// buddy heater output maximum values
-const int _heater_max[] = {255, 255};
-// buddy heater output values
-int _heater_val[] = {0, 0};
 */
 int hwio_jogwheel_enabled = 0;
 int hwio_fan_control_enabled = 1;
@@ -348,18 +332,6 @@ void hwio_fan_set_pwm(int i_fan, int val) {
     i_fan += _FAN_ID_MIN;
     if ((i_fan >= _FAN_ID_MIN) && (i_fan <= _FAN_ID_MAX))
         _hwio_pwm_analogWrite_set_val(i_fan, val);
-}
-
-//--------------------------------------
-// heater control functions
-
-int hwio_heater_get_cnt(void) //number of heaters
-{ return _HEATER_CNT; }
-
-void hwio_heater_set_pwm(int i_heater, int val) {
-    i_heater += _HEATER_ID_MIN;
-    if ((i_heater >= _HEATER_ID_MIN) && (i_heater <= _HEATER_ID_MAX))
-        _hwio_pwm_analogWrite_set_val(i_heater, val);
 }
 
 //--------------------------------------
