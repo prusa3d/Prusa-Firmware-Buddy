@@ -9,6 +9,7 @@
 #include "ScreenShot.hpp"
 #include "gui_media_events.hpp"
 #include "gui_invalidate.hpp"
+#include "knob_event.hpp"
 
 static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
 
@@ -78,10 +79,10 @@ void gui_loop(void) {
         if (gui_loop_cb)
             gui_loop_cb();
 
-        window_t::EventEncoder(encoder_diff);
+        gui::knob::EventEncoder(encoder_diff);
 
         if (is_btn) {
-            window_t::EventJogwheel(btn_ev);
+            gui::knob::EventClick(btn_ev);
         }
     }
     #endif //GUI_JOGWHEEL_SUPPORT

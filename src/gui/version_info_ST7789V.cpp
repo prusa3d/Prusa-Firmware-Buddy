@@ -112,6 +112,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of this
     help.SetText(string_view_utf8::MakeRAM((const uint8_t *)version_info_str.data()));
+    EnableLongHoldScreenAction();
 }
 
 ScreenFactory::UniquePtr GetScreenMenuVersionInfo() {

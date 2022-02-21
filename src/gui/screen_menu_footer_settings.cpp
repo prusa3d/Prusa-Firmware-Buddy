@@ -189,6 +189,7 @@ public:
     constexpr static const char *label = N_("FOOTER");
     ScreenMenuFooterSettings()
         : Screen(_(label)) {
+        EnableLongHoldScreenAction();
     }
 };
 

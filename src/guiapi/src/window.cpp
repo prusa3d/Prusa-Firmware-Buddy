@@ -6,8 +6,8 @@
 #include "ScreenHandler.hpp"
 #include "gui_timer.h"
 #include "display.h"
-#include "sound.hpp"
 #include "marlin_client.h"
+#include "knob_event.hpp"
 
 bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }
 bool window_t::HasVisibleFlag() const { return flags.visible; };
@@ -26,12 +26,15 @@ bool window_t::IsCapturable() const { return IsVisible() || HasEnforcedCapture()
 void window_t::Validate(Rect16 validation_rect) {
     if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
         flags.invalid = false;
+        flags.invalid_background = false;
         validate(validation_rect);
     }
 }
 
 void window_t::Invalidate(Rect16 invalidation_rect) {
     if (invalidation_rect.IsEmpty() || rect.HasIntersection(invalidation_rect)) {
+        //TODO why is not here flags.invalid = true;
+        //it likely has some reason, but should be commented!!!
         invalidate(invalidation_rect);
         gui_invalidate();
     }
@@ -40,10 +43,25 @@ void window_t::Invalidate(Rect16 invalidation_rect) {
 //frame will invalidate children
 void window_t::invalidate(Rect16 validation_rect) {
     flags.invalid = true;
+    flags.invalid_background = true;
 }
 
 //frame will validate children
 void window_t::validate(Rect16 validation_rect) {
+}
+
+void window_t::ValidateBackground() {
+    flags.invalid_background = false;
+}
+
+/**
+ * @brief returns if background is valid
+ * used positive logic, so flags.invalid does not matter
+ * @return true background is valid
+ * @return false background is invalid
+ */
+bool window_t::HasValidBackground() const {
+    return !flags.invalid_background;
 }
 
 // "IsCapturable() ? this : nullptr" does not work because of popup,
@@ -59,9 +77,11 @@ void window_t::Enable() { flags.enabled = true; }
 void window_t::Disable() { flags.enabled = false; }
 void window_t::SetEnforceCapture() { flags.enforce_capture_when_not_visible = true; }
 void window_t::ClrEnforceCapture() { flags.enforce_capture_when_not_visible = false; }
+void window_t::DisableLongHoldScreenAction() { flags.has_long_hold_screen_action = false; };
+void window_t::EnableLongHoldScreenAction() { flags.has_long_hold_screen_action = true; };
 
 void window_t::SetFocus() {
-    if (!IsVisible() || !flags.enabled)
+    if (!flags.visible || !flags.enabled) // IsVisible() is not used -> window behind the dialog can be set by this
         return;
     if (focused_ptr == this)
         return;
@@ -359,14 +379,18 @@ void window_t::unconditionalDraw() {
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
-    static const char txt[] = "WindowEvent via public";
+    static constexpr const char txt[] = "WindowEvent via public";
     windowEvent(EventLock(txt, sender, event), sender, event, param);
 }
 
 void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
-    static const char txt[] = "ScreenEvent via public";
-    EventLock(txt, sender, event); //just print debug msg
-    screenEvent(sender, event, param);
+    static constexpr const char txt[] = "ScreenEvent via public";
+    if (event == GUI_event_t::HELD_RELEASED && flags.has_long_hold_screen_action) {
+        gui::knob::LongPressScreenAction();
+    } else {
+        EventLock(txt, sender, event); // just print debug msg
+        screenEvent(sender, event, param);
+    }
 }
 
 //frame does something else - resend to all children
@@ -413,66 +437,6 @@ void window_t::ResetFocusedWindow() {
 /*****************************************************************************/
 //capture
 bool window_t::IsCaptured() const { return Screens::Access()->Get()->GetCapturedWindow() == this; }
-
-bool window_t::EventEncoder(int diff) {
-    if (diff == 0)
-        return false;
-
-    marlin_notify_server_about_encoder_move();
-    window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
-    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::ENC_CHANGE, (void *)(intptr_t)diff);
-
-    if (!capture_ptr)
-        return false;
-
-    if (diff > 0) {
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_UP, (void *)(intptr_t)diff);
-    } else {
-        capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_DN, (void *)(intptr_t)-diff);
-    }
-
-    Screens::Access()->ResetTimeout();
-    return true;
-}
-
-bool window_t::EventJogwheel(BtnState_t state) {
-    static bool dont_click_on_next_release = false;
-    marlin_notify_server_about_knob_click();
-    window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
-
-    switch (state) {
-    case BtnState_t::Pressed:
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::BTN_DN, 0);
-        break;
-    case BtnState_t::Released:
-        Sound_Play(eSOUND_TYPE::ButtonEcho);
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::BTN_UP, 0);
-        if (!dont_click_on_next_release && capture_ptr)
-            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
-        dont_click_on_next_release = false;
-        break;
-    case BtnState_t::Held:
-        Sound_Play(eSOUND_TYPE::ButtonEcho);
-        break;
-    case BtnState_t::HeldAndRight:
-        dont_click_on_next_release = true;
-        if (capture_ptr)
-            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::HELD_RIGHT, 0);
-        break;
-    case BtnState_t::HeldAndLeft:
-        dont_click_on_next_release = true;
-        // want to send only to current screen and not send it to all subwindows
-        Screens::Access()->WindowEvent(GUI_event_t::HELD_LEFT, 0);
-        break;
-    case BtnState_t::HeldAndReleased:
-        dont_click_on_next_release = true;
-        // want to send only to current screen and not send it to all subwindows
-        Screens::Access()->WindowEvent(GUI_event_t::HELD_RELEASED, 0);
-    }
-
-    Screens::Access()->ResetTimeout();
-    return true;
-}
 
 /*****************************************************************************/
 //window_aligned_t

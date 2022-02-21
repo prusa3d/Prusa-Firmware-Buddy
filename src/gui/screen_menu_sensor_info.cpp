@@ -20,6 +20,7 @@ public:
     constexpr static const char *label = N_("SENSOR INFO");
     ScreenMenuSensorInfo()
         : Screen(_(label)) {
+        EnableLongHoldScreenAction();
         flags.timeout_close = is_closed_on_timeout_t::no;
     }
 };

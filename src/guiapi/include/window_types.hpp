@@ -54,22 +54,22 @@ union WindowFlags {
         bool visible : 1;                          // 02 - is visible
         bool enabled : 1;                          // 03 - is enabled (can be focused)
         bool invalid : 1;                          // 04 - content is invalid (draw)
-        bool color_scheme_background : 1;          // 05 - select between color and pointer to color_scheme, for background color
-        bool color_scheme_foreground : 1;          // 06 - select between color and pointer to color_scheme, for foreground color
-        bool timer : 1;                            // 07 - window has timers
-        is_closed_on_click_t close_on_click : 1;   // 08 - window id dialog
-        bool hidden_behind_dialog : 1;             // 09 - there is an dialog over this window
-        is_closed_on_timeout_t timeout_close : 1;  // 0A - menu timeout flag - it's meant to be used in window_frame_t
-        is_closed_on_serial_t serial_close : 1;    // 0B - serial printing screen open close
-        bool shadow : 1;                           // 0C - executable (causes darker colors)
-        bool enforce_capture_when_not_visible : 1; // 0D - normally invisible / hidden_behind_dialog windows does not get capture
-        bool has_relative_subwins : 1;             // 0E - X Y coords of all children are relative to this, screen cannot have this flag because 1st level windows can be dialogs and they must not have relative coords
-        bool multiline : 1;                        // 0F - multiline text affect window_text_t anf its children
-        bool blink0 : 1;                           // 10 - for 2 state blinking
-        bool blink1 : 1;                           // 11 - for 4 state blinking
-        bool custom5 : 1;                          // 12 - this flag can be defined in child class
-        bool custom4 : 1;                          // 13 - this flag can be defined in child class
-        bool custom3 : 1;                          // 14 - this flag can be defined in child class
+        bool invalid_background : 1;               // 05 - some windows might suport not drawing background
+        bool color_scheme_background : 1;          // 06 - select between color and pointer to color_scheme, for background color
+        bool color_scheme_foreground : 1;          // 07 - select between color and pointer to color_scheme, for foreground color
+        bool timer : 1;                            // 08 - window has timers
+        is_closed_on_click_t close_on_click : 1;   // 09 - window id dialog
+        bool hidden_behind_dialog : 1;             // 0A - there is an dialog over this window
+        is_closed_on_timeout_t timeout_close : 1;  // 0B - menu timeout flag - it's meant to be used in window_frame_t
+        is_closed_on_serial_t serial_close : 1;    // 0C - serial printing screen open close
+        bool shadow : 1;                           // 0D - executable (causes darker colors)
+        bool enforce_capture_when_not_visible : 1; // 0E - normally invisible / hidden_behind_dialog windows does not get capture
+        bool has_relative_subwins : 1;             // 0F - X Y coords of all children are relative to this, screen cannot have this flag because 1st level windows can be dialogs and they must not have relative coords
+        bool multiline : 1;                        // 10 - multiline text affect window_text_t anf its children
+        bool blink0 : 1;                           // 11 - for 2 state blinking
+        bool blink1 : 1;                           // 12 - for 4 state blinking
+        bool has_long_hold_screen_action : 1;      // 13 - screen will use default callback for long press
+        bool has_icon : 1;                         // 14 - optional icon for window
         bool custom2 : 1;                          // 15 - this flag can be defined in child class
         bool custom1 : 1;                          // 16 - this flag can be defined in child class
         bool custom0 : 1;                          // 17 - this flag can be defined in child class

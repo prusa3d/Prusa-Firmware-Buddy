@@ -4,6 +4,7 @@
 #include "ScreenHandler.hpp"
 #include "gui_time.hpp" //gui::GetTick
 #include "mock_windows.hpp"
+#include "knob_event.hpp"
 #include <memory>
 
 //stubbed header does not have C linkage .. to be simpler
@@ -161,7 +162,7 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(strong.GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
         screen.CheckOrderAndVisibility(&strong);
-        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); //unregister strong dialog
     }
 
     SECTION("2 strong dialogs") {
@@ -176,12 +177,12 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong1); //strong1 does claim capture
         screen.CheckOrderAndVisibility(&strong0, &strong1);
 
-        window_t::EventJogwheel(BtnState_t::Released); //unregister strong1
+        gui::knob::EventClick(BtnState_t::Released); //unregister strong1
         REQUIRE(strong0.GetParent() == &screen);
         REQUIRE(strong1.GetParent() == nullptr);         // check parrent unregistration
         REQUIRE(screen.GetCapturedWindow() == &strong0); //strong1 resturns capture to strong1
         screen.CheckOrderAndVisibility(&strong0);
-        window_t::EventJogwheel(BtnState_t::Released); //unregister strong0
+        gui::knob::EventClick(BtnState_t::Released); //unregister strong0
     }
 
     SECTION("strong dialog + msgbox") {
@@ -196,7 +197,7 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong);   //strong cannot give capture to msgbox
         screen.CheckOrderAndVisibility(&msgbox, &strong); //strong must remain on top
 
-        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); //unregister strong dialog
         REQUIRE(msgbox.GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &msgbox); //strong must give capture to message box upon destruction
         screen.CheckOrderAndVisibility(&msgbox);        //msgbox must remain
@@ -214,7 +215,7 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
         screen.CheckOrderAndVisibility(&msgbox, &strong);
 
-        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); //unregister strong dialog
         REQUIRE(msgbox.GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &msgbox); //strong must give capture to message box upon destruction
         screen.CheckOrderAndVisibility(&msgbox);        //msgbox must remain
@@ -239,7 +240,7 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
         screen.CheckOrderAndVisibility(&strong);
 
-        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); //unregister strong dialog
     }
 
     SECTION("popup with no rectangle + strong dialog") {
@@ -258,7 +259,7 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
         screen.CheckOrderAndVisibility(popup, &strong);
 
-        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); //unregister strong dialog
         REQUIRE(popup->GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
         screen.CheckOrderAndVisibility(popup);          //popup must remain
@@ -278,7 +279,7 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong); //popup does not claim capture
         screen.CheckOrderAndVisibility(popup, &strong);
 
-        window_t::EventJogwheel(BtnState_t::Released); //unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); //unregister strong dialog
         REQUIRE(popup->GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &screen); //popup does not claim capture
         screen.CheckOrderAndVisibility(popup);          //popup must remain
@@ -314,7 +315,7 @@ TEST_CASE("Window registration tests", "[window]") {
         screen.CaptureNormalWindow(screen.w0);
         REQUIRE(screen.GetCapturedWindow() == &strong); //strong still has capture
 
-        window_t::EventJogwheel(BtnState_t::Released);     //unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released);       //unregister strong dialog
         REQUIRE(screen.GetCapturedWindow() == &screen.w0); //capture must return to normal win
         screen.ReleaseCaptureOfNormalWindow();
     }
@@ -328,7 +329,7 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong); //strong does claim capture
         screen.CheckOrderAndVisibility(&strong);
 
-        window_t::EventJogwheel(BtnState_t::Released);     //unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released);       //unregister strong dialog
         REQUIRE(screen.GetCapturedWindow() == &screen.w0); //capture must return to normal win
         screen.ReleaseCaptureOfNormalWindow();
     }

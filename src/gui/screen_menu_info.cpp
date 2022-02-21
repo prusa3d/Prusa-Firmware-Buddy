@@ -28,7 +28,10 @@ class ScreenMenuInfo : public Screen {
 public:
     constexpr static const char *label = N_("INFO");
     ScreenMenuInfo()
-        : Screen(_(label)) {}
+        : Screen(_(label)) {
+        EnableLongHoldScreenAction();
+        header.SetIcon(IDR_PNG_info_16px);
+    }
 };
 
 ScreenFactory::UniquePtr GetScreenMenuInfo() {

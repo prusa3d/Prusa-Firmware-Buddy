@@ -131,6 +131,8 @@ screen_printing_data_t::screen_printing_data_t()
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
     , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() }))) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
+    // we will handle HELD_RELEASED event in this window
+    DisableLongHoldScreenAction();
 
     marlin_vars_t *vars = marlin_vars();
 
