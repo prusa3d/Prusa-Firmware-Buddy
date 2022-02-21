@@ -8,6 +8,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/i_window_text_stub.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/window_text_stub.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/knob_event.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window_frame.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/screen.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/Rect16.cpp
@@ -23,6 +24,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/mock_display.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/mock_windows.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/knob_event.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window_frame.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/i_window_text.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window_text.cpp

@@ -7,6 +7,7 @@
 #include "mock_display.hpp"
 #include "GuiDefaults.hpp"
 #include "window_text.hpp"
+#include "knob_event.hpp"
 #include <memory>
 
 //8 bit resolution 1px per row .. 1 byte per row

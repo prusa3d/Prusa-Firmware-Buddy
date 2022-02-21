@@ -136,6 +136,7 @@ public:
     constexpr static const char *label = N_("LANGUAGES");
     ScreenMenuLanguages()
         : Screen(_(label)) {
+        EnableLongHoldScreenAction();
     }
 };
 

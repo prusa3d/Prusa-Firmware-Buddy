@@ -30,7 +30,9 @@ class ScreenMenuTemperature : public Screen {
 public:
     constexpr static const char *label = N_("TEMPERATURE");
     ScreenMenuTemperature()
-        : Screen(_(label)) {}
+        : Screen(_(label)) {
+        EnableLongHoldScreenAction();
+    }
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

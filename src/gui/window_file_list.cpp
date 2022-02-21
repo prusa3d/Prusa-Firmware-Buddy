@@ -81,6 +81,7 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
     , padding({ 2, 6, 2, 6 })
     , ldv(LDV_Get())
     , activeItem(string_view_utf8(), IDR_NULL) {
+    DisableLongHoldScreenAction();
     SetAlignment(Align_t::LeftCenter());
     Enable();
     strlcpy(sfn_path, "/usb", FILE_PATH_BUFFER_LEN);

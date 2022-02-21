@@ -66,6 +66,7 @@ public:
     bool IsHiddenBehindDialog() const;
     bool IsEnabled() const;
     bool IsInvalid() const;
+    bool HasValidBackground() const;
     bool IsFocused() const;
     bool IsCaptured() const;
     bool IsShadowed() const;
@@ -78,9 +79,12 @@ public:
     bool ClosedOnSerialPrint() const;
     void Validate(Rect16 validation_rect = Rect16());
     void Invalidate(Rect16 validation_rect = Rect16());
+    void ValidateBackground(); // background cannot be invalidated alone, only validated
 
     void SetEnforceCapture();
     void ClrEnforceCapture();
+    void EnableLongHoldScreenAction();
+    void DisableLongHoldScreenAction();
     void SetHasTimer();
     void ClrHasTimer();
     void SetFocus();
@@ -127,20 +131,15 @@ protected:
     virtual void addInvalidationRect(Rect16 rc);
     void notifyVisibilityChange();
 
-private:
+protected:
     virtual void invalidate(Rect16 validation_rect);
     virtual void validate(Rect16 validation_rect); // do not use, used by screen
-
-    static window_t *focused_ptr; // has focus
+    static window_t *focused_ptr;                  // has focus
 
 public:
     virtual window_t *GetCapturedWindow();
     static window_t *GetFocusedWindow();
     static void ResetFocusedWindow();
-
-    //knob events
-    static bool EventEncoder(int diff);
-    static bool EventJogwheel(BtnState_t state);
 };
 
 //all children of window_t and their children must use AddSuperWindow<parent_window> for inheritance

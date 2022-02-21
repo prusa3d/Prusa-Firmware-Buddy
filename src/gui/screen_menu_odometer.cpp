@@ -38,6 +38,7 @@ class ScreenOdometer : public OdometerScreen {
 public:
     ScreenOdometer()
         : OdometerScreen(_(label)) {
+        EnableLongHoldScreenAction();
         Odometer_s::instance().force_to_eeprom();
         Item<MI_ODOMETER_DIST_X>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::X));
         Item<MI_ODOMETER_DIST_Y>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::Y));
