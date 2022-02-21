@@ -24,7 +24,7 @@ namespace nhttp {
  */
 class ServerDefs {
 public:
-    virtual ~ServerDefs();
+    virtual ~ServerDefs() = default;
     /**
      * \brief List of selectors.
      *

@@ -32,8 +32,6 @@ bool Server::InactivityTimeout::past() const {
     return (diff >= 0 && diff < UINT32_MAX / 2);
 }
 
-ServerDefs::~ServerDefs() {};
-
 void Server::Slot::release_buffer() {
     if (buffer) {
         buffer->reset();
@@ -132,6 +130,17 @@ bool Server::Slot::step() {
      * First try to reclaim some resources.
      */
     if (const Terminating *t = get_if<Terminating>(&state); t && t->how == Done::CloseFast) {
+        /*
+         * We can't use close with yet unacked data, that would allow
+         * retransmits to send buffer now belonging to someone else. Abort in
+         * that case.
+         */
+        if (buffer) {
+            release();
+            remove_callbacks(conn);
+            altcp_abort(conn);
+            return true;
+        }
         return close();
     }
 
@@ -227,6 +236,9 @@ bool Server::Slot::step() {
                 if (partial) {
                     // We still have some data to process. Pipelining?
                     state.emplace<handler::RequestParser>(*server);
+                    altcp_setprio(conn, ACTIVE_PRIO);
+                    altcp_arg(conn, this);
+                    server->activity(conn, this);
                 } else {
                     release();
                 }
@@ -237,6 +249,7 @@ bool Server::Slot::step() {
                 }
                 break;
             default:
+                // CloseFast is handled above
                 assert(false);
             }
         }
@@ -246,6 +259,7 @@ bool Server::Slot::step() {
      * Nothing to do here, waiting for something to happen:
      *
      * * Data arriving over the network.
+     * * Something timing out.
      * * Freeing some resources.
      */
     return false;
@@ -331,7 +345,14 @@ err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
         return ERR_OK;
     }
 
-    bool send_goodbye = (is_active_slot(slot) && static_cast<Slot *>(slot)->want_read());
+    bool send_goodbye = false;
+    bool has_unacked_data = false;
+    Slot *active_slot = nullptr;
+    if (is_active_slot(slot)) {
+        active_slot = static_cast<Slot *>(slot);
+        send_goodbye = active_slot->want_read();
+        has_unacked_data = active_slot->buffer;
+    }
     lost_conn_wrap(slot, ERR_OK);
     if (conn != nullptr) {
         if (send_goodbye) {
@@ -347,7 +368,16 @@ err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
          * but we sure don't want them.
          */
         remove_callbacks(conn);
-        if (altcp_close(conn) != ERR_OK) {
+        if (active_slot != nullptr) {
+            active_slot->release();
+        }
+        /*
+         * If there are unacked data, they sit in the buffer we just released.
+         * We need to abort the connection (it's idle while not getting ACKs,
+         * so broken anyway) so we wont try to retransmit from memory assigned
+         * to something else.
+         */
+        if (has_unacked_data || altcp_close(conn) != ERR_OK) {
             altcp_abort(conn);
             return ERR_ABRT;
         }
@@ -363,7 +393,7 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
     BaseSlot *base_slot = static_cast<BaseSlot *>(raw_slot);
     if (!is_active_slot(base_slot)) {
         if (data == nullptr) {
-            // Closing an idle connection.
+            // Closing an idle connection (no buffers & similar tied to it -> nothing to release)
             remove_callbacks(conn);
             if (altcp_close(conn) == ERR_OK) {
                 return ERR_OK;
@@ -404,6 +434,11 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
     Slot *slot = static_cast<Slot *>(base_slot);
     slot->server->activity(conn, slot);
 
+    // data = null - other side did shutdown.
+    if (!data) {
+        slot->client_closed = true;
+    }
+
     if (slot->partial) {
         /*
          * We are still in the middle of the previous buffer. We don't want
@@ -415,11 +450,8 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
     }
 
     assert(slot->partial_consumed == 0);
-    // data = null - other side did shutdown.
     if (data) {
         slot->partial.reset(data);
-    } else {
-        slot->client_closed = true;
     }
 
     /*
