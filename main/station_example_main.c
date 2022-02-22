@@ -33,23 +33,22 @@
 
 static const uint16_t FW_VERSION = 0;
 
-// INTRON
+// intron
 // 0 as uint8_t
 // fw version as uint16_t
-// hw addr LEN as uint8_t
-// hw addr data bytes
+// hw addr data as uint8_t[6]
 #define MSG_DEVINFO 0
 
-// INTRON
+// intron
 // 1 as uint8_t
 // link up as bool (uint8_t)
 #define MSG_LINK 1
 
-// INTRON
+// intron
 // 2 as uint8_t
 #define MSG_GET_LINK 2
 
-// INTRON
+// intron
 // 2 as uint8_t
 // ssid size as uint8_t
 // ssid bytes
@@ -57,11 +56,16 @@ static const uint16_t FW_VERSION = 0;
 // pass bytes
 #define MSG_CLIENTCONFIG 3
 
-// INTRON
+// intron
 // 3 as uint8_t
 // LEN as uint32_t
 // DATA
 #define MSG_PACKET 4
+
+// intron
+// 5 as uint8_t
+// new intron as uint8_t[8]
+#define MSG_INTRON 5
 
 
 
@@ -240,8 +244,8 @@ static void netif_status_callback(struct netif *nif) {
 }
 #endif /* LWIP_NETIF_STATUS_CALLBACK */
 
-static const char INTRON[] = {'U', 'N', 'U', '\x01'};
-
+static char intron[8] = {'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05'};
+static const uint8_t MAC_LEN = 6;
 
 static void sendDeviceInfo() {
     if(!uart_mtx) {
@@ -251,8 +255,9 @@ static void sendDeviceInfo() {
 
     printf("Sending device info\n\r");
     //xSemaphoreTakeFromISR(uart_mtx, portMAX_DELAY);
+
     // Intron
-    uart_write_bytes(UART_NUM_0, INTRON, sizeof(INTRON));
+    uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
 
     // Definfo mesage identifier
     const uint8_t t = MSG_DEVINFO;
@@ -262,16 +267,13 @@ static void sendDeviceInfo() {
     uart_write_bytes(UART_NUM_0, (const char*)&FW_VERSION, sizeof(FW_VERSION));
 
     // MAC address
-    static const uint8_t MAC_LEN = 6;
     uint8_t mac[MAC_LEN];
-    if(esp_wifi_get_mac(WIFI_IF_STA, mac) == ESP_OK) {
-        uart_write_bytes(UART_NUM_0, (const char*)&MAC_LEN, sizeof(MAC_LEN));
-        uart_write_bytes(UART_NUM_0, (const char*)&mac, sizeof(mac));
-    } else {
-        const uint8_t zero = 0;
-        uart_write_bytes(UART_NUM_0, (const char*)&zero, sizeof(zero));
-        printf("Failed to obtain MAC");
+    int ret = esp_wifi_get_mac(WIFI_IF_STA, mac);
+    uart_write_bytes(UART_NUM_0, (const char*)mac, sizeof(mac));
+    if(ret != ESP_OK) {
+        printf("Failed to obtain MAC, this is fatal");
     }
+
     xSemaphoreGive(uart_mtx);
 }
 
@@ -282,7 +284,7 @@ static void sendLink(uint8_t up) {
 
     printf("Sending link status: %d\n\r", up);
     //xSemaphoreTake(uart_mtx, portMAX_DELAY);
-    uart_write_bytes(UART_NUM_0, INTRON, sizeof(INTRON));
+    uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
     const uint8_t t = MSG_LINK;
     uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
     uart_write_bytes(UART_NUM_0, (const char*)&up, sizeof(uint8_t));
@@ -292,11 +294,11 @@ static void sendLink(uint8_t up) {
 static void waitForIntron() {
     // printf("Waiting for intron\n\r");
     uint pos = 0;
-    while(pos < sizeof(INTRON)) {
+    while(pos < sizeof(intron)) {
         char c;
         int read = uart_read_bytes(UART_NUM_0, (uint8_t*)&c, 1, portMAX_DELAY);
         if(read == 1) {
-            if (c == INTRON[pos]) {
+            if (c == intron[pos]) {
                 pos++;
             } else {
                 //printf("Invalid: %c, val: %d\n", c, (int)c);
@@ -377,6 +379,10 @@ static void readWifiClient() {
     sendDeviceInfo();
 }
 
+static void readIntron() {
+    readUART((uint8_t*)intron, sizeof(intron));
+}
+
 static void readMessage() {
     waitForIntron();
 
@@ -394,6 +400,8 @@ static void readMessage() {
         readWifiClient();
     } else if (type == MSG_GET_LINK) {
         sendLink(1);
+    } else if (type == MSG_INTRON) {
+        readIntron();
     } else {
         printf("Unknown message type: %d !!!\n\r", type);
     }
@@ -460,7 +468,7 @@ static void uart_tx_thread(void *arg) {
             }
             //printf("Printing packet to UART\n\r");
             //xSemaphoreTake(uart_mtx, portMAX_DELAY);
-            uart_write_bytes(UART_NUM_0, INTRON, sizeof(INTRON));
+            uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
             const uint8_t t = MSG_PACKET;
             const uint32_t l = p->len;
             uart_write_bytes(UART_NUM_0, (const char*)&t, 1);

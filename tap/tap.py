@@ -15,6 +15,7 @@ TUNSETOWNER = TUNSETIFF + 2
 IFF_TUN = 0x0001
 IFF_TAP = 0x0002
 IFF_NO_PI = 0x1000
+MAC_LEN = 6
 
 MSG_DEVINFO = 0
 MSG_LINK = 1
@@ -22,7 +23,7 @@ MSG_GET_LINK = 2
 MSG_CLIENTCONFIG = 3
 MSG_PACKET = 4
 
-INTRON = b"UNU\x01"
+INTRON = b"UN\x00\x01\x02\x03\x04\x05"
 INTERFACE = "tap0"
 BAUD_RATE = 1500000 #921600
 SSID = "free_porn"
@@ -106,9 +107,7 @@ def recv_devinfo():
     version = int.from_bytes(ser.read(4), "little", signed=False)
     print(f"TAP: ESP FW version: {version}")
 
-    mac_len_data = ser.read(1)
-    mac_len = int.from_bytes(mac_len_data, "little", signed=False)
-    mac = ser.read(mac_len)
+    mac = ser.read(MAC_LEN)
     print(f"TAP: Device info mac: {mac.hex(' ')}")
     print(f"TAP: ip link set {INTERFACE} address {mac.hex(':')}")
     os.system(f"ip link set {INTERFACE} address {mac.hex(':')}")
