@@ -245,6 +245,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
         Packet,
         PacketLen,
         PacketData,
+        PacketDataThrowaway,
         Link,
         DevInfo,
         FWVersion,
@@ -358,7 +359,8 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
                     state = PacketData;
                 } else {
                     log_error(ESPIF, "Dropping packet due to out of RAM");
-                    state = Intron;
+                    rx_read = 0;
+                    state = PacketDataThrowaway;
                 }
             }
             break;
@@ -389,6 +391,14 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
                 state = Intron;
             }
         } break;
+        case PacketDataThrowaway:
+            const uint32_t to_read = std::min(rx_len - rx_read, (uint32_t)(end - c));
+            c += to_read;
+            rx_read += to_read;
+            if (rx_read == rx_len) {
+                log_debug(ESPIF, "Dropped %d packet data", rx_len);
+                state = Intron;
+            }
         }
     }
     log_debug(ESPIF, "Processed %d from UART", size);
