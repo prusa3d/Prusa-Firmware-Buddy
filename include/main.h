@@ -36,6 +36,7 @@ extern SPI_HandleTypeDef hspi3;
 #endif
 
 extern UART_HandleTypeDef huart6;
+extern RNG_HandleTypeDef hrng;
 
 #if (1)
 extern uartrxbuff_t uart1rxbuff;

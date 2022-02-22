@@ -41,8 +41,6 @@ LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
 #define LOOP_EVT_TIMEOUT           500UL
 #define IS_TIME_TO_CHECK_ESP(time) (((time) % 1000) == 0)
 
-extern RNG_HandleTypeDef hrng;
-
 osMessageQDef(networkMbox, 16, NULL);
 osMessageQId networkMbox_id;
 

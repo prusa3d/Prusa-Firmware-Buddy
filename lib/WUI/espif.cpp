@@ -12,6 +12,8 @@
 
 #include "main.h"
 
+#include "stm32f4xx_hal_rng.h"
+
 extern "C" {
 #include "stm32_port.h"
 }
@@ -31,6 +33,7 @@ LOG_COMPONENT_DEF(ESPIF, LOG_SEVERITY_INFO);
 // #include <bit>
 // static_assert(std::endian::native == std::endian::little, "STM<->ESP protocol assumes all involved CPUs are little endian.");
 static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "STM<->ESP protocol assumes all involved CPUs are little endian.");
+static_assert(ETHARP_HWADDR_LEN == 6);
 
 /*
  * UART and other pin configuration for ESP01 module
@@ -77,10 +80,10 @@ enum MessageType {
     MSG_LINK = 1,
     MSG_CLIENTCONFIG = 3,
     MSG_PACKET = 4,
+    MSG_INTRON = 5,
 };
 
 static const uint32_t ESP_FW_VERSION = 0;
-static const size_t MAC_DATA_MAX_LEN = 16;
 
 // Thread stuff
 static void uart_reader(void const *arg);
@@ -100,7 +103,7 @@ uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
 SemaphoreHandle_t uart_write_mutex = NULL;
 osThreadId uart_reader_id = NULL;
-static const char INTRON[4] = { 'U', 'N', 'U', 1 };
+static uint8_t intron[8] = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05' };
 
 static void uart_input(uint8_t *data, size_t size, struct netif *netif);
 
@@ -211,15 +214,11 @@ static void uart_reader(void const *arg) {
     }
 }
 
-static void process_mac(uint8_t len, uint8_t *data, struct netif *netif) {
-    log_info(ESPIF, "MAC len: %d, data: %02x%02x%02x%02x%02x%02x", len, data[0], data[1], data[2], data[3], data[4], data[5]);
+static void process_mac(uint8_t *data, struct netif *netif) {
+    log_info(ESPIF, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", data[0], data[1], data[2], data[3], data[4], data[5]);
     xTaskNotify(init_task_handle, 0, eNoAction);
-    if (len != ETHARP_HWADDR_LEN) {
-        log_error(ESPIF, "Invalid MAC len: %d, ignoring", len);
-        return;
-    }
-    netif->hwaddr_len = len;
-    memcpy(netif->hwaddr, data, len);
+    netif->hwaddr_len = ETHARP_HWADDR_LEN;
+    memcpy(netif->hwaddr, data, ETHARP_HWADDR_LEN);
     log_info(ESPIF, "MAC set");
 }
 
@@ -249,7 +248,6 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
         Link,
         DevInfo,
         FWVersion,
-        MACLen,
         MACData,
     } state
         = Intron;
@@ -257,9 +255,8 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
     static uint intron_read = 0;
     static uint fw_version_read = 0;
     static uint32_t fw_version = 0;
-    static uint mac_len = 0;
     static uint mac_read = 0; // Amount of MAC bytes already read
-    static uint8_t mac_data[MAC_DATA_MAX_LEN];
+    static uint8_t mac_data[ETHARP_HWADDR_LEN];
 
     static uint32_t rx_len = 0;  // Length of RX packet
     static uint rx_len_read = 0; // Amount of rx_len bytes already read
@@ -276,10 +273,10 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
 
         switch (state) {
         case Intron:
-            if (*c++ == INTRON[intron_read]) {
+            if (*c++ == intron[intron_read]) {
                 intron_read++;
                 log_debug(ESPIF, "Intron at %d", intron_read);
-                if (intron_read >= sizeof(INTRON)) {
+                if (intron_read >= sizeof(intron)) {
                     log_debug(ESPIF, "Intron detected");
                     state = MessageType;
                     intron_read = 0;
@@ -325,28 +322,18 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             ((uint8_t *)&fw_version)[fw_version_read++] = *c++;
             if (fw_version_read == sizeof(fw_version)) {
                 log_info(ESPIF, "ESP FW version: %d, supported version: %d", fw_version, ESP_FW_VERSION);
-                state = MACLen;
+                mac_read = 0;
+                state = MACData;
             }
-            break;
-
-        case MACLen:
-            mac_len = *c++;
-            if (mac_len > MAC_DATA_MAX_LEN) {
-                log_error(ESPIF, "MAC len %d too much, reducing to %d", mac_len, MAC_DATA_MAX_LEN);
-                mac_len = MAC_DATA_MAX_LEN;
-            }
-            mac_read = 0;
-            state = MACData;
-            log_debug(ESPIF, "Reading MAC len: %d", mac_len);
             break;
 
         case MACData:
-            while (c < end && mac_read < mac_len) {
+            while (c < end && mac_read < sizeof(mac_data)) {
                 log_debug(ESPIF, "Read MAC byte at %d: %02x", mac_read, *c);
                 mac_data[mac_read++] = *c++;
             }
-            if (mac_read == mac_len) {
-                process_mac(mac_len, mac_data, netif);
+            if (mac_read == sizeof(mac_data)) {
+                process_mac(mac_data, netif);
                 state = Intron;
             }
             break;
@@ -408,6 +395,34 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
 }
 
 /**
+ * @brief Send intron
+ *
+ * Send intron sequence to ESP
+ *
+ * To improve security ESPIF generates random intron.
+ */
+static void generate_intron() {
+    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
+
+    // Send message header using old intro to ESP
+    espif_transmit_data(intron, sizeof(intron));
+    uint8_t msg_type = MSG_INTRON;
+
+    // Generate new intron
+    for (uint i = 2; i < sizeof(intron); i++) {
+        intron[i] = HAL_RNG_GetRandomNumber(&hrng);
+    }
+
+    log_info(ESPIF, "New intron: %.*s", 8, intron);
+
+    // Send new intron data
+    espif_transmit_data(&msg_type, 1);
+    espif_transmit_data(intron, sizeof(intron));
+
+    xSemaphoreGive(uart_write_mutex);
+}
+
+/**
  * @brief Send packet using ESPIF NIC
  *
  * @param netif Output NETIF handle
@@ -423,7 +438,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
     log_debug(ESPIF, "Low level output packet size: %d", len);
 
     xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
-    espif_transmit_data(INTRON, sizeof(INTRON));
+    espif_transmit_data(intron, sizeof(intron));
     uint8_t msg_type = MSG_PACKET;
     espif_transmit_data(&msg_type, 1);
     espif_transmit_data(&len, sizeof(len));
@@ -454,6 +469,7 @@ static err_t reset_and_wait() {
         return ERR_IF;
     }
     log_info(ESPIF, "ESP up and running");
+    generate_intron();
     return ERR_OK;
 }
 
@@ -553,7 +569,7 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
     log_info(ESPIF, "Joining AP %s:%s", ssid, pass);
 
     xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
-    espif_transmit_data(INTRON, sizeof(INTRON));
+    espif_transmit_data(intron, sizeof(intron));
     uint8_t msg_type = MSG_CLIENTCONFIG;
     espif_transmit_data(&msg_type, sizeof(msg_type));
     uint8_t ssid_len = strlen(ssid);
