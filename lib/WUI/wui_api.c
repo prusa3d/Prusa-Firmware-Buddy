@@ -47,12 +47,8 @@ void wui_marlin_client_init(void) {
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
     if (vars) {
         /*
-         * Note about synchronizing access to these buffers.
-         *
-         * A marlin client is tied to a thread and we may access it from one or
-         * another (depending on if the PrusaLink runs over wifi or over
-         * ethernet). So we need two. But we can afford to share the buffers,
-         * because only one of them is active at a time.
+         * Note: We currently have only a single marlin client for
+         * WUI/networking. So we can use a single buffer there.
          */
         vars->media_LFN = wui_media_LFN;
         vars->media_SFN_path = wui_media_SFN_path;
