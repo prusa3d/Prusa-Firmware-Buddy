@@ -31,8 +31,11 @@
 #include "driver/gpio.h"
 #include "driver/uart.h"
 
+static const uint16_t FW_VERSION = 0;
+
 // INTRON
 // 0 as uint8_t
+// fw version as uint16_t
 // hw addr LEN as uint8_t
 // hw addr data bytes
 #define MSG_DEVINFO 0
@@ -245,29 +248,30 @@ static void sendDeviceInfo() {
         printf("UART mutex not available !!!\n\r");
         return;
     }
-    if(!wifi_net_if) {
-        printf("Sending fake device info\n\r");
-        // TODO: This is a problem. Host waits for us to send device info so that it can setup is NIC. We are waiting
-        // for client info to start out Wifi. The clinet info is send once NIC is initialized (this makes sense).
-        // This break the cycle by sending fake MAC (would be much better to obtain MAC before starting wifi, or
-        // being able to restart wifi, or change associated AP)
-        //xSemaphoreTakeFromISR(uart_mtx, portMAX_DELAY);
-        uart_write_bytes(UART_NUM_0, INTRON, sizeof(INTRON));
-        const uint8_t t = MSG_DEVINFO;
-        uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
-        const uint8_t zero_len = 0;
-        uart_write_bytes(UART_NUM_0, (const char*)&zero_len, sizeof(zero_len));
-        // xSemaphoreGive(uart_mtx);
-        return;
-    }
 
     printf("Sending device info\n\r");
     //xSemaphoreTakeFromISR(uart_mtx, portMAX_DELAY);
+    // Intron
     uart_write_bytes(UART_NUM_0, INTRON, sizeof(INTRON));
+
+    // Definfo mesage identifier
     const uint8_t t = MSG_DEVINFO;
     uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
-    uart_write_bytes(UART_NUM_0, (const char*)&wifi_net_if->hwaddr_len, sizeof(uint8_t));
-    uart_write_bytes(UART_NUM_0, (const char*)&wifi_net_if->hwaddr, wifi_net_if->hwaddr_len);
+
+    // FW version
+    uart_write_bytes(UART_NUM_0, (const char*)&FW_VERSION, sizeof(FW_VERSION));
+
+    // MAC address
+    static const uint8_t MAC_LEN = 6;
+    uint8_t mac[MAC_LEN];
+    if(esp_wifi_get_mac(WIFI_IF_STA, mac) == ESP_OK) {
+        uart_write_bytes(UART_NUM_0, (const char*)&MAC_LEN, sizeof(MAC_LEN));
+        uart_write_bytes(UART_NUM_0, (const char*)&mac, sizeof(mac));
+    } else {
+        const uint8_t zero = 0;
+        uart_write_bytes(UART_NUM_0, (const char*)&zero, sizeof(zero));
+        printf("Failed to obtain MAC");
+    }
     xSemaphoreGive(uart_mtx);
 }
 

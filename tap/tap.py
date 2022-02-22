@@ -102,6 +102,10 @@ def recv_link():
 
 
 def recv_devinfo():
+    # ESP FW version
+    version = int.from_bytes(ser.read(4), "little", signed=False)
+    print(f"TAP: ESP FW version: {version}")
+
     mac_len_data = ser.read(1)
     mac_len = int.from_bytes(mac_len_data, "little", signed=False)
     mac = ser.read(mac_len)
