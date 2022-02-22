@@ -183,6 +183,25 @@ protected:
  */
 class InterruptPin : public InputPin {
 public:
+    /**
+     * @brief InterruptPin constructor
+     *
+     * Priorities are shared between pins in a group. See InterruptPin::getIRQn() for grouping.
+     * If it is impossible to fulfill requested priority, you will get bsod("IRQ priority mismatch.")
+     * during configure() call.
+     *
+     * @param ioPort
+     * @param ioPin
+     * @param iMode
+     * @param pull
+     * @param preemptPriority Priority, highest priority is 0,
+     *          maximum priority from which RTOS ISR API calls are allowed is configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
+     *          minimum priority depends on processor and how available priority bits are assigned between
+     *          priority and sub-priority.
+     * @param subPriority Highest sub-priority is 0 (recommended as it is always available).
+     *          Lowest sub-priority depends on how available priority bits are assigned between
+     *          priority and sub-priority.
+     */
     constexpr InterruptPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, uint8_t preemptPriority, uint8_t subPriority)
         : InputPin(ioPort, ioPin, iMode, pull)
         , m_priority { preemptPriority, subPriority } {}
