@@ -79,13 +79,15 @@ enum MessageType {
     MSG_PACKET = 4,
 };
 
+static const uint32_t ESP_FW_VERSION = 0;
 static const size_t MAC_DATA_MAX_LEN = 16;
 
-// Thread stuffs
+// Thread stuff
 static void uart_reader(void const *arg);
 osThreadDef(UartBufferThread, uart_reader, osPriorityBelowNormal, 0, 512);
 
 // NIC state
+static std::atomic<uint16_t> fw_version;
 static std::atomic<ESPIFOperatingMode> esp_operating_mode = ESPIF_UNINITIALIZED_MODE;
 static bool associated = 0;
 static std::atomic<TaskHandle_t> init_task_handle;
@@ -246,11 +248,15 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
         PacketData,
         Link,
         DevInfo,
-        MACData
+        FWVersion,
+        MACLen,
+        MACData,
     } state
         = Intron;
 
     static uint intron_read = 0;
+    static uint fw_version_read = 0;
+    static uint32_t fw_version = 0;
     static uint mac_len = 0;
     static uint mac_read = 0; // Amount of MAC bytes already read
     static uint8_t mac_data[MAC_DATA_MAX_LEN];
@@ -311,6 +317,19 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             break;
 
         case DevInfo:
+            state = FWVersion;
+            fw_version_read = 0;
+            break;
+
+        case FWVersion:
+            ((uint8_t *)&fw_version)[fw_version_read++] = *c++;
+            if (fw_version_read == sizeof(fw_version)) {
+                log_info(ESPIF, "ESP FW version: %d, supported version: %d", fw_version, ESP_FW_VERSION);
+                state = MACLen;
+            }
+            break;
+
+        case MACLen:
             mac_len = *c++;
             if (mac_len > MAC_DATA_MAX_LEN) {
                 log_error(ESPIF, "MAC len %d too much, reducing to %d", mac_len, MAC_DATA_MAX_LEN);
@@ -319,8 +338,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             mac_read = 0;
             state = MACData;
             log_debug(ESPIF, "Reading MAC len: %d", mac_len);
-            // No break, with zero len MAC data there might be no other input byte
-            // to trigger MAC processing.
+            break;
 
         case MACData:
             while (c < end && mac_read < mac_len) {
