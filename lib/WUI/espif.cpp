@@ -83,7 +83,7 @@ enum MessageType {
     MSG_INTRON = 5,
 };
 
-static const uint32_t ESP_FW_VERSION = 0;
+static const uint32_t SUPPORTED_FW_VERSION = 0;
 
 // Thread stuff
 static void uart_reader(void const *arg);
@@ -99,6 +99,7 @@ static std::atomic<TaskHandle_t> init_task_handle;
 static const uint32_t NIC_UART_BAUDRATE = 1000000;
 static const uint32_t FLASH_UART_BAUDRATE = 115200;
 static const uint32_t CHARACTER_TIMEOUT_MS = 10;
+static std::atomic<bool> esp_detected;
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
 SemaphoreHandle_t uart_write_mutex = NULL;
@@ -118,6 +119,7 @@ static void hard_reset_device() {
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
     osDelay(10);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+    esp_detected = false;
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
@@ -133,6 +135,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
         old_dma_pos = 0;
         __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
         log_error(ESPIF, "Recovered from UART error");
+        esp_detected = true;
     }
 }
 
@@ -219,7 +222,6 @@ static void process_mac(uint8_t *data, struct netif *netif) {
     xTaskNotify(init_task_handle, 0, eNoAction);
     netif->hwaddr_len = ETHARP_HWADDR_LEN;
     memcpy(netif->hwaddr, data, ETHARP_HWADDR_LEN);
-    log_info(ESPIF, "MAC set");
 }
 
 bool espif_link(struct netif *netif) {
@@ -238,6 +240,7 @@ static void process_link_change(bool link_up, struct netif *netif) {
 
 static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
     log_debug(ESPIF, "Received ESP data len: %d", size);
+    esp_detected = true;
 
     static enum ProtocolState {
         Intron,
@@ -255,7 +258,6 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
 
     static uint intron_read = 0;
     static uint fw_version_read = 0;
-    static uint32_t fw_version = 0;
     static uint mac_read = 0; // Amount of MAC bytes already read
     static uint8_t mac_data[ETHARP_HWADDR_LEN];
 
@@ -322,7 +324,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
         case FWVersion:
             ((uint8_t *)&fw_version)[fw_version_read++] = *c++;
             if (fw_version_read == sizeof(fw_version)) {
-                log_info(ESPIF, "ESP FW version: %d, supported version: %d", fw_version, ESP_FW_VERSION);
+                log_debug(ESPIF, "ESP FW version: %d", fw_version.load());
                 mac_read = 0;
                 state = MACData;
             }
@@ -470,12 +472,23 @@ static err_t reset_and_wait() {
     init_task_handle = xTaskGetCurrentTaskHandle();
 
     // Reset device to receive MAC address
-    log_debug(ESPIF, "Resetting ESP to receive MAC address");
+    log_debug(ESPIF, "Resetting ESP and wait for device info reponse");
     hard_reset_device();
 
     // Wait for esp ready (receiveing device info)
     if (!xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(3000))) {
-        log_error(ESPIF, "Timeout waiting for ESP bootup");
+        log_error(ESPIF, "Timeout waiting for ESP");
+        if (esp_detected) {
+            // Some UART activity, but no device info message received
+            log_error(ESPIF, "Some activity detected. Wrong ESP FW?");
+        } else {
+            // There is no UART activity -> ESP not present or not transmitting
+            log_error(ESPIF, "No activity detected. ESP not present?");
+        }
+        return ERR_IF;
+    }
+    if (fw_version != SUPPORTED_FW_VERSION) {
+        log_error(ESPIF, "ESP detected, FW not supported: %d != %d", fw_version.load(), SUPPORTED_FW_VERSION);
         return ERR_IF;
     }
     log_info(ESPIF, "ESP up and running");
