@@ -589,7 +589,7 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
         log_error(ESPIF, "Cannot joing AP, not in running mode.");
         return ERR_IF;
     }
-    log_info(ESPIF, "Joining AP %s:%s", ssid, pass);
+    log_info(ESPIF, "Joining AP %s:*(%d)", ssid, strlen(pass));
 
     xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
     espif_transmit_data(intron, sizeof(intron));
