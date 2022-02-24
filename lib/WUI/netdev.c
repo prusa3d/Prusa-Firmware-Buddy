@@ -127,6 +127,10 @@ void netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE
 static void alsockets_adjust() {
     // TODO: Drop alternative sockets
     alsockets_funcs(netdev_get_sockets(active_netdev_id));
+    struct netif *dev = get_netif_by_id(active_netdev_id);
+    if (dev) {
+        netifapi_netif_set_default(dev);
+    }
 }
 
 uint32_t netdev_init() {
@@ -233,7 +237,6 @@ uint32_t netdev_set_up(uint32_t netdev_id) {
     if (!dev) {
         return ERR_IF;
     }
-    netifapi_netif_set_default(dev);
     netifapi_netif_set_link_up(dev);
     return netifapi_netif_set_up(dev);
 }
