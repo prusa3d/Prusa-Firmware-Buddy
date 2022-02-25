@@ -63,9 +63,10 @@ public:
      *   but for now, changing the key is very rare and happens in-place.
      */
     virtual const char *get_api_key() const = 0;
-    // TODO: Have our own abstraction layer for tests vs lwIP? This one is ugly and brings a lot of deps in.
-    virtual altcp_allocator_t listener_alloc() const = 0;
-    virtual uint16_t port() const = 0;
+    /**
+     * \brief Allocate the listener socket.
+     */
+    virtual altcp_pcb *listener_alloc() const = 0;
 };
 
 /**

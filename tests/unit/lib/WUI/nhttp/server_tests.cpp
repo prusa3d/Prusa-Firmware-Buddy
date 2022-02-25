@@ -217,13 +217,10 @@ private:
     friend class MockServer;
     vector<shared_ptr<ConnInfo>> &infos;
     static const constexpr Selector *selectors_array[] = { &validate_request, &fake_index, &fake_api, &unknown_request };
-    altcp_pcb *mock_alloc_inner() {
+    altcp_pcb *new_conn() const {
         MockConn *conn = new MockConn;
         infos.push_back(conn->info);
         return conn;
-    }
-    static altcp_pcb *mock_alloc(void *arg, uint8_t ip_type) {
-        return static_cast<MockServerDefs *>(arg)->mock_alloc_inner();
     }
     string api_key;
 
@@ -232,14 +229,10 @@ public:
         : infos(conn_infos) {}
     virtual const Selector *const *selectors() const override { return selectors_array; }
     virtual const char *get_api_key() const override { return api_key.c_str(); }
-    virtual altcp_allocator_t listener_alloc() const override {
-        altcp_allocator_t alloc = {
-            mock_alloc,
-            (void *)this,
-        };
-        return alloc;
+    virtual altcp_pcb *listener_alloc() const override {
+        auto conn = new_conn();
+        return altcp_listen(conn);
     }
-    virtual uint16_t port() const override { return 80; }
 };
 
 class MockServer {
@@ -262,7 +255,7 @@ public:
      */
     size_t new_conn() {
         // We assume the 0th connection is the server's listening one.
-        auto conn = server_defs.mock_alloc_inner();
+        auto conn = server_defs.new_conn();
         const size_t idx = server_defs.infos.size() - 1;
         auto listener = server_defs.infos[0];
         REQUIRE(listener->listening);

@@ -30,13 +30,45 @@ SemaphoreHandle_t httpd_mutex = NULL;
 class DefaultServerDefs final : public ServerDefs {
 private:
     static const constexpr handler::Selector *const selectors_array[] = { &validate_request, &static_file, &static_fs_file, &prusa_link_api, &usb_files, &previews, &unknown_request };
-    static const constexpr altcp_allocator_t altcp_alloc = { prusa_alloc };
 
 public:
     virtual const Selector *const *selectors() const override { return selectors_array; }
     virtual const char *get_api_key() const override { return wui_get_api_key(); }
-    virtual altcp_allocator_t listener_alloc() const override { return altcp_alloc; }
-    virtual uint16_t port() const override { return 80; }
+    virtual altcp_pcb *listener_alloc() const override {
+        /*
+         * We know we are in the part where ALTCP is turned off. That means the
+         * tcp_pcb and altcp_pcb are the same thing.
+         *
+         * We use the altcp_pcb in the interface only to allow tests to mock it
+         * (and have it turned on).
+         */
+        altcp_pcb *l = tcp_new_ip_type(IPADDR_TYPE_ANY);
+
+        if (l == nullptr) {
+            return nullptr;
+        }
+
+        /*
+         * set SOF_REUSEADDR to explicitly bind httpd to multiple
+         * interfaces and to allow re-binding after enabling & disabling
+         * ethernet.
+         */
+        ip_set_option((struct tcp_pcb *)l, SOF_REUSEADDR);
+        const auto err = tcp_bind(l, IP_ANY_TYPE, 80);
+        if (err != ERR_OK) {
+            /*
+             * Note: According to docs, the altcp_close _can fail_. Nevertheless:
+             *
+             * * Using altcp_abort on listening connection doesn't work.
+             * * It is assumed to be able to fail due to eg. inability to send a
+             *   FIN packet. This is not the case for a listening socket.
+             */
+            altcp_close(l);
+            return nullptr;
+        }
+
+        return altcp_listen(l);
+    }
 };
 
 const DefaultServerDefs server_defs;

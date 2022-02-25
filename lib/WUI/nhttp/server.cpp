@@ -521,25 +521,12 @@ Server::Buffer *Server::find_empty_buffer() {
 bool Server::start() {
     assert(!listener);
 
-    auto listener_alloc = defs.listener_alloc();
+    listener.reset(defs.listener_alloc());
 
-    altcp_pcb *l = altcp_new_ip_type(&listener_alloc, IPADDR_TYPE_ANY);
-
-    if (l == nullptr) {
-        return false;
-    }
-    listener.reset(l);
-
-    /* set SOF_REUSEADDR to explicitly bind httpd to multiple
-     * interfaces and to allow re-binding after enabling & disabling
-     * ethernet. This is set in the prusa_alloc. */
-    const auto err = altcp_bind(listener.get(), IP_ANY_TYPE, defs.port());
-    if (err != ERR_OK) {
-        listener.reset();
+    if (!listener) {
         return false;
     }
 
-    listener.reset(altcp_listen(listener.release()));
     altcp_arg(listener.get(), this);
     altcp_accept(listener.get(), Server::accept_wrap);
 
