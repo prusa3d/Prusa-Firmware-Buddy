@@ -21,8 +21,6 @@ extern "C" {
 *****************************************************************************/
 void StartWebServerTask(void const *argument);
 
-struct altcp_pcb *prusa_alloc(void *arg, uint8_t ip_type);
-
 #ifdef __cplusplus
 }
 #endif // __cplusplus

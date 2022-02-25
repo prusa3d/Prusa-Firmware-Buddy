@@ -160,7 +160,7 @@ extern "C" {
     #define LWIP_NETIF_HOSTNAME          1
     #define LWIP_HTTPD_SUPPORT_POST      1
     #define LWIP_COMPAT_SOCKETS          1
-    #define LWIP_ALTCP                   1
+    #define LWIP_ALTCP                   0
     #define LWIP_HTTPD_DYNAMIC_FILE_READ 1
     #define LWIP_TIMERS                  1
 
