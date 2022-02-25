@@ -31,7 +31,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/gcode_thumb_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode_filename.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/sha256.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/sha256.c
   # Dependencies.
   # It seems it's not possible to just link the damn LwIP library:
   # * Somehow, the target_link_libraries directive poisons include
@@ -79,6 +79,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system
           ${CMAKE_SOURCE_DIR}/lib/jsmn
+          ${CMAKE_SOURCE_DIR}/include/mbedtls
   )
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
@@ -96,6 +97,7 @@ add_custom_target(
                                        ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.h
   )
 add_dependencies(nhttp_tests generate-http-automata-tests)
+target_link_libraries(nhttp_tests mbedTLS)
 # target_link_libraries(http_tests LwIP)
 set_target_properties(nhttp_tests PROPERTIES CXX_STANDARD 17)
 
