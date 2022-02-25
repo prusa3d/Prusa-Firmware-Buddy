@@ -33,6 +33,11 @@
 #include "client_response.hpp"
 #include "RAII.hpp"
 #include <cmath>
+#include "eeprom_function_api.h"
+
+#ifndef NOZZLE_UNPARK_XY_FEEDRATE
+    #define NOZZLE_UNPARK_XY_FEEDRATE NOZZLE_PARK_XY_FEEDRATE
+#endif
 
 // private:
 //check unsupported features
@@ -66,6 +71,55 @@ void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
     line_to_current_position(fr_mm_s);
     planner.synchronize();
 }
+
+class RammingSequence {
+public:
+    struct Item {
+        int16_t e;        ///< relative movement of Extruder
+        int16_t feedrate; ///< feedrate of the move
+    };
+
+    template <size_t elements>
+    constexpr RammingSequence(const Item (&sequence)[elements])
+        : m_begin(sequence)
+        , m_end(&(sequence[elements]))
+        , unload_length(calculateRamUnloadLen(sequence)) {}
+    const Item *const begin() const { return m_begin; }
+    const Item *const end() const { return m_end; }
+
+private:
+    const Item *const m_begin;
+    const Item *const m_end;
+
+public:
+    const decltype(Item::e) unload_length;
+
+private:
+    template <size_t elements>
+    static constexpr decltype(Item::e) calculateRamUnloadLen(const Item (&ramSeq)[elements]) {
+        decltype(Item::e) ramLen = 0;
+        size_t i = 0;
+        // skip all extrude movements
+        while (ramSeq[i].e > 0 && i < elements) {
+            i++;
+        }
+        //calculate ram movement len
+        for (; i < elements; i++) {
+            ramLen += ramSeq[i].e;
+        }
+        return ramLen;
+    }
+};
+
+#ifdef FILAMENT_RUNOUT_RAMMING_SEQUENCE
+constexpr RammingSequence::Item ramRunoutSeqItems[] = FILAMENT_RUNOUT_RAMMING_SEQUENCE;
+#else
+constexpr RammingSequence::Item ramRunoutSeqItems[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
+#endif
+constexpr RammingSequence runoutRammingSequence = RammingSequence(ramRunoutSeqItems);
+
+constexpr RammingSequence::Item ramUnloadSeqItems[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
+constexpr RammingSequence unloadRammingSequence = RammingSequence(ramUnloadSeqItems);
 
 /*****************************************************************************/
 //PausePrivatePhase
@@ -346,11 +400,18 @@ bool Pause::loadLoop(load_mode_t mode) {
             set(LoadPhases_t::_finish);
         }
     } break;
-    case LoadPhases_t::eject:
+    case LoadPhases_t::eject: {
+
+        setPhase(PhasesLoadUnload::Ramming, 98);
+        ram_filament(RammingType::unload);
+
+        planner.synchronize(); // do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
+
         setPhase(PhasesLoadUnload::Ejecting, 99);
-        do_e_move_notify_progress_hotextrude(-slow_load_length - fast_load_length - purge_ln, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 10, 99);
+        unload_filament(RammingType::unload);
+
         set(LoadPhases_t::has_slow_load);
-        break;
+    } break;
     default:
         set(LoadPhases_t::_finish);
     }
@@ -403,11 +464,9 @@ bool Pause::filamentLoad(load_mode_t mode) {
 }
 
 void Pause::unloadLoop(unload_mode_t mode) {
-    static const RamUnloadSeqItem ramUnloadSeq[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
-    decltype(RamUnloadSeqItem::e) ramUnloadLength = 0; //Sum of ramming distances starting from first retraction
-
-    constexpr float mm_per_minute = 1 / 60.f;
-    constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
+    // if M600 was sent from filament sensor it was caused by runout
+    // we need to change the ram sequence to prevent filament getting stuck in the extruder
+    const RammingType rammingType = FS_instance().WasM600_send() ? RammingType::runout : RammingType::unload;
 
     const Response response = getResponse();
 
@@ -416,29 +475,15 @@ void Pause::unloadLoop(unload_mode_t mode) {
     case UnloadPhases_t::_init:
     case UnloadPhases_t::ram_sequence:
         setPhase(PhasesLoadUnload::Ramming, 50);
-        {
-            bool counting = false;
-            for (size_t i = 0; i < ramUnloadSeqSize; ++i) {
-                plan_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
-                if (ramUnloadSeq[i].e < 0)
-                    counting = true;
-                if (counting)
-                    ramUnloadLength += ramUnloadSeq[i].e;
-            }
-        }
+        ram_filament(rammingType);
         set(UnloadPhases_t::unload);
         break;
     case UnloadPhases_t::unload: {
-        const float saved_acceleration = planner.settings.retract_acceleration;
-        planner.settings.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
 
         planner.synchronize(); //do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
 
-        // subtract the already performed extruder movement from the total unload length
         setPhase(PhasesLoadUnload::Unloading, 51);
-        do_e_move_notify_progress_hotextrude((unload_length - ramUnloadLength), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), 51, 99);
-
-        planner.settings.retract_acceleration = saved_acceleration;
+        unload_filament(rammingType);
 
         Filaments::Set(filament_t::NONE);
         setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
@@ -700,6 +745,40 @@ void Pause::FilamentChange() {
 #if HAS_DISPLAY
     ui.reset_status();
 #endif
+}
+void Pause::ram_filament(const Pause::RammingType type) {
+    const RammingSequence &sequence = get_ramming_sequence(type);
+
+    constexpr float mm_per_minute = 1 / 60.f;
+    // ram filament
+    for (auto &elem : sequence) {
+        plan_e_move(elem.e, elem.feedrate * mm_per_minute);
+    }
+}
+
+void Pause::unload_filament(const Pause::RammingType type) {
+    const RammingSequence &sequence = get_ramming_sequence(type);
+
+    const float saved_acceleration = planner.settings.retract_acceleration;
+    planner.settings.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
+
+    // subtract the already performed extruder movement from the total unload length and ensure it is negative
+    float remaining_unload_length = unload_length - sequence.unload_length;
+    if (remaining_unload_length > .0f) {
+        remaining_unload_length = .0f;
+    }
+    do_e_move_notify_progress_hotextrude(remaining_unload_length, (FILAMENT_CHANGE_UNLOAD_FEEDRATE), 51, 99);
+
+    planner.settings.retract_acceleration = saved_acceleration;
+}
+const RammingSequence &Pause::get_ramming_sequence(const RammingType type) const {
+    switch (type) {
+    case Pause::RammingType::runout:
+        return runoutRammingSequence;
+    case Pause::RammingType::unload:
+        return unloadRammingSequence;
+    }
+    return unloadRammingSequence;
 }
 
 /*****************************************************************************/
