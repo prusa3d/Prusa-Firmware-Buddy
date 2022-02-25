@@ -12,6 +12,7 @@
 #include "client_response.hpp"
 #include "marlin_server.hpp"
 #include "IPause.hpp"
+#include <array>
 
 class PausePrivatePhase : public IPause {
     PhasesLoadUnload phase;       //needed for CanSafetyTimerExpire
@@ -94,20 +95,14 @@ public:
     virtual bool HasTempToRestore() const override;
 };
 
+class RammingSequence;
+
 //used by load / unlaod /change filament
 class Pause : public PausePrivatePhase {
     //singleton
     Pause();
     Pause(const Pause &) = delete;
     Pause &operator=(const Pause &) = delete;
-
-    struct RamUnloadSeqItem {
-        int16_t e;        ///< relative movement of Extruder
-        int16_t feedrate; ///< feedrate of the move
-    };
-
-    enum class is_standalone_t : bool { no,
-        yes };
 
     enum class unload_mode_t {
         standalone,
@@ -174,6 +169,15 @@ private:
     void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+
+    enum class RammingType {
+        unload,
+        runout
+    };
+
+    void ram_filament(const RammingType sequence);
+    void unload_filament(const RammingType sequence);
+    const RammingSequence &get_ramming_sequence(const RammingType type) const;
 
     //create finite state machine and automatically destroy it at the end of scope
     //parks in ctor and unparks in dtor
