@@ -1,10 +1,10 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 #include "log.h"
 #include "metric_handlers.h"
 #include "stm32f4xx_hal.h"
-#include "alsockets.h"
 #include "timing.h"
 #include "syslog.h"
 #include "otp.h"
