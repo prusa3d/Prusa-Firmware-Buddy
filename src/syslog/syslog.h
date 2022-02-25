@@ -1,6 +1,6 @@
 #pragma once
 #include <stdbool.h>
-#include "alsockets.h"
+#include <sys/socket.h>
 
 #ifdef __cplusplus
 extern "C" {

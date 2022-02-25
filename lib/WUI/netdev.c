@@ -16,6 +16,7 @@
  */
 
 #include <assert.h>
+#include <string.h>
 #include "netdev.h"
 
 #include "eeprom.h"
@@ -27,7 +28,6 @@
 #include "dns.h"
 #include "netif_settings.h"
 #include "wui_api.h"
-#include "alsockets.h"
 #include "espif.h"
 #include "otp.h"
 
@@ -51,9 +51,6 @@ struct netif wlan0; // network interface structure for ESP Wifi
 static ap_entry_t ap = { "", "" };
 
 extern osMessageQId networkMbox_id;
-extern struct alsockets_s *alsockets_eth();
-
-static struct alsockets_s *netdev_get_sockets(uint32_t);
 
 #define ETH_CONFIG() wui_netdev_config[NETDEV_ETH_ID]
 #define ESP_CONFIG() wui_netdev_config[NETDEV_ESP_ID]
@@ -124,9 +121,7 @@ void netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE
     }
 }
 
-static void alsockets_adjust() {
-    // TODO: Drop alternative sockets
-    alsockets_funcs(netdev_get_sockets(active_netdev_id));
+static void netif_adjust() {
     struct netif *dev = get_netif_by_id(active_netdev_id);
     if (dev) {
         netifapi_netif_set_default(dev);
@@ -142,7 +137,7 @@ uint32_t netdev_init() {
 
     tcpip_init(tcpip_init_done_callback, NULL);
 
-    alsockets_adjust();
+    netif_adjust();
     return 0;
 }
 
@@ -162,7 +157,7 @@ uint32_t netdev_set_active_id(uint32_t netdev_id) {
     active_netdev_id = netdev_id;
     eeprom_set_var(EEVAR_ACTIVE_NETDEV, variant8_ui8((uint8_t)(netdev_id & 0xFF)));
 
-    alsockets_adjust();
+    netif_adjust();
     return 0;
 }
 
@@ -293,11 +288,6 @@ uint32_t netdev_set_static(uint32_t netdev_id) {
 uint32_t netdev_check_link(uint32_t dev_id) {
     // TODO: This needs some implementation or removal
     return 0;
-}
-
-static struct alsockets_s *netdev_get_sockets(uint32_t active_id) {
-    // TODO: Drop alternative sockets
-    return alsockets_eth();
 }
 
 const char *netdev_get_hostname(uint32_t active_id) {

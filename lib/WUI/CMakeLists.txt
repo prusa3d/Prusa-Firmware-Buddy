@@ -6,7 +6,6 @@ target_sources(
             wui_REST_api.c
             netdev.c
             json_encode.c
-            alsockets.c
             wui_api.c
             http/fs.c
             http_lifetime.cpp
