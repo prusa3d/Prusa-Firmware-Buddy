@@ -78,12 +78,8 @@ typedef struct {
 * \param [in] ethconfig storage for parameters to set from static ethconfig to non-volatile memory
 * \param [in] ap_config storage for AP parameters. May be NULL. Non-null is valid only with NETDEV_ESP_ID.
 * \param [in] netdev_id which slots to use in the eeprom. Either NETDEV_ETH_ID or NETDEV_ESP_ID.
-*
-* \return   uint32_t    error value
-*
-* \retval   0 if successful
 ***************************************************************************************************/
-uint32_t save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
+void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
 
 /*!**********************************************************************************************
 * \brief loads the network parameters from non-volatile memory
@@ -91,12 +87,8 @@ uint32_t save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_
 * \param [out] ethconfig storage for parameters to get from memory to static ethconfig structure
 * \param [out] ap_config storage for parameters about connecting to a WIFI AP. May be NULL. Non-null is valid only with NETDEV_ESP_ID.
 * \param [in] netdev_id which slots in the eeprom to use. Either NETDEV_ETH_ID or NETDEV_ESP_ID.
-*
-* \return   uint32_t    error value
-*
-* \retval   0 if successful
 ************************************************************************************************/
-uint32_t load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
+void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
 
 /*!****************************************************************************
 * \brief load from ini file Ethernet specific parameters

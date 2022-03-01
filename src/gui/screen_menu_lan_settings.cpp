@@ -164,20 +164,14 @@ void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t
         uint32_t type = ((uint32_t)param) & 0xFFFF0000;
         switch (type) {
         case MI_NET_INTERFACE_t::EventMask::value:
-            httpd_close();
-            netdev_set_down(netdev_get_active_id());
             netdev_set_active_id(action);
-            netdev_set_up(action);
-            httpd_reinit();
             break;
         case MI_NET_IP_t::EventMask::value:
-            httpd_close();
             if (action == NETDEV_STATIC) {
                 netdev_set_static(netdev_get_active_id());
             } else {
                 netdev_set_dhcp(netdev_get_active_id());
             }
-            httpd_reinit();
             break;
         default:
             break;

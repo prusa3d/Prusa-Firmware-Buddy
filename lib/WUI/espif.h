@@ -36,8 +36,9 @@ err_t espif_join_ap(const char *ssid, const char *passwd);
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Retrieve link status
 /// This return true if associated to AP regardless of interface being up or down.
-/// @param[in] netif Network interface to check - ignored
-bool espif_link(struct netif *netif);
+bool espif_link();
+
+void espif_input_once(struct netif *netif);
 
 // UART buffer stuff
 // The data received should fit into the buffer. Or, some guaratees has to be

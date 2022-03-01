@@ -83,8 +83,15 @@ void httpd_init(void) {
     assert(httpd_mutex == nullptr);
     httpd_mutex = xSemaphoreCreateMutex();
     assert(httpd_mutex != nullptr);
+}
+
+void httpd_start(void) {
+    assert(httpd_mutex != nullptr);
+    xSemaphoreTake(httpd_mutex, portMAX_DELAY);
 
     server.start();
+
+    xSemaphoreGive(httpd_mutex);
 }
 
 void httpd_close(void) {
@@ -92,16 +99,6 @@ void httpd_close(void) {
     xSemaphoreTake(httpd_mutex, portMAX_DELAY);
 
     server.stop();
-
-    xSemaphoreGive(httpd_mutex);
-}
-
-void httpd_reinit(void) {
-    assert(httpd_mutex != nullptr);
-    xSemaphoreTake(httpd_mutex, portMAX_DELAY);
-
-    server.stop();
-    server.start();
 
     xSemaphoreGive(httpd_mutex);
 }

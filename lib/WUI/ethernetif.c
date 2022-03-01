@@ -49,6 +49,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "wui.h"
 #include "lwip/opt.h"
 
 #include "lwip/timeouts.h"
@@ -104,8 +105,6 @@ __ALIGN_BEGIN uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __ALIGN_END; /* Ethe
 
 /* USER CODE END 2 */
 
-/* Semaphore to signal incoming packets */
-osSemaphoreId s_xSemaphore = NULL;
 /* Global Ethernet handle */
 ETH_HandleTypeDef heth;
 
@@ -205,7 +204,7 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef *ethHandle) {
   * @retval None
   */
 void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth) {
-    osSemaphoreRelease(s_xSemaphore);
+    notify_ethernet_data();
 }
 
 /* USER CODE BEGIN 4 */
@@ -278,13 +277,6 @@ static void low_level_init(struct netif *netif) {
     netif->flags |= NETIF_FLAG_BROADCAST;
     #endif /* LWIP_ARP */
 
-    /* create a binary semaphore used for informing ethernetif of frame reception */
-    osSemaphoreDef(SEM);
-    s_xSemaphore = osSemaphoreCreate(osSemaphore(SEM), 1);
-
-    /* create the task that handles the ETH_MAC */
-    osThreadDef(EthIf, ethernetif_input, osPriorityBelowNormal, 0, INTERFACE_THREAD_STACK_SIZE);
-    osThreadCreate(osThread(EthIf), netif);
     /* Enable MAC and DMA transmission and reception */
     HAL_ETH_Start(&heth);
 
@@ -479,31 +471,16 @@ static struct pbuf *low_level_input(struct netif *netif) {
     return p;
 }
 
-/**
- * This function should be called when a packet is ready to be read
- * from the interface. It uses the function low_level_input() that
- * should handle the actual reception of bytes from the network
- * interface. Then the type of the received packet is determined and
- * the appropriate input function is called.
- *
- * @param netif the lwip network interface structure for this ethernetif
- */
-void ethernetif_input(void const *argument) {
+void ethernetif_input_once(struct netif *netif) {
     struct pbuf *p;
-    struct netif *netif = (struct netif *)argument;
-
-    for (;;) {
-        if (osSemaphoreWait(s_xSemaphore, TIME_WAITING_FOR_INPUT) == osOK) {
-            do {
-                p = low_level_input(netif);
-                if (p != NULL) {
-                    if (netif->input(p, netif) != ERR_OK) {
-                        pbuf_free(p);
-                    }
-                }
-            } while (p != NULL);
+    do {
+        p = low_level_input(netif);
+        if (p != NULL) {
+            if (netif->input(p, netif) != ERR_OK) {
+                pbuf_free(p);
+            }
         }
-    }
+    } while (p != NULL);
 }
 
 #if !LWIP_ARP

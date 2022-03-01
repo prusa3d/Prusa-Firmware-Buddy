@@ -551,7 +551,10 @@ Server::Buffer *Server::find_empty_buffer() {
 }
 
 bool Server::start() {
-    assert(!listener);
+    if (listener) {
+        // We are already started, so NOP.
+        return true;
+    }
 
     listener.reset(defs.listener_alloc());
 

@@ -14,17 +14,13 @@ extern "C" {
  * For further re-binds/re-initializations, see @c httpd_reinit.
  */
 void httpd_init(void);
+
 /**
- * Re-create the httpd listening socket, with current network settings.
+ * Start the http server.
  *
- * In case networking is down (netdev_get_active_id() == NETDEV_NODEV_ID), it stops listening.
- *
- * Existing connections are left intact by this (though if the network
- * configuration changed, they would likely die on their own anyway).
- *
- * Thread safe.
+ * If it's already started, it does nothing.
  */
-void httpd_reinit(void);
+void httpd_start(void);
 
 /**
  * Stop listening with the httpd server.
