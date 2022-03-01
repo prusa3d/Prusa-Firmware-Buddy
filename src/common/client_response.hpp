@@ -1,7 +1,10 @@
-// client_response.hpp
-// every phase in dialog can have some buttons
-// buttons are generalized on this level as responses
-// because non GUI/WUI client can also use them
+/**
+ * @file client_response.hpp
+ * @brief every phase in dialog can have some buttons
+ * buttons are generalized on this level as responses
+ * because non GUI/WUI client can also use them
+ * bound to ClientFSM in src/common/client_fsm_types.h
+ */
 
 #pragma once
 
@@ -39,22 +42,33 @@ constexpr T GetEnumFromPhaseIndex(size_t index) {
 //EVERY response shall have a unique ID (so every button in GUI is unique)
 enum class PhasesLoadUnload : uint16_t {
     _first = 0,
-    Parking,
-    WaitingTemp,
-    PreparingToRam,
-    Ramming,
-    Unloading,
+    Parking_stoppable,
+    Parking_unstoppable,
+    WaitingTemp_stoppable,
+    WaitingTemp_unstoppable,
+    PreparingToRam_stoppable,
+    PreparingToRam_unstoppable,
+    Ramming_stoppable,
+    Ramming_unstoppable,
+    Unloading_stoppable,
+    Unloading_unstoppable,
     RemoveFilament,
     IsFilamentUnloaded,
     FilamentNotInFS,
     ManualUnload,
-    UserPush,
-    MakeSureInserted,
-    Inserting,
+    UserPush_stoppable,
+    UserPush_unstoppable,
+    MakeSureInserted_stoppable,
+    MakeSureInserted_unstoppable,
+    Inserting_stoppable,
+    Inserting_unstoppable,
     IsFilamentInGear,
-    Ejecting,
-    Loading,
-    Purging,
+    Ejecting_stoppable,
+    Ejecting_unstoppable,
+    Loading_stoppable,
+    Loading_unstoppable,
+    Purging_stoppable,
+    Purging_unstoppable,
     IsColor,
     IsColorPurge,
     Unparking,

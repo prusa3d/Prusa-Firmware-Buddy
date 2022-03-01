@@ -25,6 +25,10 @@ void fsm_change(ClientFSM type, T phase, fsm::PhaseData data) {
     _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), data));
 }
 
+// user can stop waiting for heating/cooling by pressing a button
+bool can_stop_wait_for_heatup();
+void can_stop_wait_for_heatup(bool val);
+
 //inherited class for server side to be able to work with server_side_encoded_response
 class ClientResponseHandler : public ClientResponses {
     ClientResponseHandler() = delete;

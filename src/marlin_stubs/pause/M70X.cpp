@@ -65,10 +65,10 @@ static Pause &pause = Pause::Instance();
 /**
  * Shared code for load/unload filament
  */
-static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_pos, uint32_t X_pos) {
+static bool load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_pos, float X_pos) {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
-        return;
+        return false;
 
     float disp_temp = marlin_server_get_temp_to_display();
     float targ_temp = Temperature::degTargetHotend(target_extruder);
@@ -98,11 +98,12 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
     pause.SetResumePoint(resume_position);
 
     // Load/Unload filament
-    std::invoke(f_load_unload, pause);
+    bool res = std::invoke(f_load_unload, pause);
 
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(targ_temp, target_extruder);
     }
+    return res;
 }
 
 void M701_no_parser(filament_t filament_to_be_laded, float fast_load_length) {
@@ -227,7 +228,7 @@ static PreheatStatus::Result M1400_no_parser(uint32_t val) {
             }
         }
 
-        //filament != filament_t::NONE
+        // filament != filament_t::NONE
         const Filament &fil_cnf = Filaments::Get(filament);
         thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
         thermalManager.setTargetBed(fil_cnf.heatbed);
@@ -238,22 +239,26 @@ static PreheatStatus::Result M1400_no_parser(uint32_t val) {
     case PreheatMode::None:
         return Filaments::CurrentIndex() == filament_t::NONE ? PreheatStatus::Result::DoneNoFilament : PreheatStatus::Result::DoneHasFilament;
     case PreheatMode::Purge:
+        Pause::Instance().StopReset();
         M701_no_parser(filament, 0);
         return PreheatStatus::Result::DoneHasFilament;
     case PreheatMode::Load:
+        Pause::Instance().StopReset();
     case PreheatMode::Change_phase2:
         M701_no_parser(filament, pause.GetDefaultFastLoadLength());
         return PreheatStatus::Result::DoneHasFilament;
     case PreheatMode::Unload:
         Pause::Instance().SetUnloadLength(NAN);
+        Pause::Instance().StopReset();
         load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
         return PreheatStatus::Result::DoneNoFilament;
     case PreheatMode::Change_phase1:
         Pause::Instance().SetUnloadLength(NAN);
-        load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
-
+        Pause::Instance().StopReset();
+        if (!load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS))
+            return PreheatStatus::Result::Error;
         if (data.Mode() == PreheatMode::Change_phase1) {
-            //2nd preheat, recursion
+            // 2nd preheat, recursion
             return M1400_no_parser((val & ~0x07) | uint32_t(PreheatMode::Change_phase2));
         } else {
             return PreheatStatus::Result::DoneNoFilament;
@@ -317,7 +322,7 @@ void PrusaGcodeSuite::M1400() {
         break; // do not alter temp
     }
 
-    //store result, so other threads can see it
+    // store result, so other threads can see it
     PreheatStatus::setResult(res);
 
     FS_instance().ClrAutoloadSent();
