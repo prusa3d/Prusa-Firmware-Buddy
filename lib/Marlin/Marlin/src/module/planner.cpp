@@ -1550,16 +1550,20 @@ float Planner::get_axis_position_mm(const AxisEnum axis) {
   return axis_steps * mm_per_step[axis];
 }
 
+bool Planner::busy() {
+  return (
+      has_blocks_queued()
+      #if ENABLED(EXTERNAL_CLOSED_LOOP_CONTROLLER)
+        || (READ(CLOSED_LOOP_ENABLE_PIN) && !READ(CLOSED_LOOP_MOVE_COMPLETE_PIN))
+      #endif
+    );
+}
+
 /**
  * Block until all buffered steps are executed / cleaned
  */
 void Planner::synchronize() {
-  while (
-    has_blocks_queued() || cleaning_buffer_counter
-    #if ENABLED(EXTERNAL_CLOSED_LOOP_CONTROLLER)
-      || (READ(CLOSED_LOOP_ENABLE_PIN) && !READ(CLOSED_LOOP_MOVE_COMPLETE_PIN))
-    #endif
-  ) idle(true);
+  while (busy()) idle(true);
 }
 
 /**

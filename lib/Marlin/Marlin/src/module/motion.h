@@ -195,6 +195,17 @@ inline void prepare_internal_move_to_destination(const feedRate_t &fr_mm_s=0.0f)
   }
 #endif
 
+/// Plans (non-blocking) Z-Manhattan fast (non-linear) move to the specified location
+/// Feedrate is in mm/s
+/// Z-Manhattan: moves XY and Z independently. Raises before or lowers after XY motion.
+/// Suitable for Z probing because it does not apply motion limits
+/// Uses logical coordinates
+void plan_park_move_to(const float rx, const float ry, const float rz, const feedRate_t &fr_xy, const feedRate_t &fr_z);
+
+static inline void plan_park_move_to_xyz(const xyz_pos_t &xyz, const feedRate_t &fr_xy, const feedRate_t &fr_z) {
+  plan_park_move_to(xyz.x, xyz.y, xyz.z, fr_xy, fr_z);
+}
+
 /**
  * Blocking movement and shorthand functions
  */

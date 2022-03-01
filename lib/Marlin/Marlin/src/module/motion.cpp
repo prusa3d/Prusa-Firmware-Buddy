@@ -345,7 +345,8 @@ void _internal_move_to_destination(const feedRate_t &fr_mm_s/*=0.0f*/
 }
 
 /**
- * Plan a move to (X, Y, Z) and set the current_position
+ * Performs a blocking fast parking move to (X, Y, Z) and sets the current_position.
+ * Parking (Z-Manhattan): Moves XY and Z independently. Raises Z before or lowers Z after XY motion.
  */
 void do_blocking_move_to(const float rx, const float ry, const float rz, const feedRate_t &fr_mm_s/*=0.0*/) {
   if (DEBUGGING(LEVELING)) DEBUG_XYZ(">>> do_blocking_move_to", rx, ry, rz);
@@ -353,11 +354,18 @@ void do_blocking_move_to(const float rx, const float ry, const float rz, const f
   const feedRate_t z_feedrate = fr_mm_s ?: homing_feedrate(Z_AXIS),
                   xy_feedrate = fr_mm_s ?: feedRate_t(XY_PROBE_FEEDRATE_MM_S);
 
+  plan_park_move_to(rx, ry, rz, xy_feedrate, z_feedrate);
+  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("<<< do_blocking_move_to");
+  planner.synchronize();
+}
+
+/// Z-Manhattan fast move
+void plan_park_move_to(const float rx, const float ry, const float rz, const feedRate_t &fr_xy, const feedRate_t &fr_z){
   #if ENABLED(DELTA)
 
     if (!position_is_reachable(rx, ry)) return;
 
-    REMEMBER(fr, feedrate_mm_s, xy_feedrate);
+    REMEMBER(fr, feedrate_mm_s, fr_xy);
 
     destination = current_position;          // sync destination at the start
 
@@ -378,7 +386,7 @@ void do_blocking_move_to(const float rx, const float ry, const float rz, const f
 
     if (rz > current_position.z) {                            // raising?
       destination.z = rz;
-      prepare_internal_fast_move_to_destination(z_feedrate);  // set current_position from destination
+      prepare_internal_fast_move_to_destination(fr_z);  // set current_position from destination
       if (DEBUGGING(LEVELING)) DEBUG_POS("z raise move", current_position);
     }
 
@@ -388,7 +396,7 @@ void do_blocking_move_to(const float rx, const float ry, const float rz, const f
 
     if (rz < current_position.z) {                            // lowering?
       destination.z = rz;
-      prepare_internal_fast_move_to_destination(z_feedrate);  // set current_position from destination
+      prepare_internal_fast_move_to_destination(fr_z);  // set current_position from destination
       if (DEBUGGING(LEVELING)) DEBUG_POS("z lower move", current_position);
     }
 
@@ -401,16 +409,16 @@ void do_blocking_move_to(const float rx, const float ry, const float rz, const f
     // If Z needs to raise, do it before moving XY
     if (destination.z < rz) {
       destination.z = rz;
-      prepare_internal_fast_move_to_destination(z_feedrate);
+      prepare_internal_fast_move_to_destination(fr_z);
     }
 
     destination.set(rx, ry);
-    prepare_internal_fast_move_to_destination(xy_feedrate);
+    prepare_internal_fast_move_to_destination(fr_xy);
 
     // If Z needs to lower, do it after moving XY
     if (destination.z > rz) {
       destination.z = rz;
-      prepare_internal_fast_move_to_destination(z_feedrate);
+      prepare_internal_fast_move_to_destination(fr_z);
     }
 
   #else
@@ -418,23 +426,18 @@ void do_blocking_move_to(const float rx, const float ry, const float rz, const f
     // If Z needs to raise, do it before moving XY
     if (current_position.z < rz) {
       current_position.z = rz;
-      line_to_current_position(z_feedrate);
+      line_to_current_position(fr_z);
     }
 
     current_position.set(rx, ry);
-    line_to_current_position(xy_feedrate);
+    line_to_current_position(fr_xy);
 
     // If Z needs to lower, do it after moving XY
     if (current_position.z > rz) {
       current_position.z = rz;
-      line_to_current_position(z_feedrate);
+      line_to_current_position(fr_z);
     }
-
   #endif
-
-  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("<<< do_blocking_move_to");
-
-  planner.synchronize();
 }
 
 void do_blocking_move_to(const xy_pos_t &raw, const feedRate_t &fr_mm_s/*=0.0f*/) {
