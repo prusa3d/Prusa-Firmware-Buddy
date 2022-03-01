@@ -17,8 +17,7 @@ extern "C" {
 #include <stm32_port.h>
 #include <esp_loader.h>
 #include <espif.h>
-#include <netdev.h>
-#include <http_lifetime.h>
+#include <wui.h>
 
 #ifdef __cplusplus
 }
@@ -265,8 +264,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             help.SetText(_("ESP succesfully flashed. \nWiFI initiation started."));
             esp_loader_flash_finish(true);
             espif_flash_deinitialize();
-            netdev_join_ap();
-            httpd_reinit();
+            notify_reconfigure();
             progress_state = esp_upload_action::Initial;
             current_file = firmware_set.begin();
             readCount = 0;

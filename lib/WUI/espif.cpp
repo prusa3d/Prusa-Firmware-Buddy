@@ -11,6 +11,7 @@
 #include <semphr.h>
 
 #include "main.h"
+#include "wui.h"
 
 #include "stm32f4xx_hal_rng.h"
 
@@ -85,14 +86,10 @@ enum MessageType {
 
 static const uint32_t SUPPORTED_FW_VERSION = 0;
 
-// Thread stuff
-static void uart_reader(void const *arg);
-osThreadDef(UartBufferThread, uart_reader, osPriorityBelowNormal, 0, 512);
-
 // NIC state
 static std::atomic<uint16_t> fw_version;
 static std::atomic<ESPIFOperatingMode> esp_operating_mode = ESPIF_UNINITIALIZED_MODE;
-static bool associated = 0;
+static std::atomic<bool> associated = false;
 static std::atomic<TaskHandle_t> init_task_handle;
 
 // UART
@@ -103,16 +100,13 @@ static std::atomic<bool> esp_detected;
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
 SemaphoreHandle_t uart_write_mutex = NULL;
-osThreadId uart_reader_id = NULL;
 static uint8_t intron[8] = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05' };
 
 static void uart_input(uint8_t *data, size_t size, struct netif *netif);
 
 void espif_receive_data(UART_HandleTypeDef *huart) {
     LWIP_UNUSED_ARG(huart);
-    if (uart_reader_id != NULL) {
-        osSignalSet(uart_reader_id, 0);
-    }
+    notify_esp_data();
 }
 
 static void hard_reset_device() {
@@ -177,42 +171,24 @@ static err_t espif_reconfigure_uart(const uint32_t baudrate) {
     return ERR_OK;
 }
 
-/**
- * @brief USART data processing thread body
- *
- * @param arg Pointer to netif used to process incoming packets
- *
- * TODO: This needs to be synchronized with UART DMA state. Current method somehow works, but there are isses to solve:
- *   - UART errors cause inconsitencies that result in reading whole buffer as input
- *   - Current blocking of the thread in case of no incoming UART data is suboptimal.
- */
-static void uart_reader(void const *arg) {
-    struct netif *netif = (struct netif *)arg;
+void espif_input_once(struct netif *netif) {
+    /* Read data */
     size_t pos = 0;
-    log_info(ESPIF, "Reader thread running");
 
-    while (true) {
-        /* Wait for the event from DMA or USART */
-        /* There is 1000ms max wait time to ensure some small standalone message
-           does not get stuck in DMA buffer for too long. */
-        osSignalWait(0, 1000);
-
-        /* Read data */
-        uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(huart6.hdmarx); // no. of bytes left for buffer full
-        pos = sizeof(dma_buffer_rx) - dma_bytes_left;
-        if (pos != old_dma_pos && esp_operating_mode == ESPIF_RUNNING_MODE) {
-            if (pos > old_dma_pos) {
-                uart_input(&dma_buffer_rx[old_dma_pos], pos - old_dma_pos, netif);
-            } else {
-                uart_input(&dma_buffer_rx[old_dma_pos], sizeof(dma_buffer_rx) - old_dma_pos, netif);
-                if (pos > 0) {
-                    uart_input(&dma_buffer_rx[0], pos, netif);
-                }
+    uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(huart6.hdmarx); // no. of bytes left for buffer full
+    pos = sizeof(dma_buffer_rx) - dma_bytes_left;
+    if (pos != old_dma_pos && esp_operating_mode == ESPIF_RUNNING_MODE) {
+        if (pos > old_dma_pos) {
+            uart_input(&dma_buffer_rx[old_dma_pos], pos - old_dma_pos, netif);
+        } else {
+            uart_input(&dma_buffer_rx[old_dma_pos], sizeof(dma_buffer_rx) - old_dma_pos, netif);
+            if (pos > 0) {
+                uart_input(&dma_buffer_rx[0], pos, netif);
             }
-            old_dma_pos = pos;
-            if (old_dma_pos == sizeof(dma_buffer_rx)) {
-                old_dma_pos = 0;
-            }
+        }
+        old_dma_pos = pos;
+        if (old_dma_pos == sizeof(dma_buffer_rx)) {
+            old_dma_pos = 0;
         }
     }
 }
@@ -224,7 +200,7 @@ static void process_mac(uint8_t *data, struct netif *netif) {
     memcpy(netif->hwaddr, data, ETHARP_HWADDR_LEN);
 }
 
-bool espif_link(struct netif *netif) {
+bool espif_link() {
     return associated;
 }
 
@@ -519,13 +495,6 @@ err_t espif_init(struct netif *netif) {
     uart_write_mutex = xSemaphoreCreateMutex();
     if (!uart_write_mutex) {
         return ERR_IF;
-    }
-
-    // Create UART reader thread
-    uart_reader_id = osThreadCreate(osThread(UartBufferThread), netif);
-    if (uart_reader_id == NULL) {
-        log_error(ESPIF, "Failed to start UART reader");
-        return ERR_MEM;
     }
 
     // Initialize lwip netif

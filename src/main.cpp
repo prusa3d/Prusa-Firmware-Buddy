@@ -140,7 +140,6 @@ RNG_HandleTypeDef hrng;
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
-osThreadId webServerTaskHandle;
 /* USER CODE BEGIN PV */
 int HAL_IWDG_Reset = 0;
 int HAL_GPIO_Initialized = 0;
@@ -366,9 +365,7 @@ int main(void) {
 
 #ifdef BUDDY_ENABLE_WUI
     if (!block_networking) {
-        /* definition and creation of webServerTask */
-        osThreadDef(webServerTask, StartWebServerTask, osPriorityBelowNormal, 0, 1024);
-        webServerTaskHandle = osThreadCreate(osThread(webServerTask), NULL);
+        start_network_task();
     }
 #else
     // Avoid unused warning.

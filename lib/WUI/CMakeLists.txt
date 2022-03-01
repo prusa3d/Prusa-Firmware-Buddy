@@ -2,7 +2,7 @@ add_library(WUI INTERFACE)
 
 target_sources(
   WUI
-  INTERFACE wui.c
+  INTERFACE wui.cpp
             wui_REST_api.c
             netdev.c
             json_encode.c

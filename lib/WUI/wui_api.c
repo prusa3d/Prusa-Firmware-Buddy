@@ -177,7 +177,7 @@ static enum eevar_id vid(enum eevar_id id, uint32_t net_id) {
     return id + offset;
 }
 
-uint32_t save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
+void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
     if (ethconfig->var_mask & (ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(APVAR_SECURITY))) {
         uint8_t flags = ethconfig->lan.flag;
         if (ap != NULL) {
@@ -225,8 +225,6 @@ uint32_t save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netde
             //variant8_done() is not called, variant_pchar with init flag 0 doesnt hold its memory
         }
     }
-
-    return 0;
 }
 
 // Extract a fixed-sized string from EEPROM to provided buffer.
@@ -239,45 +237,23 @@ static void strextract(char *into, size_t maxlen, enum eevar_id var) {
     variant8_done(&ptmp);
 }
 
-uint32_t load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
-    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
-        // Just the flags, without (possibly) the wifi secutiry
-        ethconfig->lan.flag = variant8_get_ui8(eeprom_get_var(vid(EEVAR_LAN_FLAG, netdev_id))) & ~APSEC_MASK;
-    }
-    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
-        ethconfig->lan.addr_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_ADDR, netdev_id)));
-    }
-    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS1_IP4)) {
-        ethconfig->dns1_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_DNS1, netdev_id)));
-    }
-    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS2_IP4)) {
-        ethconfig->dns2_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_DNS2, netdev_id)));
-    }
-    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_MSK_IP4)) {
-        ethconfig->lan.msk_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_MSK, netdev_id)));
-    }
-    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_GW_IP4)) {
-        ethconfig->lan.gw_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_GW, netdev_id)));
-    }
-    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
-        strextract(ethconfig->hostname, ETH_HOSTNAME_LEN + 1, vid(EEVAR_LAN_HOSTNAME, netdev_id));
-    }
+void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
+    // Just the flags, without (possibly) the wifi secutiry
+    ethconfig->lan.flag = variant8_get_ui8(eeprom_get_var(vid(EEVAR_LAN_FLAG, netdev_id))) & ~APSEC_MASK;
+    ethconfig->lan.addr_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_ADDR, netdev_id)));
+    ethconfig->dns1_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_DNS1, netdev_id)));
+    ethconfig->dns2_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_DNS2, netdev_id)));
+    ethconfig->lan.msk_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_MSK, netdev_id)));
+    ethconfig->lan.gw_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_GW, netdev_id)));
+    strextract(ethconfig->hostname, ETH_HOSTNAME_LEN + 1, vid(EEVAR_LAN_HOSTNAME, netdev_id));
 
     if (ap != NULL) {
         assert(netdev_id == NETDEV_ESP_ID);
 
-        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_SECURITY)) {
-            ap->security = eeprom_get_var(EEVAR_WIFI_FLAG) & APSEC_MASK;
-        }
-        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_SSID)) {
-            strextract(ap->ssid, SSID_MAX_LEN + 1, EEVAR_WIFI_AP_SSID);
-        }
-        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_PASS)) {
-            strextract(ap->pass, WIFI_PSK_MAX + 1, EEVAR_WIFI_AP_PASSWD);
-        }
+        ap->security = eeprom_get_var(EEVAR_WIFI_FLAG) & APSEC_MASK;
+        strextract(ap->ssid, SSID_MAX_LEN + 1, EEVAR_WIFI_AP_SSID);
+        strextract(ap->pass, WIFI_PSK_MAX + 1, EEVAR_WIFI_AP_PASSWD);
     }
-
-    return 0;
 }
 
 void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config) {

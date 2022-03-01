@@ -21,6 +21,7 @@
 #include "Marlin/src/core/serial.h"
 #include "DialogMoveZ.hpp"
 #include "netdev.h"
+#include "wui.h"
 
 /*****************************************************************************/
 
@@ -31,11 +32,11 @@ public:
     MI_LOAD_SETTINGS()
         : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
-        // FIXME: Some error reporting
-        // FIXME: How do we _activate_ the new settings?
+        // FIXME: Some error handling/reporting
         // TODO: Loading other things than just network
-        netdev_load_ini_to_eeprom();
-        netdev_join_ap();
+        if (netdev_load_ini_to_eeprom()) {
+            notify_reconfigure();
+        }
     }
 };
 

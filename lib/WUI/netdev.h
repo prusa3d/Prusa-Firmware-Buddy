@@ -53,29 +53,13 @@ typedef enum {
 extern "C" {
 #endif
 
-////////////////////////////////////////////////////////////////////////////
-/// @brief Initialize network layer
-///
-/// @return 0 on success; error otherwise
-uint32_t netdev_init();
-
-////////////////////////////////////////////////////////////////////////////
-/// @brief Turn up given network device
-///
-/// @param[in] dev_id device ID. One of
-///             - #NETDEV_ETH_ID
-///             - #NETDEV_ESP_ID
-/// @return 0 on success; error otherwise
-uint32_t netdev_set_up(uint32_t);
-
-////////////////////////////////////////////////////////////////////////////
-/// @brief Turn down given network device
-///
-/// @param[in] dev_id device ID. One of
-///             - #NETDEV_ETH_ID
-///             - #NETDEV_ESP_ID
-/// @return 0 on success; error otherwise
-uint32_t netdev_set_down(uint32_t);
+/*
+ * FIXME: These got mostly relocated to the network state management inside
+ * wui.cpp. They probably should be renamed, cleaned up, relocated and maybe
+ * even gathered into some kind of objecty stuff or namespace.
+ *
+ * Leaving them in here to minimize big-bang changes.
+ */
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Obtaining ip from DHCP server
@@ -83,8 +67,7 @@ uint32_t netdev_set_down(uint32_t);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-/// @return 0 on success; error otherwise
-uint32_t netdev_set_dhcp(uint32_t);
+void netdev_set_dhcp(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Obtaining static ip
@@ -92,8 +75,7 @@ uint32_t netdev_set_dhcp(uint32_t);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-/// @return 0 on success; error otherwise
-uint32_t netdev_set_static(uint32_t);
+void netdev_set_static(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Return device id which is currently active for communication
@@ -130,8 +112,7 @@ bool netdev_get_current_ipv4(uint8_t *dest);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-/// @return 0 on success; error otherwise
-uint32_t netdev_set_active_id(uint32_t);
+void netdev_set_active_id(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Set the the given network device state if is plugged or unplugged
@@ -191,8 +172,6 @@ void netdev_get_MAC_address(uint32_t, uint8_t[6]);
 ///
 /// @return If it was successful.
 bool netdev_load_ini_to_eeprom();
-
-void netdev_join_ap();
 
 #ifdef __cplusplus
 }
