@@ -38,9 +38,10 @@ const std::array<const char *, static_cast<size_t>(Response::_last) + 1> BtnText
 
 /*****************************************************************************/
 // clang-format off
-const PhaseTexts ph_txt_stop          = { BtnTexts::Get(Response::Stop),             BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
-const PhaseTexts ph_txt_continue      = { BtnTexts::Get(Response::Continue),         BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
-const PhaseTexts ph_txt_none          = { BtnTexts::Get(Response::_none),            BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
-const PhaseTexts ph_txt_yesno         = { BtnTexts::Get(Response::Yes),              BtnTexts::Get(Response::No),    BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+const PhaseTexts ph_txt_stop          = { BtnTexts::Get(Response::Stop),     BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+const PhaseTexts ph_txt_continue      = { BtnTexts::Get(Response::Continue), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+const PhaseTexts ph_txt_continue_stop = { BtnTexts::Get(Response::Continue), BtnTexts::Get(Response::Stop),  BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+const PhaseTexts ph_txt_none          = { BtnTexts::Get(Response::_none),    BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+const PhaseTexts ph_txt_yesno         = { BtnTexts::Get(Response::Yes),      BtnTexts::Get(Response::No),    BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
 // clang-format on
 /*****************************************************************************/

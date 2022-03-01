@@ -5,12 +5,13 @@
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h> //strncmp
+#include <assert.h>
+
 #include "app.h"
 #include "bsod.h"
 #include "timing.h"
 #include "cmsis_os.h"
-#include <string.h> //strncmp
-#include <assert.h>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -82,6 +83,9 @@ typedef struct {
 } marlin_server_t;
 
 fsm::Queue fsm_event_queues[MARLIN_MAX_CLIENTS];
+bool can_stop_wait_for_heatup_var = false;
+bool can_stop_wait_for_heatup() { return can_stop_wait_for_heatup_var; }
+void can_stop_wait_for_heatup(bool val) { can_stop_wait_for_heatup_var = val; }
 
 extern "C" {
 
@@ -162,6 +166,7 @@ void marlin_server_init(void) {
     marlin_server.update_vars = MARLIN_VAR_MSK_DEF;
     marlin_server.vars.media_LFN = media_print_filename();
     marlin_server.vars.media_SFN_path = media_print_filepath();
+    can_stop_wait_for_heatup(false);
 }
 
 void print_fan_spd() {
@@ -594,7 +599,7 @@ static void _server_print_loop(void) {
         marlin_server_set_temp_to_display(0);
         print_job_timer.stop();
         planner.quick_stop();
-        wait_for_heatup = false; // This is necessary because M109/wait_for_hotend can be in progress, we need abort it
+        wait_for_heatup = false; // This is necessary because M109/wait_for_hotend can be in progress, we need to abort it
         marlin_server.print_state = mpsAborting_WaitIdle;
         break;
     case mpsAborting_WaitIdle:
@@ -833,7 +838,7 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
             case MARLIN_EVT_StoreSettings:
             case MARLIN_EVT_StartProcessing:
             case MARLIN_EVT_StopProcessing:
-            case MARLIN_EVT_FSM: //arguments hanfled elswhere
+            case MARLIN_EVT_FSM: //arguments handled elsewhere
             // StatusChanged event - one string argument
             case MARLIN_EVT_StatusChanged:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
@@ -1271,7 +1276,13 @@ static int _process_server_request(const char *request) {
     } else if (strcmp("!kclick", request) == 0) {
         ++marlin_server.knob_click_counter;
         processed = 1;
-    } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
+    } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finite state machine response
+        // Allows to interrupt blocking waiting for heating/cooling
+        // Remove once the Marlin's heating is non-blocking
+        if (can_stop_wait_for_heatup() && ival >= 0) {
+            marlin_server.vars.wait_heat = false;
+            wait_for_heatup = false;
+        }
         ClientResponseHandler::SetResponse(ival);
         processed = 1;
     } else if (sscanf(request, "!event_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {

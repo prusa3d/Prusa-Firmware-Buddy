@@ -21,5 +21,6 @@ public:
 
 extern const PhaseTexts ph_txt_stop;
 extern const PhaseTexts ph_txt_continue;
+extern const PhaseTexts ph_txt_continue_stop;
 extern const PhaseTexts ph_txt_none;
 extern const PhaseTexts ph_txt_yesno;

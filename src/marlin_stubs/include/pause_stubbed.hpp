@@ -126,7 +126,13 @@ class Pause : public PausePrivatePhase {
     xyz_pos_t park_pos;
     xyze_pos_t resume_pos;
 
+    bool stop = false;
+    bool can_stop = false;
+
 public:
+    void StopEnable() { can_stop = true; }
+    void StopDisable() { can_stop = false; }
+    void StopReset() { stop = false; }
     static constexpr const float minimal_purge = 1;
     static Pause &Instance();
 
@@ -159,7 +165,7 @@ private:
     bool filamentUnload(unload_mode_t mode); // does not create FSM_HolderLoadUnload
     bool filamentLoad(load_mode_t mode);     // does not create FSM_HolderLoadUnload
     bool loadLoop(load_mode_t mode);
-    void unloadLoop(unload_mode_t mode);
+    bool unloadLoop(unload_mode_t mode);
     void unpark_nozzle_and_notify();
     void park_nozzle_and_notify();
     bool is_target_temperature_safe();
@@ -169,6 +175,9 @@ private:
     void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+    bool check_user_stop();       //< stops motion and fsm and returns true it user triggered stop
+    bool wait_or_stop();          //< waits until motion is finished; if stop is triggered then returns true
+    bool process_stop(int state); //< in case of stop set states and returns true
 
     enum class RammingType {
         unload,

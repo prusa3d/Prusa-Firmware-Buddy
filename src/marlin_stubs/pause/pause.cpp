@@ -149,10 +149,10 @@ Response PausePrivatePhase::getResponse() {
 
 bool PausePrivatePhase::CanSafetyTimerExpire() const {
     if (HasTempToRestore())
-        return false;                                     // already expired
-    if (getPhase() == PhasesLoadUnload::MakeSureInserted) // special waiting state without button
-        return true;                                      // waits for filament sensor
-    return ClientResponses::HasButton(getPhase());        // button in current phase == can wait on user == can timeout
+        return false;                                                                                                                   // already expired
+    if ((getPhase() == PhasesLoadUnload::MakeSureInserted_stoppable) || (getPhase() == PhasesLoadUnload::MakeSureInserted_unstoppable)) // special waiting state without button
+        return true;                                                                                                                    // waits for filament sensor
+    return ClientResponses::HasButton(getPhase());                                                                                      // button in current phase == can wait on user == can timeout
 }
 
 void PausePrivatePhase::NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) {
@@ -263,12 +263,20 @@ bool Pause::ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t pr
         return true;
     }
 
-    setPhase(PhasesLoadUnload::WaitingTemp, progress_min);
+    setPhase(can_stop ? PhasesLoadUnload::WaitingTemp_stoppable : PhasesLoadUnload::WaitingTemp_unstoppable, progress_min);
 
     Notifier_TEMP_NOZ N(ClientFSM::Load_unload, getPhaseIndex(), Temperature::degHotend(active_extruder),
         Temperature::degTargetHotend(active_extruder), progress_min, progress_max);
 
-    return thermalManager.wait_for_hotend(active_extruder);
+    can_stop_wait_for_heatup(true);
+    bool res = thermalManager.wait_for_hotend(active_extruder);
+    can_stop_wait_for_heatup(false);
+    if (!wait_for_heatup) {
+        stop = true;
+        wait_for_heatup = true;
+    }
+
+    return res;
 }
 
 void Pause::do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
@@ -279,7 +287,7 @@ void Pause::do_e_move_notify_progress(const float &length, const feedRate_t &fr_
     current_position.e += length / planner.e_factor[active_extruder];
     Notifier_POS_E N(ClientFSM::Load_unload, getPhaseIndex(), actual_e, current_position.e, progress_min, progress_max);
     line_to_current_position(fr_mm_s);
-    planner.synchronize();
+    wait_or_stop();
 }
 
 void Pause::do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
@@ -290,7 +298,8 @@ void Pause::do_e_move_notify_progress_coldextrude(const float &length, const fee
 
 void Pause::do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
     PhasesLoadUnload last_ph = getPhase();
-    ensureSafeTemperatureNotifyProgress(0, 100);
+    if (!ensureSafeTemperatureNotifyProgress(0, 100))
+        return;
     setPhase(last_ph, progress_min);
     do_e_move_notify_progress(length, fr_mm_s, progress_min, progress_max);
 }
@@ -306,15 +315,28 @@ void Pause::plan_e_move_notify_progress(const float &length, const feedRate_t &f
     const float actual_e = current_position.e;
     current_position.e += length / planner.e_factor[active_extruder];
     Notifier_POS_E N(ClientFSM::Load_unload, getPhaseIndex(), actual_e, current_position.e, progress_min, progress_max);
-    while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
+    while (!stop && !planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
+        check_user_stop();
         delay(50);
     }
 }
 
+bool Pause::process_stop(int state) {
+    if (!stop)
+        return false;
+
+    stop = false;
+    if (state >= 0)
+        set(state);
+    return true;
+}
+
 bool Pause::loadLoop(load_mode_t mode) {
+    if (process_stop((int)LoadPhases_t::_finish))
+        return false;
+
     bool ret = true;
     const float purge_ln = std::max(purge_length, minimal_purge);
-
     const Response response = getResponse();
 
     //transitions
@@ -329,16 +351,18 @@ bool Pause::loadLoop(load_mode_t mode) {
         break;
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
         if (FS_instance().Get() == fsensor_t::NoFilament) {
-            setPhase(PhasesLoadUnload::MakeSureInserted);
+            setPhase(can_stop ? PhasesLoadUnload::MakeSureInserted_stoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
         } else {
-            setPhase(PhasesLoadUnload::UserPush);
+            setPhase(can_stop ? PhasesLoadUnload::UserPush_stoppable : PhasesLoadUnload::UserPush_unstoppable);
             if (response == Response::Continue) {
                 set(LoadPhases_t::load_in_gear);
             }
         }
+        if (response == Response::Stop)
+            stop = true;
         break;
     case LoadPhases_t::load_in_gear: //slow load
-        setPhase(PhasesLoadUnload::Inserting, 10);
+        setPhase(can_stop ? PhasesLoadUnload::Inserting_stoppable : PhasesLoadUnload::Inserting_unstoppable, 10);
         do_e_move_notify_progress_coldextrude(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         Filaments::Set(Filaments::GetToBeLoaded());
         set(LoadPhases_t::wait_temp);
@@ -346,8 +370,6 @@ bool Pause::loadLoop(load_mode_t mode) {
     case LoadPhases_t::wait_temp:
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
             set(LoadPhases_t::has_long_load);
-        } else {
-            set(LoadPhases_t::error_temp);
         }
         break;
     case LoadPhases_t::error_temp:
@@ -363,20 +385,20 @@ bool Pause::loadLoop(load_mode_t mode) {
         break;
     case LoadPhases_t::long_load:
         planner.settings.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
-        setPhase(PhasesLoadUnload::Loading, 50);
+        setPhase(can_stop ? PhasesLoadUnload::Loading_stoppable : PhasesLoadUnload::Loading_unstoppable, 50);
         do_e_move_notify_progress_hotextrude(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
         set(LoadPhases_t::purge);
         break;
     case LoadPhases_t::purge:
         // Extrude filament to get into hotend
-        setPhase(PhasesLoadUnload::Purging, 70);
+        setPhase(can_stop ? PhasesLoadUnload::Purging_stoppable : PhasesLoadUnload::Purging_unstoppable, 70);
         do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         setPhase(PhasesLoadUnload::IsColor, 99);
         set(LoadPhases_t::ask_is_color_correct);
         break;
     case LoadPhases_t::stand_alone_purge:
         // Extrude filament to get into hotend
-        setPhase(PhasesLoadUnload::Purging, 70);
+        setPhase(can_stop ? PhasesLoadUnload::Purging_stoppable : PhasesLoadUnload::Purging_unstoppable, 70);
         do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         setPhase(PhasesLoadUnload::IsColorPurge, 99);
         set(LoadPhases_t::ask_is_color_correct__stand_alone_purge);
@@ -402,12 +424,12 @@ bool Pause::loadLoop(load_mode_t mode) {
     } break;
     case LoadPhases_t::eject: {
 
-        setPhase(PhasesLoadUnload::Ramming, 98);
+        setPhase(can_stop ? PhasesLoadUnload::Ramming_stoppable : PhasesLoadUnload::Ramming_unstoppable, 98);
         ram_filament(RammingType::unload);
 
         planner.synchronize(); // do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
 
-        setPhase(PhasesLoadUnload::Ejecting, 99);
+        setPhase(can_stop ? PhasesLoadUnload::Ejecting_stoppable : PhasesLoadUnload::Ejecting_unstoppable, 99);
         unload_filament(RammingType::unload);
 
         set(LoadPhases_t::has_slow_load);
@@ -416,7 +438,9 @@ bool Pause::loadLoop(load_mode_t mode) {
         set(LoadPhases_t::_finish);
     }
 
-    idle(true, true); // idle loop to prevet wdt and manage heaters etc, true == do not shutdown steppers
+    if (process_stop((int)LoadPhases_t::_finish))
+        return false;
+    idle(true, true); // idle loop to prevent wdt and manage heaters etc, true == do not shutdown steppers
     return ret;
 }
 
@@ -463,7 +487,9 @@ bool Pause::filamentLoad(load_mode_t mode) {
     return ret;
 }
 
-void Pause::unloadLoop(unload_mode_t mode) {
+bool Pause::unloadLoop(unload_mode_t mode) {
+    if (process_stop((int)UnloadPhases_t::_finish))
+        return false;
     // if M600 was sent from filament sensor it was caused by runout
     // we need to change the ram sequence to prevent filament getting stuck in the extruder
     const RammingType rammingType = FS_instance().WasM600_send() ? RammingType::runout : RammingType::unload;
@@ -474,16 +500,15 @@ void Pause::unloadLoop(unload_mode_t mode) {
     switch (getUnloadPhase()) {
     case UnloadPhases_t::_init:
     case UnloadPhases_t::ram_sequence:
-        setPhase(PhasesLoadUnload::Ramming, 50);
+        setPhase(can_stop ? PhasesLoadUnload::Ramming_stoppable : PhasesLoadUnload::Ramming_unstoppable, 50);
         ram_filament(rammingType);
         set(UnloadPhases_t::unload);
         break;
     case UnloadPhases_t::unload: {
-
-        planner.synchronize(); //do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
-
-        setPhase(PhasesLoadUnload::Unloading, 51);
+        setPhase(can_stop ? PhasesLoadUnload::Unloading_stoppable : PhasesLoadUnload::Unloading_unstoppable, 51);
         unload_filament(rammingType);
+        if (stop)
+            break;
 
         Filaments::Set(filament_t::NONE);
         setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
@@ -516,7 +541,10 @@ void Pause::unloadLoop(unload_mode_t mode) {
         set(UnloadPhases_t::_finish);
     }
 
+    if (process_stop((int)UnloadPhases_t::_finish))
+        return false;
     idle(true, true);
+    return true;
 }
 
 bool Pause::FilamentUnload() {
@@ -540,6 +568,8 @@ bool Pause::FilamentUnload_AskUnloaded() {
  * Returns 'true' if unload was completed, 'false' for abort
  */
 bool Pause::filamentUnload(unload_mode_t mode) {
+    if (process_stop(-1))
+        return false;
     if (!ensureSafeTemperatureNotifyProgress(0, 50)) {
         return false;
     }
@@ -551,15 +581,16 @@ bool Pause::filamentUnload(unload_mode_t mode) {
 
     set(UnloadPhases_t::_init);
 
+    bool ret = true;
     do {
-        unloadLoop(mode);
+        ret = unloadLoop(mode);
     } while (getUnloadPhase() != UnloadPhases_t::_finish);
 
 #if ENABLED(PID_EXTRUSION_SCALING)
     thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
 #endif //ENABLED(PID_EXTRUSION_SCALING)
 
-    return true;
+    return ret;
 }
 /*****************************************************************************/
 //park moves
@@ -585,8 +616,17 @@ bool Pause::parkMoveXGreaterThanY(const xyz_pos_t &pos0, const xyz_pos_t &pos1) 
     return std::abs(pos0.x - pos1.x) > std::abs(pos0.y - pos1.y);
 }
 
+bool Pause::wait_or_stop() {
+    while (planner.busy()) {
+        if (check_user_stop())
+            return true;
+        idle(true, true);
+    }
+    return false;
+}
+
 void Pause::park_nozzle_and_notify() {
-    setPhase(PhasesLoadUnload::Parking);
+    setPhase(can_stop ? PhasesLoadUnload::Parking_stoppable : PhasesLoadUnload::Parking_unstoppable);
     // Initial retract before move to filament change position
     if (retract && thermalManager.hotEnoughToExtrude(active_extruder))
         do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
@@ -602,7 +642,9 @@ void Pause::park_nozzle_and_notify() {
     // move by z_lift, scope for Notifier_POS_Z
     {
         Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
-        do_blocking_move_to_z(target_Z, NOZZLE_PARK_Z_FEEDRATE);
+        plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+        if (wait_or_stop())
+            return;
     }
     // move to (x_pos, y_pos)
 
@@ -617,10 +659,15 @@ void Pause::park_nozzle_and_notify() {
     }
     if (x_greater_than_y) {
         Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
-        do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
+        plan_park_move_to_xyz(park_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+        if (wait_or_stop())
+            return;
+
     } else {
-        Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveXYPercent(Z_len, XY_len), 100); //from Z% to 100%
-        do_blocking_move_to_xy(park_pos, NOZZLE_PARK_XY_FEEDRATE);
+        Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
+        plan_park_move_to_xyz(park_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+        if (wait_or_stop())
+            return;
     }
 
     report_current_position();
@@ -753,6 +800,8 @@ void Pause::ram_filament(const Pause::RammingType type) {
     // ram filament
     for (auto &elem : sequence) {
         plan_e_move(elem.e, elem.feedrate * mm_per_minute);
+        if (check_user_stop())
+            return;
     }
 }
 
@@ -781,6 +830,33 @@ const RammingSequence &Pause::get_ramming_sequence(const RammingType type) const
     return unloadRammingSequence;
 }
 
+bool Pause::check_user_stop() {
+    const Response response = getResponse();
+    if (response != Response::Stop)
+        return false;
+
+    stop = true;
+    planner.quick_stop();
+    set_all_unhomed();
+    set_all_unknown();
+    xyze_pos_t real_current_position;
+    real_current_position[E_AXIS] = 0;
+    LOOP_XYZ(i) {
+        real_current_position[i] = planner.get_axis_position_mm((AxisEnum)i);
+    }
+#if HAS_POSITION_MODIFIERS
+    planner.unapply_modifiers(real_current_position
+    #if HAS_LEVELING
+        ,
+        true
+    #endif
+    );
+#endif
+    current_position = real_current_position;
+    planner.set_position_mm(current_position);
+    return true;
+}
+
 /*****************************************************************************/
 //Pause::FSM_HolderLoadUnload
 
@@ -795,6 +871,7 @@ void Pause::FSM_HolderLoadUnload::unbindFromSafetyTimer() {
 Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode)
     : FSM_Holder(ClientFSM::Load_unload, uint8_t(mode))
     , pause(p) {
+    mode == LoadUnloadMode::Change ? pause.StopDisable() : pause.StopEnable();
     pause.clrRestoreTemp();
     bindToSafetyTimer();
     pause.park_nozzle_and_notify();
@@ -806,8 +883,10 @@ Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
     const float min_layer_h = 0.05f;
     //do not unpark and wait for temp if not homed or z park len is 0
     if (!axes_need_homing() && pause.resume_pos.z != NAN && std::abs(current_position.z - pause.resume_pos.z) >= min_layer_h) {
-        pause.ensureSafeTemperatureNotifyProgress(0, 100);
+        if (!pause.ensureSafeTemperatureNotifyProgress(0, 100))
+            return;
         pause.unpark_nozzle_and_notify();
     }
+    pause.StopDisable();
     unbindFromSafetyTimer(); //unbind must be last action, without it Pause cannot block safety timer
 }
