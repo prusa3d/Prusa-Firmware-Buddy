@@ -481,18 +481,24 @@ void do_blocking_move_to(NUM_AXIS_ARGS(const float), const_feedRate_t fr_mm_s/*=
   DEBUG_SECTION(log_move, "do_blocking_move_to", DEBUGGING(LEVELING));
   if (DEBUGGING(LEVELING)) DEBUG_XYZ("> ", NUM_AXIS_ARGS());
 
-  const feedRate_t xy_feedrate = fr_mm_s ?: feedRate_t(XY_PROBE_FEEDRATE_MM_S);
+  plan_park_move_to(rx, ry, rz, fr_mm_s, fr_mm_s);
+  planner.synchronize();
+}
 
+/// Z-Manhattan fast move
+void plan_park_move_to(NUM_AXIS_ARGS(const float), const feedRate_t &fr_xyijkuvw, const feedRate_t &fr_z){
+
+  const feedRate_t xy_feedrate = fr_xyijkuvw ?: feedRate_t(XY_PROBE_FEEDRATE_MM_S);
   #if HAS_Z_AXIS
-    const feedRate_t z_feedrate = fr_mm_s ?: homing_feedrate(Z_AXIS);
+    const feedRate_t z_feedrate = fr_z ?: homing_feedrate(Z_AXIS);
   #endif
   SECONDARY_AXIS_CODE(
-    const feedRate_t i_feedrate = fr_mm_s ?: homing_feedrate(I_AXIS),
-    const feedRate_t j_feedrate = fr_mm_s ?: homing_feedrate(J_AXIS),
-    const feedRate_t k_feedrate = fr_mm_s ?: homing_feedrate(K_AXIS),
-    const feedRate_t u_feedrate = fr_mm_s ?: homing_feedrate(U_AXIS),
-    const feedRate_t v_feedrate = fr_mm_s ?: homing_feedrate(V_AXIS),
-    const feedRate_t w_feedrate = fr_mm_s ?: homing_feedrate(W_AXIS)
+    const feedRate_t i_feedrate = fr_xyijkuvw ?: homing_feedrate(I_AXIS),
+    const feedRate_t j_feedrate = fr_xyijkuvw ?: homing_feedrate(J_AXIS),
+    const feedRate_t k_feedrate = fr_xyijkuvw ?: homing_feedrate(K_AXIS),
+    const feedRate_t u_feedrate = fr_xyijkuvw ?: homing_feedrate(U_AXIS),
+    const feedRate_t v_feedrate = fr_xyijkuvw ?: homing_feedrate(V_AXIS),
+    const feedRate_t w_feedrate = fr_xyijkuvw ?: homing_feedrate(W_AXIS)
   );
 
   #if IS_KINEMATIC
@@ -578,8 +584,6 @@ void do_blocking_move_to(NUM_AXIS_ARGS(const float), const_feedRate_t fr_mm_s/*=
     #endif
 
   #endif
-
-  planner.synchronize();
 }
 
 void do_blocking_move_to(const xy_pos_t &raw, const_feedRate_t fr_mm_s/*=0.0f*/) {
