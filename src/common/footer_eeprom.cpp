@@ -17,13 +17,10 @@ using namespace footer::eeprom;
  * @return record
  */
 static record loadAndValidateRecord() {
-    uint32_t stored = eeprom_get_var(EEVAR_FOOTER_SETTING);
-    record rec = Decode(stored);
+    record rec = Decode(eeprom_get_var(EEVAR_FOOTER_SETTING));
     uint32_t valid = Encode(rec);
-    if (stored != valid) {
-        // cannot use Store - would recursively call this function
-        eeprom_set_var(EEVAR_FOOTER_SETTING, variant8_ui32(valid));
-    }
+    // cannot use Store - would recursively call this function
+    eeprom_set_var(EEVAR_FOOTER_SETTING, variant8_ui32(valid));
     return rec;
 }
 
@@ -62,13 +59,10 @@ bool footer::eeprom::Set(items item, size_t index) {
  * @return ItemDrawCnf
  */
 static ItemDrawCnf loadAndValidateDrawCnf() {
-    uint32_t stored = eeprom_get_var(EEVAR_FOOTER_DRAW_TYPE);
-    ItemDrawCnf cnf = ItemDrawCnf(stored);
+    ItemDrawCnf cnf = ItemDrawCnf(eeprom_get_var(EEVAR_FOOTER_DRAW_TYPE));
     uint32_t valid = uint32_t(cnf);
-    if (stored != valid) {
-        // cannot use Set - would recursively call this function
-        eeprom_set_var(EEVAR_FOOTER_DRAW_TYPE, variant8_ui32(valid));
-    }
+    // cannot use Set - would recursively call this function
+    eeprom_set_var(EEVAR_FOOTER_DRAW_TYPE, variant8_ui32(valid));
     return cnf;
 }
 

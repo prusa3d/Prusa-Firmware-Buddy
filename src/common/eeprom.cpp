@@ -350,6 +350,7 @@ static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size) {
 /**
  * @brief function that writes variant8_t to eeprom, also actualizes crc and RAM structure
  *
+ * If the same value is in EEPROM then no writing is done.
  * @param id eeprom record index
  * @param var variant variable holding data to be written
  */
@@ -361,7 +362,6 @@ void eeprom_set_var(enum eevar_id id, variant8_t var) {
             // TODO: error
             log_error(EEPROM, "%s: variant type missmatch on id: %x", __FUNCTION__, id);
         }
-
     } else {
         assert(0 /* EEProm var Id out of range */);
     }
@@ -370,33 +370,32 @@ void eeprom_set_var(enum eevar_id id, variant8_t var) {
 /**
  * @brief function that writes data to eeprom, also actualizes crc and RAM structure
  *
+ * If the same value is in EEPROM then no writing is done.
  * @param id eeprom record index
  * @param var_ptr pointer to variable to be written
  * @param var_size size of variable
  */
 static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size) {
-    eeprom_vars_t &vars = eeprom_startup_vars();
-    uint16_t var_eeprom_addr;
-    void *var_ram_addr;
-    if (id < EEPROM_VARCOUNT) {
-        size_t size = eeprom_var_size(id);
-        if (var_size == size) {
-            var_eeprom_addr = eeprom_var_addr(id);
-            var_ram_addr = eeprom_var_ptr(id, vars);
-            //critical section
-            eeprom_lock();
-            memcpy(var_ram_addr, var_ptr, var_size);
-            st25dv64k_user_write_bytes(var_eeprom_addr, var_ptr, var_size);
-            update_crc32_both_ram_eeprom(vars);
-            eeprom_unlock();
-        } else {
-            // TODO: error
-            log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
-        }
-
-    } else {
+    if (id >= EEPROM_VARCOUNT) {
         assert(0 /* EEProm var Id out of range */);
+        return;
     }
+    if (var_size != eeprom_var_size(id)) {
+        // TODO: error
+        log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
+        return;
+    }
+
+    eeprom_vars_t &vars = eeprom_startup_vars();
+    void *var_ram_addr = eeprom_var_ptr(id, vars);
+    //critical section
+    eeprom_lock();
+    if (memcmp(var_ram_addr, var_ptr, var_size)) {
+        memcpy(var_ram_addr, var_ptr, var_size);
+        st25dv64k_user_write_bytes(eeprom_var_addr(id), var_ptr, var_size);
+        update_crc32_both_ram_eeprom(vars);
+    }
+    eeprom_unlock();
 }
 
 uint8_t eeprom_get_var_count(void) {
