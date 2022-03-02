@@ -651,10 +651,10 @@ void Pause::park_nozzle_and_notify() {
     //home the X or Y axis if it is not homed and we want to move it
     //homing is after Z move to be clear of all obstacles
     //Should not affect other operations than Load/Unload/Change filament run from home screen without homing. We are homed during print
-    if ((axis_homed & _BV(X_AXIS)) == 0 && current_position.x - park_pos.x != 0) {
+    if ((axis_homed & _BV(X_AXIS)) == 0 && !isnan(park_pos.x)) {
         homeaxis(X_AXIS);
     }
-    if ((axis_homed & _BV(Y_AXIS)) == 0 && current_position.y - park_pos.y != 0) {
+    if ((axis_homed & _BV(Y_AXIS)) == 0 && !isnan(park_pos.y)) {
         homeaxis(Y_AXIS);
     }
     if (x_greater_than_y) {
