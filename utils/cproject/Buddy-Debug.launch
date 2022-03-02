@@ -13,8 +13,8 @@
 <booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.startuptab.haltonexception" value="true"/>
 <booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swd_mode" value="true"/>
 <stringAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swv_port" value="61235"/>
-<stringAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swv_trace_div" value="8"/>
-<stringAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swv_trace_hclk" value="16000000"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swv_trace_div" value="84"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swv_trace_hclk" value="168000000"/>
 <booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swv_wait_for_sync" value="true"/>
 <booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.useRemoteTarget" value="true"/>
 <booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.verify_flash_download" value="true"/>
@@ -29,6 +29,17 @@
 <stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.reset_strategy" value="system_reset"/>
 <booleanAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.stlink_check_serial_number" value="false"/>
 <stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.stlink_txt_serial_number" value=""/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.watchdog_config" value="enable"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.swv.datatrace_0" value="Enabled=false:Address=0x0:Access=Read/Write:Size=Word:Function=Data Value"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.swv.datatrace_1" value="Enabled=false:Address=0x0:Access=Read/Write:Size=Word:Function=Data Value"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.swv.datatrace_2" value="Enabled=false:Address=0x0:Access=Read/Write:Size=Word:Function=Data Value"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.swv.datatrace_3" value="Enabled=false:Address=0x0:Access=Read/Write:Size=Word:Function=Data Value"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.swv.itmports" value="1:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.swv.itmports_priv" value="0:0:0:0"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.swv.pc_sample" value="0:16384"/>
+<booleanAttribute key="com.st.stm32cube.ide.mcu.debug.swv.swv_wait_for_sync" value="true"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.swv.timestamps" value="1:1"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.swv.trace_events" value="Cpi=0:Exc=0:Sleep=0:Lsu=0:Fold=0:Exetrc=0"/>
 <booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.doHalt" value="false"/>
 <booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.doReset" value="false"/>
 <stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.initCommands" value=""/>
