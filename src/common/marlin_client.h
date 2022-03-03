@@ -170,7 +170,7 @@ extern void marlin_manage_heater(void);
 
 extern void marlin_quick_stop(void);
 
-extern void marlin_test_start(uint32_t mask);
+extern void marlin_test_start(uint64_t mask);
 
 extern void marlin_test_abort(void);
 

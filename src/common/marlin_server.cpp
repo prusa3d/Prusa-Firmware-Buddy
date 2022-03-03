@@ -435,7 +435,7 @@ void marlin_server_set_command(uint32_t command) {
     marlin_server.command = command;
 }
 
-void marlin_server_test_start(uint32_t mask) {
+void marlin_server_test_start(uint64_t mask) {
     if (((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) && (!Selftest.IsInProgress())) {
         Selftest.Start((SelftestMask_t)mask);
     }
@@ -909,6 +909,7 @@ static uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t 
         if (marlin_server.notify_events[client_id] & ((uint64_t)1 << evt_id)) {
             if (_send_notify_event_to_client(client_id, marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
                 marlin_server.client_events[client_id] |= ((uint64_t)1 << evt_id); // event not sent, set bit
+                // save unsent data of the event for later retransmission
                 if (evt_id == MARLIN_EVT_MeshUpdate) {
                     uint8_t x = usr16 & 0xff;                      // x index
                     uint8_t y = usr16 >> 8;                        // y index
@@ -1200,83 +1201,90 @@ static uint64_t _server_update_vars(uint64_t update) {
     return changes;
 }
 
-// process request on server side
-static int _process_server_request(const char *request) {
-    if (request == nullptr)
-        return 0;
-    int processed = 0;
+void bsod_unknown_request(const char *request) {
+    bsod("Unknown request %s", request);
+}
+
+// request must have 2 chars at least
+int _process_server_valid_request(const char *request, int client_id) {
+    const char *data = request + 2;
     uint32_t msk32[2];
-    unsigned int uival;
-    float offs;
-    float fval;
     int ival;
-    int client_id = *(request++) - '0';
-    if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS))
-        return 1;
 
     // Log everything except !update
-    if (!!strncmp(request, "!update", strlen("!update"))) {
+    if (request[1] != MARLIN_MSG_UPDATE_VARIABLE) {
         log_info(MarlinServer, "Processing %s (from %u)", request, client_id);
     }
 
-    if (strncmp("!g ", request, 3) == 0) {
+    switch (request[1]) {
+
+    case MARLIN_MSG_GCODE:
         //@TODO return value depending on success of enqueueing gcode
-        processed = marlin_server_enqueue_gcode(request + 3);
-    } else if (strncmp("!ig ", request, sizeof("!ig ") / sizeof(char) - 1) == 0) {
-        unsigned long int iptr = strtoul(request + sizeof("!ig ") / sizeof(char) - 1, NULL, 0);
-        processed = marlin_server_inject_gcode((const char *)iptr);
-    } else if (strcmp("!start", request) == 0) {
+        return marlin_server_enqueue_gcode(data);
+    case MARLIN_MSG_INJECT_GCODE: {
+        unsigned long int iptr = strtoul(data, NULL, 0);
+        return marlin_server_inject_gcode((const char *)iptr);
+    }
+    case MARLIN_MSG_START:
         marlin_server_start_processing();
-        processed = 1;
-    } else if (strcmp("!stop", request) == 0) {
+        return 1;
+    case MARLIN_MSG_STOP:
         marlin_server_stop_processing();
-        processed = 1;
-    } else if (strncmp("!var ", request, 5) == 0) {
-        _server_set_var(request + 5);
-        processed = 1;
-    } else if (sscanf(request, "!update %08lx %08lx", msk32 + 0, msk32 + 1)) {
+        return 1;
+    case MARLIN_MSG_SET_VARIABLE:
+        _server_set_var(data);
+        return 1;
+    case MARLIN_MSG_UPDATE_VARIABLE:
+        if (sscanf(data, "%08lx %08lx", msk32 + 0, msk32 + 1) != 2)
+            return 0;
         _server_update_and_notify(client_id, msk32[0] + (((uint64_t)msk32[1]) << 32));
-        processed = 1;
-    } else if (sscanf(request, "!babystep_Z %f", &offs) == 1) {
+        return 1;
+    case MARLIN_MSG_BABYSTEP: {
+        float offs;
+        if (sscanf(data, "%f", &offs) != 1)
+            return 0;
         marlin_server_do_babystep_Z(offs);
-        processed = 1;
-    } else if (strcmp("!cfg_save", request) == 0) {
+        return 1;
+    }
+    case MARLIN_MSG_CONFIG_SAVE:
         marlin_server_settings_save();
-        processed = 1;
-    } else if (strcmp("!cfg_load", request) == 0) {
+        return 1;
+    case MARLIN_MSG_CONFIG_LOAD:
         marlin_server_settings_load();
-        processed = 1;
-    } else if (strcmp("!cfg_reset", request) == 0) {
+        return 1;
+    case MARLIN_MSG_CONFIG_RESET:
         marlin_server_settings_reset();
-        processed = 1;
-    } else if (strcmp("!updt", request) == 0) {
+        return 1;
+    case MARLIN_MSG_UPDATE:
         marlin_server_manage_heater();
-        processed = 1;
-    } else if (strcmp("!qstop", request) == 0) {
+        return 1;
+    case MARLIN_MSG_QUICK_STOP:
         marlin_server_quick_stop();
-        processed = 1;
-    } else if (strncmp("!pstart ", request, 8) == 0) {
-        marlin_server_print_start(request + 8);
-        processed = 1;
-    } else if (strcmp("!pabort", request) == 0) {
+        return 1;
+    case MARLIN_MSG_PRINT_START:
+        marlin_server_print_start(data);
+        return 1;
+    case MARLIN_MSG_PRINT_ABORT:
         marlin_server_print_abort();
-        processed = 1;
-    } else if (strcmp("!ppause", request) == 0) {
+        return 1;
+    case MARLIN_MSG_PRINT_PAUSE:
         marlin_server_print_pause();
-        processed = 1;
-    } else if (strcmp("!presume", request) == 0) {
+        return 1;
+    case MARLIN_MSG_PRINT_RESUME:
         marlin_server_print_resume();
-        processed = 1;
-    } else if (strcmp("!park", request) == 0) {
+        return 1;
+    case MARLIN_MSG_PARK:
         marlin_server_park_head();
-        processed = 1;
-    } else if (strcmp("!kmove", request) == 0) {
+        return 1;
+    case MARLIN_MSG_KNOB_MOVE:
         ++marlin_server.knob_move_counter;
-        processed = 1;
-    } else if (strcmp("!kclick", request) == 0) {
+        return 1;
+    case MARLIN_MSG_KNOB_CLICK:
         ++marlin_server.knob_click_counter;
-        processed = 1;
-    } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finite state machine response
+        return 1;
+    case MARLIN_MSG_FSM:
+        if (sscanf(data, "%d", &ival) != 1)
+            return 0;
         // Allows to interrupt blocking waiting for heating/cooling
         // Remove once the Marlin's heating is non-blocking
         if (can_stop_wait_for_heatup() && ival >= 0) {
@@ -1284,8 +1292,10 @@ static int _process_server_request(const char *request) {
             wait_for_heatup = false;
         }
         ClientResponseHandler::SetResponse(ival);
-        processed = 1;
-    } else if (sscanf(request, "!event_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
+        return 1;
+    case MARLIN_MSG_EVENT_MASK:
+        if (sscanf(data, "%08lx %08lx", msk32 + 0, msk32 + 1) != 2)
+            return 0;
         marlin_server.notify_events[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         // Send MARLIN_EVT_MediaInserted event if media currently inserted
         // This is temporary solution, MARLIN_EVT_MediaInserted and MARLIN_EVT_MediaRemoved events are replaced
@@ -1293,30 +1303,66 @@ static int _process_server_request(const char *request) {
         // We need this workaround for app startup.
         if ((marlin_server.notify_events[client_id] & MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted)) && marlin_server.vars.media_inserted)
             marlin_server.client_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted);
-        processed = 1;
-    } else if (sscanf(request, "!change_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
+        return 1;
+    case MARLIN_MSG_CHANGE_MASK:
+        if (sscanf(data, "%08lx %08lx", msk32 + 0, msk32 + 1) != 2)
+            return 0;
         marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         marlin_server.client_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
-        processed = 1;
-    } else if (sscanf(request, "!exc %d", &ival) == 1) { //set exclusive mode
+        return 1;
+    case MARLIN_MSG_EXCLUSIVE:
+        if (sscanf(data, "%d", &ival) != 1)
+            return 0;
+        //set exclusive mode
         if (ival) {
             marlin_server.flags |= MARLIN_SFLG_EXCMODE;
             queue.clear();
         } else
             marlin_server.flags &= ~MARLIN_SFLG_EXCMODE;
-        processed = 1;
-    } else if (sscanf(request, "!test %d", &ival) == 1) { //start selftest
-        marlin_server_test_start(ival);
-        processed = 1;
-    } else if (strcmp("!tabort", request) == 0) {
+        return 1;
+    case MARLIN_MSG_TEST_START:
+        if (sscanf(data, "%08lx %08lx", msk32 + 0, msk32 + 1) != 2)
+            return 0;
+        //start selftest
+        marlin_server_test_start(msk32[0] + (((uint64_t)msk32[1]) << 32));
+        return 1;
+    case MARLIN_MSG_TEST_ABORT:
         marlin_server_test_abort();
-        processed = 1;
-    } else if (sscanf(request, "!move %f %f %u", &offs, &fval, &uival) == 3) {
+        return 1;
+    case MARLIN_MSG_MOVE: {
+        float offs;
+        float fval;
+        unsigned int uival;
+        if (sscanf(data, "%f %f %u", &offs, &fval, &uival) != 3)
+            return 0;
         marlin_server_move_axis(offs, fval, uival);
-        processed = 1;
-    } else {
-        bsod("Unknown request %s", request);
+        return 1;
     }
+    default:
+        bsod_unknown_request(request);
+    }
+    return 0;
+}
+
+// process request on server side
+// Message consists of
+//   1) client ID : char
+//   2) '!'
+//   3) message ID : char
+//   4) data (rest of the message, optional)
+// Example of messages: "2!R" or "0!PA546F18B 5D391C83"
+static int _process_server_request(const char *request) {
+    if (request == nullptr)
+        return 0;
+    int client_id = *(request++) - '0';
+    if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS))
+        return 1;
+
+    if (strlen(request) < 2 || request[0] != '!') {
+        bsod_unknown_request(request);
+    }
+
+    const int processed = _process_server_valid_request(request, client_id);
     if (processed)
         if (!_send_notify_event_to_client(client_id, marlin_client_queue[client_id], MARLIN_EVT_Acknowledge, 0, 0))
             // FIXME: Take care of resending process elsewhere.
@@ -1513,6 +1559,9 @@ void onUserConfirmRequired(const char *const msg) {
 }
 
 void onStatusChanged(const char *const msg) {
+    if (!msg)
+        return; // ignore errorneous nullptr messages
+
     static bool pending_err_msg = false;
 
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onStatusChanged: %s", msg);

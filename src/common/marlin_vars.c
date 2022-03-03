@@ -440,3 +440,9 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, marlin_var_id_t var_id, const 
 
     return 0;
 }
+
+void marlin_msg_to_str(const marlin_msg_t id, char *str) {
+    str[0] = '!';
+    str[1] = (char)id;
+    str[2] = 0;
+}
