@@ -1,4 +1,5 @@
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../lib/Marlin/Marlin/src/gcode/queue.h"
 
 #include "PrusaGcodeSuite.hpp"
 
