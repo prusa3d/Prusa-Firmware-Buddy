@@ -123,6 +123,36 @@ typedef enum {
     mpsFinished,
 } marlin_print_state_t;
 
+/// Marlin client -> server messages
+typedef enum {
+    MARLIN_MSG_EVENT_MASK = 'A',
+    MARLIN_MSG_CHANGE_MASK = 'B',
+    MARLIN_MSG_STOP = 'C',
+    MARLIN_MSG_EXCLUSIVE = 'D',
+    MARLIN_MSG_START = 'E',
+    MARLIN_MSG_GCODE = 'F',
+    MARLIN_MSG_INJECT_GCODE = 'G',
+    MARLIN_MSG_SET_VARIABLE = 'H',
+    MARLIN_MSG_UPDATE_VARIABLE = 'I',
+    MARLIN_MSG_BABYSTEP = 'J',
+    MARLIN_MSG_CONFIG_SAVE = 'K',
+    MARLIN_MSG_CONFIG_LOAD = 'L',
+    MARLIN_MSG_CONFIG_RESET = 'M',
+    MARLIN_MSG_UPDATE = 'N',
+    MARLIN_MSG_QUICK_STOP = 'O',
+    MARLIN_MSG_TEST_START = 'P',
+    MARLIN_MSG_TEST_ABORT = 'Q',
+    MARLIN_MSG_PRINT_START = 'R',
+    MARLIN_MSG_PRINT_ABORT = 'S',
+    MARLIN_MSG_PRINT_PAUSE = 'T',
+    MARLIN_MSG_PRINT_RESUME = 'U',
+    MARLIN_MSG_PARK = 'V',
+    MARLIN_MSG_KNOB_MOVE = 'W',
+    MARLIN_MSG_KNOB_CLICK = 'X',
+    MARLIN_MSG_FSM = 'Y',
+    MARLIN_MSG_MOVE = 'Z',
+} marlin_msg_t;
+
 // variables structure - used in server and client
 // deliberately ordered from longest data types to shortest to avoid alignment issues
 typedef struct _marlin_vars_t {
@@ -189,6 +219,10 @@ extern int marlin_vars_value_to_str(marlin_vars_t *vars, marlin_var_id_t var_id,
 
 // parse variable from string, returns sscanf result (1 = ok)
 extern int marlin_vars_str_to_value(marlin_vars_t *vars, marlin_var_id_t var_id, const char *str);
+
+// converts message's ID to string
+// string must have 3 bytes at least
+extern void marlin_msg_to_str(const marlin_msg_t id, char *str);
 
 #ifdef __cplusplus
 }

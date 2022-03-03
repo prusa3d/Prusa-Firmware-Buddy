@@ -80,7 +80,7 @@ extern uint32_t marlin_server_get_command(void);
 extern void marlin_server_set_command(uint32_t command);
 
 //
-extern void marlin_server_test_start(uint32_t mask);
+extern void marlin_server_test_start(uint64_t mask);
 
 //
 extern void marlin_server_test_abort(void);
