@@ -25,7 +25,7 @@ in real-time while your algorithm runs on a real printer.
 2. Record your values
 
     ```C
-    metric_record_integer(&metric_cpu_usage, 0.04);
+    metric_record_float(&metric_cpu_usage, 0.04);
     ```
 
 3. Enable sending the recorded metrics
