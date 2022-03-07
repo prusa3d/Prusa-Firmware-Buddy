@@ -49,6 +49,9 @@ enum {
 };
 static const int _FAN_CNT = _FAN_ID_MAX - _FAN_ID_MIN + 1;
 
+static metric_t metric_nozzle_pwm = METRIC("nozzle_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
+static metric_t metric_bed_pwm = METRIC("bed_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
+
 //this value is compared to new value (to avoid rounding errors)
 int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);
 int _tim3_period_us = GEN_PERIOD_US(TIM3_default_Prescaler, TIM3_default_Period);
@@ -83,7 +86,7 @@ int *const _pwm_period_us[] = {
 };
 
 // buddy pwm output maximum values
-const int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_Period, TIM1_default_Period }; //{42000, 42000, 42000, 42000};
+constexpr int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_Period, TIM1_default_Period };
 enum {
     _PWM_CNT = (sizeof(_pwm_pin32) / sizeof(uint32_t))
 };
@@ -99,14 +102,9 @@ const TIM_OC_InitTypeDef sConfigOC_default = {
 };
 
 // buddy pwm output maximum values  as arduino analogWrite
-const int _pwm_analogWrite_max[_PWM_CNT] = { 0xff, 0xff, 0xff, 0xff };
+constexpr int _pwm_analogWrite_max = 255;
 // buddy fan output values  as arduino analogWrite
 int _pwm_analogWrite_val[_PWM_CNT] = { 0, 0, 0, 0 };
-
-// buddy fan output maximum values as arduino analogWrite
-const int *_fan_max = &_pwm_analogWrite_max[_FAN_ID_MIN];
-// buddy fan output values as arduino analogWrite
-int *_fan_val = &_pwm_analogWrite_val[_FAN_ID_MIN];
 
 /*
 
@@ -132,7 +130,7 @@ void _hwio_pwm_analogWrite_set_val(int i_pwm, int val);
 void _hwio_pwm_set_val(int i_pwm, int val);
 uint32_t _pwm_get_chan(int i_pwm);
 TIM_HandleTypeDef *_pwm_get_htim(int i_pwm);
-int is_pwm_id_valid(int i_pwm);
+static constexpr int is_pwm_id_valid(int i_pwm);
 
 //--------------------------------------
 //analog output functions
@@ -150,14 +148,14 @@ void hwio_dac_set_val(int i_dac, int val) //write analog output
 //--------------------------------------
 //pwm output functions
 
-int is_pwm_id_valid(int i_pwm) {
+static constexpr int is_pwm_id_valid(int i_pwm) {
     return ((i_pwm >= 0) && (i_pwm < static_cast<int>(_PWM_CNT)));
 }
 
 int hwio_pwm_get_cnt(void) //number of pwm outputs
 { return _PWM_CNT; }
 
-int hwio_pwm_get_max(int i_pwm) //pwm output maximum value
+constexpr int hwio_pwm_get_max(int i_pwm) //pwm output maximum value
 {
     if (!is_pwm_id_valid(i_pwm))
         return -1;
@@ -271,9 +269,8 @@ void hwio_pwm_set_val(int i_pwm, uint32_t val) //write pwm output and update _pw
 
         //update _pwm_analogWrite_val
         int pwm_max = hwio_pwm_get_max(i_pwm);
-        int pwm_analogWrite_max = _pwm_analogWrite_max[i_pwm];
 
-        uint32_t pulse = (val * pwm_analogWrite_max) / pwm_max;
+        uint32_t pulse = (val * _pwm_analogWrite_max) / pwm_max;
         _pwm_analogWrite_val[i_pwm] = pulse; //arduino compatible
     }
 }
@@ -314,9 +311,18 @@ void _hwio_pwm_analogWrite_set_val(int i_pwm, int val) {
     if (!is_pwm_id_valid(i_pwm))
         return;
 
+    switch (i_pwm) {
+    case HWIO_PWM_HEATER_0:
+        metric_record_integer(&metric_nozzle_pwm, val);
+        break;
+    case HWIO_PWM_HEATER_BED:
+        metric_record_integer(&metric_bed_pwm, val);
+        break;
+    }
+
     if (_pwm_analogWrite_val[i_pwm] != val) {
-        int32_t pwm_max = hwio_pwm_get_max(i_pwm);
-        uint32_t pulse = (val * pwm_max) / _pwm_analogWrite_max[i_pwm];
+        const int32_t pwm_max = hwio_pwm_get_max(i_pwm);
+        const uint32_t pulse = (val * pwm_max) / _pwm_analogWrite_max;
         hwio_pwm_set_val(i_pwm, pulse);
         _pwm_analogWrite_val[i_pwm] = val;
     }
@@ -532,14 +538,14 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
 #ifdef SIM_HEATER_BED_ADC
         sim_bed_set_power(ulVal ? 100 : 0);
 #else //SIM_HEATER_BED_ADC
-        _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_BED] : 0);
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max : 0);
 #endif
         return;
     case MARLIN_PIN(HEAT0):
 #ifdef SIM_HEATER_NOZZLE_ADC
         sim_nozzle_set_power(ulVal ? 40 : 0);
 #else //SIM_HEATER_NOZZLE_ADC
-        _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_0] : 0);
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max : 0);
 #endif
         return;
     case MARLIN_PIN(FAN1):
@@ -555,7 +561,7 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
         if (hwio_fan_control_enabled)
             fanctl_set_pwm(0, ulVal ? 50 : 0);
 #else  //NEW_FANCTL
-        _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulVal ? _pwm_analogWrite_max[HWIO_PWM_FAN] : 0);
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulVal ? _pwm_analogWrite_max : 0);
 #endif //NEW_FANCTL
         return;
     default:
