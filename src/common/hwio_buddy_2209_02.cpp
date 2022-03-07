@@ -112,8 +112,6 @@ int hwio_fan_control_enabled = 1;
 float hwio_beeper_vol = 1.0F;
 uint32_t hwio_beeper_del = 0;
 
-extern ADC_HandleTypeDef hadc1;
-
 /*****************************************************************************
  * private function declarations
  * */
