@@ -21,6 +21,7 @@
 #include "fanctl.h"
 #include "MarlinPin.hpp"
 
+namespace {
 /**
  * @brief hwio Marlin wrapper errors
  */
@@ -35,26 +36,10 @@ enum {
     HWIO_ERR_UNDEF_ANA_WR,        //!< undefined pin analog write
 };
 
-/**
- * @brief analog output pins
- */
-const uint32_t _dac_pin32[] = {};
-// buddy analog output maximum values
-const int _dac_max[] = { 0 };
-static const size_t _DAC_CNT = sizeof(_dac_pin32) / sizeof(uint32_t);
-
 enum {
     _FAN_ID_MIN = HWIO_PWM_FAN1,
     _FAN_ID_MAX = HWIO_PWM_FAN,
 };
-static const int _FAN_CNT = _FAN_ID_MAX - _FAN_ID_MIN + 1;
-
-static metric_t metric_nozzle_pwm = METRIC("nozzle_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_bed_pwm = METRIC("bed_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
-
-//this value is compared to new value (to avoid rounding errors)
-int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);
-int _tim3_period_us = GEN_PERIOD_US(TIM3_default_Prescaler, TIM3_default_Period);
 
 // buddy pwm output pins
 const uint32_t _pwm_pin32[] = {
@@ -64,21 +49,41 @@ const uint32_t _pwm_pin32[] = {
     MARLIN_PIN(FAN)
 };
 
-const uint32_t _pwm_chan[] = {
+enum {
+    _PWM_CNT = (sizeof(_pwm_pin32) / sizeof(uint32_t))
+};
+
+} //end anonymous namespace
+
+/**
+ * @brief analog output pins
+ */
+static const uint32_t _dac_pin32[] = {};
+// buddy analog output maximum values
+static const int _dac_max[] = { 0 };
+static const size_t _DAC_CNT = sizeof(_dac_pin32) / sizeof(uint32_t);
+
+static const int _FAN_CNT = _FAN_ID_MAX - _FAN_ID_MIN + 1;
+
+//this value is compared to new value (to avoid rounding errors)
+static int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);
+static int _tim3_period_us = GEN_PERIOD_US(TIM3_default_Prescaler, TIM3_default_Period);
+
+static const uint32_t _pwm_chan[] = {
     TIM_CHANNEL_3, //_PWM_HEATER_BED
     TIM_CHANNEL_4, //_PWM_HEATER_0
     TIM_CHANNEL_1, //_PWM_FAN1
     TIM_CHANNEL_2, //_PWM_FAN
 };
 
-TIM_HandleTypeDef *_pwm_p_htim[] = {
+static TIM_HandleTypeDef *_pwm_p_htim[] = {
     &htim3, //_PWM_HEATER_BED
     &htim3, //_PWM_HEATER_0
     &htim1, //_PWM_FAN1
     &htim1, //_PWM_FAN
 };
 
-int *const _pwm_period_us[] = {
+static int *const _pwm_period_us[] = {
     &_tim3_period_us, //_PWM_HEATER_BED
     &_tim3_period_us, //_PWM_HEATER_0
     &_tim1_period_us, //_PWM_FAN1
@@ -86,12 +91,9 @@ int *const _pwm_period_us[] = {
 };
 
 // buddy pwm output maximum values
-constexpr int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_Period, TIM1_default_Period };
-enum {
-    _PWM_CNT = (sizeof(_pwm_pin32) / sizeof(uint32_t))
-};
+static constexpr int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_Period, TIM1_default_Period };
 
-const TIM_OC_InitTypeDef sConfigOC_default = {
+static const TIM_OC_InitTypeDef sConfigOC_default = {
     TIM_OCMODE_PWM1,       //OCMode
     0,                     //Pulse
     TIM_OCPOLARITY_HIGH,   //OCPolarity
@@ -102,25 +104,28 @@ const TIM_OC_InitTypeDef sConfigOC_default = {
 };
 
 // buddy pwm output maximum values  as arduino analogWrite
-constexpr int _pwm_analogWrite_max = 255;
+static constexpr int _pwm_analogWrite_max = 255;
 // buddy fan output values  as arduino analogWrite
-int _pwm_analogWrite_val[_PWM_CNT] = { 0, 0, 0, 0 };
+static int _pwm_analogWrite_val[_PWM_CNT] = { 0, 0, 0, 0 };
 
-int hwio_jogwheel_enabled = 0;
-int hwio_fan_control_enabled = 1;
+static int hwio_jogwheel_enabled = 0;
+static int hwio_fan_control_enabled = 1;
 
-float hwio_beeper_vol = 1.0F;
-uint32_t hwio_beeper_del = 0;
+static float hwio_beeper_vol = 1.0F;
+static uint32_t hwio_beeper_del = 0;
 
 /*****************************************************************************
  * private function declarations
  * */
-void __pwm_set_val(TIM_HandleTypeDef *htim, uint32_t chan, int val);
-void _hwio_pwm_analogWrite_set_val(int i_pwm, int val);
-void _hwio_pwm_set_val(int i_pwm, int val);
-uint32_t _pwm_get_chan(int i_pwm);
-TIM_HandleTypeDef *_pwm_get_htim(int i_pwm);
+static void __pwm_set_val(TIM_HandleTypeDef *htim, uint32_t chan, int val);
+static void _hwio_pwm_analogWrite_set_val(int i_pwm, int val);
+static void _hwio_pwm_set_val(int i_pwm, int val);
+static uint32_t _pwm_get_chan(int i_pwm);
+static TIM_HandleTypeDef *_pwm_get_htim(int i_pwm);
 static constexpr int is_pwm_id_valid(int i_pwm);
+
+static metric_t metric_nozzle_pwm = METRIC("nozzle_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
+static metric_t metric_bed_pwm = METRIC("bed_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
 
 //--------------------------------------
 //analog output functions
