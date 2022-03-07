@@ -19,7 +19,6 @@ extern int HAL_PWM_Initialized;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim3;
 extern RTC_HandleTypeDef hrtc;
-extern ADC_HandleTypeDef hadc1;
 #if (BOARD_IS_BUDDY)
     #if HAS_GUI
 extern TIM_HandleTypeDef htim2; //TIM2 is used to generate buzzer PWM. Not needed without display.
