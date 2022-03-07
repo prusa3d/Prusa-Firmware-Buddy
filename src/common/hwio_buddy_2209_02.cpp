@@ -106,14 +106,6 @@ constexpr int _pwm_analogWrite_max = 255;
 // buddy fan output values  as arduino analogWrite
 int _pwm_analogWrite_val[_PWM_CNT] = { 0, 0, 0, 0 };
 
-/*
-
-// buddy fan output maximum values
-const int _fan_max[] = {255, 255};
-// buddy fan output values
-int _fan_val[] = {0, 0};
-
-*/
 int hwio_jogwheel_enabled = 0;
 int hwio_fan_control_enabled = 1;
 
