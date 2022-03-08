@@ -56,11 +56,6 @@ const st7789v_config_t st7789v_cfg = {
 
 marlin_vars_t *gui_marlin_vars = 0;
 
-static void _gui_loop_cb() {
-    marlin_client_loop();
-    GuiMediaEventsHandler::Tick();
-}
-
 char gui_media_LFN[FILE_NAME_BUFFER_LEN];
 char gui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 
@@ -205,8 +200,6 @@ void gui_run(void) {
     } else {
         Screens::Access()->DisableMenuTimeout();
     }
-    //set loop callback (will be called every time inside gui_loop)
-    gui_loop_cb = _gui_loop_cb;
 
     Screens::Access()->Loop();
 

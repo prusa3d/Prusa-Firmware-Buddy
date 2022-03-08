@@ -11,6 +11,7 @@
 #include "gui_media_events.hpp"
 #include "gui_invalidate.hpp"
 #include "knob_event.hpp"
+#include "marlin_client.h"
 #include "sw_timer.hpp"
 
 static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
@@ -35,7 +36,6 @@ constexpr Rect16 GuiDefaults::RectScreenNoFoot;
 constexpr Rect16 GuiDefaults::RectScreenNoHeader;
 constexpr Rect16 GuiDefaults::RectFooter;
 
-gui_loop_cb_t *gui_loop_cb = nullptr;
 static const constexpr uint32_t GUI_DELAY_MIN = 1;
 static const constexpr uint32_t GUI_DELAY_MAX = 10;
 static const constexpr uint8_t GUI_DELAY_LOOP = 100;
@@ -71,6 +71,11 @@ void gui_invalidate(void) {
 static uint8_t guiloop_nesting = 0;
 uint8_t gui_get_nesting(void) { return guiloop_nesting; }
 
+void gui_loop_cb() {
+    marlin_client_loop();
+    GuiMediaEventsHandler::Tick();
+}
+
 void gui_loop(void) {
     ++guiloop_nesting;
 
@@ -80,9 +85,7 @@ void gui_loop(void) {
     int32_t encoder_diff = jogwheel.ConsumeEncoderDiff();
 
     if (encoder_diff != 0 || is_btn) {
-        if (gui_loop_cb)
-            gui_loop_cb();
-
+        gui_loop_cb();
         gui::knob::EventEncoder(encoder_diff);
 
         if (is_btn) {
@@ -112,8 +115,7 @@ void gui_loop(void) {
     #endif //GUI_USE_RTOS
 
         gui_redraw();
-    if (gui_loop_cb)
-        gui_loop_cb();
+    gui_loop_cb();
     if (gui_loop_timer.RestartIfIsOver(gui::GetTick())) {
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
     }

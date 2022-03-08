@@ -10,8 +10,6 @@
 
 typedef void(gui_loop_cb_t)(void);
 
-extern gui_loop_cb_t *gui_loop_cb;
-
 extern void gui_run(void);
 
 extern void gui_init(void);
@@ -39,6 +37,8 @@ extern osThreadId gui_task_handle;
     #include "circle_buffer.hpp"
 
 extern uint8_t gui_get_nesting(void);
+
+extern void gui_loop_cb();
 
 extern void gui_loop(void);
 
