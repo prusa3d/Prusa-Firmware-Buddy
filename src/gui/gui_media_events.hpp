@@ -18,7 +18,7 @@ public:
     static GuiMediaEventsHandler &Instance();
 
 private:
-    static constexpr uint32_t startup_finished_dellay = 1000;
+    static constexpr uint32_t startup_finished_delay = 1000;
     uint32_t start_time;
     bool is_starting;
     bool one_click_printing;

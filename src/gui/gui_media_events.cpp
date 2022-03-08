@@ -28,7 +28,7 @@ void GuiMediaEventsHandler::Tick() {
 
 void GuiMediaEventsHandler::tick() {
     if (is_starting) {
-        if ((gui::GetTick() - start_time) >= startup_finished_dellay) {
+        if ((gui::GetTick() - start_time) >= startup_finished_delay) {
             marlin_event_clr(MARLIN_EVT_MediaRemoved);
             marlin_event_clr(MARLIN_EVT_MediaInserted);
             marlin_event_clr(MARLIN_EVT_MediaError);
