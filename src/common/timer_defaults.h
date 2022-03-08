@@ -21,6 +21,6 @@ enum {
     TIM3_default_Period = 0xff,
 };
 
-//must be macro to be able to inicialize variables with it
+//must be macro to be able to initialize variables with it
 #define GEN_PERIOD_US(prescaler, period) \
     ((prescaler + 1) * (period + 1) / (int32_t)TIM_BASE_CLK_MHZ)

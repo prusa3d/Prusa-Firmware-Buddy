@@ -190,7 +190,7 @@ extern "C" {
 /// initialize eeprom
 /// can be called multiple times, non first call will just return status
 /// cannot have function to just return static variable,
-///          because this code is called before inicialization of static variables
+///          because this code is called before initialization of static variables
 ///
 /// @returns EEPROM_INIT_Normal - normal init (eeprom data valid)
 ///          EEPROM_INIT_Defaults - defaults loaded

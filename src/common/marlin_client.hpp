@@ -8,7 +8,7 @@
 // client side functions (can be called from client thread only)
 
 // returns if response send succeeded
-// called in client finit state machine
+// called in client finite state machine
 template <class T>
 bool marlin_FSM_response(T phase, Response response) {
     uint32_t encoded = ClientResponses::Encode(phase, response);

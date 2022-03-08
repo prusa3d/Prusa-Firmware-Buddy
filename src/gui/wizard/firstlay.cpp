@@ -186,7 +186,7 @@ WizardState_t StateFnc_FIRSTLAY_RESULT() {
     eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
     return WizardState_t::FINISH;
 
-    //use folowing code when firstlay fails
+    //use following code when firstlay fails
 #if 0
     //save eeprom flag
     static const char en_text[] = N_("The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration.");

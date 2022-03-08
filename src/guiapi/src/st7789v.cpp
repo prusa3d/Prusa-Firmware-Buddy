@@ -727,7 +727,7 @@ st7789v_config_t st7789v_config = {
 //measured delay from low to hi in reset cycle
 uint16_t st7789v_reset_delay = 0;
 
-//! @brief enable safe mode (direct acces + safe delay)
+//! @brief enable safe mode (direct access + safe delay)
 void st7789v_enable_safe_mode(void) {
     st7789v_flg |= (uint8_t)ST7789V_FLG_SAFE;
 }
