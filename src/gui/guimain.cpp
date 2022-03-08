@@ -45,12 +45,14 @@ int guimain_spi_test = 0;
 #include "main.h"
 extern void blockISR(); // do not want to include marlin temperature
 
+#ifdef USE_ST7789
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
     ST7789V_FLG_DMA,    // flags (DMA, MISO)
     ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
     ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
 };
+#endif // USE_ST7789
 
 marlin_vars_t *gui_marlin_vars = 0;
 
@@ -120,7 +122,9 @@ void client_gui_refresh() {
 }
 
 void gui_run(void) {
+#ifdef USE_ST7789
     st7789v_config = st7789v_cfg;
+#endif
 
     gui_init();
 
@@ -210,10 +214,12 @@ void gui_run(void) {
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF, client_gui_refresh);
     uint32_t progr100 = 100;
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)progr100);
+    //TODO make some kind of registration
     while (1) {
-        gui::TickLoop();
+        gui::StartLoop();
         DialogHandler::Access().Loop();
         Screens::Access()->Loop();
         gui_loop();
+        gui::EndLoop();
     }
 }

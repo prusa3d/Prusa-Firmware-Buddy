@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "gui_time.hpp"
 #include "timing.h"
 
@@ -12,6 +13,13 @@ void gui::TickLoop() {
     }
     current_tick = now;
     current_loop_counter += 1;
+}
+
+void gui::StartLoop() {
+    gui::TickLoop();
+}
+
+void gui::EndLoop() {
 }
 
 uint32_t gui::GetLoopCounter() {
@@ -34,6 +42,6 @@ uint32_t gui::GetTick_IgnoreTickLoop() {
 }
 
 uint32_t gui::GetTick_ForceActualization() {
-    gui::TickLoop();
+    gui::StartLoop();
     return gui::GetTick();
 };
