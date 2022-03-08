@@ -280,7 +280,7 @@ bool Pause::ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t pr
 }
 
 void Pause::do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
-    //Not sure if folowing code would not be better
+    //Not sure if following code would not be better
     //const float actual_e = planner.get_axis_position_mm(E_AXIS);
     //Notifier_POS_E N(ClientFSM::Load_unload, getPhaseIndex(), actual_e, actual_e + length, progress_min,progress_max);
     const float actual_e = current_position.e;

@@ -12,7 +12,7 @@
 
 void window_roll_text_t::unconditionalDraw() {
     if (flags.color_scheme_background || flags.color_scheme_foreground) {
-        //TODO keep only folowing 3 lines in function body, remove rest
+        //TODO keep only following 3 lines in function body, remove rest
         super::unconditionalDraw();
         roll.RenderTextAlign(GetRect(), text, font,
             GetBackColor(), GetTextColor(), padding, GetAlignment());

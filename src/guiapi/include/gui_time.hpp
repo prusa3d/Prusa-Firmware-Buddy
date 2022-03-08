@@ -1,7 +1,7 @@
 /**
  * @file gui_time.hpp
  * @author Radek Vana
- * @brief wrapped acces to tick functions
+ * @brief wrapped access to tick functions
  * @date 2021-04-21
  */
 

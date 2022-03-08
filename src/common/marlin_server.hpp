@@ -12,11 +12,11 @@
 //C++ only features
 
 //todo ensure signature match
-//notify all clients to create finit statemachine
+//notify all clients to create finite statemachine
 void fsm_create(ClientFSM type, uint8_t data = 0);
-//notify all clients to destroy finit statemachine, must match fsm_destroy_t signature
+//notify all clients to destroy finite statemachine, must match fsm_destroy_t signature
 void fsm_destroy(ClientFSM type);
-//notify all clients to change state of finit statemachine, must match fsm_change_t signature
+//notify all clients to change state of finite statemachine, must match fsm_change_t signature
 //can be called inside while, notification is send only when is different from previous one
 void _fsm_change(ClientFSM type, fsm::BaseData data);
 
