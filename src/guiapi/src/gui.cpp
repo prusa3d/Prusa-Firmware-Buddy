@@ -1,7 +1,8 @@
 // gui.cpp
+#include <stdlib.h>
+
 #include "display.h"
 #include "gui.hpp"
-#include <stdlib.h>
 #include "gui_time.hpp" //gui::GetTick
 #include "ScreenHandler.hpp"
 #include "IDialog.hpp"
@@ -10,6 +11,7 @@
 #include "gui_media_events.hpp"
 #include "gui_invalidate.hpp"
 #include "knob_event.hpp"
+#include "sw_timer.hpp"
 
 static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
 
@@ -34,7 +36,13 @@ constexpr Rect16 GuiDefaults::RectScreenNoHeader;
 constexpr Rect16 GuiDefaults::RectFooter;
 
 gui_loop_cb_t *gui_loop_cb = nullptr;
-uint32_t gui_loop_tick = 0;
+static const constexpr uint32_t GUI_DELAY_MIN = 1;
+static const constexpr uint32_t GUI_DELAY_MAX = 10;
+static const constexpr uint8_t GUI_DELAY_LOOP = 100;
+static const constexpr uint8_t GUI_DELAY_REDRAW = 40; // 40 ms => 25 fps
+
+static Sw_Timer<uint32_t> gui_loop_timer(GUI_DELAY_LOOP);
+static Sw_Timer<uint32_t> gui_redraw_timer(GUI_DELAY_REDRAW);
 
 void gui_init(void) {
     display::Init();
@@ -43,8 +51,10 @@ void gui_init(void) {
 
 void gui_redraw(void) {
     if (gui_invalid) {
-        Screens::Access()->Draw();
-        gui_invalid = false;
+        if (gui_redraw_timer.RestartIfIsOver(ticks_ms())) {
+            Screens::Access()->Draw();
+            gui_invalid = false;
+        }
     }
 }
 
@@ -56,10 +66,6 @@ void gui_invalidate(void) {
 #endif //GUI_USE_RTOS
 }
 
-static const constexpr uint8_t GUI_DELAY_MIN = 1;
-static const constexpr uint8_t GUI_DELAY_MAX = 10;
-static const constexpr uint8_t GUI_DELAY_LOOP = 100;
-
 #ifdef GUI_WINDOW_SUPPORT
 
 static uint8_t guiloop_nesting = 0;
@@ -67,8 +73,6 @@ uint8_t gui_get_nesting(void) { return guiloop_nesting; }
 
 void gui_loop(void) {
     ++guiloop_nesting;
-    uint32_t delay;
-    uint32_t tick;
 
     #ifdef GUI_JOGWHEEL_SUPPORT
     BtnState_t btn_ev;
@@ -100,22 +104,17 @@ void gui_loop(void) {
         }
     }
 
-    delay = gui_timers_cycle();
-    if (delay < GUI_DELAY_MIN)
-        delay = GUI_DELAY_MIN;
-    if (delay > GUI_DELAY_MAX)
-        delay = GUI_DELAY_MAX;
+    uint32_t delay = gui_timers_cycle();
     #ifdef GUI_USE_RTOS
+    delay = std::clamp(delay, GUI_DELAY_MIN, GUI_DELAY_MAX);
     osEvent evt = osSignalWait(GUI_SIG_REDRAW, delay);
     if ((evt.status == osEventSignal) && (evt.value.signals & GUI_SIG_REDRAW))
     #endif //GUI_USE_RTOS
 
         gui_redraw();
-    tick = gui::GetTick();
-    if ((tick - gui_loop_tick) >= GUI_DELAY_LOOP) {
-        if (gui_loop_cb)
-            gui_loop_cb();
-        gui_loop_tick = tick;
+    if (gui_loop_cb)
+        gui_loop_cb();
+    if (gui_loop_timer.RestartIfIsOver(gui::GetTick())) {
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
     }
     --guiloop_nesting;
