@@ -214,12 +214,20 @@ void gui_run(void) {
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF, client_gui_refresh);
     uint32_t progr100 = 100;
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)progr100);
+    redraw_cmd_t redraw;
     //TODO make some kind of registration
     while (1) {
         gui::StartLoop();
-        DialogHandler::Access().Loop();
+        redraw = DialogHandler::Access().Loop();
+        if (redraw == redraw_cmd_t::redraw)
+            // all messages received, redraw changes immediately
+            gui_redraw();
         Screens::Access()->Loop();
-        gui_loop();
+        // Do not redraw if there's an unread FSM message.
+        // New screen can be created already but FSM message can change it
+        // so it's too soon to draw it.
+        if (redraw != redraw_cmd_t::skip)
+            gui_loop();
         gui::EndLoop();
     }
 }
