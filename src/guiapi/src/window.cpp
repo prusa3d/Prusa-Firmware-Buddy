@@ -32,6 +32,7 @@ void window_t::Validate(Rect16 validation_rect) {
 }
 
 void window_t::Invalidate(Rect16 invalidation_rect) {
+    // FIXME: invalidation if invalidation_rect is empty is dangerous
     if (invalidation_rect.IsEmpty() || rect.HasIntersection(invalidation_rect)) {
         //TODO why is not here flags.invalid = true;
         //it likely has some reason, but should be commented!!!
