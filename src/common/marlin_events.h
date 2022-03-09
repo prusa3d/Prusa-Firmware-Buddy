@@ -10,6 +10,7 @@ typedef enum {
     MARLIN_EVT_MediaInserted,       // onMediaInserted();
     MARLIN_EVT_MediaError,          // onMediaError();
     MARLIN_EVT_MediaRemoved,        // onMediaRemoved();
+    MARLIN_EVT_FSM,                 // create/destroy finite state machine or change phase/state/progress in client
     MARLIN_EVT_PlayTone,            // onPlayTone(const uint16_t frequency, const uint16_t duration)
     MARLIN_EVT_PrintTimerStarted,   // onPrintTimerStarted()
     MARLIN_EVT_PrintTimerPaused,    // onPrintTimerPaused()
@@ -31,7 +32,6 @@ typedef enum {
     MARLIN_EVT_Message,             //
     MARLIN_EVT_Warning,             // important messages like fan error or heater timeout
     MARLIN_EVT_Reheat,              //
-    MARLIN_EVT_FSM,                 // create/destroy finite state machine or change phase/state/progress in client
     MARLIN_EVT_Acknowledge,         // onAcknowledge - lowest priority
 
     MARLIN_EVT_MAX = MARLIN_EVT_Acknowledge

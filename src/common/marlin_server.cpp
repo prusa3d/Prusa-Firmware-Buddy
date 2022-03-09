@@ -130,7 +130,7 @@ extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue hand
 
 static void _server_print_loop(void);
 static int _send_notify_to_client(osMessageQId queue, variant8_t msg);
-static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
+static bool _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
 static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk);
 static uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
 static int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t var);
@@ -775,19 +775,31 @@ static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
     return 1;
 }
 
+// send all FSM messages from the FSM queue
+static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
+    while (1) {
+        fsm::variant_t variant = fsm_event_queues[client_id].Front();
+        if (variant.GetCommand() == ClientFSM_Command::none)
+            return true; // no event to send, return 'sent' to erase 'send' flag
+
+        if (!_send_notify_to_client(queue, variant8_user(variant.u32, variant.u16, MARLIN_EVT_FSM)))
+            // unable to send all messages
+            return false;
+
+        //erase sent item from queue
+        fsm_event_queues[client_id].Pop();
+    }
+}
+
 // send event notification to client (called from server thread)
-static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
+static bool _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
     variant8_t msg;
     switch (evt_id) {
     case MARLIN_EVT_Message:
         msg = marlin_server.event_messages[client_id];
         break;
-    case MARLIN_EVT_FSM: {
-        fsm::variant_t variant = fsm_event_queues[client_id].Front();
-        if (variant.GetCommand() == ClientFSM_Command::none)
-            return true; // no event to send, return "sent" to erase send flag
-        msg = variant8_user(variant.u32, variant.u16, evt_id);
-    } break;
+    case MARLIN_EVT_FSM:
+        return _send_FSM_event_to_client(client_id, queue);
     default:
         msg = variant8_user(usr32, usr16, evt_id);
     }
@@ -799,10 +811,6 @@ static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLI
         case MARLIN_EVT_Message:
             // clear sent client message
             marlin_server.event_messages[client_id] = variant8_empty();
-            break;
-        case MARLIN_EVT_FSM:
-            //erase sent item from queue
-            fsm_event_queues[client_id].Pop();
             break;
         default:
             break;
