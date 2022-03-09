@@ -127,14 +127,18 @@ void DialogHandler::PreOpen(ClientFSM dialog, uint8_t data) {
     Command(var.u32, var.u16);
 }
 
-void DialogHandler::Loop() {
+redraw_cmd_t DialogHandler::Loop() {
     fsm::variant_t variant = command_queue.Front();
-
+    bool processed = false;
     // execute all commands - fewer redraws
     while (variant.GetCommand() != ClientFSM_Command::none) {
+        processed = true;
         command(variant);
         command_queue.Pop(); //erase item from queue
 
         variant = command_queue.Front();
     }
+    if (variant.GetCommand() != ClientFSM_Command::none)
+        return redraw_cmd_t::skip;
+    return processed ? redraw_cmd_t::redraw : redraw_cmd_t::none;
 }

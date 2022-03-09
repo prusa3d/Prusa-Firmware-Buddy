@@ -4,6 +4,12 @@
 #include "fsm_types.hpp"
 #include "DialogFactory.hpp"
 
+enum class redraw_cmd_t : int {
+    none,
+    skip,
+    redraw,
+};
+
 class DialogHandler {
     static_unique_ptr<IDialogMarlin> ptr;
     DialogFactory::Ctors dialog_ctors;
@@ -25,6 +31,6 @@ public:
     static void Command(uint32_t u32, uint16_t u16);     //static method to be registered as callback, marlin client is in C, so cannot pass fsm::variant_t
     static void PreOpen(ClientFSM dialog, uint8_t data); //can be enforced (pre openned), unlike change/close
 
-    void Loop();                                          //synchronization loop, call it outside event
+    redraw_cmd_t Loop();                                  //synchronization loop, call it outside event
     void WaitUntilClosed(ClientFSM dialog, uint8_t data); // opens dialog, waits until closed, auto loops
 };
