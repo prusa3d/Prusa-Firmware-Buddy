@@ -306,6 +306,24 @@ private:
     friend class InputEnabler;
 };
 
+class DummyOutputPin : protected Pin {
+public:
+    constexpr DummyOutputPin(IoPort ioPort, IoPin ioPin, State initState, OMode oMode, OSpeed oSpeed)
+        : Pin(ioPort, ioPin)
+        , m_state(initState) {}
+    /**
+     * @brief  Read output pin.
+     *
+     * @return initState
+     */
+    State read() const { return m_state; }
+    void write(State) const {}
+    void configure() const {}
+
+private:
+    State m_state;
+};
+
 /**
  * @brief Enable OutputInputPin input mode when constructed, implements read(), revert OutputInputPin to output when destroyed.
  */
