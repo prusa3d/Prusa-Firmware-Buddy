@@ -40,8 +40,7 @@
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
 osThreadId connectTaskHandle;
-
-int HAL_IWDG_Reset = 0;
+uint HAL_RCC_CSR = 0;
 int HAL_GPIO_Initialized = 0;
 int HAL_ADC_Initialized = 0;
 int HAL_PWM_Initialized = 0;
@@ -64,8 +63,8 @@ char uart6slave_line[32];
 #endif
 
 extern "C" void main_cpp(void) {
-    if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
-        HAL_IWDG_Reset = 1;
+    // save and clear reset flags
+    HAL_RCC_CSR = RCC->CSR;
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
     logging_init();

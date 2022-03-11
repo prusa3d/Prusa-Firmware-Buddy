@@ -41,7 +41,6 @@
 #if BOTH(RESOURCES, BOOTLOADER)
     #include "bootloader/bootloader.hpp"
 #endif
-
 int guimain_spi_test = 0;
 
 #include "gpio.h"
