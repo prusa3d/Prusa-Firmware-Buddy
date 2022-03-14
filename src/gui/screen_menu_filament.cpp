@@ -9,28 +9,13 @@
 #include "marlin_client.h"
 #include "window_dlg_load_unload.hpp"
 #include "i18n.h"
-#include "ScreenHandler.hpp"
+#include "MItem_event_dispatcher.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
 
 enum {
     F_EEPROM = 0x01, // filament is known
     F_SENSED = 0x02  // filament is not in sensor
-};
-
-/*****************************************************************************/
-//parent
-class MI_event_dispatcher : public WI_LABEL_t {
-protected:
-    virtual void click(IWindowMenu & /*window_menu*/) override {
-        //no way to change header on this level, have to dispatch event
-        Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CLICK, (void *)this); //WI_LABEL is not a window, cannot set sender param
-    }
-
-public:
-    explicit MI_event_dispatcher(string_view_utf8 label)
-        : WI_LABEL_t(label, 0, is_enabled_t::yes, is_hidden_t::no) {}
-    virtual void Do() = 0;
 };
 
 /*****************************************************************************/
