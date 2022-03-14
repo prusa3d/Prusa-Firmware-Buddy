@@ -82,46 +82,6 @@ media_state_t media_get_state(void) {
     return media_state;
 }
 
-void media_get_SFN_path(char *sfn, uint32_t sfn_size, char *filepath) {
-    *sfn = 0; // init the output buffer
-    if (!*filepath)
-        return; // empty path received -> don't bother
-
-    // skip initial '/'
-    while (*filepath == '/')
-        ++filepath;
-
-    // first walk over filepath and replace all '/' with \x00
-    // that will allow for incremental traversal through the path without the need for additional buffer
-    // the '/' will be replaced back, so in fact, filepath will not be changed, but must be in RAM!
-    // Moreover, fpend will get the address of the end of filepath with this cycle
-    char *fpend = filepath;
-    for (; *fpend; ++fpend) {
-        if (*fpend == '/')
-            *fpend = 0;
-    }
-    char *tmpEnd = filepath + strlen(filepath); // up until the first \x00
-
-    // normally, I'd do this by hijacking FATfs's follow_path(), which in fact does the same
-    // but it is not in FATfs's public interface ...
-    while (filepath < fpend) {
-        *sfn = '/'; // prepare an output slash
-        FILINFO fi;
-        // LFN MUST BE TURNED ON (1||2)
-        // unfortunately, this does follow_path internally all over again
-        if (f_stat(filepath, &fi) == FR_OK) {
-            // we got folder || end file info -> process
-            // FATFS flag for valid 8.3 fname - used instead of altname
-            const char *fname = (fi.altname[0] == 0 && fi.fname[0] != 0) ? fi.fname : fi.altname;
-            uint32_t chars_added = strlcpy(sfn, fname, std::min(sfn_size, uint32_t(12)));
-            sfn += chars_added;
-            sfn_size -= chars_added;
-        }
-        *tmpEnd = '/';                    // return the '/' back into filepath
-        tmpEnd = tmpEnd + strlen(tmpEnd); // iterate to the next \x00
-    }
-}
-
 void media_print_start(const char *sfnFilePath) {
     if (media_print_state != media_print_state_NONE) {
         return;

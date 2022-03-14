@@ -63,12 +63,6 @@ extern void media_set_removed(void);
 
 extern void media_set_error(media_error_t error);
 
-/// Computes short file name (SFN) path from a (potentially) long file name (LFN)
-/// path in filepath.
-/// @param sfn output buffer to store the SFN path
-/// @param filepath input LFN path, intentionally NOT const -
-extern void media_get_SFN_path(char *sfn, uint32_t sfn_size, char *filepath);
-
 #ifdef __cplusplus
 }
 #endif //__cplusplus
