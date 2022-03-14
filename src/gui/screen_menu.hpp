@@ -50,6 +50,21 @@ public:
     decltype(auto) Item() {
         return std::get<TYPE>(container.menu_items);
     }
+
+    template <class ITEM>
+    void DisableItem() {
+        if (Item<ITEM>().IsEnabled()) {
+            Item<ITEM>().Disable();
+            Invalidate();
+        }
+    }
+    template <class ITEM>
+    void EnableItem() {
+        if (!Item<ITEM>().IsEnabled()) {
+            Item<ITEM>().Enable();
+            Invalidate();
+        }
+    }
 };
 
 template <EFooter FOOTER, class... T>

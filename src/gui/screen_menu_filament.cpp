@@ -109,21 +109,6 @@ protected:
 
 private:
     void deactivate_item();
-
-    template <class T>
-    void dis() {
-        if (Item<T>().IsEnabled()) {
-            Item<T>().Disable();
-            Invalidate();
-        }
-    }
-    template <class T>
-    void ena() {
-        if (!Item<T>().IsEnabled()) {
-            Item<T>().Enable();
-            Invalidate();
-        }
-    }
 };
 
 void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -161,17 +146,17 @@ void ScreenMenuFilament::deactivate_item() {
     switch (filament) {
     case 0:        //filament not loaded
     case F_SENSED: //user pushed filament into sensor, but it is not loaded
-        dis<MI_CHANGE>();
-        dis<MI_PURGE>();
+        DisableItem<MI_CHANGE>();
+        DisableItem<MI_PURGE>();
         break;
     case F_EEPROM: //filament loaded but just runout
-        ena<MI_CHANGE>();
-        dis<MI_PURGE>();
+        EnableItem<MI_CHANGE>();
+        DisableItem<MI_PURGE>();
         break;
     case F_SENSED | F_EEPROM: //filament loaded
     default:
-        ena<MI_CHANGE>();
-        ena<MI_PURGE>();
+        EnableItem<MI_CHANGE>();
+        EnableItem<MI_PURGE>();
         break;
     }
 }
