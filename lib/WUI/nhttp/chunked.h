@@ -28,10 +28,19 @@ size_t render_chunk(ConnectionHandling handling, uint8_t *buffer, size_t buffer_
         const size_t tail = 2; // \r\n at the end
         assert(buffer_len >= skip + tail);
 
-        std::optional<size_t> written = renderer(buffer + skip, std::min(buffer_len - skip - tail, static_cast<size_t>(0xffff)));
+        const size_t available = std::min(buffer_len - skip - tail, static_cast<size_t>(0xffff));
+        std::optional<size_t> written = renderer(buffer + skip, available);
         if (!written.has_value()) {
             // No chunk to render, bail out.
             return 0;
+        } else {
+            assert(*written <= available);
+            // Bug mitigation. If the renderer reports to have written more
+            // than the buffer size - as easily done with snprintf, which
+            // reports how much it _wanted_ to write even if the buffer is too
+            // small - make sure not to go out of range. That's still a bug,
+            // therefore the assert above that.
+            written = std::min(*written, available);
         }
         // Render the header separately so we don't overwrite the buffer with \0
         char header[skip + 1];
