@@ -781,6 +781,7 @@ if(GUI)
             src/gui/MItem_menus.cpp
             src/gui/MItem_print.cpp
             src/gui/MItem_tools.cpp
+            src/gui/MItem_filament.cpp
             src/gui/MItem_eeprom.cpp
             src/gui/MItem_experimental_tools.cpp
             src/guiapi/src/knob_event.cpp
