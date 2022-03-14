@@ -95,21 +95,28 @@ bool Server::Slot::is_empty() const {
     return holds_alternative<Idle>(state);
 }
 
-void Server::Slot::step(string_view input, uint8_t *output, size_t out_buff) {
-    Step s = std::visit([this, input, output, out_buff](auto &phase) -> Step {
-        return phase.step(input, client_closed && input.empty() && output == nullptr, output, out_buff);
+void Server::Slot::step(string_view input, uint8_t *output, size_t out_size) {
+    Step s = std::visit([this, input, output, out_size](auto &phase) -> Step {
+        return phase.step(input, client_closed && input.empty() && output == nullptr, output, out_size);
     },
         state);
 
     assert(s.read <= input.size());
-    assert(s.written <= out_buff);
+    assert(s.written <= out_size);
     assert(s.written == 0 || buffer);
     partial_consumed += s.read;
     if (s.written > 0) {
         assert(buffer->write_len == 0);
         assert(buffer->write_pos == 0);
         assert(buffer->acked == 0);
-        buffer->write_len = s.written;
+        // We do the check by the above assert and it is wrong if the returned
+        // written is larger. Nevertheless, we have seen it slip, in case of
+        // snprintf.
+        //
+        // Snprintf writes only the allowed amount of bytes but still can
+        // return more bytes as its return in case it truncates. We don't want
+        // to send some more random data than what was written.
+        buffer->write_len = std::min(s.written, out_size);
     }
 
     if (holds_alternative<ConnectionState>(s.next)) {
