@@ -688,6 +688,25 @@ if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.cpp
+            src/gui/screen_menu_calibration.cpp
+            src/gui/screen_menu_settings.cpp
+            src/gui/screen_menu_info.cpp
+            src/gui/screen_menu_hw_setup.cpp
+            src/gui/screen_menu_steel_sheets.cpp
+            src/gui/screen_menu_footer_settings.cpp
+            src/gui/screen_menu_lan_settings.cpp
+            src/gui/screen_menu_languages.cpp
+            src/gui/screen_menu_sensor_info.cpp
+            src/gui/screen_menu_odometer.cpp
+            src/gui/screen_menu_move.cpp
+            src/gui/screen_menu_odometer.cpp
+            src/gui/screen_menu_service.cpp
+            src/gui/screen_menu_eeprom_diagnostics.cpp
+            src/gui/screen_menu_temperature.cpp
+            src/gui/screen_menu_tune.cpp
+            src/gui/screen_menu_fw_update.cpp
+            src/gui/screen_menu_esp_update.cpp
+            src/gui/screen_menu_eeprom.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp
@@ -722,41 +741,26 @@ if(GUI)
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
             src/gui/gui_media_events.cpp
-            src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
             src/gui/gui_time.cpp
             src/gui/window_print_progress.cpp
             src/gui/window_file_list.cpp
             src/gui/window_temp_graph.cpp
-            src/gui/screen_menu_settings.cpp
             src/gui/window_header.cpp
             src/gui/screen_sysinf.cpp
             src/gui/version_info_ST7789V.cpp
             src/gui/test_display.cpp
             src/gui/screen_splash.cpp
-            src/gui/screen_menu_odometer.cpp
-            src/gui/screen_menu_service.cpp
-            src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp
             src/gui/screen_print_preview.cpp
             src/gui/gcode_description.cpp
             src/gui/screen_messages.cpp
-            src/gui/screen_menu_info.cpp
-            src/gui/screen_menu_eeprom_diagnostics.cpp
             src/gui/screen_watchdog.cpp
             src/gui/screen_reset_error.cpp
             src/gui/screen_hardfault.cpp
             src/gui/screen_temperror.cpp
-            src/gui/screen_menu_move.cpp
             src/gui/dialogs/DialogMoveZ.cpp
-            src/gui/screen_menu_lan_settings.cpp
-            src/gui/screen_menu_languages.cpp
-            src/gui/screen_menu_sensor_info.cpp
-            src/gui/screen_menu_odometer.cpp
             src/gui/screen_qr_error.cpp
-            src/gui/screen_menu_hw_setup.cpp
-            src/gui/screen_menu_steel_sheets.cpp
-            src/gui/screen_menu_footer_settings.cpp
             src/gui/screen_sheet_rename.cpp
             src/gui/screen_prusa_link.cpp
             src/gui/wizard/selftest.cpp
@@ -771,13 +775,14 @@ if(GUI)
             src/gui/ScreenPrintingModel.cpp
             src/gui/screen_printing.cpp
             src/gui/screen_printing_serial.cpp
-            src/gui/screen_menu_tune.cpp
-            src/gui/screen_menu_fw_update.cpp
-            src/gui/screen_menu_esp_update.cpp
-            src/gui/screen_menu_eeprom.cpp
             src/gui/footer/footer_item_axis.cpp
             src/gui/footer/footer_item_fans.cpp
             src/gui/logger.c
+            src/gui/MItem_menus.cpp
+            src/gui/MItem_print.cpp
+            src/gui/MItem_tools.cpp
+            src/gui/MItem_eeprom.cpp
+            src/gui/MItem_experimental_tools.cpp
             src/guiapi/src/knob_event.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
@@ -809,11 +814,6 @@ if(GUI)
             src/guiapi/src/WindowMenuInfo.cpp
             src/guiapi/src/WindowMenuSpinExponential.cpp
             src/guiapi/src/WindowMenuItems.cpp
-            src/guiapi/src/MItem_menus.cpp
-            src/guiapi/src/MItem_print.cpp
-            src/guiapi/src/MItem_tools.cpp
-            src/guiapi/src/MItem_eeprom.cpp
-            src/guiapi/src/MItem_experimental_tools.cpp
             src/guiapi/src/Jogwheel.cpp
             src/guiapi/src/ScreenShot.cpp
             src/guiapi/src/menu_spin_config_types.cpp
