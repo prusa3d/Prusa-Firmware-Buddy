@@ -81,36 +81,16 @@ Rect16::Rect16(point_i16_t top_left, size_ui16_t s)
 }
 
 Rect16 Rect16::Intersection(Rect16 const &r) const {
-    if (IsEmpty() || r.IsEmpty())
-        return Rect16(0, 0, 0, 0);
     point_i16_t top_left;
     point_i16_t bot_right;
 
-    // If one Rect16 is on left side of other
-    if (TopLeft().x > r.BottomRight().x
-        || r.TopLeft().x > BottomRight().x)
-        return Rect16();
-    else {
-        top_left.x = TopLeft().x > r.TopLeft().x
-            ? TopLeft().x
-            : r.TopLeft().x;
-        bot_right.x = BottomRight().x < r.BottomRight().x
-            ? BottomRight().x
-            : r.BottomRight().x;
-    }
+    top_left.x = std::max(TopLeft().x, r.TopLeft().x);
+    top_left.y = std::max(TopLeft().y, r.TopLeft().y);
+    bot_right.x = std::min(BottomRight().x, r.BottomRight().x);
+    bot_right.y = std::min(BottomRight().y, r.BottomRight().y);
 
-    // If one Rect16 is above other
-    if (TopLeft().y > r.BottomRight().y
-        || r.TopLeft().y > BottomRight().y)
+    if (top_left.x > bot_right.x || top_left.y > bot_right.y)
         return Rect16();
-    else {
-        top_left.y = TopLeft().y > r.TopLeft().y
-            ? TopLeft().y
-            : r.TopLeft().y;
-        bot_right.y = BottomRight().y < r.BottomRight().y
-            ? BottomRight().y
-            : r.BottomRight().y;
-    }
     return Rect16 { top_left, bot_right };
 }
 
