@@ -138,7 +138,5 @@ redraw_cmd_t DialogHandler::Loop() {
 
         variant = command_queue.Front();
     }
-    if (variant.GetCommand() != ClientFSM_Command::none)
-        return redraw_cmd_t::skip;
     return processed ? redraw_cmd_t::redraw : redraw_cmd_t::none;
 }
