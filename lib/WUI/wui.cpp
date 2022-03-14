@@ -36,9 +36,6 @@ LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
 
 #define LOOP_EVT_TIMEOUT 500UL
 
-osMessageQDef(networkMbox, 16, NULL);
-osMessageQId networkMbox_id;
-
 static variant8_t prusa_link_api_key;
 
 const char *wui_generate_api_key(char *api_key, uint32_t length) {
