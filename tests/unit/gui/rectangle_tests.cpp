@@ -303,7 +303,10 @@ TEST_CASE("rectangle intersection", "[rectangle]") {
         std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 30, 30 }, { 1, 1, 29, 29 }, { 1, 1, 29, 29 }),
         std::make_tuple<Rect16, Rect16, Rect16>({ 0, 20, 30, 30 }, { 10, 0, 40, 22 }, { 10, 20, 20, 2 }),
         std::make_tuple<Rect16, Rect16, Rect16>({ 0, 20, 30, 30 }, { 0, 20, 30, 30 }, { 0, 20, 30, 30 }),
-        std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 20, 20 }, { 30, 30, 40, 40 }, { 0, 0, 0, 0 }));
+        std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 20, 20 }, { 30, 30, 40, 40 }, { 0, 0, 0, 0 }),
+        std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 20, 20 }, { 15, 15, 0, 0 }, { 0, 0, 0, 0 }),
+        std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 0, 0 }, { 10, 10, 40, 40 }, { 0, 0, 0, 0 }),
+        std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 1, 10 }, { 10, 10, 10, 1 }, { 10, 10, 1, 1 }));
 
     Rect16 res = l.Intersection(r);
 
