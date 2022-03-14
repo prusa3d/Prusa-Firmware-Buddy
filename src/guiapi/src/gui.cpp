@@ -39,10 +39,12 @@ constexpr Rect16 GuiDefaults::RectFooter;
 static const constexpr uint32_t GUI_DELAY_MIN = 1;
 static const constexpr uint32_t GUI_DELAY_MAX = 10;
 static const constexpr uint8_t GUI_DELAY_LOOP = 100;
-static const constexpr uint8_t GUI_DELAY_REDRAW = 40; // 40 ms => 25 fps
+// FIXME: delays return from menu too much
+// static const constexpr uint8_t GUI_DELAY_REDRAW = 40; // 40 ms => 25 fps
 
 static Sw_Timer<uint32_t> gui_loop_timer(GUI_DELAY_LOOP);
-static Sw_Timer<uint32_t> gui_redraw_timer(GUI_DELAY_REDRAW);
+// FIXME: delays return from menu too much
+// static Sw_Timer<uint32_t> gui_redraw_timer(GUI_DELAY_REDRAW);
 
 void gui_init(void) {
     display::Init();
@@ -51,7 +53,9 @@ void gui_init(void) {
 
 void gui_redraw(void) {
     if (gui_invalid) {
-        if (gui_redraw_timer.RestartIfIsOver(ticks_ms())) {
+        // FIXME: delays return from menu too much
+        // if (gui_redraw_timer.RestartIfIsOver(ticks_ms()))
+        {
             Screens::Access()->Draw();
             gui_invalid = false;
         }
