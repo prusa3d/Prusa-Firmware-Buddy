@@ -14,7 +14,11 @@ public:
     Sw_Timer(const T timeout = 0) { SetTimer(timeout); }
     void Restart(const T now) { start_time = now; }
     void SetTimer(const T timeout) { timeout_ = timeout; }
+    T GetTimer() { return timeout_; }
     bool IsOver(const T now) { return now - start_time >= timeout_; }
+    T Passed(const T now) { return now - start_time; }
+    // Can overflow if unsigned int is used
+    T Remains(const T now) { return timeout_ - Passed(now); }
     bool RestartIfIsOver(const T now) {
         bool res = IsOver(now);
         if (res)
