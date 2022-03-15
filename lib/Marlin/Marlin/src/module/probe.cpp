@@ -41,6 +41,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE() {}
 #include "motion.h"
 #include "temperature.h"
 #include "endstops.h"
+#include "planner.h"
 
 #include "../gcode/gcode.h"
 #include "../lcd/ultralcd.h"
@@ -555,6 +556,9 @@ static float run_z_probe() {
 
     // Do a first probe at the fast speed
     if (do_probe_move(z_probe_low_point, MMM_TO_MMS(Z_PROBE_SPEED_FAST))) {
+      if (planner.draining())
+        return NAN;
+
       if (DEBUGGING(LEVELING)) {
         DEBUG_ECHOLNPGM("FAST Probe fail!");
         DEBUG_POS("<<< run_z_probe", current_position);
@@ -598,6 +602,9 @@ static float run_z_probe() {
     {
       // Probe downward slowly to find the bed
       if (do_probe_move(z_probe_low_point, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) {
+        if (planner.draining())
+          return NAN;
+
         if (DEBUGGING(LEVELING)) {
           DEBUG_ECHOLNPGM("SLOW Probe fail!");
           DEBUG_POS("<<< run_z_probe", current_position);

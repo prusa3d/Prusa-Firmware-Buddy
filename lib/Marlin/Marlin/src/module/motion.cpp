@@ -1666,6 +1666,10 @@ void homeaxis(const AxisEnum axis) {
     }
   #endif
 
+    // Check if any of the moves were aborted and avoid setting any state
+    if (planner.draining())
+      return;
+
   #if IS_SCARA
 
     set_axis_is_at_home(axis);

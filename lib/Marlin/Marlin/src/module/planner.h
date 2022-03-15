@@ -228,7 +228,6 @@ class Planner {
                             block_buffer_nonbusy,   // Index of the first non busy block
                             block_buffer_planned,   // Index of the optimally planned block
                             block_buffer_tail;      // Index of the busy block, if any
-    static uint16_t cleaning_buffer_counter;        // A counter to disable queuing of blocks
     static uint8_t delay_before_delivering;         // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
 
@@ -348,6 +347,9 @@ class Planner {
     #if HAS_SPI_LCD
       volatile static uint32_t block_buffer_runtime_us; //Theoretical block buffer runtime in µs
     #endif
+
+    // A flag to drop queuing of blocks and abort any pending move
+    static bool draining_buffer;
 
   public:
 
@@ -564,7 +566,9 @@ class Planner {
     FORCE_INLINE static block_t* get_next_free_block(uint8_t &next_buffer_head, const uint8_t count=1) {
 
       // Wait until there are enough slots free
-      while (moves_free() < count) { idle(true); }
+      while (moves_free() < count && !draining_buffer) { idle(true); }
+      if (draining_buffer)
+        return nullptr;
 
       // Return the first available block
       next_buffer_head = next_block_index(block_buffer_head);
@@ -731,7 +735,17 @@ class Planner {
 
     // Called to force a quick stop of the machine (for example, when
     // a Full Shutdown is required, or when endstops are hit)
+    // Will implicitly call drain().
     static void quick_stop();
+
+    // Drop new moves and abort any pending one until release()
+    static void drain() { draining_buffer = true; }
+
+    // Return the draining status
+    static bool draining() { return draining_buffer; }
+
+    // Resume queuing after being held by drain()
+    static void resume_queuing() { draining_buffer = false; }
 
     // Called when an endstop is triggered. Causes the machine to stop inmediately
     static void endstop_triggered(const AxisEnum axis);
@@ -750,14 +764,7 @@ class Planner {
 
     // Periodic tick to handle cleaning timeouts
     // Called from the Temperature ISR at ~1kHz
-    static void tick() {
-      if (cleaning_buffer_counter) {
-        --cleaning_buffer_counter;
-        #if ENABLED(SD_FINISHED_STEPPERRELEASE) && defined(SD_FINISHED_RELEASECOMMAND)
-          if (!cleaning_buffer_counter) queue.inject_P(PSTR(SD_FINISHED_RELEASECOMMAND));
-        #endif
-      }
-    }
+    static void tick() {}
 
     /**
      * Does the buffer have any blocks queued?

@@ -310,6 +310,12 @@ int marlin_server_loop(void) {
 }
 
 int marlin_server_idle(void) {
+    // TODO: avoid a re-entrant cycle caused by:
+    // marlin_server_cycle -> loop -> idle -> MarlinUI::update() -> ExtUI::onIdle -> marlin_server_idle -> marlin_server_cycle
+    // This is only a work-around: this should be avoided at a higher level
+    if (planner.draining())
+        return 1;
+
     if (marlin_server.idle_cnt < MARLIN_IDLE_CNT_BUSY)
         marlin_server.idle_cnt++;
     else if ((marlin_server.flags & MARLIN_SFLG_BUSY) == 0) {
@@ -604,6 +610,8 @@ static void _server_print_loop(void) {
         break;
     case mpsAborting_WaitIdle:
         if (planner.movesplanned() == 0) {
+            // allow movements again
+            planner.resume_queuing();
             float x = ((float)stepper.position(X_AXIS)) / planner.settings.axis_steps_per_mm[X_AXIS];
             float y = ((float)stepper.position(Y_AXIS)) / planner.settings.axis_steps_per_mm[Y_AXIS];
             float z = ((float)stepper.position(Z_AXIS)) / planner.settings.axis_steps_per_mm[Z_AXIS];

@@ -120,8 +120,10 @@ volatile uint8_t Planner::block_buffer_head,    // Index of the next block to be
                  Planner::block_buffer_nonbusy, // Index of the first non-busy block
                  Planner::block_buffer_planned, // Index of the optimally planned block
                  Planner::block_buffer_tail;    // Index of the busy block, if any
-uint16_t Planner::cleaning_buffer_counter;      // A counter to disable queuing of blocks
 uint8_t Planner::delay_before_delivering;       // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
+
+// A flag to drop queuing of blocks and abort any pending move
+bool Planner::draining_buffer;
 
 planner_settings_t Planner::settings;           // Initialized by settings.load()
 
@@ -1495,8 +1497,8 @@ void Planner::quick_stop() {
     clear_block_buffer_runtime();
   #endif
 
-  // Make sure to drop any attempt of queuing moves for at least 1 second
-  cleaning_buffer_counter = 1000;
+  // Start draining the planner (requires one full marlin loop to complete!)
+  drain();
 
   // Reenable Stepper ISR
   if (was_enabled) ENABLE_STEPPER_DRIVER_INTERRUPT();
@@ -1515,8 +1517,8 @@ float Planner::triggered_position_mm(const AxisEnum axis) {
 }
 
 void Planner::finish_and_disable() {
-  while (has_blocks_queued() || cleaning_buffer_counter) idle(true);
-  disable_all_steppers();
+  while (has_blocks_queued() && !draining_buffer) idle(true);
+  if (!draining_buffer) disable_all_steppers();
 }
 
 /**
@@ -1551,7 +1553,7 @@ float Planner::get_axis_position_mm(const AxisEnum axis) {
 }
 
 bool Planner::busy() {
-  return (
+  return !draining_buffer && (
       has_blocks_queued()
       #if ENABLED(EXTERNAL_CLOSED_LOOP_CONTROLLER)
         || (READ(CLOSED_LOOP_ENABLE_PIN) && !READ(CLOSED_LOOP_MOVE_COMPLETE_PIN))
@@ -1589,12 +1591,10 @@ bool Planner::_buffer_steps(const xyze_long_t &target
   , feedRate_t fr_mm_s, const uint8_t extruder, const float &millimeters
 ) {
 
-  // If we are cleaning, do not accept queuing of movements
-  if (cleaning_buffer_counter) return false;
-
   // Wait for the next available block
   uint8_t next_buffer_head;
   block_t * const block = get_next_free_block(next_buffer_head);
+  if (!block) return false;
 
   // Fill the block with the specified movement
   if (!_populate_block(block, false, target
@@ -2576,8 +2576,8 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
   , const feedRate_t &fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
 ) {
 
-  // If we are cleaning, do not accept queuing of movements
-  if (cleaning_buffer_counter) return false;
+  // If we are aborting, do not accept queuing of movements
+  if (draining_buffer) return false;
 
   // When changing extruders recalculate steps corresponding to the E position
   #if ENABLED(DISTINCT_E_FACTORS)
