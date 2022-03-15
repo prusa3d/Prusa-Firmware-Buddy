@@ -39,12 +39,10 @@ constexpr Rect16 GuiDefaults::RectFooter;
 static const constexpr uint32_t GUI_DELAY_MIN = 1;
 static const constexpr uint32_t GUI_DELAY_MAX = 10;
 static const constexpr uint8_t GUI_DELAY_LOOP = 100;
-// FIXME: delays return from menu too much
-// static const constexpr uint8_t GUI_DELAY_REDRAW = 40; // 40 ms => 25 fps
+static const constexpr uint32_t GUI_DELAY_REDRAW = 40; // 40 ms => 25 fps
 
 static Sw_Timer<uint32_t> gui_loop_timer(GUI_DELAY_LOOP);
-// FIXME: delays return from menu too much
-// static Sw_Timer<uint32_t> gui_redraw_timer(GUI_DELAY_REDRAW);
+static Sw_Timer<uint32_t> gui_redraw_timer(GUI_DELAY_REDRAW);
 
 void gui_init(void) {
     display::Init();
@@ -52,22 +50,25 @@ void gui_init(void) {
 }
 
 void gui_redraw(void) {
+    uint32_t now = ticks_ms();
+    bool should_sleep = true;
     if (gui_invalid) {
-        // FIXME: delays return from menu too much
-        // if (gui_redraw_timer.RestartIfIsOver(ticks_ms()))
-        {
+        if (gui_redraw_timer.RestartIfIsOver(now)) {
             Screens::Access()->Draw();
             gui_invalid = false;
+            should_sleep = false;
         }
+    }
+
+    if (should_sleep) {
+        uint32_t sleep = std::clamp(gui_redraw_timer.Remains(now), GUI_DELAY_MIN, GUI_DELAY_MAX);
+        osDelay(sleep);
     }
 }
 
 //at least one window is invalid
 void gui_invalidate(void) {
     gui_invalid = true;
-#ifdef GUI_USE_RTOS
-    osSignalSet(gui_task_handle, GUI_SIG_REDRAW);
-#endif //GUI_USE_RTOS
 }
 
 #ifdef GUI_WINDOW_SUPPORT
@@ -111,14 +112,8 @@ void gui_loop(void) {
         }
     }
 
-    uint32_t delay = gui_timers_cycle();
-    #ifdef GUI_USE_RTOS
-    delay = std::clamp(delay, GUI_DELAY_MIN, GUI_DELAY_MAX);
-    osEvent evt = osSignalWait(GUI_SIG_REDRAW, delay);
-    if ((evt.status == osEventSignal) && (evt.value.signals & GUI_SIG_REDRAW))
-    #endif //GUI_USE_RTOS
-
-        gui_redraw();
+    gui_timers_cycle();
+    gui_redraw();
     gui_loop_cb();
     if (gui_loop_timer.RestartIfIsOver(gui::GetTick())) {
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
