@@ -129,14 +129,17 @@ void DialogHandler::PreOpen(ClientFSM dialog, uint8_t data) {
 
 redraw_cmd_t DialogHandler::Loop() {
     fsm::variant_t variant = command_queue.Front();
-    bool processed = false;
-    // execute all commands - fewer redraws
-    while (variant.GetCommand() != ClientFSM_Command::none) {
-        processed = true;
-        command(variant);
-        command_queue.Pop(); //erase item from queue
+    // execute 1 command (don't use "while") because
+    // screen open only pushes factory method on top of the stack - in this case we would loose folowing change !!!
+    // queue merges states, longest possible sequence for not nested fsm is destroy -> craate -> change
+    if (variant.GetCommand() == ClientFSM_Command::none)
+        return redraw_cmd_t::none;
 
-        variant = command_queue.Front();
-    }
-    return processed ? redraw_cmd_t::redraw : redraw_cmd_t::none;
+    command(variant);
+    command_queue.Pop(); //erase item from queue
+
+    variant = command_queue.Front();
+    if (variant.GetCommand() == ClientFSM_Command::none)
+        return redraw_cmd_t::redraw;
+    return redraw_cmd_t::skip;
 }
