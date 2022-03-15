@@ -34,6 +34,7 @@
 #include "motion.h"
 #include "temperature.h"
 #include "endstops.h"
+#include "planner.h"
 
 #include "../gcode/gcode.h"
 #include "../lcd/marlinui.h"
@@ -699,7 +700,7 @@ float Probe::run_z_probe(const bool sanity_check/*=true*/) {
     const bool probe_fail = probe_down_to_z(z_probe_low_point, fr_mm_s),            // No probe trigger?
                early_fail = (scheck && current_position.z > -offset.z + clearance); // Probe triggered too high?
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING) && (probe_fail || early_fail)) {
+      if (DEBUGGING(LEVELING) && !planner.draining() && (probe_fail || early_fail)) {
         DEBUG_ECHOPGM_P(plbl);
         DEBUG_ECHOPGM(" Probe fail! -");
         if (probe_fail) DEBUG_ECHOPGM(" No trigger.");

@@ -2149,6 +2149,10 @@ void prepare_line_to_destination() {
       backout_to_tmc_homing_phase(axis);
     #endif
 
+    // Check if any of the moves were aborted and avoid setting any state
+    if (planner.draining())
+      return;
+
     #if IS_SCARA
 
       set_axis_is_at_home(axis);

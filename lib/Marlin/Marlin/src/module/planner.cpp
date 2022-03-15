@@ -123,8 +123,10 @@ volatile uint8_t Planner::block_buffer_head,    // Index of the next block to be
                  Planner::block_buffer_nonbusy, // Index of the first non-busy block
                  Planner::block_buffer_planned, // Index of the optimally planned block
                  Planner::block_buffer_tail;    // Index of the busy block, if any
-uint16_t Planner::cleaning_buffer_counter;      // A counter to disable queuing of blocks
 uint8_t Planner::delay_before_delivering;       // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
+
+// A flag to drop queuing of blocks and abort any pending move
+bool Planner::draining_buffer;
 
 planner_settings_t Planner::settings;           // Initialized by settings.load()
 
@@ -1690,8 +1692,8 @@ void Planner::quick_stop() {
 
   TERN_(HAS_WIRED_LCD, clear_block_buffer_runtime()); // Clear the accumulated runtime
 
-  // Make sure to drop any attempt of queuing moves for 1 second
-  cleaning_buffer_counter = TEMP_TIMER_FREQUENCY;
+  // Start draining the planner (requires one full marlin loop to complete!)
+  drain();
 
   // Reenable Stepper ISR
   if (was_enabled) stepper.wake_up();
@@ -1729,8 +1731,8 @@ float Planner::triggered_position_mm(const AxisEnum axis) {
 }
 
 void Planner::finish_and_disable() {
-  while (has_blocks_queued() || cleaning_buffer_counter) idle(true);
-  stepper.disable_all_steppers();
+  while (has_blocks_queued() && !draining_buffer) idle(true);
+  if (!draining_buffer) stepper.disable_all_steppers();
 }
 
 /**
@@ -1812,6 +1814,7 @@ bool Planner::_buffer_steps(const xyze_long_t &target
   // Wait for the next available block
   uint8_t next_buffer_head;
   block_t * const block = get_next_free_block(next_buffer_head);
+  if (!block) return false;
 
   // If we are cleaning, do not accept queuing of movements
   // This must be after get_next_free_block() because it calls idle()
@@ -3013,8 +3016,8 @@ bool Planner::buffer_segment(const abce_pos_t &abce
   , const PlannerHints &hints/*=PlannerHints()*/
 ) {
 
-  // If we are cleaning, do not accept queuing of movements
-  if (cleaning_buffer_counter) return false;
+  // If we are aborting, do not accept queuing of movements
+  if (draining_buffer) return false;
 
   // When changing extruders recalculate steps corresponding to the E position
   #if ENABLED(DISTINCT_E_FACTORS)

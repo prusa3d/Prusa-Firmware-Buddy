@@ -396,7 +396,6 @@ class Planner {
                             block_buffer_nonbusy,   // Index of the first non busy block
                             block_buffer_planned,   // Index of the optimally planned block
                             block_buffer_tail;      // Index of the busy block, if any
-    static uint16_t cleaning_buffer_counter;        // A counter to disable queuing of blocks
     static uint8_t delay_before_delivering;         // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
 
@@ -529,6 +528,9 @@ class Planner {
     #if HAS_WIRED_LCD
       volatile static uint32_t block_buffer_runtime_us; // Theoretical block buffer runtime in µs
     #endif
+
+    // A flag to drop queuing of blocks and abort any pending move
+    static bool draining_buffer;
 
   public:
 
@@ -763,7 +765,9 @@ class Planner {
     FORCE_INLINE static block_t* get_next_free_block(uint8_t &next_buffer_head, const uint8_t count=1) {
 
       // Wait until there are enough slots free
-      while (moves_free() < count) { idle(true); }
+      while (moves_free() < count && !draining_buffer) { idle(true); }
+      if (draining_buffer)
+        return nullptr;
 
       // Return the first available block
       next_buffer_head = next_block_index(block_buffer_head);
@@ -915,8 +919,18 @@ class Planner {
 
     // Called to force a quick stop of the machine (for example, when
     // a Full Shutdown is required, or when endstops are hit)
+    // Will implicitly call drain().
     static void quick_stop();
 
+    // Drop new moves and abort any pending one until release()
+    static void drain() { draining_buffer = true; }
+
+    // Return the draining status
+    static bool draining() { return draining_buffer; }
+
+    // Resume queuing after being held by drain()
+    static void resume_queuing() { draining_buffer = false; }
+    
     #if ENABLED(REALTIME_REPORTING_COMMANDS)
       // Force a quick pause of the machine (e.g., when a pause is required in the middle of move).
       // NOTE: Hard-stops will lose steps so encoders are highly recommended if using these!
@@ -925,6 +939,7 @@ class Planner {
     #endif
 
     // Called when an endstop is triggered. Causes the machine to stop immediately
+
     static void endstop_triggered(const AxisEnum axis);
 
     // Triggered position of an axis in mm (not core-savvy)
@@ -932,7 +947,7 @@ class Planner {
 
     // Blocks are queued, or we're running out moves, or the closed loop controller is waiting
     static bool busy() {
-      return (has_blocks_queued() || cleaning_buffer_counter
+      return !draining_buffer && (has_blocks_queued() || cleaning_buffer_counter
           || TERN0(EXTERNAL_CLOSED_LOOP_CONTROLLER, CLOSED_LOOP_WAITING())
       );
     }
@@ -945,7 +960,7 @@ class Planner {
 
     // Periodic handler to manage the cleaning buffer counter
     // Called from the Temperature ISR at ~1kHz
-    static void isr() { if (cleaning_buffer_counter) --cleaning_buffer_counter; }
+    static void isr() {}
 
     /**
      * Does the buffer have any blocks queued?

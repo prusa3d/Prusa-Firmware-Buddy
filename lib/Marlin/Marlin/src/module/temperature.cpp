@@ -4011,6 +4011,9 @@ void Temperature::isr() {
       }
 
       do {
+        // Check if we're aborting
+        if (planner.draining()) break;
+
         // Target temperature might be changed during the loop
         if (target_temp != degTargetHotend(target_extruder)) {
           wants_to_cool = isCoolingHotend(target_extruder);
@@ -4153,6 +4156,9 @@ void Temperature::isr() {
       millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
       wait_for_heatup = true;
       do {
+        // Check if we're aborting
+        if (planner.draining()) break;
+
         // Target temperature might be changed during the loop
         if (target_temp != degTargetBed()) {
           wants_to_cool = isCoolingBed();
@@ -4346,6 +4352,9 @@ void Temperature::isr() {
       millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
       wait_for_heatup = true;
       do {
+        // Check if we're aborting
+        if (planner.draining()) break;
+
         // Target temperature might be changed during the loop
         if (target_temp != degTargetChamber()) {
           wants_to_cool = isCoolingChamber();
