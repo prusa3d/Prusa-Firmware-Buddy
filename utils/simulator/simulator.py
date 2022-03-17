@@ -36,6 +36,7 @@ class Simulator:
                   tmpdir: Path,
                   mount_dir_as_flash: Path = None,
                   eeprom_content: Tuple[Path, Path] = None,
+                  xflash_content: Path = None,
                   nographic=False):
         # prepare the arguments
         params = ['-machine', machine.value]
@@ -59,6 +60,8 @@ class Simulator:
         if eeprom_content:
             params += ['-pflash', str(eeprom_content[0])]
             params += ['-pflash', str(eeprom_content[1])]
+        if xflash_content:
+            params += ['-mtdblock', str(xflash_content)]
         if nographic:
             params += ['-nographic']
 

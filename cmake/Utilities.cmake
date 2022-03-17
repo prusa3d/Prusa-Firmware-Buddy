@@ -62,21 +62,57 @@ function(report_size target)
     )
 endfunction()
 
-function(pack_firmware target fw_version build_number printer_type signing_key)
+function(pack_firmware target)
+  # parse arguments
+  set(one_value_args FW_VERSION BUILD_NUMBER PRINTER_TYPE SIGNING_KEY RESOURCES_IMAGE_TARGET
+                     RESOURCES_IMAGE_HASH_FILE
+      )
+  cmake_parse_arguments(ARG "" "${one_value_args}" "" ${ARGN})
+
+  # calculate path for binary image of the firmware
   set(bin_firmware_path "${CMAKE_CURRENT_BINARY_DIR}/${target}.bin")
-  if(SIGNING_KEY)
-    set(sign_opts "--key" "${signing_key}")
+
+  # signing options
+  if(ARG_SIGNING_KEY)
+    set(sign_opts "--key" "${ARG_SIGNING_KEY}")
   else()
     set(sign_opts "--no-sign")
   endif()
+
+  # resources options
+  if(RESOURCES_IMAGE_TARGET)
+    get_target_property(block_size ${ARG_RESOURCES_IMAGE_TARGET} LFS_IMAGE_BLOCK_SIZE)
+    get_target_property(block_count ${ARG_RESOURCES_IMAGE_TARGET} LFS_IMAGE_BLOCK_COUNT)
+    set(block_size_file "${CMAKE_CURRENT_BINARY_DIR}/block_size.bin")
+    set(block_count_file "${CMAKE_CURRENT_BINARY_DIR}/block_count.bin")
+    create_file_with_value("${block_size_file}" "<I" "${block_size}")
+    create_file_with_value("${block_count_file}" "<I" "${block_count}")
+    add_custom_target(block-describing-files DEPENDS "${block_size_file}" "${block_count_file}")
+    add_dependencies(${target} block-describing-files)
+
+    set(resources_opts
+        "--tlv"
+        "RESOURCES_IMAGE:$<TARGET_PROPERTY:${ARG_RESOURCES_IMAGE_TARGET},LFS_IMAGE_LOCATION>"
+        "RESOURCES_IMAGE_BLOCK_SIZE:${block_size_file}"
+        "RESOURCES_IMAGE_BLOCK_COUNT:${block_count_file}"
+        "RESOURCES_IMAGE_HASH:${ARG_RESOURCES_IMAGE_HASH_FILE}"
+        )
+  endif()
+
   add_custom_command(
     TARGET ${target} POST_BUILD
-    COMMAND "${CMAKE_OBJCOPY}" -O binary -S "$<TARGET_FILE:${target}>" "${bin_firmware_path}"
-    COMMAND echo "" # visually separate the output
+    # generate .bin file
     COMMAND
-      "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version="${fw_version}"
-      --printer-type "${printer_type}" --printer-version "1" ${sign_opts} "${bin_firmware_path}"
-      --build-number "${build_number}"
+      "${CMAKE_OBJCOPY}" -O binary -S "$<TARGET_FILE:${target}>" "${bin_firmware_path}"
+
+
+      # visually separate the output
+    COMMAND echo ""
+            # generate .bbf file
+    COMMAND
+      "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version="${ARG_FW_VERSION}"
+      --printer-type "${ARG_PRINTER_TYPE}" --printer-version "1" --build-number
+      "${ARG_BUILD_NUMBER}" ${sign_opts} ${resources_opts} -- "${bin_firmware_path}"
     )
 endfunction()
 
@@ -119,4 +155,15 @@ function(rfc1123_datetime var)
       ${RFC1123_DATETIME}
       PARENT_SCOPE
       )
+endfunction()
+
+function(create_file_with_value file_path format value)
+  set(PYTHON_CODE "import sys" "import struct" "f = open(sys.argv[1], 'wb')"
+                  "f.write(struct.pack(sys.argv[2], int(sys.argv[3])))" "f.close()"
+      )
+  add_custom_command(
+    OUTPUT ${file_path}
+    COMMAND ${Python3_EXECUTABLE} "-c" "${PYTHON_CODE}" "${file_path}" "${format}" "${value}"
+    VERBATIM
+    )
 endfunction()

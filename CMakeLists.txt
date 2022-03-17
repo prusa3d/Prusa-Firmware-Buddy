@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
 include(cmake/ProjectVersion.cmake)
+include(cmake/Littlefs.cmake)
 
 project(
   Buddy
@@ -95,6 +96,10 @@ set(WUI
     "YES"
     CACHE BOOL "Enable Web User Interface"
     )
+set(RESOURCES
+    "YES"
+    CACHE BOOL "Enable resources (managed files on external flash)"
+    )
 
 # Validate options
 foreach(OPTION "PRINTER" "BOARD" "MCU" "BOOTLOADER")
@@ -173,6 +178,7 @@ message(STATUS "MCU: ${MCU}")
 message(STATUS "Custom Compile Options (C/C++ flags): ${CUSTOM_COMPILE_OPTIONS}")
 message(STATUS "Preset Compile Options (C/C++ flags): ${PRESET_COMPILE_OPTIONS}")
 message(STATUS "Web User Interface: ${WUI}")
+message(STATUS "Resources: ${RESOURCES}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
@@ -429,6 +435,11 @@ add_executable(firmware)
 
 add_subdirectory(src/lang)
 
+if(RESOURCES)
+  target_compile_definitions(firmware PUBLIC HAS_RESOURCES)
+  add_subdirectory(src/resources)
+endif()
+
 set_target_properties(firmware PROPERTIES CXX_STANDARD 17)
 
 if(WUI)
@@ -467,7 +478,19 @@ if(GENERATE_BBF)
   endif()
 
   pack_firmware(
-    firmware "${PROJECT_VERSION_FULL}" "${BUILD_NUMBER}" "${PRINTER_TYPE}" "${SIGNING_KEY}"
+    firmware
+    FW_VERSION
+    "${PROJECT_VERSION_FULL}"
+    BUILD_NUMBER
+    "${BUILD_NUMBER}"
+    PRINTER_TYPE
+    "${PRINTER_TYPE}"
+    SIGNING_KEY
+    "${SIGNING_KEY}"
+    RESOURCES_IMAGE_TARGET
+    resources-image
+    RESOURCES_IMAGE_HASH_FILE
+    "${RESOURCES_BINARY_HASH_FILE}"
     )
 elseif(SIGNING_KEY)
   message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
@@ -559,11 +582,15 @@ target_sources(
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>
           src/stm32f4xx_hal_msp.c
           src/stm32f4xx_it.c
+          src/common/bbf.cpp
           src/fatfs.c
-          src/littlefs.c
+          src/littlefs_internal.c
+          src/littlefs_bbf.cpp
           src/filesystem.c
           src/filesystem_fatfs.c
           src/filesystem_littlefs.c
+          src/filesystem_littlefs_internal.c
+          src/filesystem_littlefs_bbf.cpp
           src/filesystem_root.c
           src/libsysbase_syscalls.c
           src/usb_host.c

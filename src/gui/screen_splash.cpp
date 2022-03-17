@@ -34,9 +34,7 @@ screen_splash_data_t::screen_splash_data_t()
     }
 
     text_progress.font = resource_font(IDR_FNT_NORMAL);
-    text_progress.SetAlignment(Align_t::CenterBottom());
-    static const char loading[] = N_("Loading ...");
-    text_progress.SetText(_(loading));
+    text_progress.SetAlignment(Align_t::Center());
     progress.SetFont(resource_font(IDR_FNT_BIG));
     text_version.SetAlignment(Align_t::Center());
     snprintf(text_version_buffer, sizeof(text_version_buffer), "%s%s",
@@ -53,22 +51,42 @@ void screen_splash_data_t::draw() {
 #endif //_DEBUG
 }
 
+/**
+ * @brief this callback must be called in GUI thread
+ * also it must be called manually before main gui loop
+ * no events can be fired during that period and gui_redraw() must be called manually
+ *
+ * @param percent value for progressbar
+ * @param str string to show instead loading
+ */
+void screen_splash_data_t::bootstrap_cb(unsigned percent, std::optional<const char *> str) {
+    GUIStartupProgress progr = { percent, str };
+    event_conversion_union un;
+    un.pGUIStartupProgress = &progr;
+    Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
+}
+
 void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 #ifdef _EXTUI
     if (event == GUI_event_t::GUI_STARTUP) { //without clear it could run multiple times before screen is closed
+        if (!param)
+            return;
 
-        uint32_t percent = uint32_t(param);
-        progress.SetValue((percent < 99) ? percent : 99);
+        event_conversion_union un;
+        un.pvoid = param;
+        if (!un.pGUIStartupProgress)
+            return;
+
+        int percent = un.pGUIStartupProgress->percent_done;
+
+        if (un.pGUIStartupProgress->bootstrap_description.has_value()) {
+            strlcpy(text_progress_buffer, un.pGUIStartupProgress->bootstrap_description.value(), sizeof(text_progress_buffer));
+            text_progress.SetText(string_view_utf8::MakeRAM((uint8_t *)text_progress_buffer));
+            text_progress.Invalidate();
+        }
+        progress.SetValue(std::clamp(percent, 0, 99));
 
         if (percent > 99) {
-            /*if (marlin_event(MARLIN_EVT_StartProcessing)) {
-        // Originally these lines should be immediately after marlin_client_init, but because the functions are blocking
-        // and we want the gui thread alive, we moved the lines here.
-        marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
-        marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
-        Screens::Access()->Close();
-        */
-
             const bool run_selftest = variant8_get_ui8(eeprom_get_var(EEVAR_RUN_SELFTEST)) ? 1 : 0;
             const bool run_xyzcalib = variant8_get_ui8(eeprom_get_var(EEVAR_RUN_XYZCALIB)) ? 1 : 0;
             const bool run_firstlay = variant8_get_ui8(eeprom_get_var(EEVAR_RUN_FIRSTLAY)) ? 1 : 0;

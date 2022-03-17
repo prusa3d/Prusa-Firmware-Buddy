@@ -1,4 +1,4 @@
-#include "littlefs.h"
+#include "littlefs_internal.h"
 #include "w25x.h"
 
 #define BLOCK_SIZE 4096
@@ -9,7 +9,7 @@
 // Address offset to skip area reserved for the dump
 #define ADDR_OFFSET (BLOCK_SIZE * DUMP_BLOCK_COUNT)
 
-lfs_t lfs;
+static lfs_t lfs;
 
 // Read a region in a block. Negative error codes are propogated
 // to the user.
@@ -33,7 +33,7 @@ static int erase(const struct lfs_config *c, lfs_block_t block);
 static int sync(const struct lfs_config *c);
 
 // configuration of the filesystem is provided by this struct
-struct lfs_config littlefs_config = {
+static struct lfs_config littlefs_config = {
     // block device operations
     .read = read,
     .prog = prog,
@@ -108,7 +108,7 @@ static int sync(__attribute__((unused)) const struct lfs_config *c) {
     return 0;
 }
 
-lfs_t *littlefs_init() {
+lfs_t *littlefs_internal_init() {
     // setup flash size
     littlefs_config.block_count = w25x_get_sector_count() - DUMP_BLOCK_COUNT;
 
@@ -131,7 +131,7 @@ lfs_t *littlefs_init() {
     return &lfs;
 }
 
-struct lfs_config const *littlefs_config_get() {
+struct lfs_config *littlefs_internal_config_get() {
     if (littlefs_config.block_count != 0) {
         return &littlefs_config;
     } else {

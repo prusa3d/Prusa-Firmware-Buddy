@@ -2,6 +2,7 @@
 #pragma once
 
 #include "guitypes.h"
+#include <optional>
 
 template <class T>
 struct point_t {
@@ -15,6 +16,26 @@ struct point_t {
 
 using point_i16_t = point_t<int16_t>;
 using point_ui16_t = point_t<uint16_t>;
+
+enum class layout_color : uint8_t { leave_it,
+    black,
+    red };
+
+struct GUIStartupProgress {
+    unsigned percent_done;
+    std::optional<const char *> bootstrap_description;
+};
+
+union event_conversion_union {
+    void *pvoid;
+    point_ui16_t point;
+    struct header_t {
+        layout_color layout;
+    } header;
+    GUIStartupProgress *pGUIStartupProgress;
+};
+
+static_assert(sizeof(event_conversion_union::point) <= sizeof(event_conversion_union::pvoid), "event_conversion_union is broken");
 
 struct size_ui16_t {
     uint16_t w;

@@ -2,7 +2,7 @@
 #include "usb_device.h"
 #include "usbh_msc.h"
 #include "log.h"
-#include "littlefs.h"
+#include "littlefs_internal.h"
 #include "eeprom.h"
 
 LOG_COMPONENT_DEF(USBMSC, LOG_SEVERITY_DEBUG);
@@ -24,7 +24,7 @@ uint8_t tud_msc_get_maxlun_cb(void) {
 //   - read < 0       : Indicate application error e.g invalid address. This request will be STALLed
 //                      and return failed status in command status wrapper phase.
 int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void *buffer, uint32_t bufsize) {
-    const struct lfs_config *lfs = littlefs_config_get();
+    const struct lfs_config *lfs = littlefs_internal_config_get();
     assert(lfs != NULL);
 
     log_debug(USBMSC, "read: %u: lba %u + offset %u", lun, lba, offset);
@@ -47,7 +47,7 @@ int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void *buff
 //                       and return failed status in command status wrapper phase.
 //
 int32_t tud_msc_write10_cb(uint8_t lun, uint32_t lba, uint32_t offset, uint8_t *buffer, uint32_t bufsize) {
-    const struct lfs_config *lfs = littlefs_config_get();
+    const struct lfs_config *lfs = littlefs_internal_config_get();
     int retval = -1;
 
     if (offset == 0) {
@@ -92,7 +92,7 @@ bool tud_msc_test_unit_ready_cb(uint8_t lun) {
 // Invoked when received SCSI_CMD_READ_CAPACITY_10 and SCSI_CMD_READ_FORMAT_CAPACITY to determine the disk size
 // Application update block count and block size
 void tud_msc_capacity_cb(uint8_t lun, uint32_t *block_count, uint16_t *block_size) {
-    const struct lfs_config *lfs = littlefs_config_get();
+    const struct lfs_config *lfs = littlefs_internal_config_get();
 
     if (usb_msc_enabled() && lfs) {
         *block_count = lfs->block_count;

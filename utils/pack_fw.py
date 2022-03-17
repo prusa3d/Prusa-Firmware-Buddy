@@ -29,6 +29,24 @@ class PrinterType(Enum):
     MINI = 2
 
 
+class TLVType(Enum):
+    """
+    Documents known entry types included after the main firmware image in BBF (stored in TLV format)
+    """
+
+    RESOURCES_IMAGE = 1  # Littlefs image containing all the resources for the firmware
+    RESOURCES_IMAGE_BLOCK_SIZE = 2  # Block size used by the image in RESOURCES_IMAGE (uint32_t, little endian)
+    RESOURCES_IMAGE_BLOCK_COUNT = 3  # Block count used by the image in RESOURCES_IMAGE (uint32_t, little endian)
+    RESOURCES_IMAGE_HASH = 4  # SHA256 of the RESOURCES_IMAGE entry content
+
+    @staticmethod
+    def from_user_spec(spec: str) -> int:
+        try:
+            return TLVType[spec.upper()].value
+        except KeyError:
+            return int(spec)
+
+
 class UndefinedSha256():
     def digest(self):
         return b'\xff' * 32
@@ -112,6 +130,9 @@ def main():
     parser.add_argument(
         "-V", "--printer-version", type=int, required=True,
         help="Printer version of printer type.")
+    parser.add_argument(
+        "--tlv", type=str,
+        help='TLV data (TYPE:FILE format)', nargs='*', default=[])
     parser.add_argument('-TCI', '--TCI', action='store_true', required=False,
         help='evoked from Travis script')
     # yapf: enable
@@ -155,6 +176,19 @@ def main():
 
     with open(args.firmware, "br") as bfile:
         bin_data += bfile.read()
+
+    # TLV Data
+    for tlv in args.tlv:
+        tlv_entry = tlv.split(":")
+        assert len(tlv_entry) == 2, "For -tlv use format TYPE:FILE"
+        type = TLVType.from_user_spec(tlv_entry[0])
+        path = tlv_entry[1]
+        length = os.stat(path).st_size
+
+        bin_data += type.to_bytes(1, 'little')
+        bin_data += length.to_bytes(4, 'little')
+        with open(path, "br") as bfile:
+            bin_data += bfile.read()
 
     sha = UndefinedSha256()
     if not args.no_checksum:
