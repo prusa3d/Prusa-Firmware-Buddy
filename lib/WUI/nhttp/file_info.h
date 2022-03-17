@@ -1,10 +1,12 @@
 #pragma once
 
 #include "types.h"
+#include "segmented_json.h"
 
 #include <string_view>
 #include <dirent.h>
 #include <memory>
+#include <variant>
 
 // Why does FILE_PATH_BUFFER_LEN lives in *gui*!?
 #include "../../src/gui/file_list_defs.h"
@@ -26,12 +28,67 @@ private:
             closedir(d);
         }
     };
-    /*
-     * Present in case we have an open directory. Not present may mean either
-     * that it's a file or that we didn't start listing the directory yet.
-     */
-    std::unique_ptr<DIR, DirDeleter> dir;
-    bool need_comma = false;
+
+    /// Marker for the state before we even tried anything.
+    class Uninitialized {};
+
+    /// Marker that we want to send the last chunk (if in chunked mode).
+    class LastChunk {};
+
+    /// JSON Renderer for single file inside a file listing (distinct from the
+    /// file info!).
+    ///
+    /// Used as a sub-renderer from within DirRenderer.
+    class DirEntryRenderer final : public JsonRenderer {
+    public:
+        dirent *ent = nullptr;
+        char *filename = nullptr;
+        DirEntryRenderer() = default;
+        DirEntryRenderer(DIR *dir, char *filename, bool first = false);
+
+    private:
+        bool first = true;
+
+    protected:
+        virtual ContentResult content(size_t resume_point, Output &output) override;
+    };
+
+    /// The JSON renderer for the directory listing.
+    class DirRenderer final : public JsonRenderer, public JsonRenderer::Iterator {
+    private:
+        std::unique_ptr<DIR, DirDeleter> dir;
+        DirEntryRenderer renderer;
+
+    protected:
+        // From JsonRenderer
+        virtual ContentResult content(size_t resume_point, Output &output) override;
+
+    public:
+        // From iterator
+        virtual JsonRenderer *get() override;
+        virtual void advance() override;
+
+        DirRenderer() = default;
+        DirRenderer(FileInfo *owner, DIR *dir);
+    };
+
+    /// Renderer for the file info.
+    class FileRenderer final : public JsonRenderer {
+    private:
+        FileInfo *owner;
+        int64_t size;
+
+    protected:
+        virtual ContentResult content(size_t resume_point, Output &output) override;
+
+    public:
+        FileRenderer(FileInfo *owner, int64_t size)
+            : owner(owner)
+            , size(size) {}
+    };
+    friend class FileRenderer;
+
+    std::variant<Uninitialized, FileRenderer, DirRenderer, LastChunk> renderer;
 
 public:
     FileInfo(const char *filename, bool can_keep_alive, bool after_upload);

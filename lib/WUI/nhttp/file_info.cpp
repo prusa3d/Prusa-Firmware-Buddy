@@ -3,12 +3,16 @@
 #include "handler.h"
 #include "headers.h"
 #include "status_page.h"
+#include "segmented_json_macros.h"
 #include "../json_encode.h"
 #include "../../src/common/lfn.h"
 #include "../../src/common/gcode_filename.h"
 
 #include <cstring>
 #include <sys/stat.h>
+
+using std::get_if;
+using std::holds_alternative;
 
 extern "C" {
 
@@ -19,6 +23,89 @@ size_t strlcpy(char *, const char *, size_t);
 namespace nhttp::printer {
 
 using namespace handler;
+
+FileInfo::DirRenderer::DirRenderer(FileInfo *owner, DIR *dir)
+    : dir(dir)
+    , renderer(dir, owner->filename, true) {}
+
+JsonRenderer::ContentResult FileInfo::DirRenderer::content(size_t resume_point, Output &output) {
+    // Keep the indentation of the JSON in here!
+    // clang-format off
+    JSON_START;
+    JSON_OBJ_START;
+        JSON_FIELD_ARR("files");
+
+        // Note: ent, as the control variable, needs to be preserved inside the
+        // object, so it survives resumes.
+        while (dir.get() && (ent = readdir(dir.get()))) {
+            if (!filename_is_gcode(ent->d_name)) {
+                continue;
+            }
+
+            if (!first) {
+                JSON_COMMA;
+            } else {
+                first = false;
+            }
+
+            JSON_OBJ_START;
+                JSON_FIELD_STR("name", ent->d_name) JSON_COMMA;
+#ifdef UNITTESTS
+                JSON_FIELD_STR("display", ent->d_name) JSON_COMMA;
+#else
+                JSON_FIELD_STR("display", ent->lfn) JSON_COMMA;
+#endif
+                JSON_FIELD_STR_FORMAT("path", "%s/%s", filename, ent->d_name) JSON_COMMA;
+                JSON_CONTROL("\"origin\":\"local\",");
+                JSON_FIELD_OBJ("refs");
+                    JSON_FIELD_STR_FORMAT("resource", "/api/files%s/%s", filename, ent->d_name) JSON_COMMA;
+                    JSON_FIELD_STR_FORMAT("thumbnailSmall", "/thumb/s%s/%s", filename, ent->d_name) JSON_COMMA;
+                    JSON_FIELD_STR_FORMAT("thumbnailBig", "/thumb/l%s/%s", filename, ent->d_name) JSON_COMMA;
+                    JSON_FIELD_STR_FORMAT("download", "/thumb/l%s/%s", filename, ent->d_name);
+                JSON_OBJ_END;
+            JSON_OBJ_END;
+        }
+
+        JSON_ARR_END;
+    JSON_OBJ_END;
+    JSON_END;
+    // clang-format on
+}
+
+JsonRenderer *FileInfo::DirRenderer::get() {
+    if (renderer.ent != nullptr) {
+        return &renderer;
+    } else {
+        return nullptr;
+    }
+}
+
+void FileInfo::DirRenderer::advance() {
+    renderer = DirEntryRenderer(dir.get(), renderer.filename);
+}
+
+JsonRenderer::ContentResult FileInfo::FileRenderer::content(size_t resume_point, Output &output) {
+    char *filename = owner->filename;
+    JSONIFY_STR(filename);
+    char long_name[FILE_NAME_BUFFER_LEN];
+    get_LFN(long_name, sizeof long_name, filename);
+    // Keep the indentation of the JSON in here!
+    // clang-format off
+    JSON_START;
+    JSON_OBJ_START;
+        JSON_FIELD_STR("name", long_name) JSON_COMMA;
+        JSON_FIELD_STR("origin", "local") JSON_COMMA;
+        JSON_FIELD_INT("size", size) JSON_COMMA;
+        JSON_FIELD_OBJ("refs");
+            JSON_CUSTOM("\"resource\":\"/api/files%s\",", filename_escaped);
+            JSON_CUSTOM("\"thumbnailSmall\":\"/thumb/s%s\",", filename_escaped);
+            JSON_CUSTOM("\"thumbnailBig\":\"/thumb/l%s\",", filename_escaped);
+            JSON_FIELD_STR("download", filename);
+        JSON_OBJ_END;
+    JSON_OBJ_END;
+    JSON_END;
+    // clang-format on
+}
 
 FileInfo::FileInfo(const char *filename, bool can_keep_alive, bool after_upload)
     : can_keep_alive(can_keep_alive)
@@ -37,153 +124,83 @@ FileInfo::FileInfo(const char *filename, bool can_keep_alive, bool after_upload)
 }
 
 Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size) {
-    /*
-     * We assume the answer fits. If it doesn't, it doesn't overwrite anything, it just truncates the answer.
-     * Directories send each file as a single packet, but that one also assumes it fits.
-     */
-    ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close;
-    struct stat finfo;
     const size_t last_chunk_len = strlen(LAST_CHUNK);
+    size_t written = 0;
+    const ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close;
 
-    if (dir) {
-        /*
-         * We already have a directory listing running. Try to pull another file out of there.
-         */
-        struct dirent *ent;
-        while ((ent = readdir(dir.get()))) {
-            // Check this is GCODE, not some other thing. Skip the others.
-            if (!filename_is_gcode(ent->d_name)) {
-                continue;
-            }
+    if (holds_alternative<Uninitialized>(renderer)) {
+        // We have not been initialized yet. Try deciding if we are listing a
+        // directory or a file (or if there's an error).
+        //
+        // At this point we not only create the right renderer, we also produce
+        // the right headers.
 
-            size_t written = render_chunk(handling, output, output_size, [&](uint8_t *output, size_t output_size) {
-                size_t written = 0;
-                if (need_comma) {
-                    assert(output_size > 0);
-                    output[0] = ',';
-                    written = 1;
-                } else {
-                    need_comma = true;
-                }
-                JSONIFY_STR(filename);
-                const char *name = ent->d_name;
-                JSONIFY_STR(name);
-#ifdef UNITTESTS
-                const char *long_name = ent->d_name;
-#else
-                const char *long_name = ent->lfn;
-#endif
-                JSONIFY_STR(long_name);
-                written += snprintf(reinterpret_cast<char *>(output + written), output_size - written,
-                    "{"
-                    "\"name\":\"%s\","
-                    "\"display\":\"%s\","
-                    "\"path\": \"%s/%s\","
-                    "\"origin\":\"local\","
-                    "\"refs\":{"
-                    "\"resource\":\"/api/files%s/%s\","
-                    "\"thumbnailSmall\":\"/thumb/s%s/%s\","
-                    "\"thumbnailBig\":\"/thumb/l%s/%s\","
-                    "\"download\":\"%s/%s\""
-                    "}"
-                    "}",
-                    name_escaped,
-                    long_name_escaped,
-                    filename_escaped, name_escaped,
-                    filename_escaped, name_escaped,
-                    filename_escaped, name_escaped,
-                    filename_escaped, name_escaped,
-                    filename_escaped, name_escaped);
-                return written;
-            });
-            return Step { 0, written, Continue() };
-        }
-        // Run out of files, end the JSON and finish up.
-        size_t written = render_chunk(handling, output, output_size - last_chunk_len, [&](uint8_t *output, size_t output_size) {
-            return snprintf(reinterpret_cast<char *>(output), output_size, "]}");
-        });
-        if (can_keep_alive) {
-            memcpy(output + written, LAST_CHUNK, last_chunk_len);
-            written += last_chunk_len;
-        }
-        dir.reset();
-        return Step { 0, written, Terminating::for_handling(handling) };
-    }
+        struct stat finfo;
 
-    /*
-     * Not having a directory listing running _yet_. So we try that. If it's
-     * not a directory, this'll fail and we will try a file.
-     */
-    if (DIR *dir_attempt = opendir(filename); dir_attempt) {
-        dir.reset(dir_attempt);
-
-        size_t written = write_headers(output, output_size, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling);
-
-        written += render_chunk(handling, output + written, output_size - written, [&](uint8_t *output, size_t output_size) {
-            return snprintf(reinterpret_cast<char *>(output), output_size, "{\"files\": [");
-        });
-        return Step { 0, written, Continue() };
-    } else {
-        /*
-         * Not a directory. Try a file.
-         *
-         * Files are one-shot, don't keep state for future.
-         */
-        int result = stat(filename, &finfo);
-        if (result == 0) {
-            const size_t last_chunk_len = strlen(LAST_CHUNK);
-            size_t written = write_headers(output, output_size - last_chunk_len, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling);
-
-            JSONIFY_STR(filename);
-            char long_name[FILE_NAME_BUFFER_LEN];
-            get_LFN(long_name, sizeof long_name, filename);
-            JSONIFY_STR(long_name);
-
-            written += render_chunk(
-                handling, output + written, output_size - written - last_chunk_len, [&](uint8_t *output, size_t output_size) {
-                    return snprintf(reinterpret_cast<char *>(output), output_size,
-                        "{"
-                        "\"name\":\"%s\","
-                        "\"origin\":\"local\","
-                        "\"size\":%zu,"
-                        "\"refs\":{"
-                        "\"resource\":\"/api/files%s\","
-                        "\"thumbnailSmall\":\"/thumb/s%s\","
-                        "\"thumbnailBig\":\"/thumb/l%s\","
-                        "\"download\":\"%s\""
-                        "}"
-                        "}",
-                        long_name_escaped, (size_t)finfo.st_size, filename_escaped, filename_escaped, filename_escaped, filename_escaped);
-                });
-
-            assert(written + last_chunk_len <= output_size);
-            if (can_keep_alive) {
-                memcpy(output + written, LAST_CHUNK, last_chunk_len);
-                written += last_chunk_len;
-            }
-
-            return Step { 0, written, Terminating::for_handling(handling) };
+        if (DIR *dir_attempt = opendir(filename); dir_attempt) {
+            renderer = DirRenderer(this, dir_attempt);
+        } else if (stat(filename, &finfo) == 0) {
+            renderer = FileRenderer(this, finfo.st_size);
         } else if (strcmp(filename, "/usb") == 0) {
             // We are trying to list files in the root and it's not there -> USB is missing.
             // Special case it, we return empty list of files.
-            size_t written = write_headers(output, output_size, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling);
-
-            written += render_chunk(
-                handling, output + written, output_size - written - last_chunk_len, [&](uint8_t *output, size_t output_size) {
-                    return snprintf(reinterpret_cast<char *>(output), output_size, "{\"files\": []}");
-                });
-
-            assert(written + last_chunk_len <= output_size);
-            if (can_keep_alive) {
-                memcpy(output + written, LAST_CHUNK, last_chunk_len);
-                written += last_chunk_len;
-            }
-
-            return Step { 0, written, Terminating::for_handling(handling) };
+            renderer = DirRenderer(); // Produces empty file list
         } else {
             return Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive) };
         }
+        written = write_headers(output, output_size, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling);
+
+        if (output_size - written <= MIN_CHUNK_SIZE) {
+            return { 0, written, Continue() };
+        }
     }
+    // Note: The above falls through and tries to put at least part of the answer into the rest of the current packet with headers.
+
+    // Process both the renderers in uniform way.
+    JsonRenderer *rend = get_if<DirRenderer>(&renderer);
+    rend = rend ?: get_if<FileRenderer>(&renderer);
+    if (rend != nullptr) {
+        JsonRenderer::ContentResult render_result;
+        written += render_chunk(handling, output + written, output_size - written, [&](uint8_t *output, size_t output_size) {
+            const auto [result, written_json] = rend->render(output, output_size);
+            render_result = result;
+            return written_json;
+        });
+
+        switch (render_result) {
+        case JsonRenderer::ContentResult::Complete:
+            renderer = LastChunk();
+            break;
+        case JsonRenderer::ContentResult::Incomplete:
+            // Send this packet out, but ask for another one.
+            return { 0, written, Continue() };
+        case JsonRenderer::ContentResult::Abort:
+        case JsonRenderer::ContentResult::BufferTooSmall:
+            // Something unexpected got screwed up. We don't have a way to
+            // return a 500 error, we have sent the headers out already
+            // (possibly), so the best we can do is to abort the
+            // connection.
+            return { 0, 0, Terminating { Done::CloseFast } };
+        }
+    }
+
+    if (holds_alternative<LastChunk>(renderer)) {
+        if (can_keep_alive) {
+            if (written + last_chunk_len > output_size) {
+                // Need to leave the last chunk for next packet
+                return { 0, written, Continue() };
+            } else {
+                memcpy(output + written, LAST_CHUNK, last_chunk_len);
+                written += last_chunk_len;
+            }
+        }
+
+        return Step { 0, written, Terminating::for_handling(handling) };
+    }
+
+    // This place should be unreachable!
+    assert(0);
+    return { 0, 0, Terminating { Done::CloseFast } };
 }
 
 }
