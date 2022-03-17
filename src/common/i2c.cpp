@@ -12,7 +12,7 @@ volatile std::atomic<uint32_t> I2C_TRANSMIT_RESULTS_UNDEF = 0;
 extern "C" void I2C_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
 
     int retries = EEPROM_MAX_RETRIES;
-    HAL_StatusTypeDef result;
+    HAL_StatusTypeDef result = HAL_ERROR;
     while (--retries) {
         result = HAL_I2C_Master_Transmit(hi2c, DevAddress, pData, Size, Timeout);
         if (result != HAL_BUSY)
@@ -51,7 +51,7 @@ volatile std::atomic<uint32_t> I2C_RECEIVE_RESULTS_UNDEF = 0;
 extern "C" void I2C_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
 
     int retries = EEPROM_MAX_RETRIES;
-    HAL_StatusTypeDef result;
+    HAL_StatusTypeDef result = HAL_ERROR;
     while (--retries) {
         result = HAL_I2C_Master_Receive(hi2c, DevAddress, pData, Size, Timeout);
         if (result != HAL_BUSY)
