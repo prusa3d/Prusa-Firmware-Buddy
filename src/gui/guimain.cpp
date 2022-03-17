@@ -31,6 +31,10 @@
 #include "eeprom.h"
 #include "w25x.h"
 
+#ifdef HAS_RESOURCES
+    #include "resources/bootstrap.hpp"
+#endif
+
 extern int HAL_IWDG_Reset;
 
 int guimain_spi_test = 0;
@@ -108,13 +112,35 @@ void client_gui_refresh() {
     static uint32_t last_tick = gui::GetTick_ForceActualization();
     uint32_t tick = gui::GetTick_ForceActualization();
     if (last_tick != tick) {
-        uint32_t percent = (tick - start) / (3000 / 100); //3000ms / 100%
+        unsigned percent = (tick - start) / (3000 / 100); //3000ms / 100%
         percent = ((percent < 99) ? percent : 99);
-        Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)percent);
+
+        GUIStartupProgress progr = { unsigned(percent), nullptr };
+        event_conversion_union un;
+        un.pGUIStartupProgress = &progr;
+        Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
+
         last_tick = tick;
         gui_redraw();
     }
 }
+
+#ifdef HAS_RESOURCES
+static void bootstrap() {
+    if (buddy::resources::is_bootstrap_needed()) {
+        buddy::resources::bootstrap([](int percent_done, std::optional<const char *> description) {
+            if (percent_done) {
+                _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootstrap progress changed: %i %%", percent_done);
+            }
+            if (description.has_value()) {
+                _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootstrap description changed: %s", description.value());
+            }
+            screen_splash_data_t::bootstrap_cb(percent_done, description);
+            gui_redraw();
+        });
+    }
+}
+#endif
 
 void gui_run(void) {
 #ifdef USE_ST7789
@@ -203,10 +229,18 @@ void gui_run(void) {
 
     Screens::Access()->Loop();
 
+#ifdef HAS_RESOURCES
+    bootstrap();
+#endif
+
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, client_gui_refresh);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF, client_gui_refresh);
-    uint32_t progr100 = 100;
-    Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, (void *)progr100);
+
+    GUIStartupProgress progr = { 100, std::nullopt };
+    event_conversion_union un;
+    un.pGUIStartupProgress = &progr;
+    Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
+
     redraw_cmd_t redraw;
     //TODO make some kind of registration
     while (1) {

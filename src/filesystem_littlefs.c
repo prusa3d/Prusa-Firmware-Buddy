@@ -8,7 +8,7 @@
 #include <sys/syslimits.h>
 #include "filesystem.h"
 #include "filesystem_littlefs.h"
-#include "littlefs.h"
+#include "littlefs_internal.h"
 
 #define RESULT result < 0 ? -1 : 0;
 
@@ -21,19 +21,10 @@
         return -1;            \
     }
 
-typedef struct {
-    lfs_file_t fil;
-    uint8_t flags;
-} FIL_EX;
+#define device            (ctx->device)
+#define devoptab_littlefs (*ctx->devoptab)
 
-static lfs_t *lfs;
-
-static int device = -1;
-
-static const devoptab_t devoptab_littlefs;
-
-static int get_errno(int result) {
-    // Only negative LFS results are errors
+static int get_errno(int result) { // Only negative LFS results are errors
     if (result >= 0) {
         return 0;
     }
@@ -112,7 +103,7 @@ static inline uint16_t crc32to16(uint32_t crc) {
     return crc1 ^ crc2;
 }
 
-static int open_r(struct _reent *r,
+int filesystem_littlefs_open_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r,
     void *fileStruct,
     const char *path,
     int flags,
@@ -130,7 +121,7 @@ static int open_r(struct _reent *r,
 
     enum lfs_open_flags lfs_flags = get_littlefs_flags(flags);
 
-    result = lfs_file_open(lfs, &(f->fil), path, lfs_flags);
+    result = lfs_file_open(ctx->lfs, &(f->fil), path, lfs_flags);
     r->_errno = get_errno(result);
 
     if (result < 0) {
@@ -144,25 +135,25 @@ static int open_r(struct _reent *r,
     return 0;
 }
 
-static int close_r(struct _reent *r, void *fileStruct) {
+int filesystem_littlefs_close_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct) {
     PREPARE_FIL_EX(f, fileStruct);
     int result;
-    result = lfs_file_close(lfs, &(f->fil));
+    result = lfs_file_close(ctx->lfs, &(f->fil));
     r->_errno = get_errno(result);
 
     return RESULT;
 }
 
-static int fsync_r(struct _reent *r, void *fileStruct) {
+int filesystem_littlefs_fsync_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct) {
     PREPARE_FIL_EX(f, fileStruct);
     int result;
-    result = lfs_file_sync(lfs, &(f->fil));
+    result = lfs_file_sync(ctx->lfs, &(f->fil));
     r->_errno = get_errno(result);
 
     return RESULT;
 }
 
-static ssize_t write_r(struct _reent *r, void *fileStruct, const char *ptr, size_t len) {
+ssize_t filesystem_littlefs_write_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct, const char *ptr, size_t len) {
     PREPARE_FIL_EX(f, fileStruct);
     int result;
 
@@ -176,7 +167,7 @@ static ssize_t write_r(struct _reent *r, void *fileStruct, const char *ptr, size
         return 0;
     }
 
-    result = lfs_file_write(lfs, &(f->fil), ptr, len);
+    result = lfs_file_write(ctx->lfs, &(f->fil), ptr, len);
     r->_errno = get_errno(result);
 
     if (result < 0) {
@@ -184,13 +175,13 @@ static ssize_t write_r(struct _reent *r, void *fileStruct, const char *ptr, size
     }
 
     if (f->flags & FLAG_SYNC) {
-        fsync_r(r, fileStruct);
+        filesystem_littlefs_fsync_r(ctx, r, fileStruct);
     }
 
     return result;
 }
 
-static ssize_t read_r(struct _reent *r, void *fileStruct, char *ptr, size_t len) {
+ssize_t filesystem_littlefs_read_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct, char *ptr, size_t len) {
     PREPARE_FIL_EX(f, fileStruct);
     int result;
 
@@ -204,7 +195,7 @@ static ssize_t read_r(struct _reent *r, void *fileStruct, char *ptr, size_t len)
         return 0;
     }
 
-    result = lfs_file_read(lfs, &(f->fil), ptr, len);
+    result = lfs_file_read(ctx->lfs, &(f->fil), ptr, len);
     r->_errno = get_errno(result);
 
     if (result < 0) {
@@ -214,20 +205,20 @@ static ssize_t read_r(struct _reent *r, void *fileStruct, char *ptr, size_t len)
     return result;
 }
 
-static off_t seek_r(struct _reent *r, void *fileStruct, off_t pos, int dir) {
+off_t filesystem_littlefs_seek_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct, off_t pos, int dir) {
     PREPARE_FIL_EX(f, fileStruct);
     int result;
 
-    result = lfs_file_seek(lfs, &(f->fil), pos, dir);
+    result = lfs_file_seek(ctx->lfs, &(f->fil), pos, dir);
     r->_errno = get_errno(result);
 
-    //this function is called from lseek not fseek.
-    // fseek returns 0 on successful move and lseek returns offset, where it moved.
-    // Thus we need to return offset not 0 on successful move
+    // this function is called from lseek not fseek.
+    //  fseek returns 0 on successful move and lseek returns offset, where it moved.
+    //  Thus we need to return offset not 0 on successful move
     return result;
 }
 
-static int stat_r(struct _reent *r, const char *path, struct stat *st) {
+int filesystem_littlefs_stat_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, const char *path, struct stat *st) {
     int result;
     struct lfs_info info;
     memset(&info, 0, sizeof(struct lfs_info));
@@ -240,7 +231,7 @@ static int stat_r(struct _reent *r, const char *path, struct stat *st) {
 
     path = process_path(path, devoptab_littlefs.name);
 
-    result = lfs_stat(lfs, path, &info);
+    result = lfs_stat(ctx->lfs, path, &info);
     r->_errno = get_errno(result);
 
     if (result < 0) {
@@ -261,13 +252,13 @@ static int stat_r(struct _reent *r, const char *path, struct stat *st) {
 
     st->st_dev = device;
     st->st_size = info.size;
-    st->st_blksize = lfs->cfg->block_size;
+    st->st_blksize = ctx->lfs->cfg->block_size;
     st->st_blocks = 1;
 
     return 0;
 }
 
-static int fstat_r(struct _reent *r, void *fileStruct, struct stat *st) {
+int filesystem_littlefs_fstat_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct, struct stat *st) {
     PREPARE_FIL_EX(f, fileStruct);
     memset(st, 0, sizeof(struct stat));
 
@@ -285,13 +276,13 @@ static int fstat_r(struct _reent *r, void *fileStruct, struct stat *st) {
 
     st->st_dev = device;
     st->st_size = f->fil.ctz.size;
-    st->st_blksize = lfs->cfg->block_size;
+    st->st_blksize = ctx->lfs->cfg->block_size;
     st->st_blocks = 1;
 
     return 0;
 }
 
-static int link_r(struct _reent *r,
+int filesystem_littlefs_link_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r,
     __attribute__((unused)) const char *existing,
     __attribute__((unused)) const char *newLink) {
 
@@ -300,7 +291,7 @@ static int link_r(struct _reent *r,
     return -1;
 }
 
-static int unlink_r(struct _reent *r, const char *path) {
+int filesystem_littlefs_unlink_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, const char *path) {
     int result;
 
     if (IS_EMPTY(path)) {
@@ -310,19 +301,19 @@ static int unlink_r(struct _reent *r, const char *path) {
 
     path = process_path(path, devoptab_littlefs.name);
 
-    result = lfs_remove(lfs, path);
+    result = lfs_remove(ctx->lfs, path);
     r->_errno = get_errno(result);
 
     return RESULT;
 }
 
-static int chdir_r(struct _reent *r, __attribute__((unused)) const char *path) {
+int filesystem_littlefs_chdir_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, __attribute__((unused)) const char *path) {
     // chdir not implemented for littlefs
     r->_errno = ENOTSUP;
     return -1;
 }
 
-static int rename_r(struct _reent *r, const char *oldName, const char *newName) {
+int filesystem_littlefs_rename_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, const char *oldName, const char *newName) {
     int result;
 
     if (IS_EMPTY(oldName) || IS_EMPTY(newName)) {
@@ -333,13 +324,13 @@ static int rename_r(struct _reent *r, const char *oldName, const char *newName) 
     oldName = process_path(oldName, devoptab_littlefs.name);
     newName = process_path(newName, devoptab_littlefs.name);
 
-    result = lfs_rename(lfs, oldName, newName);
+    result = lfs_rename(ctx->lfs, oldName, newName);
     r->_errno = get_errno(result);
 
     return RESULT;
 }
 
-static int chmod_r(struct _reent *r,
+int filesystem_littlefs_chmod_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r,
     __attribute__((unused)) const char *path,
     __attribute__((unused)) mode_t mode) {
 
@@ -347,7 +338,7 @@ static int chmod_r(struct _reent *r,
     return -1;
 }
 
-static int fchmod_r(struct _reent *r,
+int filesystem_littlefs_fchmod_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r,
     __attribute__((unused)) void *fileStruct,
     __attribute__((unused)) mode_t mode) {
 
@@ -355,7 +346,7 @@ static int fchmod_r(struct _reent *r,
     return -1;
 }
 
-static int mkdir_r(struct _reent *r, const char *path, __attribute__((unused)) int mode) {
+int filesystem_littlefs_mkdir_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, const char *path, __attribute__((unused)) int mode) {
     int result;
 
     if (IS_EMPTY(path)) {
@@ -365,13 +356,13 @@ static int mkdir_r(struct _reent *r, const char *path, __attribute__((unused)) i
 
     path = process_path(path, devoptab_littlefs.name);
 
-    result = lfs_mkdir(lfs, path);
+    result = lfs_mkdir(ctx->lfs, path);
     r->_errno = get_errno(result);
 
     return RESULT;
 }
 
-static DIR_ITER *diropen_r(struct _reent *r, DIR_ITER *dirState, const char *path) {
+DIR_ITER *filesystem_littlefs_diropen_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, DIR_ITER *dirState, const char *path) {
     int result;
 
     if (IS_EMPTY(path)) {
@@ -381,7 +372,7 @@ static DIR_ITER *diropen_r(struct _reent *r, DIR_ITER *dirState, const char *pat
 
     path = process_path(path, devoptab_littlefs.name);
 
-    result = lfs_dir_open(lfs, dirState->dirStruct, path);
+    result = lfs_dir_open(ctx->lfs, dirState->dirStruct, path);
     r->_errno = get_errno(result);
 
     if (result < 0) {
@@ -391,16 +382,16 @@ static DIR_ITER *diropen_r(struct _reent *r, DIR_ITER *dirState, const char *pat
     return dirState;
 }
 
-static int dirreset_r(struct _reent *r, DIR_ITER *dirState) {
+int filesystem_littlefs_dirreset_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, DIR_ITER *dirState) {
     int result;
 
-    result = lfs_dir_rewind(lfs, dirState->dirStruct);
+    result = lfs_dir_rewind(ctx->lfs, dirState->dirStruct);
     r->_errno = get_errno(result);
 
     return RESULT;
 }
 
-static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struct stat *filestat) {
+int filesystem_littlefs_dirnext_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, DIR_ITER *dirState, char *filename, struct stat *filestat) {
     int result;
     struct lfs_info info;
 
@@ -409,7 +400,7 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
         return -1;
     }
 
-    result = lfs_dir_read(lfs, dirState->dirStruct, &info);
+    result = lfs_dir_read(ctx->lfs, dirState->dirStruct, &info);
     r->_errno = get_errno(result);
 
     if (result == 0) {
@@ -426,7 +417,7 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
         filestat->st_mode = S_IFREG;
     } else {
         // Unexpected type, skip to the next dir
-        return dirnext_r(r, dirState, filename, filestat);
+        return filesystem_littlefs_dirnext_r(ctx, r, dirState, filename, filestat);
     }
 
     strncpy(filename, info.name, NAME_MAX);
@@ -434,16 +425,16 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
     return 0;
 }
 
-static int dirclose_r(struct _reent *r, DIR_ITER *dirState) {
+int filesystem_littlefs_dirclose_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, DIR_ITER *dirState) {
     int result;
 
-    result = lfs_dir_close(lfs, dirState->dirStruct);
+    result = lfs_dir_close(ctx->lfs, dirState->dirStruct);
     r->_errno = get_errno(result);
 
     return RESULT;
 }
 
-static int statvfs_r(struct _reent *r, const char *path, struct statvfs *buf) {
+int filesystem_littlefs_statvfs_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, const char *path, struct statvfs *buf) {
     if (IS_EMPTY(path)) {
         r->_errno = EINVAL;
         return -1;
@@ -451,95 +442,42 @@ static int statvfs_r(struct _reent *r, const char *path, struct statvfs *buf) {
 
     memset(buf, 0, sizeof(struct statvfs));
 
-    buf->f_frsize = lfs->cfg->block_size;
-    buf->f_bfree = lfs->free.size;
+    buf->f_frsize = ctx->lfs->cfg->block_size;
+    buf->f_bfree = ctx->lfs->free.size;
     buf->f_bavail = buf->f_bfree;
     buf->f_files = 0; // TODO: Count all inodes
-    buf->f_ffree = lfs->cfg->name_max - buf->f_files;
+    buf->f_ffree = ctx->lfs->cfg->name_max - buf->f_files;
     buf->f_favail = buf->f_ffree;
-    buf->f_fsid = (device & 0xFFFF) | crc32to16(lfs->seed); // 16b for filesystems, 16b for driver per filesystem
+    buf->f_fsid = (device & 0xFFFF) | crc32to16(ctx->lfs->seed); // 16b for filesystems, 16b for driver per filesystem
     buf->f_flag = ST_NOSUID;
-    buf->f_namemax = lfs->cfg->name_max;
+    buf->f_namemax = ctx->lfs->cfg->name_max;
 
     return 0;
 }
 
-static int ftruncate_r(struct _reent *r, void *fileStruct, off_t len) {
+int filesystem_littlefs_ftruncate_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct, off_t len) {
     PREPARE_FIL_EX(f, fileStruct);
     int result;
 
-    result = lfs_file_truncate(lfs, &(f->fil), len);
+    result = lfs_file_truncate(ctx->lfs, &(f->fil), len);
     r->_errno = get_errno(result);
 
     return RESULT;
 }
 
-static int rmdir_r(struct _reent *r, const char *path) {
-    return unlink_r(r, path);
+int filesystem_littlefs_rmdir_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, const char *path) {
+    return filesystem_littlefs_unlink_r(ctx, r, path);
 }
 
-static int lstat_r(struct _reent *r, const char *file, struct stat *st) {
+int filesystem_littlefs_lstat_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, const char *file, struct stat *st) {
     // littlefs doesn't support links, just return stat
-    return stat_r(r, file, st);
+    return filesystem_littlefs_stat_r(ctx, r, file, st);
 }
 
-static int utimes_r(struct _reent *r,
+int filesystem_littlefs_utimes_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r,
     __attribute__((unused)) const char *filename,
     __attribute__((unused)) const struct timeval times[2]) {
 
-    // Timestamps not implemented for littlefs
-    r->_errno = ENOTSUP;
+    // Timestamps not implemented for littlefs r->_errno = ENOTSUP;
     return -1;
-}
-
-static const devoptab_t devoptab_littlefs = {
-    .name = "internal",
-    .structSize = sizeof(FIL_EX),
-    .open_r = open_r,
-    .close_r = close_r,
-    .write_r = write_r,
-    .read_r = read_r,
-    .seek_r = seek_r,
-    .fstat_r = fstat_r,
-    .stat_r = stat_r,
-    .link_r = link_r,
-    .unlink_r = unlink_r,
-    .chdir_r = chdir_r,
-    .rename_r = rename_r,
-    .mkdir_r = mkdir_r,
-    .dirStateSize = sizeof(lfs_dir_t),
-    .diropen_r = diropen_r,
-    .dirreset_r = dirreset_r,
-    .dirnext_r = dirnext_r,
-    .dirclose_r = dirclose_r,
-    .statvfs_r = statvfs_r,
-    .ftruncate_r = ftruncate_r,
-    .fsync_r = fsync_r,
-    .chmod_r = chmod_r,
-    .fchmod_r = fchmod_r,
-    .rmdir_r = rmdir_r,
-    .lstat_r = lstat_r,
-    .utimes_r = utimes_r,
-};
-
-int filesystem_littlefs_init() {
-    if (device != -1) {
-        // Already initialized
-        return device;
-    }
-
-    lfs = littlefs_init();
-    if (lfs == NULL) {
-        return -1;
-    }
-
-    device = AddDevice(&devoptab_littlefs);
-
-    if (device == -1) {
-        log_error(FileSystem, "Failed to initialize LittleFS");
-    } else {
-        log_info(FileSystem, "LittleFS successfully initialized (device %i)", device);
-    }
-
-    return device;
 }
