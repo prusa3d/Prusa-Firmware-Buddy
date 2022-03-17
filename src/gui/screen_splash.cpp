@@ -20,7 +20,7 @@
 screen_splash_data_t::screen_splash_data_t()
     : AddSuperWindow<screen_t>()
     , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_prusa_printer_splash)
-    , text_progress(this, Rect16(10, 171, 220, 20), is_multiline::no)
+    , text_progress(this, Rect16(10, 171, 220, 29), is_multiline::no)
     , progress(this, Rect16(10, 200, 220, 15), 15, COLOR_ORANGE, COLOR_GRAY)
     , text_version(this, Rect16(0, 295, 240, 22), is_multiline::no)
     , icon_logo_buddy(this, Rect16(), 0)  //unused?
