@@ -81,7 +81,7 @@ class Compiled:
         output.extend(["{ \"%s\" }," % p for p in self.__paths])
         output.append("""
             };
-            struct automata::Transition transitions_array[] = {
+            const struct automata::Transition transitions_array[] = {
             """)
         for (target, ltype, label, fallthrough) in self.__transitions:
             if ltype == LabelType.Char:
@@ -101,7 +101,7 @@ class Compiled:
                  str(fallthrough).lower()))  # TODO: C-style escaping!
         output.append("""
             };
-            struct automata::State states_array[] = {
+            const struct automata::State states_array[] = {
             """)
         for (first_transition, emit_enter, emit_leave, path, has_path,
              path_nocase) in self.__states:
