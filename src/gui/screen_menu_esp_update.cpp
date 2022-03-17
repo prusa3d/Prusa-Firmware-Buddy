@@ -6,13 +6,13 @@
 #include "RAII.hpp"
 
 #include <basename.h>
+#include <dirent.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "i18n.h"
-#include "ff.h"
 
 #include <stm32_port.h>
 #include <esp_loader.h>
@@ -94,7 +94,7 @@ private:
     window_text_t help;
     std::array<esp_entry, 3> firmware_set;
     bool loopInProgress;
-    FIL file_descriptor;
+    FILE *opened_file;
     esp_upload_action progress_state;
     esp_entry *current_file;
     uint32_t readCount;
@@ -118,11 +118,11 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
-    , firmware_set({ { { .address = PARTITION_TABLE_ADDRESS, .filename = "/ESP/partition-table.bin", .size = 0 },
-          { .address = BOOT_ADDRESS, .filename = "/ESP/bootloader.bin", .size = 0 },
-          { .address = APPLICATION_ADDRESS, .filename = "/ESP/uart_wifi.bin", .size = 0 } } })
+    , firmware_set({ { { .address = PARTITION_TABLE_ADDRESS, .filename = "/internal/res/esp/partition-table.bin", .size = 0 },
+          { .address = BOOT_ADDRESS, .filename = "/internal/res/esp/bootloader.bin", .size = 0 },
+          { .address = APPLICATION_ADDRESS, .filename = "/internal/res/esp/uart_wifi.bin", .size = 0 } } })
     , loopInProgress(false)
-    , file_descriptor({ 0 })
+    , opened_file(NULL)
     , progress_state(esp_upload_action::Initial)
     , current_file(firmware_set.begin())
     , readCount(0)
@@ -175,13 +175,12 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
         esp_upload_action action = static_cast<esp_upload_action>((uint32_t)param);
         if (action == esp_upload_action::Start_flash) {
             espif_flash_initialize();
+            struct stat fs;
             for (esp_entry *chunk = firmware_set.begin();
                  chunk != firmware_set.end(); ++chunk) {
-                if (f_open(&file_descriptor, chunk->filename, FA_READ) != FR_OK) {
-                    break;
+                if (stat(chunk->filename, &fs) == 0) {
+                    chunk->size = fs.st_size;
                 }
-                chunk->size = f_size(&file_descriptor);
-                f_close(&file_descriptor);
             }
             progress_state = esp_upload_action::Connect;
         }
@@ -202,7 +201,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             break;
         }
         case esp_upload_action::Start_flash:
-            if (f_open(&file_descriptor, current_file->filename, FA_READ) != FR_OK) {
+            if ((opened_file = fopen(current_file->filename, "rb")) == nullptr) {
                 log_error(Network, "ESP flash: Unable to open file %s", current_file->filename);
                 help.SetText(_("Unable to open files. Chek the flash drive and start again"));
                 progress_state = esp_upload_action::ESP_error;
@@ -220,7 +219,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
                 log_error(Network, "ESP flash: Unable to start flash on address %0xld", current_file->address);
                 help.SetText(_("ESP initial write failed. Please check the ESP board"));
                 progress_state = esp_upload_action::ESP_error;
-                f_close(&file_descriptor);
+                fclose(opened_file);
                 break;
             } else {
                 progress_state = esp_upload_action::Write_data;
@@ -228,13 +227,13 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             }
             break;
         case esp_upload_action::Write_data: {
-            UINT readBytes = 0;
+            size_t readBytes = 0;
             uint8_t buffer[buffer_length];
 
-            FRESULT res = f_read(&file_descriptor, buffer, sizeof(buffer), &readBytes);
+            readBytes = fread(buffer, 1, sizeof(buffer), opened_file);
             readCount += readBytes;
             log_debug(Network, "ESP read data %ld", readCount);
-            if (res != FR_OK) {
+            if (ferror(opened_file)) {
                 log_error(Network, "ESP flash: Unable to read file %s", current_file->filename);
                 help.SetText(_("Unable to read files. Chek the flash disk and start again"));
                 readBytes = 0;
@@ -251,7 +250,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
                     updateProgress();
                 }
             } else {
-                f_close(&file_descriptor);
+                fclose(opened_file);
                 ++current_file;
                 progress_state = current_file != firmware_set.end()
                     ? esp_upload_action::Start_flash
@@ -274,7 +273,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             progress_state = esp_upload_action::Initial;
             current_file = firmware_set.begin();
             readCount = 0;
-            f_close(&file_descriptor);
+            fclose(opened_file);
             break;
         }
         default:
