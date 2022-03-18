@@ -3,7 +3,6 @@ add_library(WUI INTERFACE)
 target_sources(
   WUI
   INTERFACE wui.cpp
-            wui_REST_api.c
             netdev.c
             json_encode.c
             wui_api.c
@@ -19,7 +18,6 @@ target_sources(
             nhttp/file_info.cpp
             nhttp/gcode_upload.cpp
             nhttp/gcode_preview.cpp
-            nhttp/gen_once.cpp
             nhttp/handler.cpp
             nhttp/headers.cpp
             nhttp/job_command.cpp
@@ -28,8 +26,10 @@ target_sources(
             nhttp/send_file.cpp
             nhttp/segmented_json.cpp
             nhttp/server.cpp
+            nhttp/stateless_json.cpp
             nhttp/static_mem.cpp
             nhttp/status_page.cpp
+            link_content/basic_gets.cpp
             link_content/prusa_link_api.cpp
             link_content/static_file.cpp
             link_content/usb_files.cpp

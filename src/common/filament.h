@@ -6,6 +6,5 @@
  */
 
 #pragma once
-#ifndef __cplusplus
+
 const char *get_selected_filament_name();
-#endif //__cplusplus

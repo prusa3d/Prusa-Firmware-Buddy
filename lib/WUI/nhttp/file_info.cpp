@@ -127,6 +127,7 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
     const size_t last_chunk_len = strlen(LAST_CHUNK);
     size_t written = 0;
     const ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close;
+    bool first_packet = false;
 
     if (holds_alternative<Uninitialized>(renderer)) {
         // We have not been initialized yet. Try deciding if we are listing a
@@ -136,6 +137,7 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
         // the right headers.
 
         struct stat finfo;
+        first_packet = true;
 
         if (DIR *dir_attempt = opendir(filename); dir_attempt) {
             renderer = DirRenderer(this, dir_attempt);
@@ -174,8 +176,12 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
         case JsonRenderer::ContentResult::Incomplete:
             // Send this packet out, but ask for another one.
             return { 0, written, Continue() };
-        case JsonRenderer::ContentResult::Abort:
         case JsonRenderer::ContentResult::BufferTooSmall:
+            if (first_packet) {
+                // Too small, but possibly because we've taken up a part by the headers.
+                return { 0, written, Continue() };
+            }
+        case JsonRenderer::ContentResult::Abort:
             // Something unexpected got screwed up. We don't have a way to
             // return a 500 error, we have sent the headers out already
             // (possibly), so the best we can do is to abort the

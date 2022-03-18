@@ -30,12 +30,12 @@
 
 #include "types.h"
 #include "file_info.h"
-#include "gen_once.h"
 #include "gcode_upload.h"
 #include "gcode_preview.h"
 #include "job_command.h"
 #include "req_parser.h"
 #include "send_file.h"
+#include "stateless_json.h"
 #include "static_mem.h"
 #include "status_page.h"
 
@@ -118,7 +118,7 @@ using ConnectionState = std::variant<
     StatusPage,
     SendStaticMemory,
     SendFile,
-    GenOnce,
+    StatelessJson,
     printer::GcodeUpload,
     printer::GCodePreview,
     printer::JobCommand,
