@@ -35,6 +35,24 @@ JsonRenderer::ContentResult JsonRenderer::Output::output_field_str(size_t resume
     return output(resume_point, "\"%s\":\"%s\"", name, value_escaped);
 }
 
+JsonRenderer::ContentResult JsonRenderer::Output::output_field_str_format(size_t resume_point, const char *name, const char *format, ...) {
+    va_list params1, params2;
+    va_start(params1, format);
+    va_copy(params2, params1);
+    // First, discover how much space we need for the formatted string.
+    char first_buffer[1];
+    // +1 for \0
+    const size_t needed = vsnprintf(first_buffer, 1, format, params1) + 1;
+    va_end(params1);
+
+    // Now, get the buffer of the right size and format it.
+    char buffer[needed];
+    vsnprintf(buffer, needed, format, params2);
+    va_end(params2);
+
+    return output_field_str(resume_point, name, buffer);
+}
+
 JsonRenderer::ContentResult JsonRenderer::Output::output_field_bool(size_t resume_point, const char *name, bool value) {
     return output(resume_point, "\"%s\":%s", name, jsonify_bool(value));
 }
@@ -53,49 +71,6 @@ JsonRenderer::ContentResult JsonRenderer::Output::output_field_obj(size_t resume
 
 JsonRenderer::ContentResult JsonRenderer::Output::output_field_arr(size_t resume_point, const char *name) {
     return output(resume_point, "\"%s\":[", name);
-}
-
-JsonRenderer::ContentResult JsonRenderer::Output::output_iterator(size_t resume_point, Iterator &iterator) {
-    JsonRenderer *sub_renderer;
-    while ((sub_renderer = iterator.get())) {
-        const auto [result, written] = sub_renderer->render(buffer, buffer_size);
-        switch (result) {
-        case ContentResult::Complete:
-            // Completed this iterator item. Confirm the written data and
-            // advance to the next item in the iterator, continuing until
-            // we either fill in the buffer or run out of items.
-            assert(written <= buffer_size);
-            buffer += written;
-            buffer_size -= written;
-            iterator.advance();
-            written_something = true;
-            break;
-        case ContentResult::Incomplete:
-            // The whole current item didn't fit in. But maybe part of it
-            // did. Confirm the part that did fit and tell the caller we
-            // are not done yet and to call us again. We'll re-get the same
-            // item from the iterator and continue that.
-            assert(written <= buffer_size);
-            buffer += written;
-            buffer_size -= written;
-            written_something = true;
-            this->resume_point = resume_point;
-            return ContentResult::Incomplete;
-        case ContentResult::Abort:
-            return ContentResult::Abort;
-        case ContentResult::BufferTooSmall:
-            if (written_something) {
-                // The sub-renderer can't fit anything. But we have already
-                // used part of the buffer, so it _might_ fit next time
-                // with empty buffer.
-                return ContentResult::Incomplete;
-            } else {
-                return ContentResult::BufferTooSmall;
-            }
-        }
-    }
-
-    return ContentResult::Complete;
 }
 
 std::tuple<JsonRenderer::ContentResult, size_t> JsonRenderer::render(uint8_t *buffer, size_t buffer_size) {

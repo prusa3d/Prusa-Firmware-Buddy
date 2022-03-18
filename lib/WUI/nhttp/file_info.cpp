@@ -25,8 +25,8 @@ namespace nhttp::printer {
 using namespace handler;
 
 FileInfo::DirRenderer::DirRenderer(FileInfo *owner, DIR *dir)
-    : dir(dir)
-    , renderer(dir, owner->filename, true) {}
+    : filename(owner->filename)
+    , dir(dir) {}
 
 JsonRenderer::ContentResult FileInfo::DirRenderer::content(size_t resume_point, Output &output) {
     // Keep the indentation of the JSON in here!
@@ -70,18 +70,6 @@ JsonRenderer::ContentResult FileInfo::DirRenderer::content(size_t resume_point, 
     JSON_OBJ_END;
     JSON_END;
     // clang-format on
-}
-
-JsonRenderer *FileInfo::DirRenderer::get() {
-    if (renderer.ent != nullptr) {
-        return &renderer;
-    } else {
-        return nullptr;
-    }
-}
-
-void FileInfo::DirRenderer::advance() {
-    renderer = DirEntryRenderer(dir.get(), renderer.filename);
 }
 
 JsonRenderer::ContentResult FileInfo::FileRenderer::content(size_t resume_point, Output &output) {
