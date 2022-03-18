@@ -395,7 +395,7 @@ int filesystem_littlefs_dirnext_r(filesystem_littlefs_ctx_t *ctx, struct _reent 
     int result;
     struct lfs_info info;
 
-    if (filename == NULL || filestat == NULL) {
+    if (filename == NULL) {
         r->_errno = EINVAL;
         return -1;
     }
@@ -412,9 +412,13 @@ int filesystem_littlefs_dirnext_r(filesystem_littlefs_ctx_t *ctx, struct _reent 
     }
 
     if (info.type & LFS_TYPE_DIR) {
-        filestat->st_mode = S_IFDIR;
+        if (filestat) {
+            filestat->st_mode = S_IFDIR;
+        }
     } else if (info.type & LFS_TYPE_REG) {
-        filestat->st_mode = S_IFREG;
+        if (filestat) {
+            filestat->st_mode = S_IFREG;
+        }
     } else {
         // Unexpected type, skip to the next dir
         return filesystem_littlefs_dirnext_r(ctx, r, dirState, filename, filestat);
