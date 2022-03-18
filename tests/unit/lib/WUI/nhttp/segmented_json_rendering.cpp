@@ -12,56 +12,9 @@ using namespace nhttp;
 
 namespace {
 
-class InnerRenderer final : public JsonRenderer {
-private:
-    bool first;
-
-protected:
-    virtual ContentResult content(size_t resume_point, Output &output) override {
-        JSON_START;
-
-        if (!first) {
-            JSON_COMMA;
-        }
-
-        JSON_OBJ_START;
-        JSON_FIELD_INT("value", value);
-        JSON_OBJ_END;
-
-        JSON_END;
-    }
-
-public:
-    int64_t value;
-    InnerRenderer(bool first, int64_t value)
-        : first(first)
-        , value(value) {}
-};
-
-class ValueIterator final : public JsonRenderer::Iterator {
-private:
-    static const constexpr int64_t MAX_VALUE = 3;
-    InnerRenderer renderer;
-
-public:
-    ValueIterator()
-        : renderer(true, 0) {}
-    virtual JsonRenderer *get() override {
-        if (renderer.value <= MAX_VALUE) {
-            return &renderer;
-        } else {
-            return nullptr;
-        }
-    }
-
-    virtual void advance() override {
-        renderer = InnerRenderer(false, renderer.value + 1);
-    }
-};
-
 class TestJsonRenderer final : public JsonRenderer {
 private:
-    ValueIterator iterator;
+    size_t i = 0;
 
 protected:
     virtual ContentResult content(size_t resume_point, Output &output) override {
@@ -82,7 +35,17 @@ protected:
 
         JSON_COMMA;
         JSON_FIELD_ARR("list");
-        JSON_ITERATE(iterator);
+        // Note: We can use for cycles / while cycles inside the JSON block.
+        // But make sure the control variables are preserved in the object, not
+        // local.
+        for (i = 0; i <= 3; i++) {
+            if (i > 0) {
+                JSON_COMMA;
+            }
+            JSON_OBJ_START;
+            JSON_FIELD_INT("value", i);
+            JSON_OBJ_END;
+        }
         JSON_ARR_END;
 
         JSON_OBJ_END;

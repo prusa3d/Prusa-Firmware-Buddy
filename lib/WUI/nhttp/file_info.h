@@ -35,39 +35,18 @@ private:
     /// Marker that we want to send the last chunk (if in chunked mode).
     class LastChunk {};
 
-    /// JSON Renderer for single file inside a file listing (distinct from the
-    /// file info!).
-    ///
-    /// Used as a sub-renderer from within DirRenderer.
-    class DirEntryRenderer final : public JsonRenderer {
-    public:
-        dirent *ent = nullptr;
-        char *filename = nullptr;
-        DirEntryRenderer() = default;
-        DirEntryRenderer(DIR *dir, char *filename, bool first = false);
-
+    /// The JSON renderer for the directory listing.
+    class DirRenderer final : public JsonRenderer {
     private:
+        char *filename = nullptr;
+        std::unique_ptr<DIR, DirDeleter> dir;
+        dirent *ent = nullptr;
         bool first = true;
 
     protected:
         virtual ContentResult content(size_t resume_point, Output &output) override;
-    };
-
-    /// The JSON renderer for the directory listing.
-    class DirRenderer final : public JsonRenderer, public JsonRenderer::Iterator {
-    private:
-        std::unique_ptr<DIR, DirDeleter> dir;
-        DirEntryRenderer renderer;
-
-    protected:
-        // From JsonRenderer
-        virtual ContentResult content(size_t resume_point, Output &output) override;
 
     public:
-        // From iterator
-        virtual JsonRenderer *get() override;
-        virtual void advance() override;
-
         DirRenderer() = default;
         DirRenderer(FileInfo *owner, DIR *dir);
     };

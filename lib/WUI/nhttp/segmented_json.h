@@ -69,47 +69,11 @@ public:
         BufferTooSmall,
     };
 
-    /// Iterator of sub-renderers.
-    ///
-    /// When there's some repeating part (like, inside an array), one needs
-    /// additional tracking space and context inside the sub-part. This is done
-    /// by creating an iterator that yields further renderers, one for each part.
-    ///
-    /// It is up to the iterator to keep the current renderer.
-    ///
-    /// The usage is as follows:
-    /// * The get shall provide the current item/renderer. If there are no more
-    ///   items available, it shall return nullptr. This is possible on the
-    ///   first call to get as well - if the iterator is empty.
-    /// * The get method shall return the same item until advance is called
-    ///   (call to get does _not_ move the iterator forward). It is acceptable
-    ///   to return a different instance after a resume happened, or even to
-    ///   use a different instance of the iterator, as long as the returned
-    ///   instances are equivalent in their behaviour (it is allowed to
-    ///   recreate an equivalent value after a resume, nevertheless, somehow
-    ///   the caller must ensure everything is saved ‒ including the resume
-    ///   point of the sub-renderer).
-    /// * The advance moves the iterator forward. This might move it
-    ///   conceptually after the last item (but only one after); from that point
-    ///   get would return null.
-    /// * It returns a pointer to abstract JsonRenderer, but inside it needs to
-    ///   be some concrete subclass.
-    /// * Use the output_iterator method of Output.
-    /// * It is up to the subrenderers to produce commas or other separators.
-    ///   It is up to the caller to also provide [ ] around an array and so on.
-    class Iterator {
-    public:
-        virtual ~Iterator() = default;
-        virtual JsonRenderer *get() = 0;
-        virtual void advance() = 0;
-    };
-
     /// A proxy for the buffer where the data goes.
     ///
     /// This can be used to produce bits and pieces of the resulting JSON. The
     /// methods either produce what's needed and return ContentResult::Complete,
-    /// or produce nothing and return ContentResult::Incomplete. An expection is
-    /// the (more complex) output_iterator.
+    /// or produce nothing and return ContentResult::Incomplete.
     ///
     /// Most of the time, it is used through the macros from segmented_json_macros.h
     class Output {
@@ -135,16 +99,6 @@ public:
         ContentResult output_field_str_format(size_t resume_point, const char *name, const char *format, ...);
         ContentResult output_field_obj(size_t resume_point, const char *name);
         ContentResult output_field_arr(size_t resume_point, const char *name);
-        /// See the Iterator for description how to implement iterators.
-        ///
-        /// Unlike the other output methods, this can:
-        /// * Produce the whole iterator.
-        /// * Produce _part_ of the output and return Incomplete (that is, even
-        ///   with Incomplete, some data might have been written and the
-        ///   partial progress is tracked by the position of the iterator and the
-        ///   current sub-renderer).
-        /// * Propagate Abort from within the sub-renderer.
-        ContentResult output_iterator(size_t resume_point, Iterator &iterator);
     };
 
     virtual ~JsonRenderer() = default;
