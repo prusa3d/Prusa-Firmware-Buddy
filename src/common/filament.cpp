@@ -11,7 +11,7 @@
 #include "client_response_texts.hpp"
 
 // only function used in filament.h
-extern "C" const char *get_selected_filament_name() {
+const char *get_selected_filament_name() {
     return Filaments::Current().name;
 }
 

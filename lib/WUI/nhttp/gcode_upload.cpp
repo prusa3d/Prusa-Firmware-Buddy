@@ -2,7 +2,6 @@
 #include "upload_state.h"
 #include "file_info.h"
 #include "handler.h"
-#include "gen_once.h"
 #include "../../src/common/gcode_filename.h"
 
 #include <cassert>
@@ -25,7 +24,6 @@ static const char *const UPLOAD_TEMPLATE = USB_MOUNT_POINT "%zu.tmp";
 namespace nhttp::printer {
 
 using handler::Continue;
-using handler::GenOnce;
 using handler::RequestParser;
 using handler::StatusPage;
 using handler::Step;
