@@ -480,6 +480,12 @@ if(GENERATE_BBF)
     endif()
   endif()
 
+  if(RESOURCES)
+    set(pack_fw_resources_opts RESOURCES_IMAGE_TARGET resources-image RESOURCES_IMAGE_HASH_FILE
+                               "${RESOURCES_BINARY_HASH_FILE}"
+        )
+  endif()
+
   pack_firmware(
     firmware
     FW_VERSION
@@ -490,10 +496,7 @@ if(GENERATE_BBF)
     "${PRINTER_TYPE}"
     SIGNING_KEY
     "${SIGNING_KEY}"
-    RESOURCES_IMAGE_TARGET
-    resources-image
-    RESOURCES_IMAGE_HASH_FILE
-    "${RESOURCES_BINARY_HASH_FILE}"
+    ${pack_fw_resources_opts}
     )
 elseif(SIGNING_KEY)
   message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
