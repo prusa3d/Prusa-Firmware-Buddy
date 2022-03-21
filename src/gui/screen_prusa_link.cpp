@@ -5,6 +5,8 @@
 #include "ScreenHandler.hpp"
 #include "RAII.hpp"
 
+#include "../../lib/WUI/wui.h"
+
 #include <array>
 
 #include "wui_api.h"
@@ -32,11 +34,11 @@ protected:
 
 // ----------------------------------------------------------------
 // GUI Prusa Link start after printer startup
-class MI_PL_RUN_ON_STARTUP : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("On startup");
+class MI_PL_ENABLED : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Enabled");
 
 public:
-    MI_PL_RUN_ON_STARTUP()
+    MI_PL_ENABLED()
         : WI_SWITCH_OFF_ON_t(variant8_get_ui8(eeprom_get_var(EEVAR_PL_RUN)),
             string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 
@@ -49,7 +51,7 @@ protected:
     }
 };
 
-using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_RUN_ON_STARTUP, MI_PL_REGENERATE_API_KEY>;
+using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENERATE_API_KEY>;
 
 class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("PRUSA LINK");
@@ -112,8 +114,9 @@ void ScreenMenuPrusaLink::windowEvent(EventLock /*has private ctor*/, window_t *
             display_api_key(api_key);
             break;
         }
-        case MI_PL_RUN_ON_STARTUP::EventMask::value:
+        case MI_PL_ENABLED::EventMask::value:
             eeprom_set_var(EEVAR_PL_RUN, variant8_ui8(action));
+            notify_reconfigure();
             break;
         default:
             break;
