@@ -138,7 +138,10 @@ set(BOARD_VERSION_MINOR ${CMAKE_MATCH_2})
 set(BOARD_VERSION_PATCH ${CMAKE_MATCH_3})
 
 # in order to generate DFU file for bootloader, we need a BFU
-if(GENERATE_DFU AND BOOTLOADER)
+if(GENERATE_DFU
+   AND BOOTLOADER
+   OR RESOURCES
+   )
   set(GENERATE_BBF "YES")
 endif()
 
