@@ -80,7 +80,7 @@ function(pack_firmware target)
   endif()
 
   # resources options
-  if(RESOURCES_IMAGE_TARGET)
+  if(ARG_RESOURCES_IMAGE_TARGET)
     get_target_property(block_size ${ARG_RESOURCES_IMAGE_TARGET} LFS_IMAGE_BLOCK_SIZE)
     get_target_property(block_count ${ARG_RESOURCES_IMAGE_TARGET} LFS_IMAGE_BLOCK_COUNT)
     set(block_size_file "${CMAKE_CURRENT_BINARY_DIR}/block_size.bin")
