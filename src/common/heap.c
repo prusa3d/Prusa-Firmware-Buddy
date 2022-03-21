@@ -17,6 +17,9 @@
 #endif
 #define ISR_STACK_LENGTH_BYTES 512 // #define bytes to reserve for ISR (MSP) stack
 
+uint32_t heap_total_size;
+uint32_t heap_bytes_remaining;
+
 //
 // FreeRTOS memory API
 //

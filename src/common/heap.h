@@ -4,8 +4,8 @@
 extern "C" {
 #endif //__cplusplus
 
-uint32_t heap_total_size;
-uint32_t heap_bytes_remaining;
+extern uint32_t heap_total_size;
+extern uint32_t heap_bytes_remaining;
 
 uint32_t mem_is_heap_allocated(const void *ptr);
 
