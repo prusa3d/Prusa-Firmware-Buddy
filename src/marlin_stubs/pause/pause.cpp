@@ -837,6 +837,9 @@ bool Pause::check_user_stop() {
 
     stop = true;
     planner.quick_stop();
+    while (planner.has_blocks_queued())
+        loop();
+    planner.resume_queuing();
     set_all_unhomed();
     set_all_unknown();
     xyze_pos_t real_current_position;
