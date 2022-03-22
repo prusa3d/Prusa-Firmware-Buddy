@@ -92,10 +92,10 @@ function(pack_firmware target)
 
     set(resources_opts
         "--tlv"
-        "RESOURCES_IMAGE:$<TARGET_PROPERTY:${ARG_RESOURCES_IMAGE_TARGET},LFS_IMAGE_LOCATION>"
-        "RESOURCES_IMAGE_BLOCK_SIZE:${block_size_file}"
-        "RESOURCES_IMAGE_BLOCK_COUNT:${block_count_file}"
-        "RESOURCES_IMAGE_HASH:${ARG_RESOURCES_IMAGE_HASH_FILE}"
+        "RESOURCES_IMAGE@$<TARGET_PROPERTY:${ARG_RESOURCES_IMAGE_TARGET},LFS_IMAGE_LOCATION>"
+        "RESOURCES_IMAGE_BLOCK_SIZE@${block_size_file}"
+        "RESOURCES_IMAGE_BLOCK_COUNT@${block_count_file}"
+        "RESOURCES_IMAGE_HASH@${ARG_RESOURCES_IMAGE_HASH_FILE}"
         )
   endif()
 

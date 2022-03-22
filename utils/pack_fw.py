@@ -132,7 +132,7 @@ def main():
         help="Printer version of printer type.")
     parser.add_argument(
         "--tlv", type=str,
-        help='TLV data (TYPE:FILE format)', nargs='*', default=[])
+        help='TLV data (TYPE@FILE format)', nargs='*', default=[])
     parser.add_argument('-TCI', '--TCI', action='store_true', required=False,
         help='evoked from Travis script')
     # yapf: enable
@@ -179,8 +179,8 @@ def main():
 
     # TLV Data
     for tlv in args.tlv:
-        tlv_entry = tlv.split(":")
-        assert len(tlv_entry) == 2, "For -tlv use format TYPE:FILE"
+        tlv_entry = tlv.split("@")
+        assert len(tlv_entry) == 2, "For -tlv use format TYPE@FILE"
         type = TLVType.from_user_spec(tlv_entry[0])
         path = tlv_entry[1]
         length = os.stat(path).st_size
