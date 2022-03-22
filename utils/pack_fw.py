@@ -179,7 +179,7 @@ def main():
 
     # TLV Data
     for tlv in args.tlv:
-        tlv_entry = tlv.split(":")
+        tlv_entry = tlv.split(":", maxsplit=1)
         assert len(tlv_entry) == 2, "For -tlv use format TYPE:FILE"
         type = TLVType.from_user_spec(tlv_entry[0])
         path = tlv_entry[1]
