@@ -972,6 +972,7 @@
     st.TCOOLTHRS(0xFFFFF);
     st.en_pwm_mode(false);
     st.diag1_stall(true);
+    st.sfilt(false);
 
     return stealthchop_was_enabled;
   }
@@ -983,6 +984,7 @@
 
   bool tmc_enable_stallguard(TMC2209Stepper &st) {
     st.TCOOLTHRS(0xFFFFF);
+    st.sfilt(false);
     return true;
   }
   void tmc_disable_stallguard(TMC2209Stepper &st, const bool restore_stealth _UNUSED) {
