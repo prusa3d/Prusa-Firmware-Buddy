@@ -177,6 +177,8 @@ def main():
     with open(args.firmware, "br") as bfile:
         bin_data += bfile.read()
 
+    bin_data_fw_only = bin_data
+
     # TLV Data
     for tlv in args.tlv:
         tlv_entry = tlv.split(":", maxsplit=1)
@@ -192,7 +194,7 @@ def main():
 
     sha = UndefinedSha256()
     if not args.no_checksum:
-        sha = sha256(bin_data)
+        sha = sha256(bin_data_fw_only)
     print("\tsha256sum:", sha.hexdigest())
 
     sig = bytes(64)  # zeros if not sign
@@ -202,7 +204,7 @@ def main():
             key = SigningKey.from_pem(key_str)
         else:
             key = SigningKey.from_pem(open(args.key).read())
-        sig = key.sign(bin_data, hashfunc=sha256)
+        sig = key.sign(bin_data_fw_only, hashfunc=sha256)
     print("\tsign:     ", sig.hex())
 
     # Bootloader Binary File / Firmware
