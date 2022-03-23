@@ -14,12 +14,10 @@ void window_header_t::updateNetwork(uint32_t netdev_id, bool force) {
         active_netdev_id = netdev_id;
     }
 
-    if ((active_netdev_id != NETDEV_NODEV_ID
-            && active_netdev_status != netdev_status)
+    if (active_netdev_id != NETDEV_NODEV_ID
+        || active_netdev_status != netdev_status
         || force) {
-        if (netdev_status == NETDEV_NETIF_DOWN) {
-            invalidate = true;
-        } else if (netdev_status == NETDEV_UNLINKED) {
+        if (netdev_status == NETDEV_NETIF_DOWN || netdev_status == NETDEV_UNLINKED) {
             icon_network.Shadow();
         } else {
             icon_network.Unshadow();
