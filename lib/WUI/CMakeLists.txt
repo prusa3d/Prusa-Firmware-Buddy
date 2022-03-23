@@ -7,8 +7,6 @@ target_sources(
             netdev.c
             json_encode.c
             wui_api.c
-            http/fs.c
-            http_lifetime.cpp
             nhttp/multipart_parser.c
             nhttp/upload_state.cpp
             ethernetif.c
@@ -16,6 +14,7 @@ target_sources(
             sntp/sntp_client.c
             sntp/sntp.c
             automata/core.cpp
+            http_lifetime.cpp
             nhttp/common_selectors.cpp
             nhttp/file_info.cpp
             nhttp/gcode_upload.cpp
@@ -32,25 +31,10 @@ target_sources(
             nhttp/status_page.cpp
             link_content/prusa_link_api.cpp
             link_content/static_file.cpp
-            link_content/static_fs_file.cpp
             link_content/usb_files.cpp
             link_content/previews.cpp
             ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
-
-set(WEB_FILE "fsdata_wui_local.c")
-
-file(GLOB WEB_FILES ${PROJECT_ROOT_DIR}/lib/WUI/resources/src_local/*.*)
-
-add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/${WEB_FILE}
-  DEPENDS ${WEB_FILES}
-  COMMAND ${Python3_EXECUTABLE} ${PROJECT_ROOT_DIR}/utils/wui.py ${WEB_FILES} >
-          ${CMAKE_BINARY_DIR}/${WEB_FILE}
-  COMMENT "Generating fsdata_wui_local raw data from WUI resources."
-  )
-
-add_custom_target(generate-web-file DEPENDS ${CMAKE_BINARY_DIR}/${WEB_FILE})
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 
@@ -76,5 +60,4 @@ target_include_directories(
             ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}
   )
 
-target_compile_definitions(WUI INTERFACE HTTPD_FSDATA_FILE="${WEB_FILE}")
 target_link_libraries(WUI INTERFACE LwIP)
