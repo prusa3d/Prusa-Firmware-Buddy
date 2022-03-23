@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Initial set up of the httpd server.
  *
@@ -30,7 +26,3 @@ void httpd_start(void);
  * It can be re-enabled with @c httpd_reinit.
  */
 void httpd_close(void);
-
-#ifdef __cplusplus
-}
-#endif

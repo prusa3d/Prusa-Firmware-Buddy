@@ -1,6 +1,5 @@
 #include "nhttp/server.h"
 #include "nhttp/common_selectors.h"
-#include "link_content/static_fs_file.h"
 #include "link_content/static_file.h"
 #include "link_content/prusa_link_api.h"
 #include "link_content/usb_files.h"
@@ -29,7 +28,7 @@ SemaphoreHandle_t httpd_mutex = NULL;
 
 class DefaultServerDefs final : public ServerDefs {
 private:
-    static const constexpr handler::Selector *const selectors_array[] = { &validate_request, &static_file, &static_fs_file, &prusa_link_api, &usb_files, &previews, &unknown_request };
+    static const constexpr handler::Selector *const selectors_array[] = { &validate_request, &static_file, &prusa_link_api, &usb_files, &previews, &unknown_request };
 
 public:
     virtual const Selector *const *selectors() const override { return selectors_array; }
@@ -77,8 +76,6 @@ Server server(server_defs);
 
 }
 
-extern "C" {
-
 void httpd_init(void) {
     assert(httpd_mutex == nullptr);
     httpd_mutex = xSemaphoreCreateMutex();
@@ -101,5 +98,4 @@ void httpd_close(void) {
     server.stop();
 
     xSemaphoreGive(httpd_mutex);
-}
 }

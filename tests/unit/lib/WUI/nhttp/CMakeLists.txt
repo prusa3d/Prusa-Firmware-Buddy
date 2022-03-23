@@ -9,7 +9,6 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/jsmn_impl.c
   ${CMAKE_CURRENT_SOURCE_DIR}/job_command_tests.cpp
   # Tested files
-  ${CMAKE_SOURCE_DIR}/lib/WUI/http/fs.c
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/common_selectors.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/multipart_parser.c
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/file_info.cpp
@@ -66,7 +65,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
-target_compile_definitions(nhttp_tests PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
 target_include_directories(
   nhttp_tests
   PRIVATE .

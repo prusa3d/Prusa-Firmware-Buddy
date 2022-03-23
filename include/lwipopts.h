@@ -105,7 +105,7 @@ extern "C" {
     /*----- Value in opt.h for RECV_BUFSIZE_DEFAULT: INT_MAX -----*/
     #define RECV_BUFSIZE_DEFAULT 2000000000
     /*----- Default Value for LWIP_HTTPD: 0 ---*/
-    #define LWIP_HTTPD 1
+    #define LWIP_HTTPD 0
     /*----- Value in opt.h for LWIP_STATS: 1 -----*/
     #define LWIP_STATS 0
     /*----- Value in opt.h for CHECKSUM_GEN_IP: 1 -----*/
@@ -130,7 +130,7 @@ extern "C" {
     #define CHECKSUM_CHECK_ICMP6 1
     /*-----------------------------------------------------------------------------*/
     /* USER CODE BEGIN 1 */
-    #define HTTPD_USE_CUSTOM_FSDATA 1 // uses the web resources from fsdata_custom.c (buddy web pages)
+    #define HTTPD_USE_CUSTOM_FSDATA 0
     /*
      * FIXME:
      * Workaround:
@@ -151,21 +151,19 @@ extern "C" {
      *
      * #BFW-2357
      */
-    #define HTTPD_MAX_WRITE_LEN(pcb)     ((u16_t)(altcp_mss(pcb)))
     #define LWIP_NETIF_API               1 // enable LWIP_NETIF_API==1: Support netif api (in netifapi.c)
     #define LWIP_NETIF_LINK_CALLBACK     1 // Support a callback function from an interface whenever the link changes (i.e., link down)
     #define LWIP_NETIF_STATUS_CALLBACK   1 // Support a callback function whenever an interface changes its up/down status (i.e., due to DHCP IP acquisition)
-    #define LWIP_HTTPD_DYNAMIC_HEADERS   1
+    #define LWIP_HTTPD_DYNAMIC_HEADERS   0
     #define LWIP_SINGLE_NETIF            0
     #define LWIP_NETIF_HOSTNAME          1
-    #define LWIP_HTTPD_SUPPORT_POST      1
+    #define LWIP_HTTPD_SUPPORT_POST      0
     #define LWIP_COMPAT_SOCKETS          1
     #define LWIP_ALTCP                   0
-    #define LWIP_HTTPD_DYNAMIC_FILE_READ 1
+    #define LWIP_HTTPD_DYNAMIC_FILE_READ 0
     #define LWIP_TIMERS                  1
 
-    #define HTTPD_SERVER_AGENT "PrusaLink"
-    #define LWIP_DNS           1
+    #define LWIP_DNS 1
     /*
      * We have a HTTP server (PrusaLink). The browsers tend to keep few
      * connections at ready and take up the slots. In general it works better

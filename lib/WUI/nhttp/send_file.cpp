@@ -7,10 +7,11 @@
 
 namespace nhttp::handler {
 
-SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, uint32_t if_none_match)
+SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, uint32_t if_none_match, const char **extra_hdrs)
     : file(file)
     , content_type(content_type)
-    , can_keep_alive(can_keep_alive) {
+    , can_keep_alive(can_keep_alive)
+    , extra_hdrs(extra_hdrs) {
     struct stat finfo;
     if (stat(path, &finfo) == 0) {
         if (can_keep_alive) {
@@ -42,7 +43,7 @@ Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size)
     size_t written = 0;
 
     if (!headers_sent) {
-        written = write_headers(buffer, buffer_size, Status::Ok, content_type, connection_handling, content_length, etag);
+        written = write_headers(buffer, buffer_size, Status::Ok, content_type, connection_handling, content_length, etag, extra_hdrs);
         headers_sent = true;
 
         if (written + MIN_CHUNK_SIZE >= buffer_size) {

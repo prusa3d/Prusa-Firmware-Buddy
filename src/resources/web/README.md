@@ -8,6 +8,7 @@ Updating:
 
 * Clone the above repository.
 * Build the `mini` configuration.
-* Replace the content of the `src_local` directory (keep the favicon).
+* Replace the content of this directory (keep the favicon and the README).
+* Update the rules in `CMakeList.txt` one level up.
 * The build system will automatically gzip-compress them and embed the results
   in the output.
