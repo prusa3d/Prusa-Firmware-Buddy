@@ -14,6 +14,7 @@
 #include "ScreenHandler.hpp"
 #include "screen_wizard.hpp"
 #include "bsod.h"
+#include "filament_sensor_api.hpp"
 #include "liveadjust_z.hpp"
 #include "DialogHandler.hpp"
 #include "selftest_MINI.h"
@@ -34,6 +35,61 @@ MI_WIZARD::MI_WIZARD()
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
     ScreenWizard::Run(wizard_run_type_t::all);
+}
+
+/**********************************************************************************************/
+//MI_FILAMENT_SENSOR
+bool MI_FILAMENT_SENSOR::init_index() const {
+    fsensor_t fs = FSensors_instance().GetPrinter();
+    return fs == fsensor_t::Disabled ? 0 : 1;
+}
+
+void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
+    if (old_index) {
+        FSensors_instance().Disable();
+    } else {
+        FSensors_instance().Enable();
+
+        // wait until it is processed
+        // no guiloop here !!! - it could cause show of unwanted error message
+        while (FSensors_instance().IsPrinter_processing_request()) {
+            osDelay(0); // switch to other thread
+        }
+
+        fsensor_t state;
+        // wait until it is initialized
+        while ((state = FSensors_instance().GetPrinter()) == fsensor_t::NotInitialized) {
+            osDelay(0); // switch to other thread
+        }
+
+        switch (state) {
+        case fsensor_t::NotInitialized: //can't be we just checked it
+            break;
+        case fsensor_t::Disabled: // should not be
+            MsgBoxError(_("Sensor logic error, printer filament sensor disabled."), Responses_Ok);
+            index = old_index;
+            break;
+        case fsensor_t::NotCalibrated:
+            MsgBoxWarning(_("Filament sensor not ready: perform calibration first. It is accessible from menu \"Calibrate\"."), Responses_Ok);
+            index = old_index;
+            FSensors_instance().Disable();
+            break;
+        case fsensor_t::HasFilament:
+        case fsensor_t::NoFilament:
+            break; // success
+        case fsensor_t::NotConnected:
+            MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
+            index = old_index;
+            FSensors_instance().Disable();
+            break;
+        }
+
+        // wait until filament sensor command is processed (if any)
+        // no guiloop here !!! - it could cause show of unwanted error message
+        while (FSensors_instance().IsPrinter_processing_request()) {
+            osDelay(0); // switch to other thread
+        }
+    }
 }
 
 /*****************************************************************************/
@@ -458,7 +514,7 @@ MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
 }
 
 MI_FILAMENT_SENSOR_STATE::state_t MI_FILAMENT_SENSOR_STATE::get_state() {
-    fsensor_t fs = FS_instance().WaitInitialized();
+    fsensor_t fs = FSensors_instance().GetPrinter();
     switch (fs) {
     case fsensor_t::HasFilament:
         return state_t::high;
@@ -501,7 +557,7 @@ void MI_FAN_CHECK::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_FS_AUTOLOAD
 is_hidden_t hide_autoload_item() {
-    return FS_instance().Get() == fsensor_t::Disabled ? is_hidden_t::yes : is_hidden_t::no;
+    return FSensors_instance().Get() == fsensor_t::Disabled ? is_hidden_t::yes : is_hidden_t::no;
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()

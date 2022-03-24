@@ -7,7 +7,7 @@
 #include "wizard_config.hpp"
 #include "filament.hpp"
 #include "eeprom.h"
-#include "filament_sensor.hpp"
+#include "filament_sensor_api.hpp"
 #include "i18n.h"
 #include "RAII.hpp"
 #include "ScreenHandler.hpp"
@@ -150,10 +150,15 @@ WizardState_t StateFnc_START() {
 
 WizardState_t StateFnc_INIT() {
     //wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
-    if (FS_instance().Get() == fsensor_t::Disabled) {
-        FS_instance().Enable();
-        if (FS_instance().WaitInitialized() == fsensor_t::NotConnected)
-            FS_instance().Disable();
+    if (FSensors_instance().GetPrinter() == fsensor_t::Disabled) {
+        FSensors_instance().Enable();
+
+        while (FSensors_instance().IsPrinter_processing_request()) {
+            HAL_Delay(0); // switch to another thread
+        }
+
+        if (FSensors_instance().GetPrinter() == fsensor_t::NotConnected)
+            FSensors_instance().Disable();
     }
 
     //preheat for SELFTEST_TEMP, so selftest is quicker

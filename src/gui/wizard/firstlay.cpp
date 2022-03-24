@@ -2,7 +2,7 @@
 #include "i18n.h"
 #include "gui.hpp"
 #include "firstlay.hpp"
-#include "filament_sensor.hpp"
+#include "filament_sensor_api.hpp"
 #include "filament.hpp"
 #include "window_dlg_preheat.hpp"
 #include "window_dlg_load_unload.hpp"
@@ -22,7 +22,7 @@ enum {
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK() {
     uint8_t filament = 0;
     filament |= Filaments::CurrentIndex() != filament_t::NONE ? FKNOWN : 0;
-    filament |= FS_instance().Get() == fsensor_t::NoFilament ? F_NOTSENSED : 0;
+    filament |= FSensors_instance().GetPrinter() == fsensor_t::NoFilament ? F_NOTSENSED : 0;
 
     size_t def_bt = filament == (FKNOWN | F_NOTSENSED) ? 1 : 0; //default button
 

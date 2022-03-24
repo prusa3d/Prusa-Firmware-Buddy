@@ -8,24 +8,6 @@
 #include "GuiDefaults.hpp"
 
 /*****************************************************************************/
-// clang-format off
-const PhaseResponses Responses_NONE                 = { Response::_none,    Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_Next                 = { Response::Next,     Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_Ok                   = { Response::Ok,       Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_OkCancel             = { Response::Ok,       Response::Cancel, Response::_none,  Response::_none };
-const PhaseResponses Responses_AbortRetryIgnore     = { Response::Abort,    Response::Retry,  Response::Ignore, Response::_none };
-const PhaseResponses Responses_YesNo                = { Response::Yes,      Response::No,     Response::_none,  Response::_none };
-const PhaseResponses Responses_YesNoCancel          = { Response::Yes,      Response::No,     Response::Cancel, Response::_none };
-const PhaseResponses Responses_YesNoIgnore          = { Response::Yes,      Response::No,     Response::Ignore, Response::_none };
-const PhaseResponses Responses_RetryCancel          = { Response::Retry,    Response::Cancel, Response::_none,  Response::_none };
-const PhaseResponses Responses_ChangeIgnoreCancel   = { Response::Change,   Response::Ignore, Response::Cancel, Response::_none };
-const PhaseResponses Responses_ChangeIgnoreAbort    = { Response::Change,   Response::Ignore, Response::Abort,  Response::_none };
-const PhaseResponses Responses_IgnoreAbort          = { Response::Ignore,   Response::Abort,  Response::_none,  Response::_none };
-
-// clang-format on
-/*****************************************************************************/
-
-/*****************************************************************************/
 //MsgBoxBase
 MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline)
     : AddSuperWindow<IDialog>(rect)

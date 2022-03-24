@@ -7,9 +7,10 @@
 #include "display.h"
 #include "gcode_info.hpp"
 #include "gcode_description.hpp"
+#include "fs_event_autolock.hpp"
 
-//todo implement draw, i am using visible property on some description_lines
-struct screen_print_preview_data_t : public AddSuperWindow<screen_t> {
+class screen_print_preview_data_t : public AddSuperWindow<screen_t> {
+    FS_EventAutolock lock_autoload_and_m600;
 
     window_roll_text_t title_text;
     window_icon_button_t print_button;
@@ -18,7 +19,6 @@ struct screen_print_preview_data_t : public AddSuperWindow<screen_t> {
     window_text_t back_label;
     WindowPreviewThumbnail thumbnail;
     GCodeInfo &gcode;
-    bool suppress_draw;
 
     GCodeInfoWithDescription gcode_description; //cannot be first
 
@@ -27,7 +27,6 @@ public:
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-    //virtual void unconditionalDraw() override; //todo move draw from event
 
 private:
     bool gcode_file_exists();

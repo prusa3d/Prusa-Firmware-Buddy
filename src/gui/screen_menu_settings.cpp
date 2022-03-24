@@ -75,9 +75,6 @@ class ScreenMenuSettings : public Screen {
 public:
     constexpr static const char *label = N_("SETTINGS");
     ScreenMenuSettings();
-
-protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSettings() {
@@ -90,17 +87,4 @@ ScreenMenuSettings::ScreenMenuSettings()
         Item<MI_CURRENT_PROFILE>().UpdateLabel();
         Item<MI_CURRENT_PROFILE>().Show();
     }
-}
-
-void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::HELD_RELEASED) {
-        DialogMoveZ::Show();
-        return;
-    }
-
-    if (event == GUI_event_t::LOOP) { // don't return LOOP must be sent to parrent too
-        Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
-    }
-
-    SuperWindowEvent(sender, event, param);
 }
