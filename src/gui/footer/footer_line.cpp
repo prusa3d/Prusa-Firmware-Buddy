@@ -65,8 +65,8 @@ bool FooterLine::Create(footer::items item_id, size_t index) {
     case footer::items::ItemAxisZ:
         new (&items[index]) FooterItemAxisZ(this);
         break;
-    case footer::items::ItemZHeigth:
-        new (&items[index]) FooterItemZHeigth(this);
+    case footer::items::ItemZHeight:
+        new (&items[index]) FooterItemZHeight(this);
         break;
     case footer::items::ItemPrintFan:
         new (&items[index]) FooterItemPrintFan(this);

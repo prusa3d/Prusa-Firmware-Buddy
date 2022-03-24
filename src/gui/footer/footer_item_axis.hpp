@@ -67,11 +67,11 @@ public:
 /**
  * @brief current Z pos footer item including MBL
  */
-class FooterItemZHeigth : public AddSuperWindow<FooterIconText_FloatVal> {
+class FooterItemZHeight : public AddSuperWindow<FooterIconText_FloatVal> {
     static string_view_utf8 static_makeView(float value);
     static float static_readValue();
 
 public:
     static string_view_utf8 GetName() { return _("X Height"); }
-    FooterItemZHeigth(window_t *parent);
+    FooterItemZHeight(window_t *parent);
 };

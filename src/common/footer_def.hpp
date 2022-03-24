@@ -37,7 +37,7 @@ enum class items : uint8_t { // stored in eeprom, must be small
     ItemAxisX,
     ItemAxisY,
     ItemAxisZ,
-    ItemZHeigth,
+    ItemZHeight,
     ItemPrintFan,
     ItemHeatbreakFan,
 #if defined(FOOTER_HAS_LIVE_Z)
