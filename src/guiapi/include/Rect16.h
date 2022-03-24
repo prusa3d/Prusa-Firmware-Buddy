@@ -152,7 +152,7 @@ public:
     /// @brief Create rectangle on specific top-left corner and size
     ///
     /// @param[in] point Top-left corner
-    /// @param[in] size Size defined by width and heigth
+    /// @param[in] size Size defined by width and height
     Rect16(point_i16_t, size_ui16_t);
 
     ////////////////////////////////////////////////////////////////////////////

@@ -18,7 +18,7 @@
 
 namespace footer {
 using ItemUnion = std::aligned_union<0, FooterItemNozzle, FooterItemBed, FooterItemFilament, FooterItemSpeed,
-    FooterItemAxisX, FooterItemAxisY, FooterItemAxisZ, FooterItemZHeigth,
+    FooterItemAxisX, FooterItemAxisY, FooterItemAxisZ, FooterItemZHeight,
     FooterItemPrintFan, FooterItemHeatBreakFan
 #if defined(FOOTER_HAS_LIVE_Z)
     ,

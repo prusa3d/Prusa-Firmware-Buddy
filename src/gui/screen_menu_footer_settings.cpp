@@ -72,7 +72,7 @@ public:
             FooterItemAxisX::GetName(),
             FooterItemAxisY::GetName(),
             FooterItemAxisZ::GetName(),
-            FooterItemZHeigth::GetName(),
+            FooterItemZHeight::GetName(),
             FooterItemPrintFan::GetName(),
             FooterItemHeatBreakFan::GetName(),
 #if defined(FOOTER_HAS_LIVE_Z)
