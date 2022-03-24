@@ -22,6 +22,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "ff_gen_drv.h"
 #include "usbh_diskio.h"
+#include "timing.h"
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 
@@ -227,6 +229,10 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
     return res;
 }
 #endif /* FF_FS_READONLY == 0 */
+
+uint32_t USBH_MSC_GetIndependentTimerTicks() {
+    return ticks_ms();
+}
 
 /* USER CODE BEGIN lastSection */
 /* can be used to modify / undefine previous code or add new code */
