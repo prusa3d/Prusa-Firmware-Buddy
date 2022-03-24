@@ -6,7 +6,7 @@
 
 #include "print_processor.hpp"
 #include "marlin_client.h"
-#include "filament_sensor.hpp"
+#include "filament_sensor_api.hpp"
 #include "fsm_types.hpp"
 #include "non_file_printing_counter.hpp"
 
@@ -17,10 +17,10 @@ void PrintProcessor::fsm_cb(uint32_t u32, uint16_t u16) {
     fsm::variant_t variant(u32, u16);
     if (/*variant.GetType() == ClientFSM::Serial_printing ||*/ variant.GetType() == ClientFSM::Load_unload) {
         if (variant.GetCommand() == ClientFSM_Command::create) {
-            FS_instance().IncEvLock();
+            FSensors_instance().IncEvLock();
         }
         if (variant.GetCommand() == ClientFSM_Command::destroy) {
-            FS_instance().DecEvLock();
+            FSensors_instance().DecEvLock();
         }
     }
 }

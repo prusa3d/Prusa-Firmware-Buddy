@@ -6,7 +6,7 @@
 #include "marlin_client.h"
 #include "resource.h"
 #include "window_dlg_load_unload.hpp"
-#include "filament_sensor.hpp"
+#include "filament_sensor_api.hpp"
 #include <stdarg.h>
 #include "sound.hpp"
 #include "DialogHandler.hpp"
@@ -21,23 +21,27 @@ const uint16_t menu_icons[2] = {
 
 /// \returns true if filament is (finally) present or FS is disabled
 static bool check_filament_presence(GCodeInfo &gcode) {
-    while (FS_instance().DidRunOut()) {
+    // While in non-MMU2 mode perform a pre-print filament check.
+    // While in MMU2 mode the operation is directly opposite
+    // - the filament must NOT be present and the G-code specifies which filament shall be loaded after the start of the print.
+    while (!FSensors_instance().CanStartPrint()) {
+        bool has_mmu = FSensors_instance().HasMMU();
         Sound_Play(eSOUND_TYPE::SingleBeep);
-        const PhaseResponses btns = Responses_YesNoIgnore;
-        string_view_utf8 txt_fil_not_detected = _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.");
-        // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
-#if defined(USE_ST7789)
+        const PhaseResponses btns = has_mmu ? Responses_YesNo : Responses_YesNoIgnore;
+        string_view_utf8 txt_fil_not_detected = has_mmu ? _("Filament detected. Unload filament now? Select NO to cancel.") : _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.");
+        // this MakeRAM is safe - gcode.gcode_file_name is valid during the lifetime of the MsgBox
         switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()), txt_fil_not_detected, btns, 0, GuiDefaults::DialogFrameRect)) {
-#else
-    #error "Unknown display"
-#endif                      // USE_<DISPLAY>
         case Response::Yes: //YES - load
-            PreheatStatus::DialogBlocking(PreheatMode::Load, RetAndCool_t::Return);
+            if (has_mmu) {
+                // TODO
+            } else {
+                PreheatStatus::DialogBlocking(PreheatMode::Load, RetAndCool_t::Return);
+            }
             break;
         case Response::No: //NO - cancel
             return false;
-        case Response::Ignore: //IGNORE - disable
-            FS_instance().Disable();
+        case Response::Ignore: //IGNORE - disable, outside MMU mode only
+            FSensors_instance().Disable();
             return true;
         default:
             break;
@@ -51,11 +55,7 @@ static bool check_filament_type(GCodeInfo &gcode) {
     const char *curr_filament = Filaments::Current().name;
     while (gcode.filament_described && strncmp(curr_filament, "---", 3) != 0 && strncmp(curr_filament, gcode.filament_type, sizeof(gcode.filament_type)) != 0) {
         string_view_utf8 txt_wrong_fil_type = _("This G-CODE was set up for another filament type.");
-#if defined(USE_ST7789)
         switch (MsgBoxWarning(txt_wrong_fil_type, Responses_ChangeIgnoreAbort, 0)) {
-#else
-    #error "Unknown display"
-#endif // USE_<DISPLAY>
         case Response::Change:
             PreheatStatus::DialogBlocking(PreheatMode::Change_phase1, RetAndCool_t::Return);
             break;
@@ -75,11 +75,7 @@ static bool check_printer_type(GCodeInfo &gcode) {
     if (gcode.IsSettingsValid())
         return true;
     string_view_utf8 txt_wrong_printer_type = _("This G-CODE was set up for another printer type.");
-#if defined(USE_ST7789)
     switch (MsgBoxWarning(txt_wrong_printer_type, Responses_IgnoreAbort, 0)) {
-#else
-    #error "Unknown display"
-#endif // USE_<DISPLAY>
     case Response::Abort:
         return false;
     default:
@@ -110,7 +106,6 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     , back_label(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
     , thumbnail(this, GuiDefaults::PreviewThumbnailRect)
     , gcode(GCodeInfo::getInstance())
-    , suppress_draw(false)
     , gcode_description(this, gcode) {
 
     marlin_set_print_speed(100);
@@ -134,8 +129,6 @@ bool screen_print_preview_data_t::gcode_file_exists() {
     return access(gcode.GetGcodeFilepath(), F_OK) == 0;
 }
 
-//FIXME simple solution not to brake functionality before release
-//rewrite later
 void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).

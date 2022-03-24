@@ -191,7 +191,7 @@ set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
 set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_GUI "MINI")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
-
+set(PRINTERS_WITH_ADVANCED_PAUSE "MINI")
 # Set printer board
 set(PRINTERS_WITH_BUDDY "MINI")
 
@@ -213,6 +213,25 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
 else()
   set(INIT_TRINAMIC_FROM_MARLIN_ONLY NO)
 endif()
+
+set(HAS_SELFTEST YES)
+
+set(HAS_MMU2 NO)
+message(STATUS "MMU2: ${HAS_MMU2}")
+
+if(${BOARD} STREQUAL "BUDDY" AND ${PRINTER} IN_LIST PRINTERS_WITH_GUI)
+  set(HAS_W240H320 YES)
+else()
+  set(HAS_W240H320 NO)
+endif()
+message(STATUS "RESOLUTION_240X320: ${HAS_W240H320}")
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_ADVANCED_PAUSE)
+  set(HAS_PAUSE YES)
+else()
+  set(HAS_PAUSE NO)
+endif()
+message(STATUS "ADVANCED PAUSE: ${HAS_PAUSE}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(DEBUG YES)
@@ -260,6 +279,7 @@ target_compile_definitions(
   PROCESS_CUSTOM_GCODE
   STM32GENERIC
   STM32F4
+  HAS_MMU2=$<BOOL:${HAS_MMU2}>
   _EXTUI
   )
 
@@ -570,6 +590,7 @@ target_link_libraries(
           sysbase
           Segger
           tinyusb::tinyusb
+          $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
   )
 
 target_sources(
@@ -601,9 +622,13 @@ target_sources(
           src/libsysbase_syscalls.c
           src/usb_host.c
           src/usbh_conf.c
+          src/common/freertos_mutex.cpp
           src/common/non_file_printing_counter.cpp
           src/common/print_processor.cpp
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
+          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_api.cpp>
+          $<$<NOT:$<BOOL:${HAS_MMU2}>>:src/common/filament_sensor_api_no_mmu.cpp>
+          $<$<STREQUAL:${FILAMENT_SENSOR},ADC>:src/common/filament_sensor_adc.cpp>
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_photoeletric.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/adc.cpp
@@ -690,11 +715,14 @@ target_sources(
           src/marlin_stubs/M999.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
-          src/marlin_stubs/pause/M600.cpp
-          src/marlin_stubs/pause/M601_M602.cpp
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M600.cpp>
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M601_2.cpp>
           src/marlin_stubs/pause/M603.cpp
-          src/marlin_stubs/pause/M70X.cpp
-          src/marlin_stubs/pause/pause.cpp
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M70X.cpp>
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M70X_pharse.cpp>
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M70X_preheat.cpp>
+          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M70X_mmu.cpp>
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/pause.cpp>
           src/marlin_stubs/feature/safety_timer.cpp
           src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
           src/marlin_stubs/host/M115.cpp
@@ -904,6 +932,19 @@ set_property(
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
+  )
+
+set_property(
+  SOURCE src/main.cpp
+         src/gui/screen_menu_settings.cpp
+         src/gui/screen_menu_footer_settings.cpp
+         src/gui/footer/footer_line.cpp
+         src/gui/test/screen_test_load.cpp
+         src/common/marlin_server.cpp
+         src/marlin_stubs/pause/pause.cpp
+         src/gui/dialogs/DialogLoadUnload.cpp
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS HAS_MMU2=$<BOOL:${HAS_MMU2}>
   )
 
 # Due to the wrong use of interface library for WUI, the flag "GENERATED" is not properly propagated

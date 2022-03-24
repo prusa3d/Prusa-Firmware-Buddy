@@ -1286,6 +1286,7 @@
 // Homing speeds (mm/m)
 #define HOMING_FEEDRATE_XY (3000)
 #define HOMING_FEEDRATE_Z (6 * 60)
+#define HOMING_FEEDRATE_INVERTED_Z (30 * 60)
 
 // Validate that endstops are triggered on homing moves
 //#define VALIDATE_HOMING_ENDSTOPS
@@ -1385,6 +1386,11 @@
 //
 //#define INCH_MODE_SUPPORT
 
+/**
+ * R1 Redirect gcode support
+ */
+//#define REDIRECT_GCODE_SUPPORT
+
 //
 // M149 Set temperature units support
 //
@@ -1417,11 +1423,16 @@
 #define NOZZLE_PARK_FEATURE
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
+    #define Z_AXIS_LOAD_POS  40
+    #define Z_AXIS_UNLOAD_POS 20
+    // homing to this pos makes PTFE tube last longer
+    #define X_AXIS_LOAD_POS  ((X_MAX_POS) / 4)
+    #define X_AXIS_UNLOAD_POS  ((X_MAX_POS) / 4)
     // Specify a park position as { X, Y, Z }
     #define NOZZLE_PARK_POINT \
         { (X_MAX_POS - 10), (Y_MAX_POS - 10), 20 }
         #define NOZZLE_PARK_POINT_M600 \
-        { ( X_MAX_POS / 4 ), (Y_MIN_POS + 10), 20 }
+        { X_AXIS_LOAD_POS, (Y_MIN_POS + 10), 20 }
     #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
     #define NOZZLE_UNPARK_XY_FEEDRATE 30 // (mm/s) X and Y axes feedrate for unparking after m600
     #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)

@@ -20,7 +20,9 @@
 
 #include "i18n.h"
 
-const uint16_t icons[6] = {
+bool screen_home_data_t::ever_been_openned = false;
+
+const uint16_t icons[] = {
     IDR_PNG_print_58px,
     IDR_PNG_preheat_58px,
     IDR_PNG_spool_58px,
@@ -99,6 +101,7 @@ screen_home_data_t::screen_home_data_t()
     } else {
         usbWasAlreadyInserted = true;
     }
+    ever_been_openned = true;
 }
 
 screen_home_data_t::~screen_home_data_t() {

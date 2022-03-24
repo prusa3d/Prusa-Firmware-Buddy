@@ -24,7 +24,6 @@
 
 // clang-format off
 #if (!ENABLED(ADVANCED_PAUSE_FEATURE)) || \
-    EXTRUDERS > 1 || \
     HAS_LCD_MENU || \
     ENABLED(MMU2_MENUS) || \
     ENABLED(MIXING_EXTRUDER) || \
@@ -40,7 +39,7 @@
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
 #include <cmath>
-#include "filament_sensor.hpp"
+#include "filament_sensor_api.hpp"
 
 /**
  * M600: Pause for filament change
@@ -104,7 +103,7 @@ void GcodeSuite::M600() {
     }
 
     pause.FilamentChange();
-    FS_instance().ClrM600Sent(); //reset filament sensor M600 sent flag
+    FSensors_instance().ClrM600Sent(); //reset filament sensor M600 sent flag
 
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(targ_temp, target_extruder);

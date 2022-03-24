@@ -30,6 +30,7 @@
 #include "i18n.h"
 #include "eeprom.h"
 #include "w25x.h"
+#include "gui_fsensor_api.hpp"
 
 #ifdef HAS_RESOURCES
     #include "resources/bootstrap.hpp"
@@ -245,6 +246,9 @@ void gui_run(void) {
     //TODO make some kind of registration
     while (1) {
         gui::StartLoop();
+        if (screen_home_data_t::EverBeenOpenned()) {
+            gui::fsensor::validate_for_cyclical_calls();
+        }
         redraw = DialogHandler::Access().Loop();
         if (redraw == redraw_cmd_t::redraw)
             // all messages received, redraw changes immediately

@@ -28,7 +28,7 @@
 #include "pause_stubbed.hpp"
 #include "safety_timer_stubbed.hpp"
 #include "marlin_server.hpp"
-#include "filament_sensor.hpp"
+#include "fs_event_autolock.hpp"
 #include "filament.hpp"
 #include "client_response.hpp"
 #include "RAII.hpp"
@@ -245,6 +245,10 @@ void Pause::SetResumePoint(const xyze_pos_t &resume_point) {
     resume_pos = resume_point; //TODO check limits
 }
 
+void Pause::SetMmuFilamentToLoad(uint8_t index) {
+    mmu_filament_to_load = index;
+}
+
 bool Pause::is_target_temperature_safe() {
     if (!DEBUGGING(DRYRUN) && thermalManager.targetTooColdToExtrude(active_extruder)) {
         SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
@@ -339,18 +343,39 @@ bool Pause::loadLoop(load_mode_t mode) {
     const float purge_ln = std::max(purge_length, minimal_purge);
     const Response response = getResponse();
 
-    //transitions
+    // transitions
     switch (getLoadPhase()) {
     case LoadPhases_t::_init:
+        // retry and purge  work correctly, because they don't return to _init stage, they return to eject or purge
+        switch (mode) {
+        case load_mode_t::load_in_gear:
+            set(LoadPhases_t::autoload_in_gear);
+            break;
+        case load_mode_t::autoload:
+            // we have already loaded the filament in gear, now just wait for temperature to rise
+            Filaments::Set(Filaments::GetToBeLoaded());
+            set(LoadPhases_t::wait_temp);
+            break;
+        case load_mode_t::standalone_mmu:
+            //don't break
+        default:
+            set(LoadPhases_t::has_slow_load);
+            break;
+        }
+        break;
     case LoadPhases_t::has_slow_load:
         if (slow_load_length > 0) {
-            set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            if (FSensors_instance().PrinterHasFilament()) {
+                set(LoadPhases_t::load_in_gear);
+            } else {
+                set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            }
         } else {
             set(LoadPhases_t::wait_temp);
         }
         break;
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
-        if (FS_instance().Get() == fsensor_t::NoFilament) {
+        if (FSensors_instance().HasNotFilament()) {
             setPhase(can_stop ? PhasesLoadUnload::MakeSureInserted_stoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
         } else {
             setPhase(can_stop ? PhasesLoadUnload::UserPush_stoppable : PhasesLoadUnload::UserPush_unstoppable);
@@ -434,6 +459,11 @@ bool Pause::loadLoop(load_mode_t mode) {
 
         set(LoadPhases_t::has_slow_load);
     } break;
+    case LoadPhases_t::autoload_in_gear:
+        setPhase(can_stop ? PhasesLoadUnload::Inserting_stoppable : PhasesLoadUnload::Inserting_unstoppable, 10);
+        do_e_move_notify_progress_coldextrude(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
+        set(LoadPhases_t::_finish);
+        break;
     default:
         set(LoadPhases_t::_finish);
     }
@@ -449,6 +479,24 @@ bool Pause::FilamentLoad() {
     return filamentLoad(load_mode_t::standalone);
 }
 
+bool Pause::FilamentLoad_MMU() {
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    return filamentLoad(load_mode_t::standalone_mmu);
+}
+
+bool Pause::FilamentAutoload() {
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    return filamentLoad(load_mode_t::autoload);
+}
+bool Pause::LoadToGear() {
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    return filamentLoad(load_mode_t::load_in_gear);
+}
+
+bool Pause::UnloadFromGear() {
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    return filamentUnload(unload_mode_t::autoload_abort);
+}
 /**
  * Load filament into the hotend
  *
@@ -464,7 +512,7 @@ bool Pause::FilamentLoad() {
 bool Pause::filamentLoad(load_mode_t mode) {
 
     // actual temperature does not matter, only target
-    if (!is_target_temperature_safe())
+    if (!is_target_temperature_safe() && mode != load_mode_t::load_in_gear)
         return false;
 
 #if ENABLED(PID_EXTRUSION_SCALING)
@@ -492,13 +540,19 @@ bool Pause::unloadLoop(unload_mode_t mode) {
         return false;
     // if M600 was sent from filament sensor it was caused by runout
     // we need to change the ram sequence to prevent filament getting stuck in the extruder
-    const RammingType rammingType = FS_instance().WasM600_send() ? RammingType::runout : RammingType::unload;
+    const RammingType rammingType = FSensors_instance().WasM600_send() ? RammingType::runout : RammingType::unload;
 
     const Response response = getResponse();
 
-    //transitions
+    // transitions
     switch (getUnloadPhase()) {
     case UnloadPhases_t::_init:
+        if (mode == unload_mode_t::autoload_abort) {
+            set(UnloadPhases_t::unload_from_gear);
+        } else {
+            set(UnloadPhases_t::ram_sequence);
+        }
+        break;
     case UnloadPhases_t::ram_sequence:
         setPhase(can_stop ? PhasesLoadUnload::Ramming_stoppable : PhasesLoadUnload::Ramming_unstoppable, 50);
         ram_filament(rammingType);
@@ -511,12 +565,29 @@ bool Pause::unloadLoop(unload_mode_t mode) {
             break;
 
         Filaments::Set(filament_t::NONE);
-        setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
-        set(mode == unload_mode_t::standalone ? UnloadPhases_t::_finish : UnloadPhases_t::unloaded__ask);
+        switch (mode) {
+        case unload_mode_t::standalone_mmu:
+            set(UnloadPhases_t::run_mmu_unload);
+            break;
+        case unload_mode_t::ask_unloaded:
+            setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
+            set(UnloadPhases_t::unloaded__ask);
+            break;
+        default:
+            set(UnloadPhases_t::_finish);
+            break;
+        }
     } break;
     case UnloadPhases_t::unloaded__ask: {
         if (response == Response::Yes) {
-            set(mode == unload_mode_t::change_filament ? UnloadPhases_t::filament_not_in_fs : UnloadPhases_t::_finish);
+            switch (mode) {
+            case unload_mode_t::change_filament:
+                set(UnloadPhases_t::filament_not_in_fs);
+                break;
+            default:
+                set(UnloadPhases_t::_finish);
+                break;
+            }
         }
         if (response == Response::No) {
             setPhase(PhasesLoadUnload::ManualUnload, 100);
@@ -527,7 +598,7 @@ bool Pause::unloadLoop(unload_mode_t mode) {
     } break;
     case UnloadPhases_t::filament_not_in_fs: {
         setPhase(PhasesLoadUnload::FilamentNotInFS);
-        if (FS_instance().Get() != fsensor_t::HasFilament) {
+        if (!FSensors_instance().PrinterHasFilament()) {
             set(UnloadPhases_t::_finish);
         }
     } break;
@@ -537,6 +608,14 @@ bool Pause::unloadLoop(unload_mode_t mode) {
             set(mode == unload_mode_t::change_filament ? UnloadPhases_t::filament_not_in_fs : UnloadPhases_t::_finish);
         }
     } break;
+    case UnloadPhases_t::unload_from_gear:
+        setPhase(can_stop ? PhasesLoadUnload::Unloading_stoppable : PhasesLoadUnload::Unloading_unstoppable, 0);
+        do_e_move_notify_progress_coldextrude(-slow_load_length * (float)1.5, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 0, 100);
+        set(UnloadPhases_t::_finish);
+        break;
+    case UnloadPhases_t::run_mmu_unload:
+        set(UnloadPhases_t::_finish);
+        break;
     default:
         set(UnloadPhases_t::_finish);
     }
@@ -557,6 +636,11 @@ bool Pause::FilamentUnload_AskUnloaded() {
     return filamentUnload(unload_mode_t::ask_unloaded);
 }
 
+bool Pause::FilamentUnload_MMU() {
+    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    return filamentUnload(unload_mode_t::standalone_mmu);
+}
+
 /**
  * Unload filament from the hotend
  *
@@ -570,7 +654,7 @@ bool Pause::FilamentUnload_AskUnloaded() {
 bool Pause::filamentUnload(unload_mode_t mode) {
     if (process_stop(-1))
         return false;
-    if (!ensureSafeTemperatureNotifyProgress(0, 50)) {
+    if (!ensureSafeTemperatureNotifyProgress(0, 50) && mode != unload_mode_t::autoload_abort) {
         return false;
     }
 
@@ -651,6 +735,8 @@ void Pause::park_nozzle_and_notify() {
     //home the X or Y axis if it is not homed and we want to move it
     //homing is after Z move to be clear of all obstacles
     //Should not affect other operations than Load/Unload/Change filament run from home screen without homing. We are homed during print
+    // FIXME: `current_position.x - park_pos.x != 0` is not a safe condition because `current_position` is unreliable (not homed) use NAN instead.
+    // TODO: make homeaxis non-blocking to allow quick_stop
     if ((axis_homed & _BV(X_AXIS)) == 0 && current_position.x - park_pos.x != 0) {
         homeaxis(X_AXIS);
     }
@@ -746,6 +832,8 @@ void Pause::FilamentChange() {
 
     // Wait for buffered blocks to complete
     planner.synchronize();
+    //Lock filament sensor, so it does not enqueue new M600, beacuse of filament run out
+    FS_EventAutolock runout_disable;
 
 #if ENABLED(ADVANCED_PAUSE_FANS_PAUSE) && FAN_COUNT > 0
     thermalManager.set_fans_paused(true);

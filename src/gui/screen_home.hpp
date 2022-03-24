@@ -23,7 +23,10 @@ private:
 
     GCodeInfo &gcode;
 
+    static bool ever_been_openned; //set by ctor
+
 public:
+    static bool EverBeenOpenned() { return ever_been_openned; }
     screen_home_data_t();
     virtual ~screen_home_data_t() override;
 

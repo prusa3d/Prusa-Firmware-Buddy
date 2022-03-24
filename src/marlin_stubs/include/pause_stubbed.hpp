@@ -29,6 +29,8 @@ protected:
         unloaded__ask,
         manual_unload,
         filament_not_in_fs,
+        unload_from_gear,
+        run_mmu_unload,
         _phase_does_not_exist,
         _finish = _phase_does_not_exist
     };
@@ -38,6 +40,7 @@ protected:
         has_slow_load,
         check_filament_sensor_and_user_push__ask, //must be one phase because of button click
         load_in_gear,
+        autoload_in_gear,
         wait_temp,
         error_temp,
         has_long_load,
@@ -106,12 +109,17 @@ class Pause : public PausePrivatePhase {
 
     enum class unload_mode_t {
         standalone,
+        standalone_mmu,
         change_filament,
-        ask_unloaded
+        ask_unloaded,
+        autoload_abort // unload from gear - full long unload at high speed
     };
     enum class load_mode_t {
         standalone,
-        change_filament
+        standalone_mmu,
+        change_filament,
+        autoload,
+        load_in_gear
     };
 
     static constexpr const float heating_phase_min_hotend_diff = 5.0F;
@@ -126,6 +134,7 @@ class Pause : public PausePrivatePhase {
     xyz_pos_t park_pos;
     xyze_pos_t resume_pos;
 
+    uint8_t mmu_filament_to_load = 0;
     bool stop = false;
     bool can_stop = false;
 
@@ -150,11 +159,17 @@ public:
     void SetRetractLength(float len);
     void SetParkPoint(const xyz_pos_t &park_point);
     void SetResumePoint(const xyze_pos_t &resume_point);
+    void SetMmuFilamentToLoad(uint8_t index);
 
     bool FilamentUnload();
     bool FilamentUnload_AskUnloaded();
+    bool FilamentUnload_MMU();
+    bool FilamentAutoload();
+    bool LoadToGear();
+    bool UnloadFromGear();
     bool FilamentLoad();
     void FilamentChange();
+    bool FilamentLoad_MMU();
 
 private:
     // park moves calculations

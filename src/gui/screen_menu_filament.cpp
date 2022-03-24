@@ -5,7 +5,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "filament.hpp"
-#include "filament_sensor.hpp"
+#include "filament_sensor_api.hpp"
 #include "i18n.h"
 #include "MItem_filament.hpp"
 
@@ -63,7 +63,7 @@ void ScreenMenuFilament::deactivate_item() {
 
     uint8_t filament = 0;
     filament |= Filaments::CurrentIndex() != filament_t::NONE ? F_EEPROM : 0;
-    filament |= FS_instance().Get() == fsensor_t::NoFilament ? 0 : F_SENSED;
+    filament |= FSensors_instance().HasFilament() ? F_SENSED : 0;
     switch (filament) {
     case 0:        //filament not loaded
     case F_SENSED: //user pushed filament into sensor, but it is not loaded

@@ -8,10 +8,10 @@
 
 #pragma once
 
-#include "filament_sensor.hpp"
+#include "filament_sensor_api.hpp"
 
 class FS_EventAutolock {
 public:
-    inline FS_EventAutolock() { FS_instance().IncEvLock(); }
-    inline ~FS_EventAutolock() { FS_instance().DecEvLock(); }
+    inline FS_EventAutolock() { FSensors_instance().IncEvLock(); }
+    inline ~FS_EventAutolock() { FSensors_instance().DecEvLock(); }
 };
