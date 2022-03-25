@@ -783,7 +783,7 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
   while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)
   {
     // this is workaround for detect timeout on USB Host
-    if (((USBH_MSC_GetIndependentTimerTicks() - independent_timestamp) > (1000U * length)) || (phost->device.is_connected))
+    if (((USBH_MSC_GetIndependentTimerTicks() - independent_timestamp) > (1000U * length)) || (phost->device.is_connected == 0U))
     {
       MSC_Handle->state = MSC_IDLE;
       return USBH_FAIL;
@@ -840,7 +840,7 @@ USBH_StatusTypeDef USBH_MSC_Write(USBH_HandleTypeDef *phost,
   while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)
   {
     // this is workaround for detect timeout on USB Host
-    if (((USBH_MSC_GetIndependentTimerTicks() - independent_timestamp) > (1000U * length)) || (phost->device.is_connected))
+    if (((USBH_MSC_GetIndependentTimerTicks() - independent_timestamp) > (1000U * length)) || (phost->device.is_connected == 0U))
     {
       MSC_Handle->state = MSC_IDLE;
       return USBH_FAIL;
