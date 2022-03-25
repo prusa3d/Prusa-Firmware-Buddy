@@ -240,6 +240,9 @@ variant8_t variant8_i8(int8_t i8) {
     _variant8_t v = _VARIANT8_TYPE(VARIANT8_I8, 0, 0, .i8 = i8);
     return *pack(&v);
 }
+variant8_t variant8_bool(bool b) {
+    return variant8_i8(int8_t(b));
+}
 variant8_t variant8_ui8(uint8_t ui8) {
     _variant8_t v = _VARIANT8_TYPE(VARIANT8_UI8, 0, 0, .ui8 = ui8);
     return *pack(&v);

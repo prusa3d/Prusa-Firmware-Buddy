@@ -4,6 +4,7 @@
 
 #include <inttypes.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 enum {
     VARIANT8_EMPTY = 0x00,       // empty - no data

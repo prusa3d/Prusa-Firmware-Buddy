@@ -25,12 +25,12 @@ typedef enum {
     MARLIN_VAR_FANSPEED = 0x10,            // RW: uint8, thermalManager.fan_speed[0], thermalManager.set_fan_speed()
     MARLIN_VAR_PRNSPEED = 0x11,            // RW: uint16, feedrate_percentage
     MARLIN_VAR_FLOWFACT = 0x12,            // RW: uint16, planner.flow_percentage
-    MARLIN_VAR_WAITHEAT = 0x13,            // RW: uint8, Marlin, wait_for_heatup
-    MARLIN_VAR_WAITUSER = 0x14,            // RW: uint8, Marlin, wait_for_user
-    MARLIN_VAR_SD_PRINT = 0x15,            // R:  uint8, card.flag.sdprinting
+    MARLIN_VAR_WAITHEAT = 0x13,            // RW: bool, Marlin, wait_for_heatup
+    MARLIN_VAR_WAITUSER = 0x14,            // RW: bool, Marlin, wait_for_user
+    MARLIN_VAR_SD_PRINT = 0x15,            // R:  bool, card.flag.sdprinting
     MARLIN_VAR_SD_PDONE = 0x16,            // R:  uint8, card.percentDone()
     MARLIN_VAR_DURATION = 0x17,            // R:  uint32, print_job_timer.duration()
-    MARLIN_VAR_MEDIAINS = 0x18,            // R:  uint8, media_is_inserted()
+    MARLIN_VAR_MEDIAINS = 0x18,            // R:  bool, media_is_inserted()
     MARLIN_VAR_PRNSTATE = 0x19,            // R:  marlin_print_state_t, marlin_server.print_state
     MARLIN_VAR_FILENAME = 0x1a,            // R:  char*,
     MARLIN_VAR_FILEPATH = 0x1b,            // R:  char*,
@@ -38,8 +38,8 @@ typedef enum {
     MARLIN_VAR_TIMTOEND = 0x1d,            // R:  uint32, oProgressData.oTime2End.mGetValue() or -1 if not valid
     MARLIN_VAR_PRINT_FAN_RPM = 0x1e,       // R:  uint16, fanCtlPrint.getActualRPM()
     MARLIN_VAR_HEATBREAK_FAN_RPM = 0x1f,   // R:  uint16, fanCtlHeatBreak.getActualRPM()
-    MARLIN_VAR_FAN_CHECK_ENABLED = 0x20,   // RW: uintt8, fan_check
-    MARLIN_VAR_FS_AUTOLOAD_ENABLED = 0x21, // RW: uint8_t fs_autoload
+    MARLIN_VAR_FAN_CHECK_ENABLED = 0x20,   // RW: bool, fan_check
+    MARLIN_VAR_FS_AUTOLOAD_ENABLED = 0x21, // RW: bool, fs_autoload
     MARLIN_VAR_CURR_POS_X = 0x22,          // R: float current_position
     MARLIN_VAR_CURR_POS_Y = 0x23,          // R: ==||==
     MARLIN_VAR_CURR_POS_Z = 0x24,          // R: ==||==
