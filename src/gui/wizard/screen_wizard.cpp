@@ -135,9 +135,9 @@ WizardState_t StateFnc_START() {
     switch (MsgBoxPepa(translatedText, resp, 0, GuiDefaults::RectScreenNoHeader)) {
 #ifdef _DEBUG
     case Response::Ignore:
-        eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
-        eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
-        eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
+        eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_bool(false)); // clear selftest flag
+        eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_bool(false)); // clear XYZ calib flag
+        eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_bool(false)); // clear first layer flag
         return WizardState_t::EXIT;
 #endif //_DEBUG
     case Response::Yes:
