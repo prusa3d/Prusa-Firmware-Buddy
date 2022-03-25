@@ -1,6 +1,8 @@
 // marlin_client.h
 #pragma once
 
+#include <stdbool.h>
+
 #include "marlin_events.h"
 #include "marlin_vars.h"
 #include "marlin_errors.h"
@@ -153,8 +155,8 @@ extern float marlin_set_target_bed(float val);
 extern uint8_t marlin_set_fan_speed(uint8_t val);
 extern uint16_t marlin_set_print_speed(uint16_t val);
 extern uint16_t marlin_set_flow_factor(uint16_t val);
-extern uint8_t marlin_set_wait_heat(uint8_t val);
-extern uint8_t marlin_set_wait_user(uint8_t val);
+extern bool marlin_set_wait_heat(bool val);
+extern bool marlin_set_wait_user(bool val);
 
 extern void marlin_do_babysteps_Z(float offs);
 

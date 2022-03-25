@@ -546,12 +546,8 @@ bool MI_MINDA::StateChanged() {
 MI_FAN_CHECK::MI_FAN_CHECK()
     : WI_SWITCH_OFF_ON_t(variant8_get_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_FAN_CHECK::OnChange(size_t old_index) {
-    if (!old_index) {
-        marlin_set_var(MARLIN_VAR_FAN_CHECK_ENABLED, variant8_ui8(1));
-    } else {
-        marlin_set_var(MARLIN_VAR_FAN_CHECK_ENABLED, variant8_ui8(0));
-    }
-    eeprom_set_var(EEVAR_FAN_CHECK_ENABLED, variant8_bool(variant8_get_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED))));
+    marlin_set_var(MARLIN_VAR_FAN_CHECK_ENABLED, variant8_bool(!old_index));
+    eeprom_set_var(EEVAR_FAN_CHECK_ENABLED, marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED));
 }
 
 /*****************************************************************************/
@@ -561,14 +557,10 @@ is_hidden_t hide_autoload_item() {
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
-    : WI_SWITCH_OFF_ON_t(variant8_get_ui8(marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED)), _(label), 0, is_enabled_t::yes, hide_autoload_item()) {}
+    : WI_SWITCH_OFF_ON_t(variant8_get_bool(marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED)), _(label), 0, is_enabled_t::yes, hide_autoload_item()) {}
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
-    if (!old_index) {
-        marlin_set_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED, variant8_ui8(1));
-    } else {
-        marlin_set_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED, variant8_ui8(0));
-    }
-    eeprom_set_var(EEVAR_FS_AUTOLOAD_ENABLED, variant8_ui8(marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED)));
+    marlin_set_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED, variant8_bool(!old_index));
+    eeprom_set_var(EEVAR_FS_AUTOLOAD_ENABLED, marlin_get_var(MARLIN_VAR_FS_AUTOLOAD_ENABLED));
 }
 MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
     : WI_FORMATABLE_LABEL_t<float>(label, id_icon, enabled, hidden, initVal, [&](char *buffer) {

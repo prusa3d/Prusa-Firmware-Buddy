@@ -488,12 +488,12 @@ uint16_t marlin_set_flow_factor(uint16_t val) {
     return variant8_get_ui16(marlin_set_var(MARLIN_VAR_FLOWFACT, variant8_ui16(val)));
 }
 
-uint8_t marlin_set_wait_heat(uint8_t val) {
-    return variant8_get_ui8(marlin_set_var(MARLIN_VAR_WAITHEAT, variant8_ui8(val)));
+bool marlin_set_wait_heat(bool val) {
+    return variant8_get_bool(marlin_set_var(MARLIN_VAR_WAITHEAT, variant8_bool(val)));
 }
 
-uint8_t marlin_set_wait_user(uint8_t val) {
-    return variant8_get_ui8(marlin_set_var(MARLIN_VAR_WAITUSER, variant8_ui8(val)));
+bool marlin_set_wait_user(bool val) {
+    return variant8_get_bool(marlin_set_var(MARLIN_VAR_WAITUSER, variant8_bool(val)));
 }
 
 void marlin_do_babysteps_Z(float offs) {
