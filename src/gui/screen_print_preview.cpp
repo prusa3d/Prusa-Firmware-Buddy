@@ -33,7 +33,7 @@ static bool check_filament_presence(GCodeInfo &gcode) {
         switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()), txt_fil_not_detected, btns, 0, GuiDefaults::DialogFrameRect)) {
         case Response::Yes: //YES - load
             if (has_mmu) {
-                // TODO
+                PreheatStatus::DialogBlocking(PreheatMode::MMU_unload, RetAndCool_t::Neither);
             } else {
                 PreheatStatus::DialogBlocking(PreheatMode::Load, RetAndCool_t::Return);
             }

@@ -109,7 +109,7 @@ public:
         return RetAndCool_t::Neither;
     }
     static constexpr PreheatMode GetMode(uint8_t data) {
-        return PreheatMode((data & mode_mask) <= uint8_t(PreheatMode::_last) ? data & 0x0F : uint8_t(PreheatMode::None));
+        return PreheatMode((data & mode_mask) <= uint8_t(PreheatMode::_last) ? data & mode_mask : uint8_t(PreheatMode::None));
     }
 };
 

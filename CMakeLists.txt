@@ -625,8 +625,8 @@ target_sources(
           src/common/freertos_mutex.cpp
           src/common/non_file_printing_counter.cpp
           src/common/print_processor.cpp
-          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
-          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_api.cpp>
+          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/filament_sensor.cpp>
+          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/filament_sensor_api.cpp>
           $<$<NOT:$<BOOL:${HAS_MMU2}>>:src/common/filament_sensor_api_no_mmu.cpp>
           $<$<STREQUAL:${FILAMENT_SENSOR},ADC>:src/common/filament_sensor_adc.cpp>
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor_photoeletric.cpp>
