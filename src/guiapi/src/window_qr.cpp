@@ -27,7 +27,7 @@ window_qr_t::window_qr_t(window_t *parent, Rect16 rect)
 }
 
 void window_qr_t::SetQRHeader(uint16_t err_num) {
-    bool devhash_in_qr = variant8_get_ui8(eeprom_get_var(EEVAR_DEVHASH_IN_QR));
+    bool devhash_in_qr = variant8_get_bool(eeprom_get_var(EEVAR_DEVHASH_IN_QR));
     if (devhash_in_qr) {
         error_url_long(text, sizeof(text), err_num);
     } else {

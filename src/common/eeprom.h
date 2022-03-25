@@ -44,9 +44,9 @@ enum eevar_id {
     EEVAR_FW_BUILD = 0x04,                    // uint16_t firmware build number
     EEVAR_FILAMENT_TYPE = 0x05,               // uint8_t  filament type
     EEVAR_FILAMENT_COLOR = 0x06,              // uint32_t filament color (rgb)
-    EEVAR_RUN_SELFTEST = 0x07,                // uint8_t  selftest flag
-    EEVAR_RUN_XYZCALIB = 0x08,                // uint8_t  xyz calibration flag
-    EEVAR_RUN_FIRSTLAY = 0x09,                // uint8_t  first layer calibration flag
+    EEVAR_RUN_SELFTEST = 0x07,                // bool     selftest flag
+    EEVAR_RUN_XYZCALIB = 0x08,                // bool     xyz calibration flag
+    EEVAR_RUN_FIRSTLAY = 0x09,                // bool     first layer calibration flag
     EEVAR_FSENSOR_ENABLED = 0x0a,             // uint8_t  fsensor state
     EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY = 0x0b, // float zoffset
 // use float eeprom_get_z_offset() / bool eeprom_set_z_offset(float value) instead
@@ -83,7 +83,7 @@ enum eevar_id {
     EEVAR_SOUND_VOLUME = 0x1b, // uint8_t
     EEVAR_LANGUAGE = 0x1c,     // uint16_t
     EEVAR_FILE_SORT = 0x1d,    // uint8_t  filebrowser file sort options
-    EEVAR_MENU_TIMEOUT = 0x1e, // uint8_t on / off menu timeout flag
+    EEVAR_MENU_TIMEOUT = 0x1e, // bool on / off menu timeout flag
     EEVAR_ACTIVE_SHEET = 0x1f,
     EEVAR_SHEET_PROFILE0 = 0x20,
     EEVAR_SHEET_PROFILE1 = 0x21,
@@ -94,11 +94,11 @@ enum eevar_id {
     EEVAR_SHEET_PROFILE6 = 0x26,
     EEVAR_SHEET_PROFILE7 = 0x27,
     EEVAR_SELFTEST_RESULT = 0x28, // uint32_t, two bits for each selftest part
-    EEVAR_DEVHASH_IN_QR = 0x29,   // uint8_t on / off sending UID in QR
+    EEVAR_DEVHASH_IN_QR = 0x29,   // bool on / off sending UID in QR
     EEVAR_FOOTER_SETTING = 0x2a,
     EEVAR_FOOTER_DRAW_TYPE = 0x2b,
-    EEVAR_FAN_CHECK_ENABLED = 0x2c,   // uint8_t on / off fan check
-    EEVAR_FS_AUTOLOAD_ENABLED = 0x2d, // uint8_t on / off fs autoload
+    EEVAR_FAN_CHECK_ENABLED = 0x2c,   // bool on / off fan check
+    EEVAR_FS_AUTOLOAD_ENABLED = 0x2d, // bool on / off fs autoload
     EEVAR_ODOMETER_X = 0x2e,          // float
     EEVAR_ODOMETER_Y = 0x2f,          // float
     EEVAR_ODOMETER_Z = 0x30,          // float
@@ -135,7 +135,7 @@ enum eevar_id {
     EEVAR_WIFI_AP_PASSWD = 0x4b, // 64char string
 #endif                           // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
 
-    EEVAR_USB_MSC_ENABLED = 0x4c, // uint8_t, on/off
+    EEVAR_USB_MSC_ENABLED = 0x4c, // bool, on/off
 
     EEVAR_CRC32 = 0x4d, // uint32_t crc32 for
 };

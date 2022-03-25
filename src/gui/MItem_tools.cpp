@@ -417,7 +417,7 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
     } else {
         Screens::Access()->DisableMenuTimeout();
     }
-    eeprom_set_var(EEVAR_MENU_TIMEOUT, variant8_ui8((uint8_t)(Screens::Access()->GetMenuTimeout() ? 1 : 0)));
+    eeprom_set_var(EEVAR_MENU_TIMEOUT, variant8_bool(uint8_t(Screens::Access()->GetMenuTimeout())));
 }
 
 /*****************************************************************************/
@@ -551,7 +551,7 @@ void MI_FAN_CHECK::OnChange(size_t old_index) {
     } else {
         marlin_set_var(MARLIN_VAR_FAN_CHECK_ENABLED, variant8_ui8(0));
     }
-    eeprom_set_var(EEVAR_FAN_CHECK_ENABLED, variant8_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED)));
+    eeprom_set_var(EEVAR_FAN_CHECK_ENABLED, variant8_bool(variant8_get_ui8(marlin_get_var(MARLIN_VAR_FAN_CHECK_ENABLED))));
 }
 
 /*****************************************************************************/

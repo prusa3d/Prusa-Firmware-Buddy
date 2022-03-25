@@ -328,6 +328,9 @@ uint8_t variant8_get_ui8(variant8_t v) { return unpack(&v)->ui8; }
 // returns variant8_t i8
 int8_t variant8_get_i8(variant8_t v) { return unpack(&v)->i8; }
 
+// returns variant8_t bool
+bool variant8_get_bool(variant8_t v) { return (bool)variant8_get_i8(v); }
+
 #ifdef CLEAN_UNUSED
 variant8_t variant8_pui8(uint8_t *pui8, uint16_t count, int init) {
     if (init)

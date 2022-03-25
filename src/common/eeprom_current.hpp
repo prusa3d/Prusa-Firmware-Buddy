@@ -52,7 +52,7 @@ constexpr vars_body_t body_defaults = {
     DEFAULT_HOST_NAME, // EEVAR_WIFI_HOSTNAME
     "",                // EEVAR_WIFI_AP_SSID
     "",                // EEVAR_WIFI_AP_PASSWD
-    0,                 // EEVAR_USB_MSC_ENABLED
+    false,             // EEVAR_USB_MSC_ENABLED
 };
 
 inline vars_body_t convert(const eeprom::v10::vars_body_t &src) {

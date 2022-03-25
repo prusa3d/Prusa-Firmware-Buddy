@@ -183,7 +183,7 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT() {
 
 WizardState_t StateFnc_FIRSTLAY_RESULT() {
     //save eeprom flag
-    eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
+    eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_bool(false)); // clear first layer flag
     return WizardState_t::FINISH;
 
     //use following code when firstlay fails

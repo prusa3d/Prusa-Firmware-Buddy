@@ -54,8 +54,8 @@ constexpr vars_body_t body_defaults = {
     eeprom::v9::body_defaults,
     footer::eeprom::Encode(footer::DefaultItems),                               // EEVAR_FOOTER_SETTING
     uint32_t(footer::ItemDrawCnf::Default()),                                   // EEVAR_FOOTER_DRAW_TYPE
-    1,                                                                          // EEVAR_FAN_CHECK_ENABLED
-    1,                                                                          // EEVAR_FS_AUTOLOAD_ENABLED
+    true,                                                                       // EEVAR_FAN_CHECK_ENABLED
+    true,                                                                       // EEVAR_FS_AUTOLOAD_ENABLED
     0,                                                                          // EEVAR_ODOMETER_X
     0,                                                                          // EEVAR_ODOMETER_Y
     0,                                                                          // EEVAR_ODOMETER_Z

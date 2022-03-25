@@ -80,7 +80,7 @@ void tud_msc_inquiry_cb(uint8_t lun, uint8_t vendor_id[8], uint8_t product_id[16
 
 /// Check whether the user has enabled the USB MSC feature
 static bool usb_msc_enabled() {
-    return variant8_get_i8(eeprom_get_var(EEVAR_USB_MSC_ENABLED));
+    return variant8_get_bool(eeprom_get_var(EEVAR_USB_MSC_ENABLED));
 }
 
 // Invoked when received Test Unit Ready command.

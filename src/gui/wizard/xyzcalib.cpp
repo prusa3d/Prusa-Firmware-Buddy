@@ -284,7 +284,7 @@ int xyzcalib_is_ok(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t
                 }
                 break;
             case _STATE_XYZCALIB_RESULT:
-                eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
+                eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_bool(false)); // clear XYZ calib flag
                 wizard_msgbox(_(
                                   "Congratulations! "
                                   "XYZ calibration is ok. "
