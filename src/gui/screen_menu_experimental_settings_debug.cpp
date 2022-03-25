@@ -25,8 +25,8 @@ using Screen = ScreenMenu<EFooter::On, MI_SAVE_AND_RETURN, MI_Z_AXIS_LEN, MI_RES
     MI_CURRENT_X, MI_CURRENT_Y, MI_CURRENT_Z, MI_CURRENT_E, MI_RESET_CURRENTS>;
 
 class ScreenMenuExperimentalSettings : public Screen {
-    static constexpr const char *const save_and_reboot = N_("Do you want to save changes and reboot the printer?");
-    constexpr static const char *label = N_("Experimental Settings");
+    static constexpr const char *const save_and_reboot = "Do you want to save changes and reboot the printer?";
+    constexpr static const char *label = "Experimental Settings";
     struct values_t {
         values_t(ScreenMenuExperimentalSettings &parent)
             : z_len(parent.Item<MI_Z_AXIS_LEN>().GetVal())
