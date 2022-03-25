@@ -4,6 +4,12 @@ function(add_resource source_path install_path)
   lfs_image_add_file(resources-image "${source_path}" "${install_path}")
 endfunction()
 
+function(add_gzip_resource source_path install_path)
+  set(gzip_file_path "${CMAKE_CURRENT_BINARY_DIR}/gzipped${install_path}")
+  gzip_file("${source_path}" "${gzip_file_path}")
+  add_resource("${gzip_file_path}" "${install_path}")
+endfunction()
+
 add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
 add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
 add_resource("esp/partition-table.bin" "/esp/partition-table.bin")

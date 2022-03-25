@@ -167,3 +167,17 @@ function(create_file_with_value file_path format value)
     VERBATIM
     )
 endfunction()
+
+function(gzip_file input_file output_file)
+  set(PYTHON_CODE
+      "import sys" "import gzip" "input_file = open(sys.argv[1], 'rb')"
+      "output_file = open(sys.argv[2], 'wb')" "output_file.write(gzip.compress(input_file.read()))"
+      )
+  add_custom_command(
+    OUTPUT "${output_file}"
+    DEPENDS "${input_file}"
+    COMMAND ${Python3_EXECUTABLE} "-c" "${PYTHON_CODE}" "${input_file}" "${output_file}"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    VERBATIM
+    )
+endfunction()
