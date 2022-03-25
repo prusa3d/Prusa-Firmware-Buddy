@@ -141,7 +141,7 @@ ScreenMenuESPUpdate::ScreenMenuESPUpdate()
     header.SetText(_(label));
     menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);        // set capture to list
-    help.SetText(_("- Make sure the files are in the ESP folder of the flash disk and the ESP is connected."));
+    help.SetText(_("- Make sure the ESP is connected."));
     /*
      * Timeout while flashing is bad, the flashing would stop in the middle.
      */
