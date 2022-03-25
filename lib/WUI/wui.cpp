@@ -527,7 +527,7 @@ void notify_reconfigure() {
 }
 
 void netdev_set_active_id(uint32_t netdev_id) {
-    assert(netdev_id < NETDEV_COUNT);
+    assert(netdev_id <= NETDEV_COUNT);
 
     eeprom_set_var(EEVAR_ACTIVE_NETDEV, variant8_ui8((uint8_t)(netdev_id & 0xFF)));
 
