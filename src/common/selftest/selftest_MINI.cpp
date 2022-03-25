@@ -126,7 +126,7 @@ void CSelftest::Loop() {
         if (phaseAxis(Config_XAxis, &m_pXAxis))
             return;
         SelftestResultEEprom_t eeres;
-        eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+        eeres.ui32 = eeprom_get_ui32(EEVAR_SELFTEST_RESULT);
         if (eeres.xaxis == SelftestResult_Failed) {
             m_State = stsWait_axes;
             return;
@@ -189,7 +189,7 @@ void CSelftest::phaseStart() {
     }
     log_open();
     SelftestResultEEprom_t eeres; // read previous result
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = eeprom_get_ui32(EEVAR_SELFTEST_RESULT);
 
     if (m_Mask & stmFans) {
         eeres.printFan = 0;
@@ -205,7 +205,7 @@ void CSelftest::phaseStart() {
         eeres.nozzle = 0;
         eeres.bed = 0;
     }
-    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32)); // reset status for all selftest parts in eeprom
+    eeprom_set_ui32(EEVAR_SELFTEST_RESULT, eeres.ui32); // reset status for all selftest parts in eeprom
 }
 
 bool CSelftest::phaseFans(const selftest_fan_config_t &config_print_fan, const selftest_fan_config_t &config_heatbreak_fan) {
@@ -223,10 +223,10 @@ bool CSelftest::phaseFans(const selftest_fan_config_t &config_print_fan, const s
     fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::measure, result.Serialize());
 
     SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = eeprom_get_ui32(EEVAR_SELFTEST_RESULT);
     eeres.printFan = m_pFanPrint->GetResult();
     eeres.heatBreakFan = m_pFanHeatBreak->GetResult();
-    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
+    eeprom_set_ui32(EEVAR_SELFTEST_RESULT, eeres.ui32);
     delete m_pFanPrint;
     m_pFanPrint = nullptr;
     delete m_pFanHeatBreak;
@@ -293,7 +293,7 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPa
     *ppaxis = *ppaxis ? *ppaxis : new CSelftestPart_Axis(config_axis);
 
     SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = eeprom_get_ui32(EEVAR_SELFTEST_RESULT);
 
     if ((*ppaxis)->Loop()) {
         send_axis_result(eeres, AxisEnum(config_axis.axis), (*ppaxis)->GetProgress());
@@ -311,7 +311,7 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPa
         eeres.zaxis = (*ppaxis)->GetResult();
         break;
     }
-    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
+    eeprom_set_ui32(EEVAR_SELFTEST_RESULT, eeres.ui32);
 
     SelftestAxis_t result(100, 100, 100, is_eeres_ok(eeres.xaxis), is_eeres_ok(eeres.yaxis), is_eeres_ok(eeres.zaxis));
     fsm_change(ClientFSM::SelftestAxis, PhasesSelftestAxis::measure, result.Serialize());
@@ -341,10 +341,10 @@ bool CSelftest::phaseHeaters(const selftest_heater_config_t &config_nozzle, cons
     fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::measure, result.Serialize());
 
     SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = eeprom_get_ui32(EEVAR_SELFTEST_RESULT);
     eeres.nozzle = m_pHeater_Nozzle->GetResult();
     eeres.bed = m_pHeater_Bed->GetResult();
-    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
+    eeprom_set_ui32(EEVAR_SELFTEST_RESULT, eeres.ui32);
     delete m_pHeater_Nozzle;
     m_pHeater_Nozzle = nullptr;
     delete m_pHeater_Bed;

@@ -268,7 +268,7 @@ private:
     void reconfigure() {
         // Read some stuff from the eeprom.
         // TODO: Lock! (even the desired config can be read from other threads, eg. the tcpip_thread from a callback :-(
-        const uint32_t active_local = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_NETDEV));
+        const uint32_t active_local = eeprom_get_ui8(EEVAR_ACTIVE_NETDEV);
         // Store into the atomic variable, but keep working with the stack copy.
         active = active_local;
         load_net_params(&ifaces[NETDEV_ETH_ID].desired_config, nullptr, NETDEV_ETH_ID);
@@ -295,7 +295,7 @@ private:
             netifapi_netif_set_default(&ifaces[active_local].dev);
         }
 
-        if (variant8_get_ui8(eeprom_get_var(EEVAR_PL_RUN)) == 1) {
+        if (eeprom_get_ui8(EEVAR_PL_RUN) == 1) {
             httpd_start();
         } else {
             httpd_close();
@@ -529,7 +529,7 @@ void notify_reconfigure() {
 void netdev_set_active_id(uint32_t netdev_id) {
     assert(netdev_id <= NETDEV_COUNT);
 
-    eeprom_set_var(EEVAR_ACTIVE_NETDEV, variant8_ui8((uint8_t)(netdev_id & 0xFF)));
+    eeprom_set_ui8(EEVAR_ACTIVE_NETDEV, (uint8_t)(netdev_id & 0xFF));
 
     notify_reconfigure();
 }
@@ -557,10 +557,10 @@ void modify_flag(uint32_t netdev_id, F &&f) {
     //   as fresh value as possible. This still leaves the possibility of a
     //   race condition (two threads messing with the same variable), but that
     //   is unlikely.
-    const uint8_t old = variant8_get_ui8(eeprom_get_var(var));
+    const uint8_t old = eeprom_get_ui8(var);
     uint8_t flag = f(old);
     if (old != flag) {
-        eeprom_set_var(var, variant8_ui8(flag));
+        eeprom_set_ui8(var, flag);
         notify_reconfigure();
     }
 }

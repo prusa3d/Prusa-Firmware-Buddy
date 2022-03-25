@@ -57,7 +57,7 @@ void Filaments::SetToBeLoaded(filament_t filament) {
 
 //first call will initialize variable from flash, similar behavior to Meyers singleton
 filament_t &Filaments::get_ref() {
-    static filament_t filament_selected = filament_t(variant8_get_ui8(eeprom_get_var(EEVAR_FILAMENT_TYPE)));
+    static filament_t filament_selected = filament_t(eeprom_get_ui8(EEVAR_FILAMENT_TYPE));
     if (size_t(filament_selected) > size_t(filament_t::_last)) {
         filament_selected = filament_t::NONE;
     }
@@ -101,7 +101,7 @@ void Filaments::Set(filament_t filament) {
         return;
     }
     get_ref() = filament;
-    eeprom_set_var(EEVAR_FILAMENT_TYPE, variant8_ui8(size_t(filament)));
+    eeprom_set_ui8(EEVAR_FILAMENT_TYPE, size_t(filament));
 }
 
 filament_t Filaments::GetLastPreheated() {

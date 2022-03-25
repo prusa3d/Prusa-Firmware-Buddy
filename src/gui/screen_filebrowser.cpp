@@ -36,7 +36,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     , header(this)
     , w_filelist(this, GuiDefaults::RectScreenNoHeader)
     , gcode_info(GCodeInfo::getInstance()) {
-    screen_filebrowser_sort = (WF_Sort_t)variant8_get_ui8(eeprom_get_var(EEVAR_FILE_SORT));
+    screen_filebrowser_sort = (WF_Sort_t)eeprom_get_ui8(EEVAR_FILE_SORT);
 
     header.SetIcon(IDR_PNG_folder_full_16px);
     static const char sf[] = N_("SELECT FILE");

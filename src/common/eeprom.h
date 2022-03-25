@@ -47,7 +47,7 @@ enum eevar_id {
     EEVAR_RUN_SELFTEST = 0x07,                // bool     selftest flag
     EEVAR_RUN_XYZCALIB = 0x08,                // bool     xyz calibration flag
     EEVAR_RUN_FIRSTLAY = 0x09,                // bool     first layer calibration flag
-    EEVAR_FSENSOR_ENABLED = 0x0a,             // uint8_t  fsensor state
+    EEVAR_FSENSOR_ENABLED = 0x0a,             // bool     fsensor state
     EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY = 0x0b, // float zoffset
 // use float eeprom_get_z_offset() / bool eeprom_set_z_offset(float value) instead
 // because EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY is unused in case sheets are enabled
@@ -204,8 +204,28 @@ extern void eeprom_defaults(void);
 // get variable value as variant8
 extern variant8_t eeprom_get_var(enum eevar_id id);
 
+extern float eeprom_get_flt(enum eevar_id id);
+extern char *eeprom_get_pch(enum eevar_id id);
+extern uint8_t eeprom_get_uia(enum eevar_id id, uint8_t index);
+extern uint32_t eeprom_get_ui32(enum eevar_id id);
+extern int32_t eeprom_get_i32(enum eevar_id id);
+extern uint16_t eeprom_get_ui16(enum eevar_id id);
+extern uint8_t eeprom_get_ui8(enum eevar_id id);
+extern int8_t eeprom_get_i8(enum eevar_id id);
+extern bool eeprom_get_bool(enum eevar_id id);
+
 // set variable value as variant8
 extern void eeprom_set_var(enum eevar_id id, variant8_t var);
+
+extern void eeprom_set_i8(enum eevar_id id, int8_t i8);
+extern void eeprom_set_bool(enum eevar_id id, bool b);
+extern void eeprom_set_ui8(enum eevar_id id, uint8_t ui8);
+extern void eeprom_set_i16(enum eevar_id id, int16_t i16);
+extern void eeprom_set_ui16(enum eevar_id id, uint16_t ui16);
+extern void eeprom_set_i32(enum eevar_id id, int32_t i32);
+extern void eeprom_set_ui32(enum eevar_id id, uint32_t ui32);
+extern void eeprom_set_flt(enum eevar_id id, float flt);
+extern void eeprom_set_pchar(enum eevar_id id, char *pch, uint16_t count, int init);
 
 // get number of variables
 extern uint8_t eeprom_get_var_count(void);

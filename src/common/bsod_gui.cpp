@@ -260,7 +260,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
         render_text_align(Rect16(6, 295, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
         /// hash
-        if (variant8_get_bool(eeprom_get_var(EEVAR_DEVHASH_IN_QR))) {
+        if (eeprom_get_bool(EEVAR_DEVHASH_IN_QR)) {
             char p_code[9];
             printerCode(p_code);
             render_text_align(Rect16(98, 295, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());

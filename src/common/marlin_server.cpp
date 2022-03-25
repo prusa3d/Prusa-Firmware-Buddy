@@ -393,13 +393,13 @@ void marlin_server_settings_save(void) {
     if (!eeprom_set_z_offset(probe_offset.z)) {
         assert(0 /* Z offset write failed */);
     }
-    eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
-    eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
-    eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
+    eeprom_set_flt(EEVAR_PID_BED_P, Temperature::temp_bed.pid.Kp);
+    eeprom_set_flt(EEVAR_PID_BED_I, Temperature::temp_bed.pid.Ki);
+    eeprom_set_flt(EEVAR_PID_BED_D, Temperature::temp_bed.pid.Kd);
 #if ENABLED(PIDTEMP)
-    eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
-    eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
-    eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
+    eeprom_set_flt(EEVAR_PID_NOZ_P, Temperature::temp_hotend[0].pid.Kp);
+    eeprom_set_flt(EEVAR_PID_NOZ_I, Temperature::temp_hotend[0].pid.Ki);
+    eeprom_set_flt(EEVAR_PID_NOZ_D, Temperature::temp_hotend[0].pid.Kd);
 #endif
 }
 
@@ -408,17 +408,17 @@ void marlin_server_settings_load(void) {
 #if HAS_BED_PROBE
     probe_offset.z = eeprom_get_z_offset();
 #endif
-    Temperature::temp_bed.pid.Kp = variant8_get_flt(eeprom_get_var(EEVAR_PID_BED_P));
-    Temperature::temp_bed.pid.Ki = variant8_get_flt(eeprom_get_var(EEVAR_PID_BED_I));
-    Temperature::temp_bed.pid.Kd = variant8_get_flt(eeprom_get_var(EEVAR_PID_BED_D));
+    Temperature::temp_bed.pid.Kp = eeprom_get_flt(EEVAR_PID_BED_P);
+    Temperature::temp_bed.pid.Ki = eeprom_get_flt(EEVAR_PID_BED_I);
+    Temperature::temp_bed.pid.Kd = eeprom_get_flt(EEVAR_PID_BED_D);
 #if ENABLED(PIDTEMP)
-    Temperature::temp_hotend[0].pid.Kp = variant8_get_flt(eeprom_get_var(EEVAR_PID_NOZ_P));
-    Temperature::temp_hotend[0].pid.Ki = variant8_get_flt(eeprom_get_var(EEVAR_PID_NOZ_I));
-    Temperature::temp_hotend[0].pid.Kd = variant8_get_flt(eeprom_get_var(EEVAR_PID_NOZ_D));
+    Temperature::temp_hotend[0].pid.Kp = eeprom_get_flt(EEVAR_PID_NOZ_P);
+    Temperature::temp_hotend[0].pid.Ki = eeprom_get_flt(EEVAR_PID_NOZ_I);
+    Temperature::temp_hotend[0].pid.Kd = eeprom_get_flt(EEVAR_PID_NOZ_D);
     thermalManager.updatePID();
 #endif
-    marlin_server.vars.fan_check_enabled = variant8_get_bool(eeprom_get_var(EEVAR_FAN_CHECK_ENABLED));
-    marlin_server.vars.fs_autoload_enabled = variant8_get_bool(eeprom_get_var(EEVAR_FS_AUTOLOAD_ENABLED));
+    marlin_server.vars.fan_check_enabled = eeprom_get_bool(EEVAR_FAN_CHECK_ENABLED);
+    marlin_server.vars.fs_autoload_enabled = eeprom_get_bool(EEVAR_FS_AUTOLOAD_ENABLED);
 }
 
 void marlin_server_settings_reset(void) {

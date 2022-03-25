@@ -222,7 +222,7 @@ void gui_run(void) {
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
     //TIMEOUT variable getting value from EEPROM when EEPROM interface is initialized
-    if (variant8_get_bool(eeprom_get_var(EEVAR_MENU_TIMEOUT))) {
+    if (eeprom_get_bool(EEVAR_MENU_TIMEOUT)) {
         Screens::Access()->EnableMenuTimeout();
     } else {
         Screens::Access()->DisableMenuTimeout();

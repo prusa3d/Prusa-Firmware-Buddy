@@ -52,7 +52,7 @@ constexpr vars_body_t body_defaults = {
     true, // EEVAR_RUN_SELFTEST
     true, // EEVAR_RUN_XYZCALIB
     true, // EEVAR_RUN_FIRSTLAY
-    1,    // EEVAR_FSENSOR_ENABLED
+    true, // EEVAR_FSENSOR_ENABLED
     0,    // EEVAR_ZOFFSET
 #ifdef DEFAULT_Kp
     DEFAULT_Kp, // EEVAR_PID_NOZ_P

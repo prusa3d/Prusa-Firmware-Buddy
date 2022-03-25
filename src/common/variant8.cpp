@@ -313,7 +313,7 @@ char *variant8_get_pch(variant8_t v) {
     return (unpack(&v)->type & (~VARIANT8_PTR_OWNER)) == VARIANT8_PCHAR ? unpack(&v)->pch : NULL;
 }
 
-// returns variant8_t ui8
+// returns variant8_t ui8 from the array
 uint8_t variant8_get_uia(variant8_t v, uint8_t index) { return index < 4 ? unpack(&v)->ui8a[index] : UINT8_MAX; }
 
 // returns variant8_t ui32

@@ -105,7 +105,7 @@ void error_url_long(char *str, const uint32_t str_size, const int error_code) {
         printerCode(eofstr(str));
 
     /// FW version
-    snprintf(eofstr(str), str_size - strlen(str), "/%d", variant8_get_ui16(eeprom_get_var(EEVAR_FW_VERSION)));
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", eeprom_get_ui16(EEVAR_FW_VERSION));
 
     //snprintf(eofstr(str), str_size - strlen(str), "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     //snprintf(eofstr(str), str_size - strlen(str), "/%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
