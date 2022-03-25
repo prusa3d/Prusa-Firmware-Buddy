@@ -183,27 +183,26 @@ void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
         if (ap != NULL) {
             flags |= ap->security;
         }
-        eeprom_set_var(vid(EEVAR_LAN_FLAG, netdev_id), variant8_ui8(flags));
+        eeprom_set_ui8(vid(EEVAR_LAN_FLAG, netdev_id), flags);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
-        eeprom_set_var(vid(EEVAR_LAN_IP4_ADDR, netdev_id), variant8_ui32(ethconfig->lan.addr_ip4.addr));
+        eeprom_set_ui32(vid(EEVAR_LAN_IP4_ADDR, netdev_id), ethconfig->lan.addr_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS1_IP4)) {
-        eeprom_set_var(vid(EEVAR_LAN_IP4_DNS1, netdev_id), variant8_ui32(ethconfig->dns1_ip4.addr));
+        eeprom_set_ui32(vid(EEVAR_LAN_IP4_DNS1, netdev_id), ethconfig->dns1_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS2_IP4)) {
-        eeprom_set_var(vid(EEVAR_LAN_IP4_DNS2, netdev_id), variant8_ui32(ethconfig->dns2_ip4.addr));
+        eeprom_set_ui32(vid(EEVAR_LAN_IP4_DNS2, netdev_id), ethconfig->dns2_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_MSK_IP4)) {
-        eeprom_set_var(vid(EEVAR_LAN_IP4_MSK, netdev_id), variant8_ui32(ethconfig->lan.msk_ip4.addr));
+        eeprom_set_ui32(vid(EEVAR_LAN_IP4_MSK, netdev_id), ethconfig->lan.msk_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_GW_IP4)) {
-        eeprom_set_var(vid(EEVAR_LAN_IP4_GW, netdev_id), variant8_ui32(ethconfig->lan.gw_ip4.addr));
+        eeprom_set_ui32(vid(EEVAR_LAN_IP4_GW, netdev_id), ethconfig->lan.gw_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
-        variant8_t hostname = variant8_pchar(ethconfig->hostname, 0, 0);
-        eeprom_set_var(vid(EEVAR_LAN_HOSTNAME, netdev_id), hostname);
-        //variant8_done() is not called, variant_pchar with init flag 0 doesnt hold its memory
+        eeprom_set_pchar(vid(EEVAR_LAN_HOSTNAME, netdev_id), ethconfig->hostname, 0, 0);
+        //variant8_done() is not called, variant_pchar with init flag 0 doesn't hold its memory
     }
 
     if (ap != NULL) {
@@ -217,12 +216,12 @@ void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
         assert(WIFI_PSK_MAX == WIFI_MAX_PASSWD_LEN);
 
         if (ethconfig->var_mask & ETHVAR_MSK(APVAR_SSID)) {
-            eeprom_set_var(EEVAR_WIFI_AP_SSID, variant8_pchar(ap->ssid, 0, 0));
-            //variant8_done() is not called, variant_pchar with init flag 0 doesnt hold its memory
+            eeprom_set_pchar(EEVAR_WIFI_AP_SSID, ap->ssid, 0, 0);
+            //variant8_done() is not called, variant_pchar with init flag 0 doesn't hold its memory
         }
         if (ethconfig->var_mask & ETHVAR_MSK(APVAR_PASS)) {
-            eeprom_set_var(EEVAR_WIFI_AP_PASSWD, variant8_pchar(ap->pass, 0, 0));
-            //variant8_done() is not called, variant_pchar with init flag 0 doesnt hold its memory
+            eeprom_set_pchar(EEVAR_WIFI_AP_PASSWD, ap->pass, 0, 0);
+            //variant8_done() is not called, variant_pchar with init flag 0 doesn't hold its memory
         }
     }
 }
@@ -239,12 +238,12 @@ static void strextract(char *into, size_t maxlen, enum eevar_id var) {
 
 void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
     // Just the flags, without (possibly) the wifi secutiry
-    ethconfig->lan.flag = variant8_get_ui8(eeprom_get_var(vid(EEVAR_LAN_FLAG, netdev_id))) & ~APSEC_MASK;
-    ethconfig->lan.addr_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_ADDR, netdev_id)));
-    ethconfig->dns1_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_DNS1, netdev_id)));
-    ethconfig->dns2_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_DNS2, netdev_id)));
-    ethconfig->lan.msk_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_MSK, netdev_id)));
-    ethconfig->lan.gw_ip4.addr = variant8_get_ui32(eeprom_get_var(vid(EEVAR_LAN_IP4_GW, netdev_id)));
+    ethconfig->lan.flag = eeprom_get_ui8(vid(EEVAR_LAN_FLAG, netdev_id)) & ~APSEC_MASK;
+    ethconfig->lan.addr_ip4.addr = eeprom_get_ui32(vid(EEVAR_LAN_IP4_ADDR, netdev_id));
+    ethconfig->dns1_ip4.addr = eeprom_get_ui32(vid(EEVAR_LAN_IP4_DNS1, netdev_id));
+    ethconfig->dns2_ip4.addr = eeprom_get_ui32(vid(EEVAR_LAN_IP4_DNS2, netdev_id));
+    ethconfig->lan.msk_ip4.addr = eeprom_get_ui32(vid(EEVAR_LAN_IP4_MSK, netdev_id));
+    ethconfig->lan.gw_ip4.addr = eeprom_get_ui32(vid(EEVAR_LAN_IP4_GW, netdev_id));
     strextract(ethconfig->hostname, ETH_HOSTNAME_LEN + 1, vid(EEVAR_LAN_HOSTNAME, netdev_id));
 
     if (ap != NULL) {
@@ -299,7 +298,7 @@ time_t sntp_get_system_time(void) {
 
 void sntp_set_system_time(uint32_t sec, int8_t last_timezone) {
 
-    int8_t config_timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
+    int8_t config_timezone = eeprom_get_i8(EEVAR_TIMEZONE);
 
     RTC_TimeTypeDef currTime;
     RTC_DateTypeDef currDate;

@@ -210,9 +210,9 @@ void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_DEVHASH_IN_QR
 MI_DEVHASH_IN_QR::MI_DEVHASH_IN_QR()
-    : WI_SWITCH_OFF_ON_t(variant8_get_bool(eeprom_get_var(EEVAR_DEVHASH_IN_QR)), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_DEVHASH_IN_QR), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
-    eeprom_set_var(EEVAR_DEVHASH_IN_QR, variant8_bool(!old_index));
+    eeprom_set_bool(EEVAR_DEVHASH_IN_QR, !old_index);
 }
 
 /*****************************************************************************/
@@ -292,8 +292,8 @@ void MI_EEPROM_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_USB_MSC_ENABLE
 MI_USB_MSC_ENABLE::MI_USB_MSC_ENABLE()
-    : WI_SWITCH_OFF_ON_t(variant8_get_bool(eeprom_get_var(EEVAR_USB_MSC_ENABLED)), _(label), 0, is_enabled_t::yes, is_hidden_t::dev) {}
+    : WI_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_USB_MSC_ENABLED), _(label), 0, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_USB_MSC_ENABLE::OnChange(size_t old_index) {
-    eeprom_set_var(EEVAR_USB_MSC_ENABLED, variant8_bool(!old_index));
+    eeprom_set_bool(EEVAR_USB_MSC_ENABLED, !old_index);
 }

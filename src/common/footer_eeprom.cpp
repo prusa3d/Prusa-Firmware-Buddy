@@ -20,7 +20,7 @@ static record loadAndValidateRecord() {
     record rec = Decode(eeprom_get_var(EEVAR_FOOTER_SETTING));
     uint32_t valid = Encode(rec);
     // cannot use Store - would recursively call this function
-    eeprom_set_var(EEVAR_FOOTER_SETTING, variant8_ui32(valid));
+    eeprom_set_ui32(EEVAR_FOOTER_SETTING, valid);
     return rec;
 }
 
@@ -36,7 +36,7 @@ record footer::eeprom::Load() {
 changed_t footer::eeprom::Store(record rec) {
     if (get_ref() == rec)
         return changed_t::no;
-    eeprom_set_var(EEVAR_FOOTER_SETTING, variant8_ui32(Encode(rec)));
+    eeprom_set_ui32(EEVAR_FOOTER_SETTING, Encode(rec));
     get_ref() = rec;
     return changed_t::yes;
 }
@@ -62,7 +62,7 @@ static ItemDrawCnf loadAndValidateDrawCnf() {
     ItemDrawCnf cnf = ItemDrawCnf(eeprom_get_var(EEVAR_FOOTER_DRAW_TYPE));
     uint32_t valid = uint32_t(cnf);
     // cannot use Set - would recursively call this function
-    eeprom_set_var(EEVAR_FOOTER_DRAW_TYPE, variant8_ui32(valid));
+    eeprom_set_ui32(EEVAR_FOOTER_DRAW_TYPE, valid);
     return cnf;
 }
 
@@ -78,7 +78,7 @@ ItemDrawCnf footer::eeprom::LoadItemDrawCnf() {
 changed_t footer::eeprom::Set(ItemDrawCnf cnf) {
     if (getDrawCnf_ref() == cnf)
         return changed_t::no;
-    eeprom_set_var(EEVAR_FOOTER_DRAW_TYPE, variant8_ui32(uint32_t(cnf)));
+    eeprom_set_ui32(EEVAR_FOOTER_DRAW_TYPE, uint32_t(cnf));
     getDrawCnf_ref() = cnf;
     return changed_t::yes;
 }

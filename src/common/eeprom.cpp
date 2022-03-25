@@ -95,7 +95,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "RUN_SELFTEST",    VARIANT8_BOOL,  1, 0 }, // EEVAR_RUN_SELFTEST
     { "RUN_XYZCALIB",    VARIANT8_BOOL,  1, 0 }, // EEVAR_RUN_XYZCALIB
     { "RUN_FIRSTLAY",    VARIANT8_BOOL,  1, 0 }, // EEVAR_RUN_FIRSTLAY
-    { "FSENSOR_ENABLED", VARIANT8_UI8,   1, 0 }, // EEVAR_FSENSOR_ENABLED
+    { "FSENSOR_ENABLED", VARIANT8_BOOL,   1, 0 }, // EEVAR_FSENSOR_ENABLED
     { "ZOFFSET",         VARIANT8_FLT,   1, 0 }, // EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY
     { "PID_NOZ_P",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_P
     { "PID_NOZ_I",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_I
@@ -320,6 +320,16 @@ variant8_t eeprom_get_var(enum eevar_id id) {
     return var;
 }
 
+float eeprom_get_flt(enum eevar_id id) { return variant8_get_flt(eeprom_get_var(id)); }
+char *eeprom_get_pch(enum eevar_id id) { return variant8_get_pch(eeprom_get_var(id)); }
+uint8_t eeprom_get_uia(enum eevar_id id, uint8_t index) { return variant8_get_uia(eeprom_get_var(id), index); }
+uint32_t eeprom_get_ui32(enum eevar_id id) { return variant8_get_ui32(eeprom_get_var(id)); }
+int32_t eeprom_get_i32(enum eevar_id id) { return variant8_get_i32(eeprom_get_var(id)); }
+uint16_t eeprom_get_ui16(enum eevar_id id) { return variant8_get_ui16(eeprom_get_var(id)); }
+uint8_t eeprom_get_ui8(enum eevar_id id) { return variant8_get_ui8(eeprom_get_var(id)); }
+int8_t eeprom_get_i8(enum eevar_id id) { return variant8_get_i8(eeprom_get_var(id)); }
+bool eeprom_get_bool(enum eevar_id id) { return variant8_get_bool(eeprom_get_var(id)); }
+
 /**
  * @brief reads eeprom record from RAM structure
  *
@@ -396,6 +406,18 @@ static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size) {
         update_crc32_both_ram_eeprom(vars);
     }
     eeprom_unlock();
+}
+
+void eeprom_set_i8(enum eevar_id id, int8_t i8) { eeprom_set_var(id, variant8_i8(i8)); }
+void eeprom_set_bool(enum eevar_id id, bool b) { eeprom_set_var(id, variant8_bool(b)); }
+void eeprom_set_ui8(enum eevar_id id, uint8_t ui8) { eeprom_set_var(id, variant8_ui8(ui8)); }
+void eeprom_set_i16(enum eevar_id id, int16_t i16) { eeprom_set_var(id, variant8_i16(i16)); }
+void eeprom_set_ui16(enum eevar_id id, uint16_t ui16) { eeprom_set_var(id, variant8_ui16(ui16)); }
+void eeprom_set_i32(enum eevar_id id, int32_t i32) { eeprom_set_var(id, variant8_i32(i32)); }
+void eeprom_set_ui32(enum eevar_id id, uint32_t ui32) { eeprom_set_var(id, variant8_ui32(ui32)); }
+void eeprom_set_flt(enum eevar_id id, float flt) { eeprom_set_var(id, variant8_flt(flt)); }
+void eeprom_set_pchar(enum eevar_id id, char *pch, uint16_t count, int init) {
+    eeprom_set_var(id, variant8_pchar(pch, count, init));
 }
 
 uint8_t eeprom_get_var_count(void) {
@@ -646,7 +668,7 @@ static const float Z_OFFSET_MIN = -2.0F;
 static const float Z_OFFSET_MAX = 0.0F;
 
 float eeprom_get_z_offset() {
-    uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    uint8_t index = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
     if (index >= MAX_SHEETS)
         return 0.F;
 
@@ -669,7 +691,7 @@ bool eeprom_set_z_offset(float value) {
     value = std::clamp(value, Z_OFFSET_MIN, Z_OFFSET_MAX);
 
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    uint8_t index = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
     if (index >= MAX_SHEETS)
         return false;
 
@@ -685,7 +707,7 @@ bool eeprom_set_z_offset(float value) {
 
 uint32_t sheet_next_calibrated() {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    uint8_t index = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
 
     for (int8_t i = 1; i < MAX_SHEETS; ++i) {
         if (sheet_profile_select((index + i) % MAX_SHEETS))
@@ -726,7 +748,7 @@ bool sheet_reset(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     if (index >= MAX_SHEETS)
         return false;
-    uint8_t active = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    uint8_t active = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
     float value = FLT_MAX;
 
     Sheet sheet;
@@ -760,7 +782,7 @@ uint32_t sheet_active_name(char *buffer, uint32_t length) {
     if (!buffer || !length)
         return 0;
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t index = variant8_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
+    uint8_t index = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
     return sheet_name(index, buffer, length);
 #else
     log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
@@ -922,7 +944,7 @@ extern "C" uint16_t get_steps_per_unit_e_rounded() {
 //by write functions, cannot read startup variables, must read current value from eeprom
 template <enum eevar_id ENUM>
 bool is_current_axis_value_inverted() {
-    return std::signbit(variant8_get_flt(eeprom_get_var(ENUM)));
+    return std::signbit(eeprom_get_flt(ENUM));
 }
 
 template <enum eevar_id ENUM>
@@ -949,7 +971,7 @@ extern "C" void set_steps_per_unit_e(float steps) {
 //by write functions, cannot read startup variables, must read current value from eeprom
 template <enum eevar_id ENUM>
 float get_current_steps_per_unit() {
-    return std::abs(variant8_get_flt(eeprom_get_var(ENUM)));
+    return std::abs(eeprom_get_flt(ENUM));
 }
 
 template <enum eevar_id ENUM>

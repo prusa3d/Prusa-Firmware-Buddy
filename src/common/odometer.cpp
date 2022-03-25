@@ -31,11 +31,11 @@ void Odometer_s::force_to_eeprom() {
 
     // cast is safe axis_count == axis_t::count_
     for (size_t i = 0; i < axis_count; ++i) {
-        eeprom_set_var(eevars[i], variant8_flt(get(axis_t(i))));
+        eeprom_set_flt(eevars[i], get(axis_t(i)));
         trip_xyze[i] = 0;
     }
 
-    eeprom_set_var(EEVAR_ODOMETER_TIME, variant8_ui32(get_time()));
+    eeprom_set_ui32(EEVAR_ODOMETER_TIME, get_time());
     duration_time = 0;
 }
 
@@ -45,7 +45,7 @@ void Odometer_s::add_value(int axis, float value) {
 }
 
 float Odometer_s::get_from_eeprom(axis_t axis) {
-    return variant8_get_flt(eeprom_get_var(eevars[size_t(axis)]));
+    return eeprom_get_flt(eevars[size_t(axis)]);
 }
 
 float Odometer_s::get(axis_t axis) {
@@ -55,6 +55,6 @@ void Odometer_s::add_time(uint32_t value) {
     duration_time += value;
 }
 uint32_t Odometer_s::get_time() {
-    uint32_t time = variant8_get_ui32(eeprom_get_var(EEVAR_ODOMETER_TIME)) + MAX(0ul, duration_time);
+    uint32_t time = eeprom_get_ui32(EEVAR_ODOMETER_TIME) + MAX(0ul, duration_time);
     return time;
 }
