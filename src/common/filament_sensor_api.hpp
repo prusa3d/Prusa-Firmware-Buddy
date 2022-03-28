@@ -120,7 +120,7 @@ private:
     void process_printer_request();
     void process_mmu_request();
 
-    void mmu_loop();
+    void evaluate_sensors();
 
     FSensor printer_sensor;
 

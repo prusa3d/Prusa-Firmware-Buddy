@@ -80,7 +80,7 @@ void FilamentSensors::Cycle() {
         }
     }
 
-    mmu_loop();
+    evaluate_sensors();
 
     std::optional<bool> opt_event_m600 = std::nullopt;
     std::optional<bool> opt_event_autoload = std::nullopt;
