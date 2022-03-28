@@ -12,12 +12,12 @@ using namespace nhttp;
 
 namespace {
 
-class TestJsonRenderer final : public JsonRenderer {
+class TestJsonRenderer final : public LowLevelJsonRenderer {
 private:
     size_t i = 0;
 
 protected:
-    virtual ContentResult content(size_t resume_point, Output &output) override {
+    virtual JsonResult content(size_t resume_point, JsonOutput &output) override {
         JSON_START;
         JSON_OBJ_START;
         JSON_FIELD_BOOL("hello", true);
@@ -65,7 +65,7 @@ TEST_CASE("Json Big Buffer - no split") {
 
     const auto [result, written] = renderer.render(buff, BUF_SIZE);
 
-    REQUIRE(result == JsonRenderer::ContentResult::Complete);
+    REQUIRE(result == JsonResult::Complete);
     const string_view out(reinterpret_cast<char *>(buff), written);
     REQUIRE(out == EXPECTED);
 }
@@ -87,9 +87,9 @@ TEST_CASE("Json split buffer") {
     }
 
     string response;
-    auto result = JsonRenderer::ContentResult::Incomplete;
+    auto result = JsonResult::Incomplete;
 
-    while (result != JsonRenderer::ContentResult::Complete) {
+    while (result != JsonResult::Complete) {
         uint8_t buffer[increment];
         const auto [result_partial, written] = renderer.render(buffer, increment);
         REQUIRE(written <= increment);
@@ -107,10 +107,10 @@ TEST_CASE("Json buffer too small") {
     TestJsonRenderer renderer;
     uint8_t buffer[2];
     const auto [result1, written1] = renderer.render(buffer, 2);
-    REQUIRE(result1 == JsonRenderer::ContentResult::Incomplete);
+    REQUIRE(result1 == JsonResult::Incomplete);
     REQUIRE(written1 == 1);
 
     const auto [result2, written2] = renderer.render(buffer, 2);
-    REQUIRE(result2 == JsonRenderer::ContentResult::BufferTooSmall);
+    REQUIRE(result2 == JsonResult::BufferTooSmall);
     REQUIRE(written2 == 0);
 }

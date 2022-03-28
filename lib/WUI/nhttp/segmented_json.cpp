@@ -8,7 +8,7 @@
 
 namespace nhttp {
 
-JsonRenderer::ContentResult JsonRenderer::Output::output(size_t resume_point, const char *format, ...) {
+JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
     va_list params;
     va_start(params, format);
     const size_t written = vsnprintf(reinterpret_cast<char *>(buffer), buffer_size, format, params);
@@ -23,19 +23,19 @@ JsonRenderer::ContentResult JsonRenderer::Output::output(size_t resume_point, co
         buffer += written;
         buffer_size -= written;
         written_something = true;
-        return ContentResult::Complete;
+        return JsonResult::Complete;
     } else {
         this->resume_point = resume_point;
-        return written_something ? ContentResult::Incomplete : ContentResult::BufferTooSmall;
+        return written_something ? JsonResult::Incomplete : JsonResult::BufferTooSmall;
     }
 }
 
-JsonRenderer::ContentResult JsonRenderer::Output::output_field_str(size_t resume_point, const char *name, const char *value) {
+JsonResult JsonOutput::output_field_str(size_t resume_point, const char *name, const char *value) {
     JSONIFY_STR(value);
     return output(resume_point, "\"%s\":\"%s\"", name, value_escaped);
 }
 
-JsonRenderer::ContentResult JsonRenderer::Output::output_field_str_format(size_t resume_point, const char *name, const char *format, ...) {
+JsonResult JsonOutput::output_field_str_format(size_t resume_point, const char *name, const char *format, ...) {
     va_list params1, params2;
     va_start(params1, format);
     va_copy(params2, params1);
@@ -53,32 +53,32 @@ JsonRenderer::ContentResult JsonRenderer::Output::output_field_str_format(size_t
     return output_field_str(resume_point, name, buffer);
 }
 
-JsonRenderer::ContentResult JsonRenderer::Output::output_field_bool(size_t resume_point, const char *name, bool value) {
+JsonResult JsonOutput::output_field_bool(size_t resume_point, const char *name, bool value) {
     return output(resume_point, "\"%s\":%s", name, jsonify_bool(value));
 }
 
-JsonRenderer::ContentResult JsonRenderer::Output::output_field_int(size_t resume_point, const char *name, int64_t value) {
+JsonResult JsonOutput::output_field_int(size_t resume_point, const char *name, int64_t value) {
     return output(resume_point, "\"%s\":%" PRIi64, name, value);
 }
 
-JsonRenderer::ContentResult JsonRenderer::Output::output_field_float_fixed(size_t resume_point, const char *name, double value, int precision) {
+JsonResult JsonOutput::output_field_float_fixed(size_t resume_point, const char *name, double value, int precision) {
     return output(resume_point, "\"%s\":%.*f", name, precision, value);
 }
 
-JsonRenderer::ContentResult JsonRenderer::Output::output_field_obj(size_t resume_point, const char *name) {
+JsonResult JsonOutput::output_field_obj(size_t resume_point, const char *name) {
     return output(resume_point, "\"%s\":{", name);
 }
 
-JsonRenderer::ContentResult JsonRenderer::Output::output_field_arr(size_t resume_point, const char *name) {
+JsonResult JsonOutput::output_field_arr(size_t resume_point, const char *name) {
     return output(resume_point, "\"%s\":[", name);
 }
 
-std::tuple<JsonRenderer::ContentResult, size_t> JsonRenderer::render(uint8_t *buffer, size_t buffer_size) {
+std::tuple<JsonResult, size_t> LowLevelJsonRenderer::render(uint8_t *buffer, size_t buffer_size) {
     size_t buffer_size_rest = buffer_size;
-    Output output(buffer, buffer_size_rest, resume_point);
+    JsonOutput output(buffer, buffer_size_rest, resume_point);
     const auto result = content(resume_point, output);
     assert(buffer_size_rest <= buffer_size);
-    size_t written = (result == ContentResult::Abort) ? 0 : buffer_size - buffer_size_rest;
+    size_t written = (result == JsonResult::Abort) ? 0 : buffer_size - buffer_size_rest;
     return std::make_tuple(result, written);
 }
 

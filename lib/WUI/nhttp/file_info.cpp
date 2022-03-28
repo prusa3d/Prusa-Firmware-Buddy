@@ -24,11 +24,7 @@ namespace nhttp::printer {
 
 using namespace handler;
 
-FileInfo::DirRenderer::DirRenderer(FileInfo *owner, DIR *dir)
-    : filename(owner->filename)
-    , dir(dir) {}
-
-JsonRenderer::ContentResult FileInfo::DirRenderer::content(size_t resume_point, Output &output) {
+JsonResult FileInfo::DirRenderer::renderState(size_t resume_point, JsonOutput &output, FileInfo::DirState &state) const {
     // Keep the indentation of the JSON in here!
     // clang-format off
     JSON_START;
@@ -37,31 +33,31 @@ JsonRenderer::ContentResult FileInfo::DirRenderer::content(size_t resume_point, 
 
         // Note: ent, as the control variable, needs to be preserved inside the
         // object, so it survives resumes.
-        while (dir.get() && (ent = readdir(dir.get()))) {
-            if (!filename_is_gcode(ent->d_name)) {
+        while (state.dir.get() && (state.ent = readdir(state.dir.get()))) {
+            if (!filename_is_gcode(state.ent->d_name)) {
                 continue;
             }
 
-            if (!first) {
+            if (!state.first) {
                 JSON_COMMA;
             } else {
-                first = false;
+                state.first = false;
             }
 
             JSON_OBJ_START;
-                JSON_FIELD_STR("name", ent->d_name) JSON_COMMA;
+                JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
 #ifdef UNITTESTS
-                JSON_FIELD_STR("display", ent->d_name) JSON_COMMA;
+                JSON_FIELD_STR("display", state.ent->d_name) JSON_COMMA;
 #else
-                JSON_FIELD_STR("display", ent->lfn) JSON_COMMA;
+                JSON_FIELD_STR("display", state.ent->lfn) JSON_COMMA;
 #endif
-                JSON_FIELD_STR_FORMAT("path", "%s/%s", filename, ent->d_name) JSON_COMMA;
+                JSON_FIELD_STR_FORMAT("path", "%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
                 JSON_CONTROL("\"origin\":\"local\",");
                 JSON_FIELD_OBJ("refs");
-                    JSON_FIELD_STR_FORMAT("resource", "/api/files%s/%s", filename, ent->d_name) JSON_COMMA;
-                    JSON_FIELD_STR_FORMAT("thumbnailSmall", "/thumb/s%s/%s", filename, ent->d_name) JSON_COMMA;
-                    JSON_FIELD_STR_FORMAT("thumbnailBig", "/thumb/l%s/%s", filename, ent->d_name) JSON_COMMA;
-                    JSON_FIELD_STR_FORMAT("download", "/thumb/l%s/%s", filename, ent->d_name);
+                    JSON_FIELD_STR_FORMAT("resource", "/api/files%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
+                    JSON_FIELD_STR_FORMAT("thumbnailSmall", "/thumb/s%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
+                    JSON_FIELD_STR_FORMAT("thumbnailBig", "/thumb/l%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
+                    JSON_FIELD_STR_FORMAT("download", "/thumb/l%s/%s", state.filename, state.ent->d_name);
                 JSON_OBJ_END;
             JSON_OBJ_END;
         }
@@ -72,8 +68,8 @@ JsonRenderer::ContentResult FileInfo::DirRenderer::content(size_t resume_point, 
     // clang-format on
 }
 
-JsonRenderer::ContentResult FileInfo::FileRenderer::content(size_t resume_point, Output &output) {
-    char *filename = owner->filename;
+JsonResult FileInfo::FileRenderer::renderState(size_t resume_point, JsonOutput &output, FileInfo::FileState &state) const {
+    char *filename = state.owner->filename;
     JSONIFY_STR(filename);
     char long_name[FILE_NAME_BUFFER_LEN];
     get_LFN(long_name, sizeof long_name, filename);
@@ -83,7 +79,7 @@ JsonRenderer::ContentResult FileInfo::FileRenderer::content(size_t resume_point,
     JSON_OBJ_START;
         JSON_FIELD_STR("name", long_name) JSON_COMMA;
         JSON_FIELD_STR("origin", "local") JSON_COMMA;
-        JSON_FIELD_INT("size", size) JSON_COMMA;
+        JSON_FIELD_INT("size", state.size) JSON_COMMA;
         JSON_FIELD_OBJ("refs");
             JSON_CUSTOM("\"resource\":\"/api/files%s\",", filename_escaped);
             JSON_CUSTOM("\"thumbnailSmall\":\"/thumb/s%s\",", filename_escaped);
@@ -147,10 +143,10 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
     // Note: The above falls through and tries to put at least part of the answer into the rest of the current packet with headers.
 
     // Process both the renderers in uniform way.
-    JsonRenderer *rend = get_if<DirRenderer>(&renderer);
+    LowLevelJsonRenderer *rend = get_if<DirRenderer>(&renderer);
     rend = rend ?: get_if<FileRenderer>(&renderer);
     if (rend != nullptr) {
-        JsonRenderer::ContentResult render_result;
+        JsonResult render_result;
         written += render_chunk(handling, output + written, output_size - written, [&](uint8_t *output, size_t output_size) {
             const auto [result, written_json] = rend->render(output, output_size);
             render_result = result;
@@ -158,18 +154,18 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
         });
 
         switch (render_result) {
-        case JsonRenderer::ContentResult::Complete:
+        case JsonResult::Complete:
             renderer = LastChunk();
             break;
-        case JsonRenderer::ContentResult::Incomplete:
+        case JsonResult::Incomplete:
             // Send this packet out, but ask for another one.
             return { 0, written, Continue() };
-        case JsonRenderer::ContentResult::BufferTooSmall:
+        case JsonResult::BufferTooSmall:
             if (first_packet) {
                 // Too small, but possibly because we've taken up a part by the headers.
                 return { 0, written, Continue() };
             }
-        case JsonRenderer::ContentResult::Abort:
+        case JsonResult::Abort:
             // Something unexpected got screwed up. We don't have a way to
             // return a 500 error, we have sent the headers out already
             // (possibly), so the best we can do is to abort the

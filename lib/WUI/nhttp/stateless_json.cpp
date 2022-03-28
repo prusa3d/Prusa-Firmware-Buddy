@@ -5,7 +5,7 @@
 
 namespace nhttp::handler {
 
-JsonRenderer::ContentResult StatelessJson::Renderer::content(size_t resume_point, Output &output) {
+JsonResult StatelessJson::Renderer::renderState(size_t resume_point, JsonOutput &output, Empty &state) const {
     return generator(resume_point, output);
 }
 
@@ -24,7 +24,7 @@ Step StatelessJson::step(std::string_view, bool, uint8_t *buffer, size_t buffer_
         }
         // Fall through, see if something more fits.
     case Progress::SendPayload:
-        JsonRenderer::ContentResult render_result;
+        JsonResult render_result;
 
         written += render_chunk(connection_handling, buffer + written, buffer_size - written, [&](uint8_t *buffer, size_t buffer_size) {
             // TODO: The actual renderer goes somewhere!
@@ -34,21 +34,21 @@ Step StatelessJson::step(std::string_view, bool, uint8_t *buffer, size_t buffer_
         });
 
         switch (render_result) {
-        case JsonRenderer::ContentResult::Complete:
+        case JsonResult::Complete:
             progress = Progress::EndChunk;
 
             break;
-        case JsonRenderer::ContentResult::Incomplete:
+        case JsonResult::Incomplete:
             // Send this packet out, but ask for another one.
             return { 0, written, Continue() };
-        case JsonRenderer::ContentResult::BufferTooSmall:
+        case JsonResult::BufferTooSmall:
             // It is small, but we've alreaty taken part of it by headers. Try
             // again with the next packet.
             if (first_packet) {
                 return { 0, written, Continue() };
             }
             // Fall through to the error state.
-        case JsonRenderer::ContentResult::Abort:
+        case JsonResult::Abort:
             // Something unexpected got screwed up. We don't have a way to
             // return a 500 error, we have sent the headers out already
             // (possibly), so the best we can do is to abort the

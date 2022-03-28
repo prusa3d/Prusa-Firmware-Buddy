@@ -11,7 +11,7 @@
 
 namespace nhttp::link_content {
 
-JsonRenderer::ContentResult get_printer(size_t resume_point, JsonRenderer::Output &output) {
+JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     // Note about the marlin vars: It's true that on resumption we may get
     // different values. But they would still be reasonably "sane". If we eg.
     // finish a print and base what we include on previous version, we may
@@ -116,7 +116,7 @@ JsonRenderer::ContentResult get_printer(size_t resume_point, JsonRenderer::Outpu
     // clang-format off
 }
 
-JsonRenderer::ContentResult get_version(size_t resume_point, JsonRenderer::Output &output) {
+JsonResult get_version(size_t resume_point, JsonOutput &output) {
     /*
      * FIXME: The netdev_get_hostname doesn't properly synchronize. That needs
      * a fix of its own. But to not make things even worse than they are, we
@@ -146,7 +146,7 @@ JsonRenderer::ContentResult get_version(size_t resume_point, JsonRenderer::Outpu
     // clang-format on
 }
 
-JsonRenderer::ContentResult get_job(size_t resume_point, JsonRenderer::Output &output) {
+JsonResult get_job(size_t resume_point, JsonOutput &output) {
     // Note about the marlin vars: It's true that on resumption we may get
     // different values. But they would still be reasonably "sane". If we eg.
     // finish a print and base what we include on previous version, we may

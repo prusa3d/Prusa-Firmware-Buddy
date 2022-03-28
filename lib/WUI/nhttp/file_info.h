@@ -35,35 +35,50 @@ private:
     /// Marker that we want to send the last chunk (if in chunked mode).
     class LastChunk {};
 
-    /// The JSON renderer for the directory listing.
-    class DirRenderer final : public JsonRenderer {
-    private:
+    struct DirState {
         char *filename = nullptr;
         std::unique_ptr<DIR, DirDeleter> dir;
         dirent *ent = nullptr;
         bool first = true;
+        DirState() = default;
+        DirState(FileInfo *owner, DIR *dir)
+            : filename(owner->filename)
+            , dir(dir) {}
+        DirState(DirState &&other) = default;
+        DirState &operator=(DirState &&other) = default;
+    };
 
+    /// The JSON renderer for the directory listing.
+    class DirRenderer final : public JsonRenderer<DirState> {
     protected:
-        virtual ContentResult content(size_t resume_point, Output &output) override;
+        virtual JsonResult renderState(size_t resume_point, JsonOutput &output, DirState &state) const override;
 
     public:
-        DirRenderer() = default;
-        DirRenderer(FileInfo *owner, DIR *dir);
+        DirRenderer()
+            : JsonRenderer(DirState()) {}
+        DirRenderer(FileInfo *owner, DIR *dir)
+            : JsonRenderer(DirState(owner, dir)) {}
+    };
+
+    struct FileState {
+        FileInfo *owner;
+        int64_t size;
+        FileState(FileInfo *owner, size_t size)
+            : owner(owner)
+            , size(size) {}
+        FileState(FileState &&other) = default;
+        FileState &operator=(FileState &&other) = default;
     };
 
     /// Renderer for the file info.
-    class FileRenderer final : public JsonRenderer {
+    class FileRenderer final : public JsonRenderer<FileState> {
     private:
-        FileInfo *owner;
-        int64_t size;
-
     protected:
-        virtual ContentResult content(size_t resume_point, Output &output) override;
+        virtual JsonResult renderState(size_t resume_point, JsonOutput &output, FileState &state) const override;
 
     public:
         FileRenderer(FileInfo *owner, int64_t size)
-            : owner(owner)
-            , size(size) {}
+            : JsonRenderer(FileState(owner, size)) {}
     };
     friend class FileRenderer;
 
