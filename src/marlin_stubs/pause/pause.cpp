@@ -365,10 +365,14 @@ bool Pause::loadLoop(load_mode_t mode) {
         break;
     case LoadPhases_t::has_slow_load:
         if (slow_load_length > 0) {
-            if (FSensors_instance().PrinterHasFilament()) {
-                set(LoadPhases_t::load_in_gear);
-            } else {
+            if constexpr (HAS_BOWDEN) {
                 set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            } else {
+                if (FSensors_instance().PrinterHasFilament()) {
+                    set(LoadPhases_t::load_in_gear);
+                } else {
+                    set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+                }
             }
         } else {
             set(LoadPhases_t::wait_temp);
