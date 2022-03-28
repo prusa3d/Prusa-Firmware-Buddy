@@ -14,11 +14,13 @@ add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
 add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
 add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
 
-add_resource("web/e5ae0f11eb9a619ec903488e77be89b8.svg" "/web/e5ae0f11eb9a619ec903488e77be89b8.svg")
-add_resource("web/favicon.ico" "/web/favicon.ico")
-add_resource("web/index.html" "/web/index.html")
-add_resource("web/main.47fcf7209ede7bfac5e3.css" "/web/main.47fcf7209ede7bfac5e3.css")
-add_resource("web/main.9efec8b5a6755f36580c.js" "/web/main.9efec8b5a6755f36580c.js")
+add_gzip_resource(
+  "web/e5ae0f11eb9a619ec903488e77be89b8.svg" "/web/e5ae0f11eb9a619ec903488e77be89b8.svg"
+  )
+add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
+add_gzip_resource("web/index.html" "/web/index.html")
+add_gzip_resource("web/main.47fcf7209ede7bfac5e3.css" "/web/main.47fcf7209ede7bfac5e3.css")
+add_gzip_resource("web/main.9efec8b5a6755f36580c.js" "/web/main.9efec8b5a6755f36580c.js")
 
 # generate header with hash
 set(RESOURCES_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
