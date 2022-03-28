@@ -49,11 +49,15 @@ extern void marlin_server_do_babystep_Z(float offs);
 
 extern void marlin_server_move_axis(float pos, float feedrate, size_t axis);
 
-// direct call of 'enqueue_and_echo_command', returns 1 if command enqueued, otherwise 0
-extern int marlin_server_enqueue_gcode(const char *gcode);
+// direct call of 'enqueue_and_echo_command'
+// @retval true command enqueued
+// @retval false otherwise
+extern bool marlin_server_enqueue_gcode(const char *gcode);
 
-// direct call of 'inject_P', returns 1 if command enqueued, otherwise 0
-extern int marlin_server_inject_gcode(const char *gcode);
+// direct call of 'inject_P'
+// @retval true command enqueued
+// @retval false otherwise
+extern bool marlin_server_inject_gcode(const char *gcode);
 
 // direct call of settings.save()
 extern void marlin_server_settings_save(void);
