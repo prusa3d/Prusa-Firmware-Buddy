@@ -31,7 +31,7 @@ enum {
     IDR_PNG_turbine_16x16,
     IDR_PNG_fan_16x16,
     IDR_PNG_selftest_16x16,
-    IDR_PNG_wizard_16x17,
+    IDR_PNG_wizard_16x16,
 
     IDR_PNG_print_58px,
     IDR_PNG_preheat_58px,

@@ -30,7 +30,7 @@
 #include "res/cc/png_turbine_16x16.c"   //IDR_PNG_turbine_16x16,
 #include "res/cc/png_fan_16x16.c"       //IDR_PNG_fan_16x16,
 #include "res/cc/png_selftest_16x16.c"  //IDR_PNG_selftest_16x16,
-#include "res/cc/png_wizard_16x17.c"    //IDR_PNG_wizard_16x17,
+#include "res/cc/png_wizard_16x16.c"    //IDR_PNG_wizard_16x16, // TODO generate with script
 
 #include "res/cc/png_print_58px.c"       //IDR_PNG_print_58px
 #include "res/cc/png_preheat_58px.c"     //IDR_PNG_preheat_58px
@@ -138,7 +138,7 @@ RESOURCE_ENTRY_PNG(png_z_axis_16x16)
 RESOURCE_ENTRY_PNG(png_turbine_16x16)
 RESOURCE_ENTRY_PNG(png_fan_16x16)
 RESOURCE_ENTRY_PNG(png_selftest_16x16)
-RESOURCE_ENTRY_PNG(png_wizard_16x17)
+RESOURCE_ENTRY_PNG(png_wizard_16x16)
 
 RESOURCE_ENTRY_PNG(png_print_58px)
 RESOURCE_ENTRY_PNG(png_preheat_58px)
