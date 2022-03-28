@@ -62,8 +62,8 @@ void GuiMediaEventsHandler::tick() {
         one_click_printing = false;
         state_sent = false;
         break; // update after break
-    default:
-        return; //nothing happened, nothing to do .. just return
+        // default:
+        //     return; //nothing happened, nothing to do .. just return
     }
 
     media_state = actual_state; // update

@@ -34,43 +34,44 @@ void get_printer(char *data, const uint32_t buf_len) {
 
     marlin_client_loop();
 
-    switch (vars->print_state) {
-    case mpsPrinting:
-        printing = true;
-        ready = operational = false;
-        break;
-    case mpsPausing_Begin:
-    case mpsPausing_WaitIdle:
-    case mpsPausing_ParkHead:
-        printing = pausing = paused = busy = true;
-        ready = operational = false;
-        break;
-    case mpsPaused:
-        printing = paused = true;
-        ready = operational = false;
-        break;
-    case mpsResuming_Begin:
-    case mpsResuming_Reheating:
-    case mpsResuming_UnparkHead:
-        ready = operational = false;
-        busy = printing = true;
-        break;
-    case mpsAborting_Begin:
-    case mpsAborting_WaitIdle:
-    case mpsAborting_ParkHead:
-        cancelling = busy = true;
-        ready = operational = false;
-        break;
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
-        busy = true;
-        ready = operational = false;
-        break;
-    case mpsAborted:
-    case mpsFinished:
-    case mpsIdle:
-    default:
-        break;
+    if (vars->print_state <= mpsLast_) {
+        switch (vars->print_state) {
+        case mpsPrinting:
+            printing = true;
+            ready = operational = false;
+            break;
+        case mpsPausing_Begin:
+        case mpsPausing_WaitIdle:
+        case mpsPausing_ParkHead:
+            printing = pausing = paused = busy = true;
+            ready = operational = false;
+            break;
+        case mpsPaused:
+            printing = paused = true;
+            ready = operational = false;
+            break;
+        case mpsResuming_Begin:
+        case mpsResuming_Reheating:
+        case mpsResuming_UnparkHead:
+            ready = operational = false;
+            busy = printing = true;
+            break;
+        case mpsAborting_Begin:
+        case mpsAborting_WaitIdle:
+        case mpsAborting_ParkHead:
+            cancelling = busy = true;
+            ready = operational = false;
+            break;
+        case mpsFinishing_WaitIdle:
+        case mpsFinishing_ParkHead:
+            busy = true;
+            ready = operational = false;
+            break;
+        case mpsAborted:
+        case mpsFinished:
+        case mpsIdle:
+            break;
+        }
     }
 
     JSONIFY_STR(filament_material);

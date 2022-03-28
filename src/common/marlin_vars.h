@@ -104,24 +104,25 @@ static const uint8_t MARLIN_VAR_MOTION_MSK_E = 1 << MARLIN_VAR_INDEX_E;
 
 static const uint32_t TIME_TO_END_INVALID = (uint32_t)-1;
 
-typedef enum {
-    mpsIdle = 0,
-    mpsPrinting,
-    mpsPausing_Begin,
-    mpsPausing_WaitIdle,
-    mpsPausing_ParkHead,
-    mpsPaused,
-    mpsResuming_Begin,
-    mpsResuming_Reheating,
-    mpsResuming_UnparkHead,
-    mpsAborting_Begin,
-    mpsAborting_WaitIdle,
-    mpsAborting_ParkHead,
-    mpsAborted,
-    mpsFinishing_WaitIdle,
-    mpsFinishing_ParkHead,
-    mpsFinished,
-} marlin_print_state_t;
+enum class mps {
+    Idle = 0,
+    Printing,
+    Pausing_Begin,
+    Pausing_WaitIdle,
+    Pausing_ParkHead,
+    Paused,
+    Resuming_Begin,
+    Resuming_Reheating,
+    Resuming_UnparkHead,
+    Aborting_Begin,
+    Aborting_WaitIdle,
+    Aborting_ParkHead,
+    Aborted,
+    Finishing_WaitIdle,
+    Finishing_ParkHead,
+    Finished,
+    Last_ = Finished,
+};
 
 /// Marlin client -> server messages
 typedef enum {

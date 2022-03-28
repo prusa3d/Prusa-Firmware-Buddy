@@ -24,33 +24,33 @@ namespace {
         marlin_vars_t *vars = marlin_vars();
         marlin_client_loop();
 
-        switch (vars->print_state) {
-        case mpsPrinting:
-            return SimplePrintState::Printing;
-        case mpsPausing_Begin:
-        case mpsPausing_WaitIdle:
-        case mpsPausing_ParkHead:
-        case mpsResuming_Begin:
-        case mpsResuming_Reheating:
-        case mpsResuming_UnparkHead:
-        case mpsAborting_Begin:
-        case mpsAborting_WaitIdle:
-        case mpsAborting_ParkHead:
-        case mpsFinishing_WaitIdle:
-        case mpsFinishing_ParkHead:
-            return SimplePrintState::Busy;
-        case mpsPaused:
-            return SimplePrintState::Paused;
-        case mpsAborted:
-        case mpsFinished:
-        case mpsIdle:
-            return SimplePrintState::Idle;
-        default:
-            assert(0);
-            return SimplePrintState::Idle;
+        if (vars->print_state <= mpsLast_) {
+            switch (vars->print_state) {
+            case mpsPrinting:
+                return SimplePrintState::Printing;
+            case mpsPausing_Begin:
+            case mpsPausing_WaitIdle:
+            case mpsPausing_ParkHead:
+            case mpsResuming_Begin:
+            case mpsResuming_Reheating:
+            case mpsResuming_UnparkHead:
+            case mpsAborting_Begin:
+            case mpsAborting_WaitIdle:
+            case mpsAborting_ParkHead:
+            case mpsFinishing_WaitIdle:
+            case mpsFinishing_ParkHead:
+                return SimplePrintState::Busy;
+            case mpsPaused:
+                return SimplePrintState::Paused;
+            case mpsAborted:
+            case mpsFinished:
+            case mpsIdle:
+                return SimplePrintState::Idle;
+            }
         }
-    }
-
+        assert(0);
+        return SimplePrintState::Idle;
+    };
 }
 
 // FIXME: There's a race between the check and the command. Does it matter?
@@ -99,5 +99,4 @@ bool JobCommand::resume() {
         return false;
     }
 }
-
 }
