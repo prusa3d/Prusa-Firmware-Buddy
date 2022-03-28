@@ -403,6 +403,14 @@ variant8_t marlin_get_var(uint8_t var_id) {
     return (client) ? marlin_vars_get_var(&(client->vars), var_id) : variant8_empty();
 }
 
+float marlin_get_flt(uint8_t var_id) { return variant8_get_flt(marlin_get_var(var_id)); }
+uint32_t marlin_get_ui32(uint8_t var_id) { return variant8_get_ui32(marlin_get_var(var_id)); }
+int32_t marlin_get_i32(uint8_t var_id) { return variant8_get_i32(marlin_get_var(var_id)); }
+uint16_t marlin_get_ui16(uint8_t var_id) { return variant8_get_ui16(marlin_get_var(var_id)); }
+uint8_t marlin_get_ui8(uint8_t var_id) { return variant8_get_ui8(marlin_get_var(var_id)); }
+int8_t marlin_get_i8(uint8_t var_id) { return variant8_get_i8(marlin_get_var(var_id)); }
+bool marlin_get_bool(uint8_t var_id) { return variant8_get_bool(marlin_get_var(var_id)); }
+
 variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
     variant8_t retval = variant8_empty();
     char request[MARLIN_MAX_REQUEST];
@@ -423,6 +431,15 @@ variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
     _send_request_to_server_and_wait(request);
     return retval;
 }
+
+void marlin_set_i8(uint8_t var_id, int8_t i8) { marlin_set_var(var_id, variant8_i8(i8)); }
+void marlin_set_bool(uint8_t var_id, bool b) { marlin_set_var(var_id, variant8_bool(b)); }
+void marlin_set_ui8(uint8_t var_id, uint8_t ui8) { marlin_set_var(var_id, variant8_ui8(ui8)); }
+void marlin_set_i16(uint8_t var_id, int16_t i16) { marlin_set_var(var_id, variant8_i16(i16)); }
+void marlin_set_ui16(uint8_t var_id, uint16_t ui16) { marlin_set_var(var_id, variant8_ui16(ui16)); }
+void marlin_set_i32(uint8_t var_id, int32_t i32) { marlin_set_var(var_id, variant8_i32(i32)); }
+void marlin_set_ui32(uint8_t var_id, uint32_t ui32) { marlin_set_var(var_id, variant8_ui32(ui32)); }
+void marlin_set_flt(uint8_t var_id, float flt) { marlin_set_var(var_id, variant8_flt(flt)); }
 
 marlin_vars_t *marlin_vars(void) {
     marlin_client_t *client = _client_ptr();
