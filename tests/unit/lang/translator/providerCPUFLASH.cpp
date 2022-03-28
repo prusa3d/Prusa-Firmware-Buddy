@@ -34,7 +34,7 @@ const TPBSH::BucketRange hash_table_ForComparison[TPBSH::Buckets()] =
     const TPBSH::BucketItem stringRecArrayForComparison[TPBSH::MaxStrings()] =
 #include "hash_table_string_indices.ipp"
 
-        constexpr size_t maxStringBegins = 256;
+        constexpr size_t maxStringBegins = TPBSH::MaxStrings();
 constexpr size_t maxUtf8Raw = 16384;
 
 /// just like the StringTableCS, but without const data - to be able to fill them during testing at runtime

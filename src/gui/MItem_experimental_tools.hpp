@@ -18,7 +18,7 @@ enum class ClickCommand : intptr_t { Return,
     Reset_currents };
 
 class MI_Z_AXIS_LEN : public WiSpinInt {
-    constexpr static const char *const label = N_("Z axis length");
+    constexpr static const char *const label = "Z-axis length";
 
 public:
     MI_Z_AXIS_LEN();
@@ -26,7 +26,7 @@ public:
 };
 
 class MI_RESET_Z_AXIS_LEN : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Default Z length");
+    static constexpr const char *const label = "Default Z-length";
 
 public:
     MI_RESET_Z_AXIS_LEN();
@@ -36,7 +36,7 @@ protected:
 };
 
 class MI_STEPS_PER_UNIT_X : public WiSpinInt {
-    constexpr static const char *const label = N_("X axis steps per unit");
+    constexpr static const char *const label = "X-axis steps per unit";
 
 public:
     MI_STEPS_PER_UNIT_X();
@@ -44,7 +44,7 @@ public:
 };
 
 class MI_STEPS_PER_UNIT_Y : public WiSpinInt {
-    constexpr static const char *const label = N_("Y axis steps per unit");
+    constexpr static const char *const label = "Y-axis steps per unit";
 
 public:
     MI_STEPS_PER_UNIT_Y();
@@ -52,7 +52,7 @@ public:
 };
 
 class MI_STEPS_PER_UNIT_Z : public WiSpinInt {
-    constexpr static const char *const label = N_("Z axis steps per unit");
+    constexpr static const char *const label = "Z-axis steps per unit";
 
 public:
     MI_STEPS_PER_UNIT_Z();
@@ -60,7 +60,7 @@ public:
 };
 
 class MI_STEPS_PER_UNIT_E : public WiSpinInt {
-    constexpr static const char *const label = N_("Extruder steps per unit");
+    constexpr static const char *const label = "Extruder steps per unit";
 
 public:
     MI_STEPS_PER_UNIT_E();
@@ -68,7 +68,7 @@ public:
 };
 
 class MI_RESET_STEPS_PER_UNIT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Default steps per unit");
+    static constexpr const char *const label = "Default steps per unit";
 
 public:
     MI_RESET_STEPS_PER_UNIT();
@@ -78,15 +78,15 @@ protected:
 };
 
 class WiSwitchDirection : public WI_SWITCH_t<2> {
-    constexpr static const char *const str_prusa = N_("Prusa");
-    constexpr static const char *const str_wrong = N_("Wrong");
+    constexpr static const char *const str_prusa = "Prusa";
+    constexpr static const char *const str_wrong = "Wrong";
 
 public:
     WiSwitchDirection(bool current_direction_negative, string_view_utf8 label_view);
 };
 
 class MI_DIRECTION_X : public WiSwitchDirection {
-    constexpr static const char *const label = N_("X axis direction");
+    constexpr static const char *const label = "X-axis direction";
 
 public:
     MI_DIRECTION_X();
@@ -94,7 +94,7 @@ public:
 };
 
 class MI_DIRECTION_Y : public WiSwitchDirection {
-    constexpr static const char *const label = N_("Y axis direction");
+    constexpr static const char *const label = "Y-axis direction";
 
 public:
     MI_DIRECTION_Y();
@@ -102,7 +102,7 @@ public:
 };
 
 class MI_DIRECTION_Z : public WiSwitchDirection {
-    constexpr static const char *const label = N_("Z axis direction");
+    constexpr static const char *const label = "Z-axis direction";
 
 public:
     MI_DIRECTION_Z();
@@ -110,7 +110,7 @@ public:
 };
 
 class MI_DIRECTION_E : public WiSwitchDirection {
-    constexpr static const char *const label = N_("Extruder direction");
+    constexpr static const char *const label = "Extruder direction";
 
 public:
     MI_DIRECTION_E();
@@ -118,7 +118,7 @@ public:
 };
 
 class MI_RESET_DIRECTION : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Default directions");
+    static constexpr const char *const label = "Default directions";
 
 public:
     MI_RESET_DIRECTION();
@@ -128,7 +128,7 @@ protected:
 };
 
 class MI_MICROSTEPS_X : public WiSpinExp {
-    constexpr static const char *const label = N_("X axis microsteps");
+    constexpr static const char *const label = "X-axis microsteps";
 
 public:
     MI_MICROSTEPS_X();
@@ -136,7 +136,7 @@ public:
 };
 
 class MI_MICROSTEPS_Y : public WiSpinExp {
-    constexpr static const char *const label = N_("Y axis microsteps");
+    constexpr static const char *const label = "Y-axis microsteps";
 
 public:
     MI_MICROSTEPS_Y();
@@ -144,7 +144,7 @@ public:
 };
 
 class MI_MICROSTEPS_Z : public WiSpinExp {
-    constexpr static const char *const label = N_("Z axis microsteps");
+    constexpr static const char *const label = "Z-axis microsteps";
 
 public:
     MI_MICROSTEPS_Z();
@@ -152,7 +152,7 @@ public:
 };
 
 class MI_MICROSTEPS_E : public WiSpinExp {
-    constexpr static const char *const label = N_("Extruder microsteps");
+    constexpr static const char *const label = "Extruder microsteps";
 
 public:
     MI_MICROSTEPS_E();
@@ -160,7 +160,7 @@ public:
 };
 
 class MI_RESET_MICROSTEPS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Reset microsteps");
+    static constexpr const char *const label = "Reset microsteps";
 
 public:
     MI_RESET_MICROSTEPS();
@@ -170,7 +170,7 @@ protected:
 };
 
 class MI_CURRENT_X : public WiSpinInt {
-    constexpr static const char *const label = N_("X current");
+    constexpr static const char *const label = "X current";
 
 public:
     MI_CURRENT_X();
@@ -178,7 +178,7 @@ public:
 };
 
 class MI_CURRENT_Y : public WiSpinInt {
-    constexpr static const char *const label = N_("Y current");
+    constexpr static const char *const label = "Y current";
 
 public:
     MI_CURRENT_Y();
@@ -186,7 +186,7 @@ public:
 };
 
 class MI_CURRENT_Z : public WiSpinInt {
-    constexpr static const char *const label = N_("Z current");
+    constexpr static const char *const label = "Z current";
 
 public:
     MI_CURRENT_Z();
@@ -194,7 +194,7 @@ public:
 };
 
 class MI_CURRENT_E : public WiSpinInt {
-    constexpr static const char *const label = N_("Extruder current");
+    constexpr static const char *const label = "Extruder current";
 
 public:
     MI_CURRENT_E();
@@ -202,7 +202,7 @@ public:
 };
 
 class MI_RESET_CURRENTS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Reset currents");
+    static constexpr const char *const label = "Reset currents";
 
 public:
     MI_RESET_CURRENTS();
@@ -212,7 +212,7 @@ protected:
 };
 
 class MI_SAVE_AND_RETURN : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Save and return");
+    static constexpr const char *const label = "Save and return";
 
 public:
     MI_SAVE_AND_RETURN();

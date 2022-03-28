@@ -52,8 +52,9 @@ public:
         return string_view_utf8::MakeCPUFLASH(utf8raw);
     }
 
-    // 2020-08-18 updated to 340 buckets with more texts coming in. With previous 256 buckets, collisions occured already (we have 240+ texts)
-    using SHashTable = string_hash_table<hash_djb2, buckets_count, 256>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
+    // bucket_count is being computed at compile time (lang.py is searching for the lowest possible number of buckets where collisions do not occur)
+    // 310 is the maximum total number of strings the translator array can hold. To be increased in the future as new strings come into the FW
+    using SHashTable = string_hash_table<hash_djb2, buckets_count, 310>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
 #ifndef TRANSLATIONS_UNITTEST
 protected:
 #endif
