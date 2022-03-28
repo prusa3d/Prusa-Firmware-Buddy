@@ -53,6 +53,9 @@ bool FooterLine::Create(footer::items item_id, size_t index) {
     case footer::items::ItemFilament:
         new (&items[index]) FooterItemFilament(this);
         break;
+    case footer::items::ItemFSensor:
+        new (&items[index]) FooterItemFSensor(this);
+        break;
     case footer::items::ItemSpeed:
         new (&items[index]) FooterItemSpeed(this);
         break;
