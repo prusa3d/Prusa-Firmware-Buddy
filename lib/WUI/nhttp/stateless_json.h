@@ -14,7 +14,7 @@ namespace nhttp::handler {
 /// things where there's no state to track during the generation.
 class StatelessJson {
 public:
-    typedef JsonRenderer::ContentResult (*Content)(size_t resume_point, JsonRenderer::Output &output);
+    typedef JsonResult (*Content)(size_t resume_point, JsonOutput &output);
 
 private:
     enum class Progress {
@@ -24,14 +24,17 @@ private:
         Done,
     };
 
-    class Renderer final : public JsonRenderer {
+    class Empty {};
+
+    class Renderer final : public JsonRenderer<Empty> {
     private:
         Content generator;
 
     public:
         Renderer(Content content)
-            : generator(content) {}
-        virtual ContentResult content(size_t resume_point, Output &output) override;
+            : JsonRenderer(Empty {})
+            , generator(content) {}
+        virtual JsonResult renderState(size_t resume_point, JsonOutput &output, Empty &state) const override;
     };
 
     Renderer renderer;

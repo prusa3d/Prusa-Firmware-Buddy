@@ -3,10 +3,69 @@
 #include <cstdlib>
 #include <cstdint>
 #include <tuple>
+#include <optional>
 
 namespace nhttp {
 
+/// Passing state of an attempt to write something.
+///
+/// (Helper enum for JsonRenderer).
+enum class JsonResult {
+    /// This thing didn't fit.
+    ///
+    /// But something previous might have.
+    Incomplete,
+    /// All done.
+    Complete,
+    /// Propagated request from content to abort the rendering without contituation.
+    Abort,
+    /// The provided buffer is too small to output even a single token.
+    ///
+    /// This exists mostly to detect error states with eg. a too large
+    /// string. If it was implemented without this detection, it would
+    /// repeatedly try to produce empty buffers and create an infinite loop.
+    BufferTooSmall,
+};
+
+/// A proxy for the buffer where the data goes.
+//
+/// (Helper class for JsonRenderer).
+///
+/// This can be used to produce bits and pieces of the resulting JSON. The
+/// methods either produce what's needed and return ContentResult::Complete,
+/// or produce nothing and return ContentResult::Incomplete.
+///
+/// Most of the time, it is used through the macros from segmented_json_macros.h
+class JsonOutput {
+private:
+    bool written_something = false;
+    uint8_t *buffer;
+    size_t &buffer_size;
+    size_t &resume_point;
+    friend class LowLevelJsonRenderer;
+    JsonOutput(uint8_t *buffer, size_t &buffer_size, size_t &resume_point)
+        : buffer(buffer)
+        , buffer_size(buffer_size)
+        , resume_point(resume_point) {}
+
+public:
+    JsonResult output(size_t resume_point, const char *format, ...);
+    // TODO: Add others as needed.
+    JsonResult output_field_bool(size_t resume_point, const char *name, bool value);
+    JsonResult output_field_str(size_t resume_point, const char *name, const char *value);
+    JsonResult output_field_int(size_t resume_point, const char *name, int64_t value);
+    // Fixed precision
+    JsonResult output_field_float_fixed(size_t resume_point, const char *name, double value, int precision);
+    JsonResult output_field_str_format(size_t resume_point, const char *name, const char *format, ...);
+    JsonResult output_field_obj(size_t resume_point, const char *name);
+    JsonResult output_field_arr(size_t resume_point, const char *name);
+};
+
 /// Support for rendering JSON by parts.
+///
+/// If possible, prefer the use of JsonRenderer. This one is more low level and
+/// can be used when the JsonRenderer is too limiting. But this one is more
+/// error prone (it's easier to create inconsistent response).
 ///
 /// Sometimes, we may not afford to send the whole JSON answer in one packet
 /// and we have only a single packet of buffer space. Therefore, we need to be
@@ -46,62 +105,12 @@ namespace nhttp {
 /// least compatible results).
 ///
 /// Also note that there's no way to "restart" the renderer.
-class JsonRenderer {
+class LowLevelJsonRenderer {
 private:
     size_t resume_point = 0;
 
 public:
-    /// Passing state of an attempt to write something.
-    enum class ContentResult {
-        /// This thing didn't fit.
-        ///
-        /// But something previous might have.
-        Incomplete,
-        /// All done.
-        Complete,
-        /// Propagated request from content to abort the rendering without contituation.
-        Abort,
-        /// The provided buffer is too small to output even a single token.
-        ///
-        /// This exists mostly to detect error states with eg. a too large
-        /// string. If it was implemented without this detection, it would
-        /// repeatedly try to produce empty buffers and create an infinite loop.
-        BufferTooSmall,
-    };
-
-    /// A proxy for the buffer where the data goes.
-    ///
-    /// This can be used to produce bits and pieces of the resulting JSON. The
-    /// methods either produce what's needed and return ContentResult::Complete,
-    /// or produce nothing and return ContentResult::Incomplete.
-    ///
-    /// Most of the time, it is used through the macros from segmented_json_macros.h
-    class Output {
-    private:
-        bool written_something = false;
-        uint8_t *buffer;
-        size_t &buffer_size;
-        size_t &resume_point;
-        friend class JsonRenderer;
-        Output(uint8_t *buffer, size_t &buffer_size, size_t &resume_point)
-            : buffer(buffer)
-            , buffer_size(buffer_size)
-            , resume_point(resume_point) {}
-
-    public:
-        ContentResult output(size_t resume_point, const char *format, ...);
-        // TODO: Add others as needed.
-        ContentResult output_field_bool(size_t resume_point, const char *name, bool value);
-        ContentResult output_field_str(size_t resume_point, const char *name, const char *value);
-        ContentResult output_field_int(size_t resume_point, const char *name, int64_t value);
-        // Fixed precision
-        ContentResult output_field_float_fixed(size_t resume_point, const char *name, double value, int precision);
-        ContentResult output_field_str_format(size_t resume_point, const char *name, const char *format, ...);
-        ContentResult output_field_obj(size_t resume_point, const char *name);
-        ContentResult output_field_arr(size_t resume_point, const char *name);
-    };
-
-    virtual ~JsonRenderer() = default;
+    virtual ~LowLevelJsonRenderer() = default;
     /// The outer entry point.
     ///
     /// When called, this would produce the next part of the resulting JSON into the provided buffer and signal:
@@ -112,11 +121,43 @@ public:
     ///
     /// Calling it again after Abort or Complete was returned is invalid. It is
     /// possible to call after return of BufferTooSmall with a bigger buffer.
-    std::tuple<ContentResult, size_t> render(uint8_t *buffer, size_t buffer_size);
+    std::tuple<JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size);
 
 protected:
     /// The inner implementation, to be provided by an author of the renderer.
-    virtual ContentResult content(size_t resume_point, Output &output) = 0;
+    virtual JsonResult content(size_t resume_point, JsonOutput &output) = 0;
+};
+
+/// The "higher level" JSON renderer.
+///
+/// This does more or less the same as LowLevelJsonRenderer, but slightly
+/// pushes to preparing the rendered state upfront and making sure the response
+/// is asured to be consistent.
+///
+/// The usage:
+///
+/// * The state to render (the yet unrendered answer) is created and passed to
+///   the constructor.
+/// * The renderState is used to format the response.
+///
+/// While it is needed to inherit the class to implement renderState, the
+/// actual state should be in the State passed to constructor, not in the child
+/// implementation.
+template <class State>
+class JsonRenderer : public LowLevelJsonRenderer {
+private:
+    State state;
+
+protected:
+    virtual JsonResult content(size_t resume_point, JsonOutput &output) override {
+        return renderState(resume_point, output, state);
+    }
+
+    virtual JsonResult renderState(size_t resume_point, JsonOutput &output, State &state) const = 0;
+
+public:
+    JsonRenderer(State state)
+        : state(std::move(state)) {}
 };
 
 }
