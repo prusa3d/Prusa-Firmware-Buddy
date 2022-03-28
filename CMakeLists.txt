@@ -796,6 +796,7 @@ if(GUI)
             src/gui/footer/footer_item_printspeed.cpp
             src/gui/footer/footer_item_live_z.cpp
             src/gui/footer/footer_items_nozzle_bed.cpp
+            src/gui/footer/footer_item_fsensor.cpp
             src/gui/footer/footer_line.cpp
             src/gui/footer/ifooter.cpp
             $<$<STREQUAL:${PRINTER},MINI>:src/gui/footer/footer_doubleline.cpp>

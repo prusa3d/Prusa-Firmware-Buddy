@@ -68,6 +68,7 @@ public:
             FooterItemNozzle::GetName(),
             FooterItemBed::GetName(),
             FooterItemFilament::GetName(),
+            FooterItemFSensor::GetName(),
             FooterItemSpeed::GetName(),
             FooterItemAxisX::GetName(),
             FooterItemAxisY::GetName(),

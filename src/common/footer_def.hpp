@@ -33,6 +33,7 @@ enum class items : uint8_t { // stored in eeprom, must be small
     ItemNozzle,
     ItemBed,
     ItemFilament,
+    ItemFSensor,
     ItemSpeed,
     ItemAxisX,
     ItemAxisY,

@@ -17,20 +17,21 @@
     #error "Unknown PRINTER_TYPE."
 #endif // PRINTER_TYPE
 
-#include "res/cc/png_nozzle_16px.c"     //IDR_PNG_nozzle_16px
-#include "res/cc/png_heatbed_16px.c"    //IDR_PNG_heatbed_16px
-#include "res/cc/png_speed_16px.c"      //IDR_PNG_speed_16px
-#include "res/cc/png_spool_16px.c"      //IDR_PNG_spool_16px
-#include "res/cc/png_z_axis_16px.c"     //IDR_PNG_z_axis_16px
-#include "res/cc/png_home_shape_16px.c" //IDR_PNG_home_shape_16px
-#include "res/cc/png_print_16px.c"      //IDR_PNG_print_16px
-#include "res/cc/png_x_axis_16x16.c"    //IDR_PNG_x_axis_16x16,
-#include "res/cc/png_y_axis_16x16.c"    //IDR_PNG_y_axis_16x16,
-#include "res/cc/png_z_axis_16x16.c"    //IDR_PNG_z_axis_16x16,
-#include "res/cc/png_turbine_16x16.c"   //IDR_PNG_turbine_16x16,
-#include "res/cc/png_fan_16x16.c"       //IDR_PNG_fan_16x16,
-#include "res/cc/png_selftest_16x16.c"  //IDR_PNG_selftest_16x16,
-#include "res/cc/png_wizard_16x16.c"    //IDR_PNG_wizard_16x16, // TODO generate with script
+#include "res/cc/png_nozzle_16px.c"           //IDR_PNG_nozzle_16px
+#include "res/cc/png_heatbed_16px.c"          //IDR_PNG_heatbed_16px
+#include "res/cc/png_speed_16px.c"            //IDR_PNG_speed_16px
+#include "res/cc/png_spool_16px.c"            //IDR_PNG_spool_16px
+#include "res/cc/png_z_axis_16px.c"           //IDR_PNG_z_axis_16px
+#include "res/cc/png_home_shape_16px.c"       //IDR_PNG_home_shape_16px
+#include "res/cc/png_print_16px.c"            //IDR_PNG_print_16px
+#include "res/cc/png_x_axis_16x16.c"          //IDR_PNG_x_axis_16x16,
+#include "res/cc/png_y_axis_16x16.c"          //IDR_PNG_y_axis_16x16,
+#include "res/cc/png_z_axis_16x16.c"          //IDR_PNG_z_axis_16x16,
+#include "res/cc/png_turbine_16x16.c"         //IDR_PNG_turbine_16x16,
+#include "res/cc/png_fan_16x16.c"             //IDR_PNG_fan_16x16,
+#include "res/cc/png_selftest_16x16.c"        //IDR_PNG_selftest_16x16,
+#include "res/cc/png_wizard_16x16.c"          //IDR_PNG_wizard_16x16, // TODO generate with script
+#include "res/cc/png_filament_sensor_17x16.c" //IDR_PNG_filament_sensor_17x16
 
 #include "res/cc/png_print_58px.c"       //IDR_PNG_print_58px
 #include "res/cc/png_preheat_58px.c"     //IDR_PNG_preheat_58px
@@ -139,6 +140,7 @@ RESOURCE_ENTRY_PNG(png_turbine_16x16)
 RESOURCE_ENTRY_PNG(png_fan_16x16)
 RESOURCE_ENTRY_PNG(png_selftest_16x16)
 RESOURCE_ENTRY_PNG(png_wizard_16x16)
+RESOURCE_ENTRY_PNG(png_filament_sensor_17x16)
 
 RESOURCE_ENTRY_PNG(png_print_58px)
 RESOURCE_ENTRY_PNG(png_preheat_58px)
