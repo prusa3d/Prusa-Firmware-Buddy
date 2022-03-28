@@ -41,6 +41,18 @@ screen_splash_data_t::screen_splash_data_t()
         project_version, project_version_suffix_short);
     // this MakeRAM is safe - text_version_buffer is globally allocated
     text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_version_buffer));
+
+    const bool run_selftest = eeprom_get_bool(EEVAR_RUN_SELFTEST);
+    const bool run_xyzcalib = eeprom_get_bool(EEVAR_RUN_XYZCALIB);
+    const bool run_firstlay = eeprom_get_bool(EEVAR_RUN_FIRSTLAY);
+    const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
+    const bool run_lang = !LangEEPROM::getInstance().IsValid();
+
+    const screen_node screens[] {
+        { run_lang ? GetScreenMenuLanguagesNoRet : nullptr },          // lang
+        { run_wizard ? ScreenFactory::Screen<ScreenWizard> : nullptr } // wizard
+    };
+    Screens::Access()->PushBeforeCurrent(screens, screens + (sizeof(screens) / sizeof(screens[0])));
 }
 
 void screen_splash_data_t::draw() {
@@ -87,17 +99,6 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t 
         progress.SetValue(std::clamp(percent, 0, 99));
 
         if (percent > 99) {
-            const bool run_selftest = eeprom_get_bool(EEVAR_RUN_SELFTEST);
-            const bool run_xyzcalib = eeprom_get_bool(EEVAR_RUN_XYZCALIB);
-            const bool run_firstlay = eeprom_get_bool(EEVAR_RUN_FIRSTLAY);
-            const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
-            const bool run_lang = !LangEEPROM::getInstance().IsValid();
-
-            const screen_node screens[] {
-                { run_lang ? GetScreenMenuLanguagesNoRet : nullptr },          // lang
-                { run_wizard ? ScreenFactory::Screen<ScreenWizard> : nullptr } // wizard
-            };
-            Screens::Access()->PushBeforeCurrent(screens, screens + (sizeof(screens) / sizeof(screens[0])));
             Screens::Access()->Close();
         }
 #else
