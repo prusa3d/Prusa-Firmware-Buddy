@@ -192,6 +192,7 @@ set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_GUI "MINI")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
 set(PRINTERS_WITH_ADVANCED_PAUSE "MINI")
+set(PRINTERS_WITH_BOWDEN_EXTRUDER "MINI")
 # Set printer board
 set(PRINTERS_WITH_BUDDY "MINI")
 
@@ -232,6 +233,13 @@ else()
   set(HAS_PAUSE NO)
 endif()
 message(STATUS "ADVANCED PAUSE: ${HAS_PAUSE}")
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_BOWDEN_EXTRUDER)
+  set(HAS_BOWDEN YES)
+else()
+  set(HAS_BOWDEN NO)
+endif()
+message(STATUS "BOWDEN EXTRUDER: ${HAS_BOWDEN}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(DEBUG YES)
@@ -946,6 +954,12 @@ set_property(
          src/gui/dialogs/DialogLoadUnload.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_MMU2=$<BOOL:${HAS_MMU2}>
+  )
+
+set_property(
+  SOURCE src/marlin_stubs/pause/pause.cpp
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS HAS_BOWDEN=$<BOOL:${HAS_BOWDEN}>
   )
 
 # Due to the wrong use of interface library for WUI, the flag "GENERATED" is not properly propagated
