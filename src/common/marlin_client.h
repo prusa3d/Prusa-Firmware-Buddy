@@ -127,8 +127,25 @@ extern uint64_t marlin_errors(void);
 // returns variable value from client structure by var_id
 extern variant8_t marlin_get_var(uint8_t var_id);
 
+extern float marlin_get_flt(uint8_t var_id);
+extern uint32_t marlin_get_ui32(uint8_t var_id);
+extern int32_t marlin_get_i32(uint8_t var_id);
+extern uint16_t marlin_get_ui16(uint8_t var_id);
+extern uint8_t marlin_get_ui8(uint8_t var_id);
+extern int8_t marlin_get_i8(uint8_t var_id);
+extern bool marlin_get_bool(uint8_t var_id);
+
 // request server to set variable, returns previous value or error (notimpl., TODO)
 extern variant8_t marlin_set_var(uint8_t var_id, variant8_t val);
+
+extern void marlin_set_i8(uint8_t var_id, int8_t i8);
+extern void marlin_set_bool(uint8_t var_id, bool b);
+extern void marlin_set_ui8(uint8_t var_id, uint8_t ui8);
+extern void marlin_set_i16(uint8_t var_id, int16_t i16);
+extern void marlin_set_ui16(uint8_t var_id, uint16_t ui16);
+extern void marlin_set_i32(uint8_t var_id, int32_t i32);
+extern void marlin_set_ui32(uint8_t var_id, uint32_t ui32);
+extern void marlin_set_flt(uint8_t var_id, float flt);
 
 // returns variable structure pointer for calling thread
 extern marlin_vars_t *marlin_vars(void);
