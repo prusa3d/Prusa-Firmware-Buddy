@@ -372,6 +372,7 @@ public:
   #endif
 
   static void dwell(millis_t time);
+  static void G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y,bool Z);
 
 private:
 

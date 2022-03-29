@@ -196,6 +196,21 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
  *
  */
 void GcodeSuite::G28(const bool always_home_all) {
+  bool S = false;
+  #if ENABLED(MARLIN_DEV_MODE)
+    S = parser.seen('S')
+  #endif
+
+  bool O = parser.boolval('O');
+  bool X = parser.seen('X');
+  bool Y = parser.seen('Y');
+  bool Z = parser.seen('Z');
+  float R = parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT;
+
+  G28_no_parser(always_home_all, O, R, S, X, Y, Z);
+}
+
+void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y,bool Z) {
   MINDA_BROKEN_CABLE_DETECTION__BEGIN();
   if (DEBUGGING(LEVELING)) {
     DEBUG_ECHOLNPGM(">>> G28");
@@ -208,7 +223,7 @@ void GcodeSuite::G28(const bool always_home_all) {
   #endif
 
   #if ENABLED(MARLIN_DEV_MODE)
-    if (parser.seen('S')) {
+    if (S) {
       LOOP_XYZ(a) set_axis_is_at_home((AxisEnum)a);
       sync_plan_position();
       SERIAL_ECHOLNPGM("Simulated Homing");
@@ -218,7 +233,7 @@ void GcodeSuite::G28(const bool always_home_all) {
     }
   #endif
 
-  if (!homing_needed() && parser.boolval('O')) {
+  if (!homing_needed() && O) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip\n<<< G28");
     return;
   }
@@ -281,7 +296,7 @@ void GcodeSuite::G28(const bool always_home_all) {
 
   #else // NOT DELTA
 
-    const bool homeX = parser.seen('X'), homeY = parser.seen('Y'), homeZ = parser.seen('Z'),
+    const bool homeX = X, homeY = Y, homeZ = Z,
                home_all = always_home_all || (homeX == homeY && homeX == homeZ),
                doX = home_all || homeX, doY = home_all || homeY, doZ = home_all || homeZ;
 
@@ -297,7 +312,7 @@ void GcodeSuite::G28(const bool always_home_all) {
       #if ENABLED(UNKNOWN_Z_NO_RAISE)
         !TEST(axis_known_position, Z_AXIS) ? 0 :
       #endif
-          (parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT)
+          isnan(R) ? Z_HOMING_HEIGHT : R
     );
 
     if (z_homing_height && (doX || doY)) {
