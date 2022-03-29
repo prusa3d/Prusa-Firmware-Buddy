@@ -47,13 +47,16 @@ static Response evaluate_preheat_conditions(PreheatData data) {
         break;
     }
 
-    // catch filament in gear and then ask for temp
-    if (data.Mode() == PreheatMode::Autoload) {
-        pause.SetParkPoint(current_position);
-        pause.SetSlowLoadLength(FILAMENT_CHANGE_SLOW_LOAD_LENGTH);
-        if (!pause.LoadToGear()) {
-            //do not ask for filament type after stop was pressed
-            return Response::Abort;
+    // bowden extruder does not load filament to gear before preheat dialog
+    if constexpr (!HAS_BOWDEN) {
+        // catch filament in gear and then ask for temp
+        if (data.Mode() == PreheatMode::Autoload) {
+            pause.SetParkPoint(current_position);
+            pause.SetSlowLoadLength(FILAMENT_CHANGE_SLOW_LOAD_LENGTH);
+            if (!pause.LoadToGear()) {
+                //do not ask for filament type after stop was pressed
+                return Response::Abort;
+            }
         }
     }
 
@@ -81,9 +84,12 @@ std::pair<std::optional<PreheatStatus::Result>, filament_t> m1400::preheat(Prehe
     if (filament == filament_t::NONE) {
         switch (response) {
         case Response::Abort:
-            // If we have aborted autoload we need to eject filament from the gears
-            if (data.Mode() == PreheatMode::Autoload) {
-                pause.UnloadFromGear();
+            // bowden extruder does not load filament to gear before preheat dialog
+            if constexpr (!HAS_BOWDEN) {
+                // If we have aborted autoload we need to eject filament from the gears
+                if (data.Mode() == PreheatMode::Autoload) {
+                    pause.UnloadFromGear();
+                }
             }
             return { PreheatStatus::Result::Aborted, filament_t::NONE };
         case Response::Cooldown:

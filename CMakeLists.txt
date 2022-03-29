@@ -957,7 +957,8 @@ set_property(
   )
 
 set_property(
-  SOURCE src/marlin_stubs/pause/pause.cpp
+  SOURCE src/marlin_stubs/pause/pause.cpp src/marlin_stubs/pause/M70X.cpp
+         src/marlin_stubs/pause/M70X_preheat.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_BOWDEN=$<BOOL:${HAS_BOWDEN}>
   )
