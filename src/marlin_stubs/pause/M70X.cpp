@@ -65,7 +65,7 @@ bool m1400::load_unload(LoadUnloadMode type, m1400::Func f_load_unload, uint32_t
         thermalManager.setTargetHotend(disp_temp, target_extruder);
     }
 
-    xyz_pos_t park_position = current_position;
+    xyz_pos_t park_position = { NAN, NAN, NAN };
     if (min_Z_pos > 0) {
         static const float Z_max = get_z_max_pos_mm();
         park_position.z = std::min(std::max(current_position.z, float(min_Z_pos)), Z_max);

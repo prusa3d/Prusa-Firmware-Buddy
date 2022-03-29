@@ -57,6 +57,7 @@ enum AxisEnum : uint8_t {
 #define LOOP_LE_N(VAR, N) LOOP_S_LE_N(VAR, 0, N)
 #define LOOP_L_N(VAR, N) LOOP_S_L_N(VAR, 0, N)
 
+#define LOOP_XY(VAR) LOOP_S_LE_N(VAR, X_AXIS, Y_AXIS)
 #define LOOP_XYZ(VAR) LOOP_S_LE_N(VAR, X_AXIS, Z_AXIS)
 #define LOOP_XYZE(VAR) LOOP_S_LE_N(VAR, X_AXIS, E_AXIS)
 #define LOOP_XYZE_N(VAR) LOOP_S_L_N(VAR, X_AXIS, XYZE_N)
