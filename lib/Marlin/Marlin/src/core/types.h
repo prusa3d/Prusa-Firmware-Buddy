@@ -185,6 +185,7 @@ typedef IF<(NUM_AXIS_ENUMS > 8), uint16_t, uint8_t>::type axis_bits_t;
 //
 // Loop over axes
 //
+#define LOOP_XY(VAR) LOOP_S_LE_N(VAR, X_AXIS, Y_AXIS)
 #define LOOP_ABC(VAR) LOOP_S_LE_N(VAR, A_AXIS, C_AXIS)
 #define LOOP_NUM_AXES(VAR) LOOP_S_L_N(VAR, X_AXIS, NUM_AXES)
 #define LOOP_LOGICAL_AXES(VAR) LOOP_S_L_N(VAR, X_AXIS, LOGICAL_AXES)
