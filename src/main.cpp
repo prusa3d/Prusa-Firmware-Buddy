@@ -728,7 +728,7 @@ void StartDisplayTask(void const *argument) {
 
 #ifdef BUDDY_ENABLE_CONNECT
 void StartConnectTask(void const *argument) {
-    connect client;
+    con::connect client;
     client.run();
     /* Infinite loop */
     for (;;) {

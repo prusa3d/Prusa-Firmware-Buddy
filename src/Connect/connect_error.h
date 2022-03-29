@@ -3,12 +3,14 @@
 namespace con {
 
 enum class Error {
-    OK = 0,
     ERROR,
     CONNECTION_ERROR,
-    TLS_CERT_ERROR,
     WRITE_ERROR,
     READ_ERROR,
+    INVALID_PARAMETER_ERROR,
+    BUFFER_OVERFLOW_ERROR,
+    MARLIN_CLIENT_ERROR,
+    TLS_CERT_ERROR,
 };
 
 }
