@@ -73,6 +73,7 @@ public:
     bool IsCapturable() const;
     bool HasEnforcedCapture() const;
     bool HasTimer() const;
+    bool HasIcon() const;
     win_type_t GetType() const;
     bool IsDialog() const;
     bool ClosedOnTimeout() const;
