@@ -109,7 +109,7 @@ std::optional<Error> tls::connect(char *host, uint16_t port) {
     mbedtls_ctr_drbg_free(&drbg_context);
     mbedtls_entropy_free(&entropy_context);
     mbedtls_x509_crt_free(&x509_certificate);
-    return Error::OK;
+    return std::nullopt;
 }
 
 std::variant<size_t, Error> tls::write(uint8_t *send_buffer, size_t data_len) {

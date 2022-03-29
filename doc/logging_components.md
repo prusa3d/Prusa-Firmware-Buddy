@@ -23,3 +23,4 @@ This file is generated automatically so don't edit it directly
 - WUI: LOG_SEVERITY_DEBUG, lib/WUI/wui.cpp
 - connect: LOG_SEVERITY_DEBUG, src/Connect/connect.cpp
 - httpc: LOG_SEVERITY_DEBUG, src/Connect/httpc.cpp
+- socket: LOG_SEVERITY_DEBUG, src/Connect/socket.cpp

@@ -113,14 +113,6 @@ uint32_t load_ini_file_eth(ETH_config_t *config);
 *****************************************************************************/
 uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
 
-/*!*****************************************************************************************
-* \brief Formats all vital eth information in destination string according to ini file format
-*
-* \param [out] destination null-terminated string
-* \param [in] config - storage for ethernet configurations
-*******************************************************************************************/
-void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config);
-
 /*!****************************************************************************
 * \brief Retrieves the MAC address of the requested device.
 *

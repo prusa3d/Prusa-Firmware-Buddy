@@ -101,6 +101,10 @@ set(RESOURCES
     "YES"
     CACHE BOOL "Enable resources (managed files on external flash)"
     )
+set(CONNECT
+    "YES"
+    CACHE BOOL "Enable Connect client"
+    )
 
 set(CONNECT
     "NO"
@@ -265,6 +269,12 @@ if(BOOTLOADER AND (${PRINTER} STREQUAL "MINI"))
   define_feature(BOOTLOADER_UPDATE ON)
 else()
   define_feature(BOOTLOADER_UPDATE OFF)
+endif()
+
+if(PRINTER STREQUAL "MINI")
+  set(PRINTER_TYPE "2")
+else()
+  message(FATAL_ERROR "Don't know how to encode printer type for ${PRINTER}.")
 endif()
 
 # enable all warnings (well, not all, but some)
@@ -512,12 +522,17 @@ if(CONNECT)
   if(WUI)
     target_sources(
       firmware
-      PRIVATE src/Connect/connect.cpp src/Connect/httpc.cpp src/Connect/httpc.cpp
-              src/Connect/tls/tls.cpp src/Connect/tls/net_sockets.c src/Connect/tls/hardware_rng.c
+      PRIVATE src/Connect/connect.cpp
+              src/Connect/httpc.cpp
+              src/Connect/httpc.cpp
+              src/Connect/socket.cpp
+              src/Connect/core_interface.cpp
+              src/Connect/httpc_data.cpp
+              src/Connect/os_porting.cpp
       )
     target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_CONNECT)
     # target_link_libraries(firmware PRIVATE Connect)
-    target_include_directories(firmware PRIVATE src/Connect src/Connect/tls)
+    target_include_directories(firmware PRIVATE src/Connect)
   else()
     message(STATUS "Connect needs WUI!")
   endif()
@@ -538,12 +553,6 @@ add_link_dependency(firmware "${LINKER_SCRIPT}")
 if(GENERATE_BBF)
   message(STATUS "Configured to generate .bbf version of the firmware.")
   message(STATUS "Signing Key: ${SIGNING_KEY}")
-
-  if(PRINTER STREQUAL "MINI")
-    set(PRINTER_TYPE "2")
-  else()
-    message(FATAL_ERROR "Don't know how to encode printer type for ${PRINTER}.")
-  endif()
 
   if(PROJECT_VERSION_SUFFIX)
     if(NOT "${PROJECT_VERSION_SUFFIX}" MATCHES "\\+${BUILD_NUMBER}")
