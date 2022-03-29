@@ -369,7 +369,7 @@ bool Pause::loadLoop(load_mode_t mode) {
             if constexpr (HAS_BOWDEN) {
                 set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
             } else {
-                if (FSensors_instance().PrinterHasFilament()) {
+                if (FSensors_instance().PrinterHasFilament() && mode == load_mode_t::autoload) {
                     set(LoadPhases_t::load_in_gear);
                 } else {
                     set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
@@ -462,7 +462,7 @@ bool Pause::loadLoop(load_mode_t mode) {
         setPhase(can_stop ? PhasesLoadUnload::Ejecting_stoppable : PhasesLoadUnload::Ejecting_unstoppable, 99);
         unload_filament(RammingType::unload);
 
-        set(LoadPhases_t::has_slow_load);
+        set(mode == load_mode_t::autoload ? LoadPhases_t::check_filament_sensor_and_user_push__ask : LoadPhases_t::has_slow_load);
     } break;
     case LoadPhases_t::autoload_in_gear:
         setPhase(can_stop ? PhasesLoadUnload::Inserting_stoppable : PhasesLoadUnload::Inserting_unstoppable, 10);
