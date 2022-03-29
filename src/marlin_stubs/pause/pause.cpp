@@ -742,9 +742,8 @@ void Pause::park_nozzle_and_notify() {
     //Should not affect other operations than Load/Unload/Change filament run from home screen without homing. We are homed during print
     LOOP_XY(axis) {
         // TODO: make homeaxis non-blocking to allow quick_stop
-        if (!isnan(park_pos.pos[axis]) && (axis_homed & axis_known_position & _BV(axis)) == 0) {
+        if (!isnan(park_pos.pos[axis]) && axes_need_homing(_BV(axis)))
             GcodeSuite::G28_no_parser(false, false, 0, false, axis == X_AXIS, axis == Y_AXIS, false);
-        }
         if (check_user_stop())
             return;
     }
@@ -780,7 +779,7 @@ void Pause::unpark_nozzle_and_notify() {
     // home the axis if it is not homed
     // we can move only one axis during parking and not home the other one and then unpark and move the not homed one, so we need to home it
     LOOP_XY(axis) {
-        if (!isnan(park_pos.pos[axis]) && (axis_homed & axis_known_position & _BV(axis)) == 0)
+        if (!isnan(park_pos.pos[axis]) && axes_need_homing(_BV(axis)))
             GcodeSuite::G28_no_parser(false, false, 0, false, axis == X_AXIS, axis == Y_AXIS, false);
     }
 
