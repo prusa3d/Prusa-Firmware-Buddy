@@ -4,7 +4,6 @@
 
 #include "eeprom.h"
 #include "assert.h"
-#include "filament.h"
 #include "filament.hpp"
 #include <cstring>
 #include "i18n.h"
@@ -28,18 +27,16 @@ static constexpr const char *pp_str =    "PP       240/100";
 static constexpr const char *flex_str =  "FLEX     240/ 50";
 // clang-format on
 
-//not a member - static_assert cannot access private members
-//fixme generating long names, takes too long
 const Filaments::Array filaments = {
-    { "---", BtnTexts::Get(Response::Cooldown), 0, 0, Response::Cooldown }, // Cooldown sets long text instead short, not a bug
-    { BtnTexts::Get(Response::PLA), pla_str, 215, 60, Response::PLA },
-    { BtnTexts::Get(Response::PETG), pet_g_str, 230, 85, Response::PETG },
-    { BtnTexts::Get(Response::ASA), asa_str, 260, 100, Response::ASA },
-    { BtnTexts::Get(Response::ABS), abs_str, 255, 100, Response::ABS },
-    { BtnTexts::Get(Response::PC), pc_str, 275, 100, Response::PC },
-    { BtnTexts::Get(Response::FLEX), flex_str, 240, 50, Response::FLEX },
-    { BtnTexts::Get(Response::HIPS), hips_str, 220, 100, Response::HIPS },
-    { BtnTexts::Get(Response::PP), pp_str, 240, 100, Response::PP },
+    { "---", BtnResponse::GetText(Response::Cooldown), 0, 0, Response::Cooldown }, // Cooldown sets long text instead short, not a bug
+    { BtnResponse::GetText(Response::PLA), pla_str, 215, 60, Response::PLA },
+    { BtnResponse::GetText(Response::PETG), pet_g_str, 230, 85, Response::PETG },
+    { BtnResponse::GetText(Response::ASA), asa_str, 260, 100, Response::ASA },
+    { BtnResponse::GetText(Response::ABS), abs_str, 255, 100, Response::ABS },
+    { BtnResponse::GetText(Response::PC), pc_str, 275, 100, Response::PC },
+    { BtnResponse::GetText(Response::FLEX), flex_str, 240, 50, Response::FLEX },
+    { BtnResponse::GetText(Response::HIPS), hips_str, 220, 100, Response::HIPS },
+    { BtnResponse::GetText(Response::PP), pp_str, 240, 100, Response::PP },
 };
 
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament_t::_last) + 1, "Filament count error.");

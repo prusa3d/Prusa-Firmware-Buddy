@@ -22,6 +22,7 @@ bool window_t::ClosedOnTimeout() const { return flags.timeout_close == is_closed
 bool window_t::ClosedOnSerialPrint() const { return flags.serial_close == is_closed_on_serial_t::yes; }
 bool window_t::HasEnforcedCapture() const { return flags.enforce_capture_when_not_visible; }
 bool window_t::IsCapturable() const { return IsVisible() || HasEnforcedCapture(); }
+bool window_t::HasIcon() const { return flags.has_icon; }
 
 void window_t::Validate(Rect16 validation_rect) {
     if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {

@@ -56,6 +56,10 @@ protected:
     virtual void phaseExit() = 0;
     virtual bool change(uint8_t phase, fsm::PhaseData data) override;
 
+    static Rect16 get_title_rect(Rect16 rect);
+    static Rect16 get_progress_rect(Rect16 rect);
+    static Rect16 get_label_rect(Rect16 rect);
+
 public:
     IDialogStateful(string_view_utf8 name, std::optional<has_footer> child_has_footer = std::nullopt);
 };
@@ -80,7 +84,7 @@ protected:
     virtual bool can_change(uint8_t phase) { return phase < SZ; }
     // get arguments callbacks and call them
     virtual void phaseEnter() {
-        radio.Change(&states[phase].btn_resp, &states[phase].btn_labels);
+        radio.Change(states[phase].btn_resp, &states[phase].btn_labels);
         label.SetText(_(states[phase].label));
         if (states[phase].onEnter) {
             states[phase].onEnter();

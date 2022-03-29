@@ -9,13 +9,12 @@
 
 /*****************************************************************************/
 //MsgBoxBase
-MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline)
+MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline)
     : AddSuperWindow<IDialog>(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
     , buttons(this, GuiDefaults::GetButtonRect(rect), resp, labels)
     , result(Response::_none) {
     buttons.SetBtnIndex(def_btn);
-    //text.SetAlignment(Align_t::Center());
     //buttons.SetCapture(); //todo make this work
 }
 
@@ -47,7 +46,7 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 
 /*****************************************************************************/
 //MsgBoxTitled
-MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels,
+MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, uint16_t title_icon_id_res)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon_id_res)
     , title(this, getTitleRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
@@ -100,7 +99,7 @@ void MsgBoxTitled::unconditionalDraw() {
 
 /*****************************************************************************/
 //MsgBoxIconned
-MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels,
+MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, uint16_t icon_id_res)
     : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline)
     , icon(this, icon_id_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
@@ -127,9 +126,9 @@ Rect16 MsgBoxIconned::getIconRect() {
 //to be used as blocking functions
 template <class T, typename... Args>
 Response MsgBox_Custom(Rect16 rect, const PhaseResponses &resp, size_t def_btn, string_view_utf8 txt, is_multiline multiline, Args... args) {
-    const PhaseTexts labels = { BtnTexts::Get(resp[0]), BtnTexts::Get(resp[1]), BtnTexts::Get(resp[2]), BtnTexts::Get(resp[3]) };
+    const PhaseTexts labels = { BtnResponse::GetText(resp[0]), BtnResponse::GetText(resp[1]), BtnResponse::GetText(resp[2]), BtnResponse::GetText(resp[3]) };
     //static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
-    T msgbox(rect, &resp, def_btn, &labels, txt, multiline, args...);
+    T msgbox(rect, resp, def_btn, &labels, txt, multiline, args...);
     msgbox.MakeBlocking();
     return msgbox.GetResult();
 }
