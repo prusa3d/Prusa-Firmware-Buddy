@@ -381,7 +381,7 @@ bool Pause::loadLoop(load_mode_t mode) {
         break;
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
         if (FSensors_instance().HasNotFilament()) {
-            setPhase(can_stop ? PhasesLoadUnload::MakeSureInserted_stoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
+            setPhase(can_stop ? PhasesLoadUnload::MakeSureInserted_stoppable : PhasesLoadUnload::MakeSureInserted_unstoppable);
         } else {
             setPhase(can_stop ? PhasesLoadUnload::UserPush_stoppable : PhasesLoadUnload::UserPush_unstoppable);
             if (response == Response::Continue) {
