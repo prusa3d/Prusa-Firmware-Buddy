@@ -184,6 +184,8 @@
 
 #endif // IMPROVE_HOMING_RELIABILITY
 
+
+
 /**
  * G28: Home all axes according to settings
  *
@@ -203,9 +205,31 @@
  *  Z   Home to the Z endstop
  */
 void GcodeSuite::G28() {
+  float R = parser.seenval('R') ? parser.value_linear_units() : NaN;
+  G28_flags flags{
+    .S = parser.seen('S'),
+    .O = parser.seen_test('O'),
+    .L = parser.boolval('L', TERN1(RESTORE_LEVELING_AFTER_G28, planner.leveling_active)),
+    .H = parser.seen_test('H'),
+    NUM_AXIS_LIST(
+    .X = parser.seen_test('X'),
+    .Y = parser.seen_test('Y'),
+    .Z = parser.seen_test('Z'),
+    .I = parser.seen_test(AXIS4_NAME),
+    .J = parser.seen_test(AXIS5_NAME),
+    .K = parser.seen_test(AXIS6_NAME),
+    .U = parser.seen_test(AXIS7_NAME),
+    .V = parser.seen_test(AXIS8_NAME),
+    .W = parser.seen_test(AXIS9_NAME))
+    };
+
+  G28_no_parser(R, flags);
+}
+
+void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
   DEBUG_SECTION(log_G28, "G28", DEBUGGING(LEVELING));
   if (DEBUGGING(LEVELING)) log_machine_info();
-
+  
   /*
    * Set the laser power to false to stop the planner from processing the current power setting.
    */
@@ -213,13 +237,14 @@ void GcodeSuite::G28() {
     planner.laser_inline.status.isPowered = false;
   #endif
 
+
   #if ENABLED(DUAL_X_CARRIAGE)
     bool IDEX_saved_duplication_state = extruder_duplication_enabled;
     DualXMode IDEX_saved_mode = dual_x_carriage_mode;
   #endif
 
   #if ENABLED(MARLIN_DEV_MODE)
-    if (parser.seen_test('S')) {
+    if (flags.S) {
       LOOP_NUM_AXES(a) set_axis_is_at_home((AxisEnum)a);
       sync_plan_position();
       SERIAL_ECHOLNPGM("Simulated Homing");
@@ -229,7 +254,7 @@ void GcodeSuite::G28() {
   #endif
 
   // Home (O)nly if position is unknown
-  if (!axes_should_home() && parser.seen_test('O')) {
+  if (!axes_should_home() && flags.O)) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip");
     return;
   }
@@ -248,7 +273,7 @@ void GcodeSuite::G28() {
 
   // Disable the leveling matrix before homing
   #if CAN_SET_LEVELING_AFTER_G28
-    const bool leveling_restore_state = parser.boolval('L', TERN1(RESTORE_LEVELING_AFTER_G28, planner.leveling_active));
+    const bool leveling_restore_state = flags.L;
   #endif
 
   // Cancel any prior G29 session
@@ -405,8 +430,7 @@ void GcodeSuite::G28() {
 
     TERN_(HOME_Z_FIRST, if (doZ) homeaxis(Z_AXIS));
 
-    const bool seenR = parser.seenval('R');
-    const float z_homing_height = seenR ? parser.value_linear_units() : Z_HOMING_HEIGHT;
+    const float z_homing_height = isnan(R) ? Z_HOMING_HEIGHT : R;
 
     if (z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
       // Raise Z before homing any other axes and z is not already high enough (never lower z)
@@ -477,7 +501,7 @@ void GcodeSuite::G28() {
           #endif
 
           #if ENABLED(Z_SAFE_HOMING)
-            if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) home_z_safely(); else homeaxis(Z_AXIS);
+            if (TERN1(POWER_LOSS_RECOVERY, !flags.H)) home_z_safely(); else homeaxis(Z_AXIS);
           #else
             homeaxis(Z_AXIS);
           #endif

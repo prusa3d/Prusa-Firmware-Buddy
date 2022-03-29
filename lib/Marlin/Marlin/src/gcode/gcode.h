@@ -476,6 +476,24 @@ public:
 
   static void dwell(millis_t time);
 
+  struct G28_flags {
+    bool S : 1;
+    bool O : 1;
+    bool L : 1;
+    bool H : 1;
+    bool X : 1;
+    bool Y : 1;
+    bool Z : 1;
+    bool I : 1;
+    bool J : 1;
+    bool K : 1;
+    bool U : 1;
+    bool V : 1;
+    bool W : 1;
+  };
+
+  static void G28_no_parser(float R, G28_flags flags);
+
 private:
 
   friend class MarlinSettings;
