@@ -116,6 +116,19 @@ static PreheatStatus::Result M1400_NoParser_LoadUnload(PreheatData data, uint8_t
         Pause::Instance().StopReset();
         M701_no_parser(filament, 0);
         return PreheatStatus::Result::DoneHasFilament;
+    case PreheatMode::Autoload:
+        // bowden extruder does normal load instead autoload
+        // because it does not have filament loaded in gear
+        if constexpr (HAS_BOWDEN) {
+            Filaments::SetToBeLoaded(filament);
+            pause.SetPurgeLength(ADVANCED_PAUSE_PURGE_LENGTH);
+            pause.SetSlowLoadLength(FILAMENT_CHANGE_SLOW_LOAD_LENGTH);
+            pause.SetFastLoadLength(pause.GetDefaultFastLoadLength());
+            pause.SetRetractLength(0.f);
+            load_unload(LoadUnloadMode::Load, &Pause::FilamentAutoload, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
+            return PreheatStatus::Result::DoneHasFilament;
+        } // HAS_BOWDEN
+        //continue to load for !HAS_BOWDEN
     case PreheatMode::Load:
         Pause::Instance().StopReset();
     case PreheatMode::Change_phase2:
@@ -157,15 +170,6 @@ static PreheatStatus::Result M1400_NoParser_LoadUnload(PreheatData data, uint8_t
         Pause::Instance().SetUnloadLength(NAN);
         load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload_AskUnloaded, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
         return PreheatStatus::Result::DoneNoFilament;
-    case PreheatMode::Autoload:
-        Filaments::SetToBeLoaded(filament);
-        pause.SetPurgeLength(ADVANCED_PAUSE_PURGE_LENGTH);
-        pause.SetSlowLoadLength(FILAMENT_CHANGE_SLOW_LOAD_LENGTH);
-        pause.SetFastLoadLength(pause.GetDefaultFastLoadLength());
-        pause.SetRetractLength(0.f);
-        load_unload(LoadUnloadMode::Load, &Pause::FilamentAutoload, Z_AXIS_UNLOAD_POS, X_AXIS_UNLOAD_POS);
-        return PreheatStatus::Result::DoneHasFilament;
-
     default:
         return PreheatStatus::Result::Error;
     }
