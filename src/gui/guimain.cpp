@@ -246,8 +246,10 @@ void gui_run(void) {
     //TODO make some kind of registration
     while (1) {
         gui::StartLoop();
-        if (screen_home_data_t::EverBeenOpenned()) {
-            gui::fsensor::validate_for_cyclical_calls();
+        if constexpr (HAS_MMU2) {
+            if (screen_home_data_t::EverBeenOpenned()) {
+                gui::fsensor::validate_for_cyclical_calls();
+            }
         }
         redraw = DialogHandler::Access().Loop();
         if (redraw == redraw_cmd_t::redraw)

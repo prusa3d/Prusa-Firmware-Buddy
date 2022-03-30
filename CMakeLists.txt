@@ -952,6 +952,7 @@ set_property(
          src/common/marlin_server.cpp
          src/marlin_stubs/pause/pause.cpp
          src/gui/dialogs/DialogLoadUnload.cpp
+         src/gui/guimain.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_MMU2=$<BOOL:${HAS_MMU2}>
   )
