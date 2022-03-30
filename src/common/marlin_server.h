@@ -6,6 +6,8 @@
 #include "marlin_errors.h"
 #include "client_fsm_types.h"
 
+#include <stddef.h>
+
 // server flags
 // FIXME define the same type for these and marlin_server.flags
 static const uint16_t MARLIN_SFLG_STARTED = 0x0001; // server started (set in marlin_server_init)
