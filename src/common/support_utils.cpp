@@ -7,7 +7,6 @@
 #include "support_utils.h"
 #include "display.h"
 #include "string.h"
-#include "../../gui/wizard/selftest.hpp"
 #include "version.h"
 #include "language_eeprom.hpp"
 #include "sha256.h"
@@ -56,7 +55,7 @@ void printerCode(char *str) {
         rShift2Bits(hash[i], hash[i + 1]);
 
     /// convert number to 38 bits (32 symbol alphabet)
-    for (uint8_t i = 0; i < 8; ++i) {
+    for (uint8_t i = 0; i < PRINTER_CODE_SIZE; ++i) {
         str[i] = to32((uint8_t *)hash, i * 5);
     }
 
@@ -72,7 +71,7 @@ void printerCode(char *str) {
         //setBit(str[0], 6);
     }
 
-    str[8] = '\0';
+    str[PRINTER_CODE_SIZE] = '\0';
 }
 
 /// Adds "/en" or other language abbreviation
@@ -120,49 +119,6 @@ void error_url_short(char *str, const uint32_t str_size, const int error_code) {
 
     /// /12201
     snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
-}
-
-void create_path_info_4service(char *str, const uint32_t str_size) {
-#if 0
-
-    strlcpy(str, INFO_URL_LONG_PREFIX, str_size);
-    // PrinterType
-    snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
-    // UniqueID
-    block2hex(str, str_size, (uint8_t *)OTP_STM32_UUID_ADDR, OTP_STM32_UUID_SIZE);
-    strlcat(str, "/", str_size);
-    // AppendixStatus
-    snprintf(eofstr(str), str_size - strlen(str), "%s/", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
-    // SerialNumber
-    block2hex(str, str_size, (uint8_t *)OTP_SERIAL_NUMBER_ADDR, OTP_SERIAL_NUMBER_SIZE - 1); // "-1" ~ without "\x00"
-    strlcat(str, "/", str_size);
-    // BootloaderVersion
-    snprintf(eofstr(str), str_size - strlen(str), "%02X%02X%02X/", boot_version.major, boot_version.minor, boot_version.patch);
-    // MacAddress
-    block2hex(str, str_size, (uint8_t *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
-    strlcat(str, "/", str_size);
-    // BoardVersion
-    block2hex(str, str_size, (uint8_t *)OTP_BOARD_REVISION_ADDR, OTP_BOARD_REVISION_SIZE);
-    strlcat(str, "/", str_size);
-    // TimeStamp
-    block2hex(str, str_size, (uint8_t *)OTP_BOARD_TIME_STAMP_ADDR, OTP_BOARD_TIME_STAMP_SIZE);
-    strlcat(str, "/", str_size);
-    // FWversion
-    //!//     snprintf(eofstr(str), str_size - strlen(str), "%04X-", (uint16_t)(FW_VERSION));
-    // BuildNumber
-    //!//     snprintf(eofstr(str), str_size - strlen(str), "%d/",FW_BUILDNR);
-    // LanguageInfo - removed
-    //    snprintf(eofstr(str), str_size - strlen(str), "%d/", get_actual_lang()->lang_code);
-    // SelfTestResult
-    if (last_selftest_time == 0)
-        strlcat(str, "0", str_size);
-    else
-        snprintf(eofstr(str), str_size - strlen(str), "%lu-%lu", last_selftest_result, (HAL_GetTick() / 1000 - last_selftest_time));
-    strlcat(str, "/", str_size);
-    // LockBlock
-    block2hex(str, str_size, (uint8_t *)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
-    append_crc(str, str_size);
-#endif //0
 }
 
 bool appendix_exist() {
