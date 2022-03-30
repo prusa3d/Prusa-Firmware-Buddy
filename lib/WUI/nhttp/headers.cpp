@@ -2,12 +2,12 @@
 #include "../../src/common/sha256.h"
 
 #include <cassert>
-#include <cinttypes>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
 
 #include <sys/stat.h>
+#include <inttypes.h> // PRIu* macros (not available in <cinttypes>)
 
 namespace nhttp {
 
