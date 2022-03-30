@@ -1,4 +1,4 @@
-add_lfs_image(resources-image BLOCK_SIZE 256 BLOCK_COUNT 2000)
+add_lfs_image(resources-image BLOCK_SIZE 256 BLOCK_COUNT 3000)
 
 function(add_resource source_path install_path)
   lfs_image_add_file(resources-image "${source_path}" "${install_path}")
@@ -19,8 +19,8 @@ add_gzip_resource(
   )
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.47fcf7209ede7bfac5e3.css" "/web/main.47fcf7209ede7bfac5e3.css")
-add_gzip_resource("web/main.9efec8b5a6755f36580c.js" "/web/main.9efec8b5a6755f36580c.js")
+add_gzip_resource("web/main.c48455fc2bcab5869b42.css" "/web/main.c48455fc2bcab5869b42.css")
+add_gzip_resource("web/main.fe527c77bf690983def6.js" "/web/main.fe527c77bf690983def6.js")
 
 # generate header with hash
 set(RESOURCES_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
