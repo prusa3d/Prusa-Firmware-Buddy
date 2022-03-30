@@ -253,7 +253,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         render_text_align(Rect16(0, 270, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
 
         /// draw footer information
-        /// fw version, hash, [apendix], [fw signed]
+        /// fw version, hash, [appendix], [fw signed]
         /// fw version
         char fw_version[13]; // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
                              // snprintf will clamp the text if the input is too long
@@ -261,21 +261,20 @@ void draw_error_screen(const uint16_t error_code_short) {
         render_text_align(Rect16(6, 295, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
         /// hash
         if (eeprom_get_bool(EEVAR_DEVHASH_IN_QR)) {
-            char p_code[9];
+            char p_code[PRINTER_CODE_SIZE + 1];
             printerCode(p_code);
             render_text_align(Rect16(98, 295, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
         }
-        /// [apendix, fw signed]
-        /// TODO: fw signed is not available ATM
+        /// [appendix, fw signed]
         /// signed fw
-        if (0) {
-            static const char signed_fw_str[4] = "[S]";
+        if (signature_exist()) {
+            static const char signed_fw_str[] = "[S]";
             render_text_align(Rect16(160, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
         }
-        /// apendix
+        /// appendix
         if (appendix_exist()) {
-            static const char apendix_str[4] = "[A]";
-            render_text_align(Rect16(185, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)apendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
+            static const char appendix_str[] = "[A]";
+            render_text_align(Rect16(185, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)appendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
         }
     }
 }
