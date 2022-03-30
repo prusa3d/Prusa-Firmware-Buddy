@@ -1,4 +1,5 @@
 #include "resources/revision.hpp"
+#include <stdio.h>
 
 bool buddy::resources::InstalledRevision::fetch(Revision &revision) {
     FILE *fp = fopen(file_path, "rb");
