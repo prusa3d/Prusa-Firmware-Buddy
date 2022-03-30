@@ -63,6 +63,7 @@ static_unique_ptr<IDialogMarlin> DialogFactory::Preheat(uint8_t data) {
         name = string_view_utf8::MakeNULLSTR();
         break;
     case PreheatMode::Load:
+    case PreheatMode::Autoload:
         name = _(load_preheat);
         break;
     case PreheatMode::Unload:
