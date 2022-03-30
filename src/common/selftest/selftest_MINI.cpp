@@ -2,6 +2,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <climits>
 
 #include "selftest_MINI.h"
 #include "selftest_fan.h"
@@ -11,6 +12,7 @@
 #include "app.h"
 #include "otp.h"
 #include "hwio.h"
+#include "log.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"
 #include "../../Marlin/src/module/stepper.h"
