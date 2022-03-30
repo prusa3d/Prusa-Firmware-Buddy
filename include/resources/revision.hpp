@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <cstdint>
 
 namespace buddy::resources {
 
