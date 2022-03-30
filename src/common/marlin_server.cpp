@@ -12,6 +12,7 @@
 #include "bsod.h"
 #include "timing.h"
 #include "cmsis_os.h"
+#include "log.h"
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
