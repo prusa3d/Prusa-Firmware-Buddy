@@ -130,6 +130,7 @@ static PreheatStatus::Result M1400_NoParser_LoadUnload(PreheatData data, uint8_t
         } // !HAS_BOWDEN
         //continue to load for HAS_BOWDEN
     case PreheatMode::Load:
+        Pause::Instance().SetUnloadLength(NAN);
         Pause::Instance().StopReset();
     case PreheatMode::Change_phase2:
         M701_no_parser(filament, pause.GetDefaultFastLoadLength());
