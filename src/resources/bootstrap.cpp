@@ -2,6 +2,7 @@
 #include <memory>
 #include <string.h>
 #include <optional>
+#include <cerrno>
 
 #include "bsod.h"
 #include "bbf.hpp"
