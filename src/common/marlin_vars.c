@@ -1,9 +1,11 @@
 // marlin_vars.c
 
 #include "marlin_vars.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 
 // variable name constants (dbg)
 const char *__var_name[] = {
