@@ -58,7 +58,7 @@ protected:
 
     static Rect16 get_title_rect(Rect16 rect);
     static Rect16 get_progress_rect(Rect16 rect);
-    static Rect16 get_label_rect(Rect16 rect);
+    static Rect16 get_label_rect(Rect16 rect, std::optional<has_footer> dialog_has_footer);
 
 public:
     IDialogStateful(string_view_utf8 name, std::optional<has_footer> child_has_footer = std::nullopt);
