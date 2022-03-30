@@ -147,8 +147,12 @@ void GcodeSuite::M109() {
     planner.autotemp_M104_M109();
   #endif
 
-  if (set_temp)
+  if (set_temp) {
+    #if ENABLED(PRUSA_MARLIN_API)
+      marlin_server_set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder));
+    #endif
     (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling, parser.seen('F'));
+  }
 }
 
 #endif // EXTRUDERS
