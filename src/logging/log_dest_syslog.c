@@ -9,7 +9,8 @@
 #include "otp.h"
 
 osMutexDef(syslog_buffer_lock);
-osMutexId(syslog_buffer_lock_id);
+osMutexId syslog_buffer_lock_id;
+
 static bool initialized = false;
 static char *remote_ip_address = "";
 static int remote_port = 6514;

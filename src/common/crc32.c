@@ -6,7 +6,7 @@
 
 #ifdef CRC32_USE_HW
 osMutexDef(crc32_hw_mutex);
-osMutexId(crc32_hw_mutex_id);
+osMutexId crc32_hw_mutex_id;
 #endif //CRC32_USE_HW
 
 void crc32_init(void) {

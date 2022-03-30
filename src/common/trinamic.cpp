@@ -19,7 +19,7 @@ static uint8_t tmc_sg_axis = 0; // current axis for stalguard result sampling (0
 static tmc_sg_sample_cb_t *tmc_sg_sample_cb = NULL; // sg sample callback
 
 osMutexDef(tmc_mutex);
-osMutexId(tmc_mutex_id);
+osMutexId tmc_mutex_id;
 
 extern "C" {
 

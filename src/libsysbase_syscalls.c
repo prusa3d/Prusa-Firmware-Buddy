@@ -74,7 +74,7 @@ void __retarget_lock_release_recursive(_LOCK_T lock) {
 
 #else
 
-osMutexId(libsysbase_mutex_id);
+osMutexId libsysbase_mutex_id;
 
 static osMutexId getMutexId(_LOCK_T *lock) {
     // __LOCK_INIT sets _LOCK_T value to 1, use shared lock in that case.
