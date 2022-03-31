@@ -265,7 +265,15 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
+static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
+    constexpr static const char *title = N_("Information");
+    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), IDR_PNG_info_16px);
+    gui::TickLoop();
+    gui_loop();
+}
+
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
+    MsgBoxNonBlockInfo(_("A crash dump is being saved."));
     if (dump_save_to_usb("/usb/dump.bin"))
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     else
