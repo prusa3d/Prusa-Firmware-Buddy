@@ -569,8 +569,8 @@ variant8_t variant8_from_str(uint8_t type, char *str) {
     case VARIANT8_USER: {
         uint32_t usr32;
         uint16_t usr16;
-        uint8_t usr8;
-        int n = sscanf(str, "%lu %hu %hhu", &usr32, &usr16, &usr8);
+        uint16_t usr8; // wider than necessary due to missing SCNu8/%hhu on newlib-nano
+        int n = sscanf(str, "%" SCNu32 " %" SCNu16 " %" SCNu16, &usr32, &usr16, &usr8);
         if (n == 3)
             return variant8_user(usr32, usr16, usr8);
     }
