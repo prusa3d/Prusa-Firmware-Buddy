@@ -661,6 +661,7 @@ target_sources(
           src/common/sys.cpp
           src/common/sim_nozzle.c
           src/common/heap.c
+          src/common/stubs.c
           src/common/hwio_buddy_2209_02.cpp
           src/common/safe_state.cpp
           src/common/variant8.cpp
