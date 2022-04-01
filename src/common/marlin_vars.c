@@ -62,7 +62,7 @@ marlin_var_id_t marlin_vars_get_id_by_name(const char *var_name) {
     for (int i = 0; i <= MARLIN_VAR_MAX; i++)
         if (strcmp(var_name, __var_name[i]) == 0)
             return i;
-    return -1;
+    return MARLIN_VAR_MAX + 1;
 }
 
 variant8_t marlin_vars_get_var(marlin_vars_t *vars, marlin_var_id_t var_id) {
