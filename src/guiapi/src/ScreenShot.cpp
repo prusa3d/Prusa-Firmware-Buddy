@@ -1,20 +1,23 @@
 #include <fcntl.h>
-//#include <string.h>
 #include <unistd.h>
 #include "ScreenShot.hpp"
-#include "st7789v.hpp"
 #include "display.h"
 #include <inttypes.h>
 #include <dirent.h>
 #include <stdio.h>
 #include <unistd.h>
 
+#ifdef USE_ST7789
+static const uint8_t bytes_per_pixel = 2;
+static const uint8_t buffer_rows = ST7789V_BUFF_ROWS;
+    #include "st7789v.hpp"
+#endif // USE_ST7789
+
 enum {
     BMP_FILE_HEADER_SIZE = 14,
     BMP_INFO_HEADER_SIZE = 40,
 
-    ST7789V_BYTES_PER_PIXEL = 2, // R(5b) + G(6b) + B(5b) = 16b = 2B
-    BMP_FILE_SIZE = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL,
+    BMP_FILE_SIZE = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + display::GetW() * display::GetH() * bytes_per_pixel,
     SCREENSHOT_FILE_NAME_MAX_LEN = 30,
     SCREENSHOT_FILE_NAME_BUFFER_LEN = SCREENSHOT_FILE_NAME_MAX_LEN + 1,
 };
@@ -39,12 +42,12 @@ static const unsigned char bmp_header[] = {
     (unsigned char)(display::GetH() >> 8),
     0,
     0,
-    1, 0,                                                                         /// number of color planes      [2B]
-    (unsigned char)(ST7789V_BYTES_PER_PIXEL * 8), 0,                              /// bits per pixel              [2B]
-    0, 0, 0, 0,                                                                   /// compression                 [4B]
-    (unsigned char)(display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL), /// image size                  [4B]
-    (unsigned char)((display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL) >> 8),
-    (unsigned char)((display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL) >> 16),
+    1, 0,                                                                 /// number of color planes      [2B]
+    (unsigned char)(bytes_per_pixel * 8), 0,                              /// bits per pixel              [2B]
+    0, 0, 0, 0,                                                           /// compression                 [4B]
+    (unsigned char)(display::GetW() * display::GetH() * bytes_per_pixel), /// image size                  [4B]
+    (unsigned char)((display::GetW() * display::GetH() * bytes_per_pixel) >> 8),
+    (unsigned char)((display::GetW() * display::GetH() * bytes_per_pixel) >> 16),
     0,
     0, 0, 0, 0, /// horizontal resolution       [4B]
     0, 0, 0, 0, /// vertical resolution         [4B]
@@ -53,27 +56,22 @@ static const unsigned char bmp_header[] = {
 };
 
 static void mirror_buffer(uint8_t *buffer) {
-    // Y-axis mirror image - because BMP pixel format has base origin in left-bottom corner and st7789v in left-upper corner
-
-    // TODO: BMP headers have to know that we are using 2B pixels. Now it is only in [bits per pixel] and clearly it's not enough.
-
-    for (int row = 0; row < ST7789V_BUFF_ROWS / 2; row++) {
-        for (int col = 0; col < ST7789V_COLS * ST7789V_BYTES_PER_PIXEL; col += ST7789V_BYTES_PER_PIXEL) {
-            for (int chan = 0; chan < ST7789V_BYTES_PER_PIXEL; chan++) {
-                std::swap(buffer[buffer[row * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan]], buffer[(ST7789V_BUFF_ROWS - row - 1) * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan]);
-            }
+    // Y-axis mirror image - because BMP pixel format has base origin in left-bottom corner not in left-top like on displays
+    for (int row = 0; row < buffer_rows / 2; row++) {
+        for (int col = 0; col < display::GetW() * bytes_per_pixel; col++) {
+#ifdef USE_ST7789
+            const int i1 = row * display::GetW() * bytes_per_pixel + col;
+            const int i2 = (buffer_rows - row - 1) * display::GetW() * bytes_per_pixel + col;
+            std::swap(buffer[i1], buffer[i2]);
+#else // USE_ST7789
+    #error "Unsupported display for screenshot."
+#endif
         }
     }
 }
 
 bool TakeAScreenshot() {
-    int fd;
     char file_name[SCREENSHOT_FILE_NAME_BUFFER_LEN];
-
-    bool success;
-
-    // TODO: add written bytes check if needed
-
     uint32_t inc = 1;
     snprintf(file_name, SCREENSHOT_FILE_NAME_BUFFER_LEN, "%s_%lu%s", screenshot_name, inc, screenshot_format);
     while ((access(file_name, F_OK)) == 0) {
@@ -81,34 +79,32 @@ bool TakeAScreenshot() {
         snprintf(file_name, SCREENSHOT_FILE_NAME_BUFFER_LEN, "%s_%lu%s", screenshot_name, inc, screenshot_format);
     }
 
-    fd = open(file_name, O_WRONLY | O_APPEND | O_CREAT);
-    if (fd < 0) {
+    FILE *fd = fopen(file_name, "w");
+    if (fd == nullptr)
         return false;
-    }
 
     const int header_size = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE;
-    success = write(fd, &bmp_header, header_size) == header_size;
+    bool success = fwrite(&bmp_header, 1, header_size, fd) == header_size;
 
     if (success) {
-        for (uint8_t block = ST7789V_ROWS / ST7789V_BUFF_ROWS - 1; block >= 0 && block < ST7789V_ROWS / ST7789V_BUFF_ROWS; block--) {
-            point_ui16_t start = point_ui16(0, block * ST7789V_BUFF_ROWS);
-            point_ui16_t end = point_ui16(ST7789V_COLS - 1, (block + 1) * ST7789V_BUFF_ROWS - 1);
+        for (int block = display::GetH() / buffer_rows - 1; block >= 0; block--) {
+            point_ui16_t start = point_ui16(0, block * buffer_rows);
+            point_ui16_t end = point_ui16(display::GetW() - 1, (block + 1) * buffer_rows - 1);
             uint8_t *buffer = display::GetBlock(start, end); // this pointer is valid only until another display memory write is called
             if (buffer == NULL) {
                 success = false;
                 break;
-            } else {
-                mirror_buffer(buffer);
-                const int write_size = ST7789V_COLS * ST7789V_BUFF_ROWS * ST7789V_BYTES_PER_PIXEL;
-                if (write(fd, buffer, write_size) != write_size) {
-                    success = false;
-                    break;
-                }
+            }
+            mirror_buffer(buffer);
+            const int write_size = display::GetW() * buffer_rows * bytes_per_pixel;
+            if (fwrite(buffer, 1, write_size, fd) != write_size) {
+                success = false;
+                break;
             }
         }
     }
 
-    close(fd);
+    fclose(fd);
 
     if (!success) {
         unlink(file_name);
