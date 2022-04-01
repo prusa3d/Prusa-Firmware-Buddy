@@ -1395,7 +1395,7 @@ static int _server_set_var(const char *const name_val_str) {
     bool changed = false;
     char *val_str = strchr(name_val_str, ' ');
     *(val_str++) = 0;
-    if ((var_id = marlin_vars_get_id_by_name(name_val_str)) >= 0) {
+    if ((var_id = marlin_vars_get_id_by_name(name_val_str)) <= MARLIN_VAR_MAX) {
         if (marlin_vars_str_to_value(&(marlin_server.vars), var_id, val_str) == 1) {
             switch (var_id) {
             case MARLIN_VAR_TTEM_NOZ:
