@@ -91,6 +91,7 @@ static std::atomic<uint16_t> fw_version;
 static std::atomic<ESPIFOperatingMode> esp_operating_mode = ESPIF_UNINITIALIZED_MODE;
 static std::atomic<bool> associated = false;
 static std::atomic<TaskHandle_t> init_task_handle;
+static std::atomic<netif *> active_esp_netif;
 
 // UART
 static const uint32_t NIC_UART_BAUDRATE = 1000000;
@@ -205,6 +206,7 @@ bool espif_link() {
 }
 
 static void process_link_change(bool link_up, struct netif *netif) {
+    assert(netif != nullptr);
     log_info(ESPIF, "Link status changed: %d", link_up);
     associated = link_up;
     if (link_up) {
@@ -443,7 +445,23 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
     return ERR_OK;
 }
 
+static void force_down() {
+    struct netif *iface = active_esp_netif; // Atomic load
+    assert(iface != nullptr);               // Already initialized
+    process_link_change(false, iface);
+}
+
 static err_t reset_and_wait() {
+    // Reset our expectation of the intron, the ESP will forget the
+    // auto-generated one.
+    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
+    for (uint i = 2; i < sizeof(intron); i++) {
+        intron[i] = i - 2;
+    }
+    xSemaphoreGive(uart_write_mutex);
+
+    force_down();
+
     // Capture this task handle to manage wakeup from input thread
     init_task_handle = xTaskGetCurrentTaskHandle();
 
@@ -487,6 +505,10 @@ err_t espif_init(struct netif *netif) {
         assert(0);
         return ERR_ALREADY;
     }
+
+    struct netif *previous = active_esp_netif.exchange(netif);
+    assert(previous == nullptr);
+    (void)previous; // Avoid warnings in release
 
     espif_reconfigure_uart(NIC_UART_BAUDRATE);
     esp_operating_mode = ESPIF_RUNNING_MODE;
@@ -535,6 +557,7 @@ err_t espif_flash_initialize() {
     };
     loader_port_stm32_init(&loader_config);
     xSemaphoreGive(uart_write_mutex);
+    force_down();
     return ERR_OK;
 }
 
