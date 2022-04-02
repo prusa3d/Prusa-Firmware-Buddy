@@ -29,7 +29,7 @@ bool Server::InactivityTimeout::past() const {
      * If sys_now already overflown and scheduled didn't (it's very large), the
      * diff is something small because it almost underflows.
      */
-    return (diff >= 0 && diff < UINT32_MAX / 2);
+    return diff < UINT32_MAX / 2;
 }
 
 void Server::Slot::release_buffer() {
