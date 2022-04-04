@@ -30,7 +30,7 @@ static bool check_filament_presence(GCodeInfo &gcode) {
         const PhaseResponses btns = has_mmu ? Responses_YesNo : Responses_YesNoIgnore;
         string_view_utf8 txt_fil_not_detected = has_mmu ? _("Filament detected. Unload filament now? Select NO to cancel.") : _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.");
         // this MakeRAM is safe - gcode.gcode_file_name is valid during the lifetime of the MsgBox
-        switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()), txt_fil_not_detected, btns, 0, GuiDefaults::DialogFrameRect)) {
+        switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()), txt_fil_not_detected, btns, 0, GuiDefaults::RectScreenNoHeader)) {
         case Response::Yes: //YES - load
             if (has_mmu) {
                 PreheatStatus::DialogBlocking(PreheatMode::MMU_unload, RetAndCool_t::Neither);
@@ -55,7 +55,7 @@ static bool check_filament_type(GCodeInfo &gcode) {
     const char *curr_filament = Filaments::Current().name;
     while (gcode.filament_described && strncmp(curr_filament, "---", 3) != 0 && strncmp(curr_filament, gcode.filament_type, sizeof(gcode.filament_type)) != 0) {
         string_view_utf8 txt_wrong_fil_type = _("This G-CODE was set up for another filament type.");
-        switch (MsgBoxWarning(txt_wrong_fil_type, Responses_ChangeIgnoreAbort, 0)) {
+        switch (MsgBoxWarning(txt_wrong_fil_type, Responses_ChangeIgnoreAbort, 0, GuiDefaults::RectScreenNoHeader)) {
         case Response::Change:
             PreheatStatus::DialogBlocking(PreheatMode::Change_phase1, RetAndCool_t::Return);
             break;
@@ -75,7 +75,7 @@ static bool check_printer_type(GCodeInfo &gcode) {
     if (gcode.IsSettingsValid())
         return true;
     string_view_utf8 txt_wrong_printer_type = _("This G-CODE was set up for another printer type.");
-    switch (MsgBoxWarning(txt_wrong_printer_type, Responses_IgnoreAbort, 0)) {
+    switch (MsgBoxWarning(txt_wrong_printer_type, Responses_IgnoreAbort, 0, GuiDefaults::RectScreenNoHeader)) {
     case Response::Abort:
         return false;
     default:
