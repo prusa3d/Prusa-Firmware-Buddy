@@ -91,6 +91,8 @@ ScreenMenuPrusaLink::ScreenMenuPrusaLink()
     menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);        // set capture to list
     display_api_key(wui_get_api_key());
+    // The user might want to read the API key from here, don't time it out on them.
+    flags.timeout_close = is_closed_on_timeout_t::no;
 }
 
 ScreenFactory::UniquePtr GetScreenPrusaLink() {
