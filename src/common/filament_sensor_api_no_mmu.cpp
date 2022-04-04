@@ -63,5 +63,5 @@ fsensor_t FilamentSensors::get() const {
 }
 
 bool FilamentSensors::CanStartPrint() {
-    return GetPrinter() == fsensor_t::HasFilament;
+    return GetPrinter() == fsensor_t::HasFilament || GetPrinter() == fsensor_t::Disabled;
 }
