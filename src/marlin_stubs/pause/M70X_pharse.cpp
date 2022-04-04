@@ -92,7 +92,10 @@ void PrusaGcodeSuite::M1400() {
 
     const uint32_t val = parser.ulongval('S', 0);
     const PreheatData data(val);
-    bool mmu_command = data.Mode() == PreheatMode::MMU_command;
+
+    // load to nozzle == normal load + MMU load
+    // so it has MMU command too
+    bool mmu_command = data.Mode() == PreheatMode::MMU_command || data.Mode() == PreheatMode::MMU_load;
 
     if (mmu_command) {
         if (parser.seenval(char(mmu_command_t::load_filament))) {
