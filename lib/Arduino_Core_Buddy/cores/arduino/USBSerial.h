@@ -8,7 +8,7 @@ class USBSerial : public Stream {
 private:
     bool enabled;
     bool isWriteOnly;
-    std::array<uint8_t, 32> lineBuffer;
+    std::array<uint8_t, 128> lineBuffer;
     decltype(lineBuffer)::size_type lineBufferUsed;
 
     void LineBufferAppend(char character);
