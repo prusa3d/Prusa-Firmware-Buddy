@@ -39,7 +39,7 @@ Step StatusPage::step(std::string_view, bool, uint8_t *output, size_t output_siz
     size_t rest = output_size - used_up;
     size_t write = std::min(strlen(content_buffer), rest);
     // If we use up the whole buffer, there's no \0 at the end. We are fine
-    // with that, we work with byte-arrays with lenghts here.
+    // with that, we work with byte-arrays with lengths here.
     strncpy(reinterpret_cast<char *>(output + used_up), content_buffer, write);
 
     return Step { 0, used_up + write, Terminating::for_handling(handling) };

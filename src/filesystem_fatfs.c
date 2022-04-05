@@ -219,7 +219,7 @@ static int open_r(struct _reent *r, void *fileStruct, const char *path, int flag
     size_t len = strlen(path) + 1; // +1 for the termination char
     f->path = malloc(len);
     if (f->path) {
-        strncpy(f->path, path, len);
+        strlcpy(f->path, path, len);
     }
 #endif
 
@@ -631,12 +631,12 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
     }
 
     if (fno.altname[0] != 0) {
-        strncpy(filename, fno.altname, NAME_MAX);
+        strlcpy(filename, fno.altname, NAME_MAX);
         uint8_t len = strnlen(filename, NAME_MAX);
         // filename is 256 chars long (NAME_MAX) so 13 + 105 chars is shorter, and it will fit inside
-        strncpy(filename + len + 1, fno.fname, NAME_MAX - len - 1);
+        strlcpy(filename + len + 1, fno.fname, NAME_MAX - len - 1);
     } else {
-        strncpy(filename, fno.fname, NAME_MAX);
+        strlcpy(filename, fno.fname, NAME_MAX);
     }
 
     filestat->st_mode = fno.fattrib & AM_DIR ? S_IFDIR : S_IFREG;

@@ -91,7 +91,7 @@ invalidate_t WI_SPIN_t<T>::Change(int dif) {
 template <class T>
 void WI_SPIN_t<T>::printSpinToBuffer() {
     if (config.IsOffOptionEnabled() && (T)(value) == 0) {
-        strncpy(spin_text_buff.data(), off_opt, strlen(off_opt) + 1);
+        strlcpy(spin_text_buff.data(), off_opt, strlen(off_opt) + 1);
     } else {
         snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, (T)(value));
     }
