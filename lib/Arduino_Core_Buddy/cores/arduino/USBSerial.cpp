@@ -44,7 +44,8 @@ size_t USBSerial::readBytes(char *buffer, size_t length) {
 }
 
 void USBSerial::flush(void) {
-    tud_cdc_write_flush();
+    if (enabled)
+        tud_cdc_write_flush();
 
     if (lineBufferUsed) {
         lineBufferHook(&lineBuffer[0], lineBufferUsed);
@@ -62,10 +63,7 @@ void USBSerial::LineBufferAppend(char character) {
 }
 
 size_t USBSerial::write(uint8_t ch) {
-    if (!enabled)
-        return 1;
-
-    int written = tud_cdc_write_char(ch);
+    int written = enabled ? tud_cdc_write_char(ch) : 1;
 
     if (written && lineBufferUsed < lineBuffer.size())
         LineBufferAppend(ch);
@@ -77,10 +75,7 @@ size_t USBSerial::write(uint8_t ch) {
 }
 
 size_t USBSerial::write(const uint8_t *buffer, size_t size) {
-    if (!enabled)
-        return size;
-
-    int written = tud_cdc_write(buffer, size);
+    int written = enabled ? tud_cdc_write(buffer, size) : size;
 
     for (int remaining = written; remaining > 0; remaining--)
         if (lineBufferUsed < lineBuffer.size())
