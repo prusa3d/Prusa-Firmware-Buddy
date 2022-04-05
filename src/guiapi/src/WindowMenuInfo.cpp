@@ -19,7 +19,7 @@ WI_INFO_t::WI_INFO_t(uint32_t num_to_print, string_view_utf8 label, is_hidden_t 
 
 invalidate_t WI_INFO_t::ChangeInformation(const char *str) {
     if (strncmp(information, str, GuiDefaults::infoMaxLen)) {
-        strncpy(information, str, GuiDefaults::infoMaxLen);
+        strlcpy(information, str, GuiDefaults::infoMaxLen);
         information[GuiDefaults::infoMaxLen - 1] = 0;
         return invalidate_t::yes;
     }

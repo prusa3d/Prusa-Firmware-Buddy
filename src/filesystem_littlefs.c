@@ -424,7 +424,7 @@ int filesystem_littlefs_dirnext_r(filesystem_littlefs_ctx_t *ctx, struct _reent 
         return filesystem_littlefs_dirnext_r(ctx, r, dirState, filename, filestat);
     }
 
-    strncpy(filename, info.name, NAME_MAX);
+    strlcpy(filename, info.name, NAME_MAX);
 
     return 0;
 }

@@ -57,7 +57,7 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
         // Skip this device and stdnull
     }
 
-    strncpy(filename, devoptab_list[DIR_INDEX]->name, NAME_MAX);
+    strlcpy(filename, devoptab_list[DIR_INDEX]->name, NAME_MAX);
     filestat->st_mode = S_IFDIR;
 
     DIR_INDEX++;
