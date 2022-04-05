@@ -351,6 +351,7 @@ private:
             if (events & EspData) {
                 events &= ~EspData;
                 espif_input_once(&ifaces[NETDEV_ESP_ID].dev);
+                espif_tick();
             }
 
             if (!initialized) {

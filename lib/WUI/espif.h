@@ -40,6 +40,9 @@ bool espif_link();
 
 void espif_input_once(struct netif *netif);
 
+/// Perform periodic works of the esp interface.
+void espif_tick();
+
 // UART buffer stuff
 // The data received should fit into the buffer. Or, some guaratees has to be
 // provided to ensure the excessive data can be copied from the RX buffer
