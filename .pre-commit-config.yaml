@@ -5,7 +5,7 @@ repos:
   rev: 'v0.6.0'
   hooks:
     - id: cmake-format  # cmake formatter
-      files: (CMakeLists.*|.*\.cmake|.*\.cmake.in)
+      files: (^|/)(CMakeLists.*|.*\.cmake|.*\.cmake.in)$
 - repo: https://github.com/pre-commit/mirrors-yapf
   rev: 'v0.27.0'
   hooks:
@@ -23,7 +23,7 @@ repos:
       name: generate-cmake-presets
       description: This hook generates CMakePresets.json file based on utils/presets/presets.json
       entry: python utils/build.py --generate-cmake-presets --generate-bbf
-      files: (.*.json)
+      files: (^|/)(.*.json)$
       pass_filenames: false
       language: python
       language_version: python3
