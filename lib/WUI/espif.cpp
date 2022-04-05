@@ -22,9 +22,10 @@ extern "C" {
 #include "ff.h"
 #include "wui_api.h"
 
-#include "lwip/def.h"
-#include "lwip/ethip6.h"
-#include "lwip/etharp.h"
+#include <lwip/def.h>
+#include <lwip/ethip6.h>
+#include <lwip/etharp.h>
+#include <lwip/sys.h>
 
 #include "log.h"
 
@@ -92,6 +93,14 @@ static std::atomic<ESPIFOperatingMode> esp_operating_mode = ESPIF_UNINITIALIZED_
 static std::atomic<bool> associated = false;
 static std::atomic<TaskHandle_t> init_task_handle;
 static std::atomic<netif *> active_esp_netif;
+// Hack:
+// Utility to delay going down for a while, because sometimes the signal/status
+// is "flippering". That would cause a new dhcp request very often and we want
+// to avoid that.
+static const constexpr uint32_t NO_DELAYED_DOWN = 0xFFFFFFFF;
+static const constexpr uint32_t DELAY_MASK = 0x7FFFFFFF;
+static const constexpr uint32_t DOWN_DELAY = 3000;
+static std::atomic<uint32_t> delayed_down = NO_DELAYED_DOWN;
 
 // UART
 static const uint32_t NIC_UART_BAUDRATE = 1000000;
@@ -205,13 +214,27 @@ bool espif_link() {
     return associated;
 }
 
-static void process_link_change(bool link_up, struct netif *netif) {
+static uint32_t half_now() {
+    return sys_now() & DELAY_MASK;
+}
+
+static void process_link_change(bool link_up, struct netif *netif, bool delay) {
     assert(netif != nullptr);
     log_info(ESPIF, "Link status changed: %d", link_up);
-    associated = link_up;
     if (link_up) {
-        netif_set_link_up(netif);
+        if (!associated.exchange(true)) {
+            netif_set_link_up(netif);
+        }
+        delayed_down = NO_DELAYED_DOWN;
+    } else if (delay) {
+        // Set the timer for actually going down after a while. But:
+        // * Give it time to go back up without any visible "effect"
+        // * Don't re-schedule if there are two "downs" in a row.
+        uint32_t no_delay = NO_DELAYED_DOWN;
+        delayed_down.compare_exchange_strong(no_delay, half_now());
     } else {
+        associated = false;
+        delayed_down = NO_DELAYED_DOWN;
         netif_set_link_down(netif);
     }
 }
@@ -290,7 +313,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             break;
 
         case Link:
-            process_link_change(*c++, netif);
+            process_link_change(*c++, netif, true);
             state = Intron;
             break;
 
@@ -448,7 +471,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
 static void force_down() {
     struct netif *iface = active_esp_netif; // Atomic load
     assert(iface != nullptr);               // Already initialized
-    process_link_change(false, iface);
+    process_link_change(false, iface, false);
 }
 
 static err_t reset_and_wait() {
@@ -596,4 +619,22 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
     xSemaphoreGive(uart_write_mutex);
 
     return ERR_OK;
+}
+
+void espif_tick() {
+    // Check if we should bring the interface down in a "delayed" way.
+    // A race (eg. we bring it down, but someone brought it up in the meantime
+    // or so) is unlikely, both this and the parsing of UART inputs happen in
+    // the same thread. Technically, there could be some with call of
+    // force_down during an ESP reflash, but that probably should be rare (who
+    // would be reflashing it when it works) and not that a big deal.
+    const uint32_t delay = delayed_down;
+    if (delayed_down != NO_DELAYED_DOWN) {
+        const uint32_t now = half_now();
+        // Should work fine even in case of overflow/underflow
+        const uint32_t diff = now - delay;
+        if (diff >= DOWN_DELAY) {
+            force_down();
+        }
+    }
 }
