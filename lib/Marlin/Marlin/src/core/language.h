@@ -292,7 +292,6 @@
 #define MSG_REDUNDANCY                      "Heater switched off. Temperature difference between temp sensors is too high !"
 #define MSG_T_HEATING_FAILED                "Heating failed"
 #define MSG_T_THERMAL_RUNAWAY               "Thermal Runaway"
-#define MSG_T_TEMPERATURE_SENSOR_STUCK      "Temperature sensor stuck"
 #define MSG_T_MAXTEMP                       "MAXTEMP triggered"
 #define MSG_T_MINTEMP                       "MINTEMP triggered"
 #define MSG_ERR_PROBING_FAILED              "Probing Failed"

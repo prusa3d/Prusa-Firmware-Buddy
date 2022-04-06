@@ -2283,6 +2283,9 @@ void Temperature::init() {
   }
 
   #if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
+
+  int_least8_t Temperature::failed_cycles[HOTENDS] = {};
+
   /**
    * @brief Detect discrepancy between expected heating based on model and actual heating
    *
@@ -2312,9 +2315,6 @@ void Temperature::init() {
     {
       timer[ee] = millis() + 1000UL;
 
-      static int_least8_t failed_cycles[HOTENDS] = {};
-      static_assert(THERMAL_PROTECTION_MODEL_PERIOD < INT_LEAST8_MAX, "THERMAL_PROTECTION_MODEL_PERIOD doesn't fit int_least8_t.");
-
       float work_feed_forward = feed_forward;
       // Ignore extreme model forecasts caused by extrusion
       // scaling during un/retractions.
@@ -2326,7 +2326,9 @@ void Temperature::init() {
       else --failed_cycles[ee];
 
       if (failed_cycles[ee] < 0) failed_cycles[ee] = 0;
-      if (failed_cycles[ee] > THERMAL_PROTECTION_MODEL_PERIOD) _temp_error(static_cast<heater_ind_t>(ee), PSTR(MSG_T_TEMPERATURE_SENSOR_STUCK), GET_TEXT(MSG_TEMPERATURE_SENSOR_STUCK));
+      if (failed_cycles[ee] > THERMAL_PROTECTION_MODEL_PERIOD + self_healing_cycles) {
+          failed_cycles[ee] = THERMAL_PROTECTION_MODEL_PERIOD + self_healing_cycles;
+      }
     }
   }
   #endif
