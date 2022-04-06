@@ -77,9 +77,12 @@ size_t USBSerial::write(uint8_t ch) {
 size_t USBSerial::write(const uint8_t *buffer, size_t size) {
     int written = enabled ? tud_cdc_write(buffer, size) : size;
 
-    for (int remaining = written; remaining > 0; remaining--)
+    for (int remaining = written; remaining > 0; remaining--, buffer++) {
         if (lineBufferUsed < lineBuffer.size())
-            LineBufferAppend(*buffer++);
+            LineBufferAppend(*buffer);
+        if (*buffer == '\n')
+            flush();
+    }
 
     return written;
 }
