@@ -41,7 +41,7 @@ static const uint16_t heatBreakFanMin_rpm_table[] = { 10, 10, 10, 10, 10 };
 
 static const uint16_t heatBreakFanMax_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
 
-//use this?
+// use this?
 /*
 static const uint16_t Fan0min_rpm_table[] = { 150, 1250, 3250, 3250, 3850 };
 
@@ -127,12 +127,6 @@ void CSelftest::Loop() {
     case stsXAxis: {
         if (phaseAxis(Config_XAxis, &m_pXAxis))
             return;
-        SelftestResultEEprom_t eeres;
-        eeres.ui32 = eeprom_get_ui32(EEVAR_SELFTEST_RESULT);
-        if (eeres.xaxis == SelftestResult_Failed) {
-            m_State = stsWait_axes;
-            return;
-        }
         break;
     }
     case stsYAxis:
@@ -254,13 +248,23 @@ bool CSelftest::phaseHome() {
 }
 
 SelftestSubtestState_t is_eeres_ok(uint8_t axis_eeres) {
-    return axis_eeres == SelftestResult_Passed ? SelftestSubtestState_t::ok : SelftestSubtestState_t::not_good;
+    switch (axis_eeres) {
+    case SelftestResult_Passed:
+        return SelftestSubtestState_t::ok;
+    case SelftestResult_Failed:
+        return SelftestSubtestState_t::not_good;
+    case SelftestResult_Skipped:
+    case SelftestResult_Unknown:
+    default:
+        return SelftestSubtestState_t::undef;
+    }
+    return SelftestSubtestState_t::undef;
 }
 
 void send_axis_result(SelftestResultEEprom_t eeres, AxisEnum axis, uint8_t progress) {
     SelftestAxis_t result;
 
-    //selftest does one axis at the time, bud dialog does not need to know that (this behavior can change)
+    // selftest does one axis at the time, bud dialog does not need to know that (this behavior can change)
     switch (axis) {
     case X_AXIS:
         result.x_progress = progress;
@@ -305,6 +309,11 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPa
     switch (config_axis.axis) {
     case X_AXIS:
         eeres.xaxis = (*ppaxis)->GetResult();
+        // if X axis test failed, we need to skip Z axis test
+        if (eeres.xaxis == SelftestResult_Failed) {
+            m_Mask = (SelftestMask_t)(m_Mask & ~SelftestMask_t::stmZAxis);
+            eeres.zaxis = SelftestResult_Unknown;
+        }
         break;
     case Y_AXIS:
         eeres.yaxis = (*ppaxis)->GetResult();
