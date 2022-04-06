@@ -65,11 +65,11 @@ void USBSerial::LineBufferAppend(char character) {
 size_t USBSerial::write(uint8_t ch) {
     int written = enabled ? tud_cdc_write_char(ch) : 1;
 
-    if (written && lineBufferUsed < lineBuffer.size())
+    if (written) {
         LineBufferAppend(ch);
-
-    if (written && ch == '\n')
-        flush();
+        if (ch == '\n')
+            flush();
+    }
 
     return written;
 }
@@ -78,8 +78,7 @@ size_t USBSerial::write(const uint8_t *buffer, size_t size) {
     int written = enabled ? tud_cdc_write(buffer, size) : size;
 
     for (int remaining = written; remaining > 0; remaining--, buffer++) {
-        if (lineBufferUsed < lineBuffer.size())
-            LineBufferAppend(*buffer);
+        LineBufferAppend(*buffer);
         if (*buffer == '\n')
             flush();
     }
