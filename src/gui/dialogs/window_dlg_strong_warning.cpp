@@ -10,17 +10,23 @@
 
 const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Response::_none, Response::_none };
 
+static constexpr Rect16 textRectIcon = { 0, 104, 240, 120 };
+
 window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreen, IDialog::IsStrong::yes)
     , header(this, _(Title))
     , footer(this)
     , icon(this, IDR_PNG_exposure_times_48px, { 120 - 24, 48 })
-    , text(this, { 0, 104, 240, 120 }, is_multiline::yes)
+    , text(this, textRectIcon, is_multiline::yes)
     , button(this, GuiDefaults::GetButtonRect(GetRect()) - Rect16::Top_t(64), dlg_responses, &ph_txt_continue) {
 }
 
 void window_dlg_strong_warning_t::setIcon(int16_t resId) {
     icon.SetIdRes(resId);
+    if (IDR_NULL == resId)
+        text.SetRect(GuiDefaults::RectScreenBody);
+    else
+        text.SetRect(textRectIcon);
 }
 
 void window_dlg_strong_warning_t::show(string_view_utf8 txt) {
@@ -55,6 +61,14 @@ void window_dlg_strong_warning_t::ShowPrintFan() {
     Sound_Play(eSOUND_TYPE::StandardAlert);
     dlg.show(_(PrintFanErrorMsg));
     dlg.setIcon(IDR_PNG_fan_error);
+}
+
+void window_dlg_strong_warning_t::ShowHotendTempDiscrepancy() {
+    static window_dlg_strong_warning_t dlg;
+    Sound_Play(eSOUND_TYPE::StandardAlert);
+    dlg.header.SetText(_(TitleNozzle));
+    dlg.show(_(HotendTempDiscrepancyMsg));
+    dlg.setIcon(IDR_NULL);
 }
 
 void window_dlg_strong_warning_t::ShowHeatersTimeout() {
