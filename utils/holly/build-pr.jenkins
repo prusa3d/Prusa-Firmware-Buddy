@@ -17,6 +17,25 @@ pipeline {
     }
 
     stages {
+        stage('Check Formatting') {
+            when {
+                expression { env.CHANGE_TARGET }
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    sh """
+                    export XDG_CACHE_HOME=\$PWD/.precommit
+                    pre-commit install
+                    pre-commit run \
+                        --source remotes/origin/${env.CHANGE_TARGET} \
+                        --origin HEAD \
+                        --show-diff-on-failure \
+                        --hook-stage manual
+                    """
+                }
+            }
+        }
+
         stage('Prepare Build Stages') {
             steps {
                 script {
@@ -72,23 +91,6 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
-
-        stage('Check Formatting') {
-            when {
-                expression { env.CHANGE_TARGET }
-            }
-            steps {
-                sh """
-                export XDG_CACHE_HOME=\$PWD/.precommit
-                pre-commit install
-                pre-commit run \
-                    --source remotes/origin/${env.CHANGE_TARGET} \
-                    --origin HEAD \
-                    --show-diff-on-failure \
-                    --hook-stage manual
-                """
             }
         }
 
