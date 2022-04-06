@@ -93,6 +93,9 @@ void Warning_cb(WarningType type) {
     case WarningType::PrintFanError:
         window_dlg_strong_warning_t::ShowPrintFan();
         break;
+    case WarningType::HotendTempDiscrepancy:
+        window_dlg_strong_warning_t::ShowHotendTempDiscrepancy();
+        break;
     case WarningType::HeatersTimeout:
     case WarningType::NozzleTimeout:
         window_dlg_strong_warning_t::ShowHeatersTimeout();

@@ -119,6 +119,7 @@ enum class WarningType : uint32_t {
     HotendFanError,
     PrintFanError,
     HeatersTimeout,
+    HotendTempDiscrepancy,
     NozzleTimeout,
     USBFlashDiskError,
     _last = USBFlashDiskError
