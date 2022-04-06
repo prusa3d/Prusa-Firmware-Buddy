@@ -522,6 +522,24 @@ void marlin_server_nozzle_timeout_loop() {
         thermalManager.setTargetHotend(0, 0);
 }
 
+static void marlin_server_resuming_reheating() {
+    if (marlin_server_print_reheat_ready()) {
+        if (marlin_server.vars.fan_check_enabled) {
+            if (fanCtlHeatBreak.getRPMIsOk()) {
+                hotend_fan_error_dialog_show = false;
+                marlin_server_unpark_head();
+                marlin_server.print_state = mpsResuming_UnparkHead;
+            } else {
+                set_warning(WarningType::HotendFanError);
+                marlin_server.print_state = mpsPaused;
+            }
+        } else {
+            marlin_server_unpark_head();
+            marlin_server.print_state = mpsResuming_UnparkHead;
+        }
+    }
+}
+
 static void _server_print_loop(void) {
     switch (marlin_server.print_state) {
     case mpsIdle:
@@ -569,21 +587,7 @@ static void _server_print_loop(void) {
         marlin_server_resuming_begin();
         break;
     case mpsResuming_Reheating:
-        if (marlin_server_print_reheat_ready()) {
-            if (marlin_server.vars.fan_check_enabled) {
-                if (fanCtlHeatBreak.getRPMIsOk()) {
-                    hotend_fan_error_dialog_show = false;
-                    marlin_server_unpark_head();
-                    marlin_server.print_state = mpsResuming_UnparkHead;
-                } else {
-                    set_warning(WarningType::HotendFanError);
-                    marlin_server.print_state = mpsPaused;
-                }
-            } else {
-                marlin_server_unpark_head();
-                marlin_server.print_state = mpsResuming_UnparkHead;
-            }
-        }
+        marlin_server_resuming_reheating();
         break;
     case mpsResuming_UnparkHead:
         if (planner.movesplanned() == 0) {
