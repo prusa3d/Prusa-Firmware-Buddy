@@ -293,7 +293,6 @@ char nth_char(const char str[], uint16_t nth) {
 
 //! Known possible reasons.
 //! @n MSG_T_THERMAL_RUNAWAY
-//! @n MSG_T_TEMPERATURE_SENSOR_STUCK
 //! @n MSG_T_HEATING_FAILED
 //! @n MSG_T_MAXTEMP
 //! @n MSG_T_MINTEMP
