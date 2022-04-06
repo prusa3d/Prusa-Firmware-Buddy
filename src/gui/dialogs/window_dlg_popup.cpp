@@ -23,6 +23,7 @@ void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) 
     dlg.open_time = gui::GetTick();
     dlg.ttl = time;
     dlg.text.SetText(txt);
+    dlg.text.Invalidate(); // invalidation is needed here because we are using the same static array for the text and text will invalidate only when the memory address is different
     dlg.SetRect(rect);
     if (!dlg.GetParent()) {
         window_t *parent = Screens::Access()->Get();
