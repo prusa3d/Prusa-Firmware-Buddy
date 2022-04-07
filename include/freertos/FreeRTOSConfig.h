@@ -1,4 +1,3 @@
-/* USER CODE BEGIN Header */
 /*
     FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
@@ -11,12 +10,12 @@
     the terms of the GNU General Public License (version 2) as published by the
     Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
 
-	***************************************************************************
+        ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+        ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -38,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+        the FAQ page "My application does not run, what could be wrong?".  Have you
+        defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+        http://www.FreeRTOS.org/support - In return for receiving this top quality
+        embedded software for free we request you assist our global community by
+        participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+        http://www.FreeRTOS.org/training - Investing in training allows your team to
+        be as productive as possible as early as possible.  Now you can receive
+        FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+        Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -67,7 +66,6 @@
 
     1 tab == 4 spaces!
 */
-/* USER CODE END Header */
 
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
@@ -84,7 +82,6 @@
  * See http://www.freertos.org/a00110.html.
  *----------------------------------------------------------*/
 
-/* USER CODE BEGIN Includes */
 /* Section where include file can be added */
 #define traceTASK_SWITCHED_IN()                            \
     extern void StartIdleMonitor(void);                    \
@@ -111,8 +108,6 @@
             (U32)tcb->pxStack,                             \
             ((U32)tcb->pxTopOfStack - (U32)tcb->pxStack)); \
     }
-
-/* USER CODE END Includes */
 
 /* Ensure stdint is only used by the compiler, and not the assembler. */
 #if defined(__ICCARM__) || defined(__CC_ARM) || defined(__GNUC__)
@@ -192,14 +187,12 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
-/* USER CODE BEGIN 1 */
 #define configASSERT(x)           \
     if ((x) == 0) {               \
         taskDISABLE_INTERRUPTS(); \
         for (;;)                  \
             ;                     \
     }
-/* USER CODE END 1 */
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS
 standard names. */
@@ -209,10 +202,6 @@ standard names. */
 /* IMPORTANT: This define is commented when used with STM32Cube firmware, when timebase is systick,
               to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
 //#define xPortSysTickHandler SysTick_Handler
-
-/* USER CODE BEGIN Defines */
-/* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
-/* USER CODE END Defines */
 
 #include "SEGGER_SYSVIEW_FreeRTOS.h"
 
