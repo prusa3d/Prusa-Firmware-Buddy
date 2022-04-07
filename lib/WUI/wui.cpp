@@ -113,6 +113,7 @@ public:
         EspInitDone = 1 << 4,
         EspData = 1 << 5,
         TriggerNtp = 1 << 6,
+        HealthCheck = 1 << 7,
     };
 
 private:
@@ -127,8 +128,14 @@ private:
         ETH_config_t desired_config = {};
     };
 
+    // If ESP is not working for a minute, try to reset it if it reconnects.
+    // (we probably could implement some kind of back-off strategy or whatever,
+    // but let's keep it simple for now).
+    static const constexpr uint32_t RESET_FAULTY_AFTER = 60 * 1000;
+
     std::array<Iface, NETDEV_COUNT> ifaces;
     ap_entry_t ap = { "", "", AP_SEC_NONE };
+    uint32_t last_esp_ok;
 
     TaskHandle_t network_task;
     // This makes it a singleton. This one is accessed from outside.
@@ -333,7 +340,7 @@ private:
             const uint32_t now = sys_now();
             if (now - last_poll >= LOOP_EVT_TIMEOUT) {
                 last_poll = now;
-                events |= EspData | EthData | TriggerNtp;
+                events |= EspData | HealthCheck | EthData | TriggerNtp;
             }
 
             if (events & CoreInitDone) {
@@ -355,8 +362,6 @@ private:
                 events &= ~EspData;
 
                 espif_input_once(&ifaces[NETDEV_ESP_ID].dev);
-
-                espif_tick();
 
                 // Delayed init, after the ESP told us it is ready and gave us a MAC address.
                 if (iface_mode(ifaces[NETDEV_ESP_ID]) != Mode::Off && espif_need_ap()) {
@@ -395,6 +400,26 @@ private:
                 sntp_client_step();
             }
 
+            if (events & HealthCheck) {
+                espif_tick();
+
+                // It's OK if the ESP is turned off on purpose or if it's up and running.
+                const bool esp_ok = (iface_mode(ifaces[NETDEV_ESP_ID]) == Mode::Off || ap.ssid[0] == '\0' || espif_link());
+
+                const uint32_t now = sys_now();
+                if (esp_ok) {
+                    last_esp_ok = now;
+                }
+
+                const uint32_t faulty_for = now - last_esp_ok;
+
+                if (faulty_for >= RESET_FAULTY_AFTER) {
+                    // It's not OK for a long time. Try resetting it if that helps.
+                    espif_reset();
+                    last_esp_ok = now;
+                }
+            }
+
             events = 0;
         }
     }
@@ -428,6 +453,7 @@ public:
         network_task = osThreadGetId();
         assert(instance == nullptr);
         instance = this;
+        last_esp_ok = sys_now();
     }
     static void run_task() {
         osThreadDef(network, task_main, osPriorityBelowNormal, 0, 1024);
