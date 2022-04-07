@@ -19,7 +19,7 @@ err_t espif_flash_initialize();
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Return to normal omode
-err_t espif_flash_deinitialize();
+void espif_flash_deinitialize();
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize ESPIF (part of LwIP netif setup)
@@ -42,6 +42,12 @@ void espif_input_once(struct netif *netif);
 
 /// Perform periodic works of the esp interface.
 void espif_tick();
+
+/// Is the ESP if ready to receive info about an AP to connect to?
+bool espif_need_ap();
+
+/// Perform a reset of the ESP and bring it up again.
+void espif_reset();
 
 // UART buffer stuff
 // The data received should fit into the buffer. Or, some guaratees has to be
