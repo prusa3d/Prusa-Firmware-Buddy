@@ -24,6 +24,8 @@ pipeline {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     sh """
+                    ln -fs /.dependencies
+
                     export XDG_CACHE_HOME=\$PWD/.precommit
                     pre-commit install
                     pre-commit run \
