@@ -89,6 +89,40 @@ bool can_stop_wait_for_heatup() { return can_stop_wait_for_heatup_var; }
 void can_stop_wait_for_heatup(bool val) { can_stop_wait_for_heatup_var = val; }
 
 extern "C" {
+marlin_server_t marlin_server; // server structure - initialize task to zero
+}
+
+namespace {
+template <WarningType m_warning, bool m_disableHotend>
+class ErrorChecker {
+public:
+    ErrorChecker()
+        : m_failed(false) {};
+
+    void checkTrue(bool condition) {
+        if (!condition && !m_failed) {
+            set_warning(m_warning);
+            if (marlin_server.print_state == mpsPrinting) {
+                marlin_server.print_state = mpsPausing_Begin;
+            }
+            if (m_disableHotend) {
+                static_assert(1 == HOTENDS, "Unimplemented for more hotends.");
+                thermalManager.setTargetHotend(0, 0);
+            }
+            m_failed = true;
+        }
+    };
+    bool isFailed() { return m_failed; };
+    void reset() { m_failed = false; }
+
+private:
+    bool m_failed;
+};
+
+ErrorChecker<WarningType::HotendFanError, true> hotendFanErrorChecker;
+ErrorChecker<WarningType::PrintFanError, false> printFanErrorChecker;
+} //end anonymous namespace
+extern "C" {
 
 LOG_COMPONENT_DEF(MarlinServer, LOG_SEVERITY_INFO);
 
@@ -99,14 +133,10 @@ osThreadId marlin_server_task = 0;    // task handle
 osMessageQId marlin_server_queue = 0; // input queue (uint8_t)
 osSemaphoreId marlin_server_sema = 0; // semaphore handle
 
-marlin_server_t marlin_server; // server structure - initialize task to zero
 #ifdef DEBUG_FSENSOR_IN_HEADER
 uint32_t *pCommand = &marlin_server.command;
 #endif
 marlin_server_idle_t *marlin_server_idle_cb = 0; // idle callback
-
-static bool hotend_fan_error_dialog_show = false;
-static bool print_fan_error_dialog_show = false;
 
 void _add_status_msg(const char *const popup_msg) {
     //I could check client mask here
@@ -143,8 +173,6 @@ static uint64_t _server_update_vars(uint64_t force_update_msk);
 static bool _process_server_request(const char *request);
 static int _server_set_var(const char *const name_val_str);
 static void _server_update_and_notify(int client_id, uint64_t update);
-
-static void _server_fan_check_error(WarningType warning, CFanCtl fan, bool &error_shown);
 
 //-----------------------------------------------------------------------------
 // server side functions
@@ -526,7 +554,7 @@ static void marlin_server_resuming_reheating() {
     if (marlin_server_print_reheat_ready()) {
         if (marlin_server.vars.fan_check_enabled) {
             if (fanCtlHeatBreak.getRPMIsOk()) {
-                hotend_fan_error_dialog_show = false;
+                hotendFanErrorChecker.reset();
                 marlin_server_unpark_head();
                 marlin_server.print_state = mpsResuming_UnparkHead;
             } else {
@@ -664,28 +692,14 @@ static void _server_print_loop(void) {
     }
 
     if (marlin_server.vars.fan_check_enabled) {
-        _server_fan_check_error(WarningType::HotendFanError, fanCtlHeatBreak, hotend_fan_error_dialog_show);
-        _server_fan_check_error(WarningType::PrintFanError, fanCtlPrint, print_fan_error_dialog_show);
+        hotendFanErrorChecker.checkTrue(fanCtlHeatBreak.getState() != CFanCtl::error_running);
+        printFanErrorChecker.checkTrue(fanCtlPrint.getState() != CFanCtl::error_running);
     }
 
-    if (fanCtlHeatBreak.getRPMIsOk() && hotend_fan_error_dialog_show == true) {
-        hotend_fan_error_dialog_show = false;
-    } else if (fanCtlPrint.getRPMIsOk() && print_fan_error_dialog_show == true) {
-        print_fan_error_dialog_show = false;
-    }
-}
-
-void _server_fan_check_error(WarningType warning, CFanCtl fan, bool &error_shown) {
-    if (fan.getState() == CFanCtl::error_running && error_shown == false) {
-        set_warning(warning);
-        if (marlin_server.print_state == mpsPrinting) {
-            marlin_server.print_state = mpsPausing_Begin;
-        }
-        if (fan.isAutoFan()) {
-            thermalManager.setTargetHotend(0, 0);
-        }
-        error_shown = true;
-    }
+    if (fanCtlHeatBreak.getRPMIsOk())
+        hotendFanErrorChecker.reset();
+    if (fanCtlPrint.getRPMIsOk())
+        printFanErrorChecker.reset();
 }
 
 void marlin_server_resuming_begin(void) {
