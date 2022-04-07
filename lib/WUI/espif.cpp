@@ -73,8 +73,11 @@ static_assert(ETHARP_HWADDR_LEN == 6);
 
 enum ESPIFOperatingMode {
     ESPIF_UNINITIALIZED_MODE,
+    ESPIF_WAIT_INIT,
+    ESPIF_NEED_AP,
     ESPIF_RUNNING_MODE,
-    ESPIF_FLASHING_MODE
+    ESPIF_FLASHING_MODE,
+    ESPIF_WRONG_FW,
 };
 
 enum MessageType {
@@ -143,6 +146,22 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     }
 }
 
+static bool is_running(ESPIFOperatingMode mode) {
+    switch (mode) {
+    case ESPIF_FLASHING_MODE:
+    case ESPIF_UNINITIALIZED_MODE:
+    case ESPIF_WRONG_FW:
+        return false;
+    case ESPIF_WAIT_INIT:
+    case ESPIF_NEED_AP:
+    case ESPIF_RUNNING_MODE:
+        return true;
+    }
+
+    assert(0);
+    return false;
+}
+
 /**
  * \brief           Send data to ESP device
  * \param[in]       data: Pointer to data to send
@@ -150,7 +169,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
  * \return          Operation result, ERR_OK if succeeded
  */
 static err_t espif_transmit_data(const void *data, size_t len) {
-    if (esp_operating_mode != ESPIF_RUNNING_MODE) {
+    if (!is_running(esp_operating_mode)) {
         return ERR_USE;
     }
 
@@ -187,7 +206,7 @@ void espif_input_once(struct netif *netif) {
 
     uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(huart6.hdmarx); // no. of bytes left for buffer full
     pos = sizeof(dma_buffer_rx) - dma_bytes_left;
-    if (pos != old_dma_pos && esp_operating_mode == ESPIF_RUNNING_MODE) {
+    if (pos != old_dma_pos && is_running(esp_operating_mode)) {
         if (pos > old_dma_pos) {
             uart_input(&dma_buffer_rx[old_dma_pos], pos - old_dma_pos, netif);
         } else {
@@ -203,11 +222,24 @@ void espif_input_once(struct netif *netif) {
     }
 }
 
+static void generate_intron();
+
 static void process_mac(uint8_t *data, struct netif *netif) {
     log_info(ESPIF, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", data[0], data[1], data[2], data[3], data[4], data[5]);
-    xTaskNotify(init_task_handle, 0, eNoAction);
     netif->hwaddr_len = ETHARP_HWADDR_LEN;
     memcpy(netif->hwaddr, data, ETHARP_HWADDR_LEN);
+
+    ESPIFOperatingMode old = ESPIF_WAIT_INIT;
+    if (esp_operating_mode.compare_exchange_strong(old, ESPIF_NEED_AP)) {
+        if (fw_version != SUPPORTED_FW_VERSION) {
+            log_error(ESPIF, "ESP detected, FW not supported: %d != %d", fw_version.load(), SUPPORTED_FW_VERSION);
+            esp_operating_mode = ESPIF_WRONG_FW;
+            return;
+        }
+        log_info(ESPIF, "ESP up and running");
+        generate_intron();
+        esp_operating_mode = ESPIF_NEED_AP;
+    }
 }
 
 bool espif_link() {
@@ -442,7 +474,7 @@ static void generate_intron() {
  * @param p buffer (chain) to send
  */
 static err_t low_level_output(struct netif *netif, struct pbuf *p) {
-    if (esp_operating_mode != ESPIF_RUNNING_MODE) {
+    if (!is_running(esp_operating_mode)) {
         log_error(ESPIF, "Cannot send packet, not in running mode.");
         return ERR_IF;
     }
@@ -474,7 +506,7 @@ static void force_down() {
     process_link_change(false, iface, false);
 }
 
-static err_t reset_and_wait() {
+static void reset() {
     // Reset our expectation of the intron, the ESP will forget the
     // auto-generated one.
     xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
@@ -491,26 +523,7 @@ static err_t reset_and_wait() {
     // Reset device to receive MAC address
     log_debug(ESPIF, "Resetting ESP and wait for device info reponse");
     hard_reset_device();
-
-    // Wait for esp ready (receiveing device info)
-    if (!xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(3000))) {
-        log_error(ESPIF, "Timeout waiting for ESP");
-        if (esp_detected) {
-            // Some UART activity, but no device info message received
-            log_error(ESPIF, "Some activity detected. Wrong ESP FW?");
-        } else {
-            // There is no UART activity -> ESP not present or not transmitting
-            log_error(ESPIF, "No activity detected. ESP not present?");
-        }
-        return ERR_IF;
-    }
-    if (fw_version != SUPPORTED_FW_VERSION) {
-        log_error(ESPIF, "ESP detected, FW not supported: %d != %d", fw_version.load(), SUPPORTED_FW_VERSION);
-        return ERR_IF;
-    }
-    log_info(ESPIF, "ESP up and running");
-    generate_intron();
-    return ERR_OK;
+    esp_operating_mode = ESPIF_WAIT_INIT;
 }
 
 /**
@@ -534,7 +547,7 @@ err_t espif_init(struct netif *netif) {
     (void)previous; // Avoid warnings in release
 
     espif_reconfigure_uart(NIC_UART_BAUDRATE);
-    esp_operating_mode = ESPIF_RUNNING_MODE;
+    esp_operating_mode = ESPIF_WAIT_INIT;
 
     // Create mutex to protect UART writes
     uart_write_mutex = xSemaphoreCreateMutex();
@@ -557,7 +570,8 @@ err_t espif_init(struct netif *netif) {
     netif->mtu = 1500;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
 
-    return reset_and_wait();
+    reset();
+    return ERR_OK;
 }
 
 err_t espif_flash_initialize() {
@@ -584,10 +598,10 @@ err_t espif_flash_initialize() {
     return ERR_OK;
 }
 
-err_t espif_flash_deinitialize() {
+void espif_flash_deinitialize() {
     espif_reconfigure_uart(NIC_UART_BAUDRATE);
     esp_operating_mode = ESPIF_RUNNING_MODE;
-    return reset_and_wait();
+    reset();
 }
 
 /**
@@ -600,11 +614,11 @@ err_t espif_flash_deinitialize() {
  * @return err_t
  */
 err_t espif_join_ap(const char *ssid, const char *pass) {
-    if (esp_operating_mode != ESPIF_RUNNING_MODE) {
-        log_error(ESPIF, "Cannot joing AP, not in running mode.");
+    if (!is_running(esp_operating_mode)) {
         return ERR_IF;
     }
     log_info(ESPIF, "Joining AP %s:*(%d)", ssid, strlen(pass));
+    esp_operating_mode = ESPIF_RUNNING_MODE;
 
     xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
     espif_transmit_data(intron, sizeof(intron));
@@ -636,5 +650,17 @@ void espif_tick() {
         if (diff >= DOWN_DELAY) {
             force_down();
         }
+    }
+}
+
+bool espif_need_ap() {
+    return esp_operating_mode == ESPIF_NEED_AP;
+}
+
+void espif_reset() {
+    // Don't touch it in case we are flashing right now. If so, it'll get reset
+    // when done.
+    if (esp_operating_mode != ESPIF_FLASHING_MODE) {
+        reset();
     }
 }

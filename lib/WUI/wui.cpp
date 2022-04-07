@@ -282,11 +282,14 @@ private:
             // can change, how it is synchronized with threads (or isn't!).
             iface.dev.hostname = iface.desired_config.hostname;
 
-            if (iface_mode(iface) != Mode::Off) {
-                // Is there a more idiomatic way to check the index in range iteration?
-                if (&iface == &ifaces[NETDEV_ESP_ID]) {
-                    join_ap();
-                }
+            if (&iface == &ifaces[NETDEV_ESP_ID]) {
+                // The ESP interface is a bit weird. It doesn't support (yet)
+                // disconnecting from AP, so we reset it. Then we have to wait
+                // for it to become ready to join the AP, etc, which is done
+                // asynchronously in the event loop.
+                espif_reset();
+            } else {
+                // Other interfaces can just be turned on and be done with them.
                 set_up(iface.dev);
             }
         }
@@ -350,8 +353,16 @@ private:
             // if it is or isn't initialized.
             if (events & EspData) {
                 events &= ~EspData;
+
                 espif_input_once(&ifaces[NETDEV_ESP_ID].dev);
+
                 espif_tick();
+
+                // Delayed init, after the ESP told us it is ready and gave us a MAC address.
+                if (iface_mode(ifaces[NETDEV_ESP_ID]) != Mode::Off && espif_need_ap()) {
+                    join_ap();
+                    set_up(ifaces[NETDEV_ESP_ID].dev);
+                }
             }
 
             if (!initialized) {
