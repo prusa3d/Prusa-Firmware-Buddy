@@ -554,7 +554,6 @@ static void marlin_server_resuming_reheating() {
     if (marlin_server_print_reheat_ready()) {
         if (marlin_server.vars.fan_check_enabled) {
             if (fanCtlHeatBreak.getRPMIsOk()) {
-                hotendFanErrorChecker.reset();
                 marlin_server_unpark_head();
                 marlin_server.print_state = mpsResuming_UnparkHead;
             } else {
