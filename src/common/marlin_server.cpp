@@ -558,6 +558,7 @@ static void marlin_server_resuming_reheating() {
                 marlin_server.print_state = mpsResuming_UnparkHead;
             } else {
                 set_warning(WarningType::HotendFanError);
+                thermalManager.setTargetHotend(0, 0);
                 marlin_server.print_state = mpsPaused;
             }
         } else {
