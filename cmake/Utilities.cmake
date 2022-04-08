@@ -170,8 +170,17 @@ endfunction()
 
 function(gzip_file input_file output_file)
   set(PYTHON_CODE
-      "import sys" "import gzip" "input_file = open(sys.argv[1], 'rb')"
-      "output_file = open(sys.argv[2], 'wb')" "output_file.write(gzip.compress(input_file.read()))"
+      "import sys"
+      "import io"
+      "import gzip"
+      "input_file = open(sys.argv[1], 'rb')"
+      "bytes_io = io.BytesIO()"
+      "gzip_file = gzip.GzipFile(fileobj=bytes_io, mode='wb', mtime=0)"
+      "gzip_file.write(input_file.read())"
+      "gzip_file.close()"
+      "bytes_io.seek(0)"
+      "output_file = open(sys.argv[2], 'wb')"
+      "output_file.write(bytes_io.read())"
       )
   add_custom_command(
     OUTPUT "${output_file}"
