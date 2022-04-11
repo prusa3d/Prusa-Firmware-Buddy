@@ -82,6 +82,11 @@ private:
         Close,
     };
     Connection connection : 2;
+
+public:
+    bool accepts_json : 1;
+
+private:
     std::variant<std::monostate, uint8_t, bool> auth_status;
 
     // TODO: Eventually get rid of stringy URLs and replace by enums/tokens as much as possible

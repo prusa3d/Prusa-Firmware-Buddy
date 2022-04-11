@@ -221,6 +221,14 @@ TEST_CASE("Connection keep alive") {
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionClose));
 }
 
+TEST_CASE("Accept json") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nAccept: application/json\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::AcceptJson));
+    REQUIRE_FALSE(ex.contains_enter(Names::ConnectionClose));
+}
+
 TEST_CASE("No connection") {
     using test::http::Names;
     TestExecution ex(http_request);

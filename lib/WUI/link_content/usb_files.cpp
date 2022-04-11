@@ -22,12 +22,12 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
 
     // Content of the USB drive is only for authenticated, don't ever try anything without it.
     if (!parser.authenticated()) {
-        return StatusPage(Status::Unauthorized, parser.can_keep_alive());
+        return StatusPage(Status::Unauthorized, parser.can_keep_alive(), parser.accepts_json);
     }
 
     char fname[FILE_PATH_BUFFER_LEN];
     if (!parser.uri_filename(fname, sizeof(fname))) {
-        return StatusPage(Status::NotFound, parser.can_keep_alive(), "This doesn't look like file name");
+        return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json, "This doesn't look like file name");
     }
 
     if (parser.method == Method::Get) {
@@ -39,12 +39,12 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
              * protected by the API key and it's the user's files, so
              * that's probably fine.
              */
-            return SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.if_none_match);
+            return SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match);
         }
 
-        return StatusPage(Status::NotFound, parser.can_keep_alive());
+        return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json);
     } else {
-        return StatusPage(Status::MethodNotAllowed, parser.can_keep_alive());
+        return StatusPage(Status::MethodNotAllowed, parser.can_keep_alive(), parser.accepts_json);
     }
 }
 

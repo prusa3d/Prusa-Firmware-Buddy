@@ -43,7 +43,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
     const auto suffix = *suffix_opt;
 
     if (!parser.authenticated()) {
-        return StatusPage(Status::Unauthorized, parser.can_keep_alive());
+        return StatusPage(Status::Unauthorized, parser.can_keep_alive(), parser.accepts_json);
     }
 
     const auto get_only = [parser](ConnectionState state) -> ConnectionState {
@@ -51,18 +51,18 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             return state;
         } else {
             // Drop the connection in fear there might be a body we don't know about.
-            return StatusPage(Status::MethodNotAllowed, false);
+            return StatusPage(Status::MethodNotAllowed, false, parser.accepts_json);
         }
     };
 
     // Some stubs for now, to make more clients (including the web page) happier.
     if (suffix == "download") {
-        return get_only(StatusPage(Status::NoContent, parser.can_keep_alive()));
+        return get_only(StatusPage(Status::NoContent, parser.can_keep_alive(), parser.accepts_json));
     } else if (suffix == "settings") {
         return get_only(SendStaticMemory("{\"printer\": {}}", ContentType::ApplicationJson, parser.can_keep_alive()));
     } else if (remove_prefix(suffix, "files").has_value()) {
         if (parser.method == Method::Post) {
-            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode);
+            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json);
             /*
              * So, we have a "smaller" variant (eg. variant<A, B, C>) and
              * want a "bigger" variant<A, B, C, D, E>. C++ templates can't
@@ -93,7 +93,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             if (parser.uri_filename(fname, sizeof fname)) {
                 size_t len = strlen(fname);
                 if (prefix_len > len) {
-                    return StatusPage(Status::NotFound, parser.can_keep_alive());
+                    return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json);
                 }
 
                 const char *fname_real = fname + prefix_len;
@@ -125,31 +125,31 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                  * on the USB drive (eg. our xflash).
                  */
                 if (strncmp(fname_real, "/usb/", 5) != 0) {
-                    StatusPage(Status::Forbidden, parser.can_keep_alive());
+                    StatusPage(Status::Forbidden, parser.can_keep_alive(), parser.accepts_json);
                 }
 
                 switch (parser.method) {
                 case Method::Get:
-                    return FileInfo(fname_real, parser.can_keep_alive(), false);
+                    return FileInfo(fname_real, parser.can_keep_alive(), parser.accepts_json, false);
                 case Method::Delete: {
                     int result = remove(fname_real);
                     if (result == -1) {
                         switch (errno) {
                         case EBUSY:
-                            return StatusPage(Status::Conflict, parser.can_keep_alive(), "File is busy");
+                            return StatusPage(Status::Conflict, parser.can_keep_alive(), parser.accepts_json, "File is busy");
                         default:
-                            return StatusPage(Status::NotFound, parser.can_keep_alive());
+                            return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json);
                         }
                     } else {
-                        return StatusPage(Status::NoContent, parser.can_keep_alive());
+                        return StatusPage(Status::NoContent, parser.can_keep_alive(), parser.accepts_json);
                     }
                 }
                 default:
                     // Drop the connection in fear there might be a body we don't know about.
-                    return StatusPage(Status::MethodNotAllowed, false);
+                    return StatusPage(Status::MethodNotAllowed, false, parser.accepts_json);
                 }
             } else {
-                return StatusPage(Status::NotFound, parser.can_keep_alive());
+                return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json);
             }
         }
         // The real API endpoints
@@ -161,19 +161,19 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             return StatelessJson(get_job, parser.can_keep_alive());
         case Method::Post: {
             if (parser.content_length.has_value()) {
-                return JobCommand(*parser.content_length, parser.can_keep_alive());
+                return JobCommand(*parser.content_length, parser.can_keep_alive(), parser.accepts_json);
             } else {
                 // Drop the connection (and the body there).
-                return StatusPage(Status::LengthRequired, false);
+                return StatusPage(Status::LengthRequired, false, parser.accepts_json);
             }
         }
         default:
-            return StatusPage(Status::MethodNotAllowed, false);
+            return StatusPage(Status::MethodNotAllowed, false, parser.accepts_json);
         }
     } else if (suffix == "printer") {
         return get_only(StatelessJson(get_printer, parser.can_keep_alive()));
     } else {
-        return StatusPage(Status::NotFound, parser.can_keep_alive());
+        return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json);
     }
 }
 

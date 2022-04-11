@@ -42,7 +42,8 @@ RequestParser::RequestParser(const Server &server)
     , done(false)
     , version_major(0)
     , version_minor(0)
-    , connection(Connection::Unknown) {}
+    , connection(Connection::Unknown)
+    , accepts_json(false) {}
 
 ExecutionControl RequestParser::event(Event event) {
     switch (event.leaving_state) {
@@ -135,6 +136,9 @@ ExecutionControl RequestParser::event(Event event) {
         break;
     case Names::ConnectionKeepAlive:
         connection = Connection::KeepAlive;
+        break;
+    case Names::AcceptJson:
+        accepts_json = true;
         break;
     case Names::Body:
         done = true;

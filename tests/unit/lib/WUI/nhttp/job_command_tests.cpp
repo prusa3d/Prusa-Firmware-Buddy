@@ -24,7 +24,7 @@ std::vector<Cmd> history;
 void do_test(string_view data, optional<Cmd> expected_command) {
     history.clear();
 
-    JobCommand command(data.size(), true);
+    JobCommand command(data.size(), true, false);
     const auto result = command.step(data, false, nullptr, 0);
 
     REQUIRE(result.written == 0);

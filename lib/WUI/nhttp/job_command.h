@@ -29,6 +29,7 @@ private:
     size_t buffer_used = 0;
     size_t content_length;
     bool can_keep_alive;
+    bool json_errors;
 
     enum class Command {
         ErrMem,
@@ -57,7 +58,7 @@ private:
     bool pause_toggle();
 
 public:
-    JobCommand(size_t content_length, bool can_keep_alive);
+    JobCommand(size_t content_length, bool can_keep_alive, bool json_errors);
     bool want_read() const { return true; }
     bool want_write() const { return false; }
     handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);

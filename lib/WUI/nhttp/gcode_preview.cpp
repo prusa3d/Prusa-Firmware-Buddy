@@ -14,10 +14,11 @@ using handler::Step;
 using handler::Terminating;
 using std::string_view;
 
-GCodePreview::GCodePreview(FILE *f, const char *path, bool can_keep_alive, uint16_t width, uint16_t height, uint32_t if_none_match)
+GCodePreview::GCodePreview(FILE *f, const char *path, bool can_keep_alive, bool json_errors, uint16_t width, uint16_t height, uint32_t if_none_match)
     : gcode(f)
     , decoder(f, width, height)
-    , can_keep_alive(can_keep_alive) {
+    , can_keep_alive(can_keep_alive)
+    , json_errors(json_errors) {
     struct stat finfo;
     if (stat(path, &finfo) == 0) {
         etag = compute_etag(finfo);
@@ -29,7 +30,8 @@ GCodePreview::GCodePreview(FILE *f, const char *path, bool can_keep_alive, uint1
 
 Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) {
     if (etag_matches) {
-        return { 0, 0, StatusPage(Status::NotModified, can_keep_alive) };
+        // No need to pass the json_errors, NotModified has no content anyway.
+        return { 0, 0, StatusPage(Status::NotModified, can_keep_alive, false) };
     }
     ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close;
 
@@ -56,7 +58,7 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
              * Something is wrong. We don't care about exactly what, we simply
              * don't have the preview -> 404.
              */
-            return { 0, 0, StatusPage(Status::NotFound, can_keep_alive, "File doesn't contain preview") };
+            return { 0, 0, StatusPage(Status::NotFound, can_keep_alive, json_errors, "File doesn't contain preview") };
         }
     } else {
         NextInstruction instruction = Continue();

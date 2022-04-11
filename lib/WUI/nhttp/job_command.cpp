@@ -73,16 +73,17 @@ namespace {
 
 }
 
-JobCommand::JobCommand(size_t content_length, bool can_keep_alive)
+JobCommand::JobCommand(size_t content_length, bool can_keep_alive, bool json_errors)
     : content_length(content_length)
-    , can_keep_alive(can_keep_alive) {
+    , can_keep_alive(can_keep_alive)
+    , json_errors(json_errors) {
     memset(buffer.data(), 0, buffer.size());
 }
 
 Step JobCommand::step(std::string_view input, bool terminated_by_client, uint8_t *, size_t) {
     if (content_length > buffer.size()) {
         // Refuse early, without reading the body -> drop the connection too.
-        return Step { 0, 0, StatusPage(Status::PayloadTooLarge, false) };
+        return Step { 0, 0, StatusPage(Status::PayloadTooLarge, false, json_errors) };
     }
 
     const size_t rest = content_length - buffer_used;
@@ -97,7 +98,7 @@ Step JobCommand::step(std::string_view input, bool terminated_by_client, uint8_t
     if (content_length > buffer_used) {
         // Still waiting for more data.
         if (terminated_by_client) {
-            return Step { to_read, 0, StatusPage(Status::BadRequest, false, "Truncated request") };
+            return Step { to_read, 0, StatusPage(Status::BadRequest, false, json_errors, "Truncated request") };
         } else {
             return Step { to_read, 0, Continue() };
         }
@@ -109,39 +110,39 @@ Step JobCommand::step(std::string_view input, bool terminated_by_client, uint8_t
 StatusPage JobCommand::process() {
     switch (parse_command()) {
     case Command::ErrMem:
-        return StatusPage(Status::PayloadTooLarge, can_keep_alive, "Too many JSON tokens");
+        return StatusPage(Status::PayloadTooLarge, can_keep_alive, json_errors, "Too many JSON tokens");
     case Command::ErrReq:
-        return StatusPage(Status::BadRequest, can_keep_alive, "Couldn't parse JSON");
+        return StatusPage(Status::BadRequest, can_keep_alive, json_errors, "Couldn't parse JSON");
     case Command::ErrUnknownCommand:
         // Any idea for better status than the very generic 400? 404?
         return StatusPage(Status::BadRequest, can_keep_alive, "Unknown job command");
     case Command::Pause:
         if (pause()) {
-            return StatusPage(Status::NoContent, can_keep_alive);
+            return StatusPage(Status::NoContent, can_keep_alive, json_errors);
         } else {
-            return StatusPage(Status::Conflict, can_keep_alive);
+            return StatusPage(Status::Conflict, can_keep_alive, json_errors);
         }
     case Command::Resume:
         if (resume()) {
-            return StatusPage(Status::NoContent, can_keep_alive);
+            return StatusPage(Status::NoContent, can_keep_alive, json_errors);
         } else {
-            return StatusPage(Status::Conflict, can_keep_alive);
+            return StatusPage(Status::Conflict, can_keep_alive, json_errors);
         }
     case Command::PauseToggle:
         if (pause_toggle()) {
-            return StatusPage(Status::NoContent, can_keep_alive);
+            return StatusPage(Status::NoContent, can_keep_alive, json_errors);
         } else {
-            return StatusPage(Status::Conflict, can_keep_alive);
+            return StatusPage(Status::Conflict, can_keep_alive, json_errors);
         }
     case Command::Stop:
         if (stop()) {
-            return StatusPage(Status::NoContent, can_keep_alive);
+            return StatusPage(Status::NoContent, can_keep_alive, json_errors);
         } else {
-            return StatusPage(Status::Conflict, can_keep_alive);
+            return StatusPage(Status::Conflict, can_keep_alive, json_errors);
         }
     default:
         assert(0);
-        return StatusPage(Status::InternalServerError, can_keep_alive, "Invalid command");
+        return StatusPage(Status::InternalServerError, can_keep_alive, json_errors, "Invalid command");
     }
 }
 
