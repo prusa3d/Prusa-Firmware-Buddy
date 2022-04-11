@@ -710,8 +710,10 @@ uint32_t sheet_next_calibrated() {
     uint8_t index = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
 
     for (int8_t i = 1; i < MAX_SHEETS; ++i) {
-        if (sheet_profile_select((index + i) % MAX_SHEETS))
+        if (sheet_is_calibrated((index + i) % MAX_SHEETS)) {
+            sheet_profile_select((index + i) % MAX_SHEETS);
             return (index + i) % MAX_SHEETS;
+        }
     }
 #else
     log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
