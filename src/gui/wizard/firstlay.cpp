@@ -168,8 +168,8 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT() {
     static const char en_text[] = N_("Do you want to repeat the last step and readjust the distance between the nozzle and heatbed?");
     string_view_utf8 translatedText = _(en_text);
     if (MsgBox(translatedText, Responses_YesNo, 1) == Response::No) {
-        marlin_gcode("M104 S0"); // nozzle target
-        marlin_gcode("M140 S0"); // bed target
+        marlin_gcode("M104 S0 D0"); // nozzle target
+        marlin_gcode("M140 S0");    // bed target
 
         return WizardState_t::FIRSTLAY_RESULT;
     } else {
