@@ -40,7 +40,7 @@ private:
     const char **extra_hdrs;
 
 public:
-    SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, uint32_t if_none_match, const char **extra_hdrs = nullptr);
+    SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, bool json_errors, uint32_t if_none_match, const char **extra_hdrs = nullptr);
     Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
     bool want_write() const { return bool(file); }
     bool want_read() const { return false; }

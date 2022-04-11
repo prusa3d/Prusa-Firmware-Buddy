@@ -5,7 +5,7 @@ This script generates few automata for checking the generator works as
 expected. They are generated and used during the unit tests.
 """
 from common import Automaton, LabelType
-from http import connection_header, methods, read_boundary, read_header_value, req_line, request
+from http import accept_header, connection_header, methods, read_boundary, read_header_value, req_line, request
 
 
 def output(name, automaton):
@@ -40,6 +40,7 @@ want_headers = {
     'Content-Length': read_header_value('ContentLength'),
     'Content-Type': read_boundary(),
     'Connection': connection_header(),
+    'Accept': accept_header(),
 }
 http, final = request(want_headers)
 output("http", http)

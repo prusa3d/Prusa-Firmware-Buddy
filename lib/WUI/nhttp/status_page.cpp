@@ -1,6 +1,7 @@
 #include "status_page.h"
 #include "handler.h"
 #include "headers.h"
+#include "../json_encode.h"
 
 #include <algorithm>
 #include <cassert>
@@ -20,10 +21,19 @@ Step StatusPage::step(std::string_view, bool, uint8_t *output, size_t output_siz
     const StatusText &text = StatusText::find(status);
 
     char content_buffer[128];
+    ContentType ct = ContentType::ApplicationOctetStream; // "Unknown" content type
     if (status == Status::NoContent || status == Status::NotModified) {
         content_buffer[0] = 0;
+        ct = ContentType::TextPlain;
+    } else if (json_content) {
+        const char *title = text.text;
+        JSONIFY_STR(title);
+        JSONIFY_STR(extra_content);
+        snprintf(content_buffer, sizeof(content_buffer), "{\"title\": \"%u: %s\",\"message\":\"%s\"}", static_cast<unsigned>(status), title_escaped, extra_content_escaped);
+        ct = ContentType::ApplicationJson;
     } else {
         snprintf(content_buffer, sizeof(content_buffer), "%u: %s\n\n%s\n", static_cast<unsigned>(status), text.text, extra_content);
+        ct = ContentType::TextPlain;
     }
 
     ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ContentLengthKeep : ConnectionHandling::Close;
@@ -35,7 +45,7 @@ Step StatusPage::step(std::string_view, bool, uint8_t *output, size_t output_siz
      *
      * https://dev.prusa3d.com/browse/BFW-2451
      */
-    size_t used_up = write_headers(output, output_size, status, ContentType::TextPlain, handling, strlen(content_buffer), std::nullopt, text.extra_hdrs);
+    size_t used_up = write_headers(output, output_size, status, ct, handling, strlen(content_buffer), std::nullopt, text.extra_hdrs);
     size_t rest = output_size - used_up;
     size_t write = std::min(strlen(content_buffer), rest);
     // If we use up the whole buffer, there's no \0 at the end. We are fine

@@ -37,10 +37,11 @@ void GcodeUpload::FileDeleter::operator()(FILE *f) {
     fclose(f);
 }
 
-GcodeUpload::GcodeUpload(UploadState uploader, size_t length, size_t upload_idx, FilePtr file, UploadedNotify *uploaded)
+GcodeUpload::GcodeUpload(UploadState uploader, bool json_errors, size_t length, size_t upload_idx, FilePtr file, UploadedNotify *uploaded)
     : uploader(move(uploader))
     , uploaded_notify(uploaded)
     , size_rest(length)
+    , json_errors(json_errors)
     , tmp_upload_file(move(file))
     , file_idx(upload_idx) {
 }
@@ -63,18 +64,18 @@ GcodeUpload::~GcodeUpload() {
 void GcodeUpload::delete_file() {
 }
 
-GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded) {
+GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors) {
     // Note: authentication already checked by the caller.
     // Note: We return errors with connection-close because we don't know if the client sent part of the data.
 
     const auto boundary = parser.boundary();
     if (boundary.empty()) {
-        return StatusPage(Status::BadRequest, false, "Missing boundary");
+        return StatusPage(Status::BadRequest, false, json_errors, "Missing boundary");
     }
 
     // One day we may want to support chunked and connection-close, but we are not there yet.
     if (!parser.content_length.has_value()) {
-        return StatusPage(Status::LengthRequired, false);
+        return StatusPage(Status::LengthRequired, json_errors, false);
     }
 
     static size_t upload_idx = 0;
@@ -84,7 +85,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     FilePtr file(fopen(fname, "wb"));
     if (!file) {
         // Missing USB -> Insufficient storage.
-        return StatusPage(Status::InsufficientStorage, false, "Missing USB drive");
+        return StatusPage(Status::InsufficientStorage, false, json_errors, "Missing USB drive");
     }
 
     char boundary_cstr[boundary.size() + 1];
@@ -93,16 +94,16 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     UploadState uploader(boundary_cstr);
 
     if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
-        return StatusPage(get<0>(err), false, get<1>(err));
+        return StatusPage(get<0>(err), false, json_errors, get<1>(err));
     }
 
-    return GcodeUpload(move(uploader), *parser.content_length, file_idx, move(file), uploaded);
+    return GcodeUpload(move(uploader), json_errors, *parser.content_length, file_idx, move(file), uploaded);
 }
 
 Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
     uploader.setup(this);
     if (terminated_by_client && size_rest > 0) {
-        return { 0, 0, StatusPage(Status::BadRequest, false, "Truncated body") };
+        return { 0, 0, StatusPage(Status::BadRequest, false, json_errors, "Truncated body") };
     }
 
     const size_t read = std::min(input.size(), size_rest);
@@ -111,7 +112,7 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
     size_rest -= read;
 
     if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
-        return { read, 0, StatusPage(get<0>(err), false, get<1>(err)) };
+        return { read, 0, StatusPage(get<0>(err), false, json_errors, get<1>(err)) };
     }
 
     if (size_rest == 0) {
@@ -123,9 +124,9 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
             strcpy(filename, USB_MOUNT_POINT);
             const char *orig_filename = uploader.get_filename();
             strlcpy(filename + USB_MOUNT_POINT_LENGTH, orig_filename, sizeof(filename) - USB_MOUNT_POINT_LENGTH);
-            return { read, 0, FileInfo(filename, false, true) };
+            return { read, 0, FileInfo(filename, false, json_errors, true) };
         } else {
-            return { read, 0, StatusPage(Status::BadRequest, false, "Missing file") };
+            return { read, 0, StatusPage(Status::BadRequest, false, json_errors, "Missing file") };
         }
     } else {
         return { read, 0, Continue() };

@@ -7,7 +7,7 @@
 
 namespace nhttp::handler {
 
-SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, uint32_t if_none_match, const char **extra_hdrs)
+SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, bool json_errors, uint32_t if_none_match, const char **extra_hdrs)
     : file(file)
     , content_type(content_type)
     , can_keep_alive(can_keep_alive)
@@ -33,7 +33,8 @@ SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool 
 
 Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size) {
     if (etag_matches) {
-        return Step { 0, 0, StatusPage(Status::NotModified, connection_handling != ConnectionHandling::Close) };
+        // Note: json_errors are not enabled, because NotModified has no content anyway.
+        return Step { 0, 0, StatusPage(Status::NotModified, connection_handling != ConnectionHandling::Close, false) };
     }
 
     if (!buffer) {

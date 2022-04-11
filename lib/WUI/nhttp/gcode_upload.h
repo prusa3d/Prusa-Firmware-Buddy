@@ -31,6 +31,7 @@ private:
     UploadState uploader;
     UploadedNotify *uploaded_notify;
     size_t size_rest;
+    bool json_errors;
     GcodeUpload(UploadState uploader, size_t size_rest);
     class FileDeleter {
     public:
@@ -47,14 +48,14 @@ private:
     virtual Result check_filename(const char *filename) const override;
 
     void delete_file();
-    GcodeUpload(UploadState uploader, size_t length, size_t upload_idx, FilePtr file, UploadedNotify *uploaded);
+    GcodeUpload(UploadState uploader, bool json_errors, size_t length, size_t upload_idx, FilePtr file, UploadedNotify *uploaded);
 
 public:
     bool want_read() const { return size_rest > 0; }
     bool want_write() const { return false; }
     handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
     using UploadResult = std::variant<handler::StatusPage, GcodeUpload>;
-    static UploadResult start(const handler::RequestParser &parser, UploadedNotify *uploaded);
+    static UploadResult start(const handler::RequestParser &parser, UploadedNotify *uploaded, bool json_errors);
     GcodeUpload(const GcodeUpload &other) = delete;
     GcodeUpload(GcodeUpload &&other) = default;
     GcodeUpload &operator=(const GcodeUpload &other) = delete;

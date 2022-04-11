@@ -144,6 +144,42 @@ def read_boundary():
     return auto, end, False
 
 
+def keyworded_header(keywords):
+    """
+    Header reader with keywords.
+
+    Note that this assumes the keywords starts with different first letter!.
+    """
+    auto = Automaton()
+    start = auto.start()
+    start.loop('HorizWhitespace', LabelType.Special)
+
+    terminals = []
+
+    for kw in keywords:
+        kw_start = auto.add_state()
+        kw_start.mark_enter()
+        start.add_transition(kw[0], LabelType.CharNoCase, kw_start)
+        kw_start.set_path(kw[1:], nocase=True)  # Will lead to the next state
+        end = auto.add_state(keywords[kw])
+        end.mark_enter()
+        terminals.append(kw_start)
+        terminals.append(end)
+
+    # Now handle all the rest by a header-parsing automaton that doesn't emit
+    # any events.
+    other, other_end, _ = read_header_value(None)
+    fallback = other.start()
+    auto.join_transition(start, other, fallthrough=True)
+
+    # Whenever leaving any of our states, just move to the dummy header
+    # collector that handles all the header continuations, header ends, etc.
+    for state in terminals:
+        state.add_fallback(fallback, fallthrough=True)
+
+    return auto, other_end, True
+
+
 def connection_header():
     """
     Parse a connection header.
@@ -154,36 +190,23 @@ def connection_header():
     our automata-handling utilities) with very little gain, so we cheat a
     little bit.
     """
-    auto = Automaton()
-    start = auto.start()
-    start.loop('HorizWhitespace', LabelType.Special)
+    return keyworded_header({
+        'close': 'ConnectionClose',
+        'keep-alive': 'ConnectionKeepAlive',
+    })
 
-    # Detect the two nice tokens. We cheat by the fact they differ by their
-    # first letter.
-    close_start = auto.add_state()
-    close_start.mark_enter()
-    start.add_transition('c', LabelType.CharNoCase, close_start)
-    close_start.set_path('lose', nocase=True)  # Will lead to the next state
-    close_end = auto.add_state("ConnectionClose")
-    close_end.mark_enter()
 
-    keep_start = auto.add_state()
-    start.add_transition('k', LabelType.CharNoCase, keep_start)
-    keep_start.set_path('eep-alive', nocase=True)
-    keep_end = auto.add_state("ConnectionKeepAlive")
-    keep_end.mark_enter()
+def accept_header():
+    """
+    Looking at the accept header.
 
-    # Now handle all the rest by a header-parsing automaton that doesn't emit
-    # any events.
-    other, other_end, _ = read_header_value(None)
-    fallback = other.start()
-    auto.join_transition(start, other, fallthrough=True)
-    # Whenever leaving any of our states, just move to the dummy header
-    # collector that handles all the header continuations, header ends, etc.
-    for state in [close_start, close_end, keep_start, keep_end]:
-        state.add_fallback(fallback, fallthrough=True)
-
-    return auto, other_end, True
+    We are cheating here a bit. We only want to know if the other side wants a
+    application/json error messages and that doesn't list bunch of different
+    ones. We pick the first one and check it is the one we want.
+    """
+    return keyworded_header({
+        'application/json': 'AcceptJson',
+    })
 
 
 def headers(interested):
@@ -257,6 +280,7 @@ if __name__ == "__main__":
         'If-None-Match': read_header_value('IfNoneMatch'),
         'Content-Type': read_boundary(),
         'Connection': connection_header(),
+        'Accept': accept_header(),
     }
     http, final = request(want_headers)
     compiled = http.compile("nhttp::parser::request")

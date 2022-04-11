@@ -24,7 +24,7 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
 
     // Content of the USB drive is only for authenticated, don't ever try anything without it.
     if (!parser.authenticated()) {
-        return StatusPage(Status::Unauthorized, parser.can_keep_alive());
+        return StatusPage(Status::Unauthorized, parser.can_keep_alive(), parser.accepts_json);
     }
 
     uint16_t width;
@@ -38,12 +38,12 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
         width = 220;
         height = 140;
     } else {
-        return StatusPage(Status::NotFound, parser.can_keep_alive(), "Thumbnail size specification not recognized");
+        return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json, "Thumbnail size specification not recognized");
     }
 
     char fname[FILE_PATH_BUFFER_LEN + extra_size];
     if (!parser.uri_filename(fname, sizeof(fname))) {
-        return StatusPage(Status::NotFound, parser.can_keep_alive(), "This doesn't look like file name");
+        return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json, "This doesn't look like file name");
     }
 
     // Strip the extra prefix (without the last /)
@@ -52,9 +52,9 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
     FILE *f = fopen(fname, "rb");
 
     if (f) {
-        return GCodePreview(f, fname, parser.can_keep_alive(), width, height, parser.if_none_match);
+        return GCodePreview(f, fname, parser.can_keep_alive(), parser.accepts_json, width, height, parser.if_none_match);
     } else {
-        return StatusPage(Status::NotFound, parser.can_keep_alive());
+        return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json);
     }
 }
 

@@ -91,9 +91,10 @@ JsonResult FileInfo::FileRenderer::renderState(size_t resume_point, JsonOutput &
     // clang-format on
 }
 
-FileInfo::FileInfo(const char *filename, bool can_keep_alive, bool after_upload)
+FileInfo::FileInfo(const char *filename, bool can_keep_alive, bool json_errors, bool after_upload)
     : can_keep_alive(can_keep_alive)
-    , after_upload(after_upload) {
+    , after_upload(after_upload)
+    , json_errors(json_errors) {
     strlcpy(this->filename, filename, sizeof this->filename);
     /*
      * Eat the last slash on directories.
@@ -132,7 +133,7 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
             // Special case it, we return empty list of files.
             renderer = DirRenderer(); // Produces empty file list
         } else {
-            return Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive) };
+            return Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive, json_errors) };
         }
         written = write_headers(output, output_size, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling);
 
