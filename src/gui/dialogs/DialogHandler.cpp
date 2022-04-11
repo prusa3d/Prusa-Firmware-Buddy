@@ -81,6 +81,9 @@ void DialogHandler::change(fsm::change_t o) {
         ptr->Change(o.data);
 }
 
+bool DialogHandler::IsOpen() const {
+    return ptr != nullptr;
+}
 //*****************************************************************************
 //Meyers singleton
 DialogHandler &DialogHandler::Access() {

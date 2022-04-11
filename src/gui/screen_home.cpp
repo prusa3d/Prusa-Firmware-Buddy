@@ -17,6 +17,7 @@
 #include "gui_media_events.hpp"
 #include "window_dlg_load_unload.hpp"
 #include "DialogMoveZ.hpp"
+#include "DialogHandler.hpp"
 
 #include "i18n.h"
 
@@ -142,7 +143,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         }
     }
 
-    if (event == GUI_event_t::LOOP && (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded())) {
+    if (event == GUI_event_t::LOOP && !DialogHandler::Access().IsOpen() && (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded())) {
 
         // we are using marlin variables for filename and filepath buffers
         marlin_vars_t *vars = marlin_vars();

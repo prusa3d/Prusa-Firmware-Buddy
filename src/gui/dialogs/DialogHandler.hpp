@@ -33,4 +33,5 @@ public:
 
     redraw_cmd_t Loop();                                  //synchronization loop, call it outside event
     void WaitUntilClosed(ClientFSM dialog, uint8_t data); // opens dialog, waits until closed, auto loops
+    bool IsOpen() const;                                  // returnes true if any dialog is active (we dont want popups)
 };
