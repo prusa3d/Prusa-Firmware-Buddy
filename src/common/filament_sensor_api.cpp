@@ -104,7 +104,7 @@ void FilamentSensors::Cycle() {
         PrintProcessor::InjectGcode("M600"); //change filament
     } else if (*opt_event_autoload && !has_mmu) {
         autoload_sent = true;
-        PrintProcessor::InjectGcode("M1400 S71"); //load with return option
+        PrintProcessor::InjectGcode("M1701"); //autoload with return option
     }
 }
 

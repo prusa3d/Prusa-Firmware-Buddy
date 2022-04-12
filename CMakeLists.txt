@@ -731,11 +731,15 @@ target_sources(
           $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M600.cpp>
           $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M601_2.cpp>
           src/marlin_stubs/pause/M603.cpp
-          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M70X.cpp>
-          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M70X_pharse.cpp>
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M701_2.cpp>
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M701_2_pharse.cpp>
+          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M704-6_pharse.cpp>
+          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M707-9_pharse.cpp>
+          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M707-9_pharse.cpp>
           $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M70X_preheat.cpp>
-          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M70X_mmu.cpp>
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M1700_1_pharse.cpp>
           $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/pause.cpp>
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/pause_settings.cpp>
           src/marlin_stubs/feature/safety_timer.cpp
           src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
           src/marlin_stubs/host/M115.cpp
@@ -964,7 +968,7 @@ set_property(
 
 set_property(
   SOURCE src/marlin_stubs/pause/pause.cpp src/marlin_stubs/pause/M70X.cpp
-         src/marlin_stubs/pause/M70X_preheat.cpp
+         src/marlin_stubs/pause/M701_2.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_BOWDEN=$<BOOL:${HAS_BOWDEN}>
   )

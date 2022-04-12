@@ -9,23 +9,33 @@
 #include "gui.hpp" // gui_loop
 #include "DialogHandler.hpp"
 
-namespace PreheatStatus {
-
-void Dialog(PreheatMode mode, RetAndCool_t retAndCool) {
-    const PreheatData preheatData(mode, retAndCool);
-    marlin_gcode_printf("M1400 S%d", preheatData.Data());
-}
-
-Result DialogBlocking(PreheatMode mode, RetAndCool_t retAndCool) {
+static PreheatStatus::Result DialogBlocking(const char *mode_format, RetAndCool_t retAndCool) {
+    PreheatStatus::Result ret = PreheatStatus::Result::DidNotFinish;
     PreheatStatus::ConsumeResult(); // clear result
-    Dialog(mode, retAndCool);
-    PreheatStatus::Result ret;
+    marlin_gcode_printf(mode_format, uint8_t(retAndCool));
     while ((ret = PreheatStatus::ConsumeResult()) == PreheatStatus::Result::DidNotFinish) {
         gui::TickLoop();
         DialogHandler::Access().Loop(); // fsm events .. to be able to change state
         gui_loop();
     }
     return ret;
+}
+
+namespace PreheatStatus {
+Result DialogBlockingPreheat(RetAndCool_t retAndCool) {
+    return DialogBlocking("M1700 W%d", retAndCool);
+}
+
+Result DialogBlockingLoad(RetAndCool_t retAndCool) {
+    return DialogBlocking("M701 W%d", retAndCool);
+}
+
+Result DialogBlockingUnLoad(RetAndCool_t retAndCool) {
+    return DialogBlocking("M702 W%d", retAndCool);
+}
+
+Result DialogBlockingChangeLoad(RetAndCool_t retAndCool) {
+    return DialogBlocking("M1600 W%d", retAndCool);
 }
 
 }

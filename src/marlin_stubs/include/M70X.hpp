@@ -14,28 +14,37 @@
 #include <algorithm>
 #include "filament.hpp"
 #include "pause_stubbed.hpp"
-// just to minimize the amount of changes to Marlin's parser system (i.e. not adding any additional code letters)
-enum class mmu_command_t : char {
-    load_filament = 'L',
-    eject_filament = 'E',
-    Reset = 'X',
-    Button = 'B',
-    // this is currently handled elsewhere
-    // unload = 'U',
-    load_filament_to_nozzle_slot_index = 'N', // used to specify filament slot
-    cut_filament = 'C',
-    Home = 'H',
-    StartStop = 'T', // used to be S but cannot use it within M1400
-    no_command = 0   // just some value not coliding with letters
+
+namespace filament_gcodes {
+using Func = bool (Pause::*)(const pause::Settings &); // member fnc pointer
+
+class InProgress {
+    static uint lock;
+
+public:
+    InProgress() { ++lock; }
+    ~InProgress() { --lock; }
+    static bool Active() { return lock > 0; }
 };
 
-//TODO split this to multiple headers
-namespace m1400 {
-using Func = bool (Pause::*)(); // member fnc pointer
+bool load_unload(LoadUnloadMode type, filament_gcodes::Func f_load_unload, pause::Settings &rSettings);
+void M701_no_parser(filament_t filament_to_be_loaded, float fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot);
+void M702_no_parser(float unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded);
+void M70X_process_user_response(PreheatStatus::Result res);
 
-bool IsInProgress();
-void M1400_no_parser(PreheatData data, mmu_command_t mmu_cmd, uint8_t mmu_command_data);
-std::pair<std::optional<PreheatStatus::Result>, filament_t> preheat(PreheatData data);
-bool load_unload(LoadUnloadMode type, m1400::Func f_load_unload, uint32_t min_Z_pos, float X_pos);
-void M701_no_parser(filament_t filament_to_be_loaded, float fast_load_length, float z_min_pos = Z_AXIS_LOAD_POS);
-};
+void M1600_no_parser(uint8_t target_extruder);
+void M1700_no_parser(RetAndCool_t preheat, uint8_t target_extruder);
+void M1701_no_parser(float fast_load_length, float z_min_pos, uint8_t target_extruder);
+
+void mmu_load(uint8_t data);
+void mmu_eject(uint8_t data);
+void mmu_cut(uint8_t data);
+
+void mmu_reset(uint8_t level);
+void mmu_on();
+void mmu_off();
+
+std::pair<std::optional<PreheatStatus::Result>, filament_t> preheat(PreheatData type);
+std::pair<std::optional<PreheatStatus::Result>, filament_t> preheat_for_change_load();
+void preheat_to(filament_t filament);
+} // namespace filament_gcodes
