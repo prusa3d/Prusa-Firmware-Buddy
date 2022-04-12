@@ -49,10 +49,15 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, uint16_t title_icon_id_res)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon_id_res)
-    , title(this, getTitleRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
-    text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
+    , title(this, Rect16(), is_multiline::no, is_closed_on_click_t::no, tit) {
+    // set title params for height extraction
     title.font = getTitleFont();
-    title.SetPadding({ 0, 0, 0, 0 });
+    title.SetPadding(GuiDefaults::Padding);
+    // align icon to the left
+    icon.SetRect(getIconRect());
+    // set positions of the rest
+    title.SetRect(getTitleRect());
+    text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
 }
 
 Rect16 MsgBoxTitled::getTitleRect() {
@@ -69,19 +74,24 @@ Rect16 MsgBoxTitled::getTitleRect() {
     return title_rect;
 }
 
+Rect16 MsgBoxTitled::getLineRect() {
+    return Rect16(GetRect().Left() + title.padding.left, GetRect().Top() + getTitleRect().Height(),
+        GetRect().Width() - (title.padding.left + title.padding.right), 1);
+}
+
 Rect16 MsgBoxTitled::getTextRect() {
     Rect16 text_rect = GetRect();
-    text_rect -= getTitleRect().Height();
-    text_rect -= Rect16::Height_t(4); // atleast 1px red line and 1px space after red line
+    uint16_t x = getLineRect().TopEndPoint().y + GuiDefaults::Padding.top;
+
+    text_rect -= Rect16::Height_t(x - text_rect.Top());
     text_rect -= GuiDefaults::GetButtonRect(GetRect()).Height();
 
-    text_rect += Rect16::Top_t(getTitleRect().Height());
-    text_rect += Rect16::Top_t(4); // atleast 1px red line and 1px space after red line
+    text_rect = Rect16::Top_t(x);
     return text_rect;
 }
 
 Rect16 MsgBoxTitled::getIconRect() {
-    return Rect16(GetRect().Left(), GetRect().Top(), 16, 16);
+    return Rect16(GetRect().Left(), GetRect().Top(), GuiDefaults::FooterIconSize.w, std::max((int)GuiDefaults::FooterIconSize.h, title.font->h + title.padding.top + title.padding.bottom));
 }
 
 font_t *MsgBoxTitled::getTitleFont() {
@@ -90,11 +100,8 @@ font_t *MsgBoxTitled::getTitleFont() {
 
 void MsgBoxTitled::unconditionalDraw() {
     MsgBoxBase::unconditionalDraw();
-    Rect16 rc = getTextRect();
-
-    display::DrawLine(point_ui16(rc.Left() + title.padding.left, rc.Top() - 1),
-        point_ui16(rc.Width() - 2 * (title.padding.left + title.padding.right), rc.Top() - 1),
-        COLOR_RED_ALERT);
+    Rect16 line = getLineRect();
+    display::DrawLine(line.TopLeft(), line.BottomRight(), COLOR_RED_ALERT);
 }
 
 /*****************************************************************************/

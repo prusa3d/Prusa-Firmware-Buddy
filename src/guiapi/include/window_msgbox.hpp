@@ -76,6 +76,7 @@ protected:
 private:
     //some methods to help with construction
     Rect16 getTextRect();
+    Rect16 getLineRect();
     Rect16 getIconRect();
     Rect16 getTitleRect(); // icon must be initialized
     font_t *getTitleFont();
