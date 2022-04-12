@@ -11,8 +11,9 @@
 
 namespace PreheatStatus {
 
-void Dialog(PreheatMode mode, RetAndCool_t retAndCool);
-
-Result DialogBlocking(PreheatMode mode, RetAndCool_t retAndCool);
+Result DialogBlockingPreheat(RetAndCool_t retAndCool);
+Result DialogBlockingLoad(RetAndCool_t retAndCool);
+Result DialogBlockingUnLoad(RetAndCool_t retAndCool);
+Result DialogBlockingChangeLoad(RetAndCool_t retAndCool);
 
 }

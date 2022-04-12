@@ -16,67 +16,37 @@
 #include "pause_stubbed.hpp"
 #include "M70X.hpp"
 
-static Pause &pause = Pause::Instance();
-
 static Response preheatTempKnown() {
     return Filaments::Current().response;
 }
 
-static Response preheatTempUnKnown(PreheatData data) {
+static Response preheatTempUnKnown(PreheatData preheat_data) {
     Response ret;
-    FSM_Holder H(ClientFSM::Preheat, data.Data());
+    FSM_Holder H(ClientFSM::Preheat, preheat_data.Data());
     while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
         idle(true, true);
     }
     return ret;
 }
 
-static Response evaluate_preheat_conditions(PreheatData data) {
-    // check if we are executing operation which can know temperature from the printer state
-    bool tempKnownWithoutUser = false;
-    switch (data.Mode()) {
-    case PreheatMode::MMU_command:
-        return Response::_none;
-    case PreheatMode::MMU_unload:
-    case PreheatMode::Unload:
-    case PreheatMode::Purge:
-    case PreheatMode::Change_phase1:
-    case PreheatMode::Unload_askUnloaded:
-        tempKnownWithoutUser = true;
-    default:
-        break;
-    }
-
-    // bowden extruder does not load filament to gear before preheat dialog
-    if constexpr (!HAS_BOWDEN) {
-        // catch filament in gear and then ask for temp
-        if (data.Mode() == PreheatMode::Autoload) {
-            pause.SetParkPoint(current_position);
-            pause.SetSlowLoadLength(FILAMENT_CHANGE_SLOW_LOAD_LENGTH);
-            if (!pause.LoadToGear()) {
-                //do not ask for filament type after stop was pressed
-                return Response::Abort;
-            }
-        }
-    }
-
+static Response evaluate_preheat_conditions(PreheatData preheat_data) {
     Response response = Response::_none;
 
     // Check if we are using operation which can get temp from printer and check if it can get the temp from available info (inserted filament or set temperature in temperature menu and no filament inserted)
-    if (tempKnownWithoutUser && ((Filaments::CurrentIndex() != filament_t::NONE) || (Filaments::CurrentIndex() == filament_t::NONE && !thermalManager.targetTooColdToExtrude(0)))) {
+    if ((Filaments::CurrentIndex() != filament_t::NONE) || (Filaments::CurrentIndex() == filament_t::NONE && !thermalManager.targetTooColdToExtrude(0))) {
         // We can get temperature without user telling us
         response = preheatTempKnown();
     } else {
         // we need to ask the user for temperature
-        response = preheatTempUnKnown(data);
+        response = preheatTempUnKnown(preheat_data);
     }
 
     return response;
 }
 
-std::pair<std::optional<PreheatStatus::Result>, filament_t> m1400::preheat(PreheatData data) {
+std::pair<std::optional<PreheatStatus::Result>, filament_t> filament_gcodes::preheat(PreheatData preheat_data) {
 
-    Response response = evaluate_preheat_conditions(data);
+    Response response = evaluate_preheat_conditions(preheat_data);
 
     filament_t filament = Filaments::Find(response);
 
@@ -84,13 +54,40 @@ std::pair<std::optional<PreheatStatus::Result>, filament_t> m1400::preheat(Prehe
     if (filament == filament_t::NONE) {
         switch (response) {
         case Response::Abort:
-            // bowden extruder does not load filament to gear before preheat dialog
-            if constexpr (!HAS_BOWDEN) {
-                // If we have aborted autoload we need to eject filament from the gears
-                if (data.Mode() == PreheatMode::Autoload) {
-                    pause.UnloadFromGear();
-                }
-            }
+            return { PreheatStatus::Result::Aborted, filament_t::NONE };
+        case Response::Cooldown:
+            return { PreheatStatus::Result::CooledDown, filament_t::NONE };
+        default: // should not happen
+            return { PreheatStatus::Result::Error, filament_t::NONE };
+        }
+    }
+
+    preheat_to(filament);
+    return { std::nullopt, filament };
+}
+
+void filament_gcodes::preheat_to(filament_t filament) {
+
+    const Filament &fil_cnf = Filaments::Get(filament);
+
+    // change temp only if it is lower than currently loaded filament
+    if (thermalManager.degTargetHotend(0) < fil_cnf.nozzle) {
+        thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
+        marlin_server_set_temp_to_display(fil_cnf.nozzle);
+        thermalManager.setTargetBed(fil_cnf.heatbed);
+    }
+}
+
+std::pair<std::optional<PreheatStatus::Result>, filament_t> filament_gcodes::preheat_for_change_load() {
+
+    Response response = preheatTempUnKnown(PreheatData(PreheatMode::Change_phase2, RetAndCool_t::Return));
+
+    filament_t filament = Filaments::Find(response);
+
+    // No filament selected or selected cooldown when it is possible
+    if (filament == filament_t::NONE) {
+        switch (response) {
+        case Response::Abort:
             return { PreheatStatus::Result::Aborted, filament_t::NONE };
         case Response::Cooldown:
             return { PreheatStatus::Result::CooledDown, filament_t::NONE };
@@ -101,11 +98,34 @@ std::pair<std::optional<PreheatStatus::Result>, filament_t> m1400::preheat(Prehe
 
     const Filament &fil_cnf = Filaments::Get(filament);
 
-    // change temp only if it is lower than currently loaded filament
-    if (thermalManager.degTargetHotend(0) < fil_cnf.nozzle) {
+    // change temp every time (unlike normal preheat)
+    thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
+    marlin_server_set_temp_to_display(fil_cnf.nozzle);
+    thermalManager.setTargetBed(fil_cnf.heatbed);
+
+    return { std::nullopt, filament };
+}
+
+/**
+ * @brief stand alone preheat
+ *
+ * @param preheat_tp preheat options
+ * @param target_extruder
+ */
+void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_extruder) {
+    PreheatData data(PreheatMode::None, preheat_tp);
+    Response response = preheatTempUnKnown(data);
+
+    filament_t filament = Filaments::Find(response);
+
+    if (response != Response::Abort) {
+        const Filament &fil_cnf = Filaments::Get(filament);
+
         thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
         marlin_server_set_temp_to_display(fil_cnf.nozzle);
         thermalManager.setTargetBed(fil_cnf.heatbed);
     }
-    return { std::nullopt, filament };
+
+    // we might want to set filament type even with preheat, if so do:
+    //Filaments::SetToBeLoaded(filament);
 }

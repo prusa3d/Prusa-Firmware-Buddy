@@ -39,9 +39,9 @@ static bool check_filament_presence(GCodeInfo &gcode) {
         ) {
         case Response::Yes: //YES - load
             if (has_mmu) {
-                PreheatStatus::DialogBlocking(PreheatMode::MMU_unload, RetAndCool_t::Neither);
+                PreheatStatus::DialogBlockingUnLoad(RetAndCool_t::Neither);
             } else {
-                PreheatStatus::DialogBlocking(PreheatMode::Load, RetAndCool_t::Return);
+                PreheatStatus::DialogBlockingLoad(RetAndCool_t::Return);
             }
             break;
         case Response::No: //NO - cancel
@@ -63,7 +63,7 @@ static bool check_filament_type(GCodeInfo &gcode) {
         string_view_utf8 txt_wrong_fil_type = _("This G-CODE was set up for another filament type.");
         switch (MsgBoxWarning(txt_wrong_fil_type, Responses_ChangeIgnoreAbort, 0, GuiDefaults::RectScreenNoHeader)) {
         case Response::Change:
-            PreheatStatus::DialogBlocking(PreheatMode::Change_phase1, RetAndCool_t::Return);
+            PreheatStatus::DialogBlockingChangeLoad(RetAndCool_t::Return);
             break;
         case Response::Ignore:
             return true;

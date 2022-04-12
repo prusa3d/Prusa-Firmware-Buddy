@@ -45,17 +45,15 @@ enum class PreheatMode : uint8_t {
     Change_phase2, // do load, meant to be used recursively in Change_phase1
     Unload_askUnloaded,
     Autoload,
-    MMU_unload,
-    MMU_load,
-    MMU_command,
-    _last = MMU_command
+    _last = Autoload
 };
 
 enum class RetAndCool_t {
     Neither,
-    Return,
     Cooldown,
-    Both
+    Return,
+    Both,
+    last_ = Both
 };
 
 class PreheatData {

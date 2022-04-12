@@ -35,11 +35,39 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 505:
             PrusaGcodeSuite::M505();
             return true;
+        case 650:
+            PrusaGcodeSuite::M650();
+            return true;
+        case 704:
+            PrusaGcodeSuite::M704();
+            return true;
+        case 705:
+            PrusaGcodeSuite::M705();
+            return true;
+        case 706:
+            PrusaGcodeSuite::M706();
+            return true;
+        case 707:
+            PrusaGcodeSuite::M707();
+            return true;
+        case 708:
+            PrusaGcodeSuite::M708();
+            return true;
+        case 709:
+            PrusaGcodeSuite::M709();
+            return true;
+        case 930:
+            PrusaGcodeSuite::M930();
+            return true;
+        case 931:
+            PrusaGcodeSuite::M931();
+            return true;
+        case 932:
+            PrusaGcodeSuite::M932();
+            return true;
         case 997:
             PrusaGcodeSuite::M997();
             return true;
-
-#ifdef M999_MCU_RESET
         case 999:
             if (parser.seen('R')) {
                 PrusaGcodeSuite::M999();
@@ -47,10 +75,15 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             } else {
                 return false;
             }
-        case 1400:
-            PrusaGcodeSuite::M1400();
+        case 1600:
+            PrusaGcodeSuite::M1600();
             return true;
-#endif
+        case 1700:
+            PrusaGcodeSuite::M1700();
+            return true;
+        case 1701:
+            PrusaGcodeSuite::M1701();
+            return true;
 
         default:
             return false;
@@ -70,3 +103,21 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         return false;
     }
 }
+
+//weak g-codes to prevent ugly preprocessor
+//TODO write error message to log if used
+void __attribute__((weak)) PrusaGcodeSuite::M650() {}
+void __attribute__((weak)) PrusaGcodeSuite::M704() {}
+void __attribute__((weak)) PrusaGcodeSuite::M705() {}
+void __attribute__((weak)) PrusaGcodeSuite::M706() {}
+void __attribute__((weak)) PrusaGcodeSuite::M707() {}
+void __attribute__((weak)) PrusaGcodeSuite::M708() {}
+void __attribute__((weak)) PrusaGcodeSuite::M709() {}
+void __attribute__((weak)) PrusaGcodeSuite::M930() {}
+void __attribute__((weak)) PrusaGcodeSuite::M931() {}
+void __attribute__((weak)) PrusaGcodeSuite::M932() {}
+void __attribute__((weak)) PrusaGcodeSuite::M999() {}
+void __attribute__((weak)) PrusaGcodeSuite::M1600() {}
+void __attribute__((weak)) PrusaGcodeSuite::M1700() {}
+void __attribute__((weak)) PrusaGcodeSuite::M1701() {}
+void __attribute__((weak)) PrusaGcodeSuite::G162() {}

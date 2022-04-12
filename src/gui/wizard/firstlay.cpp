@@ -69,14 +69,14 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK() {
 }
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT() {
-    PreheatStatus::DialogBlocking(PreheatMode::None, RetAndCool_t::Neither); //TODO header
+    PreheatStatus::DialogBlockingPreheat(RetAndCool_t::Neither);
 
     //Filaments::Set(gui_dlg_preheat_forced(_("Select Filament Type")));
     return WizardState_t::FIRSTLAY_MSBX_CALIB;
 }
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_LOAD() {
-    auto ret = PreheatStatus::DialogBlocking(PreheatMode::Load, RetAndCool_t::Neither);
+    auto ret = PreheatStatus::DialogBlockingLoad(RetAndCool_t::Neither);
 
     switch (ret) {
     case PreheatStatus::Result::DoneHasFilament:
@@ -89,7 +89,7 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_LOAD() {
 }
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_UNLOAD() {
-    auto ret = PreheatStatus::DialogBlocking(PreheatMode::Unload, RetAndCool_t::Neither);
+    auto ret = PreheatStatus::DialogBlockingUnLoad(RetAndCool_t::Neither);
     switch (ret) {
     case PreheatStatus::Result::DoneNoFilament:
     case PreheatStatus::Result::Aborted:

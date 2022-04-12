@@ -70,7 +70,7 @@ public:
 
 class DUMMY_AXIS_E : public WI_FORMATABLE_LABEL_t<int> {
     virtual void click(IWindowMenu &window_menu) override {
-        PreheatStatus::Dialog(PreheatMode::None, RetAndCool_t::Both);
+        marlin_gcode_printf("M1700"); // preheat
     }
 
 public:

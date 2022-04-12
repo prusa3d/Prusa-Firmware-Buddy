@@ -6,6 +6,7 @@
 #include "sound.hpp"
 #include "DialogHandler.hpp"
 #include "window_dlg_load_unload.hpp"
+#include "marlin_client.h"
 
 /*****************************************************************************/
 //MI_LOAD
@@ -14,7 +15,7 @@ MI_LOAD::MI_LOAD()
 
 void MI_LOAD::Do() {
     if ((Filaments::CurrentIndex() == filament_t::NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
-        PreheatStatus::Dialog(PreheatMode::Load, RetAndCool_t::Return);
+        marlin_gcode("M701 W2"); // unload with return option
     }
 }
 
@@ -24,8 +25,8 @@ MI_UNLOAD::MI_UNLOAD()
     : MI_event_dispatcher(_(label)) {}
 
 void MI_UNLOAD::Do() {
-    PreheatStatus::Dialog(PreheatMode::Unload, RetAndCool_t::Return);
-    Sound_Stop(); // TODO what is Sound_Stop(); doing here?
+    marlin_gcode("M702 W2"); // unload with return option
+    Sound_Stop();            // TODO what is Sound_Stop(); doing here?
 }
 
 /*****************************************************************************/
@@ -34,8 +35,8 @@ MI_CHANGE::MI_CHANGE()
     : MI_event_dispatcher(_(label)) {}
 
 void MI_CHANGE::Do() {
-    PreheatStatus::Dialog(PreheatMode::Change_phase1, RetAndCool_t::Return);
-    Sound_Stop(); // TODO what is Sound_Stop(); doing here?
+    marlin_gcode("M1600"); // non print filament change
+    Sound_Stop();          // TODO what is Sound_Stop(); doing here?
 }
 
 /*****************************************************************************/
@@ -44,5 +45,5 @@ MI_PURGE::MI_PURGE()
     : MI_event_dispatcher(_(label)) {}
 
 void MI_PURGE::Do() {
-    PreheatStatus::Dialog(PreheatMode::Purge, RetAndCool_t::Return);
+    marlin_gcode("M701 L0 W2"); // load with distance 0 and return option
 }

@@ -84,16 +84,17 @@ void GcodeSuite::M600() {
 
     park_point.z += current_position.z;
     static const xyze_float_t no_return = { NAN, NAN, NAN, current_position.e };
-    Pause &pause = Pause::Instance();
 
-    //NAN == default
-    pause.SetUnloadLength(parser.seen('U') ? parser.value_axis_units(E_AXIS) : NAN);
-    pause.SetSlowLoadLength(NAN);
-    pause.SetFastLoadLength(parser.seen('L') ? parser.value_axis_units(E_AXIS) : NAN);
-    pause.SetPurgeLength(NAN);
-    pause.SetParkPoint(park_point);
-    pause.SetResumePoint(parser.seen('N') ? no_return : current_position);
-    pause.SetRetractLength(std::abs(parser.seen('E') ? parser.value_axis_units(E_AXIS) : NAN)); // Initial retract before move to filament change position
+    pause::Settings settings;
+    settings.SetParkPoint(park_point);
+    settings.SetResumePoint(parser.seen('N') ? no_return : current_position);
+    if (parser.seen('U'))
+        settings.SetUnloadLength(parser.value_axis_units(E_AXIS));
+    if (parser.seen('L'))
+        settings.SetFastLoadLength(parser.value_axis_units(E_AXIS));
+    if (parser.seen('E')) {
+        settings.SetRetractLength(std::abs(parser.value_axis_units(E_AXIS)));
+    } // Initial retract before move to filament change position
 
     float disp_temp = marlin_server_get_temp_to_display();
     float targ_temp = Temperature::degTargetHotend(target_extruder);
@@ -102,7 +103,7 @@ void GcodeSuite::M600() {
         thermalManager.setTargetHotend(disp_temp, target_extruder);
     }
 
-    pause.FilamentChange();
+    Pause::Instance().FilamentChange(settings);
     FSensors_instance().ClrM600Sent(); //reset filament sensor M600 sent flag
 
     if (disp_temp > targ_temp) {
