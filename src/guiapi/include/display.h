@@ -65,6 +65,13 @@ public:
     constexpr static void SetPixel(point_ui16_t pt, color_t clr) { SET_PIXEL(pt, clr); }
     constexpr static uint8_t *GetBlock(point_ui16_t start, point_ui16_t end) { return GET_BLOCK(start, end); }
     constexpr static void DrawLine(point_ui16_t pt0, point_ui16_t pt1, color_t clr) { DRAW_LINE(pt0, pt1, clr); }
+    constexpr static void DrawLine(point_i16_t pt0, point_i16_t pt1, color_t clr) {
+        uint16_t l = std::max(int16_t(0), pt0.x);
+        uint16_t t = std::max(int16_t(0), pt0.y);
+        uint16_t r = std::max(int16_t(0), pt1.x);
+        uint16_t b = std::max(int16_t(0), pt1.y);
+        DrawLine(point_ui16(l, t), point_ui16(r, b), clr);
+    }
     constexpr static void DrawRect(Rect16 rc, color_t clr) { DRAW_RECT(rc, clr); }
     constexpr static void FillRect(Rect16 rc, color_t clr) { FIL_RECT(rc, clr); }
     constexpr static bool DrawChar(point_ui16_t pt, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
