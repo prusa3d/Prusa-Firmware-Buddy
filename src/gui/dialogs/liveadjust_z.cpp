@@ -42,53 +42,38 @@ Rect16 WindowScale::getNumRect(point_i16_t pt) const {
 }
 
 void WindowScale::SetMark(float percent) {
-    int tmp_val = GetRect().TopLeft().y + (Height() * percent);
-    if (GetRect().Contain(point_ui16(Left(), tmp_val))) {
+    if (!mark_old_y)
         mark_old_y = mark_new_y;
-        mark_new_y = static_cast<uint16_t>(tmp_val);
-        if (mark_old_y != mark_new_y) {
-            Invalidate();
-        }
+    mark_new_y = Height() * std::clamp(percent, 0.f, 100.f);
+    if (mark_old_y != mark_new_y) {
+        Invalidate();
+    } else {
+        Validate();
     }
+}
+
+void WindowScale::horizLine(uint16_t width_pad, uint16_t height, color_t color) {
+    display::DrawLine(
+        point_ui16(Left() + width_pad, Top() + height),
+        point_ui16(Left() + 10 - width_pad, Top() + height),
+        color);
 }
 
 void WindowScale::unconditionalDraw() {
     /// redraw old mark line
-    display::DrawLine(
-        point_ui16(Left(), mark_old_y),
-        point_ui16(Left() + 10, mark_old_y),
-        COLOR_BLACK);
+    if (mark_old_y)
+        horizLine(0, *mark_old_y, COLOR_BLACK);
+    mark_old_y = std::nullopt;
     /// vertical line of scale
-    display::DrawLine(
-        point_ui16(Left() + 5, Top()),
-        point_ui16(Left() + 5, Top() + Height()),
-        COLOR_WHITE);
+    display::DrawLine(point_ui16(Left() + 5, Top()), point_ui16(Left() + 5, Top() + Height()), COLOR_WHITE);
     /// horizontal lines
-    display::DrawLine( // top (0)
-        point_ui16(Left(), Top()),
-        point_ui16(Left() + 10, Top()),
-        COLOR_WHITE);
-    display::DrawLine( // -
-        point_ui16(Left() + 2, Top() + (Height() * .25F)),
-        point_ui16(Left() + 8, Top() + (Height() * .25F)),
-        COLOR_WHITE);
-    display::DrawLine( // middle (-1)
-        point_ui16(Left(), Top() + (Height() / 2)),
-        point_ui16(Left() + 10, Top() + (Height() / 2)),
-        COLOR_WHITE);
-    display::DrawLine( // -
-        point_ui16(Left() + 2, Top() + (Height() * .75F)),
-        point_ui16(Left() + 8, Top() + (Height() * .75F)),
-        COLOR_WHITE);
-    display::DrawLine( // bottom (-2)
-        point_ui16(Left() + 2, Top() + Height()),
-        point_ui16(Left() + 8, Top() + Height()),
-        COLOR_WHITE);
+    horizLineWhite(0, 0);
+    horizLineWhite(2, Height() / 4);
+    horizLineWhite(0, Height() / 2);
+    horizLineWhite(2, Height() / 4 * 3);
+    horizLineWhite(0, Height());
     /// scale mark line
-    display::DrawLine(
-        point_ui16(Left(), mark_new_y),
-        point_ui16(Left() + 10, mark_new_y),
-        COLOR_ORANGE);
+    horizLine(0, mark_new_y, COLOR_ORANGE);
 }
 /*****************************************************************************/
 //WindowLiveAdjustZ
