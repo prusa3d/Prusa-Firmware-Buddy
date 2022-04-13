@@ -136,17 +136,16 @@ enum eevar_id {
     EEVAR_WIFI_AP_PASSWD = 0x4b, // 64char string
 #endif                           // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
 
-    EEVAR_USB_MSC_ENABLED = 0x4c, // bool, on/off
-
 #if (EEPROM_FEATURES & EEPROM_FEATURE_CONNECT)
-    EEVAR_CONNECT_HOST,
-    EEVAR_CONNECT_TOKEN,
-    EEVAR_CONNECT_PORT,
-    EEVAR_CONNECT_TLS,
-    EEVAR_CONNECT_ENABLED,
+    EEVAR_CONNECT_HOST = 0x4c,
+    EEVAR_CONNECT_TOKEN = 0x4d,
+    EEVAR_CONNECT_PORT = 0x4e,
+    EEVAR_CONNECT_TLS = 0x4f,
+    EEVAR_CONNECT_ENABLED = 0x50,
 #endif
 
-    EEVAR_CRC32 = 0x4d, // uint32_t crc32 for
+    EEVAR_USB_MSC_ENABLED = 0x51, // bool, on/off
+    EEVAR_CRC32 = 0x52,           // uint32_t crc32 for
 };
 
 enum {
