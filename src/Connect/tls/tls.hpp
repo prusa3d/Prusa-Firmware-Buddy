@@ -13,7 +13,7 @@
 
 namespace con {
 
-class tls : public virtual Connection {
+class tls final : public Connection {
 
 private:
     mbedtls_ssl_config ssl_config;
@@ -22,14 +22,15 @@ private:
 
 public:
     tls();
-
     ~tls();
+    tls(const tls &other) = delete;
+    tls(tls &&other) = delete;
+    tls &operator=(const tls &other) = delete;
+    tls &operator=(tls &&other) = delete;
 
-    std::optional<Error> connect(char *host, uint16_t port);
-
-    std::variant<size_t, Error> write(uint8_t *buffer, size_t data_len);
-
-    std::variant<size_t, Error> read(uint8_t *buffer, size_t buffer_len);
+    virtual std::optional<Error> connection(char *host, uint16_t port) override;
+    virtual std::variant<size_t, Error> tx(uint8_t *buffer, size_t data_len) override;
+    virtual std::variant<size_t, Error> rx(uint8_t *buffer, size_t buffer_len) override;
 };
 
 }
