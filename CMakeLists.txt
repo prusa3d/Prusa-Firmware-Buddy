@@ -524,6 +524,9 @@ if(CONNECT)
               src/Connect/core_interface.cpp
               src/Connect/httpc_data.cpp
               src/Connect/os_porting.cpp
+              src/Connect/tls/hardware_rng.c
+              src/Connect/tls/net_sockets.c
+              src/Connect/tls/tls.cpp
       )
     target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_CONNECT)
     # target_link_libraries(firmware PRIVATE Connect)

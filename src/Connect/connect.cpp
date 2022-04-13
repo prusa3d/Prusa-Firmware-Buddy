@@ -6,10 +6,13 @@
 #include <os_porting.hpp>
 #include <cstring>
 #include <optional>
+#include <variant>
 #include <socket.hpp>
 #include <cmsis_os.h>
 
 #include <log.h>
+
+using std::variant;
 
 LOG_COMPONENT_DEF(connect, LOG_SEVERITY_DEBUG);
 
@@ -37,39 +40,34 @@ std::variant<size_t, Error> connect::get_data_to_send(uint8_t *buffer, size_t bu
 }
 
 void connect::communicate() {
-    // TODO: Choose if we want TLS or not.
-#if 0
-    osDelay(10000);
-    log_debug(connect, "connect thread starts");
-    char url[] = { "ecdsa.ct.xln.cz" };
-    uint16_t port_no = 443;
-
-    while (1) {
-
-        constexpr size_t client_buffer_len = 512;
-        uint8_t client_buffer[client_buffer_len];
-
-        class tls conn;
-
-        http_client client { url, port_no, (uint8_t *)client_buffer, client_buffer_len, &conn };
-
-        client.loop();
-
-        osDelay(5000);
-#endif
-
-    constexpr size_t client_buffer_len = 512;
-    uint8_t client_buffer[client_buffer_len];
-    std::variant<size_t, Error> ret;
-    printer_info_t printer_info;
     configuration_t config = core.get_connect_config();
 
+    if (!config.enabled) {
+        return;
+    }
+
+    std::variant<size_t, Error> ret;
+
+    printer_info_t printer_info;
     std::optional<Error> err = core.get_printer_info(&printer_info);
     if (err.has_value())
         return;
 
-    class socket_con conn;
-    http_client client { config.host, config.port, (class Connection *)&conn };
+    constexpr size_t client_buffer_len = 512;
+    uint8_t client_buffer[client_buffer_len];
+
+    // TODO: Any nicer way to do this in C++?
+    variant<tls, socket_con> connection_storage;
+    Connection *connection;
+    if (config.tls) {
+        connection_storage.emplace<tls>();
+        connection = &std::get<tls>(connection_storage);
+    } else {
+        connection_storage.emplace<socket_con>();
+        connection = &std::get<socket_con>(connection_storage);
+    }
+
+    http_client client { config.host, config.port, connection };
     if (!client.is_connected())
         return;
 
@@ -86,6 +84,7 @@ void connect::communicate() {
     err = client.send_body(client_buffer, client_buffer_len);
     if (err.has_value())
         return;
+
     // INFO is send only once, and TELEMETRY afterwards.
     req_type = REQUEST_TYPE::TELEMETRY;
 }
@@ -115,7 +114,7 @@ void connect::run() {
         communicate();
         // Connect server expects telemetry at least every 30 s (varies with design decisions).
         // So the client has to communicate very frequently with the server!
-        osDelay(1000);
+        osDelay(10000);
     }
 }
 
