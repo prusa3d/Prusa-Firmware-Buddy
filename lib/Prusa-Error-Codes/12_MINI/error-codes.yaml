@@ -53,3 +53,18 @@ Errors:
   text: "Check the print head thermistor wiring for possible damage."
   id: ""
   approved: true
+- code: "12209"
+  title: "TEMP NOT MATCHING"
+  text: "Measured temperature is not matching expected value. Check the thermistor is in contact with heatbed. In case of damage, replace it."
+  id: ""
+  approved: true
+- code: "12210"
+  title: "TEMP NOT MATCHING"
+  text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
+  id: ""
+  approved: true
+- code: "12301"
+  title: "HOMING ERROR"
+  text: "SuperPINDA sensor is probably broken or disconnected, could not home Z-axis properly."
+  id: ""
+  approved: true

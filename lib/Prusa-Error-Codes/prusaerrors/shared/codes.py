@@ -136,6 +136,7 @@ class Code:
 
         :return: Error category title
         """
+        return self._title
 
     @property
     def message(self) -> str:
@@ -340,6 +341,22 @@ def unique_codes(cls):
         if code.code in used:
             raise ValueError(f"Code {name} with value {code.code} is duplicate!")
         used.add(code.code)
+
+    return cls
+
+
+def unique_titles(cls):
+    """
+    Class decorator requiring unique title definition inside the class
+
+    :param cls: Codes class
+    :return: Unmodified input class
+    """
+    used = set()
+    for name, code in cls.get_codes().items():
+        if code.title in used:
+            raise ValueError(f"Code {name} with title {code.title} is duplicate!")
+        used.add(code.title)
 
     return cls
 

@@ -29,3 +29,6 @@ Example: 12201
 5. System - FW crash, …
 6. Bootloader - FW update, USB/SD card fail
 7. Warnings
+
+More information about the error codes can be found at:
+help.prusa3d.com/en/article/qr-error-codes_176114

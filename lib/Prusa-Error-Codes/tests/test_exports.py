@@ -10,10 +10,11 @@ import json
 import unittest
 from io import StringIO
 
-from prusaerrors.shared.codes import unique_codes, Codes, Printer, Code, Category
+from prusaerrors.shared.codes import unique_codes, unique_titles, Codes, Printer, Code, Category
 
 
 @unique_codes
+@unique_titles
 class TestCodes(Codes):
     PRINTER = Printer.UNKNOWN
     NONE = Code(PRINTER, Category.SYSTEM, 0, "No title", "No problem", True)
