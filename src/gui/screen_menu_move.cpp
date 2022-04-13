@@ -7,6 +7,7 @@
 #include "menu_spin_config.hpp"
 #include "WindowItemFormatableLabel.hpp"
 #include "window_dlg_load_unload.hpp"
+#include "MItem_print.hpp"
 
 template <size_t INDEX, int8_t LONG_SEG, uint8_t BUFFER_LEN>
 class MI_AXIS : public WiSpinInt {
@@ -68,20 +69,40 @@ public:
     }
 };
 
-class DUMMY_AXIS_E : public WI_FORMATABLE_LABEL_t<int> {
+class DUMMY_AXIS_E : public MI_NOZZLE {
+private:
+    void printToBuffer() {
+        if (selected == is_selected_t::yes) {
+            printSpinToBuffer();
+        } else {
+            if (marlin_vars()->target_nozzle < MenuVars::GetExtrudeMinTemp()) {
+                snprintf(spin_text_buff.data(), spin_text_buff.size(), "Low temp");
+            } else {
+                if (marlin_vars()->temp_nozzle < MenuVars::GetExtrudeMinTemp()) {
+                    snprintf(spin_text_buff.data(), spin_text_buff.size(), "Heating");
+                } else {
+                    printSpinToBuffer();
+                }
+            }
+        }
+    }
+
+protected:
     virtual void click(IWindowMenu &window_menu) override {
-        PreheatStatus::Dialog(PreheatMode::None, RetAndCool_t::Both);
+        selected = selected == is_selected_t::yes ? is_selected_t::no : is_selected_t::yes;
+        OnClick();
     }
 
 public:
+    void OnClick() override {
+        MI_NOZZLE::OnClick();
+        printToBuffer();
+    }
     DUMMY_AXIS_E()
-        : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), 0, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
-            if (marlin_vars()->target_nozzle < MenuVars::GetExtrudeMinTemp()) {
-                snprintf(buffer, GuiDefaults::infoMaxLen, "Low temp");
-            } else {
-                snprintf(buffer, GuiDefaults::infoMaxLen, "Heating");
-            }
-        }) {}
+        : MI_NOZZLE() {
+        printToBuffer();
+        extension_width = calculateExtensionWidth(nullptr, 10);
+    }
 };
 
 using MI_AXIS_X = MI_AXIS<0, 5, 8>;
@@ -98,7 +119,6 @@ class ScreenMenuMove : public Screen {
         DUMMY_AXIS_E *dummy = &Item<DUMMY_AXIS_E>();
         bool temp_ok = (marlin_vars()->temp_nozzle > MenuVars::GetExtrudeMinTemp());
         spinner->SetVisibility(temp_ok);
-        dummy->SetVisibility(!temp_ok);
     }
 
 public:
