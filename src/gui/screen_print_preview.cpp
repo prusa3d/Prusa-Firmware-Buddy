@@ -30,7 +30,13 @@ static bool check_filament_presence(GCodeInfo &gcode) {
         const PhaseResponses btns = has_mmu ? Responses_YesNo : Responses_YesNoIgnore;
         string_view_utf8 txt_fil_not_detected = has_mmu ? _("Filament detected. Unload filament now? Select NO to cancel.") : _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.");
         // this MakeRAM is safe - gcode.gcode_file_name is valid during the lifetime of the MsgBox
-        switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()), txt_fil_not_detected, btns, 0, GuiDefaults::RectScreenNoHeader)) {
+        switch (
+#ifdef USE_ST7789
+            MsgBoxWarning(txt_fil_not_detected, btns, 0, GuiDefaults::RectScreenNoHeader)
+#else
+            MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()), txt_fil_not_detected, btns, 0, GuiDefaults::RectScreenNoHeader)
+#endif
+        ) {
         case Response::Yes: //YES - load
             if (has_mmu) {
                 PreheatStatus::DialogBlocking(PreheatMode::MMU_unload, RetAndCool_t::Neither);
