@@ -1252,7 +1252,7 @@ bool _process_server_valid_request(const char *request, int client_id) {
         _server_set_var(data);
         return true;
     case MARLIN_MSG_UPDATE_VARIABLE:
-        if (sscanf(data, "%08lx %08lx", msk32 + 0, msk32 + 1) != 2)
+        if (sscanf(data, "%08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1) != 2)
             return 0;
         _server_update_and_notify(client_id, msk32[0] + (((uint64_t)msk32[1]) << 32));
         return true;
@@ -1311,7 +1311,7 @@ bool _process_server_valid_request(const char *request, int client_id) {
         ClientResponseHandler::SetResponse(ival);
         return true;
     case MARLIN_MSG_EVENT_MASK:
-        if (sscanf(data, "%08lx %08lx", msk32 + 0, msk32 + 1) != 2)
+        if (sscanf(data, "%08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1) != 2)
             return false;
         marlin_server.notify_events[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         // Send MARLIN_EVT_MediaInserted event if media currently inserted
@@ -1322,7 +1322,7 @@ bool _process_server_valid_request(const char *request, int client_id) {
             marlin_server.client_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted);
         return true;
     case MARLIN_MSG_CHANGE_MASK:
-        if (sscanf(data, "%08lx %08lx", msk32 + 0, msk32 + 1) != 2)
+        if (sscanf(data, "%08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1) != 2)
             return false;
         marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         marlin_server.client_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
@@ -1338,7 +1338,7 @@ bool _process_server_valid_request(const char *request, int client_id) {
             marlin_server.flags &= ~MARLIN_SFLG_EXCMODE;
         return true;
     case MARLIN_MSG_TEST_START:
-        if (sscanf(data, "%08lx %08lx", msk32 + 0, msk32 + 1) != 2)
+        if (sscanf(data, "%08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1) != 2)
             return false;
         //start selftest
         marlin_server_test_start(msk32[0] + (((uint64_t)msk32[1]) << 32));
