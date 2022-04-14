@@ -251,6 +251,10 @@ else()
   set(DEBUG NO)
 endif()
 
+# enable all warnings (well, not all, but some)
+add_compile_options(-Wall -Wsign-compare)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-std=c++1z>)
+
 # append custom C/C++ flags
 if(CUSTOM_COMPILE_OPTIONS)
   string(REPLACE " " ";" CUSTOM_COMPILE_OPTIONS "${CUSTOM_COMPILE_OPTIONS}")
@@ -419,10 +423,6 @@ if(CMAKE_CROSSCOMPILING)
     -Wl,--defsym=printf=printf_,--defsym=sprintf=sprintf_,--defsym=snprintf=snprintf_,--defsym=vprintf=vprintf_,--defsym=vsnprintf=vsnprintf_
     )
 endif()
-
-# enable all warnings (well, not all, but some)
-add_compile_options(-Wall -Wsign-compare)
-add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-std=c++1z>)
 
 # support _DEBUG macro (some code uses to recognize debug builds)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
