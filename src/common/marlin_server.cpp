@@ -51,7 +51,9 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
 #include "selftest_MINI.h"
 
-typedef struct {
+namespace {
+
+struct marlin_server_t {
     marlin_vars_t vars;                              // cached variables
     marlin_mesh_t mesh;                              // meshbed leveling
     uint64_t notify_events[MARLIN_MAX_CLIENTS];      // event notification mask - message filter
@@ -81,18 +83,12 @@ typedef struct {
     uint8_t pqueue;           // calculated number of records in planner queue
     uint8_t gqueue;           // copy of queue.length - number of commands in gcode queue
     uint8_t resume_fan_speed; // resume fan speed
-} marlin_server_t;
+};
+
+marlin_server_t marlin_server; // server structure - initialize task to zero
 
 fsm::Queue fsm_event_queues[MARLIN_MAX_CLIENTS];
-bool can_stop_wait_for_heatup_var = false;
-bool can_stop_wait_for_heatup() { return can_stop_wait_for_heatup_var; }
-void can_stop_wait_for_heatup(bool val) { can_stop_wait_for_heatup_var = val; }
 
-extern "C" {
-marlin_server_t marlin_server; // server structure - initialize task to zero
-}
-
-namespace {
 template <WarningType p_warning, bool p_disableHotend>
 class ErrorChecker {
 public:
@@ -152,6 +148,11 @@ ErrorChecker<WarningType::HotendFanError, true> hotendFanErrorChecker;
 ErrorChecker<WarningType::PrintFanError, false> printFanErrorChecker;
 HotendErrorChecker hotendErrorChecker;
 } //end anonymous namespace
+
+bool can_stop_wait_for_heatup_var = false;
+bool can_stop_wait_for_heatup() { return can_stop_wait_for_heatup_var; }
+void can_stop_wait_for_heatup(bool val) { can_stop_wait_for_heatup_var = val; }
+
 extern "C" {
 
 LOG_COMPONENT_DEF(MarlinServer, LOG_SEVERITY_INFO);
