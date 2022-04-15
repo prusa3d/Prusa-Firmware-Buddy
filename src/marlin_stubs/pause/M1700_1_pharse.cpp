@@ -21,13 +21,13 @@
  *              - W3  - preheat with cool down and return options - default
  */
 void PrusaGcodeSuite::M1700() {
-    const float preheat = parser.linearval('W', 3);
+    const uint8_t preheat = std::min(parser.byteval('W', 3), uint8_t(RetAndCool_t::last_));
 
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
 
-    filament_gcodes::M1700_no_parser(PreheatData::GetRetAndCool(preheat), target_extruder);
+    filament_gcodes::M1700_no_parser(RetAndCool_t(preheat), target_extruder);
 }
 
 /**
