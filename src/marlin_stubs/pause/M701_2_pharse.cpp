@@ -46,7 +46,7 @@ void GcodeSuite::M701() {
     const bool isL = (parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin));
     const float fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : NAN);
     const float min_Z_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
-    const float preheat = parser.linearval('W', 255);
+    const uint8_t preheat = parser.byteval('W', 255);
 
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
@@ -84,7 +84,7 @@ void GcodeSuite::M701() {
 void GcodeSuite::M702() {
     const float unload_len = parser.seen('U') ? parser.value_axis_units(E_AXIS) : NAN;
     const float min_Z_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
-    const float preheat = parser.linearval('W', 255);
+    const uint8_t preheat = parser.byteval('W', 255);
     const bool ask_unloaded = parser.seen('I');
 
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
@@ -92,8 +92,8 @@ void GcodeSuite::M702() {
         return;
 
     std::optional<RetAndCool_t> op_preheat = std::nullopt;
-    if (preheat != 255) {
-        op_preheat = PreheatData::GetRetAndCool(preheat);
+    if (preheat <= uint8_t(RetAndCool_t::last_)) {
+        op_preheat = RetAndCool_t(preheat);
     }
 
     M702_no_parser(unload_len, min_Z_pos, op_preheat, target_extruder, ask_unloaded);
