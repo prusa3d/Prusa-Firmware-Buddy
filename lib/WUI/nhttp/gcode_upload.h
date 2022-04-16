@@ -44,6 +44,7 @@ private:
 
     virtual Result data(std::string_view data) override;
     virtual Result finish(const char *final_filename, bool start_print) override;
+    virtual Result check_filename(const char *filename) const override;
 
     void delete_file();
     GcodeUpload(UploadState uploader, size_t length, size_t upload_idx, FilePtr file, UploadedNotify *uploaded);

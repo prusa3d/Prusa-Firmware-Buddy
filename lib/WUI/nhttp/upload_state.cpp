@@ -303,6 +303,10 @@ int UploadState::headers_complete() {
         if (filename[0] != '\0') {
             // Make sure this is not overwritten next time.
             have_valid_filename = true;
+            error = hooks->check_filename(filename.begin());
+            if (!err_ok()) {
+                return 1;
+            }
         } else {
             error = make_tuple(Status::BadRequest, "Missing/empty file name");
             return 1;

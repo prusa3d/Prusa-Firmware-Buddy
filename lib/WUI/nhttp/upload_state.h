@@ -34,6 +34,11 @@ public:
     virtual ~UploadHooks() = default;
     virtual Result data(std::string_view data) = 0;
     virtual Result finish(const char *final_filename, bool start_print) = 0;
+    // Early check of a filename validity.
+    //
+    // Used once the file name is known, possibly before all the data is
+    // uploaded.
+    virtual Result check_filename(const char *final_filename) const = 0;
 };
 
 class UploadState {

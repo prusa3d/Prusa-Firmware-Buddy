@@ -40,6 +40,10 @@ public:
         return make_tuple(Status::Ok, nullptr);
     }
 
+    virtual Result check_filename(const char *filename) const override {
+        return make_tuple(Status::Ok, nullptr);
+    }
+
     virtual Result finish(const char *final_filename, bool start_print) override {
         REQUIRE_FALSE(termination.has_value());
         termination = Finish {

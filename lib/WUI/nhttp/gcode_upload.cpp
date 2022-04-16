@@ -20,6 +20,7 @@ size_t strlcat(char *, const char *, size_t);
 // fit.
 static const size_t TMP_BUFF_LEN = 20;
 static const char *const UPLOAD_TEMPLATE = USB_MOUNT_POINT "%zu.tmp";
+static const char *const CHECK_FILENAME = USB_MOUNT_POINT "check.tmp";
 
 namespace nhttp::printer {
 
@@ -142,58 +143,85 @@ UploadHooks::Result GcodeUpload::data(std::string_view data) {
     }
 }
 
-UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_print) {
-    const uint32_t fname_length = strlen(final_filename);
+namespace {
 
-    if (!filename_is_gcode(final_filename)) {
+    template <class F>
+    UploadHooks::Result try_rename(const char *src, const char *dest_fname, F f) {
+        const uint32_t fname_length = strlen(dest_fname);
+
+        char fn[FILE_NAME_BUFFER_LEN];
+        if ((fname_length + USB_MOUNT_POINT_LENGTH) >= sizeof(fn)) {
+            // The Request header fields too large is a bit of a stretch...
+            return make_tuple(Status::RequestHeaderFieldsTooLarge, "File name too long");
+        } else {
+            strlcpy(fn, USB_MOUNT_POINT, USB_MOUNT_POINT_LENGTH + 1);
+            strlcat(fn, dest_fname, FILE_PATH_BUFFER_LEN - USB_MOUNT_POINT_LENGTH);
+        }
+
+        int result = rename(src, fn);
+        if (result != 0) {
+            remove(src); // No check - no way to handle errors anyway.
+            // Most likely the file name already exists and rename refuses to overwrite (409 conflict).
+            // It could _also_ be weird file name/forbidden chars that contain (422 Unprocessable Entity).
+            // Try to guess which one.
+            FILE *attempt = fopen(fn, "r");
+            if (attempt) {
+                fclose(attempt);
+                return make_tuple(Status::Conflict, "File already exists");
+            } else {
+                return make_tuple(Status::UnprocessableEntity, "Filename contains invalid characters");
+            }
+        } else {
+            return f(fn);
+        }
+    }
+
+}
+
+UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
+    if (!filename_is_gcode(filename)) {
         return make_tuple(Status::UnsupportedMediaType, "Not a GCODE");
     }
 
-    char filename[FILE_NAME_BUFFER_LEN];
-    if ((fname_length + USB_MOUNT_POINT_LENGTH) >= sizeof(filename)) {
-        // The Request header fields too large is a bit of a stretch...
-        return make_tuple(Status::RequestHeaderFieldsTooLarge, "File name too long");
-    } else {
-        strlcpy(filename, USB_MOUNT_POINT, USB_MOUNT_POINT_LENGTH + 1);
-        strlcat(filename, final_filename, FILE_PATH_BUFFER_LEN - USB_MOUNT_POINT_LENGTH);
+    // We try to create and then delete the file. This places an empty file
+    // there for a really short while, but it's there anyway ‒ something could
+    // detect it. Any better way to check if the file name is fine?
+    FILE *tmp = fopen(CHECK_FILENAME, "wb");
+    if (!tmp) {
+        return make_tuple(Status::InternalServerError, "Failed to create a check temp file");
     }
+    fclose(tmp);
 
+    return try_rename(CHECK_FILENAME, filename, [](const char *fname) -> UploadHooks::Result {
+        remove(fname);
+        return make_tuple(Status::Ok, nullptr);
+    });
+}
+
+UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_print) {
     char fname[TMP_BUFF_LEN];
     snprintf(fname, sizeof fname, UPLOAD_TEMPLATE, file_idx);
 
     // Close the file first, otherwise it can't be moved
     tmp_upload_file.reset();
-    int result = rename(fname, filename);
-    if (result != 0) {
-        // Most likely the file name already exists and rename refuses to overwrite (409 conflict).
-        // It could _also_ be weird file name/forbidden chars that contain (422 Unprocessable Entity).
-        // Try to guess which one.
-        FILE *attempt = fopen(filename, "r");
-        if (attempt) {
-            fclose(attempt);
-            return make_tuple(Status::Conflict, "File already exists");
+    return try_rename(fname, final_filename, [&](const char *filename) -> UploadHooks::Result {
+        if (start_print) {
+            /*
+             * TODO: Starting print of the just-uploaded file is temporarily disabled.
+             *
+             * See https://dev.prusa3d.com/browse/BFW-2300.
+             *
+             * Once we have time to deal with all the corner-cases, race conditions and
+             * collisions caused by that possibility, we will re-enable.
+             */
+            return make_tuple(Status::NotImplemented, "Starting a print remotely is not yet implemented");
         } else {
-            return make_tuple(Status::UnprocessableEntity, "Filename contains invalid characters");
+            if (uploaded_notify != nullptr) {
+                uploaded_notify(filename, false);
+            }
+            return make_tuple(Status::Ok, nullptr);
         }
-    }
-
-    /*
-     * TODO: Starting print of the just-uploaded file is temporarily disabled.
-     *
-     * See https://dev.prusa3d.com/browse/BFW-2300.
-     *
-     * Once we have time to deal with all the corner-cases, race conditions and
-     * collisions caused by that possibility, we will re-enable.
-     */
-    if (uploaded_notify != nullptr) {
-        uploaded_notify(filename, false);
-    }
-
-    if (start_print) {
-        return make_tuple(Status::NotImplemented, "Starting a print remotely is not yet implemented");
-    } else {
-        return make_tuple(Status::Ok, nullptr);
-    }
+    });
 }
 
 }
