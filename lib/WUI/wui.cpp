@@ -21,6 +21,8 @@
 #include <lwip/netifapi.h>
 #include <lwip/netif.h>
 #include <lwip/tcpip.h>
+#include <freertos_mutex.hpp>
+#include <mutex>
 #include "http_lifetime.h"
 #include "main.h"
 
@@ -33,6 +35,8 @@ LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
 #include "eeprom.h"
 #include "variant8.h"
 #include "otp.h"
+
+using std::unique_lock;
 
 #define LOOP_EVT_TIMEOUT 500UL
 
@@ -117,6 +121,7 @@ public:
     };
 
 private:
+    FreeRTOS_Mutex mutex;
     enum class Mode {
         Off,
         Static,
@@ -145,6 +150,7 @@ private:
     uint32_t active = NETDEV_NODEV_ID;
 
     Mode iface_mode(const Iface &iface) {
+        // Assumes already locked
         const auto flag = iface.desired_config.lan.flag;
         if (IS_LAN_OFF(flag)) {
             return Mode::Off;
@@ -161,6 +167,7 @@ private:
 
     void link_callback(netif &iface) {
         status_callback(iface);
+        unique_lock lock(mutex);
         uint32_t action = 0;
         // TODO: What if it went _down_, not _up_?
         if (&iface == &ifaces[NETDEV_ETH_ID].dev) {
@@ -177,7 +184,7 @@ private:
     }
     void status_callback(netif &iface) {
         if (&iface == &ifaces[NETDEV_ETH_ID].dev) {
-            // FIXME: Lock!
+            unique_lock lock(mutex);
             // Or, shall we say copy info out?
             ethernetif_update_config(&iface);
         } else if (&iface == &ifaces[NETDEV_ESP_ID].dev) {
@@ -222,7 +229,13 @@ private:
             netifapi_dhcp_start(&iface.dev);
             break;
         case Mode::Static: {
-            const auto &cfg = iface.desired_config;
+            ETH_config_t cfg;
+            { // Scope for the lock
+                unique_lock lock(mutex);
+                // Yes, make a copy (for thread safety)
+                cfg = iface.desired_config;
+            }
+
             // FIXME: The DNS setting is _global_ for the whole network
             // stack, not only to specific interface. How do we want the
             // config of multiple interfaces to interact? Take it from the
@@ -255,7 +268,7 @@ private:
     }
 
     void join_ap() {
-        // Already locked by the caller.
+        unique_lock lock(mutex);
         const char *passwd;
         switch (ap.security) {
         case AP_SEC_NONE:
@@ -274,16 +287,22 @@ private:
 
     void reconfigure() {
         // Read some stuff from the eeprom.
-        // TODO: Lock! (even the desired config can be read from other threads, eg. the tcpip_thread from a callback :-(
+
+        // Lock (even the desired config can be read from other threads, eg. the tcpip_thread from a callback :-(
+        // (using unique_lock instead of scoped_lock as at other places, we need "pause")
+        unique_lock lock(mutex);
         const uint32_t active_local = eeprom_get_ui8(EEVAR_ACTIVE_NETDEV);
         // Store into the atomic variable, but keep working with the stack copy.
         active = active_local;
         load_net_params(&ifaces[NETDEV_ETH_ID].desired_config, nullptr, NETDEV_ETH_ID);
         load_net_params(&ifaces[NETDEV_ESP_ID].desired_config, &ap, NETDEV_ESP_ID);
-        // TODO: Deassociate AP
+
         // First, bring everything down. Then bring whatever is enabled up.
         for (auto &iface : ifaces) {
+            // "Pause" the mutex for a while, this calls callbacks that also lock.
+            lock.unlock();
             set_down(iface.dev);
+            lock.lock();
 
             // FIXME: Track down where exactly the hostname is stored, when it
             // can change, how it is synchronized with threads (or isn't!).
@@ -297,13 +316,18 @@ private:
                 espif_reset();
             } else {
                 // Other interfaces can just be turned on and be done with them.
+                // "Pause" the mutex for a while, this calls callbacks that also lock.
+                lock.unlock();
                 set_up(iface.dev);
+                lock.lock();
             }
         }
 
         if (active_local < ifaces.size()) {
             netifapi_netif_set_default(&ifaces[active_local].dev);
         }
+
+        lock.unlock();
 
         if (eeprom_get_ui8(EEVAR_PL_RUN) == 1) {
             httpd_start();
@@ -431,9 +455,9 @@ private:
 
     template <class F>
     static void with_iface(uint32_t netdev_id, F &&f) {
-        // TODO: Lock!
         NetworkState *state = instance;
         if (state != nullptr && netdev_id < state->ifaces.size()) {
+            unique_lock lock(state->mutex);
             f(state->ifaces[netdev_id].dev, *state);
         }
     }
@@ -482,26 +506,18 @@ public:
             // TODO: Why not to copy address from netif? Maybe because we need
             // it sooner than when it's initialized?
             memcpy(mac, (void *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
-        } else if (instance != nullptr && netdev_id == NETDEV_ESP_ID) {
-            // FIXME: Lock!
+        } else if (state != nullptr && netdev_id == NETDEV_ESP_ID) {
+            unique_lock lock(state->mutex);
             memcpy(mac, state->ifaces[NETDEV_ESP_ID].dev.hwaddr, state->ifaces[NETDEV_ESP_ID].dev.hwaddr_len);
         } else {
             memset(mac, 0, OTP_MAC_ADDRESS_SIZE);
         }
     }
 
-    static const char *get_hostname(uint32_t netdev_id) {
-        // FIXME: This is wrong regarding locking. We lock (will lock) during
-        // the acquisition of the pointer, but the caller will access the data
-        // outside of the lock. We should modify it to copy it under a lock
-        // into a caller-provided buffer.
-        const char *result = "";
-
+    static void get_hostname(uint32_t netdev_id, char *buffer, size_t buffer_len) {
         with_iface(netdev_id, [&](netif &iface, NetworkState &) {
-            result = iface.hostname;
+            strlcpy(buffer, iface.hostname, buffer_len);
         });
-
-        return result;
     }
 
     static netdev_status_t get_status(uint32_t netdev_id) {
@@ -515,8 +531,13 @@ public:
     }
     static uint32_t get_active() {
         NetworkState *state = instance;
-        // TODO: Lock!
-        return state ? state->active : NETDEV_NODEV_ID;
+        if (state != nullptr) {
+            unique_lock lock(state->mutex);
+            uint32_t active = state->active;
+            return active;
+        } else {
+            return NETDEV_NODEV_ID;
+        }
     }
 };
 
@@ -548,8 +569,8 @@ void netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE
     NetworkState::get_mac(netdev_id, mac);
 }
 
-const char *netdev_get_hostname(uint32_t netdev_id) {
-    return NetworkState::get_hostname(netdev_id);
+void netdev_get_hostname(uint32_t netdev_id, char *buffer, size_t buffer_len) {
+    NetworkState::get_hostname(netdev_id, buffer, buffer_len);
 }
 
 netdev_status_t netdev_get_status(uint32_t netdev_id) {

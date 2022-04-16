@@ -147,8 +147,9 @@ netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t);
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
-/// @return hostname
-const char *netdev_get_hostname(uint32_t);
+/// @param[out] buffer Where to store the hostname (copying it out for thread protection).
+/// @param[in] buffer_len The size of the buffer (including space for \0).
+void netdev_get_hostname(uint32_t, char *buffer, size_t buffer_len);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Retrive IPv4 configuration. IP address, network mask, gateway address
