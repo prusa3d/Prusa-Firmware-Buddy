@@ -117,18 +117,8 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
 }
 
 JsonResult get_version(size_t resume_point, JsonOutput &output) {
-    /*
-     * FIXME: The netdev_get_hostname doesn't properly synchronize. That needs
-     * a fix of its own. But to not make things even worse than they are, we
-     * make sure to copy it out to our side first and make sure it doesn't
-     * change during the JSON stringification which could lead to a different
-     * length of the output and stack smashing.
-     */
-    const char *hostname_unsynchronized = netdev_get_hostname(netdev_get_active_id());
-    const size_t hostname_in_len = strlen(hostname_unsynchronized);
-    char hostname[hostname_in_len + 1];
-    memcpy(hostname, hostname_unsynchronized, hostname_in_len);
-    hostname[hostname_in_len] = '\0';
+    char hostname[ETH_HOSTNAME_LEN + 1];
+    netdev_get_hostname(netdev_get_active_id(), hostname, sizeof hostname);
 
     // Keep the indentation of the JSON in here!
     // clang-format off
