@@ -126,6 +126,9 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_ex
         thermalManager.setTargetBed(fil_cnf.heatbed);
     }
 
+    // store result, so other threads can see it
+    PreheatStatus::SetResult(PreheatStatus::Result::DoneNoFilament);
+
     // we might want to set filament type even with preheat, if so do:
     //Filaments::SetToBeLoaded(filament);
 }

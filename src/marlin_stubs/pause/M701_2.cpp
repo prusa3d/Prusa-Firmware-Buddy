@@ -116,7 +116,7 @@ Result ConsumeResult() {
     return ret;
 }
 
-static void setResult(Result res) {
+void SetResult(Result res) {
     preheatResult = res;
 }
 
@@ -143,7 +143,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res) {
     }
 
     // store result, so other threads can see it
-    PreheatStatus::setResult(res);
+    PreheatStatus::SetResult(res);
 }
 
 void filament_gcodes::M1701_no_parser(float fast_load_length, float z_min_pos, uint8_t target_extruder) {

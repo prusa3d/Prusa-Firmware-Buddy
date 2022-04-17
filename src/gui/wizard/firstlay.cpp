@@ -70,8 +70,6 @@ WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK() {
 
 WizardState_t StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT() {
     PreheatStatus::DialogBlockingPreheat(RetAndCool_t::Neither);
-
-    //Filaments::Set(gui_dlg_preheat_forced(_("Select Filament Type")));
     return WizardState_t::FIRSTLAY_MSBX_CALIB;
 }
 

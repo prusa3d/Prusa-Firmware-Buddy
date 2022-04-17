@@ -48,3 +48,7 @@ std::pair<std::optional<PreheatStatus::Result>, filament_t> preheat(PreheatData 
 std::pair<std::optional<PreheatStatus::Result>, filament_t> preheat_for_change_load();
 void preheat_to(filament_t filament);
 } // namespace filament_gcodes
+
+namespace PreheatStatus {
+void SetResult(Result res);
+} // namespace PreheatStatus

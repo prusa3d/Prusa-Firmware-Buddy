@@ -11,6 +11,8 @@ enum class redraw_cmd_t : int {
 };
 
 class DialogHandler {
+    uint32_t opened_times[size_t(ClientFSM::_count)] = {}; // to be able to make blocking dialog
+    uint32_t closed_times[size_t(ClientFSM::_count)] = {}; // to be able to make blocking dialog
     static_unique_ptr<IDialogMarlin> ptr;
     DialogFactory::Ctors dialog_ctors;
     ClientFSM waiting_closed = ClientFSM::_none;
@@ -33,5 +35,9 @@ public:
 
     redraw_cmd_t Loop();                                  //synchronization loop, call it outside event
     void WaitUntilClosed(ClientFSM dialog, uint8_t data); // opens dialog, waits until closed, auto loops
-    bool IsOpen() const;                                  // returnes true if any dialog is active (we dont want popups)
+    bool IsOpen() const;                                  // returns true if any dialog is active (we dont want popups)
+
+    uint32_t OpenedTimes(ClientFSM fsm) const { return opened_times[size_t(fsm)]; }
+    uint32_t ClosedTimes(ClientFSM fsm) const { return closed_times[size_t(fsm)]; }
+    uint32_t IsOpen(ClientFSM fsm) const { return OpenedTimes(fsm) != ClosedTimes(fsm); }
 };
