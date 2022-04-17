@@ -33,6 +33,9 @@ void DialogHandler::open(fsm::create_t o) {
         return; //the dialog is already openned
 
     const ClientFSM dialog = o.type.GetType();
+
+    ++opened_times[size_t(dialog)];
+
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
     switch (dialog) {
@@ -53,6 +56,8 @@ void DialogHandler::open(fsm::create_t o) {
 
 void DialogHandler::close(fsm::destroy_t o) {
     const ClientFSM dialog = o.type.GetType();
+
+    ++closed_times[size_t(dialog)];
 
     if (waiting_closed == dialog) {
         waiting_closed = ClientFSM::_none;
