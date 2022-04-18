@@ -48,7 +48,7 @@ static constexpr const char *txt_en_noz = N_("Nozzle");
 static constexpr const char *txt_en_bed = N_("Heatbed");
 
 DialogSelftestResult::DialogSelftestResult(SelftestResultEEprom_t result)
-    : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
+    : AddSuperWindow<IDialog>(GuiDefaults::RectScreenNoHeader)
     //fans
     , text_fan_test(this, Rect16(col_0, row_fan_0, WizardDefaults::X_space, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_fan_test))
     , text_hotend_fan(this, Rect16(col_0, row_fan_1, col_0_w, txt_h), is_multiline::no, is_closed_on_click_t::no, _(txt_en_hotend_fan))
