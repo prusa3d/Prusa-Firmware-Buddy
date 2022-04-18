@@ -11,7 +11,7 @@ using namespace gui::knob;
 
 static action_cb fnc_held_right = nullptr;
 static action_cb fnc_held_left = nullptr;
-static screen_action_cb fnc_live_z = nullptr;
+static screen_action_cb fnc_long_press = nullptr;
 
 void gui::knob::RegisterHeldRightAction(action_cb cb) {
     fnc_held_right = cb;
@@ -22,12 +22,24 @@ void gui::knob::RegisterHeldLeftAction(action_cb cb) {
 }
 
 void gui::knob::RegisterLongPressScreenAction(screen_action_cb cb) {
-    fnc_live_z = cb;
+    fnc_long_press = cb;
+}
+
+action_cb gui::knob::GetHeldRightAction() {
+    return fnc_held_right;
+}
+
+action_cb gui::knob::GetHeldLeftAction() {
+    return fnc_held_left;
+}
+
+screen_action_cb gui::knob::GetLongPressScreenAction() {
+    return fnc_long_press;
 }
 
 void gui::knob::LongPressScreenAction() {
-    if (fnc_live_z)
-        fnc_live_z();
+    if (fnc_long_press)
+        fnc_long_press();
 }
 
 bool gui::knob::HeldRightAction() {

@@ -1,25 +1,13 @@
 // screen_menu_settings.cpp
 
-#include "screen_menus.hpp"
-#include "gui.hpp"
 #include "config.h"
-#include "app.h"
-#include "marlin_client.h"
 #include "screen_menu.hpp"
 #include "screen_menus.hpp"
 #include "ScreenHandler.hpp"
-#include "cmsis_os.h"
-#include "sys.h"
-#include "eeprom.h"
-#include "eeprom_loadsave.h"
-#include "dump.h"
-#include "sound.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
-#include "i18n.h"
-#include "Marlin/src/core/serial.h"
-#include "DialogMoveZ.hpp"
+#include "knob_event.hpp"
 #include "netdev.h"
 #include "wui.h"
 
@@ -73,9 +61,12 @@ using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PRO
 #endif
 
 class ScreenMenuSettings : public Screen {
+    gui::knob::screen_action_cb old_action;
+
 public:
     constexpr static const char *label = N_("SETTINGS");
     ScreenMenuSettings();
+    ~ScreenMenuSettings();
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSettings() {
@@ -83,9 +74,16 @@ ScreenFactory::UniquePtr GetScreenMenuSettings() {
 }
 
 ScreenMenuSettings::ScreenMenuSettings()
-    : Screen(_(label)) {
+    : Screen(_(label))
+    , old_action(gui::knob::GetLongPressScreenAction()) { // backup hold action
     if (sheet_number_of_calibrated() > 1) {
         Item<MI_CURRENT_PROFILE>().UpdateLabel();
         Item<MI_CURRENT_PROFILE>().Show();
     }
+    gui::knob::RegisterLongPressScreenAction([]() { Screens::Access()->Open(GetScreenMenuExperimentalSettings); }); // new hold action
+    EnableLongHoldScreenAction();
+}
+
+ScreenMenuSettings::~ScreenMenuSettings() {
+    gui::knob::RegisterLongPressScreenAction(old_action); // restore hold action
 }
