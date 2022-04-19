@@ -962,6 +962,16 @@ uint32_t Pause::parkMoveXYPercent(float z_move_len, float xy_move_len) const {
 }
 
 bool Pause::parkMoveXGreaterThanY(const xyz_pos_t &pos0, const xyz_pos_t &pos1) const {
+    xy_bool_t pos_nan;
+    LOOP_XY(axis) {
+        pos_nan.pos[axis] = isnan(pos0.pos[axis]) || isnan(pos1.pos[axis]);
+    }
+
+    if (pos_nan.y)
+        return true;
+    if (pos_nan.x)
+        return false;
+
     return std::abs(pos0.x - pos1.x) > std::abs(pos0.y - pos1.y);
 }
 
@@ -981,12 +991,25 @@ void Pause::park_nozzle_and_notify() {
         do_pause_e_move(settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
 
     const float target_Z = settings.park_pos.z;
-    const bool x_greater_than_y = parkMoveXGreaterThanY(current_position, settings.park_pos);
-    const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
-    const float &end_pos = x_greater_than_y ? settings.park_pos.x : settings.park_pos.y;
-
     const float Z_len = current_position.z - target_Z; // sign does not matter
-    const float XY_len = begin_pos - end_pos;          // sign does not matter
+
+    float XY_len = 0;
+    float begin_pos = 0;
+    float end_pos = 0;
+    const bool x_greater_than_y = parkMoveXGreaterThanY(current_position, settings.park_pos);
+    if (x_greater_than_y) {
+        if (!isnan(settings.park_pos.x)) {
+            begin_pos = axes_need_homing(_BV(X_AXIS)) ? float(X_HOME_POS) : current_position.x;
+            end_pos = settings.park_pos.x;
+            XY_len = begin_pos - end_pos; // sign does not matter
+        }
+    } else {
+        if (!isnan(settings.park_pos.y)) {
+            begin_pos = axes_need_homing(_BV(Y_AXIS)) ? float(Y_HOME_POS) : current_position.y;
+            end_pos = settings.park_pos.y;
+            XY_len = begin_pos - end_pos; // sign does not matter
+        }
+    }
 
     // move by z_lift, scope for Notifier_POS_Z
     if (isfinite(target_Z)) {
@@ -995,29 +1018,33 @@ void Pause::park_nozzle_and_notify() {
         if (wait_or_stop())
             return;
     }
+
     // move to (x_pos, y_pos)
+    if (XY_len != 0) {
+        //home the X or Y axis if it is not homed and we want to move it
+        //homing is after Z move to be clear of all obstacles
+        //Should not affect other operations than Load/Unload/Change filament run from home screen without homing. We are homed during print
+        LOOP_XY(axis) {
+            // TODO: make homeaxis non-blocking to allow quick_stop
+            if (!isnan(settings.park_pos.pos[axis]) && axes_need_homing(_BV(axis)))
+                GcodeSuite::G28_no_parser(false, false, 0, false, axis == X_AXIS, axis == Y_AXIS, false);
+            if (check_user_stop())
+                return;
+            if (isnan(settings.park_pos.pos[axis]))
+                settings.park_pos.pos[axis] = current_position.pos[axis];
+        }
 
-    //home the X or Y axis if it is not homed and we want to move it
-    //homing is after Z move to be clear of all obstacles
-    //Should not affect other operations than Load/Unload/Change filament run from home screen without homing. We are homed during print
-    LOOP_XY(axis) {
-        // TODO: make homeaxis non-blocking to allow quick_stop
-        if (!isnan(settings.park_pos.pos[axis]) && axes_need_homing(_BV(axis)))
-            GcodeSuite::G28_no_parser(false, false, 0, false, axis == X_AXIS, axis == Y_AXIS, false);
-        if (check_user_stop())
-            return;
-    }
-
-    if (x_greater_than_y) {
-        Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
-        plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
-        if (wait_or_stop())
-            return;
-    } else {
-        Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
-        plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
-        if (wait_or_stop())
-            return;
+        if (x_greater_than_y) {
+            Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
+            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+            if (wait_or_stop())
+                return;
+        } else {
+            Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
+            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+            if (wait_or_stop())
+                return;
+        }
     }
 
     report_current_position();
