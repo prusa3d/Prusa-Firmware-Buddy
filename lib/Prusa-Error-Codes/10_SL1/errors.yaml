@@ -13,240 +13,395 @@
 # BOOTLOADER     xx6xx   #
 # WARNINGS       xx7xx   # Category-less warnings
 
-
+# README
+# 1. The indentation of multiline texts must be 2 spaces from the 'text:' field.
 
 Errors:
 # MECHANICAL     101xx   # Mechanical failures, engines XYZ, tower
 - code: "10101"
-  title: "TILT HOME FAILED"
-  text: null
+  title: "TILT HOMING FAILED"
+  text: "Tilt homing failed, check its surroundings and repeat the action."
   id: "TILT_HOME_FAILED"
-  approved: false
+  approved: true
 
 - code: "10102"
-  title: "TOWER HOME FAILED"
-  text: null
+  title: "TOWER HOMING FAILED"
+  text: "Tower homing failed, make sure there is no obstacle in its path and repeat the action."
   id: "TOWER_HOME_FAILED"
-  approved: false
+  approved: true
 
 - code: "10103"
-  title: "TOWER MOVE FAILED"
-  text: null
+  title: "TOWER MOVING FAILED"
+  text: "Moving the tower failed. Make sure there is no obstacle in its path and repeat the action."
   id: "TOWER_MOVE_FAILED"
-  approved: false
+  approved: true
 
+# Deprecated, use FAN_FAILED_ID
 - code: "10106"
-  title: "FAN FAILED"
-  text: null
+  title: "FAN FAILURE"
+  text: "Incorrect RPM reading of the %(failed_fans_text)s fan. Please check its wiring and connection."
   id: "FAN_FAILED"
-  approved: false
+  approved: true
 
 - code: "10108"
   title: "RESIN TOO LOW"
-  text: null
+  text: "Measured resin volume %(volume_ml)d ml is lower than required for this print. Refill the tank and restart the print."
   id: "RESIN_TOO_LOW"
-  approved: false
+  approved: true
 
 - code: "10109"
   title: "RESIN TOO HIGH"
-  text: null
+  text: "Measured resin volume %(volume_ml)d ml is higher than required for this print. Make sure that the resin level does not exceed the 100% mark and restart the print."
   id: "RESIN_TOO_HIGH"
-  approved: false
+  approved: true
 
 - code: "10113"
-  title: "NOT MECHANICALLY CALIBRATED"
-  text: null
+  title: "CALIBRATION ERROR"
+  text: "The printer is not calibrated. Please run the Wizard first."
   id: "NOT_MECHANICALLY_CALIBRATED"
-  approved: false
+  approved: true
 
 - code: "10114"
   title: "TOWER ENDSTOP NOT REACHED"
-  text: "Failed to reach tower endstop"
+  text: "Failed to reach the tower endstop, check that the tower motor is connected and repeat the action."
   id: "TOWER_ENDSTOP_NOT_REACHED"
-  approved: false
+  approved: true
 
 - code: "10115"
   title: "TILT ENDSTOP NOT REACHED"
-  text: "Failed to reach tilt endstop"
+  text: "Failed to reach the tilt endstop, check that the cable is connected and repeat the action."
   id: "TILT_ENDSTOP_NOT_REACHED"
-  approved: false
+  approved: true
 
 - code: "10118"
   title: "TOWER AXIS CHECK FAILED"
   text: "Tower axis check failed!
 
 
-    Current position: %d nm
+    Current position: %(position_nm)d nm
 
 
-    Please check if the ballscrew can move smoothly in its entire range."
+    Check if the ballscrew can move smoothly in its entire range."
   id: "TOWER_AXIS_CHECK_FAILED"
-  approved: false
+  approved: true
 
 - code: "10119"
   title: "TILT AXIS CHECK FAILED"
   text: "Tilt axis check failed!
 
 
-    Current position: %d steps
+    Current position: %(position)d steps
 
 
-    Please check if the tilt can move smoothly in its entire range."
+    Check if the tilt can move smoothly in its entire range."
   id: "TILT_AXIS_CHECK_FAILED"
-  approved: false
+  approved: true
 
 - code: "10120"
   title: "DISPLAY TEST FAILED"
-  text: "Display test failed."
+  text: "Display test failed, check the connection between the display and the A64 board."
   id: "DISPLAY_TEST_FAILED"
-  approved: false
+  approved: true
 
 - code: "10121"
   title: "INVALID TILT ALIGN POSITION"
-  text: "Invalid tilt align position"
+  text: "Invalid tilt alignment position. Check the tilt mechanism and repeat the action."
   id: "INVALID_TILT_ALIGN_POSITION"
   approved: false
 
+# Deprecated, use FAN_RPM_OUT_OF_TEST_RANGE_ID
 - code: "10122"
   title: "FAN RPM OUT OF TEST RANGE"
   text: "RPM of %(fan)s not in range!
 
 
-    Please check if the fan is connected correctly.
+    Check if the fan is connected correctly.
 
 
     RPM data: %(rpm)s
 
-    Average: %(avg)s
-
-    Fan error: %(fanError)s"
+    Average: %(avg)s"
   id: "FAN_RPM_OUT_OF_TEST_RANGE"
-  approved: false
+  approved: true
 
 - code: "10123"
-  title: "TOWER BELOW SURFACE"
+  title: "TOWER POSITION ERROR"
   text: "Tower not at the expected position.
 
 
-    Is the platform and tank secured in correct position?
-
-
-    "
+    Are the platform and tank mounted and secured correctly?"
   id: "TOWER_BELOW_SURFACE"
+  approved: true
+
+- code: "10124"
+  title: "RESIN MEASURING FAILED"
+  text: "Measuring the resin failed. Check the presence of the platform and the amount of resin in the tank."
+  id: "RESIN_MEASURE_FAILED"
   approved: false
 
+- code: "10125"
+  title: "CLEANING ADAPTOR MISSING"
+  text: "Cleaning adaptor was not detected, it does not seem to be correctly attached to the print platform.
+
+  Attach it properly and try again."
+  id: "CLEANING_ADAPTOR_MISSING"
+  approved: false
+
+- code: "10126"
+  title: "FAN FAILURE"
+  text: "Incorrect RPM reading of the %(fan__map_HardwareDeviceId)s. Please check its wiring and connection."
+  id: "FAN_FAILED_ID"
+  approved: true
+
+- code: "10127"
+  title: "FAN RPM OUT OF TEST RANGE"
+  text: "RPM of %(fan__map_HardwareDeviceId)s not in range!
 
 
+    Check if the fan is connected correctly.
+
+
+    RPM data: %(min_rpm)d - %(max_rpm)d
+
+    Average: %(avg_rpm)d (%(lower_bound_rpm)d - %(upper_bound_rpm)d), error: %(error)d"
+  id: "FAN_RPM_OUT_OF_TEST_RANGE_ID"
+  approved: false
 
 # TEMPERATURE    102xx   # Temperature measurement, thermistors, heating
+
+# Deprecated, use TEMP_SENSOR_FAILED_ID
 - code: "10205"
-  title: "TEMP SENSOR FAILED"
-  text: null
+  title: "TEMPERATURE SENSOR FAILED"
+  text: "The %(sensor)s sensor failed. Check the wiring and connection."
   id: "TEMP_SENSOR_FAILED"
-  approved: false
+  approved: true
 
 - code: "10206"
   title: "UVLED HEAT SINK FAILED"
-  text: "UV LED overheating! Check proper heatsink installation."
+  text: "UV LED is overheating! Check whether the heatsink is installed correctly."
   id: "UVLED_HEAT_SINK_FAILED"
+  approved: true
+
+- code: "10207"
+  title: "A64 OVERHEAT"
+  text: "A64 temperature is too high. Measured: %(temperature).1f °C!
+    Shutting down in 10 seconds..."
+  id: "A64_OVERHEAT"
   approved: false
 
+# Deprecated, use TEMPERATURE_OUT_OF_RANGE_ID
+- code: "10208"
+  title: "TEMPERATURE OUT OF RANGE"
+  text: "%(sensor)s not in range!
+    Measured temperature: %(temperature).1f °C.
+    Keep the printer out of direct sunlight at room temperature (18 - 32 °C)."
+  id: "TEMPERATURE_OUT_OF_RANGE"
+  approved: true
+
+- code: "10209"
+  title: "UV LED TEMP. ERROR"
+  text: "Reading of UV LED temperature has failed! This value is essential for the UV LED lifespan and printer safety. Please contact tech support! Current print job will be canceled."
+  id: "UV_TEMP_SENSOR_FAILED"
+  approved: true
+
+- code: "10210"
+  title: "TEMPERATURE SENSOR FAILED"
+  text: "The %(sensor__map_HardwareDeviceId)s sensor failed. Check the wiring and connection."
+  id: "TEMP_SENSOR_FAILED_ID"
+  approved: true
+
+- code: "10211"
+  title: "TEMPERATURE OUT OF RANGE"
+  text: "Reading of %(sensor__map_HardwareDeviceId)s not in range!
 
 
+    Measured temperature: %(temperature).1f °C, allowed range: %(min)d - %(max)d °C.
+
+
+    Keep the printer out of direct sunlight at room temperature (18 - 32 °C)."
+  id: "TEMPERATURE_OUT_OF_RANGE_ID"
+  approved: false
 
 # ELECTRICAL     103xx   # Electrical, MINDA, FINDA, Motion Controller, …
 - code: "10301"
-  title: "MOTION CONTROLLER WRONG REVISION"
-  text: "Wrong revision of the motion controller. Please replace it or contact our support."
+  title: "MC WRONG REVISION"
+  text: "Wrong revision of the Motion Controller (MC). Contact our support."
   id: "MOTION_CONTROLLER_WRONG_REVISION"
-  approved: false
+  approved: true
 
 - code: "10306"
-  title: "MOTION CONTROLLER EXCEPTION"
-  text: null
+  title: "UNEXPECTED MC ERROR"
+  text: "The Motion Controller (MC) has encountered an unexpected error. Restart the printer."
   id: "MOTION_CONTROLLER_EXCEPTION"
-  approved: false
+  approved: true
 
 - code: "10307"
-  title: "RESIN SENSOR FAILED"
-  text: null
+  title: "RESIN SENSOR ERROR"
+  text: "The resin sensor was not triggered. Check whether the tank and the platform are properly secured. Inspect the wiring of the sensor."
   id: "RESIN_SENSOR_FAILED"
   approved: false
 
 - code: "10308"
-  title: "NOT UV CALIBRATED"
-  text: null
+  title: "PRINTER NOT UV CALIBRATED"
+  text: "The printer is not UV calibrated. Connect the UV calibrator and complete the calibration."
   id: "NOT_UV_CALIBRATED"
-  approved: false
+  approved: true
 
 - code: "10309"
-  title: "UVLED VOLTAGE DIFFER TOO MUCH"
-  text: "UV LED voltages differ too much. Possibly LED module is broken."
+  title: "UVLED VOLTAGE ERROR"
+  text: "UV LED voltages differ too much. The LED module might be faulty. Contact our support."
   id: "UVLED_VOLTAGE_DIFFER_TOO_MUCH"
-  approved: false
+  approved: true
 
 - code: "10310"
-  title: "SOUND TEST FAILED"
-  text: "Speaker is broken"
+  title: "SPEAKER TEST FAILED"
+  text: "Speaker test failed, check the connection and repeat the action."
   id: "SOUND_TEST_FAILED"
+  approved: true
+
+- code: "10311"
+  title: "UV LED CALIBRATOR NOT DETECTED"
+  text: "The UV LED calibrator is not detected. Check the connection and try again."
+  id: "UV_LED_METER_NOT_DETECTED"
+  approved: true
+
+- code: "10312"
+  title: "UV LED CALIBRATOR CONNECTION ERROR"
+  text: "Cannot connect to the UV LED calibrator. Check the connection and try again."
+  id: "UV_LED_METER_NOT_RESPONDING"
+  approved: true
+
+- code: "10313"
+  title: "UV LED CALIBRATOR LINK ERROR"
+  text: "Communication with the UV LED calibrator has failed. Check the connection and try again."
+  id: "UV_LED_METER_COMMUNICATION_ERROR"
+  approved: true
+
+- code: "10314"
+  title: "UV LED CALIBRATOR ERROR"
+  text: "The UV LED calibrator detected some light on a dark display. This means there is a light 'leak' under the UV calibrator, or your display does not block the UV light enough. Check the UV calibrator placement on the screen or replace the exposure display."
+  id: "DISPLAY_TRANSLUCENT"
+  approved: true
+
+- code: "10315"
+  title: "UV LED CALIBRATOR READINGS ERROR"
+  text: "The UV LED calibrator failed to read expected UV light intensity. Check the UV calibrator placement on the screen."
+  id: "UNEXPECTED_UV_INTENSITY"
+  approved: true
+
+- code: "10316"
+  title: "UV LED CALIBRATOR UNKNONW ERROR"
+  text: "Unknown UV LED calibrator error code: %(code)d"
+  id: "UNKNOWN_UV_MEASUREMENT_ERROR"
+  approved: true
+
+- code: "10317"
+  title: "UV INTENSITY TOO HIGH"
+  text: "Requested intensity cannot be reached by min. allowed PWM."
+  id: "UV_TOO_BRIGHT"
+  approved: true
+
+- code: "10318"
+  title: "UV INTENSITY TOO LOW"
+  text: "Requested intensity cannot be reached by max. allowed PWM."
+  id: "UV_TOO_DIMM"
+  approved: true
+
+- code: "10319"
+  title: "UV CALIBRATION ERROR"
+  text: "Correct settings were found, but the standard deviation
+
+  (%(found).1f) is greater than the allowed value (%(allowed).1f).
+
+  Verify the UV LED calibrator's position and calibration, then try again."
+  id: "UV_INTENSITY_DEVIATION_TOO_HIGH"
+  approved: true
+
+- code: "10320"
+  title: "BOOSTER BOARD PROBLEM"
+  text: "Communication with the Booster board failed. Check the connection and restart the printer."
+  id: "BOOSTER_ERROR"
   approved: false
 
+- code: "10321"
+  title: "Disconnected UV LED panel"
+  text: "The UV LED panel is not detected. Check the connection."
+  id: "UV_LEDS_DISCONNECTED"
+  approved: false
 
+- code: "10322"
+  title: "Broken UV LED panel"
+  text: "A part of the LED panel is disconnected. Check the connection and the LED panel."
+  id: "UV_LEDS_ROW_FAILED"
+  approved: false
 
+- code: "10323"
+  title: "Unknown printer model"
+  text: "The printer model was not detected. Check the connection of the exposure display and restart the printer."
+  id: "UNKNOWN_PRINTER_MODEL"
+  approved: false
 
 # CONNECTIVITY   104xx   # Connectivity - Wi - Fi, LAN, Prusa Connect Cloud
 - code: "10401"
-  title: "MQTT SEND FAILED"
-  text: "Cannot send factory config to MQTT!"
+  title: "MQTT UPLOAD FAILED"
+  text: "Cannot send factory config to the database (MQTT)! Check the network connection. Please, contact support."
   id: "MQTT_SEND_FAILED"
-  approved: false
+  approved: true
 
 - code: "10402"
-  title: "NOT CONNECTED TO NETWORK"
-  text: null
+  title: "NO INTERNET CONNECTION"
+  text: "The printer is not connected to the internet. Check the connection in the Settings."
   id: "NOT_CONNECTED_TO_NETWORK"
-  approved: false
+  approved: true
 
 - code: "10403"
   title: "CONNECTION FAILED"
-  text: null
+  text: "Connection to Prusa servers failed, please try again later."
   id: "CONNECTION_FAILED"
-  approved: false
+  approved: true
 
 - code: "10404"
   title: "DOWNLOAD FAILED"
-  text: null
+  text: "The download failed. Check the connection to the internet and try again."
   id: "DOWNLOAD_FAILED"
+  approved: true
+
+- code: "10405"
+  title: "INVALID API KEY"
+  text: "Please turn on the HTTP digest (which is the recommended security option) or update the API key. You can find it in Settings > Network > Login credentials."
+  id: "INVALID_API_KEY"
   approved: false
 
+- code: "10406"
+  title: "UNAUTHORIZED"
+  text: "The printer uses HTTP digest security. Please enable it also in your slicer (recommended), or turn off this security option in the printer. You can find it in Settings > Network > Login credentials."
+  id: "UNAUTHORIZED"
+  approved: false
 
-
+- code: "10407"
+  title: "REMOTE API ERROR"
+  text: "This request is not compatible with the Prusa remote API. See our documentation for more details."
+  id: "REMOTE_API_ERROR"
+  approved: false
 
 # SYSTEM         105xx   # System - BSOD, ...
 - code: "10500"
-  title: "NONE"
-  text: "No problem"
+  title: "PRINTER IS OK"
+  text: "No problem detected. You can continue using the printer."
   id: "NONE"
-  approved: false
+  approved: true
 
 - code: "10501"
-  title: "UNKNOWN"
-  text: "An unexpected error has occurred :-(.
+  title: "UNEXPECTED ERROR"
+  text: "An unexpected error has occurred.
 
-
-    If the SL1 is printing, current job will be finished.
-
+    If print job is in progress, it should be finished.
 
     You can turn the printer off by pressing the front power button.
 
-
-    Please follow the instructions in Chapter 3.1 in the handbook to learn how to
-    save a log file. Please send the log to us and help us improve the printer.
-
-
-    Thank you!"
+    See the handbook to learn how to save a log file and send it to us."
   id: "UNKNOWN"
-  approved: false
+  approved: true
 
 - code: "10503"
   title: "PRELOAD FAILED"
@@ -254,186 +409,395 @@ Errors:
   id: "PRELOAD_FAILED"
   approved: false
 
+# in 1.5.x, obsoleted by PROJECT_ERROR_* in 1.6.x
 - code: "10504"
-  title: "PROJECT FAILED"
-  text: null
+  title: "OPENING PROJECT FAILED"
+  text: "Opening the project failed, the file may be corrupted. Re-slice or re-export the project and try again."
   id: "PROJECT_FAILED"
-  approved: false
+  approved: true
 
 - code: "10505"
-  title: "CONFIG EXCEPTION"
-  text: "Failed to read configuration file"
+  title: "CONFIG FILE READ ERROR"
+  text: "Failed to read the configuration file. Try to reset the printer. If the problem persists, contact our support."
   id: "CONFIG_EXCEPTION"
-  approved: false
+  approved: true
 
 - code: "10506"
-  title: "NOT AVAILABLE IN STATE"
-  text: null
+  title: "PRINTER IS BUSY"
+  text: "Another action is already running. Finish this action directly using the printer's touchscreen."
   id: "NOT_AVAILABLE_IN_STATE"
-  approved: false
+  approved: true
 
 - code: "10507"
-  title: "DBUS MAPPING ERROR"
-  text: null
+  title: "INTERNAL ERROR"
+  text: "Internal error (DBUS mapping failed), restart the printer. Contact support if the problem persists."
   id: "DBUS_MAPPING_ERROR"
-  approved: false
+  approved: true
 
 - code: "10508"
-  title: "REPRINT WITHOUT HISTORY"
-  text: null
+  title: "NO FILE TO REPRINT"
+  text: "Error, there is no file to reprint."
   id: "REPRINT_WITHOUT_HISTORY"
-  approved: false
+  approved: true
 
 - code: "10509"
-  title: "MISSING WIZARD DATA"
+  title: "WIZARD FAILED"
   text: "The wizard did not finish successfully!"
   id: "MISSING_WIZARD_DATA"
-  approved: false
+  approved: true
 
 - code: "10510"
-  title: "MISSING CALIBRATION DATA"
-  text: "The calibration did not finish successfully!"
+  title: "CALIBRATION FAILED"
+  text: "The calibration did not finish successfully! Run the calibration again."
   id: "MISSING_CALIBRATION_DATA"
-  approved: false
+  approved: true
 
 - code: "10511"
-  title: "MISSING UVCALIBRATION DATA"
-  text: "The automatic UV LED calibration did not finish successfully!"
-  id: "MISSING_UVCALIBRATION_DATA"
-  approved: false
+  title: "UV CALIBRATION FAILED"
+  text: "The automatic UV LED calibration did not finish successfully! Run the calibration again."
+  id: "MISSING_UV_CALIBRATION_DATA"
+  approved: true
 
 - code: "10512"
-  title: "MISSING UVPWM SETTINGS"
-  text: null
+  title: "UV INTENSITY ERROR"
+  text: "UV intensity not set. Please run the UV calibration before starting a print."
   id: "MISSING_UVPWM_SETTINGS"
-  approved: false
+  approved: true
 
 - code: "10513"
-  title: "FAILED UPDATE CHANNEL SET"
-  text: "Cannot set update channel"
+  title: "SETTING UPDATE CHANNEL FAILED"
+  text: "Cannot set the update channel. Restart the printer and try again."
   id: "FAILED_UPDATE_CHANNEL_SET"
-  approved: false
+  approved: true
 
 - code: "10514"
-  title: "FAILED UPDATE CHANNEL GET"
-  text: null
+  title: "UPDATE CHANNEL FAILED"
+  text: "Cannot get the update channel. Restart the printer and try again."
   id: "FAILED_UPDATE_CHANNEL_GET"
-  approved: false
+  approved: true
 
 - code: "10515"
-  title: "WARNING ESCALATION"
-  text: null
+  title: "PRINT JOB CANCELLED"
+  text: "The print job cancelled by the user."
   id: "WARNING_ESCALATION"
-  approved: false
+  approved: true
 
+# sl1fw/project/project.py
+# somewhere (filemanager?)
 - code: "10516"
-  title: "NOT ENOUGH INTERNAL SPACE"
-  text: null
+  title: "INTERNAL MEMORY FULL"
+  text: "Internal memory is full. Delete some of your projects first."
   id: "NOT_ENOUGH_INTERNAL_SPACE"
-  approved: false
+  approved: true
 
 - code: "10517"
   title: "ADMIN NOT AVAILABLE"
-  text: null
+  text: "The admin menu is not available."
   id: "ADMIN_NOT_AVAILABLE"
-  approved: false
+  approved: true
 
+# sl1fw/project/project.py
+# filemanager
 - code: "10518"
   title: "FILE NOT FOUND"
-  text: "Cannot find a file!"
+  text: "Cannot find the selected file!"
   id: "FILE_NOT_FOUND"
-  approved: false
+  approved: true
 
 - code: "10519"
-  title: "INVALID EXTENSION"
-  text: "File has an invalid extension!"
+  title: "INVALID FILE EXTENSION"
+  text: "File has an invalid extension! See the article for supported file extensions."
   id: "INVALID_EXTENSION"
-  approved: false
+  approved: true
 
 - code: "10520"
   title: "FILE ALREADY EXISTS"
-  text: "File already exists!"
+  text: "File already exists! Delete it in the printer first and try again."
   id: "FILE_ALREADY_EXISTS"
-  approved: false
+  approved: true
 
 - code: "10521"
   title: "INVALID PROJECT"
   text: "The project file is invalid!"
   id: "INVALID_PROJECT"
-  approved: false
+  approved: true
 
 - code: "10522"
-  title: "WIZARD NOT CANCELABLE"
-  text: "This wizard cannot be canceled"
+  title: "YOU SHALL NOT PASS"
+  text: "This Wizard cannot be canceled, finish the steps first."
   id: "WIZARD_NOT_CANCELABLE"
+  approved: true
+
+- code: "10523"
+  title: "PRINT EXAMPLES MISSING"
+  text: "Examples (any projects) are missing in the user storage. Redownload them from the 'Settings' menu."
+  id: "MISSING_EXAMPLES"
+  approved: true
+
+- code: "10524"
+  title: "CALIBRATION LOAD FAILED"
+  text: "Failed to load fans and LEDs factory calibration."
+  id: "FAILED_TO_LOAD_FACTORY_LEDS_CALIBRATION"
+  approved: true
+
+- code: "10525"
+  title: "DATA PREPARATION FAILURE"
+  text: "Failed to serialize Wizard data. Restart the printer and try again."
+  id: "FAILED_TO_SERIALIZE_WIZARD_DATA"
+  approved: true
+
+- code: "10526"
+  title: "WIZARD DATA FAILURE"
+  text: "Failed to save Wizard data. Restart the printer and try again."
+  id: "FAILED_TO_SAVE_WIZARD_DATA"
+  approved: true
+
+- code: "10527"
+  title: "SERIAL NUMBER ERROR"
+  text: "Serial numbers in wrong format!
+    A64: %(a64)s
+    MC: %(mc)s
+    Please contact tech support!"
+  id: "SERIAL_NUMBER_IN_WRONG_FORMAT"
+  approved: true
+
+- code: "10528"
+  title: "USB DRIVE NOT DETECTED"
+  text: "No USB storage present"
+  id: "NO_EXTERNAL_STORAGE"
+  approved: true
+
+- code: "10529"
+  title: "SETTING LOG DETAIL FAILED"
+  text: "Failed to change the log level (detail). Restart the printer and try again."
+  id: "FAILED_TO_SET_LOGLEVEL"
+  approved: true
+
+- code: "10530"
+  title: "DATA OVERWRITE FAILED"
+  text: "Saving the new factory default value failed. Restart the printer and try again."
+  id: "FAILED_TO_SAVE_FACTORY_DEFAULTS"
+  approved: true
+
+- code: "10531"
+  title: "DISPLAY TEST ERROR"
+  text: "Error displaying test image."
+  id: "FAILED_TO_DISPLAY_IMAGE"
+  approved: true
+
+- code: "10532"
+  title: "NO UV CALIBRATION DATA"
+  text: "No calibration data to show!"
+  id: "NO_UV_CALIBRATION_DATA"
+  approved: true
+
+- code: "10533"
+  title: "UV DATA EROR"
+  text: "Data is from unknown UV LED sensor!"
+  id: "DATA_FROM_UNKNOWN_UV_SENSOR"
+  approved: true
+
+- code: "10534"
+  title: "FIRMWARE UPDATE FAILED"
+  text: "The update of the firmware failed! Restart the printer and try again."
+  id: "UPDATE_FAILED"
+  approved: true
+
+- code: "10535"
+  title: "Display usage error"
+  text: "No display usage data to show"
+  id: "NO_DISPLAY_USAGE_DATA"
+  approved: true
+
+- code: "10536"
+  title: "HOSTNAME ERROR"
+  text: "Failed to set hostname"
+  id: "FAILED_TO_SET_HOSTNAME"
+  approved: true
+
+- code: "10537"
+  title: "PROFILE IMPORT ERROR"
+  text: "Cannot import profile"
+  id: "FAILED_PROFILE_IMPORT"
+  approved: true
+
+- code: "10538"
+  title: "PROFILE EXPORT ERROR"
+  text: "Cannot export profile"
+  id: "FAILED_PROFILE_EXPORT"
+  approved: true
+
+# sl1fw/project/project.py
+- code: "10539"
+  title: "CANNOT READ PROJECT"
+  text: "Opening the project failed. The file is possibly corrupted. Please re-slice or re-export the project and try again."
+  id: "PROJECT_ERROR_CANT_READ"
   approved: false
 
+# sl1fw/project/project.py
+- code: "10540"
+  title: "NOT ENOUGHT LAYERS"
+  text: "The project must have at least one layer"
+  id: "PROJECT_ERROR_NOT_ENOUGH_LAYERS"
+  approved: false
 
+# sl1fw/project/project.py
+- code: "10541"
+  title: "PROJECT IS CORRUPTED"
+  text: "Opening the project failed. The file is corrupted. Please re-slice or re-export the project and try again."
+  id: "PROJECT_ERROR_CORRUPTED"
+  approved: false
+
+# sl1fw/project/project.py
+- code: "10542"
+  title: "PROJECT ANALYSIS FAILED"
+  text: "Analysis of the project failed"
+  id: "PROJECT_ERROR_ANALYSIS_FAILED"
+  approved: false
+
+# sl1fw/project/project.py
+- code: "10543"
+  title: "CALIBRATION PROJECT IS INVALID"
+  text: "Calibration project is invalid"
+  id: "PROJECT_ERROR_CALIBRATION_INVALID"
+  approved: false
+
+# sl1fw/project/project.py
+- code: "10544"
+  title: "WRONG PRINTER MODEL"
+  text: "This project was prepared for a different printer"
+  id: "PROJECT_ERROR_WRONG_PRINTER_MODEL"
+  approved: false
+
+  # sl1fw_fs/sources.py
+- code: "10545"
+  title: "CANNOT REMOVE PROJECT"
+  text: "Removing this project is not possible. The project is locked by a print job."
+  id: "PROJECT_ERROR_CANT_REMOVE"
+  approved: false
+
+- code: "10546"
+  title: "DIRECTORY NOT EMPTY"
+  text: "The directory is not empty."
+  id: "DIRECTORY_NOT_EMPTY"
+  approved: false
+
+- code: "10547"
+  title: "LANGUAGE NOT SET"
+  text: "The language is not set. Go to Settings -> Language & Time -> Set Language and pick preferred language."
+  id: "LANGUAGE_ERROR"
+  approved: false
+
+- code: "10548"
+  title: "OLD EXPO PANEL"
+  text: "Exposure screen that is currently connected has already been used on this printer. This screen was last used for approximately %(counter_h)d hours.
+
+
+    If you do not want to use this screen: turn the printer off, replace the screen and turn the printer back on."
+  id: "OLD_EXPO_PANEL"
+  approved: false
+
+# BOOTLOADER     xx6xx   #
+- code: "10601"
+  title: "BOOTED SLOT CHANGED"
+  text: "The printer has booted from an alternative slot due to failed boot attempts using the primary slot.
+
+    Update the printer with up-to-date firmware ASAP to recover the primary slot.
+
+    This usually happens after a failed update, or due to a hardware failure. Printer settings may have been reset."
+  id: "ALTERNATIVE_SLOT_BOOT"
+  approved: true
 
 
 # WARNINGS       107xx   # Category-less warnings
 - code: "10700"
-  title: "NONE WARNING"
-  text: "No warning"
+  title: "NO WARNING"
+  text: "There is no warning"
   id: "NONE_WARNING"
-  approved: false
+  approved: true
 
 - code: "10701"
   title: "UNKNOWN WARNING"
-  text: "Unknown warning"
+  text: "An unknown warning has occured. Restart the printer and try again. Contact our tech support if the problem persists."
   id: "UNKNOWN_WARNING"
-  approved: false
+  approved: true
 
 - code: "10702"
-  title: "AMBIENT TOO HOT WARNING"
-  text: null
+  title: "AMBIENT TEMP. TOO HIGH"
+  text: "The ambient temperature is too high, the print can continue, but it might fail."
   id: "AMBIENT_TOO_HOT_WARNING"
-  approved: false
+  approved: true
 
 - code: "10703"
-  title: "AMBIENT TOO COLD WARNING"
-  text: null
+  title: "AMBIENT TEMP. TOO LOW"
+  text: "The ambient temperature is too low, the print can continue, but it might fail."
   id: "AMBIENT_TOO_COLD_WARNING"
-  approved: false
+  approved: true
 
 - code: "10704"
-  title: "PRINTING DIRECTLY WARNING"
-  text: null
+  title: "CAN'T COPY PROJECT"
+  text: "The internal memory is full, project cannot be copied. You can continue printing. However, you must not remove the USB drive during the print, otherwise the process will fail."
   id: "PRINTING_DIRECTLY_WARNING"
-  approved: false
+  approved: true
 
+# in 1.5.x, obsoleted by PRINTER_VARIANT_MISMATCH_WARNING in 1.6.x
 - code: "10705"
-  title: "PRINTER MODEL MISMATCH WARNING"
-  text: null
+  title: "INCORRECT PRINTER MODEL"
+  text: "The model was sliced for a different printer model. Reslice the model using the correct settings."
   id: "PRINTER_MODEL_MISMATCH_WARNING"
-  approved: false
+  approved: true
 
 - code: "10706"
-  title: "RESIN NOT ENOUGH WARNING"
-  text: null
+  title: "NOT ENOUGH RESIN"
+  text: "The amount of resin in the tank is not enough for the current project. Adding more resin will be required during the print."
   id: "RESIN_NOT_ENOUGH_WARNING"
-  approved: false
+  approved: true
 
 - code: "10707"
-  title: "PROJECT SETTINGS MODIFIED WARNING"
-  text: null
+  title: "PARAMETERS OUT OF RANGE"
+  text: "The print parameters are out of range of the printer, the system can try to fix the project. Proceed?"
   id: "PROJECT_SETTINGS_MODIFIED_WARNING"
-  approved: false
+  approved: true
 
 - code: "10708"
   title: "PERPARTES NOAVAIL WARNING"
-  text: null
+  text: "Per-partes print not available."
   id: "PERPARTES_NOAVAIL_WARNING"
   approved: false
 
 - code: "10709"
   title: "MASK NOAVAIL WARNING"
-  text: null
+  text: "Print mask is missing."
   id: "MASK_NOAVAIL_WARNING"
   approved: false
 
 - code: "10710"
-  title: "OBJECT TRUNCATED WARNING"
-  text: null
-  id: "OBJECT_TRUNCATED_WARNING"
+  title: "OBJECT CROPPED WARNING"
+  text: "Object was cropped because it does not fit the print area."
+  id: "OBJECT_CROPPED_WARNING"
+  approved: false
+
+# sl1fw/project/project.py
+- code: "10711"
+  title: "PRINTER VARIANT MISMATCH WARNING"
+  text: "The model was sliced for a different printer variant %(project_variant)s. Your printer variant is %(printer_variant)s."
+  id: "PRINTER_VARIANT_MISMATCH_WARNING"
+  approved: false
+
+- code: "10712"
+  title: "RESIN LOW"
+  text: "Measured resin volume is too low. The print can continue, however, a refill might be required."
+  id: "RESIN_LOW"
+  approved: false
+
+- code: "10713"
+  title: "FAN WARNING"
+  text: "Incorrect RPM reading of the %(failed_fans_text)s fan. Please check its wiring and connection."
+  id: "FAN_WARNING"
+  approved: false
+
+- code: "10714"
+  title: "EXPECT OVERHEATING"
+  text: "Incorrect RPM reading of the %(failed_fans_text)s fan. Please check its wiring. The print may continue, however, there's a risk of overheating."
+  id: "EXPECT_OVERHEATING"
   approved: false
