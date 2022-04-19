@@ -33,6 +33,7 @@
 #include "../gcode/gcode.h"
 
 #include "../inc/MarlinConfig.h"
+#include "../Marlin.h"
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
 #include "minda_broken_cable_detection.h"
