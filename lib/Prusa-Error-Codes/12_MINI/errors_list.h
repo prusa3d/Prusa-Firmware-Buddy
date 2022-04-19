@@ -21,6 +21,7 @@ typedef enum : uint16_t {
     ERR_TEMPERATURE_MIN_NOZZLE,
 
     ERR_ELECTRO = 300,
+    ERR_ELECTRO_HOMING_ERROR = 301,
 
     ERR_CONNECT = 400,
 
@@ -85,4 +86,10 @@ static constexpr err_t error_list[] = {
         // r=5, c=20
         N_("Check the print head thermistor wiring for possible damage."),
         ERR_TEMPERATURE_MIN_NOZZLE },
+
+    // r=1, c=19
+    { N_("HOMING ERROR"),
+        // r=5, c=20
+        N_("SuperPINDA sensor is probably broken or disconnected, could not home Z-axis properly."),
+        ERR_ELECTRO_HOMING_ERROR },
 };
