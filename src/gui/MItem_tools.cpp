@@ -558,6 +558,25 @@ void MI_FAN_CHECK::OnChange(size_t old_index) {
     eeprom_set_bool(EEVAR_FAN_CHECK_ENABLED, marlin_get_bool(MARLIN_VAR_FAN_CHECK_ENABLED));
 }
 
+/**************************************************************************/
+// WI_INFO_t
+
+MI_IP4_ADDR::MI_IP4_ADDR()
+    : WI_INFO_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_IP4_NMSK::MI_IP4_NMSK()
+    : WI_INFO_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_IP4_GWAY::MI_IP4_GWAY()
+    : WI_INFO_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_MAC_ADDR::MI_MAC_ADDR()
+    : WI_INFO_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
 /*****************************************************************************/
 //MI_FS_AUTOLOAD
 is_hidden_t hide_autoload_item() {

@@ -83,6 +83,7 @@ struct GuiDefaults {
     static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4; // maximum number of radio buttons
 
     // Menu settings
+    static constexpr EFooter MenuFooter = EFooter::On; // Menu has footer or not
     static constexpr size_t MenuIconWidth = 25;
 
     // Menu text settings

@@ -132,13 +132,25 @@ void MI_ESP_UPDATE::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_LAN_SETTINGS
-MI_LAN_SETTINGS::MI_LAN_SETTINGS()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+//MI_ETH_SETTINGS
+MI_ETH_SETTINGS::MI_ETH_SETTINGS()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    SetIconId(IDR_PNG_lan_16px);
 }
 
-void MI_LAN_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuLanSettings);
+void MI_ETH_SETTINGS::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuEthernetSettings);
+}
+
+/*****************************************************************************/
+//MI_WIFI_SETTINGS
+MI_WIFI_SETTINGS::MI_WIFI_SETTINGS()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    SetIconId(IDR_PNG_wifi_16px);
+}
+
+void MI_WIFI_SETTINGS::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuWifiSettings);
 }
 
 /*****************************************************************************/
@@ -262,6 +274,17 @@ MI_PRUSALINK::MI_PRUSALINK()
 
 void MI_PRUSALINK::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenPrusaLink);
+}
+
+/**********************************************************************************************/
+// MI_NETWORK
+
+MI_NETWORK::MI_NETWORK()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_NETWORK::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuNetwork);
 }
 
 //MI_EXPERIMENTAL_SETTINGS

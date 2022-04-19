@@ -435,6 +435,37 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
+/******************************************************************/
+// WI_INFO_t
+
+class MI_IP4_ADDR : public WI_INFO_t {
+    static constexpr const char *const label = N_("IPv4 Address");
+
+public:
+    MI_IP4_ADDR();
+};
+
+class MI_IP4_NMSK : public WI_INFO_t {
+    static constexpr const char *const label = N_("IPv4 Netmask");
+
+public:
+    MI_IP4_NMSK();
+};
+
+class MI_IP4_GWAY : public WI_INFO_t {
+    static constexpr const char *const label = N_("IPv4 Gateway");
+
+public:
+    MI_IP4_GWAY();
+};
+
+class MI_MAC_ADDR : public WI_INFO_t {
+    static constexpr const char *const label = N_("MAC Address");
+
+public:
+    MI_MAC_ADDR();
+};
+
 class MI_FS_AUTOLOAD : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("FS autoload");
 

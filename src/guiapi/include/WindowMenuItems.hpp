@@ -11,6 +11,7 @@
 #include "WindowMenuLabel.hpp"
 #include "WindowMenuSpin.hpp"
 #include "WindowMenuSwitch.hpp"
+#include "WindowMenuInfo.hpp"
 #include "resource.h"
 
 // most common version of WI_SWITCH with on/off options

@@ -785,6 +785,7 @@ if(GUI)
             src/gui/screen_menu_fw_update.cpp
             src/gui/screen_menu_esp_update.cpp
             src/gui/screen_menu_eeprom.cpp
+            src/gui/screen_menu_network.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp
@@ -862,7 +863,9 @@ if(GUI)
             src/gui/MItem_tools.cpp
             src/gui/MItem_filament.cpp
             src/gui/MItem_eeprom.cpp
+            src/gui/MItem_lan.cpp
             src/gui/MItem_experimental_tools.cpp
+            src/gui/network_gui_tools.cpp
             src/guiapi/src/knob_event.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp

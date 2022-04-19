@@ -30,7 +30,7 @@ public:
     WI_INFO_t(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, uint16_t id_icon = 0);
 
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
-    virtual void click(IWindowMenu &window_menu) final {}
+    virtual void click(IWindowMenu &window_menu) {}
     invalidate_t ChangeInformation(const char *str);
 };
 

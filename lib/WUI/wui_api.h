@@ -121,6 +121,16 @@ uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
 *******************************************************************************************/
 void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config);
 
+/*!****************************************************************************
+* \brief Retrieves the MAC address of the requested device.
+*
+* \param [out] dest - static MAC address null-terminated string. May be an
+*   empty string when the requested device is NETDEV_NODEV_ID or when ESP is not
+*   available and its MAC is requested.
+* \param [in] netdev_id - which device's address to get.
+******************************************************************************/
+void get_MAC_address(mac_address_t *dest, uint32_t netdev_id);
+
 /*!*********************************************************************************************************************
 * \brief Parses time from device's time storage to seconds. MONTHS are from 0 and YEARS are from 1900
 *
