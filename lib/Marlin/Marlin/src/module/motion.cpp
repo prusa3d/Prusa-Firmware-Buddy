@@ -1906,7 +1906,7 @@ void prepare_line_to_destination() {
       if (axis_home_min_diff[axis] <= probe_offset && probe_offset <= axis_home_max_diff[axis]) return; // OK offset in range 
     }
     
-    kill("HOMING ERROR"); // not OK run out attempts
+    kill(GET_TEXT(MSG_ERR_HOMING)); // not OK run out attempts
   #else // HOMING_MAX_ATTEMPTS 
     homeaxis_single_run(axis, axis_home_dir);
   #endif // HOMING_MAX_ATTEMPTS
