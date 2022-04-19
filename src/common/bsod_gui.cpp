@@ -301,6 +301,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     //*((unsigned short *)(DUMP_INFO_ADDR + 1)) = code;
 
     /// Decision tree to define error code
+    using namespace Language_en;
     if (module == nullptr) {
         /// TODO share these strings (saves ~100 B of binary size)
         if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
@@ -309,10 +310,10 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
             *perror_code_short = 510;
         } else if (strcmp("Inactive time kill", error) == 0) {
             *perror_code_short = 0;
+        } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
+            *perror_code_short = 301;
         }
     } else {
-        using namespace Language_en;
-
         if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
             *perror_code_short = 201;
         } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {

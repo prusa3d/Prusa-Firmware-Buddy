@@ -1579,6 +1579,8 @@ int _is_thermal_error(PGM_P const msg) {
         return 1;
     if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED)))
         return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_HOMING)))
+        return 1;
     return 0;
 }
 
