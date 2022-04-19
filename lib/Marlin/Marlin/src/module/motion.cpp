@@ -32,6 +32,7 @@
 #include "../gcode/gcode.h"
 #include "../lcd/marlinui.h"
 #include "../inc/MarlinConfig.h"
+#include "../Marlin.h"
 
 #if IS_SCARA
   #include "../libs/buzzer.h"
