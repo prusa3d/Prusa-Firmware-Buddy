@@ -4,6 +4,9 @@
 #include "guitypes.h"
 #include <optional>
 
+enum class EFooter { Off,
+    On };
+
 template <class T>
 struct point_t {
     T x;

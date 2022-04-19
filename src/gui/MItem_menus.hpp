@@ -135,11 +135,21 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_LAN_SETTINGS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Lan Settings");
+class MI_ETH_SETTINGS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Ethernet");
 
 public:
-    MI_LAN_SETTINGS();
+    MI_ETH_SETTINGS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_WIFI_SETTINGS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("WiFi");
+
+public:
+    MI_WIFI_SETTINGS();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -271,6 +281,16 @@ class MI_PRUSALINK : public WI_LABEL_t {
 
 public:
     MI_PRUSALINK();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_NETWORK : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Network");
+
+public:
+    MI_NETWORK();
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;

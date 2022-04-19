@@ -11,9 +11,6 @@
 #include "screen.hpp"
 #include <new>
 
-enum class EFooter { Off,
-    On };
-
 //parent to not repeat code in templates
 class IScreenMenu : public AddSuperWindow<screen_t> {
 protected:
