@@ -19,8 +19,8 @@ add_gzip_resource(
   )
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.c48455fc2bcab5869b42.css" "/web/main.c48455fc2bcab5869b42.css")
-add_gzip_resource("web/main.fe527c77bf690983def6.js" "/web/main.fe527c77bf690983def6.js")
+add_gzip_resource("web/main.bc1934e59afb2632b5e1.css" "/web/main.bc1934e59afb2632b5e1.css")
+add_gzip_resource("web/main.d3cb1ed0b5a3ee022571.js" "/web/main.d3cb1ed0b5a3ee022571.js")
 
 # generate header with hash
 set(RESOURCES_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
