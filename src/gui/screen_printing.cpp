@@ -551,6 +551,7 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::PRINTING;
         break;
     case mpsAborted:
+        stop_pressed = false;
         st = printing_state_t::PRINTED;
         break;
     case mpsFinished:
