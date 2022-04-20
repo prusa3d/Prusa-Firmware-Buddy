@@ -119,6 +119,9 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_USEVAL() {
         // this MakeRAM is safe - buff is allocated in RAM for the lifetime of MsgBox
         if (MsgBox(string_view_utf8::MakeRAM((const uint8_t *)buff), Responses_YesNo) == Response::No) {
             eeprom_set_z_offset(z_offset_def);
+
+            auto var = variant8_flt(z_offset_def);
+            marlin_set_var(MARLIN_VAR_Z_OFFSET, var);
             if (!eeprom_set_z_offset(z_offset_def)) {
                 bsod("Z offset write failed");
             }
