@@ -69,6 +69,45 @@ namespace {
         return 1;
     }
 
+    // Some of the dev boards are not properly flashed and have garbage in there.
+    // We try to guess that by looking for "invalid" characters in the serial
+    // number. We err on the side of accepting something that's not valid SN, we
+    // just want to make sure to have something somewhat usable come out of the dev
+    // board.
+    static bool serial_valid(const char *sn) {
+        for (const char *c = sn; *c; c++) {
+            if (!isalnum(*c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // "Make up" some semi-unique, semi-stable serial number.
+    static uint8_t synthetic_serial(char sn[SER_NUM_BUFR_LEN]) {
+        memset(sn, 0, SER_NUM_BUFR_LEN);
+        strlcpy(sn, "DEVX", SER_NUM_BUFR_LEN);
+        // Make sure different things generated based on these data produce different hashes.
+        static const char salt[] = "Nj20je98gje";
+        mbedtls_sha256_context ctx;
+        mbedtls_sha256_init(&ctx);
+        mbedtls_sha256_starts_ret(&ctx, false);
+        mbedtls_sha256_update_ret(&ctx, (const uint8_t *)salt, sizeof salt);
+        uint32_t timestamp = otp_get_timestamp();
+        mbedtls_sha256_update_ret(&ctx, (const uint8_t *)&timestamp, sizeof timestamp);
+        mbedtls_sha256_update_ret(&ctx, otp_get_STM32_UUID()->uuid, sizeof(otp_get_STM32_UUID()->uuid));
+        mbedtls_sha256_update_ret(&ctx, (const uint8_t *)salt, sizeof salt);
+        uint8_t hash[32];
+        mbedtls_sha256_finish_ret(&ctx, hash);
+        mbedtls_sha256_free(&ctx);
+        const size_t offset = 4;
+        for (size_t i = 0; i < 15; i++) {
+            // With 25 letters in the alphabet, this should provide us with nice
+            // readable characters.
+            sn[i + offset] = 'a' + (hash[i] & 0x0f);
+        }
+        return 20;
+    }
 }
 
 void core_interface::get_data(device_params_t *params) {
@@ -152,22 +191,11 @@ std::optional<Error> core_interface::get_printer_info(printer_info_t *printer_in
 
     printer_info->serial_number[8] = 'X';
     printer_info->serial_number[12] = 'X';
-
-    for (int i = 4; i < 8; i++) {
-        if (!isdigit(printer_info->serial_number[i]))
-            printer_info->serial_number[i] = '0';
-    }
-
-    for (int i = 9; i < 12; i++) {
-        if (!isdigit(printer_info->serial_number[i]))
-            printer_info->serial_number[i] = '0';
-    }
-
-    for (int i = 14; i < 19; i++) {
-        if (!isdigit(printer_info->serial_number[i]))
-            printer_info->serial_number[i] = '0';
-    }
     printer_info->serial_number[SER_NUM_STR_LEN] = 0;
+
+    if (!serial_valid(printer_info->serial_number)) {
+        synthetic_serial(printer_info->serial_number);
+    }
 
     // Prusa connect requires 16 long fingerprint. Printer code is 8 characters.
     // Copy printer code behind itself to make it 16 characters long.

@@ -13,3 +13,13 @@ const char *otp_get_mac_address_str() {
     }
     return mac_address_str;
 }
+
+uint32_t otp_get_timestamp() {
+    // timestamp (seconds since 1970, little-endian)
+    const uint32_t *timestamp = (const uint32_t *)OTP_BOARD_TIME_STAMP_ADDR;
+    return *timestamp; // we are safe returning a DWORD as it is 4-bytes aligned
+}
+
+const STM32_UUID *otp_get_STM32_UUID() {
+    return (const STM32_UUID *)OTP_STM32_UUID_ADDR;
+}
