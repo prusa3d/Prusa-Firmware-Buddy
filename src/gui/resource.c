@@ -57,7 +57,8 @@
 #include "res/cc/png_folder_shape_16px.c" //IDR_PNG_folder_shape_16px
 #include "res/cc/png_folder_open_16px.c"  //IDR_PNG_folder_open_16px
 
-#include "res/cc/png_pepa_64px.c" //IDR_PNG_pepa_64px
+#include "res/cc/png_pepa_64px.c"        //IDR_PNG_pepa_64px
+#include "res/cc/png_wifi_large_64x64.c" //IDR_PNG_wifi_large_64x64 // TODO generate with script
 
 #include "res/cc/png_dash_18px.c"            //IDR_PNG_dash_18px
 #include "res/cc/png_ok_color_18px.c"        //IDR_PNG_ok_color_18px
@@ -165,6 +166,7 @@ RESOURCE_ENTRY_PNG(png_folder_shape_16px)
 RESOURCE_ENTRY_PNG(png_folder_open_16px)
 
 RESOURCE_ENTRY_PNG(png_pepa_64px)
+RESOURCE_ENTRY_PNG(png_wifi_large_64x64)
 
 RESOURCE_ENTRY_PNG(png_dash_18px)
 RESOURCE_ENTRY_PNG(png_ok_color_18px)
