@@ -1,6 +1,11 @@
 // otp.h - OTP memory mapping
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdint.h>
 #include <inttypes.h>
 
 enum {
@@ -29,7 +34,17 @@ enum {
     OTP_STM32_UUID_SIZE = 12,
 };
 
+typedef struct {
+    uint8_t uuid[12];
+} STM32_UUID;
+
 #define otp_lock_sector0 (*((uint8_t *)OTP_LOCK_BLOCK_ADDR))
 
 /// Returns MAC address formatted as "XX:XX:XX:XX:XX:XX" string
 const char *otp_get_mac_address_str();
+uint32_t otp_get_timestamp();
+const STM32_UUID *otp_get_STM32_UUID();
+
+#ifdef __cplusplus
+}
+#endif
