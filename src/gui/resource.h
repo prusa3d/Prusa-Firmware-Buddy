@@ -57,6 +57,7 @@ enum {
     IDR_PNG_folder_open_16px,
 
     IDR_PNG_pepa_64px,
+    IDR_PNG_wifi_large_64x64,
 
     IDR_PNG_dash_18px,
     IDR_PNG_ok_color_18px,
