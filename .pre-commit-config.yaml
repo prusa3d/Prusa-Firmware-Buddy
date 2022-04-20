@@ -62,5 +62,6 @@ exclude: |
     ^lib/libsysbase/|
     ^lib/Segger|
     ^lib/tinyusb|
-    ^lib/Middlewares/Third_Party/littlefs/
+    ^lib/Middlewares/Third_Party/littlefs/|
+    ^lib/Middlewares/Third_Party/mbedtls/
   )
