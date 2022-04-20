@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-namespace mmu {
+namespace MMU2 {
 
 /// Possible states of filament from the perspective of presence in various parts of the printer
 /// Beware, the numeric codes are important and sent into the MMU
@@ -22,4 +22,4 @@ public:
     ~BlockRunoutRAII();
 };
 
-} // namespace mmu
+} // namespace MMU2

@@ -4,7 +4,7 @@
  */
 #pragma once
 #include <stdint.h>
-namespace mmu {    
+namespace MMU2 {    
     /// States of a printer with the MMU:
     /// - Active
     /// - Connecting
@@ -19,4 +19,4 @@ namespace mmu {
     };
     
 
-} // namespace mmu
+} // namespace MMU2

@@ -13,7 +13,7 @@
 #include "bsod.h"
 #include <mutex>
 
-using namespace mmu;
+using namespace MMU2;
 
 FilamentSensors::FilamentSensors(FreeRTOS_Mutex &mmu, FreeRTOS_Mutex &printer)
     : mutex_mmu(mmu)
@@ -192,7 +192,7 @@ void FilamentSensors::wait_printer_enabled() {
  * @brief encode printer sensor state to MMU enum
  * TODO distingish between at fsensor and in nozzle
  * currently only AT_FSENSOR returned
- * @return mmu::FilamentState
+ * @return MMU2::FilamentState
  */
 FilamentState FilamentSensors::WhereIsFilament() {
     const std::lock_guard lock(mutex_printer);
