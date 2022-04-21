@@ -21,8 +21,12 @@ extern "C" {
 /// This has to be called after the underlying SPI has been initialized
 /// and assigned using w25x_spi_assign.
 ///
-/// Returns true on success, false otherwise.
-extern bool w25x_init();
+/// @param init_dma Dynamically allocate resources for DMA transfers
+///        DMA and RTOS facilities are not used if false,
+///        it has no effect if it was already allocated by previous call
+/// @retval true on success
+/// @retval false otherwise.
+extern bool w25x_init(bool init_dma);
 
 /// Return the number of available sectors
 extern uint32_t w25x_get_sector_count();

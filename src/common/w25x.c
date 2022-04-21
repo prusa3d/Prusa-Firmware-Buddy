@@ -51,10 +51,10 @@ int w25x_mfrid_devid(uint8_t *devid);
 
 static uint8_t device_id;
 
-bool w25x_init() {
+bool w25x_init(bool init_dma) {
     w25x_cs_high();
 
-    if (!w25x_communication_init())
+    if (!w25x_communication_init(init_dma))
         return false;
 
     if (!w25x_mfrid_devid(&device_id))

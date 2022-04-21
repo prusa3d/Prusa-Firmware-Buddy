@@ -7,7 +7,7 @@
 extern "C" {
 #endif // defined(__cplusplus)
 
-bool w25x_communication_init();
+bool w25x_communication_init(bool init_event_group);
 
 void w25x_cs_low();
 void w25x_cs_high();

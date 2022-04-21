@@ -1,3 +1,4 @@
+#include "w25x_communication.h"
 #include "w25x.h"
 #include "string.h"
 #include "log.h"
@@ -49,17 +50,18 @@ enum {
     EVENT_TX_COMPLETE = (1 << 1),
 };
 
-extern "C" bool w25x_communication_init() {
-    // clear error
-    current_error = 0;
-
+extern "C" bool w25x_communication_init(bool init_event_group) {
     // check SPI handle has been assigned using w25x_spi_assign
     if (spi_handle == NULL)
         return false;
 
     HAL_SPI_Abort(spi_handle);
+
+    // clear error
+    current_error = 0;
+
     // create an eventgroup for ISR DMA events
-    if (event_group == NULL) {
+    if (init_event_group && event_group == NULL) {
         event_group = xEventGroupCreate();
         if (event_group == NULL)
             return false;

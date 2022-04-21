@@ -201,7 +201,7 @@ int main(void) {
 
     // initialize SPI flash
     w25x_spi_assign(&hspi3);
-    if (!w25x_init())
+    if (!w25x_init(true))
         bsod("failed to initialize ext flash");
 
     MX_USB_HOST_Init();
