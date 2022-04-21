@@ -22,7 +22,6 @@ static inline void dump_regs_SCB(void) {
 void dump_to_xflash(void) {
     if (w25x_init(false)) {
         _Static_assert(sizeof(dumpinfo_t) == 16, "invalid sizeof(dumpinfo_t)");
-        uint32_t addr;
         if (!dump_in_xflash_is_empty()) {
             if (dump_in_xflash_is_saved()) {
                 if (!dump_in_xflash_is_displayed()) {
@@ -31,13 +30,13 @@ void dump_to_xflash(void) {
             }
         }
         dump_regs_SCB();
-        for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
+        for (uint32_t addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
             w25x_block64_erase(DUMP_OFFSET + addr);
         }
-        for (addr = 0; addr < DUMP_RAM_SIZE; addr += DUMP_PAGE_SIZE) {
+        for (uint32_t addr = 0; addr < DUMP_RAM_SIZE; addr += DUMP_PAGE_SIZE) {
             w25x_page_program(DUMP_OFFSET + addr, (uint8_t *)(DUMP_RAM_ADDR + addr), DUMP_PAGE_SIZE);
         }
-        for (addr = 0; addr < DUMP_CCRAM_SIZE; addr += DUMP_PAGE_SIZE) {
+        for (uint32_t addr = 0; addr < DUMP_CCRAM_SIZE; addr += DUMP_PAGE_SIZE) {
             w25x_page_program(DUMP_OFFSET + DUMP_RAM_SIZE + addr, (uint8_t *)(DUMP_CCRAM_ADDR + addr), DUMP_PAGE_SIZE);
         }
     }
