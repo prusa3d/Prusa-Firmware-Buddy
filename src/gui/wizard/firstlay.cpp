@@ -14,6 +14,7 @@
 #include "screen_wizard.hpp" // ChangeStartState
 #include "bsod.h"
 #include "cmath_ext.h"
+#include "M70X.hpp"
 
 enum {
     FKNOWN = 0x01,      //filament is known
@@ -144,8 +145,8 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
     DialogHandler::PreOpen(ClientFSM::FirstLayer, 0); //open screen now, it would auto open later (on G26)
 
     const int temp_nozzle_preheat = int(Filaments::PreheatTemp);
-    const int temp_nozzle = std::max(int(marlin_vars()->display_nozzle), int(Filaments::Current().nozzle));
-    const int temp_bed = std::max(int(marlin_vars()->target_bed), int(Filaments::Current().heatbed));
+    const int temp_nozzle = Filaments::Current().nozzle;
+    const int temp_bed = Filaments::Current().heatbed;
 
     marlin_gcode("M73 P0 R0");                                             // reset progress
     marlin_gcode_printf("M104 S%d D%d", temp_nozzle_preheat, temp_nozzle); // nozzle target
@@ -154,8 +155,7 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
     marlin_gcode_printf("M190 R%d", temp_bed);                             // Set target temperature, wait even if cooling
     marlin_gcode("G28");                                                   // autohome
     marlin_gcode("G29");                                                   // mbl
-    marlin_gcode_printf("M104 S%d", temp_nozzle);                          // set displayed temperature
-    marlin_gcode_printf("M109 S%d", temp_nozzle);                          // wait for displayed temperature
+    marlin_gcode_printf("M109 S%d", temp_nozzle);                          // set and wait for nozzle temperature
     marlin_gcode("G26");                                                   // firstlay
 
     WizardState_t ret = WizardState_t::FIRSTLAY_MSBX_REPEAT_PRINT;

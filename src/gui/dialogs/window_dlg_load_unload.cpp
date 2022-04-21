@@ -39,7 +39,7 @@ static PreheatStatus::Result DialogBlockingPreheat(const char *mode_format, RetA
 
 namespace PreheatStatus {
 Result DialogBlockingPreheat(RetAndCool_t retAndCool) {
-    return DialogBlockingPreheat("M1700 W%d", retAndCool);
+    return DialogBlockingPreheat("M1700 W%d S", retAndCool);
 }
 
 Result DialogBlockingLoad(RetAndCool_t retAndCool) {

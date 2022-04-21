@@ -27,7 +27,7 @@ void PrusaGcodeSuite::M1700() {
     if (target_extruder < 0)
         return;
 
-    filament_gcodes::M1700_no_parser(RetAndCool_t(preheat), target_extruder);
+    filament_gcodes::M1700_no_parser(RetAndCool_t(preheat), target_extruder, parser.seen('S'));
 }
 
 /**
