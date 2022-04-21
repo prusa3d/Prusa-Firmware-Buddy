@@ -5,7 +5,9 @@
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod.h"
-#include "connect.hpp"
+#ifdef BUDDY_ENABLE_CONNECT
+    #include "connect.hpp"
+#endif
 
 #include "sys.h"
 #include "app.h"
@@ -740,6 +742,7 @@ void StartDisplayTask(void const *argument) {
     }
 }
 
+#ifdef BUDDY_ENABLE_CONNECT
 void StartConnectTask(void const *argument) {
     connect client;
     client.run();
@@ -748,6 +751,7 @@ void StartConnectTask(void const *argument) {
         osDelay(1);
     }
 }
+#endif
 
 /**
  * @brief  Period elapsed callback in non blocking mode
