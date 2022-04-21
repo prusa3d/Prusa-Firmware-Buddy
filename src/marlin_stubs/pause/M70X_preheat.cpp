@@ -112,7 +112,7 @@ std::pair<std::optional<PreheatStatus::Result>, filament_t> filament_gcodes::pre
  * @param preheat_tp preheat options
  * @param target_extruder
  */
-void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_extruder) {
+void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_extruder, bool save) {
     PreheatData data(PreheatMode::None, preheat_tp);
     Response response = preheatTempUnKnown(data);
 
@@ -125,6 +125,9 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_ex
         marlin_server_set_temp_to_display(fil_cnf.nozzle);
         thermalManager.setTargetBed(fil_cnf.heatbed);
     }
+
+    if (save)
+        Filaments::Set(filament);
 
     // store result, so other threads can see it
     PreheatStatus::SetResult(PreheatStatus::Result::DoneNoFilament);

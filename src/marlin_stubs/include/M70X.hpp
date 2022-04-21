@@ -33,7 +33,7 @@ void M702_no_parser(float unload_length, float z_min_pos, std::optional<RetAndCo
 void M70X_process_user_response(PreheatStatus::Result res);
 
 void M1600_no_parser(uint8_t target_extruder);
-void M1700_no_parser(RetAndCool_t preheat, uint8_t target_extruder);
+void M1700_no_parser(RetAndCool_t preheat, uint8_t target_extruder, bool save);
 void M1701_no_parser(float fast_load_length, float z_min_pos, uint8_t target_extruder);
 
 void mmu_load(uint8_t data);
