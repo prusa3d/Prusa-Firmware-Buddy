@@ -13,6 +13,7 @@
 #include <algorithm>         // std::max
 #include "screen_wizard.hpp" // ChangeStartState
 #include "bsod.h"
+#include "cmath_ext.h"
 
 enum {
     FKNOWN = 0x01,      //filament is known
@@ -108,13 +109,13 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_USEVAL() {
     //show dialog only when values are not equal
     float diff = marlin_vars()->z_offset - z_offset_def;
     if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
-        char buff[21 * 9];
+        char buff[21 * 9 + 1];
         {
-            char fmt[21 * 9];
+            char fmt[ARRAY_SIZE(buff)];
             // c=21 r=9
             static const char fmt2Translate[] = N_("Do you want to use the current value?\nCurrent: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)");
-            _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
-            snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)marlin_vars()->z_offset, (double)z_offset_def);
+            _(fmt2Translate).copyToRAM(fmt, ARRAY_SIZE(fmt)); // note the underscore at the beginning of this line
+            snprintf(buff, ARRAY_SIZE(buff), fmt, (double)marlin_vars()->z_offset, (double)z_offset_def);
         }
         // this MakeRAM is safe - buff is allocated in RAM for the lifetime of MsgBox
         if (MsgBox(string_view_utf8::MakeRAM((const uint8_t *)buff), Responses_YesNo) == Response::No) {
