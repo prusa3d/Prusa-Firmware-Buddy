@@ -57,6 +57,7 @@ extern "C" bool w25x_communication_init() {
     if (spi_handle == NULL)
         return false;
 
+    HAL_SPI_Abort(spi_handle);
     // create an eventgroup for ISR DMA events
     if (event_group == NULL) {
         event_group = xEventGroupCreate();
