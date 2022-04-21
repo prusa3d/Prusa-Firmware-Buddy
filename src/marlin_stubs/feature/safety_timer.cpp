@@ -62,13 +62,12 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
         pBoundPause->NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed());
         if (printingIsPaused()) {
             thermalManager.disable_hotend();
-            marlin_server_set_temp_to_display(0);
             set_warning(WarningType::NozzleTimeout);
         } else {
             thermalManager.disable_all_heaters();
-            marlin_server_set_temp_to_display(0);
             set_warning(WarningType::HeatersTimeout);
         }
+        marlin_server_set_temp_to_display(0);
         return expired_t::yes;
     }
     if (printingIsPaused()) {
