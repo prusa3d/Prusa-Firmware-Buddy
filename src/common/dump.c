@@ -122,18 +122,14 @@ unsigned int dump_in_xflash_read_regs_GEN(void *pRegsGEN, unsigned int size) {
 }
 
 void dump_in_xflash_reset(void) {
-    if (w25x_init(false)) {
-        for (uint32_t addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
-            w25x_block64_erase(DUMP_OFFSET + addr);
-        }
+    for (uint32_t addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
+        w25x_block64_erase(DUMP_OFFSET + addr);
     }
 }
 
 void dump_in_xflash_delete(void) {
-    if (w25x_init(false)) {
-        for (uint32_t addr = 0; addr < 0x800000; addr += 0x10000) {
-            w25x_block64_erase(DUMP_OFFSET + addr);
-        }
+    for (uint32_t addr = 0; addr < 0x800000; addr += 0x10000) {
+        w25x_block64_erase(DUMP_OFFSET + addr);
     }
 }
 
@@ -143,42 +139,40 @@ int dump_save_to_usb(const char *fn) {
     uint8_t buff[DUMP_BUFF_SIZE];
     int bw;
     int bw_total = 0;
-    if (w25x_init(false)) {
-        fd = fopen(fn, "w");
-        if (fd != NULL) {
-            //save dumped RAM and CCRAM from xflash
-            for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += DUMP_BUFF_SIZE) {
-                memset(buff, 0, DUMP_BUFF_SIZE);
-                w25x_rd_data(addr, buff, DUMP_BUFF_SIZE);
-                bw = fwrite(buff, 1, DUMP_BUFF_SIZE, fd);
-                if (bw <= 0) {
-                    break;
-                }
-                bw_total += bw;
+    fd = fopen(fn, "w");
+    if (fd != NULL) {
+        //save dumped RAM and CCRAM from xflash
+        for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += DUMP_BUFF_SIZE) {
+            memset(buff, 0, DUMP_BUFF_SIZE);
+            w25x_rd_data(addr, buff, DUMP_BUFF_SIZE);
+            bw = fwrite(buff, 1, DUMP_BUFF_SIZE, fd);
+            if (bw <= 0) {
+                break;
             }
-            //save OTP
-            for (addr = 0; addr < DUMP_OTP_SIZE; addr += DUMP_BUFF_SIZE) {
-                bw = fwrite((void *)(DUMP_OTP_ADDR + addr), 1, DUMP_BUFF_SIZE, fd);
-                if (bw <= 0) {
-                    break;
-                }
-                bw_total += bw;
-            }
-            //save FLASH
-            for (addr = 0; addr < DUMP_FLASH_SIZE; addr += DUMP_BUFF_SIZE) {
-                bw = fwrite((void *)(DUMP_FLASH_ADDR + addr), 1, DUMP_BUFF_SIZE, fd);
-                if (bw <= 0) {
-                    break;
-                }
-                bw_total += bw;
-            }
-            fclose(fd);
-            if (bw_total != (DUMP_XFLASH_SIZE + DUMP_OTP_SIZE + DUMP_FLASH_SIZE)) {
-                return 0;
-            }
-            dump_in_xflash_set_saved();
-            return 1;
+            bw_total += bw;
         }
+        //save OTP
+        for (addr = 0; addr < DUMP_OTP_SIZE; addr += DUMP_BUFF_SIZE) {
+            bw = fwrite((void *)(DUMP_OTP_ADDR + addr), 1, DUMP_BUFF_SIZE, fd);
+            if (bw <= 0) {
+                break;
+            }
+            bw_total += bw;
+        }
+        //save FLASH
+        for (addr = 0; addr < DUMP_FLASH_SIZE; addr += DUMP_BUFF_SIZE) {
+            bw = fwrite((void *)(DUMP_FLASH_ADDR + addr), 1, DUMP_BUFF_SIZE, fd);
+            if (bw <= 0) {
+                break;
+            }
+            bw_total += bw;
+        }
+        fclose(fd);
+        if (bw_total != (DUMP_XFLASH_SIZE + DUMP_OTP_SIZE + DUMP_FLASH_SIZE)) {
+            return 0;
+        }
+        dump_in_xflash_set_saved();
+        return 1;
     }
     return 0;
 }
