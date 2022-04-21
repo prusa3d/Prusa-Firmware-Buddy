@@ -732,12 +732,12 @@ target_sources(
           $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M601_2.cpp>
           src/marlin_stubs/pause/M603.cpp
           $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M701_2.cpp>
-          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M701_2_pharse.cpp>
-          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M704-6_pharse.cpp>
-          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M707-9_pharse.cpp>
-          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M707-9_pharse.cpp>
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M701_2_parse.cpp>
+          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M704-6_parse.cpp>
+          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M707-9_parse.cpp>
+          $<$<BOOL:${HAS_MMU2}>:src/marlin_stubs/pause/M707-9_parse.cpp>
           $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M70X_preheat.cpp>
-          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M1700_1_pharse.cpp>
+          $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M1700_1_parse.cpp>
           $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/pause.cpp>
           $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/pause_settings.cpp>
           src/marlin_stubs/feature/safety_timer.cpp

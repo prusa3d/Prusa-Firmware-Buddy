@@ -1,6 +1,6 @@
 /**
- * @file M1700_1_pharse.cpp
- * @brief Pharsing of M170X g-codes
+ * @file M1700_1_parse.cpp
+ * @brief Parsing of M170X g-codes
  */
 
 #include "config_features.h"
