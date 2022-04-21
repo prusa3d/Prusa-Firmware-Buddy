@@ -30,7 +30,7 @@ void dump_to_xflash(void) {
         }
     }
     dump_regs_SCB();
-    if (w25x_init()) {
+    if (w25x_init(false)) {
         for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
             w25x_block64_erase(DUMP_OFFSET + addr);
         }
@@ -122,7 +122,7 @@ unsigned int dump_in_xflash_read_regs_GEN(void *pRegsGEN, unsigned int size) {
 }
 
 void dump_in_xflash_reset(void) {
-    if (w25x_init()) {
+    if (w25x_init(false)) {
         for (uint32_t addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
             w25x_block64_erase(DUMP_OFFSET + addr);
         }
@@ -130,7 +130,7 @@ void dump_in_xflash_reset(void) {
 }
 
 void dump_in_xflash_delete(void) {
-    if (w25x_init()) {
+    if (w25x_init(false)) {
         for (uint32_t addr = 0; addr < 0x800000; addr += 0x10000) {
             w25x_block64_erase(DUMP_OFFSET + addr);
         }
@@ -143,7 +143,7 @@ int dump_save_to_usb(const char *fn) {
     uint8_t buff[DUMP_BUFF_SIZE];
     int bw;
     int bw_total = 0;
-    if (w25x_init()) {
+    if (w25x_init(false)) {
         fd = fopen(fn, "w");
         if (fd != NULL) {
             //save dumped RAM and CCRAM from xflash

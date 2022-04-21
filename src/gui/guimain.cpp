@@ -187,7 +187,7 @@ void gui_run(void) {
     gui::knob::RegisterLongPressScreenAction(DialogMoveZ::Show);
 
     ScreenFactory::Creator error_screen = nullptr;
-    if (w25x_init()) {
+    if (w25x_init(true)) {
         if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
             blockISR(); //TODO delete blockISR() on this line to enable start after click
             switch (dump_in_xflash_get_type()) {
