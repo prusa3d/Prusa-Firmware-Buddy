@@ -28,42 +28,47 @@ JsonResult FileInfo::DirRenderer::renderState(size_t resume_point, JsonOutput &o
     // Keep the indentation of the JSON in here!
     // clang-format off
     JSON_START;
-    JSON_OBJ_START;
+    JSON_OBJ_START
         JSON_FIELD_ARR("files");
-
-        // Note: ent, as the control variable, needs to be preserved inside the
-        // object, so it survives resumes.
-        while (state.dir.get() && (state.ent = readdir(state.dir.get()))) {
-            if (!filename_is_gcode(state.ent->d_name)) {
-                continue;
-            }
-
-            if (!state.first) {
-                JSON_COMMA;
-            } else {
-                state.first = false;
-            }
-
             JSON_OBJ_START;
-                JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
-#ifdef UNITTESTS
-                JSON_FIELD_STR("display", state.ent->d_name) JSON_COMMA;
-#else
-                JSON_FIELD_STR("display", state.ent->lfn) JSON_COMMA;
-#endif
-                JSON_FIELD_STR_FORMAT("path", "%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
-                JSON_CONTROL("\"origin\":\"local\",");
-                JSON_FIELD_OBJ("refs");
-                    JSON_FIELD_STR_FORMAT("resource", "/api/files%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
-                    JSON_FIELD_STR_FORMAT("thumbnailSmall", "/thumb/s%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
-                    JSON_FIELD_STR_FORMAT("thumbnailBig", "/thumb/l%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
-                    JSON_FIELD_STR_FORMAT("download", "/thumb/l%s/%s", state.filename, state.ent->d_name);
-                JSON_OBJ_END;
-            JSON_OBJ_END;
-        }
+                JSON_CONTROL("\"name\":\"USB\",\"path\":\"/usb\",\"display\":\"USB\",\"type\":\"folder\",\"origin\":\"usb\",");
+                JSON_FIELD_ARR("children");
 
+                // Note: ent, as the control variable, needs to be preserved inside the
+                // object, so it survives resumes.
+                while (state.dir.get() && (state.ent = readdir(state.dir.get()))) {
+                    if (!filename_is_gcode(state.ent->d_name)) {
+                        continue;
+                    }
+
+                    if (!state.first) {
+                        JSON_COMMA;
+                    } else {
+                        state.first = false;
+                    }
+
+                    JSON_OBJ_START;
+                        JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
+#ifdef UNITTESTS
+                        JSON_FIELD_STR("display", state.ent->d_name) JSON_COMMA;
+#else
+                        JSON_FIELD_STR("display", state.ent->lfn) JSON_COMMA;
+#endif
+                        JSON_FIELD_STR_FORMAT("path", "%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
+                        JSON_CONTROL("\"origin\":\"usb\",");
+                        JSON_FIELD_OBJ("refs");
+                            JSON_FIELD_STR_FORMAT("resource", "/api/files%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
+                        JSON_FIELD_STR_FORMAT("thumbnailSmall", "/thumb/s%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
+                        JSON_FIELD_STR_FORMAT("thumbnailBig", "/thumb/l%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
+                        JSON_FIELD_STR_FORMAT("download", "%s/%s", state.filename, state.ent->d_name);
+                    JSON_OBJ_END;
+                JSON_OBJ_END;
+                }
+
+                JSON_ARR_END;
+            JSON_OBJ_END;
         JSON_ARR_END;
-    JSON_OBJ_END;
+    JSON_OBJ_END
     JSON_END;
     // clang-format on
 }
