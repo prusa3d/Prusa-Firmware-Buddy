@@ -17,6 +17,8 @@ size_t strlcpy(char *, const char *, size_t);
 }
 
 using namespace automata;
+using http::Method;
+using http::Status;
 using nhttp::parser::request::Names;
 using std::get;
 using std::get_if;

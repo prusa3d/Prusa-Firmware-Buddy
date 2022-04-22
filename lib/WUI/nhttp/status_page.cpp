@@ -8,6 +8,10 @@
 #include <cstring>
 #include <cstdio>
 
+using http::ConnectionHandling;
+using http::ContentType;
+using http::Status;
+
 namespace nhttp::handler {
 
 Step StatusPage::step(std::string_view, bool, uint8_t *output, size_t output_size) {

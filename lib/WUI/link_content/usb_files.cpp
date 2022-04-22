@@ -6,6 +6,8 @@
 
 namespace nhttp::link_content {
 
+using http::Method;
+using http::Status;
 using std::nullopt;
 using std::optional;
 using std::string_view;

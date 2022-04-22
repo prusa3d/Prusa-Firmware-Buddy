@@ -28,7 +28,6 @@
  */
 #pragma once
 
-#include "types.h"
 #include "file_info.h"
 #include "file_command.h"
 #include "gcode_upload.h"
@@ -40,11 +39,15 @@
 #include "static_mem.h"
 #include "status_page.h"
 
+#include <http/types.h>
+
 #include <optional>
 #include <string_view>
 #include <variant>
 
 namespace nhttp::handler {
+
+struct Step;
 
 /**
  * \brief The request has been fully handled.
@@ -97,8 +100,8 @@ struct Terminating {
     bool want_read() const { return false; }
     bool want_write() const { return false; }
     Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
-    static Terminating for_handling(ConnectionHandling handling) {
-        return Terminating { handling == ConnectionHandling::Close ? Done::Close : Done::KeepAlive };
+    static Terminating for_handling(http::ConnectionHandling handling) {
+        return Terminating { handling == http::ConnectionHandling::Close ? Done::Close : Done::KeepAlive };
     }
 };
 

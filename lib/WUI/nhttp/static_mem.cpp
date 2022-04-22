@@ -4,6 +4,8 @@
 
 #include <cstring>
 
+using http::ConnectionHandling;
+using http::Status;
 using std::string_view;
 
 namespace nhttp::handler {

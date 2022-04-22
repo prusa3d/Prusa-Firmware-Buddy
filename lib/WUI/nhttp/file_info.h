@@ -1,7 +1,9 @@
 #pragma once
 
-#include "types.h"
 #include "segmented_json.h"
+#include "step.h"
+
+#include <http/types.h>
 
 #include <string_view>
 #include <dirent.h>

@@ -8,7 +8,7 @@
 #include <optional>
 #include <vector>
 
-using nhttp::Status;
+using http::Status;
 using std::get;
 using std::make_tuple;
 using std::nullopt;

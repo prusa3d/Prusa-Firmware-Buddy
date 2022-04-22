@@ -4,7 +4,8 @@
  */
 #pragma once
 
-#include "types.h"
+#include "step.h"
+#include <http/types.h>
 
 #include <automata/core.h>
 
@@ -12,6 +13,7 @@
 
 namespace nhttp {
 class ServerDefs;
+class Server;
 }
 
 namespace nhttp::handler {
@@ -65,8 +67,8 @@ public:
      * misbehaviour.
      */
     uint32_t if_none_match = 0;
-    Method method : 4;
-    Status error_code : 10;
+    http::Method method : 4;
+    http::Status error_code : 10;
 
 private:
     bool done : 1;
@@ -91,7 +93,7 @@ private:
 
     // TODO: Eventually get rid of stringy URLs and replace by enums/tokens as much as possible
     // Note: The same buffer is also reused for boundary, that lives just behind it.
-    Url url = {};
+    http::Url url = {};
     uint8_t url_size = 0;
     uint8_t boundary_size = 0;
 

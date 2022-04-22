@@ -1,7 +1,9 @@
 #pragma once
 
-#include "types.h"
+#include "step.h"
 #include "segmented_json.h"
+
+#include <http/types.h>
 
 #include <string_view>
 
@@ -39,12 +41,12 @@ private:
 
     Renderer renderer;
     Progress progress = Progress::SendHeaders;
-    ConnectionHandling connection_handling;
+    http::ConnectionHandling connection_handling;
 
 public:
     StatelessJson(Content content, bool can_keep_alive)
         : renderer(content)
-        , connection_handling(can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close) {}
+        , connection_handling(can_keep_alive ? http::ConnectionHandling::ChunkedKeep : http::ConnectionHandling::Close) {}
 
     bool want_read() const { return false; }
     bool want_write() const { return progress != Progress::Done; }

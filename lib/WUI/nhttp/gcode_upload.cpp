@@ -28,6 +28,7 @@ using handler::Continue;
 using handler::RequestParser;
 using handler::StatusPage;
 using handler::Step;
+using http::Status;
 using std::get;
 using std::make_tuple;
 using std::move;
