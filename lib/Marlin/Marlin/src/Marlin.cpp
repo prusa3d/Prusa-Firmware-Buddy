@@ -662,6 +662,7 @@ void idle(
   );
 
   thermalManager.manage_heater();
+  thermalManager.check_and_reset_fan_speeds();
 
   #if ENABLED(PRINTCOUNTER)
     print_job_timer.tick();
