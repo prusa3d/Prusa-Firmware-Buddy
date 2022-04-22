@@ -354,6 +354,7 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
     }
     // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
     w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));
+    w_etime_value.Invalidate(); // invalidation is needed here because we are using the same static array for the text and text will invalidate only when the memory address is different
 }
 void screen_printing_data_t::update_print_duration(time_t rawtime) {
     w_time_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
@@ -369,6 +370,7 @@ void screen_printing_data_t::update_print_duration(time_t rawtime) {
     }
     // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
+    w_time_value.Invalidate(); // invalidation is needed here because we are using the same static array for the text and text will invalidate only when the memory address is different
 }
 
 void screen_printing_data_t::screen_printing_reprint() {
