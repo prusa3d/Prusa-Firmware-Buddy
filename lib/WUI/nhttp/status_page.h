@@ -1,6 +1,8 @@
 #pragma once
 
-#include "types.h"
+#include "step.h"
+
+#include <http/types.h>
 
 #include <optional>
 #include <string_view>
@@ -10,12 +12,12 @@ namespace nhttp::handler {
 class StatusPage {
 private:
     const char *extra_content;
-    Status status;
+    http::Status status;
     bool can_keep_alive;
     bool json_content;
 
 public:
-    StatusPage(Status status, bool can_keep_alive, bool json_content, const char *extra_content = "")
+    StatusPage(http::Status status, bool can_keep_alive, bool json_content, const char *extra_content = "")
         : extra_content(extra_content)
         , status(status)
         , can_keep_alive(can_keep_alive)

@@ -8,6 +8,7 @@
 namespace nhttp::printer {
 
 using namespace handler;
+using http::Status;
 using std::string_view;
 
 namespace {

@@ -1,8 +1,10 @@
 #pragma once
 
-#include "types.h"
+#include "step.h"
 #include "../../../src/common/gcode_thumb_decoder.h"
 #include "unique_file_ptr.hpp"
+
+#include <http/types.h>
 
 #include <cstdio>
 #include <string_view>

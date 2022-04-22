@@ -7,10 +7,10 @@
 
 #include "req_parser.h"
 #include "status_page.h"
-#include "types.h"
 #include "upload_state.h"
 
 #include <unique_file_ptr.hpp>
+#include <http/types.h>
 
 #include <memory>
 #include <optional>

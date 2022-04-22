@@ -8,7 +8,8 @@
 #include <cstdio>
 #include <optional>
 
-namespace nhttp::handler {
+namespace http {
+
 const constexpr char *const LAST_CHUNK = "0\r\n\r\n";
 const constexpr size_t MIN_CHUNK_SIZE = 8;
 
@@ -56,4 +57,5 @@ size_t render_chunk(ConnectionHandling handling, uint8_t *buffer, size_t buffer_
         return written.value_or(0);
     }
 }
+
 }

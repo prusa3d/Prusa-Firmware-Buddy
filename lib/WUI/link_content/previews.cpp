@@ -5,6 +5,7 @@
 
 namespace nhttp::link_content {
 
+using http::Status;
 using nhttp::printer::GCodePreview;
 using std::nullopt;
 using std::optional;

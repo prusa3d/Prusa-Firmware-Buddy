@@ -1,9 +1,12 @@
-#include "chunked.h"
 #include "headers.h"
 #include "gcode_preview.h"
 #include "handler.h"
 
+#include <http/chunked.h>
+
 #include <sys/stat.h>
+
+using namespace http;
 
 namespace nhttp::printer {
 
@@ -12,6 +15,8 @@ using handler::NextInstruction;
 using handler::StatusPage;
 using handler::Step;
 using handler::Terminating;
+using http::ContentType;
+using http::Status;
 using std::string_view;
 
 GCodePreview::GCodePreview(FILE *f, const char *path, bool can_keep_alive, bool json_errors, uint16_t width, uint16_t height, uint32_t if_none_match)
@@ -45,9 +50,9 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
         char pre_read[pre_read_size];
         int got = decoder.Read(pre_read, pre_read_size);
         if (got > 0) {
-            const size_t reserve = handler::MIN_CHUNK_SIZE + got;
+            const size_t reserve = http::MIN_CHUNK_SIZE + got;
             size_t written = write_headers(buffer, buffer_size - reserve, Status::Ok, ContentType::ImagePng, handling, std::nullopt, etag);
-            written += handler::render_chunk(handling, buffer + written, buffer_size - written, [&](uint8_t *buffer, size_t buffer_size) {
+            written += http::render_chunk(handling, buffer + written, buffer_size - written, [&](uint8_t *buffer, size_t buffer_size) {
                 memcpy(buffer, pre_read, got);
                 return got;
             });
@@ -62,7 +67,7 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
         }
     } else {
         NextInstruction instruction = Continue();
-        size_t written = handler::render_chunk(handling, buffer, buffer_size, [&](uint8_t *buffer, size_t buffer_size) {
+        size_t written = http::render_chunk(handling, buffer, buffer_size, [&](uint8_t *buffer, size_t buffer_size) {
             int got = decoder.Read(reinterpret_cast<char *>(buffer), buffer_size);
             if (got > 0) {
                 return got;

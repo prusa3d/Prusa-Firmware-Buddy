@@ -1,5 +1,7 @@
 #include "common_selectors.h"
 
+using http::Method;
+using http::Status;
 using std::nullopt;
 using std::optional;
 

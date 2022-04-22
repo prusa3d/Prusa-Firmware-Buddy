@@ -51,6 +51,7 @@
 #include <memory>
 #include <string_view>
 
+using http::Status;
 using std::array;
 using std::make_tuple;
 using std::string_view;

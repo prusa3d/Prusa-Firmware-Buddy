@@ -1,4 +1,3 @@
-#include "chunked.h"
 #include "file_info.h"
 #include "handler.h"
 #include "headers.h"
@@ -8,9 +7,16 @@
 #include "../../src/common/lfn.h"
 #include "../../src/common/gcode_filename.h"
 
+#include <http/chunked.h>
+
 #include <cstring>
 #include <sys/stat.h>
 
+using http::ConnectionHandling;
+using http::ContentType;
+using http::LAST_CHUNK;
+using http::MIN_CHUNK_SIZE;
+using http::Status;
 using std::get_if;
 using std::holds_alternative;
 

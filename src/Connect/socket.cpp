@@ -58,7 +58,7 @@ socket_con::~socket_con() {
     }
 }
 
-std::optional<Error> socket_con::connection(char *host, uint16_t port) {
+std::optional<Error> socket_con::connection(const char *host, uint16_t port) {
 
     const struct timeval timeout = { SOCKET_TIMEOUT_SEC, 0 };
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
@@ -101,7 +101,7 @@ std::optional<Error> socket_con::connection(char *host, uint16_t port) {
         return std::nullopt;
 }
 
-std::variant<size_t, Error> socket_con::tx(uint8_t *send_buffer, size_t data_len) {
+std::variant<size_t, Error> socket_con::tx(const uint8_t *send_buffer, size_t data_len) {
     if (!connected)
         return Error::WRITE_ERROR;
 

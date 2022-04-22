@@ -14,6 +14,8 @@
 
 namespace nhttp::link_content {
 
+using http::Method;
+using http::Status;
 using std::nullopt;
 using std::optional;
 using std::string_view;
@@ -61,7 +63,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
     if (suffix == "download") {
         return get_only(StatusPage(Status::NoContent, parser.can_keep_alive(), parser.accepts_json));
     } else if (suffix == "settings") {
-        return get_only(SendStaticMemory("{\"printer\": {}}", ContentType::ApplicationJson, parser.can_keep_alive()));
+        return get_only(SendStaticMemory("{\"printer\": {}}", http::ContentType::ApplicationJson, parser.can_keep_alive()));
     } else if (remove_prefix(suffix, "files").has_value()) {
         // Note: The check for boundary is a bit of a hack. We probably should
         // be more thorough in the parser and extract the actual content type.

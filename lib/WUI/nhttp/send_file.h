@@ -3,8 +3,9 @@
  */
 #pragma once
 
-#include "types.h"
 #include "unique_file_ptr.hpp"
+#include "step.h"
+#include <http/types.h>
 
 #include <string_view>
 #include <cstdio>
@@ -24,8 +25,8 @@ namespace nhttp::handler {
 class SendFile {
 private:
     unique_file_ptr file;
-    ContentType content_type;
-    ConnectionHandling connection_handling = ConnectionHandling::Close;
+    http::ContentType content_type;
+    http::ConnectionHandling connection_handling = http::ConnectionHandling::Close;
     bool can_keep_alive;
     bool headers_sent = false;
     bool etag_matches = false;
@@ -34,7 +35,7 @@ private:
     const char *const *extra_hdrs;
 
 public:
-    SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, bool json_errors, uint32_t if_none_match, const char *const *extra_hdrs = nullptr);
+    SendFile(FILE *file, const char *path, http::ContentType content_type, bool can_keep_alive, bool json_errors, uint32_t if_none_match, const char *const *extra_hdrs = nullptr);
     Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
     bool want_write() const { return bool(file); }
     bool want_read() const { return false; }

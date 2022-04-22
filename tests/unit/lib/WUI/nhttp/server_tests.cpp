@@ -32,6 +32,7 @@ using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
 using std::vector;
+using namespace http;
 using namespace nhttp;
 using namespace nhttp::handler;
 using namespace nhttp::handler::selectors;

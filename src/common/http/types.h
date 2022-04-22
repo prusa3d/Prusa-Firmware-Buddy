@@ -3,7 +3,7 @@
 #include <array>
 #include <cstdlib>
 
-namespace nhttp {
+namespace http {
 
 enum Method {
     Head,
@@ -66,11 +66,5 @@ enum Status {
 // That saves quite some space compared with having two buffers.
 static const size_t MAX_URL_LEN = 100;
 using Url = std::array<char, MAX_URL_LEN>;
-
-class Server;
-
-namespace handler {
-    struct Step;
-}
 
 }

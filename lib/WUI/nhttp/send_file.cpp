@@ -1,11 +1,13 @@
 #include "send_file.h"
-#include "chunked.h"
 #include "handler.h"
 #include "headers.h"
+
+#include <http/chunked.h>
 
 #include <sys/stat.h>
 
 using std::nullopt;
+using namespace http;
 
 namespace nhttp::handler {
 

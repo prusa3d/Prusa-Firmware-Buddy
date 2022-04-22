@@ -1,7 +1,8 @@
 #pragma once
 
-#include "types.h"
 #include "status_page.h"
+
+#include <http/types.h>
 
 #include <array>
 #include <string_view>
