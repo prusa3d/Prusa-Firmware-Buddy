@@ -8,17 +8,18 @@
 #include "wui_api.h"
 #include "netdev.h"
 #include "ScreenHandler.hpp"
+#include "marlin_client.h"
 
 MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
     : WI_INFO_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 MI_WIFI_INIT_t::MI_WIFI_INIT_t()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::no, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIFI_INIT_t::click(IWindowMenu &window_menu) {
-    // TODO: Initialize wifi
+    marlin_gcode("M997 S1 O");
 }
 
 MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()

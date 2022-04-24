@@ -8,6 +8,10 @@
 #include "screen_printing.hpp"
 #include "ScreenFirstLayer.hpp"
 
+#if HAS_SELFTEST
+    #include "ScreenSelftest.hpp"
+#endif
+
 static void OpenPrintScreen(ClientFSM dialog) {
     switch (dialog) {
     case ClientFSM::Serial_printing:
@@ -49,6 +53,15 @@ void DialogHandler::open(fsm::create_t o) {
             IScreenPrinting::NotifyMarlinStart();
         }
         break;
+    case ClientFSM::Selftest:
+#if HAS_SELFTEST
+        if (!ScreenSelftest::GetInstance()) {
+            //data contain screen caption type
+            //ScreenSelftest::SetHeaderMode(...);
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
+        }
+#endif // HAS_SELFTEST
+        break;
     default:
         ptr = dialog_ctors[size_t(dialog)](o.data);
     }
@@ -69,6 +82,7 @@ void DialogHandler::close(fsm::destroy_t o) {
             Screens::Access()->CloseAll();
             break;
         case ClientFSM::FirstLayer:
+        case ClientFSM::Selftest:
             Screens::Access()->Close();
             break;
         case ClientFSM::Printing: //closed on button, todo marlin thread should close it
@@ -82,8 +96,20 @@ void DialogHandler::close(fsm::destroy_t o) {
 }
 
 void DialogHandler::change(fsm::change_t o) {
-    if (ptr)
-        ptr->Change(o.data);
+    const ClientFSM dialogType = o.type.GetType();
+
+    switch (dialogType) {
+    case ClientFSM::Selftest:
+#if HAS_SELFTEST
+        if (ScreenSelftest::GetInstance()) {
+            ScreenSelftest::GetInstance()->Change(o.data);
+        }
+#endif // HAS_SELFTEST
+        break;
+    default:
+        if (ptr)
+            ptr->Change(o.data);
+    }
 }
 
 bool DialogHandler::IsOpen() const {

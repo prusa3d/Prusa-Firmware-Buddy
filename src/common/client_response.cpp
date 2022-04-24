@@ -41,6 +41,15 @@ const PhaseResponses ClientResponses::PreheatResponses[CountPhases<PhasesPreheat
         Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB }, //UserTempSelection
 };
 
+const PhaseResponses ClientResponses::SelftestResponses[CountPhases<PhasesSelftest>()] = {
+    {},                                      // _first
+    { Response::Continue, Response::Abort }, // ESP_ask_auto
+    { Response::Continue, Response::Abort }, // ESP_ask_from_menu
+    { Response::Abort },                     // ESP_upload
+    { Response::Continue },                  // ESP_passed
+    { Response::Continue },                  // ESP_failed
+};
+
 const PhaseResponses ClientResponses::G162Responses[CountPhases<PhasesG162>()] = {
     {}, //_first
     {}, //Parking
