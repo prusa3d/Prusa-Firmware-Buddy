@@ -81,8 +81,24 @@ enum class PhasesPreheat : uint16_t {
     _last = UserTempSelection
 };
 
-enum class PhasesG162 : uint16_t {
+// GUI phases of selftest/wizard
+enum class PhasesSelftest : uint16_t {
     _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
+    _none = _first,
+
+    _first_ESP,
+    ESP_ask_auto = _first_ESP,
+    ESP_ask_from_menu,
+    ESP_upload,
+    ESP_passed,
+    ESP_failed,
+    _last_ESP = ESP_failed,
+
+    _last = _last_ESP
+};
+
+enum class PhasesG162 : uint16_t {
+    _first = static_cast<uint16_t>(PhasesSelftest::_last) + 1,
     Parking,
     _last = Parking
 };
@@ -117,11 +133,13 @@ class ClientResponses {
     //declare 2d arrays of single buttons for radio buttons
     static const PhaseResponses LoadUnloadResponses[CountPhases<PhasesLoadUnload>()];
     static const PhaseResponses PreheatResponses[CountPhases<PhasesPreheat>()];
+    static const PhaseResponses SelftestResponses[CountPhases<PhasesSelftest>()];
     static const PhaseResponses G162Responses[CountPhases<PhasesG162>()];
 
     //methods to "bind" button array with enum type
     static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesG162 phase) { return G162Responses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesG162::_first)]; }
 
 protected:
@@ -167,4 +185,48 @@ public:
             return -1; // this phase does not have response with this index
         return ((static_cast<uint32_t>(phase)) << RESPONSE_BITS) + uint32_t(clicked_index);
     }
+};
+
+enum class SelftestParts {
+    ESP,
+    _none, //cannot be created, must have same index as _count
+    _count = _none
+};
+
+static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part) {
+    switch (part) {
+    case SelftestParts::ESP:
+        return PhasesSelftest::_first_ESP;
+    case SelftestParts::_none:
+        break;
+    }
+    return PhasesSelftest::_none;
+}
+
+static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part) {
+    switch (part) {
+    case SelftestParts::ESP:
+        return PhasesSelftest::_last_ESP;
+    case SelftestParts::_none:
+        break;
+    }
+    return PhasesSelftest::_none;
+}
+
+static constexpr bool SelftestPartContainsPhase(SelftestParts part, PhasesSelftest ph) {
+    const uint16_t ph_u16 = uint16_t(ph);
+
+    return (ph_u16 >= uint16_t(SelftestGetFirstPhaseFromPart(part))) && (ph_u16 <= uint16_t(SelftestGetLastPhaseFromPart(part)));
+}
+
+static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
+    for (size_t i = 0; i < size_t(SelftestParts::_none); ++i) {
+        if (SelftestPartContainsPhase(SelftestParts(i), ph))
+            return SelftestParts(i);
+    }
+
+    if (SelftestPartContainsPhase(SelftestParts::ESP, ph))
+        return SelftestParts::ESP;
+
+    return SelftestParts::_none;
 };

@@ -627,6 +627,10 @@ target_link_libraries(
           mbedTLS
   )
 
+if(HAS_SELFTEST)
+  target_sources(firmware PRIVATE src/common/selftest/selftest_esp_update.cpp)
+endif()
+
 target_sources(
   firmware
   PRIVATE $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/startup/startup_stm32f407xx_boot.s>
@@ -784,6 +788,15 @@ target_sources(
   )
 
 if(GUI)
+  if(HAS_SELFTEST)
+    target_sources(
+      firmware
+      PRIVATE src/gui/wizard/selftest_frame_esp.cpp src/gui/wizard/selftest_invalid_state.cpp
+              src/gui/ScreenSelftest.cpp src/gui/selftest_frame.cpp
+      )
+  else()
+    target_sources(firmware PRIVATE src/gui/screen_menu_calibration_without_selftest.cpp)
+  endif()
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.cpp
@@ -974,6 +987,12 @@ set_property(
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
+  )
+
+set_property(
+  SOURCE src/gui/dialogs/DialogHandler.cpp
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS HAS_SELFTEST=$<BOOL:${HAS_SELFTEST}>
   )
 
 set_property(

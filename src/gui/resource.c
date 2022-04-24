@@ -78,7 +78,7 @@
 
 #include "res/cc/png_usb_16px.c"            //IDR_PNG_usb_16px
 #include "res/cc/png_lan_16px.c"            //IDR_PNG_lan_16px
-#include "res/cc/png_wifi_16px.c"           //IDR_PNG_wifi_16px - unused
+#include "res/cc/png_wifi_16px.c"           //IDR_PNG_wifi_16px
 #include "res/cc/png_info_16px.c"           //IDR_PNG_info_16px
 #include "res/cc/png_error_16px.c"          //IDR_PNG_error_16px
 #include "res/cc/png_warning_16px.c"        //IDR_PNG_warning_16px

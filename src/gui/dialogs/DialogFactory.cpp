@@ -15,13 +15,7 @@ constexpr static const char purge_preheat[] = N_("PREHEAT for PURGE");
 constexpr static const char index_error[] = "INDEX ERROR"; // intentionally not to be translated
 
 //screens .. not used, return nullptr (to pass check in GetAll)
-static_unique_ptr<IDialogMarlin> DialogFactory::serial_printing(uint8_t /*data*/) {
-    return nullptr;
-}
-static_unique_ptr<IDialogMarlin> DialogFactory::printing(uint8_t /*data*/) {
-    return nullptr;
-}
-static_unique_ptr<IDialogMarlin> DialogFactory::first_layer(uint8_t /*data*/) {
+static_unique_ptr<IDialogMarlin> DialogFactory::screen_not_dialog(uint8_t /*data*/) {
     return nullptr;
 }
 
@@ -88,10 +82,11 @@ static_unique_ptr<IDialogMarlin> DialogFactory::Preheat(uint8_t data) {
 DialogFactory::Ctors DialogFactory::GetAll() {
     //todo check if all fields are set
     std::array<fnc, size_t(ClientFSM::_count)> ret = { nullptr };
-    ret[size_t(ClientFSM::Serial_printing)] = serial_printing;
-    ret[size_t(ClientFSM::Printing)] = printing;
-    ret[size_t(ClientFSM::FirstLayer)] = first_layer;
+    ret[size_t(ClientFSM::Serial_printing)] = screen_not_dialog;
+    ret[size_t(ClientFSM::Printing)] = screen_not_dialog;
+    ret[size_t(ClientFSM::FirstLayer)] = screen_not_dialog;
     ret[size_t(ClientFSM::Load_unload)] = load_unload;
+    ret[size_t(ClientFSM::Selftest)] = screen_not_dialog;
     ret[size_t(ClientFSM::G162)] = G162;
     ret[size_t(ClientFSM::Preheat)] = Preheat;
     ret[size_t(ClientFSM::SelftestAxis)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(makePtr<DialogSelftestAxis>()); };
