@@ -10,6 +10,12 @@
 #include "wizard/screen_wizard.hpp"
 #include "marlin_client.h"
 #include "log.h"
+#include "SteelSheets.hpp"
+#include "WindowItemFormatableLabel.hpp"
+
+#if _DEBUG // todo remove #if _DEBUG after rename is finished
+    #include "screen_sheet_rename.hpp"
+#endif
 
 // TODO there is nowhere displayed currently selected sheet
 // entire menu is confusing
@@ -85,7 +91,7 @@ protected:
 };
 
 using SheetProfileMenuScreen = ScreenMenu<EFooter::On, MI_RETURN, MI_SHEET_SELECT, MI_SHEET_CALIBRATE,
-#if _DEBUG //todo remove #if _DEBUG after rename is finished
+#if _DEBUG // todo remove #if _DEBUG after rename is finished
     MI_SHEET_RENAME,
 #endif // _DEBUG
     MI_SHEET_RESET>;
@@ -99,7 +105,7 @@ public:
     ISheetProfileMenuScreen(uint32_t value)
         : SheetProfileMenuScreen(_(label))
         , value(value) {
-        if (sheet_is_calibrated(value)) {
+        if (SteelSheets::IsSheetCalibrated(value)) {
             Item<MI_SHEET_SELECT>().Enable();
             Item<MI_SHEET_RESET>().Enable();
         }
@@ -117,7 +123,7 @@ protected:
         profile_action action = static_cast<profile_action>((uint32_t)param);
         switch (action) {
         case profile_action::Reset:
-            if (sheet_reset(value)) {
+            if (SteelSheets::ResetSheet(value)) {
                 Item<MI_SHEET_RESET>().Disable();
                 Item<MI_SHEET_SELECT>().Disable();
                 log_debug(GUI, "MI_SHEET_RESET OK");
@@ -126,16 +132,16 @@ protected:
             break;
         case profile_action::Select:
             log_debug(GUI, "MI_SHEET_SELECT");
-            sheet_profile_select(value);
+            SteelSheets::SelectSheet(value);
             break;
         case profile_action::Calibrate:
             log_debug(GUI, "MI_SHEET_CALIBRATE");
-            sheet_profile_select(value);
+            SteelSheets::SelectSheet(value);
             ScreenWizard::Run(wizard_run_type_t::firstlay);
             break;
         case profile_action::Rename:
             log_debug(GUI, "MI_SHEET_RENAME");
-#if _DEBUG //todo remove #if _DEBUG after rename is finished
+#if _DEBUG // todo remove #if _DEBUG after rename is finished
             screen_sheet_rename_t::index(value);
             Screens::Access()->Open([]() { return ScreenFactory::Screen<screen_sheet_rename_t>(); });
 #endif // _DEBUG
@@ -158,11 +164,11 @@ public:
 
 template <typename Index>
 struct ProfileRecord : public WI_LABEL_t {
-    char name[MAX_SHEET_NAME_LENGTH];
+    char name[MAX_SHEET_NAME_LENGTH + 1];
     ProfileRecord()
         : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), 0, is_enabled_t::yes, is_hidden_t::no) {
-        memset(name, 0, MAX_SHEET_NAME_LENGTH);
-        sheet_name(Index::value, name, MAX_SHEET_NAME_LENGTH);
+        memset(name, 0, MAX_SHEET_NAME_LENGTH + 1);
+        SteelSheets::SheetName(Index::value, name, MAX_SHEET_NAME_LENGTH + 1);
         // string_view_utf8::MakeRAM is safe. "name" is member var, exists until ProfileRecord is destroyed
         SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
     };

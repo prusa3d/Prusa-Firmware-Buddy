@@ -9,6 +9,7 @@
 #include "translation_provider_FILE.hpp"
 #include "filament_sensor_api.hpp"
 #include "translator.hpp"
+#include "SteelSheets.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -180,15 +181,13 @@ MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
 }
 
 void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
-    sheet_next_calibrated();
-    auto var = variant8_flt(eeprom_get_z_offset());
-    marlin_set_var(MARLIN_VAR_Z_OFFSET, var);
+    SteelSheets::NextSheet();
     UpdateLabel();
 }
 
 void MI_CURRENT_PROFILE::UpdateLabel() {
     name[0] = '[';
-    uint32_t cnt = sheet_active_name(name + 1, MAX_SHEET_NAME_LENGTH);
+    uint32_t cnt = SteelSheets::ActiveSheetName(name + 1, MAX_SHEET_NAME_LENGTH);
     name[cnt + 1] = ']';
     name[cnt + 2] = 0;
     // string_view_utf8::MakeRAM is safe. "name" is member var, exists until MI_CURRENT_PROFILE is destroyed

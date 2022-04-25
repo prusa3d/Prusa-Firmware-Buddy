@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "variant8.h"
 #include "eeprom_function_api.h"
+#include <stddef.h>
 
 enum {
     EEPROM_ADDRESS = 0x0500, // uint16_t
@@ -29,9 +30,7 @@ typedef struct
     char name[MAX_SHEET_NAME_LENGTH]; //!< Can be null terminated, doesn't need to be null terminated
     float z_offset;                   //!< Z_BABYSTEP_MIN .. Z_BABYSTEP_MAX = Z_BABYSTEP_MIN*2/1000 [mm] .. Z_BABYSTEP_MAX*2/1000 [mm]
 } Sheet;
-
 enum {
-    MAX_SHEETS = 8,
     EEPROM_SHEET_SIZEOF = sizeof(Sheet)
 };
 
@@ -92,9 +91,9 @@ enum eevar_id {
     EEVAR_SHEET_PROFILE4 = 0x24,
     EEVAR_SHEET_PROFILE5 = 0x25,
     EEVAR_SHEET_PROFILE6 = 0x26,
-    EEVAR_SHEET_PROFILE7 = 0x27,
-    EEVAR_SELFTEST_RESULT = 0x28, // uint32_t, two bits for each selftest part
-    EEVAR_DEVHASH_IN_QR = 0x29,   // bool on / off sending UID in QR
+    EEVAR_SHEET_PROFILE_LAST = 0x27, //!< All SHEET_PROFILEs must be allocated consecutively.
+    EEVAR_SELFTEST_RESULT = 0x28,    // uint32_t, two bits for each selftest part
+    EEVAR_DEVHASH_IN_QR = 0x29,      // bool on / off sending UID in QR
     EEVAR_FOOTER_SETTING = 0x2a,
     EEVAR_FOOTER_DRAW_TYPE = 0x2b,
     EEVAR_FAN_CHECK_ENABLED = 0x2c,   // bool on / off fan check
@@ -184,7 +183,10 @@ typedef enum {
 } eeprom_init_status_t;
 
 #ifdef __cplusplus
+    #include <limits>
 extern "C" {
+inline constexpr size_t eeprom_num_sheets = EEVAR_SHEET_PROFILE_LAST - EEVAR_SHEET_PROFILE0 + 1;
+inline constexpr float eeprom_z_offset_uncalibrated = std::numeric_limits<float>::max();
 #endif //__cplusplus
 
 /// initialize eeprom
@@ -213,6 +215,7 @@ extern uint16_t eeprom_get_ui16(enum eevar_id id);
 extern uint8_t eeprom_get_ui8(enum eevar_id id);
 extern int8_t eeprom_get_i8(enum eevar_id id);
 extern bool eeprom_get_bool(enum eevar_id id);
+extern Sheet eeprom_get_sheet(uint32_t index);
 
 // set variable value as variant8
 extern void eeprom_set_var(enum eevar_id id, variant8_t var);
@@ -226,6 +229,7 @@ extern void eeprom_set_i32(enum eevar_id id, int32_t i32);
 extern void eeprom_set_ui32(enum eevar_id id, uint32_t ui32);
 extern void eeprom_set_flt(enum eevar_id id, float flt);
 extern void eeprom_set_pchar(enum eevar_id id, char *pch, uint16_t count, int init);
+extern bool eeprom_set_sheet(uint32_t index, Sheet sheet);
 
 // get number of variables
 extern uint8_t eeprom_get_var_count(void);
@@ -247,98 +251,6 @@ extern void eeprom_clear(void);
 
 // PUT test
 int8_t eeprom_test_PUT(const unsigned int);
-
-/**
- * @brief reads Z offset, directly or from current sheet if sheets are enabled
- *
- * @return float Z offset
- */
-float eeprom_get_z_offset();
-
-/**
- * @brief writes Z offset, directly or to current sheet if sheets are enabled
- *
- * @param value value to set
- * @return true successfully set
- * @return false sheet index stored in eeprom corrupted
- */
-bool eeprom_set_z_offset(float value);
-
-// TODO sheet accesing functions should not be part of eeprom
-// eeprom should not have knowledge about how sheet calibration process
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Iterate across the profiles and switch to the next calibrated.
-///
-/// Printer use print sheet profile on the index 0 as a default so the method
-/// in the worst case iterate across entire profiles and return index 0 when
-/// not any other profile is calibrated yet.
-/// @return Index of the next calibrated profile.
-extern uint32_t sheet_next_calibrated();
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Determine if the given sheet profile is calibrated.
-///
-/// In case the index of the given print sheet profile is bigger than the
-/// MAX_SHEETS method return false.
-/// @param[in] index Index of the sheet profile
-/// @return True when the profile is calibrated, False othewise.
-extern bool sheet_is_calibrated(uint32_t);
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Select the given print sheet profile as an active for the printer.
-///
-/// In case the index of the given print sheet profile is bigger than the
-/// MAX_SHEETS return false.
-/// @param[in] index Index of the sheet profile
-/// @return True when the profile can be selected, False othewise.
-extern bool sheet_profile_select(uint32_t);
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Reset the given print sheet profile to the uncalibrated state.
-///
-/// In case the index of the given print sheet profile is bigger than the
-/// MAX_SHEETS method return false.
-/// @param[in] index Index of the sheet profile
-/// @return True when the profile was reset, False othewise.
-extern bool sheet_reset(uint32_t);
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Reset the given print sheet profile to the uncalibrated state.
-///
-/// Printer use print sheet profile on the index 0 as a default so the method
-/// return always at least 1 calibrated profile.
-/// @return Return the count of the calibrated print sheet profiles.
-extern uint32_t sheet_number_of_calibrated();
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Determine the name of the current active print sheet profile.
-///
-/// @param[out] buffer Buffer to store the print sheet profile
-/// @param[in] length Size of the given buffer.
-/// @return Number of characters written to the buffer. Number will be
-///        always less than MAX_SHEET_NAME_LENGTH
-extern uint32_t sheet_active_name(char *, uint32_t);
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Determine the name of the given print sheet profile.
-///
-/// @param[in] index Index of the sheet profile
-/// @param[out] buffer Buffer to store the print sheet profile
-/// @param[in] length Size of the given buffer.
-/// @return Number of characters written to the buffer. Number will be
-///        always less than MAX_SHEET_NAME_LENGTH
-extern uint32_t sheet_name(uint32_t, char *, uint32_t);
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Rename the given print sheet profile.
-///
-/// @param[in] index Index of the sheet profile
-/// @param[in] buffer New name of the print sheet profile
-/// @param[in] length Size of the given name.
-/// @return Number of characters written to the buffer. Number will be
-///        always less than MAX_SHEET_NAME_LENGTH
-extern uint32_t sheet_rename(uint32_t, char const *, uint32_t);
 
 #ifdef __cplusplus
 } // extern "C"

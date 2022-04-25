@@ -10,7 +10,7 @@
 #include "knob_event.hpp"
 #include "netdev.h"
 #include "wui.h"
-
+#include "SteelSheets.hpp"
 /*****************************************************************************/
 
 class MI_LOAD_SETTINGS : public WI_LABEL_t {
@@ -76,7 +76,7 @@ ScreenFactory::UniquePtr GetScreenMenuSettings() {
 ScreenMenuSettings::ScreenMenuSettings()
     : Screen(_(label))
     , old_action(gui::knob::GetLongPressScreenAction()) { // backup hold action
-    if (sheet_number_of_calibrated() > 1) {
+    if (SteelSheets::NumOfCalibrated() > 1) {
         Item<MI_CURRENT_PROFILE>().UpdateLabel();
         Item<MI_CURRENT_PROFILE>().Show();
     }
