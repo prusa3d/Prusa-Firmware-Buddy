@@ -6,6 +6,7 @@
 #include "screen_test.hpp"
 #include "screen_messages.hpp"
 #include "marlin_client.h"
+#include "screen_snake.hpp"
 #include "translation_provider_FILE.hpp"
 #include "filament_sensor_api.hpp"
 #include "translator.hpp"
@@ -266,6 +267,16 @@ MI_LANGUAGUE_XFLASH::MI_LANGUAGUE_XFLASH()
 void MI_LANGUAGUE_XFLASH::click(IWindowMenu &windowMenu) {
     if (fileProviderInternal.EnsureFile())
         Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderInternal);
+}
+
+/*****************************************************************************/
+//MI_SNAKE
+MI_SNAKE::MI_SNAKE()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_SNAKE::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<screen_snake_data_t>);
 }
 
 /*****************************************************************************/

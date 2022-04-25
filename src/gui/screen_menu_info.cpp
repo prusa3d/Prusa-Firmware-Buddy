@@ -10,6 +10,8 @@
 using Screen = ScreenMenu<EFooter::On, MI_RETURN,
 #ifdef _DEBUG
     MI_FAIL_STAT_disabled, MI_SUPPORT_disabled,
+#else
+    MI_SNAKE,
 #endif //_DEBUG
     MI_SYS_INFO, MI_SENSOR_INFO, MI_VERSION_INFO, MI_ODOMETER, MI_EEPROM_DIAGNOSTICS>;
 
