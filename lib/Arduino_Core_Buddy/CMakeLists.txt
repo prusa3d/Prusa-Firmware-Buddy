@@ -8,14 +8,8 @@ if(NOT ARDUINO_CORE_VARIANT IN_LIST ARDUINO_CORE_VARIANTS)
 endif()
 
 add_library(
-  CoreBuddy
-  $<$<STREQUAL:${ARDUINO_CORE_VARIANT},2209>:${CMAKE_CURRENT_SOURCE_DIR}/variants/BUDDY_F407VET6_2209/variant.cpp>
-  cores/arduino/Print.cpp
-  cores/arduino/Stream.cpp
-  cores/arduino/USBSerial.cpp
-  cores/arduino/Wire.cpp
-  cores/arduino/wiring_time.c
-  cores/arduino/WMath.cpp
+  CoreBuddy cores/arduino/Print.cpp cores/arduino/Stream.cpp cores/arduino/USBSerial.cpp
+            cores/arduino/Wire.cpp cores/arduino/wiring_time.c cores/arduino/WMath.cpp
   )
 
 target_include_directories(
