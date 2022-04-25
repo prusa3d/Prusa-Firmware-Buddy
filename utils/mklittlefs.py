@@ -1,4 +1,5 @@
 import argparse
+from hashlib import sha256
 import os
 from pathlib import Path
 import logging
@@ -13,6 +14,7 @@ class FileContext(UserContext):
     def __init__(self, path: Path):
         self.path = path
         self.logger = logging.getLogger('file-context')
+        self.logger.setLevel(logging.WARNING)
 
     @contextmanager
     def opened_file(self, cfg):
@@ -80,6 +82,76 @@ def add_file_cmd(args) -> int:
     return 0
 
 
+class HashContext:
+    def __init__(self):
+        self.sha = sha256()
+        self.counter = 0
+        self.logger = logging.getLogger('content-hash')
+
+    def append_mark(self):
+        self.sha.update(self.counter.to_bytes(4, 'little'))
+        self.logger.info('mark(%i)', self.counter)
+        self.counter += 1
+
+    def append_data(self, data):
+        self.sha.update(data)
+        self.logger.info('data(%i)', len(data))
+
+
+def update_hash_with_file(lfs: LittleFS, path: Path, hash_ctx: HashContext):
+    # mark
+    hash_ctx.append_mark()
+
+    # filepath
+    logging.getLogger('content-hash').info('path(%s)', str(path))
+    hash_ctx.append_data(str(path).encode('ascii'))
+
+    # mark
+    hash_ctx.append_mark()
+
+    # filedata
+    with lfs.open(str(path), 'rb') as f:
+        hash_ctx.append_data(f.read())
+
+    # mark
+    hash_ctx.append_mark()
+
+
+def update_hash_with_directory(lfs: LittleFS, path: Path,
+                               hash_ctx: HashContext):
+    # mark
+    hash_ctx.append_mark()
+
+    # filepath
+    logging.getLogger('content-hash').info('path(%s)', str(path))
+    hash_ctx.append_data(str(path).encode('ascii'))
+
+    # mark
+    hash_ctx.append_mark()
+
+    # dir content
+    for fileinfo in lfs.scandir(str(path)):
+        entry_path = path / fileinfo.name
+        if fileinfo.type == 2:  # directory
+            update_hash_with_directory(lfs, entry_path, hash_ctx)
+        elif fileinfo.type == 1:  # file
+            update_hash_with_file(lfs, entry_path, hash_ctx)
+
+    # mark
+    hash_ctx.append_mark()
+
+
+def calculate_image_hash(args) -> int:
+    lfs = make_lfs(args)
+    hash_ctx = HashContext()
+    update_hash_with_directory(lfs, Path('/'), hash_ctx)
+
+    output_path: Path = getattr(args, 'output-file')
+    output_path.write_bytes(hash_ctx.sha.digest())
+
+    return 0
+
+
 def main(*args) -> int:
     parser = argparse.ArgumentParser(
         description='Manipulate littlefs stored in a file')
@@ -100,6 +172,11 @@ def main(*args) -> int:
     add_file_parser.add_argument('source', type=Path)
     add_file_parser.add_argument('target', type=Path)
     add_file_parser.set_defaults(func=add_file_cmd)
+
+    get_content_hash = subparsers.add_parser('get-content-hash')
+    get_content_hash.add_argument('image-file', type=Path)
+    get_content_hash.add_argument('output-file', type=Path)
+    get_content_hash.set_defaults(func=calculate_image_hash)
 
     args = parser.parse_args(sys.argv[1:])
     logging.basicConfig(format='%(levelname)-8s %(message)s',

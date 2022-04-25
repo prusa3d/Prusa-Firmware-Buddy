@@ -1,12 +1,13 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include "resources/hash.hpp"
 
 namespace buddy::resources {
 
 struct Revision {
     /// SHA256 hash representing the content of the resources folder
-    std::array<uint8_t, 32> hash;
+    buddy::resources::Hash hash;
 };
 
 inline bool operator==(const Revision &lhs, const Revision &rhs) {

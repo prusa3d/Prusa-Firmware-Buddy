@@ -1,3 +1,5 @@
+set(generate_hash_file_py "${CMAKE_SOURCE_DIR}/utils/resources/generate_hash_file.py")
+
 add_lfs_image(resources-image BLOCK_SIZE 256 BLOCK_COUNT 3000)
 
 function(add_resource source_path install_path)
@@ -22,13 +24,6 @@ add_gzip_resource("web/index.html" "/web/index.html")
 add_gzip_resource("web/main.446d4b169b9b725c49ef.js" "/web/main.446d4b169b9b725c49ef.js")
 add_gzip_resource("web/main.554eee61c4aa8b635cf4.css" "/web/main.554eee61c4aa8b635cf4.css")
 
-# generate header with hash
-set(RESOURCES_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
-set(RESOURCES_HEADER_HASH_FILE "${RESOURCES_INCLUDE_DIR}/resources/required_revision.hpp")
-lfs_image_generate_hash_header_file(
-  resources-image "${RESOURCES_HEADER_HASH_FILE}" "buddy::resources::revision" "required_revision"
-  )
-
 # generate binary file with hash TODO: Investigate PARENT_SCOPE
 set(RESOURCES_BINARY_HASH_FILE "${CMAKE_CURRENT_BINARY_DIR}/resources_hash.bin")
 set(RESOURCES_BINARY_HASH_FILE
@@ -37,12 +32,25 @@ set(RESOURCES_BINARY_HASH_FILE
     )
 lfs_image_generate_hash_bin_file(resources-image "${RESOURCES_BINARY_HASH_FILE}")
 
+# generate header with hash
+set(RESOURCES_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
+set(RESOURCES_HEADER_HASH_FILE "${RESOURCES_INCLUDE_DIR}/resources/required_revision.hpp")
+add_custom_command(
+  OUTPUT "${RESOURCES_HEADER_HASH_FILE}"
+  COMMAND
+    "${Python3_EXECUTABLE}" "${generate_hash_file_py}" "--header-variable-name" "required_revision"
+    "--header-namespace-name" "buddy::resources::revision" "${RESOURCES_BINARY_HASH_FILE}"
+    "${RESOURCES_HEADER_HASH_FILE}"
+  DEPENDS "${RESOURCES_BINARY_HASH_FILE}" "${generate_hash_file_py}"
+  VERBATIM
+  )
+
 add_custom_target(
   resources-hash-files DEPENDS "${RESOURCES_BINARY_HASH_FILE}" "${RESOURCES_HEADER_HASH_FILE}"
   )
 
 add_dependencies(firmware resources-hash-files)
 
-target_sources(firmware PUBLIC bootstrap.cpp revision.cpp)
+target_sources(firmware PUBLIC bootstrap.cpp revision.cpp hash.cpp)
 
 target_include_directories(firmware PUBLIC "${RESOURCES_INCLUDE_DIR}")
