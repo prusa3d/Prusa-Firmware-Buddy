@@ -7,8 +7,8 @@
 #include "GuiDefaults.hpp"
 #include "marlin_client.h"
 #include "marlin_vars.h"
-#include "eeprom.h"
 #include "display_helper.h"
+#include "SteelSheets.hpp"
 
 #include "config_features.h"
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
@@ -19,8 +19,8 @@
 
 const int axis_steps_per_unit[] = DEFAULT_AXIS_STEPS_PER_UNIT;
 const float z_offset_step = 1.0F / float(axis_steps_per_unit[2]);
-const float z_offset_min = Z_OFFSET_MIN;
-const float z_offset_max = Z_OFFSET_MAX;
+constexpr float z_offset_min = SteelSheets::zOffsetMin;
+constexpr float z_offset_max = SteelSheets::zOffsetMax;
 
 /*****************************************************************************/
 //WindowScale
@@ -92,14 +92,10 @@ WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
 
 void WindowLiveAdjustZ::Save() {
     /// store new z offset value into a marlin_vars & EEPROM
-    variant8_t var = variant8_flt(number.GetValue());
-    if (!eeprom_set_z_offset(number.GetValue())) {
+    if (!SteelSheets::SetZOffset(number.GetValue())) {
         // could be during print, better not cause BSOD, just freeze in debug
         assert(0 /* Z offset write failed */);
     }
-    marlin_set_var(MARLIN_VAR_Z_OFFSET, var);
-    /// force update marlin vars
-    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
 }
 
 void WindowLiveAdjustZ::Change(int dif) {

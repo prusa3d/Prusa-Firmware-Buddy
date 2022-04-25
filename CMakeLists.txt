@@ -682,6 +682,7 @@ target_sources(
           src/common/media.cpp
           src/common/otp.c
           src/common/Pin.cpp
+          src/common/SteelSheets.cpp
           src/common/PinsCheck.cpp
           src/common/sim_bed.c
           src/common/sys.cpp

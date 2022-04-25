@@ -18,6 +18,7 @@
 #include "footer_eeprom.hpp"
 #include <bitset>
 #include "eeprom_current.hpp"
+#include "bsod.h"
 using namespace eeprom::current;
 
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
@@ -198,7 +199,7 @@ static inline void eeprom_unlock(void) {
     osSemaphoreRelease(eeprom_sema);
 }
 
-static eeprom_data eeprom_ram_mirror; //must be zero initialized
+static eeprom_data eeprom_ram_mirror; // must be zero initialized
 
 static void eeprom_init_ram_mirror() {
     eeprom_lock();
@@ -233,7 +234,7 @@ static constexpr bool is_version_supported(uint16_t version) {
 };
 
 // forward declarations of private functions
-static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size);
+static void eeprom_set_var(enum eevar_id id, void const *var_ptr, size_t var_size);
 static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size);
 static void eeprom_write_vars();
 static uint16_t eeprom_var_size(enum eevar_id id);
@@ -250,7 +251,7 @@ static uint16_t eeprom_fwversion_ui16(void);
 eeprom_init_status_t eeprom_init(void) {
     static eeprom_init_status_t status = EEPROM_INIT_Undefined;
     if (status != EEPROM_INIT_Undefined)
-        return status; //already initialized
+        return status; // already initialized
     status = EEPROM_INIT_Normal;
     osSemaphoreDef(eepromSema);
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
@@ -329,6 +330,17 @@ uint16_t eeprom_get_ui16(enum eevar_id id) { return variant8_get_ui16(eeprom_get
 uint8_t eeprom_get_ui8(enum eevar_id id) { return variant8_get_ui8(eeprom_get_var(id)); }
 int8_t eeprom_get_i8(enum eevar_id id) { return variant8_get_i8(eeprom_get_var(id)); }
 bool eeprom_get_bool(enum eevar_id id) { return variant8_get_bool(eeprom_get_var(id)); }
+/// Gets sheet from eeprom
+/// \param index
+/// \returns sheet from eepro, if index out of range returns Sheet{UNDEF,def_val}
+Sheet eeprom_get_sheet(uint32_t index) {
+    if (index > eeprom_num_sheets) {
+        return Sheet { "UNDEF", eeprom_z_offset_uncalibrated };
+    }
+    Sheet sheet;
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
+    return sheet;
+}
 
 /**
  * @brief reads eeprom record from RAM structure
@@ -349,7 +361,7 @@ static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size) {
             memcpy(var_ptr, var_addr, size);
             eeprom_unlock();
         } else {
-            //TODO:error
+            // TODO:error
             log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
         }
     } else {
@@ -360,7 +372,6 @@ static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size) {
 /**
  * @brief function that writes variant8_t to eeprom, also actualizes crc and RAM structure
  *
- * If the same value is in EEPROM then no writing is done.
  * @param id eeprom record index
  * @param var variant variable holding data to be written
  */
@@ -385,7 +396,7 @@ void eeprom_set_var(enum eevar_id id, variant8_t var) {
  * @param var_ptr pointer to variable to be written
  * @param var_size size of variable
  */
-static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size) {
+static void eeprom_set_var(enum eevar_id id, void const *var_ptr, size_t var_size) {
     if (id >= EEPROM_VARCOUNT) {
         assert(0 /* EEProm var Id out of range */);
         return;
@@ -398,7 +409,7 @@ static void eeprom_set_var(enum eevar_id id, void *var_ptr, size_t var_size) {
 
     eeprom_vars_t &vars = eeprom_startup_vars();
     void *var_ram_addr = eeprom_var_ptr(id, vars);
-    //critical section
+    // critical section
     eeprom_lock();
     if (memcmp(var_ram_addr, var_ptr, var_size)) {
         memcpy(var_ram_addr, var_ptr, var_size);
@@ -418,6 +429,18 @@ void eeprom_set_ui32(enum eevar_id id, uint32_t ui32) { eeprom_set_var(id, varia
 void eeprom_set_flt(enum eevar_id id, float flt) { eeprom_set_var(id, variant8_flt(flt)); }
 void eeprom_set_pchar(enum eevar_id id, char *pch, uint16_t count, int init) {
     eeprom_set_var(id, variant8_pchar(pch, count, init));
+}
+/// Saves sheet to eeprom
+/// \param index where to store the sheet
+/// \param sheet
+/// \retval true if successful
+/// \retval false if index out of bound
+bool eeprom_set_sheet(uint32_t index, Sheet sheet) {
+    if (index > eeprom_num_sheets) {
+        return false;
+    }
+    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(Sheet));
+    return true;
 }
 
 uint8_t eeprom_get_var_count(void) {
@@ -459,7 +482,7 @@ int eeprom_var_format(char *str, unsigned int size, enum eevar_id id, variant8_t
             variant8_get_uia(var, 2), variant8_get_uia(var, 3));
         break;
     }
-    default: //use default conversion
+    default: // use default conversion
         n = variant8_snprintf(str, size, 0, &var);
         break;
     }
@@ -487,7 +510,7 @@ variant8_t eeprom_var_parse(enum eevar_id id, char *str) {
         else
             return variant8_error(VARIANT8_ERR_INVFMT, 0, 0);
     }
-    default: //use default conversion
+    default: // use default conversion
         return variant8_from_str(eeprom_map[id].type, str);
     }
     return variant8_error(VARIANT8_ERR_UNSCON, 0, 0);
@@ -662,180 +685,7 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
     return res_flag;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// Sheets profile methods
-static const float Z_OFFSET_MIN = -2.0F;
-static const float Z_OFFSET_MAX = 0.0F;
-
-float eeprom_get_z_offset() {
-    uint8_t index = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
-    if (index >= MAX_SHEETS)
-        return 0.F;
-
-    float value;
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    Sheet sheet;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
-    value = sheet.z_offset;
-#else
-    eeprom_get_var(EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY, &value, sizeof(value));
-#endif
-    if (!isfinite(value))
-        return 0.F;
-    return std::clamp(value, Z_OFFSET_MIN, Z_OFFSET_MAX);
-}
-
-bool eeprom_set_z_offset(float value) {
-    if (!isfinite(value))
-        value = 0.F;
-    value = std::clamp(value, Z_OFFSET_MIN, Z_OFFSET_MAX);
-
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t index = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
-    if (index >= MAX_SHEETS)
-        return false;
-
-    Sheet sheet;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
-    sheet.z_offset = value;
-    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
-#else
-    eeprom_set_var(EEVAR_ZOFFSET_DO_NOT_USE_DIRECTLY, &value, sizeof(value));
-#endif
-    return true;
-}
-
-uint32_t sheet_next_calibrated() {
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t index = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
-
-    for (int8_t i = 1; i < MAX_SHEETS; ++i) {
-        if (sheet_is_calibrated((index + i) % MAX_SHEETS)) {
-            sheet_profile_select((index + i) % MAX_SHEETS);
-            return (index + i) % MAX_SHEETS;
-        }
-    }
-#else
-    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
-#endif
-    return 0;
-}
-
-bool sheet_is_calibrated(uint32_t index) {
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    Sheet sheet;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
-    return !nearlyEqual(sheet.z_offset, FLT_MAX, 0.001f);
-#else
-    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
-    return index == 0;
-#endif
-}
-
-bool sheet_profile_select(uint32_t index) {
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    if (index >= MAX_SHEETS)
-        return false;
-
-    uint8_t index_ui8 = index;
-    eeprom_set_var(EEVAR_ACTIVE_SHEET, &index_ui8, sizeof(index_ui8));
-    return true;
-#else
-    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
-    return index == 0;
-#endif
-}
-
-bool sheet_reset(uint32_t index) {
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    if (index >= MAX_SHEETS)
-        return false;
-    uint8_t active = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
-    float value = FLT_MAX;
-
-    Sheet sheet;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
-    sheet.z_offset = value;
-    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
-    if (active == index)
-        sheet_next_calibrated();
-    return true;
-#else
-    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
-    return false;
-#endif
-}
-
-uint32_t sheet_number_of_calibrated() {
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint32_t count = 1;
-    for (int8_t i = 1; i < MAX_SHEETS; ++i) {
-        if (sheet_is_calibrated(i))
-            ++count;
-    }
-    return count;
-#else
-    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
-    return 1;
-#endif
-}
-
-uint32_t sheet_active_name(char *buffer, uint32_t length) {
-    if (!buffer || !length)
-        return 0;
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t index = eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
-    return sheet_name(index, buffer, length);
-#else
-    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
-    memcpy(buffer, "DEFAULT", MAX_SHEET_NAME_LENGTH - 1);
-    return MAX_SHEET_NAME_LENGTH - 1;
-#endif
-}
-
-uint32_t sheet_name(uint32_t index, char *buffer, uint32_t length) {
-    if (index >= MAX_SHEETS || !buffer || !length)
-        return 0;
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
-        ? length
-        : MAX_SHEET_NAME_LENGTH - 1;
-    Sheet sheet;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
-    memcpy(buffer, sheet.name, l);
-    while (l > 0 && !buffer[l - 1])
-        --l;
-    return l;
-#else
-    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
-    static const char def[] = "DEFAULT";
-    memcpy(buffer, def, MAX_SHEET_NAME_LENGTH - 1);
-    return MAX_SHEET_NAME_LENGTH - 1;
-#endif
-}
-
-uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
-#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    if (index >= MAX_SHEETS || !name || !length)
-        return false;
-
-    Sheet sheet;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
-    uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
-        ? length
-        : MAX_SHEET_NAME_LENGTH - 1;
-    memset(sheet.name, 0, MAX_SHEET_NAME_LENGTH);
-    memcpy(sheet.name, name, l);
-    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
-    return l;
-#else
-    log_info(EEPROM, "called %s while EEPROM_FEATURE_SHEETS is disabled", __PRETTY_FUNCTION__);
-    return 0;
-#endif
-}
-
-/*****************************************************************************/
-//AXIS_Z_MAX_POS_MM
+// AXIS_Z_MAX_POS_MM
 extern "C" float get_z_max_pos_mm() {
     float ret = 0.F;
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
@@ -865,7 +715,7 @@ extern "C" void set_z_max_pos_mm(float max_pos) {
 }
 
 /*****************************************************************************/
-//AXIS_STEPS_PER_UNIT
+// AXIS_STEPS_PER_UNIT
 extern "C" float get_steps_per_unit_x() {
     return std::abs(eeprom_startup_vars().body.AXIS_STEPS_PER_UNIT_X);
 }
@@ -943,7 +793,7 @@ extern "C" uint16_t get_steps_per_unit_e_rounded() {
     return static_cast<uint16_t>(std::lround(get_steps_per_unit_e()));
 }
 
-//by write functions, cannot read startup variables, must read current value from eeprom
+// by write functions, cannot read startup variables, must read current value from eeprom
 template <enum eevar_id ENUM>
 bool is_current_axis_value_inverted() {
     return std::signbit(eeprom_get_flt(ENUM));
@@ -970,7 +820,7 @@ extern "C" void set_steps_per_unit_e(float steps) {
     set_steps_per_unit<AXIS_STEPS_PER_UNIT_E0>(steps);
 }
 
-//by write functions, cannot read startup variables, must read current value from eeprom
+// by write functions, cannot read startup variables, must read current value from eeprom
 template <enum eevar_id ENUM>
 float get_current_steps_per_unit() {
     return std::abs(eeprom_get_flt(ENUM));
@@ -1051,13 +901,13 @@ extern "C" void set_PRUSA_direction_e() { log_error(EEPROM, "called %s while USE
 #endif
 
 /*****************************************************************************/
-//AXIS_MICROSTEPS
+// AXIS_MICROSTEPS
 bool is_microstep_value_valid(uint16_t microsteps) {
     std::bitset<16> bs(microsteps);
     return bs.count() == 1; // 1,2,4,8...
 }
 
-//return default value if eeprom value is invalid
+// return default value if eeprom value is invalid
 extern "C" uint16_t get_microsteps_x() {
     uint16_t ret = eeprom_startup_vars().body.AXIS_MICROSTEPS_X;
     if (!is_microstep_value_valid(ret)) {
@@ -1115,8 +965,8 @@ extern "C" void set_microsteps_e(uint16_t microsteps) {
 }
 
 /*****************************************************************************/
-//AXIS_RMS_CURRENT_MA_X
-//current must be > 0, return default value if it is not
+// AXIS_RMS_CURRENT_MA_X
+// current must be > 0, return default value if it is not
 extern "C" uint16_t get_rms_current_ma_x() {
     uint16_t ret = eeprom_startup_vars().body.AXIS_RMS_CURRENT_MA_X;
     if (ret == 0) {

@@ -45,13 +45,13 @@ constexpr vars_body_t body_defaults = {
     true, // EEVAR_MENU_TIMEOUT
     0,    // EEVAR_ACTIVE_SHEET
     { "Smooth1", 0.0f },
-    { "Smooth2", FLT_MAX },
-    { "Textur1", FLT_MAX },
-    { "Textur2", FLT_MAX },
-    { "Custom1", FLT_MAX },
-    { "Custom2", FLT_MAX },
-    { "Custom3", FLT_MAX },
-    { "Custom4", FLT_MAX },
+    { "Smooth2", eeprom_z_offset_uncalibrated },
+    { "Textur1", eeprom_z_offset_uncalibrated },
+    { "Textur2", eeprom_z_offset_uncalibrated },
+    { "Custom1", eeprom_z_offset_uncalibrated },
+    { "Custom2", eeprom_z_offset_uncalibrated },
+    { "Custom3", eeprom_z_offset_uncalibrated },
+    { "Custom4", eeprom_z_offset_uncalibrated },
     0,    // EEVAR_SELFTEST_RESULT
     true, // EEVAR_DEVHASH_IN_QR
 };
