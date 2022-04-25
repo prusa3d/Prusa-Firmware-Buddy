@@ -51,11 +51,12 @@ using MenuContainerHasRetCool = WinMenuContainer<MI_RETURN,
     MI_Filament<filament_t::PLA>,
     MI_Filament<filament_t::PETG>,
     MI_Filament<filament_t::ASA>,
-    MI_Filament<filament_t::ABS>,
     MI_Filament<filament_t::PC>,
-    MI_Filament<filament_t::FLEX>,
+    MI_Filament<filament_t::PVB>,
+    MI_Filament<filament_t::ABS>,
     MI_Filament<filament_t::HIPS>,
     MI_Filament<filament_t::PP>,
+    MI_Filament<filament_t::FLEX>,
     MI_Filament<filament_t::NONE>>;
 
 //has return
@@ -63,27 +64,30 @@ using MenuContainerHasRet = WinMenuContainer<MI_RETURN,
     MI_Filament<filament_t::PLA>,
     MI_Filament<filament_t::PETG>,
     MI_Filament<filament_t::ASA>,
-    MI_Filament<filament_t::ABS>,
     MI_Filament<filament_t::PC>,
-    MI_Filament<filament_t::FLEX>,
+    MI_Filament<filament_t::PVB>,
+    MI_Filament<filament_t::ABS>,
     MI_Filament<filament_t::HIPS>,
-    MI_Filament<filament_t::PP>>;
+    MI_Filament<filament_t::PP>,
+    MI_Filament<filament_t::FLEX>>;
 
 //has cooldown
 using MenuContainerHasCool = WinMenuContainer<
     MI_Filament<filament_t::PLA>,
     MI_Filament<filament_t::PETG>,
     MI_Filament<filament_t::ASA>,
-    MI_Filament<filament_t::ABS>,
     MI_Filament<filament_t::PC>,
-    MI_Filament<filament_t::FLEX>,
+    MI_Filament<filament_t::PVB>,
+    MI_Filament<filament_t::ABS>,
     MI_Filament<filament_t::HIPS>,
-    MI_Filament<filament_t::PP>,
+    MI_Filament<filament_t::PP>, 
+    MI_Filament<filament_t::FLEX>,
     MI_Filament<filament_t::NONE>>;
 
 // no extra fields
 using MenuContainer = WinMenuContainer<
     MI_Filament<filament_t::PLA>,
+    MI_Filament<filament_t::PVB>,
     MI_Filament<filament_t::PETG>,
     MI_Filament<filament_t::ASA>,
     MI_Filament<filament_t::ABS>,

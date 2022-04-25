@@ -32,11 +32,12 @@ const Filaments::Array filaments = {
     { BtnResponse::GetText(Response::PLA), pla_str, 215, 60, Response::PLA },
     { BtnResponse::GetText(Response::PETG), pet_g_str, 230, 85, Response::PETG },
     { BtnResponse::GetText(Response::ASA), asa_str, 260, 100, Response::ASA },
-    { BtnResponse::GetText(Response::ABS), abs_str, 255, 100, Response::ABS },
     { BtnResponse::GetText(Response::PC), pc_str, 275, 100, Response::PC },
-    { BtnResponse::GetText(Response::FLEX), flex_str, 240, 50, Response::FLEX },
+    { BtnResponse::GetText(Response::PVB), pvb_str, 215, 75, Response::PVB },
+    { BtnResponse::GetText(Response::ABS), abs_str, 255, 100, Response::ABS },
     { BtnResponse::GetText(Response::HIPS), hips_str, 220, 100, Response::HIPS },
     { BtnResponse::GetText(Response::PP), pp_str, 240, 100, Response::PP },
+    { BtnResponse::GetText(Response::FLEX), flex_str, 240, 50, Response::FLEX },
 };
 
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament_t::_last) + 1, "Filament count error.");
