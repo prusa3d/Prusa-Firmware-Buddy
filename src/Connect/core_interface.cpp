@@ -8,12 +8,14 @@
 #include <eeprom.h>
 #include <printers.h>
 
+#include <cstdlib>
 #include <cctype>
 #include <cassert>
 #include <string_view>
 #include <mbedtls/sha256.h>
 
 using std::string_view;
+using std::variant;
 
 namespace con {
 
@@ -110,21 +112,17 @@ namespace {
     }
 }
 
-void core_interface::get_data(device_params_t *params) {
-    if (NULL == params) {
-        assert(0);
-        return;
-    }
-
-    memset(params, 0, sizeof(device_params_t));
+device_params_t core_interface::get_data() {
+    device_params_t params;
+    memset(&params, 0, sizeof params);
 
     if (marlin_vars) {
         marlin_client_loop();
         switch (marlin_vars->print_state) {
         case mpsIdle:
         case mpsAborted:
-            if (DEVICE_STATE_PREPARED != params->state)
-                params->state = DEVICE_STATE_READY;
+            if (DEVICE_STATE_PREPARED != params.state)
+                params.state = DEVICE_STATE_READY;
             break;
         case mpsPrinting:
         case mpsAborting_Begin:
@@ -132,7 +130,7 @@ void core_interface::get_data(device_params_t *params) {
         case mpsAborting_ParkHead:
         case mpsFinishing_WaitIdle:
         case mpsFinishing_ParkHead:
-            params->state = DEVICE_STATE_PRINTING;
+            params.state = DEVICE_STATE_PRINTING;
             break;
         case mpsPausing_Begin:
         case mpsPausing_WaitIdle:
@@ -141,26 +139,28 @@ void core_interface::get_data(device_params_t *params) {
         case mpsResuming_Begin:
         case mpsResuming_Reheating:
             //    case mpsResuming_UnparkHead:
-            params->state = DEVICE_STATE_PAUSED;
+            params.state = DEVICE_STATE_PAUSED;
             break;
         case mpsFinished:
-            if (DEVICE_STATE_PREPARED != params->state)
-                params->state = DEVICE_STATE_FINISHED;
+            if (DEVICE_STATE_PREPARED != params.state)
+                params.state = DEVICE_STATE_FINISHED;
             break;
         default:
-            params->state = DEVICE_STATE_UNKNOWN;
+            params.state = DEVICE_STATE_UNKNOWN;
             break;
         }
-        params->temp_bed = marlin_vars->temp_bed;
-        params->target_bed = marlin_vars->target_bed;
-        params->temp_nozzle = marlin_vars->temp_nozzle;
-        params->target_nozzle = marlin_vars->target_nozzle;
-        params->pos[X_AXIS_POS] = marlin_vars->pos[X_AXIS_POS];
-        params->pos[Y_AXIS_POS] = marlin_vars->pos[Y_AXIS_POS];
-        params->pos[Z_AXIS_POS] = marlin_vars->pos[Z_AXIS_POS];
-        params->print_speed = marlin_vars->print_speed;
-        params->flow_factor = marlin_vars->flow_factor;
+        params.temp_bed = marlin_vars->temp_bed;
+        params.target_bed = marlin_vars->target_bed;
+        params.temp_nozzle = marlin_vars->temp_nozzle;
+        params.target_nozzle = marlin_vars->target_nozzle;
+        params.pos[X_AXIS_POS] = marlin_vars->pos[X_AXIS_POS];
+        params.pos[Y_AXIS_POS] = marlin_vars->pos[Y_AXIS_POS];
+        params.pos[Z_AXIS_POS] = marlin_vars->pos[Z_AXIS_POS];
+        params.print_speed = marlin_vars->print_speed;
+        params.flow_factor = marlin_vars->flow_factor;
     }
+
+    return params;
 }
 
 core_interface::core_interface() {
@@ -168,46 +168,35 @@ core_interface::core_interface() {
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
 }
 
-std::optional<Error> core_interface::get_printer_info(printer_info_t *printer_info) {
-    if (NULL == printer_info)
-        return Error::ERROR;
-
+printer_info_t core_interface::get_printer_info() {
+    printer_info_t info = {};
     size_t len = strlen(project_version_full);
-    if (len < FW_VER_BUFR_LEN)
-        strlcpy(printer_info->firmware_version, project_version_full, FW_VER_BUFR_LEN);
-    else
-        return Error::ERROR;
+    (void)len;
+    assert(len < FW_VER_BUFR_LEN);
+    strlcpy(info.firmware_version, project_version_full, FW_VER_BUFR_LEN);
 
-    printer_info->printer_type = PRINTER_TYPE;
-    //FIXME!
-    // The serial number is a temporary hack. This must be finalized. Currently
-    // the Connect server expects CZPXddddXdddx#ddddd where 'd' is a digit (0 - 9)
-    // and often is not the case on the hardware.
-    memcpy(printer_info->serial_number, "CZPX", 4);
+    info.printer_type = PRINTER_TYPE;
 
+    memcpy(info.serial_number, "CZPX", 4);
     for (int i = 0; i < OTP_SERIAL_NUMBER_SIZE; i++) {
-        printer_info->serial_number[i + 4] = *(volatile char *)(OTP_SERIAL_NUMBER_ADDR + i);
+        info.serial_number[i + 4] = *(volatile char *)(OTP_SERIAL_NUMBER_ADDR + i);
     }
+    info.serial_number[SER_NUM_STR_LEN] = 0;
 
-    printer_info->serial_number[8] = 'X';
-    printer_info->serial_number[12] = 'X';
-    printer_info->serial_number[SER_NUM_STR_LEN] = 0;
-
-    if (!serial_valid(printer_info->serial_number)) {
-        synthetic_serial(printer_info->serial_number);
+    if (!serial_valid(info.serial_number)) {
+        synthetic_serial(info.serial_number);
     }
 
     // Prusa connect requires 16 long fingerprint. Printer code is 8 characters.
     // Copy printer code behind itself to make it 16 characters long.
     //FIXME! This is just a temporary solution!
-    printerCode(printer_info->fingerprint); //Compute hash(8 bytes) from uid, serial and mac
-    if (!(8 == strlen(printer_info->fingerprint)))
-        return Error::ERROR;
-    memcpy(printer_info->fingerprint + FINGERPRINT_SIZE / 2, printer_info->fingerprint, FINGERPRINT_SIZE / 2);
-    printer_info->fingerprint[FINGERPRINT_SIZE] = 0;
+    printerCode(info.fingerprint); //Compute hash(8 bytes) from uid, serial and mac
+    assert(strlen(info.fingerprint) == 8);
+    memcpy(info.fingerprint + FINGERPRINT_SIZE / 2, info.fingerprint, FINGERPRINT_SIZE / 2);
+    info.fingerprint[FINGERPRINT_SIZE] = 0;
 
-    printer_info->appendix = appendix_exist();
-    return std::nullopt;
+    info.appendix = appendix_exist();
+    return info;
 }
 
 // Extract a fixed-sized string from EEPROM to provided buffer.

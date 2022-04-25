@@ -5,10 +5,12 @@ Currently information about the inner parameters of printer is acquired
 using marlin variables.
 */
 #pragma once
-#include <marlin_client.h>
-#include <optional>
-#include <otp.h>
 #include "connect_error.h"
+
+#include <marlin_client.h>
+#include <otp.h>
+
+#include <variant>
 
 namespace con {
 
@@ -73,8 +75,8 @@ private:
 
 public:
     core_interface();
-    void get_data(device_params_t *parmas);
-    std::optional<Error> get_printer_info(printer_info_t *printer_info);
+    device_params_t get_data();
+    printer_info_t get_printer_info();
     configuration_t get_connect_config();
 };
 

@@ -7,11 +7,11 @@
 
 namespace con {
 
-std::variant<size_t, Error> httpc_data::telemetry(device_params_t *params, char *buffer, size_t buffer_len) {
+std::variant<size_t, Error> httpc_data::telemetry(const device_params_t &params, char *buffer, size_t buffer_len) {
     constexpr size_t len = 10;
     char device_state_string[len];
 
-    switch (params->state) {
+    switch (params.state) {
     case DEVICE_STATE_UNKNOWN:
         strlcpy(device_state_string, "UNKNOWN", len);
         break;
@@ -52,15 +52,15 @@ std::variant<size_t, Error> httpc_data::telemetry(device_params_t *params, char 
         "\"flow\":%" PRIu16 ","
         "\"state\":\"%s\""
         "}",
-        (double)params->temp_nozzle,
-        (double)params->temp_bed,
-        (double)params->target_nozzle,
-        (double)params->target_bed,
-        (double)params->pos[X_AXIS_POS],
-        (double)params->pos[Y_AXIS_POS],
-        (double)params->pos[Z_AXIS_POS],
-        params->print_speed,
-        params->flow_factor,
+        (double)params.temp_nozzle,
+        (double)params.temp_bed,
+        (double)params.target_nozzle,
+        (double)params.target_bed,
+        (double)params.pos[X_AXIS_POS],
+        (double)params.pos[Y_AXIS_POS],
+        (double)params.pos[Z_AXIS_POS],
+        params.print_speed,
+        params.flow_factor,
         device_state_string);
 
     std::variant<size_t, Error> ret;
@@ -73,7 +73,7 @@ std::variant<size_t, Error> httpc_data::telemetry(device_params_t *params, char 
     return ret;
 }
 
-std::variant<size_t, Error> httpc_data::info(printer_info_t *info, char *buffer, const uint32_t buffer_len, uint32_t command_id) {
+std::variant<size_t, Error> httpc_data::info(const printer_info_t &info, char *buffer, const uint32_t buffer_len, uint32_t command_id) {
     int bytes_written = snprintf(
         buffer, buffer_len,
         "{"
@@ -87,8 +87,8 @@ std::variant<size_t, Error> httpc_data::info(printer_info_t *info, char *buffer,
         "\"type\":%hhu"
         "}" // data end
         "}",
-        command_id, info->firmware_version, info->serial_number,
-        info->appendix ? "true" : "false", info->fingerprint, info->printer_type);
+        command_id, info.firmware_version, info.serial_number,
+        info.appendix ? "true" : "false", info.fingerprint, info.printer_type);
 
     std::variant<size_t, Error> ret;
     if ((bytes_written >= (int)buffer_len) || (bytes_written < 0))

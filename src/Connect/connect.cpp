@@ -2,6 +2,7 @@
 #include "httpc.hpp"
 #include "httpc_data.hpp"
 
+#include <cassert>
 #include <debug.h>
 #include <os_porting.hpp>
 #include <cstring>
@@ -12,31 +13,103 @@
 
 #include <log.h>
 
+using std::get;
+using std::holds_alternative;
 using std::variant;
 
 LOG_COMPONENT_DEF(connect, LOG_SEVERITY_DEBUG);
 
 namespace con {
 
-std::variant<size_t, Error> connect::get_data_to_send(uint8_t *buffer, size_t buffer_len, printer_info_t *printer_info) {
-    std::variant<size_t, Error> ret;
-    httpc_data data;
+namespace {
 
-    switch (req_type) {
-    case REQUEST_TYPE::SEND_INFO:
-        ret = data.info(printer_info, (char *)buffer, buffer_len, 0);
-        break;
-    case REQUEST_TYPE::TELEMETRY:
-        device_params_t params;
-        core.get_data(&params);
-        ret = data.telemetry(&params, (char *)buffer, buffer_len);
-        break;
-    default:
-        ret = Error::INVALID_PARAMETER_ERROR;
-        break;
-    }
+    class PreparedFactory final : public ConnectionFactory {
+    private:
+        const char *hostname;
+        uint16_t port;
+        Connection *conn;
 
-    return ret;
+    public:
+        PreparedFactory(const char *hostname, uint16_t port, Connection *conn)
+            : hostname(hostname)
+            , port(port)
+            , conn(conn) {}
+        virtual std::variant<Connection *, Error> connection() {
+            if (auto err = conn->connection(hostname, port); err.has_value()) {
+                return *err;
+            }
+            return conn;
+        }
+        virtual const char *host() {
+            return hostname;
+        }
+        virtual void invalidate() {
+            // NOP, this thing is single-use anyway.
+        }
+    };
+
+    class BasicRequest final : public Request {
+    private:
+        core_interface &core;
+        const printer_info_t &info;
+        RequestType req_type;
+        HeaderOut hdrs[3];
+        bool done = false;
+
+    public:
+        BasicRequest(core_interface &core, const printer_info_t &info, const configuration_t &config, RequestType req_type)
+            : core(core)
+            , info(info)
+            , req_type(req_type)
+            , hdrs {
+                { "Fingerprint", info.fingerprint },
+                { "Token", config.token },
+                { nullptr, nullptr }
+            } {}
+        virtual const char *url() const {
+            switch (req_type) {
+            case RequestType::Telemetry:
+                return "/p/telemetry";
+            case RequestType::SendInfo:
+                return "/p/events";
+            default:
+                assert(0);
+                return "";
+            }
+        }
+        virtual ContentType content_type() const {
+            return ContentType::ApplicationJson;
+        }
+        virtual Method method() const {
+            return Method::Post;
+        }
+        virtual const HeaderOut *extra_headers() const {
+            return hdrs;
+        }
+        virtual variant<size_t, Error> write_body_chunk(char *data, size_t size) {
+            if (done) {
+                return 0;
+            } else {
+                done = true;
+                switch (req_type) {
+                case RequestType::Telemetry: {
+                    device_params_t params = core.get_data();
+                    httpc_data renderer;
+                    return renderer.telemetry(params, data, size);
+                }
+                case RequestType::SendInfo: {
+                    httpc_data renderer;
+                    return renderer.info(info, data, size, 0);
+                }
+                default: {
+                    assert(0);
+                    return Error::INVALID_PARAMETER_ERROR;
+                }
+                }
+            }
+        }
+    };
+
 }
 
 void connect::communicate() {
@@ -45,16 +118,6 @@ void connect::communicate() {
     if (!config.enabled) {
         return;
     }
-
-    std::variant<size_t, Error> ret;
-
-    printer_info_t printer_info;
-    std::optional<Error> err = core.get_printer_info(&printer_info);
-    if (err.has_value())
-        return;
-
-    constexpr size_t client_buffer_len = 512;
-    uint8_t client_buffer[client_buffer_len];
 
     // TODO: Any nicer way to do this in C++?
     variant<tls, socket_con> connection_storage;
@@ -67,26 +130,20 @@ void connect::communicate() {
         connection = &std::get<socket_con>(connection_storage);
     }
 
-    http_client client { config.host, config.port, connection };
-    if (!client.is_connected())
-        return;
+    PreparedFactory conn_factory(config.host, config.port, connection);
+    HttpClient http(conn_factory);
 
-    ret = get_data_to_send(client_buffer, client_buffer_len, &printer_info);
-    if (!std::holds_alternative<size_t>(ret))
-        return;
+    BasicRequest request(core, printer_info, config, next_request);
+    const auto result = http.send(request);
 
-    size_t body_length = std::get<size_t>(ret);
-
-    err = client.send_header(req_type, printer_info.fingerprint, config.token, body_length);
-    if (err.has_value())
-        return;
-
-    err = client.send_body(client_buffer, client_buffer_len);
-    if (err.has_value())
-        return;
-
-    // INFO is send only once, and TELEMETRY afterwards.
-    req_type = REQUEST_TYPE::TELEMETRY;
+    if (holds_alternative<Error>(result)) {
+        // TODO: Deal with the error somehow?
+        conn_factory.invalidate();
+        next_request = RequestType::SendInfo;
+    } else {
+        // TODO: Handle the response. Once we have some.
+        next_request = RequestType::Telemetry;
+    }
 }
 
 void connect::run() {
@@ -95,21 +152,6 @@ void connect::run() {
     //FIXME! some mechanisms to know that file-system and network are ready.
     osDelay(10000);
 
-    printer_info_t printer_info;
-    std::optional<Error> ret = core.get_printer_info(&printer_info);
-    // without valid printer info connect won't work!
-    if (ret.has_value()) {
-        // FIXME: Make work with namespaces
-        //log_debug(connect, "Ending Connect Thread due to invalid printer info!");
-        osThreadId id = osThreadGetId();
-        osThreadTerminate(id);
-    }
-    //log_debug(connect, "Valid printer parameters found\n");
-    CONNECT_DEBUG("Firmware: %s\n", printer_info.firmware_version);
-    CONNECT_DEBUG("Printer Type: %hhu\n", printer_info.printer_type);
-    CONNECT_DEBUG("Fingerprint: %s\n", printer_info.fingerprint);
-    //log_debug(connect, "Valid connect configuration found\n");
-
     while (true) {
         communicate();
         // Connect server expects telemetry at least every 30 s (varies with design decisions).
@@ -117,5 +159,8 @@ void connect::run() {
         osDelay(10000);
     }
 }
+
+connect::connect()
+    : printer_info(core.get_printer_info()) {}
 
 }
