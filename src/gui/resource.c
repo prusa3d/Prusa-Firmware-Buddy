@@ -2,14 +2,16 @@
 
 #include "config.h"
 #include "guitypes.h"
-#include "res/cc/font_7x13.c"  //IDR_FNT_SMALL
-#include "res/cc/font_11x18.c" //IDR_FNT_NORMAL
-                               //#include "res/cc/font_10x18.c" //IDR_FNT_NORMAL
-#include "res/cc/font_12x21.c" //IDR_FNT_BIG
-#include "res/cc/font_9x15.c"  //IDR_FNT_TERMINAL
-#include "res/cc/font_9x16.c"  //IDR_FNT_SPECIAL
+#include "res/cc/font_9x15.c" //IDR_FNT_TERMINAL
+#include "res/cc/font_9x16.c" //IDR_FNT_SPECIAL
 
 #include "res/cc/png_marlin_logo.c" //IDR_PNG_splash_logo_marlin
+#ifdef USE_ST7789
+    #include "res/cc/font_7x13.c"  //IDR_FNT_SMALL
+    #include "res/cc/font_11x18.c" //IDR_FNT_NORMAL
+                                   //#include "res/cc/font_10x18.c" //IDR_FNT_NORMAL
+    #include "res/cc/font_12x21.c" //IDR_FNT_BIG
+#endif                             // USE_ST7789
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     #include "res/cc/png_prusa_mini_splash.c" //IDR_PNG_prusa_printer_splash
     #include "res/cc/png_prusa_mini_logo.c"   //IDR_PNG_prusa_printer_logo
@@ -114,17 +116,29 @@
 RESOURCE_TABLE_BEGIN
 RESOURCE_ENTRY_NUL() //IDR_NULL
 //fonts
+#ifdef USE_ST7789
 RESOURCE_ENTRY_FNT(font_7x13)  //IDR_FNT_SMALL
 RESOURCE_ENTRY_FNT(font_11x18) //IDR_FNT_NORMAL
-//RESOURCE_ENTRY_FNT(font_10x18) //IDR_FNT_NORMAL
+                               //RESOURCE_ENTRY_FNT(font_10x18) //IDR_FNT_NORMAL
+
+    #if ((SAVE_FLASH) < 2)
 RESOURCE_ENTRY_FNT(font_12x21) //IDR_FNT_BIG
-RESOURCE_ENTRY_FNT(font_9x15)  //IDR_FNT_TERMINAL
-RESOURCE_ENTRY_FNT(font_9x16)  //IDR_FNT_SPECIAL
+    #endif
+#endif // USE_ST7789
+
+RESOURCE_ENTRY_FNT(font_9x15) //IDR_FNT_TERMINAL
+#if ((SAVE_FLASH) < 3)
+RESOURCE_ENTRY_FNT(font_9x16) //IDR_FNT_SPECIAL
+#endif
 
 //pngs
 RESOURCE_ENTRY_PNG(png_marlin_logo)          //IDR_PNG_malin_logo
 RESOURCE_ENTRY_PNG(png_prusa_printer_splash) //IDR_PNG_prusa_printer_splash
-RESOURCE_ENTRY_PNG(png_prusa_printer_logo)   //IDR_PNG_prusa_printer_logo
+#if ((SAVE_FLASH) < 5)
+RESOURCE_ENTRY_PNG(png_prusa_printer_logo) //IDR_PNG_prusa_printer_logo
+#else
+RESOURCE_ENTRY_NUL()
+#endif
 
 RESOURCE_ENTRY_PNG(png_nozzle_16px)
 RESOURCE_ENTRY_PNG(png_heatbed_16px)
@@ -164,7 +178,11 @@ RESOURCE_ENTRY_PNG(png_folder_up_16px)
 RESOURCE_ENTRY_PNG(png_folder_shape_16px)
 RESOURCE_ENTRY_PNG(png_folder_open_16px)
 
+#if ((SAVE_FLASH) < 4)
 RESOURCE_ENTRY_PNG(png_pepa_64px)
+#else
+RESOURCE_ENTRY_NUL()
+#endif
 
 RESOURCE_ENTRY_PNG(png_dash_18px)
 RESOURCE_ENTRY_PNG(png_ok_color_18px)
@@ -202,13 +220,21 @@ RESOURCE_ENTRY_PNG(png_arrow_up_orange_8px)
 RESOURCE_ENTRY_PNG(png_arrow_down_orange_8px)
 
 RESOURCE_ENTRY_PNG(png_back_32px)
+#if ((SAVE_FLASH) < 1)
 RESOURCE_ENTRY_PNG(png_serial_printing)
+#else
+RESOURCE_ENTRY_NUL()
+#endif
 RESOURCE_ENTRY_PNG(png_disconnect_48px)
 RESOURCE_ENTRY_PNG(png_switch_off_36px)
 RESOURCE_ENTRY_PNG(png_switch_on_36px)
 RESOURCE_ENTRY_PNG(png_hand_qr)
 RESOURCE_ENTRY_PNG(png_exposure_times_48px)
+#if ((SAVE_FLASH) >= 6)
+RESOURCE_ENTRY_NUL()
+#else
 RESOURCE_ENTRY_PNG(png_usb_error)
+#endif
 RESOURCE_ENTRY_PNG(png_fan_error)
 RESOURCE_ENTRY_PNG(png_turn_knob)
 

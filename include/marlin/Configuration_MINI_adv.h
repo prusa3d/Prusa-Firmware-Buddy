@@ -1112,7 +1112,9 @@
 //
 // G2/G3 Arc Support
 //
-#define ARC_SUPPORT // Disable this feature to save ~3226 bytes
+#if (SAVE_FLASH < 7)
+    #define ARC_SUPPORT // Disable this feature to save ~3226 bytes
+#endif
 #if ENABLED(ARC_SUPPORT)
     #define MM_PER_ARC_SEGMENT 1 // Length of each arc segment
     #define N_ARC_CORRECTION 25 // Number of intertpolated segments between corrections

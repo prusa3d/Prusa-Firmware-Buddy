@@ -1,6 +1,8 @@
 //resource.h
 #pragma once
 
+#include "save_flash_space.h"
+
 enum {
 
     //null resource - test
@@ -9,9 +11,17 @@ enum {
     //fonts
     IDR_FNT_SMALL,
     IDR_FNT_NORMAL,
-    IDR_FNT_BIG,
+    IDR_FNT_BIG
+#if ((SAVE_FLASH) >= 2)
+    = IDR_FNT_NORMAL
+#endif
+    ,
     IDR_FNT_TERMINAL,
-    IDR_FNT_SPECIAL,
+    IDR_FNT_SPECIAL
+#if ((SAVE_FLASH) >= 3)
+    = IDR_FNT_TERMINAL
+#endif
+    ,
 
     //pngs
     IDR_PNG_marlin_logo,
