@@ -191,7 +191,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
             if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
                 log_info(Network, "ESP boot connect OK");
-                help.SetText(_("Successfully connected to ESP. Do not switch the Printer off nor remove the Flash disk."));
+                help.SetText(_("Successfully connected to ESP. Do not switch the Printer off until the update will finish."));
                 progress_state = esp_upload_action::Start_flash;
             } else {
                 log_debug(Network, "ESP boot failedK");
@@ -203,7 +203,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
         case esp_upload_action::Start_flash:
             if ((opened_file = fopen(current_file->filename, "rb")) == nullptr) {
                 log_error(Network, "ESP flash: Unable to open file %s", current_file->filename);
-                help.SetText(_("Unable to open files. Chek the flash drive and start again"));
+                help.SetText(_("Unable to open files."));
                 progress_state = esp_upload_action::ESP_error;
                 break;
             } else {
@@ -235,7 +235,7 @@ void ScreenMenuESPUpdate::windowEvent(EventLock /*has private ctor*/, window_t *
             log_debug(Network, "ESP read data %ld", readCount);
             if (ferror(opened_file)) {
                 log_error(Network, "ESP flash: Unable to read file %s", current_file->filename);
-                help.SetText(_("Unable to read files. Chek the flash disk and start again"));
+                help.SetText(_("Unable to read files."));
                 readBytes = 0;
                 progress_state = esp_upload_action::ESP_error;
                 break;
