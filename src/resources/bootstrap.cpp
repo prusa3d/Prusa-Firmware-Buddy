@@ -9,81 +9,16 @@
 #include "log.h"
 #include "timing.h"
 #include "cmsis_os.h"
-#include "filesystem_littlefs_bbf.h"
 
 #include "resources/bootstrap.hpp"
 #include "resources/required_revision.hpp"
+#include "resources/hash.hpp"
+
+#include "fileutils.hpp"
 
 LOG_COMPONENT_DEF(Resources, LOG_SEVERITY_DEBUG);
-#define log(severity, ...) _log_event(severity, log_component_find("Resources"), __VA_ARGS__)
 
 using namespace buddy::resources::revision;
-
-class DIRDeleter {
-public:
-    void operator()(DIR *dir) {
-        closedir(dir);
-    }
-};
-
-class FILEDeleter {
-public:
-    void operator()(FILE *file) {
-        fclose(file);
-    }
-};
-
-class ScopedFileSystemLittlefsBBF {
-private:
-    int device;
-
-public:
-    ScopedFileSystemLittlefsBBF(FILE *bbf)
-        : device(filesystem_littlefs_bbf_init(bbf)) {}
-
-    bool mounted() {
-        return device != -1;
-    }
-
-    ~ScopedFileSystemLittlefsBBF() {
-        if (mounted()) {
-            filesystem_littlefs_bbf_deinit();
-        }
-    }
-};
-
-class Path {
-private:
-    char path[104]; // TODO: Provide proper defines of max path length
-public:
-    Path(const char *path) {
-        set(path);
-    }
-
-    void set(const char *path) {
-        strlcpy(this->path, path, sizeof(this->path));
-    }
-
-    const char *get() const {
-        return path;
-    }
-
-    void push(const char *component) {
-        size_t length = strlen(path);
-        if (length == 0 || path[length - 1] != '/') {
-            strlcat(path, "/", sizeof(path));
-        }
-        strlcat(path, component, sizeof(path));
-    }
-
-    void pop() {
-        char *slash = strrchr(path, '/');
-        if (slash == nullptr) {
-            return;
-        }
-        *slash = 0;
-    }
-};
 
 struct ResourcesScanResult {
     unsigned files_count;
@@ -300,6 +235,63 @@ static bool copy_file(const Path &source_path, const Path &target_path, Bootstra
     }
 }
 
+[[nodiscard]] static bool remove_directory_recursive(Path &path) {
+    while (true) {
+        errno = 0;
+        // get info about the next item in the directory
+        std::unique_ptr<DIR, DIRDeleter> dir(opendir(path.get()));
+
+        if (dir.get() == nullptr) {
+            return false;
+        }
+
+        struct dirent *entry = readdir(dir.get());
+        if (!entry && errno != 0) {
+            return false;
+        }
+
+        // skip the entry immediately if "." or ".."
+        while (entry && ((strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0))) {
+            entry = readdir(dir.get());
+        }
+
+        // is the dir already empty?
+        if (!entry) {
+            break;
+        }
+
+        // save info and close the dir to save resources
+        path.push(entry->d_name);
+        auto d_type = entry->d_type;
+        dir.reset();
+
+        // remove the item
+        bool success;
+        if (d_type == DT_REG) {
+            // copy file
+            log(LOG_SEVERITY_INFO, "Removing file %s", path.get());
+            success = remove(path.get()) == 0;
+        } else if (d_type == DT_DIR) {
+            log(LOG_SEVERITY_INFO, "Removing directory %s", path.get());
+            success = remove_directory_recursive(path);
+        } else {
+            log(LOG_SEVERITY_WARNING, "Unexpected item %hhu: %s; skipping", d_type, path.get());
+            success = true;
+        }
+
+        // restore previous state
+        path.pop();
+
+        if (!success) {
+            log(LOG_SEVERITY_ERROR, "Error when removing directory %s (errno %i)", path.get(), errno);
+            return false;
+        }
+    }
+
+    // and finally, remove the directory itself
+    return remove(path.get()) == 0;
+}
+
 static bool copy_resources_directory(Path &source, Path &target, BootstrapProgressReporter &reporter) {
     std::optional<long> last_dir_location;
 
@@ -424,9 +416,6 @@ static bool do_bootstrap(buddy::resources::ProgressHook progress_hook) {
     }
 
     reporter.report("Preparing bootstrap");
-    // clear installed resources
-    buddy::resources::InstalledRevision::clear();
-    remove("/internal/res");
 
     // open the bbf
     std::unique_ptr<FILE, FILEDeleter> bbf(fopen(source_path.get(), "rb"));
@@ -459,12 +448,31 @@ static bool do_bootstrap(buddy::resources::ProgressHook progress_hook) {
         return false;
     }
 
+    // clear installed resources
+    Path target_path("/internal/res");
+    buddy::resources::InstalledRevision::clear();
+    if (remove_directory_recursive(target_path) == false) {
+        log(LOG_SEVERITY_ERROR, "Failed to remove the /internal/res directory");
+        return false;
+    }
+
     // copy the resources
     reporter.report("Copying files");
     source_path.set("/bbf");
-    Path target_path("/internal/res");
     if (!copy_resources_directory(source_path, target_path, reporter)) {
         log(LOG_SEVERITY_ERROR, "Failed to copy resources");
+        return false;
+    }
+
+    // calculate the hash of the resources we just installed
+    buddy::resources::Hash current_hash;
+    if (!buddy::resources::calculate_directory_hash(current_hash, "/internal/res")) {
+        log(LOG_SEVERITY_ERROR, "Failed to calculate hash of /internal/res directory");
+        return false;
+    }
+
+    if (buddy::resources::revision::required_revision.hash != current_hash) {
+        log(LOG_SEVERITY_ERROR, "Installed resources but the hash does not match!");
         return false;
     }
 
