@@ -306,6 +306,7 @@ void screen_printing_data_t::update_remaining_time(uint32_t sec, uint16_t print_
     }
     // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
     w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));
+    w_etime_value.Invalidate(); // invalidation is needed here because we are using the same static array for the text and text will invalidate only when the memory address is different
 }
 
 void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print_speed) {
