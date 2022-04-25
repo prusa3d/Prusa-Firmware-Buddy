@@ -42,7 +42,7 @@
 #include "../marlin_stubs/G26.hpp"
 #include "fsm_types.hpp"
 #include "odometer.hpp"
-
+#include "SteelSheets.hpp"
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
@@ -450,7 +450,7 @@ bool marlin_server_inject_gcode(const char *gcode) {
 }
 
 void marlin_server_settings_save(void) {
-    if (!eeprom_set_z_offset(probe_offset.z)) {
+    if (!SteelSheets::SetZOffset(probe_offset.z)) {
         assert(0 /* Z offset write failed */);
     }
     eeprom_set_flt(EEVAR_PID_BED_P, Temperature::temp_bed.pid.Kp);
@@ -466,7 +466,7 @@ void marlin_server_settings_save(void) {
 void marlin_server_settings_load(void) {
     (void)settings.reset();
 #if HAS_BED_PROBE
-    probe_offset.z = eeprom_get_z_offset();
+    probe_offset.z = SteelSheets::GetZOffset();
 #endif
     Temperature::temp_bed.pid.Kp = eeprom_get_flt(EEVAR_PID_BED_P);
     Temperature::temp_bed.pid.Ki = eeprom_get_flt(EEVAR_PID_BED_I);
