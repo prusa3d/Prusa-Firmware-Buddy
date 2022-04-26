@@ -66,6 +66,8 @@ struct esp_entry {
 struct status_t {
     PhasesSelftest phase;
     uint8_t progress;
+    uint8_t current_file : 4;
+    uint8_t count_of_files : 4;
 
     void Empty() {
         phase = PhasesSelftest::_none;
@@ -73,7 +75,7 @@ struct status_t {
     }
 
     constexpr bool operator==(const status_t &other) const {
-        return ((progress == other.progress) && (phase == other.phase));
+        return ((progress == other.progress) && (phase == other.phase) && (current_file == other.current_file) && (count_of_files == other.count_of_files));
     }
 
     constexpr bool operator!=(const status_t &other) const {
@@ -91,8 +93,9 @@ static_assert(sizeof(uint32_t) >= sizeof(status_t), "error esp status is too big
 
 class ESPUpdate {
     static constexpr size_t buffer_length = 512;
+    static constexpr size_t files_to_upload = 3;
 
-    std::array<esp_entry, 3> firmware_set;
+    std::array<esp_entry, files_to_upload> firmware_set;
     FILE *opened_file;
     esp_upload_action progress_state;
     esp_entry *current_file;
@@ -101,6 +104,7 @@ class ESPUpdate {
     PhasesSelftest phase;
     const bool from_menu;
     uint8_t progress;
+    uint8_t current_file_no;
 
     void updateProgress();
     static std::atomic<uint32_t> status;
@@ -135,7 +139,8 @@ ESPUpdate::ESPUpdate(bool from_menu)
       })
     , phase(PhasesSelftest::_none)
     , from_menu(from_menu)
-    , progress(0) {
+    , progress(0)
+    , current_file_no(0) {
 }
 
 void ESPUpdate::updateProgress() {
@@ -215,6 +220,7 @@ void ESPUpdate::Loop() {
             } else {
                 progress_state = esp_upload_action::Write_data;
                 readCount = 0;
+                ++current_file_no;
             }
             break;
         case esp_upload_action::Write_data: {
@@ -288,6 +294,8 @@ void ESPUpdate::Loop() {
         status_encoder_union u;
         u.status.phase = phase;
         u.status.progress = progress;
+        u.status.current_file = current_file_no;
+        u.status.count_of_files = files_to_upload;
         status = u.u32;
     }
 }
@@ -325,7 +333,7 @@ void update_esp(bool force) {
 
             if (current != status) {
                 status = current;
-                SelftestESP_t data(status.progress);
+                SelftestESP_t data(status.progress, status.current_file, status.count_of_files);
                 fsm_holder.Change(status.phase, data);
             }
 

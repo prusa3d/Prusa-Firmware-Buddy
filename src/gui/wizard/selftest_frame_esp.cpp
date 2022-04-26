@@ -10,28 +10,35 @@
 #include "resource.h"
 
 static constexpr size_t icon_sz = 64;
-static constexpr size_t row_2 = WizardDefaults::row_1 + WizardDefaults::row_h * 2;
+static constexpr size_t row_2 = WizardDefaults::row_1 + WizardDefaults::row_h + WizardDefaults::txt_h;
+static constexpr size_t row_2b = row_2 + WizardDefaults::progress_row_h;
 static constexpr size_t row_3 = row_2 + icon_sz;
 static constexpr size_t col_0 = WizardDefaults::MarginLeft;
 
 SelftestFrameESP::SelftestFrameESP(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
-    , text_top(this, Rect16(col_0, WizardDefaults::row_1, WizardDefaults::X_space, WizardDefaults::row_h * 2), is_multiline::yes)
+    , text_top(this, Rect16(col_0, WizardDefaults::row_1, WizardDefaults::X_space, WizardDefaults::txt_h * 2), is_multiline::yes)
     , progress(this, row_2)
+    , text_progress(this, Rect16(col_0, row_2b, WizardDefaults::X_space, WizardDefaults::txt_h), is_multiline::no)
     , icon(this, Rect16((GuiDefaults::ScreenWidth - icon_sz) / 2, row_2, icon_sz, icon_sz), IDR_PNG_wifi_large_64x64)
 
-    , text_bot(this, Rect16(col_0, row_3, WizardDefaults::X_space, WizardDefaults::row_h * 4), is_multiline::yes)
+    , text_bot(this, Rect16(col_0, row_3, WizardDefaults::X_space, WizardDefaults::txt_h * 4), is_multiline::yes)
 
 {
     progress.SetProgressPercent(0);
     text_top.SetAlignment(Align_t::LeftBottom());
     text_bot.SetAlignment(Align_t::LeftCenter());
+    text_progress.SetAlignment(Align_t::Center());
     change();
 }
 
 void SelftestFrameESP::change() {
     SelftestESP_t dt(data_current);
     progress.SetProgressPercent(dt.progress);
+
+    //"[0 / 0]";
+    progr_text[1] = dt.current_file + '0';
+    progr_text[5] = dt.count_of_files + '0';
 
     const char *txt_top = nullptr;
     const char *txt_bot = nullptr;
@@ -59,13 +66,11 @@ void SelftestFrameESP::change() {
         txt_top = N_("WIFI update");
         txt_bot = N_("Success");
         show_progress = true;
-        progress.SetProgressPercent(100);
         break;
     case PhasesSelftest::ESP_failed:
         txt_top = N_("WIFI update");
         txt_bot = N_("Failed");
         show_progress = true;
-        progress.SetProgressPercent(100);
         break;
     default:
         break;
@@ -93,7 +98,11 @@ void SelftestFrameESP::change() {
 
     if (show_progress) {
         progress.Show();
+        text_progress.Show();
+        text_progress.SetText(string_view_utf8::MakeRAM((uint8_t *)progr_text));
+        text_progress.Invalidate(); // must invalidate, RAM text has same addres
     } else {
         progress.Hide();
+        text_progress.Hide();
     }
 };
