@@ -8,6 +8,7 @@
 #include "marlin_server.hpp"
 #include "fsm_base_types.hpp"
 #include "client_fsm_types.h"
+#include "selftest_esp_type.hpp"
 
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
 
@@ -16,6 +17,7 @@
 #include <cstdint>
 #include <basename.h>
 #include <dirent.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,6 +26,9 @@ extern "C" {
 #include <esp_loader.h>
 #include <espif.h>
 #include <wui.h>
+
+#include "FreeRTOS.h"
+#include "task.h"
 
 #ifdef __cplusplus
 }
@@ -34,6 +39,8 @@ extern "C" {
 #define PARTITION_TABLE_ADDRESS 0x08000ul
 extern UART_HandleTypeDef huart6;
 
+namespace {
+
 enum class esp_upload_action {
     Initial,
     Initial_wait_user,
@@ -43,8 +50,10 @@ enum class esp_upload_action {
     ESP_error,
     USB_error,
     Error_wait_user,
-    Reset,
-    Aborted,
+    Finish_and_reset,
+    Finish_wait_user,
+    Aborted, //currently abort does not wait for user
+    // Aborted_wait_user,
     Done
 };
 
@@ -53,6 +62,32 @@ struct esp_entry {
     const char *filename;
     uint32_t size;
 };
+
+struct status_t {
+    PhasesSelftest phase;
+    uint8_t progress;
+
+    void Empty() {
+        phase = PhasesSelftest::_none;
+        progress = 0;
+    }
+
+    constexpr bool operator==(const status_t &other) const {
+        return ((progress == other.progress) && (phase == other.phase));
+    }
+
+    constexpr bool operator!=(const status_t &other) const {
+        return !((*this) == other);
+    }
+};
+
+union status_encoder_union {
+    uint32_t u32;
+    status_t status;
+};
+
+static_assert(sizeof(uint32_t) >= sizeof(status_t), "error esp status is too big");
+} // anonymous namespace
 
 class ESPUpdate {
     static constexpr size_t buffer_length = 512;
@@ -63,19 +98,25 @@ class ESPUpdate {
     esp_entry *current_file;
     uint32_t readCount;
     loader_stm32_config_t loader_config;
-
-    FSM_Holder fsm_holder;
     PhasesSelftest phase;
     const bool from_menu;
     uint8_t progress;
 
     void updateProgress();
+    static std::atomic<uint32_t> status;
 
 public:
     ESPUpdate(bool from_menu);
 
     void Loop();
+    static status_t GetStatus() {
+        status_encoder_union u;
+        u.u32 = status;
+        return u.status;
+    }
 };
+
+std::atomic<uint32_t> ESPUpdate::status = 0;
 
 ESPUpdate::ESPUpdate(bool from_menu)
     : firmware_set({ { { .address = PARTITION_TABLE_ADDRESS, .filename = "/internal/res/esp/partition-table.bin", .size = 0 },
@@ -92,7 +133,6 @@ ESPUpdate::ESPUpdate(bool from_menu)
           .port_rst = GPIOC,
           .pin_num_rst = GPIO_PIN_13,
       })
-    , fsm_holder(ClientFSM::Selftest, 0)
     , phase(PhasesSelftest::_none)
     , from_menu(from_menu)
     , progress(0) {
@@ -103,7 +143,6 @@ void ESPUpdate::updateProgress() {
     progr = std::clamp(progr, 0, 100);
     if (progress != progr) {
         progress = progr;
-        fsm_holder.Change(phase, progr);
     }
 }
 
@@ -112,6 +151,7 @@ void ESPUpdate::Loop() {
         bool continue_pressed = false;
 
         //we use only 2 responses here
+        //it is safe to use it from different thread as long as no other thread reads it
         switch (ClientResponseHandler::GetResponseFromPhase(phase)) {
         case Response::Continue:
             continue_pressed = true;
@@ -126,7 +166,6 @@ void ESPUpdate::Loop() {
         switch (progress_state) {
         case esp_upload_action::Initial:
             phase = from_menu ? PhasesSelftest::ESP_ask_from_menu : PhasesSelftest::ESP_ask_auto;
-            fsm_holder.Change(phase, 0);
             progress_state = esp_upload_action::Initial_wait_user;
             break;
         case esp_upload_action::Initial_wait_user:
@@ -141,7 +180,6 @@ void ESPUpdate::Loop() {
                 }
                 progress_state = esp_upload_action::Connect;
                 phase = PhasesSelftest::ESP_upload;
-                fsm_holder.Change(phase, 0);
             }
             break;
         case esp_upload_action::Connect: {
@@ -205,21 +243,28 @@ void ESPUpdate::Loop() {
                 ++current_file;
                 progress_state = current_file != firmware_set.end()
                     ? esp_upload_action::Start_flash
-                    : esp_upload_action::Reset;
+                    : esp_upload_action::Finish_and_reset;
             }
             break;
         }
-        case esp_upload_action::Reset:
+        case esp_upload_action::Finish_and_reset:
             log_info(Network, "ESP finished flashing");
+            phase = PhasesSelftest::ESP_passed;
             esp_loader_flash_finish(true);
             espif_flash_deinitialize();
             notify_reconfigure();
-            progress_state = esp_upload_action::Done;
+            progress_state = esp_upload_action::Finish_wait_user;
             current_file = firmware_set.begin();
             readCount = 0;
             break;
+        case esp_upload_action::Finish_wait_user:
+            if (continue_pressed) {
+                progress_state = esp_upload_action::Done;
+            }
+            break;
         case esp_upload_action::ESP_error:
         case esp_upload_action::USB_error: {
+            phase = PhasesSelftest::ESP_failed;
             esp_loader_flash_finish(false);
             progress_state = esp_upload_action::Error_wait_user;
             current_file = firmware_set.begin();
@@ -239,12 +284,53 @@ void ESPUpdate::Loop() {
             break;
         }
 
-        //call idle loop to prevent watchdog
-        idle(true, true);
+        //actualize status
+        status_encoder_union u;
+        u.status.phase = phase;
+        u.status.progress = progress;
+        status = u.u32;
     }
 }
 
-void update_esp(bool force) {
-    ESPUpdate update(force);
+static void EspTask(void *pvParameters) {
+    ESPUpdate update((int)pvParameters);
+
     update.Loop();
+
+    vTaskDelete(NULL); // kill itself
+}
+
+void update_esp(bool force) {
+
+    uint tasks_running_at_start = uxTaskGetNumberOfTasks();
+
+    TaskHandle_t xHandle = nullptr;
+
+    xTaskCreate(
+        EspTask,              // Function that implements the task.
+        "ESP UPDATE",         // Text name for the task.
+        512,                  // Stack size in words, not bytes.
+        (void *)((int)force), // Parameter passed into the task.
+        osPriorityNormal,     // Priority at which the task is created.
+        &xHandle);            // Used to pass out the created task's handle.
+
+    if (xHandle) {
+        FSM_Holder fsm_holder(ClientFSM::Selftest, 0);
+        status_t status;
+        status.Empty();
+
+        // wait until task kills itself
+        while (uxTaskGetNumberOfTasks() > tasks_running_at_start) {
+            status_t current = ESPUpdate::GetStatus();
+
+            if (current != status) {
+                status = current;
+                SelftestESP_t data(status.progress);
+                fsm_holder.Change(status.phase, data);
+            }
+
+            //call idle loop to prevent watchdog
+            idle(true, true);
+        }
+    }
 }

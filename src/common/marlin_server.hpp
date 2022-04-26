@@ -151,6 +151,11 @@ public:
         fsm_change(dialog, phase, serializer.Serialize());
     }
 
+    template <class T, class U>
+    void Change(T phase, const U &serializer) const {
+        fsm_change(dialog, phase, serializer.Serialize());
+    }
+
     ~FSM_Holder() {
         fsm_destroy(dialog);
     }

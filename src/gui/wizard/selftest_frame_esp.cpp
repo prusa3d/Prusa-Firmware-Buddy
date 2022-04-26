@@ -31,6 +31,7 @@ SelftestFrameESP::SelftestFrameESP(window_t *parent, PhasesSelftest ph, fsm::Pha
 
 void SelftestFrameESP::change() {
     SelftestESP_t dt(data_current);
+    progress.SetProgressPercent(dt.progress);
 
     const char *txt_top = nullptr;
     const char *txt_bot = nullptr;
@@ -41,18 +42,18 @@ void SelftestFrameESP::change() {
     switch (phase_current) {
     case PhasesSelftest::ESP_ask_auto:
         txt_top = N_("WIFI module detected");
-        txt_bot = N_("Firmware version 1.2.4 is available"); // TODO pass version
+        txt_bot = N_("The device firmware version missmatch. It needs to be updated.");
         show_icon = true;
         break;
     case PhasesSelftest::ESP_ask_from_menu:
         txt_top = N_("New version of WIFI firmware detected");
-        txt_bot = N_("The device firmware needs to be updated. Firmware version 1.2.3 is available."); // TODO pass version
+        txt_bot = N_("The device firmware version missmatch. It needs to be updated.");
         show_icon = true;
         break;
     case PhasesSelftest::ESP_upload:
         txt_top = N_("WIFI update");
         txt_bot = N_("Do not disconnect WIFI module or turn power off");
-        show_progress = true; // TODO pass progress
+        show_progress = true;
         break;
     case PhasesSelftest::ESP_passed:
         txt_top = N_("WIFI update");
