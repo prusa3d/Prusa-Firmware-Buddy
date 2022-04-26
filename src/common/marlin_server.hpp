@@ -2,6 +2,7 @@
 #pragma once
 
 #include <optional>
+#include <atomic>
 
 #include "marlin_server.h"
 #include "client_response.hpp"
@@ -33,7 +34,7 @@ void can_stop_wait_for_heatup(bool val);
 class ClientResponseHandler : public ClientResponses {
     ClientResponseHandler() = delete;
     ClientResponseHandler(ClientResponseHandler &) = delete;
-    static uint32_t server_side_encoded_response;
+    static std::atomic<uint32_t> server_side_encoded_response;
 
 public:
     //call inside marlin server on received response from client
@@ -42,13 +43,15 @@ public:
     }
     //return response and erase it
     //return UINT32_MAX if button does not match
+    //can be used from sub thread, as long as only one thread at the time reads it
     template <class T>
     static Response GetResponseFromPhase(T phase) {
-        uint32_t _phase = server_side_encoded_response >> RESPONSE_BITS;
+        const uint32_t value = server_side_encoded_response.exchange(UINT32_MAX); //read and erase response
+
+        uint32_t _phase = value >> RESPONSE_BITS;
         if ((static_cast<uint32_t>(phase)) != _phase)
             return Response::_none;
-        uint32_t index = server_side_encoded_response & uint32_t(MAX_RESPONSES - 1); //get response index
-        server_side_encoded_response = UINT32_MAX;                                   //erase response
+        uint32_t index = value & uint32_t(MAX_RESPONSES - 1); //get response index
         return GetResponse(phase, index);
     }
 };
