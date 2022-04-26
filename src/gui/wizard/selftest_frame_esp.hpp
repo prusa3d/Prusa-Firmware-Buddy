@@ -9,8 +9,10 @@
 #include "window_icon.hpp"
 #include "window_wizard_progress.hpp"
 
+#define ESP_FilesString "[0 / 0]"
+
 class SelftestFrameESP : public AddSuperWindow<SelftestFrameWithRadio> {
-    char progr_text[sizeof("[0 / 0]")] = "[0 / 0]";
+    char progr_text[sizeof(ESP_FilesString)] = ESP_FilesString;
     window_text_t text_top;
     window_wizard_progress_t progress;
     window_text_t text_progress;

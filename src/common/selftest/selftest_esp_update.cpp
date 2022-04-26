@@ -14,6 +14,7 @@
 
 #include <array>
 #include <algorithm>
+#include <memory>
 #include <cstdint>
 #include <basename.h>
 #include <dirent.h>
@@ -95,8 +96,16 @@ class ESPUpdate {
     static constexpr size_t buffer_length = 512;
     static constexpr size_t files_to_upload = 3;
 
+    class FileDeleter {
+    public:
+        void operator()(FILE *f) {
+            fclose(f);
+        }
+    };
+
+    std::unique_ptr<FILE, FileDeleter> file;
+
     std::array<esp_entry, files_to_upload> firmware_set;
-    FILE *opened_file;
     esp_upload_action progress_state;
     esp_entry *current_file;
     uint32_t readCount;
@@ -126,7 +135,6 @@ ESPUpdate::ESPUpdate(bool from_menu)
     : firmware_set({ { { .address = PARTITION_TABLE_ADDRESS, .filename = "/internal/res/esp/partition-table.bin", .size = 0 },
         { .address = BOOT_ADDRESS, .filename = "/internal/res/esp/bootloader.bin", .size = 0 },
         { .address = APPLICATION_ADDRESS, .filename = "/internal/res/esp/uart_wifi.bin", .size = 0 } } })
-    , opened_file(NULL)
     , progress_state(esp_upload_action::Initial)
     , current_file(firmware_set.begin())
     , readCount(0)
@@ -199,7 +207,8 @@ void ESPUpdate::Loop() {
             break;
         }
         case esp_upload_action::Start_flash:
-            if ((opened_file = fopen(current_file->filename, "rb")) == nullptr) {
+            file.reset(fopen(current_file->filename, "rb"));
+            if (file.get() == nullptr) {
                 log_error(Network, "ESP flash: Unable to open file %s", current_file->filename);
                 progress_state = esp_upload_action::USB_error;
                 break;
@@ -215,7 +224,7 @@ void ESPUpdate::Loop() {
                 != ESP_LOADER_SUCCESS) {
                 log_error(Network, "ESP flash: Unable to start flash on address %0xld", current_file->address);
                 progress_state = esp_upload_action::ESP_error;
-                fclose(opened_file);
+                file.release();
                 break;
             } else {
                 progress_state = esp_upload_action::Write_data;
@@ -227,10 +236,10 @@ void ESPUpdate::Loop() {
             size_t readBytes = 0;
             uint8_t buffer[buffer_length];
 
-            readBytes = fread(buffer, 1, sizeof(buffer), opened_file);
+            readBytes = fread(buffer, 1, sizeof(buffer), file.get());
             readCount += readBytes;
             log_debug(Network, "ESP read data %ld", readCount);
-            if (ferror(opened_file)) {
+            if (ferror(file.get())) {
                 log_error(Network, "ESP flash: Unable to read file %s", current_file->filename);
                 readBytes = 0;
                 progress_state = esp_upload_action::USB_error;
@@ -245,7 +254,7 @@ void ESPUpdate::Loop() {
                     updateProgress();
                 }
             } else {
-                fclose(opened_file);
+                file.release();
                 ++current_file;
                 progress_state = current_file != firmware_set.end()
                     ? esp_upload_action::Start_flash
@@ -275,7 +284,7 @@ void ESPUpdate::Loop() {
             progress_state = esp_upload_action::Error_wait_user;
             current_file = firmware_set.begin();
             readCount = 0;
-            fclose(opened_file);
+            file.release();
             break;
         }
         case esp_upload_action::Error_wait_user:
@@ -285,12 +294,13 @@ void ESPUpdate::Loop() {
             break;
         case esp_upload_action::Aborted:
             progress_state = esp_upload_action::Done;
+            file.release();
             break;
         case esp_upload_action::Done:
             break;
         }
 
-        //actualize status
+        // update status
         status_encoder_union u;
         u.status.phase = phase;
         u.status.progress = progress;
@@ -300,17 +310,17 @@ void ESPUpdate::Loop() {
     }
 }
 
+static std::atomic<bool> task_created = false;
+
 static void EspTask(void *pvParameters) {
     ESPUpdate update((int)pvParameters);
 
     update.Loop();
-
+    task_created = false;
     vTaskDelete(NULL); // kill itself
 }
 
 void update_esp(bool force) {
-
-    uint tasks_running_at_start = uxTaskGetNumberOfTasks();
 
     TaskHandle_t xHandle = nullptr;
 
@@ -323,12 +333,14 @@ void update_esp(bool force) {
         &xHandle);            // Used to pass out the created task's handle.
 
     if (xHandle) {
+        task_created = true; // in case task ends immediately, this can set it to true and freeze
+                             // ensure in task loop, it cannot happen
         FSM_Holder fsm_holder(ClientFSM::Selftest, 0);
         status_t status;
         status.Empty();
 
         // wait until task kills itself
-        while (uxTaskGetNumberOfTasks() > tasks_running_at_start) {
+        while (task_created) {
             status_t current = ESPUpdate::GetStatus();
 
             if (current != status) {
