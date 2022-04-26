@@ -284,9 +284,11 @@ int main(void) {
 #endif
 
 #ifdef BUDDY_ENABLE_CONNECT
-    /* definition and creation of connectTask */
-    osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2048);
-    connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
+    if (!block_networking) {
+        /* definition and creation of connectTask */
+        osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2048);
+        connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
+    }
 #endif
 
     /* definition and creation of measurementTask */
