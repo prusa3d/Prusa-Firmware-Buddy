@@ -1810,8 +1810,8 @@ FSM_notifier::~FSM_notifier() {
 /*****************************************************************************/
 //ClientResponseHandler
 //define static member
-//no value is used as no response from client
-std::optional<uint32_t> ClientResponseHandler::server_side_encoded_response;
+//UINT32_MAX is used as no response from client
+uint32_t ClientResponseHandler::server_side_encoded_response = UINT32_MAX;
 
 uint8_t get_var_sd_percent_done() {
     return marlin_server.vars.sd_percent_done;

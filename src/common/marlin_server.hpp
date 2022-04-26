@@ -33,7 +33,7 @@ void can_stop_wait_for_heatup(bool val);
 class ClientResponseHandler : public ClientResponses {
     ClientResponseHandler() = delete;
     ClientResponseHandler(ClientResponseHandler &) = delete;
-    static std::optional<uint32_t> server_side_encoded_response;
+    static uint32_t server_side_encoded_response;
 
 public:
     //call inside marlin server on received response from client
@@ -41,13 +41,14 @@ public:
         server_side_encoded_response = encoded_bt;
     }
     //return response and erase it
+    //return UINT32_MAX if button does not match
     template <class T>
     static Response GetResponseFromPhase(T phase) {
-        if (!server_side_encoded_response.has_value() || ((static_cast<uint32_t>(phase)) != server_side_encoded_response.value() >> RESPONSE_BITS))
+        uint32_t _phase = server_side_encoded_response >> RESPONSE_BITS;
+        if ((static_cast<uint32_t>(phase)) != _phase)
             return Response::_none;
-
-        uint32_t index = server_side_encoded_response.value() & uint32_t(MAX_RESPONSES - 1); //get response index
-        server_side_encoded_response = std::nullopt;                                         //erase response
+        uint32_t index = server_side_encoded_response & uint32_t(MAX_RESPONSES - 1); //get response index
+        server_side_encoded_response = UINT32_MAX;                                   //erase response
         return GetResponse(phase, index);
     }
 };
