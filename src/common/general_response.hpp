@@ -32,6 +32,7 @@ enum class Response : uint8_t {
     PLA,
     PP,
     Purge_more,
+    PVB,
     Reheat,
     Retry,
     Stop,

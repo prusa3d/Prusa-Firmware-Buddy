@@ -22,12 +22,13 @@ enum class filament_t {
     PLA,
     PETG,
     ASA,
-    ABS,
     PC,
-    FLEX,
+    PVB,
+    ABS,
     HIPS,
     PP,
-    _last = PP
+    FLEX,
+    _last = FLEX
 };
 
 class Filaments {
