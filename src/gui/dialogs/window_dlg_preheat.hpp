@@ -45,52 +45,28 @@ protected:
     virtual void click(IWindowMenu &window_menu);
 };
 
+#define ALL_FILAMENTS MI_Filament<filament_t::PLA>,  \
+                      MI_Filament<filament_t::PETG>, \
+                      MI_Filament<filament_t::ASA>,  \
+                      MI_Filament<filament_t::PC>,   \
+                      MI_Filament<filament_t::PVB>,  \
+                      MI_Filament<filament_t::ABS>,  \
+                      MI_Filament<filament_t::HIPS>, \
+                      MI_Filament<filament_t::PP>,   \
+                      MI_Filament<filament_t::FLEX>
+
 //TODO try to use HIDDEN on return and filament_t::NONE
 //has both return and cooldown
-using MenuContainerHasRetCool = WinMenuContainer<MI_RETURN,
-    MI_Filament<filament_t::PLA>,
-    MI_Filament<filament_t::PETG>,
-    MI_Filament<filament_t::ASA>,
-    MI_Filament<filament_t::ABS>,
-    MI_Filament<filament_t::PC>,
-    MI_Filament<filament_t::FLEX>,
-    MI_Filament<filament_t::HIPS>,
-    MI_Filament<filament_t::PP>,
-    MI_Filament<filament_t::NONE>>;
+using MenuContainerHasRetCool = WinMenuContainer<MI_RETURN, ALL_FILAMENTS, MI_Filament<filament_t::NONE>>;
 
 //has return
-using MenuContainerHasRet = WinMenuContainer<MI_RETURN,
-    MI_Filament<filament_t::PLA>,
-    MI_Filament<filament_t::PETG>,
-    MI_Filament<filament_t::ASA>,
-    MI_Filament<filament_t::ABS>,
-    MI_Filament<filament_t::PC>,
-    MI_Filament<filament_t::FLEX>,
-    MI_Filament<filament_t::HIPS>,
-    MI_Filament<filament_t::PP>>;
+using MenuContainerHasRet = WinMenuContainer<MI_RETURN, ALL_FILAMENTS>;
 
 //has cooldown
-using MenuContainerHasCool = WinMenuContainer<
-    MI_Filament<filament_t::PLA>,
-    MI_Filament<filament_t::PETG>,
-    MI_Filament<filament_t::ASA>,
-    MI_Filament<filament_t::ABS>,
-    MI_Filament<filament_t::PC>,
-    MI_Filament<filament_t::FLEX>,
-    MI_Filament<filament_t::HIPS>,
-    MI_Filament<filament_t::PP>,
-    MI_Filament<filament_t::NONE>>;
+using MenuContainerHasCool = WinMenuContainer<ALL_FILAMENTS, MI_Filament<filament_t::NONE>>;
 
 // no extra fields
-using MenuContainer = WinMenuContainer<
-    MI_Filament<filament_t::PLA>,
-    MI_Filament<filament_t::PETG>,
-    MI_Filament<filament_t::ASA>,
-    MI_Filament<filament_t::ABS>,
-    MI_Filament<filament_t::PC>,
-    MI_Filament<filament_t::FLEX>,
-    MI_Filament<filament_t::HIPS>,
-    MI_Filament<filament_t::PP>>;
+using MenuContainer = WinMenuContainer<ALL_FILAMENTS>;
 };
 
 class DialogMenuPreheat : public AddSuperWindow<IDialogMarlin> {
