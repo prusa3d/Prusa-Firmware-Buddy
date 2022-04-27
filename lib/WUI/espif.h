@@ -60,3 +60,29 @@ extern uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#ifdef __cplusplus
+enum class EspFwState {
+    /// Detected an ESP firmware of the right version.
+    Ok,
+    /// Detected our ESP firmware, but of a wrong version.
+    WrongVersion,
+    /// The ESP doesn't speak our protocol ‒ it either isn't flashed or is
+    /// flashed with some completely different (not our) firmware.
+    NoFirmware,
+    /// No communication from ESP detected. Either no ESP is present or it is
+    /// completely silent (can it happen?)
+    NoEsp,
+    /// The ESP is being flashed right now.
+    Flashing,
+};
+
+/// Returns the current state of the ESP's firmware, as guessed by us.
+///
+/// Note that this may change. For example, this'll return NoEsp before a
+/// communication from ESP happens, but eventually may reach eg. WrongVersion or
+/// Ok. Similarly, if the ESP is force-reset (for various reasons), it may first
+/// transition to NoEsp and then again reach Ok, or (due to flashing) go
+/// WrongVersion -> Flashing -> NoEsp -> Ok.
+EspFwState esp_fw_state();
+#endif

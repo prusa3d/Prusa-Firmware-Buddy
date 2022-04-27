@@ -231,8 +231,9 @@ static void process_mac(uint8_t *data, struct netif *netif) {
 
     ESPIFOperatingMode old = ESPIF_WAIT_INIT;
     if (esp_operating_mode.compare_exchange_strong(old, ESPIF_NEED_AP)) {
-        if (fw_version != SUPPORTED_FW_VERSION) {
-            log_error(ESPIF, "ESP detected, FW not supported: %d != %d", fw_version.load(), SUPPORTED_FW_VERSION);
+        uint16_t version = fw_version.load();
+        if (version != SUPPORTED_FW_VERSION) {
+            log_error(ESPIF, "ESP detected, FW not supported: %d != %d", version, SUPPORTED_FW_VERSION);
             esp_operating_mode = ESPIF_WRONG_FW;
             return;
         }
@@ -351,17 +352,22 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
 
         case DevInfo:
             state = FWVersion;
+            fw_version.store(0);
             fw_version_read = 0;
             break;
 
-        case FWVersion:
-            ((uint8_t *)&fw_version)[fw_version_read++] = *c++;
-            if (fw_version_read == sizeof(fw_version)) {
-                log_debug(ESPIF, "ESP FW version: %d", fw_version.load());
+        case FWVersion: {
+            uint16_t version_part = 0;
+            ((uint8_t *)&version_part)[fw_version_read++] = *c++;
+            fw_version.fetch_or(version_part);
+
+            if (fw_version_read == sizeof version_part) {
+                log_debug(ESPIF, "ESP FW version: %d", new_version);
                 mac_read = 0;
                 state = MACData;
             }
             break;
+        }
 
         case MACData:
             while (c < end && mac_read < sizeof(mac_data)) {
@@ -663,4 +669,27 @@ void espif_reset() {
     if (esp_operating_mode != ESPIF_FLASHING_MODE) {
         reset();
     }
+}
+
+EspFwState esp_fw_state() {
+    ESPIFOperatingMode mode = esp_operating_mode.load();
+    bool detected = esp_detected.load();
+    switch (mode) {
+    case ESPIF_UNINITIALIZED_MODE:
+    case ESPIF_WAIT_INIT:
+        if (detected) {
+            return EspFwState::NoFirmware;
+        } else {
+            return EspFwState::NoEsp;
+        }
+    case ESPIF_NEED_AP:
+    case ESPIF_RUNNING_MODE:
+        return EspFwState::Ok;
+    case ESPIF_FLASHING_MODE:
+        return EspFwState::Flashing;
+    case ESPIF_WRONG_FW:
+        return EspFwState::WrongVersion;
+    }
+    assert(0);
+    return EspFwState::NoEsp;
 }
