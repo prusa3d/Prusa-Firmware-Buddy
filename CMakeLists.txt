@@ -102,7 +102,7 @@ set(RESOURCES
     )
 
 set(CONNECT
-    "YES"
+    "NO"
     CACHE BOOL "Enable Connect client"
     )
 # Validate options
