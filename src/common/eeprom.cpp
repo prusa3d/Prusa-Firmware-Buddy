@@ -262,10 +262,10 @@ eeprom_init_status_t eeprom_init(void) {
     if (!eeprom_check_crc32())
         status = EEPROM_INIT_Defaults;
     else if ((eevars.head.VERSION != EEPROM_VERSION) || (eevars.head.FEATURES != EEPROM_FEATURES)) {
-        if (eeprom_convert_from(eeprom_ram_mirror) == 0) {
-            status = EEPROM_INIT_Defaults;
-        } else {
+        if (eeprom_convert_from(eeprom_ram_mirror)) {
             status = EEPROM_INIT_Upgraded;
+        } else {
+            status = EEPROM_INIT_Defaults;
         }
     }
     switch (status) {
@@ -579,14 +579,14 @@ static bool eeprom_convert_from(eeprom_data &data) {
         version = 11;
     }
 
-    // after body was actualize can actualize head
-    // don't do it before body, would lost version info
+    // after body was updated we can update head
+    // don't do it before body, because it will rewrite the values in head to default values
     data.head = eeprom_head_defaults;
     data.head.FWBUILD = project_build_number;
     data.head.FWVERSION = eeprom_fwversion_ui16();
 
     // if update was successful, version will be current
-    return version == eeprom_fwversion_ui16();
+    return version == EEPROM_VERSION;
 }
 
 // version independent crc32 check
