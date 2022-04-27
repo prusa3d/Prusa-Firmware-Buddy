@@ -28,7 +28,7 @@ struct StatusText {
      *
      * Most have an empty list.
      */
-    const char **extra_hdrs = nullptr;
+    const char *const *extra_hdrs = nullptr;
 
     /**
      * \brief Performs a lookup of the text.
@@ -54,7 +54,7 @@ struct StatusText {
  *
  * The body separator (two lines) is included.
  */
-size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length = std::nullopt, std::optional<uint32_t> etag = std::nullopt, const char **extra_hdrs = nullptr);
+size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length = std::nullopt, std::optional<uint32_t> etag = std::nullopt, const char *const *extra_hdrs = nullptr);
 
 /**
  * \brief Makes a guess about a content type based on a file extension.
