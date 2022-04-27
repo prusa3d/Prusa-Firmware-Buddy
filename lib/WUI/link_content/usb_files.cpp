@@ -39,7 +39,11 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
              * protected by the API key and it's the user's files, so
              * that's probably fine.
              */
-            return SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match);
+            static const char *const hdrs[] = {
+                "Content-Disposition: attachment\r\n",
+                nullptr,
+            };
+            return SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match, hdrs);
         }
 
         return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json);

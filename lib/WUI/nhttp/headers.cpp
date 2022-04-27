@@ -13,7 +13,7 @@ namespace nhttp {
 
 namespace {
 
-    const char *authenticate_hdrs[] = {
+    const char *const authenticate_hdrs[] = {
         "WWW-Authenticate: ApiKey realm=\"Printer API\"\r\n",
         nullptr,
     };
@@ -82,7 +82,7 @@ const StatusText &StatusText::find(Status status) {
     return *texts;
 }
 
-size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length, std::optional<uint32_t> etag, const char **extra_hdrs) {
+size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length, std::optional<uint32_t> etag, const char *const *extra_hdrs) {
     // Always leave space for the body-newline separator
     assert(buffer_len > 2);
     buffer_len -= 2;

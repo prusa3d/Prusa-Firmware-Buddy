@@ -7,7 +7,7 @@
 
 namespace nhttp::handler {
 
-SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, bool json_errors, uint32_t if_none_match, const char **extra_hdrs)
+SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, bool json_errors, uint32_t if_none_match, const char *const *extra_hdrs)
     : file(file)
     , content_type(content_type)
     , can_keep_alive(can_keep_alive)
