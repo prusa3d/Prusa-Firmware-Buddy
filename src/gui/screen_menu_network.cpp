@@ -30,15 +30,15 @@ public:
     void refresh_address() {
         const uint32_t active_netdev = netdev_get_active_id();
         if (netdev_get_status(active_netdev) == NETDEV_NETIF_UP) {
-            char str[GuiDefaults::infoMaxLen];
+            char str[ADDR_LEN];
             lan_t ethconfig = {};
             netdev_get_ipv4_addresses(active_netdev, &ethconfig);
-            stringify_address_for_screen(str, GuiDefaults::infoMaxLen, ethconfig, ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4));
+            stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4));
             if (Item<MI_IP4_ADDR>().ChangeInformation(str) == invalidate_t::yes) {
                 Invalidate();
             }
         } else {
-            if (Item<MI_IP4_ADDR>().ChangeInformation("---") == invalidate_t::yes) {
+            if (Item<MI_IP4_ADDR>().ChangeInformation(UNKNOWN_ADDR) == invalidate_t::yes) {
                 Invalidate();
             }
         }

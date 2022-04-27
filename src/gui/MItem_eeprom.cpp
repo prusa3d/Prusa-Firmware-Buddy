@@ -10,7 +10,7 @@
 #include "GuiDefaults.hpp"
 #include "i18n.h"
 
-static constexpr bool use_long_text = GuiDefaults::infoMaxLen >= 16;
+static constexpr bool use_long_text = GuiDefaults::infoDefaultLen >= 16;
 // dev only, don't translate
 constexpr static const char *label_TRANSMIT_OK = (use_long_text) ? "TRANSMIT_OK" : "T_OK";
 constexpr static const char *label_TRANSMIT_ERROR = (use_long_text) ? "TRANSMIT_ERROR" : "T_ERROR";

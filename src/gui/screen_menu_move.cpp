@@ -77,9 +77,9 @@ public:
     DUMMY_AXIS_E()
         : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), 0, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
             if (marlin_vars()->target_nozzle < MenuVars::GetExtrudeMinTemp()) {
-                snprintf(buffer, GuiDefaults::infoMaxLen, "Low temp");
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "Low temp");
             } else {
-                snprintf(buffer, GuiDefaults::infoMaxLen, "Heating");
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "Heating");
             }
         }) {}
 };

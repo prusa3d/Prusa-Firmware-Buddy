@@ -43,7 +43,7 @@ protected:
 
 void ScreenMenuConnectionBase::refresh_addresses() {
     bool refresh = false;
-    char str[GuiDefaults::infoMaxLen];
+    char str[ADDR_LEN];
 
     if (!mac_init) {
         mac_init = true;
@@ -60,26 +60,28 @@ void ScreenMenuConnectionBase::refresh_addresses() {
         lan_t ethconfig = {};
         netdev_get_ipv4_addresses(dev_id, &ethconfig);
 
-        stringify_address_for_screen(str, GuiDefaults::infoMaxLen, ethconfig, ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4));
+        stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4));
         if (Item<MI_IP4_ADDR>().ChangeInformation(str) == invalidate_t::yes) {
             refresh = true;
         }
-        stringify_address_for_screen(str, GuiDefaults::infoMaxLen, ethconfig, ETHVAR_MSK(ETHVAR_LAN_MSK_IP4));
+        stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_MSK_IP4));
         if (Item<MI_IP4_NMSK>().ChangeInformation(str) == invalidate_t::yes) {
             refresh = true;
         }
-        stringify_address_for_screen(str, GuiDefaults::infoMaxLen, ethconfig, ETHVAR_MSK(ETHVAR_LAN_GW_IP4));
+        stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_GW_IP4));
         if (Item<MI_IP4_GWAY>().ChangeInformation(str) == invalidate_t::yes) {
             refresh = true;
         }
     } else {
-        const char *msg = "---";
+        const char *msg = UNKNOWN_ADDR;
         if (Item<MI_IP4_ADDR>().ChangeInformation(msg) == invalidate_t::yes) {
             refresh = true;
         }
+        msg = UNKNOWN_ADDR;
         if (Item<MI_IP4_NMSK>().ChangeInformation(msg) == invalidate_t::yes) {
             refresh = true;
         }
+        msg = UNKNOWN_ADDR;
         if (Item<MI_IP4_GWAY>().ChangeInformation(msg) == invalidate_t::yes) {
             refresh = true;
         }

@@ -19,7 +19,7 @@ protected:
     constexpr static const char *NI = N_("Not initialized");
 
     void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override {
-        char text[GuiDefaults::infoMaxLen];
+        char text[GuiDefaults::infoDefaultLen];
         string_view_utf8 stringView;
         printAs(text);
         stringView = string_view_utf8::MakeRAM((uint8_t *)text);
@@ -30,7 +30,7 @@ protected:
 
 public:
     WI_LAMBDA_LABEL_t(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, std::function<void(char *)> printAs)
-        : AddSuper<WI_LABEL_t>(label, id_icon ? icon_width : GuiDefaults::infoMaxLen * InfoFont->w, id_icon, enabled, hidden)
+        : AddSuper<WI_LABEL_t>(label, id_icon ? icon_width : GuiDefaults::infoDefaultLen * InfoFont->w, id_icon, enabled, hidden)
         , printAs(printAs) {}
 };
 
