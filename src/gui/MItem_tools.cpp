@@ -562,19 +562,19 @@ void MI_FAN_CHECK::OnChange(size_t old_index) {
 // WI_INFO_t
 
 MI_IP4_ADDR::MI_IP4_ADDR()
-    : WI_INFO_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WiInfo<ADDR_LEN>(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 MI_IP4_NMSK::MI_IP4_NMSK()
-    : WI_INFO_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WiInfo<ADDR_LEN>(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 MI_IP4_GWAY::MI_IP4_GWAY()
-    : WI_INFO_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WiInfo<ADDR_LEN>(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 MI_MAC_ADDR::MI_MAC_ADDR()
-    : WI_INFO_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WiInfo<MAC_LEN>(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 /*****************************************************************************/
@@ -593,9 +593,9 @@ MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, uint16_t id_icon, is_
     : WI_FORMATABLE_LABEL_t<float>(label, id_icon, enabled, hidden, initVal, [&](char *buffer) {
         float value_m = value / 1000; // change the unit from mm to m
         if (value_m > 999) {
-            snprintf(buffer, GuiDefaults::infoMaxLen, "%.1f km", (double)(value_m / 1000));
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f km", (double)(value_m / 1000));
         } else {
-            snprintf(buffer, GuiDefaults::infoMaxLen, "%.1f m", (double)value_m);
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f m", (double)value_m);
         }
     }) {
 }
@@ -620,13 +620,13 @@ MI_ODOMETER_TIME::MI_ODOMETER_TIME()
         if (timeinfo->tm_yday) {
             //days are recalculated, because timeinfo shows number of days in year and we want more days than 365
             uint16_t days = value / secPerDay;
-            snprintf(buffer, GuiDefaults::infoMaxLen, "%ud %uh", days, timeinfo->tm_hour);
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%ud %uh", days, timeinfo->tm_hour);
         } else if (timeinfo->tm_hour) {
-            snprintf(buffer, GuiDefaults::infoMaxLen, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
         } else if (timeinfo->tm_min) {
-            snprintf(buffer, GuiDefaults::infoMaxLen, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
         } else {
-            snprintf(buffer, GuiDefaults::infoMaxLen, "%is", timeinfo->tm_sec);
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%is", timeinfo->tm_sec);
         }
     }) {
 }

@@ -27,9 +27,9 @@ struct GuiDefaults {
     static constexpr size_t HeaderHeight = 32;
     static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };
     static constexpr Rect16 ProgressThumbnailRect = { 0, 0, 200, 240 };
-    static constexpr size_t infoMaxLen = 10;    // null included
-    static constexpr uint8_t ButtonHeight = 30; // default button height
-    static constexpr uint8_t ButtonSpacing = 6; // default button spacing
+    static constexpr size_t infoDefaultLen = ScreenWidth > 240 ? 22 : 10; // null included, mac address must fit - need to be at least 18
+    static constexpr uint8_t ButtonHeight = 30;                           // default button height
+    static constexpr uint8_t ButtonSpacing = 6;                           // default button spacing
 
     // COMMON DEFAULTS
 

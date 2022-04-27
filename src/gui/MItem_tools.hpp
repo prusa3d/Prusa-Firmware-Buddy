@@ -437,30 +437,34 @@ public:
 
 /******************************************************************/
 // WI_INFO_t
+#define UNKNOWN_ADDR "???.???.???.???"
+#define ADDR_LEN     sizeof(UNKNOWN_ADDR)
+#define UNKNOWN_MAC  "??.??.??.??.??.??"
+#define MAC_LEN      sizeof(UNKNOWN_MAC)
 
-class MI_IP4_ADDR : public WI_INFO_t {
-    static constexpr const char *const label = N_("IPv4 Address");
+class MI_IP4_ADDR : public WiInfo<ADDR_LEN> {
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Address") : N_("Address");
 
 public:
     MI_IP4_ADDR();
 };
 
-class MI_IP4_NMSK : public WI_INFO_t {
-    static constexpr const char *const label = N_("IPv4 Netmask");
+class MI_IP4_NMSK : public WiInfo<ADDR_LEN> {
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Netmask") : N_("Mask");
 
 public:
     MI_IP4_NMSK();
 };
 
-class MI_IP4_GWAY : public WI_INFO_t {
-    static constexpr const char *const label = N_("IPv4 Gateway");
+class MI_IP4_GWAY : public WiInfo<ADDR_LEN> {
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Gateway") : N_("GW");
 
 public:
     MI_IP4_GWAY();
 };
 
-class MI_MAC_ADDR : public WI_INFO_t {
-    static constexpr const char *const label = N_("MAC Address");
+class MI_MAC_ADDR : public WiInfo<MAC_LEN> {
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("MAC Address") : N_("MAC");
 
 public:
     MI_MAC_ADDR();

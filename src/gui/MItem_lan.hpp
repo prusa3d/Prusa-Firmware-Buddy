@@ -42,7 +42,7 @@ public:
 };
 
 class MI_NET_IP_t : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = "LAN IP"; //do not translate
+    constexpr static const char *const label = "LAN IPv4"; //do not translate
 
     constexpr static const char *str_static = "static"; //do not translate
     constexpr static const char *str_DHCP = "DHCP";     //do not translate
