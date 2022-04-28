@@ -72,6 +72,6 @@ class FooterItemZHeight : public AddSuperWindow<FooterIconText_FloatVal> {
     static float static_readValue();
 
 public:
-    static string_view_utf8 GetName() { return _("X Height"); }
+    static string_view_utf8 GetName() { return _("Z Height"); }
     FooterItemZHeight(window_t *parent);
 };
