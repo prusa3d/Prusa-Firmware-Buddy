@@ -741,6 +741,7 @@ target_sources(
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/common/Z_probe.cpp
           src/hw/buffered_serial.cpp
+          src/hw/main_check.cpp
           src/marlin_stubs/gcode.cpp
           src/marlin_stubs/G26.cpp
           src/marlin_stubs/G162.cpp
