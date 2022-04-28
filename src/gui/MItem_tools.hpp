@@ -512,3 +512,13 @@ class MI_ODOMETER_TIME : public WI_FORMATABLE_LABEL_t<uint32_t> {
 public:
     MI_ODOMETER_TIME();
 };
+
+class MI_FOOTER_RESET : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Reset");
+
+public:
+    MI_FOOTER_RESET();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
