@@ -226,6 +226,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_FOOTER_SETTINGS_ADV : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Advanced");
+
+public:
+    MI_FOOTER_SETTINGS_ADV();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_EXPERIMENTAL_SETTINGS : public WI_LABEL_t {
     static constexpr const char *const label = "Experimental Settings";
 

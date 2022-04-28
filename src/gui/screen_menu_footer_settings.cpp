@@ -137,7 +137,7 @@ public:
     }
 };
 
-using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_ALIGN_TEMP, MI_SHOW_ZERO_TEMP_TARGET, IMiFooter<0>
+using Screen = ScreenMenu<EFooter::On, MI_RETURN, IMiFooter<0>
 #if FOOTER_ITEMS_PER_LINE__ > 1
     ,
     IMiFooter<1>
@@ -174,7 +174,8 @@ using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_AL
     ,
     IMiFooter<9>
 #endif
-    >;
+    ,
+    MI_FOOTER_SETTINGS_ADV>;
 
 class ScreenMenuFooterSettings : public Screen {
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
@@ -196,4 +197,18 @@ public:
 
 ScreenFactory::UniquePtr GetScreenMenuFooterSettings() {
     return ScreenFactory::Screen<ScreenMenuFooterSettings>();
+}
+
+using ScreenAdv = ScreenMenu<EFooter::On, MI_RETURN, MI_FOOTER_CENTER_N, MI_LEFT_ALIGN_TEMP, MI_SHOW_ZERO_TEMP_TARGET>;
+
+class ScreenMenuFooterSettingsAdv : public ScreenAdv {
+public:
+    constexpr static const char *label = N_("FOOTER ADVANCED");
+    ScreenMenuFooterSettingsAdv()
+        : ScreenAdv(_(label)) {
+    }
+};
+
+ScreenFactory::UniquePtr GetScreenMenuFooterSettingsAdv() {
+    return ScreenFactory::Screen<ScreenMenuFooterSettingsAdv>();
 }
