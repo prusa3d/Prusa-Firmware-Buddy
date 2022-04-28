@@ -36,9 +36,7 @@ inline constexpr RCC_ClkInitTypeDef RCC_ClkInitStruct = {
     .APB2CLKDivider = RCC_HCLK_DIV2,
 };
 
-constexpr unsigned long ConstexprSystemCoreClock() {
-    RCC_OscInitTypeDef rcc_OscInit = RCC_OscInitStruct;
-    RCC_ClkInitTypeDef rcc_ClkInit = RCC_ClkInitStruct;
+constexpr unsigned long ConstexprSystemCoreClock_impl(RCC_OscInitTypeDef rcc_OscInit, RCC_ClkInitTypeDef rcc_ClkInit) {
     static_assert(2 == RCC_PLLP_DIV2);
     static_assert(4 == RCC_PLLP_DIV4);
     static_assert(6 == RCC_PLLP_DIV6);
@@ -85,6 +83,10 @@ constexpr unsigned long ConstexprSystemCoreClock() {
     case RCC_SYSCLK_DIV512:
         return (clock_before_AHB_prescaler >>= 9);
     }
+}
+
+constexpr unsigned long ConstexprSystemCoreClock() {
+    return ConstexprSystemCoreClock_impl(RCC_OscInitStruct, RCC_ClkInitStruct);
 }
 
 extern "C" {

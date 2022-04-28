@@ -748,6 +748,7 @@ target_sources(
           src/marlin_stubs/M300.cpp
           src/marlin_stubs/M330.cpp
           src/marlin_stubs/M505.cpp
+          src/hw/mainCheck.cpp
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/M997.cpp
           src/marlin_stubs/M999.cpp
