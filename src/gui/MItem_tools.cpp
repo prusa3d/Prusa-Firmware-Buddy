@@ -24,6 +24,7 @@
 #include "hwio_pindef.h"
 #include "menu_spin_config.hpp"
 #include "DialogSelftestResult.hpp"
+#include "footer_eeprom.hpp"
 #include <time.h>
 #include "sys.h"
 
@@ -629,4 +630,19 @@ MI_ODOMETER_TIME::MI_ODOMETER_TIME()
             snprintf(buffer, GuiDefaults::infoMaxLen, "%is", timeinfo->tm_sec);
         }
     }) {
+}
+
+MI_FOOTER_RESET::MI_FOOTER_RESET()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_FOOTER_RESET::click(IWindowMenu &window_menu) {
+    // simple reset of footer eeprom would be better
+    // but footer does not have reload method
+    FooterItemHeater::ResetDrawMode();
+    FooterLine::SetCenterN(footer::DefaultCenterNAndFewer);
+
+    footer::eeprom::Store(footer::DefaultItems);
+    //send event for all footers
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::count_));
 }

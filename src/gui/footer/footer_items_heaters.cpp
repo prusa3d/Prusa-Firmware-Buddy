@@ -46,6 +46,10 @@ void FooterItemHeater::setDrawMode(footer::ItemDrawCnf cnf) {
     }
 }
 
+void FooterItemHeater::ResetDrawMode() {
+    setDrawMode(footer::ItemDrawCnf::Default());
+}
+
 FooterItemHeater::FooterItemHeater(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader)
     : AddSuperWindow<FooterIconText_IntVal>(parent, icon_id, view_maker, value_reader) {
 }

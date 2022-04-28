@@ -9,6 +9,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
+#include "MItem_tools.hpp"
 #include "screen_menus.hpp"
 #include "footer_item_union.hpp"
 #include "status_footer.hpp"
@@ -17,42 +18,42 @@
 #include "DialogMoveZ.hpp"
 #include "footer_def.hpp"
 
-static constexpr std::array<const char *, FOOTER_ITEMS_PER_LINE__> labels = { { N_("Item 0")
+static constexpr std::array<const char *, FOOTER_ITEMS_PER_LINE__> labels = { { N_("Item 1")
 #if FOOTER_ITEMS_PER_LINE__ > 1
                                                                                     ,
-    N_("Item 1")
+    N_("Item 2")
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 2
         ,
-    N_("Item 2")
+    N_("Item 3")
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 3
         ,
-    N_("Item 3")
+    N_("Item 4")
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 4
         ,
-    N_("Item 4")
+    N_("Item 5")
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 5
         ,
-    N_("Item 5")
+    N_("Item 6")
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 6
         ,
-    N_("Item 6")
+    N_("Item 7")
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 7
         ,
-    N_("Item 7")
+    N_("Item 8")
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 8
         ,
-    N_("Item 8")
+    N_("Item 9")
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 9
         ,
-    N_("Item 9")
+    N_("Item 10")
 #endif
 } };
 
@@ -175,7 +176,7 @@ using Screen = ScreenMenu<EFooter::On, MI_RETURN, IMiFooter<0>
     IMiFooter<9>
 #endif
     ,
-    MI_FOOTER_SETTINGS_ADV>;
+    MI_FOOTER_SETTINGS_ADV, MI_FOOTER_RESET>;
 
 class ScreenMenuFooterSettings : public Screen {
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
