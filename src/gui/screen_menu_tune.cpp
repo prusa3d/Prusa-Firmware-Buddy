@@ -14,8 +14,9 @@ using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_LIVE_ADJUST_Z, MI_M600, MI_
     MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_FILAMENT_SENSOR, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_FAN_CHECK, MI_NETWORK, MI_TIMEZONE, MI_VERSION_INFO,
 #ifdef _DEBUG
     MI_TEST,
-#endif //_DEBUG
-    MI_FOOTER_SETTINGS, MI_MESSAGES>;
+#endif                       //_DEBUG
+    /* MI_FOOTER_SETTINGS,*/ //currently experimental, but we want it in future
+    MI_MESSAGES>;
 
 class ScreenMenuTune : public Screen {
 public:
