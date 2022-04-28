@@ -233,6 +233,18 @@ void MI_FOOTER_SETTINGS::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenMenuFooterSettings);
 }
 
+/*****************************************************************************/
+//MI_FOOTER_SETTINGS_ADV
+MI_FOOTER_SETTINGS_ADV::MI_FOOTER_SETTINGS_ADV()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_FOOTER_SETTINGS_ADV::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuFooterSettingsAdv);
+}
+
+/*****************************************************************************/
+//MI_LANGUAGUE_USB
 MI_LANGUAGUE_USB::MI_LANGUAGUE_USB()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 
@@ -241,6 +253,8 @@ void MI_LANGUAGUE_USB::click(IWindowMenu &windowMenu) {
         Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderUSB);
 }
 
+/*****************************************************************************/
+//MI_LOAD_LANG
 MI_LOAD_LANG::MI_LOAD_LANG()
     : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
 
