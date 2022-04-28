@@ -57,13 +57,7 @@ using record = std::array<items, FOOTER_ITEMS_PER_LINE__>;
  */
 #if FOOTER_LINES__ == 2 && FOOTER_ITEMS_PER_LINE__ == 3
 static constexpr record DefaultItems = { { items::ItemSpeed,
-    #if defined(FOOTER_HAS_LIVE_Z)
-    items::ItemLiveZ,
-    #elif defined(FOOTER_HAS_SHEETS)
-    items::ItemSheets,
-    #else
-    items::count_,
-    #endif
+    items::ItemZHeight,
     items::ItemFilament } };
 #endif // FOOTER_LINES__ == 2 && FOOTER_ITEMS_PER_LINE__ == 3
 
