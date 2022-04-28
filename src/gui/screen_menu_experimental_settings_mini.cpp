@@ -19,7 +19,7 @@
 /*****************************************************************************/
 //Screen
 using Screen = ScreenMenu<EFooter::On, MI_SAVE_AND_RETURN,
-    MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN, MI_STEPS_PER_UNIT_E, MI_RESET_STEPS_PER_UNIT, MI_DIRECTION_E, MI_RESET_DIRECTION>;
+    MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN, MI_STEPS_PER_UNIT_E, MI_RESET_STEPS_PER_UNIT, MI_DIRECTION_E, MI_RESET_DIRECTION, MI_FOOTER_SETTINGS>;
 class ScreenMenuExperimentalSettings : public Screen {
     static constexpr const char *const save_and_reboot = "Do you want to save changes and reboot the printer?";
     constexpr static const char *label = "Experimental Settings";
