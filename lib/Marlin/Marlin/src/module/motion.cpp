@@ -1903,7 +1903,8 @@ void prepare_line_to_destination() {
 
     for (size_t i = 0; i < HOMING_MAX_ATTEMPTS; ++i) {
       probe_offset = homeaxis_single_run(axis, axis_home_dir) * static_cast<float>(axis_home_dir);
-      if (axis_home_min_diff[axis] <= probe_offset && probe_offset <= axis_home_max_diff[axis]) return; // OK offset in range 
+      if (axis_home_min_diff[axis] <= probe_offset && probe_offset <= axis_home_max_diff[axis] ) return; // OK offset in range
+      if(planner.draining()) return; // Return if we have called quick stop during homing, we don't want to cause homing error
     }
     
     kill(GET_TEXT(MSG_ERR_HOMING)); // not OK run out attempts
