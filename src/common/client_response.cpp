@@ -48,6 +48,14 @@ const PhaseResponses ClientResponses::SelftestResponses[CountPhases<PhasesSelfte
     { Response::Abort },                     // ESP_upload
     { Response::Continue },                  // ESP_passed
     { Response::Continue },                  // ESP_failed
+    { Response::Continue, Response::Abort }, // ESP_credentials_instructions
+    { Response::Continue, Response::Abort }, // ESP_credentials_instructions_stand_alone
+    { Response::Continue, Response::Abort }, // ESP_credentials_ask_gen
+    { Response::Continue, Response::Abort }, // ESP_credentials_ask_gen_overwrite
+    { Response::Continue, Response::Abort }, // ESP_credentials_makefile_failed
+    { Response::Continue, Response::Abort }, // ESP_credentials_load
+    { Response::Retry, Response::Abort },    // ESP_credentials_invalid
+    { Response::Continue },                  // ESP_credentials_uploaded
 };
 
 const PhaseResponses ClientResponses::G162Responses[CountPhases<PhasesG162>()] = {

@@ -67,3 +67,30 @@ bool netdev_load_ini_to_eeprom() {
 
     return true;
 }
+
+bool netdev_load_esp_credentials_eeprom() {
+    ETH_config_t cnf = {};       // to store current config, to be able to set it back
+    ETH_config_t cnf_dummy = {}; // just to read config from ini to something and discard it
+    ap_entry_t ap = {};
+    /*
+     * Load current values, so the things that are not present in the ini are
+     * left in the original form.
+     */
+    load_net_params(&cnf, &ap, NETDEV_ESP_ID);
+    if (load_ini_file_wifi(&cnf_dummy, &ap) != 1) { //cnf will be discarded
+        return false;
+    }
+
+    save_net_params(&cnf, &ap, NETDEV_ESP_ID);
+
+    return ap.ssid[0] != '\0';
+}
+
+ap_entry_t netdev_read_esp_credentials_eeprom() {
+    ETH_config_t cnf = {};
+    ap_entry_t ap = {};
+
+    load_net_params(&cnf, &ap, NETDEV_ESP_ID);
+
+    return ap;
+}

@@ -740,17 +740,18 @@ target_sources(
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/common/Z_probe.cpp
-          src/marlin_stubs/M300.cpp
-          src/marlin_stubs/M330.cpp
-          src/marlin_stubs/M50.cpp
-          src/marlin_stubs/M505.cpp
           src/hw/buffered_serial.cpp
-          src/marlin_stubs/M876.cpp
+          src/marlin_stubs/gcode.cpp
           src/marlin_stubs/G26.cpp
           src/marlin_stubs/G162.cpp
-          src/marlin_stubs/gcode.cpp
+          src/marlin_stubs/M50.cpp
+          src/marlin_stubs/M300.cpp
+          src/marlin_stubs/M330.cpp
+          src/marlin_stubs/M505.cpp
+          src/marlin_stubs/M876.cpp
           src/marlin_stubs/M997.cpp
           src/marlin_stubs/M999.cpp
+          $<$<BOOL:${WUI}>:src/marlin_stubs/M1587.cpp>
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           $<$<BOOL:${HAS_PAUSE}>:src/marlin_stubs/pause/M600.cpp>
@@ -791,8 +792,11 @@ if(GUI)
   if(HAS_SELFTEST)
     target_sources(
       firmware
-      PRIVATE src/gui/wizard/selftest_frame_esp.cpp src/gui/wizard/selftest_invalid_state.cpp
-              src/gui/ScreenSelftest.cpp src/gui/selftest_frame.cpp
+      PRIVATE src/gui/wizard/selftest_frame_esp.cpp
+              src/gui/wizard/selftest_frame_esp_credentials.cpp
+              src/gui/wizard/selftest_invalid_state.cpp
+              src/gui/ScreenSelftest.cpp
+              src/gui/selftest_frame.cpp
       )
   else()
     target_sources(firmware PRIVATE src/gui/screen_menu_calibration_without_selftest.cpp)

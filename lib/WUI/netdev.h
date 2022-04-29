@@ -174,6 +174,16 @@ void netdev_get_MAC_address(uint32_t, uint8_t[6]);
 /// @return If it was successful.
 bool netdev_load_ini_to_eeprom();
 
+/// Load esp ini file to both runtime and eeprom configuration.
+///
+/// @return If it was successful.
+bool netdev_load_esp_credentials_eeprom();
+
+/// Gets esp credentials
+///
+/// @return ap_entry_t
+ap_entry_t netdev_read_esp_credentials_eeprom();
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

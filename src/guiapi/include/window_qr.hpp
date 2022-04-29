@@ -12,7 +12,7 @@ public:
     static constexpr uint16_t MAX_LEN_4QR = 256;
     void SetQRHeader(uint16_t err_num);
 
-private:
+protected:
     /// Defines maximal size of QR code and buffers needed for generating. Keep it low.
     static constexpr uint8_t qr_version_max = 9;
 

@@ -2,132 +2,35 @@
  * @file selftest_esp_update.cpp
  */
 
+#include "selftest_esp.hpp"
 #include "selftest_esp_update.hpp"
+
 #include "RAII.hpp"
 #include "log.h"
-#include "marlin_server.hpp"
-#include "fsm_base_types.hpp"
-#include "client_fsm_types.h"
 #include "selftest_esp_type.hpp"
 
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
 
 #include <array>
 #include <algorithm>
-#include <memory>
-#include <cstdint>
 #include <basename.h>
 #include <dirent.h>
 #include <stdlib.h>
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-#include <stm32_port.h>
 #include <esp_loader.h>
 #include <espif.h>
 #include <wui.h>
+#include <netdev.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
-
-#ifdef __cplusplus
 }
-#endif
 
 #define BOOT_ADDRESS            0x00000ul
 #define APPLICATION_ADDRESS     0x10000ul
 #define PARTITION_TABLE_ADDRESS 0x08000ul
 extern UART_HandleTypeDef huart6;
-
-namespace {
-
-enum class esp_upload_action {
-    Initial,
-    Initial_wait_user,
-    Connect,
-    Start_flash,
-    Write_data,
-    ESP_error,
-    USB_error,
-    Error_wait_user,
-    Finish_and_reset,
-    Finish_wait_user,
-    Aborted, //currently abort does not wait for user
-    // Aborted_wait_user,
-    Done
-};
-
-struct esp_entry {
-    uint32_t address;
-    const char *filename;
-    uint32_t size;
-};
-
-struct status_t {
-    PhasesSelftest phase;
-    uint8_t progress;
-    uint8_t current_file : 4;
-    uint8_t count_of_files : 4;
-
-    void Empty() {
-        phase = PhasesSelftest::_none;
-        progress = 0;
-    }
-
-    constexpr bool operator==(const status_t &other) const {
-        return ((progress == other.progress) && (phase == other.phase) && (current_file == other.current_file) && (count_of_files == other.count_of_files));
-    }
-
-    constexpr bool operator!=(const status_t &other) const {
-        return !((*this) == other);
-    }
-};
-
-union status_encoder_union {
-    uint32_t u32;
-    status_t status;
-};
-
-static_assert(sizeof(uint32_t) >= sizeof(status_t), "error esp status is too big");
-} // anonymous namespace
-
-class ESPUpdate {
-    static constexpr size_t buffer_length = 512;
-    static constexpr size_t files_to_upload = 3;
-
-    class FileDeleter {
-    public:
-        void operator()(FILE *f) {
-            fclose(f);
-        }
-    };
-
-    std::unique_ptr<FILE, FileDeleter> file;
-
-    std::array<esp_entry, files_to_upload> firmware_set;
-    esp_upload_action progress_state;
-    esp_entry *current_file;
-    uint32_t readCount;
-    loader_stm32_config_t loader_config;
-    PhasesSelftest phase;
-    const bool from_menu;
-    uint8_t progress;
-    uint8_t current_file_no;
-
-    void updateProgress();
-    static std::atomic<uint32_t> status;
-
-public:
-    ESPUpdate(bool from_menu);
-
-    void Loop();
-    static status_t GetStatus() {
-        status_encoder_union u;
-        u.u32 = status;
-        return u.status;
-    }
-};
 
 std::atomic<uint32_t> ESPUpdate::status = 0;
 
@@ -224,7 +127,7 @@ void ESPUpdate::Loop() {
                 != ESP_LOADER_SUCCESS) {
                 log_error(Network, "ESP flash: Unable to start flash on address %0xld", current_file->address);
                 progress_state = esp_upload_action::ESP_error;
-                file.release();
+                file.reset(nullptr);
                 break;
             } else {
                 progress_state = esp_upload_action::Write_data;
@@ -254,7 +157,7 @@ void ESPUpdate::Loop() {
                     updateProgress();
                 }
             } else {
-                file.release();
+                file.reset(nullptr);
                 ++current_file;
                 progress_state = current_file != firmware_set.end()
                     ? esp_upload_action::Start_flash
@@ -284,7 +187,7 @@ void ESPUpdate::Loop() {
             progress_state = esp_upload_action::Error_wait_user;
             current_file = firmware_set.begin();
             readCount = 0;
-            file.release();
+            file.reset(nullptr);
             break;
         }
         case esp_upload_action::Error_wait_user:
@@ -294,7 +197,7 @@ void ESPUpdate::Loop() {
             break;
         case esp_upload_action::Aborted:
             progress_state = esp_upload_action::Done;
-            file.release();
+            file.reset(nullptr);
             break;
         case esp_upload_action::Done:
             break;
@@ -320,6 +223,147 @@ static void EspTask(void *pvParameters) {
     vTaskDelete(NULL); // kill itself
 }
 
+EspCredentials::EspCredentials(FSM_Holder &fsm, bool standalone)
+    : rfsm(fsm)
+    , standalone(standalone)
+    , progress_state(standalone ? esp_credential_action::ShowInstructions : esp_credential_action::CheckNeeded) {
+}
+
+bool EspCredentials::make_file() {
+    file.reset(fopen(file_name, "w"));
+    if (file.get() == nullptr) {
+        log_error(Network, "ESP credentials: Unable to create file %s", file_name);
+        return false;
+    }
+
+    fputs(file_str, file.get());
+    file.reset(nullptr);
+
+    log_info(Network, "ESP credentials generated to %s", file_name);
+    return true;
+}
+
+bool EspCredentials::file_exists() {
+    std::unique_ptr<FILE, FileDeleter> fl;
+
+    // no other thread should modify files in file system during upload
+    // or this might fail
+    fl.reset(fopen(file_name, "r"));
+    return fl.get();
+}
+
+bool EspCredentials::upload_config() {
+    bool ret = netdev_load_esp_credentials_eeprom();
+
+    notify_reconfigure();
+    return ret;
+}
+
+bool EspCredentials::already_set() const {
+    ap_entry_t entry = netdev_read_esp_credentials_eeprom();
+    return entry.ssid[0] != '\0';
+}
+
+void EspCredentials::Loop() {
+    while (progress_state != esp_credential_action::Done) {
+        bool continue_pressed = false;
+
+        //we use only 3 responses here
+        //it is safe to use it from different thread as long as no other thread reads it
+        if (phase) {
+            switch (ClientResponseHandler::GetResponseFromPhase(*phase)) {
+            case Response::Continue:
+            case Response::Retry:
+                continue_pressed = true;
+                break;
+            case Response::Abort:
+                progress_state = esp_credential_action::Aborted;
+                break;
+            default:
+                break;
+            }
+        }
+
+        switch (progress_state) {
+        case esp_credential_action::CheckNeeded:
+            progress_state = already_set() ? esp_credential_action::Done : esp_credential_action::ShowInstructions;
+            break;
+        case esp_credential_action::ShowInstructions:
+            progress_state = esp_credential_action::ShowInstructions_wait_user;
+            phase = standalone ? PhasesSelftest::ESP_credentials_instructions : PhasesSelftest::ESP_credentials_instructions_stand_alone;
+            break;
+        case esp_credential_action::ShowInstructions_wait_user:
+            if (continue_pressed) {
+                progress_state = esp_credential_action::AskMakeFile;
+            }
+            break;
+        case esp_credential_action::AskMakeFile:
+            phase = file_exists() ? PhasesSelftest::ESP_credentials_ask_gen_overwrite : PhasesSelftest::ESP_credentials_ask_gen;
+            progress_state = esp_credential_action::AskMakeFile_wait_user;
+            break;
+        case esp_credential_action::AskMakeFile_wait_user:
+            if (continue_pressed) {
+                progress_state = make_file() ? esp_credential_action::AskLoadConfig : esp_credential_action::MakeFile_failed;
+            }
+            break;
+        case esp_credential_action::MakeFile_failed:
+            progress_state = esp_credential_action::MakeFile_failed_wait_user;
+            phase = PhasesSelftest::ESP_credentials_makefile_failed;
+            break;
+        case esp_credential_action::MakeFile_failed_wait_user:
+            if (continue_pressed) {
+                progress_state = esp_credential_action::AskMakeFile;
+            }
+            break;
+        case esp_credential_action::AskLoadConfig:
+            progress_state = esp_credential_action::AskLoadConfig_wait_user;
+            phase = PhasesSelftest::ESP_credentials_load;
+            break;
+        case esp_credential_action::AskLoadConfig_wait_user:
+            if (continue_pressed) {
+                progress_state = esp_credential_action::VerifyConfig;
+            }
+            break;
+        case esp_credential_action::VerifyConfig:
+            progress_state = upload_config() ? esp_credential_action::ConfigUploaded : esp_credential_action::ConfigNOk;
+            break;
+        case esp_credential_action::ConfigNOk:
+            progress_state = esp_credential_action::ConfigNOk_wait_user;
+            phase = PhasesSelftest::ESP_credentials_invalid;
+            break;
+        case esp_credential_action::ConfigNOk_wait_user:
+            if (continue_pressed) {
+                progress_state = esp_credential_action::VerifyConfig;
+            }
+            break;
+        case esp_credential_action::ConfigUploaded: // config OK
+            progress_state = esp_credential_action::ConfigUploaded_wait_user;
+            phase = PhasesSelftest::ESP_credentials_uploaded;
+            break;
+        case esp_credential_action::ConfigUploaded_wait_user:
+            if (continue_pressed) {
+                progress_state = esp_credential_action::Done;
+            }
+            break;
+        case esp_credential_action::Aborted:
+            progress_state = esp_credential_action::Done;
+            file.reset(nullptr);
+            break;
+        case esp_credential_action::Done:
+            break;
+        }
+
+        // update
+        if (phase)
+            rfsm.Change(*phase, {}); //we dont need data, only phase
+
+        //call idle loop to prevent watchdog
+        idle(true, true);
+    }
+}
+
+/*****************************************************************************/
+//public functions
 void update_esp(bool force) {
 
     TaskHandle_t xHandle = nullptr;
@@ -332,25 +376,37 @@ void update_esp(bool force) {
         osPriorityNormal,     // Priority at which the task is created.
         &xHandle);            // Used to pass out the created task's handle.
 
-    if (xHandle) {
-        task_created = true; // in case task ends immediately, this can set it to true and freeze
-                             // ensure in task loop, it cannot happen
-        FSM_Holder fsm_holder(ClientFSM::Selftest, 0);
-        status_t status;
-        status.Empty();
+    // update did not start yet
+    // no fsm was openned, it is safe to just return in case sask was not created
+    if (!xHandle)
+        return;
 
-        // wait until task kills itself
-        while (task_created) {
-            status_t current = ESPUpdate::GetStatus();
+    task_created = true; // in case task ends immediately, this can set it to true and freeze
+                         // ensure in task loop, it cannot happen
+    FSM_Holder fsm_holder(ClientFSM::Selftest, 0);
+    status_t status;
+    status.Empty();
 
-            if (current != status) {
-                status = current;
-                SelftestESP_t data(status.progress, status.current_file, status.count_of_files);
-                fsm_holder.Change(status.phase, data);
-            }
+    // wait until task kills itself
+    while (task_created) {
+        status_t current = ESPUpdate::GetStatus();
 
-            //call idle loop to prevent watchdog
-            idle(true, true);
+        if (current != status) {
+            status = current;
+            SelftestESP_t data(status.progress, status.current_file, status.count_of_files);
+            fsm_holder.Change(status.phase, data);
         }
+
+        //call idle loop to prevent watchdog
+        idle(true, true);
     }
+
+    EspCredentials credentials(fsm_holder, false);
+    credentials.Loop();
+}
+
+void update_esp_credentials() {
+    FSM_Holder fsm_holder(ClientFSM::Selftest, 0);
+    EspCredentials credentials(fsm_holder, true);
+    credentials.Loop();
 }
