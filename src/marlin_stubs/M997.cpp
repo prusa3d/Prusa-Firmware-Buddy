@@ -1,7 +1,7 @@
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../lib/Marlin/Marlin/src/gcode/queue.h"
 #include "PrusaGcodeSuite.hpp"
-#include "selftest_esp_update.hpp"
+#include "selftest_esp.hpp"
 #include "../common/sys.h"
 
 static void update_main_board(bool update_older) {

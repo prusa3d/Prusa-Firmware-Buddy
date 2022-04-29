@@ -94,7 +94,18 @@ enum class PhasesSelftest : uint16_t {
     ESP_failed,
     _last_ESP = ESP_failed,
 
-    _last = _last_ESP
+    _first_ESP_credentials,
+    ESP_credentials_instructions = _first_ESP_credentials,
+    ESP_credentials_instructions_stand_alone,
+    ESP_credentials_ask_gen,
+    ESP_credentials_ask_gen_overwrite,
+    ESP_credentials_makefile_failed,
+    ESP_credentials_load,
+    ESP_credentials_invalid,
+    ESP_credentials_uploaded,
+    _last_ESP_credentials = ESP_credentials_uploaded,
+
+    _last = _last_ESP_credentials
 };
 
 enum class PhasesG162 : uint16_t {
@@ -189,6 +200,7 @@ public:
 
 enum class SelftestParts {
     ESP,
+    ESP_credentials,
     _none, //cannot be created, must have same index as _count
     _count = _none
 };
@@ -197,6 +209,8 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     switch (part) {
     case SelftestParts::ESP:
         return PhasesSelftest::_first_ESP;
+    case SelftestParts::ESP_credentials:
+        return PhasesSelftest::_first_ESP_credentials;
     case SelftestParts::_none:
         break;
     }
@@ -207,6 +221,8 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     switch (part) {
     case SelftestParts::ESP:
         return PhasesSelftest::_last_ESP;
+    case SelftestParts::ESP_credentials:
+        return PhasesSelftest::_last_ESP_credentials;
     case SelftestParts::_none:
         break;
     }
@@ -227,6 +243,8 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 
     if (SelftestPartContainsPhase(SelftestParts::ESP, ph))
         return SelftestParts::ESP;
+    if (SelftestPartContainsPhase(SelftestParts::ESP_credentials, ph))
+        return SelftestParts::ESP_credentials;
 
     return SelftestParts::_none;
 };

@@ -22,6 +22,7 @@ void M932();
 void M997(); /// M997 Update firmware. Prusa STM32 platform specific
 void M999(); /// M999 reset MCU. Prusa STM32 platform specific
 
+void M1587(); /// Wi-Fi credentials
 void M1600(); /// Menu change filament. Prusa STM32 platform specific
 void M1700(); /// Preheat. Prusa STM32 platform specific
 void M1701(); /// Autoload. Prusa STM32 platform specific

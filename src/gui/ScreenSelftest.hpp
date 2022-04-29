@@ -11,11 +11,12 @@
 #include "status_footer.hpp"
 #include "fsm_base_types.hpp"
 #include "selftest_frame_esp.hpp"
+#include "selftest_frame_esp_credentials.hpp"
 #include "selftest_invalid_state.hpp"
 #include "static_alocation_ptr.hpp"
 
 class ScreenSelftest : public AddSuperWindow<screen_t> {
-    using mem_space = std::aligned_union<0, SelftestFrameESP, ScreenSelftestInvalidState>::type;
+    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_credentials, ScreenSelftestInvalidState>::type;
     mem_space all_tests;
 
     //safer than make_static_unique_ptr, checks storage size
@@ -29,6 +30,7 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
 
     //define factory methods for all dialogs here
     static static_unique_ptr<SelftestFrame> creator_esp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_esp_credentials(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
 
     fnc Get(SelftestParts part); //returns factory method
@@ -41,7 +43,7 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
 private:
     static constexpr const char *en_wizard_ok = N_("WIZARD - OK");
     static constexpr const char *en_selftest = N_("SELFTEST");
-    static constexpr const char *en_esp = N_("WIFI MODULE");
+    static constexpr const char *en_esp = N_("WI-FI MODULE");
     static constexpr const char *error = "ERROR"; // do not translate
 
     window_header_t header;

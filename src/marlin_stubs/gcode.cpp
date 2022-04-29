@@ -75,6 +75,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             } else {
                 return false;
             }
+        case 1587:
+            PrusaGcodeSuite::M1587();
+            return true;
         case 1600:
             PrusaGcodeSuite::M1600();
             return true;
@@ -117,6 +120,7 @@ void __attribute__((weak)) PrusaGcodeSuite::M930() {}
 void __attribute__((weak)) PrusaGcodeSuite::M931() {}
 void __attribute__((weak)) PrusaGcodeSuite::M932() {}
 void __attribute__((weak)) PrusaGcodeSuite::M999() {}
+void __attribute__((weak)) PrusaGcodeSuite::M1587() {}
 void __attribute__((weak)) PrusaGcodeSuite::M1600() {}
 void __attribute__((weak)) PrusaGcodeSuite::M1700() {}
 void __attribute__((weak)) PrusaGcodeSuite::M1701() {}

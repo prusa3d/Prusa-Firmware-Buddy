@@ -136,7 +136,7 @@ protected:
 };
 
 class MI_WIFI_SETTINGS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("WiFi");
+    static constexpr const char *const label = N_("Wi-Fi");
 
 public:
     MI_WIFI_SETTINGS();
