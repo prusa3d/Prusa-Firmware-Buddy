@@ -1,7 +1,6 @@
 #include "httpc.hpp"
 #include "os_porting.hpp"
 
-#include <log.h>
 #include <cassert>
 #include <cstring>
 #include <cstdlib>
@@ -124,7 +123,7 @@ namespace {
         void chunk(R renderer) {
             assert(used == 0); // Not yet supported
             char *buffer = this->buffer;
-            used = http::render_chunk(ConnectionHandling::ChunkedKeep, reinterpret_cast<uint8_t *>(buffer), sizeof buffer, renderer);
+            used = http::render_chunk(ConnectionHandling::ChunkedKeep, reinterpret_cast<uint8_t *>(buffer), sizeof this->buffer, renderer);
         }
     };
 
@@ -137,7 +136,7 @@ const HeaderOut *Request::extra_headers() const {
 }
 
 variant<size_t, Error> Request::write_body_chunk(char *, size_t) {
-    return 0;
+    return static_cast<size_t>(0);
 }
 
 optional<Error> HttpClient::send_request(const char *host, Connection *conn, Request &request) {
@@ -148,13 +147,13 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
     CHECKED(buffer.write_fmt("%s %s HTTP/1.1\r\n", to_str(method), request.url()));
     CHECKED(buffer.header("Host", host));
     // TODO: Once we _read_ the response, we want Keep-Alive here
-    CHECKED(buffer.header("Connection", "Close"));
+    CHECKED(buffer.header("Connection", "close"));
     if (has_out_body(method)) {
         CHECKED(buffer.header("Transfer-Encoding", "chunked"));
         CHECKED(buffer.header("Content-Type", to_str(request.content_type())));
     }
 
-    static const constexpr HeaderOut term = { "", "" };
+    static const constexpr HeaderOut term = { nullptr, nullptr };
     for (const HeaderOut *extra_hdrs = request.extra_headers() ?: &term; extra_hdrs->name; extra_hdrs++) {
         CHECKED(buffer.header(extra_hdrs->name, extra_hdrs->value));
     }

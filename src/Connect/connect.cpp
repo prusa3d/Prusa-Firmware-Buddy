@@ -1,6 +1,7 @@
 #include "connect.hpp"
 #include "httpc.hpp"
 #include "httpc_data.hpp"
+#include "tls/tls.hpp"
 
 #include <cassert>
 #include <debug.h>
@@ -34,16 +35,16 @@ namespace {
             : hostname(hostname)
             , port(port)
             , conn(conn) {}
-        virtual std::variant<Connection *, Error> connection() {
+        virtual std::variant<Connection *, Error> connection() override {
             if (auto err = conn->connection(hostname, port); err.has_value()) {
                 return *err;
             }
             return conn;
         }
-        virtual const char *host() {
+        virtual const char *host() override {
             return hostname;
         }
-        virtual void invalidate() {
+        virtual void invalidate() override {
             // NOP, this thing is single-use anyway.
         }
     };
@@ -66,7 +67,7 @@ namespace {
                 { "Token", config.token },
                 { nullptr, nullptr }
             } {}
-        virtual const char *url() const {
+        virtual const char *url() const override {
             switch (req_type) {
             case RequestType::Telemetry:
                 return "/p/telemetry";
@@ -77,18 +78,18 @@ namespace {
                 return "";
             }
         }
-        virtual ContentType content_type() const {
+        virtual ContentType content_type() const override {
             return ContentType::ApplicationJson;
         }
-        virtual Method method() const {
+        virtual Method method() const override {
             return Method::Post;
         }
-        virtual const HeaderOut *extra_headers() const {
+        virtual const HeaderOut *extra_headers() const override {
             return hdrs;
         }
-        virtual variant<size_t, Error> write_body_chunk(char *data, size_t size) {
+        virtual variant<size_t, Error> write_body_chunk(char *data, size_t size) override {
             if (done) {
-                return 0;
+                return 0U;
             } else {
                 done = true;
                 switch (req_type) {
