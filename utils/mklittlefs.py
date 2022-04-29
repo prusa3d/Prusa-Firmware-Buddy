@@ -75,8 +75,8 @@ def create_image_cmd(args) -> int:
 
 def add_file_cmd(args) -> int:
     lfs = make_lfs(args)
-    lfs.makedirs(str(args.target.parent), exist_ok=True)
-    with lfs.open(str(args.target),
+    lfs.makedirs(args.target.parent.as_posix(), exist_ok=True)
+    with lfs.open(args.target.as_posix(),
                   'wb') as target, open(str(args.source), 'rb') as source:
         target.write(source.read())
     return 0
@@ -104,13 +104,13 @@ def update_hash_with_file(lfs: LittleFS, path: Path, hash_ctx: HashContext):
 
     # filepath
     logging.getLogger('content-hash').info('path(%s)', str(path))
-    hash_ctx.append_data(str(path).encode('ascii'))
+    hash_ctx.append_data(path.as_posix().encode('ascii'))
 
     # mark
     hash_ctx.append_mark()
 
     # filedata
-    with lfs.open(str(path), 'rb') as f:
+    with lfs.open(path.as_posix(), 'rb') as f:
         hash_ctx.append_data(f.read())
 
     # mark
@@ -124,13 +124,13 @@ def update_hash_with_directory(lfs: LittleFS, path: Path,
 
     # filepath
     logging.getLogger('content-hash').info('path(%s)', str(path))
-    hash_ctx.append_data(str(path).encode('ascii'))
+    hash_ctx.append_data(path.as_posix().encode('ascii'))
 
     # mark
     hash_ctx.append_mark()
 
     # dir content
-    for fileinfo in lfs.scandir(str(path)):
+    for fileinfo in lfs.scandir(path.as_posix()):
         entry_path = path / fileinfo.name
         if fileinfo.type == 2:  # directory
             update_hash_with_directory(lfs, entry_path, hash_ctx)
