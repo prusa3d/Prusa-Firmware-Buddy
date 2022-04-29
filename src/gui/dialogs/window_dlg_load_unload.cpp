@@ -16,7 +16,7 @@ static void DialogBlocking(ClientFSM fsm, const char *mode_format, RetAndCool_t 
     while (!DialogHandler::Access().IsOpen(fsm)) {
         gui::TickLoop();
         DialogHandler::Access().Loop(); // fsm events .. to be able to change state
-        //dont call gui_loop, we want to ignore knob for now
+        // dont call gui_loop, we want to ignore knob for now
     }
 
     // wait until dialog closes
@@ -66,6 +66,7 @@ static PreheatStatus::Result DialogBlockingLoadUnload(const char *mode_format, R
     PreheatStatus::ConsumeResult(); // clear result
     marlin_gcode_printf(mode_format, uint8_t(retAndCool));
 
+    // ask for temperature, but we could skip opening the preheat dialog
     DialogBlocking(ClientFSM::Preheat, ClientFSM::Load_unload);
 
     ret = PreheatStatus::ConsumeResult();
@@ -90,7 +91,30 @@ Result DialogBlockingUnLoad(RetAndCool_t retAndCool) {
 }
 
 Result DialogBlockingChangeLoad(RetAndCool_t retAndCool) {
-    return DialogBlockingLoadUnload("M1600 W%d", retAndCool);
+    PreheatStatus::Result ret = PreheatStatus::Result::DidNotFinish;
+    PreheatStatus::ConsumeResult(); // clear result
+    marlin_gcode_printf("M1600 W%d", retAndCool);
+
+    // wait for M1600 filament check to finish
+    while (ret == Result::DidNotFinish) {
+        osDelay(0);
+        ret = PreheatStatus::ConsumeResult();
+    }
+
+    if (ret == Result::DoneNoFilament) {
+        return ret;
+    }
+
+    DialogBlocking(ClientFSM::Load_unload);
+
+    DialogBlocking(ClientFSM::Preheat, ClientFSM::Load_unload);
+
+    ret = PreheatStatus::ConsumeResult();
+
+    if (ret != PreheatStatus::Result::Error || ret != PreheatStatus::Result::Aborted || ret != PreheatStatus::Result::CooledDown || ret != PreheatStatus::Result::DidNotFinish) {
+        DialogBlocking(ClientFSM::Load_unload);
+    }
+    return ret;
 }
 
 }

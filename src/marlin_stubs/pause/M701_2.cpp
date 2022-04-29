@@ -188,8 +188,12 @@ void filament_gcodes::M1701_no_parser(float fast_load_length, float z_min_pos, u
 
 void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
     filament_t filament = Filaments::CurrentIndex();
-    if (filament == filament_t::NONE)
+    if (filament == filament_t::NONE) {
+        PreheatStatus::SetResult(PreheatStatus::Result::DoneNoFilament);
         return;
+    } else {
+        PreheatStatus::SetResult(PreheatStatus::Result::DoneHasFilament);
+    }
     preheat_to(filament);
 
     pause::Settings settings;
