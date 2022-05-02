@@ -3,6 +3,7 @@
 #include <string.h>
 #include <optional>
 #include <cerrno>
+#include <sys/stat.h>
 
 #include "bsod.h"
 #include "bbf.hpp"
@@ -292,6 +293,29 @@ static bool copy_file(const Path &source_path, const Path &target_path, Bootstra
     return remove(path.get()) == 0;
 }
 
+static bool remove_recursive_if_exists(Path &path) {
+    struct stat sb;
+    int stat_retval = stat(path.get(), &sb);
+
+    // does it exists?
+    if (stat_retval == -1 && errno == ENOENT) {
+        return true;
+    }
+
+    // something went wrong
+    if (stat_retval == -1) {
+        return false;
+    }
+
+    if (S_ISREG(sb.st_mode)) {
+        return remove(path.get()) == 0;
+    } else if (S_ISDIR(sb.st_mode)) {
+        return remove_directory_recursive(path);
+    } else {
+        return false;
+    }
+}
+
 static bool copy_resources_directory(Path &source, Path &target, BootstrapProgressReporter &reporter) {
     std::optional<long> last_dir_location;
 
@@ -451,7 +475,7 @@ static bool do_bootstrap(buddy::resources::ProgressHook progress_hook) {
     // clear installed resources
     Path target_path("/internal/res");
     buddy::resources::InstalledRevision::clear();
-    if (remove_directory_recursive(target_path) == false) {
+    if (remove_recursive_if_exists(target_path) == false) {
         log(LOG_SEVERITY_ERROR, "Failed to remove the /internal/res directory");
         return false;
     }
