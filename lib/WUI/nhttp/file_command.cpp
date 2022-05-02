@@ -14,6 +14,7 @@ size_t strlcpy(char *, const char *, size_t);
 namespace nhttp::printer {
 
 using namespace handler;
+using http::Status;
 using std::string_view;
 
 namespace {

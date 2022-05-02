@@ -12,7 +12,6 @@ target_sources(
             espif.cpp
             sntp/sntp_client.c
             sntp/sntp.c
-            automata/core.cpp
             http_lifetime.cpp
             nhttp/common_selectors.cpp
             nhttp/file_info.cpp
@@ -45,7 +44,7 @@ add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
          ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.h
   DEPENDS ${AUTOMATA_GENERATORS}
-  COMMAND ${Python3_EXECUTABLE} ${PROJECT_ROOT_DIR}/utils/gen-automata/http.py
+  COMMAND ${Python3_EXECUTABLE} ${PROJECT_ROOT_DIR}/utils/gen-automata/http_server.py
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating http automata"
   )

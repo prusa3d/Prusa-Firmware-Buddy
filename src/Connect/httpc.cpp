@@ -1,5 +1,6 @@
 #include "httpc.hpp"
 #include "os_porting.hpp"
+#include "resp_parser.h"
 
 #include <cassert>
 #include <cstring>
@@ -9,12 +10,15 @@
 
 #include <http/chunked.h>
 
+using automata::ExecutionControl;
+using con::parser::ResponseParser;
 using http::ConnectionHandling;
 using std::get;
 using std::get_if;
 using std::holds_alternative;
 using std::nullopt;
 using std::optional;
+using std::string_view;
 using std::variant;
 
 namespace con {
@@ -139,6 +143,9 @@ variant<size_t, Error> Request::write_body_chunk(char *, size_t) {
     return static_cast<size_t>(0);
 }
 
+Response::Response(uint16_t status)
+    : status(static_cast<http::Status>(status)) {}
+
 optional<Error> HttpClient::send_request(const char *host, Connection *conn, Request &request) {
     OutBuffer buffer(conn);
 
@@ -190,6 +197,38 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
     return err_out;
 }
 
+variant<Response, Error> HttpClient::parse_response(Connection *conn) {
+    constexpr const size_t bufsize = 256;
+    ResponseParser parser;
+
+    uint8_t buffer[bufsize];
+
+    // TODO: Timeouts
+    for (;;) {
+        auto read = conn->rx(buffer, sizeof buffer);
+        if (holds_alternative<Error>(read)) {
+            return get<Error>(read);
+        }
+        size_t available = get<size_t>(read);
+        if (available == 0) {
+            // Closed connection.
+            return Error::READ_ERROR;
+        }
+        uint8_t *b = buffer;
+        const auto [parse_result, consumed] = parser.consume(string_view(reinterpret_cast<const char *>(b), available));
+
+        if (!parser.done && parse_result == ExecutionControl::NoTransition) {
+            return Error::Parse;
+        }
+
+        if (parser.done) {
+            // TODO: Pass the stuff in the response
+            // TODO: Body stuff (for now let's assume it's not chunked).
+            return Response(parser.status_code);
+        }
+    }
+}
+
 variant<Response, Error> HttpClient::send(Request &request) {
     auto conn_raw = factory.connection();
     if (holds_alternative<Error>(conn_raw)) {
@@ -204,8 +243,7 @@ variant<Response, Error> HttpClient::send(Request &request) {
         return *error;
     }
 
-    // TODO: Read the response
-    return Response {};
+    return HttpClient::parse_response(conn);
 }
 
 }

@@ -28,8 +28,8 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/stateless_json.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/req_parser.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/handler.cpp
-  ${CMAKE_SOURCE_DIR}/lib/WUI/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/json_encode.c
+  ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode_thumb_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode_filename.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
@@ -91,7 +91,7 @@ add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
          ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.h
   DEPENDS ${AUTOMATA_GENERATORS}
-  COMMAND ${Python3_EXECUTABLE} ${PROJECT_ROOT_DIR}/utils/gen-automata/http.py
+  COMMAND ${Python3_EXECUTABLE} ${PROJECT_ROOT_DIR}/utils/gen-automata/http_server.py
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating http automata"
   )

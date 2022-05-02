@@ -6,13 +6,15 @@ add_executable(
   ${CMAKE_BINARY_DIR}/http_req.cpp
   ${CMAKE_BINARY_DIR}/until_comma.cpp
   # Tested files
-  ${CMAKE_SOURCE_DIR}/lib/WUI/automata/core.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   # Test files
   generated.cpp
   traversal.cpp
   )
 
-target_include_directories(automata_tests PRIVATE . ${CMAKE_SOURCE_DIR}/lib/WUI ${CMAKE_BINARY_DIR})
+target_include_directories(
+  automata_tests PRIVATE . ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_BINARY_DIR}
+  )
 
 file(GLOB TEST_AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 

@@ -6,6 +6,8 @@
 #include <string>
 #include <string_view>
 
+using http::Status;
+using std::get;
 using std::holds_alternative;
 using std::min;
 using std::nullopt;
@@ -97,10 +99,15 @@ constexpr const char *expected_req = "POST /index.html HTTP/1.1\r\n"
                                      "0000\r\n"
                                      "\r\n";
 
+constexpr const char *mock_resp = "204 No Content\r\n"
+                                  "Connection: close\r\n"
+                                  "\r\n";
+
 }
 
-TEST_CASE("Request - response") {
+TEST_CASE("Request - response no content") {
     DummyConnection conn;
+    conn.received = mock_resp;
     Factory factory(&conn);
 
     HttpClient client(factory);
@@ -110,4 +117,7 @@ TEST_CASE("Request - response") {
     REQUIRE(holds_alternative<Response>(resp));
 
     REQUIRE(conn.sent == expected_req);
+
+    auto r = get<Response>(resp);
+    REQUIRE(r.status == Status::NoContent);
 }
