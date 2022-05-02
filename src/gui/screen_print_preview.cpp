@@ -56,10 +56,18 @@ static bool check_filament_presence(GCodeInfo &gcode) {
     return true;
 }
 
+static bool is_same(const char *curr_filament, const char (&filament_type)[GCodeInfo::filament_type_len]) {
+    return strncmp(curr_filament, filament_type, GCodeInfo::filament_type_len) == 0;
+}
+static bool filament_known(const char *curr_filament) {
+    return strncmp(curr_filament, "---", 3) != 0;
+}
+
 /// \returns true if filament has (finally) the correct type or the type is ignored
 static bool check_filament_type(GCodeInfo &gcode) {
-    const char *curr_filament = Filaments::Current().name;
-    while (gcode.filament_described && strncmp(curr_filament, "---", 3) != 0 && strncmp(curr_filament, gcode.filament_type, sizeof(gcode.filament_type)) != 0) {
+    for (const char *curr_filament = Filaments::Current().name;
+         gcode.filament_described && filament_known(curr_filament) && !is_same(curr_filament, gcode.filament_type);
+         curr_filament = Filaments::Current().name) {
         string_view_utf8 txt_wrong_fil_type = _("This G-CODE was set up for another filament type.");
         switch (MsgBoxWarning(txt_wrong_fil_type, Responses_ChangeIgnoreAbort, 0, GuiDefaults::RectScreenNoHeader)) {
         case Response::Change:
