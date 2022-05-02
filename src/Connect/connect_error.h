@@ -4,6 +4,7 @@ namespace con {
 
 enum class Error {
     Timeout,
+    Parse,
     ERROR,
     CONNECTION_ERROR,
     WRITE_ERROR,

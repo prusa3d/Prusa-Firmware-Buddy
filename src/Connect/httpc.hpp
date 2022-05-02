@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <optional>
 #include <variant>
+#include <http/types.h>
 
 namespace con {
 
@@ -32,7 +33,9 @@ public:
 };
 
 class Response {
-    // FIXME: Empty for now
+public:
+    Response(uint16_t status);
+    http::Status status;
 };
 
 class ConnectionFactory {
@@ -47,6 +50,7 @@ class HttpClient {
 private:
     ConnectionFactory &factory;
     std::optional<Error> send_request(const char *host, Connection *conn, Request &request);
+    std::variant<Response, Error> parse_response(Connection *conn);
 
 public:
     HttpClient(ConnectionFactory &factory)

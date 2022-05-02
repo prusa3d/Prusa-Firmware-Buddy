@@ -526,10 +526,29 @@ if(CONNECT)
               src/Connect/tls/hardware_rng.c
               src/Connect/tls/net_sockets.c
               src/Connect/tls/tls.cpp
+              src/Connect/tls/hardware_rng.c
+              src/Connect/resp_parser.cpp
+              ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
       )
     target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_CONNECT)
     # target_link_libraries(firmware PRIVATE Connect)
     target_include_directories(firmware PRIVATE src/Connect)
+
+    file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
+
+    add_custom_command(
+      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
+             ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.h
+      DEPENDS ${AUTOMATA_GENERATORS}
+      COMMAND ${Python3_EXECUTABLE} ${PROJECT_ROOT_DIR}/utils/gen-automata/http_client.py
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      COMMENT "Generating http client automata"
+      )
+    add_custom_target(
+      generate-httpc-automata DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
+                                      ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.h
+      )
+    add_dependencies(firmware generate-httpc-automata)
   else()
     message(STATUS "Connect needs WUI!")
   endif()
@@ -715,6 +734,7 @@ target_sources(
           src/libsysbase_syscalls.c
           src/usb_host.c
           src/usbh_conf.c
+          src/common/automata/core.cpp
           src/common/freertos_mutex.cpp
           src/common/non_file_printing_counter.cpp
           src/common/print_processor.cpp

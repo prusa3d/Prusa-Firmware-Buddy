@@ -46,6 +46,24 @@ def req_line():
     return req_line, end
 
 
+def resp_line():
+    """
+    Response line.
+    """
+    auto = Automaton()
+    start = auto.start()
+    start.set_name("StatusCode")
+    start.mark_enter()
+    start.loop("Digit", LabelType.Special)
+    rest = auto.add_state()
+    start.add_transition("HorizWhitespace", LabelType.Special, rest)
+    line, end = newline()
+    auto.join(rest, line)
+    rest.loop_fallback()
+
+    return auto, end
+
+
 # Header values with internal parsing too?
 def read_header_value(event_name):
     """
@@ -273,18 +291,12 @@ def request(interested):
     return line, body
 
 
-if __name__ == "__main__":
-    want_headers = {
-        'X-Api-Key': read_header_value('XApiKey'),
-        'Content-Length': read_header_value('ContentLength'),
-        'If-None-Match': read_header_value('IfNoneMatch'),
-        'Content-Type': read_boundary(),
-        'Connection': connection_header(),
-        'Accept': accept_header(),
-    }
-    http, final = request(want_headers)
-    compiled = http.compile("nhttp::parser::request")
-    with open("http_req_automaton.h", "w") as header:
-        header.write(compiled.cpp_header())
-    with open("http_req_automaton.cpp", "w") as file:
-        file.write(compiled.cpp_file())
+def response(interested):
+    """
+    Parser for the response, terminating by a body transition.
+    """
+    line, line_end = resp_line()
+    head, body = headers(interested)
+    line.join_transition(line_end, head, fallthrough=True)
+
+    return line, body
