@@ -21,7 +21,22 @@
 #undef log_debug
 #define log_debug(...)
 
+#include <memory>
+
+using std::unique_ptr;
+
 LOG_COMPONENT_DEF(socket, LOG_SEVERITY_DEBUG);
+
+namespace {
+
+class AddrDeleter {
+public:
+    void operator()(addrinfo *addr) {
+        freeaddrinfo(addr);
+    }
+};
+
+}
 
 namespace con {
 
@@ -52,7 +67,7 @@ std::optional<Error> socket_con::connection(char *host, uint16_t port) {
 
     int error;
     struct addrinfo hints;
-    struct addrinfo *addr_list;
+    unique_ptr<addrinfo, AddrDeleter> addr_list;
     struct addrinfo *cur;
 
     memset(&hints, 0, sizeof(hints));
@@ -64,11 +79,13 @@ std::optional<Error> socket_con::connection(char *host, uint16_t port) {
     char port_as_str[str_len] = {};
     snprintf(port_as_str, str_len, "%hu", port);
 
-    if (getaddrinfo(host, port_as_str, &hints, &addr_list) != 0) {
+    if (getaddrinfo(host, port_as_str, &hints, &cur) != 0) {
         return Error::CONNECTION_ERROR;
     }
 
-    for (cur = addr_list; cur != NULL; cur = cur->ai_next) {
+    addr_list.reset(cur);
+
+    for (cur = addr_list.get(); cur != NULL; cur = cur->ai_next) {
         if (AF_INET == cur->ai_family) {
             error = ::connect(fd, cur->ai_addr, cur->ai_addrlen);
             if (0 == error) {
@@ -77,7 +94,6 @@ std::optional<Error> socket_con::connection(char *host, uint16_t port) {
             }
         }
     }
-    freeaddrinfo(addr_list);
 
     if (!connected)
         return Error::CONNECTION_ERROR;
