@@ -36,7 +36,7 @@ public:
     enum class GI_INIT_t {
         PREVIEW,
     };
-
+    size_t static constexpr filament_type_len = 8;
     FILE *file;                 /**< gcode file */
     bool file_opened;           /**< stores if file is opened */
     char printing_time[16];     /**< stores string representation of printing time left */
