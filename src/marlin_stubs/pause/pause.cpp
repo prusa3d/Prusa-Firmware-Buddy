@@ -170,6 +170,7 @@ void PausePrivatePhase::clrRestoreTemp() {
 void PausePrivatePhase::RestoreTemp() {
     if (!isnan(nozzle_restore_temp)) {
         thermalManager.setTargetHotend(nozzle_restore_temp, 0);
+        marlin_server_set_temp_to_display(nozzle_restore_temp);
         nozzle_restore_temp = NAN;
     }
     if (!isnan(bed_restore_temp)) {
