@@ -44,6 +44,12 @@ public:
     Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
     bool want_write() const { return bool(file); }
     bool want_read() const { return false; }
+    /*
+     * Disables etags & if_none_match handling.
+     *
+     * This is due to some browsers reportedly malhandling Content-Disposition: attachement + etags.
+     */
+    void disable_caching();
 };
 
 }
