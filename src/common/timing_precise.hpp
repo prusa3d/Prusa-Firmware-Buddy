@@ -184,11 +184,20 @@ FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
 
 #endif
 
+FORCE_INLINE constexpr uint32_t timing_nanoseconds_to_cycles(uint32_t ns) {
+    return ((ns * (ConstexprSystemCoreClock() / 1000000UL)) / 1000UL);
+}
+
 FORCE_INLINE constexpr uint32_t timing_microseconds_to_cycles(uint32_t us) {
     return (us * (ConstexprSystemCoreClock() / 1000000UL));
 }
+
 // Delay in nanoseconds
-#define DELAY_NS(x) timing_delay_cycles((x) * (ConstexprSystemCoreClock() / 1000000UL) / 1000UL)
+    #define DELAY_NS_PRECISE(ns)                                          \
+        do {                                                              \
+            constexpr uint32_t cycles = timing_nanoseconds_to_cycles(ns); \
+            timing_delay_cycles(cycles);                                  \
+        } while (0)
 
 // Delay in microseconds
 FORCE_INLINE void delay_us_precise(uint32_t us) {
