@@ -76,6 +76,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/WUI/http
           ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp
           ${CMAKE_SOURCE_DIR}/src/gui
+          ${CMAKE_SOURCE_DIR}/src/common
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system
           ${CMAKE_SOURCE_DIR}/lib/jsmn
