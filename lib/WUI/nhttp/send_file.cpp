@@ -5,6 +5,8 @@
 
 #include <sys/stat.h>
 
+using std::nullopt;
+
 namespace nhttp::handler {
 
 SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, bool json_errors, uint32_t if_none_match, const char *const *extra_hdrs)
@@ -29,6 +31,11 @@ SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool 
     } else {
         connection_handling = ConnectionHandling::Close;
     }
+}
+
+void SendFile::disable_caching() {
+    etag_matches = false;
+    etag = nullopt;
 }
 
 Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size) {

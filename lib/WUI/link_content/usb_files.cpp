@@ -43,7 +43,14 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
                 "Content-Disposition: attachment\r\n",
                 nullptr,
             };
-            return SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match, hdrs);
+            SendFile step(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match, hdrs);
+            /*
+             * Some browsers reportedly mishandle combination of attachment +
+             * etags/caching. We give up caching in this particular case, as it
+             * is not super useful anyway.
+             */
+            step.disable_caching();
+            return std::move(step);
         }
 
         return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json);
