@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include "../../../src/common/gcode_thumb_decoder.h"
+#include "unique_file_ptr.hpp"
 
 #include <cstdio>
 #include <string_view>
@@ -11,13 +12,7 @@ namespace nhttp::printer {
 
 class GCodePreview {
 private:
-    class FileDeleter {
-    public:
-        void operator()(FILE *f) {
-            fclose(f);
-        }
-    };
-    std::unique_ptr<FILE, FileDeleter> gcode;
+    unique_file_ptr gcode;
     std::optional<uint32_t> etag;
     GCodeThumbDecoder decoder;
     bool headers_sent = false;

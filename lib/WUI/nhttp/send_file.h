@@ -4,6 +4,7 @@
 #pragma once
 
 #include "types.h"
+#include "unique_file_ptr.hpp"
 
 #include <string_view>
 #include <cstdio>
@@ -22,14 +23,7 @@ namespace nhttp::handler {
  */
 class SendFile {
 private:
-    class FileDeleter {
-    public:
-        void operator()(FILE *f) {
-            fclose(f);
-        }
-    };
-
-    std::unique_ptr<FILE, FileDeleter> file;
+    unique_file_ptr file;
     ContentType content_type;
     ConnectionHandling connection_handling = ConnectionHandling::Close;
     bool can_keep_alive;

@@ -9,6 +9,7 @@
 
 #include "client_response.hpp"
 #include "marlin_server.hpp"
+#include "unique_file_ptr.hpp"
 
 extern "C" {
 #include <stm32_port.h>
@@ -63,18 +64,11 @@ union status_encoder_union {
     status_t status;
 };
 
-class FileDeleter {
-public:
-    void operator()(FILE *f) {
-        fclose(f);
-    }
-};
-
 class ESPUpdate {
     static constexpr size_t buffer_length = 512;
     static constexpr size_t files_to_upload = 3;
 
-    std::unique_ptr<FILE, FileDeleter> file;
+    unique_file_ptr file;
 
     std::array<esp_entry, files_to_upload> firmware_set;
     esp_upload_action progress_state;
@@ -128,7 +122,7 @@ class EspCredentials {
 
     static constexpr const char *file_name = "/usb/prusa_printer_settings.ini";
 
-    std::unique_ptr<FILE, FileDeleter> file;
+    unique_file_ptr file;
     FSM_Holder &rfsm;
     bool standalone;
     esp_credential_action progress_state;
