@@ -84,8 +84,6 @@
 
 /* Section where include file can be added */
 #define traceTASK_SWITCHED_IN()                            \
-    extern void StartIdleMonitor(void);                    \
-    StartIdleMonitor();                                    \
                                                            \
     if (prvGetTCBFromHandle(NULL) == xIdleTaskHandle) {    \
         SEGGER_SYSVIEW_OnIdle();                           \
@@ -93,9 +91,7 @@
         SEGGER_SYSVIEW_OnTaskStartExec((U32)pxCurrentTCB); \
     }
 
-#define traceTASK_SWITCHED_OUT()      \
-    extern void EndIdleMonitor(void); \
-    EndIdleMonitor()
+#define traceTASK_SWITCHED_OUT()
 
 #define traceTASK_CREATE(tcb)                              \
     static int __task_counter = 0;                         \
