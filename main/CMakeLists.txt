@@ -1,1 +1,1 @@
-idf_component_register(SRCS "station_example_main.c" INCLUDE_DIRS ".")
+idf_component_register(SRCS "uart_nic.c" INCLUDE_DIRS ".")

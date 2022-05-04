@@ -25,9 +25,10 @@ MSG_PACKET = 4
 
 INTRON = b"UN\x00\x01\x02\x03\x04\x05"
 INTERFACE = "tap0"
-BAUD_RATE = 1500000 #921600
-SSID = "free_porn"
-PASS = "BensonHedges"
+BAUD_RATE = 1000000 #921600
+SSID = "esptest"
+PASS = "lwesp8266"
+MTU = 1420
 
 # tap = Path('/dev/net/tun').open('r+b')
 tap = os.open("/dev/net/tun", 0x2)
@@ -37,7 +38,7 @@ fcntl.ioctl(tap, TUNSETIFF, ifr)
 fcntl.ioctl(tap, TUNSETOWNER, os.getuid())
 
 
-ser = serial.Serial("/dev/ttyUSB0", baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
+ser = serial.Serial("/dev/ttyUSB2", baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
 last_in = datetime.datetime.now()
 lock = Lock()
 
@@ -58,7 +59,7 @@ def wait_for_intron():
             # print(f"TAP: INTRON: pos: {pos}, byte: {bytes([c])}")
             #print("I", end="", flush=True)
         else:
-            #print(f"{safe(bytes([c]))}", end="")
+            print(f"{safe(bytes([c]))}", end="")
             pos = 0
             #print("X", end="", flush=True)
     # print("TAP: intron found")
@@ -81,14 +82,27 @@ def recv_packet():
 
 def send_wifi_client():
     print(f"TAP: Sending client config:  ssid: {SSID}, pass: {PASS}")
-    ser.write(INTRON + MSG_CLIENTCONFIG.to_bytes(1, "little"))
+
     ssid_data = SSID.encode()
-    ser.write(len(ssid_data).to_bytes(length=1, byteorder="little", signed=False) + ssid_data)
     pass_data = PASS.encode()
-    ser.write(len(pass_data).to_bytes(length=1, byteorder="little", signed=False) + pass_data)
-    ser.flush()
+    header = INTRON + MSG_CLIENTCONFIG.to_bytes(1, "little")
+    ssid_part = len(ssid_data).to_bytes(length=1, byteorder="little", signed=False) + ssid_data
+    pass_part = len(pass_data).to_bytes(length=1, byteorder="little", signed=False) + pass_data
+
+    send_message(header + ssid_part + pass_part)
+
+
+send_lock = Lock()
+
+
+def send_message(data: bytes):
+    with send_lock:
+        ser.write(data)
+        ser.flush()
+
 
 link_up = False
+
 
 def recv_link():
     up_data = ser.read(1)
@@ -104,13 +118,15 @@ def recv_link():
 
 def recv_devinfo():
     # ESP FW version
-    version = int.from_bytes(ser.read(4), "little", signed=False)
+    version = int.from_bytes(ser.read(2), "little", signed=False)
     print(f"TAP: ESP FW version: {version}")
 
     mac = ser.read(MAC_LEN)
     print(f"TAP: Device info mac: {mac.hex(' ')}")
     print(f"TAP: ip link set {INTERFACE} address {mac.hex(':')}")
     os.system(f"ip link set {INTERFACE} address {mac.hex(':')}")
+    print(f"ip link set {INTERFACE} mtu {MTU}")
+    os.system(f"ip link set {INTERFACE} mtu {MTU}")
 
 
 def recv_message():
@@ -140,10 +156,20 @@ def serial_thread():
 Thread(target=serial_thread, daemon=True).start()
 
 
+def ping_thread():
+    while True:
+        sleep(30)
+        print("###### Sending getlink")
+        send_message(INTRON + MSG_GET_LINK.to_bytes(1, "little"))
+
+
+Thread(target=ping_thread, daemon=True).start()
+
+
 print("TAP: Configuring wifi")
 send_wifi_client()
 
-i = 0;
+
 print("TAP: Reading tap device")
 while True:
     packet = os.read(tap, 2048)
@@ -159,24 +185,13 @@ while True:
         + packet
     )
     # print(f"TAP: SOUT MESSAGE: {out}")
-    ser.write(out)
-    ser.flush()
+    send_message(out)
     #print("O", end="", flush=True)
-    with lock:
-        if (datetime.datetime.now() - last_in).total_seconds() > 5:
-            print("UART reset")
-            ser.close()
-            ser = serial.Serial("/dev/ttyUSB0", baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
-
-    #i += 1
-    if i == 100:
-        i = 0
-        out = (
-            INTRON
-            + MSG_GET_LINK.to_bytes(1, "little")
-        )
-        ser.write(out)
-        ser.flush()
+    # with lock:
+    #     if (datetime.datetime.now() - last_in).total_seconds() > 5:
+    #         print("UART reset")
+    #         ser.close()
+    #         ser = serial.Serial("/dev/ttyUSB0", baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
 
 
 tap.close()
