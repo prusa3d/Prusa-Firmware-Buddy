@@ -383,6 +383,14 @@ static void readIntron() {
     readUART((uint8_t*)intron, sizeof(intron));
 }
 
+wifi_ap_record_t *ap_info;
+
+static int readLinkStatus() {
+    esp_err_t ret = esp_wifi_sta_get_ap_info(&ap_info);
+    // ap_info is not important, just not receiven ESP_ERR_WIFI_NOT_CONNECT means we are associated
+    return ret == ESP_OK;
+}
+
 static void readMessage() {
     waitForIntron();
 
@@ -399,7 +407,7 @@ static void readMessage() {
     } else if (type == MSG_CLIENTCONFIG) {
         readWifiClient();
     } else if (type == MSG_GET_LINK) {
-        sendLink(1);
+        sendLink(readLinkStatus());
     } else if (type == MSG_INTRON) {
         readIntron();
     } else {
