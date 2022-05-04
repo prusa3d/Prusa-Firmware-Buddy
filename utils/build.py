@@ -319,7 +319,7 @@ def build(configuration: BuildConfiguration,
         build_returncode = build_process.returncode
         products.extend(build_dir / fname for fname in [
             'firmware', 'firmware.bin', 'firmware.bbf', 'firmware.dfu',
-            'firmware.map'
+            'firmware.map', 'firmware_update_4.3.4_and_older.bbf'
         ] if (build_dir / fname).exists())
     else:
         build_returncode = None
@@ -535,8 +535,10 @@ def store_products(products: List[Path], build_config: BuildConfiguration,
     """Copy build products to a shared products directory."""
     products_dir.mkdir(parents=True, exist_ok=True)
     for product in products:
-        if isinstance(build_config, FirmwareBuildConfiguration
-                      ) and build_config.version_suffix != '<auto>':
+        if 'firmware_update' in product.name:
+            name = product.with_suffix('').name
+        elif isinstance(build_config, FirmwareBuildConfiguration
+                        ) and build_config.version_suffix != '<auto>':
             version = project_version()
             name = build_config.name.lower(
             ) + '_' + version + build_config.version_suffix

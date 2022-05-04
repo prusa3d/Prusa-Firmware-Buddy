@@ -9,7 +9,7 @@ extern "C" {
 #include <stdio.h>
 
 /// Initialize the littlefs filesystem
-lfs_t *littlefs_bbf_init(FILE *bbf);
+lfs_t *littlefs_bbf_init(FILE *bbf, uint8_t bbf_tlv_entry);
 
 void littlefs_bbf_deinit(lfs_t *lfs);
 

@@ -1,6 +1,8 @@
-// scratch_buffer.h
-
+#pragma once
 #include <inttypes.h>
+#include <stddef.h>
+
+namespace buddy::scratch_buffer {
 
 /// Single place for definition of large RAM space for various tasks.
 /// Currently, there's no locking mechanism so before you use it, make sure
@@ -13,6 +15,26 @@
 /// TODO: use it for
 /// - SHA256 encoding
 
-#define SCRATCH_BUFFER_SIZE 49152 ///< ugly but constexpr int does not work
+struct ScratchBuffer {
+    uint8_t buffer[49152];
 
-extern uint8_t scratch_buffer[SCRATCH_BUFFER_SIZE];
+    size_t size() const {
+        return sizeof(buffer);
+    }
+};
+
+class Ownership {
+private:
+    bool acquired;
+
+public:
+    Ownership();
+
+    bool acquire(bool wait);
+    ScratchBuffer &get();
+    void release();
+
+    ~Ownership();
+};
+
+};
