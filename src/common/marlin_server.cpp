@@ -1417,7 +1417,7 @@ bool _process_server_valid_request(const char *request, int client_id) {
         unsigned int uival;
         if (sscanf(data, "%f %f %u", &offs, &fval, &uival) != 3)
             return false;
-        marlin_server_move_axis(offs, fval, uival);
+        marlin_server_move_axis(offs, MMM_TO_MMS(fval), uival);
         return true;
     }
     default:
