@@ -12,14 +12,12 @@
 #include "cmsis_os.h"
 
 #include "resources/bootstrap.hpp"
-#include "resources/required_revision.hpp"
 #include "resources/hash.hpp"
 
 #include "fileutils.hpp"
 
 LOG_COMPONENT_DEF(Resources, LOG_SEVERITY_DEBUG);
-
-using namespace buddy::resources::revision;
+using BootstrapStage = buddy::resources::BootstrapStage;
 
 struct ResourcesScanResult {
     unsigned files_count;
@@ -89,6 +87,7 @@ class BootstrapProgressReporter {
 private:
     buddy::resources::ProgressHook progress_hook;
     std::optional<ResourcesScanResult> scan_result;
+    BootstrapStage current_stage;
     unsigned files_copied;
     unsigned directories_copied;
     unsigned bytes_copied;
@@ -113,23 +112,29 @@ private:
     }
 
 public:
-    BootstrapProgressReporter(buddy::resources::ProgressHook progress_hook)
+    BootstrapProgressReporter(buddy::resources::ProgressHook progress_hook, BootstrapStage stage)
         : progress_hook(progress_hook)
         , scan_result()
+        , current_stage(stage)
         , files_copied(0)
         , directories_copied(0)
         , bytes_copied(0)
         , last_reported_percent_done(std::nullopt) {
     }
 
-    void report(const char *description) {
-        progress_hook(percent_done(), description);
+    void report() {
+        progress_hook(percent_done(), current_stage);
+    }
+
+    void update_stage(BootstrapStage stage) {
+        current_stage = stage;
+        report();
     }
 
     void report_percent_done() {
         unsigned percent_done = this->percent_done();
         if (last_reported_percent_done != percent_done) {
-            progress_hook(percent_done, std::nullopt);
+            progress_hook(percent_done, current_stage);
             last_reported_percent_done = percent_done;
         }
     }
@@ -160,16 +165,6 @@ public:
     }
 };
 
-bool buddy::resources::is_bootstrap_needed() {
-    Revision installed;
-
-    if (InstalledRevision::fetch(installed) == false) {
-        return true;
-    }
-
-    return installed != required_revision;
-}
-
 static bool has_bbf_suffix(const char *fname) {
     char *dot = strrchr(fname, '.');
 
@@ -180,7 +175,7 @@ static bool has_bbf_suffix(const char *fname) {
     return strcasecmp(dot, ".bbf") == 0;
 }
 
-static bool is_relevant_bbf_for_bootstrap(const char *fname) {
+static bool is_relevant_bbf_for_bootstrap(const char *fname, const buddy::resources::Revision &revision, buddy::bbf::TLVType tlv_entry) {
     std::unique_ptr<FILE, FILEDeleter> bbf(fopen(fname, "rb"));
     if (bbf.get() == nullptr) {
         log(LOG_SEVERITY_ERROR, "Failed to open %s", fname);
@@ -188,18 +183,18 @@ static bool is_relevant_bbf_for_bootstrap(const char *fname) {
     }
 
     uint32_t hash_len;
-    if (!buddy::bbf::seek_to_tlv_entry(bbf.get(), buddy::bbf::TLVType::RESOURCES_IMAGE_HASH, hash_len)) {
+    if (!buddy::bbf::seek_to_tlv_entry(bbf.get(), tlv_entry, hash_len)) {
         log(LOG_SEVERITY_ERROR, "Failed to seek to resources revision %s", fname);
         return false;
     }
 
-    buddy::resources::Revision revision;
-    if (fread(&revision.hash[0], 1, revision.hash.size(), bbf.get()) != hash_len) {
+    buddy::resources::Revision bbf_revision;
+    if (fread(&bbf_revision.hash[0], 1, revision.hash.size(), bbf.get()) != hash_len) {
         log(LOG_SEVERITY_ERROR, "Failed to read resources revision %s", fname);
         return false;
     }
 
-    return revision == buddy::resources::revision::required_revision;
+    return bbf_revision == revision;
 }
 
 static bool copy_file(const Path &source_path, const Path &target_path, BootstrapProgressReporter &reporter) {
@@ -389,7 +384,7 @@ static bool copy_resources_directory(Path &source, Path &target, BootstrapProgre
     return true;
 }
 
-static bool find_suitable_bbf_file(Path &bbf) {
+static bool find_suitable_bbf_file(const buddy::resources::Revision &revision, Path &bbf, buddy::bbf::TLVType &bbf_entry) {
     log(LOG_SEVERITY_DEBUG, "Searching for a bbf...");
 
     // open the directory
@@ -412,13 +407,19 @@ static bool find_suitable_bbf_file(Path &bbf) {
         bbf.set("/usb");
         bbf.push(entry->d_name);
         // check if the file contains required resources
-        if (!is_relevant_bbf_for_bootstrap(bbf.get())) {
-            log(LOG_SEVERITY_INFO, "Skipping file: %s (not compatible)", bbf.get());
-            continue;
-        } else {
+        if (is_relevant_bbf_for_bootstrap(bbf.get(), revision, buddy::bbf::TLVType::RESOURCES_IMAGE_HASH)) {
             log(LOG_SEVERITY_INFO, "Found suitable bbf for bootstraping: %s", bbf.get());
             bbf_found = true;
+            bbf_entry = buddy::bbf::TLVType::RESOURCES_IMAGE;
             break;
+        } else if (is_relevant_bbf_for_bootstrap(bbf.get(), revision, buddy::bbf::TLVType::RESOURCES_BOOTLOADER_IMAGE_HASH)) {
+            log(LOG_SEVERITY_INFO, "Found suitable bbf for bootstraping: %s", bbf.get());
+            bbf_found = true;
+            bbf_entry = buddy::bbf::TLVType::RESOURCES_BOOTLOADER_IMAGE;
+            break;
+        } else {
+            log(LOG_SEVERITY_INFO, "Skipping file: %s (not compatible)", bbf.get());
+            continue;
         }
     }
 
@@ -430,16 +431,17 @@ static bool find_suitable_bbf_file(Path &bbf) {
     return true;
 }
 
-static bool do_bootstrap(buddy::resources::ProgressHook progress_hook) {
-    BootstrapProgressReporter reporter(progress_hook);
+static bool do_bootstrap(const buddy::resources::Revision &revision, buddy::resources::ProgressHook progress_hook) {
+    BootstrapProgressReporter reporter(progress_hook, BootstrapStage::LookingForBbf);
     Path source_path("/");
 
-    reporter.report("Looking for .bbf");
-    if (!find_suitable_bbf_file(source_path)) {
+    reporter.report(); // initial report
+    buddy::bbf::TLVType bbf_entry;
+    if (!find_suitable_bbf_file(revision, source_path, bbf_entry)) {
         return false;
     }
 
-    reporter.report("Preparing bootstrap");
+    reporter.update_stage(BootstrapStage::PreparingBootstrap);
 
     // open the bbf
     std::unique_ptr<FILE, FILEDeleter> bbf(fopen(source_path.get(), "rb"));
@@ -449,7 +451,7 @@ static bool do_bootstrap(buddy::resources::ProgressHook progress_hook) {
     }
 
     // mount the filesystem stored in the bbf
-    ScopedFileSystemLittlefsBBF scoped_bbf_mount(bbf.get());
+    ScopedFileSystemLittlefsBBF scoped_bbf_mount(bbf.get(), bbf_entry);
     if (!scoped_bbf_mount.mounted()) {
         log(LOG_SEVERITY_INFO, "BBF mounting failed");
         return false;
@@ -481,7 +483,7 @@ static bool do_bootstrap(buddy::resources::ProgressHook progress_hook) {
     }
 
     // copy the resources
-    reporter.report("Copying files");
+    reporter.update_stage(BootstrapStage::CopyingFiles);
     source_path.set("/bbf");
     if (!copy_resources_directory(source_path, target_path, reporter)) {
         log(LOG_SEVERITY_ERROR, "Failed to copy resources");
@@ -495,13 +497,13 @@ static bool do_bootstrap(buddy::resources::ProgressHook progress_hook) {
         return false;
     }
 
-    if (buddy::resources::revision::required_revision.hash != current_hash) {
+    if (revision.hash != current_hash) {
         log(LOG_SEVERITY_ERROR, "Installed resources but the hash does not match!");
         return false;
     }
 
     // save the installed revision
-    if (!buddy::resources::InstalledRevision::set(buddy::resources::revision::required_revision)) {
+    if (!buddy::resources::InstalledRevision::set(revision)) {
         log(LOG_SEVERITY_ERROR, "Failed to save installed resources revision");
         return false;
     }
@@ -509,9 +511,9 @@ static bool do_bootstrap(buddy::resources::ProgressHook progress_hook) {
     return true;
 }
 
-bool buddy::resources::bootstrap(ProgressHook progress_hook) {
+bool buddy::resources::bootstrap(const buddy::resources::Revision &revision, ProgressHook progress_hook) {
     while (true) {
-        bool success = do_bootstrap(progress_hook);
+        bool success = do_bootstrap(revision, progress_hook);
         if (success) {
             log(LOG_SEVERITY_INFO, "Bootstrap successful");
             return true;
@@ -520,4 +522,13 @@ bool buddy::resources::bootstrap(ProgressHook progress_hook) {
             osDelay(1000);
         }
     }
+}
+
+bool buddy::resources::has_resources(const Revision &revision) {
+    Revision installed;
+    if (buddy::resources::InstalledRevision::fetch(installed) == false) {
+        return false;
+    }
+
+    return installed == revision;
 }

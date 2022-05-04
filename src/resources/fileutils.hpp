@@ -4,6 +4,7 @@
 #include <cstring>
 #include <iterator>
 #include "filesystem_littlefs_bbf.h"
+#include "bbf.hpp"
 
 #define log(severity, ...) _log_event(severity, log_component_find("Resources"), __VA_ARGS__)
 
@@ -26,8 +27,8 @@ private:
     int device;
 
 public:
-    ScopedFileSystemLittlefsBBF(FILE *bbf)
-        : device(filesystem_littlefs_bbf_init(bbf)) {}
+    ScopedFileSystemLittlefsBBF(FILE *bbf, buddy::bbf::TLVType entry)
+        : device(filesystem_littlefs_bbf_init(bbf, static_cast<uint8_t>(entry))) {}
 
     bool mounted() {
         return device != -1;

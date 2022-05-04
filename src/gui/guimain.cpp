@@ -1,5 +1,5 @@
-//guimain.cpp
-
+#include <feature/bootloader.h>
+#include <feature/resources.h>
 #include <stdio.h>
 #include "gui_time.hpp"
 #include "gui.hpp"
@@ -32,8 +32,12 @@
 #include "w25x.h"
 #include "gui_fsensor_api.hpp"
 
-#ifdef HAS_RESOURCES
+#if ENABLED(RESOURCES)
     #include "resources/bootstrap.hpp"
+    #include "resources/revision_standard.hpp"
+#endif
+#if BOTH(RESOURCES, BOOTLOADER)
+    #include "bootloader/bootloader.hpp"
 #endif
 
 extern int HAL_IWDG_Reset;
@@ -129,19 +133,51 @@ void client_gui_refresh() {
     }
 }
 
-#ifdef HAS_RESOURCES
-static void bootstrap() {
-    if (buddy::resources::is_bootstrap_needed()) {
-        buddy::resources::bootstrap([](int percent_done, std::optional<const char *> description) {
-            if (percent_done) {
-                _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootstrap progress changed: %i %%", percent_done);
-            }
-            if (description.has_value()) {
-                _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootstrap description changed: %s", description.value());
-            }
-            screen_splash_data_t::bootstrap_cb(percent_done, description);
-            gui_redraw();
-        });
+#if ENABLED(RESOURCES)
+static void finish_update() {
+
+    #if ENABLED(BOOTLOADER)
+    if (buddy::bootloader::needs_update()) {
+        buddy::bootloader::update(
+            [](int percent_done, buddy::bootloader::UpdateStage stage) {
+                const char *stage_description;
+                switch (stage) {
+                case buddy::bootloader::UpdateStage::LookingForBbf:
+                    stage_description = "Looking for BBF...";
+                    break;
+                case buddy::bootloader::UpdateStage::PreparingUpdate:
+                case buddy::bootloader::UpdateStage::Updating:
+                    stage_description = "Updating bootloader";
+                    break;
+                }
+
+                _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootloader update progress %s (%i %%)", stage_description, percent_done);
+                screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
+                gui_redraw();
+            });
+    }
+    #endif
+
+    if (!buddy::resources::has_resources(buddy::resources::revision::standard)) {
+        buddy::resources::bootstrap(
+            buddy::resources::revision::standard, [](int percent_done, buddy::resources::BootstrapStage stage) {
+                const char *stage_description;
+                switch (stage) {
+                case buddy::resources::BootstrapStage::LookingForBbf:
+                    stage_description = "Looking for BBF...";
+                    break;
+                case buddy::resources::BootstrapStage::PreparingBootstrap:
+                    stage_description = "Preparing bootstrap";
+                    break;
+                case buddy::resources::BootstrapStage::CopyingFiles:
+                    stage_description = "Installing files";
+                    break;
+                }
+
+                _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootstrap progress %s (%i %%)", stage_description, percent_done);
+                screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
+                gui_redraw();
+            });
     }
 }
 #endif
@@ -231,7 +267,7 @@ void gui_run(void) {
     Screens::Access()->Loop();
 
 #ifdef HAS_RESOURCES
-    bootstrap();
+    finish_update();
 #endif
 
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, client_gui_refresh);

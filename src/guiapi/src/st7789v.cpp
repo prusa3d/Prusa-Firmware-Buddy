@@ -9,7 +9,6 @@
 #include "hwio_pindef.h"
 #include "cmath_ext.h"
 #include "bsod.h"
-#include "scratch_buffer.hpp"
 #include "raster_opfn_c.h"
 #include "st7789v_impl.hpp"
 
@@ -437,26 +436,28 @@ void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t 
 }
 
 #ifdef ST7789V_PNG_SUPPORT
-
+    #include "scratch_buffer.hpp"
+    #include <optional>
     #include <png.h>
 enum {
     PNG_MAX_CHUNKS = 10
 };
 
-void *png_mem_ptr0 = 0;
+std::optional<buddy::scratch_buffer::Ownership> png_memory;
 uint32_t png_mem_total = 0;
 void *png_mem_ptrs[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_sizes[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_cnt = 0;
 
 png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
-    if (png_mem_ptr0 == NULL) {
-        png_mem_ptr0 = (void *)scratch_buffer;
+    if (!png_memory.has_value()) {
+        png_memory = buddy::scratch_buffer::Ownership();
+        png_memory->acquire(/*wait=*/true);
     }
-    if (png_mem_total + size >= sizeof(scratch_buffer)) {
+    if (png_mem_total + size >= png_memory->get().size()) {
         general_error("pngmalloc", "out of memory");
     }
-    void *p = ((uint8_t *)png_mem_ptr0) + png_mem_total;
+    void *p = ((uint8_t *)png_memory->get().buffer) + png_mem_total;
     {
         int i;
         for (i = 0; i < PNG_MAX_CHUNKS; i++)
@@ -483,6 +484,10 @@ void _pngfree(png_structp pp, png_voidp mem) {
             png_mem_total -= size;
             png_mem_cnt--;
         }
+
+    if (png_mem_cnt == 0) {
+        png_memory->release();
+    }
 }
 
 void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr_back, uint8_t rop) {
