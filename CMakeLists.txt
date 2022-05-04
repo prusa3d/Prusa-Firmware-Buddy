@@ -378,7 +378,7 @@ target_include_directories(Segger_Config INTERFACE include/segger src/segger)
 
 add_library(FreeRTOS_Config INTERFACE)
 target_include_directories(FreeRTOS_Config INTERFACE include/freertos)
-target_link_libraries(FreeRTOS_Config INTERFACE Segger STM32::CPU)
+target_link_libraries(FreeRTOS_Config INTERFACE Segger)
 
 #
 # Configure LwIP
@@ -669,7 +669,6 @@ target_link_libraries(
           littlefs
           lpng
           STM32::USBHost
-          CPU
           inih::inih
           $<$<BOOL:${WUI}>:WUI>
           jsmn::jsmn
@@ -800,6 +799,7 @@ target_sources(
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/common/Z_probe.cpp
           src/hw/buffered_serial.cpp
+          src/hw/cpu_utils.cpp
           src/hw/main_check.cpp
           src/marlin_stubs/gcode.cpp
           src/marlin_stubs/G26.cpp
