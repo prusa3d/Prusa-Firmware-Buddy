@@ -383,7 +383,7 @@ static void readIntron() {
     readUART((uint8_t*)intron, sizeof(intron));
 }
 
-wifi_ap_record_t *ap_info;
+wifi_ap_record_t ap_info;
 
 static int readLinkStatus() {
     esp_err_t ret = esp_wifi_sta_get_ap_info(&ap_info);
