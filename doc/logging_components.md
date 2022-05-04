@@ -1,6 +1,7 @@
 # Logging - Defined Components
 This file is generated automatically so don't edit it directly
 
+- Bootloader: LOG_SEVERITY_INFO, src/bootloader/bootloader.cpp
 - Buddy: LOG_SEVERITY_DEBUG, src/common/appmain.cpp
 - Core: LOG_SEVERITY_INFO, src/common/appmain.cpp
 - EEPROM: LOG_SEVERITY_INFO, src/common/eeprom.cpp

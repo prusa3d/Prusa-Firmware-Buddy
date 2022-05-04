@@ -28,14 +28,16 @@ static int read(const struct lfs_config *c, lfs_block_t block,
     return 0;
 }
 
-lfs_t *littlefs_bbf_init(FILE *bbf) {
+lfs_t *littlefs_bbf_init(FILE *bbf, uint8_t bbf_tlv_entry) {
     uint32_t entry_length;
 
     uint32_t block_size;
     uint32_t block_count;
 
+    buddy::bbf::TLVType entry = static_cast<buddy::bbf::TLVType>(bbf_tlv_entry);
+
     // read block size
-    if (!buddy::bbf::seek_to_tlv_entry(bbf, buddy::bbf::TLVType::RESOURCES_IMAGE_BLOCK_SIZE, entry_length)) {
+    if (!buddy::bbf::seek_to_tlv_entry(bbf, buddy::bbf::block_size_for_image(entry), entry_length)) {
         log_error(FileSystem, "BBF: Failed to find block size entry");
         return nullptr;
     }
@@ -45,7 +47,7 @@ lfs_t *littlefs_bbf_init(FILE *bbf) {
     }
 
     // read block count
-    if (!buddy::bbf::seek_to_tlv_entry(bbf, buddy::bbf::TLVType::RESOURCES_IMAGE_BLOCK_COUNT, entry_length)) {
+    if (!buddy::bbf::seek_to_tlv_entry(bbf, buddy::bbf::block_count_for_image(entry), entry_length)) {
         log_error(FileSystem, "BBF: Failed to find block count entry");
         return nullptr;
     }
@@ -55,7 +57,7 @@ lfs_t *littlefs_bbf_init(FILE *bbf) {
     }
 
     // find offset
-    if (!buddy::bbf::seek_to_tlv_entry(bbf, buddy::bbf::TLVType::RESOURCES_IMAGE, entry_length)) {
+    if (!buddy::bbf::seek_to_tlv_entry(bbf, entry, entry_length)) {
         log_error(FileSystem, "BBF: Failed to find main data entry");
         return nullptr;
     }

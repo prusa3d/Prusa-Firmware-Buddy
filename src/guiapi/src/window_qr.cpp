@@ -37,7 +37,9 @@ void window_qr_t::SetQRHeader(uint16_t err_num) {
 }
 
 void window_qr_t::unconditionalDraw() {
-    uint8_t *qrcode = scratch_buffer;
+    buddy::scratch_buffer::Ownership scratch_buffer_ownership;
+    scratch_buffer_ownership.acquire(/*wait=*/true);
+    uint8_t *qrcode = scratch_buffer_ownership.get().buffer;
     uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
 
     if (!qrcodegen_encodeText(text, qr_buff, qrcode, qrcodegen_Ecc_LOW, 1, qr_version_max, qrcodegen_Mask_AUTO, true))
