@@ -21,7 +21,7 @@ add_gzip_resource(
   )
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.eb501c83e567a43e721c.js" "/web/main.eb501c83e567a43e721c.js")
+add_gzip_resource("web/main.f5f11e8805061155e492.js" "/web/main.f5f11e8805061155e492.js")
 add_gzip_resource("web/main.2db251e25b37de8a6876.css" "/web/main.2db251e25b37de8a6876.css")
 
 # generate binary file with hash TODO: Investigate PARENT_SCOPE
