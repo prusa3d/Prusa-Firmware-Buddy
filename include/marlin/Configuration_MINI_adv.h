@@ -552,7 +552,7 @@
 // @section lcd
 
 #define MANUAL_FEEDRATE \
-    { 50 * 60, 50 * 60, 6 * 60, 2 * 60 } // Feedrates for manual moves along X, Y, Z, E from panel
+    { 50 * 60, 50 * 60, 6 * 60, 3 * 60 } // Feedrates for manual moves along X, Y, Z, E from panel
 
 #if ENABLED(ULTIPANEL)
     #define MANUAL_E_MOVES_RELATIVE // Show LCD extruder moves as relative rather than absolute positions
