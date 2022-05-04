@@ -3,6 +3,7 @@
 #include "filesystem_littlefs_bbf.h"
 #include <sys/iosupport.h>
 #include "littlefs_bbf.h"
+#include "bbf.hpp"
 
 static filesystem_littlefs_ctx_t bbf_ctx;
 
@@ -132,13 +133,13 @@ static const devoptab_t bbf_devoptab = {
     .utimes_r = utimes_r,
 };
 
-int filesystem_littlefs_bbf_init(FILE *bbf) {
+int filesystem_littlefs_bbf_init(FILE *bbf, uint8_t entry) {
     if (bbf_ctx.device > 0) {
         // Already initialized
         return bbf_ctx.device;
     }
 
-    lfs_t *lfs = littlefs_bbf_init(bbf);
+    lfs_t *lfs = littlefs_bbf_init(bbf, entry);
     if (lfs == NULL) {
         return -1;
     }

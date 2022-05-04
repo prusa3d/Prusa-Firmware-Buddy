@@ -3,6 +3,7 @@ include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
 include(cmake/ProjectVersion.cmake)
 include(cmake/Littlefs.cmake)
+include(cmake/Features.cmake)
 
 project(
   Buddy
@@ -256,6 +257,10 @@ else()
   set(DEBUG NO)
 endif()
 
+# define enabled features
+define_feature(BOOTLOADER ${BOOTLOADER})
+define_feature(RESOURCES ${RESOURCES})
+
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall -Wsign-compare)
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-std=c++1z>)
@@ -282,8 +287,14 @@ endif()
 
 add_library(BuddyHeaders INTERFACE)
 target_include_directories(
-  BuddyHeaders INTERFACE include include/stm32f4_hal include/usb_host include/usb_device
-                         include/marlin include/freertos
+  BuddyHeaders
+  INTERFACE include
+            include/stm32f4_hal
+            include/usb_host
+            include/usb_device
+            include/marlin
+            include/freertos
+            ${FEATURES_INCLUDE_DIR}
   )
 target_link_libraries(BuddyHeaders INTERFACE STM32F4::HAL FreeRTOS::FreeRTOS)
 target_compile_definitions(
@@ -533,8 +544,8 @@ if(GENERATE_BBF)
   endif()
 
   if(RESOURCES)
-    set(pack_fw_resources_opts RESOURCES_IMAGE_TARGET resources-image RESOURCES_IMAGE_HASH_FILE
-                               "${RESOURCES_BINARY_HASH_FILE}"
+    set(pack_fw_resources_opts RESOURCE_IMAGES resources-image resources-bootloader-image
+                               RESOURCE_IMAGE_NAMES "RESOURCES_IMAGE" "RESOURCES_BOOTLOADER_IMAGE"
         )
   endif()
 
@@ -548,7 +559,25 @@ if(GENERATE_BBF)
     "${PRINTER_TYPE}"
     SIGNING_KEY
     "${SIGNING_KEY}"
+    BBF_VERSION
+    "2"
     ${pack_fw_resources_opts}
+    )
+
+  pack_firmware(
+    firmware
+    FW_VERSION
+    "${PROJECT_VERSION_FULL}"
+    BUILD_NUMBER
+    "${BUILD_NUMBER}"
+    PRINTER_TYPE
+    "${PRINTER_TYPE}"
+    SIGNING_KEY
+    "${SIGNING_KEY}"
+    BBF_VERSION
+    "1"
+    OUTPUT_PATH
+    "firmware_update_4.3.4_and_older.bbf"
     )
 elseif(SIGNING_KEY)
   message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
@@ -663,6 +692,7 @@ target_sources(
           src/common/freertos_mutex.cpp
           src/common/non_file_printing_counter.cpp
           src/common/print_processor.cpp
+          $<$<BOOL:${BOOTLOADER}>:src/bootloader/bootloader.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/filament_sensor_api.cpp>
           $<$<NOT:$<BOOL:${HAS_MMU2}>>:src/common/filament_sensor_api_no_mmu.cpp>
