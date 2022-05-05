@@ -103,11 +103,16 @@ constexpr const char *mock_resp = "204 No Content\r\n"
                                   "Connection: close\r\n"
                                   "\r\n";
 
-}
+constexpr const char *mock_resp_body = "200 OK\r\n"
+                                       "Connection: close\r\n"
+                                       "Content-Length: 11\r\n"
+                                       "Content-Type: text/plain\r\n"
+                                       "\r\n"
+                                       "Hello world";
 
-TEST_CASE("Request - response no content") {
+void test_resp_req(const char *server_resp, Status status, const char *body) {
     DummyConnection conn;
-    conn.received = mock_resp;
+    conn.received = server_resp;
     Factory factory(&conn);
 
     HttpClient client(factory);
@@ -119,5 +124,29 @@ TEST_CASE("Request - response no content") {
     REQUIRE(conn.sent == expected_req);
 
     auto r = get<Response>(resp);
-    REQUIRE(r.status == Status::NoContent);
+    REQUIRE(r.status == status);
+
+    size_t exp_len = strlen(body);
+    REQUIRE(r.content_length() == exp_len);
+
+    uint8_t buffer[exp_len];
+    auto body_resp = r.read_body(buffer, exp_len);
+    REQUIRE(holds_alternative<size_t>(body_resp));
+    // While the API doesn't officially promise this, we currently don't do short reads.
+    REQUIRE(get<size_t>(body_resp) == exp_len);
+
+    uint8_t *b = buffer;
+    REQUIRE(string_view(reinterpret_cast<char *>(b), exp_len) == body);
+
+    REQUIRE(r.content_length() == 0);
+}
+
+}
+
+TEST_CASE("Request - response no content") {
+    test_resp_req(mock_resp, Status::NoContent, "");
+}
+
+TEST_CASE("Request - response with body") {
+    test_resp_req(mock_resp_body, Status::Ok, "Hello world");
 }

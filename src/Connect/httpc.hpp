@@ -33,9 +33,25 @@ public:
 };
 
 class Response {
+private:
+    friend class HttpClient;
+    static const constexpr size_t MAX_LEFTOVER = 64;
+    std::array<uint8_t, MAX_LEFTOVER> body_leftover;
+    size_t leftover_size;
+    size_t content_length_rest;
+    Connection *conn;
+
 public:
-    Response(uint16_t status);
+    Response(Connection *conn, uint16_t status);
     http::Status status;
+    size_t content_length() const {
+        return content_length_rest;
+    }
+    // Reads another part of body to the buffer.
+    //
+    // Either returns the number of bytes available or returns an error.
+    // Returns 0 if no more data available.
+    std::variant<size_t, Error> read_body(uint8_t *buffer, size_t buffer_size);
 };
 
 class ConnectionFactory {

@@ -5,6 +5,7 @@ namespace con {
 enum class Error {
     Timeout,
     Parse,
+    UnexpectedResponse,
     ERROR,
     CONNECTION_ERROR,
     WRITE_ERROR,

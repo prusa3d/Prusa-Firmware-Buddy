@@ -14,8 +14,11 @@
 
 #include <log.h>
 
+using http::Status;
 using std::get;
 using std::holds_alternative;
+using std::nullopt;
+using std::optional;
 using std::variant;
 
 LOG_COMPONENT_DEF(connect, LOG_SEVERITY_DEBUG);
@@ -113,11 +116,16 @@ namespace {
 
 }
 
-void connect::communicate() {
+optional<Error> connect::handle_server_resp(Response resp) {
+    // TODO: Not implemented
+    return nullopt;
+}
+
+optional<Error> connect::communicate() {
     configuration_t config = core.get_connect_config();
 
     if (!config.enabled) {
-        return;
+        return nullopt;
     }
 
     // TODO: Any nicer way to do this in C++?
@@ -138,12 +146,29 @@ void connect::communicate() {
     const auto result = http.send(request);
 
     if (holds_alternative<Error>(result)) {
-        // TODO: Deal with the error somehow?
         conn_factory.invalidate();
         next_request = RequestType::SendInfo;
+        return get<Error>(result);
     } else {
         // TODO: Handle the response. Once we have some.
         next_request = RequestType::Telemetry;
+    }
+
+    Response resp = get<Response>(result);
+    switch (resp.status) {
+    // The server has nothing to tell us
+    case Status::NoContent:
+        return nullopt;
+    case Status::Ok: {
+        const auto sub_resp = handle_server_resp(resp);
+        if (sub_resp.has_value()) {
+            conn_factory.invalidate();
+        }
+        return sub_resp;
+    }
+    default:
+        conn_factory.invalidate();
+        return Error::UnexpectedResponse;
     }
 }
 
@@ -154,6 +179,7 @@ void connect::run() {
     osDelay(10000);
 
     while (true) {
+        // TODO: Deal with the error somehow
         communicate();
         // Connect server expects telemetry at least every 30 s (varies with design decisions).
         // So the client has to communicate very frequently with the server!
