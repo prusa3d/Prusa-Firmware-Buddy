@@ -47,7 +47,7 @@ typedef enum {
     W25X_STATUS_SRP = 0x80,
 } w25x_status_t;
 
-int w25x_mfrid_devid(uint8_t *devid);
+static int w25x_mfrid_devid(uint8_t *devid);
 
 static uint8_t device_id;
 
