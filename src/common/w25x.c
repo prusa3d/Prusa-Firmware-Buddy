@@ -48,6 +48,7 @@ typedef enum {
 } w25x_status_t;
 
 static int w25x_mfrid_devid(uint8_t *devid);
+static void w25x_wait_busy(void);
 
 static uint8_t device_id;
 
@@ -55,6 +56,8 @@ bool w25x_init(bool init_dma) {
 
     if (!w25x_communication_init(init_dma))
         return false;
+
+    w25x_wait_busy();
 
     if (!w25x_mfrid_devid(&device_id))
         return false;
