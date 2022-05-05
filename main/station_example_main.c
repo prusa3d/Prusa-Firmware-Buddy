@@ -31,7 +31,7 @@
 #include "driver/gpio.h"
 #include "driver/uart.h"
 
-static const uint16_t FW_VERSION = 0;
+static const uint16_t FW_VERSION = 1;
 
 // intron
 // 0 as uint8_t
