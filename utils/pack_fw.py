@@ -144,7 +144,7 @@ def main():
         "-V", "--printer-version", type=int, required=True,
         help="Printer version of printer type.")
     parser.add_argument(
-        "--printer-subversion", type=int, required=False, default=1,
+        "--printer-subversion", type=int, required=False, default=0,
         help="Printer subversion of printer type.")
     parser.add_argument(
         "--tlv", type=str,
