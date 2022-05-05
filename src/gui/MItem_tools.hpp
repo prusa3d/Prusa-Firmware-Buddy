@@ -437,10 +437,10 @@ public:
 
 /******************************************************************/
 // WI_INFO_t
-#define UNKNOWN_ADDR "???.???.???.???"
-#define ADDR_LEN     sizeof(UNKNOWN_ADDR)
-#define UNKNOWN_MAC  "??.??.??.??.??.??"
-#define MAC_LEN      sizeof(UNKNOWN_MAC)
+#define UNKNOWN_ADDR "N/A"
+#define ADDR_LEN     sizeof("255.255.255.255")
+#define UNKNOWN_MAC  "N/A"
+#define MAC_LEN      sizeof("ff.ff.ff.ff.ff.ff")
 
 class MI_IP4_ADDR : public WiInfo<ADDR_LEN> {
     static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Address") : N_("Address");
