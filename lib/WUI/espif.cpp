@@ -359,10 +359,11 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
         case FWVersion: {
             uint16_t version_part = 0;
             ((uint8_t *)&version_part)[fw_version_read++] = *c++;
-            fw_version.fetch_or(version_part);
+            uint16_t new_version = fw_version.fetch_or(version_part) | version_part;
 
             if (fw_version_read == sizeof version_part) {
                 log_debug(ESPIF, "ESP FW version: %d", new_version);
+                (void)new_version; // Avoid warning in case log_debug is disabled in compilation
                 mac_read = 0;
                 state = MACData;
             }
