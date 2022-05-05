@@ -10,6 +10,7 @@
 #include "screen_filebrowser.hpp"
 #include "print_utils.hpp"
 #include <wui_api.h>
+#include <espif.h>
 
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
@@ -22,6 +23,7 @@
 #include "i18n.h"
 
 bool screen_home_data_t::ever_been_openned = false;
+bool screen_home_data_t::try_esp_flash = true;
 
 const uint16_t icons[] = {
     IDR_PNG_print_58px,
@@ -52,6 +54,7 @@ uint32_t screen_home_data_t::lastUploadCount = 0;
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<screen_t>()
     , usbInserted(marlin_vars()->media_inserted)
+    , esp_flash_being_openned(false)
     , header(this)
     , footer(this)
     , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_prusa_printer_logo)
@@ -118,6 +121,8 @@ void screen_home_data_t::draw() {
 }
 
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (esp_flash_being_openned)
+        return;
 
     if (event == GUI_event_t::MEDIA) {
         switch (MediaState_t(int(param))) {
@@ -143,20 +148,31 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         }
     }
 
-    if (event == GUI_event_t::LOOP && !DialogHandler::Access().IsOpen() && (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded())) {
+    if (event == GUI_event_t::LOOP && !DialogHandler::Access().IsOpen()) {
+        //esp update has bigger priority tha one click print
+        if (try_esp_flash && esp_fw_state() == EspFwState::WrongVersion) {
+            try_esp_flash = false;          // do esp flash only once (user can press abort)
+            esp_flash_being_openned = true; // wait for process of gcode == open of flash screen
+            marlin_gcode("M997 S1 O");
+            return;
+        } else {
+            // on esp audate, can use one click print
+            if (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded()) {
 
-        // we are using marlin variables for filename and filepath buffers
-        marlin_vars_t *vars = marlin_vars();
-        // check if the variables filename and filepath are allocated
-        if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
-            if (find_latest_gcode(
-                    vars->media_SFN_path,
-                    FILE_PATH_BUFFER_LEN,
-                    vars->media_LFN,
-                    FILE_NAME_BUFFER_LEN)) {
-                gcode.SetGcodeFilepath(vars->media_SFN_path);
-                gcode.SetGcodeFilename(vars->media_LFN);
-                Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
+                // we are using marlin variables for filename and filepath buffers
+                marlin_vars_t *vars = marlin_vars();
+                // check if the variables filename and filepath are allocated
+                if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
+                    if (find_latest_gcode(
+                            vars->media_SFN_path,
+                            FILE_PATH_BUFFER_LEN,
+                            vars->media_LFN,
+                            FILE_NAME_BUFFER_LEN)) {
+                        gcode.SetGcodeFilepath(vars->media_SFN_path);
+                        gcode.SetGcodeFilename(vars->media_LFN);
+                        Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
+                    }
+                }
             }
         }
     }

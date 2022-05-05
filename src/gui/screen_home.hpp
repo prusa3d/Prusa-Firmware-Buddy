@@ -12,7 +12,11 @@ public:
 private:
     static bool usbWasAlreadyInserted; // usb inserted at least once
     static uint32_t lastUploadCount;
+    static bool ever_been_openned; //set by ctor
+    static bool try_esp_flash;     // we try this maximum once
+
     bool usbInserted;
+    bool esp_flash_being_openned;
 
     window_header_t header;
     StatusFooter footer;
@@ -22,8 +26,6 @@ private:
     window_text_t w_labels[button_count];
 
     GCodeInfo &gcode;
-
-    static bool ever_been_openned; //set by ctor
 
 public:
     static bool EverBeenOpenned() { return ever_been_openned; }

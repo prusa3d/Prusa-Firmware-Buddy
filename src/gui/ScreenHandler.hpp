@@ -41,6 +41,7 @@ public:
 
     void Open(const ScreenFactory::Creator screen_creator); //remember creator and create later with default initialization parameter (like selected item in menu)
     void Open(screen_node screen_creator);                  //remember creator and create later with stored initialization parameter
+    bool IsOpenPending() const { return creator_node.creator != nullptr; }
 
     void PushBeforeCurrent(const ScreenFactory::Creator screen_creator);
     void PushBeforeCurrent(screen_node screen_creator);
