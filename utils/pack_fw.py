@@ -186,8 +186,8 @@ def main():
             bin_data += bytes(1)
         elif args.bbf_version == 2:
             bin_data += args.bbf_version.to_bytes(1, 'little')
-            bin_data += args.printer_version.to_bytes(1, 'little')
             bin_data += args.printer_subversion.to_bytes(1, 'little')
+            bin_data += args.printer_version.to_bytes(1, 'little')
         bin_data += bytes(461)  # aligmnent to 512B (32B for SHA)
 
     if version.prerelease:
