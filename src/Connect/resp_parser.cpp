@@ -30,6 +30,12 @@ ExecutionControl ResponseParser::event(Event event) {
         done = true;
         // Yes, really don't stop. Eath the \n too!
         return ExecutionControl::Continue;
+    case Names::ContentLength:
+        if (!content_length.has_value()) {
+            content_length = 0;
+        }
+        *content_length = 10 * *content_length + (event.payload - '0');
+        return ExecutionControl::Continue;
     }
 
     return ExecutionControl::Continue;

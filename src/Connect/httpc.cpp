@@ -16,6 +16,7 @@ using http::ConnectionHandling;
 using std::get;
 using std::get_if;
 using std::holds_alternative;
+using std::min;
 using std::nullopt;
 using std::optional;
 using std::string_view;
@@ -143,8 +144,44 @@ variant<size_t, Error> Request::write_body_chunk(char *, size_t) {
     return static_cast<size_t>(0);
 }
 
-Response::Response(uint16_t status)
-    : status(static_cast<http::Status>(status)) {}
+Response::Response(Connection *conn, uint16_t status)
+    : conn(conn)
+    , status(static_cast<http::Status>(status)) {}
+
+variant<size_t, Error> Response::read_body(uint8_t *buffer, size_t size) {
+    size_t pos = 0;
+    size = min(size, content_length());
+
+    // TODO: Dealing with chunked and connection-closed bodies
+    while (pos < size) {
+        size_t available = size - pos;
+        uint8_t *write_pos = buffer + pos;
+        if (leftover_size > 0) {
+            size_t chunk = min(leftover_size, available);
+            memcpy(write_pos, body_leftover.data(), chunk);
+            leftover_size -= chunk;
+            memmove(body_leftover.data(), body_leftover.data() + chunk, leftover_size);
+            pos += chunk;
+        } else {
+            auto read_resp = conn->rx(write_pos, available);
+            if (holds_alternative<Error>(read_resp)) {
+                return get<Error>(read_resp);
+            }
+
+            size_t added = get<size_t>(read_resp);
+            if (added == 0) {
+                // EOF
+                break;
+            }
+
+            assert(added <= available);
+            pos += added;
+        }
+    }
+
+    content_length_rest -= pos;
+    return pos;
+}
 
 optional<Error> HttpClient::send_request(const char *host, Connection *conn, Request &request) {
     OutBuffer buffer(conn);
@@ -198,10 +235,9 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
 }
 
 variant<Response, Error> HttpClient::parse_response(Connection *conn) {
-    constexpr const size_t bufsize = 256;
     ResponseParser parser;
 
-    uint8_t buffer[bufsize];
+    uint8_t buffer[Response::MAX_LEFTOVER];
 
     // TODO: Timeouts
     for (;;) {
@@ -222,9 +258,13 @@ variant<Response, Error> HttpClient::parse_response(Connection *conn) {
         }
 
         if (parser.done) {
-            // TODO: Pass the stuff in the response
-            // TODO: Body stuff (for now let's assume it's not chunked).
-            return Response(parser.status_code);
+            Response response(conn, parser.status_code);
+            size_t rest = available - consumed;
+            memcpy(response.body_leftover.data(), buffer + consumed, rest);
+            // TODO: Do we want to somehow handle missing content length? For now, this is good enough.
+            response.content_length_rest = parser.content_length.value_or(0);
+            response.leftover_size = rest;
+            return std::move(response);
         }
     }
 }

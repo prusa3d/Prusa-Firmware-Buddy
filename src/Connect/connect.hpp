@@ -19,7 +19,8 @@ private:
     printer_info_t printer_info;
 
     // transmission and reception with Connect server
-    void communicate();
+    std::optional<Error> communicate();
+    std::optional<Error> handle_server_resp(Response response);
 
 public:
     connect();

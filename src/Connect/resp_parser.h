@@ -10,6 +10,7 @@ private:
 
 public:
     uint16_t status_code = 0;
+    std::optional<size_t> content_length;
     bool done = false;
     ResponseParser();
 };

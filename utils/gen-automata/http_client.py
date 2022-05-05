@@ -1,7 +1,9 @@
-from http import response
+from http import read_header_value, response
 
 if __name__ == "__main__":
-    want_headers = {}
+    want_headers = {
+        'Content-Length': read_header_value('ContentLength'),
+    }
     http, final = response(want_headers)
     compiled = http.compile("con::parser::response")
     with open("http_resp_automaton.h", "w") as header:
