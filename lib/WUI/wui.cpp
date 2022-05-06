@@ -426,10 +426,10 @@ private:
             }
 
             if (events & HealthCheck) {
-                espif_tick();
+                const bool was_alive = espif_tick();
 
                 // It's OK if the ESP is turned off on purpose or if it's up and running.
-                const bool esp_ok = (iface_mode(ifaces[NETDEV_ESP_ID]) == Mode::Off || ap.ssid[0] == '\0' || espif_link());
+                const bool esp_ok = (iface_mode(ifaces[NETDEV_ESP_ID]) == Mode::Off || ap.ssid[0] == '\0' || (espif_link() && was_alive));
 
                 const uint32_t now = sys_now();
                 if (esp_ok) {
