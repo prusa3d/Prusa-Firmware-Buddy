@@ -83,12 +83,13 @@ enum ESPIFOperatingMode {
 enum MessageType {
     MSG_DEVINFO = 0,
     MSG_LINK = 1,
+    MSG_GETLINK = 2,
     MSG_CLIENTCONFIG = 3,
     MSG_PACKET = 4,
     MSG_INTRON = 5,
 };
 
-static const uint32_t SUPPORTED_FW_VERSION = 0;
+static const uint32_t SUPPORTED_FW_VERSION = 1;
 
 // NIC state
 static std::atomic<uint16_t> fw_version;
@@ -104,6 +105,7 @@ static const constexpr uint32_t NO_DELAYED_DOWN = 0xFFFFFFFF;
 static const constexpr uint32_t DELAY_MASK = 0x7FFFFFFF;
 static const constexpr uint32_t DOWN_DELAY = 3000;
 static std::atomic<uint32_t> delayed_down = NO_DELAYED_DOWN;
+static std::atomic<bool> seen_intron = false;
 
 // UART
 static const uint32_t NIC_UART_BAUDRATE = 1000000;
@@ -317,6 +319,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
                     log_debug(ESPIF, "Intron detected");
                     state = MessageType;
                     intron_read = 0;
+                    seen_intron = true;
                 }
             } else {
                 intron_read = 0;
@@ -642,7 +645,7 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
     return ERR_OK;
 }
 
-void espif_tick() {
+bool espif_tick() {
     // Check if we should bring the interface down in a "delayed" way.
     // A race (eg. we bring it down, but someone brought it up in the meantime
     // or so) is unlikely, both this and the parsing of UART inputs happen in
@@ -656,8 +659,23 @@ void espif_tick() {
         const uint32_t diff = now - delay;
         if (diff >= DOWN_DELAY) {
             force_down();
+            return false;
         }
     }
+
+    if (espif_link()) {
+        xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
+        const bool was_alive = seen_intron.exchange(false);
+        // Poke the ESP somewhat to see if it's still alive and provoke it to
+        // do some activity during next round.
+        espif_transmit_data(intron, sizeof(intron));
+        uint8_t msg_type = MSG_GETLINK;
+        espif_transmit_data(&msg_type, sizeof(msg_type));
+        xSemaphoreGive(uart_write_mutex);
+        return was_alive;
+    }
+
+    return false;
 }
 
 bool espif_need_ap() {

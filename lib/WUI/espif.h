@@ -41,7 +41,9 @@ bool espif_link();
 void espif_input_once(struct netif *netif);
 
 /// Perform periodic works of the esp interface.
-void espif_tick();
+///
+/// Returns if there was any activity since last tick.
+bool espif_tick();
 
 /// Is the ESP if ready to receive info about an AP to connect to?
 bool espif_need_ap();
