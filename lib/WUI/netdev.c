@@ -81,6 +81,10 @@ bool netdev_load_esp_credentials_eeprom() {
         return false;
     }
 
+    strncpy(cnf.hostname, cnf_dummy.hostname, sizeof(cnf.hostname));
+    cnf.var_mask = ETHVAR_MSK(APVAR_PASS) + ETHVAR_MSK(APVAR_SSID); //how is this suppossed to be set???
+    cnf.lan.flag = cnf_dummy.lan.flag;                              //should be 0 == ON, DHCP, WIFI
+
     save_net_params(&cnf, &ap, NETDEV_ESP_ID);
 
     return ap.ssid[0] != '\0';
