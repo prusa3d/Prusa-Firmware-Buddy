@@ -501,17 +501,24 @@ public:
         });
     }
 
-    static void get_mac(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE]) {
+    static bool get_mac(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE]) {
         NetworkState *state = instance;
         if (netdev_id == NETDEV_ETH_ID) {
             // TODO: Why not to copy address from netif? Maybe because we need
             // it sooner than when it's initialized?
             memcpy(mac, (void *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
+            return true;
         } else if (state != nullptr && netdev_id == NETDEV_ESP_ID) {
             unique_lock lock(state->mutex);
-            memcpy(mac, state->ifaces[NETDEV_ESP_ID].dev.hwaddr, state->ifaces[NETDEV_ESP_ID].dev.hwaddr_len);
+            if (esp_fw_state() == EspFwState::Ok) {
+                memcpy(mac, state->ifaces[NETDEV_ESP_ID].dev.hwaddr, state->ifaces[NETDEV_ESP_ID].dev.hwaddr_len);
+                return true;
+            } else {
+                return false;
+            }
         } else {
             memset(mac, 0, OTP_MAC_ADDRESS_SIZE);
+            return false;
         }
     }
 
@@ -566,8 +573,8 @@ void netdev_get_ipv4_addresses(uint32_t netdev_id, lan_t *config) {
     NetworkState::get_addresses(netdev_id, config);
 }
 
-void netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE]) {
-    NetworkState::get_mac(netdev_id, mac);
+bool netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE]) {
+    return NetworkState::get_mac(netdev_id, mac);
 }
 
 void netdev_get_hostname(uint32_t netdev_id, char *buffer, size_t buffer_len) {
