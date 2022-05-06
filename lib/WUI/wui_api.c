@@ -273,9 +273,8 @@ void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config) {
 }
 
 void get_MAC_address(mac_address_t *dest, uint32_t netdev_id) {
-    if (netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID) {
-        uint8_t mac[6 /*sizeof(otp_get_mac_address()->mac)*/]; //TODO
-        netdev_get_MAC_address(netdev_id, mac);
+    uint8_t mac[6 /*sizeof(otp_get_mac_address()->mac)*/]; //TODO
+    if (netdev_get_MAC_address(netdev_id, mac)) {
         snprintf(*dest, MAC_ADDR_STR_LEN, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",
             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     } else {

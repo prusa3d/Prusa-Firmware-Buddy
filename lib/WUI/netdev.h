@@ -167,7 +167,7 @@ void netdev_get_ipv4_addresses(uint32_t, lan_t *);
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
 /// @param[out] mac_address Six bytes of MAC address
-void netdev_get_MAC_address(uint32_t, uint8_t[6]);
+bool netdev_get_MAC_address(uint32_t, uint8_t[6]);
 
 /// Load ini file to both runtime and eeprom configuration.
 ///
