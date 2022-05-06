@@ -77,6 +77,7 @@ bool netdev_load_esp_credentials_eeprom() {
      * left in the original form.
      */
     load_net_params(&cnf, &ap, NETDEV_ESP_ID);
+    cnf_dummy = cnf;                                // just in case load_ini_file_wifi need it set
     if (load_ini_file_wifi(&cnf_dummy, &ap) != 1) { //cnf will be discarded
         return false;
     }
