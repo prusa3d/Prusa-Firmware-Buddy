@@ -27,7 +27,7 @@ size_t render_chunk(ConnectionHandling handling, uint8_t *buffer, size_t buffer_
              */
         const size_t skip = 6; // 4 digits + \r\n
         const size_t tail = 2; // \r\n at the end
-        assert(buffer_len >= skip + tail);
+        assert(buffer_len > skip + tail);
 
         const size_t available = std::min(buffer_len - skip - tail, static_cast<size_t>(0xffff));
         std::optional<size_t> written = renderer(buffer + skip, available);
