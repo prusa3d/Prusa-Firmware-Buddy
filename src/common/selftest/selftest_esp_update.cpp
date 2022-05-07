@@ -7,6 +7,7 @@
 
 #include "RAII.hpp"
 #include "log.h"
+#include "timing.h"
 #include "selftest_esp_type.hpp"
 #include "marlin_server.hpp"
 
@@ -35,7 +36,7 @@ extern UART_HandleTypeDef huart6;
 
 std::atomic<uint32_t> ESPUpdate::status = 0;
 
-ESPUpdate::ESPUpdate(bool from_menu)
+ESPUpdate::ESPUpdate(uintptr_t mask)
     : firmware_set({ { { .address = PARTITION_TABLE_ADDRESS, .filename = "/internal/res/esp/partition-table.bin", .size = 0 },
         { .address = BOOT_ADDRESS, .filename = "/internal/res/esp/bootloader.bin", .size = 0 },
         { .address = APPLICATION_ADDRESS, .filename = "/internal/res/esp/uart_wifi.bin", .size = 0 } } })
@@ -50,9 +51,12 @@ ESPUpdate::ESPUpdate(bool from_menu)
           .pin_num_rst = GPIO_PIN_13,
       })
     , phase(PhasesSelftest::_none)
-    , from_menu(from_menu)
+    , from_menu(mask & init_mask::msk_from_menu)
+    , credentials_already_set(mask & init_mask::msk_credentials_already_set)
     , progress(0)
-    , current_file_no(0) {
+    , current_file_no(0)
+    , initial_netdev_id(netdev_get_active_id())
+    , aborted(false) {
 }
 
 void ESPUpdate::updateProgress() {
@@ -66,6 +70,7 @@ void ESPUpdate::updateProgress() {
 void ESPUpdate::Loop() {
     while (progress_state != esp_upload_action::Done) {
         bool continue_pressed = false;
+        bool wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
 
         //we use only 2 responses here
         //it is safe to use it from different thread as long as no other thread reads it
@@ -95,10 +100,28 @@ void ESPUpdate::Loop() {
                         chunk->size = fs.st_size;
                     }
                 }
-                progress_state = esp_upload_action::Connect;
-                phase = PhasesSelftest::ESP_upload;
+                progress_state = esp_upload_action::DisableWIFI_if_needed;
             }
             break;
+        case esp_upload_action::DisableWIFI_if_needed:
+            if (wifi_enabled) {
+                netdev_set_active_id(NETDEV_NODEV_ID);
+                progress_state = esp_upload_action::WaitWIFI_disabled;
+                phase = PhasesSelftest::ESP_disabling_WIFI;
+            } else {
+                progress_state = esp_upload_action::Connect_show;
+            }
+            break;
+        case esp_upload_action::WaitWIFI_disabled:
+            if (!wifi_enabled) {
+                progress_state = esp_upload_action::Connect_show;
+            }
+            break;
+        case esp_upload_action::Connect_show: {
+            progress_state = esp_upload_action::Connect;
+            phase = PhasesSelftest::ESP_upload;
+            break;
+        }
         case esp_upload_action::Connect: {
             esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
             if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
@@ -162,19 +185,35 @@ void ESPUpdate::Loop() {
                 ++current_file;
                 progress_state = current_file != firmware_set.end()
                     ? esp_upload_action::Start_flash
-                    : esp_upload_action::Finish_and_reset;
+                    : esp_upload_action::EnableWIFI;
             }
             break;
         }
-        case esp_upload_action::Finish_and_reset:
+        case esp_upload_action::EnableWIFI:
             log_info(Network, "ESP finished flashing");
-            phase = PhasesSelftest::ESP_passed;
             esp_loader_flash_finish(true);
             espif_flash_deinitialize();
             notify_reconfigure();
-            progress_state = esp_upload_action::Finish_wait_user;
+            if (credentials_already_set) {
+                netdev_set_active_id(NETDEV_ESP_ID);
+                progress_state = esp_upload_action::WaitWIFI_enabled;
+                phase = PhasesSelftest::ESP_enabling_WIFI;
+            } else {
+                //leave wifi disabled, so credentials don't have to disable it again
+                progress_state = esp_upload_action::Finish;
+            }
             current_file = firmware_set.begin();
             readCount = 0;
+            break;
+        case esp_upload_action::WaitWIFI_enabled:
+            if (continue_pressed || (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP)) {
+                progress_state = esp_upload_action::Finish;
+            }
+            break;
+        case esp_upload_action::Finish:
+            phase = PhasesSelftest::ESP_passed;
+            progress_state = esp_upload_action::Finish_wait_user;
+
             break;
         case esp_upload_action::Finish_wait_user:
             if (continue_pressed) {
@@ -198,7 +237,9 @@ void ESPUpdate::Loop() {
             break;
         case esp_upload_action::Aborted:
             progress_state = esp_upload_action::Done;
+            netdev_set_active_id(initial_netdev_id); // restore wifi
             file.reset(nullptr);
+            aborted = true;
             break;
         case esp_upload_action::Done:
             break;
@@ -214,20 +255,11 @@ void ESPUpdate::Loop() {
     }
 }
 
-static std::atomic<bool> task_created = false;
-
-static void EspTask(void *pvParameters) {
-    ESPUpdate update((int)pvParameters);
-
-    update.Loop();
-    task_created = false;
-    vTaskDelete(NULL); // kill itself
-}
-
 EspCredentials::EspCredentials(FSM_Holder &fsm, bool standalone)
     : rfsm(fsm)
     , standalone(standalone)
-    , progress_state(standalone ? esp_credential_action::ShowInstructions : esp_credential_action::CheckNeeded) {
+    , initial_netdev_id(netdev_get_active_id())
+    , progress_state(esp_credential_action::ShowInstructions) {
 }
 
 bool EspCredentials::make_file() {
@@ -260,7 +292,7 @@ bool EspCredentials::upload_config() {
     return ret;
 }
 
-bool EspCredentials::already_set() const {
+bool EspCredentials::AlreadySet() {
     ap_entry_t entry = netdev_read_esp_credentials_eeprom();
     return entry.ssid[0] != '\0';
 }
@@ -268,6 +300,7 @@ bool EspCredentials::already_set() const {
 void EspCredentials::Loop() {
     while (progress_state != esp_credential_action::Done) {
         bool usb_inserted = marlin_server_read_vars().media_inserted;
+        bool wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
         bool continue_pressed = false;
 
         //we use only 3 responses here
@@ -287,15 +320,26 @@ void EspCredentials::Loop() {
         }
 
         switch (progress_state) {
-        case esp_credential_action::CheckNeeded:
-            progress_state = already_set() ? esp_credential_action::Done : esp_credential_action::ShowInstructions;
-            break;
         case esp_credential_action::ShowInstructions:
             progress_state = esp_credential_action::ShowInstructions_wait_user;
             phase = standalone ? PhasesSelftest::ESP_credentials_instructions : PhasesSelftest::ESP_credentials_instructions_stand_alone;
             break;
         case esp_credential_action::ShowInstructions_wait_user:
             if (continue_pressed) {
+                progress_state = esp_credential_action::DisableWIFI_if_needed;
+            }
+            break;
+        case esp_credential_action::DisableWIFI_if_needed:
+            if (wifi_enabled) {
+                netdev_set_active_id(NETDEV_NODEV_ID);
+                progress_state = esp_credential_action::WaitWIFI_disabled;
+                phase = PhasesSelftest::ESP_credentials_disabling_WIFI;
+            } else {
+                progress_state = esp_credential_action::CheckUSB_inserted;
+            }
+            break;
+        case esp_credential_action::WaitWIFI_disabled:
+            if (!wifi_enabled) {
                 progress_state = esp_credential_action::CheckUSB_inserted;
             }
             break;
@@ -364,7 +408,8 @@ void EspCredentials::Loop() {
             }
             break;
         case esp_credential_action::VerifyConfig:
-            progress_state = upload_config() ? esp_credential_action::ConfigUploaded : esp_credential_action::ConfigNOk;
+            time_stamp = ticks_ms();
+            progress_state = upload_config() ? esp_credential_action::ShowEnableWIFI : esp_credential_action::ConfigNOk;
             break;
         case esp_credential_action::ConfigNOk:
             progress_state = esp_credential_action::ConfigNOk_wait_user;
@@ -373,6 +418,28 @@ void EspCredentials::Loop() {
         case esp_credential_action::ConfigNOk_wait_user:
             if (continue_pressed) {
                 progress_state = esp_credential_action::VerifyConfig;
+            }
+            break;
+        case esp_credential_action::ShowEnableWIFI:
+            // at this point cpu load is to high to draw screen nicely
+            // so we wait a bit
+            if ((ticks_ms() - time_stamp) < wait_before_wifi_enable_ms)
+                break;
+            progress_state = esp_credential_action::EnableWIFI;
+            phase = PhasesSelftest::ESP_credentials_enabling_WIFI;
+            time_stamp = ticks_ms();
+            break;
+        case esp_credential_action::EnableWIFI:
+            // at this point cpu load is to high to draw screen nicely
+            // so we wait a bit
+            if ((ticks_ms() - time_stamp) < wait_before_wifi_enable_ms)
+                break;
+            netdev_set_active_id(NETDEV_ESP_ID);
+            progress_state = esp_credential_action::WaitWIFI_enabled;
+            break;
+        case esp_credential_action::WaitWIFI_enabled:
+            if (continue_pressed || (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP)) {
+                progress_state = esp_credential_action::ConfigUploaded;
             }
             break;
         case esp_credential_action::ConfigUploaded: // config OK
@@ -386,6 +453,7 @@ void EspCredentials::Loop() {
             break;
         case esp_credential_action::Aborted:
             progress_state = esp_credential_action::Done;
+            netdev_set_active_id(initial_netdev_id); // restore wifi
             file.reset(nullptr);
             break;
         case esp_credential_action::Done:
@@ -401,33 +469,48 @@ void EspCredentials::Loop() {
     }
 }
 
+static std::atomic<ESPUpdate::state> task_state = ESPUpdate::state::did_not_finished;
+
 /*****************************************************************************/
 //public functions
+static void EspTask(void *pvParameters) {
+    ESPUpdate update((uintptr_t)pvParameters);
+
+    update.Loop();
+    task_state = update.Aborted() ? ESPUpdate::state::aborted : ESPUpdate::state::finished;
+    vTaskDelete(NULL); // kill itself
+}
+
 void update_esp(bool force) {
+    const bool credentials_already_set = EspCredentials::AlreadySet();
+    uintptr_t mask = 0;
+    if (force)
+        mask |= ESPUpdate::init_mask::msk_from_menu;
+    if (credentials_already_set)
+        mask |= ESPUpdate::init_mask::msk_credentials_already_set;
 
     TaskHandle_t xHandle = nullptr;
 
     xTaskCreate(
-        EspTask,              // Function that implements the task.
-        "ESP UPDATE",         // Text name for the task.
-        512,                  // Stack size in words, not bytes.
-        (void *)((int)force), // Parameter passed into the task.
-        osPriorityNormal,     // Priority at which the task is created.
-        &xHandle);            // Used to pass out the created task's handle.
+        EspTask,          // Function that implements the task.
+        "ESP UPDATE",     // Text name for the task.
+        512,              // Stack size in words, not bytes.
+        (void *)(mask),   // Parameter passed into the task.
+        osPriorityNormal, // Priority at which the task is created.
+        &xHandle);        // Used to pass out the created task's handle.
 
     // update did not start yet
     // no fsm was openned, it is safe to just return in case sask was not created
     if (!xHandle)
         return;
 
-    task_created = true; // in case task ends immediately, this can set it to true and freeze
-                         // ensure in task loop, it cannot happen
+    task_state = ESPUpdate::state::did_not_finished;
     FSM_Holder fsm_holder(ClientFSM::Selftest, 0);
     status_t status;
     status.Empty();
 
     // wait until task kills itself
-    while (task_created) {
+    while (task_state == ESPUpdate::state::did_not_finished) {
         status_t current = ESPUpdate::GetStatus();
 
         if (current != status) {
@@ -440,8 +523,11 @@ void update_esp(bool force) {
         idle(true, true);
     }
 
-    EspCredentials credentials(fsm_holder, false);
-    credentials.Loop();
+    // in case update was aborted credentials will not run
+    if (!credentials_already_set && task_state == ESPUpdate::state::finished) {
+        EspCredentials credentials(fsm_holder, false);
+        credentials.Loop();
+    }
 }
 
 void update_esp_credentials() {
