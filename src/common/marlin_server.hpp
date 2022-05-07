@@ -164,3 +164,6 @@ public:
 uint8_t get_var_sd_percent_done();
 void set_var_sd_percent_done(uint8_t value);
 void set_warning(WarningType type);
+
+//directly access marlin server variables
+const marlin_vars_t &marlin_server_read_vars();

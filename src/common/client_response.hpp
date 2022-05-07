@@ -97,9 +97,12 @@ enum class PhasesSelftest : uint16_t {
     _first_ESP_credentials,
     ESP_credentials_instructions = _first_ESP_credentials,
     ESP_credentials_instructions_stand_alone,
+    ESP_credentials_USB_not_inserted, // must be before ask_gen/ask_gen_overwrite, because it depends on file existence
     ESP_credentials_ask_gen,
     ESP_credentials_ask_gen_overwrite,
     ESP_credentials_makefile_failed,
+    ESP_credentials_eject_USB,
+    ESP_credentials_insert_USB,
     ESP_credentials_load,
     ESP_credentials_invalid,
     ESP_credentials_uploaded,

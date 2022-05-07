@@ -1705,6 +1705,10 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 
 }
 
+const marlin_vars_t &marlin_server_read_vars() {
+    return marlin_server.vars;
+}
+
 /// Array of the last phase per fsm
 /// Used for better logging experience in fsm_change
 static int fsm_last_phase[int(ClientFSM::_count)];

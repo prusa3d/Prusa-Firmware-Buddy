@@ -50,9 +50,12 @@ const PhaseResponses ClientResponses::SelftestResponses[CountPhases<PhasesSelfte
     { Response::Continue },                  // ESP_failed
     { Response::Continue, Response::Abort }, // ESP_credentials_instructions
     { Response::Continue, Response::Abort }, // ESP_credentials_instructions_stand_alone
+    { Response::Continue, Response::Abort }, // ESP_credentials_USB_not_inserted
     { Response::Continue, Response::Abort }, // ESP_credentials_ask_gen
     { Response::Continue, Response::Abort }, // ESP_credentials_ask_gen_overwrite
     { Response::Continue, Response::Abort }, // ESP_credentials_makefile_failed
+    { Response::Continue, Response::Abort }, // ESP_credentials_eject_USB,
+    { Response::Continue, Response::Abort }, // ESP_credentials_insert_USB,
     { Response::Continue, Response::Abort }, // ESP_credentials_load
     { Response::Retry, Response::Abort },    // ESP_credentials_invalid
     { Response::Continue },                  // ESP_credentials_uploaded
