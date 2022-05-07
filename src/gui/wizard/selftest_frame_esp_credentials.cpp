@@ -44,6 +44,9 @@ void SelftestFrameESP_credentials::change() {
     case PhasesSelftest::ESP_credentials_instructions_stand_alone:
         txt = N_("To setup or troubleshoot your Wi-Fi, please visit:\n" QR_ADDR_IN_TEXT);
         break;
+    case PhasesSelftest::ESP_credentials_disabling_WIFI:
+        txt = N_("Wi-Fi is being disabled.");
+        break;
     case PhasesSelftest::ESP_credentials_USB_not_inserted:
         txt = N_("USB drive not detected, inset USB drive.");
         break;
@@ -67,6 +70,9 @@ void SelftestFrameESP_credentials::change() {
         break;
     case PhasesSelftest::ESP_credentials_invalid:
         txt = N_("Wi-Fi credentials invalid!");
+        break;
+    case PhasesSelftest::ESP_credentials_enabling_WIFI:
+        txt = N_("Wi-Fi is being enabled.");
         break;
     case PhasesSelftest::ESP_credentials_uploaded:
         txt = N_("Wi-Fi credentials successfully updated.");

@@ -57,8 +57,18 @@ void SelftestFrameESP::change() {
         txt_bot = N_("The device firmware version mismatch. It needs to be updated.");
         show_icon = true;
         break;
+    case PhasesSelftest::ESP_disabling_WIFI:
+        txt_top = N_("Wi-Fi is being disabled");
+        txt_bot = N_("Do not disconnect Wi-Fi module or turn power off");
+        show_progress = true;
+        break;
     case PhasesSelftest::ESP_upload:
         txt_top = N_("Wi-Fi update");
+        txt_bot = N_("Do not disconnect Wi-Fi module or turn power off");
+        show_progress = true;
+        break;
+    case PhasesSelftest::ESP_enabling_WIFI:
+        txt_top = N_("Wi-Fi is being enabled");
         txt_bot = N_("Do not disconnect Wi-Fi module or turn power off");
         show_progress = true;
         break;

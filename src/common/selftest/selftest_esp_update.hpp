@@ -18,13 +18,18 @@ extern "C" {
 enum class esp_upload_action {
     Initial,
     Initial_wait_user,
+    DisableWIFI_if_needed,
+    WaitWIFI_disabled,
+    Connect_show,
     Connect,
     Start_flash,
     Write_data,
     ESP_error,
     USB_error,
     Error_wait_user,
-    Finish_and_reset,
+    EnableWIFI,
+    WaitWIFI_enabled, // pressing abort will just restore connection interface (Eth / WiFi / none)
+    Finish,
     Finish_wait_user,
     Aborted, //currently abort does not wait for user
     // Aborted_wait_user,
@@ -77,16 +82,30 @@ class ESPUpdate {
     loader_stm32_config_t loader_config;
     PhasesSelftest phase;
     const bool from_menu;
+    const bool credentials_already_set;
     uint8_t progress;
     uint8_t current_file_no;
+    const uint8_t initial_netdev_id; // it is not enum because of stupid C api
+    bool aborted;
 
     void updateProgress();
     static std::atomic<uint32_t> status;
 
 public:
-    ESPUpdate(bool from_menu);
+    enum init_mask {
+        msk_from_menu = 0b01,
+        msk_credentials_already_set = msk_from_menu << 1
+    };
+    enum class state {
+        did_not_finished,
+        finished,
+        aborted
+    };
+
+    ESPUpdate(uintptr_t mask);
 
     void Loop();
+    bool Aborted() const { return aborted; }
     static status_t GetStatus() {
         status_encoder_union u;
         u.u32 = status;
@@ -95,9 +114,10 @@ public:
 };
 
 enum class esp_credential_action {
-    CheckNeeded,
     ShowInstructions,
     ShowInstructions_wait_user,
+    DisableWIFI_if_needed,
+    WaitWIFI_disabled,
     AskMakeFile,
     CheckUSB_inserted,
     USB_not_inserted,
@@ -116,7 +136,10 @@ enum class esp_credential_action {
     ConfigNOk_wait_user,
     ConfigUploaded, // config OK
     ConfigUploaded_wait_user,
-    Aborted, //currently abort does not wait for user
+    ShowEnableWIFI,
+    EnableWIFI,
+    WaitWIFI_enabled, // pressing abort will just restore connection interface (Eth / WiFi / none)
+    Aborted,          //currently abort does not wait for user
     // Aborted_wait_user,
     Done
 };
@@ -129,14 +152,17 @@ class EspCredentials {
 
     static constexpr const char *file_name = "/usb/prusa_printer_settings.ini";
 
+    static constexpr uint32_t wait_before_wifi_enable_ms = 1024;
+
     unique_file_ptr file;
     FSM_Holder &rfsm;
+    uint32_t time_stamp;
     bool standalone;
+    const uint8_t initial_netdev_id; // it is not enum because of stupid C api
     esp_credential_action progress_state;
     std::optional<PhasesSelftest> phase;
 
     bool make_file();
-    bool already_set() const;
     static bool file_exists();
     bool upload_config();
 
@@ -144,4 +170,6 @@ public:
     EspCredentials(FSM_Holder &fsm, bool standalone);
 
     void Loop();
+
+    static bool AlreadySet();
 };
