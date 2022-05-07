@@ -50,8 +50,7 @@ void ScreenMenuConnectionBase::refresh_addresses() {
 
         mac_address_t mac;
         get_MAC_address(&mac, dev_id);
-
-        if (Item<MI_MAC_ADDR>().ChangeInformation(mac) == invalidate_t::yes) {
+        if (Item<MI_MAC_ADDR>().ChangeInformation(mac[0] ? mac : UNKNOWN_MAC) == invalidate_t::yes) {
             refresh = true;
         }
     }
