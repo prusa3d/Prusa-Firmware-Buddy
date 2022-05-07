@@ -8,6 +8,7 @@
 #include "RAII.hpp"
 #include "log.h"
 #include "selftest_esp_type.hpp"
+#include "marlin_server.hpp"
 
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
 
@@ -266,6 +267,7 @@ bool EspCredentials::already_set() const {
 
 void EspCredentials::Loop() {
     while (progress_state != esp_credential_action::Done) {
+        bool usb_inserted = marlin_server_read_vars().media_inserted;
         bool continue_pressed = false;
 
         //we use only 3 responses here
@@ -294,8 +296,19 @@ void EspCredentials::Loop() {
             break;
         case esp_credential_action::ShowInstructions_wait_user:
             if (continue_pressed) {
-                progress_state = esp_credential_action::AskMakeFile;
+                progress_state = esp_credential_action::CheckUSB_inserted;
             }
+            break;
+        case esp_credential_action::CheckUSB_inserted:
+            progress_state = usb_inserted ? esp_credential_action::AskMakeFile : esp_credential_action::USB_not_inserted;
+            break;
+        case esp_credential_action::USB_not_inserted:
+            progress_state = esp_credential_action::USB_not_inserted_wait;
+            phase = PhasesSelftest::ESP_credentials_USB_not_inserted;
+            break;
+        case esp_credential_action::USB_not_inserted_wait:
+            if (continue_pressed || usb_inserted)
+                progress_state = esp_credential_action::AskMakeFile;
             break;
         case esp_credential_action::AskMakeFile:
             phase = file_exists() ? PhasesSelftest::ESP_credentials_ask_gen_overwrite : PhasesSelftest::ESP_credentials_ask_gen;
@@ -303,7 +316,7 @@ void EspCredentials::Loop() {
             break;
         case esp_credential_action::AskMakeFile_wait_user:
             if (continue_pressed) {
-                progress_state = make_file() ? esp_credential_action::AskLoadConfig : esp_credential_action::MakeFile_failed;
+                progress_state = make_file() ? esp_credential_action::EjectUSB : esp_credential_action::MakeFile_failed;
             }
             break;
         case esp_credential_action::MakeFile_failed:
@@ -312,8 +325,34 @@ void EspCredentials::Loop() {
             break;
         case esp_credential_action::MakeFile_failed_wait_user:
             if (continue_pressed) {
-                progress_state = esp_credential_action::AskMakeFile;
+                progress_state = esp_credential_action::CheckUSB_inserted;
             }
+            break;
+        case esp_credential_action::EjectUSB:
+            if (usb_inserted) {
+                progress_state = esp_credential_action::WaitUSB_ejected;
+                phase = PhasesSelftest::ESP_credentials_eject_USB;
+            } else {
+                //this should not happen
+                progress_state = esp_credential_action::InsertUSB;
+            }
+            break;
+        case esp_credential_action::WaitUSB_ejected:
+            if (continue_pressed || !usb_inserted)
+                progress_state = esp_credential_action::InsertUSB;
+            break;
+        case esp_credential_action::InsertUSB:
+            if (!usb_inserted) {
+                progress_state = esp_credential_action::WaitUSB_inserted;
+                phase = PhasesSelftest::ESP_credentials_insert_USB;
+            } else {
+                //this should not happen
+                progress_state = esp_credential_action::AskLoadConfig;
+            }
+            break;
+        case esp_credential_action::WaitUSB_inserted:
+            if (continue_pressed || usb_inserted)
+                progress_state = esp_credential_action::AskLoadConfig;
             break;
         case esp_credential_action::AskLoadConfig:
             progress_state = esp_credential_action::AskLoadConfig_wait_user;
