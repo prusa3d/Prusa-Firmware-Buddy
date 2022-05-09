@@ -43,8 +43,6 @@ constexpr const uint8_t *bootloader_sector_get_address(int sector) {
     return (const uint8_t *)base_address;
 }
 
-Version *const bootloader_version = (Version *)0x0801FFFA;
-
 class FileDeleter {
 public:
     void operator()(FILE *file) {
@@ -238,6 +236,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 }
 
 Version buddy::bootloader::get_version() {
+    Version *const bootloader_version = (Version *const)0x0801FFFA;
     return *bootloader_version;
 }
 
