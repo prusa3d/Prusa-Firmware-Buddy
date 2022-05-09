@@ -6,6 +6,7 @@
 #include "crc32.h"
 #include "bsod.h"
 #include <string.h>
+#include "sys.h"
 
 #include "scratch_buffer.hpp"
 #include "resources/bootstrap.hpp"
@@ -240,6 +241,10 @@ Version buddy::bootloader::get_version() {
 }
 
 bool buddy::bootloader::needs_update() {
+    if (sys_bootloader_is_valid() == false) {
+        return true;
+    }
+
     auto current = get_version();
     auto required = buddy::bootloader::required_version;
 
