@@ -5,12 +5,11 @@
 namespace buddy::scratch_buffer {
 
 /// Single place for definition of large RAM space for various tasks.
-/// Currently, there's no locking mechanism so before you use it, make sure
-/// there's nobody else who uses it.
 ///
 /// This is used by:
 /// - PNG decoder
 /// - QR code generator
+/// - Bootloader Update
 ///
 /// TODO: use it for
 /// - SHA256 encoding
