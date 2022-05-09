@@ -187,7 +187,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
             }
 
             uint32_t current_preboot_crc = crc32_calc(bootloader_sector_get_address(0), bootloader_sector_get_size(0));
-            if (current_preboot_crc == expected_preboot_crc && false) {
+            if (current_preboot_crc == expected_preboot_crc) {
                 log(LOG_SEVERITY_INFO, "No need to update preboot. Skipping sector 0.");
                 continue;
             } else {
