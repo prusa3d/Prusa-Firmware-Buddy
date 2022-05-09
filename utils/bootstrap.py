@@ -61,8 +61,8 @@ dependencies = {
         }
     },
     'bootloader-mini': {
-        'version': '2.0.1',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-v2.0.1-12AC2845-A19F-44DF-8051-ED9A6E0C7D32.zip',
+        'version': '2.0.2',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-v2.0.2-FF7C65BF-1853-43B3-869C-C846FA39AB75.zip',
     },
     'mini404': {
         'version': '0.9.3',
