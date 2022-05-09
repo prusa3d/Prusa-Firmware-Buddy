@@ -277,7 +277,7 @@ protected:
 };
 
 class MI_PRUSALINK : public WI_LABEL_t {
-    static constexpr const char *const label = "Prusa Link";
+    static constexpr const char *const label = "PrusaLink";
 
 public:
     MI_PRUSALINK();

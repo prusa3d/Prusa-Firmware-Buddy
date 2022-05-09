@@ -437,39 +437,6 @@ public:
 
 /******************************************************************/
 // WI_INFO_t
-#define UNKNOWN_ADDR "N/A"
-#define ADDR_LEN     sizeof("255.255.255.255")
-#define UNKNOWN_MAC  "N/A"
-#define MAC_LEN      sizeof("ff.ff.ff.ff.ff.ff")
-
-class MI_IP4_ADDR : public WiInfo<ADDR_LEN> {
-    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Address") : N_("Address");
-
-public:
-    MI_IP4_ADDR();
-};
-
-class MI_IP4_NMSK : public WiInfo<ADDR_LEN> {
-    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Netmask") : N_("Mask");
-
-public:
-    MI_IP4_NMSK();
-};
-
-class MI_IP4_GWAY : public WiInfo<ADDR_LEN> {
-    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Gateway") : N_("GW");
-
-public:
-    MI_IP4_GWAY();
-};
-
-class MI_MAC_ADDR : public WiInfo<MAC_LEN> {
-    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("MAC Address") : N_("MAC");
-
-public:
-    MI_MAC_ADDR();
-};
-
 class MI_FS_AUTOLOAD : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("FS autoload");
 

@@ -17,7 +17,7 @@ public:
 };
 
 class MI_WIFI_INIT_t : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Initialise");
+    constexpr static const char *const label = N_("Setup Wi-Fi module");
 
 public:
     MI_WIFI_INIT_t();
@@ -37,9 +37,9 @@ protected:
 };
 
 class MI_NET_INTERFACE_t : public WI_SWITCH_t<3> {
-    constexpr static const char *const label = "Network Interface"; //do not translate
+    constexpr static const char *const label = "Interface"; //do not translate
 
-    constexpr static const char *str_off = N_("None");
+    constexpr static const char *str_off = "Off";    //do not translate
     constexpr static const char *str_eth = "Eth";    //do not translate
     constexpr static const char *str_wifi = "Wi-Fi"; //do not translate
 
@@ -52,7 +52,7 @@ public:
 };
 
 class MI_NET_IP_t : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = "LAN IPv4"; //do not translate
+    constexpr static const char *const label = "LAN"; //do not translate
 
     constexpr static const char *str_static = "static"; //do not translate
     constexpr static const char *str_DHCP = "DHCP";     //do not translate
@@ -63,4 +63,48 @@ public:
 public:
     MI_NET_IP_t();
     virtual void OnChange(size_t old_index) override;
+};
+
+class MI_NET_IP_VER_t : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = N_("Protocol");
+
+    constexpr static const char *str_v4 = "IPv4"; //do not translate
+    constexpr static const char *str_v6 = "IPv6"; //do not translate
+
+public:
+    MI_NET_IP_VER_t();
+    //virtual void OnChange(size_t old_index) override; //TODO
+};
+
+#define UNKNOWN_ADDR "N/A"
+#define ADDR_LEN     sizeof("255.255.255.255")
+#define UNKNOWN_MAC  "N/A"
+#define MAC_LEN      sizeof("ff.ff.ff.ff.ff.ff")
+
+class MI_IP4_ADDR : public WiInfo<ADDR_LEN> {
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Address") : N_("IP");
+
+public:
+    MI_IP4_ADDR();
+};
+
+class MI_IP4_NMSK : public WiInfo<ADDR_LEN> {
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Netmask") : N_("Mask");
+
+public:
+    MI_IP4_NMSK();
+};
+
+class MI_IP4_GWAY : public WiInfo<ADDR_LEN> {
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Gateway") : N_("GW");
+
+public:
+    MI_IP4_GWAY();
+};
+
+class MI_MAC_ADDR : public WiInfo<MAC_LEN> {
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("MAC Address") : N_("MAC");
+
+public:
+    MI_MAC_ADDR();
 };
