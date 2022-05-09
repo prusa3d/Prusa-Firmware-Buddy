@@ -24,7 +24,7 @@ using namespace eeprom::current;
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;       // maximum name length (with '\0')
-static const constexpr uint16_t EEPROM_MAX_DATASIZE = 512; // maximum datasize
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 576; // maximum datasize
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
 static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read only
@@ -163,6 +163,12 @@ static const eeprom_entry_t eeprom_map[] = {
     { "WIFI_AP_SSID",    VARIANT8_PCHAR, WIFI_MAX_SSID_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
     { "WIFI_AP_PASSWD",  VARIANT8_PCHAR, WIFI_MAX_PASSWD_LEN + 1, 0 }, // EEVAR_WIFI_HOSTNAME
     { "USB_MSC_ENABLED", VARIANT8_BOOL,  1, 0}, // EEVAR_USB_MSC_ENABLED
+    { "CONNECT_HOST",    VARIANT8_PCHAR, CONNECT_HOST_SIZE + 1, 0 }, // EEVAR_CONNECT_HOST
+    { "CONNECT_TOKEN",   VARIANT8_PCHAR, CONNECT_TOKEN_SIZE + 1, 0 }, // EEVAR_CONNECT_TOKEN
+    { "CONNECT_PORT",    VARIANT8_UI16,  1, 0 }, // EEVAR_CONNECT_PORT
+    { "CONNECT_TLS",     VARIANT8_BOOL,  1, 0 }, // EEVAR_CONNECT_TLS
+    { "CONNECT_ENABLED", VARIANT8_BOOL,  1, 0 }, // EEVAR_CONNECT_ENABLED
+// crc
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
 

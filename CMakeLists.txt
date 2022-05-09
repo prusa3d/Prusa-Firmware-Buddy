@@ -102,11 +102,6 @@ set(RESOURCES
     CACHE BOOL "Enable resources (managed files on external flash)"
     )
 set(CONNECT
-    "YES"
-    CACHE BOOL "Enable Connect client"
-    )
-
-set(CONNECT
     "NO"
     CACHE BOOL "Enable Connect client"
     )
