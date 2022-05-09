@@ -43,13 +43,11 @@ const PhaseResponses ClientResponses::PreheatResponses[CountPhases<PhasesPreheat
 
 const PhaseResponses ClientResponses::SelftestResponses[CountPhases<PhasesSelftest>()] = {
     {},                                      // _first
-    { Response::Continue, Response::Abort }, // ESP_ask_auto
-    { Response::Continue, Response::Abort }, // ESP_ask_from_menu
-    { Response::Abort },                     // ESP_disabling_WIFI
+    { Response::Continue, Response::Abort }, // ESP_info
     { Response::Abort },                     // ESP_upload
-    { Response::Continue },                  // ESP_enabling_WIFI
     { Response::Continue },                  // ESP_passed
     { Response::Continue },                  // ESP_failed
+    { Response::Continue, Response::Abort }, // ESP_credentials_instructions_flash
     { Response::Continue, Response::Abort }, // ESP_credentials_instructions
     { Response::Continue, Response::Abort }, // ESP_credentials_instructions_stand_alone
     { Response::Abort },                     // ESP_credentials_disabling_WIFI

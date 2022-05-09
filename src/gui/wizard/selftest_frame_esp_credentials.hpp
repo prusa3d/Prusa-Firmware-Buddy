@@ -10,9 +10,8 @@
 #include "window_qr.hpp"
 #include "window_wizard_progress.hpp"
 
-#define QR_ADDR "prusa3d.com/wifi-mini-qr"
-//text breaking is bugged (a lot), so I have to do this ugly thing
-#define QR_ADDR_IN_TEXT "prusa3d.com/wifi-MINI"
+#define QR_ADDR         "prusa3d.com/miniWiFi-qr"
+#define QR_ADDR_IN_TEXT "prusa3d.com/miniWiFi"
 
 class SelftestFrameESP_credentials : public AddSuperWindow<SelftestFrameWithRadio> {
     class QR : public AddSuperWindow<window_qr_t> {

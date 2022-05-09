@@ -87,7 +87,7 @@ void ESPUpdate::Loop() {
 
         switch (progress_state) {
         case esp_upload_action::Initial:
-            phase = from_menu ? PhasesSelftest::ESP_ask_from_menu : PhasesSelftest::ESP_ask_auto;
+            phase = PhasesSelftest::ESP_credentials_instructions_flash;
             progress_state = esp_upload_action::Initial_wait_user;
             break;
         case esp_upload_action::Initial_wait_user:
@@ -100,28 +100,37 @@ void ESPUpdate::Loop() {
                         chunk->size = fs.st_size;
                     }
                 }
-                progress_state = esp_upload_action::DisableWIFI_if_needed;
+                progress_state = esp_upload_action::Info;
             }
             break;
-        case esp_upload_action::DisableWIFI_if_needed:
-            if (wifi_enabled) {
-                netdev_set_active_id(NETDEV_NODEV_ID);
-                progress_state = esp_upload_action::WaitWIFI_disabled;
-                phase = PhasesSelftest::ESP_disabling_WIFI;
-            } else {
-                progress_state = esp_upload_action::Connect_show;
-            }
+        case esp_upload_action::Info:
+            phase = PhasesSelftest::ESP_info;
+            progress_state = esp_upload_action::Info_wait_user;
             break;
-        case esp_upload_action::WaitWIFI_disabled:
-            if (!wifi_enabled) {
+        case esp_upload_action::Info_wait_user:
+            if (continue_pressed) {
                 progress_state = esp_upload_action::Connect_show;
             }
             break;
         case esp_upload_action::Connect_show: {
-            progress_state = esp_upload_action::Connect;
-            phase = PhasesSelftest::ESP_upload;
+            progress_state = esp_upload_action::DisableWIFI_if_needed;
+            phase = PhasesSelftest::ESP_upload; // will show [0/3] during enabling of wifi
             break;
         }
+        case esp_upload_action::DisableWIFI_if_needed:
+            if (wifi_enabled) {
+                netdev_set_active_id(NETDEV_NODEV_ID);
+                progress_state = esp_upload_action::WaitWIFI_disabled;
+            } else {
+                progress_state = esp_upload_action::Connect;
+            }
+            break;
+        case esp_upload_action::WaitWIFI_disabled:
+            if (!wifi_enabled) {
+                progress_state = esp_upload_action::Connect;
+            }
+            break;
+
         case esp_upload_action::Connect: {
             esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
             if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
@@ -197,7 +206,7 @@ void ESPUpdate::Loop() {
             if (credentials_already_set) {
                 netdev_set_active_id(NETDEV_ESP_ID);
                 progress_state = esp_upload_action::WaitWIFI_enabled;
-                phase = PhasesSelftest::ESP_enabling_WIFI;
+                phase = PhasesSelftest::ESP_credentials_enabling_WIFI;
             } else {
                 //leave wifi disabled, so credentials don't have to disable it again
                 progress_state = esp_upload_action::Finish;
