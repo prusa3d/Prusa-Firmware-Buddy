@@ -319,7 +319,7 @@ def build(configuration: BuildConfiguration,
         build_returncode = build_process.returncode
         products.extend(build_dir / fname for fname in [
             'firmware', 'firmware.bin', 'firmware.bbf', 'firmware.dfu',
-            'firmware.map', 'firmware_update_4.3.4_and_older.bbf'
+            'firmware.map', 'firmware_update_pre_4.4.bbf'
         ] if (build_dir / fname).exists())
     else:
         build_returncode = None
@@ -535,15 +535,15 @@ def store_products(products: List[Path], build_config: BuildConfiguration,
     """Copy build products to a shared products directory."""
     products_dir.mkdir(parents=True, exist_ok=True)
     for product in products:
+        base_name = build_config.name.lower()
         if 'firmware_update' in product.name:
-            name = product.with_suffix('').name
-        elif isinstance(build_config, FirmwareBuildConfiguration
-                        ) and build_config.version_suffix != '<auto>':
+            base_name += '_update_pre_4.4'
+        if isinstance(build_config, FirmwareBuildConfiguration
+                      ) and build_config.version_suffix != '<auto>':
             version = project_version()
-            name = build_config.name.lower(
-            ) + '_' + version + build_config.version_suffix
+            name = base_name + '_' + version + build_config.version_suffix
         else:
-            name = build_config.name.lower()
+            name = base_name
         destination = products_dir / (name + product.suffix)
         shutil.copy(product, destination)
 
