@@ -18,7 +18,7 @@ typedef struct {
     uint8_t fw_update_flag;
     uint8_t model_specific_flags; // ~ "reserved1" originally
     uint8_t fw_signature;
-    uint8_t reserved3;
+    uint8_t bootloader_valid;
     uint8_t reserved4;
     uint8_t reserved5;
     uint8_t reserved6;
