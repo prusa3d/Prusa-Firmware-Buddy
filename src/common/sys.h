@@ -59,6 +59,12 @@ extern int sys_fw_invalidate(void);
 
 extern int sys_fw_validate(void);
 
+/// Return 1 if the preboot set the bootloader_valid flag to true
+///
+/// Warning: requires bootloader version 2.0.0 (which includes preboot)
+/// or newer
+extern int sys_bootloader_is_valid(void);
+
 extern int sys_flash_is_empty(void *ptr, int size);
 
 extern int sys_flash_write(void *dst, void *src, int size);
