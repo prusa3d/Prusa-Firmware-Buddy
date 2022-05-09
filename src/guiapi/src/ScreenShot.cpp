@@ -6,10 +6,12 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "GuiDefaults.hpp"
 
 #ifdef USE_ST7789
-static const uint8_t bytes_per_pixel = 2;
-static const uint8_t buffer_rows = ST7789V_BUFF_ROWS;
+static const uint8_t bytes_per_pixel = 3;
+static const uint8_t buffer_rows = 10;
+static const uint8_t read_start_offset = 2;
     #include "st7789v.hpp"
 #endif // USE_ST7789
 
@@ -55,13 +57,16 @@ static const unsigned char bmp_header[] = {
     0, 0, 0, 0, /// important color count       [4B]
 };
 
-static void mirror_buffer(uint8_t *buffer) {
+static void mirror_buffer(Pixel *buffer) {
     // Y-axis mirror image - because BMP pixel format has base origin in left-bottom corner not in left-top like on displays
     for (int row = 0; row < buffer_rows / 2; row++) {
-        for (int col = 0; col < display::GetW() * bytes_per_pixel; col++) {
+        for (int col = 0; col < display::GetW(); col++) {
 #ifdef USE_ST7789
-            const int i1 = row * display::GetW() * bytes_per_pixel + col;
-            const int i2 = (buffer_rows - row - 1) * display::GetW() * bytes_per_pixel + col;
+            const int i1 = row * display::GetW() + col;
+            const int i2 = (buffer_rows - row - 1) * display::GetW() + col;
+            // we need to swap the colors, because bmp is in BGR color format
+            buffer[i1].SwapBlueAndRed();
+            buffer[i2].SwapBlueAndRed();
             std::swap(buffer[i1], buffer[i2]);
 #else // USE_ST7789
     #error "Unsupported display for screenshot."
@@ -95,9 +100,9 @@ bool TakeAScreenshot() {
                 success = false;
                 break;
             }
-            mirror_buffer(buffer);
+            mirror_buffer(reinterpret_cast<Pixel *>(buffer + read_start_offset));
             const int write_size = display::GetW() * buffer_rows * bytes_per_pixel;
-            if (fwrite(buffer, 1, write_size, fd) != write_size) {
+            if (fwrite(buffer + read_start_offset, 1, write_size, fd) != write_size) {
                 success = false;
                 break;
             }
@@ -112,4 +117,12 @@ bool TakeAScreenshot() {
     }
 
     return true;
+}
+Pixel::Pixel(const uint8_t *data) {
+    red = data[0];
+    green = data[1];
+    blue = data[2];
+}
+void Pixel::SwapBlueAndRed() {
+    std::swap(red, blue);
 }

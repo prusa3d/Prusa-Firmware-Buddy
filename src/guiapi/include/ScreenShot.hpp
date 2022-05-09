@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include <cstdint>
 
 /**
  * Takes screenshot and saves it to USB flash disk.
@@ -16,3 +17,13 @@
  * @retval false - any of file's opening/writing/closing returned unexpected error
  */
 bool TakeAScreenshot();
+
+struct Pixel {
+
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+
+    Pixel(const uint8_t data[3]);
+    void SwapBlueAndRed();
+};
