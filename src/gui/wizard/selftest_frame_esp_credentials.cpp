@@ -38,6 +38,9 @@ void SelftestFrameESP_credentials::change() {
 
     //texts
     switch (phase_current) {
+    case PhasesSelftest::ESP_credentials_instructions_flash:
+        txt = N_("Use the online guide\nto setup your Wi-Fi\n" QR_ADDR_IN_TEXT);
+        break;
     case PhasesSelftest::ESP_credentials_instructions:
         txt = N_("Wi-Fi credentials are not set.\nTo setup or troubleshoot your Wi-Fi, please visit:\n" QR_ADDR_IN_TEXT);
         break;

@@ -18,6 +18,8 @@ extern "C" {
 enum class esp_upload_action {
     Initial,
     Initial_wait_user,
+    Info,
+    Info_wait_user,
     DisableWIFI_if_needed,
     WaitWIFI_disabled,
     Connect_show,

@@ -47,39 +47,24 @@ void SelftestFrameESP::change() {
 
     //texts
     switch (phase_current) {
-    case PhasesSelftest::ESP_ask_auto:
-        txt_top = N_("Wi-Fi module detected");
-        txt_bot = N_("The device firmware version mismatch. It needs to be updated.");
+    case PhasesSelftest::ESP_info:
+        txt_top = N_("Wi-Fi (ESP) module\nfirmware updater.");
+        txt_bot = N_("Continue to flash\nthe ESP firmware.");
         show_icon = true;
-        break;
-    case PhasesSelftest::ESP_ask_from_menu:
-        txt_top = N_("New version of Wi-Fi firmware detected");
-        txt_bot = N_("The device firmware version mismatch. It needs to be updated.");
-        show_icon = true;
-        break;
-    case PhasesSelftest::ESP_disabling_WIFI:
-        txt_top = N_("Wi-Fi is being disabled");
-        txt_bot = N_("Do not disconnect Wi-Fi module or turn power off");
-        show_progress = true;
         break;
     case PhasesSelftest::ESP_upload:
-        txt_top = N_("Wi-Fi update");
-        txt_bot = N_("Do not disconnect Wi-Fi module or turn power off");
-        show_progress = true;
-        break;
-    case PhasesSelftest::ESP_enabling_WIFI:
-        txt_top = N_("Wi-Fi is being enabled");
-        txt_bot = N_("Do not disconnect Wi-Fi module or turn power off");
+        txt_top = N_("Updating Wi-Fi...");
+        txt_bot = N_("Do not unplug Wi-Fi\nor turn off printer!");
         show_progress = true;
         break;
     case PhasesSelftest::ESP_passed:
-        txt_top = N_("Wi-Fi update");
-        txt_bot = N_("Success");
+        txt_top = N_("Updating Wi-Fi...");
+        txt_bot = N_("Firmware flashing\nsuccessful!");
         show_progress = true;
         break;
     case PhasesSelftest::ESP_failed:
-        txt_top = N_("Wi-Fi update");
-        txt_bot = N_("Failed");
+        txt_top = N_("Updating Wi-Fi...");
+        txt_bot = N_("Firmware flashing\nfailed!");
         show_progress = true;
         break;
     default:

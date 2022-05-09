@@ -87,17 +87,15 @@ enum class PhasesSelftest : uint16_t {
     _none = _first,
 
     _first_ESP,
-    ESP_ask_auto = _first_ESP,
-    ESP_ask_from_menu,
-    ESP_disabling_WIFI,
+    ESP_info = _first_ESP,
     ESP_upload,
-    ESP_enabling_WIFI,
     ESP_passed,
     ESP_failed,
     _last_ESP = ESP_failed,
 
     _first_ESP_credentials,
-    ESP_credentials_instructions = _first_ESP_credentials,
+    ESP_credentials_instructions_flash = _first_ESP_credentials,
+    ESP_credentials_instructions,
     ESP_credentials_instructions_stand_alone,
     ESP_credentials_disabling_WIFI,
     ESP_credentials_USB_not_inserted, // must be before ask_gen/ask_gen_overwrite, because it depends on file existence
