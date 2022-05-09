@@ -165,6 +165,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_PRUSA_CONNECT : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Prusa Connect");
+
+public:
+    MI_PRUSA_CONNECT();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
 class MI_HW_SETUP : public WI_LABEL_t {
     static constexpr const char *const label = N_("HW Setup");
 

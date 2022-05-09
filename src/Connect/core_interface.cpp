@@ -1,7 +1,7 @@
 #include "core_interface.hpp"
-#include <variant>
 #include <cstring>
 #include <otp.h>
+#include <ini.h>
 #include "version.h"
 #include "support_utils.h"
 #include <ini.h>
@@ -17,37 +17,58 @@ using std::string_view;
 
 namespace con {
 
-static bool ini_string_match(const char *section, const char *section_var,
-    const char *name, const char *name_var) {
-    return strcmp(section_var, section) == 0 && strcmp(name_var, name) == 0;
-}
+namespace {
 
-static int connect_ini_handler(void *user, const char *section, const char *name,
-    const char *value) {
-    if ((NULL == user) || (NULL == section) || (NULL == name) || (NULL == value))
-        return 0;
+    const constexpr char *const INI_SECTION = "service::connect";
 
-    configuration_t *tmp_config = (configuration_t *)user;
-    size_t len = strlen(value);
-
-    if (ini_string_match(section, "network", name, "connect")) {
-
-        if (len < CONNECT_URL_BUF_LEN)
-            strlcpy(tmp_config->url, value, CONNECT_URL_BUF_LEN);
-        else
-            return 0;
-    } else if (ini_string_match(section, "network", name, "token")) {
-        if (len < CONNECT_TOKEN_BUF_LEN)
-            strlcpy(tmp_config->token, value, CONNECT_TOKEN_BUF_LEN);
-        else
-            return 0;
-    } else if (ini_string_match(section, "network", name, "port")) {
-        int tmp = atoi(value);
-        if (tmp >= 0 && tmp <= 65535) {
-            tmp_config->port = (uint16_t)tmp;
-        }
+    bool ini_string_match(const char *section, const char *section_var,
+        const char *name, const char *name_var) {
+        return strcmp(section_var, section) == 0 && strcmp(name_var, name) == 0;
     }
-    return 1;
+
+    // TODO: How do we extract some user-friendly error indicator what exactly is wrong?
+    int connect_ini_handler(void *user, const char *section, const char *name,
+        const char *value) {
+        // TODO: Can this even happen? How?
+        if (user == nullptr || section == nullptr || name == nullptr || value == nullptr) {
+            return 0;
+        }
+
+        configuration_t *config = reinterpret_cast<configuration_t *>(user);
+        size_t len = strlen(value);
+
+        if (ini_string_match(section, INI_SECTION, name, "hostname")) {
+            if (len <= CONNECT_HOST_SIZE) {
+                strlcpy(config->host, value, sizeof config->host);
+            } else {
+                return 0;
+            }
+        } else if (ini_string_match(section, INI_SECTION, name, "token")) {
+            if (len <= CONNECT_TOKEN_SIZE) {
+                strlcpy(config->token, value, sizeof config->token);
+            } else {
+                return 0;
+            }
+        } else if (ini_string_match(section, INI_SECTION, name, "port")) {
+            char *endptr;
+            long tmp = strtol(value, &endptr, 10);
+            if (*endptr == '\0' && tmp >= 0 && tmp <= 65535) {
+                config->port = (uint16_t)tmp;
+            } else {
+                return 0;
+            }
+        } else if (ini_string_match(section, INI_SECTION, name, "tls")) {
+            if (strcmp(value, "1") == 0 || strcasecmp(value, "true") == 0) {
+                config->tls = true;
+            } else if (strcmp(value, "0") == 0 || strcasecmp(value, "false") == 0) {
+                config->tls = false;
+            } else {
+                return 0;
+            }
+        }
+        return 1;
+    }
+
 }
 
 void core_interface::get_data(device_params_t *params) {
@@ -161,15 +182,52 @@ std::optional<Error> core_interface::get_printer_info(printer_info_t *printer_in
     return std::nullopt;
 }
 
-// FIXME! this is temporary solution. Firmware team shall provide some
-// robust solution to get the settings from ini file and synchronize with
-// GUI actions!
-// get the settings from ini file
-std::optional<Error> core_interface::get_connect_config(configuration_t *config) {
-    if (0 == ini_parse("/usb/prusa_printer_settings.ini", connect_ini_handler, config))
-        return std::nullopt;
-    else
-        return Error::ERROR;
+// Extract a fixed-sized string from EEPROM to provided buffer.
+//
+// maxlen is the length of the buffer, including the byte for \0.
+//
+// FIXME: Unify with the one in wui_api.c
+static void strextract(char *into, size_t maxlen, enum eevar_id var) {
+    variant8_t tmp = eeprom_get_var(var);
+    strlcpy(into, variant8_get_pch(tmp), maxlen);
+    variant8_t *ptmp = &tmp;
+    variant8_done(&ptmp);
+}
+
+configuration_t core_interface::get_connect_config() {
+    configuration_t configuration = {};
+    configuration.enabled = eeprom_get_bool(EEVAR_CONNECT_ENABLED);
+    if (configuration.enabled) {
+        // Just avoiding to read it when disabled, only to save some CPU
+        strextract(configuration.host, sizeof configuration.host, EEVAR_CONNECT_HOST);
+        strextract(configuration.token, sizeof configuration.token, EEVAR_CONNECT_TOKEN);
+        configuration.tls = eeprom_get_bool(EEVAR_CONNECT_TLS);
+        configuration.port = eeprom_get_ui16(EEVAR_CONNECT_PORT);
+    }
+
+    if (configuration.host[0] == '\0' || configuration.token[0] == '\0') {
+        // It's turned on, but no configuration. Just don't try anything in the following code.
+        configuration.enabled = false;
+    }
+
+    return configuration;
+}
+
+bool load_config_from_ini() {
+    configuration_t config = {};
+    bool ok = ini_parse("/usb/prusa_printer_settings.ini", connect_ini_handler, &config) == 0;
+    if (ok) {
+        if (config.port == 0) {
+            config.port = config.tls ? 443 : 80;
+        }
+
+        eeprom_set_pchar(EEVAR_CONNECT_HOST, config.host, 0, 1);
+        eeprom_set_pchar(EEVAR_CONNECT_TOKEN, config.token, 0, 1);
+        eeprom_set_ui16(EEVAR_CONNECT_PORT, config.port);
+        eeprom_set_bool(EEVAR_CONNECT_TLS, config.tls);
+        // Note: enabled is controlled in the GUI
+    }
+    return ok;
 }
 
 }

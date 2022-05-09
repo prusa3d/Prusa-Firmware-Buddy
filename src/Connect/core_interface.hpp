@@ -31,9 +31,11 @@ constexpr uint8_t CONNECT_TOKEN_BUF_LEN = (CONNECT_TOKEN_LEN + 1);
 #define Z_AXIS_POS 2
 
 struct configuration_t {
-    char url[CONNECT_URL_BUF_LEN];
-    uint16_t port;
-    char token[CONNECT_TOKEN_BUF_LEN];
+    char host[CONNECT_URL_BUF_LEN] = "";
+    char token[CONNECT_TOKEN_BUF_LEN] = "";
+    uint16_t port = 0;
+    bool tls = true;
+    bool enabled = false;
 };
 
 struct printer_info_t {
@@ -73,7 +75,9 @@ public:
     core_interface();
     void get_data(device_params_t *parmas);
     std::optional<Error> get_printer_info(printer_info_t *printer_info);
-    std::optional<Error> get_connect_config(configuration_t *config);
+    configuration_t get_connect_config();
 };
+
+bool load_config_from_ini();
 
 }

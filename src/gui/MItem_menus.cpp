@@ -281,6 +281,16 @@ void MI_PRUSALINK::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenPrusaLink);
 }
 
+/*****************************************************************************/
+//MI_PRUSALINK
+MI_PRUSA_CONNECT::MI_PRUSA_CONNECT()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_PRUSA_CONNECT::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuConnect);
+}
+
 /**********************************************************************************************/
 // MI_NETWORK
 

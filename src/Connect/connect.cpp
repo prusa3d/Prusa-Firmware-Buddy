@@ -62,17 +62,14 @@ void connect::communicate() {
     uint8_t client_buffer[client_buffer_len];
     std::variant<size_t, Error> ret;
     printer_info_t printer_info;
-    configuration_t config;
+    configuration_t config = core.get_connect_config();
 
     std::optional<Error> err = core.get_printer_info(&printer_info);
     if (err.has_value())
         return;
-    core.get_connect_config(&config);
-    if (err.has_value())
-        return;
 
     class socket_con conn;
-    http_client client { config.url, config.port, (class Connection *)&conn };
+    http_client client { config.host, config.port, (class Connection *)&conn };
     if (!client.is_connected())
         return;
 
@@ -100,7 +97,6 @@ void connect::run() {
     osDelay(10000);
 
     printer_info_t printer_info;
-    configuration_t config;
     std::optional<Error> ret = core.get_printer_info(&printer_info);
     // without valid printer info connect won't work!
     if (ret.has_value()) {
@@ -113,20 +109,7 @@ void connect::run() {
     CONNECT_DEBUG("Firmware: %s\n", printer_info.firmware_version);
     CONNECT_DEBUG("Printer Type: %hhu\n", printer_info.printer_type);
     CONNECT_DEBUG("Fingerprint: %s\n", printer_info.fingerprint);
-
-    // In the ideal world this step has to be done frequently to update the
-    // changes. Once there is some mechanism to get update from FW. This must be done
-    // differently
-    while (true) {
-        std::optional<Error> ret = core.get_connect_config(&config);
-        if (!ret.has_value())
-            break;
-        osDelay(10000);
-    }
     //log_debug(connect, "Valid connect configuration found\n");
-    CONNECT_DEBUG("url: %s\n", config.url);
-    CONNECT_DEBUG("Port: %u\n", config.port);
-    CONNECT_DEBUG("Token: %s\n", config.token);
 
     while (true) {
         communicate();
