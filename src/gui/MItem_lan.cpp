@@ -56,3 +56,24 @@ MI_NET_IP_t::MI_NET_IP_t()
 void MI_NET_IP_t::OnChange(size_t old_index) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)(EventMask::value | this->index));
 }
+
+MI_NET_IP_VER_t::MI_NET_IP_VER_t()
+    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v4), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v6)) {
+    this->index = 0;
+}
+
+MI_IP4_ADDR::MI_IP4_ADDR()
+    : WiInfo<ADDR_LEN>(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_IP4_NMSK::MI_IP4_NMSK()
+    : WiInfo<ADDR_LEN>(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_IP4_GWAY::MI_IP4_GWAY()
+    : WiInfo<ADDR_LEN>(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_MAC_ADDR::MI_MAC_ADDR()
+    : WiInfo<MAC_LEN>(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}

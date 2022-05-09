@@ -65,7 +65,7 @@ class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
     api_key_str_t api_key_str;
 
     inline void display_api_key(const char *api_key) {
-        snprintf(api_key_str, API_KEY_STR_LENGTH, "X-Api-Key:\n    %s", api_key);
+        snprintf(api_key_str, API_KEY_STR_LENGTH, "Current Api Key\n    %s", api_key);
         canvas.text = string_view_utf8::MakeRAM((const uint8_t *)api_key_str);
         canvas.Invalidate();
     }
