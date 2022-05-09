@@ -1,6 +1,7 @@
 #include "log.h"
 #include "bsod.h"
 #include <iostream>
+#include <tuple>
 #include <memory>
 #include "cmsis_os.h"
 #include "crc32.h"
@@ -248,9 +249,8 @@ bool buddy::bootloader::needs_update() {
     auto current = get_version();
     auto required = buddy::bootloader::required_version;
 
-    return current.major < required.major
-        || (current.major == required.major && current.minor < required.minor)
-        || (current.major == required.major && current.minor == required.minor && current.patch < required.patch);
+    return std::tie(current.major, current.minor, current.patch)
+        < std::tie(required.major, required.minor, required.patch);
 }
 
 void buddy::bootloader::update(ProgressHook progress) {
