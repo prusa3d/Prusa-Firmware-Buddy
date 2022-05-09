@@ -280,6 +280,8 @@ void buddy::bootloader::update(ProgressHook progress) {
         fatal_error("bootloader.bin failed to open");
     }
 
+    progress(calc_percent_done(100, 0), buddy::bootloader::UpdateStage::PreparingUpdate);
+
     // update the bootloader in FLASH
     int last_reported_percent_done = -1;
     copy_bootloader_to_flash(bootloader_bin.get(), [&](int percent_done) {
