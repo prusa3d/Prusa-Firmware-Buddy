@@ -304,6 +304,10 @@ void sys_fw_update_on_restart_disable(void) {
     ram_data_exchange.fw_update_flag = FW_UPDATE_DISABLE;
 }
 
+int sys_bootloader_is_valid(void) {
+    return ram_data_exchange.bootloader_valid ? 1 : 0;
+}
+
 int sys_flash_is_empty(void *ptr, int size) {
     uint8_t *p = (uint8_t *)ptr;
     for (; size > 0; size--)
