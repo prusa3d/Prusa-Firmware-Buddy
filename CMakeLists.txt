@@ -577,7 +577,7 @@ if(GENERATE_BBF)
     BBF_VERSION
     "1"
     OUTPUT_PATH
-    "firmware_update_4.3.4_and_older.bbf"
+    "firmware_update_pre_4.4.bbf"
     )
 elseif(SIGNING_KEY)
   message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
