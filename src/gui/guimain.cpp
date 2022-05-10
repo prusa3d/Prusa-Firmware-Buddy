@@ -269,7 +269,7 @@ void gui_run(void) {
 
     Screens::Access()->Loop();
 
-#ifdef HAS_RESOURCES
+#if ENABLED(RESOURCES)
     finish_update();
 #endif
 
