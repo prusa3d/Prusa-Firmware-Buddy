@@ -6,6 +6,7 @@
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
 #include "hwio_pindef.h"
+#include "timing_precise.h"
 
 /// The SPI used by this module
 static SPI_HandleTypeDef *spi_handle;
@@ -56,6 +57,10 @@ extern "C" bool w25x_communication_init(bool init_event_group) {
         return false;
 
     HAL_SPI_Abort(spi_handle);
+
+    w25x_cs_high();
+    constexpr uint32_t cs_deselect_time_ns = 50;
+    DELAY_NS_PRECISE(cs_deselect_time_ns);
 
     // clear error
     current_error = 0;
