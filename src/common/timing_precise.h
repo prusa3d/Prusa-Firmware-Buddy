@@ -12,9 +12,9 @@
 #pragma once
 
 #ifdef __cplusplus
-
     #include "../../include/main.h"
     #include <stdint.h>
+    #include <limits>
 
     #define FORCE_INLINE __attribute__((always_inline)) inline
 
@@ -109,7 +109,7 @@ FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
  * @param ns time in nanoseconds
  * @return number of CPU cycles
  */
-FORCE_INLINE constexpr uint32_t timing_nanoseconds_to_cycles(uint32_t ns) {
+FORCE_INLINE constexpr uint64_t timing_nanoseconds_to_cycles(uint64_t ns) {
     return ((ns * (ConstexprSystemCoreClock() / 1000000UL)) / 1000UL);
 }
 
@@ -127,10 +127,14 @@ FORCE_INLINE constexpr uint32_t timing_microseconds_to_cycles(uint32_t us) {
  * Timing precision is single CPU cycle. E.g. 6 ns at 168Mhz
  * @param ns input value.
  */
-    #define DELAY_NS_PRECISE(ns)                                          \
-        do {                                                              \
-            constexpr uint32_t cycles = timing_nanoseconds_to_cycles(ns); \
-            timing_delay_cycles(cycles);                                  \
+    #define DELAY_NS_PRECISE(ns)                                                                                  \
+        do {                                                                                                      \
+            static_assert(ns < (std::numeric_limits<uint64_t>::max() / (ConstexprSystemCoreClock() / 1000000UL)), \
+                "ns out of range");                                                                               \
+            static_assert(timing_nanoseconds_to_cycles(ns) <= std::numeric_limits<uint32_t>::max(),               \
+                "ns out of range");                                                                               \
+            constexpr uint32_t cycles = timing_nanoseconds_to_cycles(ns);                                         \
+            timing_delay_cycles(cycles);                                                                          \
         } while (0)
 
 /**
