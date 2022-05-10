@@ -1,8 +1,11 @@
 /**
  * This file was copied from Marlin/Marlin/HAL/shared/Delay.h
- * and adapted by removing Marlin's macros
+ * and adapted by removing Marlin's macros and unsupported architectures.
  * Naming convention was changed to be more in line with Buddy
  * coding standard.
+ * Macro DELAY_MS was changed to force inline delay_us_precise function.
+ * Support for non-constexpr parameter of DELAY_NS_PRECISE was
+ * removed as I considered it broken.
  *
  * @file
  */
@@ -11,42 +14,19 @@
 #include "../../include/main.h"
 #include <stdint.h>
 
-#define FORCE_INLINE __attribute__((always_inline)) inline
+    #define FORCE_INLINE __attribute__((always_inline)) inline
 
-#if defined(__arm__) || defined(__thumb__)
+    #if defined(__arm__) || defined(__thumb__)
 
-    #if __CORTEX_M == 7
-        #define PENDING(NOW, SOON) ((int32_t)(NOW - (SOON)) < 0)
+// https://blueprints.launchpad.net/gcc-arm-embedded/+spec/delay-cycles
 
-// Cortex-M7 can use the cycle counter of the DWT unit
-// http://www.anthonyvh.com/2017/05/18/cortex_m-cycle_counter/
-
-FORCE_INLINE static void enableCycleCounter() {
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-
-    // Unlock DWT.
-    DWT->LAR = 0xC5ACCE55;
-
-    DWT->CYCCNT = 0;
-    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-}
-
-FORCE_INLINE volatile uint32_t getCycleCount() { return DWT->CYCCNT; }
-
-FORCE_INLINE static void timing_delay_cycles(const uint32_t x) {
-    const uint32_t endCycles = getCycleCount() + x;
-    while (PENDING(getCycleCount(), endCycles)) {
-    }
-}
-
-        #undef PENDING
-    #else
-
-    // https://blueprints.launchpad.net/gcc-arm-embedded/+spec/delay-cycles
-
-        #define nop() __asm__ __volatile__("nop;\n\t" :: \
-                                               :)
-
+/**
+ * @brief Delay number of multiplies of 4 CPU cycles
+ *
+ * Implementation detail, use timing_delay_cycles() instead.
+ *
+ * @param cy number of multiplies of 4 CPU cycles
+ */
 FORCE_INLINE static void timing_delay_4cycles(uint32_t cy) { // +1 cycle
         #if ARCH_PIPELINE_RELOAD_CYCLES < 2
             #define EXTRA_NOP_CYCLES " nop\n\t"
@@ -64,10 +44,22 @@ FORCE_INLINE static void timing_delay_4cycles(uint32_t cy) { // +1 cycle
         :                  // input:
         : "cc"             // clobbers:
     );
+        #undef EXTRA_NOP_CYCLES
 }
 
-// Delay in cycles
+/**
+ * @brief Delay number of CPU cycles
+ *
+ * Consider using delay_us_precise() or DELAY_NS_PRECISE()
+ *
+ * It is precise to single CPU cycle when x is compile time constant
+ * to 4 CPU cycles otherwise.
+ *
+ * @param x number of CPU cycles
+ */
 FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
+        #define nop() __asm__ __volatile__("nop;\n\t" :: \
+                                               :)
 
     if (__builtin_constant_p(x)) {
         #define MAXNOPS 4
@@ -99,107 +91,56 @@ FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
         #undef MAXNOPS
     } else if ((x >>= 2))
         timing_delay_4cycles(x);
-}
         #undef nop
+}
 
+        #if __CORTEX_M == 7
+            #error "Support removed, you can get it from original Marlin source."
+        #endif
+    #elif defined(__AVR__) || defined(__PLAT_LINUX__)
+        #error "Support removed, you can get it from original Marlin source."
+    #else
+        #error "Unsupported MCU architecture"
     #endif
 
-#elif defined(__AVR__)
-
-    #define nop() __asm__ __volatile__("nop;\n\t" :: \
-                                           :)
-
-FORCE_INLINE static void timing_delay_4cycles(uint8_t cy) {
-    __asm__ __volatile__(
-        "1:\n\t"
-        " dec %[cnt]:\n\t"
-        " nop:\n\t"
-        " brne 1b:\n\t"
-        : [ cnt ] "+r"(cy) // output: +r means input+output
-        :                  // input:
-        : "cc"             // clobbers:
-    );
-}
-
-// Delay in cycles
-FORCE_INLINE static void timing_delay_cycles(uint16_t x) {
-
-    if (__builtin_constant_p(x)) {
-    #define MAXNOPS 4
-
-        if (x <= (MAXNOPS)) {
-            switch (x) {
-            case 4:
-                nop();
-            case 3:
-                nop();
-            case 2:
-                nop();
-            case 1:
-                nop();
-            }
-        } else {
-            const uint32_t rem = (x) % (MAXNOPS);
-            switch (rem) {
-            case 3:
-                nop();
-            case 2:
-                nop();
-            case 1:
-                nop();
-            }
-            if ((x = (x) / (MAXNOPS)))
-                timing_delay_4cycles(x); // if need more then 4 nop loop is more optimal
-        }
-
-    #undef MAXNOPS
-    } else if ((x >>= 2))
-        timing_delay_4cycles(x);
-}
-    #undef nop
-
-#elif defined(ESP32)
-
-FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
-    unsigned long ccount, stop;
-
-    __asm__ __volatile__("rsr     %0, ccount"
-                         : "=a"(ccount));
-
-    stop = ccount + x; // This can overflow
-
-    while (ccount < stop) { // This doesn't deal with overflows
-        __asm__ __volatile__("rsr     %0, ccount"
-                             : "=a"(ccount));
-    }
-}
-
-#elif defined(__PLAT_LINUX__)
-
-// specified inside platform
-
-#else
-
-    #error "Unsupported MCU architecture"
-
-#endif
-
+/**
+ * @param ns time in nanoseconds
+ * @return number of CPU cycles
+ */
 FORCE_INLINE constexpr uint32_t timing_nanoseconds_to_cycles(uint32_t ns) {
     return ((ns * (ConstexprSystemCoreClock() / 1000000UL)) / 1000UL);
 }
 
+/**
+ * @param us time in microseconds
+ * @return number of CPU cycles
+ */
 FORCE_INLINE constexpr uint32_t timing_microseconds_to_cycles(uint32_t us) {
     return (us * (ConstexprSystemCoreClock() / 1000000UL));
 }
 
-// Delay in nanoseconds
+/**
+ * @brief Delay nanoseconds
+ *
+ * Timing precision is single CPU cycle. E.g. 6 ns at 168Mhz
+ * @param ns input value.
+ */
     #define DELAY_NS_PRECISE(ns)                                          \
         do {                                                              \
             constexpr uint32_t cycles = timing_nanoseconds_to_cycles(ns); \
             timing_delay_cycles(cycles);                                  \
         } while (0)
 
-// Delay in microseconds
+/**
+ * @brief Delay microseconds
+ *
+ * Timing precision is 1 microsecond if us is compile time constant and
+ * CPU clock is at least 1Mhz. Timing precision is 1 microsecond plus
+ * constant delay incurred by uint32_t multiplication otherwise if CPU
+ * clock is at least 4Mhz.
+ * @param us time in microseconds
+ * Maximum range depends on CPU clock. For 168 Mhz it is 25 565 us.
+ */
 FORCE_INLINE void delay_us_precise(uint32_t us) {
     timing_delay_cycles(timing_microseconds_to_cycles(us));
 }
