@@ -87,28 +87,31 @@ enum class PhasesSelftest : uint16_t {
     _none = _first,
 
     _first_ESP,
-    ESP_info = _first_ESP,
-    ESP_upload,
-    ESP_passed,
-    ESP_failed,
-    _last_ESP = ESP_failed,
+    ESP_instructions = _first_ESP,
+    ESP_USB_not_inserted, // must be before ask_gen/ask_gen_overwrite, because it depends on file existence
+    ESP_ask_gen,
+    ESP_ask_gen_overwrite,
+    ESP_makefile_failed,
+    ESP_eject_USB,
+    ESP_insert_USB,
+    ESP_invalid,
+    ESP_enabling_WIFI,
+    ESP_uploaded,
+    _last_ESP = ESP_uploaded,
 
-    _first_ESP_credentials,
-    ESP_credentials_instructions_flash = _first_ESP_credentials,
-    ESP_credentials_instructions,
-    ESP_credentials_instructions_qr,
-    ESP_credentials_USB_not_inserted, // must be before ask_gen/ask_gen_overwrite, because it depends on file existence
-    ESP_credentials_ask_gen,
-    ESP_credentials_ask_gen_overwrite,
-    ESP_credentials_makefile_failed,
-    ESP_credentials_eject_USB,
-    ESP_credentials_insert_USB,
-    ESP_credentials_invalid,
-    ESP_credentials_enabling_WIFI,
-    ESP_credentials_uploaded,
-    _last_ESP_credentials = ESP_credentials_uploaded,
+    _first_ESP_progress,
+    ESP_progress_info = _first_ESP_progress,
+    ESP_progress_upload,
+    ESP_progress_passed,
+    ESP_progress_failed,
+    _last_ESP_progress = ESP_progress_failed,
 
-    _last = _last_ESP_credentials
+    _first_ESP_qr,
+    ESP_qr_instructions_flash = _first_ESP_qr,
+    ESP_qr_instructions,
+    _last_ESP_qr = ESP_qr_instructions,
+
+    _last = _last_ESP_qr
 };
 
 enum class PhasesG162 : uint16_t {
@@ -203,7 +206,8 @@ public:
 
 enum class SelftestParts {
     ESP,
-    ESP_credentials,
+    ESP_progress,
+    ESP_qr,
     _none, //cannot be created, must have same index as _count
     _count = _none
 };
@@ -212,8 +216,10 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     switch (part) {
     case SelftestParts::ESP:
         return PhasesSelftest::_first_ESP;
-    case SelftestParts::ESP_credentials:
-        return PhasesSelftest::_first_ESP_credentials;
+    case SelftestParts::ESP_progress:
+        return PhasesSelftest::_first_ESP_progress;
+    case SelftestParts::ESP_qr:
+        return PhasesSelftest::_first_ESP_qr;
     case SelftestParts::_none:
         break;
     }
@@ -224,8 +230,10 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     switch (part) {
     case SelftestParts::ESP:
         return PhasesSelftest::_last_ESP;
-    case SelftestParts::ESP_credentials:
-        return PhasesSelftest::_last_ESP_credentials;
+    case SelftestParts::ESP_progress:
+        return PhasesSelftest::_last_ESP_progress;
+    case SelftestParts::ESP_qr:
+        return PhasesSelftest::_last_ESP_qr;
     case SelftestParts::_none:
         break;
     }
@@ -246,8 +254,10 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 
     if (SelftestPartContainsPhase(SelftestParts::ESP, ph))
         return SelftestParts::ESP;
-    if (SelftestPartContainsPhase(SelftestParts::ESP_credentials, ph))
-        return SelftestParts::ESP_credentials;
+    if (SelftestPartContainsPhase(SelftestParts::ESP_progress, ph))
+        return SelftestParts::ESP_progress;
+    if (SelftestPartContainsPhase(SelftestParts::ESP_qr, ph))
+        return SelftestParts::ESP_qr;
 
     return SelftestParts::_none;
 };

@@ -792,11 +792,9 @@ if(GUI)
   if(HAS_SELFTEST)
     target_sources(
       firmware
-      PRIVATE src/gui/wizard/selftest_frame_esp.cpp
-              src/gui/wizard/selftest_frame_esp_credentials.cpp
-              src/gui/wizard/selftest_invalid_state.cpp
-              src/gui/ScreenSelftest.cpp
-              src/gui/selftest_frame.cpp
+      PRIVATE src/gui/wizard/selftest_frame_esp.cpp src/gui/wizard/selftest_frame_esp_progress.cpp
+              src/gui/wizard/selftest_frame_esp_qr.cpp src/gui/wizard/selftest_invalid_state.cpp
+              src/gui/ScreenSelftest.cpp src/gui/selftest_frame.cpp
       )
   else()
     target_sources(firmware PRIVATE src/gui/screen_menu_calibration_without_selftest.cpp)

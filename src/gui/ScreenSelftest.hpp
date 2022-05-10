@@ -11,12 +11,13 @@
 #include "status_footer.hpp"
 #include "fsm_base_types.hpp"
 #include "selftest_frame_esp.hpp"
-#include "selftest_frame_esp_credentials.hpp"
+#include "selftest_frame_esp_progress.hpp"
+#include "selftest_frame_esp_qr.hpp"
 #include "selftest_invalid_state.hpp"
 #include "static_alocation_ptr.hpp"
 
 class ScreenSelftest : public AddSuperWindow<screen_t> {
-    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_credentials, ScreenSelftestInvalidState>::type;
+    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState>::type;
     mem_space all_tests;
 
     //safer than make_static_unique_ptr, checks storage size
@@ -30,7 +31,8 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
 
     //define factory methods for all dialogs here
     static static_unique_ptr<SelftestFrame> creator_esp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_esp_credentials(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_esp_progress(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_esp_qr(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
 
     fnc Get(SelftestParts part); //returns factory method

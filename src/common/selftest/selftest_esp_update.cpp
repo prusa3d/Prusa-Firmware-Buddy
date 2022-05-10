@@ -87,7 +87,7 @@ void ESPUpdate::Loop() {
 
         switch (progress_state) {
         case esp_upload_action::Initial:
-            phase = PhasesSelftest::ESP_credentials_instructions_flash;
+            phase = PhasesSelftest::ESP_qr_instructions_flash;
             progress_state = esp_upload_action::Initial_wait_user;
             break;
         case esp_upload_action::Initial_wait_user:
@@ -104,7 +104,7 @@ void ESPUpdate::Loop() {
             }
             break;
         case esp_upload_action::Info:
-            phase = PhasesSelftest::ESP_info;
+            phase = PhasesSelftest::ESP_progress_info;
             progress_state = esp_upload_action::Info_wait_user;
             break;
         case esp_upload_action::Info_wait_user:
@@ -114,7 +114,7 @@ void ESPUpdate::Loop() {
             break;
         case esp_upload_action::Connect_show: {
             progress_state = esp_upload_action::DisableWIFI_if_needed;
-            phase = PhasesSelftest::ESP_upload; // will show [0/3] during enabling of wifi
+            phase = PhasesSelftest::ESP_progress_upload; // will show [0/3] during enabling of wifi
             break;
         }
         case esp_upload_action::DisableWIFI_if_needed:
@@ -206,7 +206,7 @@ void ESPUpdate::Loop() {
             if (credentials_already_set) {
                 netdev_set_active_id(NETDEV_ESP_ID);
                 progress_state = esp_upload_action::WaitWIFI_enabled;
-                phase = PhasesSelftest::ESP_credentials_enabling_WIFI;
+                phase = PhasesSelftest::ESP_enabling_WIFI;
             } else {
                 //leave wifi disabled, so credentials don't have to disable it again
                 progress_state = esp_upload_action::Finish;
@@ -220,7 +220,7 @@ void ESPUpdate::Loop() {
             }
             break;
         case esp_upload_action::Finish:
-            phase = PhasesSelftest::ESP_passed;
+            phase = PhasesSelftest::ESP_progress_passed;
             progress_state = esp_upload_action::Finish_wait_user;
 
             break;
@@ -231,7 +231,7 @@ void ESPUpdate::Loop() {
             break;
         case esp_upload_action::ESP_error:
         case esp_upload_action::USB_error: {
-            phase = PhasesSelftest::ESP_failed;
+            phase = PhasesSelftest::ESP_progress_failed;
             esp_loader_flash_finish(false);
             progress_state = esp_upload_action::Error_wait_user;
             current_file = firmware_set.begin();
@@ -380,14 +380,14 @@ void EspCredentials::loopCreateINI() {
         break;
     case esp_credential_action::USB_not_inserted:
         progress_state = esp_credential_action::USB_not_inserted_wait;
-        phase = PhasesSelftest::ESP_credentials_USB_not_inserted;
+        phase = PhasesSelftest::ESP_USB_not_inserted;
         break;
     case esp_credential_action::USB_not_inserted_wait:
         if (continue_pressed || usb_inserted)
             progress_state = esp_credential_action::AskMakeFile;
         break;
     case esp_credential_action::AskMakeFile:
-        phase = file_exists() ? PhasesSelftest::ESP_credentials_ask_gen_overwrite : PhasesSelftest::ESP_credentials_ask_gen;
+        phase = file_exists() ? PhasesSelftest::ESP_ask_gen_overwrite : PhasesSelftest::ESP_ask_gen;
         progress_state = esp_credential_action::AskMakeFile_wait_user;
         break;
     case esp_credential_action::AskMakeFile_wait_user:
@@ -397,7 +397,7 @@ void EspCredentials::loopCreateINI() {
         break;
     case esp_credential_action::MakeFile_failed:
         progress_state = esp_credential_action::MakeFile_failed_wait_user;
-        phase = PhasesSelftest::ESP_credentials_makefile_failed;
+        phase = PhasesSelftest::ESP_makefile_failed;
         break;
     case esp_credential_action::MakeFile_failed_wait_user:
         if (continue_pressed) {
@@ -407,7 +407,7 @@ void EspCredentials::loopCreateINI() {
     case esp_credential_action::EjectUSB:
         if (usb_inserted) {
             progress_state = esp_credential_action::WaitUSB_ejected;
-            phase = PhasesSelftest::ESP_credentials_eject_USB;
+            phase = PhasesSelftest::ESP_eject_USB;
         } else {
             //this should not happen
             progress_state = esp_credential_action::Done;
@@ -426,7 +426,7 @@ void EspCredentials::loop() {
     switch (progress_state) {
     case esp_credential_action::ShowInstructions_qr:
         progress_state = esp_credential_action::ShowInstructions_qr_wait_user;
-        phase = PhasesSelftest::ESP_credentials_instructions_qr;
+        phase = PhasesSelftest::ESP_qr_instructions;
         break;
     case esp_credential_action::ShowInstructions_qr_wait_user:
         if (continue_pressed) {
@@ -435,7 +435,7 @@ void EspCredentials::loop() {
         break;
     case esp_credential_action::ShowInstructions:
         progress_state = esp_credential_action::ShowInstructions_wait_user;
-        phase = PhasesSelftest::ESP_credentials_instructions;
+        phase = PhasesSelftest::ESP_instructions;
         break;
     case esp_credential_action::ShowInstructions_wait_user:
         if (continue_pressed) {
@@ -458,7 +458,7 @@ void EspCredentials::loop() {
     case esp_credential_action::InsertUSB:
         if (!usb_inserted) {
             progress_state = esp_credential_action::WaitUSB_inserted;
-            phase = PhasesSelftest::ESP_credentials_insert_USB;
+            phase = PhasesSelftest::ESP_insert_USB;
         } else {
             //this should not happen
             progress_state = esp_credential_action::VerifyConfig;
@@ -474,7 +474,7 @@ void EspCredentials::loop() {
         break;
     case esp_credential_action::ConfigNOk:
         progress_state = esp_credential_action::ConfigNOk_wait_user;
-        phase = PhasesSelftest::ESP_credentials_invalid;
+        phase = PhasesSelftest::ESP_invalid;
         break;
     case esp_credential_action::ConfigNOk_wait_user:
         if (continue_pressed) {
@@ -487,7 +487,7 @@ void EspCredentials::loop() {
         if ((ticks_ms() - time_stamp) < wait_before_wifi_enable_ms)
             break;
         progress_state = esp_credential_action::EnableWIFI;
-        phase = PhasesSelftest::ESP_credentials_enabling_WIFI;
+        phase = PhasesSelftest::ESP_enabling_WIFI;
         time_stamp = ticks_ms();
         break;
     case esp_credential_action::EnableWIFI:
@@ -508,7 +508,7 @@ void EspCredentials::loop() {
         break;
     case esp_credential_action::ConfigUploaded: // config OK
         progress_state = esp_credential_action::ConfigUploaded_wait_user;
-        phase = PhasesSelftest::ESP_credentials_uploaded;
+        phase = PhasesSelftest::ESP_uploaded;
         break;
     case esp_credential_action::ConfigUploaded_wait_user:
         if (continue_pressed) {
