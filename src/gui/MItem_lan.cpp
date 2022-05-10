@@ -30,6 +30,14 @@ void MI_WIFI_CREDENTIALS_t::click(IWindowMenu &window_menu) {
     marlin_gcode("M1587");
 }
 
+MI_WIFI_CREDENTIALS_INI_FILE_t::MI_WIFI_CREDENTIALS_INI_FILE_t()
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_WIFI_CREDENTIALS_INI_FILE_t::click(IWindowMenu &window_menu) {
+    marlin_gcode("M1587 I");
+}
+
 MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
     : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_off), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi)) {
     if (netdev_get_active_id() == NETDEV_ESP_ID) {

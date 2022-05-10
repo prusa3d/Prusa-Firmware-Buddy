@@ -27,10 +27,20 @@ protected:
 };
 
 class MI_WIFI_CREDENTIALS_t : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Credentials");
+    constexpr static const char *const label = N_("Load credentials");
 
 public:
     MI_WIFI_CREDENTIALS_t();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_WIFI_CREDENTIALS_INI_FILE_t : public WI_LABEL_t {
+    constexpr static const char *const label = N_("Create credentials");
+
+public:
+    MI_WIFI_CREDENTIALS_INI_FILE_t();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;

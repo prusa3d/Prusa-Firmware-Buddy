@@ -35,53 +35,59 @@ SelftestFrameESP_credentials::SelftestFrameESP_credentials(window_t *parent, Pha
 void SelftestFrameESP_credentials::change() {
 
     const char *txt = "MISSING";
+    bool show_qr = false;
+    ;
 
     //texts
     switch (phase_current) {
     case PhasesSelftest::ESP_credentials_instructions_flash:
         txt = N_("Use the online guide\nto setup your Wi-Fi\n" QR_ADDR_IN_TEXT);
+        show_qr = true;
         break;
     case PhasesSelftest::ESP_credentials_instructions:
-        txt = N_("Wi-Fi credentials are not set.\nTo setup or troubleshoot your Wi-Fi, please visit:\n" QR_ADDR_IN_TEXT);
+        txt = N_("Make sure USB drive with config file is connected.\n\nContinue to upload settings to printer.");
         break;
-    case PhasesSelftest::ESP_credentials_instructions_stand_alone:
+    case PhasesSelftest::ESP_credentials_instructions_qr:
         txt = N_("To setup or troubleshoot your Wi-Fi, please visit:\n" QR_ADDR_IN_TEXT);
-        break;
-    case PhasesSelftest::ESP_credentials_disabling_WIFI:
-        txt = N_("Wi-Fi is being disabled.");
+        show_qr = true;
         break;
     case PhasesSelftest::ESP_credentials_USB_not_inserted:
-        txt = N_("USB drive not detected, inset USB drive.");
+        txt = N_("USB drive not detected! Insert USB drive first!");
         break;
     case PhasesSelftest::ESP_credentials_ask_gen:
         txt = N_("Generate Wi-Fi credentials?");
         break;
     case PhasesSelftest::ESP_credentials_ask_gen_overwrite:
-        txt = N_("Overwrite current file?");
+        txt = N_("Config detected on the USB drive. Overwrite current file?");
         break;
     case PhasesSelftest::ESP_credentials_makefile_failed:
-        txt = N_("File creation failed!");
+        txt = N_("Creating the file failed! Check the USB drive!");
         break;
     case PhasesSelftest::ESP_credentials_eject_USB:
-        txt = N_("Remove USB drive.");
+        txt = N_("Success!\nRemove the drive.\nEdit the file in PC.");
         break;
     case PhasesSelftest::ESP_credentials_insert_USB:
         txt = N_("Insert USB drive with valid INI file.");
         break;
-    case PhasesSelftest::ESP_credentials_load:
-        txt = N_("Load current INI file?");
-        break;
     case PhasesSelftest::ESP_credentials_invalid:
-        txt = N_("Wi-Fi credentials invalid!");
+        txt = N_("Loading the file failed! Check the USB drive!");
         break;
     case PhasesSelftest::ESP_credentials_enabling_WIFI:
-        txt = N_("Wi-Fi is being enabled.");
+        txt = N_("Success!\nPlease wait until the connection is established.\n\nIf nothing happens after 5-8 minutes, repeat the process.");
         break;
     case PhasesSelftest::ESP_credentials_uploaded:
-        txt = N_("Wi-Fi credentials successfully updated.");
+        txt = N_("Connection successfully established! Wi-Fi is now ready for use.");
         break;
     default:
         break;
+    }
+
+    if (show_qr) {
+        qr.Show();
+        icon_phone.Show();
+    } else {
+        qr.Hide();
+        icon_phone.Hide();
     }
 
     text.SetText(_(txt));

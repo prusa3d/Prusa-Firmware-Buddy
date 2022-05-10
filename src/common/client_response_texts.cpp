@@ -37,6 +37,7 @@ const std::array<std::pair<const char *, uint16_t>, static_cast<size_t>(Response
     std::make_pair( "PVB", IDR_PNG_spool_58px ),                  // PVB filament, do not translate
     std::make_pair( N_("REHEAT"), IDR_PNG_preheat_58px ),         // Reheat
     std::make_pair( N_("RETRY"), IDR_PNG_back_32px ),             // Retry
+    std::make_pair( N_("SKIP"), IDR_PNG_back_32px ),              // Skip
     std::make_pair( N_("STOP"), IDR_PNG_stop_58px  ),             // Stop
     std::make_pair( N_("UNLOAD"), IDR_PNG_spool_58px ),           // Unload
     std::make_pair( N_("YES"), IDR_NULL )                         // Yes
