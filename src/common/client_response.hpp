@@ -95,6 +95,7 @@ enum class PhasesSelftest : uint16_t {
     ESP_eject_USB,
     ESP_insert_USB,
     ESP_invalid,
+    ESP_uploading_config,
     ESP_enabling_WIFI,
     ESP_uploaded,
     _last_ESP = ESP_uploaded,

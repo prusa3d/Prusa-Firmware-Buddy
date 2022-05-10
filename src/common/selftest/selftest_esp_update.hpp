@@ -116,12 +116,7 @@ public:
 };
 
 enum class esp_credential_action {
-    ShowInstructions_qr,
-    ShowInstructions_qr_wait_user,
-    ShowInstructions,
-    ShowInstructions_wait_user,
-    DisableWIFI_if_needed,
-    WaitWIFI_disabled,
+    //ini creation
     AskMakeFile,
     CheckUSB_inserted,
     USB_not_inserted,
@@ -131,10 +126,16 @@ enum class esp_credential_action {
     MakeFile_failed_wait_user,
     EjectUSB,
     WaitUSB_ejected,
+    //credentials upload
+    ShowInstructions_qr,
+    ShowInstructions_qr_wait_user,
+    ShowInstructions,
+    ShowInstructions_wait_user,
     InsertUSB,
     WaitUSB_inserted,
-    AskLoadConfig,
-    AskLoadConfig_wait_user,
+    VerifyConfig_init,
+    DisableWIFI_if_needed,
+    WaitWIFI_disabled,
     VerifyConfig,
     ConfigNOk,
     ConfigNOk_wait_user,
@@ -164,7 +165,8 @@ private:
 
     static constexpr const char *file_name = "/usb/prusa_printer_settings.ini";
 
-    static constexpr uint32_t wait_before_wifi_enable_ms = 1024;
+    bool wait_in_progress(uint32_t ms);
+    void capture_timestamp();
 
     unique_file_ptr file;
     FSM_Holder &rfsm;
@@ -172,6 +174,7 @@ private:
     type_t type;
     const uint8_t initial_netdev_id; // it is not enum because of stupid C api
     esp_credential_action progress_state;
+    esp_credential_action last_state; //needed to invalidate time stamp at change of state
     std::optional<PhasesSelftest> phase;
     bool usb_inserted;
     bool wifi_enabled;
