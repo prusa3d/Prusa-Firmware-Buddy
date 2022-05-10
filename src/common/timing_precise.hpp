@@ -13,12 +13,15 @@
  *  DELAY_US(count): Delay execution in microseconds
  */
 
-#include "../../core/millis_t.h"
-#include "../../core/macros.h"
+#include "../../include/main.h"
+#include <stdint.h>
+
+#define FORCE_INLINE __attribute__((always_inline)) inline
 
 #if defined(__arm__) || defined(__thumb__)
 
     #if __CORTEX_M == 7
+        #define PENDING(NOW, SOON) ((int32_t)(NOW - (SOON)) < 0)
 
 // Cortex-M7 can use the cycle counter of the DWT unit
 // http://www.anthonyvh.com/2017/05/18/cortex_m-cycle_counter/
@@ -41,6 +44,7 @@ FORCE_INLINE static void DELAY_CYCLES(const uint32_t x) {
     }
 }
 
+        #undef PENDING
     #else
 
     // https://blueprints.launchpad.net/gcc-arm-embedded/+spec/delay-cycles
@@ -186,7 +190,7 @@ FORCE_INLINE static void DELAY_CYCLES(uint32_t x) {
 #endif
 
 // Delay in nanoseconds
-#define DELAY_NS(x) DELAY_CYCLES((x) * (F_CPU / 1000000UL) / 1000UL)
+#define DELAY_NS(x) DELAY_CYCLES((x) * (ConstexprSystemCoreClock() / 1000000UL) / 1000UL)
 
 // Delay in microseconds
-#define DELAY_US(x) DELAY_CYCLES((x) * (F_CPU / 1000000UL))
+#define DELAY_US(x) DELAY_CYCLES((x) * (ConstexprSystemCoreClock() / 1000000UL))
