@@ -258,23 +258,6 @@ void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
     }
 }
 
-void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config) {
-    char addr[IP4_ADDR_STR_SIZE], msk[IP4_ADDR_STR_SIZE], gw[IP4_ADDR_STR_SIZE];
-    char dns1[IP4_ADDR_STR_SIZE], dns2[IP4_ADDR_STR_SIZE];
-
-    ip4addr_ntoa_r(&(config->lan.addr_ip4), addr, IP4_ADDR_STR_SIZE);
-    ip4addr_ntoa_r(&(config->lan.msk_ip4), msk, IP4_ADDR_STR_SIZE);
-    ip4addr_ntoa_r(&(config->lan.gw_ip4), gw, IP4_ADDR_STR_SIZE);
-    ip4addr_ntoa_r(&(config->dns1_ip4), dns1, IP4_ADDR_STR_SIZE);
-    ip4addr_ntoa_r(&(config->dns2_ip4), dns2, IP4_ADDR_STR_SIZE);
-
-    snprintf(*dest, MAX_INI_SIZE,
-        "[eth::ipv4]\ntype=%s\naddr=%s\nmask=%s\ngw=%s\n\n"
-        "[network]\nhostname=%s\ndns4=%s;%s",
-        IS_LAN_STATIC(config->lan.flag) ? "STATIC" : "DHCP", addr, msk, gw,
-        config->hostname, dns1, dns2);
-}
-
 void get_MAC_address(mac_address_t *dest, uint32_t netdev_id) {
     uint8_t mac[6 /*sizeof(otp_get_mac_address()->mac)*/]; //TODO
     if (netdev_get_MAC_address(netdev_id, mac)) {
