@@ -26,7 +26,7 @@ void SelftestFrameESP::change() {
     //texts
     switch (phase_current) {
     case PhasesSelftest::ESP_instructions:
-        txt = N_("Make sure USB drive with config file is connected.\n\nContinue to upload settings to printer.");
+        txt = N_("Make sure USB drive with config file is connected.\n\nContinue to upload settings to the printer.");
         break;
     case PhasesSelftest::ESP_USB_not_inserted:
         txt = N_("USB drive not detected! Insert USB drive first!");
@@ -48,6 +48,9 @@ void SelftestFrameESP::change() {
         break;
     case PhasesSelftest::ESP_invalid:
         txt = N_("Loading the file failed! Check the USB drive!");
+        break;
+    case PhasesSelftest::ESP_uploading_config:
+        txt = N_("Uploading config to the printer.\n\nPlease wait.");
         break;
     case PhasesSelftest::ESP_enabling_WIFI:
         txt = N_("Success!\nPlease wait until the connection is established.\n\nIf nothing happens after 5-8 minutes, check & load your credentials again.");

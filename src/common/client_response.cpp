@@ -51,6 +51,7 @@ const PhaseResponses ClientResponses::SelftestResponses[CountPhases<PhasesSelfte
     { Response::Continue },                  // ESP_eject_USB
     { Response::Continue, Response::Abort }, // ESP_insert_USB
     { Response::Retry, Response::Abort },    // ESP_invalid
+    { Response::Abort },                     // ESP_uploading_config
     { Response::Continue },                  // ESP_enabling_WIFI
     { Response::Continue },                  // ESP_uploaded
     { Response::Continue, Response::Abort }, // ESP_progress_info
