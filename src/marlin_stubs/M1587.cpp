@@ -6,7 +6,12 @@
 /**
  * M1587: Open Wi-Fi credentials dialog
  * Similar to M587, but meat to be used internally
+ *  I          - Generate ini file
  */
 void PrusaGcodeSuite::M1587() {
-    update_esp_credentials();
+    if (parser.seen('I')) {
+        credentials_generate_ini();
+    } else {
+        update_esp_credentials();
+    }
 }

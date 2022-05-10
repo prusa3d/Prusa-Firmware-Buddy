@@ -116,6 +116,8 @@ public:
 };
 
 enum class esp_credential_action {
+    ShowInstructions_qr,
+    ShowInstructions_qr_wait_user,
     ShowInstructions,
     ShowInstructions_wait_user,
     DisableWIFI_if_needed,
@@ -147,6 +149,14 @@ enum class esp_credential_action {
 };
 
 class EspCredentials {
+public:
+    enum class type_t {
+        credentials_standalone,
+        credentials_sequence,
+        ini_creation
+    };
+
+private:
     static constexpr const char *file_str = "[wifi]\n"
                                             "ssid=\n"
                                             "key_mgmt=WPA\n"
@@ -159,19 +169,24 @@ class EspCredentials {
     unique_file_ptr file;
     FSM_Holder &rfsm;
     uint32_t time_stamp;
-    bool standalone;
+    type_t type;
     const uint8_t initial_netdev_id; // it is not enum because of stupid C api
     esp_credential_action progress_state;
     std::optional<PhasesSelftest> phase;
+    bool usb_inserted;
+    bool wifi_enabled;
+    bool continue_pressed;
 
     bool make_file();
     static bool file_exists();
     bool upload_config();
 
+    void loop();
+    void loopCreateINI();
+
 public:
-    EspCredentials(FSM_Holder &fsm, bool standalone);
+    EspCredentials(FSM_Holder &fsm, type_t type);
 
     void Loop();
-
     static bool AlreadySet();
 };

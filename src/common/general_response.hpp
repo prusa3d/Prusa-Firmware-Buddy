@@ -35,6 +35,7 @@ enum class Response : uint8_t {
     PVB,
     Reheat,
     Retry,
+    Skip,
     Stop,
     Unload,
     Yes,

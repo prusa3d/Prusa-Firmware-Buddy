@@ -18,7 +18,7 @@
 // Container for this base class contains all MI from both ETH and WIFI screen
 // There can be MI, that will not be used in derived class (MI_WIFI_... won't be used in ETH Screen)
 // This is a solution to the problem that base class container have to define what MIs will be used, but derived classes will have slightly different ones.
-using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_WIFI_STATUS_t, MI_WIFI_INIT_t, MI_WIFI_CREDENTIALS_t, MI_NET_IP_VER_t, MI_NET_IP_t, MI_IP4_ADDR, MI_IP4_NMSK, MI_IP4_GWAY, MI_MAC_ADDR>;
+using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_WIFI_STATUS_t, MI_WIFI_INIT_t, MI_WIFI_CREDENTIALS_INI_FILE_t, MI_WIFI_CREDENTIALS_t, MI_NET_IP_VER_t, MI_NET_IP_t, MI_IP4_ADDR, MI_IP4_NMSK, MI_IP4_GWAY, MI_MAC_ADDR>;
 
 class ScreenMenuConnectionBase : public Screen {
 
@@ -132,6 +132,7 @@ public:
         // MI for WIFI only have to be defined in the base class' container, but won't be used in ETH screen
         Item<MI_WIFI_STATUS_t>().Hide();
         Item<MI_WIFI_INIT_t>().Hide();
+        Item<MI_WIFI_CREDENTIALS_INI_FILE_t>().Hide();
         Item<MI_WIFI_CREDENTIALS_t>().Hide();
     }
 };
