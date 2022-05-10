@@ -43,22 +43,23 @@ const PhaseResponses ClientResponses::PreheatResponses[CountPhases<PhasesPreheat
 
 const PhaseResponses ClientResponses::SelftestResponses[CountPhases<PhasesSelftest>()] = {
     {},                                      // _first
-    { Response::Continue, Response::Abort }, // ESP_info
-    { Response::Abort },                     // ESP_upload
-    { Response::Continue },                  // ESP_passed
-    { Response::Continue },                  // ESP_failed
-    { Response::Continue, Response::Abort }, // ESP_credentials_instructions_flash
-    { Response::Continue, Response::Abort }, // ESP_credentials_instructions
-    { Response::Continue, Response::Abort }, // ESP_credentials_instructions_qr
-    { Response::Continue, Response::Skip },  // ESP_credentials_USB_not_inserted
-    { Response::Continue, Response::Skip },  // ESP_credentials_ask_gen
-    { Response::Continue, Response::Skip },  // ESP_credentials_ask_gen_overwrite
-    { Response::Continue, Response::Skip },  // ESP_credentials_makefile_failed
-    { Response::Continue },                  // ESP_credentials_eject_USB,
-    { Response::Continue, Response::Abort }, // ESP_credentials_insert_USB,
-    { Response::Retry, Response::Abort },    // ESP_credentials_invalid
-    { Response::Continue },                  // ESP_credentials_enabling_WIFI
-    { Response::Continue },                  // ESP_credentials_uploaded
+    { Response::Continue, Response::Abort }, // ESP_instructions
+    { Response::Continue, Response::Skip },  // ESP_USB_not_inserted
+    { Response::Continue, Response::Skip },  // ESP_ask_gen
+    { Response::Continue, Response::Skip },  // ESP_ask_gen_overwrite
+    { Response::Continue, Response::Skip },  // ESP_makefile_failed
+    { Response::Continue },                  // ESP_eject_USB
+    { Response::Continue, Response::Abort }, // ESP_insert_USB
+    { Response::Retry, Response::Abort },    // ESP_invalid
+    { Response::Continue },                  // ESP_enabling_WIFI
+    { Response::Continue },                  // ESP_uploaded
+    { Response::Continue, Response::Abort }, // ESP_progress_info
+    { Response::Abort },                     // ESP_progress_upload
+    { Response::Continue },                  // ESP_progress_passed
+    { Response::Continue },                  // ESP_progress_failed
+    { Response::Continue, Response::Abort }, // ESP_qr_instructions_flash
+    { Response::Continue, Response::Abort }, // ESP_qr_instructions
+
 };
 
 const PhaseResponses ClientResponses::G162Responses[CountPhases<PhasesG162>()] = {

@@ -1,6 +1,7 @@
 /**
- * @file selftest_frame_esp_credentials.hpp
+ * @file selftest_frame_esp_qr.hpp
  * @brief part of screen containing update of esp credentials
+ * this frame contains qr code
  */
 
 #pragma once
@@ -13,7 +14,7 @@
 #define QR_ADDR         "prusa3d.com/miniWiFi-qr"
 #define QR_ADDR_IN_TEXT "prusa3d.com/miniWiFi"
 
-class SelftestFrameESP_credentials : public AddSuperWindow<SelftestFrameWithRadio> {
+class SelftestFrameESP_qr : public AddSuperWindow<SelftestFrameWithRadio> {
     class QR : public AddSuperWindow<window_qr_t> {
     public:
         QR(window_t *parent, Rect16 rect);
@@ -27,5 +28,5 @@ protected:
     virtual void change() override;
 
 public:
-    SelftestFrameESP_credentials(window_t *parent, PhasesSelftest ph, fsm::PhaseData data);
+    SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data);
 };

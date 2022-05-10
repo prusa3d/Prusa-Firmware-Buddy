@@ -17,16 +17,22 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp(ScreenSelftest &rTh
     return rThs.makePtr<SelftestFrameESP>(&rThs, phase, data);
 }
 
-static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp_credentials(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
-    return rThs.makePtr<SelftestFrameESP_credentials>(&rThs, phase, data);
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp_progress(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameESP_progress>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp_qr(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameESP_qr>(&rThs, phase, data);
 }
 
 ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
     switch (part) {
     case SelftestParts::ESP:
         return creator_esp;
-    case SelftestParts::ESP_credentials:
-        return creator_esp_credentials;
+    case SelftestParts::ESP_progress:
+        return creator_esp_progress;
+    case SelftestParts::ESP_qr:
+        return creator_esp_qr;
     case SelftestParts::_none:
         break;
     }
@@ -85,7 +91,8 @@ void ScreenSelftest::Change(fsm::BaseData data) {
 string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     switch (part) {
     case SelftestParts::ESP:
-    case SelftestParts::ESP_credentials:
+    case SelftestParts::ESP_progress:
+    case SelftestParts::ESP_qr:
         return _(en_esp);
     case SelftestParts::_none:
         break;
@@ -96,7 +103,8 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
 uint16_t ScreenSelftest::getIconId(SelftestParts part) {
     switch (part) {
     case SelftestParts::ESP:
-    case SelftestParts::ESP_credentials:
+    case SelftestParts::ESP_progress:
+    case SelftestParts::ESP_qr:
         return IDR_PNG_wifi_16px;
     case SelftestParts::_none:
         break;
