@@ -51,8 +51,6 @@ FORCE_INLINE static void timing_delay_4cycles(uint32_t cy) { // +1 cycle
 /**
  * @brief Delay number of CPU cycles
  *
- * Consider using delay_us_precise() or DELAY_NS_PRECISE()
- *
  * It is precise to single CPU cycle when x is compile time constant
  * to 4 CPU cycles otherwise.
  *
@@ -124,17 +122,33 @@ FORCE_INLINE constexpr uint32_t timing_microseconds_to_cycles(uint32_t us) {
  * @brief Delay nanoseconds
  *
  * Timing precision is single CPU cycle. E.g. 6 ns at 168Mhz
- * @param ns input value.
+ * It is always guaranteed to return if CPU is running.
+ * Correct timing is guaranteed after SystemClock_Config() call if
+ * caller can not be interrupted.
+ *
+ * @param ns time in nanoseconds (compile time constant)
  */
-#define DELAY_NS_PRECISE(ns)                                                                                  \
-    do {                                                                                                      \
-        static_assert(ns < (std::numeric_limits<uint64_t>::max() / (ConstexprSystemCoreClock() / 1000000UL)), \
-            "ns out of range");                                                                               \
-        static_assert(timing_nanoseconds_to_cycles(ns) <= std::numeric_limits<uint32_t>::max(),               \
-            "ns out of range");                                                                               \
-        constexpr uint32_t cycles = timing_nanoseconds_to_cycles(ns);                                         \
-        timing_delay_cycles(cycles);                                                                          \
+#define DELAY_NS_PRECISE(ns)                                                                                    \
+    do {                                                                                                        \
+        static_assert((ns) < (std::numeric_limits<uint64_t>::max() / (ConstexprSystemCoreClock() / 1000000UL)), \
+            "ns out of range");                                                                                 \
+        static_assert(timing_nanoseconds_to_cycles(ns) <= std::numeric_limits<uint32_t>::max(),                 \
+            "ns out of range");                                                                                 \
+        constexpr uint32_t cycles = timing_nanoseconds_to_cycles(ns);                                           \
+        timing_delay_cycles(cycles);                                                                            \
     } while (0)
+
+/**
+ * @brief Delay microseconds
+ *
+ * Timing precision is single CPU cycle. E.g. 6 ns at 168Mhz
+ * It is always guaranteed to return if CPU is running.
+ * Correct timing is guaranteed after SystemClock_Config() call if
+ * caller can not be interrupted.
+ *
+ * @param us time in microseconds (compile time constant)
+ */
+#define DELAY_US_PRECISE(us) DELAY_NS_PRECISE(us * 1000ULL)
 
 /**
  * @brief Delay microseconds
@@ -143,6 +157,14 @@ FORCE_INLINE constexpr uint32_t timing_microseconds_to_cycles(uint32_t us) {
  * CPU clock is at least 1Mhz. Timing precision is 1 microsecond plus
  * constant delay incurred by uint32_t multiplication otherwise if CPU
  * clock is at least 4Mhz.
+ *
+ * It is always guaranteed to return if CPU is running.
+ * Correct timing is guaranteed after SystemClock_Config() call if
+ * caller can not be interrupted.
+ *
+ * Use DELAY_MS_PRECISE if dealing with compile time constant delay
+ * to get range check for free.
+ *
  * @param us time in microseconds
  * Maximum range depends on CPU clock. For 168 Mhz it is 25 565 us.
  */
