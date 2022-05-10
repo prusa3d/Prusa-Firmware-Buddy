@@ -1,19 +1,12 @@
 /**
  * This file was copied from Marlin/Marlin/HAL/shared/Delay.h
+ * and adapted by removing Marlin's macros
  * Naming convention was changed to be more in line with Buddy
  * coding standard.
  *
  * @file
  */
 #pragma once
-
-/**
- * Busy wait delay cycles routines:
- *
- *  DELAY_CYCLES(count): Delay execution in cycles
- *  DELAY_NS(count): Delay execution in nanoseconds
- *  DELAY_US(count): Delay execution in microseconds
- */
 
 #include "../../include/main.h"
 #include <stdint.h>
@@ -56,17 +49,17 @@ FORCE_INLINE static void timing_delay_cycles(const uint32_t x) {
 
 FORCE_INLINE static void timing_delay_4cycles(uint32_t cy) { // +1 cycle
         #if ARCH_PIPELINE_RELOAD_CYCLES < 2
-            #define EXTRA_NOP_CYCLES A("nop")
+            #define EXTRA_NOP_CYCLES " nop\n\t"
         #else
             #define EXTRA_NOP_CYCLES ""
         #endif
 
     __asm__ __volatile__(
-        A(".syntax unified") // is to prevent CM0,CM1 non-unified syntax
-        L("1")
-            A("subs %[cnt],#1")
-                EXTRA_NOP_CYCLES
-                    A("bne 1b")
+        " .syntax unified\n\t" // is to prevent CM0,CM1 non-unified syntax
+        "1:\n\t"
+        " subs %[cnt],#1\n\t" //
+        EXTRA_NOP_CYCLES
+        " bne 1b\n\t"
         : [ cnt ] "+r"(cy) // output: +r means input+output
         :                  // input:
         : "cc"             // clobbers:
@@ -118,10 +111,10 @@ FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
 
 FORCE_INLINE static void timing_delay_4cycles(uint8_t cy) {
     __asm__ __volatile__(
-        L("1")
-            A("dec %[cnt]")
-                A("nop")
-                    A("brne 1b")
+        "1:\n\t"
+        " dec %[cnt]:\n\t"
+        " nop:\n\t"
+        " brne 1b:\n\t"
         : [ cnt ] "+r"(cy) // output: +r means input+output
         :                  // input:
         : "cc"             // clobbers:
