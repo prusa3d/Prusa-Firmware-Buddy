@@ -487,7 +487,6 @@ add_executable(firmware)
 add_subdirectory(src/lang)
 
 if(RESOURCES)
-  target_compile_definitions(firmware PUBLIC HAS_RESOURCES)
   add_subdirectory(src/resources)
 endif()
 
