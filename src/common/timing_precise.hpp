@@ -13,10 +13,11 @@
 
 #include "../../include/main.h"
 #include <stdint.h>
+#include <limits>
 
-    #define FORCE_INLINE __attribute__((always_inline)) inline
+#define FORCE_INLINE __attribute__((always_inline)) inline
 
-    #if defined(__arm__) || defined(__thumb__)
+#if defined(__arm__) || defined(__thumb__)
 
 // https://blueprints.launchpad.net/gcc-arm-embedded/+spec/delay-cycles
 
@@ -28,11 +29,11 @@
  * @param cy number of multiplies of 4 CPU cycles
  */
 FORCE_INLINE static void timing_delay_4cycles(uint32_t cy) { // +1 cycle
-        #if ARCH_PIPELINE_RELOAD_CYCLES < 2
-            #define EXTRA_NOP_CYCLES " nop\n\t"
-        #else
-            #define EXTRA_NOP_CYCLES ""
-        #endif
+    #if ARCH_PIPELINE_RELOAD_CYCLES < 2
+        #define EXTRA_NOP_CYCLES " nop\n\t"
+    #else
+        #define EXTRA_NOP_CYCLES ""
+    #endif
 
     __asm__ __volatile__(
         " .syntax unified\n\t" // is to prevent CM0,CM1 non-unified syntax
@@ -44,7 +45,7 @@ FORCE_INLINE static void timing_delay_4cycles(uint32_t cy) { // +1 cycle
         :                  // input:
         : "cc"             // clobbers:
     );
-        #undef EXTRA_NOP_CYCLES
+    #undef EXTRA_NOP_CYCLES
 }
 
 /**
@@ -58,11 +59,11 @@ FORCE_INLINE static void timing_delay_4cycles(uint32_t cy) { // +1 cycle
  * @param x number of CPU cycles
  */
 FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
-        #define nop() __asm__ __volatile__("nop;\n\t" :: \
-                                               :)
+    #define nop() __asm__ __volatile__("nop;\n\t" :: \
+                                           :)
 
     if (__builtin_constant_p(x)) {
-        #define MAXNOPS 4
+    #define MAXNOPS 4
 
         if (x <= (MAXNOPS)) {
             switch (x) {
@@ -88,26 +89,26 @@ FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
             if ((x = (x - 1) / (MAXNOPS)))
                 timing_delay_4cycles(x); // if need more then 4 nop loop is more optimal
         }
-        #undef MAXNOPS
+    #undef MAXNOPS
     } else if ((x >>= 2))
         timing_delay_4cycles(x);
-        #undef nop
+    #undef nop
 }
 
-        #if __CORTEX_M == 7
-            #error "Support removed, you can get it from original Marlin source."
-        #endif
-    #elif defined(__AVR__) || defined(__PLAT_LINUX__)
+    #if __CORTEX_M == 7
         #error "Support removed, you can get it from original Marlin source."
-    #else
-        #error "Unsupported MCU architecture"
     #endif
+#elif defined(__AVR__) || defined(__PLAT_LINUX__)
+    #error "Support removed, you can get it from original Marlin source."
+#else
+    #error "Unsupported MCU architecture"
+#endif
 
 /**
  * @param ns time in nanoseconds
  * @return number of CPU cycles
  */
-FORCE_INLINE constexpr uint32_t timing_nanoseconds_to_cycles(uint32_t ns) {
+FORCE_INLINE constexpr uint64_t timing_nanoseconds_to_cycles(uint64_t ns) {
     return ((ns * (ConstexprSystemCoreClock() / 1000000UL)) / 1000UL);
 }
 
@@ -125,11 +126,15 @@ FORCE_INLINE constexpr uint32_t timing_microseconds_to_cycles(uint32_t us) {
  * Timing precision is single CPU cycle. E.g. 6 ns at 168Mhz
  * @param ns input value.
  */
-    #define DELAY_NS_PRECISE(ns)                                          \
-        do {                                                              \
-            constexpr uint32_t cycles = timing_nanoseconds_to_cycles(ns); \
-            timing_delay_cycles(cycles);                                  \
-        } while (0)
+#define DELAY_NS_PRECISE(ns)                                                                                  \
+    do {                                                                                                      \
+        static_assert(ns < (std::numeric_limits<uint64_t>::max() / (ConstexprSystemCoreClock() / 1000000UL)), \
+            "ns out of range");                                                                               \
+        static_assert(timing_nanoseconds_to_cycles(ns) <= std::numeric_limits<uint32_t>::max(),               \
+            "ns out of range");                                                                               \
+        constexpr uint32_t cycles = timing_nanoseconds_to_cycles(ns);                                         \
+        timing_delay_cycles(cycles);                                                                          \
+    } while (0)
 
 /**
  * @brief Delay microseconds
