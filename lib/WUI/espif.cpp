@@ -255,10 +255,10 @@ static uint32_t half_now() {
 
 static void process_link_change(bool link_up, struct netif *netif, bool delay) {
     assert(netif != nullptr);
-    log_info(ESPIF, "Link status changed: %d", link_up);
     if (link_up) {
         if (!associated.exchange(true)) {
             netif_set_link_up(netif);
+            log_info(ESPIF, "Link went up");
         }
         delayed_down = NO_DELAYED_DOWN;
     } else if (delay) {
@@ -268,9 +268,11 @@ static void process_link_change(bool link_up, struct netif *netif, bool delay) {
         uint32_t no_delay = NO_DELAYED_DOWN;
         delayed_down.compare_exchange_strong(no_delay, half_now());
     } else {
-        associated = false;
         delayed_down = NO_DELAYED_DOWN;
-        netif_set_link_down(netif);
+        if (associated.exchange(false)) {
+            log_info(ESPIF, "Link went down");
+            netif_set_link_down(netif);
+        }
     }
 }
 
