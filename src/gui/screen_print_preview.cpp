@@ -50,7 +50,8 @@ static bool check_filament_presence(GCodeInfo &gcode) {
             FSensors_instance().Disable();
             return true;
         default:
-            break;
+            //should happen only if the message box was closed because flash was removed
+            return false;
         }
     }
     return true;
@@ -78,7 +79,8 @@ static bool check_filament_type(GCodeInfo &gcode) {
         case Response::Abort:
             return false;
         default:
-            break;
+            //should happen only if the message box was closed because flash was removed
+            return false;
         }
     }
     return true;
@@ -93,7 +95,8 @@ static bool check_printer_type(GCodeInfo &gcode) {
     case Response::Abort:
         return false;
     default:
-        break;
+        //should happen only if the message box was closed because flash was removed
+        return false;
     }
     return true;
 }
