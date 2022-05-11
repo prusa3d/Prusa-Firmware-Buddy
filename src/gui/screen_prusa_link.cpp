@@ -11,7 +11,8 @@
 
 #include "wui_api.h"
 
-static const uint32_t API_KEY_STR_LENGTH = 32;
+#define api_key_format "Current Api Key\n    %s"
+static constexpr size_t API_KEY_STR_LENGTH = PL_API_KEY_SIZE + sizeof(api_key_format) - sizeof("%s"); // don't need space for '%s' and '\0' since PL_API_KEY_SIZE contains '\0' too
 typedef char api_key_str_t[API_KEY_STR_LENGTH];
 
 // ----------------------------------------------------------------
@@ -65,7 +66,7 @@ class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
     api_key_str_t api_key_str;
 
     inline void display_api_key(const char *api_key) {
-        snprintf(api_key_str, API_KEY_STR_LENGTH, "Current Api Key\n    %s", api_key);
+        snprintf(api_key_str, API_KEY_STR_LENGTH, api_key_format, api_key);
         canvas.text = string_view_utf8::MakeRAM((const uint8_t *)api_key_str);
         canvas.Invalidate();
     }
