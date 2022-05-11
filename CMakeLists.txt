@@ -698,6 +698,7 @@ target_sources(
           src/freertos_openocd.c
           src/lwip.c
           src/usbh_diskio.c
+          src/main.c
           src/main.cpp
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>

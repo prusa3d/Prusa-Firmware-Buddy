@@ -94,7 +94,6 @@ int HAL_SPI_Initialized = 0;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
-static void MX_I2C1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
@@ -122,62 +121,10 @@ uartslave_t uart6slave;
 char uart6slave_line[32];
 #endif
 
-/**
- * @brief initialization of eeprom and prerequisites, to be able to use
- *        it to initialize static variables and objects
- * This is called during startup before main and before initialization
- *        of static variables but after setting them to 0
- */
-extern "C" void EepromSystemInit() {
-    //__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST);
-    //__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST);
+extern "C" void main_cpp(void) {
     if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
         HAL_IWDG_Reset = 1;
     __HAL_RCC_CLEAR_RESET_FLAGS();
-
-    // enable backup domain of the CPU
-    // this allows us to use the RTC->BKPXX registers
-    __HAL_RCC_PWR_CLK_ENABLE();
-    HAL_PWR_EnableBkUpAccess();
-
-    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-    HAL_Init(); // it is low level enough to be run in startup script
-
-    SEGGER_SYSVIEW_Conf();
-    /* Configure the system clock */
-    SystemClock_Config();
-
-#ifdef BUDDY_ENABLE_DFU_ENTRY
-    // check whether user requested to enter the DFU mode
-    // this has to be checked after having
-    //  1) initialized access to the backup domain
-    //  2) having initialized related clocks (SystemClock_Config)
-    if (sys_dfu_requested())
-        sys_dfu_boot_enter();
-#endif
-
-    MX_I2C1_Init();
-    tick_timer_init();
-    crc32_init();
-
-    int irq = __get_PRIMASK() & 1;
-    __enable_irq();
-
-    eeprom_init();
-
-    if (irq == 0)
-        __disable_irq();
-}
-
-/**
- * @brief  The application entry point.
- *   There is EepromSystemInit function called before main
- *   which is alowing early access to eeprom
- * @retval int
- */
-int main(void) {
-    /* Trap on division by Zero */
-    SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
 
     logging_init();
 
@@ -294,53 +241,6 @@ int main(void) {
     /* definition and creation of measurementTask */
     osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
     osThreadCreate(osThread(measurementTask), NULL);
-
-    /* Start scheduler */
-    osKernelStart();
-
-    /* We should never get here as control is now taken by the scheduler */
-    while (1) {
-    }
-}
-
-void SystemClock_Config(void) {
-    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = { 0 };
-
-    /**Configure the main internal regulator output voltage
-     */
-    __HAL_RCC_PWR_CLK_ENABLE();
-    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-        Error_Handler();
-    }
-
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK) {
-        Error_Handler();
-    }
-
-    SystemCoreClock = ConstexprSystemCoreClock();
-
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-    PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-static void MX_I2C1_Init(void) {
-    hi2c1.Instance = I2C1;
-    hi2c1.Init.ClockSpeed = 100000;
-    hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-    hi2c1.Init.OwnAddress1 = 0;
-    hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-    hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-    hi2c1.Init.OwnAddress2 = 0;
-    hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-    hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-    if (HAL_I2C_Init(&hi2c1) != HAL_OK) {
-        Error_Handler();
-    }
 }
 
 static void MX_RTC_Init(void) {
@@ -785,3 +685,15 @@ void assert_failed(uint8_t *file, uint32_t line) {
     app_assert(file, line);
 }
 #endif /* USE_FULL_ASSERT */
+
+void rcc_osc_get_init(RCC_OscInitTypeDef *init) {
+    *init = RCC_OscInitStruct;
+}
+
+void rcc_clk_get_init(RCC_ClkInitTypeDef *init) {
+    *init = RCC_ClkInitStruct;
+}
+
+unsigned long system_core_get_clock() {
+    return ConstexprSystemCoreClock();
+}
