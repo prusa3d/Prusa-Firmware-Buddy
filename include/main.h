@@ -92,6 +92,12 @@ constexpr unsigned long ConstexprSystemCoreClock() {
 extern "C" {
 #endif //__cplusplus
 
+void rcc_osc_get_init(RCC_OscInitTypeDef *init);
+void rcc_clk_get_init(RCC_ClkInitTypeDef *init);
+unsigned long system_core_get_clock();
+
+void main_cpp();
+
 extern int HAL_GPIO_Initialized;
 extern int HAL_ADC_Initialized;
 extern int HAL_PWM_Initialized;
