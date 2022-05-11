@@ -1,17 +1,14 @@
 #include "screen_menus.hpp"
-#include "gui.hpp"
-#include "app.h"
 #include "screen_menu.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include <type_traits>
 #include "eeprom.h"
-#include "screen_sheet_rename.hpp"
 #include "wizard/screen_wizard.hpp"
-#include "marlin_client.h"
 #include "log.h"
 #include "SteelSheets.hpp"
 #include "WindowItemFormatableLabel.hpp"
+#include "GuiDefaults.hpp"
 
 #if _DEBUG // todo remove #if _DEBUG after rename is finished
     #include "screen_sheet_rename.hpp"
@@ -37,6 +34,38 @@ using sheet_index_4 = std::integral_constant<uint32_t, 4>;
 using sheet_index_5 = std::integral_constant<uint32_t, 5>;
 using sheet_index_6 = std::integral_constant<uint32_t, 6>;
 using sheet_index_7 = std::integral_constant<uint32_t, 7>;
+
+class MI_SHEET_OFFSET : public WI_LAMBDA_LABEL_t {
+    static constexpr const char *const label = N_("Offset");
+    float offset = 0;
+    bool calib = false;
+    static constexpr char const *const notCalibrated = N_("Not Calib");
+    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override {
+        if (calib) {
+            WI_LAMBDA_LABEL_t::printExtension(extension_rect, color_text, color_back, raster_op);
+        } else {
+
+            auto stringView = _(notCalibrated);
+            render_text_align(extension_rect, stringView, InfoFont, color_back,
+                (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPadding, Align_t::RightCenter());
+        }
+    }
+
+public:
+    MI_SHEET_OFFSET()
+        : WI_LAMBDA_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::yes, [this](char *buffer) {
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.3f mm", static_cast<double>(this->offset));
+        }) {
+    }
+
+    void SetOffset(float offs) {
+        calib = true;
+        offset = offs;
+    }
+    void Reset() {
+        calib = false;
+    }
+};
 
 class MI_SHEET_SELECT : public WI_LABEL_t {
     static constexpr const char *const label = N_("Select");
@@ -94,7 +123,7 @@ using SheetProfileMenuScreen = ScreenMenu<EFooter::On, MI_RETURN, MI_SHEET_SELEC
 #if _DEBUG // todo remove #if _DEBUG after rename is finished
     MI_SHEET_RENAME,
 #endif // _DEBUG
-    MI_SHEET_RESET>;
+    MI_SHEET_RESET, MI_SHEET_OFFSET>;
 
 // TODO there is no way to tell which sheet I am currently calibrating
 class ISheetProfileMenuScreen : public SheetProfileMenuScreen {
@@ -108,6 +137,8 @@ public:
         if (SteelSheets::IsSheetCalibrated(value)) {
             Item<MI_SHEET_SELECT>().Enable();
             Item<MI_SHEET_RESET>().Enable();
+            Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
+            Item<MI_SHEET_OFFSET>().Show();
         }
         if (value == 0)
             Item<MI_SHEET_RESET>().Disable();
@@ -126,6 +157,8 @@ protected:
             if (SteelSheets::ResetSheet(value)) {
                 Item<MI_SHEET_RESET>().Disable();
                 Item<MI_SHEET_SELECT>().Disable();
+                Item<MI_SHEET_OFFSET>().Reset();
+                unconditionalDrawItem(5);
                 log_debug(GUI, "MI_SHEET_RESET OK");
             } else
                 log_error(GUI, "MI_SHEET_RESET FAIL!");
@@ -138,6 +171,8 @@ protected:
             log_debug(GUI, "MI_SHEET_CALIBRATE");
             SteelSheets::SelectSheet(value);
             ScreenWizard::Run(wizard_run_type_t::firstlay);
+            Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
+            unconditionalDrawItem(5);
             break;
         case profile_action::Rename:
             log_debug(GUI, "MI_SHEET_RENAME");
