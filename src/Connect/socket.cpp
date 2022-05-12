@@ -61,9 +61,17 @@ socket_con::~socket_con() {
 std::optional<Error> socket_con::connection(const char *host, uint16_t port) {
 
     const struct timeval timeout = { SOCKET_TIMEOUT_SEC, 0 };
-    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
-    setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, NULL, 0);
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
+        return Error::SetSockOpt;
+    }
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) == -1) {
+        return Error::SetSockOpt;
+    }
+    /*
+    if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, NULL, 0) == -1) {
+        return Error::SetSockOpt;
+    }
+    */
 
     int error;
     struct addrinfo hints;
