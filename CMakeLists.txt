@@ -741,7 +741,7 @@ target_sources(
           src/common/otp.c
           src/common/Pin.cpp
           src/common/SteelSheets.cpp
-          src/common/PinsCheck.cpp
+          src/common/hwio_pindef_check.cpp
           src/common/sim_bed.c
           src/common/sys.cpp
           src/common/sim_nozzle.c
