@@ -7,7 +7,7 @@
 
 namespace con {
 
-constexpr uint8_t SOCKET_TIMEOUT_SEC = 30;
+constexpr uint8_t SOCKET_TIMEOUT_SEC = 3;
 
 class Connection {
 public:

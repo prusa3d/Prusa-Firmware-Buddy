@@ -73,6 +73,8 @@ extern "C" {
 #define LWIP_ALTCP                   0
 #define LWIP_HTTPD_DYNAMIC_FILE_READ 0
 #define LWIP_TIMERS                  1
+#define LWIP_SO_RCVTIMEO             1
+#define LWIP_SO_SNDTIMEO             1
 
 #define LWIP_DNS 1
 
