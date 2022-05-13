@@ -33,11 +33,7 @@ using std::make_tuple;
 using std::move;
 using std::string_view;
 
-void GcodeUpload::FileDeleter::operator()(FILE *f) {
-    fclose(f);
-}
-
-GcodeUpload::GcodeUpload(UploadState uploader, bool json_errors, size_t length, size_t upload_idx, FilePtr file, UploadedNotify *uploaded)
+GcodeUpload::GcodeUpload(UploadState uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
     : uploader(move(uploader))
     , uploaded_notify(uploaded)
     , size_rest(length)
@@ -82,7 +78,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     const size_t file_idx = upload_idx++;
     char fname[TMP_BUFF_LEN];
     snprintf(fname, sizeof fname, UPLOAD_TEMPLATE, file_idx);
-    FilePtr file(fopen(fname, "wb"));
+    unique_file_ptr file(fopen(fname, "wb"));
     if (!file) {
         // Missing USB -> Insufficient storage.
         return StatusPage(Status::InsufficientStorage, false, json_errors, "Missing USB drive");
