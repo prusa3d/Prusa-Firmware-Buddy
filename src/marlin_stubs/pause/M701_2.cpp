@@ -133,6 +133,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res) {
         thermalManager.setTargetHotend(0, 0);
         thermalManager.setTargetBed(0);
         marlin_server_set_temp_to_display(0);
+        thermalManager.set_fan_speed(0, 0);
         break;
     case PreheatStatus::Result::DoneNoFilament:
     case PreheatStatus::Result::Aborted:
