@@ -10,6 +10,8 @@
 #include "types.h"
 #include "upload_state.h"
 
+#include <unique_file_ptr.hpp>
+
 #include <memory>
 #include <optional>
 
@@ -33,13 +35,7 @@ private:
     size_t size_rest;
     bool json_errors;
     GcodeUpload(UploadState uploader, size_t size_rest);
-    class FileDeleter {
-    public:
-        void operator()(FILE *f);
-    };
-
-    using FilePtr = std::unique_ptr<FILE, FileDeleter>;
-    FilePtr tmp_upload_file;
+    unique_file_ptr tmp_upload_file;
     // A way how to reconstruct the name of the temporary file.
     size_t file_idx;
 
@@ -48,7 +44,7 @@ private:
     virtual Result check_filename(const char *filename) const override;
 
     void delete_file();
-    GcodeUpload(UploadState uploader, bool json_errors, size_t length, size_t upload_idx, FilePtr file, UploadedNotify *uploaded);
+    GcodeUpload(UploadState uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded);
 
 public:
     bool want_read() const { return size_rest > 0; }
