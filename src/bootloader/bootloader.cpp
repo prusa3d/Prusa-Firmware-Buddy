@@ -252,10 +252,40 @@ bool buddy::bootloader::needs_update() {
         < std::tie(required.major, required.minor, required.patch);
 }
 
+/// Ensure the firmware is ready to boot with the new bootloader
+///
+/// Bootloaders newer than 1.2.2 need firmware signature written
+/// after the firmware code. If the signature does not match (or is not there),
+/// the firmware does not start.
+/// However, older bootloaders did not write the signature there.
+/// So now, as we exchanged the bootloader with a new one, we can't be sure
+/// it will start properly, as the signature might not be there.
+/// What do we do? We might try to fill in the signature ourselves, but that might
+/// be risky (is that part of flash ready for writing? if no, erasing it might break
+/// the firmware). So the easiest solution is to just reflash the firmware again
+/// from the bootloader.
+static void reflash_firmware_if_signature_not_present(std::optional<buddy::bootloader::Version> original_version) {
+    bool needs_fw_reflash = true;
+    if (original_version.has_value()) {
+        auto original = std::tie(original_version->major, original_version->minor, original_version->patch);
+        needs_fw_reflash = original < std::make_tuple(1, 2, 2);
+    }
+
+    if (needs_fw_reflash) {
+        sys_fw_update_older_on_restart_enable();
+        sys_reset();
+    }
+}
+
 void buddy::bootloader::update(ProgressHook progress) {
     auto calc_percent_done = [](int bootstrap_percent, int update_percent) {
         return (int)(bootstrap_percent * 0.75 + update_percent * 0.25);
     };
+
+    std::optional<buddy::bootloader::Version> original_version = std::nullopt;
+    if (sys_bootloader_is_valid()) {
+        original_version = buddy::bootloader::get_version();
+    }
 
     // get bootloader.bin to the internal flash
     bool needs_bootstrap = buddy::resources::has_resources(buddy::resources::revision::bootloader) == false;
@@ -289,4 +319,6 @@ void buddy::bootloader::update(ProgressHook progress) {
             last_reported_percent_done = percent_done;
         }
     });
+
+    reflash_firmware_if_signature_not_present(original_version);
 }
