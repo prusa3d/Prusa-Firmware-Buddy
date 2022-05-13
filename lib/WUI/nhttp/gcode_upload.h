@@ -27,7 +27,7 @@ namespace nhttp::printer {
  */
 class GcodeUpload final : private UploadHooks {
 public:
-    typedef void UploadedNotify(const char *name, bool start_print);
+    typedef bool UploadedNotify(const char *name, bool start_print);
 
 private:
     UploadState uploader;
