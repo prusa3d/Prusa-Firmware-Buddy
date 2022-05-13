@@ -65,8 +65,8 @@ add_gzip_resource(
   )
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.0727519d417955798a3f.js" "/web/main.0727519d417955798a3f.js")
-add_gzip_resource("web/main.535376bc509b8589ebc8.css" "/web/main.535376bc509b8589ebc8.css")
+add_gzip_resource("web/main.6361ede66c1c2b040b9b.js" "/web/main.6361ede66c1c2b040b9b.js")
+add_gzip_resource("web/main.b50d996779249951ed31.css" "/web/main.b50d996779249951ed31.css")
 
 # generate header with hash
 add_header_with_revision(standard resources-image)
