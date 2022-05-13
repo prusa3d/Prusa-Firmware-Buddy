@@ -202,20 +202,13 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     // Close the file first, otherwise it can't be moved
     tmp_upload_file.reset();
     return try_rename(fname, final_filename, [&](const char *filename) -> UploadHooks::Result {
-        if (start_print) {
-            /*
-             * TODO: Starting print of the just-uploaded file is temporarily disabled.
-             *
-             * See https://dev.prusa3d.com/browse/BFW-2300.
-             *
-             * Once we have time to deal with all the corner-cases, race conditions and
-             * collisions caused by that possibility, we will re-enable.
-             */
-            return make_tuple(Status::NotImplemented, "Starting a print remotely is not yet implemented");
-        } else {
-            if (uploaded_notify != nullptr) {
-                uploaded_notify(filename, false);
+        if (uploaded_notify != nullptr) {
+            if (uploaded_notify(filename, start_print)) {
+                return make_tuple(Status::Ok, nullptr);
+            } else {
+                return make_tuple(Status::Conflict, "Can't print right now");
             }
+        } else {
             return make_tuple(Status::Ok, nullptr);
         }
     });

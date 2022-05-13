@@ -184,7 +184,10 @@ void wui_store_api_key(char *, uint32_t);
 ///
 /// @param[in] path Path to the gcode file
 /// @param[in] start_print Should the print be started right away (if possible)?
-void wui_uploaded_gcode(const char *path, bool start_print);
+///
+/// @return True if everything went fine. False if start_print was enabled and
+///   the print was not possible to start.
+bool wui_uploaded_gcode(const char *path, bool start_print);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Return the number of gcodes uploaded since boot.

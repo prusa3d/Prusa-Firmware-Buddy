@@ -18,11 +18,14 @@
 #include "print_utils.hpp"
 #include "marlin_client.h"
 
-#include <assert.h>
-#include <time.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdatomic.h>
+#include <ScreenHandler.hpp>
+#include <screen_home.hpp>
+
+#include <cassert>
+#include <ctime>
+#include <cstring>
+#include <cstdio>
+#include <atomic>
 
 #define USB_MOUNT_POINT        "/usb/"
 #define USB_MOUNT_POINT_LENGTH 5
@@ -32,7 +35,7 @@ extern RTC_HandleTypeDef hrtc;
 static bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
-static atomic_int_least32_t uploaded_gcodes;
+static std::atomic<uint32_t> uploaded_gcodes;
 
 void wui_marlin_client_init(void) {
     marlin_vars_t *vars = marlin_client_init(); // init the client
@@ -63,7 +66,7 @@ static bool ini_string_match(const char *section, const char *section_var, const
 }
 
 static int ini_handler_func(void *user, const char *section, const char *name, const char *value) {
-    struct ini_load_def *def = user;
+    ini_load_def *def = (ini_load_def *)user;
 
     ETH_config_t *tmp_config = def->config;
 
@@ -145,18 +148,18 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
 }
 
 uint32_t load_ini_file_eth(ETH_config_t *config) {
-    return ini_load_file(ini_handler_func, &(struct ini_load_def) {
-                                               .config = config,
-                                               .ip_section = "eth::ipv4",
-                                           });
+    ini_load_def def = {};
+    def.config = config;
+    def.ip_section = "eth::ipv4";
+    return ini_load_file(ini_handler_func, &def);
 }
 
 uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap) {
-    return ini_load_file(ini_handler_func, &(struct ini_load_def) {
-                                               .config = config,
-                                               .ip_section = "wifi::ipv4",
-                                               .ap = ap,
-                                           });
+    ini_load_def def = {};
+    def.config = config;
+    def.ip_section = "wifi::ipv4";
+    def.ap = ap;
+    return ini_load_file(ini_handler_func, &def);
 }
 
 // Pick the right variable depending on the net device we use.
@@ -174,7 +177,7 @@ static enum eevar_id vid(enum eevar_id id, uint32_t net_id) {
         assert(0 /* Unknown net device */);
     }
 
-    return id + offset;
+    return static_cast<eevar_id>(static_cast<uint32_t>(id) + offset);
 }
 
 void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
@@ -249,7 +252,7 @@ void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
     if (ap != NULL) {
         assert(netdev_id == NETDEV_ESP_ID);
 
-        ap->security = eeprom_get_var(EEVAR_WIFI_FLAG) & APSEC_MASK;
+        ap->security = static_cast<ap_sec_t>(eeprom_get_ui8(EEVAR_WIFI_FLAG) & APSEC_MASK);
         strextract(ap->ssid, SSID_MAX_LEN + 1, EEVAR_WIFI_AP_SSID);
         strextract(ap->pass, WIFI_PSK_MAX + 1, EEVAR_WIFI_AP_PASSWD);
     }
@@ -347,30 +350,29 @@ uint32_t wui_gcodes_uploaded() {
     return uploaded_gcodes;
 }
 
-void wui_uploaded_gcode(const char *filename, bool start_print) {
+bool wui_uploaded_gcode(const char *filename, bool start_print) {
+    // Note: By checking now and starting it later, we are introducing a short
+    // race condition. Doing it properly would be kind of hard and the risk is
+    // we maybe start the print and don't get the print screen or something
+    // like that ‒ annoying, but not entirely dangerous.
+    //
+    // We assume marlin does another check when asked to print and won't start
+    // a print inside a print or such.
+    //
+    // Also, this introduces another code dependency in the „wrong direction“.
+    // GUI should be a neighbor of WUI and should not depend on each other.
+    // But, well, …
+    bool can_start_print = !marlin_vars()->sd_printing && (dynamic_cast<screen_home_data_t *>(Screens::Access()->Get()) != nullptr);
+
     uploaded_gcodes++;
 
-    (void)filename;
-    (void)start_print;
-    /*
-     * TODO: Starting print of the just-uploaded file is temporarily disabled.
-     *
-     * See https://dev.prusa3d.com/browse/BFW-2300.
-     *
-     * Once we have time to deal with all the corner-cases, race conditions and
-     * collisions caused by that possibility, we will re-enable.
-     */
-#if 0
-    if (marlin_vars()->sd_printing && start) {
-        error_code = 409;
-        goto return_error_code;
+    if (!can_start_print && start_print) {
+        return false;
     } else {
-        if (start) {
-            strlcpy(marlin_vars()->media_LFN, new_filename, FILE_PATH_BUFFER_LEN);
+        if (start_print) {
+            strlcpy(marlin_vars()->media_LFN, filename, FILE_PATH_BUFFER_LEN);
             print_begin(filename);
         }
-        start_print = start;
-        goto return_error_code;
+        return true;
     }
-#endif
 }
