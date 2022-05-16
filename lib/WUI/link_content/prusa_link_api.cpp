@@ -1,6 +1,7 @@
 #include "prusa_link_api.h"
 #include "basic_gets.h"
 #include "../nhttp/file_info.h"
+#include "../nhttp/file_command.h"
 #include "../nhttp/headers.h"
 #include "../nhttp/gcode_upload.h"
 #include "../nhttp/job_command.h"
@@ -17,6 +18,7 @@ using std::nullopt;
 using std::optional;
 using std::string_view;
 using namespace handler;
+using nhttp::printer::FileCommand;
 using nhttp::printer::FileInfo;
 using nhttp::printer::GcodeUpload;
 using nhttp::printer::JobCommand;
@@ -61,7 +63,13 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
     } else if (suffix == "settings") {
         return get_only(SendStaticMemory("{\"printer\": {}}", ContentType::ApplicationJson, parser.can_keep_alive()));
     } else if (remove_prefix(suffix, "files").has_value()) {
-        if (parser.method == Method::Post) {
+        // Note: The check for boundary is a bit of a hack. We probably should
+        // be more thorough in the parser and extract the actual content type.
+        // But that bit of the parser generator is a bit unreadable right now,
+        // so we are lazy and do just this. It'll work fine in the correct
+        // scenarios and will simply produce slightly weird error messages in
+        // case it isn't.
+        if (parser.method == Method::Post && !parser.boundary().empty()) {
             auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json);
             /*
              * So, we have a "smaller" variant (eg. variant<A, B, C>) and
@@ -144,6 +152,13 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                         return StatusPage(Status::NoContent, parser.can_keep_alive(), parser.accepts_json);
                     }
                 }
+                case Method::Post:
+                    if (parser.content_length.has_value()) {
+                        return FileCommand(fname_real, *parser.content_length, parser.can_keep_alive(), parser.accepts_json);
+                    } else {
+                        // Drop the connection (and the body there).
+                        return StatusPage(Status::LengthRequired, false, parser.accepts_json);
+                    }
                 default:
                     // Drop the connection in fear there might be a body we don't know about.
                     return StatusPage(Status::MethodNotAllowed, false, parser.accepts_json);

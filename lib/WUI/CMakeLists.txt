@@ -16,6 +16,8 @@ target_sources(
             http_lifetime.cpp
             nhttp/common_selectors.cpp
             nhttp/file_info.cpp
+            nhttp/file_command.cpp
+            nhttp/file_command_marlin.cpp
             nhttp/gcode_upload.cpp
             nhttp/gcode_preview.cpp
             nhttp/handler.cpp

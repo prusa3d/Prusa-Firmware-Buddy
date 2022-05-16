@@ -179,6 +179,12 @@ const char *wui_generate_api_key(char *, uint32_t);
 /// @param[in] length Size of the buffer
 void wui_store_api_key(char *, uint32_t);
 
+/// Start a print of a given filename.
+///
+/// Returns false if can't print right now. Note that this doesn't check the
+/// existence of the file.
+bool wui_start_print(const char *filename);
+
 ////////////////////////////////////////////////////////////////////////////
 /// @brief A new gcode was uploaded, take appropriate actions
 ///
