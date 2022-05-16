@@ -29,6 +29,7 @@
 #include "adc.hpp"
 #include "SEGGER_SYSVIEW.h"
 #include "logging.h"
+#include "common/disable_interrupts.h"
 
 #ifdef BUDDY_ENABLE_WUI
     #include "wui.h"
@@ -125,8 +126,14 @@ char uart6slave_line[32];
 /**
  * @brief initialization of eeprom and prerequisites, to be able to use
  *        it to initialize static variables and objects
- * This is called during startup before main and before initialization
- *        of static variables but after setting them to 0
+ *
+ *  This is called during startup before main and before initialization
+ *  of static variables but after setting them to 0
+ *
+ *  This function temporarily unmasks interrupts,
+ *  so it might be dangerous to call it in some contexts.
+ *
+ *
  */
 extern "C" void EepromSystemInit() {
     //__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST);
@@ -160,13 +167,13 @@ extern "C" void EepromSystemInit() {
     tick_timer_init();
     crc32_init();
 
-    int irq = __get_PRIMASK() & 1;
+    // Temporarily enable interrupts and restore
+    // original state when disableInterrupts go out of scope
+    // (non-standard usage of DisableInterrupts)
+    buddy::DisableInterrupts disableInterrupts(false);
     __enable_irq();
 
     eeprom_init();
-
-    if (irq == 0)
-        __disable_irq();
 }
 
 /**
