@@ -8,11 +8,13 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/server_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/jsmn_impl.c
   ${CMAKE_CURRENT_SOURCE_DIR}/job_command_tests.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/file_command_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/segmented_json_rendering.cpp
   # Tested files
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/common_selectors.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/multipart_parser.c
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/file_info.cpp
+  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/file_command.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/gcode_upload.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/upload_state.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/gcode_preview.cpp
