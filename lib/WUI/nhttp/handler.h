@@ -30,6 +30,7 @@
 
 #include "types.h"
 #include "file_info.h"
+#include "file_command.h"
 #include "gcode_upload.h"
 #include "gcode_preview.h"
 #include "job_command.h"
@@ -123,6 +124,7 @@ using ConnectionState = std::variant<
     printer::GCodePreview,
     printer::JobCommand,
     printer::FileInfo,
+    printer::FileCommand,
     // TODO: Some other generators/consumers
     // TODO: Some generic generators/consumers
     Terminating>;
