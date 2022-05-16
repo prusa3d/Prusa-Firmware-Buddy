@@ -428,7 +428,7 @@ public:
 };
 
 class MI_FAN_CHECK : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Fan check");
+    constexpr static const char *const label = N_("Fan Check");
 
 public:
     MI_FAN_CHECK();
@@ -438,7 +438,7 @@ public:
 /******************************************************************/
 // WI_INFO_t
 class MI_FS_AUTOLOAD : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("FS autoload");
+    constexpr static const char *const label = N_("FS Autoload");
 
 public:
     MI_FS_AUTOLOAD();
