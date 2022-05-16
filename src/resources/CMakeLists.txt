@@ -74,28 +74,30 @@ add_header_with_revision(standard resources-image)
 #
 # Bootloader Resources Image
 #
+if(BOOTLOADER_UPDATE)
 
-add_lfs_image(resources-bootloader-image BLOCK_SIZE 256 BLOCK_COUNT 1000)
+  add_lfs_image(resources-bootloader-image BLOCK_SIZE 256 BLOCK_COUNT 1000)
 
-string(TOLOWER ${PRINTER} printer_name_low)
-get_dependency_directory("bootloader-${printer_name_low}" bootloader_dir)
-get_dependency_version("bootloader-${printer_name_low}" bootloader_version_str)
-set(bootloader_bin "${bootloader_dir}/bootloader.bin")
+  get_dependency_directory("bootloader-${BOOTLOADER_VARIANT}" bootloader_dir)
+  get_dependency_version("bootloader-${BOOTLOADER_VARIANT}" bootloader_version_str)
+  set(bootloader_bin "${bootloader_dir}/bootloader.bin")
 
-# add the bootloader.bin to the image
-add_resource("${bootloader_bin}" "/bootloader.bin" IMAGE_NAME resources-bootloader-image)
+  # add the bootloader.bin to the image
+  add_resource("${bootloader_bin}" "/bootloader.bin" IMAGE_NAME resources-bootloader-image)
 
-# generate header with hash
-add_header_with_revision(bootloader resources-bootloader-image)
+  # generate header with hash
+  add_header_with_revision(bootloader resources-bootloader-image)
 
-# parse bootloader version
-string(REGEX MATCH "([0-9]+)\.([0-9]+)\.([0-9]+)" result "${bootloader_version_str}")
-if(NOT result)
-  message(FATAL_ERROR "Failed to parse bootloader version ${bootloader_version_str}")
+  # parse bootloader version
+  string(REGEX MATCH "([0-9]+)\.([0-9]+)\.([0-9]+)" result "${bootloader_version_str}")
+  if(NOT result)
+    message(FATAL_ERROR "Failed to parse bootloader version ${bootloader_version_str}")
+  endif()
+  set(bootloader_version ${CMAKE_MATCH_0})
+
+  # generate header file with bootloader version
+  configure_file(
+    required_bootloader_version.hpp.in "${resources_include_dir}/bootloader/required_version.hpp"
+    )
+
 endif()
-set(bootloader_version ${CMAKE_MATCH_0})
-
-# generate header file with bootloader version
-configure_file(
-  required_bootloader_version.hpp.in "${resources_include_dir}/bootloader/required_version.hpp"
-  )
