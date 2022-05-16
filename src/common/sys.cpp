@@ -5,6 +5,7 @@
 #include "stm32f4xx_hal.h"
 #include "st25dv64k.h"
 #include "log.h"
+#include "disable_interrupts.h"
 
 #define DFU_REQUEST_RTC_BKP_REGISTER RTC->BKP0R
 
@@ -29,8 +30,7 @@ void sys_reset(void) {
     static_assert(sizeof(data_exchange_t) == 16, "invalid sizeof(data_exchange_t)");
 
     uint32_t aircr = SCB->AIRCR & 0x0000ffff; //read AIRCR, mask VECTKEY
-    if (__get_PRIMASK() & 1)
-        __disable_irq(); //disable irq if enabled
+    __disable_irq();
     aircr |= 0x05fa0000; //set VECTKEY
     aircr |= 0x00000004; //set SYSRESETREQ
     SCB->AIRCR = aircr;  //write AIRCR
@@ -93,7 +93,6 @@ int sys_pll_is_enabled(void) {
 }
 
 void sys_pll_disable(void) {
-    int irq = __get_PRIMASK() & 1;
     RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
     RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
     uint32_t FLatency;
@@ -103,18 +102,13 @@ void sys_pll_disable(void) {
         return;                                            //already disabled - exit
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_OFF;          //set PLL off
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE; //set CLK source HSE
-    if (irq)
-        __disable_irq();                                                        //disable irq while switching clock
+
+    buddy::DisableInterrupts disable_interrupts;
     HAL_RCC_ClockConfig(&RCC_ClkInitStruct, sys_calc_flash_latency(HSE_VALUE)); //set Clk config first
     HAL_RCC_OscConfig(&RCC_OscInitStruct);                                      //set Osc config
-    if (irq)
-        __enable_irq();
-    //HAL_RCC_GetOscConfig(&RCC_OscInitStruct);
-    //HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &FLatency);
 }
 
 void sys_pll_enable(void) {
-    int irq = __get_PRIMASK() & 1;
     RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
     RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
 
@@ -146,14 +140,10 @@ void sys_pll_enable(void) {
         return;                                               //already enabled - exit
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;              //set PLL off
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK; //set CLK source HSE
-    if (irq)
-        __disable_irq();                                                           //disable irq while switching clock
+
+    buddy::DisableInterrupts disable_interrupts;
     HAL_RCC_OscConfig(&RCC_OscInitStruct);                                         //set Osc config first
     HAL_RCC_ClockConfig(&RCC_ClkInitStruct, sys_calc_flash_latency(sys_pll_freq)); //set Clk config
-    if (irq)
-        __enable_irq();
-    //HAL_RCC_GetOscConfig(&RCC_OscInitStruct);
-    //HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &FLatency);
 }
 
 int sys_sscg_is_enabled(void) {
@@ -162,7 +152,7 @@ int sys_sscg_is_enabled(void) {
 
 void sys_sscg_disable(void) {
     uint32_t sscgr = RCC->SSCGR;
-    __disable_irq();
+    buddy::DisableInterrupts disable_interrupts;
     if ((sscgr & RCC_SSCGR_SSCGEN_Msk) == 0)
         return;
     sscgr &= ~((1 << RCC_SSCGR_SSCGEN_Pos) & RCC_SSCGR_SSCGEN_Msk);
@@ -172,7 +162,6 @@ void sys_sscg_disable(void) {
     log_debug(Buddy, "written SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
     sscgr = RCC->SSCGR;
     log_debug(Buddy, "readback SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
-    __enable_irq();
 }
 
 void sys_sscg_enable(void) {
@@ -184,14 +173,13 @@ void sys_sscg_enable(void) {
     if (incstep == 0)
         return;
     sscgr |= (1 << RCC_SSCGR_SSCGEN_Pos) & RCC_SSCGR_SSCGEN_Msk;
-    __disable_irq();
+    buddy::DisableInterrupts disable_interrupts;
     sys_pll_disable();
     RCC->SSCGR = sscgr;
     sys_pll_enable();
     log_debug(Buddy, "written SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
     sscgr = RCC->SSCGR;
     log_debug(Buddy, "readback SSCGR = 0x%08lx (%lu)", sscgr, sscgr);
-    __enable_irq();
 }
 
 void sys_sscg_set_config(int freq, int depth) {
@@ -266,14 +254,10 @@ uint32_t _spi_prescaler(int prescaler_num) {
 }
 
 void sys_spi_set_prescaler(int prescaler_num) {
-    int irq = __get_PRIMASK() & 1;
-    if (irq)
-        __disable_irq(); //disable irq while switching clock
+    buddy::DisableInterrupts disable_interrupts;
     HAL_SPI_DeInit(&hspi2);
     hspi2.Init.BaudRatePrescaler = _spi_prescaler(prescaler_num);
     HAL_SPI_Init(&hspi2);
-    if (irq)
-        __enable_irq();
 }
 
 int sys_fw_update_is_enabled(void) {
