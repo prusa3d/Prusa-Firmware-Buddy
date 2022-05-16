@@ -1,4 +1,5 @@
 #include <feature/bootloader.h>
+#include <feature/bootloader_update.h>
 #include <feature/resources.h>
 #include <stdio.h>
 #include "gui_time.hpp"
@@ -136,7 +137,7 @@ void client_gui_refresh() {
 #if ENABLED(RESOURCES)
 static void finish_update() {
 
-    #if ENABLED(BOOTLOADER)
+    #if ENABLED(BOOTLOADER_UPDATE)
     if (buddy::bootloader::needs_update()) {
         buddy::bootloader::update(
             [](int percent_done, buddy::bootloader::UpdateStage stage) {

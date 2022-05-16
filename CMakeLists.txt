@@ -261,6 +261,10 @@ endif()
 define_feature(BOOTLOADER ${BOOTLOADER})
 define_feature(RESOURCES ${RESOURCES})
 
+if(BOOTLOADER AND (${PRINTER} STREQUAL "MINI"))
+  define_feature(BOOTLOADER_UPDATE ON)
+endif()
+
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall -Wsign-compare)
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-std=c++1z>)
@@ -273,6 +277,12 @@ endif()
 if(PRESET_COMPILE_OPTIONS)
   string(REPLACE " " ";" PRESET_COMPILE_OPTIONS "${PRESET_COMPILE_OPTIONS}")
   add_compile_options(${PRESET_COMPILE_OPTIONS})
+endif()
+
+# find bootloader.bin location
+if(BOOTLOADER STREQUAL "YES")
+  string(TOLOWER ${PRINTER} printer_low)
+  set(BOOTLOADER_VARIANT "${printer_low}")
 endif()
 
 #
@@ -542,10 +552,17 @@ if(GENERATE_BBF)
     endif()
   endif()
 
+  set(resource_images)
+  set(resource_image_names)
+
   if(RESOURCES)
-    set(pack_fw_resources_opts RESOURCE_IMAGES resources-image resources-bootloader-image
-                               RESOURCE_IMAGE_NAMES "RESOURCES_IMAGE" "RESOURCES_BOOTLOADER_IMAGE"
-        )
+    list(APPEND resource_images resources-image)
+    list(APPEND resource_image_names "RESOURCES_IMAGE")
+  endif()
+
+  if(BOOTLOADER_UPDATE)
+    list(APPEND resource_images resources-bootloader-image)
+    list(APPEND resource_image_names "RESOURCES_BOOTLOADER_IMAGE")
   endif()
 
   pack_firmware(
@@ -560,7 +577,10 @@ if(GENERATE_BBF)
     "${SIGNING_KEY}"
     BBF_VERSION
     "2"
-    ${pack_fw_resources_opts}
+    RESOURCE_IMAGES
+    ${resource_images}
+    RESOURCE_IMAGE_NAMES
+    ${resource_image_names}
     )
 
   pack_firmware(
@@ -587,8 +607,7 @@ if(GENERATE_DFU)
   if(BOOTLOADER)
     set(firmware_addr "0x08020000")
     if(BOOTLOADER STREQUAL "YES")
-      string(TOLOWER ${PRINTER} printer_low)
-      get_dependency_directory("bootloader-${printer_low}" bootloader_dir)
+      get_dependency_directory("bootloader-${BOOTLOADER_VARIANT}" bootloader_dir)
       set(bootloader_input "0x08000000:${bootloader_dir}/bootloader.bin")
     endif()
     set(firmware_input "0x08020000:${CMAKE_BINARY_DIR}/firmware.bbf")

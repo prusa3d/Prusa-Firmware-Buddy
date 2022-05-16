@@ -14,6 +14,7 @@
 #include "resources/revision_bootloader.hpp"
 #include "bootloader/bootloader.hpp"
 #include "bootloader/required_version.hpp"
+#include "feature/bootloader_update.h"
 
 // FIXME: Those includes are here only for the RNG.
 // We should add support for the stdlib's standard random function
@@ -21,11 +22,19 @@
 #include "stm32f4xx_hal.h"
 
 using Version = buddy::bootloader::Version;
-using UpdateStage = buddy::bootloader::UpdateStage;
 
 LOG_COMPONENT_DEF(Bootloader, LOG_SEVERITY_INFO);
 #define log(severity, ...) _log_event(severity, log_component_find("Bootloader"), __VA_ARGS__)
 #define fatal_error(msg)   bsod(msg)
+
+Version buddy::bootloader::get_version() {
+    Version *const bootloader_version = (Version *const)0x0801FFFA;
+    return *bootloader_version;
+}
+
+#if ENABLED(BOOTLOADER_UPDATE)
+
+using UpdateStage = buddy::bootloader::UpdateStage;
 
 constexpr static size_t bootloader_sector_sizes[] = { 16384, 16384, 16384, 16384, 65536 };
 
@@ -235,11 +244,6 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
     }
 }
 
-Version buddy::bootloader::get_version() {
-    Version *const bootloader_version = (Version *const)0x0801FFFA;
-    return *bootloader_version;
-}
-
 bool buddy::bootloader::needs_update() {
     if (sys_bootloader_is_valid() == false) {
         return true;
@@ -290,3 +294,5 @@ void buddy::bootloader::update(ProgressHook progress) {
         }
     });
 }
+
+#endif
