@@ -711,6 +711,7 @@ target_sources(
           src/common/non_file_printing_counter.cpp
           src/common/print_processor.cpp
           $<$<BOOL:${BOOTLOADER}>:src/bootloader/bootloader.cpp>
+          $<$<BOOL:${BOOTLOADER_UPDATE}>:src/bootloader/bootloader_update.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/filament_sensor_api.cpp>
           $<$<NOT:$<BOOL:${HAS_MMU2}>>:src/common/filament_sensor_api_no_mmu.cpp>
