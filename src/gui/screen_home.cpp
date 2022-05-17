@@ -150,7 +150,8 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
 
     if (event == GUI_event_t::LOOP && !DialogHandler::Access().IsOpen()) {
         //esp update has bigger priority tha one click print
-        if (try_esp_flash && esp_fw_state() == EspFwState::WrongVersion) {
+        const auto fw_state = esp_fw_state();
+        if (try_esp_flash && (fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware)) {
             try_esp_flash = false;          // do esp flash only once (user can press abort)
             esp_flash_being_openned = true; // wait for process of gcode == open of flash screen
             marlin_gcode("M997 S1 O");
