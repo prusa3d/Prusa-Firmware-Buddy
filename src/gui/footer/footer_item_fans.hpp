@@ -31,7 +31,7 @@ class FooterItemPrintFan : public AddSuperWindow<IFooterItemFan> {
     }
 
 public:
-    static string_view_utf8 GetName() { return _("Print fan"); }
+    static string_view_utf8 GetName() { return _("Print Fan"); }
     FooterItemPrintFan(window_t *parent);
 };
 
@@ -46,6 +46,6 @@ class FooterItemHeatBreakFan : public AddSuperWindow<IFooterItemFan> {
     }
 
 public:
-    static string_view_utf8 GetName() { return _("Heatbreak fan"); }
+    static string_view_utf8 GetName() { return _("Hotend Fan"); }
     FooterItemHeatBreakFan(window_t *parent);
 };
