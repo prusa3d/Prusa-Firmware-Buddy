@@ -263,6 +263,8 @@ define_feature(RESOURCES ${RESOURCES})
 
 if(BOOTLOADER AND (${PRINTER} STREQUAL "MINI"))
   define_feature(BOOTLOADER_UPDATE ON)
+else()
+  define_feature(BOOTLOADER_UPDATE OFF)
 endif()
 
 # enable all warnings (well, not all, but some)
