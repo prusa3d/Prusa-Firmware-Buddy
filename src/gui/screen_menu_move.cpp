@@ -97,8 +97,8 @@ class ScreenMenuMove : public Screen {
         MI_AXIS_E *spinner = &Item<MI_AXIS_E>();
         DUMMY_AXIS_E *dummy = &Item<DUMMY_AXIS_E>();
         bool temp_ok = (marlin_vars()->temp_nozzle > MenuVars::GetExtrudeMinTemp());
-        spinner->SetVisibility(temp_ok);
-        dummy->SetVisibility(!temp_ok);
+        temp_ok ? spinner->Show() : spinner->Hide();
+        temp_ok ? dummy->Hide() : dummy->Show();
     }
 
 public:

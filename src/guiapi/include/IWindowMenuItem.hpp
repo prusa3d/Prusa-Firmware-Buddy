@@ -51,7 +51,10 @@ private:
 protected:
     is_selected_t selected : 1; // should be in IWiSpin, but is here because of size optimization
     uint16_t id_icon : 10;
-    Rect16::Width_t extension_width; // must be behind bitfields to save 4B RAM per item
+    uint16_t extension_width : 10; // must be behind bitfields to save 4B RAM per item
+    bool invalid_icon : 1;
+    bool invalid_label : 1;
+    bool invalid_extension : 1;
     font_t *label_font;
 
     static Rect16 getCustomRect(Rect16 base_rect, uint16_t custom_rect_width); // general method Returns custom width Rectangle, aligned intersection on the right of the base_rect
@@ -79,8 +82,10 @@ public:
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     bool IsSelected() const { return selected == is_selected_t::yes; }
     void Hide() { hidden = (uint8_t)is_hidden_t::yes; }
-    void Show() { hidden = (uint8_t)is_hidden_t::no; }
-    void SetVisibility(bool visible) { hidden = (uint8_t)!visible; }
+    void Show() {
+        hidden = (uint8_t)is_hidden_t::no;
+        Invalidate();
+    }
     void ShowDevOnly() { hidden = (uint8_t)is_hidden_t::dev; }
     bool IsHidden() const;
     void SetFocus();
@@ -88,13 +93,13 @@ public:
     bool IsFocused() const { return focused == is_focused_t::yes; }
     void SetIconId(uint16_t id) { id_icon = id; }
     uint16_t GetIconId() const { return id_icon; }
-    inline void SetLabel(string_view_utf8 text) { label = text; }
+    void SetLabel(string_view_utf8 text);
     /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text
     /// to be displayed to the user based on his language settings.
     inline string_view_utf8 GetLabel() const { return label; }
 
-    void Print(Rect16 rect) const;
+    void Print(Rect16 rect);
 
     inline invalidate_t Increment(uint8_t dif) { return Change(dif); }
     inline invalidate_t Decrement(uint8_t dif) { return Change(-int(dif)); }
@@ -102,4 +107,14 @@ public:
     inline void InitRollIfNeeded(Rect16 rect) { reInitRoll(getLabelRect(rect)); }
     virtual invalidate_t Change(int /*dif*/) { return invalidate_t::no; }
     inline invalidate_t Roll() { return roll.Tick(); }
+
+    bool IsInvalid() const;
+    bool IsIconInvalid() const;
+    bool IsLabelInvalid() const;
+    bool IsExtensionInvalid() const;
+    void Validate();
+    void Invalidate();
+    void InValidateIcon();
+    void InValidateLabel();
+    void InValidateExtension();
 };
