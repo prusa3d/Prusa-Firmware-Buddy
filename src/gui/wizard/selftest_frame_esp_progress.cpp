@@ -17,7 +17,7 @@ static constexpr size_t col_0 = WizardDefaults::MarginLeft;
 
 SelftestFrameESP_progress::SelftestFrameESP_progress(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
-    , text_top(this, Rect16(col_0, WizardDefaults::row_1, WizardDefaults::X_space, WizardDefaults::txt_h * 2), is_multiline::yes)
+    , text_top(this, Rect16(col_0, WizardDefaults::row_0, WizardDefaults::X_space, WizardDefaults::txt_h * 2), is_multiline::yes)
     , progress(this, row_2)
     , text_progress(this, Rect16(col_0, row_2b, WizardDefaults::X_space, WizardDefaults::txt_h), is_multiline::no)
     , icon(this, Rect16((GuiDefaults::ScreenWidth - icon_sz) / 2, row_2, icon_sz, icon_sz), IDR_PNG_wifi_large_64x64)
@@ -45,26 +45,30 @@ void SelftestFrameESP_progress::change() {
     bool show_icon = false;
     bool show_progress = false;
 
-    //texts
+    /* Multiple variants of texts
+     *   - For different display sizes
+     *   - For different states
+     * (* Let's see how well dead code elimination works - looks good so far!)
+     */
     switch (phase_current) {
     case PhasesSelftest::ESP_progress_info:
-        txt_top = N_("Wi-Fi (ESP) module\nfirmware updater.");
-        txt_bot = N_("Continue to flash\nthe ESP firmware.");
+        txt_top = GuiDefaults::ScreenWidth > 240 ? N_("Wi-Fi (ESP) module firmware updater.") : N_("Wi-Fi (ESP) module\nfirmware updater.");
+        txt_bot = GuiDefaults::ScreenWidth > 240 ? N_("Continue to flash the ESP firmware.") : N_("Continue to flash\nthe ESP firmware.");
         show_icon = true;
         break;
     case PhasesSelftest::ESP_progress_upload:
         txt_top = N_("Updating Wi-Fi...");
-        txt_bot = N_("Do not unplug Wi-Fi\nor turn off printer!");
+        txt_bot = GuiDefaults::ScreenWidth > 240 ? N_("Do not unplug Wi-Fi or turn off printer!") : N_("Do not unplug Wi-Fi\nor turn off printer!");
         show_progress = true;
         break;
     case PhasesSelftest::ESP_progress_passed:
         txt_top = N_("Updating Wi-Fi...");
-        txt_bot = N_("Firmware flashing\nsuccessful!");
+        txt_bot = GuiDefaults::ScreenWidth > 240 ? N_("Firmware flashing\nsuccessful!") : N_("Firmware flashing\nsuccessful!");
         show_progress = true;
         break;
     case PhasesSelftest::ESP_progress_failed:
         txt_top = N_("Updating Wi-Fi...");
-        txt_bot = N_("Firmware flashing\nfailed!");
+        txt_bot = GuiDefaults::ScreenWidth > 240 ? N_("Firmware flashing failed!") : N_("Firmware flashing\nfailed!");
         show_progress = true;
         break;
     default:
