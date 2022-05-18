@@ -15,17 +15,11 @@ SelftestFrameESP_qr::QR::QR(window_t *parent, Rect16 rect)
     _(QR_ADDR).copyToRAM(text, MAX_LEN_4QR + 1);
 }
 
-static constexpr size_t icon_sz = 64;
-static constexpr size_t col_0 = WizardDefaults::MarginLeft;
-
-static constexpr size_t qr_size_px = 140;
-static constexpr Rect16 qr_rect = { 160 - qr_size_px / 2, 200 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
-
 SelftestFrameESP_qr::SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
-    , text(this, Rect16(col_0, WizardDefaults::row_0, WizardDefaults::X_space, WizardDefaults::txt_h * 4), is_multiline::yes)
-    , icon_phone(this, Rect16(20, 165, 64, 82), IDR_PNG_hand_qr)
-    , qr(this, qr_rect)
+    , text(this, Positioner::textRect(), is_multiline::yes)
+    , icon_phone(this, Positioner::phoneIconRect(), IDR_PNG_hand_qr)
+    , qr(this, Positioner::qrcodeRect())
 
 {
     text.SetAlignment(Align_t::LeftCenter());
@@ -50,3 +44,39 @@ void SelftestFrameESP_qr::change() {
 
     text.SetText(_(txt));
 };
+
+constexpr Rect16 SelftestFrameESP_qr::Positioner::qrcodeRect() {
+    if (GuiDefaults::ScreenWidth > 240) {
+        return Rect16 {
+            GuiDefaults::ScreenWidth - WizardDefaults::MarginRight - qrcodeWidth,
+            WizardDefaults::row_0,
+            qrcodeWidth,
+            qrcodeHeight
+        };
+    } else {
+        return Rect16 { 160 - qrcodeWidth / 2, 200 - qrcodeHeight / 2, qrcodeWidth, qrcodeHeight };
+    }
+}
+
+/** @returns Rect16 position and size of the phone icon widget */
+constexpr Rect16 SelftestFrameESP_qr::Positioner::phoneIconRect() {
+    if (GuiDefaults::ScreenWidth > 240) {
+        return Rect16 {
+            qrcodeRect().Left() - phoneWidth,
+            (qrcodeRect().Top() + qrcodeRect().Bottom()) / 2 - phoneHeight / 2,
+            phoneWidth,
+            phoneHeight
+        };
+    } else {
+        return Rect16 { 20, 165, phoneWidth, phoneHeight };
+    }
+}
+
+/** @returns Rect16 position and size of the text widget */
+constexpr Rect16 SelftestFrameESP_qr::Positioner::textRect() {
+    if (GuiDefaults::ScreenWidth > 240) {
+        return Rect16 { WizardDefaults::col_0, WizardDefaults::row_1, textWidth, textHeight };
+    } else {
+        return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0, textWidth, textHeight };
+    }
+}
