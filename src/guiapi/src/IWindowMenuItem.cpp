@@ -4,7 +4,7 @@
  * @date 2020-11-09
  */
 
-#include "WindowMenuItems.hpp"
+#include "IWindowMenuItem.hpp"
 #include "resource.h"
 #include "cmath_ext.h"
 #include "gui_invalidate.hpp"

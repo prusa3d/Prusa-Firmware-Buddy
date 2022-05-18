@@ -12,8 +12,6 @@
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
     , moveIndex(0)
-    , redrawAll(true)
-    , clicked(false)
     , pContainer(pContainer) {
     setIndex(index);
     top_index = 0;
@@ -150,8 +148,25 @@ bool window_menu_t::updateTopIndex() {
 
 void window_menu_t::Increment(int dif) {
     moveIndex += dif; /// is not but could be atomic but should not hurt in GUI
-    Invalidate();
+
+    const int old_index = index;
+    playEncoderSound(moveToNextVisibleItem()); /// moves index and plays a sound
+
+    if (updateTopIndex()) {
+        // invalidate, but let invalid_background flag as it was
+        // it will cause redraw of only invalid items
+        bool back = flags.invalid_background;
+        Invalidate();
+        flags.invalid_background = back;
+    } else {
+        if (old_index != index) {
+            /// just cursor moved, redraw affected items only
+            GetItem(old_index)->Invalidate();
+            GetItem(index)->Invalidate();
+        }
+    }
 }
+
 bool window_menu_t::playEncoderSound(bool changed) {
     if (changed) {
         Sound_Play(eSOUND_TYPE::EncoderMove); /// cursor moved normally
@@ -169,24 +184,24 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
     if (!item)
         return;
     const int value = int(param);
-    bool invalid = false;
     switch (event) {
     case GUI_event_t::CLICK:
-
         item->Click(*this);
-        clicked = true;
-        //Invalidate(); //called inside click
         break;
     case GUI_event_t::ENC_DN:
         if (item->IsSelected()) {
-            invalid |= playEncoderSound(item->Decrement(value) == invalidate_t::yes);
+            //invalid |= playEncoderSound(item->Decrement(value) == invalidate_t::yes);
+            playEncoderSound(item->Decrement(value) == invalidate_t::yes);
+            //TODO Decrement should invalidate item, not return value
         } else {
             Decrement(value);
         }
         break;
     case GUI_event_t::ENC_UP:
         if (item->IsSelected()) {
-            invalid |= playEncoderSound(item->Increment(value) == invalidate_t::yes);
+            //invalid |= playEncoderSound(item->Increment(value) == invalidate_t::yes);
+            playEncoderSound(item->Increment(value) == invalidate_t::yes);
+            //TODO Increment should invalidate item, not return value
         } else {
             Increment(value);
         }
@@ -195,20 +210,15 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         //TODO: change flag to checked
         break;
     case GUI_event_t::TEXT_ROLL:
-        if (item->Roll() == invalidate_t::yes)
-            Invalidate();
+        if (item->Roll() == invalidate_t::yes) //TODO Roll should invalidate item, not return value
+            item->Invalidate();                // TODO just text
         break;
     default:
         break;
     }
-    if (invalid)
-        Invalidate();
 }
 
-void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item, const int item_height) {
-    if (item == nullptr)
-        return;
-
+void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem &item, const int item_height) {
     uint16_t rc_w = Width() - (GuiDefaults::MenuHasScrollbar ? GuiDefaults::MenuScrollbarWidth : 0);
     Rect16 rc = { Left(), int16_t(Top() + visible_count * (item_height + GuiDefaults::MenuItemDelimeterHeight)),
         rc_w, uint16_t(item_height) };
@@ -216,44 +226,82 @@ void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem *item,
     if (GetRect().Contain(rc)) {
 
         //only place I know rectangle to be able to reinit roll, ugly to do it in print
-        item->InitRollIfNeeded(rc);
+        //TODO make some kind of roll event for menu items
+        item.InitRollIfNeeded(rc);
 
-        item->Print(rc);
-        if (GuiDefaults::MenuLinesBetweenItems)
-            display::DrawLine(point_ui16(Left() + GuiDefaults::MenuItemDelimiterPadding.left, rc.Top() + rc.Height()),
-                point_ui16(Left() + Width() - GuiDefaults::MenuItemDelimiterPadding.right, rc.Top() + rc.Height()), COLOR_DARK_GRAY);
+        item.Print(rc);
+
+        // this should be elsewhere
+        if constexpr (GuiDefaults::MenuLinesBetweenItems)
+            if (flags.invalid_background)
+                display::DrawLine(point_ui16(Left() + GuiDefaults::MenuItemDelimiterPadding.left, rc.Top() + rc.Height()),
+                    point_ui16(Left() + Width() - GuiDefaults::MenuItemDelimiterPadding.right, rc.Top() + rc.Height()), COLOR_DARK_GRAY);
     }
 }
 
-void window_menu_t::unconditionalDraw() {
+/**
+ * @brief menu behaves similar to frame
+ * but redraw of background will not redraw area under items to avoid flickering
+ *
+ * flags.invalid            - all items are invalid
+ * flags.invalid_background - background is invalid (lines between items too)
+ *
+ * does not use unconditionalDraw
+ * unconditionalDraw would draw just black rectangle
+ * which is same behavior as window_frame has
+ */
+void window_menu_t::draw() {
+    if (!IsVisible())
+        return;
+
+    bool setChildrenInvalid = IsInvalid(); // if background is invalid all items must be redrawn
+
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
+    const size_t visible_available = Height() / item_height;
+    size_t visible_count = 0;
+    size_t available_invisible_count = 0;
+
     IWindowMenuItem *item = GetActiveItem();
-    if (!item) { /// weird state, fallback to the first item
-        index = 0;
-        top_index = 0;
-        moveIndex = 0;
-        redrawAll = true;
-    }
+    if (item) {
+        for (size_t i = 0; i < GetCount(); ++i) {
 
-    if (redrawAll) {
-        redrawAll = false;
-        redrawWholeMenu();
-        return;
-    } else if (item->IsSelected() || clicked) {
-        clicked = false;
-        unconditionalDrawItem(index);
-        return;
-    }
+            item = GetItem(i);
+            if (!item)
+                break;
+            if (item->IsHidden())
+                continue;
+            if (visible_count < visible_available && i >= top_index) {
 
-    const int old_index = index;
-    playEncoderSound(moveToNextVisibleItem()); /// moves index and plays a sound
-
-    if (updateTopIndex()) {
-        redrawWholeMenu(); /// whole menu moved, redraw everything
-    } else {
-        if (old_index != index) {
-            unconditionalDrawItem(old_index); /// just cursor moved, redraw cursor only
-            unconditionalDrawItem(index);
+                if (setChildrenInvalid) {
+                    item->Invalidate();
+                }
+                //this can draw just a port or entire item
+                if (item->IsInvalid())
+                    printItem(visible_count, *item, item_height);
+            }
+            if (i < top_index || visible_count >= visible_available) {
+                available_invisible_count++;
+            } else {
+                visible_count++;
+            }
         }
+    }
+
+    if constexpr (GuiDefaults::MenuHasScrollbar) {
+        if (available_invisible_count) {
+            printScrollBar(visible_count + available_invisible_count, visible_count);
+        }
+    }
+
+    if (flags.invalid_background) {
+        /// fill the rest of the window by background
+        const int menu_h = visible_count * item_height;
+        Rect16 rc_win = GetRect();
+        rc_win -= Rect16::Height_t(menu_h);
+        if (rc_win.Height() <= 0)
+            return;
+        rc_win += Rect16::Top_t(menu_h);
+        display::FillRect(rc_win, GetBackColor());
     }
 }
 
@@ -262,44 +310,6 @@ void window_menu_t::printScrollBar(size_t available_count, uint16_t visible_coun
     uint16_t sb_y_start = Top() + top_index * scroll_item_height;
     display::DrawRect(Rect16(int16_t(Left() + Width() - GuiDefaults::MenuScrollbarWidth), Top(), GuiDefaults::MenuScrollbarWidth, Height()), GetBackColor());
     display::DrawRect(Rect16(int16_t(Left() + Width() - GuiDefaults::MenuScrollbarWidth), sb_y_start, GuiDefaults::MenuScrollbarWidth, visible_count * scroll_item_height), COLOR_SILVER);
-}
-
-void window_menu_t::redrawWholeMenu() {
-    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
-    const size_t visible_available = Height() / item_height;
-    size_t visible_count = 0, available_invisible_count = 0;
-    IWindowMenuItem *item;
-    for (size_t i = 0; i < GetCount(); ++i) {
-
-        item = GetItem(i);
-        if (!item)
-            break;
-        if (item->IsHidden())
-            continue;
-        if (visible_count < visible_available && i >= top_index) {
-            printItem(visible_count, item, item_height);
-        }
-        if (i < top_index || visible_count >= visible_available) {
-            available_invisible_count++;
-        } else {
-            visible_count++;
-        }
-    }
-
-    if (GuiDefaults::MenuHasScrollbar) {
-        if (available_invisible_count) {
-            printScrollBar(visible_count + available_invisible_count, visible_count);
-        }
-    }
-
-    /// fill the rest of the window by background
-    const int menu_h = visible_count * item_height;
-    Rect16 rc_win = GetRect();
-    rc_win -= Rect16::Height_t(menu_h);
-    if (rc_win.Height() <= 0)
-        return;
-    rc_win += Rect16::Top_t(menu_h);
-    display::FillRect(rc_win, GetBackColor());
 }
 
 void window_menu_t::unconditionalDrawItem(uint8_t index) {
@@ -314,19 +324,10 @@ void window_menu_t::unconditionalDrawItem(uint8_t index) {
         if (item->IsHidden())
             continue;
         if (i == index) {
-            printItem(visible_count, item, item_height);
+            printItem(visible_count, *item, item_height);
             break;
         }
         ++visible_count;
-    }
-}
-
-void window_menu_t::ShowAfterDialog() {
-    if (flags.hidden_behind_dialog) {
-        flags.hidden_behind_dialog = false;
-        //must invalidate even when is not visible
-        redrawAll = true;
-        Invalidate();
     }
 }
 
