@@ -12,7 +12,6 @@
 #include "window.hpp"
 #include "display_helper.h"
 #include "lazyfilelist.h"
-#include "text_roll.hpp"
 #include "WindowMenuItems.hpp"
 
 static constexpr size_t LazyDirViewSize = 9; //cannot be calculated, font is not constexpr
@@ -45,7 +44,6 @@ struct window_file_list_t : public window_aligned_t {
     color_t color_text;
     font_t *font;
     padding_ui8_t padding;
-    txtroll_t roll;
     int count;                           // total number of files/entries in a dir
     int index;                           // selected index - cursor position within the visible items
     LDV9 *ldv;                           // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
