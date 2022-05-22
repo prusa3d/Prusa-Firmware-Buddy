@@ -327,6 +327,7 @@ bool window_t::IsChildOf(window_t *win) const {
 
 void window_t::Draw() {
     draw();
+    Validate();
 }
 
 void window_t::draw() {
@@ -334,9 +335,6 @@ void window_t::draw() {
         if (IsVisible()) {
             unconditionalDraw();
         }
-        // there was in else branch: display::FillRect(rect, color_back);
-        // I really do not know why, but it cannot be, because background was drawing over dialogs
-        Validate();
     }
 }
 
