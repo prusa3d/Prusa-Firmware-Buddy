@@ -210,8 +210,7 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         //TODO: change flag to checked
         break;
     case GUI_event_t::TEXT_ROLL:
-        if (item->Roll() == invalidate_t::yes) //TODO Roll should invalidate item, not return value
-            item->Invalidate();                // TODO just text
+        item->Roll();
         break;
     default:
         break;

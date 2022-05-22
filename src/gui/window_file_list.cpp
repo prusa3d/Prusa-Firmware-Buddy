@@ -168,8 +168,7 @@ void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         //TODO: change flag to checked
         break;
     case GUI_event_t::TEXT_ROLL:
-        if (activeItem.Roll() == invalidate_t::yes)
-            Invalidate();
+        activeItem.Roll();
         break;
     default:
         break;
