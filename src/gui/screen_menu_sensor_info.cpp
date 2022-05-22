@@ -30,14 +30,6 @@ ScreenFactory::UniquePtr GetScreenMenuSensorInfo() {
 }
 
 void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::LOOP) {
-        if (Item<MI_FILAMENT_SENSOR_STATE>().StateChanged())
-            Item<MI_FILAMENT_SENSOR_STATE>().InValidateExtension();
-
-        if (Item<MI_MINDA>().StateChanged())
-            Item<MI_MINDA>().InValidateExtension();
-    }
-
     if (event == GUI_event_t::HELD_RELEASED) {
         DialogMoveZ::Show();
         return;
