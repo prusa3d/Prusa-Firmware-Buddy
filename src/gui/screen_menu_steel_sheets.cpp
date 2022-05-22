@@ -158,7 +158,6 @@ protected:
                 Item<MI_SHEET_RESET>().Disable();
                 Item<MI_SHEET_SELECT>().Disable();
                 Item<MI_SHEET_OFFSET>().Reset();
-                unconditionalDrawItem(5);
                 log_debug(GUI, "MI_SHEET_RESET OK");
             } else
                 log_error(GUI, "MI_SHEET_RESET FAIL!");
@@ -172,7 +171,6 @@ protected:
             SteelSheets::SelectSheet(value);
             ScreenWizard::Run(wizard_run_type_t::firstlay);
             Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
-            unconditionalDrawItem(5);
             break;
         case profile_action::Rename:
             log_debug(GUI, "MI_SHEET_RENAME");
