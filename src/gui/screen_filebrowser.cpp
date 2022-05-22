@@ -34,12 +34,14 @@ char screen_filebrowser_data_t::root[FILE_PATH_BUFFER_LEN] = "/usb";
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : AddSuperWindow<screen_t>()
     , header(this)
-    , w_filelist(this, GuiDefaults::RectScreenNoHeader)
+    , w_filelist(this,
+          GuiDefaults::ScreenWidth < 480 ? GuiDefaults::RectScreenNoHeader.TopLeft() : point_i16_t({ int16_t(16), int16_t(GuiDefaults::HeaderHeight + 5) }),
+          GuiDefaults::ScreenWidth < 480 ? display::GetW() : display::GetW() - 40)
     , gcode_info(GCodeInfo::getInstance()) {
     screen_filebrowser_sort = (WF_Sort_t)eeprom_get_ui8(EEVAR_FILE_SORT);
 
     header.SetIcon(IDR_PNG_folder_full_16px);
-    static const char sf[] = N_("SELECT FILE");
+    static const char sf[] = N_("PROJECTS");
     header.SetText(_(sf));
 
     //set root of the file list
