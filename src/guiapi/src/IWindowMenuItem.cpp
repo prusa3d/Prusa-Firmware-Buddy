@@ -227,3 +227,11 @@ void IWindowMenuItem::Roll() {
         InValidateLabel();
     }
 }
+
+bool IWindowMenuItem::Change(int dif) {
+    bool changed = change(dif) == invalidate_t::yes;
+    if (changed) {
+        InValidateExtension();
+    }
+    return changed;
+}

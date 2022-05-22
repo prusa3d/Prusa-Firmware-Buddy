@@ -65,6 +65,7 @@ protected:
     virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const;                               //must be virtual, because pictures of flags are drawn differently
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; //things behind rect
     virtual void click(IWindowMenu &window_menu) = 0;
+    virtual invalidate_t change(int /*dif*/) { return invalidate_t::no; }
 
     void setLabelFont(font_t *src) { label_font = src; }
     font_t *getLabelFont() const { return label_font; }
@@ -101,11 +102,12 @@ public:
 
     void Print(Rect16 rect);
 
-    inline invalidate_t Increment(uint8_t dif) { return Change(dif); }
-    inline invalidate_t Decrement(uint8_t dif) { return Change(-int(dif)); }
+    inline bool Increment(uint8_t dif) { return Change(dif); }
+    inline bool Decrement(uint8_t dif) { return Change(-int(dif)); }
+    bool Change(int dif); // returns if changed
     void Click(IWindowMenu &window_menu);
     inline void InitRollIfNeeded(Rect16 rect) { reInitRoll(getLabelRect(rect)); }
-    virtual invalidate_t Change(int /*dif*/) { return invalidate_t::no; }
+
     void Roll();
 
     bool IsInvalid() const;

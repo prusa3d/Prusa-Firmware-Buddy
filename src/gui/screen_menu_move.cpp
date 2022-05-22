@@ -13,16 +13,16 @@ class MI_AXIS : public WiSpinInt {
 protected:
     int32_t lastQueuedPos;
 
+    invalidate_t change(int diff) override {
+        auto res = WiSpinInt::change(diff);
+        return res;
+    }
+
 public:
     MI_AXIS<INDEX, LONG_SEG, BUFFER_LEN>()
         : WiSpinInt(int32_t(marlin_vars()->pos[INDEX]),
             SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), 0, is_enabled_t::yes, is_hidden_t::no)
         , lastQueuedPos(int32_t(marlin_vars()->pos[INDEX])) {}
-
-    invalidate_t Change(int diff) override {
-        auto res = WiSpinInt::Change(diff);
-        return res;
-    }
 
     void EnqueueNextMove() {
         marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE));

@@ -190,18 +190,14 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
         break;
     case GUI_event_t::ENC_DN:
         if (item->IsSelected()) {
-            //invalid |= playEncoderSound(item->Decrement(value) == invalidate_t::yes);
-            playEncoderSound(item->Decrement(value) == invalidate_t::yes);
-            //TODO Decrement should invalidate item, not return value
+            playEncoderSound(item->Decrement(value));
         } else {
             Decrement(value);
         }
         break;
     case GUI_event_t::ENC_UP:
         if (item->IsSelected()) {
-            //invalid |= playEncoderSound(item->Increment(value) == invalidate_t::yes);
-            playEncoderSound(item->Increment(value) == invalidate_t::yes);
-            //TODO Increment should invalidate item, not return value
+            playEncoderSound(item->Increment(value));
         } else {
             Increment(value);
         }
