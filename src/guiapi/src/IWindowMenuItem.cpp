@@ -221,3 +221,9 @@ void IWindowMenuItem::InValidateExtension() {
     invalid_extension = true;
     gui_invalidate();
 }
+
+void IWindowMenuItem::Roll() {
+    if (roll.Tick() == invalidate_t::yes) {
+        InValidateLabel();
+    }
+}
