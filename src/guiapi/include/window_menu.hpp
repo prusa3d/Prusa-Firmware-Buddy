@@ -49,9 +49,6 @@ public:
     uint8_t GetCount() const;
     IWindowMenuItem *GetItem(uint8_t index) const;
     IWindowMenuItem *GetActiveItem();
-    /// Redraws single item in menu
-    /// If the item is out of screen nothing happens
-    void unconditionalDrawItem(uint8_t index);
 
     void InitState(screen_init_variant::menu_t var);
     screen_init_variant::menu_t GetCurrentState() const;
