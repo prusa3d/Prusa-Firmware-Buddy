@@ -307,25 +307,6 @@ void window_menu_t::printScrollBar(size_t available_count, uint16_t visible_coun
     display::DrawRect(Rect16(int16_t(Left() + Width() - GuiDefaults::MenuScrollbarWidth), sb_y_start, GuiDefaults::MenuScrollbarWidth, visible_count * scroll_item_height), COLOR_SILVER);
 }
 
-void window_menu_t::unconditionalDrawItem(uint8_t index) {
-    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
-    const size_t visible_available = Height() / item_height;
-    size_t visible_count = 0;
-    IWindowMenuItem *item = nullptr;
-    for (size_t i = top_index; visible_count < visible_available && i < GetCount(); ++i) {
-        item = GetItem(i);
-        if (!item)
-            return;
-        if (item->IsHidden())
-            continue;
-        if (i == index) {
-            printItem(visible_count, *item, item_height);
-            break;
-        }
-        ++visible_count;
-    }
-}
-
 void window_menu_t::InitState(screen_init_variant::menu_t var) {
     SetIndex(var.index);
     top_index = var.top_index;

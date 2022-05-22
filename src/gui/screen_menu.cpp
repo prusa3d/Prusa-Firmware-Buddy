@@ -18,10 +18,6 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTE
     CaptureNormalWindow(menu); // set capture to list
 }
 
-void IScreenMenu::unconditionalDrawItem(uint8_t index) {
-    menu.unconditionalDrawItem(index);
-}
-
 void IScreenMenu::InitState(screen_init_variant var) {
     if (!var.GetMenuPosition())
         return;
