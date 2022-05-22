@@ -15,7 +15,7 @@ IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is
     , items(items_) {
 }
 
-invalidate_t IWiSwitch::Change(int /*dif*/) {
+invalidate_t IWiSwitch::change(int /*dif*/) {
     if ((++index) >= items.size) {
         index = 0;
     }

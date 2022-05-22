@@ -118,8 +118,9 @@ public:
         return ret;
     }
 
+protected:
     //show only integers .. TODO float, string
-    virtual invalidate_t Change(int /*dif*/) override {
+    virtual invalidate_t change(int /*dif*/) override {
         ++index;
         index %= EEVAR_CRC32;
         bool can_show = false;

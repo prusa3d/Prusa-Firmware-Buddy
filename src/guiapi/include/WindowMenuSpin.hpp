@@ -36,9 +36,9 @@ protected:
 public:
     IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
     virtual void OnClick() {}
-    inline invalidate_t SetVal(SpinType val) {
+    inline void SetVal(SpinType val) {
         value = val;
-        return Change(0);
+        Change(0);
     }
     /// don't define GetVal here since we don't know the return type yet
     /// and C++ does not allow return type overloading (yet)
@@ -55,10 +55,11 @@ public: //todo private
 
 protected:
     void printSpinToBuffer();
+    virtual invalidate_t change(int dif) override;
 
 public:
     WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
-    virtual invalidate_t Change(int dif) override;
+
     /// returns the same type to be on the safe side (SpinType is not type safe)
     T GetVal() const { return value; }
 };
@@ -75,7 +76,7 @@ WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, uint16
 }
 
 template <class T>
-invalidate_t WI_SPIN_t<T>::Change(int dif) {
+invalidate_t WI_SPIN_t<T>::change(int dif) {
     T val = (T)value;
     T old = val;
     val += (T)dif * config.Step();
