@@ -9,23 +9,24 @@
 WiSpinExp::WiSpinExp(int val, const Config &cnf, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : AddSuper<WiSpinInt>(val, cnf, label, id_icon, enabled, hidden) {}
 
-invalidate_t WiSpinExp::Change(int dif) {
-    if (dif == 0)
-        return super::Change(0); // parrent must handle it .. just invalidation and check of limits
-    int val = GetVal();
+invalidate_t WiSpinExp::change(int dif) {
+    if (dif != 0) {
+        int val = GetVal();
 
-    //I don't want to use pow(), because it works with floats
-    //step will be in 99% 0, 1 or -1 .. so it is fine
+        //I don't want to use pow(), because it works with floats
+        //step will be in 99% 0, 1 or -1 .. so it is fine
 
-    if (dif > 0) {
-        while ((--dif) >= 0) {
-            val *= config.Step();
+        if (dif > 0) {
+            while ((--dif) >= 0) {
+                val *= config.Step();
+            }
+        } else {
+            while ((++dif) <= 0) {
+                val /= config.Step();
+            }
         }
-    } else {
-        while ((++dif) <= 0) {
-            val /= config.Step();
-        }
+
+        value = val;
     }
-
-    return SetVal(val);
+    return super::change(0); // parent must handle it .. just invalidation and check of limits
 }
