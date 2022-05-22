@@ -178,7 +178,6 @@ void window_frame_t::draw() {
 
     if (IsInvalid()) {
         unconditionalDraw();
-        Validate();
         setChildrenInvalid = true;
     } else {
         // invalid_area must be drawn before subwins
