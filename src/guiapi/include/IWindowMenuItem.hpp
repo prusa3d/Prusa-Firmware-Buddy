@@ -106,7 +106,7 @@ public:
     void Click(IWindowMenu &window_menu);
     inline void InitRollIfNeeded(Rect16 rect) { reInitRoll(getLabelRect(rect)); }
     virtual invalidate_t Change(int /*dif*/) { return invalidate_t::no; }
-    inline invalidate_t Roll() { return roll.Tick(); }
+    void Roll();
 
     bool IsInvalid() const;
     bool IsIconInvalid() const;
