@@ -67,7 +67,7 @@ protected:
 public:
     IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_);
 
-    bool SetIndex(size_t idx);
+    void SetIndex(size_t idx);
     size_t GetIndex() const;
 
 protected:
