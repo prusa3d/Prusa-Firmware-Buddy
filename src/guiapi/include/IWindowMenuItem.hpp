@@ -78,16 +78,31 @@ public:
     IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
     IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
     virtual ~IWindowMenuItem() = default;
-    void Enable() { enabled = is_enabled_t::yes; }
-    void Disable() { enabled = is_enabled_t::no; }
+    void Enable() {
+        enabled = is_enabled_t::yes;
+        Invalidate();
+    }
+    void Disable() {
+        enabled = is_enabled_t::no;
+        Invalidate();
+    }
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     bool IsSelected() const { return selected == is_selected_t::yes; }
     void Hide() { hidden = (uint8_t)is_hidden_t::yes; }
     void Show() {
-        hidden = (uint8_t)is_hidden_t::no;
-        Invalidate();
+        if (hidden != (uint8_t)is_hidden_t::no) {
+            hidden = (uint8_t)is_hidden_t::no;
+            Invalidate();
+        }
     }
-    void ShowDevOnly() { hidden = (uint8_t)is_hidden_t::dev; }
+
+    void ShowDevOnly() {
+        if (hidden != (uint8_t)is_hidden_t::dev) {
+            hidden = (uint8_t)is_hidden_t::dev;
+            Invalidate();
+        }
+    }
+
     bool IsHidden() const;
     void SetFocus();
     void ClrFocus();
