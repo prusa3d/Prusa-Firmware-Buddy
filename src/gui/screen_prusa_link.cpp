@@ -101,12 +101,8 @@ ScreenFactory::UniquePtr GetScreenPrusaLink() {
 }
 
 void ScreenMenuPrusaLink::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event != GUI_event_t::LOOP && event != GUI_event_t::CHILD_CLICK) {
-        SuperWindowEvent(sender, event, param);
-        return;
-    }
-
-    if (event == GUI_event_t::CHILD_CLICK) {
+    switch (event) {
+    case GUI_event_t::CHILD_CLICK: {
         uint32_t action = ((uint32_t)param) & 0xFFFF;
         uint32_t type = ((uint32_t)param) & 0xFFFF0000;
         switch (type) {
@@ -124,7 +120,9 @@ void ScreenMenuPrusaLink::windowEvent(EventLock /*has private ctor*/, window_t *
         default:
             break;
         }
-    } else {
-        ;
+    } break;
+    default:
+        SuperWindowEvent(sender, event, param);
+        break;
     }
 }

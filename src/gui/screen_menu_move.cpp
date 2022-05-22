@@ -24,7 +24,8 @@ public:
             SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), 0, is_enabled_t::yes, is_hidden_t::no)
         , lastQueuedPos(int32_t(marlin_vars()->pos[INDEX])) {}
 
-    void EnqueueNextMove() {
+    // enqueue next moves according to value of spinners;
+    virtual void Loop() override {
         marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE));
         if (marlin_vars()->pqueue <= BUFFER_LEN) {
             int difference = (int)value - lastQueuedPos;
@@ -122,12 +123,6 @@ protected:
 
 void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        // enqueue next moves according to value of spinners;
-        Item<MI_AXIS_X>().EnqueueNextMove();
-        Item<MI_AXIS_Y>().EnqueueNextMove();
-        Item<MI_AXIS_Z>().EnqueueNextMove();
-        Item<MI_AXIS_E>().EnqueueNextMove();
-
         CheckNozzleTemp();
     }
 

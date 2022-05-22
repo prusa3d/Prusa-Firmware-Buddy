@@ -180,7 +180,7 @@ bool window_menu_t::playEncoderSound(bool changed) {
 //screen_dispatch_event
 //callback should handle it
 void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    IWindowMenuItem *const item = GetActiveItem();
+    IWindowMenuItem *item = GetActiveItem();
     if (!item)
         return;
     const int value = int(param);
@@ -208,6 +208,14 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
     case GUI_event_t::TEXT_ROLL:
         item->Roll();
         break;
+    case GUI_event_t::LOOP: {
+        //it is simpler to send loop to all items, not just shown ones
+        for (size_t i = 0; i < GetCount(); ++i) {
+            item = GetItem(i);
+            if (item)
+                item->Loop();
+        }
+    } break;
     default:
         break;
     }

@@ -28,14 +28,10 @@ void IWiSwitch::click(IWindowMenu & /*window_menu*/) {
     OnChange(old_index);
 }
 
-bool IWiSwitch::SetIndex(size_t idx) {
-    if (index == idx)
-        return false;
-    if (idx >= items.size)
-        return false;
-    else {
+void IWiSwitch::SetIndex(size_t idx) {
+    if ((index != idx) && (idx < items.size)) {
         index = idx;
-        return true;
+        InValidateExtension();
     }
 }
 

@@ -134,4 +134,6 @@ public:
     void InValidateIcon();
     void InValidateLabel();
     void InValidateExtension();
+
+    virtual void Loop() {}; //automatically called by menu
 };

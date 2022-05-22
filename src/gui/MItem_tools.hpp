@@ -413,7 +413,7 @@ class MI_FILAMENT_SENSOR_STATE : public WI_SWITCH_0_1_NA_t {
 
 public:
     MI_FILAMENT_SENSOR_STATE();
-    bool StateChanged();
+    virtual void Loop() override;
     virtual void OnChange(size_t old_index) override {}
 };
 
@@ -423,7 +423,7 @@ class MI_MINDA : public WI_SWITCH_0_1_NA_t {
 
 public:
     MI_MINDA();
-    bool StateChanged();
+    virtual void Loop() override;
     virtual void OnChange(size_t old_index) override {}
 };
 
