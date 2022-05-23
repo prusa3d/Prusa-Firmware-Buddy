@@ -5,7 +5,7 @@
 #include "stm32f4xx_hal.h"
 
 // dump types and flags
-static const uint8_t DUMP_UNDEFINED = 0xff; // undefined - memory erased/empty
+static const uint8_t DUMP_UNDEFINED = 0xff; // undefined - memory erased/empty/failed to read
 static const uint8_t DUMP_HARDFAULT = 0x01; // hardfault dump
 static const uint8_t DUMP_IWDGW = 0x02;     // IWDG warning dump
 static const uint8_t DUMP_GENERAL = 0x03;   // general error dump
