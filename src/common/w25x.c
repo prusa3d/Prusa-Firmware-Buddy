@@ -104,7 +104,7 @@ void w25x_rd_data(uint32_t addr, uint8_t *data, uint16_t cnt) {
     w25x_cs_high();
 }
 
-void w25x_page_program_single(uint32_t addr, const uint8_t *data, uint16_t cnt) {
+static void w25x_page_program_single(uint32_t addr, const uint8_t *data, uint16_t cnt) {
     w25x_enable_wr();
     w25x_cs_low();
     w25x_send_byte(CMD_PAGE_PROGRAM);      // send command 0x02
