@@ -37,10 +37,10 @@ void dump_to_xflash(void) {
         w25x_block64_erase(DUMP_OFFSET + addr);
     }
     for (uint32_t addr = 0; addr < DUMP_RAM_SIZE; addr += DUMP_PAGE_SIZE) {
-        w25x_page_program(DUMP_OFFSET + addr, (uint8_t *)(DUMP_RAM_ADDR + addr), DUMP_PAGE_SIZE);
+        w25x_program(DUMP_OFFSET + addr, (uint8_t *)(DUMP_RAM_ADDR + addr), DUMP_PAGE_SIZE);
     }
     for (uint32_t addr = 0; addr < DUMP_CCRAM_SIZE; addr += DUMP_PAGE_SIZE) {
-        w25x_page_program(DUMP_OFFSET + DUMP_RAM_SIZE + addr, (uint8_t *)(DUMP_CCRAM_ADDR + addr), DUMP_PAGE_SIZE);
+        w25x_program(DUMP_OFFSET + DUMP_RAM_SIZE + addr, (uint8_t *)(DUMP_CCRAM_ADDR + addr), DUMP_PAGE_SIZE);
     }
 }
 
@@ -86,7 +86,7 @@ void dump_in_xflash_clear_flag(uint8_t flag) {
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, &dumpinfo_type, 1);
     if (dumpinfo_type & flag) {
         dumpinfo_type &= ~flag;
-        w25x_page_program(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo_type), 1);
+        w25x_program(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo_type), 1);
     }
 }
 

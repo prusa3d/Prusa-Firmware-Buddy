@@ -116,7 +116,7 @@ static void w25x_page_program_single(uint32_t addr, const uint8_t *data, uint16_
     w25x_wait_busy();
 }
 
-void w25x_page_program(uint32_t addr, const uint8_t *data, uint16_t cnt) {
+void w25x_program(uint32_t addr, const uint8_t *data, uint16_t cnt) {
     // The Page Program instruction allows from one byte
     // to 256 bytes (a page) of data to be programmed
 

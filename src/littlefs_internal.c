@@ -82,7 +82,7 @@ static int prog(const struct lfs_config *c, lfs_block_t block,
         return LFS_ERR_INVAL;
     }
 
-    w25x_page_program(addr, (uint8_t *)buffer, size);
+    w25x_program(addr, (uint8_t *)buffer, size);
 
     if (w25x_fetch_error() != 0)
         return LFS_ERR_IO;
