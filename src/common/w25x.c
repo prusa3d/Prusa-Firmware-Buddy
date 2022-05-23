@@ -116,14 +116,14 @@ static void w25x_page_program_single(uint32_t addr, const uint8_t *data, uint16_
     w25x_wait_busy();
 }
 
-void w25x_program(uint32_t addr, const uint8_t *data, uint16_t cnt) {
+void w25x_program(uint32_t addr, const uint8_t *data, uint32_t cnt) {
     // The Page Program instruction allows from one byte
     // to 256 bytes (a page) of data to be programmed
 
     // Write unaligned part first
     uint32_t addr_align = addr % PAGE_SIZE;
     if (addr_align != 0) {
-        int cnt_align = PAGE_SIZE - addr_align;
+        uint32_t cnt_align = PAGE_SIZE - addr_align;
         if (cnt_align >= cnt) {
             w25x_page_program_single(addr, data, cnt);
             return;
