@@ -37,7 +37,7 @@ extern void w25x_rd_data(uint32_t addr, uint8_t *data, uint16_t cnt);
 
 /// Write data to the flash (the sector has to be erased first)
 /// Errors can be checked (and cleared) using w25x_fetch_error()
-extern void w25x_page_program(uint32_t addr, const uint8_t *data, uint16_t cnt);
+extern void w25x_program(uint32_t addr, const uint8_t *data, uint16_t cnt);
 
 /// Erase single sector of the flash
 /// Errors can be checked (and cleared) using w25x_fetch_error()
