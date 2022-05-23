@@ -6,7 +6,6 @@
 #include "w25x.h"
 
 static const uint32_t DUMP_OFFSET = 0x00;
-static const uint16_t DUMP_PAGE_SIZE = 0x100;
 static const uint16_t DUMP_BUFF_SIZE = 0x100;
 
 static const uint32_t DUMP_XFLASH_SIZE = DUMP_RAM_SIZE + DUMP_CCRAM_SIZE;
@@ -36,12 +35,8 @@ void dump_to_xflash(void) {
     for (uint32_t addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
         w25x_block64_erase(DUMP_OFFSET + addr);
     }
-    for (uint32_t addr = 0; addr < DUMP_RAM_SIZE; addr += DUMP_PAGE_SIZE) {
-        w25x_program(DUMP_OFFSET + addr, (uint8_t *)(DUMP_RAM_ADDR + addr), DUMP_PAGE_SIZE);
-    }
-    for (uint32_t addr = 0; addr < DUMP_CCRAM_SIZE; addr += DUMP_PAGE_SIZE) {
-        w25x_program(DUMP_OFFSET + DUMP_RAM_SIZE + addr, (uint8_t *)(DUMP_CCRAM_ADDR + addr), DUMP_PAGE_SIZE);
-    }
+    w25x_program(DUMP_OFFSET, (uint8_t *)(DUMP_RAM_ADDR), DUMP_RAM_SIZE);
+    w25x_program(DUMP_OFFSET + DUMP_RAM_SIZE, (uint8_t *)(DUMP_CCRAM_ADDR), DUMP_CCRAM_SIZE);
 }
 
 int dump_in_xflash_is_empty(void) {
@@ -81,6 +76,9 @@ unsigned short dump_in_xflash_get_code(void) {
     return dumpinfo.code;
 }
 
+/**
+ * @todo Programming single byte more times is undocumented feature of w25x
+ */
 void dump_in_xflash_clear_flag(uint8_t flag) {
     unsigned char dumpinfo_type;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, &dumpinfo_type, 1);
