@@ -37,43 +37,77 @@ void dump_to_xflash(void) {
     }
     w25x_program(DUMP_OFFSET, (uint8_t *)(DUMP_RAM_ADDR), DUMP_RAM_SIZE);
     w25x_program(DUMP_OFFSET + DUMP_RAM_SIZE, (uint8_t *)(DUMP_CCRAM_ADDR), DUMP_CCRAM_SIZE);
+    w25x_fetch_error();
 }
 
+/**
+ * @retval 1 is empty
+ * @retval 0 not empty or unable to read
+ */
 int dump_in_xflash_is_empty(void) {
     dumpinfo_t dumpinfo;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
+    if (w25x_fetch_error())
+        return 0;
     return (dumpinfo.type_flags & DUMP_UNDEFINED) ? 0 : 1;
 }
 
+/**
+ * @retval 1 is valid
+ * @retval 0 not valid or unable to read
+ */
 int dump_in_xflash_is_valid(void) {
     dumpinfo_t dumpinfo;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
     unsigned char dump_type = dumpinfo.type_flags & ~(DUMP_NOT_SAVED | DUMP_NOT_DISPL);
+    if (w25x_fetch_error())
+        return 0;
     return ((dump_type == DUMP_HARDFAULT) || (dump_type == DUMP_IWDGW) || (dump_type == DUMP_TEMPERROR));
 }
-
+/**
+ * @retval 1 is saved
+ * @retval 0 not saved or unable to read
+ */
 int dump_in_xflash_is_saved(void) {
     dumpinfo_t dumpinfo;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
+    if (w25x_fetch_error())
+        return 0;
     return (dumpinfo.type_flags & DUMP_NOT_SAVED) ? 0 : 1;
 }
-
+/**
+ * @retval 1 is displayed
+ * @retval 0 not displayed or unable to read
+ */
 int dump_in_xflash_is_displayed(void) {
     dumpinfo_t dumpinfo;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
+    if (w25x_fetch_error())
+        return 0;
     return (dumpinfo.type_flags & DUMP_NOT_DISPL) ? 0 : 1;
 }
 
+/**
+ * @retval DUMP_UNDEFINED Either there is no dump or failed to read.
+ */
 int dump_in_xflash_get_type(void) {
     dumpinfo_t dumpinfo;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
+    if (w25x_fetch_error())
+        dumpinfo.type_flags = DUMP_UNDEFINED;
     return (dumpinfo.type_flags & ~(DUMP_NOT_SAVED | DUMP_NOT_DISPL));
 }
 
+/**
+ * @retval 0xffff failed to read
+ */
 unsigned short dump_in_xflash_get_code(void) {
     dumpinfo_t dumpinfo;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
-    return dumpinfo.code;
+    if (!w25x_fetch_error())
+        return dumpinfo.code;
+    else
+        return 0xffff;
 }
 
 /**
@@ -82,9 +116,10 @@ unsigned short dump_in_xflash_get_code(void) {
 void dump_in_xflash_clear_flag(uint8_t flag) {
     unsigned char dumpinfo_type;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, &dumpinfo_type, 1);
-    if (dumpinfo_type & flag) {
+    if (!w25x_fetch_error() && (dumpinfo_type & flag)) {
         dumpinfo_type &= ~flag;
         w25x_program(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo_type), 1);
+        w25x_fetch_error();
     }
 }
 
@@ -110,6 +145,8 @@ unsigned int dump_in_xflash_read_regs_SCB(void *pRegsSCB, unsigned int size) {
     if (size > DUMP_REGS_SCB_SIZE)
         size = DUMP_REGS_SCB_SIZE;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_REGS_SCB_ADDR - DUMP_CCRAM_ADDR, (uint8_t *)(pRegsSCB), size);
+    if (w25x_fetch_error())
+        return 0;
     return size;
 }
 
@@ -117,6 +154,8 @@ unsigned int dump_in_xflash_read_regs_GEN(void *pRegsGEN, unsigned int size) {
     if (size > DUMP_REGS_GEN_SIZE)
         size = DUMP_REGS_GEN_SIZE;
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_REGS_GEN_ADDR - DUMP_CCRAM_ADDR, (uint8_t *)(pRegsGEN), size);
+    if (w25x_fetch_error())
+        return 0;
     return size;
 }
 
@@ -124,12 +163,14 @@ void dump_in_xflash_reset(void) {
     for (uint32_t addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000) {
         w25x_block64_erase(DUMP_OFFSET + addr);
     }
+    w25x_fetch_error();
 }
 
 void dump_in_xflash_delete(void) {
     for (uint32_t addr = 0; addr < 0x800000; addr += 0x10000) {
         w25x_block64_erase(DUMP_OFFSET + addr);
     }
+    w25x_fetch_error();
 }
 
 int dump_save_to_usb(const char *fn) {
@@ -144,6 +185,9 @@ int dump_save_to_usb(const char *fn) {
         for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += DUMP_BUFF_SIZE) {
             memset(buff, 0, DUMP_BUFF_SIZE);
             w25x_rd_data(addr, buff, DUMP_BUFF_SIZE);
+            if (w25x_fetch_error()) {
+                break;
+            }
             bw = fwrite(buff, 1, DUMP_BUFF_SIZE, fd);
             if (bw <= 0) {
                 break;
