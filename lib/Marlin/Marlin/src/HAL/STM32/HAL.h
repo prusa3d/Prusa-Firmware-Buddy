@@ -127,8 +127,8 @@
 //
 // Interrupts
 //
-#define CRITICAL_SECTION_START()  const bool irqon = !__get_PRIMASK(); __disable_irq()
-#define CRITICAL_SECTION_END()    if (irqon) __enable_irq()
+#define CRITICAL_SECTION_START()  const uint32_t primask = __get_PRIMASK(); __disable_irq()
+#define CRITICAL_SECTION_END()    __set_PRIMASK(primask)
 #define cli() __disable_irq()
 #define sei() __enable_irq()
 
