@@ -79,12 +79,16 @@ public:
     IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
     virtual ~IWindowMenuItem() = default;
     void Enable() {
-        enabled = is_enabled_t::yes;
-        Invalidate();
+        if (enabled != is_enabled_t::yes) {
+            enabled = is_enabled_t::yes;
+            Invalidate();
+        }
     }
     void Disable() {
-        enabled = is_enabled_t::no;
-        Invalidate();
+        if (enabled != is_enabled_t::no) {
+            enabled = is_enabled_t::no;
+            Invalidate();
+        }
     }
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     bool IsSelected() const { return selected == is_selected_t::yes; }
