@@ -413,7 +413,7 @@ class MI_FILAMENT_SENSOR_STATE : public WI_SWITCH_0_1_NA_t {
 
 public:
     MI_FILAMENT_SENSOR_STATE();
-    bool StateChanged();
+    virtual void Loop() override;
     virtual void OnChange(size_t old_index) override {}
 };
 
@@ -423,12 +423,12 @@ class MI_MINDA : public WI_SWITCH_0_1_NA_t {
 
 public:
     MI_MINDA();
-    bool StateChanged();
+    virtual void Loop() override;
     virtual void OnChange(size_t old_index) override {}
 };
 
 class MI_FAN_CHECK : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Fan check");
+    constexpr static const char *const label = N_("Fan Check");
 
 public:
     MI_FAN_CHECK();
@@ -438,7 +438,7 @@ public:
 /******************************************************************/
 // WI_INFO_t
 class MI_FS_AUTOLOAD : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("FS autoload");
+    constexpr static const char *const label = N_("FS Autoload");
 
 public:
     MI_FS_AUTOLOAD();

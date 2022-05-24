@@ -14,7 +14,6 @@
 #ifdef BUDDY_ENABLE_CONNECT
     #include <core_interface.hpp> // From connect. TODO: Better name!
 #endif
-
 /*****************************************************************************/
 
 class MI_LOAD_SETTINGS : public WI_LABEL_t {

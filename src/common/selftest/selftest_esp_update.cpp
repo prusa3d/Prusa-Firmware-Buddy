@@ -297,11 +297,14 @@ bool EspCredentials::make_file() {
         return false;
     }
 
-    fputs(file_str, file.get());
+    bool failed = fputs(file_str, file.get()) < 0;
+    if (failed) {
+        log_error(Network, "ESP credentials: Unable to write into file %s", file_name);
+    }
     file.reset(nullptr);
 
     log_info(Network, "ESP credentials generated to %s", file_name);
-    return true;
+    return !failed;
 }
 
 bool EspCredentials::file_exists() {

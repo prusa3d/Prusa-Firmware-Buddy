@@ -13,18 +13,19 @@ class MI_AXIS : public WiSpinInt {
 protected:
     int32_t lastQueuedPos;
 
+    invalidate_t change(int diff) override {
+        auto res = WiSpinInt::change(diff);
+        return res;
+    }
+
 public:
     MI_AXIS<INDEX, LONG_SEG, BUFFER_LEN>()
         : WiSpinInt(int32_t(marlin_vars()->pos[INDEX]),
             SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), 0, is_enabled_t::yes, is_hidden_t::no)
         , lastQueuedPos(int32_t(marlin_vars()->pos[INDEX])) {}
 
-    invalidate_t Change(int diff) override {
-        auto res = WiSpinInt::Change(diff);
-        return res;
-    }
-
-    void EnqueueNextMove() {
+    // enqueue next moves according to value of spinners;
+    virtual void Loop() override {
         marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE));
         if (marlin_vars()->pqueue <= BUFFER_LEN) {
             int difference = (int)value - lastQueuedPos;
@@ -97,8 +98,8 @@ class ScreenMenuMove : public Screen {
         MI_AXIS_E *spinner = &Item<MI_AXIS_E>();
         DUMMY_AXIS_E *dummy = &Item<DUMMY_AXIS_E>();
         bool temp_ok = (marlin_vars()->temp_nozzle > MenuVars::GetExtrudeMinTemp());
-        spinner->SetVisibility(temp_ok);
-        dummy->SetVisibility(!temp_ok);
+        temp_ok ? spinner->Show() : spinner->Hide();
+        temp_ok ? dummy->Hide() : dummy->Show();
     }
 
 public:
@@ -122,12 +123,6 @@ protected:
 
 void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        // enqueue next moves according to value of spinners;
-        Item<MI_AXIS_X>().EnqueueNextMove();
-        Item<MI_AXIS_Y>().EnqueueNextMove();
-        Item<MI_AXIS_Z>().EnqueueNextMove();
-        Item<MI_AXIS_E>().EnqueueNextMove();
-
         CheckNozzleTemp();
     }
 

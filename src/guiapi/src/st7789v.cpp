@@ -11,6 +11,7 @@
 #include "bsod.h"
 #include "raster_opfn_c.h"
 #include "st7789v_impl.hpp"
+#include "disable_interrupts.h"
 
 #ifdef ST7789V_USE_RTOS
     #include "cmsis_os.h"
@@ -134,13 +135,9 @@ static void st7789v_reset(void) {
     volatile uint16_t delay = 0;
     {
         InputEnabler rstInput(displayRst, Pull::up);
-        int irq = __get_PRIMASK() & 1;
-        if (irq)
-            __disable_irq();
+        buddy::DisableInterrupts disable_interrupts;
         while (rstInput.read() == Pin::State::low)
             delay++;
-        if (irq)
-            __enable_irq();
     }
     st7789v_set_rst();
     st7789v_reset_delay = delay;
@@ -314,6 +311,10 @@ void st7789v_init_ctl_pins(void) {
     st7789v_set_rs();
 }
 
+/**
+ * Warning: All interrupts are disabled in st7789v_reset() while measuring
+ * delay to detect Jogwheel revision.
+ */
 void st7789v_init(void) {
 #ifdef ST7789V_USE_RTOS
     st7789v_task_handle = osThreadGetId();

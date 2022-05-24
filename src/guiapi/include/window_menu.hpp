@@ -9,15 +9,13 @@
 //use template instead IWinMenuContainer *pContainer;
 //I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
 class window_menu_t : public IWindowMenu {
-    uint8_t index;      /// index of cursor
-    int8_t moveIndex;   /// accumulator for cursor changes
-    uint8_t top_index;  /// offset of currently shown item
-    bool redrawAll : 1; /// triggers whole menu redraw
-    bool clicked : 1;   /// triggers click redraw (item->Click invalidates whole menu, but we need to know what happened to redraw only necessary items)
+    uint8_t index;     /// index of cursor
+    int8_t moveIndex;  /// accumulator for cursor changes
+    uint8_t top_index; /// offset of currently shown item
 
     void setIndex(uint8_t index); //for ctor (cannot fail)
     /// Prints single item in the menu
-    void printItem(const size_t visible_count, IWindowMenuItem *item, const int item_height);
+    void printItem(const size_t visible_count, IWindowMenuItem &item, const int item_height);
     /// Searches for next visible item
     /// Repeats search for \param steps times
     /// Negative value searches in backward direction
@@ -36,8 +34,6 @@ class window_menu_t : public IWindowMenu {
     ///\param available_count - Number of all items that haven't got is_hidden enabled
     ///\param visible_count - Number of all currently visible items
     void printScrollBar(size_t available_count, uint16_t visible_count);
-    /// Redraws whole window
-    void redrawWholeMenu();
     /// Plays proper sound according to item/value changed
     /// \returns input
     bool playEncoderSound(bool changed);
@@ -53,16 +49,15 @@ public:
     uint8_t GetCount() const;
     IWindowMenuItem *GetItem(uint8_t index) const;
     IWindowMenuItem *GetActiveItem();
-    /// Redraws single item in menu
-    /// If the item is out of screen nothing happens
-    void unconditionalDrawItem(uint8_t index);
-    void ForceMenuRedraw() { redrawAll = true; }
 
     void InitState(screen_init_variant::menu_t var);
     screen_init_variant::menu_t GetCurrentState() const;
 
 protected:
-    virtual void unconditionalDraw() override;
+    virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-    virtual void ShowAfterDialog() override;
+
+    // TODO
+    // virtual void invalidate(Rect16 validation_rect);
+    // virtual void validate(Rect16 validation_rect);
 };
