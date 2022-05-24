@@ -98,7 +98,7 @@ struct GuiDefaults {
     static constexpr bool MenuSwitchHasBrackets = false; // draw brackets around switch values in menus
     static constexpr bool MenuSpinHasUnits = false;      // draw units behind spin
     static constexpr bool MenuHasScrollbar = false;
-    static constexpr bool ShowDevelopmentTools = false; // Show menu items for development
+    static constexpr bool ShowDevelopmentTools = true; // Show menu items for development
 
     // New menu feature settings
     static constexpr size_t MenuUseFixedUnitWidth = 28; // 0 == calculate in runtime
