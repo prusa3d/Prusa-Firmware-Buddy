@@ -94,6 +94,8 @@ static bool check_printer_type(GCodeInfo &gcode) {
     switch (MsgBoxWarning(txt_wrong_printer_type, Responses_IgnoreAbort, 0, GuiDefaults::RectScreenNoHeader)) {
     case Response::Abort:
         return false;
+    case Response::Ignore:
+        return true;
     default:
         //should happen only if the message box was closed because flash was removed
         return false;
