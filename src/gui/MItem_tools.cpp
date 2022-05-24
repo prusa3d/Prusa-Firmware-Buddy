@@ -27,6 +27,7 @@
 #include "footer_eeprom.hpp"
 #include <time.h>
 #include "sys.h"
+#include "w25x.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -298,7 +299,7 @@ MI_XFLASH_DELETE::MI_XFLASH_DELETE()
 }
 
 void MI_XFLASH_DELETE::click(IWindowMenu & /*window_menu*/) {
-    dump_in_xflash_delete();
+    w25x_chip_erase();
 }
 
 /*****************************************************************************/
