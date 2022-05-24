@@ -166,13 +166,6 @@ void dump_in_xflash_reset(void) {
     w25x_fetch_error();
 }
 
-void dump_in_xflash_delete(void) {
-    for (uint32_t addr = 0; addr < 0x800000; addr += 0x10000) {
-        w25x_block64_erase(DUMP_OFFSET + addr);
-    }
-    w25x_fetch_error();
-}
-
 int dump_save_to_usb(const char *fn) {
     FILE *fd;
     uint32_t addr;

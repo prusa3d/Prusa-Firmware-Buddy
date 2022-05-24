@@ -164,8 +164,6 @@ extern int dump_in_xflash_get_type(void);
 
 extern void dump_in_xflash_reset(void);
 
-extern void dump_in_xflash_delete(void);
-
 extern unsigned short dump_in_xflash_get_code(void);
 
 extern void dump_in_xflash_set_displayed(void);
