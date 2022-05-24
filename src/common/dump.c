@@ -49,7 +49,7 @@ int dump_in_xflash_is_empty(void) {
     w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
     if (w25x_fetch_error())
         return 0;
-    return (dumpinfo.type_flags & DUMP_UNDEFINED) ? 0 : 1;
+    return (DUMP_UNDEFINED == dumpinfo.type_flags) ? 1 : 0;
 }
 
 /**
