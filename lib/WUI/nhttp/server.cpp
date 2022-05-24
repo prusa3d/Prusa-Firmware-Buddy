@@ -207,8 +207,13 @@ bool Server::Slot::step() {
             skip -= current->len;
             current = current->next;
         }
-        assert(current);
-        input = string_view(static_cast<const char *>(current->payload) + skip, current->len - skip);
+        if (current) {
+            input = string_view(static_cast<const char *>(current->payload) + skip, current->len - skip);
+        } else {
+            // This is in theory impossible, it would mean LwIP gave us
+            // inconsistent pbuf list that ends prematurely.
+            assert(false);
+        }
     }
 
     if (wr) {
