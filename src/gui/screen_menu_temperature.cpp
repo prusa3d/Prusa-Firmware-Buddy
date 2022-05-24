@@ -43,6 +43,7 @@ void ScreenMenuTemperature::windowEvent(EventLock /*has private ctor*/, window_t
         marlin_set_target_nozzle(0);
         marlin_set_display_nozzle(0);
         marlin_set_target_bed(0);
+        marlin_set_fan_speed(0);
 
         Item<MI_NOZZLE>().SetVal(0);
         Item<MI_HEATBED>().SetVal(0);

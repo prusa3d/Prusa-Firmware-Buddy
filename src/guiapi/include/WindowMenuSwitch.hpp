@@ -67,8 +67,7 @@ protected:
 public:
     IWiSwitch(int32_t index, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_);
 
-    virtual invalidate_t Change(int dif) override;
-    bool SetIndex(size_t idx);
+    void SetIndex(size_t idx);
     size_t GetIndex() const;
 
 protected:
@@ -80,6 +79,7 @@ protected:
     Rect16 getLeftBracketRect(Rect16 extension_rect) const;
     Rect16 getRightBracketRect(Rect16 extension_rect) const;
 
+    virtual invalidate_t change(int dif) override;
     virtual void OnChange(size_t old_index) {};
     virtual void click(IWindowMenu &window_menu) final;
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;

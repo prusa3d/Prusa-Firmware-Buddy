@@ -4,9 +4,12 @@
  * @date 2020-11-09
  */
 
-#include "WindowMenuItems.hpp"
+#include "IWindowMenuItem.hpp"
 #include "resource.h"
 #include "cmath_ext.h"
+#include "gui_invalidate.hpp"
+
+static_assert(sizeof(IWindowMenuItem) <= sizeof(string_view_utf8) + sizeof(txtroll_t) + sizeof(font_t) + sizeof(int), "error inefficient size of IWindowMenuItem");
 
 IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands, font_t *label_font)
     : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden, label_font) {
@@ -20,6 +23,9 @@ IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extensi
     , selected(is_selected_t::no)
     , id_icon(id_icon)
     , extension_width(extension_width_)
+    , invalid_icon(true)
+    , invalid_label(true)
+    , invalid_extension(extension_width != 0)
     , label_font(label_font) {
 }
 
@@ -38,18 +44,18 @@ Rect16 IWindowMenuItem::getIconRect(Rect16 rect) const {
 
 Rect16 IWindowMenuItem::getLabelRect(Rect16 rect) const {
     rect -= icon_width;
-    rect -= extension_width;
+    rect -= Rect16::Width_t(extension_width);
     rect += Rect16::Left_t(icon_width);
     return rect;
 }
 
 Rect16 IWindowMenuItem::getExtensionRect(Rect16 rect) const {
     rect += Rect16::Left_t(rect.Width() - extension_width);
-    rect = extension_width;
+    rect = Rect16::Width_t(extension_width);
     return rect;
 }
 
-void IWindowMenuItem::Print(Rect16 rect) const {
+void IWindowMenuItem::Print(Rect16 rect) {
     ropfn raster_op;
     raster_op.shadow = IsEnabled() ? is_shadowed::no : is_shadowed::yes;
     raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
@@ -57,13 +63,34 @@ void IWindowMenuItem::Print(Rect16 rect) const {
     color_t mi_color_back = GetBackColor();
     color_t mi_color_text = GetTextColor();
 
-    //print background
-    render_rect(rect, mi_color_back);
+    // print background
+    // join rectangles if possible for smoother printing
+    if (IsIconInvalid() && IsLabelInvalid() && IsExtensionInvalid()) {
+        render_rect(rect, mi_color_back);
+    } else if (IsIconInvalid() && IsLabelInvalid()) {
+        render_rect(rect - Rect16::Width_t(extension_width), mi_color_back);
+    } else if (IsLabelInvalid() && IsExtensionInvalid()) {
+        render_rect((rect - getIconRect(rect).Width()) + getIconRect(rect).Left(), mi_color_back);
+    } else {
+        // rect join impossible, draw separate rectangles
+        if (IsIconInvalid())
+            render_rect(getIconRect(rect), mi_color_back);
+        if (IsLabelInvalid())
+            render_rect(getLabelRect(rect), mi_color_back);
+        if (IsExtensionInvalid())
+            render_rect(getExtensionRect(rect), mi_color_back);
+    }
 
-    printIcon(getIconRect(rect), raster_op, mi_color_back);
+    if (IsIconInvalid())
+        printIcon(getIconRect(rect), raster_op, mi_color_back);
+
+    // TODO invalid flag ???
     roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
-    if (extension_width)
+
+    if (IsExtensionInvalid() && extension_width)
         printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
+
+    Validate();
 }
 
 /*  color               options: |enabled|focused|dev_only|
@@ -122,11 +149,13 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
 void IWindowMenuItem::SetFocus() {
     focused = is_focused_t::yes;
     roll.Deinit();
+    Invalidate();
 }
 
 void IWindowMenuItem::ClrFocus() {
     focused = is_focused_t::no;
     roll.Stop();
+    Invalidate();
 }
 
 // Reinits text rolling in case of focus/defocus/click
@@ -138,4 +167,71 @@ void IWindowMenuItem::reInitRoll(Rect16 rect) {
 
 bool IWindowMenuItem::IsHidden() const {
     return (hidden == (uint8_t)is_hidden_t::yes) || (hidden == (uint8_t)is_hidden_t::dev && !GuiDefaults::ShowDevelopmentTools);
+}
+
+void IWindowMenuItem::SetLabel(string_view_utf8 text) {
+    if (label != text) {
+        label = text;
+        InValidateLabel();
+    }
+}
+
+bool IWindowMenuItem::IsInvalid() const {
+    // order matters label is most likely to be invalid and icon least likely
+    // so this order is the most efficient
+    return IsLabelInvalid() || IsExtensionInvalid() || IsIconInvalid();
+}
+
+bool IWindowMenuItem::IsIconInvalid() const {
+    return invalid_icon;
+}
+
+bool IWindowMenuItem::IsLabelInvalid() const {
+    return invalid_label;
+}
+
+bool IWindowMenuItem::IsExtensionInvalid() const {
+    return invalid_extension;
+}
+
+void IWindowMenuItem::Validate() {
+    invalid_icon = false;
+    invalid_label = false;
+    invalid_extension = false;
+}
+
+void IWindowMenuItem::Invalidate() {
+    invalid_icon = true;
+    invalid_label = true;
+    invalid_extension = true;
+    gui_invalidate();
+}
+
+void IWindowMenuItem::InValidateIcon() {
+    invalid_icon = true;
+    gui_invalidate();
+}
+
+void IWindowMenuItem::InValidateLabel() {
+    invalid_label = true;
+    gui_invalidate();
+}
+
+void IWindowMenuItem::InValidateExtension() {
+    invalid_extension = true;
+    gui_invalidate();
+}
+
+void IWindowMenuItem::Roll() {
+    if (roll.Tick() == invalidate_t::yes) {
+        InValidateLabel();
+    }
+}
+
+bool IWindowMenuItem::Change(int dif) {
+    bool changed = change(dif) == invalidate_t::yes;
+    if (changed) {
+        InValidateExtension();
+    }
+    return changed;
 }

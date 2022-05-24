@@ -128,7 +128,7 @@ protected:
 #ifdef _DEBUG
 using Screen = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH, MI_TEST_LANG>;
 #else
-using Screen = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using Screen = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH>;
 #endif
 
 class ScreenMenuLanguages : public Screen {
@@ -146,7 +146,7 @@ ScreenFactory::UniquePtr GetScreenMenuLanguages() {
 
 /*****************************************************************************/
 //parent alias
-using Screen_noReturn = ScreenMenu<EFooter::Off, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using Screen_noReturn = ScreenMenu<EFooter::Off, MI_ENGLISH>;
 
 class ScreenMenuLanguagesNoRet : public Screen_noReturn {
 public:

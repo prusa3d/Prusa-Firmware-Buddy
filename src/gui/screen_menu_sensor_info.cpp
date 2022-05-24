@@ -30,14 +30,6 @@ ScreenFactory::UniquePtr GetScreenMenuSensorInfo() {
 }
 
 void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::LOOP) {
-        if (Item<MI_FILAMENT_SENSOR_STATE>().StateChanged())
-            unconditionalDrawItem(1);
-        if (Item<MI_MINDA>().StateChanged()) {
-            unconditionalDrawItem(2);
-        }
-    }
-
     if (event == GUI_event_t::HELD_RELEASED) {
         DialogMoveZ::Show();
         return;

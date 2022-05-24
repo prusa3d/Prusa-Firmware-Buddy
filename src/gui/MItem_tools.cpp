@@ -545,8 +545,8 @@ MI_FILAMENT_SENSOR_STATE::state_t MI_FILAMENT_SENSOR_STATE::get_state() {
     return state_t::unknown;
 }
 
-bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
-    return SetIndex((size_t)get_state());
+void MI_FILAMENT_SENSOR_STATE::Loop() {
+    SetIndex((size_t)get_state());
 }
 
 MI_MINDA::MI_MINDA()
@@ -557,8 +557,8 @@ MI_MINDA::state_t MI_MINDA::get_state() {
     return (buddy::hw::zMin.read() == buddy::hw::Pin::State::low) ? state_t::low : state_t::high;
 }
 
-bool MI_MINDA::StateChanged() {
-    return SetIndex((size_t)get_state());
+void MI_MINDA::Loop() {
+    SetIndex((size_t)get_state());
 }
 
 /*****************************************************************************/

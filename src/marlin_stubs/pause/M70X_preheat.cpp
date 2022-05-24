@@ -124,6 +124,10 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_ex
         thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
         marlin_server_set_temp_to_display(fil_cnf.nozzle);
         thermalManager.setTargetBed(fil_cnf.heatbed);
+        //cooldown pressed
+        if (filament == filament_t::NONE) {
+            thermalManager.set_fan_speed(0, 0);
+        }
     }
 
     if (save)

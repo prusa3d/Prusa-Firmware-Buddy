@@ -518,12 +518,11 @@ if(CONNECT)
     target_sources(
       firmware
       PRIVATE src/Connect/connect.cpp
-              src/Connect/httpc.cpp
-              src/Connect/httpc.cpp
-              src/Connect/socket.cpp
               src/Connect/core_interface.cpp
+              src/Connect/httpc.cpp
               src/Connect/httpc_data.cpp
               src/Connect/os_porting.cpp
+              src/Connect/socket.cpp
               src/Connect/tls/hardware_rng.c
               src/Connect/tls/net_sockets.c
               src/Connect/tls/tls.cpp
