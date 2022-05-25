@@ -58,7 +58,7 @@ namespace {
         case ContentType::ImagePng:
             return "image/png";
         case ContentType::ImageSvg:
-            return "image/xml+svg";
+            return "image/svg+xml";
         case ContentType::ApplicationJavascript:
             return "application/javascript";
         case ContentType::ApplicationJson:
