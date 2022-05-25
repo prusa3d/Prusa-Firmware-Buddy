@@ -33,23 +33,11 @@ struct vars_body_t : public eeprom::v7::vars_body_t {
     Sheet SHEET_PROFILE7;
     uint32_t SELFTEST_RESULT;
     uint8_t DEVHASH_IN_QR;
-#if (EEPROM_FEATURES & EEPROM_FEATURE_CONNECT)
-    char CONNECT_HOST[CONNECT_HOST_SIZE + 1];
-    char CONNECT_TOKEN[CONNECT_TOKEN_SIZE + 1];
-    uint16_t CONNECT_PORT;
-    bool CONNECT_TLS;
-    bool CONNECT_ENABLED;
-#endif
 };
 
 #pragma pack(pop)
 
-static_assert(sizeof(vars_body_t) == sizeof(eeprom::v7::vars_body_t) + sizeof(vars_body_t::FILE_SORT) + sizeof(vars_body_t::MENU_TIMEOUT) + sizeof(vars_body_t::ACTIVE_SHEET) + 8 * sizeof(Sheet) + sizeof(vars_body_t::SELFTEST_RESULT) + sizeof(vars_body_t::DEVHASH_IN_QR)
-
-#if (EEPROM_FEATURES & EEPROM_FEATURE_CONNECT)
-            + sizeof(vars_body_t::CONNECT_HOST) + sizeof(vars_body_t::CONNECT_TOKEN) + sizeof(vars_body_t::CONNECT_PORT) + sizeof(vars_body_t::CONNECT_TLS) + sizeof(vars_body_t::CONNECT_ENABLED)
-#endif
-                  ,
+static_assert(sizeof(vars_body_t) == sizeof(eeprom::v7::vars_body_t) + sizeof(vars_body_t::FILE_SORT) + sizeof(vars_body_t::MENU_TIMEOUT) + sizeof(vars_body_t::ACTIVE_SHEET) + 8 * sizeof(Sheet) + sizeof(vars_body_t::SELFTEST_RESULT) + sizeof(vars_body_t::DEVHASH_IN_QR),
     "eeprom body size does not match");
 
 constexpr vars_body_t body_defaults = {
@@ -67,13 +55,6 @@ constexpr vars_body_t body_defaults = {
     { "Custom4", eeprom_z_offset_uncalibrated },
     0,    // EEVAR_SELFTEST_RESULT
     true, // EEVAR_DEVHASH_IN_QR
-#if (EEPROM_FEATURES & EEPROM_FEATURE_CONNECT)
-    "",    // CONNECT_HOST
-    "",    // CONNECT_TOKEN
-    80,    // CONNECT_PORT
-    true,  // CONNECT_TLS
-    false, // CONNECT_ENABLED
-#endif
 };
 
 inline vars_body_t convert(const eeprom::v7::vars_body_t &src) {

@@ -31,12 +31,25 @@ struct vars_body_t : public eeprom::v10::vars_body_t {
     char WIFI_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
     char WIFI_AP_SSID[WIFI_MAX_SSID_LEN + 1];
     char WIFI_AP_PASSWD[WIFI_MAX_PASSWD_LEN + 1];
+#if (EEPROM_FEATURES & EEPROM_FEATURE_CONNECT)
+    char CONNECT_HOST[CONNECT_HOST_SIZE + 1];
+    char CONNECT_TOKEN[CONNECT_TOKEN_SIZE + 1];
+    uint16_t CONNECT_PORT;
+    bool CONNECT_TLS;
+    bool CONNECT_ENABLED;
+#endif
     uint8_t USB_MSC_ENABLED;
 };
 
 #pragma pack(pop)
 
-static_assert(sizeof(vars_body_t) == sizeof(eeprom::v10::vars_body_t) + sizeof(uint8_t) * 3 + PL_API_KEY_SIZE + LAN_HOSTNAME_MAX_LEN + 1 + WIFI_MAX_SSID_LEN + 1 + WIFI_MAX_PASSWD_LEN + 1 + 1 + sizeof(uint32_t) * 5, "eeprom body size does not match");
+static_assert(sizeof(vars_body_t) == sizeof(eeprom::v10::vars_body_t) + sizeof(uint8_t) * 3 + PL_API_KEY_SIZE + LAN_HOSTNAME_MAX_LEN + 1 + WIFI_MAX_SSID_LEN + 1 + WIFI_MAX_PASSWD_LEN + 1 + 1 + sizeof(uint32_t) * 5
+
+#if (EEPROM_FEATURES & EEPROM_FEATURE_CONNECT)
+            + sizeof(vars_body_t::CONNECT_HOST) + sizeof(vars_body_t::CONNECT_TOKEN) + sizeof(vars_body_t::CONNECT_PORT) + sizeof(vars_body_t::CONNECT_TLS) + sizeof(vars_body_t::CONNECT_ENABLED)
+#endif
+                  ,
+    "eeprom body size does not match");
 
 constexpr vars_body_t body_defaults = {
     eeprom::v10::body_defaults,
@@ -52,7 +65,14 @@ constexpr vars_body_t body_defaults = {
     DEFAULT_HOST_NAME, // EEVAR_WIFI_HOSTNAME
     "",                // EEVAR_WIFI_AP_SSID
     "",                // EEVAR_WIFI_AP_PASSWD
-    false,             // EEVAR_USB_MSC_ENABLED
+#if (EEPROM_FEATURES & EEPROM_FEATURE_CONNECT)
+    "",    // CONNECT_HOST
+    "",    // CONNECT_TOKEN
+    80,    // CONNECT_PORT
+    true,  // CONNECT_TLS
+    false, // CONNECT_ENABLED
+#endif
+    false, // EEVAR_USB_MSC_ENABLED
 };
 
 inline vars_body_t convert(const eeprom::v10::vars_body_t &src) {
