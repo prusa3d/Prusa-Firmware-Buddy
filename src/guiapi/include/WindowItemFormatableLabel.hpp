@@ -50,13 +50,11 @@ public:
         , value(initVal)
         , oldVal(initVal) {
     }
-    invalidate_t UpdateValue(ValueType val) {
+    void UpdateValue(ValueType val) {
         value = val;
         if (value != oldVal) {
             oldVal = value;
-            return invalidate_t::yes;
-        } else {
-            return invalidate_t::no;
+            InValidateExtension();
         }
     }
 };
