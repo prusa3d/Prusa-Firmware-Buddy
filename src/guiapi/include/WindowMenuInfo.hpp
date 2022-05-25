@@ -45,13 +45,12 @@ public:
         itoa(num_to_print, information, 10);
     }
 
-    invalidate_t ChangeInformation(const char *str) {
+    void ChangeInformation(const char *str) {
         if (strncmp(information, str, INFO_LEN)) {
             strlcpy(information, str, INFO_LEN);
             information[INFO_LEN - 1] = 0;
-            return invalidate_t::yes;
+            InValidateExtension();
         }
-        return invalidate_t::no;
     }
 
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override {
