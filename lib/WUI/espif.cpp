@@ -126,7 +126,7 @@ void espif_receive_data(UART_HandleTypeDef *huart) {
 
 static void hard_reset_device() {
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-    osDelay(10);
+    osDelay(100);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
     esp_detected = false;
 }
