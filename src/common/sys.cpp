@@ -4,6 +4,7 @@
 #include "shared_config.h"
 #include "stm32f4xx_hal.h"
 #include "st25dv64k.h"
+#include "main.h"
 #include "log.h"
 #include "disable_interrupts.h"
 
@@ -231,33 +232,10 @@ int sys_sscg_get_config(float *pfreq, float *pdepth) {
     return 0;
 }
 
-uint32_t _spi_prescaler(int prescaler_num) {
-    switch (prescaler_num) {
-    case 0:
-        return SPI_BAUDRATEPRESCALER_2; // 0x00000000U
-    case 1:
-        return SPI_BAUDRATEPRESCALER_4; // 0x00000008U
-    case 2:
-        return SPI_BAUDRATEPRESCALER_8; // 0x00000010U
-    case 3:
-        return SPI_BAUDRATEPRESCALER_16; // 0x00000018U
-    case 4:
-        return SPI_BAUDRATEPRESCALER_32; // 0x00000020U
-    case 5:
-        return SPI_BAUDRATEPRESCALER_64; // 0x00000028U
-    case 6:
-        return SPI_BAUDRATEPRESCALER_128; // 0x00000030U
-    case 7:
-        return SPI_BAUDRATEPRESCALER_256; // 0x00000038U
-    }
-    return SPI_BAUDRATEPRESCALER_2;
-}
-
 void sys_spi_set_prescaler(int prescaler_num) {
-    buddy::DisableInterrupts disable_interrupts;
-    HAL_SPI_DeInit(&hspi2);
-    hspi2.Init.BaudRatePrescaler = _spi_prescaler(prescaler_num);
-    HAL_SPI_Init(&hspi2);
+#if HAS_GUI
+    spi_set_prescaler(&LCD_SPI, prescaler_num);
+#endif
 }
 
 int sys_fw_update_is_enabled(void) {

@@ -672,6 +672,35 @@ void iwdg_warning_cb(void) {
     //	sys_reset();
 }
 
+static uint32_t _spi_prescaler(int prescaler_num) {
+    switch (prescaler_num) {
+    case 0:
+        return SPI_BAUDRATEPRESCALER_2; // 0x00000000U
+    case 1:
+        return SPI_BAUDRATEPRESCALER_4; // 0x00000008U
+    case 2:
+        return SPI_BAUDRATEPRESCALER_8; // 0x00000010U
+    case 3:
+        return SPI_BAUDRATEPRESCALER_16; // 0x00000018U
+    case 4:
+        return SPI_BAUDRATEPRESCALER_32; // 0x00000020U
+    case 5:
+        return SPI_BAUDRATEPRESCALER_64; // 0x00000028U
+    case 6:
+        return SPI_BAUDRATEPRESCALER_128; // 0x00000030U
+    case 7:
+        return SPI_BAUDRATEPRESCALER_256; // 0x00000038U
+    }
+    return SPI_BAUDRATEPRESCALER_2;
+}
+
+void spi_set_prescaler(SPI_HandleTypeDef *hspi, int prescaler_num) {
+    buddy::DisableInterrupts disable_interrupts;
+    HAL_SPI_DeInit(hspi);
+    hspi->Init.BaudRatePrescaler = _spi_prescaler(prescaler_num);
+    HAL_SPI_Init(hspi);
+}
+
 #ifdef USE_FULL_ASSERT
 /**
  * @brief  Reports the name of the source file and the source line number
