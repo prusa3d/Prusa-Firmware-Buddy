@@ -139,10 +139,10 @@ void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, 
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
-    roll.Deinit();
-    window_menu.Invalidate();
     if (IsEnabled()) {
+        roll.Deinit();
         click(window_menu);
+        InValidateExtension();
     }
 }
 
