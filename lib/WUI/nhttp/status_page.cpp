@@ -40,7 +40,7 @@ Step StatusPage::step(std::string_view, bool, uint8_t *output, size_t output_siz
         ct = ContentType::TextPlain;
     }
 
-    ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ContentLengthKeep : ConnectionHandling::Close;
+    ConnectionHandling handling = close_handling == CloseHandling::KeepAlive ? ConnectionHandling::ContentLengthKeep : ConnectionHandling::Close;
 
     /*
      * TODO: We might also want to include the Content-Location header with a
@@ -56,7 +56,8 @@ Step StatusPage::step(std::string_view, bool, uint8_t *output, size_t output_siz
     // with that, we work with byte-arrays with lengths here.
     strncpy(reinterpret_cast<char *>(output + used_up), content_buffer, write);
 
-    return Step { 0, used_up + write, Terminating::for_handling(handling) };
+    Terminating term = close_handling == CloseHandling::ErrorClose ? Terminating::error_termination() : Terminating::for_handling(handling);
+    return Step { 0, used_up + write, term };
 }
 
 }

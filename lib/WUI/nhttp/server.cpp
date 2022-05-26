@@ -234,6 +234,14 @@ bool Server::Slot::step() {
         return true;
     }
 
+    if (!wr) {
+        if (Terminating *t = get_if<Terminating>(&state); t && t->shutdown_send) {
+            t->shutdown_send = false;
+            // Ignoring errors, no way to handle anyway and we'll close it soon.
+            altcp_shutdown(conn, 0, 1);
+            return true;
+        }
+    }
     if (!re && !wr) {
         /*
          * The current phase doesn't want to do anything. Check for special
