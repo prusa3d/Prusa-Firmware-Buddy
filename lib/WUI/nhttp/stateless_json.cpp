@@ -56,7 +56,7 @@ Step StatelessJson::step(std::string_view, bool, uint8_t *buffer, size_t buffer_
             // return a 500 error, we have sent the headers out already
             // (possibly), so the best we can do is to abort the
             // connection.
-            return { 0, 0, Terminating { Done::CloseFast } };
+            return { 0, 0, Terminating { 0, Done::CloseFast } };
         }
 
         // Fall through: the last chunk may fit

@@ -96,12 +96,21 @@ public:
  * connection or transition to Idle on its own.
  */
 struct Terminating {
+    bool eat_input;
     Done how;
-    bool want_read() const { return false; }
+    /*
+     * Request to shut down the send direction early, even during the eating of
+     * input.
+     */
+    bool shutdown_send = false;
+    bool want_read() const { return eat_input > 0; }
     bool want_write() const { return false; }
     Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
     static Terminating for_handling(http::ConnectionHandling handling) {
-        return Terminating { handling == http::ConnectionHandling::Close ? Done::Close : Done::KeepAlive };
+        return Terminating { false, handling == http::ConnectionHandling::Close ? Done::Close : Done::KeepAlive, false };
+    }
+    static Terminating error_termination() {
+        return Terminating { true, Done::Close, true };
     }
 };
 
@@ -183,7 +192,7 @@ struct Step {
  */
 class Selector {
 public:
-    virtual ~Selector();
+    virtual ~Selector() = default;
     virtual std::optional<ConnectionState> accept(const RequestParser &request) const = 0;
 };
 
