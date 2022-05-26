@@ -66,12 +66,12 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
 
     const auto boundary = parser.boundary();
     if (boundary.empty()) {
-        return StatusPage(Status::BadRequest, false, json_errors, "Missing boundary");
+        return StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing boundary");
     }
 
     // One day we may want to support chunked and connection-close, but we are not there yet.
     if (!parser.content_length.has_value()) {
-        return StatusPage(Status::LengthRequired, json_errors, false);
+        return StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, json_errors);
     }
 
     static size_t upload_idx = 0;
@@ -81,7 +81,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     unique_file_ptr file(fopen(fname, "wb"));
     if (!file) {
         // Missing USB -> Insufficient storage.
-        return StatusPage(Status::InsufficientStorage, false, json_errors, "Missing USB drive");
+        return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing USB drive");
     }
 
     char boundary_cstr[boundary.size() + 1];
@@ -90,7 +90,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     UploadState uploader(boundary_cstr);
 
     if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
-        return StatusPage(get<0>(err), false, json_errors, get<1>(err));
+        return StatusPage(get<0>(err), StatusPage::CloseHandling::ErrorClose, json_errors, get<1>(err));
     }
 
     return GcodeUpload(move(uploader), json_errors, *parser.content_length, file_idx, move(file), uploaded);
@@ -99,7 +99,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
 Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
     uploader.setup(this);
     if (terminated_by_client && size_rest > 0) {
-        return { 0, 0, StatusPage(Status::BadRequest, false, json_errors, "Truncated body") };
+        return { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Truncated body") };
     }
 
     const size_t read = std::min(input.size(), size_rest);
@@ -108,7 +108,7 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
     size_rest -= read;
 
     if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
-        return { read, 0, StatusPage(get<0>(err), false, json_errors, get<1>(err)) };
+        return { read, 0, StatusPage(get<0>(err), StatusPage::CloseHandling::ErrorClose, json_errors, get<1>(err)) };
     }
 
     if (size_rest == 0) {
@@ -122,7 +122,7 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
             strlcpy(filename + USB_MOUNT_POINT_LENGTH, orig_filename, sizeof(filename) - USB_MOUNT_POINT_LENGTH);
             return { read, 0, FileInfo(filename, false, json_errors, true) };
         } else {
-            return { read, 0, StatusPage(Status::BadRequest, false, json_errors, "Missing file") };
+            return { read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing file") };
         }
     } else {
         return { read, 0, Continue() };

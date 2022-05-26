@@ -5,6 +5,7 @@
 #pragma once
 
 #include "types.h"
+#include "status_page.h"
 
 #include <automata/core.h>
 
@@ -114,6 +115,8 @@ public:
      * * Connection header, if present.
      */
     bool can_keep_alive() const;
+    // Status page close handling for the current can_keep_alive.
+    StatusPage::CloseHandling status_page_handling() const;
     /**
      * \brief Is the request authenticated by a valid api key?
      */

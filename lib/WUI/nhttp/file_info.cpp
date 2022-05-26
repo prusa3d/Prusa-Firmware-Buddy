@@ -138,7 +138,7 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
             // Special case it, we return empty list of files.
             renderer = DirRenderer(); // Produces empty file list
         } else {
-            return Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive, json_errors) };
+            return Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors) };
         }
         written = write_headers(output, output_size, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling);
 
@@ -176,7 +176,7 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
             // return a 500 error, we have sent the headers out already
             // (possibly), so the best we can do is to abort the
             // connection.
-            return { 0, 0, Terminating { Done::CloseFast } };
+            return { 0, 0, Terminating { 0, Done::CloseFast } };
         }
     }
 
@@ -196,7 +196,7 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
 
     // This place should be unreachable!
     assert(0);
-    return { 0, 0, Terminating { Done::CloseFast } };
+    return { 0, 0, Terminating { 0, Done::CloseFast } };
 }
 
 }

@@ -32,7 +32,7 @@ JobCommand::JobCommand(size_t content_length, bool can_keep_alive, bool json_err
 Step JobCommand::step(std::string_view input, bool terminated_by_client, uint8_t *, size_t) {
     if (content_length > buffer.size()) {
         // Refuse early, without reading the body -> drop the connection too.
-        return Step { 0, 0, StatusPage(Status::PayloadTooLarge, false, json_errors) };
+        return Step { 0, 0, StatusPage(Status::PayloadTooLarge, StatusPage::CloseHandling::ErrorClose, json_errors) };
     }
 
     const size_t rest = content_length - buffer_used;
@@ -47,7 +47,7 @@ Step JobCommand::step(std::string_view input, bool terminated_by_client, uint8_t
     if (content_length > buffer_used) {
         // Still waiting for more data.
         if (terminated_by_client) {
-            return Step { to_read, 0, StatusPage(Status::BadRequest, false, json_errors, "Truncated request") };
+            return Step { to_read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Truncated request") };
         } else {
             return Step { to_read, 0, Continue() };
         }
@@ -80,9 +80,9 @@ StatusPage JobCommand::process() {
 
     switch (parse_result) {
     case JsonParseResult::ErrMem:
-        return StatusPage(Status::PayloadTooLarge, can_keep_alive, json_errors, "Too many JSON tokens");
+        return StatusPage(Status::PayloadTooLarge, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Too many JSON tokens");
     case JsonParseResult::ErrReq:
-        return StatusPage(Status::BadRequest, can_keep_alive, json_errors, "Couldn't parse JSON");
+        return StatusPage(Status::BadRequest, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Couldn't parse JSON");
     case JsonParseResult::Ok:
         break;
     }
@@ -94,34 +94,34 @@ StatusPage JobCommand::process() {
     switch (top_command) {
     case Command::ErrUnknownCommand:
         // Any idea for better status than the very generic 400? 404?
-        return StatusPage(Status::BadRequest, can_keep_alive, "Unknown job command");
+        return StatusPage(Status::BadRequest, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, "Unknown job command");
     case Command::Pause:
         if (pause()) {
-            return StatusPage(Status::NoContent, can_keep_alive, json_errors);
+            return StatusPage(Status::NoContent, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         } else {
-            return StatusPage(Status::Conflict, can_keep_alive, json_errors);
+            return StatusPage(Status::Conflict, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         }
     case Command::Resume:
         if (resume()) {
-            return StatusPage(Status::NoContent, can_keep_alive, json_errors);
+            return StatusPage(Status::NoContent, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         } else {
-            return StatusPage(Status::Conflict, can_keep_alive, json_errors);
+            return StatusPage(Status::Conflict, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         }
     case Command::PauseToggle:
         if (pause_toggle()) {
-            return StatusPage(Status::NoContent, can_keep_alive, json_errors);
+            return StatusPage(Status::NoContent, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         } else {
-            return StatusPage(Status::Conflict, can_keep_alive, json_errors);
+            return StatusPage(Status::Conflict, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         }
     case Command::Stop:
         if (stop()) {
-            return StatusPage(Status::NoContent, can_keep_alive, json_errors);
+            return StatusPage(Status::NoContent, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         } else {
-            return StatusPage(Status::Conflict, can_keep_alive, json_errors);
+            return StatusPage(Status::Conflict, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         }
     default:
         assert(0);
-        return StatusPage(Status::InternalServerError, can_keep_alive, json_errors, "Invalid command");
+        return StatusPage(Status::InternalServerError, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Invalid command");
     }
 }
 
