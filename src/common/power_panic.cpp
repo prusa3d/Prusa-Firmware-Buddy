@@ -65,9 +65,8 @@ void ac_fault_main(void const *argument) {
     }
 }
 
-static const uint32_t FLASH_BLOCK = 4096;
-static const uint32_t FLASH_OFFSET = FLASH_BLOCK * 127; // 1 sector before filesystem
-static const uint32_t FLASH_SIZE = FLASH_BLOCK;         // 1 sector = 1 block
+static constexpr uint32_t FLASH_OFFSET = w25x_pp_start_address;
+static constexpr uint32_t FLASH_SIZE = w25x_pp_start_address - w25x_fs_start_address;
 
 // WARNING: mind the alignment, the following structures are not automatically packed
 // as they're shared also for the on-memory copy. The on-memory copy can be avoided
