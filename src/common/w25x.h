@@ -16,6 +16,20 @@
 extern "C" {
 #endif // defined(__cplusplus)
 
+#define W25X_BLOCK_SIZE         4096
+#define W25X_BLOCK64_SIZE       0x10000
+#define W25X_DUMP_START_ADDRESS 0
+#define W25X_PP_START_ADDRESS   (127 * W25X_BLOCK_SIZE)
+#define W25X_FS_START_ADDRESS   (128 * W25X_BLOCK_SIZE)
+
+#if defined(__cplusplus)
+inline constexpr uint32_t w25x_block_size = W25X_BLOCK_SIZE;
+inline constexpr uint32_t w25x_block64_size = W25X_BLOCK64_SIZE;
+inline constexpr uint32_t w25x_dump_start_address = W25X_DUMP_START_ADDRESS;
+inline constexpr uint32_t w25x_pp_start_address = W25X_PP_START_ADDRESS;
+inline constexpr uint32_t w25x_fs_start_address = W25X_FS_START_ADDRESS;
+#endif // defined(__cplusplus)
+
 /// Initialize the w25x module
 ///
 /// This has to be called after the underlying SPI has been initialized

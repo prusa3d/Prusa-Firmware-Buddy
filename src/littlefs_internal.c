@@ -1,13 +1,10 @@
 #include "littlefs_internal.h"
 #include "w25x.h"
 
-#define BLOCK_SIZE 4096
-
-// 512 kB for dump (128 x 4kB)
-#define DUMP_BLOCK_COUNT 128
+#define BLOCK_SIZE W25X_BLOCK_SIZE
 
 // Address offset to skip area reserved for the dump
-#define ADDR_OFFSET (BLOCK_SIZE * DUMP_BLOCK_COUNT)
+#define ADDR_OFFSET W25X_FS_START_ADDRESS
 
 static lfs_t lfs;
 
@@ -110,7 +107,7 @@ static int sync(__attribute__((unused)) const struct lfs_config *c) {
 
 lfs_t *littlefs_internal_init() {
     // setup flash size
-    littlefs_config.block_count = w25x_get_sector_count() - DUMP_BLOCK_COUNT;
+    littlefs_config.block_count = w25x_get_sector_count() - (ADDR_OFFSET / BLOCK_SIZE);
 
     // mount the filesystem
     int err = lfs_mount(&lfs, &littlefs_config);
