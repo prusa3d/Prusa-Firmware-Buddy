@@ -20,7 +20,6 @@
 #endif
 
 // static definitions
-LDV window_file_list_t::ldv;
 char *window_file_list_t::root = nullptr;
 
 bool window_file_list_t::IsPathRoot(const char *path) {
