@@ -15,6 +15,7 @@ extern "C" {
 #define MEMP_NUM_SYS_TIMEOUT 7
 #define LWIP_ETHERNET        1
 #define LWIP_DNS_SECURE      7
+#define DNS_MAX_NAME_LENGTH  128
 
 #define TCP_MSS                536
 #define TCP_WND                (2 * TCP_MSS)
