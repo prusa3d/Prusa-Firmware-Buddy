@@ -750,7 +750,7 @@ target_sources(
           src/common/safe_state.cpp
           src/common/variant8.cpp
           src/common/wdt.cpp
-          src/common/dump.c
+          src/common/dump.cpp
           src/common/marlin_client.c
           $<$<BOOL:${GUI}>:src/common/bsod_gui.cpp>
           $<$<NOT:$<BOOL:${GUI}>>:src/common/bsod_nogui.cpp>
