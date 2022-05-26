@@ -8,17 +8,29 @@
 namespace nhttp::handler {
 
 class StatusPage {
+public:
+    enum class CloseHandling {
+        Close,
+        /*
+         * Close for error states.
+         *
+         * First closes the outward side, then eats all the data.
+         */
+        ErrorClose,
+        KeepAlive,
+    };
+
 private:
     const char *extra_content;
     Status status;
-    bool can_keep_alive;
+    CloseHandling close_handling;
     bool json_content;
 
 public:
-    StatusPage(Status status, bool can_keep_alive, bool json_content, const char *extra_content = "")
+    StatusPage(Status status, CloseHandling close_handling, bool json_content, const char *extra_content = "")
         : extra_content(extra_content)
         , status(status)
-        , can_keep_alive(can_keep_alive)
+        , close_handling(close_handling)
         , json_content(json_content) {}
     bool want_read() const { return false; }
     bool want_write() const { return true; }

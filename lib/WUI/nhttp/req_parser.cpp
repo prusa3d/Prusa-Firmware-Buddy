@@ -189,6 +189,10 @@ bool RequestParser::can_keep_alive() const {
     return (connection == Connection::KeepAlive) || (version_major == 1 && version_minor >= 1 && connection != Connection::Close);
 }
 
+StatusPage::CloseHandling RequestParser::status_page_handling() const {
+    return can_keep_alive() ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close;
+}
+
 bool RequestParser::uri_filename(char *buffer, size_t buffer_size) const {
     // Only up to ?, which are query params
     size_t len = url_size;

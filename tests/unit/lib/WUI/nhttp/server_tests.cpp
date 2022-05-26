@@ -202,7 +202,7 @@ public:
                 static const char *extra_hdrs[] = { "Fake: YesOfCourse\r\n", nullptr };
                 return SendStaticMemory("<html><body><h1>Don't tell anyone!</h1>", guess_content_by_ext(filename), parser.can_keep_alive(), extra_hdrs);
             } else {
-                return StatusPage(Status::Unauthorized, parser.can_keep_alive(), false);
+                return StatusPage(Status::Unauthorized, parser.status_page_handling(), false);
             }
         }
 

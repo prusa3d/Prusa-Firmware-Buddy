@@ -22,12 +22,12 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
 
     // Content of the USB drive is only for authenticated, don't ever try anything without it.
     if (!parser.authenticated()) {
-        return StatusPage(Status::Unauthorized, parser.can_keep_alive(), parser.accepts_json);
+        return StatusPage(Status::Unauthorized, parser.status_page_handling(), parser.accepts_json);
     }
 
     char fname[FILE_PATH_BUFFER_LEN];
     if (!parser.uri_filename(fname, sizeof(fname))) {
-        return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json, "This doesn't look like file name");
+        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json, "This doesn't look like file name");
     }
 
     if (parser.method == Method::Get) {
@@ -53,9 +53,9 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
             return std::move(step);
         }
 
-        return StatusPage(Status::NotFound, parser.can_keep_alive(), parser.accepts_json);
+        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
     } else {
-        return StatusPage(Status::MethodNotAllowed, parser.can_keep_alive(), parser.accepts_json);
+        return StatusPage(Status::MethodNotAllowed, parser.status_page_handling(), parser.accepts_json);
     }
 }
 
