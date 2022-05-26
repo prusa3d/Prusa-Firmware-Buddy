@@ -212,13 +212,7 @@ extern "C" void main_cpp(void) {
 
     /* definition and creation of displayTask */
     if (HAS_GUI) {
-        osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0,
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-            2048
-#else
-            1024
-#endif
-        );
+        osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
 
