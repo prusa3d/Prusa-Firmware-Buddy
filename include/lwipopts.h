@@ -19,7 +19,7 @@ extern "C" {
 
 #define TCP_MSS                536
 #define TCP_WND                (2 * TCP_MSS)
-#define TCPIP_THREAD_STACKSIZE 2048
+#define TCPIP_THREAD_STACKSIZE 1024
 
 #define TCPIP_MBOX_SIZE 6
 
