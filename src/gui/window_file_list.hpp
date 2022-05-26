@@ -37,7 +37,7 @@ protected:
 };
 
 class window_file_list_t : public AddSuperWindow<window_aligned_t> {
-    static LDV ldv;
+    LDV ldv;
     static char *root; // this is a Short-File-Name path to the root of the dialog
 
     static constexpr const char *home_str_en = N_("Main"); // @@TODO reuse from elsewhere ...
