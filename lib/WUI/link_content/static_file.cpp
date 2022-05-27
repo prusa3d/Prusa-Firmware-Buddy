@@ -32,7 +32,11 @@ optional<ConnectionState> StaticFile::accept(const RequestParser &parser) const 
 
     FILE *f = fopen(fname, "rb");
     if (f) {
-        static const char *extra_hdrs[] = { "Content-Encoding: gzip\r\n", nullptr };
+        static const char *extra_hdrs[] = {
+            "Content-Encoding: gzip\r\n",
+            "Cache-Control: private, max-age: 86400\r\n",
+            nullptr
+        };
         return SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match, extra_hdrs);
     }
 
