@@ -227,16 +227,23 @@ static void wait_for_intron() {
     // ESP_LOGI(TAG, "Intron found");
 }
 
+/**
+ * @brief Read data from UART
+ * 
+ * @param buff Buffer to store the data
+ * @param len Number of bytes to read
+ * @return size_t Number of bytes actually read
+ */
 static size_t read_uart(uint8_t *buff, size_t len) {
     size_t trr = 0;
     while(trr < len) {
         int read = uart_read_bytes(UART_NUM_0, ((uint8_t*)buff) + trr, len - trr, portMAX_DELAY);
         if(read < 0) {
-            ESP_LOGI(TAG, "FAILED TO READ UART DATA");
-
-            if(read != len) {
-                ESP_LOGI(TAG, "READ %d != %d expected\n", trr, len);
+            ESP_LOGI(TAG, "Failed to read from UART");
+            if(trr != len) {
+                ESP_LOGI(TAG, "Read %d != %d expected\n", trr, len);
             }
+            return trr;
         }
         trr += read;
     }
