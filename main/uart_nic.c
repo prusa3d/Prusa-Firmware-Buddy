@@ -199,10 +199,10 @@ static void send_device_info() {
 
     // MAC address
     int ret = esp_wifi_get_mac(WIFI_IF_STA, mac);
-    uart_write_bytes(UART_NUM_0, (const char*)mac, sizeof(mac));
     if(ret != ESP_OK) {
-        ESP_LOGI(TAG, "Failed to obtain MAC, this is fatal");
+        ESP_LOGI(TAG, "Failed to obtain MAC, returning last one or zeroes");
     }
+    uart_write_bytes(UART_NUM_0, (const char*)mac, sizeof(mac));
 
     xSemaphoreGive(uart_mtx);
 }
