@@ -388,6 +388,9 @@ static void output_rx_thread(void *arg) {
 }
 
 static void uart_tx_thread(void *arg) {
+    // Send initial device info to let master know ESP is ready
+    send_device_info();
+
     for(;;) {
         wifi_receive_buff *buff;
         if(xQueueReceive(uart_tx_queue, &buff, (TickType_t)1000 /*portMAX_DELAY*/)) {
@@ -458,7 +461,4 @@ void app_main() {
     xTaskCreate(&wifi_egress_thread, "wifi_egress_thread", 2048, NULL, 12 /*tskIDLE_PRIORITY*/, NULL);
     ESP_LOGI(TAG, "Creating TX thread");
     xTaskCreate(&uart_tx_thread, "uart_tx_thread", 2048, NULL, 14 /*tskIDLE_PRIORITY*/, NULL);
-    ESP_LOGI(TAG, "Waiting 1s before sending device info");
-    // Send initial device info to let master know ESP is ready
-    send_device_info();
 }
