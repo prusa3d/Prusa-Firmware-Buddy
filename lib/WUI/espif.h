@@ -77,6 +77,8 @@ enum class EspFwState {
     NoEsp,
     /// The ESP is being flashed right now.
     Flashing,
+    /// The state is not currently (yet) known.
+    Unknown,
 };
 
 /// Returns the current state of the ESP's firmware, as guessed by us.
