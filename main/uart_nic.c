@@ -297,11 +297,19 @@ static void read_wifi_client_message() {
     uint8_t ssid_len = 0;
     read_uart(&ssid_len, 1);
     ESP_LOGI(TAG, "Reading SSID len: %d", ssid_len);
+    if(ssid_len > sizeof(wifi_config.sta.ssid)) {
+        ESP_LOGI(TAG, "SSID too long, trimming");
+        ssid_len = sizeof(wifi_config.sta.ssid);
+    }
     read_uart(wifi_config.sta.ssid, ssid_len);
 
     uint8_t pass_len = 0;
     read_uart(&pass_len, 1);
     ESP_LOGI(TAG, "Reading PASS len: %d", pass_len);
+    if(pass_len > sizeof(wifi_config.sta.password)) {
+        ESP_LOGI(TAG, "PASS too long, trimming");
+        pass_len = sizeof(wifi_config.sta.password);
+    }
     read_uart(wifi_config.sta.password, pass_len);
 
     ESP_LOGI(TAG, "Reconfiguring wifi");
