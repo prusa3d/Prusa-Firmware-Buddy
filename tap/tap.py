@@ -6,6 +6,7 @@ import datetime
 import fcntl
 import serial
 import os
+import sys
 from threading import Thread, Lock
 
 from pathlib import Path
@@ -25,6 +26,7 @@ MSG_PACKET = 4
 
 INTRON = b"UN\x00\x01\x02\x03\x04\x05"
 INTERFACE = "tap0"
+SERIAL = sys.argv[1] if len(sys.argv) == 2 else "/dev/ttyUSB0"
 BAUD_RATE = 1000000 #921600
 SSID = "esptest"
 PASS = "lwesp8266"
@@ -38,7 +40,7 @@ fcntl.ioctl(tap, TUNSETIFF, ifr)
 fcntl.ioctl(tap, TUNSETOWNER, os.getuid())
 
 
-ser = serial.Serial("/dev/ttyUSB2", baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
+ser = serial.Serial(SERIAL, baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
 last_in = datetime.datetime.now()
 lock = Lock()
 
