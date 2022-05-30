@@ -97,6 +97,8 @@ static std::atomic<ESPIFOperatingMode> esp_operating_mode = ESPIF_UNINITIALIZED_
 static std::atomic<bool> associated = false;
 static std::atomic<TaskHandle_t> init_task_handle;
 static std::atomic<netif *> active_esp_netif;
+// 10 seconds (20 health-check loops spaced 500ms from each other)
+static std::atomic<uint8_t> init_countdown = 20;
 // Hack:
 // Utility to delay going down for a while, because sometimes the signal/status
 // is "flippering". That would cause a new dhcp request very often and we want
@@ -648,6 +650,13 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
 }
 
 bool espif_tick() {
+    const auto current_init = init_countdown.load();
+    if (current_init > 0) {
+        // In theory, this load - condition - store sequence is racy.
+        // Nevertheless, we have only one thread that writes in there and it's
+        // atomic to allow reading things at the same time.
+        init_countdown.store(current_init - 1);
+    }
     // Check if we should bring the interface down in a "delayed" way.
     // A race (eg. we bring it down, but someone brought it up in the meantime
     // or so) is unlikely, both this and the parsing of UART inputs happen in
@@ -697,9 +706,14 @@ EspFwState esp_fw_state() {
     bool detected = esp_detected.load();
     switch (mode) {
     case ESPIF_UNINITIALIZED_MODE:
+        return EspFwState::Unknown;
     case ESPIF_WAIT_INIT:
         if (detected) {
-            return EspFwState::NoFirmware;
+            if (init_countdown > 0) {
+                return EspFwState::Unknown;
+            } else {
+                return EspFwState::NoFirmware;
+            }
         } else {
             return EspFwState::NoEsp;
         }
