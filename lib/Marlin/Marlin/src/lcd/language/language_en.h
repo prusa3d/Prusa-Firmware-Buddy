@@ -493,7 +493,7 @@ namespace Language_en {
   LSTR MSG_PRINT_DONE                     = _UxGT("Print Done");
   LSTR MSG_PRINTER_KILLED                 = _UxGT("Printer killed!");
   LSTR MSG_TURN_OFF                       = _UxGT("Turn off the printer");
-  LSTR MSG_NO_MOVE                        = _UxGT("No Move.");
+  LSTR MSG_NO_MOVE                        = _UxGT("Motors enabled.");
   LSTR MSG_KILLED                         = _UxGT("KILLED. ");
   LSTR MSG_STOPPED                        = _UxGT("STOPPED. ");
   LSTR MSG_FWRETRACT                      = _UxGT("Firmware Retract");

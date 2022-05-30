@@ -342,7 +342,7 @@ namespace Language_cz {
   LSTR MSG_PRINT_PAUSED                   = _UxGT("Tisk pozastaven");
   LSTR MSG_PRINTING                       = _UxGT("Tisknu...");
   LSTR MSG_PRINT_ABORTED                  = _UxGT("Tisk zrušen");
-  LSTR MSG_NO_MOVE                        = _UxGT("Žádný pohyb.");
+  LSTR MSG_NO_MOVE                        = _UxGT("Motory zapnuty.");
   LSTR MSG_KILLED                         = _UxGT("PŘERUSENO. ");
   LSTR MSG_STOPPED                        = _UxGT("ZASTAVENO. ");
   LSTR MSG_CONTROL_RETRACT                = _UxGT("Retrakt mm");
