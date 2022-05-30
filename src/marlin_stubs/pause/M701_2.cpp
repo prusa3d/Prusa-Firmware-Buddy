@@ -52,8 +52,8 @@ bool filament_gcodes::load_unload(LoadUnloadMode type, filament_gcodes::Func f_l
 void filament_gcodes::M701_no_parser(filament_t filament_to_be_loaded, float fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot) {
     Filaments::SetToBeLoaded(filament_to_be_loaded);
     if (op_preheat) {
-        PreheatData data(fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, *op_preheat);
-        auto preheat_ret = preheat(data);
+        PreheatData data(isnan(fast_load_length) || fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, *op_preheat);
+        auto preheat_ret = data.Mode() == PreheatMode::Load ? preheat_for_change_load() : preheat(data);
         if (preheat_ret.first) {
             //canceled
             M70X_process_user_response(*preheat_ret.first);
