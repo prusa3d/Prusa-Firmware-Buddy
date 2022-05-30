@@ -117,7 +117,7 @@ static void free_wifi_send_buff(wifi_send_buff *buff) {
 
 static void send_link_status(uint8_t up) {
     ESP_LOGI(TAG, "Sending link status: %d", up);
-    //xSemaphoreTake(uart_mtx, portMAX_DELAY);
+    xSemaphoreTake(uart_mtx, portMAX_DELAY);
     uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
     const uint8_t t = MSG_LINK;
     uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
@@ -185,7 +185,7 @@ void wifi_init_sta(void) {
 
 static void send_device_info() {
     ESP_LOGI(TAG, "Sending device info");
-    //xSemaphoreTakeFromISR(uart_mtx, portMAX_DELAY);
+    xSemaphoreTake(uart_mtx, portMAX_DELAY);
 
     // Intron
     uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
@@ -398,7 +398,7 @@ static void uart_tx_thread(void *arg) {
                 continue;
             }
             //ESP_LOGI(TAG, "Printing packet to UART");
-            //xSemaphoreTake(uart_mtx, portMAX_DELAY);
+            xSemaphoreTake(uart_mtx, portMAX_DELAY);
             uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
             const uint8_t t = MSG_PACKET;
             const uint32_t l = buff->len;
@@ -433,7 +433,7 @@ void app_main() {
 
     ESP_LOGI(TAG, "UART RE-INITIALIZED");
 
-    uart_mtx = xSemaphoreCreateBinary();
+    uart_mtx = xSemaphoreCreateMutex();
     if (!uart_mtx) {
         ESP_LOGI(TAG, "Could not create UART mutex");
         return;

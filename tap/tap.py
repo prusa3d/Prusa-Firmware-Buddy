@@ -100,7 +100,10 @@ send_lock = Lock()
 def send_message(data: bytes):
     with send_lock:
         ser.write(data)
-        ser.flush()
+        try:
+            ser.flush()
+        except Exception:
+            print("Flush failed")
 
 
 link_up = False
