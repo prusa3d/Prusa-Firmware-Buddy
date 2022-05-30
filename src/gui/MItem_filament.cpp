@@ -15,7 +15,7 @@ MI_LOAD::MI_LOAD()
 
 void MI_LOAD::Do() {
     if ((Filaments::CurrentIndex() == filament_t::NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
-        marlin_gcode("M701 W2"); // unload with return option
+        marlin_gcode("M701 W2"); // load with return option
     }
 }
 
