@@ -347,7 +347,7 @@ namespace Language_cz {
   PROGMEM Language_Str MSG_PRINT_PAUSED                    = _UxGT("Tisk pozastaven");
   PROGMEM Language_Str MSG_PRINTING                        = _UxGT("Tisknu...");
   PROGMEM Language_Str MSG_PRINT_ABORTED                   = _UxGT("Tisk zrušen");
-  PROGMEM Language_Str MSG_NO_MOVE                         = _UxGT("Žádný pohyb.");
+  PROGMEM Language_Str MSG_NO_MOVE                         = _UxGT("Motory zapnuty.");
   PROGMEM Language_Str MSG_KILLED                          = _UxGT("PŘERUSENO. ");
   PROGMEM Language_Str MSG_STOPPED                         = _UxGT("ZASTAVENO. ");
   PROGMEM Language_Str MSG_CONTROL_RETRACT                 = _UxGT("Retrakt mm");
