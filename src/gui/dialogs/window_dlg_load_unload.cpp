@@ -73,6 +73,7 @@ static PreheatStatus::Result DialogBlockingLoadUnload(const char *mode_format, R
 
     if (ret != PreheatStatus::Result::Error || ret != PreheatStatus::Result::Aborted || ret != PreheatStatus::Result::CooledDown || ret != PreheatStatus::Result::DidNotFinish) {
         DialogBlocking(ClientFSM::Load_unload);
+        ret = PreheatStatus::ConsumeResult();
     }
     return ret;
 }
