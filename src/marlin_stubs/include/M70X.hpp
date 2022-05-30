@@ -44,7 +44,7 @@ void mmu_reset(uint8_t level);
 void mmu_on();
 void mmu_off();
 
-std::pair<std::optional<PreheatStatus::Result>, filament_t> preheat(PreheatData type);
+std::pair<std::optional<PreheatStatus::Result>, filament_t> preheat(PreheatData preheat_data);
 std::pair<std::optional<PreheatStatus::Result>, filament_t> preheat_for_change_load();
 void preheat_to(filament_t filament);
 } // namespace filament_gcodes
