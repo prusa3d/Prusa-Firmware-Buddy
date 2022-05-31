@@ -183,7 +183,7 @@ protected:
 };
 
 class MI_XFLASH_DELETE : public WI_LABEL_t {
-    static constexpr const char *const label = "XFLASH DELETE"; // intentionally not translated, only for debugging
+    static constexpr const char *const label = "Clear External Flash"; // intentionally not translated, only for debugging
 
 public:
     MI_XFLASH_DELETE();
@@ -193,7 +193,7 @@ protected:
 };
 
 class MI_XFLASH_RESET : public WI_LABEL_t {
-    static constexpr const char *const label = "XFLASH RESET"; // intentionally not translated, only for debugging
+    static constexpr const char *const label = "Delete Crash Dump"; // intentionally not translated, only for debugging
 
 public:
     MI_XFLASH_RESET();
