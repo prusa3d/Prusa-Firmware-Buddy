@@ -196,8 +196,11 @@ void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
         PreheatStatus::SetResult(PreheatStatus::Result::DoneHasFilament);
     }
     preheat_to(filament);
+    xyze_pos_t current_position_tmp = current_position;
 
     pause::Settings settings;
+    xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, NAN, Z_AXIS_LOAD_POS };
+    settings.SetParkPoint(park_position);
     settings.SetExtruder(target_extruder);
     settings.SetRetractLength(0.f);
 
@@ -214,6 +217,10 @@ void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
 
     filament = preheat_ret.second;
     Filaments::SetToBeLoaded(filament);
+
+#ifndef DO_NOT_RESTORE_Z_AXIS
+    settings.SetResumePoint(current_position_tmp);
+#endif
 
     load_unload(LoadUnloadMode::Load, &Pause::FilamentLoad, settings);
 
