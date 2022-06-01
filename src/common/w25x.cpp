@@ -148,7 +148,7 @@ void w25x_program(uint32_t addr, const uint8_t *data, uint32_t cnt) {
     }
 }
 
-void w25x_erase(uint8_t cmd, uint32_t addr) {
+static void w25x_erase(uint8_t cmd, uint32_t addr) {
     w25x_enable_wr();
     w25x_cs_low();
     w25x_send_byte(cmd);                   // send command 0x20
