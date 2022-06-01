@@ -83,8 +83,8 @@ static void w25x_enable_wr(void) {
 
 static w25x_status_t w25x_rd_status_reg() {
     w25x_cs_low();
-    w25x_send_byte(CMD_RD_STATUS_REG);          // send command 0x90
-    w25x_status_t status = w25x_receive_byte(); // receive value
+    w25x_send_byte(CMD_RD_STATUS_REG);                                      // send command 0x90
+    w25x_status_t status = static_cast<w25x_status_t>(w25x_receive_byte()); // receive value
     w25x_cs_high();
     return status;
 }
