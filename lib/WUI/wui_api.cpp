@@ -20,6 +20,7 @@
 
 #include <ScreenHandler.hpp>
 #include <screen_home.hpp>
+#include <screen_print_preview.hpp>
 
 #include <cassert>
 #include <ctime>
@@ -345,7 +346,11 @@ bool wui_start_print(const char *filename) {
     // Also, this introduces another code dependency in the „wrong direction“.
     // GUI should be a neighbor of WUI and should not depend on each other.
     // But, well, …
-    bool can_start_print = !marlin_vars()->sd_printing && (dynamic_cast<screen_home_data_t *>(Screens::Access()->Get()) != nullptr);
+
+    // FIXME: How is it with the lifetime of that screen & locking?
+    const screen_t *screen = Screens::Access()->Get();
+    const bool allowed_screen = (dynamic_cast<const screen_home_data_t *>(screen) != nullptr) || (dynamic_cast<const screen_print_preview_data_t *>(screen) != nullptr);
+    const bool can_start_print = !marlin_vars()->sd_printing && allowed_screen;
 
     if (can_start_print) {
         strlcpy(marlin_vars()->media_LFN, filename, FILE_PATH_BUFFER_LEN);
