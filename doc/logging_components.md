@@ -19,7 +19,7 @@ This file is generated automatically so don't edit it directly
 - USBDevice: LOG_SEVERITY_INFO, src/usb_device.c
 - USBHost: LOG_SEVERITY_INFO, src/usbh_conf.c
 - USBMSC: LOG_SEVERITY_DEBUG, src/usb_device_msc.c
-- W25X: LOG_SEVERITY_DEBUG, src/common/w25x.c
+- W25X: LOG_SEVERITY_DEBUG, src/common/w25x.cpp
 - WUI: LOG_SEVERITY_DEBUG, lib/WUI/wui.cpp
 - connect: LOG_SEVERITY_DEBUG, src/Connect/connect.cpp
 - httpc: LOG_SEVERITY_DEBUG, src/Connect/httpc.cpp
