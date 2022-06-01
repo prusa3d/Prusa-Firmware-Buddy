@@ -5,8 +5,6 @@
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
-#include "hwio_pindef.h"
-#include "timing_precise.hpp"
 
 /// The SPI used by this module
 static SPI_HandleTypeDef *spi_handle;
@@ -56,12 +54,6 @@ extern "C" bool w25x_communication_init(bool init_event_group) {
     if (spi_handle == NULL)
         return false;
 
-    HAL_SPI_Abort(spi_handle);
-
-    w25x_cs_high();
-    constexpr uint32_t cs_deselect_time_ns = 50;
-    DELAY_NS_PRECISE(cs_deselect_time_ns);
-
     // clear error
     current_error = 0;
 
@@ -75,18 +67,18 @@ extern "C" bool w25x_communication_init(bool init_event_group) {
     return true;
 }
 
+extern "C" bool w25x_communication_abort() {
+    if (spi_handle == NULL)
+        return false;
+
+    (void)HAL_SPI_Abort(spi_handle);
+    return true;
+}
+
 int w25x_fetch_error() {
     int error = current_error;
     current_error = 0;
     return error;
-}
-
-extern "C" void w25x_cs_low() {
-    buddy::hw::extFlashCs.write(buddy::hw::Pin::State::low);
-}
-
-extern "C" void w25x_cs_high() {
-    buddy::hw::extFlashCs.write(buddy::hw::Pin::State::high);
 }
 
 extern "C" void w25x_receive(uint8_t *buffer, uint32_t len) {
@@ -233,4 +225,8 @@ void w25x_spi_transfer_complete_callback(void) {
 
 void w25x_spi_receive_complete_callback(void) {
     set_events_from_isr(EVENT_RX_COMPLETE);
+}
+
+void w25x_set_error(int error) {
+    set_error(error);
 }

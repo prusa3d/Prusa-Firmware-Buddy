@@ -42,11 +42,16 @@ inline constexpr uint32_t w25x_fs_start_address = W25X_FS_START_ADDRESS;
 /// interface function can be called in any context but are not reentrant.
 ///
 /// w25x_init can be called repeatedly in different contexts
-/// to switch between those two modes.
+/// to switch between those two modes. It can be called only once with
+/// running scheduler as this creates resources which are never released.
 /// If w25x is reinitialized during DMA transfer it is aborted. If some
 /// data is already transfered to the chip at that point those data are
 /// written gracefully. If erase operation is ongoing it is completed
 /// during reinitialization.
+///
+/// Worst case runtime is 100 seconds if called just after chip erase
+/// operation has been started. Worst case runtime is 200 seconds for
+/// maliciously crafted w25x responses.
 ///
 /// @retval true on success
 /// @retval false otherwise.
@@ -76,6 +81,9 @@ extern void w25x_block32_erase(uint32_t addr);
 extern void w25x_block64_erase(uint32_t addr);
 
 /// Erase the whole flash memory
+///
+/// This operation can not be suspended, so it can not be used
+/// during print.
 /// Errors can be checked (and cleared) using w25x_fetch_error()
 extern void w25x_chip_erase(void);
 
