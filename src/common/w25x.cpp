@@ -98,12 +98,22 @@ static void w25x_wait_busy(void) {
         ;
 }
 
+struct CmdWithAddress {
+    uint8_t buffer[4];
+};
+
+static CmdWithAddress cmd_with_address(uint8_t cmd, uint32_t addr) {
+    CmdWithAddress cmdWithAddress = { { cmd,
+        reinterpret_cast<uint8_t *>(&addr)[2],
+        reinterpret_cast<uint8_t *>(&addr)[1],
+        reinterpret_cast<uint8_t *>(&addr)[0] } };
+    return cmdWithAddress;
+}
+
 void w25x_rd_data(uint32_t addr, uint8_t *data, uint16_t cnt) {
     w25x_cs_low();
-    w25x_send_byte(CMD_RD_DATA);           // send command 0x03
-    w25x_send_byte(((uint8_t *)&addr)[2]); // send addr bits 16..23
-    w25x_send_byte(((uint8_t *)&addr)[1]); // send addr bits 8..15
-    w25x_send_byte(((uint8_t *)&addr)[0]); // send addr bits 0..7
+    CmdWithAddress cmdWithAddress = cmd_with_address(CMD_RD_DATA, addr);
+    w25x_send(cmdWithAddress.buffer, sizeof(cmdWithAddress.buffer));
     w25x_receive(data, cnt);
     w25x_cs_high();
 }
@@ -111,11 +121,9 @@ void w25x_rd_data(uint32_t addr, uint8_t *data, uint16_t cnt) {
 static void w25x_page_program_single(uint32_t addr, const uint8_t *data, uint16_t cnt) {
     w25x_enable_wr();
     w25x_cs_low();
-    w25x_send_byte(CMD_PAGE_PROGRAM);      // send command 0x02
-    w25x_send_byte(((uint8_t *)&addr)[2]); // send addr bits 16..23
-    w25x_send_byte(((uint8_t *)&addr)[1]); // send addr bits 8..15
-    w25x_send_byte(((uint8_t *)&addr)[0]); // send addr bits 0..7
-    w25x_send(data, cnt);                  // send data
+    CmdWithAddress cmdWithAddress = cmd_with_address(CMD_PAGE_PROGRAM, addr);
+    w25x_send(cmdWithAddress.buffer, sizeof(cmdWithAddress.buffer));
+    w25x_send(data, cnt);
     w25x_cs_high();
     w25x_wait_busy();
 }
@@ -155,10 +163,8 @@ void w25x_program(uint32_t addr, const uint8_t *data, uint32_t cnt) {
 static void w25x_erase(uint8_t cmd, uint32_t addr) {
     w25x_enable_wr();
     w25x_cs_low();
-    w25x_send_byte(cmd);                   // send command 0x20
-    w25x_send_byte(((uint8_t *)&addr)[2]); // send addr bits 16..23
-    w25x_send_byte(((uint8_t *)&addr)[1]); // send addr bits 8..15
-    w25x_send_byte(((uint8_t *)&addr)[0]); // send addr bits 0..7
+    CmdWithAddress cmdWithAddress = cmd_with_address(cmd, addr);
+    w25x_send(cmdWithAddress.buffer, sizeof(cmdWithAddress.buffer));
     w25x_cs_high();
     w25x_wait_busy();
 }
@@ -197,10 +203,8 @@ void w25x_rd_uid(uint8_t *uid) {
 
 int w25x_mfrid_devid(uint8_t *devid) {
     w25x_cs_low();
-    w25x_send_byte(CMD_MFRID_DEVID); // send command 0x90
-    uint8_t cnt = 3;                 // 3 address bytes
-    while (cnt--)                    // send address bytes
-        w25x_send_byte(0x00);
+    CmdWithAddress cmdWithAddress = cmd_with_address(CMD_MFRID_DEVID, 0ul);
+    w25x_send(cmdWithAddress.buffer, sizeof(cmdWithAddress.buffer));
     uint8_t w25x_mfrid = w25x_receive_byte(); // receive mfrid
     uint8_t w25x_devid = w25x_receive_byte(); // receive devid
     w25x_cs_high();
