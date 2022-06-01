@@ -198,7 +198,7 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
                 JSON_OBJ_END;
             JSON_OBJ_END JSON_COMMA;
             JSON_FIELD_OBJ("progress");
-                JSON_FIELD_FFIXED("completion", ((float)vars->sd_percent_done / 100.0f), 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("completion", ((float)vars->sd_percent_done / 100.0f), 2) JSON_COMMA;
                 JSON_FIELD_INT("printTime", vars->print_duration) JSON_COMMA;
                 JSON_FIELD_INT("printTimeLeft", vars->time_to_end);
             JSON_OBJ_END;
