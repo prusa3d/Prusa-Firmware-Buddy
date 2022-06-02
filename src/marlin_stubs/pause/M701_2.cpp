@@ -49,13 +49,13 @@ bool filament_gcodes::load_unload(LoadUnloadMode type, filament_gcodes::Func f_l
     return res;
 }
 
-void filament_gcodes::M701_no_parser(filament_t filament_to_be_loaded, float fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot) {
+void filament_gcodes::M701_no_parser(filament_t filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot) {
     Filaments::SetToBeLoaded(filament_to_be_loaded);
     if (op_preheat) {
-        PreheatData data(isnan(fast_load_length) || fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, *op_preheat);
+        PreheatData data(!fast_load_length.has_value() || fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, *op_preheat);
         auto preheat_ret = data.Mode() == PreheatMode::Load ? preheat_for_change_load() : preheat(data);
         if (preheat_ret.first) {
-            //canceled
+            // canceled
             M70X_process_user_response(*preheat_ret.first);
             return;
         }
@@ -80,7 +80,7 @@ void filament_gcodes::M701_no_parser(filament_t filament_to_be_loaded, float fas
     M70X_process_user_response(PreheatStatus::Result::DoneHasFilament);
 }
 
-void filament_gcodes::M702_no_parser(float unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded) {
+void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded) {
     if (op_preheat) {
         PreheatData data(PreheatMode::Unload, *op_preheat); // TODO do I need PreheatMode::Unload_askUnloaded
         auto preheat_ret = preheat(data);
@@ -147,7 +147,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res) {
     PreheatStatus::SetResult(res);
 }
 
-void filament_gcodes::M1701_no_parser(float fast_load_length, float z_min_pos, uint8_t target_extruder) {
+void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder) {
     if constexpr (HAS_BOWDEN) {
         M701_no_parser(filament_t::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0);
     } else {
@@ -159,7 +159,7 @@ void filament_gcodes::M1701_no_parser(float fast_load_length, float z_min_pos, u
 
         // catch filament in gear and then ask for temp
         if (!Pause::Instance().LoadToGear(settings)) {
-            //do not ask for filament type after stop was pressed
+            // do not ask for filament type after stop was pressed
             Pause::Instance().UnloadFromGear();
             M70X_process_user_response(PreheatStatus::Result::DoneNoFilament);
             FSensors_instance().ClrAutoloadSent();
@@ -169,7 +169,7 @@ void filament_gcodes::M1701_no_parser(float fast_load_length, float z_min_pos, u
         auto preheat_ret = preheat(data);
 
         if (preheat_ret.first) {
-            //canceled
+            // canceled
             Pause::Instance().UnloadFromGear();
             M70X_process_user_response(PreheatStatus::Result::DoneNoFilament);
             FSensors_instance().ClrAutoloadSent();
@@ -207,7 +207,7 @@ void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
     // cannot do normal preheat, since printer is already preheated from unload
     auto preheat_ret = preheat_for_change_load();
     if (preheat_ret.first) {
-        //canceled
+        // canceled
         M70X_process_user_response(*preheat_ret.first);
         return;
     }

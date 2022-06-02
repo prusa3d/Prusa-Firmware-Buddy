@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include <optional>
 #include "../../../lib/Marlin/Marlin/src/core/macros.h"
 #include "../../../lib/Marlin/Marlin/src/core/types.h"
 
@@ -40,11 +41,11 @@ public:
     static float GetDefaultPurgeLength();
     static float GetDefaultRetractLength();
 
-    void SetUnloadLength(float len);
-    void SetSlowLoadLength(float len);
-    void SetFastLoadLength(float len);
-    void SetPurgeLength(float len);
-    void SetRetractLength(float len);
+    void SetUnloadLength(const std::optional<float> &len);
+    void SetSlowLoadLength(const std::optional<float> &len);
+    void SetFastLoadLength(const std::optional<float> &len);
+    void SetPurgeLength(const std::optional<float> &len);
+    void SetRetractLength(const std::optional<float> &len);
     void SetParkPoint(const xyz_pos_t &park_point);
     void SetResumePoint(const xyze_pos_t &resume_point);
     void SetMmuFilamentToLoad(uint8_t index);

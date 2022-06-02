@@ -43,7 +43,7 @@ void PrusaGcodeSuite::M1700() {
  */
 void PrusaGcodeSuite::M1701() {
     const bool isL = parser.seen('L');
-    const float fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : NAN);
+    const std::optional<float> fast_load_length = isL ? std::optional<float>(std::abs(parser.value_axis_units(E_AXIS))) : std::nullopt;
     const float min_Z_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
 
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
