@@ -45,7 +45,7 @@ void GcodeSuite::M701() {
         }
     }
     const bool isL = (parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin));
-    const float fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : pause::Settings::GetDefaultFastLoadLength());
+    const std::optional<float> fast_load_length = isL ? std::optional<float>(::abs(parser.value_axis_units(E_AXIS))) : std::nullopt;
     const float min_Z_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
     const uint8_t preheat = parser.byteval('W', 255);
 
@@ -83,7 +83,7 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-    const float unload_len = parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause::Settings::GetDefaultUnloadLength();
+    const std::optional<float> unload_len = parser.seen('U') ? std::optional<float>(parser.value_axis_units(E_AXIS)) : std::nullopt;
     const float min_Z_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
     const uint8_t preheat = parser.byteval('W', 255);
     const bool ask_unloaded = parser.seen('I');

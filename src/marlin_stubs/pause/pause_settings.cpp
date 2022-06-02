@@ -9,7 +9,7 @@
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 
-//cannot be class member (externed in marlin)
+// cannot be class member (externed in marlin)
 fil_change_settings_t fc_settings[EXTRUDERS];
 
 using namespace pause;
@@ -47,33 +47,33 @@ float Settings::GetDefaultRetractLength() {
     return -std::abs(PAUSE_PARK_RETRACT_LENGTH);
 }
 
-void Settings::SetUnloadLength(float len) {
-    unload_length = -std::abs(isnan(len) ? GetDefaultUnloadLength() : len); // it is negative value
+void Settings::SetUnloadLength(const std::optional<float> &len) {
+    unload_length = -std::abs(len.has_value() ? len.value() : GetDefaultUnloadLength()); // it is negative value
 }
 
-void Settings::SetSlowLoadLength(float len) {
-    slow_load_length = std::abs(isnan(len) ? GetDefaultSlowLoadLength() : len);
+void Settings::SetSlowLoadLength(const std::optional<float> &len) {
+    slow_load_length = std::abs(len.has_value() ? len.value() : GetDefaultSlowLoadLength());
 }
 
-void Settings::SetFastLoadLength(float len) {
-    fast_load_length = std::abs(isnan(len) ? GetDefaultFastLoadLength() : len);
+void Settings::SetFastLoadLength(const std::optional<float> &len) {
+    fast_load_length = std::abs(len.has_value() ? len.value() : GetDefaultFastLoadLength());
 }
 
-void Settings::SetPurgeLength(float len) {
-    purge_length = std::max(std::abs(isnan(len) ? GetDefaultPurgeLength() : len), (float)minimal_purge);
+void Settings::SetPurgeLength(const std::optional<float> &len) {
+    purge_length = std::max(std::abs(len.has_value() ? len.value() : GetDefaultPurgeLength()), (float)minimal_purge);
 }
 
-void Settings::SetRetractLength(float len) {
-    retract = -std::abs(isnan(len) ? GetDefaultRetractLength() : len); // retract is negative
+void Settings::SetRetractLength(const std::optional<float> &len) {
+    retract = -std::abs(len.has_value() ? len.value() : GetDefaultRetractLength()); // retract is negative
 }
 
 void Settings::SetParkPoint(const xyz_pos_t &park_point) {
-    park_pos = park_point; //TODO check limits
+    park_pos = park_point; // TODO check limits
     park_pos.z = std::min(park_pos.z, get_z_max_pos_mm());
 }
 
 void Settings::SetResumePoint(const xyze_pos_t &resume_point) {
-    resume_pos = resume_point; //TODO check limits
+    resume_pos = resume_point; // TODO check limits
 }
 
 void Settings::SetMmuFilamentToLoad(uint8_t index) {
