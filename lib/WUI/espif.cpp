@@ -135,7 +135,7 @@ static void hard_reset_device() {
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
-    if (huart->Instance == USART6 && (huart->ErrorCode & HAL_UART_ERROR_NE || huart->ErrorCode & HAL_UART_ERROR_FE)) {
+    if (huart->Instance == UART_INSTANCE_FOR(esp) && (huart->ErrorCode & HAL_UART_ERROR_NE || huart->ErrorCode & HAL_UART_ERROR_FE)) {
         __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);
         HAL_UART_DeInit(huart);
         if (HAL_UART_Init(huart) != HAL_OK) {

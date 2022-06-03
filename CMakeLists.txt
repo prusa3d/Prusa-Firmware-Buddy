@@ -720,6 +720,7 @@ target_sources(
           src/usbh_diskio.c
           src/main.c
           src/main.cpp
+          src/peripherals.cpp
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>
           src/stm32f4xx_hal_msp.c

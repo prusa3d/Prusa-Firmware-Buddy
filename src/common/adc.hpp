@@ -27,9 +27,6 @@ enum AD1 { //ADC1 channels
 };
 };
 
-void MX_ADC1_Init(void);
-extern ADC_HandleTypeDef hadc1;
-
 template <ADC_HandleTypeDef &adc, size_t channels>
 class AdcDma {
 public:
@@ -58,7 +55,6 @@ private:
 };
 
 using AdcDma1 = AdcDma<hadc1, AdcChannel::ADC1_CH_CNT>;
-
 extern AdcDma1 adcDma1;
 
 class AdcGet {
