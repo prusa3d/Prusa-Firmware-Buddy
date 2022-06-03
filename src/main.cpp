@@ -27,60 +27,12 @@
 #include "timing.h"
 #include "filesystem.h"
 #include "adc.hpp"
-#include "SEGGER_SYSVIEW.h"
 #include "logging.h"
 #include "common/disable_interrupts.h"
 
 #ifdef BUDDY_ENABLE_WUI
     #include "wui.h"
 #endif
-
-#define USB_OVERC_Pin               GPIO_PIN_4
-#define USB_OVERC_GPIO_Port         GPIOE
-#define ESP_GPIO0_Pin               GPIO_PIN_6
-#define ESP_GPIO0_GPIO_Port         GPIOE
-#define ESP_RST_Pin                 GPIO_PIN_13
-#define ESP_RST_GPIO_Port           GPIOC
-#define BED_MON_Pin                 GPIO_PIN_3
-#define BED_MON_GPIO_Port           GPIOA
-#define FANPRINT_TACH_Pin           GPIO_PIN_10
-#define FANPRINT_TACH_GPIO_Port     GPIOE
-#define FANPRINT_TACH_EXTI_IRQn     EXTI15_10_IRQn
-#define FANHEATBREAK_TACH_Pin       GPIO_PIN_14
-#define FANHEATBREAK_TACH_GPIO_Port GPIOE
-#define FANHEATBREAK_TACH_EXTI_IRQn EXTI15_10_IRQn
-#define SWDIO_Pin                   GPIO_PIN_13
-#define SWDIO_GPIO_Port             GPIOA
-#define SWCLK_Pin                   GPIO_PIN_14
-#define SWCLK_GPIO_Port             GPIOA
-#define WP2_Pin                     GPIO_PIN_5
-#define WP2_GPIO_Port               GPIOB
-#define WP1_Pin                     GPIO_PIN_0
-#define WP1_GPIO_Port               GPIOE
-
-I2C_HandleTypeDef hi2c1;
-
-RTC_HandleTypeDef hrtc;
-SPI_HandleTypeDef hspi2;
-SPI_HandleTypeDef hspi3;
-DMA_HandleTypeDef hdma_spi2_tx;
-DMA_HandleTypeDef hdma_spi2_rx;
-DMA_HandleTypeDef hdma_spi3_tx;
-DMA_HandleTypeDef hdma_spi3_rx;
-
-// described in timers.md
-TIM_HandleTypeDef htim1;
-TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim14;
-
-static UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart2;
-UART_HandleTypeDef huart6;
-DMA_HandleTypeDef hdma_usart1_rx;
-DMA_HandleTypeDef hdma_usart2_rx;
-DMA_HandleTypeDef hdma_usart6_rx;
-RNG_HandleTypeDef hrng;
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
@@ -93,20 +45,6 @@ int HAL_PWM_Initialized = 0;
 int HAL_SPI_Initialized = 0;
 
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
-static void MX_USART1_UART_Init(void);
-static void MX_TIM1_Init(void);
-static void MX_TIM3_Init(void);
-static void MX_SPI2_Init(void);
-static void MX_USART2_UART_Init(void);
-static void MX_USART6_UART_Init(void);
-static void MX_SPI3_Init(void);
-static void MX_TIM2_Init(void);
-static void MX_TIM14_Init(void);
-static void MX_RTC_Init(void);
-static void MX_RNG_Init(void);
-
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
 void StartConnectTask(void const *argument);
@@ -129,26 +67,40 @@ extern "C" void main_cpp(void) {
 
     logging_init();
 
-    /* Initialize all configured peripherals */
-    MX_GPIO_Init();
-    MX_DMA_Init();
+    hw_gpio_init();
+    hw_dma_init();
+
 #ifndef SIM_HEATER
-    MX_ADC1_Init();
+    hw_adc1_init();
 #endif
-    MX_USART1_UART_Init();
-    MX_TIM1_Init();
-    MX_TIM3_Init();
-    MX_SPI2_Init();
-    MX_USART2_UART_Init();
-    MX_USART6_UART_Init();
-    MX_SPI3_Init();
-    MX_TIM2_Init();
-    MX_TIM14_Init();
-    MX_RTC_Init();
-    MX_RNG_Init();
+
+    hw_uart1_init();
+
+    hw_tim1_init();
+    hw_tim3_init();
+
+    SPI_INIT(flash);
+
+#if HAS_GUI
+    SPI_INIT(lcd);
+#endif
+
+    UART_INIT(tmc);
+
+#ifdef BUDDY_ENABLE_WUI
+    UART_INIT(esp);
+#endif
+
+#if HAS_GUI
+    hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
+#endif
+
+    hw_tim14_init();
+    hw_rtc_init();
+    hw_rng_init();
 
     // initialize SPI flash
-    w25x_spi_assign(&hspi3);
+    w25x_spi_assign(&SPI_HANDLE_FOR(flash));
     if (!w25x_init(true))
         bsod("failed to initialize ext flash");
 
@@ -238,344 +190,19 @@ extern "C" void main_cpp(void) {
     osThreadCreate(osThread(measurementTask), NULL);
 }
 
-static void MX_RTC_Init(void) {
-    /** Initialize RTC Only
-     */
-    hrtc.Instance = RTC;
-    hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
-    hrtc.Init.AsynchPrediv = 127;
-    hrtc.Init.SynchPrediv = 255;
-    hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
-    hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
-    hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
-    if (HAL_RTC_Init(&hrtc) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-static void MX_SPI2_Init(void) {
-    /* SPI2 parameter configuration*/
-    hspi2.Instance = SPI2;
-    hspi2.Init.Mode = SPI_MODE_MASTER;
-    hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-    hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
-    hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
-    hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-    hspi2.Init.NSS = SPI_NSS_SOFT;
-    hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-    hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
-    hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
-    hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-    hspi2.Init.CRCPolynomial = 10;
-    if (HAL_SPI_Init(&hspi2) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-static void MX_SPI3_Init(void) {
-    /* SPI3 parameter configuration*/
-    hspi3.Instance = SPI3;
-    hspi3.Init.Mode = SPI_MODE_MASTER;
-    hspi3.Init.Direction = SPI_DIRECTION_2LINES;
-    hspi3.Init.DataSize = SPI_DATASIZE_8BIT;
-    hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
-    hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
-    hspi3.Init.NSS = SPI_NSS_SOFT;
-    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-    hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
-    hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
-    hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-    hspi3.Init.CRCPolynomial = 10;
-    if (HAL_SPI_Init(&hspi3) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-static void MX_TIM1_Init(void) {
-    TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-    TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-    TIM_OC_InitTypeDef sConfigOC = { 0 };
-    TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = { 0 };
-
-    htim1.Instance = TIM1;
-    htim1.Init.Prescaler = TIM1_default_Prescaler; // 0x3fff was 100;
-    htim1.Init.CounterMode = TIM_COUNTERMODE_DOWN;
-    htim1.Init.Period = TIM1_default_Period; // 0xff was 42000;
-    htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    htim1.Init.RepetitionCounter = 0;
-    if (HAL_TIM_Base_Init(&htim1) != HAL_OK) {
-        Error_Handler();
-    }
-    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-    if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK) {
-        Error_Handler();
-    }
-    if (HAL_TIM_PWM_Init(&htim1) != HAL_OK) {
-        Error_Handler();
-    }
-    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK) {
-        Error_Handler();
-    }
-    sConfigOC.OCMode = TIM_OCMODE_PWM1;
-    sConfigOC.Pulse = 0;
-    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-    sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-    sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-    sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-    if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
-        Error_Handler();
-    }
-    if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) {
-        Error_Handler();
-    }
-    sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
-    sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
-    sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-    sBreakDeadTimeConfig.DeadTime = 0;
-    sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
-    sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
-    sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
-    if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-static void MX_TIM2_Init(void) {
-    TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-    TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-    TIM_OC_InitTypeDef sConfigOC = { 0 };
-
-    htim2.Instance = TIM2;
-    htim2.Init.Prescaler = 100;
-    htim2.Init.CounterMode = TIM_COUNTERMODE_DOWN;
-    htim2.Init.Period = 42000;
-    htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
-        Error_Handler();
-    }
-    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-    if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK) {
-        Error_Handler();
-    }
-    if (HAL_TIM_PWM_Init(&htim2) != HAL_OK) {
-        Error_Handler();
-    }
-    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK) {
-        Error_Handler();
-    }
-    sConfigOC.OCMode = TIM_OCMODE_PWM1;
-    sConfigOC.Pulse = 21000;
-    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-    if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
-        Error_Handler();
-    }
-
-    HAL_TIM_MspPostInit(&htim2);
-}
-
-static void MX_TIM3_Init(void) {
-    TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-    TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-    TIM_OC_InitTypeDef sConfigOC = { 0 };
-
-    htim3.Instance = TIM3;
-    htim3.Init.Prescaler = TIM3_default_Prescaler; // 0x3fff was 100
-    htim3.Init.CounterMode = TIM_COUNTERMODE_DOWN;
-    htim3.Init.Period = TIM3_default_Period; // 0xff was 42000
-    htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    if (HAL_TIM_Base_Init(&htim3) != HAL_OK) {
-        Error_Handler();
-    }
-    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-    if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK) {
-        Error_Handler();
-    }
-    if (HAL_TIM_PWM_Init(&htim3) != HAL_OK) {
-        Error_Handler();
-    }
-    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK) {
-        Error_Handler();
-    }
-    sConfigOC.OCMode = TIM_OCMODE_PWM1;
-    sConfigOC.Pulse = 21000;
-    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-    if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
-        Error_Handler();
-    }
-    if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK) {
-        Error_Handler();
-    }
-
-    HAL_TIM_MspPostInit(&htim3);
-}
-
-static void MX_TIM14_Init(void) {
-    htim14.Instance = TIM14;
-    htim14.Init.Prescaler = 84;
-    htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim14.Init.Period = 1000;
-    htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    if (HAL_TIM_Base_Init(&htim14) != HAL_OK) {
-        Error_Handler();
-    }
-    HAL_TIM_Base_Start_IT(&htim14);
-}
-
-static void MX_USART1_UART_Init(void) {
-    huart1.Instance = USART1;
-    huart1.Init.BaudRate = 115200;
-    huart1.Init.WordLength = UART_WORDLENGTH_8B;
-    huart1.Init.StopBits = UART_STOPBITS_1;
-    huart1.Init.Parity = UART_PARITY_NONE;
-    huart1.Init.Mode = UART_MODE_TX_RX;
-    huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-    if (HAL_UART_Init(&huart1) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-static void MX_USART2_UART_Init(void) {
-    huart2.Instance = USART2;
-    huart2.Init.BaudRate = 115200;
-    huart2.Init.WordLength = UART_WORDLENGTH_8B;
-    huart2.Init.StopBits = UART_STOPBITS_1;
-    huart2.Init.Parity = UART_PARITY_NONE;
-    huart2.Init.Mode = UART_MODE_TX_RX;
-    huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-    if (HAL_HalfDuplex_Init(&huart2) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-static void MX_USART6_UART_Init(void) {
-    huart6.Instance = USART6;
-    huart6.Init.BaudRate = 115200;
-    huart6.Init.WordLength = UART_WORDLENGTH_8B;
-    huart6.Init.StopBits = UART_STOPBITS_1;
-    huart6.Init.Parity = UART_PARITY_NONE;
-    huart6.Init.Mode = UART_MODE_TX_RX;
-    huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart6.Init.OverSampling = UART_OVERSAMPLING_16;
-    if (HAL_UART_Init(&huart6) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-static void MX_DMA_Init(void) {
-    /* DMA controller clock enable */
-    __HAL_RCC_DMA1_CLK_ENABLE();
-    __HAL_RCC_DMA2_CLK_ENABLE();
-
-    /* DMA interrupt init */
-    /* DMA1_Stream0_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-    /* DMA1_Stream4_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-    /* DMA1_Stream5_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
-    /* DMA1_Stream7_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
-    /* DMA2_Stream1_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
-    /* DMA2_Stream2_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-    /* DMA2_Stream0_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-}
-
-static void MX_GPIO_Init(void) {
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
-
-    /* GPIO Ports Clock Enable */
-    __HAL_RCC_GPIOE_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    __HAL_RCC_GPIOH_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOD_CLK_ENABLE();
-
-    /*Configure GPIO pins : USB_OVERC_Pin ESP_GPIO0_Pin
-                           BED_MON_Pin WP1_Pin */
-    GPIO_InitStruct.Pin = USB_OVERC_Pin | ESP_GPIO0_Pin
-        | BED_MON_Pin | WP1_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-#ifdef USE_ESP01_WITH_UART6
-    /* NOTE: Configuring GPIO causes a short drop of pin output to low. This is
-       avoided by first setting the pin and then initilizing the GPIO. In case
-       this does not work we first initilize ESP GPIO0 to avoid reset low
-       followed by ESP GPIO low as this sequence can switch esp to boot mode */
-    /* Configure ESP GPIO0 (PROG, High for ESP module boot from Flash) */
-    GPIO_InitStruct.Pin = GPIO_PIN_6;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-    /* Configure GPIO pins : ESP_RST_Pin */
-    GPIO_InitStruct.Pin = ESP_RST_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_SET);
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-#else
-    /*Configure GPIO pins : ESP_RST_Pin */
-    GPIO_InitStruct.Pin = ESP_RST_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin, GPIO_PIN_RESET);
-#endif
-
-    PIN_TABLE(CONFIGURE_PINS)
-
-    /*Configure GPIO pins : WP2_Pin */
-    GPIO_InitStruct.Pin = WP2_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-}
-
-static void MX_RNG_Init(void) {
-    hrng.Instance = RNG;
-    if (HAL_RNG_Init(&hrng) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
 extern void st7789v_spi_tx_complete(void);
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
     if (hspi == st7789v_config.phspi) {
         st7789v_spi_tx_complete();
-    } else if (hspi == &hspi3) {
+    }
+
+    if (hspi == &SPI_HANDLE_FOR(flash)) {
         w25x_spi_transfer_complete_callback();
     }
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-    if (hspi == &hspi3) {
+    if (hspi == &SPI_HANDLE_FOR(flash)) {
         w25x_spi_receive_complete_callback();
     }
 }

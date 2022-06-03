@@ -7,6 +7,8 @@
 #include "sys.h"
 #include "buffered_serial.hpp"
 #include "tusb.h"
+#include "peripherals.h"
+#include "wdt.h"
 
 #ifdef BUDDY_ENABLE_WUI
     #include "espif.h"
@@ -14,21 +16,6 @@
 
 extern ETH_HandleTypeDef heth;
 extern HCD_HandleTypeDef hhcd_USB_OTG_HS;
-extern DMA_HandleTypeDef hdma_spi2_tx;
-extern DMA_HandleTypeDef hdma_spi2_rx;
-extern DMA_HandleTypeDef hdma_spi3_tx;
-extern DMA_HandleTypeDef hdma_spi3_rx;
-extern TIM_HandleTypeDef htim14;
-extern DMA_HandleTypeDef hdma_usart1_rx;
-extern DMA_HandleTypeDef hdma_usart2_rx;
-extern DMA_HandleTypeDef hdma_usart6_rx;
-extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart6;
-extern uartrxbuff_t uart6rxbuff;
-extern TIM_HandleTypeDef htim6;
-extern WWDG_HandleTypeDef hwwdg;
-
-extern DMA_HandleTypeDef hdma_adc1;
 
 /******************************************************************************/
 /*           Cortex-M4 Processor Interruption and Exception Handlers          */
@@ -84,13 +71,6 @@ void UsageFault_Handler(void) {
 void DebugMon_Handler(void) {
 }
 
-/******************************************************************************/
-/* STM32F4xx Peripheral Interrupt Handlers                                    */
-/* Add here the Interrupt Handlers for the used peripherals.                  */
-/* For the available peripheral interrupt handler names,                      */
-/* please refer to the startup file (startup_stm32f4xx.s).                    */
-/******************************************************************************/
-
 void USART2_IRQHandler() {
     traceISR_ENTER();
     if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE)) {
@@ -101,28 +81,17 @@ void USART2_IRQHandler() {
     traceISR_EXIT();
 }
 
-#ifdef USE_ESP01_WITH_UART6
 void USART6_IRQHandler(void) {
-
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart6);
-    #ifdef BUDDY_ENABLE_WUI
+#if defined(BUDDY_ENABLE_WUI) && uart_esp == 6
         espif_receive_data(&huart6);
-    #endif // BUDDY_ENABLE_WUI
-    }
-    HAL_UART_IRQHandler(&huart6);
-}
-#else  // USE_ESP01_WITH_UART6
-void USART6_IRQHandler() {
-    traceISR_ENTER();
-    if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
-        __HAL_UART_CLEAR_IDLEFLAG(&huart6);
+#else
         uartrxbuff_idle_cb(&uart6rxbuff);
+#endif
     }
     HAL_UART_IRQHandler(&huart6);
-    traceISR_EXIT();
 }
-#endif // USE_ESP01_WITH_UART6
 
 /**
  * @brief This function handles Window watchdog interrupt.
