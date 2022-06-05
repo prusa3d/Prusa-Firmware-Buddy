@@ -394,6 +394,8 @@ public:
     static int8_t active_coordinate_system;
     static xyz_pos_t coordinate_system[MAX_COORDINATE_SYSTEMS];
     static bool select_coordinate_system(const int8_t _new);
+    static int8_t get_coordinate_system();
+    static void set_coordinate_system_offset(int8_t system, AxisEnum axis, float offset);
   #endif
 
   static millis_t previous_move_ms, max_inactive_time;
@@ -847,6 +849,9 @@ private:
     #endif
   #endif
 
+  static void M170();
+  static void M171();
+
   #if DISABLED(NO_VOLUMETRICS)
     static void M200();
     static void M200_report(const bool forReplay=true);
@@ -979,8 +984,10 @@ private:
     static void M309_report(const bool forReplay=true);
   #endif
 
-  #if HAS_MICROSTEPS
+  #if HAS_DRIVER(TMC2130) || HAS_MICROSTEPS
     static void M350();
+  #endif
+  #if HAS_MICROSTEPS
     static void M351();
   #endif
 
@@ -1083,6 +1090,8 @@ private:
   #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
     static void M540();
   #endif
+
+  static void M555();
 
   #if HAS_ETHERNET
     static void M552();

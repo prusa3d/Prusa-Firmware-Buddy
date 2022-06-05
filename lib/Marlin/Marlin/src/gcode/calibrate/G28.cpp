@@ -26,6 +26,7 @@
 
 #include "../../module/stepper.h"
 #include "../../module/endstops.h"
+#include "../../module/precise_homing.h"
 
 #if HAS_MULTI_HOTEND
   #include "../../module/tool_change.h"
@@ -67,6 +68,8 @@
   static void quick_home_xy() {
 
     // Pretend the current position is 0,0
+    CBI(axis_known_position, X_AXIS);
+    CBI(axis_known_position, Y_AXIS);
     current_position.set(0.0, 0.0);
     sync_plan_position();
 
@@ -82,6 +85,10 @@
     const float fr_mm_s = SQRT(sq(homing_feedrate(X_AXIS)) + sq(homing_feedrate(Y_AXIS)));
 
     #if ENABLED(SENSORLESS_HOMING)
+      #if ENABLED(CRASH_RECOVERY)
+        Crash_Temporary_Deactivate ctd;
+      #endif // ENABLED(CRASH_RECOVERY)
+
       sensorless_t stealth_states {
         NUM_AXIS_LIST(
           TERN0(X_SENSORLESS, tmc_enable_stallguard(stepperX)),
@@ -91,6 +98,11 @@
         , TERN0(X2_SENSORLESS, tmc_enable_stallguard(stepperX2))
         , TERN0(Y2_SENSORLESS, tmc_enable_stallguard(stepperY2))
       };
+
+      #if ENABLED(CRASH_RECOVERY)
+        stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
+        stepperY.stall_sensitivity(crash_s.home_sensitivity[1]);
+      #endif
     #endif
 
     do_blocking_move_to_xy(1.5 * mlx * x_axis_home_dir, 1.5 * mly * Y_HOME_DIR, fr_mm_s);
@@ -98,8 +110,9 @@
     endstops.validate_homing_move();
 
     current_position.set(0.0, 0.0);
+    sync_plan_position();
 
-    #if ENABLED(SENSORLESS_HOMING) && DISABLED(ENDSTOPS_ALWAYS_ON_DEFAULT)
+    #if ENABLED(SENSORLESS_HOMING) && NONE(ENDSTOPS_ALWAYS_ON_DEFAULT, CRASH_RECOVERY)
       TERN_(X_SENSORLESS, tmc_disable_stallguard(stepperX, stealth_states.x));
       TERN_(X2_SENSORLESS, tmc_disable_stallguard(stepperX2, stealth_states.x2));
       TERN_(Y_SENSORLESS, tmc_disable_stallguard(stepperY, stealth_states.y));
@@ -188,7 +201,7 @@
 
 /**
  * G28: Home all axes according to settings
- *
+ * 
  * Parameters
  *
  *  None  Home to all axes with no parameters.
@@ -203,6 +216,10 @@
  *  X   Home to the X endstop
  *  Y   Home to the Y endstop
  *  Z   Home to the Z endstop
+ * PRECISE_HOMING only:
+ * 
+ *  D   Avoid home calibration
+ * 
  */
 void GcodeSuite::G28() {
   float R = parser.seenval('R') ? parser.value_linear_units() : NaN;
@@ -444,7 +461,11 @@ void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
 
     // Home Y (before X)
     if (ENABLED(HOME_Y_BEFORE_X) && (doY || TERN0(CODEPENDENT_XY_HOMING, doX)))
-      homeaxis(Y_AXIS);
+      homeaxis(Y_AXIS
+        #if ENABLED(PRECISE_HOMING)
+          , 0.0f, false, !parser.seen('D')
+        #endif
+        );
 
     // Home X
     if (doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X))) {
@@ -453,21 +474,33 @@ void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
 
         // Always home the 2nd (right) extruder first
         active_extruder = 1;
-        homeaxis(X_AXIS);
+        homeaxis(X_AXIS
+          #if ENABLED(PRECISE_HOMING)
+            , 0.0f, false, !parser.seen('D')
+          #endif
+        );
 
         // Remember this extruder's position for later tool change
         inactive_extruder_x = current_position.x;
 
         // Home the 1st (left) extruder
         active_extruder = 0;
-        homeaxis(X_AXIS);
+        homeaxis(X_AXIS
+          #if ENABLED(PRECISE_HOMING)
+            , 0.0f, false, !parser.seen('D')
+          #endif
+        );
 
         // Consider the active extruder to be in its "parked" position
         idex_set_parked();
 
       #else
 
-        homeaxis(X_AXIS);
+        homeaxis(X_AXIS
+          #if ENABLED(PRECISE_HOMING)
+            , 0.0f, false, !parser.seen('D')
+          #endif
+        );
 
       #endif
     }
@@ -479,7 +512,11 @@ void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
 
     // Home Y (after X)
     if (DISABLED(HOME_Y_BEFORE_X) && doY)
-      homeaxis(Y_AXIS);
+      homeaxis(Y_AXIS
+        #if ENABLED(PRECISE_HOMING)
+          , 0.0f, false, !parser.seen('D')
+        #endif
+        );
 
     #if BOTH(FOAMCUTTER_XYUV, HAS_J_AXIS)
       // Home J (after Y)
@@ -537,14 +574,22 @@ void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
 
       // Always home the 2nd (right) extruder first
       active_extruder = 1;
-      homeaxis(X_AXIS);
+      homeaxis(X_AXIS
+        #if ENABLED(PRECISE_HOMING)
+          , 0.0f, false, !parser.seen('D')
+        #endif
+      );
 
       // Remember this extruder's position for later tool change
       inactive_extruder_x = current_position.x;
 
       // Home the 1st (left) extruder
       active_extruder = 0;
-      homeaxis(X_AXIS);
+      homeaxis(X_AXIS
+        #if ENABLED(PRECISE_HOMING)
+          , 0.0f, false, !parser.seen('D')
+        #endif
+      );
 
       // Consider the active extruder to be parked
       idex_set_parked();
@@ -625,5 +670,6 @@ void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
     SERIAL_ECHOLNPGM(STR_Z_MOVE_COMP);
 
   TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(old_grblstate));
+
 
 }

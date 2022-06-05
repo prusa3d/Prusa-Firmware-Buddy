@@ -70,6 +70,8 @@ extern bool wait_for_heatup;
   void wait_for_user_response(millis_t ms=0, const bool no_sleep=false);
 #endif
 
+extern uint16_t job_id;
+
 bool pin_is_protected(const pin_t pin);
 
 #if HAS_SUICIDE

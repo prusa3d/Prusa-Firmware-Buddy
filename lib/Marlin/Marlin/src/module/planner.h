@@ -284,7 +284,7 @@ typedef struct PlannerBlock {
 
 } block_t;
 
-#if ANY(LIN_ADVANCE, SCARA_FEEDRATE_SCALING, GRADIENT_MIX, LCD_SHOW_E_TOTAL, POWER_LOSS_RECOVERY)
+#if ANY(LIN_ADVANCE, SCARA_FEEDRATE_SCALING, GRADIENT_MIX, LCD_SHOW_E_TOTAL, POWER_LOSS_RECOVERY, CRASH_RECOVERY)
   #define HAS_POSITION_FLOAT 1
 #endif
 
@@ -326,6 +326,36 @@ typedef struct {
     #endif
   };
 #endif
+
+// Structure for saving/loading movement parameters
+typedef struct {
+   uint32_t max_acceleration_mm_per_s2[XYZE_N], // (mm/s^2) M201 XYZE
+            min_segment_time_us;                // (µs) M205 B
+ feedRate_t max_feedrate_mm_s[XYZE_N];          // (mm/s) M203 XYZE - Max speeds
+      float acceleration,                       // (mm/s^2) M204 S - Normal acceleration. DEFAULT ACCELERATION for all printing moves.
+            retract_acceleration,               // (mm/s^2) M204 R - Retract acceleration. Filament pull-back and push-forward while standing still in the other axes
+            travel_acceleration;                // (mm/s^2) M204 T - Travel acceleration. DEFAULT ACCELERATION for all NON printing moves.
+ feedRate_t min_feedrate_mm_s,                  // (mm/s) M205 S - Minimum linear feedrate
+            min_travel_feedrate_mm_s;           // (mm/s) M205 T - Minimum travel feedrate
+
+  #if DISABLED(CLASSIC_JERK)
+    float junction_deviation_mm;                // (mm) M205 J
+    #if ENABLED(LIN_ADVANCE)
+      #if ENABLED(DISTINCT_E_FACTORS)
+        float max_e_jerk[EXTRUDERS];            // Calculated from junction_deviation_mm
+      #else
+        float max_e_jerk;
+      #endif
+    #endif
+  #endif
+  #if HAS_CLASSIC_JERK
+    #if HAS_LINEAR_E_JERK
+      xyz_pos_t max_jerk;                       // (mm/s^2) M205 XYZ - The largest speed change requiring no acceleration.
+    #else
+      xyze_pos_t max_jerk;                      // (mm/s^2) M205 XYZE - The largest speed change requiring no acceleration.
+    #endif
+  #endif
+} motion_parameters_t;
 
 #if DISABLED(SKEW_CORRECTION)
   #define XY_SKEW_FACTOR 0
@@ -760,11 +790,11 @@ class Planner {
      *
      * - Get the next head indices (passed by reference)
      * - Wait for the number of spaces to open up in the planner
-     * - Return the first head block
+     * - Return the first head block, or nullptr if the queue is being drained
      */
     FORCE_INLINE static block_t* get_next_free_block(uint8_t &next_buffer_head, const uint8_t count=1) {
 
-      // Wait until there are enough slots free
+      // Wait until there are enough slots free or if aborting
       while (moves_free() < count && !draining_buffer) { idle(true); }
       if (draining_buffer)
         return nullptr;
@@ -888,6 +918,9 @@ class Planner {
       static void set_e_position_mm(const_float_t e);
     #endif
 
+    /// Resets machine position to values from stepper
+    static void reset_position();
+
     /**
      * Set the planner.position and individual stepper positions.
      *
@@ -918,7 +951,7 @@ class Planner {
     #endif
 
     // Called to force a quick stop of the machine (for example, when
-    // a Full Shutdown is required, or when endstops are hit)
+    // a Full Shutdown is required, or when endstops are hit).
     // Will implicitly call drain().
     static void quick_stop();
 
@@ -1099,6 +1132,42 @@ class Planner {
       }
 
     #endif // HAS_JUNCTION_DEVIATION
+};
+
+/**
+ * Class provides storage of speed and acceleration parameters of the motion.
+ */
+class Motion_Parameters {
+  public:
+    // save motion parameters
+    void save();
+    // save motion parameters and reset them
+    void save_reset();
+    // reset motion parameters
+    static void reset();
+    // load motion parameters back
+    void load();
+
+  private:
+    motion_parameters_t mp;
+};
+
+/**
+ * Class provides temporary storage of speed and acceleration parameters of the motion.
+ * Constructor saves parameters and resets them, destructor retrieves them back.
+ */
+class Temporary_Reset_Motion_Parameters {
+  public:
+    Temporary_Reset_Motion_Parameters() {
+      mp.save();
+      mp.reset();
+    }
+
+    ~Temporary_Reset_Motion_Parameters() {
+      mp.load();
+    }
+  private:
+    Motion_Parameters mp;
 };
 
 #define PLANNER_XY_FEEDRATE() _MIN(planner.settings.max_feedrate_mm_s[X_AXIS], planner.settings.max_feedrate_mm_s[Y_AXIS])

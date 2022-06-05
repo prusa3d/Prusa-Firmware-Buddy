@@ -179,7 +179,12 @@ void Power::power_off() {
   bool Power::is_power_needed() {
 
     // If any of the stepper drivers are enabled...
-    if (stepper.axis_enabled.bits) return true;
+    #if POWER_IGNORE_Z
+      #error "Unsupported"
+    #endif
+    #if DISABLED(POWER_IGNORE_STEPPERS)
+      if (stepper.axis_enabled.bits) return true;
+    #endif
 
     if (printJobOngoing() || printingIsPaused()) return true;
 

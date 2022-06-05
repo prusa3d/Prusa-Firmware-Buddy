@@ -107,6 +107,8 @@
   #include "../feature/spindle_laser.h"
 #endif
 
+#include "configuration_store.h"
+
 // Delay for delivery of first block to the stepper ISR, if the queue contains 2 or
 // fewer movements. The delay is measured in milliseconds, and must be less than 250ms
 #define BLOCK_DELAY_FOR_1ST_MOVE 100
@@ -1695,11 +1697,11 @@ void Planner::quick_stop() {
   // Start draining the planner (requires one full marlin loop to complete!)
   drain();
 
+  // Discard the current running block
+  stepper.quick_stop();
+
   // Reenable Stepper ISR
   if (was_enabled) stepper.wake_up();
-
-  // And stop the stepper ISR
-  stepper.quick_stop();
 }
 
 #if ENABLED(REALTIME_REPORTING_COMMANDS)
@@ -1720,7 +1722,16 @@ void Planner::quick_stop() {
 
 #endif
 
+// Called from ISR
 void Planner::endstop_triggered(const AxisEnum axis) {
+  #if ENABLED(CRASH_RECOVERY)
+    if (crash_s.is_active() && crash_s.is_enabled() && (axis == X_AXIS || axis == Y_AXIS)) {
+      // endstop triggered: save the current planner state
+      crash_s.axis_hit_isr(axis);
+      crash_s.set_state(Crash_s::TRIGGERED_ISR);
+    }
+  #endif
+
   // Record stepper position and discard the current block
   stepper.endstop_triggered(axis);
 }
@@ -2936,6 +2947,23 @@ bool Planner::_populate_block(
   previous_speed = current_speed;
   previous_nominal_speed_sqr = block->nominal_speed_sqr;
 
+  #if ENABLED(CRASH_RECOVERY)
+  {
+    const uint8_t crash_index = block - block_buffer;
+    Crash_s::crash_block_t &crash_block = crash_s.crash_block[crash_index];
+    auto &move_start = crash_s.move_start;
+
+    // save recovery data for the current block
+    crash_block.start_current_position = move_start.start_current_position;
+    crash_block.e_position = position_float[E_AXIS];
+    crash_block.e_steps = de;
+    crash_block.sdpos = move_start.sdpos;
+    crash_block.segment_idx = crash_s.gcode_state.segment_idx;
+    crash_block.inhibit_flags = crash_s.gcode_state.inhibit_flags;
+    crash_block.fr_mm_s = fr_mm_s;
+  }
+  #endif
+
   position = target;  // Update the position
 
   #if ENABLED(POWER_LOSS_RECOVERY)
@@ -3019,6 +3047,40 @@ bool Planner::buffer_segment(const abce_pos_t &abce
 
   // If we are aborting, do not accept queuing of movements
   if (draining_buffer) return false;
+
+  #if ENABLED(CRASH_RECOVERY)
+  {
+    auto &move_start = crash_s.move_start;
+    auto &gcode_state = crash_s.gcode_state;
+    if (gcode_state.sdpos == move_start.sdpos) {
+      ++gcode_state.segment_idx;
+    } else {
+      // we are processing the beginning of a new logical move: update the constant
+      // values which are repeated in all subsequent segments
+      move_start.start_current_position = current_position;
+
+      // reset segment state
+      move_start.sdpos = gcode_state.sdpos;
+      gcode_state.segment_idx = 0;
+    }
+
+    if (crash_s.get_state() == Crash_s::REPLAY) {
+      // replay mode: drop initial segments
+      if (crash_s.segments_finished > 0) {
+        --crash_s.segments_finished;
+        return true;
+      }
+
+      // first real segment after recovering, manipulate the current state in order
+      // to resume the segment from the crashing position
+      set_machine_position_mm(crash_s.crash_position);
+      millimeters = 0.0f;
+
+      // continue normally
+      crash_s.set_state(Crash_s::PRINTING);
+    }
+  }
+  #endif
 
   // When changing extruders recalculate steps corresponding to the E position
   #if ENABLED(DISTINCT_E_FACTORS)
@@ -3320,6 +3382,15 @@ void Planner::set_position_mm(const xyze_pos_t &xyze) {
       stepper.set_axis_position(E_AXIS, position.e);
   }
 
+void Planner::reset_position() {
+  LOOP_ABCE(i) {
+    position[i] = stepper.position((AxisEnum)i);
+    #if HAS_POSITION_FLOAT
+      position_float[i] = position[i] / settings.axis_steps_per_mm[i];
+    #endif
+  }
+}
+
 #endif
 
 // Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
@@ -3467,3 +3538,76 @@ void Planner::set_max_feedrate(const AxisEnum axis, float inMaxFeedrateMMS) {
   }
 
 #endif
+
+void Motion_Parameters::save_reset() {
+  save();
+  reset();
+}
+
+void Motion_Parameters::save() {
+  for (int i = 0; i < XYZE_N; ++i) {
+    mp.max_acceleration_mm_per_s2[i] = planner.settings.max_acceleration_mm_per_s2[i];
+    mp.max_feedrate_mm_s[i] = planner.settings.max_feedrate_mm_s[i];
+  }
+
+  mp.min_segment_time_us = planner.settings.min_segment_time_us;
+  mp.acceleration = planner.settings.acceleration;
+  mp.retract_acceleration = planner.settings.retract_acceleration;
+  mp.travel_acceleration = planner.settings.travel_acceleration;
+  mp.min_feedrate_mm_s = planner.settings.min_feedrate_mm_s;
+  mp.min_travel_feedrate_mm_s = planner.settings.min_travel_feedrate_mm_s;
+
+  #if DISABLED(CLASSIC_JERK)
+    mp.junction_deviation_mm = planner.junction_deviation_mm;
+    #if ENABLED(LIN_ADVANCE)
+      #if ENABLED(DISTINCT_E_FACTORS)
+        for (int i = 0; i < EXTRUDERS; ++i) {
+          mp.max_e_jerk[i] = planner.max_e_jerk[i];
+        }
+      #else
+        mp.max_e_jerk = planner.max_e_jerk;
+      #endif
+    #endif
+  #endif
+  #if HAS_CLASSIC_JERK
+    mp.max_jerk = planner.max_jerk;
+  #endif
+}
+
+void Motion_Parameters::load() {
+  for (int i = 0; i < XYZE_N; ++i) {
+    planner.settings.max_acceleration_mm_per_s2[i] = mp.max_acceleration_mm_per_s2[i];
+    planner.settings.max_feedrate_mm_s[i] = mp.max_feedrate_mm_s[i];
+  }
+
+  planner.settings.min_segment_time_us = mp.min_segment_time_us;
+  planner.settings.acceleration = mp.acceleration;
+  planner.settings.retract_acceleration = mp.retract_acceleration;
+  planner.settings.travel_acceleration = mp.travel_acceleration;
+  planner.settings.min_feedrate_mm_s = mp.min_feedrate_mm_s;
+  planner.settings.min_travel_feedrate_mm_s = mp.min_travel_feedrate_mm_s;
+
+  #if DISABLED(CLASSIC_JERK)
+    planner.junction_deviation_mm = mp.junction_deviation_mm;
+    #if ENABLED(LIN_ADVANCE)
+      #if ENABLED(DISTINCT_E_FACTORS)
+        for (int i = 0; i < EXTRUDERS; ++i) {
+          planner.max_e_jerk[i] = mp.max_e_jerk[i];
+        }
+      #else
+        planner.max_e_jerk = mp.max_e_jerk;
+      #endif
+    #endif
+  #endif
+  #if HAS_CLASSIC_JERK
+    planner.max_jerk = mp.max_jerk;
+  #endif
+
+  planner.reset_acceleration_rates();
+}
+
+void Motion_Parameters::reset() {
+  MarlinSettings::reset_motion();
+  planner.reset_acceleration_rates();
+}
+

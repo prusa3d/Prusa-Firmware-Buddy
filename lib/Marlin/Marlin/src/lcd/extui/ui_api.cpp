@@ -558,20 +558,20 @@ namespace ExtUI {
 
     int getTMCBumpSensitivity(const axis_t axis) {
       switch (axis) {
-        OPTCODE(X_SENSORLESS,  case X:  return stepperX.homing_threshold())
-        OPTCODE(Y_SENSORLESS,  case Y:  return stepperY.homing_threshold())
-        OPTCODE(Z_SENSORLESS,  case Z:  return stepperZ.homing_threshold())
-        OPTCODE(I_SENSORLESS,  case I:  return stepperI.homing_threshold())
-        OPTCODE(J_SENSORLESS,  case J:  return stepperJ.homing_threshold())
-        OPTCODE(K_SENSORLESS,  case K:  return stepperK.homing_threshold())
-        OPTCODE(U_SENSORLESS,  case U:  return stepperU.homing_threshold())
-        OPTCODE(V_SENSORLESS,  case V:  return stepperV.homing_threshold())
-        OPTCODE(W_SENSORLESS,  case W:  return stepperW.homing_threshold())
-        OPTCODE(X2_SENSORLESS, case X2: return stepperX2.homing_threshold())
-        OPTCODE(Y2_SENSORLESS, case Y2: return stepperY2.homing_threshold())
-        OPTCODE(Z2_SENSORLESS, case Z2: return stepperZ2.homing_threshold())
-        OPTCODE(Z3_SENSORLESS, case Z3: return stepperZ3.homing_threshold())
-        OPTCODE(Z4_SENSORLESS, case Z4: return stepperZ4.homing_threshold())
+        OPTCODE(X_SENSORLESS,  case X:  return stepperX.stall_sensitivity())
+        OPTCODE(Y_SENSORLESS,  case Y:  return stepperY.stall_sensitivity())
+        OPTCODE(Z_SENSORLESS,  case Z:  return stepperZ.stall_sensitivity())
+        OPTCODE(I_SENSORLESS,  case I:  return stepperI.stall_sensitivity())
+        OPTCODE(J_SENSORLESS,  case J:  return stepperJ.stall_sensitivity())
+        OPTCODE(K_SENSORLESS,  case K:  return stepperK.stall_sensitivity())
+        OPTCODE(U_SENSORLESS,  case U:  return stepperU.stall_sensitivity())
+        OPTCODE(V_SENSORLESS,  case V:  return stepperV.stall_sensitivity())
+        OPTCODE(W_SENSORLESS,  case W:  return stepperW.stall_sensitivity())
+        OPTCODE(X2_SENSORLESS, case X2: return stepperX2.stall_sensitivity())
+        OPTCODE(Y2_SENSORLESS, case Y2: return stepperY2.stall_sensitivity())
+        OPTCODE(Z2_SENSORLESS, case Z2: return stepperZ2.stall_sensitivity())
+        OPTCODE(Z3_SENSORLESS, case Z3: return stepperZ3.stall_sensitivity())
+        OPTCODE(Z4_SENSORLESS, case Z4: return stepperZ4.stall_sensitivity())
         default: return 0;
       }
     }
@@ -579,46 +579,58 @@ namespace ExtUI {
     void setTMCBumpSensitivity(const_float_t value, const axis_t axis) {
       switch (axis) {
         #if X_SENSORLESS
-          case X: stepperX.homing_threshold(value); break;
+          #if ENABLED(CRASH_RECOVERY)
+            case X: crash_s.home_sensitivity[0] = value; break;
+          #else
+            case X: stepperX.stall_sensitivity(value); break;
+          #endif
         #endif
         #if Y_SENSORLESS
-          case Y: stepperY.homing_threshold(value); break;
+          #if ENABLED(CRASH_RECOVERY)
+            case Y: crash_s.home_sensitivity[1] = value; break;
+          #else        
+            case Y: stepperY.stall_sensitivity(value); break;
+          #endif
         #endif
         #if Z_SENSORLESS
-          case Z: stepperZ.homing_threshold(value); break;
+          #if ENABLED(CRASH_RECOVERY)
+            case Z: crash_s.home_sensitivity[2] = value; break;
+          #else
+            case Z: stepperZ.stall_sensitivity(value); break;
+          #endif
         #endif
         #if I_SENSORLESS
-          case I: stepperI.homing_threshold(value); break;
+          case I: stepperI.stall_sensitivity(value); break;
         #endif
         #if J_SENSORLESS
-          case J: stepperJ.homing_threshold(value); break;
+          case J: stepperJ.stall_sensitivity(value); break;
         #endif
         #if K_SENSORLESS
-          case K: stepperK.homing_threshold(value); break;
+          case K: stepperK.stall_sensitivity(value); break;
         #endif
         #if U_SENSORLESS
-          case U: stepperU.homing_threshold(value); break;
+          case U: stepperU.stall_sensitivity(value); break;
         #endif
         #if V_SENSORLESS
-          case V: stepperV.homing_threshold(value); break;
+          case V: stepperV.stall_sensitivity(value); break;
         #endif
         #if W_SENSORLESS
-          case W: stepperW.homing_threshold(value); break;
+          case W: stepperW.stall_sensitivity(value); break;
         #endif
         #if X2_SENSORLESS
-          case X2: stepperX2.homing_threshold(value); break;
+          case X2: stepperX2.stall_sensitivity(value); break;
         #endif
         #if Y2_SENSORLESS
-          case Y2: stepperY2.homing_threshold(value); break;
+          case Y2: stepperY2.stall_sensitivity(value); break;
         #endif
         #if Z2_SENSORLESS
-          case Z2: stepperZ2.homing_threshold(value); break;
+          case Z2: stepperZ2.stall_sensitivity(value); break;
         #endif
         #if Z3_SENSORLESS
-          case Z3: stepperZ3.homing_threshold(value); break;
+          case Z3: stepperZ3.stall_sensitivity(value); break;
         #endif
         #if Z4_SENSORLESS
-          case Z4: stepperZ4.homing_threshold(value); break;
+          case Z4: stepperZ4.stall_sensitivity(value); break;
         #endif
         default: break;
       }

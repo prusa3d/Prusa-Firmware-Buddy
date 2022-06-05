@@ -54,6 +54,10 @@ GcodeSuite gcode;
   #include "../feature/cancel_object.h"
 #endif
 
+#if ENABLED(CRASH_RECOVERY)
+  #include "../feature/prusa/crash_recovery.h"
+#endif
+
 #if ENABLED(LASER_FEATURE)
   #include "../feature/spindle_laser.h"
 #endif
@@ -343,6 +347,12 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       if (!no_ok) queue.ok_to_send();
       return;
     }
+  #endif
+
+  #if ENABLED(CRASH_RECOVERY)
+    // this is done one step down from process_next_command in order to handle subcommands
+    // and injected commands correctly: the state needs to reset at each logical move
+    crash_s.start_new_gcode(queue.get_current_sdpos());
   #endif
 
   #if ENABLED(PROCESS_CUSTOM_GCODE)
@@ -719,6 +729,9 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         #endif
       #endif
 
+      case 170: M170(); break;
+      case 171: M171(); break;
+      
       #if DISABLED(NO_VOLUMETRICS)
         case 200: M200(); break;                                  // M200: Set filament diameter, E to cubic units
       #endif
@@ -931,6 +944,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 540: M540(); break;                                  // M540: Set abort on endstop hit for SD printing
       #endif
 
+      case 555: M555(); break;                                    // M555: Set print area
+
       #if HAS_ETHERNET
         case 552: M552(); break;                                  // M552: Set IP address
         case 553: M553(); break;                                  // M553: Set gateway
@@ -1025,8 +1040,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 919: M919(); break;                                  // M919: Set stepper Chopper Times
       #endif
 
-      #if HAS_MICROSTEPS
+      #if HAS_DRIVER(TMC2130) || HAS_MICROSTEPS
         case 350: M350(); break;                                  // M350: Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
+      #endif
+      #if HAS_MICROSTEPS
         case 351: M351(); break;                                  // M351: Toggle MS1 MS2 pins directly, S# determines MS1 or MS2, X# sets the pin high/low.
       #endif
 

@@ -508,22 +508,52 @@
       switch (i) {
         #if X_SENSORLESS
           case X_AXIS:
-            if (index < 2) stepperX.homing_threshold(value);
-            TERN_(X2_SENSORLESS, if (!(index & 1)) stepperX2.homing_threshold(value));
+            #if ENABLED(CRASH_RECOVERY)
+              #if AXIS_HAS_STALLGUARD(X)
+                if (index < 2) crash_s.home_sensitivity[0] = value;
+              #endif
+              #if AXIS_HAS_STALLGUARD(X2)
+                #error "Not implemented."
+              #endif
+            #else
+              if (index < 2) stepperX.homing_threshold(value);
+              TERN_(X2_SENSORLESS, if (!(index & 1)) stepperX2.homing_threshold(value));
+            #endif
             break;
         #endif
         #if Y_SENSORLESS
           case Y_AXIS:
-            if (index < 2) stepperY.homing_threshold(value);
-            TERN_(Y2_SENSORLESS, if (!(index & 1)) stepperY2.homing_threshold(value));
+            #if ENABLED(CRASH_RECOVERY)
+              #if AXIS_HAS_STALLGUARD(Y)
+                if (index < 2) crash_s.home_sensitivity[1] = value;
+              #endif
+              #if AXIS_HAS_STALLGUARD(Y2)
+                #error "Not implemented."
+              #endif
+            #else
+              if (index < 2) stepperY.homing_threshold(value);
+              TERN_(Y2_SENSORLESS, if (!(index & 1)) stepperY2.homing_threshold(value));
+            #endif
             break;
         #endif
         #if Z_SENSORLESS
           case Z_AXIS:
-            if (index < 2) stepperZ.homing_threshold(value);
-            TERN_(Z2_SENSORLESS, if (!index || index == 2) stepperZ2.homing_threshold(value));
-            TERN_(Z3_SENSORLESS, if (!index || index == 3) stepperZ3.homing_threshold(value));
-            TERN_(Z4_SENSORLESS, if (!index || index == 4) stepperZ4.homing_threshold(value));
+            #if ENABLED(CRASH_RECOVERY)
+              #if AXIS_HAS_STALLGUARD(Z)
+                if (index < 2) crash_s.home_sensitivity[2] = value;
+              #endif
+              #if AXIS_HAS_STALLGUARD(Z2)
+                #error "Not implemented."
+              #endif
+              #if AXIS_HAS_STALLGUARD(Z3)
+                #error "Not implemented."
+              #endif
+            #else
+              if (index < 2) stepperZ.homing_threshold(value);
+              TERN_(Z2_SENSORLESS, if (!index || index == 2) stepperZ2.homing_threshold(value));
+              TERN_(Z3_SENSORLESS, if (!index || index == 3) stepperZ3.homing_threshold(value));
+              TERN_(Z4_SENSORLESS, if (!index || index == 4) stepperZ4.homing_threshold(value));
+            #endif
             break;
         #endif
         #if I_SENSORLESS
@@ -548,20 +578,29 @@
     }
 
     if (report) {
-      TERN_(X_SENSORLESS, tmc_print_sgt(stepperX));
-      TERN_(X2_SENSORLESS, tmc_print_sgt(stepperX2));
-      TERN_(Y_SENSORLESS, tmc_print_sgt(stepperY));
-      TERN_(Y2_SENSORLESS, tmc_print_sgt(stepperY2));
-      TERN_(Z_SENSORLESS, tmc_print_sgt(stepperZ));
-      TERN_(Z2_SENSORLESS, tmc_print_sgt(stepperZ2));
-      TERN_(Z3_SENSORLESS, tmc_print_sgt(stepperZ3));
-      TERN_(Z4_SENSORLESS, tmc_print_sgt(stepperZ4));
-      TERN_(I_SENSORLESS, tmc_print_sgt(stepperI));
-      TERN_(J_SENSORLESS, tmc_print_sgt(stepperJ));
-      TERN_(K_SENSORLESS, tmc_print_sgt(stepperK));
-      TERN_(U_SENSORLESS, tmc_print_sgt(stepperU));
-      TERN_(V_SENSORLESS, tmc_print_sgt(stepperV));
-      TERN_(W_SENSORLESS, tmc_print_sgt(stepperW));
+      #if ENABLED(CRASH_RECOVERY)
+        SERIAL_ECHOPGM("X homing sensitivity: ");
+        SERIAL_PRINTLN(crash_s.home_sensitivity[0], DEC);
+        SERIAL_ECHOPGM("Y homing sensitivity: ");
+        SERIAL_PRINTLN(crash_s.home_sensitivity[1], DEC);
+        SERIAL_ECHOPGM("Z homing sensitivity: ");
+        SERIAL_PRINTLN(crash_s.home_sensitivity[2], DEC);
+      #else
+        TERN_(X_SENSORLESS, tmc_print_sgt(stepperX));
+        TERN_(X2_SENSORLESS, tmc_print_sgt(stepperX2));
+        TERN_(Y_SENSORLESS, tmc_print_sgt(stepperY));
+        TERN_(Y2_SENSORLESS, tmc_print_sgt(stepperY2));
+        TERN_(Z_SENSORLESS, tmc_print_sgt(stepperZ));
+        TERN_(Z2_SENSORLESS, tmc_print_sgt(stepperZ2));
+        TERN_(Z3_SENSORLESS, tmc_print_sgt(stepperZ3));
+        TERN_(Z4_SENSORLESS, tmc_print_sgt(stepperZ4));
+        TERN_(I_SENSORLESS, tmc_print_sgt(stepperI));
+        TERN_(J_SENSORLESS, tmc_print_sgt(stepperJ));
+        TERN_(K_SENSORLESS, tmc_print_sgt(stepperK));
+        TERN_(U_SENSORLESS, tmc_print_sgt(stepperU));
+        TERN_(V_SENSORLESS, tmc_print_sgt(stepperV));
+        TERN_(W_SENSORLESS, tmc_print_sgt(stepperW));
+      #endif
     }
   }
 
@@ -575,7 +614,7 @@
 
     #if X_SENSORLESS || Y_SENSORLESS || Z_SENSORLESS
       say_M914(forReplay);
-      #if X_SENSORLESS
+        #if X_SENSORLESS
         SERIAL_ECHOPGM_P(SP_X_STR, stepperX.homing_threshold());
       #endif
       #if Y_SENSORLESS
@@ -583,7 +622,7 @@
       #endif
       #if Z_SENSORLESS
         SERIAL_ECHOPGM_P(SP_Z_STR, stepperZ.homing_threshold());
-      #endif
+        #endif
       SERIAL_EOL();
     #endif
 
@@ -595,7 +634,7 @@
       #endif
       #if Y2_SENSORLESS
         SERIAL_ECHOPGM_P(SP_Y_STR, stepperY2.homing_threshold());
-      #endif
+        #endif
       #if Z2_SENSORLESS
         SERIAL_ECHOPGM_P(SP_Z_STR, stepperZ2.homing_threshold());
       #endif

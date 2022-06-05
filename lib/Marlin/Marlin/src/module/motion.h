@@ -59,8 +59,8 @@ extern xyz_pos_t cartes;
 #if HAS_ABL_NOT_UBL
   extern feedRate_t xy_probe_feedrate_mm_s;
   #define XY_PROBE_FEEDRATE_MM_S xy_probe_feedrate_mm_s
-#elif defined(XY_PROBE_FEEDRATE)
-  #define XY_PROBE_FEEDRATE_MM_S MMM_TO_MMS(XY_PROBE_FEEDRATE)
+#elif defined(XY_PROBE_SPEED_INITIAL)
+  #define XY_PROBE_FEEDRATE_MM_S MMM_TO_MMS(XY_PROBE_SPEED_INITIAL)
 #else
   #define XY_PROBE_FEEDRATE_MM_S PLANNER_XY_FEEDRATE()
 #endif
@@ -93,6 +93,9 @@ FORCE_INLINE feedRate_t homing_feedrate(const AxisEnum a) {
 }
 
 feedRate_t get_homing_bump_feedrate(const AxisEnum axis);
+
+struct sensorless_t start_sensorless_homing_per_axis(const AxisEnum axis);
+void end_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth);
 
 /**
  * The default feedrate for many moves, set by the most recent move
@@ -302,6 +305,7 @@ void report_current_position_projected();
 
 void get_cartesian_from_steppers();
 void set_current_from_steppers_for_axis(const AxisEnum axis);
+void set_current_from_steppers();
 
 void quickstop_stepper();
 
@@ -320,6 +324,11 @@ void sync_plan_position();
  * (or from wherever it has been told it is located).
  */
 void line_to_current_position(const_feedRate_t fr_mm_s=feedrate_mm_s);
+
+/// Plans (non-blocking) linear move to relative distance.
+/// It uses prepare_move_to_destination() for the planning which
+/// is suitable with UBL.
+void plan_move_by(const feedRate_t fr, const float dx, const float dy = 0, const float dz = 0, const float de = 0);
 
 #if HAS_EXTRUDERS
   void unscaled_e_move(const_float_t length, const_feedRate_t fr_mm_s);
@@ -353,7 +362,8 @@ static inline void plan_park_move_to_xyz(const xyz_pos_t &xyz, const feedRate_t 
 }
 
 /**
- * Blocking movement and shorthand functions
+ * Performs a blocking fast parking move to (X, Y, Z) and sets the current_position.
+ * Parking (Z-Manhattan): Moves XY and Z independently. Raises Z before or lowers Z after XY motion.
  */
 void do_blocking_move_to(NUM_AXIS_ARGS(const float), const_feedRate_t fr_mm_s=0.0f);
 void do_blocking_move_to(const xy_pos_t &raw, const_feedRate_t fr_mm_s=0.0f);
@@ -437,7 +447,19 @@ void set_axis_is_at_home(const AxisEnum axis);
    *   Cleared whenever a stepper powers off, potentially losing its position.
    */
   extern main_axes_bits_t axes_homed, axes_trusted;
-  void homeaxis(const AxisEnum axis);
+  
+  #if ENABLED(PRECISE_HOMING)
+    void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false, bool can_calibrate = true);
+  #else
+    void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false);
+  #endif
+
+  void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0
+    #if ENABLED(MOVE_BACK_BEFORE_HOMING)
+      , bool can_move_back_before_homing = false
+    #endif
+  );
+  
   void set_axis_never_homed(const AxisEnum axis);
   main_axes_bits_t axes_should_home(main_axes_bits_t axes_mask=main_axes_mask);
   bool homing_needed_error(main_axes_bits_t axes_mask=main_axes_mask);
@@ -677,3 +699,23 @@ void home_if_needed(const bool keeplev=false);
   sensorless_t start_sensorless_homing_per_axis(const AxisEnum axis);
   void end_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth);
 #endif
+
+#if ENABLED(PRECISE_HOMING)
+  
+  /**
+  * \returns offset of current position to calibrated safe home position.
+  * This includes HOME_GAP. Works for X and Y axes only.
+  */
+  float calibrated_home_offset(const AxisEnum axis);
+
+  /**
+   * Provides precise homing for X and Y axes
+   * \param axis axis to be homed (cartesian printers only)
+   * \param axis_home_dir direction where the home of the axis is
+   * \param can_calibrate allows re-calibration if homing is not successful
+   * calibration should be disabled for crash recovery, power loss recovery etc.
+   * \return probe offset
+   */ 
+  float home_axis_precise(AxisEnum axis, int axis_home_dir, bool can_calibrate = true);
+
+#endif // ENABLED(PRECISE_HOMING)

@@ -35,6 +35,7 @@ class MarlinSettings {
   public:
     static uint16_t datasize();
 
+    static void reset_motion();
     static void reset();
     static bool save();    // Return 'true' if data was saved
 

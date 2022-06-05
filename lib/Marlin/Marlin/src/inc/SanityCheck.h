@@ -1836,8 +1836,6 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "You must define Z_CLEARANCE_BETWEEN_PROBES in your configuration."
   #elif Z_CLEARANCE_DEPLOY_PROBE < 0
     #error "Probes need Z_CLEARANCE_DEPLOY_PROBE >= 0."
-  #elif Z_CLEARANCE_BETWEEN_PROBES < 0
-    #error "Probes need Z_CLEARANCE_BETWEEN_PROBES >= 0."
   #elif Z_AFTER_PROBING < 0
     #error "Probes need Z_AFTER_PROBING >= 0."
   #endif
@@ -1910,10 +1908,8 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 
   #if IS_SCARA
     #error "AUTO_BED_LEVELING_UBL does not yet support SCARA printers."
-  #elif DISABLED(EEPROM_SETTINGS)
-    #error "AUTO_BED_LEVELING_UBL requires EEPROM_SETTINGS."
-  #elif !WITHIN(GRID_MAX_POINTS_X, 3, 15) || !WITHIN(GRID_MAX_POINTS_Y, 3, 15)
-    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 15."
+  #elif !WITHIN(GRID_MAX_POINTS_X, 3, 23) || !WITHIN(GRID_MAX_POINTS_Y, 3, 23)
+    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 23."
   #endif
 
 #elif HAS_ABL_NOT_UBL
@@ -3525,6 +3521,12 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #endif
 #endif
 
+#if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
+  #if !defined(X_STALL_SENSITIVITY) && !defined(Y_STALL_SENSITIVITY) && !defined(Z_STALL_SENSITIVITY)
+    #error "Sensorless features (homing, probing) enabled but no sensitivity was set for specified drivers."
+  #endif
+#endif
+
 // Sensorless homing is required for both combined steppers in an H-bot
 #if CORE_IS_XY && X_SENSORLESS != Y_SENSORLESS
   #error "CoreXY requires both X and Y to use sensorless homing if either one does."
@@ -3724,6 +3726,14 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
 
 #if BOTH(X_AXIS_TWIST_COMPENSATION, NOZZLE_AS_PROBE)
   #error "X_AXIS_TWIST_COMPENSATION is incompatible with NOZZLE_AS_PROBE."
+#endif
+
+#if ALL(POWER_LOSS_RECOVERY, POWER_PANIC)
+  #error "POWER_LOSS_RECOVERY and POWER_PANIC are mutually exclusive."
+#endif
+
+#if ENABLED(POWER_PANIC) && DISABLED(CRASH_RECOVERY)
+  #error "POWER_PANIC requires CRASH_RECOVERY."
 #endif
 
 #if ENABLED(POWER_LOSS_RECOVERY)

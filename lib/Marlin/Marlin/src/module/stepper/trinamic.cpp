@@ -231,7 +231,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, hold_multiplier);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -241,9 +241,9 @@ enum StealthIndex : uint8_t {
 
     PWMCONF_t pwmconf{0};
     pwmconf.pwm_freq = 0b01; // f_pwm = 2/683 f_clk
-    pwmconf.pwm_autoscale = true;
+        pwmconf.pwm_autoscale = true;
     pwmconf.pwm_grad = 5;
-    pwmconf.pwm_ampl = 180;
+        pwmconf.pwm_ampl = 180;
     st.PWMCONF(pwmconf.sr);
 
     TERN(HYBRID_THRESHOLD, st.set_pwm_thrs(hyb_thrs), UNUSED(hyb_thrs));
@@ -266,7 +266,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, hold_multiplier);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -688,7 +688,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, hold_multiplier);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -730,7 +730,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, hold_multiplier);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -788,7 +788,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, hold_multiplier);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -823,7 +823,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, hold_multiplier);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -991,20 +991,20 @@ void reset_trinamic_drivers() {
   #endif
 
   #if USE_SENSORLESS
-    TERN_(X_SENSORLESS, stepperX.homing_threshold(X_STALL_SENSITIVITY));
-    TERN_(X2_SENSORLESS, stepperX2.homing_threshold(CAT(TERN(X2_SENSORLESS, X2, X), _STALL_SENSITIVITY)));
-    TERN_(Y_SENSORLESS, stepperY.homing_threshold(Y_STALL_SENSITIVITY));
-    TERN_(Y2_SENSORLESS, stepperY2.homing_threshold(CAT(TERN(Y2_SENSORLESS, Y2, Y), _STALL_SENSITIVITY)));
-    TERN_(Z_SENSORLESS, stepperZ.homing_threshold(Z_STALL_SENSITIVITY));
-    TERN_(Z2_SENSORLESS, stepperZ2.homing_threshold(CAT(TERN(Z2_SENSORLESS, Z2, Z), _STALL_SENSITIVITY)));
-    TERN_(Z3_SENSORLESS, stepperZ3.homing_threshold(CAT(TERN(Z3_SENSORLESS, Z3, Z), _STALL_SENSITIVITY)));
-    TERN_(Z4_SENSORLESS, stepperZ4.homing_threshold(CAT(TERN(Z4_SENSORLESS, Z4, Z), _STALL_SENSITIVITY)));
-    TERN_(I_SENSORLESS, stepperI.homing_threshold(I_STALL_SENSITIVITY));
-    TERN_(J_SENSORLESS, stepperJ.homing_threshold(J_STALL_SENSITIVITY));
-    TERN_(K_SENSORLESS, stepperK.homing_threshold(K_STALL_SENSITIVITY));
-    TERN_(U_SENSORLESS, stepperU.homing_threshold(U_STALL_SENSITIVITY));
-    TERN_(V_SENSORLESS, stepperV.homing_threshold(V_STALL_SENSITIVITY));
-    TERN_(W_SENSORLESS, stepperW.homing_threshold(W_STALL_SENSITIVITY));
+    TERN_(X_SENSORLESS, stepperX.stall_sensitivity(X_STALL_SENSITIVITY));
+    TERN_(X2_SENSORLESS, stepperX2.stall_sensitivity(CAT(TERN(X2_SENSORLESS, X2, X), _STALL_SENSITIVITY)));
+    TERN_(Y_SENSORLESS, stepperY.stall_sensitivity(Y_STALL_SENSITIVITY));
+    TERN_(Y2_SENSORLESS, stepperY2.stall_sensitivity(CAT(TERN(Y2_SENSORLESS, Y2, Y), _STALL_SENSITIVITY)));
+    TERN_(Z_SENSORLESS, stepperZ.stall_sensitivity(Z_STALL_SENSITIVITY));
+    TERN_(Z2_SENSORLESS, stepperZ2.stall_sensitivity(CAT(TERN(Z2_SENSORLESS, Z2, Z), _STALL_SENSITIVITY)));
+    TERN_(Z3_SENSORLESS, stepperZ3.stall_sensitivity(CAT(TERN(Z3_SENSORLESS, Z3, Z), _STALL_SENSITIVITY)));
+    TERN_(Z4_SENSORLESS, stepperZ4.stall_sensitivity(CAT(TERN(Z4_SENSORLESS, Z4, Z), _STALL_SENSITIVITY)));
+    TERN_(I_SENSORLESS, stepperI.stall_sensitivity(I_STALL_SENSITIVITY));
+    TERN_(J_SENSORLESS, stepperJ.stall_sensitivity(J_STALL_SENSITIVITY));
+    TERN_(K_SENSORLESS, stepperK.stall_sensitivity(K_STALL_SENSITIVITY));
+    TERN_(U_SENSORLESS, stepperU.stall_sensitivity(U_STALL_SENSITIVITY));
+    TERN_(V_SENSORLESS, stepperV.stall_sensitivity(V_STALL_SENSITIVITY));
+    TERN_(W_SENSORLESS, stepperW.stall_sensitivity(W_STALL_SENSITIVITY));
   #endif
 
   #ifdef TMC_ADV

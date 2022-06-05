@@ -35,9 +35,18 @@
   #include "../../../module/motion.h"
 #endif
 
+#if ENABLED(CRASH_RECOVERY)
+    #include "../../../feature/prusa/crash_recovery.h"
+#endif
+
 void GcodeSuite::G29() {
 
   TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_PROBE));
+  
+  #if ANY(CRASH_RECOVERY, POWER_PANIC)
+    // G29 requires a full restart: inhibit partial replay
+    crash_s.inhibit_gcode_replay();
+  #endif
 
   bedlevel.G29();
 

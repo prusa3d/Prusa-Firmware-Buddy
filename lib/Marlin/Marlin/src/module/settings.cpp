@@ -1379,21 +1379,21 @@ void MarlinSettings::postprocess() {
       mot_stepper_int16_t tmc_sgt{0};
       #if USE_SENSORLESS
         NUM_AXIS_CODE(
-          TERN_(X_SENSORLESS, tmc_sgt.X = stepperX.homing_threshold()),
-          TERN_(Y_SENSORLESS, tmc_sgt.Y = stepperY.homing_threshold()),
-          TERN_(Z_SENSORLESS, tmc_sgt.Z = stepperZ.homing_threshold()),
-          TERN_(I_SENSORLESS, tmc_sgt.I = stepperI.homing_threshold()),
-          TERN_(J_SENSORLESS, tmc_sgt.J = stepperJ.homing_threshold()),
-          TERN_(K_SENSORLESS, tmc_sgt.K = stepperK.homing_threshold()),
-          TERN_(U_SENSORLESS, tmc_sgt.U = stepperU.homing_threshold()),
-          TERN_(V_SENSORLESS, tmc_sgt.V = stepperV.homing_threshold()),
-          TERN_(W_SENSORLESS, tmc_sgt.W = stepperW.homing_threshold())
+          TERN_(X_SENSORLESS, tmc_sgt.X = stepperX.stall_sensitivity()),
+          TERN_(Y_SENSORLESS, tmc_sgt.Y = stepperY.stall_sensitivity()),
+          TERN_(Z_SENSORLESS, tmc_sgt.Z = stepperZ.stall_sensitivity()),
+          TERN_(I_SENSORLESS, tmc_sgt.I = stepperI.stall_sensitivity()),
+          TERN_(J_SENSORLESS, tmc_sgt.J = stepperJ.stall_sensitivity()),
+          TERN_(K_SENSORLESS, tmc_sgt.K = stepperK.stall_sensitivity()),
+          TERN_(U_SENSORLESS, tmc_sgt.U = stepperU.stall_sensitivity()),
+          TERN_(V_SENSORLESS, tmc_sgt.V = stepperV.stall_sensitivity()),
+          TERN_(W_SENSORLESS, tmc_sgt.W = stepperW.stall_sensitivity())
         );
-        TERN_(X2_SENSORLESS, tmc_sgt.X2 = stepperX2.homing_threshold());
-        TERN_(Y2_SENSORLESS, tmc_sgt.Y2 = stepperY2.homing_threshold());
-        TERN_(Z2_SENSORLESS, tmc_sgt.Z2 = stepperZ2.homing_threshold());
-        TERN_(Z3_SENSORLESS, tmc_sgt.Z3 = stepperZ3.homing_threshold());
-        TERN_(Z4_SENSORLESS, tmc_sgt.Z4 = stepperZ4.homing_threshold());
+        TERN_(X2_SENSORLESS, tmc_sgt.X2 = stepperX2.stall_sensitivity());
+        TERN_(Y2_SENSORLESS, tmc_sgt.Y2 = stepperY2.stall_sensitivity());
+        TERN_(Z2_SENSORLESS, tmc_sgt.Z2 = stepperZ2.stall_sensitivity());
+        TERN_(Z3_SENSORLESS, tmc_sgt.Z3 = stepperZ3.stall_sensitivity());
+        TERN_(Z4_SENSORLESS, tmc_sgt.Z4 = stepperZ4.stall_sensitivity());
       #endif
       EEPROM_WRITE(tmc_sgt);
     }
@@ -2319,21 +2319,21 @@ void MarlinSettings::postprocess() {
         #if USE_SENSORLESS
           if (!validating) {
             NUM_AXIS_CODE(
-              TERN_(X_SENSORLESS, stepperX.homing_threshold(tmc_sgt.X)),
-              TERN_(Y_SENSORLESS, stepperY.homing_threshold(tmc_sgt.Y)),
-              TERN_(Z_SENSORLESS, stepperZ.homing_threshold(tmc_sgt.Z)),
-              TERN_(I_SENSORLESS, stepperI.homing_threshold(tmc_sgt.I)),
-              TERN_(J_SENSORLESS, stepperJ.homing_threshold(tmc_sgt.J)),
-              TERN_(K_SENSORLESS, stepperK.homing_threshold(tmc_sgt.K)),
-              TERN_(U_SENSORLESS, stepperU.homing_threshold(tmc_sgt.U)),
-              TERN_(V_SENSORLESS, stepperV.homing_threshold(tmc_sgt.V)),
-              TERN_(W_SENSORLESS, stepperW.homing_threshold(tmc_sgt.W))
+              TERN_(X_SENSORLESS, stepperX.stall_sensitivity(tmc_sgt.X)),
+              TERN_(Y_SENSORLESS, stepperY.stall_sensitivity(tmc_sgt.Y)),
+              TERN_(Z_SENSORLESS, stepperZ.stall_sensitivity(tmc_sgt.Z)),
+              TERN_(I_SENSORLESS, stepperI.stall_sensitivity(tmc_sgt.I)),
+              TERN_(J_SENSORLESS, stepperJ.stall_sensitivity(tmc_sgt.J)),
+              TERN_(K_SENSORLESS, stepperK.stall_sensitivity(tmc_sgt.K)),
+              TERN_(U_SENSORLESS, stepperU.stall_sensitivity(tmc_sgt.U)),
+              TERN_(V_SENSORLESS, stepperV.stall_sensitivity(tmc_sgt.V)),
+              TERN_(W_SENSORLESS, stepperW.stall_sensitivity(tmc_sgt.W))
             );
-            TERN_(X2_SENSORLESS, stepperX2.homing_threshold(tmc_sgt.X2));
-            TERN_(Y2_SENSORLESS, stepperY2.homing_threshold(tmc_sgt.Y2));
-            TERN_(Z2_SENSORLESS, stepperZ2.homing_threshold(tmc_sgt.Z2));
-            TERN_(Z3_SENSORLESS, stepperZ3.homing_threshold(tmc_sgt.Z3));
-            TERN_(Z4_SENSORLESS, stepperZ4.homing_threshold(tmc_sgt.Z4));
+            TERN_(X2_SENSORLESS, stepperX2.stall_sensitivity(tmc_sgt.X2));
+            TERN_(Y2_SENSORLESS, stepperY2.stall_sensitivity(tmc_sgt.Y2));
+            TERN_(Z2_SENSORLESS, stepperZ2.stall_sensitivity(tmc_sgt.Z2));
+            TERN_(Z3_SENSORLESS, stepperZ3.stall_sensitivity(tmc_sgt.Z3));
+            TERN_(Z4_SENSORLESS, stepperZ4.stall_sensitivity(tmc_sgt.Z4));
           }
         #endif
       }
@@ -2832,9 +2832,9 @@ void MarlinSettings::postprocess() {
 #endif // !EEPROM_SETTINGS
 
 /**
- * M502 - Reset Configuration
+ * Resets motion parameters only (speed, accel., etc.)
  */
-void MarlinSettings::reset() {
+void MarlinSettings::reset_motion() {
   LOOP_DISTINCT_AXES(i) {
     planner.settings.max_acceleration_mm_per_s2[i] = pgm_read_dword(&_DMA[ALIM(i, _DMA)]);
     planner.settings.axis_steps_per_mm[i]          = get_steps_per_unit(i);
@@ -2883,6 +2883,13 @@ void MarlinSettings::reset() {
   #endif
 
   TERN_(HAS_JUNCTION_DEVIATION, planner.junction_deviation_mm = float(JUNCTION_DEVIATION_MM));
+}
+
+/**
+ * M502 - Reset Configuration
+ */
+void MarlinSettings::reset() {
+  reset_motion();
 
   #if HAS_SCARA_OFFSET
     scara_home_offset.reset();
@@ -3470,8 +3477,10 @@ void MarlinSettings::reset() {
         if (!forReplay) {
           SERIAL_EOL();
           bedlevel.report_state();
-          SERIAL_ECHO_MSG("Active Mesh Slot ", bedlevel.storage_slot);
-          SERIAL_ECHO_MSG("EEPROM can hold ", calc_num_meshes(), " meshes.\n");
+          #if ENABLED(EEPROM_SETTINGS)
+            SERIAL_ECHO_MSG("Active Mesh Slot ", bedlevel.storage_slot);
+            SERIAL_ECHO_MSG("EEPROM can hold ", calc_num_meshes(), " meshes.\n");
+          #endif
         }
 
        //bedlevel.report_current_mesh();   // This is too verbose for large meshes. A better (more terse)

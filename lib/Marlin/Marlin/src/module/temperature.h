@@ -720,6 +720,9 @@ class Temperature {
      */
     static void task();
 
+    // Return true if the temperatures have been sampled at least once
+    static bool temperatures_ready();
+
     /**
      * Preheating hotends
      */

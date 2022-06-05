@@ -73,6 +73,7 @@ void GcodeSuite::M24() {
     card.startOrResumeFilePrinting();            // SD card will now be read for commands
     startOrResumeJob();               // Start (or resume) the print job timer
     TERN_(POWER_LOSS_RECOVERY, recovery.prepare());
+    TERN_(POWER_PANIC, power_panic::reset());
   }
 
   #if ENABLED(HOST_ACTION_COMMANDS)

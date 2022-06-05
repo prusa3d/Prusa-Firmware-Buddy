@@ -1551,6 +1551,8 @@ void setup() {
   #if ENABLED(I2C_POSITION_ENCODERS)
     SETUP_RUN(I2CPEM.init());
   #endif
+  
+  uint16_t job_id = 0;
 
   #if ENABLED(EXPERIMENTAL_I2CBUS) && I2C_SLAVE_ADDRESS > 0
     SETUP_LOG("i2c...");

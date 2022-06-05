@@ -237,7 +237,7 @@ public:
 
   // Reset
   static uint8_t get_reset_source();
-  static void clear_reset_source();
+  static void clear_reset_source() {};
 
   // Free SRAM
   static int freeMemory() { return ::freeMemory(); }
@@ -279,3 +279,6 @@ public:
   static void set_pwm_frequency(const pin_t pin, const uint16_t f_desired);
 
 };
+
+// Startup reset flags
+extern unsigned HAL_RCC_CSR;

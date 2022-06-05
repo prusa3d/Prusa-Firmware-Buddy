@@ -21,6 +21,7 @@
  */
 
 #include "../inc/MarlinConfig.h"
+#include "bsod.h"
 
 #if HAS_TRINAMIC_CONFIG
 
@@ -305,6 +306,12 @@
       // Report if a warning was triggered
       if (data.is_otpw && st.otpw_count == 0)
         report_driver_otpw(st);
+
+      #ifdef SHOW_ERROR_AFTER_OVERTEMP
+      if (data.is_otpw) {
+        kill("TMC", "TMC overtemp!");
+      }
+      #endif
 
       #if CURRENT_STEP_DOWN > 0
         // Decrease current if is_otpw is true and driver is enabled and there's been more than 4 warnings
@@ -1185,7 +1192,7 @@
   bool tmc_enable_stallguard(TMC2130Stepper &st) {
     const bool stealthchop_was_enabled = st.en_pwm_mode();
 
-    st.TCOOLTHRS(0xFFFFF);
+    st.TCOOLTHRS(STALL_THRESHOLD_TMC2130);
     st.en_pwm_mode(false);
     st.diag1_stall(true);
     st.sfilt(false);
@@ -1201,7 +1208,7 @@
   bool tmc_enable_stallguard(TMC2209Stepper &st) {
     const bool stealthchop_was_enabled = !st.en_spreadCycle();
 
-    st.TCOOLTHRS(0xFFFFF);
+    st.TCOOLTHRS(STALL_THRESHOLD_TMC2209);
     st.en_spreadCycle(false);
     return stealthchop_was_enabled;
   }
@@ -1321,7 +1328,10 @@ void test_tmc_connection(LOGICAL_AXIS_ARGS(const bool)) {
     #endif
   }
 
-  if (axis_connection) LCD_MESSAGE(MSG_ERROR_TMC);
+  if (axis_connection) {
+	  ui.set_status_P(GET_TEXT(MSG_ERROR_TMC));
+	  bsod(GET_TEXT(MSG_ERROR_TMC));
+  }
 }
 
 #endif // HAS_TRINAMIC_CONFIG

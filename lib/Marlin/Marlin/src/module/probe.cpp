@@ -30,6 +30,10 @@
 
 #include "probe.h"
 
+#ifdef EXTRA_PROBING_DBG 
+  #include "dbg.h"
+#endif
+
 #include "../libs/buzzer.h"
 #include "motion.h"
 #include "temperature.h"
@@ -619,11 +623,13 @@ bool Probe::probe_down_to_z(const_float_t z, const_feedRate_t fr_mm_s) {
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(SENSORLESS_PROBING)
     endstops.not_homing();
-    #if HAS_DELTA_SENSORLESS_PROBING
-      if (test_sensitivity.x) tmc_disable_stallguard(stepperX, stealth_states.x);
-      if (test_sensitivity.y) tmc_disable_stallguard(stepperY, stealth_states.y);
+    #if NEITHER(ENDSTOPS_ALWAYS_ON_DEFAULT, CRASH_RECOVERY)
+      #if HAS_DELTA_SENSORLESS_PROBING
+        if (test_sensitivity.x) tmc_disable_stallguard(stepperX, stealth_states.x);
+        if (test_sensitivity.y) tmc_disable_stallguard(stepperY, stealth_states.y);
+      #endif
+      if (test_sensitivity.z) tmc_disable_stallguard(stepperZ, stealth_states.z);
     #endif
-    if (test_sensitivity.z) tmc_disable_stallguard(stepperZ, stealth_states.z);
     endstops.set_homing_current(false);
   #endif
 
@@ -689,9 +695,8 @@ bool Probe::probe_down_to_z(const_float_t z, const_feedRate_t fr_mm_s) {
  *
  * @return The Z position of the bed at the current XY or NAN on error.
  */
-float Probe::run_z_probe(const bool sanity_check/*=true*/) {
+float Probe::run_z_probe(const bool sanity_check/*=true*/, const bool single_only/*=false*/) {
   DEBUG_SECTION(log_probe, "Probe::run_z_probe", DEBUGGING(LEVELING));
-
   auto try_to_probe = [&](PGM_P const plbl, const_float_t z_probe_low_point, const feedRate_t fr_mm_s, const bool scheck, const float clearance) -> bool {
     // Tare the probe, if supported
     if (TERN0(PROBE_TARE, tare())) return true;
@@ -725,7 +730,12 @@ float Probe::run_z_probe(const bool sanity_check/*=true*/) {
 
     // Do a first probe at the fast speed
     if (try_to_probe(PSTR("FAST"), z_probe_low_point, z_probe_fast_mm_s,
-                     sanity_check, Z_CLEARANCE_BETWEEN_PROBES) ) return NAN;
+                     sanity_check, Z_CLEARANCE_BETWEEN_PROBES) ) {
+      #if ENABLED(HALT_ON_PROBING_ERROR)
+        kill("PROBING ERROR", "Could not reach the bed, FAST Probe fail!");
+      #endif
+      return NAN;
+    }
 
     const float first_probe_z = DIFF_TERN(HAS_DELTA_SENSORLESS_PROBING, current_position.z, largest_sensorless_adj);
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("1st Probe Z:", first_probe_z);
@@ -765,7 +775,12 @@ float Probe::run_z_probe(const bool sanity_check/*=true*/) {
 
       // Probe downward slowly to find the bed
       if (try_to_probe(PSTR("SLOW"), z_probe_low_point, MMM_TO_MMS(Z_PROBE_FEEDRATE_SLOW),
-                       sanity_check, Z_CLEARANCE_MULTI_PROBE) ) return NAN;
+                       sanity_check, Z_CLEARANCE_MULTI_PROBE) ) {
+        #if ENABLED(HALT_ON_PROBING_ERROR)
+          kill("PROBING ERROR", "Could not reach the bed, SLOW Probe fail!");
+        #endif
+        return NAN;
+      }
 
       TERN_(MEASURE_BACKLASH_WHEN_PROBING, backlash.measure_with_probe());
 
@@ -787,12 +802,14 @@ float Probe::run_z_probe(const bool sanity_check/*=true*/) {
       #endif
 
       #if TOTAL_PROBING > 2
+        if (single_only)
+                break;
         // Small Z raise after all but the last probe
         if (p
           #if EXTRA_PROBING > 0
             < TOTAL_PROBING - 1
           #endif
-        ) do_blocking_move_to_z(z + Z_CLEARANCE_MULTI_PROBE, z_probe_fast_mm_s);
+        ) do_blocking_move_to_z(current_position.z + Z_CLEARANCE_MULTI_PROBE, z_probe_fast_mm_s);
       #endif
     }
 
@@ -872,6 +889,9 @@ float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRai
   );
   if (!can_reach(npos, probe_relative)) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Position Not Reachable");
+    #if ENABLED(HALT_ON_PROBING_ERROR)
+      kill("PROBING ERROR", "Could not reach the bed, XY position not within machine coordinates!");
+    #endif
     return NAN;
   }
   if (probe_relative) npos -= offset_xy;  // Get the nozzle position
@@ -887,9 +907,10 @@ float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRai
   }
   if (!isnan(measured_z)) {
     const bool big_raise = raise_after == PROBE_PT_BIG_RAISE;
-    if (big_raise || raise_after == PROBE_PT_RAISE)
-      do_blocking_move_to_z(current_position.z + (big_raise ? 25 : Z_CLEARANCE_BETWEEN_PROBES), z_probe_fast_mm_s);
-    else if (raise_after == PROBE_PT_STOW || raise_after == PROBE_PT_LAST_STOW)
+    const float move_away_from = measured_z - probe_offset.z;
+    if (big_raise || raise_after == PROBE_PT_RAISE) {
+      plan_park_move_to(current_position.x, current_position.y, move_away_from + (big_raise ? 25 : Z_CLEARANCE_BETWEEN_PROBES), MMM_TO_MMS(XY_PROBE_SPEED), z_probe_fast_mm_s);
+    } else if (raise_after == PROBE_PT_STOW || raise_after == PROBE_PT_LAST_STOW)
       if (stow()) measured_z = NAN;   // Error on stow?
 
     if (verbose_level > 2)
@@ -901,6 +922,9 @@ float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRai
     LCD_MESSAGE(MSG_LCD_PROBING_FAILED);
     #if DISABLED(G29_RETRY_AND_RECOVER)
       SERIAL_ERROR_MSG(STR_ERR_PROBING_FAILED);
+    #endif
+    #if ENABLED(HALT_ON_PROBING_ERROR)
+      kill("PROBING ERROR", "Could not reach the bed, endstop was not triggered!");
     #endif
   }
   DEBUG_ECHOLNPGM("measured_z: ", measured_z);

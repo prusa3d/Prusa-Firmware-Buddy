@@ -292,6 +292,7 @@ typedef xyze_long_t abce_long_t;
 typedef xyz_ulong_t abc_ulong_t;
 typedef xyze_ulong_t abce_ulong_t;
 
+typedef float pos_t;
 typedef xy_float_t xy_pos_t;
 typedef xyz_float_t xyz_pos_t;
 typedef xyze_float_t xyze_pos_t;

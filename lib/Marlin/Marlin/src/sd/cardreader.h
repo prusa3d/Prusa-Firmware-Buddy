@@ -42,10 +42,6 @@ extern const char M23_STR[], M24_STR[];
   #define SD_ORDER(N,C) N
 #endif
 
-#define MAX_DIR_DEPTH     10       // Maximum folder depth
-#define MAXDIRNAMELENGTH   8       // DOS folder name size
-#define MAXPATHNAMELENGTH  (1 + (MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + FILENAME_LENGTH) // "/" + N * ("ADIRNAME/") + "filename.ext"
-
 #include "SdFile.h"
 #include "disk_io_driver.h"
 

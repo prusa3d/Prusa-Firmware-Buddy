@@ -117,28 +117,27 @@ void MarlinHAL::reboot() { NVIC_SystemReset(); }
 uint8_t MarlinHAL::get_reset_source() {
   return
     #ifdef RCC_FLAG_IWDGRST // Some sources may not exist...
-      RESET != __HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)  ? RST_WATCHDOG :
+      RESET != (HAL_RCC_CSR & RCC_FLAG_IWDGRST)  ? RST_WATCHDOG :
     #endif
     #ifdef RCC_FLAG_IWDG1RST
-      RESET != __HAL_RCC_GET_FLAG(RCC_FLAG_IWDG1RST) ? RST_WATCHDOG :
+      RESET != (HAL_RCC_CSR & RCC_FLAG_IWDG1RST) ? RST_WATCHDOG :
     #endif
     #ifdef RCC_FLAG_IWDG2RST
-      RESET != __HAL_RCC_GET_FLAG(RCC_FLAG_IWDG2RST) ? RST_WATCHDOG :
+      RESET != (HAL_RCC_CSR & RCC_FLAG_IWDG2RST) ? RST_WATCHDOG :
     #endif
     #ifdef RCC_FLAG_SFTRST
-      RESET != __HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST)   ? RST_SOFTWARE :
+      RESET != (HAL_RCC_CSR & RCC_FLAG_SFTRST)   ? RST_SOFTWARE :
     #endif
     #ifdef RCC_FLAG_PINRST
-      RESET != __HAL_RCC_GET_FLAG(RCC_FLAG_PINRST)   ? RST_EXTERNAL :
+      RESET != (HAL_RCC_CSR & RCC_FLAG_PINRST)   ? RST_EXTERNAL :
     #endif
     #ifdef RCC_FLAG_PORRST
-      RESET != __HAL_RCC_GET_FLAG(RCC_FLAG_PORRST)   ? RST_POWER_ON :
+      RESET != (HAL_RCC_CSR & RCC_FLAG_PORRST)   ? RST_POWER_ON :
     #endif
     0
   ;
 }
 
-void MarlinHAL::clear_reset_source() { __HAL_RCC_CLEAR_RESET_FLAGS(); }
 
 // ------------------------
 // Watchdog Timer

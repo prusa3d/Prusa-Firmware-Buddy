@@ -216,6 +216,12 @@ uint32_t Stepper::advance_divisor = 0,
   bool Stepper::bezier_2nd_half;    // =false If Bézier curve has been initialized or not
 #endif
 
+uint32_t Stepper::nextSlowAxisISR = SLOW_AXIS_NEVER;
+bool Stepper::speedUpSlowAxisISR = false;
+uint32_t Stepper::s_slow_axis_interval = 0;
+bool Stepper::s_slow_axis_can_speedup = false;
+int32_t Stepper::slow_axis_steps_to_do = 0;
+
 #if ENABLED(LIN_ADVANCE)
 
   uint32_t Stepper::nextAdvanceISR = LA_ADV_NEVER,
@@ -229,6 +235,9 @@ uint32_t Stepper::advance_divisor = 0,
   bool Stepper::LA_use_advance_lead;
 
 #endif // LIN_ADVANCE
+
+bool Stepper::independent_XY_stepping_enabled = true;
+uint32_t Stepper::ticks_nominal_slow_axis = 0;
 
 #if ENABLED(INTEGRATED_BABYSTEPPING)
   uint32_t Stepper::nextBabystepISR = BABYSTEP_NEVER;
@@ -614,6 +623,14 @@ void Stepper::set_directions() {
   #endif // !LIN_ADVANCE
 
   DIR_WAIT_AFTER();
+}
+
+// Return ratio of completed steps of current block (call within ISR context)
+float Stepper::segment_progress() {
+  if (!step_event_count) return 0.f;
+  float count = step_event_count;
+  float done = step_events_completed;
+  return done / count;
 }
 
 #if ENABLED(S_CURVE_ACCELERATION)
@@ -1469,6 +1486,12 @@ void Stepper::isr() {
     hal.isr_on();
 
     if (!nextMainISR) pulse_phase_isr();                            // 0 = Do coordinated axes Stepper pulses
+    if (!nextSlowAxisISR) {
+      Stepper::slow_axis_pulse_phase_isr();
+      if (s_slow_axis_interval && slow_axis_ISR_active()) {
+        nextSlowAxisISR = s_slow_axis_can_speedup ? s_slow_axis_interval - speedUpSlowAxisISR : s_slow_axis_interval;
+      }
+    }
 
     #if ENABLED(LIN_ADVANCE)
       if (!nextAdvanceISR) nextAdvanceISR = advance_isr();          // 0 = Do Linear Advance E Stepper pulses
@@ -1481,7 +1504,13 @@ void Stepper::isr() {
 
     // ^== Time critical. NOTHING besides pulse generation should be above here!!!
 
-    if (!nextMainISR) nextMainISR = block_phase_isr();  // Manage acc/deceleration, get next block
+    // Manage acc/deceleration, get next block
+    if (!nextMainISR) {
+      nextMainISR = block_phase_isr(s_slow_axis_interval, s_slow_axis_can_speedup);
+      if (!s_slow_axis_interval) {
+        nextSlowAxisISR = SLOW_AXIS_NEVER;
+      }
+    }
 
     #if ENABLED(INTEGRATED_BABYSTEPPING)
       if (is_babystep)                                  // Avoid ANY stepping too soon after baby-stepping
@@ -1494,7 +1523,8 @@ void Stepper::isr() {
     // Get the interval to the next ISR call
     const uint32_t interval = _MIN(
       uint32_t(HAL_TIMER_TYPE_MAX),                     // Come back in a very long time
-      nextMainISR                                       // Time until the next Pulse / Block phase
+      nextMainISR,                                      // Time until the next Pulse / Block phase
+      nextSlowAxisISR
       OPTARG(LIN_ADVANCE, nextAdvanceISR)               // Come back early for Linear Advance?
       OPTARG(INTEGRATED_BABYSTEPPING, nextBabystepISR)  // Come back early for Babystepping?
     );
@@ -1507,6 +1537,7 @@ void Stepper::isr() {
     //
 
     nextMainISR -= interval;
+    if (nextSlowAxisISR != SLOW_AXIS_NEVER) nextSlowAxisISR -= interval;
 
     #if ENABLED(LIN_ADVANCE)
       if (nextAdvanceISR != LA_ADV_NEVER) nextAdvanceISR -= interval;
@@ -1595,6 +1626,44 @@ void Stepper::isr() {
   #define ISR_MULTI_STEPS 1
 #endif
 
+#define _APPLY_STEP(AXIS) AXIS ##_APPLY_STEP
+#define _INVERT_STEP_PIN(AXIS) INVERT_## AXIS ##_STEP_PIN
+
+void Stepper::slow_axis_pulse_phase_isr() {
+
+  // If we must abort the current block, do so!
+  if (abort_current_block) {
+    slow_axis_steps_to_do = 0;
+    return;
+  }
+  if (slow_axis_steps_to_do < 1) return;
+
+  #define SLOW_AXIS_START_PULSE(AXIS) do{ \
+    _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), 0); \
+    count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+    count_position_from_startup[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+  }while(0)
+
+  // Stop an active pulse, if any, and adjust error term
+  #define SLOW_AXIS_STOP_PULSE(AXIS) do { \
+    delta_error[_AXIS(AXIS)] -= advance_divisor; \
+    --slow_axis_steps_to_do; \
+    _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), 0); \
+  }while(0)
+
+  if (X_is_slow_axis()) {
+    SLOW_AXIS_START_PULSE(X);
+    SLOW_AXIS_STOP_PULSE(X);
+  }
+  else {
+    SLOW_AXIS_START_PULSE(Y);
+    SLOW_AXIS_STOP_PULSE(Y);
+  }
+
+#undef SLOW_AXIS_START_PULSE
+#undef SLOW_AXIS_STOP_PULSE
+}
+
 /**
  * This phase of the ISR should ONLY create the pulses for the steppers.
  * This prevents jitter caused by the interval between the start of the
@@ -1607,6 +1676,7 @@ void Stepper::pulse_phase_isr() {
   // If we must abort the current block, do so!
   if (abort_current_block) {
     abort_current_block = false;
+    slow_axis_steps_to_do = 0;
     if (current_block) discard_current_block();
   }
 
@@ -1631,11 +1701,9 @@ void Stepper::pulse_phase_isr() {
   xyze_bool_t step_needed{0};
 
   do {
-    #define _APPLY_STEP(AXIS, INV, ALWAYS) AXIS ##_APPLY_STEP(INV, ALWAYS)
-    #define _INVERT_STEP_PIN(AXIS) INVERT_## AXIS ##_STEP_PIN
 
     // Determine if a pulse is needed using Bresenham
-    #define PULSE_PREP(AXIS) do{ \
+    #define PULSE_PREP_ZE(AXIS) do{ \
       delta_error[_AXIS(AXIS)] += advance_dividend[_AXIS(AXIS)]; \
       step_needed[_AXIS(AXIS)] = (delta_error[_AXIS(AXIS)] >= 0); \
       if (step_needed[_AXIS(AXIS)]) { \
@@ -1656,6 +1724,28 @@ void Stepper::pulse_phase_isr() {
     #define PULSE_STOP(AXIS) do { \
       if (step_needed[_AXIS(AXIS)]) { \
         _APPLY_STEP(AXIS, _INVERT_STEP_PIN(AXIS), 0); \
+      } \
+    }while(0)
+
+    #define PULSE_PREP_XY(AXIS) do{ \
+      delta_error[_AXIS(AXIS)] += advance_dividend[_AXIS(AXIS)]; \
+      if (delta_error[_AXIS(AXIS)] >= 0) { \
+        if(AXIS##_is_slow_axis() && slow_axis_ISR_active()) { \
+          speedUpSlowAxisISR = true; \
+        } \
+        else if (AXIS##_is_slow_axis() && s_slow_axis_interval) { \
+          nextSlowAxisISR = 0; \
+        } \
+        else { \
+          step_needed[_AXIS(AXIS)] = true; \
+          count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+          count_position_from_startup[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+          delta_error[_AXIS(AXIS)] -= advance_divisor; \
+          if (AXIS##_is_slow_axis()) --slow_axis_steps_to_do; \
+        } \
+      } \
+      else if (AXIS##_is_slow_axis()) { \
+        speedUpSlowAxisISR = false; \
       } \
     }while(0)
 
@@ -1771,31 +1861,31 @@ void Stepper::pulse_phase_isr() {
     if (!is_page) {
       // Determine if pulses are needed
       #if HAS_X_STEP
-        PULSE_PREP(X);
+        PULSE_PREP_XY(X);
       #endif
       #if HAS_Y_STEP
-        PULSE_PREP(Y);
+        PULSE_PREP_XY(Y);
       #endif
       #if HAS_Z_STEP
-        PULSE_PREP(Z);
+        PULSE_PREP_ZE(Z);
       #endif
       #if HAS_I_STEP
-        PULSE_PREP(I);
+        PULSE_PREP_ZE(I);
       #endif
       #if HAS_J_STEP
-        PULSE_PREP(J);
+        PULSE_PREP_ZE(J);
       #endif
       #if HAS_K_STEP
-        PULSE_PREP(K);
+        PULSE_PREP_ZE(K);
       #endif
       #if HAS_U_STEP
-        PULSE_PREP(U);
+        PULSE_PREP_ZE(U);
       #endif
       #if HAS_V_STEP
-        PULSE_PREP(V);
+        PULSE_PREP_ZE(V);
       #endif
       #if HAS_W_STEP
-        PULSE_PREP(W);
+        PULSE_PREP_ZE(W);
       #endif
 
       #if EITHER(LIN_ADVANCE, MIXING_EXTRUDER)
@@ -1815,7 +1905,7 @@ void Stepper::pulse_phase_isr() {
           #endif
         }
       #elif HAS_E0_STEP
-        PULSE_PREP(E);
+        PULSE_PREP_ZE(E);
       #endif
     }
 
@@ -1916,13 +2006,22 @@ void Stepper::pulse_phase_isr() {
     #endif
 
   } while (--events_to_do);
+
+  #undef PULSE_PREP_ZE
+  #undef PULSE_PREP_XY
+  #undef PULSE_START
+  #undef PULSE_STOP
 }
 
 // This is the last half of the stepper interrupt: This one processes and
 // properly schedules blocks from the planner. This is executed after creating
 // the step pulses, so it is not time critical, as pulses are already done.
+// @param slow_axis_interval interval for slow axis (either X or Y),
+// it is 0 in case X and Y should tick together in the same moment
+// or its underlying type would overflow
+// or we are not in cruise speed phase
 
-uint32_t Stepper::block_phase_isr() {
+uint32_t Stepper::block_phase_isr(uint32_t &slow_axis_interval, bool &slow_axis_can_speedup) {
 
   // If no queued movements, just wait 1ms for the next block
   uint32_t interval = (STEPPER_TIMER_RATE) / 1000UL;
@@ -1931,6 +2030,10 @@ uint32_t Stepper::block_phase_isr() {
   if (current_block) {
     // If current block is finished, reset pointer and finalize state
     if (step_events_completed >= step_event_count) {
+      while (slow_axis_steps_to_do > 0) Stepper::slow_axis_pulse_phase_isr();
+      speedUpSlowAxisISR = false;
+      slow_axis_interval = 0;
+      nextSlowAxisISR = SLOW_AXIS_NEVER;
       #if ENABLED(DIRECT_STEPPING)
         // Direct stepping is currently not ready for HAS_I_AXIS
         #if STEPPER_PAGE_FORMAT == SP_4x4D_128
@@ -1972,6 +2075,7 @@ uint32_t Stepper::block_phase_isr() {
         // step_rate to timer interval and steps per stepper isr
         interval = calc_timer_interval(acc_step_rate, &steps_per_isr);
         acceleration_time += interval;
+        slow_axis_interval = 0;
 
         #if ENABLED(LIN_ADVANCE)
           if (LA_use_advance_lead) {
@@ -2043,6 +2147,7 @@ uint32_t Stepper::block_phase_isr() {
         // step_rate to timer interval and steps per stepper isr
         interval = calc_timer_interval(step_rate, &steps_per_isr);
         deceleration_time += interval;
+        slow_axis_interval = 0;
 
         #if ENABLED(LIN_ADVANCE)
           if (LA_use_advance_lead) {
@@ -2084,10 +2189,18 @@ uint32_t Stepper::block_phase_isr() {
         if (ticks_nominal < 0) {
           // step_rate to timer interval and loops for the nominal speed
           ticks_nominal = calc_timer_interval(current_block->nominal_rate, &steps_per_isr);
+          // Independent XY stepping is not supported for segments, where Z or E is the fastest axis
+          if (independent_XY_stepping_enabled && Z_is_slow_axis() && E_is_slow_axis()) {
+            ticks_nominal_slow_axis = calc_slow_timer_interval(ticks_nominal, slow_axis_can_speedup);
+          }
+          else {
+            ticks_nominal_slow_axis = 0;
+          }
         }
 
         // The timer interval is just the nominal value for the nominal speed
         interval = ticks_nominal;
+        slow_axis_interval = ticks_nominal_slow_axis;
       }
 
       /**
@@ -2306,6 +2419,8 @@ uint32_t Stepper::block_phase_isr() {
       // No step events completed so far
       step_events_completed = 0;
 
+      slow_axis_steps_to_do = X_is_slow_axis() ? current_block->steps.x : current_block->steps.y;
+
       // Compute the acceleration and deceleration points
       accelerate_until = current_block->accelerate_until << oversampling;
       decelerate_after = current_block->decelerate_after << oversampling;
@@ -2382,6 +2497,7 @@ uint32_t Stepper::block_phase_isr() {
 
       // Calculate the initial timer interval
       interval = calc_timer_interval(current_block->initial_rate, &steps_per_isr);
+      slow_axis_interval = 0;
     }
   }
 
@@ -4003,3 +4119,131 @@ void Stepper::report_positions() {
   }
 
 #endif // HAS_MICROSTEPS
+#if HAS_DRIVER(TMC2130)
+#include "eeprom_function_api.h"
+void Stepper::microstep_mode(const uint8_t driver, const uint8_t stepping){
+    switch(driver){
+      case 0:
+        #if AXIS_IS_TMC(X)
+          stepperX.microsteps(stepping);
+        #endif
+        #if AXIS_IS_TMC(X2)
+          stepperX2.microsteps(stepping);
+        #endif
+      break;
+      case 1:
+        #if AXIS_IS_TMC(Y)
+          stepperY.microsteps(stepping);
+        #endif
+        #if AXIS_IS_TMC(Y2)
+          stepperY2.microsteps(stepping);
+        #endif
+      break;
+      case 2:
+        #if AXIS_IS_TMC(Z)
+          stepperZ.microsteps(stepping);
+        #endif
+        #if AXIS_IS_TMC(Z2)
+          stepperZ2.microsteps(steping);
+        #endif
+        #if AXIS_IS_TMC(Z3)
+          stepperZ3.microsteps(stepping);
+        #endif
+      break;
+      case 3:
+        #if AXIS_IS_TMC(E0)
+          stepperE0.microsteps(stepping);
+        #endif
+        #if AXIS_IS_TMC(E1)
+          stepperE1.microsteps(stepping);
+        #endif
+        #if AXIS_IS_TMC(E2)
+          stepperE2.microsteps(stepping);
+        #endif
+        #if AXIS_IS_TMC(E3)
+          stepperE3.microsteps(stepping);
+        #endif
+        #if AXIS_IS_TMC(E4)
+          stepperE4.microsteps(stepping);
+        #endif
+        #if AXIS_IS_TMC(E5)
+          stepperE5.microsteps(stepping);
+        #endif
+      break;
+
+      default: SERIAL_ERROR_MSG("Axis unavailable"); break;
+    }
+
+  }
+void Stepper::microstep_readings(){
+  char msg[7]; //max len of message is 256
+  SERIAL_ECHOPGM("Microsteps are:\n");
+
+    #if AXIS_IS_TMC(X)
+      SERIAL_ECHOPGM("X:");
+      snprintf(msg,7,"%u\n",stepperX.microsteps());
+      SERIAL_ECHOPGM(msg);
+    #endif
+    #if AXIS_IS_TMC(X2)
+      SERIAL_ECHOPGM("X2:");
+      snprintf(msg,7,"%u\n",stepperX2.microsteps());
+      stepperX2.microsteps();
+SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(Y)
+      SERIAL_ECHOPGM("Y:");
+      snprintf(msg,7,"%u\n",stepperY.microsteps());
+  SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(Y2)
+      SERIAL_ECHOPGM("Y2:");
+      snprintf(msg,7,"%u\n",stepperY2.microsteps());
+SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(Z)
+      SERIAL_ECHOPGM("Z:");
+      snprintf(msg,7,"%u\n",stepperZ.microsteps());
+  SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(Z2)
+      SERIAL_ECHOPGM("Z2:");
+      snprintf(msg,7,"%u\n",stepperZ2.microsteps());
+SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(Z3)
+      SERIAL_ECHOPGM("Z3:");
+      snprintf(msg,7,"%u\n",stepperZ3.microsteps());
+SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(E0)
+      SERIAL_ECHOPGM("E0:");
+      snprintf(msg,7,"%u\n",stepperE0.microsteps());
+  SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(E1)
+      SERIAL_ECHOPGM("E1:");
+      snprintf(msg,7,"%u\n",stepperE1.microsteps());
+SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(E2)
+      SERIAL_ECHOPGM("E2:");
+      snprintf(msg,7,"%u\n",stepperE2.microsteps());
+SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(E3)
+      SERIAL_ECHOPGM("E3:");
+      snprintf(msg,7,"%u\n",stepperE2.microsteps());
+SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(E4)
+      SERIAL_ECHOPGM("E4:");
+      snprintf(msg,7,"%u\n",stepperE3.microsteps());
+SERIAL_ECHOPGM(msg);
+#endif
+    #if AXIS_IS_TMC(E5)
+      SERIAL_ECHOPGM("E5:");
+      snprintf(msg,7,"%u\n",stepperE5.microsteps());
+SERIAL_ECHOPGM(msg);
+#endif
+}
+#endif //HAS_DRIVER(TMC2130)
