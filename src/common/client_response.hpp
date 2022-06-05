@@ -142,6 +142,18 @@ enum class PhasesSelftestHeat : uint16_t {
     _last = measure
 };
 
+enum class PhasesCrashRecovery : uint16_t {
+    _first = static_cast<uint16_t>(PhasesSelftestHeat::_last) + 1,
+    check_X = _first, //in this case is safe to have check_X == _first
+    check_Y,
+    home,
+    axis_NOK, //< just for unification of the two below
+    axis_short,
+    axis_long,
+    repeated_crash,
+    _last = repeated_crash
+};
+
 //static class for work with fsm responses (like button click)
 //encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {
@@ -153,12 +165,14 @@ class ClientResponses {
     static const PhaseResponses PreheatResponses[CountPhases<PhasesPreheat>()];
     static const PhaseResponses SelftestResponses[CountPhases<PhasesSelftest>()];
     static const PhaseResponses G162Responses[CountPhases<PhasesG162>()];
+    static const PhaseResponses CrashRecoveryResponses[CountPhases<PhasesCrashRecovery>()];
 
     //methods to "bind" button array with enum type
     static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesG162 phase) { return G162Responses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesG162::_first)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
 
 protected:
     //get index of single response in PhaseResponses

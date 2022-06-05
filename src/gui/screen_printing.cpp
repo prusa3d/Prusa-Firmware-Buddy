@@ -16,6 +16,12 @@
     #include "filament_sensor_api.hpp"
 #endif
 
+#include "../Marlin/src/module/motion.h"
+
+#if ENABLED(CRASH_RECOVERY)
+    #include "../Marlin/src/feature/prusa/crash_recovery.h"
+#endif
+
 enum class Btn {
     Tune = 0,
     Pause,
@@ -525,11 +531,13 @@ void screen_printing_data_t::change_print_state() {
     case mpsPrinting:
         st = printing_state_t::PRINTING;
         break;
+    case mpsPowerPanic_AwaitingResume:
     case mpsPaused:
         // stop_pressed = false;
         st = printing_state_t::PAUSED;
         break;
     case mpsPausing_Begin:
+    case mpsPausing_Failed_Code:
     case mpsPausing_WaitIdle:
     case mpsPausing_ParkHead:
         st = printing_state_t::PAUSING;
@@ -539,7 +547,16 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::REHEATING;
         break;
     case mpsResuming_Begin:
-    case mpsResuming_UnparkHead:
+    case mpsResuming_UnparkHead_XY:
+    case mpsResuming_UnparkHead_ZE:
+    case mpsCrashRecovery_Begin:
+    case mpsCrashRecovery_Retracting:
+    case mpsCrashRecovery_Lifting:
+    case mpsCrashRecovery_XY_Measure:
+    case mpsCrashRecovery_XY_HOME:
+    case mpsCrashRecovery_Axis_NOK:
+    case mpsCrashRecovery_Repeated_Crash:
+    case mpsPowerPanic_Resume:
         stop_pressed = false;
         st = printing_state_t::RESUMING;
         break;
@@ -560,6 +577,10 @@ void screen_printing_data_t::change_print_state() {
     case mpsFinished:
         st = printing_state_t::PRINTED;
         break;
+    case mpsPowerPanic_acFault:
+        // this state is never reached
+        __builtin_unreachable();
+        return;
     }
     if (stop_pressed) {
         st = printing_state_t::ABORTING;
@@ -570,6 +591,12 @@ void screen_printing_data_t::change_print_state() {
         set_tune_icon_and_label();
         set_stop_icon_and_label();
     }
-    if (st == printing_state_t::PRINTED || st == printing_state_t::PAUSED)
+    if (st == printing_state_t::PRINTED || st == printing_state_t::PAUSED) {
         Odometer_s::instance().force_to_eeprom();
+    }
+#if ENABLED(CRASH_RECOVERY)
+    if (st == printing_state_t::PRINTED) {
+        crash_s.write_stat_to_eeprom();
+    }
+#endif
 }

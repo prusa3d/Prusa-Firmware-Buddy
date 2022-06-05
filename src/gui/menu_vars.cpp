@@ -29,7 +29,9 @@ const float z_offset_min = Z_OFFSET_MIN;
 const float z_offset_max = Z_OFFSET_MAX;
 
 //must be in this file, need to access marlin
+#if ENABLED(NOZZLE_PARK_FEATURE)
 constexpr const int park_points[3] = NOZZLE_PARK_POINT;
+#endif
 
 constexpr const int default_Z_max_pos = DEFAULT_Z_MAX_POS;
 

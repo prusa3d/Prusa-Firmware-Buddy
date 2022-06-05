@@ -22,7 +22,7 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if HAS_MICROSTEPS
+#if HAS_MICROSTEPS || HAS_DRIVER(TMC2130)
 
 #include "../gcode.h"
 #include "../../module/stepper.h"
@@ -39,6 +39,9 @@ void GcodeSuite::M350() {
   stepper.microstep_readings();
 }
 
+#endif // HAS_MICROSTEPS
+
+#if HAS_MICROSTEPS
 /**
  * M351: Toggle MS1 MS2 pins directly with axis codes X Y Z E B
  *       S# determines MS1, MS2 or MS3, X# sets the pin high/low.

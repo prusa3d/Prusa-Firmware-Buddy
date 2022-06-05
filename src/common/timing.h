@@ -6,7 +6,7 @@
 extern "C" {
 #endif //__cplusplus
 
-/// Ticks with second precision
+/// Ticks with second precision since the start of the system
 ///
 /// Overflows every 136 years
 uint32_t ticks_s();
@@ -88,7 +88,7 @@ inline void delay_ns(uint32_t ns) {
 /// interrupts or you are already in disabled interrupts context.
 ///
 /// @param us time in microseconds
-/// This function is not guaranteed to return if ms is very close
+/// This function is not guaranteed to return if us is very close
 /// to uint32_t MAX
 inline void delay_us(uint32_t us) {
     delay__(ticks_us, us);

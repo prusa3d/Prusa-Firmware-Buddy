@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 
+static const uint32_t MEDIA_PRINT_UNDEF_POSITION = UINT32_MAX;
 typedef enum {
     media_state_REMOVED = 0,  // media is inserted
     media_state_INSERTED = 1, // media is removed
@@ -18,7 +19,7 @@ typedef enum {
     media_print_state_NONE = 0,
     media_print_state_PRINTING = 1,
     media_print_state_PAUSED = 2,
-    media_print_state_PAUSING = 3,
+    media_print_state_DRAINING = 3,
 } media_print_state_t;
 
 #ifdef __cplusplus
@@ -38,10 +39,15 @@ extern media_state_t media_get_state(void);
 extern void media_print_start(const char *sfnFilePath);
 
 extern void media_print_stop(void);
-
-extern void media_print_pause(void);
-
+/// \brief Pauses print.
+/// \param repeat_last Repeat last command after print resume
+extern void media_print_pause(bool repeat_last);
 extern void media_print_resume(void);
+
+/// Stop adding new commands immediately and pause the reading
+/// \param pos position in the file where the print should be resumed
+/// media_print_quick_stop is safe to use within an ISR
+extern void media_print_quick_stop(uint32_t pos);
 
 extern media_print_state_t media_print_get_state(void);
 
@@ -51,17 +57,19 @@ extern uint32_t media_print_get_position(void);
 
 extern void media_print_set_position(uint32_t pos);
 
+extern uint32_t media_print_get_pause_position(void);
+
 extern float media_print_get_percent_done(void);
 
 extern void media_loop(void);
 
 // callbacks from usb_host
-
 extern void media_set_inserted(void);
-
 extern void media_set_removed(void);
-
 extern void media_set_error(media_error_t error);
+
+extern void media_reset_usbh_error();
+extern void media_reset_USB_host();
 
 #ifdef __cplusplus
 }

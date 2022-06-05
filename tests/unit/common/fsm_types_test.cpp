@@ -1,7 +1,7 @@
 /**
  * @file fsm_types_test.cpp
  * @author Radek Vana
- * @brief Unit tests for fsm types, especially fsm::Queue
+ * @brief Unit tests for fsm types, especially fsm::SmartQueue
  * @date 2021-02-22
  */
 
@@ -63,9 +63,9 @@ void test_variant(ClientFSM type) {
     REQUIRE(tst_change.GetType() == type);
 }
 
-class MockQueue : public fsm::Queue {
+class MockQueue : public fsm::SmartQueue {
 public:
-    uint8_t GetCount() const { return count; }
+    size_t GetCount() const { return queue0.GetCount() + queue1.GetCount(); }
 
     void TestEmpty() {
         REQUIRE(GetCount() == 0);
@@ -122,7 +122,7 @@ TEST_CASE("Equality of BaseData", "[fsm]") {
     REQUIRE(base_data12 != base_data22);
 }
 
-TEST_CASE("fsm::Queue", "[fsm]") {
+TEST_CASE("fsm::SmartQueue", "[fsm]") {
     MockQueue q;
     fsm::variant_t front = q.Front();
     fsm::variant_t back = q.Back();
@@ -169,24 +169,82 @@ TEST_CASE("fsm::Queue", "[fsm]") {
         q.TestEmpty();
     }
 
-    SECTION("Multiple destroy") {
+    SECTION("Destroy without create") {
         q.TestEmpty();
 
         q.PushDestroy(ClientFSM::Preheat);
+        REQUIRE(q.GetCount() == 0);
+        q.TestEmpty();
+    }
+
+    SECTION("Wrong destroy") {
+        q.TestEmpty();
+
+        const uint8_t data = 3;
+        q.PushCreate(ClientFSM::Load_unload, data);
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
         REQUIRE(back == front);
-        REQUIRE(front.GetCommand() == ClientFSM_Command::destroy);
-        REQUIRE(front.GetType() == ClientFSM::Preheat);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(front.GetType() == ClientFSM::Load_unload);
+        REQUIRE(front.create.data == data);
 
+        //wrong destroy - nothing changed
+        q.PushDestroy(ClientFSM::Preheat);
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back == front);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(front.GetType() == ClientFSM::Load_unload);
+        REQUIRE(front.create.data == data);
+
+        //correct destroy
+        q.PushDestroy(ClientFSM::Load_unload);
+        q.TestEmpty();
+    }
+
+    SECTION("Multiple destroy") {
+        q.TestEmpty();
+
+        //insert create, so queue is in correct state
+        const uint8_t data = 3;
+        q.PushCreate(ClientFSM::Load_unload, data);
+        front = q.Front();
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back == front);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(front.GetType() == ClientFSM::Load_unload);
+        REQUIRE(front.create.data == data);
+        q.Pop();
+        q.TestEmpty();
+
+        //correct destroy
         q.PushDestroy(ClientFSM::Load_unload);
         front = q.Front();
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
         REQUIRE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::destroy);
-        REQUIRE(front.GetType() == ClientFSM::Preheat); // new destroy command cannot rewrite old one
+        REQUIRE(front.GetType() == ClientFSM::Load_unload);
+
+        //2nd destroy of same type - cannot be inserted
+        q.PushDestroy(ClientFSM::Load_unload);
+        front = q.Front();
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back == front);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::destroy);
+        REQUIRE(front.GetType() == ClientFSM::Load_unload);
+
+        //2nd destroy of wrong type - cannot be inserted
+        q.PushDestroy(ClientFSM::Preheat);
+        front = q.Front();
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back == front);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::destroy);
+        REQUIRE(front.GetType() == ClientFSM::Load_unload); // new destroy command cannot rewrite old one
 
         q.Pop();
         q.TestEmpty();
@@ -205,22 +263,45 @@ TEST_CASE("fsm::Queue", "[fsm]") {
         REQUIRE(front.GetType() == ClientFSM::Preheat);
         REQUIRE(front.create.data == data);
 
-        //insertion must fail
+        //insertion must not fail - we have 2 level queue
         const uint8_t data2 = 0xAA;
         q.PushCreate(ClientFSM::Load_unload, data2);
+
         front = q.Front();
         back = q.Back();
-        REQUIRE(q.GetCount() == 1);
-        REQUIRE(back == front);
+        REQUIRE(q.GetCount() == 2);
+        REQUIRE_FALSE(back == front);
         REQUIRE(front.GetCommand() == ClientFSM_Command::create);
         REQUIRE(front.GetType() == ClientFSM::Preheat); // old one
         REQUIRE(front.create.data == data);             // old one
 
         q.Pop();
+        q.Pop();
+        q.TestEmpty();
+    }
+
+    SECTION("Change without creation") {
+        q.TestEmpty();
+
+        const BaseData base_data(0x1D, { { 0xF0, 0xAB, 0xBA, 0x1A } });
+        q.PushChange(ClientFSM::Preheat, base_data);
         q.TestEmpty();
     }
 
     SECTION("Multiple change") {
+        q.TestEmpty();
+
+        //insert create, so queue is in correct state
+        const uint8_t data = 3;
+        q.PushCreate(ClientFSM::Preheat, data);
+        front = q.Front();
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back == front);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(front.GetType() == ClientFSM::Preheat);
+        REQUIRE(front.create.data == data);
+        q.Pop();
         q.TestEmpty();
 
         const BaseData base_data(0x1D, { { 0xF0, 0xAB, 0xBA, 0x1A } });
@@ -258,7 +339,21 @@ TEST_CASE("fsm::Queue", "[fsm]") {
         q.TestEmpty();
     }
 
+    //q0_destroy, q0_create, q0_change, q1_create, q1_change
     SECTION("Max queue length") {
+        q.TestEmpty();
+
+        //insert create, so queue is in correct state
+        uint8_t data = 3;
+        q.PushCreate(ClientFSM::Preheat, data);
+        front = q.Front();
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back == front);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(front.GetType() == ClientFSM::Preheat);
+        REQUIRE(front.create.data == data);
+        q.Pop();
         q.TestEmpty();
 
         //destroy
@@ -269,7 +364,7 @@ TEST_CASE("fsm::Queue", "[fsm]") {
         REQUIRE(back.GetType() == ClientFSM::Preheat);
 
         //create
-        const uint8_t data = 0x25;
+        data = 0x25;
         q.PushCreate(ClientFSM::Preheat, data);
         back = q.Back();
         REQUIRE(q.GetCount() == 2);
@@ -295,35 +390,107 @@ TEST_CASE("fsm::Queue", "[fsm]") {
         REQUIRE(back.GetType() == ClientFSM::Preheat);           //new one (but same as old one)
         REQUIRE(back.change.data == base_data2);                 //new one
 
-        //insertion must fail, crewate is already in queue
+        //insertion of 2nd level
         const uint8_t data2 = 0xAA;
         q.PushCreate(ClientFSM::Load_unload, data2);
-        REQUIRE(q.GetCount() == 3);
+        REQUIRE(q.GetCount() == 4);
 
         front = q.Front(); //destroy
-        REQUIRE(q.GetCount() == 3);
         REQUIRE(front.GetCommand() == ClientFSM_Command::destroy);
         REQUIRE(front.GetType() == ClientFSM::Preheat);
 
+        //insertion of 3rd level must fail
+        const uint8_t data3 = 0xA0;
+        q.PushCreate(ClientFSM::SelftestFans, data3);
+        REQUIRE(q.GetCount() == 4);
+
+        front = q.Front(); //destroy
+        REQUIRE(front.GetCommand() == ClientFSM_Command::destroy);
+        REQUIRE(front.GetType() == ClientFSM::Preheat);
+
+        //insertion of 2nd level change
+        const BaseData base_data3(0x10, { { 0x0, 0xAB, 0xCD, 0xFA } });
+        q.PushChange(ClientFSM::Load_unload, base_data3);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 5);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::change); //second level change
+        REQUIRE(back.GetType() == ClientFSM::Preheat);           //second level change
+        REQUIRE(back.change.data == base_data2);                 //second level change
+
+        //erase destroy from 1st level queue
         q.Pop();
         front = q.Front(); //create
-        REQUIRE(q.GetCount() == 2);
+        REQUIRE(q.GetCount() == 4);
         REQUIRE(front.GetCommand() == ClientFSM_Command::create);
         REQUIRE(front.GetType() == ClientFSM::Preheat);
         REQUIRE(front.create.data == data);
 
+        //erase create from 1st level queue
         q.Pop();
         front = q.Front(); //change with rewritten data
+        REQUIRE(q.GetCount() == 3);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::create); //second level create
+        REQUIRE(front.GetType() == ClientFSM::Load_unload);       //second level create
+        REQUIRE(front.create.data == data2);                      //second level create
+
+        q.Pop();
+        front = q.Front();
+        back = q.Back();
+        REQUIRE(q.GetCount() == 2);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::change); //second level change
+        REQUIRE(front.GetType() == ClientFSM::Load_unload);       //second level change
+        REQUIRE(front.change.data == base_data3);                 //second level change
+        REQUIRE(back.GetCommand() == ClientFSM_Command::change);  //first level change
+        REQUIRE(back.GetType() == ClientFSM::Preheat);            //first level change
+        REQUIRE(back.change.data == base_data2);                  //first level change
+
+        //push destroy to clear 2nd level change
+        q.PushDestroy(ClientFSM::Load_unload);
+        front = q.Front();
+        back = q.Back();
+        REQUIRE(q.GetCount() == 2);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::destroy); //second level destroy
+        REQUIRE(front.GetType() == ClientFSM::Load_unload);        //second level destroy
+        REQUIRE(back.GetCommand() == ClientFSM_Command::change);   //first level change
+        REQUIRE(back.GetType() == ClientFSM::Preheat);             //first level change
+        REQUIRE(back.change.data == base_data2);                   //first level change
+
+        //push destroy to clear 1st level change
+        q.PushDestroy(ClientFSM::Preheat);
+        front = q.Front();
+        back = q.Back();
+        REQUIRE(q.GetCount() == 2);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::destroy); //second level destroy
+        REQUIRE(front.GetType() == ClientFSM::Load_unload);        //second level destroy
+        REQUIRE(back.GetCommand() == ClientFSM_Command::destroy);  //first level destroy
+        REQUIRE(back.GetType() == ClientFSM::Preheat);             //first level destroy
+
+        //pop will clear 2nd level queue
+        q.Pop();
+        front = q.Front();
+        back = q.Back();
         REQUIRE(q.GetCount() == 1);
-        REQUIRE(front.GetCommand() == ClientFSM_Command::change);
-        REQUIRE(front.GetType() == ClientFSM::Preheat);
-        REQUIRE(front.change.data == base_data2); //new data
+        REQUIRE(back == front);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::destroy); //first level destroy
+        REQUIRE(back.GetType() == ClientFSM::Preheat);            //first level destroy
 
         q.Pop();
         q.TestEmpty();
     }
 
     SECTION("Erase queue by pushing destroy") {
+        q.TestEmpty();
+
+        //create - to set correct state
+        uint8_t data = 0x25;
+        q.PushCreate(ClientFSM::Load_unload, data);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(back.GetType() == ClientFSM::Load_unload);
+        REQUIRE(back.create.data == data);
+
+        q.Pop();
         q.TestEmpty();
 
         //destroy
@@ -334,7 +501,7 @@ TEST_CASE("fsm::Queue", "[fsm]") {
         REQUIRE(back.GetType() == ClientFSM::Load_unload);
 
         //create
-        const uint8_t data = 0x25;
+        data = 0x25;
         q.PushCreate(ClientFSM::Preheat, data);
         back = q.Back();
         REQUIRE(q.GetCount() == 2);
@@ -359,6 +526,49 @@ TEST_CASE("fsm::Queue", "[fsm]") {
         REQUIRE(back.GetType() == ClientFSM::Load_unload); // new destroy command cannot rewrite old one
 
         q.Pop();
+        q.TestEmpty();
+    }
+
+    //q0_create, q1_create, q1_destroy, q0_destroy
+    SECTION("Erase queue by pushing destroy, second level") {
+        q.TestEmpty();
+
+        //create1
+        const uint8_t data = 0x25;
+        q.PushCreate(ClientFSM::Preheat, data);
+        back = q.Back();
+        front = q.Front();
+        REQUIRE(front == back);
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(back.GetType() == ClientFSM::Preheat);
+        REQUIRE(back.create.data == data);
+
+        //insertion of 2nd level
+        const uint8_t data2 = 0xAA;
+        q.PushCreate(ClientFSM::Load_unload, data2);
+        REQUIRE(q.GetCount() == 2);
+        back = q.Back();
+        front = q.Front();
+        REQUIRE(front.GetCommand() == ClientFSM_Command::create); //first level create
+        REQUIRE(front.GetType() == ClientFSM::Preheat);           //first level create
+        REQUIRE(front.create.data == data);                       //first level create
+        REQUIRE(back.GetCommand() == ClientFSM_Command::create);  //second level create
+        REQUIRE(back.GetType() == ClientFSM::Load_unload);        //second level create
+        REQUIRE(back.create.data == data2);                       //second level create
+
+        //push destroy to clear 2nd level change
+        q.PushDestroy(ClientFSM::Load_unload);
+        front = q.Front();
+        back = q.Back();
+        REQUIRE(front == back);
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(front.GetCommand() == ClientFSM_Command::create); //first level create
+        REQUIRE(front.GetType() == ClientFSM::Preheat);           //first level create
+        REQUIRE(front.create.data == data);                       //first level create
+
+        //push destroy to clear 1st level change
+        q.PushDestroy(ClientFSM::Preheat);
         q.TestEmpty();
     }
 
@@ -388,7 +598,19 @@ TEST_CASE("fsm::Queue", "[fsm]") {
         q.TestEmpty();
     }
 
-    SECTION("Erase queue and insert ne destroy since there was no create/destroy") {
+    SECTION("Erase queue and insert new destroy since there was no create/destroy") {
+        q.TestEmpty();
+
+        //create - to set correct state
+        uint8_t data = 0x25;
+        q.PushCreate(ClientFSM::Preheat, data);
+        back = q.Back();
+        REQUIRE(q.GetCount() == 1);
+        REQUIRE(back.GetCommand() == ClientFSM_Command::create);
+        REQUIRE(back.GetType() == ClientFSM::Preheat);
+        REQUIRE(back.create.data == data);
+
+        q.Pop();
         q.TestEmpty();
 
         //change
@@ -400,12 +622,12 @@ TEST_CASE("fsm::Queue", "[fsm]") {
         REQUIRE(back.GetType() == ClientFSM::Preheat);
         REQUIRE(back.change.data == base_data);
 
-        //destroy must clear queue, and insert itself
-        q.PushDestroy(ClientFSM::Load_unload);
+        //destroy must clear queue
+        q.PushDestroy(ClientFSM::Preheat);
         back = q.Back();
         REQUIRE(q.GetCount() == 1);
         REQUIRE(back.GetCommand() == ClientFSM_Command::destroy); // change rewritten to destroy
-        REQUIRE(back.GetType() == ClientFSM::Load_unload);        // change rewritten to destroy even if type does not match
+        REQUIRE(back.GetType() == ClientFSM::Preheat);            // change rewritten to destroy
 
         q.Pop();
         q.TestEmpty();

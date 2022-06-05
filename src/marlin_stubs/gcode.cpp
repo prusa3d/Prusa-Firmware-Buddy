@@ -100,6 +100,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 162:
             PrusaGcodeSuite::G162();
             return true;
+        case 163:
+            PrusaGcodeSuite::G163();
+            return true;
         }
         return false;
     default:

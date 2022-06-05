@@ -29,6 +29,7 @@ const std::array<std::pair<const char *, uint16_t>, static_cast<size_t>(Response
     std::make_pair( N_("NEXT"), IDR_NULL ),                       // Next
     std::make_pair( N_("NO"), IDR_NULL ),                         // No
     std::make_pair( N_("OK"), IDR_NULL ),                         // Ok
+    std::make_pair( N_("PAUSE"), IDR_PNG_pause_58px ),            // Pause
     std::make_pair( "PC", IDR_PNG_spool_58px ),                   // PC filament, do not translate
     std::make_pair( "PETG", IDR_PNG_spool_58px ),                 // PETG filament, do not translate
     std::make_pair( "PLA", IDR_PNG_spool_58px ),                  // PLA filament, do not translate
@@ -36,6 +37,7 @@ const std::array<std::pair<const char *, uint16_t>, static_cast<size_t>(Response
     std::make_pair( N_("PURGE MORE"), IDR_PNG_spool_58px ),       // Purge_more
     std::make_pair( "PVB", IDR_PNG_spool_58px ),                  // PVB filament, do not translate
     std::make_pair( N_("REHEAT"), IDR_PNG_preheat_58px ),         // Reheat
+    std::make_pair( N_("RESUME"), IDR_PNG_resume_48px ),          // Resume
     std::make_pair( N_("RETRY"), IDR_PNG_back_32px ),             // Retry
     std::make_pair( N_("SKIP"), IDR_PNG_back_32px ),              // Skip
     std::make_pair( N_("STOP"), IDR_PNG_stop_58px  ),             // Stop

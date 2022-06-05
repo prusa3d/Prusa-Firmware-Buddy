@@ -59,7 +59,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
         TimerHandle[timer_num].handle.Init.CounterMode    = TIM_COUNTERMODE_UP;
         TimerHandle[timer_num].handle.Init.ClockDivision  = TIM_CLOCKDIVISION_DIV1;
         TimerHandle[timer_num].callback = (uint32_t)TC5_Handler;
-        HAL_NVIC_SetPriority(STEP_TIMER_IRQ_ID, 1, 0);
+        HAL_NVIC_SetPriority(STEP_TIMER_IRQ_ID, STEP_TIMER_IRQ_PRIO, 0);
         break;
 
       case TEMP_TIMER_NUM:
@@ -70,7 +70,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
         TimerHandle[timer_num].handle.Init.CounterMode    = TIM_COUNTERMODE_UP;
         TimerHandle[timer_num].handle.Init.ClockDivision  = TIM_CLOCKDIVISION_DIV1;
         TimerHandle[timer_num].callback = (uint32_t)TC7_Handler;
-        HAL_NVIC_SetPriority(TEMP_TIMER_IRQ_ID, 2, 0);
+        HAL_NVIC_SetPriority(TEMP_TIMER_IRQ_ID, TEMP_TIMER_IRQ_PRIO, 0);
         break;
     }
     timers_initialized[timer_num] = true;

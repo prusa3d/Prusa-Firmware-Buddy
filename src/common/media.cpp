@@ -1,5 +1,7 @@
 // media.cpp
 
+#include <algorithm>
+
 #include "media.h"
 #include "log.h"
 #include "lfn.h"
@@ -13,6 +15,8 @@
 #include "gcode_filter.hpp"
 #include "stdio.h"
 #include <fcntl.h>
+#include "timing.h"
+#include "metric.h"
 
 #ifdef REENUMERATE_USB
 
@@ -63,20 +67,37 @@ char *media_print_filepath() {
     return media_print_SFN_path;
 }
 
-static media_state_t media_state = media_state_REMOVED;
-static media_error_t media_error = media_error_OK;
+static volatile media_state_t media_state = media_state_REMOVED;
+static volatile media_error_t media_error = media_error_OK;
+
 static media_print_state_t media_print_state = media_print_state_NONE;
-static FILE *media_print_file;
+static FILE *media_print_file = nullptr;
 static uint32_t media_print_size = 0;
 static uint32_t media_current_position = 0; // Current position in the file
 static uint32_t media_gcode_position = 0;   // Beginning of the current G-Code
-static uint32_t media_queue_position[BUFSIZE];
+// Position where to start after pause / quick stop
+static uint32_t media_reset_position = MEDIA_PRINT_UNDEF_POSITION;
 
 char getByte(GCodeFilter::State *state);
 static char gcode_buffer[MAX_CMD_SIZE + 1]; // + 1 for NULL char
 static GCodeFilter gcode_filter(&getByte, gcode_buffer, sizeof(gcode_buffer));
 static uint32_t media_loop_read = 0;
 static const constexpr uint32_t MEDIA_LOOP_MAX_READ = 4096;
+static bool skip_gcode = false;
+
+static uint32_t usbh_error_count = 0;
+uint32_t usb_host_reset_timestamp = 0; // USB Host timestamp in seconds
+
+static uint32_t usb_host_power_cycle_delay = 1; // USB Host pulse delay in seconds
+
+typedef enum {
+    USB_host_recovery_start = 0,
+    USB_host_recovery_end = 1,
+} USB_host_recovery_state_t;
+
+static USB_host_recovery_state_t USB_host_recovery_state = USB_host_recovery_state_t::USB_host_recovery_start;
+
+static metric_t usbh_error_cnt = METRIC("usbh_err_cnt", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
 media_state_t media_get_state(void) {
     return media_state;
@@ -103,6 +124,7 @@ void media_print_start(const char *sfnFilePath) {
     if ((media_print_file = fopen(sfnFilePath, "rb")) != nullptr) {
         media_gcode_position = media_current_position = 0;
         media_print_state = media_print_state_PRINTING;
+        gcode_filter.reset();
     } else {
         set_warning(WarningType::USBFlashDiskError);
     }
@@ -111,34 +133,65 @@ void media_print_start(const char *sfnFilePath) {
 inline void close_file() {
     fclose(media_print_file);
     media_print_file = nullptr;
-    gcode_filter.reset();
 }
 
 void media_print_stop(void) {
     if ((media_print_state == media_print_state_PRINTING) || (media_print_state == media_print_state_PAUSED)) {
         close_file();
         media_print_state = media_print_state_NONE;
+        queue.sdpos = MEDIA_PRINT_UNDEF_POSITION;
     }
 }
 
-void media_print_pause(void) {
-    if (media_print_state == media_print_state_PRINTING) {
-        media_print_state = media_print_state_PAUSING;
-    }
+void media_print_quick_stop(uint32_t pos) {
+    skip_gcode = false;
+    media_print_state = media_print_state_PAUSED;
+    media_reset_position = pos;
+    queue.clear();
+}
+
+void media_print_pause(bool repeat_last = false) {
+    if (media_print_state != media_print_state_PRINTING)
+        return;
+
+    media_print_quick_stop(queue.get_current_sdpos());
+    close_file();
+
+    // when pausing the current instruction is fully processed, skip it on resume
+    skip_gcode = !repeat_last;
 }
 
 void media_print_resume(void) {
-    if (media_print_state == media_print_state_PAUSED) {
-        if ((media_print_file = fopen(media_print_SFN_path, "rb")) != nullptr) {
-            if (fseek(media_print_file, media_current_position, SEEK_SET) == 0)
+    if ((media_print_state != media_print_state_PAUSED) && (media_print_state != media_print_state_DRAINING))
+        return;
+
+    if (media_reset_position != MEDIA_PRINT_UNDEF_POSITION) {
+        media_print_set_position(media_reset_position);
+        media_reset_position = MEDIA_PRINT_UNDEF_POSITION;
+    }
+
+    if (media_print_state == media_print_state_PAUSED || media_print_state == media_print_state_DRAINING) {
+        if (!media_print_file) {
+            // file was closed by media_print_pause, reopen
+            media_print_file = fopen(media_print_SFN_path, "rb");
+        }
+        if (media_print_file != nullptr) {
+            // file was left open between pause/resume or re-opened successfully
+            if (fseek(media_print_file, media_current_position, SEEK_SET) == 0) {
+                gcode_filter.reset();
                 media_print_state = media_print_state_PRINTING;
-            else {
+            } else {
                 set_warning(WarningType::USBFlashDiskError);
-                fclose(media_print_file);
-                media_print_file = nullptr;
+                close_file();
             }
         }
     }
+}
+
+void media_print_drain() {
+    media_reset_position = queue.get_current_sdpos();
+    media_print_state = media_print_state_DRAINING;
+    close_file();
 }
 
 media_print_state_t media_print_get_state(void) {
@@ -159,10 +212,15 @@ void media_print_set_position(uint32_t pos) {
     }
 }
 
+uint32_t media_print_get_pause_position(void) {
+    return media_reset_position;
+}
+
 float media_print_get_percent_done(void) {
-    if (media_print_size)
-        return 100 * ((float)media_current_position / media_print_size);
-    return 0;
+    if (media_print_size == 0)
+        return 100;
+
+    return 100 * ((float)media_current_position / media_print_size);
 }
 
 char getByte(GCodeFilter::State *state) {
@@ -191,23 +249,17 @@ char getByte(GCodeFilter::State *state) {
 }
 
 void media_loop(void) {
-    if (media_print_state == media_print_state_PAUSING) {
-        fclose(media_print_file);
-        int index_r = queue.index_r;
-        media_gcode_position = media_current_position = media_queue_position[index_r];
-        queue.clear();
-        media_print_state = media_print_state_PAUSED;
-        return;
-    }
-
     _usbhost_reenum();
 
     if (media_print_state != media_print_state_PRINTING) {
+        if (media_print_file) {
+            // complete closing the file in the main loop (for media_print_quick_stop)
+            close_file();
+        }
         return;
     }
 
     media_loop_read = 0;
-
     while (queue.length < (BUFSIZE - 1)) { // Keep one free slot for serial commands
         GCodeFilter::State state;
         char *gcode = gcode_filter.nextGcode(&state);
@@ -218,14 +270,22 @@ void media_loop(void) {
         }
         if (state == GCodeFilter::State::Error) {
             // Pause in case of some issue
-            set_warning(WarningType::USBFlashDiskError);
-            media_print_pause();
+            usbh_error_count++;
+            if (media_state == media_state_INSERTED) {
+                metric_record_integer(&usbh_error_cnt, usbh_error_count);
+                media_print_drain();
+            } else {
+                set_warning(WarningType::USBFlashDiskError);
+                media_print_pause();
+            }
+
             return;
         }
 
         if (gcode == NULL || gcode[0] == '\0') {
             if (state == GCodeFilter::State::Eof) {
                 // Stop print on EOF
+                // TODO: this is incorrect. We need to wait until the queue is drained before we can stop
                 media_print_stop();
                 return;
             }
@@ -233,20 +293,21 @@ void media_loop(void) {
             continue;
         }
 
-        queue.enqueue_one(gcode, false);
-
-        // Calculate index_w because it is private
-        int index_w = queue.index_r + queue.length - 1;
-        if (index_w >= BUFSIZE)
-            index_w -= BUFSIZE;
-
-        // Save current position and line
-        media_queue_position[index_w] = media_gcode_position;
-
-        if (state == GCodeFilter::State::Eof) {
-            // Stop print on EOF, no need to update media_gcode_position
-            media_print_stop();
+        if (media_print_state == media_print_state_PAUSED
+            || media_print_state == media_print_state_NONE) {
+            // Exit from the loop if aborted early
+            // TODO: this is incorrect. We need to wait until the queue is drained before we can stop
             return;
+        }
+
+        if (skip_gcode) {
+            skip_gcode = false;
+        } else {
+            // update the gcode position for the queue
+            queue.sdpos = media_gcode_position;
+            // FIXME: what if the gcode is not enqueued
+            // use 'enqueue_one_now' instead
+            queue.enqueue_one(gcode, false);
         }
 
         // Current position can be after ';' char or after new line.  We need
@@ -256,19 +317,48 @@ void media_loop(void) {
     }
 }
 
+// callback from usb_host
 void media_set_removed(void) {
     media_state = media_state_REMOVED;
     media_error = media_error_OK;
 }
 
+// callback from usb_host
 void media_set_inserted(void) {
     media_state = media_state_INSERTED;
     media_error = media_error_OK;
 }
 
+// callback from usb_host
 void media_set_error(media_error_t error) {
-    media_state = media_state_ERROR;
     media_error = error;
+    media_state = media_state_ERROR;
+}
+
+void media_reset_usbh_error() {
+    usbh_error_count = 0;
+}
+
+void media_reset_USB_host() {
+
+    switch (USB_host_recovery_state) {
+    case USB_host_recovery_state_t::USB_host_recovery_start:
+        log_error(USBHost, "Start recovering from USB Host error");
+        buddy::hw::hsUSBEnable.write(buddy::hw::Pin::State::high); // power off USB Host
+        usb_host_reset_timestamp = ticks_s();
+        USB_host_recovery_state = USB_host_recovery_state_t::USB_host_recovery_end;
+        break;
+    case USB_host_recovery_state_t::USB_host_recovery_end:
+        if (ticks_diff(ticks_s(), usb_host_reset_timestamp) > (int32_t)usb_host_power_cycle_delay) {
+            buddy::hw::hsUSBEnable.write(buddy::hw::Pin::State::low); //power on USB Host
+            if (media_get_state() == media_state_t::media_state_INSERTED) {
+                media_print_resume();
+                log_error(USBHost, "Recovery from USB Host error is done");
+                USB_host_recovery_state = USB_host_recovery_state_t::USB_host_recovery_start;
+            }
+        }
+        break;
+    }
 }
 
 } //extern "C"

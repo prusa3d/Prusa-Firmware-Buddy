@@ -145,7 +145,18 @@ enum eevar_id {
 #endif
 
     EEVAR_USB_MSC_ENABLED = 0x51, // bool, on/off
-    EEVAR_CRC32 = 0x52,           // uint32_t crc32 for
+
+    EEVAR_JOB_ID,            // uint16_t print job id incremented at every print start
+    EEVAR_CRASH_ENABLED,     // bool crash detection enabled
+    EEVAR_CRASH_SENS_X,      // X axis crash sensitivity
+    EEVAR_CRASH_SENS_Y,      // Y axis crash sensitivity
+    EEVAR_CRASH_PERIOD_X,    // X axis crash period (speed) threshold
+    EEVAR_CRASH_PERIOD_Y,    // Y axis crash period (speed) threshold
+    EEVAR_CRASH_FILTER,      // bool Stallguard filtration (on/off)
+    EEVAR_CRASH_COUNT_X_TOT, // number of crashes of X axis in total
+    EEVAR_CRASH_COUNT_Y_TOT, // number of crashes of Y axis in total
+    EEVAR_POWER_COUNT_TOT,   // number of power losses in total
+    EEVAR_CRC32              // uint32_t crc32 for
 };
 
 enum {

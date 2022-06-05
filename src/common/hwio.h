@@ -38,7 +38,6 @@ extern void hwio_dac_set_val(int i_dac, int val); //write analog output
 
 //pwm outputs
 extern int hwio_pwm_get_cnt(void);                     //number of pwm outputs
-constexpr int hwio_pwm_get_max(int i_pwm);             //pwm output maximum value
 extern void hwio_pwm_set_val(int i_pwm, uint32_t val); //write pwm output
 
 extern int hwio_pwm_get_val(int i_pwm);                       //get pwm value, returns 0 if stopped
@@ -61,10 +60,6 @@ extern void hwio_fan_set_pwm(int i_fan, int val);
 
 //--------------------------------------
 // misc I/O functions
-
-//fancontrol
-extern void hwio_fan_control_enable(void);
-extern void hwio_fan_control_disable(void);
 
 //jogwheel
 extern void hwio_jogwheel_enable(void);

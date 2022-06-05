@@ -16,6 +16,10 @@ void HardwareSerial::begin(unsigned long baud) {
 void HardwareSerial::begin(unsigned long baud, byte config) {
 }
 
+void HardwareSerial::close() {
+    BufferedSerial::uart2.Close();
+}
+
 int HardwareSerial::available(void) {
     bsod("HardwareSerial::available() not implemented");
     return 0;

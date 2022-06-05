@@ -37,6 +37,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE() {}
 
 #include "probe.h"
 
+#ifdef EXTRA_PROBING_DBG 
+  #include "dbg.h"
+#endif
+
 #include "../libs/buzzer.h"
 #include "motion.h"
 #include "temperature.h"
@@ -54,10 +58,6 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE() {}
 
 #if ENABLED(DELTA)
   #include "delta.h"
-#endif
-
-#if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-  #include "planner.h"
 #endif
 
 #if ENABLED(MEASURE_BACKLASH_WHEN_PROBING)
@@ -251,7 +251,7 @@ xyz_pos_t probe_offset; // Initialized by settings.load()
     #if ENABLED(PROBING_STEPPERS_OFF)
       disable_e_steppers();
       #if NONE(DELTA, HOME_AFTER_DEACTIVATE)
-        disable_X(); disable_Y();
+        disable_XY();
       #endif
     #endif
     if (p) safe_delay(
@@ -377,8 +377,8 @@ bool set_probe_deployed(const bool deploy) {
     constexpr float unknown_condition = true;
   #endif
 
-  if (deploy_stow_condition && unknown_condition)
-    do_probe_raise(_MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_CLEARANCE_DEPLOY_PROBE));
+    if (deploy_stow_condition && unknown_condition)
+      do_probe_raise(_MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_CLEARANCE_DEPLOY_PROBE));
 
   #if EITHER(Z_PROBE_SLED, Z_PROBE_ALLEN_KEY)
     if (axis_unhomed_error(
@@ -510,11 +510,13 @@ static bool do_probe_move(const float z, const feedRate_t fr_mm_s) {
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(SENSORLESS_PROBING)
     endstops.not_homing();
-    #if ENABLED(DELTA)
-      tmc_disable_stallguard(stepperX, stealth_states.x);
-      tmc_disable_stallguard(stepperY, stealth_states.y);
+    #if NEITHER(ENDSTOPS_ALWAYS_ON_DEFAULT, CRASH_RECOVERY)
+      #if ENABLED(DELTA)
+        tmc_disable_stallguard(stepperX, stealth_states.x);
+        tmc_disable_stallguard(stepperY, stealth_states.y);
+      #endif
+      tmc_disable_stallguard(stepperZ, stealth_states.z);
     #endif
-    tmc_disable_stallguard(stepperZ, stealth_states.z);
   #endif
 
   #if ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
@@ -543,8 +545,7 @@ static bool do_probe_move(const float z, const feedRate_t fr_mm_s) {
  *
  * @return The Z position of the bed at the current XY or NAN on error.
  */
-static float run_z_probe() {
-
+static float run_z_probe(bool single_only=false) {
   if (DEBUGGING(LEVELING)) DEBUG_POS(">>> run_z_probe", current_position);
 
   // Stop the probe before it goes too low to prevent damage.
@@ -563,6 +564,9 @@ static float run_z_probe() {
         DEBUG_ECHOLNPGM("FAST Probe fail!");
         DEBUG_POS("<<< run_z_probe", current_position);
       }
+      #if ENABLED(HALT_ON_PROBING_ERROR)
+        kill("PROBING ERROR", "Could not reach the bed, FAST Probe fail!");
+      #endif
       return NAN;
     }
 
@@ -591,6 +595,9 @@ static float run_z_probe() {
 
   #if TOTAL_PROBING > 2
     float probes_total = 0;
+  #endif
+
+  #if TOTAL_PROBING > 2
     for (
       #if EXTRA_PROBING
         uint8_t p = 0; p < TOTAL_PROBING; p++
@@ -609,14 +616,18 @@ static float run_z_probe() {
           DEBUG_ECHOLNPGM("SLOW Probe fail!");
           DEBUG_POS("<<< run_z_probe", current_position);
         }
+        #if ENABLED(HALT_ON_PROBING_ERROR)
+          kill("PROBING ERROR", "Could not reach the bed, SLOW Probe fail!");
+        #endif
         return NAN;
       }
+
 
       #if ENABLED(MEASURE_BACKLASH_WHEN_PROBING)
         backlash.measure_with_probe();
       #endif
 
-      const float z = current_position.z;
+        const float z = current_position.z;
 
       #if EXTRA_PROBING
         // Insert Z measurement into probes[]. Keep it sorted ascending.
@@ -633,13 +644,16 @@ static float run_z_probe() {
         UNUSED(z);
       #endif
 
+
       #if TOTAL_PROBING > 2
+        if (single_only)
+                break;
         // Small Z raise after all but the last probe
         if (p
           #if EXTRA_PROBING
             < TOTAL_PROBING - 1
           #endif
-        ) do_blocking_move_to_z(z + Z_CLEARANCE_MULTI_PROBE, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+        ) do_blocking_move_to_z(current_position.z + Z_CLEARANCE_MULTI_PROBE, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
       #endif
     }
 
@@ -709,10 +723,20 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
   // TODO: Adapt for SCARA, where the offset rotates
   xyz_pos_t npos = { rx, ry };
   if (probe_relative) {
-    if (!position_is_reachable_by_probe(npos)) return NAN;  // The given position is in terms of the probe
-    npos -= probe_offset;                                   // Get the nozzle position
+    if (!position_is_reachable_by_probe(npos)) {
+      #if ENABLED(HALT_ON_PROBING_ERROR)
+        kill("PROBING ERROR", "Could not reach the bed, XY position not within machine coordinates!");
+      #endif
+      return NAN; // The given position is in terms of the probe
+    }
+    npos -= probe_offset; // Get the nozzle position
   }
-  else if (!position_is_reachable(npos)) return NAN;        // The given position is in terms of the nozzle
+  else if (!position_is_reachable(npos)) {
+    #if ENABLED(HALT_ON_PROBING_ERROR)
+      kill("PROBING ERROR", "Could not reach the bed, XY position not within machine coordinates!");
+    #endif
+    return NAN; // The given position is in terms of the nozzle
+  }
 
   npos.z =
     #if ENABLED(DELTA)
@@ -728,17 +752,19 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
 
   // Move the probe to the starting XYZ
   MINDA_BROKEN_CABLE_DETECTION__PRE_XYMOVE();
-  do_blocking_move_to(npos);
+  do_blocking_move_to(npos, MMM_TO_MMS(XY_PROBE_SPEED));
   MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE();
 
   float measured_z = NAN;
   if (!DEPLOY_PROBE()) {
     measured_z = run_z_probe() + probe_offset.z;
 
+    float move_away_from = std::isnan(measured_z) ? current_position.z : measured_z;
+
     const bool big_raise = raise_after == PROBE_PT_BIG_RAISE;
-    if (big_raise || raise_after == PROBE_PT_RAISE)
-      do_blocking_move_to_z(current_position.z + (big_raise ? 25 : Z_CLEARANCE_BETWEEN_PROBES), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
-    else if (raise_after == PROBE_PT_STOW)
+    if (big_raise || raise_after == PROBE_PT_RAISE) {
+      plan_park_move_to(current_position.x, current_position.y, move_away_from + (big_raise ? 25 : Z_CLEARANCE_BETWEEN_PROBES), MMM_TO_MMS(XY_PROBE_SPEED), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+    } else if (raise_after == PROBE_PT_STOW)
       if (STOW_PROBE()) measured_z = NAN;
   }
 
@@ -752,8 +778,9 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
 
   if (isnan(measured_z)) {
     STOW_PROBE();
-    LCD_MESSAGEPGM(MSG_LCD_PROBING_FAILED);
-    SERIAL_ERROR_MSG(MSG_ERR_PROBING_FAILED);
+    #if ENABLED(HALT_ON_PROBING_ERROR)
+      kill("PROBING ERROR", "Could not reach the bed, endstop was not triggered!");
+    #endif
   }
 
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("<<< probe_at_point");

@@ -1,6 +1,3 @@
-#include <feature/bootloader.h>
-#include <feature/bootloader_update.h>
-#include <feature/resources.h>
 #include <stdio.h>
 #include "gui_time.hpp"
 #include "gui.hpp"
@@ -33,6 +30,10 @@
 #include "w25x.h"
 #include "gui_fsensor_api.hpp"
 
+#include <feature/bootloader.h>
+#include <feature/bootloader_update.h>
+#include <feature/resources.h>
+
 #if ENABLED(RESOURCES)
     #include "resources/bootstrap.hpp"
     #include "resources/revision_standard.hpp"
@@ -40,8 +41,6 @@
 #if BOTH(RESOURCES, BOOTLOADER)
     #include "bootloader/bootloader.hpp"
 #endif
-
-extern int HAL_IWDG_Reset;
 
 int guimain_spi_test = 0;
 

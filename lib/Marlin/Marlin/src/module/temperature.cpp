@@ -34,6 +34,9 @@
 #include "../core/language.h"
 #include "../HAL/shared/Delay.h"
 #include "metric.h"
+#include "../../../../src/common/hwio.h"
+#include "../../../../src/common/config_buddy_2209_02.h"
+#include "../../../../src/common/adc.hpp"
 
 #define MAX6675_SEPARATE_SPI (EITHER(HEATER_0_USES_MAX6675, HEATER_1_USES_MAX6675) && PIN_EXISTS(MAX6675_SCK, MAX6675_DO))
 
@@ -86,6 +89,12 @@
     static void* heater_ttbl_map[HOTENDS] = ARRAY_BY_HOTENDS((void*)HEATER_0_TEMPTABLE, (void*)HEATER_1_TEMPTABLE, (void*)HEATER_2_TEMPTABLE, (void*)HEATER_3_TEMPTABLE, (void*)HEATER_4_TEMPTABLE, (void*)HEATER_5_TEMPTABLE);
     static constexpr uint8_t heater_ttbllen_map[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN, HEATER_2_TEMPTABLE_LEN, HEATER_3_TEMPTABLE_LEN, HEATER_4_TEMPTABLE_LEN, HEATER_5_TEMPTABLE_LEN);
   #endif
+#endif
+
+#if ENABLED(HW_PWM_HEATERS)
+  static constexpr uint8_t soft_pwm_bit_shift = 0;
+#else
+  static constexpr uint8_t soft_pwm_bit_shift = 1;
 #endif
 
 Temperature thermalManager;
@@ -350,17 +359,29 @@ volatile bool Temperature::temp_meas_ready = false;
 
     #if HAS_PID_FOR_BOTH
       #define GHV(B,H) (isbed ? (B) : (H))
-      #define SHV(B,H) do{ if (isbed) temp_bed.soft_pwm_amount = B; else temp_hotend[heater].soft_pwm_amount = H; }while(0)
+      #if ENABLED(HW_PWM_HEATERS)
+        #define SHV(B,H) do{ if (isbed) analogWrite(HEATER_BED_PIN, B); else analogWrite(HEATER_0_PIN, H); }while(0)
+      #else
+        #define SHV(B,H) do{ if (isbed) temp_bed.soft_pwm_amount = B; else temp_hotend[heater].soft_pwm_amount = H; }while(0)
+      #endif
       #define ONHEATINGSTART() (isbed ? printerEventLEDs.onBedHeatingStart() : printerEventLEDs.onHotendHeatingStart())
       #define ONHEATING(S,C,T) (isbed ? printerEventLEDs.onBedHeating(S,C,T) : printerEventLEDs.onHotendHeating(S,C,T))
     #elif ENABLED(PIDTEMPBED)
       #define GHV(B,H) B
-      #define SHV(B,H) (temp_bed.soft_pwm_amount = B)
+      #if ENABLED(HW_PWM_HEATERS)
+        #define SHV(B,H) do{ analogWrite(HEATER_BED_PIN, B); }while(0)
+      #else
+        #define SHV(B,H) (temp_bed.soft_pwm_amount = B)
+      #endif
       #define ONHEATINGSTART() printerEventLEDs.onBedHeatingStart()
       #define ONHEATING(S,C,T) printerEventLEDs.onBedHeating(S,C,T)
     #else
       #define GHV(B,H) H
-      #define SHV(B,H) (temp_hotend[heater].soft_pwm_amount = H)
+      #if ENABLED(HW_PWM_HEATERS)
+        #define SHV(B,H) do{ analogWrite(HEATER_BED_PIN, H); }while(0)
+      #else
+        #define SHV(B,H) (temp_hotend[heater].soft_pwm_amount = H)
+      #endif
       #define ONHEATINGSTART() printerEventLEDs.onHotendHeatingStart()
       #define ONHEATING(S,C,T) printerEventLEDs.onHotendHeating(S,C,T)
     #endif
@@ -386,7 +407,7 @@ volatile bool Temperature::temp_meas_ready = false;
       next_auto_fan_check_ms = next_temp_ms + 2500UL;
     #endif
 
-    if (target > GHV(BED_MAXTEMP - 10, temp_range[heater].maxtemp - 15)) {
+    if (target > GHV(BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN, temp_range[heater].maxtemp - 15)) {
       SERIAL_ECHOLNPGM(MSG_PID_TEMP_TOO_HIGH);
       return;
     }
@@ -395,7 +416,7 @@ volatile bool Temperature::temp_meas_ready = false;
 
     disable_all_heaters();
 
-    SHV(bias = d = (MAX_BED_POWER) >> 1, bias = d = (PID_MAX) >> 1);
+    SHV(bias = d = (MAX_BED_POWER) >> soft_pwm_bit_shift, bias = d = (PID_MAX) >> soft_pwm_bit_shift);
 
     wait_for_heatup = true; // Can be interrupted with M108
     #if ENABLED(PRINTER_EVENT_LEDS)
@@ -434,7 +455,7 @@ volatile bool Temperature::temp_meas_ready = false;
         if (heating && current_temp > target) {
           if (ELAPSED(ms, t2 + 5000UL)) {
             heating = false;
-            SHV((bias - d) >> 1, (bias - d) >> 1);
+            SHV((bias - d) >> soft_pwm_bit_shift, (bias - d) >> soft_pwm_bit_shift);
             t1 = ms;
             t_high = t1 - t2;
             maxT = target;
@@ -488,7 +509,7 @@ volatile bool Temperature::temp_meas_ready = false;
                 */
               }
             }
-            SHV((bias + d) >> 1, (bias + d) >> 1);
+            SHV((bias + d) >> soft_pwm_bit_shift, (bias + d) >> soft_pwm_bit_shift);
             cycles++;
             minT = target;
           }
@@ -619,14 +640,14 @@ volatile bool Temperature::temp_meas_ready = false;
 int16_t Temperature::getHeaterPower(const heater_ind_t heater_id) {
   switch (heater_id) {
     #if HAS_HEATED_BED
-      case H_BED: return temp_bed.soft_pwm_amount;
-    #endif
+        case H_BED: return temp_bed.soft_pwm_amount;
+      #endif
     #if HAS_HEATED_CHAMBER
       case H_CHAMBER: return temp_chamber.soft_pwm_amount;
     #endif
     default:
       #if HOTENDS
-        return temp_hotend[heater_id].soft_pwm_amount;
+          return temp_hotend[heater_id].soft_pwm_amount;
       #else
         return 0;
       #endif
@@ -1315,7 +1336,7 @@ void Temperature::manage_heater() {
     HOTEND_LOOP() {
       #if ENABLED(THERMAL_PROTECTION_HOTENDS)
         if (degHotend(e) > temp_range[e].maxtemp)
-          _temp_error((heater_ind_t)e, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY));
+         _temp_error((heater_ind_t)e, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY));
       #endif
 
       #if HEATER_IDLE_HANDLER
@@ -1339,7 +1360,7 @@ void Temperature::manage_heater() {
       #else
               (int)(get_pid_output_hotend(e))
       #endif
-                >> 1 : 0;
+                >> soft_pwm_bit_shift : 0;
       #if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
           thermal_model_protection(pid_output, feed_forward, e);
       #endif
@@ -1433,7 +1454,7 @@ void Temperature::manage_heater() {
       #endif
       {
         #if ENABLED(PIDTEMPBED)
-          temp_bed.soft_pwm_amount = WITHIN(temp_bed.celsius, BED_MINTEMP, BED_MAXTEMP) ? (int)get_pid_output_bed() >> 1 : 0;
+          temp_bed.soft_pwm_amount = WITHIN(temp_bed.celsius, BED_MINTEMP, BED_MAXTEMP) ? (int)get_pid_output_bed() >> soft_pwm_bit_shift : 0;
         #else
           // Check if temperature is within the correct band
           if (WITHIN(temp_bed.celsius, BED_MINTEMP, BED_MAXTEMP)) {
@@ -1507,6 +1528,16 @@ void Temperature::manage_heater() {
   #endif // HAS_HEATED_CHAMBER
 
   UNUSED(ms);
+  #if ENABLED(HW_PWM_HEATERS)
+    analogWrite(HEATER_0_PIN, temp_hotend[0].soft_pwm_amount);
+    analogWrite(HEATER_BED_PIN, temp_bed.soft_pwm_amount);
+  #endif
+}
+
+static bool temperatures_ready_state = false;
+
+bool Temperature::temperatures_ready() {
+  return temperatures_ready_state;
 }
 
 #define TEMP_AD595(RAW)  ((RAW) * 5.0 * 100.0 / 1024.0 / (OVERSAMPLENR) * (TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET)
@@ -1846,6 +1877,7 @@ void Temperature::updateTemperaturesFromRawValues() {
   // Reset the watchdog on good temperature measurement
   watchdog_refresh();
 
+  temperatures_ready_state = true;
   temp_meas_ready = false;
 }
 
@@ -2795,109 +2827,203 @@ void Temperature::isr() {
 
   static int8_t temp_count = -1;
   static ADCSensorState adc_sensor_state = StartupDelay;
-  static uint8_t pwm_count = _BV(SOFT_PWM_SCALE);
-  // avoid multiple loads of pwm_count
-  uint8_t pwm_count_tmp = pwm_count;
 
-  #if HAS_ADC_BUTTONS
-    static unsigned int raw_ADCKey_value = 0;
-    static bool ADCKey_pressed = false;
-  #endif
+  #if DISABLED(HW_PWM_HEATERS)
+    static uint8_t pwm_count = _BV(SOFT_PWM_SCALE);
+    // avoid multiple loads of pwm_count
+    uint8_t pwm_count_tmp = pwm_count;
 
-  #if HOTENDS
-    static SoftPWM soft_pwm_hotend[HOTENDS];
-  #endif
-
-  #if HAS_HEATED_BED
-    static SoftPWM soft_pwm_bed;
-  #endif
-
-  #if HAS_HEATED_CHAMBER
-    static SoftPWM soft_pwm_chamber;
-  #endif
-
-  #if DISABLED(SLOW_PWM_HEATERS)
-
-    #if HOTENDS || HAS_HEATED_BED || HAS_HEATED_CHAMBER
-      constexpr uint8_t pwm_mask =
-        #if ENABLED(SOFT_PWM_DITHER)
-          _BV(SOFT_PWM_SCALE) - 1
-        #else
-          0
-        #endif
-      ;
-      #define _PWM_MOD(N,S,T) do{                           \
-        const bool on = S.add(pwm_mask, T.soft_pwm_amount); \
-        WRITE_HEATER_##N(on);                               \
-      }while(0)
+    #if HAS_ADC_BUTTONS
+      static unsigned int raw_ADCKey_value = 0;
+      static bool ADCKey_pressed = false;
     #endif
 
-    /**
-     * Standard heater PWM modulation
-     */
-    if (pwm_count_tmp >= 127) {
-      pwm_count_tmp -= 127;
+    #if HOTENDS
+      static SoftPWM soft_pwm_hotend[HOTENDS];
+    #endif
 
-      #if HOTENDS
-        #define _PWM_MOD_E(N) _PWM_MOD(N,soft_pwm_hotend[N],temp_hotend[N])
-        _PWM_MOD_E(0);
-        #if HOTENDS > 1
-          _PWM_MOD_E(1);
-          #if HOTENDS > 2
-            _PWM_MOD_E(2);
-            #if HOTENDS > 3
-              _PWM_MOD_E(3);
-              #if HOTENDS > 4
-                _PWM_MOD_E(4);
-                #if HOTENDS > 5
-                  _PWM_MOD_E(5);
-                #endif // HOTENDS > 5
-              #endif // HOTENDS > 4
-            #endif // HOTENDS > 3
-          #endif // HOTENDS > 2
-        #endif // HOTENDS > 1
-      #endif // HOTENDS
+    #if HAS_HEATED_BED
+      static SoftPWM soft_pwm_bed;
+    #endif
 
-      #if HAS_HEATED_BED
-        _PWM_MOD(BED,soft_pwm_bed,temp_bed);
-      #endif
+    #if HAS_HEATED_CHAMBER
+      static SoftPWM soft_pwm_chamber;
+    #endif
 
-      #if HAS_HEATED_CHAMBER
-        _PWM_MOD(CHAMBER,soft_pwm_chamber,temp_chamber);
-      #endif
+    #if DISABLED(SLOW_PWM_HEATERS)
 
-      #if ENABLED(FAN_SOFT_PWM)
-        #define _FAN_PWM(N) do{ \
-          uint8_t &spcf = soft_pwm_count_fan[N]; \
-          spcf = (spcf & pwm_mask) + (soft_pwm_amount_fan[N] >> 1); \
-          WRITE_FAN(N, spcf > pwm_mask ? HIGH : LOW); \
+      #if HOTENDS || HAS_HEATED_BED || HAS_HEATED_CHAMBER
+        constexpr uint8_t pwm_mask =
+          #if ENABLED(SOFT_PWM_DITHER)
+            _BV(SOFT_PWM_SCALE) - 1
+          #else
+            0
+          #endif
+        ;
+        #define _PWM_MOD(N,S,T) do{                           \
+          const bool on = S.add(pwm_mask, T.soft_pwm_amount); \
+          WRITE_HEATER_##N(on);                               \
         }while(0)
-        #if HAS_FAN0
-          _FAN_PWM(0);
-        #endif
-        #if HAS_FAN1
-          _FAN_PWM(1);
-        #endif
-        #if HAS_FAN2
-          _FAN_PWM(2);
-        #endif
       #endif
-    }
-    else {
-      #define _PWM_LOW(N,S) do{ if (S.count <= pwm_count_tmp) WRITE_HEATER_##N(LOW); }while(0)
+
+      /**
+       * Standard heater PWM modulation
+       */
+      if (pwm_count_tmp >= 127) {
+        pwm_count_tmp -= 127;
+
+        #if HOTENDS
+          #define _PWM_MOD_E(N) _PWM_MOD(N,soft_pwm_hotend[N],temp_hotend[N])
+          _PWM_MOD_E(0);
+          #if HOTENDS > 1
+            _PWM_MOD_E(1);
+            #if HOTENDS > 2
+              _PWM_MOD_E(2);
+              #if HOTENDS > 3
+                _PWM_MOD_E(3);
+                #if HOTENDS > 4
+                  _PWM_MOD_E(4);
+                  #if HOTENDS > 5
+                    _PWM_MOD_E(5);
+                  #endif // HOTENDS > 5
+                #endif // HOTENDS > 4
+              #endif // HOTENDS > 3
+            #endif // HOTENDS > 2
+          #endif // HOTENDS > 1
+        #endif // HOTENDS
+
+        #if HAS_HEATED_BED
+          _PWM_MOD(BED,soft_pwm_bed,temp_bed);
+        #endif
+
+        #if HAS_HEATED_CHAMBER
+          _PWM_MOD(CHAMBER,soft_pwm_chamber,temp_chamber);
+        #endif
+
+        #if ENABLED(FAN_SOFT_PWM)
+          #define _FAN_PWM(N) do{ \
+            uint8_t &spcf = soft_pwm_count_fan[N]; \
+            spcf = (spcf & pwm_mask) + (soft_pwm_amount_fan[N] >> 1); \
+            WRITE_FAN(N, spcf > pwm_mask ? HIGH : LOW); \
+          }while(0)
+          #if HAS_FAN0
+            _FAN_PWM(0);
+          #endif
+          #if HAS_FAN1
+            _FAN_PWM(1);
+          #endif
+          #if HAS_FAN2
+            _FAN_PWM(2);
+          #endif
+        #endif
+      }
+      else {
+        #define _PWM_LOW(N,S) do{ if (S.count <= pwm_count_tmp) WRITE_HEATER_##N(LOW); }while(0)
+        #if HOTENDS
+          #define _PWM_LOW_E(N) _PWM_LOW(N, soft_pwm_hotend[N])
+          _PWM_LOW_E(0);
+          #if HOTENDS > 1
+            _PWM_LOW_E(1);
+            #if HOTENDS > 2
+              _PWM_LOW_E(2);
+              #if HOTENDS > 3
+                _PWM_LOW_E(3);
+                #if HOTENDS > 4
+                  _PWM_LOW_E(4);
+                  #if HOTENDS > 5
+                    _PWM_LOW_E(5);
+                  #endif // HOTENDS > 5
+                #endif // HOTENDS > 4
+              #endif // HOTENDS > 3
+            #endif // HOTENDS > 2
+          #endif // HOTENDS > 1
+        #endif // HOTENDS
+
+        #if HAS_HEATED_BED
+          _PWM_LOW(BED, soft_pwm_bed);
+        #endif
+
+        #if HAS_HEATED_CHAMBER
+          _PWM_LOW(CHAMBER, soft_pwm_chamber);
+        #endif
+
+        #if ENABLED(FAN_SOFT_PWM)
+          #if HAS_FAN0
+            if (soft_pwm_count_fan[0] <= pwm_count_tmp) WRITE_FAN(0, LOW);
+          #endif
+          #if HAS_FAN1
+            if (soft_pwm_count_fan[1] <= pwm_count_tmp) WRITE_FAN(1, LOW);
+          #endif
+          #if HAS_FAN2
+            if (soft_pwm_count_fan[2] <= pwm_count_tmp) WRITE_FAN(2, LOW);
+          #endif
+        #endif
+      }
+
+      // SOFT_PWM_SCALE to frequency:
+      //
+      // 0: 16000000/64/256/128 =   7.6294 Hz
+      // 1:                / 64 =  15.2588 Hz
+      // 2:                / 32 =  30.5176 Hz
+      // 3:                / 16 =  61.0352 Hz
+      // 4:                /  8 = 122.0703 Hz
+      // 5:                /  4 = 244.1406 Hz
+      pwm_count = pwm_count_tmp + _BV(SOFT_PWM_SCALE);
+
+    #else // SLOW_PWM_HEATERS
+
+      /**
+       * SLOW PWM HEATERS
+       *
+       * For relay-driven heaters
+       */
+      #define _SLOW_SET(NR,PWM,V) do{ if (PWM.ready(V)) WRITE_HEATER_##NR(V); }while(0)
+      #define _SLOW_PWM(NR,PWM,SRC) do{ PWM.count = SRC.soft_pwm_amount; _SLOW_SET(NR,PWM,(PWM.count > 0)); }while(0)
+      #define _PWM_OFF(NR,PWM) do{ if (PWM.count < slow_pwm_count) _SLOW_SET(NR,PWM,0); }while(0)
+
+      static uint8_t slow_pwm_count = 0;
+
+      if (slow_pwm_count == 0) {
+
+        #if HOTENDS
+          #define _SLOW_PWM_E(N) _SLOW_PWM(N, soft_pwm_hotend[N], temp_hotend[N])
+          _SLOW_PWM_E(0);
+          #if HOTENDS > 1
+            _SLOW_PWM_E(1);
+            #if HOTENDS > 2
+              _SLOW_PWM_E(2);
+              #if HOTENDS > 3
+                _SLOW_PWM_E(3);
+                #if HOTENDS > 4
+                  _SLOW_PWM_E(4);
+                  #if HOTENDS > 5
+                    _SLOW_PWM_E(5);
+                  #endif // HOTENDS > 5
+                #endif // HOTENDS > 4
+              #endif // HOTENDS > 3
+            #endif // HOTENDS > 2
+          #endif // HOTENDS > 1
+        #endif // HOTENDS
+
+        #if HAS_HEATED_BED
+          _SLOW_PWM(BED, soft_pwm_bed, temp_bed);
+        #endif
+
+      } // slow_pwm_count == 0
+
       #if HOTENDS
-        #define _PWM_LOW_E(N) _PWM_LOW(N, soft_pwm_hotend[N])
-        _PWM_LOW_E(0);
+        #define _PWM_OFF_E(N) _PWM_OFF(N, soft_pwm_hotend[N]);
+        _PWM_OFF_E(0);
         #if HOTENDS > 1
-          _PWM_LOW_E(1);
+          _PWM_OFF_E(1);
           #if HOTENDS > 2
-            _PWM_LOW_E(2);
+            _PWM_OFF_E(2);
             #if HOTENDS > 3
-              _PWM_LOW_E(3);
+              _PWM_OFF_E(3);
               #if HOTENDS > 4
-                _PWM_LOW_E(4);
+                _PWM_OFF_E(4);
                 #if HOTENDS > 5
-                  _PWM_LOW_E(5);
+                  _PWM_OFF_E(5);
                 #endif // HOTENDS > 5
               #endif // HOTENDS > 4
             #endif // HOTENDS > 3
@@ -2906,14 +3032,26 @@ void Temperature::isr() {
       #endif // HOTENDS
 
       #if HAS_HEATED_BED
-        _PWM_LOW(BED, soft_pwm_bed);
-      #endif
-
-      #if HAS_HEATED_CHAMBER
-        _PWM_LOW(CHAMBER, soft_pwm_chamber);
+        _PWM_OFF(BED, soft_pwm_bed);
       #endif
 
       #if ENABLED(FAN_SOFT_PWM)
+        if (pwm_count_tmp >= 127) {
+          pwm_count_tmp = 0;
+          #define _PWM_FAN(N) do{                                 \
+            soft_pwm_count_fan[N] = soft_pwm_amount_fan[N] >> 1;  \
+            WRITE_FAN(N, soft_pwm_count_fan[N] > 0 ? HIGH : LOW); \
+          }while(0)
+          #if HAS_FAN0
+            _PWM_FAN(0);
+          #endif
+          #if HAS_FAN1
+            _PWM_FAN(1);
+          #endif
+          #if HAS_FAN2
+            _PWM_FAN(2);
+          #endif
+        }
         #if HAS_FAN0
           if (soft_pwm_count_fan[0] <= pwm_count_tmp) WRITE_FAN(0, LOW);
         #endif
@@ -2923,152 +3061,50 @@ void Temperature::isr() {
         #if HAS_FAN2
           if (soft_pwm_count_fan[2] <= pwm_count_tmp) WRITE_FAN(2, LOW);
         #endif
-      #endif
-    }
+      #endif // FAN_SOFT_PWM
 
-    // SOFT_PWM_SCALE to frequency:
-    //
-    // 0: 16000000/64/256/128 =   7.6294 Hz
-    // 1:                / 64 =  15.2588 Hz
-    // 2:                / 32 =  30.5176 Hz
-    // 3:                / 16 =  61.0352 Hz
-    // 4:                /  8 = 122.0703 Hz
-    // 5:                /  4 = 244.1406 Hz
-    pwm_count = pwm_count_tmp + _BV(SOFT_PWM_SCALE);
+      // SOFT_PWM_SCALE to frequency:
+      //
+      // 0: 16000000/64/256/128 =   7.6294 Hz
+      // 1:                / 64 =  15.2588 Hz
+      // 2:                / 32 =  30.5176 Hz
+      // 3:                / 16 =  61.0352 Hz
+      // 4:                /  8 = 122.0703 Hz
+      // 5:                /  4 = 244.1406 Hz
+      pwm_count = pwm_count_tmp + _BV(SOFT_PWM_SCALE);
 
-  #else // SLOW_PWM_HEATERS
+      // increment slow_pwm_count only every 64th pwm_count,
+      // i.e. yielding a PWM frequency of 16/128 Hz (8s).
+      if (((pwm_count >> SOFT_PWM_SCALE) & 0x3F) == 0) {
+        slow_pwm_count++;
+        slow_pwm_count &= 0x7F;
 
-    /**
-     * SLOW PWM HEATERS
-     *
-     * For relay-driven heaters
-     */
-    #define _SLOW_SET(NR,PWM,V) do{ if (PWM.ready(V)) WRITE_HEATER_##NR(V); }while(0)
-    #define _SLOW_PWM(NR,PWM,SRC) do{ PWM.count = SRC.soft_pwm_amount; _SLOW_SET(NR,PWM,(PWM.count > 0)); }while(0)
-    #define _PWM_OFF(NR,PWM) do{ if (PWM.count < slow_pwm_count) _SLOW_SET(NR,PWM,0); }while(0)
-
-    static uint8_t slow_pwm_count = 0;
-
-    if (slow_pwm_count == 0) {
-
-      #if HOTENDS
-        #define _SLOW_PWM_E(N) _SLOW_PWM(N, soft_pwm_hotend[N], temp_hotend[N])
-        _SLOW_PWM_E(0);
-        #if HOTENDS > 1
-          _SLOW_PWM_E(1);
-          #if HOTENDS > 2
-            _SLOW_PWM_E(2);
-            #if HOTENDS > 3
-              _SLOW_PWM_E(3);
-              #if HOTENDS > 4
-                _SLOW_PWM_E(4);
-                #if HOTENDS > 5
-                  _SLOW_PWM_E(5);
-                #endif // HOTENDS > 5
-              #endif // HOTENDS > 4
-            #endif // HOTENDS > 3
-          #endif // HOTENDS > 2
-        #endif // HOTENDS > 1
-      #endif // HOTENDS
-
-      #if HAS_HEATED_BED
-        _SLOW_PWM(BED, soft_pwm_bed, temp_bed);
-      #endif
-
-    } // slow_pwm_count == 0
-
-    #if HOTENDS
-      #define _PWM_OFF_E(N) _PWM_OFF(N, soft_pwm_hotend[N]);
-      _PWM_OFF_E(0);
-      #if HOTENDS > 1
-        _PWM_OFF_E(1);
-        #if HOTENDS > 2
-          _PWM_OFF_E(2);
-          #if HOTENDS > 3
-            _PWM_OFF_E(3);
-            #if HOTENDS > 4
-              _PWM_OFF_E(4);
-              #if HOTENDS > 5
-                _PWM_OFF_E(5);
-              #endif // HOTENDS > 5
-            #endif // HOTENDS > 4
-          #endif // HOTENDS > 3
-        #endif // HOTENDS > 2
-      #endif // HOTENDS > 1
-    #endif // HOTENDS
-
-    #if HAS_HEATED_BED
-      _PWM_OFF(BED, soft_pwm_bed);
-    #endif
-
-    #if ENABLED(FAN_SOFT_PWM)
-      if (pwm_count_tmp >= 127) {
-        pwm_count_tmp = 0;
-        #define _PWM_FAN(N) do{                                 \
-          soft_pwm_count_fan[N] = soft_pwm_amount_fan[N] >> 1;  \
-          WRITE_FAN(N, soft_pwm_count_fan[N] > 0 ? HIGH : LOW); \
-        }while(0)
-        #if HAS_FAN0
-          _PWM_FAN(0);
+        #if HOTENDS
+          soft_pwm_hotend[0].dec();
+          #if HOTENDS > 1
+            soft_pwm_hotend[1].dec();
+            #if HOTENDS > 2
+              soft_pwm_hotend[2].dec();
+              #if HOTENDS > 3
+                soft_pwm_hotend[3].dec();
+                #if HOTENDS > 4
+                  soft_pwm_hotend[4].dec();
+                  #if HOTENDS > 5
+                    soft_pwm_hotend[5].dec();
+                  #endif // HOTENDS > 5
+                #endif // HOTENDS > 4
+              #endif // HOTENDS > 3
+            #endif // HOTENDS > 2
+          #endif // HOTENDS > 1
+        #endif // HOTENDS
+        #if HAS_HEATED_BED
+          soft_pwm_bed.dec();
         #endif
-        #if HAS_FAN1
-          _PWM_FAN(1);
-        #endif
-        #if HAS_FAN2
-          _PWM_FAN(2);
-        #endif
-      }
-      #if HAS_FAN0
-        if (soft_pwm_count_fan[0] <= pwm_count_tmp) WRITE_FAN(0, LOW);
-      #endif
-      #if HAS_FAN1
-        if (soft_pwm_count_fan[1] <= pwm_count_tmp) WRITE_FAN(1, LOW);
-      #endif
-      #if HAS_FAN2
-        if (soft_pwm_count_fan[2] <= pwm_count_tmp) WRITE_FAN(2, LOW);
-      #endif
-    #endif // FAN_SOFT_PWM
+      } // ((pwm_count >> SOFT_PWM_SCALE) & 0x3F) == 0
 
-    // SOFT_PWM_SCALE to frequency:
-    //
-    // 0: 16000000/64/256/128 =   7.6294 Hz
-    // 1:                / 64 =  15.2588 Hz
-    // 2:                / 32 =  30.5176 Hz
-    // 3:                / 16 =  61.0352 Hz
-    // 4:                /  8 = 122.0703 Hz
-    // 5:                /  4 = 244.1406 Hz
-    pwm_count = pwm_count_tmp + _BV(SOFT_PWM_SCALE);
+    #endif // SLOW_PWM_HEATERS
+  #endif // HW_PWM_HEATERS
 
-    // increment slow_pwm_count only every 64th pwm_count,
-    // i.e. yielding a PWM frequency of 16/128 Hz (8s).
-    if (((pwm_count >> SOFT_PWM_SCALE) & 0x3F) == 0) {
-      slow_pwm_count++;
-      slow_pwm_count &= 0x7F;
-
-      #if HOTENDS
-        soft_pwm_hotend[0].dec();
-        #if HOTENDS > 1
-          soft_pwm_hotend[1].dec();
-          #if HOTENDS > 2
-            soft_pwm_hotend[2].dec();
-            #if HOTENDS > 3
-              soft_pwm_hotend[3].dec();
-              #if HOTENDS > 4
-                soft_pwm_hotend[4].dec();
-                #if HOTENDS > 5
-                  soft_pwm_hotend[5].dec();
-                #endif // HOTENDS > 5
-              #endif // HOTENDS > 4
-            #endif // HOTENDS > 3
-          #endif // HOTENDS > 2
-        #endif // HOTENDS > 1
-      #endif // HOTENDS
-      #if HAS_HEATED_BED
-        soft_pwm_bed.dec();
-      #endif
-    } // ((pwm_count >> SOFT_PWM_SCALE) & 0x3F) == 0
-
-  #endif // SLOW_PWM_HEATERS
 
   //
   // Update lcd buttons 488 times per second

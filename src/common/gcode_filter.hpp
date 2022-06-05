@@ -11,7 +11,7 @@
 /// The function has to set corresponding result into provided `State` pointer.
 /// If the mandatory function pointer is not set, it will cause a crash.
 ///
-/// max_cmd_size should be set to MAX_CMD_SIZE macro from Marling config.
+/// max_cmd_size should be set to MAX_CMD_SIZE macro from Marlin config.
 class GCodeFilter {
 public:
     enum State {

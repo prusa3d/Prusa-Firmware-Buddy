@@ -18,6 +18,7 @@ enum class ClientFSM : uint8_t {
     SelftestHeat,
     Printing, //not a dialog
     FirstLayer,
+    CrashRecovery,
     _none, //cannot be created, must have same index as _count
     _count = _none
 };

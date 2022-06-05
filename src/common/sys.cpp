@@ -16,8 +16,6 @@ static const constexpr uint32_t DFU_REQUESTED_MAGIC_VALUE = 0xF1E2D3C5;
 //firmware update flag
 static const constexpr uint16_t FW_UPDATE_FLAG_ADDRESS = 0x040B;
 
-extern SPI_HandleTypeDef hspi2;
-
 //int sys_pll_freq = 100000000;
 int sys_pll_freq = 168000000;
 
@@ -319,4 +317,12 @@ int sys_flash_erase_sector(unsigned int sector) {
     }
     HAL_FLASH_Lock();
     return (status == HAL_OK) ? 1 : 0;
+}
+
+bool version_less_than(const version_t *a, const uint8_t major, const uint8_t minor, const uint8_t patch) {
+    if (a->major != major)
+        return a->major < major;
+    if (a->minor != minor)
+        return a->minor < minor;
+    return a->patch < patch;
 }

@@ -30,6 +30,9 @@
 #include <Arduino.h>
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
+#if ENABLED(POWER_PANIC)
+    #include "power_panic.hpp"
+#endif
 
 #ifdef NEW_FANCTL
     #include "fanctl.h"
@@ -109,6 +112,9 @@ void app_run(void) {
 
     if (eeprom_init() == EEPROM_INIT_Defaults && marlin_server_processing()) {
         settings.reset();
+#if ENABLED(POWER_PANIC)
+        power_panic::reset();
+#endif
     }
 
     while (1) {
