@@ -7,6 +7,35 @@
 extern "C" {
 #endif //__cplusplus
 
+///
+/// # Metrics
+///
+/// What is it?
+/// Let's say you want to fine-tune some real-time algorithm - metrics allow
+/// you to easily define the values you care about and observe them
+/// in real-time while your algorithm runs on a real printer.
+///
+/// Quick start
+/// 1. Define your metrics (or use an existing one)
+///
+///    static metric_t val_xyz = METRIC("val_xyz", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
+///
+///     - The first parameter - "val_xyz" - is the metric's name. Keep it as short as possible!
+///     - The second parameter defines the type of recorded points (values) of this metric.
+///     - The third parameter - `100` - defines the minimal interval between consecutive recorded points in ms.
+///          - E.g. the value 100 ms makes the `val_xyz` metric being transmitted at maximum frequency 10 Hz.
+///          - If you want to disable throttling and send the values as fast as possible, set it to 0.
+///     - The last parameter is a bitmap specifying which handlers should have this metric enabled after startup.
+///
+/// 2. Record your values
+///
+///    metric_record_integer(&val_xyz, 314);
+///
+/// 3. Observe!
+///
+///    TODO: complete those instructions
+///
+
 #define METRIC_HANDLER_ENABLE_ALL  (0xffffffff)
 #define METRIC_HANDLER_DISABLE_ALL (0x00000000)
 
@@ -15,7 +44,7 @@ typedef enum {
     METRIC_VALUE_FLOAT = 0x01,
     METRIC_VALUE_INTEGER = 0x02,
     METRIC_VALUE_STRING = 0x03,
-    METRIC_VALUE_CUSTOM = 0x04, // multiple values formatted via customized line protocol
+    METRIC_VALUE_CUSTOM = 0x04, // multiple values formatted via customized line protocol (see metrics.md)
 } metric_value_type_t;
 
 /// A metric definition.

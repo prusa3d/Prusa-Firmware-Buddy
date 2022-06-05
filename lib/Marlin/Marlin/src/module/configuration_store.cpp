@@ -1055,16 +1055,16 @@ void MarlinSettings::postprocess() {
       tmc_sgt_t tmc_sgt{0};
       #if USE_SENSORLESS
         #if X_SENSORLESS
-          tmc_sgt.X = stepperX.homing_threshold();
+          tmc_sgt.X = stepperX.stall_sensitivity();
         #endif
         #if X2_SENSORLESS
-          tmc_sgt.X2 = stepperX2.homing_threshold();
+          tmc_sgt.X2 = stepperX2.stall_sensitivity();
         #endif
         #if Y_SENSORLESS
-          tmc_sgt.Y = stepperY.homing_threshold();
+          tmc_sgt.Y = stepperY.stall_sensitivity();
         #endif
         #if Z_SENSORLESS
-          tmc_sgt.Z = stepperZ.homing_threshold();
+          tmc_sgt.Z = stepperZ.stall_sensitivity();
         #endif
       #endif
       EEPROM_WRITE(tmc_sgt);
@@ -1833,32 +1833,32 @@ void MarlinSettings::postprocess() {
           if (!validating) {
             #ifdef X_STALL_SENSITIVITY
               #if AXIS_HAS_STALLGUARD(X)
-                stepperX.homing_threshold(tmc_sgt.X);
+                stepperX.stall_sensitivity(tmc_sgt.X);
               #endif
               #if AXIS_HAS_STALLGUARD(X2) && !X2_SENSORLESS
-                stepperX2.homing_threshold(tmc_sgt.X);
+                stepperX2.stall_sensitivity(tmc_sgt.X);
               #endif
             #endif
             #if X2_SENSORLESS
-              stepperX2.homing_threshold(tmc_sgt.X2);
+              stepperX2.stall_sensitivity(tmc_sgt.X2);
             #endif
             #ifdef Y_STALL_SENSITIVITY
               #if AXIS_HAS_STALLGUARD(Y)
-                stepperY.homing_threshold(tmc_sgt.Y);
+                stepperY.stall_sensitivity(tmc_sgt.Y);
               #endif
               #if AXIS_HAS_STALLGUARD(Y2)
-                stepperY2.homing_threshold(tmc_sgt.Y);
+                stepperY2.stall_sensitivity(tmc_sgt.Y);
               #endif
             #endif
             #ifdef Z_STALL_SENSITIVITY
               #if AXIS_HAS_STALLGUARD(Z)
-                stepperZ.homing_threshold(tmc_sgt.Z);
+                stepperZ.stall_sensitivity(tmc_sgt.Z);
               #endif
               #if AXIS_HAS_STALLGUARD(Z2)
-                stepperZ2.homing_threshold(tmc_sgt.Z);
+                stepperZ2.stall_sensitivity(tmc_sgt.Z);
               #endif
               #if AXIS_HAS_STALLGUARD(Z3)
-                stepperZ3.homing_threshold(tmc_sgt.Z);
+                stepperZ3.stall_sensitivity(tmc_sgt.Z);
               #endif
             #endif
           }
@@ -2219,9 +2219,9 @@ void MarlinSettings::postprocess() {
 #endif // !EEPROM_SETTINGS
 
 /**
- * M502 - Reset Configuration
+ * Resets motion parameters only (speed, accel., etc.)
  */
-void MarlinSettings::reset() {
+void MarlinSettings::reset_motion() {
   LOOP_XYZE_N(i) {
     planner.settings.max_acceleration_mm_per_s2[i] = pgm_read_dword(&_DMA[ALIM(i, _DMA)]);
     planner.settings.axis_steps_per_mm[i]          = get_steps_per_unit(i);
@@ -2254,6 +2254,13 @@ void MarlinSettings::reset() {
   #if DISABLED(CLASSIC_JERK)
     planner.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
   #endif
+}
+
+/**
+ * M502 - Reset Configuration
+ */
+void MarlinSettings::reset() {
+  reset_motion();
 
   #if HAS_SCARA_OFFSET
     scara_home_offset.reset();
@@ -2857,8 +2864,10 @@ void MarlinSettings::reset() {
         if (!forReplay) {
           SERIAL_EOL();
           ubl.report_state();
-          SERIAL_ECHOLNPAIR("\nActive Mesh Slot: ", ubl.storage_slot);
-          SERIAL_ECHOLNPAIR("EEPROM can hold ", calc_num_meshes(), " meshes.\n");
+          #if ENABLED(EEPROM_SETTINGS)
+            SERIAL_ECHOLNPAIR("\nActive Mesh Slot: ", ubl.storage_slot);
+            SERIAL_ECHOLNPAIR("EEPROM can hold ", calc_num_meshes(), " meshes.\n");
+          #endif
         }
 
        //ubl.report_current_mesh();   // This is too verbose for large meshes. A better (more terse)
@@ -3231,13 +3240,13 @@ void MarlinSettings::reset() {
           CONFIG_ECHO_START();
           say_M914();
           #if X_SENSORLESS
-            SERIAL_ECHOPAIR(" X", stepperX.homing_threshold());
+            SERIAL_ECHOPAIR(" X", stepperX.stall_sensitivity());
           #endif
           #if Y_SENSORLESS
-            SERIAL_ECHOPAIR(" Y", stepperY.homing_threshold());
+            SERIAL_ECHOPAIR(" Y", stepperY.stall_sensitivity());
           #endif
           #if Z_SENSORLESS
-            SERIAL_ECHOPAIR(" Z", stepperZ.homing_threshold());
+            SERIAL_ECHOPAIR(" Z", stepperZ.stall_sensitivity());
           #endif
           SERIAL_EOL();
         #endif
@@ -3247,13 +3256,13 @@ void MarlinSettings::reset() {
           say_M914();
           SERIAL_ECHOPGM(" I1");
           #if X2_SENSORLESS
-            SERIAL_ECHOPAIR(" X", stepperX2.homing_threshold());
+            SERIAL_ECHOPAIR(" X", stepperX2.stall_sensitivity());
           #endif
           #if Y2_SENSORLESS
-            SERIAL_ECHOPAIR(" Y", stepperY2.homing_threshold());
+            SERIAL_ECHOPAIR(" Y", stepperY2.stall_sensitivity());
           #endif
           #if Z2_SENSORLESS
-            SERIAL_ECHOPAIR(" Z", stepperZ2.homing_threshold());
+            SERIAL_ECHOPAIR(" Z", stepperZ2.stall_sensitivity());
           #endif
           SERIAL_EOL();
         #endif
@@ -3261,7 +3270,7 @@ void MarlinSettings::reset() {
         #if Z3_SENSORLESS
           CONFIG_ECHO_START();
           say_M914();
-          SERIAL_ECHOLNPAIR(" I2 Z", stepperZ3.homing_threshold());
+          SERIAL_ECHOLNPAIR(" I2 Z", stepperZ3.stall_sensitivity());
         #endif
 
       #endif // USE_SENSORLESS

@@ -65,6 +65,9 @@ void GcodeSuite::M24() {
     #if ENABLED(POWER_LOSS_RECOVERY)
       recovery.prepare();
     #endif
+    #if ENABLED(POWER_PANIC)
+      power_panic::reset();
+    #endif
   }
 
   #if ENABLED(HOST_ACTION_COMMANDS)

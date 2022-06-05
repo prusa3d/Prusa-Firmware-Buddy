@@ -66,8 +66,10 @@ void CSelftestPart_Heater::stateStart() {
 }
 
 void CSelftestPart_Heater::stateTargetTemp() {
+#if 0 //TODO: hwio_fan_control was deprecated
     if (can_enable_fan_control)
         hwio_fan_control_enable();
+#endif
     setTargetTemp(m_config.target_temp);
 }
 
@@ -271,13 +273,17 @@ CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_con
 void CSelftestPart_HeaterHotend::stateStart() {
     CSelftestPart_Heater::stateStart();
     if (enable_cooldown) {
+#if 0 //TODO: hwio_fan_control_ was deprecated
         hwio_fan_control_disable();
+#endif
         m_fanCtlPrint.setPWM(255);     //marlin will restore it automatically
         m_fanCtlHeatBreak.setPWM(255); //marlin will restore it automatically
     }
 }
 
 void CSelftestPart_HeaterHotend::stateTargetTemp() {
+#if 0 //TODO: hwio_fan_control_ was deprecated
     hwio_fan_control_enable(); //do not check can_enable_fan_control
+#endif
     setTargetTemp(m_config.target_temp);
 }

@@ -53,6 +53,14 @@ public:
 
   static char command_buffer[BUFSIZE][MAX_CMD_SIZE];
 
+  static uint32_t sdpos;                 // Position in file for the latest instruction
+  static uint32_t sdpos_buffer[BUFSIZE]; // Ring buffer of positions (synced with command_buffer)
+
+  // Return the file position of the _current_ instruction
+  static uint32_t get_current_sdpos() {
+    return length ? sdpos_buffer[index_r] : sdpos;
+  }
+
   /*
    * The port that the command was received on
    */
@@ -63,7 +71,7 @@ public:
   GCodeQueue();
 
   /**
-   * Clear the Marlin command queue
+   * Clear the Marlin command queue and return reading index.
    */
   static void clear();
 
@@ -146,7 +154,7 @@ private:
 
 public:
   /**
-   * Enqueue with Serial Echo (optionaly without)
+   * Enqueue with Serial Echo (optionally without)
    * Return true on success
    */
   static bool enqueue_one(const char* cmd, bool echo=true);

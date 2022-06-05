@@ -18,6 +18,12 @@ add_library(
   Marlin/Marlin/src/feature/binary_protocol.cpp
   Marlin/Marlin/src/feature/host_actions.cpp
   Marlin/Marlin/src/feature/joystick.cpp
+  Marlin/Marlin/src/feature/power.cpp
+  Marlin/Marlin/src/feature/power_loss_recovery.cpp
+  Marlin/Marlin/src/feature/print_area.cpp
+  Marlin/Marlin/src/feature/prusa/crash_recovery.cpp
+  Marlin/Marlin/src/feature/prusa/homing.cpp
+  Marlin/Marlin/src/feature/prusa/measure_axis.cpp
   Marlin/Marlin/src/feature/runout.cpp
   Marlin/Marlin/src/feature/spindle_laser.cpp
   Marlin/Marlin/src/feature/tmc_util.cpp
@@ -31,7 +37,9 @@ add_library(
   Marlin/Marlin/src/gcode/bedlevel/ubl/G29.cpp
   Marlin/Marlin/src/gcode/bedlevel/ubl/M421.cpp
   Marlin/Marlin/src/gcode/calibrate/G28.cpp
+  Marlin/Marlin/src/gcode/calibrate/M666.cpp
   Marlin/Marlin/src/gcode/config/M200-M205.cpp
+  Marlin/Marlin/src/gcode/config/M217.cpp
   Marlin/Marlin/src/gcode/config/M220.cpp
   Marlin/Marlin/src/gcode/config/M221.cpp
   Marlin/Marlin/src/gcode/config/M301.cpp
@@ -46,6 +54,7 @@ add_library(
   Marlin/Marlin/src/gcode/control/M17_M18_M84.cpp
   Marlin/Marlin/src/gcode/control/M211.cpp
   Marlin/Marlin/src/gcode/control/M226.cpp
+  Marlin/Marlin/src/gcode/control/M350_M351.cpp
   Marlin/Marlin/src/gcode/control/M400.cpp
   Marlin/Marlin/src/gcode/control/M42.cpp
   Marlin/Marlin/src/gcode/control/M7-M9.cpp
@@ -56,12 +65,14 @@ add_library(
   Marlin/Marlin/src/gcode/control/T.cpp
   Marlin/Marlin/src/gcode/eeprom/M500-M504.cpp
   Marlin/Marlin/src/gcode/feature/advance/M900.cpp
+  Marlin/Marlin/src/gcode/feature/print_area/M555.cpp
   Marlin/Marlin/src/gcode/feature/runout/M412.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M122.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M569.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M906.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M911-M914.cpp
   Marlin/Marlin/src/gcode/gcode.cpp
+  Marlin/Marlin/src/gcode/geometry/G53-G59.cpp
   Marlin/Marlin/src/gcode/geometry/G92.cpp
   Marlin/Marlin/src/gcode/geometry/M206_M428.cpp
   Marlin/Marlin/src/gcode/host/M110.cpp
@@ -78,6 +89,8 @@ add_library(
   Marlin/Marlin/src/gcode/motion/G0_G1.cpp
   Marlin/Marlin/src/gcode/motion/G2_G3.cpp
   Marlin/Marlin/src/gcode/motion/G4.cpp
+  Marlin/Marlin/src/gcode/motion/G5.cpp
+  Marlin/Marlin/src/gcode/motion/M170_M171.cpp
   Marlin/Marlin/src/gcode/motion/M290.cpp
   Marlin/Marlin/src/gcode/parser.cpp
   Marlin/Marlin/src/gcode/probe/G30.cpp
@@ -141,6 +154,7 @@ add_library(
   Marlin/Marlin/src/module/motion.cpp
   Marlin/Marlin/src/module/planner.cpp
   Marlin/Marlin/src/module/planner_bezier.cpp
+  Marlin/Marlin/src/module/precise_homing.cpp
   Marlin/Marlin/src/module/printcounter.cpp
   Marlin/Marlin/src/module/probe.cpp
   Marlin/Marlin/src/module/scara.cpp
@@ -154,7 +168,7 @@ add_library(
   Marlin/Marlin/src/module/tool_change.cpp
   )
 
-target_compile_features(Marlin PUBLIC cxx_std_14)
+target_compile_features(Marlin PUBLIC cxx_std_17)
 target_include_directories(
   Marlin PUBLIC Marlin/Marlin/src Marlin/Marlin/src/gcode/lcd Marlin/Marlin Marlin
   )

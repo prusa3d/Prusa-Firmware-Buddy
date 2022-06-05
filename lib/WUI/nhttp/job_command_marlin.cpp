@@ -27,12 +27,24 @@ namespace {
         switch (vars->print_state) {
         case mpsPrinting:
             return SimplePrintState::Printing;
+        case mpsPowerPanic_acFault:
+        case mpsPowerPanic_Resume:
+        case mpsPowerPanic_AwaitingResume:
         case mpsPausing_Begin:
         case mpsPausing_WaitIdle:
         case mpsPausing_ParkHead:
+        case mpsPausing_Failed_Code:
+        case mpsCrashRecovery_Begin:
+        case mpsCrashRecovery_Axis_NOK:
+        case mpsCrashRecovery_Retracting:
+        case mpsCrashRecovery_Lifting:
+        case mpsCrashRecovery_XY_Measure:
+        case mpsCrashRecovery_XY_HOME:
+        case mpsCrashRecovery_Repeated_Crash:
         case mpsResuming_Begin:
         case mpsResuming_Reheating:
-        case mpsResuming_UnparkHead:
+        case mpsResuming_UnparkHead_XY:
+        case mpsResuming_UnparkHead_ZE:
         case mpsAborting_Begin:
         case mpsAborting_WaitIdle:
         case mpsAborting_ParkHead:

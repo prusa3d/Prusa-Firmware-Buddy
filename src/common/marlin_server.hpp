@@ -22,7 +22,7 @@ void fsm_destroy(ClientFSM type);
 void _fsm_change(ClientFSM type, fsm::BaseData data);
 
 template <class T>
-void fsm_change(ClientFSM type, T phase, fsm::PhaseData data) {
+void fsm_change(ClientFSM type, T phase, fsm::PhaseData data = fsm::PhaseData({ 0, 0, 0, 0 })) {
     _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), data));
 }
 
@@ -164,6 +164,11 @@ public:
 uint8_t get_var_sd_percent_done();
 void set_var_sd_percent_done(uint8_t value);
 void set_warning(WarningType type);
+
+#if ENABLED(CRASH_RECOVERY)
+// Sets length of X and Y axes for crash recovery
+void set_length(xy_float_t xy);
+#endif
 
 //directly access marlin server variables
 const marlin_vars_t &marlin_server_read_vars();

@@ -152,8 +152,11 @@ extern uint16_t HAL_adc_result;
 
 inline void HAL_init() {}
 
+// Startup reset flags
+extern unsigned HAL_RCC_CSR;
+
 // Clear reset reason
-void HAL_clear_reset_source();
+static inline void HAL_clear_reset_source() {}
 
 // Reset reason
 uint8_t HAL_get_reset_source();

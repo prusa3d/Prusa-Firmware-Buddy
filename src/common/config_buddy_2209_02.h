@@ -68,3 +68,13 @@ static const uint8_t FANCTLHEATBREAK_PWM_THR = 20;
 
 //new pause settings
 static const uint8_t PAUSE_NOZZLE_TIMEOUT = 45; // nozzle "sleep" after 45s inside paused state
+// Marlin Interrupt priorities
+#define STEP_TIMER_IRQ_PRIO 1
+#define TEMP_TIMER_IRQ_PRIO 2
+    // Power-panic interrupt priorities
+#define POWER_PANIC_IRQ_PRIO 1
+
+#if (POWER_PANIC_IRQ_PRIO != STEP_TIMER_IRQ_PRIO)
+    #error "POWER_PANIC_IRQ should have the same preemption class as STEP_TIMER_IRQ"
+#endif
+#define USE_ESP01_WITH_UART6

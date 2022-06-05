@@ -196,11 +196,15 @@ set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
 set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
 set(PRINTERS_WITH_ADVANCED_PAUSE "MINI")
+set(PRINTERS_WITH_POWER_PANIC)
+set(PRINTERS_WITH_SELFTEST)
+set(PRINTERS_WITH_RESOURCES "MINI")
 set(PRINTERS_WITH_BOWDEN_EXTRUDER "MINI")
 
 # Set GUI settings
 set(PRINTERS_WITH_GUI "MINI")
 set(PRINTERS_WITH_GUI_W240H320 "MINI")
+set(PRINTERS_WITH_SERIAL_PRINTING "MINI")
 
 # Set printer board
 set(PRINTERS_WITH_BUDDY "MINI")
@@ -209,6 +213,12 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
 else()
   set(FILAMENT_SENSOR NO)
+endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_RESOURCES)
+  set(RESOURCES YES)
+else()
+  set(RESOURCES NO)
 endif()
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
@@ -249,6 +259,13 @@ else()
   set(HAS_BOWDEN NO)
 endif()
 message(STATUS "BOWDEN EXTRUDER: ${HAS_BOWDEN}")
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_SERIAL_PRINTING)
+  set(HAS_SERIAL_PRINT YES)
+else()
+  set(HAS_SERIAL_PRINT NO)
+endif()
+message(STATUS "Support for printing via serial interface: ${HAS_SERIAL_PRINT}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(DEBUG YES)
@@ -401,9 +418,11 @@ target_link_libraries(FatFs_Config INTERFACE BuddyHeaders BuddyLogging STM32::US
 add_library(Marlin_Config INTERFACE)
 # TODO: fix dependency on src/common and src/gui
 target_include_directories(
-  Marlin_Config INTERFACE include/marlin src/common src/common/selftest src/gui
-                          src/marlin_stubs/include
+  Marlin_Config INTERFACE include/marlin src/common src/gui src/marlin_stubs/include
   )
+if(HAS_SELFTEST)
+  target_include_directories(Marlin_Config INTERFACE src/common/selftest)
+endif()
 target_link_libraries(Marlin_Config INTERFACE BuddyHeaders FreeRTOS::FreeRTOS)
 
 #
@@ -477,19 +496,20 @@ endif()
 if(CMAKE_CROSSCOMPILING)
   # configure linker script
   if(BOOTLOADER)
-    if(MCU STREQUAL "STM32F429VI")
-      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F429VI_FLASH_boot.ld")
-    elseif(MCU STREQUAL "STM32F407VG")
-      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
-    endif()
-  else(NOT BOOTLOADER)
-    if(MCU STREQUAL "STM32F429VI")
-      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F429VI_FLASH.ld")
-    elseif(MCU STREQUAL "STM32F407VG")
-      set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
-    endif()
+    set(LINKER_SCRIPT_SUFFIX "_boot")
+  else()
+    set(LINKER_SCRIPT_SUFFIX "")
+  endif()
+  if(MCU MATCHES "STM32F42.*")
+    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F42x_FLASH${LINKER_SCRIPT_SUFFIX}.ld")
+    set(STARTUP_SCRIPT "startup_stm32f427zitx")
+  elseif(MCU STREQUAL "STM32F407VG")
+    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH${LINKER_SCRIPT_SUFFIX}.ld")
+    set(STARTUP_SCRIPT "startup_stm32f407xx")
   endif()
   add_link_options("-Wl,-T,${LINKER_SCRIPT}")
+else()
+  set(STARTUP_SCRIPT "startup_stm32f427zitx")
 endif()
 
 #
@@ -675,6 +695,14 @@ target_include_directories(
           include/mbedtls
   )
 
+if(HAS_SELFTEST)
+  target_include_directories(firmware PRIVATE src/gui/wizard)
+
+  if(PRINTER STREQUAL "MINI")
+    target_include_directories(firmware PRIVATE src/common/selftest/MINI)
+  endif()
+endif()
+
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
 
 target_link_libraries(
@@ -709,8 +737,8 @@ endif()
 
 target_sources(
   firmware
-  PRIVATE $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/startup/startup_stm32f407xx_boot.s>
-          $<$<STREQUAL:${BOOTLOADER},NO>:src/startup/startup_stm32f407xx.s>
+  PRIVATE $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/startup/${STARTUP_SCRIPT}_boot.s>
+          $<$<STREQUAL:${BOOTLOADER},NO>:src/startup/${STARTUP_SCRIPT}.s>
           src/usb_device.c
           src/usb_device_cdc.cpp
           src/usb_device_msc.c
@@ -756,6 +784,7 @@ target_sources(
           src/common/i2c.cpp
           src/common/hardware_serial.cpp
           src/common/eeprom.cpp
+          src/common/PersistentStorage.cpp
           src/common/eeprom_loadsave.c
           src/common/ExtInterruptHandler.cpp
           src/common/MarlinPin.cpp
@@ -770,7 +799,6 @@ target_sources(
           src/common/sim_nozzle.c
           src/common/heap.c
           src/common/stubs.c
-          src/common/hwio_buddy_2209_02.cpp
           src/common/safe_state.cpp
           src/common/variant8.cpp
           src/common/wdt.cpp
@@ -827,7 +855,8 @@ target_sources(
           src/hw/main_check.cpp
           src/marlin_stubs/gcode.cpp
           src/marlin_stubs/G26.cpp
-          src/marlin_stubs/G162.cpp
+          $<$<BOOL:${HAS_SELFTEST}>:src/marlin_stubs/G162.cpp>
+          src/marlin_stubs/G163.cpp
           src/marlin_stubs/M50.cpp
           src/marlin_stubs/M300.cpp
           src/marlin_stubs/M330.cpp
@@ -870,8 +899,10 @@ target_sources(
           src/logging/log_dest_shared.c
           src/logging/log_dest_syslog.c
           src/logging/log_dest_usb.c
+          $<$<IN_LIST:${PRINTER},${PRINTERS_WITH_POWER_PANIC}>:src/common/power_panic.cpp>
   )
 
+target_sources(firmware PRIVATE src/common/hwio_buddy_2209_02.cpp)
 if(GUI)
   if(HAS_SELFTEST)
     target_sources(
@@ -906,6 +937,7 @@ if(GUI)
             src/gui/screen_menu_eeprom.cpp
             src/gui/screen_menu_connect.cpp
             src/gui/screen_menu_network.cpp
+            src/gui/screen_dialog_does_not_exist.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp
@@ -972,9 +1004,10 @@ if(GUI)
             src/gui/menu_vars.cpp
             src/gui/IScreenPrinting.cpp
             src/gui/ScreenFirstLayer.cpp
+            src/gui/screen_crash_recovery.cpp
             src/gui/ScreenPrintingModel.cpp
             src/gui/screen_printing.cpp
-            src/gui/screen_printing_serial.cpp
+            $<$<BOOL:${HAS_SERIAL_PRINT}>:src/gui/screen_printing_serial.cpp>
             src/gui/footer/footer_item_axis.cpp
             src/gui/footer/footer_item_fans.cpp
             src/gui/logger.c
@@ -984,6 +1017,7 @@ if(GUI)
             src/gui/MItem_filament.cpp
             src/gui/MItem_eeprom.cpp
             src/gui/MItem_lan.cpp
+            src/gui/MItem_crash.cpp
             src/gui/MItem_experimental_tools.cpp
             src/gui/network_gui_tools.cpp
             src/guiapi/src/knob_event.cpp
@@ -1102,6 +1136,11 @@ set_property(
   PROPERTY COMPILE_DEFINITIONS HAS_BOWDEN=$<BOOL:${HAS_BOWDEN}>
   )
 
+set_property(
+  SOURCE src/gui/dialogs/DialogHandler.cpp
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS HAS_SERIAL_PRINT=$<BOOL:${HAS_SERIAL_PRINT}>
+  )
 # Due to the wrong use of interface library for WUI, the flag "GENERATED" is not properly propagated
 # and cmake fails. This sets it manually and makes it work.
 #

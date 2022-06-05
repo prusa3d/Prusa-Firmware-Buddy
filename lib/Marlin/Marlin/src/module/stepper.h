@@ -239,6 +239,7 @@ class Stepper {
       static bool initialized;
     #endif
 
+    static bool independent_XY_stepping_enabled;
   private:
 
     static block_t* current_block;          // A pointer to the block currently being traced
@@ -305,6 +306,12 @@ class Stepper {
     #endif
 
     static uint32_t nextMainISR;   // time remaining for the next Step ISR
+    static inline constexpr uint32_t SLOW_AXIS_NEVER = 0xFFFFFFFF;
+    static uint32_t nextSlowAxisISR; // time remaining for the next slow axis Step ISR
+    static bool speedUpSlowAxisISR;
+    static uint32_t s_slow_axis_interval;
+    static bool s_slow_axis_can_speedup;
+    static int32_t slow_axis_steps_to_do;
     #if ENABLED(LIN_ADVANCE)
       static uint32_t nextAdvanceISR, LA_isr_rate;
       static uint16_t LA_current_adv_steps, LA_final_adv_steps, LA_max_adv_steps; // Copy from current executed block. Needed because current_block is set to NULL "too early".
@@ -312,6 +319,7 @@ class Stepper {
       static bool LA_use_advance_lead;
     #endif // LIN_ADVANCE
 
+    static uint32_t ticks_nominal_slow_axis;
     static int32_t ticks_nominal;
     #if DISABLED(S_CURVE_ACCELERATION)
       static uint32_t acc_step_rate; // needed for deceleration start point
@@ -343,7 +351,19 @@ class Stepper {
     // Initialize stepper hardware
     static void init();
 
-    // Interrupt Service Routines
+    // Interrupt Service Routine and phases
+
+    // The stepper subsystem goes to sleep when it runs out of things to execute.
+    // Call this to notify the subsystem that it is time to go to work.
+    static inline void wake_up() { ENABLE_STEPPER_DRIVER_INTERRUPT(); }
+
+    static inline bool is_awake() { return STEPPER_ISR_ENABLED(); }
+
+    static inline bool suspend() {
+      const bool awake = is_awake();
+      if (awake) DISABLE_STEPPER_DRIVER_INTERRUPT();
+      return awake;
+    }
 
     // The ISR scheduler
     static void isr();
@@ -351,8 +371,31 @@ class Stepper {
     // The stepper pulse phase ISR
     static void stepper_pulse_phase_isr();
 
+    // X is slower than Y
+    static bool X_is_slow_axis() {
+      return (advance_dividend[_AXIS(X)] < advance_dividend[_AXIS(Y)]);
+    }
+    // Y is slower or equal to X
+    static bool Y_is_slow_axis() {
+      return !X_is_slow_axis();
+    }
+    // Z is slower than X or Y
+    static bool Z_is_slow_axis() {
+      return ((advance_dividend[_AXIS(Z)] < advance_dividend[_AXIS(X)])
+           || (advance_dividend[_AXIS(Z)] < advance_dividend[_AXIS(Y)]));
+    }
+    // E is slower than X or Y
+    static bool E_is_slow_axis() {
+      return ((advance_dividend[_AXIS(E)] < advance_dividend[_AXIS(X)])
+           || (advance_dividend[_AXIS(E)] < advance_dividend[_AXIS(Y)]));
+    }
+    static bool slow_axis_ISR_active() {
+      return (SLOW_AXIS_NEVER != nextSlowAxisISR);
+    }
+    static void slow_axis_pulse_phase_isr();
+
     // The stepper block processing phase ISR
-    static uint32_t stepper_block_phase_isr();
+    static uint32_t stepper_block_phase_isr(uint32_t &slow_axis_interval, bool &slow_axis_can_speedup);
 
     #if ENABLED(LIN_ADVANCE)
       // The Linear advance stepper ISR
@@ -369,12 +412,25 @@ class Stepper {
     // Report the positions of the steppers, in steps
     static void report_positions();
 
-    // The stepper subsystem goes to sleep when it runs out of things to execute. Call this
-    // to notify the subsystem that it is time to go to work.
-    static void wake_up();
-
     // Quickly stop all steppers
-    FORCE_INLINE static void quick_stop() { abort_current_block = true; }
+    FORCE_INLINE static void quick_stop() {
+      const bool was_enabled = suspend();
+      if (current_block) {
+        abort_current_block = true;
+        isr();
+      }
+      if (was_enabled) wake_up();
+    }
+
+    // Force any planned move to start immediately
+    static inline void start_moving() {
+      if (planner.movesplanned()) {
+        suspend();
+        planner.delay_before_delivering = 0;
+        if (!current_block) isr(); // zero-wait
+        wake_up();
+      }
+    }
 
     // The direction of a single motor
     FORCE_INLINE static bool motor_direction(const AxisEnum axis) { return TEST(last_direction_bits, axis); }
@@ -402,7 +458,7 @@ class Stepper {
       static void digipot_current(const uint8_t driver, const int16_t current);
     #endif
 
-    #if HAS_MICROSTEPS
+    #if HAS_MICROSTEPS || HAS_DRIVER(TMC2130)
       static void microstep_ms(const uint8_t driver, const int8_t ms1, const int8_t ms2, const int8_t ms3);
       static void microstep_mode(const uint8_t driver, const uint8_t stepping);
       static void microstep_readings();
@@ -438,10 +494,9 @@ class Stepper {
     // Set the current position in steps
     static inline void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e) {
       planner.synchronize();
-      const bool was_enabled = STEPPER_ISR_ENABLED();
-      if (was_enabled) DISABLE_STEPPER_DRIVER_INTERRUPT();
+      const bool was_enabled = suspend();
       _set_position(a, b, c, e);
-      if (was_enabled) ENABLE_STEPPER_DRIVER_INTERRUPT();
+      if (was_enabled) wake_up();
     }
     static inline void set_position(const xyze_long_t &abce) { set_position(abce.a, abce.b, abce.c, abce.e); }
 
@@ -451,22 +506,32 @@ class Stepper {
       #ifdef __AVR__
         // Protect the access to the position. Only required for AVR, as
         //  any 32bit CPU offers atomic access to 32bit variables
-        const bool was_enabled = STEPPER_ISR_ENABLED();
-        if (was_enabled) DISABLE_STEPPER_DRIVER_INTERRUPT();
+        const bool was_enabled = suspend();
       #endif
 
       count_position[a] = v;
 
       #ifdef __AVR__
         // Reenable Stepper ISR
-        if (was_enabled) ENABLE_STEPPER_DRIVER_INTERRUPT();
+        if (was_enabled) wake_up();
       #endif
     }
 
     // Set direction bits for all steppers
     static void set_directions();
 
-  private:
+    // Return processed block (call within ISR context)
+    static const block_t* block() { return current_block; }
+
+    // Return ratio of completed steps of current block (call within ISR context)
+    static float segment_progress();
+
+    #if ENABLED(LIN_ADVANCE)
+      // Return accumulated LA steps
+      static uint16_t get_LA_steps() { return LA_current_adv_steps; }
+    #endif
+
+private:
 
     // Set the current position in steps
     static void _set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
@@ -530,6 +595,26 @@ class Stepper {
       #endif
 
       return timer;
+    }
+    FORCE_INLINE static uint32_t calc_slow_timer_interval(uint32_t fast_timer_interval, bool &slow_timer_can_speedup) {
+      slow_timer_can_speedup = false;
+      if ((0 == advance_dividend[_AXIS(X)]) || (0 == advance_dividend[_AXIS(Y)])) {
+        return 0;
+      }
+      if (advance_dividend[_AXIS(X)] == advance_dividend[_AXIS(Y)]) {
+        return 0;
+      }
+      const uint32_t slow_dividend = _MIN(advance_dividend[_AXIS(X)], advance_dividend[_AXIS(Y)]);
+      const uint32_t fast_dividend = _MAX(advance_dividend[_AXIS(X)], advance_dividend[_AXIS(Y)]);
+      uint64_t slow_timer_interval = static_cast<uint64_t>(fast_timer_interval) * static_cast<uint64_t>(fast_dividend) / static_cast<uint64_t>(slow_dividend);
+      if (static_cast<uint64_t>(fast_timer_interval) * static_cast<uint64_t>(fast_dividend) % static_cast<uint64_t>(slow_dividend)) {
+        ++slow_timer_interval;
+        slow_timer_can_speedup = true;
+      }
+
+      if (slow_timer_interval <= fast_timer_interval) return 0;
+      if (slow_timer_interval >= SLOW_AXIS_NEVER) return 0;
+      return slow_timer_interval;
     }
 
     #if ENABLED(S_CURVE_ACCELERATION)

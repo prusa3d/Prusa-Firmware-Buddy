@@ -4,11 +4,14 @@ typedef enum {
     mpsIdle = 0,
     mpsPrinting,
     mpsPausing_Begin,
+    mpsPausing_Failed_Code,
     mpsPausing_WaitIdle,
     mpsPausing_ParkHead,
     mpsPaused,
     mpsResuming_Begin,
     mpsResuming_Reheating,
+    mpsResuming_UnparkHead_XY,
+    mpsResuming_UnparkHead_ZE,
     mpsResuming_UnparkHead,
     mpsAborting_Begin,
     mpsAborting_WaitIdle,
@@ -17,8 +20,20 @@ typedef enum {
     mpsFinishing_WaitIdle,
     mpsFinishing_ParkHead,
     mpsFinished,
+    mpsCrashRecovery_Begin,
+    mpsCrashRecovery_Retracting,
+    mpsCrashRecovery_Lifting,
+    mpsCrashRecovery_XY_Measure,
+    mpsCrashRecovery_XY_HOME,
+    mpsCrashRecovery_Axis_NOK,
+    mpsCrashRecovery_Repeated_Crash,
+    mpsPowerPanic_acFault,
+    mpsPowerPanic_Resume,
+    mpsPowerPanic_AwaitingResume,
 } marlin_print_state_t;
 
+// variables structure - used in server and client
+// deliberately ordered from longest data types to shortest to avoid alignment issues
 typedef struct _marlin_vars_t {
     // 4B base types
     float pos[4];                     // position XYZE [mm]
@@ -36,12 +51,14 @@ typedef struct _marlin_vars_t {
     char *media_LFN;                  // Long-File-Name of the currently selected file - a pointer to a global static buffer
     char *media_SFN_path;             // Short-File-Name path to currently selected file - a pointer to a global static buffer
     marlin_print_state_t print_state; // marlin_server.print_state
+    uint32_t endstops;                // Binary mask of all endstops
 
     // 2B base types
     uint16_t print_speed;       // printing speed factor [%]
     uint16_t flow_factor;       // flow factor [%]
     uint16_t print_fan_rpm;     // fanCtlPrint.getActualRPM() [1/min]
     uint16_t heatbreak_fan_rpm; // fanCtlHeatBreak.getActualRPM() [1/min]
+    uint16_t job_id;            // print job id incremented at every print start(for connect)
 
     // 1B base types
     uint8_t motion;              // motion (bit0-X, bit1-Y, bit2-Z, bit3-E)

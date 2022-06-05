@@ -4,9 +4,33 @@
 #include "DialogFactory.hpp"
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
-#include "screen_printing_serial.hpp"
 #include "screen_printing.hpp"
-#include "ScreenFirstLayer.hpp"
+#include "config_features.h"
+
+#if HAS_SELFTEST
+    #include "ScreenSelftest.hpp"
+#endif
+
+#if ENABLED(CRASH_RECOVERY)
+    #include "screen_crash_recovery.hpp"
+using CrashRecovery = ScreenCrashRecovery;
+#else
+    #include "screen_dialog_does_not_exist.hpp"
+using CrashRecovery = ScreenDialogDoesNotExist;
+#endif
+
+#if HAS_SERIAL_PRINT
+    #include "screen_printing_serial.hpp"
+using SerialPrint = screen_printing_serial_data_t;
+#else
+    #include "screen_dialog_does_not_exist.hpp"
+using SerialPrint = ScreenDialogDoesNotExist;
+#endif
+
+// TODO add firstlayer support
+// first layer removed from private repo
+#include "screen_dialog_does_not_exist.hpp"
+using FirstLayer = ScreenDialogDoesNotExist;
 
 #if HAS_SELFTEST
     #include "ScreenSelftest.hpp"
@@ -16,14 +40,14 @@ static void OpenPrintScreen(ClientFSM dialog) {
     switch (dialog) {
     case ClientFSM::Serial_printing:
         Screens::Access()->CloseSerial();
-        Screens::Access()->Open(ScreenFactory::Screen<screen_printing_serial_data_t>);
+        Screens::Access()->Open(ScreenFactory::Screen<SerialPrint>);
         return;
     case ClientFSM::Printing:
         Screens::Access()->CloseAll();
         Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
         return;
     case ClientFSM::FirstLayer: //do not close screens
-        Screens::Access()->Open(ScreenFactory::Screen<ScreenFirstLayer>);
+        Screens::Access()->Open(ScreenFactory::Screen<FirstLayer>);
         return;
     default:
         return;
@@ -51,6 +75,11 @@ void DialogHandler::open(fsm::create_t o) {
         } else {
             //openned, notify it
             IScreenPrinting::NotifyMarlinStart();
+        }
+        break;
+    case ClientFSM::CrashRecovery:
+        if (!CrashRecovery::GetInstance()) {
+            Screens::Access()->Open(ScreenFactory::Screen<CrashRecovery>);
         }
         break;
     case ClientFSM::Selftest:
@@ -82,6 +111,7 @@ void DialogHandler::close(fsm::destroy_t o) {
             Screens::Access()->CloseAll();
             break;
         case ClientFSM::FirstLayer:
+        case ClientFSM::CrashRecovery:
         case ClientFSM::Selftest:
             Screens::Access()->Close();
             break;
@@ -99,6 +129,11 @@ void DialogHandler::change(fsm::change_t o) {
     const ClientFSM dialogType = o.type.GetType();
 
     switch (dialogType) {
+    case ClientFSM::CrashRecovery:
+        if (CrashRecovery::GetInstance()) {
+            CrashRecovery::GetInstance()->Change(o.data);
+        }
+        break;
     case ClientFSM::Selftest:
 #if HAS_SELFTEST
         if (ScreenSelftest::GetInstance()) {
@@ -115,6 +150,7 @@ void DialogHandler::change(fsm::change_t o) {
 bool DialogHandler::IsOpen() const {
     return ptr != nullptr;
 }
+
 //*****************************************************************************
 //Meyers singleton
 DialogHandler &DialogHandler::Access() {

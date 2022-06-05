@@ -109,7 +109,6 @@ static constexpr int _pwm_analogWrite_max = 255;
 static int _pwm_analogWrite_val[_PWM_CNT] = { 0, 0, 0, 0 };
 
 static int hwio_jogwheel_enabled = 0;
-static int hwio_fan_control_enabled = 1;
 
 static float hwio_beeper_vol = 1.0F;
 static uint32_t hwio_beeper_del = 0;
@@ -150,7 +149,7 @@ static constexpr int is_pwm_id_valid(int i_pwm) {
 int hwio_pwm_get_cnt(void) //number of pwm outputs
 { return _PWM_CNT; }
 
-constexpr int hwio_pwm_get_max(int i_pwm) //pwm output maximum value
+static constexpr int hwio_pwm_get_max(int i_pwm) //pwm output maximum value
 {
     if (!is_pwm_id_valid(i_pwm))
         return -1;
@@ -336,17 +335,6 @@ void hwio_fan_set_pwm(int i_fan, int val) {
 }
 
 //--------------------------------------
-// fan control - used for selftest
-
-void hwio_fan_control_enable(void) {
-    hwio_fan_control_enabled = 1;
-}
-
-void hwio_fan_control_disable(void) {
-    hwio_fan_control_enabled = 0;
-}
-
-//--------------------------------------
 // Jogwheel
 
 void hwio_jogwheel_enable(void) {
@@ -372,6 +360,7 @@ void hwio_beeper_set_vol(float vol) {
     hwio_beeper_vol = vol;
 }
 
+#if HAS_GUI
 void hwio_beeper_set_pwm(uint32_t per, uint32_t pul) {
     TIM_OC_InitTypeDef sConfigOC = { 0 };
     if (per) {
@@ -394,6 +383,9 @@ void hwio_beeper_set_pwm(uint32_t per, uint32_t pul) {
     } else
         HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
 }
+#else
+void hwio_beeper_set_pwm(uint32_t per, uint32_t pul) {} //Without display, there is no beeper to beep.
+#endif
 
 void hwio_beeper_tone(float frq, uint32_t del) {
     uint32_t per;
@@ -545,16 +537,14 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
         return;
     case MARLIN_PIN(FAN1):
 #ifdef NEW_FANCTL
-        if (hwio_fan_control_enabled)
-            fanctl_set_pwm(1, ulVal ? (100 * 50 / 255) : 0);
+        fanctl_set_pwm(1, ulVal ? (100 * 50 / 255) : 0);
 #else  //NEW_FANCTL
         _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? 100 : 0);
 #endif //NEW_FANCTL
         return;
     case MARLIN_PIN(FAN):
 #ifdef NEW_FANCTL
-        if (hwio_fan_control_enabled)
-            fanctl_set_pwm(0, ulVal ? 50 : 0);
+        fanctl_set_pwm(0, ulVal ? 50 : 0);
 #else  //NEW_FANCTL
         _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulVal ? _pwm_analogWrite_max : 0);
 #endif //NEW_FANCTL
@@ -593,14 +583,15 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     if (HAL_PWM_Initialized) {
         switch (ulPin) {
         case MARLIN_PIN(FAN1):
-            //hwio_fan_set_pwm(_FAN1, ulValue);
+#ifdef NEW_FANCTL
+            fanctl_set_pwm(1, ulValue * 50 / 255);
+#else
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulValue);
+#endif
             return;
         case MARLIN_PIN(FAN):
-            //hwio_fan_set_pwm(_FAN, ulValue);
 #ifdef NEW_FANCTL
-            if (hwio_fan_control_enabled)
-                fanctl_set_pwm(0, ulValue * 50 / 255);
+            fanctl_set_pwm(0, ulValue * 50 / 255);
 #else  //NEW_FANCTL
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulValue);
 #endif //NEW_FANCTL

@@ -12,12 +12,14 @@
 
 class DialogMoveZ : public AddSuperWindow<IDialog> {
 private:
+    static bool DialogShown;
     constexpr static const char *const headerLabel = N_("Z AXIS MOVE");
     constexpr static const char *const axisLabel = N_("Z-axis");
-    constexpr static const char *const infoTextContent = N_("Turn the knob to change Z-axis");
-    constexpr static const char *const closeTextContent = N_("Click knob to end");
+    constexpr static const char *const infoTextContent = N_("Turn the knob to move Z-axis");
+    constexpr static const char *const closeTextContent = N_("Click the knob to close");
     constexpr static const char *const upTextContent = N_("UP");
     constexpr static const char *const downTextContent = N_("DOWN");
+    float prev_accel;
 
     int32_t value;
     int32_t lastQueuedPos;
@@ -52,4 +54,5 @@ protected:
 
 public:
     static void Show();
+    ~DialogMoveZ();
 };

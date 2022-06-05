@@ -30,11 +30,23 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     marlin_client_loop();
 
     switch (vars->print_state) {
+    case mpsCrashRecovery_Begin:
+    case mpsCrashRecovery_Lifting:
+    case mpsCrashRecovery_Retracting:
+    case mpsCrashRecovery_XY_Measure:
+    case mpsCrashRecovery_XY_HOME:
+    case mpsCrashRecovery_Axis_NOK:
+    case mpsCrashRecovery_Repeated_Crash:
+    case mpsPowerPanic_acFault:
+        busy = true;
+        // Fall through
     case mpsPrinting:
         printing = true;
         ready = operational = false;
         break;
+    case mpsPowerPanic_AwaitingResume:
     case mpsPausing_Begin:
+    case mpsPausing_Failed_Code:
     case mpsPausing_WaitIdle:
     case mpsPausing_ParkHead:
         printing = pausing = paused = busy = true;
@@ -46,7 +58,9 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
         break;
     case mpsResuming_Begin:
     case mpsResuming_Reheating:
-    case mpsResuming_UnparkHead:
+    case mpsResuming_UnparkHead_XY:
+    case mpsResuming_UnparkHead_ZE:
+    case mpsPowerPanic_Resume:
         ready = operational = false;
         busy = printing = true;
         break;
@@ -64,7 +78,6 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case mpsAborted:
     case mpsFinished:
     case mpsIdle:
-    default:
         break;
     }
 
@@ -151,22 +164,37 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     case mpsFinishing_WaitIdle:
     case mpsFinishing_ParkHead:
     case mpsPrinting:
+    case mpsPowerPanic_acFault:
         has_job = true;
         state = "Printing";
         break;
+    case mpsCrashRecovery_Begin:
+    case mpsCrashRecovery_Lifting:
+    case mpsCrashRecovery_Retracting:
+    case mpsCrashRecovery_XY_Measure:
+    case mpsCrashRecovery_XY_HOME:
+    case mpsCrashRecovery_Axis_NOK:
+    case mpsCrashRecovery_Repeated_Crash:
+        has_job = true;
+        state = "CrashRecovery";
+        break;
     case mpsPausing_Begin:
+    case mpsPausing_Failed_Code:
     case mpsPausing_WaitIdle:
     case mpsPausing_ParkHead:
         has_job = true;
         state = "Pausing";
         break;
+    case mpsPowerPanic_AwaitingResume:
     case mpsPaused:
         has_job = true;
         state = "Paused";
         break;
     case mpsResuming_Begin:
     case mpsResuming_Reheating:
-    case mpsResuming_UnparkHead:
+    case mpsResuming_UnparkHead_XY:
+    case mpsResuming_UnparkHead_ZE:
+    case mpsPowerPanic_Resume:
         has_job = true;
         state = "Resuming";
         break;

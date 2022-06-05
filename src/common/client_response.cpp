@@ -60,7 +60,16 @@ const PhaseResponses ClientResponses::SelftestResponses[CountPhases<PhasesSelfte
     { Response::Continue },                  // ESP_progress_failed
     { Response::Continue, Response::Abort }, // ESP_qr_instructions_flash
     { Response::Continue, Response::Abort }, // ESP_qr_instructions
+};
 
+const PhaseResponses ClientResponses::CrashRecoveryResponses[CountPhases<PhasesCrashRecovery>()] = {
+    {},                                                     //check X == _first
+    {},                                                     //check Y
+    {},                                                     //home
+    { Response::Retry, Response::Pause, Response::Resume }, //axis NOK
+    {},                                                     //axis short
+    {},                                                     //axis long
+    { Response::Resume, Response::Pause },                  //repeated crash
 };
 
 const PhaseResponses ClientResponses::G162Responses[CountPhases<PhasesG162>()] = {

@@ -120,7 +120,7 @@ extern uint32_t SystemCoreClock;
 #define configTICK_RATE_HZ               ((TickType_t)1000)
 #define configMAX_PRIORITIES             (7)
 #define configMINIMAL_STACK_SIZE         ((uint16_t)128)
-#define configTOTAL_HEAP_SIZE            ((size_t)49152)
+#define configTOTAL_HEAP_SIZE            ((size_t)40960)
 #define configUSE_MALLOC_FAILED_HOOK     1
 
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 2
@@ -152,6 +152,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskSuspend                1
 #define INCLUDE_vTaskDelayUntil             0
 #define INCLUDE_vTaskDelay                  1
+#define INCLUDE_xTaskAbortDelay             1
 #define INCLUDE_xTaskGetSchedulerState      1
 #define INCLUDE_xTimerPendFunctionCall      1
 #define INCLUDE_uxTaskGetStackHighWaterMark 1

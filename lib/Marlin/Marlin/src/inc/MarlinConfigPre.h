@@ -35,6 +35,7 @@
 #include "../core/boards.h"
 #include "../core/macros.h"
 #include "Configuration.h"
+#include "board.h"
 
 
 #ifdef CUSTOM_VERSION_FILE

@@ -5,6 +5,8 @@
 #include "menu_vars.h"
 #include "resource.h"
 
+bool DialogMoveZ::DialogShown = false;
+
 DialogMoveZ::DialogMoveZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenNoFoot)
     , value(marlin_vars()->pos[2])
@@ -18,10 +20,13 @@ DialogMoveZ::DialogMoveZ()
     , numb(this, numb_rc, marlin_vars()->pos[2], "%d mm", GuiDefaults::FontBig)
     , header(this, _(headerLabel))
     , icon(this, icon_rc, IDR_PNG_turn_knob) {
+    DialogShown = true;
 
+    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
+    prev_accel = marlin_vars()->travel_acceleration;
+    marlin_gcode("M204 T200");
     /// using window_t 1bit flag
     flags.close_on_click = is_closed_on_click_t::yes;
-
     header.SetIcon(IDR_PNG_z_axis_16px);
 
     constexpr static padding_ui8_t padding({ 6, 0, 6, 0 });
@@ -57,7 +62,8 @@ DialogMoveZ::DialogMoveZ()
 void DialogMoveZ::windowEvent(EventLock, window_t *sender, GUI_event_t event, void *param) {
     constexpr static uint8_t len = 4;
 
-    if (event == GUI_event_t::CLICK) {
+    switch (event) {
+    case GUI_event_t::CLICK: {
         /// has set is_closed_on_click_t
         /// todo
         /// GUI_event_t::CLICK could bubble into window_t::windowEvent and close dialog
@@ -67,32 +73,43 @@ void DialogMoveZ::windowEvent(EventLock, window_t *sender, GUI_event_t event, vo
             Screens::Access()->Close();
         return;
     }
-    if (event == GUI_event_t::ENC_DN) {
-        change(-1);
+    case GUI_event_t::ENC_DN: {
+        const int enc_change = int(param);
+        change(-enc_change);
         numb.SetValue(value);
         arrows.SetState(WindowArrows::State_t::down);
-    } else if (event == GUI_event_t::ENC_UP) {
-        change(1);
+        return;
+    }
+    case GUI_event_t::ENC_UP: {
+        const int enc_change = int(param);
+        change(enc_change);
         numb.SetValue(value);
         arrows.SetState(WindowArrows::State_t::up);
+        return;
     }
-    if (event == GUI_event_t::LOOP) {
+    case GUI_event_t::LOOP: {
 
         marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE));
         if (marlin_vars()->pqueue <= len) {
             int difference = value - lastQueuedPos;
             uint8_t freeSlots = len - marlin_vars()->pqueue;
             if (difference != 0) {
-                for (uint8_t i = 0; i < freeSlots && lastQueuedPos != value; i++) {
+                for (uint8_t i = 0; i < freeSlots && lastQueuedPos != (int)value; i++) {
                     if (difference > 0) {
                         lastQueuedPos++;
+                        difference--;
                     } else if (difference < 0) {
                         lastQueuedPos--;
+                        difference++;
                     }
                     marlin_move_axis(lastQueuedPos, MenuVars::GetManualFeedrate()[2], 2);
                 }
             }
         }
+        return;
+    }
+    default:
+        return;
     }
 }
 void DialogMoveZ::change(int diff) {
@@ -100,7 +117,16 @@ void DialogMoveZ::change(int diff) {
     auto range = MenuVars::GetAxisRanges()[2];
     value = std::clamp(val, (int32_t)range[0], (int32_t)range[1]);
 }
+
+DialogMoveZ::~DialogMoveZ() {
+    DialogShown = false;
+    char msg[20];
+    snprintf(msg, sizeof(msg), "M204 T%f", (double)prev_accel);
+    marlin_gcode(msg);
+}
 void DialogMoveZ::Show() {
-    DialogMoveZ moveZ;
-    moveZ.MakeBlocking();
+    if (!DialogShown) {
+        DialogMoveZ moveZ;
+        moveZ.MakeBlocking();
+    }
 }

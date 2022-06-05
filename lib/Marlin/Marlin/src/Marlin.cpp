@@ -202,6 +202,8 @@ millis_t max_inactive_time, // = 0
   I2CPositionEncodersMgr I2CPEM;
 #endif
 
+uint16_t job_id = 0;
+
 /**
  * ***************************************************************************
  * ******************************** FUNCTIONS ********************************
@@ -282,8 +284,7 @@ void enable_all_steppers() {
   #if ENABLED(AUTO_POWER_CONTROL)
     powerManager.power_on();
   #endif
-  enable_X();
-  enable_Y();
+  enable_XY();
   enable_Z();
   enable_e_steppers();
 }
@@ -304,8 +305,7 @@ void disable_e_stepper(const uint8_t e) {
 }
 
 void disable_all_steppers() {
-  disable_X();
-  disable_Y();
+  disable_XY();
   disable_Z();
   disable_e_steppers();
 }
@@ -422,11 +422,15 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
     else if (MOVE_AWAY_TEST && !ignore_stepper_queue && ELAPSED(ms, gcode.previous_move_ms + stepper_inactive_time)) {
       if (!already_shutdown_steppers) {
         already_shutdown_steppers = true;  // L6470 SPI will consume 99% of free time without this
-        #if ENABLED(DISABLE_INACTIVE_X)
-          disable_X();
-        #endif
-        #if ENABLED(DISABLE_INACTIVE_Y)
-          disable_Y();
+        #if (ENABLED(XY_LINKED_ENABLE) && (ENABLED(DISABLE_INACTIVE_X) || ENABLED(DISABLE_INACTIVE_Y)))
+          disable_XY();
+        #else
+          #if ENABLED(DISABLE_INACTIVE_X)
+            disable_X();
+          #endif
+          #if ENABLED(DISABLE_INACTIVE_Y)
+            disable_Y();
+          #endif
         #endif
         #if ENABLED(DISABLE_INACTIVE_Z)
           disable_Z();
@@ -644,6 +648,8 @@ void idle(
         if (endstops.tmc_spi_homing_check()) break;
     }
   #endif
+
+  endstops.event_handler();
 
   #if ENABLED(MAX7219_DEBUG)
     max7219.idle_tasks();
@@ -1017,6 +1023,10 @@ void setup() {
     SET_INPUT_PULLUP(HOME_PIN);
   #endif
 
+  #ifdef Z_ALWAYS_ON  
+    enable_Z();  
+  #endif    
+
   #if PIN_EXISTS(STAT_LED_RED)
     OUT_WRITE(STAT_LED_RED_PIN, LOW); // OFF
   #endif
@@ -1110,8 +1120,8 @@ void setup() {
   #endif
 
   #if HAS_TRINAMIC && DISABLED(PS_DEFAULT_OFF)
-    test_tmc_connection(true, true, true, true);
-  #endif
+      test_tmc_connection(true, true, true, true);
+    #endif
 
   #if ENABLED(PRUSA_MMU2)
     mmu2.init();
@@ -1163,7 +1173,6 @@ void loop() {
     #endif // SDSUPPORT
 
     queue.advance();
-    endstops.event_handler();
 
   #if !ENABLED(MARLIN_DISABLE_INFINITE_LOOP)
   }

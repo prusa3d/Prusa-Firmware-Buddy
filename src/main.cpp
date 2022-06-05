@@ -1,4 +1,5 @@
 #include "main.h"
+#include "config_features.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
 #include "usb_device.h"
@@ -11,7 +12,6 @@
 
 #include "sys.h"
 #include "app.h"
-#include "config.h"
 #include "wdt.h"
 #include "dump.h"
 #include "timer_defaults.h"
@@ -30,6 +30,9 @@
 #include "logging.h"
 #include "common/disable_interrupts.h"
 
+#if ENABLED(POWER_PANIC)
+    #include "power_panic.hpp"
+#endif
 #ifdef BUDDY_ENABLE_WUI
     #include "wui.h"
 #endif
@@ -157,12 +160,9 @@ extern "C" void main_cpp(void) {
     };
     metric_system_init(handlers);
 
-    /* Create the thread(s) */
-    /* definition and creation of defaultTask */
     osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-    /* definition and creation of displayTask */
     if (HAS_GUI) {
         osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
@@ -185,9 +185,18 @@ extern "C" void main_cpp(void) {
     }
 #endif
 
+#if ENABLED(POWER_PANIC)
+    /* definition and creation of acFaultTask */
+    osThreadDef(acFaultTask, power_panic::ac_fault_main, osPriorityRealtime, 0, 80);
+    power_panic::ac_fault_task = osThreadCreate(osThread(acFaultTask), NULL);
+#endif
+
+/* definition and creation of measurementTask */
+#if (FILAMENT_SENSOR)
     /* definition and creation of measurementTask */
     osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
     osThreadCreate(osThread(measurementTask), NULL);
+#endif
 }
 
 extern void st7789v_spi_tx_complete(void);

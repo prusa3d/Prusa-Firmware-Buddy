@@ -42,7 +42,9 @@ const char *__var_name[] = {
     "FANPR_RPM",
     "FANHB_RPM",
     "FAN_CHECK_ENABLED",
+    "ENDSTOPS",
     "FS_AUTOLOAD_ENABLED",
+    "JOB_ID",
     "CURR_POS_X",
     "CURR_POS_Y",
     "CURR_POS_Z",
@@ -138,8 +140,12 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, marlin_var_id_t var_id) {
         return variant8_ui16(vars->heatbreak_fan_rpm);
     case MARLIN_VAR_FAN_CHECK_ENABLED:
         return variant8_bool(vars->fan_check_enabled);
+    case MARLIN_VAR_ENDSTOPS:
+        return variant8_ui32(vars->endstops);
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
         return variant8_bool(vars->fs_autoload_enabled);
+    case MARLIN_VAR_JOB_ID:
+        return variant8_ui16(vars->job_id);
     case MARLIN_VAR_CURR_POS_X:
         return variant8_flt(vars->curr_pos[0]);
     case MARLIN_VAR_CURR_POS_Y:
@@ -280,12 +286,19 @@ void marlin_vars_set_var(marlin_vars_t *vars, marlin_var_id_t var_id, variant8_t
         break;
     case MARLIN_VAR_FAN_CHECK_ENABLED:
         vars->fan_check_enabled = variant8_get_bool(var);
+    case MARLIN_VAR_ENDSTOPS:
+        vars->endstops = variant8_get_ui32(var);
+        break;
         break;
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
         vars->fs_autoload_enabled = variant8_get_bool(var);
         break;
+    case MARLIN_VAR_JOB_ID:
+        vars->job_id = variant8_get_ui16(var);
+        break;
     case MARLIN_VAR_TRAVEL_ACCEL:
         vars->travel_acceleration = variant8_get_flt(var);
+        break;
     }
 }
 
@@ -354,8 +367,12 @@ int marlin_vars_value_to_str(marlin_vars_t *vars, marlin_var_id_t var_id, char *
         return snprintf(str, size, "%u", (unsigned int)(vars->heatbreak_fan_rpm));
     case MARLIN_VAR_FAN_CHECK_ENABLED:
         return snprintf(str, size, "%u", (unsigned int)(vars->fan_check_enabled));
+    case MARLIN_VAR_ENDSTOPS:
+        return snprintf(str, size, "%lu", (unsigned long int)(vars->endstops));
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
         return snprintf(str, size, "%u", (unsigned int)(vars->fs_autoload_enabled));
+    case MARLIN_VAR_JOB_ID:
+        return snprintf(str, size, "%hu", vars->job_id);
     case MARLIN_VAR_TRAVEL_ACCEL:
         return snprintf(str, size, "%f", (double)(vars->travel_acceleration));
     default:
@@ -434,8 +451,12 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, marlin_var_id_t var_id, const 
         return sscanf(str, "%hu", &(vars->heatbreak_fan_rpm));
     case MARLIN_VAR_FAN_CHECK_ENABLED:
         return sscanf(str, "%hhu", &(vars->fan_check_enabled));
+    case MARLIN_VAR_ENDSTOPS:
+        return sscanf(str, "%lu", &(vars->endstops));
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
         return sscanf(str, "%hhu", &(vars->fs_autoload_enabled));
+    case MARLIN_VAR_JOB_ID:
+        return sscanf(str, "%hu", &(vars->job_id));
     case MARLIN_VAR_TRAVEL_ACCEL:
         return sscanf(str, "%f", &(vars->travel_acceleration));
     }

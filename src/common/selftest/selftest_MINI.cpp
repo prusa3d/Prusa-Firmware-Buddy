@@ -177,7 +177,9 @@ bool CSelftest::Abort() {
 
 void CSelftest::phaseStart() {
     marlin_server_set_exclusive_mode(1);
+#if 0 //TODO: hwio_fan_control was deprecated
     hwio_fan_control_disable();
+#endif
     m_HomeState = sthsNone;
     if (m_Mask & stmHeaters) {
         thermalManager.setTargetHotend(40, 0);
@@ -365,7 +367,9 @@ bool CSelftest::phaseHeaters(const selftest_heater_config_t &config_nozzle, cons
 
 void CSelftest::phaseFinish() {
     log_close();
+#if 0 //TODO: hwio_fan_control was deprecated
     hwio_fan_control_enable();
+#endif
     marlin_server_set_exclusive_mode(0);
     thermalManager.disable_all_heaters();
     disable_all_steppers();

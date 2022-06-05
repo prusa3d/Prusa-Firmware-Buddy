@@ -51,12 +51,22 @@ target_include_directories(gcode_filter_tests PUBLIC ${CMAKE_SOURCE_DIR}/src)
 add_executable(timing_tests ${CMAKE_SOURCE_DIR}/src/common/timing.c timing_tests.cpp)
 target_include_directories(timing_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
+add_executable(
+  weighted_modus_tests ${CMAKE_CURRENT_SOURCE_DIR}/weighted_modus_test.cpp
+                       ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/module/precise_homing.cpp
+  )
+target_include_directories(
+  weighted_modus_tests PUBLIC ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/module/
+  )
+
 add_executable(algorithm_range_tests algorithm_range_tests.cpp)
 target_include_directories(algorithm_range_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
 add_executable(algorithm_scale_tests algorithm_scale_tests.cpp)
 target_include_directories(algorithm_scale_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
+add_executable(median_tests ${CMAKE_CURRENT_SOURCE_DIR}/median_test.cpp)
+target_include_directories(median_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 add_catch_test(support_utils_tests)
 add_catch_test(variant8_tests)
 add_catch_test(str_utils_tests)
@@ -64,5 +74,7 @@ add_catch_test(fsm_types_test)
 add_catch_test(fsm_serializers_test)
 add_catch_test(gcode_filter_tests)
 add_catch_test(timing_tests)
+add_catch_test(weighted_modus_tests)
 add_catch_test(algorithm_range_tests)
 add_catch_test(algorithm_scale_tests)
+add_catch_test(median_tests)

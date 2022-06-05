@@ -171,7 +171,7 @@ typedef struct block_t {
 
 } block_t;
 
-#define HAS_POSITION_FLOAT ANY(LIN_ADVANCE, SCARA_FEEDRATE_SCALING, GRADIENT_MIX)
+#define HAS_POSITION_FLOAT ANY(LIN_ADVANCE, SCARA_FEEDRATE_SCALING, GRADIENT_MIX, CRASH_RECOVERY)
 
 #define BLOCK_MOD(n) ((n)&(BLOCK_BUFFER_SIZE-1))
 
@@ -186,6 +186,36 @@ typedef struct {
  feedRate_t min_feedrate_mm_s,                  // (mm/s) M205 S - Minimum linear feedrate
             min_travel_feedrate_mm_s;           // (mm/s) M205 T - Minimum travel feedrate
 } planner_settings_t;
+
+// Structure for saving/loading movement parameters
+typedef struct {
+   uint32_t max_acceleration_mm_per_s2[XYZE_N], // (mm/s^2) M201 XYZE
+            min_segment_time_us;                // (µs) M205 B
+ feedRate_t max_feedrate_mm_s[XYZE_N];          // (mm/s) M203 XYZE - Max speeds
+      float acceleration,                       // (mm/s^2) M204 S - Normal acceleration. DEFAULT ACCELERATION for all printing moves.
+            retract_acceleration,               // (mm/s^2) M204 R - Retract acceleration. Filament pull-back and push-forward while standing still in the other axes
+            travel_acceleration;                // (mm/s^2) M204 T - Travel acceleration. DEFAULT ACCELERATION for all NON printing moves.
+ feedRate_t min_feedrate_mm_s,                  // (mm/s) M205 S - Minimum linear feedrate
+            min_travel_feedrate_mm_s;           // (mm/s) M205 T - Minimum travel feedrate
+
+  #if DISABLED(CLASSIC_JERK)
+    float junction_deviation_mm;                // (mm) M205 J
+    #if ENABLED(LIN_ADVANCE)
+      #if ENABLED(DISTINCT_E_FACTORS)
+        float max_e_jerk[EXTRUDERS];            // Calculated from junction_deviation_mm
+      #else
+        float max_e_jerk;
+      #endif
+    #endif
+  #endif
+  #if HAS_CLASSIC_JERK
+    #if HAS_LINEAR_E_JERK
+      xyz_pos_t max_jerk;                       // (mm/s^2) M205 XYZ - The largest speed change requiring no acceleration.
+    #else
+      xyze_pos_t max_jerk;                      // (mm/s^2) M205 XYZE - The largest speed change requiring no acceleration.
+    #endif
+  #endif
+} motion_parameters_t;
 
 #if DISABLED(SKEW_CORRECTION)
   #define XY_SKEW_FACTOR 0
@@ -561,11 +591,11 @@ class Planner {
      *
      * - Get the next head indices (passed by reference)
      * - Wait for the number of spaces to open up in the planner
-     * - Return the first head block
+     * - Return the first head block, or nullptr if the queue is being drained
      */
     FORCE_INLINE static block_t* get_next_free_block(uint8_t &next_buffer_head, const uint8_t count=1) {
 
-      // Wait until there are enough slots free
+      // Wait until there are enough slots free or if aborting
       while (moves_free() < count && !draining_buffer) { idle(true); }
       if (draining_buffer)
         return nullptr;
@@ -649,7 +679,7 @@ class Planner {
       #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
         , const xyze_float_t &delta_mm_cart
       #endif
-      , const feedRate_t &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+      , const feedRate_t &fr_mm_s, const uint8_t extruder, float millimeters=0.0
     );
 
     FORCE_INLINE static bool buffer_segment(abce_pos_t &abce
@@ -676,7 +706,7 @@ class Planner {
      *  fr_mm_s      - (target) speed of the move (mm/s)
      *  extruder     - target extruder
      *  millimeters  - the length of the movement, if known
-     *  inv_duration - the reciprocal if the duration of the movement, if known (kinematic only if feeedrate scaling is enabled)
+     *  inv_duration - the reciprocal if the duration of the movement, if known (kinematic only if feedrate scaling is enabled)
      */
     static bool buffer_line(const float &rx, const float &ry, const float &rz, const float &e, const feedRate_t &fr_mm_s, const uint8_t extruder, const float millimeters=0.0
       #if ENABLED(SCARA_FEEDRATE_SCALING)
@@ -713,6 +743,9 @@ class Planner {
     FORCE_INLINE static void set_position_mm(const xyze_pos_t &cart) { set_position_mm(cart.x, cart.y, cart.z, cart.e); }
     static void set_e_position_mm(const float &e);
 
+    /// Resets machine position to values from stepper
+    static void reset_position();
+
     /**
      * Set the planner.position and individual stepper positions.
      *
@@ -728,13 +761,20 @@ class Planner {
      */
     static float get_axis_position_mm(const AxisEnum axis);
 
+    #if HAS_POSITION_FLOAT
+    /**
+     * Get planner's axis position in mm
+     */
+    static abce_pos_t get_machine_position_mm() { return position_float; }
+    #endif
+
     // SCARA AB axes are in degrees, not mm
     #if IS_SCARA
       FORCE_INLINE static float get_axis_position_degrees(const AxisEnum axis) { return get_axis_position_mm(axis); }
     #endif
 
     // Called to force a quick stop of the machine (for example, when
-    // a Full Shutdown is required, or when endstops are hit)
+    // a Full Shutdown is required, or when endstops are hit).
     // Will implicitly call drain().
     static void quick_stop();
 
@@ -747,7 +787,7 @@ class Planner {
     // Resume queuing after being held by drain()
     static void resume_queuing() { draining_buffer = false; }
 
-    // Called when an endstop is triggered. Causes the machine to stop inmediately
+    // Called when an endstop is triggered. Causes the machine to stop immediately
     static void endstop_triggered(const AxisEnum axis);
 
     // Triggered position of an axis in mm (not core-savvy)
@@ -823,9 +863,8 @@ class Planner {
     }
 
     /**
-     * "Discard" the block and "release" the memory.
+     * "Release" the current block so its slot can be reused.
      * Called when the current block is no longer needed.
-     * NB: There MUST be a current block to call this function!!
      */
     FORCE_INLINE static void discard_current_block() {
       if (has_blocks_queued())
@@ -838,15 +877,14 @@ class Planner {
         #ifdef __AVR__
           // Protect the access to the variable. Only required for AVR, as
           //  any 32bit CPU offers atomic access to 32bit variables
-          bool was_enabled = STEPPER_ISR_ENABLED();
-          if (was_enabled) DISABLE_STEPPER_DRIVER_INTERRUPT();
+          bool was_enabled = stepper.suspend();
         #endif
 
         millis_t bbru = block_buffer_runtime_us;
 
         #ifdef __AVR__
           // Reenable Stepper ISR
-          if (was_enabled) ENABLE_STEPPER_DRIVER_INTERRUPT();
+          if (was_enabled) stepper.wake_up();
         #endif
 
         // To translate µs to ms a division by 1000 would be required.
@@ -862,15 +900,14 @@ class Planner {
         #ifdef __AVR__
           // Protect the access to the variable. Only required for AVR, as
           //  any 32bit CPU offers atomic access to 32bit variables
-          bool was_enabled = STEPPER_ISR_ENABLED();
-          if (was_enabled) DISABLE_STEPPER_DRIVER_INTERRUPT();
+          bool was_enabled = stepper.suspend();
         #endif
 
         block_buffer_runtime_us = 0;
 
         #ifdef __AVR__
           // Reenable Stepper ISR
-          if (was_enabled) ENABLE_STEPPER_DRIVER_INTERRUPT();
+          if (was_enabled) stepper.wake_up();
         #endif
       }
 
@@ -974,6 +1011,42 @@ class Planner {
       }
 
     #endif // !CLASSIC_JERK
+};
+
+/**
+ * Class provides storage of speed and acceleration parameters of the motion.
+ */
+class Motion_Parameters {
+  public:
+    // save motion parameters
+    void save();
+    // save motion parameters and reset them
+    void save_reset();
+    // reset motion parameters
+    static void reset();
+    // load motion parameters back
+    void load();
+
+  private:
+    motion_parameters_t mp;
+};
+
+/**
+ * Class provides temporary storage of speed and acceleration parameters of the motion.
+ * Constructor saves parameters and resets them, destructor retrieves them back.
+ */
+class Temporary_Reset_Motion_Parameters {
+  public:
+    Temporary_Reset_Motion_Parameters() {
+      mp.save();
+      mp.reset();
+    }
+
+    ~Temporary_Reset_Motion_Parameters() {
+      mp.load();
+    }
+  private:
+    Motion_Parameters mp;
 };
 
 #define PLANNER_XY_FEEDRATE() (_MIN(planner.settings.max_feedrate_mm_s[X_AXIS], planner.settings.max_feedrate_mm_s[Y_AXIS]))

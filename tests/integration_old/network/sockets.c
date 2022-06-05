@@ -7,7 +7,11 @@
 #include "lwip/sockets.h"
 #include "esp/esp.h"
 #include "sockets/lwesp_sockets.h"
-#include "dbg.h"
+#if 0
+    #include "dbg.h"
+#else
+    #define _dbg(...)
+#endif //0
 
 void socket_listen_test_lwip() {
     _dbg("LWIP TCP HELLO SERVER TEST\n");

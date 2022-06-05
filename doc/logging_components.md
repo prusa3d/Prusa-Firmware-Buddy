@@ -13,6 +13,7 @@ This file is generated automatically so don't edit it directly
 - MarlinServer: LOG_SEVERITY_INFO, src/common/marlin_server.cpp
 - Metrics: LOG_SEVERITY_INFO, src/common/metric.c
 - Network: LOG_SEVERITY_INFO, lib/WUI/wui.cpp
+- PowerPanic: LOG_SEVERITY_INFO, src/common/power_panic.cpp
 - Resources: LOG_SEVERITY_DEBUG, src/resources/bootstrap.cpp
 - Selftest: LOG_SEVERITY_DEBUG, src/common/selftest/selftest_MINI.cpp
 - Syslog: LOG_SEVERITY_INFO, src/syslog/syslog.c

@@ -8,6 +8,14 @@
 #include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
 #include <type_traits>
 
+#include "power_panic.hpp"
+#if DISABLED(POWER_PANIC)
+namespace power_panic {
+// stub definition due to usage in the board pin macro table
+void ac_fault_isr() {}
+}
+#endif
+
 static constexpr uint16_t getIoHalPin(buddy::hw::IoPort, buddy::hw::IoPin ioPin) {
     return buddy::hw::Pin::IoPinToHal(ioPin);
 }

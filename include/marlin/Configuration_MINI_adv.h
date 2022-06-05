@@ -23,6 +23,8 @@
 
 // clang-format off
 
+#include "../filename_defs.h"
+
 /**
  * Configuration_adv.h
  *
@@ -482,6 +484,8 @@
     // ranges in mm - allowed distance between homing probes for XYZ axes
     constexpr float axis_home_min_diff[] = {-0.2, -0.2, -0.1};
     constexpr float axis_home_max_diff[] = { 0.2,  0.2,  0.1};
+    constexpr float axis_home_invert_min_diff = -1;
+    constexpr float axis_home_invert_max_diff = 1;
 #endif// HOMING_MAX_ATTEMPTS
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
@@ -1508,7 +1512,7 @@
  */
 #if HAS_TRINAMIC
 
-    #define HOLD_MULTIPLIER 1 //0.5  // Scales down the holding current from run current
+    constexpr float HOLD_MULTIPLIER[4] = {1, 1, 1, 1};  // Scales down the holding current from run current
     #define INTERPOLATE true // Interpolate X/Y/Z_MICROSTEPS to 256
 
     #if AXIS_IS_TMC(X)
@@ -1705,6 +1709,8 @@
    * Too low values can lead to false positives, while too high values will collide the axis without triggering.
    * It is advised to set X/Y/Z_HOME_BUMP_MM to 0.
    * M914 X/Y/Z to live tune the setting
+   *
+   * Stall threshold defines maximal period between steps to trigger a stallguard
    */
 //#define SENSORLESS_HOMING // TMC2130 only
 
@@ -1717,9 +1723,20 @@
 //#define SENSORLESS_PROBING // TMC2130 only
 
     #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
-        #define X_STALL_SENSITIVITY 8
-        #define Y_STALL_SENSITIVITY 8
-    //#define Z_STALL_SENSITIVITY  8
+        #if X_DRIVER_TYPE == TMC2209
+            #define X_STALL_SENSITIVITY 8
+        #endif
+
+        #if Y_DRIVER_TYPE == TMC2209
+            #define Y_STALL_SENSITIVITY 8
+        #endif
+
+        #if Z_DRIVER_TYPE == TMC2209
+            // #define Z_STALL_SENSITIVITY 8
+        #endif
+
+        #define STALL_THRESHOLD_TMC2130 0xFFFFF
+        #define STALL_THRESHOLD_TMC2209 400
     #endif
 
     /**

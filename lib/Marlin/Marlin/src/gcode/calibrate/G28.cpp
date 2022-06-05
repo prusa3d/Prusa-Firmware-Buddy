@@ -36,6 +36,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 
 #include "../../module/stepper.h"
 #include "../../module/endstops.h"
+#include "../../module/precise_homing.h"
 
 #if HOTENDS > 1
   #include "../../module/tool_change.h"
@@ -69,6 +70,8 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
   static void quick_home_xy() {
 
     // Pretend the current position is 0,0
+    CBI(axis_known_position, X_AXIS);
+    CBI(axis_known_position, Y_AXIS);
     current_position.set(0.0, 0.0);
     sync_plan_position();
 
@@ -90,6 +93,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
     const float fr_mm_s = SQRT(sq(homing_feedrate(X_AXIS)) + sq(homing_feedrate(Y_AXIS)));
 
     #if ENABLED(SENSORLESS_HOMING)
+      #if ENABLED(CRASH_RECOVERY)
+        Crash_Temporary_Deactivate ctd;
+      #endif // ENABLED(CRASH_RECOVERY)
+
       sensorless_t stealth_states {
           tmc_enable_stallguard(stepperX)
         , tmc_enable_stallguard(stepperY)
@@ -103,6 +110,11 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
             || tmc_enable_stallguard(stepperY2)
           #endif
       };
+
+      #if ENABLED(CRASH_RECOVERY)
+        stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
+        stepperY.stall_sensitivity(crash_s.home_sensitivity[1]);
+      #endif
     #endif
 
     do_blocking_move_to_xy(1.5 * mlx * x_axis_home_dir, 1.5 * mly * home_dir(Y_AXIS), fr_mm_s);
@@ -110,15 +122,20 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
     endstops.validate_homing_move();
 
     current_position.set(0.0, 0.0);
+    sync_plan_position();
 
     #if ENABLED(SENSORLESS_HOMING)
-      tmc_disable_stallguard(stepperX, stealth_states.x);
-      tmc_disable_stallguard(stepperY, stealth_states.y);
-      #if AXIS_HAS_STALLGUARD(X2)
-        tmc_disable_stallguard(stepperX2, stealth_states.x2);
-      #endif
-      #if AXIS_HAS_STALLGUARD(Y2)
-        tmc_disable_stallguard(stepperY2, stealth_states.y2);
+      #if ANY(ENDSTOPS_ALWAYS_ON_DEFAULT, CRASH_RECOVERY)
+        UNUSED(stealth_states);
+      #else
+        tmc_disable_stallguard(stepperX, stealth_states.x);
+        tmc_disable_stallguard(stepperY, stealth_states.y);
+        #if AXIS_HAS_STALLGUARD(X2)
+          tmc_disable_stallguard(stepperX2, stealth_states.x2);
+        #endif
+        #if AXIS_HAS_STALLGUARD(Y2)
+          tmc_disable_stallguard(stepperY2, stealth_states.y2);
+        #endif
       #endif
     #endif
   }
@@ -178,6 +195,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 
 /**
  * G28: Home all axes according to settings
+ * 
+ * If PRECISE_HOMING is enabled, there are specific amount
+ * of tries to home an X/Y axis. If it fails it runs re-calibration
+ * (if it's not disabled by D).
  *
  * Parameters
  *
@@ -194,6 +215,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
  *  Y   Home to the Y endstop
  *  Z   Home to the Z endstop
  *
+ * PRECISE_HOMING only:
+ * 
+ *  D   Avoid home calibration
+ * 
  */
 void GcodeSuite::G28(const bool always_home_all) {
   bool S = false;
@@ -323,7 +348,9 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
         do_blocking_move_to_z(destination.z);
       }
     }
+
     MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME();
+
     #if ENABLED(QUICK_HOME)
 
       if (doX && doY) quick_home_xy();
@@ -336,8 +363,12 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
       if (doY
         #if ENABLED(CODEPENDENT_XY_HOMING)
           || doX
-        #endif
-      ) homeaxis(Y_AXIS);
+        #endif        
+        ) homeaxis(Y_AXIS
+          #if ENABLED(PRECISE_HOMING)
+            , 0.0f, false, !parser.seen('D')
+          #endif
+        );
 
     #endif
 
@@ -352,14 +383,22 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
         // Always home the 2nd (right) extruder first
         active_extruder = 1;
-        homeaxis(X_AXIS);
+        homeaxis(X_AXIS
+          #if ENABLED(PRECISE_HOMING)
+            , 0.0f, false, !parser.seen('D')
+          #endif
+        );
 
         // Remember this extruder's position for later tool change
         inactive_extruder_x_pos = current_position.x;
 
         // Home the 1st (left) extruder
         active_extruder = 0;
-        homeaxis(X_AXIS);
+        homeaxis(X_AXIS
+          #if ENABLED(PRECISE_HOMING)
+            , 0.0f, false, !parser.seen('D')
+          #endif
+        );
 
         // Consider the active extruder to be parked
         raised_parked_position = current_position;
@@ -368,14 +407,23 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
       #else
 
-        homeaxis(X_AXIS);
+        homeaxis(X_AXIS
+          #if ENABLED(PRECISE_HOMING)
+            , 0.0f, false, !parser.seen('D')
+          #endif
+        );
 
       #endif
     }
 
     // Home Y (after X)
     #if DISABLED(HOME_Y_BEFORE_X)
-      if (doY) homeaxis(Y_AXIS);
+      if (doY) 
+        homeaxis(Y_AXIS
+          #if ENABLED(PRECISE_HOMING)
+            , 0.0f, false, !parser.seen('D')
+          #endif
+        );
     #endif
 
     // Home Z last if homing towards the bed
@@ -414,14 +462,22 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
       // Always home the 2nd (right) extruder first
       active_extruder = 1;
-      homeaxis(X_AXIS);
+      homeaxis(X_AXIS
+        #if ENABLED(PRECISE_HOMING)
+          , 0.0f, false, !parser.seen('D')
+        #endif
+      );
 
       // Remember this extruder's position for later tool change
       inactive_extruder_x_pos = current_position.x;
 
       // Home the 1st (left) extruder
       active_extruder = 0;
-      homeaxis(X_AXIS);
+      homeaxis(X_AXIS
+        #if ENABLED(PRECISE_HOMING)
+          , 0.0f, false, !parser.seen('D')
+        #endif
+      );
 
       // Consider the active extruder to be parked
       raised_parked_position = current_position;
@@ -496,5 +552,6 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
       L6470.set_param(cv, L6470_ABS_POS, stepper.position((AxisEnum)L6470.axis_xref[cv]));
     }
   #endif
+
     MINDA_BROKEN_CABLE_DETECTION__END();
 }

@@ -124,7 +124,7 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
     #endif
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -134,9 +134,9 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
 
     PWMCONF_t pwmconf{0};
     pwmconf.pwm_freq = 0b01; // f_pwm = 2/683 f_clk
-    pwmconf.pwm_autoscale = true;
+        pwmconf.pwm_autoscale = true;
     pwmconf.pwm_grad = 5;
-    pwmconf.pwm_ampl = 180;
+        pwmconf.pwm_ampl = 180;
     st.PWMCONF(pwmconf.sr);
 
     #if ENABLED(HYBRID_THRESHOLD)
@@ -165,7 +165,7 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
     #endif
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -406,7 +406,7 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
     #endif
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -454,7 +454,7 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
     #endif
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -523,7 +523,7 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
     #endif
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -564,7 +564,7 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
     #endif
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER);
+    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -697,32 +697,32 @@ void reset_trinamic_drivers() {
   #if USE_SENSORLESS
     #if X_SENSORLESS
       #if AXIS_HAS_STALLGUARD(X)
-        stepperX.homing_threshold(X_STALL_SENSITIVITY);
+        stepperX.stall_sensitivity(X_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(X2) && !X2_SENSORLESS
-        stepperX2.homing_threshold(X_STALL_SENSITIVITY);
+        stepperX2.stall_sensitivity(X_STALL_SENSITIVITY);
       #endif
     #endif
     #if X2_SENSORLESS
-      stepperX2.homing_threshold(X2_STALL_SENSITIVITY);
+      stepperX2.stall_sensitivity(X2_STALL_SENSITIVITY);
     #endif
     #if Y_SENSORLESS
       #if AXIS_HAS_STALLGUARD(Y)
-        stepperY.homing_threshold(Y_STALL_SENSITIVITY);
+        stepperY.stall_sensitivity(Y_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Y2)
-        stepperY2.homing_threshold(Y_STALL_SENSITIVITY);
+        stepperY2.stall_sensitivity(Y_STALL_SENSITIVITY);
       #endif
     #endif
     #if Z_SENSORLESS
       #if AXIS_HAS_STALLGUARD(Z)
-        stepperZ.homing_threshold(Z_STALL_SENSITIVITY);
+        stepperZ.stall_sensitivity(Z_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Z2)
-        stepperZ2.homing_threshold(Z_STALL_SENSITIVITY);
+        stepperZ2.stall_sensitivity(Z_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Z3)
-        stepperZ3.homing_threshold(Z_STALL_SENSITIVITY);
+        stepperZ3.stall_sensitivity(Z_STALL_SENSITIVITY);
       #endif
     #endif
   #endif

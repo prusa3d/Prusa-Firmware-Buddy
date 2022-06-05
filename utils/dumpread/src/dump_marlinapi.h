@@ -61,8 +61,8 @@ typedef struct _marlin_vars_t {
     char *media_SFN_path;             // Short-File-Name path to currently selected file - a pointer to a global static buffer
     float display_nozzle;             // nozzle temperature to display [C]
     uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [s]
-    //    uint16_t fan0_rpm;                // fanctl0.getActualRPM() [1/min]
-    //    uint16_t fan1_rpm;                // fanctl1.getActualRPM() [1/min]
+    //    uint16_t fan0_rpm;                // fanCtlPrint.getActualRPM() [1/min]
+    //    uint16_t fan1_rpm;                // fanCtlHeatBreak.getActualRPM() [1/min]
 } marlin_vars_t;
 
 typedef struct _marlin_mesh_t {

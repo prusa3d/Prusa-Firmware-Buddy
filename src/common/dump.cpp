@@ -176,7 +176,7 @@ int dump_save_to_usb(const char *fn) {
     uint32_t addr;
     uint8_t buff[dump_buff_size];
     int bw;
-    int bw_total = 0;
+    uint32_t bw_total = 0;
     fd = fopen(fn, "w");
     if (fd != NULL) {
         //save dumped RAM and CCRAM from xflash

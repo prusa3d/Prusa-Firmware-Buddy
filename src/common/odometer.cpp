@@ -41,7 +41,7 @@ void Odometer_s::force_to_eeprom() {
 
 void Odometer_s::add_value(int axis, float value) {
     /// E axis counts filament used instead of filament moved
-    trip_xyze[axis] += (axis == int(axis_t::E)) ? value : ABS(value);
+    trip_xyze[axis] += (axis == int(axis_t::E)) ? value : std::abs(value);
 }
 
 float Odometer_s::get_from_eeprom(axis_t axis) {

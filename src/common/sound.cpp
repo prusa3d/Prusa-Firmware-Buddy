@@ -77,7 +77,7 @@ void Sound_Update1ms() {
  * Sound signals implementation
  * Simple sound implementation supporting few sound modes and having different sound types.
  * [Sound] is updated every 1ms with tim14 tick from [appmain.cpp] for measured durations of sound signals for non-blocking GUI.
- * Beeper is controled over [hwio_buddy_2209_02.c] functions for beeper.
+ * Beeper is controlled over [hwio_buddy_2209_02.c] functions for beeper.
  */
 Sound::Sound()
     : duration_active(0)

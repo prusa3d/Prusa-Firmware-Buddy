@@ -1177,8 +1177,6 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "You must define Z_CLEARANCE_BETWEEN_PROBES in your configuration."
   #elif Z_CLEARANCE_DEPLOY_PROBE < 0
     #error "Probes need Z_CLEARANCE_DEPLOY_PROBE >= 0."
-  #elif Z_CLEARANCE_BETWEEN_PROBES < 0
-    #error "Probes need Z_CLEARANCE_BETWEEN_PROBES >= 0."
   #elif Z_AFTER_PROBING < 0
     #error "Probes need Z_AFTER_PROBING >= 0."
   #endif
@@ -1239,10 +1237,8 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 
   #if IS_SCARA
     #error "AUTO_BED_LEVELING_UBL does not yet support SCARA printers."
-  #elif DISABLED(EEPROM_SETTINGS)
-    #error "AUTO_BED_LEVELING_UBL requires EEPROM_SETTINGS. Please update your configuration."
-  #elif !WITHIN(GRID_MAX_POINTS_X, 3, 15) || !WITHIN(GRID_MAX_POINTS_Y, 3, 15)
-    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 15."
+  #elif !WITHIN(GRID_MAX_POINTS_X, 3, 23) || !WITHIN(GRID_MAX_POINTS_Y, 3, 23)
+    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 23."
   #elif !defined(RESTORE_LEVELING_AFTER_G28)
     #error "AUTO_BED_LEVELING_UBL used to enable RESTORE_LEVELING_AFTER_G28. To keep this behavior enable RESTORE_LEVELING_AFTER_G28. Otherwise define it as 'false'."
   #endif
@@ -2147,6 +2143,12 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #endif
 #endif
 
+#if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
+  #if !defined(X_STALL_SENSITIVITY) && !defined(Y_STALL_SENSITIVITY) && !defined(Z_STALL_SENSITIVITY)
+    #error "Sensorless features (homing, probing) enabled but no sensitivity was set for specified drivers."
+  #endif
+#endif
+
 // Sensorless homing is required for both combined steppers in an H-bot
 #if CORE_IS_XY && X_SENSORLESS != Y_SENSORLESS
   #error "CoreXY requires both X and Y to use sensorless homing if either does."
@@ -2334,6 +2336,14 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
 
 #if ENABLED(POWER_LOSS_RECOVERY) && DISABLED(ULTIPANEL)
   #error "POWER_LOSS_RECOVERY currently requires an LCD Controller."
+#endif
+
+#if ALL(POWER_LOSS_RECOVERY, POWER_PANIC)
+  #error "POWER_LOSS_RECOVERY and POWER_PANIC are mutually exclusive."
+#endif
+
+#if ENABLED(POWER_PANIC) && DISABLED(CRASH_RECOVERY)
+  #error "POWER_PANIC requires CRASH_RECOVERY."
 #endif
 
 #if ENABLED(Z_STEPPER_AUTO_ALIGN)

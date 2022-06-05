@@ -104,6 +104,14 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
 #define  enable_Y() do{ Y_enable; Y2_enable; }while(0)
 #define disable_Y() do{ Y_disable; Y2_disable; CBI(axis_known_position, Y_AXIS); }while(0)
 
+#if ENABLED(XY_LINKED_ENABLE)
+  #define  enable_XY() enable_X()
+  #define disable_XY() disable_X()
+#else
+  #define  enable_XY() do{enable_X(); enable_Y(); }while(0)
+  #define disable_XY() do{disable_X(); disable_Y(); }while(0)
+#endif
+
 #if AXIS_DRIVER_TYPE_Z(L6470)
   extern L6470 stepperZ;
   #define Z_enable  NOOP
@@ -345,6 +353,8 @@ extern bool wait_for_heatup;
 #if HAS_AUTO_REPORTING || ENABLED(HOST_KEEPALIVE_FEATURE)
   extern bool suspend_auto_report;
 #endif
+
+extern uint16_t job_id;
 
 // Inactivity shutdown timer
 extern millis_t max_inactive_time, stepper_inactive_time;
