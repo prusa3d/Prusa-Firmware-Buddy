@@ -20,6 +20,8 @@
   SPDX-License-Identifier: GPL-3.0-or-later 
 */
 
+#define UART_FULL_THRESH_DEFAULT (60)
+
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -45,7 +47,7 @@
 int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 
-static const uint16_t FW_VERSION = 1;
+static const uint16_t FW_VERSION = 2;
 
 // intron
 // 0 as uint8_t
@@ -416,13 +418,13 @@ void app_main() {
     ESP_LOGI(TAG, "UART NIC");
 
 	esp_log_level_set("*", ESP_LOG_ERROR);
-	
+
     ESP_ERROR_CHECK(nvs_flash_init());
-	
+
     // Configure parameters of an UART driver,
     // communication pins and install the driver
     uart_config_t uart_config = {
-        .baud_rate = 1000000, //1500000, //921600,
+        .baud_rate = 4600000,
         .data_bits = UART_DATA_8_BITS,
         .parity    = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
@@ -456,9 +458,9 @@ void app_main() {
     wifi_init_sta();
 
     ESP_LOGI(TAG, "Creating RX thread");
-    xTaskCreate(&output_rx_thread, "output_rx_thread", 2048, NULL, 1 /*tskIDLE_PRIORITY*/, NULL);
+    xTaskCreate(&output_rx_thread, "output_rx_thread", 2048, NULL, tskIDLE_PRIORITY + 3, NULL);
     ESP_LOGI(TAG, "Creating WiFi-out thread");
-    xTaskCreate(&wifi_egress_thread, "wifi_egress_thread", 2048, NULL, 12 /*tskIDLE_PRIORITY*/, NULL);
+    xTaskCreate(&wifi_egress_thread, "wifi_egress_thread", 2048, NULL, tskIDLE_PRIORITY + 1, NULL);
     ESP_LOGI(TAG, "Creating TX thread");
-    xTaskCreate(&uart_tx_thread, "uart_tx_thread", 2048, NULL, 14 /*tskIDLE_PRIORITY*/, NULL);
+    xTaskCreate(&uart_tx_thread, "uart_tx_thread", 2048, NULL, tskIDLE_PRIORITY + 2, NULL);
 }
