@@ -15,6 +15,7 @@ static void DialogBlocking(ClientFSM fsm, const char *mode_format, RetAndCool_t 
     // wait until dialog opens
     while (!DialogHandler::Access().IsOpen(fsm)) {
         gui::TickLoop();
+        marlin_client_loop();
         DialogHandler::Access().Loop(); // fsm events .. to be able to change state
         // dont call gui_loop, we want to ignore knob for now
     }
@@ -44,6 +45,7 @@ static void DialogBlocking(ClientFSM fsm, std::optional<ClientFSM> skipIfOpen = 
     // wait until dialog opens
     while (!DialogHandler::Access().IsOpen(fsm) && !DialogHandler::Access().IsOpen(skip)) {
         gui::TickLoop();
+        marlin_client_loop();
         DialogHandler::Access().Loop(); // fsm events .. to be able to change state
         // dont call gui_loop, we want to ignore knob for now
     }
