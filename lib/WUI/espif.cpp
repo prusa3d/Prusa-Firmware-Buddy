@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <atomic>
 #include <cassert>
+#include <timing.h>
 
 #include <FreeRTOS.h>
 #include <task.h>
@@ -89,7 +90,7 @@ enum MessageType {
     MSG_INTRON = 5,
 };
 
-static const uint32_t SUPPORTED_FW_VERSION = 1;
+static const uint32_t SUPPORTED_FW_VERSION = 2;
 
 // NIC state
 static std::atomic<uint16_t> fw_version;
@@ -110,7 +111,7 @@ static std::atomic<uint32_t> delayed_down = NO_DELAYED_DOWN;
 static std::atomic<bool> seen_intron = false;
 
 // UART
-static const uint32_t NIC_UART_BAUDRATE = 1000000;
+static const uint32_t NIC_UART_BAUDRATE = 4600000;
 static const uint32_t FLASH_UART_BAUDRATE = 115200;
 static const uint32_t CHARACTER_TIMEOUT_MS = 10;
 static std::atomic<bool> esp_detected;
@@ -172,18 +173,32 @@ static bool is_running(ESPIFOperatingMode mode) {
  * \param[in]       len: Number of bytes to send
  * \return          Operation result, ERR_OK if succeeded
  */
-static err_t espif_transmit_data(const void *data, size_t len) {
+static err_t espif_transmit_data(const void *data, size_t len, bool pauses = false) {
     if (!is_running(esp_operating_mode)) {
         return ERR_USE;
     }
 
-    int ret = HAL_UART_Transmit(&huart6, (uint8_t *)data, len, len * CHARACTER_TIMEOUT_MS);
-    if (ret == HAL_OK) {
-        return ERR_OK;
-    } else {
-        log_error(ESPIF, "UART TX fail: %d", ret);
-        return ERR_TIMEOUT;
+    const size_t chunk = 128;
+
+    for (size_t i = 0; i * chunk < len; i++) {
+        // FIXME: Big transfers sometimes need pauses in them so the ESP side
+        // doesn't miss parts. These numbers (128 and 150) were discovered by a
+        // trial-error approach.
+        //
+        // For some reason, for the big packets one need to insert the pause at
+        // the _beginning_ of the transfer too!
+        if (pauses) {
+            delay_us(150);
+        }
+        size_t l = std::min(chunk, len - i * chunk);
+        int ret = HAL_UART_Transmit(&huart6, (uint8_t *)data + i * chunk, l, l * CHARACTER_TIMEOUT_MS);
+        if (ret == HAL_OK) {
+        } else {
+            log_error(ESPIF, "UART TX fail: %d", ret);
+            return ERR_TIMEOUT;
+        }
     }
+    return ERR_OK;
 }
 
 static err_t espif_reconfigure_uart(const uint32_t baudrate) {
@@ -502,7 +517,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
     espif_transmit_data(&msg_type, 1);
     espif_transmit_data(&len, sizeof(len));
     while (p != NULL) {
-        if (espif_transmit_data(p->payload, p->len) != ERR_OK) {
+        if (espif_transmit_data(p->payload, p->len, p->len > 128) != ERR_OK) {
             log_error(ESPIF, "Low level output packet failed");
             xSemaphoreGive(uart_write_mutex);
             return ERR_IF;
