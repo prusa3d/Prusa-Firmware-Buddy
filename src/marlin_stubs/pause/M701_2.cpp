@@ -166,7 +166,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         }
 
         PreheatData data(PreheatMode::Autoload, RetAndCool_t::Return);
-        auto preheat_ret = preheat(data);
+        auto preheat_ret = preheat_for_change_load(data);
 
         if (preheat_ret.first) {
             // canceled
