@@ -21,6 +21,19 @@ def methods():
                     unknown="MethodUnknown")
 
 
+def http_version():
+    """
+    The HTTP/?.? version.
+    """
+    http, slash = constant("HTTP/", nocase=True)
+    version = http.add_state("Version")
+    version.mark_enter()
+    slash.add_transition("Digit", LabelType.Special, version)
+    version.loop(".", LabelType.Char)
+    version.loop("Digit", LabelType.Special)
+    return http, version
+
+
 # TODO: Eventually, we may want to have a upfront-known list of URLs
 # so we don't need to accumulate in a buffer.
 def req_line():
@@ -31,12 +44,7 @@ def req_line():
     meth_spaces.loop("HorizWhitespace", LabelType.Special)
     url, url_spaces = read_until("HorizWhitespace", LabelType.Special, "Url")
     url_spaces.loop("HorizWhitespace", LabelType.Special)
-    http, slash = constant("HTTP/", nocase=True)
-    version = http.add_state("Version")
-    version.mark_enter()
-    slash.add_transition("Digit", LabelType.Special, version)
-    version.loop(".", LabelType.Char)
-    version.loop("Digit", LabelType.Special)
+    http, version = http_version()
     line, end = newline()
 
     req_line = method
@@ -50,13 +58,16 @@ def resp_line():
     """
     Response line.
     """
-    auto = Automaton()
-    start = auto.start()
-    start.set_name("StatusCode")
-    start.mark_enter()
-    start.loop("Digit", LabelType.Special)
+    auto, version = http_version()
+    version_space = auto.add_state()
+    version.add_transition("HorizWhitespace", LabelType.Special, version_space)
+    version_space.loop("HorizWhitespace", LabelType.Special)
+    status = auto.add_state("StatusCode")
+    status.mark_enter()
+    status.loop("Digit", LabelType.Special)
+    version_space.add_transition("Digit", LabelType.Special, status)
     rest = auto.add_state()
-    start.add_transition("HorizWhitespace", LabelType.Special, rest)
+    status.add_transition("HorizWhitespace", LabelType.Special, rest)
     line, end = newline()
     auto.join(rest, line)
     rest.loop_fallback()
