@@ -12,7 +12,11 @@
 #include "printers.h"
 #include "DialogMoveZ.hpp"
 
-using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_PRUSALINK, MI_NET_INTERFACE_t, MI_IP4_ADDR, MI_MAC_ADDR, MI_ETH_SETTINGS, MI_WIFI_SETTINGS>;
+using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_PRUSALINK,
+#ifdef BUDDY_ENABLE_CONNECT
+    MI_PRUSA_CONNECT,
+#endif
+    MI_NET_INTERFACE_t, MI_IP4_ADDR, MI_MAC_ADDR, MI_ETH_SETTINGS, MI_WIFI_SETTINGS>;
 
 class ScreenMenuNetwork : public Screen {
 public:
