@@ -900,6 +900,7 @@ if(GUI)
             src/gui/screen_menu_tune.cpp
             src/gui/screen_menu_fw_update.cpp
             src/gui/screen_menu_eeprom.cpp
+            src/gui/screen_menu_connect.cpp
             src/gui/screen_menu_network.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
