@@ -79,9 +79,9 @@ void filament_gcodes::preheat_to(filament_t filament) {
     }
 }
 
-std::pair<std::optional<PreheatStatus::Result>, filament_t> filament_gcodes::preheat_for_change_load() {
+std::pair<std::optional<PreheatStatus::Result>, filament_t> filament_gcodes::preheat_for_change_load(PreheatData data) {
 
-    Response response = preheatTempUnKnown(PreheatData(PreheatMode::Change_phase2, RetAndCool_t::Return));
+    Response response = preheatTempUnKnown(data);
 
     filament_t filament = Filaments::Find(response);
 
