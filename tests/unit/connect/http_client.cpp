@@ -99,11 +99,11 @@ constexpr const char *expected_req = "POST /index.html HTTP/1.1\r\n"
                                      "0000\r\n"
                                      "\r\n";
 
-constexpr const char *mock_resp = "204 No Content\r\n"
+constexpr const char *mock_resp = "HTTP/1.1 204 No Content\r\n"
                                   "Connection: close\r\n"
                                   "\r\n";
 
-constexpr const char *mock_resp_body = "200 OK\r\n"
+constexpr const char *mock_resp_body = "HTTP/1.1 200 OK\r\n"
                                        "Connection: close\r\n"
                                        "Content-Length: 11\r\n"
                                        "Content-Type: text/plain\r\n"
