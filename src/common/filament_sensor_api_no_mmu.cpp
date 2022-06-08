@@ -24,7 +24,7 @@ void FilamentSensors::evaluate_sensors() {
     std::unique_lock lock_printer(mutex_printer, std::defer_lock);
 
     // lock both unique_locks without deadlock
-    std::lock(lock_mmu, lock_printer);
+    buddy::lock(lock_mmu, lock_printer);
 
     has_mmu = false;
     state_of_mmu_sensor = fsensor_t::Disabled;
