@@ -188,9 +188,9 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t coun
             final_width += spacing;
         }
     }
-    /// add not used pixels due to rounding to the middle split width
+    /// add not used pixels due to rounding to the last split width
     if (final_width < Width()) {
-        splits[count / 2].width_ += Width() - final_width;
+        splits[count - 1].width_ += Width() - final_width;
     }
 }
 
