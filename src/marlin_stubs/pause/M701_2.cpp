@@ -53,7 +53,7 @@ void filament_gcodes::M701_no_parser(filament_t filament_to_be_loaded, const std
     Filaments::SetToBeLoaded(filament_to_be_loaded);
     if (op_preheat) {
         PreheatData data(!fast_load_length.has_value() || fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, *op_preheat);
-        auto preheat_ret = data.Mode() == PreheatMode::Load ? preheat_for_change_load() : preheat(data);
+        auto preheat_ret = data.Mode() == PreheatMode::Load ? preheat_for_change_load(data) : preheat(data);
         if (preheat_ret.first) {
             // canceled
             M70X_process_user_response(*preheat_ret.first);
@@ -208,7 +208,8 @@ void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
 
     // LOAD
     // cannot do normal preheat, since printer is already preheated from unload
-    auto preheat_ret = preheat_for_change_load();
+    PreheatData data(PreheatMode::Change_phase2, RetAndCool_t::Return);
+    auto preheat_ret = preheat_for_change_load(data);
     if (preheat_ret.first) {
         // canceled
         M70X_process_user_response(*preheat_ret.first);
