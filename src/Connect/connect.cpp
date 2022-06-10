@@ -16,10 +16,12 @@
 
 using http::Status;
 using std::get;
+using std::get_if;
 using std::holds_alternative;
 using std::nullopt;
 using std::optional;
 using std::variant;
+using std::visit;
 
 LOG_COMPONENT_DEF(connect, LOG_SEVERITY_DEBUG);
 
@@ -56,30 +58,61 @@ namespace {
     private:
         core_interface &core;
         const printer_info_t &info;
-        RequestType req_type;
+        Action &action;
         HeaderOut hdrs[3];
         bool done = false;
+        using RenderResult = variant<size_t, Error>;
+        const char *url(const Sleep &) const {
+            // Sleep already handled at upper level.
+            assert(0);
+            return "";
+        }
+        const char *url(const SendTelemetry &) const {
+            return "/p/telemetry";
+        }
+        const char *url(const Event &) const {
+            return "/p/events";
+        }
+
+        RenderResult write_body_chunk(SendTelemetry &telemetry, char *data, size_t size) {
+            if (telemetry.empty) {
+                assert(size > 2);
+                memcpy(data, "{}", 2);
+                return 2;
+            } else {
+                device_params_t params = core.get_data();
+                httpc_data renderer;
+                return renderer.telemetry(params, data, size);
+            }
+        }
+
+        RenderResult write_body_chunk(Event &event, char *data, size_t size) {
+            // TODO: There are different kinds of events out there...
+            httpc_data renderer;
+            return renderer.info(info, data, size, 0);
+        }
+
+        Error write_body_chunk(Sleep &, char *, size_t) {
+            // Handled at upper level.
+            assert(0);
+            return Error::INVALID_PARAMETER_ERROR;
+        }
 
     public:
-        BasicRequest(core_interface &core, const printer_info_t &info, const configuration_t &config, RequestType req_type)
+        BasicRequest(core_interface &core, const printer_info_t &info, const configuration_t &config, Action &action)
             : core(core)
             , info(info)
-            , req_type(req_type)
+            , action(action)
             , hdrs {
                 { "Fingerprint", info.fingerprint },
                 { "Token", config.token },
                 { nullptr, nullptr }
             } {}
         virtual const char *url() const override {
-            switch (req_type) {
-            case RequestType::Telemetry:
-                return "/p/telemetry";
-            case RequestType::SendInfo:
-                return "/p/events";
-            default:
-                assert(0);
-                return "";
-            }
+            return visit([&](auto &action) {
+                return this->url(action);
+            },
+                action);
         }
         virtual ContentType content_type() const override {
             return ContentType::ApplicationJson;
@@ -90,26 +123,15 @@ namespace {
         virtual const HeaderOut *extra_headers() const override {
             return hdrs;
         }
-        virtual variant<size_t, Error> write_body_chunk(char *data, size_t size) override {
+        virtual RenderResult write_body_chunk(char *data, size_t size) override {
             if (done) {
                 return 0U;
             } else {
                 done = true;
-                switch (req_type) {
-                case RequestType::Telemetry: {
-                    device_params_t params = core.get_data();
-                    httpc_data renderer;
-                    return renderer.telemetry(params, data, size);
-                }
-                case RequestType::SendInfo: {
-                    httpc_data renderer;
-                    return renderer.info(info, data, size, 0);
-                }
-                default: {
-                    assert(0);
-                    return Error::INVALID_PARAMETER_ERROR;
-                }
-                }
+                return visit([&](auto &action) -> RenderResult {
+                    return this->write_body_chunk(action, data, size);
+                },
+                    action);
             }
         }
     };
@@ -125,6 +147,16 @@ optional<Error> connect::communicate() {
     configuration_t config = core.get_connect_config();
 
     if (!config.enabled) {
+        planner.reset();
+        osDelay(10000);
+        return nullopt;
+    }
+
+    auto action = planner.next_action();
+
+    // Handle sleeping first. That one doesn't need the connection.
+    if (auto *s = get_if<Sleep>(&action)) {
+        osDelay(s->milliseconds);
         return nullopt;
     }
 
@@ -142,32 +174,36 @@ optional<Error> connect::communicate() {
     PreparedFactory conn_factory(config.host, config.port, connection);
     HttpClient http(conn_factory);
 
-    BasicRequest request(core, printer_info, config, next_request);
+    BasicRequest request(core, printer_info, config, action);
     const auto result = http.send(request);
 
     if (holds_alternative<Error>(result)) {
+        planner.action_done(ActionResult::Failed);
         conn_factory.invalidate();
-        next_request = RequestType::SendInfo;
         return get<Error>(result);
-    } else {
-        // TODO: Handle the response. Once we have some.
-        next_request = RequestType::Telemetry;
     }
 
     Response resp = get<Response>(result);
     switch (resp.status) {
     // The server has nothing to tell us
     case Status::NoContent:
+        planner.action_done(ActionResult::Ok);
         return nullopt;
     case Status::Ok: {
         const auto sub_resp = handle_server_resp(resp);
         if (sub_resp.has_value()) {
+            planner.action_done(ActionResult::Failed);
             conn_factory.invalidate();
+        } else {
+            planner.action_done(ActionResult::Ok);
         }
         return sub_resp;
     }
     default:
         conn_factory.invalidate();
+        // TODO: Figure out if the server somehow refused that instead
+        // of failed to process.
+        planner.action_done(ActionResult::Failed);
         return Error::UnexpectedResponse;
     }
 }
@@ -181,9 +217,6 @@ void connect::run() {
     while (true) {
         // TODO: Deal with the error somehow
         communicate();
-        // Connect server expects telemetry at least every 30 s (varies with design decisions).
-        // So the client has to communicate very frequently with the server!
-        osDelay(10000);
     }
 }
 

@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "httpc.hpp"
+#include "planner.hpp"
 #include "core_interface.hpp"
 
 namespace con {
@@ -14,7 +15,7 @@ enum class RequestType {
 class connect {
 
 private:
-    RequestType next_request = RequestType::SendInfo;
+    Planner planner;
     core_interface core; // interface to core functionalities (marlin, network, etc.)
     printer_info_t printer_info;
 
