@@ -4,6 +4,8 @@
 #include "dump.h"
 #include <stdio.h>
 #include "w25x.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 static constexpr uint32_t dump_offset = w25x_dump_start_address;
 static constexpr uint16_t dump_buff_size = 0x100;
@@ -20,7 +22,8 @@ static inline void dump_regs_SCB(void) {
 }
 
 void dump_to_xflash(void) {
-    if (!w25x_init(false)) {
+    vTaskEndScheduler();
+    if (!w25x_init()) {
         return;
     }
 
