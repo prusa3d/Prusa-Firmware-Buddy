@@ -530,6 +530,7 @@ if(CONNECT)
               src/Connect/tls/net_sockets.c
               src/Connect/tls/tls.cpp
               src/Connect/tls/hardware_rng.c
+              src/Connect/planner.cpp
               src/Connect/resp_parser.cpp
               ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
       )

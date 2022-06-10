@@ -1,11 +1,8 @@
 add_executable(
   connect_tests
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
-  ${CMAKE_SOURCE_DIR}/src/Connect/httpc.cpp
-  ${CMAKE_SOURCE_DIR}/src/Connect/resp_parser.cpp
-  http_client.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp ${CMAKE_SOURCE_DIR}/src/Connect/httpc.cpp
+  ${CMAKE_SOURCE_DIR}/src/Connect/resp_parser.cpp http_client.cpp missing_functions.cpp
   )
 target_include_directories(
   connect_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/Connect
@@ -29,4 +26,15 @@ add_custom_target(
   )
 add_dependencies(nhttp_tests generate-httpc-automata-tests)
 
+# Planner tests are separate. They mock time and don't want to poison that for others.
+add_executable(
+  connect_planner_tests ${CMAKE_SOURCE_DIR}/src/Connect/planner.cpp time_mock.cpp planner.cpp
+  )
+target_include_directories(
+  connect_planner_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/Connect
+                                ${CMAKE_SOURCE_DIR}/src/common
+  )
+add_definitions(-DUNITTESTS)
+
 add_catch_test(connect_tests)
+add_catch_test(connect_planner_tests)
