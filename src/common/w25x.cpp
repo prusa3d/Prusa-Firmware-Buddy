@@ -5,6 +5,8 @@
 #include "main.h"
 #include "FreeRTOS.h"
 #include "w25x_communication.h"
+#include "cmsis_os.h"
+#include "task.h"
 
 LOG_COMPONENT_DEF(W25X, LOG_SEVERITY_DEBUG);
 
@@ -52,7 +54,9 @@ static void w25x_wait_busy(void);
 
 static uint8_t device_id;
 
-bool w25x_init(bool init_dma) {
+bool w25x_init() {
+
+    const bool init_dma = xTaskGetSchedulerState() == taskSCHEDULER_RUNNING;
 
     if (!w25x_communication_init(init_dma))
         return false;

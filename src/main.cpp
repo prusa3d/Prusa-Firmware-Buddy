@@ -101,7 +101,7 @@ extern "C" void main_cpp(void) {
 
     // initialize SPI flash
     w25x_spi_assign(&SPI_HANDLE_FOR(flash));
-    if (!w25x_init(true))
+    if (!w25x_init())
         bsod("failed to initialize ext flash");
 
     MX_USB_HOST_Init();

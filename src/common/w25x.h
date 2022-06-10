@@ -35,12 +35,22 @@ inline constexpr uint32_t w25x_fs_start_address = W25X_FS_START_ADDRESS;
 /// This has to be called after the underlying SPI has been initialized
 /// and assigned using w25x_spi_assign.
 ///
-/// @param init_dma Dynamically allocate resources for DMA transfers
-///        DMA and RTOS facilities are not used if false,
-///        it has no effect if it was already allocated by previous call
+/// When w25x is initialized when the scheduler is running all its
+/// interface function must be called in task context only. (standard usage)
+///
+/// When w25x is initialized when the scheduler is NOT running all its
+/// interface function can be called in any context but are not reentrant.
+///
+/// w25x_init can be called repeatedly in different contexts
+/// to switch between those two modes.
+/// If w25x is reinitialized during DMA transfer it is aborted. If some
+/// data is already transfered to the chip at that point those data are
+/// written gracefully. If erase operation is ongoing it is completed
+/// during reinitialization.
+///
 /// @retval true on success
 /// @retval false otherwise.
-extern bool w25x_init(bool init_dma);
+extern bool w25x_init(void);
 
 /// Return the number of available sectors
 extern uint32_t w25x_get_sector_count();
