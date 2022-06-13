@@ -298,7 +298,7 @@ void window_menu_t::draw() {
 
     if (flags.invalid_background) {
         /// fill the rest of the window by background
-        const int menu_h = visible_count * item_height;
+        const int menu_h = visible_count * (item_height + GuiDefaults::MenuItemDelimeterHeight);
         Rect16 rc_win = GetRect();
         rc_win -= Rect16::Height_t(menu_h);
         if (rc_win.Height() <= 0)
