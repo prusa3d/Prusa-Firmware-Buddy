@@ -92,6 +92,7 @@ DialogFactory::Ctors DialogFactory::GetAll() {
     ret[size_t(ClientFSM::SelftestAxis)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(makePtr<DialogSelftestAxis>()); };
     ret[size_t(ClientFSM::SelftestFans)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(makePtr<DialogSelftestFans>()); };
     ret[size_t(ClientFSM::SelftestHeat)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(makePtr<DialogSelftestTemp>()); };
+    ret[size_t(ClientFSM::CrashRecovery)] = screen_not_dialog;
 
     if (std::find(std::begin(ret), std::end(ret), nullptr) != std::end(ret))
         bsod("Error missing dialog Ctor"); // GUI init will throw this
