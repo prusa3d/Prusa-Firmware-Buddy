@@ -146,17 +146,17 @@ enum eevar_id {
 
     EEVAR_USB_MSC_ENABLED = 0x51, // bool, on/off
 
-    EEVAR_JOB_ID,            // uint16_t print job id incremented at every print start
-    EEVAR_CRASH_ENABLED,     // bool crash detection enabled
-    EEVAR_CRASH_SENS_X,      // X axis crash sensitivity
-    EEVAR_CRASH_SENS_Y,      // Y axis crash sensitivity
-    EEVAR_CRASH_PERIOD_X,    // X axis crash period (speed) threshold
-    EEVAR_CRASH_PERIOD_Y,    // Y axis crash period (speed) threshold
-    EEVAR_CRASH_FILTER,      // bool Stallguard filtration (on/off)
-    EEVAR_CRASH_COUNT_X_TOT, // number of crashes of X axis in total
-    EEVAR_CRASH_COUNT_Y_TOT, // number of crashes of Y axis in total
-    EEVAR_POWER_COUNT_TOT,   // number of power losses in total
-    EEVAR_CRC32              // uint32_t crc32 for
+    EEVAR_JOB_ID = 0x52,            // uint16_t print job id incremented at every print start
+    EEVAR_CRASH_ENABLED = 0x53,     // bool crash detection enabled
+    EEVAR_CRASH_SENS_X = 0x54,      // X axis crash sensitivity
+    EEVAR_CRASH_SENS_Y = 0x55,      // Y axis crash sensitivity
+    EEVAR_CRASH_PERIOD_X = 0x56,    // X axis crash period (speed) threshold
+    EEVAR_CRASH_PERIOD_Y = 0x57,    // Y axis crash period (speed) threshold
+    EEVAR_CRASH_FILTER = 0x58,      // bool Stallguard filtration (on/off)
+    EEVAR_CRASH_COUNT_X_TOT = 0x59, // number of crashes of X axis in total
+    EEVAR_CRASH_COUNT_Y_TOT = 0x5a, // number of crashes of Y axis in total
+    EEVAR_POWER_COUNT_TOT = 0x5b,   // number of power losses in total
+    EEVAR_CRC32 = 0x5c,             // uint32_t crc32 for
 };
 
 enum {
