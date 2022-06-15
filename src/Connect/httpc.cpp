@@ -261,6 +261,7 @@ variant<Response, Error> HttpClient::parse_response(Connection *conn) {
             response.content_length_rest = parser.content_length.value_or(0);
             response.leftover_size = rest;
             response.content_type = parser.content_type;
+            response.command_id = parser.command_id;
             return std::move(response);
         }
     }

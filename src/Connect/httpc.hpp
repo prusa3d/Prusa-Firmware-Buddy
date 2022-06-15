@@ -39,6 +39,8 @@ private:
 public:
     Response(Connection *conn, uint16_t status);
     http::Status status;
+    http::ContentType content_type = http::ContentType::ApplicationOctetStream;
+    std::optional<uint32_t> command_id;
     size_t content_length() const {
         return content_length_rest;
     }
@@ -47,7 +49,6 @@ public:
     // Either returns the number of bytes available or returns an error.
     // Returns 0 if no more data available.
     std::variant<size_t, Error> read_body(uint8_t *buffer, size_t buffer_size);
-    http::ContentType content_type = http::ContentType::ApplicationOctetStream;
 };
 
 class ConnectionFactory {
