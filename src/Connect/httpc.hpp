@@ -8,11 +8,6 @@
 
 namespace con {
 
-// TODO: Bring in...
-enum class ContentType {
-    ApplicationJson
-};
-
 enum class Method {
     Post
 };
@@ -26,7 +21,7 @@ class Request {
 public:
     virtual ~Request() = default;
     virtual const char *url() const = 0;
-    virtual ContentType content_type() const = 0;
+    virtual http::ContentType content_type() const = 0;
     virtual Method method() const = 0;
     virtual const HeaderOut *extra_headers() const;
     virtual std::variant<size_t, Error> write_body_chunk(char *data, size_t size);
@@ -52,6 +47,7 @@ public:
     // Either returns the number of bytes available or returns an error.
     // Returns 0 if no more data available.
     std::variant<size_t, Error> read_body(uint8_t *buffer, size_t buffer_size);
+    http::ContentType content_type = http::ContentType::ApplicationOctetStream;
 };
 
 class ConnectionFactory {

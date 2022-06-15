@@ -115,3 +115,4 @@ if(HAS_SELFTEST)
 endif()
 
 add_subdirectory(automata)
+add_subdirectory(http)

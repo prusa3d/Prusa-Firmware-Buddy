@@ -1,8 +1,12 @@
 add_executable(
   connect_tests
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp ${CMAKE_SOURCE_DIR}/src/Connect/httpc.cpp
-  ${CMAKE_SOURCE_DIR}/src/Connect/resp_parser.cpp http_client.cpp missing_functions.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/types.cpp
+  ${CMAKE_SOURCE_DIR}/src/Connect/httpc.cpp
+  ${CMAKE_SOURCE_DIR}/src/Connect/resp_parser.cpp
+  http_client.cpp
+  missing_functions.cpp
   )
 target_include_directories(
   connect_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/Connect

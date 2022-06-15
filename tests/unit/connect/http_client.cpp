@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 
+using http::ContentType;
 using http::Status;
 using std::get;
 using std::holds_alternative;
@@ -106,11 +107,11 @@ constexpr const char *mock_resp = "HTTP/1.1 204 No Content\r\n"
 constexpr const char *mock_resp_body = "HTTP/1.1 200 OK\r\n"
                                        "Connection: close\r\n"
                                        "Content-Length: 11\r\n"
-                                       "Content-Type: text/plain\r\n"
+                                       "Content-Type: application/json\r\n"
                                        "\r\n"
                                        "Hello world";
 
-void test_resp_req(const char *server_resp, Status status, const char *body) {
+void test_resp_req(const char *server_resp, Status status, ContentType content_type, const char *body) {
     DummyConnection conn;
     conn.received = server_resp;
     Factory factory(&conn);
@@ -139,14 +140,17 @@ void test_resp_req(const char *server_resp, Status status, const char *body) {
     REQUIRE(string_view(reinterpret_cast<char *>(b), exp_len) == body);
 
     REQUIRE(r.content_length() == 0);
+
+    REQUIRE(r.content_type == content_type);
 }
 
 }
 
 TEST_CASE("Request - response no content") {
-    test_resp_req(mock_resp, Status::NoContent, "");
+    // Note: content type is on its default octet-stream = "No idea, bunch of bytes I guess"
+    test_resp_req(mock_resp, Status::NoContent, ContentType::ApplicationOctetStream, "");
 }
 
 TEST_CASE("Request - response with body") {
-    test_resp_req(mock_resp_body, Status::Ok, "Hello world");
+    test_resp_req(mock_resp_body, Status::Ok, ContentType::ApplicationJson, "Hello world");
 }
