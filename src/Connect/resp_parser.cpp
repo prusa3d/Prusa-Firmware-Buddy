@@ -46,6 +46,12 @@ ExecutionControl ResponseParser::event(Event event) {
     case Names::TextGcodeDash:
         content_type = ContentType::TextGcode;
         return ExecutionControl::Continue;
+    case Names::CommandId:
+        if (!command_id.has_value()) {
+            command_id = 0;
+        }
+        *command_id = 10 * *command_id + (event.payload - '0');
+        return ExecutionControl::Continue;
     }
 
     return ExecutionControl::Continue;
