@@ -18,6 +18,7 @@ enum class ContentType {
     TextPlain,
     TextHtml,
     TextCss,
+    TextGcode,
     ImageIco,
     ImagePng,
     ImageSvg,
@@ -25,6 +26,8 @@ enum class ContentType {
     ApplicationJson,
     ApplicationOctetStream,
 };
+
+const char *to_str(ContentType content_type);
 
 enum class ConnectionHandling {
     Close,

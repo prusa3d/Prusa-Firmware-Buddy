@@ -13,6 +13,7 @@
 using automata::ExecutionControl;
 using con::parser::ResponseParser;
 using http::ConnectionHandling;
+using http::ContentType;
 using std::get;
 using std::get_if;
 using std::holds_alternative;
@@ -28,11 +29,6 @@ namespace {
     const char *to_str(Method method) {
         // TODO: Implement other methods
         return "POST";
-    }
-
-    const char *to_str(ContentType content_type) {
-        // TODO: Implement other content types
-        return "application/json";
     }
 
     bool has_out_body(Method method) {
@@ -264,6 +260,7 @@ variant<Response, Error> HttpClient::parse_response(Connection *conn) {
             // TODO: Do we want to somehow handle missing content length? For now, this is good enough.
             response.content_length_rest = parser.content_length.value_or(0);
             response.leftover_size = rest;
+            response.content_type = parser.content_type;
             return std::move(response);
         }
     }

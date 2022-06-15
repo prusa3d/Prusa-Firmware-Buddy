@@ -8,6 +8,7 @@
 using automata::Event;
 using automata::ExecutionControl;
 using con::parser::response::Names;
+using http::ContentType;
 
 namespace {
 
@@ -35,6 +36,15 @@ ExecutionControl ResponseParser::event(Event event) {
             content_length = 0;
         }
         *content_length = 10 * *content_length + (event.payload - '0');
+        return ExecutionControl::Continue;
+    case Names::ApplicationJson:
+        content_type = ContentType::ApplicationJson;
+        return ExecutionControl::Continue;
+    case Names::TextGcodeDot:
+        content_type = ContentType::TextGcode;
+        return ExecutionControl::Continue;
+    case Names::TextGcodeDash:
+        content_type = ContentType::TextGcode;
         return ExecutionControl::Continue;
     }
 

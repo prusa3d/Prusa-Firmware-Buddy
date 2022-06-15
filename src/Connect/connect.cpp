@@ -14,6 +14,7 @@
 
 #include <log.h>
 
+using http::ContentType;
 using http::Status;
 using std::get;
 using std::get_if;

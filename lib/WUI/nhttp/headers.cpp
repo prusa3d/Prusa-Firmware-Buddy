@@ -49,31 +49,6 @@ namespace {
 
     constexpr const size_t content_buffer_len = 128;
 
-    const char *content_type_string(ContentType content_type) {
-        switch (content_type) {
-        case ContentType::TextPlain:
-            return "text/plain";
-        case ContentType::TextHtml:
-            return "text/html; charset=utf-8";
-        case ContentType::TextCss:
-            return "text/css";
-        case ContentType::ImageIco:
-            return "image/vnd.microsoft.icon";
-        case ContentType::ImagePng:
-            return "image/png";
-        case ContentType::ImageSvg:
-            return "image/svg+xml";
-        case ContentType::ApplicationJavascript:
-            return "application/javascript";
-        case ContentType::ApplicationJson:
-            return "application/json";
-        case ContentType::ApplicationOctetStream:
-            return "application/octet-stream";
-        default:
-            assert(0);
-            return "application/octet-stream";
-        }
-    }
 }
 
 const StatusText &StatusText::find(Status status) {
@@ -99,7 +74,7 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
         "Connection: %s\r\n",
         static_cast<unsigned>(status),
         text.text,
-        content_type_string(content_type),
+        to_str(content_type),
         handling == ConnectionHandling::Close ? "close" : "keep-alive");
     // snprintf likes to return how much it _would_ print were there enough space.
     pos = std::min(buffer_len, pos);

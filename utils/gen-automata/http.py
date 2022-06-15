@@ -34,6 +34,33 @@ def http_version():
     return http, version
 
 
+def content_type():
+    """
+    Content type decoder.
+    """
+    content_types = {
+        'application/json': 'ApplicationJson',
+        'text/x.gcode': 'TextGcodeDot',
+        'text/x-gcode': 'TextGcodeDash',
+    }
+    tr, terminals, add_unknowns = trie(content_types)
+    for t in terminals:
+        terminals[t].mark_enter()
+        terminals[t].set_name(content_types[t])
+    # Eat spaces before the content type
+    start = tr.start()
+    start.loop('HorizWhitespace', LabelType.Special)
+
+    # Now handle all the rest by a header-parsing automaton that doesn't emit
+    # any events.
+    other, other_end, _ = read_header_value(None)
+    fallback = other.start()
+    tr.join_transition(start, other, fallthrough=True)
+    for unknown in add_unknowns:
+        unknown.add_fallback(fallback, fallthrough=True)
+    return tr, other_end, True
+
+
 # TODO: Eventually, we may want to have a upfront-known list of URLs
 # so we don't need to accumulate in a buffer.
 def req_line():
