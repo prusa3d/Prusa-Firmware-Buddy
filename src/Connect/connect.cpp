@@ -16,9 +16,13 @@
 
 using http::ContentType;
 using http::Status;
+using std::decay_t;
 using std::get;
 using std::get_if;
 using std::holds_alternative;
+using std::is_same_v;
+using std::min;
+using std::monostate;
 using std::nullopt;
 using std::optional;
 using std::variant;
@@ -88,9 +92,26 @@ namespace {
         }
 
         RenderResult write_body_chunk(Event &event, char *data, size_t size) {
-            // TODO: There are different kinds of events out there...
-            httpc_data renderer;
-            return renderer.info(info, data, size, 0);
+            // TODO: Incremental rendering support, if it doesn't fit into the buffer. Not yet supported.
+            switch (event.type) {
+            case EventType::Info: {
+                httpc_data renderer;
+                return renderer.info(info, data, size, 0);
+            }
+            case EventType::Accepted:
+            case EventType::Rejected: {
+                // These events are always results of some commant we've received.
+                // Checked when accepting the command.
+                assert(event.command_id.has_value());
+                size_t written = snprintf(data, size, "{\"event\":\"%s\",\"command_id\":%" PRIu32 "}", to_str(event.type), *event.command_id);
+
+                // snprintf returns how much it would _want_ to write
+                return min(size - 1 /* Taken up by the final \0 */, written);
+            }
+            default:
+                assert(0);
+                return 0;
+            }
         }
 
         Error write_body_chunk(Sleep &, char *, size_t) {
@@ -136,12 +157,15 @@ namespace {
             }
         }
     };
-
 }
 
-optional<Error> connect::handle_server_resp(Response resp) {
-    // TODO: Not implemented
-    return nullopt;
+connect::ServerResp connect::handle_server_resp(Response resp) {
+    // TODO: Reading / parsing / sorting the command.
+    return Command {
+        // Note: missing command ID is already checked at upper level.
+        resp.command_id.value(),
+        CommandType::Unknown,
+    };
 }
 
 optional<Error> connect::communicate() {
@@ -191,14 +215,33 @@ optional<Error> connect::communicate() {
         planner.action_done(ActionResult::Ok);
         return nullopt;
     case Status::Ok: {
-        const auto sub_resp = handle_server_resp(resp);
-        if (sub_resp.has_value()) {
-            planner.action_done(ActionResult::Failed);
-            conn_factory.invalidate();
+        if (resp.command_id.has_value()) {
+            const auto sub_resp = handle_server_resp(resp);
+            return visit([&](auto &&arg) -> optional<Error> {
+                // Trick out of std::visit documentation. Switch by the type of arg.
+                using T = decay_t<decltype(arg)>;
+
+                if constexpr (is_same_v<T, monostate>) {
+                    planner.action_done(ActionResult::Ok);
+                    return nullopt;
+                } else if constexpr (is_same_v<T, Command>) {
+                    planner.action_done(ActionResult::Ok);
+                    planner.command(arg);
+                    return nullopt;
+                } else if constexpr (is_same_v<T, Error>) {
+                    planner.action_done(ActionResult::Failed);
+                    conn_factory.invalidate();
+                    return arg;
+                }
+            },
+                sub_resp);
         } else {
-            planner.action_done(ActionResult::Ok);
+            // We have received a command without command ID
+            // There's no better action for us than just throw it away.
+            planner.action_done(ActionResult::Refused);
+            conn_factory.invalidate();
+            return Error::UnexpectedResponse;
         }
-        return sub_resp;
     }
     default:
         conn_factory.invalidate();

@@ -10,8 +10,16 @@ namespace con {
 // Unfortunately, not checked at compile time.
 using Timestamp = uint32_t;
 using Duration = uint32_t;
+using CommandId = uint32_t;
 
-struct Command {};
+enum class CommandType {
+    Unknown,
+};
+
+struct Command {
+    CommandId id;
+    CommandType type;
+};
 
 struct Sleep {
     Duration milliseconds;
@@ -21,7 +29,17 @@ struct SendTelemetry {
     bool empty;
 };
 
+enum class EventType {
+    Info,
+    Rejected,
+    Accepted,
+};
+
+const char *to_str(EventType event);
+
 struct Event {
+    EventType type;
+    std::optional<CommandId> command_id;
 };
 
 using Action = std::variant<
