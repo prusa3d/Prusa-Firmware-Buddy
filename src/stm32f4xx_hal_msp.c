@@ -1,22 +1,6 @@
 #include "main.h"
-
-extern DMA_HandleTypeDef hdma_spi2_tx;
-
-extern DMA_HandleTypeDef hdma_spi2_rx;
-
-extern DMA_HandleTypeDef hdma_spi3_tx;
-
-extern DMA_HandleTypeDef hdma_spi3_rx;
-
-extern DMA_HandleTypeDef hdma_usart1_rx;
-
-extern DMA_HandleTypeDef hdma_usart2_rx;
-
-extern DMA_HandleTypeDef hdma_usart6_rx;
-
-extern DMA_HandleTypeDef hdma_adc1;
-
-extern RNG_HandleTypeDef hrng;
+#include "FreeRTOSConfig.h"
+#include "peripherals.h"
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
