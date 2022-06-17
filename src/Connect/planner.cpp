@@ -52,12 +52,27 @@ namespace {
             return nullopt;
         }
     }
+}
 
+const char *to_str(EventType event) {
+    switch (event) {
+    case EventType::Info:
+        return "INFO";
+    case EventType::Accepted:
+        return "ACCEPTED";
+    case EventType::Rejected:
+        return "REJECTED";
+    default:
+        assert(false);
+        return "???";
+    }
 }
 
 void Planner::reset() {
     // TODO: Specific Info event
-    planned_event = Event {};
+    planned_event = Event {
+        EventType::Info,
+    };
     last_telemetry = nullopt;
     cooldown = nullopt;
     perform_cooldown = false;
@@ -114,8 +129,9 @@ void Planner::action_done(ActionResult result) {
             // a galaxy far far away), so next time we manage to do so,
             // initialize the communication with the Info event again.
 
-            // TODO: Specific Info event
-            planned_event = Event {};
+            planned_event = Event {
+                EventType::Info,
+            };
             last_success = nullopt;
         }
 
@@ -123,6 +139,20 @@ void Planner::action_done(ActionResult result) {
         cooldown = min(COOLDOWN_MAX, cooldown.value_or(COOLDOWN_BASE / 2) * 2);
         perform_cooldown = true;
         break;
+    }
+}
+
+void Planner::command(Command command) {
+    // We can get commands only as result of telemetry, not of other things.
+    // TODO: We probably want to have some more graceful way to deal with the
+    // server sending us the command as a result to something else anyway.
+    assert(!planned_event.has_value());
+    switch (command.type) {
+    case CommandType::Unknown:
+        planned_event = Event {
+            EventType::Rejected,
+            command.id,
+        };
     }
 }
 
