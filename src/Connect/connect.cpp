@@ -1,18 +1,18 @@
 #include "connect.hpp"
 #include "httpc.hpp"
 #include "httpc_data.hpp"
+#include "os_porting.hpp"
 #include "tls/tls.hpp"
+#include "socket.hpp"
+
+#include <cmsis_os.h>
+#include <log.h>
 
 #include <cassert>
 #include <debug.h>
-#include <os_porting.hpp>
 #include <cstring>
 #include <optional>
 #include <variant>
-#include <socket.hpp>
-#include <cmsis_os.h>
-
-#include <log.h>
 
 using http::ContentType;
 using http::Status;
@@ -25,6 +25,7 @@ using std::min;
 using std::monostate;
 using std::nullopt;
 using std::optional;
+using std::string_view;
 using std::variant;
 using std::visit;
 
@@ -96,7 +97,7 @@ namespace {
             switch (event.type) {
             case EventType::Info: {
                 httpc_data renderer;
-                return renderer.info(info, data, size, 0);
+                return renderer.info(info, data, size, event.command_id.value_or(0));
             }
             case EventType::Accepted:
             case EventType::Rejected: {
@@ -157,15 +158,53 @@ namespace {
             }
         }
     };
+
+    // TODO: We probably want to be able to both have a smaller buffer and
+    // handle larger responses. We need some kind of parse-as-it-comes approach
+    // for that.
+    const constexpr size_t MAX_RESP_SIZE = 256;
 }
 
 connect::ServerResp connect::handle_server_resp(Response resp) {
-    // TODO: Reading / parsing / sorting the command.
-    return Command {
-        // Note: missing command ID is already checked at upper level.
-        resp.command_id.value(),
-        CommandType::Unknown,
-    };
+    if (resp.content_length() > MAX_RESP_SIZE) {
+        return Error::ResponseTooLong;
+    }
+
+    // Note: missing command ID is already checked at upper level.
+    CommandId command_id = resp.command_id.value();
+    // XXX Use allocated string? Figure out a way to consume it in parts?
+    uint8_t recv_buffer[MAX_RESP_SIZE];
+    size_t pos = 0;
+
+    while (resp.content_length() > 0) {
+        const auto result = resp.read_body(recv_buffer + pos, resp.content_length());
+        if (holds_alternative<size_t>(result)) {
+            pos += get<size_t>(result);
+        } else {
+            return get<Error>(result);
+        }
+    }
+
+    const string_view body(reinterpret_cast<const char *>(recv_buffer), pos);
+
+    // Note: Anything of these can result in an "Error"-style command (Unknown,
+    // Broken...). Nevertheless, we return a Command, which'll consider the
+    // whole request-response pair a successful one. That's OK, because on the
+    // lower-level it is - we consumed all the data and are allowed to reuse
+    // the connection and all that.
+    switch (resp.content_type) {
+    case ContentType::TextGcode:
+        return Command::gcode_command(command_id, body);
+    case ContentType::ApplicationJson:
+        return Command::parse_json_command(command_id, body);
+    default:;
+        // If it's unknown content type, then it's unknown command because we
+        // have no idea what to do about it / how to even parse it.
+        return Command {
+            command_id,
+            CommandType::Unknown,
+        };
+    }
 }
 
 optional<Error> connect::communicate() {
@@ -230,6 +269,10 @@ optional<Error> connect::communicate() {
                     return nullopt;
                 } else if constexpr (is_same_v<T, Error>) {
                     planner.action_done(ActionResult::Failed);
+                    planner.command(Command {
+                        resp.command_id.value(),
+                        CommandType::Broken,
+                    });
                     conn_factory.invalidate();
                     return arg;
                 }

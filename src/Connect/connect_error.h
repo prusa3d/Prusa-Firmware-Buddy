@@ -7,6 +7,7 @@ enum class Error {
     Parse,
     UnexpectedResponse,
     SetSockOpt,
+    ResponseTooLong,
     ERROR,
     CONNECTION_ERROR,
     WRITE_ERROR,

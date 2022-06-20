@@ -1,5 +1,7 @@
 #pragma once
 
+#include "command.hpp"
+
 #include <cstdint>
 #include <optional>
 #include <variant>
@@ -10,16 +12,6 @@ namespace con {
 // Unfortunately, not checked at compile time.
 using Timestamp = uint32_t;
 using Duration = uint32_t;
-using CommandId = uint32_t;
-
-enum class CommandType {
-    Unknown,
-};
-
-struct Command {
-    CommandId id;
-    CommandType type;
-};
 
 struct Sleep {
     Duration milliseconds;

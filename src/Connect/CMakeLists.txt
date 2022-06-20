@@ -1,6 +1,7 @@
 target_sources(
   firmware
   PRIVATE connect.cpp
+          command.cpp
           core_interface.cpp
           httpc.cpp
           httpc_data.cpp
