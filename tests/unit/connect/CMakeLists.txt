@@ -5,12 +5,15 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/types.cpp
   ${CMAKE_SOURCE_DIR}/src/Connect/httpc.cpp
   ${CMAKE_SOURCE_DIR}/src/Connect/resp_parser.cpp
+  ${CMAKE_SOURCE_DIR}/src/Connect/command.cpp
+  command.cpp
   http_client.cpp
   missing_functions.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   )
 target_include_directories(
   connect_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/Connect
-                        ${CMAKE_SOURCE_DIR}/src/common
+                        ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/lib/jsmn
   )
 add_definitions(-DUNITTESTS)
 

@@ -98,4 +98,54 @@ TEST_CASE("Reinit after several failures") {
     planner.action_done(ActionResult::Ok);
 }
 
+TEST_CASE("Unknown / broken command refused") {
+    Planner planner;
+
+    event_info(planner);
+    planner.action_done(ActionResult::Ok);
+
+    // Commands come as replies to telemetries
+    Action action = planner.next_action();
+    REQUIRE(holds_alternative<SendTelemetry>(action));
+    planner.action_done(ActionResult::Ok);
+
+    SECTION("Unknown") {
+        planner.command(Command {
+            1,
+            CommandType::Unknown,
+        });
+    }
+
+    SECTION("Broken") {
+        planner.command(Command {
+            1,
+            CommandType::Broken,
+        });
+    }
+
+    event_type(planner, EventType::Rejected);
+    planner.action_done(ActionResult::Ok);
+    REQUIRE(holds_alternative<SendTelemetry>(action));
+    planner.action_done(ActionResult::Ok);
+}
+
+TEST_CASE("Send info request") {
+    Planner planner;
+
+    event_info(planner);
+    planner.action_done(ActionResult::Ok);
+
+    // Commands come as replies to telemetries
+    Action action = planner.next_action();
+    REQUIRE(holds_alternative<SendTelemetry>(action));
+    planner.action_done(ActionResult::Ok);
+
+    planner.command(Command {
+        1,
+        CommandType::SendInfo,
+    });
+
+    event_info(planner);
+}
+
 // TODO: Tests for unknown commands and such

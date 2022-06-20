@@ -6,7 +6,6 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.c
   # Some handlers are stubbed out.
   ${CMAKE_CURRENT_SOURCE_DIR}/server_tests.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/jsmn_impl.c
   ${CMAKE_CURRENT_SOURCE_DIR}/job_command_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/file_command_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/segmented_json_rendering.cpp
@@ -68,6 +67,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/netif/ethernet.c
   ${CMAKE_SOURCE_DIR}/src/lwip.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
+  ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
 target_include_directories(

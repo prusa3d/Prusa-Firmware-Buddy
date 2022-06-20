@@ -149,10 +149,25 @@ void Planner::command(Command command) {
     assert(!planned_event.has_value());
     switch (command.type) {
     case CommandType::Unknown:
+    case CommandType::Broken:
         planned_event = Event {
             EventType::Rejected,
             command.id,
         };
+        break;
+    case CommandType::Gcode:
+        // TODO: Implement
+        planned_event = Event {
+            EventType::Rejected,
+            command.id,
+        };
+        break;
+    case CommandType::SendInfo:
+        planned_event = Event {
+            EventType::Info,
+            command.id,
+        };
+        break;
     }
 }
 
