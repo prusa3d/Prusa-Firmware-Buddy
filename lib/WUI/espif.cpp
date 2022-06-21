@@ -115,6 +115,9 @@ static const uint32_t NIC_UART_BAUDRATE = 4600000;
 static const uint32_t FLASH_UART_BAUDRATE = 115200;
 static const uint32_t CHARACTER_TIMEOUT_MS = 10;
 static std::atomic<bool> esp_detected;
+// Have we seen the ESP alive at least once?
+// (so we never ever report it as not there or no firmware or whatever).
+static std::atomic<bool> esp_was_ok = false;
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
 SemaphoreHandle_t uart_write_mutex = NULL;
@@ -259,6 +262,7 @@ static void process_mac(uint8_t *data, struct netif *netif) {
         log_info(ESPIF, "ESP up and running");
         generate_intron();
         esp_operating_mode = ESPIF_NEED_AP;
+        esp_was_ok = true;
     }
 }
 
@@ -718,11 +722,22 @@ void espif_reset() {
 
 EspFwState esp_fw_state() {
     ESPIFOperatingMode mode = esp_operating_mode.load();
-    bool detected = esp_detected.load();
+    const bool detected = esp_detected.load();
+    // Once we see the ESP work at least once, we never ever complain about
+    // it not having firmware or similar. If we didn't do this, we could report
+    // it to be missing just after it is reset for inactivity. It'll likely
+    // just wake up in a moment.
+    const bool seen_ok = esp_was_ok.load();
     switch (mode) {
     case ESPIF_UNINITIALIZED_MODE:
+        if (seen_ok) {
+            return EspFwState::Ok;
+        }
         return EspFwState::Unknown;
     case ESPIF_WAIT_INIT:
+        if (seen_ok) {
+            return EspFwState::Ok;
+        }
         if (detected) {
             if (init_countdown > 0) {
                 return EspFwState::Unknown;
