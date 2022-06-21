@@ -190,12 +190,11 @@ extern "C" void main_cpp(void) {
     power_panic::ac_fault_task = osThreadCreate(osThread(acFaultTask), NULL);
 #endif
 
-/* definition and creation of measurementTask */
-#if (FILAMENT_SENSOR)
-    /* definition and creation of measurementTask */
-    osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
-    osThreadCreate(osThread(measurementTask), NULL);
-#endif
+    if (FILAMENT_SENSOR) {
+        /* definition and creation of measurementTask */
+        osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
+        osThreadCreate(osThread(measurementTask), NULL);
+    }
 }
 
 extern void st7789v_spi_tx_complete(void);
