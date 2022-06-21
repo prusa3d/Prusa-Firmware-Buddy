@@ -1092,6 +1092,12 @@ set_property(
 
 set_property(
   SOURCE src/main.cpp
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS FILAMENT_SENSOR=$<BOOL:${FILAMENT_SENSOR}>
+  )
+
+set_property(
+  SOURCE src/main.cpp
          src/common/appmain.cpp
          src/common/sys.cpp
          src/marlin_stubs/M50.cpp
