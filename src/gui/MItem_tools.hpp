@@ -386,27 +386,6 @@ public:
     virtual void OnClick() override;
 };
 
-class I_MI_Filament : public WI_LABEL_t {
-public:
-    I_MI_Filament(string_view_utf8 long_name)
-        : WI_LABEL_t(long_name, 0, is_enabled_t::yes, is_hidden_t::no) {}
-
-protected:
-    void click_at(filament_t filament_index);
-};
-
-template <filament_t T>
-class MI_Filament : public I_MI_Filament {
-public:
-    MI_Filament()
-        : I_MI_Filament(_(Filaments::Get(T).long_name)) {}
-
-protected:
-    virtual void click(IWindowMenu & /*window_menu*/) override {
-        click_at(T);
-    }
-};
-
 class MI_FILAMENT_SENSOR_STATE : public WI_SWITCH_0_1_NA_t {
     static constexpr const char *const label = N_("Filament Sensor");
     static state_t get_state();

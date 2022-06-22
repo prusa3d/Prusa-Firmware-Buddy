@@ -13,6 +13,7 @@ struct Filament {
     const char *name;
     const char *long_name;
     uint16_t nozzle;
+    uint16_t nozzle_preheat;
     uint16_t heatbed;
     Response response;
 };
@@ -41,7 +42,6 @@ public:
     using Array = const Filament[size_t(filament_t::_last) + 1];
 
     static constexpr filament_t Default = filament_t::PLA;
-    static constexpr float PreheatTemp = 170.f;
     static constexpr float ColdNozzle = 50.f;
     static constexpr float ColdBed = 45.f;
 
