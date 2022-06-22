@@ -513,21 +513,6 @@ void MI_TIMEZONE::OnClick() {
     }
 }
 
-/*****************************************************************************/
-//I_MI_Filament
-void I_MI_Filament::click_at(filament_t filament_index) {
-    const Filament filament = Filaments::Get(filament_index);
-    /// don't use preheat temp for cooldown
-    if (Filaments::PreheatTemp >= filament.nozzle) {
-        marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
-    } else {
-        marlin_gcode_printf("M104 S%d D%d", (int)Filaments::PreheatTemp, (int)filament.nozzle);
-    }
-    marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
-    Filaments::SetLastPreheated(filament_index);
-    Screens::Access()->Close(); // skip this screen everytime
-}
-
 MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
     : WI_SWITCH_0_1_NA_t(get_state(), _(label), IDR_NULL, is_enabled_t::no, is_hidden_t::no) {
 }
