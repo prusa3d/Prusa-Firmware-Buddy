@@ -13,9 +13,27 @@ line_width = 100
 additional_commands = {
     "target_sources": {
         "kwargs": {
-            "PUBLIC": "*",
-            "PRIVATE": "*",
-            "INTERFACE": "*",
+            "PUBLIC": {
+                "pargs": {
+                    "nargs": "*",
+                    "tags": ["file-list"],
+                    "sortable": True
+                }
+            },
+            "PRIVATE": {
+                "pargs": {
+                    "nargs": "*",
+                    "tags": ["file-list"],
+                    "sortable": True
+                }
+            },
+            "INTERFACE": {
+                "pargs": {
+                    "nargs": "*",
+                    "tags": ["file-list"],
+                    "sortable": True
+                }
+            },
         }
     },
 }
