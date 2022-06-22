@@ -144,7 +144,7 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_START_PRINT() {
 WizardState_t StateFnc_FIRSTLAY_PRINT() {
     DialogHandler::PreOpen(ClientFSM::FirstLayer, 0); //open screen now, it would auto open later (on G26)
 
-    const int temp_nozzle_preheat = int(Filaments::PreheatTemp);
+    const int temp_nozzle_preheat = Filaments::Current().nozzle_preheat;
     const int temp_nozzle = Filaments::Current().nozzle;
     const int temp_bed = Filaments::Current().heatbed;
 

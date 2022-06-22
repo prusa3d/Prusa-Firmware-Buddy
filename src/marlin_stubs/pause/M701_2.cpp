@@ -126,7 +126,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res) {
     // modify temperatures
     switch (res) {
     case PreheatStatus::Result::DoneHasFilament:
-        thermalManager.setTargetHotend(Filaments::PreheatTemp, 0);
+        thermalManager.setTargetHotend(Filaments::Current().nozzle_preheat, 0);
         break;
     case PreheatStatus::Result::CooledDown:
         // set temperatures to zero
