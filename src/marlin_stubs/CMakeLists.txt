@@ -1,8 +1,8 @@
 target_sources(
   firmware
-  PRIVATE gcode.cpp
+  PRIVATE G163.cpp
           G26.cpp
-          G163.cpp
+          gcode.cpp
           M300.cpp
           M330.cpp
           M505.cpp

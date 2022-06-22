@@ -45,7 +45,7 @@ endfunction()
 # General
 #
 
-target_sources(firmware PUBLIC bootstrap.cpp revision.cpp hash.cpp)
+target_sources(firmware PUBLIC bootstrap.cpp hash.cpp revision.cpp)
 target_include_directories(firmware PUBLIC "${resources_include_dir}")
 
 #

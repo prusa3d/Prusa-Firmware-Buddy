@@ -4,8 +4,8 @@ target_sources(
           filesystem.c
           filesystem_fatfs.c
           filesystem_littlefs.c
-          filesystem_littlefs_internal.c
           filesystem_littlefs_bbf.cpp
+          filesystem_littlefs_internal.c
           filesystem_root.c
           libsysbase_syscalls.c
           littlefs_bbf.cpp

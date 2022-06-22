@@ -65,7 +65,8 @@ endfunction()
 
 function(objcopy target format suffix)
   add_custom_command(
-    TARGET ${target} POST_BUILD
+    TARGET ${target}
+    POST_BUILD
     COMMAND "${CMAKE_OBJCOPY}" -O ${format} -S "$<TARGET_FILE:${target}>"
             "${CMAKE_CURRENT_BINARY_DIR}/${target}${suffix}"
     COMMENT "Generating ${format} from ${target}..."
@@ -74,7 +75,8 @@ endfunction()
 
 function(report_size target)
   add_custom_command(
-    TARGET ${target} POST_BUILD
+    TARGET ${target}
+    POST_BUILD
     COMMAND echo "" # visually separate the output
     COMMAND "${CMAKE_SIZE_UTIL}" -B "$<TARGET_FILE:${target}>"
     USES_TERMINAL
@@ -125,12 +127,13 @@ function(pack_firmware target)
       lfs_image_generate_hash_bin_file(${resources_image} "${content_hash_file}")
 
       list(
-        APPEND resources_opts
-               "--tlv"
-               "${resources_image_name}:$<TARGET_PROPERTY:${resources_image},LFS_IMAGE_LOCATION>"
-               "${resources_image_name}_BLOCK_SIZE:${block_size_file}"
-               "${resources_image_name}_BLOCK_COUNT:${block_count_file}"
-               "${resources_image_name}_HASH:${content_hash_file}"
+        APPEND
+        resources_opts
+        "--tlv"
+        "${resources_image_name}:$<TARGET_PROPERTY:${resources_image},LFS_IMAGE_LOCATION>"
+        "${resources_image_name}_BLOCK_SIZE:${block_size_file}"
+        "${resources_image_name}_BLOCK_COUNT:${block_count_file}"
+        "${resources_image_name}_HASH:${content_hash_file}"
         )
 
       add_custom_target(
@@ -150,13 +153,11 @@ function(pack_firmware target)
   endif()
 
   add_custom_command(
-    TARGET ${target} POST_BUILD
+    TARGET ${target}
+    POST_BUILD
     # generate .bin file
-    COMMAND
-      "${CMAKE_OBJCOPY}" -O binary -S "$<TARGET_FILE:${target}>" "${bin_firmware_path}"
-
-
-      # visually separate the output
+    COMMAND "${CMAKE_OBJCOPY}" -O binary -S "$<TARGET_FILE:${target}>" "${bin_firmware_path}"
+            # visually separate the output
     COMMAND echo ""
             # generate .bbf file
     COMMAND
@@ -174,7 +175,8 @@ function(create_dfu)
   cmake_parse_arguments(CREATE_DFU "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
   add_custom_command(
-    TARGET "${CREATE_DFU_TARGET}" POST_BUILD
+    TARGET "${CREATE_DFU_TARGET}"
+    POST_BUILD
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/dfu.py" create ${CREATE_DFU_INPUT}
             "${CREATE_DFU_OUTPUT}"
     )
