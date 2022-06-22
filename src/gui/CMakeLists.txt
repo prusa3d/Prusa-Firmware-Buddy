@@ -43,8 +43,8 @@ target_sources(
           screen_menu_temperature.cpp
           screen_menu_tune.cpp
           screen_messages.cpp
-          screen_printing.cpp
           screen_print_preview.cpp
+          screen_printing.cpp
           screen_prusa_link.cpp
           screen_qr_error.cpp
           screen_reset_error.cpp
@@ -78,12 +78,12 @@ if(HAS_SELFTEST)
   target_sources(
     firmware
     PRIVATE MItem_basic_selftest.cpp
-            ScreenSelftest.cpp
-            selftest_frame.cpp
+            screen_menu_calibration.cpp
             # steel sheets requiere first layer calibration, which require wizard, which require
             # selftest TODO add HAS_STEEL_SHEETS property
             screen_menu_steel_sheets.cpp
-            screen_menu_calibration.cpp
+            ScreenSelftest.cpp
+            selftest_frame.cpp
     )
 endif()
 

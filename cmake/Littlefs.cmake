@@ -35,9 +35,8 @@ function(add_lfs_image image_name)
   set_target_properties(${image_name} PROPERTIES LFS_IMAGE_BLOCK_SIZE ${arg_BLOCK_SIZE})
   add_custom_command(
     OUTPUT ${image_location}
-    COMMAND
-      "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${arg_BLOCK_SIZE}" "--block-count"
-      "${arg_BLOCK_COUNT}" "create-image" "${image_location}"
+    COMMAND "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${arg_BLOCK_SIZE}"
+            "--block-count" "${arg_BLOCK_COUNT}" "create-image" "${image_location}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     VERBATIM
     )
@@ -49,9 +48,8 @@ function(lfs_image_add_file image_name file target)
   get_target_property(block_size ${image_name} LFS_IMAGE_BLOCK_SIZE)
   add_custom_command(
     OUTPUT ${image_location}
-    COMMAND
-      "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${block_size}" "--block-count"
-      "${block_count}" "add-file" "${image_location}" "${file}" "${target}"
+    COMMAND "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${block_size}" "--block-count"
+            "${block_count}" "add-file" "${image_location}" "${file}" "${target}"
     DEPENDS "${file}"
     APPEND VERBATIM
     )
@@ -63,9 +61,8 @@ function(lfs_image_generate_hash_bin_file image_name file)
   get_target_property(block_size ${image_name} LFS_IMAGE_BLOCK_SIZE)
   add_custom_command(
     OUTPUT "${file}"
-    COMMAND
-      "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${block_size}" "--block-count"
-      "${block_count}" "get-content-hash" "${image_location}" "${file}"
+    COMMAND "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${block_size}" "--block-count"
+            "${block_count}" "get-content-hash" "${image_location}" "${file}"
     DEPENDS "${image_location}" "${mklittlefs}"
     VERBATIM
     )

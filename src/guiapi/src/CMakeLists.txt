@@ -39,5 +39,5 @@ target_sources(
   )
 
 if(BOARD IN_LIST BOARDS_WITH_ST7789V)
-  target_sources(firmware PRIVATE st7789v.cpp menu_spin_config_basic.cpp)
+  target_sources(firmware PRIVATE menu_spin_config_basic.cpp st7789v.cpp)
 endif()
