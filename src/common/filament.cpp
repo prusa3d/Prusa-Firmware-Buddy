@@ -25,20 +25,20 @@ static constexpr const char *abs_str =   "ABS      255/100";
 static constexpr const char *hips_str =  "HIPS     220/100";
 static constexpr const char *pp_str =    "PP       240/100";
 static constexpr const char *flex_str =  "FLEX     240/ 50";
-// clang-format on
 
 const Filaments::Array filaments = {
-    { "---", BtnResponse::GetText(Response::Cooldown), 0, 0, Response::Cooldown }, // Cooldown sets long text instead short, not a bug
-    { BtnResponse::GetText(Response::PLA), pla_str, 215, 60, Response::PLA },
-    { BtnResponse::GetText(Response::PETG), pet_g_str, 230, 85, Response::PETG },
-    { BtnResponse::GetText(Response::ASA), asa_str, 260, 100, Response::ASA },
-    { BtnResponse::GetText(Response::PC), pc_str, 275, 100, Response::PC },
-    { BtnResponse::GetText(Response::PVB), pvb_str, 215, 75, Response::PVB },
-    { BtnResponse::GetText(Response::ABS), abs_str, 255, 100, Response::ABS },
-    { BtnResponse::GetText(Response::HIPS), hips_str, 220, 100, Response::HIPS },
-    { BtnResponse::GetText(Response::PP), pp_str, 240, 100, Response::PP },
-    { BtnResponse::GetText(Response::FLEX), flex_str, 240, 50, Response::FLEX },
+    { "---", BtnResponse::GetText(Response::Cooldown),   0,    0,   0, Response::Cooldown }, // Cooldown sets long text instead short, not a bug
+    { BtnResponse::GetText(Response::PLA), pla_str,     215, 170,  60, Response::PLA },
+    { BtnResponse::GetText(Response::PETG), pet_g_str,  230, 170,  85, Response::PETG },
+    { BtnResponse::GetText(Response::ASA), asa_str,     260, 170, 100, Response::ASA },
+    { BtnResponse::GetText(Response::PC), pc_str,       275, 170, 100, Response::PC },
+    { BtnResponse::GetText(Response::PVB), pvb_str,     215, 170,  75, Response::PVB },
+    { BtnResponse::GetText(Response::ABS), abs_str,     255, 170, 100, Response::ABS },
+    { BtnResponse::GetText(Response::HIPS), hips_str,   220, 170, 100, Response::HIPS },
+    { BtnResponse::GetText(Response::PP), pp_str,       240, 170, 100, Response::PP },
+    { BtnResponse::GetText(Response::FLEX), flex_str,   240, 170,  50, Response::FLEX },
 };
+// clang-format on
 
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament_t::_last) + 1, "Filament count error.");
 
