@@ -59,7 +59,21 @@ protected:
     static constexpr int heating_difference = 2;
 
     static constexpr std::array<color_t, size_t(HeatState::_last) + 1> colors = { { COLOR_WHITE, COLOR_ORANGE, COLOR_AZURE, COLOR_GREEN } };
-    static HeatState getState(int current, int target, int display, int cold, int preheat); //need signed values for comparations
+
+    /**
+     * @brief Get the State object
+     *
+     * @param current    - current temperature
+     * @param target     - target temperature (real one, printer regulates to this temperature)
+     * @param display    - target to be displayed (we can preheat to 170 because of MBL, but show 215 as PLA temperature)
+     * @param cold       - what temperature is considered as cold - blue flickering
+     * @return HeatState - used for text colorization
+     *          - stable  - white color
+     *          - heating - orange color
+     *          - cooling - blue flickering
+     *          - preheat - green flickering
+     */
+    static HeatState getState(int current, int target, int display, int cold); //need signed values for comparison
     static string_view_utf8 static_makeViewIntoBuff(int value, std::array<char, 10> &buff);
 
 public:

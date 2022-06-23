@@ -87,7 +87,7 @@ string_view_utf8 FooterItemHeater::static_makeViewIntoBuff(int value, std::array
     return string_view_utf8::MakeRAM((const uint8_t *)buff.data());
 }
 
-FooterItemHeater::HeatState FooterItemHeater::getState(int current, int target, int display, int cold, int preheat) {
+FooterItemHeater::HeatState FooterItemHeater::getState(int current, int target, int display, int cold) {
     HeatState state = HeatState::stable;
 
     int temp_diff = target - current;
@@ -98,8 +98,10 @@ FooterItemHeater::HeatState FooterItemHeater::getState(int current, int target, 
     }
 
     // preheat mode
-    if ((display > target) && (std::abs(preheat - current) <= heating_difference)) {
-        state = HeatState::preheat;
+    if (display > (target + heating_difference)) {
+        if ((std::abs(temp_diff) <= heating_difference)) {
+            state = HeatState::preheat;
+        }
     }
 
     return state;
