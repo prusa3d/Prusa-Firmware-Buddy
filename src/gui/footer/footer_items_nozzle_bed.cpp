@@ -19,13 +19,12 @@ FooterItemBed::FooterItemBed(window_t *parent)
 
 int FooterItemNozzle::static_readValue() {
     static const uint cold = 50;
-    static const uint preheat = 170;
 
     uint current = marlin_vars()->temp_nozzle;
     uint target = marlin_vars()->target_nozzle;
     uint display = marlin_vars()->display_nozzle;
 
-    HeatState state = getState(current, target, display, cold, preheat);
+    HeatState state = getState(current, target, display, cold);
     StateAndTemps temps(state, current, display);
     return temps.ToInt();
 }
@@ -36,7 +35,7 @@ int FooterItemBed::static_readValue() {
     uint current = marlin_vars()->temp_bed;
     uint target = marlin_vars()->target_bed;
 
-    HeatState state = getState(current, target, target /*display == target*/, cold, 0 /* no preheat*/);
+    HeatState state = getState(current, target, target, cold); //display == target will disable green blinking preheat
     StateAndTemps temps(state, current, target);
     return temps.ToInt();
 }
