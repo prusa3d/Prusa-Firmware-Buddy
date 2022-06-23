@@ -1,8 +1,58 @@
 #include <string_view>
+#include <optional>
+
 #define JSMN_HEADER
 #include <jsmn.h>
 
 namespace json {
+
+/// The type of an event/value in json.
+enum class Type {
+    Object,
+    Array,
+    String,
+    /// Acts in many ways the same as string except that it is not a string.
+    ///
+    /// Note that jsmn doesn't tell us further info, so there's no distinction
+    /// (at least not yet) if it shall be float, int, bool, ...
+    Primitive,
+    /// Not an actual part of the JSON, but this is emited whenever a nested
+    /// structural thing is being left (when going out of an object or array).
+    /// It is emited for each level (therefore, if there's `}]}`, three such
+    /// events are emited).
+    ///
+    /// The depth is the one corresponding to the event that started it ‒ so
+    /// it can be 1, but not 0.
+    Pop,
+};
+
+/// An event in a JSON "stream".
+///
+/// Note that this is not "owned", the string_views point to temporary
+/// stack-allocated data.
+struct Event {
+    /// How deep in the structure this thing is.
+    ///
+    /// The top-level object is not reported.
+    /// Anything inside that top-level object is on level 1. Stuff inside an
+    /// array or inner object is one level deeper.
+    size_t depth;
+
+    Type type;
+
+    /// The name of the field, if any.
+    ///
+    /// Not present for array items.
+    std::optional<std::string_view> key;
+
+    /// The value of the field (or array item). This is not present if the
+    /// value is an array or object, only for primitive fields.
+    ///
+    /// This is not converted in any way. That is, strings are *not* de-escaped
+    /// (at least not yet). Ints, floats or bools are not either and are passed
+    /// as original string values.
+    std::optional<std::string_view> value;
+};
 
 template <class Callback>
 bool search(const char *input, jsmntok_t *tokens, size_t cnt, Callback &&callback) {
@@ -27,12 +77,28 @@ bool search(const char *input, jsmntok_t *tokens, size_t cnt, Callback &&callbac
             switch (val.type) {
             case JSMN_STRING: {
                 std::string_view value(input + val.start, val.end - val.start);
-                callback(key, value);
-                // Fall through to primitive
-            }
-            case JSMN_PRIMITIVE:
+                Event event {
+                    1,
+                    Type::String,
+                    key,
+                    value,
+                };
+                callback(event);
                 i++;
                 break;
+            }
+            case JSMN_PRIMITIVE: {
+                std::string_view value(input + val.start, val.end - val.start);
+                Event event {
+                    1,
+                    Type::Primitive,
+                    key,
+                    value,
+                };
+                callback(event);
+                i++;
+                break;
+            }
             case JSMN_ARRAY:
             case JSMN_OBJECT:
                 /*
