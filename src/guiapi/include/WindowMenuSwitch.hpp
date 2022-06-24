@@ -52,7 +52,7 @@ protected:
     using IconMemSpace_t = std::aligned_storage<sizeof(ResourceId), alignof(ResourceId)>;
 
     template <class T, class... E>
-    Items_t FillArray(void *ArrayMem, E &&...e) {
+    Items_t FillArray(void *ArrayMem, E &&... e) {
         const size_t SZ = sizeof...(E);
         T *pArr = new (ArrayMem) T[SZ] { std::forward<E>(e)... };
         Items_t ret = Items_t(pArr, SZ);
@@ -96,7 +96,7 @@ class WI_SWITCH_t : public IWiSwitch {
 
 public:
     template <class... E>
-    WI_SWITCH_t(int32_t index, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
+    WI_SWITCH_t(int32_t index, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&... e)
         : IWiSwitch(index, label, id_icon, enabled, hidden, FillArray<string_view_utf8>(&ArrayMemSpace, std::forward<E>(e)...)) {}
 };
 
@@ -107,6 +107,6 @@ class WI_ICON_SWITCH_t : public IWiSwitch {
 
 public:
     template <class... E>
-    WI_ICON_SWITCH_t(int32_t index, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
+    WI_ICON_SWITCH_t(int32_t index, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&... e)
         : IWiSwitch(index, label, id_icon, enabled, hidden, FillArray<ResourceId>(&ArrayMemSpace, std::forward<E>(e)...)) {}
 };

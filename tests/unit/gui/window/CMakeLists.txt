@@ -40,12 +40,17 @@ add_executable(
 
 # define required search paths
 target_include_directories(
-  window_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_SOURCE_DIR}/src/common
-                      ${CMAKE_SOURCE_DIR}/src/gui/dialogs ${CMAKE_SOURCE_DIR}/tests/stubs
+  window_tests
+  PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_SOURCE_DIR}/src/common
+         ${CMAKE_SOURCE_DIR}/src/gui/dialogs ${CMAKE_SOURCE_DIR}/tests/stubs
+         ${CMAKE_SOURCE_DIR}/src/gui
   )
+
 target_include_directories(
-  layout_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_SOURCE_DIR}/src/common
-                      ${CMAKE_SOURCE_DIR}/src/gui/dialogs ${CMAKE_SOURCE_DIR}/tests/stubs
+  layout_tests
+  PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_SOURCE_DIR}/src/common
+         ${CMAKE_SOURCE_DIR}/src/gui/dialogs ${CMAKE_SOURCE_DIR}/tests/stubs
+         ${CMAKE_SOURCE_DIR}/src/gui
   )
 
 # tell build system about the test case

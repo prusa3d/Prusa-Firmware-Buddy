@@ -94,7 +94,7 @@ static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, u
     //todo
 }
 
-FILE *resource_fopen(uint16_t id, const char *opentype) {
+FILE *resource_fopen(ResourceId id, const char *opentype) {
     //todo
     return nullptr;
 }

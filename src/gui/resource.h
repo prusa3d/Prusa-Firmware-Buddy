@@ -2,7 +2,7 @@
 #pragma once
 #include <stdint.h>
 
-enum ResourceId : uint16_t {
+enum ResourceId : uint8_t {
 
     //null resource - test
     IDR_NULL = 0x0000,

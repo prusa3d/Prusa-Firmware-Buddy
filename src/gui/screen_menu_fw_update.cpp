@@ -44,8 +44,8 @@ size_t MI_UPDATE::init_index() const {
     return (size_t)sys_fw_update_on_restart_is_enabled()
         ? 1
         : sys_fw_update_is_enabled()
-        ? 2
-        : 0;
+            ? 2
+            : 0;
 }
 
 MI_UPDATE::MI_UPDATE()

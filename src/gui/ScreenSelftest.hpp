@@ -22,7 +22,7 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
 
     //safer than make_static_unique_ptr, checks storage size
     template <class T, class... Args>
-    static_unique_ptr<SelftestFrame> makePtr(Args &&...args) {
+    static_unique_ptr<SelftestFrame> makePtr(Args &&... args) {
         static_assert(sizeof(T) <= sizeof(all_tests), "Error selftest part does not fit");
         return make_static_unique_ptr<T>(&all_tests, std::forward<Args>(args)...);
     }
