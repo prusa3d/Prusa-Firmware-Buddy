@@ -2,6 +2,7 @@
 
 #include "guitypes.hpp"
 #include "guitypes.h"
+#include "resource.h"
 #include <algorithm>
 
 //intersection of positive intervals p0-p1 and p2-p3, result is stored in p4-p5
@@ -35,25 +36,25 @@ extern const resource_entry_t resource_table[];
 extern const uint16_t resource_table_size;
 extern const uint16_t resource_count;
 
-const uint8_t *resource_ptr(uint16_t id) {
+const uint8_t *resource_ptr(ResourceId id) {
     if (id < resource_count)
         return resource_table[id].ptr;
     return 0;
 }
 
-uint16_t resource_size(uint16_t id) {
+uint16_t resource_size(ResourceId id) {
     if (id < resource_count)
         return resource_table[id].size;
     return 0;
 }
 
-FILE *resource_fopen(uint16_t id, const char *opentype) {
+FILE *resource_fopen(ResourceId id, const char *opentype) {
     if (id < resource_count)
         return fmemopen((uint8_t *)resource_table[id].ptr, resource_table[id].size, opentype);
     return 0;
 }
 
-font_t *resource_font(uint16_t id) {
+font_t *resource_font(ResourceId id) {
     if (id < resource_count)
         return (font_t *)resource_table[id].ptr;
     return 0;

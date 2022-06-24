@@ -21,7 +21,7 @@ protected:
 public:
     MI_AXIS<INDEX, LONG_SEG, BUFFER_LEN>()
         : WiSpinInt(int32_t(marlin_vars()->pos[INDEX]),
-            SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), 0, is_enabled_t::yes, is_hidden_t::no)
+            SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), IDR_NULL, is_enabled_t::yes, is_hidden_t::no)
         , lastQueuedPos(int32_t(marlin_vars()->pos[INDEX])) {}
 
     // enqueue next moves according to value of spinners;
@@ -76,7 +76,7 @@ class DUMMY_AXIS_E : public WI_FORMATABLE_LABEL_t<int> {
 
 public:
     DUMMY_AXIS_E()
-        : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), 0, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
+        : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
             if (marlin_vars()->target_nozzle < MenuVars::GetExtrudeMinTemp()) {
                 snprintf(buffer, GuiDefaults::infoDefaultLen, "Low temp");
             } else {

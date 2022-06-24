@@ -21,7 +21,7 @@ protected:
 struct window_icon_button_t : public AddSuperWindow<window_icon_t> {
     ButtonCallback callback;
 
-    window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb);
+    window_icon_button_t(window_t *parent, Rect16 rect, ResourceId id_res, ButtonCallback cb);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
@@ -44,10 +44,10 @@ protected:
 
 #include "wizard_config.hpp"
 class WindowIcon_OkNg : public AddSuperWindow<window_aligned_t> {
-    static const uint16_t id_res_na;                // not available
-    static const uint16_t id_res_ok;                // ok
-    static const uint16_t id_res_ng;                // not good
-    static const std::array<uint16_t, 4> id_res_ip; // in progress - 4 state animation
+    static const ResourceId id_res_na;                // not available
+    static const ResourceId id_res_ok;                // ok
+    static const ResourceId id_res_ng;                // not good
+    static const std::array<ResourceId, 4> id_res_ip; // in progress - 4 state animation
     enum { ANIMATION_STEP_MS = 128 };
 
 public:

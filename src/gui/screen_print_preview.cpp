@@ -14,7 +14,7 @@
 #include "print_utils.hpp"
 #include "printers.h"
 
-const uint16_t menu_icons[2] = {
+const ResourceId menu_icons[2] = {
     IDR_PNG_print_58px,
     IDR_PNG_stop_58px,
 };
@@ -32,7 +32,7 @@ static bool check_filament_presence(GCodeInfo &gcode) {
         // this MakeRAM is safe - gcode.gcode_file_name is valid during the lifetime of the MsgBox
         switch (
 #ifdef USE_ST7789
-            MsgBoxWarning(txt_fil_not_detected, btns, 0, GuiDefaults::RectScreenNoHeader)
+            MsgBoxWarning(txt_fil_not_detected, btns, IDR_NULL, GuiDefaults::RectScreenNoHeader)
 #else
             MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()), txt_fil_not_detected, btns, 0, GuiDefaults::RectScreenNoHeader)
 #endif

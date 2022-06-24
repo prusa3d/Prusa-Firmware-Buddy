@@ -2,12 +2,13 @@
 #pragma once
 
 #include <inttypes.h>
+#include <algorithm>
 #include "guiconfig.h"
 #include "guitypes.hpp"
 #include "display_helper.h"
-#include <algorithm>
 #include "Rect16.h"
 #include "display_ex.hpp"
+#include "resource.h"
 
 typedef uint16_t(display_size_t)(void);
 typedef void(display_init_t)(void);
@@ -24,7 +25,7 @@ typedef void(display_fill_rect_t)(Rect16 rc, color_t clr);
 /// @param charY y-coordinate of character (glyph) in font bitmap
 typedef bool(display_draw_char_t)(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef size_ui16_t(display_draw_text_t)(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
-typedef void(display_draw_icon_t)(point_ui16_t pt, uint16_t id_res, color_t clr_back, ropfn rop);
+typedef void(display_draw_icon_t)(point_ui16_t pt, ResourceId id_res, color_t clr_back, ropfn rop);
 typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
 
 // just to test the FW with fonts - will be refactored
@@ -107,7 +108,7 @@ public:
     /// Draws text on the display
     /// \param rc rectangle where text will be placed
     static size_ui16_t DrawText(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
-    constexpr static void DrawIcon(point_ui16_t pt, uint16_t id_res, color_t clr_back, ropfn rop) { DRAW_ICON(pt, id_res, clr_back, rop); }
+    constexpr static void DrawIcon(point_ui16_t pt, ResourceId id_res, color_t clr_back, ropfn rop) { DRAW_ICON(pt, id_res, clr_back, rop); }
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };
 

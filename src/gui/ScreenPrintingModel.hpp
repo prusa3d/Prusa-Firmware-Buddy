@@ -8,7 +8,7 @@
 #include "resource.h"
 
 struct btn_resource {
-    uint16_t ico;
+    ResourceId ico;
     const char *txt;
 };
 

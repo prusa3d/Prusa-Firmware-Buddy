@@ -1,7 +1,8 @@
 //resource.h
 #pragma once
+#include <stdint.h>
 
-enum {
+enum ResourceId : uint16_t {
 
     //null resource - test
     IDR_NULL = 0x0000,

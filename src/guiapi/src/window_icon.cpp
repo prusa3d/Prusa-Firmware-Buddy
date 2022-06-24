@@ -175,10 +175,10 @@ void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, window
 //WindowIcon_OkNg
 
 //both must be same size
-const uint16_t WindowIcon_OkNg::id_res_na = IDR_PNG_dash_18px;
-const uint16_t WindowIcon_OkNg::id_res_ok = IDR_PNG_ok_color_18px;
-const uint16_t WindowIcon_OkNg::id_res_ng = IDR_PNG_nok_color_18px;
-const std::array<uint16_t, 4> WindowIcon_OkNg::id_res_ip = { { IDR_PNG_spinner1_16px, IDR_PNG_spinner2_16px, IDR_PNG_spinner3_16px, IDR_PNG_spinner4_16px } };
+const ResourceId WindowIcon_OkNg::id_res_na = IDR_PNG_dash_18px;
+const ResourceId WindowIcon_OkNg::id_res_ok = IDR_PNG_ok_color_18px;
+const ResourceId WindowIcon_OkNg::id_res_ng = IDR_PNG_nok_color_18px;
+const std::array<ResourceId, 4> WindowIcon_OkNg::id_res_ip = { { IDR_PNG_spinner1_16px, IDR_PNG_spinner2_16px, IDR_PNG_spinner3_16px, IDR_PNG_spinner4_16px } };
 
 //Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
@@ -208,7 +208,7 @@ void WindowIcon_OkNg::SetState(SelftestSubtestState_t s) {
 }
 
 void WindowIcon_OkNg::unconditionalDraw() {
-    uint16_t id_res = 0;
+    ResourceId id_res = IDR_NULL;
     switch (GetState()) {
     case SelftestSubtestState_t::ok:
         id_res = id_res_ok;
@@ -243,7 +243,7 @@ void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *send
 //-------------------------- Thumbnail --------------------------------------
 
 WindowThumbnail::WindowThumbnail(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_icon_t>(parent, rect, 0)
+    : AddSuperWindow<window_icon_t>(parent, rect, IDR_NULL)
     , gcode_info(GCodeInfo::getInstance()) {
 }
 

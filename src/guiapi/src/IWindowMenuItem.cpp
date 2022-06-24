@@ -11,21 +11,21 @@
 
 static_assert(sizeof(IWindowMenuItem) <= sizeof(string_view_utf8) + sizeof(txtroll_t) + sizeof(font_t) + sizeof(int), "error inefficient size of IWindowMenuItem");
 
-IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands, font_t *label_font)
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands, font_t *label_font)
     : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden, label_font) {
 }
 
-IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, font_t *label_font)
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, font_t *label_font)
     : label(label)
     , hidden((uint8_t)hidden)
     , enabled(enabled)
     , focused(is_focused_t::no)
     , selected(is_selected_t::no)
-    , id_icon(id_icon)
     , extension_width(extension_width_)
     , invalid_icon(true)
     , invalid_label(true)
     , invalid_extension(extension_width != 0)
+    , id_icon(id_icon)
     , label_font(label_font) {
 }
 

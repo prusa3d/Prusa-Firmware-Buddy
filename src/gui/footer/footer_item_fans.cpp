@@ -20,7 +20,7 @@ string_view_utf8 IFooterItemFan::static_makeViewIntoBuff(int value, buffer_t &bu
     return string_view_utf8::MakeRAM((const uint8_t *)buff.data());
 }
 
-IFooterItemFan::IFooterItemFan(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader)
+IFooterItemFan::IFooterItemFan(window_t *parent, ResourceId icon_id, view_maker_cb view_maker, reader_cb value_reader)
     : AddSuperWindow<FooterIconText_IntVal>(parent, icon_id, view_maker, value_reader) {
 }
 

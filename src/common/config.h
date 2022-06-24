@@ -35,6 +35,3 @@ enum {
 
 //guiconfig.h included with config
 #include "../guiconfig/guiconfig.h"
-
-//resource.h included with config
-#include "resource.h"

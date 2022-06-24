@@ -30,7 +30,7 @@ void window_header_t::updateNetwork(uint32_t netdev_id, bool force) {
     }
 }
 
-void window_header_t::SetIcon(int16_t id_res) {
+void window_header_t::SetIcon(ResourceId id_res) {
     icon_base.SetIdRes(id_res);
     Invalidate();
 }
@@ -99,8 +99,8 @@ void window_header_t::updateMedia(MediaState_t state) {
     }
 };
 
-uint32_t window_header_t::networkIcon(uint32_t netdev_id) {
-    uint32_t res_id = IDR_NULL;
+ResourceId window_header_t::networkIcon(uint32_t netdev_id) {
+    ResourceId res_id = IDR_NULL;
 
     switch (netdev_id) {
     case NETDEV_ETH_ID:

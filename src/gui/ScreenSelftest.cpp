@@ -100,7 +100,7 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     return string_view_utf8::MakeCPUFLASH((uint8_t *)error);
 }
 
-uint16_t ScreenSelftest::getIconId(SelftestParts part) {
+ResourceId ScreenSelftest::getIconId(SelftestParts part) {
     switch (part) {
     case SelftestParts::ESP:
     case SelftestParts::ESP_progress:
