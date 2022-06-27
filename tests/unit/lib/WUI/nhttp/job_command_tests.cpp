@@ -108,8 +108,6 @@ TEST_CASE("Extra stuff") {
         do_test("{\"command\": \"cancel\", \"extra\": 42}", Cmd::Stop);
     }
 
-    /*
-     * FIXME: These are not yet supported :-(
     SECTION("Array") {
         SECTION("After") {
             do_test("{\"command\": \"cancel\", \"extra\": [42, 15]}", Cmd::Stop);
@@ -129,5 +127,4 @@ TEST_CASE("Extra stuff") {
             do_test("{\"extra\": {\"b\": false}, \"command\": \"cancel\"}", Cmd::Stop);
         }
     }
-    */
 }
