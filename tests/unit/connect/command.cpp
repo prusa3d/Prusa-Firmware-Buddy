@@ -24,6 +24,10 @@ TEST_CASE("Unknown command") {
     command_test("{\"command\": \"SOME_CRAP\"}", CommandType::Unknown);
 }
 
+TEST_CASE("Array command") {
+    command_test("[\"hello\"]", CommandType::Broken);
+}
+
 TEST_CASE("Send info command") {
     command_test("{\"command\": \"SEND_INFO\"}", CommandType::SendInfo);
 }

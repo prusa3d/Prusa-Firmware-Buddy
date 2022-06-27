@@ -28,28 +28,21 @@ Command Command::gcode_command(CommandId id, const string_view &body) {
 }
 
 Command Command::parse_json_command(CommandId id, const string_view &body) {
-    jsmn_parser parser;
     jsmntok_t tokens[MAX_TOKENS];
-    jsmn_init(&parser);
 
-    const auto parse_result = jsmn_parse(&parser, body.data(), body.size(), tokens, sizeof tokens / sizeof *tokens);
+    int parse_result;
 
-    if (parse_result <= 0 || tokens[0].type != JSMN_OBJECT) {
-        // TODO: Be more specific about what went wrong.
-        return Command {
-            id,
-            CommandType::Broken,
-        };
-    }
+    {
+        jsmn_parser parser;
+        jsmn_init(&parser);
+
+        parse_result = jsmn_parse(&parser, body.data(), body.size(), tokens, sizeof tokens / sizeof *tokens);
+    } // Free the parser
 
     CommandType command_type = CommandType::Unknown;
 
-    // FIXME: Right now, our json::search doesn't know how to handle
-    // sub-structures (arrays, objects). It returns false once they are
-    // encountered. For now we only handle param-less commands, so if we hope
-    // the command itself comes first, we are OK just ignoring the false
-    // returned here for now.
-    json::search(body.data(), tokens, parse_result, [&](const Event &event) {
+    // Error from jsmn_parse will lead to -1 -> converted to 0, refused by json::search as Broken.
+    const bool success = json::search(body.data(), tokens, std::max(parse_result, 0), [&](const Event &event) {
         if (event.depth != 1 || event.type != Type::String) {
             return;
         }
@@ -59,6 +52,10 @@ Command Command::parse_json_command(CommandId id, const string_view &body) {
             }
         }
     });
+
+    if (!success) {
+        command_type = CommandType::Broken;
+    }
 
     // Good. We have a "parsed" json.
     return Command {

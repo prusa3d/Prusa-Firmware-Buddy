@@ -4,6 +4,8 @@
 #define JSMN_HEADER
 #include <jsmn.h>
 
+#include <cassert>
+
 namespace json {
 
 /// The type of an event/value in json.
@@ -54,6 +56,80 @@ struct Event {
     std::optional<std::string_view> value;
 };
 
+namespace impl {
+
+    // Internal recursive traversal implementation.
+    //
+    // Takes the current token to process and returns the pointer to the next yet
+    // unused token. In case of error, returns nullptr.
+    template <class Callback>
+    jsmntok_t *search_recursive(const char *input, jsmntok_t *token, bool emit_self, std::optional<std::string_view> key, size_t depth, Callback &&callback) {
+        switch (token->type) {
+        case JSMN_OBJECT:
+        case JSMN_ARRAY: {
+            jsmntok_t *pos = token + 1;
+            const bool is_object = token->type == JSMN_OBJECT;
+            Event event {
+                depth,
+                is_object ? Type::Object : Type::Array,
+                key,
+                std::nullopt,
+            };
+            if (emit_self) {
+                callback(event);
+            }
+            for (int i = 0; pos && (i < token->size); i++) {
+                std::optional<std::string_view> key = std::nullopt;
+                if (is_object) {
+                    assert(pos->size == 1);
+                    if (pos->type != JSMN_STRING) {
+                        return nullptr;
+                    }
+                    key = std::string_view(input + pos->start, pos->end - pos->start);
+                    pos++;
+                }
+                pos = search_recursive(input, pos, true, key, depth + 1, callback);
+            }
+            if (emit_self) {
+                event.type = Type::Pop;
+                event.key = std::nullopt;
+                callback(event);
+            }
+            return pos;
+        }
+        case JSMN_STRING:
+        case JSMN_PRIMITIVE: {
+            std::string_view value(input + token->start, token->end - token->start);
+            Event event {
+                depth,
+                token->type == JSMN_STRING ? Type::String : Type::Primitive,
+                key,
+                value,
+            };
+            callback(event);
+            return token + 1;
+        }
+        default:
+            return nullptr;
+        }
+    }
+
+}
+
+/// Search a JSON (pre-parsed by JSMN).
+///
+/// It calls the callback for each event ‒ see above.
+///
+/// Events are for fields, values in arrays, and for structural "traversal".
+/// The depth can be used to see on which level (how nested) the event is and
+/// look for example only for top-level fields of given names. In particular,
+/// it is possible to accep JSON containing additional unknown fields,
+/// subfields, etc (and not confuse a sub-sub-sub-field of the same name with
+/// the required one on top level).
+///
+/// Returns true on success, false on "broken" JSON (mostly if the top-level
+/// thing isn't an object). It does expect "structural" validity of the tokens,
+/// that is the sizes must be correct - range checking is not performed.
 template <class Callback>
 bool search(const char *input, jsmntok_t *tokens, size_t cnt, Callback &&callback) {
     if (cnt == 0) {
@@ -64,60 +140,7 @@ bool search(const char *input, jsmntok_t *tokens, size_t cnt, Callback &&callbac
         return false;
     }
 
-    // #0 is the top-level object.
-    for (size_t i = 1; i < cnt; i++) {
-        if (tokens[i].type == JSMN_STRING) {
-            /*
-                 * FIXME: jsmn doesn't decode the strings. We simply hope they
-                 * don't contain any escape sequences.
-                 */
-            std::string_view key(input + tokens[i].start, tokens[i].end - tokens[i].start);
-            // Parsing made sure there's another one.
-            auto &val = tokens[i + 1];
-            switch (val.type) {
-            case JSMN_STRING: {
-                std::string_view value(input + val.start, val.end - val.start);
-                Event event {
-                    1,
-                    Type::String,
-                    key,
-                    value,
-                };
-                callback(event);
-                i++;
-                break;
-            }
-            case JSMN_PRIMITIVE: {
-                std::string_view value(input + val.start, val.end - val.start);
-                Event event {
-                    1,
-                    Type::Primitive,
-                    key,
-                    value,
-                };
-                callback(event);
-                i++;
-                break;
-            }
-            case JSMN_ARRAY:
-            case JSMN_OBJECT:
-                /*
-                     * FIXME: These are not yet implemented. We need to deal somehow with all the tokens. Options:
-                     * * Use the parent links. Nevertheless, it seems enabling
-                     *   it for jsmn confuses it and it simply returs fully bogus
-                     *   results.
-                     * * Understand the structure and traverse it. A lot of work to do.
-                     */
-            default:
-                return false;
-            }
-        } else {
-            // Non-string key...
-            return false;
-        }
-    }
-
-    return true;
+    return impl::search_recursive(input, tokens, false, std::nullopt, 0, callback) != nullptr;
 }
 
 }
