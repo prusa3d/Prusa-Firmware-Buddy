@@ -10,7 +10,7 @@ class MI_CONNECT_ENABLED : public WI_ICON_SWITCH_OFF_ON_t {
 
 public:
     MI_CONNECT_ENABLED()
-        : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_CONNECT_ENABLED), string_view_utf8::MakeCPUFLASH((const uint8_t *)label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_CONNECT_ENABLED), string_view_utf8::MakeCPUFLASH((const uint8_t *)label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     virtual void OnChange(size_t old_index) override {

@@ -14,6 +14,7 @@
 #include "i18n.h"
 #include "Iwindow_menu.hpp" //needed invalidate for click
 #include "text_roll.hpp"
+#include "resource.h"
 
 //IWindowMenuItem
 //todo make version with constant label
@@ -49,12 +50,12 @@ private:
     is_focused_t focused : 1;
 
 protected:
-    is_selected_t selected : 1; // should be in IWiSpin, but is here because of size optimization
-    uint16_t id_icon : 10;
+    is_selected_t selected : 1;    // should be in IWiSpin, but is here because of size optimization
     uint16_t extension_width : 10; // must be behind bitfields to save 4B RAM per item
     bool invalid_icon : 1;
     bool invalid_label : 1;
     bool invalid_extension : 1;
+    ResourceId id_icon;
     font_t *label_font;
 
     static Rect16 getCustomRect(Rect16 base_rect, uint16_t custom_rect_width); // general method Returns custom width Rectangle, aligned intersection on the right of the base_rect
@@ -75,8 +76,8 @@ protected:
     color_t GetBackColor() const;
 
 public:
-    IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
-    IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
+    IWindowMenuItem(string_view_utf8 label, ResourceId id_icon = IDR_NULL, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
+    IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, ResourceId id_icon = IDR_NULL, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
     virtual ~IWindowMenuItem() = default;
     void Enable() {
         if (enabled != is_enabled_t::yes) {
@@ -111,8 +112,8 @@ public:
     void SetFocus();
     void ClrFocus();
     bool IsFocused() const { return focused == is_focused_t::yes; }
-    void SetIconId(uint16_t id) { id_icon = id; }
-    uint16_t GetIconId() const { return id_icon; }
+    void SetIconId(ResourceId id) { id_icon = id; }
+    ResourceId GetIconId() const { return id_icon; }
     void SetLabel(string_view_utf8 text);
     /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text

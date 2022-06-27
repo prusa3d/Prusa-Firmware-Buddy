@@ -8,33 +8,50 @@
 #include "resource.h"
 #include "gcode_thumb_decoder.h"
 #include "gcode_file.h"
+#include "syslog.h"
 
-void window_icon_t::SetIdRes(int16_t id) {
-    if (id_res != id) {
-        id_res = id;
+void window_icon_t::SetIdRes(ResourceId id) {
+    if (dataSource.id_res != id) {
+        if (dataSource.isFromFile()) {
+            fclose(dataSource.file);
+            dataSource.file = nullptr;
+        }
+        dataSource.id_res = id;
         Invalidate();
     }
 }
 
-window_icon_t::window_icon_t(window_t *parent, Rect16 rect, uint16_t id_res, is_closed_on_click_t close)
+void window_icon_t::setFile(FILE *file) {
+    if (dataSource.file != file) {
+        if (dataSource.isFromFile()) {
+            fclose(dataSource.file);
+            dataSource.file = nullptr;
+        }
+
+        dataSource.file = file;
+        Invalidate();
+    }
+}
+
+window_icon_t::window_icon_t(window_t *parent, Rect16 rect, DataSourceId source, is_closed_on_click_t close)
     : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
-    , id_res(id_res) {
+    , dataSource(source) {
     SetAlignment(Align_t::Center());
 }
 
 //Icon rect is increased by padding, icon is centered inside it
-window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
+window_icon_t::window_icon_t(window_t *parent, DataSourceId source, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : window_icon_t(
         parent,
-        [pt, id_res, padding] {
-            size_ui16_t sz = CalculateMinimalSize(id_res);
+        [pt, source, padding] {
+            size_ui16_t sz = CalculateMinimalSize(source);
             if (!(sz.h && sz.w))
                 return Rect16();
             return Rect16(pt,
                 sz.w + padding.left + padding.right,
                 sz.h + padding.top + padding.bottom);
         }(),
-        id_res, close) {
+        source, close) {
 }
 
 void window_icon_t::unconditionalDraw() {
@@ -43,24 +60,50 @@ void window_icon_t::unconditionalDraw() {
     raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
 
     super::unconditionalDraw();
+    if (this->dataSource.isFromResource()) {
+        render_icon_align(GetRect(), dataSource.id_res, GetBackColor(), icon_flags(GetAlignment(), raster_op));
+    } else {
+        point_ui16_t pictureOrigin = { static_cast<uint16_t>(GetRect().TopLeft().x), static_cast<uint16_t>(GetRect().TopLeft().y) };
+        uint8_t data[32] { 0 };
+        const uint8_t *ptr = data;
+        if (dataSource.isFromFile()) {
+            size_t sz = fread(&data[0], 1, 32, dataSource.file);
+            fseek(dataSource.file, 0, SEEK_SET);
+            if (sz < 32)
+                return;
+        }
 
-    render_icon_align(GetRect(), id_res, GetBackColor(), icon_flags(GetAlignment(), raster_op));
+        point_ui16_t wh_ico = icon_meas(ptr);
+        if (wh_ico.x && wh_ico.y) {
+            display::DrawPng(pictureOrigin, this->dataSource.file);
+        } else {
+            log_debug(GUI, "Drawing empty rect");
+            display::FillRect(GetRect(), GetBackColor());
+        }
+    }
 }
 
-size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
-    size_ui16_t ret = size_ui16(0, 0);
-    if (!id_res)
-        return ret;
-    const uint8_t *p_icon = resource_ptr(id_res);
-    if (!p_icon)
-        return ret;
-    ret = icon_size(p_icon);
+size_ui16_t window_icon_t::CalculateMinimalSize(window_icon_t::DataSourceId source) {
+    size_ui16_t ret { 0, 0 };
+    uint8_t data[32] { 0 };
+    const uint8_t *ptr = data;
+    if (source.isFromFile()) {
+        size_t sz = fread(&data[0], 1, 32, source.file);
+        fseek(source.file, 0, SEEK_SET);
+        if (sz < 32)
+            return ret;
+    } else {
+        ptr = resource_ptr(source.id_res);
+        if (!ptr)
+            return ret;
+    }
+    ret = icon_size(ptr);
     return ret;
 }
 
 /*****************************************************************************/
 //window_icon_button_t
-window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb)
+window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, ResourceId id_res, ButtonCallback cb)
     : AddSuperWindow<window_icon_t>(parent, rect, id_res)
     , callback(cb) {
     SetBackColor(GuiDefaults::ClickableIconColorScheme);
@@ -175,10 +218,10 @@ void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, window
 //WindowIcon_OkNg
 
 //both must be same size
-const uint16_t WindowIcon_OkNg::id_res_na = IDR_PNG_dash_18px;
-const uint16_t WindowIcon_OkNg::id_res_ok = IDR_PNG_ok_color_18px;
-const uint16_t WindowIcon_OkNg::id_res_ng = IDR_PNG_nok_color_18px;
-const std::array<uint16_t, 4> WindowIcon_OkNg::id_res_ip = { { IDR_PNG_spinner1_16px, IDR_PNG_spinner2_16px, IDR_PNG_spinner3_16px, IDR_PNG_spinner4_16px } };
+const ResourceId WindowIcon_OkNg::id_res_na = IDR_PNG_dash_18px;
+const ResourceId WindowIcon_OkNg::id_res_ok = IDR_PNG_ok_color_18px;
+const ResourceId WindowIcon_OkNg::id_res_ng = IDR_PNG_nok_color_18px;
+const std::array<ResourceId, 4> WindowIcon_OkNg::id_res_ip = { { IDR_PNG_spinner1_16px, IDR_PNG_spinner2_16px, IDR_PNG_spinner3_16px, IDR_PNG_spinner4_16px } };
 
 //Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
@@ -208,7 +251,7 @@ void WindowIcon_OkNg::SetState(SelftestSubtestState_t s) {
 }
 
 void WindowIcon_OkNg::unconditionalDraw() {
-    uint16_t id_res = 0;
+    ResourceId id_res = IDR_NULL;
     switch (GetState()) {
     case SelftestSubtestState_t::ok:
         id_res = id_res_ok;
@@ -243,7 +286,7 @@ void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *send
 //-------------------------- Thumbnail --------------------------------------
 
 WindowThumbnail::WindowThumbnail(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_icon_t>(parent, rect, 0)
+    : AddSuperWindow<window_icon_t>(parent, rect, IDR_NULL)
     , gcode_info(GCodeInfo::getInstance()) {
 }
 

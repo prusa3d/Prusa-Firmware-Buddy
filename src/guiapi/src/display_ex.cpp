@@ -94,7 +94,7 @@ static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, u
     //todo
 }
 
-FILE *resource_fopen(uint16_t id, const char *opentype) {
+FILE *resource_fopen(ResourceId id, const char *opentype) {
     //todo
     return nullptr;
 }
@@ -379,7 +379,7 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt) {
     return get_pixel_directColor_C(pt.x, pt.y);
 }
 
-void display_ex_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, ropfn rop) {
+void display_ex_draw_icon(point_ui16_t pt, ResourceId id_res, color_t clr0, ropfn rop) {
     FILE *pf = resource_fopen(id_res, "rb");
     draw_png_ex_C(pt.x, pt.y, pf, clr0, rop);
     fclose(pf);

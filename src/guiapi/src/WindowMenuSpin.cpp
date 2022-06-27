@@ -7,7 +7,7 @@
 #include "WindowMenuSpin.hpp"
 #include "resource.h"
 
-IWiSpin::IWiSpin(SpinType val, string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_)
+IWiSpin::IWiSpin(SpinType val, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_)
     : AddSuper<WI_LABEL_t>(label, extension_width_, id_icon, enabled, hidden)
     , units(units_)
     , value(val) {

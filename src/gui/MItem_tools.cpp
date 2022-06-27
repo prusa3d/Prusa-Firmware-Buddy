@@ -32,7 +32,7 @@
 /*****************************************************************************/
 //MI_WIZARD
 MI_WIZARD::MI_WIZARD()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
@@ -97,7 +97,7 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_LIVE_ADJUST_Z
 MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
@@ -107,7 +107,7 @@ void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_AUTO_HOME
 MI_AUTO_HOME::MI_AUTO_HOME()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
@@ -121,7 +121,7 @@ void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_MESH_BED
 MI_MESH_BED::MI_MESH_BED()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
@@ -152,7 +152,7 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_SELFTEST
 MI_SELFTEST::MI_SELFTEST()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
@@ -162,7 +162,7 @@ void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_SELFTEST_RESULT
 MI_SELFTEST_RESULT::MI_SELFTEST_RESULT()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
@@ -174,7 +174,7 @@ void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_CALIB_FIRST
 MI_CALIB_FIRST::MI_CALIB_FIRST()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
@@ -184,7 +184,7 @@ void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_TEST_FANS
 MI_TEST_FANS::MI_TEST_FANS()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
@@ -195,7 +195,7 @@ void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_TEST_XYZ
 MI_TEST_XYZ::MI_TEST_XYZ()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
@@ -206,7 +206,7 @@ void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_TEST_HEAT
 MI_TEST_HEAT::MI_TEST_HEAT()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
@@ -217,7 +217,7 @@ void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_TEST_FANS_fine
 MI_ADVANCED_FAN_TEST::MI_ADVANCED_FAN_TEST()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_ADVANCED_FAN_TEST::click(IWindowMenu & /*window_menu*/) {
@@ -228,7 +228,7 @@ void MI_ADVANCED_FAN_TEST::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_TEST_ABORT
 MI_TEST_ABORT::MI_TEST_ABORT()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_TEST_ABORT::click(IWindowMenu & /*window_menu*/) {
@@ -238,7 +238,7 @@ void MI_TEST_ABORT::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_DISABLE_STEP
 MI_DISABLE_STEP::MI_DISABLE_STEP()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
@@ -248,7 +248,7 @@ void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_FACTORY_DEFAULTS
 MI_FACTORY_DEFAULTS::MI_FACTORY_DEFAULTS()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FACTORY_DEFAULTS::click(IWindowMenu & /*window_menu*/) {
@@ -263,7 +263,7 @@ void MI_FACTORY_DEFAULTS::click(IWindowMenu & /*window_menu*/) {
 // MI_ENTER_DFU
 #ifdef BUDDY_ENABLE_DFU_ENTRY
 MI_ENTER_DFU::MI_ENTER_DFU()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_ENTER_DFU::click(IWindowMenu &) {
@@ -274,7 +274,7 @@ void MI_ENTER_DFU::click(IWindowMenu &) {
 /*****************************************************************************/
 //MI_SAVE_DUMP
 MI_SAVE_DUMP::MI_SAVE_DUMP()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
@@ -295,7 +295,7 @@ void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_XFLASH_DELETE
 MI_XFLASH_DELETE::MI_XFLASH_DELETE()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_XFLASH_DELETE::click(IWindowMenu & /*window_menu*/) {
@@ -305,7 +305,7 @@ void MI_XFLASH_DELETE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_XFLASH_RESET
 MI_XFLASH_RESET::MI_XFLASH_RESET()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
@@ -315,7 +315,7 @@ void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_HF_TEST_0
 MI_HF_TEST_0::MI_HF_TEST_0()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_HF_TEST_0::click(IWindowMenu & /*window_menu*/) {
@@ -325,7 +325,7 @@ void MI_HF_TEST_0::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_HF_TEST_1
 MI_HF_TEST_1::MI_HF_TEST_1()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_HF_TEST_1::click(IWindowMenu & /*window_menu*/) {
@@ -335,7 +335,7 @@ void MI_HF_TEST_1::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_EE_LOAD_400
 MI_EE_LOAD_400::MI_EE_LOAD_400()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_LOAD_400::click(IWindowMenu & /*window_menu*/) {
@@ -346,7 +346,7 @@ void MI_EE_LOAD_400::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_EE_LOAD_401
 MI_EE_LOAD_401::MI_EE_LOAD_401()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_LOAD_401::click(IWindowMenu & /*window_menu*/) {
@@ -357,7 +357,7 @@ void MI_EE_LOAD_401::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_EE_LOAD_402
 MI_EE_LOAD_402::MI_EE_LOAD_402()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_LOAD_402::click(IWindowMenu & /*window_menu*/) {
@@ -368,7 +368,7 @@ void MI_EE_LOAD_402::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_EE_LOAD_403RC1
 MI_EE_LOAD_403RC1::MI_EE_LOAD_403RC1()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_LOAD_403RC1::click(IWindowMenu & /*window_menu*/) {
@@ -379,7 +379,7 @@ void MI_EE_LOAD_403RC1::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_EE_LOAD_403
 MI_EE_LOAD_403::MI_EE_LOAD_403()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_LOAD_403::click(IWindowMenu & /*window_menu*/) {
@@ -390,7 +390,7 @@ void MI_EE_LOAD_403::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_EE_LOAD
 MI_EE_LOAD::MI_EE_LOAD()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_LOAD::click(IWindowMenu & /*window_menu*/) {
@@ -401,7 +401,7 @@ void MI_EE_LOAD::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_EE_SAVE
 MI_EE_SAVE::MI_EE_SAVE()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_SAVE::click(IWindowMenu & /*window_menu*/) {
@@ -411,7 +411,7 @@ void MI_EE_SAVE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_EE_SAVEXML
 MI_EE_SAVEXML::MI_EE_SAVEXML()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
@@ -421,7 +421,7 @@ void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_M600
 MI_M600::MI_M600()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_M600::click(IWindowMenu & /*window_menu*/) {
     marlin_gcode_push_front("M600");
@@ -430,7 +430,7 @@ void MI_M600::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_TIMEOUT
 MI_TIMEOUT::MI_TIMEOUT()
-    : WI_SWITCH_OFF_ON_t(Screens::Access()->GetMenuTimeout() ? 1 : 0, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SWITCH_OFF_ON_t(Screens::Access()->GetMenuTimeout() ? 1 : 0, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEOUT::OnChange(size_t old_index) {
     if (!old_index) {
         Screens::Access()->EnableMenuTimeout();
@@ -447,7 +447,7 @@ size_t MI_SOUND_MODE::init_index() const {
     return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT_SOUND : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
-    : WI_SWITCH_t<MI_SOUND_MODE_COUNT>(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no,
+    : WI_SWITCH_t<MI_SOUND_MODE_COUNT>(init_index(), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no,
         _(str_Once), _(str_Loud), _(str_Silent), _(str_Assist)
 #ifdef _DEBUG
                                                      ,
@@ -463,7 +463,7 @@ void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
 /*****************************************************************************/
 //MI_SOUND_TYPE
 MI_SOUND_TYPE::MI_SOUND_TYPE()
-    : WI_SWITCH_t<8>(0, _(label), 0, is_enabled_t::yes, is_hidden_t::no,
+    : WI_SWITCH_t<8>(0, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no,
         _(str_ButtonEcho), _(str_StandardPrompt), _(str_StandardAlert), _(str_CriticalAlert),
         _(str_EncoderMove), _(str_BlindAlert), _(str_Start), _(str_SingleBeep)) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
@@ -481,7 +481,7 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_SOUND_VOLUME
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
-    : WiSpinInt(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_SOUND_VOLUME::OnClick() {
     Sound_SetVolume(GetVal());
 }
@@ -489,7 +489,7 @@ void MI_SOUND_VOLUME::OnClick() {
 /*****************************************************************************/
 //MI_SORT_FILES
 MI_SORT_FILES::MI_SORT_FILES()
-    : WI_SWITCH_t<2>(eeprom_get_ui8(EEVAR_FILE_SORT), _(label), 0, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
+    : WI_SWITCH_t<2>(eeprom_get_ui8(EEVAR_FILE_SORT), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
     if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
         eeprom_set_ui8(EEVAR_FILE_SORT, (uint8_t)WF_SORT_BY_NAME);
@@ -503,7 +503,7 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_TIMEZONE
 MI_TIMEZONE::MI_TIMEZONE()
-    : WiSpinInt(eeprom_get_i8(EEVAR_TIMEZONE), SpinCnf::timezone_range, _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(eeprom_get_i8(EEVAR_TIMEZONE), SpinCnf::timezone_range, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
     int8_t last_timezone = eeprom_get_i8(EEVAR_TIMEZONE);
@@ -549,7 +549,7 @@ void MI_MINDA::Loop() {
 /*****************************************************************************/
 //MI_FAN_CHECK
 MI_FAN_CHECK::MI_FAN_CHECK()
-    : WI_SWITCH_OFF_ON_t(marlin_get_bool(MARLIN_VAR_FAN_CHECK_ENABLED), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SWITCH_OFF_ON_t(marlin_get_bool(MARLIN_VAR_FAN_CHECK_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_FAN_CHECK::OnChange(size_t old_index) {
     marlin_set_bool(MARLIN_VAR_FAN_CHECK_ENABLED, !old_index);
     eeprom_set_bool(EEVAR_FAN_CHECK_ENABLED, marlin_get_bool(MARLIN_VAR_FAN_CHECK_ENABLED));
@@ -562,12 +562,12 @@ is_hidden_t hide_autoload_item() {
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
-    : WI_SWITCH_OFF_ON_t(marlin_get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED), _(label), 0, is_enabled_t::yes, hide_autoload_item()) {}
+    : WI_SWITCH_OFF_ON_t(marlin_get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, hide_autoload_item()) {}
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
     marlin_set_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED, !old_index);
     eeprom_set_bool(EEVAR_FS_AUTOLOAD_ENABLED, marlin_get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED));
 }
-MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
+MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
     : WI_FORMATABLE_LABEL_t<float>(label, id_icon, enabled, hidden, initVal, [&](char *buffer) {
         float value_m = value / 1000; // change the unit from mm to m
         if (value_m > 999) {
@@ -579,19 +579,19 @@ MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, uint16_t id_icon, is_
 }
 
 MI_ODOMETER_DIST_X::MI_ODOMETER_DIST_X()
-    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+    : MI_ODOMETER_DIST(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
 MI_ODOMETER_DIST_Y::MI_ODOMETER_DIST_Y()
-    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+    : MI_ODOMETER_DIST(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
 MI_ODOMETER_DIST_Z::MI_ODOMETER_DIST_Z()
-    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+    : MI_ODOMETER_DIST(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
 MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
-    : MI_ODOMETER_DIST(_(label), 0, is_enabled_t::yes, is_hidden_t::no, -1) {
+    : MI_ODOMETER_DIST(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
-    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), 0, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
+    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
         time_t time = (time_t)value;
         constexpr static uint32_t secPerDay = 24 * 60 * 60;
         const struct tm *timeinfo = localtime(&time);
@@ -610,7 +610,7 @@ MI_ODOMETER_TIME::MI_ODOMETER_TIME()
 }
 
 MI_FOOTER_RESET::MI_FOOTER_RESET()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FOOTER_RESET::click(IWindowMenu &window_menu) {

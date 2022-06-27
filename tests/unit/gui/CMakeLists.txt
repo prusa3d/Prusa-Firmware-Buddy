@@ -12,11 +12,12 @@ add_executable(
 # define required search paths
 target_include_directories(
   rectangle_tests PUBLIC ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/guiapi/include
+                         ${CMAKE_SOURCE_DIR}/src/gui
   )
 
 target_include_directories(
   gui_time_tests PUBLIC ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/guiapi/include
-                        ${CMAKE_CURRENT_SOURCE_DIR}
+                        ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/gui
   )
 # tell build system about the test case
 add_catch_test(rectangle_tests)

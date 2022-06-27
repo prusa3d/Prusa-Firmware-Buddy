@@ -235,7 +235,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     fill_between_rectangles(&rc, &rc_pad, clr_bg);
 }
 
-void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr_back, icon_flags flags) {
+void render_icon_align(Rect16 rc, ResourceId id_res, color_t clr_back, icon_flags flags) {
 
     point_ui16_t wh_ico = icon_meas(resource_ptr(id_res));
     if (wh_ico.x && wh_ico.y) {

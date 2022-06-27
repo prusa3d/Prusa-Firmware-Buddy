@@ -16,7 +16,7 @@ protected:
     static string_view_utf8 static_makeViewIntoBuff(float value, buffer_t &buff);
 
 public:
-    IFooterItemAxis(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader);
+    IFooterItemAxis(window_t *parent, ResourceId icon_id, view_maker_cb view_maker, reader_cb value_reader);
 };
 
 /**

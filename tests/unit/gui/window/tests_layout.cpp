@@ -49,7 +49,7 @@ static uint32_t hal_tick = 0;
 uint32_t gui::GetTick() { return hal_tick; }
 void gui::TickLoop() {}
 
-const uint8_t *resource_ptr(uint16_t id) {
+const uint8_t *resource_ptr(ResourceId id) {
     return 0;
 }
 point_ui16_t icon_meas(const uint8_t *pi) {

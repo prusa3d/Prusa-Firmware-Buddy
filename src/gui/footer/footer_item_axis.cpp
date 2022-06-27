@@ -29,7 +29,7 @@ string_view_utf8 IFooterItemAxis::static_makeViewIntoBuff(float value, buffer_t 
     return string_view_utf8::MakeRAM((const uint8_t *)buff.data());
 }
 
-IFooterItemAxis::IFooterItemAxis(window_t *parent, uint16_t icon_id, view_maker_cb view_maker, reader_cb value_reader)
+IFooterItemAxis::IFooterItemAxis(window_t *parent, ResourceId icon_id, view_maker_cb view_maker, reader_cb value_reader)
     : AddSuperWindow<FooterIconText_FloatVal>(parent, icon_id, view_maker, value_reader) {
 }
 

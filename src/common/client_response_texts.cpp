@@ -11,7 +11,7 @@
  * order and count must match to enum class Response in general_response.hpp!
  * TODO make some automatic checks names vs enum
  */
-const std::array<std::pair<const char *, uint16_t>, static_cast<size_t>(Response::_last) + 1> BtnResponse::texts_and_icons {
+const std::array<std::pair<const char *, ResourceId>, static_cast<size_t>(Response::_last) + 1> BtnResponse::texts_and_icons {
     std::make_pair( "", IDR_PNG_question_48px ),                  // _none
     std::make_pair( N_("ABORT"), IDR_PNG_disconnect_48px ),       // Abort
     std::make_pair( "ABS", IDR_PNG_spool_58px ),                  // ABS filament, do not translate

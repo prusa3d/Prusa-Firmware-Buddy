@@ -29,7 +29,7 @@ protected: // inherited by unit tests, must be protected
     static constexpr const char *USBFlashDiskError = N_("USB drive error, the print is now paused. Reconnect the drive.");
 
     struct icon_title_text_t {
-        uint16_t icon;
+        ResourceId icon;
         const char *title;
         const char *text;
     };
@@ -72,7 +72,7 @@ protected: // inherited by unit tests, must be protected
 
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     void show(types type);
-    void setIcon(int16_t resId);
+    void setIcon(ResourceId resId);
 
 public:
     static void ShowHotendFan();

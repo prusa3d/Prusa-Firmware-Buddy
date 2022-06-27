@@ -20,7 +20,7 @@ class MI_UPDATE_LABEL : public WI_LABEL_t {
 
 public:
     MI_UPDATE_LABEL()
-        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {};
+        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {};
@@ -49,7 +49,7 @@ size_t MI_UPDATE::init_index() const {
 }
 
 MI_UPDATE::MI_UPDATE()
-    : WI_SWITCH_t<3>(init_index(), string_view_utf8::MakeNULLSTR(), 0, is_enabled_t::yes, is_hidden_t::no, _(str_0), _(str_1), _(str_2)) {
+    : WI_SWITCH_t<3>(init_index(), string_view_utf8::MakeNULLSTR(), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, _(str_0), _(str_1), _(str_2)) {
 }
 
 void MI_UPDATE::OnChange(size_t /*old_index*/) {
@@ -70,7 +70,7 @@ using MenuContainer = WinMenuContainer<MI_RETURN, MI_UPDATE_LABEL, MI_UPDATE>;
 class ScreenMenuFwUpdate : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("FW UPDATE");
     static constexpr size_t helper_lines = 4;
-    static constexpr int helper_font = IDR_FNT_SPECIAL;
+    static constexpr ResourceId helper_font = IDR_FNT_SPECIAL;
 
     MenuContainer container;
     window_menu_t menu;

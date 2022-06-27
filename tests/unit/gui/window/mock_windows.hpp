@@ -11,6 +11,7 @@
 #include "window_dlg_popup.hpp"
 #include "IDialog.hpp"
 #include "DialogTimed.hpp"
+#include "resource.h"
 
 class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
 protected: // inherited by unit tests, must be protected
@@ -19,7 +20,7 @@ protected: // inherited by unit tests, must be protected
 
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     void show(string_view_utf8 txt); // could use const char *, but with stringview I can pass both translated and not translated texts
-    void setIcon(int16_t resId);
+    void setIcon(ResourceId resId);
 
 public:
     static void ShowHotendFan();

@@ -8,7 +8,7 @@
 #include "guitypes.hpp"
 #include "resource.h"
 
-FooterIcon::FooterIcon(window_t *parent, uint16_t id_res)
+FooterIcon::FooterIcon(window_t *parent, ResourceId id_res)
     : AddSuperWindow<window_icon_t>(
         parent,
         [parent, id_res] {

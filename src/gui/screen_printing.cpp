@@ -28,7 +28,7 @@ enum class Btn {
     Stop
 };
 
-const uint16_t printing_icons[static_cast<size_t>(item_id_t::count)] = {
+const ResourceId printing_icons[static_cast<size_t>(item_id_t::count)] = {
     IDR_PNG_settings_58px,
     IDR_PNG_pause_58px,
     IDR_PNG_pause_58px, //same as pause

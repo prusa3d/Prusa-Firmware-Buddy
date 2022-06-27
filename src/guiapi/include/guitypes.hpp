@@ -2,6 +2,7 @@
 #pragma once
 
 #include "guitypes.h"
+#include "resource.h"
 #include <optional>
 
 enum class EFooter { Off,
@@ -96,10 +97,10 @@ inline padding_ui8_t padding_ui8(uint8_t l, uint8_t t, uint8_t r, uint8_t b) {
 point_ui16_t icon_meas(const uint8_t *pi);
 size_ui16_t icon_size(const uint8_t *pi);
 
-const uint8_t *resource_ptr(uint16_t id);
+const uint8_t *resource_ptr(ResourceId id);
 
-uint16_t resource_size(uint16_t id);
+uint16_t resource_size(ResourceId id);
 
-FILE *resource_fopen(uint16_t id, const char *opentype);
+FILE *resource_fopen(ResourceId id, const char *opentype);
 
-font_t *resource_font(uint16_t id);
+font_t *resource_font(ResourceId id);

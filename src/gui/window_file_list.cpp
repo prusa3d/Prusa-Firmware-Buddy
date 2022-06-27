@@ -235,14 +235,14 @@ Rect16 window_file_list_t::itemRect(int index) const {
     return GetRect().Intersection(rc);
 }
 
-uint16_t window_file_list_t::itemIcon(int index) const {
+ResourceId window_file_list_t::itemIcon(int index) const {
     auto item = ldv.LongFileNameAt(index);
     const bool isFile = item.second == LDV::EntryType::FILE;
     if (!item.first) {
         // this should normally not happen, visible_count shall limit indices to valid items only
         return IDR_NULL; // ... but getting ready for the unexpected
     }
-    uint16_t id_icon = isFile ? IDR_NULL : IDR_PNG_folder_full_16px;
+    ResourceId id_icon = isFile ? IDR_NULL : IDR_PNG_folder_full_16px;
 
     if (index == 0 && strcmp(item.first, "..") == 0 && IsPathRoot(sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
         id_icon = IDR_PNG_home_full_16px;
