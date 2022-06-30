@@ -16,7 +16,7 @@ std::variant<size_t, Error> httpc_data::telemetry(const device_params_t &params,
         strlcpy(device_state_string, "UNKNOWN", len);
         break;
     case DEVICE_STATE_READY:
-        strlcpy(device_state_string, "READY", len);
+        strlcpy(device_state_string, "IDLE", len);
         break;
     case DEVICE_STATE_PRINTING:
         strlcpy(device_state_string, "PRINTING", len);
