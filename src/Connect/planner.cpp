@@ -32,11 +32,11 @@ namespace {
     const constexpr Duration COOLDOWN_BASE = 100;
     // Don't do retries less often than once a minute.
     const constexpr Duration COOLDOWN_MAX = 1000 * 60;
-    // Telemetry every 15 seconds. We may want to have something more clever later on.
-    const constexpr Duration TELEMETRY_INTERVAL = 1000 * 15;
+    // Telemetry every 4 seconds. We may want to have something more clever later on.
+    const constexpr Duration TELEMETRY_INTERVAL = 1000 * 4;
     // If we don't manage to talk to the server for this long, re-init the
     // communication with a new init event.
-    const constexpr Duration RECONNECT_AFTER = 1000 * 120;
+    const constexpr Duration RECONNECT_AFTER = 1000 * 10;
 
     // Just rename for better readability
     Timestamp now() {
