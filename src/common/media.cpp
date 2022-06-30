@@ -83,6 +83,50 @@ media_state_t media_get_state(void) {
     return media_state;
 }
 
+#define FILE_BUFF_SIZE 1536
+static char *file_buff;
+static uint32_t file_buff_level;
+static osThreadId prefetch_thread_id;
+static GCodeFilter::State prefetch_state;
+
+static void media_prefetch(const void *) {
+    prefetch_state = GCodeFilter::State::Ok;
+    for (;;) {
+        if (file_buff_level > 0) {
+            osDelay(10);
+            continue;
+        }
+
+        /* Align reading to media sector boundary to prevent redundant
+           reads at FS level. */
+        size_t pos = ftell(media_print_file);
+        size_t read_len = pos % FF_MAX_SS;
+        if (read_len != 0) {
+            read_len = read_len < FILE_BUFF_SIZE ? read_len : FILE_BUFF_SIZE;
+        } else {
+            read_len = FILE_BUFF_SIZE;
+        }
+        size_t count = fread(file_buff, 1, read_len, media_print_file);
+
+        if (count > 0) {
+            file_buff_level = count;
+            prefetch_state = GCodeFilter::State::Ok;
+            osDelay(10);
+            continue;
+        } else if (feof(media_print_file)) {
+            prefetch_state = GCodeFilter::State::Eof;
+            break;
+        } else if (errno == EAGAIN) {
+            prefetch_state = GCodeFilter::State::Timeout;
+            continue; // Timeout
+        } else {
+            prefetch_state = GCodeFilter::State::Error;
+            break;
+        }
+    }
+}
+osThreadDef(media_prefetch, media_prefetch, osPriorityNormal, 0, 512);
+
 void media_print_start(const char *sfnFilePath) {
     if (media_print_state != media_print_state_NONE) {
         return;
@@ -101,15 +145,23 @@ void media_print_start(const char *sfnFilePath) {
 
     media_print_size = info.st_size;
 
+    if (!file_buff) {
+        file_buff = (char *)malloc(FILE_BUFF_SIZE);
+        // sanity check
+    }
+    file_buff_level = 0;
+
     if ((media_print_file = fopen(sfnFilePath, "rb")) != nullptr) {
         media_gcode_position = media_current_position = 0;
         media_print_state = media_print_state_PRINTING;
+        prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
     } else {
         set_warning(WarningType::USBFlashDiskError);
     }
 }
 
 inline void close_file() {
+    osThreadTerminate(prefetch_thread_id);
     fclose(media_print_file);
     media_print_file = nullptr;
     gcode_filter.reset();
@@ -131,10 +183,12 @@ void media_print_pause(void) {
 void media_print_resume(void) {
     if (media_print_state == media_print_state_PAUSED) {
         if ((media_print_file = fopen(media_print_SFN_path, "rb")) != nullptr) {
-            if (fseek(media_print_file, media_current_position, SEEK_SET) == 0)
+            if (fseek(media_print_file, media_current_position, SEEK_SET) == 0) {
                 media_print_state = media_print_state_PRINTING;
-            else {
+                prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
+            } else {
                 set_warning(WarningType::USBFlashDiskError);
+                osThreadTerminate(prefetch_thread_id);
                 fclose(media_print_file);
                 media_print_file = nullptr;
             }
@@ -167,35 +221,30 @@ float media_print_get_percent_done(void) {
 }
 
 char getByte(GCodeFilter::State *state) {
-    char byte = '\0';
-
     if (media_loop_read == MEDIA_LOOP_MAX_READ) {
         // Don't read too many data at once
         *state = GCodeFilter::State::Skip;
-        return byte;
+        return '\0';
     }
 
-    clearerr(media_print_file);
-    UINT bytes_read = 0;
-    bytes_read = fread(&byte, sizeof(byte), 1, media_print_file);
-
-    if (bytes_read == 1) {
+    if (file_buff_level > 0) {
         *state = GCodeFilter::State::Ok;
         media_current_position++;
         media_loop_read++;
-    } else if (feof(media_print_file)) {
-        *state = GCodeFilter::State::Eof;
-    } else if (errno == EAGAIN) {
-        *state = GCodeFilter::State::Timeout;
-    } else {
-        *state = GCodeFilter::State::Error;
+        return file_buff[FILE_BUFF_SIZE - file_buff_level--];
     }
 
-    return byte;
+    if (prefetch_state != GCodeFilter::State::Eof && prefetch_state != GCodeFilter::State::Error) {
+        *state = GCodeFilter::State::Timeout;
+    } else {
+        *state = prefetch_state;
+    }
+    return '\0';
 }
 
 void media_loop(void) {
     if (media_print_state == media_print_state_PAUSING) {
+        osThreadTerminate(prefetch_thread_id);
         fclose(media_print_file);
         int index_r = queue.index_r;
         media_gcode_position = media_current_position = media_queue_position[index_r];
