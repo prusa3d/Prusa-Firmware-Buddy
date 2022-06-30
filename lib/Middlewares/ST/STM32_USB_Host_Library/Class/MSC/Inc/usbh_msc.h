@@ -184,9 +184,6 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost, uint8_t lun,
 
 USBH_StatusTypeDef USBH_MSC_Write(USBH_HandleTypeDef *phost, uint8_t lun,
                                   uint32_t address, uint8_t *pbuf, uint32_t length);
-
-uint32_t USBH_MSC_GetIndependentTimerTicks();
-
 /**
   * @}
   */
