@@ -13,6 +13,7 @@
 #include "gcode_filter.hpp"
 #include "stdio.h"
 #include <fcntl.h>
+#include <errno.h>
 
 #ifdef REENUMERATE_USB
 
@@ -174,6 +175,7 @@ char getByte(GCodeFilter::State *state) {
         return byte;
     }
 
+    clearerr(media_print_file);
     UINT bytes_read = 0;
     bytes_read = fread(&byte, sizeof(byte), 1, media_print_file);
 
@@ -183,6 +185,8 @@ char getByte(GCodeFilter::State *state) {
         media_loop_read++;
     } else if (feof(media_print_file)) {
         *state = GCodeFilter::State::Eof;
+    } else if (errno == EAGAIN) {
+        *state = GCodeFilter::State::Timeout;
     } else {
         *state = GCodeFilter::State::Error;
     }
@@ -212,7 +216,7 @@ void media_loop(void) {
         GCodeFilter::State state;
         char *gcode = gcode_filter.nextGcode(&state);
 
-        if (state == GCodeFilter::State::Skip) {
+        if (state == GCodeFilter::State::Skip || state == GCodeFilter::State::Timeout) {
             // Unlock the loop
             return;
         }
