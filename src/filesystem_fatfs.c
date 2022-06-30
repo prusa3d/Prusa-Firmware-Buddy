@@ -92,7 +92,7 @@ static int get_errno(FRESULT result) {
     case FR_MKFS_ABORTED:
         return EIO;
     case FR_TIMEOUT:
-        return EIO;
+        return EAGAIN;
     case FR_LOCKED:
         return EBUSY;
     case FR_INVALID_PARAMETER:
