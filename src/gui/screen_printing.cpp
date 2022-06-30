@@ -123,6 +123,8 @@ screen_printing_data_t::screen_printing_data_t()
     , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)
     , w_etime_label(this, Rect16(130, 128, 101, 20), is_multiline::no)
     , w_etime_value(this, Rect16(30, 148, 201, 20), is_multiline::no)
+    , g_queue_num(this, Rect16(10, 113, 100, 15), 0, " G-Queue %d", resource_font(IDR_FNT_SMALL))
+    , p_queue_num(this, Rect16(130, 113, 100, 15), 0, " P-Queue %d", resource_font(IDR_FNT_SMALL))
     , last_print_duration(-1)
     , last_time_to_end(-1)
     , message_timer(0)
@@ -172,6 +174,9 @@ screen_printing_data_t::screen_printing_data_t()
     initAndSetIconAndLabel(btn_pause, res_pause);
     initAndSetIconAndLabel(btn_stop, res_stop);
     change_etime();
+
+    g_queue_num.PrintAsInt32();
+    p_queue_num.PrintAsInt32();
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -180,6 +185,15 @@ extern uint32_t *pCommand;
 #endif
 
 void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
+        if (marlin_vars()->gqueue != (int)g_queue_num.GetValue()) {
+            g_queue_num.SetValue(marlin_vars()->gqueue);
+        }
+        if (marlin_vars()->pqueue != (int)p_queue_num.GetValue()) {
+            p_queue_num.SetValue(marlin_vars()->pqueue);
+        }
+    }
+    update_print_duration(marlin_vars()->print_duration);
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
     if (gui::GetTick() - _last > 300) {

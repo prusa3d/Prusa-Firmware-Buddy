@@ -50,6 +50,8 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     window_text_t w_time_value;
     window_text_t w_etime_label;
     window_text_t w_etime_value;
+    window_numb_t g_queue_num;
+    window_numb_t p_queue_num;
 
     uint32_t last_print_duration;
     uint32_t last_time_to_end;
