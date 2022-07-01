@@ -77,28 +77,46 @@ char getByte(GCodeFilter::State *state);
 static char gcode_buffer[MAX_CMD_SIZE + 1]; // + 1 for NULL char
 static GCodeFilter gcode_filter(&getByte, gcode_buffer, sizeof(gcode_buffer));
 static uint32_t media_loop_read = 0;
-static const constexpr uint32_t MEDIA_LOOP_MAX_READ = 4096;
 
 media_state_t media_get_state(void) {
     return media_state;
 }
 
-#define FILE_BUFF_SIZE 1536
+#define PREFETCH_SIGNAL_START 1
+#define PREFETCH_SIGNAL_STOP  2
+#define PREFETCH_SIGNAL_FETCH 4
+// These buffers are HUGE. We need to rework the prefetcher logic
+// to be more efficient and add compression.
+#define FILE_BUFF_SIZE 5120
+static char prefetch_buff[2][FILE_BUFF_SIZE];
 static char *file_buff;
 static uint32_t file_buff_level;
 static osThreadId prefetch_thread_id;
 static GCodeFilter::State prefetch_state;
+osMutexDef(prefetch_mutex);
+osMutexId(prefetch_mutex_id);
 
 static void media_prefetch(const void *) {
-    prefetch_state = GCodeFilter::State::Ok;
+    file_buff_level = 0;
+    file_buff = prefetch_buff[1];
     for (;;) {
-        if (file_buff_level > 0) {
-            osDelay(10);
+        char *back_buff = prefetch_buff[0];
+        GCodeFilter::State bb_state = GCodeFilter::State::Ok;
+        uint32_t back_buff_level = 0;
+        osEvent event;
+
+        event = osSignalWait(PREFETCH_SIGNAL_START | PREFETCH_SIGNAL_STOP | PREFETCH_SIGNAL_FETCH, osWaitForever);
+        if ((event.value.signals & PREFETCH_SIGNAL_START) == 0) {
             continue;
         }
+        log_info(MarlinServer, "Media prefetch started");
+
+        file_buff_level = 0;
+        file_buff = prefetch_buff[1];
+        prefetch_state = GCodeFilter::State::Ok;
 
         /* Align reading to media sector boundary to prevent redundant
-           reads at FS level. */
+        reads at FS level. */
         size_t pos = ftell(media_print_file);
         size_t read_len = pos % FF_MAX_SS;
         if (read_len != 0) {
@@ -106,26 +124,73 @@ static void media_prefetch(const void *) {
         } else {
             read_len = FILE_BUFF_SIZE;
         }
-        size_t count = fread(file_buff, 1, read_len, media_print_file);
+        size_t count = fread(back_buff, 1, read_len, media_print_file);
 
         if (count > 0) {
-            file_buff_level = count;
-            prefetch_state = GCodeFilter::State::Ok;
-            osDelay(10);
-            continue;
+            back_buff_level = count;
+            bb_state = GCodeFilter::State::Ok;
         } else if (feof(media_print_file)) {
             prefetch_state = GCodeFilter::State::Eof;
-            break;
+            continue;
         } else if (errno == EAGAIN) {
-            prefetch_state = GCodeFilter::State::Timeout;
-            continue; // Timeout
+            bb_state = GCodeFilter::State::Timeout;
         } else {
             prefetch_state = GCodeFilter::State::Error;
-            break;
+            continue;
+        }
+
+        for (;;) {
+            if (file_buff_level == 0 && back_buff_level == 0) {
+                log_warning(MarlinServer, "Media prefetch buffers depleted");
+                if (prefetch_state == GCodeFilter::State::Eof || prefetch_state == GCodeFilter::State::Error) {
+                    break;
+                }
+            }
+            if (file_buff_level > 0 && back_buff_level > 0) {
+                event = osSignalWait(PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_STOP, osWaitForever);
+                if (event.value.signals & PREFETCH_SIGNAL_STOP) {
+                    log_info(MarlinServer, "Media prefetch stopped");
+                    break;
+                }
+            }
+            osMutexWait(prefetch_mutex_id, osWaitForever);
+            if (file_buff_level == 0) {
+                prefetch_state = bb_state;
+                if (back_buff_level > 0) {
+                    if (file_buff == prefetch_buff[0]) {
+                        file_buff = prefetch_buff[1];
+                        back_buff = prefetch_buff[0];
+                    } else {
+                        file_buff = prefetch_buff[0];
+                        back_buff = prefetch_buff[1];
+                    }
+                    file_buff_level = back_buff_level;
+                    back_buff_level = 0;
+                }
+            }
+            osMutexRelease(prefetch_mutex_id);
+            if (back_buff_level == 0 && bb_state != GCodeFilter::State::Error && bb_state != GCodeFilter::State::Eof) {
+                // We don't want other threads holding FS/media locks to inherit high priority
+                osThreadSetPriority(osThreadGetId(), osPriorityNormal);
+                back_buff_level = fread(back_buff, 1, FILE_BUFF_SIZE, media_print_file);
+                osThreadSetPriority(osThreadGetId(), osPriorityHigh);
+
+                if (back_buff_level > 0) {
+                    bb_state = GCodeFilter::State::Ok;
+                } else if (feof(media_print_file)) {
+                    bb_state = GCodeFilter::State::Eof;
+                } else if (errno == EAGAIN) {
+                    bb_state = GCodeFilter::State::Timeout;
+                    log_warning(MarlinServer, "Media prefetch timeout");
+                } else {
+                    bb_state = GCodeFilter::State::Error;
+                    log_error(MarlinServer, "Media prefetch error");
+                }
+            }
         }
     }
 }
-osThreadDef(media_prefetch, media_prefetch, osPriorityNormal, 0, 512);
+osThreadDef(media_prefetch, media_prefetch, osPriorityHigh, 0, 256);
 
 void media_print_start(const char *sfnFilePath) {
     if (media_print_state != media_print_state_NONE) {
@@ -145,23 +210,23 @@ void media_print_start(const char *sfnFilePath) {
 
     media_print_size = info.st_size;
 
-    if (!file_buff) {
-        file_buff = (char *)malloc(FILE_BUFF_SIZE);
+    if (!prefetch_thread_id) {
+        prefetch_mutex_id = osMutexCreate(osMutex(prefetch_mutex));
+        prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
         // sanity check
     }
-    file_buff_level = 0;
 
     if ((media_print_file = fopen(sfnFilePath, "rb")) != nullptr) {
         media_gcode_position = media_current_position = 0;
         media_print_state = media_print_state_PRINTING;
-        prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
+        osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
     } else {
         set_warning(WarningType::USBFlashDiskError);
     }
 }
 
 inline void close_file() {
-    osThreadTerminate(prefetch_thread_id);
+    osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_STOP);
     fclose(media_print_file);
     media_print_file = nullptr;
     gcode_filter.reset();
@@ -185,10 +250,9 @@ void media_print_resume(void) {
         if ((media_print_file = fopen(media_print_SFN_path, "rb")) != nullptr) {
             if (fseek(media_print_file, media_current_position, SEEK_SET) == 0) {
                 media_print_state = media_print_state_PRINTING;
-                prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
+                osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
             } else {
                 set_warning(WarningType::USBFlashDiskError);
-                osThreadTerminate(prefetch_thread_id);
                 fclose(media_print_file);
                 media_print_file = nullptr;
             }
@@ -221,17 +285,21 @@ float media_print_get_percent_done(void) {
 }
 
 char getByte(GCodeFilter::State *state) {
-    if (media_loop_read == MEDIA_LOOP_MAX_READ) {
-        // Don't read too many data at once
-        *state = GCodeFilter::State::Skip;
-        return '\0';
-    }
+    char byte;
+    uint32_t level;
 
+    osMutexWait(prefetch_mutex_id, osWaitForever);
     if (file_buff_level > 0) {
         *state = GCodeFilter::State::Ok;
         media_current_position++;
         media_loop_read++;
-        return file_buff[FILE_BUFF_SIZE - file_buff_level--];
+        byte = file_buff[FILE_BUFF_SIZE - file_buff_level--];
+        level = file_buff_level;
+        osMutexRelease(prefetch_mutex_id);
+        if (level == 0) {
+            osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_FETCH);
+        }
+        return byte;
     }
 
     if (prefetch_state != GCodeFilter::State::Eof && prefetch_state != GCodeFilter::State::Error) {
@@ -239,12 +307,13 @@ char getByte(GCodeFilter::State *state) {
     } else {
         *state = prefetch_state;
     }
+    osMutexRelease(prefetch_mutex_id);
     return '\0';
 }
 
 void media_loop(void) {
     if (media_print_state == media_print_state_PAUSING) {
-        osThreadTerminate(prefetch_thread_id);
+        osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_STOP);
         fclose(media_print_file);
         int index_r = queue.index_r;
         media_gcode_position = media_current_position = media_queue_position[index_r];
@@ -265,7 +334,7 @@ void media_loop(void) {
         GCodeFilter::State state;
         char *gcode = gcode_filter.nextGcode(&state);
 
-        if (state == GCodeFilter::State::Skip || state == GCodeFilter::State::Timeout) {
+        if (state == GCodeFilter::State::Timeout) {
             // Unlock the loop
             return;
         }

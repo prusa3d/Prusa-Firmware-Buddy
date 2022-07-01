@@ -18,7 +18,6 @@ public:
         Ok,
         Eof, // End of file
         Error,
-        Skip, // Skip current processing to unlock the loop
         Timeout
     };
 
