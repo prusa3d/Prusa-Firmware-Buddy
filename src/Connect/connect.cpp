@@ -4,11 +4,13 @@
 #include "os_porting.hpp"
 #include "tls/tls.hpp"
 #include "socket.hpp"
+#include "crc32.h"
 
 #include <cmsis_os.h>
 #include <log.h>
 
 #include <cassert>
+#include <cstring>
 #include <debug.h>
 #include <cstring>
 #include <optional>
@@ -34,6 +36,16 @@ LOG_COMPONENT_DEF(connect, LOG_SEVERITY_DEBUG);
 namespace con {
 
 namespace {
+
+    uint32_t cfg_crc(configuration_t &config) {
+        uint32_t crc = 0;
+        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(config.host), strlen(config.host));
+        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(config.token), strlen(config.token));
+        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&config.port), sizeof config.port);
+        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&config.tls), sizeof config.tls);
+        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&config.enabled), sizeof config.enabled);
+        return crc;
+    }
 
     class BasicRequest final : public Request {
     private:
@@ -184,6 +196,7 @@ public:
         }
         assert(!holds_alternative<monostate>(cache));
     }
+    uint32_t cfg_fingerprint = 0;
 };
 
 connect::ServerResp connect::handle_server_resp(Response resp) {
@@ -243,6 +256,14 @@ optional<Error> connect::communicate(CachedFactory &conn_factory) {
     if (auto *s = get_if<Sleep>(&action)) {
         osDelay(s->milliseconds);
         return nullopt;
+    }
+
+    // Make sure to reconnect if the configuration changes (we ignore the
+    // 1:2^32 possibility of collision).
+    const uint32_t cfg_fingerprint = cfg_crc(config);
+    if (cfg_fingerprint != conn_factory.cfg_fingerprint) {
+        conn_factory.cfg_fingerprint = cfg_fingerprint;
+        conn_factory.invalidate();
     }
 
     // Let it reconnect if it needs it.
