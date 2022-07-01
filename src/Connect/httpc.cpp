@@ -262,6 +262,11 @@ variant<Response, Error> HttpClient::parse_response(Connection *conn) {
             response.leftover_size = rest;
             response.content_type = parser.content_type;
             response.command_id = parser.command_id;
+            if (parser.keep_alive.has_value()) {
+                response.can_keep_alive = *parser.keep_alive;
+            } else {
+                response.can_keep_alive = (parser.version_major == 1) && (parser.version_minor >= 1);
+            }
             return std::move(response);
         }
     }

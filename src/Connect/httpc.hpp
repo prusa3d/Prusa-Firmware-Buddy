@@ -44,6 +44,7 @@ public:
     size_t content_length() const {
         return content_length_rest;
     }
+    bool can_keep_alive = false;
     // Reads another part of body to the buffer.
     //
     // Either returns the number of bytes available or returns an error.
