@@ -19,8 +19,9 @@ const automata::Automaton http_response(con::parser::response::paths, con::parse
 namespace con::parser {
 
 ResponseParser::ResponseParser()
-    : Execution(&http_response) {
-}
+    : Execution(&http_response)
+    , version_major(0)
+    , version_minor(0) {}
 
 ExecutionControl ResponseParser::event(Event event) {
     switch (event.entering_state) {
@@ -52,9 +53,26 @@ ExecutionControl ResponseParser::event(Event event) {
         }
         *command_id = 10 * *command_id + (event.payload - '0');
         return ExecutionControl::Continue;
+    case Names::ConnectionHeader:
+        // This comes when we see a connection header. If we understand it and it's keep-alive one, we amend it.
+        keep_alive = false;
+        return ExecutionControl::Continue;
+    case Names::ConnectionKeepAlive:
+        keep_alive = true;
+        return ExecutionControl::Continue;
+    case Names::Version:
+        switch (event.payload) {
+        case '.':
+            version_major = version_minor;
+            version_minor = 0;
+            return ExecutionControl::Continue;
+        case '0' ... '9':
+            version_minor = 10 * version_minor + (event.payload - '0');
+            return ExecutionControl::Continue;
+        }
+    default:
+        return ExecutionControl::Continue;
     }
-
-    return ExecutionControl::Continue;
 }
 
 }

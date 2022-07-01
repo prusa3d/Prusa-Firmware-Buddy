@@ -105,14 +105,20 @@ constexpr const char *mock_resp = "HTTP/1.1 204 No Content\r\n"
                                   "\r\n";
 
 constexpr const char *mock_resp_body = "HTTP/1.1 200 OK\r\n"
-                                       "Connection: close\r\n"
+                                       "Connection: keep-alive\r\n"
                                        "Content-Length: 11\r\n"
                                        "Content-Type: application/json\r\n"
                                        "Command-Id: 42\r\n"
                                        "\r\n"
                                        "Hello world";
 
-void test_resp_req(const char *server_resp, Status status, ContentType content_type, optional<uint32_t> command_id, const char *body) {
+constexpr const char *mock_resp_no_connection = "HTTP/1.1 204 No Content\r\n"
+                                                "\r\n";
+
+constexpr const char *mock_resp_ancient = "HTTP/1.0 204 No Content\r\n"
+                                          "\r\n";
+
+Response test_resp_req(const char *server_resp, Status status, ContentType content_type, optional<uint32_t> command_id, const char *body) {
     DummyConnection conn;
     conn.received = server_resp;
     Factory factory(&conn);
@@ -144,15 +150,30 @@ void test_resp_req(const char *server_resp, Status status, ContentType content_t
 
     REQUIRE(r.content_type == content_type);
     REQUIRE(r.command_id == command_id);
+
+    return r;
 }
 
 }
 
 TEST_CASE("Request - response no content") {
     // Note: content type is on its default octet-stream = "No idea, bunch of bytes I guess"
-    test_resp_req(mock_resp, Status::NoContent, ContentType::ApplicationOctetStream, nullopt, "");
+    auto r = test_resp_req(mock_resp, Status::NoContent, ContentType::ApplicationOctetStream, nullopt, "");
+    REQUIRE_FALSE(r.can_keep_alive);
 }
 
 TEST_CASE("Request - response with body") {
-    test_resp_req(mock_resp_body, Status::Ok, ContentType::ApplicationJson, 42, "Hello world");
+    auto r = test_resp_req(mock_resp_body, Status::Ok, ContentType::ApplicationJson, 42, "Hello world");
+    REQUIRE(r.can_keep_alive);
+}
+
+TEST_CASE("Request - no connection header") {
+    // Note: content type is on its default octet-stream = "No idea, bunch of bytes I guess"
+    auto r = test_resp_req(mock_resp_no_connection, Status::NoContent, ContentType::ApplicationOctetStream, nullopt, "");
+    REQUIRE(r.can_keep_alive); // Implicit by HTTP/1.1
+}
+TEST_CASE("Request - ancient") {
+    // Note: content type is on its default octet-stream = "No idea, bunch of bytes I guess"
+    auto r = test_resp_req(mock_resp_ancient, Status::NoContent, ContentType::ApplicationOctetStream, nullopt, "");
+    REQUIRE_FALSE(r.can_keep_alive); // Implicit by HTTP/1.0
 }

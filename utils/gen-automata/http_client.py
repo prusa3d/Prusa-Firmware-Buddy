@@ -1,10 +1,11 @@
-from http import content_type, read_header_value, response
+from http import connection_header, content_type, read_header_value, response
 
 if __name__ == "__main__":
     want_headers = {
         'Content-Length': read_header_value('ContentLength'),
         'Content-Type': content_type(),
         'Command-Id': read_header_value('CommandId'),
+        'Connection': connection_header(),
     }
     http, final = response(want_headers)
     compiled = http.compile("con::parser::response")

@@ -200,7 +200,7 @@ def read_boundary():
     return auto, end, False
 
 
-def keyworded_header(keywords):
+def keyworded_header(keywords, entry_name=None):
     """
     Header reader with keywords.
 
@@ -209,6 +209,9 @@ def keyworded_header(keywords):
     auto = Automaton()
     start = auto.start()
     start.loop('HorizWhitespace', LabelType.Special)
+    if entry_name is not None:
+        start.set_name(entry_name)
+        start.mark_enter()
 
     terminals = []
 
@@ -246,10 +249,11 @@ def connection_header():
     our automata-handling utilities) with very little gain, so we cheat a
     little bit.
     """
-    return keyworded_header({
-        'close': 'ConnectionClose',
-        'keep-alive': 'ConnectionKeepAlive',
-    })
+    return keyworded_header(
+        {
+            'close': 'ConnectionClose',
+            'keep-alive': 'ConnectionKeepAlive',
+        }, 'ConnectionHeader')
 
 
 def accept_header():
