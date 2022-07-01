@@ -186,8 +186,7 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
 
     CHECKED(buffer.write_fmt("%s %s HTTP/1.1\r\n", to_str(method), request.url()));
     CHECKED(buffer.header("Host", host));
-    // TODO: Once we _read_ the response, we want Keep-Alive here
-    CHECKED(buffer.header("Connection", "close"));
+    CHECKED(buffer.header("Connection", "keep-alive"));
     if (has_out_body(method)) {
         CHECKED(buffer.header("Transfer-Encoding", "chunked"));
         CHECKED(buffer.header("Content-Type", to_str(request.content_type())));
