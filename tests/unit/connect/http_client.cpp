@@ -91,7 +91,7 @@ public:
 
 constexpr const char *expected_req = "POST /index.html HTTP/1.1\r\n"
                                      "Host: example.com\r\n"
-                                     "Connection: close\r\n"
+                                     "Connection: keep-alive\r\n"
                                      "Transfer-Encoding: chunked\r\n"
                                      "Content-Type: application/json\r\n"
                                      "\r\n"

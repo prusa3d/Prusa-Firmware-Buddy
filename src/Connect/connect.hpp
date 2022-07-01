@@ -15,6 +15,8 @@ enum class RequestType {
 class connect {
 
 private:
+    class CachedFactory;
+
     Planner planner;
     core_interface core; // interface to core functionalities (marlin, network, etc.)
     printer_info_t printer_info;
@@ -22,7 +24,7 @@ private:
     using ServerResp = std::variant<std::monostate, Command, Error>;
 
     // transmission and reception with Connect server
-    std::optional<Error> communicate();
+    std::optional<Error> communicate(CachedFactory &conn_factory);
     ServerResp handle_server_resp(Response response);
 
 public:
