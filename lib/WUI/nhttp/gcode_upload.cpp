@@ -6,6 +6,9 @@
 
 #include <cassert>
 #include <cstring>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/statvfs.h>
 
 extern "C" {
 
@@ -118,6 +121,27 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
         // Missing USB -> Insufficient storage.
         return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing USB drive");
     }
+    struct statvfs svfs;
+    if (statvfs(fname, &svfs) || (svfs.f_bavail * svfs.f_frsize * svfs.f_bsize) < *parser.content_length) {
+        file.reset();
+        remove(fname);
+        return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, "USB drive full");
+    }
+    const size_t csize = svfs.f_frsize * svfs.f_bsize;
+    /* Pre-allocate the area needed for the file to prevent frequent metadata updates during the upload.
+       We do the pre-allocation incrementally cluster-by-cluster to minimize the chance of stalling
+       the media and blocking other tasks potentially waiting for the file system lock.
+       The file size doesn't need to be exactly the size of the uploaded content. We will truncate
+       the file later on. */
+    for (unsigned long sz = csize; sz < *parser.content_length; sz += csize) {
+        if (fseek(file.get(), sz, SEEK_SET)) {
+            file.reset();
+            remove(fname);
+            return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, "USB drive full");
+        }
+    }
+    fsync(fileno(file.get()));
+    fseek(file.get(), 0, SEEK_SET);
 
     char boundary_cstr[boundary.size() + 1];
     memcpy(boundary_cstr, boundary.begin(), boundary.size());
@@ -166,12 +190,17 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
 
 UploadHooks::Result GcodeUpload::data(std::string_view data) {
     assert(tmp_upload_file);
-    const size_t written = fwrite(data.begin(), 1, data.size(), tmp_upload_file.get());
-    if (written < data.size()) {
-        // Data won't fit into the flash drive -> Insufficient stogare.
-        return make_tuple(Status::InsufficientStorage, "USB write error or USB full");
-    } else {
-        return make_tuple(Status::Ok, nullptr);
+    for (;;) {
+        const size_t written = fwrite(data.begin(), 1, data.size(), tmp_upload_file.get());
+        if (written < data.size()) {
+            if (errno == EAGAIN) {
+                continue;
+            }
+            // Data won't fit into the flash drive -> Insufficient stogare.
+            return make_tuple(Status::InsufficientStorage, "USB write error or USB full");
+        } else {
+            return make_tuple(Status::Ok, nullptr);
+        }
     }
 }
 
@@ -235,6 +264,7 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     snprintf(fname, sizeof fname, UPLOAD_TEMPLATE, file_idx);
 
     // Close the file first, otherwise it can't be moved
+    ftruncate(fileno(tmp_upload_file.get()), ftell(tmp_upload_file.get()));
     tmp_upload_file.reset();
     return try_rename(fname, final_filename, [&](const char *filename) -> UploadHooks::Result {
         if (uploaded_notify != nullptr) {
