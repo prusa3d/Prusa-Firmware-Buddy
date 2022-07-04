@@ -34,6 +34,7 @@ if(BOARD MATCHES ".*BUDDY")
             i2c.cpp
             ini_handler.c
             jsmn.c
+            json_encode.c
             lang.cpp
             language_eeprom.cpp
             lfn.c

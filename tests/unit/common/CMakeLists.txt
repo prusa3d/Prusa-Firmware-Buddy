@@ -75,6 +75,12 @@ add_executable(json_search_tests ${CMAKE_SOURCE_DIR}/src/common/jsmn.c search_js
 target_include_directories(
   json_search_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/lib/jsmn
   )
+add_executable(
+  json_encode_tests ${CMAKE_CURRENT_SOURCE_DIR}/json_encode_tests.cpp
+                    ${CMAKE_SOURCE_DIR}/src/common/json_encode.c
+  )
+target_include_directories(json_encode_tests PRIVATE . ${CMAKE_SOURCE_DIR}/src/common)
+
 add_catch_test(support_utils_tests)
 add_catch_test(variant8_tests)
 add_catch_test(str_utils_tests)
@@ -87,3 +93,4 @@ add_catch_test(algorithm_range_tests)
 add_catch_test(algorithm_scale_tests)
 add_catch_test(median_tests)
 add_catch_test(json_search_tests)
+add_catch_test(json_encode_tests)

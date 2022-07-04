@@ -1,5 +1,6 @@
 #include "segmented_json.h"
-#include "../json_encode.h"
+
+#include <json_encode.h>
 
 #include <cassert>
 #include <cstdio>

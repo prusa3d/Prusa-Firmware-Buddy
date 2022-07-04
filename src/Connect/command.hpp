@@ -15,7 +15,7 @@ struct Gcode {
 };
 struct SendInfo {};
 struct SendJobInfo {
-    uint32_t job_id;
+    uint16_t job_id;
 };
 
 using CommandData = std::variant<UnknownCommand, BrokenCommand, Gcode, SendInfo, SendJobInfo>;

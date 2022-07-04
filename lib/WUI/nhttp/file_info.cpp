@@ -3,11 +3,11 @@
 #include "headers.h"
 #include "status_page.h"
 #include "segmented_json_macros.h"
-#include "../json_encode.h"
 #include "../../src/common/lfn.h"
 #include "../../src/common/gcode_filename.h"
 
 #include <http/chunked.h>
+#include <json_encode.h>
 
 #include <cstring>
 #include <sys/stat.h>

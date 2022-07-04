@@ -1,43 +1,38 @@
 #include "httpc_data.hpp"
 #include "core_interface.hpp"
 #include "os_porting.hpp"
+#include <json_encode.h>
 #include <cstring>
 #include <cstdio>
 #include <cinttypes>
 
 namespace con {
 
-std::variant<size_t, Error> httpc_data::telemetry(const device_params_t &params, char *buffer, size_t buffer_len) {
-    constexpr size_t len = 10;
-    char device_state_string[len];
+namespace {
 
-    switch (params.state) {
-    case DEVICE_STATE_UNKNOWN:
-        strlcpy(device_state_string, "UNKNOWN", len);
-        break;
-    case DEVICE_STATE_READY:
-        strlcpy(device_state_string, "IDLE", len);
-        break;
-    case DEVICE_STATE_PRINTING:
-        strlcpy(device_state_string, "PRINTING", len);
-        break;
-    case DEVICE_STATE_PAUSED:
-        strlcpy(device_state_string, "PAUSED", len);
-        break;
-    case DEVICE_STATE_FINISHED:
-        strlcpy(device_state_string, "FINISHED", len);
-        break;
-    case DEVICE_STATE_PREPARED:
-        strlcpy(device_state_string, "PREPARED", len);
-        break;
-    case DEVICE_STATE_ERROR:
-        strlcpy(device_state_string, "ERROR", len);
-        break;
-    default:
-        return Error::INVALID_PARAMETER_ERROR;
-        break;
+    const char *to_str(const device_state &state) {
+        switch (state) {
+        case DEVICE_STATE_READY:
+            return "IDLE";
+        case DEVICE_STATE_PRINTING:
+            return "PRINTING";
+        case DEVICE_STATE_PAUSED:
+            return "PAUSED";
+        case DEVICE_STATE_FINISHED:
+            return "FINISHED";
+        case DEVICE_STATE_PREPARED:
+            return "PREPARED";
+        case DEVICE_STATE_ERROR:
+            return "ERROR";
+        case DEVICE_STATE_UNKNOWN:
+        default:
+            return "UNKNOWN";
+        }
     }
 
+}
+
+std::variant<size_t, Error> httpc_data::telemetry(const device_params_t &params, char *buffer, size_t buffer_len) {
     int bytes_written = snprintf(
         buffer, buffer_len,
         "{"
@@ -61,7 +56,7 @@ std::variant<size_t, Error> httpc_data::telemetry(const device_params_t &params,
         (double)params.pos[Z_AXIS_POS],
         params.print_speed,
         params.flow_factor,
-        device_state_string);
+        to_str(params.state));
 
     std::variant<size_t, Error> ret;
 
@@ -89,6 +84,35 @@ std::variant<size_t, Error> httpc_data::info(const printer_info_t &info, char *b
         "}",
         command_id, info.firmware_version, info.serial_number,
         info.appendix ? "true" : "false", info.fingerprint, info.printer_type);
+
+    std::variant<size_t, Error> ret;
+    if ((bytes_written >= (int)buffer_len) || (bytes_written < 0))
+        ret = Error::ERROR;
+    else
+        ret = (size_t)bytes_written;
+
+    return ret;
+}
+
+std::variant<size_t, Error> httpc_data::job_info(const device_params_t &params, char *buffer, const uint32_t buffer_len, uint32_t command_id) {
+    // TODO: Is it OK that we send this even if we are no longer printing and it can be somewhat "stale"?
+    const char *path = params.job_path;
+    JSONIFY_STR(path);
+    int bytes_written = snprintf(
+        buffer, buffer_len,
+        "{"
+        "\"event\":\"JOB_INFO\","
+        "\"command_id\":%" PRIu32 ","
+        "\"job_id\":%" PRIu16 ","
+        "\"data\": {" // data object start
+        "\"path\": \"%s\""
+        "}," // data end
+        "\"state\": \"%s\""
+        "}",
+        command_id,
+        params.job_id,
+        path_escaped,
+        to_str(params.state));
 
     std::variant<size_t, Error> ret;
     if ((bytes_written >= (int)buffer_len) || (bytes_written < 0))

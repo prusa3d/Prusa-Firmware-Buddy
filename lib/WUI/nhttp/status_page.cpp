@@ -1,7 +1,8 @@
 #include "status_page.h"
 #include "handler.h"
 #include "headers.h"
-#include "../json_encode.h"
+
+#include <json_encode.h>
 
 #include <algorithm>
 #include <cassert>
