@@ -23,7 +23,7 @@ Command Command::gcode_command(CommandId id, const string_view &body) {
     // std::string? But that's dynamic allocation :-(.
     return Command {
         id,
-        CommandType::Gcode,
+        Gcode {},
     };
 }
 
@@ -39,7 +39,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body) {
         parse_result = jsmn_parse(&parser, body.data(), body.size(), tokens, sizeof tokens / sizeof *tokens);
     } // Free the parser
 
-    CommandType command_type = CommandType::Unknown;
+    CommandData data = UnknownCommand {};
 
     // Error from jsmn_parse will lead to -1 -> converted to 0, refused by json::search as Broken.
     const bool success = json::search(body.data(), tokens, std::max(parse_result, 0), [&](const Event &event) {
@@ -48,19 +48,19 @@ Command Command::parse_json_command(CommandId id, const string_view &body) {
         }
         if (event.key == "command") {
             if (event.value == "SEND_INFO") {
-                command_type = CommandType::SendInfo;
+                data = SendInfo {};
             }
         }
     });
 
     if (!success) {
-        command_type = CommandType::Broken;
+        data = BrokenCommand {};
     }
 
     // Good. We have a "parsed" json.
     return Command {
         id,
-        command_type,
+        data,
     };
 }
 

@@ -202,7 +202,7 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
         // have no idea what to do about it / how to even parse it.
         return Command {
             command_id,
-            CommandType::Unknown,
+            UnknownCommand {},
         };
     }
 }
@@ -271,7 +271,7 @@ optional<Error> connect::communicate() {
                     planner.action_done(ActionResult::Failed);
                     planner.command(Command {
                         resp.command_id.value(),
-                        CommandType::Broken,
+                        BrokenCommand {},
                     });
                     conn_factory.invalidate();
                     return arg;
