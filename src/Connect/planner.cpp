@@ -7,6 +7,7 @@
 using std::min;
 using std::nullopt;
 using std::optional;
+using std::visit;
 
 namespace con {
 
@@ -142,33 +143,40 @@ void Planner::action_done(ActionResult result) {
     }
 }
 
+void Planner::command(const Command &command, const UnknownCommand &) {
+    planned_event = Event { EventType::Rejected, command.id };
+}
+
+void Planner::command(const Command &command, const BrokenCommand &) {
+    planned_event = Event { EventType::Rejected, command.id };
+}
+
+void Planner::command(const Command &command, const Gcode &) {
+    // TODO: Implement
+    planned_event = Event { EventType::Rejected, command.id };
+}
+
+void Planner::command(const Command &command, const SendInfo &) {
+    planned_event = Event {
+        EventType::Info,
+        command.id,
+    };
+}
+
+void Planner::command(const Command &command, const SendJobInfo &) {
+    // TODO
+}
+
 void Planner::command(Command command) {
     // We can get commands only as result of telemetry, not of other things.
     // TODO: We probably want to have some more graceful way to deal with the
     // server sending us the command as a result to something else anyway.
     assert(!planned_event.has_value());
-    switch (command.type) {
-    case CommandType::Unknown:
-    case CommandType::Broken:
-        planned_event = Event {
-            EventType::Rejected,
-            command.id,
-        };
-        break;
-    case CommandType::Gcode:
-        // TODO: Implement
-        planned_event = Event {
-            EventType::Rejected,
-            command.id,
-        };
-        break;
-    case CommandType::SendInfo:
-        planned_event = Event {
-            EventType::Info,
-            command.id,
-        };
-        break;
-    }
+
+    visit([&](const auto &arg) {
+        this->command(command, arg);
+    },
+        command.command_data);
 }
 
 }

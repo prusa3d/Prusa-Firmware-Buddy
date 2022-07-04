@@ -74,6 +74,13 @@ private:
     /// want to keep the value in case the retry also fails.
     bool perform_cooldown;
 
+    // Handlers for specific commands.
+    void command(const Command &, const BrokenCommand &);
+    void command(const Command &, const UnknownCommand &);
+    void command(const Command &, const Gcode &);
+    void command(const Command &, const SendInfo &);
+    void command(const Command &, const SendJobInfo &);
+
 public:
     Planner() {
         reset();

@@ -112,14 +112,14 @@ TEST_CASE("Unknown / broken command refused") {
     SECTION("Unknown") {
         planner.command(Command {
             1,
-            CommandType::Unknown,
+            UnknownCommand {},
         });
     }
 
     SECTION("Broken") {
         planner.command(Command {
             1,
-            CommandType::Broken,
+            BrokenCommand {},
         });
     }
 
@@ -142,7 +142,7 @@ TEST_CASE("Send info request") {
 
     planner.command(Command {
         1,
-        CommandType::SendInfo,
+        SendInfo {},
     });
 
     event_info(planner);
