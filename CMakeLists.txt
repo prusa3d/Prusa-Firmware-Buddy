@@ -511,16 +511,6 @@ set_property(
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_SERIAL_PRINT=$<BOOL:${HAS_SERIAL_PRINT}>
   )
-# Due to the wrong use of interface library for WUI, the flag "GENERATED" is not properly propagated
-# and cmake fails. This sets it manually and makes it work.
-#
-# Newer cmake (3.20) should fix this and can be removed.
-#
-# https://github.com/prusa3d/Prusa-Firmware-Buddy/pull/1790#issuecomment-1010525282
-set_property(
-  SOURCE ${CMAKE_BINARY_DIR}/lib/WUI/http_req_automaton.cpp
-         ${CMAKE_BINARY_DIR}/src/Connect/http_resp_automaton.cpp PROPERTY GENERATED 1
-  )
 
 if(NOT CMAKE_CROSSCOMPILING)
   enable_testing()
