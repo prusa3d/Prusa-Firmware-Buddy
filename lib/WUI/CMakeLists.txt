@@ -4,7 +4,6 @@ target_sources(
   WUI
   INTERFACE wui.cpp
             netdev.c
-            json_encode.c
             wui_api.cpp
             nhttp/multipart_parser.c
             nhttp/upload_state.cpp

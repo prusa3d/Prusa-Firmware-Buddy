@@ -163,8 +163,12 @@ void Planner::command(const Command &command, const SendInfo &) {
     };
 }
 
-void Planner::command(const Command &command, const SendJobInfo &) {
-    // TODO
+void Planner::command(const Command &command, const SendJobInfo &params) {
+    planned_event = Event {
+        EventType::JobInfo,
+        command.id,
+        params.job_id,
+    };
 }
 
 void Planner::command(Command command) {

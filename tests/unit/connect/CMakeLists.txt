@@ -10,6 +10,7 @@ add_executable(
   http_client.cpp
   missing_functions.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
+  ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   )
 target_include_directories(
   connect_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/Connect

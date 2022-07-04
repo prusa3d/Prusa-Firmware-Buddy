@@ -99,6 +99,15 @@ namespace {
                 httpc_data renderer;
                 return renderer.info(info, data, size, event.command_id.value_or(0));
             }
+            case EventType::JobInfo: {
+                device_params_t params = core.get_data();
+                if (event.job_id.has_value() && *event.job_id == params.job_id) {
+                    httpc_data renderer;
+                    return renderer.job_info(params, data, size, event.command_id.value_or(0));
+                }
+                // else -> fall through
+                // Because we don't have this job ID at hand.
+            }
             case EventType::Accepted:
             case EventType::Rejected: {
                 // These events are always results of some commant we've received.

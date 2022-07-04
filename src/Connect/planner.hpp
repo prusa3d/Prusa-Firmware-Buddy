@@ -23,6 +23,7 @@ struct SendTelemetry {
 
 enum class EventType {
     Info,
+    JobInfo,
     Rejected,
     Accepted,
 };
@@ -32,6 +33,7 @@ const char *to_str(EventType event);
 struct Event {
     EventType type;
     std::optional<CommandId> command_id;
+    std::optional<uint16_t> job_id;
 };
 
 using Action = std::variant<

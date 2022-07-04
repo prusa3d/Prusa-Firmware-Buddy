@@ -158,6 +158,8 @@ device_params_t core_interface::get_data() {
         params.pos[Z_AXIS_POS] = marlin_vars->pos[Z_AXIS_POS];
         params.print_speed = marlin_vars->print_speed;
         params.flow_factor = marlin_vars->flow_factor;
+        params.job_id = marlin_vars->job_id;
+        params.job_path = marlin_vars->media_SFN_path;
     }
 
     return params;
@@ -166,6 +168,14 @@ device_params_t core_interface::get_data() {
 core_interface::core_interface() {
     marlin_vars = marlin_client_init();
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
+    if (marlin_vars) {
+        /*
+         * Note: We currently have only a single marlin client for
+         * connect, we can use a single buffer.
+         */
+        static char SFN_path[FILE_PATH_BUFFER_LEN];
+        marlin_vars->media_SFN_path = SFN_path;
+    }
 }
 
 printer_info_t core_interface::get_printer_info() {

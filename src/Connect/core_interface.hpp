@@ -64,8 +64,10 @@ struct device_params_t {
     float target_nozzle;
     float target_bed;
     float pos[4];
+    const char *job_path;
     uint16_t print_speed;
     uint16_t flow_factor;
+    uint16_t job_id;
     device_state state;
 };
 
