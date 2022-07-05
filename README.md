@@ -41,8 +41,8 @@ idf.py -p /dev/ttyXXX flash
 - Make sure your Linux supports tap devices
 - Compile this
 - Flash the binary into ESP
-- Tune constants in tap/tap.py
-- Run tap/tap.py
+- Tune constants in tap/tap.py. Make sure that baud rate is the same in [`uart_nic.c`](https://github.com/prusa3d/Prusa-ESP-Nic-FW/blob/ad19ee3019a352415be7a1d6c2579c7bae379c35/main/uart_nic.c#L427) and `tap.py`
+- Run tap/tap.py. _Note: If it doesn't print `TAP: ESP FW version: ...` or `TAP: Device info mac ...`, there's a problem with the serial connection and you may need to reduce baud rate to i.e. 1000000 and reflash._
 - Check tap device was created
-- (Run dhcp client on tap device)
+- Run dhcp client on tap device, i.e. `sudo dhclient tap0`
 - Check this works as (terribly slow) network interface
