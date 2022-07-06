@@ -42,7 +42,8 @@ const std::array<std::pair<const char *, ResourceId>, static_cast<size_t>(Respon
     std::make_pair( N_("SKIP"), IDR_PNG_back_32px ),              // Skip
     std::make_pair( N_("STOP"), IDR_PNG_stop_58px  ),             // Stop
     std::make_pair( N_("UNLOAD"), IDR_PNG_spool_58px ),           // Unload
-    std::make_pair( N_("YES"), IDR_NULL )                         // Yes
+    std::make_pair( N_("YES"), IDR_NULL ),                        // Yes
+    std::make_pair( "PHA", IDR_PNG_spool_58px ),                  // PHA filament, do not translate
 };
 // clang-format on
 

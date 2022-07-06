@@ -25,6 +25,7 @@ static constexpr const char *abs_str =   "ABS      255/100";
 static constexpr const char *hips_str =  "HIPS     220/100";
 static constexpr const char *pp_str =    "PP       240/100";
 static constexpr const char *flex_str =  "FLEX     240/ 50";
+static constexpr const char *pha_str =   "PHA      195/  0";
 
 const Filaments::Array filaments = {
     { "---", BtnResponse::GetText(Response::Cooldown),   0,    0,   0, Response::Cooldown }, // Cooldown sets long text instead short, not a bug
@@ -37,6 +38,7 @@ const Filaments::Array filaments = {
     { BtnResponse::GetText(Response::HIPS), hips_str,   220, 170, 100, Response::HIPS },
     { BtnResponse::GetText(Response::PP), pp_str,       240, 170, 100, Response::PP },
     { BtnResponse::GetText(Response::FLEX), flex_str,   240, 170,  50, Response::FLEX },
+    { BtnResponse::GetText(Response::PHA), pha_str,     195, 170,   0, Response::FLEX },
 };
 // clang-format on
 

@@ -53,7 +53,8 @@ protected:
                       MI_Filament<filament_t::ABS>,  \
                       MI_Filament<filament_t::HIPS>, \
                       MI_Filament<filament_t::PP>,   \
-                      MI_Filament<filament_t::FLEX>
+                      MI_Filament<filament_t::FLEX>, \
+                      MI_Filament<filament_t::PHA>
 
 //TODO try to use HIDDEN on return and filament_t::NONE
 //has both return and cooldown

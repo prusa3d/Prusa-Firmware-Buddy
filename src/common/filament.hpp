@@ -29,7 +29,8 @@ enum class filament_t {
     HIPS,
     PP,
     FLEX,
-    _last = FLEX
+    PHA,
+    _last = PHA
 };
 
 class Filaments {
