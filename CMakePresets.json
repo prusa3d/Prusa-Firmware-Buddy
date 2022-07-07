@@ -9,7 +9,7 @@
         {
             "name": "mini_debug_boot",
             "generator": "Ninja",
-            "binaryDir": "build-vscode",
+            "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
                 "CMAKE_MAKE_PROGRAM": {
                     "type": "FILEPATH",
@@ -64,7 +64,7 @@
         {
             "name": "mini_debug_noboot",
             "generator": "Ninja",
-            "binaryDir": "build-vscode",
+            "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
                 "CMAKE_MAKE_PROGRAM": {
                     "type": "FILEPATH",
@@ -119,7 +119,7 @@
         {
             "name": "mini_release_boot",
             "generator": "Ninja",
-            "binaryDir": "build-vscode",
+            "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
                 "CMAKE_MAKE_PROGRAM": {
                     "type": "FILEPATH",
@@ -174,7 +174,7 @@
         {
             "name": "mini_release_noboot",
             "generator": "Ninja",
-            "binaryDir": "build-vscode",
+            "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
                 "CMAKE_MAKE_PROGRAM": {
                     "type": "FILEPATH",

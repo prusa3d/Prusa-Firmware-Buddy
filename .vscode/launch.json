@@ -4,7 +4,7 @@
         {
             "name": "Cortex Debug",
             "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
@@ -23,7 +23,7 @@
         {
             "name": "JLink",
             "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "jlink",
@@ -42,7 +42,7 @@
         {
             "name": "JLink 2MB",
             "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "jlink",
@@ -61,7 +61,7 @@
         {
             "name": "JLink attach",
             "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "jlink",
@@ -80,7 +80,7 @@
         {
             "name": "JLink attach 2MB",
             "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "jlink",
@@ -100,7 +100,7 @@
             "name": "GDB (QEMU)",
             "type": "gdb",
             "request": "attach",
-            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "target": ":1234",
             "remote": true,
             "cwd": "${workspaceRoot}",
