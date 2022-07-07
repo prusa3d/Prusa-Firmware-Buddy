@@ -487,9 +487,16 @@ class CMakePresetsGenerator:
             return value
 
     @staticmethod
+    def build_dir_for_configuration(configuration: BuildConfiguration) -> str:
+        if isinstance(configuration, FirmwareBuildConfiguration):
+            return 'build-vscode-buddy'
+        else:
+            return 'build-vscode-host'
+
+    @staticmethod
     def generate_cmake_preset(configuration: BuildConfiguration):
-        build_dir = 'build-vscode' if isinstance(
-            configuration, FirmwareBuildConfiguration) else 'build-vscode-host'
+        build_dir = CMakePresetsGenerator.build_dir_for_configuration(
+            configuration)
         return {
             'name': configuration.name,
             'generator': configuration.generator,
