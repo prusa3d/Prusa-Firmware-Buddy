@@ -23,8 +23,8 @@ screen_splash_data_t::screen_splash_data_t()
     , text_progress(this, Rect16(10, 171, 220, 29), is_multiline::no)
     , progress(this, Rect16(10, 200, 220, 15), 15, COLOR_ORANGE, COLOR_GRAY)
     , text_version(this, Rect16(0, 295, 240, 22), is_multiline::no)
-    , icon_logo_buddy(this, Rect16(), 0)  //unused?
-    , icon_logo_marlin(this, Rect16(), 0) //unused?
+    , icon_logo_buddy(this, Rect16(), IDR_NULL)  //unused?
+    , icon_logo_marlin(this, Rect16(), IDR_NULL) //unused?
     , icon_debug(this, Rect16(80, 215, 80, 80), IDR_PNG_marlin_logo) {
     super::ClrMenuTimeoutClose();
 
