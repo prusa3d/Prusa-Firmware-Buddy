@@ -52,6 +52,7 @@ int guimain_spi_test = 0;
 #include "dump.h"
 #include "gui_media_events.hpp"
 #include "main.h"
+#include "bsod.h"
 extern void blockISR(); // do not want to include marlin temperature
 
 #ifdef USE_ST7789
@@ -149,6 +150,8 @@ static void finish_update() {
                 case buddy::bootloader::UpdateStage::Updating:
                     stage_description = "Updating bootloader";
                     break;
+                default:
+                    bsod("unreachable");
                 }
 
                 _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootloader update progress %s (%i %%)", stage_description, percent_done);
@@ -172,6 +175,8 @@ static void finish_update() {
                 case buddy::resources::BootstrapStage::CopyingFiles:
                     stage_description = "Installing files";
                     break;
+                default:
+                    bsod("unreachable");
                 }
 
                 _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootstrap progress %s (%i %%)", stage_description, percent_done);

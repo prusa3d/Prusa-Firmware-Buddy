@@ -7,14 +7,10 @@
 
 #pragma once
 
-//warning include of <string.h> and "FreeRTOS.h"
-//causing error: field 'xDummy17' has incomplete type '{anonymous}::_reent'
-namespace {
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "FreeRTOS.h"      //must apper before include task.h
 #include "task.h"          //critical sections
 #include "cmsis_os.h"      //osDelay
-};
 
 class Rtos {
 public:

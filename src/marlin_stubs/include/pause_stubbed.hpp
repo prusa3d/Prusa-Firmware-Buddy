@@ -7,7 +7,8 @@
  */
 
 #pragma once
-#include "stdint.h"
+#include <stdint.h>
+#include <limits.h>
 #include "pause_settings.hpp"
 #include "client_response.hpp"
 #include "pause_settings.hpp"

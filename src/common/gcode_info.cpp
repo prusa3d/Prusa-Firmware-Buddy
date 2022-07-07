@@ -76,6 +76,8 @@ bool GCodeInfo::initFile(GI_INIT_t init) {
         while (f_gcode_get_next_comment_assignment(
             file, name_buffer, sizeof(name_buffer), value_buffer, sizeof(value_buffer))) {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
             if (name_comparer(gcode_info::time)) {
                 snprintf(printing_time, sizeof(printing_time), "%s", value_buffer);
             } else if (name_comparer(gcode_info::filament_type)) {
@@ -92,6 +94,7 @@ bool GCodeInfo::initFile(GI_INIT_t init) {
                     valid_printer_settings = false; // GCODE is for another Prusa printer model
                 }
             }
+#pragma GCC diagnostic pop
         }
     }
     return true;
