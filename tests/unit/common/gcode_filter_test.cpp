@@ -50,7 +50,7 @@ unsigned int loop_read = 0;
 
 char getByte(GCodeFilter::State *state) {
     if (loop_read == LOOP_MAX_READ) {
-        *state = GCodeFilter::State::Skip;
+        *state = GCodeFilter::State::Timeout;
         return '\0';
     }
     if (processed_chars == gcode_size) {
@@ -73,7 +73,7 @@ TEST_CASE("gcode-filter", "") {
         // Check the Skip functionality (unlocking loop after specified size read)
         CHECK(loop_read <= LOOP_MAX_READ);
         if (loop_read == LOOP_MAX_READ) {
-            CHECK(state == GCodeFilter::State::Skip);
+            CHECK(state == GCodeFilter::State::Timeout);
             CHECK(gcode == NULL);
             previous_processed_chars = processed_chars;
             loop_read = 0;
