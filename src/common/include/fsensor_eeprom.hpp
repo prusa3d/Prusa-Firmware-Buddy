@@ -7,9 +7,7 @@
 
 #pragma once
 
-namespace {
 #include "eeprom.h"
-};
 
 class FSensorEEPROM {
 public:
