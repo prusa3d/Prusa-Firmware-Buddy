@@ -3,6 +3,8 @@
 #include "cmsis_os.h"
 #include "bsod.h"
 
+#undef _RETARGETABLE_LOCKING
+
 #if !defined(_RETARGETABLE_LOCKING)
     #include <sys/iosupport.h>
 #endif
