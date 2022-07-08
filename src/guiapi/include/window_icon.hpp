@@ -23,25 +23,39 @@ struct window_icon_t : public AddSuperWindow<window_aligned_t> {
     union DataSourceId {
         ResourceId id_res;
         FILE *file;
-        uint32_t test; // Just for ease of identifying the content
-        static_assert(sizeof(FILE *) == sizeof(test), "The test role should encompass all possible data lengths, handling relies on this");
+        uint32_t whole; // Complete union cast to an integral type, must fit whole union
+        static_assert(sizeof(FILE *) == sizeof(whole), "The test role should encompass all possible data lengths, handling relies on this");
 
         // Basic assumption is that valid pointers have addresses
         // higher than 0xffff due to the STM32 memory layout
-        bool isFromFile() const { return this->test > 0xffff; }
-        bool isFromResource() const { return this->test <= 0xffff; }
+        bool isFromFile() const { return this->whole > 0xffff; }
+        bool isFromResource() const { return this->whole <= 0xffff; }
         DataSourceId(FILE *f)
-            : file(f) {}
+            : file(f) // Cast to whole will replace all content and rise an error if pointer size is greater
+        {
+            assert(isFromFile());
+        }
+
         DataSourceId(ResourceId id)
-            : id_res(id) {}
+            : whole(static_cast<decltype(whole)>(id)) // Cast to longest to overwrite even the unused space of the union
+        {
+            assert(isFromResource());
+        }
+
+        void set(const DataSourceId &other) {
+            if (this->isFromFile())
+                fclose(this->file);
+            this->whole = other.whole; // Make exact copy and fill the whole union with it
+        }
     };
 
-    DataSourceId dataSource { nullptr };
+    DataSourceId dataSource { IDR_NULL };
 
     ResourceId GetIdRes() const {
         assert(dataSource.isFromResource());
         return dataSource.id_res;
     }
+
     void SetIdRes(ResourceId id);
 
     FILE *getFile() const {
