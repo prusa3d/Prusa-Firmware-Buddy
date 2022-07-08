@@ -230,6 +230,7 @@ static int open_r(struct _reent *r, void *fileStruct, const char *path, int flag
         return -1;
     }
 
+    f->flags = 0;
     if (flags & O_SYNC) {
         f->flags |= FLAG_SYNC;
     }
