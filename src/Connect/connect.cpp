@@ -83,7 +83,7 @@ namespace {
             if (telemetry.empty) {
                 assert(size > 2);
                 memcpy(data, "{}", 2);
-                return 2;
+                return static_cast<size_t>(2);
             } else {
                 device_params_t params = core.get_data();
                 httpc_data renderer;
@@ -110,7 +110,7 @@ namespace {
             }
             default:
                 assert(0);
-                return 0;
+                return static_cast<size_t>(0);
             }
         }
 
