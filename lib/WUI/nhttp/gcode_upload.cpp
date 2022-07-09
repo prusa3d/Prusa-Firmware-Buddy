@@ -38,26 +38,61 @@ GcodeUpload::GcodeUpload(UploadState uploader, bool json_errors, size_t length, 
     , uploaded_notify(uploaded)
     , size_rest(length)
     , json_errors(json_errors)
+    , cleanup_temp_file(true)
     , tmp_upload_file(move(file))
     , file_idx(upload_idx) {
 }
 
-GcodeUpload::~GcodeUpload() {
-    // The file would close on its own without us doing anything. But we
-    // also want to remove it, which we do manually here.
-    //
-    // Note that the default move constructor/operator works fine, it sets
-    // the original to null.
-    //
-    // It may so happen it's already renamed, in which case the remove simply
-    // fails.
-    tmp_upload_file.reset();
-    char fname[TMP_BUFF_LEN];
-    snprintf(fname, sizeof fname, UPLOAD_TEMPLATE, file_idx);
-    remove(fname);
+GcodeUpload::GcodeUpload(GcodeUpload &&other)
+    : uploader(move(other.uploader))
+    , uploaded_notify(other.uploaded_notify)
+    , size_rest(other.size_rest)
+    , json_errors(other.json_errors)
+    , cleanup_temp_file(other.cleanup_temp_file)
+    , tmp_upload_file(move(other.tmp_upload_file))
+    , file_idx(other.file_idx) {
+    // The ownership of the temp file is passed to the new instance.
+    other.cleanup_temp_file = false;
 }
 
-void GcodeUpload::delete_file() {
+GcodeUpload &GcodeUpload::operator=(GcodeUpload &&other) {
+    uploader = move(other.uploader);
+    uploaded_notify = other.uploaded_notify;
+    size_rest = other.size_rest;
+    json_errors = other.json_errors;
+
+    cleanup_temp_file = other.cleanup_temp_file;
+    // The ownership of the temp file is passed to the new instance.
+    other.cleanup_temp_file = false;
+
+    tmp_upload_file = move(other.tmp_upload_file);
+    file_idx = other.file_idx;
+
+    return *this;
+}
+
+GcodeUpload::~GcodeUpload() {
+    if (cleanup_temp_file) {
+        // This is area is entered in the last instance in a move chain. Note
+        // that even in that case, the tmp_upload_file may be null (already
+        // closed, before attempt to rename it) and the temp file to remove not
+        // exist (because it got moved).
+        //
+        // This code is mostly responsible for cleanup during failure cases
+        // (the success case being the above).
+        //
+        // We still perform the attempt to remove it even in case the file is
+        // already closed (and therefore nullptr) because there _is_ a failure
+        // case where we closed the file before renaming and failed to rename.
+        // Even in that case we want to remove the temp file.
+        tmp_upload_file.reset();
+        char fname[TMP_BUFF_LEN];
+        snprintf(fname, sizeof fname, UPLOAD_TEMPLATE, file_idx);
+        remove(fname);
+    } else {
+        // Leftover open file in moved object :-O
+        assert(tmp_upload_file.get() == nullptr);
+    }
 }
 
 GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors) {
