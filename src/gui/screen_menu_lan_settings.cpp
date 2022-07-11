@@ -14,6 +14,7 @@
 #include "network_gui_tools.hpp"
 #include "MItem_lan.hpp"
 #include <http_lifetime.h>
+#include <espif.h>
 
 // Container for this base class contains all MI from both ETH and WIFI screen
 // There can be MI, that will not be used in derived class (MI_WIFI_... won't be used in ETH Screen)
@@ -71,6 +72,10 @@ void ScreenMenuConnectionBase::refresh_addresses() {
         if (Item<MI_IP4_GWAY>().ChangeInformation(str) == invalidate_t::yes) {
             refresh = true;
         }
+
+        if (Item<MI_WIFI_STATUS_t>().ChangeInformation("UP") == invalidate_t::yes) {
+            refresh = true;
+        }
     } else {
         const char *msg = UNKNOWN_ADDR;
         if (Item<MI_IP4_ADDR>().ChangeInformation(msg) == invalidate_t::yes) {
@@ -83,6 +88,60 @@ void ScreenMenuConnectionBase::refresh_addresses() {
         msg = UNKNOWN_ADDR;
         if (Item<MI_IP4_GWAY>().ChangeInformation(msg) == invalidate_t::yes) {
             refresh = true;
+        }
+
+        switch (esp_link_state()) {
+        case EspLinkState::Init:
+            switch (esp_fw_state()) {
+            case EspFwState::Flashing:
+            case EspFwState::NoFirmware:
+            case EspFwState::WrongVersion:
+                if (Item<MI_WIFI_STATUS_t>().ChangeInformation("!FW") == invalidate_t::yes) {
+                    refresh = true;
+                }
+                break;
+            case EspFwState::NoEsp:
+                if (Item<MI_WIFI_STATUS_t>().ChangeInformation("Gone") == invalidate_t::yes) {
+                    refresh = true;
+                }
+                break;
+            case EspFwState::Ok:
+                if (Item<MI_WIFI_STATUS_t>().ChangeInformation("Down") == invalidate_t::yes) {
+                    refresh = true;
+                }
+                break;
+            case EspFwState::Unknown:
+                if (Item<MI_WIFI_STATUS_t>().ChangeInformation("???") == invalidate_t::yes) {
+                    refresh = true;
+                }
+                break;
+            }
+            break;
+        case EspLinkState::Cooldown:
+            if (Item<MI_WIFI_STATUS_t>().ChangeInformation("SIGN") == invalidate_t::yes) {
+                refresh = true;
+            }
+            break;
+        case EspLinkState::NoAp:
+            if (Item<MI_WIFI_STATUS_t>().ChangeInformation("NO AP") == invalidate_t::yes) {
+                refresh = true;
+            }
+            break;
+        case EspLinkState::Down:
+            if (Item<MI_WIFI_STATUS_t>().ChangeInformation("Down") == invalidate_t::yes) {
+                refresh = true;
+            }
+            break;
+        case EspLinkState::Up:
+            if (Item<MI_WIFI_STATUS_t>().ChangeInformation("Up") == invalidate_t::yes) {
+                refresh = true;
+            }
+            break;
+        case EspLinkState::Silent:
+            if (Item<MI_WIFI_STATUS_t>().ChangeInformation("Silent") == invalidate_t::yes) {
+                refresh = true;
+            }
+            break;
         }
     }
     if (refresh) {
