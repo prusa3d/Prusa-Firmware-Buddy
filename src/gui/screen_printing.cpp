@@ -258,6 +258,8 @@ void screen_printing_data_t::change_etime() {
     if (sec != 0) {
         // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
         // theoretically it can be removed completely in case the string is constant for the whole run of the screen
+        int8_t timezone = eeprom_get_i8(EEVAR_TIMEZONE);
+        sec += 3600 * timezone;
         w_etime_label.SetText(label_etime = _("Print will end"));
         update_end_timestamp(sec, marlin_vars()->print_speed);
     } else {

@@ -293,16 +293,13 @@ time_t sntp_get_system_time(void) {
     }
 }
 
-void sntp_set_system_time(uint32_t sec, int8_t last_timezone) {
-
-    int8_t config_timezone = eeprom_get_i8(EEVAR_TIMEZONE);
+void sntp_set_system_time(uint32_t sec) {
 
     RTC_TimeTypeDef currTime;
     RTC_DateTypeDef currDate;
 
     struct tm current_time_val;
-    int8_t diff = config_timezone - last_timezone;
-    time_t current_time = (time_t)sec + (diff * 3600);
+    time_t current_time = (time_t)sec;
 
     localtime_r(&current_time, &current_time_val);
 
