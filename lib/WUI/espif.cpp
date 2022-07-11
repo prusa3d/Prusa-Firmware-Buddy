@@ -758,3 +758,34 @@ EspFwState esp_fw_state() {
     assert(0);
     return EspFwState::NoEsp;
 }
+
+EspLinkState esp_link_state() {
+    ESPIFOperatingMode mode = esp_operating_mode.load();
+    switch (mode) {
+    case ESPIF_WAIT_INIT:
+    case ESPIF_WRONG_FW:
+    case ESPIF_FLASHING_MODE:
+    case ESPIF_UNINITIALIZED_MODE:
+        return EspLinkState::Init;
+    case ESPIF_NEED_AP:
+        return EspLinkState::NoAp;
+        return EspLinkState::Down;
+    case ESPIF_RUNNING_MODE: {
+        if (delayed_down == NO_DELAYED_DOWN) {
+            if (espif_link()) {
+                if (seen_intron) {
+                    return EspLinkState::Up;
+                } else {
+                    return EspLinkState::Silent;
+                }
+            } else {
+                return EspLinkState::Down;
+            }
+        } else {
+            return EspLinkState::Cooldown;
+        }
+    }
+    }
+    assert(0);
+    return EspLinkState::Init;
+}
