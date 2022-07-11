@@ -1,6 +1,5 @@
 #include "log.h"
 #include "bsod.h"
-#include <iostream>
 #include <tuple>
 #include <memory>
 #include "cmsis_os.h"
