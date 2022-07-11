@@ -89,4 +89,23 @@ enum class EspFwState {
 /// transition to NoEsp and then again reach Ok, or (due to flashing) go
 /// WrongVersion -> Flashing -> NoEsp -> Ok.
 EspFwState esp_fw_state();
+
+enum class EspLinkState {
+    /// Being initialized, flashed, wrong FW version... see esp_fw_state.
+    Init,
+    /// Not connected to an AP.
+    NoAp,
+    /// Up and running.
+    Up,
+    /// Connected to AP, but not brought up (missing IP?)
+    Down,
+    /// Lost signal for a while, waiting to see if it stays down.
+    Cooldown,
+    /// No communication from ESP for a while.
+    ///
+    /// Broken UART? ESP crashed?
+    Silent,
+};
+
+EspLinkState esp_link_state();
 #endif

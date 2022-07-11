@@ -14,6 +14,7 @@
 #include "network_gui_tools.hpp"
 #include "MItem_lan.hpp"
 #include <http_lifetime.h>
+#include <espif.h>
 
 // Container for this base class contains all MI from both ETH and WIFI screen
 // There can be MI, that will not be used in derived class (MI_WIFI_... won't be used in ETH Screen)
@@ -64,6 +65,8 @@ void ScreenMenuConnectionBase::refresh_addresses() {
 
         stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_GW_IP4));
         Item<MI_IP4_GWAY>().ChangeInformation(str);
+
+        Item<MI_WIFI_STATUS_t>().ChangeInformation("UP");
     } else {
         const char *msg = UNKNOWN_ADDR;
         Item<MI_IP4_ADDR>().ChangeInformation(msg);
@@ -73,6 +76,42 @@ void ScreenMenuConnectionBase::refresh_addresses() {
 
         msg = UNKNOWN_ADDR;
         Item<MI_IP4_GWAY>().ChangeInformation(msg);
+
+        switch (esp_link_state()) {
+        case EspLinkState::Init:
+            switch (esp_fw_state()) {
+            case EspFwState::Flashing:
+            case EspFwState::NoFirmware:
+            case EspFwState::WrongVersion:
+                Item<MI_WIFI_STATUS_t>().ChangeInformation("!FW");
+                break;
+            case EspFwState::NoEsp:
+                Item<MI_WIFI_STATUS_t>().ChangeInformation("Gone");
+                break;
+            case EspFwState::Ok:
+                Item<MI_WIFI_STATUS_t>().ChangeInformation("Down");
+                break;
+            case EspFwState::Unknown:
+                Item<MI_WIFI_STATUS_t>().ChangeInformation("???");
+                break;
+            }
+            break;
+        case EspLinkState::Cooldown:
+            Item<MI_WIFI_STATUS_t>().ChangeInformation("SIGN");
+            break;
+        case EspLinkState::NoAp:
+            Item<MI_WIFI_STATUS_t>().ChangeInformation("NO AP");
+            break;
+        case EspLinkState::Down:
+            Item<MI_WIFI_STATUS_t>().ChangeInformation("Down");
+            break;
+        case EspLinkState::Up:
+            Item<MI_WIFI_STATUS_t>().ChangeInformation("Up");
+            break;
+        case EspLinkState::Silent:
+            Item<MI_WIFI_STATUS_t>().ChangeInformation("Silent");
+            break;
+        }
     }
 }
 
