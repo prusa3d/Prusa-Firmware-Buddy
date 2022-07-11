@@ -45,6 +45,7 @@ std::variant<size_t, Error> httpc_data::telemetry(const device_params_t &params,
         "\"axis_z\":%.2f,"
         "\"speed\":%" PRIu16 ","
         "\"flow\":%" PRIu16 ","
+        "\"job_id\":%" PRIu16 ","
         "\"state\":\"%s\""
         "}",
         (double)params.temp_nozzle,
@@ -56,6 +57,7 @@ std::variant<size_t, Error> httpc_data::telemetry(const device_params_t &params,
         (double)params.pos[Z_AXIS_POS],
         params.print_speed,
         params.flow_factor,
+        params.job_id,
         to_str(params.state));
 
     std::variant<size_t, Error> ret;
