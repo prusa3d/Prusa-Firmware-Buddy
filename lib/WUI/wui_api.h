@@ -136,10 +136,8 @@ time_t sntp_get_system_time(void);
 * \brief Sets time and date in device's RTC on some other time storage
 *
 * \param [in] sec - number of seconds from 1.1.1900
-*
-* \param [in] last_timezone - to calculate difference between timezones we need to pass last saved timezone
 ************************************************************************************************************/
-void sntp_set_system_time(uint32_t sec, int8_t last_timezone);
+void sntp_set_system_time(uint32_t sec);
 
 /*!********************************************************************************
 * \brief Adds time in seconds to given timestamp

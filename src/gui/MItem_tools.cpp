@@ -506,12 +506,7 @@ MI_TIMEZONE::MI_TIMEZONE()
     : WiSpinInt(eeprom_get_i8(EEVAR_TIMEZONE), SpinCnf::timezone_range, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
-    int8_t last_timezone = eeprom_get_i8(EEVAR_TIMEZONE);
     eeprom_set_i8(EEVAR_TIMEZONE, timezone);
-    time_t seconds = 0;
-    if ((seconds = sntp_get_system_time())) {
-        sntp_set_system_time(seconds, last_timezone);
-    }
 }
 
 MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
