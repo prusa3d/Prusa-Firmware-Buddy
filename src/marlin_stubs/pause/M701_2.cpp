@@ -179,6 +179,12 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         filament_t filament = preheat_ret.second;
         Filaments::SetToBeLoaded(filament);
 
+        if (z_min_pos > 0 && z_min_pos > current_position.z + 0.1F) {
+            xyz_pos_t park_position = { NAN, NAN, z_min_pos };
+            // Returning to previous position is unwanted outside of printing (M1701 should be used only outside of printing)
+            settings.SetParkPoint(park_position);
+        }
+
         load_unload(LoadUnloadMode::Load, &Pause::FilamentAutoload, settings);
 
         M70X_process_user_response(PreheatStatus::Result::DoneHasFilament);
