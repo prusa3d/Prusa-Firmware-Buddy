@@ -113,20 +113,6 @@ public:
     }
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     bool IsSelected() const { return selected == is_selected_t::yes; }
-    void Hide() { hidden = (uint8_t)is_hidden_t::yes; }
-    void Show() {
-        if (hidden != (uint8_t)is_hidden_t::no) {
-            hidden = (uint8_t)is_hidden_t::no;
-            Invalidate();
-        }
-    }
-
-    void ShowDevOnly() {
-        if (hidden != (uint8_t)is_hidden_t::dev) {
-            hidden = (uint8_t)is_hidden_t::dev;
-            Invalidate();
-        }
-    }
 
     bool IsHidden() const;
     void SetFocus();
