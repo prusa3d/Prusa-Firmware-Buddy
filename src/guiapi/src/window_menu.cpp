@@ -15,7 +15,7 @@ window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *p
     , pContainer(pContainer) {
     setIndex(index);
     top_index = 0;
-    updateTopIndex();
+    updateTopIndex_IsRedrawNeeded();
 }
 
 //private, for ctor (cannot fail)
@@ -125,7 +125,7 @@ int window_menu_t::realIndex(const int visible_index) {
     return -1;
 }
 
-bool window_menu_t::updateTopIndex() {
+bool window_menu_t::updateTopIndex_IsRedrawNeeded() {
     if (index < top_index) {
         top_index = index;
         return true; /// move the window up
@@ -152,7 +152,7 @@ void window_menu_t::Increment(int dif) {
     const int old_index = index;
     playEncoderSound(moveToNextVisibleItem()); /// moves index and plays a sound
 
-    if (updateTopIndex()) {
+    if (updateTopIndex_IsRedrawNeeded()) {
         // invalidate, but let invalid_background flag as it was
         // it will cause redraw of only invalid items
         bool back = flags.invalid_background;
@@ -318,7 +318,7 @@ void window_menu_t::printScrollBar(size_t available_count, uint16_t visible_coun
 void window_menu_t::InitState(screen_init_variant::menu_t var) {
     SetIndex(var.index);
     top_index = var.top_index;
-    updateTopIndex();
+    updateTopIndex_IsRedrawNeeded();
 }
 
 screen_init_variant::menu_t window_menu_t::GetCurrentState() const {
