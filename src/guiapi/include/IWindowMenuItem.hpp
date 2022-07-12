@@ -101,11 +101,15 @@ public:
             Invalidate();
         }
     }
-    void Disable() {
+    bool Disable() {
+        //cannot disable focused item
+        if (focused == is_focused_t::yes)
+            return false;
         if (enabled != is_enabled_t::no) {
             enabled = is_enabled_t::no;
             Invalidate();
         }
+        return true;
     }
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     bool IsSelected() const { return selected == is_selected_t::yes; }
