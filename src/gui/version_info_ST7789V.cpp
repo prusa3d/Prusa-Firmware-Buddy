@@ -52,8 +52,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     , footer(this) {
     header.SetText(_(label));
     help.font = resource_font(helper_font);
-    menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
-    CaptureNormalWindow(menu);        // set capture to list
+    CaptureNormalWindow(menu); // set capture to list
 
     //=============SCREEN INIT===============
     header.SetIcon(IDR_PNG_info_16px);

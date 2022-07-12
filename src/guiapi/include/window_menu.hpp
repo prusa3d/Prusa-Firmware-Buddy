@@ -38,9 +38,12 @@ class window_menu_t : public IWindowMenu {
     /// \returns input
     bool playEncoderSound(bool changed);
 
+    IWinMenuContainer *pContainer;
+
 public:
     window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index = 0);
-    IWinMenuContainer *pContainer;
+    void SetContainer(IWinMenuContainer &cont, uint8_t index = 0);
+
     bool SetIndex(uint8_t index); //must check container
     void Increment(int dif);
     void Decrement(int dif) { Increment(-dif); }
