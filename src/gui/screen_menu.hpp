@@ -36,12 +36,12 @@ protected:
 public:
     ScreenMenu(string_view_utf8 label, window_t *parent = nullptr);
 
-    //compiletime access by index
+    //compile time access by index
     template <std::size_t I>
     decltype(auto) Item() {
         return std::get<I>(container.menu_items);
     }
-    //compiletime access by type
+    //compile time access by type
     template <class TYPE>
     decltype(auto) Item() {
         return std::get<TYPE>(container.menu_items);
@@ -51,14 +51,14 @@ public:
     void DisableItem() {
         if (Item<ITEM>().IsEnabled()) {
             Item<ITEM>().Disable();
-            Invalidate();
+            Invalidate(); // TODO is this needed?
         }
     }
     template <class ITEM>
     void EnableItem() {
         if (!Item<ITEM>().IsEnabled()) {
             Item<ITEM>().Enable();
-            Invalidate();
+            Invalidate(); // TODO is this needed?
         }
     }
 };

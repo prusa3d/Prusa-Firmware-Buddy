@@ -35,7 +35,7 @@ public:
 };
 
 /// This WI has lambda function for formatting the extension
-/// \tparam ValueType must have not equals and assigment operators and copy constructor
+/// \tparam ValueType must have not, equals, and assignment operators and copy constructor
 template <class ValueType>
 class WI_FORMATABLE_LABEL_t : public WI_LAMBDA_LABEL_t {
 protected:
