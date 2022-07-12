@@ -74,6 +74,23 @@ protected:
     color_t GetTextColor() const;
     color_t GetBackColor() const;
 
+    void hide() {
+        hidden = (uint8_t)is_hidden_t::yes;
+    }
+    void show() {
+        if (hidden != (uint8_t)is_hidden_t::no) {
+            hidden = (uint8_t)is_hidden_t::no;
+            Invalidate();
+        }
+    }
+
+    void showDevOnly() {
+        if (hidden != (uint8_t)is_hidden_t::dev) {
+            hidden = (uint8_t)is_hidden_t::dev;
+            Invalidate();
+        }
+    }
+
 public:
     IWindowMenuItem(string_view_utf8 label, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
     IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, uint16_t id_icon = 0, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
@@ -140,4 +157,6 @@ public:
     void InValidateExtension();
 
     virtual void Loop() {}; //automatically called by menu
+
+    friend class window_menu_t; // to be able to access / private hide/show methods
 };
