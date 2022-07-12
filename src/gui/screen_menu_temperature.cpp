@@ -6,21 +6,8 @@
 #include "marlin_client.h"
 #include "WindowMenuItems.hpp"
 #include "MItem_print.hpp"
+#include "MItem_filament.hpp"
 #include "ScreenHandler.hpp"
-
-class MI_COOLDOWN : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Cooldown");
-
-public:
-    MI_COOLDOWN()
-        : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::no) {
-    }
-
-protected:
-    virtual void click(IWindowMenu & /*window_menu*/) override {
-        Screens::Access()->WindowEvent(GUI_event_t::CLICK, (void *)this);
-    }
-};
 
 /*****************************************************************************/
 //parent alias
@@ -39,7 +26,7 @@ protected:
 };
 
 void ScreenMenuTemperature::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::CLICK) {
+    if (event == GUI_event_t::CHILD_CLICK) {
         marlin_set_target_nozzle(0);
         marlin_set_display_nozzle(0);
         marlin_set_target_bed(0);
