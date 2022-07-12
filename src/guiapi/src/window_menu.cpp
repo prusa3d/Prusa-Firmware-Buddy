@@ -24,7 +24,7 @@ void window_menu_t::setIndex(uint8_t new_index) {
         new_index = 0;
     if (new_index >= GetCount())
         new_index = 0;
-    GetItem(new_index)->SetFocus(); //set focus on new item
+    GetItem(new_index)->setFocus(); //set focus on new item
     index = new_index;
 }
 
@@ -38,8 +38,8 @@ bool window_menu_t::SetIndex(uint8_t index) {
         return true;
     IWindowMenuItem *activeItem = GetActiveItem();
     if (activeItem)
-        activeItem->ClrFocus(); //remove focus from old item
-    GetItem(index)->SetFocus(); //set focus on new item
+        activeItem->clrFocus(); //remove focus from old item
+    GetItem(index)->setFocus(); //set focus on new item
     this->index = index;
     return true;
 }
@@ -319,6 +319,11 @@ void window_menu_t::InitState(screen_init_variant::menu_t var) {
     SetIndex(var.index);
     top_index = var.top_index;
     updateTopIndex_IsRedrawNeeded();
+}
+
+void window_menu_t::SetContainer(IWinMenuContainer &cont, uint8_t index) {
+    pContainer = &cont;
+    setIndex(index); // ctor init fnc. version, valid to be used here
 }
 
 void window_menu_t::Show(IWindowMenuItem &item) {

@@ -78,6 +78,5 @@ public:
 template <EFooter FOOTER, class... T>
 ScreenMenu<FOOTER, T...>::ScreenMenu(string_view_utf8 label, window_t *parent)
     : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
-    menu.pContainer = &container;
-    menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
+    menu.SetContainer(container);
 }

@@ -146,13 +146,16 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
     }
 }
 
-void IWindowMenuItem::SetFocus() {
+void IWindowMenuItem::setFocus() {
+    if (IsHidden()) {
+        show();
+    }
     focused = is_focused_t::yes;
     roll.Deinit();
     Invalidate();
 }
 
-void IWindowMenuItem::ClrFocus() {
+void IWindowMenuItem::clrFocus() {
     focused = is_focused_t::no;
     roll.Stop();
     Invalidate();
