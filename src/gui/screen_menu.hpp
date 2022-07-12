@@ -61,6 +61,18 @@ public:
             Invalidate(); // TODO is this needed?
         }
     }
+
+    //cannot hide focused item
+    template <class ITEM>
+    bool Hide() {
+        return menu.Hide(Item<ITEM>());
+    }
+
+    template <class ITEM>
+    void Show() {
+        menu.Show(Item<ITEM>());
+    }
+    //ShowDevOnly intentionally not supported, can be set only in ctor
 };
 
 template <EFooter FOOTER, class... T>

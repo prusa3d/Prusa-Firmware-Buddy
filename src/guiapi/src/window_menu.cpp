@@ -321,6 +321,66 @@ void window_menu_t::InitState(screen_init_variant::menu_t var) {
     updateTopIndex_IsRedrawNeeded();
 }
 
+void window_menu_t::Show(IWindowMenuItem &item) {
+    if (!pContainer)
+        return;
+
+    // Nothing to do
+    if (!item.IsHidden()) {
+        return;
+    }
+
+    item.show();
+
+    // screen might need to roll
+    if (updateTopIndex_IsRedrawNeeded()) {
+        // invalidate, but let invalid_background flag as it was
+        // it will cause redraw of only invalid items
+        bool back = flags.invalid_background;
+        Invalidate();
+        flags.invalid_background = back;
+    } else {
+        // roll is not needed, but still must invalidate remaining items
+        for (size_t i = pContainer->GetIndex(item) + 1; i < GetCount(); ++i) {
+            IWindowMenuItem *pItem = GetItem(i);
+            if (!pItem)
+                return; // this should never happen
+
+            pItem->Invalidate();
+        }
+    }
+}
+
+bool window_menu_t::Hide(IWindowMenuItem &item) {
+    if (!pContainer)
+        return false;
+
+    // Nothing to do
+    if (item.IsHidden()) {
+        return true;
+    }
+
+    item.hide();
+
+    flags.invalid_background = true; // might need to draw empty rect over last item
+
+    // screen might need to roll
+    if (updateTopIndex_IsRedrawNeeded()) {
+        Invalidate();
+    } else {
+        // roll is not needed, but still must invalidate remaining items
+        for (size_t i = pContainer->GetIndex(item) + 1; i < GetCount(); ++i) {
+            IWindowMenuItem *pItem = GetItem(i);
+            if (!pItem)
+                return false; // this should never happen
+
+            pItem->Invalidate();
+        }
+    }
+
+    return true;
+}
+
 screen_init_variant::menu_t window_menu_t::GetCurrentState() const {
     return { index, top_index };
 }

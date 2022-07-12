@@ -53,6 +53,9 @@ public:
     void InitState(screen_init_variant::menu_t var);
     screen_init_variant::menu_t GetCurrentState() const;
 
+    void Show(IWindowMenuItem &item);
+    bool Hide(IWindowMenuItem &item);
+
 protected:
     virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
