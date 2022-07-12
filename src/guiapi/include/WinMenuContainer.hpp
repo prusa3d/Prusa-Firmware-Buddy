@@ -48,4 +48,13 @@ public:
         else
             return get_ptr_for_index((int)pos, menu_items);
     }
+
+    virtual size_t GetIndex(IWindowMenuItem &item) override {
+        size_t pos = 0;
+        for (; pos < GetCount(); ++pos) {
+            if (GetItem(pos) == &item)
+                break;
+        }
+        return pos;
+    }
 };
