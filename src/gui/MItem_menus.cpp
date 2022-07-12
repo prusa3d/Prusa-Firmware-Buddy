@@ -177,7 +177,10 @@ void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_CURRENT_PROFILE
 MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
-    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, is_hidden_t::yes) {
+    : WI_LABEL_t(_(label), 0, is_enabled_t::yes, SteelSheets::NumOfCalibrated() > 1 ? is_hidden_t::no : is_hidden_t::yes) {
+    if (SteelSheets::NumOfCalibrated() > 1) {
+        UpdateLabel();
+    }
 }
 
 void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {

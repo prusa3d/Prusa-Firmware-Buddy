@@ -138,7 +138,7 @@ public:
             Item<MI_SHEET_SELECT>().Enable();
             Item<MI_SHEET_RESET>().Enable();
             Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
-            Item<MI_SHEET_OFFSET>().Show();
+            Show<MI_SHEET_OFFSET>();
         }
         if (value == 0)
             Item<MI_SHEET_RESET>().Disable();
