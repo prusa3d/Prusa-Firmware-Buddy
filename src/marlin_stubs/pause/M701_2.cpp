@@ -183,9 +183,12 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
             xyz_pos_t park_position = { NAN, NAN, z_min_pos };
             // Returning to previous position is unwanted outside of printing (M1701 should be used only outside of printing)
             settings.SetParkPoint(park_position);
+            settings.SetParkZFeedrate(HOMING_FEEDRATE_INVERTED_Z);
         }
 
         load_unload(LoadUnloadMode::Load, &Pause::FilamentAutoload, settings);
+
+        settings.SetParkZFeedrate(settings.GetDefaultParkZFeedrate());
 
         M70X_process_user_response(PreheatStatus::Result::DoneHasFilament);
     }

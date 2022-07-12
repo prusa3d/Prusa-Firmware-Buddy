@@ -20,6 +20,7 @@ Settings::Settings()
     , fast_load_length(GetDefaultFastLoadLength())
     , purge_length(GetDefaultPurgeLength())
     , retract(GetDefaultRetractLength())
+    , park_z_feedrate(NOZZLE_PARK_Z_FEEDRATE)
     , park_pos { NAN, NAN, NAN }
     , resume_pos { NAN, NAN, NAN, NAN }
     , target_extruder(0)
@@ -47,6 +48,10 @@ float Settings::GetDefaultRetractLength() {
     return PAUSE_PARK_RETRACT_LENGTH;
 }
 
+float Settings::GetDefaultParkZFeedrate() {
+    return NOZZLE_PARK_Z_FEEDRATE;
+}
+
 void Settings::SetUnloadLength(const std::optional<float> &len) {
     unload_length = -std::abs(len.has_value() ? len.value() : GetDefaultUnloadLength()); // it is negative value
 }
@@ -65,6 +70,14 @@ void Settings::SetPurgeLength(const std::optional<float> &len) {
 
 void Settings::SetRetractLength(const std::optional<float> &len) {
     retract = -std::abs(len.has_value() ? len.value() : GetDefaultRetractLength()); // retract is negative
+}
+
+void Settings::SetParkZFeedrate(const std::optional<float> &feedrate) {
+    if (feedrate.has_value() && std::abs(feedrate.value()) < HOMING_FEEDRATE_INVERTED_Z) {
+        park_z_feedrate = std::abs(feedrate.value());
+    } else {
+        park_z_feedrate = GetDefaultParkZFeedrate();
+    }
 }
 
 void Settings::SetParkPoint(const xyz_pos_t &park_point) {

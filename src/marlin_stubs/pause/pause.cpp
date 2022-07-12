@@ -994,6 +994,7 @@ void Pause::park_nozzle_and_notify() {
 
     const float target_Z = settings.park_pos.z;
     const float Z_len = current_position.z - target_Z; // sign does not matter
+    const float Z_feedrate = settings.park_z_feedrate; // customizable Z feedrate
 
     float XY_len = 0;
     float begin_pos = 0;
@@ -1016,7 +1017,7 @@ void Pause::park_nozzle_and_notify() {
     // move by z_lift, scope for Notifier_POS_Z
     if (isfinite(target_Z)) {
         Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
-        plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+        plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
         if (wait_or_stop())
             return;
     }
@@ -1038,12 +1039,12 @@ void Pause::park_nozzle_and_notify() {
 
         if (x_greater_than_y) {
             Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
-            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
             if (wait_or_stop())
                 return;
         } else {
             Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
-            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
             if (wait_or_stop())
                 return;
         }
