@@ -865,7 +865,7 @@ static void _server_print_loop(void) {
         marlin_server.print_state = mpsPausing_WaitIdle;
         break;
     case mpsPausing_WaitIdle:
-        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
+        if ((planner.movesplanned() == 0) && (queue.length == 0) && gcode.busy_state == GcodeSuite::NOT_BUSY) {
             marlin_server_park_head();
             marlin_server.print_state = mpsPausing_ParkHead;
         }
