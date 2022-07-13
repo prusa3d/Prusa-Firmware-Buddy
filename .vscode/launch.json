@@ -2,98 +2,64 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Cortex Debug",
+            "name": "Launch STLink & Buddy",
             "cwd": "${workspaceRoot}",
             "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
-            "configFiles": ["${workspaceRoot}/utils/cproject/Buddy-Debug-OpenOCD.cfg"],
+            "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_buddy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
             "toolchainPrefix": "arm-none-eabi",
-            "rtos": "FreeRTOS",
-            "swoConfig": {
-                "enabled": true,
-                "cpuFrequency": 168000000,
-                "swoFrequency": 2000000,
-                "source": "probe",
-                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
-            }
-        },
-        {
-            "name": "JLink",
-            "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
-            "request": "launch",
-            "type": "cortex-debug",
-            "servertype": "jlink",
-            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
-            "toolchainPrefix": "arm-none-eabi",
-            "rtos": "FreeRTOS",
-            "device": "STM32F407VG",
-            "swoConfig": {
-                "enabled": true,
-                "cpuFrequency": 168000000,
-                "swoFrequency": 4000000,
-                "source": "socket",
-                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
-            }
-        },
-        {
-            "name": "JLink 2MB",
-            "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
-            "request": "launch",
-            "type": "cortex-debug",
-            "servertype": "jlink",
-            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
-            "toolchainPrefix": "arm-none-eabi",
-            "rtos": "FreeRTOS",
             "device": "STM32F429VI",
-            "swoConfig": {
+            "rtos": "FreeRTOS",
+            "runToEntryPoint": "startup_task",
+            "preRestartCommands": ["si"],
+            "rttConfig": {
                 "enabled": true,
-                "cpuFrequency": 168000000,
-                "swoFrequency": 4000000,
-                "source": "socket",
-                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+                "address": "auto",
+                "searchSize": 16,
+                "searchId": "SEGGER RTT",
+                "clearSearch": true,
+                "polling_interval": 10,
+                "decoders": [
+                    {
+                        "label": "Logging",
+                        "port": 0,
+                        "noprompt": true,
+                        "type": "console"
+                    }
+                ]
             }
         },
         {
-            "name": "JLink attach",
+            "name": "Attach to STLink & Buddy",
             "cwd": "${workspaceRoot}",
             "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "attach",
             "type": "cortex-debug",
-            "servertype": "jlink",
+            "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
+            "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_buddy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
             "toolchainPrefix": "arm-none-eabi",
-            "rtos": "FreeRTOS",
-            "device": "STM32F407VG",
-            "swoConfig": {
-                "enabled": true,
-                "cpuFrequency": 168000000,
-                "swoFrequency": 4000000,
-                "source": "socket",
-                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
-            }
-        },
-        {
-            "name": "JLink attach 2MB",
-            "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
-            "request": "attach",
-            "type": "cortex-debug",
-            "servertype": "jlink",
-            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
-            "toolchainPrefix": "arm-none-eabi",
-            "rtos": "FreeRTOS",
             "device": "STM32F429VI",
-            "swoConfig": {
+            "rtos": "FreeRTOS",
+            "preRestartCommands": ["si"],
+            "rttConfig": {
                 "enabled": true,
-                "cpuFrequency": 168000000,
-                "swoFrequency": 4000000,
-                "source": "socket",
-                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+                "address": "auto",
+                "searchSize": 16,
+                "searchId": "SEGGER RTT",
+                "clearSearch": true,
+                "polling_interval": 10,
+                "decoders": [
+                    {
+                        "label": "Logging",
+                        "port": 0,
+                        "noprompt": true,
+                        "type": "console"
+                    }
+                ]
             }
         },
         {
@@ -106,6 +72,6 @@
             "cwd": "${workspaceRoot}",
             "gdbpath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/arm-none-eabi-gdb",
             "autorun": []
-        },
+        }
     ]
 }

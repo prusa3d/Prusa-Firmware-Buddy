@@ -16,3 +16,4 @@ Makefile
 /doc/html/
 __pycache__
 .benchmarks
+/utils/debug/10_custom_config.cfg
