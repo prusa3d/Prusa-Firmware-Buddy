@@ -799,8 +799,10 @@ static void axes_length_set_ok() {
 #endif // ENABLED(CRASH_RECOVERY)
 
 void marlin_server_nozzle_timeout_loop() {
-    if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
+    if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT))) {
+        marlin_set_display_nozzle(0);
         thermalManager.setTargetHotend(0, 0);
+    }
 }
 
 static void marlin_server_resuming_reheating() {
@@ -1160,6 +1162,7 @@ void marlin_server_resuming_begin(void) {
         marlin_server.print_state = mpsResuming_UnparkHead_XY;
     } else {
         thermalManager.setTargetHotend(marlin_server.resume.nozzle_temp, 0);
+        marlin_set_display_nozzle(marlin_server.resume.nozzle_temp);
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0); //disable print fan
 #endif
