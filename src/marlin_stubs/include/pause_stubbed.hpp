@@ -182,6 +182,7 @@ private:
     bool check_user_stop(); //< stops motion and fsm and returns true it user triggered stop
     bool wait_or_stop();    //< waits until motion is finished; if stop is triggered then returns true
     bool process_stop();
+    void handle_filament_removal(LoadPhases_t phase_to_set); //<checks if filament is present if not it sets different phase
 
     enum class RammingType {
         unload,
