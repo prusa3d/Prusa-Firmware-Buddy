@@ -1,3 +1,5 @@
+set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
 add_subdirectory(Drivers)
 add_subdirectory(Middlewares)
 add_subdirectory(Arduino_Core_Buddy)

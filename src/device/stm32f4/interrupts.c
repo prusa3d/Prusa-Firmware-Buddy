@@ -1,5 +1,4 @@
 #include "main.h"
-#include "stm32f4xx_it.h"
 #include "cmsis_os.h"
 #include "config.h"
 #include "bsod.h"
@@ -7,7 +6,7 @@
 #include "sys.h"
 #include "buffered_serial.hpp"
 #include "tusb.h"
-#include "peripherals.h"
+#include <device/peripherals.h>
 #include "wdt.h"
 
 #ifdef BUDDY_ENABLE_WUI

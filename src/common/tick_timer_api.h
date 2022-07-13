@@ -6,7 +6,7 @@
  */
 
 #include <stdint.h>
-#include "stm32f4xx_hal_tim.h" //HAL_StatusTypeDef
+#include <device/hal.h>
 
 #pragma once
 #ifdef __cplusplus

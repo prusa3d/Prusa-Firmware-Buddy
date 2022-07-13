@@ -2,7 +2,6 @@
 #pragma once
 
 #include "printers.h"
-#include <avr/pgmspace.h>
 #include "config_buddy_2209_02.h"
 
 //--------------------------------------
@@ -34,4 +33,6 @@ enum {
 #define USE_ESP01_WITH_UART6
 
 //guiconfig.h included with config
-#include "../guiconfig/guiconfig.h"
+#if GUI
+    #include "../guiconfig/guiconfig.h"
+#endif

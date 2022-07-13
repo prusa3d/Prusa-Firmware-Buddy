@@ -291,6 +291,10 @@ void Error_Handler(void) {
     app_error();
 }
 
+void system_core_error_handler() {
+    app_error();
+}
+
 void iwdg_warning_cb(void) {
     DUMP_IWDGW_TO_CCRAM(0x10);
     wdt_iwdg_refresh();
@@ -343,15 +347,3 @@ void assert_failed(uint8_t *file, uint32_t line) {
     app_assert(file, line);
 }
 #endif /* USE_FULL_ASSERT */
-
-void rcc_osc_get_init(RCC_OscInitTypeDef *init) {
-    *init = RCC_OscInitStruct;
-}
-
-void rcc_clk_get_init(RCC_ClkInitTypeDef *init) {
-    *init = RCC_ClkInitStruct;
-}
-
-unsigned long system_core_get_clock() {
-    return ConstexprSystemCoreClock();
-}

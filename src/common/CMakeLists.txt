@@ -1,82 +1,83 @@
 target_include_directories(firmware PRIVATE . include)
 
-target_sources(
-  firmware
-  PRIVATE adc.cpp
-          app_metrics.cpp
-          appmain.cpp
-          base64_stream_decoder.cpp
-          basename.c
-          bbf.cpp
-          client_response.cpp
-          client_response_texts.cpp
-          crc32.c
-          crc32_zlib.c
-          dump.cpp
-          eeprom.cpp
-          eeprom_loadsave.c
-          errors.cpp
-          ExtInterruptHandler.cpp
-          fanctl.cpp
-          footer_eeprom.cpp
-          freertos_mutex.cpp
-          fsm_types.cpp
-          gcode_file.cpp
-          gcode_filename.cpp
-          gcode_filter.cpp
-          gcode_info.cpp
-          gcode_thumb_decoder.cpp
-          hardware_serial.cpp
-          heap.c
-          hwio_buddy_2209_02.cpp
-          hwio_pindef_check.cpp
-          i2c.cpp
-          ini_handler.c
-          jsmn.c
-          lang.cpp
-          language_eeprom.cpp
-          lfn.c
-          marlin_client.c
-          marlin_errors.c
-          marlin_events.c
-          marlin_server.cpp
-          marlin_vars.c
-          MarlinPin.cpp
-          media.cpp
-          metric.c
-          metric_handlers.c
-          non_file_printing_counter.cpp
-          odometer.cpp
-          otp.c
-          PersistentStorage.cpp
-          Pin.cpp
-          print_processor.cpp
-          print_utils.cpp
-          safe_state.cpp
-          scratch_buffer.cpp
-          sim_bed.c
-          sim_heater.cpp
-          sim_nozzle.c
-          sound.cpp
-          st25dv64k.c
-          SteelSheets.cpp
-          str_utils.cpp
-          stubs.c
-          support_utils_lib.cpp
-          support_utils.cpp
-          sys.cpp
-          timing.c
-          timing_sys.c
-          trinamic.cpp
-          uartrxbuff.c
-          variant8.cpp
-          version.c
-          w25x.cpp
-          w25x_communication.cpp
-          wdt.cpp
-          z_calibration_fsm.cpp
-          Z_probe.cpp
-  )
+if(BOARD MATCHES ".*BUDDY")
+  target_sources(
+    firmware
+    PRIVATE adc.cpp
+            app_metrics.cpp
+            appmain.cpp
+            base64_stream_decoder.cpp
+            basename.c
+            bbf.cpp
+            client_response.cpp
+            client_response_texts.cpp
+            crc32.c
+            crc32_zlib.c
+            dump.cpp
+            eeprom.cpp
+            eeprom_loadsave.c
+            errors.cpp
+            ExtInterruptHandler.cpp
+            fanctl.cpp
+            footer_eeprom.cpp
+            freertos_mutex.cpp
+            fsm_types.cpp
+            gcode_file.cpp
+            gcode_filename.cpp
+            gcode_filter.cpp
+            gcode_info.cpp
+            gcode_thumb_decoder.cpp
+            hardware_serial.cpp
+            heap.c
+            hwio_buddy_2209_02.cpp
+            hwio_pindef_check.cpp
+            i2c.cpp
+            ini_handler.c
+            jsmn.c
+            lang.cpp
+            language_eeprom.cpp
+            lfn.c
+            marlin_client.c
+            marlin_errors.c
+            marlin_events.c
+            marlin_server.cpp
+            marlin_vars.c
+            MarlinPin.cpp
+            media.cpp
+            metric.c
+            metric_handlers.c
+            non_file_printing_counter.cpp
+            odometer.cpp
+            otp.c
+            PersistentStorage.cpp
+            Pin.cpp
+            print_processor.cpp
+            print_utils.cpp
+            safe_state.cpp
+            scratch_buffer.cpp
+            sim_bed.c
+            sim_heater.cpp
+            sim_nozzle.c
+            sound.cpp
+            st25dv64k.c
+            SteelSheets.cpp
+            str_utils.cpp
+            stubs.c
+            support_utils_lib.cpp
+            support_utils.cpp
+            sys.cpp
+            timing.c
+            trinamic.cpp
+            uartrxbuff.c
+            variant8.cpp
+            version.c
+            w25x.cpp
+            w25x_communication.cpp
+            wdt.cpp
+            z_calibration_fsm.cpp
+            Z_probe.cpp
+    )
+endif()
 
 if(PRINTER STREQUAL "MINI")
   target_sources(firmware PRIVATE minda_broken_cable_detection.cpp MindaRedscreen.cpp)
@@ -106,7 +107,7 @@ endif()
 if(GUI)
   # TODO: Some of it should be moved under GUI
   target_sources(firmware PRIVATE bsod_gui.cpp filament.cpp)
-else()
+elseif(BOARD MATCHES "BUDDY")
   target_sources(firmware PRIVATE bsod_nogui.cpp)
 endif()
 

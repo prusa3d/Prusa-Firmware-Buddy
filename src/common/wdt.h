@@ -1,6 +1,6 @@
 //wdt.h - watchdog timers (IWDG, WWDG)
 #pragma once
-#include "stm32f4xx.h"
+#include <device/hal.h>
 
 typedef void(wdt_iwdg_warning_cb_t)(void); // IWDG warning callback prototype
 

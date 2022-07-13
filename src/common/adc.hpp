@@ -1,7 +1,8 @@
 #pragma once
 
 #include "inttypes.h"
-#include "stm32f4xx_hal.h"
+#include <device/hal.h>
+#include <device/board.h>
 #include "config_buddy_2209_02.h"
 #include "main.h"
 

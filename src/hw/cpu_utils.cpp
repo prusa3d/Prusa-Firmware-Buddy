@@ -4,7 +4,7 @@
 
 #include "cpu_utils.hpp"
 #include "../common/timing_precise.hpp"
-#include "stm32f4xx_hal.h"
+#include <device/hal.h>
 #include <limits>
 
 /**

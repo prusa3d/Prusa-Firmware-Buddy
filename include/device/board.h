@@ -49,16 +49,3 @@
 #define BOARD_VER_EQUAL_TO(major, minor, patch)           (BOARD_VERSION_MAJOR == (major) && BOARD_VERSION_MINOR == (minor) && BOARD_VERSION_PATCH == (patch))
 #define BOARD_VER_HIGHER_OR_EQUAL_TO(major, minor, patch) (BOARD_VER_HIGHER_THAN(major, minor, patch) || BOARD_VER_EQUAL_TO(major, minor, patch))
 #define BOARD_VER_LOWER_OR_EQUAL_TO(major, minor, patch)  (BOARD_VER_LOWER_THAN(major, minor, patch) || BOARD_VER_EQUAL_TO(major, minor, patch))
-
-///
-/// MCU Macros
-///
-
-#define STM32F407VG 1
-
-#define MCU_IS_STM32F4 1
-#if MCU == STM32F407VG
-    #define MCU_IS_STM32F40X 1
-#else
-    #error Unknown MCU
-#endif

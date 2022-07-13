@@ -72,16 +72,24 @@ endif()
 
 add_library(BuddyHeaders INTERFACE)
 target_include_directories(
-  BuddyHeaders
-  INTERFACE include
-            include/stm32f4_hal
-            include/usb_host
-            include/usb_device
-            include/marlin
-            include/freertos
-            ${FEATURES_INCLUDE_DIR}
+  BuddyHeaders INTERFACE include include/usb_host include/usb_device include/marlin
+                         include/freertos ${FEATURES_INCLUDE_DIR}
   )
-target_link_libraries(BuddyHeaders INTERFACE STM32F4::HAL FreeRTOS::FreeRTOS)
+
+if(MCU MATCHES "STM32F4")
+  target_include_directories(
+    BuddyHeaders BEFORE INTERFACE include/stm32f4_hal include/device/stm32f4
+    )
+  target_link_libraries(BuddyHeaders INTERFACE STM32F4::HAL)
+endif()
+
+if(BOARD MATCHES "BUDDY")
+  target_include_directories(BuddyHeaders INTERFACE include/buddy)
+endif()
+
+target_include_directories(BuddyHeaders INTERFACE include)
+
+target_link_libraries(BuddyHeaders INTERFACE FreeRTOS::FreeRTOS)
 
 if(PRINTER STREQUAL "MINI")
   set(PRINTER_TYPE "2")
@@ -89,11 +97,14 @@ else()
   message(FATAL_ERROR "Don't know how to encode printer type for ${PRINTER}.")
 endif()
 
+set(HAS_MARLIN TRUE)
+
 target_compile_definitions(
   BuddyHeaders
   INTERFACE
   MOTHERBOARD=1823
   MCU=${MCU}
+  GUI=${GUI}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
   BOARD=BOARD_${BOARD}
   BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
@@ -101,11 +112,18 @@ target_compile_definitions(
   BOARD_VERSION_PATCH=${BOARD_VERSION_PATCH}
   MARLIN_DISABLE_INFINITE_LOOP
   PROCESS_CUSTOM_GCODE
-  STM32GENERIC
-  STM32F4
   HAS_MMU2=$<BOOL:${HAS_MMU2}>
+  HAS_MARLIN=$<BOOL:${HAS_MARLIN}>
   _EXTUI
   )
+
+if(MCU MATCHES "STM32")
+  target_compile_definitions(BuddyHeaders INTERFACE STM32GENERIC)
+endif()
+
+if(MCU MATCHES "STM32F4")
+  target_compile_definitions(BuddyHeaders INTERFACE STM32F4 STM32F4xx)
+endif()
 
 add_library(BuddyLogging INTERFACE)
 target_include_directories(BuddyLogging INTERFACE src/logging)
@@ -115,25 +133,27 @@ target_link_libraries(BuddyHeaders INTERFACE BuddyLogging)
 # Configure Arduino Core
 #
 
-if(${PRINTER} STREQUAL "MINI")
-  set(ARDUINO_CORE_VARIANT "2209")
-  set(ARDUINO_CORE_TARGET "STM32F4xx")
-else()
-  message(FATAL_ERROR "Don't know how to configure arduino core with this settings.")
-endif()
+add_library(CoreBuddy_Config ALIAS BuddyHeaders)
 
 #
 # Configure STMicroelectronics Libraries
 #
 
-# STM32F4::HAL
-if(${PRINTER} STREQUAL "MINI")
-  set(STM32F4_HAL_TARGET "STM32F407xx")
+# HAL
+if(MCU MATCHES "STM32F4")
+  if(MCU MATCHES "STM32F40")
+    set(STM32F4_HAL_TARGET "STM32F407xx")
+  elseif(MCU MATCHES "STM32F42")
+    set(STM32F4_HAL_TARGET "STM32F427xx")
+  else()
+    message(FATAL_ERROR "Don't know how to configure STM32F4::HAL for mcu ${MCU}")
+  endif()
+  add_library(STM32F4_HAL_Config INTERFACE)
+  target_compile_definitions(STM32F4_HAL_Config INTERFACE ${STM32F4_HAL_TARGET} USE_HAL_DRIVER)
+  target_include_directories(STM32F4_HAL_Config INTERFACE include/stm32f4_hal)
 else()
-  message(FATAL_ERROR "Don't know how to configure STM32F4::HAL for printer ${PRINTER}")
+  message(FATAL_ERROR "Unknown hardware platform of mcu ${MCU}")
 endif()
-add_library(STM32F4_HAL_Config INTERFACE)
-target_include_directories(STM32F4_HAL_Config INTERFACE include/stm32f4_hal)
 
 # STM32::USBHost
 add_library(STM32_USBHost_Config ALIAS BuddyHeaders)
@@ -153,7 +173,7 @@ target_include_directories(Segger_Config INTERFACE include/segger src/segger)
 
 add_library(FreeRTOS_Config INTERFACE)
 target_include_directories(FreeRTOS_Config INTERFACE include/freertos)
-target_link_libraries(FreeRTOS_Config INTERFACE Segger)
+target_link_libraries(FreeRTOS_Config INTERFACE Segger BuddyHeaders)
 
 #
 # Configure LwIP
@@ -202,18 +222,21 @@ add_compile_options(-g)
 
 # optimizations
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  if(MCU STREQUAL "STM32F429VI")
-    add_compile_options(-O0)
-  else() # != "STM32F429VI"
+  if(MCU MATCHES "STM32F40")
     add_compile_options(-Og)
-  endif() # "STM32F429VI"
+  else()
+    add_compile_options(-O0)
+  endif()
 else() # != "Debug"
   add_compile_options(-Os)
 endif() # "Debug"
 
 if(CMAKE_CROSSCOMPILING)
   # mcu related settings
-  set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
+  set(MCU_FLAGS -mthumb)
+  if(MCU MATCHES "STM32F4")
+    list(APPEND MCU_FLAGS -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
+  endif()
   add_compile_options(${MCU_FLAGS})
   add_link_options(${MCU_FLAGS})
 
@@ -253,21 +276,18 @@ endif()
 
 if(CMAKE_CROSSCOMPILING)
   # configure linker script
-  if(BOOTLOADER)
-    set(LINKER_SCRIPT_SUFFIX "_boot")
+  if(BOOTLOADER STREQUAL "EMPTY" OR BOOTLOADER)
+    set(BOOT_SUFFIX "_boot")
   else()
-    set(LINKER_SCRIPT_SUFFIX "")
+    set(BOOT_SUFFIX "")
   endif()
-  if(MCU MATCHES "STM32F42.*")
-    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F42x_FLASH${LINKER_SCRIPT_SUFFIX}.ld")
-    set(STARTUP_SCRIPT "startup_stm32f427zitx")
-  elseif(MCU STREQUAL "STM32F407VG")
-    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH${LINKER_SCRIPT_SUFFIX}.ld")
-    set(STARTUP_SCRIPT "startup_stm32f407xx")
+  if(MCU MATCHES "STM32F42")
+    set(LINKER_SCRIPT "src/device/stm32f4/linker/stm32f42x${BOOT_SUFFIX}.ld")
+  elseif(MCU MATCHES "STM32F407")
+    set(LINKER_SCRIPT "src/device/stm32f4/linker/stm32f407vg${BOOT_SUFFIX}.ld")
   endif()
+  set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/${LINKER_SCRIPT}")
   add_link_options("-Wl,-T,${LINKER_SCRIPT}")
-else()
-  set(STARTUP_SCRIPT "startup_stm32f427zitx")
 endif()
 
 #
@@ -395,8 +415,7 @@ endif()
 
 target_include_directories(
   firmware
-  PRIVATE include
-          src/gui
+  PRIVATE src/gui
           src/gui/dialogs
           src/gui/footer
           src/gui/wizard
@@ -411,36 +430,36 @@ target_include_directories(
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
 
-target_link_libraries(
-  firmware
-  PRIVATE BuddyHeaders
-          Marlin
-          Arduino::Core
-          Arduino::TMCStepper
-          Arduino::LiquidCrystal
-          LwIP
-          FatFs
-          flasher
-          littlefs
-          lpng
-          STM32::USBHost
-          inih::inih
-          $<$<BOOL:${WUI}>:WUI>
-          jsmn::jsmn
-          QR
-          Buddy::Lang
-          printf::printf
-          sysbase
-          Segger
-          tinyusb::tinyusb
-          $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
-          mbedTLS
-  )
-
-target_sources(
-  firmware PRIVATE $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/startup/${STARTUP_SCRIPT}_boot.s>
-                   $<$<STREQUAL:${BOOTLOADER},NO>:src/startup/${STARTUP_SCRIPT}.s>
-  )
+target_link_libraries(firmware PRIVATE BuddyHeaders Segger printf::printf)
+if(BOARD MATCHES "BUDDY")
+  target_link_libraries(
+    firmware
+    PRIVATE BuddyHeaders
+            Marlin
+            Arduino::Core
+            Arduino::TMCStepper
+            Arduino::LiquidCrystal
+            LwIP
+            FatFs
+            flasher
+            littlefs
+            lpng
+            STM32::USBHost
+            inih::inih
+            $<$<BOOL:${WUI}>:WUI>
+            jsmn::jsmn
+            QR
+            Buddy::Lang
+            printf::printf
+            sysbase
+            Segger
+            tinyusb::tinyusb
+            $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
+            mbedTLS
+    )
+else()
+  target_link_libraries(firmware PRIVATE)
+endif()
 
 set_property(
   SOURCE src/common/version.c
@@ -454,13 +473,13 @@ set_property(
   )
 
 set_property(
-  SOURCE src/main.cpp
+  SOURCE src/buddy/main.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS FILAMENT_SENSOR=$<BOOL:${FILAMENT_SENSOR}>
   )
 
 set_property(
-  SOURCE src/main.cpp
+  SOURCE src/buddy/main.cpp
          src/common/appmain.cpp
          src/common/sys.cpp
          src/marlin_stubs/M50.cpp
@@ -486,7 +505,7 @@ set_property(
   )
 
 set_property(
-  SOURCE src/main.cpp
+  SOURCE src/buddy/main.cpp
          src/gui/screen_menu_settings.cpp
          src/gui/screen_menu_footer_settings.cpp
          src/gui/footer/footer_line.cpp

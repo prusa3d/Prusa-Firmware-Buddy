@@ -1,7 +1,7 @@
+#include <device/hal.h>
 #include "timing.h"
 #include "timing_private.h"
 #include "timer_defaults.h"
-#include "stm32f4xx_hal.h"
 #include "FreeRTOS.h"
 #include "tick_timer_api.h"
 #include "wdt.h"

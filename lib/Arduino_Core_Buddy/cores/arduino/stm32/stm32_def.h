@@ -1,7 +1,7 @@
 #ifndef _STM32_DEF_
 #define _STM32_DEF_
 
-#include "../../../../../include/main.h"
+#include <device/cmsis.h>
 
 /**
  * @brief STM32 core version number
@@ -22,7 +22,7 @@
     | (STM32_CORE_VERSION_EXTRA))
 
 #ifndef F_CPU
-    #define F_CPU ConstexprSystemCoreClock()
+    #define F_CPU SYSTEM_CORE_CLOCK
 #endif //F_CPU
 
 #ifndef USE_HAL_DRIVER

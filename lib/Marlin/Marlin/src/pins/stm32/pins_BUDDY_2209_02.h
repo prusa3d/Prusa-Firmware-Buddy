@@ -20,7 +20,6 @@
  *
  */
 
-#include "main.h"
 #include "hwio_pindef.h"
 
 #if !defined(STM32F4) && !defined(STM32F4xx)

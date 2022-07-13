@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "stm32f4xx_hal.h"
+#include <device/hal.h>
 
 /**
  * @name Macros manipulating PIN_TABLE macro
@@ -67,7 +67,9 @@ enum class IoPort : uint8_t {
     D,
     E,
     F,
+#ifdef GPIOG_BASE
     G,
+#endif
 };
 
 enum class IoPin : uint8_t {
@@ -132,7 +134,7 @@ public:
         : Pin(ioPort, ioPin) {}
     static_assert(Pin::IoPortToHalBase(IoPort::A) == GPIOA_BASE, "IoPortToHalBase broken.");
     static_assert(Pin::IoPortToHalBase(IoPort::B) == GPIOB_BASE, "IoPortToHalBase broken.");
-    static_assert(Pin::IoPortToHalBase(IoPort::G) == GPIOG_BASE, "IoPortToHalBase broken.");
+    static_assert(Pin::IoPortToHalBase(IoPort::F) == GPIOF_BASE, "IoPortToHalBase broken.");
     static_assert(Pin::IoPinToHal(IoPin::p0) == GPIO_PIN_0, "IoPinToHal broken");
     static_assert(Pin::IoPinToHal(IoPin::p1) == GPIO_PIN_1, "IoPinToHal broken");
     static_assert(Pin::IoPinToHal(IoPin::p15) == GPIO_PIN_15, "IoPinToHal broken");

@@ -1,10 +1,3 @@
-if(NOT STM32F4_HAL_TARGET)
-  message(FATAL_ERROR "Please set STM32F4_HAL_TARGET")
-endif()
-if(NOT TARGET STM32F4_HAL_Config)
-  message(FATAL_ERROR "Target STM32F4_HAL_Config does not exist.")
-endif()
-
 add_library(
   HAL
   Src/stm32f4xx_hal.c
