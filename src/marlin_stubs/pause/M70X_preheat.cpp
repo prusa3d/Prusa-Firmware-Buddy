@@ -1,4 +1,5 @@
 #include "config_features.h"
+#include "filament_sensor_api.hpp"
 
 // clang-format off
 #if (!ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)) || \
@@ -24,6 +25,9 @@ static Response preheatTempUnKnown(PreheatData preheat_data) {
     Response ret;
     FSM_Holder H(ClientFSM::Preheat, preheat_data.Data());
     while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
+        if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().HasNotFilament()) {
+            return Response::Abort;
+        }
         idle(true, true);
     }
     return ret;
