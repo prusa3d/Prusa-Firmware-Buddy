@@ -1,0 +1,4 @@
+{
+    "recommendations": ["ccls-project.ccls", "twxs.cmake", "ms-vscode.cmake-tools", "marus25.cortex-debug", "marus25.cortex-debug-dp-stm32f4"],
+    "unwantedRecommendations": ["ms-vscode.cpptools-extension-pack"]
+}
