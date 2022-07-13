@@ -38,7 +38,7 @@
  */
 #pragma once
 #include "printers.h"
-#include "board.h"
+#include <device/board.h>
 #include "MarlinPin.hpp"
 #include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
 #include <type_traits>

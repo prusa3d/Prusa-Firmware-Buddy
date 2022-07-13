@@ -15,9 +15,17 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
                 },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
                 "PRINTER": {
                     "type": "STRING",
                     "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -70,9 +78,17 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
                 },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
                 "PRINTER": {
                     "type": "STRING",
                     "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -125,9 +141,17 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
                 },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
                 "PRINTER": {
                     "type": "STRING",
                     "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -180,9 +204,17 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
                 },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
                 "PRINTER": {
                     "type": "STRING",
                     "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",

@@ -6,7 +6,7 @@ extern "C" {
 
 #include <inttypes.h>
 #include <stdbool.h>
-#include "stm32f4xx_hal.h"
+#include <device/hal.h>
 #include "cmsis_os.h"
 #include "FreeRTOS.h"
 

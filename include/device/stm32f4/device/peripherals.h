@@ -1,7 +1,7 @@
 #pragma once
-#include "stm32f4xx.h"
+#include <device/hal.h>
+#include <device/board.h>
 #include "printers.h"
-#include "board.h"
 
 #ifdef __cplusplus
 extern "C" {

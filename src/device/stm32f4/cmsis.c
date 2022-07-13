@@ -61,6 +61,8 @@
   * @{
   */
 
+#include <device/cmsis.h>
+#include <assert.h>
 #include "stm32f4xx.h"
 
 #if !defined(HSE_VALUE)
@@ -276,6 +278,8 @@ void SystemCoreClockUpdate(void) {
     tmp = AHBPrescTable[((RCC->CFGR & RCC_CFGR_HPRE) >> 4)];
     /* HCLK frequency */
     SystemCoreClock >>= tmp;
+
+    assert(SystemCoreClock == SYSTEM_CORE_CLOCK);
 }
 
 #if defined(DATA_IN_ExtSRAM) && defined(DATA_IN_ExtSDRAM)

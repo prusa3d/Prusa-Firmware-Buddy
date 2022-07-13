@@ -6,8 +6,7 @@
 #include "hwio_pindef.h"
 #include "../Marlin/src/module/stepper.h"
 #include "bsod.h"
-
-#if ((MOTHERBOARD == 1823))
+#include "cmsis_os.h"
 
 using namespace buddy::hw;
 static TMC2209Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
@@ -121,9 +120,3 @@ extern uint16_t tmc_get_last_sg_sample(uint8_t axis) {
 }
 
 } //extern "C"
-
-#else
-
-    #error "MOTHERBOARD not defined"
-
-#endif

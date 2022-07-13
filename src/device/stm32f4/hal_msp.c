@@ -1,6 +1,6 @@
 #include "main.h"
 #include "FreeRTOSConfig.h"
-#include "peripherals.h"
+#include <device/peripherals.h>
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 

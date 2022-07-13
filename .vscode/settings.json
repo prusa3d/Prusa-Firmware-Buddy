@@ -1,7 +1,7 @@
 {
     "cmake.configureOnOpen": true,
-    "ccls.misc.compilationDatabaseDirectory": "build-vscode",
     "ccls.index.multiVersion": 1,
+    "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
     "ccls.clang.extraArgs": [
         "-fno-ms-compatibility",
         "-nostdinc",
@@ -16,7 +16,6 @@
         "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/../lib/gcc/arm-none-eabi/10.3.1/include-fixed",
         "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include"
     ],
-    "cmake.buildDirectory": "${workspaceFolder}/build-vscode",
     "cmake.cmakePath": "${workspaceFolder}/.dependencies/cmake-3.22.5/bin/cmake",
     "cmake.generator": "Ninja",
     "files.insertFinalNewline": true

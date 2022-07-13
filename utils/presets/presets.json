@@ -5,7 +5,9 @@
             "name": "mini",
             "description": "Original Prusa MINI",
             "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
+                "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
                 "PRESET_COMPILE_OPTIONS": ""
             }

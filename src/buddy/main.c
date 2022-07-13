@@ -1,39 +1,10 @@
 #include "main.h"
+#include <device/hal.h>
 #include "cmsis_os.h"
-#include "stm32f4xx_hal.h"
 #include "SEGGER_SYSVIEW.h"
 #include "crc32.h"
 #include "eeprom.h"
 #include "tick_timer_api.h"
-
-static void system_clock_configure(void) {
-    // Configure the main internal regulator output voltage
-    __HAL_RCC_PWR_CLK_ENABLE();
-    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
-    // Initializes the CPU, AHB and APB busses clocks
-    RCC_OscInitTypeDef osc_init;
-    rcc_osc_get_init(&osc_init);
-    if (HAL_RCC_OscConfig(&osc_init) != HAL_OK) {
-        Error_Handler();
-    }
-
-    // Initializes the CPU, AHB and APB busses clocks
-    RCC_ClkInitTypeDef clk_init;
-    rcc_clk_get_init(&clk_init);
-    if (HAL_RCC_ClockConfig(&clk_init, FLASH_LATENCY_5) != HAL_OK) {
-        Error_Handler();
-    }
-
-    SystemCoreClock = system_core_get_clock();
-
-    RCC_PeriphCLKInitTypeDef periph_clk_init = { 0 };
-    periph_clk_init.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-    periph_clk_init.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
-    if (HAL_RCCEx_PeriphCLKConfig(&periph_clk_init) != HAL_OK) {
-        Error_Handler();
-    }
-}
 
 static void enable_trap_on_division_by_zero() {
     SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
@@ -110,7 +81,7 @@ int main() {
     HAL_Init();
 
     // configure system clock and timing
-    system_clock_configure();
+    system_core_init();
     tick_timer_init();
 
     // other MCU setup

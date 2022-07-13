@@ -726,7 +726,7 @@ void ac_fault_loop() {
 
         if (TEST(state_buf.crash.axis_known_position, X_AXIS)) {
 #if ENABLED(XY_LINKED_ENABLE)
-            // XBuddy has XY-EN linked, so the following move will indirectly enable Y.
+            // Buddy has XY-EN linked, so the following move will indirectly enable Y.
             // In order to conserve power and keep Y disabled, set the chopper off time via SPI instead.
             stepperY.toff(0);
 #endif

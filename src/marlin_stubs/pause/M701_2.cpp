@@ -19,7 +19,7 @@
 #include "pause_stubbed.hpp"
 #include <functional> // std::invoke
 #include <cmath>
-#include "task.h" //critical sections
+#include "cmsis_os.h"
 #include "filament_sensor_api.hpp"
 #include "eeprom_function_api.h"
 #include "RAII.hpp"

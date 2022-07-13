@@ -1,7 +1,7 @@
 // gpio.h
 #pragma once
 
-#include "stm32f4xx_hal.h"
+#include <device/hal.h>
 
 //port of pin8
 static inline GPIO_TypeDef *gpio_port(uint8_t pin8) {

@@ -49,7 +49,9 @@ add_executable(
 target_include_directories(gcode_filter_tests PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
 add_executable(timing_tests ${CMAKE_SOURCE_DIR}/src/common/timing.c timing_tests.cpp)
-target_include_directories(timing_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+target_include_directories(
+  timing_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/include
+  )
 
 add_executable(
   weighted_modus_tests ${CMAKE_CURRENT_SOURCE_DIR}/weighted_modus_test.cpp

@@ -7,7 +7,7 @@
 
 #include "hwio.h"
 #include "config.h"
-#include "stm32f4xx_hal.h"
+#include <device/hal.h>
 #include "cmsis_os.h"
 #include "gpio.h"
 #include "adc.hpp"
