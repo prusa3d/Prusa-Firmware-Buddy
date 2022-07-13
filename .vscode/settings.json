@@ -1,5 +1,6 @@
 {
     "cmake.configureOnOpen": true,
+    "ccls.misc.showInactiveRegions": true,
     "ccls.index.multiVersion": 1,
     "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
     "ccls.clang.extraArgs": [
