@@ -3,7 +3,7 @@
 #include <optional>
 #include <debug.h>
 
-#ifdef __unix__
+#if defined(__unix__) || defined(__APPLE__)
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
