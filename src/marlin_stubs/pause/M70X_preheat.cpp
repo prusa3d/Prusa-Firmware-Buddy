@@ -130,9 +130,13 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_ex
         thermalManager.setTargetHotend(fil_cnf.nozzle_preheat, 0);
         marlin_server_set_temp_to_display(fil_cnf.nozzle);
         thermalManager.setTargetBed(fil_cnf.heatbed);
-        //cooldown pressed
+        // cooldown pressed
         if (filament == filament_t::NONE) {
             thermalManager.set_fan_speed(0, 0);
+        } else if ((axis_homed & _BV(Z_AXIS)) != _BV(Z_AXIS)) {
+            auto current_pos = current_position;
+            current_pos.z += 10;
+            plan_park_move_to_xyz(current_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
         }
     }
 
@@ -143,5 +147,5 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_ex
     PreheatStatus::SetResult(PreheatStatus::Result::DoneNoFilament);
 
     // we might want to set filament type even with preheat, if so do:
-    //Filaments::SetToBeLoaded(filament);
+    // Filaments::SetToBeLoaded(filament);
 }
