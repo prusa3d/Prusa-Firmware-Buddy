@@ -50,6 +50,7 @@ bool filament_gcodes::load_unload(LoadUnloadMode type, filament_gcodes::Func f_l
 }
 
 void filament_gcodes::M701_no_parser(filament_t filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot) {
+    InProgress progress;
     Filaments::SetToBeLoaded(filament_to_be_loaded);
     if (op_preheat) {
         PreheatData data(!fast_load_length.has_value() || fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, *op_preheat);
@@ -83,6 +84,7 @@ void filament_gcodes::M701_no_parser(filament_t filament_to_be_loaded, const std
 }
 
 void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded) {
+    InProgress progress;
     if (op_preheat) {
         PreheatData data(PreheatMode::Unload, *op_preheat); // TODO do I need PreheatMode::Unload_askUnloaded
         auto preheat_ret = preheat(data);
@@ -152,6 +154,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res) {
 }
 
 void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder) {
+    InProgress progress;
     if constexpr (HAS_BOWDEN) {
         M701_no_parser(filament_t::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0);
     } else {
@@ -203,6 +206,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
 }
 
 void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
+    InProgress progress;
     filament_t filament = Filaments::CurrentIndex();
     if (filament == filament_t::NONE) {
         PreheatStatus::SetResult(PreheatStatus::Result::DoneNoFilament);

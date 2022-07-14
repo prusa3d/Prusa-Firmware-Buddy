@@ -118,6 +118,7 @@ std::pair<std::optional<PreheatStatus::Result>, filament_t> filament_gcodes::pre
  * @param target_extruder
  */
 void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_extruder, bool save) {
+    InProgress progress;
     PreheatData data(PreheatMode::None, preheat_tp);
     Response response = preheatTempUnKnown(data);
 
