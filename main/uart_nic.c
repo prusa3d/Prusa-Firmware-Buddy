@@ -47,7 +47,7 @@
 int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 
-static const uint16_t FW_VERSION = 2;
+static const uint16_t FW_VERSION = 3;
 
 // intron
 // 0 as uint8_t
@@ -130,6 +130,7 @@ static void send_link_status(uint8_t up) {
 
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
+        ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N));
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
         send_link_status(0);
