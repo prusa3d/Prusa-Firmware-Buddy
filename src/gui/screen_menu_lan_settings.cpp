@@ -117,11 +117,6 @@ void ScreenMenuConnectionBase::refresh_addresses() {
                 break;
             }
             break;
-        case EspLinkState::Cooldown:
-            if (Item<MI_WIFI_STATUS_t>().ChangeInformation("SIGN") == invalidate_t::yes) {
-                refresh = true;
-            }
-            break;
         case EspLinkState::NoAp:
             if (Item<MI_WIFI_STATUS_t>().ChangeInformation("NO AP") == invalidate_t::yes) {
                 refresh = true;

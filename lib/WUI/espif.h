@@ -99,8 +99,6 @@ enum class EspLinkState {
     Up,
     /// Connected to AP, but not brought up (missing IP?)
     Down,
-    /// Lost signal for a while, waiting to see if it stays down.
-    Cooldown,
     /// No communication from ESP for a while.
     ///
     /// Broken UART? ESP crashed?
