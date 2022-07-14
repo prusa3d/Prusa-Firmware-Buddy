@@ -5,6 +5,7 @@ RUN apt-get clean && \
 RUN pip3 install Cython
 RUN pip3 install pre-commit ecdsa littlefs-python
 WORKDIR /work
-ADD utils/bootstrap.py bootstrap.py
+ADD utils/bootstrap.py utils/bootstrap.py
+ADD utils/debug utils/debug
 RUN gcc --version
-RUN python3 bootstrap.py
+RUN python3 utils/bootstrap.py && rm -rf utils

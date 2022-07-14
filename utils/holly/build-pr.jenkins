@@ -24,7 +24,7 @@ pipeline {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     sh """
-                    ln -fs /.dependencies
+                    ln -fs /work/.dependencies
 
                     export XDG_CACHE_HOME=\$PWD/.precommit
                     pre-commit install
@@ -77,7 +77,7 @@ pipeline {
                         stage("Build - ${config.preset},${config.build_type},${config.bootloader}boot") {
                             catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                 sh """
-                                    ln -fs /.dependencies
+                                    ln -fs /work/.dependencies
                                     python3 utils/build.py \
                                         --preset ${config.preset} \
                                         --build-type ${config.build_type} \
@@ -99,11 +99,10 @@ pipeline {
         stage('Test') {
             steps {
                 sh """
-                python3 utils/bootstrap.py
-                export PATH=\$PWD/.dependencies/cmake-3.22.5/bin:\$PWD/.dependencies/ninja-1.10.2:\$PATH
+                export PATH=/work/.dependencies/cmake-3.22.5/bin:/work/.dependencies/ninja-1.10.2:\$PATH
                 mkdir -p build-test
-                LD_LIBRARY_PATH=/usr/local/lib32 \$PWD/.dependencies/cmake-3.22.5/bin/ctest --build-and-test . build-test \
-                    -DCMAKE_MAKE_PROGRAM=\$PWD/.dependencies/ninja-1.10.2/ninja \
+                LD_LIBRARY_PATH=/usr/local/lib32 /work/.dependencies/cmake-3.22.5/bin/ctest --build-and-test . build-test \
+                    -DCMAKE_MAKE_PROGRAM=/work/.dependencies/ninja-1.10.2/ninja \
                     --build-generator Ninja \
                     --build-target tests \
                     --test-command ctest
