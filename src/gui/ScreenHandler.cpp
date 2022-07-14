@@ -207,6 +207,8 @@ void Screens::Loop() {
             // no need to call ResetTimeout() - screen destructor does that
             return;
         }
+    } else {
+        ResetTimeout(); // in case timeout was enabled while menu was opened
     }
     /// continue inner loop
     InnerLoop();
