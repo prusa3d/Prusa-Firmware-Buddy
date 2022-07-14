@@ -1,6 +1,6 @@
 #include "os_porting.hpp"
 
-#ifdef __unix__
+#if defined(__unix__) || defined(__APPLE__)
     #include "string.h"
 
 uint32_t ticks_ms(void) {
