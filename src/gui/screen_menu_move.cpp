@@ -110,8 +110,11 @@ class ScreenMenuMove : public Screen {
     float prev_accel;
 
     void checkNozzleTemp() {
+        bool can_timeout = true;
+
         if (DUMMY_AXIS_E::IsTargetTempOk()) {
             Show<MI_COOLDOWN>();
+            can_timeout = false; //just do not timeout whe we are heating
         } else {
             if (Item<MI_COOLDOWN>().IsFocused()) {
                 menu.Decrement(1);
@@ -133,6 +136,8 @@ class ScreenMenuMove : public Screen {
             Hide<MI_AXIS_E>();
             Item<DUMMY_AXIS_E>().Update();
         }
+
+        can_timeout ? SetMenuTimeoutClose() : ClrMenuTimeoutClose();
     }
 
 public:
