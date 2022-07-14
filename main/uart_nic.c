@@ -47,7 +47,7 @@
 int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 
-static const uint16_t FW_VERSION = 2;
+static const uint16_t FW_VERSION = 3;
 
 // intron
 // 0 as uint8_t
