@@ -96,9 +96,6 @@ void ScreenMenuConnectionBase::refresh_addresses() {
                 break;
             }
             break;
-        case EspLinkState::Cooldown:
-            Item<MI_WIFI_STATUS_t>().ChangeInformation("SIGN");
-            break;
         case EspLinkState::NoAp:
             Item<MI_WIFI_STATUS_t>().ChangeInformation("NO AP");
             break;

@@ -100,14 +100,6 @@ static std::atomic<TaskHandle_t> init_task_handle;
 static std::atomic<netif *> active_esp_netif;
 // 10 seconds (20 health-check loops spaced 500ms from each other)
 static std::atomic<uint8_t> init_countdown = 20;
-// Hack:
-// Utility to delay going down for a while, because sometimes the signal/status
-// is "flippering". That would cause a new dhcp request very often and we want
-// to avoid that.
-static const constexpr uint32_t NO_DELAYED_DOWN = 0xFFFFFFFF;
-static const constexpr uint32_t DELAY_MASK = 0x7FFFFFFF;
-static const constexpr uint32_t DOWN_DELAY = 3000;
-static std::atomic<uint32_t> delayed_down = NO_DELAYED_DOWN;
 static std::atomic<bool> seen_intron = false;
 
 // UART
@@ -270,26 +262,14 @@ bool espif_link() {
     return associated;
 }
 
-static uint32_t half_now() {
-    return sys_now() & DELAY_MASK;
-}
-
-static void process_link_change(bool link_up, struct netif *netif, bool delay) {
+static void process_link_change(bool link_up, struct netif *netif) {
     assert(netif != nullptr);
     if (link_up) {
         if (!associated.exchange(true)) {
             netif_set_link_up(netif);
             log_info(ESPIF, "Link went up");
         }
-        delayed_down = NO_DELAYED_DOWN;
-    } else if (delay) {
-        // Set the timer for actually going down after a while. But:
-        // * Give it time to go back up without any visible "effect"
-        // * Don't re-schedule if there are two "downs" in a row.
-        uint32_t no_delay = NO_DELAYED_DOWN;
-        delayed_down.compare_exchange_strong(no_delay, half_now());
     } else {
-        delayed_down = NO_DELAYED_DOWN;
         if (associated.exchange(false)) {
             log_info(ESPIF, "Link went down");
             netif_set_link_down(netif);
@@ -372,7 +352,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             break;
 
         case Link:
-            process_link_change(*c++, netif, true);
+            process_link_change(*c++, netif);
             state = Intron;
             break;
 
@@ -536,7 +516,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
 static void force_down() {
     struct netif *iface = active_esp_netif; // Atomic load
     assert(iface != nullptr);               // Already initialized
-    process_link_change(false, iface, false);
+    process_link_change(false, iface);
 }
 
 static void reset() {
@@ -676,22 +656,6 @@ bool espif_tick() {
         // atomic to allow reading things at the same time.
         init_countdown.store(current_init - 1);
     }
-    // Check if we should bring the interface down in a "delayed" way.
-    // A race (eg. we bring it down, but someone brought it up in the meantime
-    // or so) is unlikely, both this and the parsing of UART inputs happen in
-    // the same thread. Technically, there could be some with call of
-    // force_down during an ESP reflash, but that probably should be rare (who
-    // would be reflashing it when it works) and not that a big deal.
-    const uint32_t delay = delayed_down;
-    if (delayed_down != NO_DELAYED_DOWN) {
-        const uint32_t now = half_now();
-        // Should work fine even in case of overflow/underflow
-        const uint32_t diff = now - delay;
-        if (diff >= DOWN_DELAY) {
-            force_down();
-            return false;
-        }
-    }
 
     if (espif_link()) {
         xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
@@ -771,18 +735,14 @@ EspLinkState esp_link_state() {
         return EspLinkState::NoAp;
         return EspLinkState::Down;
     case ESPIF_RUNNING_MODE: {
-        if (delayed_down == NO_DELAYED_DOWN) {
-            if (espif_link()) {
-                if (seen_intron) {
-                    return EspLinkState::Up;
-                } else {
-                    return EspLinkState::Silent;
-                }
+        if (espif_link()) {
+            if (seen_intron) {
+                return EspLinkState::Up;
             } else {
-                return EspLinkState::Down;
+                return EspLinkState::Silent;
             }
         } else {
-            return EspLinkState::Cooldown;
+            return EspLinkState::Down;
         }
     }
     }
