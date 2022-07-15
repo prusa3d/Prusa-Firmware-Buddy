@@ -1,5 +1,5 @@
-#include <nhttp/segmented_json.h>
-#include <nhttp/segmented_json_macros.h>
+#include <segmented_json.h>
+#include <segmented_json_macros.h>
 
 #include <catch2/catch.hpp>
 #include <string>
@@ -8,7 +8,7 @@
 using std::string;
 using std::string_view;
 
-using namespace nhttp;
+using namespace json;
 
 namespace {
 

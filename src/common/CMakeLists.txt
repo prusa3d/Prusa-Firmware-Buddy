@@ -35,6 +35,7 @@ if(BOARD MATCHES ".*BUDDY")
             ini_handler.c
             jsmn.c
             json_encode.c
+            segmented_json.cpp
             lang.cpp
             language_eeprom.cpp
             lfn.c

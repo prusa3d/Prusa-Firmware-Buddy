@@ -5,7 +5,7 @@
 #include <tuple>
 #include <optional>
 
-namespace nhttp {
+namespace json {
 
 /// Passing state of an attempt to write something.
 ///

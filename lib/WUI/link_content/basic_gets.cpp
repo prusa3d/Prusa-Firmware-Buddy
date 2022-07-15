@@ -3,11 +3,13 @@
 #include "marlin_client.h"
 #include "lwip/init.h"
 #include "netdev.h"
-#include "../nhttp/segmented_json_macros.h"
+
+#include <segmented_json_macros.h>
 
 #include <cstring>
 #include <cstdio>
 
+using namespace json;
 namespace nhttp::link_content {
 
 JsonResult get_printer(size_t resume_point, JsonOutput &output) {
