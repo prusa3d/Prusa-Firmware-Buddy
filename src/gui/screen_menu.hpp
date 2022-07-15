@@ -36,12 +36,12 @@ protected:
 public:
     ScreenMenu(string_view_utf8 label, window_t *parent = nullptr);
 
-    //compiletime access by index
+    //compile time access by index
     template <std::size_t I>
     decltype(auto) Item() {
         return std::get<I>(container.menu_items);
     }
-    //compiletime access by type
+    //compile time access by type
     template <class TYPE>
     decltype(auto) Item() {
         return std::get<TYPE>(container.menu_items);
@@ -51,21 +51,32 @@ public:
     void DisableItem() {
         if (Item<ITEM>().IsEnabled()) {
             Item<ITEM>().Disable();
-            Invalidate();
+            Invalidate(); // TODO is this needed?
         }
     }
     template <class ITEM>
     void EnableItem() {
         if (!Item<ITEM>().IsEnabled()) {
             Item<ITEM>().Enable();
-            Invalidate();
+            Invalidate(); // TODO is this needed?
         }
     }
+
+    //cannot hide focused item
+    template <class ITEM>
+    bool Hide() {
+        return menu.Hide(Item<ITEM>());
+    }
+
+    template <class ITEM>
+    void Show() {
+        menu.Show(Item<ITEM>());
+    }
+    //ShowDevOnly intentionally not supported, can be set only in ctor
 };
 
 template <EFooter FOOTER, class... T>
 ScreenMenu<FOOTER, T...>::ScreenMenu(string_view_utf8 label, window_t *parent)
     : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
-    menu.pContainer = &container;
-    menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
+    menu.SetContainer(container);
 }

@@ -75,6 +75,26 @@ protected:
     color_t GetTextColor() const;
     color_t GetBackColor() const;
 
+    void hide() {
+        hidden = (uint8_t)is_hidden_t::yes;
+    }
+    void show() {
+        if (hidden != (uint8_t)is_hidden_t::no) {
+            hidden = (uint8_t)is_hidden_t::no;
+            Invalidate();
+        }
+    }
+
+    void showDevOnly() {
+        if (hidden != (uint8_t)is_hidden_t::dev) {
+            hidden = (uint8_t)is_hidden_t::dev;
+            Invalidate();
+        }
+    }
+
+    void setFocus(); // will show hidden
+    void clrFocus();
+
 public:
     IWindowMenuItem(string_view_utf8 label, ResourceId id_icon = IDR_NULL, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
     IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, ResourceId id_icon = IDR_NULL, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
@@ -85,34 +105,26 @@ public:
             Invalidate();
         }
     }
-    void Disable() {
+    bool Disable() {
+        //cannot disable focused item
+        if (focused == is_focused_t::yes)
+            return false;
         if (enabled != is_enabled_t::no) {
             enabled = is_enabled_t::no;
             Invalidate();
         }
+        return true;
     }
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     bool IsSelected() const { return selected == is_selected_t::yes; }
-    void Hide() { hidden = (uint8_t)is_hidden_t::yes; }
-    void Show() {
-        if (hidden != (uint8_t)is_hidden_t::no) {
-            hidden = (uint8_t)is_hidden_t::no;
-            Invalidate();
-        }
-    }
-
-    void ShowDevOnly() {
-        if (hidden != (uint8_t)is_hidden_t::dev) {
-            hidden = (uint8_t)is_hidden_t::dev;
-            Invalidate();
-        }
-    }
 
     bool IsHidden() const;
-    void SetFocus();
-    void ClrFocus();
+
     bool IsFocused() const { return focused == is_focused_t::yes; }
-    void SetIconId(ResourceId id) { id_icon = id; }
+    void SetIconId(ResourceId id) {
+        id_icon = id;
+        InValidateIcon();
+    }
     ResourceId GetIconId() const { return id_icon; }
     void SetLabel(string_view_utf8 text);
     /// @returns the label translated via gettext
@@ -141,4 +153,9 @@ public:
     void InValidateExtension();
 
     virtual void Loop() {}; //automatically called by menu
+
+    // some friend classes to be able to access / private hide/show methods
+    // those methods must not be public, because their usage will break menu!!!
+    friend class window_menu_t;
+    friend class window_file_list_t;
 };

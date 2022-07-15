@@ -19,6 +19,10 @@
  *              - W1  - preheat with cool down option
  *              - W2  - preheat with return option
  *              - W3  - preheat with cool down and return options - default
+ *
+ *  S           - Set filament
+ *
+ *  E           - Enforce target temperature
  */
 void PrusaGcodeSuite::M1700() {
     const uint8_t preheat = std::min(parser.byteval('W', 3), uint8_t(RetAndCool_t::last_));
@@ -27,7 +31,7 @@ void PrusaGcodeSuite::M1700() {
     if (target_extruder < 0)
         return;
 
-    filament_gcodes::M1700_no_parser(RetAndCool_t(preheat), target_extruder, parser.seen('S'));
+    filament_gcodes::M1700_no_parser(RetAndCool_t(preheat), target_extruder, parser.boolval('S'), parser.boolval('E'));
 }
 
 /**

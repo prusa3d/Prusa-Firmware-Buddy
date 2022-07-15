@@ -96,8 +96,7 @@ ScreenMenuFwUpdate::ScreenMenuFwUpdate()
     header.SetText(_(label));
     help.font = resource_font(helper_font);
     help.SetText(_("Select when you want to automatically flash updated firmware from USB flash disk."));
-    menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
-    CaptureNormalWindow(menu);        // set capture to list
+    CaptureNormalWindow(menu); // set capture to list
 }
 
 ScreenFactory::UniquePtr GetScreenMenuFwUpdate() {
