@@ -60,13 +60,10 @@ add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
 add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
 
 # /web directory
-add_gzip_resource(
-  "web/e5ae0f11eb9a619ec903488e77be89b8.svg" "/web/e5ae0f11eb9a619ec903488e77be89b8.svg"
-  )
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.976038a64a42bac7461d.js" "/web/main.976038a64a42bac7461d.js")
-add_gzip_resource("web/main.948afd229701ae536d26.css" "/web/main.948afd229701ae536d26.css")
+add_gzip_resource("web/main.478b47f79f42d0548d8b.js" "/web/main.478b47f79f42d0548d8b.js")
+add_gzip_resource("web/main.cf0f3f6f32f7abaffeea.css" "/web/main.cf0f3f6f32f7abaffeea.css")
 
 # generate header with hash
 add_header_with_revision(standard resources-image)
