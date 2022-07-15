@@ -8,7 +8,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/server_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/job_command_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/file_command_tests.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/segmented_json_rendering.cpp
+  # ${CMAKE_CURRENT_SOURCE_DIR}/segmented_json_rendering.cpp
   # Tested files
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/common_selectors.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/multipart_parser.c
@@ -23,11 +23,11 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/send_file.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/headers.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/status_page.cpp
-  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/stateless_json.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/req_parser.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/handler.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.c
+  ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode_thumb_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode_filename.cpp

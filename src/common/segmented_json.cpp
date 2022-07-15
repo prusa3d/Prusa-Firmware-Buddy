@@ -1,13 +1,12 @@
 #include "segmented_json.h"
-
-#include <json_encode.h>
+#include "json_encode.h"
 
 #include <cassert>
 #include <cstdio>
 #include <cstdarg>
 #include <cinttypes>
 
-namespace nhttp {
+namespace json {
 
 JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
     va_list params;

@@ -1,9 +1,9 @@
 #pragma once
 
-#define JSON_OUT(RPOINT, CALL, ...)                                                                                   \
-    case RPOINT:                                                                                                      \
-        if (::nhttp::JsonResult result = output.CALL(RPOINT, __VA_ARGS__); result != ::nhttp::JsonResult::Complete) { \
-            return result;                                                                                            \
+#define JSON_OUT(RPOINT, CALL, ...)                                                                                 \
+    case RPOINT:                                                                                                    \
+        if (::json::JsonResult result = output.CALL(RPOINT, __VA_ARGS__); result != ::json::JsonResult::Complete) { \
+            return result;                                                                                          \
         }
 #define JSON_CONTROL(STR) JSON_OUT(__COUNTER__, output, (STR))
 
@@ -26,4 +26,4 @@
     case 0:;
 #define JSON_END \
     }            \
-    return nhttp::JsonResult::Complete;
+    return ::json::JsonResult::Complete;

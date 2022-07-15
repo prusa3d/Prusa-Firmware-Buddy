@@ -4,6 +4,7 @@
 
 #include <http/chunked.h>
 
+using namespace json;
 using namespace http;
 
 namespace nhttp::handler {

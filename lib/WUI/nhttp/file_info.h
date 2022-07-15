@@ -1,9 +1,9 @@
 #pragma once
 
-#include "segmented_json.h"
 #include "step.h"
 
 #include <http/types.h>
+#include <segmented_json.h>
 
 #include <string_view>
 #include <dirent.h>
@@ -52,9 +52,9 @@ private:
     };
 
     /// The JSON renderer for the directory listing.
-    class DirRenderer final : public JsonRenderer<DirState> {
+    class DirRenderer final : public json::JsonRenderer<DirState> {
     protected:
-        virtual JsonResult renderState(size_t resume_point, JsonOutput &output, DirState &state) const override;
+        virtual json::JsonResult renderState(size_t resume_point, json::JsonOutput &output, DirState &state) const override;
 
     public:
         DirRenderer()
@@ -74,10 +74,10 @@ private:
     };
 
     /// Renderer for the file info.
-    class FileRenderer final : public JsonRenderer<FileState> {
+    class FileRenderer final : public json::JsonRenderer<FileState> {
     private:
     protected:
-        virtual JsonResult renderState(size_t resume_point, JsonOutput &output, FileState &state) const override;
+        virtual json::JsonResult renderState(size_t resume_point, json::JsonOutput &output, FileState &state) const override;
 
     public:
         FileRenderer(FileInfo *owner, int64_t size)
