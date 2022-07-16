@@ -152,10 +152,10 @@ public:
     ScreenMenuEthernetSettings()
         : ScreenMenuConnectionBase(NETDEV_ETH_ID, eth_label) {
         // MI for WIFI only have to be defined in the base class' container, but won't be used in ETH screen
-        Item<MI_WIFI_STATUS_t>().Hide();
-        Item<MI_WIFI_INIT_t>().Hide();
-        Item<MI_WIFI_CREDENTIALS_INI_FILE_t>().Hide();
-        Item<MI_WIFI_CREDENTIALS_t>().Hide();
+        Hide<MI_WIFI_STATUS_t>();
+        Hide<MI_WIFI_INIT_t>();
+        Hide<MI_WIFI_CREDENTIALS_INI_FILE_t>();
+        Hide<MI_WIFI_CREDENTIALS_t>();
     }
 };
 

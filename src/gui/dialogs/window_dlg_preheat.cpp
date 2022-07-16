@@ -38,7 +38,6 @@ DialogMenuPreheat::DialogMenuPreheat(string_view_utf8 name, PreheatData type)
     , header(this) {                                         // header registration should fail in case name.isNULLSTR(), it is OK
     name.isNULLSTR() ? header.Hide() : header.SetText(name); // hide it anyway, to be safe
 
-    menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
     CaptureNormalWindow(menu);
 }
 

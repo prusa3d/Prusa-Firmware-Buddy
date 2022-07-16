@@ -84,10 +84,7 @@ ScreenFactory::UniquePtr GetScreenMenuSettings() {
 ScreenMenuSettings::ScreenMenuSettings()
     : Screen(_(label))
     , old_action(gui::knob::GetLongPressScreenAction()) { // backup hold action
-    if (SteelSheets::NumOfCalibrated() > 1) {
-        Item<MI_CURRENT_PROFILE>().UpdateLabel();
-        Item<MI_CURRENT_PROFILE>().Show();
-    }
+
     gui::knob::RegisterLongPressScreenAction([]() { Screens::Access()->Open(GetScreenMenuExperimentalSettings); }); // new hold action
     EnableLongHoldScreenAction();
 }

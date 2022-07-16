@@ -48,7 +48,6 @@ namespace {
     };
 
     constexpr const size_t content_buffer_len = 128;
-
 }
 
 const StatusText &StatusText::find(Status status) {

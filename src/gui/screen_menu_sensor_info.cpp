@@ -21,7 +21,7 @@ public:
     ScreenMenuSensorInfo()
         : Screen(_(label)) {
         EnableLongHoldScreenAction();
-        flags.timeout_close = is_closed_on_timeout_t::no;
+        ClrMenuTimeoutClose();
     }
 };
 

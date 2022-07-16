@@ -9,7 +9,7 @@
 //use template instead IWinMenuContainer *pContainer;
 //I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
 class window_menu_t : public IWindowMenu {
-    uint8_t index;     /// index of cursor
+    uint8_t index;     /// index of focused item
     int8_t moveIndex;  /// accumulator for cursor changes
     uint8_t top_index; /// offset of currently shown item
 
@@ -23,7 +23,7 @@ class window_menu_t : public IWindowMenu {
     bool moveToNextVisibleItem();
     /// Moves menu so the cursor is on the screen
     /// \returns true if menu was moved
-    bool updateTopIndex();
+    bool updateTopIndex_IsRedrawNeeded();
     /// \returns index in visible item list (excluding hidden) according to
     /// index from the complete item list (including hidden)
     int visibleIndex(const int real_index);
@@ -38,20 +38,26 @@ class window_menu_t : public IWindowMenu {
     /// \returns input
     bool playEncoderSound(bool changed);
 
+    IWinMenuContainer *pContainer;
+
 public:
     window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index = 0);
-    IWinMenuContainer *pContainer;
+    void SetContainer(IWinMenuContainer &cont, uint8_t index = 0);
+
     bool SetIndex(uint8_t index); //must check container
     void Increment(int dif);
     void Decrement(int dif) { Increment(-dif); }
     uint8_t GetIndex() const { return index; }
     /// \returns number of all menu items including hidden ones
     uint8_t GetCount() const;
-    IWindowMenuItem *GetItem(uint8_t index) const;
-    IWindowMenuItem *GetActiveItem();
+    IWindowMenuItem *GetItem(uint8_t index) const; // nth item in container
+    IWindowMenuItem *GetActiveItem();              // focused item
 
     void InitState(screen_init_variant::menu_t var);
     screen_init_variant::menu_t GetCurrentState() const;
+
+    void Show(IWindowMenuItem &item);
+    bool Hide(IWindowMenuItem &item);
 
 protected:
     virtual void draw() override;

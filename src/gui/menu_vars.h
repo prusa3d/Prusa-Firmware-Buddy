@@ -58,8 +58,6 @@ struct MenuVars {
     constexpr static std::array<int, MenuVars::RANGE_SZ> axis_rms_currents_range = { 0, 800, 1 };
     constexpr static std::array<int, MenuVars::RANGE_SZ> steps_per_unit_range = { 1, 1000, 1 }; // small range, experimental feature
 
-    static const int GetExtrudeMinTemp();
-
     static const std::array<int, AXIS_CNT> GetDefaultStepsPerUnit();
     static const std::array<int, AXIS_CNT> GetDefaultMicrosteps();
     static const std::array<int, AXIS_CNT> GetDefaultCurrents();

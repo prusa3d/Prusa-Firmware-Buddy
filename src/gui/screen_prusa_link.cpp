@@ -89,11 +89,10 @@ ScreenMenuPrusaLink::ScreenMenuPrusaLink()
     , canvas(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - 12 * canvas_font_height(), GuiDefaults::RectScreen.Width(), 3 * canvas_font_height()), is_multiline::yes) {
     header.SetText(_(label));
     canvas.font = resource_font(canvas_font);
-    menu.GetActiveItem()->SetFocus(); // set focus on new item//containder was not valid during construction, have to set its index again
-    CaptureNormalWindow(menu);        // set capture to list
+    CaptureNormalWindow(menu); // set capture to list
     display_api_key(wui_get_api_key());
     // The user might want to read the API key from here, don't time it out on them.
-    flags.timeout_close = is_closed_on_timeout_t::no;
+    ClrMenuTimeoutClose();
 }
 
 ScreenFactory::UniquePtr GetScreenPrusaLink() {

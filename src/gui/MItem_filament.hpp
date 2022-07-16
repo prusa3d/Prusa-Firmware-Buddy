@@ -41,3 +41,13 @@ public:
     MI_PURGE();
     virtual void Do() override;
 };
+
+class MI_COOLDOWN : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Cooldown");
+
+public:
+    MI_COOLDOWN();
+
+protected:
+    virtual void click(IWindowMenu & /*window_menu*/) override;
+};
