@@ -11,8 +11,8 @@
 #include "window_qr.hpp"
 #include "window_wizard_progress.hpp"
 
-#define QR_ADDR         "prusa3d.com/miniWiFi-qr"
-#define QR_ADDR_IN_TEXT "prusa3d.com/miniWiFi"
+#define QR_ADDR         "prusa.io/wifiminiqr"
+#define QR_ADDR_IN_TEXT "prusa.io/wifimini"
 
 class SelftestFrameESP_qr : public AddSuperWindow<SelftestFrameWithRadio> {
     class QR : public AddSuperWindow<window_qr_t> {
