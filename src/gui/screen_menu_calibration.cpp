@@ -5,6 +5,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
+#include "MItem_basic_selftest.hpp"
 #include "MItem_print.hpp"
 #include "printers.h"
 

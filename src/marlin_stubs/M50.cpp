@@ -7,6 +7,8 @@
 #include "z_calibration_fsm.hpp"
 #include "wizard_config.hpp"
 
+#if HAS_GUI
+
 // M50 .. selftest
 // use M50 because M48 is test of Z probing (also some kind of test)
 // and M49 was used
@@ -30,7 +32,7 @@ void PrusaGcodeSuite::M50() {
     {
         FSM_Holder D(ClientFSM::SelftestAxis, 0);
         const float target_Z = 20;
-        Z_Calib_FSM N(ClientFSM::SelftestAxis, GetPhaseIndex(PhasesG162::Parking), current_position.z, target_Z, 0, 100); //bind to variable and automatically notify progress
+        Z_Calib_FSM N(ClientFSM::SelftestAxis, GetPhaseIndex(PhasesSelftest::CalibZ), current_position.z, target_Z, 0, 100); //bind to variable and automatically notify progress
         do_blocking_move_to_z(20, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
     /*    FSM_Holder D(ClientFSM::G162, 0);
@@ -43,3 +45,9 @@ void PrusaGcodeSuite::M50() {
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }*/
 }
+
+#else
+
+void PrusaGcodeSuite::M50() {}
+
+#endif

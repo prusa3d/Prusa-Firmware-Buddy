@@ -9,8 +9,36 @@
 #include "ScreenHandler.hpp"
 #include "marlin_client.h"
 
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameWizardPrologue>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_axis(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrametAxis>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_fans(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameFans>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_temp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<ScreenSelftestTemp>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_calib_z(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameCalibZ>(&rThs, phase, data);
+}
+
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<ScreenSelftestInvalidState>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_result(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameResult>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_epilogue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameWizardEpilogue>(&rThs, phase, data);
 }
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
@@ -27,12 +55,26 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp_qr(ScreenSelftest &
 
 ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
     switch (part) {
+    case SelftestParts::WizardPrologue:
+        return creator_prologue;
     case SelftestParts::ESP:
         return creator_esp;
     case SelftestParts::ESP_progress:
         return creator_esp_progress;
     case SelftestParts::ESP_qr:
         return creator_esp_qr;
+    case SelftestParts::Axis:
+        return creator_axis;
+    case SelftestParts::Fans:
+        return creator_fans;
+    case SelftestParts::Heaters:
+        return creator_temp;
+    case SelftestParts::CalibZ:
+        return creator_calib_z;
+    case SelftestParts::Result:
+        return creator_result;
+    case SelftestParts::WizardEpilogue:
+        return creator_epilogue;
     case SelftestParts::_none:
         break;
     }
@@ -42,7 +84,7 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
 
 ScreenSelftest::ScreenSelftest()
     : AddSuperWindow<screen_t>()
-    , header(this, _(en_esp))
+    , header(this, _(en_selftest))
     , part_current(SelftestParts::_none)
     , part_previous(SelftestParts::_none) {
     ScreenSelftest::ClrMenuTimeoutClose(); // don't close on menu timeout
@@ -90,10 +132,20 @@ void ScreenSelftest::Change(fsm::BaseData data) {
 
 string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     switch (part) {
+    case SelftestParts::WizardPrologue:
+        return _(en_wizard);
     case SelftestParts::ESP:
     case SelftestParts::ESP_progress:
     case SelftestParts::ESP_qr:
         return _(en_esp);
+    case SelftestParts::Axis:
+    case SelftestParts::Fans:
+    case SelftestParts::Heaters:
+    case SelftestParts::CalibZ:
+    case SelftestParts::Result:
+        return _(en_selftest);
+    case SelftestParts::WizardEpilogue:
+        return _(en_wizard_ok);
     case SelftestParts::_none:
         break;
     }
@@ -102,10 +154,20 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
 
 ResourceId ScreenSelftest::getIconId(SelftestParts part) {
     switch (part) {
+    case SelftestParts::WizardPrologue:
+        return IDR_PNG_wizard_16x16;
     case SelftestParts::ESP:
     case SelftestParts::ESP_progress:
     case SelftestParts::ESP_qr:
         return IDR_PNG_wifi_16px;
+    case SelftestParts::Axis:
+    case SelftestParts::Fans:
+    case SelftestParts::Heaters:
+    case SelftestParts::CalibZ:
+    case SelftestParts::Result:
+        return IDR_PNG_selftest_16x16;
+    case SelftestParts::WizardEpilogue:
+        return IDR_PNG_wizard_16x16;
     case SelftestParts::_none:
         break;
     }
@@ -113,4 +175,15 @@ ResourceId ScreenSelftest::getIconId(SelftestParts part) {
 }
 
 void ScreenSelftest::InitState(screen_init_variant var) {
+    auto val = var.GetSelftestMask();
+    if (val) {
+        marlin_test_start(*val);
+        //check mask if contains wizard prologue
+        //it is simplified method, but should work correctly for meaningfull use
+        if ((*val) & stmWizardPrologue) {
+            header.SetIcon(IDR_PNG_wizard_16x16);
+            header.SetText(_(en_wizard));
+        }
+        //no need for else, selftest is default
+    }
 }

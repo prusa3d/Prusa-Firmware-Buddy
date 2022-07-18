@@ -9,6 +9,32 @@
 
 #include "fsm_base_types.hpp"
 #include "selftest_sub_state.hpp"
+#include <limits>
+struct SelftestFan_t {
+    uint8_t progress;
+    SelftestSubtestState_t state;
+
+    constexpr SelftestFan_t(uint8_t prog = 0, SelftestSubtestState_t st = SelftestSubtestState_t::undef)
+        : progress(prog)
+        , state(st) {}
+
+    constexpr bool operator==(const SelftestFan_t &other) const {
+        return (progress == other.progress) && (state == other.state);
+    }
+
+    constexpr bool operator!=(const SelftestFan_t &other) const {
+        return !((*this) == other);
+    }
+    void Pass() {
+        state = SelftestSubtestState_t::ok;
+        progress = 100;
+    }
+    void Fail() {
+        state = SelftestSubtestState_t::not_good;
+        progress = 100;
+    }
+    void Abort() {} // currently not needed
+};
 
 struct SelftestFans_t {
     uint8_t print_fan_progress;
@@ -17,14 +43,12 @@ struct SelftestFans_t {
     SelftestSubtestState_t print_fan_state;
     SelftestSubtestState_t heatbreak_fan_state;
 
-    constexpr SelftestFans_t(uint8_t prt_fan_prog = 0, uint8_t hb_fan_prog = 0, uint8_t tot_prog = 0,
-        SelftestSubtestState_t prt_fan_st = SelftestSubtestState_t::undef,
-        SelftestSubtestState_t hb_fan_st = SelftestSubtestState_t::undef)
-        : print_fan_progress(prt_fan_prog)
-        , heatbreak_fan_progress(hb_fan_prog)
-        , tot_progress(tot_prog)
-        , print_fan_state(prt_fan_st)
-        , heatbreak_fan_state(hb_fan_st) {}
+    constexpr SelftestFans_t(SelftestFan_t print = SelftestFan_t(), SelftestFan_t heatbreak = SelftestFan_t())
+        : print_fan_progress(print.progress)
+        , heatbreak_fan_progress(heatbreak.progress)
+        , tot_progress(std::min(print_fan_progress, heatbreak_fan_progress))
+        , print_fan_state(print.state)
+        , heatbreak_fan_state(heatbreak.state) {}
 
     constexpr SelftestFans_t(fsm::PhaseData new_data)
         : SelftestFans_t() {

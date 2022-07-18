@@ -13,11 +13,19 @@
 #include "selftest_frame_esp.hpp"
 #include "selftest_frame_esp_progress.hpp"
 #include "selftest_frame_esp_qr.hpp"
+#include "selftest_frame_axis.hpp"
+#include "selftest_frame_fans.hpp"
+#include "selftest_frame_calib_z.hpp"
+#include "selftest_frame_temp.hpp"
+#include "selftest_frame_result.hpp"
+#include "selftest_frame_wizard_prologue.hpp"
+#include "selftest_frame_wizard_epilogue.hpp"
 #include "selftest_invalid_state.hpp"
 #include "static_alocation_ptr.hpp"
+#include "printer_selftest.hpp" // SelftestMask_t
 
 class ScreenSelftest : public AddSuperWindow<screen_t> {
-    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState>::type;
+    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, ScreenSelftestTemp, SelftestFrameCalibZ>::type;
     mem_space all_tests;
 
     //safer than make_static_unique_ptr, checks storage size
@@ -30,9 +38,16 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
     using fnc = static_unique_ptr<SelftestFrame> (*)(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data); //function pointer definition
 
     //define factory methods for all dialogs here
+    static static_unique_ptr<SelftestFrame> creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_axis(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_fans(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_temp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_calib_z(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_result(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_esp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_esp_progress(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_esp_qr(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_epilogue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
 
     fnc Get(SelftestParts part); //returns factory method
@@ -43,6 +58,7 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
     static ResourceId getIconId(SelftestParts part);
 
 private:
+    static constexpr const char *en_wizard = N_("WIZARD");
     static constexpr const char *en_wizard_ok = N_("WIZARD - OK");
     static constexpr const char *en_selftest = N_("SELFTEST");
     static constexpr const char *en_esp = N_("WI-FI MODULE");

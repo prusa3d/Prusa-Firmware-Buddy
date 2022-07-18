@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "variant8.h"
 #include "eeprom_function_api.h"
+#include "selftest_eeprom.hpp"
 #include <stddef.h>
 
 enum {
@@ -170,30 +171,6 @@ enum {
     WIFI_MAX_SSID_LEN = 32,
     WIFI_MAX_PASSWD_LEN = 64,
 };
-
-#define SelftestResult_Unknown 0
-#define SelftestResult_Skipped 1
-#define SelftestResult_Passed  2
-#define SelftestResult_Failed  3
-
-typedef union _SelftestResultEEprom_t {
-    struct {
-        uint8_t printFan : 2;     // bit 0-1
-        uint8_t heatBreakFan : 2; // bit 2-3
-        uint8_t xaxis : 2;        // bit 4-5
-        uint8_t yaxis : 2;        // bit 6-7
-        uint8_t zaxis : 2;        // bit 8-9
-        uint8_t nozzle : 2;       // bit 10-11
-        uint8_t bed : 2;          // bit 12-13
-        uint8_t reserved0 : 2;    // bit 14-15
-        uint16_t reserved1;       // bit 16-31
-    };
-    uint32_t ui32;
-} SelftestResultEEprom_t;
-//if I use uint32_t reserved : 18 for bits 14 - 31, size on 64bit system is 8, I don't know why
-#ifdef __cplusplus
-static_assert(sizeof(SelftestResultEEprom_t) == sizeof(uint32_t), "Incorrect SelftestResultEEprom_t size");
-#endif //__cplusplus
 
 typedef enum {
     EEPROM_INIT_Undefined = -1,

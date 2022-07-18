@@ -36,20 +36,41 @@
 
 #ifdef NEW_FANCTL
     #include "fanctl.h"
+    #include "hwio_pindef.h"
+
+//condition to restore autofan after selftest
+static bool restore_autofan() { return marlin_server_get_temp_nozzle() >= EXTRUDER_AUTO_FAN_TEMPERATURE; }
+
 CFanCtl fanCtlPrint = CFanCtl(
     buddy::hw::fanPrintPwm,
+    #if (BOARD_IS_BUDDY)
     buddy::hw::fanPrintTach,
-    FANCTLPRINT_PWM_MIN, FANCTLPRINT_PWM_MAX,
+    #else
+    buddy::hw::fanTach,
+    #endif
+    FANCTLPRINT_PWM_MIN,
+    FANCTLPRINT_PWM_MAX,
     FANCTLPRINT_RPM_MIN, FANCTLPRINT_RPM_MAX,
     FANCTLPRINT_PWM_THR,
-    is_autofan_t::no);
+    is_autofan_t::no, restore_autofan,
+    #if (BOARD_IS_BUDDY)
+    skip_tacho_t::no
+    #else
+    skip_tacho_t::yes
+    #endif
+);
 CFanCtl fanCtlHeatBreak = CFanCtl(
     buddy::hw::fanHeatBreakPwm,
+    #if (BOARD_IS_BUDDY)
     buddy::hw::fanHeatBreakTach,
+    #else
+    buddy::hw::fanTach,
+    #endif
     FANCTLHEATBREAK_PWM_MIN, FANCTLHEATBREAK_PWM_MAX,
     FANCTLHEATBREAK_RPM_MIN, FANCTLHEATBREAK_RPM_MAX,
     FANCTLHEATBREAK_PWM_THR,
-    is_autofan_t::yes);
+    is_autofan_t::yes, restore_autofan,
+    skip_tacho_t::no);
 #endif //NEW_FANCTL
 
 LOG_COMPONENT_DEF(Marlin, LOG_SEVERITY_INFO);

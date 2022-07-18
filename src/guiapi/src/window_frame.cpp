@@ -410,10 +410,22 @@ window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const 
     return GetNextEnabledSubWin(first_normal, intersection_rect);
 }
 
-Rect16 window_frame_t::GenerateRect(ShiftDir_t direction) {
+Rect16 window_frame_t::GenerateRect(ShiftDir_t direction, size_ui16_t sz, uint16_t distance) {
     if (!last_normal)
         return Rect16();
-    return Rect16(last_normal->GetRect(), direction);
+    return Rect16(last_normal->GetRect(), direction, sz, distance);
+}
+
+Rect16 window_frame_t::GenerateRect(Rect16::Width_t width, uint16_t distance) {
+    if (!last_normal)
+        return Rect16();
+    return Rect16(last_normal->GetRect(), width, distance);
+}
+
+Rect16 window_frame_t::GenerateRect(Rect16::Height_t height, uint16_t distance) {
+    if (!last_normal)
+        return Rect16();
+    return Rect16(last_normal->GetRect(), height, distance);
 }
 
 void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
@@ -471,4 +483,23 @@ window_t *window_frame_t::GetCapturedWindow() {
     }
 
     return ret;
+}
+
+void window_frame_t::RecursiveCall(mem_fnc fnc) {
+    window_t *pWin = first_normal;
+    if (!last_normal)
+        return;
+    while (pWin && pWin != GetNextSubWin(last_normal)) {
+        std::invoke(fnc, *pWin);
+        pWin = GetNextSubWin(pWin);
+    }
+}
+
+void window_frame_t::setRedLayout() {
+    super::setRedLayout();
+    RecursiveCall(&window_t::SetRedLayout); // SetRedLayout is non virtual one
+}
+void window_frame_t::setBlackLayout() {
+    super::setBlackLayout();
+    RecursiveCall(&window_t::SetBlackLayout); // SetBlackLayout is non virtual one
 }

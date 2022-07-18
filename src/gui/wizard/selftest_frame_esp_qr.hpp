@@ -11,8 +11,13 @@
 #include "window_qr.hpp"
 #include "window_wizard_progress.hpp"
 
-#define QR_ADDR         "prusa.io/wifiminiqr"
-#define QR_ADDR_IN_TEXT "prusa.io/wifimini"
+#include "printers.h"
+#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+    #define QR_ADDR         "prusa.io/wifiminiqr"
+    #define QR_ADDR_IN_TEXT "prusa.io/wifimini"
+#else
+    #error "WIFI not supported"
+#endif
 
 class SelftestFrameESP_qr : public AddSuperWindow<SelftestFrameWithRadio> {
     /** @brief Calculates the position of individual elements of the frame

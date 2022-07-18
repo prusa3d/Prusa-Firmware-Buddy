@@ -34,6 +34,22 @@ Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction)
     : Rect16(rect, direction, rect.CalculateShift(direction)) {
 }
 
+Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, size_ui16_t size)
+    : Rect16(rect, direction, rect.CalculateShift(direction)) {
+    width_ = size.w;
+    height_ = size.h;
+}
+
+Rect16::Rect16(Rect16 const &rect, Width_t width)
+    : Rect16(rect, ShiftDir_t::Right, rect.CalculateShift(ShiftDir_t::Right)) {
+    width_ = width;
+}
+
+Rect16::Rect16(Rect16 const &rect, Height_t height)
+    : Rect16(rect, ShiftDir_t::Bottom, rect.CalculateShift(ShiftDir_t::Bottom)) {
+    height_ = height;
+}
+
 Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance)
     : top_left_(
         [=] {
@@ -72,6 +88,22 @@ Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance)
         }())
     , width_(rect.Width())
     , height_(rect.Height()) {
+}
+
+Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, size_ui16_t size, uint16_t distance)
+    : Rect16(rect, direction, distance) {
+    width_ = size.w;
+    height_ = size.h;
+}
+
+Rect16::Rect16(Rect16 const &rect, Width_t width, uint16_t distance)
+    : Rect16(rect, ShiftDir_t::Right, distance + rect.Width()) {
+    width_ = width;
+}
+
+Rect16::Rect16(Rect16 const &rect, Height_t height, uint16_t distance)
+    : Rect16(rect, ShiftDir_t::Bottom, distance + rect.Height()) {
+    height_ = height;
 }
 
 Rect16::Rect16(point_i16_t top_left, size_ui16_t s)

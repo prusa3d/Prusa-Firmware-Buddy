@@ -5,130 +5,97 @@
 #include "../../Marlin/src/module/planner.h"
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/endstops.h"
+#include "../../Marlin/src/module/motion.h"
+#include "../../Marlin/src/feature/prusa/homing.h"
 #include "trinamic.h"
+#include "selftest_log.hpp"
+#include "i_selftest.hpp"
+#include "algorithm_scale.hpp"
+
+using namespace selftest;
 
 static const char AxisLetter[] = { 'X', 'Y', 'Z', 'E' };
-
-CSelftestPart_Axis::CSelftestPart_Axis(const selftest_axis_config_t &config)
-    : m_config(config)
-    , m_Time(0)
+CSelftestPart_Axis::CSelftestPart_Axis(IPartHandler &state_machine, const AxisConfig_t &config,
+    SelftestSingleAxis_t &result, SelftestSingleAxis_t &lastResult)
+    : state_machine(state_machine)
+    , config(config)
+    , rResult(result)
+    , rLastResult(lastResult)
+    , time_progress_start(0)
+    , time_progress_estimated_end(0)
     , m_Step(0)
     , m_StartPos_usteps(0)
     , m_SGCount(0)
     , m_SGSum(0)
-    , m_pSGOrig_cb(nullptr) {
-    m_State = spsStart;
-}
-
-bool CSelftestPart_Axis::Start() {
-    if (!IsInProgress()) {
-        m_State = spsStart;
-        return true;
+    , m_pSGOrig_cb(nullptr)
+    , log(1000) {
+    LogInfo("%s Started", config.partname);
+    homing_reset();
+    char gcode[6];
+    // we have Z safe homing enabled, so Z might need to home all axis
+    if (AxisLetter[config.axis] == 'Z' && (!TEST(axis_known_position, X_AXIS) || !TEST(axis_known_position, Y_AXIS))) {
+        LogInfo("%s home all axis", config.partname);
+        sprintf(gcode, "G28");
+    } else {
+        sprintf(gcode, "G28 %c", AxisLetter[config.axis]);
+        LogInfo("%s home single axis", config.partname);
     }
-    return false;
+    queue.enqueue_one_now(gcode);
 }
 
-bool CSelftestPart_Axis::IsInProgress() const {
-    return ((m_State != spsIdle) && (m_State < spsFinished));
-}
-
-bool CSelftestPart_Axis::Loop() {
-    switch ((TestState)m_State) {
-    case spsIdle:
-        return false;
-    case spsStart: {
-        Selftest.log_printf("%s Started\n", m_config.partname);
-        m_Time = Selftest.m_Time;
-        m_StartTime = m_Time;
-        m_EndTime = m_StartTime + estimate(m_config);
-        char gcode[6];
-        sprintf(gcode, "G28 %c", AxisLetter[m_config.axis]);
-        queue.enqueue_one_now(gcode);
-        break;
-    }
-    case spsWaitHome:
-        if (planner.movesplanned() || queue.length)
-            return true;
-        endstops.enable(true);
-        endstops.enable_z_probe();
-        m_Step = 0;
-        m_Time = Selftest.m_Time;
-        break;
-    case spsMoveFwd:
-        phaseMove(m_config.dir);
-        break;
-    case spsWaitFwd:
-        if (phaseWait(m_config.dir))
-            return true;
-        break;
-    case spsMoveRev:
-        phaseMove(-m_config.dir);
-        break;
-    case spsWaitRev:
-        if (phaseWait(-m_config.dir))
-            return true;
-        if (++m_Step < m_config.steps) {
-            m_State = spsMoveFwd;
-            return true;
-        }
-        break;
-    case spsFinish:
-        endstops.enable(false);
-        if (m_Result == sprFailed)
-            m_State = spsFailed;
-        else
-            m_Result = sprPassed;
-        Selftest.log_printf("%s %s\n", m_config.partname, (m_Result == sprPassed) ? "Passed" : "Failed");
-        break;
-    case spsFinished:
-    case spsAborted:
-    case spsFailed:
-        return false;
-    }
-    return next();
-}
-
-bool CSelftestPart_Axis::Abort() {
-    return true;
-}
-
-uint8_t CSelftestPart_Axis::getFSMState() {
-    if (m_State <= spsStart)
-        return (uint8_t)(SelftestSubtestState_t::undef);
-    else if (m_State < spsFinished)
-        return (uint8_t)(SelftestSubtestState_t::running);
-    return (uint8_t)((m_Result == sprPassed) ? (SelftestSubtestState_t::ok) : (SelftestSubtestState_t::not_good));
-}
+CSelftestPart_Axis::~CSelftestPart_Axis() { endstops.enable(false); }
 
 void CSelftestPart_Axis::phaseMove(int8_t dir) {
-    Selftest.log_printf("%s %s @%d mm/s\n", ((dir * m_config.dir) > 0) ? "fwd" : "rew", m_config.partname, (int)m_config.fr_table[m_Step]);
+    const float feedrate = dir > 0 ? config.fr_table_fw[m_Step / 2] : config.fr_table_bw[m_Step / 2];
+    LogInfo("%s %s @%d mm/s", ((dir * config.movement_dir) > 0) ? "fwd" : "rew", config.partname, int(feedrate));
     planner.synchronize();
+    endstops.validate_homing_move();
     sg_sampling_enable();
-    m_StartPos_usteps = stepper.position((AxisEnum)m_config.axis);
-    current_position.pos[m_config.axis] += dir * (m_config.length + 10);
-    line_to_current_position(m_config.fr_table[m_Step]);
+
+    set_current_from_steppers();
+    sync_plan_position();
+    report_current_position();
+
+    m_StartPos_usteps = stepper.position((AxisEnum)config.axis);
+
+    // Disable stealthChop if used. Enable diag1 pin on driver.
+#if ENABLED(SENSORLESS_HOMING)
+    const bool is_home_dir = (home_dir(AxisEnum(config.axis)) > 0) == (dir > 0);
+    const bool moving_probe_toward_bed = (is_home_dir && (Z_AXIS == config.axis));
+    bool enable_sensorless_homing =
+    #if 1
+        true
+    #endif
+        ;
+
+    if (enable_sensorless_homing)
+        start_sensorless_homing_per_axis(AxisEnum(config.axis));
+#endif
+
+    current_position.pos[config.axis] += dir * (config.length + 10);
+    line_to_current_position(feedrate);
 }
 
-bool CSelftestPart_Axis::phaseWait(int8_t dir) {
+LoopResult CSelftestPart_Axis::wait(int8_t dir) {
+    actualizeProgress();
     if (planner.movesplanned())
-        return true;
+        return LoopResult::RunCurrent;
     sg_sampling_disable();
-    int32_t endPos_usteps = stepper.position((AxisEnum)m_config.axis);
+    int32_t endPos_usteps = stepper.position((AxisEnum)config.axis);
     int32_t length_usteps = dir * (endPos_usteps - m_StartPos_usteps);
-    float length_mm = (length_usteps * planner.mm_per_step[(AxisEnum)m_config.axis]);
-    Selftest.log_printf(" length = %f mm\n", (double)length_mm);
-    if ((length_mm < m_config.length_min) || (length_mm > m_config.length_max)) {
-        m_Result = sprFailed;
-        m_State = spsFinish;
-        return true;
+    float length_mm = (length_usteps * planner.mm_per_step[(AxisEnum)config.axis]);
+    if ((length_mm < config.length_min) || (length_mm > config.length_max)) {
+        LogError("%s measured length = %fmm out of range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);
+        return LoopResult::Fail;
     }
-    return false;
+    LogInfo("%s measured length = %fmm out in range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);
+    return LoopResult::RunNext;
 }
 
-uint32_t CSelftestPart_Axis::estimate(const selftest_axis_config_t &config) {
+uint32_t CSelftestPart_Axis::estimate(const AxisConfig_t &config) {
     uint32_t total_time = 0;
-    for (int i = 0; i < config.steps; i++) {
-        total_time += 2 * estimate_move(config.length, config.fr_table[i]);
+    for (uint32_t i = 0; i < config.steps; i++) {
+        total_time += estimate_move(config.length, (config.steps % 2) ? config.fr_table_bw[i] : config.fr_table_fw[i]);
     }
     return total_time;
 }
@@ -139,21 +106,21 @@ uint32_t CSelftestPart_Axis::estimate_move(float len_mm, float fr_mms) {
 }
 
 void CSelftestPart_Axis::sg_sample_cb(uint8_t axis, uint16_t sg) {
-    if (m_pSGAxis && (m_pSGAxis->m_config.axis == axis))
+    if (m_pSGAxis && (m_pSGAxis->config.axis == axis))
         m_pSGAxis->sg_sample(sg);
 }
 
 void CSelftestPart_Axis::sg_sample(uint16_t sg) {
-    int32_t pos = stepper.position((AxisEnum)m_config.axis);
-    Selftest.log_printf("%u %d %d\n", HAL_GetTick() - m_StartTime, pos, sg);
+    int32_t pos = stepper.position((AxisEnum)config.axis);
+    LogDebugTimed(log, "%s time %ums pos: %d sg: %d", config.partname, SelftestInstance().GetTime() - time_progress_start, pos, sg);
     m_SGCount++;
     m_SGSum += sg;
 }
 
 void CSelftestPart_Axis::sg_sampling_enable() {
     m_SGOrig_mask = tmc_get_sg_mask();
-    tmc_set_sg_mask(1 << m_config.axis);
-    tmc_set_sg_axis(m_config.axis);
+    tmc_set_sg_mask(1 << config.axis);
+    tmc_set_sg_axis(config.axis);
     m_pSGOrig_cb = (void *)tmc_get_sg_sample_cb();
     tmc_set_sg_sample_cb(sg_sample_cb);
     m_pSGAxis = this;
@@ -169,3 +136,39 @@ void CSelftestPart_Axis::sg_sampling_disable() {
 }
 
 CSelftestPart_Axis *CSelftestPart_Axis::m_pSGAxis = nullptr;
+
+LoopResult CSelftestPart_Axis::stateWaitHome() {
+    if (planner.movesplanned() || queue.length)
+        return LoopResult::RunCurrent;
+    endstops.enable(true);
+    endstops.enable_z_probe();
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Axis::stateInitProgressTimeCalculation() {
+    time_progress_start = SelftestInstance().GetTime();
+    time_progress_estimated_end = time_progress_start + estimate(config);
+    rResult.state = SelftestSubtestState_t::running;
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Axis::stateMove() {
+    phaseMove(getDir());
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Axis::stateMoveWaitFinish() {
+    LoopResult result = wait(getDir());
+    if (result != LoopResult::RunNext)
+        return result;
+    if ((++m_Step) < config.steps) {
+        return LoopResult::GoToMark;
+    }
+    return LoopResult::RunNext;
+}
+
+void CSelftestPart_Axis::actualizeProgress() const {
+    if (time_progress_start == time_progress_estimated_end)
+        return; // don't have estimated end set correctly
+    rResult.progress = scale_percent_avoid_overflow(SelftestInstance().GetTime(), time_progress_start, time_progress_estimated_end);
+}

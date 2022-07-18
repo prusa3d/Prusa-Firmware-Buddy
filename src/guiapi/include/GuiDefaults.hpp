@@ -2,6 +2,7 @@
 #pragma once
 #include "guitypes.hpp"
 #include "Rect16.h"
+#include "display.h"
 #include "align.hpp"
 #include "footer_def.hpp"
 #include "color_scheme.hpp"

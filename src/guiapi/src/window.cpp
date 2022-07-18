@@ -24,6 +24,33 @@ bool window_t::HasEnforcedCapture() const { return flags.enforce_capture_when_no
 bool window_t::IsCapturable() const { return IsVisible() || HasEnforcedCapture(); }
 bool window_t::HasIcon() const { return flags.has_icon; }
 
+void window_t::SetHasIcon() {
+    if (flags.has_icon)
+        return;
+    flags.has_icon = true;
+    Invalidate();
+}
+void window_t::ClrHasIcon() {
+    if (!flags.has_icon)
+        return;
+    flags.has_icon = false;
+    Invalidate();
+}
+
+void window_t::SetRedLayout() {
+    setRedLayout();
+}
+void window_t::SetBlackLayout() {
+    setBlackLayout();
+}
+
+void window_t::setRedLayout() {
+    SetBackColor(COLOR_RED_ALERT);
+}
+void window_t::setBlackLayout() {
+    SetBackColor(COLOR_BLACK);
+}
+
 void window_t::Validate(Rect16 validation_rect) {
     if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
         flags.invalid = false;
