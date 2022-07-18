@@ -83,6 +83,9 @@ public:
     uint32_t DecEvLock();
     uint32_t IncEvLock();
 
+    uint32_t DecAutoloadLock();
+    uint32_t IncAutoloadLock();
+
     // calling clear of m600 and autoload flags is safe from any thread, but setting them would not be !!!
     void ClrM600Sent() { m600_sent = false; }
     void ClrAutoloadSent() { autoload_sent = false; }
@@ -102,6 +105,7 @@ private:
     bool evaluateM600(FSensor::event ev) const;     // must remain const - is called out of critical section
     bool evaluateAutoload(FSensor::event ev) const; // must remain const - is called out of critical section
     inline bool isEvLocked() { return event_lock > 0; }
+    inline bool isAutoloadLocked() { return autoload_lock > 0; }
 
     void restore_send_M600_on(inject_t send_event_on);
     inject_t getM600_send_on_and_disable();
@@ -127,7 +131,8 @@ private:
     // all those variables can be accessed from multiple threads
     // all of them are set during critical section, so values are guaranted to be coresponding
     // in case multiple values are needed they should be read during critical section too
-    std::atomic<uint32_t> event_lock; // 0 == unlocked
+    std::atomic<uint32_t> event_lock;    // 0 == unlocked
+    std::atomic<uint32_t> autoload_lock; // 0 == unlocked
     std::atomic<fsensor_t> state_of_mmu_sensor = fsensor_t::NotInitialized;
     std::atomic<fsensor_t> state_of_printer_sensor = fsensor_t::NotInitialized;
     std::atomic<init_status_t> init_status = init_status_t::NotReady;
