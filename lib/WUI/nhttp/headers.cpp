@@ -81,11 +81,11 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
         pos += snprintf(buf + pos, buffer_len - pos, "Content-Length: %" PRIu64 "\r\n", *content_length);
         pos = std::min(buffer_len, pos);
     }
-    if (handling == ConnectionHandling::ChunkedKeep) {
+    if (handling == ConnectionHandling::ChunkedKeep && pos < buffer_len) {
         pos += snprintf(buf + pos, buffer_len - pos, "Transfer-Encoding: chunked\r\n");
         pos = std::min(buffer_len, pos);
     }
-    if (etag.has_value()) {
+    if (etag.has_value() && pos < buffer_len) {
         pos += snprintf(buf + pos, buffer_len - pos, "ETag: \"%" PRIu32 "\"\r\n", *etag);
         pos = std::min(buffer_len, pos);
     }
@@ -95,6 +95,7 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
         pos += copy;
     }
 
+    // That 2 fits, reserved at the top of the function.
     memcpy(buf + pos, "\r\n", 2);
     pos += 2;
     return pos;
