@@ -102,7 +102,7 @@ void FilamentSensors::Cycle() {
     if (*opt_event_m600) {
         m600_sent = true;
         PrintProcessor::InjectGcode("M600"); //change filament
-    } else if (*opt_event_autoload && !has_mmu) {
+    } else if (*opt_event_autoload && !has_mmu && isAutoloadLocked()) {
         autoload_sent = true;
         PrintProcessor::InjectGcode("M1701 Z40"); //autoload with return option and minimal Z value of 40mm
     }
@@ -147,6 +147,19 @@ uint32_t FilamentSensors::DecEvLock() {
     return event_lock;
 }
 
+uint32_t FilamentSensors::DecAutoloadLock() {
+    CriticalSection C; // TODO use counting semaphore to avoid critical section
+    if (autoload_lock > 0) {
+        --autoload_lock;
+    } else {
+        bsod("Autoload event lock out of range");
+    }
+    return autoload_lock;
+}
+
+uint32_t FilamentSensors::IncAutoloadLock() {
+    return ++autoload_lock;
+}
 uint32_t FilamentSensors::IncEvLock() {
     return ++event_lock;
 }
