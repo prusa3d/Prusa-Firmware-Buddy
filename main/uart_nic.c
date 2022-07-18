@@ -23,6 +23,7 @@
 #define UART_FULL_THRESH_DEFAULT (60)
 
 #include <string.h>
+#include <stdatomic.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -48,6 +49,19 @@ int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 
 static const uint16_t FW_VERSION = 3;
+
+// Hack: because we don't see the beacon on some networks (and it's quite
+// common), but don't want to be "flapping", we set the timeout for beacon
+// inactivity to a ridiculously long time and handle the disconnect ourselves.
+//
+// It's not longer for the only reason the uint16_t doesn't hold as big numbers.
+static const uint16_t INACTIVE_BEACON_SECONDS = 3600 * 12;
+// This is the effective timeout. If we don't receive any packet for this long,
+// we consider the signal lost.
+//
+// TODO: Shall we generate something to provoke getting some packets? Like ARP
+// pings to the AP?
+static const uint32_t INACTIVE_PACKET_SECONDS = 15;
 
 // intron
 // 0 as uint8_t
@@ -95,6 +109,13 @@ static char intron[8] = {'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05
 #define MAC_LEN 6
 static uint8_t mac[MAC_LEN];
 
+static uint32_t now_seconds() {
+    return xTaskGetTickCount() / configTICK_RATE_HZ;
+}
+
+static atomic_uint_least32_t last_inbound_seen = 0;
+static atomic_bool associated = false;
+
 typedef struct {
     size_t len;
     void *data;
@@ -131,8 +152,10 @@ static void send_link_status(uint8_t up) {
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N));
+        ESP_ERROR_CHECK(esp_wifi_set_inactive_time(ESP_IF_WIFI_STA, INACTIVE_BEACON_SECONDS));
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        associated = false;
         send_link_status(0);
         if (s_retry_num < CONFIG_ESP_MAXIMUM_RETRY) {
             esp_wifi_connect();
@@ -141,12 +164,17 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         }
         ESP_LOGI(TAG,"connect to the AP fail");
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
+        last_inbound_seen = now_seconds();
+        associated = true;
         send_link_status(1);
         s_retry_num = 0;
     }
 }
 
 static int wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
+    // Seeing some traffic - we have signal :-)
+    last_inbound_seen = now_seconds();
+
     // MAC filter
     if ((((const char*)buffer)[5] & 0x01) == 0) {
         for (uint i = 0; i < 6; ++i) {
@@ -338,11 +366,39 @@ static int get_link_status() {
     static wifi_ap_record_t ap_info;
     esp_err_t ret = esp_wifi_sta_get_ap_info(&ap_info);
     // ap_info is not important, just not receiven ESP_ERR_WIFI_NOT_CONNECT means we are associated
-    return ret == ESP_OK;
+    const bool online = ret == ESP_OK;
+    associated = online;
+    return online;
+}
+
+static void check_online_status() {
+    if (!associated) {
+        // Nothing to check, we are not online and we know it.
+        return;
+    }
+    const uint32_t last = last_inbound_seen; // Atomic load
+    const uint32_t now = now_seconds();
+    // The time may overflow from time to time and due to the conversion to
+    // seconds, we don't know when exactly. But if it overflows, the now would
+    // get smaller than the last time (assuming we check often enough). In that
+    // case we ignore the part up to the overflow and take just the part in the
+    // „new round“.
+    const uint32_t elapsed = now >= last ? now - last : now;
+
+    if (elapsed > INACTIVE_PACKET_SECONDS) {
+        esp_wifi_disconnect();
+    }
 }
 
 static void read_message() {
     wait_for_intron();
+
+    // Check that we are receiving some packets from the AP. We do so in the
+    // thread that receives messages from the main CPU because we know that one
+    // will generate a message from time to time (at least the get-link one).
+    // On the other hand, if we lose connectivity, we will receive no packets
+    // from the AP and we would block forever and never get to the check.
+    check_online_status();
 
     uint8_t type = 0;
     size_t read = uart_read_bytes(UART_NUM_0, (uint8_t*)&type, 1, portMAX_DELAY);
