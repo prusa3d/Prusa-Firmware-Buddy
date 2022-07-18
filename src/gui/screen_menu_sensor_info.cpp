@@ -6,6 +6,7 @@
 #include "MItem_tools.hpp"
 #include "window_menu.hpp"
 #include "DialogMoveZ.hpp"
+#include "fs_autoload_autolock.hpp"
 
 #include "IWinMenuContainer.hpp"
 #include <tuple>
@@ -13,6 +14,8 @@
 using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_FILAMENT_SENSOR_STATE, MI_MINDA>;
 
 class ScreenMenuSensorInfo : public Screen {
+    FS_AutoloadAutolock lock;
+
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
