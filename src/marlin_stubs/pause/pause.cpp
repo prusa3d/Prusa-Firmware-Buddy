@@ -1010,7 +1010,7 @@ void Pause::park_nozzle_and_notify() {
     setPhase(settings.can_stop ? PhasesLoadUnload::Parking_stoppable : PhasesLoadUnload::Parking_unstoppable);
     // Initial retract before move to filament change position
     if (settings.retract && thermalManager.hotEnoughToExtrude(active_extruder))
-        do_pause_e_move(settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
+        do_pause_e_move(-settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
 
     const float target_Z = settings.park_pos.z;
     const float Z_len = current_position.z - target_Z; // sign does not matter
