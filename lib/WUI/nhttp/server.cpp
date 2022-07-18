@@ -168,7 +168,21 @@ bool Server::Slot::step() {
          */
         assert(buffer->write_pos <= buffer->write_len);
         const auto to_send = std::min(static_cast<uint16_t>(buffer->write_len - buffer->write_pos), send_space());
-        if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, 0) == ERR_OK) {
+        // FIXME:
+        // The TCP_WRITE_FLAG_COPY is a workaround for BFW-2664.
+        //
+        // For some yet undiscovered reason, if it is not used, the data that
+        // eventually gets transmitted over the wire is mangled (middle may be
+        // "cut out") if the packet is small-ish. The data in our buffer are
+        // correct for the whole time, even when the buffer gets ACKed and
+        // released. Nevertheless, the TCP packet contains something else than
+        // the buffer and its checksum is broken, so the recepient doesn't want
+        // it (and it repeats with all the retransmits). This happens only when
+        // ESP is connected & running, but happens on ethernet too...
+        //
+        // Anyway, using this hack as an intermittent mitigation while the
+        // invastigation continues.
+        if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, TCP_WRITE_FLAG_COPY) == ERR_OK) {
             buffer->write_pos += to_send;
             altcp_output(conn);
             server->activity(conn, this);
