@@ -25,6 +25,7 @@ typedef struct _fanctl_tach_t {
     uint16_t edges;            // number of edges in current cycle
     uint16_t pwm_sum;          // sum of ticks with pwm=1 in current cycle
     uint16_t rpm;              // calculated RPM value (filtered)
+    bool m_value_ready;        // measure RPM done
 } fanctl_tach_t;
 
 #ifdef __cplusplus
@@ -90,6 +91,11 @@ public:
     // getters
     inline uint16_t getRPM() const { return rpm; }
 
+    inline bool getValueReady() const { return m_value_ready; }
+
+    // setters
+    inline void setValueReady(bool value_ready) { m_value_ready = value_ready; }
+
 private:
     const buddy::hw::InputPin &m_pin;
 };
@@ -99,9 +105,16 @@ enum class is_autofan_t : bool {
     yes
 };
 
+enum class skip_tacho_t : bool {
+    no,
+    yes
+};
+
 //
 class CFanCtl {
 public:
+    using NeedRestoreAutofan_fn = bool (*)();
+    static bool DefaultNeedRestoreAutofan_fn() { return true; } //set in case someone pass nullptr in ctor
     enum FanState : uint8_t {
         idle,           // idle - no rotation, PWM = 0%
         starting,       // starting - PWM = 100%, waiting for 4 tacho edges
@@ -112,7 +125,8 @@ public:
 
 public:
     // constructor
-    CFanCtl(const buddy::hw::OutputPin &pinOut, const buddy::hw::InputPin &pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan);
+    CFanCtl(const buddy::hw::OutputPin &pinOut, const buddy::hw::InputPin &pinTach, uint8_t minPWM, uint8_t maxPWM,
+        uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan, NeedRestoreAutofan_fn need_restore, skip_tacho_t skip_tacho);
 
 public:
     void tick(); // tick callback from timer interrupt
@@ -123,9 +137,9 @@ public:
     inline uint8_t getMaxPWM() const // get maximum PWM, this is value representing 100% power
     { return m_pwm.get_max_PWM(); }
     inline uint16_t getMinRPM() const // get minimum RPM [n/min], this is lowest RPM that can be reached with reliable response
-    { return m_pwm.get_max_PWM(); }
+    { return m_MinRPM; }
     inline uint16_t getMaxRPM() const // get maximup RPM [n/min], this is highest RPM at 100% power
-    { return m_pwm.get_max_PWM(); }
+    { return m_MaxRPM; }
     inline FanState getState() const // get fan control state
     { return m_State; }
     inline uint8_t getPWM() const // get PWM value
@@ -138,11 +152,22 @@ public:
     inline bool isAutoFan() const // get fan type
     { return is_autofan == is_autofan_t::yes; }
 
+    inline bool getRPMMeasured() const { return m_tach.getValueReady(); }
+    inline skip_tacho_t getSkipTacho() const { return m_skip_tacho; }
+
     // setters
-    void setPWM(uint8_t pwm);            // set PWM value - switch to non closed-loop mode
-    void setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
+    bool setPWM(uint8_t pwm);            // set PWM value - switch to non closed-loop mode
+    bool setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
     void safeState();
 
+    inline void setSkipTacho(skip_tacho_t skip_tacho) {
+        m_skip_tacho = skip_tacho;
+        m_tach.setValueReady(false);
+    }
+
+    void EnterSelftestMode();
+    void ExitSelftestMode();
+    bool SelftestSetPWM(uint8_t pwm); // sets pwm in selftest, doesn't work outside selftest
 private:
     const uint16_t m_MinRPM; // minimum rpm value (set in constructor)
     const uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
@@ -154,6 +179,11 @@ private:
     is_autofan_t is_autofan; // autofan restores temp differently (used in selftest)
     CFanCtlPWM m_pwm;
     CFanCtlTach m_tach;
+
+    bool selftest_mode;
+    uint8_t selftest_initial_pwm;
+    NeedRestoreAutofan_fn need_restore_fn;
+    skip_tacho_t m_skip_tacho; //skip tacho measure
 };
 
 extern "C" {

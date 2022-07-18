@@ -8,6 +8,7 @@
 #include "resource.h"
 #include "gcode_thumb_decoder.h"
 #include "gcode_file.h"
+#include "gui_invalidate.hpp"
 #include "syslog.h"
 
 void window_icon_t::SetIdRes(ResourceId id) {
@@ -106,6 +107,15 @@ size_ui16_t window_icon_t::CalculateMinimalSize(window_icon_t::DataSourceId sour
     }
     ret = icon_size(ptr);
     return ret;
+}
+
+void window_icon_t::setRedLayout() {
+    super::setRedLayout();
+    SetHasIcon(); // alternative icon
+}
+void window_icon_t::setBlackLayout() {
+    super::setBlackLayout();
+    ClrHasIcon(); // normal icon
 }
 
 /*****************************************************************************/
@@ -217,8 +227,15 @@ void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, window
     phs %= ANIMATION_STEPS;
     if (phase != phs) {
         phase = phs;
-        Invalidate();
+        //do not want to call invalidate or Invalidate, it would reset phase to 0
+        flags.invalid = true;
+        gui_invalidate();
     }
+}
+
+void window_icon_hourglass_t::invalidate(Rect16 validation_rect) {
+    phase = 0;
+    super::invalidate(validation_rect);
 }
 
 /*****************************************************************************/

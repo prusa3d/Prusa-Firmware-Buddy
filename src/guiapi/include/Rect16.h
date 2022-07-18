@@ -143,6 +143,50 @@ public:
     Rect16(Rect16 const &, ShiftDir_t);
 
     ////////////////////////////////////////////////////////////////////////////
+    /// @brief Create rectangle with given size and the shift in specific direction
+    /// @param[in] rect Existing rectangle to copy
+    /// @param[in] direction Direction where the created rectangle will be heading to
+    /// @param[in] offset Offset in pixels of the new rectangle shift
+    /// @param[in] size Size of new rectangle
+    Rect16(Rect16 const &, ShiftDir_t, size_ui16_t, uint16_t);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Create rectangle with given size and the shift in specific direction
+    ///        with calculated offset to be next to the given rectangle
+    /// @param[in] rect Existing rectangle to copy
+    /// @param[in] direction Direction where the created rectangle will be heading to
+    /// @param[in] size Size of new rectangle
+    Rect16(Rect16 const &, ShiftDir_t, size_ui16_t);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Create rectangle with given width and shifted right of the given rectangle
+    /// @param[in] rect Existing rectangle to copy
+    /// @param[in] width Width of new rectangle
+    /// @param[in] offset Offset in pixels of the new rectangle shift
+    Rect16(Rect16 const &, Width_t, uint16_t);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Create rectangle with given width with calculated offset to be right
+    ///        of the given rectangle
+    /// @param[in] rect Existing rectangle to copy
+    /// @param[in] width Width of new rectangle
+    Rect16(Rect16 const &, Width_t);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Create rectangle with given height and shifted under the given rectangle
+    /// @param[in] rect Existing rectangle to copy
+    /// @param[in] Height_t Height of new rectangle
+    /// @param[in] offset Offset in pixels of the new rectangle shift
+    Rect16(Rect16 const &, Height_t, uint16_t);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Create rectangle with given height with calculated offset to be under
+    ///        the given rectangle
+    /// @param[in] rect Existing rectangle to copy
+    /// @param[in] Height_t Height of new rectangle
+    Rect16(Rect16 const &, Height_t);
+
+    ////////////////////////////////////////////////////////////////////////////
     /// @brief Calculate offset to be able to create same rectangle in given direction
     ///
     /// @param[in] direction Direction where the created rectangle will be heading to

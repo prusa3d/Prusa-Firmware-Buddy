@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "GuiDefaults.hpp"
 #include "window.hpp"
 #include "window_filter.hpp"
 
@@ -56,7 +57,9 @@ public:
     void SetOnSerialClose();
     void ClrOnSerialClose();
 
-    Rect16 GenerateRect(ShiftDir_t direction);
+    Rect16 GenerateRect(ShiftDir_t direction, size_ui16_t sz = { 0, 0 }, uint16_t distance = 0);
+    Rect16 GenerateRect(Rect16::Width_t width, uint16_t distance = 0);
+    Rect16 GenerateRect(Rect16::Height_t height, uint16_t distance = 0);
     virtual void Shift(ShiftDir_t direction, uint16_t distance) override;
     virtual void ChildVisibilityChanged(window_t &child) override;
 
@@ -75,9 +78,15 @@ protected:
 
     window_t *getCapturedNormalWin() const;
 
+    virtual void setRedLayout() override;
+    virtual void setBlackLayout() override;
+
 public:
     bool IsChildCaptured() const;
     bool CaptureNormalWindow(window_t &win);
     void ReleaseCaptureOfNormalWindow();
     virtual window_t *GetCapturedWindow() override;
+
+    using mem_fnc = void (window_t::*)(); //TODO parmeter pack template
+    void RecursiveCall(mem_fnc fnc);
 };

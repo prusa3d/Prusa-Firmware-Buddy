@@ -1,15 +1,10 @@
 target_sources(
   firmware
   PRIVATE DialogFactory.cpp
-          DialogG162.cpp
           DialogHandler.cpp
           DialogLoadUnload.cpp
           DialogMoveZ.cpp
           DialogRadioButton.cpp
-          DialogSelftestAxis.cpp
-          DialogSelftestFans.cpp
-          DialogSelftestResult.cpp
-          DialogSelftestTemp.cpp
           DialogStateful.cpp
           DialogTimed.cpp
           IDialog.cpp

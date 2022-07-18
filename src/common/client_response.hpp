@@ -86,6 +86,12 @@ enum class PhasesSelftest : uint16_t {
     _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
     _none = _first,
 
+    _first_WizardPrologue,
+    WizardPrologue_ask_run = _first_WizardPrologue,
+    WizardPrologue_info,
+    WizardPrologue_info_detailed,
+    _last_WizardPrologue = WizardPrologue_info_detailed,
+
     _first_ESP,
     ESP_instructions = _first_ESP,
     ESP_USB_not_inserted, // must be before ask_gen/ask_gen_overwrite, because it depends on file existence
@@ -112,38 +118,36 @@ enum class PhasesSelftest : uint16_t {
     ESP_qr_instructions,
     _last_ESP_qr = ESP_qr_instructions,
 
-    _last = _last_ESP_qr
-};
+    _first_Fans,
+    Fans = _first_Fans,
+    _last_Fans = Fans,
 
-enum class PhasesG162 : uint16_t {
-    _first = static_cast<uint16_t>(PhasesSelftest::_last) + 1,
-    Parking,
-    _last = Parking
-};
+    _first_CalibZ,
+    CalibZ = _first_CalibZ,
+    _last_CalibZ = CalibZ,
 
-//not bound to responses
-enum class PhasesSelftestFans : uint16_t {
-    _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
-    measure = _first, //in this case is safe to have measure == _first
-    _last = measure
-};
+    _first_Axis,
+    Axis = _first_Axis,
+    _last_Axis = Axis,
 
-//not bound to responses
-enum class PhasesSelftestAxis : uint16_t {
-    _first = static_cast<uint16_t>(PhasesSelftestFans::_last) + 1,
-    measure = _first, //in this case is safe to have measure == _first
-    _last = measure
-};
+    _first_Heaters,
+    Heaters = _first_Heaters,
+    _last_Heaters = Heaters,
 
-//not bound to responses
-enum class PhasesSelftestHeat : uint16_t {
-    _first = static_cast<uint16_t>(PhasesSelftestAxis::_last) + 1,
-    measure = _first, //in this case is safe to have measure == _first
-    _last = measure
+    _first_Result,
+    Result = _first_Result,
+    _last_Result = Result,
+
+    _first_WizardEpilogue,
+    WizardEpilogue_ok = _first_WizardEpilogue, // ok is after result
+    WizardEpilogue_nok,                        // nok is before result
+    _last_WizardEpilogue = WizardEpilogue_nok,
+
+    _last = _last_WizardEpilogue
 };
 
 enum class PhasesCrashRecovery : uint16_t {
-    _first = static_cast<uint16_t>(PhasesSelftestHeat::_last) + 1,
+    _first = static_cast<uint16_t>(PhasesSelftest::_last) + 1,
     check_X = _first, //in this case is safe to have check_X == _first
     check_Y,
     home,
@@ -164,14 +168,12 @@ class ClientResponses {
     static const PhaseResponses LoadUnloadResponses[CountPhases<PhasesLoadUnload>()];
     static const PhaseResponses PreheatResponses[CountPhases<PhasesPreheat>()];
     static const PhaseResponses SelftestResponses[CountPhases<PhasesSelftest>()];
-    static const PhaseResponses G162Responses[CountPhases<PhasesG162>()];
     static const PhaseResponses CrashRecoveryResponses[CountPhases<PhasesCrashRecovery>()];
 
     //methods to "bind" button array with enum type
     static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
-    static const PhaseResponses &getResponsesInPhase(PhasesG162 phase) { return G162Responses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesG162::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
 
 protected:
@@ -220,21 +222,43 @@ public:
 };
 
 enum class SelftestParts {
+    WizardPrologue,
     ESP,
     ESP_progress,
     ESP_qr,
+    Axis,
+    Fans,
+    CalibZ,
+    Heaters,
+    //FirstLayer,
+    Result,
+    WizardEpilogue,
     _none, //cannot be created, must have same index as _count
     _count = _none
 };
 
 static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part) {
     switch (part) {
+    case SelftestParts::WizardPrologue:
+        return PhasesSelftest::_first_WizardPrologue;
     case SelftestParts::ESP:
         return PhasesSelftest::_first_ESP;
     case SelftestParts::ESP_progress:
         return PhasesSelftest::_first_ESP_progress;
     case SelftestParts::ESP_qr:
         return PhasesSelftest::_first_ESP_qr;
+    case SelftestParts::Axis:
+        return PhasesSelftest::_first_Axis;
+    case SelftestParts::Fans:
+        return PhasesSelftest::_first_Fans;
+    case SelftestParts::CalibZ:
+        return PhasesSelftest::_first_CalibZ;
+    case SelftestParts::Heaters:
+        return PhasesSelftest::_first_Heaters;
+    case SelftestParts::Result:
+        return PhasesSelftest::_first_Result;
+    case SelftestParts::WizardEpilogue:
+        return PhasesSelftest::_first_WizardEpilogue;
     case SelftestParts::_none:
         break;
     }
@@ -243,12 +267,26 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
 
 static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part) {
     switch (part) {
+    case SelftestParts::WizardPrologue:
+        return PhasesSelftest::_last_WizardPrologue;
     case SelftestParts::ESP:
         return PhasesSelftest::_last_ESP;
     case SelftestParts::ESP_progress:
         return PhasesSelftest::_last_ESP_progress;
     case SelftestParts::ESP_qr:
         return PhasesSelftest::_last_ESP_qr;
+    case SelftestParts::Axis:
+        return PhasesSelftest::_last_Axis;
+    case SelftestParts::Fans:
+        return PhasesSelftest::_last_Fans;
+    case SelftestParts::CalibZ:
+        return PhasesSelftest::_last_CalibZ;
+    case SelftestParts::Heaters:
+        return PhasesSelftest::_last_Heaters;
+    case SelftestParts::Result:
+        return PhasesSelftest::_last_Result;
+    case SelftestParts::WizardEpilogue:
+        return PhasesSelftest::_last_WizardEpilogue;
     case SelftestParts::_none:
         break;
     }
@@ -267,12 +305,33 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
             return SelftestParts(i);
     }
 
+    if (SelftestPartContainsPhase(SelftestParts::WizardPrologue, ph))
+        return SelftestParts::WizardPrologue;
+
     if (SelftestPartContainsPhase(SelftestParts::ESP, ph))
         return SelftestParts::ESP;
     if (SelftestPartContainsPhase(SelftestParts::ESP_progress, ph))
         return SelftestParts::ESP_progress;
     if (SelftestPartContainsPhase(SelftestParts::ESP_qr, ph))
         return SelftestParts::ESP_qr;
+
+    if (SelftestPartContainsPhase(SelftestParts::Fans, ph))
+        return SelftestParts::Fans;
+
+    if (SelftestPartContainsPhase(SelftestParts::Axis, ph))
+        return SelftestParts::Axis;
+
+    if (SelftestPartContainsPhase(SelftestParts::Heaters, ph))
+        return SelftestParts::Heaters;
+
+    if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph))
+        return SelftestParts::CalibZ;
+
+    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue, ph))
+        return SelftestParts::WizardEpilogue;
+
+    if (SelftestPartContainsPhase(SelftestParts::Result, ph))
+        return SelftestParts::Result;
 
     return SelftestParts::_none;
 };

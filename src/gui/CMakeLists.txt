@@ -78,7 +78,8 @@ if(HAS_SELFTEST)
   add_subdirectory(wizard)
   target_sources(
     firmware
-    PRIVATE ScreenSelftest.cpp
+    PRIVATE MItem_basic_selftest.cpp
+            ScreenSelftest.cpp
             selftest_frame.cpp
             # steel sheets requiere first layer calibration, which require wizard, which require
             # selftest TODO add HAS_STEEL_SHEETS property

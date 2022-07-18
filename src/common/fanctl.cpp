@@ -1,10 +1,14 @@
 // fanctl.cpp
 
-#include "fanctl.h"
-#include "stm32f4xx_hal.h"
-#include "cmsis_os.h"
-#include "gpio.h"
-#include <stdlib.h>
+#include "config_buddy_2209_02.h"
+#ifdef NEW_FANCTL
+
+    #include "fanctl.h"
+    #include "stm32f4xx_hal.h"
+    #include "cmsis_os.h"
+    #include "gpio.h"
+    #include <stdlib.h>
+    #include <device/board.h>
 
 using namespace buddy::hw;
 
@@ -48,7 +52,7 @@ int8_t CFanCtlPWM::tick() {
             } else
                 pha_stp = 0; // set step to zero - disable phase shifting
         }
-#if 1
+    #if 1
         else if (pha_stp) // pha_stp != 0 means phase shifting enabled
             switch (pha_mode) {
             case none:
@@ -68,9 +72,13 @@ int8_t CFanCtlPWM::tick() {
                 pha = pha_max * ((float)rand() / RAND_MAX);
                 break;
             }
-#endif
+    #endif
     }
+    #if (BOARD_IS_BUDDY)
     m_pin.write(static_cast<Pin::State>(o)); // set output pin
+    #else
+        #error "Unknown board."
+    #endif
     return pwm_on;
 }
 
@@ -84,7 +92,11 @@ void CFanCtlPWM::set_PWM(uint8_t new_pwm) {
 
 void CFanCtlPWM::safeState() {
     set_PWM(max_value);
+    #if (BOARD_IS_BUDDY)
     m_pin.write(Pin::State::high);
+    #else
+        #error "Unknown board."
+    #endif
 }
 
 //------------------------------------------------------------------------------
@@ -98,6 +110,7 @@ CFanCtlTach::CFanCtlTach(const InputPin &inputPin)
     edges = 0;
     pwm_sum = 0;
     rpm = 0;
+    m_value_ready = false;
 }
 
 bool CFanCtlTach::tick(int8_t pwm_on) {
@@ -116,6 +129,7 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
         edges = 0;                                        // reset edge counter
         tick_count = 0;                                   // reset tick counter
         pwm_sum = 0;                                      // reset pwm_sum
+        m_value_ready = true;                             // set value ready = measure done
     } else if (pwm_on >= 0)
         pwm_sum++; // inc pwm sum if pwm enabled
     return edge;
@@ -125,14 +139,18 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
 // CFanCtl implementation
 
 CFanCtl::CFanCtl(const OutputPin &pinOut, const InputPin &pinTach,
-    uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan)
+    uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan, NeedRestoreAutofan_fn need_restore, skip_tacho_t skip_tacho)
     : m_MinRPM(minRPM)
     , m_MaxRPM(maxRPM)
     , m_State(idle)
+    , m_PWMValue(0)
     , is_autofan(autofan)
     , m_pwm(pinOut, minPWM, maxPWM, thrPWM)
-    , m_tach(pinTach) {
-    m_PWMValue = 0;
+    , m_tach(pinTach)
+    , selftest_mode(false)
+    , selftest_initial_pwm(0)
+    , need_restore_fn(need_restore ? need_restore : DefaultNeedRestoreAutofan_fn)
+    , m_skip_tacho(skip_tacho) {
     // this is not thread-safe for first look, but CFanCtl instances are global variables, so it is safe
     if (CFanCtl_count < FANCTL_MAX_FANS)
         CFanCtl_instance[CFanCtl_count++] = this;
@@ -142,7 +160,12 @@ void CFanCtl::tick() {
     // PWM control
     int8_t pwm_on = m_pwm.tick();
     // RPM measurement
-    bool edge = m_tach.tick(pwm_on);
+    bool edge = 0;
+
+    if (m_skip_tacho != skip_tacho_t::yes) {
+        edge = m_tach.tick(pwm_on);
+    }
+
     switch (m_State) {
     case idle:
         if (m_PWMValue > 0) {
@@ -157,7 +180,7 @@ void CFanCtl::tick() {
             m_State = idle;
         else {
             m_Ticks++;
-            if (m_Ticks > FANCTL_START_TIMEOUT)
+            if (m_Ticks > FANCTL_START_TIMEOUT && m_skip_tacho != skip_tacho_t::yes)
                 m_State = error_starting;
             else {
                 m_pwm.set_PWM(m_pwm.get_max_PWM());
@@ -177,7 +200,7 @@ void CFanCtl::tick() {
             m_pwm.set_PWM(m_PWMValue);
             if (m_Ticks < FANCTL_RPM_DELAY)
                 m_Ticks++;
-            else if (!getRPMIsOk())
+            else if (!getRPMIsOk() && m_skip_tacho != skip_tacho_t::yes)
                 m_State = error_running;
         }
         break;
@@ -193,12 +216,57 @@ void CFanCtl::tick() {
     }
 }
 
-void CFanCtl::setPWM(uint8_t pwm) {
+bool CFanCtl::setPWM(uint8_t pwm) {
+    if (selftest_mode)
+        return false;
     m_PWMValue = pwm;
+    return true;
 }
 
-void CFanCtl::setPhaseShiftMode(uint8_t psm) {
+bool CFanCtl::SelftestSetPWM(uint8_t pwm) {
+    if (!selftest_mode)
+        return false;
+    m_PWMValue = pwm;
+    return true;
+}
+
+bool CFanCtl::setPhaseShiftMode(uint8_t psm) {
+    if (selftest_mode)
+        return false;
     m_pwm.set_PhaseShiftMode((CFanCtlPWM::PhaseShiftMode)psm);
+    return true;
+}
+
+void CFanCtl::safeState() {
+    m_pwm.safeState();
+    selftest_mode = false;
+}
+
+bool CFanCtl::getRPMIsOk() {
+    if (m_PWMValue && (getActualRPM() < m_MinRPM))
+        return false;
+    return true;
+}
+
+void CFanCtl::EnterSelftestMode() {
+    if (selftest_mode)
+        return;
+    selftest_mode = true;
+    selftest_initial_pwm = getPWM();
+}
+
+void CFanCtl::ExitSelftestMode() {
+    if (!selftest_mode)
+        return;
+    selftest_mode = false;
+
+    uint8_t pwm_to_restore;
+    if (isAutoFan())
+        pwm_to_restore = need_restore_fn() ? selftest_initial_pwm : 0;
+    else
+        pwm_to_restore = selftest_initial_pwm;
+
+    setPWM(pwm_to_restore);
 }
 
 //------------------------------------------------------------------------------
@@ -240,12 +308,4 @@ uint8_t fanctl_get_psm(uint8_t fan) {
 }
 }
 
-void CFanCtl::safeState() {
-    m_pwm.safeState();
-}
-
-bool CFanCtl::getRPMIsOk() {
-    if (m_PWMValue && (getActualRPM() < m_MinRPM))
-        return false;
-    return true;
-}
+#endif //NEW_FANCTL

@@ -23,11 +23,7 @@ screen_qr_error_data_t::screen_qr_error_data_t()
     info.SetAlignment(Align_t::Center());
     static const char hlp[] = "help.prusa3d.com";
     info.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)hlp));
-}
-
-void screen_qr_error_data_t::unconditionalDraw() {
-    super::unconditionalDraw();
-    display::FillRect(Rect16(8, 25, 224, 2), COLOR_WHITE);
+    SetRedLayout();
 }
 
 void screen_qr_error_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

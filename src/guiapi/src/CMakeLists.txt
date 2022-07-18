@@ -13,6 +13,7 @@ target_sources(
           Rect16.cpp
           screen.cpp
           ScreenShot.cpp
+          scroll_bar.cpp
           term.cpp
           text_roll.cpp
           window.cpp

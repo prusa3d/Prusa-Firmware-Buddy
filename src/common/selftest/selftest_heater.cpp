@@ -3,287 +3,207 @@
 #include "selftest_heater.h"
 #include "hwio.h"
 #include "wizard_config.hpp"
+#include "selftest_log.hpp"
+#include "fanctl.h"
+#include "../../Marlin/src/module/temperature.h"
+#include "i_selftest.hpp"
+#include "algorithm_scale.hpp"
+
+using namespace selftest;
 
 static constexpr float TEMP_DIFF_LIMIT = 0.25;
 static constexpr float TEMP_DELTA_LIMIT = 0.05F;
 static constexpr uint32_t TEMP_MEASURE_CYCLE_DELAY = 1000;
 static constexpr uint32_t TEMP_WAIT_CYCLE_DELAY = 2000;
 
-CSelftestPart_Heater::CSelftestPart_Heater(const selftest_heater_config_t &config, PID_t &pid)
-    : CSelftestPart_Heater(config, pid.Kp, pid.Ki, pid.Kd) {}
+CSelftestPart_Heater::CSelftestPart_Heater(IPartHandler &state_machine, const HeaterConfig_t &config,
+    SelftestHeater_t &result, SelftestHeater_t &lastResult)
+    : state_machine(state_machine)
+    , m_config(config)
+    , rResult(result)
+    , rLastResult(lastResult)
+    , storedKp(config.refKp)
+    , storedKi(config.refKi)
+    , storedKd(config.refKd)
+    , last_progress(0)
+    , log(2000) {
 
-CSelftestPart_Heater::CSelftestPart_Heater(const selftest_heater_config_t &config, PIDC_t &pid)
-    : CSelftestPart_Heater(config, pid.Kp, pid.Ki, pid.Kd) {}
-
-CSelftestPart_Heater::CSelftestPart_Heater(const selftest_heater_config_t &config, float &kp, float &ki, float &kd)
-    : m_config(config)
-    , refKp(kp)
-    , refKi(ki)
-    , refKd(kd)
-    , storedKp(kp)
-    , storedKi(ki)
-    , storedKd(kd)
-    , last_progress(0) {
-    m_State = spsStart;
     //looked into marlin and it seems all PID values are used as numerator
     //switch regulator into on/off mode
-    refKp = 1000000;
-    refKi = 0;
-    refKd = 0;
+    config.refKp = 1000000;
+    config.refKi = 0;
+    config.refKd = 0;
     thermalManager.updatePID();
+    LogInfo("%s Started");
+    LogInfo("target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    LogInfo("%s heater PID regulator changed to P regulator", m_config.partname);
 }
 
 CSelftestPart_Heater::~CSelftestPart_Heater() {
-    refKp = storedKp;
-    refKi = storedKi;
-    refKd = storedKd;
+    LogInfo("%s finish, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    m_config.setTargetTemp(0);
+
+    m_config.refKp = storedKp;
+    m_config.refKi = storedKi;
+    m_config.refKd = storedKd;
     thermalManager.updatePID();
+    LogInfo("%s heater PID regulator restored", m_config.partname);
 }
 
-bool CSelftestPart_Heater::IsInProgress() const {
-    return ((m_State != spsIdle) && (m_State < spsFinished));
+uint32_t CSelftestPart_Heater::estimate(const HeaterConfig_t &config) {
+    return config.heat_time_ms;
 }
 
-bool CSelftestPart_Heater::Start() {
-    if (IsInProgress())
-        return false;
-    m_State = spsStart;
-    return true;
-}
-
-void CSelftestPart_Heater::stateStart() {
-    Selftest.log_printf("%s Started\n", m_config.partname);
-    m_Time = Selftest.m_Time;
-    m_StartTime = m_Time;
+LoopResult CSelftestPart_Heater::stateStart() {
+    m_StartTime = SelftestInstance().GetTime();
     m_EndTime = m_StartTime + estimate(m_config);
     //m_TempDiffSum = 0;
     //m_TempDiffSum = 0;
     //m_TempCount = 0;
-    m_Temp = getTemp();
-    begin_temp = m_Temp;
-    enable_cooldown = m_Temp >= m_config.start_temp;
-    setTargetTemp(0);
+    begin_temp = m_config.getTemp();
+    enable_cooldown = m_config.getTemp() >= m_config.start_temp;
+    m_config.setTargetTemp(0);
+    return LoopResult::RunNext;
 }
 
-void CSelftestPart_Heater::stateTargetTemp() {
-#if 0 //TODO: hwio_fan_control was deprecated
-    if (can_enable_fan_control)
-        hwio_fan_control_enable();
-#endif
-    setTargetTemp(m_config.target_temp);
+LoopResult CSelftestPart_Heater::stateTakeControlOverFans() {
+    LogInfo("%s took control of fans", m_config.partname);
+    m_config.print_fan.EnterSelftestMode();
+    m_config.heatbreak_fan.EnterSelftestMode();
+    return LoopResult::RunNext;
 }
 
-float CSelftestPart_Heater::GetProgress() {
-    float progress = 0;
-    switch ((TestState)m_State) {
-    case spsIdle:
-    case spsStart:
-    case spsSetTargetTemp:
-        break;
-    case spsCooldown:
-        //m_Temp == m_config.undercool_temp .. 100%
-        //m_Temp == begin_temp              ..   0%
-        progress = 100.0F * (begin_temp - m_Temp) / (begin_temp - m_config.undercool_temp);
-        if (progress < 0)
-            progress = 0;
-        if (progress > 100.0F)
-            progress = 100.0F;
-        break;
-    case spsWait:
-        //m_Temp == m_config.start_temp .. 100%
-        //m_Temp == begin_temp          ..   0%
-        progress = 100.0F * (m_Temp - begin_temp) / (m_config.start_temp - begin_temp);
-        if (progress < 0)
-            progress = 0;
-        if (progress > 100.0F)
-            progress = 100.0F;
-        break;
-    case spsMeasure:
-        progress = CSelftestPart::GetProgress();
-        break;
-    case spsFinish:
-    case spsFinished:
-    case spsAborted:
-    case spsFailed:
-        progress = 100;
-        break;
+LoopResult CSelftestPart_Heater::stateFansActivate() {
+    if (enable_cooldown) {
+        LogInfo("%s set fans to maximum", m_config.partname);
+        m_config.print_fan.SelftestSetPWM(255);     //it will be restored by ExitSelftestMode
+        m_config.heatbreak_fan.SelftestSetPWM(255); //it will be restored by ExitSelftestMode
+    }
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Heater::stateCooldownInit() {
+    if (enable_cooldown) {
+        rResult.prep_state = SelftestSubtestState_t::running;
+    }
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Heater::stateCooldown() {
+    if (!enable_cooldown) {
+        LogInfo("%s cooldown not needed, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+        return LoopResult::RunNext;
     }
 
-    last_progress = last_progress < progress ? progress : last_progress;
-    return last_progress;
+    LogInfoTimed(log, "%s cooling down, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+
+    if (m_config.getTemp() > m_config.undercool_temp) {
+        //m_config.undercool_temp .. 100%
+        //begin_temp              ..   0%
+        actualizeProgress(m_config.getTemp(), begin_temp, m_config.undercool_temp);
+        return LoopResult::RunCurrent;
+    }
+    return LoopResult::RunNext;
 }
 
-bool CSelftestPart_Heater::Loop() {
-    switch ((TestState)m_State) {
-    case spsIdle:
-        return false;
-    case spsStart:
-        stateStart();
-        break;
-    case spsCooldown:
-        if (!enable_cooldown)
-            break;
-        m_Temp = getTemp();
-        if (m_Temp > m_config.undercool_temp)
-            return true;
-        //new begin_temp, will start heating now
-        begin_temp = m_Temp;
-        break;
-    case spsSetTargetTemp:
-        stateTargetTemp();
-        break;
-    case spsWait: {
-        m_Temp = getTemp();
-        if (m_Temp >= m_config.start_temp) {
-            m_Time = Selftest.m_Time;
-            m_MeasureStartTime = m_Time;
-            m_StartTime = m_Time;
-            m_EndTime = m_StartTime + estimate(m_config);
-            break;
-        }
-        return true;
+LoopResult CSelftestPart_Heater::stateFansDeactivate() {
+    m_config.print_fan.ExitSelftestMode();
+    m_config.heatbreak_fan.ExitSelftestMode();
+    LogInfo("%s returned control of fans", m_config.partname);
+    return LoopResult::RunNext;
+}
 
-        /*        if ((Selftest.m_Time - m_Time) < TEMP_WAIT_CYCLE_DELAY) {
-            float temp = getTemp();
-            float temp_diff = (temp - m_config.start_temp);
-            float temp_delta = (temp - m_Temp);
-            m_Temp = temp;
-            m_TempDiffSum += temp_diff;
-            m_TempDeltaSum += temp_delta;
-            m_TempCount++;
-            return true;
-        }
-        m_TempDiffSum /= m_TempCount;
-        m_TempDeltaSum /= m_TempCount;
-        if ((fabsf(m_TempDiffSum) > TEMP_DIFF_LIMIT) || (fabsf(m_TempDeltaSum) > TEMP_DELTA_LIMIT)) {
-            m_Time = Selftest.m_Time;
-            m_TempDiffSum = 0;
-            m_TempDeltaSum = 0;
-            m_TempCount = 0;
-            return true;
-        }
-        setTargetTemp(m_config.target_temp);
+LoopResult CSelftestPart_Heater::stateTargetTemp() {
+    LogInfo("%s set target, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    rResult.prep_state = SelftestSubtestState_t::running; // waiting for preheat temperature
+    m_config.setTargetTemp(m_config.target_temp);
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Heater::stateWait() {
+    float current_temp = m_config.getTemp();
+    if (current_temp >= m_config.start_temp) {
+        rResult.prep_state = SelftestSubtestState_t::ok;      // preheat temperature ok
+        rResult.heat_state = SelftestSubtestState_t::running; // waiting final heat
+        m_MeasureStartTime = SelftestInstance().GetTime();
+        m_StartTime = SelftestInstance().GetTime();
+        m_EndTime = m_StartTime + estimate(m_config);
+        rResult.progress = 0;
+        LogInfo("%s wait start temp reached: target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+        return LoopResult::RunNext;
+    }
+    LogInfoTimed(log, "%s wait, run: target: %d current: %f", m_config.partname, m_config.target_temp, (double)current_temp);
+
+    //m_config.start_temp     .. 100%
+    //m_config.undercool_temp ..   0%
+    actualizeProgress(current_temp, m_config.undercool_temp, m_config.start_temp);
+    return LoopResult::RunCurrent;
+
+#if (0)
+    //used to be commented code I just moved it and wrapped in #if (0) instead
+    if ((Selftest.m_Time - m_Time) < TEMP_WAIT_CYCLE_DELAY) {
+        float temp = m_config.getTemp();
+        float temp_diff = (temp - m_config.start_temp);
+        float temp_delta = (temp - m_Temp);
+        m_Temp = temp;
+        m_TempDiffSum += temp_diff;
+        m_TempDeltaSum += temp_delta;
+        m_TempCount++;
+        return true;
+    }
+    m_TempDiffSum /= m_TempCount;
+    m_TempDeltaSum /= m_TempCount;
+    if ((fabsf(m_TempDiffSum) > TEMP_DIFF_LIMIT) || (fabsf(m_TempDeltaSum) > TEMP_DELTA_LIMIT)) {
         m_Time = Selftest.m_Time;
-        m_MeasureStartTime = m_Time;
+        m_TempDiffSum = 0;
+        m_TempDeltaSum = 0;
+        m_TempCount = 0;
+        return true;
+    }
+    setTargetTemp(m_config.target_temp);
+    m_Time = Selftest.m_Time;
+    m_MeasureStartTime = m_Time;
+    m_Temp = 0;
+    m_TempCount = 0;
+    break;
+#endif // 0
+}
+
+LoopResult CSelftestPart_Heater::stateMeasure() {
+    if (int(m_EndTime - SelftestInstance().GetTime()) > 0) {
+        //time based progress
+        actualizeProgress(SelftestInstance().GetTime(), m_StartTime, m_EndTime);
+        return LoopResult::RunCurrent;
+    }
+#if (0)
+    //used to be commented code I just moved it and wrapped in #if (0) instead
+    if ((Selftest.m_Time - m_Time) < TEMP_MEASURE_CYCLE_DELAY) {
+        float temp = m_config.getTemp();
+        m_Temp += temp;
+        m_TempCount++;
+        return true;
+    }
+    m_Temp /= m_TempCount;
+    Selftest.log_printf("%s %5u ms  %5.1f C\n", m_config.partname, m_Time - m_MeasureStartTime, (double)m_Temp);
+    if ((m_Time - m_MeasureStartTime) < m_config.heat_time_ms) {
+        m_Time = Selftest.m_Time;
         m_Temp = 0;
         m_TempCount = 0;
-        break;*/
+        return true;
     }
-    case spsMeasure:
-        if (int(m_EndTime - Selftest.m_Time) > 0) {
-            m_Temp = getTemp();
-            return true;
-        }
+#endif // 0
 
-        /* if ((Selftest.m_Time - m_Time) < TEMP_MEASURE_CYCLE_DELAY) {
-            float temp = getTemp();
-            m_Temp += temp;
-            m_TempCount++;
-            return true;
-        }
-        m_Temp /= m_TempCount;
-        Selftest.log_printf("%s %5u ms  %5.1f C\n", m_config.partname, m_Time - m_MeasureStartTime, (double)m_Temp);
-        if ((m_Time - m_MeasureStartTime) < m_config.heat_time_ms) {
-            m_Time = Selftest.m_Time;
-            m_Temp = 0;
-            m_TempCount = 0;
-            return true;
-        }*/
-        if ((m_Temp < m_config.heat_min_temp) || (m_Temp > m_config.heat_max_temp)) {
-            Selftest.log_printf("%s %i out of range (%i - %i)\n", m_config.partname, (int)m_Temp, m_config.heat_min_temp, m_config.heat_max_temp);
-            m_Result = sprFailed;
-        }
-        break;
-    case spsFinish:
-        setTargetTemp(0);
-        if (m_Result == sprFailed)
-            m_State = spsFailed;
-        else
-            m_Result = sprPassed;
-        Selftest.log_printf("%s %s\n", m_config.partname, (m_Result == sprPassed) ? "Passed" : "Failed");
-        break;
-    case spsFinished:
-    case spsAborted:
-    case spsFailed:
-        return false;
+    if ((m_config.getTemp() < m_config.heat_min_temp) || (m_config.getTemp() > m_config.heat_max_temp)) {
+        LogError("%s %i out of range (%i - %i)\n", m_config.partname, (int)m_config.getTemp(), m_config.heat_min_temp, m_config.heat_max_temp);
+        return LoopResult::Fail;
     }
-    last_progress = 0;
-    return next();
+    LogInfo("%s measure, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    return LoopResult::RunNext;
 }
 
-bool CSelftestPart_Heater::Abort() {
-    return true;
-}
-
-uint8_t CSelftestPart_Heater::getFSMState_prepare() {
-    if (m_State <= spsStart)
-        return (uint8_t)(SelftestSubtestState_t::undef);
-    else if (m_State <= spsWait)
-        return (uint8_t)(SelftestSubtestState_t::running);
-    else
-        return (uint8_t)(SelftestSubtestState_t::ok);
-}
-
-uint8_t CSelftestPart_Heater::getFSMState_heat() {
-    if (m_State < spsMeasure)
-        return (uint8_t)(SelftestSubtestState_t::undef);
-    else if (m_State < spsFinished)
-        return (uint8_t)(SelftestSubtestState_t::running);
-    return (uint8_t)((m_Result == sprPassed) ? (SelftestSubtestState_t::ok) : (SelftestSubtestState_t::not_good));
-}
-
-uint32_t CSelftestPart_Heater::estimate(const selftest_heater_config_t &config) {
-    return config.heat_time_ms;
-}
-
-float CSelftestPart_Heater::getTemp() {
-    if (m_config.heater == 0xff)
-        return thermalManager.temp_bed.celsius;
-    return thermalManager.temp_hotend[m_config.heater].celsius;
-}
-
-void CSelftestPart_Heater::setTargetTemp(int target_temp) {
-    if (m_config.heater == 0xff)
-        thermalManager.setTargetBed(target_temp);
-    else
-        thermalManager.setTargetHotend(target_temp, m_config.heater);
-}
-
-bool CSelftestPart_Heater::can_enable_fan_control = true;
-
-/*****************************************************************************/
-//CSelftestPart_HeaterHotend
-
-CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, PID_t &pid, CFanCtl &fanCtlPrint, CFanCtl &fanCtlHeatBreak)
-    : CSelftestPart_Heater(config, pid)
-    , m_fanCtlPrint(fanCtlPrint)
-    , m_fanCtlHeatBreak(fanCtlHeatBreak)
-    , stored_can_enable_fan_control(can_enable_fan_control) {
-    can_enable_fan_control = false;
-}
-
-CSelftestPart_HeaterHotend::CSelftestPart_HeaterHotend(const selftest_heater_config_t &config, PIDC_t &pid, CFanCtl &fanCtlPrint, CFanCtl &fanCtlHeatBreak)
-    : CSelftestPart_Heater(config, pid)
-    , m_fanCtlPrint(fanCtlPrint)
-    , m_fanCtlHeatBreak(fanCtlHeatBreak)
-    , stored_can_enable_fan_control(can_enable_fan_control) {
-    can_enable_fan_control = false;
-}
-
-void CSelftestPart_HeaterHotend::stateStart() {
-    CSelftestPart_Heater::stateStart();
-    if (enable_cooldown) {
-#if 0 //TODO: hwio_fan_control_ was deprecated
-        hwio_fan_control_disable();
-#endif
-        m_fanCtlPrint.setPWM(255);     //marlin will restore it automatically
-        m_fanCtlHeatBreak.setPWM(255); //marlin will restore it automatically
-    }
-}
-
-void CSelftestPart_HeaterHotend::stateTargetTemp() {
-#if 0 //TODO: hwio_fan_control_ was deprecated
-    hwio_fan_control_enable(); //do not check can_enable_fan_control
-#endif
-    setTargetTemp(m_config.target_temp);
+void CSelftestPart_Heater::actualizeProgress(float current, float progres_start, float progres_end) const {
+    if (progres_start >= progres_end)
+        return; // don't have estimated end set correctly
+    uint8_t current_progress = scale_percent_avoid_overflow(current, progres_start, progres_end);
+    rResult.progress = std::max(rResult.progress, current_progress); // heater progress can only rise
 }

@@ -12,7 +12,6 @@ enum class ClientFSM : uint8_t {
     Load_unload,
     Preheat,
     Selftest,
-    G162,
     SelftestAxis,
     SelftestFans,
     SelftestHeat,

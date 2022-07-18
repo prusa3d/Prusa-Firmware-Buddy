@@ -7,16 +7,6 @@
 #include "WindowItemFormatableLabel.hpp"
 #include "config.h"
 
-class MI_WIZARD : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Wizard");
-
-public:
-    MI_WIZARD();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Filament Sensor");
 
@@ -55,86 +45,6 @@ class MI_MESH_BED : public WI_LABEL_t {
 
 public:
     MI_MESH_BED();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_SELFTEST : public WI_LABEL_t {
-    static constexpr const char *const label = N_("SelfTest");
-
-public:
-    MI_SELFTEST();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_SELFTEST_RESULT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Show SelfTest result");
-
-public:
-    MI_SELFTEST_RESULT();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_CALIB_FIRST : public WI_LABEL_t {
-    static constexpr const char *const label = N_("First Layer Calibration");
-
-public:
-    MI_CALIB_FIRST();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_TEST_FANS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test FANs");
-
-public:
-    MI_TEST_FANS();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_TEST_XYZ : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test XYZ-Axis");
-
-public:
-    MI_TEST_XYZ();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_TEST_HEAT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test Heaters");
-
-public:
-    MI_TEST_HEAT();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ADVANCED_FAN_TEST : public WI_LABEL_t {
-    static constexpr const char *const label = "Advanced fan test"; // debug only - not translated
-
-public:
-    MI_ADVANCED_FAN_TEST();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_TEST_ABORT : public WI_LABEL_t {
-    static constexpr const char *const label = "Test Abort"; // debug only - not translated
-
-public:
-    MI_TEST_ABORT();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;

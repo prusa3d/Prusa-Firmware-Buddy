@@ -70,12 +70,16 @@ struct window_icon_t : public AddSuperWindow<window_aligned_t> {
 
 protected:
     virtual void unconditionalDraw() override;
+    virtual void setRedLayout() override;
+    virtual void setBlackLayout() override;
 };
 
-struct window_icon_button_t : public AddSuperWindow<window_icon_t> {
+class window_icon_button_t : public AddSuperWindow<window_icon_t> {
     ButtonCallback callback;
 
+public:
     window_icon_button_t(window_t *parent, Rect16 rect, ResourceId id_res, ButtonCallback cb);
+    void SetAction(ButtonCallback cb) { callback = cb; }
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
@@ -92,6 +96,7 @@ public:
     window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
 
 protected:
+    virtual void invalidate(Rect16 validation_rect) override;
     virtual void unconditionalDraw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

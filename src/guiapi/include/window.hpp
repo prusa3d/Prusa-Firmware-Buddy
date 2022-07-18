@@ -102,7 +102,10 @@ public:
     void SetBackColor(const color_scheme &clr);
     color_t GetBackColor() const;
     void SetRelativeSubwins() { flags.has_relative_subwins = true; }
-
+    void SetHasIcon();
+    void ClrHasIcon();
+    void SetRedLayout();
+    void SetBlackLayout();
     window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
 
@@ -132,6 +135,8 @@ protected:
     virtual void unregisterSubWin(window_t &win);
     virtual void addInvalidationRect(Rect16 rc);
     void notifyVisibilityChange();
+    virtual void setRedLayout();
+    virtual void setBlackLayout();
 
 protected:
     virtual void invalidate(Rect16 validation_rect);

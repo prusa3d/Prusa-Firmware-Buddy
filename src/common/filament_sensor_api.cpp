@@ -97,7 +97,7 @@ void FilamentSensors::Cycle() {
 
     // gcode is injected outside critical section, so critical section is as short as possible
     // also injection of GCode inside critical section might not work
-    // TODO M600_sent and Autoload_sent should be mutally exclusive
+    // TODO M600_sent and Autoload_sent should be mutually exclusive
     // for now M600 just has higher prior thanks to "else if"
     if (*opt_event_m600) {
         m600_sent = true;
@@ -108,7 +108,7 @@ void FilamentSensors::Cycle() {
     }
 }
 
-// this methot is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter
+// this method is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter
 // trying to trigger runout at exact moment when print ended could break something
 // also if another M600 happens during clear of M600_sent flag, it could be discarded, this is not a problem, because it could happen only due a bug
 // if it happens move it inside FilamentSensors::Cycle critical section
@@ -122,7 +122,7 @@ bool FilamentSensors::evaluateM600(FSensor::event ev) const {
     return false;
 }
 
-// this methot is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter
+// this method is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter
 // trying to trigger autoload at exact moment when print starts could break something
 // also if another autoload happens during clear of Autoload_sent flag, it could be discarded, this is not a problem, because it could happen only due a bug
 // if it happens move it inside FilamentSensors::Cycle critical section

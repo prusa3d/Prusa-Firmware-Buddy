@@ -15,7 +15,7 @@ This file is generated automatically so don't edit it directly
 - Network: LOG_SEVERITY_INFO, lib/WUI/wui.cpp
 - PowerPanic: LOG_SEVERITY_INFO, src/common/power_panic.cpp
 - Resources: LOG_SEVERITY_DEBUG, src/resources/bootstrap.cpp
-- Selftest: LOG_SEVERITY_DEBUG, src/common/selftest/selftest_MINI.cpp
+- Selftest: LOG_SEVERITY_DEBUG, src/common/selftest/i_selftest.cpp
 - Syslog: LOG_SEVERITY_INFO, src/syslog/syslog.c
 - USBDevice: LOG_SEVERITY_INFO, src/buddy/usb_device.c
 - USBHost: LOG_SEVERITY_INFO, src/buddy/usbh_conf.c

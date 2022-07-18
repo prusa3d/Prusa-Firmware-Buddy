@@ -10,6 +10,7 @@
 #include "timing.h"
 #include "selftest_esp_type.hpp"
 #include "marlin_server.hpp"
+#include <device/peripherals.h>
 
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
 
@@ -26,14 +27,13 @@ extern "C" {
 #include <netdev.h>
 
 #include "FreeRTOS.h"
-#include "cmsis_os.h"
 #include "task.h"
+#include "cmsis_os.h"
 }
 
 #define BOOT_ADDRESS            0x00000ul
 #define APPLICATION_ADDRESS     0x10000ul
 #define PARTITION_TABLE_ADDRESS 0x08000ul
-extern UART_HandleTypeDef huart6;
 
 std::atomic<uint32_t> ESPUpdate::status = 0;
 
@@ -45,7 +45,7 @@ ESPUpdate::ESPUpdate(uintptr_t mask)
     , current_file(firmware_set.begin())
     , readCount(0)
     , loader_config({
-          .huart = &huart6,
+          .huart = &UART_HANDLE_FOR(esp),
           .port_io0 = GPIOE,
           .pin_num_io0 = GPIO_PIN_6,
           .port_rst = GPIOC,

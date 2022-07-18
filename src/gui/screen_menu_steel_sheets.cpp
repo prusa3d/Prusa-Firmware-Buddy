@@ -4,7 +4,7 @@
 #include "ScreenHandler.hpp"
 #include <type_traits>
 #include "eeprom.h"
-#include "wizard/screen_wizard.hpp"
+//#include "wizard/screen_wizard.hpp"
 #include "log.h"
 #include "SteelSheets.hpp"
 #include "WindowItemFormatableLabel.hpp"
@@ -169,7 +169,7 @@ protected:
         case profile_action::Calibrate:
             log_debug(GUI, "MI_SHEET_CALIBRATE");
             SteelSheets::SelectSheet(value);
-            ScreenWizard::Run(wizard_run_type_t::firstlay);
+            // TODO ScreenWizard::Run(wizard_run_type_t::firstlay);
             Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
             break;
         case profile_action::Rename:

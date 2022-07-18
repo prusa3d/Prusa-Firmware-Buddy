@@ -12,32 +12,19 @@
 #include "wui_api.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
-#include "screen_wizard.hpp"
 #include "bsod.h"
 #include "filament_sensor_api.hpp"
 #include "liveadjust_z.hpp"
 #include "DialogHandler.hpp"
-#include "selftest_MINI.h"
 #include "filament_sensor.hpp"
 #include "main.h"
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "menu_spin_config.hpp"
-#include "DialogSelftestResult.hpp"
 #include "footer_eeprom.hpp"
 #include <time.h>
 #include "sys.h"
 #include "w25x.h"
-
-/*****************************************************************************/
-//MI_WIZARD
-MI_WIZARD::MI_WIZARD()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::Run(wizard_run_type_t::all);
-}
 
 /**********************************************************************************************/
 //MI_FILAMENT_SENSOR
@@ -147,92 +134,6 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
             response = MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo);
         }
     } while (response != Response::No);
-}
-
-/*****************************************************************************/
-//MI_SELFTEST
-MI_SELFTEST::MI_SELFTEST()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::Run(wizard_run_type_t::selftest);
-}
-
-/*****************************************************************************/
-//MI_SELFTEST_RESULT
-MI_SELFTEST_RESULT::MI_SELFTEST_RESULT()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
-    SelftestResultEEprom_t result;
-    result.ui32 = eeprom_get_ui32(EEVAR_SELFTEST_RESULT);
-    DialogSelftestResult::Show(result);
-}
-
-/*****************************************************************************/
-//MI_CALIB_FIRST
-MI_CALIB_FIRST::MI_CALIB_FIRST()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    ScreenWizard::Run(wizard_run_type_t::firstlay);
-}
-
-/*****************************************************************************/
-//MI_TEST_FANS
-MI_TEST_FANS::MI_TEST_FANS()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmFans);
-    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestFans, 0);
-}
-
-/*****************************************************************************/
-//MI_TEST_XYZ
-MI_TEST_XYZ::MI_TEST_XYZ()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmXYZAxis);
-    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestAxis, 0);
-}
-
-/*****************************************************************************/
-//MI_TEST_HEAT
-MI_TEST_HEAT::MI_TEST_HEAT()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmHeaters);
-    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestHeat, 0);
-}
-
-/*****************************************************************************/
-//MI_TEST_FANS_fine
-MI_ADVANCED_FAN_TEST::MI_ADVANCED_FAN_TEST()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_ADVANCED_FAN_TEST::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmFans_fine);
-    DialogHandler::Access().WaitUntilClosed(ClientFSM::SelftestFans, 0);
-}
-
-/*****************************************************************************/
-//MI_TEST_ABORT
-MI_TEST_ABORT::MI_TEST_ABORT()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_TEST_ABORT::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_abort();
 }
 
 /*****************************************************************************/
