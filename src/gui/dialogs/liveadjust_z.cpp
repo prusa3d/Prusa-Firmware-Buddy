@@ -6,7 +6,6 @@
 #include "ScreenHandler.hpp"
 #include "GuiDefaults.hpp"
 #include "marlin_client.h"
-#include "marlin_vars.h"
 #include "display_helper.h"
 #include "SteelSheets.hpp"
 
@@ -16,11 +15,6 @@
 #else
     #error "Unknown PRINTER_TYPE."
 #endif
-
-const int axis_steps_per_unit[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-const float z_offset_step = 1.0F / float(axis_steps_per_unit[2]);
-constexpr float z_offset_min = SteelSheets::zOffsetMin;
-constexpr float z_offset_max = SteelSheets::zOffsetMax;
 
 /*****************************************************************************/
 //WindowScale
