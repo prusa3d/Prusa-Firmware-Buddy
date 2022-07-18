@@ -1,77 +1,84 @@
 /**
- * @file footer_item_axis.hpp
- * @author Radek Vana
- * @brief axis position related footer items
- * @date 2021-12-02
- */
+* @file footer_item_axis.hpp
+* @author Radek Vana
+* @brief axis position related footer items
+* @date 2021-12-02
+*/
 #pragma once
 #include "ifooter_item.hpp"
+#include "menu_vars.h"
+#include "marlin_client.h"
+#include "resource.h"
 
 /**
- * @brief parent for X, Y, Z footer items
- */
+* @brief parent for X, Y, Z footer items
+*/
 class IFooterItemAxis : public AddSuperWindow<FooterIconText_FloatVal> {
-protected:
     using buffer_t = std::array<char, 7>;
-    static string_view_utf8 static_makeViewIntoBuff(float value, buffer_t &buff);
+
+protected:
+    static buffer_t buff;
+    static string_view_utf8 static_makeViewIntoBuff(float value);
 
 public:
-    IFooterItemAxis(window_t *parent, ResourceId icon_id, view_maker_cb view_maker, reader_cb value_reader);
+    IFooterItemAxis(window_t *parent, ResourceId icon_id, reader_cb value_reader);
 };
 
-/**
- * @brief current X pos footer item
- */
-class FooterItemAxisX : public AddSuperWindow<IFooterItemAxis> {
+// XYZE position
+template <size_t AXIS>
+class FooterItemAxisPos : public IFooterItemAxis {
     static float static_readValue();
-    static buffer_t buffer;
-    static string_view_utf8 static_makeView(float value) {
-        return static_makeViewIntoBuff(value, buffer);
-    }
 
+public:
+    FooterItemAxisPos(window_t *parent, ResourceId icon_id)
+        : IFooterItemAxis(parent, icon_id, static_readValue) {}
+};
+
+template <size_t AXIS>
+float FooterItemAxisPos<AXIS>::static_readValue() {
+    return std::clamp((float)marlin_vars()->pos[AXIS], (float)MenuVars::GetAxisRanges()[AXIS][0], (float)MenuVars::GetAxisRanges()[AXIS][1]);
+}
+
+// Position according to gcode
+template <size_t AXIS>
+class FooterItemAxisCurrPos : public IFooterItemAxis {
+    static float static_readValue();
+
+public:
+    FooterItemAxisCurrPos(window_t *parent, ResourceId icon_id)
+        : IFooterItemAxis(parent, icon_id, static_readValue) {}
+};
+
+template <size_t AXIS>
+float FooterItemAxisCurrPos<AXIS>::static_readValue() {
+    return std::clamp((float)marlin_vars()->curr_pos[AXIS], (float)MenuVars::GetAxisRanges()[AXIS][0], (float)MenuVars::GetAxisRanges()[AXIS][1]);
+}
+
+class FooterItemAxisX : FooterItemAxisPos<0> {
 public:
     static string_view_utf8 GetName() { return _("X Axis"); }
-    FooterItemAxisX(window_t *parent);
+    FooterItemAxisX(window_t *parent)
+        : FooterItemAxisPos<0>(parent, IDR_PNG_x_axis_16x16) {}
 };
-
-/**
- * @brief current Y pos footer item
- */
-class FooterItemAxisY : public AddSuperWindow<IFooterItemAxis> {
-    static float static_readValue();
-    static buffer_t buffer;
-    static string_view_utf8 static_makeView(float value) {
-        return static_makeViewIntoBuff(value, buffer);
-    }
-
+class FooterItemAxisY : FooterItemAxisPos<1> {
 public:
     static string_view_utf8 GetName() { return _("Y Axis"); }
-    FooterItemAxisY(window_t *parent);
+    FooterItemAxisY(window_t *parent)
+        : FooterItemAxisPos<1>(parent, IDR_PNG_y_axis_16x16) {}
 };
 
-/**
- * @brief current Z pos footer item
- */
-class FooterItemAxisZ : public AddSuperWindow<IFooterItemAxis> {
-    static float static_readValue();
-    static buffer_t buffer;
-    static string_view_utf8 static_makeView(float value) {
-        return static_makeViewIntoBuff(value, buffer);
-    }
-
+class FooterItemAxisZ : FooterItemAxisPos<2> {
 public:
     static string_view_utf8 GetName() { return _("Z Axis"); }
-    FooterItemAxisZ(window_t *parent);
+
+    FooterItemAxisZ(window_t *parent)
+        : FooterItemAxisPos<2>(parent, IDR_PNG_z_axis_16x16) {}
 };
 
-/**
- * @brief current Z pos footer item including MBL
- */
-class FooterItemZHeight : public AddSuperWindow<FooterIconText_FloatVal> {
-    static string_view_utf8 static_makeView(float value);
-    static float static_readValue();
-
+class FooterItemZHeight : FooterItemAxisCurrPos<2> {
 public:
-    static string_view_utf8 GetName() { return _("Z Height"); }
-    FooterItemZHeight(window_t *parent);
+    static string_view_utf8 GetName() { return _("Z Heigth"); }
+
+    FooterItemZHeight(window_t *parent)
+        : FooterItemAxisCurrPos<2>(parent, IDR_PNG_z_axis_16x16) {}
 };
