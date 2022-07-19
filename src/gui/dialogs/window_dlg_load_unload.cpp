@@ -71,9 +71,9 @@ static PreheatStatus::Result DialogBlockingLoadUnload(const char *mode_format, R
     // ask for temperature, but we could skip opening the preheat dialog
     DialogBlocking(ClientFSM::Preheat, ClientFSM::Load_unload);
 
-    ret = PreheatStatus::ConsumeResult();
+    ret = PreheatStatus::ConsumeResult(); // filament dialog in print preview: ret == PreheatStatus::Result::DidNotFinish
 
-    if (ret != PreheatStatus::Result::Error || ret != PreheatStatus::Result::Aborted || ret != PreheatStatus::Result::CooledDown || ret != PreheatStatus::Result::DidNotFinish) {
+    if (ret != PreheatStatus::Result::Error && ret != PreheatStatus::Result::Aborted && ret != PreheatStatus::Result::CooledDown) {
         DialogBlocking(ClientFSM::Load_unload);
         ret = PreheatStatus::ConsumeResult();
     }
@@ -112,9 +112,9 @@ Result DialogBlockingChangeLoad(RetAndCool_t retAndCool) {
 
     DialogBlocking(ClientFSM::Preheat, ClientFSM::Load_unload);
 
-    ret = PreheatStatus::ConsumeResult();
+    ret = PreheatStatus::ConsumeResult(); // ret == PreheatStatus::Result::DidNotFinish
 
-    if (ret != PreheatStatus::Result::Error || ret != PreheatStatus::Result::Aborted || ret != PreheatStatus::Result::CooledDown || ret != PreheatStatus::Result::DidNotFinish) {
+    if (ret != PreheatStatus::Result::Error && ret != PreheatStatus::Result::Aborted && ret != PreheatStatus::Result::CooledDown) {
         DialogBlocking(ClientFSM::Load_unload);
     }
     return ret;
