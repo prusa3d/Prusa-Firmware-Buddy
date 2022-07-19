@@ -17,11 +17,10 @@ static constexpr uint32_t TEMP_MEASURE_CYCLE_DELAY = 1000;
 static constexpr uint32_t TEMP_WAIT_CYCLE_DELAY = 2000;
 
 CSelftestPart_Heater::CSelftestPart_Heater(IPartHandler &state_machine, const HeaterConfig_t &config,
-    SelftestHeater_t &result, SelftestHeater_t &lastResult)
+    SelftestHeater_t &result)
     : state_machine(state_machine)
     , m_config(config)
     , rResult(result)
-    , rLastResult(lastResult)
     , storedKp(config.refKp)
     , storedKi(config.refKi)
     , storedKd(config.refKd)

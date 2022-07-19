@@ -13,7 +13,6 @@ class CSelftestPart_Axis {
     IPartHandler &state_machine;
     const AxisConfig_t &config;
     SelftestSingleAxis_t &rResult;
-    SelftestSingleAxis_t &rLastResult;
     uint32_t time_progress_start;
     uint32_t time_progress_estimated_end;
     uint8_t m_Step;
@@ -40,7 +39,7 @@ public:
     using Config = AxisConfig_t;
 
     CSelftestPart_Axis(IPartHandler &state_machine, const AxisConfig_t &config,
-        SelftestSingleAxis_t &result, SelftestSingleAxis_t &lastResult);
+        SelftestSingleAxis_t &result);
     ~CSelftestPart_Axis();
 
     LoopResult stateWaitHome();

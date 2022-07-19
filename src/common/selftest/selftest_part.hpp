@@ -31,9 +31,8 @@ public:
 private:
     T instance;
     std::array<state_fnc, SZ> arr;
-    //need this references here to automatize refLastResult actualization
+
     EvaluationType &refResult;
-    EvaluationType &refLastResult;
     state_hook_fnc fnc_state_changed;
     state_hook_fnc fnc_state_remained;
 
@@ -55,9 +54,7 @@ private:
         const Response response = ClientResponseHandler::GetResponseFromPhase(phase_enum);
         return response;
     }
-    virtual void storeLastState() override {
-        refLastResult = refResult;
-    }
+
     virtual void pass() { refResult.Pass(); }
     virtual void fail() { refResult.Fail(); }
     virtual void abort() { refResult.Abort(); }
@@ -66,18 +63,16 @@ public:
     // ctor needs to pass reference to result and last result
     // because i need to actualize result in place, where only non template IPartHandler is known
     template <class... E>
-    PartHandler(const CNF &cnf, EvaluationType &refResult, EvaluationType &refLastResult, E &&... e)
+    PartHandler(const CNF &cnf, EvaluationType &refResult, E &&... e)
         : IPartHandler(SZ, CNF::part_type)
-        , instance(*this, cnf, refResult, refLastResult)
+        , instance(*this, cnf, refResult)
         , arr { std::forward<E>(e)... }
         , refResult(refResult)
-        , refLastResult(refLastResult)
         , fnc_state_changed([](T &) {})  // use empty lambda for state enter, so I don't need to check nullptr
         , fnc_state_remained([](T &) {}) // use empty lambda for state remain, so I don't need to check nullptr
     {
         // result can refer to static variable, need to reset its value
         refResult = EvaluationType();
-        refLastResult = EvaluationType();
     }
     void SetStateChangedHook(state_hook_fnc f) { fnc_state_changed = f; }
     void SetStateRemainedHook(state_hook_fnc f) { fnc_state_remained = f; }
@@ -91,15 +86,15 @@ public:
 struct Factory {
     template <class T, class CNF, class... E>
     static auto Create(const CNF &cnf,
-        typename CNF::type_evaluation &refResult, typename CNF::type_evaluation &refLastResult,
+        typename CNF::type_evaluation &refResult,
         E &&... e) {
-        return PartHandler<T, CNF, sizeof...(E)>(cnf, refResult, refLastResult, std::forward<E>(e)...);
+        return PartHandler<T, CNF, sizeof...(E)>(cnf, refResult, std::forward<E>(e)...);
     }
     template <class T, class CNF, class... E>
     static constexpr auto *CreateDynamical(const CNF &cnf,
-        typename CNF::type_evaluation &refResult, typename CNF::type_evaluation &refLastResult,
+        typename CNF::type_evaluation &refResult,
         E &&... e) {
-        return new PartHandler<T, CNF, sizeof...(E)>(cnf, refResult, refLastResult, std::forward<E>(e)...);
+        return new PartHandler<T, CNF, sizeof...(E)>(cnf, refResult, std::forward<E>(e)...);
     }
 };
 

@@ -21,9 +21,7 @@
 #endif
 namespace selftest {
 static SelftestHeater_t staticResultNoz;
-static SelftestHeater_t staticLastResultNoz;
 static SelftestHeater_t staticResultBed;
-static SelftestHeater_t staticLastResultBed;
 static bool nozzle_result_valid = false;
 static bool bed_result_valid = false;
 
@@ -55,7 +53,7 @@ void phaseHeaters_noz_ena(IPartHandler *&pNozzle, const HeaterConfig_t &config_n
         // brr unnecessary dynamic allocation .. not my code, I just moved it .. TODO rewrite
         // clang-format off
         auto pNoz = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(config_nozzle,
-            staticResultNoz, staticLastResultNoz,
+            staticResultNoz,
             &CSelftestPart_Heater::stateStart,
             &CSelftestPart_Heater::stateTakeControlOverFans, &CSelftestPart_Heater::stateFansActivate,
             &CSelftestPart_Heater::stateCooldownInit, &CSelftestPart_Heater::stateCooldown,
@@ -83,7 +81,7 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
         // brr unnecessary dynamic allocation .. not my code, I just moved it .. TODO rewrite
         // clang-format off
         auto pBed_ = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(config_bed,
-            staticResultBed, staticLastResultBed,
+            staticResultBed,
             &CSelftestPart_Heater::stateStart,
             &CSelftestPart_Heater::stateCooldownInit, &CSelftestPart_Heater::stateCooldown,
             &CSelftestPart_Heater::stateTargetTemp, &CSelftestPart_Heater::stateWait,

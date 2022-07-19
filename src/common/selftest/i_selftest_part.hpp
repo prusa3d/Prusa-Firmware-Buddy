@@ -44,7 +44,6 @@ protected:
     bool isInProgress() const; // do not make this method public, it does not wait for state to be shown, use Loop result instead
     virtual LoopResult invokeCurrentState() = 0;
     virtual Response processButton() = 0;
-    virtual void storeLastState() = 0;
     void next();
     virtual void pass() = 0;
     virtual void fail() = 0;
