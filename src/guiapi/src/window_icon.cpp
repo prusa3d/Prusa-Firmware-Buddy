@@ -16,8 +16,8 @@ void window_icon_t::SetIdRes(ResourceId id) {
     Invalidate();
 }
 
-void window_icon_t::setFile(FILE *file) {
-    dataSource.set(file);
+void window_icon_t::setFileName(const char *filename) {
+    dataSource.set(filename);
     assert(dataSource.isFromFile());
     Invalidate();
 }
@@ -52,23 +52,30 @@ void window_icon_t::unconditionalDraw() {
     if (this->dataSource.isFromResource()) {
         render_icon_align(GetRect(), dataSource.id_res, GetBackColor(), icon_flags(GetAlignment(), raster_op));
     } else {
+        FILE *file = fopen(dataSource.filename, "rb");
+        if (!file) {
+            log_debug(GUI, "Tried to open a nonexistent file: %s", dataSource.filename);
+            assert(false);
+            return;
+        }
         point_ui16_t pictureOrigin = { static_cast<uint16_t>(GetRect().TopLeft().x), static_cast<uint16_t>(GetRect().TopLeft().y) };
         uint8_t data[32] { 0 };
         const uint8_t *ptr = data;
         if (dataSource.isFromFile()) {
-            size_t sz = fread(&data[0], 1, 32, dataSource.file);
-            fseek(dataSource.file, 0, SEEK_SET);
+            size_t sz = fread(&data[0], 1, 32, file);
+            fseek(file, 0, SEEK_SET);
             if (sz < 32)
                 return;
         }
 
         point_ui16_t wh_ico = icon_meas(ptr);
         if (wh_ico.x && wh_ico.y) {
-            display::DrawPng(pictureOrigin, this->dataSource.file);
+            display::DrawPng(pictureOrigin, file);
         } else {
             log_debug(GUI, "Drawing empty rect");
             display::FillRect(GetRect(), GetBackColor());
         }
+        fclose(file);
     }
 }
 
@@ -77,10 +84,17 @@ size_ui16_t window_icon_t::CalculateMinimalSize(window_icon_t::DataSourceId sour
     uint8_t data[32] { 0 };
     const uint8_t *ptr = data;
     if (source.isFromFile()) {
-        size_t sz = fread(&data[0], 1, 32, source.file);
-        fseek(source.file, 0, SEEK_SET);
+        FILE *file = fopen(source.filename, "rb");
+        if (!file) {
+            log_debug(GUI, "Tried to open a nonexistent file: %s", source.filename);
+            assert(false);
+            return { 0, 0 };
+        }
+        size_t sz = fread(&data[0], 1, 32, file);
+        fseek(file, 0, SEEK_SET);
         if (sz < 32)
             return ret;
+        fclose(file);
     } else {
         ptr = resource_ptr(source.id_res);
         if (!ptr)

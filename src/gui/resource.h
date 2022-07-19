@@ -57,7 +57,6 @@ enum ResourceId : uint8_t {
     IDR_PNG_folder_shape_16px,
     IDR_PNG_folder_open_16px,
 
-    IDR_PNG_pepa_64px,
     IDR_PNG_wifi_large_64x64,
 
     IDR_PNG_dash_18px,
@@ -73,8 +72,6 @@ enum ResourceId : uint8_t {
     IDR_PNG_wizard_icon_measure,
     IDR_PNG_hand_154x65,
     IDR_PNG_nozzle_34x32,
-
-    IDR_PNG_pepa_140px,
 
     IDR_PNG_usb_16px,
     IDR_PNG_lan_16px,
