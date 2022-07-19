@@ -25,10 +25,6 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_temp(ScreenSelftest &rT
     return rThs.makePtr<ScreenSelftestTemp>(&rThs, phase, data);
 }
 
-static_unique_ptr<SelftestFrame> ScreenSelftest::creator_calib_z(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
-    return rThs.makePtr<SelftestFrameCalibZ>(&rThs, phase, data);
-}
-
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<ScreenSelftestInvalidState>(&rThs, phase, data);
 }
@@ -69,8 +65,6 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
         return creator_fans;
     case SelftestParts::Heaters:
         return creator_temp;
-    case SelftestParts::CalibZ:
-        return creator_calib_z;
     case SelftestParts::Result:
         return creator_result;
     case SelftestParts::WizardEpilogue:
@@ -141,7 +135,6 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::Axis:
     case SelftestParts::Fans:
     case SelftestParts::Heaters:
-    case SelftestParts::CalibZ:
     case SelftestParts::Result:
         return _(en_selftest);
     case SelftestParts::WizardEpilogue:
@@ -163,7 +156,6 @@ ResourceId ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::Axis:
     case SelftestParts::Fans:
     case SelftestParts::Heaters:
-    case SelftestParts::CalibZ:
     case SelftestParts::Result:
         return IDR_PNG_selftest_16x16;
     case SelftestParts::WizardEpilogue:

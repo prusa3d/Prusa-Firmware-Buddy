@@ -75,7 +75,6 @@ const PhaseResponses ClientResponses::SelftestResponses[CountPhases<PhasesSelfte
     { Response::Continue, Response::Abort },                    // ESP_qr_instructions_flash
     { Response::Continue, Response::Abort },                    // ESP_qr_instructions
     {},                                                         //Fans
-    {},                                                         //CalibZ
     {},                                                         //Axis
     {},                                                         //Heaters
     { Response::Next },                                         //Result

@@ -122,10 +122,6 @@ enum class PhasesSelftest : uint16_t {
     Fans = _first_Fans,
     _last_Fans = Fans,
 
-    _first_CalibZ,
-    CalibZ = _first_CalibZ,
-    _last_CalibZ = CalibZ,
-
     _first_Axis,
     Axis = _first_Axis,
     _last_Axis = Axis,
@@ -228,7 +224,6 @@ enum class SelftestParts {
     ESP_qr,
     Axis,
     Fans,
-    CalibZ,
     Heaters,
     //FirstLayer,
     Result,
@@ -251,8 +246,6 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
         return PhasesSelftest::_first_Axis;
     case SelftestParts::Fans:
         return PhasesSelftest::_first_Fans;
-    case SelftestParts::CalibZ:
-        return PhasesSelftest::_first_CalibZ;
     case SelftestParts::Heaters:
         return PhasesSelftest::_first_Heaters;
     case SelftestParts::Result:
@@ -279,8 +272,6 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_Axis;
     case SelftestParts::Fans:
         return PhasesSelftest::_last_Fans;
-    case SelftestParts::CalibZ:
-        return PhasesSelftest::_last_CalibZ;
     case SelftestParts::Heaters:
         return PhasesSelftest::_last_Heaters;
     case SelftestParts::Result:
@@ -323,9 +314,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 
     if (SelftestPartContainsPhase(SelftestParts::Heaters, ph))
         return SelftestParts::Heaters;
-
-    if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph))
-        return SelftestParts::CalibZ;
 
     if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue, ph))
         return SelftestParts::WizardEpilogue;
