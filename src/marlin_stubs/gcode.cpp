@@ -3,7 +3,6 @@
 #include "PrusaGcodeSuite.hpp"
 
 #include "M330.h"
-#include "M50.hpp"
 
 bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
     switch (parser.command_letter) {
@@ -112,6 +111,7 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
 
 //weak g-codes to prevent ugly preprocessor
 //TODO write error message to log if used
+void __attribute__((weak)) PrusaGcodeSuite::M50() {}
 void __attribute__((weak)) PrusaGcodeSuite::M650() {}
 void __attribute__((weak)) PrusaGcodeSuite::M704() {}
 void __attribute__((weak)) PrusaGcodeSuite::M705() {}

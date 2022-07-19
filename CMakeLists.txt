@@ -479,13 +479,8 @@ set_property(
   )
 
 set_property(
-  SOURCE src/buddy/main.cpp
-         src/common/appmain.cpp
-         src/common/sys.cpp
-         src/marlin_stubs/M50.cpp
-         src/marlin_stubs/gcode.cpp
-         src/common/hwio_buddy_2209_02.cpp
-         src/gui/guimain.cpp
+  SOURCE src/buddy/main.cpp src/common/appmain.cpp src/common/sys.cpp src/marlin_stubs/gcode.cpp
+         src/common/hwio_buddy_2209_02.cpp src/gui/guimain.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )

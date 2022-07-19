@@ -3,7 +3,6 @@ target_include_directories(firmware PRIVATE .)
 target_sources(
   firmware
   PRIVATE selftest_frame_axis.cpp
-          selftest_frame_calib_z.cpp
           selftest_frame_esp.cpp
           selftest_frame_esp_progress.cpp
           selftest_frame_esp_qr.cpp

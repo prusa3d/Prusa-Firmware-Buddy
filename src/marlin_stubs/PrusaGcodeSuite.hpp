@@ -5,6 +5,8 @@ void G26();  /// first layer calibration
 void G162(); /// handler-specific configuration
 void G163(); /// measure length of axis
 
+void M50(); /// selftest
+
 void M300(); /// beep
 void M505(); /// set eeprom variable
 void M650();
