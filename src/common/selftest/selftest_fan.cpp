@@ -16,11 +16,10 @@
 using namespace selftest;
 
 CSelftestPart_Fan::CSelftestPart_Fan(IPartHandler &state_machine, const FanConfig_t &config,
-    SelftestFan_t &result, SelftestFan_t &lastResult)
+    SelftestFan_t &result)
     : state_machine(state_machine)
     , m_config(config)
     , rResult(result)
-    , rLastResult(lastResult)
     , m_StartTime(0)
     , m_EndTime(0)
     , m_SampleSum(0)

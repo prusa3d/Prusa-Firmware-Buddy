@@ -16,7 +16,6 @@ public:
 
 private:
     SelftestHeater_t &rResult;
-    SelftestHeater_t &rLastResult;
     float storedKp;
     float storedKi;
     float storedKd;
@@ -36,7 +35,7 @@ private:
 
 public:
     CSelftestPart_Heater(IPartHandler &state_machine, const HeaterConfig_t &config,
-        SelftestHeater_t &result, SelftestHeater_t &lastResult);
+        SelftestHeater_t &result);
     ~CSelftestPart_Heater();
 
     LoopResult stateStart();

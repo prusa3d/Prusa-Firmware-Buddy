@@ -11,9 +11,7 @@
 
 namespace selftest {
 static SelftestFan_t staticResultPrintFan;
-static SelftestFan_t staticLastResultPrintFan;
 static SelftestFan_t staticResultHeatbreakFan;
-static SelftestFan_t staticLastResultHeatbreakFan;
 
 // data for both subtests must be sent together
 // we could loose some events, so we must be sending entire state of both parts
@@ -21,14 +19,14 @@ bool phaseFans(IPartHandler *&pPrintFan, IPartHandler *&pHeatbreakFan, const Fan
     // clang-format off
     pPrintFan = pPrintFan ? pPrintFan :
     selftest::Factory::CreateDynamical<CSelftestPart_Fan>(config_print_fan,
-        staticResultPrintFan, staticLastResultPrintFan,
+        staticResultPrintFan,
         &CSelftestPart_Fan::stateStart, &CSelftestPart_Fan::stateWaitStopped,
         &CSelftestPart_Fan::stateCycleMark, &CSelftestPart_Fan::stateWaitRpm,
         &CSelftestPart_Fan::stateMeasureRpm);
 
     pHeatbreakFan = pHeatbreakFan ? pHeatbreakFan :
     selftest::Factory::CreateDynamical<CSelftestPart_Fan>(config_heatbreak_fan,
-        staticResultHeatbreakFan, staticLastResultHeatbreakFan,
+        staticResultHeatbreakFan,
         &CSelftestPart_Fan::stateStart, &CSelftestPart_Fan::stateWaitStopped,
         &CSelftestPart_Fan::stateCycleMark, &CSelftestPart_Fan::stateWaitRpm,
         &CSelftestPart_Fan::stateMeasureRpm);

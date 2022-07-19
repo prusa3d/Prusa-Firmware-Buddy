@@ -16,11 +16,10 @@ using namespace selftest;
 
 static const char AxisLetter[] = { 'X', 'Y', 'Z', 'E' };
 CSelftestPart_Axis::CSelftestPart_Axis(IPartHandler &state_machine, const AxisConfig_t &config,
-    SelftestSingleAxis_t &result, SelftestSingleAxis_t &lastResult)
+    SelftestSingleAxis_t &result)
     : state_machine(state_machine)
     , config(config)
     , rResult(result)
-    , rLastResult(lastResult)
     , time_progress_start(0)
     , time_progress_estimated_end(0)
     , m_Step(0)

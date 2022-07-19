@@ -13,8 +13,7 @@
 #include "eeprom.h"
 
 namespace selftest {
-SelftestSingleAxis_t staticResults[axis_count];     // automatically initialized by PartHandler
-SelftestSingleAxis_t staticLastResults[axis_count]; // automatically initialized by PartHandler
+SelftestSingleAxis_t staticResults[axis_count]; // automatically initialized by PartHandler
 
 bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis) {
     //validity check
@@ -23,7 +22,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis) {
 
     // clang-format off
     m_pAxis = m_pAxis ? m_pAxis : selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis,
-        staticResults[config_axis.axis], staticLastResults[config_axis.axis],
+        staticResults[config_axis.axis],
         &CSelftestPart_Axis::stateWaitHome, &CSelftestPart_Axis::stateInitProgressTimeCalculation, &CSelftestPart_Axis::stateCycleMark,
         &CSelftestPart_Axis::stateMove, &CSelftestPart_Axis::stateMoveWaitFinish);
     // clang-format on

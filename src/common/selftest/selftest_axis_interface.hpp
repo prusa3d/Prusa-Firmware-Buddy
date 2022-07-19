@@ -15,7 +15,6 @@ class IPartHandler;
 namespace selftest {
 static constexpr size_t axis_count = 3;
 extern SelftestSingleAxis_t staticResults[axis_count];
-extern SelftestSingleAxis_t staticLastResults[axis_count];
 
 bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis);
 

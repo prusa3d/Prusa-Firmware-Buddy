@@ -21,7 +21,6 @@ IPartHandler::IPartHandler(size_t sz, SelftestParts part)
 }
 
 bool IPartHandler::Loop() {
-    storeLastState();
     //exit idle state
     if (current_state == -1)
         current_state = 0; // TODO i might want to use Start() somewhere in code instead

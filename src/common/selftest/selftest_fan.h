@@ -11,7 +11,6 @@ class CSelftestPart_Fan {
     IPartHandler &state_machine;
     const FanConfig_t &m_config;
     SelftestFan_t &rResult;
-    SelftestFan_t &rLastResult;
     uint32_t m_StartTime;
     uint32_t m_EndTime;
     uint32_t m_SampleSum;
@@ -23,7 +22,7 @@ class CSelftestPart_Fan {
 
 public:
     CSelftestPart_Fan(IPartHandler &state_machine, const FanConfig_t &config,
-        SelftestFan_t &result, SelftestFan_t &lastResult);
+        SelftestFan_t &result);
     ~CSelftestPart_Fan();
 
     LoopResult stateStart();
