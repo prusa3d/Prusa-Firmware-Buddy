@@ -87,7 +87,7 @@ static constexpr size_t BuffNATIVE_PIXEL_SIZE = 4; // bytes per pixel (can be sa
 static inline uint8_t *getBuff() { return MockDisplay::Instance().getBuff(); }
 
 uint32_t display_ex_buffer_pixel_size() {
-    MockDisplay::Cols() * MockDisplay::BuffRows;
+    return (uint32_t)MockDisplay::Cols() * (uint32_t)MockDisplay::BuffRows();
 }
 
 void display_ex_draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h) {
