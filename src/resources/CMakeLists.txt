@@ -69,7 +69,7 @@ add_gzip_resource("web/main.cf0f3f6f32f7abaffeea.css" "/web/main.cf0f3f6f32f7aba
 add_resource("png/pepa_64px.png" "/png/pepa_64px.png")
 add_resource("png/pepa_140px.png" "/png/pepa_140px.png")
 add_resource("png/pepa_original_140px.png" "/png/pepa_original_140px.png")
-
+add_resource("png/png_serial_printing.png" "/pnt/png_serial_printing.png")
 # generate header with hash
 add_header_with_revision(standard resources-image)
 

@@ -92,7 +92,6 @@
 #include "res/cc/png_arrow_up_orange_8px.c"   //IDR_PNG_arrow_up_orange_8px
 #include "res/cc/png_arrow_down_orange_8px.c" //IDR_PNG_arrow_down_orange_8px
 
-#include "res/cc/png_serial_printing.c"     //IDR_PNG_serial_printing
 #include "res/cc/png_switch_off_36px.c"     //IDR_PNG_switch_off_36px
 #include "res/cc/png_switch_on_36px.c"      //IDR_PNG_switch_on_36px
 #include "res/cc/png_hand_qr.c"             //IDR_PNG_hand_qr

@@ -6,19 +6,23 @@
 #include "ScreenHandler.hpp"
 #include "screen_menus.hpp"
 #include "odometer.hpp"
+#include "window_icon.hpp"
 
 //octo icon
-static point_ui16_t pt_ico() { return icon_meas(resource_ptr(IDR_PNG_serial_printing)); }
+static point_ui16_t pt_ico() {
+    auto sz = window_icon_t::CalculateMinimalSize("/internal/res/png/screen_printing_serial.png");
+    return { sz.w, sz.h };
+}
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
-    , octo_icon(this, Rect16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBody.Top(), pt_ico().x, pt_ico().y), IDR_PNG_serial_printing)
+    , octo_icon(this, Rect16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBody.Top(), pt_ico().x, pt_ico().y), "/internal/res/png/screen_printing_serial.png")
     , last_tick(0)
     , connection(connection_state_t::connected) {
     ClrMenuTimeoutClose();
     ClrOnSerialClose(); // don't close on Serial print
 
-    octo_icon.SetIdRes(IDR_PNG_serial_printing);
+    octo_icon.setFileName("/internal/res/png/screen_printing_serial.png");
     octo_icon.Disable();
     octo_icon.Unshadow();
 
