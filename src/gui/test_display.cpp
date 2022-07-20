@@ -336,7 +336,7 @@ void test_display2(void) {
 		st7789v_display_clear(CLR565_GREEN);
 		osDelay(1000);
 		st7789v_display_clear(CLR565_BLUE);
-		display_ex_draw_text(10, 10, 0, 0, "Testik", &font_12x12, CLR565_YELLOW);
+		--display_ex_draw_text was replaced--(10, 10, 0, 0, "Testik", &font_12x12, CLR565_YELLOW);
 		osDelay(1000);
 		//osDelay(1000);
 		st7789v_spectrum();
