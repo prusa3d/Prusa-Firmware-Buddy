@@ -114,47 +114,45 @@ void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t co
 }
 
 /// Draws a text into the specified rectangle @rc
-/// If a character does not fit into the rectangle the drawing is stopped
+/// It stores characters in buffer and then draws them all at once. Characters that doesn't fit within the rectangle are ignored.
 /// \param clr_bg background color
 /// \param clr_fg font/foreground color
 /// \returns size of drawn area
 /// Draws unused space of @rc with @clr_bg
 template <class T>
 size_ui16_t render_line(T &textWrapper, Rect16 rc, string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    int x = rc.Left();
-    int y = rc.Top();
-    size_t drawn_chars = 0;
+    if (!pf || pf->w == 0 || pf->h == 0 || rc.Width() < pf->w || rc.Height() < pf->h)
+        return size_ui16_t { 0, 0 };
 
-    const int w = pf->w; //char width
+    point_ui16_t pt = point_ui16(rc.Left(), rc.Top());
+    const uint16_t fnt_w = pf->w; // char width
+    const uint16_t fnt_h = pf->h; // char height
 
-    // prepare for stream processing
-    unichar c = 0;
+    uint16_t buff_char_capacity = display::BufferPixelSize() / (fnt_w * fnt_h);
+    uint16_t line_char_cnt = rc.Width() / fnt_w; // character count - rects are calculated through font measurings
+    uint16_t chars_cnt = 0;                      // character count of currently drawn loop iteration
+    uint16_t chars_left = line_char_cnt;         // characters left to draw
 
-    while (true) {
-        c = textWrapper.character(str);
-
-        if (c == 0)
-            break;
-
-        /// Break line char or drawable char won't fit into this line any more
-        if (c == '\n') {
-            break; /// end of single line => no more text to print
+    for (uint16_t i = 0; i * buff_char_capacity < line_char_cnt; i++) {
+        chars_cnt = chars_left > buff_char_capacity ? buff_char_capacity : chars_left;
+        // Storing text in the display buffer
+        // It has to know how many chars will be stored to correctly compute display buffer offsets
+        for (uint16_t j = 0; j < chars_cnt; j++) {
+            display::StoreCharInBuffer(chars_cnt, j, textWrapper.character(str), pf, clr_bg, clr_fg);
         }
-
-        if (x + w > rc.EndPoint().x) {
-            break;
+        // Drawing from the buffer
+        if (chars_cnt) {
+            chars_left -= chars_cnt;
+            display::DrawFromBuffer(pt, chars_cnt * fnt_w, fnt_h);
+            pt.x += chars_cnt * fnt_w;
         }
-
-        /// draw part
-        draw_char_and_increment(pf, clr_bg, clr_fg, c, x, y, w);
-        ++drawn_chars;
     }
 
-    return size_ui16_t { uint16_t(drawn_chars * w), rc.Height() };
+    return size_ui16(fnt_w * line_char_cnt, fnt_h);
 }
 
 /// Draws a text into the specified rectangle @rc
-/// If a character does not fit into the rectangle the drawing is stopped
+/// If a character does not fit into the rectangle it will be ignored
 /// \param clr_bg background color
 /// \param clr_fg font/foreground color
 /// \returns size of drawn area
