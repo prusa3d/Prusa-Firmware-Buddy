@@ -308,6 +308,31 @@ private:
     friend class InputEnabler;
 };
 
+/**
+ * @brief This type of InputPin allows runtime change of pin direction.
+ *
+ * Use OutputEnabler to switch input pin to output and to write value.
+ */
+class InputOutputPin : public InputPin {
+public:
+    constexpr InputOutputPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull)
+        : InputPin(ioPort, ioPin, iMode, pull) {}
+
+private:
+    void write(State pinState) const {
+        if (pinState != State::low) {
+            getHalPort()->BSRR = m_halPin;
+        } else {
+            getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+        }
+    }
+    void enableInput() const {
+        configure();
+    }
+    void enableOutput(State pinState, OMode mode, OSpeed speed) const;
+    friend class OutputEnabler;
+};
+
 class DummyOutputPin : protected Pin {
 public:
     constexpr DummyOutputPin(IoPort ioPort, IoPin ioPin, State initState, OMode oMode, OSpeed oSpeed)
@@ -344,6 +369,26 @@ public:
 
 private:
     const OutputInputPin &m_outputInputPin;
+};
+
+/**
+ * @brief Enable InputOutputPin output mode when constructed, implements write(), revert InputOutputPin to input when destroyed.
+ */
+class OutputEnabler {
+public:
+    OutputEnabler(const InputOutputPin &innputOutputPin, Pin::State pinState, OMode mode, OSpeed speed)
+        : m_innputOutputPin(innputOutputPin) {
+        innputOutputPin.enableOutput(pinState, mode, speed);
+    }
+    ~OutputEnabler() {
+        m_innputOutputPin.enableInput();
+    }
+    void write(Pin::State pinState) const {
+        m_innputOutputPin.write(pinState);
+    }
+
+private:
+    const InputOutputPin &m_innputOutputPin;
 };
 
 } // namespace buddy::hw

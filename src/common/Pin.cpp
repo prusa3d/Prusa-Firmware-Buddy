@@ -80,4 +80,13 @@ IRQn_Type InterruptPin::getIRQn() const {
     }
 }
 
+void InputOutputPin::enableOutput(State pinState, OMode mode, OSpeed speed) const {
+    HAL_GPIO_WritePin(getHalPort(), m_halPin, static_cast<GPIO_PinState>(pinState));
+    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitStruct.Pin = m_halPin;
+    GPIO_InitStruct.Mode = static_cast<uint32_t>(mode);
+    GPIO_InitStruct.Speed = static_cast<uint32_t>(speed);
+    HAL_GPIO_Init(getHalPort(), &GPIO_InitStruct);
+}
+
 } //namespace buddy::hw
