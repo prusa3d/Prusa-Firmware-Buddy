@@ -80,6 +80,7 @@ struct marlin_server_t {
     marlin_print_state_t print_state;              // printing state (printing, paused, ...)
     uint32_t paused_ticks;                         // tick count in moment when printing paused
     resume_state_t resume;                         // resume data (state before pausing)
+    bool enable_nozzle_temp_timeout;               //enables nozzle temperature timeout in print pause
     struct {
         uint32_t usr32;
         uint16_t usr16;
@@ -257,6 +258,7 @@ void marlin_server_init(void) {
     marlin_server.update_vars = MARLIN_VAR_MSK_DEF;
     marlin_server.vars.media_LFN = media_print_filename();
     marlin_server.vars.media_SFN_path = media_print_filepath();
+    marlin_server.enable_nozzle_temp_timeout = true;
     can_stop_wait_for_heatup(false);
 #if HAS_BED_PROBE
     marlin_server.mbl_failed = false;
@@ -798,11 +800,16 @@ static void axes_length_set_ok() {
 }
 #endif // ENABLED(CRASH_RECOVERY)
 
+void marlin_server_nozzle_timeout_on() {
+    marlin_server.enable_nozzle_temp_timeout = true;
+};
+void marlin_server_nozzle_timeout_off() {
+    marlin_server.enable_nozzle_temp_timeout = false;
+}
 void marlin_server_nozzle_timeout_loop() {
-    if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT))) {
-        marlin_set_display_nozzle(0);
+    if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)) && marlin_server.enable_nozzle_temp_timeout)
         thermalManager.setTargetHotend(0, 0);
-    }
+    marlin_server_set_temp_to_display(0);
 }
 
 static void marlin_server_resuming_reheating() {
@@ -1157,6 +1164,7 @@ static void _server_print_loop(void) {
 }
 
 void marlin_server_resuming_begin(void) {
+    marlin_server_nozzle_timeout_on(); // could be turned off after pause by changing temperature.
     if (marlin_server_print_reheat_ready()) {
         marlin_server_unpark_head_XY();
         marlin_server.print_state = mpsResuming_UnparkHead_XY;
@@ -1976,6 +1984,12 @@ static int _server_set_var(const char *const name_val_str) {
             switch (var_id) {
             case MARLIN_VAR_TTEM_NOZ:
                 changed = (thermalManager.temp_hotend[0].target != marlin_server.vars.target_nozzle);
+                // if print is paused we want to change the resume temp and turn off timeout
+                // this prevents going back to temperature before pause and enables to heat nozzle during pause
+                if (marlin_server.print_state == mpsPaused) {
+                    marlin_server_nozzle_timeout_off();
+                    marlin_server.resume.nozzle_temp = marlin_server.vars.target_nozzle;
+                }
                 thermalManager.setTargetHotend(marlin_server.vars.target_nozzle, 0);
                 break;
             case MARLIN_VAR_TTEM_BED:
