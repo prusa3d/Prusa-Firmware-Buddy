@@ -181,20 +181,6 @@ static inline uint32_t get_pixel(uint16_t point_x, uint16_t point_y) {
     return color_from_native(get_pixel_directColor_C(point_x, point_y));
 }
 
-static bool display_ex_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    const uint16_t w = pf->w; //char width
-    const uint16_t h = pf->h; //char height
-    // character out of font range, display solid rectangle instead
-    if ((chr < pf->asc_min) || (chr > pf->asc_max)) {
-        display_ex_fill_rect(Rect16(pt.x, pt.y, w, h), clr_bg);
-        return false;
-    }
-    // here we only have an ASCII character, its location in font can be computed easily
-    uint8_t charX = (chr - pf->asc_min) % 16;
-    uint8_t charY = (chr - pf->asc_min) / 16;
-    return display_ex_draw_charUnicode(pt, charX, charY, pf, clr_bg, clr_fg);
-}
-
 /// Draws a single character according to selected font
 /// \param charX x-index of character in font bitmap
 /// \param charY y-index of character in font bitmap
