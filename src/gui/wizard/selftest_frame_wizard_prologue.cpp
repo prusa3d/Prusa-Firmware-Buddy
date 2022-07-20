@@ -34,7 +34,7 @@ static constexpr Rect16 getTextIconRect() {
 SelftestFrameWizardPrologue::SelftestFrameWizardPrologue(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
 
-    , icon(this, getIconRect(), IDR_PNG_pepa_140px)
+    , icon(this, getIconRect(), iconName)
     , text_icon(this, getTextIconRect(), is_multiline::yes)
     , text_full_frame(this, getTextRect(), is_multiline::yes) {
 
