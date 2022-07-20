@@ -11,15 +11,19 @@
 #include "syslog.h"
 
 void window_icon_t::SetIdRes(ResourceId id) {
-    dataSource.set(id);
-    assert(dataSource.isFromResource());
-    Invalidate();
+    if (dataSource.id_res != id) {
+        dataSource.set(id);
+        assert(dataSource.isFromResource());
+        Invalidate();
+    }
 }
 
 void window_icon_t::setFileName(const char *filename) {
-    dataSource.set(filename);
-    assert(dataSource.isFromFile());
-    Invalidate();
+    if (strcmp(dataSource.filename, filename) != 0) {
+        dataSource.set(filename);
+        assert(dataSource.isFromFile());
+        Invalidate();
+    }
 }
 
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, DataSourceId source, is_closed_on_click_t close)
