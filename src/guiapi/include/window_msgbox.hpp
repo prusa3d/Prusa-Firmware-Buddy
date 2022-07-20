@@ -52,7 +52,7 @@ class MsgBoxIconned : public AddSuperWindow<MsgBoxBase> {
 
 public:
     MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, ResourceId icon_id_res);
+        string_view_utf8 txt, is_multiline multiline, window_icon_t::DataSourceId icon_id_res);
 
 protected:
     window_icon_t icon;
@@ -91,5 +91,5 @@ Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Respo
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
 Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, ResourceId icon_id = IDR_NULL, is_multiline multiline = is_multiline::yes);
-Response MsgBoxIcon(string_view_utf8 txt, ResourceId icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
+Response MsgBoxIcon(string_view_utf8 txt, window_icon_t::DataSourceId icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
 Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);

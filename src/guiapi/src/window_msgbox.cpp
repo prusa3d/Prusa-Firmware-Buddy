@@ -6,7 +6,6 @@
 #include "ScreenHandler.hpp"
 #include "client_response_texts.hpp"
 #include "GuiDefaults.hpp"
-
 /*****************************************************************************/
 //MsgBoxBase
 MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline)
@@ -107,7 +106,7 @@ void MsgBoxTitled::unconditionalDraw() {
 /*****************************************************************************/
 //MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, ResourceId icon_id_res)
+    string_view_utf8 txt, is_multiline multiline, window_icon_t::DataSourceId icon_id_res)
     : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline)
     , icon(this, icon_id_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
@@ -168,10 +167,11 @@ Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def
     return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), IDR_PNG_info_16px);
 }
 
-Response MsgBoxIcon(string_view_utf8 txt, ResourceId icon_id, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
+Response MsgBoxIcon(string_view_utf8 txt, window_icon_t::DataSourceId icon_id, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, icon_id);
 }
 
 Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    return MsgBoxIcon(txt, IDR_PNG_pepa_64px, resp, def_btn, rect, multiline);
+    const char *iconName = "/internal/res/png/pepa_64px.png";
+    return MsgBoxIcon(txt, iconName, resp, def_btn, rect, multiline);
 }

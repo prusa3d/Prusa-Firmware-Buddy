@@ -22,16 +22,16 @@ struct window_icon_t : public AddSuperWindow<window_aligned_t> {
      */
     union DataSourceId {
         ResourceId id_res;
-        FILE *file;
+        const char *filename;
         uint32_t whole; // Complete union cast to an integral type, must fit whole union
-        static_assert(sizeof(FILE *) == sizeof(whole), "The test role should encompass all possible data lengths, handling relies on this");
+        static_assert(sizeof(char *) == sizeof(whole), "The test role should encompass all possible data lengths, handling relies on this");
 
         // Basic assumption is that valid pointers have addresses
         // higher than 0xffff due to the STM32 memory layout
         bool isFromFile() const { return this->whole > 0xffff; }
         bool isFromResource() const { return this->whole <= 0xffff; }
-        DataSourceId(FILE *f)
-            : file(f) // Cast to whole will replace all content and rise an error if pointer size is greater
+        DataSourceId(const char *f)
+            : filename(f) // Cast to whole will replace all content and rise an error if pointer size is greater
         {
             assert(isFromFile());
         }
@@ -43,8 +43,6 @@ struct window_icon_t : public AddSuperWindow<window_aligned_t> {
         }
 
         void set(const DataSourceId &other) {
-            if (this->isFromFile())
-                fclose(this->file);
             this->whole = other.whole; // Make exact copy and fill the whole union with it
         }
     };
@@ -58,20 +56,15 @@ struct window_icon_t : public AddSuperWindow<window_aligned_t> {
 
     void SetIdRes(ResourceId id);
 
-    FILE *getFile() const {
+    const char *getFileName() const {
         assert(dataSource.isFromFile());
-        return dataSource.file;
+        return dataSource.filename;
     }
-    void setFile(FILE *file);
+    void setFileName(const char *file);
 
     window_icon_t(window_t *parent, Rect16 rect, DataSourceId source, is_closed_on_click_t close = is_closed_on_click_t::no);
 
     window_icon_t(window_t *parent, DataSourceId source, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
-
-    ~window_icon_t() {
-        if (dataSource.isFromFile())
-            fclose(dataSource.file);
-    }
 
     static size_ui16_t CalculateMinimalSize(DataSourceId source); //works for center alignment
 

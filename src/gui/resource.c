@@ -57,7 +57,6 @@
 #include "res/cc/png_folder_shape_16px.c" //IDR_PNG_folder_shape_16px
 #include "res/cc/png_folder_open_16px.c"  //IDR_PNG_folder_open_16px
 
-#include "res/cc/png_pepa_64px.c"        //IDR_PNG_pepa_64px
 #include "res/cc/png_wifi_large_64x64.c" //IDR_PNG_wifi_large_64x64 // TODO generate with script
 
 #include "res/cc/png_dash_18px.c"            //IDR_PNG_dash_18px
@@ -73,8 +72,6 @@
 #include "res/cc/png_wizard_icon_measure.c"  //IDR_PNG_wizard_icon_measure
 #include "res/cc/png_hand_154x65.c"          //IDR_PNG_hand_154x65,
 #include "res/cc/png_nozzle_34x32.c"         //IDR_PNG_nozzle_34x32,
-
-#include "res/cc/png_pepa_140px.c" //IDR_PNG_pepa_140px
 
 #include "res/cc/png_usb_16px.c"            //IDR_PNG_usb_16px
 #include "res/cc/png_lan_16px.c"            //IDR_PNG_lan_16px
@@ -165,7 +162,6 @@ RESOURCE_ENTRY_PNG(png_folder_up_16px)
 RESOURCE_ENTRY_PNG(png_folder_shape_16px)
 RESOURCE_ENTRY_PNG(png_folder_open_16px)
 
-RESOURCE_ENTRY_PNG(png_pepa_64px)
 RESOURCE_ENTRY_PNG(png_wifi_large_64x64)
 
 RESOURCE_ENTRY_PNG(png_dash_18px)
@@ -181,8 +177,6 @@ RESOURCE_ENTRY_PNG(png_wizard_icon_search)
 RESOURCE_ENTRY_PNG(png_wizard_icon_measure)
 RESOURCE_ENTRY_PNG(png_hand_154x65)
 RESOURCE_ENTRY_PNG(png_nozzle_34x32)
-
-RESOURCE_ENTRY_PNG(png_pepa_140px)
 
 RESOURCE_ENTRY_PNG(png_usb_16px)
 RESOURCE_ENTRY_PNG(png_lan_16px)
