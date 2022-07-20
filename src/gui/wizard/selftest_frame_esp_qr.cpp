@@ -10,16 +10,11 @@
 #include "resource.h"
 #include <cstring>
 
-SelftestFrameESP_qr::QR::QR(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_qr_t>(parent, rect) {
-    _(QR_ADDR).copyToRAM(text, MAX_LEN_4QR + 1);
-}
-
 SelftestFrameESP_qr::SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
     , text(this, Positioner::textRect(), is_multiline::yes)
     , icon_phone(this, Positioner::phoneIconRect(), IDR_PNG_hand_qr)
-    , qr(this, Positioner::qrcodeRect())
+    , qr(this, Positioner::qrcodeRect(), QR_ADDR)
 
 {
     text.SetAlignment(Align_t::LeftCenter());

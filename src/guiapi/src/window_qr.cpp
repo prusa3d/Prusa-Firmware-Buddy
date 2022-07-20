@@ -26,6 +26,11 @@ window_qr_t::window_qr_t(window_t *parent, Rect16 rect)
     , scale(true) {
 }
 
+window_qr_t::window_qr_t(window_t *parent, Rect16 rect, const char *txt)
+    : window_qr_t(parent, rect) {
+    strncpy(text, txt, sizeof(text));
+}
+
 void window_qr_t::SetQRHeader(uint16_t err_num) {
     bool devhash_in_qr = eeprom_get_bool(EEVAR_DEVHASH_IN_QR);
     if (devhash_in_qr) {
