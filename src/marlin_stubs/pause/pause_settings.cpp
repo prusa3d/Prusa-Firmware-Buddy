@@ -44,7 +44,7 @@ float Settings::GetDefaultPurgeLength() {
 }
 
 float Settings::GetDefaultRetractLength() {
-    return PAUSE_PARK_RETRACT_LENGTH;
+    return -std::abs(PAUSE_PARK_RETRACT_LENGTH);
 }
 
 void Settings::SetUnloadLength(float len) {
