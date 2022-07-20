@@ -46,6 +46,47 @@ void draw_char_and_increment(const font_t *pf, color_t clr_bg, color_t clr_fg, u
 
 #endif
 
+// just to test the FW with fonts - will be refactored
+struct FCIndex {
+    uint16_t unc; /// utf8 character value (stripped of prefixes)
+    uint8_t charX, charY;
+};
+
+static constexpr const FCIndex fontCharIndices[] =
+#include "fnt-indices.ipp"
+    static constexpr const uint32_t fontCharIndicesNumItems = sizeof(fontCharIndices) / sizeof(FCIndex);
+
+void get_char_position_in_font(unichar c, const font_t *pf, uint8_t *charX, uint8_t *charY) {
+    static_assert(sizeof(FCIndex) == 4, "font char indices size mismatch");
+    // convert unichar into font index - all fonts have the same layout, thus this can be computed here
+    // ... and also because doing it in C++ is much easier than in plain C
+    *charX = 15;
+    *charY = 1;
+
+    if (c < uint8_t(pf->asc_min)) { // this really happens with non-utf8 characters on filesystems
+        c = '?';                    // substitute with a '?' or any other suitable character, which is in the range of the fonts
+    }
+    // here is intentionally no else
+    if (c < 128) {
+        // normal ASCII character
+        *charX = (c - pf->asc_min) % 16;
+        *charY = (c - pf->asc_min) / 16;
+    } else {
+        // extended utf8 character - must search in the fontCharIndices map
+        const FCIndex *i = std::lower_bound(fontCharIndices, fontCharIndices + fontCharIndicesNumItems, c, [](const FCIndex &i, unichar c) {
+            return i.unc < c;
+        });
+        if (i == fontCharIndices + fontCharIndicesNumItems || i->unc != c) {
+            // character not found
+            *charX = 15; // put '?' as a replacement
+            *charY = 1;
+        } else {
+            *charX = i->charX;
+            *charY = i->charY;
+        }
+    }
+}
+
 /// Fill space from [@top, @left] corner to the end of @rc with height @h
 /// If @h is too high, it will be cropped so nothing is drawn outside of the @rc but
 /// @top and @left are not checked whether they are in @rc

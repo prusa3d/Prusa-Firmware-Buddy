@@ -8,6 +8,7 @@
 #include "raster_opfn.hpp"
 #include "../../lang/string_view_utf8.hpp"
 
+void get_char_position_in_font(unichar c, const font_t *pf, uint8_t *charX, uint8_t *charY);
 extern size_ui16_t render_text_singleline(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 extern void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, text_flags flags);
 extern void render_icon_align(Rect16 rc, ResourceId id_res, color_t clr_back, icon_flags flags);

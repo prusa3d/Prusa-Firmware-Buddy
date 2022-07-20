@@ -31,16 +31,6 @@ typedef void(display_draw_from_buffer_t)(point_ui16_t pt, uint16_t w, uint16_t h
 typedef void(display_draw_icon_t)(point_ui16_t pt, ResourceId id_res, color_t clr_back, ropfn rop);
 typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
 
-// just to test the FW with fonts - will be refactored
-struct FCIndex {
-    uint16_t unc; /// utf8 character value (stripped of prefixes)
-    uint8_t charX, charY;
-};
-
-static constexpr const FCIndex fontCharIndices[] =
-#include "fnt-indices.ipp"
-    static constexpr const uint32_t fontCharIndicesNumItems = sizeof(fontCharIndices) / sizeof(FCIndex);
-
 template <
 #ifndef USE_MOCK_DISPLAY // mock display has dynamical size
     uint16_t W, uint16_t H
@@ -80,33 +70,8 @@ public:
     constexpr static void DrawRect(Rect16 rc, color_t clr) { DRAW_RECT(rc, clr); }
     constexpr static void FillRect(Rect16 rc, color_t clr) { FIL_RECT(rc, clr); }
     constexpr static bool DrawChar(point_ui16_t pt, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-        static_assert(sizeof(FCIndex) == 4, "font char indices size mismatch");
-        // convert unichar into font index - all fonts have the same layout, thus this can be computed here
-        // ... and also because doing it in C++ is much easier than in plain C
-        uint8_t charX = 15, charY = 1;
-
-        if (c < uint8_t(pf->asc_min)) { // this really happens with non-utf8 characters on filesystems
-            c = '?';                    // substitute with a '?' or any other suitable character, which is in the range of the fonts
-        }
-        // here is intentionally no else
-        if (c < 128) {
-            // normal ASCII character
-            charX = (c - pf->asc_min) % 16;
-            charY = (c - pf->asc_min) / 16;
-        } else {
-            // extended utf8 character - must search in the fontCharIndices map
-            const FCIndex *i = std::lower_bound(fontCharIndices, fontCharIndices + fontCharIndicesNumItems, c, [](const FCIndex &i, unichar c) {
-                return i.unc < c;
-            });
-            if (i == fontCharIndices + fontCharIndicesNumItems || i->unc != c) {
-                // character not found
-                charX = 15; // put '?' as a replacement
-                charY = 1;
-            } else {
-                charX = i->charX;
-                charY = i->charY;
-            }
-        }
+        uint8_t charX = 0, charY = 0;
+        get_char_position_in_font(c, pf, &charX, &charY);
         return DRAW_CHAR(pt, charX, charY, pf, clr_bg, clr_fg);
     }
     /// Draws text on the display
