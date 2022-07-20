@@ -10,11 +10,6 @@
 #include "resource.h"
 #include <cstring>
 
-SelftestFrameESP_qr::QR::QR(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_qr_t>(parent, rect) {
-    _(QR_ADDR).copyToRAM(text, MAX_LEN_4QR + 1);
-}
-
 static constexpr size_t icon_sz = 64;
 static constexpr size_t col_0 = WizardDefaults::MarginLeft;
 
@@ -25,7 +20,7 @@ SelftestFrameESP_qr::SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fs
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
     , text(this, Rect16(col_0, WizardDefaults::row_0, WizardDefaults::X_space, WizardDefaults::txt_h * 4), is_multiline::yes)
     , icon_phone(this, Rect16(20, 165, 64, 82), IDR_PNG_hand_qr)
-    , qr(this, qr_rect)
+    , qr(this, qr_rect, QR_ADDR)
 
 {
     text.SetAlignment(Align_t::LeftCenter());

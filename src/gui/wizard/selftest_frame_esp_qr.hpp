@@ -15,14 +15,9 @@
 #define QR_ADDR_IN_TEXT "prusa.io/wifimini"
 
 class SelftestFrameESP_qr : public AddSuperWindow<SelftestFrameWithRadio> {
-    class QR : public AddSuperWindow<window_qr_t> {
-    public:
-        QR(window_t *parent, Rect16 rect);
-    };
-
     window_text_t text;
     window_icon_t icon_phone;
-    QR qr;
+    window_qr_t qr;
 
 protected:
     virtual void change() override;
