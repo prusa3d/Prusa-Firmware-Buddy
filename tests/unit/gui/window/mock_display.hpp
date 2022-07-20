@@ -25,7 +25,7 @@ public:
     virtual uint8_t *GetBlock(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) const = 0;
     virtual void FillRectNativeColor(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr) = 0;
     virtual uint8_t *getBuff() = 0;
-    virtual void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) = 0;
+    virtual void drawFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) = 0;
     virtual ~IMockDisplay() = default;
 };
 
@@ -57,7 +57,7 @@ public:
     }
 
     virtual uint8_t *getBuff() override { return (uint8_t *)buffer; }
-    virtual void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) override {
+    virtual void drawFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) override {
         size_t buff_pos = 0;
         for (uint16_t Y = pt.y; Y < (h + pt.y); ++Y) {
             for (uint16_t X = pt.x; X < (w + pt.x); ++X) {

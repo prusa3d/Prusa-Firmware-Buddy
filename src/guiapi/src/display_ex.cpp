@@ -29,7 +29,11 @@ static constexpr size_t BuffNATIVE_PIXEL_SIZE = 2; // bytes per pixel (can be sa
 
 static constexpr uint8_t *getBuff() { return st7789v_buff; }
 
-static inline void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) {
+uint32_t display_ex_buffer_pixel_size() {
+    return sizeof(st7789v_buff) / BuffNATIVE_PIXEL_SIZE;
+}
+
+void display_ex_draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h) {
     st7789v_draw_char_from_buffer(pt.x, pt.y, w, h);
 }
 
@@ -82,8 +86,12 @@ static constexpr size_t BuffNATIVE_PIXEL_SIZE = 4; // bytes per pixel (can be sa
 
 static inline uint8_t *getBuff() { return MockDisplay::Instance().getBuff(); }
 
-static inline void drawCharFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) {
-    MockDisplay::Instance().drawCharFromBuff(pt, w, h);
+uint32_t display_ex_buffer_pixel_size() {
+    MockDisplay::Cols() * MockDisplay::BuffRows;
+}
+
+void display_ex_draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h) {
+    MockDisplay::Instance().drawFromBuff(pt, w, h);
 }
 
 void display_ex_clear(const color_t clr) {
@@ -142,7 +150,12 @@ public:
         *(DATA_TYPE *)p = clr_native[pos];
         p += NATIVE_PIXEL_SIZE / sizeof(BuffPTR_TYPE);
     }
-    void inline Draw(point_ui16_t pt, uint16_t w, uint16_t h) { drawCharFromBuff(pt, w, h); }
+
+    void inline OffsetInsert(size_t clr_pos, uint32_t offset) {
+        PTR_TYPE *ptr = (PTR_TYPE *)getBuff() + offset;
+        *(DATA_TYPE *)ptr = clr_native[clr_pos];
+    }
+    void inline Draw(point_ui16_t pt, uint16_t w, uint16_t h) { display_ex_draw_from_buffer(pt, w, h); }
 };
 using DispBuffer = TDispBuffer<BuffAlphaLen, BuffDATA_TYPE, BuffPTR_TYPE, BuffNATIVE_PIXEL_SIZE>;
 
@@ -237,38 +250,49 @@ bool display_ex_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, 
     return true;
 }
 
-/// Draws a text into the specified rectangle @rc
-/// If a character does not fit into the rectangle the drawing is stopped
-/// \param clr_bg background color
-/// \param clr_fg font/foreground color
-/// \returns true if whole text was written
-bool display_ex_draw_text(Rect16 rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    int x = rc.Left();
-    int y = rc.Top();
+void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+    const uint16_t char_w = pf->w;                                          //char width
+    const uint16_t char_h = pf->h;                                          //char height
+    const uint8_t bpr = pf->bpr;                                            //bytes per row
+    const uint16_t bpc = bpr * char_h;                                      //bytes per char
+    const uint8_t bpp = 8 * bpr / char_w;                                   //bits per pixel
+    const uint8_t ppb = 8 / bpp;                                            //pixels per byte
+    const uint8_t pms = std::min(size_t((1 << bpp) - 1), BuffAlphaLen - 1); //pixel mask, cannot be bigger than array to store alpha channel combinations
 
-    const uint16_t rc_end_x = rc.Left() + rc.Width();
-    const uint16_t rc_end_y = rc.Top() + rc.Height();
-    const uint16_t w = pf->w; //char width
-    const uint16_t h = pf->h; //char height
+    uint8_t *pch;    // character data pointer
+    uint8_t crd = 0; // current row byte data
+    uint8_t rb;      // row byte
+    uint8_t *pc;     // character data row pointer
 
-    // prepare for stream processing
-    char c = 0;
-    while ((c = *str++) != 0) {
-        if (c == '\n') {
-            y += h;
-            x = rc.Left();
-            if (y + h > rc_end_y)
-                return false;
-            continue;
+    const font_flags flags(pf->flg);
+
+    DispBuffer buff(pms, clr_bg, clr_fg);
+
+    uint32_t chr = charY * 16 + charX; // compute character index in font
+    uint32_t buffer_offset = 0;        // buffer byte offset
+
+    pch = (uint8_t *)(pf->pcs) + ((chr /*- pf->asc_min*/) * bpc);
+
+    for (uint16_t j = 0; j < char_h; j++) {
+        pc = pch + j * bpr;
+        buffer_offset = j * char_cnt * char_w * BuffNATIVE_PIXEL_SIZE + curr_char_idx * char_w * BuffNATIVE_PIXEL_SIZE;
+        for (uint16_t i = 0; i < char_w; i++) {
+            if ((i % ppb) == 0) {
+                if (flags.swap == is_swap::yes) {
+                    rb = (i / ppb) ^ 1;
+                    crd = pch[rb + j * bpr];
+                } else
+                    crd = *(pc++);
+            }
+            if (flags.lsb == fnt_lsb::yes) {
+                buff.OffsetInsert(crd & pms, buffer_offset + i * BuffNATIVE_PIXEL_SIZE);
+                crd >>= bpp;
+            } else {
+                buff.OffsetInsert(crd >> (8 - bpp), buffer_offset + i * BuffNATIVE_PIXEL_SIZE);
+                crd <<= bpp;
+            }
         }
-
-        display_ex_draw_char(point_ui16(x, y), c, pf, clr_bg, clr_fg);
-        x += w;
-        // FIXME Shouldn't it try to break the line first?
-        if (x + w > rc_end_x)
-            return false;
     }
-    return true;
 }
 
 /// Draws a rectangle boundary of defined color
