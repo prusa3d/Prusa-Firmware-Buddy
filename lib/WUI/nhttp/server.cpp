@@ -245,6 +245,11 @@ bool Server::Slot::step() {
     if (!input.empty() || invoke_client_close || output) {
         server->activity(conn, this);
         step(input, output, output_size);
+        // Note: The step can take extensive amount of time - specifically, it
+        // can take a long time to write data to USB (several seconds!). We
+        // therefore want to reset the timer after that too, because it's not
+        // inactivity of the other side.
+        server->activity(conn, this);
         return true;
     }
 
