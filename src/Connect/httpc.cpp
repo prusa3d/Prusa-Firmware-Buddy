@@ -43,7 +43,7 @@ namespace {
 
     class OutBuffer {
     private:
-        static constexpr const size_t buffer_size = 512;
+        static constexpr const size_t buffer_size = 256;
         char buffer[buffer_size] = {};
         size_t used = 0;
         Connection *conn;

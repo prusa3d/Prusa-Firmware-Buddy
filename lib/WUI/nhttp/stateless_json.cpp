@@ -31,7 +31,6 @@ Step StatelessJson::step(std::string_view, bool, uint8_t *buffer, size_t buffer_
         JsonResult render_result;
 
         written += render_chunk(connection_handling, buffer + written, buffer_size - written, [&](uint8_t *buffer, size_t buffer_size) {
-            // TODO: The actual renderer goes somewhere!
             const auto [result, written_json] = renderer.render(buffer, buffer_size);
             render_result = result;
             return written_json;

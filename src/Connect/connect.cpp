@@ -1,8 +1,8 @@
 #include "connect.hpp"
 #include "httpc.hpp"
-#include "httpc_data.hpp"
 #include "os_porting.hpp"
 #include "tls/tls.hpp"
+#include "render.hpp"
 #include "socket.hpp"
 #include "crc32.h"
 
@@ -18,6 +18,8 @@
 
 using http::ContentType;
 using http::Status;
+using json::JsonRenderer;
+using json::JsonResult;
 using std::decay_t;
 using std::get;
 using std::get_if;
@@ -47,91 +49,45 @@ namespace {
         return crc;
     }
 
+    enum class Progress {
+        Rendering,
+        Done,
+    };
+
     class BasicRequest final : public Request {
     private:
-        core_interface &core;
-        const printer_info_t &info;
-        Action &action;
         HeaderOut hdrs[3];
-        bool done = false;
+        Progress progress = Progress::Rendering;
+        Renderer renderer;
         using RenderResult = variant<size_t, Error>;
-        const char *url(const Sleep &) const {
+        const char *target_url;
+        static const char *url(const Sleep &) {
             // Sleep already handled at upper level.
             assert(0);
             return "";
         }
-        const char *url(const SendTelemetry &) const {
+        static const char *url(const SendTelemetry &) {
             return "/p/telemetry";
         }
-        const char *url(const Event &) const {
+        static const char *url(const Event &) {
             return "/p/events";
         }
 
-        RenderResult write_body_chunk(SendTelemetry &telemetry, char *data, size_t size) {
-            if (telemetry.empty) {
-                assert(size > 2);
-                memcpy(data, "{}", 2);
-                return static_cast<size_t>(2);
-            } else {
-                device_params_t params = core.get_data();
-                httpc_data renderer;
-                return renderer.telemetry(params, data, size);
-            }
-        }
-
-        RenderResult write_body_chunk(Event &event, char *data, size_t size) {
-            // TODO: Incremental rendering support, if it doesn't fit into the buffer. Not yet supported.
-            switch (event.type) {
-            case EventType::Info: {
-                httpc_data renderer;
-                return renderer.info(info, data, size, event.command_id.value_or(0));
-            }
-            case EventType::JobInfo: {
-                device_params_t params = core.get_data();
-                if (event.job_id.has_value() && *event.job_id == params.job_id) {
-                    httpc_data renderer;
-                    return renderer.job_info(params, data, size, event.command_id.value_or(0));
-                }
-                // else -> fall through
-                // Because we don't have this job ID at hand.
-            }
-            case EventType::Accepted:
-            case EventType::Rejected: {
-                // These events are always results of some commant we've received.
-                // Checked when accepting the command.
-                assert(event.command_id.has_value());
-                size_t written = snprintf(data, size, "{\"event\":\"%s\",\"command_id\":%" PRIu32 "}", to_str(event.type), *event.command_id);
-
-                // snprintf returns how much it would _want_ to write
-                return min(size - 1 /* Taken up by the final \0 */, written);
-            }
-            default:
-                assert(0);
-                return static_cast<size_t>(0);
-            }
-        }
-
-        Error write_body_chunk(Sleep &, char *, size_t) {
-            // Handled at upper level.
-            assert(0);
-            return Error::INVALID_PARAMETER_ERROR;
-        }
-
     public:
-        BasicRequest(core_interface &core, const printer_info_t &info, const configuration_t &config, Action &action)
-            : core(core)
-            , info(info)
-            , action(action)
-            , hdrs {
+        BasicRequest(core_interface &core, const printer_info_t &info, const configuration_t &config, const Action &action)
+            : hdrs {
                 { "Fingerprint", info.fingerprint },
                 { "Token", config.token },
                 { nullptr, nullptr }
-            } {}
+            }
+            , renderer(RenderState {
+                  info,
+                  core.get_data(),
+                  action,
+              })
+            , target_url(visit([](const auto &action) { return url(action); }, action)) {}
         virtual const char *url() const override {
-            return visit([&](auto &action) {
-                return this->url(action);
-            },
-                action);
+            return target_url;
         }
         virtual ContentType content_type() const override {
             return ContentType::ApplicationJson;
@@ -143,15 +99,33 @@ namespace {
             return hdrs;
         }
         virtual RenderResult write_body_chunk(char *data, size_t size) override {
-            if (done) {
+            switch (progress) {
+            case Progress::Done:
                 return 0U;
-            } else {
-                done = true;
-                return visit([&](auto &action) -> RenderResult {
-                    return this->write_body_chunk(action, data, size);
-                },
-                    action);
+            case Progress::Rendering: {
+                const auto [result, written_json] = renderer.render(reinterpret_cast<uint8_t *>(data), size);
+                switch (result) {
+                case JsonResult::Abort:
+                    assert(0);
+                    progress = Progress::Done;
+                    return Error::InternalError;
+                case JsonResult::BufferTooSmall:
+                    // Can't fit even our largest buffer :-(.
+                    //
+                    // (the http client flushes the headers before trying to
+                    // render the body, so we have a full buffer each time).
+                    progress = Progress::Done;
+                    return Error::BUFFER_OVERFLOW_ERROR;
+                case JsonResult::Incomplete:
+                    return written_json;
+                case JsonResult::Complete:
+                    progress = Progress::Done;
+                    return written_json;
+                }
             }
+            }
+            assert(0);
+            return Error::InternalError;
         }
     };
 

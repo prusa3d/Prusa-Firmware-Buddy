@@ -41,21 +41,20 @@ struct configuration_t {
 };
 
 struct printer_info_t {
-    uint8_t printer_type;
     bool appendix;
     char firmware_version[FW_VER_BUFR_LEN];
     char serial_number[SER_NUM_BUFR_LEN];
     char fingerprint[FINGERPRINT_BUFF_LEN];
 };
 
-enum device_state {
-    DEVICE_STATE_UNKNOWN,
-    DEVICE_STATE_READY,
-    DEVICE_STATE_PRINTING,
-    DEVICE_STATE_PAUSED,
-    DEVICE_STATE_FINISHED,
-    DEVICE_STATE_PREPARED,
-    DEVICE_STATE_ERROR,
+enum class DeviceState {
+    Unknown,
+    Idle,
+    Printing,
+    Paused,
+    Finished,
+    Prepared,
+    Error,
 };
 
 struct device_params_t {
@@ -65,10 +64,15 @@ struct device_params_t {
     float target_bed;
     float pos[4];
     const char *job_path;
-    uint16_t print_speed;
     uint16_t flow_factor;
     uint16_t job_id;
-    device_state state;
+    uint16_t print_fan_rpm;
+    uint16_t heatbreak_fan_rpm;
+    uint16_t print_speed;
+    uint32_t print_duration;
+    uint32_t time_to_end;
+    uint8_t progress_percent;
+    DeviceState state;
 };
 
 class core_interface {

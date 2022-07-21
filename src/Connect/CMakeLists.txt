@@ -4,10 +4,10 @@ target_sources(
           command.cpp
           core_interface.cpp
           httpc.cpp
-          httpc_data.cpp
           os_porting.cpp
           socket.cpp
           resp_parser.cpp
+          render.cpp
           planner.cpp
           ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   )
