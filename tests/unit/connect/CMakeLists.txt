@@ -3,12 +3,17 @@ add_executable(
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/types.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/json_encode.c
+  ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/Connect/httpc.cpp
   ${CMAKE_SOURCE_DIR}/src/Connect/resp_parser.cpp
+  ${CMAKE_SOURCE_DIR}/src/Connect/render.cpp
   ${CMAKE_SOURCE_DIR}/src/Connect/command.cpp
+  ${CMAKE_SOURCE_DIR}/src/Connect/planner.cpp
   command.cpp
   http_client.cpp
   missing_functions.cpp
+  render.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   )

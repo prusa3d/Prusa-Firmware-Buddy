@@ -63,6 +63,8 @@ const char *to_str(EventType event) {
         return "ACCEPTED";
     case EventType::Rejected:
         return "REJECTED";
+    case EventType::JobInfo:
+        return "JOB_INFO";
     default:
         assert(false);
         return "???";

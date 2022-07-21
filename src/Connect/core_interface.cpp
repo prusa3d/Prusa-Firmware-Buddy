@@ -110,6 +110,41 @@ namespace {
         }
         return 20;
     }
+
+    DeviceState to_device_state(marlin_print_state_t state, bool prepared) {
+        switch (state) {
+        case mpsIdle:
+        case mpsAborted:
+            if (prepared) {
+                return DeviceState::Prepared;
+            } else {
+                return DeviceState::Idle;
+            }
+        case mpsPrinting:
+        case mpsAborting_Begin:
+        case mpsAborting_WaitIdle:
+        case mpsAborting_ParkHead:
+        case mpsFinishing_WaitIdle:
+        case mpsFinishing_ParkHead:
+            return DeviceState::Printing;
+        case mpsPausing_Begin:
+        case mpsPausing_WaitIdle:
+        case mpsPausing_ParkHead:
+        case mpsPaused:
+        case mpsResuming_Begin:
+        case mpsResuming_Reheating:
+            //    case mpsResuming_UnparkHead:
+            return DeviceState::Paused;
+        case mpsFinished:
+            if (prepared) {
+                return DeviceState::Prepared;
+            } else {
+                return DeviceState::Finished;
+            }
+        default:
+            return DeviceState::Unknown;
+        }
+    }
 }
 
 device_params_t core_interface::get_data() {
@@ -118,37 +153,11 @@ device_params_t core_interface::get_data() {
 
     if (marlin_vars) {
         marlin_update_vars(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
-        switch (marlin_vars->print_state) {
-        case mpsIdle:
-        case mpsAborted:
-            if (DEVICE_STATE_PREPARED != params.state)
-                params.state = DEVICE_STATE_READY;
-            break;
-        case mpsPrinting:
-        case mpsAborting_Begin:
-        case mpsAborting_WaitIdle:
-        case mpsAborting_ParkHead:
-        case mpsFinishing_WaitIdle:
-        case mpsFinishing_ParkHead:
-            params.state = DEVICE_STATE_PRINTING;
-            break;
-        case mpsPausing_Begin:
-        case mpsPausing_WaitIdle:
-        case mpsPausing_ParkHead:
-        case mpsPaused:
-        case mpsResuming_Begin:
-        case mpsResuming_Reheating:
-            //    case mpsResuming_UnparkHead:
-            params.state = DEVICE_STATE_PAUSED;
-            break;
-        case mpsFinished:
-            if (DEVICE_STATE_PREPARED != params.state)
-                params.state = DEVICE_STATE_FINISHED;
-            break;
-        default:
-            params.state = DEVICE_STATE_UNKNOWN;
-            break;
-        }
+        // FIXME: The DeviceState::Prepared is some kind of stub with the
+        // intent lost in past changes. Clearly, this is always false with the
+        // newly created params, but there might have been some originating
+        // idea where it worked differently.
+        params.state = to_device_state(marlin_vars->print_state, params.state == DeviceState::Prepared);
         params.temp_bed = marlin_vars->temp_bed;
         params.target_bed = marlin_vars->target_bed;
         params.temp_nozzle = marlin_vars->temp_nozzle;
@@ -160,6 +169,11 @@ device_params_t core_interface::get_data() {
         params.flow_factor = marlin_vars->flow_factor;
         params.job_id = marlin_vars->job_id;
         params.job_path = marlin_vars->media_SFN_path;
+        params.print_fan_rpm = marlin_vars->print_fan_rpm;
+        params.heatbreak_fan_rpm = marlin_vars->heatbreak_fan_rpm;
+        params.print_duration = marlin_vars->print_duration;
+        params.time_to_end = marlin_vars->time_to_end;
+        params.progress_percent = marlin_vars->sd_percent_done;
     }
 
     return params;
@@ -184,8 +198,6 @@ printer_info_t core_interface::get_printer_info() {
     (void)len;
     assert(len < FW_VER_BUFR_LEN);
     strlcpy(info.firmware_version, project_version_full, FW_VER_BUFR_LEN);
-
-    info.printer_type = PRINTER_TYPE;
 
     memcpy(info.serial_number, "CZPX", 4);
     for (int i = 0; i < OTP_SERIAL_NUMBER_SIZE; i++) {
