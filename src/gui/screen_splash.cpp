@@ -2,14 +2,12 @@
 #include "screen_splash.hpp"
 #include "ScreenHandler.hpp"
 #include "screen_menus.hpp"
-#include "ScreenSelftest.hpp"
 
 #include "config.h"
 #include "version.h"
 #include "eeprom.h"
 
 #include "marlin_client.h"
-#include "printer_selftest.hpp"
 
 #include "i18n.h"
 #include "../lang/translator.hpp"
@@ -19,6 +17,11 @@
 #ifdef _EXTUI
     #include "marlin_client.h"
 #endif
+
+#if HAS_SELFTEST
+    #include "printer_selftest.hpp"
+    #include "ScreenSelftest.hpp"
+#endif // HAS_SELFTEST
 
 screen_splash_data_t::screen_splash_data_t()
     : AddSuperWindow<screen_t>()
