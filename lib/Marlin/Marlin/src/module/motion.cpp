@@ -1218,11 +1218,6 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
         default: break;
       }
     #endif
-
-    #if ENABLED(IMPROVE_HOMING_RELIABILITY)
-      sg_guard_period = millis() + default_sg_guard_duration;
-    #endif
-
     return stealth_states;
   }
 

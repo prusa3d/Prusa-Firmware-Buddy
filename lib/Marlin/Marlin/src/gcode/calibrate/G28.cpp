@@ -288,11 +288,11 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     slow_homing_t slow_homing{0};
     slow_homing.acceleration.set(planner.settings.max_acceleration_mm_per_s2[X_AXIS],
                                  planner.settings.max_acceleration_mm_per_s2[Y_AXIS]);
-    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = 100;
-    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = 100;
+    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
+    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
     #if HAS_CLASSIC_JERK
       slow_homing.jerk_xy = planner.max_jerk;
-      planner.max_jerk.set(0, 0);
+      planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
     #endif
 
     planner.reset_acceleration_rates();
