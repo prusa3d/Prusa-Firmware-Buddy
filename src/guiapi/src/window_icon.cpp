@@ -58,7 +58,6 @@ void window_icon_t::unconditionalDraw() {
             assert(false);
             return;
         }
-        point_ui16_t pictureOrigin = { static_cast<uint16_t>(GetRect().TopLeft().x), static_cast<uint16_t>(GetRect().TopLeft().y) };
         uint8_t data[32] { 0 };
         const uint8_t *ptr = data;
         if (dataSource.isFromFile()) {
@@ -70,7 +69,10 @@ void window_icon_t::unconditionalDraw() {
 
         point_ui16_t wh_ico = icon_meas(ptr);
         if (wh_ico.x && wh_ico.y) {
-            display::DrawPng(pictureOrigin, file);
+            Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
+            rc_ico.Align(GetRect(), GetAlignment());
+            rc_ico = rc_ico.Intersection(GetRect());
+            display::DrawPng(point_ui16(rc_ico.Left(), rc_ico.Top()), file);
         } else {
             log_debug(GUI, "Drawing empty rect");
             display::FillRect(GetRect(), GetBackColor());
