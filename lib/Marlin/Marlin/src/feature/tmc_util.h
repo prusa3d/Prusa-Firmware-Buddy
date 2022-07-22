@@ -465,9 +465,6 @@ void test_tmc_connection(const bool test_x, const bool test_y, const bool test_z
   struct sensorless_t { bool x, y, z, x2, y2, z2, z3; };
 
   #if ENABLED(IMPROVE_HOMING_RELIABILITY)
-    extern millis_t sg_guard_period;
-    constexpr uint16_t default_sg_guard_duration = 400;
-
     struct slow_homing_t {
       xy_ulong_t acceleration;
       #if HAS_CLASSIC_JERK
