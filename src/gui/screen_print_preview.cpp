@@ -11,6 +11,7 @@
 #include "sound.hpp"
 #include "DialogHandler.hpp"
 #include "ScreenHandler.hpp"
+#include "screen_printing.hpp"
 #include "print_utils.hpp"
 #include "printers.h"
 
@@ -113,7 +114,9 @@ static void print_button_pressed() {
         return;
     }
 
+    Screens::Access()->CloseAll(); // printing screen needs all screens to be closed
     print_begin(gcode.GetGcodeFilepath());
+    Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
 }
 
 screen_print_preview_data_t::screen_print_preview_data_t()
