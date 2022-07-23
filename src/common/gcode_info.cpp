@@ -44,14 +44,16 @@ bool GCodeInfo::hasThumbnail(FILE *file, size_ui16_t size) {
 GCodeInfo::GCodeInfo()
     : gcode_file_path(nullptr)
     , gcode_file_name(nullptr)
-    , valid_printer_settings(true)
-    , file_opened(true)
-    , printing_time("?") // not a standard, but GCC allow this
-    , filament_type("?") // not a standard, but GCC allow this
+    , file(nullptr)
+    , printing_time { "?" }
+    , filament_type { "?" }
     , filament_used_g(0)
     , filament_used_mm(0)
     , has_preview_thumbnail(false)
-    , filament_described(false) {
+    , has_progress_thumbnail(false)
+    , filament_described(false)
+    , valid_printer_settings(true) // why true ???
+{
 }
 
 void GCodeInfo::initFile(GI_INIT_t init) {
@@ -59,50 +61,63 @@ void GCodeInfo::initFile(GI_INIT_t init) {
     if (!gcode_file_path || (file = fopen(gcode_file_path, "r")) == nullptr) {
         return;
     }
-    file_opened = true;
     // thumbnail presence check
-    has_preview_thumbnail = hasThumbnail(file, { 0, 0 });
+    has_preview_thumbnail = hasThumbnail(file, GuiDefaults::PreviewThumbnailRect.Size());
 
-    if (init == GI_INIT_t::PREVIEW) {
-        // TODO read this value from comment, if it does not contain it, it must be added!!!
-        const int search_last_x_bytes = 14000; // With increasing size of the comment section, this will have to be increased either
-        if (fseek(file, -search_last_x_bytes, SEEK_END) != 0) {
-            fseek(file, 0, SEEK_SET);
-        }
-        char name_buffer[64];
-        char value_buffer[32];
-        CStrEqual name_comparer(name_buffer, sizeof(name_buffer));
+    has_progress_thumbnail = hasThumbnail(file, GuiDefaults::ProgressThumbnailRect.Size());
 
-        while (f_gcode_get_next_comment_assignment(
-            file, name_buffer, sizeof(name_buffer), value_buffer, sizeof(value_buffer))) {
+    if (init == GI_INIT_t::PREVIEW && file)
+        PreviewInit(*file, printing_time, filament_type, filament_used_g, filament_used_mm, filament_described, valid_printer_settings);
+}
+
+void GCodeInfo::PreviewInit(FILE &file, time_buff &printing_time, filament_buff &filament_type,
+    unsigned &filament_used_g, unsigned &filament_used_mm,
+    bool &filament_described, bool &valid_printer_settings) {
+    // TODO read this value from comment, if it does not contain it, it must be added!!!
+    const int search_last_x_bytes = 14000; // With increasing size of the comment section, this will have to be increased either
+    if (fseek(&file, -search_last_x_bytes, SEEK_END) != 0) {
+        fseek(&file, 0, SEEK_SET);
+    }
+    char name_buffer[64];
+    char value_buffer[32];
+    CStrEqual name_comparer(name_buffer, sizeof(name_buffer));
+
+    while (f_gcode_get_next_comment_assignment(
+        &file, name_buffer, sizeof(name_buffer), value_buffer, sizeof(value_buffer))) {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-truncation"
-            if (name_comparer(gcode_info::time)) {
-                snprintf(printing_time, sizeof(printing_time), "%s", value_buffer);
-            } else if (name_comparer(gcode_info::filament_type)) {
-                snprintf(filament_type, sizeof(filament_type), "%s", value_buffer);
-                filament_described = true;
-            } else if (name_comparer(gcode_info::filament_mm)) {
-                sscanf(value_buffer, "%u", &filament_used_mm);
-            } else if (name_comparer(gcode_info::filament_g)) {
-                sscanf(value_buffer, "%u", &filament_used_g);
-            } else if (name_comparer(gcode_info::printer)) {
-                if (strncmp(value_buffer, PRINTER_MODEL, sizeof(value_buffer)) == 0) {
-                    valid_printer_settings = true; // GCODE settings suits this printer model
-                } else {
-                    valid_printer_settings = false; // GCODE is for another Prusa printer model
-                }
+        if (name_comparer(gcode_info::time)) {
+            snprintf(printing_time.begin(), printing_time.size(), "%s", value_buffer);
+        } else if (name_comparer(gcode_info::filament_type)) {
+            snprintf(filament_type.begin(), filament_type.size(), "%s", value_buffer);
+            filament_described = true;
+        } else if (name_comparer(gcode_info::filament_mm)) {
+            sscanf(value_buffer, "%u", &filament_used_mm);
+        } else if (name_comparer(gcode_info::filament_g)) {
+            sscanf(value_buffer, "%u", &filament_used_g);
+        } else if (name_comparer(gcode_info::printer)) {
+            if (strncmp(value_buffer, PRINTER_MODEL, sizeof(value_buffer)) == 0) {
+                valid_printer_settings = true; // GCODE settings suits this printer model
+            } else {
+                valid_printer_settings = false; // GCODE is for another Prusa printer model
             }
-#pragma GCC diagnostic pop
         }
+#pragma GCC diagnostic pop
     }
 }
 
 void GCodeInfo::deinitFile() {
-    if (file_opened) {
+    if (file) {
         fclose(file);
-        file_opened = false;
+        file = nullptr;
         has_preview_thumbnail = false;
+        has_progress_thumbnail = false;
+        filament_described = false;
+        valid_printer_settings = true;
+        filament_type[0] = 0;
+        printing_time[0] = 0;
+        filament_used_g = 0;
+        filament_used_mm = 0;
     }
 }

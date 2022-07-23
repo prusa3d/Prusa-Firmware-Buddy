@@ -58,8 +58,8 @@ static bool check_filament_presence(GCodeInfo &gcode) {
     return true;
 }
 
-static bool is_same(const char *curr_filament, const char (&filament_type)[GCodeInfo::filament_type_len]) {
-    return strncmp(curr_filament, filament_type, GCodeInfo::filament_type_len) == 0;
+static bool is_same(const char *curr_filament, GCodeInfo::filament_buff &filament_type) {
+    return strncmp(curr_filament, filament_type.begin(), filament_type.size()) == 0;
 }
 static bool filament_known(const char *curr_filament) {
     return strncmp(curr_filament, "---", 3) != 0;
@@ -155,7 +155,7 @@ void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, wi
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).
     if (!gcode_file_exists()) {
-        Screens::Access()->Close(); //if an dialog is openned, it will be closed first
+        Screens::Access()->Close(); //if an dialog is opened, it will be closed first
         return;
     }
     SuperWindowEvent(sender, event, param);
