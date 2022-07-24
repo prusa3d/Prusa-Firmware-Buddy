@@ -79,6 +79,9 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case mpsAborted:
     case mpsFinished:
     case mpsIdle:
+    case mspPrintPreviewInit:
+    case mspPrintPreviewLoop:
+    case mspPrintInit:
         break;
     }
 
@@ -208,6 +211,9 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     case mpsAborted:
     case mpsFinished:
     case mpsIdle:
+    case mspPrintPreviewInit:
+    case mspPrintPreviewLoop:
+    case mspPrintInit:
         state = "Operational";
         break;
     }

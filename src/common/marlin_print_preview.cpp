@@ -61,6 +61,7 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
         fsm_change(ClientFSM::PrintPreview, *wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
         break;
     }
+    phase = wantedPhase;
 }
 
 Response IPrintPreview::GetResponse() {
@@ -68,7 +69,7 @@ Response IPrintPreview::GetResponse() {
 }
 
 IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
-    return FSensors_instance().HasMMU() ? (FSensors_instance().CanStartPrint() ? State::done : State::mmu_filament_inserted_wait_user) : (FSensors_instance().CanStartPrint() ? State::done : stateFromFilamentType());
+    return FSensors_instance().HasMMU() ? (FSensors_instance().CanStartPrint() ? State::done : State::mmu_filament_inserted_wait_user) : (FSensors_instance().CanStartPrint() ? stateFromFilamentType() : State::filament_not_inserted_wait_user);
 }
 
 static bool is_same(const char *curr_filament, const GCodeInfo::filament_buff &filament_type) {
@@ -80,22 +81,22 @@ static bool filament_known(const char *curr_filament) {
 
 IPrintPreview::State PrintPreview::stateFromFilamentType() const {
     const char *curr_filament = Filaments::Current().name;
-    return (filament_described && filament_known(curr_filament) && !is_same(curr_filament, filament_type)) ? State::filament_not_inserted_wait_user : State::done;
+    return (filament_described && filament_known(curr_filament) && !is_same(curr_filament, filament_type)) ? State::wrong_filament_wait_user : State::done;
 }
 
 PrintPreview::Result PrintPreview::Loop() {
     if (GetState() == State::inactive)
-        return Result::inactive;
+        return Result::Inactive;
 
     uint32_t time = ticks_ms();
     if ((time - last_run) < max_run_period_ms)
-        return Result::in_progress;
+        return Result::InProgress;
     last_run = time;
     const Response response = GetResponse();
 
     switch (GetState()) {
     case State::inactive: // cannot be, but have it defined to enumerate all states
-        return Result::inactive;
+        return Result::Inactive;
     case State::preview_wait_user:
         switch (response) {
         case Response::Print:
@@ -103,7 +104,7 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
         case Response::Back:
             ChangeState(State::inactive);
-            return Result::inactive;
+            return Result::Abort;
         default:
             break;
         }
@@ -116,7 +117,7 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
         case Response::Abort:
             ChangeState(State::inactive);
-            return Result::inactive;
+            return Result::Abort;
         default:
             break;
         }
@@ -130,7 +131,7 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
         case Response::No:
             ChangeState(State::inactive);
-            return Result::inactive;
+            return Result::Abort;
         case Response::Yes:
             ChangeState(State::filament_not_inserted_load);
             marlin_server_enqueue_gcode("M701 W2"); // load, return option
@@ -150,7 +151,7 @@ PrintPreview::Result PrintPreview::Loop() {
         switch (response) {
         case Response::No:
             ChangeState(State::inactive);
-            return Result::inactive;
+            return Result::Inactive;
         case Response::Yes:
             ChangeState(State::mmu_filament_inserted_unload);
             marlin_server_enqueue_gcode("M702 W0"); // load, no return or cooldown
@@ -173,7 +174,7 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
         case Response::Abort:
             ChangeState(State::inactive);
-            return Result::inactive;
+            return Result::Abort;
         case Response::Change:
             ChangeState(State::wrong_filament_change);
             marlin_server_enqueue_gcode("M1600 W2"); // change, return option
@@ -192,19 +193,23 @@ PrintPreview::Result PrintPreview::Loop() {
 
     case State::done:
         ChangeState(State::inactive);
-        return Result::print;
+        return Result::Print;
     }
-    return Result::in_progress;
+    return Result::InProgress;
 }
 
-void PrintPreview::Init(FILE &f) {
+void PrintPreview::Init(const char *path) {
+    auto f = fopen(path, "rb");
+    if (!f)
+        return;
     // I don't need this information
     GCodeInfo::time_buff printing_time;
     unsigned filament_used_g;
     unsigned filament_used_mm;
 
-    GCodeInfo::PreviewInit(f, printing_time, filament_type,
+    GCodeInfo::PreviewInit(*f, printing_time, filament_type,
         filament_used_g, filament_used_mm, filament_described, valid_printer_settings);
 
+    fclose(f);
     ChangeState(State::preview_wait_user);
 }

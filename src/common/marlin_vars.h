@@ -108,6 +108,9 @@ static const uint32_t TIME_TO_END_INVALID = (uint32_t)-1;
 
 typedef enum {
     mpsIdle = 0,
+    mspPrintPreviewInit,
+    mspPrintPreviewLoop,
+    mspPrintInit,
     mpsPrinting,
     mpsPausing_Begin,
     mpsPausing_Failed_Code,

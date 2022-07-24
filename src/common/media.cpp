@@ -103,17 +103,20 @@ media_state_t media_get_state(void) {
     return media_state;
 }
 
-void media_print_start(const char *sfnFilePath) {
+void media_print_start__prepare(const char *sfnFilePath) {
+    if (sfnFilePath) {
+        strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
+        get_LFN(media_print_LFN, sizeof(media_print_LFN), media_print_SFN_path);
+    }
+}
+
+void media_print_start() {
     if (media_print_state != media_print_state_NONE) {
         return;
     }
 
-    if (sfnFilePath) { // null sfnFilePath means use current filename media_print_SFN_path
-        strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
-        get_LFN(media_print_LFN, sizeof(media_print_LFN), media_print_SFN_path);
-    }
     struct stat info = { 0 };
-    int result = stat(sfnFilePath, &info);
+    int result = stat(media_print_SFN_path, &info);
 
     if (result != 0) {
         return;
@@ -121,7 +124,7 @@ void media_print_start(const char *sfnFilePath) {
 
     media_print_size = info.st_size;
 
-    if ((media_print_file = fopen(sfnFilePath, "rb")) != nullptr) {
+    if ((media_print_file = fopen(media_print_SFN_path, "rb")) != nullptr) {
         media_gcode_position = media_current_position = 0;
         media_print_state = media_print_state_PRINTING;
         gcode_filter.reset();
