@@ -34,6 +34,7 @@ const std::array<std::pair<const char *, ResourceId>, static_cast<size_t>(Respon
     std::make_pair( "PETG", IDR_PNG_spool_58px ),                 // PETG filament, do not translate
     std::make_pair( "PLA", IDR_PNG_spool_58px ),                  // PLA filament, do not translate
     std::make_pair( "PP", IDR_PNG_spool_58px ),                   // PP filament, do not translate
+    std::make_pair( "Print", IDR_PNG_print_58px ),                // Print
     std::make_pair( N_("PURGE MORE"), IDR_PNG_spool_58px ),       // Purge_more
     std::make_pair( "PVB", IDR_PNG_spool_58px ),                  // PVB filament, do not translate
     std::make_pair( N_("REHEAT"), IDR_PNG_preheat_58px ),         // Reheat
