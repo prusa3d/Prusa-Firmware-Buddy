@@ -32,6 +32,7 @@ enum class Response : uint8_t {
     PETG,
     PLA,
     PP,
+    Print,
     Purge_more,
     PVB,
     Reheat,
