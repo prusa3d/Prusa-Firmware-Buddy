@@ -43,6 +43,7 @@ if(BOARD MATCHES ".*BUDDY")
             marlin_errors.c
             marlin_events.c
             marlin_server.cpp
+            marlin_print_preview.cpp
             marlin_vars.c
             MarlinPin.cpp
             media.cpp
