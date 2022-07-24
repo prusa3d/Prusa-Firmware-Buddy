@@ -51,12 +51,12 @@ class PrintPreview : public IPrintPreview {
 
     static constexpr uint32_t max_run_period_ms = 50;
 
-    enum class Result { in_progress,
-        abort,
-        print,
-        inactive };
-
 public:
+    enum class Result { InProgress,
+        Abort,
+        Print,
+        Inactive };
+
     static PrintPreview &Instance() {
         static PrintPreview ret;
         return ret;
@@ -65,9 +65,8 @@ public:
     void Create();
     void Destroy();
     Result Loop();
-    bool IsInProgress() const { return GetState() != State::inactive; } // TODO return Result
 
-    void Init(FILE &f);
+    void Init(const char *path);
 
 private:
     uint32_t last_run = 0;
