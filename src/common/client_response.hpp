@@ -81,9 +81,19 @@ enum class PhasesPreheat : uint16_t {
     _last = UserTempSelection
 };
 
+enum class PhasesPrintPreview : uint16_t {
+    _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
+    main_dialog = _first,
+    wrong_printer,
+    filament_not_inserted,
+    mmu_filament_inserted,
+    wrong_filament,
+    _last = wrong_filament
+};
+
 // GUI phases of selftest/wizard
 enum class PhasesSelftest : uint16_t {
-    _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
+    _first = static_cast<uint16_t>(PhasesPrintPreview::_last) + 1,
     _none = _first,
 
     _first_WizardPrologue,
@@ -163,12 +173,14 @@ class ClientResponses {
     //declare 2d arrays of single buttons for radio buttons
     static const PhaseResponses LoadUnloadResponses[CountPhases<PhasesLoadUnload>()];
     static const PhaseResponses PreheatResponses[CountPhases<PhasesPreheat>()];
+    static const PhaseResponses PrintPreviewResponses[CountPhases<PhasesPrintPreview>()];
     static const PhaseResponses SelftestResponses[CountPhases<PhasesSelftest>()];
     static const PhaseResponses CrashRecoveryResponses[CountPhases<PhasesCrashRecovery>()];
 
     //methods to "bind" button array with enum type
     static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPrintPreview::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
 
@@ -351,7 +363,7 @@ FSM_action IsFSM_action_needed(std::optional<T> current, std::optional<T> should
         return FSM_action::create;
 
     if (current && !should_be)
-        return FSM_action::create;
+        return FSM_action::destroy;
 
     // current && should_be
     if (*current == *should_be)
