@@ -42,6 +42,14 @@ const PhaseResponses ClientResponses::PreheatResponses[CountPhases<PhasesPreheat
         Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB }, //UserTempSelection
 };
 
+const PhaseResponses ClientResponses::PrintPreviewResponses[CountPhases<PhasesPrintPreview>()] = {
+    { Response::Print, Response::Back },                    // main_dialog,
+    { Response::Abort, Response::Ignore },                  // wrong_printer
+    { Response::Yes, Response::No, Response::Ignore },      // filament_not_inserted
+    { Response::Yes, Response::No },                        // mmu_filament_inserted
+    { Response::Change, Response::Ignore, Response::Abort } // wrong_filament
+};
+
 const PhaseResponses ClientResponses::CrashRecoveryResponses[CountPhases<PhasesCrashRecovery>()] = {
     {},                                                     //check X == _first
     {},                                                     //check Y
