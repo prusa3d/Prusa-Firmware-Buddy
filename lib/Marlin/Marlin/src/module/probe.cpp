@@ -759,7 +759,7 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
   if (!DEPLOY_PROBE()) {
     measured_z = run_z_probe() + probe_offset.z;
 
-    float move_away_from = std::isnan(measured_z) ? current_position.z : measured_z;
+    const float move_away_from = std::isnan(measured_z) ? current_position.z : (measured_z - probe_offset.z);
 
     const bool big_raise = raise_after == PROBE_PT_BIG_RAISE;
     if (big_raise || raise_after == PROBE_PT_RAISE) {
