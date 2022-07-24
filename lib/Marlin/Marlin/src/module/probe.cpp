@@ -759,11 +759,9 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
   if (!DEPLOY_PROBE()) {
     measured_z = run_z_probe() + probe_offset.z;
 
-    float move_away_from = std::isnan(measured_z) ? current_position.z : measured_z;
-
     const bool big_raise = raise_after == PROBE_PT_BIG_RAISE;
     if (big_raise || raise_after == PROBE_PT_RAISE) {
-      plan_park_move_to(current_position.x, current_position.y, move_away_from + (big_raise ? 25 : Z_CLEARANCE_BETWEEN_PROBES), MMM_TO_MMS(XY_PROBE_SPEED), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+      plan_park_move_to(current_position.x, current_position.y, current_position.z + (big_raise ? 25 : Z_CLEARANCE_BETWEEN_PROBES), MMM_TO_MMS(XY_PROBE_SPEED), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
     } else if (raise_after == PROBE_PT_STOW)
       if (STOW_PROBE()) measured_z = NAN;
   }
