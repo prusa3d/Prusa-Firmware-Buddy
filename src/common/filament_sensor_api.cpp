@@ -102,7 +102,7 @@ void FilamentSensors::Cycle() {
     if (*opt_event_m600) {
         m600_sent = true;
         PrintProcessor::InjectGcode("M600"); //change filament
-    } else if (*opt_event_autoload && !has_mmu && isAutoloadLocked()) {
+    } else if (*opt_event_autoload && !has_mmu && !isAutoloadLocked()) {
         autoload_sent = true;
         PrintProcessor::InjectGcode("M1701 Z40"); //autoload with return option and minimal Z value of 40mm
     }
