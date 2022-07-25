@@ -188,51 +188,9 @@ static inline uint32_t get_pixel(uint16_t point_x, uint16_t point_y) {
 /// \param clr_fg font/foreground color
 /// If font is not available for the character, solid rectangle will be drawn in background color
 /// \returns true if character is available in the font and was drawn
-bool display_ex_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    const uint16_t w = pf->w;                                               //char width
-    const uint16_t h = pf->h;                                               //char height
-    const uint8_t bpr = pf->bpr;                                            //bytes per row
-    const uint16_t bpc = bpr * h;                                           //bytes per char
-    const uint8_t bpp = 8 * bpr / w;                                        //bits per pixel
-    const uint8_t ppb = 8 / bpp;                                            //pixels per byte
-    const uint8_t pms = std::min(size_t((1 << bpp) - 1), BuffAlphaLen - 1); //pixel mask, cannot be bigger than array to store alpha channel combinations
-
-    int i;
-    int j;
-    uint8_t *pch;    //character data pointer
-    uint8_t crd = 0; //current row byte data
-    uint8_t rb;      //row byte
-    uint8_t *pc;
-
-    const font_flags flags(pf->flg);
-
-    DispBuffer buff(pms, clr_bg, clr_fg);
-
-    uint32_t chr = charY * 16 + charX; // compute character index in font
-
-    pch = (uint8_t *)(pf->pcs) + ((chr /*- pf->asc_min*/) * bpc);
-
-    for (j = 0; j < h; j++) {
-        pc = pch + j * bpr;
-        for (i = 0; i < w; i++) {
-            if ((i % ppb) == 0) {
-                if (flags.swap == is_swap::yes) {
-                    rb = (i / ppb) ^ 1;
-                    crd = pch[rb + j * bpr];
-                } else
-                    crd = *(pc++);
-            }
-            if (flags.lsb == fnt_lsb::yes) {
-                buff.Insert(crd & pms);
-                crd >>= bpp;
-            } else {
-                buff.Insert(crd >> (8 - bpp));
-                crd <<= bpp;
-            }
-        }
-    }
-    buff.Draw(pt, w, h);
-
+bool display_ex_draw_char(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+    display_ex_store_char_in_buffer(1, 0, charX, charY, pf, clr_bg, clr_fg);
+    display_ex_draw_from_buffer(pt, pf->w, pf->h);
     return true;
 }
 
@@ -261,7 +219,7 @@ void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, 
 
     for (uint16_t j = 0; j < char_h; j++) {
         pc = pch + j * bpr;
-        buffer_offset = j * char_cnt * char_w * BuffNATIVE_PIXEL_SIZE + curr_char_idx * char_w * BuffNATIVE_PIXEL_SIZE;
+        buffer_offset = j * char_cnt * char_w + curr_char_idx * char_w;
         for (uint16_t i = 0; i < char_w; i++) {
             if ((i % ppb) == 0) {
                 if (flags.swap == is_swap::yes) {
@@ -271,10 +229,10 @@ void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, 
                     crd = *(pc++);
             }
             if (flags.lsb == fnt_lsb::yes) {
-                buff.OffsetInsert(crd & pms, buffer_offset + i * BuffNATIVE_PIXEL_SIZE);
+                buff.OffsetInsert(crd & pms, buffer_offset + i);
                 crd >>= bpp;
             } else {
-                buff.OffsetInsert(crd >> (8 - bpp), buffer_offset + i * BuffNATIVE_PIXEL_SIZE);
+                buff.OffsetInsert(crd >> (8 - bpp), buffer_offset + i);
                 crd <<= bpp;
             }
         }

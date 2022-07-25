@@ -14,7 +14,7 @@ void display_ex_draw_rect(Rect16 rc, color_t clr);
 
 void display_ex_fill_rect(Rect16 rc, color_t clr);
 
-bool display_ex_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
+bool display_ex_draw_char(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
 
 void display_ex_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
 

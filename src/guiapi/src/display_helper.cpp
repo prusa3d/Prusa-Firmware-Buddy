@@ -14,38 +14,6 @@
 #include "guitypes.hpp"
 #include "cmath_ext.h"
 
-//#define UNACCENT
-
-#ifdef UNACCENT
-std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
-    // for now we have a translation table and in the future we'll have letters with diacritics too (i.e. more font bitmaps)
-    const auto &a = UnaccentTable::Utf8RemoveAccents(c);
-    return std::make_pair(a.str, a.size); // we are returning some number of characters to replace the input utf8 character
-}
-
-void draw_char_and_increment(const font_t *pf, color_t clr_bg, color_t clr_fg, unichar c, int &ref_x, int y, int w) {
-    // FIXME no check for enough space to draw char/chars
-    if (c < 128) {
-        display::DrawChar(point_ui16(ref_x, y), c, pf, clr_bg, clr_fg);
-        ref_x += w;
-    } else {
-        auto convertedChar = ConvertUnicharToFontCharIndex(c);
-        for (size_t i = 0; i < convertedChar.second; ++i) {
-            display::DrawChar(point_ui16(ref_x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
-            ref_x += w; // this will screw up character counting for DE language @@TODO
-        }
-    }
-}
-
-#else // !UNACCENT
-
-void draw_char_and_increment(const font_t *pf, color_t clr_bg, color_t clr_fg, unichar c, int &ref_x, int y, int w) {
-    display::DrawChar(point_ui16(ref_x, y), c, pf, clr_bg, clr_fg);
-    ref_x += w;
-}
-
-#endif
-
 // just to test the FW with fonts - will be refactored
 struct FCIndex {
     uint16_t unc; /// utf8 character value (stripped of prefixes)
@@ -129,7 +97,7 @@ size_ui16_t render_line(T &textWrapper, Rect16 rc, string_view_utf8 &str, const 
     const uint16_t fnt_h = pf->h; // char height
 
     uint16_t buff_char_capacity = display::BufferPixelSize() / (fnt_w * fnt_h);
-    uint16_t line_char_cnt = rc.Width() / fnt_w; // character count - rects are calculated through font measurings
+    uint16_t line_char_cnt = rc.Width() / fnt_w; // character count - rects are calculated through font measurings (newlines are ignored)
     uint16_t chars_cnt = 0;                      // character count of currently drawn loop iteration
     uint16_t chars_left = line_char_cnt;         // characters left to draw
 
@@ -138,10 +106,15 @@ size_ui16_t render_line(T &textWrapper, Rect16 rc, string_view_utf8 &str, const 
         // Storing text in the display buffer
         // It has to know how many chars will be stored to correctly compute display buffer offsets
         for (uint16_t j = 0; j < chars_cnt; j++) {
-            display::StoreCharInBuffer(chars_cnt, j, textWrapper.character(str), pf, clr_bg, clr_fg);
+            unichar c = textWrapper.character(str);
+            if (c == '\n') {
+                j--; // j have to be unaffected by new line character
+            } else {
+                display::StoreCharInBuffer(chars_cnt, j, c, pf, clr_bg, clr_fg);
+            }
         }
         // Drawing from the buffer
-        if (chars_cnt) {
+        if (chars_cnt > 0) {
             chars_left -= chars_cnt;
             display::DrawFromBuffer(pt, chars_cnt * fnt_w, fnt_h);
             pt.x += chars_cnt * fnt_w;
