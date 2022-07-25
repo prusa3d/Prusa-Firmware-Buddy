@@ -4,6 +4,9 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
 #include "printers.h"
+#include <Connect/connect.hpp>
+
+using con::OnlineStatus;
 
 class MI_CONNECT_ENABLED : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *label = N_("Enabled");
@@ -19,13 +22,48 @@ protected:
     }
 };
 
-using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_CONNECT_ENABLED>;
+class MI_CONNECT_STATUS : public WI_INFO_t {
+    constexpr static const char *const label = N_("Status");
+
+public:
+    MI_CONNECT_STATUS()
+        : WI_INFO_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    }
+};
+
+using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS>;
+
+#define S(STATUS, TEXT)                                    \
+    case OnlineStatus::STATUS:                             \
+        Item<MI_CONNECT_STATUS>().ChangeInformation(TEXT); \
+        break;
 
 class ScreenMenuConnect : public Screen {
 public:
     constexpr static const char *label = N_("PRUSA CONNECT");
     ScreenMenuConnect()
         : Screen(_(label)) {
+    }
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
+        if (event == GUI_event_t::CHILD_CLICK || event == GUI_event_t::LOOP) {
+            switch (con::last_status()) {
+                S(Off, "Off");
+                S(NoConfig, "No Config");
+                S(NoDNS, "DNS");
+                S(NoConnection, "Refused");
+                S(Tls, "TLS");
+                S(Auth, "Unauthorized");
+                S(ServerError, "Srv error");
+                S(InternalError, "Bug");
+                S(NetworkError, "Net fail");
+                S(Confused, "Protocol err");
+                S(Ok, "Online");
+            default:
+                S(Unknown, "Unknown");
+            }
+        } else {
+            SuperWindowEvent(sender, event, param);
+        }
     }
 };
 
