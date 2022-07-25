@@ -159,6 +159,9 @@ namespace {
     // for that.
     const constexpr size_t MAX_RESP_SIZE = 256;
 
+    // Wait one second between config retries and similar.
+    const constexpr uint32_t IDLE_WAIT = 1000;
+
     using Cache = variant<monostate, tls, socket_con, Error>;
 }
 
@@ -245,13 +248,13 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
 
     if (!config.enabled) {
         planner.reset();
-        osDelay(10000);
+        osDelay(IDLE_WAIT);
         return OnlineStatus::Off;
     }
 
     if (config.host[0] == '\0' || config.token[0] == '\0') {
         planner.reset();
-        osDelay(10000);
+        osDelay(IDLE_WAIT);
         return OnlineStatus::NoConfig;
     }
 
@@ -363,7 +366,7 @@ void connect::run() {
     CONNECT_DEBUG("%s", "Connect client starts\n");
     // waits for file-system and network interface to be ready
     //FIXME! some mechanisms to know that file-system and network are ready.
-    osDelay(10000);
+    osDelay(IDLE_WAIT);
 
     CachedFactory conn_factory;
 
