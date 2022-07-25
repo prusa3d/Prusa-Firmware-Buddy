@@ -9,6 +9,7 @@
 #include <cmsis_os.h>
 #include <log.h>
 
+#include <atomic>
 #include <cassert>
 #include <cstring>
 #include <debug.h>
@@ -38,6 +39,30 @@ LOG_COMPONENT_DEF(connect, LOG_SEVERITY_DEBUG);
 namespace con {
 
 namespace {
+
+    std::atomic<OnlineStatus> last_known_status = OnlineStatus::Unknown;
+
+    OnlineStatus err_to_status(const Error error) {
+        switch (error) {
+        case Error::Connect:
+            return OnlineStatus::NoConnection;
+        case Error::Dns:
+            return OnlineStatus::NoDNS;
+        case Error::InternalError:
+        case Error::ResponseTooLong:
+        case Error::SetSockOpt:
+            return OnlineStatus::InternalError;
+        case Error::Network:
+        case Error::Timeout:
+            return OnlineStatus::NetworkError;
+        case Error::Parse:
+            return OnlineStatus::Confused;
+        case Error::Tls:
+            return OnlineStatus::Tls;
+        default:
+            return OnlineStatus::Unknown;
+        }
+    }
 
     uint32_t cfg_crc(configuration_t &config) {
         uint32_t crc = 0;
@@ -115,7 +140,7 @@ namespace {
                     // (the http client flushes the headers before trying to
                     // render the body, so we have a full buffer each time).
                     progress = Progress::Done;
-                    return Error::BUFFER_OVERFLOW_ERROR;
+                    return Error::InternalError;
                 case JsonResult::Incomplete:
                     return written_json;
                 case JsonResult::Complete:
@@ -215,13 +240,19 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
     }
 }
 
-optional<Error> connect::communicate(CachedFactory &conn_factory) {
+optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     configuration_t config = core.get_connect_config();
 
     if (!config.enabled) {
         planner.reset();
         osDelay(10000);
-        return nullopt;
+        return OnlineStatus::Off;
+    }
+
+    if (config.host[0] == '\0' || config.token[0] == '\0') {
+        planner.reset();
+        osDelay(10000);
+        return OnlineStatus::NoConfig;
     }
 
     auto action = planner.next_action();
@@ -229,6 +260,7 @@ optional<Error> connect::communicate(CachedFactory &conn_factory) {
     // Handle sleeping first. That one doesn't need the connection.
     if (auto *s = get_if<Sleep>(&action)) {
         osDelay(s->milliseconds);
+        // Don't change the status now, we just slept
         return nullopt;
     }
 
@@ -264,7 +296,7 @@ optional<Error> connect::communicate(CachedFactory &conn_factory) {
     if (holds_alternative<Error>(result)) {
         planner.action_done(ActionResult::Failed);
         conn_factory.invalidate();
-        return get<Error>(result);
+        return err_to_status(get<Error>(result));
     }
 
     Response resp = get<Response>(result);
@@ -275,21 +307,21 @@ optional<Error> connect::communicate(CachedFactory &conn_factory) {
     // The server has nothing to tell us
     case Status::NoContent:
         planner.action_done(ActionResult::Ok);
-        return nullopt;
+        return OnlineStatus::Ok;
     case Status::Ok: {
         if (resp.command_id.has_value()) {
             const auto sub_resp = handle_server_resp(resp);
-            return visit([&](auto &&arg) -> optional<Error> {
+            return visit([&](auto &&arg) -> optional<OnlineStatus> {
                 // Trick out of std::visit documentation. Switch by the type of arg.
                 using T = decay_t<decltype(arg)>;
 
                 if constexpr (is_same_v<T, monostate>) {
                     planner.action_done(ActionResult::Ok);
-                    return nullopt;
+                    return OnlineStatus::Ok;
                 } else if constexpr (is_same_v<T, Command>) {
                     planner.action_done(ActionResult::Ok);
                     planner.command(arg);
-                    return nullopt;
+                    return OnlineStatus::Ok;
                 } else if constexpr (is_same_v<T, Error>) {
                     planner.action_done(ActionResult::Failed);
                     planner.command(Command {
@@ -297,7 +329,7 @@ optional<Error> connect::communicate(CachedFactory &conn_factory) {
                         BrokenCommand {},
                     });
                     conn_factory.invalidate();
-                    return arg;
+                    return err_to_status(arg);
                 }
             },
                 sub_resp);
@@ -306,7 +338,7 @@ optional<Error> connect::communicate(CachedFactory &conn_factory) {
             // There's no better action for us than just throw it away.
             planner.action_done(ActionResult::Refused);
             conn_factory.invalidate();
-            return Error::UnexpectedResponse;
+            return OnlineStatus::Confused;
         }
     }
     case Status::RequestTimeout:
@@ -316,14 +348,14 @@ optional<Error> connect::communicate(CachedFactory &conn_factory) {
         conn_factory.invalidate();
         // These errors are likely temporary and will go away eventually.
         planner.action_done(ActionResult::Failed);
-        return Error::UnexpectedResponse;
+        return OnlineStatus::ServerError;
     default:
         conn_factory.invalidate();
         // We don't know that exactly the server answer means, but we guess
         // that it will persist, so we consider it refused and throw the
         // request away.
         planner.action_done(ActionResult::Refused);
-        return Error::UnexpectedResponse;
+        return OnlineStatus::ServerError;
     }
 }
 
@@ -336,12 +368,18 @@ void connect::run() {
     CachedFactory conn_factory;
 
     while (true) {
-        // TODO: Deal with the error somehow
-        communicate(conn_factory);
+        const auto new_status = communicate(conn_factory);
+        if (new_status.has_value()) {
+            last_known_status = *new_status;
+        }
     }
 }
 
 connect::connect()
     : printer_info(core.get_printer_info()) {}
+
+OnlineStatus last_status() {
+    return last_known_status;
+}
 
 }

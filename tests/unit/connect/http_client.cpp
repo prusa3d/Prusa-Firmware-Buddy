@@ -60,7 +60,7 @@ public:
             const char *d = "{\"hello\":\"world\"}";
             const size_t l = strlen(d);
             if (l > size) {
-                return Error::WRITE_ERROR;
+                return Error::Network;
             } else {
                 memcpy(data, d, l);
                 done = true;

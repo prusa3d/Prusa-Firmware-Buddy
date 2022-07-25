@@ -88,7 +88,7 @@ std::optional<Error> socket_con::connection(const char *host, uint16_t port) {
     snprintf(port_as_str, str_len, "%hu", port);
 
     if (getaddrinfo(host, port_as_str, &hints, &cur) != 0) {
-        return Error::CONNECTION_ERROR;
+        return Error::Dns;
     }
 
     addr_list.reset(cur);
@@ -104,21 +104,21 @@ std::optional<Error> socket_con::connection(const char *host, uint16_t port) {
     }
 
     if (!connected)
-        return Error::CONNECTION_ERROR;
+        return Error::Connect;
     else
         return std::nullopt;
 }
 
 std::variant<size_t, Error> socket_con::tx(const uint8_t *send_buffer, size_t data_len) {
     if (!connected)
-        return Error::WRITE_ERROR;
+        return Error::InternalError;
 
     size_t bytes_sent = 0;
 
     int status = ::write(fd, (const unsigned char *)send_buffer, data_len);
 
     if (status < 0) {
-        return Error::WRITE_ERROR;
+        return Error::Network;
     }
 
     bytes_sent = (size_t)status;
@@ -129,14 +129,14 @@ std::variant<size_t, Error> socket_con::tx(const uint8_t *send_buffer, size_t da
 
 std::variant<size_t, Error> socket_con::rx(uint8_t *read_buffer, size_t buffer_len) {
     if (!connected)
-        return Error::WRITE_ERROR;
+        return Error::InternalError;
 
     size_t bytes_received = 0;
 
     int status = ::read(fd, (unsigned char *)read_buffer, buffer_len);
 
     if (status < 0) {
-        return Error::READ_ERROR;
+        return Error::Network;
     }
 
     bytes_received = (size_t)status;

@@ -105,7 +105,7 @@ namespace {
 
             // Won't fit even into an empty one.
             if (attempted >= sizeof(buffer)) {
-                return Error::BUFFER_OVERFLOW_ERROR;
+                return Error::InternalError;
             }
 
             va_start(args, format);
@@ -247,7 +247,7 @@ variant<Response, Error> HttpClient::parse_response(Connection *conn) {
         size_t available = get<size_t>(read);
         if (available == 0) {
             // Closed connection.
-            return Error::READ_ERROR;
+            return Error::Network;
         }
         uint8_t *b = buffer;
         const auto [parse_result, consumed] = parser.consume(string_view(reinterpret_cast<const char *>(b), available));
