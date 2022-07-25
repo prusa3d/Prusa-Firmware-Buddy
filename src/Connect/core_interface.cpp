@@ -259,11 +259,6 @@ configuration_t core_interface::get_connect_config() {
         configuration.port = eeprom_get_ui16(EEVAR_CONNECT_PORT);
     }
 
-    if (configuration.host[0] == '\0' || configuration.token[0] == '\0') {
-        // It's turned on, but no configuration. Just don't try anything in the following code.
-        configuration.enabled = false;
-    }
-
     return configuration;
 }
 

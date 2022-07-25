@@ -33,7 +33,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
         mbedtls_ctr_drbg_free(&drbg_context);
         mbedtls_entropy_free(&entropy_context);
         mbedtls_x509_crt_free(&x509_certificate);
-        return Error::CONNECTION_ERROR;
+        return Error::InternalError;
     }
 
     mbedtls_ssl_conf_rng(&ssl_config, mbedtls_ctr_drbg_random, &drbg_context);
@@ -42,7 +42,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
         mbedtls_ctr_drbg_free(&drbg_context);
         mbedtls_entropy_free(&entropy_context);
         mbedtls_x509_crt_free(&x509_certificate);
-        return Error::CONNECTION_ERROR;
+        return Error::InternalError;
     }
 
     mbedtls_ssl_conf_ca_chain(&ssl_config, &x509_certificate, NULL);
@@ -55,7 +55,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
         mbedtls_ctr_drbg_free(&drbg_context);
         mbedtls_entropy_free(&entropy_context);
         mbedtls_x509_crt_free(&x509_certificate);
-        return Error::CONNECTION_ERROR;
+        return Error::InternalError;
     }
 
     // Only use TLS 1.2
@@ -74,7 +74,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
         mbedtls_ctr_drbg_free(&drbg_context);
         mbedtls_entropy_free(&entropy_context);
         mbedtls_x509_crt_free(&x509_certificate);
-        return Error::CONNECTION_ERROR;
+        return Error::InternalError;
     }
 
     mbedtls_ssl_set_bio(&ssl_context, &net_context, mbedtls_net_send, mbedtls_net_recv, NULL);
@@ -87,7 +87,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
         mbedtls_ctr_drbg_free(&drbg_context);
         mbedtls_entropy_free(&entropy_context);
         mbedtls_x509_crt_free(&x509_certificate);
-        return Error::CONNECTION_ERROR;
+        return Error::Connect;
     }
 
     while ((status = mbedtls_ssl_handshake(&ssl_context)) != 0) {
@@ -95,7 +95,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
             mbedtls_ctr_drbg_free(&drbg_context);
             mbedtls_entropy_free(&entropy_context);
             mbedtls_x509_crt_free(&x509_certificate);
-            return Error::CONNECTION_ERROR;
+            return Error::Tls;
         }
     }
 
@@ -103,7 +103,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
         mbedtls_ctr_drbg_free(&drbg_context);
         mbedtls_entropy_free(&entropy_context);
         mbedtls_x509_crt_free(&x509_certificate);
-        return Error::TLS_CERT_ERROR;
+        return Error::Tls;
     }
 
     mbedtls_ctr_drbg_free(&drbg_context);
@@ -118,7 +118,7 @@ std::variant<size_t, Error> tls::tx(const uint8_t *send_buffer, size_t data_len)
     int status = mbedtls_ssl_write(&ssl_context, (const unsigned char *)send_buffer, data_len);
 
     if (status <= 0) {
-        return Error::WRITE_ERROR;
+        return Error::Network;
     }
 
     bytes_sent = (size_t)status;
@@ -131,7 +131,7 @@ std::variant<size_t, Error> tls::rx(uint8_t *read_buffer, size_t buffer_len) {
     int status = mbedtls_ssl_read(&ssl_context, (unsigned char *)read_buffer, buffer_len);
 
     if (status <= 0) {
-        return Error::READ_ERROR;
+        return Error::Network;
     }
 
     bytes_received = (size_t)status;
