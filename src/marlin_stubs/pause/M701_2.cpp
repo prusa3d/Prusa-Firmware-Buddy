@@ -70,7 +70,6 @@ void filament_gcodes::M701_no_parser(filament_t filament_to_be_loaded, const std
     settings.SetFastLoadLength(fast_load_length);
     settings.SetRetractLength(0.f);
     settings.SetMmuFilamentToLoad(mmu_slot);
-    settings.SetParkZFeedrate(HOMING_FEEDRATE_INVERTED_Z);
     xyz_pos_t park_position = { X_AXIS_LOAD_POS, NAN, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
 #ifndef DO_NOT_RESTORE_Z_AXIS
     settings.SetResumePoint(current_position);
@@ -82,7 +81,6 @@ void filament_gcodes::M701_no_parser(filament_t filament_to_be_loaded, const std
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish);
     }
-    settings.SetParkZFeedrate(settings.GetDefaultParkZFeedrate()); // Restore default Z feedrate
 }
 
 void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded) {
@@ -99,7 +97,6 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
 
     pause::Settings settings;
     settings.SetUnloadLength(unload_length);
-    settings.SetParkZFeedrate(HOMING_FEEDRATE_INVERTED_Z);
     xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, NAN, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
 #ifndef DO_NOT_RESTORE_Z_AXIS
     settings.SetResumePoint(current_position);
@@ -111,7 +108,6 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish);
     }
-    settings.SetParkZFeedrate(settings.GetDefaultParkZFeedrate()); // Restore default Z feedrate
 }
 
 namespace PreheatStatus {
@@ -167,7 +163,6 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         settings.SetExtruder(target_extruder);
         settings.SetFastLoadLength(fast_load_length);
         settings.SetRetractLength(0.f);
-        settings.SetParkZFeedrate(HOMING_FEEDRATE_INVERTED_Z);
 
         // catch filament in gear and then ask for temp
         if (!Pause::Instance().LoadToGear(settings) || FSensors_instance().HasNotFilament()) {
@@ -203,7 +198,6 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         } else {
             M70X_process_user_response(PreheatStatus::Result::DidNotFinish);
         }
-        settings.SetParkZFeedrate(settings.GetDefaultParkZFeedrate()); // Restore default Z feedrate
     }
 
     FSensors_instance().ClrAutoloadSent();
@@ -226,13 +220,11 @@ void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
     settings.SetParkPoint(park_position);
     settings.SetExtruder(target_extruder);
     settings.SetRetractLength(0.f);
-    settings.SetParkZFeedrate(HOMING_FEEDRATE_INVERTED_Z);
 
     if (load_unload(LoadUnloadMode::Unload, &Pause::FilamentUnload_AskUnloaded, settings)) {
         M70X_process_user_response(PreheatStatus::Result::DoneNoFilament);
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish);
-        settings.SetParkZFeedrate(settings.GetDefaultParkZFeedrate()); // Restore default Z feedrate
         return;
     }
 
@@ -243,7 +235,6 @@ void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
     if (preheat_ret.first) {
         // canceled
         M70X_process_user_response(*preheat_ret.first);
-        settings.SetParkZFeedrate(settings.GetDefaultParkZFeedrate()); // Restore default Z feedrate
         return;
     }
 
@@ -259,5 +250,4 @@ void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish);
     }
-    settings.SetParkZFeedrate(settings.GetDefaultParkZFeedrate());
 }
