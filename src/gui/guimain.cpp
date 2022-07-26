@@ -68,6 +68,9 @@ marlin_vars_t *gui_marlin_vars = 0;
 char gui_media_LFN[FILE_NAME_BUFFER_LEN];
 char gui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 
+static uint8_t cnt_scan_register_update = 0;
+uint8_t data_buff[2] = { 0x00 };
+
 #ifdef GUI_JOGWHEEL_SUPPORT
 Jogwheel jogwheel;
 #endif // GUI_JOGWHEEL_SUPPORT
@@ -79,7 +82,7 @@ MsgBuff_t &MsgCircleBuffer() {
 
 void MsgCircleBuffer_cb(const char *txt) {
     MsgCircleBuffer().push_back(txt);
-    //cannot open == already openned
+    // cannot open == already openned
     IScreenPrinting *const prt_screen = IScreenPrinting::GetInstance();
     if (prt_screen && (!prt_screen->GetPopUpRect().IsEmpty())) {
         // message for MakeRAM must exist at least as long as string_view_utf8 exists
@@ -120,7 +123,7 @@ void client_gui_refresh() {
     static uint32_t last_tick = gui::GetTick_ForceActualization();
     uint32_t tick = gui::GetTick_ForceActualization();
     if (last_tick != tick) {
-        unsigned percent = (tick - start) / (3000 / 100); //3000ms / 100%
+        unsigned percent = (tick - start) / (3000 / 100); // 3000ms / 100%
         percent = ((percent < 99) ? percent : 99);
 
         GUIStartupProgress progr = { unsigned(percent), nullptr };
@@ -215,7 +218,7 @@ void gui_run(void) {
     gui_marlin_vars->media_LFN = gui_media_LFN;
     gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
 
-    DialogHandler::Access(); //to create class NOW, not at first call of one of callback
+    DialogHandler::Access(); // to create class NOW, not at first call of one of callback
     marlin_client_set_fsm_cb(DialogHandler::Command);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
     marlin_client_set_warning_cb(Warning_cb);
@@ -229,14 +232,14 @@ void gui_run(void) {
     ScreenFactory::Creator error_screen = nullptr;
 
     if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
-        blockISR(); //TODO delete blockISR() on this line to enable start after click
+        blockISR(); // TODO delete blockISR() on this line to enable start after click
         switch (dump_in_xflash_get_type()) {
         case DUMP_HARDFAULT:
             error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
             break;
         case DUMP_TEMPERROR:
-            //TODO uncomment to enable start after click
-            //blockISR();
+            // TODO uncomment to enable start after click
+            // blockISR();
             error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
             break;
 #ifndef _DEBUG
@@ -258,10 +261,10 @@ void gui_run(void) {
         ScreenFactory::Screen<screen_home_data_t>    // home
     };
 
-    //Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
+    // Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
-    //TIMEOUT variable getting value from EEPROM when EEPROM interface is initialized
+    // TIMEOUT variable getting value from EEPROM when EEPROM interface is initialized
     if (eeprom_get_bool(EEVAR_MENU_TIMEOUT)) {
         Screens::Access()->EnableMenuTimeout();
     } else {
@@ -283,7 +286,7 @@ void gui_run(void) {
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
 
     redraw_cmd_t redraw;
-    //TODO make some kind of registration
+    // TODO make some kind of registration
     while (1) {
         gui::StartLoop();
         if constexpr (HAS_MMU2) {
@@ -292,6 +295,17 @@ void gui_run(void) {
             }
         }
         redraw = DialogHandler::Access().Loop();
+
+        if (++cnt_scan_register_update >= 100) {
+            display::ReadMADCTL(data_buff, 1);
+            if (data_buff[1] != 0xE0) {
+                display::Init();
+                Screens::Access()->SetDisplayReinitialized();
+            }
+
+            cnt_scan_register_update = 0;
+        }
+
         if (redraw == redraw_cmd_t::redraw)
             // all messages received, redraw changes immediately
             gui_redraw();

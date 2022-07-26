@@ -30,6 +30,7 @@ typedef void(display_store_char_in_buffer_t)(uint16_t char_cnt, uint16_t curr_ch
 typedef void(display_draw_from_buffer_t)(point_ui16_t pt, uint16_t w, uint16_t h);
 typedef void(display_draw_icon_t)(point_ui16_t pt, ResourceId id_res, color_t clr_back, ropfn rop);
 typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
+typedef void(display_read_madctl_t)(uint8_t *pdata, uint8_t size);
 
 template <
 #ifndef USE_MOCK_DISPLAY // mock display has dynamical size
@@ -41,7 +42,8 @@ template <
     display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK,
     display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR,
     display_draw_text_t *DRAW_TEXT, display_buffer_pixel_size_t *BUFFER_PIXEL_SIZE, display_store_char_in_buffer_t *STORE_CHAR_IN_BUFFER,
-    display_draw_from_buffer_t *DRAW_FROM_BUFFER, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
+    display_draw_from_buffer_t *DRAW_FROM_BUFFER, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG,
+    display_read_madctl_t *READ_MADCLT>
 class Display {
     // sorted raw array of known utf8 character indices
 public:
@@ -86,6 +88,7 @@ public:
     constexpr static void DrawFromBuffer(point_ui16_t pt, uint16_t w, uint16_t h) { DRAW_FROM_BUFFER(pt, w, h); }
     constexpr static void DrawIcon(point_ui16_t pt, ResourceId id_res, color_t clr_back, ropfn rop) { DRAW_ICON(pt, id_res, clr_back, rop); }
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
+    constexpr static void ReadMADCTL(uint8_t *pdata, uint8_t size) { READ_MADCLT(pdata, size); }
 };
 
 #ifdef USE_ST7789
@@ -105,7 +108,8 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     display_ex_store_char_in_buffer,
     display_ex_draw_from_buffer,
     display_ex_draw_icon,
-    display_ex_draw_png>;
+    display_ex_draw_png,
+    st7789v_cmd_madctlrd>;
 #endif
 
 #ifdef USE_MOCK_DISPLAY
@@ -125,5 +129,6 @@ using display = Display<MockDisplay::Cols, MockDisplay::Rows,
     display_ex_store_char_in_buffer,
     display_ex_draw_from_buffer,
     display_ex_draw_icon,
-    display_ex_draw_png>;
+    display_ex_draw_png,
+    MockDisplay::ReadMadctl>;
 #endif
