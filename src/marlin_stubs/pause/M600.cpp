@@ -40,6 +40,7 @@
 #include "pause_stubbed.hpp"
 #include <cmath>
 #include "filament_sensor_api.hpp"
+#include "filament.hpp"
 
 /**
  * M600: Pause for filament change
@@ -103,6 +104,7 @@ void GcodeSuite::M600() {
         thermalManager.setTargetHotend(disp_temp, target_extruder);
     }
 
+    Filaments::SetToBeLoaded(Filaments::CurrentIndex());
     Pause::Instance().FilamentChange(settings);
     FSensors_instance().ClrM600Sent(); //reset filament sensor M600 sent flag
 
