@@ -15,20 +15,21 @@
 
 #ifdef ST7789V_USE_RTOS
     #include "cmsis_os.h"
-#endif //ST7789V_USE_RTOS
+#endif // ST7789V_USE_RTOS
 
-//private flags (pin states)
+// private flags (pin states)
 #define FLG_CS  0x01 // current CS pin state
 #define FLG_RS  0x02 // current RS pin state
 #define FLG_RST 0x04 // current RST pin state
 
-//st7789 commands
+// st7789 commands
 enum {
+    CMD_MADCTLRD = 0x0b, // Read MADCTL register
     CMD_SLPIN = 0x10,
     CMD_SLPOUT = 0x11,
-    CMD_INVOFF = 0x20,    //Display Inversion Off
-    CMD_INVON = 0x21,     //Display Inversion On
-    CMD_GAMMA_SET = 0x26, //gamma set
+    CMD_INVOFF = 0x20,    // Display Inversion Off
+    CMD_INVON = 0x21,     // Display Inversion On
+    CMD_GAMMA_SET = 0x26, // gamma set
     CMD_DISPOFF = 0x28,
     CMD_DISPON = 0x29,
     CMD_CASET = 0x2A,
@@ -40,16 +41,16 @@ enum {
     // CMD_IDMON = 0x38,//Idle Mode On
     CMD_COLMOD = 0x3A,
     CMD_RAMWRC = 0x3C,
-    CMD_WRDISBV = 0x51, //Write Display Brightness
-    CMD_RDDISBV = 0x52, //Read Display Brightness Value
+    CMD_WRDISBV = 0x51, // Write Display Brightness
+    CMD_RDDISBV = 0x52, // Read Display Brightness Value
     CMD_WRCTRLD = 0x53, // Write CTRL Display
                         //-Brightness Control Block - bit 5
                         //-Display Dimming			- bit 3
                         //-Backlight Control On/Off - bit 2
-    CMD_RDCTRLD = 0x54, //Read CTRL Value Display
+    CMD_RDCTRLD = 0x54, // Read CTRL Value Display
 };
 
-//st7789 gamma
+// st7789 gamma
 enum {
     GAMMA_CURVE0 = 0x01,
     GAMMA_CURVE1 = 0x02,
@@ -57,12 +58,12 @@ enum {
     GAMMA_CURVE3 = 0x08,
 };
 
-//st7789 CTRL Display
-static const uint8_t MASK_CTRLD_BCTRL = 1 << 5; //Brightness Control Block
+// st7789 CTRL Display
+static const uint8_t MASK_CTRLD_BCTRL = 1 << 5; // Brightness Control Block
 // static const uint8_t MASK_CTRLD_DD = 1 << 3;    //Display Dimming
 // static const uint8_t MASK_CTRLD_BL = 1 << 2;    //Backlight Control
 
-//color constants
+// color constants
 enum {
     CLR565_WHITE = 0xffff,
     CLR565_BLACK = 0x0000,
@@ -80,11 +81,11 @@ uint16_t st7789v_y = 0;  // current y coordinate (RASET)
 uint16_t st7789v_cx = 0; //
 uint16_t st7789v_cy = 0; //
 
-uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; //16 lines buffer
+uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; // 16 lines buffer
 
 #ifdef ST7789V_USE_RTOS
 osThreadId st7789v_task_handle = 0;
-#endif //ST7789V_USE_RTOS
+#endif // ST7789V_USE_RTOS
 
 /*some functions are in header - excluded from display_t struct*/
 void st7789v_gamma_set_direct(uint8_t gamma_enu);
@@ -178,13 +179,13 @@ void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
 #ifdef ST7789V_USE_RTOS
         osSignalSet(st7789v_task_handle, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-#endif //ST7789V_USE_RTOS
+#endif // ST7789V_USE_RTOS
         HAL_SPI_Transmit_DMA(st7789v_config.phspi, pb, size);
 #ifdef ST7789V_USE_RTOS
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-#else  //ST7789V_USE_RTOS
-//TODO:
-#endif //ST7789V_USE_RTOS
+#else  // ST7789V_USE_RTOS
+// TODO:
+#endif // ST7789V_USE_RTOS
     } else
         HAL_SPI_Transmit(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
 }
@@ -199,15 +200,15 @@ void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
     #ifdef ST7789V_USE_RTOS
         osSignalSet(0, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-    #endif //ST7789V_USE_RTOS
+    #endif // ST7789V_USE_RTOS
         HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
     #ifdef ST7789V_USE_RTOS
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-    #endif //ST7789V_USE_RTOS
+    #endif // ST7789V_USE_RTOS
     }
-#else      //ST7789V_DMA
+#else      // ST7789V_DMA
     HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
-#endif     //ST7789V_DMA
+#endif     // ST7789V_DMA
 }
 
 void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
@@ -223,6 +224,18 @@ void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
     }
     if (tmp_flg & FLG_CS)
         st7789v_set_cs(); // CS = H
+}
+
+void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata, uint8_t size) {
+    uint16_t tmp_flg = st7789v_flg; // save flags
+    if (st7789v_flg & FLG_CS)
+        st7789v_clr_cs(); // CS = L
+    if (st7789v_flg & FLG_RS)
+        st7789v_clr_rs(); // RS = L
+    uint8_t data_to_write[2] = { cmd, 0x00 };
+    HAL_SPI_TransmitReceive(st7789v_config.phspi, data_to_write, pdata, 2 + size, HAL_MAX_DELAY);
+    if (tmp_flg & FLG_CS)
+        st7789v_set_cs();
 }
 
 void st7789v_wr(uint8_t *pdata, uint16_t size) {
@@ -286,6 +299,10 @@ void st7789v_cmd_ramrd(uint8_t *pdata, uint16_t size) {
     st7789v_rd(pdata, size);
 }
 
+void st7789v_cmd_madctlrd(uint8_t *pdata, uint8_t size) {
+    st7789v_cmd_rd(CMD_MADCTLRD, pdata, size);
+}
+
 /*void st7789v_test_miso(void)
 {
 //	uint16_t data_out[8] = {CLR565_WHITE, CLR565_WHITE, CLR565_RED, CLR565_RED, CLR565_GREEN, CLR565_GREEN, CLR565_BLUE, CLR565_BLUE};
@@ -318,7 +335,7 @@ void st7789v_init_ctl_pins(void) {
 void st7789v_init(void) {
 #ifdef ST7789V_USE_RTOS
     st7789v_task_handle = osThreadGetId();
-#endif //ST7789V_USE_RTOS
+#endif // ST7789V_USE_RTOS
     if (st7789v_flg & (uint8_t)ST7789V_FLG_SAFE)
         st7789v_flg &= ~(uint8_t)ST7789V_FLG_DMA;
     else
@@ -360,33 +377,33 @@ void st7789v_set_pixel(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
 }
 
-//1 == 0000 0001, 5 == 0001 1111
+// 1 == 0000 0001, 5 == 0001 1111
 static uint16_t set_num_of_ones(uint8_t num_of_ones) {
     return ~((uint16_t)(-1) << num_of_ones);
 }
 
-//BYTEs 0 and 1 are empty
-//bit0 -> bit5 BYTE2
-//bit1 -> bit6 BYTE2
-//bit2 -> bit7 BYTE2
+// BYTEs 0 and 1 are empty
+// bit0 -> bit5 BYTE2
+// bit1 -> bit6 BYTE2
+// bit2 -> bit7 BYTE2
 
-//bit3 -> bit3 BYTE4
-//bit4 -> bit4 BYTE4
-//bit5 -> bit5 BYTE4
-//bit6 -> bit6 BYTE4
-//bit7 -> bit7 BYTE4
+// bit3 -> bit3 BYTE4
+// bit4 -> bit4 BYTE4
+// bit5 -> bit5 BYTE4
+// bit6 -> bit6 BYTE4
+// bit7 -> bit7 BYTE4
 
-//bit8 -> bit3 BYTE3
-//bit9 -> bit4 BYTE3
-//bit10-> bit5 BYTE3
-//bit11-> bit6 BYTE3
-//bit12-> bit7 BYTE3
+// bit8 -> bit3 BYTE3
+// bit9 -> bit4 BYTE3
+// bit10-> bit5 BYTE3
+// bit11-> bit6 BYTE3
+// bit12-> bit7 BYTE3
 
-//bit13-> bit2 BYTE3
-//bit14-> bit3 BYTE3
-//bit15-> bit4 BYTE2
+// bit13-> bit2 BYTE3
+// bit14-> bit3 BYTE3
+// bit15-> bit4 BYTE2
 
-//since BYTE0 and BYTE1 are empty, buff[0] == BYTE2
+// since BYTE0 and BYTE1 are empty, buff[0] == BYTE2
 static uint16_t rd18bit_to_16bit(uint8_t *buff) {
     return ((uint16_t)(buff[0] >> 5) & set_num_of_ones(3)) | (((uint16_t)(buff[2] >> 3) & set_num_of_ones(5)) << 3) | (((uint16_t)(buff[1] >> 3) & set_num_of_ones(5)) << 8) | (((uint16_t)(buff[0] >> 2) & set_num_of_ones(3)) << 13);
 }
@@ -398,7 +415,7 @@ uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y) {
     st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramrd(buff, buff_sz);
     uint16_t ret = rd18bit_to_16bit(buff + 2);
-    return ret; //directColor;
+    return ret; // directColor;
 }
 
 uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
@@ -542,26 +559,26 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                 int rowsize = png_get_rowbytes(pp, ppi);
                 int pixsize = rowsize / w;
 
-                //check image type (indexed or other color type)
+                // check image type (indexed or other color type)
                 png_byte colorType = png_get_color_type(pp, ppi);
 
                 switch (colorType) {
                 case PNG_COLOR_TYPE_GRAY:
-                    //transform grayscale image to rgb 24 color depth
+                    // transform grayscale image to rgb 24 color depth
                     png_set_gray_to_rgb(pp);
-                    //pixel size is 3 bytes
+                    // pixel size is 3 bytes
                     pixsize = 3;
-                    //check if alpha channel is present if yes then add it and increase pixelSize
+                    // check if alpha channel is present if yes then add it and increase pixelSize
                     if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
                         png_set_tRNS_to_alpha(pp);
                         pixsize += 1;
                     }
                     break;
                 case PNG_COLOR_TYPE_PALETTE:
-                    //bit depth in palette is always 8 bits per sample (24 bits per color) so pixel size is 3 bytes
+                    // bit depth in palette is always 8 bits per sample (24 bits per color) so pixel size is 3 bytes
                     pixsize = 3;
                     png_set_palette_to_rgb(pp);
-                    //check if alpha channel is present if yes then add it and increase pixelSize
+                    // check if alpha channel is present if yes then add it and increase pixelSize
                     if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
                         png_set_tRNS_to_alpha(pp);
                         pixsize += 1;
@@ -639,13 +656,13 @@ void st7789v_inversion_off(void) {
 
 void st7789v_inversion_tgl(void) {
     #if CMD_INVON == CMD_INVOFF + 1
-    //faster code if CMD_INVON == CMD_INVOFF + 1
-    //The result of the logical negation operator ! is 1 if the value of its operand is 0,
-    //0 if the value of its operand is non-zero.
+    // faster code if CMD_INVON == CMD_INVOFF + 1
+    // The result of the logical negation operator ! is 1 if the value of its operand is 0,
+    // 0 if the value of its operand is non-zero.
     st7789v_config.is_inverted = !st7789v_inversion_get();
     st7789v_cmd(CMD_INVOFF + st7789v_config.is_inverted, 0, 0);
     #else
-    //to be portable
+    // to be portable
     if (st7789v_inversion_get())
         st7789v_inversion_off();
     else
@@ -657,29 +674,29 @@ uint8_t st7789v_inversion_get(void) {
     return st7789v_config.is_inverted;
 }
 
-//0x01 -> 0x02 -> 0x04 -> 0x08 -> 0x01
+// 0x01 -> 0x02 -> 0x04 -> 0x08 -> 0x01
 void st7789v_gamma_next(void) {
     st7789v_gamma_set_direct(((st7789v_config.gamma << 1) | (st7789v_config.gamma >> 3)) & 0x0f);
 }
 
-//0x01 -> 0x08 -> 0x04 -> 0x02 -> 0x01
+// 0x01 -> 0x08 -> 0x04 -> 0x02 -> 0x01
 void st7789v_gamma_prev(void) {
     st7789v_gamma_set_direct(((st7789v_config.gamma << 3) | (st7789v_config.gamma >> 1)) & 0x0f);
 }
 
-//use GAMMA_CURVE0 - GAMMA_CURVE3
+// use GAMMA_CURVE0 - GAMMA_CURVE3
 void st7789v_gamma_set_direct(uint8_t gamma_enu) {
     st7789v_config.gamma = gamma_enu;
     st7789v_cmd(CMD_GAMMA_SET, &st7789v_config.gamma, sizeof(st7789v_config.gamma));
 }
 
-//use 0 - 3
+// use 0 - 3
 void st7789v_gamma_set(uint8_t gamma) {
     if (gamma != st7789v_gamma_get())
         st7789v_gamma_set_direct(1 << (gamma & 0x03));
 }
 
-//returns 0 - 3
+// returns 0 - 3
 uint8_t st7789v_gamma_get() {
     uint8_t position = 0;
     for (int8_t position = 3; position >= 0; --position) {
@@ -700,7 +717,7 @@ void st7789v_brightness_disable(void) {
 
 void st7789v_brightness_set(uint8_t brightness) {
     st7789v_config.brightness = brightness;
-    //set brightness
+    // set brightness
     st7789v_cmd(CMD_WRDISBV, &st7789v_config.brightness, sizeof(st7789v_config.brightness));
 }
 
@@ -713,11 +730,11 @@ void st7789v_ctrl_set(uint8_t ctrl) {
     st7789v_cmd(CMD_WRCTRLD, &st7789v_config.control, sizeof(st7789v_config.control));
 }
 
-#else //ST7789V_PNG_SUPPORT
+#else // ST7789V_PNG_SUPPORT
 
 void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr_back, uint8_t rop) {}
 
-#endif //ST7789V_PNG_SUPPORT
+#endif // ST7789V_PNG_SUPPORT
 
 st7789v_config_t st7789v_config = {
     0,            // spi handle pointer
@@ -730,7 +747,7 @@ st7789v_config_t st7789v_config = {
     0,            // default control reg value
 };
 
-//measured delay from low to hi in reset cycle
+// measured delay from low to hi in reset cycle
 uint16_t st7789v_reset_delay = 0;
 
 //! @brief enable safe mode (direct access + safe delay)
@@ -741,5 +758,5 @@ void st7789v_enable_safe_mode(void) {
 void st7789v_spi_tx_complete(void) {
 #ifdef ST7789V_USE_RTOS
     osSignalSet(st7789v_task_handle, ST7789V_SIG_SPI_TX);
-#endif //ST7789V_USE_RTOS
+#endif // ST7789V_USE_RTOS
 }

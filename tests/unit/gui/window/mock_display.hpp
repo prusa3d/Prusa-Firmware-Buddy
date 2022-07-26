@@ -80,6 +80,11 @@ public:
     static void init();
     static void done() {}
 
+    static void ReadMadctl(uint8_t *pdata, uint8_t size) {
+        pdata[0] = 0x00;
+        pdata[1] = 0xE0;
+    }
+
     static IMockDisplay &Instance();
     static void Bind(IMockDisplay &disp);
 
