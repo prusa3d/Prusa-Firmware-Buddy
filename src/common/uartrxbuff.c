@@ -36,6 +36,10 @@ void uartrxbuff_init(uartrxbuff_t *prxbuff, UART_HandleTypeDef *phuart, DMA_Hand
     prxbuff->event_group = xEventGroupCreate();
 }
 
+void uartrxbuff_deinit(uartrxbuff_t *prxbuff) {
+    vEventGroupDelete(prxbuff->event_group);
+}
+
 void uartrxbuff_reset(uartrxbuff_t *prxbuff) {
     // Clear all the event flags
     xEventGroupClearBits(prxbuff->event_group,

@@ -38,6 +38,8 @@ typedef struct _uartrxbuff_t {
 
 extern void uartrxbuff_init(uartrxbuff_t *prxbuff, UART_HandleTypeDef *phuart, DMA_HandleTypeDef *phdma, int size, uint8_t *pdata);
 
+extern void uartrxbuff_deinit(uartrxbuff_t *prxbuff);
+
 extern void uartrxbuff_reset(uartrxbuff_t *prxbuff);
 
 extern int uartrxbuff_getchar(uartrxbuff_t *prxbuff);
