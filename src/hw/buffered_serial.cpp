@@ -61,6 +61,8 @@ void BufferedSerial::Close() {
     // Clear the buffer
     uartrxbuff_reset(&rxBuf);
 
+    uartrxbuff_deinit(&rxBuf);
+
     isOpen = false;
 }
 
