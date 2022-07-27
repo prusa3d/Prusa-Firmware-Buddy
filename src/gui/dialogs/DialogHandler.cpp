@@ -6,6 +6,7 @@
 #include "ScreenHandler.hpp"
 #include "screen_printing.hpp"
 #include "config_features.h"
+#include "screen_print_preview.hpp"
 
 #if HAS_SELFTEST
     #include "ScreenSelftest.hpp"
@@ -31,10 +32,6 @@ using SerialPrint = ScreenDialogDoesNotExist;
 // first layer removed from private repo
 #include "screen_dialog_does_not_exist.hpp"
 using FirstLayer = ScreenDialogDoesNotExist;
-
-#if HAS_SELFTEST
-    #include "ScreenSelftest.hpp"
-#endif
 
 static void OpenPrintScreen(ClientFSM dialog) {
     switch (dialog) {
@@ -77,6 +74,11 @@ void DialogHandler::open(fsm::create_t o) {
             IScreenPrinting::NotifyMarlinStart();
         }
         break;
+    case ClientFSM::PrintPreview:
+        if (!ScreenPrintPreview::GetInstance()) {
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenPrintPreview>);
+        }
+        break;
     case ClientFSM::CrashRecovery:
         if (!CrashRecovery::GetInstance()) {
             Screens::Access()->Open(ScreenFactory::Screen<CrashRecovery>);
@@ -111,6 +113,7 @@ void DialogHandler::close(fsm::destroy_t o) {
             Screens::Access()->CloseAll();
             break;
         case ClientFSM::FirstLayer:
+        case ClientFSM::PrintPreview:
         case ClientFSM::CrashRecovery:
         case ClientFSM::Selftest:
             Screens::Access()->Close();
@@ -129,6 +132,11 @@ void DialogHandler::change(fsm::change_t o) {
     const ClientFSM dialogType = o.type.GetType();
 
     switch (dialogType) {
+    case ClientFSM::PrintPreview:
+        if (ScreenPrintPreview::GetInstance()) {
+            ScreenPrintPreview::GetInstance()->Change(o.data);
+        }
+        break;
     case ClientFSM::CrashRecovery:
         if (CrashRecovery::GetInstance()) {
             CrashRecovery::GetInstance()->Change(o.data);

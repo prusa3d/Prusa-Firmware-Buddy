@@ -80,6 +80,7 @@ DialogFactory::Ctors DialogFactory::GetAll() {
     ret[size_t(ClientFSM::Printing)] = screen_not_dialog;
     ret[size_t(ClientFSM::FirstLayer)] = screen_not_dialog;
     ret[size_t(ClientFSM::CrashRecovery)] = screen_not_dialog;
+    ret[size_t(ClientFSM::PrintPreview)] = screen_not_dialog;
     ret[size_t(ClientFSM::Load_unload)] = load_unload;
     ret[size_t(ClientFSM::Preheat)] = Preheat;
     ret[size_t(ClientFSM::Selftest)] = screen_not_dialog;
