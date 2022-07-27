@@ -92,7 +92,7 @@ static int get_errno(FRESULT result) {
     case FR_MKFS_ABORTED:
         return EIO;
     case FR_TIMEOUT:
-        return EIO;
+        return EAGAIN;
     case FR_LOCKED:
         return EBUSY;
     case FR_INVALID_PARAMETER:
@@ -230,6 +230,7 @@ static int open_r(struct _reent *r, void *fileStruct, const char *path, int flag
         return -1;
     }
 
+    f->flags = 0;
     if (flags & O_SYNC) {
         f->flags |= FLAG_SYNC;
     }
@@ -676,9 +677,9 @@ static int statvfs_r(struct _reent *r, const char *path, struct statvfs *buf) {
 
     buf->f_frsize = ff->csize;
 #if FF_MAX_SS != FF_MIN_SS
-    buf->f_frsize = ff.ssize;
+    buf->f_bsize = ff->ssize;
 #else
-    buf->f_frsize = FF_MAX_SS;
+    buf->f_bsize = FF_MAX_SS;
 #endif
     buf->f_bfree = free_clst;
     buf->f_bavail = buf->f_bfree;

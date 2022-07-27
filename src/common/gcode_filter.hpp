@@ -18,7 +18,7 @@ public:
         Ok,
         Eof, // End of file
         Error,
-        Skip // Skip current processing to unlock the loop
+        Timeout
     };
 
     GCodeFilter(char (*getByte)(State *), char *buffer, size_t buffer_size)

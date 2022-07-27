@@ -151,7 +151,7 @@ bool screen_print_preview_data_t::gcode_file_exists() {
 void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).
-    if (!gcode_file_exists()) {
+    if (event == GUI_event_t::LOOP && !gcode_file_exists()) {
         Screens::Access()->Close(); //if an dialog is openned, it will be closed first
         return;
     }
