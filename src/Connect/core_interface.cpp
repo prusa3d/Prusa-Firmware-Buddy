@@ -117,7 +117,7 @@ device_params_t core_interface::get_data() {
     memset(&params, 0, sizeof params);
 
     if (marlin_vars) {
-        marlin_client_loop();
+        marlin_update_vars(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
         switch (marlin_vars->print_state) {
         case mpsIdle:
         case mpsAborted:

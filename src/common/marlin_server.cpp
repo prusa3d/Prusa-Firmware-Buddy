@@ -618,6 +618,12 @@ void marlin_server_print_start(const char *filename) {
     if (filename == nullptr)
         return;
     if ((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) {
+        // First, reserve the job_id in eeprom. In case we get reset, we need
+        // that to not get reused by accident.
+        eeprom_set_var(EEVAR_JOB_ID, variant8_ui16(job_id + 1));
+        // And increment the job ID before we actually stop printing.
+        job_id++;
+        _set_notify_change(MARLIN_VAR_JOB_ID);
 #if ENABLED(CRASH_RECOVERY)
         crash_s.reset();
         endstops.enable_globally(true);
@@ -629,8 +635,6 @@ void marlin_server_print_start(const char *filename) {
         print_job_timer.start();
         marlin_server.print_state = mpsPrinting;
         fsm_create(ClientFSM::Printing);
-        job_id++;
-        eeprom_set_var(EEVAR_JOB_ID, variant8_ui16(job_id));
 #if HAS_BED_PROBE
         marlin_server.mbl_failed = false;
 #endif
