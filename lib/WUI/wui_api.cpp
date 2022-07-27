@@ -346,7 +346,7 @@ bool wui_start_print(const char *filename) {
 
     // FIXME: How is it with the lifetime of that screen & locking?
     const screen_t *screen = Screens::Access()->Get();
-    const bool allowed_screen = (dynamic_cast<const screen_home_data_t *>(screen) != nullptr) || (dynamic_cast<const screen_print_preview_data_t *>(screen) != nullptr);
+    const bool allowed_screen = (dynamic_cast<const screen_home_data_t *>(screen) != nullptr) || (dynamic_cast<const ScreenPrintPreview *>(screen) != nullptr);
     const bool can_start_print = !marlin_vars()->sd_printing && allowed_screen;
 
     if (can_start_print) {
