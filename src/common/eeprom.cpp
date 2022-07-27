@@ -168,6 +168,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "CONNECT_TLS",     VARIANT8_BOOL,  1, 0 }, // EEVAR_CONNECT_TLS
     { "CONNECT_ENABLED", VARIANT8_BOOL,  1, 0 }, // EEVAR_CONNECT_ENABLED
     { "USB_MSC_ENABLED", VARIANT8_BOOL,  1, 0 }, // EEVAR_USB_MSC_ENABLED
+    { "JOB_ID",          VARIANT8_UI16,  1, 0 }, // EEVAR_JOB_ID
     { "CRASH_ENABLED",   VARIANT8_BOOL,  1, 0 }, // EEVAR_CRASH_ENABLED
     { "CRASH_SENS_X",    VARIANT8_I8,    1, 0 }, // EEVAR_CRASH_SENS_X,
     { "CRASH_SENS_Y",    VARIANT8_I8,    1, 0 }, // EEVAR_CRASH_SENS_Y,
