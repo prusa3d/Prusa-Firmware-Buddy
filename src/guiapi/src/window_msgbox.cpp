@@ -8,11 +8,13 @@
 #include "GuiDefaults.hpp"
 /*****************************************************************************/
 //MsgBoxBase
-MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline)
+MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt,
+    is_multiline multiline, is_closed_on_click_t close)
     : AddSuperWindow<IDialog>(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
     , buttons(this, GuiDefaults::GetButtonRect(rect), resp, labels)
     , result(Response::_none) {
+    flags.close_on_click = close;
     buttons.SetBtnIndex(def_btn);
     //buttons.SetCapture(); //todo make this work
 }
@@ -30,7 +32,14 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
     switch (event) {
     case GUI_event_t::CLICK:
         result = buttons.Click();
-        Screens::Access()->Close();
+        if (flags.close_on_click == is_closed_on_click_t::yes) {
+            Screens::Access()->Close();
+        } else {
+            event_conversion_union un;
+            un.response = result;
+            if (GetParent())
+                GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
+        }
         break;
     case GUI_event_t::ENC_UP:
         ++buttons;
@@ -46,8 +55,8 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 /*****************************************************************************/
 //MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, ResourceId title_icon_id_res)
-    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon_id_res)
+    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, ResourceId title_icon_id_res, is_closed_on_click_t close)
+    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon_id_res, close)
     , title(this, Rect16(), is_multiline::no, is_closed_on_click_t::no, tit) {
     // set title params for height extraction
     title.font = getTitleFont();
@@ -106,8 +115,8 @@ void MsgBoxTitled::unconditionalDraw() {
 /*****************************************************************************/
 //MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, window_icon_t::DataSourceId icon_id_res)
-    : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline)
+    string_view_utf8 txt, is_multiline multiline, window_icon_t::DataSourceId icon_id_res, is_closed_on_click_t close)
+    : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline, close)
     , icon(this, icon_id_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
     icon -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
