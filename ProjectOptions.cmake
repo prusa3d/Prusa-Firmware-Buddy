@@ -82,7 +82,7 @@ set(RESOURCES
     CACHE BOOL "Enable resources (managed files on external flash)"
     )
 set(CONNECT
-    "NO"
+    "YES"
     CACHE BOOL "Enable Connect client"
     )
 # Validate options
@@ -153,9 +153,8 @@ message(STATUS "MCU: ${MCU}")
 message(STATUS "Custom Compile Options (C/C++ flags): ${CUSTOM_COMPILE_OPTIONS}")
 message(STATUS "Preset Compile Options (C/C++ flags): ${PRESET_COMPILE_OPTIONS}")
 message(STATUS "Web User Interface: ${WUI}")
-message(STATUS "Connect Interface: ${CONNECT}")
-message(STATUS "Resources: ${RESOURCES}")
 message(STATUS "Connect client: ${CONNECT}")
+message(STATUS "Resources: ${RESOURCES}")
 
 # Set printer features
 set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
