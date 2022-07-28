@@ -12,7 +12,7 @@ add_executable(
 # define required search paths
 target_include_directories(
   rectangle_tests PUBLIC ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/guiapi/include
-                         ${CMAKE_SOURCE_DIR}/src/gui
+                         ${CMAKE_SOURCE_DIR}/src/gui ${CMAKE_SOURCE_DIR}/src/common
   )
 
 target_include_directories(
