@@ -611,18 +611,28 @@ bool marlin_server_printer_paused() {
     return marlin_server.print_state == mpsPaused;
 }
 
-void marlin_server_print_start(const char *filename) {
+void marlin_server_print_start(const char *filename, bool skip_preview) {
 #if HAS_SELFTEST
     if (SelftestInstance().IsInProgress())
         return;
 #endif
     if (filename == nullptr)
         return;
-    if ((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) {
+    switch (marlin_server.print_state) {
+    case mpsIdle:
+    case mpsFinished:
+    case mpsAborted:
+    case mspPrintPreviewInit:
+    case mspPrintPreviewLoop:
         media_print_start__prepare(filename);
         marlin_server.print_state = mspPrintPreviewInit;
         _set_notify_change(MARLIN_VAR_FILEPATH);
         _set_notify_change(MARLIN_VAR_FILENAME);
+
+        skip_preview ? PrintPreview::Instance().SkipIfAble() : PrintPreview::Instance().DontSkip();
+        break;
+    default:
+        break;
     }
 }
 
@@ -681,7 +691,7 @@ void marlin_server_print_resume(void) {
         marlin_server.print_state = mpsPowerPanic_Resume;
 #endif
     } else
-        marlin_server_print_start(nullptr);
+        marlin_server_print_start(nullptr, true);
 }
 
 void marlin_server_print_reheat_start(void) {
@@ -709,7 +719,7 @@ bool marlin_server_print_reheat_ready() {
 #if ENABLED(POWER_PANIC)
 void marlin_server_powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool start_paused) {
     // Open the file and immediately stop to set the print position
-    marlin_server_print_start(media_SFN_path);
+    marlin_server_print_start(media_SFN_path, true);
     media_print_quick_stop(pos);
 
     // enter the main powerpanic resume loop
@@ -1904,7 +1914,7 @@ bool _process_server_valid_request(const char *request, int client_id) {
         marlin_server_quick_stop();
         return true;
     case MARLIN_MSG_PRINT_START:
-        marlin_server_print_start(data);
+        marlin_server_print_start(data + 1, data[0] == '1');
         return true;
     case MARLIN_MSG_PRINT_ABORT:
         marlin_server_print_abort();

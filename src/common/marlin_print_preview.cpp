@@ -53,6 +53,9 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
         break;
     case FSM_action::create:
         fsm_create(ClientFSM::PrintPreview);
+        if (wantedPhase && *wantedPhase != PhasesPrintPreview::_first) {
+            fsm_change(ClientFSM::PrintPreview, *wantedPhase);
+        }
         break;
     case FSM_action::destroy:
         fsm_destroy(ClientFSM::PrintPreview);
@@ -100,7 +103,7 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::preview_wait_user:
         switch (response) {
         case Response::Print:
-            ChangeState(valid_printer_settings ? stateFromFilamentPresence() : State::wrong_printer_wait_user);
+            ChangeState(evaluateStateOnPrintClick());
             break;
         case Response::Back:
             ChangeState(State::inactive);
@@ -211,5 +214,9 @@ void PrintPreview::Init(const char *path) {
         filament_used_g, filament_used_mm, filament_described, valid_printer_settings);
 
     fclose(f);
-    ChangeState(State::preview_wait_user);
+    ChangeState(skip_if_able ? evaluateStateOnPrintClick() : State::preview_wait_user);
+}
+
+IPrintPreview::State PrintPreview::evaluateStateOnPrintClick() {
+    return valid_printer_settings ? stateFromFilamentPresence() : State::wrong_printer_wait_user;
 }

@@ -558,9 +558,9 @@ void marlin_test_abort(void) {
     _send_request_id_to_server_and_wait(MARLIN_MSG_TEST_ABORT);
 }
 
-void marlin_print_start(const char *filename) {
+void marlin_print_start(const char *filename, bool skip_preview) {
     char request[MARLIN_MAX_REQUEST];
-    const int len = snprintf(request, sizeof(request), "!%c%s", MARLIN_MSG_PRINT_START, filename);
+    const int len = snprintf(request, sizeof(request), "!%c%c%s", MARLIN_MSG_PRINT_START, skip_preview ? '1' : '0', filename);
     if (len < 0)
         bsod("Error formatting request.");
     if ((size_t)len >= sizeof(request))
