@@ -16,7 +16,8 @@
 #include "eeprom.h"
 #include "stm32f4xx_hal.h"
 #include "print_utils.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
+#include "fsm_types.hpp"
 
 #include <ScreenHandler.hpp>
 #include <screen_home.hpp>
@@ -38,11 +39,43 @@ static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file
 static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 static std::atomic<uint32_t> uploaded_gcodes;
 
+// example of simple callback automatically sending print response (click on print button) in preview fsm
+// it would be better to use queue to fet rid of no longer current commands
+// see "void DialogHandler::Command(uint32_t u32, uint16_t u16) "
+#if 0
+static void fsm_cb(uint32_t u32, uint16_t u16) {
+    fsm::variant_t variant(u32, u16);
+    if (variant.GetType() == ClientFSM::PrintPreview) {
+        PhasesPrintPreview phase;
+        switch (variant.GetCommand()) {
+        case ClientFSM_Command::change:
+            phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(variant.change.data.GetPhase());
+            break;
+        case ClientFSM_Command::create:
+            phase = PhasesPrintPreview::_first;
+            break;
+        default:
+            return;
+        }
+
+        if (phase == PhasesPrintPreview::main_dialog)
+            marlin_FSM_response(phase, Response::Print);
+    }
+}
+
+#else // !0
+
+static void fsm_cb(uint32_t u32, uint16_t u16) {
+}
+
+#endif //0
+
 void wui_marlin_client_init(void) {
     marlin_vars_t *vars = marlin_client_init(); // init the client
     // force update variables when starts
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM, NULL);
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, NULL);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
+    marlin_client_set_fsm_cb(fsm_cb);
     if (vars) {
         /*
          * Note: We currently have only a single marlin client for
