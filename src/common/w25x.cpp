@@ -353,8 +353,8 @@ int mfrid_devid(uint8_t *devid) {
     w25x_select();
     CmdWithAddress cmdWithAddress = cmd_with_address(CMD_MFRID_DEVID, 0ul);
     w25x_send(cmdWithAddress.buffer, sizeof(cmdWithAddress.buffer));
-    uint8_t w25x_mfrid = w25x_receive_byte(); // receive mfrid
-    uint8_t w25x_devid = w25x_receive_byte(); // receive devid
+    uint8_t w25x_mfrid __attribute__((unused)) = w25x_receive_byte(); // receive mfrid
+    uint8_t w25x_devid = w25x_receive_byte();                         // receive devid
     w25x_deselect();
     if (devid)
         *devid = w25x_devid;
