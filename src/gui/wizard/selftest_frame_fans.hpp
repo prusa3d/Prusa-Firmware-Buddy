@@ -13,7 +13,7 @@
 #include "status_footer.hpp"
 
 class SelftestFrameFans : public AddSuperWindow<SelftestFrameNamed> {
-    StatusFooter footer;
+    FooterLine footer;
     window_wizard_progress_t progress;
 
     window_icon_t icon_hotend_fan;
