@@ -148,7 +148,7 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
             strlcpy(firstVisibleSFN, w_filelist.TopItemSFN(), SFN_len);
 
             print_started = true;
-            print_begin(vars->media_SFN_path);
+            print_begin(vars->media_SFN_path, false);
 
             return;
         }

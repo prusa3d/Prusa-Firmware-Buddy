@@ -384,7 +384,7 @@ bool wui_start_print(const char *filename) {
 
     if (can_start_print) {
         strlcpy(marlin_vars()->media_LFN, filename, FILE_PATH_BUFFER_LEN);
-        print_begin(filename);
+        print_begin(filename, true);
     }
 
     return can_start_print;

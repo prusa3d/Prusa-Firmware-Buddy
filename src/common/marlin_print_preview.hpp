@@ -67,6 +67,8 @@ public:
     Result Loop();
 
     void Init(const char *path);
+    void SkipIfAble() { skip_if_able = true; }
+    void DontSkip() { skip_if_able = false; }
 
 private:
     uint32_t last_run = 0;
@@ -74,10 +76,13 @@ private:
     GCodeInfo::filament_buff filament_type;
     bool filament_described = false;
     bool valid_printer_settings = false;
+    bool skip_if_able = false;
 
     PrintPreview() = default;
     PrintPreview(const PrintPreview &) = delete;
 
     State stateFromFilamentPresence() const;
     State stateFromFilamentType() const;
+
+    State evaluateStateOnPrintClick();
 };
