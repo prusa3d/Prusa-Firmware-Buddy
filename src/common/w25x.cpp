@@ -358,7 +358,7 @@ int mfrid_devid(uint8_t *devid) {
     w25x_deselect();
     if (devid)
         *devid = w25x_devid;
-    return ((w25x_mfrid == MFRID) && ((w25x_devid == DEVID) || (w25x_devid == DEVID_NEW)));
+    return ((w25x_devid == DEVID) || (w25x_devid == DEVID_NEW));
 }
 
 } //end anonymous namespace
