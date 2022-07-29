@@ -24,6 +24,7 @@
 #include "eeprom_function_api.h"
 #include "RAII.hpp"
 #include "M70X.hpp"
+#include "fs_event_autolock.hpp"
 
 uint filament_gcodes::InProgress::lock = 0;
 
@@ -189,6 +190,8 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
 }
 
 void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
+    FS_EventAutolock autoload_lock;
+    InProgress progress;
     filament_t filament = Filaments::CurrentIndex();
     if (filament == filament_t::NONE) {
         PreheatStatus::SetResult(PreheatStatus::Result::DoneNoFilament);
