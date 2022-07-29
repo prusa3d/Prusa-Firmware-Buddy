@@ -7,6 +7,7 @@
 #include <ini.h>
 #include <eeprom.h>
 #include <printers.h>
+#include <odometer.hpp>
 
 #include <cstdlib>
 #include <cctype>
@@ -192,6 +193,7 @@ device_params_t core_interface::get_data() {
         params.print_duration = marlin_vars->print_duration;
         params.time_to_end = marlin_vars->time_to_end;
         params.progress_percent = marlin_vars->sd_percent_done;
+        params.filament_used = Odometer_s::instance().get(Odometer_s::axis_t::E);
     }
 
     return params;
