@@ -63,6 +63,7 @@ struct device_params_t {
     float target_nozzle;
     float target_bed;
     float pos[4];
+    float filament_used;
     const char *job_path;
     uint16_t flow_factor;
     uint16_t job_id;

@@ -63,6 +63,7 @@ namespace {
                     JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
                     JSON_FIELD_INT("fan_extruder", params.heatbreak_fan_rpm) JSON_COMMA;
                     JSON_FIELD_INT("fan_print", params.print_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
                 }
                 JSON_FIELD_STR("state", to_str(params.state));
             }
