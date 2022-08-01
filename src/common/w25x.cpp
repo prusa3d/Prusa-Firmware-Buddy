@@ -100,8 +100,10 @@ private:
 constexpr uint16_t PAGE_SIZE = 256;
 
 constexpr uint8_t MFRID = 0xEF;
-constexpr uint8_t DEVID = 0x13;
-constexpr uint8_t DEVID_NEW = 0x16;
+constexpr uint8_t DEVID_8M = 0x13;
+constexpr uint8_t DEVID_16M = 0x14;
+constexpr uint8_t DEVID_32M = 0x15;
+constexpr uint8_t DEVID_64M = 0x16;
 
 constexpr uint32_t cs_deselect_time_ns = 50;
 constexpr uint32_t cs_active_setup_time_relative_to_clk_ns = 5;
@@ -358,7 +360,7 @@ int mfrid_devid(uint8_t *devid) {
     w25x_deselect();
     if (devid)
         *devid = w25x_devid;
-    return ((w25x_devid == DEVID) || (w25x_devid == DEVID_NEW));
+    return ((w25x_devid == DEVID_8M) || (w25x_devid == DEVID_16M) || (w25x_devid == DEVID_32M) || (w25x_devid == DEVID_64M));
 }
 
 } //end anonymous namespace
@@ -402,9 +404,13 @@ bool w25x_init() {
 }
 
 uint32_t w25x_get_sector_count() {
-    if (device_id == DEVID) {
+    if (device_id == DEVID_8M) {
         return 256;
-    } else if (device_id == DEVID_NEW) {
+    } else if (device_id == DEVID_16M) {
+        return 512;
+    } else if (device_id == DEVID_32M) {
+        return 1024;
+    } else if (device_id == DEVID_64M) {
         return 2048;
     } else {
         abort();
