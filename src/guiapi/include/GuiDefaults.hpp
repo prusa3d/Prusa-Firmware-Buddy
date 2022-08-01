@@ -51,7 +51,12 @@ struct GuiDefaults {
     static constexpr color_t MenuColorDevelopmentDisabled = COLOR_DARK_GREEN;
 
     // Text settings
+    // TODO fix unit tests, so this is not needed
+#if defined(USE_MOCK_DISPLAY)
     static constexpr padding_ui8_t Padding = { 2, 2, 2, 2 };
+#else
+    static constexpr padding_ui8_t Padding = { 0, 0, 0, 0 };
+#endif // USE_<display>
     static constexpr Align_t Align() { return Align_t::LeftTop(); }
     static font_t *Font;    //todo constexpr
     static font_t *FontBig; //todo constexpr
