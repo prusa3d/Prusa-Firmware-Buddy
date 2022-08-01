@@ -50,15 +50,13 @@ public:
     template <class ITEM>
     void DisableItem() {
         if (Item<ITEM>().IsEnabled()) {
-            Item<ITEM>().Disable();
-            Invalidate(); // TODO is this needed?
+            Item<ITEM>().Disable(); // This method can fail (you can't disable focused item)
         }
     }
     template <class ITEM>
     void EnableItem() {
         if (!Item<ITEM>().IsEnabled()) {
             Item<ITEM>().Enable();
-            Invalidate(); // TODO is this needed?
         }
     }
 

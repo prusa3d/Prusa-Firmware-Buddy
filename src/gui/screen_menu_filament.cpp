@@ -33,7 +33,11 @@ private:
 };
 
 void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    // This check is periodically executed even when it's hidden under filament dialogs.
+    // It is a valid behaviour, but be aware, it can promote GUI bugs.
+    // If it manifests invalidation bugs like blinking - fix GUI or don't execute when dialog is open
     deactivate_item();
+
     if (event == GUI_event_t::CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
