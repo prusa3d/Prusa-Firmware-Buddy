@@ -128,6 +128,7 @@ int filesystem_littlefs_open_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r,
         return -1;
     }
 
+    f->flags = 0;
     if (flags & O_SYNC) {
         f->flags |= FLAG_SYNC;
     }

@@ -1,8 +1,8 @@
 #include "ff_gen_drv.h"
 #include "usbh_diskio.h"
-#include "timing.h"
 
 static const uint16_t USB_DEFAULT_BLOCK_SIZE = FF_MIN_SS;
+static DWORD scratch[FF_MAX_SS / 4];
 
 extern USBH_HandleTypeDef hUsbHostHS;
 
@@ -58,8 +58,22 @@ DSTATUS USBH_status(BYTE lun) {
 DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
+    USBH_StatusTypeDef status = USBH_OK;
 
-    if (USBH_MSC_Read(&hUsbHostHS, lun, sector, buff, count) == USBH_OK) {
+    if ((DWORD)buff & 3) { // DMA Alignment issue, do single up to aligned buffer
+        while ((count--) && (status == USBH_OK)) {
+            status = USBH_MSC_Read(&hUsbHostHS, lun, sector + count, (uint8_t *)scratch, 1);
+            if (status == USBH_OK) {
+                memcpy(&buff[count * FF_MAX_SS], scratch, FF_MAX_SS);
+            } else {
+                break;
+            }
+        }
+    } else {
+        status = USBH_MSC_Read(&hUsbHostHS, lun, sector, buff, count);
+    }
+
+    if (status == USBH_OK) {
         res = RES_OK;
     } else {
         USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
@@ -93,8 +107,21 @@ DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
 DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
+    USBH_StatusTypeDef status = USBH_OK;
 
-    if (USBH_MSC_Write(&hUsbHostHS, lun, sector, (BYTE *)buff, count) == USBH_OK) {
+    if ((DWORD)buff & 3) { // DMA Alignment issue, do single up to aligned buffer
+        while (count--) {
+            memcpy(scratch, &buff[count * FF_MAX_SS], FF_MAX_SS);
+            status = USBH_MSC_Write(&hUsbHostHS, lun, sector + count, (BYTE *)scratch, 1);
+            if (status == USBH_FAIL) {
+                break;
+            }
+        }
+    } else {
+        status = USBH_MSC_Write(&hUsbHostHS, lun, sector, (BYTE *)buff, count);
+    }
+
+    if (status == USBH_OK) {
         res = RES_OK;
     } else {
         USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
@@ -178,7 +205,3 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
     return res;
 }
 #endif /* FF_FS_READONLY == 0 */
-
-uint32_t USBH_MSC_GetIndependentTimerTicks() {
-    return ticks_ms();
-}
