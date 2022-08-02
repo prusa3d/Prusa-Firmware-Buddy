@@ -7,7 +7,7 @@
 
 #include <sys/stat.h>
 #include <inttypes.h> // PRIu* macros (not available in <cinttypes>)
-#include <sha256.h>
+#include <mbedtls/sha256.h>
 
 using http::ConnectionHandling;
 using http::ContentType;
