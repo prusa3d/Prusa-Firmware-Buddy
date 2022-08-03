@@ -806,9 +806,10 @@ void marlin_server_nozzle_timeout_off() {
     marlin_server.enable_nozzle_temp_timeout = false;
 }
 void marlin_server_nozzle_timeout_loop() {
-    if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)) && marlin_server.enable_nozzle_temp_timeout)
+    if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)) && marlin_server.enable_nozzle_temp_timeout) {
         thermalManager.setTargetHotend(0, 0);
-    marlin_server_set_temp_to_display(0);
+        marlin_server_set_temp_to_display(0);
+    }
 }
 
 static void marlin_server_resuming_reheating() {
