@@ -17,10 +17,13 @@ void sntp_client_init(void) {
 }
 
 void sntp_client_step(void) {
-    if (!sntp_running && netdev_get_status(NETDEV_ETH_ID) == NETDEV_NETIF_UP) {
+    netdev_status_t eth = netdev_get_status(NETDEV_ETH_ID);
+    netdev_status_t wifi = netdev_get_status(NETDEV_ESP_ID);
+
+    if (!sntp_running && (eth == NETDEV_NETIF_UP || wifi == NETDEV_NETIF_UP)) {
         sntp_client_init();
         sntp_running = 1;
-    } else if (sntp_running && netdev_get_status(NETDEV_ETH_ID) != NETDEV_NETIF_UP) {
+    } else if (sntp_running && eth != NETDEV_NETIF_UP && wifi != NETDEV_NETIF_UP) {
         sntp_stop();
         sntp_running = 0;
     }
