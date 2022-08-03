@@ -62,8 +62,8 @@ add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
 # /web directory
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.478b47f79f42d0548d8b.js" "/web/main.478b47f79f42d0548d8b.js")
-add_gzip_resource("web/main.cf0f3f6f32f7abaffeea.css" "/web/main.cf0f3f6f32f7abaffeea.css")
+add_gzip_resource("web/main.df502520e9e3bde5ca95.js" "/web/main.df502520e9e3bde5ca95.js")
+add_gzip_resource("web/main.9e77009f16d13991de13.css" "/web/main.9e77009f16d13991de13.css")
 
 # generate header with hash
 add_header_with_revision(standard resources-image)
