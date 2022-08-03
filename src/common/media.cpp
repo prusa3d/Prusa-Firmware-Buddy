@@ -412,11 +412,11 @@ void media_loop(void) {
         GCodeFilter::State state;
         char *gcode = gcode_filter.nextGcode(&state);
 
-        if (state == GCodeFilter::State::Timeout) {
+        switch (state) {
+        case GCodeFilter::State::Timeout:
             // Unlock the loop
             return;
-        }
-        if (state == GCodeFilter::State::Error) {
+        case GCodeFilter::State::Error:
             // Pause in case of some issue
             usbh_error_count++;
             if (media_state == media_state_INSERTED) {
@@ -426,42 +426,41 @@ void media_loop(void) {
                 set_warning(WarningType::USBFlashDiskError);
                 media_print_pause();
             }
-
             return;
-        }
+        case GCodeFilter::State::Eof:
+            // Stop print on EOF
+            // TODO: this is incorrect. We need to wait until the queue is drained before we can stop
+            media_print_stop();
+            return;
+        case GCodeFilter::State::Ok:
+            if (gcode == NULL || gcode[0] == '\0') {
+                // Nothing to process, continue to the next G-Code
+                break;
+            }
 
-        if (gcode == NULL || gcode[0] == '\0') {
-            if (state == GCodeFilter::State::Eof) {
-                // Stop print on EOF
+            if (media_print_state == media_print_state_PAUSED
+                || media_print_state == media_print_state_NONE) {
+                // Exit from the loop if aborted early
                 // TODO: this is incorrect. We need to wait until the queue is drained before we can stop
-                media_print_stop();
                 return;
             }
-            // Nothing to process, continue to the next G-Code
-            continue;
-        }
 
-        if (media_print_state == media_print_state_PAUSED
-            || media_print_state == media_print_state_NONE) {
-            // Exit from the loop if aborted early
-            // TODO: this is incorrect. We need to wait until the queue is drained before we can stop
-            return;
-        }
+            if (skip_gcode) {
+                skip_gcode = false;
+            } else {
+                // update the gcode position for the queue
+                queue.sdpos = media_gcode_position;
+                // FIXME: what if the gcode is not enqueued
+                // use 'enqueue_one_now' instead
+                queue.enqueue_one(gcode, false);
+            }
 
-        if (skip_gcode) {
-            skip_gcode = false;
-        } else {
-            // update the gcode position for the queue
-            queue.sdpos = media_gcode_position;
-            // FIXME: what if the gcode is not enqueued
-            // use 'enqueue_one_now' instead
-            queue.enqueue_one(gcode, false);
+            // Current position can be after ';' char or after new line.  We need
+            // to store the position before a semicolon. Position before a new line
+            // char is also safe, therefore decrement the position.
+            media_gcode_position = media_current_position - 1;
+            break;
         }
-
-        // Current position can be after ';' char or after new line.  We need
-        // to store the position before a semicolon. Position before a new line
-        // char is also safe, therefore decrement the position.
-        media_gcode_position = media_current_position - 1;
     }
 }
 
