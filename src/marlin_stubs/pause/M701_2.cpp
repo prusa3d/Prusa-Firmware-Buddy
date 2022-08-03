@@ -198,6 +198,8 @@ void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
     preheat_to(filament);
 
     pause::Settings settings;
+    xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, NAN, std::max(current_position.z, (float)Z_AXIS_LOAD_POS) };
+    settings.SetParkPoint(park_position);
     settings.SetExtruder(target_extruder);
     settings.SetRetractLength(0.f);
 
