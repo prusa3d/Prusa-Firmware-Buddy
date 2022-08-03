@@ -873,7 +873,7 @@ static void _server_print_loop(void) {
         case PrintPreview::Result::InProgress:
             break;
         case PrintPreview::Result::Abort:
-            marlin_server.print_state = mpsIdle;
+            marlin_server.print_state = mpsFinishing_WaitIdle;
             break;
         case PrintPreview::Result::Print:
         case PrintPreview::Result::Inactive:
