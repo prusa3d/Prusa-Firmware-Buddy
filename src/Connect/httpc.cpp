@@ -117,8 +117,12 @@ namespace {
 
             return nullopt;
         }
-        optional<Error> header(const char *name, const char *value) {
-            return write_fmt("%s: %s\r\n", name, value);
+        optional<Error> header(const char *name, const char *value, std::optional<size_t> limit) {
+            if (limit.has_value()) {
+                return write_fmt("%s: %.*s\r\n", name, *limit, value);
+            } else {
+                return write_fmt("%s: %s\r\n", name, value);
+            }
         }
         template <class R>
         void chunk(R renderer) {
@@ -185,16 +189,16 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
     const Method method = request.method();
 
     CHECKED(buffer.write_fmt("%s %s HTTP/1.1\r\n", to_str(method), request.url()));
-    CHECKED(buffer.header("Host", host));
-    CHECKED(buffer.header("Connection", "keep-alive"));
+    CHECKED(buffer.header("Host", host, nullopt));
+    CHECKED(buffer.header("Connection", "keep-alive", nullopt));
     if (has_out_body(method)) {
-        CHECKED(buffer.header("Transfer-Encoding", "chunked"));
-        CHECKED(buffer.header("Content-Type", to_str(request.content_type())));
+        CHECKED(buffer.header("Transfer-Encoding", "chunked", nullopt));
+        CHECKED(buffer.header("Content-Type", to_str(request.content_type()), nullopt));
     }
 
-    static const constexpr HeaderOut term = { nullptr, nullptr };
+    static const constexpr HeaderOut term = { nullptr, nullptr, nullopt };
     for (const HeaderOut *extra_hdrs = request.extra_headers() ?: &term; extra_hdrs->name; extra_hdrs++) {
-        CHECKED(buffer.header(extra_hdrs->name, extra_hdrs->value));
+        CHECKED(buffer.header(extra_hdrs->name, extra_hdrs->value, extra_hdrs->size_limit));
     }
 
     CHECKED(buffer.write_fmt("\r\n"));

@@ -1,4 +1,5 @@
 #include <array>
+#include <cassert>
 
 #include "config.h"
 #include "otp.h"
@@ -31,9 +32,7 @@ void append_crc(char *str, const uint32_t str_size) {
     snprintf(eofstr(str), str_size - strlen(str), "/%08lX", crc);
 }
 
-/// \returns 40 bit encoded to 8 chars (32 symbol alphabet: 0-9,A-V)
-/// Make sure there's a space for 9 chars
-void printerCode(char *str) {
+void printerHash(char *str, size_t size, bool state_prefix) {
     constexpr uint8_t SNSize = 4 + OTP_SERIAL_NUMBER_SIZE - 1; // + fixed header, - trailing 0
     constexpr uint8_t bufferSize = OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE + SNSize;
     uint8_t toHash[bufferSize];
@@ -49,27 +48,39 @@ void printerCode(char *str) {
     /// get hash;
     mbedtls_sha256_ret(toHash, sizeof(toHash), (unsigned char *)hash, false);
 
-    /// shift hash by 2 bits
-    hash[7] >>= 2;
-    for (int i = 6; i >= 0; --i)
-        rShift2Bits(hash[i], hash[i + 1]);
+    if (state_prefix) {
+        /// shift hash by 2 bits
+        hash[7] >>= 2;
+        for (int i = 6; i >= 0; --i)
+            rShift2Bits(hash[i], hash[i + 1]);
+    }
 
-    /// convert number to 38 bits (32 symbol alphabet)
-    for (uint8_t i = 0; i < PRINTER_CODE_SIZE; ++i) {
+    /// convert number by 5-bit chunks (32 symbol alphabet)
+    assert(sizeof(hash) * 8 >= size * 5);
+    for (uint8_t i = 0; i < size; ++i) {
         str[i] = to32((uint8_t *)hash, i * 5);
     }
 
-    /// set signature state
-    if (signature_exist()) {
-        setBit((uint8_t *)hash, 7);
-        // setBit(str[0], 7);
-    }
+    // FIXME: These setBit things here have no effect. Is that a bug?
+    if (state_prefix) {
+        /// set signature state
+        if (signature_exist()) {
+            setBit((uint8_t *)hash, 7);
+            // setBit(str[0], 7);
+        }
 
-    /// appendix state
-    if (appendix_exist()) {
-        setBit((uint8_t *)hash, 6);
-        //setBit(str[0], 6);
+        /// appendix state
+        if (appendix_exist()) {
+            setBit((uint8_t *)hash, 6);
+            //setBit(str[0], 6);
+        }
     }
+}
+
+/// \returns 40 bit encoded to 8 chars (32 symbol alphabet: 0-9,A-V)
+/// Make sure there's a space for 9 chars
+void printerCode(char *str) {
+    printerHash(str, PRINTER_CODE_SIZE, true);
 
     str[PRINTER_CODE_SIZE] = '\0';
 }

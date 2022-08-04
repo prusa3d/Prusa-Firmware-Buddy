@@ -11,22 +11,24 @@ using marlin variables.
 #include <otp.h>
 
 #include <variant>
+#include <cstdlib>
 
 namespace con {
 
-constexpr uint8_t FW_VER_STR_LEN = 32;
-constexpr uint8_t FW_VER_BUFR_LEN = (FW_VER_STR_LEN + 1);
+constexpr size_t FW_VER_STR_LEN = 32;
+constexpr size_t FW_VER_BUFR_LEN = FW_VER_STR_LEN + 1;
 
-constexpr uint8_t SER_NUM_STR_LEN = 19;
-constexpr uint8_t SER_NUM_BUFR_LEN = (SER_NUM_STR_LEN + 1);
+constexpr size_t SER_NUM_STR_LEN = 19;
+constexpr size_t SER_NUM_BUFR_LEN = SER_NUM_STR_LEN + 1;
 
-constexpr uint8_t FINGERPRINT_SIZE = 16;
-constexpr uint8_t FINGERPRINT_BUFF_LEN = (FINGERPRINT_SIZE + 1);
+constexpr size_t FINGERPRINT_SIZE = 50;
+constexpr size_t FINGERPRINT_BUFF_LEN = FINGERPRINT_SIZE + 1;
+constexpr size_t FINGERPRINT_HDR_SIZE = 16;
 
-constexpr uint8_t CONNECT_URL_LEN = 30;
-constexpr uint8_t CONNECT_URL_BUF_LEN = (CONNECT_URL_LEN + 1);
-constexpr uint8_t CONNECT_TOKEN_LEN = 20;
-constexpr uint8_t CONNECT_TOKEN_BUF_LEN = (CONNECT_TOKEN_LEN + 1);
+constexpr size_t CONNECT_URL_LEN = 30;
+constexpr size_t CONNECT_URL_BUF_LEN = CONNECT_URL_LEN + 1;
+constexpr size_t CONNECT_TOKEN_LEN = 20;
+constexpr size_t CONNECT_TOKEN_BUF_LEN = CONNECT_TOKEN_LEN + 1;
 
 #define X_AXIS_POS 0
 #define Y_AXIS_POS 1
