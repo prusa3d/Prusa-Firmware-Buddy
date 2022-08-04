@@ -76,9 +76,9 @@ namespace {
     public:
         BasicRequest(core_interface &core, const printer_info_t &info, const configuration_t &config, const Action &action)
             : hdrs {
-                { "Fingerprint", info.fingerprint },
-                { "Token", config.token },
-                { nullptr, nullptr }
+                { "Fingerprint", info.fingerprint, FINGERPRINT_HDR_SIZE },
+                { "Token", config.token, nullopt },
+                { nullptr, nullptr, nullopt }
             }
             , renderer(RenderState {
                   info,

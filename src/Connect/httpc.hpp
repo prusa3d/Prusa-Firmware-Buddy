@@ -13,8 +13,9 @@ enum class Method {
 };
 
 struct HeaderOut {
-    const char *name;
-    const char *value;
+    const char *name = nullptr;
+    const char *value = nullptr;
+    const std::optional<size_t> size_limit = std::nullopt;
 };
 
 class Request {

@@ -53,9 +53,6 @@ public:
     virtual Method method() const {
         return Method::Post;
     }
-    virtual const HeaderOut *extra_headers() const override {
-        return nullptr;
-    }
     virtual std::variant<size_t, Error> write_body_chunk(char *data, size_t size) override {
         if (done) {
             return static_cast<size_t>(0);

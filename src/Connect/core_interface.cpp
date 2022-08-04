@@ -229,13 +229,8 @@ printer_info_t core_interface::get_printer_info() {
         synthetic_serial(info.serial_number);
     }
 
-    // Prusa connect requires 16 long fingerprint. Printer code is 8 characters.
-    // Copy printer code behind itself to make it 16 characters long.
-    //FIXME! This is just a temporary solution!
-    printerCode(info.fingerprint); //Compute hash(8 bytes) from uid, serial and mac
-    assert(strlen(info.fingerprint) == 8);
-    memcpy(info.fingerprint + FINGERPRINT_SIZE / 2, info.fingerprint, FINGERPRINT_SIZE / 2);
-    info.fingerprint[FINGERPRINT_SIZE] = 0;
+    printerHash(info.fingerprint, sizeof(info.fingerprint) - 1, false);
+    info.fingerprint[sizeof(info.fingerprint) - 1] = '\0';
 
     info.appendix = appendix_exist();
     return info;
