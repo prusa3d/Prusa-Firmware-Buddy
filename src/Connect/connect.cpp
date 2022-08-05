@@ -309,11 +309,20 @@ optional<Error> connect::communicate(CachedFactory &conn_factory) {
             return Error::UnexpectedResponse;
         }
     }
+    case Status::RequestTimeout:
+    case Status::TooManyRequests:
+    case Status::ServiceTemporarilyUnavailable:
+    case Status::GatewayTimeout:
+        conn_factory.invalidate();
+        // These errors are likely temporary and will go away eventually.
+        planner.action_done(ActionResult::Failed);
+        return Error::UnexpectedResponse;
     default:
         conn_factory.invalidate();
-        // TODO: Figure out if the server somehow refused that instead
-        // of failed to process.
-        planner.action_done(ActionResult::Failed);
+        // We don't know that exactly the server answer means, but we guess
+        // that it will persist, so we consider it refused and throw the
+        // request away.
+        planner.action_done(ActionResult::Refused);
         return Error::UnexpectedResponse;
     }
 }
