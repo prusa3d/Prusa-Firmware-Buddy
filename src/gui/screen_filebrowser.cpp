@@ -84,6 +84,11 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
         return;
     }
 
+    // print already started
+    if (print_started) {
+        return;
+    }
+
     static const char dirUp[] = "..";
     static const char slash = '/';
 
@@ -142,9 +147,8 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
             // save the top browser item
             strlcpy(firstVisibleSFN, w_filelist.TopItemSFN(), SFN_len);
 
-            gcode_info.SetGcodeFilepath(vars->media_SFN_path);
-            gcode_info.SetGcodeFilename(vars->media_LFN);
-            Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
+            print_started = true;
+            print_begin(vars->media_SFN_path, false);
 
             return;
         }

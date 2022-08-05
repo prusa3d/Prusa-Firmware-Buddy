@@ -81,6 +81,7 @@ TEST_CASE("Render") {
             "\"progress\":12,"
             "\"fan_extruder\":0,"
             "\"fan_print\":0,"
+            "\"filament\":0.0,"
             "\"state\":\"PRINTING\""
         "}";
         // clang-format on

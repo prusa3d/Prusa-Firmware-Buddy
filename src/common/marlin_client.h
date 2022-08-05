@@ -193,7 +193,7 @@ extern void marlin_test_start(uint64_t mask);
 
 extern void marlin_test_abort(void);
 
-extern void marlin_print_start(const char *filename);
+extern void marlin_print_start(const char *filename, bool skip_preview);
 
 extern void marlin_print_abort(void);
 

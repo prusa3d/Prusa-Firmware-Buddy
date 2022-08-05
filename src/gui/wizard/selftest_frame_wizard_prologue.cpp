@@ -6,13 +6,22 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "resource.h"
+#include "printers.h"
+
+#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+static constexpr size_t margin_texts = 0;
+static constexpr Align_t align_text_icon = Align_t::LeftTop();
+static const char *txt_prologue = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
+#else
+    #error "Unknown PRINTER_TYPE!"
+#endif
 
 static constexpr Rect16 getTextRect() {
     Rect16 ret = GuiDefaults::RectScreenNoHeader;
     Rect16::Top_t btn_top = GuiDefaults::GetButtonRect(ret).Top();
     ret = Rect16::Height_t(btn_top - ret.Top());
-    ret = Rect16::Width_t(WizardDefaults::X_space);
-    ret = Rect16::Left_t(WizardDefaults::MarginLeft);
+    ret = Rect16::Width_t(GuiDefaults::ScreenWidth - 2 * margin_texts);
+    ret = Rect16::Left_t(margin_texts);
     return ret;
 }
 
@@ -39,7 +48,7 @@ SelftestFrameWizardPrologue::SelftestFrameWizardPrologue(window_t *parent, Phase
     , text_full_frame(this, getTextRect(), is_multiline::yes) {
 
     icon.SetAlignment(Align_t::CenterTop());
-    text_icon.SetAlignment(Align_t::CenterTop());
+    text_icon.SetAlignment(align_text_icon);
     text_full_frame.SetAlignment(Align_t::Center());
 
     change();
@@ -53,8 +62,7 @@ void SelftestFrameWizardPrologue::change() {
     //texts
     switch (phase_current) {
     case PhasesSelftest::WizardPrologue_ask_run:
-        txt_icon = N_("Hi, this is your\nOriginal Prusa MINI printer.\n"
-                      "I would like to guide you\nthrough the setup process.");
+        txt_icon = txt_prologue;
 
         if constexpr (!GuiDefaults::ShowDevelopmentTools) {
             //original responses

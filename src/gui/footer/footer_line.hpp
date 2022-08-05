@@ -30,6 +30,13 @@ private:
 public:
     FooterLine(window_t *parent, size_t line_no);
 
+    //create line with items
+    template <class... T>
+    FooterLine(window_t *parent, size_t line_no, T... args)
+        : FooterLine(parent, line_no) {
+        Create({ { args... } }, sizeof...(T));
+    }
+
     bool Create(footer::items item, size_t index);
     void Create(const IdArray &ids, size_t count = FOOTER_ITEMS_PER_LINE__);
     void Erase(size_t index);                 // index >= max_items erases all

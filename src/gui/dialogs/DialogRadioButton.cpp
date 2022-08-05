@@ -116,10 +116,10 @@ void RadioButton::unconditionalDraw() {
             ValidateBackground();
         }
         //draw foreground
-        for (size_t i = 0; i < max_icons; ++i) {
+        for (size_t i = 0; i < std::min<size_t>(max_icons, GetBtnCount()); ++i) {
             Rect16 rcIcon = getIconRect(i);
             if (isIndexValid(i)) {
-                window_frame_t base(nullptr, rcIcon); // window_icon_button_t needs parrent to draw properly
+                window_frame_t base(nullptr, rcIcon); // window_icon_button_t needs parent to draw properly (corners)
                 base.SetBackColor(GetBackColor());
                 window_icon_button_t icon(&base, rcIcon, BtnResponse::GetIconId(responseFromIndex(i)), []() {});
                 window_text_t label(nullptr, getLabelRect(i), is_multiline::no, is_closed_on_click_t::no, _(BtnResponse::GetText(responseFromIndex(i))));
@@ -299,29 +299,60 @@ void RadioButton::invalidateWhatIsNeeded() {
     }
 }
 
+//TODO just use some kind of layouts
 Rect16 RadioButton::getIconRect(uint8_t idx) const {
     Rect16 ret = GetRect();
     int offset = int(idx) - 1; // 3 buttons 0 - 2, button 1 is in middle
+    const int padding = 10;
 
-    ret += Rect16::Left_t(ret.Width() / 2);                                 // middle of rect
-    ret -= Rect16::Left_t(button_base_size / 2);                            // button 1 pos
-    ret += Rect16::Left_t(offset * (button_base_size + button_delim_size)); // current button pos
-    ret = Rect16::Width_t(button_base_size);                                // button width
-    ret = Rect16::Height_t(button_base_size);                               // button height
-    return ret;
+    ret = Rect16::Width_t(button_base_size);  // button width
+    ret = Rect16::Height_t(button_base_size); // button height
+
+    switch (std::min<size_t>(max_icons, GetBtnCount())) {
+    case 1:
+        ret += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
+        ret -= Rect16::Left_t(button_base_size / 2);  // button 1 pos
+        return ret;
+    case 2:
+        ret = Rect16::Left_t(idx == 0 ? padding : (GetRect().Width() - button_base_size - padding));
+        return ret;
+    case 3:
+        ret += Rect16::Left_t(GetRect().Width() / 2);                           // middle of rect
+        ret -= Rect16::Left_t(button_base_size / 2);                            // button 1 pos
+        ret += Rect16::Left_t(offset * (button_base_size + button_delim_size)); // current button pos
+        return ret;
+    default:
+        break;
+    }
+    return Rect16();
 }
 
+//TODO just use some kind of layouts
 Rect16 RadioButton::getLabelRect(uint8_t idx) const {
     Rect16 ret = GetRect();
     int offset = int(idx) - 1; // 3 labels 0 - 2, button 1 is in middle
 
-    ret += Rect16::Top_t(button_base_size);                               // label is under button
-    ret += Rect16::Left_t(ret.Width() / 2);                               // middle of rect
-    ret -= Rect16::Left_t(label_base_size / 2);                           // labels 1 pos
-    ret += Rect16::Left_t(offset * (label_base_size + label_delim_size)); // current labels pos
-    ret = Rect16::Width_t(label_base_size);                               // labels width
-    ret -= Rect16::Height_t(label_base_size);                             // labels height
-    return ret;
+    ret += Rect16::Top_t(button_base_size);    // label is under button
+    ret = Rect16::Width_t(label_base_size);    // labels width
+    ret -= Rect16::Height_t(button_base_size); // labels height
+
+    switch (std::min<size_t>(max_icons, GetBtnCount())) {
+    case 1:
+        ret += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
+        ret -= Rect16::Left_t(label_base_size / 2);   // labels 1 pos
+        return ret;
+    case 2:
+        ret = Rect16::Left_t(idx == 0 ? 0 : (GetRect().Width() - label_base_size));
+        return ret;
+    case 3:
+        ret += Rect16::Left_t(GetRect().Width() / 2);                         // middle of rect
+        ret -= Rect16::Left_t(label_base_size / 2);                           // labels 1 pos
+        ret += Rect16::Left_t(offset * (label_base_size + label_delim_size)); // current labels pos
+        return ret;
+    default:
+        break;
+    }
+    return Rect16();
 }
 
 size_t RadioButton::maxSize() const {

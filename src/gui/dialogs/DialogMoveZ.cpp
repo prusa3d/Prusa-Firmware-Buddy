@@ -125,7 +125,9 @@ DialogMoveZ::~DialogMoveZ() {
     marlin_gcode(msg);
 }
 void DialogMoveZ::Show() {
-    if (!DialogShown) {
+    // checking nesting to not open over some other blocking dialog
+    // when blocking dialog is open, the nesting is larger than one
+    if (!DialogShown && gui_get_nesting() <= 1) {
         DialogMoveZ moveZ;
         moveZ.MakeBlocking();
     }

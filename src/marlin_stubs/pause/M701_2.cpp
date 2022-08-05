@@ -24,6 +24,7 @@
 #include "eeprom_function_api.h"
 #include "RAII.hpp"
 #include "M70X.hpp"
+#include "fs_event_autolock.hpp"
 
 uint filament_gcodes::InProgress::lock = 0;
 
@@ -191,7 +192,6 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
             xyz_pos_t park_position = { NAN, NAN, z_min_pos };
             // Returning to previous position is unwanted outside of printing (M1701 should be used only outside of printing)
             settings.SetParkPoint(park_position);
-            settings.SetParkZFeedrate(HOMING_FEEDRATE_INVERTED_Z);
         }
 
         if (load_unload(LoadUnloadMode::Load, &Pause::FilamentAutoload, settings)) {
@@ -199,13 +199,13 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         } else {
             M70X_process_user_response(PreheatStatus::Result::DidNotFinish);
         }
-        settings.SetParkZFeedrate(settings.GetDefaultParkZFeedrate());
     }
 
     FSensors_instance().ClrAutoloadSent();
 }
 
 void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
+    FS_EventAutolock autoload_lock;
     InProgress progress;
     filament_t filament = Filaments::CurrentIndex();
     if (filament == filament_t::NONE) {
@@ -218,7 +218,7 @@ void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
     xyze_pos_t current_position_tmp = current_position;
 
     pause::Settings settings;
-    xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, NAN, Z_AXIS_LOAD_POS };
+    xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, NAN, std::max(current_position.z, (float)Z_AXIS_LOAD_POS) };
     settings.SetParkPoint(park_position);
     settings.SetExtruder(target_extruder);
     settings.SetRetractLength(0.f);

@@ -25,9 +25,6 @@ private:
     Responses_t responses;
     const PhaseTexts *texts; // nullptr == autoset texts with default strings
 
-    void SetBtnCount(uint8_t cnt) { flags.button_count = cnt & ((1 << RESPONSE_BITS) - 1); }
-    const uint8_t GetBtnCount() const { return flags.button_count; }
-
     static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, const font_t *pf, bool is_selected);
 
     void draw_0_btn();
@@ -80,6 +77,9 @@ public:
 
     void SetBtnIndex(uint8_t index) { flags.button_index = (index < GetBtnCount()) ? index : 0; }
     uint8_t GetBtnIndex() const { return flags.button_index; }
+
+    void SetBtnCount(uint8_t cnt) { flags.button_count = cnt & ((1 << RESPONSE_BITS) - 1); }
+    uint8_t GetBtnCount() const { return flags.button_count; }
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

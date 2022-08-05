@@ -7,6 +7,7 @@
 #include <ini.h>
 #include <eeprom.h>
 #include <printers.h>
+#include <odometer.hpp>
 
 #include <cstdlib>
 #include <cctype>
@@ -114,6 +115,9 @@ namespace {
     DeviceState to_device_state(marlin_print_state_t state, bool prepared) {
         switch (state) {
         case mpsIdle:
+        case mspPrintPreviewInit:
+        case mspPrintPreviewLoop:
+        case mspPrintInit:
         case mpsAborted:
             if (prepared) {
                 return DeviceState::Prepared;
@@ -131,9 +135,12 @@ namespace {
         case mpsPausing_WaitIdle:
         case mpsPausing_ParkHead:
         case mpsPaused:
+
         case mpsResuming_Begin:
         case mpsResuming_Reheating:
-            //    case mpsResuming_UnparkHead:
+        case mpsPausing_Failed_Code:
+        case mpsResuming_UnparkHead_XY:
+        case mpsResuming_UnparkHead_ZE:
             return DeviceState::Paused;
         case mpsFinished:
             if (prepared) {
@@ -141,9 +148,21 @@ namespace {
             } else {
                 return DeviceState::Finished;
             }
-        default:
+
+            // TODO define DeviceState::PowerPanic and DeviceState::CrashRecovery
+        case mpsCrashRecovery_Begin:
+        case mpsCrashRecovery_Retracting:
+        case mpsCrashRecovery_Lifting:
+        case mpsCrashRecovery_XY_Measure:
+        case mpsCrashRecovery_XY_HOME:
+        case mpsCrashRecovery_Axis_NOK:
+        case mpsCrashRecovery_Repeated_Crash:
+        case mpsPowerPanic_AwaitingResume: // this one could be in DeviceState::Paused section
+        case mpsPowerPanic_acFault:
+        case mpsPowerPanic_Resume:
             return DeviceState::Unknown;
         }
+        return DeviceState::Unknown;
     }
 }
 
@@ -174,6 +193,7 @@ device_params_t core_interface::get_data() {
         params.print_duration = marlin_vars->print_duration;
         params.time_to_end = marlin_vars->time_to_end;
         params.progress_percent = marlin_vars->sd_percent_done;
+        params.filament_used = Odometer_s::instance().get(Odometer_s::axis_t::E);
     }
 
     return params;

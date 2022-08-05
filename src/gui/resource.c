@@ -198,7 +198,6 @@ RESOURCE_ENTRY_PNG(png_arrow_up_orange_8px)
 RESOURCE_ENTRY_PNG(png_arrow_down_orange_8px)
 
 RESOURCE_ENTRY_PNG(png_back_32px)
-RESOURCE_ENTRY_NUL()
 RESOURCE_ENTRY_PNG(png_disconnect_48px)
 RESOURCE_ENTRY_PNG(png_switch_off_36px)
 RESOURCE_ENTRY_PNG(png_switch_on_36px)

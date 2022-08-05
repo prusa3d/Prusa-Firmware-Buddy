@@ -10,6 +10,7 @@
 
 #include "marlin_server.h"
 #include "marlin_server.hpp"
+#include "marlin_print_preview.hpp"
 #include "app.h"
 #include "bsod.h"
 #include "timing.h"
@@ -610,34 +611,28 @@ bool marlin_server_printer_paused() {
     return marlin_server.print_state == mpsPaused;
 }
 
-void marlin_server_print_start(const char *filename) {
+void marlin_server_print_start(const char *filename, bool skip_preview) {
 #if HAS_SELFTEST
     if (SelftestInstance().IsInProgress())
         return;
 #endif
     if (filename == nullptr)
         return;
-    if ((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) {
-        // First, reserve the job_id in eeprom. In case we get reset, we need
-        // that to not get reused by accident.
-        eeprom_set_var(EEVAR_JOB_ID, variant8_ui16(job_id + 1));
-        // And increment the job ID before we actually stop printing.
-        job_id++;
-        _set_notify_change(MARLIN_VAR_JOB_ID);
-#if ENABLED(CRASH_RECOVERY)
-        crash_s.reset();
-        endstops.enable_globally(true);
-        crash_s.set_state(Crash_s::PRINTING);
-#endif // ENABLED(CRASH_RECOVERY)
-        media_print_start(filename);
+    switch (marlin_server.print_state) {
+    case mpsIdle:
+    case mpsFinished:
+    case mpsAborted:
+    case mspPrintPreviewInit:
+    case mspPrintPreviewLoop:
+        media_print_start__prepare(filename);
+        marlin_server.print_state = mspPrintPreviewInit;
         _set_notify_change(MARLIN_VAR_FILEPATH);
         _set_notify_change(MARLIN_VAR_FILENAME);
-        print_job_timer.start();
-        marlin_server.print_state = mpsPrinting;
-        fsm_create(ClientFSM::Printing);
-#if HAS_BED_PROBE
-        marlin_server.mbl_failed = false;
-#endif
+
+        skip_preview ? PrintPreview::Instance().SkipIfAble() : PrintPreview::Instance().DontSkip();
+        break;
+    default:
+        break;
     }
 }
 
@@ -696,7 +691,7 @@ void marlin_server_print_resume(void) {
         marlin_server.print_state = mpsPowerPanic_Resume;
 #endif
     } else
-        marlin_server_print_start(nullptr);
+        marlin_server_print_start(nullptr, true);
 }
 
 void marlin_server_print_reheat_start(void) {
@@ -724,7 +719,7 @@ bool marlin_server_print_reheat_ready() {
 #if ENABLED(POWER_PANIC)
 void marlin_server_powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool start_paused) {
     // Open the file and immediately stop to set the print position
-    marlin_server_print_start(media_SFN_path);
+    marlin_server_print_start(media_SFN_path, true);
     media_print_quick_stop(pos);
 
     // enter the main powerpanic resume loop
@@ -811,9 +806,10 @@ void marlin_server_nozzle_timeout_off() {
     marlin_server.enable_nozzle_temp_timeout = false;
 }
 void marlin_server_nozzle_timeout_loop() {
-    if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)) && marlin_server.enable_nozzle_temp_timeout)
+    if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)) && marlin_server.enable_nozzle_temp_timeout) {
         thermalManager.setTargetHotend(0, 0);
-    marlin_server_set_temp_to_display(0);
+        marlin_server_set_temp_to_display(0);
+    }
 }
 
 static void marlin_server_resuming_reheating() {
@@ -854,6 +850,58 @@ static void marlin_server_resuming_reheating() {
 static void _server_print_loop(void) {
     switch (marlin_server.print_state) {
     case mpsIdle:
+        break;
+    case mspPrintPreviewInit:
+        if (media_print_filepath()) {
+            PrintPreview::Instance().Init(media_print_filepath());
+        }
+        marlin_server.print_state = mspPrintPreviewLoop;
+        break;
+        /*
+        TODO thia used to be in original implamentation, but we dont do that anymore
+        bool ScreenPrintPreview::gcode_file_exists() {
+            return access(gcode.GetGcodeFilepath(), F_OK) == 0;
+        }
+
+        ...
+
+        if (!gcode_file_exists()) {
+            Screens::Access()->Close(); //if an dialog is opened, it will be closed first
+        */
+    case mspPrintPreviewLoop: // button evaluation
+        switch (PrintPreview::Instance().Loop()) {
+        case PrintPreview::Result::InProgress:
+            break;
+        case PrintPreview::Result::Abort:
+            marlin_server.print_state = mpsFinishing_WaitIdle;
+            break;
+        case PrintPreview::Result::Print:
+        case PrintPreview::Result::Inactive:
+            marlin_server.print_state = mspPrintInit;
+            break;
+        }
+        break;
+    case mspPrintInit:
+        feedrate_percentage = 100;
+        // First, reserve the job_id in eeprom. In case we get reset, we need
+        // that to not get reused by accident.
+        eeprom_set_var(EEVAR_JOB_ID, variant8_ui16(job_id + 1));
+        // And increment the job ID before we actually stop printing.
+        job_id++;
+        _set_notify_change(MARLIN_VAR_JOB_ID);
+#if ENABLED(CRASH_RECOVERY)
+        crash_s.reset();
+        endstops.enable_globally(true);
+        crash_s.set_state(Crash_s::PRINTING);
+#endif // ENABLED(CRASH_RECOVERY)
+        media_print_start();
+
+        print_job_timer.start();
+        marlin_server.print_state = mpsPrinting;
+        fsm_create(ClientFSM::Printing);
+#if HAS_BED_PROBE
+        marlin_server.mbl_failed = false;
+#endif
         break;
     case mpsPrinting:
         switch (media_print_get_state()) {
@@ -1867,7 +1915,7 @@ bool _process_server_valid_request(const char *request, int client_id) {
         marlin_server_quick_stop();
         return true;
     case MARLIN_MSG_PRINT_START:
-        marlin_server_print_start(data);
+        marlin_server_print_start(data + 1, data[0] == '1');
         return true;
     case MARLIN_MSG_PRINT_ABORT:
         marlin_server_print_abort();

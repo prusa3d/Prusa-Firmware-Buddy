@@ -80,7 +80,7 @@ void run_once_after_boot() {
     // g-code autostart
     if (access(autostart_filename, F_OK) == 0) {
         //call directly marlin server start print. This function is not safe
-        marlin_server_print_start(autostart_filename);
+        marlin_server_print_start(autostart_filename, true);
         oProgressData.mInit();
     }
 }
@@ -98,25 +98,9 @@ void print_utils_loop() {
     }
 }
 
-#ifdef GUI_WINDOW_SUPPORT
-    #include "ScreenHandler.hpp"
-    #include "screen_printing.hpp"
-
-void print_begin(const char *filename) {
-    Screens::Access()->CloseAll();
-    marlin_print_start(filename);
-    // FIXME: This should not be here and it should be handled
-    // in Marlin. Needs refactoring!
-    oProgressData.mInit();
-    Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
-}
-
-#else  // GUI_WINDOW_SUPPORT
-
-void print_begin(const char *filename) {
-    marlin_print_start(filename);
+void print_begin(const char *filename, bool skip_preview) {
+    marlin_print_start(filename, skip_preview);
     // FIXME: This should not be here and it should be handled
     // in Marlin. Needs refactoring!
     oProgressData.mInit();
 }
-#endif // GUI_WINDOW_SUPPORT

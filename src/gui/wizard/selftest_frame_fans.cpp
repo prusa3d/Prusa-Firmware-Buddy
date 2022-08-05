@@ -27,7 +27,7 @@ static constexpr const char *en_text_info = N_("During the test, the expected fa
 
 SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamed>(parent, ph, data, _(en_text_fan_test))
-    , footer(this, footer::items::ItemPrintFan, footer::items::ItemHeatbreakFan)
+    , footer(this, 0, footer::items::ItemPrintFan, footer::items::ItemHeatbreakFan)
     , progress(this, WizardDefaults::row_1)
     , icon_hotend_fan(this, IDR_PNG_fan_16x16, point_i16_t({ WizardDefaults::col_0, row_2 }))
     , text_hotend_fan(this, Rect16(col_texts, row_2, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_hotend_fan))

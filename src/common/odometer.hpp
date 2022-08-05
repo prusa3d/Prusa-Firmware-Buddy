@@ -1,5 +1,6 @@
 // odometer.hpp
 #include <stdint.h>
+#include <atomic>
 
 /// Singleton class that measures
 /// distance traveled and filament consumed
@@ -15,14 +16,17 @@ public:
     static constexpr size_t axis_count = size_t(axis_t::count_);
 
 private:
-    Odometer_s() {}
-
     /// stores value changes from the last save
     /// extruder trip counts length of filament used (not moved)
     /// new values are stored to RAM (fast, unlimited writes)
     /// it should be stored to EEPROM after a while (slow, limited number of writes)
-    float trip_xyze[axis_count];
-    uint32_t duration_time = 0;
+    std::atomic<float> trip_xyze[axis_count];
+    std::atomic<uint32_t> duration_time = 0;
+
+    Odometer_s() {
+        for (size_t i = 0; i < axis_count; i++)
+            trip_xyze[i] = 0;
+    }
 
 public:
     /// saves values to EEPROM if they are not zero

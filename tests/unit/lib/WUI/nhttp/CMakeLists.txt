@@ -80,6 +80,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/src/common
+          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system
           ${CMAKE_SOURCE_DIR}/lib/jsmn
@@ -101,7 +102,6 @@ add_custom_target(
                                        ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.h
   )
 add_dependencies(nhttp_tests generate-http-automata-tests)
-target_link_libraries(nhttp_tests mbedTLS)
 # target_link_libraries(http_tests LwIP)
 set_target_properties(nhttp_tests PROPERTIES CXX_STANDARD 17)
 

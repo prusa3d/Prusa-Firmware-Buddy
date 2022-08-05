@@ -383,7 +383,7 @@ void screen_printing_data_t::update_print_duration(time_t rawtime) {
 }
 
 void screen_printing_data_t::screen_printing_reprint() {
-    print_begin(marlin_vars()->media_SFN_path);
+    print_begin(marlin_vars()->media_SFN_path, false);
     w_etime_label.SetText(_("Remaining"));
     btn_stop.txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[static_cast<size_t>(item_id_t::stop)]));
     btn_stop.ico.SetIdRes(printing_icons[static_cast<size_t>(item_id_t::stop)]);
@@ -528,6 +528,9 @@ void screen_printing_data_t::change_print_state() {
 
     switch (marlin_vars()->print_state) {
     case mpsIdle:
+    case mspPrintPreviewInit:
+    case mspPrintPreviewLoop:
+    case mspPrintInit:
         st = printing_state_t::INITIAL;
         break;
     case mpsPrinting:
