@@ -278,14 +278,14 @@ void gui_run(void) {
     un.pGUIStartupProgress = &progr;
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
 
+    gui::fsensor::validate_for_cyclical_calls();
+
     redraw_cmd_t redraw;
     //TODO make some kind of registration
     while (1) {
         gui::StartLoop();
-        if constexpr (HAS_MMU2) {
-            if (screen_home_data_t::EverBeenOpenned()) {
-                gui::fsensor::validate_for_cyclical_calls();
-            }
+        if (screen_home_data_t::EverBeenOpenned()) {
+            gui::fsensor::validate_for_cyclical_calls();
         }
         redraw = DialogHandler::Access().Loop();
         if (redraw == redraw_cmd_t::redraw)
