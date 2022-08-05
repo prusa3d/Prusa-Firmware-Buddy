@@ -18,6 +18,8 @@
 #include "print_utils.hpp"
 #include "marlin_client.h"
 
+#include <basename.h>
+#include <lfn.h>
 #include <ScreenHandler.hpp>
 #include <screen_home.hpp>
 #include <screen_print_preview.hpp>
@@ -351,7 +353,7 @@ uint32_t wui_gcodes_uploaded() {
     return uploaded_gcodes;
 }
 
-bool wui_start_print(const char *filename) {
+bool wui_start_print(char *filename) {
     // Note: By checking now and starting it later, we are introducing a short
     // race condition. Doing it properly would be kind of hard and the risk is
     // we maybe start the print and don't get the print screen or something
@@ -370,14 +372,17 @@ bool wui_start_print(const char *filename) {
     const bool can_start_print = !marlin_vars()->sd_printing && allowed_screen;
 
     if (can_start_print) {
-        strlcpy(marlin_vars()->media_LFN, filename, FILE_PATH_BUFFER_LEN);
+        strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
+        // Turn it into the short name, to improve buffer length, avoid strange
+        // chars like spaces in it, etc.
+        get_SFN_path(filename);
         print_begin(filename);
     }
 
     return can_start_print;
 }
 
-bool wui_uploaded_gcode(const char *filename, bool start_print) {
+bool wui_uploaded_gcode(char *filename, bool start_print) {
     uploaded_gcodes++;
 
     if (start_print) {
