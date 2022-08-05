@@ -226,7 +226,7 @@ static void media_prefetch(const void *) {
         }
     }
 }
-osThreadDef(media_prefetch, media_prefetch, osPriorityHigh, 0, 256);
+osThreadDef(media_prefetch, media_prefetch, osPriorityHigh, 0, 320);
 
 void media_print_start__prepare(const char *sfnFilePath) {
     if (sfnFilePath) {
