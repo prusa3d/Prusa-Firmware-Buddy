@@ -272,7 +272,7 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
             if (uploaded_notify(filename, start_print)) {
                 return make_tuple(Status::Ok, nullptr);
             } else {
-                return make_tuple(Status::Conflict, "Can't print right now");
+                return make_tuple(Status::Conflict, "Can't print right now. Printer needs to be in home screen. This is a safety feature.");
             }
         } else {
             return make_tuple(Status::Ok, nullptr);
