@@ -112,3 +112,29 @@ draw_zero_t footer::eeprom::GetItemDrawZero() {
 uint8_t footer::eeprom::GetCenterNAndFewer() {
     return getDrawCnf_ref().centerNAndFewer;
 }
+record footer::eeprom::DecodeWithSize(uint32_t encoded, size_t min_bit_size) {
+    uint32_t mask = (uint32_t(1) << (min_bit_size)) - 1;
+    record ret = { {} };
+
+    for (size_t i = 0; i < count; ++i) {
+        uint32_t decoded = encoded & mask;
+        if (decoded > size_t(items::count_))
+            return footer::DefaultItems; // data corrupted, return default setting
+        ret[i] = items(decoded);
+        encoded >>= min_bit_size;
+    }
+    return ret;
+}
+record footer::eeprom::Decode(uint32_t encoded) {
+    uint32_t trailing_ones = pow(2, count_of_trailing_ones) - 1;
+    if ((encoded & trailing_ones) != trailing_ones) {
+        return footer::DefaultItems;
+    }
+    encoded >>= count_of_trailing_ones;
+    return DecodeWithSize(encoded, value_bit_size);
+}
+uint32_t footer::eeprom::ConvertFromOldEeprom(uint32_t encoded, size_t number_of_items_in_old_eeprom) {
+    const size_t old_min_eeprom_item_size = floor(log2(number_of_items_in_old_eeprom)) + 1;
+    auto decoded = footer::eeprom::DecodeWithSize(encoded, old_min_eeprom_item_size);
+    return Encode(decoded);
+}
