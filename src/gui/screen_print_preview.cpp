@@ -25,11 +25,11 @@ static GCodeInfo &gcode_init() {
 }
 
 ScreenPrintPreview::ScreenPrintPreview()
-    : title_text(this, Rect16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT))
+    : title_text(this, Rect16(PADDING, PADDING, display::GetW() - 2 * PADDING, TITLE_HEIGHT))
+    , radio(this, GuiDefaults::GetIconnedButtonRect(GetRect()), ClientResponses::GetResponses(PhasesPrintPreview::main_dialog))
     , gcode(gcode_init())
     , gcode_description(this, gcode)
     , thumbnail(this, GuiDefaults::PreviewThumbnailRect)
-    , radio(this, GuiDefaults::GetIconnedButtonRect(GetRect()), ClientResponses::GetResponses(PhasesPrintPreview::main_dialog))
     , phase(PhasesPrintPreview::_first) {
 
     super::ClrMenuTimeoutClose();

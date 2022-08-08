@@ -21,12 +21,11 @@ class ScreenPrintPreview : public AddSuperWindow<screen_t> {
     static ScreenPrintPreview *ths; // to be accessible in dialog handler
 
     window_roll_text_t title_text;
+    RadioButton radio; // shows 2 mutually exclusive buttons Print and Back
 
     GCodeInfo &gcode;
     GCodeInfoWithDescription gcode_description; // cannot be first
     WindowPreviewThumbnail thumbnail;           // draws preview png
-
-    RadioButton radio; // shows 2 mutually exclusive buttons Print and Back
 
     PhasesPrintPreview phase;
 
