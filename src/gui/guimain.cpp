@@ -298,7 +298,7 @@ void gui_run(void) {
 
         if (++cnt_scan_register_update >= 100) {
             display::ReadMADCTL(data_buff, 1);
-            if (data_buff[1] != 0xE0) {
+            if (data_buff[1] != 0xE0 && data_buff[1] != 0xF0) {
                 display::Init();
                 Screens::Access()->SetDisplayReinitialized();
             }
