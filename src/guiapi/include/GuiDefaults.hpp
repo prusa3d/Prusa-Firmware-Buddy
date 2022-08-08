@@ -117,3 +117,4 @@ struct GuiDefaults {
     static constexpr Rect16 DialogFrameRect = RectScreenBody;
     static constexpr uint16_t RadioButtonCornerRadius = 0;
     static constexpr uint8_t IconButtonSize = 64;
+};
