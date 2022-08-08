@@ -1,10 +1,10 @@
 // trinamic.cpp
 #include "trinamic.h"
 #include "config.h"
-#include "TMCStepper.h"
 #include "gpio.h"
 #include "hwio_pindef.h"
 #include "../Marlin/src/module/stepper.h"
+#include "TMCStepper.h"
 #include "bsod.h"
 #include "cmsis_os.h"
 
