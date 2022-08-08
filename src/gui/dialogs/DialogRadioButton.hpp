@@ -36,7 +36,11 @@ private:
     static size_t cnt_responses(Responses_t resp);
     static size_t cnt_buttons(const PhaseTexts *labels, Responses_t resp);
     Rect16 getIconRect(uint8_t idx) const;
+    Rect16 getHorizontalIconRect(uint8_t idx) const;
+    Rect16 getVerticalIconRect(uint8_t idx) const;
     Rect16 getLabelRect(uint8_t idx) const;
+    Rect16 getHorizontalLabelRect(uint8_t idx) const;
+    Rect16 getVerticalLabelRect(uint8_t idx) const;
 
 public:
     /**
