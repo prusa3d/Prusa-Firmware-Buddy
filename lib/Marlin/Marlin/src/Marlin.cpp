@@ -1121,7 +1121,7 @@ void setup() {
 
   #if HAS_TRINAMIC && DISABLED(PS_DEFAULT_OFF)
       test_tmc_connection(true, true, true, true);
-    #endif
+  #endif
 
   #if ENABLED(PRUSA_MMU2)
     mmu2.init();
