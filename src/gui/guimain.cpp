@@ -214,18 +214,6 @@ void gui_run(void) {
     GuiDefaults::FontMenuSpecial = resource_font(IDR_FNT_SPECIAL);
     GuiDefaults::FooterFont = resource_font(IDR_FNT_SPECIAL);
 
-    gui_marlin_vars = marlin_client_init();
-    gui_marlin_vars->media_LFN = gui_media_LFN;
-    gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
-
-    DialogHandler::Access(); // to create class NOW, not at first call of one of callback
-    marlin_client_set_fsm_cb(DialogHandler::Command);
-    marlin_client_set_message_cb(MsgCircleBuffer_cb);
-    marlin_client_set_warning_cb(Warning_cb);
-    marlin_client_set_startup_cb(Startup_cb);
-
-    Sound_Play(eSOUND_TYPE::Start);
-
     gui::knob::RegisterHeldLeftAction(TakeAScreenshot);
     gui::knob::RegisterLongPressScreenAction(DialogMoveZ::Show);
 
@@ -276,6 +264,18 @@ void gui_run(void) {
 #if ENABLED(RESOURCES)
     finish_update();
 #endif
+
+    gui_marlin_vars = marlin_client_init();
+    gui_marlin_vars->media_LFN = gui_media_LFN;
+    gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
+
+    DialogHandler::Access(); // to create class NOW, not at first call of one of callback
+    marlin_client_set_fsm_cb(DialogHandler::Command);
+    marlin_client_set_message_cb(MsgCircleBuffer_cb);
+    marlin_client_set_warning_cb(Warning_cb);
+    marlin_client_set_startup_cb(Startup_cb);
+
+    Sound_Play(eSOUND_TYPE::Start);
 
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, client_gui_refresh);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF, client_gui_refresh);
