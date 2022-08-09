@@ -50,7 +50,8 @@ if __name__ == "__main__":
         'This file is generated automatically so don\'t edit it directly',
         '',
     ]
-    for component in sorted(components, key=lambda c: c.component_name):
+    for component in sorted(components,
+                            key=lambda c: c.component_name + str(c.file_path)):
         component_def_path = component.file_path.relative_to(
             project_root).as_posix()
         doc += [
