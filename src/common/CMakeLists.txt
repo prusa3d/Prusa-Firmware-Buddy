@@ -79,6 +79,7 @@ if(BOARD MATCHES ".*BUDDY")
             wdt.cpp
             z_calibration_fsm.cpp
             Z_probe.cpp
+            tasks.cpp
     )
 endif()
 

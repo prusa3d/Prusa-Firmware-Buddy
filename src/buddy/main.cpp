@@ -29,6 +29,7 @@
 #include "adc.hpp"
 #include "logging.h"
 #include "common/disable_interrupts.h"
+#include "tasks.h"
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -68,6 +69,7 @@ extern "C" void main_cpp(void) {
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
     logging_init();
+    components_init();
 
     hw_gpio_init();
     hw_dma_init();
@@ -240,6 +242,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void StartDefaultTask(void const *argument) {
+    log_info(Buddy, "marlin task waiting for dependecies");
+    wait_for_dependecies(DEFAULT_TASK_DEPS);
     log_info(Buddy, "marlin task is starting");
 
     app_run();
