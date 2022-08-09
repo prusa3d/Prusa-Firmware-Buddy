@@ -4,7 +4,6 @@
 #include "tls/tls.hpp"
 #include "render.hpp"
 #include "socket.hpp"
-#include "crc32.h"
 
 #include <cmsis_os.h>
 #include <log.h>
@@ -64,16 +63,6 @@ namespace {
         }
     }
 
-    uint32_t cfg_crc(configuration_t &config) {
-        uint32_t crc = 0;
-        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(config.host), strlen(config.host));
-        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(config.token), strlen(config.token));
-        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&config.port), sizeof config.port);
-        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&config.tls), sizeof config.tls);
-        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&config.enabled), sizeof config.enabled);
-        return crc;
-    }
-
     enum class Progress {
         Rendering,
         Done,
@@ -99,15 +88,16 @@ namespace {
         }
 
     public:
-        BasicRequest(core_interface &core, const printer_info_t &info, const configuration_t &config, const Action &action)
+        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action)
             : hdrs {
-                { "Fingerprint", info.fingerprint, FINGERPRINT_HDR_SIZE },
+                // Even though the fingerprint is on a temporary, that
+                // pointer is guaranteed to stay stable.
+                { "Fingerprint", printer.printer_info().fingerprint, Printer::PrinterInfo::FINGERPRINT_HDR_SIZE },
                 { "Token", config.token, nullopt },
                 { nullptr, nullptr, nullopt }
             }
             , renderer(RenderState {
-                  info,
-                  core.get_data(),
+                  printer,
                   action,
               })
             , target_url(visit([](const auto &action) { return url(action); }, action)) {}
@@ -244,7 +234,7 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
 }
 
 optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
-    configuration_t config = core.get_connect_config();
+    const auto [config, cfg_changed] = printer.config();
 
     if (!config.enabled) {
         planner.reset();
@@ -267,11 +257,8 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         return nullopt;
     }
 
-    // Make sure to reconnect if the configuration changes (we ignore the
-    // 1:2^32 possibility of collision).
-    const uint32_t cfg_fingerprint = cfg_crc(config);
-    if (cfg_fingerprint != conn_factory.cfg_fingerprint) {
-        conn_factory.cfg_fingerprint = cfg_fingerprint;
+    // Make sure to reconnect if the configuration changes .
+    if (cfg_changed) {
         conn_factory.invalidate();
     }
 
@@ -291,9 +278,11 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         }
     });
 
+    printer.renew();
+
     HttpClient http(conn_factory);
 
-    BasicRequest request(core, printer_info, config, action);
+    BasicRequest request(printer, config, action);
     const auto result = http.send(request);
 
     if (holds_alternative<Error>(result)) {
@@ -387,8 +376,8 @@ void connect::run() {
     }
 }
 
-connect::connect()
-    : printer_info(core.get_printer_info()) {}
+connect::connect(Printer &printer)
+    : printer(printer) {}
 
 OnlineStatus last_status() {
     return last_known_status;

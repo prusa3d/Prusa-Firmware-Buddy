@@ -12,7 +12,7 @@
 #include "wui.h"
 #include "SteelSheets.hpp"
 #ifdef BUDDY_ENABLE_CONNECT
-    #include <core_interface.hpp> // From connect. TODO: Better name!
+    #include <Connect/marlin_printer.hpp>
 #endif
 /*****************************************************************************/
 
@@ -31,7 +31,7 @@ public:
 
         // FIXME: Error handling
 #ifdef BUDDY_ENABLE_CONNECT
-        con::load_config_from_ini();
+        con::MarlinPriter::load_cfg_from_ini();
 #endif
     }
 };

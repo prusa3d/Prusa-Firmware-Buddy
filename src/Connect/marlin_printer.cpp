@@ -1,22 +1,16 @@
-#include "core_interface.hpp"
-#include <cstring>
-#include <otp.h>
-#include <ini.h>
-#include "version.h"
-#include "support_utils.h"
-#include <ini.h>
+#include "marlin_printer.hpp"
+
 #include <eeprom.h>
-#include <printers.h>
+#include <ini.h>
+#include <version.h>
+#include <support_utils.h>
+#include <otp.h>
 #include <odometer.hpp>
 
 #include <cstdlib>
+#include <cstring>
 #include <cctype>
-#include <cassert>
-#include <string_view>
 #include <mbedtls/sha256.h>
-
-using std::string_view;
-using std::variant;
 
 namespace con {
 
@@ -37,7 +31,7 @@ namespace {
             return 0;
         }
 
-        configuration_t *config = reinterpret_cast<configuration_t *>(user);
+        auto *config = reinterpret_cast<Printer::Config *>(user);
         size_t len = strlen(value);
 
         if (ini_string_match(section, INI_SECTION, name, "hostname")) {
@@ -77,7 +71,7 @@ namespace {
     // number. We err on the side of accepting something that's not valid SN, we
     // just want to make sure to have something somewhat usable come out of the dev
     // board.
-    static bool serial_valid(const char *sn) {
+    bool serial_valid(const char *sn) {
         for (const char *c = sn; *c; c++) {
             if (!isalnum(*c)) {
                 return false;
@@ -87,9 +81,9 @@ namespace {
     }
 
     // "Make up" some semi-unique, semi-stable serial number.
-    static uint8_t synthetic_serial(char sn[SER_NUM_BUFR_LEN]) {
-        memset(sn, 0, SER_NUM_BUFR_LEN);
-        strlcpy(sn, "DEVX", SER_NUM_BUFR_LEN);
+    uint8_t synthetic_serial(char sn[Printer::PrinterInfo::SER_NUM_BUFR_LEN]) {
+        memset(sn, 0, Printer::PrinterInfo::SER_NUM_BUFR_LEN);
+        strlcpy(sn, "DEVX", Printer::PrinterInfo::SER_NUM_BUFR_LEN);
         // Make sure different things generated based on these data produce different hashes.
         static const char salt[] = "Nj20je98gje";
         mbedtls_sha256_context ctx;
@@ -112,7 +106,7 @@ namespace {
         return 20;
     }
 
-    DeviceState to_device_state(marlin_print_state_t state, bool prepared) {
+    Printer::DeviceState to_device_state(marlin_print_state_t state, bool prepared) {
         switch (state) {
         case mpsIdle:
         case mspPrintPreviewInit:
@@ -120,9 +114,9 @@ namespace {
         case mspPrintInit:
         case mpsAborted:
             if (prepared) {
-                return DeviceState::Prepared;
+                return Printer::DeviceState::Prepared;
             } else {
-                return DeviceState::Idle;
+                return Printer::DeviceState::Idle;
             }
         case mpsPrinting:
         case mpsAborting_Begin:
@@ -130,7 +124,7 @@ namespace {
         case mpsAborting_ParkHead:
         case mpsFinishing_WaitIdle:
         case mpsFinishing_ParkHead:
-            return DeviceState::Printing;
+            return Printer::DeviceState::Printing;
         case mpsPausing_Begin:
         case mpsPausing_WaitIdle:
         case mpsPausing_ParkHead:
@@ -141,12 +135,12 @@ namespace {
         case mpsPausing_Failed_Code:
         case mpsResuming_UnparkHead_XY:
         case mpsResuming_UnparkHead_ZE:
-            return DeviceState::Paused;
+            return Printer::DeviceState::Paused;
         case mpsFinished:
             if (prepared) {
-                return DeviceState::Prepared;
+                return Printer::DeviceState::Prepared;
             } else {
-                return DeviceState::Finished;
+                return Printer::DeviceState::Finished;
             }
 
             // TODO define DeviceState::PowerPanic and DeviceState::CrashRecovery
@@ -160,70 +154,39 @@ namespace {
         case mpsPowerPanic_AwaitingResume: // this one could be in DeviceState::Paused section
         case mpsPowerPanic_acFault:
         case mpsPowerPanic_Resume:
-            return DeviceState::Unknown;
+            return Printer::DeviceState::Unknown;
         }
-        return DeviceState::Unknown;
+        return Printer::DeviceState::Unknown;
+    }
+
+    // Extract a fixed-sized string from EEPROM to provided buffer.
+    //
+    // maxlen is the length of the buffer, including the byte for \0.
+    //
+    // FIXME: Unify with the one in wui_api.c
+    void strextract(char *into, size_t maxlen, enum eevar_id var) {
+        variant8_t tmp = eeprom_get_var(var);
+        strlcpy(into, variant8_get_pch(tmp), maxlen);
+        variant8_t *ptmp = &tmp;
+        variant8_done(&ptmp);
     }
 }
 
-device_params_t core_interface::get_data() {
-    device_params_t params;
-    memset(&params, 0, sizeof params);
-
-    if (marlin_vars) {
-        marlin_update_vars(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
-        // FIXME: The DeviceState::Prepared is some kind of stub with the
-        // intent lost in past changes. Clearly, this is always false with the
-        // newly created params, but there might have been some originating
-        // idea where it worked differently.
-        params.state = to_device_state(marlin_vars->print_state, params.state == DeviceState::Prepared);
-        params.temp_bed = marlin_vars->temp_bed;
-        params.target_bed = marlin_vars->target_bed;
-        params.temp_nozzle = marlin_vars->temp_nozzle;
-        params.target_nozzle = marlin_vars->target_nozzle;
-        params.pos[X_AXIS_POS] = marlin_vars->pos[X_AXIS_POS];
-        params.pos[Y_AXIS_POS] = marlin_vars->pos[Y_AXIS_POS];
-        params.pos[Z_AXIS_POS] = marlin_vars->pos[Z_AXIS_POS];
-        params.print_speed = marlin_vars->print_speed;
-        params.flow_factor = marlin_vars->flow_factor;
-        params.job_id = marlin_vars->job_id;
-        params.job_path = marlin_vars->media_SFN_path;
-        params.print_fan_rpm = marlin_vars->print_fan_rpm;
-        params.heatbreak_fan_rpm = marlin_vars->heatbreak_fan_rpm;
-        params.print_duration = marlin_vars->print_duration;
-        params.time_to_end = marlin_vars->time_to_end;
-        params.progress_percent = marlin_vars->sd_percent_done;
-        params.filament_used = Odometer_s::instance().get(Odometer_s::axis_t::E);
-    }
-
-    return params;
-}
-
-core_interface::core_interface() {
+MarlinPriter::MarlinPriter() {
     marlin_vars = marlin_client_init();
+    assert(marlin_vars != nullptr);
+    static char SFN_path[FILE_PATH_BUFFER_LEN];
+    marlin_vars->media_SFN_path = SFN_path;
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
-    if (marlin_vars) {
-        /*
-         * Note: We currently have only a single marlin client for
-         * connect, we can use a single buffer.
-         */
-        static char SFN_path[FILE_PATH_BUFFER_LEN];
-        marlin_vars->media_SFN_path = SFN_path;
-    }
-}
 
-printer_info_t core_interface::get_printer_info() {
-    printer_info_t info = {};
-    size_t len = strlen(project_version_full);
-    (void)len;
-    assert(len < FW_VER_BUFR_LEN);
-    strlcpy(info.firmware_version, project_version_full, FW_VER_BUFR_LEN);
+    info.firmware_version = project_version_full;
+    info.appendix = appendix_exist();
 
     memcpy(info.serial_number, "CZPX", 4);
     for (int i = 0; i < OTP_SERIAL_NUMBER_SIZE; i++) {
         info.serial_number[i + 4] = *(volatile char *)(OTP_SERIAL_NUMBER_ADDR + i);
     }
-    info.serial_number[SER_NUM_STR_LEN] = 0;
+    info.serial_number[sizeof(info.serial_number) - 1] = 0;
 
     if (!serial_valid(info.serial_number)) {
         synthetic_serial(info.serial_number);
@@ -233,23 +196,38 @@ printer_info_t core_interface::get_printer_info() {
     info.fingerprint[sizeof(info.fingerprint) - 1] = '\0';
 
     info.appendix = appendix_exist();
-    return info;
 }
 
-// Extract a fixed-sized string from EEPROM to provided buffer.
-//
-// maxlen is the length of the buffer, including the byte for \0.
-//
-// FIXME: Unify with the one in wui_api.c
-static void strextract(char *into, size_t maxlen, enum eevar_id var) {
-    variant8_t tmp = eeprom_get_var(var);
-    strlcpy(into, variant8_get_pch(tmp), maxlen);
-    variant8_t *ptmp = &tmp;
-    variant8_done(&ptmp);
+void MarlinPriter::renew() {
+    marlin_update_vars(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
 }
 
-configuration_t core_interface::get_connect_config() {
-    configuration_t configuration = {};
+Printer::Params MarlinPriter::params() const {
+    Params params = {};
+    params.state = to_device_state(marlin_vars->print_state, params.state == DeviceState::Prepared);
+    params.temp_bed = marlin_vars->temp_bed;
+    params.target_bed = marlin_vars->target_bed;
+    params.temp_nozzle = marlin_vars->temp_nozzle;
+    params.target_nozzle = marlin_vars->target_nozzle;
+    params.pos[X_AXIS_POS] = marlin_vars->pos[X_AXIS_POS];
+    params.pos[Y_AXIS_POS] = marlin_vars->pos[Y_AXIS_POS];
+    params.pos[Z_AXIS_POS] = marlin_vars->pos[Z_AXIS_POS];
+    params.print_speed = marlin_vars->print_speed;
+    params.flow_factor = marlin_vars->flow_factor;
+    params.job_id = marlin_vars->job_id;
+    params.job_path = marlin_vars->media_SFN_path;
+    params.print_fan_rpm = marlin_vars->print_fan_rpm;
+    params.heatbreak_fan_rpm = marlin_vars->heatbreak_fan_rpm;
+    params.print_duration = marlin_vars->print_duration;
+    params.time_to_end = marlin_vars->time_to_end;
+    params.progress_percent = marlin_vars->sd_percent_done;
+    params.filament_used = Odometer_s::instance().get(Odometer_s::axis_t::E);
+
+    return params;
+}
+
+Printer::Config MarlinPriter::load_config() {
+    Config configuration = {};
     configuration.enabled = eeprom_get_bool(EEVAR_CONNECT_ENABLED);
     if (configuration.enabled) {
         // Just avoiding to read it when disabled, only to save some CPU
@@ -262,8 +240,8 @@ configuration_t core_interface::get_connect_config() {
     return configuration;
 }
 
-bool load_config_from_ini() {
-    configuration_t config = {};
+bool MarlinPriter::load_cfg_from_ini() {
+    Config config;
     bool ok = ini_parse("/usb/prusa_printer_settings.ini", connect_ini_handler, &config) == 0;
     if (ok) {
         if (config.port == 0) {

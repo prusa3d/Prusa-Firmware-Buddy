@@ -12,32 +12,32 @@ namespace con {
 
 namespace {
 
-    const char *to_str(DeviceState state) {
+    const char *to_str(Printer::DeviceState state) {
         switch (state) {
-        case DeviceState::Idle:
+        case Printer::DeviceState::Idle:
             return "IDLE";
-        case DeviceState::Printing:
+        case Printer::DeviceState::Printing:
             return "PRINTING";
-        case DeviceState::Paused:
+        case Printer::DeviceState::Paused:
             return "PAUSED";
-        case DeviceState::Finished:
+        case Printer::DeviceState::Finished:
             return "FINISHED";
-        case DeviceState::Prepared:
+        case Printer::DeviceState::Prepared:
             return "PREPARED";
-        case DeviceState::Error:
+        case Printer::DeviceState::Error:
             return "ERROR";
-        case DeviceState::Unknown:
+        case Printer::DeviceState::Unknown:
         default:
             return "UNKNOWN";
         }
     }
 
-    bool is_printing(DeviceState state) {
-        return state == DeviceState::Printing || state == DeviceState::Paused;
+    bool is_printing(Printer::DeviceState state) {
+        return state == Printer::DeviceState::Printing || state == Printer::DeviceState::Paused;
     }
 
     JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const SendTelemetry &telemetry) {
-        const auto &params = state.params;
+        const auto params = state.printer.params();
         const bool printing = is_printing(params.state);
         // Keep the indentation of the JSON in here!
         // clang-format off
@@ -50,10 +50,10 @@ namespace {
                 JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
                 if (!printing) {
                     // To avoid spamming the DB, connect doesn't want positions during printing
-                    JSON_FIELD_FFIXED("axis_x", params.pos[X_AXIS_POS], 2) JSON_COMMA;
-                    JSON_FIELD_FFIXED("axis_y", params.pos[Y_AXIS_POS], 2) JSON_COMMA;
+                    JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
+                    JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
                 }
-                JSON_FIELD_FFIXED("axis_z", params.pos[Z_AXIS_POS], 2) JSON_COMMA;
+                JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
                 if (printing) {
                     JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
                     JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
@@ -73,8 +73,8 @@ namespace {
     }
 
     JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const Event &event) {
-        const auto &params = state.params;
-        const auto &info = state.info;
+        const auto params = state.printer.params();
+        const auto &info = state.printer.printer_info();
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         const bool printing = is_printing(params.state);
 

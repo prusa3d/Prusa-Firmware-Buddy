@@ -14,8 +14,8 @@ namespace {
 constexpr const char *const print_file = "/usb/box.gco";
 constexpr const char *const rejected_event = "{\"command_id\":11,\"event\":\"REJECTED\"}";
 
-constexpr device_params_t params_printing() {
-    device_params_t params {};
+constexpr Printer::Params params_printing() {
+    Printer::Params params {};
 
     params.job_id = 42;
     params.progress_percent = 12;
@@ -24,37 +24,48 @@ constexpr device_params_t params_printing() {
     params.temp_nozzle = 200;
     params.target_bed = 70;
     params.target_nozzle = 195;
-    params.state = DeviceState::Printing;
+    params.state = Printer::DeviceState::Printing;
 
     return params;
 };
 
-constexpr device_params_t params_idle() {
-    device_params_t params {};
+constexpr Printer::Params params_idle() {
+    Printer::Params params {};
 
     params.job_id = 13;
-    params.state = DeviceState::Idle;
+    params.state = Printer::DeviceState::Idle;
 
     return params;
 }
 
-constexpr printer_info_t printer_info() {
-    printer_info_t info {};
+class MockPrinter final : public Printer {
+private:
+    const Params &p;
 
-    info.appendix = false;
-    strcpy(info.fingerprint, "DEADBEEF");
-    strcpy(info.firmware_version, "TST-1234");
-    strcpy(info.serial_number, "FAKE-1234");
+public:
+    MockPrinter(const Params &params)
+        : p(params) {
+        info.appendix = false;
+        strcpy(info.fingerprint, "DEADBEEF");
+        info.firmware_version = "TST-1234";
+        strcpy(info.serial_number, "FAKE-1234");
+    }
 
-    return info;
-}
+    virtual void renew() override {}
+    virtual Config load_config() override {
+        return Config();
+    }
+
+    virtual Params params() const override {
+        return p;
+    }
+};
 
 }
 
 TEST_CASE("Render") {
     string_view expected;
-    printer_info_t info = printer_info();
-    device_params_t params {};
+    Printer::Params params {};
     Action action;
 
     SECTION("Telemetry - empty") {
@@ -171,9 +182,9 @@ TEST_CASE("Render") {
         // clang-format on
     }
 
+    MockPrinter printer(params);
     RenderState state {
-        info,
-        params,
+        printer,
         action,
     };
     Renderer renderer(std::move(state));
