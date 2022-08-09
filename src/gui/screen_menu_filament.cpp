@@ -21,7 +21,6 @@ public:
     constexpr static const char *label = N_("FILAMENT");
     ScreenMenuFilament()
         : Screen(_(label)) {
-        Screen::ClrMenuTimeoutClose(); // don't close on menu timeout
         deactivate_item();
     }
 
