@@ -7,7 +7,7 @@
 #include "buffered_serial.hpp"
 #include "bsod.h"
 #ifdef BUDDY_ENABLE_CONNECT
-    #include "connect.hpp"
+    #include "Connect/run.hpp"
 #endif
 
 #include "sys.h"
@@ -263,12 +263,7 @@ void StartDisplayTask(void const *argument) {
 
 #ifdef BUDDY_ENABLE_CONNECT
 void StartConnectTask(void const *argument) {
-    con::connect client;
-    client.run();
-    /* Infinite loop */
-    for (;;) {
-        osDelay(1);
-    }
+    con::run();
 }
 #endif
 

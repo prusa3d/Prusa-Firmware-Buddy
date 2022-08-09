@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core_interface.hpp"
+#include "printer.hpp"
 #include "planner.hpp"
 
 #include <segmented_json.h>
@@ -8,9 +8,7 @@
 namespace con {
 
 struct RenderState {
-    // TODO: These structs feel a bit awkward. We are shuffling stuff from marlin_vars for no apparent reason?
-    const printer_info_t &info;
-    device_params_t params;
+    const Printer &printer;
     const Action &action;
 };
 

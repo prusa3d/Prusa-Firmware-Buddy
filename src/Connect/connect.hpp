@@ -1,9 +1,8 @@
 #pragma once
 
-#include <stdint.h>
 #include "httpc.hpp"
 #include "planner.hpp"
-#include "core_interface.hpp"
+#include "printer.hpp"
 
 namespace con {
 
@@ -35,8 +34,7 @@ private:
     class CachedFactory;
 
     Planner planner;
-    core_interface core; // interface to core functionalities (marlin, network, etc.)
-    printer_info_t printer_info;
+    Printer &printer;
 
     using ServerResp = std::variant<std::monostate, Command, Error>;
 
@@ -45,8 +43,8 @@ private:
     ServerResp handle_server_resp(Response response);
 
 public:
-    connect();
-    void run(void);
+    connect(Printer &printer);
+    void run(void) __attribute__((noreturn));
 };
 
 }
