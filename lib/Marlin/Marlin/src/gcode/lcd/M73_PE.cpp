@@ -78,27 +78,40 @@ oTime2Pause.mInit();
 #if ENABLED(M73_PRUSA)
 void GcodeSuite::M73_PE()
 {
+std::optional<uint8_t> P = std::nullopt;
+std::optional<uint32_t> R = std::nullopt;
+std::optional<uint32_t> T = std::nullopt;
+if (parser.seen('P')) P = parser.value_byte();
+if (parser.seen('R')) R = parser.value_ulong()*60;
+if (parser.seen('T')) T = parser.value_ulong()*60;
+
+M73_PE_no_parser(P, R, T);
+}
+
+void M73_PE_no_parser(std::optional<uint8_t> P, std::optional<uint32_t> R, std::optional<uint32_t> T)
+{
 uint32_t nTimeNow;
 uint8_t nValue;
 
 //ui.set_progress_time(...);
 nTimeNow=print_job_timer.duration();              // !!! [s]
-if(parser.seen('P'))
+if(P)
      {
-     nValue=parser.value_byte();
-	 if(parser.seen('R'))
+     nValue=*P;
+	 if(R)
 	      {
           oProgressData.oPercentDone.mSetValue((uint32_t)nValue,nTimeNow);
-          oProgressData.oTime2End.mSetValue((uint32_t)(parser.value_ulong()*60),nTimeNow); // [min] -> [s]
+          oProgressData.oTime2End.mSetValue((uint32_t)((*R)*60),nTimeNow); // [min] -> [s]
 	      }
 	 else {
           oProgressData.oPercentDirectControl.mSetValue((uint32_t)nValue,nTimeNow);
           }
      }
 
-if(parser.seen('T'))
+if(T)
      {
-     oProgressData.oTime2Pause.mSetValue((uint32_t)(parser.value_ulong()*60),nTimeNow); // [min] -> [s]
+     oProgressData.oTime2Pause.mSetValue((uint32_t)((*T)*60),nTimeNow); // [min] -> [s]
      }
 }
+
 #endif
