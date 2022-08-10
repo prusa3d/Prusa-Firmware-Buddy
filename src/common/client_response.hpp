@@ -140,6 +140,22 @@ enum class PhasesSelftest : uint16_t {
     Heaters = _first_Heaters,
     _last_Heaters = Heaters,
 
+    _first_FirstLayer,
+    FirstLayer_mbl = _first_FirstLayer,
+    FirstLayer_print,
+    _last_FirstLayer = FirstLayer_print,
+
+    _first_FirstLayerQuestions,
+    FirstLayer_filament_known_and_not_unsensed = _first_FirstLayerQuestions,
+    FirstLayer_filament_not_known_or_unsensed,
+    FirstLayer_calib,
+    FirstLayer_use_val,
+    FirstLayer_start_print,
+    FirstLayer_reprint,
+    FirstLayer_clean_sheet,
+    FirstLayer_failed,
+    _last_FirstLayerQuestions = FirstLayer_failed,
+
     _first_Result,
     Result = _first_Result,
     _last_Result = Result,
@@ -237,7 +253,8 @@ enum class SelftestParts {
     Axis,
     Fans,
     Heaters,
-    //FirstLayer,
+    FirstLayer,
+    FirstLayerQuestions,
     Result,
     WizardEpilogue,
     _none, //cannot be created, must have same index as _count
@@ -260,6 +277,10 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
         return PhasesSelftest::_first_Fans;
     case SelftestParts::Heaters:
         return PhasesSelftest::_first_Heaters;
+    case SelftestParts::FirstLayer:
+        return PhasesSelftest::_first_FirstLayer;
+    case SelftestParts::FirstLayerQuestions:
+        return PhasesSelftest::_first_FirstLayerQuestions;
     case SelftestParts::Result:
         return PhasesSelftest::_first_Result;
     case SelftestParts::WizardEpilogue:
@@ -286,6 +307,10 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_Fans;
     case SelftestParts::Heaters:
         return PhasesSelftest::_last_Heaters;
+    case SelftestParts::FirstLayer:
+        return PhasesSelftest::_last_FirstLayer;
+    case SelftestParts::FirstLayerQuestions:
+        return PhasesSelftest::_last_FirstLayerQuestions;
     case SelftestParts::Result:
         return PhasesSelftest::_last_Result;
     case SelftestParts::WizardEpilogue:

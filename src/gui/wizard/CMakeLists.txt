@@ -7,6 +7,8 @@ target_sources(
           selftest_frame_esp_progress.cpp
           selftest_frame_esp_qr.cpp
           selftest_frame_fans.cpp
+          selftest_frame_firstlayer.cpp
+          selftest_frame_firstlayer_questions.cpp
           selftest_frame_result.cpp
           selftest_frame_temp.cpp
           selftest_frame_wizard_epilogue.cpp

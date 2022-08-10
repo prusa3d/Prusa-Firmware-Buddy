@@ -3,10 +3,8 @@
 #include "i_selftest.hpp"
 #include <fcntl.h>
 #include <unistd.h>
-#include "selftest_fan.h"
-#include "selftest_axis.h"
-#include "selftest_heater.h"
 #include "stdarg.h"
+#include "log.h"
 #include "app.h"
 #include "otp.h"
 #include "hwio.h"

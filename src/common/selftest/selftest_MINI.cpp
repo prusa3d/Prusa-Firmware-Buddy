@@ -6,6 +6,7 @@
 #include "selftest_fan.h"
 #include "selftest_axis.h"
 #include "selftest_heater.h"
+#include "selftest_firstlayer.hpp"
 #include "stdarg.h"
 #include "app.h"
 #include "otp.h"
@@ -22,6 +23,7 @@
 #include "selftest_fans_interface.hpp"
 #include "selftest_axis_interface.hpp"
 #include "selftest_netstatus_interface.hpp"
+#include "selftest_firstlayer_interface.hpp"
 #include "selftest_axis_config.hpp"
 #include "selftest_heater_config.hpp"
 #include "fanctl.h"
@@ -86,6 +88,8 @@ static const FanConfig_t Config_PrintFan_fine = { .partname = "Print fan fine", 
 
 static const FanConfig_t Config_HeatBreakFan_fine = { .partname = "Heatbreak fan fine", .fanctl = fanCtlHeatBreak, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
 
+static const FirstLayerConfig_t Config_FirstLayer = { .partname = "First Layer" };
+
 CSelftest::CSelftest()
     : m_State(stsIdle)
     , m_Mask(stmNone)
@@ -95,7 +99,8 @@ CSelftest::CSelftest()
     , pYAxis(nullptr)
     , pZAxis(nullptr)
     , pNozzle(nullptr)
-    , pBed(nullptr) {
+    , pBed(nullptr)
+    , pFirstLayer(nullptr) {
 }
 
 bool CSelftest::IsInProgress() const {
@@ -234,6 +239,10 @@ void CSelftest::Loop() {
     case stsShow_result:
         phaseShowResult();
         break;
+    case stsFirstLayer:
+        if (selftest::phaseFirstLayer(pFirstLayer, Config_FirstLayer))
+            return;
+        break;
     case stsResult_wait_user:
         if (phaseWaitUser(PhasesSelftest::Result))
             return;
@@ -306,6 +315,10 @@ bool CSelftest::Abort() {
     abort_part((selftest::IPartHandler **)&pXAxis);
     abort_part((selftest::IPartHandler **)&pYAxis);
     abort_part((selftest::IPartHandler **)&pZAxis);
+    abort_part((selftest::IPartHandler **)&pNozzle);
+    abort_part((selftest::IPartHandler **)&pBed);
+    abort_part((selftest::IPartHandler **)&pFirstLayer);
+
     m_State = stsAborted;
 
     phaseFinish();
