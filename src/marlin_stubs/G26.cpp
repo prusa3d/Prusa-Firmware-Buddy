@@ -1,9 +1,12 @@
 #include <algorithm>
 
 #include "../../lib/Marlin/Marlin/src/module/temperature.h"
+#include "../../lib/Marlin/Marlin/src/gcode/lcd/M73_PE.h"
+#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "marlin_server.hpp"
 #include "client_fsm_types.h"
 #include "PrusaGcodeSuite.hpp"
+#include "filament.hpp"
 #include "G26.hpp"
 #include "cmath_ext.h"
 
@@ -175,7 +178,10 @@ static const constexpr float snake2[] = {
     10,
 };
 
+// static variables
 bool FirstLayer::isPrinting_ = false;
+uint32_t FirstLayer::finished_n_times = 0;
+uint32_t FirstLayer::mbl_made_n_times = 0;
 
 void FirstLayer::finish_printing() {
     current_line = 1;
@@ -330,9 +336,48 @@ void FirstLayer::print_shape_2() {
 }
 
 void PrusaGcodeSuite::G26() {
-    if (all_axes_known()) { /// checks if axes are calibrated (homed) before
-        FirstLayer fl;
-        //fl.print_shape_1();
-        fl.print_shape_2();
+    // is filament selected
+    if (Filaments::Current().response == Response::Cooldown) {
+        return;
     }
+
+    FirstLayer fl;
+
+    const int temp_nozzle_preheat = Filaments::Current().nozzle_preheat;
+    const int temp_nozzle = Filaments::Current().nozzle;
+    const int temp_bed = Filaments::Current().heatbed;
+
+    // reset progress
+    set_var_sd_percent_done(0);
+
+    // nozzle temperature preheat
+    thermalManager.setTargetHotend(temp_nozzle_preheat, 0);
+    marlin_server_set_temp_to_display(temp_nozzle);
+
+    // bed temperature
+    thermalManager.setTargetBed(temp_bed);
+
+    // wait temperatures
+    thermalManager.wait_for_hotend(0, false);
+    thermalManager.wait_for_bed(false);
+
+    GcodeSuite::G28_no_parser();     // autohome
+    GcodeSuite::G29_parameterless(); // mbl
+
+    FirstLayer::IncHowManyTimesMadeMBL();
+
+    // nozzle temperature print
+    thermalManager.setTargetHotend(temp_nozzle, 0);
+    marlin_server_set_temp_to_display(temp_nozzle);
+    thermalManager.wait_for_hotend(0, false);
+
+    //fl.print_shape_1();
+    fl.print_shape_2();
+
+    // nozzle temperature 0
+    thermalManager.setTargetHotend(0, 0);
+    marlin_server_set_temp_to_display(0);
+
+    // bed temperature 0
+    thermalManager.setTargetBed(0);
 }

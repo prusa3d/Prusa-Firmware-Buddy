@@ -28,11 +28,6 @@ using SerialPrint = screen_printing_serial_data_t;
 using SerialPrint = ScreenDialogDoesNotExist;
 #endif
 
-// TODO add firstlayer support
-// first layer removed from private repo
-#include "screen_dialog_does_not_exist.hpp"
-using FirstLayer = ScreenDialogDoesNotExist;
-
 static void OpenPrintScreen(ClientFSM dialog) {
     switch (dialog) {
     case ClientFSM::Serial_printing:
@@ -42,9 +37,6 @@ static void OpenPrintScreen(ClientFSM dialog) {
     case ClientFSM::Printing:
         Screens::Access()->CloseAll();
         Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
-        return;
-    case ClientFSM::FirstLayer: //do not close screens
-        Screens::Access()->Open(ScreenFactory::Screen<FirstLayer>);
         return;
     default:
         return;
@@ -66,7 +58,6 @@ void DialogHandler::open(fsm::create_t o) {
     switch (dialog) {
     case ClientFSM::Serial_printing:
     case ClientFSM::Printing:
-    case ClientFSM::FirstLayer:
         if (IScreenPrinting::GetInstance() == nullptr) {
             OpenPrintScreen(dialog);
         } else {
@@ -112,7 +103,6 @@ void DialogHandler::close(fsm::destroy_t o) {
         case ClientFSM::Serial_printing:
             Screens::Access()->CloseAll();
             break;
-        case ClientFSM::FirstLayer:
         case ClientFSM::PrintPreview:
         case ClientFSM::CrashRecovery:
         case ClientFSM::Selftest:
