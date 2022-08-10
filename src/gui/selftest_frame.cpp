@@ -30,9 +30,9 @@ void SelftestFrame::Change(PhasesSelftest ph, fsm::PhaseData data) {
 
 /*****************************************************************************/
 //SelftestFrameWithRadio
-SelftestFrameWithRadio::SelftestFrameWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
+SelftestFrameWithRadio::SelftestFrameWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, size_t lines_of_footer)
     : AddSuperWindow<SelftestFrame>(parent, ph, data)
-    , radio(this, GuiDefaults::GuiDefaults::GetButtonRect(GetRect()), ClientResponses::GetResponses(ph)) {
+    , radio(this, WizardDefaults::RectRadioButton(lines_of_footer), ClientResponses::GetResponses(ph)) {
     Enable();
 }
 
@@ -70,9 +70,9 @@ SelftestFrameNamed::SelftestFrameNamed(window_t *parent, PhasesSelftest ph, fsm:
 
 /*****************************************************************************/
 //SelftestFrameNamedWithRadio
-SelftestFrameNamedWithRadio::SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name)
+SelftestFrameNamedWithRadio::SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name, size_t lines_of_footer)
     : AddSuperWindow<SelftestFrameNamed>(parent, ph, data, name)
-    , radio(this, WizardDefaults::RectRadioButton, ClientResponses::GetResponses(ph)) {
+    , radio(this, WizardDefaults::RectRadioButton(lines_of_footer), ClientResponses::GetResponses(ph)) {
     Enable();
 }
 
