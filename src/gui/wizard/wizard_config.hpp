@@ -38,5 +38,7 @@ static constexpr size_t progress_LR_margin = progress_LR_extra_margin + MarginLe
 static constexpr size_t progress_width = X_space - 2 * progress_LR_extra_margin;
 static constexpr Rect16 RectSelftestFrame = GuiDefaults::RectScreenNoHeader; // must have full width because of footer
 static constexpr Rect16 RectSelftestName = Rect16(MarginLeft, row_0, X_space, txt_h);
-static constexpr Rect16 RectRadioButton = GuiDefaults::GetButtonRect_AvoidFooter(RectSelftestFrame);
+static constexpr Rect16 RectRadioButton(size_t lines_of_footer) {
+    return GuiDefaults::GetButtonRect(RectSelftestFrame) - (lines_of_footer == 0 ? Rect16::Top_t(0) : Rect16::Top_t(GuiDefaults::FooterItemHeight * lines_of_footer + (lines_of_footer - 1) * GuiDefaults::FooterLinesSpace + GuiDefaults::FooterPadding.top + GuiDefaults::FooterPadding.bottom));
+}
 };
