@@ -61,31 +61,52 @@ const PhaseResponses ClientResponses::CrashRecoveryResponses[CountPhases<PhasesC
 };
 
 const PhaseResponses ClientResponses::SelftestResponses[CountPhases<PhasesSelftest>()] = {
-    {},                                                         //_none == _first
-    { Response::Continue, Response::Cancel, Response::Ignore }, //WizardPrologue_ask_run
-    { Response::Continue, Response::Cancel },                   //WizardPrologue_info
-    { Response::Continue, Response::Cancel },                   //WizardPrologue_info_detailed
-    { Response::Continue, Response::Abort },                    // ESP_instructions
-    { Response::Continue, Response::Skip },                     // ESP_USB_not_inserted
-    { Response::Continue, Response::Skip },                     // ESP_ask_gen
-    { Response::Continue, Response::Skip },                     // ESP_ask_gen_overwrite
-    { Response::Continue, Response::Skip },                     // ESP_makefile_failed
-    { Response::Continue },                                     // ESP_eject_USB
-    { Response::Continue, Response::Abort },                    // ESP_insert_USB
-    { Response::Retry, Response::Abort },                       // ESP_invalid
-    { Response::Abort },                                        // ESP_uploading_config
-    { Response::Continue },                                     // ESP_enabling_WIFI
-    { Response::Continue },                                     // ESP_uploaded
-    { Response::Continue, Response::Abort },                    // ESP_progress_info
-    { Response::Abort },                                        // ESP_progress_upload
-    { Response::Continue },                                     // ESP_progress_passed
-    { Response::Continue },                                     // ESP_progress_failed
-    { Response::Continue, Response::Abort },                    // ESP_qr_instructions_flash
-    { Response::Continue, Response::Abort },                    // ESP_qr_instructions
-    {},                                                         //Fans
-    {},                                                         //Axis
-    {},                                                         //Heaters
-    { Response::Next },                                         //Result
-    { Response::Continue },                                     //WizardEpilogue_ok
-    { Response::Continue },                                     //WizardEpilogue_nok == _last
+    {}, // _none == _first
+
+    { Response::Continue, Response::Cancel, Response::Ignore }, // WizardPrologue_ask_run
+    { Response::Continue, Response::Cancel },                   // WizardPrologue_info
+    { Response::Continue, Response::Cancel },                   // WizardPrologue_info_detailed
+
+    { Response::Continue, Response::Abort }, // ESP_instructions
+    { Response::Continue, Response::Skip },  // ESP_USB_not_inserted
+    { Response::Continue, Response::Skip },  // ESP_ask_gen
+    { Response::Continue, Response::Skip },  // ESP_ask_gen_overwrite
+    { Response::Continue, Response::Skip },  // ESP_makefile_failed
+    { Response::Continue },                  // ESP_eject_USB
+    { Response::Continue, Response::Abort }, // ESP_insert_USB
+    { Response::Retry, Response::Abort },    // ESP_invalid
+    { Response::Abort },                     // ESP_uploading_config
+    { Response::Continue },                  // ESP_enabling_WIFI
+    { Response::Continue },                  // ESP_uploaded
+
+    { Response::Continue, Response::Abort }, // ESP_progress_info
+    { Response::Abort },                     // ESP_progress_upload
+    { Response::Continue },                  // ESP_progress_passed
+    { Response::Continue },                  // ESP_progress_failed
+
+    { Response::Continue, Response::Abort }, // ESP_qr_instructions_flash
+    { Response::Continue, Response::Abort }, // ESP_qr_instructions
+
+    {}, // Fans
+
+    {}, // Axis
+
+    {}, // Heaters
+
+    {}, // FirstLayer_mbl
+    {}, // FirstLayer_print
+
+    { Response::Next, Response::Unload },                 // FirstLayer_filament_known_and_not_unsensed = _first_FirstLayerQuestions
+    { Response::Next, Response::Load, Response::Unload }, // FirstLayer_filament_not_known_or_unsensed
+    { Response::Next },                                   // FirstLayer_calib
+    { Response::Yes, Response::No },                      // FirstLayer_use_val
+    { Response::Next },                                   // FirstLayer_start_print
+    { Response::Yes, Response::No },                      // FirstLayer_reprint
+    { Response::Next },                                   // FirstLayer_clean_sheet
+    { Response::Next },                                   // FirstLayer_failed
+
+    { Response::Next }, // Result
+
+    { Response::Continue }, // WizardEpilogue_ok
+    { Response::Continue }, // WizardEpilogue_nok
 };

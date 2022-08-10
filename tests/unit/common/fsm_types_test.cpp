@@ -401,7 +401,7 @@ TEST_CASE("fsm::SmartQueue", "[fsm]") {
 
         //insertion of 3rd level must fail
         const uint8_t data3 = 0xA0;
-        q.PushCreate(ClientFSM::SelftestFans, data3);
+        q.PushCreate(ClientFSM::CrashRecovery, data3);
         REQUIRE(q.GetCount() == 4);
 
         front = q.Front(); //destroy

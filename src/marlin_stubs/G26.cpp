@@ -1,9 +1,11 @@
 #include <algorithm>
 
 #include "../../lib/Marlin/Marlin/src/module/temperature.h"
+#include "../../lib/Marlin/Marlin/src/gcode/lcd/M73_PE.h"
+#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "marlin_server.hpp"
-#include "client_fsm_types.h"
 #include "PrusaGcodeSuite.hpp"
+#include "filament.hpp"
 #include "G26.hpp"
 #include "cmath_ext.h"
 
@@ -175,7 +177,10 @@ static const constexpr float snake2[] = {
     10,
 };
 
-bool FirstLayer::isPrinting_ = false;
+// static variables
+uint32_t FirstLayerProgressLock::isPrinting_ = 0;
+uint32_t FirstLayer::finished_n_times = 0;
+uint32_t FirstLayer::started_n_times = 0;
 
 void FirstLayer::finish_printing() {
     current_line = 1;
@@ -329,10 +334,31 @@ void FirstLayer::print_shape_2() {
     finish_printing();
 }
 
+/**
+ * @brief gcode to draw a first layer on bed
+ * does not take any parameters
+ * meant to be called from selftest
+ */
 void PrusaGcodeSuite::G26() {
-    if (all_axes_known()) { /// checks if axes are calibrated (homed) before
-        FirstLayer fl;
-        //fl.print_shape_1();
-        fl.print_shape_2();
+    // is filament selected
+    if (Filaments::Current().response == Response::Cooldown) {
+        return;
     }
+
+    FirstLayer fl;
+
+    const int temp_nozzle = Filaments::Current().nozzle;
+
+    // nozzle temperature print
+    thermalManager.setTargetHotend(temp_nozzle, 0);
+    marlin_server_set_temp_to_display(temp_nozzle);
+    thermalManager.wait_for_hotend(0, false);
+
+    //fl.print_shape_1();
+    fl.print_shape_2();
+
+    thermalManager.setTargetHotend(0, 0);
+    marlin_server_set_temp_to_display(0);
+
+    thermalManager.setTargetBed(0);
 }

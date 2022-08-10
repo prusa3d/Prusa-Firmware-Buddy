@@ -48,11 +48,12 @@ void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_CALIB_FIRST
 MI_CALIB_FIRST::MI_CALIB_FIRST()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, PRINTER_TYPE == PRINTER_PRUSA_MINI ? is_hidden_t::no : is_hidden_t::dev) {
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    // TODO
+    marlin_test_start(stmFirstLayer);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
 /*****************************************************************************/

@@ -12,11 +12,7 @@ enum class ClientFSM : uint8_t {
     Load_unload,
     Preheat,
     Selftest,
-    SelftestAxis,
-    SelftestFans,
-    SelftestHeat,
     Printing, //not a dialog
-    FirstLayer,
     CrashRecovery,
     PrintPreview,
     _none, //cannot be created, must have same index as _count
