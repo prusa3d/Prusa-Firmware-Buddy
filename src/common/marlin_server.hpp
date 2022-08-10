@@ -146,6 +146,11 @@ public:
     }
 
     template <class T>
+    void Change(T phase) const {
+        fsm_change(dialog, phase);
+    }
+
+    template <class T>
     void Change(T phase, uint8_t progress) const {
         ProgressSerializer serializer(progress);
         fsm_change(dialog, phase, serializer.Serialize());
