@@ -79,7 +79,7 @@ public:
     void Change(const PhaseResponses &resp, const PhaseTexts *txts = nullptr); // nullptr generates texts automatically, only first four responses are used, rest is discarded
     void Change(Responses_t resp, const PhaseTexts *txts = nullptr);           // nullptr generates texts automatically
 
-    void SetBtnIndex(uint8_t index) { flags.button_index = (index < GetBtnCount()) ? index : 0; }
+    void SetBtnIndex(uint8_t index);
     uint8_t GetBtnIndex() const { return flags.button_index; }
 
     void SetBtnCount(uint8_t cnt) { flags.button_count = cnt & ((1 << RESPONSE_BITS) - 1); }
