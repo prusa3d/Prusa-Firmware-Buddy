@@ -409,11 +409,11 @@ void CSelftest::log_open() {
     else if (m_Mask & stmHeaters)
         suffix = _suffix[2];
 
-    char fname[64];
-    snprintf(fname, sizeof(fname), "test_unknown%s.txt", suffix);
+    char fname[72];
+    snprintf(fname, sizeof(fname), "/usb/test_unknown%s.txt", suffix);
     if (serial_otp) {
         snprintf(serial, sizeof(serial), "CZPX%.15s", serial_otp);
-        snprintf(fname, sizeof(fname), "test_CZPX%.15s%s.txt", serial_otp, suffix);
+        snprintf(fname, sizeof(fname), "/usb/test_CZPX%.15s%s.txt", serial_otp, suffix);
     }
     m_fd = open(fname, O_WRONLY | O_CREAT);
     if (m_fd >= 0) {
