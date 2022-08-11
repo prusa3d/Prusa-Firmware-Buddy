@@ -158,6 +158,14 @@ Response RadioButton::responseFromIndex(size_t index) const {
     return (responses)[index];
 }
 
+std::optional<size_t> RadioButton::IndexFromResponse(Response btn) const {
+    for (size_t i = 0; i < maxSize(); ++i) {
+        if (btn == (responses)[i])
+            return i;
+    }
+    return std::nullopt;
+}
+
 void RadioButton::draw_0_btn() {
     if (GetParent()) {
         display::FillRect(GetRect(), GetParent()->GetBackColor());
@@ -309,6 +317,12 @@ void RadioButton::SetBtnIndex(uint8_t index) {
         flags.button_index = idx;
         invalidateWhatIsNeeded();
     }
+}
+
+void RadioButton::SetBtn(Response btn) {
+    auto index = IndexFromResponse(btn);
+    if (index)
+        SetBtnIndex(*index);
 }
 
 //TODO just use some kind of layouts
