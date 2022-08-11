@@ -80,7 +80,9 @@ public:
     void Change(Responses_t resp, const PhaseTexts *txts = nullptr);           // nullptr generates texts automatically
 
     void SetBtnIndex(uint8_t index);
+    void SetBtn(Response btn);
     uint8_t GetBtnIndex() const { return flags.button_index; }
+    std::optional<size_t> IndexFromResponse(Response btn) const;
 
     void SetBtnCount(uint8_t cnt) { flags.button_count = cnt & ((1 << RESPONSE_BITS) - 1); }
     uint8_t GetBtnCount() const { return flags.button_count; }
