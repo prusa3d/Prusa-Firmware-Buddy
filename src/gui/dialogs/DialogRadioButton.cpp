@@ -59,7 +59,6 @@ RadioButton &RadioButton::operator++() {
     int8_t index = GetBtnIndex();
     if (isIndexValid(index + 1)) {
         SetBtnIndex(index + 1);
-        invalidateWhatIsNeeded();
         Sound_Play(eSOUND_TYPE::EncoderMove);
     } else {
         Sound_Play(eSOUND_TYPE::BlindAlert);
@@ -72,7 +71,6 @@ RadioButton &RadioButton::operator--() {
     uint8_t index = GetBtnIndex();
     if (index > 0 && (isIndexValid(index - 1))) {
         SetBtnIndex(index - 1);
-        invalidateWhatIsNeeded();
         Sound_Play(eSOUND_TYPE::EncoderMove);
     } else {
         Sound_Play(eSOUND_TYPE::BlindAlert);
@@ -302,6 +300,14 @@ void RadioButton::invalidateWhatIsNeeded() {
     Invalidate();
     if (validate_background) {
         ValidateBackground();
+    }
+}
+
+void RadioButton::SetBtnIndex(uint8_t index) {
+    uint8_t idx = (index < GetBtnCount()) ? index : 0;
+    if (idx != flags.button_index) {
+        flags.button_index = idx;
+        invalidateWhatIsNeeded();
     }
 }
 
