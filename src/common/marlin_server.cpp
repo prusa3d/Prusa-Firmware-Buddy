@@ -848,6 +848,7 @@ static void marlin_server_resuming_reheating() {
 }
 
 static void _server_print_loop(void) {
+    static bool did_not_start_print = true;
     switch (marlin_server.print_state) {
     case mpsIdle:
         break;
@@ -873,10 +874,11 @@ static void _server_print_loop(void) {
         case PrintPreview::Result::InProgress:
             break;
         case PrintPreview::Result::Abort:
-            marlin_server.print_state = mpsFinishing_WaitIdle;
+            marlin_server.print_state = did_not_start_print ? mpsIdle : mpsFinishing_WaitIdle;
             break;
         case PrintPreview::Result::Print:
         case PrintPreview::Result::Inactive:
+            did_not_start_print = false;
             marlin_server.print_state = mspPrintInit;
             break;
         }
