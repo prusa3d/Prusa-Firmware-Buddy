@@ -20,6 +20,7 @@
 static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com";
+static constexpr char SERIAL_PREFIX[] = "CZPX";
 
 /// FIXME same code in support_utils_lib
 /// but linker cannot find it
@@ -33,16 +34,17 @@ void append_crc(char *str, const uint32_t str_size) {
 }
 
 void printerHash(char *str, size_t size, bool state_prefix) {
-    constexpr uint8_t SNSize = 4 + OTP_SERIAL_NUMBER_SIZE - 1; // + fixed header, - trailing 0
+    const size_t prefix_len = strlen(SERIAL_PREFIX);
+    constexpr uint8_t SNSize = prefix_len + OTP_SERIAL_NUMBER_SIZE - 1; // + fixed header, - trailing 0
     constexpr uint8_t bufferSize = OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE + SNSize;
     uint8_t toHash[bufferSize];
     /// CPU ID
     memcpy(toHash, (char *)OTP_STM32_UUID_ADDR, OTP_STM32_UUID_SIZE);
-    //snprintf((char *)toHash, buffer, "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     /// MAC
     memcpy(&toHash[OTP_STM32_UUID_SIZE], (char *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
     /// SN
-    memcpy(&toHash[OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE], (char *)OTP_SERIAL_NUMBER_ADDR, SNSize);
+    memcpy(&toHash[OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE], SERIAL_PREFIX, prefix_len);
+    memcpy(&toHash[OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE + prefix_len], (char *)OTP_SERIAL_NUMBER_ADDR, SNSize - prefix_len);
 
     uint32_t hash[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; /// 256 bits
     /// get hash;
@@ -53,16 +55,7 @@ void printerHash(char *str, size_t size, bool state_prefix) {
         hash[7] >>= 2;
         for (int i = 6; i >= 0; --i)
             rShift2Bits(hash[i], hash[i + 1]);
-    }
 
-    /// convert number by 5-bit chunks (32 symbol alphabet)
-    assert(sizeof(hash) * 8 >= size * 5);
-    for (uint8_t i = 0; i < size; ++i) {
-        str[i] = to32((uint8_t *)hash, i * 5);
-    }
-
-    // FIXME: These setBit things here have no effect. Is that a bug?
-    if (state_prefix) {
         /// set signature state
         if (signature_exist()) {
             setBit((uint8_t *)hash, 7);
@@ -74,6 +67,12 @@ void printerHash(char *str, size_t size, bool state_prefix) {
             setBit((uint8_t *)hash, 6);
             //setBit(str[0], 6);
         }
+    }
+
+    /// convert number by 5-bit chunks (32 symbol alphabet)
+    assert(sizeof(hash) * 8 >= size * 5);
+    for (uint8_t i = 0; i < size; ++i) {
+        str[i] = to32((uint8_t *)hash, i * 5);
     }
 }
 
