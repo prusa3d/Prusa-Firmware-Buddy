@@ -16,7 +16,6 @@ namespace selftest {
 
 class IPartHandler {
 public:
-    static constexpr uint32_t minimal_time_to_show_result = 2048; //ms
     using progress_fnc = float (*)();
 
     IPartHandler(size_t sz, SelftestParts part);
@@ -39,7 +38,9 @@ public:
 
     uint32_t IsInState_ms();
     Response GetButtonPressed() const { return button_pressed; }
-    bool MinimalTimeToShowPassed() const; // cannot apply to all states, only those which change GUI state
+    bool WaitSoLastStateIsVisible() const; // cannot apply to all states, only those which change GUI state
+    void SetTimeToShowResult(uint32_t ms) { time_to_show_result = ms; }
+
 protected:
     bool isInProgress() const; // do not make this method public, it does not wait for state to be shown, use Loop result instead
     virtual LoopResult invokeCurrentState() = 0;
@@ -60,6 +61,7 @@ private:
     int state_count; // did not use size_t to be able to compare with int
     int loop_mark;   // used in cyclic states
     Response button_pressed;
+    uint32_t time_to_show_result = 2048; //ms
 
     // multiple selftests can run at the same time,
     // if so they must be compatible to run together (use same fsm)
