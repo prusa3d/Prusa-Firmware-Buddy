@@ -167,6 +167,14 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
 }
 
 WizardState_t StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT() {
+    if (marlin_error(MARLIN_ERR_ProbingFailed)) {
+        marlin_error_clr(MARLIN_ERR_ProbingFailed);
+        static const char en_text_probing[] = N_("Mesh bed leveling failed. Make sure there is a steel sheet on the heatbed. Repeat the calibration or cancel?");
+        if (MsgBox(_(en_text_probing), Responses_YesCancel, 1) == Response::Yes) {
+            return WizardState_t::FIRSTLAY_MSBX_USEVAL;
+        }
+        return WizardState_t::FIRSTLAY_RESULT;
+    }
     static const char en_text[] = N_("Do you want to repeat the last step and readjust the distance between the nozzle and heatbed?");
     string_view_utf8 translatedText = _(en_text);
     if (MsgBox(translatedText, Responses_YesNo, 1) == Response::No) {

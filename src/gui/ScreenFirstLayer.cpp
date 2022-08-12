@@ -3,6 +3,7 @@
 #include "config.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "marlin_client.h"
 
 ScreenFirstLayer::ScreenFirstLayer()
     : IScreenPrinting(_(caption))
@@ -19,3 +20,10 @@ void ScreenFirstLayer::notifyMarlinStart() { live_z.Activate(); };
 void ScreenFirstLayer::stopAction() {}
 void ScreenFirstLayer::pauseAction() {}
 void ScreenFirstLayer::tuneAction() {}
+void ScreenFirstLayer::windowEvent(EventLock lock, window_t *sender, GUI_event_t event, void *param) {
+
+    if (marlin_error(MARLIN_ERR_ProbingFailed)) {
+        marlin_clear_qcode_queue();
+        Screens::Access()->Close();
+    }
+}
