@@ -28,7 +28,7 @@ bool IPartHandler::Loop() {
     if (current_state < 0 || current_state >= state_count) {
         // wait a bit so result is visible
         if (current_state == IndexFailed() || current_state == IndexFinished()) {
-            return !MinimalTimeToShowPassed();
+            return !WaitSoLastStateIsVisible();
         }
         return false;
     }
@@ -127,6 +127,6 @@ void IPartHandler::Abort() {
     abort();
 }
 
-bool IPartHandler::MinimalTimeToShowPassed() const {
-    return (SelftestInstance().GetTime() - current_state_enter_time) >= minimal_time_to_show_result;
+bool IPartHandler::WaitSoLastStateIsVisible() const {
+    return (SelftestInstance().GetTime() - current_state_enter_time) >= time_to_show_result;
 }
