@@ -152,6 +152,7 @@ typedef enum {
     MARLIN_MSG_FSM = 'Y',
     MARLIN_MSG_MOVE = 'Z',
     MARLIN_MSG_SET_CURRENT_FILE = 'a',
+    MARLIN_MSG_CLEAR_QQUEUE = 'b',
 } marlin_msg_t;
 
 // variables structure - used in server and client

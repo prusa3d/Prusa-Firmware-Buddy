@@ -25,4 +25,5 @@ public:
 
 private:
     virtual void notifyMarlinStart() override;
+    void windowEvent(EventLock lock, window_t *sender, GUI_event_t event, void *param) override;
 };
