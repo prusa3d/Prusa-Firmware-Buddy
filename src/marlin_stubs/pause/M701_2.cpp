@@ -157,6 +157,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res) {
 void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder) {
     InProgress progress;
     if constexpr (HAS_BOWDEN) {
+        Filaments::Set(filament_t::NONE);
         M701_no_parser(filament_t::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0);
     } else {
 

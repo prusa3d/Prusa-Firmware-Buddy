@@ -38,7 +38,7 @@ if(BOARD MATCHES ".*BUDDY")
             segmented_json.cpp
             lang.cpp
             language_eeprom.cpp
-            lfn.c
+            lfn.cpp
             marlin_client.c
             marlin_errors.c
             marlin_events.c

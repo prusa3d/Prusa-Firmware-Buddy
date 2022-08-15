@@ -7,6 +7,7 @@
  */
 
 #include "eeprom_v10.hpp"
+#include "footer_eeprom.hpp"
 
 namespace eeprom::current {
 
@@ -15,8 +16,9 @@ namespace eeprom::current {
 #pragma pack(1)
 
 /**
- * @brief body of eeprom v10
+ * @brief body of eeprom v11
  * without head, padding and crc
+ * eeprom setting storage has changed to using 5 bits pre item and last 3 bits are ones to force default footer setting on FW < 3.3.4
  */
 struct vars_body_t : public eeprom::v10::vars_body_t {
     uint8_t EEVAR_ACTIVE_NETDEV;
@@ -121,6 +123,8 @@ inline vars_body_t convert(const eeprom::v10::vars_body_t &src) {
 
     // copy entire v10 struct
     memcpy(&ret, &src, sizeof(eeprom::v10::vars_body_t));
+    // count of eeprom items in last eeprom version is 6
+    ret.FOOTER_SETTING = footer::eeprom::ConvertFromOldEeprom(ret.FOOTER_SETTING, 6);
 
     return ret;
 }

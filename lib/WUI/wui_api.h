@@ -173,7 +173,7 @@ void wui_store_api_key(char *, uint32_t);
 ///
 /// Returns false if can't print right now. Note that this doesn't check the
 /// existence of the file.
-bool wui_start_print(const char *filename);
+bool wui_start_print(char *filename);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief A new gcode was uploaded, take appropriate actions
@@ -183,7 +183,7 @@ bool wui_start_print(const char *filename);
 ///
 /// @return True if everything went fine. False if start_print was enabled and
 ///   the print was not possible to start.
-bool wui_uploaded_gcode(const char *path, bool start_print);
+bool wui_uploaded_gcode(char *path, bool start_print);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Return the number of gcodes uploaded since boot.
