@@ -63,32 +63,20 @@ void IWindowMenuItem::Print(Rect16 rect) {
     color_t mi_color_back = GetBackColor();
     color_t mi_color_text = GetTextColor();
 
-    // print background
-    // join rectangles if possible for smoother printing
-    if (IsIconInvalid() && IsLabelInvalid() && IsExtensionInvalid()) {
-        render_rect(rect, mi_color_back);
-    } else if (IsIconInvalid() && IsLabelInvalid()) {
-        render_rect(rect - Rect16::Width_t(extension_width), mi_color_back);
-    } else if (IsLabelInvalid() && IsExtensionInvalid()) {
-        render_rect((rect - getIconRect(rect).Width()) + getIconRect(rect).Left(), mi_color_back);
-    } else {
-        // rect join impossible, draw separate rectangles
-        if (IsIconInvalid())
-            render_rect(getIconRect(rect), mi_color_back);
-        if (IsLabelInvalid())
-            render_rect(getLabelRect(rect), mi_color_back);
-        if (IsExtensionInvalid())
-            render_rect(getExtensionRect(rect), mi_color_back);
-    }
-
-    if (IsIconInvalid())
+    if (IsIconInvalid()) {
+        render_rect(getIconRect(rect), mi_color_back);
         printIcon(getIconRect(rect), raster_op, mi_color_back);
+    }
 
     // TODO invalid flag ???
     roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
 
-    if (IsExtensionInvalid() && extension_width)
-        printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
+    if (IsExtensionInvalid()) {
+        render_rect(getExtensionRect(rect), mi_color_back);
+        if (extension_width) {
+            printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
+        }
+    }
 
     Validate();
 }
