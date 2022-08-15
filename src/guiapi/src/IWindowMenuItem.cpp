@@ -68,8 +68,9 @@ void IWindowMenuItem::Print(Rect16 rect) {
         printIcon(getIconRect(rect), raster_op, mi_color_back);
     }
 
-    // TODO invalid flag ???
-    roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
+    if (IsLabelInvalid()) {
+        roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
+    }
 
     if (IsExtensionInvalid()) {
         render_rect(getExtensionRect(rect), mi_color_back);
