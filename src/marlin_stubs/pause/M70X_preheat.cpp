@@ -15,19 +15,22 @@
 #include "../../../lib/Marlin/Marlin/src/module/planner.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "pause_stubbed.hpp"
+#include "filament_sensor_api.hpp"
 #include "M70X.hpp"
 
 static Response preheatTempKnown() {
     return Filaments::Current().response;
 }
 
-static Response preheatTempUnKnown(PreheatData preheat_data) {
+static Response preheatTempUnKnown(PreheatData preheat_data, bool break_on_autoload = false) {
     Response ret;
     FSM_Holder H(ClientFSM::Preheat, preheat_data.Data());
     while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
         if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().HasNotFilament()) {
             return Response::Abort;
         }
+        if (break_on_autoload && FSensors_instance().IsAutoloadInProgress())
+            return Response::_none;
         idle(true, true);
     }
     return ret;
@@ -120,7 +123,12 @@ std::pair<std::optional<PreheatStatus::Result>, filament_t> filament_gcodes::pre
 void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_extruder, bool save, bool enforce_target_temp) {
     InProgress progress;
     PreheatData data(PreheatMode::None, preheat_tp);
-    Response response = preheatTempUnKnown(data);
+    Response response = preheatTempUnKnown(data, true);
+
+    // autoload ocurred
+    if (response == Response::_none) {
+        return;
+    }
 
     filament_t filament = Filaments::Find(response);
 

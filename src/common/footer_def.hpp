@@ -24,6 +24,7 @@ static constexpr uint8_t DefaultCenterNAndFewer = FOOTER_ITEMS_PER_LINE__ - 1;
 
 /**
  * @brief enum enlisting all footer items
+ * add items to the end of enum or it will break upgrades
  * if item is added other modifications must be made:
  * - IMiFooter          in src/gui/screen_menu_footer_settings.cpp
  * - ItemUnion          in src/gui/footer/footer_item_union.hpp
@@ -33,20 +34,20 @@ enum class items : uint8_t { // stored in eeprom, must be small
     ItemNozzle,
     ItemBed,
     ItemFilament,
-    ItemFSensor,
     ItemSpeed,
-    ItemAxisX,
-    ItemAxisY,
-    ItemAxisZ,
-    ItemZHeight,
-    ItemPrintFan,
-    ItemHeatbreakFan,
 #if defined(FOOTER_HAS_LIVE_Z)
     ItemLiveZ,
 #endif
 #if defined(FOOTER_HAS_SHEETS)
     ItemSheets,
 #endif
+    ItemFSensor,
+    ItemAxisX,
+    ItemAxisY,
+    ItemAxisZ,
+    ItemZHeight,
+    ItemPrintFan,
+    ItemHeatbreakFan,
     count_
 };
 

@@ -267,7 +267,7 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     // Close the file first, otherwise it can't be moved
     ftruncate(fileno(tmp_upload_file.get()), ftell(tmp_upload_file.get()));
     tmp_upload_file.reset();
-    return try_rename(fname, final_filename, [&](const char *filename) -> UploadHooks::Result {
+    return try_rename(fname, final_filename, [&](char *filename) -> UploadHooks::Result {
         if (uploaded_notify != nullptr) {
             if (uploaded_notify(filename, start_print)) {
                 return make_tuple(Status::Ok, nullptr);
