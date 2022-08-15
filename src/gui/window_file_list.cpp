@@ -170,9 +170,10 @@ void window_file_list_t::inc(int dif) {
 
     if (!middle) {
         Sound_Play(eSOUND_TYPE::BlindAlert);
-    } else if (repaint) {
+    } else {
         Sound_Play(eSOUND_TYPE::EncoderMove);
     }
+
     if (!repaint) {
         if (index != old_index) {
             invalidateItem(index);
