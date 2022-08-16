@@ -68,7 +68,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
     static const int tls_cipher_suites[2] = { MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, 0 };
     mbedtls_ssl_conf_ciphersuites(&ssl_config, tls_cipher_suites);
 
-    mbedtls_ssl_set_hostname(&ssl_context, (const char *)host);
+    mbedtls_ssl_set_hostname(&ssl_context, host);
 
     if ((status = mbedtls_ssl_setup(&ssl_context, &ssl_config)) != 0) {
         mbedtls_ctr_drbg_free(&drbg_context);
@@ -83,7 +83,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
     char port_as_str[str_len] = {};
     snprintf(port_as_str, str_len, "%hu", port);
 
-    if ((status = mbedtls_net_connect(&net_context, (const char *)host, port_as_str, MBEDTLS_NET_PROTO_TCP)) != 0) {
+    if ((status = mbedtls_net_connect(&net_context, host, port_as_str, MBEDTLS_NET_PROTO_TCP)) != 0) {
         mbedtls_ctr_drbg_free(&drbg_context);
         mbedtls_entropy_free(&entropy_context);
         mbedtls_x509_crt_free(&x509_certificate);
