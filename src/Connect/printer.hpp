@@ -43,7 +43,13 @@ public:
         float target_bed;
         float pos[4];
         float filament_used;
+        // Note: These strings live in a shared buffer in the real implementation. As a result:
+        // * These may be set to NULL in case the buffer is in use by someone else.
+        // * They get invalidated by someone else acquiring the buffer; that
+        //   may happen in parsing a command, for example. If unsure, call
+        //   renew() - that would set it to NULL in such case.
         const char *job_path;
+        const char *job_lfn;
         uint16_t flow_factor;
         uint16_t job_id;
         uint16_t print_fan_rpm;

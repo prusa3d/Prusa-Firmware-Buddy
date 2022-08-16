@@ -1,5 +1,6 @@
 #pragma once
 
+#include "buffer.hpp"
 #include "httpc.hpp"
 #include "planner.hpp"
 #include "printer.hpp"
@@ -35,6 +36,7 @@ private:
 
     Planner planner;
     Printer &printer;
+    SharedBuffer &buffer;
 
     using ServerResp = std::variant<std::monostate, Command, Error>;
 
@@ -43,7 +45,7 @@ private:
     ServerResp handle_server_resp(Response response);
 
 public:
-    connect(Printer &printer);
+    connect(Printer &printer, SharedBuffer &buffer);
     void run(void) __attribute__((noreturn));
 };
 
