@@ -63,8 +63,7 @@ private:
     static constexpr const char *en_wizard = N_("WIZARD");
     static constexpr const char *en_wizard_ok = N_("WIZARD - OK");
     static constexpr const char *en_selftest = N_("SELFTEST");
-    static constexpr const char *en_firstlay = N_("First Layer Calibration");
-    static constexpr const char *en_firstlay_questions = N_("FIRST LAYER");
+    static constexpr const char *en_firstlay = N_("FIRST LAYER CALIBRATION");
     static constexpr const char *en_esp = N_("WI-FI MODULE");
     static constexpr const char *error = "ERROR"; // do not translate
 
