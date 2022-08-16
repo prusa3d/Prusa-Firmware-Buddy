@@ -150,9 +150,8 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::Result:
         return _(en_selftest);
     case SelftestParts::FirstLayer:
-        return _(en_firstlay);
     case SelftestParts::FirstLayerQuestions:
-        return _(en_firstlay_questions);
+        return _(en_firstlay);
     case SelftestParts::WizardEpilogue:
         return _(en_wizard_ok);
     case SelftestParts::_none:
