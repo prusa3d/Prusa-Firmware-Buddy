@@ -101,7 +101,7 @@ if(P)
 	 if(R)
 	      {
           oProgressData.oPercentDone.mSetValue((uint32_t)nValue,nTimeNow);
-          oProgressData.oTime2End.mSetValue((uint32_t)((*R)*60),nTimeNow); // [min] -> [s]
+          oProgressData.oTime2End.mSetValue(*R,nTimeNow); // [min] -> [s]
 	      }
 	 else {
           oProgressData.oPercentDirectControl.mSetValue((uint32_t)nValue,nTimeNow);
@@ -110,7 +110,7 @@ if(P)
 
 if(T)
      {
-     oProgressData.oTime2Pause.mSetValue((uint32_t)((*T)*60),nTimeNow); // [min] -> [s]
+     oProgressData.oTime2Pause.mSetValue(*T,nTimeNow); // [min] -> [s]
      }
 }
 
