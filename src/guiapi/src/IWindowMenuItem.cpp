@@ -72,11 +72,9 @@ void IWindowMenuItem::Print(Rect16 rect) {
         roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
     }
 
-    if (IsExtensionInvalid()) {
+    if (IsExtensionInvalid() && extension_width) {
         render_rect(getExtensionRect(rect), mi_color_back);
-        if (extension_width) {
-            printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
-        }
+        printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
     }
 
     Validate();
