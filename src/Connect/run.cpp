@@ -5,8 +5,9 @@
 namespace con {
 
 void run() {
-    MarlinPriter printer;
-    connect client(printer);
+    SharedBuffer buffer;
+    MarlinPriter printer(buffer);
+    connect client(printer, buffer);
     client.run();
 }
 

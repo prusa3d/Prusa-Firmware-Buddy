@@ -1,5 +1,6 @@
 #pragma once
 
+#include "buffer.hpp"
 #include "printer.hpp"
 
 #include <marlin_client.h>
@@ -9,12 +10,13 @@ namespace con {
 class MarlinPriter final : public Printer {
 private:
     marlin_vars_t *marlin_vars;
+    SharedBuffer &buffer;
 
 protected:
     virtual Config load_config() override;
 
 public:
-    MarlinPriter();
+    MarlinPriter(SharedBuffer &buffer);
     MarlinPriter(const MarlinPriter &other) = delete;
     MarlinPriter(MarlinPriter &&other) = delete;
     MarlinPriter &operator=(const MarlinPriter &other) = delete;

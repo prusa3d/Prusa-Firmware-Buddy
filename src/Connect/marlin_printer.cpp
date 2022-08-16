@@ -172,11 +172,10 @@ namespace {
     }
 }
 
-MarlinPriter::MarlinPriter() {
+MarlinPriter::MarlinPriter(SharedBuffer &buffer)
+    : buffer(buffer) {
     marlin_vars = marlin_client_init();
     assert(marlin_vars != nullptr);
-    static char SFN_path[FILE_PATH_BUFFER_LEN];
-    marlin_vars->media_SFN_path = SFN_path;
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
 
     info.firmware_version = project_version_full;
@@ -199,6 +198,13 @@ MarlinPriter::MarlinPriter() {
 }
 
 void MarlinPriter::renew() {
+    if (auto b = buffer.borrow(); b.has_value()) {
+        marlin_vars->media_LFN = reinterpret_cast<char *>(b->data());
+        marlin_vars->media_SFN_path = reinterpret_cast<char *>(b->data() + FILE_NAME_BUFFER_LEN);
+    } else {
+        marlin_vars->media_LFN = nullptr;
+        marlin_vars->media_SFN_path = nullptr;
+    }
     marlin_update_vars(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
 }
 

@@ -112,6 +112,8 @@ namespace {
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::JobInfo) {
                 JSON_FIELD_OBJ("data");
+                    // The JobInfo doesn't claim the buffer, so we get it to store the path.
+                    assert(params.job_path != nullptr);
                     JSON_FIELD_STR("path", params.job_path);
                 JSON_OBJ_END JSON_COMMA;
             }
