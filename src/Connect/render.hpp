@@ -5,11 +5,17 @@
 
 #include <segmented_json.h>
 
+#include <sys/stat.h>
+
 namespace con {
 
 struct RenderState {
     const Printer &printer;
     const Action &action;
+    bool has_stat = false;
+    struct stat st;
+
+    RenderState(const Printer &printer, const Action &action);
 };
 
 class Renderer : public json::JsonRenderer<RenderState> {

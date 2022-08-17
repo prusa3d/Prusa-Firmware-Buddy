@@ -8,6 +8,8 @@
 using json::Event;
 using json::Type;
 using std::get_if;
+using std::min;
+using std::move;
 using std::nullopt;
 using std::optional;
 using std::string_view;
@@ -39,7 +41,7 @@ Command Command::gcode_command(CommandId id, const string_view &body) {
     };
 }
 
-Command Command::parse_json_command(CommandId id, const string_view &body) {
+Command Command::parse_json_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
     jsmntok_t tokens[MAX_TOKENS];
 
     int parse_result;
@@ -56,6 +58,8 @@ Command Command::parse_json_command(CommandId id, const string_view &body) {
     bool in_kwargs = false;
     optional<uint16_t> job_id = nullopt;
 
+    bool has_path = false;
+
     // Error from jsmn_parse will lead to -1 -> converted to 0, refused by json::search as Broken.
     const bool success = json::search(body.data(), tokens, std::max(parse_result, 0), [&](const Event &event) {
         if (event.depth == 1 && event.type == Type::String && event.key == "command") {
@@ -64,6 +68,8 @@ Command Command::parse_json_command(CommandId id, const string_view &body) {
             } else if (event.value == "SEND_JOB_INFO") {
                 // We'll set the job ID later, we may or may not have parset it yet.
                 data = SendJobInfo {};
+            } else if (event.value == "SEND_FILE_INFO") {
+                data = SendFileInfo {};
             }
             return;
         }
@@ -82,6 +88,10 @@ Command Command::parse_json_command(CommandId id, const string_view &body) {
             if (err && *err) {
                 job_id = nullopt;
             }
+        } else if (event.depth == 2 && in_kwargs && event.type == Type::String && event.key == "path") {
+            const size_t len = min(event.value->size() + 1, buff.size());
+            strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
+            has_path = true;
         }
     });
 
@@ -94,6 +104,13 @@ Command Command::parse_json_command(CommandId id, const string_view &body) {
             info->job_id = *job_id;
         } else {
             // Didn't find all the needed parameters.
+            data = BrokenCommand {};
+        }
+    } else if (auto *info = get_if<SendFileInfo>(&data); info != nullptr) {
+        if (has_path) {
+            info->path = SharedPath(move(buff));
+        } else {
+            // Missing parameters
             data = BrokenCommand {};
         }
     }

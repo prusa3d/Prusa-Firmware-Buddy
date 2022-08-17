@@ -1,5 +1,6 @@
 #include <command.hpp>
 
+#include <cstring>
 #include <catch2/catch.hpp>
 
 using namespace con;
@@ -9,9 +10,14 @@ using std::string_view;
 
 namespace {
 
+SharedBuffer buffer;
+
 template <class D>
 D command_test(const string_view cmd) {
-    const auto command = Command::parse_json_command(13, cmd);
+    auto borrow = buffer.borrow();
+    // Not claimed / left hanging by previous test.
+    REQUIRE(borrow.has_value());
+    const auto command = Command::parse_json_command(13, cmd, std::move(*borrow));
     REQUIRE(command.id == 13);
     REQUIRE(holds_alternative<D>(command.command_data));
     return get<D>(command.command_data);
@@ -45,4 +51,12 @@ TEST_CASE("Send job info") {
 
 TEST_CASE("Send job info - missing args") {
     command_test<BrokenCommand>("{\"command\": \"SEND_JOB_INFO\", \"args\": [], \"kwargs\": {}}");
+}
+
+TEST_CASE("Send file info") {
+    REQUIRE(strcmp(command_test<SendFileInfo>("{\"command\": \"SEND_FILE_INFO\", \"args\": [\"/usb/x.gcode\"], \"kwargs\": {\"path\": \"/usb/x.gcode\"}}").path.path(), "/usb/x.gcode") == 0);
+}
+
+TEST_CASE("Send file info") {
+    command_test<BrokenCommand>("{\"command\": \"SEND_FILE_INFO\", \"args\": [], \"kwargs\": {}}");
 }
