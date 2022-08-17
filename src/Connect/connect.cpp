@@ -27,6 +27,7 @@ using std::holds_alternative;
 using std::is_same_v;
 using std::min;
 using std::monostate;
+using std::move;
 using std::nullopt;
 using std::optional;
 using std::string_view;
@@ -96,10 +97,7 @@ namespace {
                 { "Token", config.token, nullopt },
                 { nullptr, nullptr, nullopt }
             }
-            , renderer(RenderState {
-                  printer,
-                  action,
-              })
+            , renderer(RenderState(printer, action))
             , target_url(visit([](const auto &action) { return url(action); }, action)) {}
         virtual const char *url() const override {
             return target_url;
@@ -198,7 +196,19 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
 
     // Note: missing command ID is already checked at upper level.
     CommandId command_id = resp.command_id.value();
+
+    auto buff(buffer.borrow());
+    if (!buff.has_value()) {
+        // We can only hold the buffer already borrowed in case we are still
+        // processing some command. In that case we can't accept another one
+        // and we just reject it.
+        return Command {
+            command_id,
+            ProcessingOtherCommand {},
+        };
+    }
     // XXX Use allocated string? Figure out a way to consume it in parts?
+    // XXX In case of gcode, put it into the borrowed buffer.
     uint8_t recv_buffer[MAX_RESP_SIZE];
     size_t pos = 0;
 
@@ -222,7 +232,7 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
     case ContentType::TextGcode:
         return Command::gcode_command(command_id, body);
     case ContentType::ApplicationJson:
-        return Command::parse_json_command(command_id, body);
+        return Command::parse_json_command(command_id, body, move(*buff));
     default:;
         // If it's unknown content type, then it's unknown command because we
         // have no idea what to do about it / how to even parse it.

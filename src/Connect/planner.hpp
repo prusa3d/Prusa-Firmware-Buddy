@@ -1,5 +1,6 @@
 #pragma once
 
+#include "buffer.hpp"
 #include "command.hpp"
 
 #include <cstdint>
@@ -24,6 +25,7 @@ struct SendTelemetry {
 enum class EventType {
     Info,
     JobInfo,
+    FileInfo,
     Rejected,
     Accepted,
 };
@@ -34,6 +36,7 @@ struct Event {
     EventType type;
     std::optional<CommandId> command_id;
     std::optional<uint16_t> job_id;
+    std::optional<SharedPath> path;
 };
 
 using Action = std::variant<
@@ -79,9 +82,11 @@ private:
     // Handlers for specific commands.
     void command(const Command &, const BrokenCommand &);
     void command(const Command &, const UnknownCommand &);
+    void command(const Command &, const ProcessingOtherCommand &);
     void command(const Command &, const Gcode &);
     void command(const Command &, const SendInfo &);
     void command(const Command &, const SendJobInfo &);
+    void command(const Command &, const SendFileInfo &);
 
 public:
     Planner() {

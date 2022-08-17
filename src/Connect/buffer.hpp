@@ -7,6 +7,7 @@
 #include <optional>
 #include <cassert>
 #include <cstdint>
+#include <memory>
 
 namespace con {
 
@@ -53,6 +54,10 @@ public:
             assert(buff != nullptr); // Using moved object
             return buff->data.data();
         }
+        constexpr static size_t SIZE = S;
+        constexpr size_t size() const {
+            return SIZE;
+        }
     };
 
     std::optional<Borrow> borrow() {
@@ -63,6 +68,10 @@ public:
             return Borrow(this);
         }
     }
+    constexpr static size_t SIZE = S;
+    constexpr size_t size() const {
+        return SIZE;
+    }
 };
 
 // How large buffer do we need?
@@ -71,5 +80,19 @@ public:
 constexpr size_t BORROW_BUF_SIZE = std::max(512, FILE_PATH_BUFFER_LEN + FILE_NAME_BUFFER_LEN);
 
 using SharedBuffer = Buffer<BORROW_BUF_SIZE>;
+
+class SharedPath {
+private:
+    std::shared_ptr<SharedBuffer::Borrow> borrow;
+
+public:
+    SharedPath() = default;
+    SharedPath(SharedBuffer::Borrow borrow)
+        : borrow(std::make_shared<SharedBuffer::Borrow>(std::move(borrow))) {}
+    // Pointing into that borrow.
+    const char *path() const {
+        return reinterpret_cast<const char *>(borrow->data());
+    }
+};
 
 }

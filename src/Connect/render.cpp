@@ -3,9 +3,11 @@
 #include <segmented_json_macros.h>
 
 #include <cassert>
+#include <cstring>
 
 using json::JsonOutput;
 using json::JsonResult;
+using std::get_if;
 using std::visit;
 
 namespace con {
@@ -78,13 +80,23 @@ namespace {
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         const bool printing = is_printing(params.state);
 
+        bool reject = false;
+
         if (event.type == EventType::JobInfo && (!printing || event.job_id != params.job_id)) {
             // Can't send a job info when not printing, refuse instead.
             //
             // Can't provide historic/future jobs.
-            //
-            // (The fact we can render in multiple steps doesn't matter, we would
-            // descend into here every time and resume the Rejected event).
+            reject = true;
+        }
+
+        if (event.type == EventType::FileInfo && !state.has_stat) {
+            // The file probably doesn't exist or something
+            reject = true;
+        }
+
+        if (reject) {
+            // The fact we can render in multiple steps doesn't matter, we would
+            // descend into here every time and resume the Rejected event.
             Event rejected(event);
             rejected.type = EventType::Rejected;
             return render_msg(resume_point, output, state, rejected);
@@ -114,7 +126,21 @@ namespace {
                 JSON_FIELD_OBJ("data");
                     // The JobInfo doesn't claim the buffer, so we get it to store the path.
                     assert(params.job_path != nullptr);
+                    if (state.has_stat) {
+                        JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
+                        JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
+                    }
                     JSON_FIELD_STR("path", params.job_path);
+                JSON_OBJ_END JSON_COMMA;
+            } else if (event.type == EventType::FileInfo) {
+                JSON_FIELD_OBJ("data");
+                    assert(state.has_stat);
+                    JSON_FIELD_STR("path", event.path->path()) JSON_COMMA;
+                    JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
+                    JSON_FIELD_INT("m_timestamp", state.st.st_mtime);
+                    // TODO: There's a lot of other things we want to extract
+                    // from the file. To do that, we would also pre-open the
+                    // file, extract the preview, extract the info...
                 JSON_OBJ_END JSON_COMMA;
             }
 
@@ -131,6 +157,34 @@ namespace {
         return JsonResult::Abort;
     }
 
+}
+
+RenderState::RenderState(const Printer &printer, const Action &action)
+    : printer(printer)
+    , action(action) {
+    memset(&st, 0, sizeof st);
+
+    if (const auto *event = get_if<Event>(&action); event != nullptr) {
+        const char *path = nullptr;
+        const auto params = printer.params();
+
+        switch (event->type) {
+        case EventType::JobInfo:
+            if (is_printing(params.state)) {
+                path = params.job_path;
+            }
+            break;
+        case EventType::FileInfo:
+            assert(event->path.has_value());
+            path = event->path->path();
+            break;
+        default:;
+        }
+
+        if (path != nullptr && stat(path, &st) == 0) {
+            has_stat = true;
+        }
+    }
 }
 
 JsonResult Renderer::renderState(size_t resume_point, JsonOutput &output, RenderState &state) const {

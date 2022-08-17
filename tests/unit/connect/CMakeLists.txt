@@ -18,8 +18,9 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   )
 target_include_directories(
-  connect_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/Connect
-                        ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/lib/jsmn
+  connect_tests
+  PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/Connect
+          ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/lib/jsmn ${CMAKE_SOURCE_DIR}/src
   )
 add_definitions(-DUNITTESTS)
 
@@ -45,7 +46,7 @@ add_executable(
   )
 target_include_directories(
   connect_planner_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/Connect
-                                ${CMAKE_SOURCE_DIR}/src/common
+                                ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src
   )
 add_definitions(-DUNITTESTS)
 

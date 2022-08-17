@@ -65,6 +65,8 @@ const char *to_str(EventType event) {
         return "REJECTED";
     case EventType::JobInfo:
         return "JOB_INFO";
+    case EventType::FileInfo:
+        return "FILE_INFO";
     default:
         assert(false);
         return "???";
@@ -153,6 +155,10 @@ void Planner::command(const Command &command, const BrokenCommand &) {
     planned_event = Event { EventType::Rejected, command.id };
 }
 
+void Planner::command(const Command &command, const ProcessingOtherCommand &) {
+    planned_event = Event { EventType::Rejected, command.id };
+}
+
 void Planner::command(const Command &command, const Gcode &) {
     // TODO: Implement
     planned_event = Event { EventType::Rejected, command.id };
@@ -170,6 +176,15 @@ void Planner::command(const Command &command, const SendJobInfo &params) {
         EventType::JobInfo,
         command.id,
         params.job_id,
+    };
+}
+
+void Planner::command(const Command &command, const SendFileInfo &params) {
+    planned_event = Event {
+        EventType::FileInfo,
+        command.id,
+        nullopt, // job_id
+        params.path,
     };
 }
 
