@@ -64,6 +64,19 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
         return get_only(StatusPage(Status::NoContent, parser.status_page_handling(), parser.accepts_json));
     } else if (suffix == "settings") {
         return get_only(SendStaticMemory("{\"printer\": {}}", http::ContentType::ApplicationJson, parser.can_keep_alive()));
+    } else if (remove_prefix(suffix, "v1/files").has_value()){
+        static const auto prefix = "/api/v1/files/usb";
+        static const size_t prefix_len = strlen(prefix);
+        char fname[FILE_PATH_BUFFER_LEN + prefix_len];
+        if (!parser.uri_filename(fname, sizeof fname))
+            return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+
+        static const auto prefix_storage = "/api/v1/files";
+        static const size_t prefix_storage_len = strlen(prefix_storage);
+        char* storage_path = &fname[0] + prefix_storage_len;
+        auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, storage_path, parser.print_after_upload);
+        return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
+
     } else if (remove_prefix(suffix, "files").has_value()) {
         // Note: The check for boundary is a bit of a hack. We probably should
         // be more thorough in the parser and extract the actual content type.

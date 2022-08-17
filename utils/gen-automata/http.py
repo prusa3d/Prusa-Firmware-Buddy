@@ -238,7 +238,6 @@ def keyworded_header(keywords, entry_name=None):
 
     return auto, other_end, True
 
-
 def connection_header():
     """
     Parse a connection header.
@@ -267,6 +266,11 @@ def accept_header():
     return keyworded_header({
         'application/json': 'AcceptJson',
     })
+
+def print_after_upload_header():
+    return keyworded_header({
+            'true': 'PrintAfterUpload',
+        })
 
 
 def headers(interested):

@@ -47,6 +47,17 @@ GcodeUpload::GcodeUpload(UploadState uploader, bool json_errors, size_t length, 
     , file_idx(upload_idx) {
 }
 
+GcodeUpload::GcodeUpload(bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded, const char* filepath_other, bool print_after_upload)
+    : uploaded_notify(uploaded)
+    , size_rest(length)
+    , json_errors(json_errors)
+    , cleanup_temp_file(true)
+    , tmp_upload_file(move(file))
+    , file_idx(upload_idx)
+    , print_after_upload(print_after_upload){
+    strcpy(this->filepath, filepath_other);
+}
+
 GcodeUpload::GcodeUpload(GcodeUpload &&other)
     : uploader(move(other.uploader))
     , uploaded_notify(other.uploaded_notify)
@@ -54,9 +65,11 @@ GcodeUpload::GcodeUpload(GcodeUpload &&other)
     , json_errors(other.json_errors)
     , cleanup_temp_file(other.cleanup_temp_file)
     , tmp_upload_file(move(other.tmp_upload_file))
-    , file_idx(other.file_idx) {
+    , file_idx(other.file_idx)
+    , print_after_upload(other.print_after_upload){
     // The ownership of the temp file is passed to the new instance.
     other.cleanup_temp_file = false;
+    strcpy(filepath, other.filepath);
 }
 
 GcodeUpload &GcodeUpload::operator=(GcodeUpload &&other) {
@@ -71,6 +84,9 @@ GcodeUpload &GcodeUpload::operator=(GcodeUpload &&other) {
 
     tmp_upload_file = move(other.tmp_upload_file);
     file_idx = other.file_idx;
+
+    print_after_upload = other.print_after_upload;
+    strcpy(filepath, other.filepath);
 
     return *this;
 }
@@ -99,14 +115,9 @@ GcodeUpload::~GcodeUpload() {
     }
 }
 
-GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors) {
+GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors, const char* filename, bool print_after_upload) {
     // Note: authentication already checked by the caller.
     // Note: We return errors with connection-close because we don't know if the client sent part of the data.
-
-    const auto boundary = parser.boundary();
-    if (boundary.empty()) {
-        return StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing boundary");
-    }
 
     // One day we may want to support chunked and connection-close, but we are not there yet.
     if (!parser.content_length.has_value()) {
@@ -144,30 +155,49 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     fsync(fileno(file.get()));
     fseek(file.get(), 0, SEEK_SET);
 
-    char boundary_cstr[boundary.size() + 1];
-    memcpy(boundary_cstr, boundary.begin(), boundary.size());
-    boundary_cstr[boundary.size()] = '\0';
-    UploadState uploader(boundary_cstr);
+    if (parser.method == http::Method::Post){
 
-    if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
-        return StatusPage(get<0>(err), StatusPage::CloseHandling::ErrorClose, json_errors, get<1>(err));
+        const auto boundary = parser.boundary();
+        if (boundary.empty()) {
+            return StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing boundary");
+        }
+
+        char boundary_cstr[boundary.size() + 1];
+        memcpy(boundary_cstr, boundary.begin(), boundary.size());
+        boundary_cstr[boundary.size()] = '\0';
+        UploadState uploader(boundary_cstr);
+
+        if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
+            return StatusPage(get<0>(err), StatusPage::CloseHandling::ErrorClose, json_errors, get<1>(err));
+        }
+
+        return GcodeUpload(move(uploader), json_errors, *parser.content_length, file_idx, move(file), uploaded);
+    } else /*(parser.method == http::Method::Put)*/ {
+        return GcodeUpload(json_errors, *parser.content_length, file_idx, move(file), uploaded, filename, print_after_upload);
     }
-
-    return GcodeUpload(move(uploader), json_errors, *parser.content_length, file_idx, move(file), uploaded);
 }
 
 Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
-    uploader.setup(this);
     if (terminated_by_client && size_rest > 0) {
         return { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Truncated body") };
     }
 
-    const size_t read = std::min(input.size(), size_rest);
+    if (uploader.has_value()) {
+        return stepPOST(input);
+    } else {
+        return stepPUT(input);
+    }
 
-    uploader.feed(input.substr(0, read));
+}
+
+Step GcodeUpload::stepPOST(string_view input) {
+    const size_t read = std::min(input.size(), size_rest);
+    uploader->setup(this);
+
+    uploader->feed(input.substr(0, read));
     size_rest -= read;
 
-    if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
+    if (const auto err = uploader->get_error(); get<0>(err) != Status::Ok) {
         return { read, 0, StatusPage(get<0>(err), StatusPage::CloseHandling::ErrorClose, json_errors, get<1>(err)) };
     }
 
@@ -175,10 +205,10 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
         // Note: We do connection-close here. We are lazy to pass the
         // can-keep-alive flag around and it's unlikely one would want to reuse
         // the upload connection anyway.
-        if (uploader.done()) {
+        if (uploader->done()) {
             char filename[FILE_NAME_BUFFER_LEN + 5];
             strcpy(filename, USB_MOUNT_POINT);
-            const char *orig_filename = uploader.get_filename();
+            const char *orig_filename = uploader->get_filename();
             strlcpy(filename + USB_MOUNT_POINT_LENGTH, orig_filename, sizeof(filename) - USB_MOUNT_POINT_LENGTH);
             return { read, 0, FileInfo(filename, false, json_errors, true) };
         } else {
@@ -187,6 +217,39 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
     } else {
         return { read, 0, Continue() };
     }
+}
+
+Step GcodeUpload::stepPUT(string_view input) {
+    const size_t read = std::min(input.size(), size_rest);
+    // remove the "/usb/" prefix
+    const char* filename = filepath + USB_MOUNT_POINT_LENGTH;
+
+    // check only once
+    static bool filename_checked = false;
+    if (not filename_checked){
+        auto filename_error = check_filename(filename);
+        if (std::get<0>(filename_error) != Status::Ok)
+            return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(filename_error)) };
+        filename_checked = true;
+    }
+
+    auto error = data(input.substr(0, read));
+    if (std::get<0>(error) != Status::Ok)
+        return { read, 0, StatusPage(std::get<0>(error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(error)) };
+
+    size_rest -= read;
+    if (size_rest == 0){
+        filename_checked = false;
+        // remove the "/usb/" prefix
+        //const char* filename = filepath + USB_MOUNT_POINT_LENGTH;
+        auto finish_error = finish(filename, print_after_upload);
+        if (std::get<0>(finish_error) != Status::Ok)
+            return { read, 0, StatusPage(std::get<0>(finish_error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(finish_error)) };
+
+        return { read, 0, FileInfo(filepath, false, json_errors, true) };
+    }
+
+    return {read, 0, Continue() };
 }
 
 UploadHooks::Result GcodeUpload::data(std::string_view data) {
