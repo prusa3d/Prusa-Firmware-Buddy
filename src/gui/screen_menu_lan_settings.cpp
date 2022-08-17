@@ -15,6 +15,7 @@
 #include "MItem_lan.hpp"
 #include <http_lifetime.h>
 #include <espif.h>
+#include "marlin_client.h"
 
 // Container for this base class contains all MI from both ETH and WIFI screen
 // There can be MI, that will not be used in derived class (MI_WIFI_... won't be used in ETH Screen)
@@ -171,6 +172,11 @@ class ScreenMenuWifiSettings : public ScreenMenuConnectionBase {
 public:
     ScreenMenuWifiSettings()
         : ScreenMenuConnectionBase(NETDEV_ESP_ID, wifi_label) {
+        if (marlin_is_printing()) {
+            DisableItem<MI_WIFI_INIT_t>();
+            DisableItem<MI_WIFI_CREDENTIALS_INI_FILE_t>();
+            DisableItem<MI_WIFI_CREDENTIALS_t>();
+        }
     }
 };
 

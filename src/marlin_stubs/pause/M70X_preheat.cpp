@@ -41,7 +41,7 @@ static Response evaluate_preheat_conditions(PreheatData preheat_data) {
     bool canKnowTemp = preheat_data.Mode() == PreheatMode::Unload || preheat_data.Mode() == PreheatMode::Change_phase1 || preheat_data.Mode() == PreheatMode::Purge || preheat_data.Mode() == PreheatMode::Unload_askUnloaded;
 
     // Check if we are using operation which can get temp from printer and check if it can get the temp from available info (inserted filament or set temperature in temperature menu and no filament inserted)
-    if (canKnowTemp && ((Filaments::CurrentIndex() != filament_t::NONE) || (Filaments::CurrentIndex() == filament_t::NONE && !thermalManager.targetTooColdToExtrude(0)))) {
+    if (canKnowTemp && ((Filaments::CurrentIndex() != filament_t::NONE))) {
         // We can get temperature without user telling us
         response = preheatTempKnown();
     } else {

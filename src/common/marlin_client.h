@@ -207,6 +207,9 @@ extern void marlin_notify_server_about_encoder_move(void);
 
 extern void marlin_notify_server_about_knob_click(void);
 
+//returns 1 if printer is printing, else 0;
+extern bool marlin_is_printing();
+
 // returns 1 if reheating is in progress, otherwise 0
 extern int marlin_reheating(void);
 
