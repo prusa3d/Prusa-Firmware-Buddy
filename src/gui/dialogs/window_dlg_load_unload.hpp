@@ -14,6 +14,5 @@ namespace PreheatStatus {
 Result DialogBlockingPreheat(RetAndCool_t retAndCool);
 Result DialogBlockingLoad(RetAndCool_t retAndCool);
 Result DialogBlockingUnLoad(RetAndCool_t retAndCool);
-Result DialogBlockingChangeLoad(RetAndCool_t retAndCool);
 
 }
