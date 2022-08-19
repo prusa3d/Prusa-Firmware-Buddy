@@ -146,13 +146,13 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_ex
             current_pos.z += 10;
             plan_park_move_to_xyz(current_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
         }
+
+        if (save)
+            Filaments::Set(filament);
     }
 
-    if (save)
-        Filaments::Set(filament);
-
     // store result, so other threads can see it
-    PreheatStatus::SetResult(PreheatStatus::Result::DoneNoFilament);
+    PreheatStatus::SetResult(response != Response::Abort ? PreheatStatus::Result::DoneNoFilament : PreheatStatus::Result::Aborted);
 
     // we might want to set filament type even with preheat, if so do:
     // Filaments::SetToBeLoaded(filament);
