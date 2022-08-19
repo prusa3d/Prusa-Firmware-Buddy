@@ -57,10 +57,24 @@ void PrusaGcodeSuite::M1701() {
     filament_gcodes::M1701_no_parser(fast_load_length, min_Z_pos, target_extruder);
 }
 
+/**
+ * M1600: non print filament change
+ * not meant to be used during print
+ *
+ *  T<extruder> - Extruder number. Required for mixing extruder.
+ *  R           - Preheat Return option
+ *  U<value>    - Ask Unload type
+ *              - U0 - return if filament unknown (default)
+ *              - U1 - ask only if filament unknown
+ *              - U2 - always ask
+ */
 void PrusaGcodeSuite::M1600() {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
 
-    filament_gcodes::M1600_no_parser(target_extruder);
+    const filament_gcodes::AskFilament_t ask_unload = filament_gcodes::AskFilament_t(parser.byteval('U', 0));
+    const bool hasReturn = parser.seen('R');
+
+    filament_gcodes::M1600_no_parser(target_extruder, hasReturn ? RetAndCool_t::Return : RetAndCool_t::Neither, ask_unload);
 }
