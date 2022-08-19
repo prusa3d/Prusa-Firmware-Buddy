@@ -286,8 +286,6 @@ void gui_run(void) {
     un.pGUIStartupProgress = &progr;
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
 
-    gui::fsensor::validate_for_cyclical_calls();
-
     redraw_cmd_t redraw;
     // TODO make some kind of registration
     while (1) {
