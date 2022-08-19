@@ -64,19 +64,37 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
         return get_only(StatusPage(Status::NoContent, parser.status_page_handling(), parser.accepts_json));
     } else if (suffix == "settings") {
         return get_only(SendStaticMemory("{\"printer\": {}}", http::ContentType::ApplicationJson, parser.can_keep_alive()));
-    } else if (remove_prefix(suffix, "v1/files").has_value()){
-        static const auto prefix = "/api/v1/files/usb";
-        static const size_t prefix_len = strlen(prefix);
-        char fname[FILE_PATH_BUFFER_LEN + prefix_len];
-        if (!parser.uri_filename(fname, sizeof fname))
-            return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+    } else if (remove_prefix(suffix, "v1/files").has_value()) {
 
-        static const auto prefix_storage = "/api/v1/files";
-        static const size_t prefix_storage_len = strlen(prefix_storage);
-        char* storage_path = &fname[0] + prefix_storage_len;
-        auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, storage_path, parser.print_after_upload);
-        return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
+        if (parser.method == Method::Put) {
+            static const auto prefix = "/api/v1/files/usb";
+            static const size_t prefix_len = strlen(prefix);
+            char fname[FILE_PATH_BUFFER_LEN + prefix_len];
+            if (!parser.uri_filename(fname, sizeof fname)) {
+                return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+            }
 
+            if (strlen(fname) <= prefix_len) {
+                return StatusPage(Status::Forbidden, parser.status_page_handling(), parser.accepts_json);
+            }
+
+            static const auto prefix_storage = "/api/v1/files";
+            static const size_t prefix_storage_len = strlen(prefix_storage);
+            char *storage_path = fname + prefix_storage_len;
+
+            if (strncmp(storage_path, "/usb/", 5) != 0) {
+                return StatusPage(Status::Forbidden, parser.status_page_handling(), parser.accepts_json);
+            }
+
+            GcodeUpload::UploadParams uploadParams = GcodeUpload::PutParams();
+            GcodeUpload::PutParams &putParams = std::get<0>(uploadParams);
+            std::get<0>(uploadParams).print_after_upload = parser.print_after_upload;
+            strlcpy(putParams.filepath.data(), storage_path, sizeof(putParams.filepath));
+            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, move(uploadParams));
+            return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
+        } else {
+            return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+        }
     } else if (remove_prefix(suffix, "files").has_value()) {
         // Note: The check for boundary is a bit of a hack. We probably should
         // be more thorough in the parser and extract the actual content type.
@@ -85,7 +103,12 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
         // scenarios and will simply produce slightly weird error messages in
         // case it isn't.
         if (parser.method == Method::Post && !parser.boundary().empty()) {
-            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json);
+            const auto boundary = parser.boundary();
+            char boundary_cstr[boundary.size() + 1];
+            memcpy(boundary_cstr, boundary.begin(), boundary.size());
+            boundary_cstr[boundary.size()] = '\0';
+            GcodeUpload::UploadParams uploadState = printer::UploadState(boundary_cstr);
+            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, move(uploadState));
             /*
              * So, we have a "smaller" variant (eg. variant<A, B, C>) and
              * want a "bigger" variant<A, B, C, D, E>. C++ templates can't
