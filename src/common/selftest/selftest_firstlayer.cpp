@@ -112,9 +112,8 @@ LoopResult CSelftestPart_FirstLayer::statePreheatEnqueueGcode() {
         return LoopResult::RunNext;
     }
 
-    queue.enqueue_one_now("M1700 W0 S"); // preheat, no return no cooldown, set filament
-    log_info(Selftest, "%s preheat enqueued", rConfig.partname);
-    return LoopResult::RunNext;
+    // preheat, no return no cooldown, set filament
+    return enqueueGcode("M1700 W0 S") ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_FirstLayer::statePreheatWaitFinished() {
@@ -140,9 +139,8 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentLoadEnqueueGcode() {
         return LoopResult::RunNext;
     }
 
-    queue.enqueue_one_now("M701 W0"); // load, no return no cooldown
-    log_info(Selftest, "%s load enqueued", rConfig.partname);
-    return LoopResult::RunNext;
+    // load, no return no cooldown
+    return enqueueGcode("M701 W0") ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateFilamentLoadWaitFinished() {
@@ -260,28 +258,28 @@ LoopResult CSelftestPart_FirstLayer::statePrintInit() {
 }
 
 LoopResult CSelftestPart_FirstLayer::stateWaitNozzle() {
-    std::array<char, sizeof("M109 R170")> gcode_buff; //safe to be local variable, queue.enqueue_one will copy it
+    std::array<char, sizeof("M109 R170")> gcode_buff; //safe to be local variable, it will copied
     snprintf(gcode_buff.begin(), gcode_buff.size(), "M109 R%d", temp_nozzle_preheat);
-    return queue.enqueue_one(gcode_buff.begin()) ? LoopResult::RunNext : LoopResult::RunCurrent;
+    return enqueueGcode(gcode_buff.begin()) ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateWaitBed() {
-    std::array<char, sizeof("M190 S100")> gcode_buff; //safe to be local variable, queue.enqueue_one will copy
+    std::array<char, sizeof("M190 S100")> gcode_buff; //safe to be local variable, it will be copied
     snprintf(gcode_buff.begin(), gcode_buff.size(), "M190 S%d", temp_bed);
-    return queue.enqueue_one(gcode_buff.begin()) ? LoopResult::RunNext : LoopResult::RunCurrent;
+    return enqueueGcode(gcode_buff.begin()) ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateHome() {
-    return queue.enqueue_one("G28") ? LoopResult::RunNext : LoopResult::RunCurrent;
+    return enqueueGcode("G28") ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateMbl() {
-    return queue.enqueue_one("G29") ? LoopResult::RunNext : LoopResult::RunCurrent;
+    return enqueueGcode("G29") ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_FirstLayer::statePrint() {
     how_many_times_finished = FirstLayer::HowManyTimesFinished();
-    return queue.enqueue_one("G26") ? LoopResult::RunNext : LoopResult::RunCurrent; // draw firstlay
+    return enqueueGcode("G26") ? LoopResult::RunNext : LoopResult::RunCurrent; // draw firstlay
 }
 
 LoopResult CSelftestPart_FirstLayer::stateMblFinished() {
@@ -352,4 +350,10 @@ LoopResult CSelftestPart_FirstLayer::stateHandleNext() {
         break;
     }
     return LoopResult::RunCurrent;
+}
+
+bool CSelftestPart_FirstLayer::enqueueGcode(const char *gcode) const {
+    bool ret = queue.enqueue_one(gcode);
+    log_info(Selftest, ret ? "%s %s enqueued" : "%s %s not enqueued", rConfig.partname, gcode);
+    return ret;
 }
