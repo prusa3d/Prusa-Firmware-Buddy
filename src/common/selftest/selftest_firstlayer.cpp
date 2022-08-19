@@ -171,9 +171,8 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentUnloadEnqueueGcode() {
         return LoopResult::RunNext;
     }
 
-    queue.enqueue_one_now("M702 W0"); // unload, no return no cooldown
-    log_info(Selftest, "%s unload enqueued", rConfig.partname);
-    return LoopResult::RunNext;
+    // change, with return, ask filament type if not known
+    return enqueueGcode("M1600 R U1") ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateFilamentUnloadWaitFinished() {
@@ -190,9 +189,15 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentUnloadWaitFinished() {
     // in case it flickers, we might need to add change of state
     // IPartHandler::SetFsmPhase(PhasesSelftest::);
 
-    // it does not matter if unload went well or was aborted
-    // we need to ask user what to do in both cases
-    return LoopResult::GoToMark;
+    switch (PreheatStatus::ConsumeResult()) {
+    case PreheatStatus::Result::DoneNoFilament:
+    case PreheatStatus::Result::Aborted:
+    case PreheatStatus::Result::DidNotFinish:
+        return LoopResult::GoToMark;
+    default:
+        break;
+    }
+    return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateShowCalibrateMsg() {
