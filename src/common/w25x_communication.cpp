@@ -6,6 +6,8 @@
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
 
+LOG_COMPONENT_REF(W25X);
+
 /// The SPI used by this module
 static SPI_HandleTypeDef *spi_handle;
 

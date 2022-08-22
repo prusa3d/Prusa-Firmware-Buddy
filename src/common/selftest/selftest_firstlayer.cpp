@@ -18,6 +18,7 @@
 #include <array>
 
 using namespace selftest;
+LOG_COMPONENT_REF(Selftest);
 
 CSelftestPart_FirstLayer::CSelftestPart_FirstLayer(IPartHandler &state_machine, const FirstLayerConfig_t &config,
     SelftestFirstLayer_t &result)
@@ -31,7 +32,7 @@ CSelftestPart_FirstLayer::CSelftestPart_FirstLayer(IPartHandler &state_machine, 
 }
 
 LoopResult CSelftestPart_FirstLayer::stateStart() {
-    LogInfo("%s Started", rConfig.partname);
+    log_info(Selftest, "%s Started", rConfig.partname);
     SelftestInstance().log_printf("%s Started\n", rConfig.partname);
 
     return LoopResult::RunNext;
@@ -78,7 +79,7 @@ LoopResult CSelftestPart_FirstLayer::stateAskFilamentInit() {
         rResult.preselect_response = Response::Load;
         break;
     }
-    LogInfo("%s user asked about filament");
+    log_info(Selftest, "%s user asked about filament");
     return LoopResult::RunNext;
 }
 
@@ -87,15 +88,15 @@ LoopResult CSelftestPart_FirstLayer::stateAskFilament() {
     switch (response) {
     case Response::Next:
         state_selected_by_user = filament_known_but_detected_as_not_inserted ? StateSelectedByUser::Preheat : StateSelectedByUser::Calib;
-        LogInfo("%s user pressed Next", rConfig.partname);
+        log_info(Selftest, "%s user pressed Next", rConfig.partname);
         return LoopResult::RunNext;
     case Response::Load:
         state_selected_by_user = StateSelectedByUser::Load;
-        LogInfo("%s user pressed Load", rConfig.partname);
+        log_info(Selftest, "%s user pressed Load", rConfig.partname);
         return LoopResult::RunNext;
     case Response::Unload:
         state_selected_by_user = StateSelectedByUser::Unload;
-        LogInfo("%s user pressed Unload", rConfig.partname);
+        log_info(Selftest, "%s user pressed Unload", rConfig.partname);
         return LoopResult::RunNext;
 
     default:
@@ -112,7 +113,7 @@ LoopResult CSelftestPart_FirstLayer::statePreheatEnqueueGcode() {
     }
 
     queue.enqueue_one_now("M1700 W0 S"); // preheat, no return no cooldown, set filament
-    LogInfo("%s preheat enqueued", rConfig.partname);
+    log_info(Selftest, "%s preheat enqueued", rConfig.partname);
     return LoopResult::RunNext;
 }
 
@@ -140,7 +141,7 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentLoadEnqueueGcode() {
     }
 
     queue.enqueue_one_now("M701 W0"); // load, no return no cooldown
-    LogInfo("%s load enqueued", rConfig.partname);
+    log_info(Selftest, "%s load enqueued", rConfig.partname);
     return LoopResult::RunNext;
 }
 
@@ -173,7 +174,7 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentUnloadEnqueueGcode() {
     }
 
     queue.enqueue_one_now("M702 W0"); // unload, no return no cooldown
-    LogInfo("%s unload enqueued", rConfig.partname);
+    log_info(Selftest, "%s unload enqueued", rConfig.partname);
     return LoopResult::RunNext;
 }
 
@@ -338,7 +339,7 @@ LoopResult CSelftestPart_FirstLayer::stateCleanSheet() {
 LoopResult CSelftestPart_FirstLayer::stateFinish() {
 
     //finish
-    LogInfo("%s Finished\n", rConfig.partname);
+    log_info(Selftest, "%s Finished\n", rConfig.partname);
     return LoopResult::RunNext;
 }
 

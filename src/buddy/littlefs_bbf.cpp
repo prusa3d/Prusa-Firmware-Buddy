@@ -2,6 +2,8 @@
 #include "bbf.hpp"
 #include "log.h"
 
+LOG_COMPONENT_REF(FileSystem);
+
 static lfs_t lfs;
 
 typedef struct {

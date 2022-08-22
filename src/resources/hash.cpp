@@ -5,6 +5,7 @@
 #include <optional>
 
 using namespace buddy::resources;
+LOG_COMPONENT_REF(Resources);
 
 class HashContext {
 private:
@@ -53,7 +54,7 @@ static bool update_hash_with_file(const char *root, Path &path, HashContext &has
     // filedata
     std::unique_ptr<FILE, FILEDeleter> source(fopen(path.get(), "rb"));
     if (source.get() == nullptr) {
-        log(LOG_SEVERITY_ERROR, "Failed to open file %s", source.get());
+        log_error(Resources, "Failed to open file %s", source.get());
         return false;
     }
     uint8_t buffer[128];
@@ -150,13 +151,13 @@ bool buddy::resources::calculate_directory_hash(Hash &hash, const char *root) {
     const Path root_dir(root);
     Path current_path(root);
 
-    log(LOG_SEVERITY_INFO, "Starting to calculate hash of %s", root);
+    log_info(Resources, "Starting to calculate hash of %s", root);
 
     bool success = update_hash_with_directory(root_dir.get(), current_path, sha_ctx);
 
     if (success) {
         sha_ctx.finish(hash);
-        log(LOG_SEVERITY_INFO, "Hash calculation finished (result %02X%02X%02X%02X%02X%02X...)", hash[0], hash[1], hash[2], hash[3], hash[4], hash[5]);
+        log_info(Resources, "Hash calculation finished (result %02X%02X%02X%02X%02X%02X...)", hash[0], hash[1], hash[2], hash[3], hash[4], hash[5]);
     }
 
     return success;

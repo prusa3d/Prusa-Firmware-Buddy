@@ -11,6 +11,8 @@
 #include "gui_invalidate.hpp"
 #include "syslog.h"
 
+LOG_COMPONENT_REF(GUI);
+
 void window_icon_t::SetIdRes(ResourceId id) {
     if (dataSource.id_res != id) {
         dataSource.set(id);

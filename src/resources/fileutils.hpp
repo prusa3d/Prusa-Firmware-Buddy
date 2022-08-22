@@ -6,8 +6,6 @@
 #include "filesystem_littlefs_bbf.h"
 #include "bbf.hpp"
 
-#define log(severity, ...) _log_event(severity, log_component_find("Resources"), __VA_ARGS__)
-
 class DIRDeleter {
 public:
     void operator()(DIR *dir) {

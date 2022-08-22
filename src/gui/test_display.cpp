@@ -10,6 +10,8 @@
 #include "display_helper.h"
 #include "log.h"
 
+LOG_COMPONENT_REF(Buddy);
+
 typedef void(test_display_t)(uint16_t cnt);
 
 void test_display_random_dots(uint16_t cnt);

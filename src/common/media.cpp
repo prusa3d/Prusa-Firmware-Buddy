@@ -19,6 +19,9 @@
 #include "metric.h"
 #include <errno.h>
 
+LOG_COMPONENT_REF(USBHost);
+LOG_COMPONENT_REF(MarlinServer);
+
 #ifdef REENUMERATE_USB
 
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle

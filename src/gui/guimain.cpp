@@ -52,6 +52,8 @@ int guimain_spi_test = 0;
 #include "gui_media_events.hpp"
 #include "main.h"
 #include "bsod.h"
+
+LOG_COMPONENT_REF(Buddy);
 extern void blockISR(); // do not want to include marlin temperature
 
 #ifdef USE_ST7789
@@ -156,7 +158,7 @@ static void finish_update() {
                     bsod("unreachable");
                 }
 
-                _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootloader update progress %s (%i %%)", stage_description, percent_done);
+                log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description, percent_done);
                 screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
                 gui_redraw();
             });
@@ -180,8 +182,7 @@ static void finish_update() {
                 default:
                     bsod("unreachable");
                 }
-
-                _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootstrap progress %s (%i %%)", stage_description, percent_done);
+                log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description, percent_done);
                 screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
                 gui_redraw();
             });

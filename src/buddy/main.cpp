@@ -38,6 +38,8 @@
     #include "wui.h"
 #endif
 
+LOG_COMPONENT_REF(Buddy);
+
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
 osThreadId connectTaskHandle;
