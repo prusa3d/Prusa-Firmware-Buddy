@@ -58,7 +58,7 @@ private:
     handler::Step step(std::string_view input, PutParams &putParams);
     handler::Step step(std::string_view input, UploadState &uploader);
 
-    GcodeUpload(UploadParams uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded);
+    GcodeUpload(UploadParams &&uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded);
 
 public:
     bool want_read() const { return size_rest > 0; }

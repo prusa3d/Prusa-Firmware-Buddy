@@ -37,7 +37,7 @@ using std::make_tuple;
 using std::move;
 using std::string_view;
 
-GcodeUpload::GcodeUpload(UploadParams uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
+GcodeUpload::GcodeUpload(UploadParams &&uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
     : upload(move(uploader))
     , uploaded_notify(uploaded)
     , size_rest(length)
@@ -106,13 +106,6 @@ GcodeUpload::~GcodeUpload() {
 GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors, UploadParams &&uploadParams) {
     // Note: authentication already checked by the caller.
     // Note: We return errors with connection-close because we don't know if the client sent part of the data.
-
-    if (std::holds_alternative<UploadState>(uploadParams)) {
-        const auto boundary = parser.boundary();
-        if (boundary.empty()) {
-            return StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing boundary");
-        }
-    }
 
     // One day we may want to support chunked and connection-close, but we are not there yet.
     if (!parser.content_length.has_value()) {
@@ -193,7 +186,7 @@ Step GcodeUpload::step(string_view input, UploadState &uploader) {
 Step GcodeUpload::step(string_view input, PutParams &putParams) {
     const size_t read = std::min(input.size(), size_rest);
     // remove the "/usb/" prefix
-    const char *filename = std::get<0>(upload).filepath.data() + USB_MOUNT_POINT_LENGTH;
+    const char *filename = putParams.filepath.data() + USB_MOUNT_POINT_LENGTH;
 
     // bit of a hack, would make more sense checking this in GcodeUpload::start,
     // but that is a static method and we need check_filename to be virtual, so
@@ -211,12 +204,11 @@ Step GcodeUpload::step(string_view input, PutParams &putParams) {
 
     size_rest -= read;
     if (size_rest == 0) {
-        filename_checked = false;
-        auto finish_error = finish(filename, std::get<0>(upload).print_after_upload);
+        auto finish_error = finish(filename, putParams.print_after_upload);
         if (std::get<0>(finish_error) != Status::Ok)
             return { read, 0, StatusPage(std::get<0>(finish_error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(finish_error)) };
 
-        return { read, 0, FileInfo(std::get<0>(upload).filepath.data(), false, json_errors, true) };
+        return { read, 0, FileInfo(putParams.filepath.data(), false, json_errors, true) };
     }
 
     return { read, 0, Continue() };

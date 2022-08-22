@@ -86,11 +86,10 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                 return StatusPage(Status::Forbidden, parser.status_page_handling(), parser.accepts_json);
             }
 
-            GcodeUpload::UploadParams uploadParams = GcodeUpload::PutParams();
-            GcodeUpload::PutParams &putParams = std::get<0>(uploadParams);
-            std::get<0>(uploadParams).print_after_upload = parser.print_after_upload;
+            GcodeUpload::PutParams putParams;
+            putParams.print_after_upload = parser.print_after_upload;
             strlcpy(putParams.filepath.data(), storage_path, sizeof(putParams.filepath));
-            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, move(uploadParams));
+            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(putParams));
             return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
         } else {
             return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
@@ -107,8 +106,8 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             char boundary_cstr[boundary.size() + 1];
             memcpy(boundary_cstr, boundary.begin(), boundary.size());
             boundary_cstr[boundary.size()] = '\0';
-            GcodeUpload::UploadParams uploadState = printer::UploadState(boundary_cstr);
-            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, move(uploadState));
+            printer::UploadState uploadState(boundary_cstr);
+            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(uploadState));
             /*
              * So, we have a "smaller" variant (eg. variant<A, B, C>) and
              * want a "bigger" variant<A, B, C, D, E>. C++ templates can't
