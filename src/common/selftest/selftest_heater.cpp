@@ -10,6 +10,7 @@
 #include "algorithm_scale.hpp"
 
 using namespace selftest;
+LOG_COMPONENT_REF(Selftest);
 
 static constexpr float TEMP_DIFF_LIMIT = 0.25;
 static constexpr float TEMP_DELTA_LIMIT = 0.05F;
@@ -33,20 +34,20 @@ CSelftestPart_Heater::CSelftestPart_Heater(IPartHandler &state_machine, const He
     config.refKi = 0;
     config.refKd = 0;
     thermalManager.updatePID();
-    LogInfo("%s Started");
-    LogInfo("target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
-    LogInfo("%s heater PID regulator changed to P regulator", m_config.partname);
+    log_info(Selftest, "%s Started");
+    log_info(Selftest, "target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    log_info(Selftest, "%s heater PID regulator changed to P regulator", m_config.partname);
 }
 
 CSelftestPart_Heater::~CSelftestPart_Heater() {
-    LogInfo("%s finish, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    log_info(Selftest, "%s finish, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
     m_config.setTargetTemp(0);
 
     m_config.refKp = storedKp;
     m_config.refKi = storedKi;
     m_config.refKd = storedKd;
     thermalManager.updatePID();
-    LogInfo("%s heater PID regulator restored", m_config.partname);
+    log_info(Selftest, "%s heater PID regulator restored", m_config.partname);
 }
 
 uint32_t CSelftestPart_Heater::estimate(const HeaterConfig_t &config) {
@@ -66,7 +67,7 @@ LoopResult CSelftestPart_Heater::stateStart() {
 }
 
 LoopResult CSelftestPart_Heater::stateTakeControlOverFans() {
-    LogInfo("%s took control of fans", m_config.partname);
+    log_info(Selftest, "%s took control of fans", m_config.partname);
     m_config.print_fan.EnterSelftestMode();
     m_config.heatbreak_fan.EnterSelftestMode();
     return LoopResult::RunNext;
@@ -74,7 +75,7 @@ LoopResult CSelftestPart_Heater::stateTakeControlOverFans() {
 
 LoopResult CSelftestPart_Heater::stateFansActivate() {
     if (enable_cooldown) {
-        LogInfo("%s set fans to maximum", m_config.partname);
+        log_info(Selftest, "%s set fans to maximum", m_config.partname);
         m_config.print_fan.SelftestSetPWM(255);     //it will be restored by ExitSelftestMode
         m_config.heatbreak_fan.SelftestSetPWM(255); //it will be restored by ExitSelftestMode
     }
@@ -90,7 +91,7 @@ LoopResult CSelftestPart_Heater::stateCooldownInit() {
 
 LoopResult CSelftestPart_Heater::stateCooldown() {
     if (!enable_cooldown) {
-        LogInfo("%s cooldown not needed, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+        log_info(Selftest, "%s cooldown not needed, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
         return LoopResult::RunNext;
     }
 
@@ -108,12 +109,12 @@ LoopResult CSelftestPart_Heater::stateCooldown() {
 LoopResult CSelftestPart_Heater::stateFansDeactivate() {
     m_config.print_fan.ExitSelftestMode();
     m_config.heatbreak_fan.ExitSelftestMode();
-    LogInfo("%s returned control of fans", m_config.partname);
+    log_info(Selftest, "%s returned control of fans", m_config.partname);
     return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_Heater::stateTargetTemp() {
-    LogInfo("%s set target, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    log_info(Selftest, "%s set target, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
     rResult.prep_state = SelftestSubtestState_t::running; // waiting for preheat temperature
     m_config.setTargetTemp(m_config.target_temp);
     return LoopResult::RunNext;
@@ -128,7 +129,7 @@ LoopResult CSelftestPart_Heater::stateWait() {
         m_StartTime = SelftestInstance().GetTime();
         m_EndTime = m_StartTime + estimate(m_config);
         rResult.progress = 0;
-        LogInfo("%s wait start temp reached: target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+        log_info(Selftest, "%s wait start temp reached: target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
         return LoopResult::RunNext;
     }
     LogInfoTimed(log, "%s wait, run: target: %d current: %f", m_config.partname, m_config.target_temp, (double)current_temp);
@@ -193,10 +194,10 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
 #endif // 0
 
     if ((m_config.getTemp() < m_config.heat_min_temp) || (m_config.getTemp() > m_config.heat_max_temp)) {
-        LogError("%s %i out of range (%i - %i)\n", m_config.partname, (int)m_config.getTemp(), m_config.heat_min_temp, m_config.heat_max_temp);
+        log_error(Selftest, "%s %i out of range (%i - %i)\n", m_config.partname, (int)m_config.getTemp(), m_config.heat_min_temp, m_config.heat_max_temp);
         return LoopResult::Fail;
     }
-    LogInfo("%s measure, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    log_info(Selftest, "%s measure, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
     return LoopResult::RunNext;
 }
 

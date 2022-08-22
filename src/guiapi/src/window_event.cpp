@@ -4,6 +4,8 @@
 #include "log.h"
 #include "gui_time.hpp"
 
+LOG_COMPONENT_REF(GUI);
+
 EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {
     //
     // Log Events

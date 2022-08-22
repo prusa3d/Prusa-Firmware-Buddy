@@ -22,8 +22,9 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 
-#define log(severity, ...) _log_event(severity, log_component_find("Bootloader"), __VA_ARGS__)
-#define fatal_error(msg)   bsod(msg)
+LOG_COMPONENT_REF(Bootloader);
+
+#define fatal_error(msg) bsod(msg)
 
 using Version = buddy::bootloader::Version;
 using UpdateStage = buddy::bootloader::UpdateStage;
@@ -140,16 +141,16 @@ static bool flash_program_sector(int sector, FILE *fp, ProgressCallback progress
         size_t read = fread(buffer, 1, to_read, fp);
 
         if (ferror(fp)) {
-            log(LOG_SEVERITY_ERROR, "Bootloader reading failed while flashing (errno %i)", errno);
+            log_error(Bootloader, "Bootloader reading failed while flashing (errno %i)", errno);
             return false;
         }
 
-        log(LOG_SEVERITY_DEBUG, "Programming 0x%08X (size %zu)", address, read);
+        log_debug(Bootloader, "Programming 0x%08X (size %zu)", address, read);
         if (!flash_program(address, buffer, read)) {
-            log(LOG_SEVERITY_ERROR, "Writing the bootloader to FLASH failed", errno);
+            log_error(Bootloader, "Writing the bootloader to FLASH failed", errno);
             return false;
         }
-        log(LOG_SEVERITY_DEBUG, "Programming 0x%08X (size %zu) finished", address, read);
+        log_debug(Bootloader, "Programming 0x%08X (size %zu) finished", address, read);
 
         address += read;
         copied_bytes += read;
@@ -188,14 +189,14 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 
             uint32_t current_preboot_crc = crc32_calc(bootloader_sector_get_address(0), bootloader_sector_get_size(0));
             if (current_preboot_crc == expected_preboot_crc) {
-                log(LOG_SEVERITY_INFO, "No need to update preboot. Skipping sector 0.");
+                log_info(Bootloader, "No need to update preboot. Skipping sector 0.");
                 continue;
             } else {
-                log(LOG_SEVERITY_INFO, "Going to update preboot now.");
+                log_info(Bootloader, "Going to update preboot now.");
             }
         }
 
-        log(LOG_SEVERITY_INFO, "Flashing sector %i", sector);
+        log_info(Bootloader, "Flashing sector %i", sector);
 
         // add random delay to make preboot flashing less predictable
         if (sector == 0) {
@@ -231,7 +232,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
             fatal_error("bootloader update: failed to flash sector");
         }
 
-        log(LOG_SEVERITY_INFO, "Sector %i flashed successfully", sector);
+        log_info(Bootloader, "Sector %i flashed successfully", sector);
         bytes_in_preceding_sectors += bootloader_sector_get_size(sector);
     }
 }
@@ -271,7 +272,7 @@ void buddy::bootloader::update(ProgressHook progress) {
 
     std::unique_ptr<FILE, FileDeleter> bootloader_bin(fopen("/internal/res/bootloader.bin", "rb"));
     if (bootloader_bin.get() == nullptr) {
-        log(LOG_SEVERITY_CRITICAL, "bootloader.bin failed to fopen() after its bootstrap");
+        log_critical(Bootloader, "bootloader.bin failed to fopen() after its bootstrap");
         fatal_error("bootloader.bin failed to open");
     }
 

@@ -8,6 +8,8 @@
 #include "log.h"
 #include "disable_interrupts.h"
 
+LOG_COMPONENT_REF(Buddy);
+
 #define DFU_REQUEST_RTC_BKP_REGISTER RTC->BKP0R
 
 // magic value of RTC->BKP0R for requesting DFU bootloader entry

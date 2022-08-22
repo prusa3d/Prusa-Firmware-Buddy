@@ -17,6 +17,8 @@
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 #include "GuiDefaults.hpp"
 
+LOG_COMPONENT_REF(GUI);
+
 #ifndef MAXPATHNAMELENGTH
     #define MAXPATHNAMELENGTH F_MAXPATHNAMELENGTH
 #endif

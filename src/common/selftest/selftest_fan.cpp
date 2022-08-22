@@ -14,6 +14,7 @@
 #define FANTEST_MEASURE_DELAY 7500
 
 using namespace selftest;
+LOG_COMPONENT_REF(Selftest);
 
 CSelftestPart_Fan::CSelftestPart_Fan(IPartHandler &state_machine, const FanConfig_t &config,
     SelftestFan_t &result)
@@ -38,7 +39,7 @@ uint32_t CSelftestPart_Fan::estimate(const FanConfig_t &config) {
 }
 
 LoopResult CSelftestPart_Fan::stateStart() {
-    LogInfo("%s Started", m_config.partname);
+    log_info(Selftest, "%s Started", m_config.partname);
     rResult.state = SelftestSubtestState_t::running;
     SelftestInstance().log_printf("%s Started\n", m_config.partname);
     m_StartTime = SelftestInstance().GetTime();
@@ -57,7 +58,7 @@ LoopResult CSelftestPart_Fan::stateWaitStopped() {
     }
     m_config.fanctl.SelftestSetPWM(m_config.pwm_start);
     m_Step = 0;
-    LogInfo("%s wait stopped, rpm: %d pwm: %d", m_config.partname, m_config.fanctl.getActualRPM(), m_config.fanctl.getPWM());
+    log_info(Selftest, "%s wait stopped, rpm: %d pwm: %d", m_config.partname, m_config.fanctl.getActualRPM(), m_config.fanctl.getPWM());
     return LoopResult::RunNext;
 }
 
@@ -68,7 +69,7 @@ LoopResult CSelftestPart_Fan::stateWaitRpm() {
     }
     m_SampleCount = 0;
     m_SampleSum = 0;
-    LogInfo("%s rpm: %d pwm: %d", m_config.partname, m_config.fanctl.getActualRPM(), m_config.fanctl.getPWM());
+    log_info(Selftest, "%s rpm: %d pwm: %d", m_config.partname, m_config.fanctl.getActualRPM(), m_config.fanctl.getPWM());
     return LoopResult::RunNext;
 }
 
@@ -84,7 +85,7 @@ LoopResult CSelftestPart_Fan::stateMeasureRpm() {
     if ((m_config.rpm_min_table != nullptr) && (m_config.rpm_max_table != nullptr))
         if ((rpm < m_config.rpm_min_table[m_Step]) || (rpm > m_config.rpm_max_table[m_Step])) {
             SelftestInstance().log_printf("%s %u RPM out of range (%u - %u)\n", m_config.partname, rpm, m_config.rpm_min_table[m_Step], m_config.rpm_max_table[m_Step]);
-            LogError("%s measure rpm, rpm: %d pwm: %d", m_config.partname, m_config.fanctl.getActualRPM(), m_config.fanctl.getPWM());
+            log_error(Selftest, "%s measure rpm, rpm: %d pwm: %d", m_config.partname, m_config.fanctl.getActualRPM(), m_config.fanctl.getPWM());
             return LoopResult::Fail;
         }
     if (++m_Step < m_config.steps) {
@@ -92,7 +93,7 @@ LoopResult CSelftestPart_Fan::stateMeasureRpm() {
         return LoopResult::GoToMark;
     }
     //finish
-    LogInfo("%s Finished\n", m_config.partname);
+    log_info(Selftest, "%s Finished\n", m_config.partname);
     return LoopResult::RunNext;
 }
 

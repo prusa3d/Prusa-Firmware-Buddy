@@ -3,6 +3,8 @@
 #include "log.h"
 #include "SteelSheets.hpp"
 
+LOG_COMPONENT_REF(GUI);
+
 static void onclick_ok();
 static void onclick_cancel();
 

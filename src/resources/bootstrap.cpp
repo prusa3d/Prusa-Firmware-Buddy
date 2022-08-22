@@ -178,19 +178,19 @@ static bool has_bbf_suffix(const char *fname) {
 static bool is_relevant_bbf_for_bootstrap(const char *fname, const buddy::resources::Revision &revision, buddy::bbf::TLVType tlv_entry) {
     std::unique_ptr<FILE, FILEDeleter> bbf(fopen(fname, "rb"));
     if (bbf.get() == nullptr) {
-        log(LOG_SEVERITY_ERROR, "Failed to open %s", fname);
+        log_error(Resources, "Failed to open %s", fname);
         return false;
     }
 
     uint32_t hash_len;
     if (!buddy::bbf::seek_to_tlv_entry(bbf.get(), tlv_entry, hash_len)) {
-        log(LOG_SEVERITY_ERROR, "Failed to seek to resources revision %s", fname);
+        log_error(Resources, "Failed to seek to resources revision %s", fname);
         return false;
     }
 
     buddy::resources::Revision bbf_revision;
     if (fread(&bbf_revision.hash[0], 1, revision.hash.size(), bbf.get()) != hash_len) {
-        log(LOG_SEVERITY_ERROR, "Failed to read resources revision %s", fname);
+        log_error(Resources, "Failed to read resources revision %s", fname);
         return false;
     }
 
@@ -200,13 +200,13 @@ static bool is_relevant_bbf_for_bootstrap(const char *fname, const buddy::resour
 static bool copy_file(const Path &source_path, const Path &target_path, BootstrapProgressReporter &reporter) {
     std::unique_ptr<FILE, FILEDeleter> source(fopen(source_path.get(), "rb"));
     if (source.get() == nullptr) {
-        log(LOG_SEVERITY_ERROR, "Failed to open file %s", source.get());
+        log_error(Resources, "Failed to open file %s", source.get());
         return false;
     }
 
     std::unique_ptr<FILE, FILEDeleter> target(fopen(target_path.get(), "wb"));
     if (target.get() == nullptr) {
-        log(LOG_SEVERITY_ERROR, "Failed to open file for writing %s", target.get());
+        log_error(Resources, "Failed to open file for writing %s", target.get());
         return false;
     }
 
@@ -217,7 +217,7 @@ static bool copy_file(const Path &source_path, const Path &target_path, Bootstra
         if (read > 0) {
             int written = fwrite(buffer, 1, read, target.get());
             if (read != written) {
-                log(LOG_SEVERITY_ERROR, "Writing while copying failed");
+                log_error(Resources, "Writing while copying failed");
                 return false;
             }
             reporter.did_copy_bytes(written);
@@ -265,13 +265,13 @@ static bool copy_file(const Path &source_path, const Path &target_path, Bootstra
         bool success;
         if (d_type == DT_REG) {
             // copy file
-            log(LOG_SEVERITY_INFO, "Removing file %s", path.get());
+            log_info(Resources, "Removing file %s", path.get());
             success = remove(path.get()) == 0;
         } else if (d_type == DT_DIR) {
-            log(LOG_SEVERITY_INFO, "Removing directory %s", path.get());
+            log_info(Resources, "Removing directory %s", path.get());
             success = remove_directory_recursive(path);
         } else {
-            log(LOG_SEVERITY_WARNING, "Unexpected item %hhu: %s; skipping", d_type, path.get());
+            log_warning(Resources, "Unexpected item %hhu: %s; skipping", d_type, path.get());
             success = true;
         }
 
@@ -279,7 +279,7 @@ static bool copy_file(const Path &source_path, const Path &target_path, Bootstra
         path.pop();
 
         if (!success) {
-            log(LOG_SEVERITY_ERROR, "Error when removing directory %s (errno %i)", path.get(), errno);
+            log_error(Resources, "Error when removing directory %s (errno %i)", path.get(), errno);
             return false;
         }
     }
@@ -327,7 +327,7 @@ static bool copy_resources_directory(Path &source, Path &target, BootstrapProgre
         } else if (last_dir_location.has_value()) {
             seekdir(dir.get(), last_dir_location.value());
             if (errno != 0) {
-                log(LOG_SEVERITY_ERROR, "seekdir() failed: %i", errno);
+                log_error(Resources, "seekdir() failed: %i", errno);
                 return false;
             }
         }
@@ -360,15 +360,15 @@ static bool copy_resources_directory(Path &source, Path &target, BootstrapProgre
         bool success;
         if (d_type == DT_REG) {
             // copy file
-            log(LOG_SEVERITY_INFO, "Copying file %s", source.get());
+            log_info(Resources, "Copying file %s", source.get());
             success = copy_file(source, target, reporter);
             reporter.did_copy_file();
         } else if (d_type == DT_DIR) {
-            log(LOG_SEVERITY_INFO, "Copying directory %s", source.get());
+            log_info(Resources, "Copying directory %s", source.get());
             success = copy_resources_directory(source, target, reporter);
             reporter.did_copy_directory();
         } else {
-            log(LOG_SEVERITY_WARNING, "Unexpected item %hhu: %s; skipping", d_type, source.get());
+            log_warning(Resources, "Unexpected item %hhu: %s; skipping", d_type, source.get());
             success = true;
         }
 
@@ -385,12 +385,12 @@ static bool copy_resources_directory(Path &source, Path &target, BootstrapProgre
 }
 
 static bool find_suitable_bbf_file(const buddy::resources::Revision &revision, Path &bbf, buddy::bbf::TLVType &bbf_entry) {
-    log(LOG_SEVERITY_DEBUG, "Searching for a bbf...");
+    log_debug(Resources, "Searching for a bbf...");
 
     // open the directory
     std::unique_ptr<DIR, DIRDeleter> dir(opendir("/usb"));
     if (dir.get() == nullptr) {
-        log(LOG_SEVERITY_WARNING, "Failed to open /usb directory");
+        log_warning(Resources, "Failed to open /usb directory");
         return false;
     }
 
@@ -400,7 +400,7 @@ static bool find_suitable_bbf_file(const buddy::resources::Revision &revision, P
     while ((entry = readdir(dir.get()))) {
         // check is bbf
         if (!has_bbf_suffix(entry->d_name)) {
-            log(LOG_SEVERITY_DEBUG, "Skipping file: %s (bad suffix)", entry->d_name);
+            log_debug(Resources, "Skipping file: %s (bad suffix)", entry->d_name);
             continue;
         }
         // create full path
@@ -408,23 +408,23 @@ static bool find_suitable_bbf_file(const buddy::resources::Revision &revision, P
         bbf.push(entry->d_name);
         // check if the file contains required resources
         if (is_relevant_bbf_for_bootstrap(bbf.get(), revision, buddy::bbf::TLVType::RESOURCES_IMAGE_HASH)) {
-            log(LOG_SEVERITY_INFO, "Found suitable bbf for bootstraping: %s", bbf.get());
+            log_info(Resources, "Found suitable bbf for bootstraping: %s", bbf.get());
             bbf_found = true;
             bbf_entry = buddy::bbf::TLVType::RESOURCES_IMAGE;
             break;
         } else if (is_relevant_bbf_for_bootstrap(bbf.get(), revision, buddy::bbf::TLVType::RESOURCES_BOOTLOADER_IMAGE_HASH)) {
-            log(LOG_SEVERITY_INFO, "Found suitable bbf for bootstraping: %s", bbf.get());
+            log_info(Resources, "Found suitable bbf for bootstraping: %s", bbf.get());
             bbf_found = true;
             bbf_entry = buddy::bbf::TLVType::RESOURCES_BOOTLOADER_IMAGE;
             break;
         } else {
-            log(LOG_SEVERITY_INFO, "Skipping file: %s (not compatible)", bbf.get());
+            log_info(Resources, "Skipping file: %s (not compatible)", bbf.get());
             continue;
         }
     }
 
     if (!bbf_found) {
-        log(LOG_SEVERITY_WARNING, "Failed to find a .bbf file");
+        log_warning(Resources, "Failed to find a .bbf file");
         return false;
     }
 
@@ -446,14 +446,14 @@ static bool do_bootstrap(const buddy::resources::Revision &revision, buddy::reso
     // open the bbf
     std::unique_ptr<FILE, FILEDeleter> bbf(fopen(source_path.get(), "rb"));
     if (bbf.get() == nullptr) {
-        log(LOG_SEVERITY_WARNING, "Failed to open %s", source_path.get());
+        log_warning(Resources, "Failed to open %s", source_path.get());
         return false;
     }
 
     // mount the filesystem stored in the bbf
     ScopedFileSystemLittlefsBBF scoped_bbf_mount(bbf.get(), bbf_entry);
     if (!scoped_bbf_mount.mounted()) {
-        log(LOG_SEVERITY_INFO, "BBF mounting failed");
+        log_info(Resources, "BBF mounting failed");
         return false;
     }
 
@@ -461,16 +461,16 @@ static bool do_bootstrap(const buddy::resources::Revision &revision, buddy::reso
     ResourcesScanResult scan_result;
     source_path.set("/bbf");
     if (!scan_resources_folder(source_path, scan_result)) {
-        log(LOG_SEVERITY_ERROR, "Failed to scan the /bbf directory");
+        log_error(Resources, "Failed to scan the /bbf directory");
     }
-    log(LOG_SEVERITY_INFO, "To copy: %i files, %i directories, %i bytes",
+    log_info(Resources, "To copy: %i files, %i directories, %i bytes",
         scan_result.files_count, scan_result.directories_count, scan_result.total_size_of_files);
     reporter.assign_scan_result(scan_result);
 
     // open the bbf's root dir
     std::unique_ptr<DIR, DIRDeleter> dir(opendir("/bbf"));
     if (dir.get() == nullptr) {
-        log(LOG_SEVERITY_WARNING, "Failed to open /bbf directory");
+        log_warning(Resources, "Failed to open /bbf directory");
         return false;
     }
 
@@ -478,7 +478,7 @@ static bool do_bootstrap(const buddy::resources::Revision &revision, buddy::reso
     Path target_path("/internal/res");
     buddy::resources::InstalledRevision::clear();
     if (remove_recursive_if_exists(target_path) == false) {
-        log(LOG_SEVERITY_ERROR, "Failed to remove the /internal/res directory");
+        log_error(Resources, "Failed to remove the /internal/res directory");
         return false;
     }
 
@@ -486,25 +486,25 @@ static bool do_bootstrap(const buddy::resources::Revision &revision, buddy::reso
     reporter.update_stage(BootstrapStage::CopyingFiles);
     source_path.set("/bbf");
     if (!copy_resources_directory(source_path, target_path, reporter)) {
-        log(LOG_SEVERITY_ERROR, "Failed to copy resources");
+        log_error(Resources, "Failed to copy resources");
         return false;
     }
 
     // calculate the hash of the resources we just installed
     buddy::resources::Hash current_hash;
     if (!buddy::resources::calculate_directory_hash(current_hash, "/internal/res")) {
-        log(LOG_SEVERITY_ERROR, "Failed to calculate hash of /internal/res directory");
+        log_error(Resources, "Failed to calculate hash of /internal/res directory");
         return false;
     }
 
     if (revision.hash != current_hash) {
-        log(LOG_SEVERITY_ERROR, "Installed resources but the hash does not match!");
+        log_error(Resources, "Installed resources but the hash does not match!");
         return false;
     }
 
     // save the installed revision
     if (!buddy::resources::InstalledRevision::set(revision)) {
-        log(LOG_SEVERITY_ERROR, "Failed to save installed resources revision");
+        log_error(Resources, "Failed to save installed resources revision");
         return false;
     }
 
@@ -515,10 +515,10 @@ bool buddy::resources::bootstrap(const buddy::resources::Revision &revision, Pro
     while (true) {
         bool success = do_bootstrap(revision, progress_hook);
         if (success) {
-            log(LOG_SEVERITY_INFO, "Bootstrap successful");
+            log_info(Resources, "Bootstrap successful");
             return true;
         } else {
-            log(LOG_SEVERITY_INFO, "Bootstrap failed. Retrying in a moment...");
+            log_info(Resources, "Bootstrap failed. Retrying in a moment...");
             osDelay(1000);
         }
     }

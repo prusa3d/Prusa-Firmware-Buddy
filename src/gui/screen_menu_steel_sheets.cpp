@@ -10,6 +10,8 @@
 #include "WindowItemFormatableLabel.hpp"
 #include "GuiDefaults.hpp"
 
+LOG_COMPONENT_REF(GUI);
+
 #if _DEBUG // todo remove #if _DEBUG after rename is finished
     #include "screen_sheet_rename.hpp"
 #endif

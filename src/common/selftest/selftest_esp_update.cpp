@@ -31,6 +31,8 @@ extern "C" {
 #include "cmsis_os.h"
 }
 
+LOG_COMPONENT_REF(Network);
+
 #define BOOT_ADDRESS            0x00000ul
 #define APPLICATION_ADDRESS     0x10000ul
 #define PARTITION_TABLE_ADDRESS 0x08000ul

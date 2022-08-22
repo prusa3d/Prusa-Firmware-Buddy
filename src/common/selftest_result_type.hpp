@@ -10,6 +10,8 @@
 #include "fsm_base_types.hpp"
 #include "selftest_log.hpp"
 
+LOG_COMPONENT_REF(Selftest);
+
 struct SelftestResult_t {
     TestResult_t printFan;
     TestResult_t heatBreakFan;
@@ -69,15 +71,15 @@ struct SelftestResult_t {
     }
 
     void Log() const {
-        LogInfo("Print fan result is %s", ToString(printFan));
-        LogInfo("Heatbreak fan result is %s", ToString(heatBreakFan));
-        LogInfo("X axis result is %s", ToString(xaxis));
-        LogInfo("Y axis result is %s", ToString(yaxis));
-        LogInfo("Z axis result is %s", ToString(zaxis));
-        LogInfo("Nozzle heater result is %s", ToString(nozzle));
-        LogInfo("Bed heater result is %s", ToString(bed));
-        LogInfo("Ethernet result is %s", ToString(eth));
-        LogInfo("Wifi result is %s", ToString(wifi));
+        log_info(Selftest, "Print fan result is %s", ToString(printFan));
+        log_info(Selftest, "Heatbreak fan result is %s", ToString(heatBreakFan));
+        log_info(Selftest, "X axis result is %s", ToString(xaxis));
+        log_info(Selftest, "Y axis result is %s", ToString(yaxis));
+        log_info(Selftest, "Z axis result is %s", ToString(zaxis));
+        log_info(Selftest, "Nozzle heater result is %s", ToString(nozzle));
+        log_info(Selftest, "Bed heater result is %s", ToString(bed));
+        log_info(Selftest, "Ethernet result is %s", ToString(eth));
+        log_info(Selftest, "Wifi result is %s", ToString(wifi));
     }
 
     constexpr void Deserialize(fsm::PhaseData new_data) {
