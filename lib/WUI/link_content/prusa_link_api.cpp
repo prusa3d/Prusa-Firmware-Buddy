@@ -135,7 +135,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                  * on the USB drive (eg. our xflash).
                  */
                 if (strncmp(fname_real, "/usb/", 5) != 0) {
-                    StatusPage(Status::Forbidden, parser.status_page_handling(), parser.accepts_json);
+                    return StatusPage(Status::Forbidden, parser.status_page_handling(), parser.accepts_json);
                 }
 
                 switch (parser.method) {
