@@ -17,9 +17,7 @@
 #include "printers.h"
 
 static GCodeInfo &gcode_init() {
-    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FILENAME) | MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH));
-    GCodeInfo::getInstance().SetGcodeFilepath(vars->media_SFN_path);
-    GCodeInfo::getInstance().SetGcodeFilename(vars->media_LFN);
+    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FILENAME) | MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH));
     GCodeInfo::getInstance().initFile(GCodeInfo::GI_INIT_t::PREVIEW);
     return GCodeInfo::getInstance();
 }

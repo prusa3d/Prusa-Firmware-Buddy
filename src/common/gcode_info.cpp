@@ -13,16 +13,13 @@ bool GCodeInfo::IsSettingsValid() {
     return valid_printer_settings;
 }
 
-void GCodeInfo::SetGcodeFilename(const char *fname) {
+void GCodeInfo::Init(const char *fname, const char *fpath) {
     gcode_file_name = fname;
+    gcode_file_path = fpath;
 }
 
 const char *GCodeInfo::GetGcodeFilename() {
     return gcode_file_name;
-}
-
-void GCodeInfo::SetGcodeFilepath(const char *fpath) {
-    gcode_file_path = fpath;
 }
 
 const char *GCodeInfo::GetGcodeFilepath() {
