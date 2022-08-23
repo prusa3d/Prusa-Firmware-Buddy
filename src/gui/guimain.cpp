@@ -29,6 +29,7 @@
 #include "eeprom.h"
 #include "w25x.h"
 #include "gui_fsensor_api.hpp"
+#include "gcode_info.hpp"
 
 #include <feature/bootloader.h>
 #include <feature/bootloader_update.h>
@@ -269,6 +270,7 @@ void gui_run(void) {
     gui_marlin_vars = marlin_client_init();
     gui_marlin_vars->media_LFN = gui_media_LFN;
     gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
+    GCodeInfo::getInstance().Init(gui_media_LFN, gui_media_SFN_path);
 
     DialogHandler::Access(); // to create class NOW, not at first call of one of callback
     marlin_client_set_fsm_cb(DialogHandler::Command);

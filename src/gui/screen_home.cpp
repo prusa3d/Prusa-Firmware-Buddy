@@ -169,8 +169,6 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                             FILE_PATH_BUFFER_LEN,
                             vars->media_LFN,
                             FILE_NAME_BUFFER_LEN)) {
-                        gcode.SetGcodeFilepath(vars->media_SFN_path);
-                        gcode.SetGcodeFilename(vars->media_LFN);
                         print_begin(vars->media_SFN_path, false);
                     }
                 }

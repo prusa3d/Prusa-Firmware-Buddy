@@ -61,15 +61,11 @@ public:
      */
     bool IsSettingsValid();
 
-    /** Set static variable for gcode filename
+    /** Set variables for gcode filename and filepath
      *  @param[in] fname - aquired filename
+     *  @param[in] fpath - aquired filepath
      */
-    void SetGcodeFilename(const char *fname);
-
-    /** Set static variable for gcode filepath
-     *  @param[in] fpath - aquired filename
-     */
-    void SetGcodeFilepath(const char *fpath);
+    void Init(const char *fname, const char *fpath);
 
     /** Get static variable gcode filename
      *  @param[in] fname - aquired filename
