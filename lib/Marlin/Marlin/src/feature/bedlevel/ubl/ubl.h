@@ -63,13 +63,13 @@ class unified_bed_leveling {
       static void move_z_with_encoder(const float &multiplier);
       static float measure_point_with_encoder();
       static float measure_business_card_thickness(float in_height);
-      static void manually_probe_remaining_mesh(const xy_pos_t&, const float&, const float&, const bool) _O0;
-      static void fine_tune_mesh(const xy_pos_t &pos, const bool do_ubl_mesh_map) _O0;
+      static void manually_probe_remaining_mesh(const xy_pos_t&, const float&, const float&, const bool) __O0;
+      static void fine_tune_mesh(const xy_pos_t &pos, const bool do_ubl_mesh_map) __O0;
     #endif
 
-    static bool g29_parameter_parsing() _O0;
+    static bool g29_parameter_parsing() __O0;
     static void shift_mesh_height();
-    static void probe_entire_mesh(const xy_pos_t &near, const bool do_ubl_mesh_map, const bool stow_probe, const bool do_furthest) _O0;
+    static void probe_entire_mesh(const xy_pos_t &near, const bool do_ubl_mesh_map, const bool stow_probe, const bool do_furthest) __O0;
     static void tilt_mesh_based_on_3pts(const float &z1, const float &z2, const float &z3);
     static void tilt_mesh_based_on_probed_grid(const bool do_ubl_mesh_map);
     static bool smart_fill_one(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir);
@@ -91,17 +91,17 @@ class unified_bed_leveling {
     static void report_state();
     static void save_ubl_active_state_and_disable();
     static void restore_ubl_active_state_and_leave();
-    static void display_map(const int) _O0;
-    static mesh_index_pair find_closest_mesh_point_of_type(const MeshPointType, const xy_pos_t&, const bool=false, MeshFlags *done_flags=nullptr) _O0;
-    static mesh_index_pair find_furthest_invalid_mesh_point() _O0;
+    static void display_map(const int) __O0;
+    static mesh_index_pair find_closest_mesh_point_of_type(const MeshPointType, const xy_pos_t&, const bool=false, MeshFlags *done_flags=nullptr) __O0;
+    static mesh_index_pair find_furthest_invalid_mesh_point() __O0;
     static void reset();
     static void invalidate();
     static void set_all_mesh_points_to_value(const float value);
     static void adjust_mesh_to_mean(const bool cflag, const float value);
     static bool sanity_check();
 
-    static void G29() _O0;                          // O0 for no optimization
-    static void smart_fill_wlsf(const float &) _O2; // O2 gives smaller code than Os on A2560
+    static void G29() __O0;                          // O0 for no optimization
+    static void smart_fill_wlsf(const float &) __O2; // O2 gives smaller code than Os on A2560
 
     static int8_t storage_slot;
 

@@ -396,7 +396,7 @@ static void print_es_state(const bool is_hit, PGM_P const label=nullptr) {
   SERIAL_EOL();
 }
 
-void _O2 Endstops::M119() {
+void __O2 Endstops::M119() {
   #if ENABLED(BLTOUCH)
     bltouch._set_SW_mode();
   #endif
