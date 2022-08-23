@@ -39,11 +39,11 @@
 #define _FORCE_INLINE_ __attribute__((__always_inline__)) __inline__
 #define  FORCE_INLINE  __attribute__((always_inline)) inline
 #define _UNUSED      __attribute__((unused))
-#define _O0          __attribute__((optimize("O0")))
-#define _Os          __attribute__((optimize("Os")))
-#define _O1          __attribute__((optimize("O1")))
-#define _O2          __attribute__((optimize("O2")))
-#define _O3          __attribute__((optimize("O3")))
+#define __O0         __attribute__((optimize("O0")))
+#define __Os         __attribute__((optimize("Os")))
+#define __O1         __attribute__((optimize("O1")))
+#define __O2         __attribute__((optimize("O2")))
+#define __O3         __attribute__((optimize("O3")))
 
 #ifndef UNUSED
   #if defined(ARDUINO_ARCH_STM32) && !defined(STM32GENERIC)

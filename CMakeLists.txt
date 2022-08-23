@@ -39,12 +39,12 @@ endif()
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
 set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
+set(CMAKE_CXX_STANDARD 20)
 
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall -Wsign-compare)
 add_compile_options(
-  $<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
-  $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>
+  $<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>
   )
 
 # append custom C/C++ flags
@@ -306,8 +306,6 @@ add_subdirectory(lib)
 add_executable(firmware)
 
 add_subdirectory(src)
-
-set_target_properties(firmware PROPERTIES CXX_STANDARD 17)
 
 if(WUI)
   target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)

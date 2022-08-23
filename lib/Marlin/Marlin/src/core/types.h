@@ -263,15 +263,9 @@ struct XYval {
   FI XYval<T>& operator*=(const int &v)                 { x *= v;    y *= v;    return *this; }
   FI XYval<T>& operator>>=(const int &v)                { _RS(x);    _RS(y);    return *this; }
   FI XYval<T>& operator<<=(const int &v)                { _LS(x);    _LS(y);    return *this; }
-  FI bool      operator==(const XYval<T>   &rs)         { return x == rs.x && y == rs.y; }
-  FI bool      operator==(const XYZval<T>  &rs)         { return x == rs.x && y == rs.y; }
-  FI bool      operator==(const XYZEval<T> &rs)         { return x == rs.x && y == rs.y; }
   FI bool      operator==(const XYval<T>   &rs)   const { return x == rs.x && y == rs.y; }
   FI bool      operator==(const XYZval<T>  &rs)   const { return x == rs.x && y == rs.y; }
   FI bool      operator==(const XYZEval<T> &rs)   const { return x == rs.x && y == rs.y; }
-  FI bool      operator!=(const XYval<T>   &rs)         { return !operator==(rs); }
-  FI bool      operator!=(const XYZval<T>  &rs)         { return !operator==(rs); }
-  FI bool      operator!=(const XYZEval<T> &rs)         { return !operator==(rs); }
   FI bool      operator!=(const XYval<T>   &rs)   const { return !operator==(rs); }
   FI bool      operator!=(const XYZval<T>  &rs)   const { return !operator==(rs); }
   FI bool      operator!=(const XYZEval<T> &rs)   const { return !operator==(rs); }
@@ -471,8 +465,6 @@ struct XYZEval {
   FI XYZEval<T>& operator*=(const T &v)                       { x *= v;    y *= v;    z *= v;    e *= v;    return *this; }
   FI XYZEval<T>& operator>>=(const int &v)                    { _RS(x);    _RS(y);    _RS(z);    _RS(e);    return *this; }
   FI XYZEval<T>& operator<<=(const int &v)                    { _LS(x);    _LS(y);    _LS(z);    _LS(e);    return *this; }
-  FI bool        operator==(const XYZval<T>  &rs)             { return x == rs.x && y == rs.y && z == rs.z; }
-  FI bool        operator!=(const XYZval<T>  &rs)             { return !operator==(rs); }
   FI bool        operator==(const XYZval<T>  &rs)       const { return x == rs.x && y == rs.y && z == rs.z; }
   FI bool        operator!=(const XYZval<T>  &rs)       const { return !operator==(rs); }
   FI       XYZEval<T> operator-()                             { return { -x, -y, -z, -e }; }
