@@ -37,30 +37,32 @@ using std::make_tuple;
 using std::move;
 using std::string_view;
 
-GcodeUpload::GcodeUpload(UploadState uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
-    : uploader(move(uploader))
+GcodeUpload::GcodeUpload(UploadParams &&uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
+    : upload(move(uploader))
     , uploaded_notify(uploaded)
     , size_rest(length)
     , json_errors(json_errors)
     , cleanup_temp_file(true)
     , tmp_upload_file(move(file))
-    , file_idx(upload_idx) {
+    , file_idx(upload_idx)
+    , filename_checked(false) {
 }
 
 GcodeUpload::GcodeUpload(GcodeUpload &&other)
-    : uploader(move(other.uploader))
+    : upload(move(other.upload))
     , uploaded_notify(other.uploaded_notify)
     , size_rest(other.size_rest)
     , json_errors(other.json_errors)
     , cleanup_temp_file(other.cleanup_temp_file)
     , tmp_upload_file(move(other.tmp_upload_file))
-    , file_idx(other.file_idx) {
+    , file_idx(other.file_idx)
+    , filename_checked(other.filename_checked) {
     // The ownership of the temp file is passed to the new instance.
     other.cleanup_temp_file = false;
 }
 
 GcodeUpload &GcodeUpload::operator=(GcodeUpload &&other) {
-    uploader = move(other.uploader);
+    upload = move(other.upload);
     uploaded_notify = other.uploaded_notify;
     size_rest = other.size_rest;
     json_errors = other.json_errors;
@@ -68,6 +70,8 @@ GcodeUpload &GcodeUpload::operator=(GcodeUpload &&other) {
     cleanup_temp_file = other.cleanup_temp_file;
     // The ownership of the temp file is passed to the new instance.
     other.cleanup_temp_file = false;
+
+    filename_checked = other.filename_checked;
 
     tmp_upload_file = move(other.tmp_upload_file);
     file_idx = other.file_idx;
@@ -99,14 +103,9 @@ GcodeUpload::~GcodeUpload() {
     }
 }
 
-GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors) {
+GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors, UploadParams &&uploadParams) {
     // Note: authentication already checked by the caller.
     // Note: We return errors with connection-close because we don't know if the client sent part of the data.
-
-    const auto boundary = parser.boundary();
-    if (boundary.empty()) {
-        return StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing boundary");
-    }
 
     // One day we may want to support chunked and connection-close, but we are not there yet.
     if (!parser.content_length.has_value()) {
@@ -144,25 +143,20 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     fsync(fileno(file.get()));
     fseek(file.get(), 0, SEEK_SET);
 
-    char boundary_cstr[boundary.size() + 1];
-    memcpy(boundary_cstr, boundary.begin(), boundary.size());
-    boundary_cstr[boundary.size()] = '\0';
-    UploadState uploader(boundary_cstr);
-
-    if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
-        return StatusPage(get<0>(err), StatusPage::CloseHandling::ErrorClose, json_errors, get<1>(err));
-    }
-
-    return GcodeUpload(move(uploader), json_errors, *parser.content_length, file_idx, move(file), uploaded);
+    return GcodeUpload(move(uploadParams), json_errors, *parser.content_length, file_idx, move(file), uploaded);
 }
 
 Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
-    uploader.setup(this);
     if (terminated_by_client && size_rest > 0) {
         return { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Truncated body") };
     }
 
+    return std::visit([input, this](auto &uploadParams) -> Step { return step(input, uploadParams); }, upload);
+}
+
+Step GcodeUpload::step(string_view input, UploadState &uploader) {
     const size_t read = std::min(input.size(), size_rest);
+    uploader.setup(this);
 
     uploader.feed(input.substr(0, read));
     size_rest -= read;
@@ -187,6 +181,37 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
     } else {
         return { read, 0, Continue() };
     }
+}
+
+Step GcodeUpload::step(string_view input, PutParams &putParams) {
+    const size_t read = std::min(input.size(), size_rest);
+    // remove the "/usb/" prefix
+    const char *filename = putParams.filepath.data() + USB_MOUNT_POINT_LENGTH;
+
+    // bit of a hack, would make more sense checking this in GcodeUpload::start,
+    // but that is a static method and we need check_filename to be virtual, so
+    // it can be used inside UploadState as a function of UploadHooks.
+    if (!filename_checked) {
+        auto filename_error = check_filename(filename);
+        if (std::get<0>(filename_error) != Status::Ok)
+            return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(filename_error)) };
+        filename_checked = true;
+    }
+
+    auto error = data(input.substr(0, read));
+    if (std::get<0>(error) != Status::Ok)
+        return { read, 0, StatusPage(std::get<0>(error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(error)) };
+
+    size_rest -= read;
+    if (size_rest == 0) {
+        auto finish_error = finish(filename, putParams.print_after_upload);
+        if (std::get<0>(finish_error) != Status::Ok)
+            return { read, 0, StatusPage(std::get<0>(finish_error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(finish_error)) };
+
+        return { read, 0, FileInfo(putParams.filepath.data(), false, json_errors, true) };
+    }
+
+    return { read, 0, Continue() };
 }
 
 UploadHooks::Result GcodeUpload::data(std::string_view data) {

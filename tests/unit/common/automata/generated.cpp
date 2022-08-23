@@ -236,3 +236,17 @@ TEST_CASE("No connection") {
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionKeepAlive));
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionClose));
 }
+
+TEST_CASE("Print after upload") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nPrint-After-Upload: true\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::PrintAfterUpload));
+}
+
+TEST_CASE("No print after upload") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nPrint-After-Upload: false\r\n\r\n");
+    REQUIRE_FALSE(ex.contains_enter(Names::PrintAfterUpload));
+}

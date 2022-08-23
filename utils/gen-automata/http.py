@@ -269,6 +269,12 @@ def accept_header():
     })
 
 
+def print_after_upload_header():
+    return keyworded_header({
+        'true': 'PrintAfterUpload',
+    })
+
+
 def headers(interested):
     """
     Automaton to read all the headers in a request followed by a transition to

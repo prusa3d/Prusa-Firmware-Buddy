@@ -89,6 +89,8 @@ private:
 public:
     bool accepts_json : 1;
 
+    bool print_after_upload : 1;
+
 private:
     std::variant<std::monostate, uint8_t, bool> auth_status;
 
