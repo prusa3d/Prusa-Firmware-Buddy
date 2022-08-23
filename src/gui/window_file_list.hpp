@@ -25,7 +25,17 @@ typedef enum {
     WF_SORT_BY_NAME
 } WF_Sort_t;
 
-extern WF_Sort_t screen_filebrowser_sort;
+class GuiFileSort {
+    WF_Sort_t sort;
+
+    GuiFileSort();
+    GuiFileSort(const GuiFileSort &) = delete;
+    static GuiFileSort &instance();
+
+public:
+    static WF_Sort_t Get();
+    static void Set(WF_Sort_t val);
+};
 
 class FL_LABEL : public WI_LABEL_t {
 public:

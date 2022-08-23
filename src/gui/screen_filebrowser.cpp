@@ -23,9 +23,6 @@ LOG_COMPONENT_REF(GUI);
     #define MAXPATHNAMELENGTH F_MAXPATHNAMELENGTH
 #endif
 
-// Default value could be rewritten by eeprom settings
-WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
-
 /// To save first/top visible item in the file browser
 /// This is something else than the selected file for print
 /// This is used to restore the content of the browser into previous state including the layout
@@ -40,7 +37,6 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
           GuiDefaults::ScreenWidth < 480 ? GuiDefaults::RectScreenNoHeader.TopLeft() : point_i16_t({ int16_t(16), int16_t(GuiDefaults::HeaderHeight + 5) }),
           GuiDefaults::ScreenWidth < 480 ? display::GetW() : display::GetW() - 40)
     , gcode_info(GCodeInfo::getInstance()) {
-    screen_filebrowser_sort = (WF_Sort_t)eeprom_get_ui8(EEVAR_FILE_SORT);
 
     header.SetIcon(IDR_PNG_folder_full_16px);
     static const char sf[] = N_("PROJECTS");
@@ -62,7 +58,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
         strlcpy(w_filelist.sfn_path, root, FILE_PATH_BUFFER_LEN);
     }
     // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
-    w_filelist.Load(screen_filebrowser_sort, c + 1, firstVisibleSFN);
+    w_filelist.Load(GuiFileSort::Get(), c + 1, firstVisibleSFN);
     // SetItemIndex(1); // this is automatically done in the window file list
     CaptureNormalWindow(w_filelist);
 }
@@ -127,7 +123,7 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
             }
         }
 
-        w_filelist.Load(screen_filebrowser_sort, nullptr, nullptr);
+        w_filelist.Load(GuiFileSort::Get(), nullptr, nullptr);
 
         // @@TODO we want to print the LFN of the dir name, which is very hard to do right now
         // However, the text is not visible on the screen yet...

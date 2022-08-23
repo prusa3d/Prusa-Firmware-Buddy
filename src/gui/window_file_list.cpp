@@ -19,6 +19,27 @@
     #include "bsod.h"
 #endif
 
+GuiFileSort::GuiFileSort() {
+    sort = WF_Sort_t(eeprom_get_ui8(EEVAR_FILE_SORT));
+}
+
+GuiFileSort &GuiFileSort::instance() {
+    static GuiFileSort ret;
+    return ret;
+}
+
+WF_Sort_t GuiFileSort::Get() {
+    return instance().sort;
+}
+
+void GuiFileSort::Set(WF_Sort_t val) {
+    if (instance().sort == val)
+        return;
+
+    eeprom_set_ui8(EEVAR_FILE_SORT, (uint8_t)val);
+    instance().sort = val;
+}
+
 // static definitions
 char *window_file_list_t::root = nullptr;
 
