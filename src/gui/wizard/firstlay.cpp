@@ -160,6 +160,9 @@ WizardState_t StateFnc_FIRSTLAY_PRINT() {
 
     WizardState_t ret = WizardState_t::FIRSTLAY_MSBX_REPEAT_PRINT;
     ScreenWizard::ChangeStartState(ret); //marlin_gcode("G26"); will close wizard screen, need to save reopen state
+
+    marlin_gcode("M104 S0 D0"); // nozzle target
+    marlin_gcode("M140 S0");    // bed target
     return ret;
 }
 
@@ -167,9 +170,6 @@ WizardState_t StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT() {
     static const char en_text[] = N_("Do you want to repeat the last step and readjust the distance between the nozzle and heatbed?");
     string_view_utf8 translatedText = _(en_text);
     if (MsgBox(translatedText, Responses_YesNo, 1) == Response::No) {
-        marlin_gcode("M104 S0 D0"); // nozzle target
-        marlin_gcode("M140 S0");    // bed target
-
         return WizardState_t::FIRSTLAY_RESULT;
     } else {
         static const char en_text[] = N_("Clean steel sheet.");
