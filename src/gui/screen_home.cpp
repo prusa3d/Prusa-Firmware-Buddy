@@ -158,7 +158,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
             return;
         } else {
             // on esp update, can use one click print
-            if (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded()) {
+            if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
 
                 // we are using marlin variables for filename and filepath buffers
                 marlin_vars_t *vars = marlin_vars();

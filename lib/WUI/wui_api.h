@@ -173,7 +173,9 @@ void wui_store_api_key(char *, uint32_t);
 ///
 /// Returns false if can't print right now. Note that this doesn't check the
 /// existence of the file.
-bool wui_start_print(char *filename);
+/// @param[in] autostart_if_able true  - printer will start print without asking (in case filament, printer type and other checks are satisfied)
+///                              false - printer will not start print without asking, but it will show one click print if able to
+bool wui_start_print(char *filename, bool autostart_if_able);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief A new gcode was uploaded, take appropriate actions
