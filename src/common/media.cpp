@@ -210,10 +210,7 @@ void media_print_start(const char *sfnFilePath) {
         return;
     }
 
-    if (sfnFilePath) { // null sfnFilePath means use current filename media_print_SFN_path
-        strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
-        get_LFN(media_print_LFN, sizeof(media_print_LFN), media_print_SFN_path);
-    }
+    media_preselect_file(sfnFilePath);
     struct stat info = { 0 };
     int result = stat(sfnFilePath, &info);
 
@@ -235,6 +232,17 @@ void media_print_start(const char *sfnFilePath) {
         osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
     } else {
         set_warning(WarningType::USBFlashDiskError);
+    }
+}
+
+void media_preselect_file(const char *sfnFilePath) {
+    if (media_print_state != media_print_state_NONE) {
+        return;
+    }
+
+    if (sfnFilePath) { // null sfnFilePath means use current filename media_print_SFN_path
+        strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
+        get_LFN(media_print_LFN, sizeof(media_print_LFN), media_print_SFN_path);
     }
 }
 

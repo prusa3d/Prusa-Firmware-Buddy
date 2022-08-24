@@ -157,8 +157,8 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
             marlin_gcode("M997 S1 O");
             return;
         } else {
-            // on esp audate, can use one click print
-            if (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded()) {
+
+            if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
 
                 // we are using marlin variables for filename and filepath buffers
                 marlin_vars_t *vars = marlin_vars();
@@ -173,6 +173,17 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                         gcode.SetGcodeFilename(vars->media_LFN);
                         Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
                     }
+                }
+            } else if (moreGcodesUploaded()) { // on esp update, can use one click print
+
+                // latest gcode is stored in marlin vars
+                // but this ones does not auto update, so we need to call refresh manually
+                marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FILENAME) | MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH));
+                // check if the variables filename and filepath are allocated
+                if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
+                    gcode.SetGcodeFilepath(vars->media_SFN_path);
+                    gcode.SetGcodeFilename(vars->media_LFN);
+                    Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
                 }
             }
         }

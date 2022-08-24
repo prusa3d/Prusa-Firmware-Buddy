@@ -353,6 +353,14 @@ uint32_t wui_gcodes_uploaded() {
     return uploaded_gcodes;
 }
 
+static void set_current_file(char *filename) {
+    strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
+    // Turn it into the short name, to improve buffer length, avoid strange
+    // chars like spaces in it, etc.
+    get_SFN_path(filename);
+    marlin_set_current_file(filename);
+}
+
 bool wui_start_print(char *filename) {
     // Note: By checking now and starting it later, we are introducing a short
     // race condition. Doing it properly would be kind of hard and the risk is
@@ -377,6 +385,8 @@ bool wui_start_print(char *filename) {
         // chars like spaces in it, etc.
         get_SFN_path(filename);
         print_begin(filename);
+    } else {
+        set_current_file(filename);
     }
 
     return can_start_print;
@@ -388,6 +398,7 @@ bool wui_uploaded_gcode(char *filename, bool start_print) {
     if (start_print) {
         return wui_start_print(filename);
     } else {
+        set_current_file(filename);
         return true;
     }
 }

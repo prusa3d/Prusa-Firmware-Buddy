@@ -37,6 +37,8 @@ extern media_state_t media_get_state(void);
 /// Updates marlin_vars->media_LFN as a side-effect by opening the marlin_vars->media_SFN_path and reading its LFN
 extern void media_print_start(const char *sfnFilePath);
 
+extern void media_preselect_file(const char *sfnFilePath);
+
 extern void media_print_stop(void);
 
 extern void media_print_pause(void);

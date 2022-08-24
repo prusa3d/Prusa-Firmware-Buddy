@@ -79,6 +79,9 @@ extern void marlin_server_quick_stop(void);
 // direct print file with SFM format
 void marlin_server_print_start(const char *filename);
 
+// preselects file for print
+void marlin_server_set_current_file(const char *filename);
+
 //
 extern uint32_t marlin_server_get_command(void);
 
