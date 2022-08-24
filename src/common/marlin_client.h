@@ -195,6 +195,8 @@ extern void marlin_test_abort(void);
 
 extern void marlin_print_start(const char *filename);
 
+extern void marlin_set_current_file(const char *filename);
+
 extern void marlin_print_abort(void);
 
 extern void marlin_print_pause(void);

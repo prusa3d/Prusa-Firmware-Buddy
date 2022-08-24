@@ -535,6 +535,16 @@ void marlin_server_print_start(const char *filename) {
     }
 }
 
+void marlin_server_set_current_file(const char *filename) {
+    if (filename == nullptr)
+        return;
+    if ((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) {
+        media_preselect_file(filename);
+        _set_notify_change(MARLIN_VAR_FILEPATH);
+        _set_notify_change(MARLIN_VAR_FILENAME);
+    }
+}
+
 void marlin_server_print_abort(void) {
     if ((marlin_server.print_state == mpsPrinting) || (marlin_server.print_state == mpsPaused)) {
         marlin_server.print_state = mpsAborting_Begin;
@@ -1345,6 +1355,9 @@ bool _process_server_valid_request(const char *request, int client_id) {
         return true;
     case MARLIN_MSG_PRINT_START:
         marlin_server_print_start(data);
+        return true;
+    case MARLIN_MSG_SET_CURRENT_FILE:
+        marlin_server_set_current_file(data);
         return true;
     case MARLIN_MSG_PRINT_ABORT:
         marlin_server_print_abort();

@@ -569,6 +569,16 @@ void marlin_print_start(const char *filename) {
     _send_request_to_server_and_wait(request);
 }
 
+void marlin_set_current_file(const char *filename) {
+    char request[MARLIN_MAX_REQUEST];
+    const int len = snprintf(request, sizeof(request), "!%c%s", MARLIN_MSG_SET_CURRENT_FILE, filename);
+    if (len < 0)
+        bsod("Error formatting request.");
+    if ((size_t)len >= sizeof(request))
+        bsod("Request too long.");
+    _send_request_to_server_and_wait(request);
+}
+
 void marlin_print_abort(void) {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_ABORT);
 }
