@@ -62,8 +62,8 @@ add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
 # /web directory
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.df502520e9e3bde5ca95.js" "/web/main.df502520e9e3bde5ca95.js")
-add_gzip_resource("web/main.9e77009f16d13991de13.css" "/web/main.9e77009f16d13991de13.css")
+add_gzip_resource("web/main.2db555ec7e6e55de710c.js" "/web/main.2db555ec7e6e55de710c.js")
+add_gzip_resource("web/main.112d6e1a4344fea4f149.css" "/web/main.112d6e1a4344fea4f149.css")
 
 # /png directory
 add_resource("png/pepa_64px.png" "/png/pepa_64px.png")
