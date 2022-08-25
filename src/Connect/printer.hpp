@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <tuple>
+#include <optional>
 
 namespace con {
 
@@ -76,6 +77,23 @@ public:
         uint32_t crc() const;
     };
 
+    enum class Iface {
+        Ethernet,
+        Wifi,
+    };
+
+    struct NetInfo {
+        uint8_t ip[4];
+        uint8_t mac[6];
+    };
+
+    struct NetCreds {
+        static constexpr size_t SSID_BUF = 33;
+        static constexpr size_t KEY_BUF = 17;
+        char ssid[SSID_BUF];
+        char api_key[KEY_BUF];
+    };
+
 protected:
     PrinterInfo info;
     virtual Config load_config() = 0;
@@ -91,6 +109,8 @@ public:
     }
 
     virtual Params params() const = 0;
+    virtual std::optional<NetInfo> net_info(Iface iface) const = 0;
+    virtual NetCreds net_creds() const = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load.
     std::tuple<Config, bool> config();

@@ -14,6 +14,8 @@ struct RenderState {
     const Action &action;
     bool has_stat = false;
     struct stat st;
+    std::optional<Printer::NetInfo> lan;
+    std::optional<Printer::NetInfo> wifi;
 
     RenderState(const Printer &printer, const Action &action);
 };
