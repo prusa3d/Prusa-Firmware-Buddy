@@ -358,7 +358,16 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         // that it will persist, so we consider it refused and throw the
         // request away.
         planner.action_done(ActionResult::Refused);
-        return OnlineStatus::ServerError;
+        // Switch just to provide proper error message
+        switch (resp.status) {
+        case Status::BadRequest:
+            return OnlineStatus::InternalError;
+        case Status::Unauthorized:
+        case Status::Forbidden:
+            return OnlineStatus::Auth;
+        default:
+            return OnlineStatus::ServerError;
+        }
     }
 }
 
