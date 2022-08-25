@@ -6,11 +6,14 @@
 #include <support_utils.h>
 #include <otp.h>
 #include <odometer.hpp>
+#include <netdev.h>
 
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
 #include <mbedtls/sha256.h>
+
+using std::nullopt;
 
 namespace con {
 
@@ -261,6 +264,40 @@ bool MarlinPriter::load_cfg_from_ini() {
         // Note: enabled is controlled in the GUI
     }
     return ok;
+}
+
+std::optional<Printer::NetInfo> MarlinPriter::net_info(Printer::Iface iface) const {
+    uint32_t id;
+    switch (iface) {
+    case Iface::Ethernet:
+        id = NETDEV_ETH_ID;
+        break;
+    case Iface::Wifi:
+        id = NETDEV_ESP_ID;
+        break;
+    default:
+        assert(0);
+        return nullopt;
+    }
+    if (netdev_get_status(id) != NETDEV_NETIF_UP) {
+        return nullopt;
+    }
+    NetInfo result = {};
+    if (!netdev_get_MAC_address(id, result.mac)) {
+        return nullopt;
+    }
+    lan_t addrs;
+    netdev_get_ipv4_addresses(id, &addrs);
+    static_assert(sizeof(addrs.addr_ip4) == sizeof(result.ip));
+    memcpy(result.ip, &addrs.addr_ip4, sizeof addrs.addr_ip4);
+    return result;
+}
+
+Printer::NetCreds MarlinPriter::net_creds() const {
+    NetCreds result = {};
+    strextract(result.api_key, sizeof result.api_key, EEVAR_PL_API_KEY);
+    strextract(result.ssid, sizeof result.ssid, EEVAR_WIFI_AP_SSID);
+    return result;
 }
 
 }

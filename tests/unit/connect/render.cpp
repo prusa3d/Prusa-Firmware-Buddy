@@ -5,6 +5,8 @@
 #include <cstring>
 #include <string_view>
 
+using std::nullopt;
+using std::optional;
 using std::string_view;
 using namespace con;
 using namespace json;
@@ -58,6 +60,14 @@ public:
 
     virtual Params params() const override {
         return p;
+    }
+
+    virtual optional<NetInfo> net_info(Iface iface) const override {
+        return nullopt;
+    }
+
+    virtual NetCreds net_creds() const override {
+        return {};
     }
 };
 
@@ -183,10 +193,7 @@ TEST_CASE("Render") {
     }
 
     MockPrinter printer(params);
-    RenderState state {
-        printer,
-        action,
-    };
+    RenderState state(printer, action);
     Renderer renderer(std::move(state));
     uint8_t buffer[1024];
     const auto [result, amount] = renderer.render(buffer, sizeof buffer);

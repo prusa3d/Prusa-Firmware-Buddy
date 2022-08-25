@@ -1,6 +1,7 @@
 #include "render.hpp"
 
 #include <segmented_json_macros.h>
+#include <eeprom.h>
 
 #include <cassert>
 #include <cstring>
@@ -9,6 +10,9 @@ using json::JsonOutput;
 using json::JsonResult;
 using std::get_if;
 using std::visit;
+
+#define JSON_MAC(NAME, VAL) JSON_FIELD_STR_FORMAT(NAME, "%02hhX:%02hhX:%02hhX:%02hhX:%02hhX:%02hhX", VAL[0], VAL[1], VAL[2], VAL[3], VAL[4], VAL[5])
+#define JSON_IP(NAME, VAL)  JSON_FIELD_STR_FORMAT(NAME, "%hhu.%hhu.%hhu.%hhu", VAL[0], VAL[1], VAL[2], VAL[3])
 
 namespace con {
 
@@ -81,6 +85,7 @@ namespace {
         const bool printing = is_printing(params.state);
 
         bool reject = false;
+        Printer::NetCreds creds = {};
 
         if (event.type == EventType::JobInfo && (!printing || event.job_id != params.job_id)) {
             // Can't send a job info when not printing, refuse instead.
@@ -120,7 +125,33 @@ namespace {
                     JSON_FIELD_STR("firmware", info.firmware_version) JSON_COMMA;
                     JSON_FIELD_STR("sn", info.serial_number) JSON_COMMA;
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
-                    JSON_FIELD_STR("fingerprint", info.fingerprint);
+                    JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
+                    // Technically, it would be better to store this as part of
+                    // the render state. But that would be a bit wasteful, so
+                    // we do it here in a "late" fasion. At worst, we would get
+                    // the api key and ssid from two different times, but they
+                    // are not directly related to each other anyway.
+                    creds = state.printer.net_creds();
+                    if (strlen(creds.api_key) > 0) {
+                        JSON_FIELD_STR("api_key", creds.api_key) JSON_COMMA;
+                    }
+                    JSON_FIELD_OBJ("network_info");
+                    if (state.lan.has_value()) {
+                        JSON_MAC("lan_mac", state.lan->mac) JSON_COMMA;
+                        JSON_IP("lan_ipv4", state.lan->ip);
+                    }
+                    if (state.lan.has_value() && state.wifi.has_value()) {
+                        // Why oh why can't json accept a trailing comma :-(
+                        JSON_COMMA;
+                    }
+                    if (state.wifi.has_value()) {
+                        if (strlen(creds.ssid) > 0) {
+                            JSON_FIELD_STR("wifi_ssid", creds.ssid) JSON_COMMA;
+                        }
+                        JSON_MAC("wifi_mac", state.wifi->mac) JSON_COMMA;
+                        JSON_IP("wifi_ipv4", state.wifi->ip);
+                    }
+                    JSON_OBJ_END;
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::JobInfo) {
                 JSON_FIELD_OBJ("data");
@@ -144,6 +175,7 @@ namespace {
                 JSON_OBJ_END JSON_COMMA;
             }
 
+            JSON_FIELD_STR("state", to_str(params.state)) JSON_COMMA;
             JSON_FIELD_INT("command_id", event.command_id.value_or(0)) JSON_COMMA;
             JSON_FIELD_STR("event", to_str(event.type));
         JSON_OBJ_END;
@@ -161,7 +193,9 @@ namespace {
 
 RenderState::RenderState(const Printer &printer, const Action &action)
     : printer(printer)
-    , action(action) {
+    , action(action)
+    , lan(printer.net_info(Printer::Iface::Ethernet))
+    , wifi(printer.net_info(Printer::Iface::Wifi)) {
     memset(&st, 0, sizeof st);
 
     if (const auto *event = get_if<Event>(&action); event != nullptr) {
