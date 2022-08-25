@@ -20,11 +20,18 @@ namespace nhttp::printer {
  * \brief Handler for serving file info and directory listings.
  */
 class FileInfo {
+public:
+    enum class ReqMethod {
+        Get,
+        Head
+    };
+
 private:
     char filename[FILE_PATH_BUFFER_LEN];
     bool can_keep_alive : 1;
     bool after_upload : 1;
     bool json_errors : 1;
+    ReqMethod method;
     class DirDeleter {
     public:
         void operator()(DIR *d) {
@@ -88,7 +95,7 @@ private:
     std::variant<Uninitialized, FileRenderer, DirRenderer, LastChunk> renderer;
 
 public:
-    FileInfo(const char *filename, bool can_keep_alive, bool json_error, bool after_upload);
+    FileInfo(const char *filename, bool can_keep_alive, bool json_error, bool after_upload, ReqMethod method);
     bool want_read() const { return false; }
     bool want_write() const { return true; }
     handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);

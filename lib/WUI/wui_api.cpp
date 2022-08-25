@@ -362,3 +362,15 @@ bool wui_uploaded_gcode(char *filename, bool start_print) {
 
     return wui_start_print(filename, start_print);
 }
+
+bool wui_is_file_being_printed(const char *filename) {
+    marlin_client_loop();
+    if (!marlin_is_printing()) {
+        return false;
+    }
+
+    char sfn[FILE_PATH_BUFFER_LEN];
+    strlcpy(sfn, filename, sizeof(sfn));
+    get_SFN_path(sfn);
+    return strcasecmp(sfn, marlin_vars()->media_SFN_path) == 0;
+}

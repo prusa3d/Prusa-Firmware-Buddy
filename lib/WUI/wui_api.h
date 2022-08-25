@@ -192,6 +192,8 @@ uint32_t wui_gcodes_uploaded();
 ///
 void wui_marlin_client_init(void);
 
+bool wui_is_file_being_printed(const char *filename);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
