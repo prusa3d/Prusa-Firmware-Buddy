@@ -49,7 +49,6 @@ const char *labels[7] = {
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 
 bool screen_home_data_t::usbWasAlreadyInserted = false;
-uint32_t screen_home_data_t::lastUploadCount = 0;
 
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<screen_t>()
@@ -174,7 +173,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                         Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
                     }
                 }
-            } else if (moreGcodesUploaded()) { // on esp update, can use one click print
+            } else if (MoreGcodesUploaded()) { // on esp update, can use one click print
 
                 // latest gcode is stored in marlin vars
                 // but this ones does not auto update, so we need to call refresh manually
@@ -243,7 +242,8 @@ void screen_home_data_t::printBtnDis() {
     w_labels[0].SetText(_(labels[labelNoUSBId]));
 }
 
-bool screen_home_data_t::moreGcodesUploaded() {
+bool screen_home_data_t::MoreGcodesUploaded() {
+    static uint32_t lastUploadCount = 0;
     const uint32_t total = wui_gcodes_uploaded();
     const bool result = total != lastUploadCount;
     lastUploadCount = total;
