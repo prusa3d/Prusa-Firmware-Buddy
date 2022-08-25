@@ -54,10 +54,10 @@ GCodeInfo::GCodeInfo()
     , filament_described(false) {
 }
 
-void GCodeInfo::initFile(GI_INIT_t init) {
+bool GCodeInfo::initFile(GI_INIT_t init) {
     deinitFile();
     if (!gcode_file_path || (file = fopen(gcode_file_path, "r")) == nullptr) {
-        return;
+        return false;
     }
     file_opened = true;
     // thumbnail presence check
@@ -94,6 +94,7 @@ void GCodeInfo::initFile(GI_INIT_t init) {
             }
         }
     }
+    return true;
 }
 
 void GCodeInfo::deinitFile() {
