@@ -259,6 +259,8 @@ WindowPreviewThumbnail::~WindowPreviewThumbnail() {
 }
 
 void WindowPreviewThumbnail::unconditionalDraw() {
+    if (!gcode_info.file)
+        return;
     FILE f = { 0 };
     fseek(gcode_info.file, 0, SEEK_SET);
     GCodeThumbDecoder gd(gcode_info.file, Width(), Height());
