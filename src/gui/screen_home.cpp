@@ -182,7 +182,9 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                 if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
                     gcode.SetGcodeFilepath(vars->media_SFN_path);
                     gcode.SetGcodeFilename(vars->media_LFN);
-                    Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
+                    if (GCodeInfo::getInstance().initFile()) {
+                        Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
+                    }
                 }
             }
         }

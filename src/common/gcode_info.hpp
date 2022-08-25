@@ -76,7 +76,7 @@ public:
 
     /** Sets up gcode file and sets up info member variables for print preview
      */
-    void initFile(GI_INIT_t init);
+    bool initFile(GI_INIT_t init = GI_INIT_t::PREVIEW);
 
     /** Closes gcode file
      */
