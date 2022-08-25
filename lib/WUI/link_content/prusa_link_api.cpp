@@ -25,6 +25,11 @@ using nhttp::printer::FileInfo;
 using nhttp::printer::GcodeUpload;
 using nhttp::printer::JobCommand;
 
+enum class RemapPolicy {
+    Octoprint,
+    NoRemap
+};
+
 namespace {
     optional<string_view> remove_prefix(string_view input, string_view prefix) {
         if (input.size() < prefix.size() || input.substr(0, prefix.size()) != prefix) {
@@ -34,7 +39,7 @@ namespace {
         return input.substr(prefix.size());
     }
 
-    optional<ConnectionState> parse_file_url(const RequestParser &parser, const size_t prefix_len, char *filename, const size_t filename_len) {
+    optional<ConnectionState> parse_file_url(const RequestParser &parser, const size_t prefix_len, char *filename, const size_t filename_len, RemapPolicy remapPolicy) {
         /*
          * We do *not* use the uri with prefix removed. We need the safe
          * transformation into a file name (removal of query params,
@@ -47,33 +52,34 @@ namespace {
          *
          * The FileInfo handler doesn't know recursive yet either.
          */
-        char fname[FILE_PATH_BUFFER_LEN + prefix_len];
-        const char *fname_real = fname + prefix_len;
-        if (parser.uri_filename(fname, sizeof fname)) {
-            size_t len = strlen(fname);
+        const char *fname_real = filename + prefix_len;
+        if (parser.uri_filename(filename, filename_len)) {
+            size_t len = strlen(filename);
             if (prefix_len > len) {
                 return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
             }
 
-            /*
-             * The octoprint API gives special meaning to /local and
-             * /sdcard. For us, everything lives in the USB (/usb). We
-             * remap these. Nevertheless, we never _generate_ these /local
-             * or such URIs, so we don't remap anything else but the "root".
-             */
-            static const char *const roots[] = {
-                "",
-                "/",
-                "/local",
-                "/local/",
-                "/sdcard",
-                "/sdcard/",
-            };
+            if (remapPolicy == RemapPolicy::Octoprint) {
+                /*
+                 * The octoprint API gives special meaning to /local and
+                 * /sdcard. For us, everything lives in the USB (/usb). We
+                 * remap these. Nevertheless, we never _generate_ these /local
+                 * or such URIs, so we don't remap anything else but the "root".
+                 */
+                static const char *const roots[] = {
+                    "",
+                    "/",
+                    "/local",
+                    "/local/",
+                    "/sdcard",
+                    "/sdcard/",
+                };
 
-            for (size_t i = 0; i < sizeof roots / sizeof roots[0]; i++) {
-                if (strcmp(fname_real, roots[i]) == 0) {
-                    fname_real = "/usb/";
-                    break;
+                for (size_t i = 0; i < sizeof roots / sizeof roots[0]; i++) {
+                    if (strcmp(fname_real, roots[i]) == 0) {
+                        fname_real = "/usb/";
+                        break;
+                    }
                 }
             }
 
@@ -85,7 +91,11 @@ namespace {
                 return StatusPage(Status::Forbidden, parser.status_page_handling(), parser.accepts_json);
             }
 
-            strlcpy(filename, fname_real, filename_len);
+            // We need to use memmove, because fname_real points into filename
+            // and memmove explicitly allowes for overlapping buffer to be used
+            size_t fname_real_len = strlen(fname_real);
+            memmove(filename, fname_real, fname_real_len);
+            filename[fname_real_len] = '\0';
             return nullopt;
         } else {
             return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
@@ -127,8 +137,8 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
         static const auto prefix = "/api/v1/files";
         static const size_t prefix_len = strlen(prefix);
         char filename[FILE_PATH_BUFFER_LEN + prefix_len];
-        auto error = parse_file_url(parser, prefix_len, filename, FILE_PATH_BUFFER_LEN + prefix_len);
-        if (error != nullopt) {
+        auto error = parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::NoRemap);
+        if (error.has_value()) {
             return error;
         }
         switch (parser.method) {
@@ -140,7 +150,10 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
         }
         case Method::Get: {
-            return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false);
+            return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get);
+        }
+        case Method::Head: {
+            return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Head);
         }
         default:
             return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
@@ -174,14 +187,14 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             static const auto prefix = "/api/files";
             static const size_t prefix_len = strlen(prefix);
             char filename[FILE_PATH_BUFFER_LEN + prefix_len];
-            auto error = parse_file_url(parser, prefix_len, filename, FILE_PATH_BUFFER_LEN + prefix_len);
-            if (error != nullopt) {
+            auto error = parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::Octoprint);
+            if (error.has_value()) {
                 return error;
             }
 
             switch (parser.method) {
             case Method::Get: {
-                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false);
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get);
             }
             case Method::Delete: {
                 int result = remove(filename);
