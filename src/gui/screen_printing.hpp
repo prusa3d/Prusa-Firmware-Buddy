@@ -68,6 +68,7 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
 
 public:
     screen_printing_data_t();
+    virtual ~screen_printing_data_t() override;
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

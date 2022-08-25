@@ -174,6 +174,13 @@ screen_printing_data_t::screen_printing_data_t()
     change_etime();
 }
 
+screen_printing_data_t::~screen_printing_data_t() {
+    // if a gcode is uploaded during the print
+    // one click print would pop up and offer to print of file which was just printed
+    // this prevents one click print from popping up
+    screen_home_data_t::MoreGcodesUploaded();
+}
+
 #ifdef DEBUG_FSENSOR_IN_HEADER
 extern int _is_in_M600_flg;
 extern uint32_t *pCommand;

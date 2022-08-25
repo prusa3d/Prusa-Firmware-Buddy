@@ -29,6 +29,7 @@ private:
 
 public:
     static bool EverBeenOpenned() { return ever_been_openned; }
+    static bool MoreGcodesUploaded();
     screen_home_data_t();
     virtual ~screen_home_data_t() override;
 
@@ -43,5 +44,4 @@ private:
 
     void printBtnEna();
     void printBtnDis();
-    bool moreGcodesUploaded();
 };
