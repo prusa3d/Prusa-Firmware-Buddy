@@ -39,5 +39,12 @@ public:
 
     uint32_t OpenedTimes(ClientFSM fsm) const { return opened_times[size_t(fsm)]; }
     uint32_t ClosedTimes(ClientFSM fsm) const { return closed_times[size_t(fsm)]; }
-    uint32_t IsOpen(ClientFSM fsm) const { return OpenedTimes(fsm) != ClosedTimes(fsm); }
+    bool IsOpen(ClientFSM fsm) const { return OpenedTimes(fsm) != ClosedTimes(fsm); }
+    bool IsAnyOpen() const {
+        for (size_t i = 0; i < size_t(ClientFSM::_count); ++i) {
+            if (IsOpen(ClientFSM(i)))
+                return true;
+        }
+        return false;
+    }
 };

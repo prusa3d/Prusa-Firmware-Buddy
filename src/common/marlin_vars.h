@@ -108,6 +108,7 @@ static const uint32_t TIME_TO_END_INVALID = (uint32_t)-1;
 
 typedef enum {
     mpsIdle = 0,
+    mpsWaitGui,
     mpsPrintPreviewInit,
     mpsPrintPreviewLoop,
     mpsPrintInit,
@@ -168,6 +169,7 @@ typedef enum {
     MARLIN_MSG_KNOB_CLICK = 'X',
     MARLIN_MSG_FSM = 'Y',
     MARLIN_MSG_MOVE = 'Z',
+    MARLIN_MSG_GUI_PRINT_READY = 'a',
 } marlin_msg_t;
 
 // variables structure - used in server and client
