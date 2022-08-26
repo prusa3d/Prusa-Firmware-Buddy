@@ -528,9 +528,9 @@ void screen_printing_data_t::change_print_state() {
 
     switch (marlin_vars()->print_state) {
     case mpsIdle:
-    case mspPrintPreviewInit:
-    case mspPrintPreviewLoop:
-    case mspPrintInit:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
+    case mpsPrintInit:
         st = printing_state_t::INITIAL;
         break;
     case mpsPrinting:

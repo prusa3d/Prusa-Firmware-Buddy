@@ -622,10 +622,10 @@ void marlin_server_print_start(const char *filename, bool skip_preview) {
     case mpsIdle:
     case mpsFinished:
     case mpsAborted:
-    case mspPrintPreviewInit:
-    case mspPrintPreviewLoop:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
         media_print_start__prepare(filename);
-        marlin_server.print_state = mspPrintPreviewInit;
+        marlin_server.print_state = mpsPrintPreviewInit;
         _set_notify_change(MARLIN_VAR_FILEPATH);
         _set_notify_change(MARLIN_VAR_FILENAME);
 
@@ -852,11 +852,11 @@ static void _server_print_loop(void) {
     switch (marlin_server.print_state) {
     case mpsIdle:
         break;
-    case mspPrintPreviewInit:
+    case mpsPrintPreviewInit:
         if (media_print_filepath()) {
             PrintPreview::Instance().Init(media_print_filepath());
         }
-        marlin_server.print_state = mspPrintPreviewLoop;
+        marlin_server.print_state = mpsPrintPreviewLoop;
         break;
         /*
         TODO thia used to be in original implamentation, but we dont do that anymore
@@ -869,7 +869,7 @@ static void _server_print_loop(void) {
         if (!gcode_file_exists()) {
             Screens::Access()->Close(); //if an dialog is opened, it will be closed first
         */
-    case mspPrintPreviewLoop: // button evaluation
+    case mpsPrintPreviewLoop: // button evaluation
         switch (PrintPreview::Instance().Loop()) {
         case PrintPreview::Result::InProgress:
             break;
@@ -879,11 +879,11 @@ static void _server_print_loop(void) {
         case PrintPreview::Result::Print:
         case PrintPreview::Result::Inactive:
             did_not_start_print = false;
-            marlin_server.print_state = mspPrintInit;
+            marlin_server.print_state = mpsPrintInit;
             break;
         }
         break;
-    case mspPrintInit:
+    case mpsPrintInit:
         feedrate_percentage = 100;
         // First, reserve the job_id in eeprom. In case we get reset, we need
         // that to not get reused by accident.
