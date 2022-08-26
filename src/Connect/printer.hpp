@@ -28,7 +28,7 @@ public:
         Printing,
         Paused,
         Finished,
-        Prepared,
+        Ready,
         Error,
     };
 

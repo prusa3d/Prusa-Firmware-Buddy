@@ -106,15 +106,15 @@ namespace {
         return 20;
     }
 
-    Printer::DeviceState to_device_state(marlin_print_state_t state, bool prepared) {
+    Printer::DeviceState to_device_state(marlin_print_state_t state, bool ready) {
         switch (state) {
         case mpsIdle:
         case mspPrintPreviewInit:
         case mspPrintPreviewLoop:
         case mspPrintInit:
         case mpsAborted:
-            if (prepared) {
-                return Printer::DeviceState::Prepared;
+            if (ready) {
+                return Printer::DeviceState::Ready;
             } else {
                 return Printer::DeviceState::Idle;
             }
@@ -137,8 +137,8 @@ namespace {
         case mpsResuming_UnparkHead_ZE:
             return Printer::DeviceState::Paused;
         case mpsFinished:
-            if (prepared) {
-                return Printer::DeviceState::Prepared;
+            if (ready) {
+                return Printer::DeviceState::Ready;
             } else {
                 return Printer::DeviceState::Finished;
             }
@@ -210,7 +210,7 @@ void MarlinPriter::renew() {
 
 Printer::Params MarlinPriter::params() const {
     Params params = {};
-    params.state = to_device_state(marlin_vars->print_state, params.state == DeviceState::Prepared);
+    params.state = to_device_state(marlin_vars->print_state, params.state == DeviceState::Ready);
     params.temp_bed = marlin_vars->temp_bed;
     params.target_bed = marlin_vars->target_bed;
     params.temp_nozzle = marlin_vars->temp_nozzle;

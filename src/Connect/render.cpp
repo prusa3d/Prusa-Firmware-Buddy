@@ -24,8 +24,8 @@ namespace {
             return "PAUSED";
         case Printer::DeviceState::Finished:
             return "FINISHED";
-        case Printer::DeviceState::Prepared:
-            return "PREPARED";
+        case Printer::DeviceState::Ready:
+            return "READY";
         case Printer::DeviceState::Error:
             return "ERROR";
         case Printer::DeviceState::Unknown:
