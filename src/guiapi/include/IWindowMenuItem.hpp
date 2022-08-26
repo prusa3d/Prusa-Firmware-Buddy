@@ -86,8 +86,8 @@ protected:
     }
 
     void showDevOnly() {
-        if (hidden != (uint8_t)is_hidden_t::dev) {
-            hidden = (uint8_t)is_hidden_t::dev;
+        if (hidden != (uint8_t)is_hidden_t::yes) {
+            hidden = (uint8_t)is_hidden_t::yes;
             Invalidate();
         }
     }

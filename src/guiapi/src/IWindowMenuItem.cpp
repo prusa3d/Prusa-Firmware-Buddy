@@ -89,9 +89,9 @@ void IWindowMenuItem::Print(Rect16 rect) {
 */
 color_t IWindowMenuItem::GetTextColor() const {
     color_t ret;
-    if (IsEnabled() && hidden == (uint8_t)is_hidden_t::dev) {
+    if (IsEnabled() && hidden == (uint8_t)is_hidden_t::yes) {
         ret = GuiDefaults::MenuColorDevelopment;
-    } else if (hidden == (uint8_t)is_hidden_t::dev) {
+    } else if (hidden == (uint8_t)is_hidden_t::yes) {
         ret = GuiDefaults::MenuColorDevelopmentDisabled;
     } else if (IsFocused()) {
         ret = GuiDefaults::MenuColorBack;
@@ -156,7 +156,7 @@ void IWindowMenuItem::reInitRoll(Rect16 rect) {
 }
 
 bool IWindowMenuItem::IsHidden() const {
-    return (hidden == (uint8_t)is_hidden_t::yes) || (hidden == (uint8_t)is_hidden_t::dev && !GuiDefaults::ShowDevelopmentTools);
+    return (hidden == (uint8_t)is_hidden_t::yes) || (hidden == (uint8_t)is_hidden_t::yes && !GuiDefaults::ShowDevelopmentTools);
 }
 
 void IWindowMenuItem::SetLabel(string_view_utf8 text) {

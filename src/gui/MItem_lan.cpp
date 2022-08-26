@@ -11,7 +11,7 @@
 #include "marlin_client.h"
 
 MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
-    : WI_INFO_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_INFO_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::yes) {
 }
 
 MI_WIFI_INIT_t::MI_WIFI_INIT_t()

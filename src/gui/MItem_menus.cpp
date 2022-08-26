@@ -317,7 +317,7 @@ void MI_EXPERIMENTAL_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_EEPROM_DIAGNOSTICS
 MI_EEPROM_DIAGNOSTICS::MI_EEPROM_DIAGNOSTICS()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::yes, expands_t::yes) {
 }
 
 void MI_EEPROM_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
@@ -327,7 +327,7 @@ void MI_EEPROM_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_USB_MSC_ENABLE
 MI_USB_MSC_ENABLE::MI_USB_MSC_ENABLE()
-    : WI_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_USB_MSC_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {}
+    : WI_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_USB_MSC_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::yes) {}
 
 void MI_USB_MSC_ENABLE::OnChange(size_t old_index) {
     eeprom_set_bool(EEVAR_USB_MSC_ENABLED, !old_index);

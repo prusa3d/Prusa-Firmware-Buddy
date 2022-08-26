@@ -27,7 +27,7 @@ class MI_CONNECT_STATUS : public WI_INFO_t {
 
 public:
     MI_CONNECT_STATUS()
-        : WI_INFO_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+        : WI_INFO_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::yes) {
     }
 };
 

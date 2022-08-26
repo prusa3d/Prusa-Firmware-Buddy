@@ -65,9 +65,9 @@ template <size_t INFO_LEN>
 class WiInfoDev : public AddSuper<WiInfo<INFO_LEN>> {
 public:
     WiInfoDev(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled = is_enabled_t::yes)
-        : AddSuper<WiInfo<INFO_LEN>>(label, id_icon, enabled, is_hidden_t::dev) {}
+        : AddSuper<WiInfo<INFO_LEN>>(label, id_icon, enabled, is_hidden_t::yes) {}
     WiInfoDev(uint32_t num_to_print, string_view_utf8 label, ResourceId id_icon = IDR_NULL)
-        : AddSuper<WiInfo<INFO_LEN>>(num_to_print, label, is_hidden_t::dev, id_icon) {}
+        : AddSuper<WiInfo<INFO_LEN>>(num_to_print, label, is_hidden_t::yes, id_icon) {}
 };
 
 using WI_INFO_t = WiInfo<GuiDefaults::infoDefaultLen>;
