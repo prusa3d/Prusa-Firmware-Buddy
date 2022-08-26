@@ -569,6 +569,10 @@ void marlin_print_start(const char *filename, bool skip_preview) {
     _send_request_to_server_and_wait(request);
 }
 
+void marlin_gui_ready_to_print() {
+    _send_request_id_to_server_and_wait(MARLIN_MSG_GUI_PRINT_READY);
+}
+
 void marlin_print_abort(void) {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_ABORT);
 }

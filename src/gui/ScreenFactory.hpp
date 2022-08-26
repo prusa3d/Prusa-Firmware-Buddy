@@ -29,4 +29,9 @@ public:
         static_assert(sizeof(T) <= sizeof(mem_space), "Screen memory space is too small");
         return make_static_unique_ptr<T>(&all_screens);
     }
+
+    template <class T>
+    static bool DoesCreatorHoldType(Creator cr) {
+        return Screen<T> == cr;
+    }
 };

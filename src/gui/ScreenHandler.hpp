@@ -57,6 +57,8 @@ public:
 
     bool ConsumeClose(); //dialog can erase close signal and close itself
 
+    size_t Count() { return stack_iterator - stack.begin(); } // count of closed screens under current one
+
     void Draw();
     void ResetTimeout();
 
@@ -79,6 +81,48 @@ public:
     static void RInit(const screen_node *begin, const screen_node *end); // init in reversed order, skips nullptr
 
     static Screens *Access();
+
+    /**
+     * @brief check if screen is currently opened
+     *
+     * @tparam T screen
+     * @return true  screen is opened
+     * @return false screen is not opened
+     */
+    template <class T>
+    bool IsScreenOpened() {
+        return stack_iterator && ScreenFactory::DoesCreatorHoldType<T>(stack_iterator->creator);
+    }
+
+    /**
+     * @brief check if screen is closed
+     * == it is on stack, but is not opened
+     *
+     * @tparam T screen
+     * @return true  screen is closed
+     * @return false screen is not closed
+     */
+    template <class T>
+    bool IsScreenClosed() {
+        for (auto it = stack.begin(); it != stack_iterator; ++it) {
+            if (it && ScreenFactory::DoesCreatorHoldType<T>(it->creator))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * @brief check if screen is on stack
+     * == ot is opened or closed
+     *
+     * @tparam T screen
+     * @return true  screen is on stack
+     * @return false screen is not on stack
+     */
+    template <class T>
+    bool IsScreenOnStack() {
+        return IsScreenOpened<T>() || IsScreenClosed<T>();
+    }
 
 private:
     void InnerLoop(); //call inside Loop of this class

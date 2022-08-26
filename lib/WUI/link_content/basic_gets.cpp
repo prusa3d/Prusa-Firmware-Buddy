@@ -79,6 +79,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case mpsAborted:
     case mpsFinished:
     case mpsIdle:
+    case mpsWaitGui:
     case mpsPrintPreviewInit:
     case mpsPrintPreviewLoop:
     case mpsPrintInit:
@@ -211,6 +212,7 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     case mpsAborted:
     case mpsFinished:
     case mpsIdle:
+    case mpsWaitGui:
     case mpsPrintPreviewInit:
     case mpsPrintPreviewLoop:
     case mpsPrintInit:

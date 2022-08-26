@@ -19,6 +19,7 @@
 #include "screen_hardfault.hpp"
 #include "screen_temperror.hpp"
 #include "screen_watchdog.hpp"
+#include "screen_filebrowser.hpp"
 #include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
@@ -295,7 +296,6 @@ void gui_run(void) {
         if (screen_home_data_t::EverBeenOpenned()) {
             gui::fsensor::validate_for_cyclical_calls();
         }
-        redraw = DialogHandler::Access().Loop();
 
         if (++cnt_scan_register_update >= 100) {
             display::ReadMADCTL(data_buff, 1);
@@ -307,9 +307,36 @@ void gui_run(void) {
             cnt_scan_register_update = 0;
         }
 
+        redraw = DialogHandler::Access().Loop();
+
         if (redraw == redraw_cmd_t::redraw)
             // all messages received, redraw changes immediately
             gui_redraw();
+
+        // Screens::Access()->Count() == 0      - there are no closed screens under current one == only home screen is opened
+        bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>());
+        // this code handles start of print
+        // it must be in main gui loop just before screen handler to ensure no FSM is opened
+        // !DialogHandler::Access().IsAnyOpen() - wait until all FSMs are closed (including one click print)
+        // one click print is closed automatically from main thread, because it is opened for wrong gcode
+        if ((marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == mpsWaitGui) && (!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
+            Screens::Access()->CloseAll(); // set flag to close all screens
+            Screens::Access()->Loop();     // close those screens before marlin_gui_ready_to_printp
+
+            // notify server, that GUI is ready to print
+            marlin_gui_ready_to_print();
+
+            // wait for start of the print - to prevent any unwanted gui action
+            while (
+                (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state != mpsIdle) // main thread is processing a print
+                && (!DialogHandler::Access().IsAnyOpen())                                         // wait for print screen to open, any fsm can break waiting (not only open of print screen)
+            ) {
+                gui_timers_cycle();   // refresh GUI time
+                marlin_client_loop(); // refresh fsm - required for dialog handler
+                DialogHandler::Access().Loop();
+            }
+        }
+
         Screens::Access()->Loop();
         // Do not redraw if there's an unread FSM message.
         // New screen can be created already but FSM message can change it
