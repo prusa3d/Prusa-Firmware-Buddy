@@ -112,9 +112,9 @@ namespace {
     Printer::DeviceState to_device_state(marlin_print_state_t state, bool ready) {
         switch (state) {
         case mpsIdle:
-        case mspPrintPreviewInit:
-        case mspPrintPreviewLoop:
-        case mspPrintInit:
+        case mpsPrintPreviewInit:
+        case mpsPrintPreviewLoop:
+        case mpsPrintInit:
         case mpsAborted:
             if (ready) {
                 return Printer::DeviceState::Ready;
