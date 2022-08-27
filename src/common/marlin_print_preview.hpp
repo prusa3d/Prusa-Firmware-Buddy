@@ -62,8 +62,6 @@ public:
         return ret;
     }
 
-    void Create();
-    void Destroy();
     Result Loop();
 
     void Init(const char *path);
