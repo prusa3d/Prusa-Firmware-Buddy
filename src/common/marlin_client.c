@@ -577,6 +577,10 @@ void marlin_print_abort(void) {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_ABORT);
 }
 
+void marlin_print_exit(void) {
+    _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_EXIT);
+}
+
 void marlin_print_pause(void) {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_PAUSE);
 }

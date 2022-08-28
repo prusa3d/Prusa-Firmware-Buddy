@@ -117,6 +117,7 @@ namespace {
         case mpsPrintPreviewLoop:
         case mpsPrintInit:
         case mpsAborted:
+        case mpsExit:
             if (ready) {
                 return Printer::DeviceState::Ready;
             } else {

@@ -106,9 +106,8 @@ void DialogHandler::close(fsm::destroy_t o) {
         case ClientFSM::PrintPreview:
         case ClientFSM::CrashRecovery:
         case ClientFSM::Selftest:
+        case ClientFSM::Printing:
             Screens::Access()->Close();
-            break;
-        case ClientFSM::Printing: //closed on button, todo marlin thread should close it
             break;
         default:
             break;

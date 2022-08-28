@@ -101,7 +101,7 @@ void screen_printing_data_t::stopAction() {
     }
     switch (GetState()) {
     case printing_state_t::PRINTED:
-        Screens::Access()->Close();
+        marlin_print_exit();
         return;
     case printing_state_t::PAUSING:
     case printing_state_t::RESUMING:
@@ -217,7 +217,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
             screen_printing_reprint();
         } else {
-            Screens::Access()->Close();
+            marlin_print_exit();
             return;
         }
     }
@@ -232,7 +232,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 
     /// -- close screen when print is done / stopped and USB media is removed
     if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
-        Screens::Access()->Close();
+        marlin_print_exit();
         return;
     }
 
@@ -581,6 +581,7 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::PRINTED;
         break;
     case mpsFinished:
+    case mpsExit:
         st = printing_state_t::PRINTED;
         break;
     case mpsPowerPanic_acFault:
