@@ -903,6 +903,7 @@ static void _server_print_loop(void) {
         break;
 #endif
     case mpsPrintPreviewInit:
+        did_not_start_print = true;
         if (media_print_filepath()) {
             PrintPreview::Instance().Init(media_print_filepath());
         }
