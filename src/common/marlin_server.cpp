@@ -401,7 +401,6 @@ void static marlin_server_finalize_print() {
     power_panic::reset();
 #endif
     Odometer_s::instance().add_time(marlin_server.vars.print_duration);
-    fsm_destroy(ClientFSM::Printing);
     print_area.reset_bounding_rect();
 }
 
@@ -618,6 +617,23 @@ void marlin_server_print_start(const char *filename, bool skip_preview) {
 #endif
     if (filename == nullptr)
         return;
+
+    // handle preview / reprint
+    switch (marlin_server.print_state) {
+    case mpsFinished:
+    case mpsAborted:
+        // correctly end previous print
+        marlin_server_finalize_print();
+        fsm_destroy(ClientFSM::Printing);
+        break;
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
+        PrintPreview::Instance().ChangeState(IPrintPreview::State::inactive); // close preview
+        break;
+    default:
+        break;
+    }
+
     switch (marlin_server.print_state) {
     case mpsIdle:
     case mpsFinished:
@@ -660,6 +676,24 @@ void marlin_server_print_abort(void) {
         marlin_server.print_state = mpsAborting_Begin;
         break;
     default:
+        break;
+    }
+}
+
+void marlin_server_print_exit(void) {
+    switch (marlin_server.print_state) {
+#if ENABLED(POWER_PANIC)
+    case mpsPowerPanic_Resume:
+    case mpsPowerPanic_AwaitingResume:
+#endif
+    case mpsPrinting:
+    case mpsPaused:
+    case mpsResuming_Reheating:
+    case mpsFinishing_WaitIdle:
+        // do nothing
+        break;
+    default:
+        marlin_server.print_state = mpsExit;
         break;
     }
 }
@@ -1086,6 +1120,11 @@ static void _server_print_loop(void) {
             marlin_server.print_state = mpsFinished;
             marlin_server_finalize_print();
         }
+        break;
+    case mpsExit:
+        marlin_server_finalize_print();
+        fsm_destroy(ClientFSM::Printing);
+        marlin_server.print_state = mpsIdle;
         break;
 
 #if ENABLED(CRASH_RECOVERY)
@@ -1946,6 +1985,9 @@ bool _process_server_valid_request(const char *request, int client_id) {
         return true;
     case MARLIN_MSG_PRINT_RESUME:
         marlin_server_print_resume();
+        return true;
+    case MARLIN_MSG_PRINT_EXIT:
+        marlin_server_print_exit();
         return true;
     case MARLIN_MSG_PARK:
         marlin_server_park_head();

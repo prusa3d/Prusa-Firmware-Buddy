@@ -199,6 +199,8 @@ extern void marlin_gui_ready_to_print();
 
 extern void marlin_print_abort(void);
 
+extern void marlin_print_exit(void); // close fsm
+
 extern void marlin_print_pause(void);
 
 extern void marlin_print_resume(void);

@@ -129,6 +129,7 @@ typedef enum {
     mpsFinishing_WaitIdle,
     mpsFinishing_ParkHead,
     mpsFinished,
+    mpsExit, // sets idle, notifies clients to close fsm
     mpsCrashRecovery_Begin,
     mpsCrashRecovery_Retracting,
     mpsCrashRecovery_Lifting,
@@ -164,12 +165,13 @@ typedef enum {
     MARLIN_MSG_PRINT_ABORT = 'S',
     MARLIN_MSG_PRINT_PAUSE = 'T',
     MARLIN_MSG_PRINT_RESUME = 'U',
-    MARLIN_MSG_PARK = 'V',
-    MARLIN_MSG_KNOB_MOVE = 'W',
-    MARLIN_MSG_KNOB_CLICK = 'X',
-    MARLIN_MSG_FSM = 'Y',
-    MARLIN_MSG_MOVE = 'Z',
-    MARLIN_MSG_GUI_PRINT_READY = 'a',
+    MARLIN_MSG_PRINT_EXIT = 'V',
+    MARLIN_MSG_PARK = 'W',
+    MARLIN_MSG_KNOB_MOVE = 'X',
+    MARLIN_MSG_KNOB_CLICK = 'Y',
+    MARLIN_MSG_FSM = 'Z',
+    MARLIN_MSG_MOVE = 'a',
+    MARLIN_MSG_GUI_PRINT_READY = 'b',
 } marlin_msg_t;
 
 // variables structure - used in server and client
