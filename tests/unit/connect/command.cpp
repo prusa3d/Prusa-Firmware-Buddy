@@ -57,6 +57,6 @@ TEST_CASE("Send file info") {
     REQUIRE(strcmp(command_test<SendFileInfo>("{\"command\": \"SEND_FILE_INFO\", \"args\": [\"/usb/x.gcode\"], \"kwargs\": {\"path\": \"/usb/x.gcode\"}}").path.path(), "/usb/x.gcode") == 0);
 }
 
-TEST_CASE("Send file info") {
+TEST_CASE("Send file info - missing args") {
     command_test<BrokenCommand>("{\"command\": \"SEND_FILE_INFO\", \"args\": [], \"kwargs\": {}}");
 }
