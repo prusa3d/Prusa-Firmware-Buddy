@@ -106,6 +106,7 @@ void window_file_list_t::unconditionalDraw() {
             activeItem.Print(itemRect(i));
         } else {
             FL_LABEL label(itemText(i), itemIcon(i));
+            label.Invalidate();
             label.Print(itemRect(i));
         }
     }
@@ -187,7 +188,6 @@ void window_file_list_t::inc(int dif) {
     valid_items.fill(false);
     activeItem.clrFocus();
     selectNewItem();
-    activeItem.Roll(); // first call causes additional invalidation, it does not matter here, but would flicker in case it was not called
     super::invalidate(GetRect());
 }
 

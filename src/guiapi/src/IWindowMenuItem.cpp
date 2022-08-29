@@ -63,8 +63,11 @@ void IWindowMenuItem::Print(Rect16 rect) {
     color_t mi_color_back = GetBackColor();
     color_t mi_color_text = GetTextColor();
 
+    if (IsIconInvalid() && IsLabelInvalid() && IsExtensionInvalid()) {
+        render_rect(rect, mi_color_back);
+    }
+
     if (IsIconInvalid()) {
-        render_rect(getIconRect(rect), mi_color_back);
         printIcon(getIconRect(rect), raster_op, mi_color_back);
     }
 
@@ -73,7 +76,6 @@ void IWindowMenuItem::Print(Rect16 rect) {
     }
 
     if (IsExtensionInvalid() && extension_width) {
-        render_rect(getExtensionRect(rect), mi_color_back);
         printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
     }
 
