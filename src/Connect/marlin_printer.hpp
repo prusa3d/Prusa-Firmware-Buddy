@@ -7,7 +7,7 @@
 
 namespace con {
 
-class MarlinPriter final : public Printer {
+class MarlinPrinter final : public Printer {
 private:
     marlin_vars_t *marlin_vars;
     SharedBuffer &buffer;
@@ -16,11 +16,11 @@ protected:
     virtual Config load_config() override;
 
 public:
-    MarlinPriter(SharedBuffer &buffer);
-    MarlinPriter(const MarlinPriter &other) = delete;
-    MarlinPriter(MarlinPriter &&other) = delete;
-    MarlinPriter &operator=(const MarlinPriter &other) = delete;
-    MarlinPriter &operator=(MarlinPriter &&other) = delete;
+    MarlinPrinter(SharedBuffer &buffer);
+    MarlinPrinter(const MarlinPrinter &other) = delete;
+    MarlinPrinter(MarlinPrinter &&other) = delete;
+    MarlinPrinter &operator=(const MarlinPrinter &other) = delete;
+    MarlinPrinter &operator=(MarlinPrinter &&other) = delete;
 
     virtual void renew() override;
     virtual Params params() const override;

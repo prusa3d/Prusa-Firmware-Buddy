@@ -172,7 +172,7 @@ namespace {
     }
 }
 
-MarlinPriter::MarlinPriter(SharedBuffer &buffer)
+MarlinPrinter::MarlinPrinter(SharedBuffer &buffer)
     : buffer(buffer) {
     marlin_vars = marlin_client_init();
     assert(marlin_vars != nullptr);
@@ -197,7 +197,7 @@ MarlinPriter::MarlinPriter(SharedBuffer &buffer)
     info.appendix = appendix_exist();
 }
 
-void MarlinPriter::renew() {
+void MarlinPrinter::renew() {
     if (auto b = buffer.borrow(); b.has_value()) {
         marlin_vars->media_LFN = reinterpret_cast<char *>(b->data());
         marlin_vars->media_SFN_path = reinterpret_cast<char *>(b->data() + FILE_NAME_BUFFER_LEN);
@@ -208,7 +208,7 @@ void MarlinPriter::renew() {
     marlin_update_vars(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
 }
 
-Printer::Params MarlinPriter::params() const {
+Printer::Params MarlinPrinter::params() const {
     Params params = {};
     params.state = to_device_state(marlin_vars->print_state, params.state == DeviceState::Ready);
     params.temp_bed = marlin_vars->temp_bed;
@@ -232,7 +232,7 @@ Printer::Params MarlinPriter::params() const {
     return params;
 }
 
-Printer::Config MarlinPriter::load_config() {
+Printer::Config MarlinPrinter::load_config() {
     Config configuration = {};
     configuration.enabled = eeprom_get_bool(EEVAR_CONNECT_ENABLED);
     if (configuration.enabled) {
@@ -246,7 +246,7 @@ Printer::Config MarlinPriter::load_config() {
     return configuration;
 }
 
-bool MarlinPriter::load_cfg_from_ini() {
+bool MarlinPrinter::load_cfg_from_ini() {
     Config config;
     bool ok = ini_parse("/usb/prusa_printer_settings.ini", connect_ini_handler, &config) == 0;
     if (ok) {
