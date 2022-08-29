@@ -106,7 +106,6 @@ void window_file_list_t::unconditionalDraw() {
             activeItem.Print(itemRect(i));
         } else {
             FL_LABEL label(itemText(i), itemIcon(i));
-            label.Invalidate();
             label.Print(itemRect(i));
         }
     }
