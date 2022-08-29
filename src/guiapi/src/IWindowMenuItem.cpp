@@ -24,7 +24,7 @@ IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extensi
     , extension_width(extension_width_)
     , invalid_icon(true)
     , invalid_label(true)
-    , invalid_extension(extension_width != 0)
+    , invalid_extension(true)
     , id_icon(id_icon)
     , label_font(label_font) {
 }
@@ -68,6 +68,7 @@ void IWindowMenuItem::Print(Rect16 rect) {
     }
 
     if (IsIconInvalid()) {
+        //render_rect(getIconRect(rect), mi_color_back); // Unnessessary invalidation (use this if changing icons causes artefacts)
         printIcon(getIconRect(rect), raster_op, mi_color_back);
     }
 
@@ -76,6 +77,7 @@ void IWindowMenuItem::Print(Rect16 rect) {
     }
 
     if (IsExtensionInvalid() && extension_width) {
+        //render_rect(getExtensionRect(rect), mi_color_back); // Unnessessary invalidation (use this if there are artefacts in extention)
         printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
     }
 
