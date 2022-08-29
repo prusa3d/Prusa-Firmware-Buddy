@@ -75,7 +75,12 @@ public:
 
     inline serial_index_t command_port() const { return TERN0(HAS_MULTI_SERIAL, commands[index_r].port); }
 
-    inline void clear() { length = index_r = index_w = 0; }
+    inline void clear() {
+#if ENABLED(CRASH_RECOVERY)
+        sdpos = get_current_sdpos();
+#endif
+        length = index_r = index_w = 0; }
+    }
 
     void advance_pos(uint8_t &p, const int inc) { if (++p >= BUFSIZE) p = 0; length += inc; }
 
@@ -98,6 +103,16 @@ public:
     inline CommandLine& peek_next_command() { return commands[index_r]; }
 
     inline char* peek_next_command_string() { return peek_next_command().buffer; }
+
+#if ENABLED(CRASH_RECOVERY)
+    uint32_t sdpos;                 // Position in file for the latest instruction
+    uint32_t sdpos_buffer[BUFSIZE]; // Ring buffer of positions (synced with command_buffer)
+
+    // Return the file position of the _current_ instruction
+    inline uint32_t get_current_sdpos() {
+        return length ? sdpos_buffer[index_r] : sdpos;
+    }
+#endif
   };
 
   /**
@@ -109,6 +124,13 @@ public:
    * Clear the Marlin command queue
    */
   static void clear() { ring_buffer.clear(); }
+
+#if ENABLED(CRASH_RECOVERY)
+  /**
+   * Return the file position of the _current_ instruction
+   */
+  static uint32_t get_current_sdpos() { return ring_buffer.get_current_sdpos(); }
+#endif
 
   /**
    * Next Injected Command (PROGMEM) pointer. (nullptr == empty)
