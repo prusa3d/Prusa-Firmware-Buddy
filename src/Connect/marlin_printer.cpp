@@ -266,7 +266,7 @@ bool MarlinPrinter::load_cfg_from_ini() {
     return ok;
 }
 
-std::optional<Printer::NetInfo> MarlinPriter::net_info(Printer::Iface iface) const {
+std::optional<Printer::NetInfo> MarlinPrinter::net_info(Printer::Iface iface) const {
     uint32_t id;
     switch (iface) {
     case Iface::Ethernet:
@@ -293,7 +293,7 @@ std::optional<Printer::NetInfo> MarlinPriter::net_info(Printer::Iface iface) con
     return result;
 }
 
-Printer::NetCreds MarlinPriter::net_creds() const {
+Printer::NetCreds MarlinPrinter::net_creds() const {
     NetCreds result = {};
     strextract(result.api_key, sizeof result.api_key, EEVAR_PL_API_KEY);
     strextract(result.ssid, sizeof result.ssid, EEVAR_WIFI_AP_SSID);
