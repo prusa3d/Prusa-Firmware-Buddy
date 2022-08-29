@@ -16,6 +16,7 @@
  */
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <lwip/tcpip.h>
 
 #include "../../../src/common/basename.h"
@@ -68,4 +69,8 @@ void get_LFN(char *lfn, size_t lfn_size, char *path) {
 
 void mbedtls_platform_zeroize(void *b, size_t size) {
     memset(b, 0, size);
+}
+
+bool wui_is_file_being_printed(const char *filename) {
+    return false;
 }
