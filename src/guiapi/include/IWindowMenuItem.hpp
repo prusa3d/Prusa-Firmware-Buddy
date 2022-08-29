@@ -58,7 +58,6 @@ protected:
     ResourceId id_icon;
     font_t *label_font;
 
-    static Rect16 getCustomRect(Rect16 base_rect, uint16_t custom_rect_width); // general method Returns custom width Rectangle, aligned intersection on the right of the base_rect
     Rect16 getIconRect(Rect16 rect) const;
     Rect16 getLabelRect(Rect16 rect) const;
     Rect16 getExtensionRect(Rect16 rect) const;

@@ -31,11 +31,6 @@ IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extensi
 
 /*****************************************************************************/
 //rectangles
-Rect16 IWindowMenuItem::getCustomRect(Rect16 base_rect, uint16_t custom_rect_width) {
-    Rect16 custom_rect = { base_rect.Left(), base_rect.Top(), custom_rect_width, base_rect.Height() };
-    custom_rect += Rect16::Left_t(base_rect.Width() - custom_rect.Width());
-    return custom_rect;
-}
 
 Rect16 IWindowMenuItem::getIconRect(Rect16 rect) const {
     rect = icon_width;
