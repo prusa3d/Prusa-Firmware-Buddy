@@ -123,15 +123,6 @@ uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
 ******************************************************************************/
 void get_MAC_address(mac_address_t *dest, uint32_t netdev_id);
 
-/*!*********************************************************************************************************************
-* \brief Parses time from device's time storage to seconds. MONTHS are from 0 and YEARS are from 1900
-*
-* \retval number of seconds since epoch start (1.0.1900), if time is initialized by sntp
-*
-* \retval 0 if RTC time have not been initialized
-***********************************************************************************************************************/
-time_t sntp_get_system_time(void);
-
 /*!**********************************************************************************************************
 * \brief Sets time and date in device's RTC on some other time storage
 *

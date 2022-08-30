@@ -5,7 +5,6 @@
 #include "ScreenHandler.hpp"
 #include "screen_menus.hpp"
 #include <ctime>
-#include "wui_api.h"
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"
 #include "odometer.hpp"
@@ -254,7 +253,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 }
 
 void screen_printing_data_t::change_etime() {
-    time_t sec = sntp_get_system_time();
+    time_t sec = time(nullptr);
     if (sec != 0) {
         // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
         // theoretically it can be removed completely in case the string is constant for the whole run of the screen

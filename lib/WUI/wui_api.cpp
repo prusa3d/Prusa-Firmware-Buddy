@@ -36,7 +36,7 @@
 
 extern RTC_HandleTypeDef hrtc;
 
-static bool sntp_time_init = false;
+bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 static std::atomic<uint32_t> uploaded_gcodes;
@@ -301,30 +301,6 @@ void get_MAC_address(mac_address_t *dest, uint32_t netdev_id) {
             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     } else {
         **dest = '\0';
-    }
-}
-
-time_t sntp_get_system_time(void) {
-
-    if (sntp_time_init) {
-        RTC_TimeTypeDef currTime;
-        RTC_DateTypeDef currDate;
-        HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
-        HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
-        time_t secs;
-        struct tm system_time;
-        system_time.tm_isdst = -1; // Is DST on? 1 = yes, 0 = no, -1 = unknown
-        system_time.tm_hour = currTime.Hours;
-        system_time.tm_min = currTime.Minutes;
-        system_time.tm_sec = currTime.Seconds;
-        system_time.tm_mday = currDate.Date;
-        system_time.tm_mon = currDate.Month;
-        system_time.tm_year = currDate.Year;
-        system_time.tm_wday = currDate.WeekDay;
-        secs = mktime(&system_time);
-        return secs;
-    } else {
-        return 0;
     }
 }
 
