@@ -530,64 +530,64 @@ void screen_printing_data_t::change_print_state() {
     printing_state_t st = printing_state_t::COUNT;
 
     switch (marlin_vars()->print_state) {
-    case mpsIdle:
-    case mpsWaitGui:
-    case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
-    case mpsPrintInit:
+    case marlin_print_state_t::Idle:
+    case marlin_print_state_t::WaitGui:
+    case marlin_print_state_t::PrintPreviewInit:
+    case marlin_print_state_t::PrintPreviewLoop:
+    case marlin_print_state_t::PrintInit:
         st = printing_state_t::INITIAL;
         break;
-    case mpsPrinting:
+    case marlin_print_state_t::Printing:
         st = printing_state_t::PRINTING;
         break;
-    case mpsPowerPanic_AwaitingResume:
-    case mpsPaused:
+    case marlin_print_state_t::PowerPanic_AwaitingResume:
+    case marlin_print_state_t::Paused:
         // stop_pressed = false;
         st = printing_state_t::PAUSED;
         break;
-    case mpsPausing_Begin:
-    case mpsPausing_Failed_Code:
-    case mpsPausing_WaitIdle:
-    case mpsPausing_ParkHead:
+    case marlin_print_state_t::Pausing_Begin:
+    case marlin_print_state_t::Pausing_Failed_Code:
+    case marlin_print_state_t::Pausing_WaitIdle:
+    case marlin_print_state_t::Pausing_ParkHead:
         st = printing_state_t::PAUSING;
         break;
-    case mpsResuming_Reheating:
+    case marlin_print_state_t::Resuming_Reheating:
         stop_pressed = false;
         st = printing_state_t::REHEATING;
         break;
-    case mpsResuming_Begin:
-    case mpsResuming_UnparkHead_XY:
-    case mpsResuming_UnparkHead_ZE:
-    case mpsCrashRecovery_Begin:
-    case mpsCrashRecovery_Retracting:
-    case mpsCrashRecovery_Lifting:
-    case mpsCrashRecovery_XY_Measure:
-    case mpsCrashRecovery_XY_HOME:
-    case mpsCrashRecovery_Axis_NOK:
-    case mpsCrashRecovery_Repeated_Crash:
-    case mpsPowerPanic_Resume:
+    case marlin_print_state_t::Resuming_Begin:
+    case marlin_print_state_t::Resuming_UnparkHead_XY:
+    case marlin_print_state_t::Resuming_UnparkHead_ZE:
+    case marlin_print_state_t::CrashRecovery_Begin:
+    case marlin_print_state_t::CrashRecovery_Retracting:
+    case marlin_print_state_t::CrashRecovery_Lifting:
+    case marlin_print_state_t::CrashRecovery_XY_Measure:
+    case marlin_print_state_t::CrashRecovery_XY_HOME:
+    case marlin_print_state_t::CrashRecovery_Axis_NOK:
+    case marlin_print_state_t::CrashRecovery_Repeated_Crash:
+    case marlin_print_state_t::PowerPanic_Resume:
         stop_pressed = false;
         st = printing_state_t::RESUMING;
         break;
-    case mpsAborting_Begin:
-    case mpsAborting_WaitIdle:
-    case mpsAborting_ParkHead:
+    case marlin_print_state_t::Aborting_Begin:
+    case marlin_print_state_t::Aborting_WaitIdle:
+    case marlin_print_state_t::Aborting_ParkHead:
         stop_pressed = false;
         st = printing_state_t::ABORTING;
         break;
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
+    case marlin_print_state_t::Finishing_WaitIdle:
+    case marlin_print_state_t::Finishing_ParkHead:
         st = printing_state_t::PRINTING;
         break;
-    case mpsAborted:
+    case marlin_print_state_t::Aborted:
         stop_pressed = false;
         st = printing_state_t::STOPPED;
         break;
-    case mpsFinished:
-    case mpsExit:
+    case marlin_print_state_t::Finished:
+    case marlin_print_state_t::Exit:
         st = printing_state_t::PRINTED;
         break;
-    case mpsPowerPanic_acFault:
+    case marlin_print_state_t::PowerPanic_acFault:
         // this state is never reached
         __builtin_unreachable();
         return;

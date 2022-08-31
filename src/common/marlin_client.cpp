@@ -620,9 +620,9 @@ void marlin_encoded_response(uint32_t enc_phase_and_response) {
 }
 bool marlin_is_printing() {
     switch (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state) {
-    case mpsAborted:
-    case mpsIdle:
-    case mpsFinished:
+    case marlin_print_state_t::Aborted:
+    case marlin_print_state_t::Idle:
+    case marlin_print_state_t::Finished:
         return false;
     default:
         return true;

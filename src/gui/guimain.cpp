@@ -319,7 +319,7 @@ void gui_run(void) {
         // it must be in main gui loop just before screen handler to ensure no FSM is opened
         // !DialogHandler::Access().IsAnyOpen() - wait until all FSMs are closed (including one click print)
         // one click print is closed automatically from main thread, because it is opened for wrong gcode
-        if ((marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == mpsWaitGui) && (!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
+        if ((marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == marlin_print_state_t::WaitGui) && (!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
             Screens::Access()->CloseAll(); // set flag to close all screens
             Screens::Access()->Loop();     // close those screens before marlin_gui_ready_to_printp
 
@@ -328,8 +328,8 @@ void gui_run(void) {
 
             // wait for start of the print - to prevent any unwanted gui action
             while (
-                (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state != mpsIdle) // main thread is processing a print
-                && (!DialogHandler::Access().IsAnyOpen())                                         // wait for print screen to open, any fsm can break waiting (not only open of print screen)
+                (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state != marlin_print_state_t::Idle) // main thread is processing a print
+                && (!DialogHandler::Access().IsAnyOpen())                                                            // wait for print screen to open, any fsm can break waiting (not only open of print screen)
             ) {
                 gui_timers_cycle();   // refresh GUI time
                 marlin_client_loop(); // refresh fsm - required for dialog handler

@@ -76,25 +76,25 @@ typedef enum {
 
 #define MARLIN_VAR_MSK_CURR_POS_XYZE (MARLIN_VAR_MSK4(MARLIN_VAR_CURR_POS_X, MARLIN_VAR_CURR_POS_Y, MARLIN_VAR_CURR_POS_Z, MARLIN_VAR_CURR_POS_E))
 
-static const uint64_t MARLIN_VAR_MSK_POS_XYZE = MARLIN_VAR_MSK4(MARLIN_VAR_POS_X, MARLIN_VAR_POS_Y, MARLIN_VAR_POS_Z, MARLIN_VAR_POS_E);
+static constexpr uint64_t MARLIN_VAR_MSK_POS_XYZE = MARLIN_VAR_MSK4(MARLIN_VAR_POS_X, MARLIN_VAR_POS_Y, MARLIN_VAR_POS_Z, MARLIN_VAR_POS_E);
 
 #define MARLIN_VAR_MSK_TEMP_CURR (MARLIN_VAR_MSK2(MARLIN_VAR_TEMP_NOZ, MARLIN_VAR_TEMP_BED))
 
-static const uint64_t MARLIN_VAR_MSK_TEMP_TARG = MARLIN_VAR_MSK2(MARLIN_VAR_TTEM_NOZ, MARLIN_VAR_TTEM_BED);
+static constexpr uint64_t MARLIN_VAR_MSK_TEMP_TARG = MARLIN_VAR_MSK2(MARLIN_VAR_TTEM_NOZ, MARLIN_VAR_TTEM_BED);
 
-static const uint64_t MARLIN_VAR_MSK_TEMP_ALL
+static constexpr uint64_t MARLIN_VAR_MSK_TEMP_ALL
     = MARLIN_VAR_MSK7(MARLIN_VAR_TEMP_NOZ, MARLIN_VAR_TEMP_BED, MARLIN_VAR_TTEM_NOZ, MARLIN_VAR_TTEM_BED, MARLIN_VAR_DTEM_NOZ, MARLIN_VAR_PRINT_FAN_RPM, MARLIN_VAR_HEATBREAK_FAN_RPM);
 
 // variables defined in this mask are automaticaly updated every 100ms in _server_update_vars
-static const uint64_t MARLIN_VAR_MSK_DEF = MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE) & ~MARLIN_VAR_MSK_IPOS_XYZE & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) & ~MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH);
+static constexpr uint64_t MARLIN_VAR_MSK_DEF = MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE) & ~MARLIN_VAR_MSK_IPOS_XYZE & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) & ~MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH);
 
-static const uint64_t MARLIN_VAR_MSK_WUI = MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK13(MARLIN_VAR_POS_X, MARLIN_VAR_POS_Y, MARLIN_VAR_POS_Z, MARLIN_VAR_POS_E, MARLIN_VAR_PRNSPEED, MARLIN_VAR_FLOWFACT, MARLIN_VAR_DURATION, MARLIN_VAR_SD_PDONE, MARLIN_VAR_FILENAME, MARLIN_VAR_FILEPATH, MARLIN_VAR_ENDSTOPS, MARLIN_VAR_JOB_ID, MARLIN_VAR_MEDIAINS);
+static constexpr uint64_t MARLIN_VAR_MSK_WUI = MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK13(MARLIN_VAR_POS_X, MARLIN_VAR_POS_Y, MARLIN_VAR_POS_Z, MARLIN_VAR_POS_E, MARLIN_VAR_PRNSPEED, MARLIN_VAR_FLOWFACT, MARLIN_VAR_DURATION, MARLIN_VAR_SD_PDONE, MARLIN_VAR_FILENAME, MARLIN_VAR_FILEPATH, MARLIN_VAR_ENDSTOPS, MARLIN_VAR_JOB_ID, MARLIN_VAR_MEDIAINS);
 
 // usr8 in variant8_t message contains id (bit0..6) and variable/event flag (bit7)
-static const uint8_t MARLIN_USR8_VAR_FLG = 0x80; // usr8 - variable flag (bit7 set)
-static const uint8_t MARLIN_USR8_MSK_ID = 0x7f;  // usr8 - event/variable id mask
+static constexpr uint8_t MARLIN_USR8_VAR_FLG = 0x80; // usr8 - variable flag (bit7 set)
+static constexpr uint8_t MARLIN_USR8_MSK_ID = 0x7f;  // usr8 - event/variable id mask
 
-static const uint8_t MARLINE_VAR_NAME_MAX = 16; //var_name max length
+static constexpr uint8_t MARLINE_VAR_NAME_MAX = 16; //var_name max length
 
 enum {
     MARLIN_VAR_INDEX_X = 0,
@@ -103,48 +103,48 @@ enum {
     MARLIN_VAR_INDEX_E = 3,
 };
 
-static const uint8_t MARLIN_VAR_MOTION_MSK_X = 1 << MARLIN_VAR_INDEX_X;
-static const uint8_t MARLIN_VAR_MOTION_MSK_Y = 1 << MARLIN_VAR_INDEX_Y;
-static const uint8_t MARLIN_VAR_MOTION_MSK_Z = 1 << MARLIN_VAR_INDEX_Z;
-static const uint8_t MARLIN_VAR_MOTION_MSK_E = 1 << MARLIN_VAR_INDEX_E;
+static constexpr uint8_t MARLIN_VAR_MOTION_MSK_X = 1 << MARLIN_VAR_INDEX_X;
+static constexpr uint8_t MARLIN_VAR_MOTION_MSK_Y = 1 << MARLIN_VAR_INDEX_Y;
+static constexpr uint8_t MARLIN_VAR_MOTION_MSK_Z = 1 << MARLIN_VAR_INDEX_Z;
+static constexpr uint8_t MARLIN_VAR_MOTION_MSK_E = 1 << MARLIN_VAR_INDEX_E;
 
-static const uint32_t TIME_TO_END_INVALID = (uint32_t)-1;
+static constexpr uint32_t TIME_TO_END_INVALID = (uint32_t)-1;
 
-typedef enum {
-    mpsIdle = 0,
-    mpsWaitGui,
-    mpsPrintPreviewInit,
-    mpsPrintPreviewLoop,
-    mpsPrintInit,
-    mpsPrinting,
-    mpsPausing_Begin,
-    mpsPausing_Failed_Code,
-    mpsPausing_WaitIdle,
-    mpsPausing_ParkHead,
-    mpsPaused,
-    mpsResuming_Begin,
-    mpsResuming_Reheating,
-    mpsResuming_UnparkHead_XY,
-    mpsResuming_UnparkHead_ZE,
-    mpsAborting_Begin,
-    mpsAborting_WaitIdle,
-    mpsAborting_ParkHead,
-    mpsAborted,
-    mpsFinishing_WaitIdle,
-    mpsFinishing_ParkHead,
-    mpsFinished,
-    mpsExit, // sets idle, notifies clients to close fsm
-    mpsCrashRecovery_Begin,
-    mpsCrashRecovery_Retracting,
-    mpsCrashRecovery_Lifting,
-    mpsCrashRecovery_XY_Measure,
-    mpsCrashRecovery_XY_HOME,
-    mpsCrashRecovery_Axis_NOK,
-    mpsCrashRecovery_Repeated_Crash,
-    mpsPowerPanic_acFault,
-    mpsPowerPanic_Resume,
-    mpsPowerPanic_AwaitingResume,
-} marlin_print_state_t;
+enum class marlin_print_state_t : uint8_t {
+    Idle = 0,
+    WaitGui,
+    PrintPreviewInit,
+    PrintPreviewLoop,
+    PrintInit,
+    Printing,
+    Pausing_Begin,
+    Pausing_Failed_Code,
+    Pausing_WaitIdle,
+    Pausing_ParkHead,
+    Paused,
+    Resuming_Begin,
+    Resuming_Reheating,
+    Resuming_UnparkHead_XY,
+    Resuming_UnparkHead_ZE,
+    Aborting_Begin,
+    Aborting_WaitIdle,
+    Aborting_ParkHead,
+    Aborted,
+    Finishing_WaitIdle,
+    Finishing_ParkHead,
+    Finished,
+    Exit, // sets idle, notifies clients to close fsm
+    CrashRecovery_Begin,
+    CrashRecovery_Retracting,
+    CrashRecovery_Lifting,
+    CrashRecovery_XY_Measure,
+    CrashRecovery_XY_HOME,
+    CrashRecovery_Axis_NOK,
+    CrashRecovery_Repeated_Crash,
+    PowerPanic_acFault,
+    PowerPanic_Resume,
+    PowerPanic_AwaitingResume,
+};
 
 /// Marlin client -> server messages
 typedef enum {
@@ -180,24 +180,23 @@ typedef enum {
 
 // variables structure - used in server and client
 // deliberately ordered from longest data types to shortest to avoid alignment issues
-typedef struct _marlin_vars_t {
+struct marlin_vars_t {
     // 4B base types
-    float pos[4];                     // position XYZE [mm]
-    int32_t ipos[4];                  // integer position XYZE [steps]
-    float curr_pos[4];                // current position XYZE according to G-code [mm]
-    float temp_nozzle;                // nozzle temperature [C]
-    float temp_bed;                   // bed temperature [C]
-    float target_nozzle;              // nozzle target temperature [C]
-    float target_bed;                 // bed target temperature [C]
-    float z_offset;                   // probe z-offset [mm]
-    float display_nozzle;             // nozzle temperature to display [C]
-    float travel_acceleration;        // travel acceleration from planner
-    uint32_t print_duration;          // print_job_timer.duration() [ms]
-    uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [s]
-    char *media_LFN;                  // Long-File-Name of the currently selected file - a pointer to a global static buffer
-    char *media_SFN_path;             // Short-File-Name path to currently selected file - a pointer to a global static buffer
-    marlin_print_state_t print_state; // marlin_server.print_state
-    uint32_t endstops;                // Binary mask of all endstops
+    float pos[4];              // position XYZE [mm]
+    int32_t ipos[4];           // integer position XYZE [steps]
+    float curr_pos[4];         // current position XYZE according to G-code [mm]
+    float temp_nozzle;         // nozzle temperature [C]
+    float temp_bed;            // bed temperature [C]
+    float target_nozzle;       // nozzle target temperature [C]
+    float target_bed;          // bed target temperature [C]
+    float z_offset;            // probe z-offset [mm]
+    float display_nozzle;      // nozzle temperature to display [C]
+    float travel_acceleration; // travel acceleration from planner
+    uint32_t print_duration;   // print_job_timer.duration() [ms]
+    uint32_t time_to_end;      // oProgressData.oTime2End.mGetValue() [s]
+    char *media_LFN;           // Long-File-Name of the currently selected file - a pointer to a global static buffer
+    char *media_SFN_path;      // Short-File-Name path to currently selected file - a pointer to a global static buffer
+    uint32_t endstops;         // Binary mask of all endstops
 
     // 2B base types
     uint16_t print_speed;       // printing speed factor [%]
@@ -207,24 +206,21 @@ typedef struct _marlin_vars_t {
     uint16_t job_id;            // print job id incremented at every print start(for connect)
 
     // 1B base types
-    uint8_t motion;              // motion (bit0-X, bit1-Y, bit2-Z, bit3-E)
-    uint8_t gqueue;              // number of commands in gcode queue
-    uint8_t pqueue;              // number of commands in planner queue
-    uint8_t print_fan_speed;     // print fan speed [0..255]
-    uint8_t wait_heat;           // wait_for_heatup
-    uint8_t wait_user;           // wait_for_user
-    uint8_t sd_percent_done;     // card.percentDone() [%]
-    uint8_t media_inserted;      // media_is_inserted()
-    uint8_t fan_check_enabled;   // fan_check [on/off]
-    uint8_t fs_autoload_enabled; // fs_autoload [on/off]
-} marlin_vars_t;
+    marlin_print_state_t print_state; // marlin_server.print_state
+    uint8_t motion;                   // motion (bit0-X, bit1-Y, bit2-Z, bit3-E)
+    uint8_t gqueue;                   // number of commands in gcode queue
+    uint8_t pqueue;                   // number of commands in planner queue
+    uint8_t print_fan_speed;          // print fan speed [0..255]
+    uint8_t wait_heat;                // wait_for_heatup
+    uint8_t wait_user;                // wait_for_user
+    uint8_t sd_percent_done;          // card.percentDone() [%]
+    uint8_t media_inserted;           // media_is_inserted()
+    uint8_t fan_check_enabled;        // fan_check [on/off]
+    uint8_t fs_autoload_enabled;      // fs_autoload [on/off]
+};
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
-inline int is_abort_state(marlin_print_state_t st) {
-    return ((int)st) >= ((int)mpsAborting_Begin) && ((int)st) <= ((int)mpsAborted);
+constexpr bool is_abort_state(marlin_print_state_t st) {
+    return ((int)st) >= ((int)marlin_print_state_t::Aborting_Begin) && ((int)st) <= ((int)marlin_print_state_t::Aborted);
 }
 
 // returns variable name
@@ -249,7 +245,3 @@ extern int marlin_vars_str_to_value(marlin_vars_t *vars, marlin_var_id_t var_id,
 // converts message's ID to string
 // string must have 3 bytes at least
 extern void marlin_msg_to_str(const marlin_msg_t id, char *str);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus

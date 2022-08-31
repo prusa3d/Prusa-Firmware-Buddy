@@ -32,59 +32,59 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     marlin_update_vars(MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK4(MARLIN_VAR_PRNSPEED, MARLIN_VAR_POS_Z, MARLIN_VAR_PRNSPEED, MARLIN_VAR_PRNSTATE));
 
     switch (vars->print_state) {
-    case mpsCrashRecovery_Begin:
-    case mpsCrashRecovery_Lifting:
-    case mpsCrashRecovery_Retracting:
-    case mpsCrashRecovery_XY_Measure:
-    case mpsCrashRecovery_XY_HOME:
-    case mpsCrashRecovery_Axis_NOK:
-    case mpsCrashRecovery_Repeated_Crash:
-    case mpsPowerPanic_acFault:
+    case marlin_print_state_t::CrashRecovery_Begin:
+    case marlin_print_state_t::CrashRecovery_Lifting:
+    case marlin_print_state_t::CrashRecovery_Retracting:
+    case marlin_print_state_t::CrashRecovery_XY_Measure:
+    case marlin_print_state_t::CrashRecovery_XY_HOME:
+    case marlin_print_state_t::CrashRecovery_Axis_NOK:
+    case marlin_print_state_t::CrashRecovery_Repeated_Crash:
+    case marlin_print_state_t::PowerPanic_acFault:
         busy = true;
         // Fall through
-    case mpsPrinting:
+    case marlin_print_state_t::Printing:
         printing = true;
         ready = operational = false;
         break;
-    case mpsPowerPanic_AwaitingResume:
-    case mpsPausing_Begin:
-    case mpsPausing_Failed_Code:
-    case mpsPausing_WaitIdle:
-    case mpsPausing_ParkHead:
+    case marlin_print_state_t::PowerPanic_AwaitingResume:
+    case marlin_print_state_t::Pausing_Begin:
+    case marlin_print_state_t::Pausing_Failed_Code:
+    case marlin_print_state_t::Pausing_WaitIdle:
+    case marlin_print_state_t::Pausing_ParkHead:
         printing = pausing = paused = busy = true;
         ready = operational = false;
         break;
-    case mpsPaused:
+    case marlin_print_state_t::Paused:
         printing = paused = true;
         ready = operational = false;
         break;
-    case mpsResuming_Begin:
-    case mpsResuming_Reheating:
-    case mpsResuming_UnparkHead_XY:
-    case mpsResuming_UnparkHead_ZE:
-    case mpsPowerPanic_Resume:
+    case marlin_print_state_t::Resuming_Begin:
+    case marlin_print_state_t::Resuming_Reheating:
+    case marlin_print_state_t::Resuming_UnparkHead_XY:
+    case marlin_print_state_t::Resuming_UnparkHead_ZE:
+    case marlin_print_state_t::PowerPanic_Resume:
         ready = operational = false;
         busy = printing = true;
         break;
-    case mpsAborting_Begin:
-    case mpsAborting_WaitIdle:
-    case mpsAborting_ParkHead:
+    case marlin_print_state_t::Aborting_Begin:
+    case marlin_print_state_t::Aborting_WaitIdle:
+    case marlin_print_state_t::Aborting_ParkHead:
         cancelling = busy = true;
         ready = operational = false;
         break;
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
+    case marlin_print_state_t::Finishing_WaitIdle:
+    case marlin_print_state_t::Finishing_ParkHead:
         busy = true;
         ready = operational = false;
         break;
-    case mpsAborted:
-    case mpsFinished:
-    case mpsExit:
-    case mpsIdle:
-    case mpsWaitGui:
-    case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
-    case mpsPrintInit:
+    case marlin_print_state_t::Aborted:
+    case marlin_print_state_t::Finished:
+    case marlin_print_state_t::Exit:
+    case marlin_print_state_t::Idle:
+    case marlin_print_state_t::WaitGui:
+    case marlin_print_state_t::PrintPreviewInit:
+    case marlin_print_state_t::PrintPreviewLoop:
+    case marlin_print_state_t::PrintInit:
         break;
     }
 
@@ -171,57 +171,57 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     const char *state = "Unknown";
 
     switch (vars->print_state) {
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
-    case mpsPrinting:
-    case mpsPowerPanic_acFault:
+    case marlin_print_state_t::Finishing_WaitIdle:
+    case marlin_print_state_t::Finishing_ParkHead:
+    case marlin_print_state_t::Printing:
+    case marlin_print_state_t::PowerPanic_acFault:
         has_job = true;
         state = "Printing";
         break;
-    case mpsCrashRecovery_Begin:
-    case mpsCrashRecovery_Lifting:
-    case mpsCrashRecovery_Retracting:
-    case mpsCrashRecovery_XY_Measure:
-    case mpsCrashRecovery_XY_HOME:
-    case mpsCrashRecovery_Axis_NOK:
-    case mpsCrashRecovery_Repeated_Crash:
+    case marlin_print_state_t::CrashRecovery_Begin:
+    case marlin_print_state_t::CrashRecovery_Lifting:
+    case marlin_print_state_t::CrashRecovery_Retracting:
+    case marlin_print_state_t::CrashRecovery_XY_Measure:
+    case marlin_print_state_t::CrashRecovery_XY_HOME:
+    case marlin_print_state_t::CrashRecovery_Axis_NOK:
+    case marlin_print_state_t::CrashRecovery_Repeated_Crash:
         has_job = true;
         state = "CrashRecovery";
         break;
-    case mpsPausing_Begin:
-    case mpsPausing_Failed_Code:
-    case mpsPausing_WaitIdle:
-    case mpsPausing_ParkHead:
+    case marlin_print_state_t::Pausing_Begin:
+    case marlin_print_state_t::Pausing_Failed_Code:
+    case marlin_print_state_t::Pausing_WaitIdle:
+    case marlin_print_state_t::Pausing_ParkHead:
         has_job = true;
         state = "Pausing";
         break;
-    case mpsPowerPanic_AwaitingResume:
-    case mpsPaused:
+    case marlin_print_state_t::PowerPanic_AwaitingResume:
+    case marlin_print_state_t::Paused:
         has_job = true;
         state = "Paused";
         break;
-    case mpsResuming_Begin:
-    case mpsResuming_Reheating:
-    case mpsResuming_UnparkHead_XY:
-    case mpsResuming_UnparkHead_ZE:
-    case mpsPowerPanic_Resume:
+    case marlin_print_state_t::Resuming_Begin:
+    case marlin_print_state_t::Resuming_Reheating:
+    case marlin_print_state_t::Resuming_UnparkHead_XY:
+    case marlin_print_state_t::Resuming_UnparkHead_ZE:
+    case marlin_print_state_t::PowerPanic_Resume:
         has_job = true;
         state = "Resuming";
         break;
-    case mpsAborting_Begin:
-    case mpsAborting_WaitIdle:
-    case mpsAborting_ParkHead:
+    case marlin_print_state_t::Aborting_Begin:
+    case marlin_print_state_t::Aborting_WaitIdle:
+    case marlin_print_state_t::Aborting_ParkHead:
         has_job = true;
         state = "Cancelling";
         break;
-    case mpsAborted:
-    case mpsFinished:
-    case mpsExit:
-    case mpsIdle:
-    case mpsWaitGui:
-    case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
-    case mpsPrintInit:
+    case marlin_print_state_t::Aborted:
+    case marlin_print_state_t::Finished:
+    case marlin_print_state_t::Exit:
+    case marlin_print_state_t::Idle:
+    case marlin_print_state_t::WaitGui:
+    case marlin_print_state_t::PrintPreviewInit:
+    case marlin_print_state_t::PrintPreviewLoop:
+    case marlin_print_state_t::PrintInit:
         state = "Operational";
         break;
     }

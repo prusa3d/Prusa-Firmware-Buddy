@@ -25,38 +25,38 @@ namespace {
         marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE));
 
         switch (vars->print_state) {
-        case mpsPrinting:
+        case marlin_print_state_t::Printing:
             return SimplePrintState::Printing;
-        case mpsPowerPanic_acFault:
-        case mpsPowerPanic_Resume:
-        case mpsPowerPanic_AwaitingResume:
-        case mpsPausing_Begin:
-        case mpsPausing_WaitIdle:
-        case mpsPausing_ParkHead:
-        case mpsPausing_Failed_Code:
-        case mpsCrashRecovery_Begin:
-        case mpsCrashRecovery_Axis_NOK:
-        case mpsCrashRecovery_Retracting:
-        case mpsCrashRecovery_Lifting:
-        case mpsCrashRecovery_XY_Measure:
-        case mpsCrashRecovery_XY_HOME:
-        case mpsCrashRecovery_Repeated_Crash:
-        case mpsResuming_Begin:
-        case mpsResuming_Reheating:
-        case mpsResuming_UnparkHead_XY:
-        case mpsResuming_UnparkHead_ZE:
-        case mpsAborting_Begin:
-        case mpsAborting_WaitIdle:
-        case mpsAborting_ParkHead:
-        case mpsFinishing_WaitIdle:
-        case mpsFinishing_ParkHead:
+        case marlin_print_state_t::PowerPanic_acFault:
+        case marlin_print_state_t::PowerPanic_Resume:
+        case marlin_print_state_t::PowerPanic_AwaitingResume:
+        case marlin_print_state_t::Pausing_Begin:
+        case marlin_print_state_t::Pausing_WaitIdle:
+        case marlin_print_state_t::Pausing_ParkHead:
+        case marlin_print_state_t::Pausing_Failed_Code:
+        case marlin_print_state_t::CrashRecovery_Begin:
+        case marlin_print_state_t::CrashRecovery_Axis_NOK:
+        case marlin_print_state_t::CrashRecovery_Retracting:
+        case marlin_print_state_t::CrashRecovery_Lifting:
+        case marlin_print_state_t::CrashRecovery_XY_Measure:
+        case marlin_print_state_t::CrashRecovery_XY_HOME:
+        case marlin_print_state_t::CrashRecovery_Repeated_Crash:
+        case marlin_print_state_t::Resuming_Begin:
+        case marlin_print_state_t::Resuming_Reheating:
+        case marlin_print_state_t::Resuming_UnparkHead_XY:
+        case marlin_print_state_t::Resuming_UnparkHead_ZE:
+        case marlin_print_state_t::Aborting_Begin:
+        case marlin_print_state_t::Aborting_WaitIdle:
+        case marlin_print_state_t::Aborting_ParkHead:
+        case marlin_print_state_t::Finishing_WaitIdle:
+        case marlin_print_state_t::Finishing_ParkHead:
             return SimplePrintState::Busy;
-        case mpsPaused:
+        case marlin_print_state_t::Paused:
             return SimplePrintState::Paused;
-        case mpsAborted:
-        case mpsFinished:
-        case mpsIdle:
-        case mpsExit:
+        case marlin_print_state_t::Aborted:
+        case marlin_print_state_t::Finished:
+        case marlin_print_state_t::Idle:
+        case marlin_print_state_t::Exit:
             return SimplePrintState::Idle;
         default:
             assert(0);

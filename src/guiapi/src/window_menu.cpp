@@ -10,7 +10,7 @@
 #include "resource.h"
 #include "WindowMenuItems.hpp"
 #include "cmath_ext.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 
 WindowMenu::WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : AddSuperWindow<IWindowMenu>(parent, rect)

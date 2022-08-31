@@ -13,9 +13,9 @@
 #include "client_response.hpp"
 
 // client flags
-static const uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
-static const uint16_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main thread is enabled
-static const uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of client message
+static constexpr uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
+static constexpr uint16_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main thread is enabled
+static constexpr uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of client message
 
 //-----------------------------------------------------------------------------
 // externs from marlin server TODO FIXME use variables, or preferably remove
