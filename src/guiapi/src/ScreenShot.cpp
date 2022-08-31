@@ -1,5 +1,4 @@
 #include <fcntl.h>
-#include <unistd.h>
 #include "ScreenShot.hpp"
 #include "display.h"
 #include <inttypes.h>
@@ -84,6 +83,10 @@ bool TakeAScreenshot() {
         snprintf(file_name, SCREENSHOT_FILE_NAME_BUFFER_LEN, "%s_%lu%s", screenshot_name, inc, screenshot_format);
     }
 
+    return TakeAScreenshotAs(file_name);
+}
+
+bool TakeAScreenshotAs(const char *file_name) {
     FILE *fd = fopen(file_name, "w");
     if (fd == nullptr)
         return false;
@@ -118,6 +121,7 @@ bool TakeAScreenshot() {
 
     return true;
 }
+
 Pixel::Pixel(const uint8_t *data) {
     red = data[0];
     green = data[1];
