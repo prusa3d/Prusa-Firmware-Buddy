@@ -1,6 +1,6 @@
 #pragma once
 
-namespace con {
+namespace connect {
 
 enum class Error {
     Timeout,

@@ -15,7 +15,7 @@
 
 using std::nullopt;
 
-namespace con {
+namespace connect {
 
 namespace {
 

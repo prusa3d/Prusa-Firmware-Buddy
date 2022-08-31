@@ -3,7 +3,7 @@
 #include "connection.hpp"
 #include "connect_error.h"
 
-namespace con {
+namespace connect {
 
 class socket_con final : public Connection {
 

@@ -5,7 +5,7 @@
 #include <tuple>
 #include <optional>
 
-namespace con {
+namespace connect {
 
 class Printer {
 public:

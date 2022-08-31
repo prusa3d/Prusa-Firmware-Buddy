@@ -7,7 +7,7 @@
 #include <optional>
 #include <variant>
 
-namespace con {
+namespace connect {
 
 // Just make the code a bit more readable by making this distinction.
 // Unfortunately, not checked at compile time.

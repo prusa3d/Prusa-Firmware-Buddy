@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-namespace con {
+namespace connect {
 
 tls::tls() {
     mbedtls_net_init(&net_context);

@@ -11,7 +11,7 @@
 #include <http/chunked.h>
 
 using automata::ExecutionControl;
-using con::parser::ResponseParser;
+using connect::parser::ResponseParser;
 using http::ConnectionHandling;
 using http::ContentType;
 using std::get;
@@ -23,7 +23,7 @@ using std::optional;
 using std::string_view;
 using std::variant;
 
-namespace con {
+namespace connect {
 
 namespace {
     const char *to_str(Method method) {

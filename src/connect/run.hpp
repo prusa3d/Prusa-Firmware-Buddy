@@ -1,6 +1,6 @@
 #pragma once
 
-namespace con {
+namespace connect {
 
 /// The "main" loop for connect.
 ///
