@@ -1,6 +1,8 @@
-// marlin_vars.c
+/**
+ * @file marlin_vars.cpp
+ */
 
-#include "marlin_vars.h"
+#include "marlin_vars.hpp"
 
 #include <stdio.h>
 #include <string.h>
@@ -51,19 +53,19 @@ const char *__var_name[] = {
     "TRAVEL_ACCEL"
 };
 
-static_assert((sizeof(__var_name) / sizeof(char *)) == (MARLIN_VAR_MAX + 1), "Invalid number of elements in __var_name");
+static_assert((sizeof(__var_name) / sizeof(char *)) == (MARLIN_VAR_COUNT), "Invalid number of elements in __var_name");
 
 const char *marlin_vars_get_name(marlin_var_id_t var_id) {
-    if (var_id <= MARLIN_VAR_MAX)
+    if (var_id < MARLIN_VAR_COUNT)
         return __var_name[var_id];
     return "";
 }
 
 marlin_var_id_t marlin_vars_get_id_by_name(const char *var_name) {
-    for (int i = 0; i <= MARLIN_VAR_MAX; i++)
+    for (int i = 0; i < MARLIN_VAR_COUNT; i++)
         if (strcmp(var_name, __var_name[i]) == 0)
-            return i;
-    return MARLIN_VAR_MAX + 1;
+            return marlin_var_id_t(i);
+    return marlin_var_id_t::MARLIN_VAR_COUNT;
 }
 
 variant8_t marlin_vars_get_var(marlin_vars_t *vars, marlin_var_id_t var_id) {
@@ -153,6 +155,8 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, marlin_var_id_t var_id) {
         return variant8_flt(vars->curr_pos[3]);
     case MARLIN_VAR_TRAVEL_ACCEL:
         return variant8_flt(vars->travel_acceleration);
+    case MARLIN_VAR_COUNT:
+        break;
     }
 
     abort(); // unreachable
@@ -248,7 +252,7 @@ void marlin_vars_set_var(marlin_vars_t *vars, marlin_var_id_t var_id, variant8_t
         vars->media_inserted = variant8_get_bool(var);
         break;
     case MARLIN_VAR_PRNSTATE:
-        vars->print_state = variant8_get_ui8(var);
+        vars->print_state = marlin_print_state_t(variant8_get_ui8(var));
         break;
     case MARLIN_VAR_FILENAME:
         if (vars->media_LFN)
@@ -292,6 +296,8 @@ void marlin_vars_set_var(marlin_vars_t *vars, marlin_var_id_t var_id, variant8_t
         break;
     case MARLIN_VAR_TRAVEL_ACCEL:
         vars->travel_acceleration = variant8_get_flt(var);
+        break;
+    case MARLIN_VAR_COUNT:
         break;
     }
 }
@@ -449,6 +455,8 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, marlin_var_id_t var_id, const 
         return sscanf(str, "%hu", &(vars->job_id));
     case MARLIN_VAR_TRAVEL_ACCEL:
         return sscanf(str, "%f", &(vars->travel_acceleration));
+    case MARLIN_VAR_COUNT:
+        break;
     }
 
     return 0;

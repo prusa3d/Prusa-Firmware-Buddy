@@ -10,7 +10,7 @@
 #include "ffconf.h"
 #include "timing.h"
 #include "log.h"
-#include "marlin_vars.h"
+#include "marlin_vars.hpp"
 
 LOG_COMPONENT_DEF(MarlinClient, LOG_SEVERITY_INFO);
 

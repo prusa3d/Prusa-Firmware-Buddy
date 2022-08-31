@@ -52,7 +52,6 @@
 #endif
 
 #include "SteelSheets.hpp"
-static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.hpp" //get_Z_probe_endstop_hits
@@ -67,7 +66,7 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
     #include "power_panic.hpp"
 #endif
 
-static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
+static_assert(MARLIN_VAR_COUNT <= 64, "MarlinAPI: Too many variables");
 
 namespace {
 
@@ -1570,7 +1569,7 @@ static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue
     variant8_t var;
     uint64_t sent = 0;
     uint64_t msk = 1;
-    for (int var_id = 0; var_id <= MARLIN_VAR_MAX; var_id++) {
+    for (int var_id = 0; var_id < MARLIN_VAR_COUNT; var_id++) {
         if (msk & var_msk) {
             var = marlin_vars_get_var(&(marlin_server.vars), (marlin_var_id_t)var_id);
             // if the variable is readable then send else try next time
@@ -2082,7 +2081,7 @@ static int _server_set_var(const char *const name_val_str) {
     bool changed = false;
     char *val_str = strchr(name_val_str, ' ');
     *(val_str++) = 0;
-    if ((var_id = marlin_vars_get_id_by_name(name_val_str)) <= MARLIN_VAR_MAX) {
+    if ((var_id = marlin_vars_get_id_by_name(name_val_str)) < MARLIN_VAR_COUNT) {
         if (marlin_vars_str_to_value(&(marlin_server.vars), var_id, val_str) == 1) {
             switch (var_id) {
             case MARLIN_VAR_TTEM_NOZ:

@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 #include "marlin_events.h"
-#include "marlin_vars.h"
+#include "marlin_vars.hpp"
 #include "marlin_errors.h"
 #include "client_fsm_types.h"
 #include "client_response.hpp"

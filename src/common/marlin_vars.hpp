@@ -1,4 +1,7 @@
-// marlin_vars.h
+/**
+ * @file marlin_vars.hpp
+ * @brief printer core variables
+ */
 #pragma once
 
 #include "variant8.h"
@@ -46,7 +49,7 @@ typedef enum {
     MARLIN_VAR_CURR_POS_Z,          // R: ==||==
     MARLIN_VAR_CURR_POS_E,          // R: ==||==
     MARLIN_VAR_TRAVEL_ACCEL,        // R: float travel_acceleration
-    MARLIN_VAR_MAX = MARLIN_VAR_TRAVEL_ACCEL
+    MARLIN_VAR_COUNT
 } marlin_var_id_t;
 
 // variable masks
@@ -62,11 +65,11 @@ typedef enum {
 
 //maximum number of masks is 64
 //maximum mask index is 63
-#if (MARLIN_VAR_MAX == 63)
-    //in case MARLIN_VAR_MAX == 63 MARLIN_VAR_MSK((MARLIN_VAR_MAX + 1) would fail
+#if (MARLIN_VAR_COUNT == 64)
+    //in case MARLIN_VAR_COUNT == 64 MARLIN_VAR_MSK((MARLIN_VAR_COUNT) would fail
     #define MARLIN_VAR_MSK_ALL ((uint64_t)(-1))
 #else
-    #define MARLIN_VAR_MSK_ALL (MARLIN_VAR_MSK((MARLIN_VAR_MAX + 1)) - (uint64_t)(1)) /// cannot be enum so leave DEFINE (or static const uint64_t)
+    #define MARLIN_VAR_MSK_ALL (MARLIN_VAR_MSK((MARLIN_VAR_COUNT)) - (uint64_t)(1)) /// cannot be enum so leave DEFINE (or static const uint64_t)
 #endif
 
 #define MARLIN_VAR_MSK_IPOS_XYZE (MARLIN_VAR_MSK4(MARLIN_VAR_IPOS_X, MARLIN_VAR_IPOS_Y, MARLIN_VAR_IPOS_Z, MARLIN_VAR_IPOS_E))

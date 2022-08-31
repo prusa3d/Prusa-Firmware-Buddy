@@ -4,7 +4,7 @@
 #include "window_header.hpp"
 #include "screen.hpp"
 #include "gcode_info.hpp"
-#include "marlin_vars.h"
+#include "marlin_vars.hpp"
 
 class screen_filebrowser_data_t : public AddSuperWindow<screen_t> {
     window_header_t header;
