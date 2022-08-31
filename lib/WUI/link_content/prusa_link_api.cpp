@@ -132,31 +132,37 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
         return get_only(StatusPage(Status::NoContent, parser.status_page_handling(), parser.accepts_json));
     } else if (suffix == "settings") {
         return get_only(SendStaticMemory("{\"printer\": {}}", http::ContentType::ApplicationJson, parser.can_keep_alive()));
-    } else if (remove_prefix(suffix, "v1/files").has_value()) {
-
-        static const auto prefix = "/api/v1/files";
-        static const size_t prefix_len = strlen(prefix);
-        char filename[FILE_PATH_BUFFER_LEN + prefix_len];
-        auto error = parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::NoRemap);
-        if (error.has_value()) {
-            return error;
-        }
-        switch (parser.method) {
-        case Method::Put: {
-            GcodeUpload::PutParams putParams;
-            putParams.print_after_upload = parser.print_after_upload;
-            strlcpy(putParams.filepath.data(), filename, sizeof(putParams.filepath));
-            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(putParams));
-            return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
-        }
-        case Method::Get: {
-            return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get);
-        }
-        case Method::Head: {
-            return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Head);
-        }
-        default:
-            return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+    } else if (auto v1_suffix_opt = remove_prefix(suffix, "v1/"); v1_suffix_opt.has_value()) {
+        const auto v1_suffix = *v1_suffix_opt;
+        if (v1_suffix == "storage") {
+            return get_only(StatelessJson(get_storage, parser.can_keep_alive()));
+        } else if (remove_prefix(v1_suffix, "files").has_value()) {
+            static const auto prefix = "/api/v1/files";
+            static const size_t prefix_len = strlen(prefix);
+            char filename[FILE_PATH_BUFFER_LEN + prefix_len];
+            auto error = parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::NoRemap);
+            if (error.has_value()) {
+                return error;
+            }
+            switch (parser.method) {
+            case Method::Put: {
+                GcodeUpload::PutParams putParams;
+                putParams.print_after_upload = parser.print_after_upload;
+                strlcpy(putParams.filepath.data(), filename, sizeof(putParams.filepath));
+                auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(putParams));
+                return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
+            }
+            case Method::Get: {
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get);
+            }
+            case Method::Head: {
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Head);
+            }
+            default:
+                return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+            }
+        } else {
+            return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
         }
     } else if (remove_prefix(suffix, "files").has_value()) {
         // Note: The check for boundary is a bit of a hack. We probably should
