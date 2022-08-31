@@ -3,19 +3,23 @@
  * @brief test screen, accessible in debug only
  */
 
-#include "config.h"
-#include "stm32f4xx_hal.h"
-#include "bsod.h"
 #include "ScreenHandler.hpp"
 #include "screen_test_gui.hpp"
 #include "screen_test_term.hpp"
 #include "screen_test_msgbox.hpp"
+#include "screen_qr_error.hpp"
 #include "screen_test_wizard_icons.hpp"
 #include "screen_test_dlg.hpp"
 #include "screen_menu_eeprom_test.hpp"
-#include "screen_test_selftest.hpp"
-#include "WindowMenuItems.hpp"
+#if HAS_SELFTEST
+    #include "test_of_selftest_result.hpp"
+    #include "screen_test_selftest.hpp"
+#endif
+#include "screen_test_load.hpp"
+
+#include "menu_opener.hpp"
 #include "screen_menu.hpp"
+#include "screen_menus.hpp"
 
 //generate stack overflow
 static volatile int _recursive = 1;
@@ -26,110 +30,10 @@ static volatile void recursive(uint64_t i) {
         recursive(x);
 }
 
-class TstEeprom : public WI_LABEL_t {
-    static constexpr const char *const label = "EEPROM"; // intentionally not translated
-
+class MI_STACK_OVERFLOW : public WI_LABEL_t {
 public:
-    TstEeprom()
-        : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((const uint8_t *)label)) {
-    }
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(GetScreenMenuEepromTest);
-    }
-};
-
-class TstGui : public WI_LABEL_t {
-    static constexpr const char *const label = "GUI"; // intentionally not translated
-
-public:
-    TstGui()
-        : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((const uint8_t *)label)) {
-    }
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(ScreenFactory::Screen<screen_test_gui_data_t>);
-    }
-};
-
-class TstSelftest : public WI_LABEL_t {
-    static constexpr const char *const label = "SELFTEST"; // intentionally not translated
-
-public:
-    TstSelftest()
-        : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((const uint8_t *)label)) {
-    }
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(ScreenFactory::Screen<ScreenTestSelftest>);
-    }
-};
-
-class TstTerm : public WI_LABEL_t {
-    static constexpr const char *const label = "Terminal"; // intentionally not translated
-
-public:
-    TstTerm()
-        : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((const uint8_t *)label)) {
-    }
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(ScreenFactory::Screen<screen_test_term_data_t>);
-    }
-};
-
-class TstMsgBox : public WI_LABEL_t {
-    static constexpr const char *const label = "Message box"; // intentionally not translated
-
-public:
-    TstMsgBox()
-        : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((const uint8_t *)label)) {
-    }
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(ScreenFactory::Screen<screen_test_msgbox_data_t>);
-    }
-};
-
-class TstWizardIcons : public WI_LABEL_t {
-    static constexpr const char *const label = "Wizard Icons"; // intentionally not translated
-
-public:
-    TstWizardIcons()
-        : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((const uint8_t *)label)) {
-    }
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(ScreenFactory::Screen<screen_test_wizard_icons>);
-    }
-};
-
-class TstSafetyDialog : public WI_LABEL_t {
-    static constexpr const char *const label = "Dialog"; // intentionally not translated
-
-public:
-    TstSafetyDialog()
-        : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((const uint8_t *)label)) {
-    }
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(ScreenFactory::Screen<screen_test_dlg_data_t>);
-    }
-};
-
-class TstStackOverflow : public WI_LABEL_t {
-    static constexpr const char *const label = "Stack overflow"; // intentionally not translated
-
-public:
-    TstStackOverflow()
-        : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((const uint8_t *)label)) {
+    MI_STACK_OVERFLOW()
+        : WI_LABEL_t(_("Stack overflow"), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
     }
 
 protected:
@@ -138,12 +42,10 @@ protected:
     }
 };
 
-class TstDiv0 : public WI_LABEL_t {
-    static constexpr const char *const label = "BSOD div 0"; // intentionally not translated
-
+class MI_DIV0 : public WI_LABEL_t {
 public:
-    TstDiv0()
-        : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((const uint8_t *)label)) {
+    MI_DIV0()
+        : WI_LABEL_t(_("BSOD div 0"), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
     }
 
 protected:
@@ -156,24 +58,37 @@ protected:
     }
 };
 
-using Screen = ScreenMenu<EFooter::Off, MI_RETURN, TstEeprom, TstGui, TstSelftest, TstTerm, TstMsgBox, TstWizardIcons, TstSafetyDialog, TstStackOverflow, TstDiv0>;
-
-class ScreenMenuTest : public Screen {
-public:
-    constexpr static const char *label = "TEST";
-    ScreenMenuTest()
-        : Screen(string_view_utf8::MakeCPUFLASH((const uint8_t *)label)) {
-    }
-};
-
-ScreenFactory::UniquePtr GetScreenMenuTest() {
-    return ScreenFactory::Screen<ScreenMenuTest>();
-}
-
-// Missing tests we used to have (currently incompatible code)
+//TODO rewrite this tests
 #if 0
     , tst_graph(this, this->GenerateRect(ShiftDir_t::Bottom), []() { /*screen_open(get_scr_test_graph()->id);*/ }, string_view_utf8::MakeCPUFLASH((const uint8_t *)"temp graph"))
     , tst_temperature(this, this->GenerateRect(ShiftDir_t::Bottom), []() { /*screen_open(get_scr_test_temperature()->id);*/ }, string_view_utf8::MakeCPUFLASH((const uint8_t *)"temp - pwm"))
     , tst_heat_err(this, this->GenerateRect(ShiftDir_t::Bottom), []() { /*("TEST BED ERROR", "Bed", 1.0, 2.0, 3.0, 4.0);*/ }, string_view_utf8::MakeCPUFLASH((const uint8_t *)"HEAT ERROR"))
     , tst_disp_memory(this, this->GenerateRect(ShiftDir_t::Bottom), []() { /*screen_open(get_scr_test_disp_mem()->id);*/ }, string_view_utf8::MakeCPUFLASH((const uint8_t *)"Disp. R/W"))
 #endif // 0
+
+using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
+
+    GENERATE_SCREEN_FN_ITEM_DEV(GetScreenMenuEepromTest, "test EEPROM"),
+    GENERATE_SCREEN_ITEM_DEV(screen_test_gui_data_t, "test GUI"),
+    GENERATE_SCREEN_ITEM_DEV(screen_test_term_data_t, "test TERM"),
+    GENERATE_SCREEN_ITEM_DEV(ScreenTestMMU, "test of load dialog"),
+    GENERATE_SCREEN_ITEM_DEV(ScreenTestMSGBox, "test MSGBOX"),
+    GENERATE_SCREEN_ITEM_DEV(screen_test_wizard_icons, "test Wizard icons"),
+    GENERATE_SCREEN_ITEM_DEV(screen_test_dlg_data_t, "test dialog"),
+    GENERATE_SCREEN_ITEM_DEV(screen_qr_error_data_t, "test QR error"),
+#if HAS_SELFTEST
+    GENERATE_SCREEN_ITEM_DEV(TestResult, "test selftest result"),
+    GENERATE_SCREEN_ITEM_DEV(ScreenTestSelftest, "selftest print screens"),
+#endif // HAS_SELFTEST
+    MI_STACK_OVERFLOW, MI_DIV0>;
+
+class ScreenMenuTest : public Screen {
+public:
+    constexpr static const char *label = N_("TEST");
+    ScreenMenuTest()
+        : Screen(_(label)) {}
+};
+
+ScreenFactory::UniquePtr GetScreenMenuTest() {
+    return ScreenFactory::Screen<ScreenMenuTest>();
+}
