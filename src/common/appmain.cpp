@@ -20,7 +20,7 @@
     #include "sim_heater.h"
 #endif //SIM_HEATER
 
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "bsod.h"
 #include "eeprom.h"
 #include "safe_state.h"

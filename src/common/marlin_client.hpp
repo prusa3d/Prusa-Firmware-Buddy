@@ -19,9 +19,9 @@ static const uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of 
 
 //-----------------------------------------------------------------------------
 // externs from marlin server TODO FIXME use variables, or preferably remove
-extern "C" int marlin_all_axes_homed(void);
+extern int marlin_all_axes_homed(void);
 
-extern "C" int marlin_all_axes_known(void);
+extern int marlin_all_axes_known(void);
 
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)

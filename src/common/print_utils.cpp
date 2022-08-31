@@ -3,7 +3,7 @@
 #include "../lib/Marlin/Marlin/src/module/temperature.h"
 #include "marlin_client.hpp"
 #include "media.h"
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "timing.h"
 #include "config.h"    // GUI_WINDOW_SUPPORT
 #include "guiconfig.h" // GUI_WINDOW_SUPPORT

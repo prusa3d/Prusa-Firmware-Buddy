@@ -1,5 +1,5 @@
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 
 void GcodeSuite::M601() {
     marlin_server_print_pause();

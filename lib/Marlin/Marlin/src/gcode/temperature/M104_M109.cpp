@@ -40,7 +40,7 @@
 #endif
 
 #if ENABLED(PRUSA_MARLIN_API)
-  #include "marlin_server.h"
+  #include "marlin_server.hpp"
 #endif
 
 /**

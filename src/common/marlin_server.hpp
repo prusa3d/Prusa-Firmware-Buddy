@@ -1,16 +1,182 @@
-// marlin_server.hpp
+/**
+ * @file marlin_server.hpp
+ * @brief interface between Marlin and Prusa code
+ */
+
 #pragma once
 
-#include <optional>
-#include <atomic>
-
-#include "marlin_server.h"
+#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
+#include "marlin_events.h"
+#include "marlin_vars.hpp"
+#include "marlin_errors.h"
+#include "client_fsm_types.h"
+#include "marlin_server.hpp"
 #include "client_response.hpp"
 #include "fsm_types.hpp"
 #include "fsm_progress_type.hpp"
 
-/*****************************************************************************/
-//C++ only features
+#include <cstddef>
+#include <optional>
+#include <atomic>
+
+// server flags
+// FIXME define the same type for these and marlin_server.flags
+static constexpr uint16_t MARLIN_SFLG_STARTED = 0x0001; // server started (set in marlin_server_init)
+static constexpr uint16_t MARLIN_SFLG_PROCESS = 0x0002; // loop processing in main thread is enabled
+static constexpr uint16_t MARLIN_SFLG_BUSY = 0x0004;    // loop is busy
+static constexpr uint16_t MARLIN_SFLG_PENDREQ = 0x0008; // pending request
+static constexpr uint16_t MARLIN_SFLG_EXCMODE = 0x0010; // exclusive mode enabled (currently used for selftest/wizard)
+
+// server variable update interval [ms]
+static constexpr uint8_t MARLIN_UPDATE_PERIOD = 100;
+
+using marlin_server_idle_t = void (*)();
+
+// callback for idle operation inside marlin (called from ExtUI handler onIdle)
+extern marlin_server_idle_t marlin_server_idle_cb;
+
+//-----------------------------------------------------------------------------
+// server side functions (can be called from server thread only)
+
+// initialize server side - must be called at beginning in server thread
+void marlin_server_init();
+
+// server loop - must be called periodically in server thread
+int marlin_server_loop();
+
+// returns enabled status of loop processing
+int marlin_server_processing();
+
+// direct start loop processing
+void marlin_server_start_processing();
+
+// direct stop loop processing + disable heaters and safe state
+void marlin_server_stop_processing();
+
+// direct call of babystep.add_steps(Z_AXIS, ...)
+void marlin_server_do_babystep_Z(float offs);
+
+void marlin_server_move_axis(float pos, float feedrate, size_t axis);
+
+// direct call of 'enqueue_and_echo_command'
+// @retval true command enqueued
+// @retval false otherwise
+bool marlin_server_enqueue_gcode(const char *gcode);
+
+// direct call of 'inject_P'
+// @retval true command enqueued
+// @retval false otherwise
+bool marlin_server_inject_gcode(const char *gcode);
+
+// direct call of settings.save()
+void marlin_server_settings_save();
+
+// direct call of settings.load()
+void marlin_server_settings_load();
+
+// direct call of settings.reset()
+void marlin_server_settings_reset();
+
+// direct call of thermalManager.manage_heater()
+void marlin_server_manage_heater();
+
+// direct call of planner.quick_stop()
+void marlin_server_quick_stop();
+
+// direct print file with SFM format
+void marlin_server_print_start(const char *filename, bool skip_preview);
+
+//
+uint32_t marlin_server_get_command();
+
+//
+void marlin_server_set_command(uint32_t command);
+
+//
+void marlin_server_test_start(uint64_t mask);
+
+//
+void marlin_server_test_abort();
+
+//
+void marlin_server_print_abort();
+
+//
+void marlin_server_print_resume();
+
+//
+void marlin_server_print_reheat_start();
+
+//
+bool marlin_server_print_reheat_ready();
+
+// return true if the printer is not moving (idle, paused, aborted or finished)
+bool marlin_server_printer_idle();
+
+typedef struct
+{
+    xyze_pos_t pos;    // resume position for unpark_head
+    float nozzle_temp; // resume nozzle temperature
+    uint8_t fan_speed; // resume fan speed
+} resume_state_t;
+
+//
+void marlin_server_print_pause();
+
+// return true if the printer is in the paused and not moving state
+bool marlin_server_printer_paused();
+
+// return the resume state during a paused print
+resume_state_t *marlin_server_get_resume_data();
+
+// set the resume state for unpausing a print
+void marlin_server_set_resume_data(const resume_state_t *data);
+
+/// Plans retract and returns E stepper position in mm
+void marlin_server_retract();
+
+/// Lifts printing head
+void marlin_server_lift_head();
+
+/// Parks head at print pause or crash
+/// If Z lift or retraction wasn't performed
+/// you can rerun them.
+void marlin_server_park_head();
+
+//
+void marlin_server_unpark_head_XY();
+void marlin_server_unpark_head_ZE();
+
+//
+int marlin_all_axes_homed();
+
+//
+int marlin_all_axes_known();
+
+// returns state of exclusive mode (1/0)
+int marlin_server_get_exclusive_mode();
+
+// set state of exclusive mode (1/0)
+void marlin_server_set_exclusive_mode(int exclusive);
+
+// display different value than target, used in preheat
+void marlin_server_set_temp_to_display(float value);
+
+//
+float marlin_server_get_temp_to_display();
+
+//
+float marlin_server_get_temp_nozzle();
+
+//
+void marlin_server_resuming_begin();
+
+uint32_t marlin_server_get_user_click_count();
+
+uint32_t marlin_server_get_user_move_count();
+
+void marlin_server_nozzle_timeout_on();
+void marlin_server_nozzle_timeout_off();
 
 //todo ensure signature match
 //notify all clients to create finite statemachine

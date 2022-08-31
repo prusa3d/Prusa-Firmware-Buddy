@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <assert.h>
 
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "media.h"
 
 #include "../lib/Marlin/Marlin/src/module/endstops.h"

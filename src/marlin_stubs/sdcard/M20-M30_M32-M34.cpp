@@ -1,7 +1,7 @@
 #include <dirent.h>
 
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "media.h"
 
 // M20 - List SD card

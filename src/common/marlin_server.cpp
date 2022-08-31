@@ -1,6 +1,8 @@
-// marlin_server.cpp
+/**
+ * @file marlin_server.cpp
+ */
 
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "marlin_server.hpp"
 #include <inttypes.h>
 #include <stdarg.h>
@@ -8,7 +10,7 @@
 #include <string.h> //strncmp
 #include <assert.h>
 
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "marlin_server.hpp"
 #include "marlin_print_preview.hpp"
 #include "app.h"
@@ -188,8 +190,6 @@ bool can_stop_wait_for_heatup_var = false;
 bool can_stop_wait_for_heatup() { return can_stop_wait_for_heatup_var; }
 void can_stop_wait_for_heatup(bool val) { can_stop_wait_for_heatup_var = val; }
 
-extern "C" {
-
 LOG_COMPONENT_DEF(MarlinServer, LOG_SEVERITY_INFO);
 
 //-----------------------------------------------------------------------------
@@ -202,7 +202,7 @@ osSemaphoreId marlin_server_sema = 0; // semaphore handle
 #ifdef DEBUG_FSENSOR_IN_HEADER
 uint32_t *pCommand = &marlin_server.command;
 #endif
-marlin_server_idle_t *marlin_server_idle_cb = 0; // idle callback
+marlin_server_idle_t marlin_server_idle_cb = 0; // idle callback
 
 void _add_status_msg(const char *const popup_msg) {
     //I could check client mask here
@@ -2159,8 +2159,6 @@ static void _server_update_and_notify(int client_id, uint64_t update) {
         } else
             marlin_server.client_changes[id] |= (changes & marlin_server.notify_changes[id]);
 }
-
-} // extern "C"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
 int _is_in_M600_flg = 0;
