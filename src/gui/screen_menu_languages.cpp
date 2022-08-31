@@ -6,7 +6,7 @@
 
 #include "gui.hpp"
 #include "screen_menu.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_print.hpp"

@@ -3,7 +3,7 @@
 #include "gui.hpp"
 #include "screen_menu.hpp"
 #include "screen_menus.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "MItem_print.hpp"
 #include "MItem_tools.hpp"
 #include "MItem_crash.hpp"

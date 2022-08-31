@@ -2,7 +2,7 @@
 #include <window_temp_graph.hpp>
 #include "display_helper.h"
 #include "gui.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include <stdlib.h>
 
 window_temp_graph_t::window_temp_graph_t(window_t *parent, Rect16 rect)

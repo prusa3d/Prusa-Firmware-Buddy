@@ -5,7 +5,7 @@
  */
 
 #include "footer_items_nozzle_bed.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "resource.h"
 #include "filament.hpp"
 

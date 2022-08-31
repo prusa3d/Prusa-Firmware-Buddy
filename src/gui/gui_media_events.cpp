@@ -5,7 +5,7 @@
  */
 
 #include "gui_media_events.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "marlin_events.h"
 #include "gui_time.hpp" //gui::GetTick()
 

@@ -2,7 +2,7 @@
 #include "gui_time.hpp"
 #include "gui.hpp"
 #include "config.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "display.h"
 
 #include "ScreenHandler.hpp"

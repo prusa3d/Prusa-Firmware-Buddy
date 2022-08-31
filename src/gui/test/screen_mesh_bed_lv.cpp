@@ -9,7 +9,7 @@
 #include "config.h"
 #include "ScreenHandler.hpp"
 #include "math.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "../../lang/i18n.h"
 
 static const char *btnMeshStrings[] = { "Run mesh", "Mesh in progress" };

@@ -7,7 +7,7 @@
 #include "footer_item_printspeed.hpp"
 #include "display_helper.h" // font_meas_text
 #include "resource.h"       // IDR_PNG_speed_16px
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include <algorithm>
 
 FooterItemSpeed::FooterItemSpeed(window_t *parent)

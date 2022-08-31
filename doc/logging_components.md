@@ -9,7 +9,7 @@ This file is generated automatically so don't edit it directly
 - FileSystem: LOG_SEVERITY_INFO, src/buddy/filesystem.c
 - GUI: LOG_SEVERITY_DEBUG, src/gui/logger.c
 - Marlin: LOG_SEVERITY_INFO, src/common/appmain.cpp
-- MarlinClient: LOG_SEVERITY_INFO, src/common/marlin_client.c
+- MarlinClient: LOG_SEVERITY_INFO, src/common/marlin_client.cpp
 - MarlinServer: LOG_SEVERITY_INFO, src/common/marlin_server.cpp
 - Metrics: LOG_SEVERITY_INFO, src/common/metric.c
 - Network: LOG_SEVERITY_INFO, lib/WUI/wui.cpp

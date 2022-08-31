@@ -4,7 +4,7 @@
  * @date 2021-12-02
  */
 #include "footer_item_fans.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "resource.h"
 #include <algorithm>
 

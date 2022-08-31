@@ -5,7 +5,7 @@
 #include "print_processor.hpp"
 #include "cmsis_os.h" //osDelay
 #include "filament_sensor_api.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "trinamic.h"
 #include "timing.h"
 

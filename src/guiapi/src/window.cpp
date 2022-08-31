@@ -6,7 +6,7 @@
 #include "ScreenHandler.hpp"
 #include "gui_timer.h"
 #include "display.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "knob_event.hpp"
 
 bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }

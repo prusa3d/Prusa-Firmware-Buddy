@@ -7,7 +7,7 @@
 #include "resource.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<SelftestFrameWizardPrologue>(&rThs, phase, data);

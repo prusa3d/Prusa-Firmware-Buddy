@@ -1,5 +1,5 @@
 #include "MItem_print.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "menu_vars.h"
 #include "eeprom.h"
 #include "menu_spin_config.hpp"

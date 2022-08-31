@@ -4,7 +4,7 @@
 #include "stdlib.h"
 #include "usb_host.h"
 #include "cmsis_os.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "screen_print_preview.hpp"
 #include "print_utils.hpp"
 #include "ScreenHandler.hpp"

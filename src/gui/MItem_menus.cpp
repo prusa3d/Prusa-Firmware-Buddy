@@ -4,7 +4,7 @@
 #include "screen_sysinf.hpp"
 #include "screen_qr_error.hpp"
 #include "screen_messages.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "translation_provider_FILE.hpp"
 #include "filament_sensor_api.hpp"
 #include "translator.hpp"

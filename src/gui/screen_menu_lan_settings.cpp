@@ -15,7 +15,7 @@
 #include "MItem_lan.hpp"
 #include <http_lifetime.h>
 #include <espif.h>
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 
 // Container for this base class contains all MI from both ETH and WIFI screen
 // There can be MI, that will not be used in derived class (MI_WIFI_... won't be used in ETH Screen)

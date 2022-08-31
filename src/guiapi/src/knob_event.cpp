@@ -3,7 +3,7 @@
  */
 
 #include "knob_event.hpp"
-#include "marlin_client.h"   // marlin_notify_server_about_encoder_move
+#include "marlin_client.hpp" // marlin_notify_server_about_encoder_move
 #include "ScreenHandler.hpp" // GetCapturedWindow
 #include "sound.hpp"
 

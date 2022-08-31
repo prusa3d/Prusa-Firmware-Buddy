@@ -1,7 +1,7 @@
 
 #include "DialogMoveZ.hpp"
 #include "ScreenHandler.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "menu_vars.h"
 #include "resource.h"
 

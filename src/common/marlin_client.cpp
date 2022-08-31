@@ -1,6 +1,8 @@
-// marlin_client.c
+/**
+ * @file marlin_client.cpp
+ */
 
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include <stdio.h>
 #include <string.h>
 #include "config.h"
@@ -327,7 +329,7 @@ uint64_t marlin_events(void) {
     return (client) ? client->events : 0;
 }
 
-int marlin_change(uint8_t var_id) {
+int marlin_change(marlin_var_id_t var_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << var_id;
@@ -336,7 +338,7 @@ int marlin_change(uint8_t var_id) {
     return ret;
 }
 
-int marlin_change_set(uint8_t var_id) {
+int marlin_change_set(marlin_var_id_t var_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << var_id;
@@ -347,7 +349,7 @@ int marlin_change_set(uint8_t var_id) {
     return ret;
 }
 
-int marlin_change_clr(uint8_t var_id) {
+int marlin_change_clr(marlin_var_id_t var_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << var_id;
@@ -399,20 +401,20 @@ uint64_t marlin_errors(void) {
     return (client) ? client->errors : 0;
 }
 
-variant8_t marlin_get_var(uint8_t var_id) {
+variant8_t marlin_get_var(marlin_var_id_t var_id) {
     marlin_client_t *client = _client_ptr();
     return (client) ? marlin_vars_get_var(&(client->vars), var_id) : variant8_empty();
 }
 
-float marlin_get_flt(uint8_t var_id) { return variant8_get_flt(marlin_get_var(var_id)); }
-uint32_t marlin_get_ui32(uint8_t var_id) { return variant8_get_ui32(marlin_get_var(var_id)); }
-int32_t marlin_get_i32(uint8_t var_id) { return variant8_get_i32(marlin_get_var(var_id)); }
-uint16_t marlin_get_ui16(uint8_t var_id) { return variant8_get_ui16(marlin_get_var(var_id)); }
-uint8_t marlin_get_ui8(uint8_t var_id) { return variant8_get_ui8(marlin_get_var(var_id)); }
-int8_t marlin_get_i8(uint8_t var_id) { return variant8_get_i8(marlin_get_var(var_id)); }
-bool marlin_get_bool(uint8_t var_id) { return variant8_get_bool(marlin_get_var(var_id)); }
+float marlin_get_flt(marlin_var_id_t var_id) { return variant8_get_flt(marlin_get_var(var_id)); }
+uint32_t marlin_get_ui32(marlin_var_id_t var_id) { return variant8_get_ui32(marlin_get_var(var_id)); }
+int32_t marlin_get_i32(marlin_var_id_t var_id) { return variant8_get_i32(marlin_get_var(var_id)); }
+uint16_t marlin_get_ui16(marlin_var_id_t var_id) { return variant8_get_ui16(marlin_get_var(var_id)); }
+uint8_t marlin_get_ui8(marlin_var_id_t var_id) { return variant8_get_ui8(marlin_get_var(var_id)); }
+int8_t marlin_get_i8(marlin_var_id_t var_id) { return variant8_get_i8(marlin_get_var(var_id)); }
+bool marlin_get_bool(marlin_var_id_t var_id) { return variant8_get_bool(marlin_get_var(var_id)); }
 
-variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
+variant8_t marlin_set_var(marlin_var_id_t var_id, variant8_t val) {
     variant8_t retval = variant8_empty();
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
@@ -433,14 +435,14 @@ variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
     return retval;
 }
 
-void marlin_set_i8(uint8_t var_id, int8_t i8) { marlin_set_var(var_id, variant8_i8(i8)); }
-void marlin_set_bool(uint8_t var_id, bool b) { marlin_set_var(var_id, variant8_bool(b)); }
-void marlin_set_ui8(uint8_t var_id, uint8_t ui8) { marlin_set_var(var_id, variant8_ui8(ui8)); }
-void marlin_set_i16(uint8_t var_id, int16_t i16) { marlin_set_var(var_id, variant8_i16(i16)); }
-void marlin_set_ui16(uint8_t var_id, uint16_t ui16) { marlin_set_var(var_id, variant8_ui16(ui16)); }
-void marlin_set_i32(uint8_t var_id, int32_t i32) { marlin_set_var(var_id, variant8_i32(i32)); }
-void marlin_set_ui32(uint8_t var_id, uint32_t ui32) { marlin_set_var(var_id, variant8_ui32(ui32)); }
-void marlin_set_flt(uint8_t var_id, float flt) { marlin_set_var(var_id, variant8_flt(flt)); }
+void marlin_set_i8(marlin_var_id_t var_id, int8_t i8) { marlin_set_var(var_id, variant8_i8(i8)); }
+void marlin_set_bool(marlin_var_id_t var_id, bool b) { marlin_set_var(var_id, variant8_bool(b)); }
+void marlin_set_ui8(marlin_var_id_t var_id, uint8_t ui8) { marlin_set_var(var_id, variant8_ui8(ui8)); }
+void marlin_set_i16(marlin_var_id_t var_id, int16_t i16) { marlin_set_var(var_id, variant8_i16(i16)); }
+void marlin_set_ui16(marlin_var_id_t var_id, uint16_t ui16) { marlin_set_var(var_id, variant8_ui16(ui16)); }
+void marlin_set_i32(marlin_var_id_t var_id, int32_t i32) { marlin_set_var(var_id, variant8_i32(i32)); }
+void marlin_set_ui32(marlin_var_id_t var_id, uint32_t ui32) { marlin_set_var(var_id, variant8_ui32(ui32)); }
+void marlin_set_flt(marlin_var_id_t var_id, float flt) { marlin_set_var(var_id, variant8_flt(flt)); }
 
 marlin_vars_t *marlin_vars(void) {
     marlin_client_t *client = _client_ptr();
@@ -686,7 +688,7 @@ static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb
 
 // process message on client side (set flags, update vars etc.)
 static void _process_client_message(marlin_client_t *client, variant8_t msg) {
-    uint8_t id = variant8_get_usr8(msg) & MARLIN_USR8_MSK_ID;
+    marlin_var_id_t id = marlin_var_id_t(variant8_get_usr8(msg) & MARLIN_USR8_MSK_ID);
     if (variant8_get_usr8(msg) & MARLIN_USR8_VAR_FLG) // variable change received
     {
         marlin_vars_set_var(&(client->vars), id, msg);
@@ -745,7 +747,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         }
         case MARLIN_EVT_Warning:
             if (client->warning_cb)
-                client->warning_cb(variant8_get_i32(msg));
+                client->warning_cb(WarningType(variant8_get_i32(msg)));
             break;
         case MARLIN_EVT_Startup:
             if (client->startup_cb) {

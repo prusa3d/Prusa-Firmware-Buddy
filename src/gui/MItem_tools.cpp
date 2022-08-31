@@ -2,7 +2,7 @@
 #include "dump.h"
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "gui.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"

@@ -6,7 +6,7 @@
 #include "sound.hpp"
 #include "DialogHandler.hpp"
 #include "window_dlg_load_unload.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 
 /*****************************************************************************/
 //MI_LOAD

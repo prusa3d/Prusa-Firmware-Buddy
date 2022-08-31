@@ -11,7 +11,7 @@
 #include "gui_media_events.hpp"
 #include "gui_invalidate.hpp"
 #include "knob_event.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "sw_timer.hpp"
 
 static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;

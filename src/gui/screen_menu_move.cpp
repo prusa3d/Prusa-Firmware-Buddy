@@ -2,7 +2,7 @@
 
 #include "screen_menu.hpp"
 #include "screen_menus.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "WindowMenuItems.hpp"
 #include "menu_spin_config.hpp"
 #include "WindowItemFormatableLabel.hpp"

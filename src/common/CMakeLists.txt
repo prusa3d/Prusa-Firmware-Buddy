@@ -39,7 +39,7 @@ if(BOARD MATCHES ".*BUDDY")
             lang.cpp
             language_eeprom.cpp
             lfn.cpp
-            marlin_client.c
+            marlin_client.cpp
             marlin_errors.c
             marlin_events.c
             marlin_server.cpp

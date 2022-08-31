@@ -1,6 +1,6 @@
 #include "job_command.h"
 
-#include "../../../src/common/marlin_client.h"
+#include "../../../src/common/marlin_client.hpp"
 
 #include <cassert>
 

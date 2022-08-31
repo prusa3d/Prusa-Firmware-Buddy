@@ -1,6 +1,6 @@
 #include "basic_gets.h"
 #include "filament.h" //get_selected_filament_name
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "lwip/init.h"
 #include "netdev.h"
 

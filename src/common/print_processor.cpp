@@ -5,7 +5,7 @@
  */
 
 #include "print_processor.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "filament_sensor_api.hpp"
 #include "fsm_types.hpp"
 #include "non_file_printing_counter.hpp"

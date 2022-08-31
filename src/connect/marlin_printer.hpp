@@ -3,7 +3,7 @@
 #include "buffer.hpp"
 #include "printer.hpp"
 
-#include <marlin_client.h>
+#include <marlin_client.hpp>
 
 namespace connect_client {
 

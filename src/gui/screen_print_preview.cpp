@@ -3,7 +3,7 @@
 #include "screen_print_preview.hpp"
 #include "log.h"
 #include "gcode_file.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "resource.h"
 #include "window_dlg_load_unload.hpp"
 #include "filament_sensor_api.hpp"

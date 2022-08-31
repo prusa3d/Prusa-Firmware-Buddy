@@ -12,7 +12,7 @@
 #include "sys.h"
 #include "../hw/cpu_utils.hpp"
 #include "i18n.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include <ctime>
 
 /******************************************************************************************************/

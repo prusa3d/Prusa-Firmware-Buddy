@@ -5,7 +5,7 @@
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 #include "GuiDefaults.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "display_helper.h"
 #include "SteelSheets.hpp"
 

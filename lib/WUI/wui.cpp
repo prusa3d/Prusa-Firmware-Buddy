@@ -1,7 +1,7 @@
 #include "wui.h"
 #include "netif_settings.h"
 
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "wui_api.h"
 #include "ethernetif.h"
 #include "espif.h"

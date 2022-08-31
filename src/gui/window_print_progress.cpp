@@ -6,7 +6,7 @@
 
 /*****************************************************************************/
 //WindowPrintProgress
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 WindowPrintProgress::WindowPrintProgress(window_t *parent, Rect16 rect)
     : AddSuperWindow<window_numberless_progress_t>(parent, rect)
     , last_sd_percent_done(-1) {

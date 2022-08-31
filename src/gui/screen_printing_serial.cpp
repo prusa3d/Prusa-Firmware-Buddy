@@ -1,6 +1,6 @@
 #include "screen_printing_serial.hpp"
 #include "config.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "filament.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"

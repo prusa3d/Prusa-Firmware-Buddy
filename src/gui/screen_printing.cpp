@@ -1,5 +1,5 @@
 #include "screen_printing.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "print_utils.hpp"
 #include "ffconf.h"
 #include "ScreenHandler.hpp"

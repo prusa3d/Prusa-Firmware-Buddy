@@ -7,7 +7,7 @@
 #include "version.h"
 #include "eeprom.h"
 
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 
 #include "i18n.h"
 #include "../lang/translator.hpp"
@@ -15,7 +15,7 @@
 #include "bsod.h"
 
 #ifdef _EXTUI
-    #include "marlin_client.h"
+    #include "marlin_client.hpp"
 #endif
 
 #if HAS_SELFTEST
