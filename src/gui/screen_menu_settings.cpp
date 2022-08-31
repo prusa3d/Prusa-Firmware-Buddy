@@ -12,7 +12,7 @@
 #include "wui.h"
 #include "SteelSheets.hpp"
 #ifdef BUDDY_ENABLE_CONNECT
-    #include <Connect/marlin_printer.hpp>
+    #include <connect/marlin_printer.hpp>
 #endif
 /*****************************************************************************/
 

@@ -4,7 +4,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
 #include "printers.h"
-#include <Connect/connect.hpp>
+#include <connect/connect.hpp>
 
 using con::OnlineStatus;
 

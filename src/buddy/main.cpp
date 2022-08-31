@@ -7,7 +7,7 @@
 #include "buffered_serial.hpp"
 #include "bsod.h"
 #ifdef BUDDY_ENABLE_CONNECT
-    #include "Connect/run.hpp"
+    #include "connect/run.hpp"
 #endif
 
 #include "sys.h"
