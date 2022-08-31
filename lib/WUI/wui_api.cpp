@@ -343,7 +343,7 @@ uint32_t wui_gcodes_uploaded() {
 }
 
 bool wui_start_print(char *filename, bool autostart_if_able) {
-    const bool printer_can_print = !marlin_vars()->sd_printing;
+    const bool printer_can_print = !marlin_is_printing();
     const bool can_start_print = printer_can_print && autostart_if_able;
 
     strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
