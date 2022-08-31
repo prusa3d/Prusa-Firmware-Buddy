@@ -1769,14 +1769,6 @@ static uint64_t _server_update_vars(uint64_t update) {
         }
     }
 
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT)) {
-        uint8_t media = media_print_get_state() != media_print_state_NONE;
-        if (marlin_server.vars.sd_printing != media) {
-            marlin_server.vars.sd_printing = media;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT);
-        }
-    }
-
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE)) {
         if (!FirstLayer::isPrinting()) { /// push notifications used for first layer calibration
 

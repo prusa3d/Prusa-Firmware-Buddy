@@ -6,47 +6,46 @@
 
 // Marlin variables
 typedef enum {
-    MARLIN_VAR_MOTION = 0x00,            // R:  uint8, method stepper.axis_is_moving
-    MARLIN_VAR_GQUEUE = 0x01,            // R:  uint8, method queue.length
-    MARLIN_VAR_PQUEUE = 0x02,            // R:  uint8, variables planner.block_buffer_head/tail
-    MARLIN_VAR_IPOS_X = 0x03,            // RW: int32, variable stepper.count_position
-    MARLIN_VAR_IPOS_Y = 0x04,            // RW: ==||==
-    MARLIN_VAR_IPOS_Z = 0x05,            // RW: ==||==
-    MARLIN_VAR_IPOS_E = 0x06,            // RW: ==||==
-    MARLIN_VAR_POS_X = 0x07,             // RW: float, planner.getAxisPosition_mm(), setAxisPosition_mm()
-    MARLIN_VAR_POS_Y = 0x08,             // RW: ==||==
-    MARLIN_VAR_POS_Z = 0x09,             // RW: ==||==
-    MARLIN_VAR_POS_E = 0x0a,             // RW: ==||==
-    MARLIN_VAR_TEMP_NOZ = 0x0b,          // R:  float, thermalManager.temp_hotend[0].current
-    MARLIN_VAR_TEMP_BED = 0x0c,          // R:  float, thermalManager.temp_bed.current
-    MARLIN_VAR_TTEM_NOZ = 0x0d,          // RW: float, thermalManager.temp_hotend[0].target, thermalManager.setTargetHotend()
-    MARLIN_VAR_TTEM_BED = 0x0e,          // RW: float, thermalManager.temp_bed.target, thermalManager.setTargetBed()
-    MARLIN_VAR_Z_OFFSET = 0x0f,          // R:  float, zprobe_zoffset
-    MARLIN_VAR_FANSPEED = 0x10,          // RW: uint8, thermalManager.fan_speed[0], thermalManager.set_fan_speed()
-    MARLIN_VAR_PRNSPEED = 0x11,          // RW: uint16, feedrate_percentage
-    MARLIN_VAR_FLOWFACT = 0x12,          // RW: uint16, planner.flow_percentage
-    MARLIN_VAR_WAITHEAT = 0x13,          // RW: bool, Marlin, wait_for_heatup
-    MARLIN_VAR_WAITUSER = 0x14,          // RW: bool, Marlin, wait_for_user
-    MARLIN_VAR_SD_PRINT = 0x15,          // R:  bool, card.flag.sdprinting
-    MARLIN_VAR_SD_PDONE = 0x16,          // R:  uint8, card.percentDone()
-    MARLIN_VAR_DURATION = 0x17,          // R:  uint32, print_job_timer.duration()
-    MARLIN_VAR_MEDIAINS = 0x18,          // R:  bool, media_is_inserted()
-    MARLIN_VAR_PRNSTATE = 0x19,          // R:  marlin_print_state_t, marlin_server.print_state
-    MARLIN_VAR_FILENAME = 0x1a,          // R:  char*,
-    MARLIN_VAR_FILEPATH = 0x1b,          // R:  char*,
-    MARLIN_VAR_DTEM_NOZ = 0x1c,          // R:  float, nozzle temperature to display
-    MARLIN_VAR_TIMTOEND = 0x1d,          // R:  uint32, oProgressData.oTime2End.mGetValue() or -1 if not valid
-    MARLIN_VAR_PRINT_FAN_RPM = 0x1e,     // R:  uint16, fanCtlPrint.getActualRPM()
-    MARLIN_VAR_HEATBREAK_FAN_RPM = 0x1f, // R:  uint16, fanCtlHeatBreak.getActualRPM()
-    MARLIN_VAR_FAN_CHECK_ENABLED,        // RW: bool, fan_check
-    MARLIN_VAR_ENDSTOPS,                 // R: endstops state
-    MARLIN_VAR_FS_AUTOLOAD_ENABLED,      // RW: bool, fs_autoload
-    MARLIN_VAR_JOB_ID,                   // RW: uint16_t job id incremented at every print start(for connect)
-    MARLIN_VAR_CURR_POS_X,               // R: float current_position
-    MARLIN_VAR_CURR_POS_Y,               // R: ==||==
-    MARLIN_VAR_CURR_POS_Z,               // R: ==||==
-    MARLIN_VAR_CURR_POS_E,               // R: ==||==
-    MARLIN_VAR_TRAVEL_ACCEL,             // R: float travel_acceleration
+    MARLIN_VAR_MOTION,              // R:  uint8, method stepper.axis_is_moving
+    MARLIN_VAR_GQUEUE,              // R:  uint8, method queue.length
+    MARLIN_VAR_PQUEUE,              // R:  uint8, variables planner.block_buffer_head/tail
+    MARLIN_VAR_IPOS_X,              // RW: int32, variable stepper.count_position
+    MARLIN_VAR_IPOS_Y,              // RW: ==||==
+    MARLIN_VAR_IPOS_Z,              // RW: ==||==
+    MARLIN_VAR_IPOS_E,              // RW: ==||==
+    MARLIN_VAR_POS_X,               // RW: float, planner.getAxisPosition_mm(), setAxisPosition_mm()
+    MARLIN_VAR_POS_Y,               // RW: ==||==
+    MARLIN_VAR_POS_Z,               // RW: ==||==
+    MARLIN_VAR_POS_E,               // RW: ==||==
+    MARLIN_VAR_TEMP_NOZ,            // R:  float, thermalManager.temp_hotend[0].current
+    MARLIN_VAR_TEMP_BED,            // R:  float, thermalManager.temp_bed.current
+    MARLIN_VAR_TTEM_NOZ,            // RW: float, thermalManager.temp_hotend[0].target, thermalManager.setTargetHotend()
+    MARLIN_VAR_TTEM_BED,            // RW: float, thermalManager.temp_bed.target, thermalManager.setTargetBed()
+    MARLIN_VAR_Z_OFFSET,            // R:  float, zprobe_zoffset
+    MARLIN_VAR_FANSPEED,            // RW: uint8, thermalManager.fan_speed[0], thermalManager.set_fan_speed()
+    MARLIN_VAR_PRNSPEED,            // RW: uint16, feedrate_percentage
+    MARLIN_VAR_FLOWFACT,            // RW: uint16, planner.flow_percentage
+    MARLIN_VAR_WAITHEAT,            // RW: bool, Marlin, wait_for_heatup
+    MARLIN_VAR_WAITUSER,            // RW: bool, Marlin, wait_for_user
+    MARLIN_VAR_SD_PDONE,            // R:  uint8, card.percentDone()
+    MARLIN_VAR_DURATION,            // R:  uint32, print_job_timer.duration()
+    MARLIN_VAR_MEDIAINS,            // R:  bool, media_is_inserted()
+    MARLIN_VAR_PRNSTATE,            // R:  marlin_print_state_t, marlin_server.print_state
+    MARLIN_VAR_FILENAME,            // R:  char*,
+    MARLIN_VAR_FILEPATH,            // R:  char*,
+    MARLIN_VAR_DTEM_NOZ,            // R:  float, nozzle temperature to display
+    MARLIN_VAR_TIMTOEND,            // R:  uint32, oProgressData.oTime2End.mGetValue() or -1 if not valid
+    MARLIN_VAR_PRINT_FAN_RPM,       // R:  uint16, fanCtlPrint.getActualRPM()
+    MARLIN_VAR_HEATBREAK_FAN_RPM,   // R:  uint16, fanCtlHeatBreak.getActualRPM()
+    MARLIN_VAR_FAN_CHECK_ENABLED,   // RW: bool, fan_check
+    MARLIN_VAR_ENDSTOPS,            // R: endstops state
+    MARLIN_VAR_FS_AUTOLOAD_ENABLED, // RW: bool, fs_autoload
+    MARLIN_VAR_JOB_ID,              // RW: uint16_t job id incremented at every print start(for connect)
+    MARLIN_VAR_CURR_POS_X,          // R: float current_position
+    MARLIN_VAR_CURR_POS_Y,          // R: ==||==
+    MARLIN_VAR_CURR_POS_Z,          // R: ==||==
+    MARLIN_VAR_CURR_POS_E,          // R: ==||==
+    MARLIN_VAR_TRAVEL_ACCEL,        // R: float travel_acceleration
     MARLIN_VAR_MAX = MARLIN_VAR_TRAVEL_ACCEL
 } marlin_var_id_t;
 
@@ -57,6 +56,7 @@ typedef enum {
 #define MARLIN_VAR_MSK4(id1, id2, id3, id4)                      (MARLIN_VAR_MSK2(id1, id2) | MARLIN_VAR_MSK2(id3, id4))
 #define MARLIN_VAR_MSK6(id1, id2, id3, id4, id5, id6)            (MARLIN_VAR_MSK3(id1, id2, id3) | MARLIN_VAR_MSK3(id4, id5, id6))
 #define MARLIN_VAR_MSK7(id1, id2, id3, id4, id5, id6, id7)       (MARLIN_VAR_MSK4(id1, id2, id3, id4) | MARLIN_VAR_MSK3(id5, id6, id7))
+#define MARLIN_VAR_MSK12(id1, id2, id3, id4, id5, id6, ...)      (MARLIN_VAR_MSK6(id1, id2, id3, id4, id5, id6) | MARLIN_VAR_MSK6(__VA_ARGS__))
 #define MARLIN_VAR_MSK13(id1, id2, id3, id4, id5, id6, id7, ...) (MARLIN_VAR_MSK7(id1, id2, id3, id4, id5, id6, id7) | MARLIN_VAR_MSK6(__VA_ARGS__))
 
 //maximum number of masks is 64
@@ -84,7 +84,7 @@ static const uint64_t MARLIN_VAR_MSK_TEMP_ALL
 // variables defined in this mask are automaticaly updated every 100ms in _server_update_vars
 static const uint64_t MARLIN_VAR_MSK_DEF = MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE) & ~MARLIN_VAR_MSK_IPOS_XYZE & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) & ~MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH);
 
-static const uint64_t MARLIN_VAR_MSK_WUI = MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK13(MARLIN_VAR_POS_X, MARLIN_VAR_POS_Y, MARLIN_VAR_POS_Z, MARLIN_VAR_POS_E, MARLIN_VAR_PRNSPEED, MARLIN_VAR_FLOWFACT, MARLIN_VAR_DURATION, MARLIN_VAR_SD_PDONE, MARLIN_VAR_SD_PRINT, MARLIN_VAR_FILENAME, MARLIN_VAR_FILEPATH, MARLIN_VAR_ENDSTOPS, MARLIN_VAR_JOB_ID);
+static const uint64_t MARLIN_VAR_MSK_WUI = MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK12(MARLIN_VAR_POS_X, MARLIN_VAR_POS_Y, MARLIN_VAR_POS_Z, MARLIN_VAR_POS_E, MARLIN_VAR_PRNSPEED, MARLIN_VAR_FLOWFACT, MARLIN_VAR_DURATION, MARLIN_VAR_SD_PDONE, MARLIN_VAR_FILENAME, MARLIN_VAR_FILEPATH, MARLIN_VAR_ENDSTOPS, MARLIN_VAR_JOB_ID);
 
 // usr8 in variant8_t message contains id (bit0..6) and variable/event flag (bit7)
 static const uint8_t MARLIN_USR8_VAR_FLG = 0x80; // usr8 - variable flag (bit7 set)
@@ -209,7 +209,6 @@ typedef struct _marlin_vars_t {
     uint8_t print_fan_speed;     // print fan speed [0..255]
     uint8_t wait_heat;           // wait_for_heatup
     uint8_t wait_user;           // wait_for_user
-    uint8_t sd_printing;         // card.flag.sdprinting
     uint8_t sd_percent_done;     // card.percentDone() [%]
     uint8_t media_inserted;      // media_is_inserted()
     uint8_t fan_check_enabled;   // fan_check [on/off]
