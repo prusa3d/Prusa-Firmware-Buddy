@@ -5,7 +5,7 @@
 
 #include <marlin_client.h>
 
-namespace con {
+namespace connect {
 
 class MarlinPrinter final : public Printer {
 private:

@@ -31,7 +31,7 @@ public:
 
         // FIXME: Error handling
 #ifdef BUDDY_ENABLE_CONNECT
-        con::MarlinPrinter::load_cfg_from_ini();
+        connect::MarlinPrinter::load_cfg_from_ini();
 #endif
     }
 };

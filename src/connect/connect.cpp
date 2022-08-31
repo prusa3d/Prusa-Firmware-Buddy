@@ -36,7 +36,7 @@ using std::visit;
 
 LOG_COMPONENT_DEF(connect, LOG_SEVERITY_DEBUG);
 
-namespace con {
+namespace connect {
 
 namespace {
 

@@ -8,7 +8,7 @@
 using std::nullopt;
 using std::optional;
 using std::string_view;
-using namespace con;
+using namespace connect;
 using namespace json;
 
 namespace {

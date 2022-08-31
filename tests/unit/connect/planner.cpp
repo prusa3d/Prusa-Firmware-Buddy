@@ -4,7 +4,7 @@
 
 #include <catch2/catch.hpp>
 
-using namespace con;
+using namespace connect;
 using std::get;
 using std::get_if;
 using std::holds_alternative;

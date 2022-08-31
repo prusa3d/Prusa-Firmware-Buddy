@@ -6,7 +6,7 @@
 #include "printers.h"
 #include <connect/connect.hpp>
 
-using con::OnlineStatus;
+using connect::OnlineStatus;
 
 class MI_CONNECT_ENABLED : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *label = N_("Enabled");
@@ -46,7 +46,7 @@ public:
     }
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
         if (event == GUI_event_t::CHILD_CLICK || event == GUI_event_t::LOOP) {
-            switch (con::last_status()) {
+            switch (connect::last_status()) {
                 S(Off, "Off");
                 S(NoConfig, "No Config");
                 S(NoDNS, "DNS");

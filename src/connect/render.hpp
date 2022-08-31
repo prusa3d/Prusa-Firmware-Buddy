@@ -7,7 +7,7 @@
 
 #include <sys/stat.h>
 
-namespace con {
+namespace connect {
 
 struct RenderState {
     const Printer &printer;

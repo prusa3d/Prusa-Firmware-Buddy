@@ -16,7 +16,7 @@ using std::optional;
 using std::string;
 using std::string_view;
 using std::variant;
-using namespace con;
+using namespace connect;
 
 namespace {
 

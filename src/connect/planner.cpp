@@ -9,7 +9,7 @@ using std::nullopt;
 using std::optional;
 using std::visit;
 
-namespace con {
+namespace connect {
 
 namespace {
 

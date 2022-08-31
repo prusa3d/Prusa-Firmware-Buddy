@@ -263,7 +263,7 @@ void StartDisplayTask(void const *argument) {
 
 #ifdef BUDDY_ENABLE_CONNECT
 void StartConnectTask(void const *argument) {
-    con::run();
+    connect::run();
 }
 #endif
 
