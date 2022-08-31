@@ -3,7 +3,6 @@
 #include "ScreenHandler.hpp"
 #include "screen_sysinf.hpp"
 #include "screen_qr_error.hpp"
-#include "screen_test.hpp"
 #include "screen_messages.hpp"
 #include "marlin_client.h"
 #include "translation_provider_FILE.hpp"
@@ -109,7 +108,7 @@ MI_TEST::MI_TEST()
 }
 
 void MI_TEST::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<screen_test_data_t>);
+    Screens::Access()->Open(GetScreenMenuTest);
 }
 
 /*****************************************************************************/
