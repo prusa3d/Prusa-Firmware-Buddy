@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 #pragma once
@@ -26,7 +26,15 @@
  */
 
 #define BOARD_INFO_NAME "Melzi (Tronxy)"
-#include "pins_MELZI.h"
+
+// Alter timing for graphical display
+#if IS_U8GLIB_ST7920
+  #define BOARD_ST7920_DELAY_1                 0
+  #define BOARD_ST7920_DELAY_2               125
+  #define BOARD_ST7920_DELAY_3                 0
+#endif
+
+#include "pins_MELZI.h" // ... SANGUINOLOLU_12 ... SANGUINOLOLU_11
 
 #undef Z_ENABLE_PIN
 #undef LCD_PINS_RS
@@ -40,23 +48,13 @@
 #undef BTN_ENC
 #undef LCD_SDSS
 
-#define Z_ENABLE_PIN    14
-#define LCD_PINS_RS     30
-#define LCD_PINS_ENABLE 28
-#define LCD_PINS_D4     16
-#define LCD_PINS_D5     17
-#define LCD_PINS_D6     27
-#define LCD_PINS_D7     29
-#define BTN_EN1         10
-#define BTN_EN2         11
-#define BTN_ENC         26
-
-#ifndef ST7920_DELAY_1
-  #define ST7920_DELAY_1 DELAY_NS(0)
-#endif
-#ifndef ST7920_DELAY_2
-  #define ST7920_DELAY_2 DELAY_NS(125)
-#endif
-#ifndef ST7920_DELAY_3
-  #define ST7920_DELAY_3 DELAY_NS(0)
-#endif
+#define Z_ENABLE_PIN                          14
+#define LCD_PINS_RS                           30
+#define LCD_PINS_ENABLE                       28
+#define LCD_PINS_D4                           16
+#define LCD_PINS_D5                           17
+#define LCD_PINS_D6                           27
+#define LCD_PINS_D7                           29
+#define BTN_EN1                               10
+#define BTN_EN2                               11
+#define BTN_ENC                               26

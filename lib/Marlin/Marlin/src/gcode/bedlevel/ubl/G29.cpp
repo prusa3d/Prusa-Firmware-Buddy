@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -31,17 +31,26 @@
 #include "../../gcode.h"
 #include "../../../feature/bedlevel/bedlevel.h"
 
+#if ENABLED(FULL_REPORT_TO_HOST_FEATURE)
+  #include "../../../module/motion.h"
+#endif
+
 #if ENABLED(CRASH_RECOVERY)
     #include "../../../feature/prusa/crash_recovery.h"
 #endif
 
 void GcodeSuite::G29() {
-    #if ANY(CRASH_RECOVERY, POWER_PANIC)
-      // G29 requires a full restart: inhibit partial replay
-      crash_s.inhibit_gcode_replay();
-    #endif
 
-    ubl.G29();
+  TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_PROBE));
+  
+  #if ANY(CRASH_RECOVERY, POWER_PANIC)
+    // G29 requires a full restart: inhibit partial replay
+    crash_s.inhibit_gcode_replay();
+  #endif
+
+  bedlevel.G29();
+
+  TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_IDLE));
 }
 
 #endif // AUTO_BED_LEVELING_UBL
