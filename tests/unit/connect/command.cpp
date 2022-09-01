@@ -60,3 +60,15 @@ TEST_CASE("Send file info") {
 TEST_CASE("Send file info - missing args") {
     command_test<BrokenCommand>("{\"command\": \"SEND_FILE_INFO\", \"args\": [], \"kwargs\": {}}");
 }
+
+TEST_CASE("Pause print") {
+    command_test<PausePrint>("{\"command\": \"PAUSE_PRINT\", \"args\": [], \"kwargs\": {}}");
+}
+
+TEST_CASE("Resume print") {
+    command_test<ResumePrint>("{\"command\": \"RESUME_PRINT\", \"args\": [], \"kwargs\": {}}");
+}
+
+TEST_CASE("Stop print") {
+    command_test<StopPrint>("{\"command\": \"STOP_PRINT\", \"args\": [], \"kwargs\": {}}");
+}

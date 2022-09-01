@@ -8,6 +8,7 @@
 #include <odometer.hpp>
 #include <netdev.h>
 
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
@@ -130,6 +131,19 @@ namespace {
         case mpsFinishing_WaitIdle:
         case mpsFinishing_ParkHead:
             return Printer::DeviceState::Printing;
+
+        case mpsPowerPanic_acFault:
+        case mpsPowerPanic_Resume:
+        case mpsPowerPanic_AwaitingResume:
+        case mpsCrashRecovery_Begin:
+        case mpsCrashRecovery_Axis_NOK:
+        case mpsCrashRecovery_Retracting:
+        case mpsCrashRecovery_Lifting:
+        case mpsCrashRecovery_XY_Measure:
+        case mpsCrashRecovery_XY_HOME:
+        case mpsCrashRecovery_Repeated_Crash:
+            return Printer::DeviceState::Busy;
+
         case mpsPausing_Begin:
         case mpsPausing_WaitIdle:
         case mpsPausing_ParkHead:
@@ -147,19 +161,6 @@ namespace {
             } else {
                 return Printer::DeviceState::Finished;
             }
-
-            // TODO define DeviceState::PowerPanic and DeviceState::CrashRecovery
-        case mpsCrashRecovery_Begin:
-        case mpsCrashRecovery_Retracting:
-        case mpsCrashRecovery_Lifting:
-        case mpsCrashRecovery_XY_Measure:
-        case mpsCrashRecovery_XY_HOME:
-        case mpsCrashRecovery_Axis_NOK:
-        case mpsCrashRecovery_Repeated_Crash:
-        case mpsPowerPanic_AwaitingResume: // this one could be in DeviceState::Paused section
-        case mpsPowerPanic_acFault:
-        case mpsPowerPanic_Resume:
-            return Printer::DeviceState::Unknown;
         }
         return Printer::DeviceState::Unknown;
     }
@@ -300,6 +301,37 @@ Printer::NetCreds MarlinPrinter::net_creds() const {
     strextract(result.api_key, sizeof result.api_key, EEVAR_PL_API_KEY);
     strextract(result.ssid, sizeof result.ssid, EEVAR_WIFI_AP_SSID);
     return result;
+}
+
+bool MarlinPrinter::job_control(JobControl control) {
+    // Renew was presumably called before short.
+    DeviceState state = to_device_state(marlin_vars->print_state, false);
+
+    switch (control) {
+    case JobControl::Pause:
+        if (state == DeviceState::Printing) {
+            marlin_print_pause();
+            return true;
+        } else {
+            return false;
+        }
+    case JobControl::Resume:
+        if (state == DeviceState::Paused) {
+            marlin_print_resume();
+            return true;
+        } else {
+            return false;
+        }
+    case JobControl::Stop:
+        if (state == DeviceState::Paused || state == DeviceState::Printing) {
+            marlin_print_abort();
+            return true;
+        } else {
+            return false;
+        }
+    }
+    assert(0);
+    return false;
 }
 
 }

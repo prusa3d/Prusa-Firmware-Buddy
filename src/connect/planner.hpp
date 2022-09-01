@@ -2,6 +2,7 @@
 
 #include "buffer.hpp"
 #include "command.hpp"
+#include "printer.hpp"
 
 #include <cstdint>
 #include <optional>
@@ -28,6 +29,7 @@ enum class EventType {
     FileInfo,
     Rejected,
     Accepted,
+    Finished,
 };
 
 const char *to_str(EventType event);
@@ -61,6 +63,8 @@ enum class ActionResult {
 /// similar after something bad happens.
 class Planner {
 private:
+    Printer &printer;
+
     /// The next (or current) event we want to send out.
     std::optional<Event> planned_event;
     /// Last time we've successfully sent a telemetry to the server.
@@ -87,9 +91,13 @@ private:
     void command(const Command &, const SendInfo &);
     void command(const Command &, const SendJobInfo &);
     void command(const Command &, const SendFileInfo &);
+    void command(const Command &, const PausePrint &);
+    void command(const Command &, const ResumePrint &);
+    void command(const Command &, const StopPrint &);
 
 public:
-    Planner() {
+    Planner(Printer &printer)
+        : printer(printer) {
         reset();
     }
     /// Reset the state.
