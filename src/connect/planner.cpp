@@ -67,6 +67,8 @@ const char *to_str(EventType event) {
         return "JOB_INFO";
     case EventType::FileInfo:
         return "FILE_INFO";
+    case EventType::Finished:
+        return "FINISHED";
     default:
         assert(false);
         return "???";
@@ -163,6 +165,19 @@ void Planner::command(const Command &command, const Gcode &) {
     // TODO: Implement
     planned_event = Event { EventType::Rejected, command.id };
 }
+
+#define JC(CMD)                                                         \
+    void Planner::command(const Command &command, const CMD##Print &) { \
+        if (printer.job_control(Printer::JobControl::CMD)) {            \
+            planned_event = Event { EventType::Finished, command.id };  \
+        } else {                                                        \
+            planned_event = Event { EventType::Rejected, command.id };  \
+        }                                                               \
+    }
+
+JC(Pause)
+JC(Resume)
+JC(Stop)
 
 void Planner::command(const Command &command, const SendInfo &) {
     planned_event = Event {

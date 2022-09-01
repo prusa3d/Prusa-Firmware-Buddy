@@ -63,14 +63,17 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
     // Error from jsmn_parse will lead to -1 -> converted to 0, refused by json::search as Broken.
     const bool success = json::search(body.data(), tokens, std::max(parse_result, 0), [&](const Event &event) {
         if (event.depth == 1 && event.type == Type::String && event.key == "command") {
-            if (event.value == "SEND_INFO") {
-                data = SendInfo {};
-            } else if (event.value == "SEND_JOB_INFO") {
-                // We'll set the job ID later, we may or may not have parset it yet.
-                data = SendJobInfo {};
-            } else if (event.value == "SEND_FILE_INFO") {
-                data = SendFileInfo {};
-            }
+            // Will fill in all the insides later on, if needed
+#define T(NAME, TYPE)          \
+    if (event.value == NAME) { \
+        data = TYPE {};        \
+    } else
+            T("SEND_INFO", SendInfo)
+            T("SEND_JOB_INFO", SendJobInfo)
+            T("SEND_FILE_INFO", SendFileInfo)
+            T("PAUSE_PRINT", PausePrint)
+            T("STOP_PRINT", StopPrint)
+            T("RESUME_PRINT", ResumePrint)
             return;
         }
 

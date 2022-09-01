@@ -387,7 +387,8 @@ void connect::run() {
 }
 
 connect::connect(Printer &printer, SharedBuffer &buffer)
-    : printer(printer)
+    : planner(printer)
+    , printer(printer)
     , buffer(buffer) {}
 
 OnlineStatus last_status() {

@@ -30,6 +30,7 @@ public:
         Paused,
         Finished,
         Ready,
+        Busy,
         Error,
     };
 
@@ -94,6 +95,12 @@ public:
         char api_key[KEY_BUF];
     };
 
+    enum class JobControl {
+        Pause,
+        Resume,
+        Stop,
+    };
+
 protected:
     PrinterInfo info;
     virtual Config load_config() = 0;
@@ -111,6 +118,7 @@ public:
     virtual Params params() const = 0;
     virtual std::optional<NetInfo> net_info(Iface iface) const = 0;
     virtual NetCreds net_creds() const = 0;
+    virtual bool job_control(JobControl) = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load.
     std::tuple<Config, bool> config();
