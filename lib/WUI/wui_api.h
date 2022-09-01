@@ -123,15 +123,6 @@ uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
 ******************************************************************************/
 void get_MAC_address(mac_address_t *dest, uint32_t netdev_id);
 
-/*!*********************************************************************************************************************
-* \brief Parses time from device's time storage to seconds. MONTHS are from 0 and YEARS are from 1900
-*
-* \retval number of seconds since epoch start (1.0.1900), if time is initialized by sntp
-*
-* \retval 0 if RTC time have not been initialized
-***********************************************************************************************************************/
-time_t sntp_get_system_time(void);
-
 /*!**********************************************************************************************************
 * \brief Sets time and date in device's RTC on some other time storage
 *
@@ -173,7 +164,9 @@ void wui_store_api_key(char *, uint32_t);
 ///
 /// Returns false if can't print right now. Note that this doesn't check the
 /// existence of the file.
-bool wui_start_print(const char *filename);
+/// @param[in] autostart_if_able true  - printer will start print without asking (in case filament, printer type and other checks are satisfied)
+///                              false - printer will not start print without asking, but it will show one click print if able to
+bool wui_start_print(char *filename, bool autostart_if_able);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief A new gcode was uploaded, take appropriate actions
@@ -183,7 +176,7 @@ bool wui_start_print(const char *filename);
 ///
 /// @return True if everything went fine. False if start_print was enabled and
 ///   the print was not possible to start.
-bool wui_uploaded_gcode(const char *path, bool start_print);
+bool wui_uploaded_gcode(char *path, bool start_print);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Return the number of gcodes uploaded since boot.
@@ -198,6 +191,8 @@ uint32_t wui_gcodes_uploaded();
 /// @brief initialize marlin client for tcpip thread
 ///
 void wui_marlin_client_init(void);
+
+bool wui_is_file_being_printed(const char *filename);
 
 #ifdef __cplusplus
 }

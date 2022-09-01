@@ -33,8 +33,8 @@ description_line_t::description_line_t(window_frame_t *frame, bool has_preview_t
 
 GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame, GCodeInfo &gcode)
     : description_lines {
-        gcode.printing_time[0] ? description_line_t(frame, gcode.has_preview_thumbnail, 0, _("Print Time"), "%s", gcode.printing_time) : description_line_t(frame, gcode.has_preview_thumbnail, 0, _("Print Time"), "unknown"),
-        gcode.has_preview_thumbnail ? description_line_t(frame, gcode.has_preview_thumbnail, 1, _("Material"), "%s/%u g/%0.2f m", gcode.filament_type, gcode.filament_used_g, (double)((float)gcode.filament_used_mm / 1000.0F)) : description_line_t(frame, gcode.has_preview_thumbnail, 1, _("Material"), "%s", gcode.filament_type),
+        gcode.printing_time[0] ? description_line_t(frame, gcode.has_preview_thumbnail, 0, _("Print Time"), "%s", gcode.printing_time.begin()) : description_line_t(frame, gcode.has_preview_thumbnail, 0, _("Print Time"), "unknown"),
+        gcode.has_preview_thumbnail ? description_line_t(frame, gcode.has_preview_thumbnail, 1, _("Material"), "%s/%u g/%0.2f m", gcode.filament_type.begin(), gcode.filament_used_g, (double)((float)gcode.filament_used_mm / 1000.0F)) : description_line_t(frame, gcode.has_preview_thumbnail, 1, _("Material"), "%s", gcode.filament_type.begin()),
         { frame, gcode.has_preview_thumbnail, 2, _("Used Filament"), "%.2f m", (double)((float)gcode.filament_used_mm / 1000.0F) },
         { frame, gcode.has_preview_thumbnail, 3, string_view_utf8::MakeNULLSTR(), "%.0f g", (double)gcode.filament_used_g }
     } {

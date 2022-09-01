@@ -13,7 +13,7 @@ class FooterDoubleLine : public AddSuperWindow<IFooter> {
     FooterLine line_1;
 
     //line0 cannot be changed, it shows temperatures only
-    static constexpr FooterLine::IdArray line0_defaults = { { footer::items::ItemNozzle, footer::items::ItemBed, footer::items::count_ } };
+    static constexpr FooterLine::IdArray line1_defaults = { { footer::items::ItemNozzle, footer::items::ItemBed, footer::items::count_ } };
 
 public:
     FooterDoubleLine(window_t *parent);
@@ -21,9 +21,9 @@ public:
     FooterDoubleLine(window_t *parent, T... args)
         : AddSuperWindow<IFooter>(parent)
         , line_0(this, 0)
-        , line_1(this, 0) {
-        line_0.Create(line0_defaults);
-        line_1.Create({ { args... } }, sizeof...(T)); // footer line takes array of footer::items
+        , line_1(this, 1) {
+        line_1.Create(line1_defaults);
+        line_0.Create({ { args... } }, sizeof...(T)); // footer line takes array of footer::items
     }
 
     bool SetSlot(size_t slot_id, footer::items item);

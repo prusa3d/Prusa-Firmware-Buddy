@@ -38,7 +38,7 @@ protected:
     Response result; //return value
 public:
     MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline = is_multiline::yes);
+        string_view_utf8 txt, is_multiline multiline = is_multiline::yes, is_closed_on_click_t close = is_closed_on_click_t::yes);
     Response GetResult();
 
 protected:
@@ -52,7 +52,8 @@ class MsgBoxIconned : public AddSuperWindow<MsgBoxBase> {
 
 public:
     MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, window_icon_t::DataSourceId icon_id_res);
+        string_view_utf8 txt, is_multiline multiline, window_icon_t::DataSourceId icon_id_res,
+        is_closed_on_click_t close = is_closed_on_click_t::yes);
 
 protected:
     window_icon_t icon;
@@ -67,7 +68,8 @@ protected:
 class MsgBoxTitled : public AddSuperWindow<MsgBoxIconned> {
 public:
     MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, ResourceId title_icon_id_res);
+        string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, ResourceId title_icon_id_res,
+        is_closed_on_click_t close = is_closed_on_click_t::yes);
 
 protected:
     window_text_t title;

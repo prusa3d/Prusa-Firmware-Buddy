@@ -47,6 +47,7 @@ enum Status {
     Forbidden = 403,
     NotFound = 404,
     MethodNotAllowed = 405,
+    RequestTimeout = 408,
     Conflict = 409,
     LengthRequired = 411,
     PayloadTooLarge = 413,
@@ -54,10 +55,12 @@ enum Status {
     UnsupportedMediaType = 415,
     IMATeaPot = 418,
     UnprocessableEntity = 422,
+    TooManyRequests = 429,
     RequestHeaderFieldsTooLarge = 431,
     InternalServerError = 500,
     NotImplemented = 501,
     ServiceTemporarilyUnavailable = 503,
+    GatewayTimeout = 504,
     InsufficientStorage = 507,
 };
 

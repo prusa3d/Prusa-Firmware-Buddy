@@ -16,8 +16,11 @@
 #include "eeprom.h"
 #include "stm32f4xx_hal.h"
 #include "print_utils.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
+#include "fsm_types.hpp"
 
+#include <basename.h>
+#include <lfn.h>
 #include <ScreenHandler.hpp>
 #include <screen_home.hpp>
 #include <screen_print_preview.hpp>
@@ -33,16 +36,48 @@
 
 extern RTC_HandleTypeDef hrtc;
 
-static bool sntp_time_init = false;
+bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 static std::atomic<uint32_t> uploaded_gcodes;
 
+// example of simple callback automatically sending print response (click on print button) in preview fsm
+// it would be better to use queue to fet rid of no longer current commands
+// see "void DialogHandler::Command(uint32_t u32, uint16_t u16) "
+#if 0
+static void fsm_cb(uint32_t u32, uint16_t u16) {
+    fsm::variant_t variant(u32, u16);
+    if (variant.GetType() == ClientFSM::PrintPreview) {
+        PhasesPrintPreview phase;
+        switch (variant.GetCommand()) {
+        case ClientFSM_Command::change:
+            phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(variant.change.data.GetPhase());
+            break;
+        case ClientFSM_Command::create:
+            phase = PhasesPrintPreview::_first;
+            break;
+        default:
+            return;
+        }
+
+        if (phase == PhasesPrintPreview::main_dialog)
+            marlin_FSM_response(phase, Response::Print);
+    }
+}
+
+#else // !0
+
+static void fsm_cb(uint32_t u32, uint16_t u16) {
+}
+
+#endif //0
+
 void wui_marlin_client_init(void) {
     marlin_vars_t *vars = marlin_client_init(); // init the client
     // force update variables when starts
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM, NULL);
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, NULL);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
+    marlin_client_set_fsm_cb(fsm_cb);
     if (vars) {
         /*
          * Note: We currently have only a single marlin client for
@@ -269,30 +304,6 @@ void get_MAC_address(mac_address_t *dest, uint32_t netdev_id) {
     }
 }
 
-time_t sntp_get_system_time(void) {
-
-    if (sntp_time_init) {
-        RTC_TimeTypeDef currTime;
-        RTC_DateTypeDef currDate;
-        HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
-        HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
-        time_t secs;
-        struct tm system_time;
-        system_time.tm_isdst = -1; // Is DST on? 1 = yes, 0 = no, -1 = unknown
-        system_time.tm_hour = currTime.Hours;
-        system_time.tm_min = currTime.Minutes;
-        system_time.tm_sec = currTime.Seconds;
-        system_time.tm_mday = currDate.Date;
-        system_time.tm_mon = currDate.Month;
-        system_time.tm_year = currDate.Year;
-        system_time.tm_wday = currDate.WeekDay;
-        secs = mktime(&system_time);
-        return secs;
-    } else {
-        return 0;
-    }
-}
-
 void sntp_set_system_time(uint32_t sec) {
 
     RTC_TimeTypeDef currTime;
@@ -331,38 +342,35 @@ uint32_t wui_gcodes_uploaded() {
     return uploaded_gcodes;
 }
 
-bool wui_start_print(const char *filename) {
-    // Note: By checking now and starting it later, we are introducing a short
-    // race condition. Doing it properly would be kind of hard and the risk is
-    // we maybe start the print and don't get the print screen or something
-    // like that ‒ annoying, but not entirely dangerous.
-    //
-    // We assume marlin does another check when asked to print and won't start
-    // a print inside a print or such.
-    //
-    // Also, this introduces another code dependency in the „wrong direction“.
-    // GUI should be a neighbor of WUI and should not depend on each other.
-    // But, well, …
+bool wui_start_print(char *filename, bool autostart_if_able) {
+    const bool printer_can_print = !marlin_is_printing();
+    const bool can_start_print = printer_can_print && autostart_if_able;
 
-    // FIXME: How is it with the lifetime of that screen & locking?
-    const screen_t *screen = Screens::Access()->Get();
-    const bool allowed_screen = (dynamic_cast<const screen_home_data_t *>(screen) != nullptr) || (dynamic_cast<const screen_print_preview_data_t *>(screen) != nullptr);
-    const bool can_start_print = !marlin_vars()->sd_printing && allowed_screen;
-
-    if (can_start_print) {
-        strlcpy(marlin_vars()->media_LFN, filename, FILE_PATH_BUFFER_LEN);
-        print_begin(filename);
+    strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
+    // Turn it into the short name, to improve buffer length, avoid strange
+    // chars like spaces in it, etc.
+    get_SFN_path(filename);
+    if (printer_can_print) {
+        print_begin(filename, can_start_print);
     }
 
-    return can_start_print;
+    return printer_can_print;
 }
 
-bool wui_uploaded_gcode(const char *filename, bool start_print) {
+bool wui_uploaded_gcode(char *filename, bool start_print) {
     uploaded_gcodes++;
 
-    if (start_print) {
-        return wui_start_print(filename);
-    } else {
-        return true;
+    return wui_start_print(filename, start_print);
+}
+
+bool wui_is_file_being_printed(const char *filename) {
+    marlin_client_loop();
+    if (!marlin_is_printing()) {
+        return false;
     }
+
+    char sfn[FILE_PATH_BUFFER_LEN];
+    strlcpy(sfn, filename, sizeof(sfn));
+    get_SFN_path(sfn);
+    return strcasecmp(sfn, marlin_vars()->media_SFN_path) == 0;
 }

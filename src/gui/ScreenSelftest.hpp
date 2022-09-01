@@ -16,6 +16,8 @@
 #include "selftest_frame_axis.hpp"
 #include "selftest_frame_fans.hpp"
 #include "selftest_frame_temp.hpp"
+#include "selftest_frame_firstlayer.hpp"
+#include "selftest_frame_firstlayer_questions.hpp"
 #include "selftest_frame_result.hpp"
 #include "selftest_frame_wizard_prologue.hpp"
 #include "selftest_frame_wizard_epilogue.hpp"
@@ -24,7 +26,7 @@
 #include "printer_selftest.hpp" // SelftestMask_t
 
 class ScreenSelftest : public AddSuperWindow<screen_t> {
-    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, ScreenSelftestTemp>::type;
+    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, ScreenSelftestTemp, SelftestFrameFirstLayerQuestions>::type;
     mem_space all_tests;
 
     //safer than make_static_unique_ptr, checks storage size
@@ -41,6 +43,8 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
     static static_unique_ptr<SelftestFrame> creator_axis(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_fans(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_temp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_firstlayer(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_firstlayer_questions(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_result(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_esp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_esp_progress(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
@@ -59,6 +63,7 @@ private:
     static constexpr const char *en_wizard = N_("WIZARD");
     static constexpr const char *en_wizard_ok = N_("WIZARD - OK");
     static constexpr const char *en_selftest = N_("SELFTEST");
+    static constexpr const char *en_firstlay = N_("FIRST LAYER CALIBRATION");
     static constexpr const char *en_esp = N_("WI-FI MODULE");
     static constexpr const char *error = "ERROR"; // do not translate
 

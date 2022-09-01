@@ -8,6 +8,7 @@
 #include "ffconf.h"
 #include "timing.h"
 #include "log.h"
+#include "marlin_vars.h"
 
 LOG_COMPONENT_DEF(MarlinClient, LOG_SEVERITY_INFO);
 
@@ -558,9 +559,9 @@ void marlin_test_abort(void) {
     _send_request_id_to_server_and_wait(MARLIN_MSG_TEST_ABORT);
 }
 
-void marlin_print_start(const char *filename) {
+void marlin_print_start(const char *filename, bool skip_preview) {
     char request[MARLIN_MAX_REQUEST];
-    const int len = snprintf(request, sizeof(request), "!%c%s", MARLIN_MSG_PRINT_START, filename);
+    const int len = snprintf(request, sizeof(request), "!%c%c%s", MARLIN_MSG_PRINT_START, skip_preview ? '1' : '0', filename);
     if (len < 0)
         bsod("Error formatting request.");
     if ((size_t)len >= sizeof(request))
@@ -568,8 +569,16 @@ void marlin_print_start(const char *filename) {
     _send_request_to_server_and_wait(request);
 }
 
+void marlin_gui_ready_to_print() {
+    _send_request_id_to_server_and_wait(MARLIN_MSG_GUI_PRINT_READY);
+}
+
 void marlin_print_abort(void) {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_ABORT);
+}
+
+void marlin_print_exit(void) {
+    _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_EXIT);
 }
 
 void marlin_print_pause(void) {
@@ -606,6 +615,16 @@ void marlin_encoded_response(uint32_t enc_phase_and_response) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(request, MARLIN_MAX_REQUEST, "!%c%d", MARLIN_MSG_FSM, (int)enc_phase_and_response);
     _send_request_to_server_and_wait(request);
+}
+bool marlin_is_printing() {
+    switch (marlin_vars()->print_state) {
+    case mpsAborted:
+    case mpsIdle:
+    case mpsFinished:
+        return false;
+    default:
+        return true;
+    }
 }
 
 //-----------------------------------------------------------------------------

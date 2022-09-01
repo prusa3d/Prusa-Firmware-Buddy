@@ -6,11 +6,11 @@
 #include "selftest_fan.h"
 #include "selftest_axis.h"
 #include "selftest_heater.h"
+#include "selftest_firstlayer.hpp"
 #include "stdarg.h"
 #include "app.h"
 #include "otp.h"
 #include "hwio.h"
-#include "log.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"
 #include "../../Marlin/src/module/stepper.h"
@@ -23,24 +23,33 @@
 #include "selftest_fans_interface.hpp"
 #include "selftest_axis_interface.hpp"
 #include "selftest_netstatus_interface.hpp"
+#include "selftest_firstlayer_interface.hpp"
 #include "selftest_axis_config.hpp"
 #include "selftest_heater_config.hpp"
 #include "fanctl.h"
 #include "timing.h"
-#include "i_selftest.hpp"
+#include "selftest_result_type.hpp"
 
 using namespace selftest;
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
+static constexpr feedRate_t maxFeedrates[] = DEFAULT_MAX_FEEDRATE;
 
 static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 /// These speeds create major chord
 /// https://en.wikipedia.org/wiki/Just_intonation
+
 static const float XYfr_table[] = { 50, 62.5f, 75, 100 };
-
 static const float Zfr_table_fw[] = { 10 };
-
 static const float Zfr_table_bw[] = { 10 };
+
+static constexpr size_t xy_fr_table_size = sizeof(XYfr_table) / sizeof(XYfr_table[0]);
+
+#ifdef Z_AXIS_DO_NOT_TEST_MOVE_DOWN
+static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]);
+#else
+static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
+#endif
 
 static const uint16_t printFanMin_rpm_table[] = { 10, 10, 10, 10, 10 };
 
@@ -65,19 +74,21 @@ static const FanConfig_t Config_PrintFan = { .partname = "Print fan", .fanctl = 
 
 static const FanConfig_t Config_HeatBreakFan = { .partname = "Heatbreak fan", .fanctl = fanCtlHeatBreak, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = heatBreakFanMin_rpm_table, .rpm_max_table = heatBreakFanMax_rpm_table, .steps = 5 };
 
-static const AxisConfig_t Config_XAxis = { .partname = "X-Axis", .length = 186, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 178, .length_max = 188, .axis = X_AXIS, .steps = 4, .movement_dir = -1 };
+static const AxisConfig_t Config_XAxis = { .partname = "X-Axis", .length = 186, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 178, .length_max = 188, .axis = X_AXIS, .steps = xy_fr_table_size * 2, .movement_dir = -1 };
 
-static const AxisConfig_t Config_YAxis = { .partname = "Y-Axis", .length = 185, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 179, .length_max = 189, .axis = Y_AXIS, .steps = 4, .movement_dir = 1 };
+static const AxisConfig_t Config_YAxis = { .partname = "Y-Axis", .length = 185, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 179, .length_max = 189, .axis = Y_AXIS, .steps = xy_fr_table_size * 2, .movement_dir = 1 };
 
-static const AxisConfig_t Config_ZAxis = { .partname = "Z-Axis", .length = get_z_max_pos_mm(), .fr_table_fw = Zfr_table_fw, .fr_table_bw = Zfr_table_bw, .length_min = get_z_max_pos_mm() - 4, .length_max = get_z_max_pos_mm() + 6, .axis = Z_AXIS, .steps = 1, .movement_dir = 1 };
+static const AxisConfig_t Config_ZAxis = { .partname = "Z-Axis", .length = get_z_max_pos_mm(), .fr_table_fw = Zfr_table_fw, .fr_table_bw = Zfr_table_bw, .length_min = get_z_max_pos_mm() - 4, .length_max = get_z_max_pos_mm() + 6, .axis = Z_AXIS, .steps = z_fr_tables_size, .movement_dir = 1 };
 
-static const HeaterConfig_t Config_HeaterNozzle = { .partname = "Nozzle", .getTemp = []() { return thermalManager.temp_hotend[0].celsius; }, .setTargetTemp = [](int target_temp) { thermalManager.setTargetHotend(target_temp, 0); }, .refKp = Temperature::temp_hotend[0].pid.Kp, .refKi = Temperature::temp_hotend[0].pid.Ki, .refKd = Temperature::temp_hotend[0].pid.Kd, .heatbreak_fan = fanCtlHeatBreak, .print_fan = fanCtlPrint, .heat_time_ms = 42000, .start_temp = 40, .undercool_temp = 37, .target_temp = 290, .heat_min_temp = 180, .heat_max_temp = 230 };
+static const HeaterConfig_t Config_HeaterNozzle = { .partname = "Nozzle", .getTemp = []() { return thermalManager.temp_hotend[0].celsius; }, .setTargetTemp = [](int target_temp) { thermalManager.setTargetHotend(target_temp, 0); }, .refKp = Temperature::temp_hotend[0].pid.Kp, .refKi = Temperature::temp_hotend[0].pid.Ki, .refKd = Temperature::temp_hotend[0].pid.Kd, .heatbreak_fan = fanCtlHeatBreak, .print_fan = fanCtlPrint, .heat_time_ms = 42000, .start_temp = 40, .undercool_temp = 37, .target_temp = 290, .heat_min_temp = 130, .heat_max_temp = 190 };
 
 static const HeaterConfig_t Config_HeaterBed = { .partname = "Bed", .getTemp = []() { return thermalManager.temp_bed.celsius; }, .setTargetTemp = [](int target_temp) { thermalManager.setTargetBed(target_temp); }, .refKp = Temperature::temp_bed.pid.Kp, .refKi = Temperature::temp_bed.pid.Ki, .refKd = Temperature::temp_bed.pid.Kd, .heatbreak_fan = fanCtlHeatBreak, .print_fan = fanCtlPrint, .heat_time_ms = 60000, .start_temp = 40, .undercool_temp = 39, .target_temp = 110, .heat_min_temp = 50, .heat_max_temp = 65 };
 
 static const FanConfig_t Config_PrintFan_fine = { .partname = "Print fan fine", .fanctl = fanCtlPrint, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
 
 static const FanConfig_t Config_HeatBreakFan_fine = { .partname = "Heatbreak fan fine", .fanctl = fanCtlHeatBreak, .pwm_start = 4, .pwm_step = 2, .rpm_min_table = nullptr, .rpm_max_table = nullptr, .steps = 24 };
+
+static const FirstLayerConfig_t Config_FirstLayer = { .partname = "First Layer" };
 
 CSelftest::CSelftest()
     : m_State(stsIdle)
@@ -88,7 +99,8 @@ CSelftest::CSelftest()
     , pYAxis(nullptr)
     , pZAxis(nullptr)
     , pNozzle(nullptr)
-    , pBed(nullptr) {
+    , pBed(nullptr)
+    , pFirstLayer(nullptr) {
 }
 
 bool CSelftest::IsInProgress() const {
@@ -227,6 +239,10 @@ void CSelftest::Loop() {
     case stsShow_result:
         phaseShowResult();
         break;
+    case stsFirstLayer:
+        if (selftest::phaseFirstLayer(pFirstLayer, Config_FirstLayer))
+            return;
+        break;
     case stsResult_wait_user:
         if (phaseWaitUser(PhasesSelftest::Result))
             return;
@@ -299,6 +315,10 @@ bool CSelftest::Abort() {
     abort_part((selftest::IPartHandler **)&pXAxis);
     abort_part((selftest::IPartHandler **)&pYAxis);
     abort_part((selftest::IPartHandler **)&pZAxis);
+    abort_part((selftest::IPartHandler **)&pNozzle);
+    abort_part((selftest::IPartHandler **)&pBed);
+    abort_part((selftest::IPartHandler **)&pFirstLayer);
+
     m_State = stsAborted;
 
     phaseFinish();

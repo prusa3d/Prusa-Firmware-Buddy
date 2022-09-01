@@ -31,6 +31,8 @@ extern "C" {
 #include "cmsis_os.h"
 }
 
+LOG_COMPONENT_REF(Network);
+
 #define BOOT_ADDRESS            0x00000ul
 #define APPLICATION_ADDRESS     0x10000ul
 #define PARTITION_TABLE_ADDRESS 0x08000ul
@@ -360,7 +362,11 @@ void EspCredentials::Loop() {
         switch (progress_state) {
         case esp_credential_action::Aborted:
             progress_state = esp_credential_action::Done;
-            netdev_set_active_id(initial_netdev_id); // restore wifi
+            // we are not changing network interface in ini file creation, thus we dont need to restore it back
+            // this solves bad rendering of button after skipping ini file creation
+            if (type != type_t::ini_creation) {
+                netdev_set_active_id(initial_netdev_id); // restore wifi
+            }
             file.reset(nullptr);
             break;
         case esp_credential_action::Done:

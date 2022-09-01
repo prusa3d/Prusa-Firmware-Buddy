@@ -11,6 +11,8 @@
 #include "gui_invalidate.hpp"
 #include "syslog.h"
 
+LOG_COMPONENT_REF(GUI);
+
 void window_icon_t::SetIdRes(ResourceId id) {
     if (dataSource.id_res != id) {
         dataSource.set(id);
@@ -328,6 +330,8 @@ WindowPreviewThumbnail::~WindowPreviewThumbnail() {
 }
 
 void WindowPreviewThumbnail::unconditionalDraw() {
+    if (!gcode_info.file)
+        return;
     FILE f = { 0 };
     fseek(gcode_info.file, 0, SEEK_SET);
     GCodeThumbDecoder gd(gcode_info.file, Width(), Height());

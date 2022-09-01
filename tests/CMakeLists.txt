@@ -1,2 +1,3 @@
 add_subdirectory(unit)
-add_subdirectory(module/Connect)
+# Some kind of manual test, outdated and doesn't compile. Leaving for now for future inspiration.
+# add_subdirectory(module/Connect)

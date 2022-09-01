@@ -1580,9 +1580,6 @@ void prepare_line_to_destination() {
           default: break;
         }
       #endif
-
-      TERN_(IMPROVE_HOMING_RELIABILITY, sg_guard_period = millis() + default_sg_guard_duration);
-
       return stealth_states;
     }
 

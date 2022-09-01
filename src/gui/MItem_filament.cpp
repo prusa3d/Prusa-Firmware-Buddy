@@ -35,8 +35,8 @@ MI_CHANGE::MI_CHANGE()
     : MI_event_dispatcher(_(label)) {}
 
 void MI_CHANGE::Do() {
-    marlin_gcode("M1600"); // non print filament change
-    Sound_Stop();          // TODO what is Sound_Stop(); doing here?
+    marlin_gcode("M1600 R"); // non print filament change
+    Sound_Stop();            // TODO what is Sound_Stop(); doing here?
 }
 
 /*****************************************************************************/

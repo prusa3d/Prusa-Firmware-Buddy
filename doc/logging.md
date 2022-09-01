@@ -29,6 +29,14 @@ When recorded, those events can be presented to the user in several ways. They c
 - Such a definition must be in a `.c` or `.cpp` file (not in a header) and appear only once in the project.
 
 
+### Referencing an existing component
+    ```Swift
+    LOG_COMPONENT_REF(MyComponent);
+    ```
+- References an existing component with the name `MyComponent`. This component must have been previously defined in another file with `LOG_COMPONENT_DEF(MyComponent, SEVERITY);`
+- This is required for logging in `.cpp` files because of a difference in logging in `c` and `cpp` files.
+
+
 ### Registration of a custom log destination
     ```C
     static void log_event_custom(log_destination_t *destination, log_event_t *event) {

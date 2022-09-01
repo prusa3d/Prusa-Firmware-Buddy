@@ -3,11 +3,13 @@
 #include "marlin_client.h"
 #include "lwip/init.h"
 #include "netdev.h"
-#include "../nhttp/segmented_json_macros.h"
+
+#include <segmented_json_macros.h>
 
 #include <cstring>
 #include <cstdio>
 
+using namespace json;
 namespace nhttp::link_content {
 
 JsonResult get_printer(size_t resume_point, JsonOutput &output) {
@@ -76,7 +78,12 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
         break;
     case mpsAborted:
     case mpsFinished:
+    case mpsExit:
     case mpsIdle:
+    case mpsWaitGui:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
+    case mpsPrintInit:
         break;
     }
 
@@ -205,7 +212,12 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
         break;
     case mpsAborted:
     case mpsFinished:
+    case mpsExit:
     case mpsIdle:
+    case mpsWaitGui:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
+    case mpsPrintInit:
         state = "Operational";
         break;
     }

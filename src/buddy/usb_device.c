@@ -10,8 +10,15 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 #define stringify(a)  _stringify(a)
 #define _stringify(a) #a
 
-#define USBD_VID                    0x2C99 /// Prusa Research Vendor ID
-#define USBD_PID                    0x000C /// Prusa MINI Product ID
+#define USBD_VID 0x2C99 /// Prusa Research Vendor ID
+
+/// Product ID
+#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+    #define USBD_PID 0x000C
+#else
+    #error "Unknown PRINTER_TYPE!"
+#endif
+
 #define USBD_LANGID_STRING          1033
 #define USBD_MANUFACTURER_STRING    "Prusa Research (prusa3d.com)"
 #define USBD_PRODUCT_STRING_FS      ("Original Prusa " stringify(PRINTER))

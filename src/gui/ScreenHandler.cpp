@@ -10,6 +10,7 @@ Screens::Screens(screen_node screen_creator)
     , close(false)
     , close_all(false)
     , close_serial(false)
+    , display_reinitialized(false)
     , timeout_tick(0) {
 }
 
@@ -32,16 +33,16 @@ void Screens::Init(const screen_node *begin, const screen_node *end) {
     if (begin == end)
         return;
 
-    //find last enabled creator
+    // find last enabled creator
     iter node = find_enabled_node(begin, end);
     if (node == end)
         return;
 
-    //have creator
+    // have creator
     Init(*node);
 
-    //Must push rest of enabled creators on stack
-    Access()->PushBeforeCurrent(node + 1, end); //node + 1 excludes node
+    // Must push rest of enabled creators on stack
+    Access()->PushBeforeCurrent(node + 1, end); // node + 1 excludes node
 }
 
 void Screens::RInit(const screen_node *begin, const screen_node *end) {
@@ -50,19 +51,19 @@ void Screens::RInit(const screen_node *begin, const screen_node *end) {
     if (begin == end)
         return;
 
-    //initialize reverse iterators
+    // initialize reverse iterators
     r_iter r_begin(begin);
     r_iter r_end(end);
 
-    //find last enabled creator
+    // find last enabled creator
     r_iter r_node = rfind_enabled_node(r_begin, r_end);
     if (r_node == r_begin)
         return;
 
-    //have creator
+    // have creator
     Init(*r_node);
 
-    //Push rest of enabled creators on stack
+    // Push rest of enabled creators on stack
     Access()->RPushBeforeCurrent(begin, r_node.base());
 }
 
@@ -83,9 +84,9 @@ void Screens::PushBeforeCurrent(const screen_node *begin, const screen_node *end
     if (begin == end)
         return;
 
-    //initialize reverse iterators
+    // initialize reverse iterators
     r_iter r_begin(begin);
-    r_iter r_node(end + 1); //point behind end, first call of "r_node + 1" will revert this
+    r_iter r_node(end + 1); // point behind end, first call of "r_node + 1" will revert this
 
     do {
         r_node = rfind_enabled_node(r_begin, r_node + 1);
@@ -104,7 +105,7 @@ void Screens::RPushBeforeCurrent(const screen_node *begin, const screen_node *en
     if (begin == end)
         return;
 
-    iter node = begin - 1; //point before begin, first call of "node + 1" will revert this
+    iter node = begin - 1; // point before begin, first call of "node + 1" will revert this
 
     do {
         node = find_enabled_node(node + 1, end);
@@ -124,7 +125,7 @@ Screens *Screens::Access() {
 void Screens::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
     if (current == nullptr)
         return;
-    //todo shouldn't I use "sender ? sender : current.get()"?
+    // todo shouldn't I use "sender ? sender : current.get()"?
     current->ScreenEvent(current.get(), event, param);
 }
 
@@ -173,10 +174,10 @@ void Screens::CloseSerial() {
     }
 }
 
-//used to close blocking dialogs
+// used to close blocking dialogs
 bool Screens::ConsumeClose() {
     bool ret = close | close_all; // close_all must also close dialogs
-    close = false;                //close_all cannot be consumed
+    close = false;                // close_all cannot be consumed
     return ret;
 }
 
@@ -195,6 +196,12 @@ void Screens::ResetTimeout() {
 }
 
 void Screens::Loop() {
+    if (display_reinitialized) {
+        screen_t *pScr = Get();
+        if (pScr)
+            pScr->Invalidate();
+        display_reinitialized = false;
+    }
     /// menu timeout logic:
     /// when timeout is expired on current screen,
     /// we iterate through whole stack and close every screen that should be closed
@@ -229,11 +236,11 @@ void Screens::InnerLoop() {
         close_all = false;
     }
 
-    //open new screen
+    // open new screen
     if (creator_node.creator || close) {
         if (current) {
             screen_state = current->GetCurrentState();
-            current.reset(); //without a reset screens do not behave correctly, because they occupy the same memory space as the new screen to be created
+            current.reset(); // without a reset screens do not behave correctly, because they occupy the same memory space as the new screen to be created
             if (close) {
                 if (stack_iterator != stack.begin()) {
                     --stack_iterator;               // point to previous screen - will become "behind last creator"
@@ -270,4 +277,8 @@ void Screens::InnerLoop() {
         current->InitState(creator_node.init_data);
         creator_node = nullptr;
     }
+}
+
+void Screens::SetDisplayReinitialized() {
+    display_reinitialized = true;
 }

@@ -58,7 +58,6 @@ protected:
     ResourceId id_icon;
     font_t *label_font;
 
-    static Rect16 getCustomRect(Rect16 base_rect, uint16_t custom_rect_width); // general method Returns custom width Rectangle, aligned intersection on the right of the base_rect
     Rect16 getIconRect(Rect16 rect) const;
     Rect16 getLabelRect(Rect16 rect) const;
     Rect16 getExtensionRect(Rect16 rect) const;
@@ -105,15 +104,12 @@ public:
             Invalidate();
         }
     }
-    bool Disable() {
+    void Disable() {
         //cannot disable focused item
-        if (focused == is_focused_t::yes)
-            return false;
-        if (enabled != is_enabled_t::no) {
+        if (focused != is_focused_t::yes && enabled != is_enabled_t::no) {
             enabled = is_enabled_t::no;
             Invalidate();
         }
-        return true;
     }
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     bool IsSelected() const { return selected == is_selected_t::yes; }

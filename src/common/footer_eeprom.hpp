@@ -13,7 +13,8 @@
 namespace footer::eeprom {
 
 static constexpr size_t count = FOOTER_ITEMS_PER_LINE__;
-static const size_t value_bit_size = floor(log2(size_t(items::count_))) + 1; // minimum bits needed to store variable
+static constexpr size_t count_of_trailing_ones = 3;
+static const size_t value_bit_size = 5; // 32 different items should be enough
 static_assert(count * value_bit_size <= 32, "Encoded eeprom record is too big");
 
 /**
@@ -107,29 +108,37 @@ uint8_t GetCenterNAndFewer();
 constexpr uint32_t Encode(record rec) {
     uint32_t ret = uint32_t(rec[0]);
     for (size_t i = 1; i < count; ++i) {
-        ret |= uint32_t(rec[i]) << (value_bit_size * i);
+        ret |= uint32_t(rec[i]) << ((value_bit_size * i) + count_of_trailing_ones);
     }
+    //adding trailing ones to force default footer settings in FW version < 4.4.0 and using fixed size of footer item
+    uint32_t trailing_ones = pow(2, count_of_trailing_ones) - 1;
+    ret |= trailing_ones;
     return ret;
 }
 
 /**
+ * @brief decodes footer setting from uint32_t with minimal size one item
+ * Does not check if we have trailing zeros
+ *
+ * @param encoded
+ * @param min_bit_size number of bits needed to encode one item
+ * @return  record
+ */
+record DecodeWithSize(uint32_t encoded, size_t min_bit_size);
+/**
  * @brief decodes footer setting from uint32_t
  *
  * @param encoded
- * @return constexpr record
+ * @return  record
  */
-constexpr record Decode(uint32_t encoded) {
-    constexpr uint32_t mask = (uint32_t(1) << (value_bit_size)) - 1;
-    record ret = { {} };
+record Decode(uint32_t encoded);
 
-    for (size_t i = 0; i < count; ++i) {
-        uint32_t decoded = encoded & mask;
-        if (decoded > size_t(items::count_))
-            return footer::DefaultItems; // data corrupted, return default setting
-        ret[i] = items(decoded);
-        encoded >>= value_bit_size;
-    }
-    return ret;
-}
+/**
+ * Converts footer setting between old and current eeprom
+ * @param encoded content of old eeprom
+ * @param number_of_items_in_old_footer_eeprom number of possible items in old eeprom
+ * @return encoded items in current encoding
+ */
+uint32_t ConvertFromOldEeprom(uint32_t encoded, size_t number_of_items_in_old_footer_eeprom);
 
 }

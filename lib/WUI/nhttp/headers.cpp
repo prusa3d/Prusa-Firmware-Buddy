@@ -7,7 +7,7 @@
 
 #include <sys/stat.h>
 #include <inttypes.h> // PRIu* macros (not available in <cinttypes>)
-#include <sha256.h>
+#include <mbedtls/sha256.h>
 
 using http::ConnectionHandling;
 using http::ContentType;
@@ -33,6 +33,7 @@ namespace {
         { Status::Unauthorized, "Unauthorized", authenticate_hdrs },
         { Status::NotFound, "Not Found" },
         { Status::MethodNotAllowed, "Method Not Allowed" },
+        { Status::RequestTimeout, "Request Timeout" },
         { Status::Conflict, "Conflict" },
         { Status::LengthRequired, "Length Required" },
         { Status::UnsupportedMediaType, "Unsupported Media Type" },
@@ -40,10 +41,12 @@ namespace {
         { Status::PayloadTooLarge, "Payload Too Large" },
         { Status::UriTooLong, "URI Too Long" },
         { Status::UnprocessableEntity, "Unprocessable Entity" },
+        { Status::TooManyRequests, "Too Many Requests" },
         { Status::RequestHeaderFieldsTooLarge, "Request Header Fields Too Large" },
         { Status::InternalServerError, "Infernal Server Error" },
         { Status::NotImplemented, "Not Implemented" },
         { Status::ServiceTemporarilyUnavailable, "Service Temporarily Unavailable" },
+        { Status::GatewayTimeout, "Gateway Timeout" },
         { Status::InsufficientStorage, "Insufficient Storage" },
     };
 

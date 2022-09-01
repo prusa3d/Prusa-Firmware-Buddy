@@ -5,7 +5,6 @@
 #include "ScreenHandler.hpp"
 #include "screen_menus.hpp"
 #include <ctime>
-#include "wui_api.h"
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"
 #include "odometer.hpp"
@@ -101,7 +100,7 @@ void screen_printing_data_t::stopAction() {
     }
     switch (GetState()) {
     case printing_state_t::PRINTED:
-        Screens::Access()->Close();
+        marlin_print_exit();
         return;
     case printing_state_t::PAUSING:
     case printing_state_t::RESUMING:
@@ -217,7 +216,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
             screen_printing_reprint();
         } else {
-            Screens::Access()->Close();
+            marlin_print_exit();
             return;
         }
     }
@@ -232,7 +231,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 
     /// -- close screen when print is done / stopped and USB media is removed
     if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
-        Screens::Access()->Close();
+        marlin_print_exit();
         return;
     }
 
@@ -254,7 +253,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 }
 
 void screen_printing_data_t::change_etime() {
-    time_t sec = sntp_get_system_time();
+    time_t sec = time(nullptr);
     if (sec != 0) {
         // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
         // theoretically it can be removed completely in case the string is constant for the whole run of the screen
@@ -383,7 +382,7 @@ void screen_printing_data_t::update_print_duration(time_t rawtime) {
 }
 
 void screen_printing_data_t::screen_printing_reprint() {
-    print_begin(marlin_vars()->media_SFN_path);
+    print_begin(marlin_vars()->media_SFN_path, true);
     w_etime_label.SetText(_("Remaining"));
     btn_stop.txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[static_cast<size_t>(item_id_t::stop)]));
     btn_stop.ico.SetIdRes(printing_icons[static_cast<size_t>(item_id_t::stop)]);
@@ -528,6 +527,10 @@ void screen_printing_data_t::change_print_state() {
 
     switch (marlin_vars()->print_state) {
     case mpsIdle:
+    case mpsWaitGui:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
+    case mpsPrintInit:
         st = printing_state_t::INITIAL;
         break;
     case mpsPrinting:
@@ -577,6 +580,7 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::PRINTED;
         break;
     case mpsFinished:
+    case mpsExit:
         st = printing_state_t::PRINTED;
         break;
     case mpsPowerPanic_acFault:

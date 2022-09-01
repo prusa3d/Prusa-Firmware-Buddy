@@ -19,6 +19,7 @@
 #include "screen_hardfault.hpp"
 #include "screen_temperror.hpp"
 #include "screen_watchdog.hpp"
+#include "screen_filebrowser.hpp"
 #include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
@@ -29,6 +30,7 @@
 #include "eeprom.h"
 #include "w25x.h"
 #include "gui_fsensor_api.hpp"
+#include "gcode_info.hpp"
 
 #include <feature/bootloader.h>
 #include <feature/bootloader_update.h>
@@ -52,6 +54,8 @@ int guimain_spi_test = 0;
 #include "gui_media_events.hpp"
 #include "main.h"
 #include "bsod.h"
+
+LOG_COMPONENT_REF(Buddy);
 extern void blockISR(); // do not want to include marlin temperature
 
 #ifdef USE_ST7789
@@ -68,6 +72,9 @@ marlin_vars_t *gui_marlin_vars = 0;
 char gui_media_LFN[FILE_NAME_BUFFER_LEN];
 char gui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 
+static uint8_t cnt_scan_register_update = 0;
+uint8_t data_buff[2] = { 0x00 };
+
 #ifdef GUI_JOGWHEEL_SUPPORT
 Jogwheel jogwheel;
 #endif // GUI_JOGWHEEL_SUPPORT
@@ -79,7 +86,7 @@ MsgBuff_t &MsgCircleBuffer() {
 
 void MsgCircleBuffer_cb(const char *txt) {
     MsgCircleBuffer().push_back(txt);
-    //cannot open == already openned
+    // cannot open == already openned
     IScreenPrinting *const prt_screen = IScreenPrinting::GetInstance();
     if (prt_screen && (!prt_screen->GetPopUpRect().IsEmpty())) {
         // message for MakeRAM must exist at least as long as string_view_utf8 exists
@@ -120,7 +127,7 @@ void client_gui_refresh() {
     static uint32_t last_tick = gui::GetTick_ForceActualization();
     uint32_t tick = gui::GetTick_ForceActualization();
     if (last_tick != tick) {
-        unsigned percent = (tick - start) / (3000 / 100); //3000ms / 100%
+        unsigned percent = (tick - start) / (3000 / 100); // 3000ms / 100%
         percent = ((percent < 99) ? percent : 99);
 
         GUIStartupProgress progr = { unsigned(percent), nullptr };
@@ -153,7 +160,7 @@ static void finish_update() {
                     bsod("unreachable");
                 }
 
-                _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootloader update progress %s (%i %%)", stage_description, percent_done);
+                log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description, percent_done);
                 screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
                 gui_redraw();
             });
@@ -177,8 +184,7 @@ static void finish_update() {
                 default:
                     bsod("unreachable");
                 }
-
-                _log_event(LOG_SEVERITY_INFO, log_component_find("Buddy"), "Bootstrap progress %s (%i %%)", stage_description, percent_done);
+                log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description, percent_done);
                 screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
                 gui_redraw();
             });
@@ -211,32 +217,20 @@ void gui_run(void) {
     GuiDefaults::FontMenuSpecial = resource_font(IDR_FNT_SPECIAL);
     GuiDefaults::FooterFont = resource_font(IDR_FNT_SPECIAL);
 
-    gui_marlin_vars = marlin_client_init();
-    gui_marlin_vars->media_LFN = gui_media_LFN;
-    gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
-
-    DialogHandler::Access(); //to create class NOW, not at first call of one of callback
-    marlin_client_set_fsm_cb(DialogHandler::Command);
-    marlin_client_set_message_cb(MsgCircleBuffer_cb);
-    marlin_client_set_warning_cb(Warning_cb);
-    marlin_client_set_startup_cb(Startup_cb);
-
-    Sound_Play(eSOUND_TYPE::Start);
-
     gui::knob::RegisterHeldLeftAction(TakeAScreenshot);
     gui::knob::RegisterLongPressScreenAction(DialogMoveZ::Show);
 
     ScreenFactory::Creator error_screen = nullptr;
 
     if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
-        blockISR(); //TODO delete blockISR() on this line to enable start after click
+        blockISR(); // TODO delete blockISR() on this line to enable start after click
         switch (dump_in_xflash_get_type()) {
         case DUMP_HARDFAULT:
             error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
             break;
         case DUMP_TEMPERROR:
-            //TODO uncomment to enable start after click
-            //blockISR();
+            // TODO uncomment to enable start after click
+            // blockISR();
             error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
             break;
 #ifndef _DEBUG
@@ -258,10 +252,10 @@ void gui_run(void) {
         ScreenFactory::Screen<screen_home_data_t>    // home
     };
 
-    //Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
+    // Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
-    //TIMEOUT variable getting value from EEPROM when EEPROM interface is initialized
+    // TIMEOUT variable getting value from EEPROM when EEPROM interface is initialized
     if (eeprom_get_bool(EEVAR_MENU_TIMEOUT)) {
         Screens::Access()->EnableMenuTimeout();
     } else {
@@ -274,6 +268,19 @@ void gui_run(void) {
     finish_update();
 #endif
 
+    gui_marlin_vars = marlin_client_init();
+    gui_marlin_vars->media_LFN = gui_media_LFN;
+    gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
+    GCodeInfo::getInstance().Init(gui_media_LFN, gui_media_SFN_path);
+
+    DialogHandler::Access(); // to create class NOW, not at first call of one of callback
+    marlin_client_set_fsm_cb(DialogHandler::Command);
+    marlin_client_set_message_cb(MsgCircleBuffer_cb);
+    marlin_client_set_warning_cb(Warning_cb);
+    marlin_client_set_startup_cb(Startup_cb);
+
+    Sound_Play(eSOUND_TYPE::Start);
+
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, client_gui_refresh);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF, client_gui_refresh);
 
@@ -283,18 +290,53 @@ void gui_run(void) {
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
 
     redraw_cmd_t redraw;
-    //TODO make some kind of registration
+    // TODO make some kind of registration
     while (1) {
         gui::StartLoop();
-        if constexpr (HAS_MMU2) {
-            if (screen_home_data_t::EverBeenOpenned()) {
-                gui::fsensor::validate_for_cyclical_calls();
-            }
+        if (screen_home_data_t::EverBeenOpenned()) {
+            gui::fsensor::validate_for_cyclical_calls();
         }
+
+        if (++cnt_scan_register_update >= 100) {
+            display::ReadMADCTL(data_buff, 1);
+            if (data_buff[1] != 0xE0 && data_buff[1] != 0xF0) {
+                display::Init();
+                Screens::Access()->SetDisplayReinitialized();
+            }
+
+            cnt_scan_register_update = 0;
+        }
+
         redraw = DialogHandler::Access().Loop();
+
         if (redraw == redraw_cmd_t::redraw)
             // all messages received, redraw changes immediately
             gui_redraw();
+
+        // Screens::Access()->Count() == 0      - there are no closed screens under current one == only home screen is opened
+        bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>());
+        // this code handles start of print
+        // it must be in main gui loop just before screen handler to ensure no FSM is opened
+        // !DialogHandler::Access().IsAnyOpen() - wait until all FSMs are closed (including one click print)
+        // one click print is closed automatically from main thread, because it is opened for wrong gcode
+        if ((marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == mpsWaitGui) && (!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
+            Screens::Access()->CloseAll(); // set flag to close all screens
+            Screens::Access()->Loop();     // close those screens before marlin_gui_ready_to_printp
+
+            // notify server, that GUI is ready to print
+            marlin_gui_ready_to_print();
+
+            // wait for start of the print - to prevent any unwanted gui action
+            while (
+                (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state != mpsIdle) // main thread is processing a print
+                && (!DialogHandler::Access().IsAnyOpen())                                         // wait for print screen to open, any fsm can break waiting (not only open of print screen)
+            ) {
+                gui_timers_cycle();   // refresh GUI time
+                marlin_client_loop(); // refresh fsm - required for dialog handler
+                DialogHandler::Access().Loop();
+            }
+        }
+
         Screens::Access()->Loop();
         // Do not redraw if there's an unread FSM message.
         // New screen can be created already but FSM message can change it

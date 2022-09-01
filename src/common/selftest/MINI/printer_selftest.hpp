@@ -38,6 +38,7 @@ typedef enum {
     stsDidSelftestPass,
     stsEpilogue_nok,
     stsEpilogue_nok_wait_user,
+    stsFirstLayer,
     stsShow_result,
     stsResult_wait_user,
     stsEpilogue_ok,
@@ -69,7 +70,8 @@ enum SelftestMask_t : uint64_t {
     stmFullSelftest = (stmFans | stmXYZAxis | stmHeaters | stmNet_status | stmShow_result) | (uint64_t(1) << stsDidSelftestPass),
     stmWizardPrologue = (uint64_t(1) << stsPrologueAskRun) | (uint64_t(1) << stsPrologueAskRun_wait_user) | (uint64_t(1) << stsPrologueInfo) | (uint64_t(1) << stsPrologueInfo_wait_user) | (uint64_t(1) << stsPrologueInfoDetailed) | (uint64_t(1) << stsPrologueInfoDetailed_wait_user),
     stmEpilogue = (uint64_t(1) << stsEpilogue_nok) | (uint64_t(1) << stsEpilogue_nok_wait_user) | (uint64_t(1) << stsEpilogue_ok) | (uint64_t(1) << stsEpilogue_ok_wait_user),
-    stmWizard = stmFullSelftest | stmWizardPrologue | stmEpilogue,
+    stmFirstLayer = (uint64_t(1) << stsFirstLayer),
+    stmWizard = stmFullSelftest | stmWizardPrologue | stmEpilogue | stmFirstLayer,
     stmFans_fine = (uint64_t(1) << stsFans_fine),
 };
 
@@ -103,6 +105,7 @@ protected:
     selftest::IPartHandler *pZAxis;
     selftest::IPartHandler *pNozzle;
     selftest::IPartHandler *pBed;
+    selftest::IPartHandler *pFirstLayer;
 
     SelftestResult_t m_result;
 };

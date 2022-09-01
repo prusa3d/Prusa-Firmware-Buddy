@@ -177,6 +177,7 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
   USBH_URBStateTypeDef URB_Status = USBH_URB_IDLE;
   MSC_HandleTypeDef *MSC_Handle = (MSC_HandleTypeDef *) phost->pActiveClass->pData;
   uint8_t toggle = 0U;
+  static uint32_t nakc;
 
   switch (MSC_Handle->hbot.state)
   {
@@ -185,6 +186,7 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
       MSC_Handle->hbot.state = BOT_SEND_CBW_WAIT;
       USBH_BulkSendData(phost, MSC_Handle->hbot.cbw.data,
                         BOT_CBW_LENGTH, MSC_Handle->OutPipe, 1U);
+      nakc = 0;
 
       break;
 
@@ -378,6 +380,10 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
 
       else if (URB_Status == USBH_URB_NOTREADY)
       {
+        nakc++;
+        if ((nakc % 1000) == 0) {
+          USBH_UsrLog("USB drive slow (NAKc: %u)", nakc);
+        }
         /* Resend same data */
         MSC_Handle->hbot.state  = BOT_DATA_OUT;
 

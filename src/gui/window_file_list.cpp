@@ -19,6 +19,27 @@
     #include "bsod.h"
 #endif
 
+GuiFileSort::GuiFileSort() {
+    sort = WF_Sort_t(eeprom_get_ui8(EEVAR_FILE_SORT));
+}
+
+GuiFileSort &GuiFileSort::instance() {
+    static GuiFileSort ret;
+    return ret;
+}
+
+WF_Sort_t GuiFileSort::Get() {
+    return instance().sort;
+}
+
+void GuiFileSort::Set(WF_Sort_t val) {
+    if (instance().sort == val)
+        return;
+
+    eeprom_set_ui8(EEVAR_FILE_SORT, (uint8_t)val);
+    instance().sort = val;
+}
+
 // static definitions
 char *window_file_list_t::root = nullptr;
 
@@ -169,9 +190,10 @@ void window_file_list_t::inc(int dif) {
 
     if (!middle) {
         Sound_Play(eSOUND_TYPE::BlindAlert);
-    } else if (repaint) {
+    } else {
         Sound_Play(eSOUND_TYPE::EncoderMove);
     }
+
     if (!repaint) {
         if (index != old_index) {
             invalidateItem(index);
@@ -185,7 +207,6 @@ void window_file_list_t::inc(int dif) {
     valid_items.fill(false);
     activeItem.clrFocus();
     selectNewItem();
-    activeItem.Roll(); // first call causes additional invalidation, it does not matter here, but would flicker in case it was not called
     super::invalidate(GetRect());
 }
 

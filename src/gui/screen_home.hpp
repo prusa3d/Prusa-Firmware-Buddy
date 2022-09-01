@@ -44,4 +44,6 @@ private:
     void printBtnEna();
     void printBtnDis();
     bool moreGcodesUploaded();
+
+    static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 };

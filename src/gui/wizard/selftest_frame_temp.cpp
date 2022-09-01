@@ -29,7 +29,7 @@ static constexpr const char *en_text_heat = N_("Heater testing");
 
 ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrame>(parent, ph, data)
-    , footer(this, footer::items::ItemNozzle, footer::items::ItemBed)
+    , footer(this, 0, footer::items::ItemNozzle, footer::items::ItemBed)
     //noz
     , text_noz(this, Rect16(col_0, row_noz_0, WizardDefaults::X_space, txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_noz))
     , progress_noz(this, row_noz_1)

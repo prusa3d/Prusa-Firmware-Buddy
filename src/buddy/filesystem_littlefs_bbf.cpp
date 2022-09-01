@@ -5,6 +5,8 @@
 #include "littlefs_bbf.h"
 #include "bbf.hpp"
 
+LOG_COMPONENT_REF(FileSystem);
+
 static filesystem_littlefs_ctx_t bbf_ctx;
 
 static int open_r(struct _reent *r, void *fileStruct, const char *path, int flags, int mode) {
