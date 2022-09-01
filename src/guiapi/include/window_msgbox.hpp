@@ -20,6 +20,7 @@ static constexpr PhaseResponses Responses_YesNo                = { Response::Yes
 static constexpr PhaseResponses Responses_YesNoCancel          = { Response::Yes,      Response::No,     Response::Cancel, Response::_none };
 static constexpr PhaseResponses Responses_YesNoIgnore          = { Response::Yes,      Response::No,     Response::Ignore, Response::_none };
 static constexpr PhaseResponses Responses_YesAbort             = { Response::Yes,      Response::Abort,  Response::_none,  Response::_none };
+static constexpr PhaseResponses Responses_YesCancel            = { Response::Yes,      Response::Cancel, Response::_none,  Response::_none };
 static constexpr PhaseResponses Responses_YesRetry             = { Response::Yes,      Response::Retry,  Response::_none,  Response::_none };
 static constexpr PhaseResponses Responses_RetryCancel          = { Response::Retry,    Response::Cancel, Response::_none,  Response::_none };
 static constexpr PhaseResponses Responses_ChangeIgnoreCancel   = { Response::Change,   Response::Ignore, Response::Cancel, Response::_none };

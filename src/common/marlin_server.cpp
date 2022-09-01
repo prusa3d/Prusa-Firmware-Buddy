@@ -2054,6 +2054,9 @@ bool _process_server_valid_request(const char *request, int client_id) {
             return false;
         marlin_server_move_axis(offs, MMM_TO_MMS(fval), uival);
         return true;
+    case MARLIN_MSG_CLEAR_QQUEUE:
+        queue.clear();
+        return true;
     }
     default:
         bsod_unknown_request(request);

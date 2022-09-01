@@ -207,6 +207,8 @@ extern void marlin_print_resume(void);
 
 extern void marlin_park_head(void);
 
+extern void marlin_clear_qcode_queue(void);
+
 extern void marlin_notify_server_about_encoder_move(void);
 
 extern void marlin_notify_server_about_knob_click(void);
