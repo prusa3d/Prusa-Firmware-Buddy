@@ -17,7 +17,7 @@
 #include "printers.h"
 
 static GCodeInfo &gcode_init() {
-    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FILENAME) | MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH));
+    print_client::update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FILENAME) | MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH));
     GCodeInfo::getInstance().initFile(GCodeInfo::GI_INIT_t::PREVIEW);
     return GCodeInfo::getInstance();
 }
@@ -59,14 +59,14 @@ void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, window_t *s
     switch (event) {
     case GUI_event_t::CLICK: {
         Response response = radio.Click();
-        marlin_FSM_response(phase, response);
+        print_client::FSM_response(phase, response);
         break;
     }
     case GUI_event_t::CHILD_CLICK: {
         event_conversion_union un;
         un.pvoid = param;
         Response response = un.response;
-        marlin_FSM_response(phase, response);
+        print_client::FSM_response(phase, response);
         break;
     }
     case GUI_event_t::ENC_UP:

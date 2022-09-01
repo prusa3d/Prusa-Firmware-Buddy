@@ -64,7 +64,7 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
 
 void screen_mesh_bed_lv_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        if (marlin_error(MARLIN_ERR_ProbingFailed)) {
+        if (print_client::error(MARLIN_ERR_ProbingFailed)) {
             text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[1]));
         } else {
             text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[0]));
@@ -78,16 +78,16 @@ void screen_mesh_bed_lv_data_t::windowEvent(EventLock /*has private ctor*/, wind
             mesh_state = mesh_state_t::home;
             break;
         case mesh_state_t::home:
-            marlin_error_clr(MARLIN_ERR_ProbingFailed);
-            marlin_event_clr(MARLIN_EVT_CommandBegin);
-            marlin_event_clr(MARLIN_EVT_CommandEnd);
-            marlin_gcode_printf("G28");
-            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-                marlin_client_loop();
+            print_client::error_clr(MARLIN_ERR_ProbingFailed);
+            print_client::event_clr(MARLIN_EVT_CommandBegin);
+            print_client::event_clr(MARLIN_EVT_CommandEnd);
+            print_client::gcode_printf("G28");
+            while (!print_client::event_clr(MARLIN_EVT_CommandBegin))
+                print_client::loop();
             mesh_state = mesh_state_t::homeing;
             break;
         case mesh_state_t::homeing:
-            if (marlin_event_clr(MARLIN_EVT_CommandEnd)) {
+            if (print_client::event_clr(MARLIN_EVT_CommandEnd)) {
                 mesh_state = mesh_state_t::homed;
             }
             break;
@@ -95,15 +95,15 @@ void screen_mesh_bed_lv_data_t::windowEvent(EventLock /*has private ctor*/, wind
             mesh_state = mesh_state_t::mesh;
             //there is no break;
         case mesh_state_t::mesh:
-            marlin_event_clr(MARLIN_EVT_CommandBegin);
-            marlin_event_clr(MARLIN_EVT_CommandEnd);
-            marlin_gcode_printf("G29");
-            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-                marlin_client_loop();
+            print_client::event_clr(MARLIN_EVT_CommandBegin);
+            print_client::event_clr(MARLIN_EVT_CommandEnd);
+            print_client::gcode_printf("G29");
+            while (!print_client::event_clr(MARLIN_EVT_CommandBegin))
+                print_client::loop();
             mesh_state = mesh_state_t::meshing;
             break;
         case mesh_state_t::meshing:
-            if (marlin_event_clr(MARLIN_EVT_CommandEnd)) {
+            if (print_client::event_clr(MARLIN_EVT_CommandEnd)) {
                 mesh_state = mesh_state_t::meshed;
             }
             break;

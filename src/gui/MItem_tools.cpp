@@ -98,10 +98,10 @@ MI_AUTO_HOME::MI_AUTO_HOME()
 }
 
 void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
-    marlin_event_clr(MARLIN_EVT_CommandBegin);
-    marlin_gcode("G28");
-    while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-        marlin_client_loop();
+    print_client::event_clr(MARLIN_EVT_CommandBegin);
+    print_client::gcode("G28");
+    while (!print_client::event_clr(MARLIN_EVT_CommandBegin))
+        print_client::loop();
     gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
@@ -116,21 +116,21 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
     do {
         //home if we repeat MBL, nozzle may be in different position than expected
         if (!marlin_all_axes_homed() || response == Response::Yes) {
-            marlin_event_clr(MARLIN_EVT_CommandBegin);
-            marlin_gcode("G28");
-            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-                marlin_client_loop();
+            print_client::event_clr(MARLIN_EVT_CommandBegin);
+            print_client::gcode("G28");
+            while (!print_client::event_clr(MARLIN_EVT_CommandBegin))
+                print_client::loop();
             gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
         }
         response = Response::No;
-        marlin_event_clr(MARLIN_EVT_CommandBegin);
-        marlin_gcode("G29");
-        while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-            marlin_client_loop();
+        print_client::event_clr(MARLIN_EVT_CommandBegin);
+        print_client::gcode("G29");
+        while (!print_client::event_clr(MARLIN_EVT_CommandBegin))
+            print_client::loop();
         gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 
-        if (marlin_error(MARLIN_ERR_ProbingFailed)) {
-            marlin_error_clr(MARLIN_ERR_ProbingFailed);
+        if (print_client::error(MARLIN_ERR_ProbingFailed)) {
+            print_client::error_clr(MARLIN_ERR_ProbingFailed);
             response = MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo);
         }
     } while (response != Response::No);
@@ -143,7 +143,7 @@ MI_DISABLE_STEP::MI_DISABLE_STEP()
 }
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
-    marlin_gcode("M18");
+    print_client::gcode("M18");
 }
 
 /*****************************************************************************/
@@ -325,7 +325,7 @@ MI_M600::MI_M600()
     : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_M600::click(IWindowMenu & /*window_menu*/) {
-    marlin_gcode_push_front("M600");
+    print_client::gcode_push_front("M600");
 }
 
 /*****************************************************************************/
@@ -443,10 +443,10 @@ void MI_MINDA::Loop() {
 /*****************************************************************************/
 //MI_FAN_CHECK
 MI_FAN_CHECK::MI_FAN_CHECK()
-    : WI_SWITCH_OFF_ON_t(marlin_get_bool(MARLIN_VAR_FAN_CHECK_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SWITCH_OFF_ON_t(print_client::get_bool(MARLIN_VAR_FAN_CHECK_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_FAN_CHECK::OnChange(size_t old_index) {
-    marlin_set_bool(MARLIN_VAR_FAN_CHECK_ENABLED, !old_index);
-    eeprom_set_bool(EEVAR_FAN_CHECK_ENABLED, marlin_get_bool(MARLIN_VAR_FAN_CHECK_ENABLED));
+    print_client::set_bool(MARLIN_VAR_FAN_CHECK_ENABLED, !old_index);
+    eeprom_set_bool(EEVAR_FAN_CHECK_ENABLED, print_client::get_bool(MARLIN_VAR_FAN_CHECK_ENABLED));
 }
 
 /*****************************************************************************/
@@ -456,10 +456,10 @@ is_hidden_t hide_autoload_item() {
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
-    : WI_SWITCH_OFF_ON_t(marlin_get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, hide_autoload_item()) {}
+    : WI_SWITCH_OFF_ON_t(print_client::get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, hide_autoload_item()) {}
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
-    marlin_set_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED, !old_index);
-    eeprom_set_bool(EEVAR_FS_AUTOLOAD_ENABLED, marlin_get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED));
+    print_client::set_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED, !old_index);
+    eeprom_set_bool(EEVAR_FS_AUTOLOAD_ENABLED, print_client::get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED));
 }
 MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
     : WI_FORMATABLE_LABEL_t<float>(label, id_icon, enabled, hidden, initVal, [&](char *buffer) {

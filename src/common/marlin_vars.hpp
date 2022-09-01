@@ -33,7 +33,7 @@ typedef enum {
     MARLIN_VAR_SD_PDONE,            // R:  uint8, card.percentDone()
     MARLIN_VAR_DURATION,            // R:  uint32, print_job_timer.duration()
     MARLIN_VAR_MEDIAINS,            // R:  bool, media_is_inserted()
-    MARLIN_VAR_PRNSTATE,            // R:  marlin_print_state_t, marlin_server.print_state
+    MARLIN_VAR_PRNSTATE,            // R:  PrintState, marlin_server.print_state
     MARLIN_VAR_FILENAME,            // R:  char*,
     MARLIN_VAR_FILEPATH,            // R:  char*,
     MARLIN_VAR_DTEM_NOZ,            // R:  float, nozzle temperature to display
@@ -110,7 +110,7 @@ static constexpr uint8_t MARLIN_VAR_MOTION_MSK_E = 1 << MARLIN_VAR_INDEX_E;
 
 static constexpr uint32_t TIME_TO_END_INVALID = (uint32_t)-1;
 
-enum class marlin_print_state_t : uint8_t {
+enum class PrintState : uint8_t {
     Idle = 0,
     WaitGui,
     PrintPreviewInit,
@@ -206,21 +206,21 @@ struct marlin_vars_t {
     uint16_t job_id;            // print job id incremented at every print start(for connect)
 
     // 1B base types
-    marlin_print_state_t print_state; // marlin_server.print_state
-    uint8_t motion;                   // motion (bit0-X, bit1-Y, bit2-Z, bit3-E)
-    uint8_t gqueue;                   // number of commands in gcode queue
-    uint8_t pqueue;                   // number of commands in planner queue
-    uint8_t print_fan_speed;          // print fan speed [0..255]
-    uint8_t wait_heat;                // wait_for_heatup
-    uint8_t wait_user;                // wait_for_user
-    uint8_t sd_percent_done;          // card.percentDone() [%]
-    uint8_t media_inserted;           // media_is_inserted()
-    uint8_t fan_check_enabled;        // fan_check [on/off]
-    uint8_t fs_autoload_enabled;      // fs_autoload [on/off]
+    PrintState print_state;      // marlin_server.print_state
+    uint8_t motion;              // motion (bit0-X, bit1-Y, bit2-Z, bit3-E)
+    uint8_t gqueue;              // number of commands in gcode queue
+    uint8_t pqueue;              // number of commands in planner queue
+    uint8_t print_fan_speed;     // print fan speed [0..255]
+    uint8_t wait_heat;           // wait_for_heatup
+    uint8_t wait_user;           // wait_for_user
+    uint8_t sd_percent_done;     // card.percentDone() [%]
+    uint8_t media_inserted;      // media_is_inserted()
+    uint8_t fan_check_enabled;   // fan_check [on/off]
+    uint8_t fs_autoload_enabled; // fs_autoload [on/off]
 };
 
-constexpr bool is_abort_state(marlin_print_state_t st) {
-    return ((int)st) >= ((int)marlin_print_state_t::Aborting_Begin) && ((int)st) <= ((int)marlin_print_state_t::Aborted);
+constexpr bool is_abort_state(PrintState st) {
+    return ((int)st) >= ((int)PrintState::Aborting_Begin) && ((int)st) <= ((int)PrintState::Aborted);
 }
 
 // returns variable name

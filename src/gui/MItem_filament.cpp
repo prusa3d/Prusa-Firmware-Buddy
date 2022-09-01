@@ -15,7 +15,7 @@ MI_LOAD::MI_LOAD()
 
 void MI_LOAD::Do() {
     if ((Filaments::CurrentIndex() == filament_t::NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
-        marlin_gcode("M701 W2"); // load with return option
+        print_client::gcode("M701 W2"); // load with return option
     }
 }
 
@@ -25,8 +25,8 @@ MI_UNLOAD::MI_UNLOAD()
     : MI_event_dispatcher(_(label)) {}
 
 void MI_UNLOAD::Do() {
-    marlin_gcode("M702 W2"); // unload with return option
-    Sound_Stop();            // TODO what is Sound_Stop(); doing here?
+    print_client::gcode("M702 W2"); // unload with return option
+    Sound_Stop();                   // TODO what is Sound_Stop(); doing here?
 }
 
 /*****************************************************************************/
@@ -35,8 +35,8 @@ MI_CHANGE::MI_CHANGE()
     : MI_event_dispatcher(_(label)) {}
 
 void MI_CHANGE::Do() {
-    marlin_gcode("M1600 R"); // non print filament change
-    Sound_Stop();            // TODO what is Sound_Stop(); doing here?
+    print_client::gcode("M1600 R"); // non print filament change
+    Sound_Stop();                   // TODO what is Sound_Stop(); doing here?
 }
 
 /*****************************************************************************/
@@ -45,7 +45,7 @@ MI_PURGE::MI_PURGE()
     : MI_event_dispatcher(_(label)) {}
 
 void MI_PURGE::Do() {
-    marlin_gcode("M701 L0 W2"); // load with distance 0 and return option
+    print_client::gcode("M701 L0 W2"); // load with distance 0 and return option
 }
 
 /*****************************************************************************/

@@ -33,8 +33,8 @@ extern char *media_print_filepath();
 
 extern media_state_t media_get_state(void);
 
-/// Copies the content of sfnFilePath into marlin_vars->media_SFN_path (aka media_print_filepath)
-/// Updates marlin_vars->media_LFN as a side-effect by opening the marlin_vars->media_SFN_path and reading its LFN
+/// Copies the content of sfnFilePath into print_client::vars->media_SFN_path (aka media_print_filepath)
+/// Updates print_client::vars->media_LFN as a side-effect by opening the print_client::vars->media_SFN_path and reading its LFN
 extern void media_print_start__prepare(const char *sfnFilePath);
 
 /// Start printing by issuing M23 into Marlin with a file path set by media_print_start__prepare

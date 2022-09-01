@@ -53,13 +53,13 @@ uint32_t screen_home_data_t::lastUploadCount = 0;
 
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<screen_t>()
-    , usbInserted(marlin_vars()->media_inserted)
+    , usbInserted(print_client::vars()->media_inserted)
     , esp_flash_being_openned(false)
     , header(this)
     , footer(this)
     , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_prusa_printer_logo)
     , w_buttons { { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), IDR_NULL, []() { marlin_gcode_printf("M1700"); } },
+        { this, Rect16(), IDR_NULL, []() { print_client::gcode_printf("M1700"); } },
         { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
         { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
         { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
@@ -154,14 +154,14 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         if (try_esp_flash && (fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware)) {
             try_esp_flash = false;          // do esp flash only once (user can press abort)
             esp_flash_being_openned = true; // wait for process of gcode == open of flash screen
-            marlin_gcode("M997 S1 O");
+            print_client::gcode("M997 S1 O");
             return;
         } else {
             // on esp update, can use one click print
             if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
 
                 // we are using marlin variables for filename and filepath buffers
-                marlin_vars_t *vars = marlin_vars();
+                marlin_vars_t *vars = print_client::vars();
                 // check if the variables filename and filepath are allocated
                 if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
 

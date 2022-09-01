@@ -21,42 +21,42 @@ namespace {
     };
 
     SimplePrintState get_state() {
-        marlin_vars_t *vars = marlin_vars();
-        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE));
+        marlin_vars_t *vars = print_client::vars();
+        print_client::loop();
 
         switch (vars->print_state) {
-        case marlin_print_state_t::Printing:
+        case PrintState::Printing:
             return SimplePrintState::Printing;
-        case marlin_print_state_t::PowerPanic_acFault:
-        case marlin_print_state_t::PowerPanic_Resume:
-        case marlin_print_state_t::PowerPanic_AwaitingResume:
-        case marlin_print_state_t::Pausing_Begin:
-        case marlin_print_state_t::Pausing_WaitIdle:
-        case marlin_print_state_t::Pausing_ParkHead:
-        case marlin_print_state_t::Pausing_Failed_Code:
-        case marlin_print_state_t::CrashRecovery_Begin:
-        case marlin_print_state_t::CrashRecovery_Axis_NOK:
-        case marlin_print_state_t::CrashRecovery_Retracting:
-        case marlin_print_state_t::CrashRecovery_Lifting:
-        case marlin_print_state_t::CrashRecovery_XY_Measure:
-        case marlin_print_state_t::CrashRecovery_XY_HOME:
-        case marlin_print_state_t::CrashRecovery_Repeated_Crash:
-        case marlin_print_state_t::Resuming_Begin:
-        case marlin_print_state_t::Resuming_Reheating:
-        case marlin_print_state_t::Resuming_UnparkHead_XY:
-        case marlin_print_state_t::Resuming_UnparkHead_ZE:
-        case marlin_print_state_t::Aborting_Begin:
-        case marlin_print_state_t::Aborting_WaitIdle:
-        case marlin_print_state_t::Aborting_ParkHead:
-        case marlin_print_state_t::Finishing_WaitIdle:
-        case marlin_print_state_t::Finishing_ParkHead:
+        case PrintState::PowerPanic_acFault:
+        case PrintState::PowerPanic_Resume:
+        case PrintState::PowerPanic_AwaitingResume:
+        case PrintState::Pausing_Begin:
+        case PrintState::Pausing_WaitIdle:
+        case PrintState::Pausing_ParkHead:
+        case PrintState::Pausing_Failed_Code:
+        case PrintState::CrashRecovery_Begin:
+        case PrintState::CrashRecovery_Axis_NOK:
+        case PrintState::CrashRecovery_Retracting:
+        case PrintState::CrashRecovery_Lifting:
+        case PrintState::CrashRecovery_XY_Measure:
+        case PrintState::CrashRecovery_XY_HOME:
+        case PrintState::CrashRecovery_Repeated_Crash:
+        case PrintState::Resuming_Begin:
+        case PrintState::Resuming_Reheating:
+        case PrintState::Resuming_UnparkHead_XY:
+        case PrintState::Resuming_UnparkHead_ZE:
+        case PrintState::Aborting_Begin:
+        case PrintState::Aborting_WaitIdle:
+        case PrintState::Aborting_ParkHead:
+        case PrintState::Finishing_WaitIdle:
+        case PrintState::Finishing_ParkHead:
             return SimplePrintState::Busy;
-        case marlin_print_state_t::Paused:
+        case PrintState::Paused:
             return SimplePrintState::Paused;
-        case marlin_print_state_t::Aborted:
-        case marlin_print_state_t::Finished:
-        case marlin_print_state_t::Idle:
-        case marlin_print_state_t::Exit:
+        case PrintState::Aborted:
+        case PrintState::Finished:
+        case PrintState::Idle:
+        case PrintState::Exit:
             return SimplePrintState::Idle;
         default:
             assert(0);
@@ -71,7 +71,7 @@ namespace {
 bool JobCommand::stop() {
     const auto state = get_state();
     if (state == SimplePrintState::Printing || state == SimplePrintState::Paused) {
-        marlin_print_abort();
+        print_client::print_abort();
         return true;
     } else {
         return false;
@@ -80,7 +80,7 @@ bool JobCommand::stop() {
 
 bool JobCommand::pause() {
     if (get_state() == SimplePrintState::Printing) {
-        marlin_print_pause();
+        print_client::print_pause();
         return true;
     } else {
         return false;
@@ -90,10 +90,10 @@ bool JobCommand::pause() {
 bool JobCommand::pause_toggle() {
     switch (get_state()) {
     case SimplePrintState::Printing:
-        marlin_print_pause();
+        print_client::print_pause();
         return true;
     case SimplePrintState::Paused:
-        marlin_print_resume();
+        print_client::print_resume();
         return true;
     default:
         assert(0);
@@ -106,7 +106,7 @@ bool JobCommand::pause_toggle() {
 
 bool JobCommand::resume() {
     if (get_state() == SimplePrintState::Paused) {
-        marlin_print_resume();
+        print_client::print_resume();
         return true;
     } else {
         return false;

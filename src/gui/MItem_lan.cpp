@@ -19,7 +19,7 @@ MI_WIFI_INIT_t::MI_WIFI_INIT_t()
 }
 
 void MI_WIFI_INIT_t::click(IWindowMenu &window_menu) {
-    marlin_gcode("M997 S1 O");
+    print_client::gcode("M997 S1 O");
 }
 
 MI_WIFI_CREDENTIALS_t::MI_WIFI_CREDENTIALS_t()
@@ -27,7 +27,7 @@ MI_WIFI_CREDENTIALS_t::MI_WIFI_CREDENTIALS_t()
 }
 
 void MI_WIFI_CREDENTIALS_t::click(IWindowMenu &window_menu) {
-    marlin_gcode("M1587");
+    print_client::gcode("M1587");
 }
 
 MI_WIFI_CREDENTIALS_INI_FILE_t::MI_WIFI_CREDENTIALS_INI_FILE_t()
@@ -35,7 +35,7 @@ MI_WIFI_CREDENTIALS_INI_FILE_t::MI_WIFI_CREDENTIALS_INI_FILE_t()
 }
 
 void MI_WIFI_CREDENTIALS_INI_FILE_t::click(IWindowMenu &window_menu) {
-    marlin_gcode("M1587 I");
+    print_client::gcode("M1587 I");
 }
 
 MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()

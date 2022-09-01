@@ -186,7 +186,7 @@ ResourceId ScreenSelftest::getIconId(SelftestParts part) {
 void ScreenSelftest::InitState(screen_init_variant var) {
     auto val = var.GetSelftestMask();
     if (val) {
-        marlin_test_start(*val);
+        print_client::test_start(*val);
         //check mask if contains wizard prologue
         //it is simplified method, but should work correctly for meaningfull use
         if ((*val) & stmWizardPrologue) {

@@ -61,7 +61,7 @@ static void fsm_cb(uint32_t u32, uint16_t u16) {
         }
 
         if (phase == PhasesPrintPreview::main_dialog)
-            marlin_FSM_response(phase, Response::Print);
+            print_client::FSM_response(phase, Response::Print);
     }
 }
 
@@ -73,11 +73,11 @@ static void fsm_cb(uint32_t u32, uint16_t u16) {
 #endif //0
 
 void wui_marlin_client_init(void) {
-    marlin_vars_t *vars = marlin_client_init(); // init the client
+    marlin_vars_t *vars = print_client::init(); // init the client
     // force update variables when starts
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, NULL);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
-    marlin_client_set_fsm_cb(fsm_cb);
+    print_client::set_event_notify(MARLIN_EVT_MSK_DEF, NULL);
+    print_client::set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
+    print_client::set_fsm_cb(fsm_cb);
     if (vars) {
         /*
          * Note: We currently have only a single marlin client for
@@ -343,11 +343,10 @@ uint32_t wui_gcodes_uploaded() {
 }
 
 bool wui_start_print(char *filename, bool autostart_if_able) {
-    marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
-    const bool printer_can_print = !marlin_is_printing();
+    const bool printer_can_print = !print_client::is_printing();
     const bool can_start_print = printer_can_print && autostart_if_able;
 
-    strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
+    strlcpy(print_client::vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
     // Turn it into the short name, to improve buffer length, avoid strange
     // chars like spaces in it, etc.
     get_SFN_path(filename);
@@ -365,13 +364,13 @@ bool wui_uploaded_gcode(char *filename, bool start_print) {
 }
 
 bool wui_is_file_being_printed(const char *filename) {
-    marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
-    if (!marlin_is_printing()) {
+    print_client::loop();
+    if (!print_client::is_printing()) {
         return false;
     }
 
     char sfn[FILE_PATH_BUFFER_LEN];
     strlcpy(sfn, filename, sizeof(sfn));
     get_SFN_path(sfn);
-    return strcasecmp(sfn, marlin_vars()->media_SFN_path) == 0;
+    return strcasecmp(sfn, print_client::vars()->media_SFN_path) == 0;
 }

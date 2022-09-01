@@ -3,7 +3,7 @@
  */
 
 #include "knob_event.hpp"
-#include "marlin_client.hpp" // marlin_notify_server_about_encoder_move
+#include "marlin_client.hpp" // print_client::notify_server_about_encoder_move
 #include "ScreenHandler.hpp" // GetCapturedWindow
 #include "sound.hpp"
 
@@ -58,7 +58,7 @@ bool gui::knob::EventEncoder(int diff) {
     if (diff == 0)
         return false;
 
-    marlin_notify_server_about_encoder_move();
+    print_client::notify_server_about_encoder_move();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::ENC_CHANGE, (void *)(intptr_t)diff);
 
@@ -77,7 +77,7 @@ bool gui::knob::EventEncoder(int diff) {
 
 bool gui::knob::EventClick(BtnState_t state) {
     static bool dont_click_on_next_release = false;
-    marlin_notify_server_about_knob_click();
+    print_client::notify_server_about_knob_click();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
 
     switch (state) {

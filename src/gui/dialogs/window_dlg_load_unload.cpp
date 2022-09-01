@@ -10,12 +10,12 @@
 #include "DialogHandler.hpp"
 
 static void DialogBlocking(ClientFSM fsm, const char *mode_format, RetAndCool_t retAndCool) {
-    marlin_gcode_printf(mode_format, uint8_t(retAndCool));
+    print_client::gcode_printf(mode_format, uint8_t(retAndCool));
 
     // wait until dialog opens
     while (!DialogHandler::Access().IsOpen(fsm)) {
         gui::TickLoop();
-        marlin_client_loop();
+        print_client::loop();
         DialogHandler::Access().Loop(); // fsm events .. to be able to change state
         // dont call gui_loop, we want to ignore knob for now
     }
@@ -45,7 +45,7 @@ static void DialogBlocking(ClientFSM fsm, std::optional<ClientFSM> skipIfOpen = 
     // wait until dialog opens
     while (!DialogHandler::Access().IsOpen(fsm) && !DialogHandler::Access().IsOpen(skip)) {
         gui::TickLoop();
-        marlin_client_loop();
+        print_client::loop();
         DialogHandler::Access().Loop(); // fsm events .. to be able to change state
         // dont call gui_loop, we want to ignore knob for now
     }
@@ -66,7 +66,7 @@ static void DialogBlocking(ClientFSM fsm, std::optional<ClientFSM> skipIfOpen = 
 static PreheatStatus::Result DialogBlockingLoadUnload(const char *mode_format, RetAndCool_t retAndCool) {
     PreheatStatus::Result ret = PreheatStatus::Result::DidNotFinish;
     PreheatStatus::ConsumeResult(); // clear result
-    marlin_gcode_printf(mode_format, uint8_t(retAndCool));
+    print_client::gcode_printf(mode_format, uint8_t(retAndCool));
 
     // ask for temperature, but we could skip opening the preheat dialog
     DialogBlocking(ClientFSM::Preheat, ClientFSM::Load_unload);

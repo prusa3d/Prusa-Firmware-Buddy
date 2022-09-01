@@ -111,52 +111,52 @@ namespace {
         return 20;
     }
 
-    Printer::DeviceState to_device_state(marlin_print_state_t state, bool ready) {
+    Printer::DeviceState to_device_state(PrintState state, bool ready) {
         switch (state) {
-        case marlin_print_state_t::Idle:
-        case marlin_print_state_t::WaitGui:
-        case marlin_print_state_t::PrintPreviewInit:
-        case marlin_print_state_t::PrintPreviewLoop:
-        case marlin_print_state_t::PrintInit:
-        case marlin_print_state_t::Aborted:
-        case marlin_print_state_t::Exit:
+        case PrintState::Idle:
+        case PrintState::WaitGui:
+        case PrintState::PrintPreviewInit:
+        case PrintState::PrintPreviewLoop:
+        case PrintState::PrintInit:
+        case PrintState::Aborted:
+        case PrintState::Exit:
             if (ready) {
                 return Printer::DeviceState::Ready;
             } else {
                 return Printer::DeviceState::Idle;
             }
-        case marlin_print_state_t::Printing:
-        case marlin_print_state_t::Aborting_Begin:
-        case marlin_print_state_t::Aborting_WaitIdle:
-        case marlin_print_state_t::Aborting_ParkHead:
-        case marlin_print_state_t::Finishing_WaitIdle:
-        case marlin_print_state_t::Finishing_ParkHead:
+        case PrintState::Printing:
+        case PrintState::Aborting_Begin:
+        case PrintState::Aborting_WaitIdle:
+        case PrintState::Aborting_ParkHead:
+        case PrintState::Finishing_WaitIdle:
+        case PrintState::Finishing_ParkHead:
             return Printer::DeviceState::Printing;
 
-        case marlin_print_state_t::PowerPanic_acFault:
-        case marlin_print_state_t::PowerPanic_Resume:
-        case marlin_print_state_t::PowerPanic_AwaitingResume:
-        case marlin_print_state_t::CrashRecovery_Begin:
-        case marlin_print_state_t::CrashRecovery_Axis_NOK:
-        case marlin_print_state_t::CrashRecovery_Retracting:
-        case marlin_print_state_t::CrashRecovery_Lifting:
-        case marlin_print_state_t::CrashRecovery_XY_Measure:
-        case marlin_print_state_t::CrashRecovery_XY_HOME:
-        case marlin_print_state_t::CrashRecovery_Repeated_Crash:
+        case PrintState::PowerPanic_acFault:
+        case PrintState::PowerPanic_Resume:
+        case PrintState::PowerPanic_AwaitingResume:
+        case PrintState::CrashRecovery_Begin:
+        case PrintState::CrashRecovery_Axis_NOK:
+        case PrintState::CrashRecovery_Retracting:
+        case PrintState::CrashRecovery_Lifting:
+        case PrintState::CrashRecovery_XY_Measure:
+        case PrintState::CrashRecovery_XY_HOME:
+        case PrintState::CrashRecovery_Repeated_Crash:
             return Printer::DeviceState::Busy;
 
-        case marlin_print_state_t::Pausing_Begin:
-        case marlin_print_state_t::Pausing_WaitIdle:
-        case marlin_print_state_t::Pausing_ParkHead:
-        case marlin_print_state_t::Paused:
+        case PrintState::Pausing_Begin:
+        case PrintState::Pausing_WaitIdle:
+        case PrintState::Pausing_ParkHead:
+        case PrintState::Paused:
 
-        case marlin_print_state_t::Resuming_Begin:
-        case marlin_print_state_t::Resuming_Reheating:
-        case marlin_print_state_t::Pausing_Failed_Code:
-        case marlin_print_state_t::Resuming_UnparkHead_XY:
-        case marlin_print_state_t::Resuming_UnparkHead_ZE:
+        case PrintState::Resuming_Begin:
+        case PrintState::Resuming_Reheating:
+        case PrintState::Pausing_Failed_Code:
+        case PrintState::Resuming_UnparkHead_XY:
+        case PrintState::Resuming_UnparkHead_ZE:
             return Printer::DeviceState::Paused;
-        case marlin_print_state_t::Finished:
+        case PrintState::Finished:
             if (ready) {
                 return Printer::DeviceState::Ready;
             } else {
@@ -181,9 +181,9 @@ namespace {
 
 MarlinPrinter::MarlinPrinter(SharedBuffer &buffer)
     : buffer(buffer) {
-    marlin_vars = marlin_client_init();
+    marlin_vars = print_client::init();
     assert(marlin_vars != nullptr);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
+    print_client::set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
 
     info.firmware_version = project_version_full;
     info.appendix = appendix_exist();
@@ -212,7 +212,7 @@ void MarlinPrinter::renew() {
         marlin_vars->media_LFN = nullptr;
         marlin_vars->media_SFN_path = nullptr;
     }
-    marlin_update_vars(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
+    print_client::update_vars(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
     // Any suspicious state, like Busy or Printing will cancel the printer-ready state.
     //
     // (We kind of assume there's no chance of renew not being called between a
@@ -319,21 +319,21 @@ bool MarlinPrinter::job_control(JobControl control) {
     switch (control) {
     case JobControl::Pause:
         if (state == DeviceState::Printing) {
-            marlin_print_pause();
+            print_client::print_pause();
             return true;
         } else {
             return false;
         }
     case JobControl::Resume:
         if (state == DeviceState::Paused) {
-            marlin_print_resume();
+            print_client::print_resume();
             return true;
         } else {
             return false;
         }
     case JobControl::Stop:
         if (state == DeviceState::Paused || state == DeviceState::Printing) {
-            marlin_print_abort();
+            print_client::print_abort();
             return true;
         } else {
             return false;
@@ -345,7 +345,7 @@ bool MarlinPrinter::job_control(JobControl control) {
 
 bool MarlinPrinter::start_print(const char *path) {
     // Renew was presumably called before short, it's up-to-date-ish
-    if (marlin_is_printing()) {
+    if (print_client::is_printing()) {
         return false;
     }
 
@@ -358,11 +358,11 @@ bool MarlinPrinter::start_print(const char *path) {
 }
 
 void MarlinPrinter::submit_gcode(const char *code) {
-    marlin_gcode(code);
+    print_client::gcode(code);
 }
 
 bool MarlinPrinter::set_ready(bool ready) {
-    if (ready && marlin_is_printing()) {
+    if (ready && print_client::is_printing()) {
         return false;
     }
 

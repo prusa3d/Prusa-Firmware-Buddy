@@ -78,11 +78,11 @@ void screen_printing_data_t::pauseAction() {
     }
     switch (GetState()) {
     case printing_state_t::PRINTING:
-        marlin_print_pause();
+        print_client::print_pause();
         change_print_state();
         break;
     case printing_state_t::PAUSED:
-        marlin_print_resume();
+        print_client::print_resume();
         change_print_state();
         break;
     case printing_state_t::STOPPED:
@@ -102,7 +102,7 @@ void screen_printing_data_t::stopAction() {
     switch (GetState()) {
     case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
-        marlin_print_exit();
+        print_client::print_exit();
         return;
     case printing_state_t::PAUSING:
     case printing_state_t::RESUMING:
@@ -137,11 +137,11 @@ screen_printing_data_t::screen_printing_data_t()
     , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
     , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() }))) {
-    marlin_error_clr(MARLIN_ERR_ProbingFailed);
+    print_client::error_clr(MARLIN_ERR_ProbingFailed);
     // we will handle HELD_RELEASED event in this window
     DisableLongHoldScreenAction();
 
-    marlin_vars_t *vars = marlin_vars();
+    marlin_vars_t *vars = print_client::vars();
 
     strlcpy(text_time_dur.data(), "0m", text_time_dur.size());
     strlcpy(text_filament.data(), "999m", text_filament.size());
@@ -192,14 +192,14 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (gui::GetTick() - _last > 300) {
         _last = gui::GetTick();
 
-        static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
-        buff[1] = FSensors_instance().Get() + '0';                   // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
-        buff[4] = FSensors_instance().GetM600_send_on();             // Me edge, Ml level, Mn never, Mx undefined
-        buff[6] = FSensors_instance().WasM600_send() ? 's' : 'n';    // s == send, n== not send
-        buff[8] = _is_in_M600_flg ? 'M' : '0';                       // M == marlin is doing M600
-        buff[9] = marlin_event(MARLIN_EVT_CommandBegin) ? 'B' : '0'; // B == Event begin
-        buff[10] = marlin_command() == MARLIN_CMD_M600 ? 'C' : '0';  // C == Command M600
-        buff[11] = *pCommand == MARLIN_CMD_M600 ? 's' : '0';         // s == server - Command M600
+        static char buff[] = "Sx Mx x xxxx";                                //"x"s are replaced
+        buff[1] = FSensors_instance().Get() + '0';                          // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
+        buff[4] = FSensors_instance().GetM600_send_on();                    // Me edge, Ml level, Mn never, Mx undefined
+        buff[6] = FSensors_instance().WasM600_send() ? 's' : 'n';           // s == send, n== not send
+        buff[8] = _is_in_M600_flg ? 'M' : '0';                              // M == marlin is doing M600
+        buff[9] = print_client::event(MARLIN_EVT_CommandBegin) ? 'B' : '0'; // B == Event begin
+        buff[10] = print_client::command() == MARLIN_CMD_M600 ? 'C' : '0';  // C == Command M600
+        buff[11] = *pCommand == MARLIN_CMD_M600 ? 's' : '0';                // s == server - Command M600
         header.SetText(buff);
     }
 
@@ -207,33 +207,33 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 
     /// check stop clicked when MBL is running
     printing_state_t p_state = GetState();
-    if (stop_pressed && waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && (p_state == printing_state_t::ABORTING || p_state == printing_state_t::PAUSED)) {
-        marlin_print_abort();
+    if (stop_pressed && waiting_for_abort && print_client::command() != MARLIN_CMD_G29 && (p_state == printing_state_t::ABORTING || p_state == printing_state_t::PAUSED)) {
+        print_client::print_abort();
         waiting_for_abort = false;
         return;
     }
 
-    if (p_state == printing_state_t::PRINTED && marlin_error(MARLIN_ERR_ProbingFailed)) {
-        marlin_error_clr(MARLIN_ERR_ProbingFailed);
+    if (p_state == printing_state_t::PRINTED && print_client::error(MARLIN_ERR_ProbingFailed)) {
+        print_client::error_clr(MARLIN_ERR_ProbingFailed);
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
             screen_printing_reprint();
         } else {
-            marlin_print_exit();
+            print_client::print_exit();
             return;
         }
     }
 
     change_print_state();
 
-    if (marlin_vars()->print_duration != last_print_duration)
-        update_print_duration(marlin_vars()->print_duration);
-    if (marlin_vars()->time_to_end != last_time_to_end) {
+    if (print_client::vars()->print_duration != last_print_duration)
+        update_print_duration(print_client::vars()->print_duration);
+    if (print_client::vars()->time_to_end != last_time_to_end) {
         change_etime();
     }
 
     /// -- close screen when print is done / stopped and USB media is removed
-    if (!marlin_vars()->media_inserted && (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED)) {
-        marlin_print_exit();
+    if (!print_client::vars()->media_inserted && (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED)) {
+        print_client::print_exit();
         return;
     }
 
@@ -243,7 +243,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         set_pause_icon_and_label();
     }
     if (event == GUI_event_t::HELD_RELEASED) {
-        if (marlin_vars()->curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
+        if (print_client::vars()->curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
             LiveAdjustZ::Show();
         } else if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
             DialogMoveZ::Show();
@@ -262,13 +262,13 @@ void screen_printing_data_t::change_etime() {
         int8_t timezone = eeprom_get_i8(EEVAR_TIMEZONE);
         sec += 3600 * timezone;
         w_etime_label.SetText(label_etime = _("Print will end"));
-        update_end_timestamp(sec, marlin_vars()->print_speed);
+        update_end_timestamp(sec, print_client::vars()->print_speed);
     } else {
         // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
         w_etime_label.SetText(label_etime = _("Remaining"));
-        update_remaining_time(marlin_vars()->time_to_end, marlin_vars()->print_speed);
+        update_remaining_time(print_client::vars()->time_to_end, print_client::vars()->print_speed);
     }
-    last_time_to_end = marlin_vars()->time_to_end;
+    last_time_to_end = print_client::vars()->time_to_end;
 }
 
 void screen_printing_data_t::disable_tune_button() {
@@ -321,7 +321,7 @@ void screen_printing_data_t::update_remaining_time(uint32_t sec, uint16_t print_
 void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print_speed) {
 
     bool time_invalid = false;
-    if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
+    if (print_client::vars()->time_to_end == TIME_TO_END_INVALID) {
         w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
         time_invalid = true;
     } else {
@@ -333,9 +333,9 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
 
     if (print_speed != 100)
         // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
-        print_end_sec = now_sec + (100 * marlin_vars()->time_to_end / print_speed);
+        print_end_sec = now_sec + (100 * print_client::vars()->time_to_end / print_speed);
     else
-        print_end_sec = now_sec + marlin_vars()->time_to_end;
+        print_end_sec = now_sec + print_client::vars()->time_to_end;
 
     tomorrow_sec = now_sec + full_day_in_seconds;
 
@@ -384,7 +384,7 @@ void screen_printing_data_t::update_print_duration(time_t rawtime) {
 }
 
 void screen_printing_data_t::screen_printing_reprint() {
-    print_begin(marlin_vars()->media_SFN_path, true);
+    print_begin(print_client::vars()->media_SFN_path, true);
     w_etime_label.SetText(_("Remaining"));
     btn_stop.txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[static_cast<size_t>(item_id_t::stop)]));
     btn_stop.ico.SetIdRes(printing_icons[static_cast<size_t>(item_id_t::stop)]);
@@ -396,18 +396,18 @@ void screen_printing_data_t::screen_printing_reprint() {
 
 //todo use it
 /*static void mesh_err_stop_print() {
-    float target_nozzle = marlin_vars()->target_nozzle;
-    float target_bed = marlin_vars()->target_bed;
-    marlin_print_abort();
-    while (marlin_vars()->sd_printing) {
+    float target_nozzle = print_client::vars()->target_nozzle;
+    float target_bed = print_client::vars()->target_bed;
+    print_client::print_abort();
+    while (print_client::vars()->sd_printing) {
         gui_loop();
     }
-    //marlin_park_head();
-    marlin_gcode_printf("M104 S%F", (double)target_nozzle);
-    marlin_gcode_printf("M140 S%F", (double)target_bed);
-    marlin_gcode("G0 Z30"); //Z 30mm
-    marlin_gcode("M84");    //Disable steppers
-    while (marlin_vars()->pqueue) {
+    //print_client::park_head();
+    print_client::gcode_printf("M104 S%F", (double)target_nozzle);
+    print_client::gcode_printf("M140 S%F", (double)target_bed);
+    print_client::gcode("G0 Z30"); //Z 30mm
+    print_client::gcode("M84");    //Disable steppers
+    while (print_client::vars()->pqueue) {
         gui_loop();
     }
 }*/
@@ -456,7 +456,7 @@ void screen_printing_data_t::set_pause_icon_and_label() {
     case printing_state_t::PAUSED:
         enable_button(p_button);
         set_icon_and_label(item_id_t::resume, p_button, pLabel);
-        if (!marlin_vars()->media_inserted) {
+        if (!print_client::vars()->media_inserted) {
             disable_button(p_button);
         }
         break;
@@ -529,65 +529,65 @@ void screen_printing_data_t::set_stop_icon_and_label() {
 void screen_printing_data_t::change_print_state() {
     printing_state_t st = printing_state_t::COUNT;
 
-    switch (marlin_vars()->print_state) {
-    case marlin_print_state_t::Idle:
-    case marlin_print_state_t::WaitGui:
-    case marlin_print_state_t::PrintPreviewInit:
-    case marlin_print_state_t::PrintPreviewLoop:
-    case marlin_print_state_t::PrintInit:
+    switch (print_client::vars()->print_state) {
+    case PrintState::Idle:
+    case PrintState::WaitGui:
+    case PrintState::PrintPreviewInit:
+    case PrintState::PrintPreviewLoop:
+    case PrintState::PrintInit:
         st = printing_state_t::INITIAL;
         break;
-    case marlin_print_state_t::Printing:
+    case PrintState::Printing:
         st = printing_state_t::PRINTING;
         break;
-    case marlin_print_state_t::PowerPanic_AwaitingResume:
-    case marlin_print_state_t::Paused:
+    case PrintState::PowerPanic_AwaitingResume:
+    case PrintState::Paused:
         // stop_pressed = false;
         st = printing_state_t::PAUSED;
         break;
-    case marlin_print_state_t::Pausing_Begin:
-    case marlin_print_state_t::Pausing_Failed_Code:
-    case marlin_print_state_t::Pausing_WaitIdle:
-    case marlin_print_state_t::Pausing_ParkHead:
+    case PrintState::Pausing_Begin:
+    case PrintState::Pausing_Failed_Code:
+    case PrintState::Pausing_WaitIdle:
+    case PrintState::Pausing_ParkHead:
         st = printing_state_t::PAUSING;
         break;
-    case marlin_print_state_t::Resuming_Reheating:
+    case PrintState::Resuming_Reheating:
         stop_pressed = false;
         st = printing_state_t::REHEATING;
         break;
-    case marlin_print_state_t::Resuming_Begin:
-    case marlin_print_state_t::Resuming_UnparkHead_XY:
-    case marlin_print_state_t::Resuming_UnparkHead_ZE:
-    case marlin_print_state_t::CrashRecovery_Begin:
-    case marlin_print_state_t::CrashRecovery_Retracting:
-    case marlin_print_state_t::CrashRecovery_Lifting:
-    case marlin_print_state_t::CrashRecovery_XY_Measure:
-    case marlin_print_state_t::CrashRecovery_XY_HOME:
-    case marlin_print_state_t::CrashRecovery_Axis_NOK:
-    case marlin_print_state_t::CrashRecovery_Repeated_Crash:
-    case marlin_print_state_t::PowerPanic_Resume:
+    case PrintState::Resuming_Begin:
+    case PrintState::Resuming_UnparkHead_XY:
+    case PrintState::Resuming_UnparkHead_ZE:
+    case PrintState::CrashRecovery_Begin:
+    case PrintState::CrashRecovery_Retracting:
+    case PrintState::CrashRecovery_Lifting:
+    case PrintState::CrashRecovery_XY_Measure:
+    case PrintState::CrashRecovery_XY_HOME:
+    case PrintState::CrashRecovery_Axis_NOK:
+    case PrintState::CrashRecovery_Repeated_Crash:
+    case PrintState::PowerPanic_Resume:
         stop_pressed = false;
         st = printing_state_t::RESUMING;
         break;
-    case marlin_print_state_t::Aborting_Begin:
-    case marlin_print_state_t::Aborting_WaitIdle:
-    case marlin_print_state_t::Aborting_ParkHead:
+    case PrintState::Aborting_Begin:
+    case PrintState::Aborting_WaitIdle:
+    case PrintState::Aborting_ParkHead:
         stop_pressed = false;
         st = printing_state_t::ABORTING;
         break;
-    case marlin_print_state_t::Finishing_WaitIdle:
-    case marlin_print_state_t::Finishing_ParkHead:
+    case PrintState::Finishing_WaitIdle:
+    case PrintState::Finishing_ParkHead:
         st = printing_state_t::PRINTING;
         break;
-    case marlin_print_state_t::Aborted:
+    case PrintState::Aborted:
         stop_pressed = false;
         st = printing_state_t::STOPPED;
         break;
-    case marlin_print_state_t::Finished:
-    case marlin_print_state_t::Exit:
+    case PrintState::Finished:
+    case PrintState::Exit:
         st = printing_state_t::PRINTED;
         break;
-    case marlin_print_state_t::PowerPanic_acFault:
+    case PrintState::PowerPanic_acFault:
         // this state is never reached
         __builtin_unreachable();
         return;

@@ -99,7 +99,7 @@ void print_utils_loop() {
 }
 
 void print_begin(const char *filename, bool skip_preview) {
-    marlin_print_start(filename, skip_preview);
+    print_client::print_start(filename, skip_preview);
     // FIXME: This should not be here and it should be handled
     // in Marlin. Needs refactoring!
     oProgressData.mInit();

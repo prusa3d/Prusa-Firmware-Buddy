@@ -16,7 +16,7 @@
 //NsPreheat::I_MI_Filament
 void NsPreheat::I_MI_Filament::click_at(filament_t filament_index) {
     const Response response = Filaments::Get(filament_index).response;
-    marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
+    print_client::FSM_response(PhasesPreheat::UserTempSelection, response);
 }
 
 /*****************************************************************************/
@@ -27,7 +27,7 @@ NsPreheat::MI_RETURN::MI_RETURN()
 
 void NsPreheat::MI_RETURN::click(IWindowMenu &window_menu) {
     window_menu.Validate(); /// don't redraw since we leave the menu
-    marlin_FSM_response(PhasesPreheat::UserTempSelection, Response::Abort);
+    print_client::FSM_response(PhasesPreheat::UserTempSelection, Response::Abort);
 }
 
 /*****************************************************************************/

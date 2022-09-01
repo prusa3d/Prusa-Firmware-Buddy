@@ -19,7 +19,7 @@ MI_WIZARD::MI_WIZARD()
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmWizard);
+    print_client::test_start(stmWizard);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -30,7 +30,7 @@ MI_SELFTEST::MI_SELFTEST()
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmFullSelftest);
+    print_client::test_start(stmFullSelftest);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -41,7 +41,7 @@ MI_SELFTEST_RESULT::MI_SELFTEST_RESULT()
 }
 
 void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmShow_result);
+    print_client::test_start(stmShow_result);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -52,7 +52,7 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmFirstLayer);
+    print_client::test_start(stmFirstLayer);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -63,7 +63,7 @@ MI_TEST_FANS::MI_TEST_FANS()
 }
 
 void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmFans);
+    print_client::test_start(stmFans);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -74,7 +74,7 @@ MI_TEST_XYZ::MI_TEST_XYZ()
 }
 
 void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmXYZAxis);
+    print_client::test_start(stmXYZAxis);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -85,7 +85,7 @@ MI_TEST_X::MI_TEST_X()
 }
 
 void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmXAxis);
+    print_client::test_start(stmXAxis);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -96,7 +96,7 @@ MI_TEST_Y::MI_TEST_Y()
 }
 
 void MI_TEST_Y::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmYAxis);
+    print_client::test_start(stmYAxis);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -107,7 +107,7 @@ MI_TEST_Z::MI_TEST_Z()
 }
 
 void MI_TEST_Z::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmZAxis);
+    print_client::test_start(stmZAxis);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -118,7 +118,7 @@ MI_TEST_HEAT::MI_TEST_HEAT()
 }
 
 void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmHeaters);
+    print_client::test_start(stmHeaters);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -129,7 +129,7 @@ MI_TEST_HOTEND::MI_TEST_HOTEND()
 }
 
 void MI_TEST_HOTEND::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmHeaters_noz);
+    print_client::test_start(stmHeaters_noz);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -140,7 +140,7 @@ MI_TEST_BED::MI_TEST_BED()
 }
 
 void MI_TEST_BED::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmHeaters_bed);
+    print_client::test_start(stmHeaters_bed);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }
 
@@ -151,6 +151,6 @@ MI_ADVANCED_FAN_TEST::MI_ADVANCED_FAN_TEST()
 }
 
 void MI_ADVANCED_FAN_TEST::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmFans_fine);
+    print_client::test_start(stmFans_fine);
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 }

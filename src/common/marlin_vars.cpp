@@ -125,7 +125,7 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, marlin_var_id_t var_id) {
     case MARLIN_VAR_MEDIAINS:
         return variant8_bool(vars->media_inserted);
     case MARLIN_VAR_PRNSTATE:
-        return variant8_ui8(static_cast<std::underlying_type_t<marlin_print_state_t>>(vars->print_state));
+        return variant8_ui8(static_cast<std::underlying_type_t<PrintState>>(vars->print_state));
     case MARLIN_VAR_FILENAME:
         return variant8_pchar(vars->media_LFN, 0, 1);
     case MARLIN_VAR_FILEPATH:
@@ -253,7 +253,7 @@ void marlin_vars_set_var(marlin_vars_t *vars, marlin_var_id_t var_id, variant8_t
         vars->media_inserted = variant8_get_bool(var);
         break;
     case MARLIN_VAR_PRNSTATE:
-        vars->print_state = marlin_print_state_t(variant8_get_ui8(var));
+        vars->print_state = PrintState(variant8_get_ui8(var));
         break;
     case MARLIN_VAR_FILENAME:
         if (vars->media_LFN)
@@ -433,7 +433,7 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, marlin_var_id_t var_id, const 
     case MARLIN_VAR_MEDIAINS:
         return sscanf(str, "%hhu", &(vars->media_inserted));
     case MARLIN_VAR_PRNSTATE:
-        return sscanf(str, "%hhu", (std::underlying_type_t<marlin_print_state_t> *)(&(vars->print_state)));
+        return sscanf(str, "%hhu", (std::underlying_type_t<PrintState> *)(&(vars->print_state)));
     case MARLIN_VAR_FILENAME:
         return sscanf(str, "%s", (vars->media_LFN));
     case MARLIN_VAR_FILEPATH:

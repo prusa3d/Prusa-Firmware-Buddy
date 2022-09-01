@@ -109,7 +109,7 @@ void DialogStateful<T>::windowEvent(EventLock /*has private ctor*/, window_t * /
     switch (event) {
     case GUI_event_t::CLICK: {
         Response response = radio.Click();
-        marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), response);
+        print_client::FSM_response(GetEnumFromPhaseIndex<T>(phase), response);
         break;
     }
     case GUI_event_t::ENC_UP:

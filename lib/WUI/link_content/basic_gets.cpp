@@ -18,7 +18,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     // different values. But they would still be reasonably "sane". If we eg.
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
-    marlin_vars_t *vars = marlin_vars();
+    marlin_vars_t *vars = print_client::vars();
     const char *filament_material = get_selected_filament_name();
 
     bool operational = true;
@@ -29,62 +29,62 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     bool ready = true;
     bool busy = false;
 
-    marlin_update_vars(MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK4(MARLIN_VAR_PRNSPEED, MARLIN_VAR_POS_Z, MARLIN_VAR_PRNSPEED, MARLIN_VAR_PRNSTATE));
+    print_client::loop();
 
     switch (vars->print_state) {
-    case marlin_print_state_t::CrashRecovery_Begin:
-    case marlin_print_state_t::CrashRecovery_Lifting:
-    case marlin_print_state_t::CrashRecovery_Retracting:
-    case marlin_print_state_t::CrashRecovery_XY_Measure:
-    case marlin_print_state_t::CrashRecovery_XY_HOME:
-    case marlin_print_state_t::CrashRecovery_Axis_NOK:
-    case marlin_print_state_t::CrashRecovery_Repeated_Crash:
-    case marlin_print_state_t::PowerPanic_acFault:
+    case PrintState::CrashRecovery_Begin:
+    case PrintState::CrashRecovery_Lifting:
+    case PrintState::CrashRecovery_Retracting:
+    case PrintState::CrashRecovery_XY_Measure:
+    case PrintState::CrashRecovery_XY_HOME:
+    case PrintState::CrashRecovery_Axis_NOK:
+    case PrintState::CrashRecovery_Repeated_Crash:
+    case PrintState::PowerPanic_acFault:
         busy = true;
         // Fall through
-    case marlin_print_state_t::Printing:
+    case PrintState::Printing:
         printing = true;
         ready = operational = false;
         break;
-    case marlin_print_state_t::PowerPanic_AwaitingResume:
-    case marlin_print_state_t::Pausing_Begin:
-    case marlin_print_state_t::Pausing_Failed_Code:
-    case marlin_print_state_t::Pausing_WaitIdle:
-    case marlin_print_state_t::Pausing_ParkHead:
+    case PrintState::PowerPanic_AwaitingResume:
+    case PrintState::Pausing_Begin:
+    case PrintState::Pausing_Failed_Code:
+    case PrintState::Pausing_WaitIdle:
+    case PrintState::Pausing_ParkHead:
         printing = pausing = paused = busy = true;
         ready = operational = false;
         break;
-    case marlin_print_state_t::Paused:
+    case PrintState::Paused:
         printing = paused = true;
         ready = operational = false;
         break;
-    case marlin_print_state_t::Resuming_Begin:
-    case marlin_print_state_t::Resuming_Reheating:
-    case marlin_print_state_t::Resuming_UnparkHead_XY:
-    case marlin_print_state_t::Resuming_UnparkHead_ZE:
-    case marlin_print_state_t::PowerPanic_Resume:
+    case PrintState::Resuming_Begin:
+    case PrintState::Resuming_Reheating:
+    case PrintState::Resuming_UnparkHead_XY:
+    case PrintState::Resuming_UnparkHead_ZE:
+    case PrintState::PowerPanic_Resume:
         ready = operational = false;
         busy = printing = true;
         break;
-    case marlin_print_state_t::Aborting_Begin:
-    case marlin_print_state_t::Aborting_WaitIdle:
-    case marlin_print_state_t::Aborting_ParkHead:
+    case PrintState::Aborting_Begin:
+    case PrintState::Aborting_WaitIdle:
+    case PrintState::Aborting_ParkHead:
         cancelling = busy = true;
         ready = operational = false;
         break;
-    case marlin_print_state_t::Finishing_WaitIdle:
-    case marlin_print_state_t::Finishing_ParkHead:
+    case PrintState::Finishing_WaitIdle:
+    case PrintState::Finishing_ParkHead:
         busy = true;
         ready = operational = false;
         break;
-    case marlin_print_state_t::Aborted:
-    case marlin_print_state_t::Finished:
-    case marlin_print_state_t::Exit:
-    case marlin_print_state_t::Idle:
-    case marlin_print_state_t::WaitGui:
-    case marlin_print_state_t::PrintPreviewInit:
-    case marlin_print_state_t::PrintPreviewLoop:
-    case marlin_print_state_t::PrintInit:
+    case PrintState::Aborted:
+    case PrintState::Finished:
+    case PrintState::Exit:
+    case PrintState::Idle:
+    case PrintState::WaitGui:
+    case PrintState::PrintPreviewInit:
+    case PrintState::PrintPreviewLoop:
+    case PrintState::PrintInit:
         break;
     }
 
@@ -164,64 +164,64 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     // different values. But they would still be reasonably "sane". If we eg.
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
-    marlin_vars_t *vars = marlin_vars();
-    marlin_update_vars(MARLIN_VAR_MSK5(MARLIN_VAR_PRNSTATE, MARLIN_VAR_DURATION, MARLIN_VAR_TIMTOEND, MARLIN_VAR_FILEPATH, MARLIN_VAR_SD_PDONE));
+    marlin_vars_t *vars = print_client::vars();
+    print_client::loop();
 
     bool has_job = false;
     const char *state = "Unknown";
 
     switch (vars->print_state) {
-    case marlin_print_state_t::Finishing_WaitIdle:
-    case marlin_print_state_t::Finishing_ParkHead:
-    case marlin_print_state_t::Printing:
-    case marlin_print_state_t::PowerPanic_acFault:
+    case PrintState::Finishing_WaitIdle:
+    case PrintState::Finishing_ParkHead:
+    case PrintState::Printing:
+    case PrintState::PowerPanic_acFault:
         has_job = true;
         state = "Printing";
         break;
-    case marlin_print_state_t::CrashRecovery_Begin:
-    case marlin_print_state_t::CrashRecovery_Lifting:
-    case marlin_print_state_t::CrashRecovery_Retracting:
-    case marlin_print_state_t::CrashRecovery_XY_Measure:
-    case marlin_print_state_t::CrashRecovery_XY_HOME:
-    case marlin_print_state_t::CrashRecovery_Axis_NOK:
-    case marlin_print_state_t::CrashRecovery_Repeated_Crash:
+    case PrintState::CrashRecovery_Begin:
+    case PrintState::CrashRecovery_Lifting:
+    case PrintState::CrashRecovery_Retracting:
+    case PrintState::CrashRecovery_XY_Measure:
+    case PrintState::CrashRecovery_XY_HOME:
+    case PrintState::CrashRecovery_Axis_NOK:
+    case PrintState::CrashRecovery_Repeated_Crash:
         has_job = true;
         state = "CrashRecovery";
         break;
-    case marlin_print_state_t::Pausing_Begin:
-    case marlin_print_state_t::Pausing_Failed_Code:
-    case marlin_print_state_t::Pausing_WaitIdle:
-    case marlin_print_state_t::Pausing_ParkHead:
+    case PrintState::Pausing_Begin:
+    case PrintState::Pausing_Failed_Code:
+    case PrintState::Pausing_WaitIdle:
+    case PrintState::Pausing_ParkHead:
         has_job = true;
         state = "Pausing";
         break;
-    case marlin_print_state_t::PowerPanic_AwaitingResume:
-    case marlin_print_state_t::Paused:
+    case PrintState::PowerPanic_AwaitingResume:
+    case PrintState::Paused:
         has_job = true;
         state = "Paused";
         break;
-    case marlin_print_state_t::Resuming_Begin:
-    case marlin_print_state_t::Resuming_Reheating:
-    case marlin_print_state_t::Resuming_UnparkHead_XY:
-    case marlin_print_state_t::Resuming_UnparkHead_ZE:
-    case marlin_print_state_t::PowerPanic_Resume:
+    case PrintState::Resuming_Begin:
+    case PrintState::Resuming_Reheating:
+    case PrintState::Resuming_UnparkHead_XY:
+    case PrintState::Resuming_UnparkHead_ZE:
+    case PrintState::PowerPanic_Resume:
         has_job = true;
         state = "Resuming";
         break;
-    case marlin_print_state_t::Aborting_Begin:
-    case marlin_print_state_t::Aborting_WaitIdle:
-    case marlin_print_state_t::Aborting_ParkHead:
+    case PrintState::Aborting_Begin:
+    case PrintState::Aborting_WaitIdle:
+    case PrintState::Aborting_ParkHead:
         has_job = true;
         state = "Cancelling";
         break;
-    case marlin_print_state_t::Aborted:
-    case marlin_print_state_t::Finished:
-    case marlin_print_state_t::Exit:
-    case marlin_print_state_t::Idle:
-    case marlin_print_state_t::WaitGui:
-    case marlin_print_state_t::PrintPreviewInit:
-    case marlin_print_state_t::PrintPreviewLoop:
-    case marlin_print_state_t::PrintInit:
+    case PrintState::Aborted:
+    case PrintState::Finished:
+    case PrintState::Exit:
+    case PrintState::Idle:
+    case PrintState::WaitGui:
+    case PrintState::PrintPreviewInit:
+    case PrintState::PrintPreviewLoop:
+    case PrintState::PrintInit:
         state = "Operational";
         break;
     }

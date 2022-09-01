@@ -74,7 +74,7 @@ void WindowScale::unconditionalDraw() {
 
 WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreenBody)
-    , number(this, getNumberRect(pt), marlin_vars()->z_offset)
+    , number(this, getNumberRect(pt), print_client::vars()->z_offset)
     , arrows(this, getIconPoint(pt)) {
 
     SetRect(number.GetRect().Union(arrows.GetRect()));
@@ -85,7 +85,7 @@ WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
 }
 
 void WindowLiveAdjustZ::Save() {
-    /// store new z offset value into a marlin_vars & EEPROM
+    /// store new z offset value into a print_client::vars & EEPROM
     if (!SteelSheets::SetZOffset(number.GetValue())) {
         // could be during print, better not cause BSOD, just freeze in debug
         assert(0 /* Z offset write failed */);
@@ -105,7 +105,7 @@ void WindowLiveAdjustZ::Change(int dif) {
     float baby_step = z_offset - old;
     if (baby_step != 0.0F) {
         number.SetValue(z_offset);
-        marlin_do_babysteps_Z(baby_step);
+        print_client::do_babysteps_Z(baby_step);
     }
 }
 
@@ -220,7 +220,7 @@ void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         break;
     case GUI_event_t::CLICK:
         /// has set is_closed_on_click_t
-        /// destructor of WindowLiveAdjustZ stores new z offset value into a marlin_vars & EEPROM
+        /// destructor of WindowLiveAdjustZ stores new z offset value into a print_client::vars & EEPROM
         /// todo
         /// GUI_event_t::CLICK could bubble into window_t::windowEvent and close dialog
         /// so CLICK could be left unhandled here

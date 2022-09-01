@@ -42,7 +42,7 @@ string_view_utf8 FooterItemAxisPos<AXIS>::static_makeViewIntoBuff(float value) {
 
 template <size_t AXIS>
 float FooterItemAxisPos<AXIS>::static_readValue() {
-    return std::clamp((float)marlin_vars()->pos[AXIS], (float)MenuVars::GetAxisRanges()[AXIS][0], (float)MenuVars::GetAxisRanges()[AXIS][1]);
+    return std::clamp((float)print_client::vars()->pos[AXIS], (float)MenuVars::GetAxisRanges()[AXIS][0], (float)MenuVars::GetAxisRanges()[AXIS][1]);
 }
 
 // Position according to gcode
@@ -76,7 +76,7 @@ string_view_utf8 FooterItemAxisCurrPos<AXIS>::static_makeViewIntoBuff(float valu
 }
 template <size_t AXIS>
 float FooterItemAxisCurrPos<AXIS>::static_readValue() {
-    return std::clamp((float)marlin_vars()->curr_pos[AXIS], (float)MenuVars::GetAxisRanges()[AXIS][0], (float)MenuVars::GetAxisRanges()[AXIS][1]);
+    return std::clamp((float)print_client::vars()->curr_pos[AXIS], (float)MenuVars::GetAxisRanges()[AXIS][0], (float)MenuVars::GetAxisRanges()[AXIS][1]);
 }
 
 class FooterItemAxisX : FooterItemAxisPos<0> {

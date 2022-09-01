@@ -4,7 +4,7 @@
 #include "ScreenHandler.hpp"
 
 void gui_marlin_G28_or_G29_in_progress() {
-    uint32_t cmd = marlin_command();
+    uint32_t cmd = print_client::command();
     if ((cmd != MARLIN_CMD_G28) && (cmd != MARLIN_CMD_G29))
         Screens::Access()->Close();
 }

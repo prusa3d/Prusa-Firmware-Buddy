@@ -7,6 +7,7 @@
 
 #include "sound_enum.h"
 #include "ScreenHandler.hpp"
+#include "marlin_client.hpp"
 #include "cmsis_os.h" //HAL_GetTick
 #include "mock_windows.hpp"
 #include <memory>
@@ -16,5 +17,5 @@ void gui_invalidate(void) {}
 EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {}
 void Sound_Play(eSOUND_TYPE eSoundType) {}
 void gui_loop() {}
-extern "C" void marlin_notify_server_about_encoder_move() {}
-extern "C" void marlin_notify_server_about_knob_click() {}
+void print_client::notify_server_about_encoder_move() {}
+void print_client::notify_server_about_knob_click() {}

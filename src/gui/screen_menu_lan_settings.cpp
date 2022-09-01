@@ -172,7 +172,7 @@ class ScreenMenuWifiSettings : public ScreenMenuConnectionBase {
 public:
     ScreenMenuWifiSettings()
         : ScreenMenuConnectionBase(NETDEV_ESP_ID, wifi_label) {
-        if (marlin_is_printing()) {
+        if (print_client::is_printing()) {
             DisableItem<MI_WIFI_INIT_t>();
             DisableItem<MI_WIFI_CREDENTIALS_INI_FILE_t>();
             DisableItem<MI_WIFI_CREDENTIALS_t>();

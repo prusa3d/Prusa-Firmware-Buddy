@@ -223,7 +223,7 @@ void FirstLayer::inc_progress() {
     }
 
     // const variant8_t var = variant8_i8(100 * current_line / (float)total_lines);
-    // marlin_set_var(MARLIN_VAR_SD_PDONE, var);
+    // print_client::set_var(MARLIN_VAR_SD_PDONE, var);
 }
 
 void FirstLayer::go_to_destination(const float x, const float y, const float z, const float e, const float f) {

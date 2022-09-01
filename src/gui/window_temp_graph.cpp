@@ -65,7 +65,7 @@ void window_temp_graph_t::unconditionalDraw() {
         return;
     }
 
-    marlin_vars_t *vars = marlin_vars();
+    marlin_vars_t *vars = print_client::vars();
 
     y_bed_c[0] = (uint8_t)(179 - (vars->temp_bed * 0.5F));
     y_nozzle_c[0] = (uint8_t)(179 - (vars->temp_nozzle * 0.5F));

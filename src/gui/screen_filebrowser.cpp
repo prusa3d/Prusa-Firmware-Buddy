@@ -42,8 +42,8 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
 
     //set root of the file list
     window_file_list_t::SetRoot(root);
-    // initialize the directory (and selected file) from marlin_vars
-    marlin_vars_t *vars = marlin_vars();
+    // initialize the directory (and selected file) from print_client::vars
+    marlin_vars_t *vars = print_client::vars();
     // here the strncpy is meant to be - need the rest of the buffer zeroed
     strncpy(w_filelist.sfn_path, vars->media_SFN_path, sizeof(w_filelist.sfn_path));
     // ensure null character at the end no matter what
@@ -66,7 +66,7 @@ void screen_filebrowser_data_t::clear_firstVisibleSFN(marlin_vars_t *vars) {
 }
 
 void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    marlin_vars_t *vars = marlin_vars();
+    marlin_vars_t *vars = print_client::vars();
     if (event == GUI_event_t::MEDIA) {
         MediaState_t media_state = MediaState_t(int(param));
         if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {

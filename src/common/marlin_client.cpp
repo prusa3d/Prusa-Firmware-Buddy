@@ -12,15 +12,15 @@
 #include "log.h"
 #include "marlin_vars.hpp"
 
+using namespace print_client;
+
 LOG_COMPONENT_DEF(MarlinClient, LOG_SEVERITY_INFO);
 
 //maximum string length for DBG_VAR
-enum {
-    DBG_VAR_STR_MAX_LEN = 128
-};
+static constexpr size_t DBG_VAR_STR_MAX_LEN = 128;
 
 // client
-typedef struct _marlin_client_t {
+struct marlin_client_t {
     uint64_t events;  // event mask
     uint64_t changes; // variable change mask
     uint64_t errors;
@@ -39,7 +39,7 @@ typedef struct _marlin_client_t {
 
     uint8_t id;        // client id (0..MARLIN_MAX_CLIENTS-1)
     uint8_t reheating; // reheating in progress
-} marlin_client_t;
+};
 
 //-----------------------------------------------------------------------------
 // variables
@@ -60,16 +60,16 @@ extern osSemaphoreId marlin_server_sema; // semaphore handle
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-static void _wait_server_started(void);
+static void _wait_server_started();
 static void _send_request_to_server(uint8_t client_id, const char *request);
 static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)());
 static void _process_client_message(marlin_client_t *client, variant8_t msg);
-static marlin_client_t *_client_ptr(void);
+static marlin_client_t *_client_ptr();
 
 //-----------------------------------------------------------------------------
 // client side public functions
 
-marlin_vars_t *marlin_client_init(void) {
+marlin_vars_t *print_client::init() {
     int client_id;
     marlin_client_t *client = 0;
     _wait_server_started();
@@ -103,11 +103,11 @@ marlin_vars_t *marlin_client_init(void) {
     return (client) ? &(client->vars) : 0;
 }
 
-void marlin_client_shdn(void) {
+void print_client::shdn() {
     //TODO
 }
 
-void marlin_client_loop(void) {
+void print_client::loop() {
     uint16_t count = 0;
     osEvent ose;
     variant8_t msg;
@@ -136,24 +136,24 @@ void marlin_client_loop(void) {
     client->last_count = count;
 }
 
-int marlin_client_id(void) {
+int print_client::id() {
     marlin_client_t *client = _client_ptr();
     if (client)
         return client->id;
     return 0;
 }
 
-void marlin_client_wait_for_start_processing(void) {
+void print_client::wait_for_start_processing() {
     // wait for startup
-    while (!marlin_event_clr(MARLIN_EVT_StartProcessing)) {
-        marlin_client_loop();
+    while (!print_client::event_clr(MARLIN_EVT_StartProcessing)) {
+        print_client::loop();
         osDelay(100);
     }
 }
 
 //register callback to fsm creation
 //return success
-int marlin_client_set_fsm_cb(fsm_cb_t cb) {
+int print_client::set_fsm_cb(fsm_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
         client->fsm_cb = cb;
@@ -164,7 +164,7 @@ int marlin_client_set_fsm_cb(fsm_cb_t cb) {
 
 //register callback to message
 //return success
-int marlin_client_set_message_cb(message_cb_t cb) {
+int print_client::set_message_cb(message_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
         client->message_cb = cb;
@@ -175,7 +175,7 @@ int marlin_client_set_message_cb(message_cb_t cb) {
 
 //register callback to warning_cb_t (fan failure, heater timeout ...)
 //return success
-int marlin_client_set_warning_cb(warning_cb_t cb) {
+int print_client::set_warning_cb(warning_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
         client->warning_cb = cb;
@@ -186,7 +186,7 @@ int marlin_client_set_warning_cb(warning_cb_t cb) {
 
 //register callback to startup_cb_t (complete initialization)
 //return success
-int marlin_client_set_startup_cb(startup_cb_t cb) {
+int print_client::set_startup_cb(startup_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
         client->startup_cb = cb;
@@ -195,7 +195,7 @@ int marlin_client_set_startup_cb(startup_cb_t cb) {
     return 0;
 }
 
-int marlin_processing(void) {
+int print_client::processing() {
     marlin_client_t *client = _client_ptr();
     if (client)
         return (client->flags & MARLIN_CFLG_PROCESS) ? 1 : 0;
@@ -210,19 +210,19 @@ void _send_request_to_server_and_wait_with_callback(const char *request, void (*
     }
 }
 
-void marlin_client_set_event_notify(uint64_t notify_events, void (*cb)()) {
+void print_client::set_event_notify(uint64_t notify_events, void (*cb)()) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(request, MARLIN_MAX_REQUEST, "!%c%08lx %08lx", MARLIN_MSG_EVENT_MASK, (uint32_t)(notify_events & 0xffffffff), (uint32_t)(notify_events >> 32));
     _send_request_to_server_and_wait_with_callback(request, cb);
 }
 
-void marlin_client_set_change_notify(uint64_t notify_changes, void (*cb)()) {
+void print_client::set_change_notify(uint64_t notify_changes, void (*cb)()) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(request, MARLIN_MAX_REQUEST, "!%c%08lx %08lx", MARLIN_MSG_CHANGE_MASK, (uint32_t)(notify_changes & 0xffffffff), (uint32_t)(notify_changes >> 32));
     _send_request_to_server_and_wait_with_callback(request, cb);
 }
 
-uint32_t marlin_command(void) {
+uint32_t print_client::command() {
     marlin_client_t *client = _client_ptr();
     if (client)
         return client->command;
@@ -239,44 +239,40 @@ void _send_request_id_to_server_and_wait(const marlin_msg_t id) {
     _send_request_to_server_and_wait(request);
 }
 
-void marlin_stop_processing(void) {
+void print_client::stop_processing() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_STOP);
 }
 
-void marlin_set_exclusive_mode(int exclusive_mode) {
+void print_client::set_exclusive_mode(int exclusive_mode) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(request, MARLIN_MAX_REQUEST, "!%c%d", MARLIN_MSG_EXCLUSIVE, exclusive_mode);
     _send_request_to_server_and_wait(request);
 }
 
-void marlin_start_processing(void) {
+void print_client::start_processing() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_START);
 }
 
-int marlin_motion(void) {
-    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
+int print_client::motion() {
+    marlin_vars_t *vars = print_client::update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
     return (vars->motion) ? 1 : 0;
 }
 
-int marlin_wait_motion(uint32_t timeout) {
-    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
+int print_client::wait_motion(uint32_t timeout) {
+    marlin_vars_t *vars = print_client::update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
     uint32_t tick = ticks_ms();
     while ((vars->motion == 0) && ticks_diff(ticks_ms(), tick) > (int32_t)timeout)
-        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
+        print_client::update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
     return (vars->motion) ? 1 : 0;
 }
 
-void marlin_gcode(const char *gcode) {
+void print_client::gcode(const char *gcode) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(request, MARLIN_MAX_REQUEST, "!%c%s", MARLIN_MSG_GCODE, gcode);
     _send_request_to_server_and_wait(request);
 }
 
-void marlin_json_gcode(const char *gcode) {
-    marlin_gcode(gcode);
-}
-
-int marlin_gcode_printf(const char *format, ...) {
+int print_client::gcode_printf(const char *format, ...) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(request, MARLIN_MAX_REQUEST, "!%c", MARLIN_MSG_GCODE);
     va_list ap;
@@ -287,13 +283,13 @@ int marlin_gcode_printf(const char *format, ...) {
     return ret;
 }
 
-void marlin_gcode_push_front(const char *gcode) {
+void print_client::gcode_push_front(const char *gcode) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(request, MARLIN_MAX_REQUEST, "!%c0x%p", MARLIN_MSG_INJECT_GCODE, gcode);
     _send_request_to_server_and_wait(request);
 }
 
-int marlin_event(MARLIN_EVT_t evt_id) {
+int print_client::event(MARLIN_EVT_t evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << evt_id;
@@ -302,7 +298,7 @@ int marlin_event(MARLIN_EVT_t evt_id) {
     return ret;
 }
 
-int marlin_event_set(MARLIN_EVT_t evt_id) {
+int print_client::event_set(MARLIN_EVT_t evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << evt_id;
@@ -313,7 +309,7 @@ int marlin_event_set(MARLIN_EVT_t evt_id) {
     return ret;
 }
 
-int marlin_event_clr(MARLIN_EVT_t evt_id) {
+int print_client::event_clr(MARLIN_EVT_t evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << evt_id;
@@ -324,12 +320,12 @@ int marlin_event_clr(MARLIN_EVT_t evt_id) {
     return ret;
 }
 
-uint64_t marlin_events(void) {
+uint64_t print_client::events() {
     marlin_client_t *client = _client_ptr();
     return (client) ? client->events : 0;
 }
 
-int marlin_change(marlin_var_id_t var_id) {
+int print_client::change(marlin_var_id_t var_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << var_id;
@@ -338,7 +334,7 @@ int marlin_change(marlin_var_id_t var_id) {
     return ret;
 }
 
-int marlin_change_set(marlin_var_id_t var_id) {
+int print_client::change_set(marlin_var_id_t var_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << var_id;
@@ -349,7 +345,7 @@ int marlin_change_set(marlin_var_id_t var_id) {
     return ret;
 }
 
-int marlin_change_clr(marlin_var_id_t var_id) {
+int print_client::change_clr(marlin_var_id_t var_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << var_id;
@@ -360,12 +356,12 @@ int marlin_change_clr(marlin_var_id_t var_id) {
     return ret;
 }
 
-uint64_t marlin_changes(void) {
+uint64_t print_client::changes() {
     marlin_client_t *client = _client_ptr();
     return (client) ? client->changes : 0;
 }
 
-int marlin_error(uint8_t err_id) {
+int print_client::error(uint8_t err_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << err_id;
@@ -374,7 +370,7 @@ int marlin_error(uint8_t err_id) {
     return ret;
 }
 
-int marlin_error_set(uint8_t err_id) {
+int print_client::error_set(uint8_t err_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << err_id;
@@ -385,7 +381,7 @@ int marlin_error_set(uint8_t err_id) {
     return ret;
 }
 
-int marlin_error_clr(uint8_t err_id) {
+int print_client::error_clr(uint8_t err_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << err_id;
@@ -396,25 +392,25 @@ int marlin_error_clr(uint8_t err_id) {
     return ret;
 }
 
-uint64_t marlin_errors(void) {
+uint64_t print_client::errors() {
     marlin_client_t *client = _client_ptr();
     return (client) ? client->errors : 0;
 }
 
-variant8_t marlin_get_var(marlin_var_id_t var_id) {
+variant8_t print_client::get_var(marlin_var_id_t var_id) {
     marlin_client_t *client = _client_ptr();
     return (client) ? marlin_vars_get_var(&(client->vars), var_id) : variant8_empty();
 }
 
-float marlin_get_flt(marlin_var_id_t var_id) { return variant8_get_flt(marlin_get_var(var_id)); }
-uint32_t marlin_get_ui32(marlin_var_id_t var_id) { return variant8_get_ui32(marlin_get_var(var_id)); }
-int32_t marlin_get_i32(marlin_var_id_t var_id) { return variant8_get_i32(marlin_get_var(var_id)); }
-uint16_t marlin_get_ui16(marlin_var_id_t var_id) { return variant8_get_ui16(marlin_get_var(var_id)); }
-uint8_t marlin_get_ui8(marlin_var_id_t var_id) { return variant8_get_ui8(marlin_get_var(var_id)); }
-int8_t marlin_get_i8(marlin_var_id_t var_id) { return variant8_get_i8(marlin_get_var(var_id)); }
-bool marlin_get_bool(marlin_var_id_t var_id) { return variant8_get_bool(marlin_get_var(var_id)); }
+float print_client::get_flt(marlin_var_id_t var_id) { return variant8_get_flt(print_client::get_var(var_id)); }
+uint32_t print_client::get_ui32(marlin_var_id_t var_id) { return variant8_get_ui32(print_client::get_var(var_id)); }
+int32_t print_client::get_i32(marlin_var_id_t var_id) { return variant8_get_i32(print_client::get_var(var_id)); }
+uint16_t print_client::get_ui16(marlin_var_id_t var_id) { return variant8_get_ui16(print_client::get_var(var_id)); }
+uint8_t print_client::get_ui8(marlin_var_id_t var_id) { return variant8_get_ui8(print_client::get_var(var_id)); }
+int8_t print_client::get_i8(marlin_var_id_t var_id) { return variant8_get_i8(print_client::get_var(var_id)); }
+bool print_client::get_bool(marlin_var_id_t var_id) { return variant8_get_bool(print_client::get_var(var_id)); }
 
-variant8_t marlin_set_var(marlin_var_id_t var_id, variant8_t val) {
+variant8_t print_client::set_var(marlin_var_id_t var_id, variant8_t val) {
     variant8_t retval = variant8_empty();
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
@@ -435,16 +431,16 @@ variant8_t marlin_set_var(marlin_var_id_t var_id, variant8_t val) {
     return retval;
 }
 
-void marlin_set_i8(marlin_var_id_t var_id, int8_t i8) { marlin_set_var(var_id, variant8_i8(i8)); }
-void marlin_set_bool(marlin_var_id_t var_id, bool b) { marlin_set_var(var_id, variant8_bool(b)); }
-void marlin_set_ui8(marlin_var_id_t var_id, uint8_t ui8) { marlin_set_var(var_id, variant8_ui8(ui8)); }
-void marlin_set_i16(marlin_var_id_t var_id, int16_t i16) { marlin_set_var(var_id, variant8_i16(i16)); }
-void marlin_set_ui16(marlin_var_id_t var_id, uint16_t ui16) { marlin_set_var(var_id, variant8_ui16(ui16)); }
-void marlin_set_i32(marlin_var_id_t var_id, int32_t i32) { marlin_set_var(var_id, variant8_i32(i32)); }
-void marlin_set_ui32(marlin_var_id_t var_id, uint32_t ui32) { marlin_set_var(var_id, variant8_ui32(ui32)); }
-void marlin_set_flt(marlin_var_id_t var_id, float flt) { marlin_set_var(var_id, variant8_flt(flt)); }
+void print_client::set_i8(marlin_var_id_t var_id, int8_t i8) { print_client::set_var(var_id, variant8_i8(i8)); }
+void print_client::set_bool(marlin_var_id_t var_id, bool b) { print_client::set_var(var_id, variant8_bool(b)); }
+void print_client::set_ui8(marlin_var_id_t var_id, uint8_t ui8) { print_client::set_var(var_id, variant8_ui8(ui8)); }
+void print_client::set_i16(marlin_var_id_t var_id, int16_t i16) { print_client::set_var(var_id, variant8_i16(i16)); }
+void print_client::set_ui16(marlin_var_id_t var_id, uint16_t ui16) { print_client::set_var(var_id, variant8_ui16(ui16)); }
+void print_client::set_i32(marlin_var_id_t var_id, int32_t i32) { print_client::set_var(var_id, variant8_i32(i32)); }
+void print_client::set_ui32(marlin_var_id_t var_id, uint32_t ui32) { print_client::set_var(var_id, variant8_ui32(ui32)); }
+void print_client::set_flt(marlin_var_id_t var_id, float flt) { print_client::set_var(var_id, variant8_flt(flt)); }
 
-marlin_vars_t *marlin_vars(void) {
+marlin_vars_t *print_client::vars() {
     marlin_client_t *client = _client_ptr();
     if (client)
         return &(client->vars);
@@ -452,77 +448,77 @@ marlin_vars_t *marlin_vars(void) {
     return 0;
 }
 
-marlin_vars_t *marlin_update_vars(uint64_t msk) {
+marlin_vars_t *print_client::update_vars(uint64_t msk) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return 0;
-    marlin_client_loop();
+    print_client::loop();
     client->changes &= ~msk;
     snprintf(request, MARLIN_MAX_REQUEST, "!%c%08lx %08lx", MARLIN_MSG_UPDATE_VARIABLE, (uint32_t)(msk & 0xffffffff), (uint32_t)(msk >> 32));
     _send_request_to_server_and_wait(request);
     return &(client->vars);
 }
 
-uint8_t marlin_get_gqueue(void) {
-    return variant8_get_ui8(marlin_get_var(MARLIN_VAR_GQUEUE));
+uint8_t print_client::get_gqueue() {
+    return variant8_get_ui8(print_client::get_var(MARLIN_VAR_GQUEUE));
 }
 
-uint8_t marlin_get_gqueue_max(void) {
+uint8_t print_client::get_gqueue_max() {
     //TODO: variable gqueue_max should be part of marlin_consts structure transmited from server
     //Marlin/queue, BUFSIZE - 1
     return 8 - 1;
 }
 
-uint8_t marlin_get_pqueue(void) {
-    return variant8_get_ui8(marlin_get_var(MARLIN_VAR_PQUEUE));
+uint8_t marlin_get_pqueue() {
+    return variant8_get_ui8(print_client::get_var(MARLIN_VAR_PQUEUE));
 }
 
-uint8_t marlin_get_pqueue_max(void) {
+uint8_t marlin_get_pqueue_max() {
     //TODO: variable pqueue_max should be part of marlin_consts structure transmited from server
     //Marlin/planner, BLOCK_BUFFER_SIZE - 1
     return 16 - 1;
 }
 
-float marlin_set_target_nozzle(float val) {
-    return variant8_get_flt(marlin_set_var(MARLIN_VAR_TTEM_NOZ, variant8_flt(val)));
+float print_client::set_target_nozzle(float val) {
+    return variant8_get_flt(print_client::set_var(MARLIN_VAR_TTEM_NOZ, variant8_flt(val)));
 }
 
-float marlin_set_display_nozzle(float val) {
-    return variant8_get_flt(marlin_set_var(MARLIN_VAR_DTEM_NOZ, variant8_flt(val)));
+float print_client::set_display_nozzle(float val) {
+    return variant8_get_flt(print_client::set_var(MARLIN_VAR_DTEM_NOZ, variant8_flt(val)));
 }
 
-float marlin_set_target_bed(float val) {
-    return variant8_get_flt(marlin_set_var(MARLIN_VAR_TTEM_BED, variant8_flt(val)));
+float print_client::set_target_bed(float val) {
+    return variant8_get_flt(print_client::set_var(MARLIN_VAR_TTEM_BED, variant8_flt(val)));
 }
 
-uint8_t marlin_set_fan_speed(uint8_t val) {
-    return variant8_get_ui8(marlin_set_var(MARLIN_VAR_FANSPEED, variant8_ui8(val)));
+uint8_t print_client::set_fan_speed(uint8_t val) {
+    return variant8_get_ui8(print_client::set_var(MARLIN_VAR_FANSPEED, variant8_ui8(val)));
 }
 
-uint16_t marlin_set_print_speed(uint16_t val) {
-    return variant8_get_ui16(marlin_set_var(MARLIN_VAR_PRNSPEED, variant8_ui16(val)));
+uint16_t print_client::set_print_speed(uint16_t val) {
+    return variant8_get_ui16(print_client::set_var(MARLIN_VAR_PRNSPEED, variant8_ui16(val)));
 }
 
-uint16_t marlin_set_flow_factor(uint16_t val) {
-    return variant8_get_ui16(marlin_set_var(MARLIN_VAR_FLOWFACT, variant8_ui16(val)));
+uint16_t print_client::set_flow_factor(uint16_t val) {
+    return variant8_get_ui16(print_client::set_var(MARLIN_VAR_FLOWFACT, variant8_ui16(val)));
 }
 
-bool marlin_set_wait_heat(bool val) {
-    return variant8_get_bool(marlin_set_var(MARLIN_VAR_WAITHEAT, variant8_bool(val)));
+bool print_client::set_wait_heat(bool val) {
+    return variant8_get_bool(print_client::set_var(MARLIN_VAR_WAITHEAT, variant8_bool(val)));
 }
 
-bool marlin_set_wait_user(bool val) {
-    return variant8_get_bool(marlin_set_var(MARLIN_VAR_WAITUSER, variant8_bool(val)));
+bool print_client::set_wait_user(bool val) {
+    return variant8_get_bool(print_client::set_var(MARLIN_VAR_WAITUSER, variant8_bool(val)));
 }
 
-void marlin_do_babysteps_Z(float offs) {
+void print_client::do_babysteps_Z(float offs) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(request, MARLIN_MAX_REQUEST, "!%c%.4f", MARLIN_MSG_BABYSTEP, (double)offs);
     _send_request_to_server_and_wait(request);
 }
 
-void marlin_move_axis(float pos, float feedrate, uint8_t axis) {
+void print_client::move_axis(float pos, float feedrate, uint8_t axis) {
     char request[MARLIN_MAX_REQUEST];
     // check axis
     if (axis < 4) {
@@ -531,37 +527,37 @@ void marlin_move_axis(float pos, float feedrate, uint8_t axis) {
     }
 }
 
-void marlin_settings_save(void) {
+void print_client::settings_save() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_CONFIG_SAVE);
 }
 
-void marlin_settings_load(void) {
+void print_client::settings_load() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_CONFIG_LOAD);
 }
 
-void marlin_settings_reset(void) {
+void print_client::settings_reset() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_CONFIG_RESET);
 }
 
-void marlin_manage_heater(void) {
+void print_client::manage_heater() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_UPDATE);
 }
 
-void marlin_quick_stop(void) {
+void print_client::quick_stop() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_QUICK_STOP);
 }
 
-void marlin_test_start(uint64_t mask) {
+void print_client::test_start(uint64_t mask) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(request, MARLIN_MAX_REQUEST, "!%c%08lx %08lx", MARLIN_MSG_TEST_START, (uint32_t)mask, (uint32_t)(mask >> 32));
     _send_request_to_server_and_wait(request);
 }
 
-void marlin_test_abort(void) {
+void print_client::test_abort() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_TEST_ABORT);
 }
 
-void marlin_print_start(const char *filename, bool skip_preview) {
+void print_client::print_start(const char *filename, bool skip_preview) {
     char request[MARLIN_MAX_REQUEST];
     const int len = snprintf(request, sizeof(request), "!%c%c%s", MARLIN_MSG_PRINT_START, skip_preview ? '1' : '0', filename);
     if (len < 0)
@@ -571,40 +567,40 @@ void marlin_print_start(const char *filename, bool skip_preview) {
     _send_request_to_server_and_wait(request);
 }
 
-void marlin_gui_ready_to_print() {
+void print_client::gui_ready_to_print() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_GUI_PRINT_READY);
 }
 
-void marlin_print_abort(void) {
+void print_client::print_abort() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_ABORT);
 }
 
-void marlin_print_exit(void) {
+void print_client::print_exit() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_EXIT);
 }
 
-void marlin_print_pause(void) {
+void print_client::print_pause() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_PAUSE);
 }
 
-void marlin_print_resume(void) {
+void print_client::print_resume() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_RESUME);
 }
 
-void marlin_park_head(void) {
+void print_client::park_head() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PARK);
 }
 
-void marlin_notify_server_about_encoder_move(void) {
+void print_client::notify_server_about_encoder_move() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_KNOB_MOVE);
 }
 
-void marlin_notify_server_about_knob_click(void) {
+void print_client::notify_server_about_knob_click() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_KNOB_CLICK);
 }
 
 // returns 1 if reheating is in progress, otherwise 0
-int marlin_reheating(void) {
+int print_client::reheating() {
     marlin_client_t *client = _client_ptr();
     if (client)
         return client->reheating;
@@ -613,16 +609,16 @@ int marlin_reheating(void) {
 
 //-----------------------------------------------------------------------------
 // responses from client finite state machine (like button click)
-void marlin_encoded_response(uint32_t enc_phase_and_response) {
+void print_client::encoded_response(uint32_t enc_phase_and_response) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(request, MARLIN_MAX_REQUEST, "!%c%d", MARLIN_MSG_FSM, (int)enc_phase_and_response);
     _send_request_to_server_and_wait(request);
 }
-bool marlin_is_printing() {
-    switch (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state) {
-    case marlin_print_state_t::Aborted:
-    case marlin_print_state_t::Idle:
-    case marlin_print_state_t::Finished:
+bool print_client::is_printing() {
+    switch (print_client::update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state) {
+    case PrintState::Aborted:
+    case PrintState::Idle:
+    case PrintState::Finished:
         return false;
     default:
         return true;
@@ -632,8 +628,8 @@ bool marlin_is_printing() {
 //-----------------------------------------------------------------------------
 // private functions
 
-// wait while server not started (called from client thread in marlin_client_init)
-static void _wait_server_started(void) {
+// wait while server not started (called from client thread in print_client::init)
+static void _wait_server_started() {
     while (marlin_server_task == 0)
         osDelay(1);
 }
@@ -675,7 +671,7 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
 // wait for ack event, blocking - used for synchronization, called typically at end of client request functions
 static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)()) {
     while ((marlin_client[client_id].events & MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge)) == 0) {
-        marlin_client_loop();
+        print_client::loop();
         if (marlin_client[client_id].last_count == 0) {
             if (cb)
                 cb();
@@ -808,7 +804,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
 }
 
 // returns client pointer for calling client thread (client thread)
-static marlin_client_t *_client_ptr(void) {
+static marlin_client_t *_client_ptr() {
     osThreadId taskHandle = osThreadGetId();
     int client_id;
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)

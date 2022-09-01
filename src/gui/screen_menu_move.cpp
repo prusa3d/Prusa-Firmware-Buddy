@@ -21,18 +21,18 @@ protected:
 
 public:
     MI_AXIS<INDEX, LONG_SEG, BUFFER_LEN>()
-        : WiSpinInt(int32_t(marlin_vars()->pos[INDEX]),
+        : WiSpinInt(int32_t(print_client::vars()->pos[INDEX]),
             SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), IDR_NULL, is_enabled_t::yes, is_hidden_t::no)
-        , lastQueuedPos(int32_t(marlin_vars()->pos[INDEX])) {}
+        , lastQueuedPos(int32_t(print_client::vars()->pos[INDEX])) {}
 
     // enqueue next moves according to value of spinners;
     virtual void Loop() override {
-        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE));
-        if (marlin_vars()->pqueue <= BUFFER_LEN) {
+        print_client::update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE));
+        if (print_client::vars()->pqueue <= BUFFER_LEN) {
             int difference = (int)value - lastQueuedPos;
             if (difference != 0) {
                 float feedrate = MenuVars::GetManualFeedrate()[INDEX];
-                uint8_t freeSlots = BUFFER_LEN - marlin_vars()->pqueue;
+                uint8_t freeSlots = BUFFER_LEN - print_client::vars()->pqueue;
                 // move up and queue steps
                 for (uint8_t i = 0; i < freeSlots && lastQueuedPos != (int)value; i++) {
                     if (difference >= LONG_SEG) {
@@ -48,7 +48,7 @@ public:
                         lastQueuedPos--;
                         difference++;
                     }
-                    marlin_move_axis(lastQueuedPos, feedrate, INDEX);
+                    print_client::move_axis(lastQueuedPos, feedrate, INDEX);
                 }
             }
         }
@@ -62,23 +62,23 @@ public:
         : MI_AXIS<3, 5, 8>() {}
 
     virtual void OnClick() override {
-        marlin_gcode("G90");    // Set to Absolute Positioning
-        marlin_gcode("M82");    // Set extruder to absolute mode
-        marlin_gcode("G92 E0"); // Reset position before change
-        SetVal(0);              // Reset spin before change
-        lastQueuedPos = 0;      // zero it out so we wont go back when we exit the spinner
+        print_client::gcode("G90");    // Set to Absolute Positioning
+        print_client::gcode("M82");    // Set extruder to absolute mode
+        print_client::gcode("G92 E0"); // Reset position before change
+        SetVal(0);                     // Reset spin before change
+        lastQueuedPos = 0;             // zero it out so we wont go back when we exit the spinner
     }
 };
 
 class DUMMY_AXIS_E : public WI_FORMATABLE_LABEL_t<int> {
     virtual void click(IWindowMenu &window_menu) override {
-        marlin_gcode_printf("M1700 S E W2"); // set filament, preheat to target, return option
+        print_client::gcode_printf("M1700 S E W2"); // set filament, preheat to target, return option
     }
 
 public:
     static bool IsTargetTempOk() {
-        return (Filaments::Current().nozzle > 0)                                          // filament is selected
-            && (int(marlin_vars()->target_nozzle + 0.9F) >= Filaments::Current().nozzle); // target temperature is high enough - +0.9 to avoid float round error
+        return (Filaments::Current().nozzle > 0)                                                 // filament is selected
+            && (int(print_client::vars()->target_nozzle + 0.9F) >= Filaments::Current().nozzle); // target temperature is high enough - +0.9 to avoid float round error
     }
     DUMMY_AXIS_E()
         : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, 0,
@@ -144,21 +144,21 @@ public:
     constexpr static const char *label = N_("MOVE AXIS");
     static constexpr int temp_ok_range = 10;
     static bool IsTempOk() {
-        return DUMMY_AXIS_E::IsTargetTempOk()                                                // target correctly set
-            && (marlin_vars()->temp_nozzle > (Filaments::Current().nozzle - temp_ok_range)); // temperature nearly reached
+        return DUMMY_AXIS_E::IsTargetTempOk()                                                       // target correctly set
+            && (print_client::vars()->temp_nozzle > (Filaments::Current().nozzle - temp_ok_range)); // temperature nearly reached
     }
 
     ScreenMenuMove()
         : Screen(_(label)) {
-        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
-        prev_accel = marlin_vars()->travel_acceleration;
-        marlin_gcode("M204 T200");
+        print_client::update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
+        prev_accel = print_client::vars()->travel_acceleration;
+        print_client::gcode("M204 T200");
         checkNozzleTemp();
     }
     ~ScreenMenuMove() {
         char msg[20];
         snprintf(msg, sizeof(msg), "M204 T%f", (double)prev_accel);
-        marlin_gcode(msg);
+        print_client::gcode(msg);
     }
 
 protected:
@@ -167,9 +167,9 @@ protected:
 
 void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
-        marlin_set_target_nozzle(0);
-        marlin_set_display_nozzle(0);
-        marlin_set_target_bed(0);
+        print_client::set_target_nozzle(0);
+        print_client::set_display_nozzle(0);
+        print_client::set_target_bed(0);
         return;
     }
 

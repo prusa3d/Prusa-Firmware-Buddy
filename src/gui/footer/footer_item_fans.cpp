@@ -28,12 +28,12 @@ FooterItemPrintFan::FooterItemPrintFan(window_t *parent)
     : AddSuperWindow<IFooterItemFan>(parent, IDR_PNG_turbine_16x16, static_makeView, static_readValue) {
 }
 int FooterItemPrintFan::static_readValue() {
-    return marlin_vars()->print_fan_rpm;
+    return print_client::vars()->print_fan_rpm;
 }
 
 FooterItemHeatBreakFan::FooterItemHeatBreakFan(window_t *parent)
     : AddSuperWindow<IFooterItemFan>(parent, IDR_PNG_fan_16x16, static_makeView, static_readValue) {
 }
 int FooterItemHeatBreakFan::static_readValue() {
-    return marlin_vars()->heatbreak_fan_rpm;
+    return print_client::vars()->heatbreak_fan_rpm;
 }

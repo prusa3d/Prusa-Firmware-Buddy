@@ -41,7 +41,7 @@ void SelftestFrameWithRadio::windowEvent(EventLock /*has private ctor*/, window_
     switch (event) {
     case GUI_event_t::CLICK: {
         Response response = radio.Click();
-        marlin_FSM_response(phase_current, response);
+        print_client::FSM_response(phase_current, response);
         break;
     }
     case GUI_event_t::ENC_UP:
@@ -81,7 +81,7 @@ void SelftestFrameNamedWithRadio::windowEvent(EventLock /*has private ctor*/, wi
     switch (event) {
     case GUI_event_t::CLICK: {
         Response response = radio.Click();
-        marlin_FSM_response(phase_current, response);
+        print_client::FSM_response(phase_current, response);
         break;
     }
     case GUI_event_t::ENC_UP:

@@ -15,7 +15,7 @@
     #include "i18n.h"
     #include "wizard_config.hpp"
     #include "crash_recovery_type.hpp"
-    #include "marlin_client.hpp" // marlin_FSM_response
+    #include "marlin_client.hpp" // print_client::FSM_response
     #include "resource.h"
     #include "sound.hpp"
 
@@ -291,7 +291,7 @@ void WinUnion::ButtonEvent(GUI_event_t event) {
             PhasesCrashRecovery send_phase = phase;
             if (phase == PhasesCrashRecovery::axis_short || phase == PhasesCrashRecovery::axis_long)
                 send_phase = PhasesCrashRecovery::axis_NOK;
-            marlin_FSM_response(send_phase, response);
+            print_client::FSM_response(send_phase, response);
             break;
         }
         case GUI_event_t::ENC_UP:

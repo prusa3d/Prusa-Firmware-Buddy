@@ -2,7 +2,7 @@
  * @file gui_media_events.hpp
  * @author Radek Vana
  * @brief consumes marlin media events and stores state, handles one click printing flag
- * TODO handle remaining events this should be only place where marlin_event_clr is called
+ * TODO handle remaining events this should be only place where print_client::event_clr is called
  * @date 2020-11-11
  */
 

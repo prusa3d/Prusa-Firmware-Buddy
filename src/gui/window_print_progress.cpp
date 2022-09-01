@@ -15,9 +15,9 @@ WindowPrintProgress::WindowPrintProgress(window_t *parent, Rect16 rect)
 
 void WindowPrintProgress::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        if (marlin_vars()->sd_percent_done != last_sd_percent_done) {
-            SetProgressPercent(marlin_vars()->sd_percent_done);
-            last_sd_percent_done = marlin_vars()->sd_percent_done;
+        if (print_client::vars()->sd_percent_done != last_sd_percent_done) {
+            SetProgressPercent(print_client::vars()->sd_percent_done);
+            last_sd_percent_done = print_client::vars()->sd_percent_done;
         }
     }
     SuperWindowEvent(sender, event, param);
@@ -34,9 +34,9 @@ WindowNumbPrintProgress::WindowNumbPrintProgress(window_t *parent, Rect16 rect)
 
 void WindowNumbPrintProgress::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        if (marlin_vars()->sd_percent_done != last_sd_percent_done) {
-            last_sd_percent_done = marlin_vars()->sd_percent_done;
-            SetValue(marlin_vars()->sd_percent_done);
+        if (print_client::vars()->sd_percent_done != last_sd_percent_done) {
+            last_sd_percent_done = print_client::vars()->sd_percent_done;
+            SetValue(print_client::vars()->sd_percent_done);
         }
     }
     SuperWindowEvent(sender, event, param);

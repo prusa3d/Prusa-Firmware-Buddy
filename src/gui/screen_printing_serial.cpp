@@ -49,7 +49,7 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
             DisableButton(btn_pause);
             DisableButton(btn_stop);
 
-            marlin_gcode("M118 A1 action:disconnect");
+            print_client::gcode("M118 A1 action:disconnect");
 
             connection = connection_state_t::disconnecting;
         } else {
@@ -57,12 +57,12 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
         }
     }
 
-    if (connection == connection_state_t::disconnecting && marlin_get_gqueue() < 1) {
+    if (connection == connection_state_t::disconnecting && print_client::get_gqueue() < 1) {
         connection = connection_state_t::disconnected;
-        marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
-        marlin_gcode("M104 S0 D0"); /// set temperatures to zero
-        marlin_gcode("M140 S0");    /// set temperatures to zero
-        marlin_gcode("M107");       /// print fan off.
+        print_client::gcode("G27 P2");     /// park nozzle and raise Z axis
+        print_client::gcode("M104 S0 D0"); /// set temperatures to zero
+        print_client::gcode("M140 S0");    /// set temperatures to zero
+        print_client::gcode("M107");       /// print fan off.
         Odometer_s::instance().force_to_eeprom();
         return;
     }
@@ -78,7 +78,7 @@ void screen_printing_serial_data_t::tuneAction() {
 }
 
 void screen_printing_serial_data_t::pauseAction() {
-    marlin_gcode("M118 A1 action:pause");
+    print_client::gcode("M118 A1 action:pause");
 }
 
 void screen_printing_serial_data_t::stopAction() {

@@ -9,22 +9,22 @@ bool DialogMoveZ::DialogShown = false;
 
 DialogMoveZ::DialogMoveZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenNoFoot)
-    , value(marlin_vars()->pos[2])
-    , lastQueuedPos(marlin_vars()->pos[2])
+    , value(print_client::vars()->pos[2])
+    , lastQueuedPos(print_client::vars()->pos[2])
     , axisText(this, text_rc, is_multiline::no, is_closed_on_click_t::no, _(axisLabel))
     , infoText(this, infoText_rc, is_multiline::yes, is_closed_on_click_t::no, _(infoTextContent))
     , closeText(this, closeText_rc, is_multiline::no, is_closed_on_click_t::no, _(closeTextContent))
     , upText(this, upText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
     , downText(this, downText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
     , arrows(this, text_rc.TopRight(), { 0, 6, 0, 6 })
-    , numb(this, numb_rc, marlin_vars()->pos[2], "%d mm", GuiDefaults::FontBig)
+    , numb(this, numb_rc, print_client::vars()->pos[2], "%d mm", GuiDefaults::FontBig)
     , header(this, _(headerLabel))
     , icon(this, icon_rc, IDR_PNG_turn_knob) {
     DialogShown = true;
 
-    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
-    prev_accel = marlin_vars()->travel_acceleration;
-    marlin_gcode("M204 T200");
+    print_client::update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
+    prev_accel = print_client::vars()->travel_acceleration;
+    print_client::gcode("M204 T200");
     /// using window_t 1bit flag
     flags.close_on_click = is_closed_on_click_t::yes;
     header.SetIcon(IDR_PNG_z_axis_16px);
@@ -89,10 +89,10 @@ void DialogMoveZ::windowEvent(EventLock, window_t *sender, GUI_event_t event, vo
     }
     case GUI_event_t::LOOP: {
 
-        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE));
-        if (marlin_vars()->pqueue <= len) {
+        print_client::update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE));
+        if (print_client::vars()->pqueue <= len) {
             int difference = value - lastQueuedPos;
-            uint8_t freeSlots = len - marlin_vars()->pqueue;
+            uint8_t freeSlots = len - print_client::vars()->pqueue;
             if (difference != 0) {
                 for (uint8_t i = 0; i < freeSlots && lastQueuedPos != (int)value; i++) {
                     if (difference > 0) {
@@ -102,7 +102,7 @@ void DialogMoveZ::windowEvent(EventLock, window_t *sender, GUI_event_t event, vo
                         lastQueuedPos--;
                         difference++;
                     }
-                    marlin_move_axis(lastQueuedPos, MenuVars::GetManualFeedrate()[2], 2);
+                    print_client::move_axis(lastQueuedPos, MenuVars::GetManualFeedrate()[2], 2);
                 }
             }
         }
@@ -122,7 +122,7 @@ DialogMoveZ::~DialogMoveZ() {
     DialogShown = false;
     char msg[20];
     snprintf(msg, sizeof(msg), "M204 T%f", (double)prev_accel);
-    marlin_gcode(msg);
+    print_client::gcode(msg);
 }
 void DialogMoveZ::Show() {
     // checking nesting to not open over some other blocking dialog

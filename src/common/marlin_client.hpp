@@ -3,231 +3,228 @@
  * @brief client side functions (can be called from client thread only)
  */
 #pragma once
-
-#include <stdbool.h>
-
 #include "marlin_events.h"
 #include "marlin_vars.hpp"
 #include "marlin_errors.h"
 #include "client_fsm_types.h"
 #include "client_response.hpp"
 
-// client flags
-static constexpr uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
-static constexpr uint16_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main thread is enabled
-static constexpr uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of client message
-
 //-----------------------------------------------------------------------------
 // externs from marlin server TODO FIXME use variables, or preferably remove
-extern int marlin_all_axes_homed(void);
+int marlin_all_axes_homed();
+int marlin_all_axes_known();
 
-extern int marlin_all_axes_known(void);
+namespace print_client {
+
+// client flags
+static constexpr uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in init)
+static constexpr uint16_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main thread is enabled
+static constexpr uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of client message
 
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
 
 // initialize client side, returns pointer to client structure
-extern marlin_vars_t *marlin_client_init(void);
+marlin_vars_t *init(void);
 
 // shutdown client (notimpl., TODO)
-extern void marlin_client_shdn(void);
+void shdn(void);
 
 // client loop - must be called periodically in client thread
-extern void marlin_client_loop(void);
+void loop(void);
 
 // returns client_id for calling thread (-1 for unattached thread)
-extern int marlin_client_id(void);
+int id(void);
 
 // infinite loop while server not ready
-extern void marlin_client_wait_for_start_processing(void);
+void wait_for_start_processing(void);
 
 //sets dialog callback, returns 1 on success
-extern int marlin_client_set_fsm_cb(fsm_cb_t cb);
+int set_fsm_cb(fsm_cb_t cb);
 //sets dialog message, returns 1 on success
-extern int marlin_client_set_message_cb(message_cb_t cb);
+int set_message_cb(message_cb_t cb);
 //sets dialog message, returns 1 on success
-extern int marlin_client_set_warning_cb(warning_cb_t cb);
+int set_warning_cb(warning_cb_t cb);
 //sets startup callback, returns 1 on success
-extern int marlin_client_set_startup_cb(startup_cb_t cb);
+int set_startup_cb(startup_cb_t cb);
 // returns enabled status of loop processing
-extern int marlin_processing(void);
+int processing(void);
 
 //sets event notification mask
-extern void marlin_client_set_event_notify(uint64_t notify_events, void (*cb)());
+void set_event_notify(uint64_t notify_events, void (*cb)());
 
 //sets variable change notification mask
-extern void marlin_client_set_change_notify(uint64_t notify_changes, void (*cb)());
+void set_change_notify(uint64_t notify_changes, void (*cb)());
 
 // returns currently running command or MARLIN_CMD_NONE
-extern uint32_t marlin_command(void);
+uint32_t command(void);
 
 // enable/disable exclusive mode (used for selftest)
-extern void marlin_set_exclusive_mode(int exclusive_mode);
+void set_exclusive_mode(int exclusive_mode);
 
 // start marlin loop processing in server thread (request '!start')
-extern void marlin_start_processing(void);
+void start_processing();
 
 // stop marlin loop processing in server thread (request '!stop')
-extern void marlin_stop_processing(void);
+void stop_processing();
 
 // returns motion status of all axes (1: any axis is moving, 0: no motion)
-extern int marlin_motion(void);
+int motion();
 
 // synchronously wait for motion short timeout
-extern int marlin_wait_motion(uint32_t timeout);
+int wait_motion(uint32_t timeout);
 
 // enqueue gcode - thread-safe version  (request '!g xxx')
-extern void marlin_gcode(const char *gcode);
-
-// enqueue gcode from ethernet command (json parsed)
-extern void marlin_json_gcode(const char *gcode);
+void gcode(const char *gcode);
 
 // enqueue gcode - printf-like, returns number of chars printed
-extern int marlin_gcode_printf(const char *format, ...);
+int gcode_printf(const char *format, ...);
 
 // inject gcode - thread-safe version  (request '!ig xxx')
-extern void marlin_gcode_push_front(const char *gcode);
+void gcode_push_front(const char *gcode);
 
 // returns current event status for evt_id
-extern int marlin_event(MARLIN_EVT_t evt_id);
+int event(MARLIN_EVT_t evt_id);
 
 // returns current event status for evt_id and set event
-extern int marlin_event_set(MARLIN_EVT_t evt_id);
+int event_set(MARLIN_EVT_t evt_id);
 
 // returns current event status for evt_id and clear event
-extern int marlin_event_clr(MARLIN_EVT_t evt_id);
+int event_clr(MARLIN_EVT_t evt_id);
 
 // returns current event status for all events as 64bit mask
-extern uint64_t marlin_events(void);
+uint64_t events();
 
 // returns current change status for var_id
-extern int marlin_change(marlin_var_id_t var_id);
+int change(marlin_var_id_t var_id);
 
 // returns current change status for var_id and set change
-extern int marlin_change_set(marlin_var_id_t var_id);
+int change_set(marlin_var_id_t var_id);
 
 // returns current change status for var_id and clear change
-extern int marlin_change_clr(marlin_var_id_t var_id);
+int change_clr(marlin_var_id_t var_id);
 
 // returns current change status for all variables as 64bit mask
-extern uint64_t marlin_changes(void);
+uint64_t changes();
 
 // returns current error status for err_id
-extern int marlin_error(uint8_t err_id);
+int error(uint8_t err_id);
 
 // returns current error status for err_id and set error
-extern int marlin_error_set(uint8_t err_id);
+int error_set(uint8_t err_id);
 
 // returns current error status for err_id and clear error
-extern int marlin_error_clr(uint8_t err_id);
+int error_clr(uint8_t err_id);
 
 // returns current error status for all errors as 64bit mask
-extern uint64_t marlin_errors(void);
+uint64_t errors();
 
 // returns variable value from client structure by var_id
-extern variant8_t marlin_get_var(marlin_var_id_t var_id);
+variant8_t get_var(marlin_var_id_t var_id);
 
-extern float marlin_get_flt(marlin_var_id_t var_id);
-extern uint32_t marlin_get_ui32(marlin_var_id_t var_id);
-extern int32_t marlin_get_i32(marlin_var_id_t var_id);
-extern uint16_t marlin_get_ui16(marlin_var_id_t var_id);
-extern uint8_t marlin_get_ui8(marlin_var_id_t var_id);
-extern int8_t marlin_get_i8(marlin_var_id_t var_id);
-extern bool marlin_get_bool(marlin_var_id_t var_id);
+float get_flt(marlin_var_id_t var_id);
+uint32_t get_ui32(marlin_var_id_t var_id);
+int32_t get_i32(marlin_var_id_t var_id);
+uint16_t get_ui16(marlin_var_id_t var_id);
+uint8_t get_ui8(marlin_var_id_t var_id);
+int8_t get_i8(marlin_var_id_t var_id);
+bool get_bool(marlin_var_id_t var_id);
 
 // request server to set variable, returns previous value or error (notimpl., TODO)
-extern variant8_t marlin_set_var(marlin_var_id_t var_id, variant8_t val);
+variant8_t set_var(marlin_var_id_t var_id, variant8_t val);
 
-extern void marlin_set_i8(marlin_var_id_t var_id, int8_t i8);
-extern void marlin_set_bool(marlin_var_id_t var_id, bool b);
-extern void marlin_set_ui8(marlin_var_id_t var_id, uint8_t ui8);
-extern void marlin_set_i16(marlin_var_id_t var_id, int16_t i16);
-extern void marlin_set_ui16(marlin_var_id_t var_id, uint16_t ui16);
-extern void marlin_set_i32(marlin_var_id_t var_id, int32_t i32);
-extern void marlin_set_ui32(marlin_var_id_t var_id, uint32_t ui32);
-extern void marlin_set_flt(marlin_var_id_t var_id, float flt);
+void set_i8(marlin_var_id_t var_id, int8_t i8);
+void set_bool(marlin_var_id_t var_id, bool b);
+void set_ui8(marlin_var_id_t var_id, uint8_t ui8);
+void set_i16(marlin_var_id_t var_id, int16_t i16);
+void set_ui16(marlin_var_id_t var_id, uint16_t ui16);
+void set_i32(marlin_var_id_t var_id, int32_t i32);
+void set_ui32(marlin_var_id_t var_id, uint32_t ui32);
+void set_flt(marlin_var_id_t var_id, float flt);
 
 // returns variable structure pointer for calling thread
-extern marlin_vars_t *marlin_vars(void);
+marlin_vars_t *vars();
 
 // send request to update variables at server side and wait for change notification
-extern marlin_vars_t *marlin_update_vars(uint64_t msk);
+marlin_vars_t *update_vars(uint64_t msk);
 
 // returns number of commands in gcode queue
-extern uint8_t marlin_get_gqueue(void);
+uint8_t get_gqueue();
 
 // returns maximum number of commands in gcode queue
-extern uint8_t marlin_get_gqueue_max(void);
+uint8_t get_gqueue_max();
 
 // returns number of records in planner queue
-extern uint8_t marlin_get_pqueue(void);
+uint8_t marlin_get_pqueue();
 
 // returns maximum number of records in planner queue
-extern uint8_t marlin_get_pqueue_max(void);
+uint8_t marlin_get_pqueue_max();
 
-// variable setters (internally calls marlin_set_var)
-extern float marlin_set_target_nozzle(float val);
-extern float marlin_set_display_nozzle(float val);
-extern float marlin_set_target_bed(float val);
-extern uint8_t marlin_set_fan_speed(uint8_t val);
-extern uint16_t marlin_set_print_speed(uint16_t val);
-extern uint16_t marlin_set_flow_factor(uint16_t val);
-extern bool marlin_set_wait_heat(bool val);
-extern bool marlin_set_wait_user(bool val);
+// variable setters (internally calls set_var)
+float set_target_nozzle(float val);
+float set_display_nozzle(float val);
+float set_target_bed(float val);
+uint8_t set_fan_speed(uint8_t val);
+uint16_t set_print_speed(uint16_t val);
+uint16_t set_flow_factor(uint16_t val);
+bool set_wait_heat(bool val);
+bool set_wait_user(bool val);
 
-extern void marlin_do_babysteps_Z(float offs);
+void do_babysteps_Z(float offs);
 
-extern void marlin_move_axis(float pos, float feedrate, uint8_t axis);
+void move_axis(float pos, float feedrate, uint8_t axis);
 
-extern void marlin_settings_save(void);
+void settings_save();
 
-extern void marlin_settings_load(void);
+void settings_load();
 
-extern void marlin_settings_reset(void);
+void settings_reset();
 
-extern void marlin_manage_heater(void);
+void manage_heater();
 
-extern void marlin_quick_stop(void);
+void quick_stop();
 
-extern void marlin_test_start(uint64_t mask);
+void test_start(uint64_t mask);
 
-extern void marlin_test_abort(void);
+void test_abort();
 
-extern void marlin_print_start(const char *filename, bool skip_preview);
+void print_start(const char *filename, bool skip_preview);
 
-extern void marlin_gui_ready_to_print();
+void gui_ready_to_print();
 
-extern void marlin_print_abort(void);
+void print_abort();
 
-extern void marlin_print_exit(void); // close fsm
+void print_exit(); // close fsm
 
-extern void marlin_print_pause(void);
+void print_pause();
 
-extern void marlin_print_resume(void);
+void print_resume();
 
-extern void marlin_park_head(void);
+void park_head();
 
-extern void marlin_notify_server_about_encoder_move(void);
+void notify_server_about_encoder_move();
 
-extern void marlin_notify_server_about_knob_click(void);
+void notify_server_about_knob_click();
 
 //returns 1 if printer is printing, else 0;
-extern bool marlin_is_printing();
+bool is_printing();
 
 // returns 1 if reheating is in progress, otherwise 0
-extern int marlin_reheating(void);
+int reheating();
 
 // radio button click
-extern void marlin_encoded_response(uint32_t enc_phase_and_response);
+void encoded_response(uint32_t enc_phase_and_response);
 
 // returns if response send succeeded
 // called in client finite state machine
 template <class T>
-bool marlin_FSM_response(T phase, Response response) {
+bool FSM_response(T phase, Response response) {
     uint32_t encoded = ClientResponses::Encode(phase, response);
     if (encoded == uint32_t(-1))
         return false;
 
-    marlin_encoded_response(encoded);
+    encoded_response(encoded);
     return true;
 }
+
+}; // namespace print_client

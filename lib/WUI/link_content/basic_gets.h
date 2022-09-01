@@ -18,7 +18,7 @@ namespace nhttp::link_content {
 // Implementation of the "simple" API endpoints.
 //
 // Note that this fills in the "stateless json" renderer. This cheats a bit, as
-// this gets the flags (and other things) from marlin_vars at each call ‒ even
+// this gets the flags (and other things) from print_client::vars at each call ‒ even
 // after being resumed. This technically may produce inconsistent answer (if
 // resumed in the middle of the flags and new ones are different). Doing it
 // properly with state would currently be more work than it's worth (the
