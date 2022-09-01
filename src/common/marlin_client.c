@@ -548,9 +548,6 @@ void marlin_manage_heater(void) {
 void marlin_quick_stop(void) {
     _send_request_id_to_server_and_wait(MARLIN_MSG_QUICK_STOP);
 }
-void marlin_clear_qcode_queue(void) {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_CLEAR_QQUEUE);
-}
 
 void marlin_test_start(uint64_t mask) {
     char request[MARLIN_MAX_REQUEST];
