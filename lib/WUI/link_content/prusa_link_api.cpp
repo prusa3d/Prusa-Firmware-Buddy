@@ -147,6 +147,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             switch (parser.method) {
             case Method::Put: {
                 GcodeUpload::PutParams putParams;
+                putParams.overwrite = parser.overwrite_file;
                 putParams.print_after_upload = parser.print_after_upload;
                 strlcpy(putParams.filepath.data(), filename, sizeof(putParams.filepath));
                 auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(putParams));
