@@ -4,6 +4,7 @@ if(BOARD MATCHES ".*BUDDY")
   target_sources(
     firmware
     PRIVATE adc.cpp
+            configuration_store.cpp
             app_metrics.cpp
             appmain.cpp
             base64_stream_decoder.cpp
