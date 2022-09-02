@@ -3,6 +3,7 @@
 #include "file_info.h"
 #include "handler.h"
 #include "../../src/common/gcode_filename.h"
+#include "../wui_api.h"
 
 #include <cassert>
 #include <cstring>
@@ -232,37 +233,56 @@ UploadHooks::Result GcodeUpload::data(std::string_view data) {
 
 namespace {
 
-    template <class F>
-    UploadHooks::Result try_rename(const char *src, const char *dest_fname, F f) {
-        const uint32_t fname_length = strlen(dest_fname);
+    UploadHooks::Result prepend_usb_path(const char *filename, char *filepath_out, size_t filepath_size) {
+        const uint32_t fname_length = strlen(filename);
 
-        char fn[FILE_NAME_BUFFER_LEN];
-        if ((fname_length + USB_MOUNT_POINT_LENGTH) >= sizeof(fn)) {
+        if ((fname_length + USB_MOUNT_POINT_LENGTH) >= filepath_size) {
             // The Request header fields too large is a bit of a stretch...
             return make_tuple(Status::RequestHeaderFieldsTooLarge, "File name too long");
-        } else {
-            strlcpy(fn, USB_MOUNT_POINT, USB_MOUNT_POINT_LENGTH + 1);
-            strlcat(fn, dest_fname, FILE_PATH_BUFFER_LEN - USB_MOUNT_POINT_LENGTH);
+        }
+        strlcpy(filepath_out, USB_MOUNT_POINT, USB_MOUNT_POINT_LENGTH + 1);
+        strlcat(filepath_out, filename, FILE_PATH_BUFFER_LEN - USB_MOUNT_POINT_LENGTH);
+
+        return make_tuple(Status::Ok, nullptr);
+    }
+
+    template <class F>
+    UploadHooks::Result try_rename(const char *src, const char *dest_fname, bool overwrite, F f) {
+        char fn[FILE_NAME_BUFFER_LEN];
+        auto error = prepend_usb_path(dest_fname, fn, sizeof(fn));
+        if (std::get<0>(error) != Status::Ok)
+            return error;
+
+        FILE *attempt = fopen(fn, "r");
+        if (attempt) {
+            fclose(attempt);
+            if (overwrite) {
+                int result = remove(fn);
+                if (result == -1) {
+                    remove(src);
+                    switch (errno) {
+                    case EBUSY:
+                        return make_tuple(Status::Conflict, "File is busy");
+                    default:
+                        return make_tuple(Status::InternalServerError, "Unknown error");
+                    }
+                }
+            } else {
+                remove(src);
+                return make_tuple(Status::Conflict, "File already exists");
+            }
         }
 
         int result = rename(src, fn);
         if (result != 0) {
             remove(src); // No check - no way to handle errors anyway.
-            // Most likely the file name already exists and rename refuses to overwrite (409 conflict).
-            // It could _also_ be weird file name/forbidden chars that contain (422 Unprocessable Entity).
-            // Try to guess which one.
-            FILE *attempt = fopen(fn, "r");
-            if (attempt) {
-                fclose(attempt);
-                return make_tuple(Status::Conflict, "File already exists");
-            } else {
-                return make_tuple(Status::UnprocessableEntity, "Filename contains invalid characters");
-            }
+            // we already checked for existence of the file, so we guess
+            // it is weird file name/forbidden chars that contain (422 Unprocessable Entity).
+            return make_tuple(Status::UnprocessableEntity, "Filename contains invalid characters");
         } else {
             return f(fn);
         }
     }
-
 }
 
 UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
@@ -270,6 +290,19 @@ UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
         return make_tuple(Status::UnsupportedMediaType, "Not a GCODE");
     }
 
+    auto putParams = std::get_if<PutParams>(&upload);
+    bool overwrite = putParams != nullptr && putParams->overwrite;
+    if (overwrite) {
+        char filepath[FILE_NAME_BUFFER_LEN];
+        auto error = prepend_usb_path(filename, filepath, sizeof(filepath));
+        if (std::get<0>(error) != Status::Ok)
+            return error;
+        if (wui_is_file_being_printed(filepath)) {
+            return make_tuple(Status::Conflict, "File is busy");
+        } else {
+            return make_tuple(Status::Ok, nullptr);
+        }
+    }
     // We try to create and then delete the file. This places an empty file
     // there for a really short while, but it's there anyway ‒ something could
     // detect it. Any better way to check if the file name is fine?
@@ -278,8 +311,7 @@ UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
         return make_tuple(Status::InternalServerError, "Failed to create a check temp file");
     }
     fclose(tmp);
-
-    return try_rename(CHECK_FILENAME, filename, [](const char *fname) -> UploadHooks::Result {
+    return try_rename(CHECK_FILENAME, filename, false, [](const char *fname) -> UploadHooks::Result {
         remove(fname);
         return make_tuple(Status::Ok, nullptr);
     });
@@ -292,7 +324,9 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     // Close the file first, otherwise it can't be moved
     ftruncate(fileno(tmp_upload_file.get()), ftell(tmp_upload_file.get()));
     tmp_upload_file.reset();
-    return try_rename(fname, final_filename, [&](char *filename) -> UploadHooks::Result {
+    auto putParams = std::get_if<PutParams>(&upload);
+    bool overwrite = putParams != nullptr && putParams->overwrite;
+    return try_rename(fname, final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
         if (uploaded_notify != nullptr) {
             if (uploaded_notify(filename, start_print)) {
                 return make_tuple(Status::Ok, nullptr);

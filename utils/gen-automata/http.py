@@ -275,6 +275,12 @@ def print_after_upload_header():
     })
 
 
+def overwrite_file_header():
+    return keyworded_header({
+        '?1': 'OverwriteFile',
+    })
+
+
 def headers(interested):
     """
     Automaton to read all the headers in a request followed by a transition to
