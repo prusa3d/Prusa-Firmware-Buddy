@@ -101,6 +101,20 @@ namespace {
             return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
         }
     }
+
+    StatusPage delete_file(const char *filename, StatusPage::CloseHandling close_handling, bool accepts_json) {
+        int result = remove(filename);
+        if (result == -1) {
+            switch (errno) {
+            case EBUSY:
+                return StatusPage(Status::Conflict, close_handling, accepts_json, "File is busy");
+            default:
+                return StatusPage(Status::NotFound, close_handling, accepts_json);
+            }
+        } else {
+            return StatusPage(Status::NoContent, close_handling, accepts_json);
+        }
+    }
 }
 
 optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) const {
@@ -158,6 +172,9 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             case Method::Head: {
                 return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Head);
             }
+            case Method::Delete: {
+                return delete_file(filename, parser.status_page_handling(), parser.accepts_json);
+            }
             default:
                 return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
             }
@@ -203,17 +220,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                 return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get);
             }
             case Method::Delete: {
-                int result = remove(filename);
-                if (result == -1) {
-                    switch (errno) {
-                    case EBUSY:
-                        return StatusPage(Status::Conflict, parser.status_page_handling(), parser.accepts_json, "File is busy");
-                    default:
-                        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
-                    }
-                } else {
-                    return StatusPage(Status::NoContent, parser.status_page_handling(), parser.accepts_json);
-                }
+                return delete_file(filename, parser.status_page_handling(), parser.accepts_json);
             }
             case Method::Post:
                 if (parser.content_length.has_value()) {
