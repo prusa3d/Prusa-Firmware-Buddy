@@ -4,7 +4,6 @@
 
 #include <stdbool.h>
 #include "variant8.h"
-#include "eeprom_function_api.h"
 #include "selftest_eeprom.hpp"
 #include <stddef.h>
 
@@ -218,17 +217,6 @@ extern Sheet eeprom_get_sheet(uint32_t index);
 // set variable value as variant8
 extern void eeprom_set_var(enum eevar_id id, variant8_t var);
 
-extern void eeprom_set_i8(enum eevar_id id, int8_t i8);
-extern void eeprom_set_bool(enum eevar_id id, bool b);
-extern void eeprom_set_ui8(enum eevar_id id, uint8_t ui8);
-extern void eeprom_set_i16(enum eevar_id id, int16_t i16);
-extern void eeprom_set_ui16(enum eevar_id id, uint16_t ui16);
-extern void eeprom_set_i32(enum eevar_id id, int32_t i32);
-extern void eeprom_set_ui32(enum eevar_id id, uint32_t ui32);
-extern void eeprom_set_flt(enum eevar_id id, float flt);
-extern void eeprom_set_pchar(enum eevar_id id, char *pch, uint16_t count, int init);
-extern bool eeprom_set_sheet(uint32_t index, Sheet sheet);
-
 // get number of variables
 extern uint8_t eeprom_get_var_count(void);
 
@@ -244,7 +232,7 @@ extern int eeprom_var_format(char *str, unsigned int size, enum eevar_id id, var
 // parse variant8_t from a string previously formatted by eeprom_var_format
 extern variant8_t eeprom_var_parse(enum eevar_id id, char *str);
 
-// fill range 0x0000..0x0800 with 0xff
+// fill old eeprom data with 0xff
 extern void eeprom_clear(void);
 
 // PUT test

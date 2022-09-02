@@ -6,9 +6,9 @@
 #include "errors.h"
 #include "sound.hpp"
 #include "sys.h"
-#include "eeprom.h"
 #include "support_utils.h"
 #include "version.h"
+#include "configuration_store.hpp"
 
 #include <stdlib.h>
 #include <crash_dump/dump.h>
@@ -97,7 +97,7 @@ ScreenErrorQR::ScreenErrorQR()
         help_txt.Hide();
         help_link.SetText(_(qr_text));
 
-        if (eeprom_get_bool(EEVAR_DEVHASH_IN_QR)) {
+        if (config_store().dev_hash_qr.get()) {
             static char p_code[PRINTER_CODE_SIZE + 1];
             printerCode(p_code);
             qr_code_txt.SetText(string_view_utf8::MakeRAM((const uint8_t *)p_code));

@@ -25,6 +25,7 @@
 
 #include "../../../../../../src/common/eeprom.h"
 #include "../../../../../../src/common/variant8.h"
+#include "configuration_store.hpp"
 
 #if ENABLED(CNC_COORDINATE_SYSTEMS)
 
@@ -45,7 +46,7 @@ bool GcodeSuite::select_coordinate_system(const int8_t _new) {
 
     #ifdef Z_SHIFTED_COOR_SYS //Load Z axis size to workspace offset
       if(_new == Z_SHIFTED_COOR_SYS){
-        float Z_size = variant8_get_flt(eeprom_get_var(AXIS_Z_MAX_POS_MM));
+        float Z_size = config_store().z_max_height.get();
         new_offset[Z_AXIS] = -Z_size;
         SERIAL_ECHOLNPAIR("Load Z axis size ", Z_size);
       }

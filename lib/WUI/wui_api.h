@@ -153,15 +153,10 @@ const char *wui_get_password();
 /// @param[out] buffer password buffer
 /// @param[in] length Size of the buffer
 /// @return Return a password
-const char *wui_generate_password(char *, uint32_t);
+void wui_generate_password();
+
 
 ////////////////////////////////////////////////////////////////////////////
-/// @brief Generate authorization key for PrusaLink
-///
-/// @param[out] password password buffer
-/// @param[in] length Size of the buffer
-void wui_store_password(char *, uint32_t);
-
 /// Start a print of a given filename.
 ///
 /// Returns false if can't print right now. Note that this doesn't check the

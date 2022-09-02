@@ -21,7 +21,7 @@
 #include <cmath>
 #include "cmsis_os.h"
 #include "filament_sensor_api.hpp"
-#include "eeprom_function_api.h"
+#include "configuration_store.h"
 #include "RAII.hpp"
 #include "M70X.hpp"
 #include "fs_event_autolock.hpp"

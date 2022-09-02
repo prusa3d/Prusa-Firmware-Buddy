@@ -130,7 +130,7 @@ void MI_RESET_DIRECTION::click(IWindowMenu &window_menu) {
 /*****************************************************************************/
 //MI_MICROSTEPS_X
 MI_MICROSTEPS_X::MI_MICROSTEPS_X()
-    : WiSpinExp(get_microsteps_x(), SpinCnf::microstep_exponential, NOTRAN(label)) {}
+    : WiSpinExp(get_microsteps_X(), SpinCnf::microstep_exponential, NOTRAN(label)) {}
 
 void MI_MICROSTEPS_X::Store() {
     set_microsteps_x(GetVal());
@@ -139,7 +139,7 @@ void MI_MICROSTEPS_X::Store() {
 /*****************************************************************************/
 //MI_MICROSTEPS_Y
 MI_MICROSTEPS_Y::MI_MICROSTEPS_Y()
-    : WiSpinExp(get_microsteps_y(), SpinCnf::microstep_exponential, NOTRAN(label)) {}
+    : WiSpinExp(get_microsteps_Y(), SpinCnf::microstep_exponential, NOTRAN(label)) {}
 
 void MI_MICROSTEPS_Y::Store() {
     set_microsteps_y(GetVal());
@@ -148,7 +148,7 @@ void MI_MICROSTEPS_Y::Store() {
 /*****************************************************************************/
 //MI_MICROSTEPS_Z
 MI_MICROSTEPS_Z::MI_MICROSTEPS_Z()
-    : WiSpinExp(get_microsteps_z(), SpinCnf::microstep_exponential, NOTRAN(label)) {}
+    : WiSpinExp(get_microsteps_Z(), SpinCnf::microstep_exponential, NOTRAN(label)) {}
 
 void MI_MICROSTEPS_Z::Store() {
     set_microsteps_z(GetVal());
@@ -157,7 +157,7 @@ void MI_MICROSTEPS_Z::Store() {
 /*****************************************************************************/
 //MI_MICROSTEPS_E
 MI_MICROSTEPS_E::MI_MICROSTEPS_E()
-    : WiSpinExp(get_microsteps_e(), SpinCnf::microstep_exponential, NOTRAN(label)) {}
+    : WiSpinExp(get_microsteps_E0(), SpinCnf::microstep_exponential, NOTRAN(label)) {}
 
 void MI_MICROSTEPS_E::Store() {
     set_microsteps_e(GetVal());
@@ -175,7 +175,7 @@ void MI_RESET_MICROSTEPS::click(IWindowMenu &window_menu) {
 /*****************************************************************************/
 //MI_CURRENT_X
 MI_CURRENT_X::MI_CURRENT_X()
-    : WiSpinInt(get_rms_current_ma_x(), SpinCnf::rms_current, NOTRAN(label)) {}
+    : WiSpinInt(get_rms_current_ma_X(), SpinCnf::rms_current, NOTRAN(label)) {}
 
 void MI_CURRENT_X::Store() {
     set_rms_current_ma_x(GetVal());
@@ -184,7 +184,7 @@ void MI_CURRENT_X::Store() {
 /*****************************************************************************/
 //MI_CURRENT_Y
 MI_CURRENT_Y::MI_CURRENT_Y()
-    : WiSpinInt(get_rms_current_ma_y(), SpinCnf::rms_current, NOTRAN(label)) {}
+    : WiSpinInt(get_rms_current_ma_Y(), SpinCnf::rms_current, NOTRAN(label)) {}
 
 void MI_CURRENT_Y::Store() {
     set_rms_current_ma_y(GetVal());
@@ -193,7 +193,7 @@ void MI_CURRENT_Y::Store() {
 /*****************************************************************************/
 //MI_CURRENT_Z
 MI_CURRENT_Z::MI_CURRENT_Z()
-    : WiSpinInt(get_rms_current_ma_z(), SpinCnf::rms_current, NOTRAN(label)) {}
+    : WiSpinInt(get_rms_current_ma_Z(), SpinCnf::rms_current, NOTRAN(label)) {}
 
 void MI_CURRENT_Z::Store() {
     set_rms_current_ma_z(GetVal());
@@ -202,7 +202,7 @@ void MI_CURRENT_Z::Store() {
 /*****************************************************************************/
 //MI_CURRENT_E
 MI_CURRENT_E::MI_CURRENT_E()
-    : WiSpinInt(get_rms_current_ma_e(), SpinCnf::rms_current, NOTRAN(label)) {}
+    : WiSpinInt(get_rms_current_ma_E0(), SpinCnf::rms_current, NOTRAN(label)) {}
 
 void MI_CURRENT_E::Store() {
     set_rms_current_ma_e(GetVal());

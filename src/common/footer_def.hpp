@@ -8,7 +8,7 @@
 #pragma once
 #include "printers.h"
 #include <cstddef> //size_t
-#include "guiconfig.h"
+#include <cstdint>
 #include <array>
 
 // sadly this must be macros, it is used in preprocessor

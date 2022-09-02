@@ -6,8 +6,8 @@
 #include "GuiDefaults.hpp"
 #include "marlin_client.h"
 #include "display_helper.h"
-#include "SteelSheets.hpp"
 #include "png_resources.hpp"
+#include "configuration_store.hpp"
 
 #include "config_features.h"
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
@@ -17,7 +17,7 @@
 #endif
 
 /*****************************************************************************/
-//WindowScale
+// WindowScale
 
 WindowScale::WindowScale(window_t *parent, point_i16_t pt)
     : AddSuperWindow<window_frame_t>(parent, Rect16(pt, 10, 100))
@@ -70,7 +70,7 @@ void WindowScale::unconditionalDraw() {
     horizLine(0, mark_new_y, COLOR_ORANGE);
 }
 /*****************************************************************************/
-//WindowLiveAdjustZ
+// WindowLiveAdjustZ
 
 WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreenBody)
@@ -86,7 +86,7 @@ WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
 
 void WindowLiveAdjustZ::Save() {
     /// store new z offset value into a marlin_vars & EEPROM
-    if (!SteelSheets::SetZOffset(number.GetValue())) {
+    if (!config_store().steel_sheets.get().set_z_offset(number.GetValue())) {
         // could be during print, better not cause BSOD, just freeze in debug
         assert(0 /* Z offset write failed */);
     }
@@ -97,7 +97,7 @@ void WindowLiveAdjustZ::Change(int dif) {
     float z_offset = number.value;
 
     z_offset += (float)dif * z_offset_step;
-    z_offset = dif >= 0 ? std::max(z_offset, old) : std::min(z_offset, old); //check overflow/underflow
+    z_offset = dif >= 0 ? std::max(z_offset, old) : std::min(z_offset, old); // check overflow/underflow
     z_offset = std::min(z_offset, z_offset_max);
     z_offset = std::max(z_offset, z_offset_min);
 
@@ -127,7 +127,7 @@ void WindowLiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *se
 }
 
 /*****************************************************************************/
-//WindowLiveAdjustZ_withText
+// WindowLiveAdjustZ_withText
 
 WindowLiveAdjustZ_withText::WindowLiveAdjustZ_withText(window_t *parent, point_i16_t pt, size_t width)
     : AddSuperWindow<WindowLiveAdjustZ>(parent, pt)
@@ -154,7 +154,7 @@ void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, win
     case GUI_event_t::ENC_UP:
     case GUI_event_t::ENC_DN:
         if (IsActive()) {
-            return; //discard event
+            return; // discard event
         }
         break;
     default:
@@ -164,7 +164,7 @@ void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, win
 }
 
 /*****************************************************************************/
-//LiveAdjustZ
+// LiveAdjustZ
 
 static constexpr const padding_ui8_t textPadding = { 10, 5, 0, 0 };
 static constexpr const Rect16 nozzleRect = Rect16((display::GetW() / 2) - 24, 120, 48, 48);

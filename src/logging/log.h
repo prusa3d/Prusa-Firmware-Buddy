@@ -98,7 +98,7 @@ void log_destination_unregister(log_destination_t *destination);
     #ifdef _DEBUG
         #define LOG_LOWEST_SEVERITY 1 // DEBUG
     #else
-        #define LOG_LOWEST_SEVERITY 2 // INFO
+        #define LOG_LOWEST_SEVERITY 1 // INFO
     #endif
 #endif
 

@@ -15,12 +15,13 @@
 #include "cmath_ext.h"
 #include "gui_invalidate.hpp"
 #include "png_resources.hpp"
+#include "configuration_store.hpp"
 #if _DEBUG
     #include "bsod.h"
 #endif
 
 GuiFileSort::GuiFileSort() {
-    sort = WF_Sort_t(eeprom_get_ui8(EEVAR_FILE_SORT));
+    sort = WF_Sort_t(config_store().file_sort.get());
 }
 
 GuiFileSort &GuiFileSort::instance() {
@@ -36,7 +37,7 @@ void GuiFileSort::Set(WF_Sort_t val) {
     if (instance().sort == val)
         return;
 
-    eeprom_set_ui8(EEVAR_FILE_SORT, (uint8_t)val);
+    config_store().file_sort.set(val);
     instance().sort = val;
 }
 

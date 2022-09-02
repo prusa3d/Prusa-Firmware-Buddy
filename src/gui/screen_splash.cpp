@@ -13,7 +13,8 @@
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
 #include "bsod.h"
-#include "feature/has_selftest.h"
+#include "option/has_selftest.h"
+#include "configuration_store/configuration_store.hpp"
 
 #include <option/bootloader.h>
 
@@ -21,7 +22,7 @@
     #include "marlin_client.h"
 #endif
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "printer_selftest.hpp"
     #include "ScreenSelftest.hpp"
 #endif // HAS_SELFTEST
@@ -50,10 +51,10 @@ screen_splash_data_t::screen_splash_data_t()
     // this MakeRAM is safe - text_version_buffer is globally allocated
     text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_version_buffer));
 
-#if HAS_SELFTEST
-    const bool run_selftest = eeprom_get_bool(EEVAR_RUN_SELFTEST);
-    const bool run_xyzcalib = eeprom_get_bool(EEVAR_RUN_XYZCALIB);
-    const bool run_firstlay = eeprom_get_bool(EEVAR_RUN_FIRSTLAY);
+#if HAS_SELFTEST()
+    const bool run_selftest = config_store().run_selftest.get();
+    const bool run_xyzcalib = config_store().run_xyz_calib.get();
+    const bool run_firstlay = config_store().run_firstlay.get();
     const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
 #endif
     const bool run_lang = !LangEEPROM::getInstance().IsValid();
@@ -61,7 +62,7 @@ screen_splash_data_t::screen_splash_data_t()
     const screen_node screens[] {
         { run_lang ? GetScreenMenuLanguagesNoRet : nullptr }, // lang
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
         {
             run_wizard ? screen_node(ScreenFactory::Screen<ScreenSelftest>, stmWizard) : screen_node()
         } // wizard

@@ -1,0 +1,398 @@
+{
+  "fw_version": {
+    "data_type": "int16_t",
+    "default": 0
+  },
+  "run_selftest": {
+    "data_type": "bool",
+    "default": true,
+    "ifdef": "HAS_SELFTEST()"
+  },
+  "run_xyz_calib": {
+    "data_type": "bool",
+    "default": true,
+    "ifdef": "HAS_SELFTEST()"
+  },
+  "run_firstlay": {
+    "data_type": "bool",
+    "default": true,
+    "ifdef": "HAS_SELFTEST()"
+  },
+  "fsensor_enabled": {
+    "data_type": "bool",
+    "default": true
+  },
+  "pid_noz_p": {
+    "data_type": "float",
+    "default": "\n#ifdef DEFAULT_Kp\n    DEFAULT_Kp, // EEVAR_PID_NOZ_P\n#else\n    0,\n#endif\n"
+  },
+  "pid_noz_i": {
+    "data_type": "float",
+    "default": "\n#ifdef DEFAULT_Ki\n    scalePID_i(DEFAULT_Ki), // EEVAR_PID_NOZ_I\n#else\n    0,\n#endif\n"
+  },
+  "pid_noz_d": {
+    "data_type": "float",
+    "default": "\n#ifdef DEFAULT_Kd\n    scalePID_d(DEFAULT_Kd), // EEVAR_PID_NOZ_D\n#else\n    0,\n#endif\n"
+  },
+  "pid_bed_p": {
+    "data_type": "float",
+    "default": "\n#ifdef DEFAULT_bedKp\n    DEFAULT_bedKp, // EEVAR_PID_BED_P\n#else\n    0,\n#endif\n"
+  },
+  "pid_bed_i": {
+    "data_type": "float",
+    "default": "\n#ifdef DEFAULT_bedKi\n    scalePID_i(DEFAULT_bedKi), // EEVAR_PID_BED_I\n#else\n    0,\n#endif\n"
+  },
+  "pid_bed_d": {
+    "data_type": "float",
+    "default": "\n#ifdef DEFAULT_bedKd\n    scalePID_d(DEFAULT_bedKd), // EEVAR_PID_BED_D\n#else\n    0,\n#endif\n"
+  },
+  "lan_flag": {
+    "data_type": "uint8_t",
+    "default": 0
+  },
+  "lan_ip4_addr": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "lan_ip4_msk": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "lan_ip4_gw": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "lan_ip4_dns1": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "lan_ip4_dns2": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "lan_hostname": {
+    "data_type": "string",
+    "default": "PrusaMINI",
+    "length": 20
+  },
+  "wifi_flag": {
+    "data_type": "uint8_t",
+    "default": 0
+  },
+  "wifi_ip4_addr": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "wifi_ip4_msk": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "wifi_ip4_gw": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "wifi_ip4_dns1": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "wifi_ip4_dns2": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "wifi_hostname": {
+    "data_type": "string",
+    "default": "PrusaMINI",
+    "length": 20
+  },
+  "wifi_ap_ssid": {
+    "data_type": "string",
+    "default": "",
+    "length": 33
+  },
+  "wifi_ap_passwd": {
+    "data_type": "string",
+    "default": "",
+    "length": 65
+  },
+  "sound_mode": {
+    "data_type": "uint8_t",
+    "default": 0
+  },
+  "sound_volume": {
+    "data_type": "uint8_t",
+    "default": 0
+  },
+  "language": {
+    "data_type": "uint16_t",
+    "default": 0
+  },
+  "file_sort": {
+    "data_type": "uint8_t",
+    "default": 0
+  },
+  "menu_timeout": {
+    "data_type": "bool",
+    "default": 0
+  },
+  "active_sheet": {
+    "data_type": "uint8_t",
+    "default": 0
+  },
+  "selftest_result": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "footer_setting": {
+    "data_type": "uint32_t",
+    "default": "footer::eeprom::Encode(footer::DefaultItems)"
+  },
+  "footer_draw_type": {
+    "data_type": "uint32_t",
+    "default": "uint32_t(footer::ItemDrawCnf::Default())"
+  },
+  "fan_check": {
+    "data_type": "bool",
+    "default": true
+  },
+  "fs_autoload": {
+    "data_type": "bool",
+    "default": true
+  },
+  "odometer_x": {
+    "data_type": "float",
+    "default": 0
+  },
+  "odometer_y": {
+    "data_type": "float",
+    "default": 0
+  },
+  "odometer_z": {
+    "data_type": "float",
+    "default": 0
+  },
+  "odometer_e0": {
+    "data_type": "float",
+    "default": 0
+  },
+  "odometer_time": {
+    "data_type": "uint32_t",
+    "default": 0
+  },
+  "steps_per_unit_x": {
+    "data_type": "float",
+    "default": "default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f)"
+  },
+  "steps_per_unit_y": {
+    "data_type": "float",
+    "default": "default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f)"
+  },
+  "steps_per_unit_z": {
+    "data_type": "float",
+    "default": "default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f)"
+  },
+  "steps_per_unit_e": {
+    "data_type": "float",
+    "default": "default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f)"
+  },
+  "microsteps_x": {
+    "data_type": "uint16_t",
+    "default": "X_MICROSTEPS"
+  },
+  "microsteps_y": {
+    "data_type": "uint16_t",
+    "default": "Y_MICROSTEPS"
+  },
+  "microsteps_z": {
+    "data_type": "uint16_t",
+    "default": "Z_MICROSTEPS"
+  },
+  "microsteps_e": {
+    "data_type": "uint16_t",
+    "default": "E0_MICROSTEPS"
+  },
+  "rms_curr_ma_x": {
+    "data_type": "uint16_t",
+    "default": "X_CURRENT"
+  },
+  "rms_curr_ma_y": {
+    "data_type": "uint16_t",
+    "default": "Y_CURRENT"
+  },
+  "rms_curr_ma_z": {
+    "data_type": "uint16_t",
+    "default": "Z_CURRENT"
+  },
+  "rms_curr_ma_e": {
+    "data_type": "uint16_t",
+    "default": "E0_CURRENT"
+  },
+  "z_max_pos": {
+    "data_type": "float",
+    "default": "\n#ifdef DEFAULT_Z_MAX_POS\n    DEFAULT_Z_MAX_POS // AXIS_Z_MAX_POS_MM\n#else\n    0\n#endif\n"
+  },
+  "printer_config": {
+    "data_type": "struct",
+    "type_name": "PrinterSetting",
+    "members": {
+      "steps_per_unit_x": {
+        "data_type": "float",
+        "default": "default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f)"
+      },
+      "steps_per_unit_y": {
+        "data_type": "float",
+        "default": "default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f)"
+      },
+      "steps_per_unit_z": {
+        "data_type": "float",
+        "default": "default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f)"
+      },
+      "steps_per_unit_e": {
+        "data_type": "float",
+        "default": "default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f)"
+      },
+      "microsteps_x": {
+        "data_type": "uint16_t",
+        "default": "X_MICROSTEPS"
+      },
+      "microsteps_y": {
+        "data_type": "uint16_t",
+        "default": "Y_MICROSTEPS"
+      },
+      "microsteps_z": {
+        "data_type": "uint16_t",
+        "default": "Z_MICROSTEPS"
+      },
+      "microsteps_e": {
+        "data_type": "uint16_t",
+        "default": "E0_MICROSTEPS"
+      },
+      "rms_curr_ma_x": {
+        "data_type": "uint16_t",
+        "default": "X_CURRENT"
+      },
+      "rms_curr_ma_y": {
+        "data_type": "uint16_t",
+        "default": "Y_CURRENT"
+      },
+      "rms_curr_ma_z": {
+        "data_type": "uint16_t",
+        "default": "Z_CURRENT"
+      },
+      "rms_curr_ma_e": {
+        "data_type": "uint16_t",
+        "default": "E0_CURRENT"
+      },
+      "z_max_pos": {
+        "data_type": "float",
+        "default": "\n#ifdef DEFAULT_Z_MAX_POS\n    DEFAULT_Z_MAX_POS // AXIS_Z_MAX_POS_MM\n#else\n    0\n#endif\n"
+      }
+    }
+  },
+  "dev_hash_qr": {
+    "data_type": "bool",
+    "default": true
+  },
+  "active_netdev": {
+    "data_type": "uint8_t",
+    "default": 0
+  },
+  "pl_run": {
+    "data_type": "uint8_t",
+    "default": 1
+  },
+  "pl_password": {
+    "data_type": "string",
+    "default": "",
+    "length": 17
+  },
+  "usb_msc_enabled": {
+    "data_type": "bool",
+    "default": false
+  },
+  "connect_host": {
+    "data_type": "string",
+    "default": "",
+    "length": 21
+  },
+  "connect_token": {
+    "data_type": "string",
+    "default": "",
+    "length": 21
+  },
+  "connect_port": {
+    "data_type": "uint16_t",
+    "default": 80
+  },
+  "connect_tls": {
+    "data_type": "bool",
+    "default": true
+  },
+  "connect_enabled": {
+    "data_type": "bool",
+    "default": false
+  },
+  "job_id": {
+    "data_type": "uint16_t",
+    "default": 0
+  },
+  "crash_recovery": {
+    "data_type": "struct",
+    "type_name": "CrashRecoverySettings",
+    "ifdef": "ENABLED(CRASH_RECOVERY)",
+    "members": {
+      "crash_enabled": {
+        "data_type": "bool",
+        "default": true
+      },
+      "crash_sens_x": {
+        "data_type": "int16_t",
+        "default": "crash_sens[0]"
+      },
+      "crash_sens_y": {
+        "data_type": "int16_t",
+        "default": "crash_sens[1]"
+      },
+      "crash_per_x": {
+        "data_type": "uint16_t",
+        "default": "crash_period[0]"
+      },
+      "crash_per_y": {
+        "data_type": "uint16_t",
+        "default": "crash_period[1]"
+      },
+      "crash_filter": {
+        "data_type": "uint8_t",
+        "default": "crash_filter_def_val"
+      },
+      "crash_cnt_x": {
+        "data_type": "uint16_t",
+        "default": 0
+      },
+      "crash_cnt_y": {
+        "data_type": "uint16_t",
+        "default": 0
+      },
+      "power_cnt": {
+        "data_type": "uint16_t",
+        "default": 0
+      }
+    }
+  },
+  "steel_sheets": {
+    "data_type": "SteelSheets",
+    "default": "SteelSheets()"
+  },
+  "time_zone": {
+    "data_type": "int8_t",
+    "default": 0
+  },
+  "filament_type": {
+    "data_type": "uint8_t",
+    "default": 0
+  },
+  "test_item": {
+    "data_type": "uint8_t",
+    "default": 10,
+    "deprecated": false
+  }
+}

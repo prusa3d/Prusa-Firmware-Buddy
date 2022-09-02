@@ -11,6 +11,7 @@
 #include "../../include/printers.h"
 
 #include <cstring>
+#include "configuration_store.hpp"
 
 // only function used in filament.h
 const char *get_selected_filament_name() {
@@ -51,7 +52,7 @@ const Filaments::Array filaments = {
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament_t::_last) + 1, "Filament count error.");
 
 filament_t Filaments::filament_last_preheat = filament_t::NONE;
-filament_t Filaments::filament_to_load = Filaments::Default; //todo remove this variable after pause refactoring
+filament_t Filaments::filament_to_load = Filaments::Default; // todo remove this variable after pause refactoring
 
 filament_t Filaments::GetToBeLoaded() {
     return filament_to_load;
@@ -61,12 +62,9 @@ void Filaments::SetToBeLoaded(filament_t filament) {
     filament_to_load = filament;
 }
 
-//first call will initialize variable from flash, similar behavior to Meyers singleton
+// first call will initialize variable from flash, similar behavior to Meyers singleton
 filament_t &Filaments::get_ref() {
-    static filament_t filament_selected = filament_t(eeprom_get_ui8(EEVAR_FILAMENT_TYPE));
-    if (size_t(filament_selected) > size_t(filament_t::_last)) {
-        filament_selected = filament_t::NONE;
-    }
+    static filament_t filament_selected = static_cast<filament_t>(config_store().filament_type.get());
     return filament_selected;
 }
 
@@ -107,7 +105,7 @@ void Filaments::Set(filament_t filament) {
         return;
     }
     get_ref() = filament;
-    eeprom_set_ui8(EEVAR_FILAMENT_TYPE, size_t(filament));
+    config_store().filament_type.set(static_cast<uint8_t>(filament));
 }
 
 filament_t Filaments::GetLastPreheated() {

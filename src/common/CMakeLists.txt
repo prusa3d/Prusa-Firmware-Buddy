@@ -13,6 +13,7 @@ if(BOARD MATCHES ".*BUDDY")
             client_response_texts.cpp
             crc32.c
             crc32_zlib.c
+            disable_interrupts.cpp
             eeprom.cpp
             eeprom_loadsave.c
             errors.cpp
@@ -59,7 +60,6 @@ if(BOARD MATCHES ".*BUDDY")
             segmented_json.cpp
             sound.cpp
             st25dv64k.c
-            SteelSheets.cpp
             str_utils.cpp
             stubs.c
             support_utils.cpp

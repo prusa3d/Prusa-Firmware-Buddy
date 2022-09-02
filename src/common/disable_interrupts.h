@@ -67,23 +67,13 @@ namespace buddy {
  */
 class DisableInterrupts {
 public:
-    DisableInterrupts(bool disableNow = true)
-        : m_primask(__get_PRIMASK()) {
-        if (disableNow)
-            disable();
-    }
+    DisableInterrupts(bool disableNow = true);
 
-    ~DisableInterrupts() {
-        resume();
-    }
+    ~DisableInterrupts();
 
-    void disable() {
-        __disable_irq();
-    }
+    void disable();
 
-    void resume() {
-        __set_PRIMASK(m_primask);
-    }
+    void resume();
 
     DisableInterrupts(const DisableInterrupts &other) = delete;
     DisableInterrupts &operator=(const DisableInterrupts &other) = delete;

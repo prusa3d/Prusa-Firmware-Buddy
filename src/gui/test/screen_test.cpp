@@ -12,7 +12,7 @@
 #include "screen_test_dlg.hpp"
 #include "screen_menu_eeprom_test.hpp"
 #include "feature/selftest.h"
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "test_of_selftest_result.hpp"
     #include "screen_test_selftest.hpp"
 #endif
@@ -77,7 +77,7 @@ using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     GENERATE_SCREEN_ITEM_DEV(screen_test_wizard_icons, "test Wizard icons"),
     GENERATE_SCREEN_ITEM_DEV(screen_test_dlg_data_t, "test dialog"),
     GENERATE_SCREEN_ITEM_DEV(ScreenErrorQR, "test QR error"),
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     GENERATE_SCREEN_ITEM_DEV(TestResult, "test selftest result"),
     GENERATE_SCREEN_ITEM_DEV(ScreenTestSelftest, "selftest print screens"),
 #endif // HAS_SELFTEST

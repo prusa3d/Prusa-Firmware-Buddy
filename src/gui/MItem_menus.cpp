@@ -8,11 +8,11 @@
 #include "translation_provider_FILE.hpp"
 #include "filament_sensor_api.hpp"
 #include "translator.hpp"
-#include "SteelSheets.hpp"
 #include "png_resources.hpp"
+#include "configuration_store.hpp"
 
 /*****************************************************************************/
-//MI_VERSION_INFO
+// MI_VERSION_INFO
 MI_VERSION_INFO::MI_VERSION_INFO()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -22,7 +22,7 @@ void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_SENSOR_INFO
+// MI_SENSOR_INFO
 MI_SENSOR_INFO::MI_SENSOR_INFO()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -41,7 +41,7 @@ void MI_ODOMETER::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_FILAMENT
+// MI_FILAMENT
 MI_FILAMENT::MI_FILAMENT()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -51,7 +51,7 @@ void MI_FILAMENT::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_SYS_INFO
+// MI_SYS_INFO
 MI_SYS_INFO::MI_SYS_INFO()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -61,19 +61,19 @@ void MI_SYS_INFO::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_FAIL_STAT_disabled
+// MI_FAIL_STAT_disabled
 MI_FAIL_STAT_disabled::MI_FAIL_STAT_disabled()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
 }
 
 /*****************************************************************************/
-//MI_SUPPORT_disabled
+// MI_SUPPORT_disabled
 MI_SUPPORT_disabled::MI_SUPPORT_disabled()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
 }
 
 /*****************************************************************************/
-//MI_TEMPERATURE
+// MI_TEMPERATURE
 MI_TEMPERATURE::MI_TEMPERATURE()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -83,7 +83,7 @@ void MI_TEMPERATURE::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_MOVE_AXIS
+// MI_MOVE_AXIS
 MI_MOVE_AXIS::MI_MOVE_AXIS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -93,17 +93,17 @@ void MI_MOVE_AXIS::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_SERVICE
+// MI_SERVICE
 MI_SERVICE::MI_SERVICE()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SERVICE::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_menu_service()->id);
+    // screen_open(get_scr_menu_service()->id);
 }
 
 /*****************************************************************************/
-//MI_TEST
+// MI_TEST
 MI_TEST::MI_TEST()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -113,7 +113,7 @@ void MI_TEST::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_FW_UPDATE
+// MI_FW_UPDATE
 MI_FW_UPDATE::MI_FW_UPDATE()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -123,7 +123,7 @@ void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_ETH_SETTINGS
+// MI_ETH_SETTINGS
 MI_ETH_SETTINGS::MI_ETH_SETTINGS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
     SetIconId(&png::lan_16x16);
@@ -134,7 +134,7 @@ void MI_ETH_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_WIFI_SETTINGS
+// MI_WIFI_SETTINGS
 MI_WIFI_SETTINGS::MI_WIFI_SETTINGS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
     SetIconId(&png::wifi_16x16);
@@ -145,7 +145,7 @@ void MI_WIFI_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_MESSAGES
+// MI_MESSAGES
 MI_MESSAGES::MI_MESSAGES()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -155,7 +155,7 @@ void MI_MESSAGES::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_LANGUAGE
+// MI_LANGUAGE
 MI_LANGUAGE::MI_LANGUAGE()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -165,7 +165,7 @@ void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_HW_SETUP
+// MI_HW_SETUP
 MI_HW_SETUP::MI_HW_SETUP()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -175,22 +175,24 @@ void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_CURRENT_PROFILE
+// MI_CURRENT_PROFILE
 MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, SteelSheets::NumOfCalibrated() > 1 ? is_hidden_t::no : is_hidden_t::yes) {
-    if (SteelSheets::NumOfCalibrated() > 1) {
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, config_store().steel_sheets.get().num_of_calibrated() > 1 ? is_hidden_t::no : is_hidden_t::yes) {
+    if (config_store().steel_sheets.get().num_of_calibrated() > 1) {
         UpdateLabel();
     }
 }
 
 void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
-    SteelSheets::NextSheet();
+    config_store().steel_sheets.get().next_sheet();
     UpdateLabel();
 }
 
 void MI_CURRENT_PROFILE::UpdateLabel() {
+    auto sheet_name = config_store().steel_sheets.get().get_active_sheet_name();
     name[0] = '[';
-    uint32_t cnt = SteelSheets::ActiveSheetName(name + 1, MAX_SHEET_NAME_LENGTH);
+    strcpy(name + 1, sheet_name.data());
+    size_t cnt = strlen(name);
     name[cnt + 1] = ']';
     name[cnt + 2] = 0;
     // string_view_utf8::MakeRAM is safe. "name" is member var, exists until MI_CURRENT_PROFILE is destroyed
@@ -198,7 +200,7 @@ void MI_CURRENT_PROFILE::UpdateLabel() {
 }
 
 /*****************************************************************************/
-//MI_EEPROM
+// MI_EEPROM
 MI_EEPROM::MI_EEPROM()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -208,15 +210,15 @@ void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_DEVHASH_IN_QR
+// MI_DEVHASH_IN_QR
 MI_DEVHASH_IN_QR::MI_DEVHASH_IN_QR()
-    : WI_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_DEVHASH_IN_QR), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_SWITCH_OFF_ON_t(config_store().dev_hash_qr.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
-    eeprom_set_bool(EEVAR_DEVHASH_IN_QR, !old_index);
+    config_store().dev_hash_qr.set(!old_index);
 }
 
 /*****************************************************************************/
-//MI_FOOTER_SETTINGS
+// MI_FOOTER_SETTINGS
 MI_FOOTER_SETTINGS::MI_FOOTER_SETTINGS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -226,7 +228,7 @@ void MI_FOOTER_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_FOOTER_SETTINGS_ADV
+// MI_FOOTER_SETTINGS_ADV
 MI_FOOTER_SETTINGS_ADV::MI_FOOTER_SETTINGS_ADV()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -236,7 +238,7 @@ void MI_FOOTER_SETTINGS_ADV::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_LANGUAGUE_USB
+// MI_LANGUAGUE_USB
 MI_LANGUAGUE_USB::MI_LANGUAGUE_USB()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
@@ -246,7 +248,7 @@ void MI_LANGUAGUE_USB::click(IWindowMenu &windowMenu) {
 }
 
 /*****************************************************************************/
-//MI_LOAD_LANG
+// MI_LOAD_LANG
 MI_LOAD_LANG::MI_LOAD_LANG()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
@@ -257,7 +259,7 @@ void MI_LOAD_LANG::click(IWindowMenu &windowMenu) {
 
     FILE *srcDir = fopen("/usb/lang/ts.mo", "rb");
     FILE *dstDir = fopen("/internal/ts.mo", "wb");
-    //copy languague from usb to xflash
+    // copy languague from usb to xflash
     if (dstDir && srcDir) {
         for (size_t readBytes = fread(buff, 1, buffLen, srcDir); readBytes != 0; readBytes = fread(buff, 1, buffLen, srcDir)) {
             fwrite(buff, 1, readBytes, dstDir);
@@ -275,7 +277,7 @@ void MI_LANGUAGUE_XFLASH::click(IWindowMenu &windowMenu) {
 }
 
 /*****************************************************************************/
-//MI_PRUSALINK
+// MI_PRUSALINK
 MI_PRUSALINK::MI_PRUSALINK()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -285,7 +287,7 @@ void MI_PRUSALINK::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_PRUSALINK
+// MI_PRUSALINK
 MI_PRUSA_CONNECT::MI_PRUSA_CONNECT()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
@@ -305,7 +307,7 @@ void MI_NETWORK::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenMenuNetwork);
 }
 
-//MI_EXPERIMENTAL_SETTINGS
+// MI_EXPERIMENTAL_SETTINGS
 MI_EXPERIMENTAL_SETTINGS::MI_EXPERIMENTAL_SETTINGS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -327,8 +329,8 @@ void MI_EEPROM_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_USB_MSC_ENABLE
 MI_USB_MSC_ENABLE::MI_USB_MSC_ENABLE()
-    : WI_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_USB_MSC_ENABLED), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+    : WI_SWITCH_OFF_ON_t(config_store().usb_msc_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_USB_MSC_ENABLE::OnChange(size_t old_index) {
-    eeprom_set_bool(EEVAR_USB_MSC_ENABLED, !old_index);
+    config_store().usb_msc_enabled.set(!old_index);
 }

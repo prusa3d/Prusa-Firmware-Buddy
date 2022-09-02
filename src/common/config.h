@@ -26,7 +26,7 @@ enum {
 //#define PSOD_BSOD
 
 //CRC32 config - use hardware CRC32 with RTOS
-#define CRC32_USE_HW
+//#define CRC32_USE_HW
 #define CRC32_USE_RTOS
 
 // ESP configs

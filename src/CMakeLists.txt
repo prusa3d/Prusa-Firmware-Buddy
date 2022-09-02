@@ -5,6 +5,7 @@ add_subdirectory(segger)
 add_subdirectory(hw)
 add_subdirectory(logging)
 add_subdirectory(common)
+add_subdirectory(configuration_store)
 
 if(CONNECT)
   if(NOT WUI)

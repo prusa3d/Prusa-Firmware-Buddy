@@ -7,9 +7,9 @@
 #include "screen_printing.hpp"
 #include "config_features.h"
 #include "screen_print_preview.hpp"
-#include "feature/has_selftest.h"
+#include "option/has_selftest.h"
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "ScreenSelftest.hpp"
 #endif
 
@@ -77,7 +77,7 @@ void DialogHandler::open(fsm::create_t o) {
         }
         break;
     case ClientFSM::Selftest:
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
         if (!ScreenSelftest::GetInstance()) {
             //data contain screen caption type
             //ScreenSelftest::SetHeaderMode(...);
@@ -133,7 +133,7 @@ void DialogHandler::change(fsm::change_t o) {
         }
         break;
     case ClientFSM::Selftest:
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
         if (ScreenSelftest::GetInstance()) {
             ScreenSelftest::GetInstance()->Change(o.data);
         }

@@ -1,18 +1,9 @@
-/**
- * @file eeprom_function_api.h
- * @author Radek Vana
- * @brief api alowing access to eeprom via functions
- * @date 2021-08-26
- */
-
 #pragma once
-
-#include <stdbool.h>
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
+
+void init_configuration_store();
 
 /**
  * @brief function set to read value from eeprom
@@ -22,14 +13,14 @@ float get_steps_per_unit_x();
 float get_steps_per_unit_y();
 float get_steps_per_unit_z();
 float get_steps_per_unit_e();
-uint16_t get_microsteps_x();
-uint16_t get_microsteps_y();
-uint16_t get_microsteps_z();
-uint16_t get_microsteps_e();
-uint16_t get_rms_current_ma_x();
-uint16_t get_rms_current_ma_y();
-uint16_t get_rms_current_ma_z();
-uint16_t get_rms_current_ma_e();
+uint16_t get_microsteps_X();
+uint16_t get_microsteps_Y();
+uint16_t get_microsteps_Z();
+uint16_t get_microsteps_E0();
+uint16_t get_rms_current_ma_X();
+uint16_t get_rms_current_ma_Y();
+uint16_t get_rms_current_ma_Z();
+uint16_t get_rms_current_ma_E0();
 bool has_inverted_x();
 bool has_inverted_y();
 bool has_inverted_z();
@@ -39,6 +30,8 @@ bool has_wrong_x();
 bool has_wrong_y();
 bool has_wrong_z();
 bool has_wrong_e();
+bool get_msc_enabled();
+void set_msc_enabled(bool settings);
 
 /**
  * @brief function set to read float value from eeprom and round it

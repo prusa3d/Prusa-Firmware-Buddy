@@ -1,12 +1,10 @@
-#include "config_features.h"
+#include "configuration_store.hpp"
 // TODO do it in cmake
 #if ENABLED(CRASH_RECOVERY)
 
     #include "MItem_crash.hpp"
     #include "screen_menus.hpp"
     #include "menu_spin_config.hpp"
-    #include "../lib/Marlin/Marlin/src/module/stepper/trinamic.h"
-    #include "../Marlin/src/feature/prusa/crash_recovery.h"
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
     : WI_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
@@ -62,7 +60,7 @@ void MI_CRASH_MAX_PERIOD_Y::OnClick() {
 #if ANY(CRASH_RECOVERY, POWER_PANIC)
 
 MI_POWER_PANICS::MI_POWER_PANICS()
-    : WI_INFO_t(variant8_get_ui16(eeprom_get_var(EEVAR_POWER_COUNT_TOT)), _(label)) {}
+    : WI_INFO_t(config_store().crash_recovery.get().get_power_cnt(), _(label)) {}
 
 MI_CRASHES_X_LAST::MI_CRASHES_X_LAST()
     : WI_INFO_t(crash_s.counter_crash.x, _(label)) {}
@@ -71,10 +69,10 @@ MI_CRASHES_Y_LAST::MI_CRASHES_Y_LAST()
     : WI_INFO_t(crash_s.counter_crash.y, _(label)) {}
 
 MI_CRASHES_X::MI_CRASHES_X()
-    : WI_INFO_t(variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_COUNT_X_TOT)), _(label)) {}
+    : WI_INFO_t(config_store().crash_recovery.get().get_crash_cnt_x(), _(label)) {}
 
 MI_CRASHES_Y::MI_CRASHES_Y()
-    : WI_INFO_t(variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_COUNT_Y_TOT)), _(label)) {}
+    : WI_INFO_t(config_store().crash_recovery.get().get_crash_cnt_y(), _(label)) {}
 
     #if HAS_DRIVER(TMC2130)
 MI_CRASH_FILTERING::MI_CRASH_FILTERING()

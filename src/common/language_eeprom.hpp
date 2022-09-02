@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <array>
-#include "eeprom.h"
 
 /* class Lang {
 private:

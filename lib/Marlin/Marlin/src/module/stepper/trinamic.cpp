@@ -31,13 +31,13 @@
 
 #include "trinamic.h"
 #include "../stepper.h"
-#include "eeprom.h"
+#include "configuration_store.h"
 
 #include <HardwareSerial.h>
 
 
 enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
-#define _TMC_INIT(ST, STEALTH_INDEX) tmc_init(stepper##ST, eeprom_get_ui16(AXIS_RMS_CURRENT_MA_##ST), eeprom_get_ui16(AXIS_MICROSTEPS_##ST), ST##_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_INDEX])
+#define _TMC_INIT(ST, STEALTH_INDEX) tmc_init(stepper##ST, get_rms_current_ma_##ST(), get_microsteps_##ST(), ST##_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_INDEX])
 
 //   IC = TMC model number
 //   ST = Stepper object letter

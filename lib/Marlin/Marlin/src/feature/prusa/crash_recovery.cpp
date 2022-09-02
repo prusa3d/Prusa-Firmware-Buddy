@@ -5,9 +5,9 @@
     #include "../../module/stepper.h"
     #include "crash_recovery.h"
     #include "bsod.h"
-    #include "eeprom.h"
     #include "../../module/printcounter.h"
     #include "metric.h"
+#include "configuration_store.hpp"
 
 Crash_s &crash_s = Crash_s::instance();
 
@@ -21,13 +21,14 @@ Crash_s::Crash_s()
       m_axis_is_homing{false, false},
       m_enable_stealth{false, false} {
     reset();
-    enabled = variant8_get_bool(eeprom_get_var(EEVAR_CRASH_ENABLED));
-    max_period.x = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_PERIOD_X));
-    max_period.y = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_PERIOD_Y));
-    sensitivity.x = variant8_get_i16(eeprom_get_var(EEVAR_CRASH_SENS_X));
-    sensitivity.y = variant8_get_i16(eeprom_get_var(EEVAR_CRASH_SENS_Y));
+    auto crash_data = config_store().crash_recovery.get();
+    enabled = crash_data.crash_enabled;
+    max_period.x = crash_data.crash_per_x;
+    max_period.y = crash_data.crash_per_y;
+    sensitivity.x = crash_data.crash_sens_x;
+    sensitivity.y = crash_data.crash_sens_y;
 #if HAS_DRIVER(TMC2130)
-    filter = variant8_get_bool(eeprom_get_var(EEVAR_CRASH_FILTER));
+    filter = crash_data.crash_filter;
 #endif
 }
 
@@ -245,15 +246,19 @@ void Crash_s::enable(bool state) {
     if (state == enabled)
         return;
     enabled = state;
-    eeprom_set_var(EEVAR_CRASH_ENABLED, variant8_bool(state));
+    config_store().crash_recovery.get().set_crash_enabled(state);
     update_machine();
 }
 
 void Crash_s::set_sensitivity(xy_long_t sens) {
     if (sensitivity != sens) {
         sensitivity = sens;
-        eeprom_set_var(EEVAR_CRASH_SENS_X, variant8_i16(sensitivity.x));
-        eeprom_set_var(EEVAR_CRASH_SENS_Y, variant8_i16(sensitivity.y));
+        // changing data directly to do only one eeprom write
+        auto data = config_store().crash_recovery.get();
+        data.crash_sens_x = sensitivity.x;
+        data.crash_sens_y = sensitivity.y;
+        config_store().crash_recovery.set(data);
+
         update_machine();
     }
 }
@@ -286,8 +291,11 @@ void Crash_s::send_reports() {
 void Crash_s::set_max_period(xy_long_t mp) {
     if (max_period != mp) {
         max_period = mp;
-        eeprom_set_var(EEVAR_CRASH_PERIOD_X, variant8_ui16(max_period.x));
-        eeprom_set_var(EEVAR_CRASH_PERIOD_Y, variant8_ui16(max_period.y));
+        // changing data directly to do only one eeprom write
+        auto data = config_store().crash_recovery.get();
+        data.crash_per_x = mp.x;
+        data.crash_per_y = mp.y;
+        config_store().crash_recovery.set(data);
         update_machine();
     }
 }
@@ -296,20 +304,20 @@ void Crash_s::write_stat_to_eeprom() {
     if (stats_saved)
         return;
     stats_saved = true;
-    xy_uint_t total({ variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_COUNT_X_TOT)), variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_COUNT_Y_TOT)) });
-    uint16_t power_panics = variant8_get_ui16(eeprom_get_var(EEVAR_POWER_COUNT_TOT));
+    auto crash_data = config_store().crash_recovery.get();
+    xy_uint_t total({ crash_data.get_crash_cnt_y(), crash_data.get_crash_cnt_y() });
 
-    xy_long_t eevar = { EEVAR_CRASH_COUNT_X_TOT, EEVAR_CRASH_COUNT_Y_TOT };
     LOOP_XY(axis) {
         if (counter_crash.pos[axis] > 0) {
             total.pos[axis] += counter_crash.pos[axis];
-            eeprom_set_var((enum eevar_id)eevar.pos[axis], variant8_ui16(total.pos[axis]));
             static metric_t crash_stat = METRIC("crash_stat", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
             metric_record_custom(&crash_stat, ",axis=%c last=%ui,total=%ui", axis_codes[axis], counter_crash.pos[axis], total.pos[axis]);
         }
     }
-    power_panics += counter_power_panic;
-    eeprom_set_var(EEVAR_POWER_COUNT_TOT, variant8_ui16(power_panics));
+    crash_data.crash_cnt_x = total.x;
+    crash_data.crash_cnt_y = total.y;
+    crash_data.power_cnt +=counter_power_panic;
+    config_store().crash_recovery.set(crash_data);
 
     reset_crash_counter();
 }
@@ -384,7 +392,7 @@ void Crash_s::end_sensorless_homing_per_axis(const AxisEnum axis, const bool ena
             if (filter == on)
                 return;
             filter = on;
-            eeprom_set_var(EEVAR_CRASH_FILTER, variant8_bool(on));
+            config_store().crash_recovery.get().set_crash_filter(on);
             update_machine();
         }
     #endif

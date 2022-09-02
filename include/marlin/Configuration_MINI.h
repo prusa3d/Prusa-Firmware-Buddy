@@ -42,7 +42,7 @@
 #define USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    #include "eeprom_function_api.h"
+    #include "configuration_store.h"
 #endif
 //===========================================================================
 //============================= Getting Started =============================

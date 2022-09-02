@@ -1,0 +1,66 @@
+{
+  "SimpleType": {
+    "data_type": "int32_t",
+    "default": 0
+  },
+  "string_type": {
+    "data_type": "string",
+    "default": "test string",
+    "length": 100
+  },
+  "array": {
+    "data_type": "array",
+    "length": 10,
+    "item": {
+      "data_type": "int32_t",
+      "default": 0
+    }
+  },
+  "array_multiple_default_items": {
+    "data_type": "std::array<int32_t,3>",
+    "default": [
+      0,
+      1,
+      2
+    ]
+  },
+  "struct_type": {
+    "data_type": "struct",
+    "type_name": "Struct",
+    "members": {
+      "array": {
+        "data_type": "array",
+        "length": 4,
+        "item": {
+          "data_type": "int32_t",
+          "default": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      "array_single_default": {
+        "data_type": "array",
+        "length": 10,
+        "item": {
+          "data_type": "int32_t",
+          "default": 1
+        }
+      },
+      "SimpleType": {
+        "data_type": "int32_t",
+        "default": 0
+      },
+      "string_type": {
+        "data_type": "string",
+        "default": "test string",
+        "length": 100
+      }
+    },
+    "functions": [
+      "int get_simple_type()"
+    ]
+  }
+}

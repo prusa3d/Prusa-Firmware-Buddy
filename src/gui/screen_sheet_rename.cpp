@@ -1,7 +1,6 @@
 #include "screen_sheet_rename.hpp"
 #include "ScreenHandler.hpp"
 #include "log.h"
-#include "SteelSheets.hpp"
 
 LOG_COMPONENT_REF(GUI);
 

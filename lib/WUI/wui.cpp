@@ -29,28 +29,34 @@
 #include "main.h"
 
 #include "netdev.h"
+#include "configuration_store.hpp"
 
 LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
 
 // FIXME: " " vs <>
-#include "eeprom.h"
 #include "variant8.h"
+#include "configuration_store.hpp"
 
 using std::unique_lock;
 
 #define LOOP_EVT_TIMEOUT 500UL
 
-static variant8_t prusa_link_password;
 
-const char *wui_generate_password(char *password, uint32_t length) {
+using PasswordType = decltype(config_store().pl_password.get());
+
+PasswordType prusa_link_password = {};
+
+void wui_generate_password() {
+
     // Avoid confusing character pairs ‒ 1/l/I, 0/O.
     static char charset[] = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     // One less, as the above contains '\0' at the end which we _do not_ want to generate.
     const uint32_t charset_length = sizeof(charset) / sizeof(char) - 1;
     uint32_t i = 0;
+    PasswordType password;
 
-    while (i < length - 1) {
+    while (i < password.size() - 1) {
         uint32_t random = 0;
         HAL_StatusTypeDef status = HAL_RNG_GenerateRandomNumber(&hrng, &random);
         if (HAL_OK == status) {
@@ -58,24 +64,17 @@ const char *wui_generate_password(char *password, uint32_t length) {
         }
     }
     password[i] = 0;
-    return password;
-}
 
-void wui_store_password(char *password, uint32_t length) {
-    variant8_t *p_prusa_link_password = &prusa_link_password;
-    variant8_done(&p_prusa_link_password);
-    prusa_link_password = variant8_init(VARIANT8_PCHAR, length, password);
-    eeprom_set_var(EEVAR_PL_PASSWORD, prusa_link_password);
+    config_store().pl_password.set(password);
+    prusa_link_password = password;
 }
 
 namespace {
 
 void prusalink_password_init(void) {
-    prusa_link_password = eeprom_get_var(EEVAR_PL_PASSWORD);
-    if (!strcmp(variant8_get_pch(prusa_link_password), "")) {
-        char password[PL_PASSWORD_SIZE] = { 0 };
-        wui_generate_password(password, PL_PASSWORD_SIZE);
-        wui_store_password(password, PL_PASSWORD_SIZE);
+    prusa_link_password = config_store().pl_password.get();
+    if (strcmp(prusa_link_password.data(), "") == 0) {
+        wui_generate_password();
     }
 }
 
@@ -292,7 +291,7 @@ private:
         // Lock (even the desired config can be read from other threads, eg. the tcpip_thread from a callback :-(
         // (using unique_lock instead of scoped_lock as at other places, we need "pause")
         unique_lock lock(mutex);
-        const uint32_t active_local = eeprom_get_ui8(EEVAR_ACTIVE_NETDEV);
+        const uint32_t active_local = config_store().active_netdev.get();
         // Store into the atomic variable, but keep working with the stack copy.
         active = active_local;
         load_net_params(&ifaces[NETDEV_ETH_ID].desired_config, nullptr, NETDEV_ETH_ID);
@@ -330,7 +329,7 @@ private:
 
         lock.unlock();
 
-        if (eeprom_get_ui8(EEVAR_PL_RUN) == 1) {
+        if (config_store().pl_run.get() == 1) {
             httpd_start();
         } else {
             httpd_close();
@@ -558,7 +557,7 @@ void start_network_task() {
 }
 
 const char *wui_get_password() {
-    return variant8_get_pch(prusa_link_password);
+    return prusa_link_password.data();
 }
 
 void notify_esp_data() {
@@ -596,7 +595,7 @@ void notify_reconfigure() {
 void netdev_set_active_id(uint32_t netdev_id) {
     assert(netdev_id <= NETDEV_COUNT);
 
-    eeprom_set_ui8(EEVAR_ACTIVE_NETDEV, (uint8_t)(netdev_id & 0xFF));
+    config_store().active_netdev.set((uint8_t)(netdev_id & 0xFF));
 
     notify_reconfigure();
 }
@@ -605,17 +604,8 @@ namespace {
 
 template <class F>
 void modify_flag(uint32_t netdev_id, F &&f) {
-    eevar_id var = EEVAR_LAN_FLAG;
-    switch (netdev_id) {
-    case NETDEV_ETH_ID:
-        var = EEVAR_LAN_FLAG;
-        break;
-    case NETDEV_ESP_ID:
-        var = EEVAR_WIFI_FLAG;
-        break;
-    default:
-        assert(0);
-    }
+    auto &flag_access = netdev_id == NETDEV_ETH_ID ? config_store().lan_flag : config_store().wifi_flag;
+    static_assert(NETDEV_COUNT == 2, "There could be unsupported interface id");
 
     // Read it from the EEPROM, not from the state. For two reasons:
     // * While it likely can't happen, it's unclear what should happen if the
@@ -624,10 +614,10 @@ void modify_flag(uint32_t netdev_id, F &&f) {
     //   as fresh value as possible. This still leaves the possibility of a
     //   race condition (two threads messing with the same variable), but that
     //   is unlikely.
-    const uint8_t old = eeprom_get_ui8(var);
+    const uint8_t old = flag_access.get();
     uint8_t flag = f(old);
     if (old != flag) {
-        eeprom_set_ui8(var, flag);
+        flag_access.set(flag);
         notify_reconfigure();
     }
 }

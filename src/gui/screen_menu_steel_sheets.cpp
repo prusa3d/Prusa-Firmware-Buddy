@@ -4,9 +4,9 @@
 #include "ScreenHandler.hpp"
 #include <type_traits>
 #include "eeprom.h"
-//#include "wizard/screen_wizard.hpp"
+// #include "wizard/screen_wizard.hpp"
 #include "log.h"
-#include "SteelSheets.hpp"
+#include "configuration_store.hpp"
 #include "WindowItemFormatableLabel.hpp"
 #include "GuiDefaults.hpp"
 
@@ -136,10 +136,10 @@ public:
     ISheetProfileMenuScreen(uint32_t value)
         : SheetProfileMenuScreen(_(label))
         , value(value) {
-        if (SteelSheets::IsSheetCalibrated(value)) {
+        if (config_store().steel_sheets.get().is_sheet_calibrated(value)) {
             Item<MI_SHEET_SELECT>().Enable();
             Item<MI_SHEET_RESET>().Enable();
-            Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
+            Item<MI_SHEET_OFFSET>().SetOffset(config_store().steel_sheets.get().get_z_offset());
             Show<MI_SHEET_OFFSET>();
         }
         if (value == 0)
@@ -156,7 +156,7 @@ protected:
         profile_action action = static_cast<profile_action>((uint32_t)param);
         switch (action) {
         case profile_action::Reset:
-            if (SteelSheets::ResetSheet(value)) {
+            if (config_store().steel_sheets.get().reset_sheet(value)) {
                 Item<MI_SHEET_RESET>().Disable();
                 Item<MI_SHEET_SELECT>().Disable();
                 Item<MI_SHEET_OFFSET>().Reset();
@@ -166,13 +166,13 @@ protected:
             break;
         case profile_action::Select:
             log_debug(GUI, "MI_SHEET_SELECT");
-            SteelSheets::SelectSheet(value);
+            config_store().steel_sheets.get().select_sheet(value);
             break;
         case profile_action::Calibrate:
             log_debug(GUI, "MI_SHEET_CALIBRATE");
-            SteelSheets::SelectSheet(value);
+            config_store().steel_sheets.get().select_sheet(value);
             // TODO ScreenWizard::Run(wizard_run_type_t::firstlay);
-            Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
+            Item<MI_SHEET_OFFSET>().SetOffset(config_store().steel_sheets.get().get_z_offset());
             break;
         case profile_action::Rename:
             log_debug(GUI, "MI_SHEET_RENAME");
@@ -203,7 +203,7 @@ struct ProfileRecord : public WI_LABEL_t {
     ProfileRecord()
         : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), nullptr, is_enabled_t::yes, is_hidden_t::no) {
         memset(name, 0, MAX_SHEET_NAME_LENGTH + 1);
-        SteelSheets::SheetName(Index::value, name, MAX_SHEET_NAME_LENGTH + 1);
+        strcpy(name, config_store().steel_sheets.get().get_sheet_name(Index::value).data());
         // string_view_utf8::MakeRAM is safe. "name" is member var, exists until ProfileRecord is destroyed
         SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
     };

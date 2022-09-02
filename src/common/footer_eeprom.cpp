@@ -5,7 +5,7 @@
  */
 
 #include "footer_eeprom.hpp"
-#include "eeprom.h"
+#include "configuration_store.hpp"
 
 using namespace footer;
 using namespace footer::eeprom;
@@ -17,10 +17,11 @@ using namespace footer::eeprom;
  * @return record
  */
 static record loadAndValidateRecord() {
-    record rec = Decode(eeprom_get_var(EEVAR_FOOTER_SETTING));
+    record rec = Decode(config_store().footer_setting.get());
     uint32_t valid = Encode(rec);
     // cannot use Store - would recursively call this function
-    eeprom_set_ui32(EEVAR_FOOTER_SETTING, valid);
+    //FIXME Do not store the data after succesful validation
+    config_store().footer_setting.set(valid);
     return rec;
 }
 
@@ -36,7 +37,7 @@ record footer::eeprom::Load() {
 changed_t footer::eeprom::Store(record rec) {
     if (get_ref() == rec)
         return changed_t::no;
-    eeprom_set_ui32(EEVAR_FOOTER_SETTING, Encode(rec));
+    config_store().footer_setting.set(Encode(rec));
     get_ref() = rec;
     return changed_t::yes;
 }
@@ -59,10 +60,11 @@ bool footer::eeprom::Set(items item, size_t index) {
  * @return ItemDrawCnf
  */
 static ItemDrawCnf loadAndValidateDrawCnf() {
-    ItemDrawCnf cnf = ItemDrawCnf(eeprom_get_var(EEVAR_FOOTER_DRAW_TYPE));
+    ItemDrawCnf cnf = ItemDrawCnf(config_store().footer_draw_type.get());
     uint32_t valid = uint32_t(cnf);
     // cannot use Set - would recursively call this function
-    eeprom_set_ui32(EEVAR_FOOTER_DRAW_TYPE, valid);
+    //FIXME Do not store the data after successful validation
+    config_store().footer_draw_type.set(valid);
     return cnf;
 }
 
@@ -78,7 +80,7 @@ ItemDrawCnf footer::eeprom::LoadItemDrawCnf() {
 changed_t footer::eeprom::Set(ItemDrawCnf cnf) {
     if (getDrawCnf_ref() == cnf)
         return changed_t::no;
-    eeprom_set_ui32(EEVAR_FOOTER_DRAW_TYPE, uint32_t(cnf));
+    config_store().footer_draw_type.set(cnf);
     getDrawCnf_ref() = cnf;
     return changed_t::yes;
 }

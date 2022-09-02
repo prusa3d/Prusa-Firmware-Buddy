@@ -9,7 +9,7 @@
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
 #include "selftest_log.hpp"
-#include "eeprom.h"
+#include "configuration_store.hpp"
 
 //disable power check, since measurement does not work
 #ifdef HAS_ADVANCED_POWER
@@ -125,14 +125,14 @@ bool phaseHeaters(IPartHandler *&pNozzle, IPartHandler *&pBed) {
 
     // just finished noz or bed, it is extremely unlikely they would finish both at same time
     SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = config_store().selftest_result.get();
     if (finished_noz) {
         eeres.nozzle = uint8_t(pNozzle->GetResult());
     }
     if (finished_bed) {
         eeres.bed = uint8_t(pBed->GetResult());
     }
-    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
+    config_store().selftest_result.set(eeres.ui32);
 
     if (finished_noz) {
         PowerCheckBoth::Instance().UnBindNozzle();

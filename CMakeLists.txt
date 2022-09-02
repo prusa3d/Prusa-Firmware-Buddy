@@ -197,6 +197,7 @@ add_library(Marlin_Config INTERFACE)
 # TODO: fix dependency on src/common and src/gui
 target_include_directories(
   Marlin_Config INTERFACE include/marlin src/common src/gui src/marlin_stubs/include
+                          src/configuration_store "${CMAKE_BINARY_DIR}/src/configuration_store"
   )
 if(HAS_SELFTEST)
   target_include_directories(Marlin_Config INTERFACE src/common/selftest)
@@ -223,7 +224,7 @@ add_compile_options(-g)
 # optimizations
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   if(MCU MATCHES "STM32F40")
-    add_compile_options(-Og)
+    add_compile_options(-O0)
   else()
     # O0 should be compiled with -fomit-frame-pointer to make sure there is enough registers for asm
     # functions
@@ -428,6 +429,7 @@ target_include_directories(
           src/logging
           src/syslog
           include/mbedtls
+          src/configuration_store
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -462,7 +464,6 @@ if(BOARD MATCHES "BUDDY")
 else()
   target_link_libraries(firmware PRIVATE)
 endif()
-
 set_property(
   SOURCE src/common/version.c
   APPEND
