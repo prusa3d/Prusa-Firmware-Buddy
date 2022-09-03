@@ -98,6 +98,7 @@ static const uint32_t INACTIVE_PACKET_SECONDS = 5;
 // new intron as uint8_t[8]
 #define MSG_INTRON 5
 
+static const uint8_t uart_nic_protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
 
 static const char *TAG = "uart_nic";
 
@@ -176,8 +177,12 @@ static void probe_run() {
 
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
-        ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N));
-        ESP_ERROR_CHECK(esp_wifi_set_inactive_time(ESP_IF_WIFI_STA, INACTIVE_BEACON_SECONDS));
+        uint8_t current_protocol;
+        ESP_ERROR_CHECK(esp_wifi_get_protocol(ESP_IF_WIFI_STA, &current_protocol));
+        if (current_protocol != uart_nic_protocol) {
+            ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, uart_nic_protocol));
+            return;
+        }
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
         associated = false;
