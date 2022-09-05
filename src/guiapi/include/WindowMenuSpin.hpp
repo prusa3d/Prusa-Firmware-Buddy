@@ -106,3 +106,28 @@ inline void WI_SPIN_t<float>::printSpinToBuffer() {
 
 using WiSpinInt = WI_SPIN_t<int>;
 using WiSpinFlt = WI_SPIN_t<float>;
+
+#include <../../../lib/Marlin/Marlin/src/inc/MarlinConfig.h>
+#include <../../../lib/Marlin/Marlin/src/feature/prusa/crash_recovery.h>
+
+class WI_SPIN_CRASH_PERIOD_t : public AddSuper<IWiSpin> {
+
+public: //todo private
+    using Config = SpinConfig_t<int>;
+    const Config &config;
+
+protected:
+    void printSpinToBuffer() {
+        float display = period_to_speed(X_MICROSTEPS, int(value), get_steps_per_unit_x());
+        int chars = snprintf(spin_text_buff.data(), spin_text_buff.size(), "%f", double(display));
+#if 0 //todo
+        changeExtentionWidth(0, 0, chars);
+#endif
+    }
+
+public:
+    WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, string_view_utf8 label, ResourceId id_icon = IDR_NULL, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    virtual invalidate_t change(int dif) override;
+    /// returns the same type to be on the safe side (SpinType is not type safe)
+    int GetVal() const { return value; }
+};

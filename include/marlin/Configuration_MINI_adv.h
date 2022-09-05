@@ -1697,6 +1697,47 @@
     #define E4_HYBRID_THRESHOLD 30
     #define E5_HYBRID_THRESHOLD 30
 
+    /**
+     * Provides crash detection during printing and proper crash recovery.
+     * Sensorless homing must be turned on and sensitivities set accordingly.
+     */
+    #define CRASH_RECOVERY
+    #ifdef CRASH_RECOVERY
+        #define CRASH_STALL_GUARD { 1, 1 } // internal value representing sensitivity
+        #define CRASH_PERIOD { 210, 210 }  // (steps per tick) - reciprocal value of minimal speed
+        #define CRASH_FILTER (false)        // Stallguard filtering for crash detection
+        #define CRASH_TIMER 45             // seconds before counter reset
+        #define CRASH_COUNTER_MAX 3        // max crashes with automatic recovery
+
+    #endif
+
+    #define AXIS_MEASURE_STALL_GUARD 1
+    #define AXIS_MEASURE_CRASH_PERIOD 210
+
+    /**
+     * Recovery from power failure. This is a distinct implementation from
+     * POWER_LOSS_RECOVERY specific to Prusa printers.
+     */
+    #define POWER_PANIC
+
+    #ifdef POWER_PANIC
+        #define POWER_PANIC_Z_LIFT_CYCLES 4 // 4xFullStep cycles = ~0.64mm
+        #define POWER_PANIC_MAX_BED_DIFF 10 // Maximum bed temperature (C) difference for auto-recovery
+
+        // Milliseconds to wait on hold before auto-restarting during short power failures
+        #define POWER_PANIC_HOLD_RST_MS 5000
+
+        // TODO: currently arbitrary, needs to include optimal feedrates too
+        #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
+        #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
+
+        #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
+        #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
+
+        #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
+    #endif
+
+
 /**
    * TMC2130, TMC2160, TMC2660, TMC5130, and TMC5160 only
    * Use StallGuard2 to sense an obstacle and trigger an endstop.
