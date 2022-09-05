@@ -85,6 +85,7 @@ void screen_printing_data_t::pauseAction() {
         marlin_print_resume();
         change_print_state();
         break;
+    case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
         screen_printing_reprint();
         change_print_state();
@@ -99,6 +100,7 @@ void screen_printing_data_t::stopAction() {
         return;
     }
     switch (GetState()) {
+    case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
         marlin_print_exit();
         return;
@@ -230,7 +232,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     }
 
     /// -- close screen when print is done / stopped and USB media is removed
-    if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
+    if (!marlin_vars()->media_inserted && (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED)) {
         marlin_print_exit();
         return;
     }
@@ -243,7 +245,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (event == GUI_event_t::HELD_RELEASED) {
         if (marlin_vars()->curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
             LiveAdjustZ::Show();
-        } else if (p_state == printing_state_t::PRINTED) {
+        } else if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
             DialogMoveZ::Show();
         }
         return;
@@ -467,6 +469,7 @@ void screen_printing_data_t::set_pause_icon_and_label() {
         disable_button(p_button);
         set_icon_and_label(item_id_t::reheating, p_button, pLabel);
         break;
+    case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
         enable_button(p_button);
         set_icon_and_label(item_id_t::reprint, p_button, pLabel);
@@ -503,6 +506,7 @@ void screen_printing_data_t::set_stop_icon_and_label() {
     window_text_t *const pLabel = &btn_stop.txt;
 
     switch (GetState()) {
+    case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
         enable_button(p_button);
         set_icon_and_label(item_id_t::home, p_button, pLabel);
@@ -577,7 +581,7 @@ void screen_printing_data_t::change_print_state() {
         break;
     case mpsAborted:
         stop_pressed = false;
-        st = printing_state_t::PRINTED;
+        st = printing_state_t::STOPPED;
         break;
     case mpsFinished:
     case mpsExit:
@@ -597,7 +601,7 @@ void screen_printing_data_t::change_print_state() {
         set_tune_icon_and_label();
         set_stop_icon_and_label();
     }
-    if (st == printing_state_t::PRINTED || st == printing_state_t::PAUSED) {
+    if (st == printing_state_t::PRINTED || st == printing_state_t::STOPPED || st == printing_state_t::PAUSED) {
         Odometer_s::instance().force_to_eeprom();
     }
 #if ENABLED(CRASH_RECOVERY)
