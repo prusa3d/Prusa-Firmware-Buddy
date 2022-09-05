@@ -1712,7 +1712,7 @@
    *
    * Stall threshold defines maximal period between steps to trigger a stallguard
    */
-//#define SENSORLESS_HOMING // TMC2130 only
+#define SENSORLESS_HOMING // TMC2130 only
 
 /**
    * Use StallGuard2 to probe the bed with the nozzle.
@@ -1724,15 +1724,15 @@
 
     #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
         #if X_DRIVER_TYPE == TMC2209
-            #define X_STALL_SENSITIVITY 8
+            #define X_STALL_SENSITIVITY 130
         #endif
 
         #if Y_DRIVER_TYPE == TMC2209
-            #define Y_STALL_SENSITIVITY 8
+            #define Y_STALL_SENSITIVITY 130
         #endif
 
         #if Z_DRIVER_TYPE == TMC2209
-            // #define Z_STALL_SENSITIVITY 8
+            #define Z_STALL_SENSITIVITY 100
         #endif
 
         #define STALL_THRESHOLD_TMC2130 0xFFFFF
