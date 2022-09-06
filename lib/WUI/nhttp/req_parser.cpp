@@ -45,7 +45,8 @@ RequestParser::RequestParser(const Server &server)
     , version_major(0)
     , version_minor(0)
     , connection(Connection::Unknown)
-    , accepts_json(false) {}
+    , accepts_json(false)
+    , print_after_upload(false) {}
 
 ExecutionControl RequestParser::event(Event event) {
     switch (event.leaving_state) {
@@ -70,6 +71,9 @@ ExecutionControl RequestParser::event(Event event) {
     }
 
     switch (event.entering_state) {
+    case Names::PrintAfterUpload:
+        print_after_upload = true;
+        return ExecutionControl::Continue;
     case Names::Url:
         assert(boundary_size == 0);
         if (url_size < url.size()) {

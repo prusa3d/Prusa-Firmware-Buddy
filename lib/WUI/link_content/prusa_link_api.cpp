@@ -25,6 +25,11 @@ using nhttp::printer::FileInfo;
 using nhttp::printer::GcodeUpload;
 using nhttp::printer::JobCommand;
 
+enum class RemapPolicy {
+    Octoprint,
+    NoRemap
+};
+
 namespace {
     optional<string_view> remove_prefix(string_view input, string_view prefix) {
         if (input.size() < prefix.size() || input.substr(0, prefix.size()) != prefix) {
@@ -32,6 +37,83 @@ namespace {
         }
 
         return input.substr(prefix.size());
+    }
+
+    optional<ConnectionState> parse_file_url(const RequestParser &parser, const size_t prefix_len, char *filename, const size_t filename_len, RemapPolicy remapPolicy) {
+        /*
+         * We do *not* use the uri with prefix removed. We need the safe
+         * transformation into a file name (removal of query params,
+         * forbidding of '..', etc).
+         */
+        /*
+         * TODO:
+         * We currently don't read the URI parameters. That is, we don't
+         * understand "?recursive=true" and therefore don't do recursive.
+         *
+         * The FileInfo handler doesn't know recursive yet either.
+         */
+        const char *fname_real = filename + prefix_len;
+        if (parser.uri_filename(filename, filename_len)) {
+            size_t len = strlen(filename);
+            if (prefix_len > len) {
+                return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+            }
+
+            if (remapPolicy == RemapPolicy::Octoprint) {
+                /*
+                 * The octoprint API gives special meaning to /local and
+                 * /sdcard. For us, everything lives in the USB (/usb). We
+                 * remap these. Nevertheless, we never _generate_ these /local
+                 * or such URIs, so we don't remap anything else but the "root".
+                 */
+                static const char *const roots[] = {
+                    "",
+                    "/",
+                    "/local",
+                    "/local/",
+                    "/sdcard",
+                    "/sdcard/",
+                };
+
+                for (size_t i = 0; i < sizeof roots / sizeof roots[0]; i++) {
+                    if (strcmp(fname_real, roots[i]) == 0) {
+                        fname_real = "/usb/";
+                        break;
+                    }
+                }
+            }
+
+            /*
+             * Now, we make 100% sure the user won't get a file that's not
+             * on the USB drive (eg. our xflash).
+             */
+            if (strncmp(fname_real, "/usb/", 5) != 0) {
+                return StatusPage(Status::Forbidden, parser.status_page_handling(), parser.accepts_json);
+            }
+
+            // We need to use memmove, because fname_real points into filename
+            // and memmove explicitly allowes for overlapping buffer to be used
+            size_t fname_real_len = strlen(fname_real);
+            memmove(filename, fname_real, fname_real_len);
+            filename[fname_real_len] = '\0';
+            return nullopt;
+        } else {
+            return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+        }
+    }
+
+    StatusPage delete_file(const char *filename, StatusPage::CloseHandling close_handling, bool accepts_json) {
+        int result = remove(filename);
+        if (result == -1) {
+            switch (errno) {
+            case EBUSY:
+                return StatusPage(Status::Conflict, close_handling, accepts_json, "File is busy");
+            default:
+                return StatusPage(Status::NotFound, close_handling, accepts_json);
+            }
+        } else {
+            return StatusPage(Status::NoContent, close_handling, accepts_json);
+        }
     }
 }
 
@@ -64,6 +146,41 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
         return get_only(StatusPage(Status::NoContent, parser.status_page_handling(), parser.accepts_json));
     } else if (suffix == "settings") {
         return get_only(SendStaticMemory("{\"printer\": {}}", http::ContentType::ApplicationJson, parser.can_keep_alive()));
+    } else if (auto v1_suffix_opt = remove_prefix(suffix, "v1/"); v1_suffix_opt.has_value()) {
+        const auto v1_suffix = *v1_suffix_opt;
+        if (v1_suffix == "storage") {
+            return get_only(StatelessJson(get_storage, parser.can_keep_alive()));
+        } else if (remove_prefix(v1_suffix, "files").has_value()) {
+            static const auto prefix = "/api/v1/files";
+            static const size_t prefix_len = strlen(prefix);
+            char filename[FILE_PATH_BUFFER_LEN + prefix_len];
+            auto error = parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::NoRemap);
+            if (error.has_value()) {
+                return error;
+            }
+            switch (parser.method) {
+            case Method::Put: {
+                GcodeUpload::PutParams putParams;
+                putParams.print_after_upload = parser.print_after_upload;
+                strlcpy(putParams.filepath.data(), filename, sizeof(putParams.filepath));
+                auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(putParams));
+                return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
+            }
+            case Method::Get: {
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get);
+            }
+            case Method::Head: {
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Head);
+            }
+            case Method::Delete: {
+                return delete_file(filename, parser.status_page_handling(), parser.accepts_json);
+            }
+            default:
+                return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+            }
+        } else {
+            return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+        }
     } else if (remove_prefix(suffix, "files").has_value()) {
         // Note: The check for boundary is a bit of a hack. We probably should
         // be more thorough in the parser and extract the actual content type.
@@ -72,7 +189,12 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
         // scenarios and will simply produce slightly weird error messages in
         // case it isn't.
         if (parser.method == Method::Post && !parser.boundary().empty()) {
-            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json);
+            const auto boundary = parser.boundary();
+            char boundary_cstr[boundary.size() + 1];
+            memcpy(boundary_cstr, boundary.begin(), boundary.size());
+            boundary_cstr[boundary.size()] = '\0';
+            printer::UploadState uploadState(boundary_cstr);
+            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(uploadState));
             /*
              * So, we have a "smaller" variant (eg. variant<A, B, C>) and
              * want a "bigger" variant<A, B, C, D, E>. C++ templates can't
@@ -85,88 +207,31 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
              */
             return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
         } else {
-            /*
-             * We do *not* use the uri with prefix removed. We need the safe
-             * transformation into a file name (removal of query params,
-             * forbidding of '..', etc).
-             */
-            /*
-             * TODO:
-             * We currently don't read the URI parameters. That is, we don't
-             * understand "?recursive=true" and therefore don't do recursive.
-             *
-             * The FileInfo handler doesn't know recursive yet either.
-             */
             static const auto prefix = "/api/files";
             static const size_t prefix_len = strlen(prefix);
-            char fname[FILE_PATH_BUFFER_LEN + prefix_len];
-            if (parser.uri_filename(fname, sizeof fname)) {
-                size_t len = strlen(fname);
-                if (prefix_len > len) {
-                    return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
-                }
+            char filename[FILE_PATH_BUFFER_LEN + prefix_len];
+            auto error = parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::Octoprint);
+            if (error.has_value()) {
+                return error;
+            }
 
-                const char *fname_real = fname + prefix_len;
-
-                /*
-                 * The octoprint API gives special meaning to /local and
-                 * /sdcard. For us, everything lives in the USB (/usb). We
-                 * remap these. Nevertheless, we never _generate_ these /local
-                 * or such URIs, so we don't remap anything else but the "root".
-                 */
-                static const char *const roots[] = {
-                    "",
-                    "/",
-                    "/local",
-                    "/local/",
-                    "/sdcard",
-                    "/sdcard/",
-                };
-
-                for (size_t i = 0; i < sizeof roots / sizeof roots[0]; i++) {
-                    if (strcmp(fname_real, roots[i]) == 0) {
-                        fname_real = "/usb/";
-                        break;
-                    }
+            switch (parser.method) {
+            case Method::Get: {
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get);
+            }
+            case Method::Delete: {
+                return delete_file(filename, parser.status_page_handling(), parser.accepts_json);
+            }
+            case Method::Post:
+                if (parser.content_length.has_value()) {
+                    return FileCommand(filename, *parser.content_length, parser.can_keep_alive(), parser.accepts_json);
+                } else {
+                    // Drop the connection (and the body there).
+                    return StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
                 }
-
-                /*
-                 * Now, we make 100% sure the user won't get a file that's not
-                 * on the USB drive (eg. our xflash).
-                 */
-                if (strncmp(fname_real, "/usb/", 5) != 0) {
-                    StatusPage(Status::Forbidden, parser.status_page_handling(), parser.accepts_json);
-                }
-
-                switch (parser.method) {
-                case Method::Get:
-                    return FileInfo(fname_real, parser.can_keep_alive(), parser.accepts_json, false);
-                case Method::Delete: {
-                    int result = remove(fname_real);
-                    if (result == -1) {
-                        switch (errno) {
-                        case EBUSY:
-                            return StatusPage(Status::Conflict, parser.status_page_handling(), parser.accepts_json, "File is busy");
-                        default:
-                            return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
-                        }
-                    } else {
-                        return StatusPage(Status::NoContent, parser.status_page_handling(), parser.accepts_json);
-                    }
-                }
-                case Method::Post:
-                    if (parser.content_length.has_value()) {
-                        return FileCommand(fname_real, *parser.content_length, parser.can_keep_alive(), parser.accepts_json);
-                    } else {
-                        // Drop the connection (and the body there).
-                        return StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
-                    }
-                default:
-                    // Drop the connection in fear there might be a body we don't know about.
-                    return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
-                }
-            } else {
-                return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+            default:
+                // Drop the connection in fear there might be a body we don't know about.
+                return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
             }
         }
         // The real API endpoints

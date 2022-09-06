@@ -13,6 +13,7 @@
 #include "algorithm_scale.hpp"
 
 using namespace selftest;
+LOG_COMPONENT_REF(Selftest);
 
 static const char AxisLetter[] = { 'X', 'Y', 'Z', 'E' };
 CSelftestPart_Axis::CSelftestPart_Axis(IPartHandler &state_machine, const AxisConfig_t &config,
@@ -28,16 +29,16 @@ CSelftestPart_Axis::CSelftestPart_Axis(IPartHandler &state_machine, const AxisCo
     , m_SGSum(0)
     , m_pSGOrig_cb(nullptr)
     , log(1000) {
-    LogInfo("%s Started", config.partname);
+    log_info(Selftest, "%s Started", config.partname);
     homing_reset();
     char gcode[6];
     // we have Z safe homing enabled, so Z might need to home all axis
     if (AxisLetter[config.axis] == 'Z' && (!TEST(axis_known_position, X_AXIS) || !TEST(axis_known_position, Y_AXIS))) {
-        LogInfo("%s home all axis", config.partname);
+        log_info(Selftest, "%s home all axis", config.partname);
         sprintf(gcode, "G28");
     } else {
         sprintf(gcode, "G28 %c", AxisLetter[config.axis]);
-        LogInfo("%s home single axis", config.partname);
+        log_info(Selftest, "%s home single axis", config.partname);
     }
     queue.enqueue_one_now(gcode);
 }
@@ -46,7 +47,7 @@ CSelftestPart_Axis::~CSelftestPart_Axis() { endstops.enable(false); }
 
 void CSelftestPart_Axis::phaseMove(int8_t dir) {
     const float feedrate = dir > 0 ? config.fr_table_fw[m_Step / 2] : config.fr_table_bw[m_Step / 2];
-    LogInfo("%s %s @%d mm/s", ((dir * config.movement_dir) > 0) ? "fwd" : "rew", config.partname, int(feedrate));
+    log_info(Selftest, "%s %s @%d mm/s", ((dir * config.movement_dir) > 0) ? "fwd" : "rew", config.partname, int(feedrate));
     planner.synchronize();
     endstops.validate_homing_move();
     sg_sampling_enable();
@@ -84,10 +85,10 @@ LoopResult CSelftestPart_Axis::wait(int8_t dir) {
     int32_t length_usteps = dir * (endPos_usteps - m_StartPos_usteps);
     float length_mm = (length_usteps * planner.mm_per_step[(AxisEnum)config.axis]);
     if ((length_mm < config.length_min) || (length_mm > config.length_max)) {
-        LogError("%s measured length = %fmm out of range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);
+        log_error(Selftest, "%s measured length = %fmm out of range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);
         return LoopResult::Fail;
     }
-    LogInfo("%s measured length = %fmm out in range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);
+    log_info(Selftest, "%s measured length = %fmm out in range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);
     return LoopResult::RunNext;
 }
 
@@ -110,7 +111,7 @@ void CSelftestPart_Axis::sg_sample_cb(uint8_t axis, uint16_t sg) {
 }
 
 void CSelftestPart_Axis::sg_sample(uint16_t sg) {
-    int32_t pos = stepper.position((AxisEnum)config.axis);
+    [[maybe_unused]] int32_t pos = stepper.position((AxisEnum)config.axis);
     LogDebugTimed(log, "%s time %ums pos: %d sg: %d", config.partname, SelftestInstance().GetTime() - time_progress_start, pos, sg);
     m_SGCount++;
     m_SGSum += sg;

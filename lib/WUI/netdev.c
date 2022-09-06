@@ -31,24 +31,6 @@
 #include "espif.h"
 #include "otp.h"
 
-bool netdev_get_current_ipv4(uint8_t *dest) {
-    uint32_t id = netdev_get_active_id();
-    switch (id) {
-    case NETDEV_ETH_ID:
-    case NETDEV_ESP_ID: {
-        lan_t result = {};
-        netdev_get_ipv4_addresses(id, &result);
-        memcpy(dest, &result.addr_ip4, 4);
-        return true;
-    }
-    case NETDEV_NODEV_ID:
-        return false;
-    default:
-        assert(0 /* Unhandled/invalid active_netdev_id */);
-        return false;
-    }
-}
-
 bool netdev_load_ini_to_eeprom() {
     ETH_config_t config[NETDEV_COUNT] = {};
     ap_entry_t ap = {};

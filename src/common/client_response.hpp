@@ -81,9 +81,19 @@ enum class PhasesPreheat : uint16_t {
     _last = UserTempSelection
 };
 
+enum class PhasesPrintPreview : uint16_t {
+    _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
+    main_dialog = _first,
+    wrong_printer,
+    filament_not_inserted,
+    mmu_filament_inserted,
+    wrong_filament,
+    _last = wrong_filament
+};
+
 // GUI phases of selftest/wizard
 enum class PhasesSelftest : uint16_t {
-    _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
+    _first = static_cast<uint16_t>(PhasesPrintPreview::_last) + 1,
     _none = _first,
 
     _first_WizardPrologue,
@@ -130,6 +140,22 @@ enum class PhasesSelftest : uint16_t {
     Heaters = _first_Heaters,
     _last_Heaters = Heaters,
 
+    _first_FirstLayer,
+    FirstLayer_mbl = _first_FirstLayer,
+    FirstLayer_print,
+    _last_FirstLayer = FirstLayer_print,
+
+    _first_FirstLayerQuestions,
+    FirstLayer_filament_known_and_not_unsensed = _first_FirstLayerQuestions,
+    FirstLayer_filament_not_known_or_unsensed,
+    FirstLayer_calib,
+    FirstLayer_use_val,
+    FirstLayer_start_print,
+    FirstLayer_reprint,
+    FirstLayer_clean_sheet,
+    FirstLayer_failed,
+    _last_FirstLayerQuestions = FirstLayer_failed,
+
     _first_Result,
     Result = _first_Result,
     _last_Result = Result,
@@ -163,12 +189,14 @@ class ClientResponses {
     //declare 2d arrays of single buttons for radio buttons
     static const PhaseResponses LoadUnloadResponses[CountPhases<PhasesLoadUnload>()];
     static const PhaseResponses PreheatResponses[CountPhases<PhasesPreheat>()];
+    static const PhaseResponses PrintPreviewResponses[CountPhases<PhasesPrintPreview>()];
     static const PhaseResponses SelftestResponses[CountPhases<PhasesSelftest>()];
     static const PhaseResponses CrashRecoveryResponses[CountPhases<PhasesCrashRecovery>()];
 
     //methods to "bind" button array with enum type
     static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPrintPreview::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
 
@@ -225,7 +253,8 @@ enum class SelftestParts {
     Axis,
     Fans,
     Heaters,
-    //FirstLayer,
+    FirstLayer,
+    FirstLayerQuestions,
     Result,
     WizardEpilogue,
     _none, //cannot be created, must have same index as _count
@@ -248,6 +277,10 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
         return PhasesSelftest::_first_Fans;
     case SelftestParts::Heaters:
         return PhasesSelftest::_first_Heaters;
+    case SelftestParts::FirstLayer:
+        return PhasesSelftest::_first_FirstLayer;
+    case SelftestParts::FirstLayerQuestions:
+        return PhasesSelftest::_first_FirstLayerQuestions;
     case SelftestParts::Result:
         return PhasesSelftest::_first_Result;
     case SelftestParts::WizardEpilogue:
@@ -274,6 +307,10 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_Fans;
     case SelftestParts::Heaters:
         return PhasesSelftest::_last_Heaters;
+    case SelftestParts::FirstLayer:
+        return PhasesSelftest::_last_FirstLayer;
+    case SelftestParts::FirstLayerQuestions:
+        return PhasesSelftest::_last_FirstLayerQuestions;
     case SelftestParts::Result:
         return PhasesSelftest::_last_Result;
     case SelftestParts::WizardEpilogue:
@@ -323,3 +360,39 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 
     return SelftestParts::_none;
 };
+
+enum class FSM_action {
+    no_action,
+    create,
+    destroy,
+    change
+};
+
+#include <optional>
+
+/**
+ * @brief determine if correct state of fsm is se
+ * useful for FSM with no data
+ *
+ * @tparam T          - type of current / wanted state
+ * @param current     - current state
+ * @param should_be   - wanted state
+ * @return FSM_action - what action needs to be done
+ */
+template <class T>
+FSM_action IsFSM_action_needed(std::optional<T> current, std::optional<T> should_be) {
+    if (!current && !should_be)
+        return FSM_action::no_action;
+
+    if (!current && should_be)
+        return FSM_action::create;
+
+    if (current && !should_be)
+        return FSM_action::destroy;
+
+    // current && should_be
+    if (*current == *should_be)
+        return FSM_action::no_action;
+
+    return FSM_action::change;
+}

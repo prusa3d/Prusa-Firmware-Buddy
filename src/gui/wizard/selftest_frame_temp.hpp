@@ -6,7 +6,7 @@
 #include "status_footer.hpp"
 
 class ScreenSelftestTemp : public AddSuperWindow<SelftestFrame> {
-    StatusFooter footer;
+    FooterLine footer;
     //noz
     window_text_t text_noz;
     window_wizard_progress_t progress_noz;

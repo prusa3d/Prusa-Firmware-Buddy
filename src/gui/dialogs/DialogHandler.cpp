@@ -6,6 +6,7 @@
 #include "ScreenHandler.hpp"
 #include "screen_printing.hpp"
 #include "config_features.h"
+#include "screen_print_preview.hpp"
 
 #if HAS_SELFTEST
     #include "ScreenSelftest.hpp"
@@ -27,15 +28,6 @@ using SerialPrint = screen_printing_serial_data_t;
 using SerialPrint = ScreenDialogDoesNotExist;
 #endif
 
-// TODO add firstlayer support
-// first layer removed from private repo
-#include "screen_dialog_does_not_exist.hpp"
-using FirstLayer = ScreenDialogDoesNotExist;
-
-#if HAS_SELFTEST
-    #include "ScreenSelftest.hpp"
-#endif
-
 static void OpenPrintScreen(ClientFSM dialog) {
     switch (dialog) {
     case ClientFSM::Serial_printing:
@@ -45,9 +37,6 @@ static void OpenPrintScreen(ClientFSM dialog) {
     case ClientFSM::Printing:
         Screens::Access()->CloseAll();
         Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
-        return;
-    case ClientFSM::FirstLayer: //do not close screens
-        Screens::Access()->Open(ScreenFactory::Screen<FirstLayer>);
         return;
     default:
         return;
@@ -69,12 +58,16 @@ void DialogHandler::open(fsm::create_t o) {
     switch (dialog) {
     case ClientFSM::Serial_printing:
     case ClientFSM::Printing:
-    case ClientFSM::FirstLayer:
         if (IScreenPrinting::GetInstance() == nullptr) {
             OpenPrintScreen(dialog);
         } else {
             //openned, notify it
             IScreenPrinting::NotifyMarlinStart();
+        }
+        break;
+    case ClientFSM::PrintPreview:
+        if (!ScreenPrintPreview::GetInstance()) {
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenPrintPreview>);
         }
         break;
     case ClientFSM::CrashRecovery:
@@ -110,12 +103,11 @@ void DialogHandler::close(fsm::destroy_t o) {
         case ClientFSM::Serial_printing:
             Screens::Access()->CloseAll();
             break;
-        case ClientFSM::FirstLayer:
+        case ClientFSM::PrintPreview:
         case ClientFSM::CrashRecovery:
         case ClientFSM::Selftest:
+        case ClientFSM::Printing:
             Screens::Access()->Close();
-            break;
-        case ClientFSM::Printing: //closed on button, todo marlin thread should close it
             break;
         default:
             break;
@@ -129,6 +121,11 @@ void DialogHandler::change(fsm::change_t o) {
     const ClientFSM dialogType = o.type.GetType();
 
     switch (dialogType) {
+    case ClientFSM::PrintPreview:
+        if (ScreenPrintPreview::GetInstance()) {
+            ScreenPrintPreview::GetInstance()->Change(o.data);
+        }
+        break;
     case ClientFSM::CrashRecovery:
         if (CrashRecovery::GetInstance()) {
             CrashRecovery::GetInstance()->Change(o.data);

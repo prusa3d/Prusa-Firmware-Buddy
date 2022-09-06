@@ -7,10 +7,12 @@ target_sources(
           selftest_fans_interface.cpp
           selftest_heaters_interface.cpp
           selftest_netstatus_interface.cpp
+          selftest_firstlayer_interface.cpp
           i_selftest.cpp
           selftest_part.cpp
           selftest_fan.cpp
           selftest_axis.cpp
           selftest_heater.cpp
+          selftest_firstlayer.cpp
           selftest_${PRINTER}.cpp
   )

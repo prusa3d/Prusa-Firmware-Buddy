@@ -145,11 +145,28 @@ void log_destination_unregister(log_destination_t *destination);
 ///
 ///    log_event(severity_variable, MyComponent, "Something has happened");
 ///
-#define log_event(severity, component, fmt, ...)                                \
-    do {                                                                        \
-        extern log_component_t LOG_COMPONENT(component);                        \
-        _log_event(severity, &__log_component_##component, fmt, ##__VA_ARGS__); \
-    } while (0)
+#ifdef __cplusplus
+    #define log_event(severity, component, fmt, ...)                                \
+        do {                                                                        \
+            _log_event(severity, &__log_component_##component, fmt, ##__VA_ARGS__); \
+        } while (0)
+
+    /// \def LOG_COMPONENT_REF(component)
+    /// References an existing component
+    ///
+    /// To be used when logging to a component defined in another file.
+    ///
+    /// Usage (top of the file):
+    ///    LOG_COMPONENT_REF(MyComponent);
+    ///
+    #define LOG_COMPONENT_REF(component) extern log_component_t LOG_COMPONENT(component)
+#else
+    #define log_event(severity, component, fmt, ...)                                \
+        do {                                                                        \
+            extern log_component_t LOG_COMPONENT(component);                        \
+            _log_event(severity, &__log_component_##component, fmt, ##__VA_ARGS__); \
+        } while (0)
+#endif
 
 /// \def log_debug(component, fmt, ...)
 /// Record a log event with `debug` severity.

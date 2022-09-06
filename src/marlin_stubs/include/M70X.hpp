@@ -18,6 +18,12 @@
 namespace filament_gcodes {
 using Func = bool (Pause::*)(const pause::Settings &); // member fnc pointer
 
+enum class AskFilament_t {
+    Never,
+    IfUnknown,
+    Always
+};
+
 class InProgress {
     static uint lock;
 
@@ -32,7 +38,7 @@ void M701_no_parser(filament_t filament_to_be_loaded, const std::optional<float>
 void M702_no_parser(std::optional<float> unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded);
 void M70X_process_user_response(PreheatStatus::Result res);
 
-void M1600_no_parser(uint8_t target_extruder);
+void M1600_no_parser(uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament);
 void M1700_no_parser(RetAndCool_t preheat, uint8_t target_extruder, bool save, bool enforce_target_temp);
 void M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder);
 

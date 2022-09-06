@@ -1,9 +1,9 @@
 #pragma once
 
-#include "segmented_json.h"
 #include "step.h"
 
 #include <http/types.h>
+#include <segmented_json.h>
 
 #include <string_view>
 #include <dirent.h>
@@ -20,11 +20,18 @@ namespace nhttp::printer {
  * \brief Handler for serving file info and directory listings.
  */
 class FileInfo {
+public:
+    enum class ReqMethod {
+        Get,
+        Head
+    };
+
 private:
     char filename[FILE_PATH_BUFFER_LEN];
     bool can_keep_alive : 1;
     bool after_upload : 1;
     bool json_errors : 1;
+    ReqMethod method;
     class DirDeleter {
     public:
         void operator()(DIR *d) {
@@ -52,9 +59,9 @@ private:
     };
 
     /// The JSON renderer for the directory listing.
-    class DirRenderer final : public JsonRenderer<DirState> {
+    class DirRenderer final : public json::JsonRenderer<DirState> {
     protected:
-        virtual JsonResult renderState(size_t resume_point, JsonOutput &output, DirState &state) const override;
+        virtual json::JsonResult renderState(size_t resume_point, json::JsonOutput &output, DirState &state) const override;
 
     public:
         DirRenderer()
@@ -74,10 +81,10 @@ private:
     };
 
     /// Renderer for the file info.
-    class FileRenderer final : public JsonRenderer<FileState> {
+    class FileRenderer final : public json::JsonRenderer<FileState> {
     private:
     protected:
-        virtual JsonResult renderState(size_t resume_point, JsonOutput &output, FileState &state) const override;
+        virtual json::JsonResult renderState(size_t resume_point, json::JsonOutput &output, FileState &state) const override;
 
     public:
         FileRenderer(FileInfo *owner, int64_t size)
@@ -88,7 +95,7 @@ private:
     std::variant<Uninitialized, FileRenderer, DirRenderer, LastChunk> renderer;
 
 public:
-    FileInfo(const char *filename, bool can_keep_alive, bool json_error, bool after_upload);
+    FileInfo(const char *filename, bool can_keep_alive, bool json_error, bool after_upload, ReqMethod method);
     bool want_read() const { return false; }
     bool want_write() const { return true; }
     handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);

@@ -56,6 +56,7 @@ namespace {
         case mpsAborted:
         case mpsFinished:
         case mpsIdle:
+        case mpsExit:
             return SimplePrintState::Idle;
         default:
             assert(0);

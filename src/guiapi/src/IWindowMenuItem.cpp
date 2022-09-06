@@ -24,18 +24,13 @@ IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extensi
     , extension_width(extension_width_)
     , invalid_icon(true)
     , invalid_label(true)
-    , invalid_extension(extension_width != 0)
+    , invalid_extension(true)
     , id_icon(id_icon)
     , label_font(label_font) {
 }
 
 /*****************************************************************************/
 //rectangles
-Rect16 IWindowMenuItem::getCustomRect(Rect16 base_rect, uint16_t custom_rect_width) {
-    Rect16 custom_rect = { base_rect.Left(), base_rect.Top(), custom_rect_width, base_rect.Height() };
-    custom_rect += Rect16::Left_t(base_rect.Width() - custom_rect.Width());
-    return custom_rect;
-}
 
 Rect16 IWindowMenuItem::getIconRect(Rect16 rect) const {
     rect = icon_width;
@@ -63,32 +58,23 @@ void IWindowMenuItem::Print(Rect16 rect) {
     color_t mi_color_back = GetBackColor();
     color_t mi_color_text = GetTextColor();
 
-    // print background
-    // join rectangles if possible for smoother printing
     if (IsIconInvalid() && IsLabelInvalid() && IsExtensionInvalid()) {
         render_rect(rect, mi_color_back);
-    } else if (IsIconInvalid() && IsLabelInvalid()) {
-        render_rect(rect - Rect16::Width_t(extension_width), mi_color_back);
-    } else if (IsLabelInvalid() && IsExtensionInvalid()) {
-        render_rect((rect - getIconRect(rect).Width()) + getIconRect(rect).Left(), mi_color_back);
-    } else {
-        // rect join impossible, draw separate rectangles
-        if (IsIconInvalid())
-            render_rect(getIconRect(rect), mi_color_back);
-        if (IsLabelInvalid())
-            render_rect(getLabelRect(rect), mi_color_back);
-        if (IsExtensionInvalid())
-            render_rect(getExtensionRect(rect), mi_color_back);
     }
 
-    if (IsIconInvalid())
+    if (IsIconInvalid()) {
+        //render_rect(getIconRect(rect), mi_color_back); // Unnessessary invalidation (use this if changing icons causes artefacts)
         printIcon(getIconRect(rect), raster_op, mi_color_back);
+    }
 
-    // TODO invalid flag ???
-    roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
+    if (IsLabelInvalid()) {
+        roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
+    }
 
-    if (IsExtensionInvalid() && extension_width)
+    if (IsExtensionInvalid() && extension_width) {
+        //render_rect(getExtensionRect(rect), mi_color_back); // Unnessessary invalidation (use this if there are artefacts in extention)
         printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
+    }
 
     Validate();
 }

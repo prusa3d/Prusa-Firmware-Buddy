@@ -30,7 +30,6 @@ const char *__var_name[] = {
     "FLOWFACT",
     "WAITHEAT",
     "WAITUSER",
-    "SD_PRINT",
     "SD_PDONE",
     "DURATION",
     "MEDIAINS",
@@ -116,8 +115,6 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, marlin_var_id_t var_id) {
         return variant8_bool(vars->wait_heat);
     case MARLIN_VAR_WAITUSER:
         return variant8_bool(vars->wait_user);
-    case MARLIN_VAR_SD_PRINT:
-        return variant8_bool(vars->sd_printing);
     case MARLIN_VAR_SD_PDONE:
         return variant8_ui8(vars->sd_percent_done);
     case MARLIN_VAR_DURATION:
@@ -241,9 +238,6 @@ void marlin_vars_set_var(marlin_vars_t *vars, marlin_var_id_t var_id, variant8_t
     case MARLIN_VAR_WAITUSER:
         vars->wait_user = variant8_get_bool(var);
         break;
-    case MARLIN_VAR_SD_PRINT:
-        vars->sd_printing = variant8_get_bool(var);
-        break;
     case MARLIN_VAR_SD_PDONE:
         vars->sd_percent_done = variant8_get_ui8(var);
         break;
@@ -343,8 +337,6 @@ int marlin_vars_value_to_str(marlin_vars_t *vars, marlin_var_id_t var_id, char *
         return snprintf(str, size, "%u", (unsigned int)(vars->wait_heat));
     case MARLIN_VAR_WAITUSER:
         return snprintf(str, size, "%u", (unsigned int)(vars->wait_user));
-    case MARLIN_VAR_SD_PRINT:
-        return snprintf(str, size, "%u", (unsigned int)(vars->sd_printing));
     case MARLIN_VAR_SD_PDONE:
         return snprintf(str, size, "%u", (unsigned int)(vars->sd_percent_done));
     case MARLIN_VAR_DURATION:
@@ -427,8 +419,6 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, marlin_var_id_t var_id, const 
         return sscanf(str, "%hhu", &(vars->wait_heat));
     case MARLIN_VAR_WAITUSER:
         return sscanf(str, "%hhu", &(vars->wait_user));
-    case MARLIN_VAR_SD_PRINT:
-        return sscanf(str, "%hhu", &(vars->sd_printing));
     case MARLIN_VAR_SD_PDONE:
         return sscanf(str, "%hhu", &(vars->sd_percent_done));
     case MARLIN_VAR_DURATION:

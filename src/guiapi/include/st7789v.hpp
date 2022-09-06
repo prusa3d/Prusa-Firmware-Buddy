@@ -79,3 +79,4 @@ extern uint16_t st7789v_reset_delay;
 extern void st7789v_enable_safe_mode(void);
 
 extern void st7789v_spi_tx_complete(void);
+extern void st7789v_cmd_madctlrd(uint8_t *pdata, uint8_t size);

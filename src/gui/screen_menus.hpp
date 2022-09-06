@@ -28,3 +28,4 @@ ScreenFactory::UniquePtr GetScreenMenuConnect();
 ScreenFactory::UniquePtr GetScreenMenuExperimentalSettings();
 ScreenFactory::UniquePtr GetScreenMenuEepromDiagnostics();
 ScreenFactory::UniquePtr GetScreenMenuNetwork();
+ScreenFactory::UniquePtr GetScreenMenuTest();

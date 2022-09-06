@@ -1,10 +1,11 @@
 #include "time_mock.h"
+#include "mock_printer.h"
 
 #include <planner.hpp>
 
 #include <catch2/catch.hpp>
 
-using namespace con;
+using namespace connect;
 using std::get;
 using std::get_if;
 using std::holds_alternative;
@@ -35,7 +36,9 @@ void event_info(Planner &planner) {
 }
 
 TEST_CASE("Success scenario") {
-    Planner planner;
+    Printer::Params params(params_idle());
+    MockPrinter printer(params);
+    Planner planner(printer);
 
     event_info(planner);
     planner.action_done(ActionResult::Ok);
@@ -50,7 +53,9 @@ TEST_CASE("Success scenario") {
 }
 
 TEST_CASE("Retries early") {
-    Planner planner;
+    Printer::Params params(params_idle());
+    MockPrinter printer(params);
+    Planner planner(printer);
 
     event_info(planner);
     planner.action_done(ActionResult::Failed);
@@ -73,7 +78,9 @@ TEST_CASE("Retries early") {
 }
 
 TEST_CASE("Reinit after several failures") {
-    Planner planner;
+    Printer::Params params(params_idle());
+    MockPrinter printer(params);
+    Planner planner(printer);
 
     event_info(planner);
     planner.action_done(ActionResult::Ok);
@@ -99,7 +106,9 @@ TEST_CASE("Reinit after several failures") {
 }
 
 TEST_CASE("Unknown / broken command refused") {
-    Planner planner;
+    Printer::Params params(params_idle());
+    MockPrinter printer(params);
+    Planner planner(printer);
 
     event_info(planner);
     planner.action_done(ActionResult::Ok);
@@ -130,7 +139,9 @@ TEST_CASE("Unknown / broken command refused") {
 }
 
 TEST_CASE("Send info request") {
-    Planner planner;
+    Printer::Params params(params_idle());
+    MockPrinter printer(params);
+    Planner planner(printer);
 
     event_info(planner);
     planner.action_done(ActionResult::Ok);

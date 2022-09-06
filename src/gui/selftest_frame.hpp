@@ -39,7 +39,7 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param);
     virtual void pre_change() override; //update radio button
 public:
-    SelftestFrameWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data);
+    SelftestFrameWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, size_t lines_of_footer = 0);
 };
 
 /**
@@ -61,5 +61,5 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param);
     virtual void pre_change() override; //update radio button
 public:
-    SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name);
+    SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name, size_t lines_of_footer = 0);
 };

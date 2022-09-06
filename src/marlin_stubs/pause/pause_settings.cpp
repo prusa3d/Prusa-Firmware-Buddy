@@ -20,7 +20,7 @@ Settings::Settings()
     , fast_load_length(GetDefaultFastLoadLength())
     , purge_length(GetDefaultPurgeLength())
     , retract(GetDefaultRetractLength())
-    , park_z_feedrate(NOZZLE_PARK_Z_FEEDRATE)
+    , park_z_feedrate(HOMING_FEEDRATE_INVERTED_Z)
     , park_pos { NAN, NAN, NAN }
     , resume_pos { NAN, NAN, NAN, NAN }
     , target_extruder(0)
@@ -49,7 +49,7 @@ float Settings::GetDefaultRetractLength() {
 }
 
 float Settings::GetDefaultParkZFeedrate() {
-    return NOZZLE_PARK_Z_FEEDRATE;
+    return HOMING_FEEDRATE_INVERTED_Z;
 }
 
 void Settings::SetUnloadLength(const std::optional<float> &len) {

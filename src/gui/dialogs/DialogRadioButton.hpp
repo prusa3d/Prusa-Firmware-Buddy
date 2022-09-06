@@ -25,9 +25,6 @@ private:
     Responses_t responses;
     const PhaseTexts *texts; // nullptr == autoset texts with default strings
 
-    void SetBtnCount(uint8_t cnt) { flags.button_count = cnt & ((1 << RESPONSE_BITS) - 1); }
-    const uint8_t GetBtnCount() const { return flags.button_count; }
-
     static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, const font_t *pf, bool is_selected);
 
     void draw_0_btn();
@@ -39,7 +36,11 @@ private:
     static size_t cnt_responses(Responses_t resp);
     static size_t cnt_buttons(const PhaseTexts *labels, Responses_t resp);
     Rect16 getIconRect(uint8_t idx) const;
+    Rect16 getHorizontalIconRect(uint8_t idx) const;
+    Rect16 getVerticalIconRect(uint8_t idx) const;
     Rect16 getLabelRect(uint8_t idx) const;
+    Rect16 getHorizontalLabelRect(uint8_t idx) const;
+    Rect16 getVerticalLabelRect(uint8_t idx) const;
 
 public:
     /**
@@ -78,8 +79,13 @@ public:
     void Change(const PhaseResponses &resp, const PhaseTexts *txts = nullptr); // nullptr generates texts automatically, only first four responses are used, rest is discarded
     void Change(Responses_t resp, const PhaseTexts *txts = nullptr);           // nullptr generates texts automatically
 
-    void SetBtnIndex(uint8_t index) { flags.button_index = (index < GetBtnCount()) ? index : 0; }
+    void SetBtnIndex(uint8_t index);
+    void SetBtn(Response btn);
     uint8_t GetBtnIndex() const { return flags.button_index; }
+    std::optional<size_t> IndexFromResponse(Response btn) const;
+
+    void SetBtnCount(uint8_t cnt) { flags.button_count = cnt & ((1 << RESPONSE_BITS) - 1); }
+    uint8_t GetBtnCount() const { return flags.button_count; }
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

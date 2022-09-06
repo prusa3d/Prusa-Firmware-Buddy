@@ -110,7 +110,7 @@ protected:
         : m_halPortBase(IoPortToHalBase(ioPort))
         , m_halPin(IoPinToHal(ioPin)) {}
 
-    GPIO_TypeDef *getHalPort() const {
+    __attribute__((always_inline)) inline GPIO_TypeDef *getHalPort() const {
         return reinterpret_cast<GPIO_TypeDef *>(m_halPortBase);
     }
 
@@ -275,6 +275,15 @@ public:
             getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
         }
     }
+
+    __attribute__((always_inline)) inline void set() const {
+        getHalPort()->BSRR = m_halPin;
+    }
+
+    __attribute__((always_inline)) inline void reset() const {
+        getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+    }
+
     void configure() const;
 
 public:

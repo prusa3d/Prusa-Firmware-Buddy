@@ -25,8 +25,12 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_temp(ScreenSelftest &rT
     return rThs.makePtr<ScreenSelftestTemp>(&rThs, phase, data);
 }
 
-static_unique_ptr<SelftestFrame> ScreenSelftest::creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
-    return rThs.makePtr<ScreenSelftestInvalidState>(&rThs, phase, data);
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_firstlayer(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameFirstLayer>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_firstlayer_questions(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameFirstLayerQuestions>(&rThs, phase, data);
 }
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_result(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
@@ -49,6 +53,10 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp_qr(ScreenSelftest &
     return rThs.makePtr<SelftestFrameESP_qr>(&rThs, phase, data);
 }
 
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<ScreenSelftestInvalidState>(&rThs, phase, data);
+}
+
 ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
@@ -65,6 +73,10 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
         return creator_fans;
     case SelftestParts::Heaters:
         return creator_temp;
+    case SelftestParts::FirstLayer:
+        return creator_firstlayer;
+    case SelftestParts::FirstLayerQuestions:
+        return creator_firstlayer_questions;
     case SelftestParts::Result:
         return creator_result;
     case SelftestParts::WizardEpilogue:
@@ -137,6 +149,9 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::Heaters:
     case SelftestParts::Result:
         return _(en_selftest);
+    case SelftestParts::FirstLayer:
+    case SelftestParts::FirstLayerQuestions:
+        return _(en_firstlay);
     case SelftestParts::WizardEpilogue:
         return _(en_wizard_ok);
     case SelftestParts::_none:
@@ -156,6 +171,8 @@ ResourceId ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::Axis:
     case SelftestParts::Fans:
     case SelftestParts::Heaters:
+    case SelftestParts::FirstLayer:
+    case SelftestParts::FirstLayerQuestions:
     case SelftestParts::Result:
         return IDR_PNG_selftest_16x16;
     case SelftestParts::WizardEpilogue:

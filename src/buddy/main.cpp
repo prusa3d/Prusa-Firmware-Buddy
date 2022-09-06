@@ -7,7 +7,7 @@
 #include "buffered_serial.hpp"
 #include "bsod.h"
 #ifdef BUDDY_ENABLE_CONNECT
-    #include "connect.hpp"
+    #include "connect/run.hpp"
 #endif
 
 #include "sys.h"
@@ -29,6 +29,7 @@
 #include "adc.hpp"
 #include "logging.h"
 #include "common/disable_interrupts.h"
+#include "tasks.h"
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -36,6 +37,8 @@
 #ifdef BUDDY_ENABLE_WUI
     #include "wui.h"
 #endif
+
+LOG_COMPONENT_REF(Buddy);
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
@@ -68,6 +71,7 @@ extern "C" void main_cpp(void) {
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
     logging_init();
+    components_init();
 
     hw_gpio_init();
     hw_dma_init();
@@ -240,6 +244,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void StartDefaultTask(void const *argument) {
+    log_info(Buddy, "marlin task waiting for dependecies");
+    wait_for_dependecies(DEFAULT_TASK_DEPS);
     log_info(Buddy, "marlin task is starting");
 
     app_run();
@@ -257,12 +263,7 @@ void StartDisplayTask(void const *argument) {
 
 #ifdef BUDDY_ENABLE_CONNECT
 void StartConnectTask(void const *argument) {
-    con::connect client;
-    client.run();
-    /* Infinite loop */
-    for (;;) {
-        osDelay(1);
-    }
+    connect::run();
 }
 #endif
 

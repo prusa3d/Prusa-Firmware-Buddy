@@ -9,6 +9,7 @@
 #include "selftest_log.hpp"
 
 using namespace selftest;
+LOG_COMPONENT_REF(Selftest);
 
 PhasesSelftest IPartHandler::fsm_phase_index = PhasesSelftest::_none;
 
@@ -28,7 +29,7 @@ bool IPartHandler::Loop() {
     if (current_state < 0 || current_state >= state_count) {
         // wait a bit so result is visible
         if (current_state == IndexFailed() || current_state == IndexFinished()) {
-            return !MinimalTimeToShowPassed();
+            return !WaitSoLastStateIsVisible();
         }
         return false;
     }
@@ -106,14 +107,14 @@ void IPartHandler::next() {
 }
 
 void IPartHandler::Pass() {
-    LogDebug("IPartHandler::Pass");
+    log_debug(Selftest, "IPartHandler::Pass");
     current_state = IndexFinished();
     current_state_enter_time = SelftestInstance().GetTime();
     pass();
 }
 
 void IPartHandler::Fail() {
-    LogDebug("IPartHandler::Fail");
+    log_debug(Selftest, "IPartHandler::Fail");
     if (current_state != IndexFailed()) {
         current_state = IndexFailed();
         current_state_enter_time = SelftestInstance().GetTime();
@@ -122,11 +123,11 @@ void IPartHandler::Fail() {
 }
 
 void IPartHandler::Abort() {
-    LogDebug("IPartHandler::Abort");
+    log_debug(Selftest, "IPartHandler::Abort");
     current_state = IndexAborted();
     abort();
 }
 
-bool IPartHandler::MinimalTimeToShowPassed() const {
-    return (SelftestInstance().GetTime() - current_state_enter_time) >= minimal_time_to_show_result;
+bool IPartHandler::WaitSoLastStateIsVisible() const {
+    return (SelftestInstance().GetTime() - current_state_enter_time) >= time_to_show_result;
 }

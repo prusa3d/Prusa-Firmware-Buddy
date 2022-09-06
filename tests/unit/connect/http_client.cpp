@@ -16,7 +16,7 @@ using std::optional;
 using std::string;
 using std::string_view;
 using std::variant;
-using namespace con;
+using namespace connect;
 
 namespace {
 
@@ -53,9 +53,6 @@ public:
     virtual Method method() const {
         return Method::Post;
     }
-    virtual const HeaderOut *extra_headers() const override {
-        return nullptr;
-    }
     virtual std::variant<size_t, Error> write_body_chunk(char *data, size_t size) override {
         if (done) {
             return static_cast<size_t>(0);
@@ -63,7 +60,7 @@ public:
             const char *d = "{\"hello\":\"world\"}";
             const size_t l = strlen(d);
             if (l > size) {
-                return Error::WRITE_ERROR;
+                return Error::Network;
             } else {
                 memcpy(data, d, l);
                 done = true;

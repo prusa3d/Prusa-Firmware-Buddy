@@ -93,31 +93,4 @@ Result DialogBlockingUnLoad(RetAndCool_t retAndCool) {
     return DialogBlockingLoadUnload("M702 W%d", retAndCool);
 }
 
-Result DialogBlockingChangeLoad(RetAndCool_t retAndCool) {
-    PreheatStatus::Result ret = PreheatStatus::Result::DidNotFinish;
-    PreheatStatus::ConsumeResult(); // clear result
-    marlin_gcode_printf("M1600 W%d", retAndCool);
-
-    // wait for M1600 filament check to finish
-    while (ret == Result::DidNotFinish) {
-        osDelay(0);
-        ret = PreheatStatus::ConsumeResult();
-    }
-
-    if (ret == Result::DoneNoFilament) {
-        return ret;
-    }
-
-    DialogBlocking(ClientFSM::Load_unload);
-
-    DialogBlocking(ClientFSM::Preheat, ClientFSM::Load_unload);
-
-    ret = PreheatStatus::ConsumeResult(); // ret == PreheatStatus::Result::DidNotFinish
-
-    if (ret != PreheatStatus::Result::Error && ret != PreheatStatus::Result::Aborted && ret != PreheatStatus::Result::CooledDown) {
-        DialogBlocking(ClientFSM::Load_unload);
-    }
-    return ret;
-}
-
 }

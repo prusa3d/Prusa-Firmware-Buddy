@@ -3,6 +3,7 @@
 
 #include "guitypes.h"
 #include "resource.h"
+#include "general_response.hpp"
 #include <optional>
 
 enum class EFooter { Off,
@@ -33,6 +34,7 @@ struct GUIStartupProgress {
 union event_conversion_union {
     void *pvoid;
     point_ui16_t point;
+    Response response;
     struct header_t {
         layout_color layout;
     } header;

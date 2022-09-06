@@ -13,6 +13,7 @@
 #include "../hw/cpu_utils.hpp"
 #include "i18n.h"
 #include "marlin_client.h"
+#include <ctime>
 
 /******************************************************************************************************/
 //variables
@@ -57,7 +58,7 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textCPU_load_val.SetValue(osGetCPUUsage());
 
 #ifdef DEBUG_NTP
-    time_t sec = sntp_get_system_time();
+    time_t sec = time(nullptr);
     struct tm now;
     localtime_r(&sec, &now);
     static char buff[40];

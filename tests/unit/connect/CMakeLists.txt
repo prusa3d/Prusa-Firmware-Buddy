@@ -3,18 +3,24 @@ add_executable(
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/types.cpp
-  ${CMAKE_SOURCE_DIR}/src/Connect/httpc.cpp
-  ${CMAKE_SOURCE_DIR}/src/Connect/resp_parser.cpp
-  ${CMAKE_SOURCE_DIR}/src/Connect/command.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/json_encode.c
+  ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/httpc.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/resp_parser.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/render.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
   command.cpp
   http_client.cpp
   missing_functions.cpp
+  render.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   )
 target_include_directories(
-  connect_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/Connect
-                        ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/lib/jsmn
+  connect_tests
+  PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/connect
+          ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/lib/jsmn ${CMAKE_SOURCE_DIR}/src
   )
 add_definitions(-DUNITTESTS)
 
@@ -36,11 +42,11 @@ add_dependencies(nhttp_tests generate-httpc-automata-tests)
 
 # Planner tests are separate. They mock time and don't want to poison that for others.
 add_executable(
-  connect_planner_tests ${CMAKE_SOURCE_DIR}/src/Connect/planner.cpp time_mock.cpp planner.cpp
+  connect_planner_tests ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp time_mock.cpp planner.cpp
   )
 target_include_directories(
-  connect_planner_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/Connect
-                                ${CMAKE_SOURCE_DIR}/src/common
+  connect_planner_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/connect
+                                ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src
   )
 add_definitions(-DUNITTESTS)
 

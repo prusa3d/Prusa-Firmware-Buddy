@@ -7,6 +7,8 @@
 #include "selftest_eeprom.hpp"
 #include "selftest_log.hpp"
 
+LOG_COMPONENT_REF(Selftest);
+
 static TestResultNet_t convert(netdev_status_t status) {
     switch (status) {
     case NETDEV_UNLINKED:
@@ -46,8 +48,8 @@ void phaseNetStatus() {
     eeres.wifi = uint8_t(convert(wifi));
     eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
 
-    LogInfo("Eth %s", to_string(eth));
-    LogInfo("Wifi %s", to_string(wifi));
+    log_info(Selftest, "Eth %s", to_string(eth));
+    log_info(Selftest, "Wifi %s", to_string(wifi));
 }
 
 } // namespace selftest

@@ -176,12 +176,12 @@
                                  planner.settings.max_acceleration_mm_per_s2[Y_AXIS]
                                  OPTARG(DELTA, planner.settings.max_acceleration_mm_per_s2[Z_AXIS])
                                );
-    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = 100;
-    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = 100;
+    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
+    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
     TERN_(DELTA, planner.settings.max_acceleration_mm_per_s2[Z_AXIS] = 100);
     #if HAS_CLASSIC_JERK
       motion_state.jerk_state = planner.max_jerk;
-      planner.max_jerk.set(0, 0 OPTARG(DELTA, 0));
+      planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK OPTARG(DELTA, 0));
     #endif
     planner.refresh_acceleration_rates();
     return motion_state;

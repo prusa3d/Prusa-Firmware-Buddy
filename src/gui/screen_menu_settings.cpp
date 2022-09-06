@@ -12,7 +12,7 @@
 #include "wui.h"
 #include "SteelSheets.hpp"
 #ifdef BUDDY_ENABLE_CONNECT
-    #include <core_interface.hpp> // From connect. TODO: Better name!
+    #include <connect/marlin_printer.hpp>
 #endif
 /*****************************************************************************/
 
@@ -31,7 +31,7 @@ public:
 
         // FIXME: Error handling
 #ifdef BUDDY_ENABLE_CONNECT
-        con::load_config_from_ini();
+        connect::MarlinPrinter::load_cfg_from_ini();
 #endif
     }
 };
@@ -54,7 +54,7 @@ using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PRO
     MI_EEPROM, MI_EXPERIMENTAL_SETTINGS, MI_FACTORY_DEFAULTS>;
 #else
 using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_HW_SETUP, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_FS_AUTOLOAD, MI_TIMEOUT, MI_FAN_CHECK,
+    MI_FOOTER_SETTINGS, MI_HW_SETUP, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_FS_AUTOLOAD, MI_TIMEOUT, MI_FAN_CHECK,
     #ifdef BUDDY_ENABLE_DFU_ENTRY
     MI_ENTER_DFU,
     #endif

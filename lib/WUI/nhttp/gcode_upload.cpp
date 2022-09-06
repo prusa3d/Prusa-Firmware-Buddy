@@ -6,6 +6,9 @@
 
 #include <cassert>
 #include <cstring>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/statvfs.h>
 
 extern "C" {
 
@@ -34,30 +37,32 @@ using std::make_tuple;
 using std::move;
 using std::string_view;
 
-GcodeUpload::GcodeUpload(UploadState uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
-    : uploader(move(uploader))
+GcodeUpload::GcodeUpload(UploadParams &&uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
+    : upload(move(uploader))
     , uploaded_notify(uploaded)
     , size_rest(length)
     , json_errors(json_errors)
     , cleanup_temp_file(true)
     , tmp_upload_file(move(file))
-    , file_idx(upload_idx) {
+    , file_idx(upload_idx)
+    , filename_checked(false) {
 }
 
 GcodeUpload::GcodeUpload(GcodeUpload &&other)
-    : uploader(move(other.uploader))
+    : upload(move(other.upload))
     , uploaded_notify(other.uploaded_notify)
     , size_rest(other.size_rest)
     , json_errors(other.json_errors)
     , cleanup_temp_file(other.cleanup_temp_file)
     , tmp_upload_file(move(other.tmp_upload_file))
-    , file_idx(other.file_idx) {
+    , file_idx(other.file_idx)
+    , filename_checked(other.filename_checked) {
     // The ownership of the temp file is passed to the new instance.
     other.cleanup_temp_file = false;
 }
 
 GcodeUpload &GcodeUpload::operator=(GcodeUpload &&other) {
-    uploader = move(other.uploader);
+    upload = move(other.upload);
     uploaded_notify = other.uploaded_notify;
     size_rest = other.size_rest;
     json_errors = other.json_errors;
@@ -65,6 +70,8 @@ GcodeUpload &GcodeUpload::operator=(GcodeUpload &&other) {
     cleanup_temp_file = other.cleanup_temp_file;
     // The ownership of the temp file is passed to the new instance.
     other.cleanup_temp_file = false;
+
+    filename_checked = other.filename_checked;
 
     tmp_upload_file = move(other.tmp_upload_file);
     file_idx = other.file_idx;
@@ -96,14 +103,9 @@ GcodeUpload::~GcodeUpload() {
     }
 }
 
-GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors) {
+GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors, UploadParams &&uploadParams) {
     // Note: authentication already checked by the caller.
     // Note: We return errors with connection-close because we don't know if the client sent part of the data.
-
-    const auto boundary = parser.boundary();
-    if (boundary.empty()) {
-        return StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing boundary");
-    }
 
     // One day we may want to support chunked and connection-close, but we are not there yet.
     if (!parser.content_length.has_value()) {
@@ -119,26 +121,42 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
         // Missing USB -> Insufficient storage.
         return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing USB drive");
     }
-
-    char boundary_cstr[boundary.size() + 1];
-    memcpy(boundary_cstr, boundary.begin(), boundary.size());
-    boundary_cstr[boundary.size()] = '\0';
-    UploadState uploader(boundary_cstr);
-
-    if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
-        return StatusPage(get<0>(err), StatusPage::CloseHandling::ErrorClose, json_errors, get<1>(err));
+    struct statvfs svfs;
+    if (statvfs(fname, &svfs) || (svfs.f_bavail * svfs.f_frsize * svfs.f_bsize) < *parser.content_length) {
+        file.reset();
+        remove(fname);
+        return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, "USB drive full");
     }
+    const size_t csize = svfs.f_frsize * svfs.f_bsize;
+    /* Pre-allocate the area needed for the file to prevent frequent metadata updates during the upload.
+       We do the pre-allocation incrementally cluster-by-cluster to minimize the chance of stalling
+       the media and blocking other tasks potentially waiting for the file system lock.
+       The file size doesn't need to be exactly the size of the uploaded content. We will truncate
+       the file later on. */
+    for (unsigned long sz = csize; sz < *parser.content_length; sz += csize) {
+        if (fseek(file.get(), sz, SEEK_SET)) {
+            file.reset();
+            remove(fname);
+            return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, "USB drive full");
+        }
+    }
+    fsync(fileno(file.get()));
+    fseek(file.get(), 0, SEEK_SET);
 
-    return GcodeUpload(move(uploader), json_errors, *parser.content_length, file_idx, move(file), uploaded);
+    return GcodeUpload(move(uploadParams), json_errors, *parser.content_length, file_idx, move(file), uploaded);
 }
 
 Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
-    uploader.setup(this);
     if (terminated_by_client && size_rest > 0) {
         return { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Truncated body") };
     }
 
+    return std::visit([input, this](auto &uploadParams) -> Step { return step(input, uploadParams); }, upload);
+}
+
+Step GcodeUpload::step(string_view input, UploadState &uploader) {
     const size_t read = std::min(input.size(), size_rest);
+    uploader.setup(this);
 
     uploader.feed(input.substr(0, read));
     size_rest -= read;
@@ -156,7 +174,7 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
             strcpy(filename, USB_MOUNT_POINT);
             const char *orig_filename = uploader.get_filename();
             strlcpy(filename + USB_MOUNT_POINT_LENGTH, orig_filename, sizeof(filename) - USB_MOUNT_POINT_LENGTH);
-            return { read, 0, FileInfo(filename, false, json_errors, true) };
+            return { read, 0, FileInfo(filename, false, json_errors, true, FileInfo::ReqMethod::Get) };
         } else {
             return { read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing file") };
         }
@@ -165,14 +183,50 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
     }
 }
 
+Step GcodeUpload::step(string_view input, PutParams &putParams) {
+    const size_t read = std::min(input.size(), size_rest);
+    // remove the "/usb/" prefix
+    const char *filename = putParams.filepath.data() + USB_MOUNT_POINT_LENGTH;
+
+    // bit of a hack, would make more sense checking this in GcodeUpload::start,
+    // but that is a static method and we need check_filename to be virtual, so
+    // it can be used inside UploadState as a function of UploadHooks.
+    if (!filename_checked) {
+        auto filename_error = check_filename(filename);
+        if (std::get<0>(filename_error) != Status::Ok)
+            return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(filename_error)) };
+        filename_checked = true;
+    }
+
+    auto error = data(input.substr(0, read));
+    if (std::get<0>(error) != Status::Ok)
+        return { read, 0, StatusPage(std::get<0>(error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(error)) };
+
+    size_rest -= read;
+    if (size_rest == 0) {
+        auto finish_error = finish(filename, putParams.print_after_upload);
+        if (std::get<0>(finish_error) != Status::Ok)
+            return { read, 0, StatusPage(std::get<0>(finish_error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(finish_error)) };
+
+        return { read, 0, FileInfo(putParams.filepath.data(), false, json_errors, true, FileInfo::ReqMethod::Get) };
+    }
+
+    return { read, 0, Continue() };
+}
+
 UploadHooks::Result GcodeUpload::data(std::string_view data) {
     assert(tmp_upload_file);
-    const size_t written = fwrite(data.begin(), 1, data.size(), tmp_upload_file.get());
-    if (written < data.size()) {
-        // Data won't fit into the flash drive -> Insufficient stogare.
-        return make_tuple(Status::InsufficientStorage, "USB write error or USB full");
-    } else {
-        return make_tuple(Status::Ok, nullptr);
+    for (;;) {
+        const size_t written = fwrite(data.begin(), 1, data.size(), tmp_upload_file.get());
+        if (written < data.size()) {
+            if (errno == EAGAIN) {
+                continue;
+            }
+            // Data won't fit into the flash drive -> Insufficient stogare.
+            return make_tuple(Status::InsufficientStorage, "USB write error or USB full");
+        } else {
+            return make_tuple(Status::Ok, nullptr);
+        }
     }
 }
 
@@ -236,8 +290,9 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     snprintf(fname, sizeof fname, UPLOAD_TEMPLATE, file_idx);
 
     // Close the file first, otherwise it can't be moved
+    ftruncate(fileno(tmp_upload_file.get()), ftell(tmp_upload_file.get()));
     tmp_upload_file.reset();
-    return try_rename(fname, final_filename, [&](const char *filename) -> UploadHooks::Result {
+    return try_rename(fname, final_filename, [&](char *filename) -> UploadHooks::Result {
         if (uploaded_notify != nullptr) {
             if (uploaded_notify(filename, start_print)) {
                 return make_tuple(Status::Ok, nullptr);

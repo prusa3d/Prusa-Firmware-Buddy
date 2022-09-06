@@ -131,7 +131,6 @@ using Notifier_PRNSPEED = Notifier<MARLIN_VAR_PRNSPEED, uint16_t>;
 using Notifier_FLOWFACT = Notifier<MARLIN_VAR_FLOWFACT, uint16_t>;
 using Notifier_WAITHEAT = Notifier<MARLIN_VAR_WAITHEAT, uint8_t>;
 using Notifier_WAITUSER = Notifier<MARLIN_VAR_WAITUSER, uint8_t>;
-using Notifier_SD_PRINT = Notifier<MARLIN_VAR_SD_PRINT, uint8_t>;
 using Notifier_SD_PDONE = Notifier<MARLIN_VAR_SD_PDONE, uint8_t>;
 using Notifier_DURATION = Notifier<MARLIN_VAR_DURATION, uint32_t>;
 
@@ -143,6 +142,11 @@ public:
     FSM_Holder(ClientFSM type, uint8_t data) //any data to send to dialog, could have different meaning for different dialogs
         : dialog(type) {
         fsm_create(type, data);
+    }
+
+    template <class T>
+    void Change(T phase) const {
+        fsm_change(dialog, phase);
     }
 
     template <class T>

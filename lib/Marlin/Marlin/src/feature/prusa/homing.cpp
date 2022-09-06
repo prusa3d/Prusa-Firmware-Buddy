@@ -84,10 +84,10 @@ Motion_Parameters reset_acceleration_if(bool condition) {
     mp.reset();
 
 #if ENABLED(IMPROVE_HOMING_RELIABILITY)
-    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = 100;
-    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = 100;
+    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
+    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
     #if HAS_CLASSIC_JERK
-    planner.max_jerk.set(0, 0);
+    planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
     #endif
 #endif
     planner.reset_acceleration_rates();
