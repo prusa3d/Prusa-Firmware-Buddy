@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -32,35 +32,49 @@
 
 #include "../inc/MarlinConfig.h"  // for pins
 #include "../module/planner.h"
-#include "../module/temperature.h"
 
 Joystick joystick;
 
 #if ENABLED(EXTENSIBLE_UI)
-  #include "../lcd/extensible_ui/ui_api.h"
+  #include "../lcd/extui/ui_api.h"
 #endif
 
 #if HAS_JOY_ADC_X
   temp_info_t Joystick::x; // = { 0 }
+  #if ENABLED(INVERT_JOY_X)
+    #define JOY_X(N) (16383 - (N))
+  #else
+    #define JOY_X(N) (N)
+  #endif
 #endif
 #if HAS_JOY_ADC_Y
   temp_info_t Joystick::y; // = { 0 }
+  #if ENABLED(INVERT_JOY_Y)
+    #define JOY_Y(N) (16383 - (N))
+  #else
+    #define JOY_Y(N) (N)
+  #endif
 #endif
 #if HAS_JOY_ADC_Z
   temp_info_t Joystick::z; // = { 0 }
+  #if ENABLED(INVERT_JOY_Z)
+    #define JOY_Z(N) (16383 - (N))
+  #else
+    #define JOY_Z(N) (N)
+  #endif
 #endif
 
 #if ENABLED(JOYSTICK_DEBUG)
   void Joystick::report() {
     SERIAL_ECHOPGM("Joystick");
     #if HAS_JOY_ADC_X
-      SERIAL_ECHOPAIR(" X", x.raw);
+      SERIAL_ECHOPGM_P(SP_X_STR, JOY_X(x.getraw()));
     #endif
     #if HAS_JOY_ADC_Y
-      SERIAL_ECHOPAIR(" Y", y.raw);
+      SERIAL_ECHOPGM_P(SP_Y_STR, JOY_Y(y.getraw()));
     #endif
     #if HAS_JOY_ADC_Z
-      SERIAL_ECHOPAIR(" Z", z.raw);
+      SERIAL_ECHOPGM_P(SP_Z_STR, JOY_Z(z.getraw()));
     #endif
     #if HAS_JOY_ADC_EN
       SERIAL_ECHO_TERNARY(READ(JOY_EN_PIN), " EN=", "HIGH (dis", "LOW (en", "abled)");
@@ -77,29 +91,29 @@ Joystick joystick;
       if (READ(JOY_EN_PIN)) return;
     #endif
 
-    auto _normalize_joy = [](float &axis_jog, const int16_t raw, const int16_t (&joy_limits)[4]) {
+    auto _normalize_joy = [](float &axis_jog, const raw_adc_t raw, const raw_adc_t (&joy_limits)[4]) {
       if (WITHIN(raw, joy_limits[0], joy_limits[3])) {
         // within limits, check deadzone
         if (raw > joy_limits[2])
           axis_jog = (raw - joy_limits[2]) / float(joy_limits[3] - joy_limits[2]);
         else if (raw < joy_limits[1])
-          axis_jog = (raw - joy_limits[1]) / float(joy_limits[1] - joy_limits[0]);  // negative value
+          axis_jog = int16_t(raw - joy_limits[1]) / float(joy_limits[1] - joy_limits[0]);  // negative value
         // Map normal to jog value via quadratic relationship
         axis_jog = SIGN(axis_jog) * sq(axis_jog);
       }
     };
 
     #if HAS_JOY_ADC_X
-      static constexpr int16_t joy_x_limits[4] = JOY_X_LIMITS;
-      _normalize_joy(norm_jog.x, x.raw, joy_x_limits);
+      static constexpr raw_adc_t joy_x_limits[4] = JOY_X_LIMITS;
+      _normalize_joy(norm_jog.x, JOY_X(x.getraw()), joy_x_limits);
     #endif
     #if HAS_JOY_ADC_Y
-      static constexpr int16_t joy_y_limits[4] = JOY_Y_LIMITS;
-      _normalize_joy(norm_jog.y, y.raw, joy_y_limits);
+      static constexpr raw_adc_t joy_y_limits[4] = JOY_Y_LIMITS;
+      _normalize_joy(norm_jog.y, JOY_Y(y.getraw()), joy_y_limits);
     #endif
     #if HAS_JOY_ADC_Z
-      static constexpr int16_t joy_z_limits[4] = JOY_Z_LIMITS;
-      _normalize_joy(norm_jog.z, z.raw, joy_z_limits);
+      static constexpr raw_adc_t joy_z_limits[4] = JOY_Z_LIMITS;
+      _normalize_joy(norm_jog.z, JOY_Z(z.getraw()), joy_z_limits);
     #endif
   }
 
@@ -111,6 +125,11 @@ Joystick joystick;
     // Recursion barrier
     static bool injecting_now; // = false;
     if (injecting_now) return;
+
+    #if ENABLED(NO_MOTION_BEFORE_HOMING)
+      if (TERN0(HAS_JOY_ADC_X, axis_should_home(X_AXIS)) || TERN0(HAS_JOY_ADC_Y, axis_should_home(Y_AXIS)) || TERN0(HAS_JOY_ADC_Z, axis_should_home(Z_AXIS)))
+        return;
+    #endif
 
     static constexpr int QUEUE_DEPTH = 5;                                // Insert up to this many movements
     static constexpr float target_lag = 0.25f,                           // Aim for 1/4 second lag
@@ -139,28 +158,23 @@ Joystick joystick;
     // Other non-joystick poll-based jogging could be implemented here
     // with "jogging" encapsulated as a more general class.
 
-    #if ENABLED(EXTENSIBLE_UI)
-      ExtUI::_joystick_update(norm_jog);
-    #endif
+    TERN_(EXTENSIBLE_UI, ExtUI::_joystick_update(norm_jog));
 
     // norm_jog values of [-1 .. 1] maps linearly to [-feedrate .. feedrate]
     xyz_float_t move_dist{0};
     float hypot2 = 0;
-    LOOP_XYZ(i) if (norm_jog[i]) {
-      move_dist[i] = seg_time * norm_jog[i] *
-        #if EITHER(ULTIPANEL, EXTENSIBLE_UI)
-          MMM_TO_MMS(manual_feedrate_mm_m[i]);
-        #else
-          planner.settings.max_feedrate_mm_s[i];
-        #endif
+    LOOP_NUM_AXES(i) if (norm_jog[i]) {
+      move_dist[i] = seg_time * norm_jog[i] * TERN(EXTENSIBLE_UI, manual_feedrate_mm_s, planner.settings.max_feedrate_mm_s)[i];
       hypot2 += sq(move_dist[i]);
     }
 
     if (!UNEAR_ZERO(hypot2)) {
       current_position += move_dist;
+      apply_motion_limits(current_position);
       const float length = sqrt(hypot2);
+      PlannerHints hints(length);
       injecting_now = true;
-      planner.buffer_line(current_position, length / seg_time, active_extruder, length);
+      planner.buffer_line(current_position, length / seg_time, active_extruder, hints);
       injecting_now = false;
     }
   }

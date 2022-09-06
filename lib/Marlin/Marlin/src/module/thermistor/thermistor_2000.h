@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2021 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,49 +16,45 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 #pragma once
 
-// R25 = 100 kOhm, beta25/85 = 4550K ± 3%, 4.7 kOhm pull-up
-// 100k thermistor NTCG NTC Chip Thermistor (NTCG104LH104JTDS)
-// TDK Corporation Piezo & Protection Device B. Grp.
-// Working temperature -40°C -  +125°C
-// Calculated using 4.7kohm pullup, voltage divider math, and manufacturer provided temp/resistance
-const short temptable_2000[][2] PROGMEM = {
-{ OV(  0), 700 },
-{ OV(312), 125 },
-{ OV(346), 120 },
-{ OV(383), 115 },
-{ OV(422), 110 },
-{ OV(463), 105 },
-{ OV(505), 100 },
-{ OV(549), 95 },
-{ OV(593), 90 },
-{ OV(637), 85 },
-{ OV(680), 80 },
-{ OV(722), 75 },
-{ OV(761), 70 },
-{ OV(798), 65 },
-{ OV(832), 60 },
-{ OV(862), 55 },
-{ OV(889), 50 },
-{ OV(913), 45 },
-{ OV(933), 40 },
-{ OV(950), 35 },
-{ OV(965), 30 },
-{ OV(977), 25 },
-{ OV(987), 20 },
-{ OV(995), 15 },
-{ OV(1001), 10 },
-{ OV(1007), 5 },
-{ OV(1011), 0 },
-{ OV(1014), -5 },
-{ OV(1016), -10 },
-{ OV(1018), -15 },
-{ OV(1019), -20 },
-{ OV(1020), -25 },
-{ OV(1021), -30 }
-
+// R25 = 100 KOhm, beta25 = 4550 K, 4.7 kOhm pull-up, TDK NTCG104LH104KT1 https://product.tdk.com/en/search/sensor/ntc/chip-ntc-thermistor/info?part_no=NTCG104LH104KT1
+constexpr temp_entry_t temptable_2000[] PROGMEM = {
+{ OV(313),   125 },
+{ OV(347),   120 },
+{ OV(383),   115 },
+{ OV(422),   110 },
+{ OV(463),   105 },
+{ OV(506),   100 },
+{ OV(549),   95 },
+{ OV(594),   90 },
+{ OV(638),   85 },
+{ OV(681),   80 },
+{ OV(722),   75 },
+{ OV(762),   70 },
+{ OV(799),   65 },
+{ OV(833),   60 },
+{ OV(863),   55 },
+{ OV(890),   50 },
+{ OV(914),   45 },
+{ OV(934),   40 },
+{ OV(951),   35 },
+{ OV(966),   30 },
+{ OV(978),   25 },
+{ OV(988),   20 },
+{ OV(996),   15 },
+{ OV(1002),  10 },
+{ OV(1007),   5 },
+{ OV(1012),   0 },
+{ OV(1015),  -5 },
+{ OV(1017), -10 },
+{ OV(1019), -15 },
+{ OV(1020), -20 },
+{ OV(1021), -25 },
+{ OV(1022), -30 },
+{ OV(1023), -35 },
+{ OV(1023), -40 }
 };

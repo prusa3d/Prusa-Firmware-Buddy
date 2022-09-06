@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -34,11 +34,11 @@
 inline void G38_single_probe(const uint8_t move_value) {
   endstops.enable(true);
   G38_move = move_value;
-  prepare_move_to_destination();
+  prepare_line_to_destination();
   planner.synchronize();
   G38_move = 0;
   endstops.hit_on_purpose();
-  set_current_from_steppers_for_axis(ALL_AXES);
+  set_current_from_steppers_for_axis(ALL_AXES_ENUM);
   sync_plan_position();
 }
 
@@ -49,7 +49,7 @@ inline bool G38_run_probe() {
   #if MULTIPLE_PROBING > 1
     // Get direction of move and retract
     xyz_float_t retract_mm;
-    LOOP_XYZ(i) {
+    LOOP_NUM_AXES(i) {
       const float dist = destination[i] - current_position[i];
       retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
     }
@@ -77,7 +77,7 @@ inline bool G38_run_probe() {
       // Move away by the retract distance
       destination = current_position + retract_mm;
       endstops.enable(false);
-      prepare_move_to_destination();
+      prepare_line_to_destination();
       planner.synchronize();
 
       REMEMBER(fr, feedrate_mm_s, feedrate_mm_s * 0.25);
@@ -119,7 +119,7 @@ void GcodeSuite::G38(const int8_t subcode) {
   ;
 
   // If any axis has enough movement, do the move
-  LOOP_XYZ(i)
+  LOOP_NUM_AXES(i)
     if (ABS(destination[i] - current_position[i]) >= G38_MINIMUM_MOVE) {
       if (!parser.seenval('F')) feedrate_mm_s = homing_feedrate((AxisEnum)i);
       // If G38.2 fails throw an error

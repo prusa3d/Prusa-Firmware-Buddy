@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,13 +16,19 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
+#include "../../inc/MarlinConfig.h"
+
+#if ENABLED(DIRECT_PIN_CONTROL)
+
 #include "../gcode.h"
-#include "../../Marlin.h" // for pin_is_protected and idle()
+#include "../../MarlinCore.h" // for pin_is_protected and idle()
 #include "../../module/stepper.h"
+
+void protected_pin_err();
 
 /**
  * M226: Wait until the specified pin reaches the state required (M226 P<pin> S<state>)
@@ -45,8 +51,10 @@ void GcodeSuite::M226() {
           case 0: target = LOW; break;
           case -1: target = !extDigitalRead(pin); break;
         }
-        while (int(extDigitalRead(pin)) != target) idle(true);
+        while (int(extDigitalRead(pin)) != target) idle();
       }
     } // pin_state -1 0 1 && pin > -1
   } // parser.seen('P')
 }
+
+#endif // DIRECT_PIN_CONTROL
