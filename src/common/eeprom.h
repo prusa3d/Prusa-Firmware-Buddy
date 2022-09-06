@@ -10,7 +10,7 @@
 
 enum {
     EEPROM_ADDRESS = 0x0500, // uint16_t
-    EEPROM_VERSION = 11,     // uint16_t
+    EEPROM_VERSION = 12,     // uint16_t
 };
 
 #define EEPROM_LAST_VERSION_WITH_OLD_CRC 10
@@ -137,15 +137,15 @@ enum eevar_id {
     EEVAR_WIFI_AP_PASSWD = 0x4b, // 64char string
 #endif                           // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
 
-#if (EEPROM_FEATURES & EEPROM_FEATURE_CONNECT)
-    EEVAR_CONNECT_HOST = 0x4c,
-    EEVAR_CONNECT_TOKEN = 0x4d,
-    EEVAR_CONNECT_PORT = 0x4e,
-    EEVAR_CONNECT_TLS = 0x4f,
-    EEVAR_CONNECT_ENABLED = 0x50,
-#endif
+    EEVAR_USB_MSC_ENABLED = 0x4c, // bool, on/off
 
-    EEVAR_USB_MSC_ENABLED = 0x51, // bool, on/off
+#if (EEPROM_FEATURES & EEPROM_FEATURE_CONNECT)
+    EEVAR_CONNECT_HOST = 0x4d,
+    EEVAR_CONNECT_TOKEN = 0x4e,
+    EEVAR_CONNECT_PORT = 0x4f,
+    EEVAR_CONNECT_TLS = 0x50,
+    EEVAR_CONNECT_ENABLED = 0x51,
+#endif
 
     EEVAR_JOB_ID = 0x52,            // uint16_t print job id incremented at every print start
     EEVAR_CRASH_ENABLED = 0x53,     // bool crash detection enabled

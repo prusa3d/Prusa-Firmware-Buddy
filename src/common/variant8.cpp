@@ -326,6 +326,9 @@ int32_t variant8_get_i32(variant8_t v) { return unpack(&v)->i32; }
 // returns variant8_t ui16
 uint16_t variant8_get_ui16(variant8_t v) { return unpack(&v)->ui16; }
 
+// returns variant8_t i16
+int16_t variant8_get_i16(variant8_t v) { return unpack(&v)->i16; }
+
 // returns variant8_t ui8
 uint8_t variant8_get_ui8(variant8_t v) { return unpack(&v)->ui8; }
 
