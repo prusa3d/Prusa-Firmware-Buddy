@@ -136,6 +136,9 @@ extern int32_t variant8_get_i32(variant8_t v);
 // returns variant8_t ui16
 extern uint16_t variant8_get_ui16(variant8_t v);
 
+// returns variant8_t i16
+extern int16_t variant8_get_i16(variant8_t v);
+
 // returns variant8_t ui8
 extern uint8_t variant8_get_ui8(variant8_t v);
 

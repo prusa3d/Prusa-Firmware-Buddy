@@ -1703,7 +1703,7 @@
      */
     #define CRASH_RECOVERY
     #ifdef CRASH_RECOVERY
-        #define CRASH_STALL_GUARD { 1, 1 } // internal value representing sensitivity
+        #define CRASH_STALL_GUARD { 129, 129 } // internal value representing sensitivity
         #define CRASH_PERIOD { 210, 210 }  // (steps per tick) - reciprocal value of minimal speed
         #define CRASH_FILTER (false)        // Stallguard filtering for crash detection
         #define CRASH_TIMER 45             // seconds before counter reset
