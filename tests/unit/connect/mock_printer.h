@@ -49,6 +49,10 @@ public:
     virtual bool job_control(JobControl) override {
         return false;
     }
+
+    virtual bool start_print(const char *) override {
+        return false;
+    }
 };
 
 }
