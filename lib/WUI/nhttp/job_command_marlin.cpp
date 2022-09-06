@@ -22,7 +22,7 @@ namespace {
 
     SimplePrintState get_state() {
         marlin_vars_t *vars = marlin_vars();
-        marlin_client_loop();
+        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE));
 
         switch (vars->print_state) {
         case mpsPrinting:
