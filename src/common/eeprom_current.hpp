@@ -43,8 +43,8 @@ struct vars_body_t : public eeprom::v10::vars_body_t {
     uint8_t USB_MSC_ENABLED;
     uint16_t JOB_ID;
     int8_t CRASH_ENABLED;
-    int8_t EEVAR_CRASH_SENS_X;
-    int8_t EEVAR_CRASH_SENS_Y;
+    uint8_t EEVAR_CRASH_SENS_X;
+    uint8_t EEVAR_CRASH_SENS_Y;
     uint16_t EEVAR_CRASH_PERIOD_X;
     uint16_t EEVAR_CRASH_PERIOD_Y;
     uint8_t EEVAR_CRASH_FILTER;

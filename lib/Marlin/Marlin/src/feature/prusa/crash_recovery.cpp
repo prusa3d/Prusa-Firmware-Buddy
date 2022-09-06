@@ -22,8 +22,8 @@ Crash_s::Crash_s()
     enabled = variant8_get_bool(eeprom_get_var(EEVAR_CRASH_ENABLED));
     max_period.x = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_PERIOD_X));
     max_period.y = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_PERIOD_Y));
-    sensitivity.x = variant8_get_i8(eeprom_get_var(EEVAR_CRASH_SENS_X));
-    sensitivity.y = variant8_get_i8(eeprom_get_var(EEVAR_CRASH_SENS_Y));
+    sensitivity.x = variant8_get_ui8(eeprom_get_var(EEVAR_CRASH_SENS_X));
+    sensitivity.y = variant8_get_ui8(eeprom_get_var(EEVAR_CRASH_SENS_Y));
 #if 0 // TODO base this on drive type
     filter = variant8_get_bool(eeprom_get_var(EEVAR_CRASH_FILTER));
 #endif
@@ -231,8 +231,8 @@ void Crash_s::enable(bool state) {
 void Crash_s::set_sensitivity(xy_long_t sens) {
     if (sensitivity != sens) {
         sensitivity = sens;
-        eeprom_set_var(EEVAR_CRASH_SENS_X, variant8_i8(sensitivity.x));
-        eeprom_set_var(EEVAR_CRASH_SENS_Y, variant8_i8(sensitivity.y));
+        eeprom_set_var(EEVAR_CRASH_SENS_X, variant8_ui8(sensitivity.x));
+        eeprom_set_var(EEVAR_CRASH_SENS_Y, variant8_ui8(sensitivity.y));
         update_machine();
     }
 }
