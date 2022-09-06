@@ -74,6 +74,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             T("PAUSE_PRINT", PausePrint)
             T("STOP_PRINT", StopPrint)
             T("RESUME_PRINT", ResumePrint)
+            T("START_PRINT", StartPrint)
             return;
         }
 
@@ -112,6 +113,13 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
     } else if (auto *info = get_if<SendFileInfo>(&data); info != nullptr) {
         if (has_path) {
             info->path = SharedPath(move(buff));
+        } else {
+            // Missing parameters
+            data = BrokenCommand {};
+        }
+    } else if (auto *start = get_if<StartPrint>(&data); start != nullptr) {
+        if (has_path) {
+            start->path = SharedPath(move(buff));
         } else {
             // Missing parameters
             data = BrokenCommand {};

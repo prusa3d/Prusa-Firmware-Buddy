@@ -3,6 +3,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
+#include <sys/stat.h>
 
 using std::min;
 using std::nullopt;
@@ -52,6 +54,19 @@ namespace {
         } else {
             return nullopt;
         }
+    }
+
+    bool path_allowed(const char *path) {
+        constexpr const char *const usb = "/usb/";
+        const bool is_on_usb = strncmp(path, usb, strlen(usb)) == 0;
+        const bool contains_upper = strstr(path, "/../") != nullptr;
+        return is_on_usb && !contains_upper;
+    }
+
+    bool path_exists(const char *path) {
+        struct stat st = {};
+        // This could give some false negatives, in practice rare (we don't have permissions, and such).
+        return stat(path, &st) == 0;
     }
 }
 
@@ -179,6 +194,15 @@ JC(Pause)
 JC(Resume)
 JC(Stop)
 
+void Planner::command(const Command &command, const StartPrint &params) {
+    const char *path = params.path.path();
+    if (path_allowed(path) && path_exists(path) && printer.start_print(path)) {
+        planned_event = Event { EventType::Finished, command.id };
+    } else {
+        planned_event = Event { EventType::Rejected, command.id };
+    }
+}
+
 void Planner::command(const Command &command, const SendInfo &) {
     planned_event = Event {
         EventType::Info,
@@ -195,12 +219,16 @@ void Planner::command(const Command &command, const SendJobInfo &params) {
 }
 
 void Planner::command(const Command &command, const SendFileInfo &params) {
-    planned_event = Event {
-        EventType::FileInfo,
-        command.id,
-        nullopt, // job_id
-        params.path,
-    };
+    if (path_allowed(params.path.path())) {
+        planned_event = Event {
+            EventType::FileInfo,
+            command.id,
+            nullopt, // job_id
+            params.path,
+        };
+    } else {
+        planned_event = Event { EventType::Rejected, command.id };
+    }
 }
 
 void Planner::command(Command command) {

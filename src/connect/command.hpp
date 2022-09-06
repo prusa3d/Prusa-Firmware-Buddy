@@ -26,8 +26,11 @@ struct SendFileInfo {
 struct PausePrint {};
 struct ResumePrint {};
 struct StopPrint {};
+struct StartPrint {
+    SharedPath path;
+};
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, ProcessingOtherCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, PausePrint, ResumePrint, StopPrint>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, ProcessingOtherCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, PausePrint, ResumePrint, StopPrint, StartPrint>;
 
 struct Command {
     CommandId id;
