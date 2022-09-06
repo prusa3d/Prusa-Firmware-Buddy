@@ -117,7 +117,9 @@ private:
     bool repeated_crash;
     bool stats_saved; /// statistics were saved to EEPROM
     bool enabled;     /// has to cache EEPROM to avoid IRQ deadlock
+#if 0 // TODO base this on drive type
     bool filter;      /// use TMC filtering
+#endif
     AxisEnum axis_hit;
 
     /// methods
@@ -165,8 +167,10 @@ public:
     void write_stat_to_eeprom();
     bool is_repeated_crash() { return repeated_crash; }
     void count_crash();
+#if 0 // TODO base this on drive type
     bool get_filter() { return filter; }
     void set_filter(bool on);
+#endif
 
 private:
     void stop_and_save();   ///< Stop the planner and update the crash state
