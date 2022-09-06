@@ -1020,6 +1020,20 @@
 #define Z_END_GAP 10
 
 /**
+ * Calibrates X, Y homing positions and uses
+ * the reference to provide repeatable homing position.
+ */
+#define PRECISE_HOMING
+
+/**
+ * Number of precise homing tries
+ *
+ * Three times more tries are used when recovering from crash
+ * or power panic.
+ */
+#define PRECISE_HOMING_TRIES 15
+
+/**
  * Software Endstops
  *
  * - Prevent moves outside the set machine bounds.
