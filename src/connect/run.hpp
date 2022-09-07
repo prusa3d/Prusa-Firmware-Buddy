@@ -1,6 +1,6 @@
 #pragma once
 
-namespace connect {
+namespace connect_client {
 
 /// The "main" loop for connect.
 ///

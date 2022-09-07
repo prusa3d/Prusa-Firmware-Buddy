@@ -3,7 +3,7 @@
 #include <cstring>
 #include <catch2/catch.hpp>
 
-using namespace connect;
+using namespace connect_client;
 using std::get;
 using std::holds_alternative;
 using std::string_view;

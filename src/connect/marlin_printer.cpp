@@ -17,7 +17,7 @@
 
 using std::nullopt;
 
-namespace connect {
+namespace connect_client {
 
 namespace {
 

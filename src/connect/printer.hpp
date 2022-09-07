@@ -5,7 +5,7 @@
 #include <tuple>
 #include <optional>
 
-namespace connect {
+namespace connect_client {
 
 class Printer {
 public:

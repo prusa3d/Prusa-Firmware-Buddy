@@ -6,7 +6,7 @@
 #include <string_view>
 #include <variant>
 
-namespace connect {
+namespace connect_client {
 
 using CommandId = uint32_t;
 

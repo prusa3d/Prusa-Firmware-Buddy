@@ -5,7 +5,7 @@
 #include <cstdint>
 #include "connect_error.h"
 
-namespace connect {
+namespace connect_client {
 
 constexpr uint8_t SOCKET_TIMEOUT_SEC = 3;
 

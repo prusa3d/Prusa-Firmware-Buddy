@@ -8,7 +8,7 @@
 #include <optional>
 #include <variant>
 
-namespace connect {
+namespace connect_client {
 
 // Just make the code a bit more readable by making this distinction.
 // Unfortunately, not checked at compile time.
