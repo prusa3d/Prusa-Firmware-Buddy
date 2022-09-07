@@ -5,7 +5,7 @@
 #include <cstring>
 #include <optional>
 
-namespace connect {
+namespace connect_client {
 
 constexpr Printer::Params params_idle() {
     Printer::Params params {};

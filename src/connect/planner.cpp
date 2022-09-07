@@ -11,7 +11,7 @@ using std::nullopt;
 using std::optional;
 using std::visit;
 
-namespace connect {
+namespace connect_client {
 
 namespace {
 

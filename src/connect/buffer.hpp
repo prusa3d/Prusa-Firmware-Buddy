@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <memory>
 
-namespace connect {
+namespace connect_client {
 
 template <size_t S>
 class Buffer {

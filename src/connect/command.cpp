@@ -20,7 +20,7 @@ extern "C" {
 size_t strlcpy(char *, const char *, size_t);
 }
 
-namespace connect {
+namespace connect_client {
 
 namespace {
 

@@ -11,7 +11,7 @@
 #include "mbedtls/certs.h"
 #include "mbedtls/platform.h"
 
-namespace connect {
+namespace connect_client {
 
 class tls final : public Connection {
 

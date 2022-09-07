@@ -6,7 +6,7 @@
 #include <variant>
 #include <http/types.h>
 
-namespace connect {
+namespace connect_client {
 
 enum class Method {
     Post
