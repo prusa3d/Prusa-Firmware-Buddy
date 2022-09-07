@@ -274,9 +274,14 @@ JsonResult get_storage(size_t resume_point, JsonOutput &output) {
     // clang-format off
     JSON_START;
         JSON_OBJ_START
-            JSON_FIELD_STR("path", "/usb") JSON_COMMA;
-            JSON_FIELD_STR("type", "USB") JSON_COMMA;
-            JSON_FIELD_BOOL("available", usb_available());
+            JSON_FIELD_ARR("storage_list");
+                JSON_OBJ_START
+                    JSON_FIELD_STR("path", "/usb") JSON_COMMA;
+                    JSON_FIELD_STR("type", "USB") JSON_COMMA;
+                    JSON_FIELD_BOOL("read_only", false) JSON_COMMA;
+                    JSON_FIELD_BOOL("available", usb_available());
+                JSON_OBJ_END;
+            JSON_ARR_END;
         JSON_OBJ_END;
     JSON_END;
     // clang-format on
