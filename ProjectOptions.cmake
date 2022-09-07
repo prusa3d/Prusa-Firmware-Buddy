@@ -39,7 +39,7 @@ set(MCU
     )
 set(GENERATE_BBF
     "NO"
-    CACHE STRING "Whether a .bbf version should be generated."
+    CACHE BOOL "Whether a .bbf version should be generated."
     )
 set(GENERATE_DFU
     "NO"
