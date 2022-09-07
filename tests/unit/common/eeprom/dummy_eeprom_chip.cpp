@@ -28,6 +28,9 @@ uint8_t DummyEepromChip::get(uint16_t address) {
     REQUIRE(address < data.size());
     return data[address];
 }
+void DummyEepromChip::clear() {
+    data.fill(0xff);
+}
 
 void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint16_t size) {
     eeprom_chip.get(address, static_cast<uint8_t *>(pdata), size);

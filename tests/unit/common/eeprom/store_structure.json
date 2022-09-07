@@ -1,0 +1,42 @@
+{
+  "SimpleType": {
+    "data_type": "i32",
+    "default": 0
+  },
+  "string_type": {
+    "data_type": "string",
+    "default": "test string",
+    "length": 100
+  },
+  "array": {
+    "data_type": "array",
+    "length": 10,
+    "item": {
+      "data_type": "i32",
+      "default": 0
+    }
+  },
+  "struct_type": {
+    "type_name": "StructType",
+    "data_type": "struct",
+    "members": {
+      "SimpleType": {
+        "data_type": "i32",
+        "default": 0
+      },
+      "string_type": {
+        "data_type": "string",
+        "default": "test string",
+        "length": 100
+      },
+      "array": {
+        "data_type": "array",
+        "length": 10,
+        "item": {
+          "data_type": "i32",
+          "default": 0
+        }
+      }
+    }
+  }
+}

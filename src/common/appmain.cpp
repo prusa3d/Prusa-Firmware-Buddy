@@ -15,7 +15,7 @@
 #include "print_utils.hpp"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
-#include "configuration_store.hpp"
+#include "configuration_store/configuration_store.hpp"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"
@@ -116,7 +116,7 @@ void app_run(void) {
     app_setup_marlin_logging();
 
     LangEEPROM::getInstance();
-    ConfigurationStore<>::GetStore().Init();
+    ConfigurationStore<>::GetStore().init();
 
     marlin_server_init();
     marlin_server_idle_cb = app_idle;

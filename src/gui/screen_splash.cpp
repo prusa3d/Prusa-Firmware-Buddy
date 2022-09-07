@@ -14,6 +14,7 @@
 #include "language_eeprom.hpp"
 #include "bsod.h"
 #include "feature/has_selftest.h"
+#include "configuration_store/configuration_store.hpp"
 
 #ifdef _EXTUI
     #include "marlin_client.h"
@@ -49,9 +50,9 @@ screen_splash_data_t::screen_splash_data_t()
     text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_version_buffer));
 
 #if HAS_SELFTEST
-    const bool run_selftest = eeprom_get_bool(EEVAR_RUN_SELFTEST);
-    const bool run_xyzcalib = eeprom_get_bool(EEVAR_RUN_XYZCALIB);
-    const bool run_firstlay = eeprom_get_bool(EEVAR_RUN_FIRSTLAY);
+    const bool run_selftest = ConfigurationStore<>::GetStore().run_selftest;
+    const bool run_xyzcalib = ConfigurationStore<>::GetStore().run_xyz_calib;
+    const bool run_firstlay = ConfigurationStore<>::GetStore().run_firstlay;
     const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
 #endif
     const bool run_lang = !LangEEPROM::getInstance().IsValid();

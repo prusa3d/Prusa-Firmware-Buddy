@@ -257,7 +257,6 @@ inline void Packer::pack_type(const int64_t &value) {
         }
     }
 }
-
 template <>
 inline void Packer::pack_type(const uint8_t &value) {
     if (value <= 0x7f) {
@@ -266,6 +265,11 @@ inline void Packer::pack_type(const uint8_t &value) {
         serialized_object.emplace_back(uint8);
         serialized_object.emplace_back(value);
     }
+}
+
+template <>
+inline void Packer::pack_type(const char &value) {
+    pack_type(reinterpret_cast<const uint8_t &>(value));
 }
 
 template <>
@@ -656,6 +660,11 @@ inline void Unpacker::unpack_type(uint8_t &value) {
         value = safe_data();
         safe_increment();
     }
+}
+
+template <>
+inline void Unpacker::unpack_type(char &value) {
+    unpack_type(reinterpret_cast<uint8_t &>(value));
 }
 
 template <>

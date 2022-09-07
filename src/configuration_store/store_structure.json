@@ -1,0 +1,18 @@
+{
+  "fw_version": {
+    "data_type": "i16",
+    "default": 0
+  },
+  "run_selftest": {
+    "data_type": "bool",
+    "default": true
+  },
+  "run_xyz_calib": {
+    "data_type": "bool",
+    "default": true
+  },
+  "run_firstlay": {
+    "data_type": "bool",
+    "default": true
+  }
+}

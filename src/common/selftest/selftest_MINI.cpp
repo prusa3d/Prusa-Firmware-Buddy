@@ -29,7 +29,7 @@
 #include "fanctl.h"
 #include "timing.h"
 #include "selftest_result_type.hpp"
-
+#include "configuration_store/configuration_store.hpp"
 using namespace selftest;
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
@@ -118,11 +118,11 @@ bool CSelftest::Start(uint64_t mask) {
     if (m_Mask & stmZAxis)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); //any selftest state will trigger selftest additional init
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); //any selftest state will trigger selftest additional deinit
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
 
-    //dont show message about footer and do not wait response
+    // dont show message about footer and do not wait response
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo_wait_user)));
 
@@ -285,12 +285,11 @@ void CSelftest::phaseDidSelftestPass() {
     eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
     m_result = SelftestResult_t(eeres);
     m_result.Log();
-
-    //dont run wizard again
+    // dont run wizard again
     if (m_result.Passed()) {
-        eeprom_set_bool(EEVAR_RUN_SELFTEST, false); // clear selftest flag
-        eeprom_set_bool(EEVAR_RUN_XYZCALIB, false); // clear XYZ calib flag
-        eeprom_set_bool(EEVAR_RUN_FIRSTLAY, false); // clear first layer flag
+        ConfigurationStore<>::GetStore().run_selftest.set(false);
+        ConfigurationStore<>::GetStore().run_xyz_calib.set(false);
+        ConfigurationStore<>::GetStore().run_firstlay.set(false);
     }
 }
 
@@ -299,9 +298,9 @@ bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
-        eeprom_set_bool(EEVAR_RUN_SELFTEST, false); // clear selftest flag
-        eeprom_set_bool(EEVAR_RUN_XYZCALIB, false); // clear XYZ calib flag
-        eeprom_set_bool(EEVAR_RUN_FIRSTLAY, false); // clear first layer flag
+        ConfigurationStore<>::GetStore().run_selftest.set(false);
+        ConfigurationStore<>::GetStore().run_xyz_calib.set(false);
+        ConfigurationStore<>::GetStore().run_firstlay.set(false);
         Abort();
     }
     return response == Response::_none;
@@ -361,7 +360,7 @@ void CSelftest::restoreAfterSelftest() {
     thermalManager.setTargetHotend(0, 0);
     marlin_server_set_temp_to_display(0);
 
-    //restore fan behavior
+    // restore fan behavior
     fanCtlPrint.ExitSelftestMode();
     fanCtlHeatBreak.ExitSelftestMode();
 
@@ -412,7 +411,7 @@ const char *CSelftest::get_log_suffix() {
     return suffix;
 }
 
-//declared in parent source file
+// declared in parent source file
 ISelftest &SelftestInstance() {
     static CSelftest ret = CSelftest();
     return ret;
