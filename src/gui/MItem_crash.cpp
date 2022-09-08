@@ -18,30 +18,22 @@ void MI_CRASH_DETECTION::OnChange(size_t old_index) {
 }
 
 MI_CRASH_SENSITIVITY_X::MI_CRASH_SENSITIVITY_X()
-    : WiSpinInt(64 - crash_s.get_sensitivity().x, SpinCnf::crash_sensitivity_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WiSpinInt(crash_s.get_sensitivity().x, SpinCnf::crash_sensitivity_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_X::OnClick() {
 
     xy_long_t se = crash_s.get_sensitivity();
-    #if (X_DRIVER_TYPE) == TMC2130
-    se.x = -GetVal() + 64;
-    #else
     se.x = GetVal();
-    #endif
     crash_s.set_sensitivity(se);
 }
 
 MI_CRASH_SENSITIVITY_Y::MI_CRASH_SENSITIVITY_Y()
-    : WiSpinInt(64 - crash_s.get_sensitivity().y, SpinCnf::crash_sensitivity_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WiSpinInt(crash_s.get_sensitivity().y, SpinCnf::crash_sensitivity_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_Y::OnClick() {
 
     xy_long_t se = crash_s.get_sensitivity();
-    #if (X_DRIVER_TYPE) == TMC2130
-    se.y = -GetVal() + 64;
-    #else
     se.y = GetVal();
-    #endif
     crash_s.set_sensitivity(se);
 }
 
