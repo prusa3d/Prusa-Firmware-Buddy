@@ -71,6 +71,7 @@ protected:
     font_t *getLabelFont() const { return label_font; }
 
     void reInitRoll(Rect16 rect);
+    void deInitRoll();
     color_t GetTextColor() const;
     color_t GetBackColor() const;
 

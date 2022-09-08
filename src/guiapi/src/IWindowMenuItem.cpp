@@ -154,6 +154,10 @@ void IWindowMenuItem::reInitRoll(Rect16 rect) {
     }
 }
 
+void IWindowMenuItem::deInitRoll() {
+    roll.Deinit();
+}
+
 bool IWindowMenuItem::IsHidden() const {
     return (hidden == (uint8_t)is_hidden_t::yes) || (hidden == (uint8_t)is_hidden_t::dev && !GuiDefaults::ShowDevelopmentTools);
 }
