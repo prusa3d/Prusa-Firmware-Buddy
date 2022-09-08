@@ -124,18 +124,17 @@ add_library(
   Marlin/Marlin/src/HAL/STM32/Servo.cpp
   Marlin/Marlin/src/HAL/STM32/timers.cpp
   Marlin/Marlin/src/lcd/extui/ui_api.cpp
-  Marlin/Marlin/src/lcd/ultralcd.cpp
+  Marlin/Marlin/src/lcd/marlinui.cpp
   Marlin/Marlin/src/libs/buzzer.cpp
   Marlin/Marlin/src/libs/crc16.cpp
   Marlin/Marlin/src/libs/heatshrink/heatshrink_decoder.cpp
-  Marlin/Marlin/src/libs/hex_print_routines.cpp
+  Marlin/Marlin/src/libs/hex_print.cpp
   Marlin/Marlin/src/libs/least_squares_fit.cpp
   Marlin/Marlin/src/libs/nozzle.cpp
   Marlin/Marlin/src/libs/numtostr.cpp
   Marlin/Marlin/src/libs/stopwatch.cpp
   Marlin/Marlin/src/libs/vector_3.cpp
-  Marlin/Marlin/src/Marlin.cpp
-  Marlin/Marlin/src/module/configuration_store.cpp
+  Marlin/Marlin/src/MarlinCore.cpp
   Marlin/Marlin/src/module/delta.cpp
   Marlin/Marlin/src/module/endstops.cpp
   Marlin/Marlin/src/module/motion.cpp
@@ -146,9 +145,9 @@ add_library(
   Marlin/Marlin/src/module/probe.cpp
   Marlin/Marlin/src/module/scara.cpp
   Marlin/Marlin/src/module/servo.cpp
+  Marlin/Marlin/src/module/settings.cpp
   Marlin/Marlin/src/module/stepper.cpp
   Marlin/Marlin/src/module/stepper/indirection.cpp
-  Marlin/Marlin/src/module/stepper/L6470.cpp
   Marlin/Marlin/src/module/stepper/TMC26X.cpp
   Marlin/Marlin/src/module/stepper/trinamic.cpp
   Marlin/Marlin/src/module/temperature.cpp
