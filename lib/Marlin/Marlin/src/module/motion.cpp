@@ -1326,8 +1326,8 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
     }
   #endif
 
+#if HOMING_Z_WITH_PROBE && 0
     // Only do some things when moving towards an endstop
-#if ENABLED(PRECISE_HOMING)
     const int8_t axis_home_dir =
     #if ENABLED(DUAL_X_CARRIAGE)
       (axis == X_AXIS) ? x_home_dir(active_extruder) :
