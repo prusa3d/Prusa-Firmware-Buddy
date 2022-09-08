@@ -112,14 +112,6 @@ add_library(
   Marlin/Marlin/src/gcode/temp/M155.cpp
   Marlin/Marlin/src/gcode/temp/M303.cpp
   Marlin/Marlin/src/gcode/units/M82_M83.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/eeprom_emul.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/EmulatedEeprom.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/HAL.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/persistent_store_eeprom.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/Servo.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F4/timers.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F7/timers.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F7/TMC2660.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/backtrace.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwarm.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwarm_arm.cpp
@@ -128,9 +120,9 @@ add_library(
   Marlin/Marlin/src/HAL/shared/backtrace/unwarmmem.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwinder.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwmemaccess.cpp
-  Marlin/Marlin/src/HAL/shared/eeprom_spi.cpp
-  Marlin/Marlin/src/HAL/shared/HAL_spi_L6470.cpp
-  Marlin/Marlin/src/HAL/shared/persistent_store_api.cpp
+  Marlin/Marlin/src/HAL/STM32/HAL.cpp
+  Marlin/Marlin/src/HAL/STM32/Servo.cpp
+  Marlin/Marlin/src/HAL/STM32/timers.cpp
   Marlin/Marlin/src/lcd/extensible_ui/ui_api.cpp
   Marlin/Marlin/src/lcd/ultralcd.cpp
   Marlin/Marlin/src/libs/buzzer.cpp
