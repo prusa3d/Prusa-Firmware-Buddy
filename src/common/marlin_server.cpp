@@ -246,7 +246,7 @@ static void _server_update_and_notify(int client_id, uint64_t update);
 
 void marlin_server_init(void) {
     int i;
-    memset(&marlin_server, 0, sizeof(marlin_server_t));
+    marlin_server = marlin_server_t();
     osMessageQDef(serverQueue, MARLIN_SERVER_QUEUE, uint8_t);
     marlin_server_queue = osMessageCreate(osMessageQ(serverQueue), NULL);
     osSemaphoreDef(serverSema);
