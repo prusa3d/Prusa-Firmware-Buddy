@@ -4,7 +4,6 @@ endif()
 
 add_library(
   Marlin
-  Marlin/Marlin/src/core/multi_language.cpp
   Marlin/Marlin/src/core/serial.cpp
   Marlin/Marlin/src/core/utility.cpp
   Marlin/Marlin/src/feature/babystep.cpp
