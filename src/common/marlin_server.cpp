@@ -61,6 +61,7 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 #if ENABLED(CRASH_RECOVERY)
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
     #include "crash_recovery_type.hpp"
+    #include "selftest_axis.h"
 #endif
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -799,19 +800,13 @@ enum class Axis_length_t {
 };
 
 static Axis_length_t axis_length_ok(AxisEnum axis) {
-    // const int axis_len[2] = { X_MAX_POS - X_MIN_POS, Y_MAX_POS - Y_MIN_POS };
-    // const int gap = axis == X_AXIS ? X_END_GAP : Y_END_GAP;
     const float len = marlin_server.axis_length.pos[axis];
 
     switch (axis) {
     case X_AXIS:
-        // FIXME: remove once the printer specs are finalized
-        return len < 230 ? Axis_length_t::shorter : (len > 290 ? Axis_length_t::longer : Axis_length_t::ok);
+        return len < selftest::Config_XAxis.length_min ? Axis_length_t::shorter : (len > selftest::Config_XAxis.length_max ? Axis_length_t::longer : Axis_length_t::ok);
     case Y_AXIS:
-        // FIXME: remove once the printer specs are finalized
-        return len < 190 ? Axis_length_t::shorter : (len > 250 ? Axis_length_t::longer : Axis_length_t::ok);
-        // return axis_len[axis] < len
-        //     && len <= axis_len[axis] + gap;
+        return len < selftest::Config_YAxis.length_min ? Axis_length_t::shorter : (len > selftest::Config_YAxis.length_max ? Axis_length_t::longer : Axis_length_t::ok);
     default:;
     }
     return Axis_length_t::shorter;

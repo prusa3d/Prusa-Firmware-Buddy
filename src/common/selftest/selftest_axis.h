@@ -49,4 +49,7 @@ public:
     LoopResult stateMoveWaitFinish();
 };
 
+extern const AxisConfig_t Config_XAxis;
+extern const AxisConfig_t Config_YAxis;
+
 };
