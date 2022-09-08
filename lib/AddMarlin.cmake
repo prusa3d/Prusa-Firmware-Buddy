@@ -105,12 +105,12 @@ add_library(
   Marlin/Marlin/src/gcode/sd/M928.cpp
   Marlin/Marlin/src/gcode/stats/M31.cpp
   Marlin/Marlin/src/gcode/stats/M75-M78.cpp
-  Marlin/Marlin/src/gcode/temperature/M104_M109.cpp
-  Marlin/Marlin/src/gcode/temperature/M105.cpp
-  Marlin/Marlin/src/gcode/temperature/M106_M107.cpp
-  Marlin/Marlin/src/gcode/temperature/M140_M190.cpp
-  Marlin/Marlin/src/gcode/temperature/M155.cpp
-  Marlin/Marlin/src/gcode/temperature/M303.cpp
+  Marlin/Marlin/src/gcode/temp/M104_M109.cpp
+  Marlin/Marlin/src/gcode/temp/M105.cpp
+  Marlin/Marlin/src/gcode/temp/M106_M107.cpp
+  Marlin/Marlin/src/gcode/temp/M140_M190.cpp
+  Marlin/Marlin/src/gcode/temp/M155.cpp
+  Marlin/Marlin/src/gcode/temp/M303.cpp
   Marlin/Marlin/src/gcode/units/M82_M83.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/eeprom_emul.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/EmulatedEeprom.cpp
