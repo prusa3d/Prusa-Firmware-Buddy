@@ -60,10 +60,14 @@ void CSelftestPart_Axis::phaseMove(int8_t dir) {
 
     // Disable stealthChop if used. Enable diag1 pin on driver.
 #if ENABLED(SENSORLESS_HOMING)
+    #if HOMING_Z_WITH_PROBE && 0
     const bool is_home_dir = (home_dir(AxisEnum(config.axis)) > 0) == (dir > 0);
     const bool moving_probe_toward_bed = (is_home_dir && (Z_AXIS == config.axis));
+    #endif
     bool enable_sensorless_homing =
-    #if 1
+    #if HOMING_Z_WITH_PROBE && 0
+        !moving_probe_toward_bed
+    #else
         true
     #endif
         ;
