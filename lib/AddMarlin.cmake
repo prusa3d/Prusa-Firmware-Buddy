@@ -8,13 +8,11 @@ add_library(
   Marlin/Marlin/src/core/utility.cpp
   Marlin/Marlin/src/feature/babystep.cpp
   Marlin/Marlin/src/feature/backlash.cpp
-  Marlin/Marlin/src/feature/bedlevel/abl/abl.cpp
   Marlin/Marlin/src/feature/bedlevel/bedlevel.cpp
   Marlin/Marlin/src/feature/bedlevel/mbl/mesh_bed_leveling.cpp
   Marlin/Marlin/src/feature/bedlevel/ubl/ubl.cpp
   Marlin/Marlin/src/feature/bedlevel/ubl/ubl_G29.cpp
   Marlin/Marlin/src/feature/bedlevel/ubl/ubl_motion.cpp
-  Marlin/Marlin/src/feature/binary_protocol.cpp
   Marlin/Marlin/src/feature/host_actions.cpp
   Marlin/Marlin/src/feature/joystick.cpp
   Marlin/Marlin/src/feature/power.cpp
