@@ -23,7 +23,6 @@ add_library(
   Marlin/Marlin/src/feature/runout.cpp
   Marlin/Marlin/src/feature/spindle_laser.cpp
   Marlin/Marlin/src/feature/tmc_util.cpp
-  Marlin/Marlin/src/feature/touch/xpt2046.cpp
   Marlin/Marlin/src/gcode/bedlevel/abl/G29.cpp
   Marlin/Marlin/src/gcode/bedlevel/abl/M421.cpp
   Marlin/Marlin/src/gcode/bedlevel/G26.cpp
