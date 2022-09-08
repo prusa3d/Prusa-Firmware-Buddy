@@ -1711,7 +1711,7 @@
 
     #endif
 
-    #define AXIS_MEASURE_STALL_GUARD 1
+    #define AXIS_MEASURE_STALL_GUARD 130
     #define AXIS_MEASURE_CRASH_PERIOD 210
 
     /**

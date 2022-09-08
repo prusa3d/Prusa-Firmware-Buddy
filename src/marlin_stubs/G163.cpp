@@ -6,21 +6,15 @@
 #include "client_response.hpp"
 #include "marlin_server.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
+#include "selftest_axis.h"
 
 #if ENABLED(CRASH_RECOVERY)
 static bool axis_length_ok(AxisEnum axis, float length) {
-    // const int axis_len[2] = { X_MAX_POS - X_MIN_POS, Y_MAX_POS - Y_MIN_POS };
-    // const int gap = axis == X_AXIS ? X_END_GAP : Y_END_GAP;
-
     switch (axis) {
     case X_AXIS:
-        // FIXME:
-        return false;
+        return ((length <= selftest::Config_XAxis.length_max) && (length >= selftest::Config_XAxis.length_min));
     case Y_AXIS:
-        // FIXME:
-        return false;
-        // return axis_len[axis] < marlin_server.axis_length.pos[axis]
-        //     && marlin_server.axis_length.pos[axis] <= axis_len[axis] + gap;
+        return ((length <= selftest::Config_YAxis.length_max) && (length >= selftest::Config_YAxis.length_min));
     default:;
     }
     return false;
