@@ -16,7 +16,6 @@ add_library(
   Marlin/Marlin/src/feature/host_actions.cpp
   Marlin/Marlin/src/feature/joystick.cpp
   Marlin/Marlin/src/feature/power.cpp
-  Marlin/Marlin/src/feature/power_loss_recovery.cpp
   Marlin/Marlin/src/feature/print_area.cpp
   Marlin/Marlin/src/feature/prusa/crash_recovery.cpp
   Marlin/Marlin/src/feature/prusa/homing.cpp
