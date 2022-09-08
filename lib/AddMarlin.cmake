@@ -123,7 +123,7 @@ add_library(
   Marlin/Marlin/src/HAL/STM32/HAL.cpp
   Marlin/Marlin/src/HAL/STM32/Servo.cpp
   Marlin/Marlin/src/HAL/STM32/timers.cpp
-  Marlin/Marlin/src/lcd/extensible_ui/ui_api.cpp
+  Marlin/Marlin/src/lcd/extui/ui_api.cpp
   Marlin/Marlin/src/lcd/ultralcd.cpp
   Marlin/Marlin/src/libs/buzzer.cpp
   Marlin/Marlin/src/libs/crc16.cpp
