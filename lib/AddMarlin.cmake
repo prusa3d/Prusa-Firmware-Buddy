@@ -92,17 +92,17 @@ add_library(
   Marlin/Marlin/src/gcode/probe/M401_M402.cpp
   Marlin/Marlin/src/gcode/probe/M851.cpp
   Marlin/Marlin/src/gcode/queue.cpp
-  Marlin/Marlin/src/gcode/sdcard/M20.cpp
-  Marlin/Marlin/src/gcode/sdcard/M21_M22.cpp
-  Marlin/Marlin/src/gcode/sdcard/M23.cpp
-  Marlin/Marlin/src/gcode/sdcard/M24_M25.cpp
-  Marlin/Marlin/src/gcode/sdcard/M26.cpp
-  Marlin/Marlin/src/gcode/sdcard/M27.cpp
-  Marlin/Marlin/src/gcode/sdcard/M28_M29.cpp
-  Marlin/Marlin/src/gcode/sdcard/M30.cpp
-  Marlin/Marlin/src/gcode/sdcard/M32.cpp
-  Marlin/Marlin/src/gcode/sdcard/M524.cpp
-  Marlin/Marlin/src/gcode/sdcard/M928.cpp
+  Marlin/Marlin/src/gcode/sd/M20.cpp
+  Marlin/Marlin/src/gcode/sd/M21_M22.cpp
+  Marlin/Marlin/src/gcode/sd/M23.cpp
+  Marlin/Marlin/src/gcode/sd/M24_M25.cpp
+  Marlin/Marlin/src/gcode/sd/M26.cpp
+  Marlin/Marlin/src/gcode/sd/M27.cpp
+  Marlin/Marlin/src/gcode/sd/M28_M29.cpp
+  Marlin/Marlin/src/gcode/sd/M30.cpp
+  Marlin/Marlin/src/gcode/sd/M32.cpp
+  Marlin/Marlin/src/gcode/sd/M524.cpp
+  Marlin/Marlin/src/gcode/sd/M928.cpp
   Marlin/Marlin/src/gcode/stats/M31.cpp
   Marlin/Marlin/src/gcode/stats/M75-M78.cpp
   Marlin/Marlin/src/gcode/temperature/M104_M109.cpp
