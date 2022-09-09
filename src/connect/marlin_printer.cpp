@@ -356,6 +356,10 @@ bool MarlinPrinter::start_print(const char *path) {
     return true;
 }
 
+void MarlinPrinter::submit_gcode(const char *code) {
+    marlin_gcode(code);
+}
+
 bool MarlinPrinter::set_ready(bool ready) {
     if (ready && marlin_is_printing()) {
         return false;

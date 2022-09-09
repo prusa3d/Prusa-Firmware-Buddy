@@ -207,8 +207,9 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
             ProcessingOtherCommand {},
         };
     }
-    // XXX Use allocated string? Figure out a way to consume it in parts?
-    // XXX In case of gcode, put it into the borrowed buffer.
+    // TODO We want to make this buffer smaller, eventually. In case of custom
+    // gcode, we can load directly into the shared buffer. In case of JSON, we
+    // want to implement stream/iterative parsing.
     uint8_t recv_buffer[MAX_RESP_SIZE];
     size_t pos = 0;
 
@@ -230,7 +231,7 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
     // the connection and all that.
     switch (resp.content_type) {
     case ContentType::TextGcode:
-        return Command::gcode_command(command_id, body);
+        return Command::gcode_command(command_id, body, move(*buff));
     case ContentType::ApplicationJson:
         return Command::parse_json_command(command_id, body, move(*buff));
     default:;

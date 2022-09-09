@@ -81,10 +81,11 @@ public:
 constexpr size_t BORROW_BUF_SIZE = std::max(512, FILE_PATH_BUFFER_LEN + FILE_NAME_BUFFER_LEN);
 
 using SharedBuffer = Buffer<BORROW_BUF_SIZE>;
+using SharedBorrow = std::shared_ptr<SharedBuffer::Borrow>;
 
 class SharedPath {
 private:
-    std::shared_ptr<SharedBuffer::Borrow> borrow;
+    SharedBorrow borrow;
 
 public:
     SharedPath() = default;
