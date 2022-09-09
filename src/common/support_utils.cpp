@@ -132,28 +132,37 @@ void error_url_short(char *str, const uint32_t str_size, const int error_code) {
 }
 
 bool appendix_exist() {
+    // With recent bootloader this can be done the easy way
+#ifdef BOOTLOADER
     const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
-
     if (bootloader->major >= 1 && bootloader->minor >= 1) {
         return !(ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK);
-    } else {
-        GPIO_PinState pinState = GPIO_PIN_SET;
-#ifndef _DEBUG //Secure backward compatibility
-        GPIO_InitTypeDef GPIO_InitStruct = { 0 };
-        GPIO_InitStruct.Pin = GPIO_PIN_13;
-        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-
-        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-        HAL_Delay(50);
-        pinState = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_13);
-#else //In debug version the appendix status has to be tested by bootloader version greater or equal than 1.1
-        pinState = ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK
-            ? GPIO_PIN_SET
-            : GPIO_PIN_RESET;
-#endif
-        return pinState == GPIO_PIN_RESET;
     }
+#endif
+
+    // If debugging session is active there is no appendix
+    if (DBGMCU->CR) {
+        return false;
+    }
+
+    // Check appendix state (temporary breaking the debugging)
+    GPIO_InitTypeDef init = {
+        .Pin = GPIO_PIN_13,
+        .Mode = GPIO_MODE_INPUT,
+        .Pull = GPIO_NOPULL,
+        .Speed = GPIO_SPEED_FREQ_LOW,
+        .Alternate = 0,
+    };
+    HAL_GPIO_Init(GPIOA, &init);
+    HAL_Delay(50);
+    GPIO_PinState pin_state = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_13);
+
+    // Reinitialize to allow attaching debugger later
+    init.Alternate = GPIO_AF0_SWJ;
+    init.Mode = GPIO_MODE_AF_PP;
+    HAL_GPIO_Init(GPIOA, &init);
+
+    return pin_state == GPIO_PIN_RESET;
 }
 
 bool signature_exist() {
