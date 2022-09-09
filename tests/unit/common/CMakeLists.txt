@@ -72,6 +72,12 @@ add_executable(median_tests ${CMAKE_CURRENT_SOURCE_DIR}/median_test.cpp)
 target_include_directories(median_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
 add_executable(
+  url_decode_tests ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
+                   ${CMAKE_CURRENT_SOURCE_DIR}/url_decode_tests.cpp
+  )
+target_include_directories(url_decode_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+
+add_executable(
   json_tests
   ${CMAKE_SOURCE_DIR}/src/common/jsmn.c
   ${CMAKE_CURRENT_SOURCE_DIR}/search_json_test.cpp
@@ -95,4 +101,5 @@ add_catch_test(weighted_modus_tests)
 add_catch_test(algorithm_range_tests)
 add_catch_test(algorithm_scale_tests)
 add_catch_test(median_tests)
+add_catch_test(url_decode_tests)
 add_catch_test(json_tests)

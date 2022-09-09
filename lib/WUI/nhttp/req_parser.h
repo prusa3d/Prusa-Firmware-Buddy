@@ -43,7 +43,7 @@ namespace nhttp::handler {
  * available as simple variables, but there are also few methods to interpret
  * the parsed values.
  */
-class RequestParser final : public automata::Execution {
+class RequestParser : public automata::Execution {
 private:
     const Server *server;
     const char *api_key = nullptr;
@@ -95,11 +95,15 @@ public:
 private:
     std::variant<std::monostate, uint8_t, bool> auth_status;
 
+    uint8_t boundary_size = 0;
+
+protected:
+    // Note: protected for testing purposes
+
     // TODO: Eventually get rid of stringy URLs and replace by enums/tokens as much as possible
     // Note: The same buffer is also reused for boundary, that lives just behind it.
     http::Url url = {};
     uint8_t url_size = 0;
-    uint8_t boundary_size = 0;
 
 public:
     /*************   This part makes it a valid Handler and is used by the Server ***********/
