@@ -19,6 +19,8 @@
 
 #pragma once
 
+#define ARDUINO_ARCH_STM32
+
 //#include "variant.h"
 //#include "spi_com.h"
 //#include "wiring_constants.h"
