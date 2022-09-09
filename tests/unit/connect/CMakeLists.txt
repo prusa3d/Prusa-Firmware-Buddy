@@ -44,11 +44,15 @@ add_dependencies(nhttp_tests generate-httpc-automata-tests)
 
 # Planner tests are separate. They mock time and don't want to poison that for others.
 add_executable(
-  connect_planner_tests ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp time_mock.cpp planner.cpp
+  connect_planner_tests
+  ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
+  time_mock.cpp planner.cpp
   )
 target_include_directories(
-  connect_planner_tests PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/connect
-                                ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src
+  connect_planner_tests
+  PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/connect
+          ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/lib/jsmn
   )
 add_definitions(-DUNITTESTS)
 

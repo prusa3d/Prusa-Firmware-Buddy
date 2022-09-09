@@ -30,6 +30,7 @@ enum class EventType {
     Rejected,
     Accepted,
     Finished,
+    Failed,
 };
 
 const char *to_str(EventType event);
@@ -63,6 +64,18 @@ enum class ActionResult {
 /// similar after something bad happens.
 class Planner {
 private:
+    struct BackgroundGcode {
+        // Stored without \0 at the back.
+        SharedBorrow data;
+        size_t size;
+        size_t position;
+    };
+
+    struct BackgroundCommand {
+        CommandId id;
+        std::variant<BackgroundGcode> command;
+    };
+
     Printer &printer;
 
     /// The next (or current) event we want to send out.
@@ -83,9 +96,13 @@ private:
     /// want to keep the value in case the retry also fails.
     bool perform_cooldown;
 
+    /// Some command that is accepted but still being worked on.
+    std::optional<BackgroundCommand> background_command;
+
     // Handlers for specific commands.
     void command(const Command &, const BrokenCommand &);
     void command(const Command &, const UnknownCommand &);
+    void command(const Command &, const GcodeTooLarge &);
     void command(const Command &, const ProcessingOtherCommand &);
     void command(const Command &, const Gcode &);
     void command(const Command &, const SendInfo &);
@@ -97,6 +114,25 @@ private:
     void command(const Command &, const StartPrint &);
     void command(const Command &, const CancelPrinterReady &);
     void command(const Command &, const SetPrinterReady &);
+
+    // Try to perform some background work, if any is available.
+    //
+    // Will run at most for time_limit and return the time it actually took
+    // (yes, it will never be larger than that, you can rely on it).
+    //
+    // Note that due to technical reasons, it can take a bit longer, but the
+    // return value is still capped at the time_limit value to avoid underflows
+    // when handling.
+    Duration background_processing(Duration time_limit);
+
+    enum class BackgroundResult {
+        Success,
+        Failure,
+        More,
+        Later,
+    };
+
+    BackgroundResult background_task(BackgroundGcode &);
 
 public:
     Planner(Printer &printer)

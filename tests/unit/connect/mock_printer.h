@@ -4,6 +4,8 @@
 
 #include <cstring>
 #include <optional>
+#include <vector>
+#include <string>
 
 namespace connect_client {
 
@@ -29,6 +31,8 @@ public:
         strcpy(info.serial_number, "FAKE-1234");
     }
 
+    std::vector<std::string> submitted_gcodes;
+
     virtual void renew() override {}
     virtual Config load_config() override {
         return Config();
@@ -52,6 +56,10 @@ public:
 
     virtual bool start_print(const char *) override {
         return false;
+    }
+
+    virtual void submit_gcode(const char *gcode) override {
+        submitted_gcodes.push_back(gcode);
     }
 
     virtual bool set_ready(bool) override {

@@ -8,6 +8,7 @@
 using json::Event;
 using json::Type;
 using std::get_if;
+using std::make_shared;
 using std::min;
 using std::move;
 using std::nullopt;
@@ -31,13 +32,21 @@ namespace {
 
 }
 
-Command Command::gcode_command(CommandId id, const string_view &body) {
-    // TODO: We need to stuff the body somewhere. And we need to have an owned
-    // variant, since the command wil live longer than the caller. Some kind of
-    // std::string? But that's dynamic allocation :-(.
+Command Command::gcode_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
+    if (body.size() > buff.size()) {
+        return Command {
+            id,
+            GcodeTooLarge {},
+        };
+    }
+
+    memcpy(buff.data(), body.data(), body.size());
     return Command {
         id,
-        Gcode {},
+        Gcode {
+            make_shared<SharedBuffer::Borrow>(move(buff)),
+            body.size(),
+        },
     };
 }
 

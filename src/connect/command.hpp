@@ -13,8 +13,11 @@ using CommandId = uint32_t;
 struct UnknownCommand {};
 struct BrokenCommand {};
 struct ProcessingOtherCommand {};
+struct GcodeTooLarge {};
 struct Gcode {
-    // TODO: Something goes in here.
+    // Stored without the \0 at the end
+    SharedBorrow gcode;
+    size_t size;
 };
 struct SendInfo {};
 struct SendJobInfo {
@@ -32,13 +35,13 @@ struct StartPrint {
 struct SetPrinterReady {};
 struct CancelPrinterReady {};
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, ProcessingOtherCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady>;
 
 struct Command {
     CommandId id;
     CommandData command_data;
     // Note: Might be a "Broken" command or something like that. In both cases.
-    static Command gcode_command(CommandId id, const std::string_view &body);
+    static Command gcode_command(CommandId id, const std::string_view &body, SharedBuffer::Borrow buff);
     // The buffer is either used and embedded inside the returned command or destroyed, releasing the ownership.
     static Command parse_json_command(CommandId id, const std::string_view &body, SharedBuffer::Borrow buff);
 };

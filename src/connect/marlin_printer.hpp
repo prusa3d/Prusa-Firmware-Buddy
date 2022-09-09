@@ -31,6 +31,7 @@ public:
     virtual NetCreds net_creds() const override;
     virtual bool job_control(JobControl) override;
     virtual bool start_print(const char *path) override;
+    virtual void submit_gcode(const char *code) override;
     virtual bool set_ready(bool ready) override;
 
     static bool load_cfg_from_ini();
