@@ -3,7 +3,7 @@
 #include <cstring>
 #include <catch2/catch.hpp>
 
-using namespace connect;
+using namespace connect_client;
 using std::get;
 using std::holds_alternative;
 using std::string_view;
@@ -71,4 +71,12 @@ TEST_CASE("Resume print") {
 
 TEST_CASE("Stop print") {
     command_test<StopPrint>("{\"command\": \"STOP_PRINT\", \"args\": [], \"kwargs\": {}}");
+}
+
+TEST_CASE("Start print") {
+    REQUIRE(strcmp(command_test<StartPrint>("{\"command\": \"START_PRINT\", \"args\": [\"/usb/x.gcode\"], \"kwargs\": {\"path\": \"/usb/x.gcode\"}}").path.path(), "/usb/x.gcode") == 0);
+}
+
+TEST_CASE("Start print - missing args") {
+    command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"args\": [], \"kwargs\": {}}");
 }

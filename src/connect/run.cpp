@@ -2,7 +2,7 @@
 #include "marlin_printer.hpp"
 #include "connect.hpp"
 
-namespace connect {
+namespace connect_client {
 
 void run() {
     SharedBuffer buffer;

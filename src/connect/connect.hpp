@@ -5,7 +5,7 @@
 #include "planner.hpp"
 #include "printer.hpp"
 
-namespace connect {
+namespace connect_client {
 
 enum class OnlineStatus {
     Unknown,

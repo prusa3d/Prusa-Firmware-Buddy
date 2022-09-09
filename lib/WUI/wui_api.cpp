@@ -343,6 +343,7 @@ uint32_t wui_gcodes_uploaded() {
 }
 
 bool wui_start_print(char *filename, bool autostart_if_able) {
+    marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
     const bool printer_can_print = !marlin_is_printing();
     const bool can_start_print = printer_can_print && autostart_if_able;
 
@@ -364,7 +365,7 @@ bool wui_uploaded_gcode(char *filename, bool start_print) {
 }
 
 bool wui_is_file_being_printed(const char *filename) {
-    marlin_client_loop();
+    marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
     if (!marlin_is_printing()) {
         return false;
     }

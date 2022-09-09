@@ -6,7 +6,7 @@
 #include <string_view>
 #include <variant>
 
-namespace connect {
+namespace connect_client {
 
 using CommandId = uint32_t;
 
@@ -26,8 +26,11 @@ struct SendFileInfo {
 struct PausePrint {};
 struct ResumePrint {};
 struct StopPrint {};
+struct StartPrint {
+    SharedPath path;
+};
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, ProcessingOtherCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, PausePrint, ResumePrint, StopPrint>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, ProcessingOtherCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, PausePrint, ResumePrint, StopPrint, StartPrint>;
 
 struct Command {
     CommandId id;

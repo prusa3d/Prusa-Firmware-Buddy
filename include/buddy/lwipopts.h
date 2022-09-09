@@ -69,7 +69,7 @@ extern "C" {
 #define LWIP_SINGLE_NETIF            0
 #define LWIP_NETIF_HOSTNAME          1
 #define LWIP_HTTPD_SUPPORT_POST      0
-#define LWIP_COMPAT_SOCKETS          1
+#define LWIP_COMPAT_SOCKETS          2
 #define LWIP_ALTCP                   0
 #define LWIP_HTTPD_DYNAMIC_FILE_READ 0
 #define LWIP_TIMERS                  1

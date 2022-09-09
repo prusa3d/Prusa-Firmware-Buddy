@@ -10,7 +10,7 @@
 using std::nullopt;
 using std::optional;
 using std::string_view;
-using namespace connect;
+using namespace connect_client;
 using namespace json;
 
 namespace {

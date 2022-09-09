@@ -3,7 +3,7 @@
 #include <automata/core.h>
 #include <http/types.h>
 
-namespace connect::parser {
+namespace connect_client::parser {
 
 class ResponseParser final : public automata::Execution {
 private:

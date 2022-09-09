@@ -7,7 +7,7 @@
 using std::make_tuple;
 using std::tuple;
 
-namespace connect {
+namespace connect_client {
 
 uint32_t Printer::Config::crc() const {
     uint32_t crc = 0;

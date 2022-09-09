@@ -5,7 +5,7 @@
 #include <tuple>
 #include <optional>
 
-namespace connect {
+namespace connect_client {
 
 class Printer {
 public:
@@ -119,6 +119,7 @@ public:
     virtual std::optional<NetInfo> net_info(Iface iface) const = 0;
     virtual NetCreds net_creds() const = 0;
     virtual bool job_control(JobControl) = 0;
+    virtual bool start_print(const char *path) = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load.
     std::tuple<Config, bool> config();

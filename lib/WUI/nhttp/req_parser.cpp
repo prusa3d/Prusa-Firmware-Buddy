@@ -46,7 +46,8 @@ RequestParser::RequestParser(const Server &server)
     , version_minor(0)
     , connection(Connection::Unknown)
     , accepts_json(false)
-    , print_after_upload(false) {}
+    , print_after_upload(false)
+    , overwrite_file(false) {}
 
 ExecutionControl RequestParser::event(Event event) {
     switch (event.leaving_state) {
@@ -146,6 +147,9 @@ ExecutionControl RequestParser::event(Event event) {
     case Names::AcceptJson:
         accepts_json = true;
         break;
+    case Names::OverwriteFile:
+        overwrite_file = true;
+        return ExecutionControl::Continue;
     case Names::Body:
         done = true;
         // Yes, really don't stop. Eath the \n too!

@@ -38,7 +38,7 @@ public:
 
 }
 
-namespace connect {
+namespace connect_client {
 
 socket_con::socket_con() {
     fd = -1;

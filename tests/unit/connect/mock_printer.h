@@ -5,7 +5,7 @@
 #include <cstring>
 #include <optional>
 
-namespace connect {
+namespace connect_client {
 
 constexpr Printer::Params params_idle() {
     Printer::Params params {};
@@ -47,6 +47,10 @@ public:
     }
 
     virtual bool job_control(JobControl) override {
+        return false;
+    }
+
+    virtual bool start_print(const char *) override {
         return false;
     }
 };

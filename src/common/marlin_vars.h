@@ -54,6 +54,7 @@ typedef enum {
 #define MARLIN_VAR_MSK2(id1, id2)                                (MARLIN_VAR_MSK(id1) | MARLIN_VAR_MSK(id2))
 #define MARLIN_VAR_MSK3(id1, id2, id3)                           (MARLIN_VAR_MSK2(id1, id2) | MARLIN_VAR_MSK(id3))
 #define MARLIN_VAR_MSK4(id1, id2, id3, id4)                      (MARLIN_VAR_MSK2(id1, id2) | MARLIN_VAR_MSK2(id3, id4))
+#define MARLIN_VAR_MSK5(id1, id2, id3, id4, id5)                 (MARLIN_VAR_MSK4(id1, id2, id3, id4) | MARLIN_VAR_MSK(id5))
 #define MARLIN_VAR_MSK6(id1, id2, id3, id4, id5, id6)            (MARLIN_VAR_MSK3(id1, id2, id3) | MARLIN_VAR_MSK3(id4, id5, id6))
 #define MARLIN_VAR_MSK7(id1, id2, id3, id4, id5, id6, id7)       (MARLIN_VAR_MSK4(id1, id2, id3, id4) | MARLIN_VAR_MSK3(id5, id6, id7))
 #define MARLIN_VAR_MSK12(id1, id2, id3, id4, id5, id6, ...)      (MARLIN_VAR_MSK6(id1, id2, id3, id4, id5, id6) | MARLIN_VAR_MSK6(__VA_ARGS__))

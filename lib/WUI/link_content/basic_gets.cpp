@@ -29,7 +29,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     bool ready = true;
     bool busy = false;
 
-    marlin_client_loop();
+    marlin_update_vars(MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK4(MARLIN_VAR_PRNSPEED, MARLIN_VAR_POS_Z, MARLIN_VAR_PRNSPEED, MARLIN_VAR_PRNSTATE));
 
     switch (vars->print_state) {
     case mpsCrashRecovery_Begin:
@@ -165,7 +165,7 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
     marlin_vars_t *vars = marlin_vars();
-    marlin_client_loop();
+    marlin_update_vars(MARLIN_VAR_MSK5(MARLIN_VAR_PRNSTATE, MARLIN_VAR_DURATION, MARLIN_VAR_TIMTOEND, MARLIN_VAR_FILEPATH, MARLIN_VAR_SD_PDONE));
 
     bool has_job = false;
     const char *state = "Unknown";
@@ -274,9 +274,14 @@ JsonResult get_storage(size_t resume_point, JsonOutput &output) {
     // clang-format off
     JSON_START;
         JSON_OBJ_START
-            JSON_FIELD_STR("path", "/usb") JSON_COMMA;
-            JSON_FIELD_STR("type", "USB") JSON_COMMA;
-            JSON_FIELD_BOOL("available", usb_available());
+            JSON_FIELD_ARR("storage_list");
+                JSON_OBJ_START
+                    JSON_FIELD_STR("path", "/usb") JSON_COMMA;
+                    JSON_FIELD_STR("type", "USB") JSON_COMMA;
+                    JSON_FIELD_BOOL("read_only", false) JSON_COMMA;
+                    JSON_FIELD_BOOL("available", usb_available());
+                JSON_OBJ_END;
+            JSON_ARR_END;
         JSON_OBJ_END;
     JSON_END;
     // clang-format on

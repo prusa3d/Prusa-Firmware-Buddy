@@ -8,7 +8,7 @@
 #include <optional>
 #include <variant>
 
-namespace connect {
+namespace connect_client {
 
 // Just make the code a bit more readable by making this distinction.
 // Unfortunately, not checked at compile time.
@@ -94,6 +94,7 @@ private:
     void command(const Command &, const PausePrint &);
     void command(const Command &, const ResumePrint &);
     void command(const Command &, const StopPrint &);
+    void command(const Command &, const StartPrint &);
 
 public:
     Planner(Printer &printer)

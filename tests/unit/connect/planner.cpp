@@ -5,7 +5,7 @@
 
 #include <catch2/catch.hpp>
 
-using namespace connect;
+using namespace connect_client;
 using std::get;
 using std::get_if;
 using std::holds_alternative;
