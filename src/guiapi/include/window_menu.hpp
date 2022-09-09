@@ -20,6 +20,7 @@
 class WindowMenu : public AddSuperWindow<IWindowMenu> {
     uint8_t index_of_focused; /// container index of focused item
     uint8_t index_of_first;   /// container index of first item on screen
+    uint8_t max_items_on_screen;
     IWinMenuContainer *pContainer;
 
     std::optional<Rect16> getItemRC(size_t position_on_screen) const;
@@ -34,16 +35,9 @@ class WindowMenu : public AddSuperWindow<IWindowMenu> {
     /// Moves menu so the cursor is on the screen
     /// \returns true if menu was moved
     bool updateTopIndex_IsRedrawNeeded();
-    /// \returns index in visible item list (excluding hidden) according to
-    /// index from the complete item list (including hidden)
-    int visibleIndex(const int real_index);
-    /// \returns index of the item (including hidden) defined by
-    /// index in visible item list (excluding hidden)
-    int realIndex(const int visible_index);
-    ///Prints scrollbar
-    ///\param available_count - Number of all items that haven't got is_hidden enabled
-    ///\param visible_count - Number of all currently visible items
-    void printScrollBar(size_t available_count, uint16_t visible_count);
+    /// Moves menu so the cursor is on the screen and invalidates if moved
+    /// \returns true if menu was moved
+    bool updateTopIndex();
     /// Plays proper sound according to item/value changed
     /// \returns input
     bool playEncoderSound(bool changed);
@@ -53,12 +47,11 @@ class WindowMenu : public AddSuperWindow<IWindowMenu> {
 
     struct Node {
         IWindowMenuItem *item;
-        size_t slot_count;
         size_t current_slot;
-        size_t real_index;
+        size_t index;
 
         bool HasValue() { return item; }
-        static constexpr Node Empty() { return { nullptr, 0, 0, 0 }; }
+        static constexpr Node Empty() { return { nullptr, 0, 0 }; }
     };
 
     Node findFirst();
@@ -74,10 +67,12 @@ public:
     void Increment(int dif);
     void Decrement(int dif) { Increment(-dif); }
     uint8_t GetIndex() const { return index_of_focused; }
+    /// \returns visible index of item
+    std::optional<size_t> GetIndex(IWindowMenuItem &item) const;
     /// \returns number of all menu items including hidden ones
-    uint8_t GetCount() const;
-    IWindowMenuItem *GetItemByRawIndex(uint8_t index) const; // nth item in container
-    IWindowMenuItem *GetActiveItem();                        // focused item
+    uint8_t GetCount() const;                      // count of all visible items in container
+    IWindowMenuItem *GetItem(uint8_t index) const; // nth visible item in container
+    IWindowMenuItem *GetActiveItem();              // focused item
 
     void InitState(screen_init_variant::menu_t var);
     screen_init_variant::menu_t GetCurrentState() const;

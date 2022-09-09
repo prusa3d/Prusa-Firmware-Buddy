@@ -8,7 +8,7 @@
 //I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N> .. need to add iterators
 class IWinMenuContainer {
 public:
-    virtual size_t GetCount() = 0;
+    virtual size_t GetRawCount() = 0;
     virtual IWindowMenuItem *GetItemByRawIndex(size_t pos) = 0;
     virtual size_t GetRawIndex(IWindowMenuItem &item) = 0; // returns count if item is not member of container
 
@@ -24,7 +24,7 @@ public:
     };
 
     Node FindFirstVisible() {
-        for (size_t i = 0; i < GetCount(); ++i) {
+        for (size_t i = 0; i < GetRawCount(); ++i) {
             IWindowMenuItem *item = GetItemByRawIndex(i);
             if (!item)
                 return Node::Empty();
@@ -40,7 +40,7 @@ public:
         if (!prev.HasValue())
             return Node::Empty();
 
-        for (size_t i = prev.raw_index + 1; i < GetCount(); ++i) {
+        for (size_t i = prev.raw_index + 1; i < GetRawCount(); ++i) {
             IWindowMenuItem *item = GetItemByRawIndex(i);
             if (!item)
                 return Node::Empty();
@@ -52,7 +52,7 @@ public:
         return Node::Empty();
     }
 
-    virtual IWindowMenuItem *GetItemByVisibleIndex(size_t pos) {
+    IWindowMenuItem *GetItemByVisibleIndex(size_t pos) {
         for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
             if (i.visible_index == pos)
                 return i.item; // found it
@@ -60,12 +60,20 @@ public:
         return nullptr;
     }
 
-    virtual std::optional<size_t> GetVisibleIndex(IWindowMenuItem &item) {
+    std::optional<size_t> GetVisibleIndex(IWindowMenuItem &item) {
         for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
             if (i.item == &item)
                 return i.visible_index; // found it
         }
         return std::nullopt;
+    }
+
+    size_t GetVisibleCount() {
+        size_t ret = 0;
+        for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
+            ret = i.visible_index + 1;
+        }
+        return ret;
     }
 
     IWindowMenuItem *GetVisibleItemWithOffset(IWindowMenuItem &item, int offset) {
