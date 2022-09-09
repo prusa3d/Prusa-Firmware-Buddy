@@ -550,7 +550,7 @@ public:
     ///          different value
     /// @param[in] padding Given padding structure that specify additional pixels
     template <class T>
-    void AddPadding(const padding_t<T>);
+    constexpr void AddPadding(const padding_t<T>);
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Subtract pixels from given direction
@@ -559,7 +559,7 @@ public:
     ///          returns different value
     /// @param[in] padding Given padding structure that specify deducted pixels
     template <class T>
-    void CutPadding(const padding_t<T>);
+    constexpr void CutPadding(const padding_t<T>);
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Static method determines the rectangle structure that represents
@@ -730,7 +730,7 @@ constexpr bool operator!=(Rect16 const &lhs, Rect16 const &rhs) {
 /// template definitions
 
 template <class T>
-void Rect16::AddPadding(const padding_t<T> p) {
+void constexpr Rect16::AddPadding(const padding_t<T> p) {
     top_left_.x = top_left_.x - p.left;
     top_left_.y = top_left_.y - p.top;
     width_ += (p.left + p.right);
@@ -738,7 +738,7 @@ void Rect16::AddPadding(const padding_t<T> p) {
 }
 
 template <class T>
-void Rect16::CutPadding(const padding_t<T> p) {
+void constexpr Rect16::CutPadding(const padding_t<T> p) {
     if ((p.left + p.right) >= width_
         || (p.top + p.bottom) >= height_) {
         width_ = height_ = 0;
