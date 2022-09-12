@@ -127,8 +127,8 @@ void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
     if (IsEnabled()) {
         roll.Deinit();
-        click(window_menu);
         InValidateExtension();
+        click(window_menu);
     }
 }
 

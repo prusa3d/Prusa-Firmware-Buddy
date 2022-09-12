@@ -22,6 +22,7 @@ target_sources(
           window_frame.cpp
           window_icon.cpp
           window_menu.cpp
+          window_menu_adv.cpp
           window_msgbox.cpp
           window_numb.cpp
           window_progress.cpp
