@@ -7,6 +7,7 @@
         "-fno-ms-compatibility",
         "-nostdinc",
         "-nostdinc++",
+        "-std=gnu++20",
         "-target",
         "thumbv7m-none-eabi",
         "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/../arm-none-eabi/include/newlib-nano",
