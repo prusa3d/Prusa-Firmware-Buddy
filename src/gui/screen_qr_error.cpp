@@ -4,6 +4,12 @@
 #include "ScreenHandler.hpp"
 #include "display.h"
 #include "errors.h"
+#include "sound.hpp"
+#include "dump.h"
+#include "sys.h"
+#include "eeprom.h"
+#include "support_utils.h"
+#include "version.h"
 
 screen_qr_error_data_t::screen_qr_error_data_t()
     : AddSuperWindow<screen_t>()
