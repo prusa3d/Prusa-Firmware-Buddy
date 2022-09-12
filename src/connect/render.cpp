@@ -2,6 +2,7 @@
 
 #include <segmented_json_macros.h>
 #include <eeprom.h>
+#include <lfn.h>
 
 #include <cassert>
 #include <cstring>
@@ -165,6 +166,7 @@ namespace {
                         JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                         JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
                     }
+                    JSON_FIELD_STR("path_sfn", params.job_path) JSON_COMMA;
                     JSON_FIELD_STR("path", params.job_path);
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
@@ -177,6 +179,11 @@ namespace {
                     // dont list JSON_COMMA here and don't use
                     // JSON_FIELD_CHUNK).
                     JSON_CHUNK(state.file_extra->preview_renderer);
+                    // Warning: the path->name() is there (hidden) for FileInfo
+                    // but _not_ for JobInfo. Do not just copy that into that
+                    // part!
+                    JSON_FIELD_STR("name", event.path->name()) JSON_COMMA;
+                    JSON_FIELD_STR("path_sfn", event.path->path()) JSON_COMMA;
                     JSON_FIELD_STR("path", event.path->path()) JSON_COMMA;
                     JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                     JSON_FIELD_INT("m_timestamp", state.st.st_mtime);
@@ -282,7 +289,8 @@ RenderState::RenderState(const Printer &printer, const Action &action)
             break;
         case EventType::FileInfo: {
             assert(event->path.has_value());
-            path = event->path->path();
+            SharedPath spath = event->path.value();
+            path = spath.path();
 
             unique_file_ptr f(fopen(path, "r"));
             if (f.get() != nullptr) {
@@ -290,6 +298,13 @@ RenderState::RenderState(const Printer &printer, const Action &action)
             } else {
                 error = true;
             }
+            // We are being rude here a bit. While the event is const, we modify the shared buffer. Nevertheless:
+            // * The shared buffer is not shared into other threads, so nobody
+            //   is reading it at the same time as we are writing into it.
+            // * If this is ever called multiple times (it can be, if the same
+            //   event needs to be resent), it results into the same values
+            //   there.
+            get_LFN(spath.name(), FILE_NAME_BUFFER_LEN, spath.path());
             break;
         }
         default:;
