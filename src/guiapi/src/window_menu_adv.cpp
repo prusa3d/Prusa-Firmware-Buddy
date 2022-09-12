@@ -23,9 +23,21 @@ static constexpr Rect16 rc_arrow_down(Rect16 rc) {
     return ret;
 }
 
+static constexpr Rect16 rc_bar(Rect16 rc) {
+    Rect16 ret = rc_arrow_up(rc);
+    ret += Rect16::Top_t(GuiDefaults::MenuIcon_h);
+    ret += Rect16::Left_t(ret.Width() - GuiDefaults::MenuScrollbarWidth);
+    ret = GuiDefaults::MenuScrollbarWidth;
+    ret = Rect16::Height_t(rc.Height() - GuiDefaults::MenuIcon_h * 2);
+    return ret;
+}
+
 WindowMenuAdv::WindowMenuAdv(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : AddSuperWindow<window_frame_t>(parent, rect)
-    , menu(parent, rc_menu(rect), pContainer, index) {}
+    , menu(parent, rc_menu(rect), pContainer, index)
+
+    , bar(this, rc_bar(rect), menu) // event loop will handle everything
+{}
 
 void WindowMenuAdv::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
