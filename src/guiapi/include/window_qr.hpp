@@ -12,12 +12,16 @@ public:
 
     static constexpr uint16_t MAX_LEN_4QR = 256;
     void SetQRHeader(uint16_t err_num);
+    const char *GetQRShortText();
+    const char *GetQRLongText();
 
 protected:
     /// Defines maximal size of QR code and buffers needed for generating. Keep it low.
     static constexpr uint8_t qr_version_max = 9;
 
+    // QR Header vars
     char text[MAX_LEN_4QR + 1];
+    uint16_t error_num;
     // 8 bit
     uint8_t border;        /// border size in pixels; same for all sides
     uint8_t px_per_module; /// width/height of module (single colored square)
