@@ -228,7 +228,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   if(MCU MATCHES "STM32F40")
     add_compile_options(-Og)
   else()
-    add_compile_options(-O0)
+    # O0 should be compiled with -fomit-frame-pointer to make sure there is enough registers for asm
+    # functions
+    add_compile_options(-O0 -fomit-frame-pointer)
   endif()
 else() # != "Debug"
   add_compile_options(-Os)
