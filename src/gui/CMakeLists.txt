@@ -51,7 +51,6 @@ target_sources(
           screen_sheet_rename.cpp
           screen_splash.cpp
           screen_sysinf.cpp
-          screen_temperror.cpp
           screen_watchdog.cpp
           ScreenFactory.cpp
           ScreenHandler.cpp
