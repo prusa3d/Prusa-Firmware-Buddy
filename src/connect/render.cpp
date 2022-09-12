@@ -58,6 +58,8 @@ namespace {
                 JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
+                JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
+                JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
                 if (!printing) {
                     // To avoid spamming the DB, connect doesn't want positions during printing
                     JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
@@ -66,8 +68,6 @@ namespace {
                 JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
                 if (printing) {
                     JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
-                    JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
-                    JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
                     JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
                     JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
                     JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
