@@ -32,6 +32,7 @@ window_qr_t::window_qr_t(window_t *parent, Rect16 rect, const char *txt)
 }
 
 void window_qr_t::SetQRHeader(uint16_t err_num) {
+    error_num = err_num;
     bool devhash_in_qr = eeprom_get_bool(EEVAR_DEVHASH_IN_QR);
     if (devhash_in_qr) {
         error_url_long(text, sizeof(text), err_num);
@@ -39,6 +40,16 @@ void window_qr_t::SetQRHeader(uint16_t err_num) {
         error_url_short(text, sizeof(text), err_num);
     }
     Invalidate();
+}
+
+const char *window_qr_t::GetQRLongText() {
+    error_url_long(text, sizeof(text), error_num);
+    return text;
+}
+
+const char *window_qr_t::GetQRShortText() {
+    error_url_short(text, sizeof(text), error_num);
+    return text;
 }
 
 void window_qr_t::unconditionalDraw() {
