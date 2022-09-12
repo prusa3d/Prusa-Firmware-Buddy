@@ -134,7 +134,7 @@ bool window_menu_t::updateTopIndex_IsRedrawNeeded() {
     if (index == top_index)
         return false;
 
-    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPaddingItems.top + GuiDefaults::MenuPaddingItems.bottom;
     const int visible_available = Height() / item_height;
 
     const int visible_index = visibleIndex(index);
@@ -222,7 +222,7 @@ void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender
 }
 
 void window_menu_t::printItem(const size_t visible_count, IWindowMenuItem &item, const int item_height) {
-    uint16_t rc_w = Width() - (GuiDefaults::MenuHasScrollbar ? GuiDefaults::MenuScrollbarWidth : 0);
+    uint16_t rc_w = Width() - (MENU_HAS_SCROLLBAR ? int(GuiDefaults::MenuScrollbarWidth) : 0);
     Rect16 rc = { Left(), int16_t(Top() + visible_count * (item_height + GuiDefaults::MenuItemDelimeterHeight)),
         rc_w, uint16_t(item_height) };
 
@@ -259,7 +259,7 @@ void window_menu_t::draw() {
 
     bool setChildrenInvalid = IsInvalid(); // if background is invalid all items must be redrawn
 
-    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPadding.top + GuiDefaults::MenuPadding.bottom;
+    const int item_height = GuiDefaults::FontMenuItems->h + GuiDefaults::MenuPaddingItems.top + GuiDefaults::MenuPaddingItems.bottom;
     const size_t visible_available = Height() / item_height;
     size_t visible_count = 0;
     size_t available_invisible_count = 0;
@@ -290,7 +290,7 @@ void window_menu_t::draw() {
         }
     }
 
-    if constexpr (GuiDefaults::MenuHasScrollbar) {
+    if constexpr (MENU_HAS_SCROLLBAR) {
         if (available_invisible_count) {
             printScrollBar(visible_count + available_invisible_count, visible_count);
         }
