@@ -49,7 +49,7 @@ class MI_SHEET_OFFSET : public WI_LAMBDA_LABEL_t {
 
             auto stringView = _(notCalibrated);
             render_text_align(extension_rect, stringView, InfoFont, color_back,
-                (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPadding, Align_t::RightCenter());
+                (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
         }
     }
 

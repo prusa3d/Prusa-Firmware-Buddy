@@ -16,7 +16,7 @@
 class IWiSpin : public AddSuper<WI_LABEL_t> {
 protected:
     static constexpr font_t *&Font = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::FontMenuSpecial : GuiDefaults::FontMenuItems;
-    static constexpr padding_ui8_t Padding = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPadding;
+    static constexpr padding_ui8_t Padding = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
     static constexpr size_t unit__half_space_padding = 6;
     static constexpr bool has_unit = GuiDefaults::MenuSpinHasUnits;
     static constexpr const char *const off_opt = N_("Off");
