@@ -13,6 +13,7 @@ using CommandId = uint32_t;
 struct UnknownCommand {};
 struct BrokenCommand {};
 struct ProcessingOtherCommand {};
+struct ProcessingThisCommand {};
 struct GcodeTooLarge {};
 struct Gcode {
     // Stored without the \0 at the end
@@ -35,7 +36,7 @@ struct StartPrint {
 struct SetPrinterReady {};
 struct CancelPrinterReady {};
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady>;
 
 struct Command {
     CommandId id;

@@ -267,6 +267,15 @@ void Planner::command(const Command &command, const CancelPrinterReady &) {
     planned_event = Event { EventType::Finished, command.id };
 }
 
+void Planner::command(const Command &command, const ProcessingThisCommand &) {
+    // Unreachable:
+    // * In case we are processing this command, this is handled one level up
+    //   (because we don't want to hit the safety checks there).
+    // * It can't happen to be generated when we are _not_ processing a
+    //   background command.
+    assert(0);
+}
+
 // FIXME: Handle the case when we are resent a command we are already
 // processing for a while. In that case, we want to re-Accept it. Nevertheless,
 // we may not be able to parse it again because the background command might be
@@ -279,8 +288,9 @@ void Planner::command(Command command) {
 
     if (background_command.has_value()) {
         // We are already processing a command.
+        // If it's this particular one, we just continue processing it and re-accept it.
         planned_event = Event {
-            EventType::Rejected,
+            holds_alternative<ProcessingThisCommand>(command.command_data) ? EventType::Accepted : EventType::Rejected,
             command.id,
         };
         return;
@@ -369,6 +379,14 @@ Duration Planner::background_processing(Duration limit) {
         return min(limit, since(start).value());
     } else {
         return 0;
+    }
+}
+
+optional<CommandId> Planner::background_command_id() const {
+    if (background_command.has_value()) {
+        return background_command->id;
+    } else {
+        return nullopt;
     }
 }
 

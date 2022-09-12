@@ -30,7 +30,6 @@ enum class RequestType {
 };
 
 class connect {
-
 private:
     class CachedFactory;
 

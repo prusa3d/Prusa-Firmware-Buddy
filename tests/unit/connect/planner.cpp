@@ -186,4 +186,52 @@ TEST_CASE("Submit gcode") {
     REQUIRE(test.printer.submitted_gcodes[2] == "M300");
 }
 
+TEST_CASE("Background command resubmit") {
+    Test test;
+
+    test.consume_telemetry();
+
+    SharedBuffer buffer;
+    auto borrow = buffer.borrow().value();
+    auto command = Command::gcode_command(1, "M100\n  M200 X10 Y20 \r\n\r\n \nM300", move(borrow));
+
+    test.planner.command(command);
+
+    // Not processed yet, it processes in the background.
+    REQUIRE(test.printer.submitted_gcodes.size() == 0);
+    // First, it accepts the command.
+    test.event_type(EventType::Accepted);
+    test.planner.action_done(ActionResult::Ok);
+
+    // We always send a telemetry after an event.
+    test.consume_telemetry();
+
+    // We try to send the same command again (server thinks we didn't get it or something)
+    test.planner.command(Command {
+        1,
+        ProcessingThisCommand {},
+    });
+
+    // The situation is about the same as before
+    REQUIRE(test.printer.submitted_gcodes.size() == 0);
+    // First, it accepts the command.
+    test.event_type(EventType::Accepted);
+    test.planner.action_done(ActionResult::Ok);
+
+    // We try to send the same command again (server thinks we didn't get it or something)
+    test.planner.command(Command {
+        2,
+        ProcessingOtherCommand {},
+    });
+
+    // The situation is about the same as before
+    REQUIRE(test.printer.submitted_gcodes.size() == 0);
+    // First, it accepts the command.
+    test.event_type(EventType::Rejected);
+    test.planner.action_done(ActionResult::Ok);
+
+    // But the background command is still being processed
+    REQUIRE(test.planner.background_command_id() == 1);
+}
+
 // TODO: Tests for unknown commands and such
