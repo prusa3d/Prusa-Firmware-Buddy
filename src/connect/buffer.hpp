@@ -7,6 +7,7 @@
 #include <optional>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <memory>
 
 namespace connect_client {
@@ -92,6 +93,25 @@ public:
     // Pointing into that borrow.
     const char *path() const {
         return reinterpret_cast<const char *>(borrow->data());
+    }
+    char *path() {
+        return reinterpret_cast<char *>(borrow->data());
+    }
+
+    // Stored just behind the path (maybe!)
+    char *name() {
+        char *path = this->path();
+        size_t plen = strlen(path);
+        // Enough space for the name too.
+        assert(plen < FILE_PATH_BUFFER_LEN);
+        return path + plen + 1;
+    }
+    const char *name() const {
+        const char *path = this->path();
+        size_t plen = strlen(path);
+        // Enough space for the name too.
+        assert(plen < FILE_PATH_BUFFER_LEN);
+        return path + plen + 1;
     }
 };
 

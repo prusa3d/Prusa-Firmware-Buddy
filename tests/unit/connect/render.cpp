@@ -107,7 +107,7 @@ TEST_CASE("Render") {
         // clang-format off
         expected = "{"
             "\"job_id\":42,"
-            "\"data\":{\"path\":\"/usb/box.gco\"},"
+            "\"data\":{\"path_sfn\":\"/usb/box.gco\",\"path\":\"/usb/box.gco\"},"
             "\"state\":\"PRINTING\","
             "\"command_id\":11,"
             "\"event\":\"JOB_INFO\""
