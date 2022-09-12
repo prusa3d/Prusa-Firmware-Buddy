@@ -6,7 +6,7 @@
 #include "display.h"
 #include "window_text.hpp"
 #include "window_numb.hpp"
-#include "window_menu.hpp"
+#include "window_menu_adv.hpp"
 #include "WinMenuContainer.hpp"
 #include "window_arrows.hpp"
 

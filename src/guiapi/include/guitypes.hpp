@@ -35,6 +35,7 @@ union event_conversion_union {
     void *pvoid;
     point_ui16_t point;
     Response response;
+    int i_val;
     struct header_t {
         layout_color layout;
     } header;

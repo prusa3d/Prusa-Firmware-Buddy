@@ -152,6 +152,6 @@ public:
 
     // some friend classes to be able to access / private hide/show methods
     // those methods must not be public, because their usage will break menu!!!
-    friend class window_menu_t;
+    friend class WindowMenu;
     friend class window_file_list_t;
 };
