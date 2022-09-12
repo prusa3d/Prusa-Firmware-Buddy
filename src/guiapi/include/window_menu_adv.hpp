@@ -6,9 +6,12 @@
 #pragma once
 
 #include "window_menu.hpp"
+#include "window_menu_bar.hpp"
+#include "guiconfig.h"
 
 class WindowMenuAdv : public AddSuperWindow<window_frame_t> {
     WindowMenu menu;
+    MenuScrollbar bar;
 
 public:
     WindowMenuAdv(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index = 0);
@@ -30,4 +33,8 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
+#if (MENU_HAS_SCROLLBAR)
 using window_menu_t = WindowMenuAdv;
+#else
+using window_menu_t = WindowMenu;
+#endif

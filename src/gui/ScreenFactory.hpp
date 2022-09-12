@@ -10,9 +10,9 @@ class ScreenFactory {
     // so i have to define minimal size like this
     //to calculate the size use this char (*size_msg_as_error)[sizeof( ScreenMenuSettings )] = 1;
 #if _DEBUG
-    static constexpr size_t min_union_size = 3620;
+    static constexpr size_t min_union_size = 3476;
 #else
-    static constexpr size_t min_union_size = 2840;
+    static constexpr size_t min_union_size = 2748;
 #endif
 
     ScreenFactory() = delete;
