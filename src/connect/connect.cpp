@@ -194,22 +194,14 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
         return Error::ResponseTooLong;
     }
 
-    // Note: missing command ID is already checked at upper level.
-    CommandId command_id = resp.command_id.value();
-
-    auto buff(buffer.borrow());
-    if (!buff.has_value()) {
-        // We can only hold the buffer already borrowed in case we are still
-        // processing some command. In that case we can't accept another one
-        // and we just reject it.
-        return Command {
-            command_id,
-            ProcessingOtherCommand {},
-        };
-    }
     // TODO We want to make this buffer smaller, eventually. In case of custom
     // gcode, we can load directly into the shared buffer. In case of JSON, we
     // want to implement stream/iterative parsing.
+
+    // Note: Reading the body early, before some checks. That's before we want
+    // to consume it even in case we don't need it, because we want to reuse
+    // the http connection and the next response would get confused by
+    // leftovers.
     uint8_t recv_buffer[MAX_RESP_SIZE];
     size_t pos = 0;
 
@@ -220,6 +212,27 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
         } else {
             return get<Error>(result);
         }
+    }
+
+    // Note: missing command ID is already checked at upper level.
+    CommandId command_id = resp.command_id.value();
+
+    if (command_id == planner.background_command_id()) {
+        return Command {
+            command_id,
+            ProcessingThisCommand {},
+        };
+    }
+
+    auto buff(buffer.borrow());
+    if (!buff.has_value()) {
+        // We can only hold the buffer already borrowed in case we are still
+        // processing some command. In that case we can't accept another one
+        // and we just reject it.
+        return Command {
+            command_id,
+            ProcessingOtherCommand {},
+        };
     }
 
     const string_view body(reinterpret_cast<const char *>(recv_buffer), pos);

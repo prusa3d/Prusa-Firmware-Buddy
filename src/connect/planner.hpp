@@ -103,6 +103,7 @@ private:
     void command(const Command &, const BrokenCommand &);
     void command(const Command &, const UnknownCommand &);
     void command(const Command &, const GcodeTooLarge &);
+    void command(const Command &, const ProcessingThisCommand &);
     void command(const Command &, const ProcessingOtherCommand &);
     void command(const Command &, const Gcode &);
     void command(const Command &, const SendInfo &);
@@ -160,6 +161,9 @@ public:
     Action next_action();
     // Note: *Not* for Sleep. Only for stuff that sends.
     void action_done(ActionResult action);
+
+    // ID of a command being executed in the background, if any.
+    std::optional<CommandId> background_command_id() const;
 };
 
 }
