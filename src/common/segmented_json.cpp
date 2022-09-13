@@ -73,6 +73,17 @@ JsonResult JsonOutput::output_field_arr(size_t resume_point, const char *name) {
     return output(resume_point, "\"%s\":[", name);
 }
 
+JsonResult JsonOutput::output_chunk(size_t resume_point, ChunkRenderer &renderer) {
+    const auto [result, written] = renderer.render(buffer, buffer_size);
+    assert(written <= buffer_size);
+    buffer += written;
+    buffer_size -= written;
+    if (result != JsonResult::Complete) {
+        this->resume_point = resume_point;
+    }
+    return result;
+}
+
 std::tuple<JsonResult, size_t> LowLevelJsonRenderer::render(uint8_t *buffer, size_t buffer_size) {
     size_t buffer_size_rest = buffer_size;
     JsonOutput output(buffer, buffer_size_rest, resume_point);
