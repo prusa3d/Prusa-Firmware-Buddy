@@ -128,7 +128,7 @@ PrintPreview::Result PrintPreview::Loop() {
 
     case State::filament_not_inserted_wait_user:
         switch (response) {
-        case Response::Ignore:
+        case Response::FS_disable:
             FSensors_instance().Disable();
             ChangeState(State::done);
             break;

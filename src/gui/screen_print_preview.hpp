@@ -15,7 +15,7 @@ class ScreenPrintPreview : public AddSuperWindow<screen_t> {
 
     static constexpr const char *txt_wrong_printer_type = N_("This G-CODE was set up for another printer type.");
     static constexpr const char *txt_wrong_fil_type = N_("This G-CODE was set up for another filament type.");
-    static constexpr const char *txt_fil_not_detected = N_("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.");
+    static constexpr const char *txt_fil_not_detected = N_("Filament not detected. Load filament now?\nSelect NO to cancel the print.\nSelect DISABLE FS to disable the filament sensor and continue print.");
     static constexpr const char *txt_fil_detected_mmu = N_("Filament detected. Unload filament now? Select NO to cancel.");
 
     static ScreenPrintPreview *ths; // to be accessible in dialog handler

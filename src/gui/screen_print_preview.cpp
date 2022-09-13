@@ -101,7 +101,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         pMsgbox = makeMsgBox(Responses_IgnoreAbort, _(labelWarning), _(txt_wrong_printer_type));
         break;
     case PhasesPrintPreview::filament_not_inserted:
-        pMsgbox = makeMsgBox(Responses_YesNoIgnore, _(labelWarning), _(txt_fil_not_detected));
+        pMsgbox = makeMsgBox(Responses_YesNoFSDisable, _(labelWarning), _(txt_fil_not_detected));
         break;
     case PhasesPrintPreview::mmu_filament_inserted:
         pMsgbox = makeMsgBox(Responses_YesNo, _(labelWarning), _(txt_fil_detected_mmu));

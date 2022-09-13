@@ -24,6 +24,7 @@ enum class Response : uint8_t {
     HIPS,
     Ignore,
     Load,
+    FS_disable,
     Next,
     No,
     Ok,
