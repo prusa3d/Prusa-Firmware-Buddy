@@ -231,7 +231,7 @@ void gui_run(void) {
         case DUMP_TEMPERROR:
             // TODO uncomment to enable start after click
             // blockISR();
-            error_screen = ScreenFactory::Screen<screen_qr_error_data_t>;
+            error_screen = ScreenFactory::Screen<ScreenErrorQR>;
             break;
 #ifndef _DEBUG
         case DUMP_IWDGW:

@@ -339,14 +339,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     sys_reset();
 }
 
-/// Draws error screen
-/// Use for Debug only
-void temp_error_code(const uint16_t error_code) {
-    //    general_error_init();
-    display::Clear(COLOR_RED_ALERT);
-    draw_error_screen(error_code);
-}
-
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     va_list args;
     va_start(args, line_number);
