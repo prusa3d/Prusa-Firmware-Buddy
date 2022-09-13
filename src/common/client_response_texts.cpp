@@ -26,6 +26,7 @@ const std::array<std::pair<const char *, ResourceId>, static_cast<size_t>(Respon
     std::make_pair( "HIPS", IDR_PNG_spool_58px ),                 // HIPS filament, do not translate
     std::make_pair( N_("IGNORE"), IDR_NULL ),                     // Ignore
     std::make_pair( N_("LOAD"), IDR_PNG_spool_58px ),             // Load
+    std::make_pair( N_("DISABLE FS"), IDR_NULL ),                 // FS_disable
     std::make_pair( N_("NEXT"), IDR_NULL ),                       // Next
     std::make_pair( N_("NO"), IDR_NULL ),                         // No
     std::make_pair( N_("OK"), IDR_NULL ),                         // Ok
