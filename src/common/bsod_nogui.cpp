@@ -19,10 +19,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     bsod(error);
 }
 
-void temp_error_code(const uint16_t error_code) {
-    bsod("temp error");
-}
-
 void ScreenHardFault(void) {
     bsod("hard fault");
 }

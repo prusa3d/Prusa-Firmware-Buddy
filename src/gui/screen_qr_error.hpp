@@ -8,7 +8,7 @@
 #include "window_header.hpp"
 #include "status_footer.hpp"
 
-struct screen_qr_error_data_t : public AddSuperWindow<screen_reset_error_data_t> {
+struct ScreenErrorQR : public AddSuperWindow<screen_reset_error_data_t> {
 
     window_text_t err_title;
     window_text_t err_description;
@@ -23,7 +23,7 @@ struct screen_qr_error_data_t : public AddSuperWindow<screen_reset_error_data_t>
     bool sound_started;
 
 public:
-    screen_qr_error_data_t();
+    ScreenErrorQR();
 
 protected:
     virtual void unconditionalDraw() override;

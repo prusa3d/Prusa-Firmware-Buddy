@@ -24,7 +24,7 @@ static const constexpr Rect16 appendix_rect = Rect16(195, 295, 40, 13);
 static constexpr const char *const header_label = N_("ERROR");
 static constexpr const char *const help_text = N_("More detail at");
 
-screen_qr_error_data_t::screen_qr_error_data_t()
+ScreenErrorQR::ScreenErrorQR()
     : AddSuperWindow<screen_reset_error_data_t>()
     , err_title(this, title_rect, is_multiline::no)
     , err_description(this, descr_rect, is_multiline::yes)
@@ -53,16 +53,18 @@ screen_qr_error_data_t::screen_qr_error_data_t()
     signature_txt.SetAlignment(Align_t::CenterTop());
     appendix_txt.SetAlignment(Align_t::CenterTop());
 
+    // Extract error code from xflash
     uint16_t error_code_short = dump_in_xflash_get_code();
     uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
     uint32_t i = 0;
     uint32_t count = sizeof(error_list) / sizeof(err_t);
 
+    // Iterating through error_list to find the error extracted from xflash
     while (i < count && error_code_short != error_list[i].err_num) {
         ++i;
     }
     if (i == count) {
-        /// no text found => leave blank screen
+        // error not found => leave blank screen
         err_title.Hide();
         err_description.Hide();
         help_txt.Hide();
@@ -70,6 +72,7 @@ screen_qr_error_data_t::screen_qr_error_data_t()
         qr.Hide();
         qr_code_txt.Hide();
     } else {
+        // error found
         qr.SetQRHeader(error_code);
         err_title.SetText(_(error_list[i].err_title));
         err_description.SetText(_(error_list[i].err_text));
@@ -91,8 +94,9 @@ screen_qr_error_data_t::screen_qr_error_data_t()
 
     /// draw footer information
     /// fw version, hash, [fw signed], [appendix]
-    static char fw_version[14]; // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
-                                // snprintf will clamp the text if the input is too long
+    static const constexpr uint16_t fw_version_str_len = 13 + 1; // combined max length of project_version + .._suffix_short + null
+    static char fw_version[fw_version_str_len];                  // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
+                                                                 // snprintf will clamp the text if the input is too long
     snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
     fw_version_txt.SetText(_(fw_version));
 
@@ -111,7 +115,7 @@ screen_qr_error_data_t::screen_qr_error_data_t()
     }
 }
 
-void screen_qr_error_data_t::unconditionalDraw() {
+void ScreenErrorQR::unconditionalDraw() {
     super::unconditionalDraw();
     display::DrawLine(
         point_ui16(10, 33),
@@ -119,7 +123,7 @@ void screen_qr_error_data_t::unconditionalDraw() {
         COLOR_WHITE);
 }
 
-void screen_qr_error_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenErrorQR::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if ((event == GUI_event_t::CLICK) || (event == GUI_event_t::BTN_DN)) {
         sys_reset();
         return;
