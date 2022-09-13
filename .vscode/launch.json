@@ -63,6 +63,56 @@
             }
         },
         {
+            "name": "Launch MINI Simulator",
+            "type": "cortex-debug",
+            "servertype": "qemu",
+            "serverpath": "${workspaceRoot}/.dependencies/mini404-e72651a/qemu-system-buddy",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
+            "osx": {
+                "serverArgs": [
+                    "-machine", "prusa-mini",
+                    "-display", "cocoa",
+                    "-drive", "id=usbstick,file=fat:rw:${workspaceFolder}/build-vscode-buddy/simulator/usbdir",
+                    "-device", "usb-storage,drive=usbstick",
+                    "-mtdblock", "${workspaceFolder}/build-vscode-buddy/simulator/xflash.bin",
+                    "-pflash", "${workspaceFolder}/build-vscode-buddy/simulator/eeprom_bank1.bin",
+                    "-pflash", "${workspaceFolder}/build-vscode-buddy/simulator/eeprom_bank2.bin",
+                    "-nodefaults",
+                    "-chardev", "stdio,id=stm32_itm"
+                ],
+            },
+            "windows": {
+                "serverArgs": [
+                    "-machine", "prusa-mini",
+                    "-display", "sdl",
+                    "-drive", "id=usbstick,file=fat:rw:${workspaceFolder}\\build-vscode-buddy\\simulator\\usbdir",
+                    "-device", "usb-storage,drive=usbstick",
+                    "-mtdblock", "${workspaceFolder}\\build-vscode-buddy\\simulator\\xflash.bin",
+                    "-pflash", "${workspaceFolder}\\build-vscode-buddy\\simulator\\eeprom_bank1.bin",
+                    "-pflash", "${workspaceFolder}\\build-vscode-buddy\\simulator\\eeprom_bank2.bin",
+                    "-nodefaults",
+                    "-chardev", "stdio,id=stm32_itm"
+                ],
+            },
+            "linux": {
+                "serverArgs": [
+                    "-machine", "prusa-mini",
+                    "-display", "gtk",
+                    "-drive", "id=usbstick,file=fat:rw:${workspaceFolder}/build-vscode-buddy/simulator/usbdir",
+                    "-device", "usb-storage,drive=usbstick",
+                    "-mtdblock", "${workspaceFolder}/build-vscode-buddy/simulator/xflash.bin",
+                    "-pflash", "${workspaceFolder}/build-vscode-buddy/simulator/eeprom_bank1.bin",
+                    "-pflash", "${workspaceFolder}/build-vscode-buddy/simulator/eeprom_bank2.bin",
+                    "-nodefaults",
+                    "-chardev", "stdio,id=stm32_itm"
+                ],
+            },
+            "preLaunchTask": "Prepare Simulator State Directory",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
+            "request": "launch",
+        },
+        {
             "name": "GDB (QEMU)",
             "type": "gdb",
             "request": "attach",
