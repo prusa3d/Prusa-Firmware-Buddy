@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch STLink & Buddy",
+            "name": "Launch Buddy",
             "cwd": "${workspaceRoot}",
             "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "launch",
@@ -33,7 +33,7 @@
             }
         },
         {
-            "name": "Attach to STLink & Buddy",
+            "name": "Attach to Buddy",
             "cwd": "${workspaceRoot}",
             "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "attach",
