@@ -38,7 +38,7 @@
  * Advanced settings can be found in Configuration_adv.h
  *
  */
-#define CONFIGURATION_H_VERSION 020000
+#define CONFIGURATION_H_VERSION 02010100
 #define USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
@@ -857,17 +857,18 @@
 #define NOZZLE_TO_PROBE_OFFSET \
     { -29, -3, 0 }
 
-// Certain types of probes need to stay away from edges
-#define MIN_PROBE_EDGE 5
+// Most probes should stay away from the edges of the bed, but
+// with NOZZLE_AS_PROBE this can be negative for a wider probing area.
+#define PROBING_MARGIN 5
 
-// X and Y axis travel speed (mm/m) between probes
-#define XY_PROBE_SPEED 5000
+// X and Y axis travel speed (mm/min) between probes
+#define XY_PROBE_FEEDRATE 5000
 
-// Feedrate (mm/m) for the first approach when double-probing (MULTIPLE_PROBING == 2)
-#define Z_PROBE_SPEED_FAST HOMING_FEEDRATE_Z
+// Feedrate (mm/min) for the first approach when double-probing (MULTIPLE_PROBING == 2)
+#define Z_PROBE_FEEDRATE_FAST (6*60)
 
-// Feedrate (mm/m) for the "accurate" probe of each point
-#define Z_PROBE_SPEED_SLOW (Z_PROBE_SPEED_FAST / 3)
+// Feedrate (mm/min) for the "accurate" probe of each point
+#define Z_PROBE_FEEDRATE_SLOW (Z_PROBE_FEEDRATE_FAST / 3)
 
 // The number of probes to perform at each point.
 //   Set to 2 for a fast/slow probe, using the second probe result.
@@ -974,6 +975,7 @@
 // @section homing
 
 //#define NO_MOTION_BEFORE_HOMING  // Inhibit movement until all axes have been homed
+#define HOME_AFTER_DEACTIVATE  // Require rehoming after steppers are deactivated
 
 //#define UNKNOWN_Z_NO_RAISE // Don't raise Z (lower the bed) if Z is "unknown." For beds that fall when Z is powered off.
 
@@ -1294,9 +1296,8 @@
     #define Z_SAFE_HOMING_Y_POINT (21.1) // Y point for Z homing when homing all axes (G28).
 #endif
 
-// Homing speeds (mm/m)
-#define HOMING_FEEDRATE_XY (3000)
-#define HOMING_FEEDRATE_Z (6 * 60)
+// Homing speeds (linear=mm/min, rotational=°/min)
+#define HOMING_FEEDRATE_MM_M { (50*60), (50*60), (Z_PROBE_FEEDRATE_FAST) }
 #define HOMING_FEEDRATE_INVERTED_Z (30 * 60)
 
 // Validate that endstops are triggered on homing moves
@@ -2021,8 +2022,6 @@
 
 // @section extras
 
-// Increase the FAN PWM frequency. Removes the PWM noise but increases heating in the FET/Arduino
-//#define FAST_PWM_FAN
 
 // Use software PWM to drive the fan, as for the heaters. This uses a very low frequency
 // which is not as annoying as with the hardware PWM. On the other hand, if this frequency
