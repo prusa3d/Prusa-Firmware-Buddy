@@ -121,7 +121,7 @@ target_compile_definitions(
   )
 
 if(MCU MATCHES "STM32")
-  target_compile_definitions(BuddyHeaders INTERFACE STM32GENERIC)
+  target_compile_definitions(BuddyHeaders INTERFACE ARDUINO_ARCH_STM32)
 endif()
 
 if(MCU MATCHES "STM32F4")
