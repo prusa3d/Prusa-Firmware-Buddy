@@ -9,6 +9,8 @@
 using json::JsonOutput;
 using json::JsonResult;
 using std::get_if;
+using std::make_tuple;
+using std::tuple;
 using std::visit;
 
 #define JSON_MAC(NAME, VAL) JSON_FIELD_STR_FORMAT(NAME, "%02hhX:%02hhX:%02hhX:%02hhX:%02hhX:%02hhX", VAL[0], VAL[1], VAL[2], VAL[3], VAL[4], VAL[5])
@@ -80,7 +82,7 @@ namespace {
         // clang-format on
     }
 
-    JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const Event &event) {
+    JsonResult render_msg(size_t resume_point, JsonOutput &output, RenderState &state, const Event &event) {
         const auto params = state.printer.params();
         const auto &info = state.printer.printer_info();
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
@@ -168,6 +170,13 @@ namespace {
             } else if (event.type == EventType::FileInfo) {
                 JSON_FIELD_OBJ("data");
                     assert(state.has_stat);
+                    assert(state.file_extra.has_value());
+                    // Note: This chunk might or might not render anything. The
+                    // decoding of the preview might fail. In that case it
+                    // omits the field name and the comma too (and therefore we
+                    // dont list JSON_COMMA here and don't use
+                    // JSON_FIELD_CHUNK).
+                    JSON_CHUNK(state.file_extra->preview_renderer);
                     JSON_FIELD_STR("path", event.path->path()) JSON_COMMA;
                     JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                     JSON_FIELD_INT("m_timestamp", state.st.st_mtime);
@@ -193,6 +202,66 @@ namespace {
 
 }
 
+PreviewRenderer::PreviewRenderer(FILE *f)
+    // FIXME: The 16x16 request gives us 220x124 image. Any idea why? :-O
+    : decoder(f, 16, 16, false) {}
+
+tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer_size) {
+    constexpr const char *intro = "\"preview\":\"";
+    constexpr const char *outro = "\",";
+    constexpr size_t intro_len = strlen(intro);
+    // Ending quote and comma
+    constexpr size_t outro_len = strlen(outro);
+    // Don't bother with too small buffers to make the code easier. Extra char
+    // for trying out there's some preview in there.
+    constexpr size_t min_len = intro_len + outro_len + 1;
+
+    if (buffer_size < min_len) {
+        // Will be retried next time with bigger buffer.
+        return make_tuple(JsonResult::BufferTooSmall, 0);
+    }
+
+    size_t written = 0;
+
+    if (!started) {
+        // It's OK to write into the buffer even if we would claim not to have
+        // written there later on.
+        memcpy(buffer, intro, intro_len);
+        written += intro_len;
+        buffer += intro_len;
+        buffer_size -= intro_len;
+    }
+
+    const size_t available = buffer_size - outro_len;
+    assert(available > 0);
+    size_t decoded = decoder.Read(reinterpret_cast<char *>(buffer), available);
+
+    if (decoded == 0 && !started) {
+        // No preview -> just say we didn't do anything at all.
+        return make_tuple(JsonResult::Complete, 0);
+    }
+
+    started = true;
+    written += decoded;
+    buffer += decoded;
+    buffer_size -= decoded;
+
+    JsonResult result = JsonResult::Incomplete;
+
+    if (decoded < available) {
+        // This is the end!
+        result = JsonResult::Complete;
+        memcpy(buffer, outro, outro_len);
+        written += outro_len;
+    }
+
+    return make_tuple(result, written);
+}
+
+FileExtra::FileExtra(unique_file_ptr file)
+    : file(move(file))
+    , preview_renderer(this->file.get()) {}
+
 RenderState::RenderState(const Printer &printer, const Action &action)
     : printer(printer)
     , action(action)
@@ -203,6 +272,7 @@ RenderState::RenderState(const Printer &printer, const Action &action)
     if (const auto *event = get_if<Event>(&action); event != nullptr) {
         const char *path = nullptr;
         const auto params = printer.params();
+        bool error = false;
 
         switch (event->type) {
         case EventType::JobInfo:
@@ -210,14 +280,22 @@ RenderState::RenderState(const Printer &printer, const Action &action)
                 path = params.job_path;
             }
             break;
-        case EventType::FileInfo:
+        case EventType::FileInfo: {
             assert(event->path.has_value());
             path = event->path->path();
+
+            unique_file_ptr f(fopen(path, "r"));
+            if (f.get() != nullptr) {
+                file_extra = FileExtra(move(f));
+            } else {
+                error = true;
+            }
             break;
+        }
         default:;
         }
 
-        if (path != nullptr && stat(path, &st) == 0) {
+        if (!error && path != nullptr && stat(path, &st) == 0) {
             has_stat = true;
         }
     }
