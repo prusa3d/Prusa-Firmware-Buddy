@@ -51,17 +51,25 @@ bool GCodeThumbDecoder::ReadLine(FILE *f, SLine &line) {
 
 bool GCodeThumbDecoder::AppendBase64Chars(
     const char *src, GCodeThumbDecoder::TBytesQueue &bytesQ) {
-    // a tohle uz je i s dekodovanim
-    while (*src) {
-        uint8_t bajt;
-        switch (base64SD.ConsumeChar(*src++, &bajt)) {
-        case 1:
-            bytesQ.enqueue(bajt);
-            break;
-        case -1:
-            return false; // chyba v dekodovani
-        default:
-            break; // zadny bajt na vystup
+    if (base64SD.has_value()) {
+        // a tohle uz je i s dekodovanim
+        while (*src) {
+            uint8_t bajt;
+            switch (base64SD->ConsumeChar(*src++, &bajt)) {
+            case 1:
+                bytesQ.enqueue(bajt);
+                break;
+            case -1:
+                return false; // chyba v dekodovani
+            default:
+                break; // zadny bajt na vystup
+            }
+        }
+    } else {
+        // Pass-through mode, we just extract the preview, but don't decode the
+        // base64.
+        while (*src) {
+            bytesQ.enqueue(*src++);
         }
     }
     return true;
