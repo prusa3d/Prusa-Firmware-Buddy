@@ -5,6 +5,8 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/types.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.c
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode_thumb_decoder.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/httpc.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/resp_parser.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/render.cpp
