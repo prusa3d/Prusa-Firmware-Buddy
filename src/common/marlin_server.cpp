@@ -2188,45 +2188,11 @@ void onIdle() {
         marlin_server_idle_cb();
 }
 
-//todo remove me after new thermal manager
-int _is_thermal_error(PGM_P const msg) {
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_CHAMBER)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_REDUNDANT_TEMP)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_CHAMBER)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_HOMING)))
-        return 1;
-    return 0;
-}
-
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Printer killed: %s", msg);
     vTaskEndScheduler();
-    wdt_iwdg_refresh();           //watchdog reset
-    if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
-        const marlin_vars_t &vars = marlin_server.vars;
-        temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
-    } else {
-        general_error(msg, component);
-    }
+    wdt_iwdg_refresh(); //watchdog reset
+    reseting_error(msg, component);
 }
 
 void onMediaInserted() {

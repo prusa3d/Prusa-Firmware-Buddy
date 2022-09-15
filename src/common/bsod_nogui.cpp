@@ -11,11 +11,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     }
 }
 
-void general_error(const char *error, const char *module) {
-    bsod(error);
-}
-
-void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
+void reseting_error(const char *error, const char *module) {
     bsod(error);
 }
 
