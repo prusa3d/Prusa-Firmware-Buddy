@@ -75,7 +75,7 @@ using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     GENERATE_SCREEN_ITEM_DEV(ScreenTestMSGBox, "test MSGBOX"),
     GENERATE_SCREEN_ITEM_DEV(screen_test_wizard_icons, "test Wizard icons"),
     GENERATE_SCREEN_ITEM_DEV(screen_test_dlg_data_t, "test dialog"),
-    GENERATE_SCREEN_ITEM_DEV(screen_qr_error_data_t, "test QR error"),
+    GENERATE_SCREEN_ITEM_DEV(ScreenErrorQR, "test QR error"),
 #if HAS_SELFTEST
     GENERATE_SCREEN_ITEM_DEV(TestResult, "test selftest result"),
     GENERATE_SCREEN_ITEM_DEV(ScreenTestSelftest, "selftest print screens"),
