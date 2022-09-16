@@ -2353,22 +2353,27 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
     static xyze_float_t prev_unit_vec;
 
     xyze_float_t unit_vec =
-      #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+      #if IS_KINEMATIC
         delta_mm_cart
       #else
-        { delta_mm.x, delta_mm.y, delta_mm.z, delta_mm.e }
+        #if HAS_POSITION_FLOAT
+          { target_float.x - position_float.x, target_float.y - position_float.y, target_float.z - position_float.z,  target_float.e - position_float.e}
+        #else
+          { delta_mm.x, delta_mm.y, delta_mm.z, delta_mm.e }
+        #endif
       #endif
     ;
-    unit_vec *= inverse_millimeters;
 
-    #if IS_CORE && DISABLED(CLASSIC_JERK)
-      /**
-       * On CoreXY the length of the vector [A,B] is SQRT(2) times the length of the head movement vector [X,Y].
-       * So taking Z and E into account, we cannot scale to a unit vector with "inverse_millimeters".
-       * => normalize the complete junction vector
-       */
+    /**
+     * On CoreXY the length of the vector [A,B] is SQRT(2) times the length of the head movement vector [X,Y].
+     * So taking Z and E into account, we cannot scale to a unit vector with "inverse_millimeters".
+     * => normalize the complete junction vector
+     * Also always normalize when float position is not available and there is E component.
+     */
+    if (IS_CORE || (!HAS_POSITION_FLOAT && (esteps > 0)))
       normalize_junction_vector(unit_vec);
-    #endif
+    else
+      unit_vec *= inverse_millimeters;
 
     // Skip first block or when previous_nominal_speed is used as a flag for homing and offset cycles.
     if (moves_queued && !UNEAR_ZERO(previous_nominal_speed_sqr)) {
@@ -2376,6 +2381,9 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
       // NOTE: Max junction velocity is computed without sin() or acos() by trig half angle identity.
       float junction_cos_theta = (-prev_unit_vec.x * unit_vec.x) + (-prev_unit_vec.y * unit_vec.y)
                                + (-prev_unit_vec.z * unit_vec.z) + (-prev_unit_vec.e * unit_vec.e);
+      #if ENABLED(JD_DEBUG_OUTPUT)
+        SERIAL_ECHO_F(junction_cos_theta, 7);
+      #endif
 
       // NOTE: Computed without any expensive trig, sin() or acos(), by trig half angle identity of cos(theta).
       if (junction_cos_theta > 0.999999f) {
@@ -2527,6 +2535,11 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   #endif // Classic Jerk Limiting
 
   // Max entry speed of this block equals the max exit speed of the previous block.
+  #if ENABLED(JD_DEBUG_OUTPUT)
+    SERIAL_ECHO(" ");
+    SERIAL_ECHO(vmax_junction_sqr);
+    SERIAL_EOL();
+  #endif
   block->max_entry_speed_sqr = vmax_junction_sqr;
 
   // Initialize block entry speed. Compute based on deceleration to user-defined MINIMUM_PLANNER_SPEED.
