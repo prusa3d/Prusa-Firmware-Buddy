@@ -95,6 +95,8 @@ private:
     void command(const Command &, const ResumePrint &);
     void command(const Command &, const StopPrint &);
     void command(const Command &, const StartPrint &);
+    void command(const Command &, const CancelPrinterReady &);
+    void command(const Command &, const SetPrinterReady &);
 
 public:
     Planner(Printer &printer)

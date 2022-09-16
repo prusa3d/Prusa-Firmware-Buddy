@@ -53,6 +53,10 @@ public:
     virtual bool start_print(const char *) override {
         return false;
     }
+
+    virtual bool set_ready(bool) override {
+        return true;
+    }
 };
 
 }

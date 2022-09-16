@@ -213,11 +213,18 @@ void MarlinPrinter::renew() {
         marlin_vars->media_SFN_path = nullptr;
     }
     marlin_update_vars(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
+    // Any suspicious state, like Busy or Printing will cancel the printer-ready state.
+    //
+    // (We kind of assume there's no chance of renew not being called between a
+    // print starts and ends and that we'll see it.).
+    if (to_device_state(marlin_vars->print_state, ready) != DeviceState::Ready) {
+        ready = false;
+    }
 }
 
 Printer::Params MarlinPrinter::params() const {
     Params params = {};
-    params.state = to_device_state(marlin_vars->print_state, params.state == DeviceState::Ready);
+    params.state = to_device_state(marlin_vars->print_state, ready);
     params.temp_bed = marlin_vars->temp_bed;
     params.target_bed = marlin_vars->target_bed;
     params.temp_nozzle = marlin_vars->temp_nozzle;
@@ -346,6 +353,15 @@ bool MarlinPrinter::start_print(const char *path) {
     // BFW-2855.
 
     print_begin(path, true);
+    return true;
+}
+
+bool MarlinPrinter::set_ready(bool ready) {
+    if (ready && marlin_is_printing()) {
+        return false;
+    }
+
+    this->ready = ready;
     return true;
 }
 

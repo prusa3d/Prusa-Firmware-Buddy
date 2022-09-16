@@ -80,3 +80,7 @@ TEST_CASE("Start print") {
 TEST_CASE("Start print - missing args") {
     command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"args\": [], \"kwargs\": {}}");
 }
+
+TEST_CASE("Set printer ready") {
+    command_test<SetPrinterReady>("{\"command\": \"SET_PRINTER_READY\", \"args\": [], \"kwargs\": {}}");
+}
