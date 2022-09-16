@@ -248,8 +248,8 @@
 //
 #if TEMP_SENSOR_BOARD
   #define THERMAL_PROTECTION_BOARD   // Halt the printer if the board sensor leaves the temp range below.
-  #define BOARD_MINTEMP           8  // (°C)
-  #define BOARD_MAXTEMP          70  // (°C)
+  #define BOARD_MINTEMP           5  // (°C)
+  #define BOARD_MAXTEMP         120  // (°C)
   #ifndef TEMP_BOARD_PIN
     //#define TEMP_BOARD_PIN -1      // Board temp sensor pin, if not set in pins file.
   #endif

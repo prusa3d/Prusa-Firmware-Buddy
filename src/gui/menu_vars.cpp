@@ -86,8 +86,8 @@ const std::array<std::array<int, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVa
 const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetManualFeedrate() { return { MANUAL_FEEDRATE }; };
 const std::array<char, MenuVars::AXIS_CNT> MenuVars::GetAxisLetters() { return { 'X', 'Y', 'Z', 'E' }; };
 
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetNozzleRange() { return { 0, (HEATER_0_MAXTEMP - 15), 1 }; };
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetBedRange() { return { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 }; };
+const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetNozzleRange() { return { 0, (HEATER_0_MAXTEMP - HOTEND_OVERSHOOT), 1 }; };
+const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetBedRange() { return { 0, (BED_MAXTEMP - BED_OVERSHOOT), 1 }; };
 
 constexpr const int filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
 constexpr const int filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
