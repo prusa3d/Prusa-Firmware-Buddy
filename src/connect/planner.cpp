@@ -231,6 +231,19 @@ void Planner::command(const Command &command, const SendFileInfo &params) {
     }
 }
 
+void Planner::command(const Command &command, const SetPrinterReady &) {
+    auto result = printer.set_ready(true) ? EventType::Finished : EventType::Rejected;
+    planned_event = Event { result, command.id };
+}
+
+void Planner::command(const Command &command, const CancelPrinterReady &) {
+    bool ok = printer.set_ready(false);
+    // Setting _not_ ready can't fail.
+    assert(ok);
+    (void)ok; // Avoid warnging when asserts are disabled.
+    planned_event = Event { EventType::Finished, command.id };
+}
+
 void Planner::command(Command command) {
     // We can get commands only as result of telemetry, not of other things.
     // TODO: We probably want to have some more graceful way to deal with the

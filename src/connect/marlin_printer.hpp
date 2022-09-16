@@ -11,6 +11,9 @@ class MarlinPrinter final : public Printer {
 private:
     marlin_vars_t *marlin_vars;
     SharedBuffer &buffer;
+    // The SET_PRINTER_READY & friends support. Eventually, this shall sync
+    // with GUI and other places somehow. For now, only Connect-internal flag.
+    bool ready = false;
 
 protected:
     virtual Config load_config() override;
@@ -28,6 +31,7 @@ public:
     virtual NetCreds net_creds() const override;
     virtual bool job_control(JobControl) override;
     virtual bool start_print(const char *path) override;
+    virtual bool set_ready(bool ready) override;
 
     static bool load_cfg_from_ini();
 };

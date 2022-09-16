@@ -75,6 +75,8 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             T("STOP_PRINT", StopPrint)
             T("RESUME_PRINT", ResumePrint)
             T("START_PRINT", StartPrint)
+            T("SET_PRINTER_READY", SetPrinterReady)
+            T("CANCEL_PRINTER_READY", CancelPrinterReady)
             return;
         }
 
