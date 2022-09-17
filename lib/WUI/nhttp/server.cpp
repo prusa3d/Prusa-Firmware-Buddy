@@ -182,7 +182,7 @@ bool Server::Slot::step() {
         //
         // Anyway, using this hack as an intermittent mitigation while the
         // invastigation continues.
-        if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, TCP_WRITE_FLAG_COPY) == ERR_OK) {
+        if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, 0) == ERR_OK) {
             buffer->write_pos += to_send;
             altcp_output(conn);
             server->activity(conn, this);
