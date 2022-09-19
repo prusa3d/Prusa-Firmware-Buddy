@@ -10,7 +10,10 @@
 using buddy::hw::PinChecker;
 
 constexpr PinChecker pinsToCheck[] = {
+    // check physical pins
     PIN_TABLE(PINS_TO_CHECK)
+    // and also check virtual pins
+    VIRTUAL_PIN_TABLE(VIRTUAL_PINS_TO_CHECK)
 };
 
 constexpr bool has_duplicates(const PinChecker (&array)[std::size(pinsToCheck)]) {
