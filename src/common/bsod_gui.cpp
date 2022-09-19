@@ -157,36 +157,33 @@ void reseting_error(const char *error, const char *module) {
 
     /// Decision tree to define error code
     using namespace Language_en;
-    if (module == nullptr) {
-        /// TODO share these strings (saves ~100 B of binary size)
-        if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
-            *perror_code_short = 0;
-        } else if (strcmp("Emergency stop (M112)", error) == 0) {
-            *perror_code_short = 510;
-        } else if (strcmp("Inactive time kill", error) == 0) {
-            *perror_code_short = 0;
-        } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
-            *perror_code_short = 301;
-        }
+    /// TODO share these strings (saves ~100 B of binary size)
+    if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
+        *perror_code_short = 0;
+    } else if (strcmp("Emergency stop (M112)", error) == 0) {
+        *perror_code_short = 510;
+    } else if (strcmp("Inactive time kill", error) == 0) {
+        *perror_code_short = 0;
+    } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
+        *perror_code_short = 301;
+    } else if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
+        *perror_code_short = 201;
+    } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
+        *perror_code_short = 202;
+    } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
+        *perror_code_short = 203;
+    } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
+        *perror_code_short = 204;
+    } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
+        *perror_code_short = 205;
+    } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
+        *perror_code_short = 206;
+    } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
+        *perror_code_short = 207;
+    } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
+        *perror_code_short = 208;
     } else {
-        if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
-            *perror_code_short = 201;
-        } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
-            *perror_code_short = 202;
-        } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
-            *perror_code_short = 203;
-        } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
-            *perror_code_short = 204;
-
-        } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
-            *perror_code_short = 205;
-        } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
-            *perror_code_short = 206;
-        } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
-            *perror_code_short = 207;
-        } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
-            *perror_code_short = 208;
-        }
+        *perror_code_short = 0;
     }
 
     DUMP_TEMPERROR_TO_CCRAM();
