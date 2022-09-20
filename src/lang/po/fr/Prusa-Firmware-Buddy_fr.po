@@ -209,7 +209,10 @@ msgstr "Connexion établie avec succès ! Le Wi-Fi est maintenant prêt à être
 msgid ""
 "Continue to flash\n"
 "the ESP firmware."
-msgstr "Sélectionnez Continuer pour flasher le firmware de l'ESP."
+msgstr ""
+"Choisissez Continuer\n"
+"pour flasher le\n"
+"firmware de l'ESP."
 
 #: src/gui/MItem_filament.hpp:46
 msgid "Cooldown"
@@ -755,7 +758,7 @@ msgid ""
 msgstr ""
 "Mesure des hauteurs\n"
 "dé référence des\n"
-"points de calib."
+"points de calib"
 
 #: src/gui/MItem_tools.hpp:316
 msgid "Menu Timeout"
@@ -1405,7 +1408,7 @@ msgstr "Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour
 
 #: src/gui/wizard/selftest_frame_esp_qr.cpp:40
 msgid "To setup or troubleshoot your Wi-Fi, please visit:\n"
-msgstr "Pour configurer ou dépanner votre Wi-Fi, veuillez visiter:\n"
+msgstr "Pour configurer ou dépanner votre Wi-Fi, veuillez visiter :\n"
 
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
@@ -1462,7 +1465,7 @@ msgstr "Unparking"
 #: src/gui/wizard/selftest_frame_esp_progress.cpp:61
 #: src/gui/wizard/selftest_frame_esp_progress.cpp:66
 msgid "Updating Wi-Fi..."
-msgstr "Mise à jour du Wi-Fi..."
+msgstr "MAJ du Wi-Fi..."
 
 #: src/gui/wizard/selftest_frame_esp.cpp:53
 msgid ""
@@ -1477,8 +1480,8 @@ msgstr ""
 #: src/gui/wizard/selftest_frame_esp_qr.cpp:37
 msgid ""
 "Use the online guide\n"
-"to setup your Wi-Fi\n"
-msgstr "Utilisez le guide en ligne pour configurer votre Wi-Fi\n"
+"to setup your Wi-Fi\nprusa.io/wifimini"
+msgstr "Utilisez le guide en ligne pour configurer le Wi-Fi\nprusa.io/wifimini"
 
 #: src/gui/gcode_description.cpp:38
 msgid "Used Filament"
@@ -1537,7 +1540,9 @@ msgstr "Wi-Fi"
 msgid ""
 "Wi-Fi (ESP) module\n"
 "firmware updater."
-msgstr "Outil de mise à jour du firmware du module Wi-Fi (ESP)."
+msgstr ""
+"MAJ firmware du\n"
+"module Wi-Fi (ESP)."
 
 #: src/gui/MItem_tools.hpp:11
 msgid "Wizard"

@@ -11,9 +11,6 @@
 #include "window_qr.hpp"
 #include "window_wizard_progress.hpp"
 
-#define QR_ADDR         "prusa.io/wifiminiqr"
-#define QR_ADDR_IN_TEXT "prusa.io/wifimini"
-
 class SelftestFrameESP_qr : public AddSuperWindow<SelftestFrameWithRadio> {
     window_text_t text;
     window_icon_t icon_phone;

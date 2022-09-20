@@ -49,7 +49,7 @@ msgstr "PRZERWIJ"
 #. / title text
 #: src/gui/dialogs/liveadjust_z.cpp:188
 msgid "Adjust the nozzle height above the heatbed by turning the knob"
-msgstr "Ustaw dyszę w odpowiedniej odległości od stołu obracając pokrętłem."
+msgstr "Ustaw dyszę w odpowiedniej odległości od stołu obracając pokrętłem"
 
 #: src/gui/MItem_menus.hpp:220
 msgid "Advanced"
@@ -208,10 +208,8 @@ msgid ""
 "Continue to flash\n"
 "the ESP firmware."
 msgstr ""
-"Naciśnij Kontynuuj,\n"
-"aby flashować\n"
-"firmware \n"
-"ESP."
+"Naciśnij kontynuuj,\n"
+"aby wgrać FW ESP."
 
 #: src/gui/MItem_filament.hpp:46
 msgid "Cooldown"
@@ -894,7 +892,7 @@ msgstr "WŁ "
 #: src/guiapi/include/WindowMenuItems.hpp:20
 #: src/guiapi/include/WindowMenuSpin.hpp:21
 msgid "Off"
-msgstr "Wył."
+msgstr "Wył. "
 
 #: src/gui/screen_menu_steel_sheets.cpp:39
 msgid "Offset"
@@ -902,7 +900,7 @@ msgstr "Odsunięcie"
 
 #: src/guiapi/include/WindowMenuItems.hpp:21
 msgid "On"
-msgstr "Wł."
+msgstr "Wł. "
 
 #: src/gui/screen_menu_fw_update.cpp:31
 msgid "On Restart"
@@ -1485,10 +1483,9 @@ msgstr ""
 #: src/gui/wizard/selftest_frame_esp_qr.cpp:37
 msgid ""
 "Use the online guide\n"
-"to setup your Wi-Fi\n"
+"to setup your Wi-Fi\nprusa.io/wifimini"
 msgstr ""
-"Skorzystaj z przewodnika online,\n"
-"aby skonfigurować sieć Wi-Fi\n"
+"Skorzystaj online, aby skonfigurować sieć Wi-Fi\nprusa.io/wifimini"
 
 #: src/gui/gcode_description.cpp:38
 msgid "Used Filament"
@@ -1548,7 +1545,7 @@ msgid ""
 "Wi-Fi (ESP) module\n"
 "firmware updater."
 msgstr ""
-"Aktualizator firmware\n"
+"Aktualizator FW\n"
 "modułu Wi-Fi (ESP)."
 
 #: src/gui/MItem_tools.hpp:11
