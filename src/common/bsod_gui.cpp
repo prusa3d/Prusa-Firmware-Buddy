@@ -152,7 +152,7 @@ char nth_char(const char str[], uint16_t nth) {
 //! @n MSG_T_MAXTEMP
 //! @n MSG_T_MINTEMP
 //! @n "Emergency stop (M112)"
-void reseting_error(const char *error, const char *module) {
+void fatal_error(const char *error, const char *module) {
     uint16_t *perror_code_short = (uint16_t *)(DUMP_INFO_ADDR + 1);
 
     /// Decision tree to define error code

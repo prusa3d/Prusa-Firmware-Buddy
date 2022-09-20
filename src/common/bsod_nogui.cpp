@@ -11,7 +11,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     }
 }
 
-void reseting_error(const char *error, const char *module) {
+void fatal_error(const char *error, const char *module) {
     bsod(error);
 }
 

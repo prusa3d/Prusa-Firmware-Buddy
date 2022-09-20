@@ -53,7 +53,7 @@ void MINDA_BROKEN_CABLE_DETECTION__END() {
 
         taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
         wdt_iwdg_refresh();
-        reseting_error("HOMING ERROR", "Please check minda\ncable");
+        fatal_error("HOMING ERROR", "Please check minda\ncable");
     }
 }
 

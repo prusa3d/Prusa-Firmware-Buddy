@@ -2192,7 +2192,7 @@ void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Printer killed: %s", msg);
     vTaskEndScheduler();
     wdt_iwdg_refresh(); //watchdog reset
-    reseting_error(msg, component);
+    fatal_error(msg, component);
 }
 
 void onMediaInserted() {
