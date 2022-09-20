@@ -84,6 +84,7 @@ MI_CRASHES_X::MI_CRASHES_X()
 MI_CRASHES_Y::MI_CRASHES_Y()
     : WI_INFO_t(variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_COUNT_Y_TOT)), _(label)) {}
 
+    #if HAS_DRIVER(TMC2130)
 MI_CRASH_FILTERING::MI_CRASH_FILTERING()
     : WI_ICON_SWITCH_OFF_ON_t(0, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
     index = crash_s.get_filter();
@@ -92,5 +93,5 @@ MI_CRASH_FILTERING::MI_CRASH_FILTERING()
 void MI_CRASH_FILTERING::OnChange(size_t old_index) {
     crash_s.set_filter(index);
 }
-
+    #endif
 #endif // ANY(CRASH_RECOVERY, POWER_PANIC)

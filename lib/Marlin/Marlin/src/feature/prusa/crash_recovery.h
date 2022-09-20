@@ -10,10 +10,6 @@
     #include "../../module/planner.h"
 
     /// sanity check
-    #if (X_DRIVER_TYPE) != (Y_DRIVER_TYPE)
-        #error "X and Y motors must have the same driver type for crash detection/recovery (X_DRIVER_TYPE)."
-    #endif
-
     #if DISABLED(SENSORLESS_HOMING)
         #error "Sensorless homing must be enabled (SENSORLESS_HOMING)."
     #endif
@@ -117,7 +113,9 @@ private:
     bool repeated_crash;
     bool stats_saved; /// statistics were saved to EEPROM
     bool enabled;     /// has to cache EEPROM to avoid IRQ deadlock
+#if HAS_DRIVER(TMC2130)
     bool filter;      /// use TMC filtering
+#endif
     AxisEnum axis_hit;
 
     /// methods
@@ -165,8 +163,10 @@ public:
     void write_stat_to_eeprom();
     bool is_repeated_crash() { return repeated_crash; }
     void count_crash();
+#if HAS_DRIVER(TMC2130)
     bool get_filter() { return filter; }
     void set_filter(bool on);
+#endif
 
 private:
     void stop_and_save();   ///< Stop the planner and update the crash state
