@@ -33,9 +33,7 @@ char screen_filebrowser_data_t::root[FILE_PATH_BUFFER_LEN] = "/usb";
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : AddSuperWindow<screen_t>()
     , header(this)
-    , w_filelist(this,
-          GuiDefaults::ScreenWidth < 480 ? GuiDefaults::RectScreenNoHeader.TopLeft() : point_i16_t({ int16_t(16), int16_t(GuiDefaults::HeaderHeight + 5) }),
-          GuiDefaults::ScreenWidth < 480 ? display::GetW() : display::GetW() - 40)
+    , w_filelist(this)
     , gcode_info(GCodeInfo::getInstance()) {
 
     header.SetIcon(IDR_PNG_folder_full_16px);

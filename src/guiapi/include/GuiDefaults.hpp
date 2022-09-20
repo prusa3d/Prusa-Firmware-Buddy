@@ -129,6 +129,11 @@ struct GuiDefaults {
     static constexpr Rect16::Width_t MenuIcon_w = MENU_HAS_BUTTONS ? 39 : 0;  // 64;
     static constexpr Rect16::Height_t MenuIcon_h = MENU_HAS_BUTTONS ? 39 : 0; // 64;
 
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+    static constexpr padding_ui8_t FileBrowserPadding = padding_ui8_t({ 0, 0, 0, 0 });
+#endif
+    static constexpr Rect16 FileBrowserRect = Rect16::CutPadding(RectScreenNoHeader, FileBrowserPadding);
+
     // New msgbox
     static constexpr Rect16 MsgBoxLayoutRect = { 70, 90, 363, 120 };                                                                                 // Msgbox rect for drawing icon + text
     static constexpr Rect16 MessageTextRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left() + 48 + 15, GuiDefaults::MsgBoxLayoutRect.Top(), 300, 120); // 48px icon + 10px icon-text delimeter

@@ -6,7 +6,6 @@
  *  Refactoring by DRracer 2020-04-08
  */
 #include <algorithm>
-
 #include "window_file_list.hpp"
 #include "gui.hpp"
 #include "config.h"
@@ -97,8 +96,8 @@ const char *window_file_list_t::TopItemSFN() {
     return ldv.ShortFileNameAt(0).first;
 }
 
-window_file_list_t::window_file_list_t(window_t *parent, point_i16_t top_left, Rect16::Width_t width)
-    : AddSuperWindow<window_aligned_t>(parent, Rect16(top_left, width, item_height * LazyDirViewSize))
+window_file_list_t::window_file_list_t(window_t *parent)
+    : AddSuperWindow<window_aligned_t>(parent, DefaultRC)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , entire_window_invalid(true)
