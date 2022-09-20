@@ -73,13 +73,17 @@
     _GRIDPOS(X,  0), _GRIDPOS(X,  1), _GRIDPOS(X,  2), _GRIDPOS(X,  3),
     _GRIDPOS(X,  4), _GRIDPOS(X,  5), _GRIDPOS(X,  6), _GRIDPOS(X,  7),
     _GRIDPOS(X,  8), _GRIDPOS(X,  9), _GRIDPOS(X, 10), _GRIDPOS(X, 11),
-    _GRIDPOS(X, 12), _GRIDPOS(X, 13), _GRIDPOS(X, 14), _GRIDPOS(X, 15)
+    _GRIDPOS(X, 12), _GRIDPOS(X, 13), _GRIDPOS(X, 14), _GRIDPOS(X, 15),
+    _GRIDPOS(X, 16), _GRIDPOS(X, 17), _GRIDPOS(X, 18), _GRIDPOS(X, 19),
+    _GRIDPOS(X, 20), _GRIDPOS(X, 21), _GRIDPOS(X, 22), _GRIDPOS(X, 23)
   ),
   unified_bed_leveling::_mesh_index_to_ypos[GRID_MAX_POINTS_Y] PROGMEM = ARRAY_N(GRID_MAX_POINTS_Y,
     _GRIDPOS(Y,  0), _GRIDPOS(Y,  1), _GRIDPOS(Y,  2), _GRIDPOS(Y,  3),
     _GRIDPOS(Y,  4), _GRIDPOS(Y,  5), _GRIDPOS(Y,  6), _GRIDPOS(Y,  7),
     _GRIDPOS(Y,  8), _GRIDPOS(Y,  9), _GRIDPOS(Y, 10), _GRIDPOS(Y, 11),
-    _GRIDPOS(Y, 12), _GRIDPOS(Y, 13), _GRIDPOS(Y, 14), _GRIDPOS(Y, 15)
+    _GRIDPOS(Y, 12), _GRIDPOS(Y, 13), _GRIDPOS(Y, 14), _GRIDPOS(Y, 15),
+    _GRIDPOS(Y, 16), _GRIDPOS(Y, 17), _GRIDPOS(Y, 18), _GRIDPOS(Y, 19),
+    _GRIDPOS(Y, 20), _GRIDPOS(Y, 21), _GRIDPOS(Y, 22), _GRIDPOS(Y, 23)
   );
 
   #if HAS_LCD_MENU
@@ -237,10 +241,12 @@
   bool unified_bed_leveling::sanity_check() {
     uint8_t error_flag = 0;
 
-    if (settings.calc_num_meshes() < 1) {
-      SERIAL_ECHOLNPGM("?Mesh too big for EEPROM.");
-      error_flag++;
-    }
+    #if ENABLED(EEPROM_SETTINGS)
+      if (settings.calc_num_meshes() < 1) {
+        SERIAL_ECHOLNPGM("?Mesh too big for EEPROM.");
+        error_flag++;
+      }
+    #endif
 
     return !!error_flag;
   }

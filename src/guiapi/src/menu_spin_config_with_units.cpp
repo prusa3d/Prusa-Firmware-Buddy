@@ -33,3 +33,5 @@ const SpinConfigInt SpinCnf::steps_per_unit = SpinConfigInt(MenuVars::steps_per_
 const SpinConfigInt SpinCnf::microstep_exponential = SpinConfigInt(MenuVars::microstep_exponential_range, None);
 const SpinConfigInt SpinCnf::rms_current = SpinConfigInt(MenuVars::axis_rms_currents_range, mA);
 const SpinConfigInt SpinCnf::two_digits_uint = { { 0, 15, 1 }, None };
+const SpinConfigInt SpinCnf::crash_sensitivity_2209 = SpinConfigInt({ 0, 255, 1 }, None, spin_off_opt_t::no);
+const SpinConfigInt SpinCnf::crash_max_period_2209 = SpinConfigInt({ 0, 0xFFFFF, 1 }, None, spin_off_opt_t::no);

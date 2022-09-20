@@ -82,6 +82,8 @@ enum ResourceId : uint8_t {
     IDR_PNG_question_16px,
     IDR_PNG_sheets_profile_16px,
     IDR_PNG_nozzle_shape_48px,
+    IDR_PNG_nozzle_crash,
+    IDR_PNG_nozzle_empty_16px,
 
     IDR_PNG_arrow_up_16px,
     IDR_PNG_arrow_down_16px,
