@@ -24,7 +24,9 @@ Crash_s::Crash_s()
     max_period.y = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_PERIOD_Y));
     sensitivity.x = variant8_get_i8(eeprom_get_var(EEVAR_CRASH_SENS_X));
     sensitivity.y = variant8_get_i8(eeprom_get_var(EEVAR_CRASH_SENS_Y));
+#if HAS_DRIVER(TMC2130)
     filter = variant8_get_bool(eeprom_get_var(EEVAR_CRASH_FILTER));
+#endif
 }
 
 // Called from ISR
@@ -212,8 +214,12 @@ void Crash_s::update_machine() {
     stepperY.stall_sensitivity(crash_s.sensitivity.y);
     stepperX.stall_max_period(crash_s.max_period.x);
     stepperY.stall_max_period(crash_s.max_period.y);
+#if AXIS_DRIVER_TYPE_X(TMC2130)
     stepperX.sfilt(filter);
+#endif
+#if AXIS_DRIVER_TYPE_Y(TMC2130)
     stepperY.sfilt(filter);
+#endif
 }
 
 void Crash_s::enable(bool state) {
@@ -331,13 +337,13 @@ void Crash_s::reset() {
     active = false;
     axis_hit = NO_AXIS;
 }
-
-void Crash_s::set_filter(bool on) {
-    if (filter == on)
-        return;
-    filter = on;
-    eeprom_set_var(EEVAR_CRASH_FILTER, variant8_bool(on));
-    update_machine();
-}
-
+    #if HAS_DRIVER(TMC2130)
+        void Crash_s::set_filter(bool on) {
+            if (filter == on)
+                return;
+            filter = on;
+            eeprom_set_var(EEVAR_CRASH_FILTER, variant8_bool(on));
+            update_machine();
+        }
+    #endif
 #endif // ENABLED(CRASH_RECOVERY)
