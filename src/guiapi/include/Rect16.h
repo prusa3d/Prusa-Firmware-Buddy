@@ -553,6 +553,17 @@ public:
     constexpr void AddPadding(const padding_t<T>);
 
     ////////////////////////////////////////////////////////////////////////////
+    /// @brief Add padding to given rectangle
+    /// @param[in] rc Given rectangle
+    /// @param[in] padding Given padding structure that specify deducted pixels
+    /// @return Return rectangle containing padding
+    template <class T>
+    static constexpr Rect16 AddPadding(Rect16 rc, const padding_t<T> padding) {
+        rc.AddPadding(padding);
+        return rc;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     /// @brief Subtract pixels from given direction
     /// @details Such a method modify the original rectangle. The pixels will be
     ///          deducted from origin coordinations and recent accessor call
@@ -560,6 +571,17 @@ public:
     /// @param[in] padding Given padding structure that specify deducted pixels
     template <class T>
     constexpr void CutPadding(const padding_t<T>);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Subtract padding from given rectangle
+    /// @param[in] rc Given rectangle
+    /// @param[in] padding Given padding structure that specify deducted pixels
+    /// @return Return cut rectangle
+    template <class T>
+    static constexpr Rect16 CutPadding(Rect16 rc, const padding_t<T> padding) {
+        rc.CutPadding(padding);
+        return rc;
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Static method determines the rectangle structure that represents
