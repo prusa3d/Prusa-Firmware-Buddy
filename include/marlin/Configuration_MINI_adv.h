@@ -1697,6 +1697,23 @@
     #define E4_HYBRID_THRESHOLD 30
     #define E5_HYBRID_THRESHOLD 30
 
+    /**
+     * Provides crash detection during printing and proper crash recovery.
+     * Sensorless homing must be turned on and sensitivities set accordingly.
+     */
+    #define CRASH_RECOVERY
+    #ifdef CRASH_RECOVERY
+        #define CRASH_STALL_GUARD { 1, 1 } // internal value representing sensitivity
+        #define CRASH_PERIOD { 210, 210 }  // (steps per tick) - reciprocal value of minimal speed
+        #define CRASH_FILTER (false)        // Stallguard filtering for crash detection
+        #define CRASH_TIMER 45             // seconds before counter reset
+        #define CRASH_COUNTER_MAX 3        // max crashes with automatic recovery
+
+    #endif
+
+    #define AXIS_MEASURE_STALL_GUARD 1
+    #define AXIS_MEASURE_CRASH_PERIOD 210
+
 /**
    * TMC2130, TMC2160, TMC2660, TMC5130, and TMC5160 only
    * Use StallGuard2 to sense an obstacle and trigger an endstop.
