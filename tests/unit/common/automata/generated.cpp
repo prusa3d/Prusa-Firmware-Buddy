@@ -18,7 +18,6 @@ namespace {
  * An automaton that accepts everything until a comma.
  */
 const Automaton until_comma(test::until_comma::paths, test::until_comma::transitions, test::until_comma::states);
-
 /**
  * Selection of HTTP method.
  */
@@ -249,4 +248,12 @@ TEST_CASE("No print after upload") {
     TestExecution ex(http_request);
     ex.consume("GET / HTTP/1.1\r\nPrint-After-Upload: false\r\n\r\n");
     REQUIRE_FALSE(ex.contains_enter(Names::PrintAfterUpload));
+}
+
+TEST_CASE("Digest auth whole") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET /api/version HTTP/1.1\r\nAuthorization: Digest username=\"user\", realm=\"Printer API\", nonce=\"dcd98b7102dd2f0e\", uri=\"/api/version\", response=\"684d849df474f295771de997e7412ea4\"\r\n\r\n");
+    REQUIRE(ex.collect_entered(Names::Nonce) == "dcd98b7102dd2f0e");
+    REQUIRE(ex.collect_entered(Names::Response) == "684d849df474f295771de997e7412ea4");
 }

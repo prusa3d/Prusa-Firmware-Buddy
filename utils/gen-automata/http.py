@@ -1,3 +1,4 @@
+from os import sep
 from common import Automaton, LabelType
 from parts import constant, keywords, newline, read_until, trie
 
@@ -279,6 +280,69 @@ def overwrite_file_header():
     return keyworded_header({
         '?1': 'OverwriteFile',
     })
+
+
+def auth_value(name):
+    auto = Automaton()
+    start = auto.start()
+    value = auto.add_state()
+
+    start.loop("HorizWhitespace", LabelType.Special)
+    start.loop("\"", LabelType.Char)
+    value.set_name(name)
+    value.mark_enter()
+    line, end = newline()
+    end.loop('HorizWhitespace', LabelType.Special)
+    end.loop(',', LabelType.Char)
+    auto.join(start, line)
+    start.add_transition('All', LabelType.Special, value)
+    value.add_transition('\"', LabelType.Char, end)
+    value.loop_fallback()
+
+    return auto, end, False
+
+
+def authorization_header():
+    """
+    Reads the digest Authorization header
+    Authorization: Digest username="user", realm="Printer API", nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093", uri="/api/version", response="684d849df474f295771de997e7412ea4"
+    """
+
+    # We only really read nonce and response, the rest is assumed for
+    # performance reasons.
+    auth_values = {
+        'nonce': auth_value('Nonce'),
+        'response': auth_value('Response'),
+    }
+    auto, terminals, add_unknowns = trie(auth_values)
+    start = auto.start()
+    line, end = newline()
+    auto.join(start, line)
+
+    for parameter in auth_values:
+        term = terminals[parameter]
+        term.loop("HorizWhitespace", LabelType.Special)
+        separator = auto.add_state()
+        separator.loop("HorizWhitespace", LabelType.Special)
+        term.add_transition('=', LabelType.Char, separator)
+        read_par, read_par_end, fallthrough = auth_values[parameter]
+        auto.join_transition(separator, read_par, fallthrough=fallthrough)
+        read_par_end.add_fallback(start, fallthrough=True)
+
+    # Handling of unknown/ not parsed values
+    unknown = auto.add_state()
+    for u in add_unknowns:
+        u.add_fallback(unknown)
+    unknown.loop("HorizWhitespace", LabelType.Special)
+    after_unknown = auto.add_state()
+    unknown.add_transition('=', LabelType.Char, after_unknown)
+    unknown.loop_fallback()
+    after_unknown.loop("HorizWhitespace", LabelType.Special)
+    ignore_unknown_header, iuh_end, _ = auth_value(None)
+    auto.join_transition(after_unknown, ignore_unknown_header)
+    iuh_end.add_fallback(start, fallthrough=True)
+
+    return auto, end, True
 
 
 def headers(interested):

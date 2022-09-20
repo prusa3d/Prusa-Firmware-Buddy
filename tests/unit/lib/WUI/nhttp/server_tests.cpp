@@ -21,6 +21,7 @@
 #include <nhttp/headers.h>
 #include <lwip/altcp.h>
 #include <lwip/priv/altcp_priv.h>
+#include "time_mock.h"
 
 #include <catch2/catch.hpp>
 #include <memory>
@@ -199,11 +200,11 @@ public:
         }
 
         if (strcmp(filename, "/secret.html") == 0) {
-            if (parser.authenticated()) {
+            if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
+                return std::visit([](auto unauth_status) -> ConnectionState { return std::move(unauth_status); }, *unauthorized_status);
+            } else {
                 static const char *extra_hdrs[] = { "Fake: YesOfCourse\r\n", nullptr };
                 return SendStaticMemory("<html><body><h1>Don't tell anyone!</h1>", guess_content_by_ext(filename), parser.can_keep_alive(), extra_hdrs);
-            } else {
-                return StatusPage(Status::Unauthorized, parser.status_page_handling(), false);
             }
         }
 
@@ -328,12 +329,25 @@ void check_index(const string &response) {
     REQUIRE(response.find("\r\n\r\n<h1>Hello world</h1>") != string::npos);
 }
 
-void check_unauth(const string &response) {
+void check_unauth_api_key(const string &response) {
     INFO("Response: " + response);
     REQUIRE(response.find("HTTP/1.1 401 Unauthorized\r\n") == 0);
     REQUIRE(response.find("Content-Type: text/plain") != string::npos);
     REQUIRE(response.find("WWW-Authenticate: ApiKey") != string::npos);
     REQUIRE(response.find("\r\n\r\n401: Unauthorized") != string::npos);
+}
+
+void check_unauth_digest(const string &response, const string &nonce, const string &stale) {
+    INFO("Response: " + response);
+    REQUIRE(response.find("HTTP/1.1 401 Unauthorized\r\n") == 0);
+    REQUIRE(response.find("Content-Type: text/plain") != string::npos);
+    REQUIRE(response.find("WWW-Authenticate: Digest realm=\"Printer API\", nonce=\"" + nonce + "\", stale=\"" + stale + "\"") != string::npos);
+    REQUIRE(response.find("\r\n\r\n401: Unauthorized") != string::npos);
+}
+
+string digest_auth_header(string method, string username, string nonce, string uri, string response) {
+    string header = method + " " + uri + " HTTP/1.1\r\nAuthorization: Digest username=\"" + username + "\", realm=\"Printer API\", nonce=\"" + nonce + "\", uri=\"" + uri + "\", response=\"" + response + "\"\r\n\r\n";
+    return header;
 }
 
 }
@@ -379,7 +393,7 @@ TEST_CASE("Not found") {
     REQUIRE(response.find("\r\n\r\n404: Not Found") != string::npos);
 }
 
-TEST_CASE("Authenticated") {
+TEST_CASE("Authenticated ApiKey") {
     MockServer server;
     server.set_api_key("SECRET");
 
@@ -393,16 +407,12 @@ TEST_CASE("Authenticated") {
     REQUIRE(response.find("\r\n\r\n<html>") != string::npos);
 }
 
-TEST_CASE("Not authenticated") {
+TEST_CASE("Not authenticated ApiKey") {
     MockServer server;
     server.set_api_key("SECRET");
 
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
-
-    SECTION("No key") {
-        server.send(client_conn, "GET /secret.html HTTP/1.1\r\n\r\n");
-    }
 
     SECTION("Empty key") {
         server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: \r\n\r\n");
@@ -425,7 +435,7 @@ TEST_CASE("Not authenticated") {
     }
 
     const auto response = server.recv_all(client_conn);
-    check_unauth(response);
+    check_unauth_api_key(response);
 }
 
 // If the server doesn't have an API key set, no combination of
@@ -437,10 +447,6 @@ TEST_CASE("No Api Key configured") {
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
 
-    SECTION("No key") {
-        server.send(client_conn, "GET /secret.html HTTP/1.1\r\n\r\n");
-    }
-
     SECTION("Empty key") {
         server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: \r\n\r\n");
     }
@@ -450,7 +456,96 @@ TEST_CASE("No Api Key configured") {
     }
 
     const auto response = server.recv_all(client_conn);
-    check_unauth(response);
+    check_unauth_api_key(response);
+}
+
+TEST_CASE("Authenticated Digest") {
+    MockServer server;
+    server.set_api_key("password");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    string request = digest_auth_header("GET", "user", "aaaaaaaa00000000", "/secret.html", "98d83e2a0dfd67eb0c3a13bae4dff1c7");
+    INFO(request);
+    server.send(client_conn, request);
+    const auto response = server.recv_all(client_conn);
+    INFO("Response: " + response);
+    REQUIRE(response.find("HTTP/1.1 200 OK\r\n") == 0);
+    REQUIRE(response.find("Content-Type: text/html") != string::npos);
+    REQUIRE(response.find("\r\n\r\n<html>") != string::npos);
+}
+
+TEST_CASE("Not authenticated Digest") {
+    MockServer server;
+    server.set_api_key("password");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("No authentication") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\n\r\n");
+    }
+
+    SECTION("Invalid nonce") {
+        string request = digest_auth_header("GET", "user", "not a valid nonce", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        server.send(client_conn, request);
+    }
+
+    SECTION("Nonce too long") {
+        string request = digest_auth_header("GET", "invaliduser", "aaaaaaaa00000000aaaaaaa", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        server.send(client_conn, request);
+    }
+
+    SECTION("Wrong user") {
+        string request = digest_auth_header("GET", "invaliduser", "aaaaaaaa00000000", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        server.send(client_conn, request);
+    }
+
+    const auto response = server.recv_all(client_conn);
+    check_unauth_digest(response, "aaaaaaaa00000000", "false");
+}
+
+TEST_CASE("Digest stale nonce") {
+    MockServer server;
+    server.set_api_key("password");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("Real stale nonce") {
+        set_time(0x0000000f);
+        string request = digest_auth_header("GET", "user", "aaaaaaaa00000000", "/secret.html", "98d83e2a0dfd67eb0c3a13bae4dff1c7");
+        server.send(client_conn, request);
+    }
+
+    // This happens when the printer reboots and regenerates the random part of nonce.
+    // In this case, we don't want to bother the client with unnecessary login prompting
+    // so we say its stale.
+    SECTION("Wrong nonce, correct user and password") {
+        string request = digest_auth_header("GET", "user", "dcd98b7102dd2f0e", "/secret.html", "491a37d687a1604d170aeaf12f7a67ec");
+        server.send(client_conn, request);
+    }
+
+    const auto response = server.recv_all(client_conn);
+    check_unauth_digest(response, "aaaaaaaa0000000f", "true");
+}
+
+// should resolve to stale=false, because client should not retry with different nonce
+// without prompting the user for new auth info
+TEST_CASE("Stale nonce and wrong auth") {
+    MockServer server;
+    server.set_api_key("password");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    set_time(0x0000000f);
+    string request = digest_auth_header("GET", "invaliduser", "aaaaaaaa00000000", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+    server.send(client_conn, request);
+
+    const auto response = server.recv_all(client_conn);
+    check_unauth_digest(response, "aaaaaaaa0000000f", "false");
 }
 
 /*

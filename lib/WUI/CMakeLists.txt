@@ -9,6 +9,7 @@ target_sources(
             nhttp/upload_state.cpp
             ethernetif.c
             espif.cpp
+            random.cpp
             sntp/sntp_client.c
             sntp/sntp.c
             http_lifetime.cpp
