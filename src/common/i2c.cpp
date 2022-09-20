@@ -25,19 +25,19 @@ extern "C" void I2C_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8
         break;
     case HAL_ERROR:
         ++I2C_TRANSMIT_RESULTS_HAL_ERROR;
-        reseting_error("EEPROM Transmit", "I2C error");
+        fatal_error("EEPROM Transmit", "I2C error");
         break;
     case HAL_BUSY:
         ++I2C_TRANSMIT_RESULTS_HAL_BUSY;
-        reseting_error("EEPROM Transmit", "I2C busy");
+        fatal_error("EEPROM Transmit", "I2C busy");
         break;
     case HAL_TIMEOUT:
         ++I2C_TRANSMIT_RESULTS_HAL_TIMEOUT;
-        reseting_error("EEPROM Transmit", "I2C timeout");
+        fatal_error("EEPROM Transmit", "I2C timeout");
         break;
     default:
         ++I2C_TRANSMIT_RESULTS_UNDEF;
-        reseting_error("EEPROM Transmit", "I2C undefined error");
+        fatal_error("EEPROM Transmit", "I2C undefined error");
         break;
     }
 }
@@ -64,19 +64,19 @@ extern "C" void I2C_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_
         break;
     case HAL_ERROR:
         ++I2C_RECEIVE_RESULTS_HAL_ERROR;
-        reseting_error("EEPROM Receive", "I2C error");
+        fatal_error("EEPROM Receive", "I2C error");
         break;
     case HAL_BUSY:
         ++I2C_RECEIVE_RESULTS_HAL_BUSY;
-        reseting_error("EEPROM Receive", "I2C busy");
+        fatal_error("EEPROM Receive", "I2C busy");
         break;
     case HAL_TIMEOUT:
         ++I2C_RECEIVE_RESULTS_HAL_TIMEOUT;
-        reseting_error("EEPROM Receive", "I2C timeout");
+        fatal_error("EEPROM Receive", "I2C timeout");
         break;
     default:
         ++I2C_RECEIVE_RESULTS_UNDEF;
-        reseting_error("EEPROM Receive", "I2C undefined error");
+        fatal_error("EEPROM Receive", "I2C undefined error");
         break;
     }
 }
