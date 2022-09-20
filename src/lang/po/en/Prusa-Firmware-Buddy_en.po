@@ -1479,10 +1479,10 @@ msgstr ""
 #: src/gui/wizard/selftest_frame_esp_qr.cpp:37
 msgid ""
 "Use the online guide\n"
-"to setup your Wi-Fi\n"
+"to setup your Wi-Fi\nprusa.io/wifimini"
 msgstr ""
 "Use the online guide\n"
-"to setup your Wi-Fi\n"
+"to setup your Wi-Fi\nprusa.io/wifimini"
 
 #: src/gui/gcode_description.cpp:38
 msgid "Used Filament"
