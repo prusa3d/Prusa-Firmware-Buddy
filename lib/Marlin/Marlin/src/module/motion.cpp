@@ -1148,11 +1148,11 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
       default: break;
       #if X_SENSORLESS
         case X_AXIS:
-          stealth_states.x = tmc_enable_stallguard(stepperX);
-
           #if ENABLED(CRASH_RECOVERY)
-            stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
+            crash_s.start_sensorless_homing_per_axis(axis);
           #endif
+
+          stealth_states.x = tmc_enable_stallguard(stepperX);
 
           #if AXIS_HAS_STALLGUARD(X2)
             stealth_states.x2 = tmc_enable_stallguard(stepperX2);
@@ -1168,6 +1168,10 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
       #endif
       #if Y_SENSORLESS
         case Y_AXIS:
+          #if ENABLED(CRASH_RECOVERY)
+            crash_s.start_sensorless_homing_per_axis(axis);
+          #endif
+
           stealth_states.y = tmc_enable_stallguard(stepperY);
 
           #if ENABLED(CRASH_RECOVERY)
@@ -1228,8 +1232,7 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
         case X_AXIS:
           
           #if ENABLED(CRASH_RECOVERY)
-            // restore original driver settings
-            crash_s.update_machine();
+            crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.x);
           #else
             tmc_disable_stallguard(stepperX, enable_stealth.x);
             #if AXIS_HAS_STALLGUARD(X2)
@@ -1247,8 +1250,7 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
       #if Y_SENSORLESS
         case Y_AXIS:
           #if ENABLED(CRASH_RECOVERY)
-            // restore original driver settings
-            crash_s.update_machine();
+            crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.y);
           #else
             tmc_disable_stallguard(stepperY, enable_stealth.y);
             #if AXIS_HAS_STALLGUARD(Y2)
