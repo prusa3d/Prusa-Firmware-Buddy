@@ -140,6 +140,24 @@ namespace {
                     if (strlen(creds.api_key) > 0) {
                         JSON_FIELD_STR("api_key", creds.api_key) JSON_COMMA;
                     }
+                    JSON_FIELD_ARR("storages");
+                    if (params.has_usb) {
+                        JSON_OBJ_START;
+                            // TODO: We may want to send a bit more info, just
+                            //   for the user comfort, in particular:
+                            // * Number of files directly under the root
+                            // * Sizes (total/free/...)
+                            // * Name of the filesystem if it is set/known.
+                            JSON_FIELD_STR("mountpoint", "/usb") JSON_COMMA;
+                            JSON_FIELD_STR("type", "USB") JSON_COMMA;
+                            // Technically, there are USB drives with RO
+                            // switches, but they are rare and nothing in the
+                            // FW takes that into account, so...
+                            JSON_FIELD_BOOL("ro", false) JSON_COMMA;
+                            JSON_FIELD_BOOL("is_sfn", true);
+                        JSON_OBJ_END;
+                    }
+                    JSON_ARR_END JSON_COMMA;
                     JSON_FIELD_OBJ("network_info");
                     if (state.lan.has_value()) {
                         JSON_MAC("lan_mac", state.lan->mac) JSON_COMMA;
