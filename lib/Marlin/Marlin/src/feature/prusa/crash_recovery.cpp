@@ -17,7 +17,9 @@ Crash_s &Crash_s::instance() {
 }
 
 Crash_s::Crash_s()
-    : home_sensitivity { X_STALL_SENSITIVITY, Y_STALL_SENSITIVITY, Z_STALL_SENSITIVITY } {
+    : home_sensitivity { X_STALL_SENSITIVITY, Y_STALL_SENSITIVITY, Z_STALL_SENSITIVITY },
+      m_axis_is_homing{false, false},
+      m_enable_stealth{false, false} {
     reset();
     enabled = variant8_get_bool(eeprom_get_var(EEVAR_CRASH_ENABLED));
     max_period.x = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_PERIOD_X));
@@ -208,18 +210,35 @@ void Crash_s::set_state(state_t new_state) {
 
     state = new_state;
 }
-
+/**
+ * @brief Update sensitivity and threshold to drivers
+ */
 void Crash_s::update_machine() {
-    stepperX.stall_sensitivity(crash_s.sensitivity.x);
-    stepperY.stall_sensitivity(crash_s.sensitivity.y);
-    stepperX.stall_max_period(crash_s.max_period.x);
-    stepperY.stall_max_period(crash_s.max_period.y);
-#if AXIS_DRIVER_TYPE_X(TMC2130)
-    stepperX.sfilt(filter);
-#endif
-#if AXIS_DRIVER_TYPE_Y(TMC2130)
-    stepperY.sfilt(filter);
-#endif
+    if(!m_axis_is_homing[0])
+    {
+        if (enabled) {
+            stepperX.stall_max_period(0);
+            #if AXIS_DRIVER_TYPE_X(TMC2130)
+                stepperX.sfilt(filter);
+            #endif
+            stepperX.stall_sensitivity(crash_s.sensitivity.x);
+            stepperX.stall_max_period(crash_s.max_period.x);
+        } else {
+            tmc_disable_stallguard(stepperX, m_enable_stealth[0]);
+        }
+    }
+    if(!m_axis_is_homing[1]) {
+        if (enabled) {
+            stepperY.stall_max_period(0);
+            #if AXIS_DRIVER_TYPE_Y(TMC2130)
+                stepperY.sfilt(filter);
+            #endif
+            stepperY.stall_sensitivity(crash_s.sensitivity.y);
+            stepperY.stall_max_period(crash_s.max_period.y);
+        } else {
+            tmc_disable_stallguard(stepperY, m_enable_stealth[1]);
+        }
+    }
 }
 
 void Crash_s::enable(bool state) {
@@ -337,6 +356,29 @@ void Crash_s::reset() {
     active = false;
     axis_hit = NO_AXIS;
 }
+
+void Crash_s::start_sensorless_homing_per_axis(const AxisEnum axis) {
+    if (axis < (sizeof(m_axis_is_homing) / sizeof(m_axis_is_homing[0]))) {
+        m_axis_is_homing[axis] = true;
+        if (X_AXIS == axis) {
+            stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
+        }
+        else if (Y_AXIS == axis) {
+            stepperY.stall_sensitivity(crash_s.home_sensitivity[1]);
+        }
+    }
+}
+
+/**
+ */
+void Crash_s::end_sensorless_homing_per_axis(const AxisEnum axis, const bool enable_stealth) {
+    if (axis < (sizeof(m_axis_is_homing) / sizeof(m_axis_is_homing[0]))) {
+        m_axis_is_homing[axis] = false;
+        m_enable_stealth[axis] = enable_stealth;
+        update_machine();
+    }
+}
+
     #if HAS_DRIVER(TMC2130)
         void Crash_s::set_filter(bool on) {
             if (filter == on)
