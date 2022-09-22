@@ -146,12 +146,7 @@ char nth_char(const char str[], uint16_t nth) {
     return str[0];
 }
 
-//! Known possible reasons.
-//! @n MSG_T_THERMAL_RUNAWAY
-//! @n MSG_T_HEATING_FAILED
-//! @n MSG_T_MAXTEMP
-//! @n MSG_T_MINTEMP
-//! @n "Emergency stop (M112)"
+//! Fatal error that causes Redscreen
 void fatal_error(const char *error, const char *module) {
     uint16_t *perror_code_short = (uint16_t *)(DUMP_INFO_ADDR + 1);
 
@@ -186,7 +181,7 @@ void fatal_error(const char *error, const char *module) {
         *perror_code_short = 0;
     }
 
-    DUMP_TEMPERROR_TO_CCRAM();
+    DUMP_FATALERROR_TO_CCRAM();
     dump_to_xflash();
     sys_reset();
 }

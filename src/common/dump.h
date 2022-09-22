@@ -5,13 +5,12 @@
 #include "stm32f4xx_hal.h"
 
 // dump types and flags
-static const uint8_t DUMP_UNDEFINED = 0xff; // undefined - memory erased/empty/failed to read
-static const uint8_t DUMP_HARDFAULT = 0x01; // hardfault dump
-static const uint8_t DUMP_IWDGW = 0x02;     // IWDG warning dump
-static const uint8_t DUMP_GENERAL = 0x03;   // general error dump
-static const uint8_t DUMP_TEMPERROR = 0x04; // thermal error dump
-static const uint8_t DUMP_NOT_SAVED = 0x80; // dump not saved flag - (unsaved dump cannot be overwritten)
-static const uint8_t DUMP_NOT_DISPL = 0x40; // dump not displayed after startup
+static const uint8_t DUMP_UNDEFINED = 0xff;  // undefined - memory erased/empty/failed to read
+static const uint8_t DUMP_HARDFAULT = 0x01;  // hardfault dump
+static const uint8_t DUMP_IWDGW = 0x02;      // IWDG warning dump
+static const uint8_t DUMP_FATALERROR = 0x04; // fatal error dump
+static const uint8_t DUMP_NOT_SAVED = 0x80;  // dump not saved flag - (unsaved dump cannot be overwritten)
+static const uint8_t DUMP_NOT_DISPL = 0x40;  // dump not displayed after startup
 
 enum {
     // dumped ram area (128kb)
@@ -129,12 +128,12 @@ static const uint32_t DUMP_INFO_SIZE = 0x00000010;
         DUMP_INFO_TO_CCRAM(DUMP_IWDGW);   \
     }
 
-// perform thermal error dump
-#define DUMP_TEMPERROR_TO_CCRAM()           \
-    {                                       \
-        DUMP_REGS_GEN_FAULT_BEGIN();        \
-        DUMP_REGS_GEN_EXC_TO_CCRAM();       \
-        DUMP_INFO_TO_CCRAM(DUMP_TEMPERROR); \
+// perform fatal error dump
+#define DUMP_FATALERROR_TO_CCRAM()           \
+    {                                        \
+        DUMP_REGS_GEN_FAULT_BEGIN();         \
+        DUMP_REGS_GEN_EXC_TO_CCRAM();        \
+        DUMP_INFO_TO_CCRAM(DUMP_FATALERROR); \
     }
 
 #pragma pack(push)

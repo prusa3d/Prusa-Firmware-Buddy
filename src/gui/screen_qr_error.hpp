@@ -21,6 +21,7 @@ struct ScreenErrorQR : public AddSuperWindow<screen_reset_error_data_t> {
     window_text_t signature_txt;
     window_text_t appendix_txt;
     bool sound_started;
+    bool unknown_error;
 
 public:
     ScreenErrorQR();
