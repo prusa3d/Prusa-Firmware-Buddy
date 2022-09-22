@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <tuple>
 #include <optional>
+#include <variant>
 
 namespace json {
 
@@ -83,6 +84,26 @@ public:
     /// Calling it again after Abort or Complete was returned is invalid. It is
     /// possible to call after return of BufferTooSmall with a bigger buffer.
     virtual std::tuple<JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) = 0;
+};
+
+/// Renders nothing, can act as a placeholder when composing stuff together.
+class EmptyRenderer : public ChunkRenderer {
+public:
+    virtual std::tuple<JsonResult, size_t> render(uint8_t *, size_t) override;
+};
+
+template <class... V>
+class VariantRenderer : public ChunkRenderer {
+private:
+    std::variant<V...> data;
+
+public:
+    VariantRenderer() = default;
+    VariantRenderer(std::variant<V...> &&d)
+        : data(std::move(d)) {}
+    virtual std::tuple<JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override {
+        return std::visit([&](auto &d) { return d.render(buffer, buffer_size); }, data);
+    }
 };
 
 /// Support for rendering JSON by parts.

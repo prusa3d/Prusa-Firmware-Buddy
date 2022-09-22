@@ -6,6 +6,8 @@
 #include <cstdarg>
 #include <cinttypes>
 
+using std::make_tuple;
+
 namespace json {
 
 JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
@@ -84,13 +86,17 @@ JsonResult JsonOutput::output_chunk(size_t resume_point, ChunkRenderer &renderer
     return result;
 }
 
+std::tuple<JsonResult, size_t> EmptyRenderer::render(uint8_t *, size_t) {
+    return make_tuple(JsonResult::Complete, 0);
+}
+
 std::tuple<JsonResult, size_t> LowLevelJsonRenderer::render(uint8_t *buffer, size_t buffer_size) {
     size_t buffer_size_rest = buffer_size;
     JsonOutput output(buffer, buffer_size_rest, resume_point);
     const auto result = content(resume_point, output);
     assert(buffer_size_rest <= buffer_size);
     size_t written = (result == JsonResult::Abort) ? 0 : buffer_size - buffer_size_rest;
-    return std::make_tuple(result, written);
+    return make_tuple(result, written);
 }
 
 }
