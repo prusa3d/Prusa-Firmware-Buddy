@@ -16,11 +16,9 @@ private:
     GCodeThumbDecoder decoder;
     bool started = false;
 
-protected:
-    virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size);
-
 public:
     PreviewRenderer(FILE *f);
+    virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size);
 };
 
 // An open file + bunch of decoders for it.
@@ -30,7 +28,8 @@ private:
     unique_file_ptr file;
 
 public:
-    PreviewRenderer preview_renderer;
+    json::VariantRenderer<json::EmptyRenderer, PreviewRenderer> renderer;
+    FileExtra() = default;
     FileExtra(unique_file_ptr file);
 };
 
@@ -39,7 +38,8 @@ struct RenderState {
     const Action &action;
     bool has_stat = false;
     struct stat st;
-    std::optional<FileExtra> file_extra;
+    FileExtra file_extra;
+    // XXX: Variantize
     std::optional<Printer::NetInfo> lan;
     std::optional<Printer::NetInfo> wifi;
 

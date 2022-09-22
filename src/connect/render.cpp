@@ -11,6 +11,7 @@ using json::JsonOutput;
 using json::JsonResult;
 using std::get_if;
 using std::make_tuple;
+using std::move;
 using std::tuple;
 using std::visit;
 
@@ -172,13 +173,16 @@ namespace {
             } else if (event.type == EventType::FileInfo) {
                 JSON_FIELD_OBJ("data");
                     assert(state.has_stat);
-                    assert(state.file_extra.has_value());
-                    // Note: This chunk might or might not render anything. The
-                    // decoding of the preview might fail. In that case it
-                    // omits the field name and the comma too (and therefore we
-                    // dont list JSON_COMMA here and don't use
-                    // JSON_FIELD_CHUNK).
-                    JSON_CHUNK(state.file_extra->preview_renderer);
+                    // Note: This chunk might or might not render anything.
+                    //
+                    // * In theory, it can be EmptyRenderer (though that should not happen in practice?)
+                    // * In case of the PreviewRenderer, it could be that it is
+                    //   not a gcode at all or doesn't contain the preview.
+                    //
+                    // For that reason, the renderer is responsible for
+                    // rendering a trailing comma if it outputs anything at
+                    // all.
+                    JSON_CHUNK(state.file_extra.renderer);
                     // Warning: the path->name() is there (hidden) for FileInfo
                     // but _not_ for JobInfo. Do not just copy that into that
                     // part!
@@ -267,7 +271,7 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
 
 FileExtra::FileExtra(unique_file_ptr file)
     : file(move(file))
-    , preview_renderer(this->file.get()) {}
+    , renderer(move(PreviewRenderer(this->file.get()))) {}
 
 RenderState::RenderState(const Printer &printer, const Action &action)
     : printer(printer)

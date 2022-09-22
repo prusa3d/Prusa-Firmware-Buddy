@@ -186,3 +186,23 @@ TEST_CASE("Json buffer too small") {
     REQUIRE(result2 == JsonResult::BufferTooSmall);
     REQUIRE(written2 == 0);
 }
+
+using ComposedRender = VariantRenderer<EmptyRenderer, TestJsonRenderer, BiggerJson>;
+
+TEST_CASE("Composed JSON - empty") {
+    ComposedRender renderer;
+
+    uint8_t buffer[2];
+    const auto [result, written] = renderer.render(buffer, 2);
+    REQUIRE(result == JsonResult::Complete);
+    REQUIRE(written == 0);
+}
+
+TEST_CASE("Composed JSON - with content") {
+    ComposedRender renderer { TestJsonRenderer() };
+
+    uint8_t buffer[1024];
+    const auto [result, written] = renderer.render(buffer, sizeof buffer);
+    REQUIRE(result == JsonResult::Complete);
+    REQUIRE(string_view(reinterpret_cast<const char *>(buffer), written) == EXPECTED);
+}
