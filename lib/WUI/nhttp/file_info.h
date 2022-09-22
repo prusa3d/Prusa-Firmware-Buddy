@@ -4,10 +4,9 @@
 
 #include <http/types.h>
 #include <segmented_json.h>
+#include <unique_dir_ptr.hpp>
 
 #include <string_view>
-#include <dirent.h>
-#include <memory>
 #include <variant>
 
 // Why does FILE_PATH_BUFFER_LEN lives in *gui*!?
@@ -32,12 +31,6 @@ private:
     bool after_upload : 1;
     bool json_errors : 1;
     ReqMethod method;
-    class DirDeleter {
-    public:
-        void operator()(DIR *d) {
-            closedir(d);
-        }
-    };
 
     /// Marker for the state before we even tried anything.
     class Uninitialized {};
@@ -47,7 +40,7 @@ private:
 
     struct DirState {
         char *filename = nullptr;
-        std::unique_ptr<DIR, DirDeleter> dir;
+        unique_dir_ptr dir;
         dirent *ent = nullptr;
         bool first = true;
         DirState() = default;
