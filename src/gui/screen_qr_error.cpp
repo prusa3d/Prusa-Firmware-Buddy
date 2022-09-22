@@ -23,6 +23,7 @@ static const constexpr Rect16 appendix_rect = Rect16(195, 295, 40, 13);
 
 static constexpr const char *const header_label = N_("ERROR");
 static constexpr const char *const help_text = N_("More detail at");
+static constexpr const char *const unknown_err_txt = N_("Unknown Error");
 
 ScreenErrorQR::ScreenErrorQR()
     : AddSuperWindow<screen_reset_error_data_t>()
@@ -36,7 +37,8 @@ ScreenErrorQR::ScreenErrorQR()
     , fw_version_txt(this, fw_version_rect, is_multiline::no)
     , signature_txt(this, signature_rect, is_multiline::no)
     , appendix_txt(this, appendix_rect, is_multiline::no)
-    , sound_started(false) {
+    , sound_started(false)
+    , unknown_error(false) {
 
     SetRedLayout();
     help_link.font = resource_font(IDR_FNT_SMALL);
@@ -64,11 +66,13 @@ ScreenErrorQR::ScreenErrorQR()
         ++i;
     }
     if (i == count) {
-        // error not found => leave blank screen
-        err_title.Hide();
+        // error not found => Print unspecified error
+        unknown_error = true;
+        err_title.SetText(_(unknown_err_txt));
         err_description.Hide();
         help_txt.Hide();
         help_link.Hide();
+        hand_icon.Hide();
         qr.Hide();
         qr_code_txt.Hide();
     } else {
@@ -117,10 +121,12 @@ ScreenErrorQR::ScreenErrorQR()
 
 void ScreenErrorQR::unconditionalDraw() {
     super::unconditionalDraw();
-    display::DrawLine(
-        point_ui16(10, 33),
-        point_ui16(229, 33),
-        COLOR_WHITE);
+    if (!unknown_error) {
+        display::DrawLine(
+            point_ui16(10, 33),
+            point_ui16(229, 33),
+            COLOR_WHITE);
+    }
 }
 
 void ScreenErrorQR::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

@@ -228,7 +228,7 @@ void gui_run(void) {
         case DUMP_HARDFAULT:
             error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
             break;
-        case DUMP_TEMPERROR:
+        case DUMP_FATALERROR:
             // TODO uncomment to enable start after click
             // blockISR();
             error_screen = ScreenFactory::Screen<ScreenErrorQR>;
