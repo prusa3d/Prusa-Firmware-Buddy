@@ -20,13 +20,11 @@ struct ScreenErrorQR : public AddSuperWindow<screen_reset_error_data_t> {
     window_text_t fw_version_txt;
     window_text_t signature_txt;
     window_text_t appendix_txt;
-    bool sound_started;
-    bool unknown_error;
+    window_t title_line;
 
 public:
     ScreenErrorQR();
 
 protected:
-    virtual void unconditionalDraw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

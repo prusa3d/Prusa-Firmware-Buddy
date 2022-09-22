@@ -20,6 +20,7 @@ static const constexpr Rect16 qr_code_rect = Rect16(100, 295, 64, 13);
 static const constexpr Rect16 fw_version_rect = Rect16(6, 295, 80, 13);
 static const constexpr Rect16 signature_rect = Rect16(160, 295, 40, 13);
 static const constexpr Rect16 appendix_rect = Rect16(195, 295, 40, 13);
+static const constexpr Rect16 title_line_rect = Rect16(10, 33, 219, 1);
 
 static constexpr const char *const header_label = N_("ERROR");
 static constexpr const char *const help_text = N_("More detail at");
@@ -37,10 +38,10 @@ ScreenErrorQR::ScreenErrorQR()
     , fw_version_txt(this, fw_version_rect, is_multiline::no)
     , signature_txt(this, signature_rect, is_multiline::no)
     , appendix_txt(this, appendix_rect, is_multiline::no)
-    , sound_started(false)
-    , unknown_error(false) {
+    , title_line(this, title_line_rect) {
 
     SetRedLayout();
+    title_line.SetBackColor(COLOR_WHITE);
     help_link.font = resource_font(IDR_FNT_SMALL);
     qr_code_txt.font = resource_font(IDR_FNT_SMALL);
     fw_version_txt.font = resource_font(IDR_FNT_SMALL);
@@ -67,7 +68,6 @@ ScreenErrorQR::ScreenErrorQR()
     }
     if (i == count) {
         // error not found => Print unspecified error
-        unknown_error = true;
         err_title.SetText(_(unknown_err_txt));
         err_description.Hide();
         help_txt.Hide();
@@ -75,6 +75,7 @@ ScreenErrorQR::ScreenErrorQR()
         hand_icon.Hide();
         qr.Hide();
         qr_code_txt.Hide();
+        title_line.Hide();
     } else {
         // error found
         qr.SetQRHeader(error_code);
@@ -116,16 +117,6 @@ ScreenErrorQR::ScreenErrorQR()
         appendix_txt.SetText(_(appendix_str));
     } else {
         appendix_txt.Hide();
-    }
-}
-
-void ScreenErrorQR::unconditionalDraw() {
-    super::unconditionalDraw();
-    if (!unknown_error) {
-        display::DrawLine(
-            point_ui16(10, 33),
-            point_ui16(229, 33),
-            COLOR_WHITE);
     }
 }
 
