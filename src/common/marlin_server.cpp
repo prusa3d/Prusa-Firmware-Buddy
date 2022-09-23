@@ -820,7 +820,7 @@ static Axis_length_t xy_axes_length_ok() {
     if (alx == aly && aly == Axis_length_t::ok)
         return Axis_length_t::ok;
     // shorter is worse than longer
-    if (alx == Axis_length_t::shorter || alx == Axis_length_t::shorter)
+    if (alx == Axis_length_t::shorter || aly == Axis_length_t::shorter)
         return Axis_length_t::shorter;
     return Axis_length_t::longer;
 }
