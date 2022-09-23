@@ -32,7 +32,7 @@ SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fs
 
     if (SelftestResult_t(data).Passed()) {
         msg.SetText(_("Selftest passed.\nCheck summary for more information."));
-    } else if (SelftestResult_t(data).Passed()) {
+    } else if (SelftestResult_t(data).Failed()) {
         msg.SetText(_("Selftest failed.\nPlease check summary for failed checks."));
     } else
         msg.SetText(_("Some tests did not run or were skipped. Check summary for more information."));
