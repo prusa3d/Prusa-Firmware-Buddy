@@ -59,7 +59,8 @@ namespace {
 
     bool path_allowed(const char *path) {
         constexpr const char *const usb = "/usb/";
-        const bool is_on_usb = strncmp(path, usb, strlen(usb)) == 0;
+        // Note: allow even "bare" /usb
+        const bool is_on_usb = strncmp(path, usb, strlen(usb)) == 0 || strcmp(path, "/usb") == 0;
         const bool contains_upper = strstr(path, "/../") != nullptr;
         return is_on_usb && !contains_upper;
     }

@@ -2,20 +2,13 @@
 
 #include <string.h>
 
-extern "C" bool filename_is_gcode(const char *fname) {
-    size_t len = strlen(fname);
-    static const char gcode[] = ".gcode";
-    static const char gc[] = ".gc";
-    static const char g[] = ".g";
-    static const char gco[] = ".gco";
+extern "C" bool filename_has_ext(const char *fname, const char *ext) {
+    const size_t len = strlen(fname);
+    const size_t ext_len = strlen(ext);
 
-    if (!strcasecmp(fname + len - sizeof(gcode) + 1, gcode))
-        return true;
-    if (!strcasecmp(fname + len - sizeof(gc) + 1, gc))
-        return true;
-    if (!strcasecmp(fname + len - sizeof(g) + 1, g))
-        return true;
-    if (!strcasecmp(fname + len - sizeof(gco) + 1, gco))
-        return true;
-    return false;
+    return (len >= ext_len) && (strcasecmp(fname + len - ext_len, ext) == 0);
+}
+
+extern "C" bool filename_is_gcode(const char *fname) {
+    return filename_has_ext(fname, ".gcode") || filename_has_ext(fname, ".gc") || filename_has_ext(fname, ".g") || filename_has_ext(fname, ".gco");
 }

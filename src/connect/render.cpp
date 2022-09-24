@@ -3,6 +3,7 @@
 #include <segmented_json_macros.h>
 #include <eeprom.h>
 #include <lfn.h>
+#include <gcode_filename.h>
 
 #include <cassert>
 #include <cstring>
@@ -46,6 +47,28 @@ namespace {
 
     bool is_printing(Printer::DeviceState state) {
         return state == Printer::DeviceState::Printing || state == Printer::DeviceState::Paused;
+    }
+
+    bool filename_is_firmware(const char *fname) {
+        return filename_has_ext(fname, ".bbf");
+    };
+
+    const char *file_type_by_ext(const char *fname) {
+        if (filename_is_gcode(fname)) {
+            return "PRINT_FILE";
+        } else if (filename_is_firmware(fname)) {
+            return "FIRMWARE";
+        } else {
+            return "FILE";
+        }
+    }
+
+    const char *file_type(const dirent *ent) {
+        if (ent->d_type == DT_DIR) {
+            return "FOLDER";
+        } else {
+            return file_type_by_ext(ent->d_name);
+        }
     }
 
     JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const SendTelemetry &telemetry) {
@@ -100,8 +123,9 @@ namespace {
             reject = true;
         }
 
-        if (event.type == EventType::FileInfo && !state.has_stat) {
+        if (event.type == EventType::FileInfo && !state.has_stat && !state.file_extra.renderer.holds_alternative<DirRenderer>()) {
             // The file probably doesn't exist or something
+            // Exception for /usb, as that one doesn't have stat even though it exists.
             reject = true;
         }
 
@@ -172,7 +196,6 @@ namespace {
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
                 JSON_FIELD_OBJ("data");
-                    assert(state.has_stat);
                     // Note: This chunk might or might not render anything.
                     //
                     // * In theory, it can be EmptyRenderer (though that should not happen in practice?)
@@ -183,14 +206,19 @@ namespace {
                     // rendering a trailing comma if it outputs anything at
                     // all.
                     JSON_CHUNK(state.file_extra.renderer);
+                    if (state.has_stat) {
+                        // has_stat might be off in case of /usb, that one acts
+                        // "weird", as it is root of the FS.
+                        JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
+                        JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
+                    }
                     // Warning: the path->name() is there (hidden) for FileInfo
                     // but _not_ for JobInfo. Do not just copy that into that
                     // part!
                     JSON_FIELD_STR("name", event.path->name()) JSON_COMMA;
                     JSON_FIELD_STR("path_sfn", event.path->path()) JSON_COMMA;
-                    JSON_FIELD_STR("path", event.path->path()) JSON_COMMA;
-                    JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
-                    JSON_FIELD_INT("m_timestamp", state.st.st_mtime);
+                    JSON_FIELD_STR("type", state.file_extra.renderer.holds_alternative<DirRenderer>() ? "FOLDER" : file_type_by_ext(event.path->path())) JSON_COMMA;
+                    JSON_FIELD_STR("path", event.path->path());
                     // TODO: There's a lot of other things we want to extract
                     // from the file. To do that, we would also pre-open the
                     // file, extract the preview, extract the info...
@@ -269,9 +297,53 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
     return make_tuple(result, written);
 }
 
+DirRenderer::DirRenderer(const char *base_path, unique_dir_ptr dir)
+    : JsonRenderer(DirState { move(dir), base_path }) {}
+
+JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &output, DirState &state) const {
+    // Keep the indentation of the JSON in here!
+    // clang-format off
+    JSON_START;
+    JSON_FIELD_ARR("children");
+    while (state.dir.get() && (state.ent = readdir(state.dir.get()))) {
+        state.child_cnt ++;
+
+        if (!state.first) {
+            JSON_COMMA;
+        } else {
+            state.first = false;
+        }
+
+        JSON_OBJ_START;
+            JSON_FIELD_STR("name_sfn", state.ent->d_name) JSON_COMMA;
+            JSON_FIELD_STR_FORMAT("path_sfn", "%s/%s", state.base_path, state.ent->d_name) JSON_COMMA;
+#ifdef UNITTESTS
+            JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
+            JSON_FIELD_STR_FORMAT("path", "%s/%s", state.base_path, state.ent->d_name) JSON_COMMA;
+#else
+            JSON_FIELD_STR("name", state.ent->lfn) JSON_COMMA;
+            // This is kind of "hybrid" path. The basename / last segment is
+            // LFN, but the stuff before it is _likely_ SFN (because we expect
+            // to get SFN there).
+            JSON_FIELD_STR_FORMAT("path", "%s/%s", state.base_path, state.ent->lfn) JSON_COMMA;
+#endif
+            // We assume USB is not read only for us.
+            JSON_FIELD_BOOL("ro", false) JSON_COMMA;
+            JSON_FIELD_STR("type", file_type(state.ent));
+        JSON_OBJ_END;
+    }
+    JSON_ARR_END JSON_COMMA;
+    JSON_FIELD_INT("file_count", state.child_cnt) JSON_COMMA;
+    JSON_END;
+    // clang-format on
+}
+
 FileExtra::FileExtra(unique_file_ptr file)
     : file(move(file))
     , renderer(move(PreviewRenderer(this->file.get()))) {}
+
+FileExtra::FileExtra(const char *base_path, unique_dir_ptr dir)
+    : renderer(move(DirRenderer(base_path, move(dir)))) {}
 
 RenderState::RenderState(const Printer &printer, const Action &action)
     : printer(printer)
@@ -296,8 +368,9 @@ RenderState::RenderState(const Printer &printer, const Action &action)
             SharedPath spath = event->path.value();
             path = spath.path();
 
-            unique_file_ptr f(fopen(path, "r"));
-            if (f.get() != nullptr) {
+            if (unique_dir_ptr d(opendir(path)); d.get() != nullptr) {
+                file_extra = FileExtra(path, move(d));
+            } else if (unique_file_ptr f(fopen(path, "r")); f.get() != nullptr) {
                 file_extra = FileExtra(move(f));
             } else {
                 error = true;

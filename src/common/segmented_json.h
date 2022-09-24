@@ -104,6 +104,8 @@ public:
     virtual std::tuple<JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override {
         return std::visit([&](auto &d) { return d.render(buffer, buffer_size); }, data);
     }
+    template <class T>
+    bool holds_alternative() { return std::holds_alternative<T>(data); }
 };
 
 /// Support for rendering JSON by parts.
