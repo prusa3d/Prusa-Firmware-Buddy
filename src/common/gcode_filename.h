@@ -6,6 +6,8 @@
 extern "C" {
 #endif
 
+bool filename_has_ext(const char *fname, const char *ext);
+
 /**
  * \brief Does the filename look like a gcode?
  *
