@@ -39,7 +39,8 @@ const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoad
 const PhaseResponses ClientResponses::PreheatResponses[CountPhases<PhasesPreheat>()] = {
     {}, //_first
     { Response::Abort, Response::Cooldown, Response::PLA, Response::PETG,
-        Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB }, //UserTempSelection
+        Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS,
+        Response::PP, Response::PVB, Response::PHA }, //UserTempSelection
 };
 
 const PhaseResponses ClientResponses::PrintPreviewResponses[CountPhases<PhasesPrintPreview>()] = {

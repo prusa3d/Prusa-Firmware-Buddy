@@ -43,5 +43,6 @@ enum class Response : uint8_t {
     Stop,
     Unload,
     Yes,
-    _last = Yes
+    PHA,
+    _last = PHA
 };
