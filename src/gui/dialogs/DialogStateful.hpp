@@ -3,7 +3,7 @@
 #include "IDialog.hpp"
 #include <array>
 #include <optional>
-#include "DialogRadioButton.hpp"
+#include "radio_button.hpp"
 #include "marlin_client.hpp"
 #include "client_response.hpp"
 #include "i18n.h"

@@ -7,7 +7,7 @@
 #pragma once
 #include "window_frame.hpp"
 #include "fsm_base_types.hpp"
-#include "DialogRadioButton.hpp"
+#include "radio_button.hpp"
 #include "wizard_config.hpp"
 #include "window_text.hpp"
 
