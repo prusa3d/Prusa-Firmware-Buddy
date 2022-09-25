@@ -1,9 +1,11 @@
-#include "DialogRadioButton.hpp"
-#include <algorithm> //find
+#include "radio_button.hpp"
+#include "ScreenHandler.hpp"
 #include "sound.hpp"
 #include "../../lang/i18n.h"
 #include "resource.h" //IDR_FNT_BIG
 #include "gui.hpp"
+
+#include <algorithm> //find
 
 static constexpr uint8_t button_delim_size = 31;
 static constexpr uint8_t button_base_size = GuiDefaults::IconButtonSize;
@@ -14,19 +16,19 @@ static constexpr uint8_t icon_label_delim = 5;
 
 /*****************************************************************************/
 //static variables and methods
-static const RadioButton::Responses_t no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; //used in constructor
+static const IRadioButton::Responses_t no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; //used in constructor
 
-size_t RadioButton::cnt_labels(const PhaseTexts *labels) {
+size_t IRadioButton::cnt_labels(const PhaseTexts *labels) {
     if (!labels)
         return 0;
     return (std::find_if(labels->begin(), labels->end(), [](const char *s) { return s[0] == '\0'; })) - labels->begin();
 }
 
-size_t RadioButton::cnt_responses(Responses_t resp) {
+size_t IRadioButton::cnt_responses(Responses_t resp) {
     return (std::find(resp.begin(), resp.end(), Response::_none)) - resp.begin();
 }
 
-size_t RadioButton::cnt_buttons(const PhaseTexts *labels, Responses_t resp) {
+size_t IRadioButton::cnt_buttons(const PhaseTexts *labels, Responses_t resp) {
     size_t lbls = std::min(cnt_labels(labels), max_buttons);
     size_t cmds = std::min(cnt_responses(resp), max_buttons);
     return std::max(lbls, cmds);
@@ -35,27 +37,17 @@ size_t RadioButton::cnt_buttons(const PhaseTexts *labels, Responses_t resp) {
 /*****************************************************************************/
 //nonstatic variables and methods
 
-RadioButton::RadioButton(window_t *parent, Rect16 rect)
-    : RadioButton(parent, rect, Responses_t({ { Response::_none, Response::_none, Response::_none, Response::_none } })) {
-}
-
-RadioButton::RadioButton(window_t *parent, Rect16 rect, const PhaseResponses &resp, const PhaseTexts *labels)
-    : RadioButton(parent, rect, generateResponses(resp), labels) {
-}
-
-RadioButton::RadioButton(window_t *parent, Rect16 rect, Responses_t resp, const PhaseTexts *labels)
+IRadioButton::IRadioButton(window_t *parent, Rect16 rect, size_t count)
     : AddSuperWindow<window_t>(parent, rect)
-    , pfont(resource_font(IDR_FNT_BIG))
-    , responses(resp)
-    , texts(labels) {
+    , pfont(resource_font(IDR_FNT_BIG)) {
     SetBackColor(COLOR_ORANGE);
-    SetBtnCount(cnt_buttons(labels, resp));
+    SetBtnCount(count);
     SetBtnIndex(0);
     Enable();
 }
 
 //no overflow
-RadioButton &RadioButton::operator++() {
+IRadioButton &IRadioButton::operator++() {
     int8_t index = GetBtnIndex();
     if (isIndexValid(index + 1)) {
         SetBtnIndex(index + 1);
@@ -67,7 +59,7 @@ RadioButton &RadioButton::operator++() {
 }
 
 //no underflow
-RadioButton &RadioButton::operator--() {
+IRadioButton &IRadioButton::operator--() {
     uint8_t index = GetBtnIndex();
     if (index > 0 && (isIndexValid(index - 1))) {
         SetBtnIndex(index - 1);
@@ -78,11 +70,19 @@ RadioButton &RadioButton::operator--() {
     return *this;
 }
 
-void RadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (!GetParent())
         return;
 
     switch (event) {
+    case GUI_event_t::CLICK: {
+        // send response to parent via GUI_event_t::CHILD_CLICK
+        Response response = Click();
+        event_conversion_union un;
+        un.response = response;
+        if (GetParent())
+            GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
+    } break;
     case GUI_event_t::ENC_UP:
         ++(*this);
         return;
@@ -94,7 +94,7 @@ void RadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
     }
 }
 
-void RadioButton::unconditionalDraw() {
+void IRadioButton::unconditionalDraw() {
     if (!HasIcon()) {
         const size_t cnt = GetBtnCount();
         switch (cnt) {
@@ -148,80 +148,67 @@ void RadioButton::unconditionalDraw() {
     }
 }
 
-Response RadioButton::Click() const {
+Response IRadioButton::Click() const {
     return responseFromIndex(GetBtnIndex());
 }
 
-Response RadioButton::responseFromIndex(size_t index) const {
-    if (index >= maxSize())
-        return Response::_none;
-    return (responses)[index];
-}
-
-std::optional<size_t> RadioButton::IndexFromResponse(Response btn) const {
-    for (size_t i = 0; i < maxSize(); ++i) {
-        if (btn == (responses)[i])
-            return i;
-    }
-    return std::nullopt;
-}
-
-void RadioButton::draw_0_btn() {
+void IRadioButton::draw_0_btn() {
     if (GetParent()) {
         display::FillRect(GetRect(), GetParent()->GetBackColor());
     }
 }
 
 // called internally, responses must exist
-void RadioButton::draw_1_btn() {
-    const char *txt_to_print = texts ? (*texts)[0] : BtnResponse::GetText(responseFromIndex(0));
+void IRadioButton::draw_1_btn() {
+    const char *txt_to_print = getAlternativeTexts() ? (*getAlternativeTexts())[0] : BtnResponse::GetText(responseFromIndex(0));
     button_draw(GetRect(), GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), _(txt_to_print), pfont, IsEnabled());
 }
 
 // called internally, responses must exist
-void RadioButton::draw_n_btns(const size_t btn_count) {
-    PhaseTexts txts_to_print;
-    if (texts) {
-        txts_to_print = *texts;
-    } else {
-        for (size_t i = 0; i < max_buttons; ++i) {
-            txts_to_print[i] = BtnResponse::GetText(responseFromIndex(i));
-        }
-    }
-
+void IRadioButton::draw_n_btns(size_t btn_count) {
     const uint32_t MAX_TEXT_BUFFER = 128;
-    static_assert(sizeof(btn_count) <= GuiDefaults::MAX_DIALOG_BUTTON_COUNT, "Too many RadioButtons to draw.");
-
-    /// fix size of dialog buttons - MAX_DIALOG_BUTTON_COUNT
-    Rect16 splits[GuiDefaults::MAX_DIALOG_BUTTON_COUNT];
-    Rect16 spaces[GuiDefaults::MAX_DIALOG_BUTTON_COUNT - 1];
-    uint8_t text_width[GuiDefaults::MAX_DIALOG_BUTTON_COUNT];
-
-    for (size_t index = 0; index < btn_count; index++) {
-        string_view_utf8 txt = _(txts_to_print[index]);
-        text_width[index] = pfont->w * static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
-    }
-    GetRect().HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, text_width);
+    Layout layout = getNormalBtnRects(btn_count);
 
     for (size_t i = 0; i < btn_count; ++i) {
-        string_view_utf8 drawn = _(txts_to_print[i]);
+        string_view_utf8 drawn = _(layout.txts_to_print[i]);
         char buffer[MAX_TEXT_BUFFER] = { 0 };
-        if (text_width[i] > splits[i].Width()) {
-            uint32_t max_btn_label_text = splits[i].Width() / pfont->w;
+        if (layout.text_widths[i] > layout.splits[i].Width()) {
+            uint32_t max_btn_label_text = layout.splits[i].Width() / pfont->w;
             size_t length = std::min(max_btn_label_text, MAX_TEXT_BUFFER - 1);
             length = drawn.copyToRAM(buffer, length);
             buffer[length] = 0;
             drawn = string_view_utf8::MakeRAM((const uint8_t *)buffer);
         }
-        button_draw(splits[i], GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), drawn, pfont, GetBtnIndex() == i && IsEnabled());
+        button_draw(layout.splits[i], GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), drawn, pfont, GetBtnIndex() == i && IsEnabled());
     }
     color_t spaces_clr = (GetBackColor() == COLOR_ORANGE) ? COLOR_BLACK : COLOR_ORANGE;
     for (size_t i = 0; i < btn_count - 1; ++i) {
-        display::FillRect(spaces[i], spaces_clr);
+        display::FillRect(layout.spaces[i], spaces_clr);
     }
 }
 
-void RadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, const font_t *pf, bool is_selected) {
+IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
+    Layout ret;
+    if (getAlternativeTexts()) {
+        ret.txts_to_print = *getAlternativeTexts();
+    } else {
+        for (size_t i = 0; i < max_buttons; ++i) {
+            ret.txts_to_print[i] = BtnResponse::GetText(responseFromIndex(i));
+        }
+    }
+
+    static_assert(sizeof(btn_count) <= GuiDefaults::MAX_DIALOG_BUTTON_COUNT, "Too many IRadioButtons to draw.");
+
+    for (size_t index = 0; index < btn_count; index++) {
+        string_view_utf8 txt = _(ret.txts_to_print[index]);
+        ret.text_widths[index] = pfont->w * static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
+    }
+    GetRect().HorizontalSplit(ret.splits, ret.spaces, btn_count, GuiDefaults::ButtonSpacing, ret.text_widths);
+
+    return ret;
+}
+
+void IRadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, const font_t *pf, bool is_selected) {
     color_t button_cl = is_selected ? back_color : COLOR_GRAY;
     color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
     if (GuiDefaults::RadioButtonCornerRadius) {
@@ -232,29 +219,8 @@ void RadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent_
     render_text_align(rc_btn, text, pf, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
 }
 
-bool RadioButton::IsEnabled() const {
+bool IRadioButton::IsEnabled() const {
     return responseFromIndex(0) != Response::_none; //faster than cnt_responses(responses)!=0
-}
-
-void RadioButton::Change(const PhaseResponses &resp, const PhaseTexts *txts) {
-    Change(generateResponses(resp), txts);
-}
-
-void RadioButton::Change(Responses_t resp, const PhaseTexts *txts) {
-    if ((responses == resp) && (txts == texts))
-        return;
-    responses = resp;
-    texts = txts;
-    SetBtnCount(HasIcon() ? max_icons : cnt_buttons(texts, responses));
-
-    //in iconned layout index will stay
-    if (!HasIcon()) {
-        SetBtnIndex(0);
-    }
-
-    validateBtnIndex();
-
-    invalidateWhatIsNeeded();
 }
 
 /**
@@ -263,7 +229,7 @@ void RadioButton::Change(Responses_t resp, const PhaseTexts *txts) {
  * if it is focused, focus must shift
  * if no valid response is found, index shall be 0
  */
-void RadioButton::validateBtnIndex() {
+void IRadioButton::validateBtnIndex() {
     if (isIndexValid(GetBtnIndex()))
         return; //index valid
 
@@ -287,7 +253,7 @@ void RadioButton::validateBtnIndex() {
     }
 }
 
-bool RadioButton::isIndexValid(size_t index) {
+bool IRadioButton::isIndexValid(size_t index) {
     if (HasIcon()) {
         return (responseFromIndex(index) != Response::_none);
     }
@@ -300,7 +266,7 @@ bool RadioButton::isIndexValid(size_t index) {
  * iconned layout is on fixed positions
  * so it is possible to validate background if it was valid before
  */
-void RadioButton::invalidateWhatIsNeeded() {
+void IRadioButton::invalidateWhatIsNeeded() {
     bool validate_background = false;
     if (HasIcon() && HasValidBackground()) {
         validate_background = true;
@@ -311,7 +277,7 @@ void RadioButton::invalidateWhatIsNeeded() {
     }
 }
 
-void RadioButton::SetBtnIndex(uint8_t index) {
+void IRadioButton::SetBtnIndex(uint8_t index) {
     uint8_t idx = (index < GetBtnCount()) ? index : 0;
     if (idx != flags.button_index) {
         flags.button_index = idx;
@@ -319,14 +285,14 @@ void RadioButton::SetBtnIndex(uint8_t index) {
     }
 }
 
-void RadioButton::SetBtn(Response btn) {
+void IRadioButton::SetBtn(Response btn) {
     auto index = IndexFromResponse(btn);
     if (index)
         SetBtnIndex(*index);
 }
 
 //TODO just use some kind of layouts
-Rect16 RadioButton::getIconRect(uint8_t idx) const {
+Rect16 IRadioButton::getIconRect(uint8_t idx) const {
     if (GetRect().Width() >= GetRect().Height()) {
         return getHorizontalIconRect(idx); // 3 buttons 0 - 2, button 1 is in middle
     } else {
@@ -334,7 +300,7 @@ Rect16 RadioButton::getIconRect(uint8_t idx) const {
     }
 }
 
-Rect16 RadioButton::getHorizontalIconRect(uint8_t idx) const {
+Rect16 IRadioButton::getHorizontalIconRect(uint8_t idx) const {
     const int padding = 10;
     Rect16 rect = GetRect();
     rect = Rect16::Width_t(button_base_size);  // button width
@@ -360,7 +326,7 @@ Rect16 RadioButton::getHorizontalIconRect(uint8_t idx) const {
     return rect;
 }
 
-Rect16 RadioButton::getVerticalIconRect(uint8_t idx) const {
+Rect16 IRadioButton::getVerticalIconRect(uint8_t idx) const {
     // Vertical alignment of 3 items: first item on the top edge - second item on centered (with text) - third item's label text on the bottom edge
     // Vertical alignment of 2 items: first item on the top edge - second item's label on the bottom edge
     // Vertical alignment of 1 item: centered with label
@@ -398,7 +364,7 @@ Rect16 RadioButton::getVerticalIconRect(uint8_t idx) const {
 }
 
 //TODO just use some kind of layouts
-Rect16 RadioButton::getLabelRect(uint8_t idx) const {
+Rect16 IRadioButton::getLabelRect(uint8_t idx) const {
     if (GetRect().Width() >= GetRect().Height()) {
         return getHorizontalLabelRect(idx); // 3 buttons 0 - 2, button 1 is in middle
     } else {
@@ -406,7 +372,7 @@ Rect16 RadioButton::getLabelRect(uint8_t idx) const {
     }
 }
 
-Rect16 RadioButton::getHorizontalLabelRect(uint8_t idx) const {
+Rect16 IRadioButton::getHorizontalLabelRect(uint8_t idx) const {
     Rect16 rect = GetRect();
     rect += Rect16::Top_t(button_base_size);    // label is under button
     rect = Rect16::Width_t(label_base_size);    // labels width
@@ -432,7 +398,7 @@ Rect16 RadioButton::getHorizontalLabelRect(uint8_t idx) const {
     return rect;
 }
 
-Rect16 RadioButton::getVerticalLabelRect(uint8_t idx) const {
+Rect16 IRadioButton::getVerticalLabelRect(uint8_t idx) const {
     // Vertical alignment of 3 items: first item on the top edge - second item on centered (with text) - third item's label text on the bottom edge
     // Vertical alignment of 2 items: first item on the top edge - second item's label on the bottom edge
     // Vertical alignment of 1 item: centered with label
@@ -471,12 +437,12 @@ Rect16 RadioButton::getVerticalLabelRect(uint8_t idx) const {
     return rect;
 }
 
-size_t RadioButton::maxSize() const {
+size_t IRadioButton::maxSize() const {
     return HasIcon() ? max_icons : max_buttons;
 }
 
 // 4th response for iconned layout is ensured to be _none
-RadioButton::Responses_t RadioButton::generateResponses(const PhaseResponses &resp) const {
+IRadioButton::Responses_t IRadioButton::generateResponses(const PhaseResponses &resp) const {
     Responses_t newResponses;
     newResponses[3] = Response::_none;
     for (size_t i = 0; i < maxSize(); ++i) {
