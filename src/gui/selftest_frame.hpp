@@ -8,6 +8,7 @@
 #include "window_frame.hpp"
 #include "fsm_base_types.hpp"
 #include "radio_button.hpp"
+#include "radio_button_fsm.hpp"
 #include "wizard_config.hpp"
 #include "window_text.hpp"
 
@@ -35,8 +36,7 @@ public:
  */
 class SelftestFrameWithRadio : public AddSuperWindow<SelftestFrame> {
 protected:
-    RadioButton radio;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param);
+    RadioButtonFsm<PhasesSelftest> radio;
     virtual void pre_change() override; //update radio button
 public:
     SelftestFrameWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, size_t lines_of_footer = 0);
@@ -57,8 +57,7 @@ public:
  */
 class SelftestFrameNamedWithRadio : public AddSuperWindow<SelftestFrameNamed> {
 protected:
-    RadioButton radio;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param);
+    RadioButtonFsm<PhasesSelftest> radio;
     virtual void pre_change() override; //update radio button
 public:
     SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name, size_t lines_of_footer = 0);
