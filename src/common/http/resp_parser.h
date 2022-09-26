@@ -1,9 +1,9 @@
 #pragma once
 
 #include <automata/core.h>
-#include <http/types.h>
+#include "types.h"
 
-namespace connect_client::parser {
+namespace http::parser {
 
 class ResponseParser final : public automata::Execution {
 private:

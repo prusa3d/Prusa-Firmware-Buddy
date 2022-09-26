@@ -1,7 +1,7 @@
 #pragma once
 
 #include "buffer.hpp"
-#include "httpc.hpp"
+#include <http/httpc.hpp>
 #include "planner.hpp"
 #include "printer.hpp"
 
@@ -37,11 +37,11 @@ private:
     Printer &printer;
     SharedBuffer &buffer;
 
-    using ServerResp = std::variant<std::monostate, Command, Error>;
+    using ServerResp = std::variant<std::monostate, Command, http::Error>;
 
     // transmission and reception with Connect server
     std::optional<OnlineStatus> communicate(CachedFactory &conn_factory);
-    ServerResp handle_server_resp(Response response);
+    ServerResp handle_server_resp(http::Response response);
 
 public:
     connect(Printer &printer, SharedBuffer &buffer);

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+using http::Error;
+
 namespace connect_client {
 
 tls::tls() {

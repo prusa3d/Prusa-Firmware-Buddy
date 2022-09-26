@@ -2,19 +2,16 @@ add_executable(
   connect_tests
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/http/types.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.c
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode_thumb_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode_filename.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
-  ${CMAKE_SOURCE_DIR}/src/connect/httpc.cpp
-  ${CMAKE_SOURCE_DIR}/src/connect/resp_parser.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/render.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
   command.cpp
-  http_client.cpp
   missing_functions.cpp
   render.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
@@ -41,7 +38,7 @@ add_custom_target(
   generate-httpc-automata-tests DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
                                         ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.h
   )
-add_dependencies(nhttp_tests generate-httpc-automata-tests)
+add_dependencies(connect_tests generate-httpc-automata-tests)
 
 # Planner tests are separate. They mock time and don't want to poison that for others.
 add_executable(
