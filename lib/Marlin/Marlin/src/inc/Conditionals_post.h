@@ -101,7 +101,9 @@
 #define CORE_IS_XY EITHER(COREXY, COREYX)
 #define CORE_IS_XZ EITHER(COREXZ, COREZX)
 #define CORE_IS_YZ EITHER(COREYZ, COREZY)
-#define IS_CORE (CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ)
+#if (CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ)
+  #define IS_CORE 1
+#endif
 #if IS_CORE
   #if CORE_IS_XY
     #define CORE_AXIS_1 A_AXIS
@@ -545,18 +547,6 @@
     #define HOTEND_OFFSET_Z { 0 } // Z offsets for each extruder
   #endif
 #endif
-
-/**
- * ARRAY_BY_EXTRUDERS based on EXTRUDERS
- */
-#define ARRAY_BY_EXTRUDERS(V...) ARRAY_N(EXTRUDERS, V)
-#define ARRAY_BY_EXTRUDERS1(v1) ARRAY_BY_EXTRUDERS(v1, v1, v1, v1, v1, v1)
-
-/**
- * ARRAY_BY_HOTENDS based on HOTENDS
- */
-#define ARRAY_BY_HOTENDS(V...) ARRAY_N(HOTENDS, V)
-#define ARRAY_BY_HOTENDS1(v1) ARRAY_BY_HOTENDS(v1, v1, v1, v1, v1, v1)
 
 /**
  * Driver Timings
