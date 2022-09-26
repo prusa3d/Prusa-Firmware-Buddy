@@ -38,7 +38,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 #include "../../module/endstops.h"
 #include "../../module/precise_homing.h"
 
-#if HOTENDS > 1
+#if HAS_MULTI_HOTEND
   #include "../../module/tool_change.h"
 #endif
 
@@ -299,7 +299,7 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   #endif
 
   // Always home with tool 0 active
-  #if HOTENDS > 1
+  #if HAS_MULTI_HOTEND
     #if DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       const uint8_t old_tool_index = active_extruder;
     #endif
@@ -511,7 +511,7 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   restore_feedrate_and_scaling();
 
   // Restore the active tool after homing
-  #if HOTENDS > 1 && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE))
+  #if HAS_MULTI_HOTEND && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE))
     #if EITHER(PARKING_EXTRUDER, DUAL_X_CARRIAGE)
       #define NO_FETCH false // fetch the previous toolhead
     #else
