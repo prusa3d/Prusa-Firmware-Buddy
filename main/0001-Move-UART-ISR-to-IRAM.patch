@@ -1,0 +1,34 @@
+From 6dfcd00776632dd00db2b2bf2327ad97f3f107bc Mon Sep 17 00:00:00 2001
+From: David Strobach <lalochcz@gmail.com>
+Date: Mon, 26 Sep 2022 16:27:57 +0000
+Subject: [PATCH] Move UART ISR to IRAM
+
+---
+ components/esp8266/driver/uart.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/components/esp8266/driver/uart.c b/components/esp8266/driver/uart.c
+index ae067dd0..0061a1c9 100644
+--- a/components/esp8266/driver/uart.c
++++ b/components/esp8266/driver/uart.c
+@@ -414,7 +414,7 @@ esp_err_t uart_enable_tx_intr(uart_port_t uart_num, int enable, int thresh)
+     return ESP_OK;
+ }
+ 
+-static void uart_intr_service(void *arg)
++static void IRAM_ATTR uart_intr_service(void *arg)
+ {
+     // UART intr process
+     uint32_t uart_num = 0;
+@@ -518,7 +518,7 @@ esp_err_t uart_intr_config(uart_port_t uart_num,  uart_intr_config_t *intr_conf)
+ }
+ 
+ // internal isr handler for default driver code.
+-static void uart_rx_intr_handler_default(void *param)
++static void IRAM_ATTR uart_rx_intr_handler_default(void *param)
+ {
+     uart_obj_t *p_uart = (uart_obj_t *) param;
+     uint8_t uart_num = p_uart->uart_num;
+-- 
+2.34.1
+
