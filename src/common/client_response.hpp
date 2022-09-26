@@ -200,7 +200,7 @@ class ClientResponses {
     static const PhaseResponses &getResponsesInPhase(PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
 
-protected:
+public:
     //get index of single response in PhaseResponses
     //return -1 (maxval) if does not exist
     template <class T>
@@ -222,7 +222,6 @@ protected:
         return cmds[index];
     }
 
-public:
     //get all responses accepted in phase
     template <class T>
     static const PhaseResponses &GetResponses(T phase) {
