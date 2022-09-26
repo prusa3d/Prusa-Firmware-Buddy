@@ -98,6 +98,7 @@ enum class PhasesSelftest : uint16_t {
 
     _first_WizardPrologue,
     WizardPrologue_ask_run = _first_WizardPrologue,
+    WizardPrologue_ask_run_dev, // developer version has ignore button
     WizardPrologue_info,
     WizardPrologue_info_detailed,
     _last_WizardPrologue = WizardPrologue_info_detailed,
