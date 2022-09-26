@@ -43,7 +43,6 @@ IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer
     , title(this, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, name)
     , progress(this, get_progress_rect(GetRect()), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
     , label(this, get_label_rect(GetRect(), child_has_footer), is_multiline::yes)
-    , radio(this, (child_has_footer == has_footer::yes) ? GuiDefaults::GetButtonRect_AvoidFooter(GetRect()) : GuiDefaults::GetButtonRect(GetRect()))
     , phase(0) {
     title.font = GuiDefaults::FontBig;
     title.SetAlignment(Align_t::Center());
