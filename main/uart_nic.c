@@ -40,6 +40,7 @@
 
 #include "driver/gpio.h"
 #include "driver/uart.h"
+#include "esp8266/uart_register.h"
 
 #include "esp_private/wifi.h"
 #include "esp_supplicant/esp_wpa.h"
@@ -566,8 +567,18 @@ void app_main() {
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
     };
-    uart_param_config(UART_NUM_0, &uart_config);
     uart_driver_install(UART_NUM_0, 16384, 0, 0, NULL, 0);
+    uart_param_config(UART_NUM_0, &uart_config);
+    uart_intr_config_t uart_intr = {
+        .intr_enable_mask = UART_RXFIFO_FULL_INT_ENA_M
+        | UART_RXFIFO_TOUT_INT_ENA_M
+        | UART_FRM_ERR_INT_ENA_M
+        | UART_RXFIFO_OVF_INT_ENA_M,
+        .rxfifo_full_thresh = 80,
+        .rx_timeout_thresh = 10,
+        .txfifo_empty_intr_thresh = 40
+    };
+    uart_intr_config(UART_NUM_0, &uart_intr);
 
     ESP_LOGI(TAG, "UART RE-INITIALIZED");
 
@@ -594,9 +605,9 @@ void app_main() {
     wifi_init_sta();
 
     ESP_LOGI(TAG, "Creating RX thread");
-    xTaskCreate(&output_rx_thread, "output_rx_thread", 2048, NULL, tskIDLE_PRIORITY + 3, NULL);
+    xTaskCreate(&output_rx_thread, "output_rx_thread", 2048, NULL, 1, NULL);
     ESP_LOGI(TAG, "Creating WiFi-out thread");
-    xTaskCreate(&wifi_egress_thread, "wifi_egress_thread", 2048, NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(&wifi_egress_thread, "wifi_egress_thread", 2048, NULL, 12, NULL);
     ESP_LOGI(TAG, "Creating TX thread");
-    xTaskCreate(&uart_tx_thread, "uart_tx_thread", 2048, NULL, tskIDLE_PRIORITY + 2, NULL);
+    xTaskCreate(&uart_tx_thread, "uart_tx_thread", 2048, NULL, 14, NULL);
 }
