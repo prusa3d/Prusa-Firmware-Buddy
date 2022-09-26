@@ -1,9 +1,9 @@
 #include "connect.hpp"
-#include "httpc.hpp"
-#include "os_porting.hpp"
+#include <http/httpc.hpp>
+#include <http/os_porting.hpp>
 #include "tls/tls.hpp"
 #include "render.hpp"
-#include "socket.hpp"
+#include <http/socket.hpp>
 
 #include <cmsis_os.h>
 #include <log.h>
@@ -16,8 +16,7 @@
 #include <optional>
 #include <variant>
 
-using http::ContentType;
-using http::Status;
+using namespace http;
 using json::JsonRenderer;
 using json::JsonResult;
 using std::decay_t;
@@ -385,7 +384,7 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
 }
 
 void connect::run() {
-    CONNECT_DEBUG("%s", "Connect client starts\n");
+    log_debug(connect, "%s", "Connect client starts\n");
     // waits for file-system and network interface to be ready
     //FIXME! some mechanisms to know that file-system and network are ready.
     osDelay(IDLE_WAIT);

@@ -23,5 +23,5 @@ This file is generated automatically so don't edit it directly
 - W25X: LOG_SEVERITY_DEBUG, src/common/w25x.cpp
 - WUI: LOG_SEVERITY_DEBUG, lib/WUI/wui.cpp
 - connect: LOG_SEVERITY_DEBUG, src/connect/connect.cpp
-- httpc: LOG_SEVERITY_DEBUG, src/connect/httpc.cpp
-- socket: LOG_SEVERITY_DEBUG, src/connect/socket.cpp
+- httpc: LOG_SEVERITY_DEBUG, src/common/http/httpc.cpp
+- socket: LOG_SEVERITY_DEBUG, src/common/http/socket.cpp

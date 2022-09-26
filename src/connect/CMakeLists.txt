@@ -2,10 +2,6 @@ target_sources(
   firmware
   PRIVATE connect.cpp
           command.cpp
-          httpc.cpp
-          os_porting.cpp
-          socket.cpp
-          resp_parser.cpp
           render.cpp
           planner.cpp
           printer.cpp

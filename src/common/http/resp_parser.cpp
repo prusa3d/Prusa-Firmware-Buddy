@@ -16,7 +16,7 @@ const automata::Automaton http_response(con::parser::response::paths, con::parse
 
 }
 
-namespace connect_client::parser {
+namespace http::parser {
 
 ResponseParser::ResponseParser()
     : Execution(&http_response)

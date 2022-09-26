@@ -1,7 +1,6 @@
 #include "socket.hpp"
 #include <string.h>
 #include <optional>
-#include <debug.h>
 
 #if defined(__unix__) || defined(__APPLE__)
     #include <sys/types.h>
@@ -38,7 +37,7 @@ public:
 
 }
 
-namespace connect_client {
+namespace http {
 
 socket_con::socket_con() {
     fd = -1;
@@ -140,7 +139,7 @@ std::variant<size_t, Error> socket_con::rx(uint8_t *read_buffer, size_t buffer_l
     }
 
     bytes_received = (size_t)status;
-    CONNECT_DEBUG("read %zu bytes\n", bytes_received);
+    log_debug(socket, "read %zu bytes\n", bytes_received);
     return bytes_received;
 }
 

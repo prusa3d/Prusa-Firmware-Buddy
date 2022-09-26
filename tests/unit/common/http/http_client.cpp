@@ -1,4 +1,4 @@
-#include <httpc.hpp>
+#include <http/httpc.hpp>
 
 #include <catch2/catch.hpp>
 #include <cstring>
@@ -16,7 +16,7 @@ using std::optional;
 using std::string;
 using std::string_view;
 using std::variant;
-using namespace connect_client;
+using namespace http;
 
 namespace {
 

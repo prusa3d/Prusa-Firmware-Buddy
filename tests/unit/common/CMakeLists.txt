@@ -1,4 +1,5 @@
 add_subdirectory(automata)
+add_subdirectory(http)
 
 add_executable(
   support_utils_tests ${CMAKE_CURRENT_SOURCE_DIR}/support_utils_lib_test.cpp
