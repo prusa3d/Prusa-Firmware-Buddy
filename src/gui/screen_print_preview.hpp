@@ -10,6 +10,8 @@
 #include "gcode_description.hpp"
 #include "fs_event_autolock.hpp"
 #include "static_alocation_ptr.hpp"
+#include "fsm_base_types.hpp"
+#include "radio_button_fsm.hpp"
 
 class ScreenPrintPreview : public AddSuperWindow<screen_t> {
     constexpr static const char *labelWarning = N_("Warning");
@@ -22,7 +24,7 @@ class ScreenPrintPreview : public AddSuperWindow<screen_t> {
     static ScreenPrintPreview *ths; // to be accessible in dialog handler
 
     window_roll_text_t title_text;
-    RadioButton radio; // shows 2 mutually exclusive buttons Print and Back
+    RadioButtonFsm<PhasesPrintPreview> radio; // shows 2 mutually exclusive buttons Print and Back
 
     GCodeInfo &gcode;
     GCodeInfoWithDescription gcode_description; // cannot be first
@@ -43,7 +45,4 @@ public:
     virtual ~ScreenPrintPreview() override;
     static ScreenPrintPreview *GetInstance();
     void Change(fsm::BaseData data);
-
-protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
