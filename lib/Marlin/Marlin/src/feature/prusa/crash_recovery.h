@@ -44,7 +44,7 @@ public:
 
     struct crash_block_t {
         xyze_pos_t start_current_position; /// Starting logical position of the G-code
-        pos_t e_position;                  /// Starting physical position of the segment
+        float e_position;                  /// Starting physical position of the segment
         int32_t e_steps;                   /// Length of the extrusion in steps
         uint32_t sdpos;                    /// Media location of the interrupted G-code
         uint16_t segment_idx;              /// Aborted segment index

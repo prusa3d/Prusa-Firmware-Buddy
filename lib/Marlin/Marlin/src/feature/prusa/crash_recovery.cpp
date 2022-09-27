@@ -354,7 +354,7 @@ void Crash_s::reset() {
     state = IDLE;
     vars_locked = false;
     active = false;
-    axis_hit = NO_AXIS;
+    axis_hit = NO_AXIS_ENUM;
 }
 
 void Crash_s::start_sensorless_homing_per_axis(const AxisEnum axis) {
