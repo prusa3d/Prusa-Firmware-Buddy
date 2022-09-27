@@ -98,17 +98,13 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
       #endif // ENABLED(CRASH_RECOVERY)
 
       sensorless_t stealth_states {
-          tmc_enable_stallguard(stepperX)
-        , tmc_enable_stallguard(stepperY)
-        , false
-        , false
-          #if AXIS_HAS_STALLGUARD(X2)
-            || tmc_enable_stallguard(stepperX2)
-          #endif
-        , false
-          #if AXIS_HAS_STALLGUARD(Y2)
-            || tmc_enable_stallguard(stepperY2)
-          #endif
+        NUM_AXIS_LIST(
+          TERN0(X_SENSORLESS, tmc_enable_stallguard(stepperX)),
+          TERN0(Y_SENSORLESS, tmc_enable_stallguard(stepperY)),
+          false, false, false, false
+        )
+        , TERN0(X2_SENSORLESS, tmc_enable_stallguard(stepperX2))
+        , TERN0(Y2_SENSORLESS, tmc_enable_stallguard(stepperY2))
       };
 
       #if ENABLED(CRASH_RECOVERY)
@@ -128,14 +124,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
       #if ANY(ENDSTOPS_ALWAYS_ON_DEFAULT, CRASH_RECOVERY)
         UNUSED(stealth_states);
       #else
-        tmc_disable_stallguard(stepperX, stealth_states.x);
-        tmc_disable_stallguard(stepperY, stealth_states.y);
-        #if AXIS_HAS_STALLGUARD(X2)
-          tmc_disable_stallguard(stepperX2, stealth_states.x2);
-        #endif
-        #if AXIS_HAS_STALLGUARD(Y2)
-          tmc_disable_stallguard(stepperY2, stealth_states.y2);
-        #endif
+        TERN_(X_SENSORLESS, tmc_disable_stallguard(stepperX, stealth_states.x));
+        TERN_(X2_SENSORLESS, tmc_disable_stallguard(stepperX2, stealth_states.x2));
+        TERN_(Y_SENSORLESS, tmc_disable_stallguard(stepperY, stealth_states.y));
+        TERN_(Y2_SENSORLESS, tmc_disable_stallguard(stepperY2, stealth_states.y2));
       #endif
     #endif
   }
@@ -176,9 +168,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
         active_extruder_parked = false;
       #endif
 
-      #if ENABLED(SENSORLESS_HOMING)
-        safe_delay(500); // Short delay needed to settle
-      #endif
+      TERN_(SENSORLESS_HOMING, safe_delay(500)); // Short delay needed to settle
 
       do_blocking_move_to_xy(destination);
       homeaxis(Z_AXIS);
