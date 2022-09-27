@@ -497,6 +497,14 @@ void do_blocking_move_to_xy_z(const xy_pos_t &raw, const float &z, const feedRat
   do_blocking_move_to(raw.x, raw.y, z, fr_mm_s);
 }
 
+#if HAS_Z_AXIS
+  void do_z_clearance(const_float_t zclear, const bool lower_allowed/*=false*/) {
+    float zdest = zclear;
+    if (!lower_allowed) NOLESS(zdest, current_position.z);
+    do_blocking_move_to_z(_MIN(zdest, Z_MAX_POS), homing_feedrate(Z_AXIS));
+  }
+#endif
+
 //
 // Prepare to do endstop or probe moves with custom feedrates.
 //  - Save / restore current feedrate and multiplier

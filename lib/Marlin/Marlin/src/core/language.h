@@ -301,7 +301,7 @@
 #define MSG_T_MAXTEMP                       "MAXTEMP triggered"
 #define MSG_T_MINTEMP                       "MINTEMP triggered"
 #define MSG_ERR_PROBING_FAILED              "Probing Failed"
-#define MSG_ZPROBE_OUT_SER                  "Z Probe Past Bed"
+#define STR_ZPROBE_OUT_SER                  "Z Probe Past Bed"
 
 // Debug
 #define MSG_DEBUG_PREFIX                    "DEBUG:"

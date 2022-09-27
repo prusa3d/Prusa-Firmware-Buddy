@@ -88,13 +88,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
     current_position.set(0.0, 0.0);
     sync_plan_position();
 
-    const int x_axis_home_dir =
-      #if ENABLED(DUAL_X_CARRIAGE)
-        x_home_dir(active_extruder)
-      #else
-        home_dir(X_AXIS)
-      #endif
-    ;
+    const int x_axis_home_dir = TOOL_X_HOME_DIR(active_extruder);
 
     const float speed_ratio = homing_feedrate(X_AXIS) / homing_feedrate(Y_AXIS);
     const float speed_ratio_inv = homing_feedrate(Y_AXIS) / homing_feedrate(X_AXIS);
@@ -150,15 +144,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 #if ENABLED(Z_SAFE_HOMING)
 
   inline void home_z_safely() {
+    DEBUG_SECTION(log_G28, "home_z_safely", DEBUGGING(LEVELING));
 
-    // Disallow Z homing if X or Y are unknown
-    if (!TEST(axis_known_position, X_AXIS) || !TEST(axis_known_position, Y_AXIS)) {
-      LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
-      SERIAL_ECHO_MSG(MSG_ERR_Z_HOMING_SER);
-      return;
-    }
-
-    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("home_z_safely >>>");
+    // Disallow Z homing if X or Y homing is needed
+    if (homing_needed_error(_BV(X_AXIS) | _BV(Y_AXIS))) return;
 
     sync_plan_position();
 
@@ -166,11 +155,17 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
      * Move the Z probe (or just the nozzle) to the safe homing point
      * (Z is already at the right height)
      */
-    destination.set(safe_homing_xy, current_position.z);
-
-    #if HOMING_Z_WITH_PROBE
-      destination -= probe_offset;
+    constexpr xy_float_t safe_homing_xy = { Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT };
+    #if HAS_HOME_OFFSET
+      xy_float_t okay_homing_xy = safe_homing_xy;
+      okay_homing_xy -= home_offset;
+    #else
+      constexpr xy_float_t okay_homing_xy = safe_homing_xy;
     #endif
+
+    destination.set(okay_homing_xy, current_position.z);
+
+    TERN_(HOMING_Z_WITH_PROBE, destination -= probe_offset);
 
     if (position_is_reachable(destination)) {
 
@@ -185,11 +180,9 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
       homeaxis(Z_AXIS);
     }
     else {
-      LCD_MESSAGEPGM(MSG_ZPROBE_OUT);
-      SERIAL_ECHO_MSG(MSG_ZPROBE_OUT_SER);
+      LCD_MESSAGE(MSG_ZPROBE_OUT);
+      SERIAL_ECHO_MSG(STR_ZPROBE_OUT_SER);
     }
-
-    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("<<< home_z_safely");
   }
 
 #endif // Z_SAFE_HOMING
@@ -235,9 +228,9 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
  *  None  Home to all axes with no parameters.
  *        With QUICK_HOME enabled XY will home together, then Z.
  *
- *  O   Home only if position is unknown
- *
- *  Rn  Raise by n mm/inches before homing
+ *  L<bool>   Force leveling state ON (if possible) or OFF after homing (Requires RESTORE_LEVELING_AFTER_G28 or ENABLE_LEVELING_AFTER_G28)
+ *  O         Home only if the position is not known and trusted
+ *  R<linear> Raise by n mm/inches before homing
  *
  * Cartesian/SCARA parameters
  *
@@ -267,10 +260,11 @@ void GcodeSuite::G28(const bool always_home_all) {
 
 void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y,bool Z) {
   MINDA_BROKEN_CABLE_DETECTION__BEGIN();
-  if (DEBUGGING(LEVELING)) {
-    DEBUG_ECHOLNPGM(">>> G28");
-    log_machine_info();
-  }
+
+  DEBUG_SECTION(log_G28, "G28", DEBUGGING(LEVELING));
+  if (DEBUGGING(LEVELING)) log_machine_info();
+
+  TERN_(BD_SENSOR, bdl.config_state = 0);
 
   /**
    * Set the laser power to false to stop the planner from processing the current power setting.
@@ -286,17 +280,17 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   #if ENABLED(MARLIN_DEV_MODE)
     if (S) {
-      LOOP_XYZ(a) set_axis_is_at_home((AxisEnum)a);
+      LOOP_NUM_AXES(a) set_axis_is_at_home((AxisEnum)a);
       sync_plan_position();
       SERIAL_ECHOLNPGM("Simulated Homing");
       report_current_position();
-      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("<<< G28");
       return;
     }
   #endif
 
-  if (!homing_needed() && O) {
-    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip\n<<< G28");
+  // Home (O)nly if position is unknown
+  if (!axes_should_home() && O) {
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip");
     return;
   }
 
@@ -308,25 +302,26 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   TERN_(HAS_DWIN_E3V2_BASIC, DWIN_HomingStart());
   //TERN_(EXTENSIBLE_UI, ExtUI::onHomingStart());
 
-  // Wait for planner moves to finish!
-  planner.synchronize();
+  planner.synchronize();          // Wait for planner moves to finish!
+
+  SET_SOFT_ENDSTOP_LOOSE(false);  // Reset a leftover 'loose' motion state
 
   // Disable the leveling matrix before homing
-  #if HAS_LEVELING
-
-    // Cancel the active G29 session
-    #if ENABLED(PROBE_MANUALLY)
-      g29_in_progress = false;
-    #endif
-
-    #if ENABLED(RESTORE_LEVELING_AFTER_G28)
-      const bool leveling_was_active = planner.leveling_active;
-    #endif
-    set_bed_leveling_enabled(false);
+  #if CAN_SET_LEVELING_AFTER_G28
+    const bool leveling_restore_state = parser.boolval('L', TERN1(RESTORE_LEVELING_AFTER_G28, planner.leveling_active));
   #endif
+
+  // Cancel any prior G29 session
+  TERN_(PROBE_MANUALLY, g29_in_progress = false);
+
+  // Disable leveling before homing
+  TERN_(HAS_LEVELING, set_bed_leveling_enabled(false));
 
   // Reset to the XY plane
   TERN_(CNC_WORKSPACE_PLANES, workspace_plane = PLANE_XY);
+
+  // Count this command as movement / activity
+  reset_stepper_timeout();
 
   #define HAS_CURRENT_HOME(N) (defined(N##_CURRENT_HOME) && N##_CURRENT_HOME != N##_CURRENT)
   #if HAS_CURRENT_HOME(X) || HAS_CURRENT_HOME(X2) || HAS_CURRENT_HOME(Y) || HAS_CURRENT_HOME(Y2) || (ENABLED(DELTA) && HAS_CURRENT_HOME(Z)) || HAS_CURRENT_HOME(I) || HAS_CURRENT_HOME(J) || HAS_CURRENT_HOME(K) || HAS_CURRENT_HOME(U) || HAS_CURRENT_HOME(V) || HAS_CURRENT_HOME(W)
@@ -435,63 +430,66 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   #else
 
-    const bool homeX = X, homeY = Y, homeZ = Z,
-               home_all = always_home_all || (homeX == homeY && homeX == homeZ),
-               doX = home_all || homeX, doY = home_all || homeY, doZ = home_all || homeZ;
+    #define _UNSAFE(A) (homeZ && TERN0(Z_SAFE_HOMING, axes_should_home(_BV(A##_AXIS))))
 
-    destination = current_position;
+    const bool homeZ = TERN0(HAS_Z_AXIS, Z),
+               NUM_AXIS_LIST(              // Other axes should be homed before Z safe-homing
+                 needX = _UNSAFE(X), needY = _UNSAFE(Y), needZ = false, // UNUSED
+                 needI = _UNSAFE(I), needJ = _UNSAFE(J), needK = _UNSAFE(K),
+                 needU = _UNSAFE(U), needV = _UNSAFE(V), needW = _UNSAFE(W)
+               ),
+               NUM_AXIS_LIST(              // Home each axis if needed or flagged
+                 homeX = needX || X,
+                 homeY = needY || Y,
+                 homeZZ = homeZ,
+                 homeI = needI || parser.seen_test(AXIS4_NAME), homeJ = needJ || parser.seen_test(AXIS5_NAME),
+                 homeK = needK || parser.seen_test(AXIS6_NAME), homeU = needU || parser.seen_test(AXIS7_NAME),
+                 homeV = needV || parser.seen_test(AXIS8_NAME), homeW = needW || parser.seen_test(AXIS9_NAME)
+               ),
+               home_all = NUM_AXIS_GANG(   // Home-all if all or none are flagged
+                    homeX == homeX, && homeY == homeX, && homeZ == homeX,
+                 && homeI == homeX, && homeJ == homeX, && homeK == homeX,
+                 && homeU == homeX, && homeV == homeX, && homeW == homeX
+               ),
+               NUM_AXIS_LIST(
+                 doX = home_all || homeX, doY = home_all || homeY, doZ = home_all || homeZ,
+                 doI = home_all || homeI, doJ = home_all || homeJ, doK = home_all || homeK,
+                 doU = home_all || homeU, doV = home_all || homeV, doW = home_all || homeW
+               );
 
-    #if Z_HOME_DIR > 0  // If homing away from BED do Z first
-
-      if (doZ) homeaxis(Z_AXIS);
-
+    #if HAS_Z_AXIS
+      UNUSED(needZ); UNUSED(homeZZ);
+    #else
+      constexpr bool doZ = false;
     #endif
 
-    const float z_homing_height = (
-      #if ENABLED(UNKNOWN_Z_NO_RAISE)
-        !TEST(axis_known_position, Z_AXIS) ? 0 :
-      #endif
-          isnan(R) ? Z_HOMING_HEIGHT : R
-    );
+    TERN_(HOME_Z_FIRST, if (doZ) homeaxis(Z_AXIS));
 
-    if (z_homing_height && (doX || doY)) {
+    const bool seenR = !isnan(R);
+    const float z_homing_height = seenR ? R : Z_HOMING_HEIGHT;
+
+    if (z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
       // Raise Z before homing any other axes and z is not already high enough (never lower z)
-      destination.z = z_homing_height;
-      if (destination.z > current_position.z) {
-        if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("Raise Z (before homing) to ", destination.z);
-        do_blocking_move_to_z(destination.z);
-      }
+      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Raise Z (before homing) by ", z_homing_height);
+      do_z_clearance(z_homing_height);
+      TERN_(BLTOUCH, bltouch.init());
     }
 
     MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME();
 
-    #if ENABLED(QUICK_HOME)
-
-      if (doX && doY) quick_home_xy();
-
-    #endif
+    // Diagonal move first if both are homing
+    TERN_(QUICK_HOME, if (doX && doY) quick_home_xy());
 
     // Home Y (before X)
-    #if ENABLED(HOME_Y_BEFORE_X)
-
-      if (doY
-        #if ENABLED(CODEPENDENT_XY_HOMING)
-          || doX
-        #endif        
-        ) homeaxis(Y_AXIS
-          #if ENABLED(PRECISE_HOMING)
-            , 0.0f, false, !parser.seen('D')
-          #endif
-        );
-
-    #endif
+    if (ENABLED(HOME_Y_BEFORE_X) && (doY || TERN0(CODEPENDENT_XY_HOMING, doX)))
+      homeaxis(Y_AXIS
+      #if ENABLED(PRECISE_HOMING)
+        , 0.0f, false, !parser.seen('D')
+      #endif
+      );
 
     // Home X
-    if (doX
-      #if ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X)
-        || doY
-      #endif
-    ) {
+    if (doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X))) {
 
       #if ENABLED(DUAL_X_CARRIAGE)
 
@@ -526,14 +524,12 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     #endif
 
     // Home Y (after X)
-    #if DISABLED(HOME_Y_BEFORE_X)
-      if (doY) 
-        homeaxis(Y_AXIS
-          #if ENABLED(PRECISE_HOMING)
-            , 0.0f, false, !parser.seen('D')
-          #endif
-        );
-    #endif
+    if (DISABLED(HOME_Y_BEFORE_X) && doY)
+      homeaxis(Y_AXIS
+        #if ENABLED(PRECISE_HOMING)
+          , 0.0f, false, !parser.seen('D')
+        #endif
+      );
 
     #if BOTH(FOAMCUTTER_XYUV, HAS_J_AXIS)
       // Home J (after Y)
@@ -547,23 +543,22 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
       if (doZ) set_axis_is_at_home(Z_AXIS);
     #else
       // Home Z last if homing towards the bed
-      #if Z_HOME_DIR < 0
+      #if HAS_Z_AXIS && DISABLED(HOME_Z_FIRST)
         if (doZ) {
           MINDA_BROKEN_CABLE_DETECTION__POST_XYHOME();
-          #if ENABLED(BLTOUCH)
-            bltouch.init();
+          #if EITHER(Z_MULTI_ENDSTOPS, Z_STEPPER_AUTO_ALIGN)
+            stepper.set_all_z_lock(false);
+            stepper.set_separate_multi_axis(false);
           #endif
+
           #if ENABLED(Z_SAFE_HOMING)
-            home_z_safely();
+            if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) home_z_safely(); else homeaxis(Z_AXIS);
           #else
             homeaxis(Z_AXIS);
           #endif
-
-          #if HOMING_Z_WITH_PROBE && defined(Z_AFTER_PROBING)
-            move_z_after_probing();
-          #endif
+          move_z_after_probing();
           MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1();
-        } // doZ
+        }
       #endif
 
       SECONDARY_AXIS_CODE(
@@ -617,16 +612,12 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   endstops.not_homing();
 
   // Clear endstop state for polled stallGuard endstops
-  #if ENABLED(SPI_ENDSTOPS)
-    endstops.clear_endstop_state();
-  #endif
+  TERN_(SPI_ENDSTOPS, endstops.clear_endstop_state());
 
   // Move to a height where we can use the full xy-area
   TERN_(DELTA_HOME_TO_SAFE_ZONE, do_blocking_move_to_z(delta_clip_start_height));
 
-  #if HAS_LEVELING && ENABLED(RESTORE_LEVELING_AFTER_G28)
-    set_bed_leveling_enabled(leveling_was_active);
-  #endif
+  TERN_(CAN_SET_LEVELING_AFTER_G28, if (leveling_restore_state) set_bed_leveling_enabled());
 
   restore_feedrate_and_scaling();
 
@@ -687,5 +678,5 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(old_grblstate));
 
-    MINDA_BROKEN_CABLE_DETECTION__END();
+  MINDA_BROKEN_CABLE_DETECTION__END();
 }

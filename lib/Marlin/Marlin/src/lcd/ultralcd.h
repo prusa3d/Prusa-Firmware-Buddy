@@ -610,5 +610,6 @@ extern MarlinUI ui;
 #define LCD_MESSAGEPGM_P(x)      ui.set_status_P(x)
 #define LCD_ALERTMESSAGEPGM_P(x) ui.set_alert_status_P(x)
 
+#define LCD_MESSAGE(x)           LCD_MESSAGEPGM_P(GET_TEXT(x))
 #define LCD_MESSAGEPGM(x)        LCD_MESSAGEPGM_P(GET_TEXT(x))
 #define LCD_ALERTMESSAGEPGM(x)   LCD_ALERTMESSAGEPGM_P(GET_TEXT(x))
