@@ -149,16 +149,13 @@ char nth_char(const char str[], uint16_t nth) {
 //! Fatal error that causes Redscreen
 void fatal_error(const char *error, const char *module) {
     uint16_t *perror_code_short = (uint16_t *)(DUMP_INFO_ADDR + 1);
+    bool dump_error_message = false;
 
     /// Decision tree to define error code
     using namespace Language_en;
     /// TODO share these strings (saves ~100 B of binary size)
-    if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
-        *perror_code_short = 0;
-    } else if (strcmp("Emergency stop (M112)", error) == 0) {
+    if (strcmp("Emergency stop (M112)", error) == 0) {
         *perror_code_short = 510;
-    } else if (strcmp("Inactive time kill", error) == 0) {
-        *perror_code_short = 0;
     } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
         *perror_code_short = 301;
     } else if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
@@ -178,11 +175,14 @@ void fatal_error(const char *error, const char *module) {
     } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
         *perror_code_short = 208;
     } else {
-        *perror_code_short = 0;
+        *perror_code_short = 0; // Unknown error code = we don't have help.prusa3d site support for this error
+        dump_error_message = true;
     }
 
     DUMP_FATALERROR_TO_CCRAM();
     dump_to_xflash();
+    if (dump_error_message)
+        dump_err_to_xflash(error, module);
     sys_reset();
 }
 

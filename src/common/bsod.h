@@ -29,6 +29,10 @@ extern "C" {
 
 __attribute__((noreturn)) void _bsod(const char *fmt, const char *fine_name, int line_number, ...); //with file name and line number
 
+/** Fatal error that causes redscreen
+ * @param error - error message, that will be displayed as error description (MAX length 107 chars)
+ * @param module - module affected by error will be displayed as error title (MAX length 20 chars)
+*/
 void fatal_error(const char *error, const char *module);
 
 void ScreenHardFault(void);
