@@ -149,14 +149,19 @@ typedef struct { xyz_pos_t min, max; } axis_limits_t;
       , const uint8_t old_tool_index=0, const uint8_t new_tool_index=0
     #endif
   );
-#else
+  #define SET_SOFT_ENDSTOP_LOOSE(loose) NOOP
+
+#else // !HAS_SOFTWARE_ENDSTOPS
+
   constexpr bool soft_endstops_enabled = false;
   //constexpr axis_limits_t soft_endstop = {
   //  { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
   //  { X_MAX_POS, Y_MAX_POS, Z_MAX_POS } };
   #define apply_motion_limits(V)    NOOP
   #define update_software_endstops(...) NOOP
-#endif
+  #define SET_SOFT_ENDSTOP_LOOSE(V)     NOOP
+
+#endif // !HAS_SOFTWARE_ENDSTOPS
 
 void report_current_position();
 
@@ -245,12 +250,21 @@ void remember_feedrate_and_scaling();
 void remember_feedrate_scaling_off();
 void restore_feedrate_and_scaling();
 
+#if HAS_Z_AXIS
+  void do_z_clearance(const_float_t zclear, const bool lower_allowed=false);
+#else
+  inline void do_z_clearance(float, bool=false) {}
+#endif
+
 //
 // Homing
 //
 
 uint8_t axes_need_homing(uint8_t axis_bits=0x07);
 bool axis_unhomed_error(uint8_t axis_bits=0x07);
+
+static inline bool axes_should_home(uint8_t axis_bits=0x07) { return axes_need_homing(axis_bits); }
+static inline bool homing_needed_error(uint8_t axis_bits=0x07) { return axis_unhomed_error(axis_bits); }
 
 #if ENABLED(NO_MOTION_BEFORE_HOMING)
   #define MOTION_CONDITIONS (IsRunning() && !axis_unhomed_error())
@@ -435,6 +449,10 @@ FORCE_INLINE bool position_is_reachable_by_probe(const xy_pos_t &pos) { return p
   enum DualXMode : char {
     DXC_DUPLICATION_MODE = 2
   };
+
+#else
+
+  #define TOOL_X_HOME_DIR(T) X_HOME_DIR
 
 #endif
 
