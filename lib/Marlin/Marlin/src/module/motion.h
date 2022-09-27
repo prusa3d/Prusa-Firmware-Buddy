@@ -99,9 +99,10 @@ void end_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_ste
 extern feedRate_t feedrate_mm_s;
 
 /**
- * Feedrate scaling
+ * Feedrate scaling is applied to all G0/G1, G2/G3, and G5 moves
  */
 extern int16_t feedrate_percentage;
+#define MMS_SCALED(V) ((V) * 0.01f * feedrate_percentage)
 
 // The active extruder (tool). Set with T<extruder> command.
 #if EXTRUDERS > 1

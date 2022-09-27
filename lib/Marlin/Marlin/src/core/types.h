@@ -757,8 +757,6 @@ struct XYZEval {
 // TODO: remove or integrate these local/legacy exceptions
 #include "millis_t.h"
 
-#define MMS_SCALED(V)    ((V) * 0.01f * feedrate_percentage)
-
 #define LOOP_XY(VAR) LOOP_S_LE_N(VAR, X_AXIS, Y_AXIS)
 #define LOOP_XYZ(VAR) LOOP_S_LE_N(VAR, X_AXIS, Z_AXIS)
 #define LOOP_XYZE(VAR) LOOP_S_LE_N(VAR, X_AXIS, E_AXIS)
