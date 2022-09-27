@@ -120,6 +120,13 @@ public:
     virtual NetCreds net_creds() const = 0;
     virtual bool job_control(JobControl) = 0;
     virtual bool start_print(const char *path) = 0;
+    // Enqueues a gcode command (single one).
+    //
+    // FIXME: For now, this is a "black hole". It'll just submit it without any
+    // kind of feedback. It'll either block if the queue is full, or just throw
+    // it in. But that doesn't meen it has been executed.
+    virtual void submit_gcode(const char *gcode) = 0;
+    virtual bool set_ready(bool ready) = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load.
     std::tuple<Config, bool> config();

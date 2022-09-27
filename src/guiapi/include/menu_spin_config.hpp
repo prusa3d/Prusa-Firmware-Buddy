@@ -25,4 +25,6 @@ struct SpinCnf {
     static const SpinConfigInt microstep_exponential; // 2^0 - 2^8 .. 1, 2, 4, .. , 128, 256
     static const SpinConfigInt rms_current;
     static const SpinConfigInt two_digits_uint;
+    static const SpinConfigInt crash_sensitivity_2209;
+    static const SpinConfigInt crash_max_period_2209;
 };

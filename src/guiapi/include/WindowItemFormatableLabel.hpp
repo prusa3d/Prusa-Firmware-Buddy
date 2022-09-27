@@ -25,7 +25,7 @@ protected:
         printAs(text);
         stringView = string_view_utf8::MakeRAM((uint8_t *)text);
         render_text_align(extension_rect, stringView, InfoFont, color_back,
-            (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPadding, Align_t::RightCenter());
+            (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
     }
     virtual void click(IWindowMenu &window_menu) override {}
 

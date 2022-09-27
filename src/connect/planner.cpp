@@ -6,6 +6,7 @@
 #include <cstring>
 #include <sys/stat.h>
 
+using std::holds_alternative;
 using std::min;
 using std::nullopt;
 using std::optional;
@@ -58,7 +59,8 @@ namespace {
 
     bool path_allowed(const char *path) {
         constexpr const char *const usb = "/usb/";
-        const bool is_on_usb = strncmp(path, usb, strlen(usb)) == 0;
+        // Note: allow even "bare" /usb
+        const bool is_on_usb = strncmp(path, usb, strlen(usb)) == 0 || strcmp(path, "/usb") == 0;
         const bool contains_upper = strstr(path, "/../") != nullptr;
         return is_on_usb && !contains_upper;
     }
@@ -84,6 +86,8 @@ const char *to_str(EventType event) {
         return "FILE_INFO";
     case EventType::Finished:
         return "FINISHED";
+    case EventType::Failed:
+        return "FAILED";
     default:
         assert(false);
         return "???";
@@ -104,8 +108,9 @@ Action Planner::next_action() {
     if (perform_cooldown) {
         perform_cooldown = false;
         assert(cooldown.has_value());
+        Duration bt = background_processing(*cooldown);
         return Sleep {
-            *cooldown
+            *cooldown - bt
         };
     }
 
@@ -118,8 +123,16 @@ Action Planner::next_action() {
         if (*since_telemetry >= TELEMETRY_INTERVAL) {
             return SendTelemetry { false };
         } else {
-            // This shall not underflow, as the since_telemetry is small.
-            return Sleep { TELEMETRY_INTERVAL - *since_telemetry };
+            Duration sleep_amount = TELEMETRY_INTERVAL - *since_telemetry;
+            Duration bt = background_processing(sleep_amount);
+            if (planned_event.has_value()) {
+                // A new event appeared as part of the background
+                // processing, that one takes precedence!
+                return next_action();
+            } else {
+                // This shall not underflow, as the since_telemetry is small.
+                return Sleep { sleep_amount - bt };
+            }
         }
     } else {
         // TODO: Optimization: When can we send just empty telemetry instead of full one?
@@ -172,13 +185,24 @@ void Planner::command(const Command &command, const BrokenCommand &) {
     planned_event = Event { EventType::Rejected, command.id };
 }
 
+void Planner::command(const Command &command, const GcodeTooLarge &) {
+    planned_event = Event { EventType::Rejected, command.id };
+}
+
 void Planner::command(const Command &command, const ProcessingOtherCommand &) {
     planned_event = Event { EventType::Rejected, command.id };
 }
 
-void Planner::command(const Command &command, const Gcode &) {
-    // TODO: Implement
-    planned_event = Event { EventType::Rejected, command.id };
+void Planner::command(const Command &command, const Gcode &gcode) {
+    background_command = BackgroundCommand {
+        command.id,
+        BackgroundGcode {
+            gcode.gcode,
+            gcode.size,
+            0,
+        },
+    };
+    planned_event = Event { EventType::Accepted, command.id };
 }
 
 #define JC(CMD)                                                         \
@@ -231,16 +255,140 @@ void Planner::command(const Command &command, const SendFileInfo &params) {
     }
 }
 
+void Planner::command(const Command &command, const SetPrinterReady &) {
+    auto result = printer.set_ready(true) ? EventType::Finished : EventType::Rejected;
+    planned_event = Event { result, command.id };
+}
+
+void Planner::command(const Command &command, const CancelPrinterReady &) {
+    bool ok = printer.set_ready(false);
+    // Setting _not_ ready can't fail.
+    assert(ok);
+    (void)ok; // Avoid warnging when asserts are disabled.
+    planned_event = Event { EventType::Finished, command.id };
+}
+
+void Planner::command(const Command &command, const ProcessingThisCommand &) {
+    // Unreachable:
+    // * In case we are processing this command, this is handled one level up
+    //   (because we don't want to hit the safety checks there).
+    // * It can't happen to be generated when we are _not_ processing a
+    //   background command.
+    assert(0);
+}
+
+// FIXME: Handle the case when we are resent a command we are already
+// processing for a while. In that case, we want to re-Accept it. Nevertheless,
+// we may not be able to parse it again because the background command might be
+// holding the shared buffer. Therefore, this must happen on some higher level?
 void Planner::command(Command command) {
     // We can get commands only as result of telemetry, not of other things.
     // TODO: We probably want to have some more graceful way to deal with the
     // server sending us the command as a result to something else anyway.
     assert(!planned_event.has_value());
 
+    if (background_command.has_value()) {
+        // We are already processing a command.
+        // If it's this particular one, we just continue processing it and re-accept it.
+        planned_event = Event {
+            holds_alternative<ProcessingThisCommand>(command.command_data) ? EventType::Accepted : EventType::Rejected,
+            command.id,
+        };
+        return;
+    }
+
     visit([&](const auto &arg) {
         this->command(command, arg);
     },
         command.command_data);
+}
+
+Planner::BackgroundResult Planner::background_task(BackgroundGcode &gcode) {
+    if (gcode.size <= gcode.position) {
+        // FIXME: We need a way to know if the commands are not just submitted,
+        // but also processed. Some kind of additional "cork" command that'll
+        // report back to us and we can check it, maybe?
+
+        // All gcode submitted.
+        return BackgroundResult::Success;
+    }
+
+    // In C++, it's a lot of work to convert void * -> char * or uint8_t * ->
+    // char *, although it's both legal conversion (at least in this case). In
+    // C, that works out of the box without casts.
+    const char *start = reinterpret_cast<const char *>(gcode.data->data()) + gcode.position;
+    const size_t tail_size = gcode.size - gcode.position;
+
+    const char *newline = reinterpret_cast<const char *>(memchr(start, '\n', tail_size));
+    // If there's no newline at all, pretend that there's one just behind the end.
+    const size_t end_pos = newline != nullptr ? newline - start : tail_size + 1;
+
+    // We'll replace the \n with \0
+    char gcode_buf[end_pos + 1];
+    memcpy(gcode_buf, start, end_pos);
+    gcode_buf[end_pos] = '\0';
+
+    // Skip whitespace at the start and the end
+    // (\0 isn't a space, so it works as a stop implicitly)
+    char *g_start = gcode_buf;
+    while (isspace(*g_start)) {
+        g_start++;
+    }
+
+    char *g_end = g_start + strlen(g_start) - 1;
+    while (g_end >= g_start && isspace(*g_end)) {
+        *g_end = '\0';
+        g_end--;
+    }
+
+    // Skip over empty ones to not hog the queue
+    if (strlen(g_start) > 0) {
+        // FIXME: This can block if the queue is full.
+        printer.submit_gcode(g_start);
+    }
+
+    gcode.position += end_pos + 1;
+
+    return BackgroundResult::More;
+}
+
+Duration Planner::background_processing(Duration limit) {
+    if (background_command.has_value()) {
+        Timestamp start = now();
+
+        BackgroundResult last_result;
+        do {
+            last_result = visit([&](auto &arg) {
+                return this->background_task(arg);
+            },
+                background_command->command);
+
+            if (last_result == BackgroundResult::Success || last_result == BackgroundResult::Failure) {
+                planned_event = Event {
+                    last_result == BackgroundResult::Success ? EventType::Finished : EventType::Failed,
+                    background_command->id,
+                };
+                background_command = nullopt;
+            }
+
+            if (last_result == BackgroundResult::More && since(start) > limit) {
+                last_result = BackgroundResult::Later;
+            }
+        } while (last_result == BackgroundResult::More);
+
+        // Note: we always pass value in, so we get one out.
+        return min(limit, since(start).value());
+    } else {
+        return 0;
+    }
+}
+
+optional<CommandId> Planner::background_command_id() const {
+    if (background_command.has_value()) {
+        return background_command->id;
+    } else {
+        return nullopt;
+    }
 }
 
 }

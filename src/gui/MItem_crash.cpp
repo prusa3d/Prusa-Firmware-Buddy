@@ -18,37 +18,29 @@ void MI_CRASH_DETECTION::OnChange(size_t old_index) {
 }
 
 MI_CRASH_SENSITIVITY_X::MI_CRASH_SENSITIVITY_X()
-    : WiSpinInt(64 - crash_s.get_sensitivity().x, SpinCnf::crash_sensitivity_2130, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WiSpinInt(crash_s.get_sensitivity().x, SpinCnf::crash_sensitivity_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_X::OnClick() {
 
     xy_long_t se = crash_s.get_sensitivity();
-    #if (X_DRIVER_TYPE) == TMC2130
-    se.x = -GetVal() + 64;
-    #else
     se.x = GetVal();
-    #endif
     crash_s.set_sensitivity(se);
 }
 
 MI_CRASH_SENSITIVITY_Y::MI_CRASH_SENSITIVITY_Y()
-    : WiSpinInt(64 - crash_s.get_sensitivity().y, SpinCnf::crash_sensitivity_2130, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WiSpinInt(crash_s.get_sensitivity().y, SpinCnf::crash_sensitivity_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_Y::OnClick() {
 
     xy_long_t se = crash_s.get_sensitivity();
-    #if (X_DRIVER_TYPE) == TMC2130
-    se.y = -GetVal() + 64;
-    #else
     se.y = GetVal();
-    #endif
     crash_s.set_sensitivity(se);
 }
 
 constexpr float _DASU[] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
 MI_CRASH_MAX_PERIOD_X::MI_CRASH_MAX_PERIOD_X()
-    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().x, SpinCnf::crash_max_period_2130, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().x, SpinCnf::crash_max_period_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_MAX_PERIOD_X::OnClick() {
     xy_long_t mp = crash_s.get_max_period();
@@ -57,7 +49,7 @@ void MI_CRASH_MAX_PERIOD_X::OnClick() {
 }
 
 MI_CRASH_MAX_PERIOD_Y::MI_CRASH_MAX_PERIOD_Y()
-    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().y, SpinCnf::crash_max_period_2130, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().y, SpinCnf::crash_max_period_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_MAX_PERIOD_Y::OnClick() {
     xy_long_t mp = crash_s.get_max_period();
@@ -84,6 +76,7 @@ MI_CRASHES_X::MI_CRASHES_X()
 MI_CRASHES_Y::MI_CRASHES_Y()
     : WI_INFO_t(variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_COUNT_Y_TOT)), _(label)) {}
 
+    #if HAS_DRIVER(TMC2130)
 MI_CRASH_FILTERING::MI_CRASH_FILTERING()
     : WI_ICON_SWITCH_OFF_ON_t(0, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
     index = crash_s.get_filter();
@@ -92,5 +85,5 @@ MI_CRASH_FILTERING::MI_CRASH_FILTERING()
 void MI_CRASH_FILTERING::OnChange(size_t old_index) {
     crash_s.set_filter(index);
 }
-
+    #endif
 #endif // ANY(CRASH_RECOVERY, POWER_PANIC)

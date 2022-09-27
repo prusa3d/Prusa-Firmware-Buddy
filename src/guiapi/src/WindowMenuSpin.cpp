@@ -41,6 +41,14 @@ Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
     return ret;
 }
 
+void IWiSpin::changeExtentionWidth(size_t unit_len, char uchar, size_t width) {
+    if (width != spin_val_width) {
+        spin_val_width = width;
+        extension_width = calculateExtensionWidth(unit_len, uchar, width);
+        deInitRoll();
+    }
+}
+
 void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
 
     string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
@@ -75,15 +83,56 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
     }
 }
 
-Rect16::Width_t IWiSpin::calculateExtensionWidth(const char *unit, size_t value_max_digits) {
+Rect16::Width_t IWiSpin::calculateExtensionWidth(size_t unit_len, char uchar, size_t value_max_digits) {
     size_t ret = value_max_digits * Font->w;
-    if (unit) {
+    uint8_t half_space = 0;
+    if (unit_len) {
         if (GuiDefaults::MenuUseFixedUnitWidth)
             return GuiDefaults::MenuUseFixedUnitWidth;
-        ret += 2 * (Padding.left + Padding.right);
-        ret += _(unit).computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
-    } else {
-        ret += Padding.left + Padding.right;
+        ret += unit_len * GuiDefaults::FontMenuSpecial->w;
+        ret += GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right;
+        half_space = uchar == '\177' ? 0 : unit__half_space_padding;
     }
+    ret += Padding.left + Padding.right + half_space;
     return ret;
+}
+
+WI_SPIN_CRASH_PERIOD_t::WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden)
+    : AddSuper<IWiSpin>(std::clamp(int(val), cnf.Min(), cnf.Max()), label, id_icon, enabled, hidden,
+        cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), 0)
+    , config(cnf) {
+    printSpinToBuffer();
+
+    // spin_val_width = cnf.txtMeas(val);
+    size_t unit_len = 0;
+    char uchar = 0;
+    if (config.Unit() != nullptr) {
+        string_view_utf8 un = units;
+        uchar = un.getUtf8Char();
+        un.rewind();
+        unit_len = un.computeNumUtf8CharsAndRewind();
+    }
+    extension_width = calculateExtensionWidth(unit_len, uchar, spin_val_width);
+}
+
+invalidate_t WI_SPIN_CRASH_PERIOD_t::change(int dif) {
+    int val = (int)value;
+    int old = val;
+    val += (int)dif * config.Step();
+    val = dif >= 0 ? std::max(val, old) : std::min(val, old); //check overflow/underflow
+    val = std::clamp(val, config.Min(), config.Max());
+    value = val;
+    invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; //0 dif forces redraw
+    if (invalid == invalidate_t::yes) {
+        if (!has_unit || config.Unit() == nullptr) {
+            changeExtentionWidth(0, 0, config.txtMeas(value));
+        } else {
+            string_view_utf8 un = units;
+            char uchar = un.getUtf8Char();
+            un.rewind();
+            changeExtentionWidth(units.computeNumUtf8CharsAndRewind(), uchar, config.txtMeas(value));
+        }
+        printSpinToBuffer(); // could be in draw method, but traded little performance for code size (printSpinToBuffer is not virtual when it is here)
+    }
+    return invalid;
 }

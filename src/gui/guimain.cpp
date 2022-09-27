@@ -17,7 +17,7 @@
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_hardfault.hpp"
-#include "screen_temperror.hpp"
+#include "screen_qr_error.hpp"
 #include "screen_watchdog.hpp"
 #include "screen_filebrowser.hpp"
 #include "IScreenPrinting.hpp"
@@ -228,10 +228,10 @@ void gui_run(void) {
         case DUMP_HARDFAULT:
             error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
             break;
-        case DUMP_TEMPERROR:
+        case DUMP_FATALERROR:
             // TODO uncomment to enable start after click
             // blockISR();
-            error_screen = ScreenFactory::Screen<screen_temperror_data_t>;
+            error_screen = ScreenFactory::Screen<ScreenErrorQR>;
             break;
 #ifndef _DEBUG
         case DUMP_IWDGW:

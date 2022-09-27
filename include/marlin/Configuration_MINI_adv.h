@@ -861,7 +861,7 @@
 //kill command after probing fails
 //#define HALT_ON_PROBING_ERROR
 //after enabling HOMING_MAX_ATTEMPTS, homing can fail
-#define HOMING_MAX_ATTEMPTS 2
+#define HOMING_MAX_ATTEMPTS 10
 #ifdef HOMING_MAX_ATTEMPTS
     // ranges in mm - allowed distance between homing probes for XYZ axes
     constexpr float axis_home_min_diff[] = {-0.2, -0.2, -0.1};
@@ -871,8 +871,8 @@
 #endif// HOMING_MAX_ATTEMPTS
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
-#define HOMING_BUMP_MM      { 0, 0, 2 }       // (linear=mm, rotational=°) Backoff from endstops after first bump
-#define HOMING_BUMP_DIVISOR { 2, 2, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
+#define HOMING_BUMP_MM      { 10, 10, 2 }       // (linear=mm, rotational=°) Backoff from endstops after first bump
+#define HOMING_BUMP_DIVISOR { 1, 1, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
 
 //#define HOMING_BACKOFF_POST_MM { 2, 2, 2 }  // (linear=mm, rotational=°) Backoff from endstops after homing
 
@@ -2344,10 +2344,10 @@
 
 #if EITHER(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
 // Override the mesh area if the automatic (max) area is too large
-#define MESH_MIN_X MESH_INSET
-#define MESH_MIN_Y MESH_INSET
-#define MESH_MAX_X X_BED_SIZE - (MESH_INSET) - 29
-#define MESH_MAX_Y Y_BED_SIZE - (MESH_INSET) - 3
+#define MESH_MIN_X (-41)
+#define MESH_MIN_Y (-48)
+#define MESH_MAX_X (X_BED_SIZE + 15)
+#define MESH_MAX_Y (Y_BED_SIZE + 46)
 #endif
 
 #if BOTH(AUTO_BED_LEVELING_UBL, EEPROM_SETTINGS)
@@ -2810,7 +2810,7 @@
             { -30, 4000 }, \
         }
     #define PAUSE_PARK_RETRACT_FEEDRATE 66 // (mm/s) Initial retract feedrate.
-    #define PAUSE_PARK_RETRACT_LENGTH 2 // (mm) Initial retract.
+    #define PAUSE_PARK_RETRACT_LENGTH 5 // (mm) Initial retract.
 // This short retract is done immediately, before parking the nozzle.
     #define FILAMENT_CHANGE_UNLOAD_FEEDRATE 80 // (mm/s) Unload filament feedrate. This can be pretty fast.
     #define FILAMENT_CHANGE_UNLOAD_ACCEL 1250 // (mm/s^2) Lower acceleration may allow a faster feedrate.
@@ -3425,6 +3425,23 @@
     #define E7_HYBRID_THRESHOLD     30
 
     /**
+     * Provides crash detection during printing and proper crash recovery.
+     * Sensorless homing must be turned on and sensitivities set accordingly.
+     */
+    #define CRASH_RECOVERY
+    #ifdef CRASH_RECOVERY
+        #define CRASH_STALL_GUARD { 50, 40 } // internal value representing sensitivity
+        #define CRASH_PERIOD { 381, 381 }  // (steps per tick) - reciprocal value of minimal speed
+        #define CRASH_FILTER (false)        // Stallguard filtering for crash detection
+        #define CRASH_TIMER 45             // seconds before counter reset
+        #define CRASH_COUNTER_MAX 3        // max crashes with automatic recovery
+
+    #endif
+
+    #define AXIS_MEASURE_STALL_GUARD 130
+    #define AXIS_MEASURE_CRASH_PERIOD 210
+
+     /**
      * Use StallGuard to home / probe X, Y, Z.
      *
      * TMC2130, TMC2160, TMC2209, TMC2660, TMC5130, and TMC5160 only
@@ -3449,15 +3466,22 @@
      *
      * Comment *_STALL_SENSITIVITY to disable sensorless homing for that axis.
      */
-    //#define SENSORLESS_HOMING // StallGuard capable drivers only
+    #define SENSORLESS_HOMING // StallGuard capable drivers only
 
     #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
         // TMC2209: 0...255. TMC2130: -64...63
-        #define X_STALL_SENSITIVITY  8
+        #if X_DRIVER_TYPE == TMC2209
+            #define X_STALL_SENSITIVITY 130
+        #endif
+
         #define X2_STALL_SENSITIVITY X_STALL_SENSITIVITY
-        #define Y_STALL_SENSITIVITY  8
+        #if Y_DRIVER_TYPE == TMC2209
+            #define Y_STALL_SENSITIVITY 130
+        #endif
         #define Y2_STALL_SENSITIVITY Y_STALL_SENSITIVITY
-        //#define Z_STALL_SENSITIVITY  8
+        #if Z_DRIVER_TYPE == TMC2209
+            #define Z_STALL_SENSITIVITY 100
+        #endif
         //#define Z2_STALL_SENSITIVITY Z_STALL_SENSITIVITY
         //#define Z3_STALL_SENSITIVITY Z_STALL_SENSITIVITY
         //#define Z4_STALL_SENSITIVITY Z_STALL_SENSITIVITY

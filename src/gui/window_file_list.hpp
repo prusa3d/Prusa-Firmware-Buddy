@@ -14,10 +14,8 @@
 #include "lazyfilelist.h"
 #include "text_roll.hpp"
 #include "WindowMenuItems.hpp"
+#include "GuiDefaults.hpp"
 #include <array>
-
-static constexpr size_t LazyDirViewSize = 9; //change of this value changes window_file_list_t height
-using LDV = LazyDirView<LazyDirViewSize>;
 
 // This enum value is stored to eeprom as file sort settings
 typedef enum {
@@ -47,13 +45,20 @@ protected:
 };
 
 class window_file_list_t : public AddSuperWindow<window_aligned_t> {
+public:
+    static constexpr Rect16 DefaultRC = GuiDefaults::FileBrowserRect;
+    static constexpr padding_ui8_t padding = GuiDefaults::MenuPaddingItems;
+    static constexpr Rect16::Height_t font_h = 19; // fonts are not constexpr
+    static constexpr Rect16::Height_t item_height = font_h + padding.top + padding.bottom;
+
+    static constexpr size_t LazyDirViewSize = DefaultRC.Height() / item_height;
+    using LDV = LazyDirView<LazyDirViewSize>;
+
+private:
     LDV ldv;
     static char *root; // this is a Short-File-Name path to the root of the dialog
 
     static constexpr const char *home_str_en = N_("Main"); // @@TODO reuse from elsewhere ...
-    static constexpr padding_ui8_t padding = { 2, 6, 2, 6 };
-    static constexpr Rect16::Height_t font_h = 19; //fonts are not constexpr
-    static constexpr Rect16::Height_t item_height = font_h + padding.top + padding.bottom;
     color_t color_text;
     font_t *font;
 
@@ -67,7 +72,7 @@ public:
     //TODO private
     char sfn_path[FILE_PATH_BUFFER_LEN]; // this is a Short-File-Name path where we start the file dialog
 public:
-    window_file_list_t(window_t *parent, point_i16_t top_left, Rect16::Width_t width); // height is calculated from LazyDirViewSize
+    window_file_list_t(window_t *parent); // height is calculated from LazyDirViewSize
     void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
 
     void SetItemIndex(int index);

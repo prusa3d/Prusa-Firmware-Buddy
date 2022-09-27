@@ -473,7 +473,7 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
         png_memory->acquire(/*wait=*/true);
     }
     if (png_mem_total + size >= png_memory->get().size()) {
-        general_error("pngmalloc", "out of memory");
+        fatal_error("pngmalloc", "out of memory");
     }
     void *p = ((uint8_t *)png_memory->get().buffer) + png_mem_total;
     {

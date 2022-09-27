@@ -66,7 +66,7 @@ int dump_in_xflash_is_valid(void) {
     unsigned char dump_type = dumpinfo.type_flags & ~(DUMP_NOT_SAVED | DUMP_NOT_DISPL);
     if (w25x_fetch_error())
         return 0;
-    return ((dump_type == DUMP_HARDFAULT) || (dump_type == DUMP_IWDGW) || (dump_type == DUMP_TEMPERROR));
+    return ((dump_type == DUMP_HARDFAULT) || (dump_type == DUMP_IWDGW) || (dump_type == DUMP_FATALERROR));
 }
 /**
  * @retval 1 is saved

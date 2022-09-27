@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <tuple>
 #include <optional>
+#include <variant>
 
 namespace json {
 
@@ -26,6 +27,8 @@ enum class JsonResult {
     /// repeatedly try to produce empty buffers and create an infinite loop.
     BufferTooSmall,
 };
+
+class ChunkRenderer;
 
 /// A proxy for the buffer where the data goes.
 //
@@ -59,6 +62,50 @@ public:
     JsonResult output_field_str_format(size_t resume_point, const char *name, const char *format, ...);
     JsonResult output_field_obj(size_t resume_point, const char *name);
     JsonResult output_field_arr(size_t resume_point, const char *name);
+    // The value is rendered by calling the provided sub-renderer.
+    //
+    // This is not a "field" (it isn't prepended by a name, such part needs to
+    // be provided separately for implementation simplicity). If the result
+    // shall be eg. a string, the sub-renderer needs to output the quotes and
+    // do the escaping.
+    JsonResult output_chunk(size_t resume_point, ChunkRenderer &renderer);
+};
+
+/// Can render something (not necessarily the whole JSON).
+class ChunkRenderer {
+public:
+    virtual ~ChunkRenderer() = default;
+    /// When called, this would produce the next part of the resulting JSON into the provided buffer and signal:
+    /// * If this is the whole thing or not.
+    /// * How much of the buffer was written (even if the Incomplete is
+    ///   returned, there might be part of the buffer unused ‒ the data is split
+    ///   only at certain points, not at arbitrary byte position).
+    ///
+    /// Calling it again after Abort or Complete was returned is invalid. It is
+    /// possible to call after return of BufferTooSmall with a bigger buffer.
+    virtual std::tuple<JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) = 0;
+};
+
+/// Renders nothing, can act as a placeholder when composing stuff together.
+class EmptyRenderer : public ChunkRenderer {
+public:
+    virtual std::tuple<JsonResult, size_t> render(uint8_t *, size_t) override;
+};
+
+template <class... V>
+class VariantRenderer : public ChunkRenderer {
+private:
+    std::variant<V...> data;
+
+public:
+    VariantRenderer() = default;
+    VariantRenderer(std::variant<V...> &&d)
+        : data(std::move(d)) {}
+    virtual std::tuple<JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override {
+        return std::visit([&](auto &d) { return d.render(buffer, buffer_size); }, data);
+    }
+    template <class T>
+    bool holds_alternative() { return std::holds_alternative<T>(data); }
 };
 
 /// Support for rendering JSON by parts.
@@ -105,12 +152,11 @@ public:
 /// least compatible results).
 ///
 /// Also note that there's no way to "restart" the renderer.
-class LowLevelJsonRenderer {
+class LowLevelJsonRenderer : public ChunkRenderer {
 private:
     size_t resume_point = 0;
 
 public:
-    virtual ~LowLevelJsonRenderer() = default;
     /// The outer entry point.
     ///
     /// When called, this would produce the next part of the resulting JSON into the provided buffer and signal:
@@ -121,7 +167,7 @@ public:
     ///
     /// Calling it again after Abort or Complete was returned is invalid. It is
     /// possible to call after return of BufferTooSmall with a bigger buffer.
-    std::tuple<JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size);
+    virtual std::tuple<JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override;
 
 protected:
     /// The inner implementation, to be provided by an author of the renderer.

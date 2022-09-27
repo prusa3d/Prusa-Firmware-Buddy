@@ -10,10 +10,6 @@
     #include "../../module/planner.h"
 
     /// sanity check
-    #if (X_DRIVER_TYPE) != (Y_DRIVER_TYPE)
-        #error "X and Y motors must have the same driver type for crash detection/recovery (X_DRIVER_TYPE)."
-    #endif
-
     #if DISABLED(SENSORLESS_HOMING)
         #error "Sensorless homing must be enabled (SENSORLESS_HOMING)."
     #endif
@@ -113,15 +109,21 @@ private:
     bool active;
     /// State at the moment of the crash
     state_t state;
-    uint8_t crash_timestamps_idx; /// index for round buffer
+    uint8_t crash_timestamps_idx; ///< index for round buffer
     bool repeated_crash;
-    bool stats_saved; /// statistics were saved to EEPROM
-    bool enabled;     /// has to cache EEPROM to avoid IRQ deadlock
+    bool stats_saved; ///< statistics were saved to EEPROM
+    bool enabled;     ///< has to cache EEPROM to avoid IRQ deadlock
+    bool m_axis_is_homing[2]; ///< Axis is sensorlessly homing now
+    bool m_enable_stealth[2]; ///< Stealth mode should be enabled if crash detection is disabled
+#if HAS_DRIVER(TMC2130)
     bool filter;      /// use TMC filtering
+#endif
     AxisEnum axis_hit;
 
     /// methods
 public:
+    void start_sensorless_homing_per_axis(const AxisEnum axis);
+    void end_sensorless_homing_per_axis(const AxisEnum axis, const bool enable_stealth);
     void reset();
     void set_state(state_t new_state);
     state_t get_state() { return state; }
@@ -140,9 +142,6 @@ public:
 
     /// \returns true if currently active
     bool is_active() { return active; }
-
-    /// Resets sensitivity and threshold to drivers
-    void update_machine();
 
     /// Return true if trigger() was called (valid saved state is present)
     bool did_trigger() { return state != PRINTING; }
@@ -165,10 +164,13 @@ public:
     void write_stat_to_eeprom();
     bool is_repeated_crash() { return repeated_crash; }
     void count_crash();
+#if HAS_DRIVER(TMC2130)
     bool get_filter() { return filter; }
     void set_filter(bool on);
+#endif
 
 private:
+    void update_machine();
     void stop_and_save();   ///< Stop the planner and update the crash state
     void restore_state();   ///< Restore planner state for a saved crash. *Must* be called one server loop later!
     void resume_movement(); ///< Release the planner from a stop. *Must* be called one server loop later!

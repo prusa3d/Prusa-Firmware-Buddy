@@ -89,7 +89,7 @@ class MI_CRASHES_Y : public WI_INFO_t {
 public:
     MI_CRASHES_Y();
 };
-
+    #if HAS_DRIVER(TMC2130)
 class MI_CRASH_FILTERING : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Crash Detection Filter");
 
@@ -97,5 +97,5 @@ public:
     MI_CRASH_FILTERING();
     virtual void OnChange(size_t old_index) override;
 };
-
+    #endif
 #endif // ANY(CRASH_RECOVERY, POWER_PANIC)

@@ -5,26 +5,34 @@
 #include "eeprom.h"
 #include "assert.h"
 #include "filament.hpp"
-#include <cstring>
 #include "i18n.h"
 #include "client_response_texts.hpp"
+#include "../guiconfig/guiconfig.h"
+#include "../../include/printers.h"
+
+#include <cstring>
 
 // only function used in filament.h
 const char *get_selected_filament_name() {
     return Filaments::Current().name;
 }
 
+#if defined(USE_ST7789)
+    #define SPACES "" // no extra spaces
+#endif                // USE_<display>
+
 // clang-format off
 // to keep the texts aligned for easier checking of their alignment on the LCD
-static constexpr const char *pla_str =   "PLA      215/ 60";
-static constexpr const char *pet_g_str = "PETG     230/ 85";
-static constexpr const char *asa_str =   "ASA      260/100";
-static constexpr const char *pc_str =    "PC       275/100";
-static constexpr const char *pvb_str =   "PVB      215/ 75";
-static constexpr const char *abs_str =   "ABS      255/100";
-static constexpr const char *hips_str =  "HIPS     220/100";
-static constexpr const char *pp_str =    "PP       240/100";
-static constexpr const char *flex_str =  "FLEX     240/ 50";
+static constexpr const char *pla_str =      "PLA      " SPACES "215/ 60";
+static constexpr const char *pet_g_str =    "PETG     " SPACES "230/ 85";
+static constexpr const char *pet_g_nbh_str ="PETG_NH  " SPACES "230/  0";
+static constexpr const char *asa_str =      "ASA      " SPACES "260/100";
+static constexpr const char *pc_str =       "PC       " SPACES "275/100";
+static constexpr const char *pvb_str =      "PVB      " SPACES "215/ 75";
+static constexpr const char *abs_str =      "ABS      " SPACES "255/100";
+static constexpr const char *hips_str =     "HIPS     " SPACES "220/100";
+static constexpr const char *pp_str =       "PP       " SPACES "240/100";
+static constexpr const char *flex_str =     "FLEX     " SPACES "240/ 50";
 
 const Filaments::Array filaments = {
     { "---", BtnResponse::GetText(Response::Cooldown),   0,    0,   0, Response::Cooldown }, // Cooldown sets long text instead short, not a bug

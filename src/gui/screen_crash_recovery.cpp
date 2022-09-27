@@ -27,7 +27,7 @@ static constexpr size_t row_3 = 205; // line
 static constexpr size_t col_0 = 10;
 static constexpr Rect16 icon_nozzle_rc { 97, row_1 - 5, 48, 48 };
 static constexpr Rect16 icon_nozzle_crash_rc { 97 - 26, row_1, 48, 48 };
-static constexpr size_t row_nok_shift = -70;
+static constexpr size_t row_nok_shift = -31;
     #endif
 
 static constexpr size_t char_h = 24;
@@ -66,6 +66,13 @@ static constexpr const char *en_text_X_axis = N_("X-axis");
 static constexpr const char *en_text_Y_axis = N_("Y-axis");
 
 static constexpr const char *en_text_long_short = N_("Length of an axis is too short.\nThere's an obstacle or bearing issue.\nRetry check, pause or resume the print?");
+/**
+ * There is no known way how this might happen on MINI printer to ordinary user.
+ * If the motor is electrically disconnected, axis is too short.
+ * If the pulley is loose, axis is too long, but the screen is not shown
+ * as there is homing attempt before showing the screen which fails after 45 tries,
+ * printer resets with homing failed red screen.
+ */
 static constexpr const char *en_text_long_long = N_("Length of an axis is too long.\nMotor current is too low, probably.\nRetry check, pause or resume the print?");
 static constexpr const char *en_text_long_repeat = N_("Repeated collision\nhas been detected.\nDo you want to resume\nor pause the print?");
 

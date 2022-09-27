@@ -82,6 +82,8 @@
 #include "res/cc/png_question_16px.c"       //IDR_PNG_question_16px
 #include "res/cc/png_sheets_profile_16px.c" //IDR_PNG_sheets_profile_16px
 #include "res/cc/png_nozzle_shape_48px.c"   //IDR_PNG_nozzle_shape_48px
+#include "res/cc/png_nozzle_crash.c"        //IDR_PNG_nozzle_crash
+#include "res/cc/png_nozzle_empty_16px.c"   //IDR_PNG_nozzle_empty_16px
 
 #include "res/cc/png_arrow_up_16px.c"         //IDR_PNG_arrow_up_16px
 #include "res/cc/png_arrow_down_16px.c"       //IDR_PNG_arrow_down_16px
@@ -187,6 +189,8 @@ RESOURCE_ENTRY_PNG(png_warning_16px)
 RESOURCE_ENTRY_PNG(png_question_16px)
 RESOURCE_ENTRY_PNG(png_sheets_profile_16px)
 RESOURCE_ENTRY_PNG(png_nozzle_shape_48px)
+RESOURCE_ENTRY_PNG(png_nozzle_crash)
+RESOURCE_ENTRY_PNG(png_nozzle_empty_16px)
 
 RESOURCE_ENTRY_PNG(png_arrow_up_16px)
 RESOURCE_ENTRY_PNG(png_arrow_down_16px)

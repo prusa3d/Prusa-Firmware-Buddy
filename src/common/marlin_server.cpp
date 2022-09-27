@@ -61,6 +61,7 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 #if ENABLED(CRASH_RECOVERY)
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
     #include "crash_recovery_type.hpp"
+    #include "selftest_axis.h"
 #endif
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -245,7 +246,7 @@ static void _server_update_and_notify(int client_id, uint64_t update);
 
 void marlin_server_init(void) {
     int i;
-    memset(&marlin_server, 0, sizeof(marlin_server_t));
+    marlin_server = marlin_server_t();
     osMessageQDef(serverQueue, MARLIN_SERVER_QUEUE, uint8_t);
     marlin_server_queue = osMessageCreate(osMessageQ(serverQueue), NULL);
     osSemaphoreDef(serverSema);
@@ -799,19 +800,13 @@ enum class Axis_length_t {
 };
 
 static Axis_length_t axis_length_ok(AxisEnum axis) {
-    // const int axis_len[2] = { X_MAX_POS - X_MIN_POS, Y_MAX_POS - Y_MIN_POS };
-    // const int gap = axis == X_AXIS ? X_END_GAP : Y_END_GAP;
     const float len = marlin_server.axis_length.pos[axis];
 
     switch (axis) {
     case X_AXIS:
-        // FIXME: remove once the printer specs are finalized
-        return len < 230 ? Axis_length_t::shorter : (len > 290 ? Axis_length_t::longer : Axis_length_t::ok);
+        return len < selftest::Config_XAxis.length_min ? Axis_length_t::shorter : (len > selftest::Config_XAxis.length_max ? Axis_length_t::longer : Axis_length_t::ok);
     case Y_AXIS:
-        // FIXME: remove once the printer specs are finalized
-        return len < 190 ? Axis_length_t::shorter : (len > 250 ? Axis_length_t::longer : Axis_length_t::ok);
-        // return axis_len[axis] < len
-        //     && len <= axis_len[axis] + gap;
+        return len < selftest::Config_YAxis.length_min ? Axis_length_t::shorter : (len > selftest::Config_YAxis.length_max ? Axis_length_t::longer : Axis_length_t::ok);
     default:;
     }
     return Axis_length_t::shorter;
@@ -825,7 +820,7 @@ static Axis_length_t xy_axes_length_ok() {
     if (alx == aly && aly == Axis_length_t::ok)
         return Axis_length_t::ok;
     // shorter is worse than longer
-    if (alx == Axis_length_t::shorter || alx == Axis_length_t::shorter)
+    if (alx == Axis_length_t::shorter || aly == Axis_length_t::shorter)
         return Axis_length_t::shorter;
     return Axis_length_t::longer;
 }
@@ -2188,45 +2183,11 @@ void onIdle() {
         marlin_server_idle_cb();
 }
 
-//todo remove me after new thermal manager
-int _is_thermal_error(PGM_P const msg) {
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_CHAMBER)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_REDUNDANT_TEMP)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_CHAMBER)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_HOMING)))
-        return 1;
-    return 0;
-}
-
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Printer killed: %s", msg);
     vTaskEndScheduler();
-    wdt_iwdg_refresh();           //watchdog reset
-    if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
-        const marlin_vars_t &vars = marlin_server.vars;
-        temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
-    } else {
-        general_error(msg, component);
-    }
+    wdt_iwdg_refresh(); //watchdog reset
+    fatal_error(msg, component);
 }
 
 void onMediaInserted() {

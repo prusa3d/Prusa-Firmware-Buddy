@@ -7,6 +7,7 @@
 #include <optional>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <memory>
 
 namespace connect_client {
@@ -80,10 +81,11 @@ public:
 constexpr size_t BORROW_BUF_SIZE = std::max(512, FILE_PATH_BUFFER_LEN + FILE_NAME_BUFFER_LEN);
 
 using SharedBuffer = Buffer<BORROW_BUF_SIZE>;
+using SharedBorrow = std::shared_ptr<SharedBuffer::Borrow>;
 
 class SharedPath {
 private:
-    std::shared_ptr<SharedBuffer::Borrow> borrow;
+    SharedBorrow borrow;
 
 public:
     SharedPath() = default;
@@ -92,6 +94,25 @@ public:
     // Pointing into that borrow.
     const char *path() const {
         return reinterpret_cast<const char *>(borrow->data());
+    }
+    char *path() {
+        return reinterpret_cast<char *>(borrow->data());
+    }
+
+    // Stored just behind the path (maybe!)
+    char *name() {
+        char *path = this->path();
+        size_t plen = strlen(path);
+        // Enough space for the name too.
+        assert(plen < FILE_PATH_BUFFER_LEN);
+        return path + plen + 1;
+    }
+    const char *name() const {
+        const char *path = this->path();
+        size_t plen = strlen(path);
+        // Enough space for the name too.
+        assert(plen < FILE_PATH_BUFFER_LEN);
+        return path + plen + 1;
     }
 };
 

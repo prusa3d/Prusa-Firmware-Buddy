@@ -8,7 +8,7 @@
 //todo make it member
 template <std::size_t I = 0, typename... Tp>
 inline typename std::enable_if<I == sizeof...(Tp), IWindowMenuItem *>::type
-get_ptr_for_index(int, std::tuple<Tp...> &) { return NULL; }
+get_ptr_for_index(int, std::tuple<Tp...> &) { return nullptr; }
 
 template <std::size_t I = 0, typename... Tp>
     inline typename std::enable_if < I<sizeof...(Tp), IWindowMenuItem *>::type
@@ -38,21 +38,21 @@ public:
         return std::get<TYPE>(menu_items);
     }
 
-    virtual size_t GetCount() override {
+    virtual size_t GetRawCount() override {
         return std::tuple_size<std::tuple<T...>>::value;
     }
 
-    virtual IWindowMenuItem *GetItem(size_t pos) override {
-        if (pos > GetCount())
-            return NULL;
+    virtual IWindowMenuItem *GetItemByRawIndex(size_t pos) override {
+        if (pos > GetRawCount())
+            return nullptr;
         else
             return get_ptr_for_index((int)pos, menu_items);
     }
 
-    virtual size_t GetIndex(IWindowMenuItem &item) override {
+    virtual size_t GetRawIndex(IWindowMenuItem &item) override {
         size_t pos = 0;
-        for (; pos < GetCount(); ++pos) {
-            if (GetItem(pos) == &item)
+        for (; pos < GetRawCount(); ++pos) {
+            if (GetItemByRawIndex(pos) == &item)
                 break;
         }
         return pos;

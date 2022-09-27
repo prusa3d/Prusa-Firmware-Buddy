@@ -37,6 +37,7 @@
 #include "../../../module/probe.h"
 #include "../../../gcode/gcode.h"
 #include "../../../libs/least_squares_fit.h"
+  #include "../../../feature/print_area.h"
 
 #if HAS_MULTI_HOTEND
   #include "../../../module/tool_change.h"
@@ -53,7 +54,12 @@
   #include "../hilbert_curve.h"
 #endif
 
+  #if ENABLED(POWER_PANIC)
+    #include "power_panic.hpp"
+  #endif
+
 #include <math.h>
+  #include <algorithm>
 
 #define UBL_G29_P31
 
@@ -69,6 +75,8 @@
   }
 
   void ubl_map_screen();
+  xy_float_t unified_bed_leveling::g29_size;
+  bool unified_bed_leveling::g29_size_seen;
 
 #endif
 
@@ -464,13 +472,8 @@ void unified_bed_leveling::G29() {
             invalidate();
             SERIAL_ECHOLNPGM("Mesh invalidated. Probing mesh.");
           }
-          if (param.V_verbosity > 1) {
-            SERIAL_ECHOPGM("Probing around (", param.XY_pos.x);
-            SERIAL_CHAR(',');
-            SERIAL_DECIMAL(param.XY_pos.y);
-            SERIAL_ECHOLNPGM(").\n");
-          }
-          probe_entire_mesh(param.XY_pos, parser.seen_test('T'), parser.seen_test('E'), parser.seen_test('U'));
+
+            probe_major_points(parser.seen('T'), parser.seen('E'));
 
           report_current_position();
           probe_deployed = true;
@@ -580,6 +583,10 @@ void unified_bed_leveling::G29() {
                 smart_fill_wlsf(weight_factor);
               }
               break;
+              case 2: {
+                bicubic_fill_mesh();
+                break;
+              }
             #endif
             case 0:   // P3 or P3.0
             default:  // and anything P3.x that's not P3.1
@@ -602,6 +609,7 @@ void unified_bed_leveling::G29() {
       case 5: adjust_mesh_to_mean(param.C_seen, param.C_constant); break;
 
       case 6: shift_mesh_height(); break;
+        case 10: probe_at_point(g29_pos, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); break;
     }
   }
 
@@ -623,71 +631,74 @@ void unified_bed_leveling::G29() {
 
   #endif // UBL_DEVEL_DEBUGGING
 
+  #if ENABLED(EEPROM_SETTINGS)
+    //
+    // Load a Mesh from the EEPROM
+    //
+    if (parser.seen('L')) {     // Load Current Mesh Data
+      param.KLS_storage_slot = parser.has_value() ? (int8_t)parser.value_int() : storage_slot;
 
-  //
-  // Load a Mesh from the EEPROM
-  //
+      int16_t a = settings.calc_num_meshes();
 
-  if (parser.seen('L')) {     // Load Current Mesh Data
-    param.KLS_storage_slot = parser.has_value() ? (int8_t)parser.value_int() : storage_slot;
+      if (!a) {
+        SERIAL_ECHOLNPGM("?EEPROM storage not available.");
+        return;
+      }
 
-    int16_t a = settings.calc_num_meshes();
+      if (!WITHIN(param.KLS_storage_slot, 0, a - 1)) {
+        SERIAL_ECHOLNPGM("?Invalid storage slot.\n?Use 0 to ", a - 1);
+        return;
+      }
 
-    if (!a) {
-      SERIAL_ECHOLNPGM("?EEPROM storage not available.");
-      return;
+      settings.load_mesh(param.KLS_storage_slot);
+      storage_slot = param.KLS_storage_slot;
+
+      SERIAL_ECHOLNPGM(STR_DONE);
     }
 
-    if (!WITHIN(param.KLS_storage_slot, 0, a - 1)) {
-      SERIAL_ECHOLNPGM("?Invalid storage slot.\n?Use 0 to ", a - 1);
-      return;
+    //
+    // Store a Mesh in the EEPROM
+    //
+
+    if (parser.seen('S')) {     // Store (or Save) Current Mesh Data
+      param.KLS_storage_slot = parser.has_value() ? (int8_t)parser.value_int() : storage_slot;
+
+      if (param.KLS_storage_slot == -1)               // Special case: 'Export' the mesh to the
+        return report_current_mesh();                 // host so it can be saved in a file.
+
+      int16_t a = settings.calc_num_meshes();
+
+      if (!a) {
+        SERIAL_ECHOLNPGM("?EEPROM storage not available.");
+        goto LEAVE;
+      }
+
+      if (!WITHIN(param.KLS_storage_slot, 0, a - 1)) {
+        SERIAL_ECHOLNPGM("?Invalid storage slot.\n?Use 0 to ", a - 1);
+        goto LEAVE;
+      }
+
+      settings.store_mesh(param.KLS_storage_slot);
+      storage_slot = param.KLS_storage_slot;
+
+      SERIAL_ECHOLNPGM(STR_DONE);
     }
-
-    settings.load_mesh(param.KLS_storage_slot);
-    storage_slot = param.KLS_storage_slot;
-
-    SERIAL_ECHOLNPGM(STR_DONE);
-  }
-
-  //
-  // Store a Mesh in the EEPROM
-  //
-
-  if (parser.seen('S')) {     // Store (or Save) Current Mesh Data
-    param.KLS_storage_slot = parser.has_value() ? (int8_t)parser.value_int() : storage_slot;
-
-    if (param.KLS_storage_slot == -1)               // Special case: 'Export' the mesh to the
-      return report_current_mesh();                 // host so it can be saved in a file.
-
-    int16_t a = settings.calc_num_meshes();
-
-    if (!a) {
-      SERIAL_ECHOLNPGM("?EEPROM storage not available.");
-      goto LEAVE;
-    }
-
-    if (!WITHIN(param.KLS_storage_slot, 0, a - 1)) {
-      SERIAL_ECHOLNPGM("?Invalid storage slot.\n?Use 0 to ", a - 1);
-      goto LEAVE;
-    }
-
-    settings.store_mesh(param.KLS_storage_slot);
-    storage_slot = param.KLS_storage_slot;
-
-    SERIAL_ECHOLNPGM(STR_DONE);
-  }
+  #endif // EEPROM_SETTINGS
 
   if (parser.seen_test('T'))
     display_map(param.T_map_type);
 
     if (!parser.seen_any()) {
         // backward compatibility with ABL
-        gcode.process_subcommands_now_P("G29 P1 E");
-        gcode.process_subcommands_now_P("G29 P3");
+        gcode.process_subcommands_now_P("G29 P1 X0 Y0");
+        gcode.process_subcommands_now_P("G29 P3.2");
+        gcode.process_subcommands_now_P("G29 P3.13");
         gcode.process_subcommands_now_P("G29 A");
     }
 
+    #if ENABLED(EEPROM_SETTINGS)
   LEAVE:
+    #endif
 
   #if HAS_MARLINUI_MENU
     ui.reset_alert_level();
@@ -758,6 +769,29 @@ void unified_bed_leveling::shift_mesh_height() {
       TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(x, y, z_values[x][y]));
     }
 }
+  int unified_bed_leveling::count_points_to_probe(){
+
+/// probe area is print area enlarged by one major point
+    auto probe_area = print_area.get_bounding_rect().inset(-MESH_X_DIST * GRID_MAJOR_STEP,
+                                                           -MESH_Y_DIST * GRID_MAJOR_STEP);
+// count points that are reachable to be probed
+    int num_of_points_to_probe = 0;
+    for (int y = GRID_MAX_POINTS_Y - GRID_BORDER - 1; y >= GRID_BORDER; y -= GRID_MAJOR_STEP) {
+      int y_idx = (y - GRID_BORDER) / GRID_MAJOR_STEP;
+      bool is_odd_y_position = y_idx % 2 == 1;
+      int x0 = is_odd_y_position ? GRID_BORDER : GRID_MAX_POINTS_X - 1 - GRID_BORDER;
+      int xStep = is_odd_y_position ? GRID_MAJOR_STEP : -GRID_MAJOR_STEP;
+
+      for (int x = x0; GRID_BORDER <= x && x < GRID_MAX_POINTS_X - GRID_BORDER; x += xStep) {
+        xy_pos_t pos = {mesh_index_to_xpos(x), mesh_index_to_ypos(y)};
+
+        if (probe_area.contains(pos))
+          num_of_points_to_probe ++;
+
+      }
+    }
+    return num_of_points_to_probe;
+  }
 
 #if HAS_BED_PROBE
   /**
@@ -772,9 +806,9 @@ void unified_bed_leveling::shift_mesh_height() {
     TERN_(DWIN_LCD_PROUI, DWIN_LevelingStart());
 
     save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
-    uint8_t count = GRID_MAX_POINTS;
+    uint16_t count = GRID_MAX_POINTS;
 
-    mesh_index_pair best;
+    mesh_index_pair best = find_closest_mesh_point_of_type(INVALID, near);
     TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(best.pos, ExtUI::G29_START));
     do {
       if (do_ubl_mesh_map) display_map(param.T_map_type);
@@ -798,7 +832,7 @@ void unified_bed_leveling::shift_mesh_height() {
 
       best = do_furthest
         ? find_furthest_invalid_mesh_point()
-        : find_closest_mesh_point_of_type(INVALID, nearby, true);
+        : find_closest_mesh_point_of_type(INVALID, best.meshpos(), true);
 
       if (best.pos.x >= 0) {    // mesh point found and is reachable by probe
         TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(best.pos, ExtUI::G29_POINT_START));
@@ -833,6 +867,75 @@ void unified_bed_leveling::shift_mesh_height() {
     TERN_(EXTENSIBLE_UI, ExtUI::onLevelingDone());
     TERN_(DWIN_LCD_PROUI, DWIN_LevelingDone());
   }
+
+    void unified_bed_leveling::probe_major_points(const bool do_ubl_mesh_map, const bool stow_probe) {
+      save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
+
+      /// probe area is print area enlarged by one major point
+      auto probe_area = print_area.get_bounding_rect().inset(-MESH_X_DIST * GRID_MAJOR_STEP,
+                                                             -MESH_Y_DIST * GRID_MAJOR_STEP);
+
+      bool is_initial_probe = true;
+      const int  num_of_points_to_probe = count_points_to_probe();
+      int num_of_probed_points = 0;
+       // enumerate over all major points
+      for (int y = GRID_MAX_POINTS_Y - GRID_BORDER - 1; y >= GRID_BORDER; y -= GRID_MAJOR_STEP) {
+        int y_idx = (y - GRID_BORDER) / GRID_MAJOR_STEP;
+        bool is_odd_y_position = y_idx % 2 == 1;
+        int x0 = is_odd_y_position ? GRID_BORDER : GRID_MAX_POINTS_X - 1 - GRID_BORDER;
+        int xStep = is_odd_y_position ? GRID_MAJOR_STEP : -GRID_MAJOR_STEP;
+
+        for (int x = x0; GRID_BORDER <= x && x < GRID_MAX_POINTS_X - GRID_BORDER; x += xStep) {
+          xy_pos_t pos = {mesh_index_to_xpos(x), mesh_index_to_ypos(y)};
+
+          // skip points the probe can't reach
+          if (!position_is_reachable_by_probe(pos.x, pos.y))
+            continue;
+
+          // skip points outside print area
+          if (!probe_area.contains(pos))
+            continue;
+
+          // print UBL map if we were told to do so
+          if (do_ubl_mesh_map)
+            display_map(g29_map_type);
+
+          // make initial move manually (has a different speed)
+          if (is_initial_probe)
+            do_blocking_move_to(pos.x, pos.y, Z_CLEARANCE_BEFORE_PROBING);
+          is_initial_probe = false;
+          num_of_probed_points ++;
+          // and finally, probe
+          ui.status_printf_P(0, PSTR(S_FMT " %i/%i"), GET_TEXT(MSG_PROBING_MESH), num_of_probed_points,num_of_points_to_probe);
+          const float measured_z = probe_at_point(
+                        pos,
+                        stow_probe ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level
+                      );
+          if(std::isnan(measured_z)){
+            LCD_MESSAGEPGM(MSG_LCD_PROBING_FAILED);
+            STOW_PROBE();
+            return;
+          }
+          z_values[x][y] = measured_z;
+          #if ENABLED(EXTENSIBLE_UI)
+            ExtUI::onMeshUpdate(x, y, measured_z);
+          #endif
+        }
+      }
+
+      // make sure the probe is stowed when finished no matter the `stow_probe` argument
+      STOW_PROBE();
+
+      #ifdef Z_AFTER_PROBING
+        move_z_after_probing();
+      #endif
+      #ifdef HAS_DISPLAY
+        ui.reset_status();
+      #endif
+
+      restore_ubl_active_state_and_leave();
+    }
+
 
 #endif // HAS_BED_PROBE
 
@@ -1150,7 +1253,7 @@ bool unified_bed_leveling::G29_parse_parameters() {
     #endif
       {
         param.P_phase = pv;
-        if (!WITHIN(param.P_phase, 0, 6)) {
+        if (!WITHIN(param.P_phase, 0, 6) && !WITHIN(param.P_phase, 9, 10)) {
           SERIAL_ECHOLNPGM("?(P)hase value invalid (0-6).\n");
           err_flag = true;
         }
@@ -1180,14 +1283,20 @@ bool unified_bed_leveling::G29_parse_parameters() {
     err_flag = true;
   }
 
-  // If X or Y are not valid, use center of the bed values
-  // (for UBL_HILBERT_CURVE default to lower-left corner instead)
-  if (!COORDINATE_OKAY(sx, X_MIN_BED, X_MAX_BED)) sx = TERN(UBL_HILBERT_CURVE, 0, X_CENTER);
-  if (!COORDINATE_OKAY(sy, Y_MIN_BED, Y_MAX_BED)) sy = TERN(UBL_HILBERT_CURVE, 0, Y_CENTER);
+    // Make sure <X,Y> is a valid positions
+    sx = std::clamp(sx, static_cast<float>(X_MIN_POS), static_cast<float>(X_MAX_POS));
+    sy = std::clamp(sy, static_cast<float>(Y_MIN_POS), static_cast<float>(Y_MAX_POS));
 
   if (err_flag) return UBL_ERR;
 
   param.XY_pos.set(sx, sy);
+
+    if (parser.seenval('W') && parser.seenval('H')) {
+      g29_size.set(parser.floatval('W'), parser.floatval('H'));
+      g29_size_seen = true;
+    } else {
+      g29_size_seen = false;
+    }
 
   /**
    * Activate or deactivate UBL
@@ -1202,6 +1311,12 @@ bool unified_bed_leveling::G29_parse_parameters() {
     }
     set_bed_leveling_enabled(true);
     report_state();
+
+      #if ENABLED(POWER_PANIC)
+      // prepare for PP only when successful
+      if (!planner.draining())
+        power_panic::prepare();
+      #endif
   }
   else if (parser.seen_test('D')) {
     set_bed_leveling_enabled(false);
@@ -1454,6 +1569,134 @@ void unified_bed_leveling::smart_fill_mesh() {
   }
 }
 
+  /**
+   *  Cubic Interpolation
+   *
+   *  Interpolates a value between two values p[1], p[2] using a third order polynomial.
+   *  Values p[0] and p[3] are used to approximate the first derivative of the polynomial at x=0 and x=1.
+   *  In case p[0] or p[1] are NaN, their values are estimated based on p[1] and p[2].
+   *
+   *  The function returns a single interpolated value at x=`x` (expecting x to be an element of interval (0, 1)).
+   *
+   *                           ^
+   *                         y |
+   *                           |          XXXXXX p[3]
+   *                           |     XXXXXX    XXXXXX
+   *                           | XXXXX p[2]         XXXX
+   *       XX                  XX                      XXXX
+   *         X              XXXX                           XXX
+   *          XXX    p[0] XX   |p[1]                          XX
+   *             XXXXXXXXXX    |
+   *                  +        |        +        +
+   *       <---------------------------------------------------->
+   *                  |        +        +        +            x
+   *                  -1       0        1        2
+   *
+   */
+  float unified_bed_leveling::bicubic_interp(const float p[4], float x) {
+    float p0 = p[0], p3 = p[3];
+    const float p1 = p[1], p2 = p[2];
+    if (isnan(p0))
+      p0 = 2 * p1 - p2;
+    if (isnan(p3))
+      p3 = 2 * p2 - p1;
+    return p1 + 0.5 * x * (p2 - p0 + x * (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3 + x * (3.0 * (p1 - p2) + p3 - p0)));
+  }
+
+  /**
+   * Bicubic Interpolation
+   *
+   * Interpolates a value at position `pos` (expected to be an element of ((0, 1), (0, 1))).
+   * Values `p[x][y]` have to have analogous values to the `p` array in bicubic_interp:
+   *
+   *                    ^
+   *                    |
+   *                    |
+   *           +--------2-----------------+
+   *           |p[0][3] |p[1][3] |p[2][3] |p[3][3]
+   *           |        |        |        |
+   *           |        |        |        |
+   *           +--------1-----------------+
+   *           |p[0][2] |p[1][2] |p[2][2] |p[3][2]
+   *           |        |        |        |
+   *           |        |        |        |
+   *      <-- -1-------0,0-------1--------2----->
+   *           |p[0][1] |p[1][1] |p[2][1] |p[3][1]
+   *           |        |        |        |
+   *           |        |        |        |
+   *           +--------1-----------------+
+   *            p[0][0] |p[1][0]  p[2][0] |p[3][0]
+   *                    |
+   *                    v
+   */
+  float unified_bed_leveling::bicubic_interp2d(const float p[4][4], xy_pos_t pos) {
+    float x[4];
+    x[0] = bicubic_interp(p[0], pos.y);
+    x[1] = bicubic_interp(p[1], pos.y);
+    x[2] = bicubic_interp(p[2], pos.y);
+    x[3] = bicubic_interp(p[3], pos.y);
+    return bicubic_interp(x, pos.x);
+  }
+
+  void unified_bed_leveling::bicubic_fill_mesh() {
+    // precondition: all major points have to be available already
+
+    float p[4][4]; // 2d array used for interpolation
+
+    // iterate over each sub-region of the bed of size (GRID_MAJOR_STEP, GRID_MAJOR_STEP)
+    // and interpolate all the points within this square
+    for (uint8_t x0 = GRID_BORDER; x0 < GRID_MAX_POINTS_X - GRID_BORDER - GRID_MAJOR_STEP; x0 += GRID_MAJOR_STEP) {
+      for (uint8_t y0 = GRID_BORDER; y0 < GRID_MAX_POINTS_Y - GRID_BORDER - GRID_MAJOR_STEP; y0 += GRID_MAJOR_STEP) {
+
+        // fill in the `p` array with major points around
+        for (int i = -1; i < 3; i++) {
+          for (int j = -1; j < 3; j++) {
+            int x = x0 + i * GRID_MAJOR_STEP;
+            int y = y0 + j * GRID_MAJOR_STEP;
+            if (x < 0 || x >= GRID_MAX_POINTS_X || y < 0 || y >= GRID_MAX_POINTS_Y)
+              p[i + 1][j + 1] = NAN;
+            else
+              p[i + 1][j + 1] = z_values[x][y];
+          }
+        }
+
+        // iterate over all the missing points within the sub-region and perform interpolation
+        const float step = 1.0f / GRID_MAJOR_STEP;
+        for (int i = 0; i <= GRID_MAJOR_STEP; i++) {
+          for (int j = 0; j <= GRID_MAJOR_STEP; j++) {
+            if (!isnan(z_values[x0 + i][y0 + j]))
+              continue; // skip if we have a Z coordinate already
+            z_values[x0 + i][y0 + j] = bicubic_interp2d(p, {step * i, step * j});
+          }
+        }
+      }
+    }
+
+    // We have everything except the border, let's approximate it now based on the values around.
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x ++) {
+      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y ++) {
+        bool is_horizontal = x < GRID_BORDER || x >= (GRID_MAX_POINTS_X - GRID_BORDER);
+        bool is_vertical = y < GRID_BORDER || y >= (GRID_MAX_POINTS_Y - GRID_BORDER);
+        if (!is_horizontal && !is_vertical)
+          continue;
+        static_assert(GRID_BORDER == 1, "Only GRID_BORDER equal to 1 is currently supported");
+        // 1. precalculate the direction, in which we want to find samples to approximate
+        //    the current position's value.
+        xy_int_t direction;
+        direction.x = is_horizontal ? (x == 0 ? +1 : -1) : 0;
+        direction.y = is_vertical ? (y == 0 ? +1 : -1) : 0;
+        // 2. Take first two samples in that direction.
+        xy_int_t current_pos = {x, y};
+        xy_int_t first_sample_pos = current_pos + direction;
+        xy_int_t second_sample_pos = first_sample_pos + direction;
+        const float first_sample = z_values[first_sample_pos.x][first_sample_pos.y];
+        const float second_sample = z_values[second_sample_pos.x][second_sample_pos.y];
+        // 3. Use them for simple linear approximation of the border.
+        z_values[x][y] = 2 * first_sample - second_sample;
+      }
+    }
+  }
+
 #if HAS_BED_PROBE
 
   //#define VALIDATE_MESH_TILT
@@ -1579,6 +1822,7 @@ void unified_bed_leveling::smart_fill_mesh() {
                 DEBUG_ECHO_F(lpos.y, 7);
                 DEBUG_ECHOPAIR_F(")   measured: ", measured_z, 7);
                 DEBUG_ECHOPAIR_F("   correction: ", get_z_correction(rpos), 7);
+                UNUSED(lpos); // make sure lpos won't get reported as unused if DEBUG macros are NOP
               }
             #endif
 
@@ -1706,8 +1950,7 @@ void unified_bed_leveling::smart_fill_mesh() {
     // being extrapolated so that nearby points will have greater influence on
     // the point being extrapolated.  Then extrapolate the mesh point from WLSF.
 
-    static_assert((GRID_MAX_POINTS_Y) <= 16, "GRID_MAX_POINTS_Y too big");
-    uint16_t bitmap[GRID_MAX_POINTS_X] = { 0 };
+      uint32_t bitmap[GRID_MAX_POINTS_X] = { 0 };
     struct linear_fit_data lsf_results;
 
     SERIAL_ECHOPGM("Extrapolating mesh...");

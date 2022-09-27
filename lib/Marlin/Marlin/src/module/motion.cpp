@@ -1481,11 +1481,11 @@ void prepare_line_to_destination() {
         default: break;
         #if X_SENSORLESS
           case X_AXIS:
-            stealth_states.x = tmc_enable_stallguard(stepperX);
-
             #if ENABLED(CRASH_RECOVERY)
-              stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
+              crash_s.start_sensorless_homing_per_axis(axis);
             #endif
+
+            stealth_states.x = tmc_enable_stallguard(stepperX);
 
             TERN_(X2_SENSORLESS, stealth_states.x2 = tmc_enable_stallguard(stepperX2));
             #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && Y_SENSORLESS
@@ -1500,6 +1500,10 @@ void prepare_line_to_destination() {
         #endif
         #if Y_SENSORLESS
           case Y_AXIS:
+          #if ENABLED(CRASH_RECOVERY)
+            crash_s.start_sensorless_homing_per_axis(axis);
+          #endif
+
             stealth_states.y = tmc_enable_stallguard(stepperY);
 
             #if ENABLED(CRASH_RECOVERY)
@@ -1590,8 +1594,7 @@ void prepare_line_to_destination() {
           case X_AXIS:
           
             #if ENABLED(CRASH_RECOVERY)
-              // restore original driver settings
-              crash_s.update_machine();
+              crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.x);
             #else
               tmc_disable_stallguard(stepperX, enable_stealth.x);
               TERN_(X2_SENSORLESS, tmc_disable_stallguard(stepperX2, enable_stealth.x2));
@@ -1607,8 +1610,7 @@ void prepare_line_to_destination() {
         #if Y_SENSORLESS
           case Y_AXIS:
             #if ENABLED(CRASH_RECOVERY)
-              // restore original driver settings
-              crash_s.update_machine();
+              crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.y);
             #else
               tmc_disable_stallguard(stepperY, enable_stealth.y);
               TERN_(Y2_SENSORLESS, tmc_disable_stallguard(stepperY2, enable_stealth.y2));
@@ -1708,11 +1710,11 @@ void prepare_line_to_destination() {
       DEBUG_ECHOLNPGM(")");
     }
 
+#if HOMING_Z_WITH_PROBE && 0
     // Only do some things when moving towards an endstop
-    #if ENABLED(PRECISE_HOMING)
       const int8_t axis_home_dir = TERN0(DUAL_X_CARRIAGE, axis == X_AXIS)
                   ? TOOL_X_HOME_DIR(active_extruder) : home_dir(axis);
-    #endif //PRECISE_HOMING
+    #endif //HOMING_Z_WITH_PROBE && 0
 
     #if ENABLED(SENSORLESS_HOMING)
       sensorless_t stealth_states;

@@ -68,7 +68,7 @@ void IWindowMenuItem::Print(Rect16 rect) {
     }
 
     if (IsLabelInvalid()) {
-        roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
+        roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment());
     }
 
     if (IsExtensionInvalid() && extension_width) {
@@ -127,8 +127,8 @@ void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
     if (IsEnabled()) {
         roll.Deinit();
-        click(window_menu);
         InValidateExtension();
+        click(window_menu);
     }
 }
 
@@ -150,8 +150,12 @@ void IWindowMenuItem::clrFocus() {
 // Reinits text rolling in case of focus/defocus/click
 void IWindowMenuItem::reInitRoll(Rect16 rect) {
     if (roll.NeedInit()) {
-        roll.Init(rect, GetLabel(), label_font, GuiDefaults::MenuPadding, GuiDefaults::MenuAlignment());
+        roll.Init(rect, GetLabel(), label_font, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment());
     }
+}
+
+void IWindowMenuItem::deInitRoll() {
+    roll.Deinit();
 }
 
 bool IWindowMenuItem::IsHidden() const {

@@ -9,6 +9,8 @@
 ///////////////////////////
 #if BOARD_IS_BUDDY
     #define USE_ST7789
+    #define MENU_HAS_SCROLLBAR false
+    #define MENU_HAS_BUTTONS   false
 #else
     #error "macro BOARD_TYPE is not defined"
 #endif

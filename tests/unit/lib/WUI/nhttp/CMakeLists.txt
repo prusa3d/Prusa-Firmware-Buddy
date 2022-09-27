@@ -6,6 +6,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.c
   # Some handlers are stubbed out.
   ${CMAKE_CURRENT_SOURCE_DIR}/server_tests.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/req_parser_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/job_command_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/file_command_tests.cpp
   # ${CMAKE_CURRENT_SOURCE_DIR}/segmented_json_rendering.cpp
@@ -33,6 +34,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/gcode_filename.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/types.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/sha256.c
   # Dependencies.
   # It seems it's not possible to just link the damn LwIP library:

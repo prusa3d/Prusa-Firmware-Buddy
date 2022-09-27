@@ -15,10 +15,14 @@
 #define JSON_FIELD_FFIXED(NAME, VALUE, PRECISION) JSON_OUT(__COUNTER__, output_field_float_fixed, (NAME), (VALUE), (PRECISION))
 #define JSON_FIELD_OBJ(NAME)                      JSON_OUT(__COUNTER__, output_field_obj, (NAME))
 #define JSON_FIELD_ARR(NAME)                      JSON_OUT(__COUNTER__, output_field_arr, (NAME))
-#define JSON_OBJ_START                            JSON_CONTROL("{")
-#define JSON_OBJ_END                              JSON_CONTROL("}")
-#define JSON_ARR_END                              JSON_CONTROL("]")
-#define JSON_COMMA                                JSON_CONTROL(",")
+#define JSON_CHUNK(VALUE)                         JSON_OUT(__COUNTER__, output_chunk, (VALUE))
+#define JSON_FIELD_CHUNK(NAME, VALUE) \
+    JSON_CUSTOM("\"%s\":", (NAME))    \
+    JSON_CHUNK((VALUE))
+#define JSON_OBJ_START JSON_CONTROL("{")
+#define JSON_OBJ_END   JSON_CONTROL("}")
+#define JSON_ARR_END   JSON_CONTROL("]")
+#define JSON_COMMA     JSON_CONTROL(",")
 
 #define JSON_START          \
     (void)__COUNTER__;      \
