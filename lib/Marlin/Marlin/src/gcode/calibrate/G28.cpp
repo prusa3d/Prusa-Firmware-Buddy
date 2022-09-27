@@ -194,6 +194,35 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 
 #endif // Z_SAFE_HOMING
 
+#if ENABLED(IMPROVE_HOMING_RELIABILITY)
+
+  motion_state_t begin_slow_homing() {
+    motion_state_t motion_state{0};
+    motion_state.acceleration.set(planner.settings.max_acceleration_mm_per_s2[X_AXIS],
+                                 planner.settings.max_acceleration_mm_per_s2[Y_AXIS]
+                                 OPTARG(DELTA, planner.settings.max_acceleration_mm_per_s2[Z_AXIS])
+                               );
+    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
+    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
+    TERN_(DELTA, planner.settings.max_acceleration_mm_per_s2[Z_AXIS] = 100);
+    #if HAS_CLASSIC_JERK
+      motion_state.jerk_state = planner.max_jerk;
+      planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK OPTARG(DELTA, 0));
+    #endif
+    planner.refresh_acceleration_rates();
+    return motion_state;
+  }
+
+  void end_slow_homing(const motion_state_t &motion_state) {
+    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = motion_state.acceleration.x;
+    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = motion_state.acceleration.y;
+    TERN_(DELTA, planner.settings.max_acceleration_mm_per_s2[Z_AXIS] = motion_state.acceleration.z);
+    TERN_(HAS_CLASSIC_JERK, planner.max_jerk = motion_state.jerk_state);
+    planner.refresh_acceleration_rates();
+  }
+
+#endif // IMPROVE_HOMING_RELIABILITY
+
 /**
  * G28: Home all axes according to settings
  * 
@@ -369,17 +398,7 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   #endif
 
   #if ENABLED(IMPROVE_HOMING_RELIABILITY)
-    slow_homing_t slow_homing{0};
-    slow_homing.acceleration.set(planner.settings.max_acceleration_mm_per_s2[X_AXIS],
-                                 planner.settings.max_acceleration_mm_per_s2[Y_AXIS]);
-    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
-    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
-    #if HAS_CLASSIC_JERK
-      slow_homing.jerk_xy = planner.max_jerk;
-      planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
-    #endif
-
-    planner.reset_acceleration_rates();
+    motion_state_t saved_motion_state = begin_slow_homing();
   #endif
 
   // Always home with tool 0 active
@@ -521,6 +540,8 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
       if (doJ) homeaxis(J_AXIS);
     #endif
 
+    TERN_(IMPROVE_HOMING_RELIABILITY, end_slow_homing(saved_motion_state));
+
     #if ENABLED(FOAMCUTTER_XYUV)
       // skip homing of unused Z axis for foamcutters
       if (doZ) set_axis_is_at_home(Z_AXIS);
@@ -653,15 +674,6 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
       safe_delay(SENSORLESS_STALLGUARD_DELAY); // Short delay needed to settle
     #endif
   #endif // HAS_HOMING_CURRENT
-
-  #if ENABLED(IMPROVE_HOMING_RELIABILITY)
-    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = slow_homing.acceleration.x;
-    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = slow_homing.acceleration.y;
-    #if HAS_CLASSIC_JERK
-      planner.max_jerk = slow_homing.jerk_xy;
-    #endif
-    planner.reset_acceleration_rates();
-  #endif
 
   ui.refresh();
 
