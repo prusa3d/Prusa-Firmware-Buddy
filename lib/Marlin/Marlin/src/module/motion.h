@@ -93,9 +93,6 @@ extern const feedRate_t homing_feedrate_mm_s[XYZ];
 FORCE_INLINE feedRate_t homing_feedrate(const AxisEnum a) { return pgm_read_float(&homing_feedrate_mm_s[a]); }
 feedRate_t get_homing_bump_feedrate(const AxisEnum axis);
 
-struct sensorless_t start_sensorless_homing_per_axis(const AxisEnum axis);
-void end_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth);
-
 extern feedRate_t feedrate_mm_s;
 
 /**
@@ -459,6 +456,12 @@ FORCE_INLINE bool position_is_reachable_by_probe(const xy_pos_t &pos) { return p
 
 #if HAS_M206_COMMAND
   void set_home_offset(const AxisEnum axis, const float v);
+#endif
+
+#if USE_SENSORLESS
+  struct sensorless_t;
+  sensorless_t start_sensorless_homing_per_axis(const AxisEnum axis);
+  void end_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth);
 #endif
 
 #if ENABLED(PRECISE_HOMING)
