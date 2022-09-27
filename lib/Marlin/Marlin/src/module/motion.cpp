@@ -1144,170 +1144,214 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
   return homing_feedrate(axis) / float(hbd);
 }
 
-#if ENABLED(SENSORLESS_HOMING)
+  #if ENABLED(SENSORLESS_HOMING)
+    /**
+     * Set sensorless homing if the axis has it, accounting for Core Kinematics.
+     */
+    sensorless_t start_sensorless_homing_per_axis(const AxisEnum axis) {
+      sensorless_t stealth_states { false };
 
-  /**
-   * Set sensorless homing if the axis has it, accounting for Core Kinematics.
-   */
-  sensorless_t start_sensorless_homing_per_axis(const AxisEnum axis) {
-    sensorless_t stealth_states { false };
-
-    switch (axis) {
-      default: break;
-      #if X_SENSORLESS
-        case X_AXIS:
-          #if ENABLED(CRASH_RECOVERY)
-            crash_s.start_sensorless_homing_per_axis(axis);
-          #endif
-
-          stealth_states.x = tmc_enable_stallguard(stepperX);
-
-          #if AXIS_HAS_STALLGUARD(X2)
-            stealth_states.x2 = tmc_enable_stallguard(stepperX2);
-          #endif
-          
-          #if CORE_IS_XY && Y_SENSORLESS
-            stealth_states.y = tmc_enable_stallguard(stepperY);
-          #elif CORE_IS_XZ && Z_SENSORLESS
-            stealth_states.z = tmc_enable_stallguard(stepperZ);
-          #endif
-          
-          break;
-      #endif
-      #if Y_SENSORLESS
-        case Y_AXIS:
-          #if ENABLED(CRASH_RECOVERY)
-            crash_s.start_sensorless_homing_per_axis(axis);
-          #endif
-
-          stealth_states.y = tmc_enable_stallguard(stepperY);
-
-          #if AXIS_HAS_STALLGUARD(Y2)
-            stealth_states.y2 = tmc_enable_stallguard(stepperY2);
-          #endif
-          
-          #if CORE_IS_XY && X_SENSORLESS
-            stealth_states.x = tmc_enable_stallguard(stepperX);
-          #elif CORE_IS_YZ && Z_SENSORLESS
-            stealth_states.z = tmc_enable_stallguard(stepperZ);
-          #endif
-          
-          break;
-      #endif
-      #if Z_SENSORLESS
-        case Z_AXIS:
-          stealth_states.z = tmc_enable_stallguard(stepperZ);
-          #if AXIS_HAS_STALLGUARD(Z2)
-            stealth_states.z2 = tmc_enable_stallguard(stepperZ2);
-          #endif
-          #if AXIS_HAS_STALLGUARD(Z3)
-            stealth_states.z3 = tmc_enable_stallguard(stepperZ3);
-          #endif
-          #if CORE_IS_XZ && X_SENSORLESS
-            stealth_states.x = tmc_enable_stallguard(stepperX);
-          #elif CORE_IS_YZ && Y_SENSORLESS
-            stealth_states.y = tmc_enable_stallguard(stepperY);
-          #endif
-          break;
-      #endif
-    }
-
-    #if ENABLED(SPI_ENDSTOPS)
       switch (axis) {
-        #if X_SPI_SENSORLESS
-          case X_AXIS: endstops.tmc_spi_homing.x = true; break;
-        #endif
-        #if Y_SPI_SENSORLESS
-          case Y_AXIS: endstops.tmc_spi_homing.y = true; break;
-        #endif
-        #if Z_SPI_SENSORLESS
-          case Z_AXIS: endstops.tmc_spi_homing.z = true; break;
-        #endif
         default: break;
-      }
-    #endif
-
-    #if ENABLED(IMPROVE_HOMING_RELIABILITY) && HOMING_SG_GUARD_DURATION > 0
-      sg_guard_period = millis() + default_sg_guard_duration);
-    #endif
-
-    return stealth_states;
-  }
-
-  void end_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth) {
-    switch (axis) {
-      default: break;
-      #if X_SENSORLESS
-        case X_AXIS:
-          
-          #if ENABLED(CRASH_RECOVERY)
-            crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.x);
-          #else
-            tmc_disable_stallguard(stepperX, enable_stealth.x);
-            #if AXIS_HAS_STALLGUARD(X2)
-              tmc_disable_stallguard(stepperX2, enable_stealth.x2);
+        #if X_SENSORLESS
+          case X_AXIS:
+            #if ENABLED(CRASH_RECOVERY)
+              crash_s.start_sensorless_homing_per_axis(axis);
             #endif
-            #if CORE_IS_XY && Y_SENSORLESS
-              tmc_disable_stallguard(stepperY, enable_stealth.y);
+
+            stealth_states.x = tmc_enable_stallguard(stepperX);
+            TERN_(X2_SENSORLESS, stealth_states.x2 = tmc_enable_stallguard(stepperX2));
+            #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && Y_SENSORLESS
+              stealth_states.y = tmc_enable_stallguard(stepperY);
             #elif CORE_IS_XZ && Z_SENSORLESS
-              tmc_disable_stallguard(stepperZ, enable_stealth.z);
+              stealth_states.z = tmc_enable_stallguard(stepperZ);
             #endif
-          #endif // ENABLED(CRASH_RECOVERY)
+            break;
+        #endif
+        #if Y_SENSORLESS
+          case Y_AXIS:
+            #if ENABLED(CRASH_RECOVERY)
+              crash_s.start_sensorless_homing_per_axis(axis);
+            #endif
 
-        break;
-      #endif
-      #if Y_SENSORLESS
-        case Y_AXIS:
-          #if ENABLED(CRASH_RECOVERY)
-            crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.y);
-          #else
-            tmc_disable_stallguard(stepperY, enable_stealth.y);
-            #if AXIS_HAS_STALLGUARD(Y2)
-              tmc_disable_stallguard(stepperY2, enable_stealth.y2);
-            #endif
-            #if CORE_IS_XY && X_SENSORLESS
-              tmc_disable_stallguard(stepperX, enable_stealth.x);
+            stealth_states.y = tmc_enable_stallguard(stepperY);
+            TERN_(Y2_SENSORLESS, stealth_states.y2 = tmc_enable_stallguard(stepperY2));
+            #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && X_SENSORLESS
+              stealth_states.x = tmc_enable_stallguard(stepperX);
             #elif CORE_IS_YZ && Z_SENSORLESS
-              tmc_disable_stallguard(stepperZ, enable_stealth.z);
+              stealth_states.z = tmc_enable_stallguard(stepperZ);
             #endif
-          #endif // ENABLED(CRASH_RECOVERY)
-        break;
+            break;
+        #endif
+        #if Z_SENSORLESS
+          case Z_AXIS:
+            stealth_states.z = tmc_enable_stallguard(stepperZ);
+            TERN_(Z2_SENSORLESS, stealth_states.z2 = tmc_enable_stallguard(stepperZ2));
+            TERN_(Z3_SENSORLESS, stealth_states.z3 = tmc_enable_stallguard(stepperZ3));
+            TERN_(Z4_SENSORLESS, stealth_states.z4 = tmc_enable_stallguard(stepperZ4));
+            #if CORE_IS_XZ && X_SENSORLESS
+              stealth_states.x = tmc_enable_stallguard(stepperX);
+            #elif CORE_IS_YZ && Y_SENSORLESS
+              stealth_states.y = tmc_enable_stallguard(stepperY);
+            #endif
+            break;
+        #endif
+        #if I_SENSORLESS
+          case I_AXIS: stealth_states.i = tmc_enable_stallguard(stepperI); break;
+        #endif
+        #if J_SENSORLESS
+          case J_AXIS: stealth_states.j = tmc_enable_stallguard(stepperJ); break;
+        #endif
+        #if K_SENSORLESS
+          case K_AXIS: stealth_states.k = tmc_enable_stallguard(stepperK); break;
+        #endif
+        #if U_SENSORLESS
+          case U_AXIS: stealth_states.u = tmc_enable_stallguard(stepperU); break;
+        #endif
+        #if V_SENSORLESS
+          case V_AXIS: stealth_states.v = tmc_enable_stallguard(stepperV); break;
+        #endif
+        #if W_SENSORLESS
+          case W_AXIS: stealth_states.w = tmc_enable_stallguard(stepperW); break;
+        #endif
+      }
+
+      #if ENABLED(SPI_ENDSTOPS)
+        switch (axis) {
+          case X_AXIS: if (ENABLED(X_SPI_SENSORLESS)) endstops.tmc_spi_homing.x = true; break;
+          #if HAS_Y_AXIS
+            case Y_AXIS: if (ENABLED(Y_SPI_SENSORLESS)) endstops.tmc_spi_homing.y = true; break;
+          #endif
+          #if HAS_Z_AXIS
+            case Z_AXIS: if (ENABLED(Z_SPI_SENSORLESS)) endstops.tmc_spi_homing.z = true; break;
+          #endif
+          #if HAS_I_AXIS
+            case I_AXIS: if (ENABLED(I_SPI_SENSORLESS)) endstops.tmc_spi_homing.i = true; break;
+          #endif
+          #if HAS_J_AXIS
+            case J_AXIS: if (ENABLED(J_SPI_SENSORLESS)) endstops.tmc_spi_homing.j = true; break;
+          #endif
+          #if HAS_K_AXIS
+            case K_AXIS: if (ENABLED(K_SPI_SENSORLESS)) endstops.tmc_spi_homing.k = true; break;
+          #endif
+          #if HAS_U_AXIS
+            case U_AXIS: if (ENABLED(U_SPI_SENSORLESS)) endstops.tmc_spi_homing.u = true; break;
+          #endif
+          #if HAS_V_AXIS
+            case V_AXIS: if (ENABLED(V_SPI_SENSORLESS)) endstops.tmc_spi_homing.v = true; break;
+          #endif
+          #if HAS_W_AXIS
+            case W_AXIS: if (ENABLED(W_SPI_SENSORLESS)) endstops.tmc_spi_homing.w = true; break;
+          #endif
+          default: break;
+        }
       #endif
-      #if Z_SENSORLESS
-        case Z_AXIS:
-          tmc_disable_stallguard(stepperZ, enable_stealth.z);
-          #if AXIS_HAS_STALLGUARD(Z2)
-            tmc_disable_stallguard(stepperZ2, enable_stealth.z2);
-          #endif
-          #if AXIS_HAS_STALLGUARD(Z3)
-            tmc_disable_stallguard(stepperZ3, enable_stealth.z3);
-          #endif
-          #if CORE_IS_XZ && X_SENSORLESS
-            tmc_disable_stallguard(stepperX, enable_stealth.x);
-          #elif CORE_IS_YZ && Y_SENSORLESS
-            tmc_disable_stallguard(stepperY, enable_stealth.y);
-          #endif
+
+      #if ENABLED(IMPROVE_HOMING_RELIABILITY) && HOMING_SG_GUARD_DURATION > 0
+        sg_guard_period = millis() + default_sg_guard_duration;
+      #endif
+
+      return stealth_states;
+    }
+
+    void end_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth) {
+      switch (axis) {
+        default: break;
+        #if X_SENSORLESS
+          case X_AXIS:
+            #if ENABLED(CRASH_RECOVERY)
+              crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.x);
+            #else
+              TERN_(X2_SENSORLESS, tmc_disable_stallguard(stepperX2, enable_stealth.x2));
+              #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && Y_SENSORLESS
+                tmc_disable_stallguard(stepperY, enable_stealth.y);
+              #elif CORE_IS_XZ && Z_SENSORLESS
+                tmc_disable_stallguard(stepperZ, enable_stealth.z);
+              #endif
+            #endif // ENABLED(CRASH_RECOVERY)
           break;
+        #endif
+        #if Y_SENSORLESS
+          case Y_AXIS:
+            #if ENABLED(CRASH_RECOVERY)
+              crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.y);
+            #else
+              tmc_disable_stallguard(stepperY, enable_stealth.y);
+              TERN_(Y2_SENSORLESS, tmc_disable_stallguard(stepperY2, enable_stealth.y2));
+              #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && X_SENSORLESS
+                tmc_disable_stallguard(stepperX, enable_stealth.x);
+              #elif CORE_IS_YZ && Z_SENSORLESS
+                tmc_disable_stallguard(stepperZ, enable_stealth.z);
+              #endif
+            #endif // ENABLED(CRASH_RECOVERY)
+          break;
+        #endif
+        #if Z_SENSORLESS
+          case Z_AXIS:
+            tmc_disable_stallguard(stepperZ, enable_stealth.z);
+            TERN_(Z2_SENSORLESS, tmc_disable_stallguard(stepperZ2, enable_stealth.z2));
+            TERN_(Z3_SENSORLESS, tmc_disable_stallguard(stepperZ3, enable_stealth.z3));
+            TERN_(Z4_SENSORLESS, tmc_disable_stallguard(stepperZ4, enable_stealth.z4));
+            #if CORE_IS_XZ && X_SENSORLESS
+              tmc_disable_stallguard(stepperX, enable_stealth.x);
+            #elif CORE_IS_YZ && Y_SENSORLESS
+              tmc_disable_stallguard(stepperY, enable_stealth.y);
+            #endif
+            break;
+        #endif
+        #if I_SENSORLESS
+          case I_AXIS: tmc_disable_stallguard(stepperI, enable_stealth.i); break;
+        #endif
+        #if J_SENSORLESS
+          case J_AXIS: tmc_disable_stallguard(stepperJ, enable_stealth.j); break;
+        #endif
+        #if K_SENSORLESS
+          case K_AXIS: tmc_disable_stallguard(stepperK, enable_stealth.k); break;
+        #endif
+        #if U_SENSORLESS
+          case U_AXIS: tmc_disable_stallguard(stepperU, enable_stealth.u); break;
+        #endif
+        #if V_SENSORLESS
+          case V_AXIS: tmc_disable_stallguard(stepperV, enable_stealth.v); break;
+        #endif
+        #if W_SENSORLESS
+          case W_AXIS: tmc_disable_stallguard(stepperW, enable_stealth.w); break;
+        #endif
+      }
+
+      #if ENABLED(SPI_ENDSTOPS)
+        switch (axis) {
+          case X_AXIS: if (ENABLED(X_SPI_SENSORLESS)) endstops.tmc_spi_homing.x = false; break;
+          #if HAS_Y_AXIS
+            case Y_AXIS: if (ENABLED(Y_SPI_SENSORLESS)) endstops.tmc_spi_homing.y = false; break;
+          #endif
+          #if HAS_Z_AXIS
+            case Z_AXIS: if (ENABLED(Z_SPI_SENSORLESS)) endstops.tmc_spi_homing.z = false; break;
+          #endif
+          #if HAS_I_AXIS
+            case I_AXIS: if (ENABLED(I_SPI_SENSORLESS)) endstops.tmc_spi_homing.i = false; break;
+          #endif
+          #if HAS_J_AXIS
+            case J_AXIS: if (ENABLED(J_SPI_SENSORLESS)) endstops.tmc_spi_homing.j = false; break;
+          #endif
+          #if HAS_K_AXIS
+            case K_AXIS: if (ENABLED(K_SPI_SENSORLESS)) endstops.tmc_spi_homing.k = false; break;
+          #endif
+          #if HAS_U_AXIS
+            case U_AXIS: if (ENABLED(U_SPI_SENSORLESS)) endstops.tmc_spi_homing.u = false; break;
+          #endif
+          #if HAS_V_AXIS
+            case V_AXIS: if (ENABLED(V_SPI_SENSORLESS)) endstops.tmc_spi_homing.v = false; break;
+          #endif
+          #if HAS_W_AXIS
+            case W_AXIS: if (ENABLED(W_SPI_SENSORLESS)) endstops.tmc_spi_homing.w = false; break;
+          #endif
+          default: break;
+        }
       #endif
     }
 
-    #if ENABLED(SPI_ENDSTOPS)
-      switch (axis) {
-        #if X_SPI_SENSORLESS
-          case X_AXIS: endstops.tmc_spi_homing.x = false; break;
-        #endif
-        #if Y_SPI_SENSORLESS
-          case Y_AXIS: endstops.tmc_spi_homing.y = false; break;
-        #endif
-        #if Z_SPI_SENSORLESS
-          case Z_AXIS: endstops.tmc_spi_homing.z = false; break;
-        #endif
-        default: break;
-      }
-    #endif
-  }
-
-#endif // SENSORLESS_HOMING
+  #endif // SENSORLESS_HOMING
 
 /**
  * Home an individual linear axis
@@ -1346,19 +1390,21 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
     home_dir(axis);
 #endif //PRECISE_HOMING
 
-  #if ENABLED(SENSORLESS_HOMING)
-    sensorless_t stealth_states;
-  #endif
-
+    #if ENABLED(SENSORLESS_HOMING)
+      sensorless_t stealth_states;
+    #endif
 
   #if HOMING_Z_WITH_PROBE && QUIET_PROBING
     if (axis == Z_AXIS) probing_pause(true);
   #endif
 
-  // Disable stealthChop if used. Enable diag1 pin on driver.
-  #if ENABLED(SENSORLESS_HOMING)
-      stealth_states = start_sensorless_homing_per_axis(axis);
-  #endif
+      // Disable stealthChop if used. Enable diag1 pin on driver.
+      #if ENABLED(SENSORLESS_HOMING)
+        stealth_states = start_sensorless_homing_per_axis(axis);
+        #if SENSORLESS_STALLGUARD_DELAY
+          safe_delay(SENSORLESS_STALLGUARD_DELAY); // Short delay needed to settle
+        #endif
+      #endif
 
   const feedRate_t real_fr_mm_s = fr_mm_s ?: homing_feedrate(axis);
 
@@ -1420,10 +1466,13 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
 
   endstops.validate_homing_move();
 
-  // Re-enable stealthChop if used. Disable diag1 pin on driver.
-  #if ENABLED(SENSORLESS_HOMING)
-      end_sensorless_homing_per_axis(axis, stealth_states);
-  #endif // ENABLED(SENSORLESS_HOMING)
+      // Re-enable stealthChop if used. Disable diag1 pin on driver.
+      #if ENABLED(SENSORLESS_HOMING)
+        end_sensorless_homing_per_axis(axis, stealth_states);
+        #if SENSORLESS_STALLGUARD_DELAY
+          safe_delay(SENSORLESS_STALLGUARD_DELAY); // Short delay needed to settle
+        #endif
+      #endif
 
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< do_homing_move(", axis_codes[axis], ")");
 }
