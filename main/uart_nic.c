@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include <stdatomic.h>
+#include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -48,20 +49,20 @@
 int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 
-static const uint16_t FW_VERSION = 4;
+static const uint16_t FW_VERSION = 6;
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
 // inactivity to a ridiculously long time and handle the disconnect ourselves.
 //
 // It's not longer for the only reason the uint16_t doesn't hold as big numbers.
-static const uint16_t INACTIVE_BEACON_SECONDS = 3600 * 12;
+static const uint16_t INACTIVE_BEACON_SECONDS = 3600 * 18;
 // This is the effective timeout. If we don't receive any packet for this long,
 // we consider the signal lost.
 //
 // TODO: Shall we generate something to provoke getting some packets? Like ARP
 // pings to the AP?
-static const uint32_t INACTIVE_PACKET_SECONDS = 15;
+static const uint32_t INACTIVE_PACKET_SECONDS = 5;
 
 // intron
 // 0 as uint8_t
@@ -97,6 +98,7 @@ static const uint32_t INACTIVE_PACKET_SECONDS = 15;
 // new intron as uint8_t[8]
 #define MSG_INTRON 5
 
+static const uint8_t uart_nic_protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
 
 static const char *TAG = "uart_nic";
 
@@ -115,6 +117,11 @@ static uint32_t now_seconds() {
 
 static atomic_uint_least32_t last_inbound_seen = 0;
 static atomic_bool associated = false;
+
+static bool beacon_quirk;
+static uint8_t probe_max_reties = 3;
+static atomic_bool probe_in_progress = false;
+static uint8_t probe_retry_count;
 
 typedef struct {
     size_t len;
@@ -148,11 +155,34 @@ static void send_link_status(uint8_t up) {
     xSemaphoreGive(uart_mtx);
 }
 
+static void probe_task() {
+    wifi_scan_config_t config;
+
+    // We need to do full scan, because the ssid/bssid filters don't work
+    config.ssid = NULL;
+    config.bssid = NULL;
+    config.channel = 0;
+    config.show_hidden = true;
+    config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
+    config.scan_time.active.min = 120;
+    config.scan_time.active.max = 300;
+    ESP_ERROR_CHECK(esp_wifi_scan_start(&config, false));
+
+    vTaskDelete(NULL);
+}
+
+static void probe_run() {
+    xTaskCreate(&probe_task, "probe", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
+}
 
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
-        ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N));
-        ESP_ERROR_CHECK(esp_wifi_set_inactive_time(ESP_IF_WIFI_STA, INACTIVE_BEACON_SECONDS));
+        uint8_t current_protocol;
+        ESP_ERROR_CHECK(esp_wifi_get_protocol(ESP_IF_WIFI_STA, &current_protocol));
+        if (current_protocol != uart_nic_protocol) {
+            ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, uart_nic_protocol));
+            return;
+        }
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
         associated = false;
@@ -166,9 +196,56 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
         last_inbound_seen = now_seconds();
         associated = true;
+        beacon_quirk = true;
         send_link_status(1);
         s_retry_num = 0;
-    }
+        ESP_ERROR_CHECK(esp_wifi_set_inactive_time(ESP_IF_WIFI_STA, INACTIVE_BEACON_SECONDS));
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_SCAN_DONE) {
+        wifi_ap_record_t ap_info;
+        ESP_ERROR_CHECK(esp_wifi_sta_get_ap_info(&ap_info));
+
+        const wifi_event_sta_scan_done_t *scan_data = (const wifi_event_sta_scan_done_t *)event_data;
+        uint16_t ap_count = scan_data->number;
+
+        bool found = false;
+        if (!scan_data->status && ap_count) {
+            wifi_ap_record_t *aps = (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * ap_count);
+            ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_count, aps));
+            // Try to match BSSID first and if that fails go on and try SSID match . The BSSD check
+            // should be sufficient, but there are APs that advertise mismatching BSSID in their
+            // beacons and/or probe rensonse. That's the real culprit of the beacon timeout
+            // disconnects and the primary motivation of this whole excercise.
+            for (int i = 0; i < ap_count; ++i) {
+                if (0 == memcmp(ap_info.bssid, aps[i].bssid, 6)) {
+                    found = true;
+                    beacon_quirk = false;
+                    break;
+                }
+            }
+            if (beacon_quirk && !found) {
+                for (int i = 0; i < ap_count; ++i) {
+                    if (ap_info.ssid && ap_info.ssid[0] && aps[i].ssid && aps[i].ssid[0]) {
+                        if (0 == strncmp((char *)(ap_info.ssid), (char *)(aps[i].ssid), 32)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            free(aps);
+        }
+        if (!found){
+            if (probe_retry_count++ < probe_max_reties) {
+                probe_run();
+            } else {
+                send_link_status(0);
+                probe_in_progress = false;
+            }
+        } else {
+            probe_in_progress = false;
+            last_inbound_seen = now_seconds();
+        }
+   }
 }
 
 static int wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
@@ -372,7 +449,7 @@ static int get_link_status() {
 }
 
 static void check_online_status() {
-    if (!associated) {
+    if (!associated || probe_in_progress) {
         // Nothing to check, we are not online and we know it.
         return;
     }
@@ -386,7 +463,9 @@ static void check_online_status() {
     const uint32_t elapsed = now >= last ? now - last : now;
 
     if (elapsed > INACTIVE_PACKET_SECONDS) {
-        esp_wifi_disconnect();
+        probe_in_progress = true;
+        probe_retry_count = 0;
+        probe_run();
     }
 }
 
