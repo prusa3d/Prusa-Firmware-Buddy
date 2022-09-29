@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,27 +16,24 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 #pragma once
 
 #include "../inc/MarlinConfigPre.h"
 #include "../core/types.h"
+#include "../core/millis_t.h"
 
-// Delay that ensures heaters and watchdog are kept alive
-void safe_delay(millis_t ms);
+void safe_delay(millis_t ms);           // Delay ensuring that temperatures are updated and the watchdog is kept alive.
 
-// A delay to provide brittle hosts time to receive bytes
-inline void serial_delay(const millis_t ms) {
-  #if ENABLED(SERIAL_OVERRUN_PROTECTION)
-    safe_delay(ms);
-  #else
-    UNUSED(ms);
-  #endif
-}
+#if ENABLED(SERIAL_OVERRUN_PROTECTION)
+  void serial_delay(const millis_t ms);
+#else
+  inline void serial_delay(const millis_t) {}
+#endif
 
-#if GRID_MAX_POINTS_X && GRID_MAX_POINTS_Y
+#if (GRID_MAX_POINTS_X) && (GRID_MAX_POINTS_Y)
 
   // 16x16 bit arrays
   template <int W, int H>
@@ -47,9 +44,9 @@ inline void serial_delay(const millis_t ms) {
     void unmark(const uint8_t x, const uint8_t y) { CBI(bits[y], x); }
     void mark(const uint8_t x, const uint8_t y)   { SBI(bits[y], x); }
     bool marked(const uint8_t x, const uint8_t y) { return TEST(bits[y], x); }
-    inline void unmark(const xy_int8_t &xy)       { unmark(xy.y, xy.x); }
-    inline void mark(const xy_int8_t &xy)         { mark(xy.y, xy.x); }
-    inline bool marked(const xy_int8_t &xy)       { return marked(xy.y, xy.x); }
+    inline void unmark(const xy_int8_t &xy)       { unmark(xy.x, xy.y); }
+    inline void mark(const xy_int8_t &xy)         { mark(xy.x, xy.y); }
+    inline bool marked(const xy_int8_t &xy)       { return marked(xy.x, xy.y); }
   };
 
   typedef FlagBits<GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y> MeshFlags;
@@ -62,6 +59,11 @@ inline void serial_delay(const millis_t ms) {
   #define log_machine_info() NOOP
 #endif
 
+/**
+ * A restorer instance remembers a variable's value before setting a
+ * new value, then restores the old value when it goes out of scope.
+ * Put operator= on your type to get extended behavior on value change.
+ */
 template<typename T>
 class restorer {
   T& ref_;
@@ -73,9 +75,20 @@ public:
   inline void restore() { ref_ = val_; }
 };
 
-#define REMEMBER(N,X,V...) const restorer<decltype(X)> restorer_##N(X, ##V)
+#define REMEMBER(N,X,V...) restorer<__typeof__(X)> restorer_##N(X, ##V)
 #define RESTORE(N) restorer_##N.restore()
 
 // Converts from an uint8_t in the range of 0-255 to an uint8_t
 // in the range 0-100 while avoiding rounding artifacts
 constexpr uint8_t ui8_to_percent(const uint8_t i) { return (int(i) * 100 + 127) / 255; }
+
+// Axis names for G-code parsing, reports, etc.
+const xyze_char_t axis_codes LOGICAL_AXIS_ARRAY('E', 'X', 'Y', 'Z', AXIS4_NAME, AXIS5_NAME, AXIS6_NAME, AXIS7_NAME, AXIS8_NAME, AXIS9_NAME);
+#if NUM_AXES <= XYZ && !HAS_EXTRUDERS
+  #define AXIS_CHAR(A) ((char)('X' + A))
+  #define IAXIS_CHAR AXIS_CHAR
+#else
+  const xyze_char_t iaxis_codes LOGICAL_AXIS_ARRAY('E', 'X', 'Y', 'Z', 'I', 'J', 'K', 'U', 'V', 'W');
+  #define AXIS_CHAR(A) axis_codes[A]
+  #define IAXIS_CHAR(A) iaxis_codes[A]
+#endif
