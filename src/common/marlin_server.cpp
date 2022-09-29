@@ -1275,7 +1275,7 @@ void marlin_server_resuming_begin(void) {
         marlin_server.print_state = mpsResuming_UnparkHead_XY;
     } else {
         thermalManager.setTargetHotend(marlin_server.resume.nozzle_temp, 0);
-        marlin_set_display_nozzle(marlin_server.resume.nozzle_temp);
+        marlin_server_set_temp_to_display(marlin_server.resume.nozzle_temp);
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0); //disable print fan
 #endif
