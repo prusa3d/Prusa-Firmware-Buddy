@@ -1410,8 +1410,8 @@ msgid "To calibrate with currently loaded filament, press NEXT. To load filament
 msgstr "Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby załadować, wybierz ZAŁADUJ. Aby wymienić, wybierz ROZŁADUJ."
 
 #: src/gui/wizard/selftest_frame_esp_qr.cpp:40
-msgid "To setup or troubleshoot your Wi-Fi, please visit:\n"
-msgstr "Aby skonfigurować lub rozwiązać problem z siecią Wi-Fi, wejdź na stronę:\n"
+msgid "To setup or troubleshoot your Wi-Fi, please visit:\nprusa.io/wifimini"
+msgstr "Aby skonfigurować Wi-Fi lub rozwiązać problem, wejdź na:\nprusa.io/wifimini"
 
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
