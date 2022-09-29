@@ -10,6 +10,9 @@ target_sources(
           M997.cpp
           M999.cpp
   )
+if(WUI)
+  target_sources(firmware PRIVATE M1587.cpp)
+endif()
 
 add_subdirectory(pause)
 add_subdirectory(sdcard)
