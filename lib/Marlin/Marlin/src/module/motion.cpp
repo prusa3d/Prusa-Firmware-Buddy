@@ -1153,6 +1153,9 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
           #endif
 
           stealth_states.x = tmc_enable_stallguard(stepperX);
+          #if ENABLED(CRASH_RECOVERY)
+            stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
+          #endif
 
           #if AXIS_HAS_STALLGUARD(X2)
             stealth_states.x2 = tmc_enable_stallguard(stepperX2);
@@ -1173,7 +1176,6 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
           #endif
 
           stealth_states.y = tmc_enable_stallguard(stepperY);
-
           #if ENABLED(CRASH_RECOVERY)
             stepperY.stall_sensitivity(crash_s.home_sensitivity[1]);
           #endif
