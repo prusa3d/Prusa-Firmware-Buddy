@@ -210,8 +210,8 @@ msgid ""
 "Continue to flash\n"
 "the ESP firmware."
 msgstr ""
-"Selecciona Continuar para\n"
-"flashear el\n"
+"Selecciona Continuar"
+"para flashear el"
 "firmware ESP."
 
 #: src/gui/MItem_filament.hpp:46
@@ -260,8 +260,8 @@ msgid ""
 "Do not unplug Wi-Fi\n"
 "or turn off printer!"
 msgstr ""
-"¡No desconectes el Wi-Fi\n"
-"ni apagues la impresora!"
+"¡No apagues el Wi-Fi\n"
+"ni la impresora!"
 
 #: src/gui/wizard/firstlay.cpp:167
 msgid "Do you want to repeat the last step and readjust the distance between the nozzle and heatbed?"
@@ -1327,7 +1327,7 @@ msgstr "AJUSTES"
 
 #: src/gui/screen_menu_footer_settings.cpp:117
 msgid "Temp. show zero"
-msgstr "Temp. show zeroXXX"
+msgstr "Mostrar temp. cero"
 
 #: src/gui/screen_menu_footer_settings.cpp:98
 msgid "Temp. style"
@@ -1413,8 +1413,8 @@ msgid "To calibrate with currently loaded filament, press NEXT. To load filament
 msgstr "Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Para cargar filamento, pulsa CARGAR. Para cambiarlo, pulsa DESCARGAR."
 
 #: src/gui/wizard/selftest_frame_esp_qr.cpp:40
-msgid "To setup or troubleshoot your Wi-Fi, please visit:\n"
-msgstr "Para configurar o solucionar los problemas de tu Wi-Fi, visita:\n"
+msgid "To setup or troubleshoot your Wi-Fi, please visit:\nprusa.io/wifimini"
+msgstr "Resuelve problemas de tu Wi-Fi en:\nprusa.io/wifimini"
 
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
@@ -1471,7 +1471,7 @@ msgstr "Unparking"
 #: src/gui/wizard/selftest_frame_esp_progress.cpp:61
 #: src/gui/wizard/selftest_frame_esp_progress.cpp:66
 msgid "Updating Wi-Fi..."
-msgstr "Actualizando Wi-Fi..."
+msgstr "Act. Wi-Fi..."
 
 #: src/gui/wizard/selftest_frame_esp.cpp:53
 msgid ""
@@ -1486,10 +1486,9 @@ msgstr ""
 #: src/gui/wizard/selftest_frame_esp_qr.cpp:37
 msgid ""
 "Use the online guide\n"
-"to setup your Wi-Fi\n"
+"to setup your Wi-Fi\nprusa.io/wifimini"
 msgstr ""
-"Usa la guía en línea\n"
-"para configurar tu Wi-Fi\n"
+"Usa la guía en línea para configurar tu Wi-Fi\nprusa.io/wifimini"
 
 #: src/gui/gcode_description.cpp:38
 msgid "Used Filament"
@@ -1549,7 +1548,7 @@ msgid ""
 "Wi-Fi (ESP) module\n"
 "firmware updater."
 msgstr ""
-"Actualizador de firmware\n"
+"Act. de firmware\n"
 "módulo Wi-Fi (ESP)."
 
 #: src/gui/MItem_tools.hpp:11
