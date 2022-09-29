@@ -28,10 +28,10 @@ void SelftestFrameESP_qr::change() {
     //texts
     switch (phase_current) {
     case PhasesSelftest::ESP_qr_instructions_flash:
-        txt = N_("Use the online guide\nto setup your Wi-Fi\n" QR_ADDR_IN_TEXT);
+        txt = N_("Use the online guide\nto setup your Wi-Fi\nprusa.io/wifimini");
         break;
     case PhasesSelftest::ESP_qr_instructions:
-        txt = N_("To setup or troubleshoot your Wi-Fi, please visit:\n" QR_ADDR_IN_TEXT);
+        txt = N_("To setup or troubleshoot your Wi-Fi, please visit:\nprusa.io/wifimini");
         break;
     default:
         break;
