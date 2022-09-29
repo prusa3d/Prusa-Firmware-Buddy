@@ -617,7 +617,7 @@ void marlin_encoded_response(uint32_t enc_phase_and_response) {
     _send_request_to_server_and_wait(request);
 }
 bool marlin_is_printing() {
-    switch (marlin_vars()->print_state) {
+    switch (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state) {
     case mpsAborted:
     case mpsIdle:
     case mpsFinished:
