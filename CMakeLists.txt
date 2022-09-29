@@ -373,21 +373,24 @@ if(GENERATE_BBF)
     ${resource_image_names}
     )
 
-  pack_firmware(
-    firmware
-    FW_VERSION
-    "${PROJECT_VERSION_FULL}"
-    BUILD_NUMBER
-    "${BUILD_NUMBER}"
-    PRINTER_TYPE
-    "${PRINTER_TYPE}"
-    SIGNING_KEY
-    "${SIGNING_KEY}"
-    BBF_VERSION
-    "1"
-    OUTPUT_PATH
-    "firmware_update_pre_4.4.bbf"
-    )
+  if(PRINTER STREQUAL "MINI")
+    pack_firmware(
+      firmware
+      FW_VERSION
+      "${PROJECT_VERSION_FULL}"
+      BUILD_NUMBER
+      "${BUILD_NUMBER}"
+      PRINTER_TYPE
+      "${PRINTER_TYPE}"
+      SIGNING_KEY
+      "${SIGNING_KEY}"
+      BBF_VERSION
+      "1"
+      OUTPUT_PATH
+      "firmware_update_pre_4.4.bbf"
+      )
+  endif()
+
 elseif(SIGNING_KEY)
   message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
 endif()
