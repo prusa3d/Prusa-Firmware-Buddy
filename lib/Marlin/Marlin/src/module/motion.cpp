@@ -422,7 +422,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
  * may have been applied.
  */
 void set_current_from_steppers() {
-  set_current_from_steppers_for_axis(ALL_AXES);
+  set_current_from_steppers_for_axis(ALL_AXES_ENUM);
 }
 
 /**

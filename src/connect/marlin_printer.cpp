@@ -242,6 +242,7 @@ Printer::Params MarlinPrinter::params() const {
     params.time_to_end = marlin_vars->time_to_end;
     params.progress_percent = marlin_vars->sd_percent_done;
     params.filament_used = Odometer_s::instance().get(Odometer_s::axis_t::E);
+    params.has_usb = marlin_vars->media_inserted;
 
     return params;
 }

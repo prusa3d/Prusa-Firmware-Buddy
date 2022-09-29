@@ -151,6 +151,7 @@ TEST_CASE("Render") {
                 "\"sn\":\"FAKE-1234\","
                 "\"appendix\":false,"
                 "\"fingerprint\":\"DEADBEEF\","
+                "\"storages\":[],"
                 "\"network_info\":{}"
             "},"
             "\"state\":\"IDLE\","

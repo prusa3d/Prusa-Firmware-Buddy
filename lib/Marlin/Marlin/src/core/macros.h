@@ -338,6 +338,9 @@
 #define GANG_N_1(N,K) _GANG_N(N,K,K,K,K,K,K,K,K,K,K,K,K,K,K,K,K)
 
 // Macros for initializing arrays
+#define LIST_26(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+#define LIST_25(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y
+#define LIST_24(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X
 #define LIST_23(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W
 #define LIST_22(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V
 #define LIST_21(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U
@@ -733,3 +736,8 @@
 #define __MAPLIST() _MAPLIST
 
 #define MAPLIST(OP,V...) EVAL(_MAPLIST(OP,V))
+
+// Temperature Sensor Config
+#define _HAS_E_TEMP(N) || (TEMP_SENSOR_##N != 0)
+#define HAS_E_TEMP_SENSOR (0 REPEAT(EXTRUDERS, _HAS_E_TEMP))
+#define TEMP_SENSOR_IS_MAX_TC(T) (TEMP_SENSOR_##T == -5 || TEMP_SENSOR_##T == -3 || TEMP_SENSOR_##T == -2)

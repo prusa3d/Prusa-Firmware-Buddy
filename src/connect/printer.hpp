@@ -60,6 +60,7 @@ public:
         uint32_t print_duration;
         uint32_t time_to_end;
         uint8_t progress_percent;
+        bool has_usb;
         DeviceState state;
     };
 
