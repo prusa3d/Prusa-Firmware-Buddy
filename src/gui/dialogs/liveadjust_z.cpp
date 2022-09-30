@@ -171,7 +171,7 @@ static constexpr const padding_ui8_t textPadding = { 10, 5, 0, 0 };
 LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
-    , nozzle_icon(this, getNozzleRect(), PNG::nozzle_48x48)
+    , nozzle_icon(this, getNozzleRect(), png::Id({ PNG::nozzle_48x48 }))
     , adjuster(this, { 75, 215 })
     , scale(this, { 45, 125 }) {
 

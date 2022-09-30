@@ -36,7 +36,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     , w_filelist(this)
     , gcode_info(GCodeInfo::getInstance()) {
 
-    header.SetIcon(IDR_PNG_folder_full_16px);
+    header.SetIcon(png::Id({ IDR_PNG_folder_full_16px }));
     static const char sf[] = N_("PROJECTS");
     header.SetText(_(sf));
 

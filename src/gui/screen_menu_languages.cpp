@@ -16,7 +16,7 @@
 
 class MI_LangBase : public WI_LABEL_t {
 public:
-    inline MI_LangBase(const char *label, ResourceId icon_id)
+    inline MI_LangBase(const char *label, png::Id icon_id)
         : WI_LABEL_t(_(label), icon_id, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
@@ -37,7 +37,7 @@ class MI_ENGLISH : public MI_LangBase {
 
 public:
     inline MI_ENGLISH()
-        : MI_LangBase(label, IDR_PNG_flag_en) {}
+        : MI_LangBase(label, { PNG::flag_en_16x11 }) {}
 
 protected:
     virtual uint16_t LangCode() const override { return Translations::MakeLangCode("en"); }
@@ -49,7 +49,7 @@ class MI_CZECH : public MI_LangBase {
 
 public:
     inline MI_CZECH()
-        : MI_LangBase(label, IDR_PNG_flag_cs) {}
+        : MI_LangBase(label, { PNG::flag_cs_16x11 }) {}
 
 protected:
     virtual uint16_t LangCode() const override { return Translations::MakeLangCode("cs"); }
@@ -60,7 +60,7 @@ class MI_GERMAN : public MI_LangBase {
 
 public:
     inline MI_GERMAN()
-        : MI_LangBase(label, IDR_PNG_flag_de) {}
+        : MI_LangBase(label, { PNG::flag_de_16x11 }) {}
 
 protected:
     virtual uint16_t LangCode() const override { return Translations::MakeLangCode("de"); }
@@ -72,7 +72,7 @@ class MI_SPANISH : public MI_LangBase {
 
 public:
     inline MI_SPANISH()
-        : MI_LangBase(label, IDR_PNG_flag_es) {}
+        : MI_LangBase(label, { PNG::flag_es_16x11 }) {}
 
 protected:
     virtual uint16_t LangCode() const override { return Translations::MakeLangCode("es"); }
@@ -84,7 +84,7 @@ class MI_FRENCH : public MI_LangBase {
 
 public:
     inline MI_FRENCH()
-        : MI_LangBase(label, IDR_PNG_flag_fr) {}
+        : MI_LangBase(label, { PNG::flag_fr_16x11 }) {}
 
 protected:
     virtual uint16_t LangCode() const override { return Translations::MakeLangCode("fr"); }
@@ -95,7 +95,7 @@ class MI_ITALIAN : public MI_LangBase {
 
 public:
     inline MI_ITALIAN()
-        : MI_LangBase(label, IDR_PNG_flag_it) {}
+        : MI_LangBase(label, { PNG::flag_it_16x11 }) {}
 
 protected:
     virtual uint16_t LangCode() const override { return Translations::MakeLangCode("it"); }
@@ -106,7 +106,7 @@ class MI_POLISH : public MI_LangBase {
 
 public:
     inline MI_POLISH()
-        : MI_LangBase(label, IDR_PNG_flag_pl) {}
+        : MI_LangBase(label, { PNG::flag_pl_16x11 }) {}
 
 protected:
     virtual uint16_t LangCode() const override { return Translations::MakeLangCode("pl"); }
@@ -117,7 +117,7 @@ class MI_TEST_LANG : public MI_LangBase {
 
 public:
     inline MI_TEST_LANG()
-        : MI_LangBase(label, IDR_PNG_flag_cs) {}
+        : MI_LangBase(label, { PNG::flag_cs_16x11 }) {}
 
 protected:
     virtual uint16_t LangCode() const override { return Translations::MakeLangCode("ts"); }

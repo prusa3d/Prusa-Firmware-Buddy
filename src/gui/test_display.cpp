@@ -246,7 +246,7 @@ void test_display_random_png_64x64(uint16_t count) {
     for (uint16_t n = 0; n < count; n++) {
         x = rand() % (display::GetW() - 64 + 1);
         y = rand() % (display::GetH() - 64 + 1);
-        display::DrawPng(point_ui16(x, y), pf);
+        display::DrawPng(point_ui16(x, y), pf, COLOR_BLACK, {});
     }
     fclose(pf);
 }

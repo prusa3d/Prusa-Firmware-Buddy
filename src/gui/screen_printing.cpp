@@ -27,19 +27,19 @@ enum class Btn {
     Stop
 };
 
-const ResourceId printing_icons[static_cast<size_t>(item_id_t::count)] = {
-    IDR_PNG_settings_58px,
-    IDR_PNG_pause_58px,
-    IDR_PNG_pause_58px, //same as pause
-    IDR_PNG_stop_58px,
-    IDR_PNG_resume_48px,
-    IDR_PNG_resume_48px,
-    IDR_PNG_resume_48px, //reheating is same as resume, bud disabled
-    IDR_PNG_reprint_48px,
-    IDR_PNG_home_58px,
+static constexpr png::Id printing_icons[static_cast<size_t>(item_id_t::count)] = {
+    PNG::settings_58x58,
+    PNG::pause_58x58,
+    PNG::pause_58x58, //same as pause
+    PNG::stop_58x58,
+    PNG::resume_48x48,
+    PNG::resume_48x48,
+    PNG::resume_48x48, //reheating is same as resume, bud disabled
+    PNG::reprint_48x48,
+    PNG::home_58x58,
 };
 
-const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
+static constexpr const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
     N_("Tune"),
     N_("Pause"),
     N_("Pausing..."),

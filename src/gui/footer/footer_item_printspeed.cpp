@@ -11,7 +11,7 @@
 #include <algorithm>
 
 FooterItemSpeed::FooterItemSpeed(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, IDR_PNG_speed_16px, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, png::Id({ IDR_PNG_speed_16px }), static_makeView, static_readValue) {
 }
 
 int FooterItemSpeed::static_readValue() {

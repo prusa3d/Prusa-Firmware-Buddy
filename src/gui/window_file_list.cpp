@@ -101,7 +101,7 @@ window_file_list_t::window_file_list_t(window_t *parent)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , entire_window_invalid(true)
-    , activeItem(string_view_utf8(), IDR_NULL) {
+    , activeItem(string_view_utf8(), png::Id::Null()) {
     DisableLongHoldScreenAction();
     SetAlignment(Align_t::LeftCenter());
     Enable();
@@ -255,17 +255,17 @@ Rect16 window_file_list_t::itemRect(int index) const {
     return GetRect().Intersection(rc);
 }
 
-ResourceId window_file_list_t::itemIcon(int index) const {
+png::Id window_file_list_t::itemIcon(int index) const {
     auto item = ldv.LongFileNameAt(index);
     const bool isFile = item.second == LDV::EntryType::FILE;
     if (!item.first) {
         // this should normally not happen, visible_count shall limit indices to valid items only
-        return IDR_NULL; // ... but getting ready for the unexpected
+        return png::Id::Null(); // ... but getting ready for the unexpected
     }
-    ResourceId id_icon = isFile ? IDR_NULL : IDR_PNG_folder_full_16px;
+    png::Id id_icon = isFile ? png::Id::Null() : png::Id({ IDR_PNG_folder_full_16px });
 
     if (index == 0 && strcmp(item.first, "..") == 0 && IsPathRoot(sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
-        id_icon = IDR_PNG_home_full_16px;
+        id_icon = png::Id({ IDR_PNG_folder_full_16px });
     }
     return id_icon;
 }

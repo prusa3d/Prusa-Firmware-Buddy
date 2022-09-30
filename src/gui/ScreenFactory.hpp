@@ -12,7 +12,7 @@ class ScreenFactory {
 #if _DEBUG
     static constexpr size_t min_union_size = 3476;
 #else
-    static constexpr size_t min_union_size = 2980;
+    static constexpr size_t min_union_size = 2996;
 #endif
 
     ScreenFactory() = delete;

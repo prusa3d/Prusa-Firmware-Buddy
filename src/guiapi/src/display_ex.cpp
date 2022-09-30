@@ -347,12 +347,12 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt) {
     return get_pixel_directColor_C(pt.x, pt.y);
 }
 
-void display_ex_draw_icon(point_ui16_t pt, ResourceId id_res, color_t clr0, ropfn rop) {
-    FILE *pf = resource_fopen(id_res, "rb");
+void display_ex_draw_icon(point_ui16_t pt, png::Id id_res, color_t clr0, ropfn rop) {
+    FILE *pf = nullptr; // TODO resource_fopen(id_res.ptr, "rb");
     draw_png_ex_C(pt.x, pt.y, pf, clr0, rop);
     fclose(pf);
 }
 
-void display_ex_draw_png(point_ui16_t pt, FILE *pf) {
-    draw_png_ex_C(pt.x, pt.y, pf, 0, ropfn());
+void display_ex_draw_png(point_ui16_t pt, FILE *pf, color_t clr0, ropfn rop) {
+    draw_png_ex_C(pt.x, pt.y, pf, clr0, rop);
 }

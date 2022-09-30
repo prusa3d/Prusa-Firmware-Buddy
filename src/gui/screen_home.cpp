@@ -26,13 +26,13 @@
 bool screen_home_data_t::ever_been_openned = false;
 bool screen_home_data_t::try_esp_flash = true;
 
-const ResourceId icons[] = {
-    IDR_PNG_print_58px,
-    IDR_PNG_preheat_58px,
-    IDR_PNG_spool_58px,
-    IDR_PNG_calibrate_58px,
-    IDR_PNG_settings_58px,
-    IDR_PNG_info_58px
+static constexpr png::Id icons[] = {
+    PNG::print_58x58,
+    PNG::preheat_58x58,
+    PNG::spool_58x58,
+    PNG::calibrate_58x58,
+    PNG::settings_58x58,
+    PNG::info_58x58
 };
 
 constexpr size_t labelPrintId = 0;
@@ -57,13 +57,13 @@ screen_home_data_t::screen_home_data_t()
     , esp_flash_being_openned(false)
     , header(this)
     , footer(this)
-    , logo(this, Rect16(41, 31, 158, 40), PNG::prusa_printer_logo)
-    , w_buttons { { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), IDR_NULL, []() { marlin_gcode_printf("M1700"); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
+    , logo(this, Rect16(41, 31, 158, 40), { PNG::prusa_printer_logo })
+    , w_buttons { { this, Rect16(), png::Id::Null(), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
+        { this, Rect16(), png::Id::Null(), []() { marlin_gcode_printf("M1700"); } },
+        { this, Rect16(), png::Id::Null(), []() { Screens::Access()->Open(GetScreenMenuFilament); } },
+        { this, Rect16(), png::Id::Null(), []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
+        { this, Rect16(), png::Id::Null(), []() { Screens::Access()->Open(GetScreenMenuSettings); } },
+        { this, Rect16(), png::Id::Null(), []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
     , w_labels { { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
@@ -78,7 +78,7 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     screen_filebrowser_data_t::SetRoot("/usb");
 
-    header.SetIconFilePath(PNG::home_16x16);
+    header.SetIcon(png::Id({ PNG::home_16x16 }));
 #ifndef _DEBUG
     header.SetText(_("HOME"));
 #else

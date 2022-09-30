@@ -55,7 +55,7 @@ protected:
     bool invalid_icon : 1;
     bool invalid_label : 1;
     bool invalid_extension : 1;
-    ResourceId id_icon;
+    png::Id id_icon;
     font_t *label_font;
 
     Rect16 getIconRect(Rect16 rect) const;
@@ -96,8 +96,8 @@ protected:
     void clrFocus();
 
 public:
-    IWindowMenuItem(string_view_utf8 label, ResourceId id_icon = IDR_NULL, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
-    IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, ResourceId id_icon = IDR_NULL, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
+    IWindowMenuItem(string_view_utf8 label, png::Id id_icon = png::Id::Null(), is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
+    IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, png::Id id_icon = png::Id::Null(), is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, font_t *label_font = GuiDefaults::FontMenuItems);
     virtual ~IWindowMenuItem() = default;
     void Enable() {
         if (enabled != is_enabled_t::yes) {
@@ -118,11 +118,11 @@ public:
     bool IsHidden() const;
 
     bool IsFocused() const { return focused == is_focused_t::yes; }
-    void SetIconId(ResourceId id) {
+    void SetIconId(png::Id id) {
         id_icon = id;
         InValidateIcon();
     }
-    ResourceId GetIconId() const { return id_icon; }
+    png::Id GetIconId() const { return id_icon; }
     void SetLabel(string_view_utf8 text);
     /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text

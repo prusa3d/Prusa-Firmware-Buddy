@@ -57,7 +57,7 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
     static_unique_ptr<SelftestFrame> ptr;
 
     static string_view_utf8 getCaption(SelftestParts part);
-    static ResourceId getIconId(SelftestParts part);
+    static png::Id getIconId(SelftestParts part);
 
 private:
     static constexpr const char *en_wizard = N_("WIZARD");

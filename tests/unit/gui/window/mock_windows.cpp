@@ -80,7 +80,7 @@ window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreen, IDialog::IsStrong::yes) {
 }
 
-void window_dlg_strong_warning_t::setIcon(ResourceId resId) {
+void window_dlg_strong_warning_t::setIcon(png::Id resId) {
 }
 
 void window_dlg_strong_warning_t::show(string_view_utf8 txt) {

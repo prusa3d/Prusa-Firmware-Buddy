@@ -26,19 +26,19 @@ public:
 
 class SelfTestViewTextWithIcon : public SelfTestViewText {
 protected:
-    ResourceId icon_id;
+    png::Id icon_id;
     size_ui16_t icon_sz;
 
 public:
-    SelfTestViewTextWithIcon(string_view_utf8 txt, ResourceId icon_id, is_multiline multiln = is_multiline::no);
+    SelfTestViewTextWithIcon(string_view_utf8 txt, png::Id icon_id, is_multiline multiln = is_multiline::no);
     virtual void Draw(Rect16::Top_t top) const override;
 };
 
 class SelfTestViewTextWithIconAndResult : public SelfTestViewTextWithIcon {
-    ResourceId icon_result_id;
+    png::Id icon_result_id;
 
 public:
-    SelfTestViewTextWithIconAndResult(string_view_utf8 txt, ResourceId icon_id, TestResult_t result, is_multiline multiln = is_multiline::no);
+    SelfTestViewTextWithIconAndResult(string_view_utf8 txt, png::Id icon_id, TestResult_t result, is_multiline multiln = is_multiline::no);
     virtual void Draw(Rect16::Top_t top) const override;
-    static ResourceId ResultToIconId(TestResult_t res);
+    static png::Id ResultToIconId(TestResult_t res);
 };

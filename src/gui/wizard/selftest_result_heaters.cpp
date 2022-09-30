@@ -10,8 +10,8 @@
 
 ResultHeaters::ResultHeaters(TestResult_t res_noz, TestResult_t res_bed)
     : SelfTestGroup(_("Heaters check"))
-    , noz(_("Nozzle"), IDR_PNG_nozzle_16px, res_noz)
-    , bed(_("Heatbed"), IDR_PNG_heatbed_16px, res_bed) {
+    , noz(_("Nozzle"), png::Id({ IDR_PNG_nozzle_16px }), res_noz)
+    , bed(_("Heatbed"), png::Id({ IDR_PNG_heatbed_16px }), res_bed) {
     Add(noz);
     Add(bed);
     if (res_noz == TestResult_t::Failed || res_bed == TestResult_t::Failed) {

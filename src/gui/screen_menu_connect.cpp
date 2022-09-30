@@ -8,12 +8,12 @@
 
 using connect_client::OnlineStatus;
 
-class MI_CONNECT_ENABLED : public WI_ICON_SWITCH_OFF_ON_t {
+class MI_CONNECT_ENABLED : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *label = N_("Enabled");
 
 public:
     MI_CONNECT_ENABLED()
-        : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_CONNECT_ENABLED), string_view_utf8::MakeCPUFLASH((const uint8_t *)label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_CONNECT_ENABLED), string_view_utf8::MakeCPUFLASH((const uint8_t *)label), png::Id::Null(), is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     virtual void OnChange(size_t old_index) override {
@@ -27,7 +27,7 @@ class MI_CONNECT_STATUS : public WI_INFO_t {
 
 public:
     MI_CONNECT_STATUS()
-        : WI_INFO_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+        : WI_INFO_t(_(label), png::Id::Null(), is_enabled_t::yes, is_hidden_t::dev) {
     }
 };
 

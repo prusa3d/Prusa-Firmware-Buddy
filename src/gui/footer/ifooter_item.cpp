@@ -61,10 +61,10 @@ Rect16::Width_t IFooterItem::TextWidth(string_view_utf8 text) {
     return txt_size.w;
 }
 
-IFooterIconText::IFooterIconText(window_t *parent, ResourceId icon_id, Rect16::W_t width)
+IFooterIconText::IFooterIconText(window_t *parent, png::Id ic, Rect16::W_t width)
     : AddSuperWindow<IFooterItem>(parent, width)
-    , icon(this, icon_id)
-    , text(this, Rect16::Left_t(icon_id ? icon.Width() + GuiDefaults::FooterIconTextSpace : 0)) {
+    , icon(this, ic)
+    , text(this, Rect16::Left_t(!ic.IsNull() ? icon.Width() + GuiDefaults::FooterIconTextSpace : 0)) {
 }
 
 Rect16::Width_t IFooterIconText::MeasureTextWidth(string_view_utf8 text) {
@@ -73,17 +73,17 @@ Rect16::Width_t IFooterIconText::MeasureTextWidth(string_view_utf8 text) {
     return txt_size.w;
 }
 
-FooterIconText_IntVal::FooterIconText_IntVal(window_t *parent, ResourceId icon_id,
+FooterIconText_IntVal::FooterIconText_IntVal(window_t *parent, png::Id ic,
     view_maker_cb view_maker, reader_cb value_reader)
-    : AddSuperWindow<IFooterIconText>(parent, icon_id, GetTotalWidth(icon_id, view_maker(value_reader())))
+    : AddSuperWindow<IFooterIconText>(parent, ic, Rect16::Width_t(0) /*GetTotalWidth(icon, view_maker(value_reader()))*/)
     , makeView(view_maker)
     , readCurrentValue(value_reader)
     , value(value_reader()) {
     text.SetText(makeView(value));
 }
 
-Rect16::Width_t FooterIconText_IntVal::GetTotalWidth(uint16_t icon_id, string_view_utf8 view) {
-    return MeasureTextWidth(view) + Rect16::Width_t(icon_id != 0 ? GuiDefaults::FooterIconSize.w + GuiDefaults::FooterIconTextSpace : 0);
+Rect16::Width_t FooterIconText_IntVal::GetTotalWidth(uint16_t icon, string_view_utf8 view) {
+    return MeasureTextWidth(view) + Rect16::Width_t(icon != 0 ? GuiDefaults::FooterIconSize.w + GuiDefaults::FooterIconTextSpace : 0);
 }
 
 changed_t FooterIconText_IntVal::updateValue() {
@@ -102,7 +102,7 @@ resized_t FooterIconText_IntVal::updateState() {
     text.Invalidate(); // text could change, without changing pointer to buffer, need manual invalidation
                        // value changed so text is ivalid, this will not cause unnecessary redraw
 
-    Rect16::Width_t current_width = GetTotalWidth(icon.GetIdRes(), current_view);
+    Rect16::Width_t current_width = Rect16::Width_t(0); // GetTotalWidth(icon.GetIdRes(), current_view);
     if (current_width != Width()) {
         Resize(current_width);
         text.Resize(MeasureTextWidth(current_view));
@@ -110,17 +110,17 @@ resized_t FooterIconText_IntVal::updateState() {
     }
     return resized_t::no;
 }
-FooterIconText_FloatVal::FooterIconText_FloatVal(window_t *parent, ResourceId icon_id,
+FooterIconText_FloatVal::FooterIconText_FloatVal(window_t *parent, png::Id icon,
     view_maker_cb view_maker, reader_cb value_reader)
-    : AddSuperWindow<IFooterIconText>(parent, icon_id, GetTotalWidth(icon_id, view_maker(value_reader())))
+    : AddSuperWindow<IFooterIconText>(parent, icon, GetTotalWidth(icon, view_maker(value_reader())))
     , makeView(view_maker)
     , readCurrentValue(value_reader)
     , value(value_reader()) {
     text.SetText(makeView(value));
 }
 
-Rect16::Width_t FooterIconText_FloatVal::GetTotalWidth(ResourceId icon_id, string_view_utf8 view) {
-    return MeasureTextWidth(view) + Rect16::Width_t(icon_id != 0 ? GuiDefaults::FooterIconSize.w + GuiDefaults::FooterIconTextSpace : 0);
+Rect16::Width_t FooterIconText_FloatVal::GetTotalWidth(png::Id icon, string_view_utf8 view) {
+    return MeasureTextWidth(view) + Rect16::Width_t(!icon.IsNull() ? GuiDefaults::FooterIconSize.w + GuiDefaults::FooterIconTextSpace : 0);
 }
 
 changed_t FooterIconText_FloatVal::updateValue() {

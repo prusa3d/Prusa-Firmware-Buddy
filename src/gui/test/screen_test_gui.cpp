@@ -12,9 +12,9 @@ screen_test_gui_data_t::screen_test_gui_data_t()
     , text1(this, Rect16(80, 70, 60, 22), is_multiline::no)
     , text2(this, Rect16(150, 70, 60, 22), is_multiline::no)
     , numb0(this, Rect16(10, 100, 60, 22))
-    , icon0(this, Rect16(10, 234, 64, 64), IDR_PNG_print_58px)
-    , icon1(this, Rect16(80, 234, 64, 64), IDR_PNG_preheat_58px)
-    , icon2(this, Rect16(150, 234, 64, 64), IDR_PNG_spool_58px)
+    , icon0(this, Rect16(10, 234, 64, 64), PNG::print_58x58)
+    , icon1(this, Rect16(80, 234, 64, 64), PNG::preheat_58x58)
+    , icon2(this, Rect16(150, 234, 64, 64), PNG::spool_58x58)
     , progress(this, Rect16(0, 200, 240, 30))
     , text_terminal(this, Rect16(0, 298, 240, 22), is_multiline::no) {
 

@@ -16,13 +16,13 @@ static point_ui16_t pt_ico() {
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
-    , octo_icon(this, Rect16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBody.Top(), pt_ico().x, pt_ico().y), PNG::serial_printing_172x138)
+    , octo_icon(this, Rect16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBody.Top(), pt_ico().x, pt_ico().y), png::Id({ PNG::serial_printing_172x138 }))
     , last_tick(0)
     , connection(connection_state_t::connected) {
     ClrMenuTimeoutClose();
     ClrOnSerialClose(); // don't close on Serial print
 
-    octo_icon.SetFilePath(PNG::serial_printing_172x138);
+    octo_icon.SetIdRes(png::Id({ PNG::serial_printing_172x138 }));
     octo_icon.Disable();
     octo_icon.Unshadow();
 

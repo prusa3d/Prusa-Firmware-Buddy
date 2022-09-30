@@ -8,13 +8,13 @@
 #include "resource.h"
 
 struct btn_resource {
-    ResourceId ico;
+    png::Id ico;
     const char *txt;
 };
 
-static constexpr btn_resource res_tune = { IDR_PNG_settings_58px, N_("Tune") };
-static constexpr btn_resource res_pause = { IDR_PNG_pause_58px, (const char *)(N_("Pause")) };
-static constexpr btn_resource res_stop = { IDR_PNG_stop_58px, N_("Stop") };
+static constexpr btn_resource res_tune = { png::Id({ PNG::settings_58x58 }), N_("Tune") };
+static constexpr btn_resource res_pause = { png::Id({ PNG::pause_58x58 }), N_("Pause") };
+static constexpr btn_resource res_stop = { png::Id({ PNG::stop_58x58 }), N_("Stop") };
 
 class ScreenPrintingModel : public AddSuperWindow<IScreenPrinting> {
 protected:

@@ -55,7 +55,7 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 /*****************************************************************************/
 //MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, window_icon_t::DataSourceId title_icon, is_closed_on_click_t close)
+    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, png::Id title_icon, is_closed_on_click_t close)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
     , title(this, Rect16(), is_multiline::no, is_closed_on_click_t::no, tit) {
     // set title params for height extraction
@@ -115,9 +115,9 @@ void MsgBoxTitled::unconditionalDraw() {
 /*****************************************************************************/
 //MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, window_icon_t::DataSourceId icon_id_res, is_closed_on_click_t close)
+    string_view_utf8 txt, is_multiline multiline, png::Id ic, is_closed_on_click_t close)
     : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline, close)
-    , icon(this, icon_id_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
+    , icon(this, ic, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
     icon -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
     icon += Rect16::Left_t((Width() / 2) - (icon.Width() / 2)); // center icon
@@ -154,32 +154,32 @@ Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn
 
 Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Error");
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), IDR_PNG_error_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), png::Id({ PNG::error_16x16 }));
 }
 
 Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Question");
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), PNG::question_16x16);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), png::Id({ PNG::question_16x16 }));
 }
 
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Warning");
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), PNG::warning_16x16);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), png::Id({ PNG::warning_16x16 }));
 }
 
-Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, ResourceId icon_id, is_multiline multiline) {
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, title, icon_id);
+Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, png::Id icon, is_multiline multiline) {
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, title, icon);
 }
 
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Information");
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), PNG::info_16x16);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), png::Id({ PNG::info_16x16 }));
 }
 
-Response MsgBoxIcon(string_view_utf8 txt, window_icon_t::DataSourceId icon_id, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, icon_id);
+Response MsgBoxIcon(string_view_utf8 txt, png::Id icon, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
+    return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, icon);
 }
 
 Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    return MsgBoxIcon(txt, PNG::pepa_42x64, resp, def_btn, rect, multiline);
+    return MsgBoxIcon(txt, png::Id({ PNG::pepa_42x64 }), resp, def_btn, rect, multiline);
 }

@@ -94,7 +94,7 @@ ScreenSelftest::ScreenSelftest()
     , part_current(SelftestParts::_none)
     , part_previous(SelftestParts::_none) {
     ScreenSelftest::ClrMenuTimeoutClose(); // don't close on menu timeout
-    header.SetIcon(IDR_PNG_selftest_16x16);
+    header.SetIcon(png::Id({ IDR_PNG_selftest_16x16 }));
     ths = this;
 }
 
@@ -160,27 +160,27 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     return string_view_utf8::MakeCPUFLASH((uint8_t *)error);
 }
 
-ResourceId ScreenSelftest::getIconId(SelftestParts part) {
+png::Id ScreenSelftest::getIconId(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
-        return IDR_PNG_wizard_16x16;
+        return png::Id({ IDR_PNG_wizard_16x16 });
     case SelftestParts::ESP:
     case SelftestParts::ESP_progress:
     case SelftestParts::ESP_qr:
-        return IDR_PNG_wifi_16px;
+        return png::Id({ PNG::wifi_16x16 });
     case SelftestParts::Axis:
     case SelftestParts::Fans:
     case SelftestParts::Heaters:
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
     case SelftestParts::Result:
-        return IDR_PNG_selftest_16x16;
+        return png::Id({ IDR_PNG_selftest_16x16 });
     case SelftestParts::WizardEpilogue:
-        return IDR_PNG_wizard_16x16;
+        return png::Id({ IDR_PNG_wizard_16x16 });
     case SelftestParts::_none:
         break;
     }
-    return IDR_PNG_error_16px;
+    return png::Id({ PNG::error_16x16 });
 }
 
 void ScreenSelftest::InitState(screen_init_variant var) {
@@ -190,7 +190,7 @@ void ScreenSelftest::InitState(screen_init_variant var) {
         //check mask if contains wizard prologue
         //it is simplified method, but should work correctly for meaningfull use
         if ((*val) & stmWizardPrologue) {
-            header.SetIcon(IDR_PNG_wizard_16x16);
+            header.SetIcon(png::Id({ IDR_PNG_wizard_16x16 }));
             header.SetText(_(en_wizard));
         }
         //no need for else, selftest is default

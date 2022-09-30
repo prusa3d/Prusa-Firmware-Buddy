@@ -8,12 +8,12 @@
 #include "guitypes.hpp"
 #include "resource.h"
 
-FooterIcon::FooterIcon(window_t *parent, ResourceId id_res)
+FooterIcon::FooterIcon(window_t *parent, png::Id id_res)
     : AddSuperWindow<window_icon_t>(
         parent,
         [parent, id_res] {
             if (!parent)
-                return Rect16(); //does not have parrent, cannot calculate X and Y pos
+                return Rect16(); //does not have parent, cannot calculate X and Y pos
 
             point_i16_t pt = { 0, 0 };
             size_ui16_t sz = CalculateMinimalSize(id_res);
