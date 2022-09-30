@@ -20,7 +20,7 @@ struct PNG {
     static constexpr const char pepa_42x64[] = "/internal/res/png/pepa_64px.png";
     static constexpr const char pepa_92x140[] = "/internal/res/png/pepa_140px.png";
     static constexpr const char pepa_original_90x137[] = "/internal/res/png/pepa_original_140px.png";
-    static constexpr const char serial_printing_172x138[] = "/internal/res/png/png_serial_printing.png";
+    static constexpr const char serial_printing_172x138[] = "/internal/res/png/serial_printing.png";
     static constexpr const char question_48x48[] = "/internal/res/png/question_48px.png";
     static constexpr const char warning_48x48[] = "/internal/res/png/warning_48px.png";
     static constexpr const char error_white_48x48[] = "/internal/res/png/error_white_48px.png";
