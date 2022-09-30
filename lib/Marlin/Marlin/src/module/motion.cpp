@@ -1227,7 +1227,9 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
       }
     #endif
 
-    TERN_(IMPROVE_HOMING_RELIABILITY, sg_guard_period = millis() + default_sg_guard_duration);
+    #if ENABLED(IMPROVE_HOMING_RELIABILITY) && HOMING_SG_GUARD_DURATION > 0
+      sg_guard_period = millis() + default_sg_guard_duration);
+    #endif
 
     return stealth_states;
   }
