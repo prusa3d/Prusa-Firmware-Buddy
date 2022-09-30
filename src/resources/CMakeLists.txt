@@ -69,7 +69,7 @@ add_gzip_resource("web/main.112d6e1a4344fea4f149.css" "/web/main.112d6e1a4344fea
 add_resource("png/pepa_64px.png" "/png/pepa_64px.png")
 add_resource("png/pepa_140px.png" "/png/pepa_140px.png")
 add_resource("png/pepa_original_140px.png" "/png/pepa_original_140px.png")
-add_resource("png/png_serial_printing.png" "/png/png_serial_printing.png")
+add_resource("png/serial_printing.png" "/png/serial_printing.png")
 add_resource("png/home_shape_16px.png" "/png/home_shape_16px.png")
 add_resource("png/print_16px.png" "/png/print_16px.png")
 add_resource("png/hand_154x65.png" "/png/hand_154x65.png")
