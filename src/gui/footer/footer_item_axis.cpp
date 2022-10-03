@@ -41,14 +41,14 @@ float FooterItemAxisX::static_readValue() {
 }
 
 FooterItemAxisY::FooterItemAxisY(window_t *parent)
-    : AddSuperWindow<IFooterItemAxis>(parent, IDR_PNG_x_axis_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<IFooterItemAxis>(parent, IDR_PNG_y_axis_16x16, static_makeView, static_readValue) {
 }
 float FooterItemAxisY::static_readValue() {
     return marlin_vars()->pos[1];
 }
 
 FooterItemAxisZ::FooterItemAxisZ(window_t *parent)
-    : AddSuperWindow<IFooterItemAxis>(parent, IDR_PNG_x_axis_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<IFooterItemAxis>(parent, IDR_PNG_z_axis_16x16, static_makeView, static_readValue) {
 }
 float FooterItemAxisZ::static_readValue() {
     return marlin_vars()->pos[2];
