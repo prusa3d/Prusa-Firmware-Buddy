@@ -135,13 +135,13 @@ typedef struct {
     void *data;
 } wifi_send_buff;
 
-static void free_wifi_receive_buff(wifi_receive_buff *buff) {
+static void IRAM_ATTR free_wifi_receive_buff(wifi_receive_buff *buff) {
     if(buff->rx_buff) esp_wifi_internal_free_rx_buffer(buff->rx_buff);
     if(buff->data) free(buff->data);
     free(buff);
 }
 
-static void free_wifi_send_buff(wifi_send_buff *buff) {
+static void IRAM_ATTR free_wifi_send_buff(wifi_send_buff *buff) {
     if(buff->data) free(buff->data);
     free(buff);
 }
@@ -249,7 +249,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
    }
 }
 
-static int wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
+static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
     // Seeing some traffic - we have signal :-)
     last_inbound_seen = now_seconds();
 
@@ -316,7 +316,7 @@ static void send_device_info() {
     xSemaphoreGive(uart_mtx);
 }
 
-static void wait_for_intron() {
+static void IRAM_ATTR wait_for_intron() {
     // ESP_LOGI(TAG, "Waiting for intron");
     uint pos = 0;
     while(pos < sizeof(intron)) {
@@ -343,7 +343,7 @@ static void wait_for_intron() {
  * @param len Number of bytes to read
  * @return size_t Number of bytes actually read
  */
-static size_t read_uart(uint8_t *buff, size_t len) {
+static size_t IRAM_ATTR read_uart(uint8_t *buff, size_t len) {
     size_t trr = 0;
     while(trr < len) {
         int read = uart_read_bytes(UART_NUM_0, ((uint8_t*)buff) + trr, len - trr, portMAX_DELAY);
@@ -359,7 +359,7 @@ static size_t read_uart(uint8_t *buff, size_t len) {
     return trr;
 }
 
-static void read_packet_message() {
+static void IRAM_ATTR read_packet_message() {
     // ESP_LOGI(TAG, "Reading packet");
     uint32_t size = 0;
 
@@ -436,7 +436,7 @@ static void read_wifi_client_message() {
     send_device_info();
 }
 
-static void read_intron_message() {
+static void IRAM_ATTR read_intron_message() {
     read_uart((uint8_t*)intron, sizeof(intron));
 }
 
@@ -470,7 +470,7 @@ static void check_online_status() {
     }
 }
 
-static void read_message() {
+static void IRAM_ATTR read_message() {
     wait_for_intron();
 
     // Check that we are receiving some packets from the AP. We do so in the
@@ -501,7 +501,7 @@ static void read_message() {
     }
 }
 
-static void wifi_egress_thread(void *arg) {
+static void IRAM_ATTR wifi_egress_thread(void *arg) {
     for(;;) {
         wifi_send_buff *buff;
         if(xQueueReceive(wifi_egress_queue, &buff, (TickType_t)portMAX_DELAY)) {
@@ -519,14 +519,14 @@ static void wifi_egress_thread(void *arg) {
     }
 }
 
-static void output_rx_thread(void *arg) {
+static void IRAM_ATTR output_rx_thread(void *arg) {
     ESP_LOGI(TAG, "Started RX thread");
     for(;;) {
         read_message();
     }
 }
 
-static void uart_tx_thread(void *arg) {
+static void IRAM_ATTR uart_tx_thread(void *arg) {
     // Send initial device info to let master know ESP is ready
     send_device_info();
 
@@ -575,7 +575,7 @@ void app_main() {
         | UART_FRM_ERR_INT_ENA_M
         | UART_RXFIFO_OVF_INT_ENA_M,
         .rxfifo_full_thresh = 80,
-        .rx_timeout_thresh = 10,
+        .rx_timeout_thresh = 1,
         .txfifo_empty_intr_thresh = 40
     };
     uart_intr_config(UART_NUM_0, &uart_intr);
@@ -603,6 +603,7 @@ void app_main() {
     ESP_LOGI(TAG, "Wifi init");
     esp_wifi_restore();
     wifi_init_sta();
+    esp_wifi_set_ps(WIFI_PS_NONE);
 
     ESP_LOGI(TAG, "Creating RX thread");
     xTaskCreate(&output_rx_thread, "output_rx_thread", 2048, NULL, 1, NULL);
