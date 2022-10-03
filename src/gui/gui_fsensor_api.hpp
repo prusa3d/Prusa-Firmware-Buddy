@@ -48,7 +48,7 @@ inline bool validate_for_cyclical_calls() {
     static bool can_run = true;
     if (!can_run)
         return false;
-    AutoRestore(can_run, false);
+    AutoRestore ar(can_run, false);
     validate();
     return true;
 }
