@@ -50,7 +50,7 @@
 int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 
-static const uint16_t FW_VERSION = 7;
+static const uint16_t FW_VERSION = 8;
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
