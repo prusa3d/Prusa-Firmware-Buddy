@@ -167,7 +167,7 @@ extern "C" void main_cpp(void) {
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
     if (HAS_GUI) {
-        osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024);
+        osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024 + 256);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
 
