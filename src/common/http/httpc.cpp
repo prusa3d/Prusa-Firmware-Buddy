@@ -8,6 +8,7 @@
 #include <cstdarg>
 #include "chunked.h"
 #include "debug.h"
+#include <utils/overloaded_visitor.hpp>
 
 using automata::ExecutionControl;
 using http::ConnectionHandling;
@@ -187,8 +188,19 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
     }
 
     static const constexpr HeaderOut term = { nullptr, nullptr, nullopt };
+    static constexpr size_t buff_size { 16 }; // 4294967295 (10 digits) is the max number that fits into size_t
+    char buff[buff_size];
     for (const HeaderOut *extra_hdrs = request.extra_headers() ?: &term; extra_hdrs->name; extra_hdrs++) {
-        CHECKED(buffer.header(extra_hdrs->name, extra_hdrs->value, extra_hdrs->size_limit));
+        CHECKED(std::visit(Overloaded {
+                               [&](const char *val) {
+                                   return buffer.header(extra_hdrs->name, val, extra_hdrs->size_limit);
+                               },
+                               [&](size_t val) {
+                                   snprintf(buff, buff_size, "%u", val);
+                                   return buffer.header(extra_hdrs->name, buff, extra_hdrs->size_limit);
+                               },
+                           },
+            extra_hdrs->value));
     }
 
     CHECKED(buffer.write_fmt("\r\n"));

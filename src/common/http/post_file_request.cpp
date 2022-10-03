@@ -1,7 +1,7 @@
 #include "post_file_request.hpp"
 
 namespace http {
-PostFile::PostFile(const char *file_path, const char *url_string, const char *file_size)
+PostFile::PostFile(const char *file_path, const char *url_string, size_t file_size)
     : hdrs {
         { "Content-Length", file_size, std::nullopt },
         { nullptr, nullptr, std::nullopt },
