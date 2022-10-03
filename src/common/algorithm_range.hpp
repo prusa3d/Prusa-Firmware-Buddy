@@ -6,6 +6,9 @@
  */
 
 #pragma once
+
+#include <concepts>
+
 template <typename T>
 constexpr bool IsInOpenRange(const T &value, const T &left, const T &right);
 template <typename T>
@@ -23,7 +26,11 @@ class range__ {
         return (low < value) && (value < high);
     }
     static constexpr bool closed_interval(const T &value, const T &low, const T &high) {
-        return !(value < low) && !(high < value);
+        if constexpr (std::floating_point<T>) {
+            return value >= low && value <= high;
+        } else {
+            return !(value < low) && !(high < value);
+        }
     }
     static constexpr bool left_open_interval(const T &value, const T &low, const T &high) {
         return (low < value) && !(high < value);
