@@ -180,7 +180,7 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 
 static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     constexpr static const char *title = N_("Information");
-    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), IDR_PNG_info_16px);
+    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), png_info_16px);
     gui::TickLoop();
     gui_loop();
 }

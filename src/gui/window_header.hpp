@@ -28,6 +28,7 @@ public:
     window_header_t(window_t *parent, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
 
     void SetIcon(ResourceId id_res);
+    void SetIconFilePath(const char *filepath);
     void SetText(string_view_utf8 txt);
 
 protected:

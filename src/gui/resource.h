@@ -2,6 +2,21 @@
 #pragma once
 #include <stdint.h>
 
+static constexpr const char png_home_16px[] = "/internal/res/png/home_shape_16px.png";
+static constexpr const char png_print_16px[] = "/internal/res/png/print_16px.png";
+static constexpr const char png_hand_154px[] = "/internal/res/png/hand_154x65.png";
+static constexpr const char png_nozzle_34px[] = "/internal/res/png/nozzle_34x32.png";
+static constexpr const char png_usb_16px[] = "/internal/res/png/usb_16px.png";
+static constexpr const char png_info_16px[] = "/internal/res/png/info_16px.png";
+static constexpr const char png_warning_16px[] = "/internal/res/png/warning_16px.png";
+static constexpr const char png_question_16px[] = "/internal/res/png/question_16px.png";
+static constexpr const char png_nozzle_48px[] = "/internal/res/png/nozzle_shape_48px.png";
+static constexpr const char png_arrow_up_16px[] = "/internal/res/png/arrow_up_16px.png";
+static constexpr const char png_arrow_down_16px[] = "/internal/res/png/arrow_down_16px.png";
+static constexpr const char png_arrow_left_16px[] = "/internal/res/png/arrow_left_16px.png";
+static constexpr const char png_hand_qr[] = "/internal/res/png/hand_qr.png";
+static constexpr const char png_turn_knob[] = "/internal/res/png/turn_knob.png";
+
 enum ResourceId : uint8_t {
 
     //null resource - test
@@ -24,8 +39,6 @@ enum ResourceId : uint8_t {
     IDR_PNG_speed_16px,
     IDR_PNG_spool_16px,
     IDR_PNG_z_axis_16px,
-    IDR_PNG_home_shape_16px,
-    IDR_PNG_print_16px,
     IDR_PNG_x_axis_16x16,
     IDR_PNG_y_axis_16x16,
     IDR_PNG_z_axis_16x16,
@@ -63,24 +76,14 @@ enum ResourceId : uint8_t {
     IDR_PNG_spinner3_16px,
     IDR_PNG_spinner4_16px,
     IDR_PNG_hourglass_39px,
-    IDR_PNG_hand_154x65,
-    IDR_PNG_nozzle_34x32,
 
-    IDR_PNG_usb_16px,
     IDR_PNG_lan_16px,
     IDR_PNG_wifi_16px,
-    IDR_PNG_info_16px,
     IDR_PNG_error_16px,
-    IDR_PNG_warning_16px,
-    IDR_PNG_question_16px,
     IDR_PNG_sheets_profile_16px,
-    IDR_PNG_nozzle_shape_48px,
     IDR_PNG_nozzle_crash,
     IDR_PNG_nozzle_empty_16px,
 
-    IDR_PNG_arrow_up_16px,
-    IDR_PNG_arrow_down_16px,
-    IDR_PNG_arrow_left_16px,
     IDR_PNG_arrow_right_16px,
     IDR_PNG_arrow_up_8px,
     IDR_PNG_arrow_down_8px,
@@ -91,11 +94,9 @@ enum ResourceId : uint8_t {
     IDR_PNG_disconnect_48px,
     IDR_PNG_switch_off_36px,
     IDR_PNG_switch_on_36px,
-    IDR_PNG_hand_qr,
     IDR_PNG_exposure_times_48px,
     IDR_PNG_usb_error,
     IDR_PNG_fan_error,
-    IDR_PNG_turn_knob,
 
     IDR_PNG_flag_cs,
     IDR_PNG_flag_de,
