@@ -103,7 +103,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             if (err && *err) {
                 job_id = nullopt;
             }
-        } else if (event.depth == 2 && in_kwargs && event.type == Type::String && event.key == "path") {
+        } else if (event.depth == 2 && in_kwargs && event.type == Type::String && (event.key == "path" || event.key == "path_sfn")) {
             const size_t len = min(event.value->size() + 1, buff.size());
             strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
             has_path = true;
