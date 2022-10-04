@@ -98,38 +98,6 @@
 #endif
 
 /**
- * CoreXY, CoreXZ, and CoreYZ - and their reverse
- */
-#if EITHER(COREXY, COREYX)
-  #define CORE_IS_XY 1
-#endif
-#define CORE_IS_XZ EITHER(COREXZ, COREZX)
-#define CORE_IS_YZ EITHER(COREYZ, COREZY)
-#if (CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ)
-  #define IS_CORE 1
-#endif
-#if IS_CORE
-  #if CORE_IS_XY
-    #define CORE_AXIS_1 A_AXIS
-    #define CORE_AXIS_2 B_AXIS
-    #define NORMAL_AXIS Z_AXIS
-  #elif CORE_IS_XZ
-    #define CORE_AXIS_1 A_AXIS
-    #define NORMAL_AXIS Y_AXIS
-    #define CORE_AXIS_2 C_AXIS
-  #elif CORE_IS_YZ
-    #define NORMAL_AXIS X_AXIS
-    #define CORE_AXIS_1 B_AXIS
-    #define CORE_AXIS_2 C_AXIS
-  #endif
-  #if ANY(COREYX, COREZX, COREZY)
-    #define CORESIGN(n) (-(n))
-  #else
-    #define CORESIGN(n) (n)
-  #endif
-#endif
-
-/**
  * No adjustable bed on non-cartesians
  */
 #if IS_KINEMATIC

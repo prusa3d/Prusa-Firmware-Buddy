@@ -924,6 +924,43 @@
   #define GRID_MAX_POINTS ((GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y))
 #endif
 
+/**
+ * CoreXY, CoreXZ, and CoreYZ - and their reverse
+ */
+#if EITHER(COREXY, COREYX)
+  #define CORE_IS_XY 1
+#endif
+#if EITHER(COREXZ, COREZX)
+  #define CORE_IS_XZ 1
+#endif
+#if EITHER(COREYZ, COREZY)
+  #define CORE_IS_YZ 1
+#endif
+#if CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ
+  #define IS_CORE 1
+#endif
+#if IS_CORE
+  #if CORE_IS_XY
+    #define CORE_AXIS_1 A_AXIS
+    #define CORE_AXIS_2 B_AXIS
+    #define NORMAL_AXIS Z_AXIS
+  #elif CORE_IS_XZ
+    #define CORE_AXIS_1 A_AXIS
+    #define NORMAL_AXIS Y_AXIS
+    #define CORE_AXIS_2 C_AXIS
+  #elif CORE_IS_YZ
+    #define NORMAL_AXIS X_AXIS
+    #define CORE_AXIS_1 B_AXIS
+    #define CORE_AXIS_2 C_AXIS
+  #endif
+  #define CORESIGN(n) (ANY(COREYX, COREZX, COREZY) ? (-(n)) : (n))
+#elif EITHER(MARKFORGED_XY, MARKFORGED_YX)
+  // Markforged kinematics
+  #define CORE_AXIS_1 A_AXIS
+  #define CORE_AXIS_2 B_AXIS
+  #define NORMAL_AXIS Z_AXIS
+#endif
+
 #define HAS_SOFTWARE_ENDSTOPS        EITHER(MIN_SOFTWARE_ENDSTOPS, MAX_SOFTWARE_ENDSTOPS)
 #define HAS_RESUME_CONTINUE          ANY(EXTENSIBLE_UI, NEWPANEL, EMERGENCY_PARSER)
 #define HAS_COLOR_LEDS               ANY(BLINKM, RGB_LED, RGBW_LED, PCA9632, PCA9533, NEOPIXEL_LED)
