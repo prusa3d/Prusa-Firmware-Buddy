@@ -70,9 +70,6 @@ add_resource("png/pepa_64px.png" "/png/pepa_64px.png")
 add_resource("png/pepa_140px.png" "/png/pepa_140px.png")
 add_resource("png/pepa_original_140px.png" "/png/pepa_original_140px.png")
 add_resource("png/png_serial_printing.png" "/png/png_serial_printing.png")
-add_resource("png/wizard_icon_autohome.png" "/png/wizard_icon_autohome.png")
-add_resource("png/wizard_icon_search.png" "/png/wizard_icon_search.png")
-add_resource("png/wizard_icon_measure.png" "/png/wizard_icon_measure.png")
 # generate header with hash
 add_header_with_revision(standard resources-image)
 
