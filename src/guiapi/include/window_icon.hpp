@@ -60,7 +60,7 @@ struct window_icon_t : public AddSuperWindow<window_aligned_t> {
         assert(dataSource.isFromFile());
         return dataSource.filename;
     }
-    void setFileName(const char *file);
+    void SetFilePath(const char *file);
 
     window_icon_t(window_t *parent, Rect16 rect, DataSourceId source, is_closed_on_click_t close = is_closed_on_click_t::no);
 

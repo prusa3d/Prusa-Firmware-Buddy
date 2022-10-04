@@ -22,8 +22,6 @@
 #include "res/cc/png_speed_16px.c"            //IDR_PNG_speed_16px
 #include "res/cc/png_spool_16px.c"            //IDR_PNG_spool_16px
 #include "res/cc/png_z_axis_16px.c"           //IDR_PNG_z_axis_16px
-#include "res/cc/png_home_shape_16px.c"       //IDR_PNG_home_shape_16px
-#include "res/cc/png_print_16px.c"            //IDR_PNG_print_16px
 #include "res/cc/png_x_axis_16x16.c"          //IDR_PNG_x_axis_16x16,
 #include "res/cc/png_y_axis_16x16.c"          //IDR_PNG_y_axis_16x16,
 #include "res/cc/png_z_axis_16x16.c"          //IDR_PNG_z_axis_16x16,
@@ -63,24 +61,14 @@
 #include "res/cc/png_spinner3_16px.c"  //IDR_PNG_spinner3_16px
 #include "res/cc/png_spinner4_16px.c"  //IDR_PNG_spinner4_16px
 #include "res/cc/png_hourglass_39px.c" //IDR_PNG_hourglass_39px
-#include "res/cc/png_hand_154x65.c"    //IDR_PNG_hand_154x65,
-#include "res/cc/png_nozzle_34x32.c"   //IDR_PNG_nozzle_34x32,
 
-#include "res/cc/png_usb_16px.c"            //IDR_PNG_usb_16px
 #include "res/cc/png_lan_16px.c"            //IDR_PNG_lan_16px
 #include "res/cc/png_wifi_16px.c"           //IDR_PNG_wifi_16px
-#include "res/cc/png_info_16px.c"           //IDR_PNG_info_16px
 #include "res/cc/png_error_16px.c"          //IDR_PNG_error_16px
-#include "res/cc/png_warning_16px.c"        //IDR_PNG_warning_16px
-#include "res/cc/png_question_16px.c"       //IDR_PNG_question_16px
 #include "res/cc/png_sheets_profile_16px.c" //IDR_PNG_sheets_profile_16px
-#include "res/cc/png_nozzle_shape_48px.c"   //IDR_PNG_nozzle_shape_48px
 #include "res/cc/png_nozzle_crash.c"        //IDR_PNG_nozzle_crash
 #include "res/cc/png_nozzle_empty_16px.c"   //IDR_PNG_nozzle_empty_16px
 
-#include "res/cc/png_arrow_up_16px.c"         //IDR_PNG_arrow_up_16px
-#include "res/cc/png_arrow_down_16px.c"       //IDR_PNG_arrow_down_16px
-#include "res/cc/png_arrow_left_16px.c"       //IDR_PNG_arrow_left_16px
 #include "res/cc/png_arrow_right_16px.c"      //IDR_PNG_arrow_right_16px
 #include "res/cc/png_arrow_up_8px.c"          //IDR_PNG_arrow_up_8px
 #include "res/cc/png_arrow_down_8px.c"        //IDR_PNG_arrow_down_8px
@@ -89,11 +77,9 @@
 
 #include "res/cc/png_switch_off_36px.c"     //IDR_PNG_switch_off_36px
 #include "res/cc/png_switch_on_36px.c"      //IDR_PNG_switch_on_36px
-#include "res/cc/png_hand_qr.c"             //IDR_PNG_hand_qr
 #include "res/cc/png_exposure_times_48px.c" //IDR_PNG_exposure_times_48px
 #include "res/cc/png_usb_error.c"           //IDR_PNG_usb_error
 #include "res/cc/png_fan_error.c"           //IDR_PNG_fan_error
-#include "res/cc/png_turn_knob.c"           //IDR_PNG_turn_knob
 
 #include "res/cc/png_flag_cs.c"
 #include "res/cc/png_flag_de.c"
@@ -124,8 +110,6 @@ RESOURCE_ENTRY_PNG(png_heatbed_16px)
 RESOURCE_ENTRY_PNG(png_speed_16px)
 RESOURCE_ENTRY_PNG(png_spool_16px)
 RESOURCE_ENTRY_PNG(png_z_axis_16px)
-RESOURCE_ENTRY_PNG(png_home_shape_16px)
-RESOURCE_ENTRY_PNG(png_print_16px)
 RESOURCE_ENTRY_PNG(png_x_axis_16x16)
 RESOURCE_ENTRY_PNG(png_y_axis_16x16)
 RESOURCE_ENTRY_PNG(png_z_axis_16x16)
@@ -163,24 +147,14 @@ RESOURCE_ENTRY_PNG(png_spinner2_16px)
 RESOURCE_ENTRY_PNG(png_spinner3_16px)
 RESOURCE_ENTRY_PNG(png_spinner4_16px)
 RESOURCE_ENTRY_PNG(png_hourglass_39px)
-RESOURCE_ENTRY_PNG(png_hand_154x65)
-RESOURCE_ENTRY_PNG(png_nozzle_34x32)
 
-RESOURCE_ENTRY_PNG(png_usb_16px)
 RESOURCE_ENTRY_PNG(png_lan_16px)
 RESOURCE_ENTRY_PNG(png_wifi_16px)
-RESOURCE_ENTRY_PNG(png_info_16px)
 RESOURCE_ENTRY_PNG(png_error_16px)
-RESOURCE_ENTRY_PNG(png_warning_16px)
-RESOURCE_ENTRY_PNG(png_question_16px)
 RESOURCE_ENTRY_PNG(png_sheets_profile_16px)
-RESOURCE_ENTRY_PNG(png_nozzle_shape_48px)
 RESOURCE_ENTRY_PNG(png_nozzle_crash)
 RESOURCE_ENTRY_PNG(png_nozzle_empty_16px)
 
-RESOURCE_ENTRY_PNG(png_arrow_up_16px)
-RESOURCE_ENTRY_PNG(png_arrow_down_16px)
-RESOURCE_ENTRY_PNG(png_arrow_left_16px)
 RESOURCE_ENTRY_PNG(png_arrow_right_16px)
 RESOURCE_ENTRY_PNG(png_arrow_up_8px)
 RESOURCE_ENTRY_PNG(png_arrow_down_8px)
@@ -191,11 +165,9 @@ RESOURCE_ENTRY_PNG(png_back_32px)
 RESOURCE_ENTRY_PNG(png_disconnect_48px)
 RESOURCE_ENTRY_PNG(png_switch_off_36px)
 RESOURCE_ENTRY_PNG(png_switch_on_36px)
-RESOURCE_ENTRY_PNG(png_hand_qr)
 RESOURCE_ENTRY_PNG(png_exposure_times_48px)
 RESOURCE_ENTRY_PNG(png_usb_error)
 RESOURCE_ENTRY_PNG(png_fan_error)
-RESOURCE_ENTRY_PNG(png_turn_knob)
 
 RESOURCE_ENTRY_PNG(png_flag_cs)
 RESOURCE_ENTRY_PNG(png_flag_de)
