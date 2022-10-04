@@ -46,9 +46,9 @@ void safe_delay(millis_t ms) {
   #include "../gcode/gcode.h" // for set_autoreport_paused
 
   void serial_delay(const millis_t ms) {
-    const bool was = suspend_auto_report;
+    TERN_(HAS_AUTO_REPORTING, const bool was = suspend_auto_report);
     safe_delay(ms);
-    suspend_auto_report = was;
+    TERN_(HAS_AUTO_REPORTING, suspend_auto_report = was);
   }
 #endif
 
