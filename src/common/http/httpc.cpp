@@ -6,14 +6,13 @@
 #include <cstring>
 #include <cstdlib>
 #include <cstdarg>
-#include <debug.h>
-
-#include <http/chunked.h>
+#include "chunked.h"
+#include "debug.h"
 
 using automata::ExecutionControl;
-using connect_client::parser::ResponseParser;
 using http::ConnectionHandling;
 using http::ContentType;
+using http::parser::ResponseParser;
 using std::get;
 using std::get_if;
 using std::holds_alternative;
@@ -23,18 +22,11 @@ using std::optional;
 using std::string_view;
 using std::variant;
 
-namespace connect_client {
+LOG_COMPONENT_DEF(httpc, LOG_SEVERITY_DEBUG);
+
+namespace http {
 
 namespace {
-    const char *to_str(Method method) {
-        // TODO: Implement other methods
-        return "POST";
-    }
-
-    bool has_out_body(Method method) {
-        // TODO: Implement other methods
-        return true;
-    }
 
 #define CHECKED(CALL)                       \
     if (auto err = CALL; err.has_value()) { \
@@ -133,8 +125,6 @@ namespace {
     };
 
 }
-
-LOG_COMPONENT_DEF(httpc, LOG_SEVERITY_DEBUG);
 
 const HeaderOut *Request::extra_headers() const {
     return nullptr;

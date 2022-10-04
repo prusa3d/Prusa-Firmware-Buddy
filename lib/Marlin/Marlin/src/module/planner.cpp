@@ -1571,14 +1571,14 @@ void Planner::check_axes_activity() {
     if (onoff) {
       saved_motion_state.acceleration.x = settings.max_acceleration_mm_per_s2[X_AXIS];
       saved_motion_state.acceleration.y = settings.max_acceleration_mm_per_s2[Y_AXIS];
-      settings.max_acceleration_mm_per_s2[X_AXIS] = settings.max_acceleration_mm_per_s2[Y_AXIS] = 100;
+      settings.max_acceleration_mm_per_s2[X_AXIS] = settings.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
       #if ENABLED(DELTA)
         saved_motion_state.acceleration.z = settings.max_acceleration_mm_per_s2[Z_AXIS];
         settings.max_acceleration_mm_per_s2[Z_AXIS] = 100;
       #endif
       #if HAS_CLASSIC_JERK
         saved_motion_state.jerk_state = max_jerk;
-        max_jerk.set(0, 0 OPTARG(DELTA, 0));
+        max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK OPTARG(DELTA, 0));
       #endif
     }
     else {

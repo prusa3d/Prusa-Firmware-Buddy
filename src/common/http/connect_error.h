@@ -1,6 +1,6 @@
 #pragma once
 
-namespace connect_client {
+namespace http {
 
 enum class Error {
     Timeout,

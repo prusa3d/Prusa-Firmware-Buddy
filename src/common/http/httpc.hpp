@@ -1,16 +1,12 @@
 #pragma once
 
-#include "connection.hpp"
 #include <cstdint>
 #include <optional>
 #include <variant>
-#include <http/types.h>
+#include "connection.hpp"
+#include "types.h"
 
-namespace connect_client {
-
-enum class Method {
-    Post
-};
+namespace http {
 
 struct HeaderOut {
     const char *name = nullptr;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "connection.hpp"
-#include "connect_error.h"
+#include <http/connection.hpp>
+#include <http/connect_error.h>
 
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
@@ -13,7 +13,7 @@
 
 namespace connect_client {
 
-class tls final : public Connection {
+class tls final : public http::Connection {
 
 private:
     mbedtls_ssl_config ssl_config;
@@ -28,9 +28,9 @@ public:
     tls &operator=(const tls &other) = delete;
     tls &operator=(tls &&other) = delete;
 
-    virtual std::optional<Error> connection(const char *host, uint16_t port) override;
-    virtual std::variant<size_t, Error> tx(const uint8_t *buffer, size_t data_len) override;
-    virtual std::variant<size_t, Error> rx(uint8_t *buffer, size_t buffer_len) override;
+    virtual std::optional<http::Error> connection(const char *host, uint16_t port) override;
+    virtual std::variant<size_t, http::Error> tx(const uint8_t *buffer, size_t data_len) override;
+    virtual std::variant<size_t, http::Error> rx(uint8_t *buffer, size_t buffer_len) override;
 };
 
 }

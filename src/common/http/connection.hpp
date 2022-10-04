@@ -5,7 +5,7 @@
 #include <cstdint>
 #include "connect_error.h"
 
-namespace connect_client {
+namespace http {
 
 constexpr uint8_t SOCKET_TIMEOUT_SEC = 3;
 

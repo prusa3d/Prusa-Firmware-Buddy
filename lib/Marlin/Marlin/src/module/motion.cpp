@@ -1506,10 +1506,6 @@ void prepare_line_to_destination() {
 
             stealth_states.y = tmc_enable_stallguard(stepperY);
 
-            #if ENABLED(CRASH_RECOVERY)
-              stepperY.stall_sensitivity(crash_s.home_sensitivity[1]);
-            #endif
-
             TERN_(Y2_SENSORLESS, stealth_states.y2 = tmc_enable_stallguard(stepperY2));
             #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && X_SENSORLESS
 
@@ -1584,6 +1580,11 @@ void prepare_line_to_destination() {
           default: break;
         }
       #endif
+
+      #if ENABLED(IMPROVE_HOMING_RELIABILITY) && HOMING_SG_GUARD_DURATION > 0
+        sg_guard_period = millis() + default_sg_guard_duration);
+      #endif
+
       return stealth_states;
     }
 

@@ -112,11 +112,15 @@
     current_position.set(0.0, 0.0);
     sync_plan_position();
 
-    #if ENABLED(SENSORLESS_HOMING) && NONE(ENDSTOPS_ALWAYS_ON_DEFAULT, CRASH_RECOVERY)
-      TERN_(X_SENSORLESS, tmc_disable_stallguard(stepperX, stealth_states.x));
-      TERN_(X2_SENSORLESS, tmc_disable_stallguard(stepperX2, stealth_states.x2));
-      TERN_(Y_SENSORLESS, tmc_disable_stallguard(stepperY, stealth_states.y));
-      TERN_(Y2_SENSORLESS, tmc_disable_stallguard(stepperY2, stealth_states.y2));
+    #if ENABLED(SENSORLESS_HOMING)
+      #if ANY(ENDSTOPS_ALWAYS_ON_DEFAULT, CRASH_RECOVERY)
+        UNUSED(stealth_states);
+      #else
+        TERN_(X_SENSORLESS, tmc_disable_stallguard(stepperX, stealth_states.x));
+        TERN_(X2_SENSORLESS, tmc_disable_stallguard(stepperX2, stealth_states.x2));
+        TERN_(Y_SENSORLESS, tmc_disable_stallguard(stepperY, stealth_states.y));
+        TERN_(Y2_SENSORLESS, tmc_disable_stallguard(stepperY2, stealth_states.y2));
+      #endif
     #endif
   }
 
@@ -414,15 +418,15 @@ void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
 
     #define _UNSAFE(A) (homeZ && TERN0(Z_SAFE_HOMING, axes_should_home(_BV(A##_AXIS))))
 
-    const bool homeZ = TERN0(HAS_Z_AXIS, parser.seen_test('Z')),
+    const bool homeZ = TERN0(HAS_Z_AXIS, flags.Z),
                NUM_AXIS_LIST(              // Other axes should be homed before Z safe-homing
                  needX = _UNSAFE(X), needY = _UNSAFE(Y), needZ = false, // UNUSED
                  needI = _UNSAFE(I), needJ = _UNSAFE(J), needK = _UNSAFE(K),
                  needU = _UNSAFE(U), needV = _UNSAFE(V), needW = _UNSAFE(W)
                ),
                NUM_AXIS_LIST(              // Home each axis if needed or flagged
-                 homeX = needX || parser.seen_test('X'),
-                 homeY = needY || parser.seen_test('Y'),
+                 homeX = needX || flags.X,
+                 homeY = needY || flags.Y,
                  homeZZ = homeZ,
                  homeI = needI || parser.seen_test(AXIS4_NAME), homeJ = needJ || parser.seen_test(AXIS5_NAME),
                  homeK = needK || parser.seen_test(AXIS6_NAME), homeU = needU || parser.seen_test(AXIS7_NAME),
@@ -447,7 +451,8 @@ void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
 
     TERN_(HOME_Z_FIRST, if (doZ) homeaxis(Z_AXIS));
 
-    const float z_homing_height = isnan(R) ? Z_HOMING_HEIGHT : R;
+    const bool seenR = !isnan(R);
+    const float z_homing_height = seenR ? R : Z_HOMING_HEIGHT;
 
     if (z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
       // Raise Z before homing any other axes and z is not already high enough (never lower z)
@@ -474,22 +479,14 @@ void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
 
         // Always home the 2nd (right) extruder first
         active_extruder = 1;
-        homeaxis(X_AXIS
-          #if ENABLED(PRECISE_HOMING)
-            , 0.0f, false, !parser.seen('D')
-          #endif
-        );
+        homeaxis(X_AXIS);
 
         // Remember this extruder's position for later tool change
         inactive_extruder_x = current_position.x;
 
         // Home the 1st (left) extruder
         active_extruder = 0;
-        homeaxis(X_AXIS
-          #if ENABLED(PRECISE_HOMING)
-            , 0.0f, false, !parser.seen('D')
-          #endif
-        );
+        homeaxis(X_AXIS);
 
         // Consider the active extruder to be in its "parked" position
         idex_set_parked();
@@ -574,22 +571,14 @@ void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
 
       // Always home the 2nd (right) extruder first
       active_extruder = 1;
-      homeaxis(X_AXIS
-        #if ENABLED(PRECISE_HOMING)
-          , 0.0f, false, !parser.seen('D')
-        #endif
-      );
+      homeaxis(X_AXIS);
 
       // Remember this extruder's position for later tool change
       inactive_extruder_x = current_position.x;
 
       // Home the 1st (left) extruder
       active_extruder = 0;
-      homeaxis(X_AXIS
-        #if ENABLED(PRECISE_HOMING)
-          , 0.0f, false, !parser.seen('D')
-        #endif
-      );
+      homeaxis(X_AXIS);
 
       // Consider the active extruder to be parked
       idex_set_parked();
