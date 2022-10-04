@@ -55,8 +55,8 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 /*****************************************************************************/
 //MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, ResourceId title_icon_id_res, is_closed_on_click_t close)
-    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon_id_res, close)
+    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, window_icon_t::DataSourceId title_icon, is_closed_on_click_t close)
+    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
     , title(this, Rect16(), is_multiline::no, is_closed_on_click_t::no, tit) {
     // set title params for height extraction
     title.font = getTitleFont();
@@ -159,12 +159,12 @@ Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t de
 
 Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Question");
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), IDR_PNG_question_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), png_question_16px);
 }
 
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Warning");
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), IDR_PNG_warning_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), png_warning_16px);
 }
 
 Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, ResourceId icon_id, is_multiline multiline) {
@@ -173,7 +173,7 @@ Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseRe
 
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Information");
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), IDR_PNG_info_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), png_info_16px);
 }
 
 Response MsgBoxIcon(string_view_utf8 txt, window_icon_t::DataSourceId icon_id, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
