@@ -15,9 +15,10 @@ using namespace json;
 
 namespace {
 
-constexpr const char *const print_file = "/usb/box.gco";
-constexpr const char *const rejected_event_printing = "{\"state\":\"PRINTING\",\"command_id\":11,\"event\":\"REJECTED\"}";
-constexpr const char *const rejected_event_idle = "{\"state\":\"IDLE\",\"command_id\":11,\"event\":\"REJECTED\"}";
+constexpr const char *print_file = "/usb/box.gco";
+constexpr const char *rejected_event_printing = R"({"reason":"Job ID doesn't match","state":"PRINTING","command_id":11,"event":"REJECTED"})";
+constexpr const char *rejected_event_idle = R"({"state":"IDLE","command_id":11,"event":"REJECTED"})";
+constexpr const char *rejected_event_idle_no_job = R"({"reason":"No job in progress","state":"IDLE","command_id":11,"event":"REJECTED"})";
 
 constexpr Printer::Params params_printing() {
     Printer::Params params {};
@@ -109,7 +110,7 @@ TEST_CASE("Render") {
         // clang-format off
         expected = "{"
             "\"job_id\":42,"
-            "\"data\":{\"path_sfn\":\"/usb/box.gco\",\"path\":\"/usb/box.gco\"},"
+            R"("data":{"path_sfn":"/usb/box.gco","path":"/usb/box.gco"},)"
             "\"state\":\"PRINTING\","
             "\"command_id\":11,"
             "\"event\":\"JOB_INFO\""
@@ -124,7 +125,7 @@ TEST_CASE("Render") {
             42,
         };
         params = params_idle();
-        expected = rejected_event_idle;
+        expected = rejected_event_idle_no_job;
     }
 
     SECTION("Even - job info - invalid job ID") {

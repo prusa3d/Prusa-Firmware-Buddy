@@ -113,27 +113,28 @@ namespace {
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         const bool printing = is_printing(params.state);
 
-        bool reject = false;
+        const char *reject_with = nullptr;
         Printer::NetCreds creds = {};
 
         if (event.type == EventType::JobInfo && (!printing || event.job_id != params.job_id)) {
             // Can't send a job info when not printing, refuse instead.
             //
             // Can't provide historic/future jobs.
-            reject = true;
+            reject_with = printing ? "Job ID doesn't match" : "No job in progress";
         }
 
         if (event.type == EventType::FileInfo && !state.has_stat && !state.file_extra.renderer.holds_alternative<DirRenderer>()) {
             // The file probably doesn't exist or something
             // Exception for /usb, as that one doesn't have stat even though it exists.
-            reject = true;
+            reject_with = "File not found";
         }
 
-        if (reject) {
+        if (reject_with != nullptr) {
             // The fact we can render in multiple steps doesn't matter, we would
             // descend into here every time and resume the Rejected event.
             Event rejected(event);
             rejected.type = EventType::Rejected;
+            rejected.reason = reject_with;
             return render_msg(resume_point, output, state, rejected);
         }
 
@@ -143,6 +144,10 @@ namespace {
         JSON_OBJ_START;
             if (has_extra && printing) {
                 JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
+            }
+
+            if (event.reason != nullptr) {
+                JSON_FIELD_STR("reason", event.reason) JSON_COMMA;
             }
 
             // Relevant "data" block, if any
