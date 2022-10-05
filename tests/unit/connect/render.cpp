@@ -16,8 +16,9 @@ using namespace json;
 namespace {
 
 constexpr const char *const print_file = "/usb/box.gco";
-constexpr const char *const rejected_event_printing = "{\"state\":\"PRINTING\",\"command_id\":11,\"event\":\"REJECTED\"}";
+constexpr const char *const rejected_event_printing = "{\"reason\":\"Job ID doesn't match\",\"state\":\"PRINTING\",\"command_id\":11,\"event\":\"REJECTED\"}";
 constexpr const char *const rejected_event_idle = "{\"state\":\"IDLE\",\"command_id\":11,\"event\":\"REJECTED\"}";
+constexpr const char *const rejected_event_idle_no_job = "{\"reason\":\"No job in progress\",\"state\":\"IDLE\",\"command_id\":11,\"event\":\"REJECTED\"}";
 
 constexpr Printer::Params params_printing() {
     Printer::Params params {};
@@ -124,7 +125,7 @@ TEST_CASE("Render") {
             42,
         };
         params = params_idle();
-        expected = rejected_event_idle;
+        expected = rejected_event_idle_no_job;
     }
 
     SECTION("Even - job info - invalid job ID") {
