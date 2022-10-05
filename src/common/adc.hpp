@@ -42,9 +42,12 @@ public:
         HAL_ADC_DeInit(&adc);
     }
 
+    uint16_t get_channel(uint8_t index) const {
+        return m_data[index];
+    }
+
 private:
     uint16_t m_data[channels];
-    friend class AdcGet;
 };
 
 using AdcDma1 = AdcDma<hadc1, AdcChannel::ADC1_CH_CNT>;
@@ -52,9 +55,9 @@ extern AdcDma1 adcDma1;
 
 class AdcGet {
 public:
-    static uint16_t nozzle() { return adcDma1.m_data[AdcChannel::hotend_T]; };
-    static uint16_t bed() { return adcDma1.m_data[AdcChannel::heatbed_T]; };
-    static uint16_t boardTemp() { return adcDma1.m_data[AdcChannel::board_T]; };
-    static uint16_t pinda() { return adcDma1.m_data[AdcChannel::pinda_T]; };
-    static uint16_t bedMon() { return adcDma1.m_data[AdcChannel::heatbed_U]; };
+    static uint16_t nozzle() { return adcDma1.get_channel(AdcChannel::hotend_T); };
+    static uint16_t bed() { return adcDma1.get_channel(AdcChannel::heatbed_T); };
+    static uint16_t boardTemp() { return adcDma1.get_channel(AdcChannel::board_T); };
+    static uint16_t pinda() { return adcDma1.get_channel(AdcChannel::pinda_T); };
+    static uint16_t bedMon() { return adcDma1.get_channel(AdcChannel::heatbed_U); };
 };
