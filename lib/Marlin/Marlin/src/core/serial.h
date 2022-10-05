@@ -68,8 +68,10 @@ extern uint8_t marlin_debug_flags;
 
 #define SERIAL_CHAR(x)          SERIAL_OUT(write, x)
 #define SERIAL_ECHO(x)          SERIAL_OUT(print, x)
+#define SERIAL_ECHOF(x)         SERIAL_OUT(print, x)
 #define SERIAL_ECHO_F(V...)     SERIAL_OUT(print, V)
 #define SERIAL_ECHOLN(x)        SERIAL_OUT(println, x)
+#define SERIAL_ECHOLNF(x)       SERIAL_OUT(println, x)
 #define SERIAL_PRINT(x,b)       SERIAL_OUT(print, x, b)
 #define SERIAL_PRINTLN(x,b)     SERIAL_OUT(println, x, b)
 #define SERIAL_PRINTF(V...)     SERIAL_OUT(printf, V)

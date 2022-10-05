@@ -83,3 +83,10 @@
 #ifndef UNUSED
   #define UNUSED(x) ((void)(x))
 #endif
+
+class __FlashStringHelper;
+typedef const __FlashStringHelper* FSTR_P;
+#ifndef FPSTR
+  #define FPSTR(S) (reinterpret_cast<FSTR_P>(S))
+#endif
+#define FTOP(S) (reinterpret_cast<const char*>(S))
