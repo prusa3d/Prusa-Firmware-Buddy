@@ -40,6 +40,11 @@ struct Event {
     std::optional<CommandId> command_id;
     std::optional<uint16_t> job_id;
     std::optional<SharedPath> path;
+    /// Reason for the event. May be null.
+    ///
+    /// Reasons are constant strings, therefore the non-owned const char * ‒
+    /// they are not supposed to get "constructed" or interpolated.
+    const char *reason = nullptr;
 };
 
 using Action = std::variant<
