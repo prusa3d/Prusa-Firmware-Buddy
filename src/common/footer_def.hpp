@@ -11,7 +11,7 @@
 #include "guiconfig.h"
 #include <array>
 
-//sadly this must be macros, it is used in preprocessor
+// sadly this must be macros, it is used in preprocessor
 #if (defined(PRINTER_TYPE) && PRINTER_TYPE == PRINTER_PRUSA_MINI) || defined(USE_MOCK_DISPLAY)
     #define FOOTER_HAS_LIVE_Z
     #define FOOTER_HAS_SHEETS
@@ -34,20 +34,20 @@ enum class items : uint8_t { // stored in eeprom, must be small
     ItemNozzle,
     ItemBed,
     ItemFilament,
-    ItemSpeed,
-#if defined(FOOTER_HAS_LIVE_Z)
-    ItemLiveZ,
-#endif
-#if defined(FOOTER_HAS_SHEETS)
-    ItemSheets,
-#endif
     ItemFSensor,
+    ItemSpeed,
     ItemAxisX,
     ItemAxisY,
     ItemAxisZ,
     ItemZHeight,
     ItemPrintFan,
     ItemHeatbreakFan,
+#if defined(FOOTER_HAS_LIVE_Z)
+    ItemLiveZ,
+#endif
+#if defined(FOOTER_HAS_SHEETS)
+    ItemSheets,
+#endif
     count_
 };
 
@@ -69,7 +69,7 @@ enum class ItemDrawType : uint8_t {
 };
 static constexpr ItemDrawType DefaultDrawType = ItemDrawType::Dynamic;
 
-//ensure meaningfull value when flash is corrupted
+// ensure meaningfull value when flash is corrupted
 constexpr ItemDrawType Ui8ToItemDrawType(uint8_t data) {
     switch (data) {
     case uint8_t(ItemDrawType::Static):
@@ -99,7 +99,7 @@ struct ItemDrawCnf {
         : type(Ui8ToItemDrawType(data & 0xff))
         , zero((((data >> 8) & 0xff) == 0) ? draw_zero_t::no : draw_zero_t::yes)
         , centerNAndFewer((data >> 16) & 0xff) {
-        //data was invalid, set default
+        // data was invalid, set default
         if (data != uint32_t(*this)) {
             *this = Default();
         }
@@ -114,7 +114,7 @@ struct ItemDrawCnf {
 };
 static_assert(sizeof(ItemDrawCnf) <= 4, "invalid ctor - constexpr ItemDrawCnf(uint32_t data)");
 
-//4B var, better pass by value
+// 4B var, better pass by value
 constexpr bool operator==(ItemDrawCnf lhs, ItemDrawCnf rhs) {
     if (lhs.type != rhs.type)
         return false;
