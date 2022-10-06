@@ -105,7 +105,6 @@ set(HAS_MARLIN TRUE)
 target_compile_definitions(
   BuddyHeaders
   INTERFACE MOTHERBOARD=1823
-            MCU=${MCU}
             GUI=${GUI}
             PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
             BOARD=BOARD_${BOARD}

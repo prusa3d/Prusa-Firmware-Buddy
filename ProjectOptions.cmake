@@ -121,6 +121,9 @@ if(${MCU} STREQUAL "<default>")
     message(FATAL_ERROR "Don't know what MCU to set as default for this board/version")
   endif()
 endif()
+# define MCU option
+list(REMOVE_ITEM MCU_VALID_OPTS "<default>")
+define_enum_option(NAME MCU VALUE ${MCU} ALL_VALUES ${MCU_VALID_OPTS})
 
 # parse board version into its components
 string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" BOARD_VERSION_MATCH ${BOARD_VERSION})

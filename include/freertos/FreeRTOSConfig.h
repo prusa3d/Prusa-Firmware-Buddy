@@ -70,7 +70,7 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-#include "device/mcu.h"
+#include <device/mcu.h>
 
 /*-----------------------------------------------------------
  * Application specific definitions.
@@ -134,7 +134,7 @@ extern uint32_t SystemCoreClock;
 #define configUSE_MUTEXES           1
 #define configUSE_RECURSIVE_MUTEXES 1
 #define configQUEUE_REGISTRY_SIZE   8
-#if MCU_IS_STM32F4
+#if MCU_IS_STM32F4()
     #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 #else
     #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
