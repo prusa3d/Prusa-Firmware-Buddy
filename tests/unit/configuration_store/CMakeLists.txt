@@ -2,9 +2,13 @@ include(${CMAKE_SOURCE_DIR}/src/configuration_store/ConfigurationStoreUtils.cmak
 
 add_executable(
   eeprom_unit_tests
-  ${CMAKE_CURRENT_SOURCE_DIR}/eeprom_test.cpp ${CMAKE_CURRENT_SOURCE_DIR}/dummy_eeprom_chip.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/eeprom_test.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/dummy_eeprom_chip.cpp
   ${CMAKE_SOURCE_DIR}/src/common/crc32.c
-  ${CMAKE_SOURCE_DIR}/src/configuration_store/eeprom_access.cpp set_tests.cpp bsod.cpp
+  ${CMAKE_SOURCE_DIR}/src/configuration_store/configuration_store.cpp
+  ${CMAKE_SOURCE_DIR}/src/configuration_store/eeprom_access.cpp
+  set_tests.cpp
+  bsod.cpp
   )
 
 # define custom macros

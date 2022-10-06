@@ -5,7 +5,7 @@
 #include <tuple>
 #include "configuration_store_structure.hpp"
 #include "item_updater.hpp"
-
+namespace configuration_store {
 /**
  * This class is configuration store which provides easy access to its values.
  * It initializes the values from eeprom and persists them into it on change.
@@ -52,3 +52,5 @@ void ConfigurationStore<CONFIG>::factory_reset() {
         CONFIG::tuplify());
     EepromAccess::instance().reset();
 }
+}
+configuration_store::ConfigurationStore<configuration_store::ConfigurationStoreStructure> &store();

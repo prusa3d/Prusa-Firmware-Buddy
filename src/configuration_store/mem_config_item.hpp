@@ -6,13 +6,17 @@
 #include <optional>
 #include "item_updater.hpp"
 #include <string.h>
+
+namespace configuration_store {
+class ItemUpdater;
+
 using EepromKey = const char *;
 struct ConfigurationStoreStructure;
 template <class T = ConfigurationStoreStructure>
 class ConfigurationStore;
 
 template <class T, class CovertTo = T>
-struct MemConfigItem {
+class MemConfigItem {
     EepromKey key;
 
     T data;
@@ -21,11 +25,15 @@ struct MemConfigItem {
     void set_to_default() {
         data = def_val;
     }
+    friend ItemUpdater;
+    friend ConfigurationStore<>;
+
+public:
+    void init(const T &new_data);
+
     operator T const &() const {
         return data;
     }
-
-    void init(const T &new_data);
 
     void set(T new_data);
     T get() {
@@ -96,7 +104,4 @@ struct MemConfigItem<std::array<char, SIZE>> {
     }
 };
 
-template <size_t SIZE>
-void MemConfigItem<std::array<char, SIZE>>::init(const std::array<char, SIZE> &new_data) {
-    data = new_data;
 }

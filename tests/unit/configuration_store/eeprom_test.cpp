@@ -3,7 +3,7 @@
 #include "eeprom_access.hpp"
 #include "configuration_store/configuration_store.hpp"
 #include "dummy_eeprom_chip.h"
-
+using namespace configuration_store;
 static constexpr const char *key = "data";
 static constexpr size_t header_size = 1;
 

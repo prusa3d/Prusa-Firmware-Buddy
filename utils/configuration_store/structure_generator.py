@@ -257,6 +257,7 @@ def main():
     with open(args.Output, "w") as file:
         file.write("#pragma once\n")
         file.write("#include \"configuration_store/mem_config_item.hpp\"\n")
+        file.write("namespace configuration_store{\n")
         for item in items:
             additional = item.get_additional_definitions()
             if additional is not None:
@@ -284,10 +285,11 @@ def main():
                 file.write(f"{add_ifdef(item.ifdef, line)}\n")
             else:
                 file.write(f"{line}\n")
-        file.write("); };\n};\n")
+        file.write("); };\n};\n}\n")
     with open(args.OutputSwitch, "w") as file:
         file.write("#include \"configuration_store/item_updater.hpp\"\n")
         file.write("#include \"configuration_store/eeprom_access.hpp\"\n")
+        file.write("using namespace configuration_store;\n")
         file.write(
             "#include \"configuration_store/configuration_store.hpp\"\n")
         file.write(

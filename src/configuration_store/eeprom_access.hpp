@@ -10,7 +10,8 @@
 #include <algorithm>
 #include "item_updater.hpp"
 #include "bsod.h"
-// helper structs
+
+namespace configuration_store { // helper structs
 struct Key {
     uint32_t key;
     template <class Packer>
@@ -218,4 +219,9 @@ void MemConfigItem<std::array<char, SIZE>>::set(const char *new_data) {
         // using eeprom access singleton directly, because I don't want to have pointer in every item
         EepromAccess::instance().template set(key, data);
     }
+}
+template <size_t SIZE>
+void MemConfigItem<std::array<char, SIZE>>::init(const std::array<char, SIZE> &new_data) {
+    data = new_data;
+}
 }

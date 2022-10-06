@@ -1,6 +1,6 @@
 #include "eeprom_access.hpp"
 #include "hash_table.hpp"
-
+using namespace configuration_store;
 void EepromAccess::store_item(const std::vector<uint8_t> &data) {
     if (!initialized) {
         fatal_error("Eeprom used uninitialized", "eeprom");
