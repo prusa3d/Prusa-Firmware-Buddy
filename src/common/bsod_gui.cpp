@@ -201,8 +201,8 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 #ifdef PSOD_BSOD
 
     display::Clear(COLOR_BLACK); //clear with black color
-    //display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_64px, COLOR_BLACK, 0);
-    display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_140px, COLOR_BLACK, 0);
+    // DrawIcon requires ResourceId, but pepa png has new destination - DrawIcon will have to require window_icon_t::DataResourceId
+    //display::DrawIcon(point_ui16(75, 40), PNG::pepa_92x140, COLOR_BLACK, 0);
     display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
 
 #else
