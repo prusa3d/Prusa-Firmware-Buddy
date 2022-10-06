@@ -105,7 +105,6 @@ set(HAS_MARLIN TRUE)
 target_compile_definitions(
   BuddyHeaders
   INTERFACE MOTHERBOARD=1823
-            GUI=${GUI}
             PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
             BOARD=BOARD_${BOARD}
             BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
@@ -467,18 +466,6 @@ set_property(
            FW_VERSION=${PROJECT_VERSION}
            FW_VERSION_SUFFIX=${PROJECT_VERSION_SUFFIX}
            FW_VERSION_SUFFIX_SHORT=${PROJECT_VERSION_SUFFIX_SHORT}
-  )
-
-set_property(
-  SOURCE src/buddy/main.cpp
-         src/common/appmain.cpp
-         src/common/sys.cpp
-         src/marlin_stubs/gcode.cpp
-         src/common/hwio_buddy_2209_02.cpp
-         src/gui/guimain.cpp
-         src/common/marlin_server.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )
 
 set_property(

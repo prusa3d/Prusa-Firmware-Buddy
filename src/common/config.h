@@ -33,6 +33,7 @@ enum {
 #define USE_ESP01_WITH_UART6
 
 //guiconfig.h included with config
-#if GUI
+#include <option/has_gui.h>
+#if HAS_GUI()
     #include "../guiconfig/guiconfig.h"
 #endif

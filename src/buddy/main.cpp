@@ -30,6 +30,7 @@
 #include "logging.h"
 #include "common/disable_interrupts.h"
 #include <option/filament_sensor.h>
+#include <option/has_gui.h>
 #include "tasks.h"
 
 #if ENABLED(POWER_PANIC)
@@ -86,7 +87,7 @@ extern "C" void main_cpp(void) {
 
     SPI_INIT(flash);
 
-#if HAS_GUI
+#if HAS_GUI()
     SPI_INIT(lcd);
 #endif
 
@@ -96,7 +97,7 @@ extern "C" void main_cpp(void) {
     UART_INIT(esp);
 #endif
 
-#if HAS_GUI
+#if HAS_GUI()
     hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
 #endif
 
@@ -165,7 +166,7 @@ extern "C" void main_cpp(void) {
     osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-    if (HAS_GUI) {
+    if (option::has_gui) {
         osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024 + 256);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }

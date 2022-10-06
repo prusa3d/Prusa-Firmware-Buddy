@@ -26,11 +26,5 @@ target_sources(
 set_property(
   SOURCE src/main.cpp
   APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
-  )
-
-set_property(
-  SOURCE src/main.cpp
-  APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_MMU2=$<BOOL:${HAS_MMU2}>
   )

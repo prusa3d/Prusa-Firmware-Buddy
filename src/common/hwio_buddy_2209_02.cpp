@@ -358,7 +358,7 @@ void hwio_beeper_set_vol(float vol) {
     hwio_beeper_vol = vol;
 }
 
-#if HAS_GUI
+#if HAS_GUI()
 void hwio_beeper_set_pwm(uint32_t per, uint32_t pul) {
     TIM_OC_InitTypeDef sConfigOC = { 0 };
     if (per) {
