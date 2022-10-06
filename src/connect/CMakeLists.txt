@@ -7,6 +7,7 @@ target_sources(
           printer.cpp
           marlin_printer.cpp
           run.cpp
+          hostname.cpp
           ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   )
 

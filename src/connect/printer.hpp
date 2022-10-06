@@ -65,7 +65,7 @@ public:
     };
 
     struct Config {
-        static constexpr size_t CONNECT_URL_LEN = 30;
+        static constexpr size_t CONNECT_URL_LEN = 35;
         static constexpr size_t CONNECT_URL_BUF_LEN = (CONNECT_URL_LEN + 1);
         static constexpr size_t CONNECT_TOKEN_LEN = 20;
         static constexpr size_t CONNECT_TOKEN_BUF_LEN = (CONNECT_TOKEN_LEN + 1);
