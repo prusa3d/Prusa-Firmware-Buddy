@@ -29,6 +29,7 @@
 #include "adc.hpp"
 #include "logging.h"
 #include "common/disable_interrupts.h"
+#include <option/filament_sensor.h>
 #include "tasks.h"
 
 #if ENABLED(POWER_PANIC)
@@ -192,7 +193,7 @@ extern "C" void main_cpp(void) {
     power_panic::ac_fault_task = osThreadCreate(osThread(acFaultTask), NULL);
 #endif
 
-    if (FILAMENT_SENSOR) {
+    if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
         osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
         osThreadCreate(osThread(measurementTask), NULL);

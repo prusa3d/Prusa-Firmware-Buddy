@@ -24,12 +24,6 @@ target_sources(
   )
 
 set_property(
-  SOURCE main.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS FILAMENT_SENSOR=$<BOOL:${FILAMENT_SENSOR}>
-  )
-
-set_property(
   SOURCE src/main.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
