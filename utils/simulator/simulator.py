@@ -11,6 +11,7 @@ from .pubsub import Publisher
 from .printer import Thermistor, MachineType, NetworkInterface
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Simulator:

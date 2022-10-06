@@ -2,6 +2,7 @@ import aiohttp
 import asyncio
 import logging
 import pytest
+import pytest_asyncio
 
 from .actions import encoder, screen, temperature, network
 from simulator import MachineType, Thermistor, Printer
@@ -13,7 +14,7 @@ def wui_base_url(printer):
     return f'http://localhost:{network.proxy_http_port_get(printer)}'
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def wui_client(printer):
     # Make sure the printer is running before returning the client.
     await screen.wait_for_text(printer, 'HOME')
@@ -104,7 +105,7 @@ async def test_idle_job(wui_client: aiohttp.ClientSession):
     assert job["progress"] is None
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def printer_with_files(printer_factory, printer_flash_dir, data_dir):
     gcode_name = 'box.gcode'
     gcode = (data_dir / gcode_name).read_bytes()
@@ -122,7 +123,7 @@ async def printer_with_files(printer_factory, printer_flash_dir, data_dir):
         yield client
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def running_printer_client(printer_factory, printer_flash_dir, data_dir):
     gcode_name = 'box.gcode'
     gcode = (data_dir / gcode_name).read_bytes()

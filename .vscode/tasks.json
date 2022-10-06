@@ -6,9 +6,9 @@
         {
             "label": "Bootstrap",
             "type": "shell",
-            "command": "python3 ${workspaceFolder}/utils/bootstrap.py",
+            "command": "py ${workspaceFolder}/utils/bootstrap.py",
             "windows": {
-                "command": "python ${workspaceFolder}\\utils\\bootstrap.py"
+                "command": "py ${workspaceFolder}\\utils\\bootstrap.py"
             },
             "runOptions": {
                 "runOn": "folderOpen"
@@ -17,9 +17,9 @@
         {
             "label": "Prepare Simulator State Directory",
             "type": "shell",
-            "command": "python3 ${workspaceFolder}/.vscode/prepare_simulator_dir.py ${workspaceFolder}/build-vscode-buddy ${workspaceFolder}/build-vscode-buddy/simulator",
+            "command": "py ${workspaceFolder}/.vscode/prepare_simulator_dir.py ${workspaceFolder}/build-vscode-buddy ${workspaceFolder}/build-vscode-buddy/simulator",
             "windows": {
-                "command": "python ${workspaceFolder}\\.vscode\\prepare_simulator_dir.py ${workspaceFolder}\\build-vscode-buddy ${workspaceFolder}\\build-vscode-buddy\\simulator"
+                "command": "py ${workspaceFolder}\\.vscode\\prepare_simulator_dir.py ${workspaceFolder}\\build-vscode-buddy ${workspaceFolder}\\build-vscode-buddy\\simulator"
             }
         }
     ]

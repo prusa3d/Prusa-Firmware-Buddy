@@ -1,0 +1,7 @@
+{
+    "python.testing.pytestArgs": [
+        ".", "--firmware", "c:\\dev\\prusa\\buddy\\build-vscode-buddy\\firmware.bin", "--simulator", "c:\\dev\\prusa\\Mini404-v0.9.4-w64\\qemu-system-buddy.exe"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

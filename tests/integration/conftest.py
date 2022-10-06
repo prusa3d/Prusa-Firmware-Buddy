@@ -2,9 +2,12 @@ import sys
 import binascii
 import functools
 import asyncio
+import pytest_asyncio
 import hashlib
 import pytest
 import json
+import os.path
+import shutil
 from pathlib import Path
 
 # add the /utils to PATH so we can use the `simulator` package
@@ -127,7 +130,7 @@ async def prepare_eeprom_content(eeprom_variables, basic_printer_arguments,
                         '-DCUSTOM_COMPILE_OPTIONS:STRING=-DAUTOSTART_GCODE=1')
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def eeprom_content(eeprom_variables, basic_printer_arguments, tmpdir,
                          firmware_path, request):
     # create empty eeprom banks
@@ -171,8 +174,12 @@ async def eeprom_content(eeprom_variables, basic_printer_arguments, tmpdir,
 
 
 @pytest.fixture
-def printer_flash_dir(tmpdir):
-    return tmpdir.mkdir('printer_flash_dir')
+def printer_flash_dir(tmpdir, firmware_path):
+    flash_dir = tmpdir.mkdir('printer_flash_dir')
+    bbf_file_path = os.path.splitext(firmware_path)[0] + ".bbf"
+    shutil.copy(bbf_file_path, flash_dir)
+    return flash_dir
+
 
 
 @pytest.fixture
@@ -190,7 +197,7 @@ def basic_printer_arguments(simulator_path, firmware_path,
                 nographic=not enable_graphic)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def printer_factory(basic_printer_arguments, eeprom_content,
                           printer_flash_dir):
     return functools.partial(Simulator.run,
@@ -199,7 +206,7 @@ async def printer_factory(basic_printer_arguments, eeprom_content,
                              mount_dir_as_flash=printer_flash_dir)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def printer(printer_factory):
     async with printer_factory() as printer:
         yield printer

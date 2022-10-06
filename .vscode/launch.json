@@ -95,7 +95,7 @@
                     "-pflash", "${workspaceFolder}\\build-vscode-buddy\\simulator\\eeprom_bank1.bin",
                     "-pflash", "${workspaceFolder}\\build-vscode-buddy\\simulator\\eeprom_bank2.bin",
                     "-nodefaults",
-                    "-chardev", "stdio,id=stm32_itm",
+                    "-chardev", "stdio,id=stm32_itm", "-d", "guest_errors"
                     "-append", "4x_flash",
                     "-semihosting-config", "enable=on,target=gdb,arg=firmware ./build-vscode-buddy/firmware.bbf",
                 ],
@@ -119,6 +119,7 @@
             "cwd": "${workspaceFolder}",
             "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "launch",
+            "showDevDebugOutput": "raw"
         },
         {
             "name": "GDB (QEMU)",
