@@ -10,7 +10,6 @@
 #include <algorithm>
 #include "item_updater.hpp"
 #include "bsod.h"
-
 // helper structs
 struct Key {
     uint32_t key;

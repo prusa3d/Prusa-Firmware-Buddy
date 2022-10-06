@@ -50,7 +50,7 @@ std::optional<std::vector<uint8_t>> EepromAccess::load_item(uint16_t address) {
     // add 4 to load also the crc
     data.resize(len);
 
-    if ((address + sizeof(len) + data.size()) > EEPROM_SIZE) {
+    if ((address + sizeof(len) + len) > EEPROM_SIZE) {
         return std::nullopt;
     }
 

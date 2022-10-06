@@ -5,14 +5,69 @@
   },
   "run_selftest": {
     "data_type": "bool",
-    "default": true
+    "default": true,
+    "ifdef": "HAS_SELFTEST"
   },
   "run_xyz_calib": {
     "data_type": "bool",
-    "default": true
+    "default": true,
+    "ifdef": "HAS_SELFTEST"
   },
   "run_firstlay": {
     "data_type": "bool",
+    "default": true,
+    "ifdef": "HAS_SELFTEST"
+  },
+  "fsensor_enabled": {
+    "data_type": "bool",
     "default": true
+  },
+  "sheet_profile0": {
+    "data_type": "flt",
+    "default": 0
+  },
+  "sheet_profile1": {
+    "data_type": "flt",
+    "default": 0,
+    "ifdef": "HAS_SHEETS"
+  },
+  "sheet_profile2": {
+    "data_type": "flt",
+    "default": 0,
+    "ifdef": "HAS_SHEETS"
+  },
+  "sheet_profile3": {
+    "data_type": "flt",
+    "default": 0,
+    "ifdef": "HAS_SHEETS"
+  },
+  "sheet_profile4": {
+    "data_type": "flt",
+    "default": 0,
+    "ifdef": "HAS_SHEETS"
+  },
+  "pid_noz_p": {
+    "data_type": "flt",
+    "default": 0
+  },
+  "pid_noz_i": {
+    "data_type": "flt",
+    "default": 0
+  },
+  "pid_noz_d": {
+    "data_type": "flt",
+    "default": 0
+  },
+  "pid_bed_p": {
+    "data_type": "flt",
+    "default": 0
+  },
+  "pid_bed_i": {
+    "data_type": "flt",
+    "default": 0
+  },
+  "pid_bed_d": {
+    "data_type": "flt",
+    "default": 0
   }
 }

@@ -25,16 +25,30 @@ class DataType(Enum):
     char = "char"
 
 
+def add_ifdef(ifdef: str, definition: str) -> str:
+    res = f"#if {ifdef}\n "
+
+    res = res + definition
+
+    res = res + f"\n#endif"
+    return res
+
+
 @dataclass
 class Item(ABC):
     name: str
+    ifdef: Any
 
     def generate_item(self):
         pass
 
     def get_item_declaration(self) -> str:
-        # TODO create bounds set which will reduce the number of bounds
-        return f"MemConfigItem<{self.get_type_name()}> {self.get_name()} {{ \"{self.name}\" , {str(self.default)} }};"
+        res = f"MemConfigItem<{self.get_type_name()}> {self.get_name()} {{ \"{self.name}\" , {str(self.default)} }};"
+
+        if self.ifdef is not None:
+            res = add_ifdef(self.ifdef, res)
+
+        return res
 
     @abstractmethod
     def get_additional_definitions(self) -> Optional[str]:
@@ -57,10 +71,12 @@ class BasicItem(Item):
     data_type: DataType
     def_val: Any
 
-    def __init__(self, name: str, data_type: DataType, default: Any):
+    def __init__(self, name: str, data_type: DataType, default: Any,
+                 ifdef: Any):
         self.name = name
         self.data_type = data_type
         self.def_val = default
+        self.ifdef = ifdef
 
     def get_additional_definitions(self) -> Optional[str]:
         return None
@@ -143,27 +159,40 @@ class ItemParser:
         self.items = dict()
         self.additional = []
 
-    def __create_basic_item(self, name: str, data_type: str,
-                            default: Any) -> Item:
-        data_type = DataType[data_type]
-        return BasicItem(name, data_type, default)
-
-    def __create_array_item(self,
+    def __create_basic_item(self,
                             name: str,
                             data_type: str,
-                            length: int,
-                            item: dict,
-                            default=None) -> Item:
+                            default: Any,
+                            ifdef=None) -> Item:
+        try:
+            data_type = DataType[data_type]
+        except:
+            raise Exception(f"{name} has invalid data type")
+
+        return BasicItem(name, data_type, default, ifdef)
+
+    def __create_array_item(
+            self,
+            name: str,
+            data_type: str,
+            length: int,
+            item: dict,
+            ifdef=None,
+    ) -> Item:
         member = self.__parse_type("item", item)
 
-        return ArrayItem(name, length, member)
+        return ArrayItem(name, ifdef, length, member)
 
-    def __create_struct_item(self, name: str, data_type: str, type_name: str,
-                             members: dict) -> Item:
+    def __create_struct_item(self,
+                             name: str,
+                             data_type: str,
+                             type_name: str,
+                             members: dict,
+                             ifdef=None) -> Item:
         items = dict()
         for member_name, data in members.items():
             items[member_name] = self.__parse_type(name, data)
-        return StructItem(name, items, type_name)
+        return StructItem(name, ifdef, items, type_name)
 
     def __parse_type(self, name: str, data: dict) -> Item:
         item_type = data["data_type"]
@@ -184,16 +213,21 @@ class ItemParser:
         crc = zlib.crc32(name.encode())
         item = self.items.get(crc)
         if item is not None:
-            raise name + " conflicts with " + item
-        self.items[crc] = name
-        return self.__parse_type(name, data)
+            if name == item:
+                raise Exception(f"Duplicate name: {item}")
+            raise Exception(f"crc of {name} conflicts with crc of {item}")
+        item = self.__parse_type(name, data)
+        self.items[crc] = item
+        return item
 
     def get_switch_cases(self) -> List[str]:
         cases = []
-        for crc, name in self.items.items():
-            cases.append(
-                f"case {str(crc)}:\n store.{name}.init(EepromAccess::deserialize_data<decltype(store.{name}.data)>(data).data);\n break;"
-            )
+        for crc, item in self.items.items():
+            line = f"case {str(crc)}:\n store.{item.name}.init(EepromAccess::deserialize_data<decltype(store.{item.name}.data)>(data).data);\n break;"
+            if item.ifdef is not None:
+                cases.append(add_ifdef(item.ifdef, line))
+            else:
+                cases.append(line)
         return cases
 
 
@@ -210,6 +244,7 @@ def main():
     parser.add_argument("OutputSwitch",
                         help="Path to where to store the output file",
                         type=Path)
+
     args = parser.parse_args()
     items = []
     additional_definitions = []
@@ -239,9 +274,16 @@ def main():
             file.write("\n")
 
         file.write("auto tuplify(){\n return std::tie(\n")
-        for item in items[0:-1]:
-            file.write(f"{item.name},\n")
-        file.write(f"{items[-1].name}")
+        if items[0].ifdef is not None:
+            file.write(f"{add_ifdef(items[0].ifdef, items[0].name)}\n")
+        else:
+            file.write(f"{items[0].name}\n")
+        for item in items[1:]:
+            line = f",{item.name}"
+            if item.ifdef is not None:
+                file.write(f"{add_ifdef(item.ifdef, line)}\n")
+            else:
+                file.write(f"{line}\n")
         file.write("); };\n};\n")
     with open(args.OutputSwitch, "w") as file:
         file.write("#include \"configuration_store/item_updater.hpp\"\n")

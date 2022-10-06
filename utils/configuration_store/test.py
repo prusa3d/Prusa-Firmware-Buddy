@@ -31,7 +31,7 @@ def test_string():
 
 
 def test_bool():
-    data = {"data_type": "bol", "default": True}
+    data = {"data_type": "bool", "default": True}
     item_parser = ItemParser()
     item = item_parser.parse_type("test", data)
     assert type(item) == BasicItem
@@ -97,3 +97,13 @@ template <class Packer>
 void pack (Packer &pack) {
 pack(array, SimpleType, string_type);}
 };"""
+
+
+def test_ifdef():
+    data = {"data_type": "i32", "default": 0, "ifdef": "defined(HAS_LIVE_Z)"}
+    item_parser = ItemParser()
+    item = item_parser.parse_type("test", data)
+    assert type(item) == BasicItem
+    assert item.name == "test"
+    assert item.get_item_declaration(
+    ) == "#if defined(HAS_LIVE_Z)\n MemConfigItem<int32_t> test { \"test\" , 0 };\n#endif"
