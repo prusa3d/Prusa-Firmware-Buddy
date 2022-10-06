@@ -1,5 +1,4 @@
 #pragma once
-#include <option/macros.h>
 
 #define ${OPTION_NAME}() ${OPTION_ENABLED}
 

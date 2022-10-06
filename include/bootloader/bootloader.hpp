@@ -15,7 +15,7 @@ struct Version {
 /// Return version of installed bootloader.
 Version get_version();
 
-#if ENABLED(BOOTLOADER_UPDATE())
+#if BOOTLOADER_UPDATE()
 
 /// Return true if the bootloader needs to be updated/reflashed
 bool needs_update();
