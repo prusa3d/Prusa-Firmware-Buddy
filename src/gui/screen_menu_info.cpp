@@ -30,7 +30,7 @@ public:
     ScreenMenuInfo()
         : Screen(_(label)) {
         EnableLongHoldScreenAction();
-        header.SetIconFilePath(png_info_16px);
+        header.SetIconFilePath(PNG::info_16x16);
     }
 };
 

@@ -10,7 +10,6 @@
 #include "window_text.hpp"
 
 class SelftestFrameWizardPrologue : public AddSuperWindow<SelftestFrameWithRadio> {
-    static constexpr const char *iconName = "/internal/res/png/pepa_140px.png";
     window_icon_t icon;
     window_text_t text_icon;
 

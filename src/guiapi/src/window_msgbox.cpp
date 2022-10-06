@@ -159,12 +159,12 @@ Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t de
 
 Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Question");
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), png_question_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), PNG::question_16x16);
 }
 
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Warning");
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), png_warning_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), PNG::warning_16x16);
 }
 
 Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, ResourceId icon_id, is_multiline multiline) {
@@ -173,7 +173,7 @@ Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseRe
 
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     constexpr static const char *label = N_("Information");
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), png_info_16px);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), PNG::info_16x16);
 }
 
 Response MsgBoxIcon(string_view_utf8 txt, window_icon_t::DataSourceId icon_id, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
@@ -181,6 +181,5 @@ Response MsgBoxIcon(string_view_utf8 txt, window_icon_t::DataSourceId icon_id, c
 }
 
 Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    const char *iconName = "/internal/res/png/pepa_64px.png";
-    return MsgBoxIcon(txt, iconName, resp, def_btn, rect, multiline);
+    return MsgBoxIcon(txt, PNG::pepa_42x64, resp, def_btn, rect, multiline);
 }
