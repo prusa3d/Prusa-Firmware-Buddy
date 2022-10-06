@@ -78,7 +78,7 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     screen_filebrowser_data_t::SetRoot("/usb");
 
-    header.SetIconFilePath(png_home_16px);
+    header.SetIconFilePath(PNG::home_16x16);
 #ifndef _DEBUG
     header.SetText(_("HOME"));
 #else

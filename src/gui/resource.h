@@ -2,20 +2,26 @@
 #pragma once
 #include <stdint.h>
 
-static constexpr const char png_home_16px[] = "/internal/res/png/home_shape_16px.png";
-static constexpr const char png_print_16px[] = "/internal/res/png/print_16px.png";
-static constexpr const char png_hand_154px[] = "/internal/res/png/hand_154x65.png";
-static constexpr const char png_nozzle_34px[] = "/internal/res/png/nozzle_34x32.png";
-static constexpr const char png_usb_16px[] = "/internal/res/png/usb_16px.png";
-static constexpr const char png_info_16px[] = "/internal/res/png/info_16px.png";
-static constexpr const char png_warning_16px[] = "/internal/res/png/warning_16px.png";
-static constexpr const char png_question_16px[] = "/internal/res/png/question_16px.png";
-static constexpr const char png_nozzle_48px[] = "/internal/res/png/nozzle_shape_48px.png";
-static constexpr const char png_arrow_up_16px[] = "/internal/res/png/arrow_up_16px.png";
-static constexpr const char png_arrow_down_16px[] = "/internal/res/png/arrow_down_16px.png";
-static constexpr const char png_arrow_left_16px[] = "/internal/res/png/arrow_left_16px.png";
-static constexpr const char png_hand_qr[] = "/internal/res/png/hand_qr.png";
-static constexpr const char png_turn_knob[] = "/internal/res/png/turn_knob.png";
+struct PNG {
+    static constexpr const char home_16x16[] = "/internal/res/png/home_shape_16px.png";
+    static constexpr const char print_16x16[] = "/internal/res/png/print_16px.png";
+    static constexpr const char hand_154x65[] = "/internal/res/png/hand_154x65.png";   // Unused
+    static constexpr const char nozzle_34x32[] = "/internal/res/png/nozzle_34x32.png"; // Unused
+    static constexpr const char usb_32x16[] = "/internal/res/png/usb_16px.png";
+    static constexpr const char info_16x16[] = "/internal/res/png/info_16px.png";
+    static constexpr const char warning_16x16[] = "/internal/res/png/warning_16px.png";
+    static constexpr const char question_16x16[] = "/internal/res/png/question_16px.png";
+    static constexpr const char nozzle_48x48[] = "/internal/res/png/nozzle_shape_48px.png";
+    static constexpr const char arrow_up_16x16[] = "/internal/res/png/arrow_up_16px.png";     // Unused
+    static constexpr const char arrow_down_16x16[] = "/internal/res/png/arrow_down_16px.png"; // Unused
+    static constexpr const char arrow_left_16x16[] = "/internal/res/png/arrow_left_16px.png"; // Unused
+    static constexpr const char hand_qr_59x72[] = "/internal/res/png/hand_qr.png";
+    static constexpr const char turn_knob_81x55[] = "/internal/res/png/turn_knob.png";
+    static constexpr const char pepa_42x64[] = "/internal/res/png/pepa_64px.png";
+    static constexpr const char pepa_92x140[] = "/internal/res/png/pepa_140px.png";
+    static constexpr const char pepa_original_90x137[] = "/internal/res/png/pepa_original_140px.png";
+    static constexpr const char serial_printing_172x138[] = "/internal/res/png/png_serial_printing.png";
+};
 
 enum ResourceId : uint8_t {
 
