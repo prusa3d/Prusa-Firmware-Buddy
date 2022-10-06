@@ -14,6 +14,8 @@
 #include "language_eeprom.hpp"
 #include "bsod.h"
 
+#include <option/bootloader.h>
+
 #ifdef _EXTUI
     #include "marlin_client.h"
 #endif
@@ -111,7 +113,7 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t 
             text_progress.Invalidate();
         }
 
-    #ifdef BOOTLOADER
+    #if BOOTLOADER()
         // when running under bootloader, we take over the progress bar at 50 %
         percent = 50 + percent / 2;
     #endif

@@ -1,0 +1,12 @@
+#pragma once
+#include <option/macros.h>
+
+#define ${OPTION_NAME}() ${OPTION_ENABLED}
+
+#ifdef __cplusplus
+
+namespace option {
+    constexpr bool ${OPTION_NAME_lowered} = ${OPTION_ENABLED};
+}
+
+#endif

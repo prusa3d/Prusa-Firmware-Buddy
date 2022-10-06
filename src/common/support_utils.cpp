@@ -17,6 +17,8 @@
 #include "qrcodegen.h"
 #include "support_utils_lib.hpp"
 
+#include <option/bootloader.h>
+
 static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com";
@@ -133,7 +135,7 @@ void error_url_short(char *str, const uint32_t str_size, const int error_code) {
 
 bool appendix_exist() {
     // With recent bootloader this can be done the easy way
-#ifdef BOOTLOADER
+#if BOOTLOADER()
     const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
     if (bootloader->major >= 1 && bootloader->minor >= 1) {
         return !(ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK);

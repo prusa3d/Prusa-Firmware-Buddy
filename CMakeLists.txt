@@ -3,7 +3,7 @@ include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
 include(cmake/ProjectVersion.cmake)
 include(cmake/Littlefs.cmake)
-include(cmake/Features.cmake)
+include(cmake/Options.cmake)
 
 project(
   Buddy
@@ -76,7 +76,7 @@ endif()
 add_library(BuddyHeaders INTERFACE)
 target_include_directories(
   BuddyHeaders INTERFACE include include/usb_host include/usb_device include/marlin
-                         include/freertos ${FEATURES_INCLUDE_DIR}
+                         include/freertos ${OPTIONS_INCLUDE_DIR}
   )
 
 if(MCU MATCHES "STM32F4")
@@ -310,10 +310,6 @@ add_subdirectory(src)
 
 if(WUI)
   target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
-endif()
-
-if(NOT (BOOTLOADER STREQUAL "NO"))
-  add_compile_definitions(BOOTLOADER)
 endif()
 
 # generate firmware.bin file
