@@ -471,12 +471,6 @@ set_property(
 
 set_property(
   SOURCE src/buddy/main.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS FILAMENT_SENSOR=$<BOOL:${FILAMENT_SENSOR}>
-  )
-
-set_property(
-  SOURCE src/buddy/main.cpp
          src/common/appmain.cpp
          src/common/sys.cpp
          src/marlin_stubs/gcode.cpp
